@@ -1,0 +1,17 @@
+#  This file contains properties common to the entire source tree.
+debug=on
+debuglevel=lines,vars,source
+
+base=@DBCOMMONDIR@
+
+common=${base}/common/
+database=${base}/database/
+dtds=${base}/docs/dtds/
+build=build
+src=src
+dist=dist
+test=${build}/test
+
+#lazarus libraries
+postgresql-jdbc3.jar=${database}/java/postgresql-8.0-312.jdbc3.jar
+

@@ -1,0 +1,722 @@
+/*
+ * Copyright (c) 2005 Digital Bazaar, Inc.  All rights reserved.
+ */
+package com.db.common.gui;
+
+import java.awt.Component;
+import java.awt.FontMetrics;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.HashMap;
+import java.util.Vector;
+
+import javax.swing.JComponent;
+import javax.swing.JTable;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumnModel;
+
+import com.db.common.logging.LoggerManager;
+
+/**
+ * This is a simple table model that can be easily extended.
+ * 
+ * @author Dave Longley
+ */
+public abstract class JComponentTableModel extends AbstractTableModel
+                                           implements SortableTableModel,
+                                                      ChangeListener,
+                                                      ComponentListener
+{
+   /**
+    * Column names and classes for any table model.
+    */
+   protected String[] mColumnNames;
+   protected Class[] mColumnClasses;
+   
+   /**
+    * The row data.
+    */
+   protected Vector mRowData;
+   
+   /**
+    * For the table that is to be resized.
+    */
+   protected JTable mResizeTable;
+   protected int mOldWidth = -1;
+   protected int mOldHeight = -1;
+   protected HashMap mColWidths;
+   protected int mTotalPrefWidth;
+   
+   /**
+    * Creates a default simple table model.
+    */
+   public JComponentTableModel()
+   {
+      super();
+      
+      mRowData = new Vector();
+   }
+   
+   /**
+    * Sets the row data.
+    * 
+    * @param rowData the row data to use.
+    */
+   protected void setRowData(Vector rowData)
+   {
+      mRowData = rowData;
+      
+      Iterator i = rowData.iterator();
+      while(i.hasNext())
+      {
+         Object obj = i.next();
+         if(obj instanceof ChangeReporter)
+         {
+            ChangeReporter cr = (ChangeReporter)obj;
+            cr.addChangeListener(this);
+         }
+      }      
+   }
+   
+   /**
+    * Gets all of the rows as a vector.
+    * 
+    * @return the row data as a vector.
+    */
+   protected Vector getRowData()
+   {
+      return mRowData;
+   }
+   
+   /**
+    * Gets the preferred width for components in a column.
+    *
+    * @param table the table the column is in.
+    * @param col the column to get the preferred width for.
+    * @return the preferred width for the column.
+    */
+   protected int getPreferredColumnWidth(JTable table, int col)
+   {
+      int rval = 0;
+      
+      try
+      {
+         // check actual data for preferred widths
+         int width = 0;
+         int rows = getRowCount();
+         for(int i = 0; i < rows; i++)
+         {
+            Object obj = getValueAt(i, col);
+            if(obj instanceof JComponent)
+            {
+               JComponent component = (JComponent)obj;
+               width = component.getPreferredSize().width;
+            }
+            else
+            {
+               FontMetrics fm = table.getFontMetrics(table.getFont());
+               width = fm.stringWidth(obj.toString());
+            }
+            
+            if(width > rval)
+            {
+               rval = width;
+            }
+         }
+         
+         // check column classes for preferred widths
+         if(col < mColumnClasses.length)
+         {
+            Class c = mColumnClasses[col];
+            Object obj = c.newInstance();
+            if(obj instanceof JComponent)
+            {
+               JComponent component = (JComponent)obj;
+               width = component.getPreferredSize().width;
+            }
+            else
+            {
+               FontMetrics fm = table.getFontMetrics(table.getFont());
+               width = fm.stringWidth(obj.toString());
+            }
+            
+            if(width > rval)
+            {
+               rval = width;
+            }            
+         }
+      }
+      catch(Throwable t)
+      {
+         //LoggerManager.debug("bmcommon", LoggerManager.getStackTrace(t));
+      }
+      
+      LoggerManager.debug("bmcommon",
+            "col=" + col + ",preferred width=" + rval);
+      
+      return rval;
+   }
+    
+   /**
+    * Sets the column names for this model.
+    * 
+    * @param colNames the column names for this model.
+    */
+   public void setColumnNames(String[] colNames)
+   {
+      mColumnNames = colNames;
+   }
+   
+   /**
+    * Gets the column names for this model.
+    * 
+    * @return the column names for this model.
+    */
+   public String[] getColumnNames()
+   {
+      return mColumnNames;
+   }
+   
+   /**
+    * Gets a column name.
+    * 
+    * @param column the column index.
+    * @return the name of the column.
+    */
+   public String getColumnName(int column)
+   {
+      String colName = "NONE";
+      
+      if(column >= 0 && column < getColumnCount())
+      {
+         colName = mColumnNames[column];
+      }
+      
+      return colName;
+   }
+   
+   /**
+    * Sets the column classes for this model.
+    * 
+    * @param colClasses the column classes for this model.
+    */
+   public void setColumnClasses(Class[] colClasses)
+   {
+      mColumnClasses = colClasses;
+   }
+   
+   /**
+    * Gets the column classes for this model.
+    * 
+    * @return the column classes for this model.
+    */
+   public Class[] getColumnClasses()
+   {
+      return mColumnClasses;
+   }
+   
+   /**
+    * Gets the column class for a column.
+    * 
+    * @param column the column index.
+    * @return the class for the column.
+    */
+   public Class getColumnClass(int column)
+   {
+      Class c = Object.class;
+      
+      if(column >= 0 && column < mColumnClasses.length)
+      {
+         c = mColumnClasses[column];
+      }
+      
+      return c;
+   }
+   
+   /**
+    * Allows cells to be edited so that components can be inserted
+    * into the table.
+    *
+    * @param row the row of the cell.
+    * @param column the column of the cell.
+    * @return return true if the class is JComponent for the cell.
+    */
+   public boolean isCellEditable(int row, int column)
+   {
+      boolean rval = false;
+      
+      if(getColumnClass(column) == JComponent.class)
+      {
+         rval = true;
+      }
+      
+      return rval;
+   }   
+   
+   /**
+    * Returns the column count for this model.
+    * 
+    * @return the column count for this model.
+    */
+   public int getColumnCount()
+   {
+      return mColumnClasses.length;
+   }
+   
+   /**
+    * Sets the preferred table dimensions for rows and columns.
+    *  
+    * @param table the table to alter.
+    */
+   public void setTableDimensions(JTable table)
+   {
+      // setup the preferred column widths
+      TableColumnModel tcm = table.getColumnModel();
+
+      int count = getColumnCount();
+      for(int i = 0; i < count; i++)
+      {
+         int width = getPreferredColumnWidth(table, i);
+         tcm.getColumn(i).setPreferredWidth(width);
+      }
+   }
+   
+   /**
+    * Call this function after adding a table to a scrolling container
+    * if you want the table to be resized according to the parent
+    * container's dimensions.
+    * 
+    * @param table the table you want to modify.
+    * @param on true if you want to turn column resizing on, false if not. 
+    */
+   public void setScrollResizingOn(JTable table, boolean on)
+   {
+      Component parent = table.getParent();
+
+      if(on)
+      {
+         if(parent != null)
+         {
+            mResizeTable = table;
+            parent.getParent().addComponentListener(this);
+            
+            mColWidths = new HashMap();
+            mTotalPrefWidth = 0;
+            TableColumnModel tcm = mResizeTable.getColumnModel();
+            for(int i = 0; i < tcm.getColumnCount(); i++)
+            {
+               int width = tcm.getColumn(i).getPreferredWidth();
+               mTotalPrefWidth += width;
+               mColWidths.put(new Integer(i), new Integer(width));
+            }
+         }
+      }
+      else if(parent != null)
+      {
+         mResizeTable = null;
+         parent.getParent().removeComponentListener(this);
+      }
+   }
+   
+   /**
+    * Notifies all listeners that a value has been updated.
+    * 
+    * @param obj the value that has been updated.
+    */
+   public void fireTableValueUpdated(Object obj)
+   {
+      int row = getRow(obj);
+      if(row != -1)
+      {
+         fireTableRowsUpdated(row, row);
+      }
+   }
+   
+   /**
+    * Inserts an object at the given row.
+    * 
+    * @param obj the object to insert.
+    * @param row the row to insert at.
+    */
+   public void insertValueAt(Object obj, int row)
+   {
+      mRowData.insertElementAt(obj, row);
+      fireTableRowsInserted(row, row);
+   }
+   
+   /**
+    * Sets the object at a certain row.
+    * 
+    * @param obj the object to insert.
+    * @param row the row to set.
+    */
+   public void setValueAt(Object obj, int row)
+   {
+      if(row < mRowData.size())
+      {
+         mRowData.removeElementAt(row);
+         fireTableRowsDeleted(row, row);
+      }
+      
+      if(row <= mRowData.size())
+      {
+         mRowData.insertElementAt(obj, row);
+         fireTableRowsInserted(row, row);
+      }
+   }
+   
+   /**
+    * Gets the object for a particular row.
+    * 
+    * @param row the row to get the object for.
+    * @return the object retrieved or null.
+    */
+   public synchronized Object getValueAt(int row)
+   {
+      Object obj = null;
+      
+      if(mRowData.size() > row)
+      {
+         obj = mRowData.get(row);
+      }
+      
+      return obj;
+   }
+   
+   /**
+    * Gets the row the passed object is at.
+    * 
+    * @param obj the value to look for.
+    * @return the row the passed object is at or -1.
+    */
+   public int getRow(Object obj)
+   {
+      int row = -1;
+      
+      Iterator i = mRowData.iterator();
+      for(int count = 0; i.hasNext(); count++)
+      {
+         Object o = i.next();
+         if(o.equals(obj))
+         {
+            row = count;
+            break;
+         }
+      }
+      
+      return row;
+   }
+    
+   /**
+    * Adds a new row to the table using the passed object.
+    * 
+    * @param obj the object to add.
+    * @return true if successfully added, false if not.
+    */
+   public boolean addValue(Object obj)
+   {
+      boolean rval = false;
+      
+      if(mRowData.add(obj))
+      {
+         rval = true;
+         fireTableDataChanged();
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Removes a row from the table where the row matches
+    * the object.
+    * 
+    * @param obj the object to remove.
+    * @return true if a row was removed, false if not.
+    */
+   public boolean removeValue(Object obj)
+   {
+      boolean rval = false;
+      
+      if(mRowData.remove(obj))
+      {
+         rval = true;
+         fireTableDataChanged();
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Removes all of the rows from the table.
+    */
+   public void clear()
+   {
+      mRowData.clear();
+      fireTableDataChanged();
+   }
+   
+   /**
+    * Gets the row count for this model.
+    * 
+    * @return the number of rows currently represented by this model.
+    */
+   public int getRowCount()
+   {
+      return mRowData.size();
+   }
+   
+   /*
+    * Methods for component listener.
+    */
+   public void componentHidden(ComponentEvent e) {}
+   public void componentMoved(ComponentEvent e) {}
+   
+   public void componentShown(ComponentEvent e)
+   {
+      resizeColumns();
+   }
+   
+   public void componentResized(ComponentEvent e)
+   {
+      resizeColumns();
+   }
+   
+   /**
+    * Forces a resize of the columns. This method will only work if
+    * the table the model is for is in a scrollable pane and scroll
+    * resizing has been turned on.
+    */
+   public void resizeColumns()
+   {
+      Component parent = mResizeTable.getParent();
+      
+      // if height has changed
+      if(parent != null &&
+         (mOldWidth != parent.getWidth() || mOldHeight != parent.getHeight()))
+      {
+         mOldWidth = parent.getWidth();
+         mOldHeight = parent.getHeight();
+         
+         TableColumnModel tcm = mResizeTable.getColumnModel();
+
+         // get the average amount to add to each column
+         double avg = 0;
+         if(mTotalPrefWidth < mOldWidth)
+         {
+            avg = ((double)(mOldWidth - mTotalPrefWidth)) /
+                  tcm.getColumnCount();
+         }
+         
+         int add = (int)avg;
+         int totalWidth = 0;
+         int resizable = -1;
+         
+         for(int i = 0; i < tcm.getColumnCount(); i++)
+         {
+            if(tcm.getColumn(i).getResizable())
+            {
+               Integer width = (Integer)mColWidths.get(new Integer(i));
+               if(width != null)
+               {
+                  tcm.getColumn(i).setPreferredWidth(width.intValue() + add);
+                  totalWidth += width.intValue() + add;
+               }
+               else
+               {
+                  int w = tcm.getColumn(i).getPreferredWidth();
+                  mColWidths.put(new Integer(i), new Integer(w));
+                  tcm.getColumn(i).setPreferredWidth(w + add);
+                  totalWidth += w + add;
+               }
+               
+               if(resizable == -1)
+               {
+                  resizable = i;
+               }
+            }
+            else
+            {
+               totalWidth += tcm.getColumn(i).getPreferredWidth();
+            }
+         }
+         
+         // add the remaining width to the first resizable column
+         if(totalWidth != mOldWidth && resizable != -1)
+         {
+            add = mOldWidth - totalWidth;
+            int w = tcm.getColumn(resizable).getPreferredWidth();
+            tcm.getColumn(resizable).setPreferredWidth(w + add);
+         }
+      }
+      
+      fireTableDataChanged();
+   }
+   
+   /**
+    * Called when row data changes.
+    * 
+    * @param e the event identifying the row that changed.
+    */
+   public void stateChanged(ChangeEvent e)
+   {
+      // get the index of the changed row
+      int index = getRowData().indexOf(e.getSource());
+      if(index != -1)
+      {
+         // fire rows updated message
+         fireTableRowsUpdated(index, index);
+      }
+   }
+   
+   /**
+    * Sorts a column.
+    * 
+    * @param column the column to sort.
+    * @param ascending true to sort ascending, false to sort descending.
+    */
+   public void sortColumn(int column, boolean ascending)
+   {
+      // sort the row data
+      ColumnSorter sorter = new ColumnSorter();
+      sorter.sort(this, column, ascending);
+
+      if(getRowCount() > 0)
+      {
+         // all rows have been updated
+         fireTableRowsUpdated(0, getRowCount());
+      }
+   }
+   
+   /**
+    * Compares two row objects on a column. Returns -1 if the first object
+    * is less than the second, 0 if they are equal, and 1 if the first
+    * object is greater than the second.
+    * 
+    * This is the method you should overload if you want to do
+    * special comparisons.
+    * 
+    * @param column the column to compare data in.
+    * @param row1 the first row.
+    * @param row2 the second row.
+    * @return -1 if the first object is less than the second, 0 if the
+    *         first is equal to the second, and 1 if the first is greater.
+    */
+   public int compareColumnData(int column, int row1, int row2)
+   {
+      int rval = 0;
+      
+      Object obj1 = getValueAt(row1, column);
+      Object obj2 = getValueAt(row2, column);
+      
+      if(obj1.equals(obj2))
+      {
+         rval = 0;
+      }
+      else if(obj1 instanceof Comparable)
+      {
+         Comparable c1 = (Comparable)obj1;
+         rval = c1.compareTo(obj2);
+      }
+      else if(obj1 instanceof Comparator)
+      {
+         Comparator c1 = (Comparator)obj1;
+         rval = c1.compare(obj1, obj2);
+      }
+      else if(obj1 instanceof Number)
+      {
+         Number number1 = (Number)obj1;
+         Number number2 = (Number)obj2;
+         
+         rval = (number1.doubleValue() < number2.doubleValue()) ? -1 : 1; 
+      }
+      else
+      {
+         String s1 = "" + obj1;
+         String s2 = "" + obj2;
+         
+         rval = s1.compareTo(s2);
+      }
+      
+      if(rval != 0)
+      {
+         rval = (rval < 0) ? -1 : 1;
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * The column sorter.
+    */
+   public class ColumnSorter implements Comparator
+   {
+      /**
+       * The table model being sorted.
+       */
+      protected JComponentTableModel mTableModel;
+      
+      /**
+       * The column to sort.
+       */
+      protected int mColumn;
+      
+      /**
+       * Whether or not to use ascending sorting.
+       */
+      protected boolean mAscending;
+      
+      /**
+      
+      /**
+       * Sorts a row data in a given column.
+       * 
+       * @param tm the table model with data to sort.
+       * @param column the column to sort according to.
+       * @param ascending true to sort ascending, false to sort descending.
+       */
+      public void sort(JComponentTableModel tm,
+                       int column, boolean ascending)
+      {
+         mTableModel = tm;
+         mColumn = column;
+         mAscending = ascending;
+         Collections.sort(tm.getRowData(), this);
+      }
+      
+      /**
+       * Compares two objects. Returns -1 if the first object
+       * is less than the second, 0 if they are equal, and 1 if the first
+       * object is greater than the second.
+       * 
+       * @param o1 the first object to compare.
+       * @param o2 the second object to compare.
+       * @return -1 if the first object is less than the second, 0 if the
+       *         first is equal to the second, and 1 if the first is greater.
+       */      
+      public int compare(Object o1, Object o2)  
+      {
+         int rval = 0;
+         
+         int index1 = getRowData().indexOf(o1);
+         int index2 = getRowData().indexOf(o2);
+         
+         rval = mTableModel.compareColumnData(mColumn, index1, index2);
+         
+         if(!mAscending)
+         {
+            // swap values
+            if(rval != 0)
+            {
+               rval = (rval < 0) ? 1 : -1;
+            }
+         }
+         
+         return rval;
+      }
+   }
+}

@@ -1,0 +1,191 @@
+#!/usr/bin/env python
+#
+# Small script that autogenerates a mono project file given the
+# project file name and the directory to generate the project in. By
+# default, the mono project will be generated for the src and test
+# directories.
+#
+# author: Manu Sporny
+#
+import sys, os, os.path, string
+
+g_options = {}
+g_options["-v"] = 0
+g_options["-vv"] = 0
+g_options["-tt"] = "Library"
+g_options["-rp"] = []
+g_options["-rg"] = []
+g_options["-ra"] = []
+g_options["-o"] = []
+g_options["-pn"] = "Default"
+
+g_mono_gac_map = {}
+g_mono_gac_map["System"] = \
+    ", Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+g_mono_gac_map["System.Xml"] = \
+    ", Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+g_mono_gac_map["System.Web"] = \
+    ", Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
+g_mono_gac_map["System.Web.Services"] = \
+    ", Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
+g_mono_gac_map["System.Drawing"] = \
+    ", Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
+
+def generate_mono_project_file(outfile):
+    """
+    Generates the complete Mono project file, which is used by monodevelop.
+
+    outfile - the file object that the mono project file is written to.
+    """
+    # Check to see if we allow unsafe code to be generated
+    allow_unsafe_code = "False"
+    if "allow-unsafe-code" in g_options["-o"]:
+        allow_unsafe_code = "True"
+
+    # Write the build options for debug and release versions
+    outfile.write("""
+<Project name=\"%s\" fileversion=\"2.0\" language=\"C#\" ctype=\"DotNetProject\">
+  <Configurations>
+    <Configuration name=\"Debug\" ctype=\"DotNetProjectConfiguration\">
+      <Output directory=\"./bin/Debug\" assembly=\"%s\" />
+      <Build debugmode=\"True\" target=\"%s\" />
+      <Execution runwithwarnings=\"True\" consolepause=\"False\" runtime=\"MsNet\" />
+      <CodeGeneration compiler=\"Csc\" warninglevel=\"4\" optimize=\"True\" unsafecodeallowed=\"%s\" generateoverflowchecks=\"True\" generatexmldocumentation=\"False\" ctype=\"CSharpCompilerParameters\" />
+    </Configuration>
+    <Configuration name=\"Release\" ctype=\"DotNetProjectConfiguration\">
+      <Output directory=\"./bin/Release\" assembly=\"%s\" />
+      <Build debugmode=\"False\" target=\"%s\" />
+      <Execution runwithwarnings=\"True\" consolepause=\"False\" runtime=\"MsNet\" />
+      <CodeGeneration compiler=\"Csc\" warninglevel=\"4\" optimize=\"True\" unsafecodeallowed=\"%s\" generateoverflowchecks=\"True\" generatexmldocumentation=\"False\" ctype=\"CSharpCompilerParameters\" />
+    </Configuration>
+  </Configurations>\n""" % (g_options["-pn"], g_options["-pn"],
+                            g_options["-tt"], allow_unsafe_code,
+                            g_options["-pn"], g_options["-tt"], 
+                            allow_unsafe_code))
+
+    # Write all of the system references
+    write_mono_references(outfile)
+
+    # Write the deployment information to the output file
+    outfile.write("""   <DeploymentInformation strategy=\"File\">
+    <excludeFiles />
+    </DeploymentInformation>\n""")
+
+    # Write the contents of this project file
+    write_mono_contents(outfile)
+
+    # Write the closing project tag
+    outfile.write("</Project>")
+
+def write_mono_references(outfile):
+    """
+    Writes all of the mono references (projects, global assemblys, and
+    assemblies used by the project.
+
+    outfile - the file object that the mono project file is written to.
+    """
+    outfile.write("     <References>\n")
+
+    # Write all of the project references
+    for reference in g_options["-rp"]:
+        outfile.write("        <ProjectReference type=\"Project\" localcopy=\"True\" refto=\"%s\" />\n" % reference)
+
+    # Write all of the global assemblies used
+    for reference in g_options["-rg"]:
+        if g_mono_gac_map.has_key(reference):
+            gac_info = g_mono_gac_map[reference]
+            outfile.write("        <ProjectReference type=\"Gac\" localcopy=\"True\" refto=\"%s%s\" />\n" % (reference, gac_info))
+        else:
+            print "ERROR: No Global Assembly Cache entry for %s. The create_mono_project script file must be modified to contain the correct entry for that Assembly." % reference
+
+    # Write all of the assemblies used by the project
+    for reference in g_options["-ra"]:
+        outfile.write("        <ProjectReference type=\"Assembly\" localcopy=\"True\" refto=\"%s\" />\n" % reference)
+
+    outfile.write("     </References>\n")
+
+def write_mono_contents(outfile):
+    """
+    Writes the contents of the mono project file. This includes all files and
+    directories used by the project.
+
+    outfile - the file object that the mono project file is written to.
+    """
+    # Write all of the .cs files if this is a library, or write the executable
+    # C# file name
+    if(string.lower(g_options["-tt"]) == "library"):
+        files = os.listdir(g_options["-t"])
+
+        outfile.write("  <Contents>\n")
+        for tfile in files:
+            if(tfile[-3:] == ".cs"):
+                outfile.write("   <File name=\"%s\" subtype=\"Code\" buildaction=\"Compile\" />\n" % (tfile))
+        outfile.write("  </Contents>\n")
+    else:
+        outfile.write("  <Contents>\n")
+        outfile.write("   <File name=\"%s\" subtype=\"Code\" buildaction=\"Compile\" />\n" % (os.path.basename(g_options["-t"])))
+        outfile.write("  </Contents>\n")
+
+def main(argv, stdout, environ):
+    if len(argv) < 3:
+        print "   Usage:", argv[0], " <options> DIRECTORY"
+        print "   Options:"
+        print "     -v              - Verbose status information"
+        print "     -vv             - Very verbose status information"
+        print "     -rp REFERENCE   - Specify a reference to a Project"
+        print "     -rg REFERENCE   - Specify a reference to a Global Assembly"
+        print "     -ra REFERENCE   - Specify a reference to an Assembly"
+        print "     -pn NAME        - The name of the project"
+        print "     -e  FILENAME.cs - Make project executable using C# file"
+        print "   Examples:"
+        print "     %s -pn Project.Library -tt Library ProjectDirectory" % \
+              (argv[0])
+        print "     %s -rp Project.Library -tt Exe TargetFile.cs" % \
+              (argv[0])
+        
+        return
+
+    # Gather the target directory or file that is being processed
+    g_options["-t"] = argv[len(argv)-1]
+
+    for i in range(1, len(argv)):
+        if(argv[i] == "-v"):
+            g_options["-v"] = 1
+        elif(argv[i] == "-vv"):
+            g_options["-vv"] = 1
+        elif(argv[i] == "-pn"):
+            g_options["-pn"] = argv[i + 1]
+        elif(argv[i] == "-rp"):
+            g_options["-rp"].append(argv[i + 1])
+        elif(argv[i] == "-rg"):
+            g_options["-rg"].append(argv[i + 1])
+        elif(argv[i] == "-ra"):
+            g_options["-ra"].append(argv[i + 1])
+        elif(argv[i] == "-o"):
+            g_options["-o"].append(argv[i + 1])
+        elif(argv[i] == "-tt"):
+            g_options["-tt"] = argv[i + 1]
+
+    # Print out the header if we are in verbose mode
+    if(g_options["-v"]):
+        print "create_mono_project v0.3"
+        print "Copyright (c) 2005 Shepherd Medical Systems, Inc. All Rights " \
+              "Reserved"
+        print "Confidential and Proprietary Property of SMS, Inc."
+
+    # Create and write the project file
+    if(string.lower(g_options["-tt"]) == "library"):
+        mono_project_filename = os.path.join(g_options["-t"],
+                                             g_options["-pn"] + ".mdp")
+    else:
+        mono_project_filename = os.path.join(os.path.dirname(g_options["-t"]),
+                                             g_options["-pn"] + ".mdp")
+
+    outfile = open(mono_project_filename, "w")
+    generate_mono_project_file(outfile)
+
+    if(g_options["-v"]):
+        print "Writing Mono project file: %s" % mono_project_filename
+    
+if __name__ == "__main__":
+    main(sys.argv, sys.stdout, os.environ)

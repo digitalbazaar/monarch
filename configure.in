@@ -1,0 +1,27 @@
+# Configure script for Digital Bazaar common source distribution
+# Usage: Run ./configure once 
+# Author: Manu Sporny
+
+AC_INIT()
+
+echo -e "\n--------- Configuring DB Common Build Configuration -----------"
+
+# Checking for programs
+AC_CHECK_TOOL(JAVAC, javac, :)
+
+# Set up the proper variables
+DBCOMMONDIR=`pwd`
+JAVADOC=/usr/lib/j2sdk1.5-sun/bin/javadoc
+
+# Make all the proper substitutions
+AC_SUBST(DBCOMMONDIR)
+AC_SUBST(JAVADOC)
+
+echo -e "\n--------- Digital Bazaar Common Build Configuration -----------"
+echo "Javadoc binary       : $JAVADOC"
+
+# Generating files
+AC_OUTPUT(Makefile \
+          setup/build.properties \
+          )
+

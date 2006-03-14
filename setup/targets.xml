@@ -1,0 +1,63 @@
+<!-- targets.xml: Referenced by the build.xml files, this file
+     contains targets common to all of the source code.  -->
+
+  <path id="compile.classpath">
+    <pathelement location="${build}/shared"/>
+    <pathelement location="${postgresql-jdbc3.jar}"/>
+  </path>
+  
+  <path id="run.classpath">
+     <path refid="compile.classpath"/>
+     <pathelement location="${dist}/${client.jar}"/>
+  </path>
+
+  <target name="prepare" 
+     description="Creates the build directory" >
+     <echo message="Creating the required directories...." />
+     <mkdir dir="${build}/com/sms/${example}" />
+  </target>
+
+  <target name="prepare-dist" 
+     description="Creates the dist directory" >
+     <echo message="Creating the required directories...." />
+     <mkdir dir="${dist}" />
+  </target>
+
+  <target name="clean" description="Removes the build directory">
+    <delete dir="${dist}" />
+    <delete dir="${build}" />
+  </target>
+
+  <target name="listprops" depends="" 
+     description="Displays values of some of the properties of this 
+        build file">
+     <echo message="debug = ${debug}" />
+     <echo message="debuglevel = ${debuglevel}" />
+     <echo message="build = ${build}" />
+     <echo message="src = ${src}" />
+     <echo message="dist = ${dist}" />
+     <echo message="run.classpath = ${run.classpath}" />
+     <echo message=" " />
+     <echo message="example = ${example}" />
+     <echo message="client.jar = ${client.jar}" />
+     <echo message="client.class = ${client.class}" />
+     <echo message=" " />
+     <echo message="host = ${host}" />
+     <echo message="port = ${port}" />
+     <echo message="secure.port = ${secure.port}" />
+     <echo message="trust.store = ${trust.store}" />
+     <echo message="trust.store.password = ${trust.store.password}" />
+     <echo message=" " />
+     <echo message="username = ${username}" />
+     <echo message="password = ${password}" />
+     <echo message="url = ${url}" />
+     <echo message=" " />
+     <echo message="context.path = ${context.path}" />
+     <echo message="secure.context.path = ${secure.context.path}" />
+     <echo message="url.pattern = ${url.pattern}" />
+     <echo message="endpoint.address = ${endpoint.address}" />
+     <echo message="secure.endpoint = ${secure.endpoint}" />
+     <echo message=" " />
+     
+  </target>
+

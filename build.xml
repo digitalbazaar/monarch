@@ -1,0 +1,26 @@
+<!DOCTYPE project>
+
+<project name="anova" default="build" basedir=".">
+  <property file="setup/build.properties"/>
+
+  <target name="build"
+    description="Builds the entire Anova software architecture">
+    <echo message="========== Building SMS common classes =========="/>
+    <ant antfile="build.xml" dir="common/java" target="build"/>
+    <echo message="========== Building database classes =========="/>
+    <ant antfile="build.xml" dir="database/java" target="build"/>
+    <echo message="========== Building Enterprise Medical Server classes =========="/>
+    <ant antfile="build.xml" dir="ems/java" target="build"/>
+  </target>
+
+  <target name="clean"
+    description="Cleans the entire Anova source tree">
+    <echo message="========== Cleaning SMS common classes =========="/>
+    <ant antfile="build.xml" dir="common/java" target="clean"/>
+    <echo message="========== Cleaning database classes =========="/>
+    <ant antfile="build.xml" dir="database/java" target="clean"/>
+    <echo message="========== Cleaning Enterprise Medical Server classes =========="/>
+    <ant antfile="build.xml" dir="ems/java" target="clean"/>
+    </target>
+
+</project>
