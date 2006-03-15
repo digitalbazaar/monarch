@@ -4,9 +4,7 @@ debuglevel=lines,vars,source
 
 base=@DBCOMMONDIR@
 
-common=${base}/common/
-database=${base}/database/
-dtds=${base}/docs/dtds/
+common=${base}/common/java
 build=build
 src=src
 dist=dist

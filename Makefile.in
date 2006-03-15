@@ -7,6 +7,15 @@ help:
 	@echo "   monodevelop - Create a monodevelop solution file (development)"
 	@echo "   internal-docs - Create all of the internal documentation files (internal use only)"
 
+internal-docs:
+	rm -rf docs/api-java
+	mkdir docs/api-java
+	doxygen docs/api.java.doxygen
+	rm -rf docs/api-csharp
+	mkdir docs/api-csharp
+	doxygen docs/api.csharp.doxygen
+
+
 monodevelop:
 	# Create the 3rd party projects
 	./setup/create_mono_project -pn ThirdParty.Mono.Math -o allow-unsafe-code -rg System -tt Library 3rdparty/csharp/ThirdParty.Mono.Math
