@@ -9,7 +9,3 @@ build=build
 src=src
 dist=dist
 test=${build}/test
-
-#lazarus libraries
-postgresql-jdbc3.jar=${database}/java/postgresql-8.0-312.jdbc3.jar
-
