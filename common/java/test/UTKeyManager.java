@@ -161,8 +161,8 @@ public class UTKeyManager
          else
             System.out.println("FAILURE: The data was not verified!");
          
-         // try out PKeyCryptor
-         PKeyCryptor pkc = new PKeyCryptor("test.pkey", "password");
+         // try out PrivateKeyCryptor
+         PrivateKeyCryptor pkc = new PrivateKeyCryptor("test.pkey", "password");
          
          if(pkc.generateKeys())
          {
