@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2003 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common;
 
+import com.db.common.logging.Logger;
 import com.db.common.logging.LoggerManager;
 
 import java.io.File;
@@ -105,7 +106,7 @@ public class KeyManager
          }
          catch(Exception e)
          {
-            LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(e));
+            LoggerManager.debug("dbcommon", Logger.getStackTrace(e));
          }
       }
       
@@ -146,12 +147,12 @@ public class KeyManager
       catch(NoSuchAlgorithmException nsae)
       {
          LoggerManager.error("dbcommon", "DSA algorithm not supported.");
-         LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(nsae));
+         LoggerManager.debug("dbcommon", Logger.getStackTrace(nsae));
       }
       catch(NoSuchProviderException nspe)
       {
          LoggerManager.error("dbcommon", "SUN is not a supported provider.");
-         LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(nspe));
+         LoggerManager.debug("dbcommon", Logger.getStackTrace(nspe));
       }
 
       return rval;
@@ -178,12 +179,12 @@ public class KeyManager
          catch(NoSuchAlgorithmException nsae)
          {
             LoggerManager.error("dbcommon", "DSA algorithm is not supported.");
-            LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(nsae));
+            LoggerManager.debug("dbcommon", Logger.getStackTrace(nsae));
          }
          catch(InvalidKeySpecException ikse)
          {
             LoggerManager.error("dbcommon", "KeySpec is invalid.");
-            LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(ikse));
+            LoggerManager.debug("dbcommon", Logger.getStackTrace(ikse));
          }
       }
       
@@ -232,12 +233,12 @@ public class KeyManager
          catch(NoSuchAlgorithmException nsae)
          {
             LoggerManager.error("dbcommon", "DSA algorithm is not supported.");
-            LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(nsae));
+            LoggerManager.debug("dbcommon", Logger.getStackTrace(nsae));
          }
          catch(InvalidKeySpecException ikse)
          {
             LoggerManager.error("dbcommon", "KeySpec is invalid.");
-            LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(ikse));
+            LoggerManager.debug("dbcommon", Logger.getStackTrace(ikse));
          }
       }
 
@@ -283,9 +284,9 @@ public class KeyManager
             SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
             secretKey = keyFactory.generateSecret(keySpec);
          }
-         catch(Exception e)
+         catch(Throwable t)
          {
-            LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(e));
+            LoggerManager.debug("dbcommon", Logger.getStackTrace(t));
          }
       }
 
@@ -321,11 +322,11 @@ public class KeyManager
             
             rval = true;
          }
-         catch(Exception e)
+         catch(Throwable t)
          {
             LoggerManager.debug("dbcommon",
-                  "Unable to write private key to file.");
-            LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(e));
+               "Unable to write private key to file.");
+            LoggerManager.debug("dbcommon", Logger.getStackTrace(t));
          }
       }
 
@@ -368,11 +369,11 @@ public class KeyManager
             
             rval = true;
          }
-         catch(Exception e)
+         catch(Throwable t)
          {
             LoggerManager.error("dbcommon",
-                  "Unable to write public key to file.");
-            LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(e));
+               "Unable to write public key to file.");
+            LoggerManager.debug("dbcommon", Logger.getStackTrace(t));
          }
       }
       
@@ -410,14 +411,60 @@ public class KeyManager
          byte[] bytes = new byte[(int)file.length()];
          fis.read(bytes);
          fis.close();
+         
+         // load encrypted key
+         rval = loadEncryptedPrivateKey(bytes, password);
+      }
+      catch(Throwable t)
+      {
+         getLogger().error("Unable to load private key.");
+         mError = "key-file-not-found";
+         getLogger().debug(Logger.getStackTrace(t));
+      }
 
+      return rval;
+   }
+   
+   /**
+    * Loads a private key from the passed encrypted key (encoded in base64)
+    * that is locked with the passed password.
+    *
+    * @param encryptedKey the encrypted key in a base64-encoded string.
+    * @param password the password to unlock the file.
+    * @return true if successful, false if not.
+    */
+   public boolean loadEncryptedPrivateKey(String encryptedKey, String password)
+   {
+      boolean rval = false;
+      
+      Base64Coder base64 = new Base64Coder();
+      byte[] bytes = base64.decode(encryptedKey);
+      rval = loadEncryptedPrivateKey(bytes, password);
+      
+      return rval;
+   }
+   
+   /**
+    * Loads a private key from the passed encrypted key bytes
+    * that are locked with the passed password.
+    *
+    * @param encryptedKey the encrypted key in a byte array.
+    * @param password the password to unlock the file.
+    * @return true if successful, false if not.
+    */
+   public boolean loadEncryptedPrivateKey(byte[] encryptedKey, String password)
+   {
+      boolean rval = false;
+      
+      try
+      {
          // decrypt the key with the passed password
-         bytes = Cryptor.decrypt(bytes, password);
+         byte[] decryptedKey = Cryptor.decrypt(encryptedKey, password);
 
-         // if bytes are not null, decode the key
-         if(bytes != null)
+         // if decryptedKey is not null, decode the key
+         if(decryptedKey != null)
          {
-            if((mPrivateKey = decodePrivateKey(bytes)) != null)
+            if((mPrivateKey = decodePrivateKey(decryptedKey)) != null)
             {
                rval = true;
             }
@@ -427,16 +474,16 @@ public class KeyManager
             }
          }
       }
-      catch(Exception e)
+      catch(Throwable t)
       {
-         LoggerManager.error("dbcommon", "Unable to load private key.");
+         getLogger().error("Unable to load private key.");
          mError = "key-file-not-found";
-         LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(e));
+         getLogger().debug(Logger.getStackTrace(t));
       }
 
-      return rval;
+      return rval;      
    }
-
+   
    /**
     * Loads a public key from the file with the passed filename.
     *
@@ -458,11 +505,11 @@ public class KeyManager
 
          rval = ((mPublicKey = decodePublicKey(bytes)) != null);
       }
-      catch(Exception e)
+      catch(Throwable t)
       {
-         LoggerManager.error("dbcommon", "Unable to load public key.");
+         getLogger().error("Unable to load public key.");
          mError = "key-file-not-found";
-         LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(e));
+         getLogger().debug(Logger.getStackTrace(t));
       }
 
       return rval;
@@ -500,7 +547,7 @@ public class KeyManager
    {
       return encodeKey(mPrivateKey);
    }
-
+   
    /**
     * Returns a string that represents a Base64-X509-encoded
     * public key. This method X509-encodes the previously generated
@@ -530,5 +577,15 @@ public class KeyManager
    public String getError()
    {
       return mError;
+   }
+   
+   /**
+    * Gets the logger for this key manager.
+    * 
+    * @return the logger.
+    */
+   public Logger getLogger()
+   {
+      return LoggerManager.getLogger("dbcommon");
    }
 }

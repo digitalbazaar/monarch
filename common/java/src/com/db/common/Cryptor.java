@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common;
 
@@ -38,7 +38,7 @@ public class Cryptor
    protected Key mKey = null;
 
    /**
-    * The salt used in the encryption process.
+    * A stock salt to be used in an encryption process.
     */
    protected static byte[] smSalt = {(byte)0xBD, (byte)0x11,
                                      (byte)0x79, (byte)0x31,
@@ -57,7 +57,9 @@ public class Cryptor
     * it should be encrypted, and when it needs to be
     * used it should be decrypted until it is not used again.
     */
-   public Cryptor() { }
+   public Cryptor()
+   {
+   }
    
    /**
     * Gets a checksum for the passed text.
@@ -652,7 +654,7 @@ public class Cryptor
    {
       return encrypt(data, 0, data.length);
    }
-
+   
    /**
     * Encrypts an array of bytes using a password.
     *
@@ -661,6 +663,19 @@ public class Cryptor
     * @return the encrypted data.
     */
    public static byte[] encrypt(byte[] data, String password)
+   {
+      return encrypt(data, smSalt, password);
+   }
+
+   /**
+    * Encrypts an array of bytes using a password.
+    *
+    * @param data the array of bytes to encrypt.
+    * @param salt the salt to use.
+    * @param password the password to generate the key.
+    * @return the encrypted data.
+    */
+   public static byte[] encrypt(byte[] data, byte[] salt, String password)
    {
       byte[] encrypted = null;
       
@@ -677,7 +692,7 @@ public class Cryptor
             SecretKey key = generatePasswordKey(password);
 
             AlgorithmParameterSpec apSpec =
-               new PBEParameterSpec(smSalt, smIterationCount);
+               new PBEParameterSpec(salt, smIterationCount);
 
             // use a cipher to encrypt
             Cipher cipher = Cipher.getInstance(key.getAlgorithm(), "SunJCE");
@@ -778,6 +793,19 @@ public class Cryptor
     */
    public static byte[] decrypt(byte[] data, String password)
    {
+      return decrypt(data, smSalt, password);
+   }
+
+   /**
+    * Decrypts an encrypted array of bytes using a password.
+    *
+    * @param data the array of bytes to decrypt.
+    * @param salt the salt to use.
+    * @param password the password to generate the key.
+    * @return the decrypted data.
+    */
+   public static byte[] decrypt(byte[] data, byte[] salt, String password)
+   {
       byte[] decrypted = null;
       
       if(data != null)
@@ -793,7 +821,7 @@ public class Cryptor
             SecretKey key = generatePasswordKey(password);
 
             AlgorithmParameterSpec apSpec =
-               new PBEParameterSpec(smSalt, smIterationCount);
+               new PBEParameterSpec(salt, smIterationCount);
          
             // use a cipher to decrypt
             Cipher cipher = Cipher.getInstance(key.getAlgorithm());
