@@ -1,12 +1,15 @@
 /*
- * Copyright (c) 2005 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common;
 
 import com.db.common.logging.Logger;
 import com.db.common.logging.LoggerManager;
 
+import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
@@ -528,6 +531,29 @@ public class ConfigOptions
    }
    
    /**
+    * Gets a set of all the keys that begin with the passed string.
+    * 
+    * @param prefix the prefix for the keys.
+    * @return a set of all the keys that begin with the passed string.
+    */
+   public Set getKeysStartingWith(String prefix)
+   {
+      HashSet set = new HashSet();
+      
+      Iterator i = getKeys().iterator();
+      while(i.hasNext())
+      {
+         String key = (String)i.next();
+         if(key.startsWith(prefix))
+         {
+            set.add(key);
+         }
+      }
+      
+      return set;
+   }
+   
+   /**
     * Gets the set of commands detected when the last set of arguments
     * was parsed. 
     * 
@@ -546,6 +572,165 @@ public class ConfigOptions
       mProperties.clear();
       mValueTypeMap.clear();
       mCommands.clear();
+   }
+   
+   /**
+    * Reads the configuration options from the passed configuration
+    * options object into this one. Every value in the passed configuration
+    * that has the same value type as this configuration will be used.
+    * 
+    * @param config the config options object to read from.
+    */
+   public void readConfigFrom(ConfigOptions config)
+   {
+      if(config != null)
+      {
+         // copy properties
+         Iterator i = config.mProperties.keySet().iterator();
+         while(i.hasNext())
+         {
+            String key = (String)i.next();
+            setValue(key, config.getValue(key));
+         }
+      }
+   }
+   
+   /**
+    * Writes the configuration options in this object to the passed
+    * configuration options object. Every value in this configuration
+    * that has the same value type as the passed configuration will be used.
+    * 
+    * @param config the config options object to write to.
+    */
+   public void writeConfigTo(ConfigOptions config)
+   {
+      if(config != null)
+      {
+         // copy properties
+         Iterator i = mProperties.keySet().iterator();
+         while(i.hasNext())
+         {
+            String key = (String)i.next();
+            config.setValue(key, getValue(key));
+         }
+      }
+   }
+   
+   /**
+    * Copies this config options object to another one.
+    * 
+    * @return the config options copy.
+    */
+   public ConfigOptions copy()
+   {
+      ConfigOptions config = new ConfigOptions();
+      
+      // copy commands
+      config.mCommands.addAll(mCommands);
+      
+      // copy value hash map
+      Iterator i = mValueTypeMap.keySet().iterator();
+      while(i.hasNext())
+      {
+         String key = (String)i.next();
+         config.setValueType(key, getValueType(key));
+      }
+
+      // write to config
+      writeConfigTo(config);
+      
+      return config;
+   }
+   
+   /**
+    * Convenience method. Tries to create the passed directory if it
+    * does not exist.
+    * 
+    * @param dir the directory.
+    * @return true the directory exists or was created, false if not.
+    */
+   public boolean createDir(String dir)
+   {
+      boolean rval = false;
+      
+      File f = new File(dir);
+      if(!f.exists())
+      {
+         if(f.mkdirs())
+         {
+            rval = true;
+         }
+      }
+      else
+      {
+         rval = true;
+      }
+      
+      return rval;      
+   }   
+   
+   /**
+    * Sets a directory by first creating the directory if it doesn't exist.
+    * 
+    * @param key the key to the directory.
+    * @param dir the directory to create and store as a configuration value.
+    * @return true if set properly and directory exists, false if not.
+    */
+   public boolean setDir(String key, String dir)
+   {
+      boolean rval = false;
+      
+      if(!dir.endsWith(File.separator))
+      {
+         dir += File.separator;
+      }
+      
+      if(createDir(dir))
+      {
+         setValue(key, dir); 
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets a directory by first creating the directory if it doesn't exist.
+    * 
+    * @param key the key to the directory.
+    * @return the directory.
+    */
+   public String getDir(String key)
+   {
+      String dir = getString(key);
+      setDir(key, dir);
+      dir = getString(key);
+      
+      return dir;
+   }
+   
+   /**
+    * Convenience method. Compares two configuration values between
+    * two different configurations.
+    * 
+    * @param config1 the first configuration.
+    * @param config2 the second configuration.
+    * @param key the configuration key.
+    * @return true if the options are the same, false if not.
+    */
+   public static boolean compareConfigValue(
+      ConfigOptions config1, ConfigOptions config2, String key)
+   {
+      boolean rval = false;
+      
+      if(config1 != null && config2 != null)
+      {
+         if(config1.getValue(key).equals(config2.getValue(key)))
+         {
+            rval = true;
+         }
+      }
+      
+      return rval;
    }
    
    /**
