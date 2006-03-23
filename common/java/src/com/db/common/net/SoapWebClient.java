@@ -202,7 +202,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
 
       if(mWsdlParser == null)
       {
-         getWsdl(mWsdlPath);
+         getWsdl();
       }      
       
       // get the param map
@@ -383,7 +383,17 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
       }
       
       return rval;
-   }   
+   }
+   
+   /**
+    * Gets the wsdl for a web service. Uses the internally set wsdl url.
+    * 
+    * @return true if successfully got wsdl, false if not.
+    */
+   public boolean getWsdl()
+   {
+      return getWsdl(mWsdlPath);
+   }
    
    /**
     * Gets the wsdl for a web service.
