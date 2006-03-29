@@ -3,6 +3,8 @@
 
   <path id="compile.classpath">
     <pathelement location="${build}/shared"/>
+    <pathelement location="${dbcommon.jar}"/>
+    <pathelement location="${dbcommon-gui.jar}"/>
     <pathelement location="${postgresql-jdbc3.jar}"/>
   </path>
   

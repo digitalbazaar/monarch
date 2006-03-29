@@ -9,3 +9,7 @@ build=build
 src=src
 dist=dist
 test=${build}/test
+
+#db libraries
+dbcommon.jar=${common}/dist/dbcommon.jar
+dbcommon-gui.jar=${common}/dist/dbcommon-gui.jar

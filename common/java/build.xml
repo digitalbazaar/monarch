@@ -9,7 +9,7 @@
   &jaxrpctargets;
 
   <target name="build" depends=""
-    description="Builds the common Bitmunk library">
+    description="Builds the common Digital Bazaar library">
 		<mkdir dir="${build}/com/db/common"/>
 		<mkdir dir="${dist}"/>
 		<mkdir dir="${test}"/>
@@ -28,65 +28,9 @@
 		</jar>
   </target>
 
-	<target name="run-tests" depends="build,run-ut-envelope,run-ut-contract,run-ut-catalog,run-ut-keymanager,run-ut-cryptor,run-ut-digitalwork,run-ut-fileencryption,run-ut-ismanager,run-ut-formatdetect,run-ut-mainfo,run-ut-id3rewrite,run-ut-marewrite,run-ut-money,run-ut-mp3parse,run-ut-avirewrite"
+	<target name="run-tests" 
+depends="build,run-ut-keymanager,run-ut-cryptor,run-ut-fileencryption,run-ut-ismanager"
     description="Runs the unit tests for the library">
-	</target>
-
-	<target name="run-ut-envelope" depends="build"
-    description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTSignableXMLEnvelope.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTSignableXMLEnvelope">
-			<classpath>
-				<pathelement location="${dist}/bmcommon.jar"/>
-				<pathelement location="${dist}/dbcommon.jar"/>
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="run-ut-contract" depends="build"
-    description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTContract.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTContract">
-			<classpath>
-				<pathelement location="${dist}/bmcommon.jar"/>
-				<pathelement location="${dist}/dbcommon.jar"/>
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="run-ut-catalog" depends="build"
-    description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTCatalog.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTCatalog">
-			<classpath>
-				<pathelement location="${dist}/bmcommon.jar"/>
-				<pathelement location="${dist}/dbcommon.jar"/>
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
 	</target>
 
 	<target name="run-ut-keymanager" depends="build"
@@ -100,7 +44,6 @@
 		</javac>
 		<java classname="UTKeyManager">
 			<classpath>
-				<pathelement location="${dist}/bmcommon.jar"/>
 				<pathelement location="${dist}/dbcommon.jar"/>
 				<pathelement path="${java.class.path}"/>
 				<pathelement path="${test}"/>
@@ -119,26 +62,6 @@
 		</javac>
 		<java classname="UTCryptor">
 			<classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
-				<pathelement location="${dist}/dbcommon.jar" />
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="run-ut-digitalwork" depends="build"
-    description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTDigitalWork.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTDigitalWork">
-			<classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
 				<pathelement location="${dist}/dbcommon.jar" />
 				<pathelement path="${java.class.path}"/>
 				<pathelement path="${test}"/>
@@ -157,26 +80,6 @@
 		</javac>
 		<java classname="UTFileEncryption">
 			<classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
-				<pathelement location="${dist}/dbcommon.jar" />
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="run-ut-filetransfer" depends="build"
-    description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTFileTransfer.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTFileTransfer">
-			<classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
 				<pathelement location="${dist}/dbcommon.jar" />
 				<pathelement path="${java.class.path}"/>
 				<pathelement path="${test}"/>
@@ -195,7 +98,6 @@
 		</javac>
 		<java classname="UTInputStreamManager">
 			<classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
 				<pathelement location="${dist}/dbcommon.jar" />
 				<pathelement path="${java.class.path}"/>
 				<pathelement path="${test}"/>
@@ -203,198 +105,4 @@
 		</java>
 	</target>
 
-	<target name="run-ut-formatdetect" depends="build"
-    description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTFormatDetect.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTFormatDetect">
-			<arg line="${mp3file}"/>
-			<classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
-				<pathelement location="${dist}/dbcommon.jar" />
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="run-ut-mainfo" depends="build"
-    description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTMPEGAudioFileInfo.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTMPEGAudioFileInfo" args="test/data/LawrenceLessig-IThoughtWeKnewThat.mp3">
-			<arg line="${mp3file}"/>
-			<classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
-				<pathelement location="${dist}/dbcommon.jar" />
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="run-ut-id3rewrite" depends="build"
-    description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTID3v2Rewrite.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTID3v2Rewrite" args="test/data/LawrenceLessig-IThoughtWeKnewThat.mp3">
-			<arg line="${mp3file}"/>
-			<classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
-				<pathelement location="${dist}/dbcommon.jar" />
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="run-ut-marewrite" depends="build"
-    description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTMPEGAudioRewrite.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTMPEGAudioRewrite">
-			<arg line="${mp3file}"/>
-			<classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
-				<pathelement location="${dist}/dbcommon.jar" />
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="run-ut-financialaccount" depends="build"
-    description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTFinancialAccount.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTFinancialAccount">
-			<classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
-				<pathelement location="${dist}/dbcommon.jar" />
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="run-ut-money" depends="build"
-    description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTMoney.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTMoney">
-			<classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
-				<pathelement location="${dist}/dbcommon.jar" />
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="run-ut-mp3parse" depends="build"
-    description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTMPEGAudioParse.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTMPEGAudioParse">
-			<classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
-				<pathelement location="${dist}/dbcommon.jar" />
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="run-ut-softwareupdate" depends="build"
-          description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-            debug="${debug}"
-            debuglevel="${debuglevel}"
-            destdir="${test}"
-            includes="UTSoftwareUpdate.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTSoftwareUpdate">
-			<classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
-				<pathelement location="${dist}/dbcommon.jar" />
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="run-ut-avirewrite" depends="build"
-    description="Runs the unit tests for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTAVIRewrite.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTAVIRewrite">
-                        <classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
-				<pathelement location="${dist}/dbcommon.jar" />
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="run-ut-symmetric-cryptor" depends="build"
-    description="Runs the symmetric cryptor unit test for the library">
-		<javac srcdir="test" classpath="compile.classpath"
-      debug="${debug}"
-      debuglevel="${debuglevel}"
-      destdir="${test}"
-      includes="UTSymmetricCryptor.java">
-			<classpath refid="compile.classpath"/>
-		</javac>
-		<java classname="UTSymmetricCryptor">
-                        <classpath>
-				<pathelement location="${dist}/bmcommon.jar" />
-				<pathelement location="${dist}/dbcommon.jar" />
-				<pathelement path="${java.class.path}"/>
-				<pathelement path="${test}"/>
-			</classpath>
-		</java>
-	</target>	
-	
 </project>
