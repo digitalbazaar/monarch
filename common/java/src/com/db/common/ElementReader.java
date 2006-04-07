@@ -696,6 +696,28 @@ public class ElementReader
    }
    
    /**
+    * Gets the float value of the first child element that matches
+    * the passed tag name.
+    * 
+    * @param tagName the tag name of the element to look for.
+    * @return the value of a child element as a float or -1
+    *         if the child could not be found.
+    */
+   public float getFirstElementFloatValue(String tagName)
+   {
+      float rval = -1;
+      
+      ElementReader ereader = getFirstElementReader(tagName);
+      
+      if(ereader != null)
+      {
+         rval = ereader.getFloatValue();
+      }
+      
+      return rval;
+   }   
+   
+   /**
     * Gets the tag name for the element wrapped by this reader.
     * 
     * @return the tag name of the element wrapped by this reader.
