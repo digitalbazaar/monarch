@@ -819,37 +819,6 @@ public class TabPanel extends JPanel
    }
    
    /**
-    * Gets the tab content for a given tab area.
-    * 
-    * @param tabArea the tab area to get the tab content for.
-    * @return the tab content, or null, if no match is found.
-    */
-   protected Component getTabContent(Component tabArea)
-   {
-      return (Component)mAreaToContent.get(tabArea);
-   }
-   
-   /**
-    * Gets a tab content component based on its index.
-    * 
-    * @param index the index of the tab content.
-    * @return the tab content for the index or null if no match is found.
-    */
-   protected Component getTabContent(int index)
-   {
-      Component content = null;
-      
-      int count = getTabContentPanel().getComponentCount();
-      if(index >= 0 && index < count)
-      {
-         Component parent = getTabContentPanel().getComponent(index);
-         content = getTabContentFromParent(parent);
-      }
-      
-      return content;
-   }
-   
-   /**
     * Gets the index of a tab content component.
     * 
     * @param content the tab content component to get the index for.
@@ -930,73 +899,6 @@ public class TabPanel extends JPanel
       }
       
       return tabArea;
-   }
-   
-   /**
-    * Gets the tab area component for a given tab content component.
-    * 
-    * @param content the content component.
-    * @return the tab area component, or null if there is none.
-    */
-   protected Component getTabArea(Component content)
-   {
-      return (Component)mContentToArea.get(content);
-   }
-   
-   /**
-    * Gets a tab area based on its index.
-    * 
-    * @param index the index of the tab area.
-    * @return the tab area for the index or null if no match is found.
-    */
-   protected Component getTabArea(int index)
-   {
-      Component tabArea = null;
-      
-      int count = getTabAreaPanel().getComponentCount();
-      if(index >= 0 && index < count)
-      {
-         Component parent = getTabAreaPanel().getComponent(index);
-         tabArea = getTabAreaFromParent(parent);
-      }
-      
-      return tabArea;
-   }
-   
-   /**
-    * Gets the index of a tab area.
-    * 
-    * @param tabArea the tab area to get the index for.
-    * @return the index of the tab area or -1 if no match found.
-    */
-   protected int getTabAreaIndex(Component tabArea)
-   {
-      int index = -1;
-      
-      int count = getTabCount();
-      for(int i = 0; i < count; i++)
-      {
-         Component parent = getTabAreaPanel().getComponent(i);
-         Component c = getTabAreaFromParent(parent);
-         if(tabArea == c)
-         {
-            index = i;
-            break;
-         }
-      }
-      
-      return index;
-   }
-   
-   /**
-    * Gets the leading tab area. That is, the tab area that is first
-    * in the scrolling tab area viewport.
-    * 
-    * @return the leading tab area.
-    */
-   protected Component getLeadingTabArea() 
-   {
-      return mLeadingTabArea;
    }
    
    /**
@@ -2044,6 +1946,73 @@ public class TabPanel extends JPanel
          paintImmediately(mTabAreaPanel.getBounds());
       }
    }
+   
+   /**
+    * Gets the tab area component for a given tab content component.
+    * 
+    * @param content the content component.
+    * @return the tab area component, or null if there is none.
+    */
+   public Component getTabArea(Component content)
+   {
+      return (Component)mContentToArea.get(content);
+   }
+   
+   /**
+    * Gets a tab area based on its index.
+    * 
+    * @param index the index of the tab area.
+    * @return the tab area for the index or null if no match is found.
+    */
+   public Component getTabArea(int index)
+   {
+      Component tabArea = null;
+      
+      int count = getTabAreaPanel().getComponentCount();
+      if(index >= 0 && index < count)
+      {
+         Component parent = getTabAreaPanel().getComponent(index);
+         tabArea = getTabAreaFromParent(parent);
+      }
+      
+      return tabArea;
+   }
+   
+   /**
+    * Gets the index of a tab area.
+    * 
+    * @param tabArea the tab area to get the index for.
+    * @return the index of the tab area or -1 if no match found.
+    */
+   public int getTabAreaIndex(Component tabArea)
+   {
+      int index = -1;
+      
+      int count = getTabCount();
+      for(int i = 0; i < count; i++)
+      {
+         Component parent = getTabAreaPanel().getComponent(i);
+         Component c = getTabAreaFromParent(parent);
+         if(tabArea == c)
+         {
+            index = i;
+            break;
+         }
+      }
+      
+      return index;
+   }
+   
+   /**
+    * Gets the leading tab area. That is, the tab area that is first
+    * in the scrolling tab area viewport.
+    * 
+    * @return the leading tab area.
+    */
+   public Component getLeadingTabArea() 
+   {
+      return mLeadingTabArea;
+   }
 
    /**
     * Sets the tab content for an existing tab.
@@ -2085,6 +2054,37 @@ public class TabPanel extends JPanel
             repaint();
          }
       }      
+   }
+   
+   /**
+    * Gets the tab content for a given tab area.
+    * 
+    * @param tabArea the tab area to get the tab content for.
+    * @return the tab content, or null, if no match is found.
+    */
+   public Component getTabContent(Component tabArea)
+   {
+      return (Component)mAreaToContent.get(tabArea);
+   }
+   
+   /**
+    * Gets a tab content component based on its index.
+    * 
+    * @param index the index of the tab content.
+    * @return the tab content for the index or null if no match is found.
+    */
+   public Component getTabContent(int index)
+   {
+      Component content = null;
+      
+      int count = getTabContentPanel().getComponentCount();
+      if(index >= 0 && index < count)
+      {
+         Component parent = getTabContentPanel().getComponent(index);
+         content = getTabContentFromParent(parent);
+      }
+      
+      return content;
    }
    
    /**
