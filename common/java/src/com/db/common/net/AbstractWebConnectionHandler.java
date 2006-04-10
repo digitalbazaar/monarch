@@ -286,7 +286,7 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
       }
       else
       {
-         getLogger().error("could not accept create server socket to " +
+         getLogger().error("could not create server socket to " +
                            "accept web connections on the specified port," +
                            "port=" + port);
       }
