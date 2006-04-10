@@ -173,9 +173,23 @@ public class MethodInvoker extends Thread
             mMessage.setMethodException(t);
          }
          
-         getLogger().error("could not invoke method: '" +
-                           mMethodName + "', an exception occurred!," +
-                           "exception=" + t.toString());
+         String agentName = "null";
+         if(agent != null)
+         {
+            if(agent instanceof Class)
+            {
+               agentName = ((Class)agent).getName();
+            }
+            else
+            {
+               agentName = agent.getClass().getName();
+            }
+         }
+         
+         getLogger().error(
+            "could not invoke method: '" + mMethodName +
+            "' on agent: '" + agentName + "', " +
+            "an exception occurred!, exception=" + t.toString());
          getLogger().debug(Logger.getStackTrace(t));
       }
       
@@ -286,8 +300,22 @@ public class MethodInvoker extends Thread
       }
       else
       {
-         getLogger().error("could not invoke method: '" + mMethodName +
-                           "', method not recognized.");
+         String agentName = "null";
+         if(mAgent != null)
+         {
+            if(mAgent instanceof Class)
+            {
+               agentName = ((Class)mAgent).getName();
+            }
+            else
+            {
+               agentName = mAgent.getClass().getName();
+            }
+         }
+         
+         getLogger().error(
+            "could not invoke method: '" + mMethodName +
+            "' on agent: '" + agentName + "', " + "method not recognized.");
       }
    }
    
