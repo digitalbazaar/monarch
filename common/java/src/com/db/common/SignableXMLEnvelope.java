@@ -246,9 +246,6 @@ public class SignableXMLEnvelope implements IXMLSerializer
             // set the signer
             mSigner = signer;
             
-            LoggerManager.debug("dbcommon",
-                  "BEGIN SIGN TEXT:" + text + ":END SIGN TEXT");
-            
             // set algorithm to SHA1:key's algorithm
             mAlgorithm = "SHA1/" + privateKey.getAlgorithm();
          
@@ -259,7 +256,9 @@ public class SignableXMLEnvelope implements IXMLSerializer
             Base64Coder encoder = new Base64Coder();
             mSignature = encoder.encode(sig);
             
-            LoggerManager.debug("dbcommon", "SIGNATURE: " + mSignature);
+            LoggerManager.debug("dbcommon",
+                  "BEGIN SIGN TEXT:" + text + ":END SIGN TEXT\n" +
+                  "SIGNATURE: '" + mSignature + "'");
 
             rval = (mSignature != null);
 
@@ -331,9 +330,6 @@ public class SignableXMLEnvelope implements IXMLSerializer
                   String contents = parseContents();
                   contents = trimWhitespace(contents);
 
-                  LoggerManager.debug("dbcommon",
-                        "BEGIN VERIFY TEXT:" + contents + ":END VERIFY TEXT");
-                  
                   if(!mAlgorithm.startsWith("SHA1"))
                   {
                      LoggerManager.debug("dbcommon",
@@ -345,7 +341,9 @@ public class SignableXMLEnvelope implements IXMLSerializer
                   Base64Coder decoder = new Base64Coder();
                   byte[] sig = decoder.decode(mSignature);
                   
-                  LoggerManager.debug("dbcommon", "SIGNATURE: " + mSignature);
+                  LoggerManager.debug("dbcommon",
+                        "BEGIN VERIFY TEXT:" + contents + ":END VERIFY TEXT\n" +
+                        "SIGNATURE: '" + mSignature + "'");
          
                   // verify the signature
                   rval = Cryptor.verify(sig, contents, publicKey);
