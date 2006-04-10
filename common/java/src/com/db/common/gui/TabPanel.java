@@ -2130,6 +2130,9 @@ public class TabPanel extends JPanel
          // scroll to selection
          scrollToVisibleContent(content);
       }
+      
+      revalidate();
+      repaint();
    }
    
    /**
