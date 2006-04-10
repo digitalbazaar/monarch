@@ -27,6 +27,32 @@ import org.xml.sax.SAXParseException;
  * any object that implements the IXMLSerializer interface to be
  * transported in a secure, signed vessel.
  * 
+ * This envelope may be used in either "signed" or "unsigned" form to
+ * transport information. Once sign() is called on this envelope, however,
+ * its text contents will become locked until sign() is called again.
+ * 
+ * This ensures the integrity of the signature generated when sign() was
+ * called such that the text contents of this envelope will match that
+ * signature regardless of any changes to the xml serializer contents of
+ * this envelope. If you want to see the changes reflected, then you must
+ * re-sign the envelope.
+ * 
+ * If an envelope is never signed, then it will remain in an "unsigned" state
+ * and any changes to the xml serializer contents of that envelope will be
+ * instantly reflected.
+ * 
+ * So:
+ * 
+ * By default, an envelope is in an unsigned state. Calling sign() will
+ * permanently change the envelopes state to signed. 
+ * 
+ * When an envelope is in an unsigned state any changes made to its xml
+ * serializer contents will be immediately reflected when converting the
+ * envelope to xml.
+ * 
+ * When an envelope is in a signed state any changes made to its xml
+ * serializer contents will only be reflected upon calling sign().
+ * 
  * @author Dave Longley
  */
 public class SignableXMLEnvelope implements IXMLSerializer
@@ -43,6 +69,11 @@ public class SignableXMLEnvelope implements IXMLSerializer
     * xml that will be signed.
     */
    protected IXMLSerializer mIXMLSerializer;
+   
+   /**
+    * The text that was signed.
+    */
+   protected String mSignedText;
 
    /**
     * The version of this envelope.
@@ -71,35 +102,11 @@ public class SignableXMLEnvelope implements IXMLSerializer
    protected String mSignature;
 
    /**
-    * Default constructor.
+    * Constructs a signable xml envelope with no xml serializer contents.
     */
    public SignableXMLEnvelope()
    {
-      mXMLEnvelope = "";
-      mIXMLSerializer = null;
-      mVersion = "1.0";
-
-      mSigner = "0";
-      mStatus = "valid";
-      mAlgorithm = "";
-      mSignature = "";
-   }
-
-   /**
-    * Constructs a signable xml envelope that envelopes the
-    * xml text produced by the passed IXMLSerializer.
-    *
-    * @param xmlSerializer the xml serializer interface to envelope.
-    */
-   public SignableXMLEnvelope(IXMLSerializer xmlSerializer)
-   {
-      mIXMLSerializer = xmlSerializer;
-      mVersion = "1.0";
-
-      mSigner = "0";
-      mStatus = "valid";
-      mAlgorithm = "";
-      mSignature = "";
+      this((IXMLSerializer)null);
    }
 
    /**
@@ -129,7 +136,26 @@ public class SignableXMLEnvelope implements IXMLSerializer
 
       convertFromXML(xmlText);
    }
-   
+
+   /**
+    * Constructs a signable xml envelope that envelopes the
+    * xml text produced by the passed IXMLSerializer.
+    *
+    * @param xmlSerializer the xml serializer interface to envelope.
+    */
+   public SignableXMLEnvelope(IXMLSerializer xmlSerializer)
+   {
+      mIXMLSerializer = xmlSerializer;
+      mXMLEnvelope = "";
+      mSignedText = null;
+      mVersion = "1.0";
+
+      mSigner = "0";
+      mStatus = "valid";
+      mAlgorithm = "";
+      mSignature = "";
+   }
+
    /**
     * Trims the beginning and trailing whitespace from xmlText.
     * 
@@ -205,10 +231,32 @@ public class SignableXMLEnvelope implements IXMLSerializer
       
       return contents;
    }
+   
+   /**
+    * Updates the text to sign.
+    */
+   protected synchronized void updateSignedText()
+   {
+      mSignedText = null;
+      if(mIXMLSerializer != null)
+      {
+         mSignedText = trimWhitespace(mIXMLSerializer.convertToXML(1));
+      }
+   }
 
    /**
     * Contructs a signature with the passed signer and
     * the private key.
+    * 
+    * When this method is called, the text contents of the envelope
+    * are locked until this method is called again. Therefore, any changes
+    * made to the xml serializer contents of this envelope will not be
+    * reflected until this method is called again. This ensures the
+    * integrity of the signature.
+    *  
+    * When converting this envelope to xml, the signed text will be used
+    * as the contents of this envelope, the xml serializers convert method
+    * will not be called again until sign() is called again.
     *
     * @param signer the signer of the signature.
     * @param privateKey the privateKey to sign with.
@@ -218,16 +266,74 @@ public class SignableXMLEnvelope implements IXMLSerializer
    {
       return sign("" + signer, privateKey);
    }
+   
+   
+   /**
+    * Contructs a signature with the passed signer and
+    * the private key.
+    * 
+    * When this method is called, the text contents of the envelope
+    * are locked until this method is called again. Therefore, any changes
+    * made to the xml serializer contents of this envelope will not be
+    * reflected until this method is called again. This ensures the
+    * integrity of the signature.
+    *  
+    * When converting this envelope to xml, the signed text will be used
+    * as the contents of this envelope, the xml serializers convert method
+    * will not be called again until sign() is called again.
+    *
+    * @param signer the signer of the signature.
+    * @param key the Base64-PKCS8 privateKey to sign with.
+    * @return true if successfully signed, false if not. 
+    */
+   public boolean sign(long signer, String key)   
+   {
+      return sign("" + signer, key);
+   }
+   
+   /**
+    * Contructs a signature with the passed signer and
+    * the private key.
+    * 
+    * When this method is called, the text contents of the envelope
+    * are locked until this method is called again. Therefore, any changes
+    * made to the xml serializer contents of this envelope will not be
+    * reflected until this method is called again. This ensures the
+    * integrity of the signature.
+    *  
+    * When converting this envelope to xml, the signed text will be used
+    * as the contents of this envelope, the xml serializers convert method
+    * will not be called again until sign() is called again.
+    *
+    * @param signer the signer of the signature.
+    * @param key the Base64-PKCS8 privateKey to sign with.
+    * @return true if successfully signed, false if not. 
+    */
+   public boolean sign(String signer, String key)
+   {
+      PrivateKey privateKey = KeyManager.decodePrivateKey(key);
+      return sign(signer, privateKey);
+   }   
 
    /**
     * Contructs a signature with the passed signer and
     * the private key.
+    * 
+    * When this method is called, the text contents of the envelope
+    * are locked until this method is called again. Therefore, any changes
+    * made to the xml serializer contents of this envelope will not be
+    * reflected until this method is called again. This ensures the
+    * integrity of the signature.
+    *  
+    * When converting this envelope to xml, the signed text will be used
+    * as the contents of this envelope, the xml serializers convert method
+    * will not be called again until sign() is called again.
     *
     * @param signer the signer of the signature.
     * @param privateKey the privateKey to sign with.
     * @return true if successfully signed, false if not. 
     */
-   public boolean sign(String signer, PrivateKey privateKey)
+   public synchronized boolean sign(String signer, PrivateKey privateKey)
    {
       boolean rval = false;
 
@@ -236,11 +342,13 @@ public class SignableXMLEnvelope implements IXMLSerializer
       {
          try
          {
-            // get the text to sign
-            String text = "";
-            if(mIXMLSerializer != null)
+            // update the text to sign
+            updateSignedText();
+            
+            // use blank string if signed text is null
+            if(mSignedText == null)
             {
-               text = trimWhitespace(mIXMLSerializer.convertToXML(1));
+               mSignedText = "";
             }
             
             // set the signer
@@ -250,14 +358,14 @@ public class SignableXMLEnvelope implements IXMLSerializer
             mAlgorithm = "SHA1/" + privateKey.getAlgorithm();
          
             // sign the text
-            byte[] sig = Cryptor.sign(text, privateKey);
+            byte[] sig = Cryptor.sign(mSignedText, privateKey);
             
             // base64 encode the signature for xml transport
             Base64Coder encoder = new Base64Coder();
             mSignature = encoder.encode(sig);
             
             LoggerManager.debug("dbcommon",
-                  "BEGIN SIGN TEXT:" + text + ":END SIGN TEXT\n" +
+                  "BEGIN SIGN TEXT:" + mSignedText + ":END SIGN TEXT\n" +
                   "SIGNATURE: '" + mSignature + "'");
 
             rval = (mSignature != null);
@@ -275,33 +383,6 @@ public class SignableXMLEnvelope implements IXMLSerializer
 
       return rval;
    }
-   
-   /**
-    * Contructs a signature with the passed signer and
-    * the private key.
-    *
-    * @param signer the signer of the signature.
-    * @param key the Base64-PKCS8 privateKey to sign with.
-    * @return true if successfully signed, false if not. 
-    */
-   public boolean sign(long signer, String key)   
-   {
-      return sign("" + signer, key);
-   }
-   
-   /**
-    * Contructs a signature with the passed signer and
-    * the private key.
-    *
-    * @param signer the signer of the signature.
-    * @param key the Base64-PKCS8 privateKey to sign with.
-    * @return true if successfully signed, false if not. 
-    */
-   public boolean sign(String signer, String key)
-   {
-      PrivateKey privateKey = KeyManager.decodePrivateKey(key);
-      return sign(signer, privateKey);
-   }
 
    /**
     * Attempts to verify that this object was digitally
@@ -311,7 +392,7 @@ public class SignableXMLEnvelope implements IXMLSerializer
     * @param publicKey the public key to verify the signature.
     * @return true if verified, false if not.
     */
-   public boolean verify(String publicKey)
+   public synchronized boolean verify(String publicKey)
    {
       boolean rval = false;
       
@@ -455,9 +536,10 @@ public class SignableXMLEnvelope implements IXMLSerializer
     *
     * @param xmlSerializer the xml serializer interface.
     */
-   public void setContents(IXMLSerializer xmlSerializer)
+   public synchronized void setContents(IXMLSerializer xmlSerializer)
    {
       mIXMLSerializer = xmlSerializer;
+      mSignedText = null;
    }
 
    /**
@@ -556,7 +638,12 @@ public class SignableXMLEnvelope implements IXMLSerializer
       xml.append(XMLCoder.encode(mSignature));
       xml.append("</signature>");
 
-      if(mIXMLSerializer != null)
+      // use signed text, if available
+      if(mSignedText != null)
+      {
+         xml.append(mSignedText);
+      }
+      else if(mIXMLSerializer != null)
       {
          xml.append(mIXMLSerializer.convertToXML(indentLevel + 1));
       }

@@ -251,47 +251,54 @@ public class Base64Coder
     */
    public String encode(byte[] data)
    {
-      // get the length of the data
-      int length = data.length;
+      String rval = "";
       
-      // Base64 encoding requires 24 bit groups, and each
-      // byte is 8 bits, so the data should be broken into groups
-      // of 3 bytes each
-      int groups = length / 3;
-      
-      // see if there is an incomplete group
-      if(groups * 3 != length)
+      if(data != null)
       {
-         groups++;
-      }
-      
-      // the string buffer for string the encoded data
-      // Base64 encoding turns 3 bytes into 4 characters, so the
-      // length of the encoded data will be:
-      int encodedLength = groups * 4;
-      
-      // add end of line characters padding
-      encodedLength += (encodedLength / 76);
-      StringBuffer encoded = new StringBuffer(encodedLength);
-      
-      int dataIndex = 0;
-      
-      // encode all the groups
-      for(int i = 0; i < groups; i++, dataIndex += 3)
-      {
-         // Base64 allows no more than 76 characters per line
-         // if the length is a multiple of 76, then insert a line break
-         if(encoded.length() != 0 && encoded.length() % 76 == 0)
+         // get the length of the data
+         int length = data.length;
+         
+         // Base64 encoding requires 24 bit groups, and each
+         // byte is 8 bits, so the data should be broken into groups
+         // of 3 bytes each
+         int groups = length / 3;
+         
+         // see if there is an incomplete group
+         if(groups * 3 != length)
          {
-            encoded.append("\r\n");
+            groups++;
          }
+         
+         // the string buffer for string the encoded data
+         // Base64 encoding turns 3 bytes into 4 characters, so the
+         // length of the encoded data will be:
+         int encodedLength = groups * 4;
+         
+         // add end of line characters padding
+         encodedLength += (encodedLength / 76);
+         StringBuffer encoded = new StringBuffer(encodedLength);
+         
+         int dataIndex = 0;
+         
+         // encode all the groups
+         for(int i = 0; i < groups; i++, dataIndex += 3)
+         {
+            // Base64 allows no more than 76 characters per line
+            // if the length is a multiple of 76, then insert a line break
+            if(encoded.length() != 0 && encoded.length() % 76 == 0)
+            {
+               encoded.append("\r\n");
+            }
 
-         // encode the group and add it to the buffer
-         char[] chars = encodeGroup(data, dataIndex);
-         encoded.append(chars);
+            // encode the group and add it to the buffer
+            char[] chars = encodeGroup(data, dataIndex);
+            encoded.append(chars);
+         }
+         
+         rval = encoded.toString();
       }
       
-      return encoded.toString();
+      return rval;
    }
    
    /**

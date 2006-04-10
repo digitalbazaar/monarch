@@ -376,7 +376,14 @@ public class Cryptor
 
       try
       {
-         data = text.getBytes("UTF-8");
+         if(text != null)
+         {
+            data = text.getBytes("UTF-8");
+         }
+         else
+         {
+            data = new byte[0];
+         }
       }
       catch(Exception e)
       {
