@@ -3326,6 +3326,7 @@ public class TabPanel extends JPanel
                   
                   // set to background color and sleep
                   mTabArea.getParent().setBackground(background);
+                  mTabArea.repaint();
                   Thread.sleep(getFlashInterval());
                }
             }
@@ -3343,6 +3344,7 @@ public class TabPanel extends JPanel
             }
             
             mTabArea.getParent().setBackground(background);
+            mTabArea.getParent().repaint();
          }
          catch(Throwable t)
          {
