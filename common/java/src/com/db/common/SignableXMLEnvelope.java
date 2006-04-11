@@ -223,7 +223,7 @@ public class SignableXMLEnvelope implements IXMLSerializer
             int close = mXMLEnvelope.lastIndexOf(eTag);
             if(close != -1)
             {
-               contents = mXMLEnvelope.substring(end, close - 1);
+               contents = mXMLEnvelope.substring(end, close);
             }
          }
       }
