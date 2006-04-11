@@ -121,19 +121,19 @@ public class MethodInvoker extends Thread
             if(params.length == numParams)
             {
                boolean typesMatch = true;
-               /*for(int n = 0; n < numParams; n++)
+               for(int n = 0; n < numParams; n++)
                {
                   // ensure the parameter is the appropriate type
                   if(!types[n].isInstance(params[n]))
                   {
                      typesMatch = false;
                      getLogger().debug("method param types don't match," +
-                                       "method=" + method +
+                                       "method=" + methodName +
                                        ",class=" + types[n] +
                                        ",obj=" + params[n]);
                      break;
                   }
-               }*/
+               }
                
                // if the parameter types match, proceed
                if(typesMatch)
