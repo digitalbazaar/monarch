@@ -127,10 +127,6 @@ public class MethodInvoker extends Thread
                   if(!types[n].isInstance(params[n]))
                   {
                      typesMatch = false;
-                     getLogger().debug("method param types don't match," +
-                                       "method=" + methodName +
-                                       ",class=" + types[n] +
-                                       ",obj=" + params[n]);
                      break;
                   }
                }
