@@ -19,7 +19,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 /**
@@ -221,7 +220,7 @@ public class SignableXMLEnvelope implements IXMLSerializer
          if(end != -1)
          {
             // look for closing envelope tag
-            int close = mXMLEnvelope.indexOf(eTag, end);
+            int close = mXMLEnvelope.lastIndexOf(eTag);
             if(close != -1)
             {
                contents = mXMLEnvelope.substring(end, close - 1);
@@ -692,14 +691,7 @@ public class SignableXMLEnvelope implements IXMLSerializer
          
          LoggerManager.debug("dbcommon", "SXE string:\n" + xmlText);
          
-         // print stack trace as below
-      }
-      catch(SAXException se)
-      {
-         Exception x = se.getException();
-         x = (x == null) ? se : x;
-         
-         LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(x));
+         LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(spe));
       }
       catch(Throwable t)
       {
