@@ -200,21 +200,25 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          params = new Vector();
       }
 
+      // get wsdl parser
       if(mWsdlParser == null)
       {
          getWsdl();
       }      
       
-      // get the param map
-      HashMap paramMap = mWsdlParser.getParamMap(method, params);
-      if(paramMap != null)
+      if(mWsdlParser != null)
       {
-         // create the soap message
-         sm = new SoapMessage();
-         sm.setSerializerOptions(SoapMessage.SOAP_REQUEST);
-         sm.setMethod(method);
-         sm.setParams(paramMap);
-         sm.setNamespace(getNamespace());
+         // get the param map
+         HashMap paramMap = mWsdlParser.getParamMap(method, params);
+         if(paramMap != null)
+         {
+            // create the soap message
+            sm = new SoapMessage();
+            sm.setSerializerOptions(SoapMessage.SOAP_REQUEST);
+            sm.setMethod(method);
+            sm.setParams(paramMap);
+            sm.setNamespace(getNamespace());
+         }
       }
       
       return sm;
