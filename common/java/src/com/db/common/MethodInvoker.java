@@ -131,7 +131,7 @@ public class MethodInvoker extends Thread
                      
                      if(types[n].isPrimitive())
                      {
-                        // determine if the passed type matches the primitive
+                        // determine if the param type matches the primitive
                         String paramClass =
                            params[n].getClass().getName().toLowerCase();
                         String primitive =
