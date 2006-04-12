@@ -126,8 +126,25 @@ public class MethodInvoker extends Thread
                   // ensure the parameter is the appropriate type
                   if(!types[n].isInstance(params[n]))
                   {
+                     // assume failure unless a primitive is being used
                      typesMatch = false;
-                     break;
+                     
+                     if(types[n].isPrimitive())
+                     {
+                        // determine if the passed type matches the primitive
+                        String paramClass =
+                           params[n].getClass().getName().toLowerCase();
+                        String primitive =
+                           "java.lang." + types[n].getName();
+                        
+                        typesMatch = paramClass.equals(primitive);
+                     }
+                     
+                     // break out if types do not match
+                     if(!typesMatch)
+                     {
+                        break;
+                     }
                   }
                }
                
