@@ -807,16 +807,8 @@ public class EditableTabPanel extends TabPanel
          }
          
          // revalidate, repaint
-         mTabAreaPanel.invalidate();
          revalidate();
-         //repaint();
-         
-         mTabAreaPanel.repaint();
-         
-         //revalidate();
          repaint();
-         //paintImmediately(mTabAreaPanel.getBounds());
-         //repaint();
       }
    }
    

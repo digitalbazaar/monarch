@@ -980,50 +980,56 @@ public class TabPanel extends JPanel
     */
    protected void resetTabDimensions()
    {
-      if(getTabAreaPanel() != null)
+      // this is a layout operation, so synchronize on the tree lock
+      synchronized(getTreeLock())
       {
-         mMaxTabAreaHeight = 0;
-         
-         // get the max tab area height (count - 1, so as not to look at filler)
-         int count = getTabAreaPanel().getComponentCount() - 1;
-         for(int i = 0; i < count; i++)
+         if(getTabAreaPanel() != null)
          {
-            Component parent = getTabAreaPanel().getComponent(i);
-            Component tabArea = getTabAreaFromParent(parent);
+            mMaxTabAreaHeight = 0;
             
-            Dimension prefSize = tabArea.getPreferredSize();
-            if(prefSize.height > mMaxTabAreaHeight)
+            // get the max tab area height
+            // (count - 1, so as not to look at filler)
+            int count = getTabAreaPanel().getComponentCount() - 1;
+            for(int i = 0; i < count; i++)
             {
-               mMaxTabAreaHeight = prefSize.height;
+               Component parent = getTabAreaPanel().getComponent(i);
+               Component tabArea = getTabAreaFromParent(parent);
+               
+               Dimension prefSize = tabArea.getPreferredSize();
+               if(prefSize.height > mMaxTabAreaHeight)
+               {
+                  mMaxTabAreaHeight = prefSize.height;
+               }
             }
-         }
-      
-         // get tab area insets
-         Insets insets = getTabAreaInsets();
-
-         // set maximum sizes for tab area parents
-         for(int i = 0; i < count; i++)
-         {
-            Component parent = getTabAreaPanel().getComponent(i);
-            Component tabArea = getTabAreaFromParent(parent);
-            
-            // get preferred size for tab area
-            Dimension prefSize = tabArea.getPreferredSize();
-            Dimension size = new Dimension();
-            
-            // add tab area insets
-            size.width = prefSize.width + insets.left + insets.right;
-            size.height = mMaxTabAreaHeight + insets.top + insets.bottom;
-            
-            parent.setMinimumSize(size);
-            parent.setPreferredSize(size);
-            parent.setMaximumSize(size);
-         }
          
-         // set scrollpane minimum height
-         Dimension min = mTabAreaScrollPane.getMinimumSize();
-         min.setSize(min.width, mMaxTabAreaHeight + insets.top + insets.bottom);
-         mTabAreaScrollPane.setMinimumSize(min);
+            // get tab area insets
+            Insets insets = getTabAreaInsets();
+
+            // set maximum sizes for tab area parents
+            for(int i = 0; i < count; i++)
+            {
+               Component parent = getTabAreaPanel().getComponent(i);
+               Component tabArea = getTabAreaFromParent(parent);
+               
+               // get preferred size for tab area
+               Dimension prefSize = tabArea.getPreferredSize();
+               Dimension size = new Dimension();
+               
+               // add tab area insets
+               size.width = prefSize.width + insets.left + insets.right;
+               size.height = mMaxTabAreaHeight + insets.top + insets.bottom;
+               
+               parent.setMinimumSize(size);
+               parent.setPreferredSize(size);
+               parent.setMaximumSize(size);
+            }
+            
+            // set scrollpane minimum height
+            Dimension min = mTabAreaScrollPane.getMinimumSize();
+            min.setSize(min.width,
+                        mMaxTabAreaHeight + insets.top + insets.bottom);
+            mTabAreaScrollPane.setMinimumSize(min);
+         }
       }
    }
    
