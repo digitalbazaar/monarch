@@ -23,6 +23,7 @@ import javax.swing.UIManager;
 public class UTTabPanel implements ActionListener
 {
    public static EditableTabPanel mTabPanel;
+   //public static TabPanel mTabPanel;
    public static JLabel mContent0;
    public static JButton mContent2;
    public static JButton mTab0;
@@ -87,9 +88,14 @@ public class UTTabPanel implements ActionListener
       JButton content12 = new JButton("content12");
       
       mTabPanel.addTab(mTab0, mContent0);
+      //mTabPanel.addTab(new JLabel("index 1"), content1);
+      //mTabPanel.addTab(new JLabel("index 2"), mContent2);
+      //mTabPanel.addTab(new JLabel("index 3"), content3);
+      
       mTabPanel.addTab("index 1", content1);
       mTabPanel.addTab("index 2", mContent2);
       mTabPanel.addTab("index 3", content3);
+      
       /*mTabPanel.addTab("index 4", content4);
       mTabPanel.addTab("index 5", content5);
       mTabPanel.addTab("index 6", content6);

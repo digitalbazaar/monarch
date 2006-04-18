@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -46,19 +45,9 @@ import javax.swing.plaf.basic.BasicArrowButton;
 public class TabPanel extends JPanel
 {
    /**
-    * The panel for left tab controls.
-    */
-   protected JPanel mLeftTabControlsPanel;
-   
-   /**
     * The left scroll button.
     */
    protected JButton mLeftScrollButton;
-   
-   /**
-    * The panel for right tab controls.
-    */
-   protected JPanel mRightTabControlsPanel;
    
    /**
     * The right scroll button.
@@ -328,26 +317,57 @@ public class TabPanel extends JPanel
       // make double buffered
       setDoubleBuffered(true);
       
-      int[][] plot = {{0,0},{1,0},{2,0},{0,1}};
-      LayeredLayout ll = new LayeredLayout(plot);
-      super.setLayout(ll);
+      // set layout
+      setSize(500, 500);
+      super.setLayout(new PositionLayout(this));
       
-      setupTabControlsPanels();
+      // create tab scroll buttons
+      createLeftTabScrollButton();
+      createRightTabScrollButton();
+
+      // setup tab area panel and tab content panel
       setupTabAreaPanel();
       setupTabContentPanel();
       
-      ll.placeNext(mLeftTabControlsPanel, 0.0, 0.0, false, true,
-                   LayeredLayout.LEFT);
-      ll.placeNext(mTabAreaScrollPane, 1.0, 0.0, true, true);
-      ll.placeNext(mRightTabControlsPanel, 0.0, 0.0, false, true,
-                   LayeredLayout.RIGHT);
-      ll.placeNext(mTabContentPanel, true, true);
+      // left button constraints
+      PositionConstraints leftButtonConstraints = new PositionConstraints();
+      leftButtonConstraints.location = new Point(0, 0);
+      leftButtonConstraints.size =
+         new Dimension(mLeftScrollButton.getPreferredSize());
       
-      super.add(mLeftTabControlsPanel);
-      super.add(mTabAreaScrollPane);
-      super.add(mRightTabControlsPanel);
-      super.add(mTabContentPanel);
+      // right button constraints
+      PositionConstraints rightButtonConstraints = new PositionConstraints();
+      rightButtonConstraints.location =
+         new Point(getWidth() - mRightScrollButton.getPreferredSize().width, 0);
+      rightButtonConstraints.size =
+         new Dimension(mRightScrollButton.getPreferredSize());
+      rightButtonConstraints.anchor =
+         PositionConstraints.ANCHOR_TOP | PositionConstraints.ANCHOR_RIGHT;
       
+      // tab area pane constraints
+      PositionConstraints tabAreaPaneConstraints = new PositionConstraints();
+      tabAreaPaneConstraints.location =
+         new Point(leftButtonConstraints.getRight(), 0);
+      tabAreaPaneConstraints.size =
+         new Dimension(rightButtonConstraints.getLeft() -
+                       tabAreaPaneConstraints.getLeft(),
+                       rightButtonConstraints.size.height);
+      tabAreaPaneConstraints.anchor = PositionConstraints.ANCHOR_TOP_LEFT_RIGHT;
+      
+      // tab content pane constraints
+      PositionConstraints tabContentPaneConstraints = new PositionConstraints();
+      tabContentPaneConstraints.location =
+         new Point(0, leftButtonConstraints.getBottom());
+      tabContentPaneConstraints.size =
+         new Dimension(getWidth(),
+                       getHeight() - tabContentPaneConstraints.getTop());
+      tabContentPaneConstraints.anchor = PositionConstraints.ANCHOR_ALL;
+      
+      super.add(mLeftScrollButton, leftButtonConstraints);
+      super.add(mTabAreaScrollPane, tabAreaPaneConstraints);
+      super.add(mRightScrollButton, rightButtonConstraints);
+      super.add(mTabContentPanel, tabContentPaneConstraints);
+
       // create vector for keeping track of selected tabs
       mSelectedTabs = new Vector();
       
@@ -570,16 +590,10 @@ public class TabPanel extends JPanel
    }
    
    /**
-    * Sets up the left tab controls panel.
+    * Creates the left tab scroll button.
     */
-   protected void setupLeftTabControlsPanel()
+   protected void createLeftTabScrollButton()
    {
-      mLeftTabControlsPanel = new JPanel();
-      
-      // ensures controls will expand to fill area
-      mLeftTabControlsPanel.setLayout(new GridLayout(1, 1));
-      mLeftTabControlsPanel.setOpaque(false);
-      
       // scroll button facing left (WEST)
       mLeftScrollButton =
          new BasicArrowButton(BasicArrowButton.WEST,
@@ -590,26 +604,13 @@ public class TabPanel extends JPanel
       mLeftScrollButton.setActionCommand("scroll_left");
       mLeftScrollButton.addActionListener(getScrollControlsHandler());
       mLeftScrollButton.addMouseListener(getScrollControlsHandler());
-      
-      // add the scroll button
-      mLeftTabControlsPanel.add(mLeftScrollButton);
-      
-      // set constraints on size of left tab controls panel
-      mLeftTabControlsPanel.setMinimumSize(
-            mLeftScrollButton.getPreferredSize());   
    }
    
    /**
-    * Sets up the right tab controls panel.
+    * Creates the right tab scroll button.
     */
-   protected void setupRightTabControlsPanel()
+   protected void createRightTabScrollButton()
    {
-      mRightTabControlsPanel = new JPanel();
-
-      // ensures controls will expand to fill area
-      mRightTabControlsPanel.setLayout(new GridLayout(1, 1));
-      mRightTabControlsPanel.setOpaque(false);
-      
       // scroll button facing right (EAST)
       mRightScrollButton =
          new BasicArrowButton(BasicArrowButton.EAST,
@@ -620,22 +621,6 @@ public class TabPanel extends JPanel
       mRightScrollButton.setActionCommand("scroll_right");
       mRightScrollButton.addActionListener(getScrollControlsHandler());
       mRightScrollButton.addMouseListener(getScrollControlsHandler());
-      
-      // add the scroll button
-      mRightTabControlsPanel.add(mRightScrollButton);
-      
-      // set constraints on size of right tab controls panel
-      mRightTabControlsPanel.setMinimumSize(
-            mRightScrollButton.getPreferredSize());        
-   }
-   
-   /**
-    * Sets up the tab controls.
-    */
-   protected void setupTabControlsPanels()
-   {
-      setupLeftTabControlsPanel();
-      setupRightTabControlsPanel();
    }
    
    /**
@@ -645,8 +630,9 @@ public class TabPanel extends JPanel
    {
       mTabAreaPanel = new JPanel();
       
-      BoxLayout bl = new BoxLayout(mTabAreaPanel, BoxLayout.X_AXIS);
-      mTabAreaPanel.setLayout(bl);
+      // set layout
+      mTabAreaPanel.setSize(500, 500);
+      mTabAreaPanel.setLayout(new PositionLayout(mTabAreaPanel));
       
       // tab area panel is transparent
       mTabAreaPanel.setOpaque(false);
@@ -739,26 +725,6 @@ public class TabPanel extends JPanel
    {
       return mTabAreaParentToTabArea.values().iterator();      
    }
-   
-   /**
-    * Gets the left tab controls panel.
-    *
-    * @return the left tab controls panel.
-    */
-   protected JPanel getLeftTabControlsPanel()
-   {
-      return mLeftTabControlsPanel;
-   }
-   
-   /**
-    * Gets the right tab controls panel.
-    *
-    * @return the right tab controls panel.
-    */
-   protected JPanel getRightTabControlsPanel()
-   {
-      return mRightTabControlsPanel;
-   }   
 
    /**
     * Gets the tab content panel.
@@ -973,63 +939,123 @@ public class TabPanel extends JPanel
    {
       CardLayout cl = (CardLayout)getTabContentPanel().getLayout();
       return cl;
-   }   
+   }
    
    /**
-    * Resets the dimensions of the tabs.
+    * Updates the constraints for a particular tab area.
+    * 
+    * This method can be overridden to set the constraints for specialized
+    * tab areas.
+    * 
+    * @param tabArea the tab area to update.
     */
-   protected void resetTabDimensions()
+   protected void updateTabAreaConstraints(Component tabArea)
    {
-      // this is a layout operation, so synchronize on the tree lock
+   }
+
+   /**
+    * Updates the constraints for a particular tab area parent.
+    * 
+    * This method can be overridden to set the constraints for specialized
+    * tab area parents.
+    * 
+    * @param parent the tab area parent to update.
+    * @param layout the layout for the tab area panel.
+    * @param constraints the constraints for the parent.
+    * @param prevConstraints the constraints of the previous tab area parent.
+    * @param insets the tab area insets for this panel.
+    */
+   protected void updateTabAreaParentConstraints(
+      Component parent, PositionLayout layout,
+      PositionConstraints constraints, PositionConstraints prevConstraints,
+      Insets insets)
+   {
+      Component tabArea = getTabAreaFromParent(parent);
+      if(tabArea != null)
+      {
+         // update tab area constraints
+         updateTabAreaConstraints(tabArea);
+         
+         // update location
+         constraints.location.x = prevConstraints.getRight();
+         
+         // update width
+         constraints.size.width =
+            tabArea.getPreferredSize().width + insets.left + insets.right;
+         
+         // update height
+         constraints.size.height =
+            mMaxTabAreaHeight + insets.top + insets.bottom;
+         
+         // set new constraints
+         layout.setConstraints(parent, constraints);
+         
+         // update previous constraints
+         prevConstraints = constraints;
+      }
+   }
+   
+   /**
+    * Updates the constraints for the components in this panel. 
+    */
+   protected void updateComponentConstraints()
+   {
+      // get tree lock while updating constraints
       synchronized(getTreeLock())
       {
-         if(getTabAreaPanel() != null)
-         {
-            mMaxTabAreaHeight = 0;
-            
-            // get the max tab area height
-            // (count - 1, so as not to look at filler)
-            int count = getTabAreaPanel().getComponentCount() - 1;
-            for(int i = 0; i < count; i++)
-            {
-               Component parent = getTabAreaPanel().getComponent(i);
-               Component tabArea = getTabAreaFromParent(parent);
-               
-               Dimension prefSize = tabArea.getPreferredSize();
-               if(prefSize.height > mMaxTabAreaHeight)
-               {
-                  mMaxTabAreaHeight = prefSize.height;
-               }
-            }
+         // get tab area insets
+         Insets insets = getTabAreaInsets();
          
-            // get tab area insets
-            Insets insets = getTabAreaInsets();
+         // get layout for tab area panel
+         PositionLayout layout =
+            (PositionLayout)getTabAreaPanel().getLayout();
+         PositionConstraints constraints;
 
-            // set maximum sizes for tab area parents
-            for(int i = 0; i < count; i++)
-            {
-               Component parent = getTabAreaPanel().getComponent(i);
-               Component tabArea = getTabAreaFromParent(parent);
-               
-               // get preferred size for tab area
-               Dimension prefSize = tabArea.getPreferredSize();
-               Dimension size = new Dimension();
-               
-               // add tab area insets
-               size.width = prefSize.width + insets.left + insets.right;
-               size.height = mMaxTabAreaHeight + insets.top + insets.bottom;
-               
-               parent.setMinimumSize(size);
-               parent.setPreferredSize(size);
-               parent.setMaximumSize(size);
-            }
+         // set constraints for tab area parents
+         PositionConstraints prevConstraints = new PositionConstraints();
+         int count = getTabAreaPanel().getComponentCount();
+         for(int i = 0; i < count; i++)
+         {
+            Component parent = getTabAreaPanel().getComponent(i);
+
+            // get the parent's constraints
+            constraints = layout.getConstraints(parent);
             
-            // set scrollpane minimum height
-            Dimension min = mTabAreaScrollPane.getMinimumSize();
-            min.setSize(min.width,
-                        mMaxTabAreaHeight + insets.top + insets.bottom);
-            mTabAreaScrollPane.setMinimumSize(min);
+            // update the parent's constraints
+            updateTabAreaParentConstraints(
+               parent, layout, constraints, prevConstraints, insets);
+            
+            // set previous constraints
+            prevConstraints = constraints;
          }
+         
+         // get position layout for main panel
+         layout = (PositionLayout)getLayout();
+         
+         // update tab area scroll pane constraints
+         constraints = layout.getConstraints(mTabAreaScrollPane);
+         
+         // update height
+         int newHeight = mMaxTabAreaHeight + insets.top + insets.bottom; 
+         int diff = constraints.size.height - newHeight;
+         constraints.size.height = newHeight;
+            
+         // set new constraints
+         layout.setConstraints(mTabAreaScrollPane, constraints);
+         
+         // update left scroll button constraints
+         constraints = layout.getConstraints(mLeftScrollButton);
+         constraints.size.height = newHeight;
+         
+         // update right scroll button constraints
+         constraints = layout.getConstraints(mRightScrollButton);
+         constraints.size.height = newHeight;
+         
+         // update tab content panel constraints
+         constraints = layout.getConstraints(getTabContentPanel());
+         constraints.location.y -= diff;
+         constraints.size.height += diff;
+         layout.setConstraints(getTabContentPanel(), constraints);
       }
    }
    
@@ -1117,7 +1143,7 @@ public class TabPanel extends JPanel
     * @param index the index to add the tab area at.
     * @return true if the tab area was added, false if not.
     */
-   protected boolean addTabArea(Component tabArea, int index)
+   protected synchronized boolean addTabArea(Component tabArea, int index)
    {
       boolean rval = false;
 
@@ -1147,8 +1173,14 @@ public class TabPanel extends JPanel
          // add the tab area component to the parent
          parent.add(tabArea);
          
+         // update max tab area height as necessary
+         if(tabArea.getPreferredSize().height > mMaxTabAreaHeight)
+         {
+            mMaxTabAreaHeight = tabArea.getPreferredSize().height;
+         }
+         
          // add the panel for the tab area component
-         getTabAreaPanel().add(parent, index);
+         getTabAreaPanel().add(parent, new PositionConstraints(), index);
          
          // add map entry
          mTabAreaParentToTabArea.put(parent, tabArea);
@@ -1156,6 +1188,9 @@ public class TabPanel extends JPanel
          // add listeners
          parent.addMouseListener(getTabPanelHandler());
          addListenersToComponent(tabArea);
+         
+         // update component constraints
+         updateComponentConstraints();
       }
       
       return rval;       
@@ -1183,7 +1218,7 @@ public class TabPanel extends JPanel
     * @param tabArea the tab area component to remove.
     * @return true if the tab area was removed, false if not.
     */
-   protected boolean removeTabArea(Component tabArea)
+   protected synchronized boolean removeTabArea(Component tabArea)
    {
       boolean rval = false;
       
@@ -1213,6 +1248,25 @@ public class TabPanel extends JPanel
          
          // remove the tab area component parent
          getTabAreaPanel().remove(parent);
+         
+         // recalculate max tab area height
+         mMaxTabAreaHeight = 0;
+         int count = getTabAreaPanel().getComponentCount();
+         for(int i = 0; i < count; i++)
+         {
+            Component tempParent = getTabAreaPanel().getComponent(i);
+            Component tempTabArea = getTabAreaFromParent(tempParent);
+            if(tempTabArea != null)
+            {
+               if(tempTabArea.getPreferredSize().height > mMaxTabAreaHeight)
+               {
+                  mMaxTabAreaHeight = tempTabArea.getPreferredSize().height;
+               }
+            }
+         }
+         
+         // update component constraints
+         updateComponentConstraints();
       }
       
       return rval;
@@ -1839,14 +1893,23 @@ public class TabPanel extends JPanel
    }
    
    /**
-    * Overridden to ensures that tab dimensions are set properly.
-    */
-   public void doLayout()
+    * Overridden to update component constraints.
+    *  
+    * Validates this container and all of its subcomponents.
+    * 
+    * The <code>validate</code> method is used to cause a container
+    * to lay out its subcomponents again. It should be invoked when
+    * this container's subcomponents are modified (added to or
+    * removed from the container, or layout-related information
+    * changed) after the container has been displayed.
+    */   
+   public void validate()
    {
-      // reset tab dimensions
-      resetTabDimensions();
+      // update component constraints
+      updateComponentConstraints();
       
-      super.doLayout();
+      // validate
+      super.validate();
    }
    
    /**
@@ -2618,12 +2681,8 @@ public class TabPanel extends JPanel
       public void paintBorder(Component c, Graphics g,
                               int x, int y, int width, int height)
       {
-         // ensure tab area panel is valid
-         if(!getTabAreaPanel().isValid())
-         {
-            resetTabDimensions();
-            getTabAreaPanel().validate();
-         }
+         // ensure valid
+         ensureValid();
          
          // get the selected tab area
          Component selected = getSelectedTabArea();
@@ -2704,12 +2763,8 @@ public class TabPanel extends JPanel
       public void paintBorder(Component c, Graphics g,
                               int x, int y, int width, int height)
       {
-         // ensure tab area panel is valid
-         if(!getTabAreaPanel().isValid())
-         {
-            resetTabDimensions();
-            getTabAreaPanel().validate();
-         }
+         // ensure valid
+         ensureValid();
          
          int top = x;
          int left = y;

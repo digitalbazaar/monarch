@@ -14,6 +14,7 @@ import java.awt.Image;
 import java.awt.BasicStroke;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -23,8 +24,6 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -496,7 +495,7 @@ public class EditableTabPanel extends TabPanel
       Border b = new EditableTabAreaParentBorder(insets);
 
       return b;
-   }   
+   }
    
    /**
     * Creates a close button panel that encapsulates a tab area.
@@ -512,21 +511,107 @@ public class EditableTabPanel extends TabPanel
       // create a close button for the content
       JButton closeButton = createCloseButton(content);
       
-      // set up the close button panel
-      BoxLayout bl = new BoxLayout(cbp, BoxLayout.X_AXIS);
-      cbp.setLayout(bl);
-      cbp.setOpaque(false);
-      
       // set horizontal strut size
       int strut = 5;
+
+      // set up the close button panel
+      cbp.setSize(tabArea.getPreferredSize().width + strut +
+                  closeButton.getPreferredSize().width,
+                  tabArea.getPreferredSize().height);
+      cbp.setLayout(new PositionLayout(cbp));
+      cbp.setOpaque(false);
+      
+      // tab area constraints
+      PositionConstraints tabAreaConstraints = new PositionConstraints();
+      tabAreaConstraints.location = new Point(0, 0);
+      tabAreaConstraints.size = new Dimension(tabArea.getPreferredSize());
+      tabAreaConstraints.anchor = PositionConstraints.ANCHOR_ALL;
+      
+      // close button constraints
+      PositionConstraints closeButtonConstraints = new PositionConstraints();
+      closeButtonConstraints.location =
+         new Point(tabAreaConstraints.getRight() + strut, 0);
+      closeButtonConstraints.size =
+         new Dimension(closeButton.getPreferredSize().width,
+                       cbp.getHeight());
+      closeButtonConstraints.anchor =
+         PositionConstraints.ANCHOR_TOP | PositionConstraints.ANCHOR_RIGHT |
+         PositionConstraints.ANCHOR_BOTTOM;
       
       // add components
-      cbp.add(tabArea);
-      cbp.add(Box.createHorizontalStrut(strut));
-      cbp.add(closeButton);
+      cbp.add(tabArea, tabAreaConstraints);
+      cbp.add(closeButton, closeButtonConstraints);
       
       return cbp;
    }
+   
+   /**
+    * Overridden to update close button panel tab areas.
+    * 
+    * Updates the constraints for a particular tab area.
+    * 
+    * This method can be overridden to set the constraints for specialized
+    * tab areas.
+    * 
+    * @param tabArea the tab area to update.
+    */
+   protected void updateTabAreaConstraints(Component tabArea)
+   {
+      if(tabArea instanceof CloseButtonJPanel)
+      {
+         // get layout for close button panel
+         CloseButtonJPanel panel = (CloseButtonJPanel)tabArea;
+         PositionLayout layout = (PositionLayout)panel.getLayout();
+         
+         // get content for this tab area
+         Component content = getTabContent(tabArea);
+         
+         // get close button for this tab area
+         JButton closeButton = getCloseButton(content);
+         
+         // get the tab area inside of the close button panel
+         tabArea = panel.getComponent(0); 
+
+         // tab area constraints
+         PositionConstraints tabAreaConstraints = new PositionConstraints();
+         tabAreaConstraints.location = new Point(0, 0);
+         tabAreaConstraints.size = new Dimension(tabArea.getPreferredSize());
+         tabAreaConstraints.anchor = PositionConstraints.ANCHOR_ALL;
+
+         // set tab area constraints
+         layout.setConstraints(tabArea, tabAreaConstraints);
+         
+         // determine new panel size based on close button presence
+         Rectangle rect = new Rectangle(0, 0,
+            tabArea.getPreferredSize().width,
+            tabArea.getPreferredSize().height);
+         
+         boolean closeable = isTabCloseable(content); 
+         if(closeable)
+         {
+            // set horizontal strut size
+            int strut = 5;
+            rect.width += strut + closeButton.getPreferredSize().width;
+            
+            // close button constraints
+            PositionConstraints closeButtonConstraints = new PositionConstraints();
+            closeButtonConstraints.location =
+               new Point(tabAreaConstraints.getRight() + strut, 0);
+            closeButtonConstraints.size =
+               new Dimension(closeButton.getPreferredSize().width,
+                             layout.getBaseParentBounds().height);
+            closeButtonConstraints.anchor =
+               PositionConstraints.ANCHOR_TOP | PositionConstraints.ANCHOR_RIGHT |
+               PositionConstraints.ANCHOR_BOTTOM;
+            
+            // set constraints
+            layout.setConstraints(closeButton, closeButtonConstraints);
+         }
+         
+         // set new base parent bounds
+         layout.setBaseParentBounds(rect);
+      }
+   }   
    
    /**
     * Creates a label for a tab area with the specified title, icon,
@@ -1108,17 +1193,18 @@ public class EditableTabPanel extends TabPanel
 
                if(closeable)
                {
-                  // add the close button and the strut
-                  int strut = 5;
-                  panel.add(Box.createHorizontalStrut(strut));
-                  panel.add(closeButton);
+                  // add the close button
+                  panel.add(closeButton, new PositionConstraints());
                }
                else
                {
-                  // remove the close button and the strut
+                  // remove the close button
                   panel.remove(closeButton);
-                  panel.remove(1);
                }
+               
+               // revalidate, repaint
+               revalidate();
+               repaint();
             }
          }
       }
