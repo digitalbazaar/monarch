@@ -1251,7 +1251,7 @@ public class TabPanel extends JPanel
     * @param index the index to add the tab content component at.
     * @return true if the tab content was added, false if not.
     */
-   protected boolean addTabContent(Component content, int index)
+   protected synchronized boolean addTabContent(Component content, int index)
    {
       boolean rval = false;
       
@@ -1302,7 +1302,7 @@ public class TabPanel extends JPanel
     * @param content the tab content component to add.
     * @return true if the tab content was added, false if not.
     */
-   protected boolean addTabContent(Component content)
+   protected synchronized boolean addTabContent(Component content)
    {
       boolean rval = false;
       
@@ -1318,7 +1318,7 @@ public class TabPanel extends JPanel
     * @param content the tab content component to remove.
     * @return true if the tab content was removed, false if not.
     */
-   protected boolean removeTabContent(Component content)
+   protected synchronized boolean removeTabContent(Component content)
    {
       boolean rval = false;
       
@@ -1353,7 +1353,7 @@ public class TabPanel extends JPanel
     * 
     * @param content the latest tab content that was selected.
     */
-   protected void updateSelectedTabOrder(Component content)
+   protected synchronized void updateSelectedTabOrder(Component content)
    {
       // remove the passed tab from the selected tabs list
       removeTabFromSelectedTabOrder(content);
@@ -1367,7 +1367,7 @@ public class TabPanel extends JPanel
     * 
     * @param content the tab content to remove from the ordered list.
     */
-   protected void removeTabFromSelectedTabOrder(Component content)
+   protected synchronized void removeTabFromSelectedTabOrder(Component content)
    {
       Iterator i = mSelectedTabs.iterator();
       while(i.hasNext())
@@ -1455,7 +1455,7 @@ public class TabPanel extends JPanel
     * @param content the tab content component to select.
     * @return true if the content is selected, false if not.
     */
-   protected boolean selectTabContent(Component content)
+   protected synchronized boolean selectTabContent(Component content)
    {
       boolean rval = false;
       
@@ -1471,38 +1471,34 @@ public class TabPanel extends JPanel
          // get the old selection
          Component oldSelected = getSelected();
          
-         // if the selection doesn't equal the content, then select it 
-         if(oldSelected != content)
-         {
-            rval = true;
+         rval = true;
 
-            // save the new selection
-            mSelectedContent = content;
+         // save the new selection
+         mSelectedContent = content;
             
-            // update selected tab content order
-            updateSelectedTabOrder(content);
+         // update selected tab content order
+         updateSelectedTabOrder(content);
             
-            // set the old selected back to unselected color
-            if(oldSelected != null)
-            {
-               Component tabArea = getTabArea(oldSelected);
-               if(tabArea != null)
-               {
-                  tabArea.getParent().setBackground(getUnselectedColor());
-               }
-            }
-            
-            // set the new selection to the selected color
-            Component tabArea = getSelectedTabArea();
+         // set the old selected back to unselected color
+         if(oldSelected != null)
+         {
+            Component tabArea = getTabArea(oldSelected);
             if(tabArea != null)
             {
-               tabArea.getParent().setBackground(getSelectedColor());
+               tabArea.getParent().setBackground(getUnselectedColor());
             }
-            
-            // show the new selection
-            CardLayout cl = getTabContentPanelLayout();
-            cl.show(getTabContentPanel(), id);
          }
+            
+         // set the new selection to the selected color
+         Component tabArea = getSelectedTabArea();
+         if(tabArea != null)
+         {
+            tabArea.getParent().setBackground(getSelectedColor());
+         }
+            
+         // show the new selection
+         CardLayout cl = getTabContentPanelLayout();
+         cl.show(getTabContentPanel(), id);
       }
       
       return rval;
@@ -1916,12 +1912,15 @@ public class TabPanel extends JPanel
     * @param content the tab content of the tab to change.  
     * @param tabArea the new tab area.
     */
-   public void setTabArea(Component content, Component tabArea)
+   public synchronized void setTabArea(Component content, Component tabArea)
    {
       // get the old tab area
       Component oldTabArea = getTabArea(content);
       if(oldTabArea != null)
       {
+         // save current selection
+         boolean isSelected = (getSelectedTabArea() == oldTabArea);
+
          // get the old tab area index
          int index = getTabAreaIndex(oldTabArea);
          
@@ -1941,9 +1940,15 @@ public class TabPanel extends JPanel
          // set background
          tabArea.getParent().setBackground(background);
          
-         // revalidate, repaint (immediate repaint required)
+         // reselect tab area if appropriate
+         if(isSelected)
+         {
+            selectTabContent(content);
+         }
+         
+         // revalidate, repaint
          revalidate();
-         paintImmediately(mTabAreaPanel.getBounds());
+         repaint();
       }
    }
    
@@ -2020,7 +2025,8 @@ public class TabPanel extends JPanel
     * @param oldContent the old content for the tab.
     * @param newContent the new content for the tab.
     */
-   public void setTabContent(Component oldContent, Component newContent)
+   public synchronized void setTabContent(
+      Component oldContent, Component newContent)
    {
       // ensure we aren't just replacing with the same tab content
       if(oldContent != newContent)

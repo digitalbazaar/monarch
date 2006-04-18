@@ -563,7 +563,7 @@ public class EditableTabPanel extends TabPanel
     * @param content the tab content component to select.
     * @return true if the content is selected, false if not.
     */
-   protected boolean selectTabContent(Component content)
+   protected synchronized boolean selectTabContent(Component content)
    {
       boolean rval = false;
       
@@ -627,7 +627,8 @@ public class EditableTabPanel extends TabPanel
     * @param content the component to display in the content area.
     * @param index the index to add the tab at. 
     */
-   public void addTab(Component tabArea, Component content, int index)
+   public synchronized void addTab(Component tabArea,
+                                   Component content, int index)
    {
       // create a close button panel
       JPanel cbp = createCloseButtonPanel(tabArea, content);
@@ -715,8 +716,8 @@ public class EditableTabPanel extends TabPanel
     * @param index the index to insert the tab at.
     * @see #addtab
     */
-   public void addTab(String title, Icon icon, String tooltip,
-                      Component content, int index)
+   public synchronized void addTab(String title, Icon icon, String tooltip,
+                                   Component content, int index)
    {
       // create a tab area label
       JLabel tabArea = createTabAreaLabel(title, icon, tooltip);
@@ -730,7 +731,7 @@ public class EditableTabPanel extends TabPanel
     * 
     * @param content the content component that was displayed in the tab.
     */
-   public void removeTab(Component content)   
+   public synchronized void removeTab(Component content)   
    {
       // get the close button associated with the content
       JButton closeButton = (JButton)mContentToCloseButton.get(content);
@@ -755,12 +756,14 @@ public class EditableTabPanel extends TabPanel
     * @param content the tab content of the tab to change.  
     * @param tabArea the new tab area.
     */
-   public void setTabArea(Component content, Component tabArea)
+   public synchronized void setTabArea(Component content, Component tabArea)
    {
       // get the old tab area
       Component oldTabArea = getTabArea(content);
       if(oldTabArea != null)
       {
+         boolean isSelected = (getSelectedTabArea() == oldTabArea);
+         
          // get the old tab area index
          int index = getTabAreaIndex(oldTabArea);
          
@@ -797,9 +800,23 @@ public class EditableTabPanel extends TabPanel
          // set closeable status of tab
          setTabCloseable(content, closeable);
          
-         // revalidate, repaint (immediate repaint required)
+         // reselect tab area if appropriate
+         if(isSelected)
+         {
+            selectTabContent(content);
+         }
+         
+         // revalidate, repaint
+         mTabAreaPanel.invalidate();
          revalidate();
-         paintImmediately(mTabAreaPanel.getBounds());
+         //repaint();
+         
+         mTabAreaPanel.repaint();
+         
+         //revalidate();
+         repaint();
+         //paintImmediately(mTabAreaPanel.getBounds());
+         //repaint();
       }
    }
    
@@ -809,7 +826,8 @@ public class EditableTabPanel extends TabPanel
     * @param oldContent the old content for the tab.
     * @param newContent the new content for the tab.
     */
-   public void setTabContent(Component oldContent, Component newContent)
+   public synchronized void setTabContent(
+      Component oldContent, Component newContent)
    {
       super.setTabContent(oldContent, newContent);
       
@@ -822,6 +840,9 @@ public class EditableTabPanel extends TabPanel
          mCloseButtonToContent.put(closeButton, newContent);
          mContentToCloseButton.put(newContent, closeButton);
       }
+      
+      revalidate();
+      repaint();
    }
    
    /**
@@ -830,7 +851,7 @@ public class EditableTabPanel extends TabPanel
     * @param content the tab content of the tab to change.
     * @param title the title for the tab.
     */
-   public void setTabArea(Component content, String title)
+   public synchronized void setTabArea(Component content, String title)
    {
       Component tabArea = getTabArea(content);
       if(tabArea != null)
@@ -857,6 +878,12 @@ public class EditableTabPanel extends TabPanel
             {
             }
          }
+         else
+         {
+            // create a tab area label
+            JLabel newLabel = createTabAreaLabel(title, null, null);
+            setTabArea(content, newLabel);
+         }
       }
    }
    
@@ -867,7 +894,8 @@ public class EditableTabPanel extends TabPanel
     * @param title the title for the tab.
     * @param icon the icon for the tab.
     */
-   public void setTabArea(Component content, String title, Icon icon)
+   public synchronized void setTabArea(Component content, 
+                                       String title, Icon icon)
    {
       Component tabArea = getTabArea(content);
       if(tabArea != null)
@@ -892,6 +920,12 @@ public class EditableTabPanel extends TabPanel
             {
             }
          }
+         else
+         {
+            // create a tab area label
+            JLabel newLabel = createTabAreaLabel(title, icon, null);
+            setTabArea(content, newLabel);
+         }
       }
    }
    
@@ -903,8 +937,8 @@ public class EditableTabPanel extends TabPanel
     * @param icon the icon for the tab.
     * @param tooltip the tooltip text for the tab. 
     */
-   public void setTabArea(Component content, String title,
-                          Icon icon, String tooltip)
+   public synchronized void setTabArea(Component content, String title,
+                                       Icon icon, String tooltip)
    {
       Component tabArea = getTabArea(content);
       if(tabArea != null)
@@ -977,7 +1011,7 @@ public class EditableTabPanel extends TabPanel
     * 
     * @param policy the close button policy to use.
     */
-   public void setCloseButtonPolicy(int policy)
+   public synchronized void setCloseButtonPolicy(int policy)
    {
       if(policy == ALL_CLOSE_BUTTONS_VISIBLE_AND_ENABLED_POLICY)
       {
@@ -1065,7 +1099,8 @@ public class EditableTabPanel extends TabPanel
     * @param content the content of the tab to set.
     * @param closeable whether or not the tab is closeable. 
     */
-   public void setTabCloseable(Component content, boolean closeable)
+   public synchronized void setTabCloseable(Component content, 
+                                            boolean closeable)
    {
       if(content != null && isTabCloseable(content) != closeable)
       {
