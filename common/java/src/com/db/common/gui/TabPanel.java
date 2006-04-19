@@ -1188,9 +1188,6 @@ public class TabPanel extends JPanel
          // add listeners
          parent.addMouseListener(getTabPanelHandler());
          addListenersToComponent(tabArea);
-         
-         // update component constraints
-         updateComponentConstraints();
       }
       
       return rval;       
