@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common.logging;
 
@@ -29,12 +29,12 @@ public class Logger
    /**
     * The current verbosity setting for the log file.
     */
-   protected int mFileVerbosity;
+   protected double mFileVerbosity;
    
    /**
     * The current verbosity setting for the console.
     */
-   protected int mConsoleVerbosity;
+   protected double mConsoleVerbosity;
 
    /**
     * The date format.
@@ -78,12 +78,12 @@ public class Logger
     */
    public static final long DEFAULT_NUM_ROTATING_FILES = 3;
    
-   public static final int NO_VERBOSITY = 0;
-   public static final int ERROR_VERBOSITY = 1;
-   public static final int WARNING_VERBOSITY = 2;
-   public static final int MSG_VERBOSITY = 3;
-   public static final int DEBUG_VERBOSITY = 4;
-   public static final int MAX_VERBOSITY = DEBUG_VERBOSITY;
+   public static final double NO_VERBOSITY = 0.0;
+   public static final double ERROR_VERBOSITY = 1.0;
+   public static final double WARNING_VERBOSITY = 2.0;
+   public static final double MSG_VERBOSITY = 3.0;
+   public static final double DEBUG_VERBOSITY = 4.0;
+   public static final double MAX_VERBOSITY = DEBUG_VERBOSITY;
 
    /**
     * Creates a new logger with default verbosity.
@@ -101,7 +101,7 @@ public class Logger
     * @param name the name of the logger.
     * @param fileVerbosity the max verbosity to display in the log file.
     */
-   public Logger(String name, int fileVerbosity)
+   public Logger(String name, double fileVerbosity)
    {
       this(name, fileVerbosity, Logger.NO_VERBOSITY);
    }
@@ -113,7 +113,7 @@ public class Logger
     * @param fileVerbosity the max verbosity to display in the log file.
     * @param consoleVerbosity the max verbosity to display in the console.
     */
-   public Logger(String name, int fileVerbosity, int consoleVerbosity)
+   public Logger(String name, double fileVerbosity, double consoleVerbosity)
    {
       mName = name;
       mFileVerbosity = fileVerbosity;
@@ -280,7 +280,7 @@ public class Logger
     * @param fileVerbosity the verbosity to set.
     * @return true if verbosity valid and set, false if not.
     */
-   public synchronized  boolean setFileVerbosity(int fileVerbosity)
+   public synchronized  boolean setFileVerbosity(double fileVerbosity)
    {
       boolean rval = false;
 
@@ -297,7 +297,7 @@ public class Logger
             else
             {
                mStreamToVerbosity.put(getPrintStream(),
-                                      new Integer(mFileVerbosity));
+                                      new Double(mFileVerbosity));
             }
          }
          
@@ -312,7 +312,7 @@ public class Logger
     *
     * @return the file verbosity set for this logger.
     */
-   public int getFileVerbosity()
+   public double getFileVerbosity()
    {
       return mFileVerbosity;
    }
@@ -326,7 +326,7 @@ public class Logger
     * @param consoleVerbosity the verbosity to set.
     * @return true if verbosity valid and set, false if not.
     */
-   public synchronized boolean setConsoleVerbosity(int consoleVerbosity)
+   public synchronized boolean setConsoleVerbosity(double consoleVerbosity)
    {
       boolean rval = false;
 
@@ -343,7 +343,7 @@ public class Logger
             else
             {
                mStreamToVerbosity.put(System.out,
-                                      new Integer(mConsoleVerbosity));
+                                      new Double(mConsoleVerbosity));
             }
          }
          
@@ -358,7 +358,7 @@ public class Logger
     *
     * @return the console verbosity set for this logger.
     */
-   public int getConsoleVerbosity()
+   public double getConsoleVerbosity()
    {
       return mConsoleVerbosity;
    }
@@ -429,7 +429,7 @@ public class Logger
          mStream = new PrintStream(fos);
          
          // add stream to stream verbosity map
-         mStreamToVerbosity.put(mStream, new Integer(this.getFileVerbosity()));
+         mStreamToVerbosity.put(mStream, new Double(getFileVerbosity()));
          
          rval = true;
       }
@@ -543,7 +543,7 @@ public class Logger
     * @param ps the print stream to add.
     * @param verbosity the verbosity for the print stream.
     */
-   public synchronized void addPrintStream(PrintStream ps, int verbosity)
+   public synchronized void addPrintStream(PrintStream ps, double verbosity)
    {
       setPrintStreamVerbosity(ps, verbosity);
    }
@@ -568,7 +568,7 @@ public class Logger
     * @param verbosity the verbosity for the print stream.
     */
    public synchronized void setPrintStreamVerbosity(PrintStream ps,
-                                                    int verbosity)
+                                                    double verbosity)
    {
       if(ps != null)
       {
@@ -582,7 +582,7 @@ public class Logger
          }
          else
          {
-            mStreamToVerbosity.put(ps, new Integer(verbosity));
+            mStreamToVerbosity.put(ps, new Double(verbosity));
          }
       }
    }
@@ -606,7 +606,7 @@ public class Logger
     *                  order for the text to be written to the log.
     * @return true if the text was written, false if not.
     */
-   public synchronized boolean log(String text, int verbosity)
+   public synchronized boolean log(String text, double verbosity)
    {
       return log(text, verbosity, true, true);
    }
@@ -622,8 +622,8 @@ public class Logger
     *                         print to console/log file.
     * @return true if the text was written, false if not.
     */
-   public synchronized boolean log(String text, int verbosity, boolean header,
-                                   boolean useCustomStreams)
+   public synchronized boolean log(String text, double verbosity, 
+                                   boolean header, boolean useCustomStreams)
    {
       boolean rval = false;
       
@@ -684,11 +684,11 @@ public class Logger
             {
                // get the next stream and its verbosity
                PrintStream ps = (PrintStream)i.next();
-               Integer sv = (Integer)mStreamToVerbosity.get(ps);
+               Double sv = (Double)mStreamToVerbosity.get(ps);
                
                if(sv != null)
                {
-                  if(sv.intValue() >= verbosity)
+                  if(sv.doubleValue() >= verbosity)
                   {
                      try
                      {

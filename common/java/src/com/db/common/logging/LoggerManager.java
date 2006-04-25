@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common.logging;
 
@@ -97,8 +97,8 @@ public class LoggerManager
     * @param consoleVerbosity the console verbosity to set.
     * @return true if verbosity valid and set, false if not.
     */
-   public static boolean setVerbosity(String name, int fileVerbosity,
-                                      int consoleVerbosity)
+   public static boolean setVerbosity(String name, double fileVerbosity,
+                                      double consoleVerbosity)
    {
       boolean rval = false;
 
@@ -122,7 +122,7 @@ public class LoggerManager
     * @param fileVerbosity the file verbosity to set.
     * @return true if file verbosity valid and set, false if not.
     */
-   public static boolean setFileVerbosity(String name, int fileVerbosity)
+   public static boolean setFileVerbosity(String name, double fileVerbosity)
    {
       boolean rval = false;
 
@@ -141,9 +141,9 @@ public class LoggerManager
     * @param name the name of the logger.
     * @return the file verbosity set for the specified Logger.
     */
-   public static int getFileVerbosity(String name)
+   public static double getFileVerbosity(String name)
    {
-      int rval = -1;
+      double rval = -1;
 
       Logger logger = getLogger(name);
       if(logger != null)
@@ -164,7 +164,7 @@ public class LoggerManager
     * @param consoleVerbosity the verbosity to set.
     * @return true if console verbosity valid and set, false if not.
     */
-   public static boolean setConsoleVerbosity(String name, int consoleVerbosity)
+   public static boolean setConsoleVerbosity(String name, double consoleVerbosity)
    {
       boolean rval = false;
 
@@ -191,9 +191,9 @@ public class LoggerManager
     * @param name the name of the logger.
     * @return the console verbosity set for the specified Logger.
     */
-   public static int getConsoleVerbosity(String name)
+   public static double getConsoleVerbosity(String name)
    {
-      int rval = -1;
+      double rval = -1;
 
       Logger logger = getLogger(name);
       if(logger != null)
@@ -421,7 +421,7 @@ public class LoggerManager
     * @return true if successfully added, false if not.
     */
    public static boolean addPrintStream(String name,
-                                        PrintStream ps, int verbosity)
+                                        PrintStream ps, double verbosity)
    {
       boolean rval = false;
       
@@ -465,7 +465,7 @@ public class LoggerManager
     * @return true if successfully added, false if not.
     */
    public static boolean setPrintStreamVerbosity(String name,
-                                                 PrintStream ps, int verbosity)   
+                                                 PrintStream ps, double verbosity)   
    {
       boolean rval = false;
 
@@ -502,7 +502,7 @@ public class LoggerManager
     *                  order for the text to be written to the log.
     * @return true if the text was written, false if not.
     */
-   public static boolean log(String name, String text, int verbosity)
+   public static boolean log(String name, String text, double verbosity)
    {
       boolean rval = false;
 
