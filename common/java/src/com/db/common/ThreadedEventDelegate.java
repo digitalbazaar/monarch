@@ -166,7 +166,7 @@ public class ThreadedEventDelegate
          // lock on the queue and push an event onto it
          synchronized(queue)
          {
-            queue.add(0, event);
+            queue.add(event);
          }
       }
    }
