@@ -103,6 +103,8 @@ public class ThreadedEventDelegate
          }
          catch(Throwable ignore)
          {
+            // interrupt thread
+            Thread.currentThread().interrupt();
          }
       }
    }
