@@ -3,6 +3,7 @@
  */
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,6 +13,7 @@ import javax.swing.AbstractListModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -87,15 +89,23 @@ public class UTCustomRenderers implements ActionListener
       JList list = new JList(model);
       
       // set custom renderer
-      //list.setCellRenderer(new CustomRenderer());
       list.setCellRenderer(new JComponentCellRenderer());
       
-      // create button to put in list
+      // create panel to put in list
+      JPanel listPanel = new JPanel();
+      listPanel.setLayout(new GridLayout(2, 1));
+      
+      // add button to list panel
       JButton button = new JButton("button1");
       button.addActionListener(new UTCustomRenderers());
+      listPanel.add(button);
       
-      // add button to list model
-      model.addElement(button);
+      // add label to list panel
+      JLabel label = new JLabel("label1");
+      listPanel.add(label);
+      
+      // add list panel to list model
+      model.addElement(listPanel);
       
       // create scroll pane for list
       JScrollPane scrollPane = new JScrollPane(list);
@@ -122,73 +132,4 @@ public class UTCustomRenderers implements ActionListener
    {
       System.out.println("ACTION PERFORMED!");
    }
-   
-   /**
-    * A custom renderer.
-    * 
-    * @author Dave Longley
-    */
-   public static class CustomRenderer implements ListCellRenderer
-   {
-      public Component getListCellRendererComponent(
-         JList list, Object value, int index,
-         boolean isSelected, boolean cellHasFocus)
-      {
-         Component component = (Component)value;
-         
-         return component;
-      }
-   }
-   
-   /**
-    * A panel list model.
-    * 
-    * @author Dave Longley
-    */
-   public static class PanelListModel extends AbstractListModel
-   {
-      /**
-       * The list data.
-       */
-      protected Vector mListData;
-      
-      /**
-       * Creates a new panel list model.
-       */
-      public PanelListModel()
-      {
-         mListData = new Vector();
-      }
-      
-      /**
-       * Adds an element to this model.
-       * 
-       * @param element the element to add to this model.
-       */
-      public void addElement(Object element) 
-      {
-         mListData.add(element);
-      }
-      
-      /**
-       * Gets an element at the given index in the list. 
-       * 
-       * @param i the index of the element to retrieve.
-       * @return an element at the given index in the list.
-       */
-      public Object getElementAt(int i)
-      {
-         return mListData.get(i);
-      }
-
-      /**
-       * Gets the size of this list model.
-       * 
-       * @return the size of this list model.
-       */
-      public int getSize()
-      {
-         return mListData.size();
-      }
-   }   
 }
