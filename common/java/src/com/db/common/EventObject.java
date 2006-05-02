@@ -3,6 +3,8 @@
  */
 package com.db.common;
 
+import java.util.HashMap;
+
 /**
  * A generic event object for passing event data.
  * 
@@ -16,40 +18,29 @@ public class EventObject
    protected String mName;
    
    /**
-    * The data bundled with this event.
+    * A map of data bundled with this event.
     */
-   protected Object mData;
+   protected HashMap mDataMap;
    
    /**
-    * Creates a new EventObject with no specified name and null data.
+    * Creates a new EventObject with no specified name.
     */
    public EventObject()
    {
-      this("", null);
+      this("");
    }
 
    /**
-    * Creates a new EventObject with the given name and null data.
+    * Creates a new EventObject with the given name.
     * 
     * @param name the name of this event.
     */
    public EventObject(String name)
    {
-      this(name, null);
+      setName(name);
+      mDataMap = new HashMap();
    }
 
-   /**
-    * Creates a new EventObject with the given name and data.
-    * 
-    * @param name the name of this event.
-    * @param data the data for this event.
-    */
-   public EventObject(String name, Object data)
-   {
-      setName(name);
-      setData(data);
-   }
-   
    /**
     * Sets the name of this event.
     * 
@@ -71,22 +62,24 @@ public class EventObject
    }
    
    /**
-    * Sets the data for this event.
+    * Sets a key-value pair of data for this event.
     * 
-    * @param data the data for this event.
+    * @param key the key for the data for this event.
+    * @param value the value for the data for this event.
     */
-   public void setData(Object data)
+   public void setData(Object key, Object value)
    {
-      mData = data;
+      mDataMap.put(key, value);
    }
    
    /**
-    * Gets the data for this event.
+    * Gets a data value for a key for this event.
     * 
-    * @return the data for this event.
+    * @param key the key for the data for this event.
+    * @return the data value for the passed key for this event.
     */
-   public Object getData()
+   public Object getData(Object key)
    {
-      return mData;
+      return mDataMap.get(key);
    }
 }
