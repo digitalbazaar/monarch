@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common.gui;
 
@@ -66,16 +66,8 @@ public class JComponentCellRenderer extends JComponent
       {
          // ensure components are not painted larger than their max size
          Dimension max = mComponent.getMaximumSize();
-         
-         if(max.width < h)
-         {
-            w = max.width;
-         }
-         
-         if(max.height < h)
-         {
-            h = max.height;
-         }
+         w = Math.min(max.width, w);
+         h = Math.min(max.height, h);
          
          mComponent.setBounds(x, y, w, h);
       }
@@ -132,7 +124,6 @@ public class JComponentCellRenderer extends JComponent
          mComponent = label;
       }
       
-      /*
       // for setting the current cell's colors
       Color background;
       
@@ -150,9 +141,9 @@ public class JComponentCellRenderer extends JComponent
       if(mComponent != null)
       {
          mComponent.setBackground(background);
-      }*/      
+      }      
       
-      return this;
+      return mComponent;
    }
          
    /**
