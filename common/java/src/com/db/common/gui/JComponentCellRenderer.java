@@ -65,9 +65,9 @@ public class JComponentCellRenderer extends JComponent
       else
       {
          // ensure components are not painted larger than their max size
-         Dimension max = mComponent.getMaximumSize();
-         w = Math.min(max.width, w);
-         h = Math.min(max.height, h);
+         //Dimension max = mComponent.getMaximumSize();
+         //w = Math.min(max.width, w);
+         //h = Math.min(max.height, h);
          
          mComponent.setBounds(x, y, w, h);
       }
