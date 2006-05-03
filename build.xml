@@ -1,18 +1,20 @@
 <!DOCTYPE project>
 
-<project name="dbcommon" default="build" basedir=".">
+<project name="dbautoupdater" default="build" basedir=".">
   <property file="setup/build.properties"/>
 
   <target name="build"
-    description="Builds the entire Digital Bazaar common source tree">
+    description="Builds the entire Digital Bazaar Core source tree">
     <echo message="========== Building Digital Bazaar common classes =========="/>
     <ant antfile="build.xml" dir="common/java" target="build"/>
+    <ant antfile="build.xml" dir="autoupdater/java" target="build"/>
   </target>
 
   <target name="clean"
-    description="Cleans the entire Digital Bazaar common source tree">
+    description="Cleans the entire Digital Bazaar Core source tree">
     <echo message="========== Cleaning Digital Bazaar common classes =========="/>
     <ant antfile="build.xml" dir="common/java" target="clean"/>
+    <ant antfile="build.xml" dir="autoupdater/java" target="clean"/>
     </target>
 
 </project>
