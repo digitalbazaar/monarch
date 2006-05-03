@@ -715,11 +715,16 @@ public class EditableTabPanel extends TabPanel
    public synchronized void addTab(Component tabArea,
                                    Component content, int index)
    {
-      // create a close button panel
-      JPanel cbp = createCloseButtonPanel(tabArea, content);
-      
-      // add tab, close button panel as the tab area
-      super.addTab(cbp, content, index);
+      // if this tab has already been added, do not re-add it
+      String id = getContentParentId(content);
+      if(id == null)
+      {
+         // create a close button panel
+         JPanel cbp = createCloseButtonPanel(tabArea, content);
+         
+         // add tab, close button panel as the tab area
+         super.addTab(cbp, content, index);
+      }
    }
    
    /**
