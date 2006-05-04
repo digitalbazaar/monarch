@@ -14,5 +14,4 @@ test=${build}/test
 #db libraries
 dbcommon.jar=${common}/dist/dbcommon.jar
 dbcommon-gui.jar=${common}/dist/dbcommon-gui.jar
-dbautoupdater-loader.jar=${autoupdater}/dist/dbautoupdater-loader.jar
 dbautoupdater.jar=${autoupdater}/dist/dbautoupdater.jar

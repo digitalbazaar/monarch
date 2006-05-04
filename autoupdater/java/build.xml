@@ -21,30 +21,30 @@
 			<classpath refid="compile.classpath"/>
 		</javac>
 		<jar jarfile="${dist}/dbautoupdater.jar">
-			<fileset dir="build" excludes="${build}/test,com/db/autoupdater/loader/**/*"/>
-		</jar>
-		<jar jarfile="${dist}/dbautoupdater-loader.jar">
-			<fileset dir="build" excludes="${build}/test,com/db/autoupdater/*"/>
+			<fileset dir="build" excludes="${build}/test"/>
 		</jar>
   </target>
 
-	<target name="run-tests" depends="build,run-ut-autoupdater-loader"
+	<target name="run-tests" depends="build,run-ut-autoupdater"
     description="Runs the unit tests for the library">
 	</target>
 
-	<target name="run-ut-autoupdater-loader" depends="build"
+	<target name="run-ut-autoupdater" depends="build"
     description="Runs the unit tests for the library">
 		<javac srcdir="test" classpath="compile.classpath"
       debug="${debug}"
       debuglevel="${debuglevel}"
       destdir="${test}"
-      includes="UTAutoUpdaterLoader.java">
+      includes="UTAutoUpdater.java,CustomAutoUpdateable.java">
 			<classpath refid="compile.classpath"/>
 		</javac>
-		<java classname="UTAutoUpdaterLoader">
+		<jar jarfile="test/customautoupdateable.jar">
+			<fileset dir="build" excludes="${build}/com"/>
+ 		</jar>
+		<java classname="UTAutoUpdater">
 			<classpath>
 				<pathelement location="${dist}/dbcommon.jar"/>
-				<pathelement location="${dist}/dbautoupdater-loader.jar"/>
+				<pathelement location="${dist}/dbautoupdater.jar"/>
 				<pathelement path="${java.class.path}"/>
 				<pathelement path="${test}"/>
 			</classpath>
