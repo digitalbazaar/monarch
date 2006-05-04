@@ -33,8 +33,8 @@ public class UTAutoUpdater
       
       System.out.println("Starting AutoUpdater...");
       
-      // start AutoUpdater
-      loader.startAutoUpdater("customautoupdateable.cfg", args);
+      // run AutoUpdater
+      loader.runAutoUpdater("customautoupdateable.cfg", args);
       
       System.out.println("AutoUpdater Finished.");
    }

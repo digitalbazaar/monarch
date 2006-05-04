@@ -161,9 +161,8 @@ public abstract class AutoUpdater
     * after updates have been installed.
     * 
     * @param application the auto-updateable application to execute.
-    * @param args the arguments for the application.
     */
-   public void run(AutoUpdateable application, String[] args)
+   public void run(AutoUpdateable application)
    {
       // check for an update, start the application if there isn't one
       if(!checkForUpdate(application))
@@ -174,8 +173,8 @@ public abstract class AutoUpdater
             new MethodInvoker(this, "continuouslyCheckForUpdate", params);
          updateChecker.backgroundExecute();
          
-         // execute application with arguments
-         application.execute(args);
+         // execute application
+         application.execute();
       
          try
          {

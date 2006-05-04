@@ -16,15 +16,11 @@ public interface AutoUpdateable
     * 
     * This method should load all of the necessary jar files to execute
     * this application.
-    * 
-    * @param args the arguments to execute this auto-updateable application
-    *             with.
     */
-   public void execute(String[] args);
+   public void execute();
    
    /**
-    * Receives and processes arguments once this auto-updateable application
-    * is already running.
+    * Processes arguments for this auto-updateable application.
     * 
     * @param args the arguments to process.
     */

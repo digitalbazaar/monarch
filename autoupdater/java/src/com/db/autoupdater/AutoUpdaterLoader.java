@@ -15,10 +15,39 @@ import com.db.common.logging.LoggerManager;
 public abstract class AutoUpdaterLoader
 {
    /**
+    * The currently running AutoUpdateable application.
+    */
+   protected AutoUpdateable mRunningAutoUpdateable;
+   
+   /**
     * Creates a new AutoUpdaterLoader.
     */
    public AutoUpdaterLoader()
    {
+      // no auto-updateable application is presently running
+      setRunningAutoUpdateable(null);
+   }
+   
+   /**
+    * Sets the currently running AutoUpdateable application.
+    * 
+    * @param application the auto-updateable application that is currently
+    *                    running.
+    */
+   protected void setRunningAutoUpdateable(AutoUpdateable application)
+   {
+      mRunningAutoUpdateable = application;
+   }
+   
+   /**
+    * Gets the currently running AutoUpdateable application.
+    * 
+    * @return the currently running auto-updateable application, or null
+    *         if none is running.
+    */
+   protected AutoUpdateable getRunningAutoUpdateable()
+   {
+      return mRunningAutoUpdateable;
    }
    
    /**
@@ -29,14 +58,14 @@ public abstract class AutoUpdaterLoader
    public abstract AutoUpdater loadAutoUpdater();
    
    /**
-    * Starts an AutoUpdater that runs the AutoUpdateable application specified
+    * Runs an AutoUpdater that runs the AutoUpdateable application specified
     * in the configuration file with the given filename.
     * 
     * @param configFilename the name of the configuration file that specifies
     *                       the AutoUpdateable application to load.
     * @param args the arguments to start the application with.
     */
-   public void startAutoUpdater(String configFilename, String[] args)
+   public void runAutoUpdater(String configFilename, String[] args)
    {
       boolean run = true;
       while(run)
@@ -54,8 +83,17 @@ public abstract class AutoUpdaterLoader
                   updater.loadAutoUpdateable(configFile);
                if(application != null)
                {
+                  // process the arguments
+                  application.processArguments(args);
+                  
+                  // set application as currently running
+                  setRunningAutoUpdateable(application);
+                  
                   // run the application
-                  updater.run(application, args);
+                  updater.run(application);
+                  
+                  // remove application as currently running
+                  setRunningAutoUpdateable(null);
                   
                   // run the application again if the AutoUpdater doesn't
                   // require a reload and the application should restart
@@ -81,6 +119,22 @@ public abstract class AutoUpdaterLoader
             run = false;
             getLogger().error("Could not load AutoUpdater!");
          }
+      }
+   }
+   
+   /**
+    * Passes arguments to a running AutoUpdateable application.
+    * 
+    * @param args the arguments to pass to a running AutoUpdateable application.
+    */
+   public void passArguments(String[] args)
+   {
+      // get the currently running AutoUpdateable application
+      AutoUpdateable application = getRunningAutoUpdateable();
+      if(application != null)
+      {
+         // process arguments
+         application.processArguments(args);
       }
    }
    
