@@ -306,7 +306,7 @@ public class TabPanel extends JPanel
       mTabPanelListeners = new Vector();
       
       // set tab area insets
-      mTabAreaInsets = new Insets(5, 7, 3, 7);
+      mTabAreaInsets = new Insets(6, 7, 3, 7);
       
       // set tab content insets
       mTabContentInsets = new Insets(4, 3, 3, 3);
@@ -2691,8 +2691,8 @@ public class TabPanel extends JPanel
          Color color = (isSelected) ?
                getLightHighlightColor() : getHighlightColor();
                
-         int top = x;
-         int left = y;
+         int top = (isSelected) ? y : y + 1;
+         int left = x;
          int bottom = y + height;
          int right = x + width;
          
