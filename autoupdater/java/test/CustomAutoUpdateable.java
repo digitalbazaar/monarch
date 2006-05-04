@@ -35,7 +35,7 @@ public class CustomAutoUpdateable implements AutoUpdateable
     * This method should load all of the necessary jar files to execute
     * this application.
     * 
-    * @param args the parameters to execute this auto-updateable application
+    * @param args the arguments to execute this auto-updateable application
     *             with.
     */
    public void execute(String[] args)
@@ -55,6 +55,17 @@ public class CustomAutoUpdateable implements AutoUpdateable
          // execution interrupted, should restart
          mShouldRestart = true;
       }
+   }
+   
+   /**
+    * Receives and processes arguments once this auto-updateable application
+    * is already running.
+    * 
+    * @param args the arguments to process.
+    */
+   public void processArguments(String[] args)
+   {
+      System.out.println("Receiving arguments to process...");
    }
    
    /**

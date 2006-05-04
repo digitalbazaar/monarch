@@ -220,7 +220,7 @@ public abstract class AutoUpdater
     * @return true if the script has been validated and is ready to be
     *         processed, false if not.
     */
-   public abstract boolean validateUpdateScript(UpdateScript script);   
+   public abstract boolean validateUpdateScript(UpdateScript script);
    
    /**
     * Gets the logger for this AutoUpdater.
