@@ -8,7 +8,7 @@ package com.db.common;
  * 
  * @author Dave Longley
  */
-public class EventObject
+public class EventObject implements Cloneable
 {
    /**
     * The name of this event.
@@ -294,7 +294,7 @@ public class EventObject
     * 
     * @return a copy of this event object.
     */
-   public EventObject copy()
+   public Object clone()
    {
       // copy name
       EventObject copy = new EventObject(getName());
