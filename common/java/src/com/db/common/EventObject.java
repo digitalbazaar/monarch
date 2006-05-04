@@ -279,6 +279,17 @@ public class EventObject
    }
    
    /**
+    * Copies the data from the passed event object into this one.
+    * 
+    * @param event the event to copy data from.
+    */
+   public void copyDataFrom(EventObject event)
+   {
+      // copy data map
+      mDataMap.copyFrom(event.mDataMap);
+   }
+   
+   /**
     * Makes a copy of this event object.
     * 
     * @return a copy of this event object.
@@ -291,6 +302,7 @@ public class EventObject
       // copy data map
       copy.mDataMap = mDataMap.copy();
       
+      // return copy
       return copy;
    }
 }

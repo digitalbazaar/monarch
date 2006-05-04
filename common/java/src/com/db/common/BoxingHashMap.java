@@ -319,6 +319,58 @@ public class BoxingHashMap extends HashMap
    }   
    
    /**
+    * Copies data from the passed map into this map. This method makes deep
+    * copies of boxed primitive values.
+    * 
+    * @param map the map to copy from.
+    */
+   public void copyFrom(BoxingHashMap map)
+   {
+      // copy key-value pairs
+      Iterator i = map.keySet().iterator();
+      while(i.hasNext())
+      {
+         Object key = i.next();
+         Object value = map.get(key);
+         
+         Class type = value.getClass();
+         
+         if(type == Byte.class)
+         {
+            put(key, ((Byte)value).byteValue());
+         }
+         else if(type == Short.class)
+         {
+            put(key, ((Short)value).shortValue());
+         }
+         else if(type == Integer.class)
+         {
+            put(key, ((Integer)value).intValue());
+         }
+         else if(type == Long.class)
+         {
+            put(key, ((Long)value).longValue());
+         }
+         else if(type == Float.class)
+         {
+            put(key, ((Float)value).floatValue());
+         }
+         else if(type == Double.class)
+         {
+            put(key, ((Double)value).doubleValue());
+         }
+         else if(type == Boolean.class)
+         {
+            put(key, ((Boolean)value).booleanValue());
+         }
+         else if(type == Character.class)
+         {
+            put(key, ((Character)value).charValue());
+         }
+      }
+   }
+
+   /**
     * Copies this map to another map. This method makes deep copies of
     * boxed primitive values.
     * 
@@ -328,49 +380,10 @@ public class BoxingHashMap extends HashMap
    {
       BoxingHashMap copy = new BoxingHashMap();
       
-      // copy key-value pairs
-      Iterator i = keySet().iterator();
-      while(i.hasNext())
-      {
-         Object key = i.next();
-         Object value = get(key);
-         
-         Class type = value.getClass();
-         
-         if(type == Byte.class)
-         {
-            copy.put(key, ((Byte)value).byteValue());
-         }
-         else if(type == Short.class)
-         {
-            copy.put(key, ((Short)value).shortValue());
-         }
-         else if(type == Integer.class)
-         {
-            copy.put(key, ((Integer)value).intValue());
-         }
-         else if(type == Long.class)
-         {
-            copy.put(key, ((Long)value).longValue());
-         }
-         else if(type == Float.class)
-         {
-            copy.put(key, ((Float)value).floatValue());
-         }
-         else if(type == Double.class)
-         {
-            copy.put(key, ((Double)value).doubleValue());
-         }
-         else if(type == Boolean.class)
-         {
-            copy.put(key, ((Boolean)value).booleanValue());
-         }
-         else if(type == Character.class)
-         {
-            copy.put(key, ((Character)value).charValue());
-         }
-      }
+      // copy values from this map
+      copy.copyFrom(this);
       
+      // return copy
       return copy;
    }
 }
