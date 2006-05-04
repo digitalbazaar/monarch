@@ -14,6 +14,7 @@ import java.awt.Image;
 import java.awt.BasicStroke;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -1361,6 +1362,13 @@ public class EditableTabPanel extends TabPanel
                   // left
                   g.drawLine(left, top, left, bottom);
                   g.drawLine(left + 1, top, left + 1, bottom);
+                  
+                  // left top arrow
+                  Polygon polygon = new Polygon(
+                     new int[]{left + 5, left, left},
+                     new int[]{top, top + 5, top},
+                     3);
+                  g.fillPolygon(polygon);
                }
                else
                {
@@ -1368,6 +1376,13 @@ public class EditableTabPanel extends TabPanel
                   g.drawLine(right, top, right, bottom);
                   g.drawLine(right - 1, top, right - 1, bottom);
                   g.drawLine(right - 2, top, right - 2, bottom);
+                  
+                  // right top arrow
+                  Polygon polygon = new Polygon(
+                     new int[]{right - 5, right, right},
+                     new int[]{top, top + 5, top},
+                     3);
+                  g.fillPolygon(polygon);
                }
             }
          }
