@@ -61,17 +61,21 @@ public abstract class AutoUpdater
          // get the update script
          UpdateScript script = source.getUpdateScript(application);
          
-         // shutdown the application
-         application.shutdown();
-         
-         // process the script
-         script.process();
-         
-         // set whether or not this AutoUpdater requires a reload
-         setRequiresReload(script.autoUpdaterRequiresReload());
-         
-         // an update was processed
-         rval = true;
+         // validate the script
+         if(validateUpdateScript(script))
+         {
+            // shutdown the application
+            application.shutdown();
+            
+            // process the script
+            script.process();
+            
+            // set whether or not this AutoUpdater requires a reload
+            setRequiresReload(script.autoUpdaterRequiresReload());
+            
+            // an update was processed
+            rval = true;
+         }
       }
       
       return rval;
@@ -203,6 +207,20 @@ public abstract class AutoUpdater
     * @return the UpdateScriptSource for this AutoUpdater.
     */
    public abstract UpdateScriptSource getUpdateScriptSource();
+   
+   /**
+    * Validates the passed update script by performing whatever checks are
+    * necessary.
+    * 
+    * This method could potentially fire an event that triggers a GUI to
+    * ask the user whether or not the update script should be processed. 
+    *
+    * @param script the update script to validate.
+    * 
+    * @return true if the script has been validated and is ready to be
+    *         processed, false if not.
+    */
+   public abstract boolean validateUpdateScript(UpdateScript script);   
    
    /**
     * Gets the logger for this AutoUpdater.

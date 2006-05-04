@@ -85,6 +85,27 @@ public class UTAutoUpdater
          
          return rval;
       }
+      
+      /**
+       * Validates the update script by performing whatever checks are
+       * necessary.
+       * 
+       * This method could potentially fire an event that triggers a GUI to
+       * ask the user whether or not the update script should be processed. 
+       *
+       * @param script the update script to validate.
+       * 
+       * @return true if the script has been validated and is ready to be
+       *         processed, false if not.
+       */
+      public boolean validateUpdateScript(UpdateScript script)
+      {
+         boolean rval = false;
+         
+         System.out.println("Validating Update Script...");
+         
+         return rval;
+      }
    }
    
    /**
@@ -128,26 +149,6 @@ public class UTAutoUpdater
          System.out.println("Getting Update Script...");
          
          rval = new CustomUpdateScript();
-         
-         return rval;
-      }
-      
-      /**
-       * Validates the update script by performing whatever checks are necessary.
-       * 
-       * This method could potentially fire an event that triggers a GUI to
-       * ask the user whether or not the update script should be processed. 
-       *
-       * @param script the update script to validate.
-       * 
-       * @return true if the script has been validated and is ready to be
-       *         processed, false if not.
-       */
-      public boolean validateUpdateScript(UpdateScript script)
-      {
-         boolean rval = false;
-         
-         System.out.println("Validating Update Script...");
          
          return rval;
       }
