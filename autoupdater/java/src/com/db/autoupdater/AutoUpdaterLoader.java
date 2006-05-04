@@ -98,7 +98,12 @@ public abstract class AutoUpdaterLoader
                   // run the application again if the AutoUpdater doesn't
                   // require a reload and the application should restart
                   run = !updater.requiresReload() &&
-                         application.shouldRestart(); 
+                         application.shouldRestart();
+                  
+                  // clean up AutoUpdater and AutoUpdateable application
+                  updater = null;
+                  application = null;
+                  System.gc();
                }
                else
                {
