@@ -25,7 +25,7 @@ public class CustomAutoUpdateable implements AutoUpdateable
     */
    public CustomAutoUpdateable()
    {
-      mShouldRestart = true;
+      mShouldRestart = false;
       mExecutionThread = null;
    }
    
@@ -43,14 +43,9 @@ public class CustomAutoUpdateable implements AutoUpdateable
          
          // sleep for 60 seconds
          Thread.sleep(60000);
-         
-         // execution completed, should not restart
-         mShouldRestart = false;
       }
-      catch(InterruptedException e)
+      catch(InterruptedException ignore)
       {
-         // execution interrupted, should restart
-         mShouldRestart = true;
       }
    }
    
@@ -74,6 +69,9 @@ public class CustomAutoUpdateable implements AutoUpdateable
       {
          mExecutionThread.interrupt();
       }
+      
+      // should restart
+      mShouldRestart = true;
    }
    
    /**
@@ -84,5 +82,15 @@ public class CustomAutoUpdateable implements AutoUpdateable
    public boolean shouldRestart()
    {
       return mShouldRestart;
+   }
+   
+   /**
+    * Gets the current version of this application.
+    *  
+    * @return the current version of this application.
+    */
+   public String getVersion()
+   {
+      return "1.0";
    }
 }

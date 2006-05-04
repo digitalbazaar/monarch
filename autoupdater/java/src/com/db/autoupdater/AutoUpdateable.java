@@ -37,4 +37,11 @@ public interface AutoUpdateable
     * @return true if this application should be restarted, false if not.
     */
    public boolean shouldRestart();
+   
+   /**
+    * Gets the current version of this application.
+    *  
+    * @return the current version of this application.
+    */
+   public String getVersion();
 }

@@ -132,9 +132,15 @@ public abstract class AutoUpdater
       
       try
       {
-         // get the jar necessary to load the AutoUpdateable interface
-         URL[] urls = new URL[1];
-         urls[0] = new URL(config.getString("autoupdateable-jar"));
+         // get the jars necessary to load the AutoUpdateable interface
+         String classPath = config.getString("autoupdateable-classpath");
+         String[] split = classPath.split(",");
+         
+         URL[] urls = new URL[split.length];
+         for(int i = 0; i < urls.length; i++)
+         {
+            urls[i] = new URL(split[i]);
+         }
 
          // create a class loader for the AutoUpdateable
          ClassLoader classLoader = new URLClassLoader(urls);

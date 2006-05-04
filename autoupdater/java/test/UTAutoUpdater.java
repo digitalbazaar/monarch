@@ -104,6 +104,10 @@ public class UTAutoUpdater
          
          System.out.println("Validating Update Script...");
          
+         rval = true;
+         
+         System.out.println("Update Script validated.");
+         
          return rval;
       }
    }
