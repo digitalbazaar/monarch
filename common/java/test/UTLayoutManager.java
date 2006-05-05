@@ -17,6 +17,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
@@ -61,7 +62,8 @@ public class UTLayoutManager
       // setup panel
       //setupMainPanel(panel);
       //setupSearchPanel(panel);
-      setupCatalogPanel(panel);
+      //setupCatalogPanel(panel);
+      setupJTextAreaPanel(panel);
 
       // create a content pane with an editable tab panel in it
       JPanel contentPane = new JPanel();
@@ -73,8 +75,8 @@ public class UTLayoutManager
       etp.addTab("tab 1", panel);
       
       panel = new JPanel();
-      //setupSearchPanel(panel);
-      setupJTextAreaPanel(panel);
+      setupSearchPanel(panel);
+      //setupJTextAreaPanel(panel);
       etp.addTab("tab 2", panel);
       
       etp.setSelectedIndex(0);
@@ -326,7 +328,46 @@ public class UTLayoutManager
     */
    public static void setupJTextAreaPanel(JPanel panel)
    {
+      // set layout
+      panel.setSize(500, 500);
+      panel.setLayout(new PositionLayout(panel));
       
+      // create text area
+      JTextArea textArea = new JTextArea();
+      textArea.setEditable(false);
+      textArea.setLineWrap(true);
+      textArea.setWrapStyleWord(true);
+      textArea.append(
+         "This is a really long bunch of text for a text area. It is for " +
+         "testing really large text areas to make sure that they wrap " +
+         "properly. You know like a good wrapper and stuff. Words are " +
+         "coming off of my fingers, LOLZ!");
+      
+      // create scroll pane
+      JScrollPane scrollPane = new JScrollPane(textArea);
+      scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+      scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+      scrollPane.setMinimumSize(new Dimension(scrollPane.getMinimumSize().width, 70));
+      
+      // scroll pane constraints
+      PositionConstraints scrollPaneConstraints = new PositionConstraints();
+      scrollPaneConstraints.location = new Point(0, 0);
+      scrollPaneConstraints.size =
+         new Dimension(panel.getWidth(), 70);//scrollPane.getPreferredSize().height);
+      scrollPaneConstraints.anchor = PositionConstraints.ANCHOR_ALL;
+      
+      // add scroll pane
+      panel.add(scrollPane, scrollPaneConstraints);
+      
+      // text area constraints
+      /*PositionConstraints textAreaConstraints = new PositionConstraints();
+      textAreaConstraints.location = new Point(0, 0);
+      textAreaConstraints.size =
+         new Dimension(textArea.getPreferredSize());
+      textAreaConstraints.anchor = PositionConstraints.ANCHOR_ALL;
+      
+      // add text area
+      panel.add(textArea, textAreaConstraints);*/
    }
    
    /**

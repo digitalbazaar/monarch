@@ -135,7 +135,15 @@ public class PositionLayout implements LayoutManager2
          rect.y += deltaY;
       }
       
-      // component bounds
+      // ensure that bounds rectangle isn't smaller than minimum size
+      rect.width = Math.max(rect.width, comp.getMinimumSize().width);
+      rect.height = Math.max(rect.height, comp.getMinimumSize().height);
+      
+      // ensure that bounds rectangle isn't larger than maximum size
+      //rect.width = Math.min(rect.width, comp.getMaximumSize().width);
+      //rect.height = Math.min(rect.height, comp.getMaximumSize().height);
+      
+      // set component bounds
       comp.setBounds(rect);
    }
    
