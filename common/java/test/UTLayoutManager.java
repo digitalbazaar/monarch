@@ -354,7 +354,8 @@ public class UTLayoutManager
       scrollPaneConstraints.location = new Point(0, 0);
       scrollPaneConstraints.size =
          new Dimension(panel.getWidth(), 70);//scrollPane.getPreferredSize().height);
-      scrollPaneConstraints.anchor = PositionConstraints.ANCHOR_ALL;
+      scrollPaneConstraints.anchor =
+         PositionConstraints.ANCHOR_TOP_LEFT_RIGHT;
       
       // add scroll pane
       panel.add(scrollPane, scrollPaneConstraints);
