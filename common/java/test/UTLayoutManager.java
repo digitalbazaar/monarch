@@ -3,6 +3,7 @@
  */
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.util.HashMap;
@@ -322,6 +323,50 @@ public class UTLayoutManager
    }
    
    /**
+    * Calculates the preferred height of a text area based on some 
+    * width.
+    * 
+    * @param textArea the JTextArea to calculate the height of.
+    * @param width the width for the text area.
+    * 
+    * @return the preferred height. 
+    */
+   public static int getTextAreaPreferredHeight(JTextArea textArea, int width)
+   {
+      int rval = 0;
+      
+      FontMetrics metrics = textArea.getFontMetrics(textArea.getFont());
+      int rowHeight = metrics.getHeight();
+      
+      try
+      {
+         double overflow = 0;
+         
+         int lines = textArea.getLineCount();
+         for(int i = 0; i < lines; i++)
+         {
+            int startOffset = textArea.getLineStartOffset(i);
+            int endOffset = textArea.getLineEndOffset(i);
+            
+            String line =
+               textArea.getText(startOffset, endOffset - startOffset);
+            int lineWidth = metrics.stringWidth(line);
+            
+            overflow += Math.max(0, lineWidth - width);
+         }
+         
+         int extraLines = (int)Math.round(overflow / width);
+         rval = rowHeight * (lines + extraLines + 1);
+      }
+      catch(Throwable t)
+      {
+         t.printStackTrace();
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Sets up a panel with a JTextArea.
     * 
     * @param panel the panel to setup.
@@ -340,20 +385,54 @@ public class UTLayoutManager
       textArea.append(
          "This is a really long bunch of text for a text area. It is for " +
          "testing really large text areas to make sure that they wrap " +
+         "properly. You know like a\n good wrapper and stuff. Words are " +
+         "coming off of my fingers, LOLZ!\n" +
+         
+         "This is a really long bunch of text for a text area. It is for " +
+         "testing really large text areas to make sure that they wrap " +
+         "properly.\n You know like a good wrapper and stuff. Words are " +
+         "coming off of my fingers, LOLZ!\n" + 
+         
+         "This is a really long bunch of text for a text area. It is for " +
+         "testing really large text areas to make sure that they wrap " +
          "properly. You know like a good wrapper and stuff. Words are " +
-         "coming off of my fingers, LOLZ!");
+         "coming off of my fingers, LOLZ!\n" +
+      
+         "This is a really long bunch of text for a text area. It is for " +
+         "testing really large text areas to make sure that they wrap " +
+         "properly. You know like a good wrapper and stuff. Words are " +
+         "coming off of my fingers, LOLZ!\n" +
+         
+         "This is a really\n long bunch of text for a text area. It is for " +
+         "testing really large text areas to make sure that they wrap " +
+         "properly. You know like a good wrapper and stuff. Words are " +
+         "coming off of my fingers, LOLZ!\n" +
+         
+         "This is a really long bunch of text for a text area. It is for " +
+         "testing really large text areas to make sure that they wrap " +
+         "properly. You know like a good wrapper and stuff. Words are " +
+         "coming off of my fingers, LOLZ!\n");
+      
+      FontMetrics metrics = textArea.getFontMetrics(textArea.getFont());
+      int columnWidth = metrics.charWidth('m');
+      textArea.setColumns(panel.getWidth() / columnWidth);
+      
+      int height = getTextAreaPreferredHeight(textArea, panel.getWidth());
       
       // create scroll pane
       JScrollPane scrollPane = new JScrollPane(textArea);
-      scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
-      scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-      scrollPane.setMinimumSize(new Dimension(scrollPane.getMinimumSize().width, 70));
+      scrollPane.setVerticalScrollBarPolicy(
+         JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+      scrollPane.setHorizontalScrollBarPolicy(
+         JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+      scrollPane.setMinimumSize(
+         new Dimension(scrollPane.getMinimumSize().width, height));
       
       // scroll pane constraints
       PositionConstraints scrollPaneConstraints = new PositionConstraints();
       scrollPaneConstraints.location = new Point(0, 0);
       scrollPaneConstraints.size =
-         new Dimension(panel.getWidth(), 70);//scrollPane.getPreferredSize().height);
+         new Dimension(panel.getWidth(), height);
       scrollPaneConstraints.anchor =
          PositionConstraints.ANCHOR_TOP_LEFT_RIGHT;
       
