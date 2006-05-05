@@ -4,8 +4,11 @@
 package com.db.common.gui;
 
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
+
+import javax.swing.JTextArea;
 
 /**
  * Position constraints are used by a PositionLayout to determine
@@ -168,4 +171,51 @@ public class PositionConstraints implements Cloneable
    {
       return new Rectangle(location, size);
    }
+   
+   /**
+    * Calculates the preferred height of a text area based on some 
+    * width.
+    * 
+    * @param textArea the JTextArea to calculate the height of.
+    * @param width the width for the text area.
+    * 
+    * @return the preferred height. 
+    */
+   public static int getTextAreaPreferredHeight(JTextArea textArea, int width)
+   {
+      int rval = 0;
+      
+      // get the font metrics, measure the row height
+      FontMetrics metrics = textArea.getFontMetrics(textArea.getFont());
+      int rowHeight = metrics.getHeight();
+      
+      try
+      {
+         // store the line overflow for each line in the text area
+         double overflow = 0;
+         int lines = textArea.getLineCount();
+         for(int i = 0; i < lines; i++)
+         {
+            int startOffset = textArea.getLineStartOffset(i);
+            int endOffset = textArea.getLineEndOffset(i);
+            
+            String line =
+               textArea.getText(startOffset, endOffset - startOffset);
+            int lineWidth = metrics.stringWidth(line);
+            
+            overflow += Math.max(0, lineWidth - width);
+         }
+         
+         // determine the number of extra lines
+         int extraLines = (int)Math.round(overflow / width);
+         
+         // determine the total height
+         rval = rowHeight * (lines + extraLines + 1);
+      }
+      catch(Throwable ignore)
+      {
+      }
+      
+      return rval;
+   }   
 }

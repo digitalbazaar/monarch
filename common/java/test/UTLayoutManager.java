@@ -323,50 +323,6 @@ public class UTLayoutManager
    }
    
    /**
-    * Calculates the preferred height of a text area based on some 
-    * width.
-    * 
-    * @param textArea the JTextArea to calculate the height of.
-    * @param width the width for the text area.
-    * 
-    * @return the preferred height. 
-    */
-   public static int getTextAreaPreferredHeight(JTextArea textArea, int width)
-   {
-      int rval = 0;
-      
-      FontMetrics metrics = textArea.getFontMetrics(textArea.getFont());
-      int rowHeight = metrics.getHeight();
-      
-      try
-      {
-         double overflow = 0;
-         
-         int lines = textArea.getLineCount();
-         for(int i = 0; i < lines; i++)
-         {
-            int startOffset = textArea.getLineStartOffset(i);
-            int endOffset = textArea.getLineEndOffset(i);
-            
-            String line =
-               textArea.getText(startOffset, endOffset - startOffset);
-            int lineWidth = metrics.stringWidth(line);
-            
-            overflow += Math.max(0, lineWidth - width);
-         }
-         
-         int extraLines = (int)Math.round(overflow / width);
-         rval = rowHeight * (lines + extraLines + 1);
-      }
-      catch(Throwable t)
-      {
-         t.printStackTrace();
-      }
-      
-      return rval;
-   }
-   
-   /**
     * Sets up a panel with a JTextArea.
     * 
     * @param panel the panel to setup.
@@ -417,7 +373,8 @@ public class UTLayoutManager
       int columnWidth = metrics.charWidth('m');
       textArea.setColumns(panel.getWidth() / columnWidth);
       
-      int height = getTextAreaPreferredHeight(textArea, panel.getWidth());
+      int height = PositionConstraints.
+         getTextAreaPreferredHeight(textArea, panel.getWidth());
       
       // create scroll pane
       JScrollPane scrollPane = new JScrollPane(textArea);
