@@ -3,6 +3,7 @@
  */
 package com.db.common;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -19,33 +20,32 @@ public class EventDelegate
    protected Vector mListeners;
    
    /**
-    * The name of the listener method to call to process an event.
+    * A map of listener to the method to call to handle an event.
     */
-   protected String mListenerMethod;
+   protected HashMap mListenerToMethod;
 
    /**
     * Constructs a new event delegate.
-    * 
-    * @param listenerMethod the name of the listener method to call to
-    *                       process an event.
     */
-   public EventDelegate(String listenerMethod)
+   public EventDelegate()
    {
       // create listener list
       mListeners = new Vector();
       
-      // set listener method
-      mListenerMethod = listenerMethod;
+      // create listener to method map
+      mListenerToMethod = new HashMap();
    }
    
    /**
     * Adds a listener.
     *
     * @param listener the listener to add.
+    * @param method the name of the listener method to call to handle an event.
     */
-   public synchronized void addListener(Object listener)
+   public synchronized void addListener(Object listener, String method)
    {
       mListeners.add(listener);
+      mListenerToMethod.put(listener, method);
    }
    
    /**
@@ -56,6 +56,7 @@ public class EventDelegate
    public synchronized void removeListener(Object listener)
    {
       mListeners.remove(listener);
+      mListenerToMethod.remove(listener);
    }
    
    /**
@@ -73,9 +74,12 @@ public class EventDelegate
          // store event as a parameter to the listener method 
          Object[] params = new Object[]{event};
          
+         // get the listener method
+         String method = (String)mListenerToMethod.get(listener);
+         
          // fire message, synchronize on the listener
          MethodInvoker mi =
-            new MethodInvoker(listener, mListenerMethod, params);
+            new MethodInvoker(listener, method, params);
          mi.execute(listener);
       }
    }

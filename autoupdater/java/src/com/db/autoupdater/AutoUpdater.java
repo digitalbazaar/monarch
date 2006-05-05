@@ -7,6 +7,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import com.db.common.ConfigOptions;
+import com.db.common.EventDelegate;
+import com.db.common.EventObject;
 import com.db.common.MethodInvoker;
 import com.db.common.logging.Logger;
 import com.db.common.logging.LoggerManager;
@@ -25,10 +27,30 @@ public abstract class AutoUpdater
    protected boolean mRequiresReload;
    
    /**
+    * An event delegate for update script found events.
+    */
+   protected EventDelegate mUpdateScriptFoundEventDelegate;
+   
+   /**
     * Creates a new AutoUpdater.
     */
    public AutoUpdater()
    {
+      // no reload required by default
+      setRequiresReload(false);
+      
+      // create update script found event delegate
+      mUpdateScriptFoundEventDelegate = new EventDelegate();
+   }
+   
+   /**
+    * Fires an update script found event.
+    * 
+    * @param event the event to fire.
+    */
+   protected void fireUpdateScriptFoundEvent(EventObject event)
+   {
+      mUpdateScriptFoundEventDelegate.fireEvent(event);
    }
    
    /**
@@ -62,8 +84,12 @@ public abstract class AutoUpdater
          UpdateScript script = source.getUpdateScript(application);
          
          // validate the script
-         if(validateUpdateScript(script))
+         if(script.validate())
          {
+            // fire event indicating that an update scripthas been found
+            EventObject event = new EventObject("updateScriptFound");
+            fireUpdateScriptFoundEvent(event);
+            
             // shutdown the application
             application.shutdown();
             
@@ -197,6 +223,16 @@ public abstract class AutoUpdater
    }
    
    /**
+    * Gets the update script found event delegate.
+    * 
+    * @return the update script found event delegate.
+    */
+   public EventDelegate getUpdateScriptFoundEventDelegate()
+   {
+      return mUpdateScriptFoundEventDelegate;
+   }
+   
+   /**
     * Gets whether or not this AutoUpdater requires a reload.
     * 
     * @return true if this AutoUpdater requires a reload, false if not.
@@ -212,20 +248,6 @@ public abstract class AutoUpdater
     * @return the UpdateScriptSource for this AutoUpdater.
     */
    public abstract UpdateScriptSource getUpdateScriptSource();
-   
-   /**
-    * Validates the passed update script by performing whatever checks are
-    * necessary.
-    * 
-    * This method could potentially fire an event that triggers a GUI to
-    * ask the user whether or not the update script should be processed. 
-    *
-    * @param script the update script to validate.
-    * 
-    * @return true if the script has been validated and is ready to be
-    *         processed, false if not.
-    */
-   public abstract boolean validateUpdateScript(UpdateScript script);
    
    /**
     * Gets the logger for this AutoUpdater.

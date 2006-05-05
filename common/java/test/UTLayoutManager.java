@@ -73,7 +73,8 @@ public class UTLayoutManager
       etp.addTab("tab 1", panel);
       
       panel = new JPanel();
-      setupSearchPanel(panel);
+      //setupSearchPanel(panel);
+      setupJTextAreaPanel(panel);
       etp.addTab("tab 2", panel);
       
       etp.setSelectedIndex(0);
@@ -316,6 +317,16 @@ public class UTLayoutManager
       searchPanel.add(advancedSearch, advancedSearchConstraints);
       searchPanel.add(showNonSellableWorks, nonSellableWorksConstraints);
       searchPanel.add(etp, tabPanelConstraints);
+   }
+   
+   /**
+    * Sets up a panel with a JTextArea.
+    * 
+    * @param panel the panel to setup.
+    */
+   public static void setupJTextAreaPanel(JPanel panel)
+   {
+      
    }
    
    /**

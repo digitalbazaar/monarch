@@ -12,6 +12,15 @@ package com.db.autoupdater;
 public interface UpdateScript
 {
    /**
+    * Validates this update script by performing whatever checks are
+    * necessary.
+    * 
+    * @return true if this script has been validated and is ready to be
+    *         processed, false if not.
+    */
+   public boolean validate();   
+
+   /**
     * Processes this update script.
     */
    public void process();

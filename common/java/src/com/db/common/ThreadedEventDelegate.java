@@ -26,17 +26,14 @@ public class ThreadedEventDelegate
    protected HashMap mListenerToEventThread;
    
    /**
-    * The name of the listener method to call to process an event.
+    * A map of listener to the method to call to handle an event.
     */
-   protected String mListenerMethod;
+   protected HashMap mListenerToMethod;
 
    /**
     * Constructs a new threaded event delegate.
-    * 
-    * @param listenerMethod the name of the listener method to call to
-    *                       process an event.
     */
-   public ThreadedEventDelegate(String listenerMethod)
+   public ThreadedEventDelegate()
    {
       // create listener to event queue map
       mListenerToEventQueue = new HashMap();
@@ -44,8 +41,8 @@ public class ThreadedEventDelegate
       // create listener to event thread map
       mListenerToEventThread = new HashMap();
       
-      // set listener method
-      mListenerMethod = listenerMethod;
+      // create listener to method map
+      mListenerToMethod = new HashMap();
    }
    
    /**
@@ -85,9 +82,12 @@ public class ThreadedEventDelegate
                   // store next event as a parameter to the listener method 
                   Object[] params = new Object[]{i.next()};
                   
+                  // get the listener method
+                  String method = (String)mListenerToMethod.get(listener);
+                  
                   // fire message, synchronize on the listener
                   MethodInvoker mi =
-                     new MethodInvoker(listener, mListenerMethod, params);
+                     new MethodInvoker(listener, method, params);
                   mi.execute(listener);
                }
             
@@ -113,13 +113,17 @@ public class ThreadedEventDelegate
     * Adds a listener.
     *
     * @param listener the listener to add.
+    * @param method the name of the listener method to call to handle an event.
     */
-   public synchronized void addListener(Object listener)
+   public synchronized void addListener(Object listener, String method)
    {
       if(mListenerToEventThread.get(listener) == null)
       {
          // add event queue for listener
          mListenerToEventQueue.put(listener, new Vector());
+         
+         // add method for listener
+         mListenerToMethod.put(listener, method);
             
          // start event thread for listener
          Object[] params = new Object[]{listener};
@@ -145,6 +149,7 @@ public class ThreadedEventDelegate
          // remove listener from maps
          mListenerToEventQueue.remove(listener);
          mListenerToEventThread.remove(listener);
+         mListenerToMethod.remove(listener);
       }
    }
    
