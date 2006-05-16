@@ -393,6 +393,11 @@ public class TabPanel extends JPanel
          rval = UIManager.getColor("control");         
       }
       
+      if(rval == null)
+      {
+         rval = Color.gray;
+      }
+      
       return rval;
    }
    
@@ -412,6 +417,11 @@ public class TabPanel extends JPanel
       else
       {
          rval = UIManager.getColor("controlLtHighlight");         
+      }
+      
+      if(rval == null)
+      {
+         rval = Color.lightGray.brighter();
       }
       
       return rval;
@@ -435,6 +445,11 @@ public class TabPanel extends JPanel
          rval = UIManager.getColor("controlHighlight");         
       }
       
+      if(rval == null)
+      {
+         rval = Color.lightGray;
+      }
+      
       return rval;
    }   
    
@@ -454,6 +469,11 @@ public class TabPanel extends JPanel
       else
       {
          rval = UIManager.getColor("controlShadow");         
+      }
+      
+      if(rval == null)
+      {
+         rval = Color.darkGray;
       }
       
       return rval;
@@ -477,6 +497,11 @@ public class TabPanel extends JPanel
          rval = UIManager.getColor("controlDkShadow");         
       }
       
+      if(rval == null)
+      {
+         rval = Color.darkGray.darker();
+      }
+      
       return rval;
    }
    
@@ -498,6 +523,11 @@ public class TabPanel extends JPanel
          rval = UIManager.getColor("textHighlight");         
       }
       
+      if(rval == null)
+      {
+         rval = Color.lightGray;
+      }
+      
       return rval;
    }    
    
@@ -517,6 +547,11 @@ public class TabPanel extends JPanel
       else
       {
          rval = UIManager.getColor("controlHighlight");         
+      }
+      
+      if(rval == null)
+      {
+         rval = Color.lightGray;
       }
       
       return rval;
