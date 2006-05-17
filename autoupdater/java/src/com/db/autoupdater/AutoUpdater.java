@@ -32,6 +32,11 @@ public abstract class AutoUpdater
    protected EventDelegate mUpdateScriptFoundEventDelegate;
    
    /**
+    * An event delegate for update script processed events.
+    */
+   protected EventDelegate mUpdateScriptProcessedEventDelegate;   
+   
+   /**
     * Creates a new AutoUpdater.
     */
    public AutoUpdater()
@@ -41,6 +46,9 @@ public abstract class AutoUpdater
       
       // create update script found event delegate
       mUpdateScriptFoundEventDelegate = new EventDelegate();
+      
+      // create update script found event delegate
+      mUpdateScriptProcessedEventDelegate = new EventDelegate();      
    }
    
    /**
@@ -52,6 +60,16 @@ public abstract class AutoUpdater
    {
       mUpdateScriptFoundEventDelegate.fireEvent(event);
    }
+   
+   /**
+    * Fires an update script processed event.
+    * 
+    * @param event the event to fire.
+    */
+   protected void fireUpdateScriptProcessedEvent(EventObject event)
+   {
+      mUpdateScriptProcessedEventDelegate.fireEvent(event);
+   }   
    
    /**
     * Sets whether or not this AutoUpdater requires a reload.
@@ -86,21 +104,30 @@ public abstract class AutoUpdater
          // validate the script
          if(script.validate())
          {
-            // fire event indicating that an update scripthas been found
+            // fire event indicating that an update script has been found
             EventObject event = new EventObject("updateScriptFound");
+            event.setData("cancel_update", false);
             fireUpdateScriptFoundEvent(event);
             
-            // shutdown the application
-            application.shutdown();
-            
-            // process the script
-            script.process();
-            
-            // set whether or not this AutoUpdater requires a reload
-            setRequiresReload(script.autoUpdaterRequiresReload());
-            
-            // an update was processed
-            rval = true;
+            // see if the update should be cancelled
+            if(event.getDataBooleanValue("cancel_update"))
+            {
+               // shutdown the application
+               application.shutdown();
+               
+               // process the script
+               script.process();
+               
+               // set whether or not this AutoUpdater requires a reload
+               setRequiresReload(script.autoUpdaterRequiresReload());
+               
+               // an update was processed
+               rval = true;
+               
+               // fire event indicating an update script was processed
+               event = new EventObject("updateScriptProcessed");
+               fireUpdateScriptProcessedEvent(event);
+            }
          }
       }
       
@@ -231,6 +258,16 @@ public abstract class AutoUpdater
    {
       return mUpdateScriptFoundEventDelegate;
    }
+   
+   /**
+    * Gets the update script processed event delegate.
+    * 
+    * @return the update script processed event delegate.
+    */
+   public EventDelegate getUpdateScriptProcessedEventDelegate()
+   {
+      return mUpdateScriptProcessedEventDelegate;
+   }   
    
    /**
     * Gets whether or not this AutoUpdater requires a reload.
