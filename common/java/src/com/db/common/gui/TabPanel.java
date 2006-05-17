@@ -306,7 +306,7 @@ public class TabPanel extends JPanel
       mTabPanelListeners = new Vector();
       
       // set tab area insets
-      mTabAreaInsets = new Insets(6, 7, 3, 7);
+      mTabAreaInsets = new Insets(7, 7, 3, 7);
       
       // set tab content insets
       mTabContentInsets = new Insets(4, 3, 3, 3);
@@ -2726,7 +2726,7 @@ public class TabPanel extends JPanel
          Color color = (isSelected) ?
                getLightHighlightColor() : getHighlightColor();
                
-         int top = (isSelected) ? y : y + 1;
+         int top = (isSelected) ? y : y + 2;
          int left = x;
          int bottom = y + height;
          int right = x + width;
@@ -2744,8 +2744,14 @@ public class TabPanel extends JPanel
          
          if(!isSelected)
          {
+            g.setColor(getShadowColor());
+            g.drawLine(left, top - 2, right, top - 2);
+            g.drawLine(left, top - 1, right, top - 1);
+            g.drawLine(left, top, right, top);
+           
             g.setColor(getHighlightColor());
          }
+         
          g.drawLine(left + 1, top + 1, right - 2, top + 1);
          
          // right shadow
@@ -3420,7 +3426,7 @@ public class TabPanel extends JPanel
                   else
                   {
                      background = (getMouseEnteredTabArea() == mTabArea) ?
-                           getUnselectedHighlightColor() : getUnselectedColor();
+                        getUnselectedHighlightColor() : getUnselectedColor();
                   }     
                   
                   // set to background color and sleep
@@ -3439,7 +3445,7 @@ public class TabPanel extends JPanel
             else
             {
                background = (getMouseEnteredTabArea() == mTabArea) ?
-                     getUnselectedHighlightColor() : getUnselectedColor();
+                  getUnselectedHighlightColor() : getUnselectedColor();
             }
             
             mTabArea.getParent().setBackground(background);
