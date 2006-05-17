@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ */
 package com.db.common.gui;
 
 import java.awt.Component;
@@ -25,6 +28,12 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
+/**
+ * A header for a JCompontentTable. Allows column sorting and header
+ * highlighting. 
+ * 
+ * @author Dave Longley
+ */
 public class JComponentTableHeader extends JTableHeader
                                    implements MouseListener,
                                               MouseMotionListener

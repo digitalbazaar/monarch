@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2003 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common;
 
 import com.db.common.logging.LoggerManager;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * The ID3Tag class is used to parse, display/edit and write ID3 version
@@ -27,9 +27,20 @@ public class ID3Tag
     */
    protected byte[] mExtendedHeader;
    
+   /**
+    * Whether or not this tag is valid.
+    */
    protected boolean mValid;
+   
+   /**
+    * The size of this tag.
+    */
    protected int mSize;
-   protected Hashtable mTags;
+   
+   /**
+    * A mapping of tag frame name to tag frame. 
+    */
+   protected HashMap mTagFrames;
    
    /**
     * Default constructor
@@ -41,7 +52,7 @@ public class ID3Tag
       
       mSize = 0;
       mValid = false;
-      mTags = new Hashtable();
+      mTagFrames = new HashMap();
    }
 
    /**
@@ -90,7 +101,7 @@ public class ID3Tag
       //LoggerManager.debug("dbcommon", "Parsed Tag (" + tagOffset + "-" + 
       //      (tagOffset + id3tf.getSize()) + "): " + id3tf.convertToString());
       
-      mTags.put(id3tf.getName(), id3tf);
+      mTagFrames.put(id3tf.getName(), id3tf);
       
       return tagOffset + id3tf.getSize();
    }
@@ -111,7 +122,7 @@ public class ID3Tag
       id3tf.setName(name);
       id3tf.setData(data);
       
-      mTags.put(id3tf.getName(), id3tf);
+      mTagFrames.put(id3tf.getName(), id3tf);
       rval = true;
       
       return rval;
@@ -125,7 +136,7 @@ public class ID3Tag
     */
    public ID3TagFrame getTagFrame(String name)
    {
-      ID3TagFrame id3tf = (ID3TagFrame)mTags.get(name);
+      ID3TagFrame id3tf = (ID3TagFrame)mTagFrames.get(name);
       return id3tf;
    }
    
@@ -205,7 +216,6 @@ public class ID3Tag
    public byte[] convertToBytes()
    {
       byte[] id3Bytes = null;
-      Enumeration tags = mTags.elements(); 
       
       // if this is a new id3 tag, create a new header
       if(mHeader == null)
@@ -222,10 +232,11 @@ public class ID3Tag
          tagSize += mExtendedHeader.length;
       }
       
-      // add tags
-      while(tags.hasMoreElements())
+      // add tag frames
+      Iterator i = mTagFrames.values().iterator();
+      while(i.hasNext())
       {
-         ID3TagFrame id3tf = (ID3TagFrame)tags.nextElement();
+         ID3TagFrame id3tf = (ID3TagFrame)i.next();
          tagSize += id3tf.getSize();
       }
       
@@ -254,11 +265,11 @@ public class ID3Tag
          offset += mExtendedHeader.length;
       }
       
-      // copy all of the individual tags into the byte array
-      tags = mTags.elements();
-      while(tags.hasMoreElements())
+      // copy all of the individual tag frames into the byte array
+      i = mTagFrames.values().iterator();
+      while(i.hasNext())
       {
-         ID3TagFrame id3tf = (ID3TagFrame)tags.nextElement();
+         ID3TagFrame id3tf = (ID3TagFrame)i.next();
          byte[] b = id3tf.convertToBytes();
          
          System.arraycopy(b, 0, id3Bytes, offset, b.length);
@@ -276,11 +287,12 @@ public class ID3Tag
    public String convertToString()
    {
       String mStr = "";
-      Enumeration tags = mTags.elements(); 
-      
-      while(tags.hasMoreElements())
+
+      // convert tag frames to strings
+      Iterator i = mTagFrames.values().iterator();
+      while(i.hasNext())
       {
-         ID3TagFrame id3tf = (ID3TagFrame)tags.nextElement();
+         ID3TagFrame id3tf = (ID3TagFrame)i.next();
          mStr += id3tf.convertToString() + "\n";
       }
       

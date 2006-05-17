@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2004-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common.gui;
 
@@ -43,30 +43,74 @@ public class LayeredLayout extends GridBagLayout
    protected int mCoordIterator;
    
    /**
-    * The highest column and highest row in the plot.
+    * The highest column in the plot.
     */
    protected int mHighCol;
+   
+   /**
+    * The highest row in the plot.
+    */
    protected int mHighRow;
    
    /**
-    * Options.
+    * Upperleft anchor.
     */
    public static final int UPPERLEFT = GridBagConstraints.NORTHWEST;
+   
+   /**
+    * Left anchor.
+    */
    public static final int LEFT = GridBagConstraints.WEST;
+   
+   /**
+    * Right anchor.
+    */
    public static final int RIGHT = GridBagConstraints.EAST;
+
+   /**
+    * Top anchor.
+    */
    public static final int TOP = GridBagConstraints.NORTH;
+
+   /**
+    * Bottom anchor.
+    */
    public static final int BOTTOM = GridBagConstraints.SOUTH;
+
+   /**
+    * Center anchor.
+    */
    public static final int CENTER = GridBagConstraints.CENTER;
+
+   /**
+    * Default anchor.
+    */
    public static final int DEFAULT_ANCHOR = GridBagConstraints.NORTHWEST;
+
+   /**
+    * Default weight.
+    */
    public static final double DEFAULT_WEIGHT = 1.0;
+
+   /**
+    * Default fill.
+    */
    public static final boolean DEFAULT_FILL = false;
    
+   /**
+    * Creates a new default LayeredLayout.
+    */
    public LayeredLayout()
    {
       mCoordIterator = 0;
       initGbcMap(null);
    }   
    
+   /**
+    * Creates a new LayeredLayout with the given plot.
+    * 
+    * @param plot the plot of rows/columns/coordinates to use.
+    */
    public LayeredLayout(int[][] plot)
    {
       mCoordIterator = 0;
@@ -850,6 +894,9 @@ public class LayeredLayout extends GridBagLayout
       setConstraints(c, gbc);
    }
    
+   /**
+    * Prints debugging information for this entire layout to the console.
+    */
    public void debug()
    {
       Iterator i = mGbcMap.keySet().iterator();
@@ -870,6 +917,9 @@ public class LayeredLayout extends GridBagLayout
       }
    }
    
+   /**
+    * Print the next set of debugging information to the console.
+    */
    public void debugNext()
    {
       int[] coords = new int[]{0, 0};

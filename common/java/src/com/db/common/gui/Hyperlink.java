@@ -23,14 +23,25 @@ import javax.swing.event.HyperlinkListener;
  */
 public class Hyperlink extends JEditorPane implements HyperlinkListener
 {
-   private String mActionCommand;
-   private String mText;
-   private String mUrl;
+   /**
+    * The action command for this hyperlink.
+    */
+   protected String mActionCommand;
+   
+   /**
+    * The text to display on the hyperlink.
+    */
+   protected String mText;
+   
+   /**
+    * The url for the hyperlink.
+    */
+   protected String mUrl;
    
    /**
     * The action listeners for this hyperlink.
     */
-   private Vector mActionListeners;
+   protected Vector mActionListeners;
    
    /**
     * Creates a new default hyperlink.

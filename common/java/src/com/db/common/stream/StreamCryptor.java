@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common.stream;
 
@@ -45,9 +45,13 @@ public abstract class StreamCryptor implements IStreamManager,
    public Cryptor mCryptor;
    
    /**
-    * Crypt mode options.
+    * Encrypt mode option.
     */
    public static final int ENCRYPT = 0;
+
+   /**
+    * Decrypt mode option.
+    */
    public static final int DECRYPT = 1;
    
    /**

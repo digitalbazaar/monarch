@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common.net;
 
@@ -30,10 +30,18 @@ import org.xml.sax.SAXParseException;
 public class WsdlParser implements IXMLSerializer
 {
    /**
-    * Data members that describe the web service.
+    * The name of the web service.
     */
    protected String mName;
+   
+   /**
+    * The namespace for the web service.
+    */
    protected String mNamespace;
+   
+   /**
+    * The port type name for the web service.
+    */
    protected String mPortType;
    
    /**

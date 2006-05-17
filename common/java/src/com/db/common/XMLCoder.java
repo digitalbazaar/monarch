@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common;
 
@@ -11,18 +11,35 @@ package com.db.common;
  */
 public class XMLCoder
 {
+   /**
+    * The single instance of the XMLCoder.
+    */
    private static XMLCoder mInstance = new XMLCoder();
    
    /**
-    * Default constructor
+    * Creates the XMLCoder.
     */
-   protected XMLCoder() {}
+   protected XMLCoder()
+   {
+   }
 
+   /**
+    * Gets the XMLCoder singleton instance.
+    * 
+    * @return the XMLCoder singleton instance.
+    */
    public static XMLCoder getInstance()
    {
       return mInstance;
    }
 
+   /**
+    * XML encodes a string.
+    * 
+    * @param string the string to XML encode.
+    * 
+    * @return the XML encoded string. 
+    */
    public static String encode(String string)
    {
       if(string == null)
@@ -41,6 +58,13 @@ public class XMLCoder
       return string;
    }
    
+   /**
+    * XML decodes a string.
+    * 
+    * @param string the string to XML decode.
+    * 
+    * @return the XML decoded string.
+    */
    public static String decode(String string)
    {
       if(string == null)

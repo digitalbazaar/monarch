@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common.net;
 
@@ -17,11 +17,14 @@ import java.util.HashMap;
 public class WsdlGenerator
 {
    /**
-    * Constants.
+    * The wsdl schema.
     */
    public static final String WSDL_NAMESPACE =
       "http://schemas.xmlsoap.org/wsdl/";
    
+   /**
+    * The http schema.
+    */
    public static final String HTTP_SCHEMA =
       "http://schemas.xmlsoap.org/soap/http";
    

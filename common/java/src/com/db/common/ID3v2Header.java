@@ -26,9 +26,13 @@ package com.db.common;
 public class ID3v2Header
 {
    /**
-    * Supported version and revision.
+    * Supported version.
     */
    public static final int SUPPORTED_VERSION = 3;
+   
+   /**
+    * Supported revision.
+    */
    public static final int SUPPORTED_REVISION = 0;
    
    /**
@@ -37,11 +41,23 @@ public class ID3v2Header
    public static final int HEADER_SIZE = 10;
    
    /**
-    * Flag bits used to describe ID3 tag content.
+    * Unsynchronized flag bit (describes ID3 tag content).
     */
    public static final int UNSYNCHRONIZED_BIT = 0x80; // bit 7
+   
+   /**
+    * Extended header flag bit (describes ID3 tag content).
+    */
    public static final int EXTENDEDHEADER_BIT = 0x40; // bit 6
+   
+   /**
+    * Experimental flag bit (describes ID3 tag content).
+    */
    public static final int EXPERIMENTAL_BIT = 0x20;   // bit 5
+   
+   /**
+    * Footer flag bit (describes ID3 tag content).
+    */
    public static final int FOOTER_BIT = 0x10;         // bit 4
 
    /**

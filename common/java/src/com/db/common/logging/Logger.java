@@ -78,12 +78,37 @@ public class Logger
     */
    public static final long DEFAULT_NUM_ROTATING_FILES = 3;
    
+   /**
+    * The no verbosity setting. Nothing will be logged.
+    */
    public static final double NO_VERBOSITY = 0.0;
+
+   /**
+    * The error verbosity setting. Errors will be logged.
+    */
    public static final double ERROR_VERBOSITY = 1.0;
+
+   /**
+    * The warning verbosity setting. Errors and warnings will be logged.
+    */
    public static final double WARNING_VERBOSITY = 2.0;
+
+   /**
+    * The message verbosity setting. Errors, warnings, and messages will be
+    * logged.
+    */
    public static final double MSG_VERBOSITY = 3.0;
+
+   /**
+    * The debug verbosity setting. Errors, warnings, messages, and debug
+    * information will be logged.
+    */
    public static final double DEBUG_VERBOSITY = 4.0;
-   public static final double MAX_VERBOSITY = DEBUG_VERBOSITY;
+   
+   /**
+    * The maximum verbosity setting. Everything will be logged.
+    */
+   public static final double MAX_VERBOSITY = Double.MAX_VALUE;
 
    /**
     * Creates a new logger with default verbosity.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common.gui;
 
@@ -33,9 +33,13 @@ public abstract class JComponentTableModel extends AbstractTableModel
                                                       ComponentListener
 {
    /**
-    * Column names and classes for any table model.
+    * Column names for any table model.
     */
    protected String[] mColumnNames;
+   
+   /**
+    * Column classes for any table model.
+    */
    protected Class[] mColumnClasses;
    
    /**
@@ -44,12 +48,28 @@ public abstract class JComponentTableModel extends AbstractTableModel
    protected Vector mRowData;
    
    /**
-    * For the table that is to be resized.
+    * Table that is to be resized.
     */
    protected JTable mResizeTable;
+   
+   /**
+    * The old table width.
+    */
    protected int mOldWidth = -1;
+   
+   /**
+    * The old table height.
+    */
    protected int mOldHeight = -1;
+   
+   /**
+    * The column widths of the table.
+    */
    protected HashMap mColWidths;
+   
+   /**
+    * The total preferred width of the table.
+    */
    protected int mTotalPrefWidth;
    
    /**

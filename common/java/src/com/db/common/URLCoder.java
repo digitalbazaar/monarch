@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common;
 
@@ -17,18 +17,35 @@ import java.net.URLDecoder;
  */
 public class URLCoder
 {
-   private static URLCoder mInstance = new URLCoder();
+   /**
+    * The singleton instance of the URLCoder.
+    */
+   protected static URLCoder mInstance = new URLCoder();
    
    /**
-    * Default constructor
+    * Creates the URLCoder.
     */
-   protected URLCoder() {}
+   protected URLCoder()
+   {
+   }
 
+   /**
+    * Gets the singleton instance of the URLCoder.
+    * 
+    * @return the singleton instance of the URLCoder.
+    */
    public static URLCoder getInstance()
    {
       return mInstance;
    }
 
+   /**
+    * URL encodes a string.
+    * 
+    * @param string the string to URL encode.
+    * 
+    * @return the URL encoded string.
+    */
    public static String encode(String string)
    {
       String encoded = "";
@@ -50,6 +67,13 @@ public class URLCoder
       return encoded;
    }
    
+   /**
+    * URL decodes a string.
+    * 
+    * @param string the string to URL decode.
+    * 
+    * @return the URL decoded string.
+    */
    public static String decode(String string)
    {
       String decoded = "";

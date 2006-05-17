@@ -31,18 +31,33 @@ import com.db.common.logging.LoggerManager;
  */
 public class SoapMessage implements IXMLSerializer
 {
+   /**
+    * The xml schema for a soap message (the xsd).
+    */
    public static final String XSD_NAMESPACE =
       "http://www.w3.org/2001/XMLSchema";
    
+   /**
+    * The xml schema instance for a soap message.
+    */
    public static final String XSI_NAMESPACE =
       "http://www.w3.org/2001/XMLSchema-instance";
-   
+
+   /**
+    * The soap namespace.
+    */
    public static final String SOAP_NAMESPACE =
       "http://schemas.xmlsoap.org/wsdl/soap/";
-   
+
+   /**
+    * The encoding schema.
+    */
    public static final String ENCODING_SCHEMA =
       "http://schemas.xmlsoap.org/soap/encoding/";
-   
+
+   /**
+    * The envelope schema.
+    */
    public static final String ENVELOPE_SCHEMA =
       "http://schemas.xmlsoap.org/soap/envelope/";
    
@@ -97,19 +112,43 @@ public class SoapMessage implements IXMLSerializer
    protected String mAttachmentBoundary;
    
    /**
-    * Acceptable soap faults.
+    * A soap fault: when a version mismatch occurs.
     */
    protected final static int FAULT_VERSION_MISMATCH = 0;
+   
+   /**
+    * A soap fault: when something must be understood but is not.
+    */
    protected final static int FAULT_MUST_UNDERSTAND  = 1;
+   
+   /**
+    * A soap fault: when a soap client faults.
+    */
    protected final static int FAULT_CLIENT           = 2;
+   
+   /**
+    * A soap fault: when a soap server faults.
+    */
    protected final static int FAULT_SERVER           = 4;
    
    /**
-    * Serializer options.
+    * XML serializer options.
     */
    protected int mXmlOptions;
+   
+   /**
+    * An XML serializer option for converting to/from a soap request. 
+    */
    protected final static int SOAP_REQUEST  = 0;
+   
+   /**
+    * An XML serializer option for converting to/from a soap response.
+    */
    protected final static int SOAP_RESPONSE = 1;
+   
+   /**
+    * An XML serializer option for converting to/from a soap fault. 
+    */
    protected final static int SOAP_FAULT    = 2;
    
    /**
