@@ -1647,7 +1647,8 @@ public class TabPanel extends JPanel
          mLeadingTabArea = tabArea;
          
          // revalidate and repaint
-         revalidate();
+         invalidate();
+         validate();
          repaint();
       }
       
@@ -1981,7 +1982,8 @@ public class TabPanel extends JPanel
       if(addTabAreaAndContent(tabArea, content, index))
       {
          // revalidate, repaint
-         revalidate();
+         invalidate();
+         validate();
          repaint();
          
          // fire added event
@@ -1999,7 +2001,8 @@ public class TabPanel extends JPanel
       if(removeTabAreaAndContent(content))
       {
          // revalidate, repaint
-         revalidate();
+         invalidate();
+         validate();
          repaint();
          
          // fire removed event
@@ -2048,7 +2051,8 @@ public class TabPanel extends JPanel
          }
          
          // revalidate, repaint
-         revalidate();
+         invalidate();
+         validate();
          repaint();
       }
    }
@@ -2157,7 +2161,8 @@ public class TabPanel extends JPanel
             }
             
             // revalidate, repaint
-            revalidate();
+            invalidate();
+            validate();
             repaint();
          }
       }      
@@ -2238,7 +2243,8 @@ public class TabPanel extends JPanel
          scrollToVisibleContent(content);
       }
       
-      revalidate();
+      invalidate();
+      validate();
       repaint();
    }
    
@@ -2366,7 +2372,8 @@ public class TabPanel extends JPanel
          if(scrollToVisibleTabArea(tabArea))
          {
             // revalidate and repaint
-            revalidate();
+            invalidate();
+            validate();
             repaint();
          }
       }

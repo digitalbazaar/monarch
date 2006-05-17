@@ -898,7 +898,8 @@ public class EditableTabPanel extends TabPanel
          }
          
          // revalidate, repaint
-         revalidate();
+         invalidate();
+         validate();
          repaint();
       }
    }
@@ -924,7 +925,8 @@ public class EditableTabPanel extends TabPanel
          mContentToCloseButton.put(newContent, closeButton);
       }
       
-      revalidate();
+      invalidate();
+      validate();
       repaint();
    }
    
@@ -1209,7 +1211,8 @@ public class EditableTabPanel extends TabPanel
                }
                
                // revalidate, repaint
-               revalidate();
+               invalidate();
+               validate();
                repaint();
             }
          }
