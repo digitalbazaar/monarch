@@ -64,7 +64,7 @@ public class UTLayoutManager
       //setupMainPanel(panel);
       //setupSearchPanel(panel);
       //setupCatalogPanel(panel);
-      setupJTextAreaPanel(panel);
+      //setupJTextAreaPanel(panel);
 
       // create a content pane with an editable tab panel in it
       JPanel contentPane = new JPanel();
@@ -88,6 +88,7 @@ public class UTLayoutManager
       frame.setContentPane(contentPane);
       
       // set frame and panel size
+      frame.pack();
       frame.setSize(600, 600);
       
       // setup panel
