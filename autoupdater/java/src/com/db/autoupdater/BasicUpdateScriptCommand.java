@@ -127,13 +127,14 @@ public class BasicUpdateScriptCommand
             fpVersion = versionNumber.substring(0, 1) + "." + 
                         versionNumber.substring(1);
             mVersion = Float.parseFloat(fpVersion);
+            
+            success = true;
          }
          catch(NumberFormatException nfe)
          {
             getLogger().error(
                "Version number in update script is invalid: " + versionNumber);
          }
-         success = true;
       }
       else if(command.equals("mkdir") || command.equals("rmdir") ||
               command.equals("delete"))
