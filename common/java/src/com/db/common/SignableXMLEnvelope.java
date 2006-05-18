@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2003 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common;
 
 import com.db.common.logging.Logger;
 import com.db.common.logging.LoggerManager;
 
-import java.io.BufferedReader;
 import java.io.StringReader;
 import java.security.PrivateKey;
 import java.util.Iterator;
@@ -156,35 +155,6 @@ public class SignableXMLEnvelope implements IXMLSerializer
    }
 
    /**
-    * Trims the beginning and trailing whitespace from xmlText.
-    * 
-    * @param xmlText the xmlText to trim the whitespace out of. 
-    * @return the trimmed contents.
-    */
-   protected String trimWhitespace(String xmlText)
-   {
-      StringBuffer trimmed = new StringBuffer();
-      
-      try
-      {
-         StringReader sr = new StringReader(xmlText);
-         BufferedReader br = new BufferedReader(sr);
-      
-         String line = "";
-         while((line = br.readLine()) != null)
-         {
-            trimmed.append(line.trim());
-         }
-      }
-      catch(Exception e)
-      {
-         LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(e));
-      }
-      
-      return trimmed.toString();
-   }
-
-   /**
     * Parses out content of the envelope so it can be used to
     * verify the digital signature of the envelope.
     * 
@@ -223,7 +193,7 @@ public class SignableXMLEnvelope implements IXMLSerializer
             int close = mXMLEnvelope.lastIndexOf(eTag);
             if(close != -1)
             {
-               contents = mXMLEnvelope.substring(end, close);
+               contents = mXMLEnvelope.substring(end, close).trim();
             }
          }
       }
@@ -239,7 +209,7 @@ public class SignableXMLEnvelope implements IXMLSerializer
       mSignedText = null;
       if(mIXMLSerializer != null)
       {
-         mSignedText = trimWhitespace(mIXMLSerializer.convertToXML(1));
+         mSignedText = mIXMLSerializer.convertToXML(1).trim();
       }
    }
 
@@ -408,7 +378,6 @@ public class SignableXMLEnvelope implements IXMLSerializer
                {
                   // get the text to verify
                   String contents = parseContents();
-                  contents = trimWhitespace(contents);
 
                   if(!mAlgorithm.startsWith("SHA1"))
                   {

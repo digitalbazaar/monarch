@@ -29,8 +29,26 @@
   </target>
 
 	<target name="run-tests" 
-depends="build,run-ut-keymanager,run-ut-cryptor,run-ut-fileencryption,run-ut-ismanager"
+depends="build,run-ut-envelope,run-ut-keymanager,run-ut-cryptor,run-ut-fileencryption,run-ut-ismanager"
     description="Runs the unit tests for the library">
+	</target>
+
+	<target name="run-ut-envelope" depends="build"
+    description="Runs the unit tests for the library">
+		<javac srcdir="test" classpath="compile.classpath"
+      debug="${debug}"
+      debuglevel="${debuglevel}"
+      destdir="${test}"
+      includes="UTSignableXMLEnvelope.java">
+			<classpath refid="compile.classpath"/>
+		</javac>
+		<java classname="UTSignableXMLEnvelope">
+			<classpath>
+				<pathelement location="${dist}/dbcommon.jar"/>
+				<pathelement path="${java.class.path}"/>
+				<pathelement path="${test}"/>
+			</classpath>
+		</java>
 	</target>
 
 	<target name="run-ut-keymanager" depends="build"
