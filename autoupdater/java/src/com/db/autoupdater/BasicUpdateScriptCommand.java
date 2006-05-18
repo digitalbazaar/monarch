@@ -130,9 +130,8 @@ public class BasicUpdateScriptCommand
          }
          catch(NumberFormatException nfe)
          {
-            System.err.println(
-                  "Version number in update script is invalid: "+ 
-                  versionNumber);
+            getLogger().error(
+               "Version number in update script is invalid: " + versionNumber);
          }
          success = true;
       }
@@ -165,8 +164,8 @@ public class BasicUpdateScriptCommand
             }
             catch(MalformedURLException mue)
             {
-               System.err.println(
-                     "Update script install URL is invalid: "+ url);
+               getLogger().error(
+                  "Update script install URL is invalid: " + url);
                success &= false;
             }
          }
@@ -180,8 +179,8 @@ public class BasicUpdateScriptCommand
             }
             catch(NumberFormatException nfe)
             {
-               System.err.println(
-                     "Update script install URL is invalid: "+ url);
+               getLogger().error(
+                  "Update script install URL is invalid: " + url);
                success &= false;
             }
          }
@@ -210,9 +209,8 @@ public class BasicUpdateScriptCommand
          }
          else
          {
-            System.err.println(
-                  "Update script on_success command is invalid: "+ 
-                  subCommand);
+            getLogger().error(
+               "Update script on_success command is invalid: " + subCommand);
             success &= false;
          }
       }
