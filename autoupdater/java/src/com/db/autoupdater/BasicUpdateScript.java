@@ -253,9 +253,9 @@ public class BasicUpdateScript implements UpdateScript
             }
             catch(SecurityException se)
             {
-               System.err.println(
-                     "Permission denied while attempting to delete file: "+
-                     deleteFile.getAbsolutePath());
+               getLogger().error(
+                  "Permission denied while attempting to delete file: "+
+                  deleteFile.getAbsolutePath());
             }
          }
       }
@@ -291,9 +291,9 @@ public class BasicUpdateScript implements UpdateScript
          }
          catch(SecurityException se)
          {
-            System.err.println(
-                  "Update script failed to create directory: "+
-                  createDir.getAbsolutePath());
+            getLogger().error(
+               "Update script failed to create directory: "+
+               createDir.getAbsolutePath());
          }
       }
       else
@@ -332,7 +332,7 @@ public class BasicUpdateScript implements UpdateScript
                }
                catch(SecurityException se)
                {
-                  System.err.println(
+                  getLogger().error(
                      "Permission denied while attempting to delete directory: "+
                      deleteDir.getAbsolutePath());
                }
@@ -619,14 +619,6 @@ public class BasicUpdateScript implements UpdateScript
 
          // increment command number
          commandNumber++;
-
-         // notify any listeners that the software update has changed
-         /*String action = "total_install";
-         Vector v = new Vector();
-         v.add(
-            new Integer((int)(((float)commandNumber/
-                               (float)mCommands.size()) * 100.0)));
-         mAutoUpdater.softwareUpdateChanged(action, v);*/
       }
       
       // notify the UI that the installation has been completed
@@ -643,7 +635,6 @@ public class BasicUpdateScript implements UpdateScript
             "updateFailed", null, null, null, 0);
       }
    }
-   
    
    /**
     * Reverts changes made by this script, if possible.

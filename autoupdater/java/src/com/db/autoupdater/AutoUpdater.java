@@ -27,6 +27,11 @@ public abstract class AutoUpdater
    protected boolean mRequiresReload;
    
    /**
+    * An event delegate for check for update started events.
+    */
+   protected EventDelegate mCheckForUpdateStartedEventDelegate;
+   
+   /**
     * An event delegate for update script found events.
     */
    protected EventDelegate mUpdateScriptFoundEventDelegate;
@@ -34,7 +39,12 @@ public abstract class AutoUpdater
    /**
     * An event delegate for update script processed events.
     */
-   protected EventDelegate mUpdateScriptProcessedEventDelegate;   
+   protected EventDelegate mUpdateScriptProcessedEventDelegate;
+   
+   /**
+    * An event delegate for update script not found events.
+    */
+   protected EventDelegate mUpdateScriptNotFoundEventDelegate;
    
    /**
     * Creates a new AutoUpdater.
@@ -44,13 +54,29 @@ public abstract class AutoUpdater
       // no reload required by default
       setRequiresReload(false);
       
+      // create check for update started event delegate
+      mCheckForUpdateStartedEventDelegate = new EventDelegate();
+
       // create update script found event delegate
       mUpdateScriptFoundEventDelegate = new EventDelegate();
       
       // create update script found event delegate
-      mUpdateScriptProcessedEventDelegate = new EventDelegate();      
+      mUpdateScriptProcessedEventDelegate = new EventDelegate();
+      
+      // create update script not found event delegate
+      mUpdateScriptNotFoundEventDelegate = new EventDelegate();
    }
    
+   /**
+    * Fires a check for update started event.
+    * 
+    * @param event the event to fire.
+    */
+   protected void fireCheckForUpdateStartedEvent(EventObject event)
+   {
+      mCheckForUpdateStartedEventDelegate.fireEvent(event);
+   }
+
    /**
     * Fires an update script found event.
     * 
@@ -69,8 +95,18 @@ public abstract class AutoUpdater
    protected void fireUpdateScriptProcessedEvent(EventObject event)
    {
       mUpdateScriptProcessedEventDelegate.fireEvent(event);
-   }   
+   }
    
+   /**
+    * Fires an update script not found event.
+    * 
+    * @param event the event to fire.
+    */
+   protected void fireUpdateScriptNotFoundEvent(EventObject event)
+   {
+      mUpdateScriptNotFoundEventDelegate.fireEvent(event);
+   }
+
    /**
     * Sets whether or not this AutoUpdater requires a reload.
     * 
@@ -92,6 +128,10 @@ public abstract class AutoUpdater
    {
       boolean rval = false;
       
+      // fire a check for update started event
+      EventObject event = new EventObject("checkForUpdateStarted");
+      fireCheckForUpdateStartedEvent(event);
+      
       // get the update script source
       UpdateScriptSource source = getUpdateScriptSource();
       
@@ -105,12 +145,13 @@ public abstract class AutoUpdater
          if(script.validate())
          {
             // fire event indicating that an update script has been found
-            EventObject event = new EventObject("updateScriptFound");
-            event.setData("cancel_update", false);
+            event = new EventObject("updateScriptFound");
+            event.setData("updateScript", script);
+            event.setData("cancelUpdate", false);
             fireUpdateScriptFoundEvent(event);
             
             // see if the update should be cancelled
-            if(event.getDataBooleanValue("cancel_update"))
+            if(event.getDataBooleanValue("cancelUpdate"))
             {
                // shutdown the application
                application.shutdown();
@@ -126,17 +167,36 @@ public abstract class AutoUpdater
                
                // fire event indicating an update script was processed
                event = new EventObject("updateScriptProcessed");
+               event.setData("updateScript", script);
                fireUpdateScriptProcessedEvent(event);
             }
          }
+         else
+         {
+            // fire event indicating that an update script has not been found
+            event = new EventObject("updateScriptNotFound");
+            fireUpdateScriptNotFoundEvent(event);
+         }
+      }
+      else
+      {
+         // fire event indicating that an update script has not been found
+         event = new EventObject("updateScriptNotFound");
+         fireUpdateScriptNotFoundEvent(event);
       }
       
       return rval;
    }
    
    /**
+    * This method is provided for convenience. It can be overloaded to
+    * pause the current thread for some period of time. Another way to
+    * pause between update checks is to handle the checkForUpdateStarted
+    * event by pausing.
+    * 
     * Causes the update checker thread to pause for some period of time
-    * before checking for an update.
+    * before checking for an update. The default period of time is
+    * 30 seconds.
     * 
     * Throws an InterruptedException if the thread is interrupted while
     * sleeping. 
@@ -250,6 +310,16 @@ public abstract class AutoUpdater
    }
    
    /**
+    * Gets the check for update started event delegate.
+    * 
+    * @return the check for update started event delegate.
+    */
+   public EventDelegate getCheckForUpdateStartedEventDelegate()
+   {
+      return mCheckForUpdateStartedEventDelegate;
+   }
+   
+   /**
     * Gets the update script found event delegate.
     * 
     * @return the update script found event delegate.
@@ -267,7 +337,17 @@ public abstract class AutoUpdater
    public EventDelegate getUpdateScriptProcessedEventDelegate()
    {
       return mUpdateScriptProcessedEventDelegate;
-   }   
+   }
+   
+   /**
+    * Gets the update script not found event delegate.
+    * 
+    * @return the update script not found event delegate.
+    */
+   public EventDelegate getUpdateScriptNotFoundEventDelegate()
+   {
+      return mUpdateScriptNotFoundEventDelegate;
+   }
    
    /**
     * Gets whether or not this AutoUpdater requires a reload.
