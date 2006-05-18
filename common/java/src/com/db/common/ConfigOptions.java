@@ -277,7 +277,7 @@ public class ConfigOptions
     * @param key the key for the value to set the type for.
     * @param type the class for the value.
     */
-   public void setValueType(String key, Class type)
+   public synchronized void setValueType(String key, Class type)
    {
       mValueTypeMap.put(key, type);
    }
@@ -536,7 +536,7 @@ public class ConfigOptions
     * @param prefix the prefix for the keys.
     * @return a set of all the keys that begin with the passed string.
     */
-   public Set getKeysStartingWith(String prefix)
+   public synchronized Set getKeysStartingWith(String prefix)
    {
       HashSet set = new HashSet();
       
@@ -567,7 +567,7 @@ public class ConfigOptions
    /**
     * Clears this config options object of all values.
     */
-   public void clear()
+   public synchronized void clear()
    {
       mProperties.clear();
       mValueTypeMap.clear();
@@ -581,7 +581,7 @@ public class ConfigOptions
     * 
     * @param config the config options object to read from.
     */
-   public void readConfigFrom(ConfigOptions config)
+   public synchronized void readConfigFrom(ConfigOptions config)
    {
       if(config != null)
       {
@@ -602,7 +602,7 @@ public class ConfigOptions
     * 
     * @param config the config options object to write to.
     */
-   public void writeConfigTo(ConfigOptions config)
+   public synchronized void writeConfigTo(ConfigOptions config)
    {
       if(config != null)
       {
@@ -621,7 +621,7 @@ public class ConfigOptions
     * 
     * @return the config options copy.
     */
-   public ConfigOptions copy()
+   public synchronized ConfigOptions copy()
    {
       ConfigOptions config = new ConfigOptions();
       
