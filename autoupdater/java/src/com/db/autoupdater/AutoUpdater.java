@@ -147,11 +147,11 @@ public abstract class AutoUpdater
             // fire event indicating that an update script has been found
             event = new EventObject("updateScriptFound");
             event.setData("updateScript", script);
-            event.setData("cancelUpdate", false);
+            event.setData("processUpdate", false);
             fireUpdateScriptFoundEvent(event);
             
-            // see if the update should be cancelled
-            if(event.getDataBooleanValue("cancelUpdate"))
+            // see if the update should be processed
+            if(event.getDataBooleanValue("processUpdate"))
             {
                // shutdown the application
                application.shutdown();
@@ -218,11 +218,17 @@ public abstract class AutoUpdater
    {
       try
       {
-         // pause this thread
-         pauseUpdateCheckerThread();
+         while(!requiresReload())
+         {
+            // pause this thread
+            pauseUpdateCheckerThread();
          
-         // check for an update for the application
-         checkForUpdate(application);
+            // check for an update for the application
+            if(!requiresReload() && !Thread.interrupted())
+            {
+               checkForUpdate(application);
+            }
+         }
       }
       catch(InterruptedException e)
       {
@@ -298,6 +304,7 @@ public abstract class AutoUpdater
          try
          {
             // join the update checker thread
+            updateChecker.interrupt();
             updateChecker.join();
          }
          catch(InterruptedException e)

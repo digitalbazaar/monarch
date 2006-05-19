@@ -109,9 +109,13 @@ public class BasicUpdateScript implements UpdateScript
       // create event
       BasicUpdateScriptProcessEvent event =
          new BasicUpdateScriptProcessEvent(name, command);
-      event.setChangedFile(command.getRelativePath());
-      event.setFileAction(fileAction);
-      event.setFileProgress(fileProgress);
+      
+      if(command != null)
+      {
+         event.setChangedFile(command.getRelativePath());
+         event.setFileAction(fileAction);
+         event.setFileProgress(fileProgress);
+      }
       
       // fire event
       fireBasicUpdateScriptProcessEvent(event);
@@ -626,7 +630,7 @@ public class BasicUpdateScript implements UpdateScript
       {
          // fire event
          fireBasicUpdateScriptProcessEvent(
-            "updatedCompleted", null, null, null, 0);
+            "updateCompleted", null, null, null, 0);
       }
       else
       {
