@@ -193,7 +193,7 @@ public abstract class AutoUpdater
       application.shutdown();
       
       // process the script
-      if(!script.process())
+      if(script.process())
       {
          // script processing was successful
          rval = true;
