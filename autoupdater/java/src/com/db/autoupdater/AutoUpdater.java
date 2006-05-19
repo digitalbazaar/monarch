@@ -68,6 +68,16 @@ public abstract class AutoUpdater
    protected EventDelegate mExecuteApplicationEventDelegate;
    
    /**
+    * An event delegate for shutdown application events.
+    */
+   protected EventDelegate mShutdownApplicationEventDelegate;
+
+   /**
+    * An event delegate for application shutdown events.
+    */
+   protected EventDelegate mApplicationShutdownEventDelegate;
+   
+   /**
     * Creates a new AutoUpdater.
     */
    public AutoUpdater()
@@ -98,6 +108,12 @@ public abstract class AutoUpdater
       
       // create execute application event delegate
       mExecuteApplicationEventDelegate = new EventDelegate();
+      
+      // create shutdown application event delegate
+      mShutdownApplicationEventDelegate = new EventDelegate();
+      
+      // create application shutdown delegate
+      mApplicationShutdownEventDelegate = new EventDelegate();
    }
    
    /**
@@ -148,6 +164,26 @@ public abstract class AutoUpdater
    protected void fireExecuteApplicationEvent(EventObject event)
    {
       mExecuteApplicationEventDelegate.fireEvent(event);
+   }
+   
+   /**
+    * Fires a shutdown application event.
+    * 
+    * @param event the event to fire.
+    */
+   protected void fireShutdownApplicationEvent(EventObject event)
+   {
+      mShutdownApplicationEventDelegate.fireEvent(event);
+   }
+
+   /**
+    * Fires an application shutdown event.
+    * 
+    * @param event the event to fire.
+    */
+   protected void fireApplicationShutdownEvent(EventObject event)
+   {
+      mApplicationShutdownEventDelegate.fireEvent(event);
    }
 
    /**
@@ -273,33 +309,48 @@ public abstract class AutoUpdater
          // now processing an update
          setProcessingUpdate(true);
          
-         // shutdown the application
-         application.shutdown();
+         // fire event indicating the auto-updateable application is
+         // getting shutdown
+         EventObject event = new EventObject("shutdownApplication");
+         event.setData("cancel", false);
+         fireShutdownApplicationEvent(event);
          
-         // process the script
-         if(script.process())
+         // make sure shutdown was not cancelled
+         if(!event.getDataBooleanValue("cancel"))
          {
-            // script processing was successful
-            rval = true;
-         }
-         else
-         {
-            // script processing was cancelled or there was an error
+            // shutdown the application
+            application.shutdown();
             
-            // attempt to revert script
-            script.revert();
+            // fire event indicating the auto-updateable application has been
+            // shutdown
+            event = new EventObject("applicationShutdown");
+            fireApplicationShutdownEvent(event);
+            
+            // process the script
+            if(script.process())
+            {
+               // script processing was successful
+               rval = true;
+            }
+            else
+            {
+               // script processing was cancelled or there was an error
+               
+               // attempt to revert script
+               script.revert();
+            }
+            
+            // set whether or not this AutoUpdater requires a reload
+            setRequiresReload(script.autoUpdaterRequiresReload());
+            
+            // no longer processing an update
+            setProcessingUpdate(false);
+            
+            // fire event indicating an update script was processed
+            event = new EventObject("updateScriptProcessed");
+            event.setData("updateScript", script);
+            fireUpdateScriptProcessedEvent(event);
          }
-         
-         // set whether or not this AutoUpdater requires a reload
-         setRequiresReload(script.autoUpdaterRequiresReload());
-         
-         // no longer processing an update
-         setProcessingUpdate(false);
-         
-         // fire event indicating an update script was processed
-         EventObject event = new EventObject("updateScriptProcessed");
-         event.setData("updateScript", script);
-         fireUpdateScriptProcessedEvent(event);
       }
       
       return rval;
@@ -514,6 +565,26 @@ public abstract class AutoUpdater
    public EventDelegate getExecuteApplicationEventDelegate()
    {
       return mExecuteApplicationEventDelegate;
+   }
+   
+   /**
+    * Gets the shutdown application event delegate.
+    * 
+    * @return the shutdown application event delegate.
+    */
+   public EventDelegate getShutdownApplicationEventDelegate()
+   {
+      return mShutdownApplicationEventDelegate;
+   }
+   
+   /**
+    * Gets the application shutdown event delegate.
+    * 
+    * @return the application shutdown event delegate.
+    */
+   public EventDelegate getApplicationShutdownEventDelegate()
+   {
+      return mApplicationShutdownEventDelegate;
    }
    
    /**
