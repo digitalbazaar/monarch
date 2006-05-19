@@ -22,8 +22,24 @@ public interface UpdateScript
 
    /**
     * Processes this update script.
+    * 
+    * @return true if the script was processed, false if it was cancelled or
+    *         encountered an error.
     */
-   public void process();
+   public boolean process();
+   
+   /**
+    * Cancels processing this update script.
+    */
+   public void cancel();
+   
+   /**
+    * Reverts changes made by this script, if possible.
+    * 
+    * @return true if the revert was successful, false if not and the
+    *         installation is now in an indetermine state.
+    */
+   public boolean revert();
    
    /**
     * Returns true if the AutoUpdater that processed this script requires

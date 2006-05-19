@@ -162,12 +162,45 @@ public class UTAutoUpdater
       
       /**
        * Processes this update script.
+       * 
+       * @return true if the script was processed, false if it was cancelled or
+       *         encountered an error.
        */
-      public void process()
+      public boolean process()
       {
+         boolean rval = false;
+         
          System.out.println("Processing Update Script...");
          
+         rval = true;
+         
          System.out.println("Update Script Processed.");
+         
+         return rval;
+      }
+      
+      /**
+       * Cancels processing this update script.
+       */
+      public void cancel()      
+      {
+         System.out.println("Cancelling Update Script...");
+      }
+      
+      /**
+       * Reverts changes made by this script, if possible.
+       * 
+       * @return true if the revert was successful, false if not and the
+       *         installation is now in an indetermine state.
+       */
+      public boolean revert()   
+      {
+         boolean rval = false;
+         
+         System.out.println("Reverting Update Script...");
+         rval = true;
+         
+         return rval;
       }
       
       /**

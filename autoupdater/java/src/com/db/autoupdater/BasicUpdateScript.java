@@ -49,6 +49,11 @@ public class BasicUpdateScript implements UpdateScript
    protected Vector mCommands;
    
    /**
+    * True if processing should be cancelled, false if not.
+    */
+   protected boolean mCancelProcessing;
+   
+   /**
     * A BasicUpdateScriptProcessEventDelegate for firing
     * BasicUpdateScriptProcessEvents.
     */
@@ -77,6 +82,9 @@ public class BasicUpdateScript implements UpdateScript
       
       // create vector for storing commands
       mCommands = new Vector();
+      
+      // do not cancel processing by default
+      mCancelProcessing = false;
       
       // create delegate
       mBasicUpdateScriptProcessEventDelegate = new EventDelegate();
@@ -373,7 +381,8 @@ public class BasicUpdateScript implements UpdateScript
          String md5 = command.getMd5Sum();         
          
          // see if the destination can be written to
-         if(!destination.exists() || destination.canWrite())
+         if(!destination.exists() || destination.canWrite() &&
+            !mCancelProcessing)
          {
             // get a temp file for saving to
             temp = File.createTempFile("update", ".tmp");
@@ -397,7 +406,7 @@ public class BasicUpdateScript implements UpdateScript
                byte[] buffer = new byte[65536];
                int numBytes = -1;
                int totalBytes = 0;
-               while((numBytes = bis.read(buffer)) != -1)
+               while((numBytes = bis.read(buffer)) != -1 && !mCancelProcessing)
                {
                   fos.write(buffer, 0, numBytes);
                   
@@ -411,6 +420,7 @@ public class BasicUpdateScript implements UpdateScript
                      "fileChanged", command, command.getRelativePath(),
                      "download", percentage);
                }
+               
                // close streams
                bis.close();
                fos.close();
@@ -540,9 +550,14 @@ public class BasicUpdateScript implements UpdateScript
    
    /**
     * Processes this update script.
+    * 
+    * @return true if the script was processed, false if it was cancelled or
+    *         encountered an error.
     */
-   public void process()
+   public boolean process()
    {
+      boolean rval = false;
+      
       mTempFiles.clear();
       mCommands.clear();
       
@@ -550,10 +565,9 @@ public class BasicUpdateScript implements UpdateScript
          
       // Perform the download for every file that is needed for installation
       boolean error = false;
-      while(i.hasNext() && !error)
+      while(i.hasNext() && !error && !mCancelProcessing)
       {
          BasicUpdateScriptCommand command = (BasicUpdateScriptCommand)i.next();
-         
          if(command.getCommandName().equals("install"))
          {
             error &= !downloadFile(command, 999);
@@ -563,7 +577,7 @@ public class BasicUpdateScript implements UpdateScript
       // execute each command of the script in order
       i = mCommands.iterator();
       int commandNumber = 0;
-      while(i.hasNext() && !error)
+      while(i.hasNext() && !error && !mCancelProcessing)
       {
          BasicUpdateScriptCommand command = (BasicUpdateScriptCommand)i.next();
          
@@ -626,18 +640,40 @@ public class BasicUpdateScript implements UpdateScript
       }
       
       // notify the UI that the installation has been completed
-      if(!error)
-      {
-         // fire event
-         fireBasicUpdateScriptProcessEvent(
-            "updateCompleted", null, null, null, 0);
-      }
-      else
+      if(error)
       {
          // fire event
          fireBasicUpdateScriptProcessEvent(
             "updateFailed", null, null, null, 0);
       }
+      else if(mCancelProcessing)
+      {
+         // reset cancel flag
+         mCancelProcessing = false;
+         
+         // fire event
+         fireBasicUpdateScriptProcessEvent(
+            "updateCancelled", null, null, null, 0);
+      }
+      else
+      {
+         // processing successfully completed
+         rval = true;
+
+         // fire event
+         fireBasicUpdateScriptProcessEvent(
+            "updateCompleted", null, null, null, 0);
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Cancels processing this update script.
+    */
+   public void cancel()
+   {
+      mCancelProcessing = true;
    }
    
    /**

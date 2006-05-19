@@ -157,13 +157,21 @@ public abstract class AutoUpdater
                application.shutdown();
                
                // process the script
-               script.process();
+               if(script.process())
+               {
+                  // script processing was successful
+                  rval = true;
+               }
+               else
+               {
+                  // script processing was cancelled or there was an error
+                  
+                  // attempt to revert script
+                  script.revert();
+               }
                
                // set whether or not this AutoUpdater requires a reload
                setRequiresReload(script.autoUpdaterRequiresReload());
-               
-               // an update was processed
-               rval = true;
                
                // fire event indicating an update script was processed
                event = new EventObject("updateScriptProcessed");
