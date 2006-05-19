@@ -153,30 +153,9 @@ public abstract class AutoUpdater
             // see if the update should be processed
             if(event.getDataBooleanValue("processUpdate"))
             {
-               // shutdown the application
-               application.shutdown();
-               
-               // process the script
-               if(script.process())
-               {
-                  // script processing was successful
-                  rval = true;
-               }
-               else
-               {
-                  // script processing was cancelled or there was an error
-                  
-                  // attempt to revert script
-                  script.revert();
-               }
-               
-               // set whether or not this AutoUpdater requires a reload
-               setRequiresReload(script.autoUpdaterRequiresReload());
-               
-               // fire event indicating an update script was processed
-               event = new EventObject("updateScriptProcessed");
-               event.setData("updateScript", script);
-               fireUpdateScriptProcessedEvent(event);
+               // process update script
+               rval = true;
+               processUpdateScript(application, script);
             }
          }
          else
@@ -192,6 +171,48 @@ public abstract class AutoUpdater
          event = new EventObject("updateScriptNotFound");
          fireUpdateScriptNotFoundEvent(event);
       }
+      
+      return rval;
+   }
+   
+   /**
+    * Shutsdown any running application and processes an update script.
+    * 
+    * @param application the application that is running.
+    * @param script the update script to process.
+    * 
+    * @return true if an update was successfully processed without failure
+    *         or cancellation, false if not.
+    */
+   protected boolean processUpdateScript(
+      AutoUpdateable application, UpdateScript script)
+   {
+      boolean rval = false;
+      
+      // shutdown the application
+      application.shutdown();
+      
+      // process the script
+      if(!script.process())
+      {
+         // script processing was successful
+         rval = true;
+      }
+      else
+      {
+         // script processing was cancelled or there was an error
+         
+         // attempt to revert script
+         script.revert();
+      }
+      
+      // set whether or not this AutoUpdater requires a reload
+      setRequiresReload(script.autoUpdaterRequiresReload());
+      
+      // fire event indicating an update script was processed
+      EventObject event = new EventObject("updateScriptProcessed");
+      event.setData("updateScript", script);
+      fireUpdateScriptProcessedEvent(event);
       
       return rval;
    }
