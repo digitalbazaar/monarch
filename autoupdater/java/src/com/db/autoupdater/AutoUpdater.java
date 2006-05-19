@@ -27,6 +27,11 @@ public abstract class AutoUpdater
    protected boolean mRequiresReload;
    
    /**
+    * True while processing an update, false otherwise. 
+    */
+   protected boolean mProcessingUpdate;
+   
+   /**
     * An event delegate for check for update started events.
     */
    protected EventDelegate mCheckForUpdateStartedEventDelegate;
@@ -53,6 +58,9 @@ public abstract class AutoUpdater
    {
       // no reload required by default
       setRequiresReload(false);
+      
+      // not processing an update by default
+      setProcessingUpdate(false);
       
       // create check for update started event delegate
       mCheckForUpdateStartedEventDelegate = new EventDelegate();
@@ -112,9 +120,20 @@ public abstract class AutoUpdater
     * 
     * @param reload true if this AutoUpdater requires a reload, false if not.
     */
-   protected void setRequiresReload(boolean reload)
+   protected synchronized void setRequiresReload(boolean reload)
    {
       mRequiresReload = reload;
+   }
+   
+   /**
+    * Sets whether or not this AutoUpdater is processing an update.
+    * 
+    * @param processing true if this AutoUpdater is processing an update,
+    *                   false if not.
+    */
+   protected synchronized void setProcessingUpdate(boolean processing)
+   {
+      mProcessingUpdate = processing;
    }
    
    /**
@@ -124,7 +143,7 @@ public abstract class AutoUpdater
     * 
     * @return true if an update was processed, false if not.
     */
-   protected boolean checkForUpdate(AutoUpdateable application)
+   protected synchronized boolean checkForUpdate(AutoUpdateable application)
    {
       boolean rval = false;
       
@@ -184,35 +203,45 @@ public abstract class AutoUpdater
     * @return true if an update was successfully processed without failure
     *         or cancellation, false if not.
     */
-   protected boolean processUpdateScript(
+   protected synchronized boolean processUpdateScript(
       AutoUpdateable application, UpdateScript script)
    {
       boolean rval = false;
       
-      // shutdown the application
-      application.shutdown();
-      
-      // process the script
-      if(script.process())
+      // ensure this thread is not interrupted
+      if(!Thread.interrupted())
       {
-         // script processing was successful
-         rval = true;
-      }
-      else
-      {
-         // script processing was cancelled or there was an error
+         // now processing an update
+         setProcessingUpdate(true);
          
-         // attempt to revert script
-         script.revert();
+         // shutdown the application
+         application.shutdown();
+         
+         // process the script
+         if(script.process())
+         {
+            // script processing was successful
+            rval = true;
+         }
+         else
+         {
+            // script processing was cancelled or there was an error
+            
+            // attempt to revert script
+            script.revert();
+         }
+         
+         // set whether or not this AutoUpdater requires a reload
+         setRequiresReload(script.autoUpdaterRequiresReload());
+         
+         // no longer processing an update
+         setProcessingUpdate(false);
+         
+         // fire event indicating an update script was processed
+         EventObject event = new EventObject("updateScriptProcessed");
+         event.setData("updateScript", script);
+         fireUpdateScriptProcessedEvent(event);
       }
-      
-      // set whether or not this AutoUpdater requires a reload
-      setRequiresReload(script.autoUpdaterRequiresReload());
-      
-      // fire event indicating an update script was processed
-      EventObject event = new EventObject("updateScriptProcessed");
-      event.setData("updateScript", script);
-      fireUpdateScriptProcessedEvent(event);
       
       return rval;
    }
@@ -332,8 +361,13 @@ public abstract class AutoUpdater
       
          try
          {
+            // interrupt update checker thread if not processing an update
+            if(!isProcessingUpdate())
+            {
+               updateChecker.interrupt();
+            }
+            
             // join the update checker thread
-            updateChecker.interrupt();
             updateChecker.join();
          }
          catch(InterruptedException e)
@@ -390,9 +424,19 @@ public abstract class AutoUpdater
     * 
     * @return true if this AutoUpdater requires a reload, false if not.
     */
-   public boolean requiresReload()
+   public synchronized boolean requiresReload()
    {
       return mRequiresReload;
+   }
+   
+   /**
+    * Gets whether or not this AutoUpdater is processing an update.
+    * 
+    * @return true if this AutoUpdater is processing an update, false if not.
+    */
+   public synchronized boolean isProcessingUpdate()
+   {
+      return mProcessingUpdate;
    }
    
    /**
