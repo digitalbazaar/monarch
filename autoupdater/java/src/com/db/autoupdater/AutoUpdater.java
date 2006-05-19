@@ -32,6 +32,17 @@ public abstract class AutoUpdater
    protected boolean mProcessingUpdate;
    
    /**
+    * True when this AutoUpdater should automatically check for updates, false
+    * when it should not.
+    */
+   protected boolean mAutoCheckForUpdate;
+   
+   /**
+    * The number of milliseconds to sleep in between automatic update checks.
+    */
+   protected long mAutoCheckForUpdateInterval;
+   
+   /**
     * An event delegate for check for update started events.
     */
    protected EventDelegate mCheckForUpdateStartedEventDelegate;
@@ -52,6 +63,11 @@ public abstract class AutoUpdater
    protected EventDelegate mUpdateScriptNotFoundEventDelegate;
    
    /**
+    * An event delegate for execute application events.
+    */
+   protected EventDelegate mExecuteApplicationEventDelegate;
+   
+   /**
     * Creates a new AutoUpdater.
     */
    public AutoUpdater()
@@ -61,6 +77,12 @@ public abstract class AutoUpdater
       
       // not processing an update by default
       setProcessingUpdate(false);
+      
+      // do not auto check for updates by default
+      setAutoCheckForUpdate(false);
+      
+      // default the auto check interval to 30 seconds
+      setAutoCheckForUpdateInterval(30000);
       
       // create check for update started event delegate
       mCheckForUpdateStartedEventDelegate = new EventDelegate();
@@ -73,6 +95,9 @@ public abstract class AutoUpdater
       
       // create update script not found event delegate
       mUpdateScriptNotFoundEventDelegate = new EventDelegate();
+      
+      // create execute application event delegate
+      mExecuteApplicationEventDelegate = new EventDelegate();
    }
    
    /**
@@ -114,6 +139,16 @@ public abstract class AutoUpdater
    {
       mUpdateScriptNotFoundEventDelegate.fireEvent(event);
    }
+   
+   /**
+    * Fires an execute application event.
+    * 
+    * @param event the event to fire.
+    */
+   protected void fireExecuteApplicationEvent(EventObject event)
+   {
+      mExecuteApplicationEventDelegate.fireEvent(event);
+   }
 
    /**
     * Sets whether or not this AutoUpdater requires a reload.
@@ -134,6 +169,30 @@ public abstract class AutoUpdater
    protected synchronized void setProcessingUpdate(boolean processing)
    {
       mProcessingUpdate = processing;
+   }
+   
+   /**
+    * Sets whether or not this AutoUpdater should automatically check
+    * for updates.
+    * 
+    * @param check true if this AutoUpdater should automatically check for
+    *              updates, false if not.
+    */
+   protected void setAutoCheckForUpdate(boolean check)
+   {
+      mAutoCheckForUpdate = check;
+   }
+   
+   /**
+    * Gets whether or not this AutoUpdater should automatically check
+    * for updates.
+    * 
+    * @return true if this AutoUpdater should automatically check for
+    *         updates, false if not.
+    */
+   protected boolean shouldAutoCheckForUpdate()
+   {
+      return mAutoCheckForUpdate;
    }
    
    /**
@@ -263,8 +322,10 @@ public abstract class AutoUpdater
     */
    public void pauseUpdateCheckerThread() throws InterruptedException
    {
-      // check every 30 seconds
-      Thread.sleep(30000);
+      if(getAutoCheckForUpdateInterval() > 0)
+      {
+         Thread.sleep(getAutoCheckForUpdateInterval());
+      }
    }
    
    /**
@@ -276,15 +337,19 @@ public abstract class AutoUpdater
    {
       try
       {
-         while(!requiresReload())
+         while(shouldAutoCheckForUpdate())
          {
             // pause this thread
             pauseUpdateCheckerThread();
-         
+            
             // check for an update for the application
-            if(!requiresReload() && !Thread.interrupted())
+            if(shouldAutoCheckForUpdate() && !Thread.interrupted())
             {
-               checkForUpdate(application);
+               // check for an update if the auto check interval is positive
+               if(getAutoCheckForUpdateInterval() > 0)
+               {
+                  checkForUpdate(application);
+               }
             }
          }
       }
@@ -350,17 +415,36 @@ public abstract class AutoUpdater
       // check for an update, start the application if there isn't one
       if(!checkForUpdate(application))
       {
+         // set automatic check flag to true
+         setAutoCheckForUpdate(true);
+         
          // start the update checker thread
          Object[] params = new Object[]{application};
          MethodInvoker updateChecker =
             new MethodInvoker(this, "continuouslyCheckForUpdate", params);
          updateChecker.backgroundExecute();
          
-         // execute application
-         application.execute();
-      
+         // fire event indicating that the auto-updateable application
+         // is being executed
+         EventObject event = new EventObject("executeApplication");
+         event.setData("cancel", false);
+         fireExecuteApplicationEvent(event);
+         
+         // see if application execution should be cancelled
+         if(!event.getDataBooleanValue("cancel"))
+         {
+            // execute application
+            application.execute();
+         }
+         
          try
          {
+            // sleep while the application is running
+            while(application.isRunning())
+            {
+               Thread.sleep(1);
+            }
+
             // interrupt update checker thread if not processing an update
             if(!isProcessingUpdate())
             {
@@ -376,6 +460,9 @@ public abstract class AutoUpdater
             updateChecker.interrupt();
             Thread.currentThread().interrupt();
          }
+         
+         // set automatic check flag to false
+         setAutoCheckForUpdate(false);
       }
    }
    
@@ -420,6 +507,16 @@ public abstract class AutoUpdater
    }
    
    /**
+    * Gets the execute application event delegate.
+    * 
+    * @return the execute application event delegate.
+    */
+   public EventDelegate getExecuteApplicationEventDelegate()
+   {
+      return mExecuteApplicationEventDelegate;
+   }
+   
+   /**
     * Gets whether or not this AutoUpdater requires a reload.
     * 
     * @return true if this AutoUpdater requires a reload, false if not.
@@ -437,6 +534,36 @@ public abstract class AutoUpdater
    public synchronized boolean isProcessingUpdate()
    {
       return mProcessingUpdate;
+   }
+   
+   /**
+    * Sets the number of milliseconds to wait in between automatic update
+    * checks.
+    * 
+    * A non-positive return value indicates that no automatic update checks
+    * will be made.
+    * 
+    * @param interval the number of milliseconds to wait in between automatic
+    *                 update checks.
+    */
+   public void setAutoCheckForUpdateInterval(long interval)
+   {
+      mAutoCheckForUpdateInterval = interval;
+   }
+   
+   /**
+    * Sets the number of milliseconds to wait in between automatic update
+    * checks.
+    * 
+    * A non-positive return value indicates that no automatic update checks
+    * will be made.
+    * 
+    * @return the number of milliseconds to wait in between automatic
+    *         update checks.
+    */
+   public long getAutoCheckForUpdateInterval()
+   {
+      return mAutoCheckForUpdateInterval;
    }
    
    /**

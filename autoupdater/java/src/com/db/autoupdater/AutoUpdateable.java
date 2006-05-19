@@ -20,6 +20,15 @@ public interface AutoUpdateable
    public void execute();
    
    /**
+    * Returns true while this auto-updateable application is running,
+    * false while it is not running.
+    * 
+    * @return true while this auto-updateable application is running,
+    *         false while it is not running.
+    */
+   public boolean isRunning();
+   
+   /**
     * Processes arguments for this auto-updateable application.
     * 
     * @param args the arguments to process.

@@ -50,6 +50,25 @@ public class CustomAutoUpdateable implements AutoUpdateable
    }
    
    /**
+    * Returns true while this auto-updateable application is running,
+    * false while it is not running.
+    * 
+    * @return true while this auto-updateable application is running,
+    *         false while it is not running.
+    */
+   public boolean isRunning()
+   {
+      boolean rval = false;
+      
+      if(mExecutionThread != null)
+      {
+         rval = mExecutionThread.isAlive();
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Processes arguments for this auto-updateable application.
     * 
     * @param args the arguments to process.
