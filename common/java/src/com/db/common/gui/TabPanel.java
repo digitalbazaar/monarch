@@ -2069,6 +2069,17 @@ public class TabPanel extends JPanel
    }
    
    /**
+    * Sets the tab area for an existing tab.
+    * 
+    * @param index the index of the tab content of the tab to change.  
+    * @param tabArea the new tab area.
+    */
+   public synchronized void setTabArea(int index, Component tabArea)   
+   {
+      setTabArea(getTabArea(index), tabArea);
+   }
+   
+   /**
     * Gets a tab area based on its index.
     * 
     * @param index the index of the tab area.
@@ -2177,6 +2188,18 @@ public class TabPanel extends JPanel
    public Component getTabContent(Component tabArea)
    {
       return (Component)mAreaToContent.get(tabArea);
+   }
+   
+   /**
+    * Sets the tab content for an existing tab.
+    * 
+    * @param index the index for the tab content.
+    * @param newContent the new content for the tab.
+    */
+   public synchronized void setTabContent(
+      int index, Component newContent)   
+   {
+      setTabContent(getTabContent(index), newContent);
    }
    
    /**
