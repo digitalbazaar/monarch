@@ -378,7 +378,7 @@ public class BasicUpdateScript implements UpdateScript
          URL url = command.getUrl();
          File destination = command.getRelativePath();
          long size = command.getSize();
-         String md5 = command.getMd5Sum();         
+         String md5 = command.getMd5Sum();
          
          // see if the destination can be written to
          if(!destination.exists() || destination.canWrite() &&
@@ -396,6 +396,8 @@ public class BasicUpdateScript implements UpdateScript
          
             try
             {
+               getLogger().debug("Downloading file=" + command.getUrl());
+               
                // create file output stream for writing to temp file
                fos = new FileOutputStream(temp);
 
@@ -445,6 +447,11 @@ public class BasicUpdateScript implements UpdateScript
             catch(Throwable t)
             {
                t.printStackTrace();
+               
+               // fire event
+               fireBasicUpdateScriptProcessEvent(
+                  "fileChanged", command, command.getRelativePath(),
+                  "failed", 100);
             }
             
             if(bis != null)
@@ -557,33 +564,33 @@ public class BasicUpdateScript implements UpdateScript
    public boolean process()
    {
       boolean rval = false;
-      
+
+      // clear temporary files
       mTempFiles.clear();
-      mCommands.clear();
       
       Iterator i = mCommands.iterator();
          
       // Perform the download for every file that is needed for installation
-      boolean error = false;
-      while(i.hasNext() && !error && !mCancelProcessing)
+      boolean noError = true;
+      while(i.hasNext() && noError && !mCancelProcessing)
       {
          BasicUpdateScriptCommand command = (BasicUpdateScriptCommand)i.next();
          if(command.getCommandName().equals("install"))
          {
-            error &= !downloadFile(command, 999);
+            noError &= downloadFile(command, 999);
          }
       }
-         
+      
       // execute each command of the script in order
       i = mCommands.iterator();
       int commandNumber = 0;
-      while(i.hasNext() && !error && !mCancelProcessing)
+      while(i.hasNext() && noError && !mCancelProcessing)
       {
          BasicUpdateScriptCommand command = (BasicUpdateScriptCommand)i.next();
          
          if(command.getCommandName().equals("install"))
          {
-            error &= !performInstallCommand(command);
+            noError &= performInstallCommand(command);
          }
          else if(command.getCommandName().equals("delete"))
          {
@@ -593,7 +600,7 @@ public class BasicUpdateScript implements UpdateScript
                command.getRelativePath(),"delete", 0);
 
             // perform delete
-            error &= !performDeleteCommand(command);
+            noError &= performDeleteCommand(command);
             
             // fire event
             fireBasicUpdateScriptProcessEvent(
@@ -608,7 +615,7 @@ public class BasicUpdateScript implements UpdateScript
                command.getRelativePath(), "create", 0);
 
             // perform make directory
-            error &= !performMkdirCommand(command);
+            noError &= performMkdirCommand(command);
             
             // fire event
             fireBasicUpdateScriptProcessEvent(
@@ -623,7 +630,7 @@ public class BasicUpdateScript implements UpdateScript
                command.getRelativePath(), "delete", 0);
 
             // perform remove directory
-            error &= !performRmdirCommand(command);
+            noError &= performRmdirCommand(command);
             
             // fire event
             fireBasicUpdateScriptProcessEvent(
@@ -639,8 +646,7 @@ public class BasicUpdateScript implements UpdateScript
          commandNumber++;
       }
       
-      // notify the UI that the installation has been completed
-      if(error)
+      if(!noError)
       {
          // fire event
          fireBasicUpdateScriptProcessEvent(

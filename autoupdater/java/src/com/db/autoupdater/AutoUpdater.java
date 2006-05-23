@@ -43,6 +43,11 @@ public abstract class AutoUpdater
    protected long mAutoCheckForUpdateInterval;
    
    /**
+    * A reference to the auto update checker thread.
+    */
+   protected Thread mAutoCheckThread;
+   
+   /**
     * An event delegate for check for update started events.
     */
    protected EventDelegate mCheckForUpdateStartedEventDelegate;
@@ -357,6 +362,20 @@ public abstract class AutoUpdater
    }
    
    /**
+    * Overridden to terminate the auto update checker thread. 
+    */
+   public void finalize()
+   {
+      setAutoCheckForUpdate(false);
+      
+      if(mAutoCheckThread != null)
+      {
+         // make sure to interrupt the auto check thread
+         mAutoCheckThread.interrupt();
+      }
+   }
+   
+   /**
     * This method is provided for convenience. It can be overloaded to
     * pause the current thread for some period of time. Another way to
     * pause between update checks is to handle the checkForUpdateStarted
@@ -473,6 +492,7 @@ public abstract class AutoUpdater
          Object[] params = new Object[]{application};
          MethodInvoker updateChecker =
             new MethodInvoker(this, "continuouslyCheckForUpdate", params);
+         mAutoCheckThread = updateChecker;
          updateChecker.backgroundExecute();
          
          // fire event indicating that the auto-updateable application
