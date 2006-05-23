@@ -17,8 +17,8 @@ import java.util.Vector;
 
 import com.db.common.Cryptor;
 import com.db.common.EventDelegate;
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * A BasicUpdateScript is one particular implementation of UpdateScript for

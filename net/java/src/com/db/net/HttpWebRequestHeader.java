@@ -6,7 +6,7 @@ package com.db.net;
 import java.util.HashMap;
 
 import com.db.common.URLCoder;
-import com.db.common.logging.Logger;
+import com.db.logging.Logger;
 
 /**
  * An http (HyperText Transfer Protocol) web request header. An instance

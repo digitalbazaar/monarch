@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2003 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common.stream;
 
 import com.db.common.KeyManager;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.LoggerManager;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;

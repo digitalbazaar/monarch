@@ -4,6 +4,7 @@ debuglevel=lines,vars,source
 
 base=@DBCOMMONDIR@
 
+logging=${base}/logging/java
 common=${base}/common/java
 net=${base}/net/java
 autoupdater=${base}/autoupdater/java
@@ -13,6 +14,7 @@ dist=dist
 test=${build}/test
 
 #db libraries
+dblogging.jar=${logging}/dist/dblogging.jar
 dbcommon.jar=${common}/dist/dbcommon.jar
 dbcommon-gui.jar=${common}/dist/dbcommon-gui.jar
 dbnet.jar=${net}/dist/dbnet.jar

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common.stream;
 
@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.FilterInputStream;
 import java.io.InputStream;
 
-import com.db.common.logging.LoggerManager;
+import com.db.logging.LoggerManager;
 
 /**
  * A managed input stream is a composition of a FilterInputStream and

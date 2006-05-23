@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 import com.db.common.MethodInvoker;
 import com.db.common.logging.*;

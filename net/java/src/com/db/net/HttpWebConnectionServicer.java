@@ -5,8 +5,8 @@ package com.db.net;
 
 import java.util.HashMap;
 
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * An HttpWebConnectionServicer services an HTTP web connection. 

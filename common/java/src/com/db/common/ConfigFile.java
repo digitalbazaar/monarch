@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2005 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common;
 
-import com.db.common.logging.Logger;
+import com.db.logging.Logger;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

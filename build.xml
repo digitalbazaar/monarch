@@ -5,6 +5,8 @@
 
   <target name="build"
     description="Builds the entire Digital Bazaar Core source tree">
+    <echo message="========== Building Digital Bazaar logging classes =========="/>
+    <ant antfile="build.xml" dir="logging/java" target="build"/>
     <echo message="========== Building Digital Bazaar common classes =========="/>
     <ant antfile="build.xml" dir="common/java" target="build"/>
     <echo message="========== Building Digital Bazaar net classes =========="/>
@@ -15,6 +17,8 @@
 
   <target name="clean"
     description="Cleans the entire Digital Bazaar Core source tree">
+    <echo message="========== Cleaning Digital Bazaar logging classes =========="/>
+    <ant antfile="build.xml" dir="logging/java" target="clean"/>
     <echo message="========== Cleaning Digital Bazaar common classes =========="/>
     <ant antfile="build.xml" dir="common/java" target="clean"/>
     <echo message="========== Cleaning Digital Bazaar net classes =========="/>

@@ -9,7 +9,7 @@ import java.awt.Point;
 import java.util.HashMap;
 
 import com.db.common.gui.*;
-import com.db.common.logging.*;
+import com.db.logging.*;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;

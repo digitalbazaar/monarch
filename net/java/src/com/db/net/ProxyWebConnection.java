@@ -6,7 +6,7 @@ package com.db.net;
 import java.net.Socket;
 
 import com.db.common.MethodInvoker;
-import com.db.common.logging.Logger;
+import com.db.logging.Logger;
 
 /**
  * This class acts as a proxy between an incoming web connection and

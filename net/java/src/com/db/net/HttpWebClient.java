@@ -16,8 +16,8 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * This client is used to connect to a web server that supports

@@ -3,7 +3,7 @@
  */
 package com.db.common;
 
-import com.db.common.logging.LoggerManager;
+import com.db.logging.LoggerManager;
 
 import java.util.HashMap;
 import java.util.Iterator;

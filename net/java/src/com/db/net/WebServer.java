@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * A generic web server. This server communicates over ports.

@@ -14,7 +14,7 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManager;
 
-import com.db.common.logging.Logger;
+import com.db.logging.Logger;
 
 /**
  * This class handles SSL web connections. 

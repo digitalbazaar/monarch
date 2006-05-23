@@ -8,8 +8,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.StringTokenizer;
 
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * A basic UpdateScriptCommand is an atomic BasicUpdateScript command.

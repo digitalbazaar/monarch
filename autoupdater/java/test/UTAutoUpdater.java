@@ -2,8 +2,8 @@
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
 import com.db.autoupdater.*;
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * This class is used to test the Digital Bazaar AutoUpdater framework. 

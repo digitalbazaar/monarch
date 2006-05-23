@@ -112,8 +112,8 @@ public class UTSignableXMLEnvelope
    
    public static void main(String[] args)
    {
-      com.db.common.logging.LoggerManager.setConsoleVerbosity(
-         "dbcommon", com.db.common.logging.Logger.DEBUG_VERBOSITY);
+      com.db.logging.LoggerManager.setConsoleVerbosity(
+         "dbcommon", com.db.logging.Logger.DEBUG_VERBOSITY);
       
       System.out.println("\nTesting SignableXMLEnvelope...");
       System.out.println("----------------------------\n");

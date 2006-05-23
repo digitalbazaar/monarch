@@ -6,8 +6,8 @@ package com.db.net;
 import java.util.Iterator;
 import java.util.Vector;
 
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * This class is a delegate that sends messages to

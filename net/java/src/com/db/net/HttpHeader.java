@@ -10,8 +10,8 @@ import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * An http (HyperText Transfer Protocol) header. An instance

@@ -10,8 +10,8 @@ import com.db.common.ConfigOptions;
 import com.db.common.EventDelegate;
 import com.db.common.EventObject;
 import com.db.common.MethodInvoker;
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * An application automatic updater. Retrieves an update script from a

@@ -20,7 +20,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 
-import com.db.common.logging.LoggerManager;
+import com.db.logging.LoggerManager;
 
 /**
  * This is a simple table model that can be easily extended.

@@ -10,8 +10,8 @@ import java.io.PushbackInputStream;
 import java.net.Socket;
 import java.net.SocketAddress;
 
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * This class represents a generic web connection to a web server.

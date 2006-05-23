@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.common.logging;
+package com.db.logging;
 
 import java.io.File;
 import java.io.FileOutputStream;

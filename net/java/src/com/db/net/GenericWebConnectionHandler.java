@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2005 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net;
 
 import java.net.ServerSocket;
 
-import com.db.common.logging.Logger;
+import com.db.logging.Logger;
 
 /**
  * This class handles generic web connections (no special connection protocols).

@@ -23,8 +23,8 @@ import javax.swing.UIManager;
 import com.db.common.gui.JComponentCellRenderer;
 import com.db.common.gui.PositionConstraints;
 import com.db.common.gui.PositionLayout;
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * This class is used to test custom renderers.

@@ -5,8 +5,8 @@ package com.db.net;
 
 import com.db.common.ElementReader;
 import com.db.common.IXMLSerializer;
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 import java.io.StringReader;
 import java.util.HashMap;

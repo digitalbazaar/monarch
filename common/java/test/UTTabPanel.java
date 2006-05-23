@@ -3,7 +3,7 @@
  */
 import com.db.common.gui.TabPanel;
 import com.db.common.gui.EditableTabPanel;
-import com.db.common.logging.*;
+import com.db.logging.*;
 
 //import java.awt.Dimension;
 import java.awt.event.ActionEvent;

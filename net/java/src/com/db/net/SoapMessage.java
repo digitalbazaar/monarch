@@ -21,8 +21,8 @@ import org.xml.sax.SAXParseException;
 import com.db.common.ElementReader;
 import com.db.common.IXMLSerializer;
 import com.db.common.XMLCoder;
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * This class represents a SOAP message.

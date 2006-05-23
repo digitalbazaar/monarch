@@ -5,7 +5,7 @@ package com.db.net;
 
 import java.util.Date;
 
-import com.db.common.logging.Logger;
+import com.db.logging.Logger;
 
 /**
  * A soap http web request servicer. Handles soap messages sent via http

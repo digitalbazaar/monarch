@@ -8,8 +8,8 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 import com.db.common.MethodInvoker;
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * This class accepts web connections with a particular server socket and

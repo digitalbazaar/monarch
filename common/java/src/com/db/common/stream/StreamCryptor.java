@@ -4,8 +4,8 @@
 package com.db.common.stream;
 
 import com.db.common.Cryptor;
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

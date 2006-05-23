@@ -3,7 +3,7 @@
  */
 package com.db.net;
 
-import com.db.common.logging.Logger;
+import com.db.logging.Logger;
 
 /**
  * An http (HyperText Transfer Protocol) body part header. An instance

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2005 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.common.stream;
 
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 import java.io.FilterInputStream;
 import java.io.InputStream;

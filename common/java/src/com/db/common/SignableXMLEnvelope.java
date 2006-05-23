@@ -3,8 +3,8 @@
  */
 package com.db.common;
 
-import com.db.common.logging.Logger;
-import com.db.common.logging.LoggerManager;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 import java.io.StringReader;
 import java.security.PrivateKey;

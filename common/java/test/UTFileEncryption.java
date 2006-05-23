@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2003 Digital Bazar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
  */
-import com.db.common.logging.LoggerManager;
 import com.db.common.stream.*;
+import com.db.logging.LoggerManager;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
