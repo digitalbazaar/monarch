@@ -23,6 +23,12 @@ public class EventObject implements Cloneable
    protected BoxingHashMap mDataMap;
    
    /**
+    * A map of data keys to messages describing something about
+    * their data values.
+    */
+   protected BoxingHashMap mDataKeyMessageMap;
+   
+   /**
     * Creates a new EventObject with no specified name.
     */
    public EventObject()
@@ -39,6 +45,7 @@ public class EventObject implements Cloneable
    {
       setName(name);
       mDataMap = new BoxingHashMap();
+      mDataKeyMessageMap = new BoxingHashMap();
    }
 
    /**
@@ -289,6 +296,9 @@ public class EventObject implements Cloneable
    {
       // copy data map
       mDataMap.copyFrom(event.mDataMap);
+      
+      // copy data key message map
+      mDataKeyMessageMap.copyFrom(event.mDataKeyMessageMap);
    }
    
    /**
@@ -304,6 +314,56 @@ public class EventObject implements Cloneable
    }
    
    /**
+    * Gets a set of all of the data keys with messages for this
+    * event object. This will list all of the keys that map to values
+    * in this event object that have messages describing those
+    * values in some useful way.
+    * 
+    * @return a set of all of the data keys with messages for
+    *         this event object.
+    */
+   public Set getDataKeysWithMessages()
+   {
+      return mDataKeyMessageMap.keySet();
+   }
+   
+   /**
+    * Sets a message to be associated with a particular data key
+    * that describes its data value in useful some way.
+    * 
+    * @param key the data key to attach a message about its value to.
+    * @param message the message that describes the data key's
+    *                value in some useful way.
+    */
+   public void setDataKeyMessage(Object key, String message)
+   {
+      mDataKeyMessageMap.put(key, message);
+   }
+   
+   /**
+    * Gets a message that is associated with a particular data key
+    * that describes its data value in useful some way.
+    * 
+    * @param key the data key to get the message for.
+    * 
+    * @return the message describing the data key's value in some
+    *         useful way or a blank string if no message is
+    *         associated with the given data key.
+    */
+   public String getDataKeyMessage(Object key)
+   {
+      String rval = "";
+      
+      String message =(String)mDataKeyMessageMap.get(key);
+      if(message != null)
+      {
+         rval = message;
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Makes a copy of this event object.
     * 
     * @return a copy of this event object.
@@ -315,6 +375,9 @@ public class EventObject implements Cloneable
       
       // copy data map
       copy.mDataMap = mDataMap.copy();
+      
+      // copy data key message map
+      copy.mDataKeyMessageMap = mDataKeyMessageMap.copy();
       
       // return copy
       return copy;
