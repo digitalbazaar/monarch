@@ -5,6 +5,7 @@ debuglevel=lines,vars,source
 base=@DBCOMMONDIR@
 
 common=${base}/common/java
+net=${base}/net/java
 autoupdater=${base}/autoupdater/java
 build=build
 src=src
@@ -14,4 +15,5 @@ test=${build}/test
 #db libraries
 dbcommon.jar=${common}/dist/dbcommon.jar
 dbcommon-gui.jar=${common}/dist/dbcommon-gui.jar
+dbnet.jar=${net}/dist/dbnet.jar
 dbautoupdater.jar=${autoupdater}/dist/dbautoupdater.jar

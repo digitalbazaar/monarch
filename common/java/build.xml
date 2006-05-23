@@ -24,7 +24,7 @@
 			<fileset dir="build" excludes="${build}/test,com/db/common/gui/**/*"/>
 		</jar>
 		<jar jarfile="${dist}/dbcommon-gui.jar">
-			<fileset dir="build" excludes="${build}/test,com/db/common/*,com/db/common/net/**/*,com/db/common/stream/**/*,com/db/common/logging/**/*"/>
+			<fileset dir="build" excludes="${build}/test,com/db/common/*,com/db/common/stream/**/*,com/db/common/logging/**/*"/>
 		</jar>
   </target>
 
