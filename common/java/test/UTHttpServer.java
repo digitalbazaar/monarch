@@ -3,7 +3,7 @@
  */
 import com.db.common.MethodInvoker;
 import com.db.common.logging.*;
-import com.db.common.net.*;
+import com.db.net.*;
 
 public class UTHttpServer
 {
