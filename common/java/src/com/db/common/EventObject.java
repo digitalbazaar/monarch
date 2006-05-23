@@ -3,6 +3,8 @@
  */
 package com.db.common;
 
+import java.util.Set;
+
 /**
  * A generic event object for passing event data.
  * 
@@ -287,6 +289,18 @@ public class EventObject implements Cloneable
    {
       // copy data map
       mDataMap.copyFrom(event.mDataMap);
+   }
+   
+   /**
+    * Gets a set of all of the data keys for this event object. This
+    * will list all of the keys that map to values in this event
+    * object.
+    * 
+    * @return a set of all of the data keys for this event object.
+    */
+   public Set getDataKeys()
+   {
+      return mDataMap.keySet();
    }
    
    /**
