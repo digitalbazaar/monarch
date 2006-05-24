@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
+import com.db.logging.LoggerManager;
+
 /**
  * This class is used to delegate events to listeners on separate threads.
  * Each listener has its own thread that it receives and processes events on.
@@ -54,8 +56,13 @@ public class ThreadedEventDelegate
    {
       while(!Thread.interrupted())
       {
-         // get the event queue for the listener
-         Vector queue = (Vector)mListenerToEventQueue.get(listener);
+         // lock and get the event queue for the listener
+         Vector queue = null;
+         synchronized(this)
+         {
+            queue = (Vector)mListenerToEventQueue.get(listener);
+         }
+         
          if(queue != null)
          {
             // pull all of the events out of the queue and store
@@ -85,10 +92,28 @@ public class ThreadedEventDelegate
                   // get the listener method
                   String method = (String)mListenerToMethod.get(listener);
                   
-                  // fire message, synchronize on the listener
-                  MethodInvoker mi =
-                     new MethodInvoker(listener, method, params);
-                  mi.execute(listener);
+                  if(method != null)
+                  {
+                     // fire message, synchronize on the listener
+                     MethodInvoker mi =
+                        new MethodInvoker(listener, method, params);
+                     mi.execute(listener);
+                  }
+                  else
+                  {
+                     try
+                     {
+                        throw new NullPointerException(
+                           "Cannot call 'null' method in " +
+                           getClass().getName());
+                     }
+                     catch(Throwable t)
+                     {
+                        LoggerManager.error("dbcommon", t.getMessage());
+                        LoggerManager.debug("dbcommon",
+                           LoggerManager.getStackTrace(t));
+                     }
+                  }
                }
             
                // throw out temporary event queue
