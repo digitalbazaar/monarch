@@ -18,10 +18,11 @@ public interface UpdateScript
     * @return true if this script has been validated and is ready to be
     *         processed, false if not.
     */
-   public boolean validate();   
+   public boolean validate();
 
    /**
-    * Processes this update script.
+    * Processes this update script. Any call to this method should cause
+    * cancelled() to return false until cancel() is called.
     * 
     * @return true if the script was processed, false if it was cancelled or
     *         encountered an error.
@@ -29,9 +30,21 @@ public interface UpdateScript
    public boolean process();
    
    /**
-    * Cancels processing this update script.
+    * Cancels processing this update script. Any call to this method should
+    * cause cancelled() to return true.
     */
    public void cancel();
+   
+   /**
+    * Returns true if this script was cancelled, false if it was not. This
+    * method should return false unless process() has been called followed
+    * by a call to cancel(). Any subsequent call to process() should cause
+    * this method to return true until cancel() is called.
+    * 
+    * @return true if this script has been cancelled since the last call
+    *         to process().
+    */
+   public boolean cancelled();
    
    /**
     * Reverts changes made by this script, if possible.

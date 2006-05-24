@@ -58,15 +58,40 @@ public abstract class AutoUpdater
    protected EventDelegate mUpdateScriptFoundEventDelegate;
    
    /**
-    * An event delegate for update script processed events.
-    */
-   protected EventDelegate mUpdateScriptProcessedEventDelegate;
-   
-   /**
     * An event delegate for update script not found events.
     */
    protected EventDelegate mUpdateScriptNotFoundEventDelegate;
+
+   /**
+    * An event delegate for update script completed events.
+    */
+   protected EventDelegate mUpdateScriptCompletedEventDelegate;
+
+   /**
+    * An event delegate for update script cancelled events.
+    */
+   protected EventDelegate mUpdateScriptCancelledEventDelegate;
    
+   /**
+    * An event delegate for update script failed events.
+    */
+   protected EventDelegate mUpdateScriptFailedEventDelegate;
+   
+   /**
+    * An event delegate for update script reverted events.
+    */
+   protected EventDelegate mUpdateScriptRevertedEventDelegate;
+   
+   /**
+    * An event delegate for update script revert failed events.
+    */
+   protected EventDelegate mUpdateScriptRevertFailedEventDelegate;
+   
+   /**
+    * An event delegate for update script processed events.
+    */
+   protected EventDelegate mUpdateScriptProcessedEventDelegate;
+
    /**
     * An event delegate for execute application events.
     */
@@ -105,11 +130,26 @@ public abstract class AutoUpdater
       // create update script found event delegate
       mUpdateScriptFoundEventDelegate = new EventDelegate();
       
-      // create update script found event delegate
-      mUpdateScriptProcessedEventDelegate = new EventDelegate();
-      
       // create update script not found event delegate
       mUpdateScriptNotFoundEventDelegate = new EventDelegate();
+      
+      // create update script completed delegate
+      mUpdateScriptCompletedEventDelegate = new EventDelegate();
+      
+      // create update script cancelled delegate
+      mUpdateScriptCancelledEventDelegate = new EventDelegate();
+
+      // create update script failed delegate
+      mUpdateScriptFailedEventDelegate = new EventDelegate();
+      
+      // create update script reverted delegate
+      mUpdateScriptRevertedEventDelegate = new EventDelegate();
+      
+      // create update script revert failed delegate
+      mUpdateScriptRevertFailedEventDelegate = new EventDelegate();
+      
+      // create update script processed delegate
+      mUpdateScriptProcessedEventDelegate = new EventDelegate();
       
       // create execute application event delegate
       mExecuteApplicationEventDelegate = new EventDelegate();
@@ -142,16 +182,6 @@ public abstract class AutoUpdater
    }
    
    /**
-    * Fires an update script processed event.
-    * 
-    * @param event the event to fire.
-    */
-   protected void fireUpdateScriptProcessedEvent(EventObject event)
-   {
-      mUpdateScriptProcessedEventDelegate.fireEvent(event);
-   }
-   
-   /**
     * Fires an update script not found event.
     * 
     * @param event the event to fire.
@@ -161,6 +191,66 @@ public abstract class AutoUpdater
       mUpdateScriptNotFoundEventDelegate.fireEvent(event);
    }
    
+   /**
+    * Fires an update script completed event.
+    * 
+    * @param event the event to fire.
+    */
+   protected void fireUpdateScriptCompletedEvent(EventObject event)
+   {
+      mUpdateScriptCompletedEventDelegate.fireEvent(event);
+   }
+   
+   /**
+    * Fires an update script cancelled event.
+    * 
+    * @param event the event to fire.
+    */
+   protected void fireUpdateScriptCancelledEvent(EventObject event)
+   {
+      mUpdateScriptCancelledEventDelegate.fireEvent(event);
+   }
+   
+   /**
+    * Fires an update script failed event.
+    * 
+    * @param event the event to fire.
+    */
+   protected void fireUpdateScriptFailedEvent(EventObject event)
+   {
+      mUpdateScriptFailedEventDelegate.fireEvent(event);
+   }
+   
+   /**
+    * Fires an update script reverted event.
+    * 
+    * @param event the event to fire.
+    */
+   protected void fireUpdateScriptRevertedEvent(EventObject event)
+   {
+      mUpdateScriptRevertedEventDelegate.fireEvent(event);
+   }
+   
+   /**
+    * Fires an update script revert failed event.
+    * 
+    * @param event the event to fire.
+    */
+   protected void fireUpdateScriptRevertFailedEvent(EventObject event)
+   {
+      mUpdateScriptRevertFailedEventDelegate.fireEvent(event);
+   }
+   
+   /**
+    * Fires an update script processed event.
+    * 
+    * @param event the event to fire.
+    */
+   protected void fireUpdateScriptProcessedEvent(EventObject event)
+   {
+      mUpdateScriptProcessedEventDelegate.fireEvent(event);
+   }
+
    /**
     * Fires an execute application event.
     * 
@@ -267,8 +357,7 @@ public abstract class AutoUpdater
             event = new EventObject("updateScriptFound");
             event.setData("updateScript", script);
             event.setDataKeyMessage("updateScript",
-               "The update script that was found, class=" +
-               script.getClass().getName());
+               "The update script, class=" + script.getClass().getName());
             event.setData("processUpdate", false);
             event.setDataKeyMessage("processUpdate",
                "A boolean if set to true tells the AutoUpdater to " +
@@ -305,15 +394,10 @@ public abstract class AutoUpdater
     * 
     * @param application the application that is running.
     * @param script the update script to process.
-    * 
-    * @return true if an update was successfully processed without failure
-    *         or cancellation, false if not.
     */
-   protected synchronized boolean processUpdateScript(
+   protected synchronized void processUpdateScript(
       AutoUpdateable application, UpdateScript script)
    {
-      boolean rval = false;
-      
       // ensure this thread is not interrupted
       if(!Thread.interrupted())
       {
@@ -340,21 +424,77 @@ public abstract class AutoUpdater
             fireApplicationShutdownEvent(event);
             
             // process the script
-            if(script.process())
+            boolean success = script.process();
+
+            // set whether or not this AutoUpdater requires a reload
+            setRequiresReload(script.autoUpdaterRequiresReload());
+
+            if(success)
             {
                // script processing was successful
-               rval = true;
+               
+               // fire event indicating an update script was completed
+               event = new EventObject("updateScriptCompleted");
+               event.setData("updateScript", script);
+               event.setDataKeyMessage("updateScript",
+                     "The update script, class=" + script.getClass().getName());
+               fireUpdateScriptCompletedEvent(event);
             }
             else
             {
                // script processing was cancelled or there was an error
+
+               // create a new event to fire
+               event = new EventObject();
+               event.setData("updateScript", script);
+               event.setDataKeyMessage("updateScript",
+                  "The update script, class=" + script.getClass().getName());
+               event.setData("revert", true);
+               event.setDataKeyMessage("revert",
+                  "A boolean if set true will tell the AutoUpdater to" +
+                  "revert the update script.");
                
-               // attempt to revert script
-               script.revert();
+               // fire event indicating an update script was cancelled or
+               // failed and will now be reverted unless cancelled
+               if(script.cancelled())
+               {
+                  event.setName("updateScriptCancelled");
+                  fireUpdateScriptCancelledEvent(event);
+               }
+               else
+               {
+                  event.setName("updateScriptFailed");
+                  fireUpdateScriptFailedEvent(event);
+               }
+
+               if(event.getDataBooleanValue("revert"))
+               {
+                  // attempt to revert script
+                  if(script.revert())
+                  {
+                     // fire event indicating an update script was reverted
+                     event = new EventObject("updateScriptReverted");
+                     event.setData("updateScript", script);
+                     event.setDataKeyMessage("updateScript",
+                        "The update script, class=" +
+                        script.getClass().getName());
+                     fireUpdateScriptRevertedEvent(event);
+                  }
+                  else
+                  {
+                     // fire event indicating an update script revert failed
+                     event = new EventObject("updateScriptRevertFailed");
+                     event.setData("updateScript", script);
+                     event.setDataKeyMessage("updateScript",
+                        "The update script, class=" +
+                        script.getClass().getName());
+                     fireUpdateScriptRevertFailedEvent(event);
+                  }
+                  
+                  // set whether or not this AutoUpdater requires a reload
+                  setRequiresReload(script.autoUpdaterRequiresReload());
+               }
             }
-            
-            // set whether or not this AutoUpdater requires a reload
-            setRequiresReload(script.autoUpdaterRequiresReload());
             
             // no longer processing an update
             setProcessingUpdate(false);
@@ -363,13 +503,10 @@ public abstract class AutoUpdater
             event = new EventObject("updateScriptProcessed");
             event.setData("updateScript", script);
             event.setDataKeyMessage("updateScript",
-                  "The update script that was found, class=" +
-                  script.getClass().getName());
+               "The update script, class=" + script.getClass().getName());
             fireUpdateScriptProcessedEvent(event);
          }
       }
-      
-      return rval;
    }
    
    /**
@@ -511,7 +648,7 @@ public abstract class AutoUpdater
          EventObject event = new EventObject("executeApplication");
          event.setData("cancel", false);
          event.setDataKeyMessage("cancel",
-            "A boolean if set to true cancels application shutdown.");
+            "A boolean if set to true cancels application execution.");
          fireExecuteApplicationEvent(event);
          
          // see if application execution should be cancelled
@@ -571,16 +708,6 @@ public abstract class AutoUpdater
    }
    
    /**
-    * Gets the update script processed event delegate.
-    * 
-    * @return the update script processed event delegate.
-    */
-   public EventDelegate getUpdateScriptProcessedEventDelegate()
-   {
-      return mUpdateScriptProcessedEventDelegate;
-   }
-   
-   /**
     * Gets the update script not found event delegate.
     * 
     * @return the update script not found event delegate.
@@ -588,6 +715,66 @@ public abstract class AutoUpdater
    public EventDelegate getUpdateScriptNotFoundEventDelegate()
    {
       return mUpdateScriptNotFoundEventDelegate;
+   }
+   
+   /**
+    * Gets the update script completed event delegate.
+    * 
+    * @return the update script completed event delegate.
+    */
+   public EventDelegate getUpdateScriptCompletedEventDelegate()
+   {
+      return mUpdateScriptCompletedEventDelegate;
+   }
+   
+   /**
+    * Gets the update script cancelled event delegate.
+    * 
+    * @return the update script cancelled event delegate.
+    */
+   public EventDelegate getUpdateScriptCancelledEventDelegate()
+   {
+      return mUpdateScriptCancelledEventDelegate;
+   }
+   
+   /**
+    * Gets the update script failed event delegate.
+    * 
+    * @return the update script failed event delegate.
+    */
+   public EventDelegate getUpdateScriptFailedEventDelegate()
+   {
+      return mUpdateScriptFailedEventDelegate;
+   }
+
+   /**
+    * Gets the update script reverted event delegate.
+    * 
+    * @return the update script reverted event delegate.
+    */
+   public EventDelegate getUpdateScriptRevertedEventDelegate()
+   {
+      return mUpdateScriptRevertedEventDelegate;
+   }
+
+   /**
+    * Gets the update script revert failed event delegate.
+    * 
+    * @return the update script revert failed event delegate.
+    */
+   public EventDelegate getUpdateScriptRevertFailedEventDelegate()
+   {
+      return mUpdateScriptRevertFailedEventDelegate;
+   }
+
+   /**
+    * Gets the update script processed event delegate.
+    * 
+    * @return the update script processed event delegate.
+    */
+   public EventDelegate getUpdateScriptProcessedEventDelegate()
+   {
+      return mUpdateScriptProcessedEventDelegate;
    }
    
    /**

@@ -95,17 +95,6 @@ public class BasicUpdateScript implements UpdateScript
    /**
     * Fires a BasicUpdateScriptProcessEvent.
     * 
-    * @param event the BasicUpdateScriptProcessEvent to fire.
-    */
-   protected void fireBasicUpdateScriptProcessEvent(
-      BasicUpdateScriptProcessEvent event)
-   {
-      getBasicUpdateScriptProcessEventDelegate().fireEvent(event);
-   }
-   
-   /**
-    * Fires a BasicUpdateScriptProcessEvent.
-    * 
     * @param name the name of the event.
     * @param command the command currently being executed.
     * @param changedFile the changed file, if any.
@@ -118,7 +107,7 @@ public class BasicUpdateScript implements UpdateScript
    {
       // create event
       BasicUpdateScriptProcessEvent event =
-         new BasicUpdateScriptProcessEvent(name, command);
+         new BasicUpdateScriptProcessEvent(name, this, command);
       
       if(command != null)
       {
@@ -128,7 +117,7 @@ public class BasicUpdateScript implements UpdateScript
       }
       
       // fire event
-      fireBasicUpdateScriptProcessEvent(event);
+      getBasicUpdateScriptProcessEventDelegate().fireEvent(event);
    }
    
    /**
@@ -558,7 +547,8 @@ public class BasicUpdateScript implements UpdateScript
    }
    
    /**
-    * Processes this update script.
+    * Processes this update script. Any call to this method should cause
+    * cancelled() to return false until cancel() is called.
     * 
     * @return true if the script was processed, false if it was cancelled or
     *         encountered an error.
@@ -648,40 +638,40 @@ public class BasicUpdateScript implements UpdateScript
          commandNumber++;
       }
       
-      if(!noError)
+      if(noError && !mCancelProcessing)
       {
-         // fire event
-         fireBasicUpdateScriptProcessEvent(
-            "updateFailed", null, null, null, 0);
-      }
-      else if(mCancelProcessing)
-      {
-         // reset cancel flag
-         mCancelProcessing = false;
-         
-         // fire event
-         fireBasicUpdateScriptProcessEvent(
-            "updateCancelled", null, null, null, 0);
-      }
-      else
-      {
-         // processing successfully completed
          rval = true;
-
-         // fire event
-         fireBasicUpdateScriptProcessEvent(
-            "updateCompleted", null, null, null, 0);
       }
+      
+      // fire event
+      //fireBasicUpdateScriptProcessEvent(
+      //   "updateCompleted", null, null, null, 0);
       
       return rval;
    }
    
    /**
-    * Cancels processing this update script.
+    * Cancels processing this update script. Any call to this method should
+    * cause cancelled() to return true.
     */
    public void cancel()
    {
       mCancelProcessing = true;
+   }
+   
+   /**
+    * Returns true if this script was cancelled, false if it was not. This
+    * method should return false unless process() has been called followed
+    * by a call to cancel(). Any subsequent call to process() should cause
+    * this method to return true until cancel() is called.
+    * 
+    * 
+    * @return true if this script has been cancelled since the last call
+    *         to process().
+    */
+   public boolean cancelled()
+   {
+      return mCancelProcessing;
    }
    
    /**
@@ -746,9 +736,11 @@ public class BasicUpdateScript implements UpdateScript
    {
       boolean rval = false;
       
-      // FIXME:
-      // TEMPCODE:
-      // TODO:
+      // reload auto-updater if a shutdown is required
+      if(getExitCommand() != null && getExitCommand().equals("shutdown"))
+      {
+         rval = true;
+      }
       
       return rval;
    }
@@ -763,7 +755,7 @@ public class BasicUpdateScript implements UpdateScript
       BasicUpdateScriptCommand lastCommand = 
          (BasicUpdateScriptCommand)mCommands.get(mCommands.size());
       
-      return lastCommand.getSubcommandName();
+      return lastCommand.getOptionalArgument();
    }
    
    /**

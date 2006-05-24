@@ -25,12 +25,12 @@ public class BasicUpdateScriptCommand
    /**
     * The name of the command.
     */
-   protected String mCommandName;
+   protected String mName;
       
    /**
-    * The name of the subcommand if it exists.
+    * The optional argument if it exists.
     */
-   protected String mSubcommandName;
+   protected String mOptionalArgument;
       
    /**
     * The URL associated with the command.
@@ -63,8 +63,8 @@ public class BasicUpdateScriptCommand
     */
    public BasicUpdateScriptCommand()
    {
-      mCommandName = null;
-      mSubcommandName = null;
+      mName = null;
+      mOptionalArgument = null;
       mUrl = null;
       mMd5Sum = null;
       mSize = -1;
@@ -101,8 +101,12 @@ public class BasicUpdateScriptCommand
     * OARGS := (restart|shutdown|manually_download)
     * </pre>
     * 
-    * @param command the name of the command
-    * @param arguments the argument list
+    * VARGS are version arguments.
+    * DARGS are directory arguments.
+    * OARGS are optional arguments.
+    * 
+    * @param command the name of the command.
+    * @param arguments the argument list.
     * 
     * @return true if the parse was successful, false otherwise.
     */
@@ -112,7 +116,7 @@ public class BasicUpdateScriptCommand
       StringTokenizer st = new StringTokenizer(arguments, " ");
       
       // set the command name
-      mCommandName = command;
+      mName = command;
       
       if(command.equals("version"))
       {
@@ -200,18 +204,18 @@ public class BasicUpdateScriptCommand
       }
       else if(command.equals("on_success"))
       {
-         String subCommand = st.nextToken();
+         String argument = st.nextToken();
          
-         if(subCommand.equals("restart") || subCommand.equals("exit") ||
-            subCommand.equals("manually_download"))
+         if(argument.equals("restart") || argument.equals("exit") ||
+            argument.equals("manually_download"))
          {
-            mSubcommandName = subCommand;
+            mOptionalArgument = argument;
             success = true;
          }
          else
          {
             getLogger().error(
-               "Update script on_success command is invalid: " + subCommand);
+               "Update script on_success command is invalid: " + argument);
             success &= false;
          }
       }
@@ -226,17 +230,17 @@ public class BasicUpdateScriptCommand
     */
    public String getCommandName()
    {
-      return mCommandName;
+      return mName;
    }
    
    /**
-    * Gets the name of the subcommand if it exists.
+    * Gets the optional argument if it exists.
     * 
-    * @return the name of the subcommand if it exists.
+    * @return the optional argument if it exists.
     */
-   public String getSubcommandName()
+   public String getOptionalArgument()
    {
-      return mCommandName;
+      return mOptionalArgument;
    }
    
    /**

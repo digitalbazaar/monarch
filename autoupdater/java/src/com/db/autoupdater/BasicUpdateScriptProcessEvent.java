@@ -19,12 +19,16 @@ public class BasicUpdateScriptProcessEvent extends EventObject
     * Creates a new BasicUpdateScriptProcessEvent.
     * 
     * @param name the name of the event.
+    * @param script the script the event is for.
     * @param command the current update script command that is being executed.
     */
    public BasicUpdateScriptProcessEvent(
-      String name, BasicUpdateScriptCommand command)
+      String name, BasicUpdateScript script, BasicUpdateScriptCommand command)
    {
       super(name);
+      
+      setUpdateScript(script);
+      setUpdateScriptCommand(command);
    }
    
    /**
@@ -36,7 +40,8 @@ public class BasicUpdateScriptProcessEvent extends EventObject
    {
       // copy name and command
       BasicUpdateScriptProcessEvent copy =
-         new BasicUpdateScriptProcessEvent(getName(), getUpdateScriptCommand());
+         new BasicUpdateScriptProcessEvent(
+            getName(), getUpdateScript(), getUpdateScriptCommand());
       
       // copy data
       copy.copyDataFrom(this);
@@ -44,6 +49,26 @@ public class BasicUpdateScriptProcessEvent extends EventObject
       return copy;
    }
    
+   /**
+    * Sets the BasicUpdateScript that is being executed.
+    * 
+    * @param script the update script that is being executed.
+    */
+   public void setUpdateScript(BasicUpdateScript script)
+   {
+      setData("script", script);
+   }
+
+   /**
+    * Gets the BasicUpdateScript that is being executed.
+    * 
+    * @return the update script that is being executed.
+    */
+   public BasicUpdateScript getUpdateScript()
+   {
+      return (BasicUpdateScript)getData("script");
+   }
+
    /**
     * Sets the current BasicUpdateScriptCommand that is being executed.
     * 
