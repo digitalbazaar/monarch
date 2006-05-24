@@ -228,7 +228,7 @@ public class BasicUpdateScriptCommand
     * 
     * @return the name of the command.
     */
-   public String getCommandName()
+   public String getName()
    {
       return mName;
    }

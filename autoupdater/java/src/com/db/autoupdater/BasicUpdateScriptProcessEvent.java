@@ -120,7 +120,7 @@ public class BasicUpdateScriptProcessEvent extends EventObject
    }
    
    /**
-    * Sets the action involved in the change of the file.
+    * Gets the action involved in the change of the file.
     * 
     * @return the action involved in the change of the file. 
     */
@@ -130,22 +130,42 @@ public class BasicUpdateScriptProcessEvent extends EventObject
    }
    
    /**
-    * Sets the progress involved in the change of the file.
+    * Sets the change in bytes downloaded for a file.
     * 
-    * @param progress the progress involved in the change of the file. 
+    * @param change the change in bytes downloaded for a file. 
     */
-   public void setFileProgress(int progress)
+   public void setFileBytesDownloaded(long change)
+   {
+      setData("file_downloaded_bytes", change);
+   }
+   
+   /**
+    * Gets the change in bytes downloaded for a file.
+    * 
+    * @return the change in bytes downloaded for a file. 
+    */
+   public long getFileBytesDownloaded()
+   {
+      return getDataLongValue("file_downloaded_bytes");
+   }   
+   
+   /**
+    * Sets the progress involved in the change of the file in bytes.
+    * 
+    * @param progress the progress involved in the change of the file in bytes. 
+    */
+   public void setFileProgress(long progress)
    {
       setData("file_progress", progress);
    }
    
    /**
-    * Sets the progress involved in the change of the file.
+    * Gets the progress involved in the change of the file in bytes.
     * 
-    * @return the progress involved in the change of the file. 
+    * @return the progress involved in the change of the file in bytes. 
     */
-   public int getFileProgress()
+   public long getFileProgress()
    {
-      return getDataIntValue("file_progress");
+      return getDataLongValue("file_progress");
    }
 }

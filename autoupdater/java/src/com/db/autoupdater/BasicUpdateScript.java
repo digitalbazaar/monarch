@@ -49,6 +49,16 @@ public class BasicUpdateScript implements UpdateScript
    protected Vector mCommands;
    
    /**
+    * The total number of items to install.
+    */
+   protected int mInstallItemCount;
+   
+   /**
+    * The total size of this update in bytes.
+    */
+   protected long mUpdateSize;
+   
+   /**
     * True if processing should be cancelled, false if not.
     */
    protected boolean mCancelProcessing;
@@ -84,6 +94,12 @@ public class BasicUpdateScript implements UpdateScript
       // create vector for storing commands
       mCommands = new Vector();
       
+      // default number of items to 0
+      mInstallItemCount = 0;
+      
+      // default update size to 0
+      mUpdateSize = 0;
+      
       // do not cancel processing by default
       mCancelProcessing = false;
       
@@ -99,11 +115,12 @@ public class BasicUpdateScript implements UpdateScript
     * @param command the command currently being executed.
     * @param changedFile the changed file, if any.
     * @param fileAction the action performed on the file, if any.
-    * @param fileProgress the progress on the file, if any.
+    * @param downloaded the change in bytes downloaded, if any.
+    * @param fileProgress the progress on the file (in bytes), if any.
     */
    protected void fireBasicUpdateScriptProcessEvent(
       String name, BasicUpdateScriptCommand command,
-      File changedFile, String fileAction, int fileProgress)
+      File changedFile, String fileAction, long downloaded, long fileProgress)
    {
       // create event
       BasicUpdateScriptProcessEvent event =
@@ -113,6 +130,7 @@ public class BasicUpdateScript implements UpdateScript
       {
          event.setChangedFile(command.getRelativePath());
          event.setFileAction(fileAction);
+         event.setFileBytesDownloaded(downloaded);
          event.setFileProgress(fileProgress);
       }
       
@@ -208,25 +226,25 @@ public class BasicUpdateScript implements UpdateScript
 
       // fire event
       fireBasicUpdateScriptProcessEvent(
-         "fileChanged", command, command.getRelativePath(), "backup", 0);
+         "fileChanged", command, command.getRelativePath(), "backup", 0, 0);
       
       // backup file
       rval &= backupFile(targetFile);
       
       // fire event
       fireBasicUpdateScriptProcessEvent(
-         "fileChanged", command, command.getRelativePath(), "backup", 100);
+         "fileChanged", command, command.getRelativePath(), "backup", 0, 100);
 
       // fire event
       fireBasicUpdateScriptProcessEvent(
-         "fileChanged", command, command.getRelativePath(), "install", 0);
+         "fileChanged", command, command.getRelativePath(), "install", 0, 0);
       
       // copy file
       rval &= copyFile(sourceFile, targetFile);
       
       // fire event
       fireBasicUpdateScriptProcessEvent(
-         "fileChanged", command, command.getRelativePath(), "install", 100);
+         "fileChanged", command, command.getRelativePath(), "install", 0, 100);
       
       return rval;
    }
@@ -356,10 +374,9 @@ public class BasicUpdateScript implements UpdateScript
     * the temp file is invalid, it will be deleted.
     * 
     * @param command the current command.
-    * @param item which download item this is.
     * @return true if the downloaded file is valid, false if not.
     */
-   protected boolean downloadFile(BasicUpdateScriptCommand command, int item)
+   protected boolean downloadFile(BasicUpdateScriptCommand command)
    {
       boolean rval = false;
       File temp = null;
@@ -368,7 +385,6 @@ public class BasicUpdateScript implements UpdateScript
       {
          URL url = command.getUrl();
          File destination = command.getRelativePath();
-         long size = command.getSize();
          String md5 = command.getMd5Sum();
          
          // see if the destination can be written to
@@ -405,13 +421,10 @@ public class BasicUpdateScript implements UpdateScript
                   
                   totalBytes += numBytes;
 
-                  // notify the UI of the file's download state
-                  int percentage = (int)(((float)totalBytes/(float)size)*100.0);
-                  
                   // fire event
                   fireBasicUpdateScriptProcessEvent(
                      "fileChanged", command, command.getRelativePath(),
-                     "download", percentage);
+                     "download", numBytes, totalBytes);
                }
                
                // close streams
@@ -432,7 +445,7 @@ public class BasicUpdateScript implements UpdateScript
                   // fire event
                   fireBasicUpdateScriptProcessEvent(
                      "fileChanged", command, command.getRelativePath(),
-                     "failed", 100);
+                     "failed", 0, 100);
                }
             }
             catch(Throwable t)
@@ -442,7 +455,7 @@ public class BasicUpdateScript implements UpdateScript
                // fire event
                fireBasicUpdateScriptProcessEvent(
                   "fileChanged", command, command.getRelativePath(),
-                  "failed", 100);
+                  "failed", 0, 100);
             }
             
             if(bis != null)
@@ -508,6 +521,12 @@ public class BasicUpdateScript implements UpdateScript
    {
       boolean rval = true;
       
+      // default number of items to 0
+      mInstallItemCount = 0;
+      
+      // default update size to 0
+      mUpdateSize = 0;      
+      
       // parse the update script
       String script = toString();
       if(script.length() > 0)
@@ -530,6 +549,18 @@ public class BasicUpdateScript implements UpdateScript
                if(usc.parseCommand(command, arguments))
                {
                   mCommands.add(usc);
+                  
+                  if(usc.getSize() != -1)
+                  {
+                     // add size to total size
+                     mUpdateSize += usc.getSize();
+                  }
+                  
+                  if(usc.getName().equals("install"))
+                  {
+                     // increment install item count
+                     mInstallItemCount++;
+                  }
                }
                else
                {
@@ -567,9 +598,9 @@ public class BasicUpdateScript implements UpdateScript
       while(i.hasNext() && noError && !mCancelProcessing)
       {
          BasicUpdateScriptCommand command = (BasicUpdateScriptCommand)i.next();
-         if(command.getCommandName().equals("install"))
+         if(command.getName().equals("install"))
          {
-            noError &= downloadFile(command, 999);
+            noError &= downloadFile(command);
          }
       }
       
@@ -580,16 +611,16 @@ public class BasicUpdateScript implements UpdateScript
       {
          BasicUpdateScriptCommand command = (BasicUpdateScriptCommand)i.next();
          
-         if(command.getCommandName().equals("install"))
+         if(command.getName().equals("install"))
          {
             noError &= performInstallCommand(command);
          }
-         else if(command.getCommandName().equals("delete"))
+         else if(command.getName().equals("delete"))
          {
             // fire event
             fireBasicUpdateScriptProcessEvent(
                "fileChanged", command,
-               command.getRelativePath(),"delete", 0);
+               command.getRelativePath(),"delete", 0, 0);
 
             // perform delete
             noError &= performDeleteCommand(command);
@@ -597,14 +628,14 @@ public class BasicUpdateScript implements UpdateScript
             // fire event
             fireBasicUpdateScriptProcessEvent(
                "fileChanged", command,
-               command.getRelativePath(), "delete", 100);
+               command.getRelativePath(), "delete", 0, 100);
          }
-         else if(command.getCommandName().equals("mkdir"))
+         else if(command.getName().equals("mkdir"))
          {
             // fire event
             fireBasicUpdateScriptProcessEvent(
                "directoryChanged", command,
-               command.getRelativePath(), "create", 0);
+               command.getRelativePath(), "create", 0, 0);
 
             // perform make directory
             noError &= performMkdirCommand(command);
@@ -612,14 +643,14 @@ public class BasicUpdateScript implements UpdateScript
             // fire event
             fireBasicUpdateScriptProcessEvent(
                "directoryChanged", command,
-               command.getRelativePath(), "create", 100);
+               command.getRelativePath(), "create", 0, 100);
          }
-         else if(command.getCommandName().equals("rmdir"))
+         else if(command.getName().equals("rmdir"))
          {
             // fire event
             fireBasicUpdateScriptProcessEvent(
                "directoryChanged", command,
-               command.getRelativePath(), "delete", 0);
+               command.getRelativePath(), "delete", 0, 0);
 
             // perform remove directory
             noError &= performRmdirCommand(command);
@@ -627,12 +658,12 @@ public class BasicUpdateScript implements UpdateScript
             // fire event
             fireBasicUpdateScriptProcessEvent(
                "directoryChanged", command,
-               command.getRelativePath(), "delete", 100);
+               command.getRelativePath(), "delete", 0, 100);
          }
 
          // fire event
          fireBasicUpdateScriptProcessEvent(
-            "commandProcessed", command, null, null, 0);
+            "commandProcessed", command, null, null, 0, 0);
 
          // increment command number
          commandNumber++;
@@ -642,10 +673,6 @@ public class BasicUpdateScript implements UpdateScript
       {
          rval = true;
       }
-      
-      // fire event
-      //fireBasicUpdateScriptProcessEvent(
-      //   "updateCompleted", null, null, null, 0);
       
       return rval;
    }
@@ -763,6 +790,26 @@ public class BasicUpdateScript implements UpdateScript
       }
       
       return rval;
+   }
+   
+   /**
+    * Gets the update size (in bytes).
+    * 
+    * @return the update size (in bytes).
+    */
+   public long getUpdateSize()
+   {
+      return mUpdateSize;
+   }
+   
+   /**
+    * Gets the number of install items.
+    * 
+    * @return the number of install items.
+    */
+   public int getInstallItemCount()
+   {
+      return mInstallItemCount;
    }
    
    /**
