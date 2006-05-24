@@ -438,6 +438,11 @@ public class BasicUpdateScript implements UpdateScript
                   // file MD5 matches, if file is valid add to map
                   mTempFiles.put(destination, temp);
                   
+                  // fire event
+                  fireBasicUpdateScriptProcessEvent(
+                     "fileDownloaded", command, command.getRelativePath(),
+                     "completed", 0, 100);
+                  
                   rval = true;
                }
                else
@@ -600,6 +605,10 @@ public class BasicUpdateScript implements UpdateScript
          BasicUpdateScriptCommand command = (BasicUpdateScriptCommand)i.next();
          if(command.getName().equals("install"))
          {
+            // fire event
+            fireBasicUpdateScriptProcessEvent(
+               "downloadingFile", command, null, null, 0, 0);
+            
             noError &= downloadFile(command);
          }
       }
