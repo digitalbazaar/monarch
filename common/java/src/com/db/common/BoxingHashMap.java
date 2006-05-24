@@ -33,7 +33,7 @@ public class BoxingHashMap extends HashMap
     */
    public void put(Object key, byte value)
    {
-      put(key, new Byte(value));
+      super.put(key, new Byte(value));
    }
    
    /**
@@ -66,7 +66,7 @@ public class BoxingHashMap extends HashMap
     */
    public void put(Object key, short value)
    {
-      put(key, new Short(value));
+      super.put(key, new Short(value));
    }
    
    /**
@@ -99,7 +99,7 @@ public class BoxingHashMap extends HashMap
     */
    public void put(Object key, int value)
    {
-      put(key, new Integer(value));
+      super.put(key, new Integer(value));
    }
    
    /**
@@ -132,7 +132,7 @@ public class BoxingHashMap extends HashMap
     */
    public void put(Object key, long value)
    {
-      put(key, new Long(value));
+      super.put(key, new Long(value));
    }
    
    /**
@@ -165,7 +165,7 @@ public class BoxingHashMap extends HashMap
     */
    public void put(Object key, float value)
    {
-      put(key, new Float(value));
+      super.put(key, new Float(value));
    }
    
    /**
@@ -198,7 +198,7 @@ public class BoxingHashMap extends HashMap
     */
    public void put(Object key, double value)
    {
-      put(key, new Double(value));
+      super.put(key, new Double(value));
    }
    
    /**
@@ -231,7 +231,7 @@ public class BoxingHashMap extends HashMap
     */
    public void put(Object key, boolean value)
    {
-      put(key, new Boolean(value));
+      super.put(key, new Boolean(value));
    }
    
    /**
@@ -264,7 +264,7 @@ public class BoxingHashMap extends HashMap
     */
    public void put(Object key, char value)
    {
-      put(key, new Character(value));
+      super.put(key, new Character(value));
    }
    
    /**
@@ -296,7 +296,7 @@ public class BoxingHashMap extends HashMap
     */
    public void put(Object key, String value)
    {
-      put(key, value);
+      super.put(key, value);
    }
    
    /**
