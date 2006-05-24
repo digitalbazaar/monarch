@@ -752,10 +752,17 @@ public class BasicUpdateScript implements UpdateScript
     */
    public String getExitCommand()
    {
-      BasicUpdateScriptCommand lastCommand = 
-         (BasicUpdateScriptCommand)mCommands.get(mCommands.size());
+      String rval = null;
       
-      return lastCommand.getOptionalArgument();
+      if(mCommands.size() > 0)
+      {
+         BasicUpdateScriptCommand lastCommand = 
+            (BasicUpdateScriptCommand)mCommands.get(mCommands.size() - 1);
+      
+         rval = lastCommand.getOptionalArgument();
+      }
+      
+      return rval;
    }
    
    /**
