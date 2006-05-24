@@ -16,7 +16,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import com.db.common.Cryptor;
-import com.db.common.EventDelegate;
+import com.db.common.ThreadedEventDelegate;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 
@@ -57,7 +57,8 @@ public class BasicUpdateScript implements UpdateScript
     * A BasicUpdateScriptProcessEventDelegate for firing
     * BasicUpdateScriptProcessEvents.
     */
-   protected EventDelegate mBasicUpdateScriptProcessEventDelegate;
+   protected ThreadedEventDelegate
+      mBasicUpdateScriptProcessEventDelegate;
    
    /**
     * Creates a new blank BasicUpdateScript.
@@ -87,7 +88,8 @@ public class BasicUpdateScript implements UpdateScript
       mCancelProcessing = false;
       
       // create delegate
-      mBasicUpdateScriptProcessEventDelegate = new EventDelegate();
+      mBasicUpdateScriptProcessEventDelegate =
+         new ThreadedEventDelegate();
    }
    
    /**
@@ -769,7 +771,7 @@ public class BasicUpdateScript implements UpdateScript
     * 
     * @return the BasicUpdateScriptProcessDelegate.
     */
-   public EventDelegate getBasicUpdateScriptProcessEventDelegate()
+   public ThreadedEventDelegate getBasicUpdateScriptProcessEventDelegate()
    {
       return mBasicUpdateScriptProcessEventDelegate;
    }

@@ -266,7 +266,13 @@ public abstract class AutoUpdater
             // fire event indicating that an update script has been found
             event = new EventObject("updateScriptFound");
             event.setData("updateScript", script);
+            event.setDataKeyMessage("updateScript",
+               "The update script that was found, class=" +
+               script.getClass().getName());
             event.setData("processUpdate", false);
+            event.setDataKeyMessage("processUpdate",
+               "A boolean if set to true tells the AutoUpdater to " +
+               "process the update script.");
             fireUpdateScriptFoundEvent(event);
             
             // see if the update should be processed
@@ -318,6 +324,8 @@ public abstract class AutoUpdater
          // getting shutdown
          EventObject event = new EventObject("shutdownApplication");
          event.setData("cancel", false);
+         event.setDataKeyMessage("cancel",
+            "A boolean if set to true cancels application shutdown.");
          fireShutdownApplicationEvent(event);
          
          // make sure shutdown was not cancelled
@@ -354,6 +362,9 @@ public abstract class AutoUpdater
             // fire event indicating an update script was processed
             event = new EventObject("updateScriptProcessed");
             event.setData("updateScript", script);
+            event.setDataKeyMessage("updateScript",
+                  "The update script that was found, class=" +
+                  script.getClass().getName());
             fireUpdateScriptProcessedEvent(event);
          }
       }
@@ -499,6 +510,8 @@ public abstract class AutoUpdater
          // is being executed
          EventObject event = new EventObject("executeApplication");
          event.setData("cancel", false);
+         event.setDataKeyMessage("cancel",
+            "A boolean if set to true cancels application shutdown.");
          fireExecuteApplicationEvent(event);
          
          // see if application execution should be cancelled
