@@ -56,14 +56,19 @@ public class ThreadedEventDelegate
    {
       while(!Thread.interrupted())
       {
-         // lock and get the event queue for the listener
+         // lock and get the event queue and method for the listener
          Vector queue = null;
+         String method = null;
          synchronized(this)
          {
+            // get the event queue for the listener
             queue = (Vector)mListenerToEventQueue.get(listener);
+            
+            // get the listener method
+            method = (String)mListenerToMethod.get(listener);
          }
          
-         if(queue != null)
+         if(queue != null && method != null)
          {
             // pull all of the events out of the queue and store
             // them in a temporary event queue
@@ -89,41 +94,36 @@ public class ThreadedEventDelegate
                   // store next event as a parameter to the listener method 
                   Object[] params = new Object[]{i.next()};
                   
-                  // get the listener method
-                  String method = (String)mListenerToMethod.get(listener);
-                  
-                  if(method != null)
-                  {
-                     // fire message, synchronize on the listener
-                     MethodInvoker mi =
-                        new MethodInvoker(listener, method, params);
-                     mi.execute(listener);
-                  }
-                  else
-                  {
-                     try
-                     {
-                        throw new NullPointerException(
-                           "Cannot call 'null' method in " +
-                           getClass().getName());
-                     }
-                     catch(Throwable t)
-                     {
-                        LoggerManager.error("dbcommon", t.getMessage());
-                        LoggerManager.debug("dbcommon",
-                           LoggerManager.getStackTrace(t));
-                     }
-                  }
+                  // fire message, synchronize on the listener
+                  MethodInvoker mi =
+                     new MethodInvoker(listener, method, params);
+                  mi.execute(listener);
                }
             
                // throw out temporary event queue
                events = null;
             }
          }
+         else if(method == null)
+         {
+            try
+            {
+               throw new NullPointerException(
+                  "Cannot call 'null' method on listener " +
+                  listener.getClass().getName() + " in " +
+                  getClass().getName());
+            }
+            catch(Throwable t)
+            {
+               LoggerManager.error("dbcommon", t.getMessage());
+               LoggerManager.debug("dbcommon",
+                  LoggerManager.getStackTrace(t));
+            }
+         }
          
-         // sleep
          try
          {
+            // sleep
             Thread.sleep(1);
          }
          catch(Throwable ignore)
