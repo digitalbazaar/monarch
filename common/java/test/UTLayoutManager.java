@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.GridLayout;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
 
 import com.db.common.gui.*;
@@ -208,6 +210,7 @@ public class UTLayoutManager
       // create search field
       //JTextField searchField = new JTextField();
       JButton searchField = new JButton("TESTING");
+      searchField.addActionListener(new ButtonHandler());
       
       // create in label
       JLabel inLabel = new JLabel("in");
@@ -482,5 +485,23 @@ public class UTLayoutManager
       panel.setBackground(Color.red);
       panel.setBorder(LineBorder.createBlackLineBorder());
       //panel.setBorder(new BevelBorder(BevelBorder.RAISED));
+   }
+   
+   /**
+    * Button Handler to catch the button presses.
+    * 
+    * @author Will Johnson
+    */
+   public static class ButtonHandler implements ActionListener
+   {
+      /**
+       * Invoked when an action occurs.
+       * 
+       * @param e the action event.
+       */
+      public void actionPerformed(ActionEvent e)
+      {
+         
+      }
    }
 }
