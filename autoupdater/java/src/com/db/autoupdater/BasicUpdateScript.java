@@ -419,7 +419,8 @@ public class BasicUpdateScript implements UpdateScript
                long byteChange = 0;
                long totalBytes = 0;
                long interval = 1;
-               while(!downloader.isDownloadingComplete() && !mi.isInterrupted())
+               while(!downloader.isDownloadingComplete() &&
+                     !mi.isInterrupted() && !mCancelProcessing)
                {
                   byteChange = downloader.getBytesDownloaded() - totalBytes;
                   totalBytes = totalBytes + byteChange;
@@ -433,39 +434,47 @@ public class BasicUpdateScript implements UpdateScript
                   // join the downloader thread
                   mi.join(interval);
                }
-
-               // send final file changed message
-               byteChange = downloader.getBytesDownloaded() - totalBytes;
-               totalBytes = totalBytes + byteChange;
                
-               // fire file changed event
-               fireBasicUpdateScriptProcessEvent(
-                  "fileChanged", command,  commandNumber,
-                  downloadItemNumber, command.getRelativePath(),
-                  "download", byteChange, totalBytes);
-               
-               // check the MD5 sum of the file to see if it matches
-               String tempMD5 = Cryptor.getMD5ChecksumString(temp);
-               if(tempMD5.equals(md5))
+               if(mCancelProcessing)
                {
-                  // file MD5 matches, if file is valid add to map
-                  mTempFiles.put(destination, temp);
-                     
-                  // fire event
-                  fireBasicUpdateScriptProcessEvent(
-                     "fileDownloaded", command,  commandNumber,
-                     downloadItemNumber, command.getRelativePath(),
-                     "completed", 0, 100);
-                     
-                  rval = true;
+                  mi.interrupt();
+                  mi.join();
                }
                else
                {
-                  // fire event
+                  // send final file changed message
+                  byteChange = downloader.getBytesDownloaded() - totalBytes;
+                  totalBytes = totalBytes + byteChange;
+                  
+                  // fire file changed event
                   fireBasicUpdateScriptProcessEvent(
-                     "fileChanged", command, commandNumber,
+                     "fileChanged", command,  commandNumber,
                      downloadItemNumber, command.getRelativePath(),
-                     "failed", 0, 100);
+                     "download", byteChange, totalBytes);
+               
+                  // check the MD5 sum of the file to see if it matches
+                  String tempMD5 = Cryptor.getMD5ChecksumString(temp);
+                  if(tempMD5.equals(md5))
+                  {
+                     // file MD5 matches, if file is valid add to map
+                     mTempFiles.put(destination, temp);
+                        
+                     // fire event
+                     fireBasicUpdateScriptProcessEvent(
+                        "fileDownloaded", command,  commandNumber,
+                        downloadItemNumber, command.getRelativePath(),
+                        "completed", 0, 100);
+                        
+                     rval = true;
+                  }
+                  else
+                  {
+                     // fire event
+                     fireBasicUpdateScriptProcessEvent(
+                        "fileChanged", command, commandNumber,
+                        downloadItemNumber, command.getRelativePath(),
+                        "failed", 0, 100);
+                  }
                }
             }
             catch(Throwable t)
@@ -528,7 +537,7 @@ public class BasicUpdateScript implements UpdateScript
     * 
     * @return true if the script is valid, false if not.
     */
-   public boolean validate()
+   public synchronized boolean validate()
    {
       boolean rval = true;
       
@@ -595,7 +604,7 @@ public class BasicUpdateScript implements UpdateScript
     * @return true if the script was processed, false if it was cancelled or
     *         encountered an error.
     */
-   public boolean process()
+   public synchronized boolean process()
    {
       boolean rval = false;
 
@@ -728,7 +737,7 @@ public class BasicUpdateScript implements UpdateScript
     * @return true if the revert was successful, false if not and the
     *         installation is now in an indetermine state.
     */
-   public boolean revert()
+   public synchronized boolean revert()
    {
       boolean rval = false;
       
@@ -740,14 +749,18 @@ public class BasicUpdateScript implements UpdateScript
          File dest = (File)i.next();
          
          String oldPath = dest.getPath();
-         if(oldPath.endsWith(".old"))
+         if(oldPath.endsWith(".backup"))
          {
             oldPath = oldPath.substring(0, oldPath.length() - 4);
-            isValid &= dest.renameTo(new File(oldPath));
+            File newFile = new File(oldPath);
+            newFile.delete();
+            isValid &= dest.renameTo(newFile);
          }
       }
       
-      return (rval == isValid);
+      rval = isValid;
+      
+      return rval;
    }
    
    /**
@@ -755,7 +768,7 @@ public class BasicUpdateScript implements UpdateScript
     * 
     * @return true if cleaned up, false if not.
     */
-   public boolean cleanup()
+   public synchronized boolean cleanup()
    {
       boolean rval = false;
       
