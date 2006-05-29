@@ -90,6 +90,46 @@ public class BasicUpdateScriptProcessEvent extends EventObject
    }
    
    /**
+    * Sets the command number.
+    * 
+    * @param number the command number. 
+    */
+   public void setCommandNumber(int number)
+   {
+      setData("command_number", number);
+   }
+   
+   /**
+    * Gets the command number.
+    * 
+    * @return the command number. 
+    */
+   public int getCommandNumber()
+   {
+      return getDataIntValue("command_number");
+   }
+   
+   /**
+    * Sets the download item number.
+    * 
+    * @param number the download item number. 
+    */
+   public void setDownloadItemNumber(int number)
+   {
+      setData("download_item_number", number);
+   }
+   
+   /**
+    * Gets the download item number.
+    * 
+    * @return the download item number. 
+    */
+   public int getDownloadItemNumber()
+   {
+      return getDataIntValue("download_item_number");
+   }   
+   
+   /**
     * Sets the file that was changed.
     * 
     * @param file the file that was changed.

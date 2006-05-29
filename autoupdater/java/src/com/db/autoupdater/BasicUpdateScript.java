@@ -47,9 +47,9 @@ public class BasicUpdateScript implements UpdateScript
    protected Vector mCommands;
    
    /**
-    * The total number of items to install.
+    * The total number of items to download.
     */
-   protected int mInstallItemCount;
+   protected int mDownloadItemCount;
    
    /**
     * The total size of this update in bytes.
@@ -92,7 +92,7 @@ public class BasicUpdateScript implements UpdateScript
       mCommands = new Vector();
       
       // default number of items to 0
-      mInstallItemCount = 0;
+      mDownloadItemCount = 0;
       
       // default update size to 0
       mUpdateSize = 0;
@@ -109,14 +109,17 @@ public class BasicUpdateScript implements UpdateScript
     * 
     * @param name the name of the event.
     * @param command the command currently being executed.
+    * @param commandNumber the command number.
+    * @param downloadItemNumber the download item number, if any.
     * @param changedFile the changed file, if any.
     * @param fileAction the action performed on the file, if any.
     * @param downloaded the change in bytes downloaded, if any.
     * @param fileProgress the progress on the file (in bytes), if any.
     */
    protected void fireBasicUpdateScriptProcessEvent(
-      String name, BasicUpdateScriptCommand command,
-      File changedFile, String fileAction, long downloaded, long fileProgress)
+      String name, BasicUpdateScriptCommand command, int commandNumber,
+      int downloadItemNumber, File changedFile,
+      String fileAction, long downloaded, long fileProgress)
    {
       // create event
       BasicUpdateScriptProcessEvent event =
@@ -124,6 +127,8 @@ public class BasicUpdateScript implements UpdateScript
       
       if(command != null)
       {
+         event.setCommandNumber(commandNumber);
+         event.setDownloadItemNumber(downloadItemNumber);
          event.setChangedFile(command.getRelativePath());
          event.setFileAction(fileAction);
          event.setFileBytesDownloaded(downloaded);
@@ -209,10 +214,12 @@ public class BasicUpdateScript implements UpdateScript
     * Performs a install command given the update script command object.
     * 
     * @param command the update script command object.
+    * @param commandNumber the command number.
     * 
     * @return true if the install was successful, false otherwise.
     */
-   protected boolean performInstallCommand(BasicUpdateScriptCommand command)
+   protected boolean performInstallCommand(
+      BasicUpdateScriptCommand command, int commandNumber)
    {
       boolean rval = true;
 
@@ -222,25 +229,29 @@ public class BasicUpdateScript implements UpdateScript
 
       // fire event
       fireBasicUpdateScriptProcessEvent(
-         "fileChanged", command, command.getRelativePath(), "backup", 0, 0);
+         "fileChanged", command, commandNumber, 0,
+         command.getRelativePath(), "backup", 0, 0);
       
       // backup file
       rval &= backupFile(targetFile);
       
       // fire event
       fireBasicUpdateScriptProcessEvent(
-         "fileChanged", command, command.getRelativePath(), "backup", 0, 100);
+         "fileChanged", command, commandNumber, 0,
+         command.getRelativePath(), "backup", 0, 100);
 
       // fire event
       fireBasicUpdateScriptProcessEvent(
-         "fileChanged", command, command.getRelativePath(), "install", 0, 0);
+         "fileChanged", command, commandNumber, 0,
+         command.getRelativePath(), "install", 0, 0);
       
       // copy file
       rval &= copyFile(sourceFile, targetFile);
       
       // fire event
       fireBasicUpdateScriptProcessEvent(
-         "fileChanged", command, command.getRelativePath(), "install", 0, 100);
+         "fileChanged", command,  commandNumber, 0,
+         command.getRelativePath(), "install", 0, 100);
       
       return rval;
    }
@@ -370,9 +381,13 @@ public class BasicUpdateScript implements UpdateScript
     * the temp file is invalid, it will be deleted.
     * 
     * @param command the current command.
+    * @param commandNumber the command number.
+    * @param downloadItemNumber the download item number.
     * @return true if the downloaded file is valid, false if not.
     */
-   protected boolean downloadFile(BasicUpdateScriptCommand command)
+   protected boolean downloadFile(
+      BasicUpdateScriptCommand command, int commandNumber,
+      int downloadItemNumber)
    {
       boolean rval = false;
       File temp = null;
@@ -411,7 +426,8 @@ public class BasicUpdateScript implements UpdateScript
                   
                   // fire file changed event
                   fireBasicUpdateScriptProcessEvent(
-                     "fileChanged", command, command.getRelativePath(),
+                     "fileChanged", command, commandNumber,
+                     downloadItemNumber, command.getRelativePath(),
                      "download", byteChange, totalBytes);
 
                   // join the downloader thread
@@ -424,7 +440,8 @@ public class BasicUpdateScript implements UpdateScript
                
                // fire file changed event
                fireBasicUpdateScriptProcessEvent(
-                  "fileChanged", command, command.getRelativePath(),
+                  "fileChanged", command,  commandNumber,
+                  downloadItemNumber, command.getRelativePath(),
                   "download", byteChange, totalBytes);
                
                // check the MD5 sum of the file to see if it matches
@@ -436,7 +453,8 @@ public class BasicUpdateScript implements UpdateScript
                      
                   // fire event
                   fireBasicUpdateScriptProcessEvent(
-                     "fileDownloaded", command, command.getRelativePath(),
+                     "fileDownloaded", command,  commandNumber,
+                     downloadItemNumber, command.getRelativePath(),
                      "completed", 0, 100);
                      
                   rval = true;
@@ -445,7 +463,8 @@ public class BasicUpdateScript implements UpdateScript
                {
                   // fire event
                   fireBasicUpdateScriptProcessEvent(
-                     "fileChanged", command, command.getRelativePath(),
+                     "fileChanged", command, commandNumber,
+                     downloadItemNumber, command.getRelativePath(),
                      "failed", 0, 100);
                }
             }
@@ -455,7 +474,8 @@ public class BasicUpdateScript implements UpdateScript
                
                // fire event
                fireBasicUpdateScriptProcessEvent(
-                  "fileChanged", command, command.getRelativePath(),
+                  "fileChanged", command, commandNumber,
+                  downloadItemNumber, command.getRelativePath(),
                   "failed", 0, 100);
             }
          }
@@ -513,7 +533,7 @@ public class BasicUpdateScript implements UpdateScript
       boolean rval = true;
       
       // default number of items to 0
-      mInstallItemCount = 0;
+      mDownloadItemCount = 0;
       
       // default update size to 0
       mUpdateSize = 0;      
@@ -550,7 +570,7 @@ public class BasicUpdateScript implements UpdateScript
                   if(usc.getName().equals("install"))
                   {
                      // increment install item count
-                     mInstallItemCount++;
+                     mDownloadItemCount++;
                   }
                }
                else
@@ -586,6 +606,8 @@ public class BasicUpdateScript implements UpdateScript
          
       // Perform the download for every file that is needed for installation
       boolean noError = true;
+      int commandNumber = 1;
+      int downloadItemNumber = 1;
       while(i.hasNext() && noError && !mCancelProcessing)
       {
          BasicUpdateScriptCommand command = (BasicUpdateScriptCommand)i.next();
@@ -593,43 +615,47 @@ public class BasicUpdateScript implements UpdateScript
          {
             // fire event
             fireBasicUpdateScriptProcessEvent(
-               "downloadingFile", command, null, null, 0, 0);
+               "downloadingFile", command, commandNumber, downloadItemNumber, 
+               null, null, 0, 0);
             
-            noError &= downloadFile(command);
+            noError &= downloadFile(command, commandNumber, downloadItemNumber);
+            downloadItemNumber++;
          }
+         
+         commandNumber++;
       }
       
       // execute each command of the script in order
       i = mCommands.iterator();
-      int commandNumber = 0;
+      commandNumber = 1;
       while(i.hasNext() && noError && !mCancelProcessing)
       {
          BasicUpdateScriptCommand command = (BasicUpdateScriptCommand)i.next();
          
          if(command.getName().equals("install"))
          {
-            noError &= performInstallCommand(command);
+            noError &= performInstallCommand(command, commandNumber);
          }
          else if(command.getName().equals("delete"))
          {
             // fire event
             fireBasicUpdateScriptProcessEvent(
-               "fileChanged", command,
-               command.getRelativePath(),"delete", 0, 0);
+               "fileChanged", command, commandNumber, 0,
+               command.getRelativePath(), "delete", 0, 0);
 
             // perform delete
             noError &= performDeleteCommand(command);
             
             // fire event
             fireBasicUpdateScriptProcessEvent(
-               "fileChanged", command,
+               "fileChanged", command, commandNumber, 0,
                command.getRelativePath(), "delete", 0, 100);
          }
          else if(command.getName().equals("mkdir"))
          {
             // fire event
             fireBasicUpdateScriptProcessEvent(
-               "directoryChanged", command,
+               "directoryChanged", command, commandNumber, 0,
                command.getRelativePath(), "create", 0, 0);
 
             // perform make directory
@@ -637,14 +663,14 @@ public class BasicUpdateScript implements UpdateScript
             
             // fire event
             fireBasicUpdateScriptProcessEvent(
-               "directoryChanged", command,
+               "directoryChanged", command, commandNumber, 0,
                command.getRelativePath(), "create", 0, 100);
          }
          else if(command.getName().equals("rmdir"))
          {
             // fire event
             fireBasicUpdateScriptProcessEvent(
-               "directoryChanged", command,
+               "directoryChanged", command, commandNumber, 0,
                command.getRelativePath(), "delete", 0, 0);
 
             // perform remove directory
@@ -652,13 +678,13 @@ public class BasicUpdateScript implements UpdateScript
             
             // fire event
             fireBasicUpdateScriptProcessEvent(
-               "directoryChanged", command,
+               "directoryChanged", command, commandNumber, 0,
                command.getRelativePath(), "delete", 0, 100);
          }
 
          // fire event
          fireBasicUpdateScriptProcessEvent(
-            "commandProcessed", command, null, null, 0, 0);
+            "commandProcessed", command, commandNumber, 0, null, null, 0, 0);
 
          // increment command number
          commandNumber++;
@@ -798,13 +824,23 @@ public class BasicUpdateScript implements UpdateScript
    }
    
    /**
-    * Gets the number of install items.
+    * Gets the number of download items.
     * 
-    * @return the number of install items.
+    * @return the number of download items.
     */
-   public int getInstallItemCount()
+   public int getDownloadItemCount()
    {
-      return mInstallItemCount;
+      return mDownloadItemCount;
+   }
+   
+   /**
+    * Gets the number of commands.
+    * 
+    * @return the number of commands.
+    */
+   public int getCommandCount()
+   {
+      return mCommands.size();
    }
    
    /**
