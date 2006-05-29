@@ -479,7 +479,7 @@ public class BasicUpdateScript implements UpdateScript
             }
             catch(Throwable t)
             {
-               t.printStackTrace();
+               getLogger().debug(Logger.getStackTrace(t));
                
                // fire event
                fireBasicUpdateScriptProcessEvent(
@@ -491,7 +491,7 @@ public class BasicUpdateScript implements UpdateScript
       }
       catch(Throwable t)
       {
-         t.printStackTrace();
+         getLogger().debug(Logger.getStackTrace(t));
       }
       
       // remove any invalid temp file created
