@@ -733,7 +733,6 @@ public class EditableTabPanel extends TabPanel
     * 
     * @param title the title for the tab.
     * @param content the content for the tab.
-    * @see #addTab
     */
    public void addTab(String title, Component content)
    {
@@ -746,7 +745,6 @@ public class EditableTabPanel extends TabPanel
     * @param title the title for the tab.
     * @param content the content for the tab.
     * @param index the index to insert the tab at.
-    * @see #addTab
     */
    public void addTab(String title, Component content, int index)
    {
@@ -759,7 +757,6 @@ public class EditableTabPanel extends TabPanel
     * @param title the title for the tab.
     * @param icon the icon for the tab.
     * @param content the content for the tab.
-    * @see #addTab
     */
    public void addTab(String title, Icon icon, Component content)
    {
@@ -774,7 +771,6 @@ public class EditableTabPanel extends TabPanel
     * @param icon the icon for the tab.
     * @param content the content for the tab.
     * @param index the index to insert the tab at.
-    * @see #addTab
     */
    public void addTab(String title, Icon icon, Component content, int index)
    {
@@ -788,7 +784,6 @@ public class EditableTabPanel extends TabPanel
     * @param icon the icon for the tab.
     * @param content the content for the tab.
     * @param tooltip the tooltip for the tab.
-    * @see #addTab
     */
    public void addTab(String title, Icon icon, String tooltip,
                       Component content)
@@ -805,7 +800,6 @@ public class EditableTabPanel extends TabPanel
     * @param tooltip the tooltip text for the tab.
     * @param content the content for the tab.
     * @param index the index to insert the tab at.
-    * @see #addtab
     */
    public synchronized void addTab(String title, Icon icon, String tooltip,
                                    Component content, int index)

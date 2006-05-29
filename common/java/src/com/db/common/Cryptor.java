@@ -93,7 +93,6 @@ public class Cryptor
     * @param algorithm the algorithm to run.
     * @return an array of bytes that represents the checksum or null.
     * @throws NoSuchAlgorithmException
-    * @throws UnsupportedEncodingException
     */
    public static byte[] getChecksumBytes(File file, String algorithm)
       throws NoSuchAlgorithmException
@@ -197,7 +196,6 @@ public class Cryptor
     * @param file the file to run the MD5 algorithm on.
     * @return an array of bytes that represents the MD5 checksum or null.
     * @throws NoSuchAlgorithmException
-    * @throws UnsupportedEncodingException
     */
    public static byte[] getMD5ChecksumBytes(File file)
       throws NoSuchAlgorithmException
@@ -253,7 +251,6 @@ public class Cryptor
     * @param file the file to run the SHA1 algorithm on.
     * @return an array of bytes that represents the SHA1 checksum or null.
     * @throws NoSuchAlgorithmException
-    * @throws UnsupportedEncodingException
     */
    public static byte[] getSHA1ChecksumBytes(File file)
       throws NoSuchAlgorithmException

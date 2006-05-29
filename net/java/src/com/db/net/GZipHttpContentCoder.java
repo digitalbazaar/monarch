@@ -130,7 +130,6 @@ implements HttpContentEncoder, HttpContentDecoder
     * @param contentEncoding the content encoding for the stream.
     * @param encodedStream the input stream with the data to decode.
     * @return the input stream to read decoded data from.
-    * @param output stream to write decoded data with.
     * @throws IOException
     */
    public InputStream getHttpContentDecodedStream(

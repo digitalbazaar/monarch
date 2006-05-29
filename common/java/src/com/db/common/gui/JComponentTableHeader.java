@@ -236,8 +236,6 @@ public class JComponentTableHeader extends JTableHeader
       
       /**
        * Sets the sort button.
-       * 
-       * @param ascending
        */
       protected void setSortButton()
       {

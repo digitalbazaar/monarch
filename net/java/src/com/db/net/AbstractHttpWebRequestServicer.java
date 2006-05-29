@@ -186,7 +186,6 @@ implements HttpWebRequestServicer
     * a body part body.
     * 
     * @param response the http web response to write to.
-    * @param header the http body part body header.
     * @param filename the name of the file to read from.
     * @param lastBodyPart true if the file is the last body part, false if not.
     * @return true if successfully sent, false if not.

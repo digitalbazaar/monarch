@@ -352,7 +352,6 @@ public class WsdlParser implements IXMLSerializer
     * @param value the string to convert.
     * @param type the type to convert the string to.
     * @return the object the string was converted into.
-    * @throws Exception
     */
    public static Object parseObject(String value, Class type)
    {

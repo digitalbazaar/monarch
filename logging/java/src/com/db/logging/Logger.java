@@ -243,8 +243,6 @@ public class Logger
     * a maximum log file size set.
     * 
     * @param logText the log text to be appended to the log file.
-    * @return the adjusted log text, if it cannot fit into a single
-    *         log file.
     */
    protected synchronized void rotateLogFile(String logText)
    {
