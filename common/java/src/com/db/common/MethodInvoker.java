@@ -272,7 +272,19 @@ public class MethodInvoker extends Thread
     */
    public void run()
    {
-      getLogger().debug("attempting to invoke method: '" + mMethodName + "'");
+      // build signature string
+      String signature = mMethodName + "(";
+      for(int i = 0; i < mParams.length; i++)
+      {
+         signature += mParams[i].getClass().getName();
+         if(i < (mParams.length - 1))
+         {
+            signature += ", ";
+         }
+      }
+      signature += ")";
+      
+      getLogger().debug("attempting to invoke method: '" + signature + "'");
       
       // find the method
       Method method = findMethod(mAgent, mMethodName, mParams);
@@ -327,7 +339,7 @@ public class MethodInvoker extends Thread
          }
          
          getLogger().error(
-            "could not invoke method: '" + mMethodName +
+            "could not invoke method: '" + signature +
             "' on agent: '" + agentName + "', " + "method not recognized.");
       }
    }
