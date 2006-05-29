@@ -3,12 +3,9 @@
  */
 package com.db.autoupdater;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,7 +13,8 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import com.db.common.Cryptor;
-import com.db.common.ThreadedEventDelegate;
+import com.db.common.EventDelegate;
+import com.db.common.MethodInvoker;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 
@@ -67,8 +65,7 @@ public class BasicUpdateScript implements UpdateScript
     * A BasicUpdateScriptProcessEventDelegate for firing
     * BasicUpdateScriptProcessEvents.
     */
-   protected ThreadedEventDelegate
-      mBasicUpdateScriptProcessEventDelegate;
+   protected EventDelegate mBasicUpdateScriptProcessEventDelegate;
    
    /**
     * Creates a new blank BasicUpdateScript.
@@ -104,8 +101,7 @@ public class BasicUpdateScript implements UpdateScript
       mCancelProcessing = false;
       
       // create delegate
-      mBasicUpdateScriptProcessEventDelegate =
-         new ThreadedEventDelegate();
+      mBasicUpdateScriptProcessEventDelegate = new EventDelegate();
    }
    
    /**
@@ -383,7 +379,6 @@ public class BasicUpdateScript implements UpdateScript
       
       try
       {
-         URL url = command.getUrl();
          File destination = command.getRelativePath();
          String md5 = command.getMd5Sum();
          
@@ -394,42 +389,43 @@ public class BasicUpdateScript implements UpdateScript
             // get a temp file for saving to
             temp = File.createTempFile("update", ".tmp");
             temp.deleteOnExit();
-
-            // get a connection for downloading
-            URLConnection c = url.openConnection();
-         
-            FileOutputStream fos = null;
-            BufferedInputStream bis = null;
-         
+            
             try
             {
-               getLogger().debug("Downloading file=" + command.getUrl());
+               // create file downloader to download file
+               FileDownloader downloader = new FileDownloader();
                
-               // create file output stream for writing to temp file
-               fos = new FileOutputStream(temp);
-
-               // get input stream for reading from connection
-               bis = new BufferedInputStream(c.getInputStream());
+               // background execute file downloader
+               Object[] params = new Object[]{command.getUrl(), temp};
+               MethodInvoker mi =
+                  new MethodInvoker(downloader, "downloadFile", params);
+               mi.backgroundExecute();
                
-               // read until the stream is empty
-               byte[] buffer = new byte[65536];
-               int numBytes = -1;
-               int totalBytes = 0;
-               while((numBytes = bis.read(buffer)) != -1 && !mCancelProcessing)
+               long byteChange = 0;
+               long totalBytes = 0;
+               long interval = 1;
+               while(!downloader.isDownloadingComplete() && !mi.isInterrupted())
                {
-                  fos.write(buffer, 0, numBytes);
+                  byteChange = downloader.getBytesDownloaded() - totalBytes;
+                  totalBytes = totalBytes + byteChange;
                   
-                  totalBytes += numBytes;
-
-                  // fire event
+                  // fire file changed event
                   fireBasicUpdateScriptProcessEvent(
                      "fileChanged", command, command.getRelativePath(),
-                     "download", numBytes, totalBytes);
+                     "download", byteChange, totalBytes);
+
+                  // join the downloader thread
+                  mi.join(interval);
                }
+
+               // send final file changed message
+               byteChange = downloader.getBytesDownloaded() - totalBytes;
+               totalBytes = totalBytes + byteChange;
                
-               // close streams
-               bis.close();
-               fos.close();
+               // fire file changed event
+               fireBasicUpdateScriptProcessEvent(
+                  "fileChanged", command, command.getRelativePath(),
+                  "download", byteChange, totalBytes);
                
                // check the MD5 sum of the file to see if it matches
                String tempMD5 = Cryptor.getMD5ChecksumString(temp);
@@ -437,12 +433,12 @@ public class BasicUpdateScript implements UpdateScript
                {
                   // file MD5 matches, if file is valid add to map
                   mTempFiles.put(destination, temp);
-                  
+                     
                   // fire event
                   fireBasicUpdateScriptProcessEvent(
                      "fileDownloaded", command, command.getRelativePath(),
                      "completed", 0, 100);
-                  
+                     
                   rval = true;
                }
                else
@@ -461,16 +457,6 @@ public class BasicUpdateScript implements UpdateScript
                fireBasicUpdateScriptProcessEvent(
                   "fileChanged", command, command.getRelativePath(),
                   "failed", 0, 100);
-            }
-            
-            if(bis != null)
-            {
-               bis.close();
-            }
-
-            if(fos != null)
-            {
-               fos.close();
             }
          }
       }
@@ -826,7 +812,7 @@ public class BasicUpdateScript implements UpdateScript
     * 
     * @return the BasicUpdateScriptProcessDelegate.
     */
-   public ThreadedEventDelegate getBasicUpdateScriptProcessEventDelegate()
+   public EventDelegate getBasicUpdateScriptProcessEventDelegate()
    {
       return mBasicUpdateScriptProcessEventDelegate;
    }
