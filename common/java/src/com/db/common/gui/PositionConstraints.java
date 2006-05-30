@@ -21,22 +21,22 @@ public class PositionConstraints implements Cloneable
    /**
     * Anchor left type.
     */
-   public static final int ANCHOR_LEFT = 1;
+   public static final int ANCHOR_LEFT = 0x01;
    
    /**
     * Anchor right type.
     */
-   public static final int ANCHOR_RIGHT = 2;
+   public static final int ANCHOR_RIGHT = 0x02;
    
    /**
     * Anchor top type.
     */
-   public static final int ANCHOR_TOP = 4;
+   public static final int ANCHOR_TOP = 0x04;
 
    /**
     * Anchor bottom type.
     */
-   public static final int ANCHOR_BOTTOM = 8;
+   public static final int ANCHOR_BOTTOM = 0x08;
    
    /**
     * Anchors in all directions.
@@ -170,6 +170,94 @@ public class PositionConstraints implements Cloneable
    public Rectangle getBounds()
    {
       return new Rectangle(location, size);
+   }
+   
+   /**
+    * Creates a string representation of this constraints object.
+    * 
+    * The constraints bounds and anchoring are printed to a string.
+    * 
+    * @return a string representation of this constraints object.
+    */
+   public String toString()
+   {
+      StringBuffer sb = new StringBuffer();
+      
+      // class name
+      sb.append(getClass().getName());
+      sb.append('[');
+      
+      // location
+      sb.append("x=");
+      sb.append(location.x);
+      sb.append(',');
+      sb.append("y=");
+      sb.append(location.y);
+      sb.append(',');
+      
+      // size
+      sb.append("width=");
+      sb.append(size.width);
+      sb.append(',');
+      sb.append("height=");
+      sb.append(size.height);
+      sb.append(',');
+      
+      // anchor
+      sb.append("anchor=[");
+      
+      if((anchor & ANCHOR_ALL) == ANCHOR_ALL)
+      {
+         sb.append("all");
+      }
+      else
+      {
+         boolean putComma = false;
+         if((anchor & ANCHOR_TOP) == ANCHOR_TOP)
+         {
+            sb.append("top");
+            putComma = true;
+         }
+         
+         if((anchor & ANCHOR_LEFT) == ANCHOR_LEFT)
+         {
+            if(putComma)
+            {
+               sb.append(',');
+            }
+            
+            sb.append("left");
+            putComma = true;
+         }
+
+         if((anchor & ANCHOR_BOTTOM) == ANCHOR_BOTTOM)
+         {
+            if(putComma)
+            {
+               sb.append(',');
+            }
+            
+            sb.append("bottom");
+            putComma = true;
+         }
+
+         if((anchor & ANCHOR_RIGHT) == ANCHOR_RIGHT)
+         {
+            if(putComma)
+            {
+               sb.append(',');
+            }
+            
+            sb.append("right");
+         }
+      }
+      
+      sb.append(']');
+      
+      // end
+      sb.append(']');
+      
+      return sb.toString();
    }
    
    /**
