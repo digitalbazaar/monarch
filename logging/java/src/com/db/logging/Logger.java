@@ -760,12 +760,19 @@ public class Logger
     */
    public static String getStackTrace(Throwable t)
    {
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-      t.printStackTrace(pw);
-      pw.close();
+      String rval = "null";
       
-      return sw.toString();
+      if(t != null)
+      {
+         StringWriter sw = new StringWriter();
+         PrintWriter pw = new PrintWriter(sw);
+         t.printStackTrace(pw);
+         pw.close();
+         
+         rval = sw.toString();
+      }
+      
+      return rval;
    }   
    
    /**

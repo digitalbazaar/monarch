@@ -139,6 +139,10 @@ public class MethodInvoker extends Thread
                         
                         typesMatch = paramClass.equals(primitive);
                      }
+                     else if(params[n] == null)
+                     {
+                        typesMatch = true;
+                     }
                      
                      // break out if types do not match
                      if(!typesMatch)
@@ -199,10 +203,28 @@ public class MethodInvoker extends Thread
             }
          }
          
+         // build signature string
+         String signature = mMethodName + "(";
+         Class[] types = method.getParameterTypes();
+         for(int i = 0; i < types.length; i++)
+         {
+            signature += types[i].getName();
+            
+            if(i < (types.length - 1))
+            {
+               signature += ", ";
+            }
+         }
+         signature += ")";
+         
          getLogger().error(
-            "could not invoke method: '" + mMethodName +
+            "could not invoke method: '" + signature +
             "' on agent: '" + agentName + "', " +
-            "an exception occurred!, exception=" + t.toString());
+            "an exception occurred!," +
+            "\nexception= " + t +
+            "\ncause= " + t.getCause() +
+            "\ntrace= " + Logger.getStackTrace(t));
+         
          getLogger().debug(Logger.getStackTrace(t));
       }
       
@@ -259,7 +281,9 @@ public class MethodInvoker extends Thread
                
                getLogger().error("failed to handle message: '" +
                                  message + "', an exception occurred!," +
-                                 "exception=" + t.toString());
+                                 "\nexception= " + t +
+                                 "\ncause= " + t.getCause() +
+                                 "\ntrace= " + Logger.getStackTrace(t));
                getLogger().debug(Logger.getStackTrace(t));
             }
          }
