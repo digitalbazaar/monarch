@@ -276,7 +276,15 @@ public class MethodInvoker extends Thread
       String signature = mMethodName + "(";
       for(int i = 0; i < mParams.length; i++)
       {
-         signature += mParams[i].getClass().getName();
+         if(mParams[i] != null)
+         {
+            signature += mParams[i].getClass().getName();
+         }
+         else
+         {
+            signature += "null";
+         }
+         
          if(i < (mParams.length - 1))
          {
             signature += ", ";
