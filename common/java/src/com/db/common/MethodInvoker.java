@@ -274,6 +274,7 @@ public class MethodInvoker extends Thread
     * @param method the method to invoke.
     * @param agent the object to invoke the method on.
     * @param params the parameters for the method.
+    * 
     * @return the return value from the method.
     */
    protected Object invokeMethod(Method method, Object agent, Object[] params) 
