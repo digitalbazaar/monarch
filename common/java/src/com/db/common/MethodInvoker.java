@@ -87,16 +87,118 @@ public class MethodInvoker extends Thread
    }
    
    /**
+    * Gets a method signature string.
+    * 
+    * @param methodName the method name.
+    * @param params the parameters.
+    * 
+    * @return the signature string.
+    */
+   protected String getSignature(String methodName, Object[] params)
+   {
+      // build signature string
+      String signature = methodName + "(";
+      
+      for(int i = 0; i < params.length; i++)
+      {
+         if(params[i] != null)
+         {
+            signature += params[i].getClass().getName();
+         }
+         else
+         {
+            signature += "null";
+         }
+         
+         if(i < (params.length - 1))
+         {
+            signature += ", ";
+         }
+      }
+      
+      signature += ")";
+      
+      return signature;
+   }
+   
+   /**
+    * Gets a method signature string.
+    * 
+    * @param method the method.
+    * 
+    * @return the signature string.
+    */
+   protected String getSignature(Method method)
+   {
+      // build signature string
+      String signature = "null";
+      
+      if(method != null)
+      {
+         signature = method.getName() + "(";
+         
+         Class[] types = method.getParameterTypes();
+         for(int i = 0; i < types.length; i++)
+         {
+            signature += types[i].getName();
+            
+            if(i < (types.length - 1))
+            {
+               signature += ", ";
+            }
+         }
+         
+         signature += ")";
+      }
+      
+      return signature;
+   }
+   
+   /**
+    * Gets the name of the agent.
+    * 
+    * @param agent the agent.
+    * 
+    * @return the name of the agent.
+    */
+   protected String getAgentName(Object agent)
+   {
+      String agentName = "null";
+      
+      if(mAgent != null)
+      {
+         if(mAgent instanceof Class)
+         {
+            agentName = ((Class)mAgent).getName();
+         }
+         else
+         {
+            agentName = mAgent.getClass().getName();
+         }
+      }
+      
+      return agentName;
+   }
+   
+   /**
     * Finds the method to invoke.
     * 
     * @param agent the object to invoke the method on.
     * @param methodName the name of the method to invoke.
     * @param params the parameters for the method.
+    * 
     * @return the method to invoke or null if no such method exists.
     */
    protected Method findMethod(Object agent, String methodName, Object[] params)
    {
       Method rval = null;
+      
+      // get signature and agent name
+      String signature = getSignature(methodName, params);
+      String agentName = getAgentName(agent);
+      getLogger().debug(
+            "searching for method: '" + signature +
+            "' on agent '" + agentName + "'");
       
       // get the methods for the agent, if the agent is a class obtain
       // then directly, if not, then get the class of the agent and
@@ -178,8 +280,16 @@ public class MethodInvoker extends Thread
    {
       Object rval = null;
       
+      // get signature string and agent name
+      String signature = getSignature(method);
+      String agentName = getAgentName(agent);
+      
       try
       {
+         getLogger().debug(
+            "invoking method: '" + signature +
+            "' on agent '" + agentName + "'");
+         
          // invoke method
          rval = method.invoke(agent, params);
       }
@@ -190,37 +300,9 @@ public class MethodInvoker extends Thread
             mMessage.setMethodException(t);
          }
          
-         String agentName = "null";
-         if(agent != null)
-         {
-            if(agent instanceof Class)
-            {
-               agentName = ((Class)agent).getName();
-            }
-            else
-            {
-               agentName = agent.getClass().getName();
-            }
-         }
-         
-         // build signature string
-         String signature = mMethodName + "(";
-         Class[] types = method.getParameterTypes();
-         for(int i = 0; i < types.length; i++)
-         {
-            signature += types[i].getName();
-            
-            if(i < (types.length - 1))
-            {
-               signature += ", ";
-            }
-         }
-         signature += ")";
-         
          getLogger().error(
-            "could not invoke method: '" + signature +
-            "' on agent: '" + agentName + "', " +
-            "an exception occurred!," +
+            "an exception occurred while invoking method: '" + signature +
+            "' on agent: '" + agentName + "'," +
             "\nexception= " + t +
             "\ncause= " + t.getCause() +
             "\ntrace= " + Logger.getStackTrace(t));
@@ -279,11 +361,12 @@ public class MethodInvoker extends Thread
                   message = mMessage.getMethodName();
                }
                
-               getLogger().error("failed to handle message: '" +
-                                 message + "', an exception occurred!," +
-                                 "\nexception= " + t +
-                                 "\ncause= " + t.getCause() +
-                                 "\ntrace= " + Logger.getStackTrace(t));
+               getLogger().error(
+                  "an exception occurred while handling message: '" +
+                  message + "'," +
+                  "\nexception= " + t +
+                  "\ncause= " + t.getCause() +
+                  "\ntrace= " + Logger.getStackTrace(t));
                getLogger().debug(Logger.getStackTrace(t));
             }
          }
@@ -296,28 +379,6 @@ public class MethodInvoker extends Thread
     */
    public void run()
    {
-      // build signature string
-      String signature = mMethodName + "(";
-      for(int i = 0; i < mParams.length; i++)
-      {
-         if(mParams[i] != null)
-         {
-            signature += mParams[i].getClass().getName();
-         }
-         else
-         {
-            signature += "null";
-         }
-         
-         if(i < (mParams.length - 1))
-         {
-            signature += ", ";
-         }
-      }
-      signature += ")";
-      
-      getLogger().debug("attempting to invoke method: '" + signature + "'");
-      
       // find the method
       Method method = findMethod(mAgent, mMethodName, mParams);
       
@@ -357,19 +418,9 @@ public class MethodInvoker extends Thread
       }
       else
       {
-         String agentName = "null";
-         if(mAgent != null)
-         {
-            if(mAgent instanceof Class)
-            {
-               agentName = ((Class)mAgent).getName();
-            }
-            else
-            {
-               agentName = mAgent.getClass().getName();
-            }
-         }
-         
+         // get signature and agent name
+         String signature = getSignature(mMethodName, mParams);
+         String agentName = getAgentName(mAgent);
          getLogger().error(
             "could not invoke method: '" + signature +
             "' on agent: '" + agentName + "', " + "method not recognized.");
