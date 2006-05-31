@@ -2,11 +2,15 @@
 debug=on
 debuglevel=lines,vars,source
 
-base=@DBCOMMONDIR@
+base=@DBCOREDIR@
 
 logging=${base}/logging/java
 common=${base}/common/java
+crypto=${base}/crypto/java
+xml=${base}/xml/java
+stream=${base}/stream/java
 net=${base}/net/java
+gui=${base}/gui/java
 autoupdater=${base}/autoupdater/java
 build=build
 src=src
@@ -16,6 +20,9 @@ test=${build}/test
 #db libraries
 dblogging.jar=${logging}/dist/dblogging.jar
 dbcommon.jar=${common}/dist/dbcommon.jar
-dbcommon-gui.jar=${common}/dist/dbcommon-gui.jar
+dbcrypto.jar=${crypto}/dist/dbcrypto.jar
+dbxml.jar=${xml}/dist/dbxml.jar
+dbstream.jar=${stream}/dist/dbstream.jar
 dbnet.jar=${net}/dist/dbnet.jar
+dbgui.jar=${gui}/dist/dbgui.jar
 dbautoupdater.jar=${autoupdater}/dist/dbautoupdater.jar

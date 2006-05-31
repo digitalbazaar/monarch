@@ -12,9 +12,9 @@ import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import com.db.common.Cryptor;
 import com.db.common.EventDelegate;
 import com.db.common.MethodInvoker;
+import com.db.crypto.Cryptor;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 

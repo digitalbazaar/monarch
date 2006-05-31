@@ -18,18 +18,18 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.db.common.ElementReader;
-import com.db.common.IXMLSerializer;
-import com.db.common.XMLCoder;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.xml.ElementReader;
+import com.db.xml.IXmlSerializer;
+import com.db.xml.XmlCoder;
 
 /**
  * This class represents a SOAP message.
  * 
  * @author Dave Longley
  */
-public class SoapMessage implements IXMLSerializer
+public class SoapMessage implements IXmlSerializer
 {
    /**
     * The xml schema for a soap message (the xsd).
@@ -618,7 +618,7 @@ public class SoapMessage implements IXMLSerializer
             String paramName = (String)i.next();
             String paramValue = "" + getParams().get(paramName);
             xml.append("<" + paramName + ">");
-            xml.append(XMLCoder.encode(paramValue));
+            xml.append(XmlCoder.encode(paramValue));
             xml.append("</" + paramName + ">");
          }
          
@@ -627,17 +627,17 @@ public class SoapMessage implements IXMLSerializer
       else if(getSerializerOptions() == SOAP_RESPONSE)
       {
          xml.append("<tns:" + getMethod() + "Response>");
-         xml.append("<result>" + XMLCoder.encode(getResult()) + "</result>");
+         xml.append("<result>" + XmlCoder.encode(getResult()) + "</result>");
          xml.append("</tns:" + getMethod() + "Response>");
       }
       else if(getSerializerOptions() == SOAP_FAULT)
       {
          xml.append("<soap:Fault>");
-         xml.append("<faultcode>soap:" + XMLCoder.encode(getFaultCodeString()) +
+         xml.append("<faultcode>soap:" + XmlCoder.encode(getFaultCodeString()) +
                     "</faultcode>");
-         xml.append("<faultstring>" + XMLCoder.encode(getFaultString()) +
+         xml.append("<faultstring>" + XmlCoder.encode(getFaultString()) +
                     "</faultstring>");
-         xml.append("<faultactor>" + XMLCoder.encode(getFaultActor()) +
+         xml.append("<faultactor>" + XmlCoder.encode(getFaultActor()) +
                     "</faultactor>");
          xml.append("</soap:Fault>");
       }

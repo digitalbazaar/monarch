@@ -3,7 +3,7 @@
  */
 package com.db.net;
 
-import com.db.common.stream.PipeInputStream;
+import com.db.stream.PipeInputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -12,7 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 
 import com.db.logging.Logger;
-import com.db.common.stream.BoundaryInputStream;
+import com.db.stream.BoundaryInputStream;
 
 /**
  * This class represents an http web connection to a web server.

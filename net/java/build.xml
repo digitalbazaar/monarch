@@ -21,7 +21,7 @@
 			<classpath refid="compile.classpath"/>
 		</javac>
 		<jar jarfile="${dist}/dbnet.jar">
-			<fileset dir="build" excludes="${build}/test"/>
+			<fileset dir="build" includes="com/db/net/**/*"/>
 		</jar>
   </target>
 
@@ -40,7 +40,11 @@
 		</javac>
 		<java classname="UTHttpServer">
 			<classpath>
-				<pathelement location="${dist}/dbcommon.jar"/>
+                                <pathelement location="${logging}/dist/dblogging.jar"/>
+                                <pathelement location="${common}/dist/dbcommon.jar"/>
+                                <pathelement location="${crypto}/dist/dbcrypto.jar"/>
+                                <pathelement location="${xml}/dist/dbxml.jar"/>
+                                <pathelement location="${stream}/dist/dbstream.jar"/>
 				<pathelement location="${dist}/dbnet.jar"/>
 				<pathelement path="${java.class.path}"/>
 				<pathelement path="${test}"/>

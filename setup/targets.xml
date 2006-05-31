@@ -5,8 +5,11 @@
     <pathelement location="${build}/shared"/>
     <pathelement location="${dblogging.jar}"/>
     <pathelement location="${dbcommon.jar}"/>
-    <pathelement location="${dbcommon-gui.jar}"/>
-    <pathelement location="${postgresql-jdbc3.jar}"/>
+    <pathelement location="${dbcrypto.jar}"/>
+    <pathelement location="${dbxml.jar}"/>
+    <pathelement location="${dbstream.jar}"/>
+    <pathelement location="${dbnet.jar}"/>
+    <pathelement location="${dbgui.jar}"/>
     <pathelement location="${dbautoupdater.jar}"/>
   </path>
   
@@ -18,7 +21,7 @@
   <target name="prepare" 
      description="Creates the build directory" >
      <echo message="Creating the required directories...." />
-     <mkdir dir="${build}/com/sms/${example}" />
+     <mkdir dir="${build}/com/db/${example}" />
   </target>
 
   <target name="prepare-dist" 

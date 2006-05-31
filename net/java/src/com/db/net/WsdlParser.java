@@ -3,10 +3,10 @@
  */
 package com.db.net;
 
-import com.db.common.ElementReader;
-import com.db.common.IXMLSerializer;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.xml.ElementReader;
+import com.db.xml.IXmlSerializer;
 
 import java.io.StringReader;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ import org.xml.sax.SAXParseException;
  * 
  * @author Dave Longley
  */
-public class WsdlParser implements IXMLSerializer
+public class WsdlParser implements IXmlSerializer
 {
    /**
     * The name of the web service.

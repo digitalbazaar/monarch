@@ -10,11 +10,11 @@ echo -e "\n--------- Configuring DB Common Build Configuration -----------"
 AC_CHECK_TOOL(JAVAC, javac, :)
 
 # Set up the proper variables
-DBCOMMONDIR=`pwd`
+DBCOREDIR=`pwd`
 JAVADOC=/usr/lib/j2sdk1.5-sun/bin/javadoc
 
 # Make all the proper substitutions
-AC_SUBST(DBCOMMONDIR)
+AC_SUBST(DBCOREDIR)
 AC_SUBST(JAVADOC)
 
 echo -e "\n--------- Digital Bazaar Common Build Configuration -----------"
