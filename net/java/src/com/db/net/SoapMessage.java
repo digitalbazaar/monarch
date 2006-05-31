@@ -568,9 +568,9 @@ public class SoapMessage implements IXmlSerializer
     * 
     * @return the xml-based representation of the object.
     */
-   public String convertToXML()
+   public String convertToXml()
    {
-      return convertToXML(0);
+      return convertToXml(0);
    }
    
    /**
@@ -581,7 +581,7 @@ public class SoapMessage implements IXmlSerializer
     *                    after each new line.
     * @return the xml-based representation of the object.
     */
-   public String convertToXML(int indentLevel)
+   public String convertToXml(int indentLevel)
    {
       // TEMP CODE: this code makes a couple of assumptions
       // like "result" will indicate a method result
@@ -655,7 +655,7 @@ public class SoapMessage implements IXmlSerializer
     * @param xmlText the xml text document that represents the object.
     * @return true if successful, false otherwise.    
     */
-   public boolean convertFromXML(String xmlText)
+   public boolean convertFromXml(String xmlText)
    {
       boolean rval = false;
       
@@ -672,7 +672,7 @@ public class SoapMessage implements IXmlSerializer
          // normalize text representation
          doc.getDocumentElement().normalize();
          
-         rval = convertFromXML(doc.getDocumentElement());
+         rval = convertFromXml(doc.getDocumentElement());
       }
       catch(SAXParseException spe)
       {
@@ -704,7 +704,7 @@ public class SoapMessage implements IXmlSerializer
     * @param element the parsed element that contains this objects information.
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXML(Element element)
+   public boolean convertFromXml(Element element)
    {
       boolean rval = false;
       

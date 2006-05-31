@@ -95,9 +95,9 @@ public class StringXmlSerializer implements IXmlSerializer
     * 
     * @return the xml-based representation of this object.
     */
-   public String convertToXML()
+   public String convertToXml()
    {
-      return convertToXML(0);
+      return convertToXml(0);
    }
    
    /**
@@ -108,7 +108,7 @@ public class StringXmlSerializer implements IXmlSerializer
     *                    after each new line.
     * @return true if successful, false otherwise.    
     */
-   public String convertToXML(int indentLevel)
+   public String convertToXml(int indentLevel)
    {
       StringBuffer xml = new StringBuffer();
       StringBuffer indent = new StringBuffer("\n");
@@ -135,7 +135,7 @@ public class StringXmlSerializer implements IXmlSerializer
     * @param xmlText the xml text document that represents the object.
     * @return true if successful, false otherwise.    
     */
-   public boolean convertFromXML(String xmlText)
+   public boolean convertFromXml(String xmlText)
    {
       return false;
    }
@@ -147,7 +147,7 @@ public class StringXmlSerializer implements IXmlSerializer
     * @param element the parsed element that contains this objects information.
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXML(Element element)
+   public boolean convertFromXml(Element element)
    {
       boolean rval = true;
       

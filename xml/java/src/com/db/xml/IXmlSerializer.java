@@ -43,7 +43,7 @@ public interface IXmlSerializer
     *
     * @return the XML-based representation of the object.
     */
-   public String convertToXML();
+   public String convertToXml();
 
    /**
     * This method takes the object representation and creates an
@@ -53,16 +53,16 @@ public interface IXmlSerializer
     *                    after each new line.
     * @return the XML-based representation of the object.
     */
-   public String convertToXML(int indentLevel);
+   public String convertToXml(int indentLevel);
 
    /**
     * This method takes XML text (in full document form) and converts
-    * it to it's internal representation.
+    * it to its internal representation.
     *
     * @param xmlText the xml text document that represents the object.
     * @return true if successful, false otherwise.    
     */
-   public boolean convertFromXML(String xmlText);
+   public boolean convertFromXml(String xmlText);
    
    /**
     * This method takes a parsed DOM XML element and converts it
@@ -71,5 +71,5 @@ public interface IXmlSerializer
     * @param element the parsed element that contains this objects information.
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXML(Element element);
+   public boolean convertFromXml(Element element);
 }

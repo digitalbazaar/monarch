@@ -81,7 +81,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       }
       
       // see if the soap message was valid
-      if(body != null && !sm.convertFromXML(xml))
+      if(body != null && !sm.convertFromXml(xml))
       {
          getLogger().debug("no valid soap message");
          
@@ -140,7 +140,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          if(connected)
          {
             // soap response is ready, convert soap message
-            String xml = sm.convertToXML();
+            String xml = sm.convertToXml();
             
             byte[] body = xml.getBytes();
             

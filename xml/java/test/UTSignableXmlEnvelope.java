@@ -44,20 +44,20 @@ public class UTSignableXmlEnvelope
       sxe2.sign(0, km.getPrivateKey());
       
       System.out.println("--- Converting envelope in envelope to XML ---");
-      System.out.println(sxe2.convertToXML());
+      System.out.println(sxe2.convertToXml());
       System.out.println("--- Loading envelope in envelope from XML ---");
-      String text = sxe2.convertToXML();
+      String text = sxe2.convertToXml();
       SignableXmlEnvelope sxe3 =
          new SignableXmlEnvelope(new StringXmlSerializer());
       sxe2 = new SignableXmlEnvelope(sxe3, text);
-      System.out.println(sxe2.convertToXML());
+      System.out.println(sxe2.convertToXml());
       System.out.println("--- Verify envelope in envelope test ---");
       System.out.println("Verified: " + sxe2.verify(km.getPublicKeyString()));
       System.out.println("Verified: " + sxe3.verify(km.getPublicKeyString()));
 
       System.out.println("--- Convert to XML test ---");
 
-      xmlText = sxe.convertToXML();
+      xmlText = sxe.convertToXml();
       System.out.println(xmlText);
       
       System.out.println("--- Load XML test ---");
@@ -65,7 +65,7 @@ public class UTSignableXmlEnvelope
       // get a new envelope to test
       sxe = new SignableXmlEnvelope(new StringXmlSerializer());
 
-      if(sxe.convertFromXML(xmlText))
+      if(sxe.convertFromXml(xmlText))
       {
          System.out.println("Successfully loaded envelope from XML\n");
       }
@@ -77,7 +77,7 @@ public class UTSignableXmlEnvelope
       try
       {
          System.out.println("--- Convert to XML after XML load test ---");
-         System.out.println(sxe.convertToXML());
+         System.out.println(sxe.convertToXml());
       }
       catch(NullPointerException e)
       {
@@ -98,7 +98,7 @@ public class UTSignableXmlEnvelope
       System.out.println("--- Envelope in envelope test ---");
       
       SignableXmlEnvelope outerEnvelope = new SignableXmlEnvelope(sxe);
-      String outerXml = outerEnvelope.convertToXML();
+      String outerXml = outerEnvelope.convertToXml();
       
       StringXmlSerializer innerSxs = new StringXmlSerializer();
       SignableXmlEnvelope innerEnvelope =
@@ -106,10 +106,10 @@ public class UTSignableXmlEnvelope
       SignableXmlEnvelope outerEnvelope2 =
          new SignableXmlEnvelope(innerEnvelope);
       
-      outerEnvelope2.convertFromXML(outerXml);
+      outerEnvelope2.convertFromXml(outerXml);
       
       System.out.println("ENVELOPE IN ENVELOPE=\n" +
-         outerEnvelope2.convertToXML());
+         outerEnvelope2.convertToXml());
    }
    
    public static void main(String[] args)

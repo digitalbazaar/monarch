@@ -159,7 +159,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
             // create a new soap message for reading the response xml
             SoapMessage sm = new SoapMessage();
             sm.setSerializerOptions(SoapMessage.SOAP_RESPONSE);
-            if(sm.convertFromXML(xml))
+            if(sm.convertFromXml(xml))
             {
                // get result
                String result = sm.getResult();
@@ -242,7 +242,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          sm.setAttachmentWebConnection(hwc);
          
          // get the xml for the soap message
-         String xml = sm.convertToXML();
+         String xml = sm.convertToXml();
          byte[] body = xml.getBytes();
          
          // create a soap http web request
