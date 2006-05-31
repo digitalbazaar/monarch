@@ -7,9 +7,11 @@ import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.AbstractListModel;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -92,17 +94,7 @@ public class UTCustomRenderers implements ActionListener
       list.setCellRenderer(new JComponentCellRenderer());
       
       // create panel to put in list
-      JPanel listPanel = new JPanel();
-      listPanel.setLayout(new GridLayout(2, 1));
-      
-      // add button to list panel
-      JButton button = new JButton("button1");
-      button.addActionListener(new UTCustomRenderers());
-      listPanel.add(button);
-      
-      // add label to list panel
-      JLabel label = new JLabel("label1");
-      listPanel.add(label);
+      JPanel listPanel = createJListTestPanel2();
       
       // add list panel to list model
       model.addElement(listPanel);
@@ -119,6 +111,120 @@ public class UTCustomRenderers implements ActionListener
       
       // add scroll pane
       panel.add(scrollPane, scrollPaneConstraints);
+      
+      return panel;
+   }
+   
+   /**
+    * Creates a panel to place in a JList as a test.
+    * 
+    * @return the panel to render in a JList as a test.
+    */
+   public static JPanel createJListTestPanel1()
+   {
+      // create panel to put in list
+      JPanel panel = new JPanel();
+      panel.setLayout(new GridLayout(2, 1));
+      
+      // add button to list panel
+      JButton button = new JButton("button1");
+      button.addActionListener(new UTCustomRenderers());
+      panel.add(button);
+      
+      // add label to list panel
+      JLabel label = new JLabel("label1");
+      panel.add(label);
+      
+      return panel;
+   }
+   
+   /**
+    * Creates a panel to place in a JList as a test.
+    * 
+    * @return the panel to render in a JList as a test.
+    */
+   public static JPanel createJListTestPanel2()
+   {
+      JPanel panel = new JPanel();
+      
+      // set title and filename
+      //panel.setOpaque(false);
+      panel.setSize(600, 200);
+      panel.setBorder(BorderFactory.createEtchedBorder());
+      panel.setLayout(new PositionLayout(panel));
+      
+      // create detail labels
+      JLabel title = new JLabel("Some Title");
+      JLabel filename = new JLabel("");
+      
+      PositionConstraints titlePC = new PositionConstraints();
+      titlePC.size = new Dimension(title.getPreferredSize());
+      titlePC.location = new Point();
+      
+      // add labels to panel
+      panel.add(title, titlePC);
+      
+      // multi-ware, display with multi ware info
+      
+      JPanel dwPanel = new JPanel();
+      dwPanel.setBorder(BorderFactory.createTitledBorder("Contents:"));
+      dwPanel.setLayout(new PositionLayout(dwPanel));
+      
+      PositionConstraints dwPanelPC = new PositionConstraints();
+      dwPanelPC.size = new Dimension(PositionConstraints.HORIZONTAL_FILL, 0);
+      dwPanelPC.location = new Point(0, titlePC.getBottom());
+      
+      // add dw panel
+      panel.add(dwPanel, dwPanelPC);
+      
+      Point bottom = new Point(0, 0);
+      
+      // display inner digital works
+      int count = 1;
+      for(int i = 0; i < count; i++)
+      {
+         // create a new inner ware panel
+         JPanel warePanel = new JPanel();
+         warePanel.setSize(500, 500);
+         warePanel.setLayout(new PositionLayout(warePanel));
+         
+         JLabel wareTitle = new JLabel("Inner Title " + i);
+         JLabel wareFile = new JLabel("InnerFile" + i);
+         
+         PositionConstraints dwTitlePC = new PositionConstraints();
+         dwTitlePC.size = new Dimension(wareTitle.getPreferredSize());
+         dwTitlePC.location = new Point();
+         
+         PositionConstraints dwFilePC = new PositionConstraints();
+         dwFilePC.size = new Dimension(wareFile.getPreferredSize());
+         dwTitlePC.location = new Point(0, 
+               wareTitle.getPreferredSize().height);
+         
+         // add ware elements to ware panel
+         warePanel.add(wareTitle, dwTitlePC);
+         warePanel.add(wareFile, dwFilePC);
+         
+         PositionConstraints warePanelPC = new PositionConstraints();
+         // FIXME: what is this "* 2" for?
+         warePanelPC.size =
+            new Dimension(PositionConstraints.HORIZONTAL_FILL,
+                          wareTitle.getPreferredSize().height * 2);
+         warePanelPC.location = new Point(0, bottom.y);
+         
+         // move the bottom point down
+         bottom.x = 0;
+         bottom.y = warePanelPC.getBottom();
+         
+         // add ware panel to the bottom of the dwPanel
+         
+         dwPanelPC.size = new Dimension(PositionConstraints.HORIZONTAL_FILL,
+               dwPanelPC.size.height + warePanelPC.size.height);
+         ((PositionLayout)panel.getLayout()).setConstraints(dwPanel, dwPanelPC);
+         
+         System.out.println("warePanelPC=" + warePanelPC);
+         
+         dwPanel.add(warePanel, warePanelPC);
+      }
       
       return panel;
    }
