@@ -498,6 +498,6 @@ implements HttpWebRequestServicer
     */
    public Logger getLogger()
    {
-      return LoggerManager.getLogger("dbcommon");
+      return LoggerManager.getLogger("dbnet");
    }
 }

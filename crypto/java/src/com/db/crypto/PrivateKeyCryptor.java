@@ -708,6 +708,6 @@ public class PrivateKeyCryptor
     */
    public Logger getLogger()
    {
-      return LoggerManager.getLogger("dbcommon");
+      return LoggerManager.getLogger("dbcrypto");
    }
 }

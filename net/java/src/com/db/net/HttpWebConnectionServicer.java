@@ -424,6 +424,6 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
     */
    public Logger getLogger()
    {
-      return LoggerManager.getLogger("dbcommon");
+      return LoggerManager.getLogger("dbnet");
    }
 }

@@ -464,6 +464,6 @@ public class BoundaryInputStream extends FilterInputStream
     */
    public Logger getLogger()
    {
-      return LoggerManager.getLogger("dbcommon");
+      return LoggerManager.getLogger("dbstream");
    }
 }

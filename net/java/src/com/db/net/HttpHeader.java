@@ -613,6 +613,6 @@ public abstract class HttpHeader
     */
    public Logger getLogger()
    {
-      return LoggerManager.getLogger("dbcommon");
+      return LoggerManager.getLogger("dbnet");
    }
 }

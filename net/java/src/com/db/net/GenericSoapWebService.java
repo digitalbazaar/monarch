@@ -508,7 +508,7 @@ public abstract class GenericSoapWebService implements SoapWebService
     */
    public Logger getLogger()
    {
-      return LoggerManager.getLogger("dbcommon");
+      return LoggerManager.getLogger("dbnet");
    }
 
    /**

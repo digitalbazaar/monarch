@@ -32,7 +32,8 @@ public class UTTabPanel implements ActionListener
    {
       // set up logger
       LoggerManager.setFile("dbcommon", "uttabpanel.log", false);
-      LoggerManager.setConsoleVerbosity("dbcommon", Logger.DEBUG_VERBOSITY);
+      LoggerManager.setFile("dbgui", "uttabpanel.log");
+      LoggerManager.setConsoleVerbosity("dbgui", Logger.DEBUG_VERBOSITY);
       
       try
       {

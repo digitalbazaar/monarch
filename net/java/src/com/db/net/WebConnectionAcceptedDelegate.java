@@ -89,6 +89,6 @@ public class WebConnectionAcceptedDelegate
     */
    public Logger getLogger()
    {
-      return LoggerManager.getLogger("dbcommon");
+      return LoggerManager.getLogger("dbnet");
    }
 }

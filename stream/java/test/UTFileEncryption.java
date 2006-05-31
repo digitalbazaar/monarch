@@ -192,10 +192,10 @@ public class UTFileEncryption extends Thread
       System.out.println("------------------\n");
       
       // create common logger
-      LoggerManager.createLogger("bmcommon");
-      LoggerManager.setFile("bmcommon", "bmcommon.log", false);
+      LoggerManager.createLogger("dbstream");
+      LoggerManager.setFile("dbstream", "dbstrean.log", false);
       
-      LoggerManager.debug("bmcommon", "running file encryption test...");
+      LoggerManager.debug("dbstream", "running file encryption test...");
       
       System.out.println("Removing test files if they exist.");
       try

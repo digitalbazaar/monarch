@@ -407,7 +407,7 @@ public class ElementReader
       }
       else
       {
-         LoggerManager.warning("dbcommon", "element doesn't exist!");
+         LoggerManager.warning("dbxml", "element doesn't exist!");
       }
       
       return rval;

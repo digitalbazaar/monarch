@@ -336,7 +336,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
             Base64Coder encoder = new Base64Coder();
             mSignature = encoder.encode(sig);
             
-            LoggerManager.debug("dbcommon",
+            LoggerManager.debug("dbxml",
                   "BEGIN SIGN TEXT:" + mSignedText + ":END SIGN TEXT\n" +
                   "SIGNATURE: '" + mSignature + "'");
 
@@ -349,7 +349,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
          }
          catch(Exception e)
          {
-            LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(e));
+            LoggerManager.debug("dbxml", LoggerManager.getStackTrace(e));
          }
       }
 
@@ -384,7 +384,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
 
                   if(!mAlgorithm.startsWith("SHA1"))
                   {
-                     LoggerManager.debug("dbcommon",
+                     LoggerManager.debug("dbxml",
                                          "unknown signature algorithm!," +
                                          "algorithm=" + mAlgorithm);
                   }
@@ -393,7 +393,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
                   Base64Coder decoder = new Base64Coder();
                   byte[] sig = decoder.decode(mSignature);
                   
-                  LoggerManager.debug("dbcommon",
+                  LoggerManager.debug("dbxml",
                         "BEGIN VERIFY TEXT:" + contents + ":END VERIFY TEXT\n" +
                         "SIGNATURE: '" + mSignature + "'");
          
@@ -402,7 +402,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
                }
                catch(Exception e)
                {
-                  LoggerManager.debug("dbcommon",
+                  LoggerManager.debug("dbxml",
                         LoggerManager.getStackTrace(e));
                }
             }
@@ -442,7 +442,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
       }
       catch(Throwable t)
       {
-         LoggerManager.debug("dbcommon", Logger.getStackTrace(t));
+         LoggerManager.debug("dbxml", Logger.getStackTrace(t));
       }
       
       return rval;
@@ -655,19 +655,19 @@ public class SignableXmlEnvelope implements IXmlSerializer
       }
       catch(SAXParseException spe)
       {
-         LoggerManager.debug("dbcommon",
+         LoggerManager.debug("dbxml",
                              "SignableXMLEnvelope parsing error" +
                              ", line " + spe.getLineNumber() +
                              ", uri " + spe.getSystemId());
-         LoggerManager.debug("dbcommon", "   " + spe.getMessage());
+         LoggerManager.debug("dbxml", "   " + spe.getMessage());
          
-         LoggerManager.debug("dbcommon", "SXE string:\n" + xmlText);
+         LoggerManager.debug("dbxml", "SXE string:\n" + xmlText);
          
-         LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(spe));
+         LoggerManager.debug("dbxml", LoggerManager.getStackTrace(spe));
       }
       catch(Throwable t)
       {
-         LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(t));
+         LoggerManager.debug("dbxml", LoggerManager.getStackTrace(t));
       }
       
       return rval;

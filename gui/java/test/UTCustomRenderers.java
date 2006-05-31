@@ -44,7 +44,8 @@ public class UTCustomRenderers implements ActionListener
    {
       // set up logger
       LoggerManager.setFile("dbcommon", "utcustomerrenderers.log", false);
-      LoggerManager.setConsoleVerbosity("dbcommon", Logger.DEBUG_VERBOSITY);
+      LoggerManager.setFile("dbgui", "utcustomerrenderers.log");
+      LoggerManager.setConsoleVerbosity("dbgui", Logger.DEBUG_VERBOSITY);
       
       try
       {

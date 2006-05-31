@@ -557,6 +557,6 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
     */
    public Logger getLogger()
    {
-      return LoggerManager.getLogger("dbcommon");
+      return LoggerManager.getLogger("dbnet");
    }
 }

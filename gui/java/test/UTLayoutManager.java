@@ -42,7 +42,8 @@ public class UTLayoutManager
    {
       // set up logger
       LoggerManager.setFile("dbcommon", "utlayoutmanager.log", false);
-      LoggerManager.setConsoleVerbosity("dbcommon", Logger.DEBUG_VERBOSITY);
+      LoggerManager.setFile("dbgui", "utlayoutmanager.log");
+      LoggerManager.setConsoleVerbosity("dbgui", Logger.DEBUG_VERBOSITY);
       
       try
       {

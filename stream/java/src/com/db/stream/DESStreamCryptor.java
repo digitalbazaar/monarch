@@ -114,7 +114,7 @@ public class DESStreamCryptor extends StreamCryptor
          }
          catch(Exception e)
          {
-            LoggerManager.debug("dbcommon", LoggerManager.getStackTrace(e));
+            LoggerManager.debug("dbstream", LoggerManager.getStackTrace(e));
          }
       }
 

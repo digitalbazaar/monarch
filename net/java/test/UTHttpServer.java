@@ -16,6 +16,10 @@ public class UTHttpServer
          
          // set up logger
          LoggerManager.setFile("dbcommon", "ut-httpserver.log", false);
+         LoggerManager.setFile("dbcrypto", "ut-httpserver.log");
+         LoggerManager.setFile("dbxml", "ut-httpserver.log");
+         LoggerManager.setFile("dbstream", "ut-httpserver.log");
+         LoggerManager.setFile("dbnet", "ut-httpserver.log");
          //LoggerManager.setFileVerbosity("dbcommon", Logger.ERROR_VERBOSITY);
          
          int port = 9999;

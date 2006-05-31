@@ -315,6 +315,6 @@ public class WebConnectionWrapper implements WebConnection
     */
    public Logger getLogger()
    {
-      return LoggerManager.getLogger("dbcommon");
+      return LoggerManager.getLogger("dbnet");
    }
 }

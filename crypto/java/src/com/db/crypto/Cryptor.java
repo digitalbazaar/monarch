@@ -1016,6 +1016,6 @@ public class Cryptor
     */
    public static Logger getLogger()
    {
-      return LoggerManager.getLogger("dbcommon");
+      return LoggerManager.getLogger("dbcrypto");
    }
 }
