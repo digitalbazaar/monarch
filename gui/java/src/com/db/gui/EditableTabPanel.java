@@ -109,6 +109,11 @@ public class EditableTabPanel extends TabPanel
    public final static int ONLY_SELECTED_TAB_CLOSE_BUTTON_VISIBLE_POLICY = 2;
    
    /**
+    * A close button policy that shows no close buttons.
+    */
+   public final static int NO_CLOSE_BUTTONS_VISIBLE_POLICY = 4;
+   
+   /**
     * Creates a new editable tab panel.
     */
    public EditableTabPanel()
@@ -1151,6 +1156,25 @@ public class EditableTabPanel extends TabPanel
          {
             Component content = (Component)i.next();
             setTabCloseable(content, content == selected);
+            
+            // enable close button
+            JButton closeButton = getCloseButton(content);
+            if(closeButton != null)
+            {
+               closeButton.setEnabled(true);
+            }
+         }         
+      }
+      else if(policy == NO_CLOSE_BUTTONS_VISIBLE_POLICY)
+      {
+         mCloseButtonPolicy = policy;
+         
+         // mark all tabs uncloseable
+         Iterator i = getTabContentIterator();
+         while(i.hasNext())
+         {
+            Component content = (Component)i.next();
+            setTabCloseable(content, false);
             
             // enable close button
             JButton closeButton = getCloseButton(content);
