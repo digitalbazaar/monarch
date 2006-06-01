@@ -7,8 +7,12 @@
     description="Builds the entire Digital Bazaar Core source tree">
     <echo message="========== Building Digital Bazaar logging classes =========="/>
     <ant antfile="build.xml" dir="logging/java" target="build"/>
-    <echo message="========== Building Digital Bazaar common classes =========="/>
-    <ant antfile="build.xml" dir="common/java" target="build"/>
+    <echo message="========== Building Digital Bazaar util classes =========="/>
+    <ant antfile="build.xml" dir="util/java" target="build"/>
+    <echo message="========== Building Digital Bazaar event classes =========="/>
+    <ant antfile="build.xml" dir="event/java" target="build"/>
+    <echo message="========== Building Digital Bazaar data classes =========="/>
+    <ant antfile="build.xml" dir="data/java" target="build"/>
     <echo message="========== Building Digital Bazaar crypto classes =========="/>
     <ant antfile="build.xml" dir="crypto/java" target="build"/>
     <echo message="========== Building Digital Bazaar xml classes =========="/>
@@ -27,10 +31,22 @@
     description="Cleans the entire Digital Bazaar Core source tree">
     <echo message="========== Cleaning Digital Bazaar logging classes =========="/>
     <ant antfile="build.xml" dir="logging/java" target="clean"/>
-    <echo message="========== Cleaning Digital Bazaar common classes =========="/>
-    <ant antfile="build.xml" dir="common/java" target="clean"/>
+    <echo message="========== Cleaning Digital Bazaar util classes =========="/>
+    <ant antfile="build.xml" dir="util/java" target="clean"/>
+    <echo message="========== Cleaning Digital Bazaar event classes =========="/>
+    <ant antfile="build.xml" dir="event/java" target="clean"/>
+    <echo message="========== Cleaning Digital Bazaar data classes =========="/>
+    <ant antfile="build.xml" dir="data/java" target="clean"/>
+    <echo message="========== Cleaning Digital Bazaar crypto classes =========="/>
+    <ant antfile="build.xml" dir="crypto/java" target="clean"/>
+    <echo message="========== Cleaning Digital Bazaar xml classes =========="/>
+    <ant antfile="build.xml" dir="xml/java" target="clean"/>
+    <echo message="========== Cleaning Digital Bazaar stream classes =========="/>
+    <ant antfile="build.xml" dir="stream/java" target="clean"/>
     <echo message="========== Cleaning Digital Bazaar net classes =========="/>
     <ant antfile="build.xml" dir="net/java" target="clean"/>
+    <echo message="========== Cleaning Digital Bazaar gui classes =========="/>
+    <ant antfile="build.xml" dir="gui/java" target="clean"/>
     <echo message="========== Cleaning Digital Bazaar autoupdater classes =========="/>
     <ant antfile="build.xml" dir="autoupdater/java" target="clean"/>
     </target>

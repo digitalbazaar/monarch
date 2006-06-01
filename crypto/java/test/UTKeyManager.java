@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
  */
-import com.db.common.*;
+import com.db.util.*;
 import com.db.crypto.*;
 
 import java.security.InvalidKeyException;

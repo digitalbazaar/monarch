@@ -42,7 +42,7 @@ depends="build,run-ut-keymanager,run-ut-cryptor"
 		<java classname="UTKeyManager">
 			<classpath>
 				<pathelement location="${logging}/dist/dblogging.jar"/>
-				<pathelement location="${common}/dist/dbcommon.jar"/>
+				<pathelement location="${util}/dist/dbutil.jar"/>
 				<pathelement location="${dist}/dbcrypto.jar" />
 				<pathelement path="${java.class.path}"/>
 				<pathelement path="${test}"/>
@@ -62,7 +62,7 @@ depends="build,run-ut-keymanager,run-ut-cryptor"
 		<java classname="UTCryptor">
 			<classpath>
 				<pathelement location="${logging}/dist/dblogging.jar"/>
-				<pathelement location="${common}/dist/dbcommon.jar" />
+				<pathelement location="${util}/dist/dbutil.jar"/>
 				<pathelement location="${dist}/dbcrypto.jar" />
 				<pathelement path="${java.class.path}"/>
 				<pathelement path="${test}"/>

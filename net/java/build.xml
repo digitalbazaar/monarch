@@ -41,7 +41,7 @@
 		<java classname="UTHttpServer">
 			<classpath>
                                 <pathelement location="${logging}/dist/dblogging.jar"/>
-                                <pathelement location="${common}/dist/dbcommon.jar"/>
+                                <pathelement location="${util}/dist/dbutil.jar"/>
                                 <pathelement location="${crypto}/dist/dbcrypto.jar"/>
                                 <pathelement location="${xml}/dist/dbxml.jar"/>
                                 <pathelement location="${stream}/dist/dbstream.jar"/>

@@ -5,8 +5,8 @@ package com.db.net;
 
 import java.util.HashMap;
 
-import com.db.common.URLCoder;
 import com.db.logging.Logger;
+import com.db.util.UrlCoder;
 
 /**
  * An http (HyperText Transfer Protocol) web request header. An instance
@@ -330,7 +330,7 @@ public class HttpWebRequestHeader extends HttpHeader
                   // get the value
                   if(split.length >= 2)
                   {
-                     value = URLCoder.decode(split[1]);
+                     value = UrlCoder.decode(split[1]);
                   }
                   
                   // add the variable to the map

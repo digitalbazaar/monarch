@@ -42,7 +42,7 @@ depends="build,run-ut-envelope"
 		<java classname="UTSignableXmlEnvelope">
 			<classpath>
                                 <pathelement location="${logging}/dist/dblogging.jar"/>
-                                <pathelement location="${common}/dist/dbcommon.jar"/>
+                                <pathelement location="${util}/dist/dbutil.jar"/>
                                 <pathelement location="${crypto}/dist/dbcrypto.jar"/>
                                 <pathelement location="${dist}/dbxml.jar"/>
 				<pathelement path="${java.class.path}"/>

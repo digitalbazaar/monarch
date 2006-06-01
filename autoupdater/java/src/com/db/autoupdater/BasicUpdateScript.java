@@ -12,11 +12,11 @@ import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import com.db.common.EventDelegate;
-import com.db.common.MethodInvoker;
 import com.db.crypto.Cryptor;
+import com.db.event.EventDelegate;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.util.MethodInvoker;
 
 /**
  * A BasicUpdateScript is one particular implementation of UpdateScript for

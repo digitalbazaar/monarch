@@ -5,7 +5,7 @@ package com.db.autoupdater;
 
 import java.io.File;
 
-import com.db.common.EventObject;
+import com.db.event.EventObject;
 
 /**
  * This class stores information about an event that occurred during script

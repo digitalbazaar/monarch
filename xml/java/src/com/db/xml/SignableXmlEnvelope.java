@@ -3,11 +3,11 @@
  */
 package com.db.xml;
 
-import com.db.common.Base64Coder;
 import com.db.crypto.Cryptor;
 import com.db.crypto.KeyManager;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.util.Base64Coder;
 
 import java.io.StringReader;
 import java.security.PrivateKey;

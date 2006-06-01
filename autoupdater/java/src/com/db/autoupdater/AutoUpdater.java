@@ -6,12 +6,12 @@ package com.db.autoupdater;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import com.db.common.ConfigOptions;
-import com.db.common.EventDelegate;
-import com.db.common.EventObject;
-import com.db.common.MethodInvoker;
+import com.db.event.EventDelegate;
+import com.db.event.EventObject;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.util.ConfigOptions;
+import com.db.util.MethodInvoker;
 
 /**
  * An application automatic updater. Retrieves an update script from a

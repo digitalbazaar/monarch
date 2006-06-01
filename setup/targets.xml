@@ -4,7 +4,9 @@
   <path id="compile.classpath">
     <pathelement location="${build}/shared"/>
     <pathelement location="${dblogging.jar}"/>
-    <pathelement location="${dbcommon.jar}"/>
+    <pathelement location="${dbutil.jar}"/>
+    <pathelement location="${dbevent.jar}"/>
+    <pathelement location="${dbdata.jar}"/>
     <pathelement location="${dbcrypto.jar}"/>
     <pathelement location="${dbxml.jar}"/>
     <pathelement location="${dbstream.jar}"/>

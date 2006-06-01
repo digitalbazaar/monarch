@@ -5,7 +5,9 @@ debuglevel=lines,vars,source
 base=@DBCOREDIR@
 
 logging=${base}/logging/java
-common=${base}/common/java
+util=${base}/util/java
+event=${base}/event/java
+data=${base}/data/java
 crypto=${base}/crypto/java
 xml=${base}/xml/java
 stream=${base}/stream/java
@@ -19,7 +21,9 @@ test=${build}/test
 
 #db libraries
 dblogging.jar=${logging}/dist/dblogging.jar
-dbcommon.jar=${common}/dist/dbcommon.jar
+dbutil.jar=${util}/dist/dbutil.jar
+dbevent.jar=${event}/dist/dbevent.jar
+dbdata.jar=${data}/dist/dbdata.jar
 dbcrypto.jar=${crypto}/dist/dbcrypto.jar
 dbxml.jar=${xml}/dist/dbxml.jar
 dbstream.jar=${stream}/dist/dbstream.jar

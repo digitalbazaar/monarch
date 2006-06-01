@@ -3,7 +3,6 @@
  */
 import java.io.File;
 
-import com.db.common.*;
 import com.db.crypto.*;
 
 public class UTCryptor

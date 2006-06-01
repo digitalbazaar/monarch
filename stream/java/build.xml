@@ -41,10 +41,10 @@ depends="build,run-ut-fileencryption,run-ut-ismanager"
                 </javac>
                 <java classname="UTFileEncryption">
                         <classpath>
-				<pathelement location="${logging}/dist/dblogging.jar" />
-                                <pathelement location="${common}/dist/dbcommon.jar" />
-                                <pathelement location="${crypto}/dist/dbcrypto.jar" />
-                                <pathelement location="${dist}/dbstream.jar" />
+				<pathelement location="${logging}/dist/dblogging.jar"/>
+                                <pathelement location="${util}/dist/dbutil.jar"/>
+                                <pathelement location="${crypto}/dist/dbcrypto.jar"/>
+                                <pathelement location="${dist}/dbstream.jar"/>
                                 <pathelement path="${java.class.path}"/>
                                 <pathelement path="${test}"/>
                         </classpath>
@@ -62,10 +62,10 @@ depends="build,run-ut-fileencryption,run-ut-ismanager"
 		</javac>
 		<java classname="UTInputStreamManager">
 			<classpath>
-				<pathelement location="${logging}/dist/dblogging.jar" />
-				<pathelement location="${common}/dist/dbcommon.jar" />
-                                <pathelement location="${crypto}/dist/dbcrypto.jar" />
-                                <pathelement location="${dist}/dbstream.jar" />
+				<pathelement location="${logging}/dist/dblogging.jar"/>
+				<pathelement location="${util}/dist/dbutil.jar"/>
+                                <pathelement location="${crypto}/dist/dbcrypto.jar"/>
+                                <pathelement location="${dist}/dbstream.jar"/>
 				<pathelement path="${java.class.path}"/>
 				<pathelement path="${test}"/>
 			</classpath>

@@ -3,9 +3,9 @@
  */
 package com.db.crypto;
 
-import com.db.common.Base64Coder;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.util.Base64Coder;
 
 import java.security.PrivateKey;
 

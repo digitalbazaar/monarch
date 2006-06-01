@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
-import com.db.common.MethodInvoker;
+import com.db.util.MethodInvoker;
 import com.db.logging.*;
 import com.db.net.*;
 
