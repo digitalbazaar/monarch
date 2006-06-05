@@ -33,13 +33,17 @@ public class FixedJProgressBar extends JProgressBar
     */
    public void setString(String string)
    {
-      // must call setString(false) on the event queue when
-      // using BasicProgressBarUI or else it may throw an exception
-      // or just not work at all
-      Object[] params = new Object[]{string};
-      MethodInvoker mi =
-         new MethodInvoker(this, "setString", params);
-      EventQueue.invokeLater(mi);
+      if((getString() != null && getString().equals(string)) ||
+         getString() == null && string != null)
+      {
+         // must call setString(false) on the event queue when
+         // using BasicProgressBarUI or else it may throw an exception
+         // or just not work at all
+         Object[] params = new Object[]{string};
+         MethodInvoker mi =
+            new MethodInvoker(this, "setString", params);
+         EventQueue.invokeLater(mi);
+      }
    }
    
    /**
@@ -49,12 +53,15 @@ public class FixedJProgressBar extends JProgressBar
     */
    public void setIndeterminate(boolean enable)
    {
-      // must call setIndeterminate(false) on the event queue when
-      // using BasicProgressBarUI or else it may throw an exception
-      // or just not work at all
-      Object[] params = new Object[]{new Boolean(enable)};
-      MethodInvoker mi =
-         new MethodInvoker(this, "setIndeterminate", params);
-      EventQueue.invokeLater(mi);
+      if(isIndeterminate() != enable)
+      {
+         // must call setIndeterminate(false) on the event queue when
+         // using BasicProgressBarUI or else it may throw an exception
+         // or just not work at all
+         Object[] params = new Object[]{new Boolean(enable)};
+         MethodInvoker mi =
+            new MethodInvoker(this, "setIndeterminate", params);
+         EventQueue.invokeLater(mi);
+      }
    }
 }
