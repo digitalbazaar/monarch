@@ -5,8 +5,6 @@ package com.db.gui;
 
 import java.awt.EventQueue;
 
-import javax.swing.JProgressBar;
-
 import com.db.util.MethodInvoker;
 
 /**
@@ -16,7 +14,7 @@ import com.db.util.MethodInvoker;
  * 
  * @author Dave Longley
  */
-public class FixedJProgressBar extends JProgressBar
+public class FixedJProgressBar extends CustomTextProgressBar
 {
    
    /**
@@ -33,8 +31,11 @@ public class FixedJProgressBar extends JProgressBar
     */
    public void setString(String string)
    {
-      if((getString() != null && getString().equals(string)) ||
-         getString() == null && string != null)
+      if(EventQueue.isDispatchThread())
+      {
+         super.setString(string);
+      }
+      else
       {
          // must call setString(false) on the event queue when
          // using BasicProgressBarUI or else it may throw an exception
@@ -55,13 +56,20 @@ public class FixedJProgressBar extends JProgressBar
    {
       if(isIndeterminate() != enable)
       {
-         // must call setIndeterminate(false) on the event queue when
-         // using BasicProgressBarUI or else it may throw an exception
-         // or just not work at all
-         Object[] params = new Object[]{new Boolean(enable)};
-         MethodInvoker mi =
-            new MethodInvoker(this, "setIndeterminate", params);
-         EventQueue.invokeLater(mi);
+         if(EventQueue.isDispatchThread())
+         {
+            super.setIndeterminate(enable);
+         }
+         else
+         {
+            // must call setIndeterminate(false) on the event queue when
+            // using BasicProgressBarUI or else it may throw an exception
+            // or just not work at all
+            Object[] params = new Object[]{new Boolean(enable)};
+            MethodInvoker mi =
+               new MethodInvoker(this, "setIndeterminate", params);
+            EventQueue.invokeLater(mi);
+         }
       }
    }
 }
