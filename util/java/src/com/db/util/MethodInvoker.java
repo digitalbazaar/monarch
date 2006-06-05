@@ -33,6 +33,11 @@ public class MethodInvoker extends Thread
    protected Object[] mParams;
    
    /**
+    * The declaring class of the method.
+    */
+   protected Class mDeclaringClass;
+   
+   /**
     * A custom lock object to synchronize on.
     */
    protected Object mLockObject;
@@ -61,7 +66,7 @@ public class MethodInvoker extends Thread
    protected MethodInvokerListener mListener;
    
    /**
-    * Creates a new MethodInvoker thread.
+    * Creates a new MethodInvoker.
     * 
     * @param agent the object that the method will be invoked on.
     * @param methodName the name of the method to invoke.
@@ -69,9 +74,25 @@ public class MethodInvoker extends Thread
     */
    public MethodInvoker(Object agent, String methodName, Object[] params)
    {
+      this(agent, methodName, params, null);
+   }
+
+   /**
+    * Creates a new MethodInvoker.
+    * 
+    * @param agent the object that the method will be invoked on.
+    * @param methodName the name of the method to invoke.
+    * @param params the parameters for the method.
+    * @param declaringClass the class that declares the method, or null,
+    *                       to use the agent's class.
+    */
+   public MethodInvoker(
+      Object agent, String methodName, Object[] params, Class declaringClass)
+   {
       mAgent = agent;
       mMethodName = methodName;
       mParams = params;
+      mDeclaringClass = declaringClass;
       
       if(mParams == null)
       {
@@ -155,29 +176,151 @@ public class MethodInvoker extends Thread
    }
    
    /**
-    * Gets the name of the agent.
+    * Gets the method class.
     * 
     * @param agent the agent.
+    * @param declaringClass the declaring class.
     * 
-    * @return the name of the agent.
+    * @return the method class.
     */
-   protected String getAgentName(Object agent)
+   protected Class getMethodClass(Object agent, Class declaringClass)
    {
-      String agentName = "null";
+      Class methodClass = null;
       
-      if(mAgent != null)
+      if(agent != null)
       {
-         if(mAgent instanceof Class)
+         // get the method class: if a declaring class was specified use it,
+         // if not then determine if the agent is a class -- if so, use it,
+         // if not, use the agent's class
+         if(declaringClass != null)
          {
-            agentName = ((Class)mAgent).getName();
+            methodClass = declaringClass;
+         }
+         else if(agent instanceof Class)
+         {
+            methodClass = (Class)agent;
          }
          else
          {
-            agentName = mAgent.getClass().getName();
+            methodClass = agent.getClass();
          }
       }
       
-      return agentName;
+      return methodClass;
+   }
+   
+   /**
+    * Gets the distance (in number of inherited classes) between
+    * the passed base class and the passed derived class. 
+    * 
+    * @param baseClass the base class.
+    * @param derivedClass the derivedClass.
+    * 
+    * @return the distance (in number of inherited classes) between
+    *         the passed base class and the passed derived class.
+    */
+   protected int getInheritanceDistance(Class baseClass, Class derivedClass)
+   {
+      int rval = 0;
+      
+      if(derivedClass != null && baseClass != derivedClass)
+      {
+         rval = 1 + getInheritanceDistance(
+            baseClass, derivedClass.getSuperclass());
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Determines the distance (in number of inherited classes) between
+    * parameter types and the passed parameters.
+    * 
+    * A return value of 0 indicates that the passed parameter types match
+    * the classes of the passed parameters exactly without having to go up the
+    * inheritance chain.
+    * 
+    * A return value of -1 indicates that the passed parameter types do
+    * not match at all.
+    * 
+    * @param types the parameter types to check.
+    * @param params the parameters to match.
+    * 
+    * @return the distance (in number of inherited classes) between
+    *         method parameter types and the passed parameters as an
+    *         integer between 0 and Integer.MAX_VALUE or -1 indicating
+    *         that the parameter types do not match at all.
+    */
+   protected int getParameterDistance(Class[] types, Object[] params)
+   {
+      int rval = -1;
+      
+      // for determining if parameter types match
+      boolean typesMatch = true;
+      
+      // for storing total parameter distance
+      int distance = 0;
+      
+      // iterate through all parameters
+      for(int i = 0; typesMatch && i < types.length; i++)
+      {
+         // get the parameter class
+         Class paramClass = null;
+         if(params[i] != null)
+         {
+            paramClass = params[i].getClass();
+         }
+         
+         // determine if the parameter types match
+         // ensure the parameter is an appropriate type
+         if(!types[i].isInstance(params[i]))
+         {
+            // see if the type is a primative
+            if(types[i].isPrimitive())
+            {
+               // FIXME: some primitives work that aren't exact
+               // matches (i.e. an int passed as a long)
+               
+               if(paramClass != null)
+               {
+                  // determine if types match
+                  String typePrimitive = "java.lang." + types[i].getName();
+                  String paramPrimitive = paramClass.getName().toLowerCase();
+                  typesMatch = paramPrimitive.equals(typePrimitive);
+               }
+               else
+               {
+                  // types do not match because param class is null
+                  // and types[i] is a primative
+                  typesMatch = false;
+               }
+            }
+         }
+         
+         // if types match, determine parameter distance
+         if(typesMatch)
+         {
+            // FIXME: some primitives work that aren't exact
+            // matches (i.e. an int passed as a long)
+
+            // if parameter type is a primitive then distance is zero,
+            // otherwise we may need to add distance
+            if(!types[i].isPrimitive())
+            {
+               // add the inheritance distance between the type class
+               // and the parameter class
+               distance += getInheritanceDistance(types[i], paramClass); 
+            }
+         }
+      }
+      
+      // if types match, return distance
+      if(typesMatch)
+      {
+         rval = distance;
+      }
+      
+      return rval;
    }
    
    /**
@@ -186,80 +329,47 @@ public class MethodInvoker extends Thread
     * @param agent the object to invoke the method on.
     * @param methodName the name of the method to invoke.
     * @param params the parameters for the method.
+    * @param declaringClass the class that declares the method, or null, to
+    *                       use the agent's class.
     * 
     * @return the method to invoke or null if no such method exists.
     */
-   protected Method findMethod(Object agent, String methodName, Object[] params)
+   protected Method findMethod(
+      Object agent, String methodName, Object[] params, Class declaringClass)
    {
       Method rval = null;
       
       // get signature and agent name
       String signature = getSignature(methodName, params);
-      String agentName = getAgentName(agent);
+      Class methodClass = getMethodClass(agent, declaringClass);
       getLogger().debug(
             "searching for method: '" + signature +
-            "' on agent '" + agentName + "'");
+            "' in class '" + methodClass.getName() + "'");
       
-      // get the methods for the agent, if the agent is a class obtain
-      // then directly, if not, then get the class of the agent and
-      // then obtain them
-      Method[] methods = new Method[0];
-      if(agent instanceof Class)
-      {
-         methods = ((Class)agent).getMethods();
-      }
-      else
-      {
-         methods = agent.getClass().getMethods();
-      }
+      // for storing the minimum parameter distance (in # of inherited classes)
+      int minDistance = -1;
       
+      // get methods
+      Method[] methods = methodClass.getMethods();
       for(int i = 0; i < methods.length; i++)
       {
-         Method m = methods[i];
-         if(m.getName().equals(methodName))
+         // see if the method name matches
+         if(methods[i].getName().equals(methodName))
          {
-            Class[] types = m.getParameterTypes();
-            int numParams = types.length;
-            if(params.length == numParams)
+            // see if the parameter count matches
+            Class[] types = methods[i].getParameterTypes();
+            if(types.length == params.length)
             {
-               boolean typesMatch = true;
-               for(int n = 0; n < numParams; n++)
-               {
-                  // ensure the parameter is the appropriate type
-                  if(!types[n].isInstance(params[n]))
-                  {
-                     // assume failure unless a primitive is being used
-                     typesMatch = false;
-                     
-                     if(types[n].isPrimitive())
-                     {
-                        // determine if the param type matches the primitive
-                        String paramClass =
-                           params[n].getClass().getName().toLowerCase();
-                        String primitive =
-                           "java.lang." + types[n].getName();
-                        
-                        typesMatch = paramClass.equals(primitive);
-                     }
-                     else if(params[n] == null)
-                     {
-                        typesMatch = true;
-                     }
-                     
-                     // break out if types do not match
-                     if(!typesMatch)
-                     {
-                        break;
-                     }
-                  }
-               }
+               // get the parameter distance
+               int distance = getParameterDistance(types, params);
                
-               // if the parameter types match, proceed
-               if(typesMatch)
+               // determine if the distance is the new minimum
+               if(minDistance == -1 ||
+                  (distance != -1 && distance < minDistance))
                {
-                  // method found
-                  rval = m;
-                  break;
+                  // update new minimum distance and the method
+                  minDistance = distance;
+                  rval = methods[i];
                }
             }
          }
@@ -283,16 +393,23 @@ public class MethodInvoker extends Thread
       
       // get signature string and agent name
       String signature = getSignature(method);
-      String agentName = getAgentName(agent);
+      Class methodClass = getMethodClass(agent, mDeclaringClass);
       
       try
       {
          getLogger().debug(
             "invoking method: '" + signature +
-            "' on agent '" + agentName + "'");
+            "' from class '" + methodClass.getName() + "'");
          
          // invoke method
-         rval = method.invoke(agent, params);
+         if(mDeclaringClass != null)
+         {
+            rval = method.invoke(agent, params);
+         }
+         else
+         {
+            rval = method.invoke(agent, params);
+         }
       }
       catch(Throwable t)
       {
@@ -303,7 +420,7 @@ public class MethodInvoker extends Thread
          
          getLogger().error(
             "an exception occurred while invoking method: '" + signature +
-            "' on agent: '" + agentName + "'," +
+            "' from class: '" + methodClass.getName() + "'," +
             "\nexception= " + t +
             "\ncause= " + t.getCause() +
             "\ntrace= " + Logger.getStackTrace(t));
@@ -381,7 +498,7 @@ public class MethodInvoker extends Thread
    public void run()
    {
       // find the method
-      Method method = findMethod(mAgent, mMethodName, mParams);
+      Method method = findMethod(mAgent, mMethodName, mParams, mDeclaringClass);
       
       if(method != null)
       {
@@ -421,10 +538,11 @@ public class MethodInvoker extends Thread
       {
          // get signature and agent name
          String signature = getSignature(mMethodName, mParams);
-         String agentName = getAgentName(mAgent);
+         Class methodClass = getMethodClass(mAgent, mDeclaringClass);
          getLogger().error(
             "could not invoke method: '" + signature +
-            "' on agent: '" + agentName + "', " + "method not recognized.");
+            "' from class: '" + methodClass.getName() +
+            "', method not recognized.");
       }
    }
    
