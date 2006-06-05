@@ -33,11 +33,6 @@ public class MethodInvoker extends Thread
    protected Object[] mParams;
    
    /**
-    * The declaring class of the method.
-    */
-   protected Class mDeclaringClass;
-   
-   /**
     * A custom lock object to synchronize on.
     */
    protected Object mLockObject;
@@ -74,25 +69,9 @@ public class MethodInvoker extends Thread
     */
    public MethodInvoker(Object agent, String methodName, Object[] params)
    {
-      this(agent, methodName, params, null);
-   }
-
-   /**
-    * Creates a new MethodInvoker.
-    * 
-    * @param agent the object that the method will be invoked on.
-    * @param methodName the name of the method to invoke.
-    * @param params the parameters for the method.
-    * @param declaringClass the class that declares the method, or null,
-    *                       to use the agent's class.
-    */
-   public MethodInvoker(
-      Object agent, String methodName, Object[] params, Class declaringClass)
-   {
       mAgent = agent;
       mMethodName = methodName;
       mParams = params;
-      mDeclaringClass = declaringClass;
       
       if(mParams == null)
       {
@@ -179,24 +158,18 @@ public class MethodInvoker extends Thread
     * Gets the method class.
     * 
     * @param agent the agent.
-    * @param declaringClass the declaring class.
     * 
     * @return the method class.
     */
-   protected Class getMethodClass(Object agent, Class declaringClass)
+   protected Class getMethodClass(Object agent)
    {
       Class methodClass = null;
       
       if(agent != null)
       {
-         // get the method class: if a declaring class was specified use it,
-         // if not then determine if the agent is a class -- if so, use it,
+         // get the method class: if the agent is a class -- if so, use it,
          // if not, use the agent's class
-         if(declaringClass != null)
-         {
-            methodClass = declaringClass;
-         }
-         else if(agent instanceof Class)
+         if(agent instanceof Class)
          {
             methodClass = (Class)agent;
          }
@@ -329,19 +302,16 @@ public class MethodInvoker extends Thread
     * @param agent the object to invoke the method on.
     * @param methodName the name of the method to invoke.
     * @param params the parameters for the method.
-    * @param declaringClass the class that declares the method, or null, to
-    *                       use the agent's class.
     * 
     * @return the method to invoke or null if no such method exists.
     */
-   protected Method findMethod(
-      Object agent, String methodName, Object[] params, Class declaringClass)
+   protected Method findMethod(Object agent, String methodName, Object[] params)
    {
       Method rval = null;
       
       // get signature and agent name
       String signature = getSignature(methodName, params);
-      Class methodClass = getMethodClass(agent, declaringClass);
+      Class methodClass = getMethodClass(agent);
       getLogger().debug(
             "searching for method: '" + signature +
             "' in class '" + methodClass.getName() + "'");
@@ -393,7 +363,7 @@ public class MethodInvoker extends Thread
       
       // get signature string and agent name
       String signature = getSignature(method);
-      Class methodClass = getMethodClass(agent, mDeclaringClass);
+      Class methodClass = getMethodClass(agent);
       
       try
       {
@@ -402,14 +372,7 @@ public class MethodInvoker extends Thread
             "' from class '" + methodClass.getName() + "'");
          
          // invoke method
-         if(mDeclaringClass != null)
-         {
-            rval = method.invoke(agent, params);
-         }
-         else
-         {
-            rval = method.invoke(agent, params);
-         }
+         rval = method.invoke(agent, params);
       }
       catch(Throwable t)
       {
@@ -498,7 +461,7 @@ public class MethodInvoker extends Thread
    public void run()
    {
       // find the method
-      Method method = findMethod(mAgent, mMethodName, mParams, mDeclaringClass);
+      Method method = findMethod(mAgent, mMethodName, mParams);
       
       if(method != null)
       {
@@ -538,7 +501,7 @@ public class MethodInvoker extends Thread
       {
          // get signature and agent name
          String signature = getSignature(mMethodName, mParams);
-         Class methodClass = getMethodClass(mAgent, mDeclaringClass);
+         Class methodClass = getMethodClass(mAgent);
          getLogger().error(
             "could not invoke method: '" + signature +
             "' from class: '" + methodClass.getName() +
