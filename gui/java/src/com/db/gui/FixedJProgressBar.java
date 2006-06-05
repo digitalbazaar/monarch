@@ -54,22 +54,19 @@ public class FixedJProgressBar extends CustomTextProgressBar
     */
    public void setIndeterminate(boolean enable)
    {
-      if(isIndeterminate() != enable)
+      if(EventQueue.isDispatchThread())
       {
-         if(EventQueue.isDispatchThread())
-         {
-            super.setIndeterminate(enable);
-         }
-         else
-         {
-            // must call setIndeterminate(false) on the event queue when
-            // using BasicProgressBarUI or else it may throw an exception
-            // or just not work at all
-            Object[] params = new Object[]{new Boolean(enable)};
-            MethodInvoker mi =
-               new MethodInvoker(this, "setIndeterminate", params);
-            EventQueue.invokeLater(mi);
-         }
+         super.setIndeterminate(enable);
+      }
+      else
+      {
+         // must call setIndeterminate(false) on the event queue when
+         // using BasicProgressBarUI or else it may throw an exception
+         // or just not work at all
+         Object[] params = new Object[]{new Boolean(enable)};
+         MethodInvoker mi =
+            new MethodInvoker(this, "setIndeterminate", params);
+         EventQueue.invokeLater(mi);
       }
    }
 }
