@@ -84,6 +84,12 @@ public class MethodInvoker extends Thread
       mMessage = null;
       mListener = null;
       mCallbackMethodInvoker = null;
+      
+      // set thread name
+      String signature = getSignature(mMethodName, mParams);
+      Class methodClass = getMethodClass(mAgent);
+      setName("MethodInvoker for method '" + signature +
+              "' in class '" + methodClass.getName() + "'");
    }
    
    /**
