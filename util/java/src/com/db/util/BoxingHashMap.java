@@ -2126,6 +2126,141 @@ public class BoxingHashMap extends HashMap
    }   
    
    /**
+    * Removes the mapping for this key from this map if present.
+    *
+    * @param  key key whose mapping is to be removed from the map.
+    * 
+    * @return previous value associated with specified key, or <tt>null</tt>
+    *         if there was no mapping for key.  A <tt>null</tt> return can
+    *         also indicate that the map previously associated <tt>null</tt>
+    *         with the specified key.
+    */
+   public Object remove(byte key)   
+   {
+      return super.remove(new Byte(key));
+   }
+   
+   /**
+    * Removes the mapping for this key from this map if present.
+    *
+    * @param  key key whose mapping is to be removed from the map.
+    * 
+    * @return previous value associated with specified key, or <tt>null</tt>
+    *         if there was no mapping for key.  A <tt>null</tt> return can
+    *         also indicate that the map previously associated <tt>null</tt>
+    *         with the specified key.
+    */
+   public Object remove(short key)   
+   {
+      return super.remove(new Short(key));
+   }
+   
+   /**
+    * Removes the mapping for this key from this map if present.
+    *
+    * @param  key key whose mapping is to be removed from the map.
+    * 
+    * @return previous value associated with specified key, or <tt>null</tt>
+    *         if there was no mapping for key.  A <tt>null</tt> return can
+    *         also indicate that the map previously associated <tt>null</tt>
+    *         with the specified key.
+    */
+   public Object remove(int key)   
+   {
+      return super.remove(new Integer(key));
+   }
+   
+   /**
+    * Removes the mapping for this key from this map if present.
+    *
+    * @param  key key whose mapping is to be removed from the map.
+    * 
+    * @return previous value associated with specified key, or <tt>null</tt>
+    *         if there was no mapping for key.  A <tt>null</tt> return can
+    *         also indicate that the map previously associated <tt>null</tt>
+    *         with the specified key.
+    */
+   public Object remove(long key)   
+   {
+      return super.remove(new Long(key));
+   }
+   
+   /**
+    * Removes the mapping for this key from this map if present.
+    *
+    * @param  key key whose mapping is to be removed from the map.
+    * 
+    * @return previous value associated with specified key, or <tt>null</tt>
+    *         if there was no mapping for key.  A <tt>null</tt> return can
+    *         also indicate that the map previously associated <tt>null</tt>
+    *         with the specified key.
+    */
+   public Object remove(float key)   
+   {
+      return super.remove(new Float(key));
+   }
+   
+   /**
+    * Removes the mapping for this key from this map if present.
+    *
+    * @param  key key whose mapping is to be removed from the map.
+    * 
+    * @return previous value associated with specified key, or <tt>null</tt>
+    *         if there was no mapping for key.  A <tt>null</tt> return can
+    *         also indicate that the map previously associated <tt>null</tt>
+    *         with the specified key.
+    */
+   public Object remove(double key)   
+   {
+      return super.remove(new Double(key));
+   }
+   
+   /**
+    * Removes the mapping for this key from this map if present.
+    *
+    * @param  key key whose mapping is to be removed from the map.
+    * 
+    * @return previous value associated with specified key, or <tt>null</tt>
+    *         if there was no mapping for key.  A <tt>null</tt> return can
+    *         also indicate that the map previously associated <tt>null</tt>
+    *         with the specified key.
+    */
+   public Object remove(boolean key)   
+   {
+      return super.remove(new Boolean(key));
+   }
+   
+   /**
+    * Removes the mapping for this key from this map if present.
+    *
+    * @param  key key whose mapping is to be removed from the map.
+    * 
+    * @return previous value associated with specified key, or <tt>null</tt>
+    *         if there was no mapping for key.  A <tt>null</tt> return can
+    *         also indicate that the map previously associated <tt>null</tt>
+    *         with the specified key.
+    */
+   public Object remove(char key)   
+   {
+      return super.remove(new Character(key));
+   }
+   
+   /**
+    * Removes the mapping for this key from this map if present.
+    *
+    * @param  key key whose mapping is to be removed from the map.
+    * 
+    * @return previous value associated with specified key, or <tt>null</tt>
+    *         if there was no mapping for key.  A <tt>null</tt> return can
+    *         also indicate that the map previously associated <tt>null</tt>
+    *         with the specified key.
+    */
+   public Object remove(String key)   
+   {
+      return super.remove(key);
+   }
+
+   /**
     * Gets a value from a key in this map.
     * 
     * The value will be converted into a String if possible. If the value
