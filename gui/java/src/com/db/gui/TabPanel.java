@@ -3452,6 +3452,12 @@ public class TabPanel extends JPanel
                   if(isSelected)
                   {
                      background = getSelectedColor();
+                     
+                     // stop flashing if appropriate
+                     if(stopWhenSelected())
+                     {
+                        stopFlashing();
+                     }
                   }
                   else
                   {
