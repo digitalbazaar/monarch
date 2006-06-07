@@ -20,6 +20,11 @@ import javax.swing.table.TableModel;
 public class JComponentTable extends JTable
 {
    /**
+    * Whether or not this table is editable.
+    */
+   protected boolean mEditable;
+   
+   /**
     * Creates a new JComponentTable using the passed JComponentTableModel.
     * 
     * @param jctm the JComponentTableModel to use.
@@ -27,6 +32,8 @@ public class JComponentTable extends JTable
    public JComponentTable(JComponentTableModel jctm)
    {
       super(jctm);
+      
+      setEditable(true);
       
       setupTableHeader();
       
@@ -70,6 +77,60 @@ public class JComponentTable extends JTable
          JComponentTableModel jctm = (JComponentTableModel)dataModel;
          jctm.setScrollResizingOn(this, true);
       }
+   }
+   
+   /**
+    * Sets whether or not this table is editable.
+    * 
+    * @param editable true to make this table editable, false not to.
+    */
+   public void setEditable(boolean editable)
+   {
+      mEditable = editable;
+   }
+   
+   /**
+    * Returns whether or not this table is editable.
+    * 
+    * @return true if this table is editable, false if not. 
+    */
+   public boolean isEditable()
+   {
+      return mEditable;
+   }
+   
+   /**
+    * Returns true if the cell at <code>row</code> and <code>column</code>
+    * is editable. Otherwise, invoking <code>setValueAt</code> on the cell
+    * will have no effect.
+    * <p>
+    * <b>Note</b>: The column is specified in the table view's display
+    *              order, and not in the <code>TableModel</code>'s column
+    *              order. This is an important distinction because as the
+    *              user rearranges the columns in the table,
+    *              the column at a given index in the view will change.
+    *              Meanwhile the user's actions never affect the model's
+    *              column ordering.
+    *
+    * @param row the row whose value is to be queried.
+    * @param column the column whose value is to be queried.
+    * 
+    * @return true if the cell is editable.
+    */
+   public boolean isCellEditable(int row, int column)   
+   {
+      boolean rval = false;
+      
+      if(isEditable())
+      {
+         rval = super.isCellEditable(row, column);
+      }
+      else
+      {
+         rval = false;
+      }
+      
+      return rval;
    }
    
    /**
