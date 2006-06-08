@@ -296,6 +296,8 @@ public class ConfigOptions
    /**
     * Returns whether or not a configuration key exists.
     * 
+    * Same as hasKey().
+    * 
     * @param key the key of the key-value pair.
     * 
     * @return true if the key exists, false if not.
@@ -303,6 +305,20 @@ public class ConfigOptions
    public boolean keyExists(String key)
    {
       return (mProperties.getProperty(key) != null);
+   }
+   
+   /**
+    * Returns whether or not a configuration key exists.
+    * 
+    * Same as keyExists().
+    * 
+    * @param key the key of the key-value pair.
+    * 
+    * @return true if the key exists, false if not.
+    */
+   public boolean hasKey(String key)
+   {
+      return keyExists(key);
    }
    
    /**
