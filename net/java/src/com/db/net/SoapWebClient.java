@@ -60,6 +60,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
     * 
     * @param result the result string from the soap method.
     * @param resultType the appropriate type of the result.
+    * 
     * @return the result converted to the appropriate type.
     */
    protected Object convertResult(String result, Class resultType)
@@ -86,6 +87,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
     * 
     * @param hwc the http web connection to send the http web request over.
     * @param body the soap xml body in bytes.
+    * 
     * @return the http web request to use to send the soap message.
     */
    protected HttpWebRequest createSoapHttpWebRequest(HttpWebConnection hwc,
@@ -120,6 +122,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
     * Creates an http web request for requesting a wsdl.
     * 
     * @param hwc the http web connection to send the http web request over.
+    * 
     * @return the http web request to use to request the wsdl.
     */
    protected HttpWebRequest createWsdlHttpWebRequest(HttpWebConnection hwc)
@@ -145,6 +148,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
     * 
     * @param xml the soap xml string to get the soap method result from.
     * @param resultType the type for the result. 
+    * 
     * @return the soap method result.
     */
    protected Object getSoapMethodResult(String xml, Class resultType)
@@ -189,9 +193,12 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
     * 
     * @param method the soap method for the request message.
     * @param params the parameters for the soap method.
+    * @param wsdlParser the wsdl parser to use to create the soap message.
+    * 
     * @return the soap request or null if the method was invalid.
     */
-   public SoapMessage createSoapRequestMessage(String method, Vector params)
+   public SoapMessage createSoapRequestMessage(
+      String method, Vector params, WsdlParser wsdlParser)
    {
       SoapMessage sm = null;
       
@@ -200,16 +207,10 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          params = new Vector();
       }
 
-      // get wsdl parser
-      if(mWsdlParser == null)
-      {
-         getWsdl();
-      }      
-      
-      if(mWsdlParser != null)
+      if(wsdlParser != null)
       {
          // get the param map
-         HashMap paramMap = mWsdlParser.getParamMap(method, params);
+         HashMap paramMap = wsdlParser.getParamMap(method, params);
          if(paramMap != null)
          {
             // create the soap message
@@ -230,9 +231,12 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
     *
     * @param hwc the http web connection to call the soap method over.
     * @param sm the soap request message for the method.
+    * @param wsdlParser the wsdl parser to use.
+    * 
     * @return the return value from the soap method.
     */
-   public Object callSoapMethod(HttpWebConnection hwc, SoapMessage sm)
+   public Object callSoapMethod(
+      HttpWebConnection hwc, SoapMessage sm, WsdlParser wsdlParser)
    {
       Object rval = null;
       
@@ -311,7 +315,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
                }
                
                // get soap method result type
-               Class resultType = mWsdlParser.getReturnType(sm.getMethod());
+               Class resultType = wsdlParser.getReturnType(sm.getMethod());
                
                // get the soap method result
                rval = getSoapMethodResult(xml, resultType);
@@ -344,75 +348,87 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
     * 
     * @param method the name of the remote method.
     * @param params the parameters for the remote method.
+    * 
     * @return the return value from the remote method or null. 
     */
    public Object callRemoteMethod(String method, Vector params)
    {
       Object rval = null;
       
-      // create a soap request message
-      SoapMessage sm = createSoapRequestMessage(method, params);
-      if(sm != null)
+      // get wsdl parser
+      WsdlParser wsdlParser = getWsdlParser();
+      if(wsdlParser != null)
       {
-         // connect to the soap server
-         HttpWebConnection hwc = (HttpWebConnection)connect();
-         if(hwc != null)
+         // create a soap request message
+         SoapMessage sm = createSoapRequestMessage(method, params, wsdlParser);
+         if(sm != null)
          {
-            try
+            // connect to the soap server
+            HttpWebConnection hwc = (HttpWebConnection)connect();
+            if(hwc != null)
             {
-               // call the soap method
-               rval = callSoapMethod(hwc, sm);
-               
-               // disconnect web connection
-               hwc.disconnect();
-               
-               getLogger().debug("soap web client web connection closed.");
+               try
+               {
+                  // call the soap method
+                  rval = callSoapMethod(hwc, sm, wsdlParser);
+                  
+                  // disconnect web connection
+                  hwc.disconnect();
+                  
+                  getLogger().debug("soap web client web connection closed.");
+               }
+               catch(Throwable t)
+               {
+                  getLogger().error("could not execute soap method!");
+                  getLogger().debug(Logger.getStackTrace(t));
+               }
             }
-            catch(Throwable t)
+            else
             {
-               getLogger().error("could not execute soap method!");
-               getLogger().debug(Logger.getStackTrace(t));
+               getLogger().error("soap web client could not establish " +
+                                 "connection!");
             }
          }
          else
          {
-            getLogger().error("soap web client could not establish " +
-                              "connection!");
+            getLogger().error("could not call remote method, " +
+                              "soap method invalid: \"" + method + "\"");
          }
-      }
-      else
-      {
-         getLogger().error("could not call remote method, " +
-                           "soap method invalid: \"" + method + "\"");
       }
       
       return rval;
    }
    
    /**
-    * Gets the wsdl for a web service. Uses the internally set wsdl url.
+    * Gets the wsdl parser for a web service. Uses the internally set wsdl url.
     * 
-    * @return true if successfully got wsdl, false if not.
+    * @return the wsdl parser the wsdl was successfully parsed, null otherwise.
     */
-   public boolean getWsdl()
+   public WsdlParser getWsdlParser()
    {
-      return getWsdl(mWsdlPath);
+      if(mWsdlParser == null)
+      {
+         mWsdlParser = getWsdlParser(mWsdlPath);
+      }
+      
+      return mWsdlParser;
    }
    
    /**
-    * Gets the wsdl for a web service.
+    * Gets the wsdl parser for a web service.
     * 
     * @param wsdlUrl the url for the wsdl.
-    * @return true if successfully got wsdl, false if not.
+    * 
+    * @return the wsdl parser the wsdl was successfully parsed, null otherwise.
     */
-   public boolean getWsdl(String wsdlUrl)
+   public synchronized WsdlParser getWsdlParser(String wsdlUrl)
    {
-      boolean rval = false;
+      WsdlParser rval = null;
+
+      // remove old wsdl parser
+      mWsdlParser = null;
       
       long st = new Date().getTime();
-      
-      mWsdlParser = null;
-      mWsdlPath = wsdlUrl;
       
       // sent http get request
       try
@@ -462,12 +478,19 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
             if(body != null &&
                contentType != null && contentType.indexOf("text/xml") != -1)
             {
-               mWsdlParser = new WsdlParser();
-               rval = mWsdlParser.parseWsdl(new String(body));
+               WsdlParser wsdlParser = new WsdlParser();
+               if(wsdlParser.parseWsdl(new String(body)))
+               {
+                  rval = wsdlParser;
+                  
+                  // save parser and path
+                  mWsdlParser = wsdlParser;
+                  mWsdlPath = wsdlUrl;
+               }
             }
          }
          
-         if(rval)
+         if(rval != null)
          {
             long et = new Date().getTime();
             long timespan = et - st;
@@ -475,7 +498,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          }
          else
          {
-            getLogger().debug("could not convert received wsdl from xml!");
+            getLogger().error("could not convert received wsdl from xml!");
          }
       }
       catch(Throwable t)
@@ -492,7 +515,8 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
     * @param endpointAddress the endpoint address for this client.
     * @param wsdlUrl the wsdl url.
     */
-   public void setEndpointAddress(String endpointAddress, String wsdlUrl)
+   public synchronized void setEndpointAddress(
+      String endpointAddress, String wsdlUrl)
    {
       if(!mEndpointAddress.equals(endpointAddress))
       {
@@ -500,7 +524,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          parseEndpointAddress();
       }
       
-      if(!mWsdlPath.equals(wsdlUrl))
+      if(!mWsdlPath.equalsIgnoreCase(wsdlUrl))
       {
          mWsdlPath = wsdlUrl;
          mWsdlParser = null;
