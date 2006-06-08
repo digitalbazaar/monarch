@@ -294,6 +294,18 @@ public class ConfigOptions
    }
    
    /**
+    * Returns whether or not a configuration key exists.
+    * 
+    * @param key the key of the key-value pair.
+    * 
+    * @return true if the key exists, false if not.
+    */
+   public boolean keyExists(String key)
+   {
+      return (mProperties.getProperty(key) != null);
+   }
+   
+   /**
     * Gets a configuration value as a string.
     * 
     * @param key the key of the key-value pair.
