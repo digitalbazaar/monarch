@@ -69,6 +69,13 @@ public class MethodInvoker extends Thread
     */
    public MethodInvoker(Object agent, String methodName, Object[] params)
    {
+      // throw an exception if the agent is null
+      if(agent == null)
+      {
+         throw new IllegalArgumentException(
+            "Agent for MethodInvoker must not be null.");
+      }
+
       // throw an exception if the method name is null or a blank string
       if(methodName == null || methodName.equals(""))
       {
