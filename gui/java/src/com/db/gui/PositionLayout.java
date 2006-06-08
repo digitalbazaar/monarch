@@ -13,9 +13,6 @@ import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.swing.JComponent;
-import javax.swing.border.Border;
-
 /**
  * A position layout is a layout that uses relative positions to layout
  * components inside of a container. 
@@ -299,19 +296,6 @@ public class PositionLayout implements LayoutManager2
          size.height += (insets.top + insets.bottom);
       }
       
-      // add borders for container
-      if(target instanceof JComponent)
-      {
-         JComponent container = (JComponent)target;
-         Border border = container.getBorder();
-         if(border != null)
-         {
-            insets = border.getBorderInsets(container);
-            size.width += (insets.left + insets.right);
-            size.height += (insets.top + insets.bottom);
-         }
-      }
-      
       return size;
    }
 
@@ -323,8 +307,8 @@ public class PositionLayout implements LayoutManager2
     */
    public Dimension minimumLayoutSize(Container target)
    {
-      // use zero
-      return new Dimension(0, 0);
+      // use preferred size
+      return preferredLayoutSize(target);
    }
    
    /** 
