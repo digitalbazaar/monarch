@@ -218,7 +218,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
             sm.setSerializerOptions(SoapMessage.SOAP_REQUEST);
             sm.setMethod(method);
             sm.setParams(paramMap);
-            sm.setNamespace(getNamespace());
+            sm.setNamespace(wsdlParser.getNamespace());
          }
       }
       
@@ -529,26 +529,6 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          mWsdlPath = wsdlUrl;
          mWsdlParser = null;
       }
-   }
-   
-   /**
-    * Sets the namespace for the web service.
-    * 
-    * @param namespace the namespace for the web service.
-    */
-   public void setNamespace(String namespace)
-   {
-      mWsdlParser.setNamespace(namespace);
-   }
-
-   /**
-    * Gets the namespace for the web service.
-    * 
-    * @return the namespace for the web service.
-    */
-   public String getNamespace()
-   {
-      return mWsdlParser.getNamespace();
    }
 
    /**
