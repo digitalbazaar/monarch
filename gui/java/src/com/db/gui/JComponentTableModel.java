@@ -366,6 +366,13 @@ public abstract class JComponentTableModel extends AbstractTableModel
    public void insertValueAt(Object obj, int row)
    {
       mRowData.insertElementAt(obj, row);
+      
+      if(obj instanceof ChangeReporter)
+      {
+         ChangeReporter cr = (ChangeReporter)obj;
+         cr.addChangeListener(this);
+      }
+      
       fireTableRowsInserted(row, row);
    }
    
@@ -386,6 +393,13 @@ public abstract class JComponentTableModel extends AbstractTableModel
       if(row <= mRowData.size())
       {
          mRowData.insertElementAt(obj, row);
+         
+         if(obj instanceof ChangeReporter)
+         {
+            ChangeReporter cr = (ChangeReporter)obj;
+            cr.addChangeListener(this);
+         }
+         
          fireTableRowsInserted(row, row);
       }
    }
@@ -444,7 +458,14 @@ public abstract class JComponentTableModel extends AbstractTableModel
       
       if(mRowData.add(obj))
       {
+         if(obj instanceof ChangeReporter)
+         {
+            ChangeReporter cr = (ChangeReporter)obj;
+            cr.addChangeListener(this);
+         }
+         
          rval = true;
+         
          fireTableDataChanged();
       }
       
