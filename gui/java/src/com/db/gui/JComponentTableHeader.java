@@ -8,6 +8,8 @@ import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.Iterator;
+import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -15,6 +17,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
@@ -25,8 +28,12 @@ import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
+
+import com.db.event.EventDelegate;
+import com.db.event.EventObject;
 
 /**
  * A header for a JCompontentTable. Allows column sorting and header
@@ -44,6 +51,11 @@ public class JComponentTableHeader extends JTableHeader
    protected JComponentHeaderRenderer mHeaderRenderer;
    
    /**
+    * An event delegate for when a column header has been pressed. 
+    */
+   protected EventDelegate mColumnHeaderPressedEventDelegate;
+   
+   /**
     * Creates a new JComponentTableHeader using the passed
     * table column model.
     * 
@@ -58,6 +70,23 @@ public class JComponentTableHeader extends JTableHeader
       
       addMouseListener(this);
       addMouseMotionListener(this);
+      
+      // create the column header pressed event delegate
+      mColumnHeaderPressedEventDelegate = new EventDelegate();
+   }
+   
+   /**
+    * Fires a column header pressed event.
+    * 
+    * @param column the column that was pressed.
+    */
+   public void fireColumnHeaderPressed(int column)
+   {
+      EventObject event = new EventObject("columnHeaderPressed");
+      event.setData("column", column);
+      event.setDataKeyMessage(
+         "column", "The column (int) whose header was pressed.");
+      getColumnHeaderPressedEventDelegate().fireEvent(event);
    }
    
    /** 
@@ -86,6 +115,7 @@ public class JComponentTableHeader extends JTableHeader
    {
       int column = columnAtPoint(e.getPoint());
       mHeaderRenderer.clickSortButton(column);
+      fireColumnHeaderPressed(column);
       repaint();
    }
 
@@ -153,6 +183,16 @@ public class JComponentTableHeader extends JTableHeader
       int column = columnAtPoint(e.getPoint());
       mHeaderRenderer.setMouseOverColumn(column);
       repaint();
+   }
+   
+   /**
+    * Gets the column header pressed event delegate.
+    * 
+    * @return the column header pressed event delegate.
+    */
+   public EventDelegate getColumnHeaderPressedEventDelegate()
+   {
+      return mColumnHeaderPressedEventDelegate;
    }
    
    /**
@@ -389,12 +429,53 @@ public class JComponentTableHeader extends JTableHeader
             if(tm instanceof SortableTableModel)
             {
                // get the model column index
-               column =
-                  table.getColumnModel().getColumn(column).getModelIndex();
+               TableColumn tableColumn =
+                  table.getColumnModel().getColumn(column); 
+               column = tableColumn.getModelIndex();
 
+               // get list selection model
+               ListSelectionModel lsm = table.getSelectionModel();
+
+               // get the table's selected rows
+               Vector selection = null;
+               JComponentTableModel jctm = null;
+               if(tm instanceof JComponentTableModel)
+               {
+                  jctm = (JComponentTableModel)tm;
+                  
+                  selection = new Vector();
+                  for(int row = 0; row < jctm.getRowCount(); row++)
+                  {
+                     if(lsm.isSelectedIndex(row))
+                     {
+                        selection.add(jctm.getValueAt(row));
+                     }
+                  }
+               }
+               
                // sort the column
                SortableTableModel stm = (SortableTableModel)tm;
                stm.sortColumn(column, mSortAscending);
+               
+               // set the new selection
+               if(selection != null)
+               {
+                  // clear old selection
+                  lsm.clearSelection();
+
+                  // add new selection intervals
+                  for(int row = 0; row < jctm.getRowCount(); row++)
+                  {
+                     Iterator i = selection.iterator();
+                     while(i.hasNext())
+                     {
+                        if(jctm.getValueAt(row) == i.next())
+                        {
+                           lsm.addSelectionInterval(row, row);
+                        }
+                     }
+                  }
+               }
             }
          }
       }

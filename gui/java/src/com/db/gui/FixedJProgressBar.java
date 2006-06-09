@@ -16,7 +16,6 @@ import com.db.util.MethodInvoker;
  */
 public class FixedJProgressBar extends CustomTextProgressBar
 {
-   
    /**
     * Creates a FixedJProgressBar.
     */

@@ -176,8 +176,8 @@ public abstract class JComponentTableModel extends AbstractTableModel
          //LoggerManager.debug("bmcommon", LoggerManager.getStackTrace(t));
       }
       
-      LoggerManager.debug("bmcommon",
-            "col=" + col + ",preferred width=" + rval);
+      LoggerManager.debug("dbgui",
+         "col=" + col + ",preferred width=" + rval);
       
       return rval;
    }
@@ -625,7 +625,7 @@ public abstract class JComponentTableModel extends AbstractTableModel
       // sort the row data
       ColumnSorter sorter = new ColumnSorter();
       sorter.sort(this, column, ascending);
-
+      
       if(getRowCount() > 0)
       {
          // all rows have been updated
@@ -710,8 +710,6 @@ public abstract class JComponentTableModel extends AbstractTableModel
        * Whether or not to use ascending sorting.
        */
       protected boolean mAscending;
-      
-      /**
       
       /**
        * Sorts a row data in a given column.
