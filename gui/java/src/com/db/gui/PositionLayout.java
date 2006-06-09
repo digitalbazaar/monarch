@@ -307,8 +307,8 @@ public class PositionLayout implements LayoutManager2
     */
    public Dimension minimumLayoutSize(Container target)
    {
-      // use preferred size
-      return preferredLayoutSize(target);
+      // use minimum size
+      return new Dimension(0, 0);
    }
    
    /** 
