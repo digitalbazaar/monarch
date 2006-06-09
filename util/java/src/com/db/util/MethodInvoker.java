@@ -28,6 +28,11 @@ public class MethodInvoker extends Thread
    protected String mMethodName;
    
    /**
+    * The method to invoke.
+    */
+   protected Method mMethod;
+   
+   /**
     * The method parameters.
     */
    protected Object[] mParams;
@@ -64,10 +69,53 @@ public class MethodInvoker extends Thread
     * Creates a new MethodInvoker.
     * 
     * @param agent the object that the method will be invoked on.
+    * @param method the method to invoke.
+    * @param params the parameters for the method.
+    */
+   public MethodInvoker(Object agent, Method method, Object[] params)
+   {
+      // throw an exception if the method is null
+      if(method == null)
+      {
+         throw new IllegalArgumentException(
+            "Method for MethodInvoker must not be null.");
+      }
+      
+      // initialize
+      initialize(agent, method.getName(), method, params);
+   }
+
+   /**
+    * Creates a new MethodInvoker.
+    * 
+    * @param agent the object that the method will be invoked on.
     * @param methodName the name of the method to invoke.
     * @param params the parameters for the method.
     */
    public MethodInvoker(Object agent, String methodName, Object[] params)
+   {
+      // throw an exception if the method name is null or a blank string
+      if(methodName == null || methodName.equals(""))
+      {
+         throw new IllegalArgumentException(
+            "Method name for MethodInvoker must not be null " +
+            "or a blank string.");
+      }
+
+      // initialize
+      initialize(agent, methodName, null, params);
+   }
+   
+   /**
+    * Initializes this method invoker. 
+    * 
+    * @param agent the object that the method will be invoked on.
+    * @param methodName the name of the method to invoke.
+    * @param method the method to invoke (can be null).
+    * @param params the parameters for the method.
+    */
+   protected void initialize(
+      Object agent, String methodName, Method method, Object[] params)
    {
       // throw an exception if the agent is null
       if(agent == null)
@@ -75,18 +123,10 @@ public class MethodInvoker extends Thread
          throw new IllegalArgumentException(
             "Agent for MethodInvoker must not be null.");
       }
-
-      // throw an exception if the method name is null or a blank string
-      if(methodName == null || methodName.equals(""))
-      {
-         throw new IllegalArgumentException(
-            "Method name for MethodInvoker must not be null " +
-            "or a blank string. The specified method name was '" +
-            methodName + "'");
-      }
       
       mAgent = agent;
       mMethodName = methodName;
+      mMethod = method;
       mParams = params;
       
       if(mParams == null)
@@ -109,6 +149,128 @@ public class MethodInvoker extends Thread
    }
    
    /**
+    * Invokes the method.
+    * 
+    * @param method the method to invoke.
+    * @param agent the object to invoke the method on.
+    * @param params the parameters for the method.
+    * 
+    * @return the return value from the method.
+    */
+   protected Object invokeMethod(Method method, Object agent, Object[] params) 
+   {
+      Object rval = null;
+      
+      // get signature string and agent name
+      String signature = getSignature(method);
+      Class methodClass = getMethodClass(agent);
+      
+      try
+      {
+         getLogger().debug(
+            "invoking method: '" + signature +
+            "' from class '" + methodClass.getName() + "'");
+         
+         // invoke method
+         rval = method.invoke(agent, params);
+      }
+      catch(Throwable t)
+      {
+         if(mMessage != null)
+         {
+            mMessage.setMethodException(t);
+         }
+         
+         getLogger().error(
+            "an exception occurred while invoking method: '" + signature +
+            "' from class: '" + methodClass.getName() + "'," +
+            "\nexception= " + t +
+            "\ncause= " + t.getCause() +
+            "\ntrace= " + Logger.getStackTrace(t));
+         
+         getLogger().debug(Logger.getStackTrace(t));
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Sends the method invoked message to the listener, if one has been set.
+    * 
+    * @param rval the return value from the method that was invoked.
+    */
+   protected void sendMessage(Object rval)
+   {
+      // if listener or callback invoker is set, send message back
+      if(mListener != null || mCallbackMethodInvoker != null)
+      {
+         Object lockObject = mListener;
+         if(lockObject == null)
+         {
+            lockObject = mCallbackMethodInvoker;
+         }
+         
+         // lock on lock object (listener or callback method invoker) 
+         synchronized(lockObject)
+         {
+            try
+            {
+               // populate message object
+               mMessage.setMethodAgent(mAgent);
+               mMessage.setMethodName(mMethodName);
+               mMessage.setMethod(mMethod);
+               mMessage.setMethodParams(mParams);
+               mMessage.setMethodReturnValue(rval);
+               
+               // send message to listener or use callback method invoker
+               if(mListener != null)
+               {
+                  mListener.methodInvoked(mMessage);
+               }
+               else
+               {
+                  // execute callback
+                  mCallbackMethodInvoker.execute();
+               }
+            }
+            catch(Throwable t)
+            {
+               String message = mMessage.getMessage();
+               
+               // if text message is blank, use method name
+               if(mMessage.getMessage().equals(""))
+               {
+                  message = mMessage.getMethodName();
+               }
+               
+               getLogger().error(
+                  "an exception occurred while handling message: '" +
+                  message + "'," +
+                  "\nexception= " + t +
+                  "\ncause= " + t.getCause() +
+                  "\ntrace= " + Logger.getStackTrace(t));
+               getLogger().debug(Logger.getStackTrace(t));
+            }
+         }
+      }
+   }
+
+   /**
+    * Gets the method to invoke.
+    * 
+    * @return the method to invoke.
+    */
+   protected Method getMethod()
+   {
+      if(mMethod == null)
+      {
+         mMethod = findMethod(mAgent, mMethodName, mParams);
+      }
+      
+      return mMethod;
+   }
+   
+   /**
     * Gets a method signature string.
     * 
     * @param methodName the method name.
@@ -116,7 +278,7 @@ public class MethodInvoker extends Thread
     * 
     * @return the signature string.
     */
-   protected String getSignature(String methodName, Object[] params)
+   public static String getSignature(String methodName, Object[] params)
    {
       // build signature string
       String signature = methodName + "(";
@@ -150,7 +312,7 @@ public class MethodInvoker extends Thread
     * 
     * @return the signature string.
     */
-   protected String getSignature(Method method)
+   public static String getSignature(Method method)
    {
       // build signature string
       String signature = "null";
@@ -183,7 +345,7 @@ public class MethodInvoker extends Thread
     * 
     * @return the method class.
     */
-   protected Class getMethodClass(Object agent)
+   public static Class getMethodClass(Object agent)
    {
       Class methodClass = null;
       
@@ -214,7 +376,7 @@ public class MethodInvoker extends Thread
     * @return the distance (in number of inherited classes) between
     *         the passed base class and the passed derived class.
     */
-   protected int getInheritanceDistance(Class baseClass, Class derivedClass)
+   public static int getInheritanceDistance(Class baseClass, Class derivedClass)
    {
       int rval = 0;
       
@@ -246,7 +408,7 @@ public class MethodInvoker extends Thread
     *         integer between 0 and Integer.MAX_VALUE or -1 indicating
     *         that the parameter types do not match at all.
     */
-   protected int getParameterDistance(Class[] types, Object[] params)
+   public static int getParameterDistance(Class[] types, Object[] params)
    {
       int rval = -1;
       
@@ -327,7 +489,8 @@ public class MethodInvoker extends Thread
     * 
     * @return the method to invoke or null if no such method exists.
     */
-   protected Method findMethod(Object agent, String methodName, Object[] params)
+   public static Method findMethod(
+      Object agent, String methodName, Object[] params)
    {
       Method rval = null;
       
@@ -335,8 +498,8 @@ public class MethodInvoker extends Thread
       String signature = getSignature(methodName, params);
       Class methodClass = getMethodClass(agent);
       getLogger().debug(
-            "searching for method: '" + signature +
-            "' in class '" + methodClass.getName() + "'");
+         "searching for method: '" + signature +
+         "' in class '" + methodClass.getName() + "'");
       
       // for storing the minimum parameter distance (in # of inherited classes)
       int minDistance = -1;
@@ -371,119 +534,13 @@ public class MethodInvoker extends Thread
    }
    
    /**
-    * Invokes the method.
-    * 
-    * @param method the method to invoke.
-    * @param agent the object to invoke the method on.
-    * @param params the parameters for the method.
-    * 
-    * @return the return value from the method.
-    */
-   protected Object invokeMethod(Method method, Object agent, Object[] params) 
-   {
-      Object rval = null;
-      
-      // get signature string and agent name
-      String signature = getSignature(method);
-      Class methodClass = getMethodClass(agent);
-      
-      try
-      {
-         getLogger().debug(
-            "invoking method: '" + signature +
-            "' from class '" + methodClass.getName() + "'");
-         
-         // invoke method
-         rval = method.invoke(agent, params);
-      }
-      catch(Throwable t)
-      {
-         if(mMessage != null)
-         {
-            mMessage.setMethodException(t);
-         }
-         
-         getLogger().error(
-            "an exception occurred while invoking method: '" + signature +
-            "' from class: '" + methodClass.getName() + "'," +
-            "\nexception= " + t +
-            "\ncause= " + t.getCause() +
-            "\ntrace= " + Logger.getStackTrace(t));
-         
-         getLogger().debug(Logger.getStackTrace(t));
-      }
-      
-      return rval;
-   }
-   
-   /**
-    * Sends the method invoked message to the listener, if one has been set.
-    * 
-    * @param rval the return value from the method that was invoked.
-    */
-   protected void sendMessage(Object rval)
-   {
-      // if listener or callback invoker is set, send message back
-      if(mListener != null || mCallbackMethodInvoker != null)
-      {
-         Object lockObject = mListener;
-         if(lockObject == null)
-         {
-            lockObject = mCallbackMethodInvoker;
-         }
-         
-         // lock on lock object (listener or callback method invoker) 
-         synchronized(lockObject)
-         {
-            try
-            {
-               // populate message object
-               mMessage.setMethodAgent(mAgent);
-               mMessage.setMethodName(mMethodName);
-               mMessage.setMethodParams(mParams);
-               mMessage.setMethodReturnValue(rval);
-               
-               // send message to listener or use callback method invoker
-               if(mListener != null)
-               {
-                  mListener.methodInvoked(mMessage);
-               }
-               else
-               {
-                  // execute callback
-                  mCallbackMethodInvoker.execute();
-               }
-            }
-            catch(Throwable t)
-            {
-               String message = mMessage.getMessage();
-               
-               // if text message is blank, use method name
-               if(mMessage.getMessage().equals(""))
-               {
-                  message = mMessage.getMethodName();
-               }
-               
-               getLogger().error(
-                  "an exception occurred while handling message: '" +
-                  message + "'," +
-                  "\nexception= " + t +
-                  "\ncause= " + t.getCause() +
-                  "\ntrace= " + Logger.getStackTrace(t));
-               getLogger().debug(Logger.getStackTrace(t));
-            }
-         }
-      }
-   }
-   
-   /**
     * Invokes the method and sends a message when the method completes,
     * if appropriate.
     */
    public void run()
    {
-      // find the method
-      Method method = findMethod(mAgent, mMethodName, mParams);
+      // get the method to invoke
+      Method method = getMethod();
       
       if(method != null)
       {
@@ -804,7 +861,7 @@ public class MethodInvoker extends Thread
     *
     * @return the logger.
     */
-   public Logger getLogger()
+   public static Logger getLogger()
    {
       return LoggerManager.getLogger("dbutil");
    }

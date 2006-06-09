@@ -3,6 +3,8 @@
  */
 package com.db.util;
 
+import java.lang.reflect.Method;
+
 /**
  * A MethodInvokedMessage object is an object that contains a text message
  * from an object that used a MethodInvoker to invoke a method. It also
@@ -26,6 +28,11 @@ public class MethodInvokedMessage
     * The name of the method that was invoked.
     */
    protected String mMethodName;
+   
+   /**
+    * The method that was invoked.
+    */
+   protected Method mMethod;
    
    /**
     * The parameters of the method that was invoked.
@@ -129,6 +136,27 @@ public class MethodInvokedMessage
    public String getMethodName()
    {
       return mMethodName;
+   }
+   
+   /**
+    * Sets the method that was invoked. This value will be set by the
+    * MethodInvoker that uses this message object.
+    * 
+    * @param method the method that was invoked.
+    */
+   public void setMethod(Method method)
+   {
+      mMethod = method;
+   }
+   
+   /**
+    * Gets the method that was invoked.
+    * 
+    * @return the method that was invoked.
+    */
+   public Method getMethod()
+   {
+      return mMethod;
    }
    
    /**
