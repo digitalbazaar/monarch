@@ -20,7 +20,7 @@ public interface TabPanelListener
    public void tabAdded(Component content);
    
    /**
-    * Called when a new tab is remove from a tab panel.
+    * Called when a tab is removed from a tab panel.
     * 
     * @param content the content component that was removed from the tab panel.
     */
