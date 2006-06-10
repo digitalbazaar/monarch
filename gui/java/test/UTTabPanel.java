@@ -1,11 +1,13 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
-import com.db.gui.TabPanel;
 import com.db.gui.EditableTabPanel;
+import com.db.gui.TabPanel;
+import com.db.gui.TabPanelListener;
 import com.db.logging.*;
 
 //import java.awt.Dimension;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -20,7 +22,7 @@ import javax.swing.UIManager;
  * 
  * @author Dave Longley
  */
-public class UTTabPanel implements ActionListener
+public class UTTabPanel implements ActionListener, TabPanelListener
 {
    public static EditableTabPanel mTabPanel;
    //public static TabPanel mTabPanel;
@@ -52,6 +54,9 @@ public class UTTabPanel implements ActionListener
       //mTabPanel = new TabPanel();
       mTabPanel = new EditableTabPanel();
       //mTabPanel.setTabSelectionPolicy(TabPanel.SELECT_NEXT_TAB_POLICY);
+      
+      // add listener
+      mTabPanel.addTabPanelListener(new UTTabPanel());
       
       //JLabel tab0 = new JLabel("index0");
       mTab0 = new JButton("tab0");
@@ -255,5 +260,37 @@ public class UTTabPanel implements ActionListener
       {
          LoggerManager.debug("bmcommon", "Tab2 button pressed!");
       }
+   }
+   
+   /**
+    * Called when a new tab is added to a tab panel.
+    * 
+    * @param content the content component that was added to the tab panel.
+    */
+   public void tabAdded(Component content)
+   {
+      System.out.println("Tab added.");
+   }
+   
+   /**
+    * Called when a tab is removed from a tab panel.
+    * 
+    * @param content the content component that was removed from the tab panel.
+    */
+   public void tabRemoved(Component content)
+   {
+      System.out.println("Tab removed.");
+   }
+   
+   /**
+    * Called when the tab selection changes in a tab panel.
+    * 
+    * @param oldSelection the old tab selection (can be null).
+    * @param newSelection the new tab selection.
+    */
+   public void tabSelectionChanged(Component oldSelection,
+                                   Component newSelection)   
+   {
+      System.out.println("Tab selection changed.");
    }
 }

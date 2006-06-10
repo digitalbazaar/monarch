@@ -1896,22 +1896,11 @@ public class TabPanel extends JPanel
          // get the tab area
          Component tabArea = getTabArea(content);
 
-         // get the tab content index
-         int index = getTabContentIndex(content);
-         
          // remove the tab area component
          if(removeTabArea(tabArea))
          {
             // remove the content
             rval = removeTabContent(content);
-            
-            // set selection if this tab was the selected one
-            Component selected = getSelected();
-            if(selected == content)
-            {
-               // set the new selection based on the tab selection policy
-               setSelected(getNextTabSelection(index));
-            }
          }
       }
       
@@ -2001,8 +1990,19 @@ public class TabPanel extends JPanel
     */
    public void removeTab(Component content)
    {
+      // get the tab content index
+      int index = getTabContentIndex(content);
+      
       if(removeTabAreaAndContent(content))
       {
+         // set selection if this tab was the selected one
+         Component selected = getSelected();
+         if(selected == content)
+         {
+            // set the new selection based on the tab selection policy
+            setSelected(getNextTabSelection(index));
+         }
+         
          // revalidate, repaint
          invalidate();
          validate();
@@ -2261,7 +2261,10 @@ public class TabPanel extends JPanel
          scrollToVisibleContent(content);
          
          // fire selected event
-         fireTabSelectionChanged(oldSelection, content);
+         if(oldSelection != content)
+         {
+            fireTabSelectionChanged(oldSelection, content);
+         }
       }
       else if(oldSelection == content)
       {
