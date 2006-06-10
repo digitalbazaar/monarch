@@ -452,6 +452,12 @@ public class MethodInvoker extends Thread
                   typesMatch = false;
                }
             }
+            else if(paramClass != null)
+            {
+               // types do not match because types[i] is not a primitive
+               // and param class is not null
+               typesMatch = false;
+            }
          }
          
          // if types match, determine parameter distance
@@ -519,8 +525,8 @@ public class MethodInvoker extends Thread
                int distance = getParameterDistance(types, params);
                
                // determine if the distance is the new minimum
-               if(minDistance == -1 ||
-                  (distance != -1 && distance < minDistance))
+               if(distance != -1 &&
+                  (distance < minDistance || minDistance == -1))
                {
                   // update new minimum distance and the method
                   minDistance = distance;
