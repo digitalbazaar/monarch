@@ -1447,11 +1447,14 @@ public class TabPanel extends JPanel
     */
    protected synchronized void updateSelectedTabOrder(Component content)
    {
-      // remove the passed tab from the selected tabs list
-      removeTabFromSelectedTabOrder(content);
-      
-      // append the selected tab to the selected tabs list
-      mSelectedTabs.add(content);
+      if(content != null)
+      {
+         // remove the passed tab from the selected tabs list
+         removeTabFromSelectedTabOrder(content);
+         
+         // append the selected tab to the selected tabs list
+         mSelectedTabs.add(content);
+      }
    }
    
    /**
@@ -1551,49 +1554,52 @@ public class TabPanel extends JPanel
    {
       boolean rval = false;
       
-      // if no selection, choose "no selection" content
+      String id = null;
+
+      // if no selection, user "no selection" content id
       if(content == null)
       {
          rval = true;
-         content = mNoSelectionContent;
+         id = getContentParentId(mNoSelectionContent);
       }
       else
       {
-         String id = getContentParentId(content);
-         if(id != null)
-         {
-            // get the old selection
-            Component oldSelected = getSelected();
-            
-            rval = true;
+         id = getContentParentId(content);
+      }
+      
+      if(id != null)
+      {
+         // get the old selection
+         Component oldSelected = getSelected();
+         
+         rval = true;
 
-            // save the new selection
-            mSelectedContent = content;
-               
-            // update selected tab content order
-            updateSelectedTabOrder(content);
-               
-            // set the old selected back to unselected color
-            if(oldSelected != null)
-            {
-               Component tabArea = getTabArea(oldSelected);
-               if(tabArea != null)
-               {
-                  tabArea.getParent().setBackground(getUnselectedColor());
-               }
-            }
-               
-            // set the new selection to the selected color
-            Component tabArea = getSelectedTabArea();
+         // save the new selection
+         mSelectedContent = content;
+            
+         // update selected tab content order
+         updateSelectedTabOrder(content);
+            
+         // set the old selected back to unselected color
+         if(oldSelected != null)
+         {
+            Component tabArea = getTabArea(oldSelected);
             if(tabArea != null)
             {
-               tabArea.getParent().setBackground(getSelectedColor());
+               tabArea.getParent().setBackground(getUnselectedColor());
             }
-               
-            // show the new selection
-            CardLayout cl = getTabContentPanelLayout();
-            cl.show(getTabContentPanel(), id);
          }
+            
+         // set the new selection to the selected color
+         Component tabArea = getSelectedTabArea();
+         if(tabArea != null)
+         {
+            tabArea.getParent().setBackground(getSelectedColor());
+         }
+            
+         // show the new selection
+         CardLayout cl = getTabContentPanelLayout();
+         cl.show(getTabContentPanel(), id);
       }
       
       return rval;
