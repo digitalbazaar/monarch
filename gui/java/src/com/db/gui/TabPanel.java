@@ -1554,43 +1554,46 @@ public class TabPanel extends JPanel
       // if no selection, choose "no selection" content
       if(content == null)
       {
+         rval = true;
          content = mNoSelectionContent;
       }
-      
-      String id = getContentParentId(content);
-      if(id != null)
+      else
       {
-         // get the old selection
-         Component oldSelected = getSelected();
-         
-         rval = true;
-
-         // save the new selection
-         mSelectedContent = content;
-            
-         // update selected tab content order
-         updateSelectedTabOrder(content);
-            
-         // set the old selected back to unselected color
-         if(oldSelected != null)
+         String id = getContentParentId(content);
+         if(id != null)
          {
-            Component tabArea = getTabArea(oldSelected);
+            // get the old selection
+            Component oldSelected = getSelected();
+            
+            rval = true;
+
+            // save the new selection
+            mSelectedContent = content;
+               
+            // update selected tab content order
+            updateSelectedTabOrder(content);
+               
+            // set the old selected back to unselected color
+            if(oldSelected != null)
+            {
+               Component tabArea = getTabArea(oldSelected);
+               if(tabArea != null)
+               {
+                  tabArea.getParent().setBackground(getUnselectedColor());
+               }
+            }
+               
+            // set the new selection to the selected color
+            Component tabArea = getSelectedTabArea();
             if(tabArea != null)
             {
-               tabArea.getParent().setBackground(getUnselectedColor());
+               tabArea.getParent().setBackground(getSelectedColor());
             }
+               
+            // show the new selection
+            CardLayout cl = getTabContentPanelLayout();
+            cl.show(getTabContentPanel(), id);
          }
-            
-         // set the new selection to the selected color
-         Component tabArea = getSelectedTabArea();
-         if(tabArea != null)
-         {
-            tabArea.getParent().setBackground(getSelectedColor());
-         }
-            
-         // show the new selection
-         CardLayout cl = getTabContentPanelLayout();
-         cl.show(getTabContentPanel(), id);
       }
       
       return rval;
