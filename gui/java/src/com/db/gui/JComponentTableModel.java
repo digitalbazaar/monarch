@@ -500,10 +500,17 @@ public abstract class JComponentTableModel extends AbstractTableModel
    public void removeRows(int[] rows)
    {
       boolean changed = false;
+      
+      Vector objects = new Vector();
       for(int i = 0; i < rows.length; i++)
       {
-         Object obj = getValueAt(rows[i]);
-         if(mRowData.remove(obj))
+         objects.add(getValueAt(rows[i]));
+      }
+
+      Iterator i = objects.iterator();
+      while(i.hasNext())
+      {
+         if(mRowData.remove(i.next()))
          {
             changed = true;
          }
