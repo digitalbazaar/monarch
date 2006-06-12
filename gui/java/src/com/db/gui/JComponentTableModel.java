@@ -493,6 +493,29 @@ public abstract class JComponentTableModel extends AbstractTableModel
    }
    
    /**
+    * Removes the passed rows from the table.
+    * 
+    * @param rows the rows to remove.
+    */
+   public void removeRows(int[] rows)
+   {
+      boolean changed = false;
+      for(int i = 0; i < rows.length; i++)
+      {
+         Object obj = getValueAt(rows[i]);
+         if(mRowData.remove(obj))
+         {
+            changed = true;
+         }
+      }
+      
+      if(changed)
+      {
+         fireTableDataChanged();
+      }
+   }
+
+   /**
     * Removes a row from the table.
     * 
     * @param row the row to remove.
