@@ -173,7 +173,7 @@ public abstract class JComponentTableModel extends AbstractTableModel
       }
       catch(Throwable t)
       {
-         //LoggerManager.debug("bmcommon", LoggerManager.getStackTrace(t));
+         //LoggerManager.debug("dbgui", LoggerManager.getStackTrace(t));
       }
       
       LoggerManager.debug("dbgui",
@@ -490,6 +490,36 @@ public abstract class JComponentTableModel extends AbstractTableModel
       }
       
       return rval;
+   }
+   
+   /**
+    * Removes a row from the table.
+    * 
+    * @param row the row to remove.
+    * @return true if a row was removed, false if not.
+    */
+   public boolean removeRow(int row)
+   {
+      boolean rval = false;
+      
+      Object obj = getValueAt(row);
+      rval = removeValue(obj);
+      
+      return rval;
+   }
+   
+   /**
+    * Gets a row from the table.
+    * 
+    * Same as getValueAt(row).
+    * 
+    * @param row the row to get.
+    * 
+    * @return the row.
+    */
+   public Object getRow(int row)
+   {
+      return getValueAt(row);
    }
    
    /**
