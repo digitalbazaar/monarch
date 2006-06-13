@@ -296,6 +296,9 @@ public class EditableTabPanel extends TabPanel
       g2.setStroke(bs);
       g2.draw(path);
       
+      // dispose graphics
+      g2.dispose();
+      
       return image;
    }
    
@@ -348,6 +351,9 @@ public class EditableTabPanel extends TabPanel
       // draw filler
       g2.draw(path);
       
+      // dispose graphics
+      g2.dispose();
+      
       return image;      
    }
    
@@ -399,6 +405,9 @@ public class EditableTabPanel extends TabPanel
       
       // draw filler
       g2.draw(path);
+      
+      // dispose graphics
+      g2.dispose();
       
       return image;      
    }   
