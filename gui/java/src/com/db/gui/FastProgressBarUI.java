@@ -266,9 +266,6 @@ public class FastProgressBarUI extends PanelUI
          // set the text x position
          int x = (int)Math.round((width - textWidth) / 2);
          
-         // get text ascent
-         //double ascent = fontMetrics.getAscent();
-         
          // get text height
          int textHeight = fontMetrics.getHeight(); 
          
