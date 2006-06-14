@@ -271,7 +271,7 @@ public class FastProgressBarUI extends PanelUI
          
          // set the text y position
          int y = (int)Math.round(height - ascent / 2.0D);
-
+         
          // draw empty meter text
          g.setColor(getEmptyMeterTextColor());
          SwingUtilities2.drawString(progressBar, g, text, x, y);
@@ -458,7 +458,7 @@ public class FastProgressBarUI extends PanelUI
    public void resetMeterColor()
    {
       // set the meter color
-      setMeterColor(UIManager.getColor("ProgressBar.selectionBackground"));
+      setMeterColor(UIManager.getColor("ProgressBar.foreground"));
    }
    
    /**
