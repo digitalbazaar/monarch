@@ -92,6 +92,9 @@ public class FastProgressBar extends JPanel
       // execute cycle progress in a background process 
       MethodInvoker mi = new MethodInvoker(this, "cycleProgress", null);
       mi.backgroundExecute();
+      
+      // store progress cycler thread
+      mProgressCyclerThread = mi;
    }
    
    /**
@@ -103,6 +106,7 @@ public class FastProgressBar extends JPanel
       if(mProgressCyclerThread != null)
       {
          mProgressCyclerThread.interrupt();
+         mProgressCyclerThread = null;
       }
    }
    
