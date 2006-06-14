@@ -135,19 +135,19 @@ public class FastProgressBar extends JPanel
                // get old indeterminate value
                int value = getIndeterminateValue();
                
-               // make sure value is in range
-               value = Math.min(getMaximumValue(), value);
-               value = Math.max(getMinimumValue(), value);
-               
                // set new value
                if(increasing)
                {
-                  value++;
+                  value += 2;
                }
                else
                {
-                  value--;
+                  value -= 2;
                }
+               
+               // make sure value is in range
+               value = Math.min(getMaximumValue(), value);
+               value = Math.max(getMinimumValue(), value);
                
                setIndeterminateValue(value);
 
