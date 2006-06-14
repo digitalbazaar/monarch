@@ -191,7 +191,7 @@ public class FastProgressBarUI extends PanelUI
       Graphics2D g, FastProgressBar progressBar)
    {
       // get the progress bar bounds
-      Rectangle progressBarBounds = progressBar.getBounds();
+      Rectangle progressBarBounds = getProgressBarBounds(progressBar);
       
       // get the percentage
       double percentage = progressBar.getIndeterminatePercentage();
@@ -216,7 +216,7 @@ public class FastProgressBarUI extends PanelUI
       Graphics2D g, FastProgressBar progressBar)
    {
       // get the progress bar bounds
-      Rectangle progressBarBounds = progressBar.getBounds();
+      Rectangle progressBarBounds = getProgressBarBounds(progressBar);
       
       // get the indeterminate percentage
       double percentage = progressBar.getPercentage();
@@ -267,10 +267,16 @@ public class FastProgressBarUI extends PanelUI
          int x = (int)Math.round((width - textWidth) / 2);
          
          // get text ascent
-         double ascent = fontMetrics.getAscent();
+         //double ascent = fontMetrics.getAscent();
          
-         // set the text y position
-         int y = (int)Math.round(height - ascent / 2.0D);
+         // get text height
+         int textHeight = fontMetrics.getHeight(); 
+         
+         // get text baseline position
+         int baseline = (int)Math.round((height - textHeight) / 2.0D);
+         
+         // get text y position
+         int y = baseline + fontMetrics.getAscent();
          
          // draw empty meter text
          g.setColor(getEmptyMeterTextColor());
