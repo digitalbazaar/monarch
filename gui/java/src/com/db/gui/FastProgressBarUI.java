@@ -266,9 +266,18 @@ public class FastProgressBarUI extends PanelUI
          // set the text x position
          int x = (int)Math.round((width - textWidth) / 2);
          
+         // get the text height
+         int textHeight = fontMetrics.getHeight() + fontMetrics.getDescent();
+         
+         // get the distance to the text
+         double dist = height - textHeight;
+         if(dist != 0)
+         {
+            dist /= 2.0D;
+         }
+         
          // set the text y position
-         int y = (int)Math.round(
-            (height - fontMetrics.getHeight()) / 2 + fontMetrics.getAscent());
+         int y = progressBarBounds.y + (int)Math.round(height / 2.0D - dist);
 
          // draw empty meter text
          g.setColor(getEmptyMeterTextColor());
@@ -365,8 +374,9 @@ public class FastProgressBarUI extends PanelUI
       // get text size
       Dimension textSize = new Dimension(0, 0);
       
-      // always set preferred height to text height
-      textSize.height = fontMetrics.getHeight();
+      // always set preferred height to text height (add descent to ensure
+      // there is enough space for text at the bottom)
+      textSize.height = fontMetrics.getHeight() + fontMetrics.getDescent();
       
       // set preferred width to text width, if there is text
       if(progressBar.getText() != null) 
@@ -450,17 +460,35 @@ public class FastProgressBarUI extends PanelUI
    }
    
    /**
-    * Resets the text and meter colors to their default settings.
+    * Resets the meter color to its default setting.
     */
-   public void resetTextAndMeterColors()
+   public void resetMeterColor()
    {
       // set the meter color
       setMeterColor(UIManager.getColor("ProgressBar.selectionBackground"));
-      
+   }
+   
+   /**
+    * Resets the text colors to their default settings.
+    */
+   public void resetTextColors()
+   {
       // set the text colors
       setEmptyMeterTextColor(
          UIManager.getColor("ProgressBar.selectionBackground"));
       setFullMeterTextColor(
          UIManager.getColor("ProgressBar.selectionForeground"));
+   }
+
+   /**
+    * Resets the text and meter colors to their default settings.
+    */
+   public void resetTextAndMeterColors()
+   {
+      // reset meter color
+      resetMeterColor();
+      
+      // reset text colors
+      resetTextColors();
    }
 }
