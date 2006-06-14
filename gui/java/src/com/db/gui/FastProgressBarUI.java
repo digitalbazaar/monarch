@@ -266,18 +266,11 @@ public class FastProgressBarUI extends PanelUI
          // set the text x position
          int x = (int)Math.round((width - textWidth) / 2);
          
-         // get the text height
-         int textHeight = fontMetrics.getHeight() + fontMetrics.getDescent();
-         
-         // get the distance to the text
-         double dist = height - textHeight;
-         if(dist != 0)
-         {
-            dist /= 2.0D;
-         }
+         // get text ascent
+         double ascent = fontMetrics.getAscent();
          
          // set the text y position
-         int y = progressBarBounds.y + (int)Math.round(height / 2.0D - dist);
+         int y = (int)Math.round(height - ascent / 2.0D);
 
          // draw empty meter text
          g.setColor(getEmptyMeterTextColor());
