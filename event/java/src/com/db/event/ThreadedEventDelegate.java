@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
-import com.db.logging.LoggerManager;
 import com.db.util.MethodInvoker;
 
 /**
@@ -29,11 +28,6 @@ public class ThreadedEventDelegate
    protected HashMap mListenerToEventThread;
    
    /**
-    * A map of listener to the method to call to handle an event.
-    */
-   protected HashMap mListenerToMethod;
-
-   /**
     * Constructs a new threaded event delegate.
     */
    public ThreadedEventDelegate()
@@ -43,49 +37,37 @@ public class ThreadedEventDelegate
       
       // create listener to event thread map
       mListenerToEventThread = new HashMap();
-      
-      // create listener to method map
-      mListenerToMethod = new HashMap();
    }
    
    /**
     * Processes events for a listener.
     * 
     * @param listener the listener to run the thread for.
+    * @param method the method to call on the listener. 
+    * @param queue the event queue with the listener's events.
     */
-   public void processEvents(Object listener)
+   public void processEvents(Object listener, String method, Vector queue)
    {
       while(!Thread.interrupted())
       {
-         // lock and get the event queue and method for the listener
-         Vector queue = null;
-         String method = null;
-         synchronized(this)
-         {
-            // get the event queue for the listener
-            queue = (Vector)mListenerToEventQueue.get(listener);
+         // pull all of the events out of the queue and store
+         // them in a temporary event queue
+         Vector events = null;
             
-            // get the listener method
-            method = (String)mListenerToMethod.get(listener);
+         // lock on the queue, get its events, and clear it
+         synchronized(queue)
+         {
+            if(queue.size() > 0)
+            {
+               events = new Vector();
+               events.addAll(queue);
+               queue.clear();
+            }
          }
          
-         if(queue != null && method != null)
+         // proceed is thread is not interrupted
+         if(!Thread.interrupted())
          {
-            // pull all of the events out of the queue and store
-            // them in a temporary event queue
-            Vector events = null;
-            
-            // lock on the queue, get its events, and clear it
-            synchronized(queue)
-            {
-               if(queue.size() > 0)
-               {
-                  events = new Vector();
-                  events.addAll(queue);
-                  queue.clear();
-               }
-            }
-            
             // process events if they exist
             if(events != null)
             {
@@ -104,33 +86,17 @@ public class ThreadedEventDelegate
                // throw out temporary event queue
                events = null;
             }
-         }
-         else if(method == null)
-         {
+            
             try
             {
-               throw new NullPointerException(
-                  "Cannot call 'null' method on listener " +
-                  listener.getClass().getName() + " in " +
-                  getClass().getName());
+               // sleep
+               Thread.sleep(1);
             }
-            catch(Throwable t)
+            catch(Throwable ignore)
             {
-               LoggerManager.error("dbevent", t.getMessage());
-               LoggerManager.debug("dbevent",
-                  LoggerManager.getStackTrace(t));
+               // interrupt thread
+               Thread.currentThread().interrupt();
             }
-         }
-         
-         try
-         {
-            // sleep
-            Thread.sleep(1);
-         }
-         catch(Throwable ignore)
-         {
-            // interrupt thread
-            Thread.currentThread().interrupt();
          }
       }
    }
@@ -143,16 +109,26 @@ public class ThreadedEventDelegate
     */
    public synchronized void addListener(Object listener, String method)
    {
-      if(mListenerToEventThread.get(listener) == null)
+      if(listener == null)
+      {
+         throw new IllegalArgumentException(
+            "Cannot add a 'null' listener.");
+      }
+
+      if(method == null)
+      {
+         throw new IllegalArgumentException(
+            "Cannot add a listener with a 'null' method.");
+      }
+      
+      if(!hasListener(listener))
       {
          // add event queue for listener
-         mListenerToEventQueue.put(listener, new Vector());
+         Vector queue = new Vector();
+         mListenerToEventQueue.put(listener, queue);
          
-         // add method for listener
-         mListenerToMethod.put(listener, method);
-            
          // start event thread for listener
-         Object[] params = new Object[]{listener};
+         Object[] params = new Object[]{listener, method, queue};
          MethodInvoker mi = new MethodInvoker(this, "processEvents", params);
          mListenerToEventThread.put(listener, mi);
          mi.backgroundExecute();
@@ -166,7 +142,7 @@ public class ThreadedEventDelegate
     */
    public synchronized void removeListener(Object listener)
    {
-      if(mListenerToEventThread.get(listener) != null)
+      if(hasListener(listener))
       {
          // interrupt listener event thread
          Thread thread = (Thread)mListenerToEventThread.get(listener);
@@ -175,8 +151,28 @@ public class ThreadedEventDelegate
          // remove listener from maps
          mListenerToEventQueue.remove(listener);
          mListenerToEventThread.remove(listener);
-         mListenerToMethod.remove(listener);
       }
+   }
+   
+   /**
+    * Returns true if the passed listener is already listening for
+    * events fired by this delegate, false if not.
+    *
+    * @param listener the listener to check for.
+    * 
+    * @return true if the listener is already listening to this delegate,
+    *         false if not. 
+    */
+   public synchronized boolean hasListener(Object listener)
+   {
+      boolean rval = false;
+      
+      if(mListenerToEventThread.get(listener) != null)
+      {
+         rval = true;
+      }
+      
+      return rval;
    }
    
    /**

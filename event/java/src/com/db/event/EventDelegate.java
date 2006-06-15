@@ -46,8 +46,11 @@ public class EventDelegate
     */
    public synchronized void addListener(Object listener, String method)
    {
-      mListeners.add(listener);
-      mListenerToMethod.put(listener, method);
+      if(!hasListener(listener))
+      {
+         mListeners.add(listener);
+         mListenerToMethod.put(listener, method);
+      }
    }
    
    /**
@@ -57,8 +60,32 @@ public class EventDelegate
     */
    public synchronized void removeListener(Object listener)
    {
-      mListeners.remove(listener);
-      mListenerToMethod.remove(listener);
+      if(hasListener(listener))
+      {
+         mListeners.remove(listener);
+         mListenerToMethod.remove(listener);
+      }
+   }
+   
+   /**
+    * Returns true if the passed listener is already listening for
+    * events fired by this delegate, false if not.
+    *
+    * @param listener the listener to check for.
+    * 
+    * @return true if the listener is already listening to this delegate,
+    *         false if not. 
+    */
+   public synchronized boolean hasListener(Object listener)
+   {
+      boolean rval = false;
+      
+      if(mListeners.contains(listener))
+      {
+         rval = true;
+      }
+      
+      return rval;
    }
    
    /**
