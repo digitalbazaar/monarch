@@ -469,7 +469,11 @@ public class PrivateKeyCryptor
          // if decryptedKey is not null, decode the key
          if(decryptedKey != null)
          {
-            rval = setPrivateKey(KeyManager.decodePrivateKey(decryptedKey));
+            // set password
+            if(setPassword(password))
+            {
+               rval = setPrivateKey(KeyManager.decodePrivateKey(decryptedKey));
+            }
          }
       }
       catch(Throwable t)
