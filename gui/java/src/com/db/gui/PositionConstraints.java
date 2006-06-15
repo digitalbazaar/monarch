@@ -19,6 +19,11 @@ import javax.swing.JTextArea;
 public class PositionConstraints implements Cloneable
 {
    /**
+    * Anchor none type.
+    */
+   public static final int ANCHOR_NONE = 0x00;
+   
+   /**
     * Anchor left type.
     */
    public static final int ANCHOR_LEFT = 0x01;
@@ -78,12 +83,42 @@ public class PositionConstraints implements Cloneable
    /**
     * The anchor constraint. This constraint indicates how the component
     * ought to be anchored. A component's top, left, right, and/or bottom
-    * can be anchored. When one of the component's sides is anchored, it means
+    * can be anchored.
+    * 
+    * When one of the component's sides is anchored, it means
     * that when its parent component is resized, the distance between the
     * anchored side(s) and the parent component's edge does not change --
     * resulting in the resizing of the component.
+    * 
+    * For an inverted anchor:
+    * 
+    * When one of the component's sides is anchored, it means
+    * that when its parent component is resized, the distance between the
+    * anchored side(s) and the parent component's edge will be added to
+    * the component's position, resulting in the repositioning of
+    * the component.
     */
    public int anchor;
+   
+   /**
+    * The invert anchor constraint. This constraint indicates how the
+    * component ought to be invert-anchored. A component's top, left, right,
+    * and/or bottom can be anchored.
+    * 
+    * When one of the component's sides is invert-anchored, it means
+    * that when its parent component is resized, the distance between the
+    * invert-anchored side(s) and the parent component's edge will be added to
+    * the component's position, resulting in the repositioning of
+    * the component.
+    * 
+    * An invertAnchor works the "opposite" way an anchor does -- by effectively
+    * resizing the areas around a component rather than resizing the
+    * component itself. To "resize the areas around the component" it moves
+    * the component in a proportional way so that the area around the component
+    * increases, but the component appears to remain in the same
+    * relative position.
+    */
+   public int invertAnchor;
    
    /**
     * Creates new position constraints.
@@ -93,6 +128,7 @@ public class PositionConstraints implements Cloneable
       location = new Point(0, 0);
       size = new Dimension(0, 0);
       anchor = ANCHOR_LEFT | ANCHOR_TOP;
+      invertAnchor = ANCHOR_NONE;
    }
    
    /**
@@ -107,6 +143,7 @@ public class PositionConstraints implements Cloneable
       clone.location = new Point(location.x, location.y);
       clone.size = new Dimension(size.width, size.height);
       clone.anchor = anchor;
+      clone.invertAnchor = invertAnchor;
       
       return clone;
    }
@@ -206,7 +243,67 @@ public class PositionConstraints implements Cloneable
       // anchor
       sb.append("anchor=[");
       
-      if((anchor & ANCHOR_ALL) == ANCHOR_ALL)
+      if(anchor == ANCHOR_NONE)
+      {
+         sb.append("none");
+      }
+      else if((anchor & ANCHOR_ALL) == ANCHOR_ALL)
+      {
+         sb.append("all");
+      }
+      else
+      {
+         boolean putComma = false;
+         if((anchor & ANCHOR_TOP) == ANCHOR_TOP)
+         {
+            sb.append("top");
+            putComma = true;
+         }
+         
+         if((anchor & ANCHOR_LEFT) == ANCHOR_LEFT)
+         {
+            if(putComma)
+            {
+               sb.append(',');
+            }
+            
+            sb.append("left");
+            putComma = true;
+         }
+
+         if((anchor & ANCHOR_BOTTOM) == ANCHOR_BOTTOM)
+         {
+            if(putComma)
+            {
+               sb.append(',');
+            }
+            
+            sb.append("bottom");
+            putComma = true;
+         }
+
+         if((anchor & ANCHOR_RIGHT) == ANCHOR_RIGHT)
+         {
+            if(putComma)
+            {
+               sb.append(',');
+            }
+            
+            sb.append("right");
+         }
+      }
+      
+      sb.append(']');
+      sb.append(',');
+      
+      // inverted anchor
+      sb.append("invertAnchor=[");
+      
+      if(invertAnchor == ANCHOR_NONE)
+      {
+         sb.append("none");
+      }
+      else if((anchor & ANCHOR_ALL) == ANCHOR_ALL)
       {
          sb.append("all");
       }

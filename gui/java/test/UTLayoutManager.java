@@ -83,7 +83,9 @@ public class UTLayoutManager
       //setupJTextAreaPanel(panel);
       etp.addTab("tab 2", panel);
       
-      etp.setSelectedIndex(0);
+      etp.addTab("tab 3", createCenteredComponentPanel());
+      
+      etp.setSelectedIndex(2);
       
       //frame.setContentPane(panel);
       //contentPane.setBorder(new LineBorder(java.awt.Color.red, 20));
@@ -410,6 +412,40 @@ public class UTLayoutManager
       
       // add text area
       panel.add(textArea, textAreaConstraints);*/
+   }
+   
+   /**
+    * Creates a panel with a centered component using a
+    * PositionLayout.
+    *
+    * @return the panel with a centered component.
+    */
+   public static JPanel createCenteredComponentPanel()
+   {
+      JPanel panel = new JPanel();
+      
+      panel.setSize(300, 300);
+      
+      // set layout
+      panel.setLayout(new PositionLayout(panel));
+      
+      // create colored panel (racist!)
+      JPanel coloredPanel = new JPanel();
+      coloredPanel.setBackground(Color.red);
+      
+      // colored panel constraints
+      PositionConstraints coloredPanelConstraints = new PositionConstraints();
+      coloredPanelConstraints.location = new Point(100, 100);
+      coloredPanelConstraints.size = new Dimension(100, 100);
+      coloredPanelConstraints.anchor =
+         PositionConstraints.ANCHOR_NONE;
+      coloredPanelConstraints.invertAnchor =
+         PositionConstraints.ANCHOR_ALL;
+      
+      // add colored panel
+      panel.add(coloredPanel, coloredPanelConstraints);
+      
+      return panel;
    }
    
    /**

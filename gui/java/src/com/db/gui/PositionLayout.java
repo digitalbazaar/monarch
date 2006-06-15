@@ -102,7 +102,7 @@ public class PositionLayout implements LayoutManager2
       // determine resize changes
       int deltaX = container.getWidth() - mContainerBounds.width;
       int deltaY = container.getHeight() - mContainerBounds.height;
-
+      
       // handle left/right anchoring
       if((constraints.anchor & PositionConstraints.ANCHOR_LEFT) != 0)
       {
@@ -130,6 +130,42 @@ public class PositionLayout implements LayoutManager2
          }
       }
       else if((constraints.anchor & PositionConstraints.ANCHOR_BOTTOM) != 0)
+      {
+         // move component
+         rect.y += deltaY;
+      }
+      
+      // handle left/right invert anchoring
+      if((constraints.invertAnchor & PositionConstraints.ANCHOR_LEFT) != 0)
+      {
+         // if right anchoring is turned on as well, then resize
+         if((constraints.invertAnchor &
+             PositionConstraints.ANCHOR_RIGHT) != 0)
+         {
+            // proportions the same to the left and right of the component
+            rect.x += Math.round(deltaX / 2.0D);
+         }
+      }
+      else if((constraints.invertAnchor &
+               PositionConstraints.ANCHOR_RIGHT) != 0)
+      {
+         // move component
+         rect.x += deltaX;
+      }
+
+      // handle top/bottom anchoring
+      if((constraints.invertAnchor & PositionConstraints.ANCHOR_TOP) != 0)
+      {
+         // if bottom anchoring is turned on as well, then resize
+         if((constraints.invertAnchor &
+             PositionConstraints.ANCHOR_BOTTOM) != 0)
+         {
+            // proportions the same to the top and bottom of the component
+            rect.y += Math.round(deltaY / 2.0D);
+         }
+      }
+      else if((constraints.invertAnchor &
+               PositionConstraints.ANCHOR_BOTTOM) != 0)
       {
          // move component
          rect.y += deltaY;
