@@ -3,6 +3,7 @@
  */
 package com.db.event;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
@@ -43,11 +44,14 @@ public class ThreadedEventDelegate
     * Processes events for a listener.
     * 
     * @param listener the listener to run the thread for.
-    * @param method the method to call on the listener. 
+    * @param methodName the name of the method to call on the listener. 
     * @param queue the event queue with the listener's events.
     */
-   public void processEvents(Object listener, String method, Vector queue)
+   public void processEvents(Object listener, String methodName, Vector queue)
    {
+      // create a event class to method map
+      HashMap classToMethod = new HashMap();
+      
       while(!Thread.interrupted())
       {
          // pull all of the events out of the queue and store
@@ -74,8 +78,27 @@ public class ThreadedEventDelegate
                Iterator i = events.iterator();
                while(i.hasNext())
                {
+                  // get the next event
+                  Object event = i.next();
+                  
                   // store next event as a parameter to the listener method 
-                  Object[] params = new Object[]{i.next()};
+                  Object[] params = new Object[]{event};
+
+                  // get the method for the event class
+                  Class eventClass = event.getClass();
+                  Method method = (Method)classToMethod.get(eventClass);
+                  if(method == null)
+                  {
+                     // find the method
+                     method = MethodInvoker.findMethod(
+                        listener, methodName, params);
+                     
+                     if(method != null)
+                     {
+                        // add a new class to method map entry
+                        classToMethod.put(eventClass, method);
+                     }
+                  }
                   
                   // fire message, synchronize on the listener
                   MethodInvoker mi =
@@ -105,9 +128,10 @@ public class ThreadedEventDelegate
     * Adds a listener.
     *
     * @param listener the listener to add.
-    * @param method the name of the listener method to call to handle an event.
+    * @param methodName the name of the listener method to call to handle
+    *                   an event.
     */
-   public synchronized void addListener(Object listener, String method)
+   public synchronized void addListener(Object listener, String methodName)
    {
       if(listener == null)
       {
@@ -115,10 +139,10 @@ public class ThreadedEventDelegate
             "Cannot add a 'null' listener.");
       }
 
-      if(method == null)
+      if(methodName == null)
       {
          throw new IllegalArgumentException(
-            "Cannot add a listener with a 'null' method.");
+            "Cannot add a listener with a 'null' method name.");
       }
       
       if(!hasListener(listener))
@@ -128,7 +152,7 @@ public class ThreadedEventDelegate
          mListenerToEventQueue.put(listener, queue);
          
          // start event thread for listener
-         Object[] params = new Object[]{listener, method, queue};
+         Object[] params = new Object[]{listener, methodName, queue};
          MethodInvoker mi = new MethodInvoker(this, "processEvents", params);
          mListenerToEventThread.put(listener, mi);
          mi.backgroundExecute();
