@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
+import com.db.logging.LoggerManager;
 import com.db.util.MethodInvoker;
 
 /**
@@ -49,7 +50,7 @@ public class ThreadedEventDelegate
     */
    public void processEvents(Object listener, String methodName, Vector queue)
    {
-      // create a event class to method map
+      // create aa event class to method map
       HashMap classToMethod = new HashMap();
       
       while(!Thread.interrupted())
@@ -100,10 +101,21 @@ public class ThreadedEventDelegate
                      }
                   }
                   
-                  // fire message, synchronize on the listener
-                  MethodInvoker mi =
-                     new MethodInvoker(listener, method, params);
-                  mi.execute(listener);
+                  if(method != null)
+                  {
+                     // fire message, synchronize on the listener
+                     MethodInvoker mi =
+                        new MethodInvoker(listener, method, params);
+                     mi.execute(listener);
+                  }
+                  else
+                  {
+                     // log error
+                     LoggerManager.getLogger("dbevent").error(
+                        "ThreadedEventDelegate could not find method '" +
+                        MethodInvoker.getSignature(methodName, params) +
+                        "' in class '" + listener.getClass().getName() + "'");
+                  }
                }
             
                // throw out temporary event queue
