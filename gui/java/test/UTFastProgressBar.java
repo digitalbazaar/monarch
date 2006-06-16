@@ -1,10 +1,13 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
+import java.awt.AWTEvent;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.Method;
 
 //import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -14,11 +17,14 @@ import javax.swing.JProgressBar;
 import javax.swing.UIManager;
 //import javax.swing.border.BevelBorder;
 
+import com.db.event.EventObject;
+import com.db.event.ThreadedEventDelegate;
 import com.db.gui.FastProgressBar;
 import com.db.gui.PositionConstraints;
 import com.db.gui.PositionLayout;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.util.MethodInvoker;
 
 /**
  * This class is used to test a JComponentTable.
@@ -98,6 +104,11 @@ public class UTFastProgressBar implements ActionListener
       indeterminateButton.setActionCommand("toggleIndeterminate");
       indeterminateButton.addActionListener(new UTFastProgressBar());
       
+      // create button for running an update test
+      JButton updateTestButton = new JButton("Run update test");
+      updateTestButton.setActionCommand("runUpdateTest");
+      updateTestButton.addActionListener(new UTFastProgressBar());
+      
       // create regular progress bar
       smJProgressBar = new JProgressBar();
       smJProgressBar.setStringPainted(true);
@@ -128,6 +139,18 @@ public class UTFastProgressBar implements ActionListener
       indeterminateButtonConstraints.anchor =
          PositionConstraints.ANCHOR_TOP | PositionConstraints.ANCHOR_RIGHT;
       
+      // update test button constraints
+      PositionConstraints updateTestButtonConstraints =
+         new PositionConstraints();
+      updateTestButtonConstraints.location =
+         new Point(indeterminateButtonConstraints.getLeft() -
+                   updateTestButton.getPreferredSize().width - insets,
+                   indeterminateButtonConstraints.getTop());
+      updateTestButtonConstraints.size =
+         new Dimension(updateTestButton.getPreferredSize());
+      updateTestButtonConstraints.anchor =
+         PositionConstraints.ANCHOR_TOP | PositionConstraints.ANCHOR_LEFT;
+      
       // jprogress bar constraints
       PositionConstraints jProgressBarConstraints =
          new PositionConstraints();
@@ -142,6 +165,7 @@ public class UTFastProgressBar implements ActionListener
       // add components
       panel.add(smFastProgressBar, fastProgressBarConstraints);
       panel.add(indeterminateButton, indeterminateButtonConstraints);
+      panel.add(updateTestButton, updateTestButtonConstraints);
       panel.add(smJProgressBar, jProgressBarConstraints);
       
       return panel;
@@ -182,5 +206,141 @@ public class UTFastProgressBar implements ActionListener
             smJProgressBar.setString("Determinate");
          }
       }
+      else if(e.getActionCommand().equals("runUpdateTest"))
+      {
+         fireUpdateEvents();
+      }
+   }
+   
+   /**
+    * Fires a bunch of events to update and repaint the fast progress bar.
+    */
+   public static void fireUpdateEvents()
+   {
+      // create threaded event delegate
+      ThreadedEventDelegate delegate = new ThreadedEventDelegate();
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      delegate.addListener(new UTFastProgressBar(), "handleEvent1");
+      
+      delegate.addListener(new UTFastProgressBar(), "updateFastProgressBar");
+      //delegate.addListener(new UTFastProgressBar(), "updateJProgressBar");
+      
+      // set fast progress bar to have a value of zero
+      smFastProgressBar.setValue(0);
+      
+      // fire 100 events to update the progress bar really quickly
+      for(int i = 1; i < 100; i++)
+      {
+         // create update event
+         EventObject event = new EventObject("update");
+         event.setData("text", "Updating " + (i + 1) + "%");
+         event.setData("progress", i + 1);
+         
+         // fire event 100 times
+         for(int n = 0; n < 100; n++)
+         {
+            delegate.fireEvent(event);
+         }
+      }
+   }
+   
+   /**
+    * Updates the fast progress bar.
+    * 
+    * @param event the event with the data to update the progress bar with.
+    */
+   public void updateFastProgressBar(EventObject event)
+   {
+      // get text for progress bar
+      String text = event.getDataStringValue("text");
+      
+      // get progress for progress bar
+      int progress = event.getDataIntValue("progress");
+      
+      // set progress bar text and value
+      smFastProgressBar.setText(text);
+      smFastProgressBar.setValue(progress);
+      
+      /*AWTEvent awtEvent =
+         Toolkit.getDefaultToolkit().getSystemEventQueue().peekEvent();
+      if(event != null)
+      {
+         System.out.println("EVENT=" + awtEvent.getClass());
+         //System.out.println("EVENT_SOURCE=" + (awtEvent.getSource() == this) +
+         //      "," + awtEvent.getSource());
+      }
+      
+      if(awtEvent == null)// || awtEvent.getSource() != this)
+      {
+         // repaint if not processing an event for this component already
+         smFastProgressBar.repaint();
+      }*/
+      
+      smFastProgressBar.repaint();
+      //smFastProgressBar.updateUI();
+   }
+   
+   /**
+    * Does nothing. Is just used to handle events.
+    * 
+    * @param event the event to do nothing with.
+    */
+   public void handleEvent1(EventObject event)
+   {
+      System.out.println();
+   }
+   
+   /**
+    * Updates the jprogress bar.
+    * 
+    * @param event the event with the data to update the progress bar with.
+    */
+   public void updateJProgressBar(EventObject event)
+   {
+      // get text for progress bar
+      String text = event.getDataStringValue("text");
+      
+      // get progress for progress bar
+      int progress = event.getDataIntValue("progress");
+      
+      // set progress bar text and value
+      smJProgressBar.setString(text);
+      smJProgressBar.setValue(progress);
+      
+      smJProgressBar.repaint();
+      //smJProgressBar.updateUI();
    }
 }
