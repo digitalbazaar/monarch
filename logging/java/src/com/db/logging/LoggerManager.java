@@ -164,7 +164,8 @@ public class LoggerManager
     * @param consoleVerbosity the verbosity to set.
     * @return true if console verbosity valid and set, false if not.
     */
-   public static boolean setConsoleVerbosity(String name, double consoleVerbosity)
+   public static boolean setConsoleVerbosity(
+      String name, double consoleVerbosity)
    {
       boolean rval = false;
 
@@ -342,7 +343,8 @@ public class LoggerManager
     * @param numRotatingFiles the number of rotating log files.
     * @return true if successfully set, false if not.
     */
-   public static boolean setNumRotatingFiles(String name, long numRotatingFiles)
+   public static boolean setNumRotatingFiles(
+      String name, long numRotatingFiles)
    {
       boolean rval = false;
       
@@ -411,191 +413,4 @@ public class LoggerManager
    {
       return Logger.getStackTrace(t);
    }   
-   
-   /**
-    * Adds a print stream to a logger.
-    * 
-    * @param name the name of the logger to modify.
-    * @param ps the print stream to add.
-    * @param verbosity the verbosity for the print stream.
-    * @return true if successfully added, false if not.
-    */
-   public static boolean addPrintStream(String name,
-                                        PrintStream ps, double verbosity)
-   {
-      boolean rval = false;
-      
-      Logger logger = getLogger(name);
-      if(logger != null)
-      {
-         logger.addPrintStream(ps, verbosity);
-         rval = true;
-      }
-      
-      return rval;
-   }
-   
-   /**
-    * Removes a logger's print stream.
-    * 
-    * @param name the name of the logger to modify.
-    * @param ps the print stream to remove.
-    * @return true if successfully added, false if not.
-    */
-   public static boolean removePrintStream(String name, PrintStream ps)
-   {
-      boolean rval = false;
-      
-      Logger logger = getLogger(name);
-      if(logger != null)
-      {
-         logger.removePrintStream(ps);
-         rval = true;
-      }
-      
-      return rval;
-   }
-   
-   /**
-    * Sets a logger's print stream's verbosity.
-    * 
-    * @param name the name of the logger to modify.
-    * @param ps the print stream to modify.
-    * @param verbosity the verbosity for the print stream.
-    * @return true if successfully added, false if not.
-    */
-   public static boolean setPrintStreamVerbosity(String name,
-                                                 PrintStream ps, double verbosity)   
-   {
-      boolean rval = false;
-
-      Logger logger = getLogger(name);
-      if(logger != null)
-      {
-         logger.setPrintStreamVerbosity(ps, verbosity);
-         rval = true;
-      }
-      
-      return rval;
-   }
-   
-   /**
-    * Uses the specified logger, if it exists. Writes the passed string to
-    * the log file, if it is open.
-    *
-    * @param name the name of the logger to use.
-    * @param text the text to write to the log file.
-    * @return true if the text was written, false if not.
-    */
-   public static boolean log(String name, String text)
-   {
-      return log(name, text, Logger.ERROR_VERBOSITY);
-   }
-
-   /**
-    * Uses the specified logger, if it exists. Writes the passed string to
-    * the log file.
-    *
-    * @param name the name of the logger to use.
-    * @param text the text to write to the log file.
-    * @param verbosity the verbosity level that must be reached in
-    *                  order for the text to be written to the log.
-    * @return true if the text was written, false if not.
-    */
-   public static boolean log(String name, String text, double verbosity)
-   {
-      boolean rval = false;
-
-      Logger logger = getLogger(name);
-      if(logger != null)
-      {
-         rval = logger.log(text, verbosity);
-      }
-
-      return rval;
-   }
-
-   /**
-    * Uses the specified Logger. Writes the passed string to
-    * the log file, if it is open. Verbosity is set to error level.
-    *
-    * @param name the name of the logger to use.
-    * @param text the text to write to the log file.
-    * @return true if the text was written, false if not.
-    */
-   public static boolean error(String name, String text)
-   {
-      boolean rval = false;
-
-      Logger logger = getLogger(name);
-      if(logger != null)
-      {
-         rval = logger.error(text);
-      }
-
-      return rval;
-   }
-
-   /**
-    * Uses the specified Logger. Writes the passed string to
-    * the log file, if it is open. Verbosity is set to warning level.
-    *
-    * @param name the name of the logger to use.
-    * @param text the text to write to the log file.
-    * @return true if the text was written, false if not.
-    */
-   public static boolean warning(String name, String text)
-   {
-      boolean rval = false;
-
-      Logger logger = getLogger(name);
-      if(logger != null)
-      {
-         rval = logger.warning(text);
-      }
-
-      return rval;
-   }
-
-   /**
-    * Uses the specified Logger. Writes the passed string to
-    * the log file, if it is open. Verbosity is set to debug level.
-    *
-    * @param name the name of the logger to use.
-    * @param text the text to write to the log file.
-    * @return true if the text was written, false if not.
-    */
-   public static boolean debug(String name, String text)
-   {
-      boolean rval = false;
-
-      Logger logger = getLogger(name);
-      if(logger != null)
-      {
-         rval = logger.debug(text);
-      }
-
-      return rval;
-   }
-
-   /**
-    * Uses the specified Logger. Writes the passed string to
-    * the log file, if it is open. Verbosity is set to message level.
-    *
-    * @param name the name of the logger to use.
-    * @param text the text to write to the log file.
-    * @return true if the text was written, false if not.
-    */
-   public static boolean msg(String name, String text)
-   {
-      boolean rval = false;
-
-      Logger logger = getLogger(name);
-      if(logger != null)
-      {
-         rval = logger.msg(text);
-      }
-
-      return rval;
-   }
 }

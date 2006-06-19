@@ -236,8 +236,8 @@ public class Base64Coder
       }
       else
       {
-         LoggerManager.error("dbutil", 
-               "invalid character during Base64 decode");
+         LoggerManager.getLogger("dbutil").error( 
+            "invalid character during Base64 decode");
       }
       
       return bytes;
@@ -363,8 +363,8 @@ public class Base64Coder
          }
          else
          {
-            LoggerManager.error("dbutil",
-                  "Could not Base64 decode, string is not a multiple of 4!");
+            LoggerManager.getLogger("dbutil").error(
+               "Could not Base64 decode, string is not a multiple of 4!");
          }
       }
       

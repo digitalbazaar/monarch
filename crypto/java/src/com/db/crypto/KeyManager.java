@@ -107,7 +107,7 @@ public class KeyManager
          }
          catch(Exception e)
          {
-            LoggerManager.debug("dbcrypto", Logger.getStackTrace(e));
+            LoggerManager.getLogger("dbcrypto").debug(Logger.getStackTrace(e));
          }
       }
       
@@ -147,13 +147,15 @@ public class KeyManager
       }
       catch(NoSuchAlgorithmException nsae)
       {
-         LoggerManager.error("dbcrypto", "DSA algorithm not supported.");
-         LoggerManager.debug("dbcrypto", Logger.getStackTrace(nsae));
+         LoggerManager.getLogger("dbcrypto").error(
+            "DSA algorithm not supported.");
+         LoggerManager.getLogger("dbcrypto").debug(Logger.getStackTrace(nsae));
       }
       catch(NoSuchProviderException nspe)
       {
-         LoggerManager.error("dbcrypto", "SUN is not a supported provider.");
-         LoggerManager.debug("dbcrypto", Logger.getStackTrace(nspe));
+         LoggerManager.getLogger("dbcrypto").error(
+            "SUN is not a supported provider.");
+         LoggerManager.getLogger("dbcrypto").debug(Logger.getStackTrace(nspe));
       }
 
       return rval;
@@ -179,13 +181,16 @@ public class KeyManager
          }
          catch(NoSuchAlgorithmException nsae)
          {
-            LoggerManager.error("dbcrypto", "DSA algorithm is not supported.");
-            LoggerManager.debug("dbcrypto", Logger.getStackTrace(nsae));
+            LoggerManager.getLogger("dbcrypto").error(
+               "DSA algorithm is not supported.");
+            LoggerManager.getLogger("dbcrypto").debug(
+               Logger.getStackTrace(nsae));
          }
          catch(InvalidKeySpecException ikse)
          {
-            LoggerManager.error("dbcrypto", "KeySpec is invalid.");
-            LoggerManager.debug("dbcrypto", Logger.getStackTrace(ikse));
+            LoggerManager.getLogger("dbcrypto").error("KeySpec is invalid.");
+            LoggerManager.getLogger("dbcrypto").debug(
+               Logger.getStackTrace(ikse));
          }
       }
       
@@ -233,13 +238,16 @@ public class KeyManager
          }
          catch(NoSuchAlgorithmException nsae)
          {
-            LoggerManager.error("dbcrypto", "DSA algorithm is not supported.");
-            LoggerManager.debug("dbcrypto", Logger.getStackTrace(nsae));
+            LoggerManager.getLogger("dbcrypto").error(
+               "DSA algorithm is not supported.");
+            LoggerManager.getLogger("dbcrypto").debug(
+               Logger.getStackTrace(nsae));
          }
          catch(InvalidKeySpecException ikse)
          {
-            LoggerManager.error("dbcrypto", "KeySpec is invalid.");
-            LoggerManager.debug("dbcrypto", Logger.getStackTrace(ikse));
+            LoggerManager.getLogger("dbcrypto").error("KeySpec is invalid.");
+            LoggerManager.getLogger("dbcrypto").debug(
+               Logger.getStackTrace(ikse));
          }
       }
 
@@ -287,7 +295,7 @@ public class KeyManager
          }
          catch(Throwable t)
          {
-            LoggerManager.debug("dbcrypto", Logger.getStackTrace(t));
+            LoggerManager.getLogger("dbcrypto").debug(Logger.getStackTrace(t));
          }
       }
 
@@ -325,9 +333,9 @@ public class KeyManager
          }
          catch(Throwable t)
          {
-            LoggerManager.debug("dbcrypto",
+            LoggerManager.getLogger("dbcrypto").debug(
                "Unable to write private key to file.");
-            LoggerManager.debug("dbcrypto", Logger.getStackTrace(t));
+            LoggerManager.getLogger("dbcrypto").debug(Logger.getStackTrace(t));
          }
       }
 
@@ -372,9 +380,9 @@ public class KeyManager
          }
          catch(Throwable t)
          {
-            LoggerManager.error("dbcrypto",
+            LoggerManager.getLogger("dbcrypto").error(
                "Unable to write public key to file.");
-            LoggerManager.debug("dbcrypto", Logger.getStackTrace(t));
+            LoggerManager.getLogger("dbcrypto").debug(Logger.getStackTrace(t));
          }
       }
       

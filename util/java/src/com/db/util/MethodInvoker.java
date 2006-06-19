@@ -167,7 +167,7 @@ public class MethodInvoker extends Thread
       
       try
       {
-         getLogger().debug(
+         getLogger().detail(
             "invoking method: '" + signature +
             "' from class '" + methodClass.getName() + "'");
          
@@ -503,7 +503,7 @@ public class MethodInvoker extends Thread
       // get signature and agent name
       String signature = getSignature(methodName, params);
       Class methodClass = getMethodClass(agent);
-      getLogger().debug(
+      getLogger().detail(
          "searching for method: '" + signature +
          "' in class '" + methodClass.getName() + "'");
       

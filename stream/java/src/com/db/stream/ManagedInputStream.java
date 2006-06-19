@@ -458,7 +458,8 @@ public class ManagedInputStream extends FilterInputStream
          }
          catch(Exception e)
          {
-            LoggerManager.debug("dbstream", LoggerManager.getStackTrace(e));
+            LoggerManager.getLogger("dbstream").debug(
+               LoggerManager.getStackTrace(e));
          }
       }
       

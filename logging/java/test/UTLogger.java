@@ -27,7 +27,7 @@ public class UTLogger
          LoggerManager.setConsoleVerbosity("logger1", Logger.ERROR_VERBOSITY);
          //LoggerManager.setFileVerbosity("logger1", Logger.ERROR_VERBOSITY);
 
-         LoggerManager.error("logger1", "TEST LOGGER.");
+         LoggerManager.getLogger("logger1").error("TEST LOGGER.");
       }
       catch(Throwable t)
       {

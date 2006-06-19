@@ -59,8 +59,10 @@ public class UrlCoder
          }
          catch(UnsupportedEncodingException uee)
          {
-            LoggerManager.error("dbutil", "UTF-8 encoding not supported.");
-            LoggerManager.debug("dbutil", LoggerManager.getStackTrace(uee));
+            LoggerManager.getLogger("dbutil").error(
+               "UTF-8 encoding not supported.");
+            LoggerManager.getLogger("dbutil").debug(
+               LoggerManager.getStackTrace(uee));
          }
       }
 
@@ -87,8 +89,10 @@ public class UrlCoder
          }
          catch(UnsupportedEncodingException uee)
          {
-            LoggerManager.error("dbutil", "UTF-8 encoding not supported.");
-            LoggerManager.debug("dbutil", LoggerManager.getStackTrace(uee));
+            LoggerManager.getLogger("dbutil").error(
+               "UTF-8 encoding not supported.");
+            LoggerManager.getLogger("dbutil").debug(
+               LoggerManager.getStackTrace(uee));
          }
       }
 

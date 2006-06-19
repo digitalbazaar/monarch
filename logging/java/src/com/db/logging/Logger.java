@@ -102,8 +102,26 @@ public class Logger
    /**
     * The debug verbosity setting. Errors, warnings, messages, and debug
     * information will be logged.
+    * 
+    * Debug log output should include stack traces, etc.
     */
    public static final double DEBUG_VERBOSITY = 4.0;
+   
+   /**
+    * The debug data verbosity setting. Errors, warnings, messages, debug,
+    * and debug data will be logged.
+    * 
+    * Debug data log output includes any data associated with debug log output.
+    */
+   public static final double DEBUG_DATA_VERBOSITY = 4.1;
+
+   /**
+    * The detail verbosity setting. Errors, warnings, messages, debug,
+    * and debug data information will be logged.
+    * 
+    * Detail log output includes very fine detailed informational messages.
+    */
+   public static final double DETAIL_VERBOSITY = 4.5;
    
    /**
     * The maximum verbosity setting. Everything will be logged.
@@ -809,6 +827,22 @@ public class Logger
 
    /**
     * Writes the passed string to the log file, if it is open.
+    * Verbosity is set to message level.
+    *
+    * @param text the text to write to the log file.
+    * @return true if the text was written, false if not.
+    */
+   public boolean msg(String text)
+   {
+      boolean rval;
+      
+      rval = log("MSG: " + text, MSG_VERBOSITY);
+      
+      return rval;
+   }
+   
+   /**
+    * Writes the passed string to the log file, if it is open.
     * Verbosity is set to debug level.
     *
     * @param text the text to write to the log file.
@@ -825,16 +859,32 @@ public class Logger
    
    /**
     * Writes the passed string to the log file, if it is open.
-    * Verbosity is set to message level.
+    * Verbosity is set to debug data level.
     *
     * @param text the text to write to the log file.
     * @return true if the text was written, false if not.
     */
-   public boolean msg(String text)
+   public boolean debugData(String text)
    {
-      boolean rval;
+      boolean rval = false;
       
-      rval = log("MSG: " + text, MSG_VERBOSITY);
+      rval = log("DEBUG-DATA: " + text, DEBUG_DATA_VERBOSITY);
+      
+      return rval;
+   }
+   
+   /**
+    * Writes the passed string to the log file, if it is open.
+    * Verbosity is set to detail level.
+    *
+    * @param text the text to write to the log file.
+    * @return true if the text was written, false if not.
+    */
+   public boolean detail(String text)
+   {
+      boolean rval = false;
+      
+      rval = log("DETAIL: " + text, DETAIL_VERBOSITY);
       
       return rval;
    }

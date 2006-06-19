@@ -186,21 +186,23 @@ public class ID3Tag
                tagOffset = parseID3TagFrame(b, tagOffset, length);
             }
               
-            //LoggerManager.debug("dbdata", "Total tag size: "+ mSize);
-            //LoggerManager.debug("dbdata", "   Parsing ID3 Tag...");
+            //LoggerManager.getLogger("dbdata").debug(
+            //   "Total tag size: "+ mSize);
+            //LoggerManager.getLogger("dbdata").debug("   Parsing ID3 Tag...");
             rval = true;
          }
          else
          {
-            LoggerManager.debug("dbdata",
-                  "Could not parse ID3 tag, not enough data.");
-            LoggerManager.debug("dbdata", mSize + " bytes needed, " +
-                                length + " bytes given");
+            LoggerManager.getLogger("dbdata").debug(
+               "Could not parse ID3 tag, not enough data.");
+            LoggerManager.getLogger("dbdata").debug(
+               mSize + " bytes needed, " + length + " bytes given");
          }
       }
       else
       {
-         LoggerManager.debug("dbdata", "No existing ID3v2 header found.");
+         LoggerManager.getLogger("dbdata").debug(
+            "No existing ID3v2 header found.");
       }
       
       return rval;

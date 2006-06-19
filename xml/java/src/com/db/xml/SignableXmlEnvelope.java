@@ -336,9 +336,9 @@ public class SignableXmlEnvelope implements IXmlSerializer
             Base64Coder encoder = new Base64Coder();
             mSignature = encoder.encode(sig);
             
-            LoggerManager.debug("dbxml",
-                  "BEGIN SIGN TEXT:" + mSignedText + ":END SIGN TEXT\n" +
-                  "SIGNATURE: '" + mSignature + "'");
+            LoggerManager.getLogger("dbxml").detail(
+               "BEGIN SIGN TEXT:" + mSignedText + ":END SIGN TEXT\n" +
+               "SIGNATURE: '" + mSignature + "'");
 
             rval = (mSignature != null);
 
@@ -349,7 +349,8 @@ public class SignableXmlEnvelope implements IXmlSerializer
          }
          catch(Exception e)
          {
-            LoggerManager.debug("dbxml", LoggerManager.getStackTrace(e));
+            LoggerManager.getLogger("dbxml").debug(
+               LoggerManager.getStackTrace(e));
          }
       }
 
@@ -384,26 +385,26 @@ public class SignableXmlEnvelope implements IXmlSerializer
 
                   if(!mAlgorithm.startsWith("SHA1"))
                   {
-                     LoggerManager.debug("dbxml",
-                                         "unknown signature algorithm!," +
-                                         "algorithm=" + mAlgorithm);
+                     LoggerManager.getLogger("dbxml").debug(
+                        "unknown signature algorithm!," +
+                        "algorithm=" + mAlgorithm);
                   }
                   
                   // base64 decode the signature
                   Base64Coder decoder = new Base64Coder();
                   byte[] sig = decoder.decode(mSignature);
                   
-                  LoggerManager.debug("dbxml",
-                        "BEGIN VERIFY TEXT:" + contents + ":END VERIFY TEXT\n" +
-                        "SIGNATURE: '" + mSignature + "'");
+                  LoggerManager.getLogger("dbxml").detail(
+                     "BEGIN VERIFY TEXT:" + contents + ":END VERIFY TEXT\n" +
+                     "SIGNATURE: '" + mSignature + "'");
          
                   // verify the signature
                   rval = Cryptor.verify(sig, contents, publicKey);
                }
                catch(Exception e)
                {
-                  LoggerManager.debug("dbxml",
-                        LoggerManager.getStackTrace(e));
+                  LoggerManager.getLogger("dbxml").debug(
+                     LoggerManager.getStackTrace(e));
                }
             }
          }
@@ -442,7 +443,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
       }
       catch(Throwable t)
       {
-         LoggerManager.debug("dbxml", Logger.getStackTrace(t));
+         LoggerManager.getLogger("dbxml").debug(Logger.getStackTrace(t));
       }
       
       return rval;
@@ -655,19 +656,21 @@ public class SignableXmlEnvelope implements IXmlSerializer
       }
       catch(SAXParseException spe)
       {
-         LoggerManager.debug("dbxml",
-                             "SignableXMLEnvelope parsing error" +
-                             ", line " + spe.getLineNumber() +
-                             ", uri " + spe.getSystemId());
-         LoggerManager.debug("dbxml", "   " + spe.getMessage());
+         LoggerManager.getLogger("dbxml").debug(
+            "SignableXMLEnvelope parsing error" +
+            ", line " + spe.getLineNumber() +
+            ", uri " + spe.getSystemId());
+         LoggerManager.getLogger("dbxml").debug("   " + spe.getMessage());
          
-         LoggerManager.debug("dbxml", "SXE string:\n" + xmlText);
+         LoggerManager.getLogger("dbxml").debugData("SXE string:\n" + xmlText);
          
-         LoggerManager.debug("dbxml", LoggerManager.getStackTrace(spe));
+         LoggerManager.getLogger("dbxml").debug(
+            LoggerManager.getStackTrace(spe));
       }
       catch(Throwable t)
       {
-         LoggerManager.debug("dbxml", LoggerManager.getStackTrace(t));
+         LoggerManager.getLogger("dbxml").debug(
+            LoggerManager.getStackTrace(t));
       }
       
       return rval;

@@ -195,7 +195,8 @@ public class UTFileEncryption extends Thread
       LoggerManager.createLogger("dbstream");
       LoggerManager.setFile("dbstream", "dbstrean.log", false);
       
-      LoggerManager.debug("dbstream", "running file encryption test...");
+      LoggerManager.getLogger("dbstream").debug(
+         "running file encryption test...");
       
       System.out.println("Removing test files if they exist.");
       try

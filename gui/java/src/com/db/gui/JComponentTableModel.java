@@ -176,7 +176,7 @@ public abstract class JComponentTableModel extends AbstractTableModel
          //LoggerManager.debug("dbgui", LoggerManager.getStackTrace(t));
       }
       
-      LoggerManager.debug("dbgui",
+      LoggerManager.getLogger("dbdata").debug(
          "col=" + col + ",preferred width=" + rval);
       
       return rval;
