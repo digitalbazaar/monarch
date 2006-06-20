@@ -92,10 +92,6 @@ public class ProxyWebConnection extends GenericWebConnection
                writeConnection.write(buffer, 0, numBytes);
             }
          }
-         
-         // close down streams
-         readConnection.getReadStream().close();
-         writeConnection.getWriteStream().close();
       }
       catch(Throwable t)
       {
@@ -110,6 +106,17 @@ public class ProxyWebConnection extends GenericWebConnection
             // not connection reset, there was an error, so display error
             getLogger().error(Logger.getStackTrace(t));
          }
+      }
+      
+      try
+      {
+         // close down streams
+         readConnection.getReadStream().close();
+         writeConnection.getWriteStream().close();
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(Logger.getStackTrace(t));
       }
    }
    
