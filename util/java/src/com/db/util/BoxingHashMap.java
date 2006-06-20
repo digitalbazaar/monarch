@@ -2123,7 +2123,26 @@ public class BoxingHashMap extends HashMap
    {
       String s = (String)get(new Character(key));
       return s;
-   }   
+   }
+
+   /**
+    * Gets a value from a key in this map.
+    * 
+    * The value will be converted into a String if possible. If the value
+    * cannot be cast to a String, a ClassCastException will be thrown.
+    * 
+    * @param key the key of the key-value pair.
+    * 
+    * @return the value associated with the key as a String.
+    *         
+    * @exception ClassCastException
+    */
+   public String getString(String key)
+   throws ClassCastException
+   {
+      String s = (String)get(key);
+      return s;
+   }
    
    /**
     * Removes the mapping for this key from this map if present.
@@ -2259,25 +2278,123 @@ public class BoxingHashMap extends HashMap
    {
       return super.remove(key);
    }
-
+   
    /**
-    * Gets a value from a key in this map.
-    * 
-    * The value will be converted into a String if possible. If the value
-    * cannot be cast to a String, a ClassCastException will be thrown.
-    * 
-    * @param key the key of the key-value pair.
-    * 
-    * @return the value associated with the key as a String.
-    *         
-    * @exception ClassCastException
+    * Returns <tt>true</tt> if this map contains a mapping for the
+    * specified key.
+    *
+    * @param key the key whose presence in this map is to be tested.
+    * @return <tt>true</tt> if this map contains a mapping for the specified
+    *         key.
     */
-   public String getString(String key)
-   throws ClassCastException
+   public boolean containsKey(byte key)   
    {
-      String s = (String)get(key);
-      return s;
-   }   
+      return super.containsKey(new Byte(key));
+   }
+   
+   /**
+    * Returns <tt>true</tt> if this map contains a mapping for the
+    * specified key.
+    *
+    * @param key the key whose presence in this map is to be tested.
+    * @return <tt>true</tt> if this map contains a mapping for the specified
+    *         key.
+    */
+   public boolean containsKey(short key)   
+   {
+      return super.containsKey(new Short(key));
+   }
+   
+   /**
+    * Returns <tt>true</tt> if this map contains a mapping for the
+    * specified key.
+    *
+    * @param key the key whose presence in this map is to be tested.
+    * @return <tt>true</tt> if this map contains a mapping for the specified
+    *         key.
+    */
+   public boolean containsKey(int key)   
+   {
+      return super.containsKey(new Integer(key));
+   }
+   
+   /**
+    * Returns <tt>true</tt> if this map contains a mapping for the
+    * specified key.
+    *
+    * @param key the key whose presence in this map is to be tested.
+    * @return <tt>true</tt> if this map contains a mapping for the specified
+    *         key.
+    */
+   public boolean containsKey(long key)   
+   {
+      return super.containsKey(new Long(key));
+   }
+   
+   /**
+    * Returns <tt>true</tt> if this map contains a mapping for the
+    * specified key.
+    *
+    * @param key the key whose presence in this map is to be tested.
+    * @return <tt>true</tt> if this map contains a mapping for the specified
+    *         key.
+    */
+   public boolean containsKey(float key)   
+   {
+      return super.containsKey(new Float(key));
+   }
+   
+   /**
+    * Returns <tt>true</tt> if this map contains a mapping for the
+    * specified key.
+    *
+    * @param key the key whose presence in this map is to be tested.
+    * @return <tt>true</tt> if this map contains a mapping for the specified
+    *         key.
+    */
+   public boolean containsKey(double key)  
+   {
+      return super.containsKey(new Double(key));
+   }
+   
+   /**
+    * Returns <tt>true</tt> if this map contains a mapping for the
+    * specified key.
+    *
+    * @param key the key whose presence in this map is to be tested.
+    * @return <tt>true</tt> if this map contains a mapping for the specified
+    *         key.
+    */
+   public boolean containsKey(boolean key)   
+   {
+      return super.containsKey(new Boolean(key));
+   }
+   
+   /**
+    * Returns <tt>true</tt> if this map contains a mapping for the
+    * specified key.
+    *
+    * @param key the key whose presence in this map is to be tested.
+    * @return <tt>true</tt> if this map contains a mapping for the specified
+    *         key.
+    */
+   public boolean containsKey(char key)   
+   {
+      return super.containsKey(new Character(key));
+   }
+   
+   /**
+    * Returns <tt>true</tt> if this map contains a mapping for the
+    * specified key.
+    *
+    * @param key the key whose presence in this map is to be tested.
+    * @return <tt>true</tt> if this map contains a mapping for the specified
+    *         key.
+    */
+   public boolean containsKey(String key)   
+   {
+      return super.containsKey(key);
+   }
    
    /**
     * Copies data from the passed map into this map. This method makes deep
