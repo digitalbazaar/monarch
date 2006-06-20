@@ -659,7 +659,7 @@ public class SoapMessage implements IXmlSerializer
    {
       boolean rval = false;
       
-      getLogger().debug("Loading soap message from xml:\n" + xmlText);
+      getLogger().detail("Loading soap message from xml:\n" + xmlText);
 
       try
       {
@@ -723,16 +723,16 @@ public class SoapMessage implements IXmlSerializer
       Iterator ei = er.getElementReadersNS(ENVELOPE_SCHEMA).iterator();
       while(ei.hasNext())
       {
-         getLogger().debug("found envelope elements...");
+         getLogger().detail("found soap envelope elements...");
          
          // get the envelope prefix
          String envPrefix = er.getPrefix(ENVELOPE_SCHEMA, false);
-         getLogger().debug("envelope prefix=" + envPrefix);
+         getLogger().detail("soap envelope prefix=" + envPrefix);
          
          ElementReader envelopeER = (ElementReader)ei.next();
          if(envelopeER.getTagName().equals(envPrefix + ":Body"))
          {
-            getLogger().debug("got envelope body...");
+            getLogger().detail("got soap envelope body...");
             
             // go through all of the body (method/response) elements
             Iterator bi = envelopeER.getElementReaders().iterator();
@@ -773,7 +773,7 @@ public class SoapMessage implements IXmlSerializer
                   }
                   else
                   {
-                     getLogger().debug("got envelope method/response," +
+                     getLogger().debug("got soap envelope method/response," +
                                        "method/response=" + name[1]);
                      
                      // if namespace not set, look it up
@@ -797,22 +797,25 @@ public class SoapMessage implements IXmlSerializer
                         // assumes "result" is being used
                         if(paramName.equals("result"))
                         {
-                           getLogger().debug("result found,result=" +
-                                             paramValue);
+                           getLogger().debug(
+                              "soap method result found,result=" +
+                              paramValue);
                            setResult(paramValue);
                         }
                         else
                         {
-                           getLogger().debug("param found,name=" + paramName +
-                                             ",value=" + paramValue);
+                           getLogger().debug(
+                              "soap method param found,name=" + paramName +
+                              ",value=" + paramValue);
                            
                            // add the param to the map
                            mParams.put(paramName, paramValue);
                         }
                      }
 
-                     getLogger().debug("number of parameters read: " +
-                                       mParams.size());
+                     getLogger().debug(
+                        "number of soap method parameters read: " +
+                        mParams.size());
                      
                      rval = true;
                   }
