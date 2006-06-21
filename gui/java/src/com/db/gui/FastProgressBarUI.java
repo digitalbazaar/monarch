@@ -12,11 +12,9 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 
 import javax.swing.JComponent;
-import javax.swing.JPanel;
 import javax.swing.LookAndFeel;
 import javax.swing.UIManager;
 import javax.swing.plaf.ComponentUI;
-import javax.swing.plaf.PanelUI;
 
 import com.sun.java.swing.SwingUtilities2;
 
@@ -25,7 +23,7 @@ import com.sun.java.swing.SwingUtilities2;
  * 
  * @author Dave Longley
  */
-public class FastProgressBarUI extends PanelUI
+public class FastProgressBarUI extends ComponentUI
 {
    /**
     * Shared ui object.
@@ -80,16 +78,6 @@ public class FastProgressBarUI extends PanelUI
       return smFastProgressBarUI;
    }
 
-   /**
-    * Overridden to call install ui defaults on a progress bar.
-    * 
-    * @param p the panel to install ui defaults on.
-    */
-   protected void installDefaults(JPanel p)
-   {
-      installDefaults((FastProgressBar)p);
-   }
-   
    /**
     * Installs default values for this ui onto the passed progress bar.
     * 
@@ -218,11 +206,16 @@ public class FastProgressBarUI extends PanelUI
       // get the progress bar bounds
       Rectangle progressBarBounds = getProgressBarBounds(progressBar);
       
+      //System.out.println("Bar Bounds: " + progressBarBounds.toString());
+      
       // get the indeterminate percentage
       double percentage = progressBar.getPercentage();
       
       // paint determinate meter
       Rectangle rect = getMeterBounds(progressBarBounds, percentage);
+      
+      //System.out.println("Meter Bounds: " + rect.toString());
+      
       g.setColor(getMeterColor());
       g.fill(rect);
       

@@ -3,8 +3,10 @@
  */
 package com.db.gui;
 
-import javax.swing.JPanel;
+import javax.swing.JComponent;
 
+import com.db.event.EventDelegate;
+import com.db.event.EventObject;
 import com.db.util.MethodInvoker;
 
 /**
@@ -12,8 +14,11 @@ import com.db.util.MethodInvoker;
  * itself quickly.
  * 
  * @author Dave Longley
+ * @author Mike Johnson
  */
-public class FastProgressBar extends JPanel
+public class FastProgressBar
+extends JComponent
+implements ChangeReporter, Comparable
 {
    /**
     * The minimum value for this progress bar.
@@ -63,6 +68,11 @@ public class FastProgressBar extends JPanel
    protected static final String mUiClassId = "com.db.gui.FastProgressBarUI";
    
    /**
+    * The change delegate for this progress bar.
+    */
+   protected EventDelegate mChangeDelegate;
+   
+   /**
     * Creates a new FastProgressBar.
     */
    public FastProgressBar()
@@ -82,6 +92,12 @@ public class FastProgressBar extends JPanel
       
       // initialize progress cycler thread to null
       mProgressCyclerThread = null;
+      
+      // create change delegate
+      mChangeDelegate = new EventDelegate();
+      
+      // update UI to install FastProgressBar UI
+      updateUI();
    }
    
    /**
@@ -202,7 +218,7 @@ public class FastProgressBar extends JPanel
     */
    public FastProgressBarUI getFastProgressBarUI()
    {
-      return (FastProgressBarUI)getUI();
+      return (FastProgressBarUI)ui;
    }
    
    /**
@@ -407,5 +423,58 @@ public class FastProgressBar extends JPanel
    public String getText()
    {
       return mText;
+   }
+   
+   /**
+    * Gets the change delegate for this change reporter. 
+    *
+    * @return the change delegate.
+    */
+   public EventDelegate getChangeDelegate()
+   {
+      return mChangeDelegate;
+   }
+   
+   /**
+    * Fires the progress bar change event for this change reporter.
+    */
+   public void fireFastProgressBarChanged()
+   {
+      // create change event
+      EventObject event = new EventObject("fastProgressBarChanged");
+      event.setData("source", this);
+      
+      // fire event
+      mChangeDelegate.fireEvent(event);
+   }
+   
+   /**
+    * Compares this fast progress bar to another one.
+    * 
+    * @param obj the fast progress bar to compare this one to.
+    * 
+    * @return 1 if this fast progress bar has a greater value,
+    *         0 if the bar values are the same, and -1 if the
+    *         passed bar has a greater value than this one.
+    */
+   public int compareTo(Object obj)
+   {
+      int rval = 0;
+      
+      if(obj instanceof FastProgressBar)
+      {
+         FastProgressBar bar = (FastProgressBar)obj;
+         
+         if(getValue() > bar.getValue())
+         {
+            rval = 1;
+         }
+         else if(getValue() < bar.getValue())
+         {
+            rval = -1;
+         }
+      }
+      
+      return rval;
    }
 }

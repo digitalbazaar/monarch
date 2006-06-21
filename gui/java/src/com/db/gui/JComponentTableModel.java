@@ -15,22 +15,21 @@ import java.util.Vector;
 
 import javax.swing.JComponent;
 import javax.swing.JTable;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 
+import com.db.event.EventObject;
 import com.db.logging.LoggerManager;
 
 /**
  * This is a simple table model that can be easily extended.
  * 
  * @author Dave Longley
+ * @author Mike Johnson
  */
-public abstract class JComponentTableModel extends AbstractTableModel
-                                           implements SortableTableModel,
-                                                      ChangeListener,
-                                                      ComponentListener
+public abstract class JComponentTableModel
+extends AbstractTableModel
+implements SortableTableModel, ComponentListener
 {
    /**
     * Column names for any table model.
@@ -45,7 +44,7 @@ public abstract class JComponentTableModel extends AbstractTableModel
    /**
     * The row data.
     */
-   protected Vector mRowData;
+   protected Vector mRows;
    
    /**
     * Table that is to be resized.
@@ -79,7 +78,7 @@ public abstract class JComponentTableModel extends AbstractTableModel
    {
       super();
       
-      mRowData = new Vector();
+      mRows = new Vector();
    }
    
    /**
@@ -89,16 +88,16 @@ public abstract class JComponentTableModel extends AbstractTableModel
     */
    protected void setRowData(Vector rowData)
    {
-      mRowData = rowData;
+      mRows = rowData;
       
-      Iterator i = rowData.iterator();
-      while(i.hasNext())
+      Iterator rowIndex = rowData.iterator();
+      while(rowIndex.hasNext())
       {
-         Object obj = i.next();
-         if(obj instanceof ChangeReporter)
+         Object row = rowIndex.next();
+         if(row instanceof ChangeReporter)
          {
-            ChangeReporter cr = (ChangeReporter)obj;
-            cr.addChangeListener(this);
+            ChangeReporter cr = (ChangeReporter)row;
+            cr.getChangeDelegate().addListener(this, "stateChanged");
          }
       }      
    }
@@ -110,7 +109,7 @@ public abstract class JComponentTableModel extends AbstractTableModel
     */
    protected Vector getRowData()
    {
-      return mRowData;
+      return mRows;
    }
    
    /**
@@ -365,12 +364,12 @@ public abstract class JComponentTableModel extends AbstractTableModel
     */
    public void insertValueAt(Object obj, int row)
    {
-      mRowData.insertElementAt(obj, row);
+      mRows.insertElementAt(obj, row);
       
       if(obj instanceof ChangeReporter)
       {
          ChangeReporter cr = (ChangeReporter)obj;
-         cr.addChangeListener(this);
+         cr.getChangeDelegate().addListener(this, "stateChanged");
       }
       
       fireTableRowsInserted(row, row);
@@ -384,20 +383,20 @@ public abstract class JComponentTableModel extends AbstractTableModel
     */
    public void setValueAt(Object obj, int row)
    {
-      if(row < mRowData.size())
+      if(row < mRows.size())
       {
-         mRowData.removeElementAt(row);
+         mRows.removeElementAt(row);
          fireTableRowsDeleted(row, row);
       }
       
-      if(row <= mRowData.size())
+      if(row <= mRows.size())
       {
-         mRowData.insertElementAt(obj, row);
+         mRows.insertElementAt(obj, row);
          
          if(obj instanceof ChangeReporter)
          {
             ChangeReporter cr = (ChangeReporter)obj;
-            cr.addChangeListener(this);
+            cr.getChangeDelegate().addListener(this, "stateChanged");
          }
          
          fireTableRowsInserted(row, row);
@@ -414,9 +413,9 @@ public abstract class JComponentTableModel extends AbstractTableModel
    {
       Object obj = null;
       
-      if(mRowData.size() > row)
+      if(mRows.size() > row)
       {
-         obj = mRowData.get(row);
+         obj = mRows.get(row);
       }
       
       return obj;
@@ -432,7 +431,7 @@ public abstract class JComponentTableModel extends AbstractTableModel
    {
       int row = -1;
       
-      Iterator i = mRowData.iterator();
+      Iterator i = mRows.iterator();
       for(int count = 0; i.hasNext(); count++)
       {
          Object o = i.next();
@@ -456,12 +455,12 @@ public abstract class JComponentTableModel extends AbstractTableModel
    {
       boolean rval = false;
       
-      if(mRowData.add(obj))
+      if(mRows.add(obj))
       {
          if(obj instanceof ChangeReporter)
          {
             ChangeReporter cr = (ChangeReporter)obj;
-            cr.addChangeListener(this);
+            cr.getChangeDelegate().addListener(this, "stateChanged");
          }
          
          rval = true;
@@ -483,7 +482,7 @@ public abstract class JComponentTableModel extends AbstractTableModel
    {
       boolean rval = false;
       
-      if(mRowData.remove(obj))
+      if(mRows.remove(obj))
       {
          rval = true;
          fireTableDataChanged();
@@ -510,7 +509,7 @@ public abstract class JComponentTableModel extends AbstractTableModel
       Iterator i = objects.iterator();
       while(i.hasNext())
       {
-         if(mRowData.remove(i.next()))
+         if(mRows.remove(i.next()))
          {
             changed = true;
          }
@@ -557,7 +556,7 @@ public abstract class JComponentTableModel extends AbstractTableModel
     */
    public void clear()
    {
-      mRowData.clear();
+      mRows.clear();
       fireTableDataChanged();
    }
    
@@ -568,7 +567,7 @@ public abstract class JComponentTableModel extends AbstractTableModel
     */
    public int getRowCount()
    {
-      return mRowData.size();
+      return mRows.size();
    }
    
    /*
@@ -661,12 +660,12 @@ public abstract class JComponentTableModel extends AbstractTableModel
    /**
     * Called when row data changes.
     * 
-    * @param e the event identifying the row that changed.
+    * @param event the event identifying the row that changed.
     */
-   public void stateChanged(ChangeEvent e)
+   public void stateChanged(EventObject event)
    {
       // get the index of the changed row
-      int index = getRowData().indexOf(e.getSource());
+      int index = getRowData().indexOf(event.getData("source"));
       if(index != -1)
       {
          // fire rows updated message

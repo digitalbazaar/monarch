@@ -3,27 +3,22 @@
  */
 package com.db.gui;
 
-import javax.swing.event.ChangeListener;
+import com.db.event.EventDelegate;
 
 /**
- * Any class that reports changes via a change listener can implement
- * this class.
+ * Any class that wants to send changes via an event delegate can implement
+ * this class. The source of the change event will be included in the event
+ * data as "source".
  * 
- * @author Dave Longler.
+ * @author Dave Longley
+ * @author Mike Johnson
  */
 public interface ChangeReporter
 {
    /**
-    * Adds a change listener.
-    * 
-    * @param cl the change listener to add.
+    * Gets the change delegate for this change reporter.
+    *
+    * @return the change delegate.
     */
-   public void addChangeListener(ChangeListener cl);
-   
-   /**
-    * Removes a change listener.
-    * 
-    * @param cl the change listener to remove.
-    */
-   public void removeChangeListener(ChangeListener cl);
+   public EventDelegate getChangeDelegate();
 }
