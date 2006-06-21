@@ -206,15 +206,11 @@ public class FastProgressBarUI extends ComponentUI
       // get the progress bar bounds
       Rectangle progressBarBounds = getProgressBarBounds(progressBar);
       
-      //System.out.println("Bar Bounds: " + progressBarBounds.toString());
-      
       // get the indeterminate percentage
       double percentage = progressBar.getPercentage();
       
       // paint determinate meter
       Rectangle rect = getMeterBounds(progressBarBounds, percentage);
-      
-      //System.out.println("Meter Bounds: " + rect.toString());
       
       g.setColor(getMeterColor());
       g.fill(rect);
