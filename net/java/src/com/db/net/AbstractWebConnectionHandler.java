@@ -10,6 +10,8 @@ import java.util.Iterator;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 
+import com.db.util.BoxingHashMap;
+
 /**
  * This class provides the basic functionality for a web connection handler.
  * It provides management for listening and accepting traffic on several ports.
@@ -29,7 +31,12 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
    /**
     * A table mapping ports to server sockets. 
     */
-   protected HashMap mPortToServerSocketMap;
+   protected BoxingHashMap mPortToServerSocketMap;
+   
+   /**
+    * A table mapping ports to maximum connections.
+    */
+   protected BoxingHashMap mPortToMaximumConnections;
    
    /**
     * A table mapping server sockets to web connection acceptors.
@@ -54,7 +61,10 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
       mWebConnectionServicer = wcs;
       
       // create the port to server socket map
-      mPortToServerSocketMap = new HashMap();
+      mPortToServerSocketMap = new BoxingHashMap();
+      
+      // create the port to maximum connections map
+      mPortToMaximumConnections = new BoxingHashMap();
       
       // create the server socket to web connection acceptor map
       mServerSocketToWebConnectionAcceptorMap = new HashMap();
@@ -74,12 +84,18 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
    /**
     * Creates a new web connection acceptor for accepting web connections. 
     * 
+    * @param port the port to create the web connection acceptor for.
+    * 
     * @return the new web connection acceptor.
     */
-   protected WebConnectionAcceptor createWebConnectionAcceptor()
+   protected WebConnectionAcceptor createWebConnectionAcceptor(int port)
    {
+      // get the number of connections
+      int connections = getMaximumConnections(port);
+      
       // create generic web connection acceptor
-      WebConnectionAcceptor wca = new WebConnectionAcceptor();
+      WebConnectionAcceptor wca = new WebConnectionAcceptor(connections);
+      
       return wca;
    }
    
@@ -89,10 +105,10 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
     * @param port the port to assign the server socket to.
     * @param serverSocket the server socket to assign to a port.
     */
-   protected synchronized void mapPortToServerSocket(int port,
-                                                     ServerSocket serverSocket)
+   protected synchronized void mapPortToServerSocket(
+      int port, ServerSocket serverSocket)
    {
-      mPortToServerSocketMap.put("" + port, serverSocket);
+      mPortToServerSocketMap.put(port, serverSocket);
    }
    
    /**
@@ -102,7 +118,7 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
     */
    protected synchronized void unmapPortFromServerSocket(int port)
    {
-      mPortToServerSocketMap.remove("" + port);
+      mPortToServerSocketMap.remove(port);
    }   
 
    /**
@@ -114,7 +130,7 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
     */
    protected ServerSocket getServerSocket(int port)
    {
-      return (ServerSocket)mPortToServerSocketMap.get("" + port);
+      return (ServerSocket)mPortToServerSocketMap.get(port);
    }
    
    /**
@@ -243,8 +259,6 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
    
    /**
     * Begins accepting web connections on the given port.
-    * 
-    * @param port the port to start accepting web connections on.
     */
    public synchronized void startAcceptingWebConnections(int port)
    {
@@ -268,7 +282,7 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
          if(wca == null)
          {
             // create a web connection acceptor
-            wca = createWebConnectionAcceptor();
+            wca = createWebConnectionAcceptor(port);
 
             // add web connection accepted listener to delegate
             wca.getWebConnectionAcceptedDelegate().
@@ -394,7 +408,7 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
          if(wca == null)
          {
             // create a web connection acceptor
-            wca = createWebConnectionAcceptor();
+            wca = createWebConnectionAcceptor(port);
          }
          
          // accept web connection
@@ -426,7 +440,7 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
          if(wca == null)
          {
             // create a web connection acceptor
-            wca = createWebConnectionAcceptor();
+            wca = createWebConnectionAcceptor(port);
          }
          
          // accept web proxy connection
@@ -488,6 +502,43 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
       }
       
       return rval;      
+   }
+   
+   /**
+    * sets the maximum number of connections to handle concurrently
+    * on a given port.
+    *
+    * @param port the port to set the maximum number of concurrent connections
+    *             for.
+    * @param connections the maximum number of concurrent connections allowed.
+    */
+   public void setMaximumConnections(int port, int connections)
+   {
+      // add map entry
+      mPortToMaximumConnections.put(port, connections);
+   }
+   
+   /**
+    * Gets the maximum number of connections to handle concurrently
+    * on a given port.
+    *
+    * @param port the port to get the maximum number of concurrent connections
+    *             for.
+    * 
+    * @return the maximum number of connections to handle concurrently
+    *         on a given port.
+    */
+   public int getMaximumConnections(int port)   
+   {
+      // return 1 by default
+      int rval = 1;
+      
+      if(mPortToMaximumConnections.containsKey(port))
+      {
+         rval = mPortToMaximumConnections.getInt(port);
+      }
+      
+      return rval;
    }
    
    /**

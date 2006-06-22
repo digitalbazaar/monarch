@@ -64,6 +64,7 @@ public interface WebConnectionHandler
     * a web connection handler should accept a proxy web connection. 
     *
     * @param webConnection the web connection to inspect.
+    * 
     * @return true if the web connection's protocol is supported, false
     *         if it is not.
     */
@@ -83,10 +84,33 @@ public interface WebConnectionHandler
     * on the specified port, false if it is not.
     * 
     * @param port the port to check for web connections being accepted.
+    * 
     * @return true if this connection handler is accepting connections on
     *         the specified port, false if not.
     */
    public boolean isAcceptingWebConnections(int port);
+   
+   /**
+    * sets the maximum number of connections to handle concurrently
+    * on a given port.
+    *
+    * @param port the port to set the maximum number of concurrent connections
+    *             for.
+    * @param connections the maximum number of concurrent connections allowed.
+    */
+   public void setMaximumConnections(int port, int connections);
+   
+   /**
+    * Gets the maximum number of connections to handle concurrently
+    * on a given port.
+    *
+    * @param port the port to get the maximum number of concurrent connections
+    *             for.
+    * 
+    * @return the maximum number of connections to handle concurrently
+    *         on a given port.
+    */
+   public int getMaximumConnections(int port);
    
    /**
     * Terminates all web connections this web connection handler is handling.

@@ -602,6 +602,123 @@ public class BoxingHashMap extends HashMap
    {
       super.put(new Integer(key), value);
    }
+   
+   /**
+    * Puts a key-value pair in this map. The key is an integer and will
+    * be boxed as an Integer. The value is a byte and will be
+    * boxed as a Byte.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(int key, byte value)
+   {
+      super.put(new Integer(key), new Byte(value));
+   }
+   
+   /**
+    * Puts a key-value pair in this map. The key is an integer and will
+    * be boxed as an Integer. The value is a short and will be
+    * boxed as a Short.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(int key, short value)
+   {
+      super.put(new Integer(key), new Short(value));
+   }
+   
+   /**
+    * Puts a key-value pair in this map. The key is an integer and will
+    * be boxed as an Integer. The value is an integer and will be
+    * boxed as an Integer.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(int key, int value)
+   {
+      super.put(new Integer(key), new Integer(value));
+   }
+   
+   /**
+    * Puts a key-value pair in this map. The key is an integer and will
+    * be boxed as an Integer. The value is a long and will be
+    * boxed as a Long.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(int key, long value)
+   {
+      super.put(new Integer(key), new Long(value));
+   }
+   
+   /**
+    * Puts a key-value pair in this map. The key is an integer and will
+    * be boxed as an Integer. The value is a float and will be
+    * boxed as a Float.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(int key, float value)
+   {
+      super.put(new Integer(key), new Float(value));
+   }
+   
+   /**
+    * Puts a key-value pair in this map. The key is an integer and will
+    * be boxed as an Integer. The value is a double and will be
+    * boxed as a Double.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(int key, double value)
+   {
+      super.put(new Integer(key), new Double(value));
+   }
+   
+   /**
+    * Puts a key-value pair in this map. The key is an integer and will
+    * be boxed as an Integer. The value is a boolean and will be
+    * boxed as a Boolean.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(int key, boolean value)
+   {
+      super.put(new Integer(key), new Boolean(value));
+   }
+   
+   /**
+    * Puts a key-value pair in this map. The key is an integer and will
+    * be boxed as an Integer. The value is a character and will be
+    * boxed as a Character.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(int key, char value)
+   {
+      super.put(new Integer(key), new Character(value));
+   }
+   
+   /**
+    * Puts a key-value pair in this map. The key is an integer and will
+    * be boxed as an Integer. The value is a String and will be
+    * boxed as a String.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(int key, String value)
+   {
+      super.put(new Integer(key), value);
+   }
 
    /**
     * Puts a key-value pair in this map. The value is an integer and will
@@ -836,6 +953,123 @@ public class BoxingHashMap extends HashMap
    {
       super.put(new Long(key), value);
    }
+   
+   /**
+    * Puts a key-value pair in this map. The key is a long and will
+    * be boxed as a Long. The value is a byte and will be boxed
+    * as a Byte.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(long key, byte value)
+   {
+      super.put(new Long(key), new Byte(value));
+   }   
+   
+   /**
+    * Puts a key-value pair in this map. The key is a long and will
+    * be boxed as a Long. The value is a short and will be boxed
+    * as a Short.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(long key, short value)
+   {
+      super.put(new Long(key), new Short(value));
+   }   
+   
+   /**
+    * Puts a key-value pair in this map. The key is a long and will
+    * be boxed as a Long. The value is an integer and will be boxed
+    * as an Integer.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(long key, int value)
+   {
+      super.put(new Long(key), new Integer(value));
+   }   
+   
+   /**
+    * Puts a key-value pair in this map. The key is a long and will
+    * be boxed as a Long. The value is a long and will be boxed
+    * as a Long.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(long key, long value)
+   {
+      super.put(new Long(key), new Long(value));
+   }   
+   
+   /**
+    * Puts a key-value pair in this map. The key is a long and will
+    * be boxed as a Long. The value is a float and will be boxed
+    * as a Float.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(long key, float value)
+   {
+      super.put(new Long(key), new Float(value));
+   }   
+   
+   /**
+    * Puts a key-value pair in this map. The key is a long and will
+    * be boxed as a Long. The value is a double and will be boxed
+    * as a Double.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(long key, double value)
+   {
+      super.put(new Long(key), new Double(value));
+   }   
+   
+   /**
+    * Puts a key-value pair in this map. The key is a long and will
+    * be boxed as a Long. The value is a boolean and will be boxed
+    * as a Boolean.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(long key, boolean value)
+   {
+      super.put(new Long(key), new Boolean(value));
+   }   
+   
+   /**
+    * Puts a key-value pair in this map. The key is a long and will
+    * be boxed as a Long. The value is a character and will be boxed
+    * as a Character.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(long key, char value)
+   {
+      super.put(new Long(key), new Character(value));
+   }   
+   
+   /**
+    * Puts a key-value pair in this map. The key is a long and will
+    * be boxed as a Long. The value is a String and will be boxed
+    * as a String.
+    * 
+    * @param key the key of the key-value pair.
+    * @param value the value of the key-value pair.
+    */
+   public void put(long key, String value)
+   {
+      super.put(new Long(key), value);
+   }   
 
    /**
     * Puts a key-value pair in this map. The value is a long and will

@@ -65,6 +65,10 @@ public class HttpWebServer extends WebServer
       // set default ports
       setNonSecurePort(DEFAULT_NON_SECURE_HTTP_PORT);
       setSecurePort(DEFAULT_SECURE_HTTP_PORT);
+      
+      // accept up to 1000 connections each by default
+      setMaximumNonSecureConnections(1000);
+      setMaximumSecureConnections(1000);
    }
    
    /**
@@ -77,8 +81,8 @@ public class HttpWebServer extends WebServer
     * @param hwrs the http web request servicer to add.
     * @param path the path to the servicer.
     */
-   public void addNonSecureHttpWebRequestServicer(HttpWebRequestServicer hwrs,
-                                                  String path)
+   public void addNonSecureHttpWebRequestServicer(
+      HttpWebRequestServicer hwrs, String path)
    {
       mHttpWebConnectionServicer.addNonSecureHttpWebRequestServicer(hwrs, path);
    }
@@ -93,8 +97,8 @@ public class HttpWebServer extends WebServer
     * @param hwrs the http request servicer to add.
     * @param path the path to the servicer.
     */
-   public void addSecureHttpWebRequestServicer(HttpWebRequestServicer hwrs,
-                                               String path)
+   public void addSecureHttpWebRequestServicer(
+      HttpWebRequestServicer hwrs, String path)
    {
       mHttpWebConnectionServicer.addSecureHttpWebRequestServicer(hwrs, path);
    }
@@ -184,8 +188,8 @@ public class HttpWebServer extends WebServer
     * @param nonSecurePort the port for non-secure http traffic.
     * @param securePort the port for secure http traffic.
     */
-   public synchronized void start(int nonSecurePort,
-                                  int securePort)   
+   public synchronized void start(
+      int nonSecurePort, int securePort)   
    {
       setNonSecurePort(nonSecurePort);
       setSecurePort(securePort);
@@ -213,7 +217,14 @@ public class HttpWebServer extends WebServer
    {
       if(!isRunning())
       {
+         // save maximum connections
+         int connections = getMaximumNonSecureConnections();
+         
+         // set port
          mNonSecurePort = nonSecurePort;
+         
+         // update maximum connections
+         setMaximumNonSecureConnections(connections);
       }
    }
    
@@ -238,7 +249,14 @@ public class HttpWebServer extends WebServer
    {
       if(!isRunning())
       {
+         // save maximum connections
+         int connections = getMaximumSecureConnections();
+         
+         // set port
          mSecurePort = securePort;
+
+         // update maximum connections
+         setMaximumSecureConnections(connections);
       }
    }
    
@@ -263,5 +281,50 @@ public class HttpWebServer extends WebServer
    public boolean setSSLKeystore(String keystore, String password)
    {
       return mSSLWebConnectionHandler.setSSLKeystore(keystore, password);
-   }   
+   }
+   
+   /**
+    * Sets the maximum number of connections for the non-secure port.
+    * 
+    * @param connections the maximum number of connections for the
+    *                    non-secure port.
+    */
+   public void setMaximumNonSecureConnections(int connections)
+   {
+      mGenericWebConnectionHandler.setMaximumConnections(
+         getNonSecurePort(), connections);
+   }
+   
+   /**
+    * Gets the maximum number of connections for the non-secure port.
+    * 
+    * @return the maximum number of connections for the non-secure port.
+    */
+   public int getMaximumNonSecureConnections()
+   {
+      return mGenericWebConnectionHandler.getMaximumConnections(
+         getNonSecurePort());
+   }
+   
+   /**
+    * Sets the maximum number of connections for the secure port.
+    * 
+    * @param connections the maximum number of connections for the
+    *                    secure port.
+    */
+   public void setMaximumSecureConnections(int connections)
+   {
+      mSSLWebConnectionHandler.setMaximumConnections(
+         getSecurePort(), connections);
+   }
+   
+   /**
+    * Gets the maximum number of connections for the secure port.
+    * 
+    * @return the maximum number of connections for the secure port.
+    */
+   public int getMaximumSecureConnections()
+   {
+      return mSSLWebConnectionHandler.getMaximumConnections(getSecurePort());
+   }
 }

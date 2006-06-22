@@ -9,6 +9,7 @@ import java.net.SocketTimeoutException;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.util.JobThreadPool;
 import com.db.util.MethodInvoker;
 
 /**
@@ -28,7 +29,12 @@ public class WebConnectionAcceptor
     * Whether or not this web connection acceptor is currently accepting
     * web connections.
     */
-   protected volatile boolean mAcceptingWebConnections;
+   protected boolean mAcceptingWebConnections;
+   
+   /**
+    * A thread pool for handling accepted web connections.
+    */
+   protected JobThreadPool mAcceptedWebConnectionThreadPool; 
    
    /**
     * A web connection accepted delegate for reporting web connection
@@ -37,9 +43,12 @@ public class WebConnectionAcceptor
    protected WebConnectionAcceptedDelegate mWebConnectionAcceptedDelegate;
    
    /**
-    * Creates a new WebConnectionManager.
+    * Creates a new WebConnectionAcceptor with the specified maximum number of
+    * connections to accept at once.
+    * 
+    * @param connections the maximum number of connections to accept at once.
     */
-   public WebConnectionAcceptor()
+   public WebConnectionAcceptor(int connections)
    {
       // acceptor thread is null until startAcceptingWebConnections() is called
       mAcceptorThread = null;
@@ -47,62 +56,23 @@ public class WebConnectionAcceptor
       // not accepting web connections yet
       mAcceptingWebConnections = false;
       
+      // create the accepted web connection thread pool
+      mAcceptedWebConnectionThreadPool = new JobThreadPool(connections);
+      
       // create web connection accepted delegate
       mWebConnectionAcceptedDelegate = new WebConnectionAcceptedDelegate();
    }
-
-   /**
-    * Handles an accepted connection by firing a webConnectionAccepted
-    * message -- if there are listeners for that message. Otherwise
-    * the connection is shutdown.
-    * 
-    * @param webConnection the accepted web connection.
-    */
-   public void handleAcceptedWebConnection(WebConnection webConnection)
-   {
-      // true if a message was fired to handle the socket connection,
-      // false if one was not
-      boolean messageFired = false;
-      
-      // only fire message if acceptor thread is not interrupted
-      if(!mAcceptorThread.isInterrupted())
-      {
-         String ip = webConnection.getRemoteIP();
-         if(webConnection instanceof ProxyWebConnection)
-         {
-            getLogger().debug("proxy web connection accepted, ip=" + ip);
-         }
-         else
-         {
-            getLogger().debug("web connection accepted, ip=" + ip);
-         }
-      
-         // fire message indicating that a web connection has been accepted
-         if(getWebConnectionAcceptedDelegate().getListenerCount() > 0)
-         {
-            getWebConnectionAcceptedDelegate().
-            fireWebConnectionAccepted(webConnection);
-            messageFired = true;
-         }
-      }
-      else
-      {
-         // web connection accepting has been interrupted, disconnect
-         webConnection.disconnect();
-      }
-      
-      // if a message was not fired to handle the connection,
-      // then terminate it
-      if(!messageFired)
-      {
-         getLogger().error("message was not fired to handle accepted " +
-                           "web connection, terminating connection.");
-         
-         // disconnect web connection
-         webConnection.disconnect();
-      }
-   }
    
+   /**
+    * Gets the accepted web connection thread pool. 
+    * 
+    * @return the accepted web connection thread pool.
+    */
+   protected JobThreadPool getThreadPool()
+   {
+      return mAcceptedWebConnectionThreadPool;
+   }
+
    /**
     * Accepts a web connection with the specified server socket. This
     * method is synchronized to ensure that only one connection is
@@ -146,10 +116,9 @@ public class WebConnectionAcceptor
             webConnection.setSecure(secure);
             
             // handle the web connection on another thread
-            Object[] params = new Object[]{webConnection};
-            MethodInvoker mi =
-               new MethodInvoker(this, "handleAcceptedWebConnection", params);
-            mi.backgroundExecute();
+            AcceptedWebConnectionHandler handler =
+               new AcceptedWebConnectionHandler(webConnection);
+            getThreadPool().runJob(handler);
          }
       }
       catch(Throwable t)
@@ -208,10 +177,9 @@ public class WebConnectionAcceptor
          proxyWebConnection.startProxy();
          
          // handle the web connection on another thread
-         Object[] params = new Object[]{proxyWebConnection};
-         MethodInvoker mi =
-            new MethodInvoker(this, "handleAcceptedWebConnection", params);
-         mi.backgroundExecute();
+         AcceptedWebConnectionHandler handler =
+            new AcceptedWebConnectionHandler(proxyWebConnection);
+         getThreadPool().runJob(handler);
       }
       catch(Throwable t)
       {
@@ -332,5 +300,90 @@ public class WebConnectionAcceptor
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbnet");
+   }
+   
+   /**
+    * This class is used to handle accepted web connections.
+    * 
+    * @author Dave Longley
+    */
+   public class AcceptedWebConnectionHandler implements Runnable
+   {
+      /**
+       * The web connection to handle.
+       */
+      protected WebConnection mWebConnection;
+      
+      /**
+       * Creates a new AcceptedWebConnectionHandler to handle the
+       * passed accepted web connection.
+       * 
+       * @param webConnection the web connection handle.
+       */
+      public AcceptedWebConnectionHandler(WebConnection webConnection)
+      {
+         // store web connection
+         mWebConnection = webConnection;
+      }
+      
+      /**
+       * Handles an accepted connection by firing a webConnectionAccepted
+       * message -- if there are listeners for that message. Otherwise
+       * the connection is shutdown.
+       * 
+       * @param webConnection the accepted web connection.
+       */
+      public void handleAcceptedWebConnection(WebConnection webConnection)
+      {
+         // true if a message was fired to handle the socket connection,
+         // false if one was not
+         boolean messageFired = false;
+         
+         // only fire message if acceptor thread is not interrupted
+         if(!mAcceptorThread.isInterrupted())
+         {
+            String ip = webConnection.getRemoteIP();
+            if(webConnection instanceof ProxyWebConnection)
+            {
+               getLogger().debug("proxy web connection accepted, ip=" + ip);
+            }
+            else
+            {
+               getLogger().debug("web connection accepted, ip=" + ip);
+            }
+         
+            // fire message indicating that a web connection has been accepted
+            if(getWebConnectionAcceptedDelegate().getListenerCount() > 0)
+            {
+               getWebConnectionAcceptedDelegate().
+               fireWebConnectionAccepted(webConnection);
+               messageFired = true;
+            }
+         }
+         else
+         {
+            // web connection accepting has been interrupted, disconnect
+            webConnection.disconnect();
+         }
+         
+         // if a message was not fired to handle the connection,
+         // then terminate it
+         if(!messageFired)
+         {
+            getLogger().error("message was not fired to handle accepted " +
+                              "web connection, terminating connection.");
+            
+            // disconnect web connection
+            webConnection.disconnect();
+         }
+      }
+      
+      /**
+       * Handles an accepted web connection.
+       */
+      public void run()
+      {
+         handleAcceptedWebConnection(mWebConnection);
+      }
    }
 }

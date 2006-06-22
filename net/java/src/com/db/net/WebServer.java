@@ -10,6 +10,7 @@ import java.util.Vector;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.util.BoxingHashMap;
 
 /**
  * A generic web server. This server communicates over ports.
@@ -26,7 +27,7 @@ public class WebServer
    /**
     * A table mapping ports to web connection handlers.
     */
-   protected HashMap mPortToWebConnectionHandler;
+   protected BoxingHashMap mPortToWebConnectionHandler;
    
    /**
     * Whether or not this web server is running.
@@ -42,7 +43,7 @@ public class WebServer
       mPorts = new Vector();
       
       // create the port to handler map
-      mPortToWebConnectionHandler = new HashMap();
+      mPortToWebConnectionHandler = new BoxingHashMap();
       
       mRunning = false;
    }
@@ -64,7 +65,7 @@ public class WebServer
    protected void mapPortToWebConnectionHandler(int port,
                                                 WebConnectionHandler wch)
    {
-      mPortToWebConnectionHandler.put("" + port, wch);
+      mPortToWebConnectionHandler.put(port, wch);
    }
    
    /**
@@ -80,6 +81,7 @@ public class WebServer
     * 
     * @param wch the web connection handler to add to this server.
     * @param port the port the web connection handler will listen on.
+    * 
     * @return true if the web connection handler was successfully added,
     *         false if it was not.
     */
@@ -250,7 +252,7 @@ public class WebServer
     */
    public WebConnectionHandler getWebConnectionHandler(int port)
    {
-      return (WebConnectionHandler)mPortToWebConnectionHandler.get("" + port);
+      return (WebConnectionHandler)mPortToWebConnectionHandler.get(port);
    }
    
    /**

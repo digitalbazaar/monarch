@@ -19,6 +19,13 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
    {
       // set internal web server to http web server
       super(new HttpWebServer());
+      
+      // accept up to 2000 connections each internally by default
+      setMaximumNonSecureConnections(2000);
+      setMaximumSecureConnections(2000);
+      
+      // accept up to 1000 proxy connections by default
+      setMaximumProxyConnections(1000);
    }
    
    /**
@@ -41,8 +48,8 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     * @param hwrs the http web request servicer to add.
     * @param path the path to the servicer.
     */
-   public void addNonSecureHttpWebRequestServicer(HttpWebRequestServicer hwrs,
-                                                  String path)
+   public void addNonSecureHttpWebRequestServicer(
+      HttpWebRequestServicer hwrs, String path)
    {
       getInternalHttpWebServer().addNonSecureHttpWebRequestServicer(hwrs, path);
    }
@@ -57,8 +64,8 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     * @param hwrs the http request servicer to add.
     * @param path the path to the servicer.
     */
-   public void addSecureHttpWebRequestServicer(HttpWebRequestServicer hwrs,
-                                               String path)
+   public void addSecureHttpWebRequestServicer(
+      HttpWebRequestServicer hwrs, String path)
    {
       getInternalHttpWebServer().addSecureHttpWebRequestServicer(hwrs, path);
    }
@@ -92,8 +99,11 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     */
    public synchronized void startNonSecure(int proxyPort, int nonSecureHttpPort)
    {
+      // set ports
       getInternalHttpWebServer().setNonSecurePort(nonSecureHttpPort);
       getInternalHttpWebServer().setSecurePort(0);
+      
+      // start server
       start(proxyPort);
    }
    
@@ -106,8 +116,11 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     */
    public synchronized void startSecure(int proxyPort, int secureHttpPort)
    {
+      // set ports
       getInternalHttpWebServer().setNonSecurePort(0);
       getInternalHttpWebServer().setSecurePort(secureHttpPort);
+
+      // start server
       start(proxyPort);
    }
    
@@ -118,12 +131,14 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     * @param nonSecureHttpPort the local port for non-secure http traffic.
     * @param secureHttpPort the local port for secure http traffic.
     */
-   public synchronized void start(int proxyPort,
-                                  int nonSecureHttpPort,
-                                  int secureHttpPort)   
+   public synchronized void start(
+      int proxyPort, int nonSecureHttpPort, int secureHttpPort)   
    {
+      // set ports
       getInternalHttpWebServer().setNonSecurePort(nonSecureHttpPort);
       getInternalHttpWebServer().setSecurePort(secureHttpPort);
+      
+      // start server
       start(proxyPort);
    }
    
@@ -149,5 +164,47 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
    public boolean setSSLKeystore(String keystore, String password)
    {
       return getInternalHttpWebServer().setSSLKeystore(keystore, password);
+   }
+   
+   /**
+    * Sets the maximum number of connections for the non-secure port.
+    * 
+    * @param connections the maximum number of connections for the
+    *                    non-secure port.
+    */
+   public void setMaximumNonSecureConnections(int connections)
+   {
+      getInternalHttpWebServer().setMaximumNonSecureConnections(connections);
+   }
+   
+   /**
+    * Gets the maximum number of connections for the non-secure port.
+    * 
+    * @return the maximum number of connections for the non-secure port.
+    */
+   public int getMaximumNonSecureConnections()
+   {
+      return getInternalHttpWebServer().getMaximumNonSecureConnections();
+   }
+   
+   /**
+    * Sets the maximum number of connections for the secure port.
+    * 
+    * @param connections the maximum number of connections for the
+    *                    secure port.
+    */
+   public void setMaximumSecureConnections(int connections)
+   {
+      getInternalHttpWebServer().setMaximumSecureConnections(connections);
+   }
+   
+   /**
+    * Gets the maximum number of connections for the secure port.
+    * 
+    * @return the maximum number of connections for the secure port.
+    */
+   public int getMaximumSecureConnections()
+   {
+      return getInternalHttpWebServer().getMaximumSecureConnections();
    }   
 }

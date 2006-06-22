@@ -293,7 +293,14 @@ public class ProxyPortWebServer extends WebServer
    {
       if(!isRunning())
       {
+         // save maximum connections
+         int connections = getMaximumProxyConnections();
+         
+         // set port
          mProxyPort = proxyPort;
+
+         // update maximum connections
+         setMaximumProxyConnections(connections);
       }
    }
    
@@ -305,5 +312,25 @@ public class ProxyPortWebServer extends WebServer
    public int getProxyPort()
    {
       return mProxyPort;
+   }
+   
+   /**
+    * Sets the maximum number of connections for the proxy port.
+    * 
+    * @param connections the maximum number of connections for the proxy port.
+    */
+   public void setMaximumProxyConnections(int connections)
+   {
+      mWebConnectionHandler.setMaximumConnections(getProxyPort(), connections);
+   }
+   
+   /**
+    * Gets the maximum number of connections for the proxy port.
+    * 
+    * @return the maximum number of connections for the proxy port.
+    */
+   public int getMaximumProxyConnections()
+   {
+      return mWebConnectionHandler.getMaximumConnections(getProxyPort());
    }
 }

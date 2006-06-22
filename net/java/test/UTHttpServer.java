@@ -76,7 +76,7 @@ public class UTHttpServer
          System.out.println("Server started, running on port " + port);
 
          // send requests
-         sendRequests(port, 1);
+         sendRequests(port, 10);
          
          // while running, sleep
          while(true)
@@ -104,6 +104,8 @@ public class UTHttpServer
     */
    public static void sendRequest(int port)
    {
+      System.out.println("Sending request on port " + port);
+      
       // connect and send http request
       try
       {
@@ -162,10 +164,11 @@ public class UTHttpServer
    {
       for(int i = 0; i < count; i++)
       {
-         Object[] params = new Object[]{new Integer(port)};
-         MethodInvoker mi =
-            new MethodInvoker(UTHttpServer.class, "sendRequest", params);
-         mi.backgroundExecute();
+         sendRequest(port);
+         //Object[] params = new Object[]{new Integer(port)};
+         //MethodInvoker mi =
+            //new MethodInvoker(UTHttpServer.class, "sendRequest", params);
+         //mi.backgroundExecute();
       }
    }
 }
