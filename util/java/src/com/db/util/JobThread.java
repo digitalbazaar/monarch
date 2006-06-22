@@ -7,8 +7,8 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 
 /**
- * A JobThread is a thread that executes Runnable jobs and sleeps
- * while it is not executing a job. This thread can be used in
+ * A JobThread is a thread that runs Runnable jobs and sleeps
+ * while it is not running a job. This thread can be used in
  * conjunction with a JobThreadPool.
  * 
  * @author Dave Longley
@@ -16,7 +16,7 @@ import com.db.logging.LoggerManager;
 public class JobThread extends Thread
 {
    /**
-    * The Runnable job to execute.
+    * The Runnable job to run.
     */
    protected Runnable mJob;
    
@@ -25,14 +25,14 @@ public class JobThread extends Thread
     */
    public JobThread()
    {
-      // no Runnable job to execute yet
+      // no Runnable job to run yet
       mJob = null;
    }
    
    /**
-    * Gets the Runnable job to execute, if any.
+    * Gets the Runnable job to run, if any.
     * 
-    * @return the Runnable job to execute, if any.
+    * @return the Runnable job to run, if any.
     */
    protected synchronized Runnable getJob()
    {
