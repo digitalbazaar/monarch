@@ -114,14 +114,9 @@ public class JobThreadPool
          JobThread thread = (JobThread)i.next();
          if(thread.isIdle())
          {
-            // if there are extra idle threads, interrupt and remove
-            // this one
-            if(extraThreads > 0)
+            // if the thread is not alive, remove it and continue on
+            if(thread.isAlive())
             {
-               // interrupt thread
-               thread.interrupt();
-               
-               // remove it from the pool
                i.remove();
                
                // decrement extra threads
@@ -129,9 +124,25 @@ public class JobThreadPool
             }
             else
             {
-               // return this thread
-               rval = thread;
-               break;
+               // if there are extra idle threads, interrupt and remove
+               // this one
+               if(extraThreads > 0)
+               {
+                  // interrupt thread
+                  thread.interrupt();
+                  
+                  // remove it from the pool
+                  i.remove();
+                  
+                  // decrement extra threads
+                  extraThreads--;
+               }
+               else
+               {
+                  // return this thread
+                  rval = thread;
+                  break;
+               }
             }
          }
       }
