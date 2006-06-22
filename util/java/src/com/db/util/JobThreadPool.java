@@ -59,6 +59,15 @@ public class JobThreadPool
    }
    
    /**
+    * When finalizing this thread pool, terminate all of its threads.
+    */
+   public void finalize()
+   {
+      // terminate all threads
+      terminateAllThreads();
+   }
+   
+   /**
     * Acquires a thread permit for running a job.
     * 
     * This method will lock until an available thread is acquired or
@@ -86,7 +95,9 @@ public class JobThreadPool
     */
    protected synchronized JobThread createJobThread()
    {
-      return new JobThread();
+      // create job thrad
+      JobThread thread = new JobThread();
+      return thread;
    }
    
    /**
@@ -117,6 +128,12 @@ public class JobThreadPool
             // if the thread is not alive, remove it and continue on
             if(!thread.isAlive())
             {
+               getLogger().detail("JobThreadPool: removing dead thread.");
+               
+               // interrupt thread just in case
+               thread.interrupt();
+               
+               // remove thread
                i.remove();
                
                // decrement extra threads
@@ -128,6 +145,8 @@ public class JobThreadPool
                // this one
                if(extraThreads > 0)
                {
+                  getLogger().detail("JobThreadPool: removing extra thread.");
+                  
                   // interrupt thread
                   thread.interrupt();
                   
@@ -152,6 +171,11 @@ public class JobThreadPool
       {
          // create new job thread
          rval = createJobThread();
+         
+         getLogger().detail("JobThreadPool: adding new thread.");
+         
+         // add thread to pool
+         mThreads.add(rval);
          
          // start the thread
          rval.start();
@@ -269,6 +293,8 @@ public class JobThreadPool
     */
    public synchronized void terminateAllThreads()
    {
+      getLogger().detail("JobThreadPool: terminating all threads.");
+      
       // iterate through all threads, interrupt and remove them
       Iterator i = mThreads.iterator();
       while(i.hasNext())
@@ -280,7 +306,9 @@ public class JobThreadPool
          
          // remove thread
          i.remove();
-      }      
+      }
+      
+      getLogger().detail("JobThreadPool: all threads terminated.");      
    }   
    
    /**

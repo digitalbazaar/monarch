@@ -283,6 +283,15 @@ public class WebConnectionAcceptor
    }
    
    /**
+    * Terminates all current accepted web connections.
+    */
+   public void terminateAllWebConnections()
+   {
+      // terminate all threads in the pool
+      getThreadPool().terminateAllThreads();
+   }
+   
+   /**
     * Gets the web connection accepted delegate.
     * 
     * @return the web connection accepted delegate.

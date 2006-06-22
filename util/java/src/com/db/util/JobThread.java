@@ -44,6 +44,8 @@ public class JobThread extends Thread
     */
    protected synchronized void goIdle()
    {
+      getLogger().detail("JobThread: going idle.");
+      
       try
       {
          // wait
@@ -53,7 +55,7 @@ public class JobThread extends Thread
       {
          // ensure interrupted flag remains flipped
          interrupt();
-         getLogger().debug("JobThread interrupted.");
+         getLogger().detail("JobThread: interrupted.");
       }
    }
    
@@ -97,6 +99,8 @@ public class JobThread extends Thread
     */
    public void run()
    {
+      getLogger().detail("JobThread: started.");
+      
       try
       {
          while(!isInterrupted())
@@ -132,10 +136,12 @@ public class JobThread extends Thread
       {
          // FIXME: only print stack trace at debug verbosity
          getLogger().error(
-            "An exception occurred on a JobThread,\ntrace= " +
+            "JobThread: An exception occurred on a JobThread,\ntrace= " +
             LoggerManager.getStackTrace(t));
          //getLogger().debug(Logger.getStackTrace(t));
       }
+      
+      getLogger().detail("JobThread: terminated.");
    }
    
    /**
