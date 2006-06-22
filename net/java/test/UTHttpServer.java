@@ -16,6 +16,8 @@ public class UTHttpServer
          
          // set up logger
          LoggerManager.setFile("dbcommon", "ut-httpserver.log", false);
+         LoggerManager.setFile("dbutil", "ut-httpserver.log");
+         LoggerManager.setFileVerbosity("dbutil", Logger.DETAIL_VERBOSITY);
          LoggerManager.setFile("dbcrypto", "ut-httpserver.log");
          LoggerManager.setFile("dbxml", "ut-httpserver.log");
          LoggerManager.setFile("dbstream", "ut-httpserver.log");
@@ -29,7 +31,7 @@ public class UTHttpServer
          
          // create http web request servicers
          HttpGetRequestServicer getRequestServicer =
-            new HttpGetRequestServicer("common/test/data");
+            new HttpGetRequestServicer("test/data");
          getRequestServicer.setPathPermissions("/", "r", false);
          server.addNonSecureHttpWebRequestServicer(
                getRequestServicer, "/data/");
@@ -71,12 +73,14 @@ public class UTHttpServer
          server.addSecureHttpWebRequestServicer(hwrs, "/");
          
          // start the server
+         //server.setMaximumNonSecureConnections(1);
+         //server.setMaximumSecureConnections(1);
          server.start(port, port + 1, port + 2);
          
          System.out.println("Server started, running on port " + port);
 
          // send requests
-         sendRequests(port, 10);
+         sendRequests(port, 30);
          
          // while running, sleep
          while(true)
@@ -151,7 +155,7 @@ public class UTHttpServer
       catch(Throwable t)
       {
          t.printStackTrace();
-      }      
+      }
    }
    
    /**
@@ -164,11 +168,11 @@ public class UTHttpServer
    {
       for(int i = 0; i < count; i++)
       {
-         sendRequest(port);
-         //Object[] params = new Object[]{new Integer(port)};
-         //MethodInvoker mi =
-            //new MethodInvoker(UTHttpServer.class, "sendRequest", params);
-         //mi.backgroundExecute();
+         //sendRequest(port);
+         Object[] params = new Object[]{new Integer(port)};
+         MethodInvoker mi =
+            new MethodInvoker(UTHttpServer.class, "sendRequest", params);
+         mi.backgroundExecute();
       }
    }
 }
