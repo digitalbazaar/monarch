@@ -40,6 +40,33 @@ public class JobThread extends Thread
    }
    
    /**
+    * Makes this thread idle.
+    */
+   protected synchronized void goIdle()
+   {
+      try
+      {
+         // wait
+         wait();
+      }
+      catch(InterruptedException e)
+      {
+         // ensure interrupted flag remains flipped
+         interrupt();
+         getLogger().debug("JobThread interrupted.");
+      }
+   }
+   
+   /**
+    * Wakes up this thread.
+    */
+   protected synchronized void wakeup()
+   {
+      // notify thread to stop waiting
+      notify();
+   }
+   
+   /**
     * Sets the Runnable job for this thread. If null is passed then this
     * thread will be considered idle (with no job).
     * 
@@ -59,6 +86,9 @@ public class JobThread extends Thread
       {
          // set thread name
          setName("JobThread: running job '" + getJob() + "'");
+         
+         // wake up thread
+         wakeup();
       }
    }
    
@@ -71,12 +101,10 @@ public class JobThread extends Thread
       {
          while(!isInterrupted())
          {
-            // if this thread has a job proceed
-            if(hasJob())
+            // get the Runnable job to run
+            Runnable job = getJob();
+            if(job != null)
             {
-               // get the Runnable job to run
-               Runnable job = getJob();
-               
                try
                {
                   // run job
@@ -96,15 +124,9 @@ public class JobThread extends Thread
                setJob(null);
             }
             
-            // sleep
-            Thread.sleep(1);
+            // go idle
+            goIdle();
          }
-      }
-      catch(InterruptedException e)
-      {
-         // ensure flag remains flipped
-         interrupt();
-         getLogger().debug("JobThread interrupted.");
       }
       catch(Throwable t)
       {
