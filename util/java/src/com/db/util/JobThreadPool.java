@@ -115,7 +115,7 @@ public class JobThreadPool
          if(thread.isIdle())
          {
             // if the thread is not alive, remove it and continue on
-            if(thread.isAlive())
+            if(!thread.isAlive())
             {
                i.remove();
                
