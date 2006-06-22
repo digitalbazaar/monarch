@@ -437,11 +437,15 @@ public class MethodInvoker extends Thread
             {
                // FIXME: some primitives work that aren't exact
                // matches (i.e. an int passed as a long)
-               
                if(paramClass != null)
                {
                   // determine if types match
                   String typePrimitive = "java.lang." + types[i].getName();
+                  if(typePrimitive.endsWith("int"))
+                  {
+                     typePrimitive += "eger";
+                  }
+                  
                   String paramPrimitive = paramClass.getName().toLowerCase();
                   typesMatch = paramPrimitive.equals(typePrimitive);
                }
