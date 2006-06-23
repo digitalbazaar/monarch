@@ -3,6 +3,8 @@
  */
 package com.db.util;
 
+import java.util.Date;
+
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 
@@ -21,12 +23,35 @@ public class JobThread extends Thread
    protected Runnable mJob;
    
    /**
-    * Creates a new JobThread. 
+    * The amount of idle time that must pass before this JobThread
+    * automatically expires.
+    */
+   protected long mExpireTime;
+   
+   /**
+    * Creates a new JobThread with no expiration time. 
     */
    public JobThread()
    {
+      this(0);
+   }
+   
+   /**
+    * Creates a new JobThread that expires if it sits idle (never processes
+    * a single job) for the passed time interval. If an expire time of 0
+    * is passed then this JobThread will never expire.
+    * 
+    * @param expireTime the amount of time that must pass while the JobThread
+    *                   is idle in order for it to expire -- if 0 is passed
+    *                   then the JobThread will never expire.
+    */
+   public JobThread(long expireTime)
+   {
       // no Runnable job to run yet
       mJob = null;
+      
+      // sets the expire time for this thread
+      setExpireTime(expireTime);
    }
    
    /**
@@ -48,8 +73,26 @@ public class JobThread extends Thread
       
       try
       {
-         // wait
-         wait();
+         long startTime = new Date().getTime();
+         
+         // wait until expire time
+         wait(getExpireTime());
+         
+         // if this thread has an expire time set and this thread still has
+         // no job see if the time has expired
+         if(getExpireTime() != 0 && !hasJob())
+         {
+            // check expired time
+            long now = new Date().getTime();
+            if(now - startTime > getExpireTime())
+            {
+               getLogger().detail(
+                  "JobThread: idle expire time reached, interrupting...");
+               
+               // thread must expire
+               interrupt();
+            }
+         }
       }
       catch(InterruptedException e)
       {
@@ -162,6 +205,35 @@ public class JobThread extends Thread
    public synchronized boolean isIdle()
    {
       return !hasJob();
+   }
+   
+   /**
+    * Sets the expire time for this job thread.
+    * 
+    * @param expireTime the amount of time that must pass while this JobThread
+    *                   is idle in order for it to expire -- if 0 is passed
+    *                   then this JobThread will never expire.
+    */
+   public synchronized void setExpireTime(long expireTime)
+   {
+      // expire time must be non-negative
+      if(expireTime < 0)
+      {
+         throw new IllegalArgumentException(
+            "JobThread expire time must be >= 0");
+      }
+      
+      mExpireTime = expireTime;
+   }
+   
+   /**
+    * Gets the expire time for this job thread.
+    * 
+    * @return the expire time for this job thread.
+    */
+   public synchronized long getExpireTime()
+   {
+      return mExpireTime;
    }
    
    /**

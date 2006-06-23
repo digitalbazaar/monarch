@@ -33,6 +33,11 @@ public class JobThreadPool
    protected Vector mThreads;
    
    /**
+    * The expire time for JobThreads.
+    */
+   protected long mJobThreadExpireTime;
+   
+   /**
     * Creates a new ThreadPool with 10 threads available for running jobs.
     */
    public JobThreadPool()
@@ -53,6 +58,9 @@ public class JobThreadPool
       
       // create the thread list
       mThreads = new Vector();
+      
+      // default JobThread expire time to 0 (no expiration)
+      setJobThreadExpireTime(0);
       
       // set the pool size (number of threads)
       setPoolSize(poolSize);
@@ -96,7 +104,7 @@ public class JobThreadPool
    protected synchronized JobThread createJobThread()
    {
       // create job thrad
-      JobThread thread = new JobThread();
+      JobThread thread = new JobThread(getJobThreadExpireTime());
       return thread;
    }
    
@@ -128,7 +136,7 @@ public class JobThreadPool
             // if the thread is not alive, remove it and continue on
             if(!thread.isAlive())
             {
-               getLogger().detail("JobThreadPool: removing dead thread.");
+               getLogger().detail("JobThreadPool: removing expired thread.");
                
                // interrupt thread just in case
                thread.interrupt();
@@ -209,7 +217,7 @@ public class JobThreadPool
       // disallow any size that is non-positive
       if(size <= 0)
       {
-         throw new IllegalArgumentException("Thread pool size must be >= 0");
+         throw new IllegalArgumentException("Thread pool size must be > 0");
       }
       
       // Note: threads are created lazily so if the thread pool size
@@ -309,6 +317,43 @@ public class JobThreadPool
       }
       
       getLogger().detail("JobThreadPool: all threads terminated.");      
+   }
+   
+   /**
+    * Sets the expire time for all JobThreads.
+    * 
+    * @param expireTime the amount of time that must pass while JobThreads
+    *                   are idle in order for them to expire -- if 0 is passed
+    *                   then JobThreads will never expire.
+    */
+   public synchronized void setJobThreadExpireTime(long expireTime)
+   {
+      // expire time must be non-negative
+      if(expireTime < 0)
+      {
+         throw new IllegalArgumentException(
+            "JobThread expire time must be >= 0");
+      }
+      
+      mJobThreadExpireTime = expireTime;
+      
+      // update all existing job threads
+      Iterator i = mThreads.iterator();
+      while(i.hasNext())
+      {
+         JobThread thread = (JobThread)i.next();
+         thread.setExpireTime(expireTime);
+      }
+   }
+   
+   /**
+    * Gets the expire time for all JobThreads.
+    * 
+    * @return the expire time for all JobThreads.
+    */
+   public synchronized long getJobThreadExpireTime()
+   {
+      return mJobThreadExpireTime;
    }   
    
    /**
