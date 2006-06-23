@@ -59,6 +59,10 @@ public class WebConnectionAcceptor
       // create the accepted web connection thread pool
       mAcceptedWebConnectionThreadPool = new JobThreadPool(connections);
       
+      // set threads to expire automatically after they have been
+      // idle for 5 minutes (300000 milliseconds)
+      mAcceptedWebConnectionThreadPool.setJobThreadExpireTime(300000);
+      
       // create web connection accepted delegate
       mWebConnectionAcceptedDelegate = new WebConnectionAcceptedDelegate();
    }

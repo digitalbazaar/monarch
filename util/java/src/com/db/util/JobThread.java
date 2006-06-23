@@ -84,7 +84,7 @@ public class JobThread extends Thread
          {
             // check expired time
             long now = new Date().getTime();
-            if(now - startTime > getExpireTime())
+            if(now - startTime >= getExpireTime())
             {
                getLogger().detail(
                   "JobThread: idle expire time reached, interrupting...");
