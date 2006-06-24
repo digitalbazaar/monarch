@@ -53,7 +53,7 @@ public class ThreadedEventDelegate
       // create aa event class to method map
       HashMap classToMethod = new HashMap();
       
-      while(!Thread.interrupted())
+      while(!Thread.currentThread().isInterrupted())
       {
          // pull all of the events out of the queue and store
          // them in a temporary event queue
@@ -71,7 +71,7 @@ public class ThreadedEventDelegate
          }
          
          // proceed is thread is not interrupted
-         if(!Thread.interrupted())
+         if(!Thread.currentThread().isInterrupted())
          {
             // process events if they exist
             if(events != null)
@@ -127,7 +127,7 @@ public class ThreadedEventDelegate
                // sleep
                Thread.sleep(1);
             }
-            catch(Throwable ignore)
+            catch(InterruptedException e)
             {
                // interrupt thread
                Thread.currentThread().interrupt();

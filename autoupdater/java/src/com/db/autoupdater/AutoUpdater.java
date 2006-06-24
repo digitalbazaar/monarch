@@ -399,7 +399,7 @@ public abstract class AutoUpdater
       AutoUpdateable application, UpdateScript script)
    {
       // ensure this thread is not interrupted
-      if(!Thread.interrupted())
+      if(!Thread.currentThread().isInterrupted())
       {
          // now processing an update
          setProcessingUpdate(true);
@@ -561,7 +561,8 @@ public abstract class AutoUpdater
             pauseUpdateCheckerThread();
             
             // check for an update for the application
-            if(shouldAutoCheckForUpdate() && !Thread.interrupted())
+            if(shouldAutoCheckForUpdate() &&
+               !Thread.currentThread().isInterrupted())
             {
                // check for an update if the auto check interval is positive
                if(getAutoCheckForUpdateInterval() > 0)

@@ -141,13 +141,13 @@ implements ChangeReporter, Comparable
          boolean increasing = true;
          
          // cycles progress while this progress bar is set to indeterminate
-         while(isIndeterminate() && !Thread.interrupted())
+         while(isIndeterminate() && !Thread.currentThread().isInterrupted())
          {
             // sleep for indeterminate interval
             Thread.sleep(getIndeterminateInterval());
             
             // if still indeterminate and not interrupted, proceed
-            if(isIndeterminate() && !Thread.interrupted())
+            if(isIndeterminate() && !Thread.currentThread().isInterrupted())
             {
                // repaint
                repaint();

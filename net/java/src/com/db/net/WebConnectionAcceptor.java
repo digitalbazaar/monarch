@@ -205,7 +205,8 @@ public class WebConnectionAcceptor
       
       // continue accepting connections until told otherwise or
       // if this thread is interrupted
-      while(isAcceptingWebConnections() && !Thread.interrupted())
+      while(isAcceptingWebConnections() &&
+            !Thread.currentThread().isInterrupted())
       {
          // accept a web connection
          acceptWebConnection(serverSocket, secure);

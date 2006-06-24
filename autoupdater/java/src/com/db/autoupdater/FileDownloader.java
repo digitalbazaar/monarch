@@ -74,7 +74,7 @@ public class FileDownloader
          byte[] buffer = new byte[65536];
          int numBytes = -1;
          while((numBytes = bis.read(buffer)) != -1 &&
-               !Thread.interrupted())
+               !Thread.currentThread().isInterrupted())
          {
             fos.write(buffer, 0, numBytes);
 
