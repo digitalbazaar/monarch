@@ -43,8 +43,8 @@ public interface WebConnectionHandler
     * @param port the port to accept the web connection on.
     * @param originalWebConnection the original web connection to proxy.
     */
-   public void acceptProxyWebConnection(int port,
-                                        WebConnection originalWebConnection);
+   public void acceptProxyWebConnection(
+      int port, WebConnection originalWebConnection);
    
    /**
     * Indicates whether or not connections handled by this web

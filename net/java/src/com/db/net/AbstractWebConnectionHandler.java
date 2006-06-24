@@ -166,7 +166,7 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
     *         if one has not yet been assigned.
     */
    protected WebConnectionAcceptor getWebConnectionAcceptor(
-         ServerSocket serverSocket)
+      ServerSocket serverSocket)
    {
       return (WebConnectionAcceptor)mServerSocketToWebConnectionAcceptorMap.
              get(serverSocket);
@@ -204,7 +204,7 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
    protected WebConnection getWebConnection(Thread thread)
    {
       return (WebConnection)mWebConnectionServiceThreadToWebConnection.
-             get(thread);
+          get(thread);
    }
    
    /**
@@ -418,8 +418,8 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
     * @param port the port to accept the web connection on.
     * @param originalWebConnection the original web connection to proxy.
     */
-   public void acceptProxyWebConnection(int port,
-                                        WebConnection originalWebConnection)
+   public void acceptProxyWebConnection(
+      int port, WebConnection originalWebConnection)
    {
       // get the server socket for the specified port
       ServerSocket serverSocket = getServerSocket(port);

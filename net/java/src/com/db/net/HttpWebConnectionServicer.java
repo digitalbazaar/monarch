@@ -64,6 +64,7 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
     * Appends and prepends slashes to a path.
     * 
     * @param path the path to ready.
+    * 
     * @return the readied path.
     */
    protected String readyPath(String path)
@@ -89,9 +90,8 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
     * @param hwrs the servicer to add.
     * @param path the path to the servicer.
     */
-   protected void addHttpWebRequestServicer(HashMap map,
-                                            HttpWebRequestServicer hwrs,
-                                            String path)
+   protected void addHttpWebRequestServicer(
+      HashMap map, HttpWebRequestServicer hwrs, String path)
    {
       path = readyPath(path);
       
@@ -119,10 +119,11 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
     * 
     * @param map the map to get the servicer from.
     * @param path the path to the http web request servicer.
+    * 
     * @return the http web request servicer.
     */
-   protected HttpWebRequestServicer getHttpWebRequestServicer(HashMap map,
-                                                              String path)
+   protected HttpWebRequestServicer getHttpWebRequestServicer(
+      HashMap map, String path)
    {
       path = readyPath(path);
       
@@ -166,11 +167,12 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
     * 
     * @param request the http web request to handle.
     * @param response the http web response.
+    * 
     * @return true if the request was delegated to a servicer, false if it
     *         was not.
     */
-   public boolean delegateHttpWebRequest(HttpWebRequest request,
-                                         HttpWebResponse response)
+   public boolean delegateHttpWebRequest(
+      HttpWebRequest request, HttpWebResponse response)
    {
       boolean rval = false;
       
@@ -230,7 +232,8 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
       // keep receiving requests
       // handle keep-alive
       boolean keepAlive = true;
-      while(keepAlive && request.receiveHeader())
+      while(!Thread.currentThread().isInterrupted() &&
+            keepAlive && request.receiveHeader())
       {
          try
          {
@@ -334,8 +337,8 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
     * @param hwrs the http web request servicer to add.
     * @param path the path to the servicer.
     */
-   public void addNonSecureHttpWebRequestServicer(HttpWebRequestServicer hwrs,
-                                                  String path)
+   public void addNonSecureHttpWebRequestServicer(
+      HttpWebRequestServicer hwrs, String path)
    {
       getLogger().debug("adding non-secure http web request servicer: " +
                         path + "->" + hwrs.getClass().getName());
@@ -353,8 +356,8 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
     * @param hwrs the http request servicer to add.
     * @param path the path to the servicer.
     */
-   public void addSecureHttpWebRequestServicer(HttpWebRequestServicer hwrs,
-                                               String path)
+   public void addSecureHttpWebRequestServicer(
+      HttpWebRequestServicer hwrs, String path)
    {
       getLogger().debug("adding secure http web request servicer: " +
                         path + "->" + hwrs.getClass().getName());
