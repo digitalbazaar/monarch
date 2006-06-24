@@ -222,8 +222,8 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
     * @param request the http web request to service.
     * @param response the http web response to respond with.
     */
-   protected void serviceGetRequest(HttpWebRequest request,
-                                    HttpWebResponse response)
+   protected void serviceGetRequest(
+      HttpWebRequest request, HttpWebResponse response)
    {
       if(mSoapWebService.getWsdlPath().equals(request.getHeader().getPath()))
       {
@@ -255,8 +255,8 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
     * @param request the http web request to service.
     * @param response the http web response to respond with.
     */
-   protected void servicePostRequest(HttpWebRequest request,
-                                     HttpWebResponse response)
+   protected void servicePostRequest(
+      HttpWebRequest request, HttpWebResponse response)
    {
       // see if content type is xml
       String contentType = request.getHeader().getContentType();
@@ -333,8 +333,8 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
     * @param request the http web request.
     * @param response the http web response.
     */
-   public void serviceHttpWebRequest(HttpWebRequest request,
-                                     HttpWebResponse response)
+   public void serviceHttpWebRequest(
+      HttpWebRequest request, HttpWebResponse response)
    {
       // response will always vary
       response.getHeader().addHeader("Vary", "*");

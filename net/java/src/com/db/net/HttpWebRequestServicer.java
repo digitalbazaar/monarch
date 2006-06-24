@@ -19,8 +19,8 @@ public interface HttpWebRequestServicer
     * @param request the http web request.
     * @param response the http web response.
     */
-   public void serviceHttpWebRequest(HttpWebRequest request,
-                                     HttpWebResponse response);
+   public void serviceHttpWebRequest(
+      HttpWebRequest request, HttpWebResponse response);
    
    /**
     * Allows an http web request path to be set for this servicer. This is the
