@@ -119,7 +119,8 @@ implements DynamicValidationWizardPageView
       panel.setBorder(BorderFactory.createEtchedBorder());
 
       // create label for displaying the first validation error
-      mValidationDisplayLabel = new JLabel("Click 'Next' to continue.");
+      mValidationDisplayLabel = new JLabel(
+         "WizardPage must fire validate events to update this display.");
       
       // add label
       panel.add(mValidationDisplayLabel);
