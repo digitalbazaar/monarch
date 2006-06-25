@@ -106,10 +106,10 @@ public class EventDelegate
          // get the listener method
          String method = (String)mListenerToMethod.get(listener);
          
-         // fire message, synchronize on the listener
+         // fire message
          MethodInvoker mi =
             new MethodInvoker(listener, method, params);
-         mi.execute(listener);
+         mi.execute();
       }
    }
 }

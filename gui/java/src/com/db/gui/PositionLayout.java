@@ -30,14 +30,6 @@ public class PositionLayout implements LayoutManager2
     * A mapping of component to constraints.
     */
    protected HashMap mConstraintsMap;
-   
-   /**
-    * Creates a new position layout.
-    */
-   public PositionLayout()
-   {
-      this(null);
-   }
 
    /**
     * Creates a new position layout.

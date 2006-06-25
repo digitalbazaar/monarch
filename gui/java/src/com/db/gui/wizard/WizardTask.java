@@ -12,4 +12,18 @@ package com.db.gui.wizard;
  */
 public interface WizardTask
 {
+   /**
+    * Starts this wizard task.
+    */
+   public void start();
+   
+   /**
+    * Finishes this wizard task.
+    */
+   public void finish();
+   
+   /**
+    * Cancels this wizard task.
+    */
+   public void cancel();
 }

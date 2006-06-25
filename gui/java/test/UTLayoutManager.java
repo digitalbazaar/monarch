@@ -456,7 +456,8 @@ public class UTLayoutManager
    public static void setupMainPanel(JPanel panel)
    {
       // set up layout manager
-      panel.setLayout(new PositionLayout());
+      panel.setSize(500, 500);
+      panel.setLayout(new PositionLayout(panel));
       
       // create buttons
       JButton button1 = new JButton("button1");

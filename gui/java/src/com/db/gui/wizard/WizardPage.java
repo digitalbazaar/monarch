@@ -83,20 +83,48 @@ public abstract class WizardPage
    protected abstract WizardPageView createView();
    
    /**
-    * Called whenever the page is activated by the wizard.
+    * Gets access to the wizard task.
+    * 
+    * @return the wizard task.
     */
-   public void activatePage()
+   protected WizardTask getWizardTask()
+   {
+      return getWizard().getTask();
+   }
+   
+   /**
+    * This method is called before displaying this page in a wizard.
+    * 
+    * This method can be used to activate whatever is necessary on a
+    * WizardPage. It can used to clear data, look up data before display, etc.  
+    * 
+    * @param task the wizard's task.
+    */
+   public void activatePage(WizardTask task)
    {
       // default does nothing
    }
       
    /**
-    * Checks all of the data that a wizard page contains for errors. This
-    * method is called before proceeding to the next step in a wizard. 
+    * Checks all of the data that a wizard page contains for errors.
     * 
-    * @return true if the the page is valid, false otherwise.
+    * This method is called before writing the data to the WizardTask.
+    *  
+    * @param task the WizardTask.
+    * 
+    * @return true if the page is valid, false otherwise.
     */
-   public abstract boolean checkErrors();
+   public abstract boolean validate(WizardTask task);
+   
+   /**
+    * Updates the WizardTask with the data on this page.
+    * 
+    * This method is called after validate() and before proceeding to the
+    * next step in a wizard.
+    *
+    * @param task the WizardTask to update. 
+    */
+   public abstract void updateWizardTask(WizardTask task);
    
    /**
     * Gets the wizard this wizard page is for.

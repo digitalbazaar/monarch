@@ -31,19 +31,23 @@ public class WizardFrame extends JDialog implements WindowListener
     */
    public WizardFrame(Wizard wizard)
    {
-      // listen to self for window closing events
-      addWindowListener(this);
+      // store wizard
+      mWizard = wizard;
+      
+      // listen to the wizard for started event
+      mWizard.getWizardStartedEventDelegate().addListener(
+         this, "wizardStarted");
       
       // listen to the wizard for finished event
       mWizard.getWizardFinishedEventDelegate().addListener(
          this, "wizardFinished");
       
-      // listen to the wizard for cancelledevent
+      // listen to the wizard for cancelled event
       mWizard.getWizardCancelledEventDelegate().addListener(
          this, "wizardCancelled");
       
-      // store wizard and add it its view to the content pane
-      mWizard = wizard;
+      // listen to self for window closing events
+      addWindowListener(this);
       
       // add Wizard's view to content pane
       getContentPane().add(mWizard.getView());
@@ -71,6 +75,17 @@ public class WizardFrame extends JDialog implements WindowListener
       // make wizard on top and modal
       setAlwaysOnTop(true);
       setModal(true);
+   }
+   
+   /**
+    * Called when the wizard has started.
+    * 
+    * @param event the wizard started event.
+    */
+   public void wizardStarted(EventObject event)
+   {
+      // show this frame
+      setVisible(true);
    }
    
    /**
@@ -117,14 +132,14 @@ public class WizardFrame extends JDialog implements WindowListener
    public void windowClosing(WindowEvent e)
    {
       // dont be on top
-      setAlwaysOnTop(false);
-      setModal(false);
+      //setAlwaysOnTop(false);
+      //setModal(false);
       
       // cancel wizard
-      mWizard.cancelWizard();
+      //mWizard.cancelWizard();
       
       // dispose frame
-      dispose();
+      //dispose();
    }
 
    /**

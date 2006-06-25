@@ -15,6 +15,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 
+import com.db.event.EventObject;
 import com.db.gui.LayeredLayout;
 
 /**
@@ -80,6 +81,10 @@ public class WizardView extends JPanel implements ActionListener
    {
       // store the wizard
       mWizard = wizard;
+      
+      // listen for page validation errors
+      mWizard.getWizardPageValidationFailedEventDelegate().addListener(
+         this, "wizardPageFailedValidation");
       
       // create error dialog
       mErrorDialog = new WizardErrorDialog();
@@ -287,41 +292,33 @@ public class WizardView extends JPanel implements ActionListener
    {
       if(e.getActionCommand().equals("cancelWizard"))
       {
-         // cancels wizard, runs wizard specific cancelling routine
+         // cancel wizard
          getWizard().cancelWizard();
       }
       else if(e.getActionCommand().equals("previousStep"))
       {
-         // displays the previous page
+         // display the previous page
          getWizard().displayPreviousPage();
       }
       else if(e.getActionCommand().equals("nextStep"))
       {
-         // check current page for errors
-         if(getWizard().checkCurrentPageForErrors())
-         {
-            // display the next page
-            getWizard().displayNextPage();
-         }
-         else
-         {
-            // display the wizard page errors
-            displayErrorDialog();
-         }
+         // display the next page
+         getWizard().displayNextPage();
       }
       else if(e.getActionCommand().equals("finishWizard"))
       {
-         // check current page for errors
-         if(getWizard().checkCurrentPageForErrors())
-         {
-            // finish wizard, run wizard specific finishing routine
-            getWizard().finishWizard();
-         }
+         // finish wizard
+         getWizard().finishWizard();
       }
       else if(e.getActionCommand().equals("errorDialogOk"))
       {
          // hide error dialog
          hideErrorDialog();
+      }
+      else if(e.getActionCommand().equals("quitDialogContinue"))
+      {
+         // hide quit dialog
+         hideQuitDialog();
       }
       else if(e.getActionCommand().equals("quitDialogQuit"))
       {
@@ -331,11 +328,17 @@ public class WizardView extends JPanel implements ActionListener
          // cancel wizard
          getWizard().cancelWizard();
       }
-      else if(e.getActionCommand().equals("quitDialogContinue"))
-      {
-         // hide quit dialog
-         hideQuitDialog();
-      }
+   }
+   
+   /**
+    * Displays the error dialog when a wizard page fails validation.
+    * 
+    * @param event the validation failed event.
+    */
+   public void wizardPageFailedValidation(EventObject event)
+   {
+      // display the wizard page errors
+      displayErrorDialog();
    }
    
    /**

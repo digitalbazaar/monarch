@@ -38,6 +38,11 @@ public class WizardPageNavigator
    protected WizardPage mCurrentPage;
    
    /**
+    * The first (first displayed) wizard page.
+    */
+   protected WizardPage mFirstPage;
+
+   /**
     * The final (last displayed) wizard page.
     */
    protected WizardPage mFinalPage;
@@ -72,6 +77,9 @@ public class WizardPageNavigator
       
       // no current page yet
       setCurrentPage(null);
+      
+      // no first page yet
+      setFirstPage(null);
       
       // no final page yet
       setFinalPage(null);
@@ -112,6 +120,14 @@ public class WizardPageNavigator
       }
       
       return rval;
+   }
+   
+   /**
+    * Clears the wizard page step stack.
+    */
+   protected void clearPageSteps()
+   {
+      mStepStack.clear();
    }
    
    /**
@@ -163,21 +179,28 @@ public class WizardPageNavigator
    }
    
    /**
-    * Navigates to the previous page and returns it.
+    * Navigates to the first page and returns it.
     * 
-    * @return the previous page (now current) -- or null if none exists.
+    * @return the first page (now current) -- or null if none exists.
     */
-   public WizardPage previousPage()
+   public WizardPage firstPage()
    {
-      // remove the current wizard page step
-      removePageStep();
+      // set the current page to the first page
+      setCurrentPage(getFirstPage());
       
-      // set the current page to the current step
-      setCurrentPage(getPageStep());
+      // clear the wizard page steps
+      clearPageSteps();
       
-      // return current page
+      // update the step stack
+      if(getCurrentPage() != null)
+      {
+         // add a step
+         addPageStep(getCurrentPage());
+      }
+      
+      // return the current page
       return getCurrentPage();
-   }
+   }   
    
    /**
     * Navigates to the next page and returns it.
@@ -201,6 +224,23 @@ public class WizardPageNavigator
    }
 
    /**
+    * Navigates to the previous page and returns it.
+    * 
+    * @return the previous page (now current) -- or null if none exists.
+    */
+   public WizardPage previousPage()
+   {
+      // remove the current wizard page step
+      removePageStep();
+      
+      // set the current page to the current step
+      setCurrentPage(getPageStep());
+      
+      // return current page
+      return getCurrentPage();
+   }
+   
+   /**
     * Gets the current wizard page.
     * 
     * @return the current wizard page.
@@ -208,6 +248,26 @@ public class WizardPageNavigator
    public WizardPage getCurrentPage()
    {
       return mCurrentPage;
+   }
+   
+   /**
+    * Sets the first page in the wizard.
+    * 
+    * @param page the page to use as the first page.
+    */
+   public void setFirstPage(WizardPage page)
+   {
+      mFirstPage = page;
+   }
+   
+   /**
+    * Gets the first wizard page.
+    * 
+    * @return the first wizard page.
+    */
+   public WizardPage getFirstPage()
+   {
+      return mFirstPage;
    }
    
    /**
@@ -237,7 +297,7 @@ public class WizardPageNavigator
     */
    public boolean onFirstPage()
    {
-      return getStepCount() <= 1;
+      return getStepCount() == 1;
    }
    
    /**
