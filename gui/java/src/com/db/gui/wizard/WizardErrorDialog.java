@@ -72,6 +72,7 @@ public class WizardErrorDialog extends JDialog
       
       // create text area
       mTextArea = new JTextArea();
+      mTextArea.setFont(mErrorLabel.getFont());
       mTextArea.setRows(5);
       mTextArea.setEditable(false);
       mTextArea.setLineWrap(true);
