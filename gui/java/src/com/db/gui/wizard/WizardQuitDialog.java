@@ -37,6 +37,8 @@ public class WizardQuitDialog extends JDialog
    public WizardQuitDialog()
    {
       setTitle("Quit wizard without saving?");
+      
+      // setup the content pane
       setupPanel();
    }
    
@@ -45,42 +47,56 @@ public class WizardQuitDialog extends JDialog
     */
    public void setupPanel()
    {
+      // set layout
       int[][] plot = {{0,0}, // label 1
                       {0,1}, // label 2
                       {0,2}, {1,2}}; // quit, cancel buttons
       LayeredLayout ll = new LayeredLayout(plot);
       JPanel view = new JPanel(ll);
       
-      // add message label 1
-      JLabel mMessageLabel1 = new JLabel("Are you sure you want to quit the " +
-            "wizard now?");
-      ll.placeNext(mMessageLabel1, 1.0, 0.0, true, false, 
-            new Insets(5, 5, 5, 5));
-      view.add(mMessageLabel1);
+      // create message label 1
+      JLabel mMessageLabel1 = new JLabel(
+         "Are you sure you want to quit the wizard now?");
       
-      // add message label 2
-      JLabel mMessageLabel2 = new JLabel("Your progress in this wizard will " +
-            "not be saved.");
-      ll.placeNext(mMessageLabel2, 1.0, 0.0, true, false, 
-            new Insets(5, 5, 5, 5));
-      view.add(mMessageLabel2);
-      
-      // add buttons
-      mQuitButton = new JButton("Quit!");
+      // create message label 2
+      JLabel mMessageLabel2 = new JLabel(
+         "Your progress in this wizard will not be saved.");
+
+      // create quit button
+      mQuitButton = new JButton("Quit");
       mQuitButton.setActionCommand("quitDialogQuit");
-      ll.placeNext(mQuitButton, 1.0, 0.0, LayeredLayout.LEFT,
-            new Insets(2, 2, 2, 2));
-      view.add(mQuitButton);
-      
-      mContinueButton = new JButton("Continue!");
+
+      // create continue button
+      mContinueButton = new JButton("Continue");
       mContinueButton.setActionCommand("quitDialogContinue");
-      ll.placeNext(mContinueButton, 1.0, 0.0, LayeredLayout.RIGHT,
-            new Insets(2, 2, 2, 2));
+      
+      // place message label 1
+      ll.placeNext(mMessageLabel1, 1.0, 0.0, true, false, 
+         new Insets(5, 5, 5, 5));
+      
+      // place message label 2
+      ll.placeNext(mMessageLabel2, 1.0, 0.0, true, false, 
+         new Insets(5, 5, 5, 5));
+      
+      // place quit button
+      ll.placeNext(mQuitButton, 1.0, 0.0, LayeredLayout.RIGHT,
+         new Insets(5, 5, 5, 5));
+      
+      // place continue button
+      ll.placeNext(mContinueButton, 1.0, 0.0, LayeredLayout.LEFT,
+         new Insets(5, 0, 5, 5));
+      
+      // add components
+      view.add(mMessageLabel1);
+      view.add(mMessageLabel2);
+      view.add(mQuitButton);
       view.add(mContinueButton);
       
+      // set content pane
       setContentPane(view);
+      
+      // pack dialog
       pack();
-      setModal(true);
    }
    
    /**

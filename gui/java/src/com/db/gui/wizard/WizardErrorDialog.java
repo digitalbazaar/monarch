@@ -51,6 +51,8 @@ public class WizardErrorDialog extends JDialog
    public WizardErrorDialog()
    {
       setTitle("Wizard Page Errors");
+      
+      // setup content pane
       setupPanel();
    }
 
@@ -59,38 +61,50 @@ public class WizardErrorDialog extends JDialog
     */
    protected void setupPanel()
    {
+      // set layout
       int[][] plot = {{0,0},{0,1},{0,2}};
       LayeredLayout ll = new LayeredLayout(plot);
       JPanel view = new JPanel(ll);
       
-      // add request label
-      mErrorLabel = new JLabel("The information you entered resulted " +
-                               "in the following errors:");
-      ll.placeNext(mErrorLabel, 1.0, 0.0, true, false,
-                   new Insets(5, 5, 5, 5));
-      view.add(mErrorLabel);
+      // create error label
+      mErrorLabel = new JLabel(
+         "The information you entered resulted in the following errors:");
       
-      // add text area
+      // create text area
       mTextArea = new JTextArea();
       mTextArea.setRows(5);
       mTextArea.setEditable(false);
       mTextArea.setLineWrap(true);
       mTextArea.setWrapStyleWord(true);
       
-      JScrollPane sp = new JScrollPane(mTextArea);
-      ll.placeNext(sp, 1.0, 1.0, true, true, new Insets(0, 5, 5, 5));
-      view.add(sp);
+      // create scroll pane for text area
+      JScrollPane scrollPane = new JScrollPane(mTextArea);
       
-      // add the OK button
+      // create ok button
       mOkButton = new JButton("Ok");
       mOkButton.setActionCommand("errorDialogOk");
-      ll.placeNext(mOkButton, 1.0, 0.0, LayeredLayout.RIGHT,
-                   new Insets(0, 0, 5, 0));
+      
+      // place error label
+      ll.placeNext(mErrorLabel, 1.0, 0.0, true, false,
+         new Insets(5, 5, 5, 5));
+      
+      // place scroll pane
+      ll.placeNext(scrollPane, 1.0, 1.0, true, true, new Insets(0, 5, 5, 5));
+
+      // place ok button
+      ll.placeNext(mOkButton, 1.0, 0.0, LayeredLayout.CENTER,
+         new Insets(5, 0, 5, 0));
+
+      // add components
+      view.add(scrollPane);
+      view.add(mErrorLabel);
       view.add(mOkButton);
       
+      // set content pane
       setContentPane(view);
+      
+      // pack dialog
       pack();
-      setLocationRelativeTo(null);
    }
    
    /**
@@ -100,27 +114,26 @@ public class WizardErrorDialog extends JDialog
     */
    public void setWarning(String error)
    {
-      mTextArea.setText("");
-      
-      mTextArea.append(error +"\n\n");
+      mTextArea.setText(error + "\n\n");
    }
 
    /**
     * Set the warning strings displayed in the dialog.
     * 
     * @param errors a vector of warning strings that are to be
-    *                       displayed in the dialog.
+    *               displayed in the dialog.
     */
    public void setWarnings(Vector errors)
    {
+      // clear text area
       mTextArea.setText("");
       
-      // Go through all of the warning strings and display them onscreen.
+      // add all of the warnings to the text area
       Iterator i = errors.iterator();         
       while(i.hasNext())
       {
          String warning = (String)i.next();
-         mTextArea.append(warning +"\n\n");
+         mTextArea.append(warning + "\n\n");
       }
       
       // move caret to top of error list
