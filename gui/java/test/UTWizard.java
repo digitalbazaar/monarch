@@ -6,7 +6,6 @@ import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -78,11 +77,22 @@ public class UTWizard
       WizardFrame frame = new WizardFrame(testWizard);
       frame.setTitle("Test Wizard Frame");
       
-      // set close operation
-      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      
       // start wizard
       testWizard.startWizard();
+
+      try
+      {
+         // run until wizard frame is not visible
+         while(frame.isVisible())
+         {
+            Thread.sleep(1);
+         }
+      }
+      catch(Throwable ignore)
+      {
+      }
+      
+      System.exit(0);
    }
    
    /**
