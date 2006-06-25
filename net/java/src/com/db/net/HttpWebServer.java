@@ -66,9 +66,9 @@ public class HttpWebServer extends WebServer
       setNonSecurePort(DEFAULT_NON_SECURE_HTTP_PORT);
       setSecurePort(DEFAULT_SECURE_HTTP_PORT);
       
-      // accept up to 1000 connections each by default
-      setMaximumNonSecureConnections(1000);
-      setMaximumSecureConnections(1000);
+      // accept an infinite number of connections each by default
+      setMaximumNonSecureConnections(0);
+      setMaximumSecureConnections(0);
    }
    
    /**
@@ -286,6 +286,8 @@ public class HttpWebServer extends WebServer
    /**
     * Sets the maximum number of connections for the non-secure port.
     * 
+    * If connections is 0, then there will be no maximum.
+    * 
     * @param connections the maximum number of connections for the
     *                    non-secure port.
     */
@@ -298,6 +300,8 @@ public class HttpWebServer extends WebServer
    /**
     * Gets the maximum number of connections for the non-secure port.
     * 
+    * If connections is 0, then there is no maximum.
+    * 
     * @return the maximum number of connections for the non-secure port.
     */
    public int getMaximumNonSecureConnections()
@@ -308,6 +312,8 @@ public class HttpWebServer extends WebServer
    
    /**
     * Sets the maximum number of connections for the secure port.
+    * 
+    * If connections is 0, then there will be no maximum.
     * 
     * @param connections the maximum number of connections for the
     *                    secure port.
@@ -320,6 +326,8 @@ public class HttpWebServer extends WebServer
    
    /**
     * Gets the maximum number of connections for the secure port.
+    * 
+    * If connections is 0, then there is no maximum.
     * 
     * @return the maximum number of connections for the secure port.
     */

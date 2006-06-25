@@ -7,9 +7,8 @@ import java.util.Collection;
 import java.util.Vector;
 
 /**
- * A basic Semaphore class. The implemented API matches that of
- * Java's 1.5.0 version of a Semaphore so moving bitmunk to
- * Java 1.5.0+ will be easy.
+ * A Semaphore class that stores the maximum number of permits allowed
+ * to be issued -- and allows that number to be dynamically modified.
  * 
  * @author Dave Longley
  */
@@ -18,22 +17,34 @@ public class Semaphore
    /**
     * The number of permits.
     */
-   private int mPermits;
+   protected int mPermits;
 
    /**
     * The number of permits left.
     */
-   private int mPermitsLeft;
+   protected int mPermitsLeft;
 
    /**
     * True if this semaphore guarantees FIFO, false if not.
     */
-   private boolean mFair;
+   protected boolean mFair;
 
    /**
     * The threads that may be waiting to acquire a permit.
     */
-   private Vector mWaitingThreads;
+   protected Vector mWaitingThreads;
+   
+   /**
+    * This condition is set to true when threads must wait,
+    * and false when threads are being notified to wake up.
+    */
+   protected boolean mMustWait;
+   
+   /**
+    * The lock object. This is the object to synchronize on when
+    * calling wait() or notify(). 
+    */
+   protected Object mLockObject;
 
    /**
     * Constructs a new semaphore with the specified number of
@@ -44,11 +55,21 @@ public class Semaphore
     */
    public Semaphore(int permits, boolean fair)
    {
+      // set permits
       mPermits = permits;
       mPermitsLeft = permits;
+      
+      // set fair/not fair
       mFair = fair;
 
+      // create threads vector
       mWaitingThreads = new Vector();
+      
+      // set must wait to false
+      mMustWait = false;
+      
+      // create lock object
+      mLockObject = new Object();
    }
 
    /**
@@ -62,15 +83,69 @@ public class Semaphore
    }
 
    /**
-    * Increases the number of permits by the specified number.
+    * Increases the number of permits left by the specified number if
+    * that number does not exceed the number of used permits. Otherwise
+    * the number of permits left will be increased by the number of
+    * used permits.
     *
     * @param increase the number of permits to increase by.
+    * 
+    * @return the actual increase in the number of permits left.
     */
-   protected synchronized void increasePermitsLeft(int increase)
+   protected synchronized int increasePermitsLeft(int increase)
    {
-      mPermits = availablePermits() + usedPermits() + increase;
+      // only increase, at most, by the number of used permits
+      increase = Math.min(usedPermits(), increase);
       
       mPermitsLeft += increase;
+      
+      return increase;
+   }
+   
+   /**
+    * Tells the current thread to wait.
+    * 
+    * @throws InterruptedException
+    */
+   protected synchronized void waitThread() throws InterruptedException
+   {
+      // thread must wait
+      mMustWait = true;
+      
+      // synchronize on lock object
+      synchronized(mLockObject)
+      {
+         while(mMustWait)
+         {
+            wait();
+         }
+      }
+   }
+   
+   /**
+    * Notifies thread(s) to wake up.
+    */
+   protected synchronized void notifyThreads()
+   {
+      // thread(s) are being notified
+      mMustWait = false;
+      
+      if(isFair())
+      {
+         // synchronize on lock object
+         synchronized(mLockObject)
+         {
+            notify();
+         }
+      }
+      else
+      {
+         // synchronize on lock object
+         synchronized(mLockObject)
+         {
+            notifyAll();
+         }
+      }
    }
 
    /**
@@ -90,6 +165,7 @@ public class Semaphore
     * is available or until interrupted.
     *
     * @param permits the number of permits to acquire.
+    * 
     * @throws InterruptedException
     */
    public synchronized void acquire(int permits)
@@ -100,26 +176,24 @@ public class Semaphore
       {
          // if this thread isn't in the wait queue, add it
          if(!mWaitingThreads.contains(Thread.currentThread()))
+         {
             mWaitingThreads.add(Thread.currentThread());
+         }
          
          try
          {
-            wait();
+            // wait thread
+            waitThread();
          }
          catch(InterruptedException e)
          {
-            if(isFair())
-            {
-               notify();
-            }
-            else
-            {
-               notifyAll();
-            }
+            // notify threads
+            notifyThreads();
             
             // if the thread is in the wait queue, remove it
             mWaitingThreads.remove(Thread.currentThread());
 
+            // throw exception
             throw e;
          }
       }
@@ -145,6 +219,7 @@ public class Semaphore
     * Acquires the number of given permits if they are available.
     *
     * @param permits the number of permits to acquire.
+    * 
     * @return true if the permits were granted, false if not.
     */
    public synchronized boolean tryAcquire(int permits)
@@ -174,27 +249,27 @@ public class Semaphore
    }
 
    /**
-    * Releases the specified number of permits.
+    * Releases the specified number of permits if it does not exceed the
+    * number of used permits. If it does, then the number of used
+    * permits will be released.
     *
     * @param permits the number of permits to release.
+    * 
+    * @return the actual number of permits released.
     */
-   public synchronized void release(int permits)
+   public synchronized int release(int permits)
    {
       // increase the number of permits left
-      increasePermitsLeft(permits);
+      permits = increasePermitsLeft(permits);
 
       // if fair, notify in order, otherwise notify all
       for(int i = 0; i < permits; i++)
       {
-         if(isFair())
-         {
-            notify();
-         }
-         else
-         {
-            notifyAll();
-         }
+         // notify threads
+         notifyThreads();
       }
+      
+      return permits;
    }
 
    /**
@@ -202,7 +277,7 @@ public class Semaphore
     *
     * @return the number of available permits.
     */
-   public int availablePermits()
+   public synchronized int availablePermits()
    {
       return mPermitsLeft;
    }
@@ -212,7 +287,7 @@ public class Semaphore
     *
     * @return the number of used permits.
     */
-   public int usedPermits()
+   public synchronized int usedPermits()
    {
       return mPermits - mPermitsLeft;
    }
@@ -234,7 +309,7 @@ public class Semaphore
     *
     * @return collection of threads that may be waiting for permits.
     */
-   public Collection getQueuedThreads()
+   public synchronized Collection getQueuedThreads()
    {
       return mWaitingThreads;
    }
@@ -245,7 +320,7 @@ public class Semaphore
     * 
     * @return the number of estimated waiting threads.
     */
-   public int getQueueLength()
+   public synchronized int getQueueLength()
    {
       return mWaitingThreads.size();
    }
@@ -255,27 +330,32 @@ public class Semaphore
     * 
     * @param max the maximum number of permits.
     */
-   public void setNumPermits(int max)
+   public synchronized void setMaxPermitCount(int max)
    {
-      if(max > mPermits)
+      // store old permit count
+      int oldPermitCount = getMaxPermitCount();
+      
+      // set new permit count
+      mPermits = max;
+      
+      // release or reduce permits left
+      if(max > oldPermitCount)
       {
-         release(max - mPermits);
+         release(max - oldPermitCount);
       }
       else
       {
-         reducePermitsLeft(mPermits - max);
+         reducePermitsLeft(oldPermitCount - max);
       }
-      
-      mPermits = max;
    }
    
    /**
-    * gets the maximum number of permits.
+    * Gets the maximum number of permits.
     * 
     * @return the maximum number of permits.
     */
-   public int getNumPermits()
+   public synchronized int getMaxPermitCount()
    {
-      return availablePermits() + usedPermits();
+      return mPermits;
    }
 }

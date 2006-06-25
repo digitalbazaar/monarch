@@ -20,12 +20,12 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
       // set internal web server to http web server
       super(new HttpWebServer());
       
-      // accept up to 2000 connections each internally by default
-      setMaximumNonSecureConnections(2000);
-      setMaximumSecureConnections(2000);
+      // accept an infinite number of connections each internally by default
+      setMaximumNonSecureConnections(0);
+      setMaximumSecureConnections(0);
       
-      // accept up to 1000 proxy connections by default
-      setMaximumProxyConnections(1000);
+      // accept an infinite number of proxy connections by default
+      setMaximumProxyConnections(0);
    }
    
    /**
@@ -169,6 +169,8 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
    /**
     * Sets the maximum number of connections for the non-secure port.
     * 
+    * If connections is 0, then there will be no maximum.
+    * 
     * @param connections the maximum number of connections for the
     *                    non-secure port.
     */
@@ -180,6 +182,8 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
    /**
     * Gets the maximum number of connections for the non-secure port.
     * 
+    * If connections is 0, then there is no maximum.
+    * 
     * @return the maximum number of connections for the non-secure port.
     */
    public int getMaximumNonSecureConnections()
@@ -189,6 +193,8 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
    
    /**
     * Sets the maximum number of connections for the secure port.
+    * 
+    * If connections is 0, then there will be no maximum.
     * 
     * @param connections the maximum number of connections for the
     *                    secure port.
@@ -200,6 +206,8 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
    
    /**
     * Gets the maximum number of connections for the secure port.
+    * 
+    * If connections is 0, then there is no maximum.
     * 
     * @return the maximum number of connections for the secure port.
     */

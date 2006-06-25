@@ -73,8 +73,8 @@ public class UTHttpServer
          server.addSecureHttpWebRequestServicer(hwrs, "/");
          
          // start the server
-         //server.setMaximumNonSecureConnections(1);
-         //server.setMaximumSecureConnections(1);
+         server.setMaximumNonSecureConnections(0);
+         server.setMaximumSecureConnections(0);
          server.start(port, port + 1, port + 2);
          
          System.out.println("Server started, running on port " + port);

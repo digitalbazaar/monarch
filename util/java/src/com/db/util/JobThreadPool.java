@@ -85,7 +85,15 @@ public class JobThreadPool
     */
    protected void acquireThreadPermit() throws InterruptedException
    {
-      mThreadSemaphore.acquire();
+      // If this pool allows an infinite number of threads, then
+      // the number of permits will be zero -- since threads are
+      // always permitted. Therefore, only try to acquire a
+      // permit if there are more than 0 permits -- otherwise a
+      // permit is automatically granted.
+      if(mThreadSemaphore.getMaxPermitCount() != 0)
+      {
+         mThreadSemaphore.acquire();
+      }
    }
    
    /**
@@ -124,7 +132,11 @@ public class JobThreadPool
       JobThread rval = null;
       
       // get the number of extra threads
-      int extraThreads = mThreads.size() - mThreadSemaphore.getNumPermits();
+      int extraThreads = 0;
+      if(mThreadSemaphore.getMaxPermitCount() > 0)
+      {
+         extraThreads = mThreads.size() - mThreadSemaphore.getMaxPermitCount();
+      }
       
       // iterate through threads, find one that is idle
       Iterator i = mThreads.iterator();
@@ -207,17 +219,20 @@ public class JobThreadPool
    }
    
    /**
-    * Sets the number of threads in this thread pool.
+    * Sets the number of threads in this thread pool. If a size of
+    * 0 is specified, than there will be no limit to the number of
+    * threads in this pool.
     * 
-    * @param size the number of threads in this thread pool. It must be
-    *             a positive number.
+    * @param size the number of threads in this thread pool. A size
+    *             of 0 specifies an unlimited number of threads. Size
+    *             must be a non-negative number.
     */
    public synchronized void setPoolSize(int size)
    {
-      // disallow any size that is non-positive
-      if(size <= 0)
+      // disallow any size that is negative
+      if(size < 0)
       {
-         throw new IllegalArgumentException("Thread pool size must be > 0");
+         throw new IllegalArgumentException("Thread pool size must be >= 0");
       }
       
       // Note: threads are created lazily so if the thread pool size
@@ -227,7 +242,7 @@ public class JobThreadPool
       // only for decreases
       
       // remove threads as necessary
-      if(mThreads.size() > size)
+      if(mThreads.size() > size && size != 0)
       {
          // get number of threads to remove
          int removeCount = mThreads.size() - size;
@@ -254,7 +269,7 @@ public class JobThreadPool
       }
       
       // set semaphore permits
-      mThreadSemaphore.setNumPermits(size);
+      mThreadSemaphore.setMaxPermitCount(size);
    }
    
    /**

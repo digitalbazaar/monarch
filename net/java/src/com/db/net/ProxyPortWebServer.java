@@ -317,6 +317,8 @@ public class ProxyPortWebServer extends WebServer
    /**
     * Sets the maximum number of connections for the proxy port.
     * 
+    * If connections is 0, then there will be no maximum.
+    * 
     * @param connections the maximum number of connections for the proxy port.
     */
    public void setMaximumProxyConnections(int connections)
@@ -326,6 +328,8 @@ public class ProxyPortWebServer extends WebServer
    
    /**
     * Gets the maximum number of connections for the proxy port.
+    * 
+    * If connections is 0, then there is no maximum.
     * 
     * @return the maximum number of connections for the proxy port.
     */

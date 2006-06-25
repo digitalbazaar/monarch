@@ -503,6 +503,8 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
    /**
     * sets the maximum number of connections to handle concurrently
     * on a given port.
+    * 
+    * If connections is 0, then there will be no maximum.
     *
     * @param port the port to set the maximum number of concurrent connections
     *             for.
@@ -517,6 +519,8 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
    /**
     * Gets the maximum number of connections to handle concurrently
     * on a given port.
+    * 
+    * If connections is 0, then there is no maximum.
     *
     * @param port the port to get the maximum number of concurrent connections
     *             for.
@@ -526,8 +530,8 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
     */
    public int getMaximumConnections(int port)   
    {
-      // return 1 by default
-      int rval = 1;
+      // return 0 by default
+      int rval = 0;
       
       if(mPortToMaximumConnections.containsKey(port))
       {
