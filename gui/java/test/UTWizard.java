@@ -67,7 +67,7 @@ public class UTWizard
          UTWizard.class, "wizardFinished");
       
       // listen for wizard cancellation
-      testWizard.getWizardFinishedEventDelegate().addListener(
+      testWizard.getWizardCancelledEventDelegate().addListener(
          UTWizard.class, "wizardCancelled");
       
       // create wizard frame
