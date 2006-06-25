@@ -56,6 +56,7 @@ implements ActionListener, WindowListener
       
       // create the wizard quit dialog
       mQuitDialog = new WizardQuitDialog();
+      mQuitDialog.setModal(true);
       mQuitDialog.addActionListener(this);
       
       // listen to self for window closing events
@@ -91,8 +92,6 @@ implements ActionListener, WindowListener
    protected void displayQuitDialog()
    {
       mQuitDialog.setLocationRelativeTo(this);
-      mQuitDialog.setAlwaysOnTop(true);
-      mQuitDialog.setModal(true);
       mQuitDialog.setVisible(true);
    }
    
@@ -101,8 +100,6 @@ implements ActionListener, WindowListener
     */
    protected void hideQuitDialog()
    {
-      mQuitDialog.setAlwaysOnTop(false);
-      mQuitDialog.setModal(false);
       mQuitDialog.setVisible(false);
    }   
    

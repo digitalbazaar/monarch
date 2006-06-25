@@ -96,10 +96,12 @@ public class WizardView extends JPanel implements ActionListener
       
       // create error dialog
       mErrorDialog = new WizardErrorDialog();
+      mErrorDialog.setModal(true);
       mErrorDialog.addActionListener(this);
       
       // create quit dialog
       mQuitDialog = new WizardQuitDialog();
+      mQuitDialog.setModal(true);
       mQuitDialog.addActionListener(this);
       
       // setup the main panel
@@ -270,8 +272,6 @@ public class WizardView extends JPanel implements ActionListener
          
          // move to top and display
          mErrorDialog.setLocationRelativeTo(this);
-         mErrorDialog.setAlwaysOnTop(true);
-         mErrorDialog.setModal(true);
          mErrorDialog.setVisible(true);
       }
    }
@@ -281,8 +281,6 @@ public class WizardView extends JPanel implements ActionListener
     */
    public void hideErrorDialog()
    {
-      mErrorDialog.setAlwaysOnTop(false);
-      mErrorDialog.setModal(false);
       mErrorDialog.setVisible(false);
    }
    
@@ -292,8 +290,6 @@ public class WizardView extends JPanel implements ActionListener
    public void displayQuitDialog()
    {
       mQuitDialog.setLocationRelativeTo(this);
-      mQuitDialog.setAlwaysOnTop(true);
-      mQuitDialog.setModal(true);
       mQuitDialog.setVisible(true);
    }
    
@@ -302,8 +298,6 @@ public class WizardView extends JPanel implements ActionListener
     */
    public void hideQuitDialog()
    {
-      mQuitDialog.setAlwaysOnTop(false);
-      mQuitDialog.setModal(false);
       mQuitDialog.setVisible(false);
    }
    
@@ -339,8 +333,6 @@ public class WizardView extends JPanel implements ActionListener
       }
       else if(e.getActionCommand().equals("errorDialogOk"))
       {
-         System.out.println("ERROR DIALOG OK");
-         
          // hide error dialog
          hideErrorDialog();
       }
