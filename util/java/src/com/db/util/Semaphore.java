@@ -23,7 +23,7 @@ public class Semaphore
     * The number of permits left.
     */
    protected int mPermitsLeft;
-
+   
    /**
     * True if this semaphore guarantees FIFO, false if not.
     */
@@ -73,20 +73,10 @@ public class Semaphore
    }
 
    /**
-    * Reduces the number of permits by the specified number.
-    *
-    * @param reduction the number of permits to reduce by.
-    */
-   protected synchronized void reducePermitsLeft(int reduction)
-   {
-      mPermitsLeft -= reduction;
-   }
-
-   /**
     * Increases the number of permits left by the specified number if
-    * that number does not exceed the number of used permits. Otherwise
-    * the number of permits left will be increased by the number of
-    * used permits.
+    * an increase by that number would not exceed the maximum permit count.
+    * Otherwise the number of permits left will be set to the maximum
+    * permit count.
     *
     * @param increase the number of permits to increase by.
     * 
@@ -94,8 +84,9 @@ public class Semaphore
     */
    protected synchronized int increasePermitsLeft(int increase)
    {
-      // only increase, at most, by the number of used permits
-      increase = Math.min(usedPermits(), increase);
+      // only increase, at most, by the difference between the
+      // max permit count and the permits left
+      increase = Math.min(mPermits - mPermitsLeft, increase);
       
       mPermitsLeft += increase;
       
@@ -103,23 +94,53 @@ public class Semaphore
    }
    
    /**
+    * Decreases the number of permits left by the specified number.
+    *
+    * @param decrease the number of permits to decrease by.
+    */
+   protected synchronized void decreasePermitsLeft(int decrease)
+   {
+      mPermitsLeft -= decrease;
+   }
+   
+   /**
     * Tells the current thread to wait.
     * 
     * @throws InterruptedException
     */
-   protected synchronized void waitThread() throws InterruptedException
+   protected void waitThread() throws InterruptedException
    {
+      // add thread to waiting threads
+      addWaitingThread(Thread.currentThread());
+      
       // thread must wait
       mMustWait = true;
       
-      // synchronize on lock object
-      synchronized(mLockObject)
+      try
       {
-         while(mMustWait)
+         // synchronize on lock object
+         synchronized(mLockObject)
          {
-            wait();
+            while(mMustWait)
+            {
+               mLockObject.wait();
+            }
          }
       }
+      catch(InterruptedException e)
+      {
+         // notify threads
+         notifyThreads();
+         
+         // remove waiting thread
+         removeWaitingThread(Thread.currentThread());
+
+         // throw exception
+         throw e;
+      }
+      
+      // remove waiting thread
+      removeWaitingThread(Thread.currentThread());
    }
    
    /**
@@ -127,7 +148,7 @@ public class Semaphore
     */
    protected synchronized void notifyThreads()
    {
-      // thread(s) are being notified
+      // thread(s) are being notified to stop waiting
       mMustWait = false;
       
       if(isFair())
@@ -135,7 +156,7 @@ public class Semaphore
          // synchronize on lock object
          synchronized(mLockObject)
          {
-            notify();
+            mLockObject.notify();
          }
       }
       else
@@ -143,9 +164,35 @@ public class Semaphore
          // synchronize on lock object
          synchronized(mLockObject)
          {
-            notifyAll();
+            mLockObject.notifyAll();
          }
       }
+   }
+   
+   /**
+    * Adds the passed thread to the queue of waiting threads if it
+    * is not already in the queue.
+    * 
+    * @param thread the thread to add to the queue.
+    */
+   protected synchronized void addWaitingThread(Thread thread)
+   {
+      // if this thread isn't in the wait queue, add it
+      if(!mWaitingThreads.contains(thread))
+      {
+         mWaitingThreads.add(thread);
+      }
+   }
+   
+   /**
+    * Removes the passed thread from the queue of waiting threads. 
+    * 
+    * @param thread the thread to remove from the wait queue. 
+    */
+   protected synchronized void removeWaitingThread(Thread thread)
+   {
+      // remove thread
+      mWaitingThreads.remove(thread);
    }
 
    /**
@@ -154,8 +201,7 @@ public class Semaphore
     *
     * @throws InterruptedException
     */
-   public synchronized void acquire()
-      throws InterruptedException
+   public void acquire() throws InterruptedException
    {
       acquire(1);
    }
@@ -168,41 +214,17 @@ public class Semaphore
     * 
     * @throws InterruptedException
     */
-   public synchronized void acquire(int permits)
-      throws InterruptedException
+   public void acquire(int permits) throws InterruptedException
    {
       // while there are not enough permits, wait for them
       while(availablePermits() - permits < 0)
       {
-         // if this thread isn't in the wait queue, add it
-         if(!mWaitingThreads.contains(Thread.currentThread()))
-         {
-            mWaitingThreads.add(Thread.currentThread());
-         }
-         
-         try
-         {
-            // wait thread
-            waitThread();
-         }
-         catch(InterruptedException e)
-         {
-            // notify threads
-            notifyThreads();
-            
-            // if the thread is in the wait queue, remove it
-            mWaitingThreads.remove(Thread.currentThread());
-
-            // throw exception
-            throw e;
-         }
+         // wait thread
+         waitThread();
       }
-
-      // if the thread is in the wait queue, remove it
-      mWaitingThreads.remove(Thread.currentThread());
-
-      // permits have been granted, decrease number available
-      reducePermitsLeft(permits);
+      
+      // permits have been granted, decrease permits left
+      decreasePermitsLeft(permits);
    }
 
    /**
@@ -228,12 +250,10 @@ public class Semaphore
       
       if(availablePermits() - permits >= 0)
       {
-         // if the thread is in the wait queue, remove it
-         mWaitingThreads.remove(Thread.currentThread());
-
-         // reduce the number of permits
-         reducePermitsLeft(permits);
+         // decrease permits left
+         decreasePermitsLeft(permits);
          
+         // permits granted
          rval = true;
       }
 
@@ -338,14 +358,16 @@ public class Semaphore
       // set new permit count
       mPermits = max;
       
-      // release or reduce permits left
+      // release more permits or decrease permits left
       if(max > oldPermitCount)
       {
+         // release used permits
          release(max - oldPermitCount);
       }
       else
       {
-         reducePermitsLeft(oldPermitCount - max);
+         // decrease permits left
+         decreasePermitsLeft(oldPermitCount - max);
       }
    }
    
