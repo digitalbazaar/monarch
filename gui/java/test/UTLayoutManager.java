@@ -67,7 +67,7 @@ public class UTLayoutManager
       //setupMainPanel(panel);
       //setupSearchPanel(panel);
       //setupCatalogPanel(panel);
-      //setupJTextAreaPanel(panel);
+      setupJTextAreaPanel(panel);
 
       // create a content pane with an editable tab panel in it
       JPanel contentPane = new JPanel();
@@ -85,7 +85,7 @@ public class UTLayoutManager
       
       etp.addTab("tab 3", createCenteredComponentPanel());
       
-      etp.setSelectedIndex(2);
+      etp.setSelectedIndex(0);
       
       //frame.setContentPane(panel);
       //contentPane.setBorder(new LineBorder(java.awt.Color.red, 20));
@@ -352,7 +352,7 @@ public class UTLayoutManager
          "coming off of my fingers, LOLZ!\n" +
          
          "This is a really long bunch of text for a text area. It is for " +
-         "testing really large text areas to make sure that they wrap " +
+         "testing really large text areas");/* to make sure that they wrap " +
          "properly.\n You know like a good wrapper and stuff. Words are " +
          "coming off of my fingers, LOLZ!\n" + 
          
@@ -374,7 +374,7 @@ public class UTLayoutManager
          "This is a really long bunch of text for a text area. It is for " +
          "testing really large text areas to make sure that they wrap " +
          "properly. You know like a good wrapper and stuff. Words are " +
-         "coming off of my fingers, LOLZ!\n");
+         "coming off of my fingers, LOLZ!\n");*/
       
       FontMetrics metrics = textArea.getFontMetrics(textArea.getFont());
       int columnWidth = metrics.charWidth('m');
@@ -385,8 +385,8 @@ public class UTLayoutManager
       
       // create scroll pane
       JScrollPane scrollPane = new JScrollPane(textArea);
-      scrollPane.setVerticalScrollBarPolicy(
-         JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+      //scrollPane.setVerticalScrollBarPolicy(
+         //JScrollPane.VERTICAL_SCROLLBAR_NEVER);
       scrollPane.setHorizontalScrollBarPolicy(
          JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
       scrollPane.setMinimumSize(
@@ -407,7 +407,7 @@ public class UTLayoutManager
       /*PositionConstraints textAreaConstraints = new PositionConstraints();
       textAreaConstraints.location = new Point(0, 0);
       textAreaConstraints.size =
-         new Dimension(textArea.getPreferredSize());
+         new Dimension(panel.getWidth(), height);
       textAreaConstraints.anchor = PositionConstraints.ANCHOR_ALL;
       
       // add text area

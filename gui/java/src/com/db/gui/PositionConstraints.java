@@ -373,29 +373,90 @@ public class PositionConstraints implements Cloneable
       // get the font metrics, measure the row height
       FontMetrics metrics = textArea.getFontMetrics(textArea.getFont());
       int rowHeight = metrics.getHeight();
-      
+
       try
       {
-         // store the line overflow for each line in the text area
-         double overflow = 0;
-         int lines = textArea.getLineCount();
-         for(int i = 0; i < lines; i++)
+         if(textArea.getWrapStyleWord())
          {
-            int startOffset = textArea.getLineStartOffset(i);
-            int endOffset = textArea.getLineEndOffset(i);
-            
-            String line =
-               textArea.getText(startOffset, endOffset - startOffset);
-            int lineWidth = metrics.stringWidth(line);
-            
-            overflow += Math.max(0, lineWidth - width);
+            // store the line overflow for each line in the text area
+            StringBuffer sb = new StringBuffer();
+            int lines = textArea.getLineCount();
+            int rows = 0;
+            for(int i = 0; i < lines; i++)
+            {
+               int startOffset = textArea.getLineStartOffset(i);
+               int endOffset = textArea.getLineEndOffset(i);
+               
+               // get the line
+               String line = textArea.getText(
+                  startOffset, endOffset - startOffset);
+               
+               // clear string buffer
+               sb.setLength(0);
+               
+               // get words
+               String[] words = line.split(" ");
+
+               // add words until the line doesn't fit any longer
+               for(int n = 0; n < words.length; n++)
+               {
+                  // add space as necessary
+                  if(sb.length() != 0)
+                  {
+                     sb.append(" ");
+                  }
+                  
+                  // add next word
+                  sb.append(words[n]);
+                  
+                  // measure string
+                  int lineWidth = metrics.stringWidth(sb.toString());
+                  
+                  // if the line meets or goes over the width, increment
+                  // rows and set buffer to current word
+                  if(lineWidth >= width)
+                  {
+                     // determine overflow
+                     int overflow = lineWidth / width;
+                     
+                     rows += overflow;
+                     sb.setLength(0);
+                     sb.append(words[n]);
+                  }
+                  else if(n == (words.length - 1))
+                  {
+                     // increment rows
+                     rows++;
+                  }
+               }
+            }
+               
+            // determine the total height
+            rval = rowHeight * rows + metrics.getDescent();
          }
-         
-         // determine the number of extra lines
-         int extraLines = (int)Math.round(overflow / width);
-         
-         // determine the total height
-         rval = rowHeight * (lines + extraLines + 1);
+         else
+         {
+            // store the line overflow for each line in the text area
+            double overflow = 0;
+            int lines = textArea.getLineCount();
+            for(int i = 0; i < lines; i++)
+            {
+               int startOffset = textArea.getLineStartOffset(i);
+               int endOffset = textArea.getLineEndOffset(i);
+               
+               String line =
+                  textArea.getText(startOffset, endOffset - startOffset);
+               int lineWidth = metrics.stringWidth(line);
+               
+               overflow += Math.max(0, lineWidth - width);
+            }
+            
+            // determine the number of extra lines
+            int extraLines = (int)Math.round(overflow / width);
+            
+            // determine the total height
+            rval = rowHeight * (lines + extraLines) + metrics.getDescent();
+         }
       }
       catch(Throwable ignore)
       {
