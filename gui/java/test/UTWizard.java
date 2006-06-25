@@ -79,7 +79,7 @@ public class UTWizard
       frame.setLocationRelativeTo(null);
       
       // start wizard
-      testWizard.startWizard();
+      testWizard.start();
 
       try
       {

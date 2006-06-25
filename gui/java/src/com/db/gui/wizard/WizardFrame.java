@@ -170,7 +170,7 @@ implements ActionListener, WindowListener
          hideQuitDialog();
          
          // cancel wizard
-         mWizard.cancelWizard();
+         mWizard.cancel();
          
          // hide
          setVisible(false);

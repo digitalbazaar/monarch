@@ -320,7 +320,7 @@ public class WizardView extends JPanel implements ActionListener
          displayQuitDialog();
          
          // cancel wizard
-         getWizard().cancelWizard();
+         getWizard().cancel();
       }
       else if(e.getActionCommand().equals("previousStep"))
       {
@@ -335,7 +335,7 @@ public class WizardView extends JPanel implements ActionListener
       else if(e.getActionCommand().equals("finishWizard"))
       {
          // finish wizard
-         getWizard().finishWizard();
+         getWizard().finish();
       }
       else if(e.getActionCommand().equals("errorDialogOk"))
       {
@@ -353,7 +353,7 @@ public class WizardView extends JPanel implements ActionListener
          hideQuitDialog();
          
          // cancel wizard
-         getWizard().cancelWizard();
+         getWizard().cancel();
       }
    }
    

@@ -386,7 +386,7 @@ public class Wizard
    /**
     * Starts this wizard.
     */
-   public void startWizard()
+   public void start()
    {
       // only start wizard if it is not already running
       if(!isRunning())
@@ -408,7 +408,7 @@ public class Wizard
    /**
     * Finishes this wizard.
     */
-   public void finishWizard()
+   public void finish()
    {
       // only finish wizard if this wizard is running
       if(isRunning())
@@ -434,7 +434,7 @@ public class Wizard
    /**
     * Cancels this wizard.
     */
-   public void cancelWizard()
+   public void cancel()
    {
       // only cancel wizard if this wizard is running
       if(isRunning())
