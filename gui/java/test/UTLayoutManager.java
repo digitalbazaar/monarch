@@ -352,7 +352,7 @@ public class UTLayoutManager
          "coming off of my fingers, LOLZ!\n" +
          
          "This is a really long bunch of text for a text area. It is for " +
-         "testing really large text areas");/* to make sure that they wrap " +
+         "testing really large text areas to make sure that they wrap " +
          "properly.\n You know like a good wrapper and stuff. Words are " +
          "coming off of my fingers, LOLZ!\n" + 
          
@@ -374,11 +374,11 @@ public class UTLayoutManager
          "This is a really long bunch of text for a text area. It is for " +
          "testing really large text areas to make sure that they wrap " +
          "properly. You know like a good wrapper and stuff. Words are " +
-         "coming off of my fingers, LOLZ!\n");*/
+         "coming off of my fingers, LOLZ!\n");
       
-      FontMetrics metrics = textArea.getFontMetrics(textArea.getFont());
-      int columnWidth = metrics.charWidth('m');
-      textArea.setColumns(panel.getWidth() / columnWidth);
+      //FontMetrics metrics = textArea.getFontMetrics(textArea.getFont());
+      //int columnWidth = metrics.charWidth('m');
+      //textArea.setColumns(panel.getWidth() / columnWidth);
       
       int height = PositionConstraints.
          getTextAreaPreferredHeight(textArea, panel.getWidth());
@@ -397,8 +397,8 @@ public class UTLayoutManager
       scrollPaneConstraints.location = new Point(0, 0);
       scrollPaneConstraints.size =
          new Dimension(panel.getWidth(), height);
-      scrollPaneConstraints.anchor =
-         PositionConstraints.ANCHOR_TOP_LEFT_RIGHT;
+      //scrollPaneConstraints.anchor =
+         //PositionConstraints.ANCHOR_TOP_LEFT_RIGHT;
       
       // add scroll pane
       panel.add(scrollPane, scrollPaneConstraints);

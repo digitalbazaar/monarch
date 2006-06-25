@@ -373,6 +373,9 @@ public class PositionConstraints implements Cloneable
       // get the font metrics, measure the row height
       FontMetrics metrics = textArea.getFontMetrics(textArea.getFont());
       int rowHeight = metrics.getHeight();
+      
+      // subtract text area insets of 4
+      width -= 4;
 
       try
       {
@@ -423,14 +426,15 @@ public class PositionConstraints implements Cloneable
                      sb.setLength(0);
                      sb.append(words[n]);
                   }
-                  else if(n == (words.length - 1))
+                  
+                  if(n == (words.length - 1))
                   {
                      // increment rows
                      rows++;
                   }
                }
             }
-               
+            
             // determine the total height
             rval = rowHeight * rows + metrics.getDescent();
          }
