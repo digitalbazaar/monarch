@@ -9,6 +9,7 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Vector;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -46,6 +47,11 @@ public class WizardView extends JPanel implements ActionListener
     * The wizard pages card layout.
     */
    protected CardLayout mWizardPagesLayout;
+   
+   /**
+    * The wizard pages that this view can display.
+    */
+   protected Vector mWizardPages;
    
    /**
     * The cancel button.
@@ -86,6 +92,9 @@ public class WizardView extends JPanel implements ActionListener
       mWizard.getWizardPageValidationFailedEventDelegate().addListener(
          this, "wizardPageFailedValidation");
       
+      // create wizard pages list
+      mWizardPages = new Vector();
+      
       // create error dialog
       mErrorDialog = new WizardErrorDialog();
       
@@ -120,7 +129,7 @@ public class WizardView extends JPanel implements ActionListener
       Component glue = Box.createGlue();
 
       // create previous button
-      mPrevButton = new JButton("<< Previous");
+      mPrevButton = new JButton("< Previous");
       mPrevButton.setActionCommand("previousStep");
       mPrevButton.addActionListener(this);
       
@@ -128,16 +137,17 @@ public class WizardView extends JPanel implements ActionListener
       mPrevButton.setEnabled(false);
 
       // create next button
-      mNextButton = new JButton("Next >>");
+      mNextButton = new JButton("Next >");
       mNextButton.setActionCommand("nextStep");
       mNextButton.addActionListener(this);
-
+      
       // place wizard pages panel
-      ll.placeNext(mWizardPagesPanel, 1.0, 1.0, true, true);
+      ll.placeNext(mWizardPagesPanel, 1.0, 1.0, true, true,
+         new Insets(5, 5, 0, 5));
       add(mWizardPagesPanel);
 
       // place cancel button
-      ll.placeNext(mCancelButton, 0.0, 0.0, new Insets(2, 2, 2, 2));
+      ll.placeNext(mCancelButton, 0.0, 0.0, new Insets(5, 5, 5, 5));
       add(mCancelButton);
 
       // place glue
@@ -145,11 +155,11 @@ public class WizardView extends JPanel implements ActionListener
       add(glue);
       
       // place previous button
-      ll.placeNext(mPrevButton, 0.0, 0.0, new Insets(2, 2, 2, 2));
+      ll.placeNext(mPrevButton, 0.0, 0.0, new Insets(5, 5, 5, 5));
       add(mPrevButton);
       
       // place next button
-      ll.placeNext(mNextButton, 0.0, 0.0, new Insets(2, 2, 2, 2));
+      ll.placeNext(mNextButton, 0.0, 0.0, new Insets(5, 0, 5, 5));
       add(mNextButton);
    }
    
@@ -176,6 +186,9 @@ public class WizardView extends JPanel implements ActionListener
       
       // add the wizard page to the panel
       mWizardPagesPanel.add(page.getView(), page.getName());
+      
+      // add the wizard page to the list of pages
+      mWizardPages.add(page);
    }
    
    /**
@@ -190,6 +203,9 @@ public class WizardView extends JPanel implements ActionListener
       
       // remove the wizard page from the panel
       mWizardPagesPanel.remove(page.getView());
+      
+      // remove the wizard page from the list of pages
+      mWizardPages.remove(page);
    }
    
    /**
@@ -217,7 +233,7 @@ public class WizardView extends JPanel implements ActionListener
       }
       else
       {
-         mNextButton.setText("Next >>");
+         mNextButton.setText("Next >");
          mNextButton.setActionCommand("nextStep");
       }
    }
@@ -229,6 +245,13 @@ public class WizardView extends JPanel implements ActionListener
     */
    public void displayPage(WizardPage page)
    {
+      // see if the page is not currently supported
+      if(!mWizardPages.contains(page))
+      {
+         // add the page if it is not supported
+         addPage(page);
+      }
+      
       // show the page in the wizard pages panel
       mWizardPagesLayout.show(mWizardPagesPanel, page.getName());
    }

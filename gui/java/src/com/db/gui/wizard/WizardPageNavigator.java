@@ -38,16 +38,6 @@ public class WizardPageNavigator
    protected WizardPage mCurrentPage;
    
    /**
-    * The first (first displayed) wizard page.
-    */
-   protected WizardPage mFirstPage;
-
-   /**
-    * The final (last displayed) wizard page.
-    */
-   protected WizardPage mFinalPage;
-   
-   /**
     * Creates a new WizardPageNavigator with an empty pool of wizard pages
     * and no wizard page selector.
     */
@@ -77,12 +67,6 @@ public class WizardPageNavigator
       
       // no current page yet
       setCurrentPage(null);
-      
-      // no first page yet
-      setFirstPage(null);
-      
-      // no final page yet
-      setFinalPage(null);
    }
    
    /**
@@ -209,8 +193,12 @@ public class WizardPageNavigator
     */
    public WizardPage nextPage()
    {
+      // get the next page
+      WizardPage nextPage = getPageSelector().getNextPage(
+         getPagePool(), getCurrentPage());
+      
       // set the current page
-      setCurrentPage(getPageSelector().getNextWizardPage(this));
+      setCurrentPage(nextPage);
       
       // update the step stack
       if(getCurrentPage() != null)
@@ -251,33 +239,13 @@ public class WizardPageNavigator
    }
    
    /**
-    * Sets the first page in the wizard.
-    * 
-    * @param page the page to use as the first page.
-    */
-   public void setFirstPage(WizardPage page)
-   {
-      mFirstPage = page;
-   }
-   
-   /**
     * Gets the first wizard page.
     * 
     * @return the first wizard page.
     */
    public WizardPage getFirstPage()
    {
-      return mFirstPage;
-   }
-   
-   /**
-    * Sets the final page in the wizard.
-    * 
-    * @param page the page to use as the final page.
-    */
-   public void setFinalPage(WizardPage page)
-   {
-      mFinalPage = page;
+      return getPageSelector().getFirstPage(getPagePool());
    }
    
    /**
@@ -287,7 +255,7 @@ public class WizardPageNavigator
     */
    public WizardPage getFinalPage()
    {
-      return mFinalPage;
+      return getPageSelector().getFinalPage(getPagePool());
    }
    
    /**

@@ -4,6 +4,7 @@
 package com.db.gui.wizard;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * A wizard page pool stores all of the available pages for a wizard.
@@ -56,5 +57,15 @@ public class WizardPagePool
    public WizardPage getPage(String name)
    {
       return (WizardPage)mNameToWizardPage.get(name);
+   }
+   
+   /**
+    * Gets an iterator on the pages in this pool.
+    * 
+    * @return an iterator on the pages in this pool.
+    */
+   public Iterator iterator()
+   {
+      return mNameToWizardPage.values().iterator();
    }
 }

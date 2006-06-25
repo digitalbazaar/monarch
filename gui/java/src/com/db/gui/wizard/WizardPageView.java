@@ -3,6 +3,7 @@
  */
 package com.db.gui.wizard;
 
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 /**
@@ -24,7 +25,11 @@ public abstract class WizardPageView extends JPanel
     */
    public WizardPageView(WizardPage page)
    {
+      // store page
       mPage = page;
+      
+      // add bevelled border by default
+      setBorder(BorderFactory.createLoweredBevelBorder());
    }
    
    /**

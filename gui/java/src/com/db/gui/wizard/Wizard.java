@@ -1,7 +1,9 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.gui.wizard;
+
+import java.util.Iterator;
 
 import com.db.event.EventDelegate;
 import com.db.event.EventObject;
@@ -12,17 +14,12 @@ import com.db.event.EventObject;
  * 
  * @author Dave Longley
  */
-public abstract class Wizard implements WizardPageSelector
+public class Wizard
 {
    /**
     * The task for this wizard.
     */
    protected WizardTask mTask;
-   
-   /**
-    * The wizard page pool for this wizard.
-    */
-   protected WizardPagePool mPagePool;
    
    /**
     * The wizard page navigator for this wizard.
@@ -64,32 +61,24 @@ public abstract class Wizard implements WizardPageSelector
    protected EventDelegate mWizardPageValidationFailedEventDelegate;
    
    /**
-    * Creates a new Wizard that uses itself as its WizardPageSelector.
+    * Creates a new Wizard to perform the passed WizardTask with the
+    * passed list of pages to accomplish the task, and that uses the
+    * passed page selector.
     * 
-    * The getNextWizardPage(WizardPageNavigator wpn) method should be
-    * overridden to provide next page navigation.
-    */
-   public Wizard()
-   {
-      this(null);
-      
-      // set self as wizard page selector
-      getPageNavigator().setPageSelector(this);
-   }
-
-   /**
-    * Creates a new Wizard.
-    * 
+    * @param task the wizard task to perform.
+    * @param pagePool the pool of wizard pages to use.
     * @param pageSelector the wizard page selector used to select the
     *                     next page to display from the pool of pages.
     */
-   public Wizard(WizardPageSelector pageSelector)
+   public Wizard(
+      WizardTask task, WizardPagePool pagePool, WizardPageSelector pageSelector)
    {
-      // create the wizard page pool
-      mPagePool = new WizardPagePool();
-      
+      // store the wizard task
+      mTask = task;
+
       // create the wizard page navigator
-      mPageNavigator = new WizardPageNavigator(mPagePool, pageSelector);
+      // use the passed page pool and selector
+      mPageNavigator = new WizardPageNavigator(pagePool, pageSelector);
       
       // create the wizard started event delegate
       mWizardStartedEventDelegate = new EventDelegate();
@@ -102,16 +91,83 @@ public abstract class Wizard implements WizardPageSelector
       
       // create the wizard page validation failed event delegate
       mWizardPageValidationFailedEventDelegate = new EventDelegate();
-
-      // create the wizard task
-      mTask = createTask();
+      
+      // not running
+      setRunning(false);
       
       // create the wizard view
       mView = createView();
-      
-      // create and add the pages to this wizard
-      createPages();
    }
+   
+   /**
+    * Fires a wizard started event.
+    */
+   protected void fireWizardStarted()
+   {
+      // create event
+      EventObject event = new EventObject("wizardStarted");
+      event.setData("wizard", getTask());
+      event.setDataKeyMessage("wizard", "The Wizard that started.");
+      event.setData("task", getTask());
+      event.setDataKeyMessage("task", "The WizardTask to be performed.");
+      
+      // fire event
+      getWizardStartedEventDelegate().fireEvent(event);
+   }
+   
+   /**
+    * Fires a wizard finished event.
+    */
+   protected void fireWizardFinished()
+   {
+      // create event
+      EventObject event = new EventObject("wizardFinished");
+      event.setData("wizard", getTask());
+      event.setDataKeyMessage("wizard", "The Wizard that finished.");
+      event.setData("task", getTask());
+      event.setDataKeyMessage("task", "The WizardTask that was performed.");
+      
+      // fire event
+      getWizardFinishedEventDelegate().fireEvent(event);
+   }
+   
+   /**
+    * Fires a wizard cancelled event.
+    */
+   protected void fireWizardCancelled()
+   {
+      // create event
+      EventObject event = new EventObject("wizardCancelled");
+      event.setData("wizard", getTask());
+      event.setDataKeyMessage("wizard", "The Wizard that was cancelled.");
+      event.setData("task", getTask());
+      event.setDataKeyMessage("task", "The WizardTask that was cancelled.");
+      
+      // fire event
+      getWizardCancelledEventDelegate().fireEvent(event);
+   }
+   
+   /**
+    * Fires a wizard page validation failed event.
+    * 
+    * @param page the current page.
+    */
+   protected void fireWizardPageValidationFailed(WizardPage page)
+   {
+      // create event
+      EventObject event = new EventObject("wizardPageValidationFailed");
+      event.setData("wizard", getTask());
+      event.setDataKeyMessage("wizard",
+         "The Wizard whose page failed validation.");
+      event.setData("task", getTask());
+      event.setDataKeyMessage("task", "The current WizardTask.");
+      event.setData("page", page);
+      event.setDataKeyMessage("page", 
+         "The WizardPage that failed validation.");
+      
+      // fire event
+      getWizardPageValidationFailedEventDelegate().fireEvent(event);
+   }   
    
    /**
     * Sets whether or not this wizard is running.
@@ -135,76 +191,25 @@ public abstract class Wizard implements WizardPageSelector
    }
    
    /**
-    * Adds a page to this wizard. The last page added to this wizard via
-    * this method will be set as the final page.
-    * 
-    * @param page the page to add to this wizard.
-    */
-   protected void addPage(WizardPage page)
-   {
-      // add page to the page pool
-      mPagePool.addPage(page);
-      
-      // add the page to the view
-      getView().addPage(page);
-      
-      // make added page the final page by default
-      setFinalPage(page);
-      
-      // set first page if none is set yet
-      if(getPageNavigator().getFirstPage() == null)
-      {
-         getPageNavigator().setFirstPage(page);
-      }
-   }
-   
-   /**
-    * Removes a page from this wizard.
-    * 
-    * @param page the page to remove from this wizard.
-    */
-   protected void removePage(WizardPage page)
-   {
-      // remove page from the page pool
-      mPagePool.removePage(page);
-      
-      // if the current page is the passed page, go to the previous page
-      if(getPageNavigator().getCurrentPage() == page)
-      {
-         getPageNavigator().previousPage();
-      }
-   }
-   
-   /**
-    * Sets the final page in this wizard. This method will not add the
-    * passed page to the pool of pages, it will simply mark it as the
-    * final page.
-    * 
-    * @param page the final page in this wizard.
-    */
-   protected void setFinalPage(WizardPage page)
-   {
-      getPageNavigator().setFinalPage(page);
-   }
-   
-   /**
-    * Creates the task for this wizard.
-    * 
-    * @return the task for this wizard.
-    */
-   protected abstract WizardTask createTask();
-   
-   /**
     * Creates the view for this wizard.
     * 
     * @return the view for this wizard.
     */
-   protected abstract WizardView createView();
-   
-   /**
-    * Creates and adds the wizard pages to this wizard.
-    */
-   protected abstract void createPages();
+   protected WizardView createView()
+   {
+      // create default wizard view
+      WizardView view = new WizardView(this);
+      
+      // add pages in pool to the view
+      Iterator i = getPageNavigator().getPagePool().iterator();
+      while(i.hasNext())
+      {
+         WizardPage page = (WizardPage)i.next();
+         view.addPage(page);
+      }
+      
+      return view;
+   }
    
    /**
     * Updates the WizardTask with the passed page.
@@ -241,94 +246,6 @@ public abstract class Wizard implements WizardPageSelector
          // display the page in the view
          getView().displayPage(page);
       }
-   }
-   
-   /**
-    * Fires a wizard started event.
-    */
-   public void fireWizardStarted()
-   {
-      // create event
-      EventObject event = new EventObject("wizardStarted");
-      event.setData("wizard", getTask());
-      event.setDataKeyMessage("wizard", "The Wizard that started.");
-      event.setData("task", getTask());
-      event.setDataKeyMessage("task", "The WizardTask to be performed.");
-      
-      // fire event
-      getWizardStartedEventDelegate().fireEvent(event);
-   }
-   
-   /**
-    * Fires a wizard finished event.
-    */
-   public void fireWizardFinished()
-   {
-      // create event
-      EventObject event = new EventObject("wizardFinished");
-      event.setData("wizard", getTask());
-      event.setDataKeyMessage("wizard", "The Wizard that finished.");
-      event.setData("task", getTask());
-      event.setDataKeyMessage("task", "The WizardTask that was performed.");
-      
-      // fire event
-      getWizardFinishedEventDelegate().fireEvent(event);
-   }
-   
-   /**
-    * Fires a wizard cancelled event.
-    */
-   public void fireWizardCancelled()
-   {
-      // create event
-      EventObject event = new EventObject("wizardCancelled");
-      event.setData("wizard", getTask());
-      event.setDataKeyMessage("wizard", "The Wizard that was cancelled.");
-      event.setData("task", getTask());
-      event.setDataKeyMessage("task", "The WizardTask that was cancelled.");
-      
-      // fire event
-      getWizardCancelledEventDelegate().fireEvent(event);
-   }
-   
-   /**
-    * Fires a wizard page validation failed event.
-    * 
-    * @param page the current page.
-    */
-   public void fireWizardPageValidationFailed(WizardPage page)
-   {
-      // create event
-      EventObject event = new EventObject("wizardPageValidationFailed");
-      event.setData("wizard", getTask());
-      event.setDataKeyMessage("wizard",
-         "The Wizard whose page failed validation.");
-      event.setData("task", getTask());
-      event.setDataKeyMessage("task", "The current WizardTask.");
-      event.setData("page", page);
-      event.setDataKeyMessage("page", 
-         "The WizardPage that failed validation.");
-      
-      // fire event
-      getWizardPageValidationFailedEventDelegate().fireEvent(event);
-   }
-   
-   /**
-    * This method is provided for overriding convenience. If a class
-    * that extends a Wizard wishes to handle its own wizard page
-    * selection, it can override this method and call the default
-    * constructor (Wizard()) when instantiating to use this class as
-    * a WizardPageSelector.
-    * 
-    * Gets the next wizard page for the given wizard page navigator.
-    * 
-    * @param wpn the wizard page navigator to get the next wizard page for.
-    *
-    * @return the next wizard page.
-    */
-   public WizardPage getNextWizardPage(WizardPageNavigator wpn)
-   {
-      return null;
    }
    
    /**

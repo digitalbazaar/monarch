@@ -13,12 +13,13 @@ import com.db.event.EventObject;
 import com.db.gui.PositionConstraints;
 import com.db.gui.PositionLayout;
 import com.db.gui.wizard.Wizard;
+import com.db.gui.wizard.WizardBuilder;
 import com.db.gui.wizard.WizardFrame;
 import com.db.gui.wizard.WizardPage;
-import com.db.gui.wizard.WizardPageNavigator;
+import com.db.gui.wizard.WizardPagePool;
+import com.db.gui.wizard.WizardPageSelector;
 import com.db.gui.wizard.WizardPageView;
 import com.db.gui.wizard.WizardTask;
-import com.db.gui.wizard.WizardView;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 
@@ -53,8 +54,9 @@ public class UTWizard
          t.printStackTrace();
       }
       
-      // create wizard
-      TestWizard testWizard = new TestWizard();
+      // create wizard builder to create wizard
+      TestWizardBuilder builder = new TestWizardBuilder();
+      Wizard testWizard = builder.createWizard();
       
       // listen for wizard start
       testWizard.getWizardStartedEventDelegate().addListener(
@@ -110,85 +112,162 @@ public class UTWizard
    }
    
    /**
-    * The test wizard.
+    * The test wizard builder.
     * 
     * @author Dave Longley
     */
-   public static class TestWizard extends Wizard
+   public static class TestWizardBuilder implements WizardBuilder
    {
       /**
-       * Creates a new TestWizard.
+       * Creates a new TestWizardBuilder.
        */
-      public TestWizard()
+      public TestWizardBuilder()
       {
       }
       
       /**
-       * Creates the task for this wizard.
+       * Creates the task for a Wizard.
        * 
-       * @return the task for this wizard.
+       * @return the task for a Wizard.
        */
-      protected WizardTask createTask()
+      public WizardTask createTask()
       {
          // create TestWizardTask
          return new TestWizardTask();
       }
       
       /**
-       * Creates the view for this wizard.
+       * Creates the page pool for a Wizard.
        * 
-       * @return the view for this wizard.
+       * @param task the wizard task for the pages.
+       * 
+       * @return the page pool for a Wizard.
        */
-      protected WizardView createView()
+      public WizardPagePool createPagePool(WizardTask task)
       {
-         // use default view
-         return new WizardView(this);
-      }
-      
-      /**
-       * Creates and adds the wizard pages to this wizard.
-       */
-      protected void createPages()
-      {
+         // create page pool
+         WizardPagePool pagePool = new WizardPagePool(); 
+         
          // create page 1
-         TestWizardPage page1 = new TestWizardPage(this, "page1");
+         TestWizardPage page1 = new TestWizardPage("page1", task);
          
          // create page 2
-         TestWizardPage page2 = new TestWizardPage(this, "page2");
+         TestWizardPage page2 = new TestWizardPage("page2", task);
          
          // create page 3
-         TestWizardPage page3 = new TestWizardPage(this, "page3");
+         TestWizardPage page3 = new TestWizardPage("page3", task);
          
          // add pages
-         addPage(page1);
-         addPage(page2);
-         addPage(page3);
+         pagePool.addPage(page1);
+         pagePool.addPage(page2);
+         pagePool.addPage(page3);
+         
+         // return page pool
+         return pagePool;
       }
       
       /**
-       * Gets the next wizard page for the given wizard page navigator.
+       * Creates the page selector for a Wizard.
        * 
-       * @param wpn the wizard page navigator to get the next wizard page for.
+       * @param pagePool the page pool for the wizard.
+       * 
+       * @return the page selector for a Wizard.
+       */
+      public WizardPageSelector createPageSelector(WizardPagePool pagePool)
+      {
+         // create TestWizardPageSelector
+         return new TestWizardPageSelector();
+      }
+      
+      /**
+       * Creates a new Wizard.
+       * 
+       * @return a new Wizard.
+       */
+      public Wizard createWizard()      
+      {
+         // create a new task
+         WizardTask task = createTask();
+         
+         // create a new page pool for the task
+         WizardPagePool pagePool = createPagePool(task);
+         
+         // create a page selector
+         WizardPageSelector pageSelector = createPageSelector(pagePool);
+         
+         // create wizard
+         Wizard wizard = new Wizard(task, pagePool, pageSelector);
+         
+         // return wizard
+         return wizard;
+      }
+   }
+   
+   /**
+    * The test wizard page selector.
+    * 
+    * @author Dave Longley
+    */
+   public static class TestWizardPageSelector implements WizardPageSelector
+   {
+      /**
+       * Creates a new TestWizardPageSelector.
+       */
+      public TestWizardPageSelector()
+      {
+      }
+      
+      /**
+       * Gets the first wizard page in a given wizard page pool.
+       * 
+       * @param pagePool the wizard page pool to get the first page in.
+       * 
+       * @return the first wizard page in the given pool.
+       */
+      public WizardPage getFirstPage(WizardPagePool pagePool)
+      {
+         return pagePool.getPage("page1");
+      }
+      
+      /**
+       * Gets the next wizard page in a given wizard page pool, given the
+       * current page.
+       * 
+       * @param pagePool the wizard page pool to get the next page in.
+       * @param current the current wizard page or null if there no
+       *                current page.
        *
        * @return the next wizard page.
        */
-      public WizardPage getNextWizardPage(WizardPageNavigator wpn)
+      public WizardPage getNextPage(WizardPagePool pagePool, WizardPage current)
       {
          WizardPage rval = null;
          
-         if(wpn.getCurrentPage() != null)
+         if(current != null)
          {
-            if(wpn.onFirstPage())
+            if(current.getName().equals("page1"))
             {
-               rval = wpn.getPagePool().getPage("page2");
+               rval = pagePool.getPage("page2");
             }
-            else if(wpn.getCurrentPage().getName().equals("page2"))
+            else if(current.getName().equals("page2"))
             {
-               rval = wpn.getPagePool().getPage("page3");
+               rval = pagePool.getPage("page3");
             }
          }
          
          return rval;
+      }
+      
+      /**
+       * Gets the final wizard page in a given wizard page pool.
+       * 
+       * @param pagePool the wizard page pool to get the final page in.
+       * 
+       * @return the final wizard page in the given pool.
+       */
+      public WizardPage getFinalPage(WizardPagePool pagePool)
+      {
+         return pagePool.getPage("page3");
       }
    }
    
@@ -274,12 +353,12 @@ public class UTWizard
       /**
        * Creates a new TestWizardPage.
        * 
-       * @param wizard the TestWizard the page is for.
-       * @param name the name of this page.
+       * @param name the wizard page name (used to uniquely identify this page).
+       * @param task the wizard task this page will work on. 
        */
-      public TestWizardPage(TestWizard wizard, String name)
+      public TestWizardPage(String name, WizardTask task)
       {
-         super(wizard, name);
+         super(name, task);
       }
       
       /**
@@ -287,7 +366,7 @@ public class UTWizard
        * 
        * @return the view for this page.
        */
-      protected WizardPageView createView()      
+      protected WizardPageView createView()
       {
          return new TestWizardPageView(this);
       }

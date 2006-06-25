@@ -7,8 +7,9 @@ import java.util.Vector;
 
 /**
  * A WizardPage is a single page of a Wizard that is used to
- * accomplish some task. Each wizard page can validate the data it
- * contains and report any data validation issues.
+ * accomplish some WizardTask. Each wizard page can validate the data it
+ * contains and report any data validation issues. Each wizard page
+ * can update its WizardTask.
  * 
  * @author Mike Johnson
  * @author Manu Sporny
@@ -17,9 +18,9 @@ import java.util.Vector;
 public abstract class WizardPage
 {
    /**
-    * The wizard this page is for.
+    * The WizardTask this page is designed to work on. 
     */
-   protected Wizard mWizard;
+   protected WizardTask mWizardTask;
    
    /**
     * The name of this wizard page.
@@ -39,16 +40,16 @@ public abstract class WizardPage
    /**
     * Constructs a new WizardPage with the specified page name.
     *
-    * @param wizard the wizard this page is for.
-    * @param name the wizard page name (used to uniquely identify this page). 
+    * @param name the wizard page name (used to uniquely identify this page).
+    * @param task the wizard task this page will work on.
     */
-   public WizardPage(Wizard wizard, String name)
+   public WizardPage(String name, WizardTask task)
    {
-      // set wizard
-      mWizard = wizard;
-      
       // set name
       mName = name;
+      
+      // store task
+      mWizardTask = task;
       
       // init errors
       mErrors = new Vector();
@@ -83,22 +84,14 @@ public abstract class WizardPage
    protected abstract WizardPageView createView();
    
    /**
-    * Gets access to the wizard task.
-    * 
-    * @return the wizard task.
-    */
-   protected WizardTask getWizardTask()
-   {
-      return getWizard().getTask();
-   }
-   
-   /**
     * This method is called before displaying this page in a wizard.
     * 
     * This method can be used to activate whatever is necessary on a
-    * WizardPage. It can used to clear data, look up data before display, etc.  
+    * WizardPage. It can used to clear data, look up data before display, etc.
     * 
-    * @param task the wizard's task.
+    * The wizard's task is passed to this method for convenience.
+    * 
+    * @param task the WizardTask for this page.
     */
    public void activatePage(WizardTask task)
    {
@@ -109,8 +102,10 @@ public abstract class WizardPage
     * Checks all of the data that a wizard page contains for errors.
     * 
     * This method is called before writing the data to the WizardTask.
+    * 
+    * The wizard's task is passed to this method for convenience.
     *  
-    * @param task the WizardTask.
+    * @param task the WizardTask for this page.
     * 
     * @return true if the page is valid, false otherwise.
     */
@@ -121,20 +116,12 @@ public abstract class WizardPage
     * 
     * This method is called after validate() and before proceeding to the
     * next step in a wizard.
+    * 
+    * The wizard's task is passed to this method for convenience.
     *
     * @param task the WizardTask to update. 
     */
    public abstract void updateWizardTask(WizardTask task);
-   
-   /**
-    * Gets the wizard this wizard page is for.
-    * 
-    * @return the wizard this wizard page is for.
-    */
-   public Wizard getWizard()
-   {
-      return mWizard;
-   }
    
    /**
     * Gets the name of this page.
@@ -144,6 +131,16 @@ public abstract class WizardPage
    public String getName()
    {
       return mName;
+   }
+   
+   /**
+    * Gets the WizardTask for this page.
+    * 
+    * @return task the wizard task for this page.
+    */
+   public WizardTask getWizardTask()
+   {
+      return mWizardTask;
    }
    
    /**
