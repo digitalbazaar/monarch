@@ -143,6 +143,16 @@ implements ActionListener, WindowListener
    }
    
    /**
+    * Gets the wizard held in this frame.
+    * 
+    * @return the wizard held in this frame.
+    */
+   public Wizard getWizard()
+   {
+      return mWizard;
+   }
+   
+   /**
     * Called when the wizard quit dialog performs an action. 
     * 
     * @param e the action event.
