@@ -391,7 +391,7 @@ public class UTWizard
          TestWizardPageView view = (TestWizardPageView)getView();
          
          // make sure the view has an option set
-         if(view.getOption().equals(""))
+         if(!view.getOption().equals(""))
          {
             // option set
             rval = true;

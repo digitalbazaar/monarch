@@ -50,7 +50,7 @@ public class WizardErrorDialog extends JDialog
     */
    public WizardErrorDialog()
    {
-      setTitle("Bitmunk Wizard Input Errors");
+      setTitle("Wizard Page Errors");
       setupPanel();
    }
 
@@ -122,6 +122,7 @@ public class WizardErrorDialog extends JDialog
          String warning = (String)i.next();
          mTextArea.append(warning +"\n\n");
       }
+      
       // move caret to top of error list
       mTextArea.setCaretPosition(0);
    }

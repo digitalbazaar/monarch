@@ -6,7 +6,6 @@ package com.db.gui.wizard;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Insets;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
@@ -97,9 +96,11 @@ public class WizardView extends JPanel implements ActionListener
       
       // create error dialog
       mErrorDialog = new WizardErrorDialog();
+      mErrorDialog.addActionListener(this);
       
       // create quit dialog
       mQuitDialog = new WizardQuitDialog();
+      mQuitDialog.addActionListener(this);
       
       // setup the main panel
       setupPanel();
@@ -268,7 +269,7 @@ public class WizardView extends JPanel implements ActionListener
          mErrorDialog.setWarnings(getWizard().getCurrentPage().getErrors());
          
          // move to top and display
-         WizardView.centerWindow(mErrorDialog);
+         mErrorDialog.setLocationRelativeTo(this);
          mErrorDialog.setAlwaysOnTop(true);
          mErrorDialog.setModal(true);
          mErrorDialog.setVisible(true);
@@ -290,7 +291,7 @@ public class WizardView extends JPanel implements ActionListener
     */
    public void displayQuitDialog()
    {
-      WizardView.centerWindow(mQuitDialog);
+      mQuitDialog.setLocationRelativeTo(this);
       mQuitDialog.setAlwaysOnTop(true);
       mQuitDialog.setModal(true);
       mQuitDialog.setVisible(true);
@@ -315,6 +316,9 @@ public class WizardView extends JPanel implements ActionListener
    {
       if(e.getActionCommand().equals("cancelWizard"))
       {
+         // show quit dialog
+         displayQuitDialog();
+         
          // cancel wizard
          getWizard().cancelWizard();
       }
@@ -335,6 +339,8 @@ public class WizardView extends JPanel implements ActionListener
       }
       else if(e.getActionCommand().equals("errorDialogOk"))
       {
+         System.out.println("ERROR DIALOG OK");
+         
          // hide error dialog
          hideErrorDialog();
       }
@@ -373,19 +379,5 @@ public class WizardView extends JPanel implements ActionListener
    {
       return mWizard;
    }
-   
-   /**
-    * Centers the passed window.
-    * 
-    * @param window the window to center.
-    */
-   public static void centerWindow(Window window)
-   {
-      int x = (window.getGraphicsConfiguration().getBounds().width -
-               window.getWidth()) / 2;
-      int y = (window.getGraphicsConfiguration().getBounds().height -
-               window.getHeight()) / 2;
-        
-      window.setLocation(x, y);
-   }   
 }
+

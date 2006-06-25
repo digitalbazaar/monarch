@@ -3,6 +3,8 @@
  */
 package com.db.gui.wizard;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
@@ -17,12 +19,18 @@ import com.db.event.EventObject;
  * @author Dave Longley
  * @author Mike Johnson
  */
-public class WizardFrame extends JDialog implements WindowListener
+public class WizardFrame extends JDialog
+implements ActionListener, WindowListener
 {
    /**
     * A reference to the Wizard this frame displays.
     */
    protected Wizard mWizard;
+   
+   /**
+    * A wizard quit dialog.
+    */
+   protected WizardQuitDialog mQuitDialog;
    
    /**
     * Creates a new WizardFrame.
@@ -46,6 +54,10 @@ public class WizardFrame extends JDialog implements WindowListener
       mWizard.getWizardCancelledEventDelegate().addListener(
          this, "wizardCancelled");
       
+      // create the wizard quit dialog
+      mQuitDialog = new WizardQuitDialog();
+      mQuitDialog.addActionListener(this);
+      
       // listen to self for window closing events
       addWindowListener(this);
       
@@ -63,19 +75,36 @@ public class WizardFrame extends JDialog implements WindowListener
     */
    protected void setupFrame()
    {
-      // don't dispose or hide by default when the wizard frame is closed 
-      setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+      // dispose on close 
+      setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
       // pack frame
       pack();
       
       // set size
       setSize(640, 480);
-      
-      // make wizard on top and modal
-      setAlwaysOnTop(true);
-      setModal(true);
    }
+   
+   /**
+    * Display the quit confirmation dialog.
+    */
+   protected void displayQuitDialog()
+   {
+      mQuitDialog.setLocationRelativeTo(this);
+      mQuitDialog.setAlwaysOnTop(true);
+      mQuitDialog.setModal(true);
+      mQuitDialog.setVisible(true);
+   }
+   
+   /**
+    * Hides the quit dialog.
+    */
+   protected void hideQuitDialog()
+   {
+      mQuitDialog.setAlwaysOnTop(false);
+      mQuitDialog.setModal(false);
+      mQuitDialog.setVisible(false);
+   }   
    
    /**
     * Called when the wizard has started.
@@ -95,7 +124,7 @@ public class WizardFrame extends JDialog implements WindowListener
     */
    public void wizardFinished(EventObject event)
    {
-      // hide this frame
+      // hide
       setVisible(false);
       
       // dispose
@@ -109,11 +138,39 @@ public class WizardFrame extends JDialog implements WindowListener
     */
    public void wizardCancelled(EventObject event)
    {
-      // hide this frame
+      // hide
       setVisible(false);
       
       // dispose
       dispose();
+   }
+   
+   /**
+    * Called when the wizard quit dialog performs an action. 
+    * 
+    * @param e the action event.
+    */
+   public void actionPerformed(ActionEvent e)
+   {
+      if(e.getActionCommand().equals("quitDialogContinue"))
+      {
+         // hide quit dialog
+         hideQuitDialog();
+      }
+      else if(e.getActionCommand().equals("quitDialogQuit"))
+      {
+         // hide quit dialog
+         hideQuitDialog();
+         
+         // cancel wizard
+         mWizard.cancelWizard();
+         
+         // hide
+         setVisible(false);
+         
+         // dispose
+         dispose();
+      }
    }
    
    /**
@@ -131,15 +188,20 @@ public class WizardFrame extends JDialog implements WindowListener
     */
    public void windowClosing(WindowEvent e)
    {
-      // don't be on top or modal
-      setAlwaysOnTop(false);
-      setModal(false);
-      
-      // cancel wizard
-      mWizard.cancelWizard();
-      
-      // dispose frame
-      dispose();
+      // see if the wizard is running
+      if(mWizard.isRunning())
+      {
+         // show quit dialog
+         displayQuitDialog();
+      }
+      else
+      {
+         // hide
+         setVisible(false);
+         
+         // dispose
+         dispose();
+      }
    }
 
    /**
