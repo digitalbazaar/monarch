@@ -131,15 +131,15 @@ public class WizardFrame extends JDialog implements WindowListener
     */
    public void windowClosing(WindowEvent e)
    {
-      // dont be on top
-      //setAlwaysOnTop(false);
-      //setModal(false);
+      // don't be on top or modal
+      setAlwaysOnTop(false);
+      setModal(false);
       
       // cancel wizard
-      //mWizard.cancelWizard();
+      mWizard.cancelWizard();
       
       // dispose frame
-      //dispose();
+      dispose();
    }
 
    /**
