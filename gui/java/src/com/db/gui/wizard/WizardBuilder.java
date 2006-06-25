@@ -4,19 +4,19 @@
 package com.db.gui.wizard;
 
 /**
- * A WizardBuilder is used to build a Wizard. This interface should
- * be implemented to build custom Wizards.
+ * A WizardBuilder is used to build a Wizard. This class should
+ * be extended to build custom Wizards.
  * 
  * @author Dave Longley
  */
-public interface WizardBuilder
+public abstract class WizardBuilder
 {
    /**
     * Creates the task for a Wizard.
     * 
     * @return the task for a Wizard.
     */
-   public WizardTask createTask();
+   public abstract WizardTask createTask();
 
    /**
     * Creates the page pool for a Wizard.
@@ -25,7 +25,7 @@ public interface WizardBuilder
     * 
     * @return the page pool for a Wizard.
     */
-   public WizardPagePool createPagePool(WizardTask task);
+   public abstract WizardPagePool createPagePool(WizardTask task);
    
    /**
     * Creates the page selector for a Wizard.
@@ -34,12 +34,29 @@ public interface WizardBuilder
     * 
     * @return the page selector for a Wizard.
     */
-   public WizardPageSelector createPageSelector(WizardPagePool pagePool);
+   public abstract WizardPageSelector createPageSelector(
+      WizardPagePool pagePool);
    
    /**
     * Creates a new Wizard.
     * 
     * @return a new Wizard.
     */
-   public Wizard createWizard();
+   public Wizard createWizard()      
+   {
+      // create a new task
+      WizardTask task = createTask();
+      
+      // create a new page pool for the task
+      WizardPagePool pagePool = createPagePool(task);
+      
+      // create a page selector
+      WizardPageSelector pageSelector = createPageSelector(pagePool);
+      
+      // create wizard
+      Wizard wizard = new Wizard(task, pagePool, pageSelector);
+      
+      // return wizard
+      return wizard;
+   }
 }

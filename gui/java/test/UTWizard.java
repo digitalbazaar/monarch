@@ -131,7 +131,7 @@ public class UTWizard
     * 
     * @author Dave Longley
     */
-   public static class TestWizardBuilder implements WizardBuilder
+   public static class TestWizardBuilder extends WizardBuilder
    {
       /**
        * Creates a new TestWizardBuilder.
@@ -192,29 +192,6 @@ public class UTWizard
       {
          // create TestWizardPageSelector
          return new TestWizardPageSelector();
-      }
-      
-      /**
-       * Creates a new Wizard.
-       * 
-       * @return a new Wizard.
-       */
-      public Wizard createWizard()      
-      {
-         // create a new task
-         WizardTask task = createTask();
-         
-         // create a new page pool for the task
-         WizardPagePool pagePool = createPagePool(task);
-         
-         // create a page selector
-         WizardPageSelector pageSelector = createPageSelector(pagePool);
-         
-         // create wizard
-         Wizard wizard = new Wizard(task, pagePool, pageSelector);
-         
-         // return wizard
-         return wizard;
       }
    }
    
