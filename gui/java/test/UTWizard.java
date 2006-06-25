@@ -3,15 +3,19 @@
  */
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 
 import com.db.event.EventObject;
 import com.db.gui.PositionConstraints;
 import com.db.gui.PositionLayout;
+import com.db.gui.wizard.DynamicValidationWizardPageView;
 import com.db.gui.wizard.Wizard;
 import com.db.gui.wizard.WizardBuilder;
 import com.db.gui.wizard.WizardFrame;
@@ -372,6 +376,23 @@ public class UTWizard
       }
       
       /**
+       * This method is called before displaying this page in a wizard.
+       * 
+       * This method can be used to activate whatever is necessary on a
+       * WizardPage. It can used to clear data, look up data before
+       * display, etc.
+       * 
+       * The wizard's task is passed to this method for convenience.
+       * 
+       * @param task the WizardTask for this page.
+       */
+      public void activatePage(WizardTask task)      
+      {
+         // update view
+         ((TestWizardPageView)getView()).updateValidationDisplay();
+      }
+      
+      /**
        * Checks all of the data that a wizard page contains for errors.
        * 
        * This method is called before writing the data to the WizardTask. 
@@ -441,7 +462,9 @@ public class UTWizard
     * 
     * @author Dave Longley
     */
-   public static class TestWizardPageView extends WizardPageView
+   public static class TestWizardPageView
+   extends DynamicValidationWizardPageView
+   implements KeyListener
    {
       /**
        * The text field for option selection.
@@ -456,19 +479,20 @@ public class UTWizard
       public TestWizardPageView(WizardPage page)
       {
          super(page);
-         
-         // sets up this view
-         setupView();
       }
       
       /**
-       * Sets up this view.
+       * Creates the user input panel.
+       * 
+       * @return the user input panel.
        */
-      protected void setupView()
+      protected JPanel createUserInputPanel()
       {
+         JPanel panel = new JPanel();
+         
          // set layout
-         setSize(500, 500);
-         setLayout(new PositionLayout(this));
+         panel.setSize(500, 500);
+         panel.setLayout(new PositionLayout(panel));
          
          // create JLabel
          JLabel label = new JLabel(getPage().getName());
@@ -476,12 +500,13 @@ public class UTWizard
          
          // create a JTextField
          mTextField = new JTextField();
+         mTextField.addKeyListener(this);
          
          // create the label constraints
          PositionConstraints labelConstraints = new PositionConstraints();
          labelConstraints.location = new Point(5, 5);
          labelConstraints.size = new Dimension(
-            getWidth() - 10, label.getPreferredSize().height);
+            panel.getWidth() - 10, label.getPreferredSize().height);
          labelConstraints.anchor =
             PositionConstraints.ANCHOR_TOP_LEFT_RIGHT;
          
@@ -490,13 +515,15 @@ public class UTWizard
          textFieldConstraints.location =
             new Point(5, labelConstraints.getBottom() + 10);
          textFieldConstraints.size = new Dimension(
-            getWidth() - 10, mTextField.getPreferredSize().height);
+            panel.getWidth() - 10, mTextField.getPreferredSize().height);
          textFieldConstraints.anchor =
             PositionConstraints.ANCHOR_TOP_LEFT_RIGHT;
          
          // add components to the page
-         add(label, labelConstraints);
-         add(mTextField, textFieldConstraints);
+         panel.add(label, labelConstraints);
+         panel.add(mTextField, textFieldConstraints);
+         
+         return panel;
       }
       
       /**
@@ -507,6 +534,35 @@ public class UTWizard
       public String getOption()
       {
          return mTextField.getText();
+      }
+
+      /**
+       * Invoked when a key has been typed.
+       * 
+       * @param e the key event.
+       */
+      public void keyTyped(KeyEvent e)
+      {
+      }
+
+      /**
+       * Invoked when a key has been pressed.
+       * 
+       * @param e the key event.
+       */
+      public void keyPressed(KeyEvent e)
+      {
+      }
+
+      /**
+       * Invoked when a key has been released.
+       * 
+       * @param e the key event.
+       */
+      public void keyReleased(KeyEvent e)      
+      {
+         // update validation display
+         updateValidationDisplay();
       }
    }
 }

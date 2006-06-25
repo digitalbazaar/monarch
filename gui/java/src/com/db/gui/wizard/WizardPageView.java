@@ -7,7 +7,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 /**
- * A wizard page view is the view for a wizard page.
+ * A wizard page view is the most basic view for a wizard page.
  * 
  * @author Dave Longley
  */
@@ -19,7 +19,7 @@ public abstract class WizardPageView extends JPanel
    protected WizardPage mPage;
    
    /**
-    * Creates this view.
+    * Creates a new WizardPageView.
     * 
     * @param page the wizard page this view is for.
     */

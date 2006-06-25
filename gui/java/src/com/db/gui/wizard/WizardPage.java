@@ -93,10 +93,7 @@ public abstract class WizardPage
     * 
     * @param task the WizardTask for this page.
     */
-   public void activatePage(WizardTask task)
-   {
-      // default does nothing
-   }
+   public abstract void activatePage(WizardTask task);
       
    /**
     * Checks all of the data that a wizard page contains for errors.
