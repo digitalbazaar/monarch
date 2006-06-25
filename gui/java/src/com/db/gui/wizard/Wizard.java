@@ -41,22 +41,27 @@ public class Wizard
    protected boolean mRunning;
    
    /**
-    * This event delegate is used to for wizard started events.
+    * This event delegate is used to fire wizard started events.
     */
    protected EventDelegate mWizardStartedEventDelegate;
 
    /**
-    * This event delegate is used to for wizard finished events.
+    * This event delegate is used to fire wizard finished events.
     */
    protected EventDelegate mWizardFinishedEventDelegate;
    
    /**
-    * This event delegate is used to for wizard cancelled events.
+    * This event delegate is used to fire wizard cancelled events.
     */
    protected EventDelegate mWizardCancelledEventDelegate;
    
    /**
-    * This event delegate is used to for wizard page validation failed events.
+    * This event delegate is used to fire wizard page validation passed events.
+    */
+   protected EventDelegate mWizardPageValidationPassedEventDelegate;
+
+   /**
+    * This event delegate is used to fire wizard page validation failed events.
     */
    protected EventDelegate mWizardPageValidationFailedEventDelegate;
    
@@ -88,6 +93,9 @@ public class Wizard
       
       // create the wizard cancelled event delegate
       mWizardCancelledEventDelegate = new EventDelegate();
+      
+      // create the wizard page validation passed event delegate
+      mWizardPageValidationPassedEventDelegate = new EventDelegate();
       
       // create the wizard page validation failed event delegate
       mWizardPageValidationFailedEventDelegate = new EventDelegate();
@@ -148,6 +156,28 @@ public class Wizard
    }
    
    /**
+    * Fires a wizard page validation passed event.
+    * 
+    * @param page the current page.
+    */
+   protected void fireWizardPageValidationPassed(WizardPage page)
+   {
+      // create event
+      EventObject event = new EventObject("wizardPageValidationPassed");
+      event.setData("wizard", getTask());
+      event.setDataKeyMessage("wizard",
+         "The Wizard whose page passed validation.");
+      event.setData("task", getTask());
+      event.setDataKeyMessage("task", "The WizardTask.");
+      event.setData("page", page);
+      event.setDataKeyMessage("page", 
+         "The WizardPage that passed validation.");
+      
+      // fire event
+      getWizardPageValidationPassedEventDelegate().fireEvent(event);
+   }   
+   
+   /**
     * Fires a wizard page validation failed event.
     * 
     * @param page the current page.
@@ -160,7 +190,7 @@ public class Wizard
       event.setDataKeyMessage("wizard",
          "The Wizard whose page failed validation.");
       event.setData("task", getTask());
-      event.setDataKeyMessage("task", "The current WizardTask.");
+      event.setDataKeyMessage("task", "The WizardTask.");
       event.setData("page", page);
       event.setDataKeyMessage("page", 
          "The WizardPage that failed validation.");
@@ -265,6 +295,9 @@ public class Wizard
          {
             // validation successful
             rval = true;
+            
+            // fire validation passed event
+            fireWizardPageValidationPassed(page);
          }
          else
          {
@@ -478,6 +511,16 @@ public class Wizard
       return mWizardCancelledEventDelegate;
    }
    
+   /**
+    * Gets the wizard page validation passed event delegate.
+    * 
+    * @return the wizard page validation passed event delegate.
+    */
+   public EventDelegate getWizardPageValidationPassedEventDelegate()
+   {
+      return mWizardPageValidationPassedEventDelegate;
+   }
+
    /**
     * Gets the wizard page validation failed event delegate.
     * 

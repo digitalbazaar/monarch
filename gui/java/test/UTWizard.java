@@ -14,7 +14,7 @@ import javax.swing.UIManager;
 import com.db.event.EventObject;
 import com.db.gui.PositionConstraints;
 import com.db.gui.PositionLayout;
-import com.db.gui.wizard.DynamicValidationWizardPageView;
+import com.db.gui.wizard.ValidationDisplayWizardPageView;
 import com.db.gui.wizard.Wizard;
 import com.db.gui.wizard.WizardBuilder;
 import com.db.gui.wizard.WizardFrame;
@@ -387,23 +387,6 @@ public class UTWizard
       }
       
       /**
-       * This method is called before displaying this page in a wizard.
-       * 
-       * This method can be used to activate whatever is necessary on a
-       * WizardPage. It can used to clear data, look up data before
-       * display, etc.
-       * 
-       * The wizard's task is passed to this method for convenience.
-       * 
-       * @param task the WizardTask for this page.
-       */
-      public void activatePage(WizardTask task)      
-      {
-         // update view
-         ((TestWizardPageView)getView()).updateValidationDisplay();
-      }
-      
-      /**
        * Checks all of the data that a wizard page contains for errors.
        * 
        * This method is called before writing the data to the WizardTask. 
@@ -427,11 +410,17 @@ public class UTWizard
          {
             // option set
             rval = true;
+            
+            // fire validation passed event
+            fireValidationPassed();
          }
          else
          {
             // add errors
             addError("You must enter some text into the text field.");
+            
+            // fire validation failed event
+            fireValidationFailed();            
          }
          
          return rval;
@@ -474,7 +463,7 @@ public class UTWizard
     * @author Dave Longley
     */
    public static class TestWizardPageView
-   extends DynamicValidationWizardPageView
+   extends ValidationDisplayWizardPageView
    implements KeyListener
    {
       /**
@@ -570,10 +559,10 @@ public class UTWizard
        * 
        * @param e the key event.
        */
-      public void keyReleased(KeyEvent e)      
+      public void keyReleased(KeyEvent e)   
       {
-         // update validation display
-         updateValidationDisplay();
+         // validate page
+         getPage().validate(getPage().getWizardTask());
       }
    }
 }

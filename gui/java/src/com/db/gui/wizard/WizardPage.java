@@ -5,6 +5,9 @@ package com.db.gui.wizard;
 
 import java.util.Vector;
 
+import com.db.event.EventDelegate;
+import com.db.event.EventObject;
+
 /**
  * A WizardPage is a single page of a Wizard that is used to
  * accomplish some WizardTask. Each wizard page can validate the data it
@@ -38,6 +41,16 @@ public abstract class WizardPage
    protected WizardPageView mView;
    
    /**
+    * This event delegate is used for validation failed events.
+    */
+   protected EventDelegate mValidationPassedEventDelegate;
+   
+   /**
+    * This event delegate is used for validation failed events.
+    */
+   protected EventDelegate mValidationFailedEventDelegate;
+   
+   /**
     * Constructs a new WizardPage with the specified page name.
     *
     * @param name the wizard page name (used to uniquely identify this page).
@@ -51,11 +64,51 @@ public abstract class WizardPage
       // store task
       mWizardTask = task;
       
-      // init errors
+      // create errors container
       mErrors = new Vector();
+      
+      // create the validation passed event delegate
+      mValidationPassedEventDelegate = new EventDelegate();
+
+      // create the validation failed event delegate
+      mValidationFailedEventDelegate = new EventDelegate();
       
       // create the view for this page
       mView = createView();
+   }
+   
+   /**
+    * Fires a validation passed event.
+    */
+   protected void fireValidationPassed()
+   {
+      // create event
+      EventObject event = new EventObject("validationPassed");
+      event.setData("page", this);
+      event.setDataKeyMessage("page", 
+         "The WizardPage that passed validation.");
+      event.setData("task", getWizardTask());
+      event.setDataKeyMessage("task", "The WizardTask.");
+      
+      // fire event
+      getValidationPassedEventDelegate().fireEvent(event);
+   }
+
+   /**
+    * Fires a validation failed event.
+    */
+   protected void fireValidationFailed()
+   {
+      // create event
+      EventObject event = new EventObject("validationFailed");
+      event.setData("page", this);
+      event.setDataKeyMessage("page", 
+         "The WizardPage that failed validation.");
+      event.setData("task", getWizardTask());
+      event.setDataKeyMessage("task", "The WizardTask.");
+      
+      // fire event
+      getValidationFailedEventDelegate().fireEvent(event);
    }
    
    /**
@@ -93,7 +146,11 @@ public abstract class WizardPage
     * 
     * @param task the WizardTask for this page.
     */
-   public abstract void activatePage(WizardTask task);
+   public void activatePage(WizardTask task)
+   {
+      // run page validation
+      validate(task);
+   }
       
    /**
     * Checks all of the data that a wizard page contains for errors.
@@ -152,6 +209,16 @@ public abstract class WizardPage
    }
    
    /**
+    * Returns whether or not this page has errors.
+    * 
+    * @return whether or not this page has errors.
+    */
+   public boolean hasErrors()
+   {
+      return !getErrors().isEmpty();
+   }
+   
+   /**
     * Gets the view for this page.
     * 
     * @return the view for this page.
@@ -160,4 +227,24 @@ public abstract class WizardPage
    {
       return mView;
    }
+   
+   /**
+    * Gets the validation passed event delegate.
+    * 
+    * @return the validation passed event delegate.
+    */
+   public EventDelegate getValidationPassedEventDelegate()
+   {
+      return mValidationPassedEventDelegate;
+   }   
+
+   /**
+    * Gets the validation failed event delegate.
+    * 
+    * @return the validation failed event delegate.
+    */
+   public EventDelegate getValidationFailedEventDelegate()
+   {
+      return mValidationFailedEventDelegate;
+   }   
 }

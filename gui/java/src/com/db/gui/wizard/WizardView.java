@@ -87,9 +87,9 @@ public class WizardView extends JPanel implements ActionListener
       // store the wizard
       mWizard = wizard;
       
-      // listen for page validation errors
+      // listen for page validation errors to display error dialog
       mWizard.getWizardPageValidationFailedEventDelegate().addListener(
-         this, "wizardPageFailedValidation");
+         this, "displayErrorDialog");
       
       // create wizard pages list
       mWizardPages = new Vector();
@@ -192,6 +192,12 @@ public class WizardView extends JPanel implements ActionListener
       
       // add the wizard page to the list of pages
       mWizardPages.add(page);
+      
+      // listen to the page for validation changes
+      page.getValidationPassedEventDelegate().addListener(
+         this, "wizardPageValidationPassed");
+      page.getValidationFailedEventDelegate().addListener(
+         this, "wizardPageValidationFailed");
    }
    
    /**
@@ -352,11 +358,43 @@ public class WizardView extends JPanel implements ActionListener
    }
    
    /**
+    * Enables the next button when a wizard page passes validation if
+    * the page's view supports dynamic validation (it is a
+    * DynamicValidationWizardPageView).
+    * 
+    * @param event the validation passed event.
+    */
+   public void wizardPageValidationPassed(EventObject event)
+   {
+      WizardPage page = (WizardPage)event.getData("page");
+      if(page.getView() instanceof DynamicValidationWizardPageView)
+      {
+         mNextButton.setEnabled(true);
+      }
+   }
+
+   /**
+    * Disables the next button when a wizard page fails validation if
+    * the page's view supports dynamic validation (it is a
+    * DynamicValidationWizardPageView).
+    * 
+    * @param event the validation failed event.
+    */
+   public void wizardPageValidationFailed(EventObject event)
+   {
+      WizardPage page = (WizardPage)event.getData("page");
+      if(page.getView() instanceof DynamicValidationWizardPageView)
+      {
+         mNextButton.setEnabled(false);
+      }
+   }
+   
+   /**
     * Displays the error dialog when a wizard page fails validation.
     * 
     * @param event the validation failed event.
     */
-   public void wizardPageFailedValidation(EventObject event)
+   public void displayErrorDialog(EventObject event)
    {
       // display the wizard page errors
       displayErrorDialog();
@@ -372,4 +410,3 @@ public class WizardView extends JPanel implements ActionListener
       return mWizard;
    }
 }
-
