@@ -31,6 +31,11 @@ implements DynamicValidationWizardPageView
    protected JLabel mValidationDisplayLabel;
    
    /**
+    * The text to display when a page is validated.
+    */
+   protected String mValidatedText;
+   
+   /**
     * Creates a new ValidationDisplayWizardPageView.
     * 
     * @param page the wizard page this view is for.
@@ -38,6 +43,9 @@ implements DynamicValidationWizardPageView
    public ValidationDisplayWizardPageView(WizardPage page)
    {
       super(page);
+      
+      // set default validated text
+      setValidatedText("Page information validated. You may continue.");
       
       // listen for validation passed events
       page.getValidationPassedEventDelegate().addListener(
@@ -154,9 +162,28 @@ implements DynamicValidationWizardPageView
          mValidationDisplayLabel.setForeground(Color.black);
          
          // set text
-         mValidationDisplayLabel.setText(
-            "Page information validated. You may proceed.");
+         mValidationDisplayLabel.setText(getValidatedText());
       }
+   }
+   
+   /**
+    * Sets the text to display when the page is validated.
+    * 
+    * @param text the text to display when the page is validated.
+    */
+   public void setValidatedText(String text)
+   {
+      mValidatedText = text;
+   }
+   
+   /**
+    * Gets the text to display when the page is validated.
+    * 
+    * @return the text to display when the page is validated.
+    */
+   public String getValidatedText()
+   {
+      return mValidatedText;
    }
    
    /**
