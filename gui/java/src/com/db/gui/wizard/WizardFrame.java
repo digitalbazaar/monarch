@@ -67,6 +67,9 @@ implements ActionListener, WindowListener
 
       // setup the frame
       setupFrame();
+      
+      // make unresizable by default
+      setResizable(false);
    }
    
    /**

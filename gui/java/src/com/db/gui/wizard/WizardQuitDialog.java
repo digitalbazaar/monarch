@@ -40,6 +40,9 @@ public class WizardQuitDialog extends JDialog
       
       // setup the content pane
       setupPanel();
+      
+      // make unresizable by default
+      setResizable(false);
    }
    
    /**

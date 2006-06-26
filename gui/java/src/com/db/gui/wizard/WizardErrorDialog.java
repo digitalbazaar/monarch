@@ -54,6 +54,9 @@ public class WizardErrorDialog extends JDialog
       
       // setup content pane
       setupPanel();
+      
+      // make unresizable by default
+      setResizable(false);
    }
 
    /**
