@@ -176,11 +176,10 @@ public class JobThreadPool
                   // decrement extra threads
                   extraThreads--;
                }
-               else
+               else if(rval == null)
                {
                   // return this thread
                   rval = thread;
-                  break;
                }
             }
          }
