@@ -104,7 +104,19 @@ implements ActionListener, WindowListener
    protected void hideQuitDialog()
    {
       mQuitDialog.setVisible(false);
-   }   
+   }
+   
+   /**
+    * Finalizes this frame.
+    * 
+    * Stops listening to Wizard events.
+    */
+   public void finalize()
+   {
+      mWizard.getWizardStartedEventDelegate().removeListener(this);
+      mWizard.getWizardFinishedEventDelegate().removeListener(this);
+      mWizard.getWizardCancelledEventDelegate().removeListener(this);
+   }
    
    /**
     * Called when the wizard has started.
