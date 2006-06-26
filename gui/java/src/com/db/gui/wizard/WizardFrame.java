@@ -172,14 +172,19 @@ implements ActionListener, WindowListener
          // hide quit dialog
          hideQuitDialog();
          
-         // cancel wizard
-         mWizard.cancel();
-         
-         // hide
-         setVisible(false);
-         
-         // dispose
-         dispose();
+         // cancel wizard if running
+         if(mWizard.isRunning())
+         {
+            mWizard.cancel();
+         }
+         else
+         {
+            // hide
+            setVisible(false);
+            
+            // dispose
+            dispose();
+         }
       }
    }
    
