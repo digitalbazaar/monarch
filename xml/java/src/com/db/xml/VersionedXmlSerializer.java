@@ -97,7 +97,10 @@ public abstract class VersionedXmlSerializer implements IXmlSerializer
     *
     * @return the XML-based representation of the object.
     */
-   public abstract String convertToXml();
+   public String convertToXml()
+   {
+      return convertToXml(0);
+   }
 
    /**
     * This method takes the object representation and creates an
