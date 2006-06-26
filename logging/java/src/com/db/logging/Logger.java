@@ -629,32 +629,46 @@ public class Logger
    }
    
    /**
-    * Writes the passed string to the log file, if it is open.
+    * Writes the passed string to this logger.
     *
-    * @param text the text to write to the log file.
+    * @param text the text to write to this logger.
     * @return true if the text was written, false if not.
     */
    public boolean log(String text)
    {
-      return log(text, Logger.ERROR_VERBOSITY);
+      return log(null, text);
+   }
+
+   /**
+    * Writes the passed string to this logger for the given class.
+    *
+    * @param c the class to write to this logger for.
+    * @param text the text to write to this logger.
+    * @return true if the text was written, false if not.
+    */
+   public boolean log(Class c, String text)
+   {
+      return log(c, text, Logger.ERROR_VERBOSITY);
    }
    
    /**
     * Writes the passed string to the console/log file, if it is open.
     *
+    * @param c the class to write to this logger for.
     * @param text the text to write to the log file.
     * @param verbosity the verbosity level that must be reached in
     *                  order for the text to be written to the log.
     * @return true if the text was written, false if not.
     */
-   public synchronized boolean log(String text, double verbosity)
+   public synchronized boolean log(Class c, String text, double verbosity)
    {
-      return log(text, verbosity, true, true);
+      return log(c, text, verbosity, true, true);
    }
    
    /**
     * Writes the passed string to the console/log file, if it is open.
     *
+    * @param c the class to write to this logger for.
     * @param text the text to write to the log file.
     * @param verbosity the verbosity level that must be reached in
     *                  order for the text to be written to the log.
@@ -663,25 +677,30 @@ public class Logger
     *                         print to console/log file.
     * @return true if the text was written, false if not.
     */
-   public synchronized boolean log(String text, double verbosity, 
+   public synchronized boolean log(Class c, String text, double verbosity, 
                                    boolean header, boolean useCustomStreams)
    {
       boolean rval = false;
       
       if(mStreamToVerbosity.size() != 0)
       {
-         String logText = ""; 
+         String logText = "";
          
          if(header)
          {
+            if(c != null)
+            {
+               logText = c.getName();
+            }
+            
             String date = getDate();
             if(!date.equals(""))
             {
-               logText = getDate() + " " + getName() + " - " + text;
+               logText += getDate() + " " + getName() + " - " + text;
             }
             else
             {
-               logText = getName() + " - " + text;
+               logText += getName() + " - " + text;
             }
          }
          else
@@ -760,7 +779,7 @@ public class Logger
             // if there is any remainder, log it without a logger header
             if(!remainder.equals(""))
             {
-               log(remainder, verbosity, false, false);
+               log(c, remainder, verbosity, false, false);
             }
             
             rval = true;
@@ -794,87 +813,193 @@ public class Logger
    }   
    
    /**
-    * Writes the passed string to the log file, if it is open.
+    * Writes the passed string to this logger.
     * Verbosity is set to error level.
     *
-    * @param text the text to write to the log file.
+    * @param text the text to write to this logger.
     * @return true if the text was written, false if not.
     */
    public boolean error(String text)
    {
-      boolean rval = false;
-      
-      rval = log("ERROR: " + text, ERROR_VERBOSITY);
-      
-      return rval;
+      return error(null, text);
    }
 
    /**
-    * Writes the passed string to the log file, if it is open.
+    * Writes the passed string to this logger for the given class.
+    * Verbosity is set to error level.
+    *
+    * @param c the class to write to the logger for.
+    * @param text the text to write to the logger.
+    * @return true if the text was written, false if not.
+    */
+   public boolean error(Class c, String text)
+   {
+      boolean rval = false;
+      
+      if(c != null)
+      {
+         rval = log(
+            null, "ERROR: " + c.getName() + ": " + text, ERROR_VERBOSITY);
+      }
+      else
+      {
+         rval = log(null, "ERROR: " + text, ERROR_VERBOSITY);
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Writes the passed string to this logger.
     * Verbosity is set to warning level.
     *
-    * @param text the text to write to the log file.
+    * @param text the text to write to this logger.
     * @return true if the text was written, false if not.
     */
    public boolean warning(String text)
    {
+      return warning(null, text);
+   }
+
+   /**
+    * Writes the passed string to this logger for the given class.
+    * Verbosity is set to warning level.
+    *
+    * @param c the class to write for.
+    * @param text the text to write to this logger.
+    * @return true if the text was written, false if not.
+    */
+   public boolean warning(Class c, String text)
+   {
       boolean rval = false;
       
-      rval = log("WARNING: " + text, WARNING_VERBOSITY);
+      if(c != null)
+      {
+         rval = log(
+            null, "WARNING: " + c.getName() + ": " + text, WARNING_VERBOSITY);
+      }
+      else
+      {
+         rval = log(null, "WARNING: " + text, WARNING_VERBOSITY);
+      }
       
       return rval;
    }
 
    /**
-    * Writes the passed string to the log file, if it is open.
+    * Writes the passed string to this logger.
     * Verbosity is set to message level.
     *
-    * @param text the text to write to the log file.
+    * @param text the text to write to the logger.
     * @return true if the text was written, false if not.
     */
    public boolean msg(String text)
    {
+      return msg(null, text);
+   }
+
+   /**
+    * Writes the passed string to this logger for the given class.
+    * Verbosity is set to message level.
+    *
+    * @param c the class to write to this logger for.
+    * @param text the text to write to this logger.
+    * @return true if the text was written, false if not.
+    */
+   public boolean msg(Class c, String text)
+   {
       boolean rval;
       
-      rval = log("MSG: " + text, MSG_VERBOSITY);
+      if(c != null)
+      {
+         rval = log(
+            null, "MSG: " + c.getName() + ": " + text, MSG_VERBOSITY);
+      }
+      else
+      {
+         rval = log(null, "MSG: " + text, MSG_VERBOSITY);
+      }
       
       return rval;
    }
    
    /**
-    * Writes the passed string to the log file, if it is open.
+    * Writes the passed string to this logger.
     * Verbosity is set to debug level.
     *
-    * @param text the text to write to the log file.
+    * @param text the text to write to this logger.
     * @return true if the text was written, false if not.
     */
    public boolean debug(String text)
    {
+      return debug(null, text);
+   }
+
+   /**
+    * Writes the passed string to this logger for the given class.
+    * Verbosity is set to debug level.
+    *
+    * @param c the class to write to this logger for.
+    * @param text the text to write to this logger.
+    * @return true if the text was written, false if not.
+    */
+   public boolean debug(Class c, String text)
+   {
       boolean rval = false;
       
-      rval = log("DEBUG: " + text, DEBUG_VERBOSITY);
+      if(c != null)
+      {
+         rval = log(
+            null, "DEBUG: " + c.getName() + ": " + text, DEBUG_VERBOSITY);
+      }
+      else
+      {
+         rval = log(null, "DEBUG: " + text, DEBUG_VERBOSITY);
+      }
       
       return rval;
    }
    
    /**
-    * Writes the passed string to the log file, if it is open.
+    * Writes the passed string to this logger.
     * Verbosity is set to debug data level.
     *
-    * @param text the text to write to the log file.
+    * @param text the text to write to this logger.
     * @return true if the text was written, false if not.
     */
    public boolean debugData(String text)
    {
+      return debugData(null, text);
+   }
+
+   /**
+    * Writes the passed string to this logger for the given class.
+    * Verbosity is set to debug data level.
+    *
+    * @param c the class to write to this logger for.
+    * @param text the text to write to this logger.
+    * @return true if the text was written, false if not.
+    */
+   public boolean debugData(Class c, String text)
+   {
       boolean rval = false;
       
-      rval = log("DEBUG-DATA: " + text, DEBUG_DATA_VERBOSITY);
+      if(c != null)
+      {
+         rval = log(
+            null, "DEBUG-DATA: " + c.getName() + ": " + text,
+            DEBUG_DATA_VERBOSITY);
+      }
+      else
+      {
+         rval = log(null, "DEBUG-DATA: " + text, DEBUG_DATA_VERBOSITY);
+      }
       
       return rval;
    }
    
    /**
-    * Writes the passed string to the log file, if it is open.
+    * Writes the passed string to this logger.
     * Verbosity is set to detail level.
     *
     * @param text the text to write to the log file.
@@ -882,9 +1007,30 @@ public class Logger
     */
    public boolean detail(String text)
    {
+      return detail(null, text);
+   }
+   
+   /**
+    * Writes the passed string to this logger for the given class.
+    * Verbosity is set to detail level.
+    *
+    * @param c the class to write to this logger for.
+    * @param text the text to write to the log file.
+    * @return true if the text was written, false if not.
+    */
+   public boolean detail(Class c, String text)
+   {
       boolean rval = false;
       
-      rval = log("DETAIL: " + text, DETAIL_VERBOSITY);
+      if(c != null)
+      {
+         rval = log(
+            null, "DETAIL: " + c.getName() + ": " + text, DETAIL_VERBOSITY);
+      }
+      else
+      {
+         rval = log(null, "DETAIL: " + text, DETAIL_VERBOSITY);
+      }
       
       return rval;
    }
