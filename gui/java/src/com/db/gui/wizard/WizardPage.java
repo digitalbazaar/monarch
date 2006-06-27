@@ -73,8 +73,7 @@ public abstract class WizardPage
       // create the validation failed event delegate
       mValidationFailedEventDelegate = new EventDelegate();
       
-      // create the view for this page
-      mView = createView();
+      // the view for this page will be created when getView() is first called
    }
    
    /**
@@ -219,12 +218,18 @@ public abstract class WizardPage
    }
    
    /**
-    * Gets the view for this page.
+    * Gets the view for this page. If the view does not yet
+    * exist, it will be created.
     * 
     * @return the view for this page.
     */
    public WizardPageView getView()
    {
+      if(mView == null)
+      {
+         mView = createView();
+      }
+      
       return mView;
    }
    
