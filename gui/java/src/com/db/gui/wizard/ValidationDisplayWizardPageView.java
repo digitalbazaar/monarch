@@ -85,7 +85,7 @@ implements DynamicValidationWizardPageView
          5, getHeight() - 5 - validationDisplay.getPreferredSize().height -
          insets.bottom);
       validationDisplayConstraints.size = new Dimension(
-         getWidth() - 10 - insets.left - insets.right,
+         getWidth() - 5 - insets.left - insets.right,
          validationDisplay.getPreferredSize().height);
       validationDisplayConstraints.anchor =
          PositionConstraints.ANCHOR_BOTTOM |
@@ -93,10 +93,11 @@ implements DynamicValidationWizardPageView
       
       // user input constraints
       PositionConstraints userInputConstraints = new PositionConstraints();
-      userInputConstraints.location = new Point(0, 0);
+      userInputConstraints.location = new Point(5, 5);
       userInputConstraints.size = new Dimension(
-         getWidth() - insets.left - insets.right,
-         validationDisplayConstraints.getTop());
+         validationDisplayConstraints.size.width,
+         validationDisplayConstraints.getTop() -
+         userInputConstraints.location.y - 5);
       userInputConstraints.anchor = PositionConstraints.ANCHOR_ALL;
       
       // add components
