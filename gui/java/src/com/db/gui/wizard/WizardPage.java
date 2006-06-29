@@ -138,7 +138,7 @@ public abstract class WizardPage
    /**
     * This method is called before displaying this page in a wizard.
     * 
-    * This method can be used to activate whatever is necessary on a
+    * This method can be used to activate whatever is necessary to update a
     * WizardPage. It can used to clear data, look up data before display, etc.
     * 
     * The wizard's task is passed to this method for convenience.
