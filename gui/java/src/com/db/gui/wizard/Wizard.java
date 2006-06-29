@@ -271,7 +271,7 @@ public class Wizard
          getView().displayingFinalPage(onFinalPage());
          
          // activate the page
-         page.activatePage(getTask());
+         page.activate(getTask());
          
          // display the page in the view
          getView().displayPage(page);

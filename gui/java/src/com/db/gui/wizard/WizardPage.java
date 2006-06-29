@@ -145,7 +145,7 @@ public abstract class WizardPage
     * 
     * @param task the WizardTask for this page.
     */
-   public void activatePage(WizardTask task)
+   public void activate(WizardTask task)
    {
       // run page validation
       validate(task);
