@@ -88,8 +88,8 @@ public class PositionLayout implements LayoutManager2
       Rectangle rect = new Rectangle(
             constraints.location.x + insets.left,
             constraints.location.y + insets.top, 
-            constraints.size.width - insets.right,
-            constraints.size.height - insets.bottom);
+            constraints.size.width - insets.left - insets.right,
+            constraints.size.height - insets.top - insets.bottom);
       
       // determine resize changes
       int deltaX = container.getWidth() - mContainerBounds.width;
