@@ -165,7 +165,7 @@ public abstract class WizardPage
    public abstract boolean validate(WizardTask task);
    
    /**
-    * Updates the WizardTask with the data on this page.
+    * Updates the WizardTask with the data from this page.
     * 
     * This method is called after validate() and before proceeding to the
     * next step in a wizard.
