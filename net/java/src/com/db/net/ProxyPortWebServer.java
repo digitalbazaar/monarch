@@ -188,7 +188,7 @@ public class ProxyPortWebServer extends WebServer
       // only start server if it isn't running
       if(!isRunning())
       {
-         getLogger().debug("starting proxy port web server...");
+         getLogger().debug(getClass(), "starting proxy port web server...");
          
          // add the web connection handler
          super.addWebConnectionHandler(mWebConnectionHandler, getProxyPort());
@@ -226,7 +226,7 @@ public class ProxyPortWebServer extends WebServer
          mRunning = true;
       }
       
-      getLogger().debug("proxy port web server started.");      
+      getLogger().debug(getClass(), "proxy port web server started.");      
    }
    
    /**
@@ -240,7 +240,7 @@ public class ProxyPortWebServer extends WebServer
       if(isRunning())
       {
          // stop the proxy port server
-         getLogger().debug("stopping proxy port server...");
+         getLogger().debug(getClass(), "stopping proxy port server...");
          
          // stop and terminate all connections on all web connection handlers
          Iterator i = mPorts.iterator();
@@ -266,7 +266,7 @@ public class ProxyPortWebServer extends WebServer
          mRunning = false;
       }
       
-      getLogger().debug("proxy port web server stopped."); 
+      getLogger().debug(getClass(), "proxy port web server stopped."); 
    }
    
    /**

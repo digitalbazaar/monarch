@@ -69,7 +69,7 @@ public class JobThread extends Thread
     */
    protected synchronized void goIdle()
    {
-      getLogger().detail("JobThread: going idle.");
+      getLogger().detail(getClass(), "going idle.");
       
       try
       {
@@ -86,8 +86,8 @@ public class JobThread extends Thread
             long now = new Date().getTime();
             if(now - startTime >= getExpireTime())
             {
-               getLogger().detail(
-                  "JobThread: idle expire time reached, interrupting...");
+               getLogger().detail(getClass(), 
+                  "idle expire time reached, interrupting...");
                
                // thread must expire
                interrupt();
@@ -98,7 +98,7 @@ public class JobThread extends Thread
       {
          // ensure interrupted flag remains flipped
          interrupt();
-         getLogger().detail("JobThread: interrupted.");
+         getLogger().detail(getClass(), "interrupted.");
       }
    }
    
@@ -142,7 +142,7 @@ public class JobThread extends Thread
     */
    public void run()
    {
-      getLogger().detail("JobThread: started.");
+      getLogger().detail(getClass(), "started.");
       
       try
       {
@@ -159,9 +159,8 @@ public class JobThread extends Thread
                }
                catch(Throwable t)
                {
-                  // FIXME: only print stack trace at debug verbosity
-                  getLogger().error(
-                     "JobThread: An exception occurred " +
+                  getLogger().error(getClass(), 
+                     "An exception occurred " +
                      "while running a job,\ntrace= " +
                      LoggerManager.getStackTrace(t));
                   //getLogger().debug(Logger.getStackTrace(t));
@@ -177,14 +176,13 @@ public class JobThread extends Thread
       }
       catch(Throwable t)
       {
-         // FIXME: only print stack trace at debug verbosity
-         getLogger().error(
-            "JobThread: An exception occurred on a JobThread,\ntrace= " +
+         getLogger().error(getClass(), 
+            "An exception occurred on a JobThread,\ntrace= " +
             LoggerManager.getStackTrace(t));
          //getLogger().debug(Logger.getStackTrace(t));
       }
       
-      getLogger().detail("JobThread: terminated.");
+      getLogger().detail(getClass(), "terminated.");
    }
    
    /**

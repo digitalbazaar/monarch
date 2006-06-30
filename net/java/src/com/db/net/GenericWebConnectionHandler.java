@@ -43,7 +43,7 @@ public class GenericWebConnectionHandler extends AbstractWebConnectionHandler
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return serverSocket;

@@ -67,7 +67,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
    {
       Object rval = null;
       
-      getLogger().debug("result type: " + resultType);
+      getLogger().debug(getClass(), "result type: " + resultType);
       
       try
       {
@@ -75,7 +75,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
       }
       catch(Throwable t)
       {
-         getLogger().error("return value invalid");
+         getLogger().error(getClass(), "return value invalid");
       }
       
       return rval;
@@ -167,7 +167,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
             {
                // get result
                String result = sm.getResult();
-               getLogger().debug("soap message result: " + result);
+               getLogger().debug(getClass(), "soap message result: " + result);
          
                // convert soap method result to appropriate return type
                rval = convertResult(result, resultType);
@@ -175,13 +175,15 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          }
          else
          {
-            getLogger().error("could not get soap method result!");
+            getLogger().error(getClass(), "could not get soap method result!");
          }
       }
       catch(Throwable t)
       {
-         getLogger().error("could not get soap method result!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(),
+            "could not get soap method result!, an exception occurred," +
+            "exception= " + t);
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
 
       return rval;
@@ -264,7 +266,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
             request.getHeader().setContentLength(body.length);
          }
          
-         getLogger().debug("sending soap xml:\n" + xml);
+         getLogger().debug(getClass(), "sending soap xml:\n" + xml);
          
          // start soap method timer
          long st = new Date().getTime();
@@ -323,20 +325,23 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
                // get end time
                long et = new Date().getTime();
                long timespan = et - st;
-               getLogger().debug("total soap method (" + sm.getMethod() + ") " +
-                                 "time: " + timespan + " ms");
+               getLogger().debug(getClass(),
+                  "total soap method (" + sm.getMethod() + ") " +
+                  "time: " + timespan + " ms");
             }
             else
             {
-               getLogger().error("could not receive response from " +
-                                 "soap server!");
+               getLogger().error(getClass(),
+                  "could not receive response from soap server!");
             }
          }
       }
       catch(Throwable t)
       {
-         getLogger().error("could not execute soap method!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(),
+            "could not execute soap method!, an exception occurred," +
+            "exception= " + t);
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;
@@ -375,24 +380,28 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
                   // disconnect web connection
                   hwc.disconnect();
                   
-                  getLogger().debug("soap web client web connection closed.");
+                  getLogger().debug(getClass(),
+                     "soap web client web connection closed.");
                }
                catch(Throwable t)
                {
-                  getLogger().error("could not execute soap method!");
-                  getLogger().debug(Logger.getStackTrace(t));
+                  getLogger().error(getClass(),
+                     "could not execute soap method!, an exception occurred," +
+                     "exception= " + t);
+                  getLogger().debug(getClass(), Logger.getStackTrace(t));
                }
             }
             else
             {
-               getLogger().error("soap web client could not establish " +
-                                 "connection!");
+               getLogger().error(getClass(),
+                  "soap web client could not establish connection!");
             }
          }
          else
          {
-            getLogger().error("could not call remote method, " +
-                              "soap method invalid: \"" + method + "\"");
+            getLogger().error(getClass(),
+               "could not call remote method, " +
+               "soap method invalid: \"" + method + "\"");
          }
       }
       
@@ -465,14 +474,15 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
                }
                catch(Throwable t)
                {
-                  getLogger().debug(Logger.getStackTrace(t));
+                  getLogger().debug(getClass(), Logger.getStackTrace(t));
                }
             }
             
             // disconnect web connection
             hwc.disconnect();
             
-            getLogger().debug("soap web client web connection closed.");
+            getLogger().debug(getClass(),
+               "soap web client web connection closed.");
             
             String contentType = response.getHeader().getContentType();
             if(body != null &&
@@ -494,16 +504,18 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          {
             long et = new Date().getTime();
             long timespan = et - st;
-            getLogger().debug("wsdl retrieved in " + timespan + " ms");
+            getLogger().debug(getClass(),
+               "wsdl retrieved in " + timespan + " ms");
          }
          else
          {
-            getLogger().error("could not convert received wsdl from xml!");
+            getLogger().error(getClass(),
+               "could not convert received wsdl from xml!");
          }
       }
       catch(Throwable t)
       {
-         getLogger().debug(LoggerManager.getStackTrace(t));
+         getLogger().debug(getClass(), LoggerManager.getStackTrace(t));
       }
       
       return rval;

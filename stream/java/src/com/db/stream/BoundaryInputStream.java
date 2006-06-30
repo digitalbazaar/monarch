@@ -212,7 +212,8 @@ public class BoundaryInputStream extends FilterInputStream
                
                if(boundary.equals(bbuf))
                {
-                  getLogger().debug("BOUNDARY REACHED!: " + boundary);
+                  getLogger().detail(getClass(),
+                     "BOUNDARY REACHED!: " + boundary);
 
                   // set boundary reached
                   mBoundary = boundary;
@@ -409,7 +410,7 @@ public class BoundaryInputStream extends FilterInputStream
       
       if(numBytes == -1)
       {
-         getLogger().debug("END OF BOUNDARY STREAM");
+         getLogger().detail(getClass(), "END OF BOUNDARY STREAM");
       }
       
       return numBytes;

@@ -57,9 +57,9 @@ public class ConfigFile extends ConfigOptions
       }
       catch(Throwable t)
       {
-         getLogger().error(
+         getLogger().error(getClass(), 
                "Could not read config file: \"" + mFilename + "\"");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
 
       return rval;
@@ -93,9 +93,9 @@ public class ConfigFile extends ConfigOptions
       }
       catch(Throwable t)
       {
-         getLogger().error(
+         getLogger().error(getClass(), 
                "Could not write config file: \"" + mFilename + "\"");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
 
       return rval;

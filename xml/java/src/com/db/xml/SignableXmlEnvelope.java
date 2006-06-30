@@ -9,23 +9,15 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.util.Base64Coder;
 
-import java.io.StringReader;
 import java.security.PrivateKey;
 import java.util.Iterator;
 import java.util.Vector;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXParseException;
 
 /**
  * A SignableXMLEnvelope is a transferrable container that allows
- * any object that implements the IXMLSerializer interface to be
+ * any object that implements the IXmlSerializer interface to be
  * transported in a secure, signed vessel.
  * 
  * This envelope may be used in either "signed" or "unsigned" form to
@@ -56,14 +48,14 @@ import org.xml.sax.SAXParseException;
  * 
  * @author Dave Longley
  */
-public class SignableXmlEnvelope implements IXmlSerializer
+public class SignableXmlEnvelope extends VersionedXmlSerializer
 {
    /**
     * The xml text that this envelope was last converted from. This
     * is used to parse out the contents of the envelope for
     * digital signing.
     */
-   protected String mXMLEnvelope;
+   protected String mXmlEnvelope;
    
    /**
     * The xml serializer interface that produces the
@@ -75,11 +67,6 @@ public class SignableXmlEnvelope implements IXmlSerializer
     * The text that was signed.
     */
    protected String mSignedText;
-
-   /**
-    * The version of this envelope.
-    */
-   protected String mVersion;
 
    /**
     * The identity of the signer.
@@ -146,10 +133,11 @@ public class SignableXmlEnvelope implements IXmlSerializer
     */
    public SignableXmlEnvelope(IXmlSerializer xmlSerializer)
    {
+      super("1.0");
+      
       mIXmlSerializer = xmlSerializer;
-      mXMLEnvelope = "";
+      mXmlEnvelope = "";
       mSignedText = null;
-      mVersion = "1.0";
 
       mSigner = "0";
       mStatus = "valid";
@@ -172,14 +160,14 @@ public class SignableXmlEnvelope implements IXmlSerializer
       String eTag = "</" + getRootTag() + ">";
       
       // look for beginning of signature tag
-      int start = mXMLEnvelope.indexOf(sTag1);
+      int start = mXmlEnvelope.indexOf(sTag1);
       if(start != -1)
       {
          // look for end of signature tag
-         int end = mXMLEnvelope.indexOf(sTag2, start + sTag1.length());
+         int end = mXmlEnvelope.indexOf(sTag2, start + sTag1.length());
          if(end == -1)
          {
-            end = mXMLEnvelope.indexOf("/>", start + sTag1.length());
+            end = mXmlEnvelope.indexOf("/>", start + sTag1.length());
             if(end != -1)
             {
                end += 2;
@@ -193,10 +181,10 @@ public class SignableXmlEnvelope implements IXmlSerializer
          if(end != -1)
          {
             // look for closing envelope tag
-            int close = mXMLEnvelope.lastIndexOf(eTag);
+            int close = mXmlEnvelope.lastIndexOf(eTag);
             if(close != -1)
             {
-               contents = mXMLEnvelope.substring(end, close).trim();
+               contents = mXmlEnvelope.substring(end, close).trim();
             }
          }
       }
@@ -336,7 +324,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
             Base64Coder encoder = new Base64Coder();
             mSignature = encoder.encode(sig);
             
-            LoggerManager.getLogger("dbxml").detail(
+            getLogger().detail(getClass(),
                "BEGIN SIGN TEXT:" + mSignedText + ":END SIGN TEXT\n" +
                "SIGNATURE: '" + mSignature + "'");
 
@@ -349,8 +337,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
          }
          catch(Exception e)
          {
-            LoggerManager.getLogger("dbxml").debug(
-               LoggerManager.getStackTrace(e));
+            getLogger().debug(getClass(), Logger.getStackTrace(e));
          }
       }
 
@@ -385,7 +372,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
 
                   if(!mAlgorithm.startsWith("SHA1"))
                   {
-                     LoggerManager.getLogger("dbxml").debug(
+                     getLogger().debug(getClass(),
                         "unknown signature algorithm!," +
                         "algorithm=" + mAlgorithm);
                   }
@@ -394,7 +381,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
                   Base64Coder decoder = new Base64Coder();
                   byte[] sig = decoder.decode(mSignature);
                   
-                  LoggerManager.getLogger("dbxml").detail(
+                  getLogger().detail(getClass(),
                      "BEGIN VERIFY TEXT:" + contents + ":END VERIFY TEXT\n" +
                      "SIGNATURE: '" + mSignature + "'");
          
@@ -403,8 +390,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
                }
                catch(Exception e)
                {
-                  LoggerManager.getLogger("dbxml").debug(
-                     LoggerManager.getStackTrace(e));
+                  getLogger().debug(getClass(), Logger.getStackTrace(e));
                }
             }
          }
@@ -416,16 +402,6 @@ public class SignableXmlEnvelope implements IXmlSerializer
       }
 
       return rval;
-   }
-
-   /**
-    * Gets this envelope's version.
-    * 
-    * @return this envelope's version.
-    */
-   public String getVersion()
-   {
-      return mVersion;
    }
 
    /**
@@ -443,7 +419,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
       }
       catch(Throwable t)
       {
-         LoggerManager.getLogger("dbxml").debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;
@@ -526,29 +502,6 @@ public class SignableXmlEnvelope implements IXmlSerializer
    }
    
    /**
-    * This method takes options that are used to configure
-    * how to convert to and from xml.
-    *
-    * @param options the configuration options.
-    * @return true if options successfully set, false if not.    
-    */
-   public boolean setSerializerOptions(int options)
-   {
-      return false;
-   }
-
-   /**
-    * This method gets the options that are used to configure
-    * how to convert to and from xml.
-    *
-    * @return the configuration options.
-    */
-   public int getSerializerOptions()
-   {
-      return 0;
-   }
-   
-   /**
     * Returns the root tag name for this serializer.
     * 
     * @return the root tag name for this serializer.
@@ -558,17 +511,6 @@ public class SignableXmlEnvelope implements IXmlSerializer
       return "envelope";
    }   
 
-   /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
-    * 
-    * @return the xml-based representation of this object.
-    */
-   public String convertToXml()
-   {
-      return convertToXml(0);
-   }
-   
    /**
     * This method takes the object representation and creates an
     * XML-based representation of the object.
@@ -633,45 +575,16 @@ public class SignableXmlEnvelope implements IXmlSerializer
     * it to it's internal representation.
     *
     * @param xmlText the xml text document that represents the object.
+    * 
     * @return true if successful, false otherwise.    
     */
    public boolean convertFromXml(String xmlText)
    {
       boolean rval = false;
       
-      mXMLEnvelope = xmlText;
+      mXmlEnvelope = xmlText;
       
-      try
-      {
-         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-         DocumentBuilder builder = factory.newDocumentBuilder();
-         
-         InputSource is = new InputSource(new StringReader(xmlText));
-         Document doc = builder.parse(is);
-         
-         // normalize text representation
-         doc.getDocumentElement().normalize();
-         
-         rval = convertFromXml(doc.getDocumentElement());
-      }
-      catch(SAXParseException spe)
-      {
-         LoggerManager.getLogger("dbxml").debug(
-            "SignableXMLEnvelope parsing error" +
-            ", line " + spe.getLineNumber() +
-            ", uri " + spe.getSystemId());
-         LoggerManager.getLogger("dbxml").debug("   " + spe.getMessage());
-         
-         LoggerManager.getLogger("dbxml").debugData("SXE string:\n" + xmlText);
-         
-         LoggerManager.getLogger("dbxml").debug(
-            LoggerManager.getStackTrace(spe));
-      }
-      catch(Throwable t)
-      {
-         LoggerManager.getLogger("dbxml").debug(
-            LoggerManager.getStackTrace(t));
-      }
+      rval = super.convertFromXml(xmlText);
       
       return rval;
    }
@@ -681,6 +594,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
     * back into this object's representation.
     *
     * @param element the parsed element that contains this objects information.
+    * 
     * @return true if successful, false otherwise.
     */
    public boolean convertFromXml(Element element)
@@ -692,7 +606,7 @@ public class SignableXmlEnvelope implements IXmlSerializer
       if(er != null)
       {
          // get version, signer, status
-         mVersion = XmlCoder.decode(er.getStringAttribute("version")); 
+         setVersion(XmlCoder.decode(er.getStringAttribute("version"))); 
          mSigner = XmlCoder.decode(er.getStringAttribute("signer"));
          mStatus = XmlCoder.decode(er.getStringAttribute("status"));
          
@@ -726,5 +640,15 @@ public class SignableXmlEnvelope implements IXmlSerializer
       }
       
       return rval;
+   }
+   
+   /**
+    * Gets the logger for this xml serializer.
+    * 
+    * @return the logger for this xml serializer.
+    */
+   public Logger getLogger()
+   {
+      return LoggerManager.getLogger("dbxml");
    }
 }

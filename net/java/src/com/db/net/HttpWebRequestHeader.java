@@ -70,9 +70,9 @@ public class HttpWebRequestHeader extends HttpHeader
                setPath(split[1]);
                setVersion(split[2]);
                
-               getLogger().debug("http web request method=" + getMethod() +
-                                 ", path=" + getPath() + ", version=" +
-                                 getVersion());
+               getLogger().debug(getClass(),
+                  "http web request method=" + getMethod() +
+                  ", path=" + getPath() + ", version=" + getVersion());
 
                // parse headers
                parseHeaders(header, index, header.length());
@@ -81,20 +81,21 @@ public class HttpWebRequestHeader extends HttpHeader
             }
             else
             {
-               getLogger().debug("http web request line does not have 3 " +
-                                 "components (method, path, version)!");
+               getLogger().debug(getClass(),
+                  "http web request line does not have 3 " +
+                  "components (method, path, version)!");
             }
          }
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       if(!rval || !isValid())
       {
-         getLogger().debug("http web request header is invalid!," +
-                           "header=\n" + header);
+         getLogger().debug(getClass(),
+            "http web request header is invalid!," + "header=\n" + header);
       }
       
       return rval;
@@ -244,9 +245,9 @@ public class HttpWebRequestHeader extends HttpHeader
       }
       catch(Throwable t)
       {
-         getLogger().error("could not get relative path " +
-                           "from http web request header!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(),
+            "could not get relative path from http web request header!");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return path;
@@ -341,8 +342,10 @@ public class HttpWebRequestHeader extends HttpHeader
       }
       catch(Throwable t)
       {
-         getLogger().error("could not parse variables in url!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(),
+            "could not parse variables in url!,an exception occurred," +
+            "exception= " + t);
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return vars;
@@ -450,8 +453,8 @@ public class HttpWebRequestHeader extends HttpHeader
          {
             if(getHost() == null || getHost().equals(""))
             {
-               getLogger().error("HTTP/1.1 request does not include " +
-                                 "\"host\" header");
+               getLogger().error(getClass(),
+                  "HTTP/1.1 request must include \"host\" header");
             
                // request is invalid
                rval = false;

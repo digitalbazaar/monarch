@@ -127,8 +127,8 @@ public class Cryptor
          }
          catch(Throwable t)
          {
-            getLogger().error(
-                  "could not get file checksum,algorithm=" + algorithm);
+            getLogger().error(Cryptor.class,
+               "could not get file checksum,algorithm=" + algorithm);
          }
          
          if(fis != null)
@@ -353,7 +353,7 @@ public class Cryptor
          }
          catch(Exception e)
          {
-            getLogger().debug(Logger.getStackTrace(e));
+            getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
          }
       }
 
@@ -385,7 +385,7 @@ public class Cryptor
       }
       catch(Exception e)
       {
-         getLogger().debug(Logger.getStackTrace(e));
+         getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
       }
 
       return sign(data, privateKey);
@@ -445,7 +445,7 @@ public class Cryptor
          }
          catch(Exception e)
          {
-            getLogger().debug(Logger.getStackTrace(e));
+            getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
          }
       }
       
@@ -487,7 +487,7 @@ public class Cryptor
       }
       catch(Exception e)
       {
-         getLogger().debug(Logger.getStackTrace(e));
+         getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
       }
       
       return verify(sig, data, key);
@@ -529,7 +529,7 @@ public class Cryptor
     */
    public static SecretKey generateKey(String algorithm)
    {
-      getLogger().debug("generating key...");
+      getLogger().debug(Cryptor.class, "generating key...");
       
       SecretKey key = null;
 
@@ -541,11 +541,11 @@ public class Cryptor
          kg.init(sr);
          key = kg.generateKey();
          
-         getLogger().debug("key generation complete.");         
+         getLogger().debug(Cryptor.class, "key generation complete.");         
       }
       catch(Exception e)
       {
-         getLogger().debug(Logger.getStackTrace(e));
+         getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
       }
 
       return key;
@@ -573,7 +573,7 @@ public class Cryptor
       }
       catch(Exception e)
       {
-         getLogger().debug(Logger.getStackTrace(e));
+         getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
       }
 
       return secretKey;
@@ -604,7 +604,7 @@ public class Cryptor
          }
          catch(Exception e)
          {
-            getLogger().debug(Logger.getStackTrace(e));
+            getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
          }
       }
 
@@ -706,7 +706,7 @@ public class Cryptor
          }
          catch(Exception e)
          {
-            getLogger().debug(Logger.getStackTrace(e));
+            getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
          }
       }
       
@@ -738,7 +738,7 @@ public class Cryptor
          }
          catch(Exception e)
          {
-            getLogger().debug(Logger.getStackTrace(e));
+            getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
          }
       }
 
@@ -835,7 +835,7 @@ public class Cryptor
          }
          catch(Exception e)
          {
-            getLogger().debug(Logger.getStackTrace(e));
+            getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
          }
       }
 
@@ -864,7 +864,7 @@ public class Cryptor
          {
             try
             {
-               getLogger().debug("encrypting text");
+               getLogger().debug(Cryptor.class, "encrypting text");
                
                // UTF-8-encode and encrypt the text
                byte[] data = encrypt(text.getBytes("UTF-8"));
@@ -876,11 +876,11 @@ public class Cryptor
                   encrypted = encoder.encode(data);
                }
                
-               getLogger().debug("text encrypted");
+               getLogger().debug(Cryptor.class, "text encrypted");
             }
             catch(Exception e)
             {
-               getLogger().debug(Logger.getStackTrace(e));
+               getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
             }
          }
       }
@@ -915,7 +915,7 @@ public class Cryptor
          }
          catch(Exception e)
          {
-            getLogger().debug(Logger.getStackTrace(e));
+            getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
          }
       }
 
@@ -948,7 +948,7 @@ public class Cryptor
          }
          catch(Exception e)
          {
-            getLogger().debug(Logger.getStackTrace(e));
+            getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
          }
       }
 
@@ -982,7 +982,7 @@ public class Cryptor
          }
          catch(Exception e)
          {
-            getLogger().debug(Logger.getStackTrace(e));
+            getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
          }
       }
 

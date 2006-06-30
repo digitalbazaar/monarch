@@ -77,7 +77,7 @@ public class ConfigOptions
                }
                catch(Throwable t)
                {
-                  getLogger().debug(Logger.getStackTrace(t));
+                  getLogger().debug(getClass(), Logger.getStackTrace(t));
                }
             }
          }
@@ -182,7 +182,7 @@ public class ConfigOptions
          }
          catch(Throwable t)
          {
-            getLogger().debug("could not parse argument!");
+            getLogger().debug(getClass(), "could not parse argument!");
             key = "";
          }
       }
@@ -369,8 +369,8 @@ public class ConfigOptions
       }
       catch(Throwable t)
       {
-         getLogger().error("could not read key,key=" + key);
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(), "could not read key,key=" + key);
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;
@@ -393,8 +393,8 @@ public class ConfigOptions
       }
       catch(Throwable t)
       {
-         getLogger().error("could not read key,key=" + key);
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(), "could not read key,key=" + key);
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;
@@ -417,8 +417,8 @@ public class ConfigOptions
       }
       catch(Throwable t)
       {
-         getLogger().error("could not read key,key=" + key);
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(), "could not read key,key=" + key);
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;
@@ -452,8 +452,8 @@ public class ConfigOptions
       }
       catch(Throwable t)
       {
-         getLogger().error("could not read key,key=" + key);
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(), "could not read key,key=" + key);
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;

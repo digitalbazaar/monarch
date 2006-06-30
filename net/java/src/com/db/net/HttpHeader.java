@@ -176,7 +176,8 @@ public abstract class HttpHeader
                }
                
                addHeader(header, value);
-               getLogger().debug("http header=" + header + ",value=" + value);
+               getLogger().debug(getClass(),
+                  "http header=" + header + ",value=" + value);
                
                // check for boundary
                if(header.equalsIgnoreCase("Content-Type"))
@@ -193,7 +194,8 @@ public abstract class HttpHeader
                      }
                      
                      setBoundary("--" + boundary);
-                     getLogger().debug("http boundary=" + boundary);
+                     getLogger().debug(getClass(),
+                        "http boundary=" + boundary);
                   }
                }
             }
@@ -201,7 +203,7 @@ public abstract class HttpHeader
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
    }
    

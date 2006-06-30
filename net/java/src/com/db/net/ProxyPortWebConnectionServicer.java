@@ -59,9 +59,8 @@ public class ProxyPortWebConnectionServicer implements WebConnectionServicer
     */   
    public void serviceWebConnection(WebConnection webConnection)
    {
-      getLogger().debug(getClass().getName() + " servicing " + 
-                        "web connection,ip=" +
-                        webConnection.getRemoteIP() + "...");
+      getLogger().debug(getClass(),
+         "servicing web connection,ip=" + webConnection.getRemoteIP() + "...");
       
       // go through the priority list to determine which web connection
       // handler to use
@@ -102,8 +101,9 @@ public class ProxyPortWebConnectionServicer implements WebConnectionServicer
          webConnection.disconnect();
       }
       
-      getLogger().debug(getClass().getName() + " finished servicing " + 
-                        "web connection,ip=" + webConnection.getRemoteIP());
+      getLogger().debug(getClass(),
+         "finished servicing web connection,ip=" +
+         webConnection.getRemoteIP());
    }
    
    /**

@@ -111,8 +111,8 @@ public class ThreadedEventDelegate
                   else
                   {
                      // log error
-                     LoggerManager.getLogger("dbevent").error(
-                        "ThreadedEventDelegate could not find method '" +
+                     LoggerManager.getLogger("dbevent").error(getClass(),
+                        "could not find method '" +
                         MethodInvoker.getSignature(methodName, params) +
                         "' in class '" + listener.getClass().getName() + "'");
                   }

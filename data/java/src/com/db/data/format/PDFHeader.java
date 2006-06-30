@@ -103,7 +103,7 @@ public class PDFHeader
          }
          catch(Throwable t)
          {
-            getLogger().debug(Logger.getStackTrace(t));
+            getLogger().debug(getClass(), Logger.getStackTrace(t));
          }
          
          rval = true;

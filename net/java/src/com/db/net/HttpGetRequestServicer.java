@@ -61,7 +61,8 @@ extends AbstractHttpWebRequestServicer
       }
       
       File file = new File(localPath);
-      getLogger().debug("file request local path: " + file.getAbsolutePath());
+      getLogger().debug(getClass(),
+         "file request local path: " + file.getAbsolutePath());
       
       return localPath;
    }
@@ -174,8 +175,8 @@ extends AbstractHttpWebRequestServicer
             else
             {
                // file not found
-               getLogger().debug(getClass().getName() + ": file not found, " +
-                                 "filename=" + file.getAbsolutePath());
+               getLogger().debug(getClass(),
+                  "file not found, filename=" + file.getAbsolutePath());
                file = null;
                
                // send not found response
@@ -216,8 +217,8 @@ extends AbstractHttpWebRequestServicer
       
       File file = new File(mBaseLocalPath);
       
-      getLogger().debug(getClass().getName() + ": base local path=" +
-                        file.getAbsolutePath());
+      getLogger().debug(getClass(),
+         "base local path=" + file.getAbsolutePath());
    }
    
    /**

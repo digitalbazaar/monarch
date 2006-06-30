@@ -92,7 +92,7 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return serverSocket;
@@ -148,7 +148,7 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
       
       try
       {
-         getLogger().debug("Attempting to detect SSL protocol...");
+         getLogger().debug(getClass(), "Attempting to detect SSL protocol...");
 
          // read detect bytes from the web connection
          length = webConnection.read(buffer, 0, buffer.length);
@@ -156,8 +156,8 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
          
          if(length >= 3)
          {
-            getLogger().debug("TLS v1.0 record type of handshake(22)?: " +
-                              buffer[0]);
+            getLogger().detail(getClass(),
+               "TLS v1.0 record type of handshake(22)?: " + buffer[0]);
             
             // check SSL record type
             // check for handshake (value of 22 or 0x16)
@@ -167,15 +167,16 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
                // offset + 2 is minor version
                // offset + 3,4 is a short that is the length of
                // data in the record excluding the header (max of 16384)
-               getLogger().debug("TLS v1.0 record version major?: " +
-                                 buffer[1]);
-               getLogger().debug("TLS v1.0 record version minor?: " +
-                                 buffer[2]);
+               getLogger().detail(getClass(),
+                  "TLS v1.0 record version major?: " + buffer[1]);
+               getLogger().detail(getClass(), 
+                  "TLS v1.0 record version minor?: " + buffer[2]);
                
                // SSL 3.0 / TLS 1.0 both have major version 3.0
                if(buffer[1] == 0x03)
                {
-                  getLogger().debug("TLS v1.0 connection detected");
+                  getLogger().debug(getClass(),
+                     "TLS v1.0 connection detected");
                   rval = true;
                }
             }
@@ -184,7 +185,8 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
          // not TLS 1.0, may be SSL 2.0/3.0
          if(!rval && length >= getProtocolNumDetectBytes())
          {
-            getLogger().debug("not TLS v1.0, is it SSL v2.0/v3.0?");
+            getLogger().detail(getClass(),
+               "not TLS v1.0, is it SSL v2.0/v3.0?");
             
             // EXPECT SSL 2.0/3.0:
             // * means optional, escape and padding only exist if
@@ -220,12 +222,13 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
                recLen = ((buffer[0] & 0x3F) << 8) | buffer[1];
             }
             
-            getLogger().debug("SSL v2.0/v3.0 record size?: " + recLen);
+            getLogger().detail(getClass(),
+               "SSL v2.0/v3.0 record size?: " + recLen);
             
             // get the client-hello
             int clientHello = buffer[actualDataOffset];
-            getLogger().debug("SSL v2.0/v3.0 record client-hello(1)?: " +
-                              clientHello);
+            getLogger().detail(getClass(),
+               "SSL v2.0/v3.0 record client-hello(1)?: " + clientHello);
             
             // get version
             int version = buffer[actualDataOffset + 1];
@@ -234,20 +237,21 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
                version = buffer[actualDataOffset + 2];
             }
             
-            getLogger().debug("SSL v2.0/v3.0 record version?: " + version);
+            getLogger().detail(getClass(),
+               "SSL v2.0/v3.0 record version?: " + version);
             
             // if we have a client hello, then we have SSL v2.0 
             if(clientHello == 1)
             {
-               getLogger().debug("SSL v" + version + ".0 " +
-                                 "connection detected");
+               getLogger().debug(getClass(),
+                  "SSL v" + version + ".0 " + "connection detected");
                rval = true;
             }
          }
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       // if data was read from the connection, then unread it
@@ -259,7 +263,7 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
          }
          catch(Throwable t)
          {
-            getLogger().debug(Logger.getStackTrace(t));
+            getLogger().debug(getClass(), Logger.getStackTrace(t));
          }
       }
       
@@ -309,8 +313,10 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
       }
       catch(Throwable t)
       {
-         getLogger().error("Could not load keystore!, keystore=" + keystore);
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(),
+            "Could not load keystore!, an exception occurred," +
+            "exception= " + t + " ,keystore=" + keystore);
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;

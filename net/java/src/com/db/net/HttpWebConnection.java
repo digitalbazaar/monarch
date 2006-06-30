@@ -224,7 +224,7 @@ public class HttpWebConnection extends WebConnectionWrapper
       {
          // get header string
          String str = header.toString();
-         getLogger().debug("sending http header:\r\n" + str);
+         getLogger().debug(getClass(), "sending http header:\r\n" + str);
          
          // get header in bytes
          byte[] buffer = str.getBytes();
@@ -233,13 +233,13 @@ public class HttpWebConnection extends WebConnectionWrapper
          getWebConnection().write(buffer, 0, buffer.length);
          rval = true;
          
-         getLogger().debug("http header sent.");
+         getLogger().debug(getClass(), "http header sent.");
       }
       catch(Throwable t)
       {
-         getLogger().debug("could not send http header!, " +
-                           "an exception occurred.");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(),
+            "could not send http header!, " +
+            "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
       }
       
       return rval;
@@ -260,7 +260,8 @@ public class HttpWebConnection extends WebConnectionWrapper
       {
          // get the header string
          String str = header.toString();
-         getLogger().debug("sending http body part header:\r\n" + str);
+         getLogger().debug(getClass(),
+            "sending http body part header:\r\n" + str);
          
          // prepend the boundary
          str = boundary + HttpHeader.CRLF + str;
@@ -272,13 +273,13 @@ public class HttpWebConnection extends WebConnectionWrapper
          getWebConnection().write(buffer, 0, buffer.length);
          rval = true;
          
-         getLogger().debug("http body part header sent.");
+         getLogger().debug(getClass(), "http body part header sent.");
       }
       catch(Throwable t)
       {
-         getLogger().debug("could not send http body part header!, " +
-                           "an exception occurred.");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(),
+            "could not send http body part header!, " +
+            "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
       }      
       
       return rval;
@@ -340,9 +341,9 @@ public class HttpWebConnection extends WebConnectionWrapper
       }
       catch(Throwable t)
       {
-         getLogger().debug("could not send http body!, " +
-                           "an exception occurred.");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), 
+            "could not send http body!, " +
+            "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
       }
       
       return rval;
@@ -361,7 +362,7 @@ public class HttpWebConnection extends WebConnectionWrapper
       
       try
       {
-         getLogger().debug("sending http body...");
+         getLogger().debug(getClass(), "sending http body...");
          
          // get content encoder
          HttpContentEncoder hce = getHttpContentEncoder(contentEncoding);
@@ -396,14 +397,15 @@ public class HttpWebConnection extends WebConnectionWrapper
          // calculate transfer time
          long timespan = et - st;
          
-         getLogger().debug("http body (" + totalWritten + " bytes) sent in " +
-                           timespan + " ms.");         
+         getLogger().debug(getClass(),
+            "http body (" + totalWritten + " bytes) sent in " +
+            timespan + " ms.");         
       }
       catch(Throwable t)
       {
-         getLogger().debug("Could not send http body, " +
-                           "an exception occurred!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(),
+            "Could not send http body!, " +
+            "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
       }
       
       return rval;
@@ -453,14 +455,15 @@ public class HttpWebConnection extends WebConnectionWrapper
             // calculate transfer time
             long timespan = et - st;
             
-            getLogger().debug("http body part body (" + buffer.length +
-                              " bytes) sent in " + timespan + " ms.");         
+            getLogger().debug(getClass(),
+               "http body part body (" + buffer.length +
+               " bytes) sent in " + timespan + " ms.");         
          }
          catch(Throwable t)
          {
-            getLogger().debug("Could not send http body part body boundary, " +
-                              "an exception occurred!");
-            getLogger().debug(Logger.getStackTrace(t));
+            getLogger().debug(getClass(),
+               "Could not send http body part body boundary, " +
+               "an exception occurred!,\ntrace= " + Logger.getStackTrace(t));
          }
       }
       
@@ -537,9 +540,9 @@ public class HttpWebConnection extends WebConnectionWrapper
       }
       catch(Throwable t)
       {
-         getLogger().debug("could not send http body part body!, " +
-                           "an exception occurred.");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(),
+            "could not send http body part body!, " +
+            "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
       }
       
       return rval;
@@ -567,7 +570,8 @@ public class HttpWebConnection extends WebConnectionWrapper
          }
          
          String str = sb.toString();
-         getLogger().debug("received http header:\r\n" + str + "\r\n");
+         getLogger().debug(getClass(),
+            "received http header:\r\n" + str + "\r\n");
          
          if(!str.equals(""))
          {
@@ -577,9 +581,9 @@ public class HttpWebConnection extends WebConnectionWrapper
       }
       catch(Throwable t)
       {
-         getLogger().debug("could not receive http header!, " +
-                           "an exception occurred.");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(),
+            "could not receive http header!, " +
+            "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
       }
       
       return rval;
@@ -662,9 +666,9 @@ public class HttpWebConnection extends WebConnectionWrapper
       }
       catch(Throwable t)
       {
-         getLogger().debug("could not receive http body!, " +
-                           "an exception occurred.");
-         getLogger().debug(Logger.getStackTrace(t));         
+         getLogger().debug(getClass(),
+            "could not receive http body!, " +
+            "an exception occurred,trace= " + Logger.getStackTrace(t));         
       }
       
       return rval;
@@ -699,7 +703,7 @@ public class HttpWebConnection extends WebConnectionWrapper
       
       try
       {
-         getLogger().debug("receiving http body...");
+         getLogger().debug(getClass(), "receiving http body...");
          
          // get input stream for reading from the web connection
          InputStream is = getWebConnection().getReadStream();
@@ -738,14 +742,15 @@ public class HttpWebConnection extends WebConnectionWrapper
          // calculate transfer time
          long timespan = et - st;
          
-         getLogger().debug("http body (" + totalRead + " bytes) received in " +
-                           timespan + " ms.");         
+         getLogger().debug(getClass(),
+            "http body (" + totalRead + " bytes) received in " +
+            timespan + " ms.");         
       }
       catch(Throwable t)
       {
-         getLogger().debug("Could not receive http body, " +
-                           "an exception occurred!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(),
+            "could not receive http body!, " +
+            "an exception occurred!,\ntrace= " + Logger.getStackTrace(t));
       }
       
       return rval;
@@ -801,9 +806,9 @@ public class HttpWebConnection extends WebConnectionWrapper
       }
       catch(Throwable t)
       {
-         getLogger().debug("could not receive http body part body!, " +
-                           "an exception occurred.");
-         getLogger().debug(Logger.getStackTrace(t));         
+         getLogger().debug(getClass(), 
+            "could not receive http body part body!, " +
+            "an exception occurred,\ntrace= " + Logger.getStackTrace(t));         
       }
       
       return rval;
@@ -825,7 +830,7 @@ public class HttpWebConnection extends WebConnectionWrapper
       
       try
       {
-         getLogger().debug("receiving http body part body...");         
+         getLogger().debug(getClass(), "receiving http body part body...");         
          
          // start time
          long st = new Date().getTime();
@@ -871,14 +876,15 @@ public class HttpWebConnection extends WebConnectionWrapper
          // calculate transfer time
          long timespan = et - st;
          
-         getLogger().debug("http body part body (" + totalRead +
-                           " bytes) received in " + timespan + " ms.");         
+         getLogger().debug(getClass(),
+            "http body part body (" + totalRead +
+            " bytes) received in " + timespan + " ms.");         
       }
       catch(Throwable t)
       {
-         getLogger().debug("Could not receive http body part body, " +
-                           "an exception occurred!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(),
+            "could not receive http body part body!, " +
+            "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
       }
       
       return rval;
@@ -898,7 +904,7 @@ public class HttpWebConnection extends WebConnectionWrapper
       
       try
       {
-         getLogger().debug("skipping http body part body...");         
+         getLogger().debug(getClass(), "skipping http body part body...");         
          
          // start time
          long st = new Date().getTime();
@@ -943,14 +949,15 @@ public class HttpWebConnection extends WebConnectionWrapper
          // calculate transfer time
          long timespan = et - st;
          
-         getLogger().debug("http body part body (" + totalRead + " bytes) " +
-                           "skipped in " + timespan + " ms.");         
+         getLogger().debug(getClass(),
+            "http body part body (" + totalRead + " bytes) " +
+            "skipped in " + timespan + " ms.");         
       }
       catch(Throwable t)
       {
-         getLogger().debug("Could not skip http body part body, " +
-                           "an exception occurred!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(),
+            "could not skip http body part body!, " +
+            "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
       }
       
       return rval;

@@ -104,7 +104,7 @@ public class ProxyWebConnection extends GenericWebConnection
          else if(message.indexOf("connection reset") == -1)
          {
             // not connection reset, there was an error, so display error
-            getLogger().error(Logger.getStackTrace(t));
+            getLogger().error(getClass(), Logger.getStackTrace(t));
          }
       }
       
@@ -116,7 +116,7 @@ public class ProxyWebConnection extends GenericWebConnection
       }
       catch(Throwable t)
       {
-         getLogger().error(Logger.getStackTrace(t));
+         getLogger().error(getClass(), Logger.getStackTrace(t));
       }
    }
    
@@ -162,8 +162,8 @@ public class ProxyWebConnection extends GenericWebConnection
       
       if(!previouslyDisconnected)
       {
-         getLogger().debug("proxy web connection disconnected,ip=" +
-                           getRemoteIP());
+         getLogger().debug(getClass(),
+            "proxy web connection disconnected,ip=" + getRemoteIP());
       }
    }
 }

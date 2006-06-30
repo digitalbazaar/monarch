@@ -285,14 +285,14 @@ public class GenericWebConnection implements WebConnection
             if(!getWorkerSocket().isClosed())
             {
                getWorkerSocket().close();
-               getLogger().debug("web connection disconnected,ip=" +
-                                 getRemoteIP());
+               getLogger().debug(getClass(),
+                  "web connection disconnected,ip=" + getRemoteIP());
             }
          }
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
    }
    
@@ -370,7 +370,7 @@ public class GenericWebConnection implements WebConnection
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
    }
    

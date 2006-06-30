@@ -127,7 +127,7 @@ public class WebConnectionAcceptor
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
    }
    
@@ -187,7 +187,7 @@ public class WebConnectionAcceptor
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
    }
    
@@ -200,8 +200,9 @@ public class WebConnectionAcceptor
     */
    public void acceptWebConnections(ServerSocket serverSocket, boolean secure)
    {
-      getLogger().debug("WebConnectionAcceptor accepting web connections on " +
-                        "port " + serverSocket.getLocalPort());
+      getLogger().debug(getClass(),
+         "accepting web connections on " +
+         "port " + serverSocket.getLocalPort());
       
       // continue accepting connections until told otherwise or
       // if this thread is interrupted
@@ -221,8 +222,9 @@ public class WebConnectionAcceptor
          }
       }
       
-      getLogger().debug("WebConnectionAcceptor no longer accepting web " +
-                        "connections on port " + serverSocket.getLocalPort());
+      getLogger().debug(getClass(),
+         "no longer accepting web " +
+         "connections on port " + serverSocket.getLocalPort());
    }
    
    /**
@@ -271,7 +273,7 @@ public class WebConnectionAcceptor
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
    }
    
@@ -359,11 +361,13 @@ public class WebConnectionAcceptor
             String ip = webConnection.getRemoteIP();
             if(webConnection instanceof ProxyWebConnection)
             {
-               getLogger().debug("proxy web connection accepted, ip=" + ip);
+               getLogger().debug(getClass(),
+                  "proxy web connection accepted, ip=" + ip);
             }
             else
             {
-               getLogger().debug("web connection accepted, ip=" + ip);
+               getLogger().debug(getClass(),
+                  "web connection accepted, ip=" + ip);
             }
          
             // fire message indicating that a web connection has been accepted
@@ -384,8 +388,9 @@ public class WebConnectionAcceptor
          // then terminate it
          if(!messageFired)
          {
-            getLogger().error("message was not fired to handle accepted " +
-                              "web connection, terminating connection.");
+            getLogger().error(getClass(),
+               "message was not fired to handle accepted " +
+               "web connection, terminating connection.");
             
             // disconnect web connection
             webConnection.disconnect();

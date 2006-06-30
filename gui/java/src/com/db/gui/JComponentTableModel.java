@@ -175,7 +175,7 @@ implements SortableTableModel, ComponentListener
          //LoggerManager.debug("dbgui", LoggerManager.getStackTrace(t));
       }
       
-      LoggerManager.getLogger("dbdata").debug(
+      LoggerManager.getLogger("dbdata").debug(getClass(),
          "col=" + col + ",preferred width=" + rval);
       
       return rval;

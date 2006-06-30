@@ -127,8 +127,8 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
    {
       path = readyPath(path);
       
-      getLogger().debug("looking for http web request servicer for path: " +
-                        path);
+      getLogger().debug(getClass(),
+         "looking for http web request servicer for path: " + path);
       
       HttpWebRequestServicer hwrs = (HttpWebRequestServicer)map.get(path);
       while(hwrs == null && !path.equals(""))
@@ -141,8 +141,8 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
             index = path.lastIndexOf('/');
             path = path.substring(0, index + 1);
             
-            getLogger().debug("looking for http web request servicer " +
-                              "for path: " + path);
+            getLogger().debug(getClass(),
+               "looking for http web request servicer " + "for path: " + path);
             
             // try to get servicer again
             hwrs = (HttpWebRequestServicer)map.get(path);
@@ -151,12 +151,13 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
       
       if(hwrs != null)
       {
-         getLogger().debug("http web request servicer found (" +
-                           hwrs.getClass().getName() + ") for path: " + path);
+         getLogger().debug(getClass(),
+            "http web request servicer found (" +
+            hwrs.getClass().getName() + ") for path: " + path);
       }
       else
       {
-         getLogger().debug("no http web request servicer found!");
+         getLogger().debug(getClass(), "no http web request servicer found!");
       }
       
       return hwrs;
@@ -314,9 +315,10 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
          }
          catch(Throwable t)
          {
-            getLogger().error("Exception thrown while servicing " +
-                              "http web request!");
-            getLogger().debug(Logger.getStackTrace(t));
+            getLogger().error(getClass(),
+               "Exception thrown while servicing http web request!," +
+               "exception= " + t);
+            getLogger().debug(getClass(), Logger.getStackTrace(t));
             
             // invalid request, do not keep connection alive
             keepAlive = false;
@@ -340,8 +342,9 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
    public void addNonSecureHttpWebRequestServicer(
       HttpWebRequestServicer hwrs, String path)
    {
-      getLogger().debug("adding non-secure http web request servicer: " +
-                        path + "->" + hwrs.getClass().getName());
+      getLogger().debug(getClass(),
+         "adding non-secure http web request servicer: " +
+         path + "->" + hwrs.getClass().getName());
 
       addHttpWebRequestServicer(mPathToNonSecureServicer, hwrs, path);
    }
@@ -359,8 +362,9 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
    public void addSecureHttpWebRequestServicer(
       HttpWebRequestServicer hwrs, String path)
    {
-      getLogger().debug("adding secure http web request servicer: " +
-                        path + "->" + hwrs.getClass().getName());
+      getLogger().debug(getClass(),
+         "adding secure http web request servicer: " +
+         path + "->" + hwrs.getClass().getName());
 
       addHttpWebRequestServicer(mPathToSecureServicer, hwrs, path);
    }
@@ -372,8 +376,8 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
     */
    public void removeNonSecureHttpWebRequestServicer(String path)
    {
-      getLogger().debug("removing non-secure http web request servicer: " +
-                        path);
+      getLogger().debug(getClass(),
+         "removing non-secure http web request servicer: " + path);
       removeHttpWebRequestServicer(mPathToNonSecureServicer, path);
    }
    
@@ -384,7 +388,8 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
     */
    public void removeSecureHttpWebRequestServicer(String path)
    {
-      getLogger().debug("removing secure http web request servicer: " + path);
+      getLogger().debug(getClass(),
+         "removing secure http web request servicer: " + path);
       removeHttpWebRequestServicer(mPathToSecureServicer, path);
    }
    

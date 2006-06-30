@@ -47,7 +47,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
    {
       SoapMessage sm = null;
       
-      getLogger().debug("looking for soap message...");
+      getLogger().detail(getClass(), "looking for soap message...");
       
       // receive the body in the request
       byte[] body = request.receiveBody();
@@ -65,7 +65,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          }
          catch(Throwable t)
          {
-            getLogger().debug(Logger.getStackTrace(t));
+            getLogger().debug(getClass(), Logger.getStackTrace(t));
          }
       }
       
@@ -77,13 +77,13 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       if(body != null)
       {
          xml = new String(body);
-         getLogger().debug("received soap xml:\n" + xml);
+         getLogger().debug(getClass(), "received soap xml:\n" + xml);
       }
       
       // see if the soap message was valid
       if(body != null && !sm.convertFromXml(xml))
       {
-         getLogger().debug("no valid soap message");
+         getLogger().debug(getClass(), "no valid soap message");
          
          // create soap fault
          sm.setFaultCode(SoapMessage.FAULT_CLIENT);
@@ -170,7 +170,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       {
          // send server error response
          response.sendServerErrorResponse();
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
    }
    
@@ -183,7 +183,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
     */
    protected void sendWsdlResponse(HttpWebResponse response, String wsdl)
    {
-      getLogger().debug("sending wsdl in response...");
+      getLogger().debug(getClass(), "sending wsdl in response...");
       
       byte[] body = wsdl.getBytes();
       
@@ -199,7 +199,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          }
          catch(Throwable t)
          {
-            getLogger().debug(Logger.getStackTrace(t));
+            getLogger().debug(getClass(), Logger.getStackTrace(t));
          }
       }
       
@@ -227,7 +227,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
    {
       if(mSoapWebService.getWsdlPath().equals(request.getHeader().getPath()))
       {
-         getLogger().debug("wsdl path match found");
+         getLogger().detail(getClass(), "wsdl path match found");
          
          // get the wsdl from the soap web service
          String wsdl = mSoapWebService.getWsdl();
@@ -262,7 +262,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       String contentType = request.getHeader().getContentType();
       if(contentType != null && contentType.indexOf("text/xml") != -1)
       {
-         getLogger().debug("http content is text/xml");
+         getLogger().detail(getClass(), "http content is text/xml");
          
          // save the content encoding for the response
          String contentEncoding = response.getHeader().getContentEncoding();
@@ -272,7 +272,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          
          // get the soap action
          String soapAction = request.getHeader().getHeader("SOAPAction");
-         getLogger().debug("SOAPAction is=" + soapAction);
+         getLogger().detail(getClass(), "SOAPAction is=" + soapAction);
          
          // see if the client is expecting a continue
          String expect = request.getHeader().getHeader("Expect"); 
@@ -281,7 +281,8 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
             // check to see if the soap action is appropriate
             if(mSoapWebService.isSoapActionValid(soapAction))
             {
-               getLogger().debug("sending 100 continue to get soap message...");
+               getLogger().debug(getClass(),
+                  "sending 100 continue to get soap message...");
                
                // send the client a continue response
                response.sendContinueResponse();
@@ -315,8 +316,8 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       }
       else
       {
-         getLogger().debug("http content is not text/xml,contentType=" +
-                           contentType);
+         getLogger().debug(getClass(), 
+            "http content is not text/xml,contentType=" + contentType);
          
          // send bad request
          response.sendBadRequestResponse();

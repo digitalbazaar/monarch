@@ -123,8 +123,7 @@ public abstract class VersionedXmlSerializer implements IXmlSerializer
    {
       boolean rval = false;
       
-      getLogger().detail(
-         getClass().getName() + ": converting from xml...");
+      getLogger().detail(getClass(), "converting from xml...");
      
       try
       {
@@ -142,26 +141,26 @@ public abstract class VersionedXmlSerializer implements IXmlSerializer
          // convert from xml
          if(convertFromXml(doc.getDocumentElement()))
          {
-            getLogger().detail(
-               getClass().getName() + ": successfully converted from xml.");
+            getLogger().detail(getClass(),
+               "successfully converted from xml.");
             
             rval = true;
          }
          else
          {
-            getLogger().detail(
-               getClass().getName() + ": failed to convert from xml.");
+            getLogger().detail(getClass(), 
+               "failed to convert from xml.");
          }
       }
       catch(Throwable t)
       {
          // print error and stack trace
-         getLogger().error(
-            getClass().getName() + ": parsing exception" +
+         getLogger().error(getClass(), 
+            " xml parsing exception" +
             ",\nexception= " + t +
             ",\ncause= " + t.getCause());
-         getLogger().debug(
-            getClass().getName() + ": parsing exception" +
+         getLogger().debug(getClass(), 
+            "xml parsing exception" +
             ",\ntrace= " + Logger.getStackTrace(t));
       }
 

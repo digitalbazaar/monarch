@@ -57,8 +57,9 @@ public class HttpWebResponseHeader extends HttpHeader
                setVersion(split[0]);
                setStatusCode(joinArray(split, 1, split.length, " "));
                
-               getLogger().debug("http web response version=" + getVersion() +
-                                 ", status code=" + getStatusCode());
+               getLogger().debug(getClass(),
+                  "http web response version=" + getVersion() +
+                  ", status code=" + getStatusCode());
 
                // parse headers
                parseHeaders(header, index, header.length());
@@ -67,20 +68,21 @@ public class HttpWebResponseHeader extends HttpHeader
             }
             else
             {
-               getLogger().debug("http web response line does not have 2 " +
-                                 "components (version, status code)!");
+               getLogger().debug(getClass(),
+                  "http web response line does not have 2 components " +
+                  "(version, status code)!");
             }
          }
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       if(!rval || !isValid())
       {
-         getLogger().debug("http web response header is invalid!," +
-                           "header=\n" + header);
+         getLogger().debug(getClass(),
+            "http web response header is invalid!,header=\n" + header);
       }
       
       return rval;      

@@ -101,13 +101,13 @@ public class HttpBodyPartHeader extends HttpHeader
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       if(!rval || !isValid())
       {
-         getLogger().debug("http body part header is invalid!," +
-                           "header=\n" + header);
+         getLogger().debug(getClass(),
+            "http body part header is invalid!,header=\n" + header);
       }
       
       return rval;

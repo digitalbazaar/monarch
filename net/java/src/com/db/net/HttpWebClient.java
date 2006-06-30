@@ -94,13 +94,13 @@ public class HttpWebClient
     */
    protected void parseEndpointAddress() 
    {
-      getLogger().debug(
-         "HttpWebClient: parsing endpoint address for http web client...");
+      getLogger().debug(getClass(),
+         "parsing endpoint address for http web client...");
       
       String endpt = getEndpointAddress();
       String[] schema = endpt.split("://");
       
-      getLogger().debug("HttpWebClient: endpt=" + endpt);
+      getLogger().debug(getClass(), "endpt=" + endpt);
       
       try
       {
@@ -119,7 +119,7 @@ public class HttpWebClient
             uri = schema[0];
          }
          
-         getLogger().detail("HttpWebClient: schema=" + mSchema);
+         getLogger().detail(getClass(), "schema=" + mSchema);
 
          // next split uri on colons
          String[] colons = uri.split(":");
@@ -127,7 +127,7 @@ public class HttpWebClient
          // hostname first (localhost:port)
          setHost(colons[0]);
          
-         getLogger().detail("HttpWebClient: host=" + colons[0]);
+         getLogger().detail(getClass(), "host=" + colons[0]);
          
          // split on slashes
          String[] slashes = colons[1].split("/");
@@ -137,7 +137,7 @@ public class HttpWebClient
             int port = Integer.parseInt(slashes[0]);
             setPort(port);
             
-            getLogger().detail("HttpWebClient: port=" + getPort());
+            getLogger().detail(getClass(), "port=" + getPort());
                
             // combine remaining slashes to get web service path
             String path = "/";
@@ -148,13 +148,13 @@ public class HttpWebClient
             
             setWebServicePath(path);
             
-            getLogger().detail(
-               "HttpWebClient: web service path=" + getWebServicePath());
+            getLogger().detail(getClass(), 
+               "web service path=" + getWebServicePath());
          }
       }
       catch(Throwable t)
       {
-         getLogger().debug(LoggerManager.getStackTrace(t));
+         getLogger().debug(getClass(), LoggerManager.getStackTrace(t));
       }
    }
    
@@ -194,14 +194,14 @@ public class HttpWebClient
             hwc = new HttpWebConnection(s);
          }
          
-         getLogger().debug("HttpWebClient: connected to: " +
-                           getHost() + ":" + getPort());
+         getLogger().debug(getClass(),
+            "connected to: " + getHost() + ":" + getPort());
       }
       catch(Throwable t)
       {
-         getLogger().debug(
-            "HttpWebClient: could not establish an http web connection.");
-         getLogger().debug(LoggerManager.getStackTrace(t));
+         getLogger().debug(getClass(), 
+            "could not establish an http web connection.");
+         getLogger().debug(getClass(), LoggerManager.getStackTrace(t));
          
          if(hwc != null)
          {
@@ -224,8 +224,8 @@ public class HttpWebClient
    {
       WebConnection wc = null;
       
-      getLogger().debug(
-         "HttpWebClient: trying to establish an http web connection...");
+      getLogger().debug(getClass(), 
+         "trying to establish an http web connection...");
       
       // try 10 times = 10 seconds of retry
       int tries = 10;
@@ -251,13 +251,14 @@ public class HttpWebClient
       
       if(wc != null)
       {
-         getLogger().debug("HttpWebClient: http web connection established," +
-                           "ip=" + wc.getHost() + ":" + wc.getRemotePort());
+         getLogger().debug(getClass(),
+            "http web connection established," +
+            "ip=" + wc.getHost() + ":" + wc.getRemotePort());
       }
       else
       {
-         getLogger().error(
-            "HttpWebClient: could not establish an http web connection!");
+         getLogger().error(getClass(), 
+            "could not establish an http web connection!");
       }
       
       return wc;
@@ -448,9 +449,9 @@ public class HttpWebClient
       }
       catch(Throwable t)
       {
-         getLogger().error(
-            "HttpWebClient: Could not load keystore!, keystore=" + keystore);
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(), 
+            "Could not load keystore!, keystore=" + keystore);
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;

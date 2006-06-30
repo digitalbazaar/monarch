@@ -659,7 +659,8 @@ public class SoapMessage implements IXmlSerializer
    {
       boolean rval = false;
       
-      getLogger().detail("Loading soap message from xml:\n" + xmlText);
+      getLogger().detail(getClass(),
+         "Loading soap message from xml:\n" + xmlText);
 
       try
       {
@@ -676,10 +677,11 @@ public class SoapMessage implements IXmlSerializer
       }
       catch(SAXParseException spe)
       {
-         getLogger().debug("SoapMessage parsing error"
-                            + ", line " + spe.getLineNumber()
-                            + ", uri " + spe.getSystemId());
-         getLogger().debug("   " + spe.getMessage());
+         getLogger().debug(getClass(),
+            "xml parsing error" +
+            ", line " + spe.getLineNumber() +
+            ", uri " + spe.getSystemId());
+         getLogger().debug(getClass(), "   " + spe.getMessage());
          // print stack trace as below
       }
       catch(SAXException se)
@@ -687,11 +689,11 @@ public class SoapMessage implements IXmlSerializer
          Exception x = se.getException();
          x = (x == null) ? se : x;
          
-         getLogger().debug(Logger.getStackTrace(x));
+         getLogger().debug(getClass(), Logger.getStackTrace(x));
       }
       catch(Exception e)
       {
-         getLogger().debug(Logger.getStackTrace(e));
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
       }      
       
       return rval;
@@ -723,16 +725,16 @@ public class SoapMessage implements IXmlSerializer
       Iterator ei = er.getElementReadersNS(ENVELOPE_SCHEMA).iterator();
       while(ei.hasNext())
       {
-         getLogger().detail("found soap envelope elements...");
+         getLogger().detail(getClass(), "found soap envelope elements...");
          
          // get the envelope prefix
          String envPrefix = er.getPrefix(ENVELOPE_SCHEMA, false);
-         getLogger().detail("soap envelope prefix=" + envPrefix);
+         getLogger().detail(getClass(), "soap envelope prefix=" + envPrefix);
          
          ElementReader envelopeER = (ElementReader)ei.next();
          if(envelopeER.getTagName().equals(envPrefix + ":Body"))
          {
-            getLogger().detail("got soap envelope body...");
+            getLogger().detail(getClass(), "got soap envelope body...");
             
             // go through all of the body (method/response) elements
             Iterator bi = envelopeER.getElementReaders().iterator();
@@ -773,8 +775,9 @@ public class SoapMessage implements IXmlSerializer
                   }
                   else
                   {
-                     getLogger().debug("got soap envelope method/response," +
-                                       "method/response=" + name[1]);
+                     getLogger().debug(getClass(),
+                        "got soap envelope method/response," +
+                        "method/response=" + name[1]);
                      
                      // if namespace not set, look it up
                      if(namespace.equals(""))
@@ -797,14 +800,14 @@ public class SoapMessage implements IXmlSerializer
                         // assumes "result" is being used
                         if(paramName.equals("result"))
                         {
-                           getLogger().debug(
+                           getLogger().debug(getClass(), 
                               "soap method result found,result=" +
                               paramValue);
                            setResult(paramValue);
                         }
                         else
                         {
-                           getLogger().debug(
+                           getLogger().debug(getClass(), 
                               "soap method param found,name=" + paramName +
                               ",value=" + paramValue);
                            
@@ -813,7 +816,7 @@ public class SoapMessage implements IXmlSerializer
                         }
                      }
 
-                     getLogger().debug(
+                     getLogger().debug(getClass(), 
                         "number of soap method parameters read: " +
                         mParams.size());
                      

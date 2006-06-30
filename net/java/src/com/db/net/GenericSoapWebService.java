@@ -116,14 +116,15 @@ public abstract class GenericSoapWebService implements SoapWebService
          Method m = methods[i];
          if(m.getName().equals(method))
          {
-            getLogger().debug("soap method name match,method=" + method);
+            getLogger().debug(getClass(),
+               "soap method name match,method=" + method);
 
             Class[] types = m.getParameterTypes();
             int numParams = types.length;
             if(params.size() == numParams)
             {
-               getLogger().debug("parameter count match,count=" +
-                                 params.size());
+               getLogger().debug(getClass(),
+                  "parameter count match,count=" + params.size());
 
                try
                {
@@ -132,24 +133,27 @@ public abstract class GenericSoapWebService implements SoapWebService
                }
                catch(Throwable t)
                {
-                  getLogger().error("could not invoke soap method: " + method +
-                                    ",an exception occured.");
+                  getLogger().error(getClass(),
+                     "could not invoke soap method: " + method +
+                     ",an exception occured,exception= " + t);
                   throw t;
                }
                
                break;
             }
 
-            getLogger().debug("parameter count discrepancy" +
-                  ",soap method parameter count=" + numParams +
-                  ",passed parameter count=" + params.size());
+            getLogger().debug(getClass(),
+               "parameter count discrepancy" +
+               ",soap method parameter count=" + numParams +
+               ",passed parameter count=" + params.size());
          }
       }
 
       if(!methodInvoked)
       {
-         getLogger().error("could not invoke soap method: " + method +
-                           ",soap method not recognized!");
+         getLogger().error(getClass(),
+            "could not invoke soap method: " + method +
+            ",soap method not recognized!");
          throw new SoapMethodNotRecognizedException(
                "Could not invoke soap method: " + method +
                ",soap method not recognized!");
@@ -170,7 +174,7 @@ public abstract class GenericSoapWebService implements SoapWebService
    {
       Object rval = null;
       
-      getLogger().debug("param type: " + paramType);
+      getLogger().debug(getClass(), "param type: " + paramType);
       
       try
       {
@@ -178,7 +182,7 @@ public abstract class GenericSoapWebService implements SoapWebService
       }
       catch(Throwable t)
       {
-         getLogger().error("param invalid");
+         getLogger().error(getClass(), "param invalid");
       }
       
       return rval;
@@ -297,7 +301,8 @@ public abstract class GenericSoapWebService implements SoapWebService
       Thread thread = Thread.currentThread();
       
       String method = sm.getMethod();
-      getLogger().debug("attempting to call soap method: " + method);
+      getLogger().debug(getClass(),
+         "attempting to call soap method: " + method);
       
       try
       {
@@ -325,7 +330,8 @@ public abstract class GenericSoapWebService implements SoapWebService
             mCallThreadToSoapMessage.remove(thread);
          }
 
-         getLogger().debug("failed to call soap method, sending soap fault.");
+         getLogger().debug(getClass(), 
+            "failed to call soap method, sending soap fault.");
 
          // set soap fault
          if(t instanceof SoapMethodNotRecognizedException)
@@ -344,12 +350,12 @@ public abstract class GenericSoapWebService implements SoapWebService
             sm.setFaultActor(getURI());
          }
 
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       long et = new java.util.Date().getTime();
-      getLogger().debug("total soap method (" + method + ") time: " +
-                        (et - st) + " ms");
+      getLogger().debug(getClass(),
+         "total soap method (" + method + ") time: " + (et - st) + " ms");
       
       return rval;
    }

@@ -128,12 +128,14 @@ public class WsdlParser implements IXmlSerializer
          }
          else
          {
-            getLogger().error("Wrong num of params for method: " + method);
+            getLogger().error(getClass(),
+               "Wrong num of params for method: " + method);
          }
       }
       else
       {
-         getLogger().error("no such method exists!: " + method);
+         getLogger().error(getClass(),
+            "no such method exists!: " + method);
       }
       
       return paramMap;
@@ -207,9 +209,9 @@ public class WsdlParser implements IXmlSerializer
    {
       boolean rval = false;
       
-      getLogger().debug("WSDL:\n" + xmlText);
+      getLogger().debug(getClass(), "WSDL:\n" + xmlText);
       
-      getLogger().debug("Loading soap message from xml...");
+      getLogger().debug(getClass(), "Loading WSDL from xml...");
 
       try
       {
@@ -226,10 +228,11 @@ public class WsdlParser implements IXmlSerializer
       }
       catch(SAXParseException spe)
       {
-         getLogger().debug("WsdlParser parsing error"
-                            + ", line " + spe.getLineNumber()
-                            + ", uri " + spe.getSystemId());
-         getLogger().debug("   " + spe.getMessage());
+         getLogger().debug(getClass(),
+            "xml parsing error" +
+            ", line " + spe.getLineNumber() +
+            ", uri " + spe.getSystemId());
+         getLogger().debug(getClass(), "   " + spe.getMessage());
          // print stack trace as below
       }
       catch(SAXException se)
@@ -237,11 +240,11 @@ public class WsdlParser implements IXmlSerializer
          Exception x = se.getException();
          x = (x == null) ? se : x;
          
-         getLogger().debug(Logger.getStackTrace(x));
+         getLogger().debug(getClass(), Logger.getStackTrace(x));
       }
       catch(Exception e)
       {
-         getLogger().debug(Logger.getStackTrace(e));
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
       }    
       
       return rval;

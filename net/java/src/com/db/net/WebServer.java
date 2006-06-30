@@ -180,7 +180,7 @@ public class WebServer
       // only start server if it isn't running
       if(!isRunning())
       {
-         getLogger().debug("starting web server...");
+         getLogger().debug(getClass(), "starting web server...");
 
          // start accepting connections on all web connection handlers
          Iterator i = mPorts.iterator();
@@ -197,7 +197,7 @@ public class WebServer
          mRunning = true;
       }
          
-      getLogger().debug("web server started.");
+      getLogger().debug(getClass(), "web server started.");
    }
    
    /**
@@ -209,7 +209,7 @@ public class WebServer
       // only stop server if it is running
       if(isRunning())
       {
-         getLogger().debug("stopping web server...");
+         getLogger().debug(getClass(), "stopping web server...");
          
          // stop and terminate all connections on all web connection handlers
          Iterator i = mPorts.iterator();
@@ -229,7 +229,7 @@ public class WebServer
          mRunning = false;
       }
       
-      getLogger().debug("web server stopped.");
+      getLogger().debug(getClass(), "web server stopped.");
    }
    
    /**

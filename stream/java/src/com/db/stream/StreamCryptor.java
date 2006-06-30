@@ -166,8 +166,8 @@ public abstract class StreamCryptor implements IStreamManager,
       }
       catch(Throwable t)
       {
-         getLogger().error("could not convert long to bytes!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(), "could not convert long to bytes!");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return bytes;
@@ -236,7 +236,8 @@ public abstract class StreamCryptor implements IStreamManager,
             }
             else
             {
-               getLogger().error("not enough data to decrypt last chunk!");
+               getLogger().error(getClass(),
+                  "not enough data to decrypt last chunk!");
             }
          }
          else
@@ -252,7 +253,7 @@ public abstract class StreamCryptor implements IStreamManager,
          }
          else
          {
-            getLogger().error("decrypted data is null!");
+            getLogger().error(getClass(), "decrypted data is null!");
          }
       }
       
@@ -305,8 +306,9 @@ public abstract class StreamCryptor implements IStreamManager,
       }
       catch(Throwable t)
       {
-         getLogger().error("could not convert bytes to int!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(StreamCryptor.class,
+            "could not convert bytes to int!");
+         getLogger().debug(StreamCryptor.class, Logger.getStackTrace(t));
       }
       
       return rval;
@@ -334,8 +336,9 @@ public abstract class StreamCryptor implements IStreamManager,
       }
       catch(Throwable t)
       {
-         getLogger().error("could not convert int to bytes!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(StreamCryptor.class,
+            "could not convert int to bytes!");
+         getLogger().debug(StreamCryptor.class, Logger.getStackTrace(t));
       }
       
       return bytes;
@@ -376,8 +379,10 @@ public abstract class StreamCryptor implements IStreamManager,
       }
       catch(Throwable t)
       {
-         getLogger().error("could not convert bytes to long!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(StreamCryptor.class,
+            "could not convert bytes to long!");
+         getLogger().debug(StreamCryptor.class,
+            Logger.getStackTrace(t));
       }
       
       return rval;
@@ -406,7 +411,7 @@ public abstract class StreamCryptor implements IStreamManager,
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(StreamCryptor.class, Logger.getStackTrace(t));
       }
       
       return rval;
@@ -435,7 +440,7 @@ public abstract class StreamCryptor implements IStreamManager,
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(StreamCryptor.class, Logger.getStackTrace(t));
       }
       
       return rval;
@@ -475,7 +480,7 @@ public abstract class StreamCryptor implements IStreamManager,
       }
       catch(Exception e)
       {
-         getLogger().debug(Logger.getStackTrace(e));
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
       }      
       
       return rval;      
@@ -513,7 +518,7 @@ public abstract class StreamCryptor implements IStreamManager,
       }
       catch(Exception e)
       {
-         getLogger().debug(Logger.getStackTrace(e));
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
       }
       
       return rval;
@@ -551,7 +556,7 @@ public abstract class StreamCryptor implements IStreamManager,
       }
       catch(Exception e)
       {
-         getLogger().debug(Logger.getStackTrace(e));
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
       }
       
       return rval;
@@ -581,7 +586,7 @@ public abstract class StreamCryptor implements IStreamManager,
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
    }
 
@@ -626,7 +631,7 @@ public abstract class StreamCryptor implements IStreamManager,
          }
          catch(Exception e)
          {
-            getLogger().debug(Logger.getStackTrace(e));
+            getLogger().debug(getClass(), Logger.getStackTrace(e));
          }
       }
       else
@@ -679,7 +684,7 @@ public abstract class StreamCryptor implements IStreamManager,
       }
       catch(Exception e)
       {
-         getLogger().debug(Logger.getStackTrace(e));
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
       }
       
       return rval;
@@ -722,7 +727,7 @@ public abstract class StreamCryptor implements IStreamManager,
       }
       catch(Exception e)
       {
-         getLogger().debug(Logger.getStackTrace(e));
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
       }
       
       return rval;

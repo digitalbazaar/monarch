@@ -223,20 +223,20 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
 
       try
       {
-         getLogger().debug(getClass().getName() + " launching " +
-                           "web connection servicer,ip=" +
-                           webConnection.getRemoteIP());
+         getLogger().debug(getClass(),
+            "launching web connection servicer,ip=" +
+            webConnection.getRemoteIP());
          
          // service web connection
          mWebConnectionServicer.serviceWebConnection(webConnection);
          
-         getLogger().debug(getClass().getName() + " finished " +
-                           "servicing web connection,ip=" +
-                           webConnection.getRemoteIP());
+         getLogger().debug(getClass(),
+            "finished servicing web connection,ip=" +
+            webConnection.getRemoteIP());
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       // disconnect web connection if it isn't already disconnected
@@ -295,15 +295,14 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
          // start accepting connections
          wca.startAcceptingWebConnections(serverSocket, webConnectionsSecure());
          
-         getLogger().debug(
-            getClass().getName() + " accepting web connections on port " +
-            port + ".");
+         getLogger().debug(getClass(),
+            "accepting web connections on port " + port + ".");
       }
       else
       {
-         getLogger().error("could not create server socket to " +
-                           "accept web connections on the specified port," +
-                           "port=" + port);
+         getLogger().error(getClass(),
+            "could not create server socket to accept web connections " +
+            "on the specified port,port=" + port);
       }
    }
    
@@ -333,15 +332,14 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
          }
          catch(Throwable t)
          {
-            getLogger().debug(Logger.getStackTrace(t));
+            getLogger().debug(getClass(), Logger.getStackTrace(t));
          }
       }
       
       // clear the port to server socket map
       mPortToServerSocketMap.clear();
       
-      getLogger().debug(
-         getClass().getName() + " no longer accepting web connections.");
+      getLogger().debug(getClass(), "no longer accepting web connections.");
    }
    
    /**
@@ -371,15 +369,14 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
 
       // remove the port from the server socket map
       unmapPortFromServerSocket(port);
       
-      getLogger().debug(
-         getClass().getName() + " no longer accepting web connections " +
-         "on port " + port + ".");
+      getLogger().debug(getClass(), 
+         "no longer accepting web connections on port " + port + ".");
    }
    
    /**
@@ -546,8 +543,7 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
     */
    public synchronized void terminateWebConnections()
    {
-      getLogger().debug(
-         getClass().getName() + " terminating all web connections...");
+      getLogger().debug(getClass(), "terminating all web connections...");
       
       // interrupt all web connection service threads
       Iterator i = mWebConnectionServiceThreadToWebConnection.
@@ -557,9 +553,8 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
          Thread thread = (Thread)i.next();
          
          WebConnection webConnection = getWebConnection(thread);
-         getLogger().debug(
-            getClass().getName() + " terminating web connection," +
-            "ip=" + webConnection.getRemoteIP());
+         getLogger().debug(getClass(),
+            "terminating web connection,ip=" + webConnection.getRemoteIP());
 
          // interrupt thread
          thread.interrupt();
@@ -578,7 +573,7 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
          }
          catch(Throwable t)
          {
-            getLogger().debug(Logger.getStackTrace(t));
+            getLogger().debug(getClass(), Logger.getStackTrace(t));
          }
       }
       
@@ -590,8 +585,7 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
          wca.terminateAllWebConnections();
       }
       
-      getLogger().debug(
-         getClass().getName() + " all web connections terminated.");
+      getLogger().debug(getClass(), "all web connections terminated.");
    }
    
    /**

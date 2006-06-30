@@ -79,8 +79,9 @@ implements HttpWebRequestServicer
       }
       catch(Throwable t)
       {
-         getLogger().error("could not read file from http web request!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(),
+            "could not read file from http web request!");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;
@@ -129,9 +130,9 @@ implements HttpWebRequestServicer
       }
       catch(Throwable t)
       {
-         getLogger().error("could not read file from http web request " +
-                           "body part body!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(),
+            "could not read file from http web request body part body!");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;
@@ -174,8 +175,9 @@ implements HttpWebRequestServicer
       }
       catch(Throwable t)
       {
-         getLogger().error("could not send file in http web response!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(),
+            "could not send file in http web response!");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }      
       
       return rval;
@@ -224,9 +226,9 @@ implements HttpWebRequestServicer
       }
       catch(Throwable t)
       {
-         getLogger().error("could not send file in http web response " +
-                           "body part body!");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(),
+            "could not send file in http web response body part body!");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }      
       
       return rval;
@@ -244,8 +246,9 @@ implements HttpWebRequestServicer
       // convert all "\\" to "/"
       path = path.replaceAll("\\\\", "/");
       
-      getLogger().debug("http web request servicer path is: " +
-                        getHttpWebRequestServicerPath());
+      getLogger().debug(getClass(),
+         "http web request servicer path is: " +
+         getHttpWebRequestServicerPath());
       
       // strip off servicer path
       int index = path.indexOf(getHttpWebRequestServicerPath());
@@ -386,8 +389,8 @@ implements HttpWebRequestServicer
       // makes sure the path is relative to the servicer path
       path = getServicerRelativePath(path);
       
-      getLogger().debug(
-            "get permissions for servicer relative path: \"" + path + "\"");
+      getLogger().debug(getClass(), 
+         "get permissions for servicer relative path: \"" + path + "\"");
       
       // see if the exact path is in the map
       String value = (String)mPathToPermissions.get(path);
@@ -395,11 +398,13 @@ implements HttpWebRequestServicer
       {
          // found permissions
          permissions = value;
-         getLogger().debug("permissions found: \"" + permissions + "\"");
+         getLogger().debug(getClass(),
+            "permissions found: \"" + permissions + "\"");
       }
       else
       {
-         getLogger().debug("checking for recursive path permissions...");
+         getLogger().debug(getClass(),
+            "checking for recursive path permissions...");
          
          // get the path components of the path
          String[] pathComps = path.split("/");
@@ -419,8 +424,8 @@ implements HttpWebRequestServicer
                if(gluedComps.equals(nextPath) && recursive)
                {
                   permissions = (String)mPathToPermissions.get(nextPath);
-                  getLogger().debug(
-                        "permissions found: \"" + permissions + "\"");
+                  getLogger().debug(getClass(),
+                     "permissions found: \"" + permissions + "\"");
                   break;
                }
                

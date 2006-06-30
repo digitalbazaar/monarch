@@ -186,14 +186,14 @@ public class PrivateKeyCryptor
             {
                setError(km.getError());
                
-               getLogger().debug(
-                  "PrivateKeyCryptor: ERROR - invalid password!");
+               getLogger().debug(getClass(),
+                  "ERROR - invalid password!");
             }
          }
          else
          {
-            getLogger().debug(
-               "PrivateKeyCryptor: ERROR - cannot use null password!");
+            getLogger().debug(getClass(),
+               "ERROR - cannot use null password!");
          }
       }
 
@@ -285,40 +285,39 @@ public class PrivateKeyCryptor
                      }
                      else
                      {
-                        getLogger().debug(
-                           "PrivateKeyCryptor: ERROR - could not store keys!");
+                        getLogger().debug(getClass(),
+                           "ERROR - could not store keys!");
                      }
                   }
                   else
                   {
-                     getLogger().debug( 
-                        "PrivateKeyCryptor: ERROR - could not store key file!");
+                     getLogger().debug(getClass(), 
+                        "ERROR - could not store key file!");
                   }
                }
                else
                {
-                  getLogger().debug(
-                     "PrivateKeyCryptor: ERROR - could not decrypt password!");
+                  getLogger().debug(getClass(),
+                     "ERROR - could not decrypt password!");
                }
             }
             else
             {
-               getLogger().debug(
-                  "PrivateKeyCryptor: ERROR - could not store " +
+               getLogger().debug(getClass(),
+                  "ERROR - could not store " +
                   "encrypted password!");
             }
          }
          else
          {
-            getLogger().debug(
-               "PrivateKeyCryptor: ERROR - could not generate keys!");
+            getLogger().debug(getClass(),
+               "ERROR - could not generate keys!");
          }
       }
       else
       {
-         getLogger().debug(
-            "PrivateKeyCryptor: ERROR - cannot generate keys with " +
-            "null password!");
+         getLogger().debug(getClass(),
+            "ERROR - cannot generate keys with null password!");
       }
 
       return rval;
@@ -357,28 +356,26 @@ public class PrivateKeyCryptor
                }
                else
                {
-                  getLogger().debug(
-                     "PrivateKeyCryptor: ERROR - could not decrypt password!");
+                  getLogger().debug(getClass(),
+                     "ERROR - could not decrypt password!");
                }
             }
             else
             {
-               getLogger().debug(
-                  "PrivateKeyCryptor: ERROR - could not store " +
-                  "encrypted password!");
+               getLogger().debug(getClass(),
+                  "ERROR - could not store encrypted password!");
             }
          }
          else
          {
-            getLogger().debug(
-               "PrivateKeyCryptor: ERROR - could not generate keys!");
+            getLogger().debug(getClass(),
+               "ERROR - could not generate keys!");
          }
       }
       else
       {
-         getLogger().debug(
-            "PrivateKeyCryptor: ERROR - cannot generate keys with " +
-            "null password!");
+         getLogger().debug(getClass(),
+            "ERROR - cannot generate keys with null password!");
       }
 
       return rval;
@@ -478,9 +475,9 @@ public class PrivateKeyCryptor
       }
       catch(Throwable t)
       {
-         getLogger().error(
-            "PrivateKeyCryptor: ERROR - Unable to load encrypted private key.");
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().error(getClass(),
+            "Unable to load encrypted private key.");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
 
       return rval;      
@@ -503,8 +500,8 @@ public class PrivateKeyCryptor
       }
       else
       {
-         getLogger().debug(
-            "PrivateKeyCryptor: ERROR - could not get encoded key!");
+         getLogger().debug(getClass(),
+            "ERROR - could not get encoded key!");
       }
       
       return pkey;
@@ -527,8 +524,8 @@ public class PrivateKeyCryptor
       }
       else
       {
-         getLogger().debug(
-            "PrivateKeyCryptor: ERROR - could not get encoded key!");
+         getLogger().debug(getClass(),
+            "ERROR - could not get encoded key!");
       }
       
       return pkey;
@@ -557,14 +554,14 @@ public class PrivateKeyCryptor
             {
                setError(km.getError());
                
-               getLogger().debug(
-                  "PrivateKeyCryptor: ERROR - invalid password!");
+               getLogger().debug(getClass(),
+                  "ERROR - invalid password!");
             }
          }
          else
          {
-            getLogger().debug(
-               "PrivateKeyCryptor: ERROR - cannot use null password!");
+            getLogger().debug(getClass(),
+               "ERROR - cannot use null password!");
          }
       }
 

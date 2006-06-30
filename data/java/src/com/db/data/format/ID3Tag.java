@@ -193,15 +193,15 @@ public class ID3Tag
          }
          else
          {
-            LoggerManager.getLogger("dbdata").debug(
+            LoggerManager.getLogger("dbdata").debug(getClass(),
                "Could not parse ID3 tag, not enough data.");
-            LoggerManager.getLogger("dbdata").debug(
+            LoggerManager.getLogger("dbdata").debug(getClass(),
                mSize + " bytes needed, " + length + " bytes given");
          }
       }
       else
       {
-         LoggerManager.getLogger("dbdata").debug(
+         LoggerManager.getLogger("dbdata").debug(getClass(),
             "No existing ID3v2 header found.");
       }
       

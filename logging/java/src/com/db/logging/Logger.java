@@ -688,20 +688,24 @@ public class Logger
          
          if(header)
          {
-            if(c != null)
-            {
-               logText = c.getName();
-            }
-            
             String date = getDate();
             if(!date.equals(""))
             {
-               logText += getDate() + " " + getName() + " - " + text;
+               logText = getDate() + " ";
+            }
+            
+            logText += getName() + " ";
+            
+            if(c != null)
+            {
+               logText += c.getSimpleName() + " - ";
             }
             else
             {
-               logText += getName() + " - " + text;
+               logText += "- ";
             }
+            
+            logText += text;
          }
          else
          {
@@ -836,15 +840,7 @@ public class Logger
    {
       boolean rval = false;
       
-      if(c != null)
-      {
-         rval = log(
-            null, "ERROR: " + c.getName() + ": " + text, ERROR_VERBOSITY);
-      }
-      else
-      {
-         rval = log(null, "ERROR: " + text, ERROR_VERBOSITY);
-      }
+      rval = log(c, "ERROR: " + text, ERROR_VERBOSITY);
       
       return rval;
    }
@@ -873,15 +869,7 @@ public class Logger
    {
       boolean rval = false;
       
-      if(c != null)
-      {
-         rval = log(
-            null, "WARNING: " + c.getName() + ": " + text, WARNING_VERBOSITY);
-      }
-      else
-      {
-         rval = log(null, "WARNING: " + text, WARNING_VERBOSITY);
-      }
+      rval = log(c, "WARNING: " + text, WARNING_VERBOSITY);
       
       return rval;
    }
@@ -910,15 +898,7 @@ public class Logger
    {
       boolean rval;
       
-      if(c != null)
-      {
-         rval = log(
-            null, "MSG: " + c.getName() + ": " + text, MSG_VERBOSITY);
-      }
-      else
-      {
-         rval = log(null, "MSG: " + text, MSG_VERBOSITY);
-      }
+      rval = log(c, "MSG: " + text, MSG_VERBOSITY);
       
       return rval;
    }
@@ -947,15 +927,7 @@ public class Logger
    {
       boolean rval = false;
       
-      if(c != null)
-      {
-         rval = log(
-            null, "DEBUG: " + c.getName() + ": " + text, DEBUG_VERBOSITY);
-      }
-      else
-      {
-         rval = log(null, "DEBUG: " + text, DEBUG_VERBOSITY);
-      }
+      rval = log(c, "DEBUG: " + text, DEBUG_VERBOSITY);
       
       return rval;
    }
@@ -984,16 +956,7 @@ public class Logger
    {
       boolean rval = false;
       
-      if(c != null)
-      {
-         rval = log(
-            null, "DEBUG-DATA: " + c.getName() + ": " + text,
-            DEBUG_DATA_VERBOSITY);
-      }
-      else
-      {
-         rval = log(null, "DEBUG-DATA: " + text, DEBUG_DATA_VERBOSITY);
-      }
+      rval = log(c, "DEBUG-DATA: " + text, DEBUG_DATA_VERBOSITY);
       
       return rval;
    }
@@ -1022,15 +985,7 @@ public class Logger
    {
       boolean rval = false;
       
-      if(c != null)
-      {
-         rval = log(
-            null, "DETAIL: " + c.getName() + ": " + text, DETAIL_VERBOSITY);
-      }
-      else
-      {
-         rval = log(null, "DETAIL: " + text, DETAIL_VERBOSITY);
-      }
+      rval = log(c, "DETAIL: " + text, DETAIL_VERBOSITY);
       
       return rval;
    }

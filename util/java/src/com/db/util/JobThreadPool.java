@@ -148,7 +148,7 @@ public class JobThreadPool
             // if the thread is not alive, remove it and continue on
             if(!thread.isAlive())
             {
-               getLogger().detail("JobThreadPool: removing expired thread.");
+               getLogger().detail(getClass(), "removing expired thread.");
                
                // interrupt thread just in case
                thread.interrupt();
@@ -165,7 +165,7 @@ public class JobThreadPool
                // this one
                if(extraThreads > 0)
                {
-                  getLogger().detail("JobThreadPool: removing extra thread.");
+                  getLogger().detail(getClass(), "removing extra thread.");
                   
                   // interrupt thread
                   thread.interrupt();
@@ -191,7 +191,7 @@ public class JobThreadPool
          // create new job thread
          rval = createJobThread();
          
-         getLogger().detail("JobThreadPool: adding new thread.");
+         getLogger().detail(getClass(), "adding new thread.");
          
          // add thread to pool
          mThreads.add(rval);
@@ -299,8 +299,8 @@ public class JobThreadPool
          // toggle interrupt thread to true
          Thread.currentThread().interrupt();
          
-         getLogger().debug(
-            "JobThreadPool: thread acquisition interrupted.");
+         getLogger().debug(getClass(), 
+            "thread acquisition interrupted.");
       }
       
       // if a permit was acquired, release it
@@ -315,7 +315,7 @@ public class JobThreadPool
     */
    public synchronized void terminateAllThreads()
    {
-      getLogger().detail("JobThreadPool: terminating all threads.");
+      getLogger().detail(getClass(), "terminating all threads.");
       
       // iterate through all threads, interrupt and remove them
       Iterator i = mThreads.iterator();
@@ -330,7 +330,7 @@ public class JobThreadPool
          i.remove();
       }
       
-      getLogger().detail("JobThreadPool: all threads terminated.");      
+      getLogger().detail(getClass(), "all threads terminated.");      
    }
    
    /**
