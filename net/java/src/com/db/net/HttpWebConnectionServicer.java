@@ -127,8 +127,8 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
    {
       path = readyPath(path);
       
-      getLogger().debug(getClass(),
-         "looking for http web request servicer for path: " + path);
+      getLogger().detail(getClass(),
+         "looking for HttpWebRequestServicer for path:\n'" + path + "'");
       
       HttpWebRequestServicer hwrs = (HttpWebRequestServicer)map.get(path);
       while(hwrs == null && !path.equals(""))
@@ -141,8 +141,9 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
             index = path.lastIndexOf('/');
             path = path.substring(0, index + 1);
             
-            getLogger().debug(getClass(),
-               "looking for http web request servicer " + "for path: " + path);
+            getLogger().detail(getClass(),
+               "looking for HttpWebRequestServicer for path:\n'" +
+               path + "'");
             
             // try to get servicer again
             hwrs = (HttpWebRequestServicer)map.get(path);
@@ -152,12 +153,13 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
       if(hwrs != null)
       {
          getLogger().debug(getClass(),
-            "http web request servicer found (" +
-            hwrs.getClass().getName() + ") for path: " + path);
+            "HttpWebRequestServicer found:\n'" +
+            hwrs.getClass().getName() + "' for path '" + path + "'");
       }
       else
       {
-         getLogger().debug(getClass(), "no http web request servicer found!");
+         getLogger().debug(getClass(),
+            "no HttpWebRequestServicer found for path:\n'" + path + "'");
       }
       
       return hwrs;
@@ -343,8 +345,8 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
       HttpWebRequestServicer hwrs, String path)
    {
       getLogger().debug(getClass(),
-         "adding non-secure http web request servicer: " +
-         path + "->" + hwrs.getClass().getName());
+         "adding non-secure http web request servicer:\n'" +
+         path + "'->'" + hwrs.getClass().getName() + "'");
 
       addHttpWebRequestServicer(mPathToNonSecureServicer, hwrs, path);
    }
@@ -363,8 +365,8 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
       HttpWebRequestServicer hwrs, String path)
    {
       getLogger().debug(getClass(),
-         "adding secure http web request servicer: " +
-         path + "->" + hwrs.getClass().getName());
+         "adding secure http web request servicer:\n'" +
+         path + "'->'" + hwrs.getClass().getName() + "'");
 
       addHttpWebRequestServicer(mPathToSecureServicer, hwrs, path);
    }
@@ -377,7 +379,7 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
    public void removeNonSecureHttpWebRequestServicer(String path)
    {
       getLogger().debug(getClass(),
-         "removing non-secure http web request servicer: " + path);
+         "removing non-secure http web request servicer:\n'" + path + "'");
       removeHttpWebRequestServicer(mPathToNonSecureServicer, path);
    }
    
@@ -389,7 +391,7 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
    public void removeSecureHttpWebRequestServicer(String path)
    {
       getLogger().debug(getClass(),
-         "removing secure http web request servicer: " + path);
+         "removing secure http web request servicer:\n'" + path + "'");
       removeHttpWebRequestServicer(mPathToSecureServicer, path);
    }
    

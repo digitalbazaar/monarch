@@ -247,8 +247,8 @@ implements HttpWebRequestServicer
       path = path.replaceAll("\\\\", "/");
       
       getLogger().debug(getClass(),
-         "http web request servicer path is: " +
-         getHttpWebRequestServicerPath());
+         "http web request servicer path is:\n'" +
+         getHttpWebRequestServicerPath() + "'");
       
       // strip off servicer path
       int index = path.indexOf(getHttpWebRequestServicerPath());
@@ -390,7 +390,7 @@ implements HttpWebRequestServicer
       path = getServicerRelativePath(path);
       
       getLogger().debug(getClass(), 
-         "get permissions for servicer relative path: \"" + path + "\"");
+         "get permissions for servicer relative path:\n'" + path + "'");
       
       // see if the exact path is in the map
       String value = (String)mPathToPermissions.get(path);
@@ -399,7 +399,7 @@ implements HttpWebRequestServicer
          // found permissions
          permissions = value;
          getLogger().debug(getClass(),
-            "permissions found: \"" + permissions + "\"");
+            "permissions found:\n'" + permissions + "'");
       }
       else
       {
@@ -425,7 +425,7 @@ implements HttpWebRequestServicer
                {
                   permissions = (String)mPathToPermissions.get(nextPath);
                   getLogger().debug(getClass(),
-                     "permissions found: \"" + permissions + "\"");
+                     "permissions found:\n'" + permissions + "'");
                   break;
                }
                

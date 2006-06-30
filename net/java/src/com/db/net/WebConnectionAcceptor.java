@@ -362,12 +362,12 @@ public class WebConnectionAcceptor
             if(webConnection instanceof ProxyWebConnection)
             {
                getLogger().debug(getClass(),
-                  "proxy web connection accepted, ip=" + ip);
+                  "proxy web connection accepted,ip=" + ip);
             }
             else
             {
                getLogger().debug(getClass(),
-                  "web connection accepted, ip=" + ip);
+                  "web connection accepted,ip=" + ip);
             }
          
             // fire message indicating that a web connection has been accepted
