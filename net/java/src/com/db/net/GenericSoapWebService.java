@@ -10,6 +10,7 @@ import java.util.Vector;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.util.MethodInvoker;
 
 /**
  * A generic soap web service.
@@ -99,64 +100,51 @@ public abstract class GenericSoapWebService implements SoapWebService
     * Invokes a method from the soap interface on the soap implementer. Throws
     * an exception if the soap method could not be invoked.
     * 
-    * @param method the method to call.
-    * @param params the params for the method.
+    * @param methodName the name of the method to call.
+    * @param params the parameters for the method.
+    * 
     * @return the return value from the method.
+    * 
     * @throws Throwable 
     */
-   protected Object invokeSoapMethod(String method, Vector params)
+   protected Object invokeSoapMethod(String methodName, Object[] params)
    throws Throwable
    {
       Object rval = null;
       
-      boolean methodInvoked = false;
-      Method[] methods = getSoapInterface().getDeclaredMethods();
-      for(int i = 0; i < methods.length; i++)
+      // find the soap method
+      Method method = MethodInvoker.findMethod(
+         getSoapInterface(), methodName, params);
+      
+      if(method != null)
       {
-         Method m = methods[i];
-         if(m.getName().equals(method))
+         // get method signature
+         String signature = MethodInvoker.getSignature(method);
+         
+         getLogger().detail(getClass(),
+            "soap method found,method=" + signature);
+         
+         try
          {
-            getLogger().debug(getClass(),
-               "soap method name match,method=" + method);
-
-            Class[] types = m.getParameterTypes();
-            int numParams = types.length;
-            if(params.size() == numParams)
-            {
-               getLogger().debug(getClass(),
-                  "parameter count match,count=" + params.size());
-
-               try
-               {
-                  rval = m.invoke(getSoapImplementer(), params.toArray());
-                  methodInvoked = true;
-               }
-               catch(Throwable t)
-               {
-                  getLogger().error(getClass(),
-                     "could not invoke soap method: " + method +
-                     ",an exception occured,exception= " + t);
-                  throw t;
-               }
-               
-               break;
-            }
-
-            getLogger().debug(getClass(),
-               "parameter count discrepancy" +
-               ",soap method parameter count=" + numParams +
-               ",passed parameter count=" + params.size());
+            // invoke method
+            rval = method.invoke(getSoapImplementer(), params);
+         }
+         catch(Throwable t)
+         {
+            getLogger().error(getClass(),
+               "could not invoke soap method '" + signature +
+               "',an exception occured,exception= " + t);
+            throw t;
          }
       }
-
-      if(!methodInvoked)
+      else
       {
          getLogger().error(getClass(),
-            "could not invoke soap method: " + method +
+            "could not invoke soap method: " + methodName +
             ",soap method not recognized!");
          throw new SoapMethodNotRecognizedException(
-               "Could not invoke soap method: " + method +
-               ",soap method not recognized!");
+            "Could not invoke soap method: " + methodName +
+            ",soap method not recognized!");
       }
       
       return rval;
@@ -300,9 +288,9 @@ public abstract class GenericSoapWebService implements SoapWebService
 
       Thread thread = Thread.currentThread();
       
-      String method = sm.getMethod();
+      String methodName = sm.getMethod();
       getLogger().debug(getClass(),
-         "attempting to call soap method: " + method);
+         "attempting to call soap method: " + methodName);
       
       try
       {
@@ -310,10 +298,10 @@ public abstract class GenericSoapWebService implements SoapWebService
          mCallThreadToSoapMessage.put(thread, sm);
          
          // get the parameters in order
-         Vector params = getOrderedParams(method, sm.getParams());
+         Vector params = getOrderedParams(methodName, sm.getParams());
             
          // invoke the soap method
-         rval = invokeSoapMethod(method, params);
+         rval = invokeSoapMethod(methodName, params.toArray());
          
          // remove the thread from the thread->soap message map
          mCallThreadToSoapMessage.remove(thread);
@@ -355,7 +343,7 @@ public abstract class GenericSoapWebService implements SoapWebService
       
       long et = new java.util.Date().getTime();
       getLogger().debug(getClass(),
-         "total soap method (" + method + ") time: " + (et - st) + " ms");
+         "total soap method (" + methodName + ") time: " + (et - st) + " ms");
       
       return rval;
    }
