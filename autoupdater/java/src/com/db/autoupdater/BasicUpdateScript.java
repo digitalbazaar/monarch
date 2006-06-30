@@ -281,7 +281,7 @@ public class BasicUpdateScript implements UpdateScript
             }
             catch(SecurityException se)
             {
-               getLogger().error(
+               getLogger().error(getClass(), 
                   "Permission denied while attempting to delete file: "+
                   deleteFile.getAbsolutePath());
             }
@@ -319,7 +319,7 @@ public class BasicUpdateScript implements UpdateScript
          }
          catch(SecurityException se)
          {
-            getLogger().error(
+            getLogger().error(getClass(), 
                "Update script failed to create directory: "+
                createDir.getAbsolutePath());
          }
@@ -360,9 +360,9 @@ public class BasicUpdateScript implements UpdateScript
                }
                catch(SecurityException se)
                {
-                  getLogger().error(
-                     "Permission denied while attempting to delete directory: "+
-                     deleteDir.getAbsolutePath());
+                  getLogger().error(getClass(), 
+                     "Permission denied while attempting to " +
+                     "delete directory: " + deleteDir.getAbsolutePath());
                }
             }
          }
@@ -479,7 +479,7 @@ public class BasicUpdateScript implements UpdateScript
             }
             catch(Throwable t)
             {
-               getLogger().debug(Logger.getStackTrace(t));
+               getLogger().debug(getClass(), Logger.getStackTrace(t));
                
                // fire event
                fireBasicUpdateScriptProcessEvent(
@@ -491,7 +491,7 @@ public class BasicUpdateScript implements UpdateScript
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       // remove any invalid temp file created

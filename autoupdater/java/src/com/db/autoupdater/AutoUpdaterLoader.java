@@ -108,21 +108,21 @@ public abstract class AutoUpdaterLoader
                else
                {
                   run = false;
-                  getLogger().error(
+                  getLogger().error(getClass(), 
                      "Could not load AutoUpdateable application!");
                }
             }
             else
             {
                run = false;
-               getLogger().error(
+               getLogger().error(getClass(), 
                   "Could not read AutoUpdateable configuration file!");
             }
          }
          else
          {
             run = false;
-            getLogger().error("Could not load AutoUpdater!");
+            getLogger().error(getClass(), "Could not load AutoUpdater!");
          }
       }
    }

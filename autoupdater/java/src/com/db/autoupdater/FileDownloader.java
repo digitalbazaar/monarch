@@ -62,7 +62,7 @@ public class FileDownloader
          FileOutputStream fos = null;
          BufferedInputStream bis = null;
          
-         getLogger().debug("Downloading file=" + url);
+         getLogger().debug(getClass(), "Downloading file=" + url);
                
          // create file output stream for writing to temp file
          fos = new FileOutputStream(file);
@@ -101,7 +101,7 @@ public class FileDownloader
       }
       catch(Throwable t)
       {
-         getLogger().debug(Logger.getStackTrace(t));
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       // downloading is complete

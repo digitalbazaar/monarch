@@ -136,7 +136,7 @@ public class BasicUpdateScriptCommand
          }
          catch(NumberFormatException nfe)
          {
-            getLogger().error(
+            getLogger().error(getClass(), 
                "Version number in update script is invalid: " + versionNumber);
          }
       }
@@ -169,7 +169,7 @@ public class BasicUpdateScriptCommand
             }
             catch(MalformedURLException mue)
             {
-               getLogger().error(
+               getLogger().error(getClass(), 
                   "Update script install URL is invalid: " + url);
                success &= false;
             }
@@ -184,7 +184,7 @@ public class BasicUpdateScriptCommand
             }
             catch(NumberFormatException nfe)
             {
-               getLogger().error(
+               getLogger().error(getClass(), 
                   "Update script install URL is invalid: " + url);
                success &= false;
             }
@@ -214,7 +214,7 @@ public class BasicUpdateScriptCommand
          }
          else
          {
-            getLogger().error(
+            getLogger().error(getClass(), 
                "Update script on_success command is invalid: " + argument);
             success &= false;
          }

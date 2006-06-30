@@ -613,7 +613,7 @@ public abstract class AutoUpdater
       }
       catch(Throwable t)
       {
-         getLogger().error(Logger.getStackTrace(t));
+         getLogger().error(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;

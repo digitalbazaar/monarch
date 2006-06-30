@@ -203,7 +203,8 @@ public class UTTabPanel implements ActionListener, TabPanelListener
       {
       }*/
       
-      LoggerManager.getLogger("dbgui").debug("Frame created!");      
+      LoggerManager.getLogger("dbgui").debug(
+         UTTabPanel.class, "Frame created!");      
    }
    
    public void actionPerformed(ActionEvent e)
@@ -212,7 +213,8 @@ public class UTTabPanel implements ActionListener, TabPanelListener
       {
          EditableTabPanel tabPanel = (EditableTabPanel)mTabPanel;
          
-         LoggerManager.getLogger("dbgui").debug("Tab button pressed!");
+         LoggerManager.getLogger("dbgui").debug(
+            getClass(), "Tab button pressed!");
          if(mTabPanel.isTabFlashing(mContent0))
          {
             System.out.println("button pressed");
@@ -258,7 +260,8 @@ public class UTTabPanel implements ActionListener, TabPanelListener
       }
       else if(e.getActionCommand().equals("tab2_button"))
       {
-         LoggerManager.getLogger("dbgui").debug("Tab2 button pressed!");
+         LoggerManager.getLogger("dbgui").debug(
+            getClass(), "Tab2 button pressed!");
       }
    }
    
