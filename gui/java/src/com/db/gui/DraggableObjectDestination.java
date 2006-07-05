@@ -206,6 +206,16 @@ public class DraggableObjectDestination implements DropTargetListener
    }
    
    /**
+    * Gets the component that can receive dropped draggable objects.
+    * 
+    * @return the draggable object destination component.
+    */
+   public Component getComponent()
+   {
+      return mDropTarget.getComponent();
+   }
+   
+   /**
     * Gets the logger for this object.
     *
     * @return the logger for this object.
