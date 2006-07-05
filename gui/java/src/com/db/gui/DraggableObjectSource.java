@@ -208,7 +208,7 @@ implements DragGestureListener, DragSourceListener
                // get the translation transform
                AffineTransform transform =
                   AffineTransform.getTranslateInstance(x, y);
-
+               
                // paint the parent under the previous location
                if(parent instanceof JComponent)
                {
@@ -223,7 +223,7 @@ implements DragGestureListener, DragSourceListener
                   // paint the whole parent (no other option)
                   parent.paint(g2);
                }
-            
+               
                // draw the image
                g2.drawImage(image, transform, null);
             }
@@ -291,7 +291,7 @@ implements DragGestureListener, DragSourceListener
             // paint the whole component (no other option)
             parent.paint(g2);
          }
-      }      
+      }
    }
 
    /**
@@ -321,6 +321,29 @@ implements DragGestureListener, DragSourceListener
          // notify pool of dropped object
          mDraggableObjectPool.draggableObjectDropped(
             wrapper.getObject(), dsde.getDropAction(), getComponent());
+         
+         // handle the drag image if it is not automatically supported
+         if(!DragSource.isDragImageSupported() && mDragImageProvider != null)
+         {
+            // get the top parent
+            Component parent = getTopParent(getComponent());         
+            
+            // paint the parent
+            if(parent instanceof JComponent)
+            {
+               JComponent component = (JComponent)parent;
+               component.paintImmediately(
+                  0, 0, component.getWidth(), component.getHeight());
+            }
+            else
+            {
+               // get the graphics for the component
+               Graphics2D g2 = (Graphics2D)parent.getGraphics();
+               
+               // paint the whole component (no other option)
+               parent.paint(g2);
+            }
+         }
       }
    }
    
