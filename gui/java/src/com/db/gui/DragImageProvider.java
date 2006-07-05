@@ -27,11 +27,12 @@ public interface DragImageProvider
     * DnDConstants.ACTION_MOVE,
     * DnDConstants.ACTION_COPY_OR_MOVE
     * 
-    * @param source the component the drag originates from.
+    * @param component the component the drag is over
+    *                  (either a source or destination).
     *  
     * @return the drag image.
     */
-   public Image getDragImage(Object obj, int action, Component source);
+   public Image getDragImage(Object obj, int action, Component component);
    
    /**
     * Gets the drag image offset. This is the offset, from the cursor,
@@ -45,9 +46,10 @@ public interface DragImageProvider
     * DnDConstants.ACTION_MOVE,
     * DnDConstants.ACTION_COPY_OR_MOVE
     * 
-    * @param source the component the drag originates from.
+    * @param component the component the drag is over
+    *                  (either a source or destination).
     * 
     * @return the drag image offset.
     */
-   public Point getDragImageOffset(Object obj, int action, Component source);
+   public Point getDragImageOffset(Object obj, int action, Component component);
 }

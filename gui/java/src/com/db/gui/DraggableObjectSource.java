@@ -140,7 +140,7 @@ implements DragGestureListener, DragSourceListener
    public void dragOver(DragSourceDragEvent dsde)
    {
       // draw the drag image if it is not automatically supported
-      if(!DragSource.isDragImageSupported())
+      if(!DragSource.isDragImageSupported() && mDragImageProvider != null)
       {
          // get the cursor location
          Point location = dsde.getLocation();
@@ -168,35 +168,39 @@ implements DragGestureListener, DragSourceListener
             // get the drag image offset from the provider
             Point offset = mDragImageProvider.
                getDragImageOffset(obj, dsde.getDropAction(), getComponent());
-
-            // get the graphics for the component
-            Graphics2D g2 = (Graphics2D)getComponent().getGraphics();
             
-            // get the image position
-            int x = location.x + offset.x;
-            int y = location.y + offset.y;
-            
-            // get the translation transform
-            AffineTransform transform =
-               AffineTransform.getTranslateInstance(x, y);
+            // ensure the drag image and offset are not null
+            if(image != null && offset != null)
+            {
+               // get the graphics for the component
+               Graphics2D g2 = (Graphics2D)getComponent().getGraphics();
+               
+               // get the image position
+               int x = location.x + offset.x;
+               int y = location.y + offset.y;
+               
+               // get the translation transform
+               AffineTransform transform =
+                  AffineTransform.getTranslateInstance(x, y);
 
-            // paint the component under the previous location
-            if(getComponent() instanceof JComponent)
-            {
-               JComponent component = (JComponent)getComponent();
-               component.paintImmediately(
-                  mPreviousLocation.x + offset.x,
-                  mPreviousLocation.y + offset.y,
-                  image.getWidth(null), image.getHeight(null));
+               // paint the component under the previous location
+               if(getComponent() instanceof JComponent)
+               {
+                  JComponent component = (JComponent)getComponent();
+                  component.paintImmediately(
+                     mPreviousLocation.x + offset.x,
+                     mPreviousLocation.y + offset.y,
+                     image.getWidth(null), image.getHeight(null));
+               }
+               else
+               {
+                  // paint the whole component (no other option)
+                  getComponent().paint(g2);
+               }
+            
+               // draw the image
+               g2.drawImage(image, transform, null);
             }
-            else
-            {
-               // paint the whole component (no other option)
-               getComponent().paint(g2);
-            }
-         
-            // draw the image
-            g2.drawImage(image, transform, null);
          
             // store previous location
             mPreviousLocation = location;

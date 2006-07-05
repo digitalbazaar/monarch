@@ -132,13 +132,16 @@ public class UTDragNDrop
       {
          super(model);
          
+         // create TestDragImageProvider
+         TestDragImageProvider imageProvider = new TestDragImageProvider();
+         
          // create the drag source
          mDragSource = new DraggableObjectSource(
-            this, DnDConstants.ACTION_MOVE, this, new TestDragImageProvider());
+            this, DnDConstants.ACTION_MOVE, this, imageProvider);
          
          // create the drop destination
          mDragDestination = new DraggableObjectDestination(
-            this, DnDConstants.ACTION_MOVE, this);
+            this, DnDConstants.ACTION_MOVE, this, imageProvider);
       }
       
       /**
@@ -296,11 +299,12 @@ public class UTDragNDrop
        * DnDConstants.ACTION_MOVE,
        * DnDConstants.ACTION_COPY_OR_MOVE
        * 
-       * @param source the component the drag originates from.
+       * @param component the component the drag is over
+       *                  (either a source or destination).
        *  
        * @return the drag image.
        */
-      public Image getDragImage(Object obj, int action, Component source)
+      public Image getDragImage(Object obj, int action, Component component)
       {
          if(mObject != obj)
          {
@@ -334,11 +338,13 @@ public class UTDragNDrop
        * DnDConstants.ACTION_MOVE,
        * DnDConstants.ACTION_COPY_OR_MOVE
        * 
-       * @param source the component the drag originates from.
+       * @param component the component the drag is over
+       *                  (either a source or destination).
        * 
        * @return the drag image offset.
        */
-      public Point getDragImageOffset(Object obj, int action, Component source)    
+      public Point getDragImageOffset(
+         Object obj, int action, Component component)    
       {
          return new Point(10, -5);
       }

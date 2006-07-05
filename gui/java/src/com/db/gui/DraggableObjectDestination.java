@@ -4,12 +4,19 @@
 package com.db.gui;
 
 import java.awt.Component;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Point;
 import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DragSource;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
+import java.awt.geom.AffineTransform;
+
+import javax.swing.JComponent;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -34,6 +41,18 @@ public class DraggableObjectDestination implements DropTargetListener
    protected DraggableObjectAcceptor mAcceptor;
    
    /**
+    * The drag image provider. This object provides the drag image
+    * and drag image offset for dragging.
+    */
+   protected DragImageProvider mDragImageProvider;   
+   
+   /**
+    * The previous cursor location for a drag. Used to repaint the area of the
+    * component under the drag image. 
+    */
+   protected Point mPreviousLocation;   
+   
+   /**
     * Creates a new DraggableObjectDestination.
     * 
     * @param component the component this drop target is for.
@@ -48,7 +67,32 @@ public class DraggableObjectDestination implements DropTargetListener
     *                 it is dropped.
     */
    public DraggableObjectDestination(
-      Component component, int action, DraggableObjectAcceptor acceptor) 
+      Component component, int action,
+      DraggableObjectAcceptor acceptor)   
+   {
+      this(component, action, acceptor, null);
+   }
+   
+   /**
+    * Creates a new DraggableObjectDestination.
+    * 
+    * @param component the component this drop target is for.
+    * @param action the permitted drag 'n drop action:
+    * 
+    * DnDConstants.ACTION_NONE,
+    * DnDConstants.ACTION_COPY,
+    * DnDConstants.ACTION_MOVE,
+    * DnDConstants.ACTION_COPY_OR_MOVE
+    * 
+    * @param acceptor the object that can accept the draggable object when
+    *                 it is dropped.
+    * @param dragImageProvider the object that provides the drag image
+    *                          (can be null).
+    */
+   public DraggableObjectDestination(
+      Component component, int action,
+      DraggableObjectAcceptor acceptor,
+      DragImageProvider dragImageProvider) 
    {
       // create the drop target
       mDropTarget = new DropTarget(component, action, this);
@@ -58,6 +102,12 @@ public class DraggableObjectDestination implements DropTargetListener
       
       // store the acceptor
       mAcceptor = acceptor;
+      
+      // store the drag image provider
+      mDragImageProvider = dragImageProvider;
+      
+      // previous location for a drag is 0,0 to start
+      mPreviousLocation = new Point();
    }
    
    /**
@@ -109,7 +159,25 @@ public class DraggableObjectDestination implements DropTargetListener
     */
    public void dragExit(DropTargetEvent dte)
    {
-      // do nothing
+      // handle the drag image if it is not automatically supported
+      if(!DragSource.isDragImageSupported() && mDragImageProvider != null)
+      {
+         // paint the component
+         if(getComponent() instanceof JComponent)
+         {
+            JComponent component = (JComponent)getComponent();
+            component.paintImmediately(
+               0, 0, component.getWidth(), component.getHeight());
+         }
+         else
+         {
+            // get the graphics for the component
+            Graphics2D g2 = (Graphics2D)getComponent().getGraphics();
+            
+            // paint the whole component (no other option)
+            getComponent().paint(g2);
+         }
+      }
    }
 
    /**
@@ -119,7 +187,71 @@ public class DraggableObjectDestination implements DropTargetListener
     */
    public void dragOver(DropTargetDragEvent dtde)
    {
-      // do nothing
+      // draw the drag image if it is not automatically supported
+      if(!DragSource.isDragImageSupported() && mDragImageProvider != null)
+      {
+         // get the cursor location
+         Point location = dtde.getLocation();
+         
+         // do NOT convert screen coordinates to component coordinates
+
+         // see if the previous location has changed
+         if(!mPreviousLocation.equals(location))
+         {
+            // get the transferable
+            Transferable transferable = dtde.getTransferable();
+            
+            // wrap the transferable
+            TransferableWrapper wrapper = new TransferableWrapper(transferable);
+            
+            // get the object being dragged
+            Object obj = wrapper.getObject();
+            
+            // get the drag image from the provider
+            Image image = mDragImageProvider.
+               getDragImage(obj, dtde.getDropAction(), getComponent());
+            
+            // get the drag image offset from the provider
+            Point offset = mDragImageProvider.
+               getDragImageOffset(obj, dtde.getDropAction(), getComponent());
+            
+            // ensure the drag image and offset are not null
+            if(image != null && offset != null)
+            {
+               // get the graphics for the component
+               Graphics2D g2 = (Graphics2D)getComponent().getGraphics();
+               
+               // get the image position
+               int x = location.x + offset.x;
+               int y = location.y + offset.y;
+               
+               // get the translation transform
+               AffineTransform transform =
+                  AffineTransform.getTranslateInstance(x, y);
+
+               // paint the component under the previous location
+               if(getComponent() instanceof JComponent)
+               {
+                  JComponent component = (JComponent)getComponent();
+                  component.paintImmediately(
+                     mPreviousLocation.x + offset.x,
+                     mPreviousLocation.y + offset.y,
+                     image.getWidth(null), image.getHeight(null));
+               }
+               else
+               {
+                  // paint the whole component (no other option)
+                  getComponent().paint(g2);
+               }
+               
+               // draw the image
+               g2.drawImage(image, transform, null);
+            }
+         
+            // store previous location
+            mPreviousLocation = location;
+         }
+      }
    }
 
    /**
