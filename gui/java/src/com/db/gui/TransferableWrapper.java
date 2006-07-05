@@ -12,26 +12,55 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 
 /**
- * An ObjectTransferer is an object that is used to transfer an Object. 
+ * A TransferableWrapper is wrapper for objects so they can be considered
+ * Transferable and a wrapper for Transferables so that objects can be
+ * retrieved from them.
  * 
  * @author Dave Longley
  */
-public class ObjectTransferer implements Transferable
+public class TransferableWrapper implements Transferable
 {
    /**
-    * The object to transfer.
+    * The object to wrap as a Transferable.
     */
    protected Object mObject;
+
+   /**
+    * Creates a new TransferableWrapper for the passed object with the
+    * passed source component.
+    *
+    * @param obj the object to wrap as Transferable.
+    */
+   public TransferableWrapper(Object obj)
+   {
+      // store object
+      mObject = obj;
+   }
    
    /**
-    * Creates a new ObjectTransferer that can transfer the passed object.
+    * Creates a new TransferableWrapper for the passed Transferrable.
     *
-    * @param obj the object to transfer.
+    * @param transferable the Transferable to wrap.
     */
-   public ObjectTransferer(Object obj)
+   public TransferableWrapper(Transferable transferable)
    {
-      // store object to transfer
-      mObject = obj;
+      try
+      {
+         // get the object from the passed transferable
+         DataFlavor df = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType);
+         if(transferable.isDataFlavorSupported(df))
+         {
+            // store object
+            mObject = transferable.getTransferData(df);
+         }
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(),
+            "An exception was thrown while getting the transferable object " +
+            "from the passed transferable!,exception= " + t);
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
+      }
    }
    
    /**
@@ -49,8 +78,7 @@ public class ObjectTransferer implements Transferable
       try
       {
          // add JVM local object mime type
-         DataFlavor df =
-            new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType);
+         DataFlavor df = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType);
          flavors = new DataFlavor[]{df};
       }
       catch(Throwable t)
@@ -108,14 +136,18 @@ public class ObjectTransferer implements Transferable
          // return the object
          rval = getObject();
       }
+      else
+      {
+         throw new UnsupportedFlavorException(flavor);
+      }
       
       return rval;
    }
    
    /**
-    * Gets the object to transfer/that was transferred.
+    * Gets the wrapped object.
     * 
-    * @return the object to transfer/that was transferred.
+    * @return the wrapped object.
     */
    public Object getObject()
    {
