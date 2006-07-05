@@ -174,7 +174,7 @@ public class DraggableObjectDestination implements DropTargetListener
             // get the graphics for the component
             Graphics2D g2 = (Graphics2D)getComponent().getGraphics();
             
-            // paint the whole component (no other option)
+            // paint the whole component
             getComponent().paint(g2);
          }
       }
@@ -194,6 +194,8 @@ public class DraggableObjectDestination implements DropTargetListener
          Point location = dtde.getLocation();
          
          // do NOT convert screen coordinates to component coordinates
+         // there is an inconsistency here between DropTargetDragEvents
+         // and DragSourceDragEvents
 
          // see if the previous location has changed
          if(!mPreviousLocation.equals(location))

@@ -108,6 +108,29 @@ implements DragGestureListener, DragSourceListener
    }
    
    /**
+    * Gets the top parent of the passed component.
+    * 
+    * @param component the component to get the top parent of.
+    * 
+    * @return the top parent of the passed component.
+    */
+   protected Component getTopParent(Component component)
+   {
+      Component rval = null;
+      
+      if(component.getParent() != null)
+      {
+         rval = getTopParent(component.getParent());
+      }
+      else
+      {
+         rval = component;
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Called as the cursor's hotspot enters a platform-dependent drop site.
     * This method is invoked when all the following conditions are true:
     * <UL>
@@ -145,8 +168,11 @@ implements DragGestureListener, DragSourceListener
          // get the cursor location
          Point location = dsde.getLocation();
          
+         // get the top parent of the component
+         Component parent = getTopParent(getComponent());
+         
          // convert screen coordinates to component coordinates
-         SwingUtilities.convertPointFromScreen(location, getComponent());
+         SwingUtilities.convertPointFromScreen(location, parent);
 
          // see if the previous location has changed
          if(!mPreviousLocation.equals(location))
@@ -172,8 +198,8 @@ implements DragGestureListener, DragSourceListener
             // ensure the drag image and offset are not null
             if(image != null && offset != null)
             {
-               // get the graphics for the component
-               Graphics2D g2 = (Graphics2D)getComponent().getGraphics();
+               // get the graphics for the parent
+               Graphics2D g2 = (Graphics2D)parent.getGraphics();
                
                // get the image position
                int x = location.x + offset.x;
@@ -183,10 +209,10 @@ implements DragGestureListener, DragSourceListener
                AffineTransform transform =
                   AffineTransform.getTranslateInstance(x, y);
 
-               // paint the component under the previous location
-               if(getComponent() instanceof JComponent)
+               // paint the parent under the previous location
+               if(parent instanceof JComponent)
                {
-                  JComponent component = (JComponent)getComponent();
+                  JComponent component = (JComponent)parent;
                   component.paintImmediately(
                      mPreviousLocation.x + offset.x,
                      mPreviousLocation.y + offset.y,
@@ -194,8 +220,8 @@ implements DragGestureListener, DragSourceListener
                }
                else
                {
-                  // paint the whole component (no other option)
-                  getComponent().paint(g2);
+                  // paint the whole parent (no other option)
+                  parent.paint(g2);
                }
             
                // draw the image
@@ -244,7 +270,28 @@ implements DragGestureListener, DragSourceListener
     */
    public void dragExit(DragSourceEvent dse)
    {
-      // do nothing
+      // handle the drag image if it is not automatically supported
+      if(!DragSource.isDragImageSupported() && mDragImageProvider != null)
+      {
+         // get the top parent
+         Component parent = getTopParent(getComponent());         
+         
+         // paint the parent
+         if(parent instanceof JComponent)
+         {
+            JComponent component = (JComponent)parent;
+            component.paintImmediately(
+               0, 0, component.getWidth(), component.getHeight());
+         }
+         else
+         {
+            // get the graphics for the component
+            Graphics2D g2 = (Graphics2D)parent.getGraphics();
+            
+            // paint the whole component (no other option)
+            parent.paint(g2);
+         }
+      }      
    }
 
    /**
