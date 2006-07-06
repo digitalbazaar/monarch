@@ -111,6 +111,17 @@ public class HttpWebResponseHeader extends HttpHeader
    }
    
    /**
+    * Returns true if this header has a 200 OK status code.
+    * 
+    * @return true if the status code for this response header is 200 OK,
+    *         false if not.
+    */
+   public boolean hasOKStatusCode()
+   {
+      return getStatusCode().equals("200 OK");
+   }
+   
+   /**
     * Sets this header to use a 200 OK response.
     */
    public void useOKStatusCode()

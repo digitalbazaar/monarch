@@ -3,7 +3,10 @@
  */
 package com.db.net;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.security.KeyStore;
@@ -64,6 +67,12 @@ public class HttpWebClient
     * The schema for the endpoint address, i.e. http, https.
     */
    protected String mSchema;
+   
+   /**
+    * The default user-agent name for this client.
+    */
+   public static final String DEFAULT_USER_AGENT =
+      "Digital Bazaar Http Client 1.0";
    
    /**
     * Creates a new http web client with the given endpoint address.
@@ -269,6 +278,7 @@ public class HttpWebClient
     * 
     * @param request the http web request to send to the server.
     * @param is the input stream to read the request body from.
+    * 
     * @return true if the request was successfully sent, false if not.
     */
    public boolean sendRequest(HttpWebRequest request, InputStream is)
@@ -288,6 +298,7 @@ public class HttpWebClient
     * 
     * @param request the http web request to send to the server.
     * @param body the body to send along with the request.
+    * 
     * @return true if the request was successfully sent, false if not.
     */
    public boolean sendRequest(HttpWebRequest request, String body)
@@ -307,6 +318,7 @@ public class HttpWebClient
     * 
     * @param request the http web request to send to the server.
     * @param body the body to send along with the request.
+    * 
     * @return true if the request was successfully sent, false if not.
     */
    public boolean sendRequest(HttpWebRequest request, byte[] body)
@@ -325,6 +337,7 @@ public class HttpWebClient
     * Sends an http web request from the client to the server.
     * 
     * @param request the http web request to send to the server.
+    * 
     * @return true if the request was successfully sent, false if not.
     */
    public boolean sendRequest(HttpWebRequest request)
@@ -340,6 +353,7 @@ public class HttpWebClient
     * Recieves the response header from the server.
     * 
     * @param response the http response to read with.
+    * 
     * @return true if the response header could be read, false if not.
     */
    public boolean receiveResponseHeader(HttpWebResponse response)
@@ -356,6 +370,88 @@ public class HttpWebClient
       
       // set whether or not the header was read
       rval = !response.getHeader().getStatusCode().startsWith("1");
+      
+      return rval;
+   }
+   
+   /**
+    * A convenience method for performing an HTTP GET to retrieve a file.
+    * 
+    * @param url the url for the file.
+    * @param file where to write the file.
+    * 
+    * @return true if the file was received, false if not.
+    */
+   public boolean getFile(String url, File file)
+   {
+      boolean rval = false;
+      
+      // get a web connection
+      HttpWebConnection connection = (HttpWebConnection)connect();
+      if(connection != null)
+      {
+         // create http web request
+         HttpWebRequest request = new HttpWebRequest(connection);
+         request.getHeader().setMethod("GET");
+         request.getHeader().setPath(url);
+         request.getHeader().setVersion("HTTP/1.1");
+         request.getHeader().setHost(getHost() + ":" + getPort());
+         request.getHeader().setUserAgent(DEFAULT_USER_AGENT);
+         request.getHeader().setConnection("close");
+         
+         // send request
+         if(sendRequest(request))
+         {
+            // receive response header
+            HttpWebResponse response = request.createHttpWebResponse();
+            if(receiveResponseHeader(response))
+            {
+               // see if response was OK
+               if(response.getHeader().hasOKStatusCode())
+               {
+                  // create file output stream reference
+                  FileOutputStream fos = null;
+                  
+                  try
+                  {
+                     // create file output stream for writing to passed file
+                     fos = new FileOutputStream(file);
+
+                     // receive response body
+                     response.receiveBody(fos);
+                     
+                     // close the file output stream
+                     fos.close();
+                     
+                     // file received
+                     rval = true;
+                  }
+                  catch(IOException e)
+                  {
+                     getLogger().error(getClass(),
+                        "An exception occurred while receiving a file!," +
+                        "exception= e");
+                     getLogger().debug(getClass(), Logger.getStackTrace(e));
+                  }
+                  
+                  try
+                  {
+                     // ensure file output stream is closed
+                     if(fos != null)
+                     {
+                        fos.close();
+                     }
+                  }
+                  catch(IOException e)
+                  {
+                  }
+               }
+            }
+         }
+         
+         // disconnect
+         connection.disconnect();
+      }
       
       return rval;
    }
@@ -499,7 +595,7 @@ public class HttpWebClient
    public String getEndpointAddress()
    {
       return mEndpointAddress;
-   }   
+   }
    
    /**
     * Gets the logger.
@@ -509,5 +605,5 @@ public class HttpWebClient
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbnet");
-   }   
+   }
 }
