@@ -378,13 +378,14 @@ public class HttpWebClient
     * A convenience method for performing an HTTP GET to retrieve a file.
     * 
     * @param url the url for the file.
-    * @param file where to write the file.
+    * @param directory the directory to store the file in.
     * 
-    * @return true if the file was received, false if not.
+    * @return the file if it was received or null if the file could not
+    *         be received.
     */
-   public boolean getFile(String url, File file)
+   public File getFile(String url, File directory)
    {
-      boolean rval = false;
+      File rval = null;
       
       // get a web connection
       HttpWebConnection connection = (HttpWebConnection)connect();
@@ -409,13 +410,26 @@ public class HttpWebClient
                // see if response was OK
                if(response.getHeader().hasOKStatusCode())
                {
+                  // get the file name
+                  String filename = response.getHeader().
+                     getContentDispositionValue("filename");
+                  
+                  if(filename == null)
+                  {
+                     filename = "tempfile.tmp";
+                  }
+                  
+                  // get full path of file to write to
+                  String path =
+                     directory.getAbsolutePath() + File.separator + filename;
+                  
                   // create file output stream reference
                   FileOutputStream fos = null;
                   
                   try
                   {
-                     // create file output stream for writing to passed file
-                     fos = new FileOutputStream(file);
+                     // create file output stream for writing to the file
+                     fos = new FileOutputStream(path);
 
                      // receive response body
                      response.receiveBody(fos);
@@ -424,7 +438,7 @@ public class HttpWebClient
                      fos.close();
                      
                      // file received
-                     rval = true;
+                     rval = new File(path);
                   }
                   catch(IOException e)
                   {

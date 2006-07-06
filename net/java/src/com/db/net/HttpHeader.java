@@ -61,6 +61,7 @@ public abstract class HttpHeader
     * BiCapitalizes a header. 
     * 
     * @param header the header to biCapitalize.
+    * 
     * @return the biCapitalized header.
     */
    protected String biCapitalizeHeader(String header)
@@ -108,6 +109,7 @@ public abstract class HttpHeader
     * @param endIndex the index to stop joining at (the value at this
     *                 index is not included). 
     * @param delimiter the delimiter to join the array with.
+    * 
     * @return the joined string.
     */
    protected String joinArray(String[] array, int beginIndex, int endIndex,
@@ -211,6 +213,7 @@ public abstract class HttpHeader
     * Parses this http header.
     * 
     * @param header the request header in string format.
+    * 
     * @return true if the header was successfully parsed, false if not.
     */
    public abstract boolean parse(String header);
@@ -247,6 +250,7 @@ public abstract class HttpHeader
     * Returns true if this http header has the passed header, false if not.
     * 
     * @param header the header to look for.
+    * 
     * @return true if this http header has the passed header, false if not.
     */
    public boolean hasHeader(String header)
@@ -416,20 +420,37 @@ public abstract class HttpHeader
    }
    
    /**
+    * Gets a the value for content-disposition key.
+    * 
+    * Same as "parseContentDispositionValue()".
+    * 
+    * @param key the key for the value to retrieve.
+    * 
+    * @return the value for the key (null if not found).
+    */
+   public String getContentDispositionValue(String key)
+   {
+      return parseContentDispositionValue(key);
+   }
+
+   /**
     * Parses out the value from the content-disposition header value.
     * 
-    * @param name the name for the value to retreive.
-    * @return the value for the name (null if not found).
+    * Same as "getContentDispositionValue()".
+    * 
+    * @param key the key for the value to retrieve.
+    * 
+    * @return the value for the key (null if not found).
     */
-   public String parseContentDispositionValue(String name)
+   public String parseContentDispositionValue(String key)
    {
       String value = null;
       
       String contentDisposition = getContentDisposition();
       if(contentDisposition != null)
       {
-         int startIndex = contentDisposition.indexOf(name + "=\"");
-         int index = startIndex + name.length() + 2;
+         int startIndex = contentDisposition.indexOf(key + "=\"");
+         int index = startIndex + key.length() + 2;
          if(startIndex != -1 && contentDisposition.length() > index)
          {
             int endIndex = contentDisposition.indexOf("\"", index);
