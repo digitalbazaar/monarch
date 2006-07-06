@@ -371,6 +371,10 @@ public class JComponentTableHeader extends JTableHeader
          boolean pressed = (getMousePressedColumn() == column);
          mSortButton.getModel().setPressed(pressed);
          
+         // try to get a column header renderer
+         JComponent renderer = mHeader.getColumnHeaderRenderer(
+            value.toString());
+         
          if(getMouseOverColumn() == column)
          {
             // if not pressed use lowered border, else use raised
@@ -379,6 +383,15 @@ public class JComponentTableHeader extends JTableHeader
                   type,
                   UIManager.getColor("controlHighlight"),
                   UIManager.getColor("controlShadow")));
+            
+            if(renderer != null)
+            {
+               headerPanel.setToolTipText(renderer.getToolTipText());
+            }
+            else
+            {
+               headerPanel.setToolTipText(null);
+            }
          }
          else
          {
@@ -396,10 +409,6 @@ public class JComponentTableHeader extends JTableHeader
          }
          else if(value != null)
          {
-            // try to get a column header renderer
-            JComponent renderer = mHeader.getColumnHeaderRenderer(
-               value.toString());
-            
             if(renderer != null)
             {
                // use renderer
