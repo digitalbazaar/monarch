@@ -323,7 +323,7 @@ public class UTDragNDrop
             // create the image to provide
             JLabel label = new JLabel(text);
             mImage = ComponentImageCreator.createComponentImage(
-               label, label.getPreferredSize(), 1.0F);
+               label, label.getPreferredSize(), 0.2F);//1.0F);
          }
          
          return mImage;

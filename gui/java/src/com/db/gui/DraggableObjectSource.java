@@ -7,6 +7,7 @@ import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DragGestureEvent;
 import java.awt.dnd.DragGestureListener;
@@ -131,6 +132,76 @@ implements DragGestureListener, DragSourceListener
    }
    
    /**
+    * Redraws the passed component under a drag image where necessary.
+    * 
+    * @param component the component to paint under a drag image.
+    * @param image the drag image.
+    * @param offset the drag image offset.
+    * @param location the location of the drag cursor.
+    */
+   protected void paintComponentUnderDragImage(
+      Component component, Image image, Point offset, Point location)
+   {
+      // get component graphics
+      Graphics2D g2 = (Graphics2D)component.getGraphics(); 
+      
+      // paint the parent under the previous location
+      if(component instanceof JComponent)
+      {
+         JComponent c = (JComponent)component;
+         
+         // get the old rectangle
+         Rectangle oldRect = new Rectangle(
+            mPreviousLocation.x + offset.x, mPreviousLocation.y + offset.y,
+            image.getWidth(null), image.getHeight(null));
+         
+         // get the new rectangle
+         Rectangle newRect = new Rectangle(
+            location.x + offset.x, location.y + offset.y,
+            image.getWidth(null), image.getHeight(null));
+         
+         // get the intersect rectangle
+         Rectangle intersectRect = oldRect.intersection(newRect);
+         
+         // build 2 rectangles to paint
+         Rectangle topRect = new Rectangle(
+            oldRect.x, oldRect.y, oldRect.width,
+            oldRect.height - intersectRect.height);
+         Rectangle bottomRect = new Rectangle(
+            oldRect.x, oldRect.y + intersectRect.height,
+            oldRect.width, oldRect.height);
+
+         if(oldRect.y < newRect.y)
+         {
+            bottomRect.width -= intersectRect.width;
+
+            if(newRect.x <= oldRect.x)
+            {
+               bottomRect.x += intersectRect.width;
+            }
+         }
+         else
+         {
+            topRect.width -= intersectRect.width;
+
+            if(newRect.x <= oldRect.x)
+            {
+               topRect.x += intersectRect.width;
+            }
+         }
+         
+         // paint rectangles
+         c.paintImmediately(topRect);
+         c.paintImmediately(bottomRect);
+      }
+      else
+      {
+         // paint the whole parent (no other option)
+         component.paint(g2);
+      }
+   }
+   
+   /**
     * Called as the cursor's hotspot enters a platform-dependent drop site.
     * This method is invoked when all the following conditions are true:
     * <UL>
@@ -201,6 +272,9 @@ implements DragGestureListener, DragSourceListener
                // get the graphics for the parent
                Graphics2D g2 = (Graphics2D)parent.getGraphics();
                
+               // paint parent under drag image
+               paintComponentUnderDragImage(parent, image, offset, location);               
+               
                // get the image position
                int x = location.x + offset.x;
                int y = location.y + offset.y;
@@ -208,21 +282,6 @@ implements DragGestureListener, DragSourceListener
                // get the translation transform
                AffineTransform transform =
                   AffineTransform.getTranslateInstance(x, y);
-               
-               // paint the parent under the previous location
-               if(parent instanceof JComponent)
-               {
-                  JComponent component = (JComponent)parent;
-                  component.paintImmediately(
-                     mPreviousLocation.x + offset.x,
-                     mPreviousLocation.y + offset.y,
-                     image.getWidth(null), image.getHeight(null));
-               }
-               else
-               {
-                  // paint the whole parent (no other option)
-                  parent.paint(g2);
-               }
                
                // draw the image
                g2.drawImage(image, transform, null);

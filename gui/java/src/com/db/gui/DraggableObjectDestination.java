@@ -111,6 +111,36 @@ public class DraggableObjectDestination implements DropTargetListener
    }
    
    /**
+    * Redraws the passed component under a drag image where necessary.
+    * 
+    * @param component the component to paint under a drag image.
+    * @param image the drag image.
+    * @param offset the drag image offset.
+    */
+   protected void paintComponentUnderDragImage(
+      Component component, Image image, Point offset)
+   {
+      // get component graphics
+      Graphics2D g2 = (Graphics2D)component.getGraphics(); 
+      
+      // paint the parent under the previous location
+      if(component instanceof JComponent)
+      {
+         JComponent c = (JComponent)component;
+         
+         // paint immediately
+         c.paintImmediately(
+            mPreviousLocation.x + offset.x, mPreviousLocation.y + offset.y,
+            image.getWidth(null), image.getHeight(null));
+      }
+      else
+      {
+         // paint the whole parent (no other option)
+         component.paint(g2);
+      }
+   }   
+   
+   /**
     * Called when a drag enters the drop area.
     *
     * @param dtde the event that represents the drag.
@@ -224,6 +254,9 @@ public class DraggableObjectDestination implements DropTargetListener
                // get the graphics for the component
                Graphics2D g2 = (Graphics2D)getComponent().getGraphics();
                
+               // paint component under the drag image
+               paintComponentUnderDragImage(getComponent(), image, offset);               
+               
                // get the image position
                int x = location.x + offset.x;
                int y = location.y + offset.y;
@@ -232,21 +265,6 @@ public class DraggableObjectDestination implements DropTargetListener
                AffineTransform transform =
                   AffineTransform.getTranslateInstance(x, y);
 
-               // paint the component under the previous location
-               if(getComponent() instanceof JComponent)
-               {
-                  JComponent component = (JComponent)getComponent();
-                  component.paintImmediately(
-                     mPreviousLocation.x + offset.x,
-                     mPreviousLocation.y + offset.y,
-                     image.getWidth(null), image.getHeight(null));
-               }
-               else
-               {
-                  // paint the whole component (no other option)
-                  getComponent().paint(g2);
-               }
-               
                // draw the image
                g2.drawImage(image, transform, null);
             }
