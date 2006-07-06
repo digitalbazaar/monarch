@@ -157,11 +157,12 @@ public class UTDragNDrop
        * DnDConstants.ACTION_COPY_OR_MOVE
        * 
        * @param destination the destination component.
+       * @param location the current location of the drag.
        * 
        * @return true if the passed object can be accepted, false if not.
        */
       public boolean canAcceptDraggableObject(
-         Object obj, int action, Component destination)
+         Object obj, int action, Component destination, Point location)
       {
          boolean rval = false;
          
@@ -175,7 +176,8 @@ public class UTDragNDrop
       }
       
       /**
-       * Accepts the passed object for the given destination component.
+       * Accepts the passed object for the given destination component
+       * when the object is dropped.
        * 
        * @param obj the object to accept.
        * @param action the drag 'n drop action:
@@ -186,9 +188,10 @@ public class UTDragNDrop
        * DnDConstants.ACTION_COPY_OR_MOVE
        * 
        * @param destination the destination component.
+       * @param location the location of the drop.
        */
       public void acceptDraggableObject(
-         Object obj, int action, Component destination)      
+         Object obj, int action, Component destination, Point location)      
       {
          // the object should be an array of selected objects
          Object[] selected = (Object[])obj;

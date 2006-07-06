@@ -4,6 +4,7 @@
 package com.db.gui;
 
 import java.awt.Component;
+import java.awt.Point;
 
 /**
  * A class that implements DraggableObjectAcceptor can accept a
@@ -27,14 +28,16 @@ public interface DraggableObjectAcceptor
     * DnDConstants.ACTION_COPY_OR_MOVE
     * 
     * @param destination the destination component.
+    * @param location the current location of the drag.
     * 
     * @return true if the passed object can be accepted, false if not.
     */
    public boolean canAcceptDraggableObject(
-      Object obj, int action, Component destination);
+      Object obj, int action, Component destination, Point location);
    
    /**
-    * Accepts the passed object for the given destination component.
+    * Accepts the passed object for the given destination component when
+    * the object is dropped.
     * 
     * @param obj the object to accept.
     * @param action the drag 'n drop action:
@@ -45,7 +48,8 @@ public interface DraggableObjectAcceptor
     * DnDConstants.ACTION_COPY_OR_MOVE
     * 
     * @param destination the destination component.
+    * @param location the location of the drop.
     */
    public void acceptDraggableObject(
-      Object obj, int action, Component destination);
+      Object obj, int action, Component destination, Point location);
 }

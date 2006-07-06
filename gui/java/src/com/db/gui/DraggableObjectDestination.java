@@ -134,7 +134,8 @@ public class DraggableObjectDestination implements DropTargetListener
          Component destination = mDropTarget.getComponent();
          
          // determine whether or not the object can be accepted
-         if(mAcceptor.canAcceptDraggableObject(obj, action, destination))      
+         if(mAcceptor.canAcceptDraggableObject(
+            obj, action, destination, dtde.getLocation()))      
          {
             // accept the drag
             dtde.acceptDrag(dtde.getDropAction());
@@ -284,7 +285,8 @@ public class DraggableObjectDestination implements DropTargetListener
             Component destination = mDropTarget.getComponent();
             
             // determine whether or not the object can be accepted
-            if(mAcceptor.canAcceptDraggableObject(obj, action, destination))
+            if(mAcceptor.canAcceptDraggableObject(
+               obj, action, destination, dtde.getLocation()))
             {
                // accept the drop
                dtde.acceptDrop(action);
@@ -292,7 +294,8 @@ public class DraggableObjectDestination implements DropTargetListener
                try
                {
                   // accept the object
-                  mAcceptor.acceptDraggableObject(obj, action, destination);
+                  mAcceptor.acceptDraggableObject(
+                     obj, action, destination, dtde.getLocation());
                }
                catch(Throwable t)
                {
@@ -337,6 +340,17 @@ public class DraggableObjectDestination implements DropTargetListener
    public void dropActionChanged(DropTargetDragEvent dtde)
    {
       // do nothing
+   }
+   
+   /**
+    * Sets the component that can receive dropped draggable objects.
+    * 
+    * @param component the component that can receive dropped draggable
+    *                  objects.
+    */
+   public void setComponent(Component component)
+   {
+      mDropTarget.setComponent(component);
    }
    
    /**
