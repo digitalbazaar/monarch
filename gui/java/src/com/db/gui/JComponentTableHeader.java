@@ -8,6 +8,7 @@ import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -51,6 +52,11 @@ public class JComponentTableHeader extends JTableHeader
    protected JComponentHeaderRenderer mHeaderRenderer;
    
    /**
+    * A map for column header renderers.
+    */
+   protected HashMap mColumnHeaderRenderMap;
+   
+   /**
     * An event delegate for when a column header has been pressed. 
     */
    protected EventDelegate mColumnHeaderPressedEventDelegate;
@@ -65,11 +71,14 @@ public class JComponentTableHeader extends JTableHeader
    {
       super(tcm);
       
-      mHeaderRenderer = new JComponentHeaderRenderer();
+      mHeaderRenderer = new JComponentHeaderRenderer(this);
       setDefaultRenderer(mHeaderRenderer);
       
       addMouseListener(this);
       addMouseMotionListener(this);
+      
+      // create column header renderer map
+      mColumnHeaderRenderMap = new HashMap();
       
       // create the column header pressed event delegate
       mColumnHeaderPressedEventDelegate = new EventDelegate();
@@ -196,6 +205,29 @@ public class JComponentTableHeader extends JTableHeader
    }
    
    /**
+    * Sets the component to use to render a column header.
+    * 
+    * @param columnName the name of the column.
+    * @param component the component to use to render a column header.
+    */
+   public void setColumnHeaderRenderer(String columnName, JComponent component)
+   {
+      mColumnHeaderRenderMap.put(columnName, component);
+   }
+   
+   /**
+    * Gets the component to use to render a column header.
+    *
+    * @param columnName the name of the column to get the renderer for.
+    *
+    * @return the component to use to render a column header.
+    */
+   public JComponent getColumnHeaderRenderer(String columnName)
+   {
+      return (JComponent)mColumnHeaderRenderMap.get(columnName);
+   }
+   
+   /**
     * This class allows any JComponent to become a header renderer for a table
     * and adds a sort button to right of that component if the column
     * is currently sorted.
@@ -205,6 +237,11 @@ public class JComponentTableHeader extends JTableHeader
    public class JComponentHeaderRenderer implements TableCellRenderer,
                                                     TableColumnModelListener
    {
+      /**
+       * The header this renderer is for.
+       */
+      protected JComponentTableHeader mHeader;
+      
       /**
        * The sort button.
        */
@@ -242,10 +279,21 @@ public class JComponentTableHeader extends JTableHeader
       protected int mMouseOverColumn;
       
       /**
-       * Creates a new JComponentHeaderRenderer.
+       * The default JLabel to use to render column headers if no specific
+       * column header renderer is provided.
        */
-      public JComponentHeaderRenderer()
+      protected JLabel mLabel;
+      
+      /**
+       * Creates a new JComponentHeaderRenderer.
+       * 
+       * @param header the header this renderer is for.
+       */
+      public JComponentHeaderRenderer(JComponentTableHeader header)
       {
+         // store header
+         mHeader = header;
+         
          // create the sort buttons
          createSortButtons();
          
@@ -254,6 +302,15 @@ public class JComponentTableHeader extends JTableHeader
          
          setMousePressedColumn(-1);
          setMouseOverColumn(-1);
+         
+         // create default label
+         mLabel = new JLabel();
+         mLabel.setOpaque(false);
+         mLabel.setHorizontalAlignment(JLabel.CENTER);
+         //Font oldFont = mLabel.getFont();
+         //Font newFont = new Font(oldFont.getName(), Font.PLAIN,
+                                 //oldFont.getSize());
+         //mLabel.setFont(newFont);
       }
       
       /**
@@ -280,7 +337,7 @@ public class JComponentTableHeader extends JTableHeader
       protected void setSortButton()
       {
          mSortButton = (mSortAscending) ?
-               mSortAscendingButton : mSortDescendingButton;
+            mSortAscendingButton : mSortDescendingButton;
       }
       
       /**
@@ -339,14 +396,21 @@ public class JComponentTableHeader extends JTableHeader
          }
          else if(value != null)
          {
-            JLabel label = new JLabel(value.toString());
-            label.setOpaque(false);
-            label.setHorizontalAlignment(JLabel.CENTER);
-            //Font oldFont = label.getFont();
-            //Font newFont = new Font(oldFont.getName(), Font.PLAIN,
-                                    //oldFont.getSize());
-            //label.setFont(newFont);
-            jc = label;
+            // try to get a column header renderer
+            JComponent renderer = mHeader.getColumnHeaderRenderer(
+               value.toString());
+            
+            if(renderer != null)
+            {
+               // use renderer
+               jc = renderer;
+            }
+            else
+            {
+               // no column header renderer found, use jlabel
+               mLabel.setText(value.toString());
+               jc = mLabel;
+            }
          }
          
          // place the component

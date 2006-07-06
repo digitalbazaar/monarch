@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -15,6 +16,7 @@ import javax.swing.JTable;
 import javax.swing.UIManager;
 
 import com.db.gui.JComponentTable;
+import com.db.gui.JComponentTableHeader;
 import com.db.gui.JComponentTableModel;
 import com.db.gui.PositionConstraints;
 import com.db.gui.PositionLayout;
@@ -122,6 +124,8 @@ public class UTJComponentTable implements ActionListener
       
       // create table
       JComponentTable table = new JComponentTable(model);
+      ((JComponentTableHeader)table.getTableHeader()).setColumnHeaderRenderer(
+         "First Column", new JButton("First Column"));
       
       // create scroll pane for table
       JScrollPane scrollPane = new JScrollPane(table);
