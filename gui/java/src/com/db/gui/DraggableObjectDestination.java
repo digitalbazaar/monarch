@@ -205,7 +205,7 @@ public class DraggableObjectDestination implements DropTargetListener
             dtde.getTransferable());
          
          // get the draggable object
-         Object obj = wrapper.getObject();         
+         Object obj = wrapper.getObject();
          
          // ensure there is an object to transfer
          if(obj != null)
