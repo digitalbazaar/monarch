@@ -450,7 +450,7 @@ public abstract class HttpHeader
       if(contentDisposition != null)
       {
          int startIndex = contentDisposition.indexOf(key + "=");
-         int index = startIndex + key.length() + 2;
+         int index = startIndex + key.length() + 1;
          if(startIndex != -1 && contentDisposition.length() > index)
          {
             // check for semicolon
