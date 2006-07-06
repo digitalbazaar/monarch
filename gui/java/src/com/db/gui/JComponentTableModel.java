@@ -99,7 +99,7 @@ implements SortableTableModel, ComponentListener
             ChangeReporter cr = (ChangeReporter)row;
             cr.getChangeDelegate().addListener(this, "stateChanged");
          }
-      }      
+      }
    }
    
    /**

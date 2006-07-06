@@ -575,13 +575,9 @@ implements ActionListener
        */
       public void addRow(String col1, String col2, FastProgressBar col3)
       {
+         // create and add new row
          TestTableRow row = new TestTableRow(col1, col2, col3);
-         
-         //Vector rowData = new Vector();
-         //rowData.add(row);
-         
          addValue(row);
-         //setRowData(rowData);
       }
       
       /**
