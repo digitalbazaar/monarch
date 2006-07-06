@@ -41,6 +41,10 @@ public class JComponentTable extends JTable
       setDefaultEditor(JComponent.class, new JComponentCellEditor());
       setDefaultRenderer(JComponent.class, new JComponentCellRenderer());
       
+      // set table column header renderers
+      jctm.setTableColumnHeaderRenderers(
+         this, (JComponentTableHeader)getTableHeader());
+      
       // set table dimensions
       jctm.setTableDimensions(this);
    }

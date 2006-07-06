@@ -288,6 +288,18 @@ implements SortableTableModel, ComponentListener
    }
    
    /**
+    * Sets up the table column header renderers for the table header.
+    *  
+    * @param table the table to alter.
+    * @param header the table's header.
+    */
+   public void setTableColumnHeaderRenderers(
+      JComponentTable table, JComponentTableHeader header)
+   {
+      // do nothing by default
+   }
+   
+   /**
     * Sets the preferred table dimensions for rows and columns.
     *  
     * @param table the table to alter.
