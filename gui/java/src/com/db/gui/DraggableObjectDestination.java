@@ -50,7 +50,12 @@ public class DraggableObjectDestination implements DropTargetListener
     * The previous cursor location for a drag. Used to repaint the area of the
     * component under the drag image. 
     */
-   protected Point mPreviousLocation;   
+   protected Point mPreviousLocation;
+   
+   /**
+    * True if a drag has entered the drop area, false if not.
+    */
+   protected boolean mDragInDropArea;
    
    /**
     * Creates a new DraggableObjectDestination.
@@ -108,6 +113,9 @@ public class DraggableObjectDestination implements DropTargetListener
       
       // previous location for a drag is 0,0 to start
       mPreviousLocation = new Point();
+      
+      // no drag in the drop area
+      mDragInDropArea = false;
    }
    
    /**
@@ -147,40 +155,8 @@ public class DraggableObjectDestination implements DropTargetListener
     */
    public void dragEnter(DropTargetDragEvent dtde)
    {
-      // get a transferable wrapper
-      TransferableWrapper wrapper = new TransferableWrapper(
-         dtde.getTransferable());
-      
-      // get the draggable object
-      Object obj = wrapper.getObject();         
-      
-      // ensure there is an object to transfer
-      if(obj != null)
-      {
-         // get the drop action
-         int action = dtde.getDropAction();
-         
-         // get the destination component
-         Component destination = mDropTarget.getComponent();
-         
-         // determine whether or not the object can be accepted
-         if(mAcceptor.canAcceptDraggableObject(
-            obj, action, destination, dtde.getLocation()))      
-         {
-            // accept the drag
-            dtde.acceptDrag(dtde.getDropAction());
-         }
-         else
-         {
-            // reject the drag
-            dtde.rejectDrag();
-         }
-      }
-      else
-      {
-         // reject the drag
-         dtde.rejectDrag();
-      }
+      // mark drag as in drop area
+      mDragInDropArea = true;
    }
 
    /**
@@ -190,6 +166,9 @@ public class DraggableObjectDestination implements DropTargetListener
     */
    public void dragExit(DropTargetEvent dte)
    {
+      // mark drag as not in drop area
+      mDragInDropArea = false;
+      
       // handle the drag image if it is not automatically supported
       if(!DragSource.isDragImageSupported() && mDragImageProvider != null)
       {
@@ -218,59 +197,89 @@ public class DraggableObjectDestination implements DropTargetListener
     */
    public void dragOver(DropTargetDragEvent dtde)
    {
-      // draw the drag image if it is not automatically supported
-      if(!DragSource.isDragImageSupported() && mDragImageProvider != null)
+      // only process event if the drag is over the drop area
+      if(mDragInDropArea)
       {
-         // get the cursor location
-         Point location = dtde.getLocation();
+         // get a transferable wrapper
+         TransferableWrapper wrapper = new TransferableWrapper(
+            dtde.getTransferable());
          
-         // do NOT convert screen coordinates to component coordinates
-         // there is an inconsistency here between DropTargetDragEvents
-         // and DragSourceDragEvents
-
-         // see if the previous location has changed
-         if(!mPreviousLocation.equals(location))
+         // get the draggable object
+         Object obj = wrapper.getObject();         
+         
+         // ensure there is an object to transfer
+         if(obj != null)
          {
-            // get the transferable
-            Transferable transferable = dtde.getTransferable();
+            // get the drop action
+            int action = dtde.getDropAction();
             
-            // wrap the transferable
-            TransferableWrapper wrapper = new TransferableWrapper(transferable);
+            // get the destination component
+            Component destination = mDropTarget.getComponent();
             
-            // get the object being dragged
-            Object obj = wrapper.getObject();
-            
-            // get the drag image from the provider
-            Image image = mDragImageProvider.
-               getDragImage(obj, dtde.getDropAction(), getComponent());
-            
-            // get the drag image offset from the provider
-            Point offset = mDragImageProvider.
-               getDragImageOffset(obj, dtde.getDropAction(), getComponent());
-            
-            // ensure the drag image and offset are not null
-            if(image != null && offset != null)
+            // determine whether or not the object can be accepted
+            if(mAcceptor.canAcceptDraggableObject(
+               obj, action, destination, dtde.getLocation()))      
             {
-               // get the graphics for the component
-               Graphics2D g2 = (Graphics2D)getComponent().getGraphics();
-               
-               // paint component under the drag image
-               paintComponentUnderDragImage(getComponent(), image, offset);               
-               
-               // get the image position
-               int x = location.x + offset.x;
-               int y = location.y + offset.y;
-               
-               // get the translation transform
-               AffineTransform transform =
-                  AffineTransform.getTranslateInstance(x, y);
-
-               // draw the image
-               g2.drawImage(image, transform, null);
+               // accept the drag
+               dtde.acceptDrag(dtde.getDropAction());
             }
-         
-            // store previous location
-            mPreviousLocation = location;
+            else
+            {
+               // reject the drag
+               dtde.rejectDrag();
+            }
+         }
+         else
+         {
+            // reject the drag
+            dtde.rejectDrag();
+         }      
+      
+         // draw the drag image if it is not automatically supported
+         if(!DragSource.isDragImageSupported() && mDragImageProvider != null)
+         {
+            // get the cursor location
+            Point location = dtde.getLocation();
+            
+            // do NOT convert screen coordinates to component coordinates
+            // there is an inconsistency here between DropTargetDragEvents
+            // and DragSourceDragEvents
+
+            // see if the previous location has changed
+            if(!mPreviousLocation.equals(location))
+            {
+               // get the drag image from the provider
+               Image image = mDragImageProvider.
+                  getDragImage(obj, dtde.getDropAction(), getComponent());
+               
+               // get the drag image offset from the provider
+               Point offset = mDragImageProvider.
+                  getDragImageOffset(obj, dtde.getDropAction(), getComponent());
+               
+               // ensure the drag image and offset are not null
+               if(image != null && offset != null)
+               {
+                  // get the graphics for the component
+                  Graphics2D g2 = (Graphics2D)getComponent().getGraphics();
+                  
+                  // paint component under the drag image
+                  paintComponentUnderDragImage(getComponent(), image, offset);               
+                  
+                  // get the image position
+                  int x = location.x + offset.x;
+                  int y = location.y + offset.y;
+                  
+                  // get the translation transform
+                  AffineTransform transform =
+                     AffineTransform.getTranslateInstance(x, y);
+
+                  // draw the image
+                  g2.drawImage(image, transform, null);
+               }
+            
+               // store previous location
+               mPreviousLocation = location;
+            }
          }
       }
    }
