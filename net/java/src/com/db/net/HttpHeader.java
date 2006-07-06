@@ -449,14 +449,41 @@ public abstract class HttpHeader
       String contentDisposition = getContentDisposition();
       if(contentDisposition != null)
       {
-         int startIndex = contentDisposition.indexOf(key + "=\"");
+         int startIndex = contentDisposition.indexOf(key + "=");
          int index = startIndex + key.length() + 2;
          if(startIndex != -1 && contentDisposition.length() > index)
          {
-            int endIndex = contentDisposition.indexOf("\"", index);
+            // check for semicolon
+            int endIndex = contentDisposition.indexOf(";", index);
             if(endIndex != -1)
             {
+               // go to semicolon
                value = contentDisposition.substring(index, endIndex);
+            }
+            else
+            {
+               // go to end of content disposition
+               value = contentDisposition.substring(index);
+            }
+            
+            // strip starting and ending quotes, if any
+            if(value != null)
+            {
+               if(value.startsWith("\""))
+               {
+                  if(value.length() > 1)
+                  {
+                     value = value.substring(1);
+                  }
+               }
+               
+               if(value.endsWith("\""))
+               {
+                  if(value.length() > 1)
+                  {
+                     value = value.substring(0, value.length() - 1);
+                  }
+               }
             }
          }
       }
