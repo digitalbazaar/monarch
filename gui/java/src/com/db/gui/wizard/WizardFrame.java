@@ -215,9 +215,11 @@ implements ActionListener, WindowListener
     */
    public void windowClosing(WindowEvent e)
    {
+      //FIXME: This doesnt work at all. The wizard is still closed anyway.
+      
       // see if the wizard is running
       if(mWizard.isRunning())
-      {
+      {         
          // show quit dialog
          displayQuitDialog();
       }
