@@ -9,7 +9,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 
 import com.db.event.EventObject;
 
@@ -80,7 +79,7 @@ implements ActionListener, WindowListener
    protected void setupFrame()
    {
       // dispose on close 
-      setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+      setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 
       // pack frame
       pack();
@@ -189,14 +188,6 @@ implements ActionListener, WindowListener
          {
             mWizard.cancel();
          }
-         else
-         {
-            // hide
-            setVisible(false);
-            
-            // dispose
-            dispose();
-         }
       }
    }
    
@@ -215,8 +206,6 @@ implements ActionListener, WindowListener
     */
    public void windowClosing(WindowEvent e)
    {
-      //FIXME: This doesnt work at all. The wizard is still closed anyway.
-      
       // see if the wizard is running
       if(mWizard.isRunning())
       {         
