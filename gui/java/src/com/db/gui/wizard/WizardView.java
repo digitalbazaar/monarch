@@ -318,9 +318,6 @@ public class WizardView extends JPanel implements ActionListener
       {
          // show quit dialog
          displayQuitDialog();
-         
-         // cancel wizard
-         //getWizard().cancel();
       }
       else if(e.getActionCommand().equals("previousStep"))
       {
