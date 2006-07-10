@@ -82,8 +82,7 @@ public class UTCustomRenderers implements ActionListener
       JPanel panel = new JPanel();
       
       // set layout
-      panel.setSize(500, 500);
-      panel.setLayout(new PositionLayout(panel));
+      panel.setLayout(new PositionLayout(panel, 500, 500));
       
       // create list model
       DefaultListModel model = new DefaultListModel();
@@ -150,9 +149,8 @@ public class UTCustomRenderers implements ActionListener
       
       // set title and filename
       //panel.setOpaque(false);
-      panel.setSize(600, 200);
       panel.setBorder(BorderFactory.createEtchedBorder());
-      panel.setLayout(new PositionLayout(panel));
+      panel.setLayout(new PositionLayout(panel, 600, 200));
       
       // create detail labels
       JLabel title = new JLabel("Some Title");
@@ -169,7 +167,7 @@ public class UTCustomRenderers implements ActionListener
       
       JPanel dwPanel = new JPanel();
       dwPanel.setBorder(BorderFactory.createTitledBorder("Contents:"));
-      dwPanel.setLayout(new PositionLayout(dwPanel));
+      dwPanel.setLayout(new PositionLayout(dwPanel, 0, 0));
       
       PositionConstraints dwPanelPC = new PositionConstraints();
       dwPanelPC.size = new Dimension(PositionConstraints.HORIZONTAL_FILL, 0);
@@ -186,8 +184,7 @@ public class UTCustomRenderers implements ActionListener
       {
          // create a new inner ware panel
          JPanel warePanel = new JPanel();
-         warePanel.setSize(500, 500);
-         warePanel.setLayout(new PositionLayout(warePanel));
+         warePanel.setLayout(new PositionLayout(warePanel, 500, 500));
          
          JLabel wareTitle = new JLabel("Inner Title " + i);
          JLabel wareFile = new JLabel("InnerFile" + i);

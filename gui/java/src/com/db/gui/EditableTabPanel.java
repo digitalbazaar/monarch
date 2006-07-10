@@ -546,7 +546,7 @@ public class EditableTabPanel extends TabPanel
       cbp.setSize(tabArea.getPreferredSize().width + strut +
                   closeButton.getPreferredSize().width,
                   tabArea.getPreferredSize().height);
-      cbp.setLayout(new PositionLayout(cbp));
+      cbp.setLayout(new PositionLayout(cbp, cbp.getBounds()));
       cbp.setOpaque(false);
       
       // tab area constraints

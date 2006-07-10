@@ -318,8 +318,7 @@ public class TabPanel extends JPanel
       setDoubleBuffered(true);
       
       // set layout
-      setSize(500, 500);
-      super.setLayout(new PositionLayout(this));
+      super.setLayout(new PositionLayout(this, 500, 500));
       
       // create tab scroll buttons
       createLeftTabScrollButton();
@@ -666,8 +665,7 @@ public class TabPanel extends JPanel
       mTabAreaPanel = new JPanel();
       
       // set layout
-      mTabAreaPanel.setSize(500, 500);
-      mTabAreaPanel.setLayout(new PositionLayout(mTabAreaPanel));
+      mTabAreaPanel.setLayout(new PositionLayout(mTabAreaPanel, 500, 500));
       
       // tab area panel is transparent
       mTabAreaPanel.setOpaque(false);

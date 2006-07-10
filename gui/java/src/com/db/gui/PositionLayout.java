@@ -34,18 +34,34 @@ public class PositionLayout implements LayoutManager2
    /**
     * Creates a new position layout.
     * 
-    * @param container the container this layout is for.
+    * @param container the container to work with.
+    * @param width the width to work with.
+    * @param height the height to work with.
     */
-   public PositionLayout(Container container)
+   public PositionLayout(Container container, int width, int height)
+   {
+      this(container, new Rectangle(0, 0, width, height));
+   }
+   
+   /**
+    * Creates a new position layout.
+    * 
+    * @param container the container to work with.
+    * @param bounds the bounds to work in.
+    */
+   public PositionLayout(Container container, Rectangle bounds)
    {
       // set bounds for the container this layout is for
       mContainerBounds = null;
-      if(container != null)
+      if(bounds != null)
       {
-         Rectangle bounds = container.getBounds();
-         if(bounds.width != 0 && bounds.height != 0)
+         // store container bounds
+         mContainerBounds = bounds;
+         
+         if(container != null)
          {
-            mContainerBounds = bounds;
+            // set container bounds
+            container.setBounds(bounds);
          }
       }
       

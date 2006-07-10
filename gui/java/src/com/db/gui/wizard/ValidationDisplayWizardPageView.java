@@ -66,8 +66,7 @@ implements DynamicValidationWizardPageView
    protected void setupView()
    {
       // setup layout
-      setSize(500, 500);
-      setLayout(new PositionLayout(this));
+      setLayout(new PositionLayout(this, 500, 500));
       
       // create user input panel
       JPanel userInputPanel = createUserInputPanel();

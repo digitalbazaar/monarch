@@ -119,7 +119,8 @@ public class UTLayoutManager
       //catalogPanel.setOpaque(false);
       catalogPanel.setLocation(5, 0);
       catalogPanel.setSize(400, 400);
-      catalogPanel.setLayout(new PositionLayout(catalogPanel));
+      catalogPanel.setLayout(
+         new PositionLayout(catalogPanel, catalogPanel.getBounds()));
       
       // create components
       JLabel tableLabel = new JLabel("Sales Catalog");
@@ -196,10 +197,9 @@ public class UTLayoutManager
    public static void setupSearchPanel(JPanel searchPanel)
    {
       //searchPanel.setOpaque(false);
-      searchPanel.setSize(600, 600);
       
       // set layout
-      searchPanel.setLayout(new PositionLayout(searchPanel));
+      searchPanel.setLayout(new PositionLayout(searchPanel, 600, 600));
       
       // create search media type map
       HashMap searchMediaTypeMap = new HashMap();
@@ -337,8 +337,7 @@ public class UTLayoutManager
    public static void setupJTextAreaPanel(JPanel panel)
    {
       // set layout
-      panel.setSize(500, 500);
-      panel.setLayout(new PositionLayout(panel));
+      panel.setLayout(new PositionLayout(panel, 500, 500));
       
       // create text area
       JTextArea textArea = new JTextArea();
@@ -424,10 +423,8 @@ public class UTLayoutManager
    {
       JPanel panel = new JPanel();
       
-      panel.setSize(300, 300);
-      
       // set layout
-      panel.setLayout(new PositionLayout(panel));
+      panel.setLayout(new PositionLayout(panel, 300, 300));
       
       // create colored panel (racist!)
       JPanel coloredPanel = new JPanel();
@@ -456,8 +453,7 @@ public class UTLayoutManager
    public static void setupMainPanel(JPanel panel)
    {
       // set up layout manager
-      panel.setSize(500, 500);
-      panel.setLayout(new PositionLayout(panel));
+      panel.setLayout(new PositionLayout(panel, 500, 500));
       
       // create buttons
       JButton button1 = new JButton("button1");

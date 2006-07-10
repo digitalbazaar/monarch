@@ -77,8 +77,7 @@ public class UTJComponentTable implements ActionListener
       JPanel panel = new JPanel();
       
       // set layout
-      panel.setSize(500, 500);
-      panel.setLayout(new PositionLayout(panel));
+      panel.setLayout(new PositionLayout(panel, 500, 500));
       
       // create table rows
       Vector tableRows = new Vector();

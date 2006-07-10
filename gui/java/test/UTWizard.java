@@ -468,8 +468,7 @@ public class UTWizard
          JPanel panel = new JPanel();
          
          // set layout
-         panel.setSize(500, 500);
-         panel.setLayout(new PositionLayout(panel));
+         panel.setLayout(new PositionLayout(panel, 500, 500));
          
          // create JLabel
          JLabel label = new JLabel(getPage().getName());

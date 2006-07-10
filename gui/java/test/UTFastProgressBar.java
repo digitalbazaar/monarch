@@ -88,8 +88,7 @@ implements ActionListener
       frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       
       JPanel contentPanel = new JPanel();
-      contentPanel.setSize(500, 500);
-      contentPanel.setLayout(new PositionLayout(contentPanel));
+      contentPanel.setLayout(new PositionLayout(contentPanel, 500, 500));
       
       // create panel and table
       JPanel panel = createProgressBarPanel();
@@ -126,8 +125,7 @@ implements ActionListener
       JPanel panel = new JPanel();
       
       // set layout
-      panel.setSize(500, 100);
-      panel.setLayout(new PositionLayout(panel));
+      panel.setLayout(new PositionLayout(panel, 500, 100));
 
       // create fast progress bar
       smFastProgressBar = new FastProgressBar();
@@ -218,8 +216,7 @@ implements ActionListener
       JPanel panel = new JPanel();
       
       // set layout
-      panel.setSize(500, 400);
-      panel.setLayout(new PositionLayout(panel));
+      panel.setLayout(new PositionLayout(panel, 500, 400));
       
       // make table fast progress bar
       smTableFastProgressBar = new FastProgressBar();
