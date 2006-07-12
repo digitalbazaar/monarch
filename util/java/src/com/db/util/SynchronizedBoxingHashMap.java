@@ -106,17 +106,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
    }
 
    /**
-    * Gets a value from a key in this map.
-    * 
-    * @param key the key of the key-value pair.
-    * @return the value associated with the key.
-    */
-   public synchronized Object get(String key)
-   {
-      return super.get(key);
-   }
-
-   /**
     * Puts a key-value pair in this map. The key is a byte and will
     * be boxed as a Byte.
     * 
@@ -326,27 +315,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
    throws ClassCastException, NullPointerException
    {
       Byte b = (Byte)get(new Character(key));
-      return b.byteValue();
-   }
-   
-   /**
-    * Gets a value from a key in this map.
-    * 
-    * The value will be converted into a byte if possible. If the key
-    * is not in the map, a NullPointerException will be thrown. If the value
-    * cannot be cast to a byte, a ClassCastException will be thrown.
-    * 
-    * @param key the key of the key-value pair.
-    * 
-    * @return the value associated with the key as a byte.
-    *         
-    * @exception ClassCastException
-    * @exception NullPointerException 
-    */
-   public synchronized byte getByte(String key)
-   throws ClassCastException, NullPointerException
-   {
-      Byte b = (Byte)get(key);
       return b.byteValue();
    }
    
@@ -564,27 +532,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
    }
    
    /**
-    * Gets a value from a key in this map.
-    * 
-    * The value will be converted into a short if possible. If the key
-    * is not in the map, a NullPointerException will be thrown. If the value
-    * cannot be cast to a short, a ClassCastException will be thrown.
-    * 
-    * @param key the key of the key-value pair.
-    * 
-    * @return the value associated with the key as a short.
-    *         
-    * @exception ClassCastException
-    * @exception NullPointerException 
-    */
-   public synchronized short getShort(String key)
-   throws ClassCastException, NullPointerException
-   {
-      Short s = (Short)get(key);
-      return s.shortValue();
-   }
-   
-   /**
     * Puts a key-value pair in this map. The key is an integer and will
     * be boxed as an Integer.
     * 
@@ -698,19 +645,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
    public synchronized void put(int key, char value)
    {
       super.put(new Integer(key), new Character(value));
-   }
-   
-   /**
-    * Puts a key-value pair in this map. The key is an integer and will
-    * be boxed as an Integer. The value is a String and will be
-    * boxed as a String.
-    * 
-    * @param key the key of the key-value pair.
-    * @param value the value of the key-value pair.
-    */
-   public synchronized void put(int key, String value)
-   {
-      super.put(new Integer(key), value);
    }
 
    /**
@@ -915,27 +849,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
    }
    
    /**
-    * Gets a value from a key in this map.
-    * 
-    * The value will be converted into an int if possible. If the key
-    * is not in the map, a NullPointerException will be thrown. If the value
-    * cannot be cast to an int, a ClassCastException will be thrown.
-    * 
-    * @param key the key of the key-value pair.
-    * 
-    * @return the value associated with the key as an int.
-    *         
-    * @exception ClassCastException
-    * @exception NullPointerException 
-    */
-   public synchronized int getInt(String key)
-   throws ClassCastException, NullPointerException
-   {
-      Integer i = (Integer)get(key);
-      return i.intValue();
-   }
-   
-   /**
     * Puts a key-value pair in this map. The key is a long and will
     * be boxed as a Long.
     * 
@@ -1049,19 +962,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
    public synchronized void put(long key, char value)
    {
       super.put(new Long(key), new Character(value));
-   }   
-   
-   /**
-    * Puts a key-value pair in this map. The key is a long and will
-    * be boxed as a Long. The value is a String and will be boxed
-    * as a String.
-    * 
-    * @param key the key of the key-value pair.
-    * @param value the value of the key-value pair.
-    */
-   public synchronized void put(long key, String value)
-   {
-      super.put(new Long(key), value);
    }   
 
    /**
@@ -1266,27 +1166,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
    }
    
    /**
-    * Gets a value from a key in this map.
-    * 
-    * The value will be converted into a long if possible. If the key
-    * is not in the map, a NullPointerException will be thrown. If the value
-    * cannot be cast to a long, a ClassCastException will be thrown.
-    * 
-    * @param key the key of the key-value pair.
-    * 
-    * @return the value associated with the key as a long.
-    *         
-    * @exception ClassCastException
-    * @exception NullPointerException 
-    */
-   public synchronized long getLong(String key)
-   throws ClassCastException, NullPointerException
-   {
-      Long l = (Long)get(key);
-      return l.longValue();
-   }
-   
-   /**
     * Puts a key-value pair in this map. The key is a float and will
     * be boxed as a Float.
     * 
@@ -1475,27 +1354,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
    throws ClassCastException, NullPointerException
    {
       Float f = (Float)get(new Character(key));
-      return f.floatValue();
-   }
-   
-   /**
-    * Gets a value from a key in this map.
-    * 
-    * The value will be converted into a float if possible. If the key
-    * is not in the map, a NullPointerException will be thrown. If the value
-    * cannot be cast to a float, a ClassCastException will be thrown.
-    * 
-    * @param key the key of the key-value pair.
-    * 
-    * @return the value associated with the key as a float.
-    *         
-    * @exception ClassCastException
-    * @exception NullPointerException 
-    */
-   public synchronized float getFloat(String key)
-   throws ClassCastException, NullPointerException
-   {
-      Float f = (Float)get(key);
       return f.floatValue();
    }
    
@@ -1713,27 +1571,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
    }
    
    /**
-    * Gets a value from a key in this map.
-    * 
-    * The value will be converted into a double if possible. If the key
-    * is not in the map, a NullPointerException will be thrown. If the value
-    * cannot be cast to a double, a ClassCastException will be thrown.
-    * 
-    * @param key the key of the key-value pair.
-    * 
-    * @return the value associated with the key as a double.
-    *         
-    * @exception ClassCastException
-    * @exception NullPointerException 
-    */
-   public synchronized double getDouble(String key)
-   throws ClassCastException, NullPointerException
-   {
-      Double d = (Double)get(key);
-      return d.doubleValue();
-   }
-   
-   /**
     * Puts a key-value pair in this map. The key is a boolean and will
     * be boxed as a Boolean.
     * 
@@ -1901,27 +1738,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
    throws ClassCastException, NullPointerException
    {
       Boolean b = (Boolean)get(new Character(key));
-      return b.booleanValue();
-   }
-   
-   /**
-    * Gets a value from a key in this map.
-    * 
-    * The value will be converted into a boolean if possible. If the key
-    * is not in the map, a NullPointerException will be thrown. If the value
-    * cannot be cast to a boolean, a ClassCastException will be thrown.
-    * 
-    * @param key the key of the key-value pair.
-    * 
-    * @return the value associated with the key as a boolean.
-    *         
-    * @exception ClassCastException
-    * @exception NullPointerException 
-    */
-   public synchronized boolean getBoolean(String key)
-   throws ClassCastException, NullPointerException
-   {
-      Boolean b = (Boolean)get(key);
       return b.booleanValue();
    }
    
@@ -2141,49 +1957,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
    /**
     * Gets a value from a key in this map.
     * 
-    * The value will be converted into a char if possible. If the key
-    * is not in the map, a NullPointerException will be thrown. If the value
-    * cannot be cast to a char, a ClassCastException will be thrown.
-    * 
-    * @param key the key of the key-value pair.
-    * 
-    * @return the value associated with the key as a char.
-    *         
-    * @exception ClassCastException
-    * @exception NullPointerException 
-    */
-   public synchronized char getChar(String key)
-   throws ClassCastException, NullPointerException
-   {
-      Character c = (Character)get(key);
-      return c.charValue();
-   }
-   
-   /**
-    * Puts a key-value pair in this map. The key is a String.
-    * 
-    * @param key the key of the key-value pair.
-    * @param value the value of the key-value pair.
-    */
-   public synchronized void put(String key, Object value)
-   {
-      super.put(key, value);
-   }
-
-   /**
-    * Puts a key-value pair in this map. The value is a String.
-    * 
-    * @param key the key of the key-value pair.
-    * @param value the value of the key-value pair.
-    */
-   public synchronized void put(Object key, String value)
-   {
-      super.put(key, value);
-   }
-   
-   /**
-    * Gets a value from a key in this map.
-    * 
     * The value will be converted into a String if possible. If the value
     * cannot be cast to a String, a ClassCastException will be thrown.
     * 
@@ -2353,25 +2126,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
    }
 
    /**
-    * Gets a value from a key in this map.
-    * 
-    * The value will be converted into a String if possible. If the value
-    * cannot be cast to a String, a ClassCastException will be thrown.
-    * 
-    * @param key the key of the key-value pair.
-    * 
-    * @return the value associated with the key as a String.
-    *         
-    * @exception ClassCastException
-    */
-   public synchronized String getString(String key)
-   throws ClassCastException
-   {
-      String s = (String)get(key);
-      return s;
-   }
-   
-   /**
     * Removes the mapping for this key from this map if present.
     *
     * @param  key key whose mapping is to be removed from the map.
@@ -2492,21 +2246,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
    }
    
    /**
-    * Removes the mapping for this key from this map if present.
-    *
-    * @param  key key whose mapping is to be removed from the map.
-    * 
-    * @return previous value associated with specified key, or <tt>null</tt>
-    *         if there was no mapping for key.  A <tt>null</tt> return can
-    *         also indicate that the map previously associated <tt>null</tt>
-    *         with the specified key.
-    */
-   public synchronized Object remove(String key)   
-   {
-      return super.remove(key);
-   }
-   
-   /**
     * Returns <tt>true</tt> if this map contains a mapping for the
     * specified key.
     *
@@ -2610,19 +2349,6 @@ public class SynchronizedBoxingHashMap extends BoxingHashMap
       return super.containsKey(new Character(key));
    }
    
-   /**
-    * Returns <tt>true</tt> if this map contains a mapping for the
-    * specified key.
-    *
-    * @param key the key whose presence in this map is to be tested.
-    * @return <tt>true</tt> if this map contains a mapping for the specified
-    *         key.
-    */
-   public synchronized boolean containsKey(String key)   
-   {
-      return super.containsKey(key);
-   }
-
    /**
     * Copies this map to another map. This method makes deep copies of
     * boxed primitive values.
