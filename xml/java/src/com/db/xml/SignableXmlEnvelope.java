@@ -133,7 +133,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     */
    public SignableXmlEnvelope(IXmlSerializer xmlSerializer)
    {
-      super("1.0");
+      super("2.0");
       
       mIXmlSerializer = xmlSerializer;
       mXmlEnvelope = "";
