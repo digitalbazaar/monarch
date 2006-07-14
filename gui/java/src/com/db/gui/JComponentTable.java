@@ -90,7 +90,7 @@ public class JComponentTable extends JTable
       event.setDataKeyMessage("table",
          "The JComponentTable that was double clicked.");
       
-      event.setData("row", this);
+      event.setData("row", row);
       event.setDataKeyMessage("row",
          "The row index (int) of the selected row.");
       
