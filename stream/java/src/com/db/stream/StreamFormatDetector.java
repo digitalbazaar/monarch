@@ -283,15 +283,15 @@ public abstract class StreamFormatDetector implements IStreamManager
                // if format of chunk was detected
                if(requiredBytes <= 0)
                {
+                  // increment bytes read (that have passed through manager)
+                  // add required bytes because they will be negative or zero
+                  setBytesRead(getBytesRead() + length + requiredBytes);
+
                   // set format flag if stream data format detected
                   if(!getStreamFormat().equals(""))
                   {
                      setFormatDetected(true);
                   }
-                  
-                  // increment bytes read (that have passed through manager)
-                  // add required bytes because they will be negative or zero
-                  setBytesRead(getBytesRead() + length + requiredBytes);
                }
                else if(!keepDetecting() && getMaxReadSize() != -1 &&
                        length > getMaxReadSize())
