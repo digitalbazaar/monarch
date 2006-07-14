@@ -4,11 +4,16 @@
 package com.db.gui;
 
 import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableModel;
+
+import com.db.event.EventDelegate;
+import com.db.event.EventObject;
 
 /**
  * Table that allows JComponents to be displayed in its cells and header.
@@ -25,6 +30,11 @@ public class JComponentTable extends JTable
    protected boolean mEditable;
    
    /**
+    * An event delegate for firing double click events.
+    */
+   protected EventDelegate mDoubleClickEventDelegate;
+   
+   /**
     * Creates a new JComponentTable using the passed JComponentTableModel.
     * 
     * @param jctm the JComponentTableModel to use.
@@ -33,6 +43,9 @@ public class JComponentTable extends JTable
    {
       super(jctm);
       
+      // create the double click event delegate
+      mDoubleClickEventDelegate = new EventDelegate();
+
       setEditable(true);
       
       setupTableHeader();
@@ -47,6 +60,9 @@ public class JComponentTable extends JTable
       
       // set table dimensions
       jctm.setTableDimensions(this);
+      
+      // add mouse adapter as listener
+      addMouseListener(new JComponentTableMouseAdapter(this));
    }
    
    /**
@@ -58,6 +74,28 @@ public class JComponentTable extends JTable
       JComponentTableHeader header =
          new JComponentTableHeader(getColumnModel());
       setTableHeader(header);
+   }
+   
+   /**
+    * Fires a double click event.
+    * 
+    * @param row the selected row.
+    */
+   public void fireDoubleClickEvent(int row)
+   {
+      // create event
+      EventObject event = new EventObject("tableDoubleClicked");
+      
+      event.setData("table", this);
+      event.setDataKeyMessage("table",
+         "The JComponentTable that was double clicked.");
+      
+      event.setData("row", this);
+      event.setDataKeyMessage("row",
+         "The row index (int) of the selected row.");
+      
+      // fire the event
+      getDoubleClickEventDelegate().fireEvent(event);
    }
    
    /**
@@ -153,5 +191,60 @@ public class JComponentTable extends JTable
       size.width = this.getColumnModel().getTotalColumnWidth();
       
       return size;
+   }
+   
+   /**
+    * Gets the double click event delegate.
+    * 
+    * @return the double click event delegate.
+    */
+   public EventDelegate getDoubleClickEventDelegate()
+   {
+      return mDoubleClickEventDelegate;
+   }
+   
+   /**
+    * A mouse adapter for handling double clicks on the table.
+    * 
+    * @author Dave Longley
+    */
+   public class JComponentTableMouseAdapter extends MouseAdapter
+   {
+      /**
+       * The table this mouse adapter is for.
+       */
+      protected JComponentTable mTable;
+      
+      /**
+       * Creates a new JComponentTableMouseAdapter.
+       * 
+       * @param table the table this mouse adapter is for.
+       */
+      public JComponentTableMouseAdapter(JComponentTable table)
+      {
+         // store table
+         mTable = table;
+      }
+      
+      /**
+       * Called when the mouse is clicked on the table.
+       * 
+       * @param e the mouse event.
+       */
+      public void mouseClicked(MouseEvent e)
+      {
+         // handle double click
+         if(e.getClickCount() == 2)
+         {
+            // get selected row
+            int row = mTable.getSelectedRow();
+            
+            // if a row was selected, fire an event
+            if(row != -1)
+            {
+               mTable.fireDoubleClickEvent(row);
+            }
+         }
+      }
    }
 }
