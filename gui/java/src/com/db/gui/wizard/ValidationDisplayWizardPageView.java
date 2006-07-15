@@ -5,6 +5,7 @@ package com.db.gui.wizard;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Point;
 
@@ -137,6 +138,7 @@ implements DynamicValidationWizardPageView
       
       // make panel transparent
       panel.setOpaque(false);
+      panel.setLayout(new GridLayout(1, 1));
       
       // create border for panel
       panel.setBorder(BorderFactory.createEtchedBorder());
@@ -144,16 +146,30 @@ implements DynamicValidationWizardPageView
       // create label for displaying the first validation error
       mValidationDisplayLabel = new JLabel(
          "WizardPage must fire validate events to update this display.");
+      mValidationDisplayLabel.setHorizontalAlignment(JLabel.CENTER);
       mValidationDisplayLabel.setForeground(Color.red);
       
       // create progress bar for displaying pending validation
       mValidationDisplayProgressBar = new FastProgressBar();
-      mValidationDisplayProgressBar.setForeground(Color.red);
+      mValidationDisplayProgressBar.getFastProgressBarUI().
+         setEmptyMeterTextColor(Color.red);
+      mValidationDisplayProgressBar.getFastProgressBarUI().
+         setMeterColor(Color.red);
       mValidationDisplayProgressBar.setText(
          "WizardPage must fire validate events to update this display.");
       
-      // add label
-      panel.add(mValidationDisplayLabel);
+      // add the larger of the progress bar/label
+      if(mValidationDisplayProgressBar.getPreferredSize().height >
+         mValidationDisplayLabel.getPreferredSize().height)
+      {
+         // add progress bar
+         panel.add(mValidationDisplayProgressBar);
+      }
+      else
+      {
+         // add label
+         panel.add(mValidationDisplayLabel);
+      }
       
       return panel;
    }
