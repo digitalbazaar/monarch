@@ -125,16 +125,20 @@ public abstract class WizardPage
    }
 
    /**
-    * Fires a validation pending event. This method should be called
-    * from validate() when determining if this page passes validation
-    * requires another thread to finish processing. The validate() method
-    * should return false (page not valid) after calling this method and
-    * the page should call validate() again once the thread the page is
-    * waiting on completes.
+    * Fires a validation pending event.
     * 
-    * @param message a message describing why the validation is pending.
+    * This method should be called from validate() when a background
+    * thread must complete before determining if the page will pass
+    * validation.
+    * 
+    * The validate() method should set an error describing what's
+    * going on in the background thread and then fire this event
+    * and return false.
+    * 
+    * Once the background thread completes, validate() should be called
+    * again.
     */
-   protected void fireValidationPending(String message)
+   protected void fireValidationPending()
    {
       // create event
       EventObject event = new EventObject("validationPending");
