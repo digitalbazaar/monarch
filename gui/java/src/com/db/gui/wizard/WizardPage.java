@@ -51,6 +51,11 @@ public abstract class WizardPage
    protected EventDelegate mValidationFailedEventDelegate;
    
    /**
+    * This event delegate is used for validation pending events.
+    */
+   protected EventDelegate mValidationPendingEventDelegate;
+   
+   /**
     * Constructs a new WizardPage with the specified page name.
     *
     * @param name the wizard page name (used to uniquely identify this page).
@@ -73,6 +78,9 @@ public abstract class WizardPage
       // create the validation failed event delegate
       mValidationFailedEventDelegate = new EventDelegate();
       
+      // create the validation pending event delegate
+      mValidationPendingEventDelegate = new EventDelegate();
+      
       // the view for this page will be created when getView() is first called
    }
    
@@ -83,9 +91,12 @@ public abstract class WizardPage
    {
       // create event
       EventObject event = new EventObject("validationPassed");
+      
+      // set event data
       event.setData("page", this);
       event.setDataKeyMessage("page", 
          "The WizardPage that passed validation.");
+      
       event.setData("task", getWizardTask());
       event.setDataKeyMessage("task", "The WizardTask.");
       
@@ -100,15 +111,45 @@ public abstract class WizardPage
    {
       // create event
       EventObject event = new EventObject("validationFailed");
+      
+      // set event data
       event.setData("page", this);
       event.setDataKeyMessage("page", 
          "The WizardPage that failed validation.");
+      
       event.setData("task", getWizardTask());
       event.setDataKeyMessage("task", "The WizardTask.");
       
       // fire event
       getValidationFailedEventDelegate().fireEvent(event);
    }
+
+   /**
+    * Fires a validation pending event. This method should be called
+    * from validate() when determining if this page passes validation
+    * requires another thread to finish processing. The validate() method
+    * should return false (page not valid) after calling this method and
+    * the page should call validate() again once the thread the page is
+    * waiting on completes.
+    * 
+    * @param message a message describing why the validation is pending.
+    */
+   protected void fireValidationPending(String message)
+   {
+      // create event
+      EventObject event = new EventObject("validationPending");
+      
+      // set event data
+      event.setData("page", this);
+      event.setDataKeyMessage("page", 
+         "The WizardPage whose validation is pending.");
+      
+      event.setData("task", getWizardTask());
+      event.setDataKeyMessage("task", "The WizardTask.");
+      
+      // fire event
+      getValidationPendingEventDelegate().fireEvent(event);
+   }   
    
    /**
     * Adds an error to this page.
@@ -251,5 +292,15 @@ public abstract class WizardPage
    public EventDelegate getValidationFailedEventDelegate()
    {
       return mValidationFailedEventDelegate;
-   }   
+   }
+   
+   /**
+    * Gets the validation pending event delegate.
+    * 
+    * @return the validation pending event delegate.
+    */
+   public EventDelegate getValidationPendingEventDelegate()
+   {
+      return mValidationPendingEventDelegate;
+   }
 }

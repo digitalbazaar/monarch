@@ -13,6 +13,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import com.db.event.EventObject;
+import com.db.gui.FastProgressBar;
 import com.db.gui.PositionConstraints;
 import com.db.gui.PositionLayout;
 
@@ -29,6 +30,16 @@ implements DynamicValidationWizardPageView
     * The validation display label.
     */
    protected JLabel mValidationDisplayLabel;
+   
+   /**
+    * The validation display progress bar.
+    */
+   protected FastProgressBar mValidationDisplayProgressBar;
+   
+   /**
+    * The validation display panel.
+    */
+   protected JPanel mValidationDisplayPanel;
    
    /**
     * The text to display when a page is validated.
@@ -55,6 +66,10 @@ implements DynamicValidationWizardPageView
       page.getValidationFailedEventDelegate().addListener(
          this, "pageValidationFailed");
       
+      // listen for validation pending events
+      page.getValidationPendingEventDelegate().addListener(
+         this, "pageValidationPending");
+      
       // setup the view
       setupView();
    }
@@ -72,7 +87,7 @@ implements DynamicValidationWizardPageView
       JPanel userInputPanel = createUserInputPanel();
       
       // create validation display panel
-      JPanel validationDisplay = createValidationDisplayPanel();
+      mValidationDisplayPanel = createValidationDisplayPanel();
       
       // get insets
       Insets insets = getInsets();
@@ -81,11 +96,11 @@ implements DynamicValidationWizardPageView
       PositionConstraints validationDisplayConstraints =
          new PositionConstraints();
       validationDisplayConstraints.location = new Point(
-         5, getHeight() - 5 - validationDisplay.getPreferredSize().height -
-         insets.bottom);
+         5, getHeight() - 5 -
+         mValidationDisplayPanel.getPreferredSize().height - insets.bottom);
       validationDisplayConstraints.size = new Dimension(
          getWidth() - 5 - insets.left - insets.right,
-         validationDisplay.getPreferredSize().height);
+         mValidationDisplayPanel.getPreferredSize().height);
       validationDisplayConstraints.anchor =
          PositionConstraints.ANCHOR_BOTTOM |
          PositionConstraints.ANCHOR_LEFT | PositionConstraints.ANCHOR_RIGHT;
@@ -101,7 +116,7 @@ implements DynamicValidationWizardPageView
       
       // add components
       add(userInputPanel, userInputConstraints);
-      add(validationDisplay, validationDisplayConstraints);
+      add(mValidationDisplayPanel, validationDisplayConstraints);
    }
    
    /**
@@ -129,6 +144,13 @@ implements DynamicValidationWizardPageView
       // create label for displaying the first validation error
       mValidationDisplayLabel = new JLabel(
          "WizardPage must fire validate events to update this display.");
+      mValidationDisplayLabel.setForeground(Color.red);
+      
+      // create progress bar for displaying pending validation
+      mValidationDisplayProgressBar = new FastProgressBar();
+      mValidationDisplayProgressBar.setForeground(Color.red);
+      mValidationDisplayProgressBar.setText(
+         "WizardPage must fire validate events to update this display.");
       
       // add label
       panel.add(mValidationDisplayLabel);
@@ -140,30 +162,71 @@ implements DynamicValidationWizardPageView
     * Updates the validation display by checking the current page
     * for errors. If errors are found, the first error will be displayed.
     * 
+    * If true is passed to this method, then a progress meter will display
+    * the error found indicating that validation is pending. If not, then
+    * the error will be displayed as a label.
+    * 
     * This method is called whenever a validation event is fired
     * by the WizardPage this view is for. Therefore, this method should
     * not call validate() on the page.
+    * 
+    * @param pending true if the validation is pending, false if not.
     */
-   public void updateValidationDisplay()
+   public void updateValidationDisplay(boolean pending)
    {
+      // clear the validation panel
+      mValidationDisplayPanel.removeAll();
+      
       // check errors
       if(getPage().getErrors().size() > 0)
       {
-         // set text color to red
-         mValidationDisplayLabel.setForeground(Color.red);
-         
-         // set text to first error if one exists
+         // get the first error
          String error = (String)getPage().getErrors().get(0);
-         mValidationDisplayLabel.setText(error);
+
+         if(pending)
+         {
+            // set the text
+            mValidationDisplayProgressBar.setText(error);
+            
+            // make progress bar indeterminate
+            mValidationDisplayProgressBar.setIndeterminate(true);
+            
+            // add the validation progress bar to the panel
+            mValidationDisplayPanel.add(mValidationDisplayProgressBar);
+         }
+         else
+         {
+            // make progress bar determinate
+            mValidationDisplayProgressBar.setIndeterminate(false);
+            
+            // set text color to red
+            mValidationDisplayLabel.setForeground(Color.red);
+            
+            // set the text
+            mValidationDisplayLabel.setText(error);
+            
+            // add the validation label to the panel
+            mValidationDisplayPanel.add(mValidationDisplayLabel);
+         }
       }
       else
       {
+         // make progress bar determinate
+         mValidationDisplayProgressBar.setIndeterminate(false);
+         
          // set text color to black
          mValidationDisplayLabel.setForeground(Color.black);
          
          // set text
          mValidationDisplayLabel.setText(getValidatedText());
+         
+         // add the validation label to the panel
+         mValidationDisplayPanel.add(mValidationDisplayLabel);
       }
+      
+      // revalidate and repaint validation display panel
+      mValidationDisplayPanel.revalidate();
+      mValidationDisplayPanel.repaint();
    }
    
    /**
@@ -194,7 +257,7 @@ implements DynamicValidationWizardPageView
    public void pageValidationPassed(EventObject e)
    {
       // update validation display
-      updateValidationDisplay();
+      updateValidationDisplay(false);
    }
    
    /**
@@ -205,6 +268,17 @@ implements DynamicValidationWizardPageView
    public void pageValidationFailed(EventObject e)
    {
       // update validation display
-      updateValidationDisplay();
+      updateValidationDisplay(false);
    }
+   
+   /**
+    * Called when the validation for the page this view is for is pending.
+    * 
+    * @param e the validation pending event.
+    */
+   public void pageValidationPending(EventObject e)
+   {
+      // update validation display
+      updateValidationDisplay(true);
+   }   
 }
