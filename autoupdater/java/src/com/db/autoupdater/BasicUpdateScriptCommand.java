@@ -57,6 +57,11 @@ public class BasicUpdateScriptCommand
     * software.
     */
    protected double mVersion;
+   
+   /**
+    * A message to display.
+    */
+   protected String mMessage;
 
    /**
     * Creates a BasicUpdateScriptCommand.
@@ -70,6 +75,7 @@ public class BasicUpdateScriptCommand
       mSize = -1;
       mRelativePath = null;
       mVersion = -1.0;
+      mMessage = null;
    }
    
    /**
@@ -83,7 +89,7 @@ public class BasicUpdateScriptCommand
     * 
     * LINE := COMMAND
     * 
-    * COMMAND := (version VARGS | install IARGS | delete DARGS | 
+    * COMMAND := (version VARGS | message MARGS | install IARGS | delete DARGS | 
     *             mkdir DARGS | rmdir DARGS | on_success OARGS)
     * 
     * N := DECIMAL_NUMBER
@@ -94,6 +100,9 @@ public class BasicUpdateScriptCommand
     * SIZE := N
     * MD5SUM := STRING
     * RELATIVE_PATH := RELATIVE_FILE_PATH
+    * 
+    * MARGS := STRING
+    * 
     * IARGS := URL SIZE MD5SUM RELATIVE_PATH
     * 
     * DARGS := RELATIVE_PATH
@@ -102,6 +111,7 @@ public class BasicUpdateScriptCommand
     * </pre>
     * 
     * VARGS are version arguments.
+    * MARGS are message arguments.
     * DARGS are directory arguments.
     * OARGS are optional arguments.
     * 
@@ -139,6 +149,11 @@ public class BasicUpdateScriptCommand
             getLogger().error(getClass(), 
                "Version number in update script is invalid: " + versionNumber);
          }
+      }
+      else if(command.equals("message"))
+      {
+         mMessage = st.nextToken();
+         success = true;
       }
       else if(command.equals("mkdir") || command.equals("rmdir") ||
               command.equals("delete"))
@@ -295,6 +310,16 @@ public class BasicUpdateScriptCommand
    public double getVersion()
    {
       return mVersion;
+   }
+   
+   /**
+    * Gets a message to display.
+    *
+    * @return a message to display.
+    */
+   public String getMessage()
+   {
+      return mMessage;
    }
    
    /**

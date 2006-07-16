@@ -44,16 +44,16 @@ public class UTAutoUpdater
     * 
     * @author Dave Longley
     */
-   public static class CustomAutoUpdaterLoader extends AutoUpdaterLoader
+   public static class CustomAutoUpdaterLoader extends AbstractAutoUpdaterLoader
    {
       /**
        * Loads an AutoUpdater.
        * 
        * @return the loaded AutoUpdater.
        */
-      public AutoUpdater loadAutoUpdater()
+      public AbstractAutoUpdater loadAbstractAutoUpdater()
       {
-         AutoUpdater rval = null;
+         AbstractAutoUpdater rval = null;
          
          System.out.println("Loading CustomAutoUpdater...");
          
@@ -68,7 +68,7 @@ public class UTAutoUpdater
     *
     * @author Dave Longley
     */
-   public static class CustomAutoUpdater extends AutoUpdater
+   public static class CustomAutoUpdater extends AbstractAutoUpdater
    {
       /**
        * Gets the UpdateScriptSource for this AutoUpdater. 
