@@ -435,8 +435,9 @@ public class MethodInvoker extends Thread
             // see if the type is a primative
             if(types[i].isPrimitive())
             {
-               // FIXME: some primitives work that aren't exact
-               // matches (i.e. an int passed as a long)
+               // FIXME: code should be modified so that some primitives
+               // work that aren't exact matches (i.e. a method that takes
+               // a long should accept a passed integer)
                if(paramClass != null)
                {
                   // determine if types match
