@@ -872,10 +872,9 @@ public class TabPanel extends JPanel
     */
    protected Component getTabAreaFromChild(Component c)
    {
-      // TEMP CODE:
       // This code will run very slowly for very nested child components
-      // but these cases should be few -- in any case, this 
-      // algorithm should be updated.
+      // but these cases should be few -- in any case, we should probably
+      // try to speed up this algorithm.
       Component tabArea = null;
       
       if(c != null)
