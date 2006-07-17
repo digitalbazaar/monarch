@@ -210,7 +210,7 @@ public class JobDispatcher implements Runnable
    /**
     * Terminates all running Jobs. Queued jobs will not be affected.
     */
-   public synchronized void terminateAllJobs()
+   public synchronized void terminateAllRunningJobs()
    {
       getThreadPool().terminateAllThreads();
    }
