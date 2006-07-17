@@ -3,7 +3,7 @@
  */
 package com.db.util;
 
-import java.util.PriorityQueue;
+import java.util.Vector;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -26,7 +26,7 @@ public class JobDispatcher implements Runnable
     * The internal queue that holds the Runnable jobs that are
     * waiting to be dispatched.
     */
-   protected PriorityQueue mJobQueue;   
+   protected Vector mJobQueue;   
    
    /**
     * The thread used to dispatch the Runnable jobs.
@@ -57,7 +57,7 @@ public class JobDispatcher implements Runnable
       mThreadPool = pool;
       
       // create the job queue
-      mJobQueue = new PriorityQueue();
+      mJobQueue = new Vector();
       
       // no dispatcher thread yet
       mDispatcherThread = null;
@@ -92,7 +92,7 @@ public class JobDispatcher implements Runnable
       if(!mJobQueue.isEmpty())
       {
          // remove the top Runnable job
-         rval = (Runnable)mJobQueue.remove();
+         rval = (Runnable)mJobQueue.remove(0);
       }
       
       return rval;
