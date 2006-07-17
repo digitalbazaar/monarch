@@ -436,7 +436,7 @@ public class HttpWebRequest extends WebRequest
       response.getHeader().setConnection(getHeader().getConnection());
       
       return response;
-   }   
+   }
    
    /**
     * Returns true if this web request is valid, false if it is not.

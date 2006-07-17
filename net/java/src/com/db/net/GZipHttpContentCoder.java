@@ -33,6 +33,7 @@ implements HttpContentEncoder, HttpContentDecoder
     * Checks the content-encoding for "gzip" encoding.
     * 
     * @param contentEncoding the content-encoding to check.
+    * 
     * @return true if "gzip" content-encoding is used.
     */
    protected boolean isGZipContentEncoding(String contentEncoding)
@@ -49,7 +50,9 @@ implements HttpContentEncoder, HttpContentDecoder
     * 
     * @param contentEncoding the content encoding for the stream.
     * @param decodedStream the input stream with the data to encode.
+    * 
     * @return the input stream to read encoded data with.
+    * 
     * @throws IOException
     */
    public InputStream getHttpContentEncodedStream(
@@ -80,7 +83,9 @@ implements HttpContentEncoder, HttpContentDecoder
     * Encodes the passed string of http content.
     * 
     * @param str the string to encode.
+    * 
     * @return the encoded string.
+    * 
     * @throws IOException
     */
    public String encodeHttpContentString(String str) throws IOException
@@ -93,7 +98,9 @@ implements HttpContentEncoder, HttpContentDecoder
     * Encodes the passed byte array of http content.
     * 
     * @param data the byte array to encode.
+    * 
     * @return the encoded byte array.
+    * 
     * @throws IOException
     */
    public byte[] encodeHttpContentData(byte[] data) throws IOException
@@ -128,8 +135,11 @@ implements HttpContentEncoder, HttpContentDecoder
     * input from an http web connection directly into this stream.
     * 
     * @param contentEncoding the content encoding for the stream.
+    * 
     * @param encodedStream the input stream with the data to decode.
+    * 
     * @return the input stream to read decoded data from.
+    * 
     * @throws IOException
     */
    public InputStream getHttpContentDecodedStream(
@@ -154,7 +164,9 @@ implements HttpContentEncoder, HttpContentDecoder
     * Decodes the passed string of http content.
     * 
     * @param str the string to decode.
+    * 
     * @return the decoded string.
+    * 
     * @throws IOException
     */
    public String decodeHttpContentString(String str) throws IOException
@@ -167,7 +179,9 @@ implements HttpContentEncoder, HttpContentDecoder
     * Decodes the passed byte array of http content.
     * 
     * @param data the byte array to decode.
+    * 
     * @return the decoded byte array.
+    * 
     * @throws IOException
     */
    public byte[] decodeHttpContentData(byte[] data) throws IOException

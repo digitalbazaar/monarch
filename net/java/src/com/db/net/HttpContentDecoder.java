@@ -21,7 +21,9 @@ public interface HttpContentDecoder
     * 
     * @param contentEncoding the content encoding for the stream.
     * @param encodedStream the input stream with the data to decode.
+    * 
     * @return the input stream to read decoded data from.
+    * 
     * @throws IOException
     */
    public InputStream getHttpContentDecodedStream(
@@ -32,7 +34,9 @@ public interface HttpContentDecoder
     * Decodes the passed string of http content.
     * 
     * @param str the string to decode.
+    * 
     * @return the decoded string.
+    * 
     * @throws IOException
     */
    public String decodeHttpContentString(String str) throws IOException;
@@ -41,7 +45,9 @@ public interface HttpContentDecoder
     * Decodes the passed byte array of http content.
     * 
     * @param data the byte array to decode.
+    * 
     * @return the decoded byte array.
+    * 
     * @throws IOException
     */
    public byte[] decodeHttpContentData(byte[] data) throws IOException;
