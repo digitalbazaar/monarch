@@ -107,9 +107,9 @@ public class SoapMessage implements IXmlSerializer
    protected HttpWebConnection mAttachmentWebConnection;
    
    /**
-    * The boundary for attachments.
+    * The http header for this soap message, if any.
     */
-   protected String mAttachmentBoundary;
+   protected HttpHeader mHttpHeader;
    
    /**
     * A soap fault: when a version mismatch occurs.
@@ -394,6 +394,26 @@ public class SoapMessage implements IXmlSerializer
    }
    
    /**
+    * Sets the http header for this soap message.
+    * 
+    * @param header the http header for this soap message.
+    */
+   public void setHttpHeader(HttpHeader header)
+   {
+      mHttpHeader = header;
+   }
+   
+   /**
+    * Gets the http header for this soap message.
+    * 
+    * @return the http header for this soap message.
+    */
+   public HttpHeader getHttpHeader()
+   {
+      return mHttpHeader;
+   }
+   
+   /**
     * Sets the http web connection to read or write soap attachments with.
     * 
     * @param hwc the http web connection to read or write soap attachments with.
@@ -414,35 +434,16 @@ public class SoapMessage implements IXmlSerializer
    }
    
    /**
-    * Sets the boundary for soap attachments.
-    *
-    * @param boundary the boundary for soap attachments.
-    */
-   public void setAttachmentBoundary(String boundary)
-   {
-      mAttachmentBoundary = boundary;
-   }
-   
-   /**
-    * Gets the boundary for soap attachments.
-    * 
-    * @return the boundary for soap attachments.
-    */
-   public String getAttachmentBoundary()
-   {
-      return mAttachmentBoundary;
-   }
-   
-   /**
     * Sends an attachment for this soap message.
     * 
     * @param header the http body part header for the attachment.
     * @param is the input stream to read the attachment from.
     * @param lastAttachment true if this is the last attachment, false if not.
+    * 
     * @return true if the attachment was written, false if not.
     */
-   public boolean sendAttachment(HttpBodyPartHeader header, InputStream is,
-                                 boolean lastAttachment)
+   public boolean sendAttachment(
+      HttpBodyPartHeader header, InputStream is, boolean lastAttachment)
    {
       boolean rval = false;
       
@@ -454,9 +455,8 @@ public class SoapMessage implements IXmlSerializer
          if(hwc.sendHeader(header))
          {
             // send the body
-            rval = hwc.sendBodyPartBody(is, header.getContentEncoding(),
-                                        getAttachmentBoundary(),
-                                        lastAttachment);
+            rval = hwc.sendBodyPartBody(is, getHttpHeader(),
+               header, lastAttachment);
          }
       }
       
@@ -469,6 +469,7 @@ public class SoapMessage implements IXmlSerializer
     * 
     * @param header the http body part header for the attachment.
     * @param os the output stream to write the attachment to.
+    * 
     * @return true if an attachment was received, false if not. 
     */
    public boolean receiveAttachment(HttpBodyPartHeader header, OutputStream os)
@@ -483,8 +484,7 @@ public class SoapMessage implements IXmlSerializer
          if(hwc.receiveHeader(header))
          {
             // receive the body
-            rval = hwc.receiveBodyPartBody(os, header.getContentEncoding(),
-                                           getAttachmentBoundary());
+            rval = hwc.receiveBodyPartBody(os, getHttpHeader(), header);
          }
       }
       
@@ -504,7 +504,7 @@ public class SoapMessage implements IXmlSerializer
       HttpWebConnection hwc = getAttachmentWebConnection();
       if(hwc != null)
       {
-         String endBoundary = getAttachmentBoundary() + "--";
+         String endBoundary = getHttpHeader().getEndBoundary();
          
          // see if there is a last read boundary or if the last read
          // boundary is not the end boundary
@@ -523,6 +523,7 @@ public class SoapMessage implements IXmlSerializer
     * how to convert to and from xml.
     *
     * @param options the configuration options.
+    * 
     * @return true if options successfully set, false if not.    
     */
    public boolean setSerializerOptions(int options)
@@ -579,6 +580,7 @@ public class SoapMessage implements IXmlSerializer
     *
     * @param indentLevel the number of spaces to place before the text
     *                    after each new line.
+    *                    
     * @return the xml-based representation of the object.
     */
    public String convertToXml(int indentLevel)
@@ -653,6 +655,7 @@ public class SoapMessage implements IXmlSerializer
     * it to it's internal representation.
     *
     * @param xmlText the xml text document that represents the object.
+    * 
     * @return true if successful, false otherwise.    
     */
    public boolean convertFromXml(String xmlText)
@@ -704,6 +707,7 @@ public class SoapMessage implements IXmlSerializer
     * back into this object's representation.
     *
     * @param element the parsed element that contains this objects information.
+    * 
     * @return true if successful, false otherwise.
     */
    public boolean convertFromXml(Element element)

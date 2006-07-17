@@ -47,6 +47,7 @@ implements HttpWebRequestServicer
     * 
     * @param request the http web request to read the file from.
     * @param filename the name for the file.
+    * 
     * @return true if successfully read, false if not.
     */
    protected boolean readFile(HttpWebRequest request, String filename)   
@@ -59,6 +60,7 @@ implements HttpWebRequestServicer
     * 
     * @param request the http web request to read the file from.
     * @param file the file to write to.
+    * 
     * @return true if successfully read, false if not.
     */
    protected boolean readFile(HttpWebRequest request, File file)
@@ -93,11 +95,11 @@ implements HttpWebRequestServicer
     * @param request the http web request to read the file from.
     * @param header the http body part header.
     * @param filename the name for the file.
+    * 
     * @return true if successfully read, false if not.
     */
-   protected boolean readFileFromBodyPartBody(HttpWebRequest request,
-                                              HttpBodyPartHeader header,
-                                              String filename)   
+   protected boolean readFileFromBodyPartBody(
+      HttpWebRequest request, HttpBodyPartHeader header, String filename)   
    {
       return readFileFromBodyPartBody(request, header, new File(filename));
    }
@@ -108,11 +110,11 @@ implements HttpWebRequestServicer
     * @param request the http web request to read the file from.
     * @param header the http body part header.
     * @param file the file to write to.
+    * 
     * @return true if successfully read, false if not.
     */
-   protected boolean readFileFromBodyPartBody(HttpWebRequest request,
-                                              HttpBodyPartHeader header,
-                                              File file)
+   protected boolean readFileFromBodyPartBody(
+      HttpWebRequest request, HttpBodyPartHeader header, File file)
    {
       boolean rval = false;
       
@@ -143,6 +145,7 @@ implements HttpWebRequestServicer
     * 
     * @param response the http web response to write to.
     * @param filename the name of the file to read from.
+    * 
     * @return true if successfully sent, false if not.
     */
    protected boolean sendFile(HttpWebResponse response, String filename)   
@@ -155,6 +158,7 @@ implements HttpWebRequestServicer
     * 
     * @param response the http web response to write to.
     * @param file the file to read from.
+    * 
     * @return true if successfully sent, false if not.
     */
    protected boolean sendFile(HttpWebResponse response, File file)
@@ -188,41 +192,51 @@ implements HttpWebRequestServicer
     * a body part body.
     * 
     * @param response the http web response to write to.
+    * @param bodyPartHeader the http body part header to use.
     * @param filename the name of the file to read from.
     * @param lastBodyPart true if the file is the last body part, false if not.
+    * 
     * @return true if successfully sent, false if not.
     */
-   protected boolean sendFileInBodyPartBody(HttpWebResponse response,
-                                            String filename,
-                                            boolean lastBodyPart)   
+   protected boolean sendFileInBodyPartBody(
+      HttpWebResponse response, HttpBodyPartHeader bodyPartHeader,
+      String filename, boolean lastBodyPart)   
    {
-      return sendFileInBodyPartBody(response, new File(filename), lastBodyPart);
+      return sendFileInBodyPartBody(response, bodyPartHeader,
+         new File(filename), lastBodyPart);
    }
    
    /**
     * Reads from a file and writes it with the passed http web response.
     * 
     * @param response the http web response to write to.
+    * @param bodyPartHeader the http body part header to use.
     * @param file the file to read from.
     * @param lastBodyPart true if the file is the last body part, false if not.
+    * 
     * @return true if successfully sent, false if not.
     */
-   protected boolean sendFileInBodyPartBody(HttpWebResponse response, File file,
-                                            boolean lastBodyPart)
+   protected boolean sendFileInBodyPartBody(
+      HttpWebResponse response, HttpBodyPartHeader bodyPartHeader,
+      File file, boolean lastBodyPart)
    {
       boolean rval = false;
       
       try
       {
-         FileInputStream fis = new FileInputStream(file);
+         // send body part header
+         if(response.sendBodyPartHeader(bodyPartHeader))
+         {
+            FileInputStream fis = new FileInputStream(file);
 
-         // send the file data in a body part body
-         response.sendBodyPartBody(fis, lastBodyPart);
+            // send the file data in a body part body
+            response.sendBodyPartBody(fis, bodyPartHeader, lastBodyPart);
          
-         // close the file
-         fis.close();
+            // close the file
+            fis.close();
          
-         rval = true;
+            rval = true;
+         }
       }
       catch(Throwable t)
       {
@@ -239,6 +253,7 @@ implements HttpWebRequestServicer
     * a request path.
     * 
     * @param path the request path.
+    * 
     * @return the path relative to this servicer. 
     */
    protected String getServicerRelativePath(String path)
@@ -283,6 +298,7 @@ implements HttpWebRequestServicer
     * Determines acceptable http versions for an http web request.
     *
     * @param request the http web request to check.
+    * 
     * @return true if the passed request has an acceptable version
     *         false if not.
     */
@@ -380,6 +396,7 @@ implements HttpWebRequestServicer
     * Gets the permissions for the passed path.
     * 
     * @param path the path to get permissions for.
+    * 
     * @return the permissions for the passed path.
     */
    public String getPathPermissions(String path)
@@ -442,6 +459,7 @@ implements HttpWebRequestServicer
     * Returns true if the passed path is readable, false if not.
     *  
     * @param path the path to inspect.
+    * 
     * @return true if the path is readable, false if not.
     */
    public boolean isReadable(String path)
@@ -461,6 +479,7 @@ implements HttpWebRequestServicer
     * Returns true if the passed path is writable, false if not.
     *  
     * @param path the path to inspect.
+    * 
     * @return true if the path is writable, false if not.
     */
    public boolean isWritable(String path)
@@ -481,6 +500,7 @@ implements HttpWebRequestServicer
     * not.
     *
     * @param path the path to inspect.
+    * 
     * @return true if path permissions are recursive, false if not.
     */
    public boolean hasRecursivePermissions(String path)

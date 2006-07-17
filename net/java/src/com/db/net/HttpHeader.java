@@ -347,6 +347,16 @@ public abstract class HttpHeader
    public String getContentEncoding()
    {
       return getHeader("Content-Encoding");
+   }
+   
+   /**
+    * Gets the transfer-encoding value.
+    * 
+    * @return the transfer-encoding header value.
+    */
+   public String getTransferEncoding()
+   {
+      return getHeader("Transfer-Encoding");
    }   
    
    /**

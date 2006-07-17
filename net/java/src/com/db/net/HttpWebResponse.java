@@ -87,7 +87,7 @@ public class HttpWebResponse extends WebResponse
       boolean rval = false;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.sendBody(body, getHeader().getContentEncoding());
+      rval = hwc.sendBody(body, getHeader());
       
       return rval;
    }
@@ -104,7 +104,7 @@ public class HttpWebResponse extends WebResponse
       boolean rval = false;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.sendBody(body, getHeader().getContentEncoding());
+      rval = hwc.sendBody(body, getHeader());
       
       return rval;
    }   
@@ -123,8 +123,7 @@ public class HttpWebResponse extends WebResponse
       boolean rval = false;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.sendBody(buffer, offset, length,
-                          getHeader().getContentEncoding());
+      rval = hwc.sendBody(buffer, offset, length, getHeader());
       
       return rval;
    }
@@ -142,7 +141,7 @@ public class HttpWebResponse extends WebResponse
       boolean rval = false;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.sendBody(is, getHeader().getContentEncoding());
+      rval = hwc.sendBody(is, getHeader());
       
       return rval;
    }
@@ -151,18 +150,19 @@ public class HttpWebResponse extends WebResponse
     * Sends an http body part body for this http web response as a string.
     * 
     * @param body the body as a byte array.
+    * @param header the http body part header associated with the body.
     * @param lastBodyPart true if this body is for the last body part,
     *                     false if not.
     *                     
     * @return true if the body was successfully sent, false if not.
     */
-   public boolean sendBodyPartBody(String body, boolean lastBodyPart)
+   public boolean sendBodyPartBody(
+      String body, HttpBodyPartHeader header, boolean lastBodyPart)
    {
       boolean rval = false;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.sendBodyPartBody(body, getHeader().getContentEncoding(),
-                                  getHeader().getBoundary(), lastBodyPart);
+      rval = hwc.sendBodyPartBody(body, getHeader(), header, lastBodyPart);
       
       return rval;      
    }
@@ -171,18 +171,19 @@ public class HttpWebResponse extends WebResponse
     * Sends an http body part body for this http web response as a byte array.
     * 
     * @param body the body as a string.
+    * @param header the http body part header associated with the body.
     * @param lastBodyPart true if this body is for the last body part,
     *                     false if not.
     *                     
     * @return true if the body was successfully sent, false if not.
     */
-   public boolean sendBodyPartBody(byte[] body, boolean lastBodyPart)
+   public boolean sendBodyPartBody(
+      byte[] body, HttpBodyPartHeader header, boolean lastBodyPart)
    {
       boolean rval = false;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.sendBodyPartBody(body, getHeader().getContentEncoding(),
-                                  getHeader().getBoundary(), lastBodyPart);
+      rval = hwc.sendBodyPartBody(body, getHeader(), header, lastBodyPart);
       
       return rval;      
    }   
@@ -193,20 +194,21 @@ public class HttpWebResponse extends WebResponse
     * @param buffer the buffer containing the http body part body.
     * @param offset the offset the body begins at in the buffer.
     * @param length the length of the http body part body in bytes.
+    * @param header the http body part header associated with the body.
     * @param lastBodyPart true if this body is for the last body part,
     *                     false if not.
     *                     
     * @return true if the body was successfully sent, false if not.
     */
-   public boolean sendBodyPartBody(byte[] buffer, int offset, int length,
-                                   boolean lastBodyPart)
+   public boolean sendBodyPartBody(
+      byte[] buffer, int offset, int length,
+      HttpBodyPartHeader header, boolean lastBodyPart)
    {
       boolean rval = false;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.sendBodyPartBody(buffer, offset, length,
-                                  getHeader().getContentEncoding(),
-                                  getHeader().getBoundary(), lastBodyPart);
+      rval = hwc.sendBodyPartBody(buffer, offset, length, getHeader(),
+         header, lastBodyPart);
       
       return rval;      
    }   
@@ -216,18 +218,19 @@ public class HttpWebResponse extends WebResponse
     * read from the passed input stream.
     *
     * @param is the input stream to read the body from.
+    * @param header the http body part header associated with the body.
     * @param lastBodyPart true if this body is for the last body part,
     *                     false if not.
     *                     
     * @return true if the body was successfully sent, false if not.
     */
-   public boolean sendBodyPartBody(InputStream is, boolean lastBodyPart)   
+   public boolean sendBodyPartBody(
+      InputStream is, HttpBodyPartHeader header, boolean lastBodyPart)   
    {
       boolean rval = false;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.sendBodyPartBody(is, getHeader().getContentEncoding(),
-                                  getHeader().getBoundary(), lastBodyPart);
+      rval = hwc.sendBodyPartBody(is, getHeader(), header, lastBodyPart);
       
       return rval;      
    }
@@ -479,25 +482,10 @@ public class HttpWebResponse extends WebResponse
     */
    public String receiveBodyString()
    {
-      return receiveBodyString(getHeader().getContentEncoding());
-   }
-   
-   /**
-    * Receives the body of this http web response and returns it as
-    * a string.
-    * 
-    * @param contentEncoding the content-encoding for the body.
-    * 
-    * @return the body of this http web response as a string, or null if
-    *         the body could not be received.
-    */
-   public String receiveBodyString(String contentEncoding)
-   {
       String rval = null;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.receiveBodyString(contentEncoding,
-                                   getHeader().getContentLength());
+      rval = hwc.receiveBodyString(getHeader());
       
       return rval;
    }
@@ -511,24 +499,10 @@ public class HttpWebResponse extends WebResponse
     */
    public byte[] receiveBody()
    {
-      return receiveBody(getHeader().getContentEncoding());
-   }
-   
-   /**
-    * Receives the body of this http web response and returns it as
-    * a byte array.
-    * 
-    * @param contentEncoding the content-encoding for the body.
-    * 
-    * @return the body of this http web response as a byte array, or null if
-    *         the body could not be received.
-    */
-   public byte[] receiveBody(String contentEncoding)
-   {
       byte[] rval = null;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.receiveBody(contentEncoding, getHeader().getContentLength());
+      rval = hwc.receiveBody(getHeader());
       
       return rval;
    }   
@@ -545,10 +519,8 @@ public class HttpWebResponse extends WebResponse
    {
       boolean rval = false;
       
-      long contentLength = getHeader().getContentLength();
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.receiveBody(os, getHeader().getContentEncoding(),
-                             contentLength);
+      rval = hwc.receiveBody(os, getHeader());
       
       return rval;
    }
@@ -556,18 +528,17 @@ public class HttpWebResponse extends WebResponse
    /**
     * Receives an http body part body as a string.
     *
-    * @param contentEncoding the content-encoding for the body.
+    * @param header the http body part header associated with the body.
     * 
     * @return the body of the body part as a string, or null if the body
     *         could not be received. 
     */
-   public String receiveBodyPartBodyString(String contentEncoding)
+   public String receiveBodyPartBodyString(HttpBodyPartHeader header)
    {
       String rval = null;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.receiveBodyPartBodyString(contentEncoding,
-                                           getHeader().getBoundary());
+      rval = hwc.receiveBodyPartBodyString(getHeader(), header);
       
       return rval;
    }
@@ -575,18 +546,17 @@ public class HttpWebResponse extends WebResponse
    /**
     * Receives an http body part body as a byte array.
     *
-    * @param contentEncoding the content-encoding for the body.
+    * @param header the http body part header associated with the body.
     * 
     * @return the body of the body part as a byte array, or null if the body
     *         could not be received. 
     */
-   public byte[] receiveBodyPartBody(String contentEncoding)
+   public byte[] receiveBodyPartBody(HttpBodyPartHeader header)
    {
       byte[] rval = null;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.receiveBodyPartBody(contentEncoding,
-                                     getHeader().getBoundary());
+      rval = hwc.receiveBodyPartBody(getHeader(), header);
       
       return rval;
    }
@@ -596,17 +566,17 @@ public class HttpWebResponse extends WebResponse
     * output stream.
     *
     * @param os the output stream to write the body to.
-    * @param contentEncoding the content-encoding for the body.
+    * @param header the http body part header associated with the body.
     * 
     * @return true if the body was successfully received, false if not.
     */
-   public boolean receiveBodyPartBody(OutputStream os, String contentEncoding)
+   public boolean receiveBodyPartBody(
+      OutputStream os, HttpBodyPartHeader header)
    {
       boolean rval = false;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.receiveBodyPartBody(os, contentEncoding,
-                                     getHeader().getBoundary());
+      rval = hwc.receiveBodyPartBody(os, getHeader(), header);
       
       return rval;
    }
@@ -614,17 +584,17 @@ public class HttpWebResponse extends WebResponse
    /**
     * Skips an http body part body.
     *
-    * @param contentEncoding the content-encoding for the body.
+    * @param header the http body part header associated with the body.
     * 
     * @return true if the http body part body was successfully skipped, false
     *         if not.
     */
-   public boolean skipBodyPartBody(String contentEncoding)
+   public boolean skipBodyPartBody(HttpBodyPartHeader header)
    {
       boolean rval = false;
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.skipBodyPartBody(contentEncoding, getHeader().getBoundary());
+      rval = hwc.skipBodyPartBody(getHeader(), header);
       
       return rval;
    }

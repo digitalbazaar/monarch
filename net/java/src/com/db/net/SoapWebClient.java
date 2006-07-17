@@ -282,8 +282,8 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
                // see if the response is multipart or not
                if(response.isMultipart())
                {
-                  // set the attachment boundary for the soap message
-                  sm.setAttachmentBoundary(response.getHeader().getBoundary());
+                  // set the response header for the soap message
+                  sm.setHttpHeader(response.getHeader());
                   
                   // get the first part header
                   HttpBodyPartHeader header =
@@ -292,8 +292,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
                   // receive the body part body if the header was received
                   if(header != null)
                   {
-                     body = response.receiveBodyPartBody(
-                            header.getContentEncoding());
+                     body = response.receiveBodyPartBody(header);
                   }
                }
                else
