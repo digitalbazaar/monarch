@@ -139,8 +139,7 @@ public class JobThreadPool
       }
       
       // iterate through threads, find one that is idle
-      Iterator i = mThreads.iterator();
-      while(i.hasNext())
+      for(Iterator i = mThreads.iterator(); i.hasNext();)
       {
          JobThread thread = (JobThread)i.next();
          if(thread.isIdle())
@@ -247,8 +246,7 @@ public class JobThreadPool
          int removeCount = mThreads.size() - size;
          
          // iterate through threads, remove idle threads
-         Iterator i = mThreads.iterator();
-         while(i.hasNext() && removeCount > 0)
+         for(Iterator i = mThreads.iterator(); i.hasNext() && removeCount > 0;)
          {
             JobThread thread = (JobThread)i.next();
             
@@ -318,8 +316,7 @@ public class JobThreadPool
       getLogger().detail(getClass(), "terminating all threads.");
       
       // iterate through all threads, interrupt and remove them
-      Iterator i = mThreads.iterator();
-      while(i.hasNext())
+      for(Iterator i = mThreads.iterator(); i.hasNext();)
       {
          JobThread thread = (JobThread)i.next();
          
@@ -368,7 +365,56 @@ public class JobThreadPool
    public synchronized long getJobThreadExpireTime()
    {
       return mJobThreadExpireTime;
-   }   
+   }
+   
+   /**
+    * Gets the current number of JobThreads in the pool.
+    * 
+    * @return the current number of JobThreads in the pool.
+    */
+   public synchronized int getJobThreadCount()
+   {
+      return mThreads.size();
+   }
+   
+   /**
+    * Gets the current number of running JobThreads.
+    * 
+    * Returns getJobThreadCount() - getIdleJobThreadCount().
+    * 
+    * @return the current number of running JobThreads.
+    */
+   public synchronized int getRunningJobThreadCount()
+   {
+      int rval = 0;
+      
+      // subtract idle threads from total threads
+      rval = getJobThreadCount() - getIdleJobThreadCount();
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the current number of idle JobThreads.
+    * 
+    * @return the current number of idle JobThreads.
+    */
+   public synchronized int getIdleJobThreadCount()
+   {
+      int rval = 0;
+      
+      // iterate through all threads, add up idle threads
+      for(Iterator i = mThreads.iterator(); i.hasNext();)
+      {
+         JobThread thread = (JobThread)i.next();
+         if(thread.isIdle())
+         {
+            rval++;
+         }
+      }
+      
+      return rval;
+   }
    
    /**
     * Gets the logger for this thread pool.
