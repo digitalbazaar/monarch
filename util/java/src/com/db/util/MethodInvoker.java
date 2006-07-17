@@ -659,19 +659,11 @@ public class MethodInvoker extends Thread
    public void execute(MethodInvokerListener mil, MethodInvokedMessage mim,
                        Object lockObject, boolean lockMessageHandling)
    {
-      // save listener and message
-      mListener = mil;
-      mMessage = mim;
-      
-      // if listener is not null, do not allow null message
-      if(mListener != null && mMessage == null)
-      {
-         mMessage = new MethodInvokedMessage();
-      }
+      // set listener and message
+      setMethodInvokerListener(mil, mim);
 
       // set lock object and whether or not to lock message handling
-      mLockObject = lockObject;
-      mLockMessageHandling = lockMessageHandling;
+      setLockObject(lockObject, lockMessageHandling);
       
       // run in this thread
       run();
@@ -710,22 +702,15 @@ public class MethodInvoker extends Thread
     *                            handling the method invoked message, false
     *                            to only lock during method invocation.
     */
-   public void execute(MethodInvoker cbInvoker, MethodInvokedMessage mim,
-                       Object lockObject, boolean lockMessageHandling)
+   public void execute(
+      MethodInvoker cbInvoker, MethodInvokedMessage mim,
+      Object lockObject, boolean lockMessageHandling)
    {
-      // save callback method invoker and message
-      mCallbackMethodInvoker = cbInvoker;
-      mMessage = mim;
+      // set callback method invoker and message
+      setCallbackInvoker(cbInvoker, mim);
       
-      // if callback method invoker is not null, do not allow null message
-      if(mCallbackMethodInvoker != null && mMessage == null)
-      {
-         mMessage = new MethodInvokedMessage();
-      }
-
       // set lock object and whether or not to lock message handling
-      mLockObject = lockObject;
-      mLockMessageHandling = lockMessageHandling;
+      setLockObject(lockObject, lockMessageHandling);
       
       // run in this thread
       run();      
@@ -764,8 +749,8 @@ public class MethodInvoker extends Thread
     * @param mim the MethodInvokedMessage to populate and send to the
     *            passed MethodInvokerListener when the method completes.
     */
-   public void backgroundExecute(MethodInvokerListener mil,
-                                 MethodInvokedMessage mim)
+   public void backgroundExecute(
+      MethodInvokerListener mil, MethodInvokedMessage mim)
    {
       // background execute
       backgroundExecute(mil, mim, null, false);
@@ -789,23 +774,15 @@ public class MethodInvoker extends Thread
     *                            handling the method invoked message, false
     *                            to only lock during method invocation.
     */
-   public void backgroundExecute(MethodInvokerListener mil,
-                                 MethodInvokedMessage mim,
-                                 Object lockObject, boolean lockMessageHandling)
+   public void backgroundExecute(
+      MethodInvokerListener mil, MethodInvokedMessage mim,
+      Object lockObject, boolean lockMessageHandling)
    {
-      // save listener and message
-      mListener = mil;
-      mMessage = mim;
-      
-      // if listener is not null, do not allow null message
-      if(mListener != null && mMessage == null)
-      {
-         mMessage = new MethodInvokedMessage();
-      }
+      // set listener and message
+      setMethodInvokerListener(mil, mim);
       
       // set lock object and whether or not to lock message handling
-      mLockObject = lockObject;
-      mLockMessageHandling = lockMessageHandling;
+      setLockObject(lockObject, lockMessageHandling);
       
       // start thread
       start();
@@ -822,8 +799,8 @@ public class MethodInvoker extends Thread
     *                  the method completes.
     * @param mim the MethodInvokedMessage to populate when the method completes.
     */
-   public void backgroundExecute(MethodInvoker cbInvoker,
-                                 MethodInvokedMessage mim)
+   public void backgroundExecute(
+      MethodInvoker cbInvoker, MethodInvokedMessage mim)
    {
       // background execute
       backgroundExecute(cbInvoker, mim, null, false);      
@@ -845,11 +822,53 @@ public class MethodInvoker extends Thread
     *                            handling the method invoked message, false
     *                            to only lock during method invocation.
     */   
-   public void backgroundExecute(MethodInvoker cbInvoker,
-                                 MethodInvokedMessage mim,
-                                 Object lockObject, boolean lockMessageHandling)
+   public void backgroundExecute(
+      MethodInvoker cbInvoker, MethodInvokedMessage mim,
+      Object lockObject, boolean lockMessageHandling)
    {
-      // save callback method invoker and message
+      // set callback method invoker and message
+      setCallbackInvoker(cbInvoker, mim);
+      
+      // set lock object and whether or not to lock message handling
+      setLockObject(lockObject, lockMessageHandling);
+      
+      // start thread
+      start();
+   }
+   
+   /**
+    * Sets the method invoker listener and its message for this method invoker.
+    * 
+    * @param mil the MethodInvokerListener to send a message when the
+    *            method completes.
+    * @param mim the MethodInvokedMessage to populate and send to the
+    *            passed MethodInvokerListener when the method completes.
+    */
+   public void setMethodInvokerListener(
+      MethodInvokerListener mil, MethodInvokedMessage mim)
+   {
+      // set listener and message
+      mListener = mil;
+      mMessage = mim;
+      
+      // if listener is not null, do not allow null message
+      if(mListener != null && mMessage == null)
+      {
+         mMessage = new MethodInvokedMessage();
+      }
+   }
+   
+   /**
+    * Sets the callback invoker and its message for this method invoker.
+    * 
+    * @param cbInvoker the MethodInvoker to invoke a callback with when
+    *                  the method completes.
+    * @param mim the MethodInvokedMessage to populate when the method completes.
+    */
+   public void setCallbackInvoker(
+      MethodInvoker cbInvoker, MethodInvokedMessage mim)
+   {
+      // set callback method invoker and message
       mCallbackMethodInvoker = cbInvoker;
       mMessage = mim;
       
@@ -858,13 +877,23 @@ public class MethodInvoker extends Thread
       {
          mMessage = new MethodInvokedMessage();
       }
-      
+   }
+   
+   /**
+    * Sets the lock object to lock on while invoking the method
+    * and whether or not to lock message handling.
+    * 
+    * @param lockObject an object to lock on while invoking the method.
+    * @param lockMessageHandling true to continue to lock on the lock object
+    *                            until the method invoker listener finishes
+    *                            handling the method invoked message, false
+    *                            to only lock during method invocation.
+    */
+   public void setLockObject(Object lockObject, boolean lockMessageHandling)
+   {
       // set lock object and whether or not to lock message handling
       mLockObject = lockObject;
       mLockMessageHandling = lockMessageHandling;
-      
-      // start thread
-      start();
    }
    
    /**
