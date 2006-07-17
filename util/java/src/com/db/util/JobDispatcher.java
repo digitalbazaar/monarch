@@ -200,6 +200,14 @@ public class JobDispatcher implements Runnable
    }
    
    /**
+    * Removes all queued jobs. Already running jobs will not be affected.
+    */
+   public synchronized void clearQueuedJobs()
+   {
+      mJobQueue.clear();
+   }
+   
+   /**
     * Terminates all running Jobs.
     */
    public synchronized void terminateAllJobs()
