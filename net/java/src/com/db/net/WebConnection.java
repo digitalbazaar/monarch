@@ -22,8 +22,10 @@ public interface WebConnection
     * @param buffer the buffer to read data into from this connection.
     * @param offset the offset to start writing the data into the buffer.
     * @param length the amount of data to read.
+    * 
     * @return the actual number of bytes read or -1 if there is no
     *         more data to read.
+    *         
     * @throws IOException
     */
    public int read(byte[] buffer, int offset, int length)
@@ -37,8 +39,10 @@ public interface WebConnection
     * @param buffer the buffer to read data into from this connection.
     * @param offset the offset to start writing the data into the buffer.
     * @param length the amount of data to read.
+    * 
     * @return the actual number of bytes read or -1 if the end of the
     *         stream has been reached.
+    *         
     * @throws IOException
     */
    public int blockedRead(byte[] buffer, int offset, int length)
@@ -55,6 +59,7 @@ public interface WebConnection
     * @param buffer the buffer to write data from to this connection.
     * @param offset the offset to start writing the data.
     * @param length the amount of data to write.
+    * 
     * @throws IOException
     */
    public void unread(byte[] buffer, int offset, int length)
@@ -67,6 +72,7 @@ public interface WebConnection
     * will block until there is no more data to read or until it reads a line.
     * 
     * @return the read line or null if the end of the stream was reached.
+    * 
     * @throws IOException
     */
    public String readLine() throws IOException;
@@ -77,6 +83,7 @@ public interface WebConnection
     * @param buffer the buffer to write data from to this connection.
     * @param offset the offset in the buffer to start writing data from.
     * @param length the amount of data to write.
+    * 
     * @throws IOException
     */
    public void write(byte[] buffer, int offset, int length)
@@ -112,6 +119,7 @@ public interface WebConnection
     * Gets the input stream used to read and unread from the web connection.
     * 
     * @return the input stream used to read and unread from the web connection.
+    * 
     * @throws IOException
     */
    public InputStream getReadStream()
@@ -121,6 +129,7 @@ public interface WebConnection
     * Gets the output stream used to write to the web connection.
     * 
     * @return the output stream used to write to the web connection.
+    * 
     * @throws IOException
     */
    public OutputStream getWriteStream()

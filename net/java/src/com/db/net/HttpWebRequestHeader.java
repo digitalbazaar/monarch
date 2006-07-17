@@ -269,6 +269,7 @@ public class HttpWebRequestHeader extends HttpHeader
     * most base path to least. Path variables are not included.
     * 
     * @param path the path to get the components of.
+    * 
     * @return the collection of ordered path components.
     */
    public static String[] getPathComponents(String path)

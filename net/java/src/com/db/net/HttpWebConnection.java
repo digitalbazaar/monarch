@@ -71,8 +71,8 @@ public class HttpWebConnection extends WebConnectionWrapper
     *                        encoder for.
     * @param hce the http content encoder.
     */
-   public void setHttpContentEncoder(String contentEncoding,
-                                     HttpContentEncoder hce)
+   public void setHttpContentEncoder(
+      String contentEncoding, HttpContentEncoder hce)
    {
       // force encoding to lower case
       contentEncoding = contentEncoding.toLowerCase();
@@ -85,6 +85,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * 
     * @param contentEncoding the content encoding to get the content
     *                        encoder for.
+    *                        
     * @return the http content encoder or null if there was no encoder
     *         associated with the given content encoding.
     */
@@ -99,18 +100,13 @@ public class HttpWebConnection extends WebConnectionWrapper
          
          // split content-encoding by comma
          String[] types = contentEncoding.split(",");
-         for(int i = 0; i < types.length; i++)
+         for(int i = 0; i < types.length && rval == null; i++)
          {
             // trim any whitespace off the type
             String type = types[i].trim();
             
             // get content encoder
             rval = (HttpContentEncoder)mHttpContentEncoders.get(type);
-            if(rval != null)
-            {
-               // content encoder found
-               break;
-            }
          }
       }
       
@@ -121,6 +117,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * Removes the http content encoder for the specified content encoding.
     * 
     * @param contentEncoding the content encoding for the encoder to remove.
+    * 
     * @return the removed content encoder.
     */
    public HttpContentEncoder removeHttpContentEncoder(String contentEncoding)
@@ -158,6 +155,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * 
     * @param contentEncoding the content encoding to get the content
     *                        decoder for.
+    *                        
     * @return the http content decoder or null if there was no decoder
     *         associated with the given content-encoding.
     */
@@ -172,18 +170,13 @@ public class HttpWebConnection extends WebConnectionWrapper
          
          // split content-encoding by comma
          String[] types = contentEncoding.split(",");
-         for(int i = 0; i < types.length; i++)
+         for(int i = 0; i < types.length && rval == null; i++)
          {
             // trim any whitespace off the type
             String type = types[i].trim();
             
             // get content decoder
             rval = (HttpContentDecoder)mHttpContentDecoders.get(type);
-            if(rval != null)
-            {
-               // content decoder found
-               break;
-            }
          }      
       }
       
@@ -194,6 +187,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * Removes the http content decoder for the specified content encoding.
     * 
     * @param contentEncoding the content encoding for the decoder to remove.
+    * 
     * @return the removed content decoder.
     */
    public HttpContentDecoder removeHttpContentDecoder(String contentEncoding)
@@ -214,6 +208,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * Sends an http header over the underlying web connection.
     * 
     * @param header the http header to send.
+    * 
     * @return true if the header was successfully sent, false if not.
     */
    public boolean sendHeader(HttpHeader header)
@@ -250,6 +245,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * 
     * @param header the http body part header to send.
     * @param boundary the boundary to use.
+    * 
     * @return true if the header was successfully sent, false if not.
     */
    public boolean sendBodyPartHeader(HttpBodyPartHeader header, String boundary)
@@ -290,6 +286,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * 
     * @param body the http body as a string.
     * @param contentEncoding the content-encoding for the body.
+    * 
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBody(String body, String contentEncoding)
@@ -306,6 +303,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * 
     * @param body the http body as a byte array.
     * @param contentEncoding the content-encoding for the body.
+    * 
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBody(byte[] body, String contentEncoding)   
@@ -320,6 +318,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * @param offset the offset the body begins at in the buffer.
     * @param length the length of the body in bytes.
     * @param contentEncoding the content-encoding for the body.
+    * 
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBody(byte[] buffer, int offset, int length,
@@ -354,6 +353,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * 
     * @param is the input stream to read the http body from.
     * @param contentEncoding the content-encoding for the body. 
+    * 
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBody(InputStream is, String contentEncoding)
@@ -420,6 +420,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * @param boundary the boundary to use.
     * @param endBoundary true if the end boundary should be used after this
     *                    part, false if not.
+    *                    
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBodyPartBody(InputStream is, String contentEncoding,
@@ -478,6 +479,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * @param boundary the boundary to use.
     * @param endBoundary true if the end boundary should be used after this
     *                    part, false if not.
+    *                    
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBodyPartBody(String body, String contentEncoding,
@@ -499,6 +501,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * @param boundary the boundary to use.
     * @param endBoundary true if the end boundary should be used after this
     *                    part, false if not.
+    *                    
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBodyPartBody(byte[] body, String contentEncoding,
@@ -518,6 +521,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * @param boundary the boundary to use.
     * @param endBoundary true if the end boundary should be used after this
     *                    part, false if not.
+    *                    
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBodyPartBody(byte[] buffer, int offset, int length,
@@ -552,6 +556,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * Receives an http header.
     * 
     * @param header the http header to write to.
+    * 
     * @return true if the header was successfully received, false if not.
     */
    public boolean receiveHeader(HttpHeader header)
@@ -593,6 +598,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * Receives an http body and returns it as a string.
     * 
     * @param contentEncoding the content-encoding for the body.
+    * 
     * @return the http body as a string, or null if a body could not
     *         be received.
     */
@@ -608,6 +614,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * @param contentLength the content-length (a negative content-length
     *                      may be passed if no content-length has been
     *                      specified).
+    *                      
     * @return the http body as a string, or null if a body could not
     *         be received.
     */
@@ -628,6 +635,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * Receives an http body and returns it as a byte array.
     * 
     * @param contentEncoding the content-encoding for the body.
+    * 
     * @return the http body as a byte array, or null if a body could not
     *         be received.
     */
@@ -643,6 +651,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * @param contentLength the content-length (a negative content-length
     *                      may be passed if no content-length has been
     *                      specified).
+    *                      
     * @return the http body as a byte array, or null if a body could not
     *         be received.
     */
@@ -679,6 +688,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     *
     * @param os the output stream to write the http body to.
     * @param contentEncoding the content-encoding for the body.
+    * 
     * @return true if the http body was successfully received, false if not.
     */
    public boolean receiveBody(OutputStream os, String contentEncoding)
@@ -694,6 +704,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * @param contentLength the content-length (a negative content-length
     *                      may be passed if no content-length has been
     *                      specified).
+    *                      
     * @return true if the http body was successfully received, false if not.
     */
    public boolean receiveBody(OutputStream os, String contentEncoding,
@@ -761,6 +772,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * 
     * @param contentEncoding the content-encoding for the body.
     * @param boundary the boundary to use.
+    * 
     * @return the http body part body as a string, or null if a body part
     *         body could not be received.
     */
@@ -783,6 +795,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * 
     * @param contentEncoding the content-encoding for the body.
     * @param boundary the boundary to use.
+    * 
     * @return the http body part body as a byte array, or null if a body part
     *         body could not be received.
     */
@@ -820,6 +833,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * @param os the output stream to write the http body part body to.
     * @param contentEncoding the content-encoding for the body.
     * @param boundary the boundary to use.
+    * 
     * @return true if the http body part body was successfully received, false
     *         if not.
     */
@@ -895,6 +909,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     *
     * @param contentEncoding the content-encoding for the body.
     * @param boundary the boundary to use.
+    * 
     * @return true if the http body part body was successfully skipped, false
     *         if not.
     */

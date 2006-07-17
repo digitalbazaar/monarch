@@ -33,6 +33,7 @@ public class HttpWebResponseHeader extends HttpHeader
     * Parses this http web response header from a string.
     * 
     * @param header the response header in string format.
+    * 
     * @return true if the header was successfully parsed, false if not.
     */   
    public boolean parse(String header)

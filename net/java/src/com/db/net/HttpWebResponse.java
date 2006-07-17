@@ -62,6 +62,7 @@ public class HttpWebResponse extends WebResponse
     * Sends an http body part header inside of this response.
     * 
     * @param header the http body part header to send.
+    * 
     * @return true if an http body part header could be sent, false if not. 
     */
    public boolean sendBodyPartHeader(HttpBodyPartHeader header)
@@ -78,6 +79,7 @@ public class HttpWebResponse extends WebResponse
     * Sends the body of this http web response as a string.
     * 
     * @param body the body of this http web response as a string.
+    * 
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBody(String body)
@@ -94,6 +96,7 @@ public class HttpWebResponse extends WebResponse
     * Sends the body of this http web response as a byte array.
     * 
     * @param body the body of this http web response as a byte array.
+    * 
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBody(byte[] body)
@@ -112,6 +115,7 @@ public class HttpWebResponse extends WebResponse
     * @param buffer the buffer containing the http body.
     * @param offset the offset the body begins at in the buffer.
     * @param length the length of the body in bytes.
+    * 
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBody(byte[] buffer, int offset, int length)
@@ -130,6 +134,7 @@ public class HttpWebResponse extends WebResponse
     * passed input stream.
     * 
     * @param is the input stream to read the body from.
+    * 
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBody(InputStream is)
@@ -148,6 +153,7 @@ public class HttpWebResponse extends WebResponse
     * @param body the body as a byte array.
     * @param lastBodyPart true if this body is for the last body part,
     *                     false if not.
+    *                     
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBodyPartBody(String body, boolean lastBodyPart)
@@ -167,6 +173,7 @@ public class HttpWebResponse extends WebResponse
     * @param body the body as a string.
     * @param lastBodyPart true if this body is for the last body part,
     *                     false if not.
+    *                     
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBodyPartBody(byte[] body, boolean lastBodyPart)
@@ -188,6 +195,7 @@ public class HttpWebResponse extends WebResponse
     * @param length the length of the http body part body in bytes.
     * @param lastBodyPart true if this body is for the last body part,
     *                     false if not.
+    *                     
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBodyPartBody(byte[] buffer, int offset, int length,
@@ -210,6 +218,7 @@ public class HttpWebResponse extends WebResponse
     * @param is the input stream to read the body from.
     * @param lastBodyPart true if this body is for the last body part,
     *                     false if not.
+    *                     
     * @return true if the body was successfully sent, false if not.
     */
    public boolean sendBodyPartBody(InputStream is, boolean lastBodyPart)   
@@ -478,6 +487,7 @@ public class HttpWebResponse extends WebResponse
     * a string.
     * 
     * @param contentEncoding the content-encoding for the body.
+    * 
     * @return the body of this http web response as a string, or null if
     *         the body could not be received.
     */
@@ -509,6 +519,7 @@ public class HttpWebResponse extends WebResponse
     * a byte array.
     * 
     * @param contentEncoding the content-encoding for the body.
+    * 
     * @return the body of this http web response as a byte array, or null if
     *         the body could not be received.
     */
@@ -527,6 +538,7 @@ public class HttpWebResponse extends WebResponse
     * the passed output stream.
     * 
     * @param os the output stream to write the response body to.
+    * 
     * @return true if the body was successfully received, false if not.
     */
    public boolean receiveBody(OutputStream os)
@@ -545,6 +557,7 @@ public class HttpWebResponse extends WebResponse
     * Receives an http body part body as a string.
     *
     * @param contentEncoding the content-encoding for the body.
+    * 
     * @return the body of the body part as a string, or null if the body
     *         could not be received. 
     */
@@ -563,6 +576,7 @@ public class HttpWebResponse extends WebResponse
     * Receives an http body part body as a byte array.
     *
     * @param contentEncoding the content-encoding for the body.
+    * 
     * @return the body of the body part as a byte array, or null if the body
     *         could not be received. 
     */
@@ -583,6 +597,7 @@ public class HttpWebResponse extends WebResponse
     *
     * @param os the output stream to write the body to.
     * @param contentEncoding the content-encoding for the body.
+    * 
     * @return true if the body was successfully received, false if not.
     */
    public boolean receiveBodyPartBody(OutputStream os, String contentEncoding)
@@ -600,6 +615,7 @@ public class HttpWebResponse extends WebResponse
     * Skips an http body part body.
     *
     * @param contentEncoding the content-encoding for the body.
+    * 
     * @return true if the http body part body was successfully skipped, false
     *         if not.
     */
