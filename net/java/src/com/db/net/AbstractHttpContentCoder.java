@@ -46,15 +46,13 @@ implements HttpContentEncoder, HttpContentDecoder
    {
       boolean rval = false;
       
-      rval = getSupportedEncoding().contains(encoding);
+      rval = getSupportedEncoding().equals(encoding);
       
       return rval;
    }
    
    /**
     * Gets an input stream to read encoded data from.
-    * 
-    * This abstract method just returns the decoded stream.
     * 
     * @param encoding the content-encoding or transfer-encoding for the stream.
     * @param decodedStream the input stream with the data to encode.
@@ -69,8 +67,28 @@ implements HttpContentEncoder, HttpContentDecoder
    {
       InputStream rval = decodedStream;
       
+      // see if the encoding is supported
+      if(isEncodingSupported(encoding))
+      {
+         // get encoded stream
+         rval = getHttpContentEncodedStream(decodedStream);
+      }
+      
       return rval;
    }
+   
+   /**
+    * Gets an input stream to read encoded data from.
+    * 
+    * @param decodedStream the input stream with the data to encode.
+    * 
+    * @return the input stream to read encoded data with.
+    * 
+    * @throws IOException
+    */
+   public abstract InputStream getHttpContentEncodedStream(
+      InputStream decodedStream)
+   throws IOException;
    
    /**
     * Encodes the passed string of http content.
@@ -128,8 +146,6 @@ implements HttpContentEncoder, HttpContentDecoder
     * not read more data than it needs because the current design filters
     * input from an http web connection directly into this stream.
     * 
-    * This abstract method just returns the encoded stream.
-    * 
     * @param encoding the content-encoding or transfer-encoding for the stream.
     * 
     * @param encodedStream the input stream with the data to decode.
@@ -144,8 +160,30 @@ implements HttpContentEncoder, HttpContentDecoder
    {
       InputStream rval = encodedStream;
       
+      // see if the encoding is supported
+      if(isEncodingSupported(encoding))
+      {
+         // get decoded stream
+         rval = getHttpContentDecodedStream(encodedStream);
+      }
+      
       return rval;
    }
+   
+   /**
+    * Gets an input stream to read decoded data from. This input stream must
+    * not read more data than it needs because the current design filters
+    * input from an http web connection directly into this stream.
+    * 
+    * @param encodedStream the input stream with the data to decode.
+    * 
+    * @return the input stream to read decoded data from.
+    * 
+    * @throws IOException
+    */
+   public abstract InputStream getHttpContentDecodedStream(
+      InputStream encodedStream)
+   throws IOException;   
    
    /**
     * Decodes the passed string of http content.

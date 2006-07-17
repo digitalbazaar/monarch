@@ -26,24 +26,19 @@ public class ChunkedHttpContentCoder extends AbstractHttpContentCoder
    /**
     * Gets an input stream to read encoded data from.
     * 
-    * @param transferEncoding the transfer-encoding for the stream.
     * @param decodedStream the input stream with the data to encode.
     * 
     * @return the input stream to read encoded data with.
     * 
     * @throws IOException
     */
-   public InputStream getHttpContentEncodedStream(
-      String transferEncoding, InputStream decodedStream)
+   public InputStream getHttpContentEncodedStream(InputStream decodedStream)
    throws IOException
    {
       InputStream rval = decodedStream;
       
-      if(isEncodingSupported(transferEncoding))
-      {
-         // FIXME:
-         // create chunked transfer-encoding encoder stream
-      }
+      // FIXME:
+      // create chunked transfer-encoding encoder stream
       
       return rval;
    }
@@ -53,25 +48,19 @@ public class ChunkedHttpContentCoder extends AbstractHttpContentCoder
     * not read more data than it needs because the current design filters
     * input from an http web connection directly into this stream.
     * 
-    * @param transferEncoding the transfer-encoding for the stream.
-    * 
     * @param encodedStream the input stream with the data to decode.
     * 
     * @return the input stream to read decoded data from.
     * 
     * @throws IOException
     */
-   public InputStream getHttpContentDecodedStream(
-      String transferEncoding, InputStream encodedStream)
+   public InputStream getHttpContentDecodedStream(InputStream encodedStream)
    throws IOException
    {
       InputStream rval = encodedStream;
       
-      if(isEncodingSupported(transferEncoding))
-      {
-         // FIXME:
-         // create chunked transfer-encoding encoder stream
-      }
+      // FIXME:
+      // create chunked transfer-encoding encoder stream
       
       return rval;
    }

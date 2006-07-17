@@ -78,6 +78,13 @@ public class HttpWebConnection extends WebConnectionWrapper
       
       // no last read boundary
       mLastReadBoundary = null;
+      
+      // add chunked transfer-encoding encoder/decoder by default
+      ChunkedHttpContentCoder chunkedCoder = new ChunkedHttpContentCoder();
+      setTransferEncodingEncoder(
+         chunkedCoder.getSupportedEncoding(), chunkedCoder);
+      setTransferEncodingDecoder(
+         chunkedCoder.getSupportedEncoding(), chunkedCoder);
    }
    
    /**
