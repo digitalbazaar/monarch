@@ -583,7 +583,7 @@ public class SoapMessage implements IXmlSerializer
     */
    public String convertToXml(int indentLevel)
    {
-      // TEMP CODE: this code makes a couple of assumptions
+      // FIXME: this code makes a couple of assumptions,
       // like "result" will indicate a method result
       
       StringBuffer xml = new StringBuffer();
@@ -710,7 +710,7 @@ public class SoapMessage implements IXmlSerializer
    {
       boolean rval = false;
       
-      // TEMP CODE: this code makes a couple of assumptions
+      // FIXME: this code makes a couple of assumptions,
       // like "result" will indicate a method result
       
       // reset method and params
@@ -797,7 +797,7 @@ public class SoapMessage implements IXmlSerializer
                         String paramName = paramER.getTagName();
                         String paramValue = paramER.getStringValue();
 
-                        // assumes "result" is being used
+                        // FIXME: assumes "result" is being used
                         if(paramName.equals("result"))
                         {
                            getLogger().debug(getClass(), 
