@@ -208,7 +208,7 @@ public class JobDispatcher implements Runnable
    }
    
    /**
-    * Terminates all running Jobs.
+    * Terminates all running Jobs. Queued jobs will not be affected.
     */
    public synchronized void terminateAllJobs()
    {
