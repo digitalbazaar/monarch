@@ -162,19 +162,24 @@ public class JobDispatcher implements Runnable
     */
    public synchronized void startDispatching()
    {
-      if(getDispatcherThread() == null)
+      if(!isDispatching())
       {
-         getLogger().debug(getClass(), "JobDispatcher started.");
-         
+         getLogger().debug(getClass(),
+            "JobDispatcher starting dispatching...");
+
          // create new dispatcher thread
          mDispatcherThread = new Thread(this);
          
          // start dispatcher thread
          mDispatcherThread.start();
+         
+         getLogger().debug(getClass(),
+            "JobDispatcher started dispatching.");
       }
       else
       {
-         getLogger().debug(getClass(), "JobDispatcher already started.");
+         getLogger().debug(getClass(),
+            "JobDispatcher is already dispatching.");
       }
    }
    
@@ -184,9 +189,10 @@ public class JobDispatcher implements Runnable
     */
    public synchronized void stopDispatching()
    {
-      if(getDispatcherThread() != null)
+      if(isDispatching())
       {
-         getLogger().debug(getClass(), "Stopping JobDispatcher...");
+         getLogger().debug(getClass(),
+            "JobDispatcher stopping dispatching...");
          
          // interrupt dispatcher thread
          getDispatcherThread().interrupt();
@@ -194,11 +200,13 @@ public class JobDispatcher implements Runnable
          // clean up dispatcher thread
          mDispatcherThread = null;
          
-         getLogger().debug(getClass(), "JobDispatcher stopped.");
+         getLogger().debug(getClass(),
+            "JobDispatcher stopped dispatching.");
       }
       else
       {
-         getLogger().debug(getClass(), "JobDispatcher already stopped.");
+         getLogger().debug(getClass(),
+            "JobDispatcher is already not dispatching.");
       }
    }
    
