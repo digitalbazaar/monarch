@@ -191,12 +191,25 @@ public class JobDispatcher implements Runnable
          // interrupt dispatcher thread
          getDispatcherThread().interrupt();
          
+         // clean up dispatcher thread
+         mDispatcherThread = null;
+         
          getLogger().debug(getClass(), "JobDispatcher stopped.");
       }
       else
       {
          getLogger().debug(getClass(), "JobDispatcher already stopped.");
       }
+   }
+   
+   /**
+    * Returns true if this JobDispatcher is dispatching jobs, false if not.
+    * 
+    * @return true if this JobDispatcher is dispatching jobs, false if not.
+    */
+   public synchronized boolean isDispatching()
+   {
+      return (getDispatcherThread() != null);
    }
    
    /**
