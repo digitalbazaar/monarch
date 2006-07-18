@@ -862,6 +862,9 @@ public class HttpWebConnection extends WebConnectionWrapper
          // get input stream for reading from the web connection
          InputStream is = getWebConnection().getReadStream();
          
+         // get the content length
+         long contentLength = header.getContentLength();
+         
          // get the transfer-encoding
          String transferEncoding = header.getTransferEncoding();
          
@@ -875,6 +878,12 @@ public class HttpWebConnection extends WebConnectionWrapper
             // get decoded stream
             is = transferEncodingDecoder.getHttpContentDecodedStream(
                transferEncoding, is);
+            
+            // content-length must be -1 if using chunked transfer-encoding
+            if(transferEncoding.equals("chunked"))
+            {
+               contentLength = -1;
+            }
          }
          
          // get the content-encoding
@@ -894,9 +903,6 @@ public class HttpWebConnection extends WebConnectionWrapper
          
          // start time
          long st = new Date().getTime();
-         
-         // get the content length
-         long contentLength = header.getContentLength();
          
          // read from the web connection until content-length reached
          long totalRead = 0;
