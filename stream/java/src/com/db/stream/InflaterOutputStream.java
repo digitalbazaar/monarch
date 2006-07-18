@@ -191,16 +191,19 @@ public class InflaterOutputStream extends FilterOutputStream
    public void write(byte[] b, int off, int len)
    throws IOException
    {
-      // store passed deflated bytes
-      storeDeflatedBytes(b, off, len);
-      
-      // use the total stored bytes as the inflater data
-      mInflater.setInput(mDeflatedBytes);
-      
-      // if the inflater doesn't need more input, write it out
-      if(!mInflater.needsInput())
+      if(!mInflater.finished())
       {
-         writeInflatedBytes();
+         // store passed deflated bytes
+         storeDeflatedBytes(b, off, len);
+         
+         // use the total stored bytes as the inflater data
+         mInflater.setInput(mDeflatedBytes);
+         
+         // if the inflater doesn't need more input, write it out
+         if(!mInflater.needsInput())
+         {
+            writeInflatedBytes();
+         }
       }
    }
    
