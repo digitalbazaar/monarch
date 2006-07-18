@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.CRC32;
+import java.util.zip.CheckedInputStream;
 import java.util.zip.Deflater;
 
 import com.db.data.format.GZipHeader;
@@ -131,6 +132,11 @@ public class GZipInputStream extends DeflaterInputStream
             if(mHeaderInputStream.available() == 0)
             {
                mHeaderRead = true;
+               
+               // wrap the underlying input stream in a CRC-32 checked input
+               // stream
+               mCrc32.reset();
+               in = new CheckedInputStream(in, mCrc32);
             }
          }
          
