@@ -133,7 +133,9 @@ public class ManagedInputStream extends FilterInputStream
     * returns the actual amount read.
     * 
     * @param len the number of bytes to read.
+    * 
     * @return the number of bytes read.
+    * 
     * @throws IOException
     */
    protected int readIntoBuffer(int len) throws IOException
@@ -201,7 +203,9 @@ public class ManagedInputStream extends FilterInputStream
     * data in the stream to be processed.
     *
     * @param len the default read size to use. 
+    * 
     * @return the data ready for processing or null if no more data.
+    * 
     * @throws IOException
     */
    protected byte[] performManagedRead(int len) throws IOException
@@ -264,7 +268,9 @@ public class ManagedInputStream extends FilterInputStream
     * null when there is no more data in the stream to be processed.
     *
     * @param len the number of bytes to read. 
+    * 
     * @return the data ready for processing or null if no more data.
+    * 
     * @throws IOException
     */
    protected byte[] performUnmanagedRead(int len) throws IOException
@@ -299,6 +305,7 @@ public class ManagedInputStream extends FilterInputStream
     * Overridden to allow streaming data to be managed.
     * 
     * @return the byte read or -1 if end of the stream.
+    * 
     * @throws IOException
     */
    public int read() throws IOException   
@@ -326,7 +333,9 @@ public class ManagedInputStream extends FilterInputStream
     * @param b the buffer to read data into.
     * @param off the offset to start writing the read data at.
     * @param len the number of bytes to read.
+    * 
     * @return the number of bytes read and modified.
+    * 
     * @throws IOException
     */
    public int read(byte[] b, int off, int len)
@@ -422,6 +431,7 @@ public class ManagedInputStream extends FilterInputStream
     * processed correctly when skipping.
     *
     * @param n the number of bytes to be skipped.
+    * 
     * @return the actual number of bytes skipped. 
     */
    public long skip(long n)
@@ -437,12 +447,11 @@ public class ManagedInputStream extends FilterInputStream
             int bufSize = 2048;
             byte[] buffer = new byte[bufSize];
             
-            // read through stream until offset reached, discarding data
+            // read through stream until n reached, discarding data
             while(numBytes != -1 && count != n)
             {
                // get the number of bytes to read
-               int readSize =
-                  (bufSize > n - count) ? (int)(n - count) : bufSize;
+               int readSize = Math.min((int)(n - count), bufSize);
                
                numBytes = read(buffer, 0, readSize);
                
