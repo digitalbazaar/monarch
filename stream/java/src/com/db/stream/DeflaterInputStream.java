@@ -17,14 +17,15 @@ import java.util.zip.Deflater;
 public class DeflaterInputStream extends FilterInputStream
 {
    /**
-    * The deflater for this stream.
+    * The deflater (compressor) for this stream.
     */
    protected Deflater mDeflater;
    
    /**
-    * A buffer for reading from the underlying input stream.
+    * A buffer for storing inflated (compressed) bytes from the
+    * underlying input stream.
     */
-   protected byte[] mReadBuffer;
+   protected byte[] mInflatedBytes;
    
    /**
     * A buffer for storing deflated bytes.
@@ -42,12 +43,13 @@ public class DeflaterInputStream extends FilterInputStream
    protected int mValidDeflatedBytes;
    
    /**
-    * Gets the number of bytes read from the underlying input stream.
+    * A single byte buffer to use when reading one byte via read().
     */
-   protected long mUnderlyingBytesRead;
+   protected byte[] mSingleByteBuffer;
    
    /**
-    * Creates a new DeflaterInputStream with a default Deflater.
+    * Creates a new DeflaterInputStream with a default Deflater and
+    * a default buffer size of 2048 bytes.
     * 
     * @param is the input stream to read uncompressed data from.
     */
@@ -57,7 +59,8 @@ public class DeflaterInputStream extends FilterInputStream
    }
 
    /**
-    * Creates a new DeflaterInputStream.
+    * Creates a new DeflaterInputStream with a default buffer size of
+    * 2048 bytes.
     * 
     * @param is the input stream to read uncompressed data from.
     * @param deflater the deflater to use.
@@ -73,9 +76,13 @@ public class DeflaterInputStream extends FilterInputStream
     * @param is the input stream to read uncompressed data from.
     * @param deflater the deflater to use.
     * @param bufferSize the size of the internal deflated bytes buffer.
+    * 
+    * @throws IllegalArgumentException
     */
    public DeflaterInputStream(InputStream is, Deflater deflater, int bufferSize)
+   throws IllegalArgumentException
    {
+      // store underlying input stream
       super(is);
       
       // throw exception is buffer size is <= 0
@@ -87,8 +94,8 @@ public class DeflaterInputStream extends FilterInputStream
       // store deflater
       mDeflater = deflater;
       
-      // create the interal read buffer
-      mReadBuffer = new byte[2048];
+      // create the internal read buffer for read inflated bytes
+      mInflatedBytes = new byte[2048];
 
       // create the deflated bytes buffer
       mDeflatedBytes = new byte[bufferSize];
@@ -99,8 +106,8 @@ public class DeflaterInputStream extends FilterInputStream
       // valid bytes is 0
       mValidDeflatedBytes = 0;
       
-      // underlying bytes read is 0
-      mUnderlyingBytesRead = 0;
+      // create the single byte buffer
+      mSingleByteBuffer = new byte[1];
    }
    
    /**
@@ -122,21 +129,18 @@ public class DeflaterInputStream extends FilterInputStream
       while(!mDeflater.finished() &&
             mDeflater.needsInput() && (b = in.read()) != -1)
       {
-         if(count == mReadBuffer.length)
+         if(count == mInflatedBytes.length)
          {
             // increase the read buffer size as necessary
             byte[] newBuffer = new byte[count * 2];
-            System.arraycopy(mReadBuffer, 0, newBuffer, 0, count);
-            mReadBuffer = newBuffer;
+            System.arraycopy(mInflatedBytes, 0, newBuffer, 0, count);
+            mInflatedBytes = newBuffer;
          }
          
-         mReadBuffer[count++] = (byte)b;
+         mInflatedBytes[count++] = (byte)(b & 0xff);
          
          // set deflater input
-         mDeflater.setInput(mReadBuffer, 0, count);
-         
-         // increment total underlying bytes read
-         mUnderlyingBytesRead++;
+         mDeflater.setInput(mInflatedBytes, 0, count);
       }
 
       if(b == -1)
@@ -166,33 +170,9 @@ public class DeflaterInputStream extends FilterInputStream
    {
       int rval = -1;
       
-      // throw an exception if the deflater is finished already
-      if(mDeflater.finished())
+      if(read(mSingleByteBuffer) != -1)
       {
-         throw new IOException("Deflator is already finished!");
-      }
-      
-      // read from the deflated bytes if a byte is available
-      if(mValidDeflatedBytes > 0)
-      {
-         rval = mDeflatedBytes[mDeflatedBytesReadPosition++];
-         mValidDeflatedBytes--;
-      }
-      else
-      {
-         // fill the deflater
-         if(fillDeflater())
-         {
-            // deflate data into deflated bytes buffer
-            int count = mDeflater.deflate(mDeflatedBytes);
-         
-            // update deflated bytes read position, valid byte count
-            mDeflatedBytesReadPosition = 1;
-            mValidDeflatedBytes = count - 1;
-                     
-            // get the first deflated byte
-            rval = mDeflatedBytes[0];
-         }
+         rval = mSingleByteBuffer[0] & 0xff;
       }
       
       return rval;
@@ -310,6 +290,26 @@ public class DeflaterInputStream extends FilterInputStream
    }
    
    /**
+    * Returns how many bytes are available from this input stream.
+    * 
+    * @return how many bytes are available from this input stream.
+    * 
+    * @throws IOException
+    */
+   public int available() throws IOException
+   {
+      int rval = 0;
+      
+      // return 1 if the deflater isn't finished
+      if(!mDeflater.finished())
+      {
+         rval = 1;
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Finishes the deflater. This method should be called if the input
     * stream is in a chain and should not be closed to finish the
     * deflater.
@@ -334,17 +334,20 @@ public class DeflaterInputStream extends FilterInputStream
       // close underlying input stream
       in.close();
       
+      // finish
+      finish();
+      
       // end the deflater
       mDeflater.end();
    }
    
    /**
-    * Gets the total number of bytes read from the underlying input stream.
+    * Gets the deflater used by this input stream.
     * 
-    * @return the total number of bytes read from the underlying input stream.
+    * @return the deflater used by this input stream.
     */
-   public long getTotalUnderlyingBytesRead()
+   public Deflater getDeflater()
    {
-      return mUnderlyingBytesRead;
+      return mDeflater;
    }
 }
