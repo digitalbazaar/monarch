@@ -181,7 +181,10 @@ public class DeflaterInputStream extends FilterInputStream
    /**
     * Reads up to <code>len</code> bytes of data from this input stream 
     * into an array of bytes. This method blocks until some input is 
-    * available. 
+    * available.
+    * 
+    * The data that is read from the underlying stream is deflated
+    * (compressed) as it is read.
     *
     * @param b the buffer to read the data into.
     * @param off the offset in the buffer to start the read data at.
@@ -196,51 +199,49 @@ public class DeflaterInputStream extends FilterInputStream
    {
       int rval = -1;
       
-      // throw an exception if the deflater is finished already
-      if(mDeflater.finished())
+      // not end of stream if the deflater isn't finished
+      if(!mDeflater.finished())
       {
-         throw new IOException("Deflator is already finished!");
-      }
-      
-      // read from the deflated bytes if a byte is available
-      if(mValidDeflatedBytes > 0)
-      {
-         rval = Math.min(len, mValidDeflatedBytes);
-         System.arraycopy(mDeflatedBytes, mDeflatedBytesReadPosition,
-            b, off, rval);
-         
-         // update read position and valid bytes
-         mDeflatedBytesReadPosition += rval;
-         mValidDeflatedBytes -= rval;
-      }
-      else
-      {
-         // keep reading until len is reached or the deflater cannot be filled
-         while(rval < len && fillDeflater())
+         // read from the deflated bytes if a byte is available
+         if(mValidDeflatedBytes > 0)
          {
-            // since deflater was filled, data should be available
-            if(rval == -1)
+            rval = Math.min(len, mValidDeflatedBytes);
+            System.arraycopy(mDeflatedBytes, mDeflatedBytesReadPosition,
+               b, off, rval);
+            
+            // update read position and valid bytes
+            mDeflatedBytesReadPosition += rval;
+            mValidDeflatedBytes -= rval;
+         }
+         else
+         {
+            // keep reading until len is reached or deflater cannot be filled
+            while(rval < len && fillDeflater())
             {
-               rval = 0;
+               // since deflater was filled, data should be available
+               if(rval == -1)
+               {
+                  rval = 0;
+               }
+               
+               // deflate data into deflated bytes buffer
+               int count = mDeflater.deflate(mDeflatedBytes);
+               
+               // set the deflated bytes read position and valid byte count
+               mDeflatedBytesReadPosition = 0;
+               mValidDeflatedBytes = count;
+               
+               // copy data into passed read buffer
+               int copySize = Math.min(len - rval, count);
+               System.arraycopy(mDeflatedBytes, 0, b, off, copySize);
+               
+               // increment rval
+               rval += copySize;
+            
+               // update deflated bytes read position, valid byte count
+               mDeflatedBytesReadPosition += copySize;
+               mValidDeflatedBytes -= copySize;
             }
-            
-            // deflate data into deflated bytes buffer
-            int count = mDeflater.deflate(mDeflatedBytes);
-            
-            // set the deflated bytes read position and valid byte count
-            mDeflatedBytesReadPosition = 0;
-            mValidDeflatedBytes = count;
-            
-            // copy data into passed read buffer
-            int copySize = Math.min(len - rval, count);
-            System.arraycopy(mDeflatedBytes, 0, b, off, copySize);
-            
-            // increment rval
-            rval += copySize;
-         
-            // update deflated bytes read position, valid byte count
-            mDeflatedBytesReadPosition += copySize;
-            mValidDeflatedBytes -= copySize;
          }
       }
       

@@ -136,6 +136,69 @@ public class GZipTrailer
    }
    
    /**
+    * Writes an unsigned byte.
+    * 
+    * The byte passed as an int because Java's bytes are unsigned.
+    * 
+    * The byte is written to the passed byte array.
+    * 
+    * @param ubyte the unsigned byte to write.
+    * @param buffer the buffer to write the unsigned byte to.
+    * @param offset the offset at which to write the unsigned byte.
+    */
+   protected void writeUnsignedByte(int ubyte, byte[] buffer, int offset)
+   {
+      buffer[offset] = (byte)(ubyte & 0xff);   
+   }
+
+   /**
+    * Writes an unsigned short in the Intel or Little Endian byte order.
+    * That is, least significant byte first.
+    * 
+    * An unsigned short is 2 bytes: 00 00
+    * 
+    * The short passed as an int because Java's shorts are unsigned.
+    * 
+    * The short is written to the passed byte array.
+    * 
+    * @param ushort the unsigned short to write.
+    * @param buffer the buffer to write the unsigned short to.
+    * @param offset the offset at which to write the unsigned short.
+    */
+   protected void writeUnsignedShort(int ushort, byte[] buffer, int offset)
+   {
+      // get the less significant byte for the short
+      buffer[offset] = (byte)(ushort & 0xff);
+      
+      // get the more significant byte for the short
+      buffer[offset + 1] = (byte)((ushort >> 8) & 0xff);
+   }   
+   
+   /**
+    * Writes an unsigned integer (4 bytes) in the Intel or Little Endian
+    * byte order. That is, least significant byte first.
+    * 
+    * An unsigned int is 4 bytes: 00 00 00 00
+    * 
+    * The integer must be passed as a long because Java uses unsigned
+    * integers for "int".
+    * 
+    * The integer is written to the passed byte array.
+    * 
+    * @param uint the unsigned int to write.
+    * @param buffer the buffer to write the unsigned int to.
+    * @param offset the offset at which to write the unsigned int.
+    */
+   protected void writeUnsignedInt(long uint, byte[] buffer, int offset)
+   {
+      // write the least significant short
+      writeUnsignedShort((int)(uint & 0xffff), buffer, offset);
+      
+      // write the most significant short
+      writeUnsignedShort((int)((uint >> 16) & 0xffff), buffer, offset + 2);
+   }   
+   
+   /**
     * Tries to convert this trailer from an array of bytes.
     * 
     * @param buffer the array of bytes to convert from.
@@ -166,10 +229,10 @@ public class GZipTrailer
                buffer, offset, length);
             
             // read CRC-32 value as an unsigned int
-            mCrc32Value = readUnsignedInt(bais);
+            setCrc32Value(readUnsignedInt(bais));
             
             // read the ISIZE as an unsigned int
-            mISize = readUnsignedInt(bais);
+            setISize(readUnsignedInt(bais));
             
             // close the byte array input stream
             bais.close();
@@ -184,6 +247,34 @@ public class GZipTrailer
    }
    
    /**
+    * Converts this trailer to a byte array.
+    * 
+    * @return the byte array.
+    */
+   public byte[] convertToBytes()
+   {
+      byte[] rval = new byte[8];
+      
+      // write the CRC-32 value
+      writeUnsignedInt(getCrc32Value(), rval, 0);
+      
+      // write the ISIZE
+      writeUnsignedInt(getISize(), rval, 4);
+      
+      return rval;
+   }
+   
+   /**
+    * Sets the CRC-32 value for this trailer.
+    * 
+    * @param value the CRC-32 value for this trailer.
+    */
+   public void setCrc32Value(long value)
+   {
+      mCrc32Value = value;
+   }
+   
+   /**
     * Gets the CRC-32 value of this trailer.
     * 
     * @return the CRC-32 value of this trailer.
@@ -191,6 +282,16 @@ public class GZipTrailer
    public long getCrc32Value()
    {
       return mCrc32Value;
+   }
+   
+   /**
+    * Sets the ISIZE for this trailer.
+    * 
+    * @param iSize the ISIZE for this trailer.
+    */
+   public void setISize(long iSize)
+   {
+      mISize = iSize;
    }
    
    /**

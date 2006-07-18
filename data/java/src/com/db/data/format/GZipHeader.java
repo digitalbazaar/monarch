@@ -7,8 +7,10 @@ import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
+import java.util.zip.Deflater;
 
 /**
  * An GZipHeader is a header for gzip-formatted data. This is the header
@@ -16,8 +18,8 @@ import java.util.zip.CheckedInputStream;
  * 
  * It has the following format:
  * 
- * | byte 0 | byte 1 | byte 2 | byte 3 | bytes 4-7 | byte 7 | byte 9 | optional 
- * |  ID1   |  ID2   |   CM   |   FLG  |   MTIME   |   XGL  |   OS   | optional
+ * | byte 0 | byte 1 | byte 2 | byte 3 | bytes 4-7 | byte 8 | byte 9 | optional 
+ * |  ID1   |  ID2   |   CM   |   FLG  |   MTIME   |   XFL  |   OS   | optional
  * 
  * ID1 (IDentification 1) = 31 (0x1f)
  * ID2 (IDentification 2) = 139 (0x8b)
@@ -32,7 +34,7 @@ import java.util.zip.CheckedInputStream;
  *    bit 6 reserved
  *    bit 7 reserved
  * MTIME (Modification TIME) = the time in Unix format
- *    (seconds since 00:00:00 GMT, Jan 1, 1970.
+ *    (seconds since 00:00:00 GMT, Jan 1, 1970).
  * XFL (eXtra FLags) =
  *    when "deflate" (CM = 8) is set, then XFL are set as follows:
  *    XFL = 2 - compressor used maximum compression, slowest algorithm
@@ -209,7 +211,7 @@ public class GZipHeader
    }
    
    /**
-    * Reads unsigned integer (2 bytes) that is stored in the Intel or
+    * Reads unsigned integer (4 bytes) that is stored in the Intel or
     * Little Endian byte order. That is, least significant byte first.
     * 
     * An unsigned int is stored in 4 bytes: 00 00 00 00
@@ -236,6 +238,100 @@ public class GZipHeader
       // shift the second short to the left, it is more significant
       // OR it with the first byte to combine them
       rval = s2 << 16 | s1;
+      
+      return rval;
+   }
+   
+   /**
+    * Writes an unsigned byte.
+    * 
+    * The byte passed as an int because Java's bytes are unsigned.
+    * 
+    * The byte is written to the passed byte array.
+    * 
+    * @param ubyte the unsigned byte to write.
+    * @param buffer the buffer to write the unsigned byte to.
+    * @param offset the offset at which to write the unsigned byte.
+    */
+   protected void writeUnsignedByte(int ubyte, byte[] buffer, int offset)
+   {
+      buffer[offset] = (byte)(ubyte & 0xff);   
+   }
+
+   /**
+    * Writes an unsigned short in the Intel or Little Endian byte order.
+    * That is, least significant byte first.
+    * 
+    * An unsigned short is 2 bytes: 00 00
+    * 
+    * The short passed as an int because Java's shorts are unsigned.
+    * 
+    * The short is written to the passed byte array.
+    * 
+    * @param ushort the unsigned short to write.
+    * @param buffer the buffer to write the unsigned short to.
+    * @param offset the offset at which to write the unsigned short.
+    */
+   protected void writeUnsignedShort(int ushort, byte[] buffer, int offset)
+   {
+      // get the less significant byte for the short
+      buffer[offset] = (byte)(ushort & 0xff);
+      
+      // get the more significant byte for the short
+      buffer[offset + 1] = (byte)((ushort >> 8) & 0xff);
+   }   
+   
+   /**
+    * Writes an unsigned integer (4 bytes) in the Intel or Little Endian
+    * byte order. That is, least significant byte first.
+    * 
+    * An unsigned int is 4 bytes: 00 00 00 00
+    * 
+    * The integer must be passed as a long because Java uses unsigned
+    * integers for "int".
+    * 
+    * The integer is written to the passed byte array.
+    * 
+    * @param uint the unsigned int to write.
+    * @param buffer the buffer to write the unsigned int to.
+    * @param offset the offset at which to write the unsigned int.
+    */
+   protected void writeUnsignedInt(long uint, byte[] buffer, int offset)
+   {
+      // write the least significant short
+      writeUnsignedShort((int)(uint & 0xffff), buffer, offset);
+      
+      // write the most significant short
+      writeUnsignedShort((int)((uint >> 16) & 0xffff), buffer, offset + 2);
+   }
+   
+   /**
+    * Gets the OS byte to use based on the current operating system.
+    * 
+    * @return the OS byte to use.
+    */
+   protected int getOSByte()
+   {
+      int rval = 0;
+      
+      String osName = System.getProperty("os.name");
+      
+      if(osName.startsWith("Windows"))
+      {
+         rval = 0;
+      }
+      else if(osName.startsWith("OS/2"))
+      {
+         rval = 0;
+      }
+      else if(osName.startsWith("Mac OS"))
+      {
+         rval = 7;
+      }
+      else
+      {
+         rval = 3;
+      }
       
       return rval;
    }
@@ -351,6 +447,7 @@ public class GZipHeader
             buffer, offset, length);
          
          // get a checked input stream for computing the CRC-32 of the data
+         mCrc32.reset();
          CheckedInputStream cis = new CheckedInputStream(bais, mCrc32);
             
          // we know 10 bytes are available, so no need to check yet
@@ -368,7 +465,7 @@ public class GZipHeader
             int CM = readUnsignedByte(cis);
             
             // ensure "deflate" flag is set (CM = 8)
-            if(CM == 8)
+            if(CM == Deflater.DEFLATED)
             {
                // for storing the required bytes
                int requiredBytes = 0;
@@ -415,7 +512,7 @@ public class GZipHeader
                
                if((FLG & GZIP_FHCRC) == GZIP_FHCRC)
                {
-                  mFHCrcFlagSet = true;
+                  setFHCrcFlag(true);
                   
                   // add at least 2 bytes for the CRC-16
                   requiredBytes += 2;
@@ -445,6 +542,84 @@ public class GZipHeader
             
          // close the byte array input stream
          bais.close();
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Sets the FHCRC flag.
+    * 
+    * @param flag true to turn on the FHCRC flag, false to shut it off.
+    */
+   public void setFHCrcFlag(boolean flag) 
+   {
+      mFHCrcFlagSet = flag;
+   }
+   
+   /**
+    * Converts this header to an array of bytes.
+    * 
+    * @return the array of bytes.
+    */
+   public byte[] convertToBytes()
+   {
+      byte[] rval = null;
+      
+      // get the size of the header
+      int size = 10;
+      if(mFHCrcFlagSet)
+      {
+         size += 2;
+      }
+      
+      // create the buffer
+      rval = new byte[size];
+      
+      // write the ID bytes
+      writeUnsignedByte(GZIP_ID1, rval, 0);
+      writeUnsignedByte(GZIP_ID2, rval, 1);
+      
+      // write the CM byte
+      writeUnsignedByte(Deflater.DEFLATED, rval, 2);
+      
+      // write the flag byte
+      if(mFHCrcFlagSet)
+      {
+         writeUnsignedByte(GZIP_FHCRC, rval, 3);
+      }
+      else
+      {
+         // no flags set
+         writeUnsignedByte(0, rval, 3);
+      }
+      
+      // get the current time as the modification time
+      long time = Math.round(((double)new Date().getTime()) / 1000);
+      
+      // write the MTIME (modification time)
+      writeUnsignedInt(time, rval, 4);
+      
+      // write the XFL (extra flags), no extra flags
+      writeUnsignedByte(0, rval, 8);
+      
+      // write the OS byte
+      writeUnsignedByte(getOSByte(), rval, 9);
+      
+      // see if crc-16 is required
+      if(mFHCrcFlagSet)
+      {
+         mCrc32.reset();
+         mCrc32.update(rval, 0, 9);
+         
+         // get the crc-32 value
+         long value = mCrc32.getValue();
+         
+         // get the least significant bytes for the crc-32 value
+         long crc16Value = (value & 0xffff);
+         
+         // write the crc-16
+         writeUnsignedInt(crc16Value, rval, 10);
       }
       
       return rval;
