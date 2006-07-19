@@ -29,11 +29,6 @@ public class InflaterOutputStream extends FilterOutputStream
    protected byte[] mDeflatedBytes;
    
    /**
-    * The write position in the deflated bytes buffer.
-    */
-   protected int mDeflatedBytesWritePosition;
-   
-   /**
     * The number of valid bytes in the deflated bytes buffer.
     */
    protected int mValidDeflatedBytes;
@@ -96,9 +91,6 @@ public class InflaterOutputStream extends FilterOutputStream
       // create the internal write buffer for deflated bytes
       mDeflatedBytes = new byte[2048];
 
-      // write position is 0
-      mDeflatedBytesWritePosition = 0;
-      
       // valid bytes is 0
       mValidDeflatedBytes = 0;
       
@@ -120,22 +112,19 @@ public class InflaterOutputStream extends FilterOutputStream
    protected void storeDeflatedBytes(byte[] buffer, int offset, int length)
    {
       // resize the internal buffer as necessary
-      if((mValidDeflatedBytes + length) >
-         (mDeflatedBytes.length - mDeflatedBytesWritePosition))
+      int size = mValidDeflatedBytes + length;
+      if(size > mDeflatedBytes.length)
       {
-         int size = Math.max(
-            mValidDeflatedBytes + length, mDeflatedBytes.length * 2);
+         size = Math.max(size, mDeflatedBytes.length * 2);
          
          byte[] newBuffer = new byte[size];
-         System.arraycopy(mDeflatedBytes, mDeflatedBytesWritePosition,
-            newBuffer, 0, mValidDeflatedBytes);
+         System.arraycopy(mDeflatedBytes, 0, newBuffer, 0, mValidDeflatedBytes);
          mDeflatedBytes = newBuffer;
-         mDeflatedBytesWritePosition = 0;
       }
       
       // copy passed bytes into deflated bytes buffer
       System.arraycopy(buffer, offset,
-         mDeflatedBytes, mDeflatedBytesWritePosition, length);
+         mDeflatedBytes, mValidDeflatedBytes, length);
       mValidDeflatedBytes += length;
    }
    
@@ -149,10 +138,15 @@ public class InflaterOutputStream extends FilterOutputStream
       try
       {
          // write the remaining data out
-         while(mInflater.getRemaining() > 0)
+         while(!getInflater().finished() &&
+               !getInflater().needsInput() &&
+               !getInflater().needsDictionary())
          {
+            // deflated bytes are no longer valid
+            mValidDeflatedBytes = 0;
+            
             // inflate bytes
-            int numBytes = mInflater.inflate(mInflatedBytes);
+            int numBytes = getInflater().inflate(mInflatedBytes);
             
             // write to underlying output stream
             out.write(mInflatedBytes, 0, numBytes);
@@ -191,19 +185,16 @@ public class InflaterOutputStream extends FilterOutputStream
    public void write(byte[] b, int off, int len)
    throws IOException
    {
-      if(!mInflater.finished())
+      if(!getInflater().finished())
       {
          // store passed deflated bytes
          storeDeflatedBytes(b, off, len);
          
          // use the total stored bytes as the inflater data
-         mInflater.setInput(mDeflatedBytes);
+         getInflater().setInput(mDeflatedBytes, 0, mValidDeflatedBytes);
          
-         // if the inflater doesn't need more input, write it out
-         if(!mInflater.needsInput())
-         {
-            writeInflatedBytes();
-         }
+         // write out any inflated bytes
+         writeInflatedBytes();
       }
    }
    
