@@ -52,23 +52,6 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       // receive the body in the request
       byte[] body = request.receiveBody();
       
-      // unzip body as appropriate
-      if(body != null &&
-         request.getHeader().getContentEncoding() != null &&
-         request.getHeader().getContentEncoding().contains("gzip"))
-      {
-         GZipHttpContentCoder coder = new GZipHttpContentCoder();
-         
-         try
-         {
-            body = coder.decodeHttpContentData(body);
-         }
-         catch(Throwable t)
-         {
-            getLogger().debug(getClass(), Logger.getStackTrace(t));
-         }
-      }
-      
       // create a soap message
       sm = new SoapMessage();
       sm.setSerializerOptions(SoapMessage.SOAP_REQUEST);

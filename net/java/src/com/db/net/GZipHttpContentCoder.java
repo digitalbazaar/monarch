@@ -40,24 +40,8 @@ public class GZipHttpContentCoder extends AbstractHttpContentCoder
       InputStream unencodedStream)
    throws IOException
    {
-      InputStream rval = unencodedStream;
-      
-      // create a pipe input stream that reads from the passed stream
-      com.db.stream.PipeInputStream pipe = new com.db.stream.PipeInputStream(unencodedStream);
-      
-      // wrap the output stream that writes to the pipe
-      java.util.zip.GZIPOutputStream gzos = new java.util.zip.GZIPOutputStream(pipe.getOutputStream());
-      
-      // attach the output stream to the pipe
-      pipe.setOutputStream(gzos);
-      
-      // set pipe as input stream
-      rval = pipe;      
-      
-      return rval;
-      
       // return a gzip input stream
-      //return new GZipInputStream(unencodedStream);
+      return new GZipInputStream(unencodedStream);
    }
    
    /**

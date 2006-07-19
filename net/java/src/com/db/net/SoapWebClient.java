@@ -304,14 +304,6 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
                xml = "";
                if(body != null)
                {
-                  // unzip body as appropriate
-                  if(response.getHeader().getContentEncoding() != null &&
-                     response.getHeader().getContentEncoding().contains("gzip"))
-                  {
-                     GZipHttpContentCoder coder = new GZipHttpContentCoder();
-                     body = coder.decodeHttpContentData(body);
-                  }
-                  
                   xml = new String(body); 
                }
                
@@ -459,22 +451,6 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
             {
                // receive body
                body = response.receiveBody();
-            }
-            
-            // unzip body as appropriate
-            if(response.getHeader().getContentEncoding() != null &&
-               response.getHeader().getContentEncoding().contains("gzip"))
-            {
-               GZipHttpContentCoder coder = new GZipHttpContentCoder();
-               
-               try
-               {
-                  body = coder.decodeHttpContentData(body);
-               }
-               catch(Throwable t)
-               {
-                  getLogger().debug(getClass(), Logger.getStackTrace(t));
-               }
             }
             
             // disconnect web connection

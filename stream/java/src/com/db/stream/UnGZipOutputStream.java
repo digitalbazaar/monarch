@@ -281,6 +281,9 @@ public class UnGZipOutputStream extends InflaterOutputStream
          
                // throw out the trailer buffer, it is no longer needed
                mTrailerBuffer = null;
+               
+               // finish
+               finish();
             }
          }
       }

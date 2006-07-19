@@ -46,7 +46,10 @@ implements HttpTransferEncoder, HttpTransferDecoder
    {
       boolean rval = false;
       
-      rval = transferEncoding.startsWith(getSupportedTransferEncoding());
+      if(transferEncoding != null)
+      {
+         rval = transferEncoding.startsWith(getSupportedTransferEncoding());
+      }
       
       return rval;
    }

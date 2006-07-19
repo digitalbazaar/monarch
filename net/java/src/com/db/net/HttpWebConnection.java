@@ -85,6 +85,15 @@ public class HttpWebConnection extends WebConnectionWrapper
       setTransferDecoder(
          chunkedCoder.getSupportedTransferEncoding(), chunkedCoder);
       */
+      
+      // Gzip content encoder is NOT added by default because if HTTP/1.0
+      // is used then gzipping must occur before setting the header so as to
+      // set the appropriate content length. Gzip content encoder can still
+      // be added manually on a per-implementation basis.
+      
+      // add gzip content decoder by default
+      GZipHttpContentCoder gzipCoder = new GZipHttpContentCoder();
+      setContentDecoder(gzipCoder.getSupportedContentEncoding(), gzipCoder);
    }
    
    /**
@@ -866,6 +875,8 @@ public class HttpWebConnection extends WebConnectionWrapper
          
          // get content decoder
          HttpContentDecoder hcd = getContentDecoder(contentEncoding);
+         
+         System.out.println("contentEncoding=" + contentEncoding);
          
          // update output stream if a content decoder is to be used
          if(hcd != null)

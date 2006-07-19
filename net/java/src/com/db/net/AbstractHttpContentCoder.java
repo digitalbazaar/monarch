@@ -47,7 +47,10 @@ implements HttpContentEncoder, HttpContentDecoder
    {
       boolean rval = false;
       
-      rval = contentEncoding.startsWith(getSupportedContentEncoding());
+      if(contentEncoding != null)
+      {
+         rval = contentEncoding.startsWith(getSupportedContentEncoding());
+      }
       
       return rval;
    }
