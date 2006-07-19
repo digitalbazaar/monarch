@@ -122,14 +122,10 @@ public class DeflaterInputStream extends FilterInputStream
     * Fills the deflater with uncompressed data from the underlying
     * input stream.
     * 
-    * @return true if the deflater was data to read, false if not.
-    * 
     * @throws IOException
     */
-   protected boolean fillDeflater() throws IOException
+   protected void fillDeflater() throws IOException
    {
-      boolean rval = false;
-      
       // keep reading while not end of underlying stream, and
       // deflater is not finished and needs input
       int count = 0;
@@ -166,48 +162,33 @@ public class DeflaterInputStream extends FilterInputStream
       {
          // end of input stream, so finish the deflater
          getDeflater().finish();
-
-         // return true
-         rval = true;
       }
-      else
-      {
-         // set return value based on whether or not the deflater needs input
-         rval = !getDeflater().needsInput();
-      }
-      
-      return rval;
    }
    
    /**
-    * Fills the deflated bytes buffer. The passed target is the target
-    * number of bytes to have in the buffer.
+    * Fills the deflated bytes buffer.
     * 
-    * @param target the target number of bytes to have in the buffer.
-    * 
-    * @return true if the bytes buffer was filled with some data, false if
-    *         the end of the stream was reached.
-    *         
     * @throws IOException
     */
-   protected boolean fillDeflatedBytesBuffer(int target) throws IOException
+   protected void fillDeflatedBytesBuffer() throws IOException
    {
-      boolean rval = false;
-      
-      // if the deflated bytes buffer is used up, reset it
+      // if the deflated bytes buffer is used up, reset the read position
       if(mValidDeflatedBytes == 0)
       {
          mDeflatedBytesReadPosition = 0;
       }
       
-      // maximum target is to fill the deflated bytes buffer
-      target = Math.min(mDeflatedBytes.length - mValidDeflatedBytes, target);
+      // target is to fill up the deflated bytes buffer
+      int target = mDeflatedBytes.length - mValidDeflatedBytes;
       
-      // keep reading while target is not reached and deflater is not finished
+      // keep reading while target is not reached or deflater is not finished
       while(target > 0 && !getDeflater().finished())
       {
          // fill the deflater
-         if(fillDeflater())
+         fillDeflater();
+         
+         // deflate data if the deflater isn't finished
+         if(!getDeflater().finished())
          {
             // deflate data into deflated bytes buffer
             int count = mDeflater.deflate(
@@ -220,8 +201,6 @@ public class DeflaterInputStream extends FilterInputStream
             target -= count;
          }
       }
-      
-      return rval;
    }
    
    /**
@@ -268,28 +247,40 @@ public class DeflaterInputStream extends FilterInputStream
    {
       int rval = -1;
       
-      // keep reading if not deflater not finished or
-      // there are valid deflated bytes
-      if(!getDeflater().finished() || mValidDeflatedBytes > 0)
+      if(!isEndOfStreamReached())
       {
-         if(mValidDeflatedBytes < len)
+         // return 0 if length is 0
+         if(len == 0)
          {
-            // fill the deflated bytes buffer
-            fillDeflatedBytesBuffer(len - mValidDeflatedBytes);
+            rval = 0;
          }
-         
-         // read from the deflated bytes buffer
-         if(mValidDeflatedBytes > 0)
+         else
          {
-            rval = Math.min(len, mValidDeflatedBytes);
-            
-            // copy deflated bytes into passed buffer
-            System.arraycopy(mDeflatedBytes, mDeflatedBytesReadPosition,
-               b, off, rval);
-            
-            // update read position and valid bytes
-            mDeflatedBytesReadPosition += rval;
-            mValidDeflatedBytes -= rval;
+            // read while no data has been read and the end of the stream
+            // has not been reached
+            rval = 0;
+            while(rval == 0 && !isEndOfStreamReached())
+            {
+               // if data is needed, get it
+               if(mValidDeflatedBytes == 0)
+               {
+                  // fill the read deflated bytes buffer
+                  fillDeflatedBytesBuffer();
+               }
+               else
+               {
+                  // read from the deflated bytes buffer
+                  rval = Math.min(len, mValidDeflatedBytes);
+               
+                  // copy deflated bytes into passed buffer
+                  System.arraycopy(mDeflatedBytes, mDeflatedBytesReadPosition,
+                     b, off, rval);
+               
+                  // update read position and valid bytes
+                  mDeflatedBytesReadPosition += rval;
+                  mValidDeflatedBytes -= rval;
+               }
+            }
          }
       }
       
@@ -349,8 +340,8 @@ public class DeflaterInputStream extends FilterInputStream
    {
       int rval = 0;
       
-      // return 1 if the deflater isn't finished
-      if(!getDeflater().finished())
+      // return 1 if the end of the stream hasn't been reached
+      if(!isEndOfStreamReached())
       {
          rval = 1;
       }
@@ -398,5 +389,31 @@ public class DeflaterInputStream extends FilterInputStream
    public Deflater getDeflater()
    {
       return mDeflater;
+   }
+   
+   /**
+    * Returns true if the end of this stream has been reached.
+    * 
+    * @return true if the end of this stream has been reached, false if not.
+    */
+   public boolean isEndOfStreamReached()
+   {
+      boolean rval = false;
+      
+      // first see if the end of the underlying stream has been reached
+      if(mEndOfUnderlyingStream)
+      {
+         // see if there is no more deflater data
+         if(getDeflater().finished())
+         {
+            // see if there are no more valid deflated bytes to read
+            if(mValidDeflatedBytes == 0)
+            {
+               rval = true;
+            }
+         }
+      }
+      
+      return rval;
    }
 }
