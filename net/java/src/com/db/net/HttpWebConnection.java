@@ -22,28 +22,24 @@ import com.db.stream.BoundaryInputStream;
 public class HttpWebConnection extends WebConnectionWrapper
 {
    /**
-    * A mapping of contentEncoding http content encoders for this
-    * web connection. 
+    * A mapping of http content encoders for this web connection. 
     */
-   protected HashMap mContentEncodingEncoders;
+   protected HashMap mContentEncoders;
    
    /**
-    * A mapping of contentEncoding http content decoders for this
-    * web connection. 
+    * A mapping of http content decoders for this web connection. 
     */
-   protected HashMap mContentEncodingDecoders;
+   protected HashMap mContentDecoders;
    
    /**
-    * A mapping of transferEncoding http content encoders for this
-    * web connection. 
+    * A mapping of http transfer encoders for this web connection. 
     */
-   protected HashMap mTransferEncodingEncoders;
+   protected HashMap mTransferEncoders;
    
    /**
-    * A mapping of transferEncoding http content decoders for this
-    * web connection. 
+    * A mapping of http transfer decoders for this web connection. 
     */
-   protected HashMap mTransferEncodingDecoders;
+   protected HashMap mTransferDecoders;
    
    /**
     * The last read boundary. This is the last http multipart boundary
@@ -71,20 +67,24 @@ public class HttpWebConnection extends WebConnectionWrapper
       super(wc);
       
       // create maps for content encoders/decoders
-      mContentEncodingEncoders = new HashMap();
-      mContentEncodingDecoders = new HashMap();
-      mTransferEncodingEncoders = new HashMap();
-      mTransferEncodingDecoders = new HashMap();
+      mContentEncoders = new HashMap();
+      mContentDecoders = new HashMap();
+      
+      // create maps for transfer encoders/decoders
+      mTransferEncoders = new HashMap();
+      mTransferDecoders = new HashMap();
       
       // no last read boundary
       mLastReadBoundary = null;
       
-      // add chunked transfer-encoding encoder/decoder by default
-      ChunkedHttpContentCoder chunkedCoder = new ChunkedHttpContentCoder();
-      setTransferEncodingEncoder(
-         chunkedCoder.getSupportedEncoding(), chunkedCoder);
-      setTransferEncodingDecoder(
-         chunkedCoder.getSupportedEncoding(), chunkedCoder);
+      /*
+      // add chunked transfer encoder/decoder by default
+      ChunkedHttpTransferCoder chunkedCoder = new ChunkedHttpTransferCoder();
+      setTransferEncoder(
+         chunkedCoder.getSupportedTransferEncoding(), chunkedCoder);
+      setTransferDecoder(
+         chunkedCoder.getSupportedTransferEncoding(), chunkedCoder);
+      */
    }
    
    /**
@@ -94,13 +94,14 @@ public class HttpWebConnection extends WebConnectionWrapper
     *                        encoder for.
     * @param hce the http content encoder.
     */
-   public void setContentEncodingEncoder(
+   public void setContentEncoder(
       String contentEncoding, HttpContentEncoder hce)
    {
       // force encoding to lower case
       contentEncoding = contentEncoding.toLowerCase();
       
-      mContentEncodingEncoders.put(contentEncoding, hce);
+      // set encoder
+      mContentEncoders.put(contentEncoding, hce);
    }
    
    /**
@@ -112,7 +113,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * @return the http content encoder or null if there was no encoder
     *         associated with the given content-encoding.
     */
-   public HttpContentEncoder getContentEncodingEncoder(String contentEncoding)
+   public HttpContentEncoder getContentEncoder(String contentEncoding)
    {
       HttpContentEncoder rval = null;
       
@@ -129,7 +130,7 @@ public class HttpWebConnection extends WebConnectionWrapper
             String type = types[i].trim();
             
             // get content encoder
-            rval = (HttpContentEncoder)mContentEncodingEncoders.get(type);
+            rval = (HttpContentEncoder)mContentEncoders.get(type);
          }
       }
       
@@ -143,17 +144,17 @@ public class HttpWebConnection extends WebConnectionWrapper
     * 
     * @return the removed content encoder.
     */
-   public HttpContentEncoder removeContentEncodingEncoder(
+   public HttpContentEncoder removeContentEncoder(
       String contentEncoding)
    {
       // force encoding to lower case
       contentEncoding = contentEncoding.toLowerCase();
       
       // get old encoder
-      HttpContentEncoder rval = getContentEncodingEncoder(contentEncoding);
+      HttpContentEncoder rval = getContentEncoder(contentEncoding);
       
       // remove content encoder
-      mContentEncodingEncoders.remove(contentEncoding);
+      mContentEncoders.remove(contentEncoding);
       
       return rval;
    }
@@ -165,13 +166,14 @@ public class HttpWebConnection extends WebConnectionWrapper
     *                        decoder for.
     * @param hcd the http content decoder.
     */
-   public void setContentEncodingDecoder(
+   public void setContentDecoder(
       String contentEncoding, HttpContentDecoder hcd)
    {
       // force encoding to lower case
       contentEncoding = contentEncoding.toLowerCase();
       
-      mContentEncodingDecoders.put(contentEncoding, hcd);
+      // set decoder
+      mContentDecoders.put(contentEncoding, hcd);
    }
    
    /**
@@ -183,7 +185,7 @@ public class HttpWebConnection extends WebConnectionWrapper
     * @return the http content decoder or null if there was no decoder
     *         associated with the given content-encoding.
     */
-   public HttpContentDecoder getContentEncodingDecoder(String contentEncoding)
+   public HttpContentDecoder getContentDecoder(String contentEncoding)
    {
       HttpContentDecoder rval = null;
       
@@ -200,7 +202,7 @@ public class HttpWebConnection extends WebConnectionWrapper
             String type = types[i].trim();
             
             // get content decoder
-            rval = (HttpContentDecoder)mContentEncodingDecoders.get(type);
+            rval = (HttpContentDecoder)mContentDecoders.get(type);
          }      
       }
       
@@ -214,64 +216,64 @@ public class HttpWebConnection extends WebConnectionWrapper
     * 
     * @return the removed content decoder.
     */
-   public HttpContentDecoder removeContentEncodingDecoder(
-      String contentEncoding)
+   public HttpContentDecoder removeContentDecoder(String contentEncoding)
    {
       // force encoding to lower case
       contentEncoding = contentEncoding.toLowerCase();
       
       // get old decoder
-      HttpContentDecoder rval = getContentEncodingDecoder(contentEncoding);
+      HttpContentDecoder rval = getContentDecoder(contentEncoding);
       
       // remove content decoder
-      mContentEncodingDecoders.remove(contentEncoding);
+      mContentDecoders.remove(contentEncoding);
       
       return rval;
    }
    
    /**
-    * Sets the http content encoder for the specified transfer-encoding.
+    * Sets the http transfer encoder for the specified transfer-encoding.
     * 
-    * @param transferEncoding the transfer-encoding to use the content
+    * @param transferEncoding the transfer-encoding to use the transfer
     *                         encoder for.
-    * @param hce the http content encoder.
+    * @param hte the http transfer encoder.
     */
-   public void setTransferEncodingEncoder(
-      String transferEncoding, HttpContentEncoder hce)
+   public void setTransferEncoder(
+      String transferEncoding, HttpTransferEncoder hte)
    {
       // force encoding to lower case
       transferEncoding = transferEncoding.toLowerCase();
       
-      mTransferEncodingEncoders.put(transferEncoding, hce);
+      // set encoder
+      mTransferEncoders.put(transferEncoding, hte);
    }
    
    /**
-    * Gets the http content encoder for the specified transfer-encoding.
+    * Gets the http transfer encoder for the specified transfer-encoding.
     * 
-    * @param transferEncoding the transfer-encoding to get the content
+    * @param transferEncoding the transfer-encoding to get the transfer
     *                         encoder for.
     *                        
-    * @return the http content encoder or null if there was no encoder
+    * @return the http transfer encoder or null if there was no encoder
     *         associated with the given transfer-encoding.
     */
-   public HttpContentEncoder getTransferEncodingEncoder(String transferEncoding)
+   public HttpTransferEncoder getTransferEncoder(String transferEncoding)
    {
-      HttpContentEncoder rval = null;
+      HttpTransferEncoder rval = null;
       
       if(transferEncoding != null)
       {
          // force encoding to lower case
          transferEncoding = transferEncoding.toLowerCase();
          
-         // split content-encoding by comma
-         String[] types = transferEncoding.split(",");
+         // split transfer-encoding by semi-colon
+         String[] types = transferEncoding.split(";");
          for(int i = 0; i < types.length && rval == null; i++)
          {
             // trim any whitespace off the type
             String type = types[i].trim();
             
-            // get content encoder
-            rval = (HttpContentEncoder)mTransferEncodingEncoders.get(type);
+            // get transfer encoder
+            rval = (HttpTransferEncoder)mTransferEncoders.get(type);
          }
       }
       
@@ -279,70 +281,70 @@ public class HttpWebConnection extends WebConnectionWrapper
    }
    
    /**
-    * Removes the http content encoder for the specified transfer-encoding.
+    * Removes the http transfer encoder for the specified transfer-encoding.
     * 
     * @param transferEncoding the transfer-encoding for the encoder to remove.
     * 
-    * @return the removed content encoder.
+    * @return the removed transfer encoder.
     */
-   public HttpContentEncoder removeTransferEncodingEncoder(
-      String transferEncoding)
+   public HttpTransferEncoder removeTransferEncoder(String transferEncoding)
    {
       // force encoding to lower case
       transferEncoding = transferEncoding.toLowerCase();
       
       // get old encoder
-      HttpContentEncoder rval = getTransferEncodingEncoder(transferEncoding);
+      HttpTransferEncoder rval = getTransferEncoder(transferEncoding);
       
-      // remove content encoder
-      mTransferEncodingEncoders.remove(transferEncoding);
+      // remove transfer encoder
+      mTransferEncoders.remove(transferEncoding);
       
       return rval;
    }
    
    /**
-    * Sets the http content decoder for the specified transfer-encoding.
+    * Sets the http transfer decoder for the specified transfer-encoding.
     * 
-    * @param transferEncoding the transfer-encoding to use the content
+    * @param transferEncoding the transfer-encoding to use the transfer
     *                         decoder for.
-    * @param hcd the http content decoder.
+    * @param htd the http transfer decoder.
     */
-   public void setTransferEncodingDecoder(
-      String transferEncoding, HttpContentDecoder hcd)
+   public void setTransferDecoder(
+      String transferEncoding, HttpTransferDecoder htd)
    {
       // force encoding to lower case
       transferEncoding = transferEncoding.toLowerCase();
       
-      mTransferEncodingDecoders.put(transferEncoding, hcd);
+      // set decoder
+      mTransferDecoders.put(transferEncoding, htd);
    }
    
    /**
-    * Gets the http content decoder for the specified transfer-encoding.
+    * Gets the http transfer decoder for the specified transfer-encoding.
     * 
-    * @param transferEncoding the transfer-encoding to get the content
+    * @param transferEncoding the transfer-encoding to get the transfer
     *                         decoder for.
     *                        
-    * @return the http content decoder or null if there was no decoder
+    * @return the http transfer decoder or null if there was no decoder
     *         associated with the given transfer-encoding.
     */
-   public HttpContentDecoder getTransferEncodingDecoder(String transferEncoding)
+   public HttpTransferDecoder getTransferDecoder(String transferEncoding)
    {
-      HttpContentDecoder rval = null;
+      HttpTransferDecoder rval = null;
       
       if(transferEncoding != null)
       {
          // force encoding to lower case
          transferEncoding = transferEncoding.toLowerCase();
          
-         // split content-encoding by comma
-         String[] types = transferEncoding.split(",");
+         // split transfer-encoding by semi-colon
+         String[] types = transferEncoding.split(";");
          for(int i = 0; i < types.length && rval == null; i++)
          {
             // trim any whitespace off the type
             String type = types[i].trim();
             
-            // get content decoder
-            rval = (HttpContentDecoder)mTransferEncodingDecoders.get(type);
+            // get transfer decoder
+            rval = (HttpTransferDecoder)mTransferDecoders.get(type);
          }      
       }
       
@@ -350,23 +352,22 @@ public class HttpWebConnection extends WebConnectionWrapper
    }
    
    /**
-    * Removes the http content decoder for the specified transfer-encoding.
+    * Removes the http transfer decoder for the specified transfer-encoding.
     * 
     * @param transferEncoding the transfer-encoding for the decoder to remove.
     * 
-    * @return the removed content decoder.
+    * @return the removed transfer decoder.
     */
-   public HttpContentDecoder removeTransferEncodingDecoder(
-      String transferEncoding)
+   public HttpTransferDecoder removeTransferDecoder(String transferEncoding)
    {
       // force encoding to lower case
       transferEncoding = transferEncoding.toLowerCase();
       
       // get old decoder
-      HttpContentDecoder rval = getTransferEncodingDecoder(transferEncoding);
+      HttpTransferDecoder rval = getTransferDecoder(transferEncoding);
       
-      // remove content decoder
-      mTransferEncodingDecoders.remove(transferEncoding);
+      // remove transfer decoder
+      mTransferDecoders.remove(transferEncoding);
       
       return rval;
    }   
@@ -535,44 +536,42 @@ public class HttpWebConnection extends WebConnectionWrapper
          String contentEncoding = header.getContentEncoding();
          
          // get content encoder
-         HttpContentEncoder contentEncodingEncoder =
-            getContentEncodingEncoder(contentEncoding);
+         HttpContentEncoder hce = getContentEncoder(contentEncoding);
          
-         // update input stream if a content-encoding encoder is to be used
-         if(contentEncodingEncoder != null)
+         // update input stream if a content encoder is to be used
+         if(hce != null)
          {
             // get encoded stream
-            is = contentEncodingEncoder.getHttpContentEncodedStream(
-               contentEncoding, is);
+            is = hce.getHttpContentEncodedStream(contentEncoding, is);
          }
          
          // get the transfer-encoding
          String transferEncoding = header.getTransferEncoding();
          
          // get transfer encoder
-         HttpContentEncoder transferEncodingEncoder =
-            getTransferEncodingEncoder(transferEncoding);
-         
-         // update input stream if a transfer-encoding encoder is to be used
-         if(transferEncodingEncoder != null)
-         {
-            // get encoded stream
-            is = transferEncodingEncoder.getHttpContentEncodedStream(
-               transferEncoding, is);
-         }
+         HttpTransferEncoder hte = getTransferEncoder(transferEncoding);
          
          // start time
          long st = new Date().getTime();
-         
-         // read from the input stream until end of stream
          long totalWritten = 0;
-         int numBytes = -1;
-         byte[] buffer = new byte[16384];
-         while((numBytes = is.read(buffer)) != -1)
+
+         // use transfer encoder if one is available
+         if(hte != null)
          {
-            // write to the web connection
-            getWebConnection().write(buffer, 0, numBytes);
-            totalWritten += numBytes;
+            totalWritten = hte.writeHttpBody(
+               transferEncoding, is, getWebConnection().getWriteStream());
+         }
+         else
+         {
+            // read from the input stream until end of stream
+            int numBytes = -1;
+            byte[] buffer = new byte[16384];
+            while((numBytes = is.read(buffer)) != -1)
+            {
+               // write to the web connection
+               getWebConnection().write(buffer, 0, numBytes);
+               totalWritten += numBytes;
+            }
          }
          
          // writing complete
@@ -862,61 +861,52 @@ public class HttpWebConnection extends WebConnectionWrapper
          // get input stream for reading from the web connection
          InputStream is = getWebConnection().getReadStream();
          
-         // get the content length
-         long contentLength = header.getContentLength();
+         // get the content-encoding
+         String contentEncoding = header.getContentEncoding();
+         
+         // get content decoder
+         HttpContentDecoder hcd = getContentDecoder(contentEncoding);
+         
+         // update output stream if a content decoder is to be used
+         if(hcd != null)
+         {
+            // get decoded stream
+            os = hcd.getHttpContentDecodedStream(contentEncoding, os);
+         }
          
          // get the transfer-encoding
          String transferEncoding = header.getTransferEncoding();
          
-         // get the transfer-encoding decoder
-         HttpContentDecoder transferEncodingDecoder =
-            getTransferEncodingDecoder(transferEncoding);
-         
-         // update output stream if a transfer-encoding decoder is to be used
-         if(transferEncodingDecoder != null)
-         {
-            // get decoded stream
-            is = transferEncodingDecoder.getHttpContentDecodedStream(
-               transferEncoding, is);
-            
-            // content-length must be -1 if using chunked transfer-encoding
-            if(transferEncoding.equals("chunked"))
-            {
-               contentLength = -1;
-            }
-         }
-         
-         // get the content-encoding
-         String contentEncoding = header.getContentEncoding();
-         
-         // get the content-encoding decoder
-         HttpContentDecoder contentEncodingDecoder =
-            getContentEncodingDecoder(contentEncoding);
-
-         // update output stream if a content-encoding decoder is to be used
-         if(contentEncodingDecoder != null)
-         {
-            // get decoded stream
-            is = contentEncodingDecoder.getHttpContentDecodedStream(
-               contentEncoding, is);
-         }         
+         // get transfer decoder
+         HttpTransferDecoder htd = getTransferDecoder(transferEncoding);
          
          // start time
          long st = new Date().getTime();
-         
-         // read from the web connection until content-length reached
          long totalRead = 0;
-         int numBytes = -1;
-         byte[] buffer = new byte[16384];
-         while((contentLength < 0 || totalRead < contentLength) &&
-               (numBytes = is.read(buffer, 0, buffer.length)) != -1)
+
+         // use transfer decoder if one is available
+         if(htd != null)
          {
-            // write to the output stream
-            os.write(buffer, 0, numBytes);
-            totalRead += numBytes;
+            totalRead = htd.readHttpBody(transferEncoding, is, os);
+         }
+         else
+         {
+            // get the content length
+            long contentLength = header.getContentLength();
+            
+            // read from the web connection until content-length reached
+            int numBytes = -1;
+            byte[] buffer = new byte[16384];
+            while((contentLength < 0 || totalRead < contentLength) &&
+                  (numBytes = is.read(buffer, 0, buffer.length)) != -1)
+            {
+               // write to the output stream
+               os.write(buffer, 0, numBytes);
+               totalRead += numBytes;
+            }
          }
          
-         // writing complete
+         // reading complete
          rval = true;
          
          // end time
@@ -1018,10 +1008,14 @@ public class HttpWebConnection extends WebConnectionWrapper
       
       try
       {
-         getLogger().debug(getClass(), "receiving http body part body...");         
-         
-         // start time
-         long st = new Date().getTime();
+         if(os != null)
+         {
+            getLogger().debug(getClass(), "receiving http body part body...");         
+         }
+         else
+         {
+            getLogger().debug(getClass(), "skipping http body part body...");
+         }
          
          // get input stream for reading from the web connection
          InputStream is = getWebConnection().getReadStream();
@@ -1034,38 +1028,38 @@ public class HttpWebConnection extends WebConnectionWrapper
          bis.addBoundary(HttpHeader.CRLF + boundary + HttpHeader.CRLF);
          bis.addBoundary(HttpHeader.CRLF + boundary + "--" + HttpHeader.CRLF);
          
-         // get the transfer-encoding
-         String transferEncoding = bodyPartHeader.getTransferEncoding();
-         
-         // get the transfer-encoding decoder
-         HttpContentDecoder transferEncodingDecoder =
-            getTransferEncodingDecoder(transferEncoding);
-         
-         // update output stream if a transfer-encoding decoder is to be used
-         if(transferEncodingDecoder != null)
-         {
-            // get decoded stream
-            is = transferEncodingDecoder.getHttpContentDecodedStream(
-               transferEncoding, bis);
-         }
-         
          // get the content-encoding
          String contentEncoding = bodyPartHeader.getContentEncoding();
          
-         // get the content-encoding decoder
-         HttpContentDecoder contentEncodingDecoder =
-            getContentEncodingDecoder(contentEncoding);
-
-         // update output stream if a content-encoding decoder is to be used
-         if(contentEncodingDecoder != null)
+         // get content decoder
+         HttpContentDecoder hcd = getContentDecoder(contentEncoding);
+         
+         // update output stream if a content decoder is to be used
+         if(hcd != null && os != null)
          {
             // get decoded stream
-            is = contentEncodingDecoder.getHttpContentDecodedStream(
-               contentEncoding, bis);
-         }         
+            os = hcd.getHttpContentDecodedStream(contentEncoding, os);
+         }
          
-         // read from the web connection until boundary reached
+         // get the transfer-encoding
+         String transferEncoding = bodyPartHeader.getTransferEncoding();
+         
+         // get transfer decoder
+         HttpTransferDecoder htd = getTransferDecoder(transferEncoding);
+         
+         // start time
+         long st = new Date().getTime();
          long totalRead = 0;
+
+         // use transfer decoder if one is available
+         if(htd != null)
+         {
+            totalRead = htd.readHttpBody(transferEncoding, bis, os);
+         }
+         
+         // intentionally not an "else" here -- we must always read
+         // until the boundary is reached
+         // read from the web connection until boundary reached
          int numBytes = -1;
          byte[] buffer = new byte[16384];
          while((numBytes = is.read(buffer, 0, buffer.length)) != -1)
@@ -1087,15 +1081,33 @@ public class HttpWebConnection extends WebConnectionWrapper
          // calculate transfer time
          long timespan = et - st;
          
-         getLogger().debug(getClass(),
-            "http body part body (" + totalRead +
-            " bytes) received in " + timespan + " ms.");         
+         if(os != null)
+         {
+            getLogger().debug(getClass(),
+               "http body part body (" + totalRead +
+               " bytes) received in " + timespan + " ms.");         
+         }
+         else
+         {
+            getLogger().debug(getClass(),
+               "http body part body (" + totalRead + " bytes) " +
+               "skipped in " + timespan + " ms.");         
+         }
       }
       catch(Throwable t)
       {
-         getLogger().debug(getClass(),
-            "could not receive http body part body!, " +
-            "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
+         if(os != null)
+         {
+            getLogger().debug(getClass(),
+               "could not receive http body part body!, " +
+               "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
+         }
+         else
+         {
+            getLogger().debug(getClass(),
+               "could not skip http body part body!, " +
+               "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
+         }
       }
       
       return rval;
@@ -1113,90 +1125,7 @@ public class HttpWebConnection extends WebConnectionWrapper
    public boolean skipBodyPartBody(
       HttpHeader parentHeader, HttpBodyPartHeader bodyPartHeader)
    {
-      boolean rval = false;
-      
-      try
-      {
-         getLogger().debug(getClass(), "skipping http body part body...");         
-         
-         // start time
-         long st = new Date().getTime();
-         
-         // get input stream for reading from the web connection
-         InputStream is = getWebConnection().getReadStream();
-         
-         // get the boundary
-         String boundary = parentHeader.getBoundary();
-
-         // create a boundary input stream to read from the web connection
-         BoundaryInputStream bis = new BoundaryInputStream(is);
-         bis.addBoundary(HttpHeader.CRLF + boundary + HttpHeader.CRLF);
-         bis.addBoundary(HttpHeader.CRLF + boundary + "--" + HttpHeader.CRLF);
-         
-         // get the transfer-encoding
-         String transferEncoding = bodyPartHeader.getTransferEncoding();
-         
-         // get the transfer-encoding decoder
-         HttpContentDecoder transferEncodingDecoder =
-            getTransferEncodingDecoder(transferEncoding);
-         
-         // update output stream if a transfer-encoding decoder is to be used
-         if(transferEncodingDecoder != null)
-         {
-            // get decoded stream
-            is = transferEncodingDecoder.getHttpContentDecodedStream(
-               transferEncoding, bis);
-         }
-         
-         // get the content-encoding
-         String contentEncoding = bodyPartHeader.getContentEncoding();
-         
-         // get the content-encoding decoder
-         HttpContentDecoder contentEncodingDecoder =
-            getContentEncodingDecoder(contentEncoding);
-
-         // update output stream if a content-encoding decoder is to be used
-         if(contentEncodingDecoder != null)
-         {
-            // get decoded stream
-            is = contentEncodingDecoder.getHttpContentDecodedStream(
-               contentEncoding, bis);
-         }
-         
-         // read from the web connection until boundary reached
-         long totalRead = 0;
-         int numBytes = -1;
-         byte[] buffer = new byte[16384];
-         while((numBytes = is.read(buffer, 0, buffer.length)) != -1)
-         {
-            // do not write out
-            totalRead += numBytes;
-         }
-         
-         // save last read boundary
-         mLastReadBoundary = bis.getReachedBoundary();
-         
-         // skipping complete
-         rval = true;
-         
-         // end time
-         long et = new Date().getTime();
-         
-         // calculate transfer time
-         long timespan = et - st;
-         
-         getLogger().debug(getClass(),
-            "http body part body (" + totalRead + " bytes) " +
-            "skipped in " + timespan + " ms.");         
-      }
-      catch(Throwable t)
-      {
-         getLogger().debug(getClass(),
-            "could not skip http body part body!, " +
-            "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
-      }
-      
-      return rval;
+      return receiveBodyPartBody(null, parentHeader, bodyPartHeader);
    }
    
    /**

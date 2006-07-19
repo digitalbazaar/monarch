@@ -4,32 +4,29 @@
 package com.db.net;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * A class that implements the HttpContentDecoder interface can be used
- * to decode http message bodies according to their content-encoding or
- * transfer-encoding.
+ * to decode http message bodies according to their content-encoding.
  * 
  * @author Dave Longley
  */
 public interface HttpContentDecoder
 {
    /**
-    * Gets an input stream to read decoded data from. This input stream must
-    * not read more data than it needs because the current design filters
-    * input from an http web connection directly into this stream.
+    * Gets an output stream to write decoded data with.
     * 
-    * @param encoding the content-encoding or transfer-encoding for the stream.
-    * @param encodedStream the input stream with the data to decode.
+    * @param contentEncoding the content-encoding for the stream.
+    * @param os the output stream to write the decoded data to.
     * 
-    * @return the input stream to read decoded data from.
+    * @return the output stream to write decoded data with.
     * 
     * @throws IOException
     */
-   public InputStream getHttpContentDecodedStream(
-      String encoding, InputStream encodedStream)
-   throws IOException;   
+   public OutputStream getHttpContentDecodedStream(
+      String contentEncoding, OutputStream os)
+   throws IOException;
    
    /**
     * Decodes the passed string of http content.

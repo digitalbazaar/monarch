@@ -8,8 +8,7 @@ import java.io.InputStream;
 
 /**
  * A class that implements the HttpContentEncoder interface can be used
- * to encode http message bodies according to their content-encoding or
- * transfer-encoding.  
+ * to encode http message bodies according to their content-encoding.
  * 
  * @author Dave Longley
  */
@@ -18,16 +17,15 @@ public interface HttpContentEncoder
    /**
     * Gets an input stream to read encoded data from.
     * 
-    * @param encoding the content-encoding or transfer-encoding for the stream.
-    * 
-    * @param decodedStream the input stream with the data to encode.
+    * @param contentEncoding the content-encoding for the stream.
+    * @param unencodedStream the input stream with the data to encode.
     * 
     * @return the input stream to read encoded data from.
     * 
     * @throws IOException
     */
    public InputStream getHttpContentEncodedStream(
-      String encoding, InputStream decodedStream)
+      String contentEncoding, InputStream unencodedStream)
    throws IOException;
    
    /**

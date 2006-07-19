@@ -3,12 +3,12 @@
  */
 package com.db.net;
 
-import com.db.stream.PipeInputStream;
+import com.db.stream.GZipInputStream;
+import com.db.stream.UnGZipOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+import java.io.OutputStream;
 
 /**
  * A GZipHttpContentCoder is a class that is used to encode and decode
@@ -28,74 +28,51 @@ public class GZipHttpContentCoder extends AbstractHttpContentCoder
    }
    
    /**
-    * Overridden because the passed encoding needs to only contain "gzip".
-    * 
-    * Checks to see if the passed encoding is supported.
-    * 
-    * @param encoding the encoding to check.
-    * 
-    * @return true if the passed encoding is supported, false if not.
-    */
-   protected boolean isEncodingSupported(String encoding)
-   {
-      boolean rval = false;
-      
-      rval = getSupportedEncoding().contains(encoding);
-      
-      return rval;
-   }
-   
-   /**
     * Gets an input stream to read encoded data from.
     * 
-    * @param decodedStream the input stream with the data to encode.
+    * @param unencodedStream the input stream with the data to encode.
     * 
     * @return the input stream to read encoded data with.
     * 
     * @throws IOException
     */
-   public InputStream getHttpContentEncodedStream(InputStream decodedStream)
+   protected InputStream getHttpContentEncodedStream(
+      InputStream unencodedStream)
    throws IOException
    {
-      InputStream rval = decodedStream;
+      InputStream rval = unencodedStream;
       
       // create a pipe input stream that reads from the passed stream
-      PipeInputStream pipe = new PipeInputStream(decodedStream);
+      com.db.stream.PipeInputStream pipe = new com.db.stream.PipeInputStream(unencodedStream);
       
       // wrap the output stream that writes to the pipe
-      GZIPOutputStream gzos = new GZIPOutputStream(pipe.getOutputStream());
+      java.util.zip.GZIPOutputStream gzos = new java.util.zip.GZIPOutputStream(pipe.getOutputStream());
       
       // attach the output stream to the pipe
       pipe.setOutputStream(gzos);
       
       // set pipe as input stream
-      rval = pipe;
+      rval = pipe;      
       
       return rval;
+      
+      // return a gzip input stream
+      //return new GZipInputStream(unencodedStream);
    }
    
    /**
-    * Gets an input stream to read decoded data from. This input stream must
-    * not read more data than it needs because the current design filters
-    * input from an http web connection directly into this stream.
+    * Gets an output stream to write decoded data with.
     * 
-    * @param encodedStream the input stream with the data to decode.
+    * @param os the output stream to write the decoded data to.
     * 
-    * @return the input stream to read decoded data from.
+    * @return the output stream to write decoded data with.
     * 
     * @throws IOException
     */
-   public InputStream getHttpContentDecodedStream(InputStream encodedStream)
-   throws IOException
+   protected OutputStream getHttpContentDecodedStream(OutputStream os)
+   throws IOException   
    {
-      InputStream rval = encodedStream;
-      
-      // wrap the input stream with a gzip input stream
-      GZIPInputStream gzis = new GZIPInputStream(encodedStream);
-      
-      // set gzip stream as input stream
-      rval = gzis;
-      
-      return rval;
+      // return a gzip output stream
+      return new UnGZipOutputStream(os);
    }
 }
