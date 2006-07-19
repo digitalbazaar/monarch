@@ -88,6 +88,9 @@ public class UnGZipOutputStream extends InflaterOutputStream
       // uncompressed data 
       mCrc32 = new CRC32();
       
+      // wrap the output stream in a checked output stream
+      out = new CheckedOutputStream(out, mCrc32);
+      
       // create a new gzip header
       mHeader = new GZipHeader();
       
@@ -147,6 +150,8 @@ public class UnGZipOutputStream extends InflaterOutputStream
       // get the copy size
       int copySize = Math.min(mRequiredHeaderBytes, length);
       
+      System.out.println("copysize=" + copySize);
+      
       // copy passed bytes into header bytes buffer
       System.arraycopy(buffer, offset, mHeaderBuffer, mHeaderBytes, copySize);
       
@@ -183,11 +188,17 @@ public class UnGZipOutputStream extends InflaterOutputStream
       {
          // get the required header bytes
          mRequiredHeaderBytes = mHeader.convertFromBytes(b, off, len);
+         
+         // update length as appropriate
+         if(mRequiredHeaderBytes <= 0)
+         {
+            len = -mRequiredHeaderBytes;
+         }
       }
          
       // keep storing bytes until there is no more to store or the
       // header is successfully read
-      while(mRequiredHeaderBytes != 0 && len > 0) 
+      while(mRequiredHeaderBytes > 0 && len > 0) 
       {
          // store the header bytes, update length and offset
          int copySize = storeHeaderBytes(b, off, len);
@@ -199,16 +210,13 @@ public class UnGZipOutputStream extends InflaterOutputStream
             mHeaderBuffer, 0, mHeaderBytes);
       }
       
-      // mark header as read if required bytes == 0
-      if(mRequiredHeaderBytes == 0)
+      // mark header as read if required bytes < 0
+      if(mRequiredHeaderBytes < 0)
       {
          mHeaderRead = true;
          
          // throw out the header buffer, it is no longer needed
          mHeaderBuffer = null;
-         
-         // wrap the output stream in a checked output stream
-         out = new CheckedOutputStream(out, mCrc32);
       }
       
       // get the number of extra bytes
@@ -224,84 +232,79 @@ public class UnGZipOutputStream extends InflaterOutputStream
     * @param offset the offset of the trailer bytes.
     * @param length the number of trailer bytes in the array.
     * 
-    * @return the number of bytes stored from the passed buffer.
+    * @throws IOException
     */
-   protected int storeTrailerBytes(byte[] buffer, int offset, int length)
+   protected void storeTrailerBytes(byte[] buffer, int offset, int length)
+   throws IOException
    {
-      int rval = 0;
-      
-      // get the copy size
-      int copySize = Math.min(mRequiredTrailerBytes, length);
+      // if length bytes would exceed the remaining buffer space,
+      // then shift the bytes
+      if(length > mTrailerBuffer.length - mTrailerBytes) 
+      {
+         int shift = (mRequiredTrailerBytes + length) -
+            (mTrailerBuffer.length - mTrailerBytes);
+         
+         // write out the data before the shift
+         super.write(mTrailerBuffer, 0, shift);
+         
+         // perform the shift
+         System.arraycopy(mTrailerBuffer, shift, mTrailerBuffer, 0, shift);
+         mTrailerBytes -= shift;
+      }
       
       // copy passed bytes into trailer bytes buffer
-      System.arraycopy(buffer, offset, mTrailerBuffer, mTrailerBytes, copySize);
+      System.arraycopy(buffer, offset, mTrailerBuffer, mTrailerBytes, length);
       
       // update trailer bytes
-      mTrailerBytes += copySize;
-
-      // return copy size
-      rval = copySize;
-      
-      return rval;
+      mTrailerBytes += length;
    }
    
    /**
-    * Tries to read the gzip trailer. Updates the number of required trailer
-    * bytes. Returns the number of extra bytes in the passed buffer that
-    * are not in the trailer.
+    * Tries to read the gzip trailer from the last 8 bytes in the
+    * passed buffer. Writes out any data before then.
     *
     * @param b the gzipped data.
     * @param off the start offset of the data.
     * @param len the length of the data.
     * 
-    * @return the number of extra bytes in the buffer that are not in
-    *         the trailer.
-    * 
     * @throws IOException
     */
-   protected int readTrailer(byte[] b, int off, int len) throws IOException
+   protected void readTrailer(byte[] b, int off, int len) throws IOException
    {
-      int rval = 0;
+      // get potential trailer offset
+      int trailerOffset = Math.max(
+         off + len - mTrailerBuffer.length, off);
       
-      // if the header bytes are 0, try to convert the trailer from
-      // the passed buffer
-      if(mHeaderBytes == 0)
+      System.out.println("storing trailer bytes,off=" + trailerOffset + ",len=" + (off + len - trailerOffset));
+      
+      // store the trailer information
+      storeTrailerBytes(b, trailerOffset, off + len - trailerOffset);
+      
+      // if the length is greater than the trailer buffer size
+      // then write out the data before the trailer offset
+      if(len > mTrailerBuffer.length)
       {
-         // get the required trailer bytes
-         mRequiredTrailerBytes = mTrailer.convertFromBytes(b, off, len);
-      }
+         System.out.println("WRITING BYTES,off=" + off + ",len=" + (trailerOffset - off));
          
-      // keep storing bytes until there is no more to store or the
-      // trailer is successfully read
-      while(mRequiredTrailerBytes != 0 && len > 0) 
-      {
-         // store the trailer bytes, update length and offset
-         int copySize = storeTrailerBytes(b, off, len);
-         len -= copySize;
-         off += copySize;
-         
-         // try to convert the trailer from the internal buffer again
-         mRequiredTrailerBytes = mTrailer.convertFromBytes(
-            mTrailerBuffer, 0, mTrailerBytes);
+         super.write(b, off, trailerOffset - off);
       }
       
-      // mark trailer as read if required bytes == 0
-      if(mRequiredTrailerBytes == 0)
+      // try to read the trailer
+      if(mTrailer.convertFromBytes(mTrailerBuffer, 0, mTrailerBytes) == 0)
       {
-         mTrailerRead = true;
-         
          // see if the trailer's CRC-32 value matches the calculated one
+         if(mTrailer.getCrc32Value() != mCrc32.getValue())
+         {
+            System.out.println("trailer read!");
+            
+            // trailer read
+            mTrailerRead = true;
          
-         
-         // throw out the trailer buffer, it is no longer needed
-         mTrailerBuffer = null;
+            // throw out the trailer buffer, it is no longer needed
+            mTrailerBuffer = null;
+         }
       }
-      
-      // get the number of extra bytes
-      rval = len;
-      
-      return rval;
-   }   
+   }
    
    /**
     * Un-gzipped the passed array of gzipped bytes and writes them to the
@@ -324,28 +327,19 @@ public class UnGZipOutputStream extends InflaterOutputStream
             // try to read the header
             int extraBytes = readHeader(b, off, len);
             
-            // see if there are extra bytes
-            if(extraBytes > 0)
-            {
-               // write out the extra bytes that aren't in the header
-               super.write(b, off + len - extraBytes, extraBytes);
-            }
+            // update offset and length
+            off += (len - extraBytes);
+            len = extraBytes;
          }
-         else
+         
+         // handle data after header
+         if(mHeaderRead)
          {
-            // write out inflated data
-            super.write(b, off, len);
+            // try to read the trailer
+            readTrailer(b, off, len);
          }
       }
-      else if(!mTrailerRead)
-      {
-         // read in the trailer
-         if(readTrailer(b, off, len) > 0)
-         {
-            throw new IOException("GZip trailer already read!");
-         }
-      }
-      else
+      else if(mTrailerRead)
       {
          throw new IOException("GZip trailer already read!");
       }
