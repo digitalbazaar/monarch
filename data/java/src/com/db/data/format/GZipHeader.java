@@ -392,11 +392,21 @@ public class GZipHeader
                   {
                      throw new IOException("GZIP Header CRC-16 is invalid!");
                   }
+                  else
+                  {
+                     // return whatever is still available as extra
+                     rval = -is.available();
+                  }
                }
                else
                {
                   rval = 2 - is.available();
                }
+            }
+            else
+            {
+               // return whatever is still available as extra
+               rval = -is.available();
             }
          }
          else
@@ -459,7 +469,7 @@ public class GZipHeader
          int ID2 = readUnsignedByte(cis);
          
          // ensure ID1 and ID2 are valid
-         if(ID1 != GZIP_ID1 && ID2 != GZIP_ID2)
+         if(ID1 == GZIP_ID1 && ID2 == GZIP_ID2)
          {
             // read CM
             int CM = readUnsignedByte(cis);
