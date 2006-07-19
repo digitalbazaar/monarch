@@ -251,16 +251,18 @@ public class UnGZipOutputStream extends InflaterOutputStream
     */
    protected void readTrailer(byte[] b, int off, int len) throws IOException
    {
+      // get the end of the buffer
+      int end = off + len;
+      
       // get potential trailer offset
       int trailerOffset = Math.max(
-         off + len - mTrailerBuffer.length, off);
+         end - mTrailerBuffer.length, off);
       
       // store the trailer information
-      storeTrailerBytes(b, trailerOffset, off + len - trailerOffset);
+      storeTrailerBytes(b, trailerOffset, end - trailerOffset);
       
-      // if the length is greater than the trailer buffer size
-      // then write out the data before the trailer offset
-      if(len > mTrailerBuffer.length)
+      // write out the data before the trailer offset
+      if(trailerOffset > off)
       {
          super.write(b, off, trailerOffset - off);
       }

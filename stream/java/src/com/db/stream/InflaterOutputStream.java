@@ -138,15 +138,14 @@ public class InflaterOutputStream extends FilterOutputStream
       try
       {
          // write the remaining data out
-         while(!getInflater().finished() &&
-               !getInflater().needsInput() &&
-               !getInflater().needsDictionary())
+         int numBytes = -1;
+         while(!getInflater().finished() && numBytes != 0)
          {
             // deflated bytes are no longer valid
             mValidDeflatedBytes = 0;
             
             // inflate bytes
-            int numBytes = getInflater().inflate(mInflatedBytes);
+            numBytes = getInflater().inflate(mInflatedBytes);
             
             // write to underlying output stream
             out.write(mInflatedBytes, 0, numBytes);
