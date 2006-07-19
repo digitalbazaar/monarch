@@ -339,7 +339,7 @@ public class GZipHeader
    /**
     * Reads an advanced header (has several custom tags set).
     * 
-    * @param is the input stream to read from.
+    * @param is the unput stream to read from.
     * 
     * @return the number of bytes required to read the entire header.
     * 
@@ -378,11 +378,11 @@ public class GZipHeader
             {
                if(is.available() >= 2)
                {
-                  // read the CRC-16 value
-                  int crc16Value = readUnsignedShort(is);
-                  
                   // get the CRC-32 value for this header
                   long crc32Value = mCrc32.getValue();
+
+                  // read the CRC-16 value (after computing the crc-32)
+                  int crc16Value = readUnsignedShort(is);
                   
                   // AND the CRC-32 value to get the least significant bytes
                   int value = (int)(crc32Value & 0xffff);

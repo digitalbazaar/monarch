@@ -130,7 +130,7 @@ public class UnGZipOutputStream extends InflaterOutputStream
       // resize the internal buffer as necessary
       int size = mHeaderBytes + mRequiredHeaderBytes;
       
-      if(size < mHeaderBuffer.length)
+      if(size > mHeaderBuffer.length)
       {
          size = Math.max(size, mHeaderBuffer.length * 2);
          
@@ -271,11 +271,15 @@ public class UnGZipOutputStream extends InflaterOutputStream
          // see if the trailer's CRC-32 value matches the calculated one
          if(mTrailer.getCrc32Value() == mCrc32.getValue())
          {
-            // trailer read
-            mTrailerRead = true;
+            // see if the trailer's size matches the decompressed bytes
+            if(mTrailer.getISize() == getInflater().getBytesWritten())
+            {
+               // trailer read
+               mTrailerRead = true;
          
-            // throw out the trailer buffer, it is no longer needed
-            mTrailerBuffer = null;
+               // throw out the trailer buffer, it is no longer needed
+               mTrailerBuffer = null;
+            }
          }
       }
    }

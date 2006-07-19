@@ -554,22 +554,25 @@ public class UTGZip
          // read zipped content
          FileInputStream fis = new FileInputStream("test.zip");
          
-         // ungzipper
-         GZIPInputStream ungzis = new GZIPInputStream(fis);
-         
          // output stream to write content with
          ByteArrayOutputStream baos = new ByteArrayOutputStream();
          
+         // ungzipper
+         UnGZipOutputStream ungzos = new UnGZipOutputStream(baos); 
+         
          // read until content is unzipped
          numBytes = -1;
-         while((numBytes = ungzis.read(b)) != -1)
+         while((numBytes = fis.read(b)) != -1)
          {
             // write content out
-            baos.write(b, 0, numBytes);
+            ungzos.write(b, 0, numBytes);
          }
          
+         // close file input stream
+         fis.close();
+         
          // close ungzipper
-         ungzis.close();
+         ungzos.close();         
          
          // get content
          String unzippedContent = baos.toString();
