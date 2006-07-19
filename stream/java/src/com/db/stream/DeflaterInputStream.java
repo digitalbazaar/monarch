@@ -247,7 +247,8 @@ public class DeflaterInputStream extends FilterInputStream
    {
       int rval = -1;
       
-      if(!isEndOfStreamReached())
+      // read if this stream still has deflated bytes to read
+      if(hasDeflatedBytes())
       {
          // return 0 if length is 0
          if(len == 0)
@@ -256,10 +257,9 @@ public class DeflaterInputStream extends FilterInputStream
          }
          else
          {
-            // read while no data has been read and the end of the stream
-            // has not been reached
+            // read while no data has been read and there is data to read
             rval = 0;
-            while(rval == 0 && !isEndOfStreamReached())
+            while(rval == 0 && hasDeflatedBytes())
             {
                // if data is needed, get it
                if(mValidDeflatedBytes == 0)
@@ -340,8 +340,8 @@ public class DeflaterInputStream extends FilterInputStream
    {
       int rval = 0;
       
-      // return 1 if the end of the stream hasn't been reached
-      if(!isEndOfStreamReached())
+      // return 1 if there are deflated bytes to read
+      if(hasDeflatedBytes())
       {
          rval = 1;
       }
@@ -392,25 +392,23 @@ public class DeflaterInputStream extends FilterInputStream
    }
    
    /**
-    * Returns true if the end of this stream has been reached.
+    * Returns true if there are deflated bytes that can be read from this
+    * stream.
     * 
-    * @return true if the end of this stream has been reached, false if not.
+    * @return true if there are deflated bytes that can be read from this
+    *         stream, false if there aren't any more.
     */
-   public boolean isEndOfStreamReached()
+   public boolean hasDeflatedBytes()
    {
-      boolean rval = false;
+      boolean rval = true;
       
-      // first see if the end of the underlying stream has been reached
-      if(mEndOfUnderlyingStream)
+      // see if there is no more deflater data
+      if(getDeflater().finished())
       {
-         // see if there is no more deflater data
-         if(getDeflater().finished())
+         // see if there are no more valid deflated bytes to read
+         if(mValidDeflatedBytes == 0)
          {
-            // see if there are no more valid deflated bytes to read
-            if(mValidDeflatedBytes == 0)
-            {
-               rval = true;
-            }
+            rval = false;
          }
       }
       
