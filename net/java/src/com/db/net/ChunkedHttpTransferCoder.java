@@ -145,6 +145,9 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
          rval += chunk.read(header, hwc, os);
       }
       
+      // update content length header
+      header.setContentLength(rval);
+      
       return rval;
    }
    
@@ -260,9 +263,6 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
                }
             }
             
-            // read chunk-data CRLF
-            hwc.readCRLF();
-            
             // if this is the last chunk, then read in the
             // chunk trailer and last CRLF
             if(isLastChunk())
@@ -289,6 +289,11 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
                {
                   header.setTransferEncoding(transferEncoding);
                }
+            }
+            else
+            {
+               // read chunk-data CRLF
+               hwc.readCRLF();
             }
          }
          
@@ -349,7 +354,13 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
             // write CRLF
             hwc.write(crlfBytes, 0, crlfBytes.length);
             
-            // no trailer headers, so write out last CRLF
+            // send content-length header
+            String contentLength =
+               "Content-Length: " + header.getContentLength() + HttpHeader.CRLF;
+            b = contentLength.getBytes();
+            hwc.write(b, 0, b.length);
+            
+            // write out last CRLF
             hwc.write(crlfBytes, 0, crlfBytes.length);
          }
             
