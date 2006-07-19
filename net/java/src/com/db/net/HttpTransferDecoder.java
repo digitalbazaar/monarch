@@ -4,7 +4,6 @@
 package com.db.net;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -16,12 +15,13 @@ import java.io.OutputStream;
 public interface HttpTransferDecoder
 {
    /**
-    * Reads and decodes an http message body from the passed input stream,
-    * according to the passed transfer-encoding, and writes it to the
-    * passed output stream, unless the output stream is null.
+    * Reads and decodes an http message body from the passed http web
+    * connection, according to the transfer-encoding in the passed
+    * http header, and writes it to the passed output stream, unless
+    * the output stream is null.
     * 
-    * @param transferEncoding the transfer-encoding to decode according to.
-    * @param bodyStream the input stream to read the http body from. 
+    * @param header the http header for the http body.
+    * @param hwc the http web connection to read the http body from. 
     * @param os the output stream to write the body to.
     * 
     * @return the total number of bytes read.
@@ -29,6 +29,6 @@ public interface HttpTransferDecoder
     * @throws IOException
     */
    public long readHttpBody(
-      String transferEncoding, InputStream bodyStream, OutputStream os)
+      HttpHeader header, HttpWebConnection hwc, OutputStream os)
    throws IOException;
 }

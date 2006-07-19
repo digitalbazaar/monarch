@@ -567,8 +567,7 @@ public class HttpWebConnection extends WebConnectionWrapper
          // use transfer encoder if one is available
          if(hte != null)
          {
-            totalWritten = hte.writeHttpBody(
-               transferEncoding, is, getWebConnection().getWriteStream());
+            totalWritten = hte.writeHttpBody(header, is, this);
          }
          else
          {
@@ -867,16 +866,11 @@ public class HttpWebConnection extends WebConnectionWrapper
       {
          getLogger().debug(getClass(), "receiving http body...");
          
-         // get input stream for reading from the web connection
-         InputStream is = getWebConnection().getReadStream();
-         
          // get the content-encoding
          String contentEncoding = header.getContentEncoding();
          
          // get content decoder
          HttpContentDecoder hcd = getContentDecoder(contentEncoding);
-         
-         System.out.println("contentEncoding=" + contentEncoding);
          
          // update output stream if a content decoder is to be used
          if(hcd != null)
@@ -898,7 +892,7 @@ public class HttpWebConnection extends WebConnectionWrapper
          // use transfer decoder if one is available
          if(htd != null)
          {
-            totalRead = htd.readHttpBody(transferEncoding, is, os);
+            totalRead = htd.readHttpBody(header, this, os);
          }
          else
          {
@@ -909,7 +903,8 @@ public class HttpWebConnection extends WebConnectionWrapper
             int numBytes = -1;
             byte[] buffer = new byte[16384];
             while((contentLength < 0 || totalRead < contentLength) &&
-                  (numBytes = is.read(buffer, 0, buffer.length)) != -1)
+                  (numBytes = getWebConnection().read(
+                     buffer, 0, buffer.length)) != -1)
             {
                // write to the output stream
                os.write(buffer, 0, numBytes);
@@ -1028,17 +1023,6 @@ public class HttpWebConnection extends WebConnectionWrapper
             getLogger().debug(getClass(), "skipping http body part body...");
          }
          
-         // get input stream for reading from the web connection
-         InputStream is = getWebConnection().getReadStream();
-         
-         // get the boundary
-         String boundary = parentHeader.getBoundary();
-
-         // create a boundary input stream to read from the web connection
-         BoundaryInputStream bis = new BoundaryInputStream(is);
-         bis.addBoundary(HttpHeader.CRLF + boundary + HttpHeader.CRLF);
-         bis.addBoundary(HttpHeader.CRLF + boundary + "--" + HttpHeader.CRLF);
-         
          // get the content-encoding
          String contentEncoding = bodyPartHeader.getContentEncoding();
          
@@ -1065,15 +1049,24 @@ public class HttpWebConnection extends WebConnectionWrapper
          // use transfer decoder if one is available
          if(htd != null)
          {
-            totalRead = htd.readHttpBody(transferEncoding, bis, os);
+            totalRead = htd.readHttpBody(bodyPartHeader, this, os);
          }
          
-         // intentionally not an "else" here -- we must always read
-         // until the boundary is reached
-         // read from the web connection until boundary reached
+         // get input stream for reading from the web connection
+         InputStream is = getWebConnection().getReadStream();
+         
+         // get the boundary
+         String boundary = parentHeader.getBoundary();
+
+         // create a boundary input stream to read from the web connection
+         BoundaryInputStream bis = new BoundaryInputStream(is);
+         bis.addBoundary(HttpHeader.CRLF + boundary + HttpHeader.CRLF);
+         bis.addBoundary(HttpHeader.CRLF + boundary + "--" + HttpHeader.CRLF);
+         
+         // read from the web connection until the boundary is reached
          int numBytes = -1;
          byte[] buffer = new byte[16384];
-         while((numBytes = is.read(buffer, 0, buffer.length)) != -1)
+         while((numBytes = bis.read(buffer, 0, buffer.length)) != -1)
          {
             // write to the output stream
             os.write(buffer, 0, numBytes);

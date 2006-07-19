@@ -57,43 +57,46 @@ implements HttpTransferEncoder, HttpTransferDecoder
    /**
     * Reads data from the passed input stream until the end of the stream,
     * encodes the data according to the supported transfer-encoding, and
-    * then writes the data out to the passed output stream.
+    * then writes the data out to the passed http web connection.
     * 
+    * @param header the http header for the http body.
     * @param bodyStream the input stream with the body to encode.
-    * @param os the output stream to write the encoded body to.
+    * @param hwc the http web connection to write the http body to.
     * 
     * @return the total number of bytes written.
     * 
     * @throws IOException
     */
-   protected abstract long writeHttpBody(
-      InputStream bodyStream, OutputStream os)
+   protected abstract long writeHttpBodyImpl(
+      HttpHeader header, InputStream bodyStream, HttpWebConnection hwc)
    throws IOException;
    
    /**
-    * Reads and decodes an http message body from the passed input stream,
+    * Reads and decodes an http message body from the http web connection,
     * according to the supported transfer-encoding, and writes it to the
     * passed output stream, unless the output stream is null.
     *  
-    * @param bodyStream the input stream to read the http body from. 
+    * @param header the http header for the http body.
+    * @param hwc the http web connection to read the http body from. 
     * @param os the output stream to write the body to.
     * 
     * @return the total number of bytes read.
     * 
     * @throws IOException
     */
-   protected abstract long readHttpBody(
-      InputStream bodyStream, OutputStream os)
+   protected abstract long readHttpBodyImpl(
+      HttpHeader header, HttpWebConnection hwc, OutputStream os)
    throws IOException;
    
    /**
     * Reads data from the passed input stream until the end of the stream,
-    * encodes the data according to the passed transfer-encoding, and
-    * then writes the data out to the passed output stream.
+    * encodes the data according to the transfer-encoding in the passed
+    * http header, and then writes the data out to the passed http
+    * web connection.
     * 
-    * @param transferEncoding the transfer-encoding to encode according to.
+    * @param header the http header for the http body.
     * @param bodyStream the input stream with the body to encode.
-    * @param os the output stream to write the encoded body to.
+    * @param hwc the http web connection to write the http body to.
     * 
     * @return the total number of bytes written.
     * 
@@ -101,14 +104,17 @@ implements HttpTransferEncoder, HttpTransferDecoder
     * @throws IllegalArgumentException
     */
    public long writeHttpBody(
-      String transferEncoding, InputStream bodyStream, OutputStream os)
+      HttpHeader header, InputStream bodyStream, HttpWebConnection hwc)
    throws IOException, IllegalArgumentException
    {
       long rval = 0;
       
+      // get the transfer-encoding from the header
+      String transferEncoding = header.getTransferEncoding();
+      
       if(isTransferEncodingSupported(transferEncoding))
       {
-         rval = writeHttpBody(bodyStream, os);
+         rval = writeHttpBodyImpl(header, bodyStream, hwc);
       }
       else
       {
@@ -118,14 +124,15 @@ implements HttpTransferEncoder, HttpTransferDecoder
       
       return rval;
    }
-
+   
    /**
-    * Reads and decodes an http message body from the passed input stream,
-    * according to the passed transfer-encoding, and writes it to the
-    * passed output stream, unless the output stream is null.
-    *  
-    * @param transferEncoding the transfer-encoding to decode according to.
-    * @param bodyStream the input stream to read the http body from. 
+    * Reads and decodes an http message body from the passed http web
+    * connection, according to the transfer-encoding in the passed
+    * http header, and writes it to the passed output stream, unless
+    * the output stream is null.
+    * 
+    * @param header the http header for the http body.
+    * @param hwc the http web connection to read the http body from. 
     * @param os the output stream to write the body to.
     * 
     * @return the total number of bytes read.
@@ -133,14 +140,17 @@ implements HttpTransferEncoder, HttpTransferDecoder
     * @throws IOException
     */
    public long readHttpBody(
-      String transferEncoding, InputStream bodyStream, OutputStream os)
-   throws IOException
+      HttpHeader header, HttpWebConnection hwc, OutputStream os)
+   throws IOException   
    {
       long rval = 0;
       
+      // get the transfer-encoding from the header
+      String transferEncoding = header.getTransferEncoding();
+
       if(isTransferEncodingSupported(transferEncoding))
       {
-         rval = readHttpBody(bodyStream, os);
+         rval = readHttpBodyImpl(header, hwc, os);
       }
       else
       {

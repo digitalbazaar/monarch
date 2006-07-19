@@ -57,16 +57,18 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
    /**
     * Reads data from the passed input stream until the end of the stream,
     * encodes the data according to the supported transfer-encoding, and
-    * then writes the data out to the passed output stream.
+    * then writes the data out to the passed http web connection.
     * 
+    * @param header the http header for the http body.
     * @param bodyStream the input stream with the body to encode.
-    * @param os the output stream to write the encoded body to.
+    * @param hwc the http web connection to write the http body to.
     * 
     * @return the total number of bytes written.
     * 
     * @throws IOException
     */
-   protected long writeHttpBody(InputStream bodyStream, OutputStream os)
+   protected long writeHttpBodyImpl(
+      HttpHeader header, InputStream bodyStream, HttpWebConnection hwc)
    throws IOException
    {
       long rval = 0;
@@ -80,26 +82,28 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
          // read the chunk data from the body stream
          chunk.readData(bodyStream);
       
-         // write the chunk to the output stream
-         rval += chunk.write(os);
+         // write the chunk to the http web connection
+         rval += chunk.write(hwc);
       }
       
       return rval;
    }
    
    /**
-    * Reads and decodes an http message body from the passed input stream,
+    * Reads and decodes an http message body from the http web connection,
     * according to the supported transfer-encoding, and writes it to the
-    * passed output stream.
+    * passed output stream, unless the output stream is null.
     *  
-    * @param bodyStream the input stream to read the http body from. 
+    * @param header the http header for the http body.
+    * @param hwc the http web connection to read the http body from. 
     * @param os the output stream to write the body to.
     * 
     * @return the total number of bytes read.
     * 
     * @throws IOException
     */
-   protected long readHttpBody(InputStream bodyStream, OutputStream os)
+   protected long readHttpBodyImpl(
+      HttpHeader header, HttpWebConnection hwc, OutputStream os)
    throws IOException
    {
       long rval = 0;
@@ -110,8 +114,8 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
       // keep reading chunks until the last chunk is reached
       while(!chunk.isLastChunk())
       {
-         // read the chunk from the body stream
-         rval += chunk.read(bodyStream);
+         // read the chunk from the http web connection
+         rval += chunk.read(hwc);
       
          // write the chunk's data to the output stream
          chunk.writeData(os);
@@ -188,15 +192,15 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
       }
       
       /**
-       * Reads this chunk from the passed input stream.
+       * Reads this chunk from the passed http web connection.
        * 
-       * @param is the input stream to read this chunk from.
+       * @param hwc the http web connection to read this chunk from.
        * 
        * @return the number of bytes read.
        * 
        * @throws IOException
        */
-      public int read(InputStream is)
+      public int read(HttpWebConnection hwc)
       {
          int rval = 0;
          
@@ -220,13 +224,13 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
       /**
        * Writes this chunk to the passed output stream.
        * 
-       * @param os the output stream to write this chunk to.
+       * @param hwc the http web connection to write this chunk to.
        * 
        * @return the number of bytes written.
        * 
        * @throws IOException
        */
-      public int write(OutputStream os)
+      public int write(HttpWebConnection hwc)
       {
          int rval = 0;
          
