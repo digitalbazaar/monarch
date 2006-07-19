@@ -620,16 +620,16 @@ public class GZipHeader
       if(mFHCrcFlagSet)
       {
          mCrc32.reset();
-         mCrc32.update(rval, 0, 9);
+         mCrc32.update(rval, 0, 10);
          
          // get the crc-32 value
          long value = mCrc32.getValue();
          
          // get the least significant bytes for the crc-32 value
-         long crc16Value = (value & 0xffff);
+         int crc16Value = (int)(value & 0xffff);
          
          // write the crc-16
-         writeUnsignedInt(crc16Value, rval, 10);
+         writeUnsignedShort(crc16Value, rval, 10);
       }
       
       return rval;

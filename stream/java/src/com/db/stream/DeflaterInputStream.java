@@ -48,9 +48,9 @@ public class DeflaterInputStream extends FilterInputStream
    protected byte[] mSingleByteBuffer;
    
    /**
-    * Set to true when the end of the stream has been reached.
+    * Set to true when the end of the underlying stream has been reached.
     */
-   protected boolean mEndOfStream;
+   protected boolean mEndOfUnderlyingStream;
    
    /**
     * Creates a new DeflaterInputStream with a default Deflater and
@@ -114,8 +114,8 @@ public class DeflaterInputStream extends FilterInputStream
       // create the single byte buffer
       mSingleByteBuffer = new byte[1];
       
-      // end of stream not reached
-      mEndOfStream = false;
+      // end of underlying stream not reached
+      mEndOfUnderlyingStream = false;
    }
    
    /**
@@ -130,11 +130,11 @@ public class DeflaterInputStream extends FilterInputStream
    {
       boolean rval = false;
       
-      // keep reading while deflater is not finished, needs input, and
-      // input is available
+      // keep reading while not end of underlying stream, and
+      // deflater is not finished and needs input
       int count = 0;
-      while(!getDeflater().finished() && getDeflater().needsInput() &&
-            !mEndOfStream)
+      while(!mEndOfUnderlyingStream &&
+            !getDeflater().finished() && getDeflater().needsInput())
       {
          int b = in.read();
          if(b != -1)
@@ -156,12 +156,13 @@ public class DeflaterInputStream extends FilterInputStream
          else
          {
             // end of underlying input stream reached
-            mEndOfStream = true;
+            mEndOfUnderlyingStream = true;
          }
       }
       
-      // if the end of the stream has been reached then finish the deflater
-      if(mEndOfStream)
+      // if the end of the underlying stream has been reached then
+      // finish the deflater
+      if(mEndOfUnderlyingStream)
       {
          // end of input stream, so finish the deflater
          getDeflater().finish();
@@ -267,11 +268,15 @@ public class DeflaterInputStream extends FilterInputStream
    {
       int rval = -1;
       
-      // not end of stream if the deflater isn't finished
-      if(!getDeflater().finished())
+      // keep reading if not deflater not finished or
+      // there are valid deflated bytes
+      if(!getDeflater().finished() || mValidDeflatedBytes > 0)
       {
-         // fill the deflated bytes buffer
-         fillDeflatedBytesBuffer(len);
+         if(mValidDeflatedBytes < len)
+         {
+            // fill the deflated bytes buffer
+            fillDeflatedBytesBuffer(len - mValidDeflatedBytes);
+         }
          
          // read from the deflated bytes buffer
          if(mValidDeflatedBytes > 0)
