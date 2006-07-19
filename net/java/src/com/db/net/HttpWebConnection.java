@@ -5,6 +5,7 @@ package com.db.net;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -764,11 +765,10 @@ public class HttpWebConnection extends WebConnectionWrapper
       
       try
       {
-         // read one line at a time from the web connection
+         // read one CRLF line at a time from the web connection
          StringBuffer sb = new StringBuffer();
          String line = null;
-         while((line = getWebConnection().readLine()) != null &&
-               !line.equals(""))
+         while((line = readCRLF()) != null && !line.equals(""))
          {
             sb.append(line + HttpHeader.CRLF);
          }
@@ -1130,6 +1130,63 @@ public class HttpWebConnection extends WebConnectionWrapper
       HttpHeader parentHeader, HttpBodyPartHeader bodyPartHeader)
    {
       return receiveBodyPartBody(null, parentHeader, bodyPartHeader);
+   }
+   
+   /**
+    * Reads a line from this web connection that terminates in both an
+    * end of line character and a carriage return ("\r\n" -- CRLF). This method
+    * will block until there is no more data to read or until it reads a line.
+    * 
+    * @return the read line or null if the end of the stream was reached.
+    * 
+    * @throws IOException
+    */
+   public String readCRLF() throws IOException
+   {
+      String line = "";
+
+      // read one character at a time
+      int numBytes = -1;
+      byte[] buffer = new byte[1];
+      boolean CRLFfound = false;
+      while(!CRLFfound && (numBytes = blockedRead(buffer, 0, 1)) != -1)
+      {
+         char c = (char)buffer[0];
+         
+         // see if the character is a carriage return
+         if(c == '\r')
+         {
+            // try to read the next character because we must
+            // determine if this is a CRLF ("\r\n")
+            numBytes = blockedRead(buffer, 0, 1);
+            if(numBytes != -1)
+            {
+               if((char)buffer[0] != '\n')
+               {
+                  // append both characters
+                  line += "\r" + c;
+               }
+               else
+               {
+                  // CRLF found
+                  CRLFfound = true;
+               }
+            }
+         }
+         else
+         {
+            // append the character
+            line += c;
+         }
+      }
+      
+      // signals end of stream
+      if(numBytes == -1 && line.equals(""))
+      {
+         line = null;
+      }
+      
+      return line;
    }
    
    /**
