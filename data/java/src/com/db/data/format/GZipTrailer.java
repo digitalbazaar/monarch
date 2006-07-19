@@ -236,6 +236,9 @@ public class GZipTrailer
             
             // close the byte array input stream
             bais.close();
+            
+            // no bytes required
+            rval = 0;
          }
          catch(IOException ignore)
          {
