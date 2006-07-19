@@ -138,7 +138,7 @@ public abstract class HttpHeader
     * @param start the index to start parsing at.
     * @param stop the index to stop parsing at.
     */
-   protected void parseHeaders(String headers, int start, int stop)
+   public void parseHeaders(String headers, int start, int stop)
    {
       if(start == 0 && headers.length() == stop)
       {
@@ -156,11 +156,10 @@ public abstract class HttpHeader
     * 
     * @param headers the string of headers to parse.
     */
-   protected void parseHeaders(String headers)
+   public void parseHeaders(String headers)
    {
       try
       {
-         // reset boundary
          StringTokenizer st = new StringTokenizer(headers, CRLF);
          while(st.hasMoreTokens())
          {
@@ -349,6 +348,16 @@ public abstract class HttpHeader
       return getHeader("Content-Encoding");
    }
    
+   /**
+    * Sets the transfer-encoding value.
+    * 
+    * @param transferEncoding the transfer-encoding header value.
+    */
+   public void setTransferEncoding(String transferEncoding)
+   {
+      addHeader("Transfer-Encoding", transferEncoding);
+   }
+
    /**
     * Gets the transfer-encoding value.
     * 

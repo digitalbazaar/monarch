@@ -78,14 +78,12 @@ public class HttpWebConnection extends WebConnectionWrapper
       // no last read boundary
       mLastReadBoundary = null;
       
-      /*
       // add chunked transfer encoder/decoder by default
       ChunkedHttpTransferCoder chunkedCoder = new ChunkedHttpTransferCoder();
       setTransferEncoder(
          chunkedCoder.getSupportedTransferEncoding(), chunkedCoder);
       setTransferDecoder(
          chunkedCoder.getSupportedTransferEncoding(), chunkedCoder);
-      */
       
       // Gzip content encoder is NOT added by default because if HTTP/1.0
       // is used then gzipping must occur before setting the header so as to

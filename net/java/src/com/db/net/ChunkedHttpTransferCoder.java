@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
+
 /**
  * A ChunkedHttpTransferCoder is a class that is used to encode and decode
  * http message body transfers for http web requests and and http web responses
@@ -40,7 +43,32 @@ import java.io.OutputStream;
  * 
  * trailer = *(entity-header CRLF)
  * 
- * Information from: http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html
+ * The process for decoding "chunked" transfer-coding is as follows:
+ * 
+ * length := 0
+ * 
+ * read chunk-size, chunk-extension (if any) and CRLF
+ * while(chunk-size > 0)
+ * {
+ *    read chunk-data and CRLF
+ *    append chunk-data to entity-body
+ *    length := length + chunk-size
+ *    read chunk-size and CRLF
+ * }
+ * 
+ * read entity-header
+ * while(entity-header not empty)
+ * {
+ *    append entity-header to existing header fields
+ *    read entity-header
+ * }
+ * 
+ * Content-Length := length
+ * Remove "chunked" from Transfer-Encoding 
+ * 
+ * Information from:
+ * http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html
+ * http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html#sec19.4.5
  * 
  * @author Dave Longley
  */
@@ -79,11 +107,9 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
       // keep writing chunks until the last chunk is reached
       while(!chunk.isLastChunk())
       {
-         // read the chunk data from the body stream
-         chunk.readData(bodyStream);
-      
-         // write the chunk to the http web connection
-         rval += chunk.write(hwc);
+         // read the chunk data from the body stream and write it out
+         // to the http web connection
+         rval += chunk.write(header, bodyStream, hwc);
       }
       
       return rval;
@@ -114,11 +140,9 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
       // keep reading chunks until the last chunk is reached
       while(!chunk.isLastChunk())
       {
-         // read the chunk from the http web connection
-         rval += chunk.read(hwc);
-      
-         // write the chunk's data to the output stream
-         chunk.writeData(os);
+         // read the chunk from the http web connection and
+         // write it out to the output stream
+         rval += chunk.read(header, hwc, os);
       }
       
       return rval;
@@ -151,16 +175,6 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
    public class Chunk
    {
       /**
-       * The byte array with the data for this chunk.
-       */
-      protected byte[] mDataBuffer;
-      
-      /**
-       * The offset in the byte array for the data for this chunk.
-       */
-      protected int mDataOffset;
-      
-      /**
        * The length of the data for this chunk.
        */
       protected int mDataLength;
@@ -180,8 +194,7 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
        */
       public Chunk()
       {
-         mDataBuffer = new byte[0];
-         mDataOffset = 0;
+         // data length is 0
          mDataLength = 0;
          
          // chunk is not a last chunk
@@ -194,61 +207,153 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
       /**
        * Reads this chunk from the passed http web connection.
        * 
+       * @param header the http header to update with chunk trailer headers.
        * @param hwc the http web connection to read this chunk from.
+       * @param os the output stream to write the chunk data to.
        * 
-       * @return the number of bytes read.
+       * @return the number of body bytes read.
        * 
        * @throws IOException
        */
-      public int read(HttpWebConnection hwc)
+      public int read(HttpHeader header, HttpWebConnection hwc, OutputStream os)
+      throws IOException
       {
          int rval = 0;
          
-         // FIXME:
+         // read chunk-size
+         String chunkSize = hwc.readCRLF();
+         
+         if(chunkSize != null)
+         {
+            // ignore chunk-extension
+            chunkSize = chunkSize.split(" ")[0];
+            
+            // get length of chunk data
+            int length = Integer.parseInt(chunkSize, 16);
+            
+            // this is the last chunk if length is 0
+            mLastChunk = (length == 0);
+            
+            // read the chunk and write it out to the passed output stream
+            int numBytes = 0;
+            while(length > 0 && numBytes != -1)
+            {
+               // get the read size
+               int readSize = Math.min(length, mIOBuffer.length);
+               
+               // read from the web connection
+               numBytes = hwc.read(mIOBuffer, 0, readSize);
+               if(numBytes != -1)
+               {
+                  // write out chunk data
+                  os.write(mIOBuffer, 0, numBytes);
+                  
+                  // decrement length
+                  length -= numBytes;
+                  
+                  // increment body bytes read
+                  rval += numBytes;
+               }
+               else
+               {
+                  throw new IOException("Could not read chunk!");
+               }
+            }
+            
+            // read chunk-data CRLF
+            hwc.readCRLF();
+            
+            // if this is the last chunk, then read in the
+            // chunk trailer and last CRLF
+            if(isLastChunk())
+            {
+               // build trailer headers
+               StringBuffer trailerHeaders = new StringBuffer();
+               String line = null;
+               while((line = hwc.readCRLF()) != null && !line.equals(""))
+               {
+                  trailerHeaders.append(line + HttpHeader.CRLF);
+               }
+               
+               // parse trailer headers
+               header.parseHeaders(trailerHeaders.toString());
+               
+               // remove "chunked" from transfer-encoding header
+               String transferEncoding = header.getTransferEncoding();
+               transferEncoding.replaceAll("chunked", "");
+               if(transferEncoding.equals(""))
+               {
+                  header.setTransferEncoding(null);
+               }
+               else
+               {
+                  header.setTransferEncoding(transferEncoding);
+               }
+            }
+         }
          
          return rval;
       }
       
       /**
-       * Reads this chunk's data from the passed input stream.
+       * Writes a chunk to the passed output stream.
        * 
+       * @param header the http header with trailer headers to use.
        * @param is the input stream to read this chunk's data from.
-       * 
-       * @throws IOException
-       */
-      public void readData(InputStream is) 
-      {
-         // FIXME:
-      }
-      
-      /**
-       * Writes this chunk to the passed output stream.
-       * 
        * @param hwc the http web connection to write this chunk to.
        * 
-       * @return the number of bytes written.
+       * @return the number of body bytes written.
        * 
        * @throws IOException
        */
-      public int write(HttpWebConnection hwc)
+      public int write(HttpHeader header, InputStream is, HttpWebConnection hwc)
+      throws IOException
       {
          int rval = 0;
          
-         // FIXME:
+         // get crlf bytes
+         byte[] crlfBytes = HttpHeader.CRLF.getBytes();
          
+         // read from the input stream
+         int numBytes = 0;
+         if((numBytes = is.read(mIOBuffer)) != -1)
+         {
+            // get the chunk-size
+            String chunkSize = Integer.toHexString(numBytes);
+            
+            // write chunk-size
+            byte[] b = chunkSize.getBytes();
+            hwc.write(b, 0, b.length);
+            
+            // write CRLF
+            hwc.write(crlfBytes, 0, crlfBytes.length);
+            
+            // write chunk data
+            hwc.write(mIOBuffer, 0, numBytes);
+            
+            // increment body bytes written
+            rval += numBytes;
+            
+            // write CRLF
+            hwc.write(crlfBytes, 0, crlfBytes.length);
+         }
+         else
+         {
+            // end of stream reached, this is the last chunk
+            mLastChunk = true;
+            
+            // write chunk-size of "0"
+            byte[] b = new String("0").getBytes();
+            hwc.write(b, 0, b.length);
+            
+            // write CRLF
+            hwc.write(crlfBytes, 0, crlfBytes.length);
+            
+            // no trailer headers, so write out last CRLF
+            hwc.write(crlfBytes, 0, crlfBytes.length);
+         }
+            
          return rval;
-      }
-      
-      /**
-       * Writes this chunk's data to the passed output stream.
-       * 
-       * @param os the output stream to write this chunks data to.
-       * 
-       * @throws IOException
-       */
-      public void writeData(OutputStream os)
-      {
-         // FIXME:
       }
       
       /**
@@ -260,5 +365,15 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
       {
          return mLastChunk;
       }
+   }
+   
+   /**
+    * Gets the logger.
+    * 
+    * @return the logger.
+    */
+   public Logger getLogger()
+   {
+      return LoggerManager.getLogger("dbnet");
    }
 }
