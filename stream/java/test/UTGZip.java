@@ -12,6 +12,7 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.InflaterInputStream;
 
 import com.db.stream.DeflaterInputStream;
+import com.db.stream.GZipInputStream;
 import com.db.stream.InflaterOutputStream;
 import com.db.stream.UnGZipOutputStream;
 
@@ -334,6 +335,8 @@ public class UTGZip
          bais.close();
          gzos.close();
          
+         System.out.println("total written=" + new File("test.zip").length());
+         
          // read zipped content
          FileInputStream fis = new FileInputStream("test.zip");
          
@@ -388,21 +391,19 @@ public class UTGZip
          GZIPOutputStream gzos = new GZIPOutputStream(fos);
          
          // read until content is zipped
-         long totalBytes = 0;
          int numBytes = -1;
-         byte[] b = new byte[2048];
+         byte[] b = new byte[1];
          while((numBytes = bais.read(b)) != -1)
          {
             // write content out
             gzos.write(b, 0, numBytes);
-            totalBytes += numBytes;
          }
          
          // close streams
          bais.close();
          gzos.close();
          
-         System.out.println("GZIPPED SIZE=" + new File("test.zip").length()); 
+         System.out.println("total written=" + new File("test.zip").length()); 
          
          // read zipped content
          FileInputStream fis = new FileInputStream("test.zip");
@@ -415,6 +416,7 @@ public class UTGZip
          
          // read until content is unzipped
          numBytes = -1;
+         b = new byte[1];
          while((numBytes = fis.read(b)) != -1)
          {
             // write content out
@@ -454,44 +456,48 @@ public class UTGZip
          ByteArrayInputStream bais = new ByteArrayInputStream(
             content.getBytes());
          
+         // gzipper
+         GZipInputStream gzis = new GZipInputStream(bais);
+
          // file to gzip to
          FileOutputStream fos = new FileOutputStream("test.zip");
 
-         // gzipper
-         GZIPOutputStream gzos = new GZIPOutputStream(fos);
-         
          // read until content is zipped
+         long totalWritten = 0;
          int numBytes = -1;
-         byte[] b = new byte[2048];
-         while((numBytes = bais.read(b)) != -1)
+         byte[] b = new byte[1];
+         while((numBytes = gzis.read(b)) != -1)
          {
             // write content out
-            gzos.write(b, 0, numBytes);
+            fos.write(b, 0, numBytes);
+            totalWritten += numBytes;
          }
          
          // close streams
-         bais.close();
-         gzos.close();
+         gzis.close();
+         fos.close();
+         
+         System.out.println("total written=" + totalWritten);
          
          // read zipped content
          FileInputStream fis = new FileInputStream("test.zip");
          
          // ungzipper
-         GZIPInputStream gzis = new GZIPInputStream(fis);
+         GZIPInputStream ungzis = new GZIPInputStream(fis);
          
          // output stream to write content with
          ByteArrayOutputStream baos = new ByteArrayOutputStream();
          
          // read until content is unzipped
          numBytes = -1;
-         while((numBytes = gzis.read(b)) != -1)
+         while((numBytes = ungzis.read(b)) != -1)
          {
             // write content out
             baos.write(b, 0, numBytes);
          }
          
          // close ungzipper
-         gzis.close();
+         ungzis.close();
          
          // get content
          String unzippedContent = baos.toString();
@@ -527,7 +533,7 @@ public class UTGZip
       //System.out.println();
       
       // run all db deflation/inflation code
-      dBDeflateTest();
+      //dBDeflateTest();
       
       //System.out.println();
       
@@ -542,6 +548,6 @@ public class UTGZip
       //System.out.println();
       
       // run the db gzipper, java ungzipper test
-      //dBGZipperjavaUnGZipperTest();
+      dBGZipperjavaUnGZipperTest();
    }
 }

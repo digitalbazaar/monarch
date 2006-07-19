@@ -144,9 +144,14 @@ public class GZipInputStream extends DeflaterInputStream
          if(mHeaderRead)
          {
             // read from the deflater input stream super class if appropriate
-            if(!getDeflater().finished())
+            if(!super.isEndOfStreamReached())
             {
-                rval += super.read(b, off, len);
+               int numBytes = super.read(b, off, len);
+               if(numBytes != -1)
+               {
+                  rval = Math.max(0, rval);
+                  rval += numBytes;
+               }
             }
             else
             {
@@ -166,6 +171,7 @@ public class GZipInputStream extends DeflaterInputStream
                int numBytes = mTrailerInputStream.read(b, off, len);
                if(numBytes != -1)
                {
+                  rval = Math.max(0, rval);
                   rval += numBytes;
                }
                else
