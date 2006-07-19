@@ -392,11 +392,9 @@ public class GZipHeader
                   {
                      throw new IOException("GZIP Header CRC-16 is invalid!");
                   }
-                  else
-                  {
-                     // return whatever is still available as extra
-                     rval = -is.available();
-                  }
+                  
+                  // return whatever is still available as extra
+                  rval = -is.available();
                }
                else
                {
