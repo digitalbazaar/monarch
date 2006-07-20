@@ -172,6 +172,7 @@ public class EditableTabPanel extends TabPanel
     * @param right the right of the x.
     * @param middle the middle of the x.
     * @param width the width of the x.
+    * 
     * @return the path used to draw the x.
     */
    protected GeneralPath getCurvyXPath(int top, int left, int bottom, int right,
@@ -223,6 +224,7 @@ public class EditableTabPanel extends TabPanel
     * @param right the right of the x.
     * @param middle the middle of the x.
     * @param width the width of the x.
+    * 
     * @return the path used to draw the x.
     */
    protected GeneralPath getXPath(int top, int left, int bottom, int right,
@@ -444,6 +446,7 @@ public class EditableTabPanel extends TabPanel
     * Creates a close button.
     * 
     * @param content the content the close button is for.
+    * 
     * @return a close button.
     */
    protected JButton createCloseButton(Component content)
@@ -492,6 +495,7 @@ public class EditableTabPanel extends TabPanel
     * Gets the tab content component associated with the passed close button.
     * 
     * @param closeButton the close button to get the content for.
+    * 
     * @return content the tab content component or null if there is no match.
     */
    protected Component getTabContentForCloseButton(Component closeButton)
@@ -503,6 +507,7 @@ public class EditableTabPanel extends TabPanel
     * Gets the close button associated with the passed tab content component.
     * 
     * @param content the tab content component.
+    * 
     * @return the close button for the content or null if there is no match.
     */
    protected JButton getCloseButton(Component content)
@@ -530,6 +535,7 @@ public class EditableTabPanel extends TabPanel
     * 
     * @param tabArea the tab area to encapsulate.
     * @param content the tab content for the tab area.
+    * 
     * @return the close button panel to be inserted as the new tab area.
     */
    protected JPanel createCloseButtonPanel(Component tabArea, Component content)
@@ -648,6 +654,7 @@ public class EditableTabPanel extends TabPanel
     * @param title the title.
     * @param icon the icon.
     * @param tooltip the tooltip text.
+    * 
     * @return the created label.
     */
    protected JLabel createTabAreaLabel(String title, Icon icon, String tooltip)
@@ -674,6 +681,7 @@ public class EditableTabPanel extends TabPanel
     * Selects a tab content component.
     * 
     * @param content the tab content component to select.
+    * 
     * @return true if the content is selected, false if not.
     */
    protected synchronized boolean selectTabContent(Component content)
@@ -1274,6 +1282,7 @@ public class EditableTabPanel extends TabPanel
     * Determines whether or not a tab is closeable.
     * 
     * @param content the content of the tab to get the closeable status of.
+    * 
     * @return true if the tab is closeable, false if not or if the tab
     *         doesn't exist.
     */
@@ -1312,6 +1321,7 @@ public class EditableTabPanel extends TabPanel
     * Determines whether or not a tab is closeable.
     * 
     * @param index the index of the tab to get the closeable status of.
+    * 
     * @return true if the tab is closeable, false if not or if the tab
     *         doesn't exist.
     */
