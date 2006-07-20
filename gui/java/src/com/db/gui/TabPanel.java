@@ -803,6 +803,7 @@ public class TabPanel extends JPanel
     * Checks a tab index.
     *
     * @param index the tab index.
+    * 
     * @return true if the tab index is valid, false if not.
     */
    protected boolean checkIndex(int index)
@@ -821,6 +822,7 @@ public class TabPanel extends JPanel
     * Gets the index of a tab content component.
     * 
     * @param content the tab content component to get the index for.
+    * 
     * @return the index of the tab content or -1 if no match found.
     */
    protected int getTabContentIndex(Component content)
@@ -846,6 +848,7 @@ public class TabPanel extends JPanel
     * Gets a tab content component from its parent.
     * 
     * @param parent the parent of the tab content.
+    * 
     * @return the tab content, if any.
     */
    protected Component getTabContentFromParent(Component parent)
@@ -857,6 +860,7 @@ public class TabPanel extends JPanel
     * Gets a tab area from its parent.
     * 
     * @param parent the parent of the tab area.
+    * 
     * @return the tab area, if any.
     */
    protected Component getTabAreaFromParent(Component parent)
@@ -868,6 +872,7 @@ public class TabPanel extends JPanel
     * Gets the tab area for any child of a tab area.
     * 
     * @param c the component to get the tab area of, if one exists.
+    * 
     * @return the tab area, if one exists, else null. 
     */
    protected Component getTabAreaFromChild(Component c)
@@ -933,6 +938,7 @@ public class TabPanel extends JPanel
     * Gets the content parent for a given id.
     * 
     * @param id the id to get the content parent for.
+    * 
     * @return the content parent or null, if there is no match.
     */
    protected Component getContentParent(String id)
@@ -944,6 +950,7 @@ public class TabPanel extends JPanel
     * Gets the id of a content parent.
     * 
     * @param content the content to get the parent id for.
+    * 
     * @return the id of the a content parent or null, if there is none.
     */
    protected String getContentParentId(Component content)
@@ -1156,6 +1163,7 @@ public class TabPanel extends JPanel
     * Creates a new tab area parent container.
     * 
     * @param tabArea the tab area to create the parent for.
+    * 
     * @return the new tab area parent container.
     */
    protected Container createTabAreaParent(Component tabArea)
@@ -1173,6 +1181,7 @@ public class TabPanel extends JPanel
     * 
     * @param tabArea the tab area component to add.
     * @param index the index to add the tab area at.
+    * 
     * @return true if the tab area was added, false if not.
     */
    protected synchronized boolean addTabArea(Component tabArea, int index)
@@ -1229,6 +1238,7 @@ public class TabPanel extends JPanel
     * Adds a tab area component.
     * 
     * @param tabArea the tab area component to add.
+    * 
     * @return true if the tab area was added, false if not.
     */
    protected boolean addTabArea(Component tabArea)
@@ -1245,57 +1255,61 @@ public class TabPanel extends JPanel
     * Removes a tab area component.
     * 
     * @param tabArea the tab area component to remove.
+    * 
     * @return true if the tab area was removed, false if not.
     */
    protected synchronized boolean removeTabArea(Component tabArea)
    {
       boolean rval = false;
       
-      // get the parent for the tab area
-      Component parent = tabArea.getParent();
-      if(parent != null)
+      if(tabArea != null)
       {
-         rval = true;
-         
-         // remove listeners
-         parent.removeMouseListener(getTabPanelHandler());
-         removeListenersFromComponent(tabArea);
-         
-         Component content = getTabContent(tabArea);
-         
-         // remove map entries
-         mTabAreaParentToTabArea.remove(parent);
-         mAreaToContent.remove(tabArea);
-         mContentToArea.remove(content);
-         
-         TabAreaFlashThread taft = getTabAreaFlashThread(content);
-         if(taft != null)
+         // get the parent for the tab area
+         Component parent = tabArea.getParent();
+         if(parent != null)
          {
-            taft.stopFlashing();
-            mFlashThreads.remove(content);
-         }
-         
-         // remove the tab area component parent
-         getTabAreaPanel().remove(parent);
-         
-         // recalculate max tab area height
-         mMaxTabAreaHeight = 0;
-         int count = getTabAreaPanel().getComponentCount();
-         for(int i = 0; i < count; i++)
-         {
-            Component tempParent = getTabAreaPanel().getComponent(i);
-            Component tempTabArea = getTabAreaFromParent(tempParent);
-            if(tempTabArea != null)
+            rval = true;
+            
+            // remove listeners
+            parent.removeMouseListener(getTabPanelHandler());
+            removeListenersFromComponent(tabArea);
+            
+            Component content = getTabContent(tabArea);
+            
+            // remove map entries
+            mTabAreaParentToTabArea.remove(parent);
+            mAreaToContent.remove(tabArea);
+            mContentToArea.remove(content);
+            
+            TabAreaFlashThread taft = getTabAreaFlashThread(content);
+            if(taft != null)
             {
-               if(tempTabArea.getPreferredSize().height > mMaxTabAreaHeight)
+               taft.stopFlashing();
+               mFlashThreads.remove(content);
+            }
+            
+            // remove the tab area component parent
+            getTabAreaPanel().remove(parent);
+            
+            // recalculate max tab area height
+            mMaxTabAreaHeight = 0;
+            int count = getTabAreaPanel().getComponentCount();
+            for(int i = 0; i < count; i++)
+            {
+               Component tempParent = getTabAreaPanel().getComponent(i);
+               Component tempTabArea = getTabAreaFromParent(tempParent);
+               if(tempTabArea != null)
                {
-                  mMaxTabAreaHeight = tempTabArea.getPreferredSize().height;
+                  if(tempTabArea.getPreferredSize().height > mMaxTabAreaHeight)
+                  {
+                     mMaxTabAreaHeight = tempTabArea.getPreferredSize().height;
+                  }
                }
             }
+            
+            // update component constraints
+            updateComponentConstraints();
          }
-         
-         // update component constraints
-         updateComponentConstraints();
       }
       
       return rval;
@@ -1320,6 +1334,7 @@ public class TabPanel extends JPanel
     * Creates a new tab content parent container.
     * 
     * @param content the tab content to create the parent for.
+    * 
     * @return the new tab content parent container.
     */
    protected Container createTabContentParent(Component content)
@@ -1338,6 +1353,7 @@ public class TabPanel extends JPanel
     * 
     * @param content the tab content component to add.
     * @param index the index to add the tab content component at.
+    * 
     * @return true if the tab content was added, false if not.
     */
    protected synchronized boolean addTabContent(Component content, int index)
@@ -1389,6 +1405,7 @@ public class TabPanel extends JPanel
     * Adds a tab content component.
     * 
     * @param content the tab content component to add.
+    * 
     * @return true if the tab content was added, false if not.
     */
    protected synchronized boolean addTabContent(Component content)
@@ -1405,6 +1422,7 @@ public class TabPanel extends JPanel
     * Removes a tab content component.
     * 
     * @param content the tab content component to remove.
+    * 
     * @return true if the tab content was removed, false if not.
     */
    protected synchronized boolean removeTabContent(Component content)
@@ -1478,6 +1496,7 @@ public class TabPanel extends JPanel
     * Gets the next tab to select based on the current tab selection policy.
     * 
     * @param index the old selected tab index.
+    * 
     * @return the next tab to select.
     */
    protected Component getNextTabSelection(int index)
@@ -1545,6 +1564,7 @@ public class TabPanel extends JPanel
     * Selects a tab content component.
     * 
     * @param content the tab content component to select.
+    * 
     * @return true if the content is selected, false if not.
     */
    protected synchronized boolean selectTabContent(Component content)
@@ -1632,6 +1652,7 @@ public class TabPanel extends JPanel
     * Scrolls to a tab area.
     * 
     * @param tabArea the tabarea to scroll to.
+    * 
     * @return true if scrolled, false if not.
     */
    protected boolean scrollToTabArea(Component tabArea)
@@ -1665,6 +1686,7 @@ public class TabPanel extends JPanel
     * Scrolls until a tab area is visible.
     * 
     * @param tabArea the tabarea to scroll to.
+    * 
     * @return true if scrolled, false if not.
     */
    protected boolean scrollToVisibleTabArea(Component tabArea)
@@ -1750,6 +1772,7 @@ public class TabPanel extends JPanel
     * 
     * @param content the tab content component to move.
     * @param index the index to move it to.
+    * 
     * @return true if moved successfully, false if not. 
     */
    protected boolean moveTab(Component content, int index)
@@ -1810,6 +1833,7 @@ public class TabPanel extends JPanel
     * 
     * @param content1 the content of the first tab.
     * @param content2 the content of the second tab.
+    * 
     * @return true if the tabs were swapped, false if not.
     */
    protected boolean swapTabs(Component content1, Component content2)
@@ -1851,6 +1875,7 @@ public class TabPanel extends JPanel
     * @param tabArea the component to display in the tab area. 
     * @param content the component to display in the content area.
     * @param index the index to add the tab area and tab content.
+    * 
     * @return true if the tab area and tab content were added. 
     */
    protected boolean addTabAreaAndContent(Component tabArea, Component content,
@@ -1888,6 +1913,7 @@ public class TabPanel extends JPanel
     * 
     * @param content the tab content component to remove (the associated
     *                tab area will be looked up).
+    *                
     * @return true if the tab area and content were removed, false if not.
     */
    protected boolean removeTabAreaAndContent(Component content)
@@ -1944,6 +1970,7 @@ public class TabPanel extends JPanel
     * Gets the tab area flash thread for a tab.
     * 
     * @param content the content of the tab to get the flash thread for.
+    * 
     * @return the tab area flash thread, or null if one does not exist.
     */
    public TabAreaFlashThread getTabAreaFlashThread(Component content)
@@ -2089,6 +2116,7 @@ public class TabPanel extends JPanel
     * Gets a tab area based on its index.
     * 
     * @param index the index of the tab area.
+    * 
     * @return the tab area for the index or null if no match is found.
     */
    public Component getTabArea(int index)
@@ -2109,6 +2137,7 @@ public class TabPanel extends JPanel
     * Gets the index of a tab area.
     * 
     * @param tabArea the tab area to get the index for.
+    * 
     * @return the index of the tab area or -1 if no match found.
     */
    public int getTabAreaIndex(Component tabArea)
@@ -2189,6 +2218,7 @@ public class TabPanel extends JPanel
     * Gets the tab content for a given tab area.
     * 
     * @param tabArea the tab area to get the tab content for.
+    * 
     * @return the tab content, or null, if no match is found.
     */
    public Component getTabContent(Component tabArea)
@@ -2212,6 +2242,7 @@ public class TabPanel extends JPanel
     * Gets a tab content component based on its index.
     * 
     * @param index the index of the tab content.
+    * 
     * @return the tab content for the index or null if no match is found.
     */
    public Component getTabContent(int index)
@@ -2315,6 +2346,7 @@ public class TabPanel extends JPanel
     * false if not.
     * 
     * @param content the tab content component to check for selection.
+    * 
     * @return true if the content is selected, false if not.
     */
    public boolean isSelected(Component content)
@@ -2333,6 +2365,7 @@ public class TabPanel extends JPanel
     * Gets the index of a content component.
     * 
     * @param content the content component to get the index of.
+    * 
     * @return the index of the content component or -1 if no match found.
     */
    public int getIndex(Component content)
@@ -2375,6 +2408,7 @@ public class TabPanel extends JPanel
     * Determines if there is a tab for the passed content component.
     * 
     * @param content the content component to check for.
+    * 
     * @return true if there is a tab for the content component, false if not. 
     */
    public boolean containsContent(Component content)
@@ -2490,6 +2524,7 @@ public class TabPanel extends JPanel
     * Returns true if the tab at the given index is currently flashing.
     * 
     * @param index the index of the tab to inspect.
+    * 
     * @return true if the tab at the given index is currently flashing.
     */
    public boolean isTabFlashing(int index)
@@ -2544,6 +2579,7 @@ public class TabPanel extends JPanel
     * Returns true if the tab with the given content is currently flashing.
     * 
     * @param content the content of the tab to inspect.
+    * 
     * @return true if the tab with the given content is currently flashing.
     */
    public boolean isTabFlashing(Component content)
@@ -3029,6 +3065,7 @@ public class TabPanel extends JPanel
        * Returns true if the left mouse button is down.
        * 
        * @param e the mouse event.
+       * 
        * @return true if the left mouse button is down, false if not.
        */
       protected boolean isLeftMouseButtonDown(MouseEvent e)
@@ -3048,6 +3085,7 @@ public class TabPanel extends JPanel
        * Returns true if no buttons are up on the mouse.
        * 
        * @param e the mouse event.
+       * 
        * @return true if no buttons are up on the mouse.
        */
       protected boolean mouseButtonsUp(MouseEvent e)
