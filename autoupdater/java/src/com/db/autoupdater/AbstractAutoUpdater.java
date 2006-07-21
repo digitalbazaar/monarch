@@ -605,7 +605,8 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
          }
 
          // create a class loader for the AutoUpdateable
-         ClassLoader classLoader = new URLClassLoader(urls);
+         ClassLoader classLoader =
+            new URLClassLoader(urls, getClass().getClassLoader());
          
          // load the AutoUpdateable
          Class c = classLoader.loadClass(

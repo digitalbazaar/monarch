@@ -23,6 +23,9 @@
 		<jar jarfile="${dist}/dbautoupdater.jar">
 			<fileset dir="build" excludes="${build}/test"/>
 		</jar>
+		<jar jarfile="${dist}/dbautoupdater-interfaces.jar">
+			<fileset dir="build" includes="com/db/autoupdater/AutoUpdater.class,com/db/autoupdater/AutoUpdaterLoader.class" excludes="${build}/test"/>
+		</jar>
   </target>
 
 	<target name="run-tests" depends="build,run-ut-autoupdater"
