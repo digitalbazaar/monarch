@@ -126,7 +126,7 @@ public class Logger
    /**
     * The maximum verbosity setting. Everything will be logged.
     */
-   public static final double MAX_VERBOSITY = Double.MAX_VALUE;
+   public static final double MAX_VERBOSITY = 10.0;
 
    /**
     * Creates a new logger with default verbosity.
