@@ -35,6 +35,12 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    protected AutoUpdateable mRunningAutoUpdateable;
    
    /**
+    * Gets the configuration options used to load the current
+    * AutoUpdateable application.
+    */
+   protected ConfigOptions mAutoUpdateableConfig;
+   
+   /**
     * A JobDispatcher for sending arguments to the running
     * AutoUpdateable application.
     */
@@ -138,6 +144,9 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    {
       // no auto-updateable application is presently running
       setRunningAutoUpdateable(null);
+      
+      // no configuration for the auto-updateable application yet
+      setAutoUpdateableConfig(null);
       
       // create the argument dispatcher
       mArgumentDispatcher = new JobDispatcher();
@@ -343,9 +352,49 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
     * @return the currently running auto-updateable application, or null
     *         if none is running.
     */
-   protected AutoUpdateable getRunningAutoUpdateable()
+   protected synchronized AutoUpdateable getRunningAutoUpdateable()
    {
       return mRunningAutoUpdateable;
+   }
+   
+   /**
+    * Sets the configuration options for the current AutoUpdateable application.
+    * 
+    * @param config the configuration options for the current AutoUpdateable
+    *               application. 
+    */
+   protected synchronized void setAutoUpdateableConfig(ConfigOptions config)
+   {
+      mAutoUpdateableConfig = config;
+   }
+   
+   /**
+    * Gets the configuration options for the current AutoUpdateable application.
+    * 
+    * @return the configuration options for the current AutoUpdateable
+    *         application. 
+    */
+   protected synchronized ConfigOptions getAutoUpdateableConfig()
+   {
+      return mAutoUpdateableConfig;
+   }
+   
+   /**
+    * Gets the version of the current AutoUpdateable application.
+    * 
+    * @return the version of the current AutoUpdateable application.
+    */
+   protected synchronized String getAutoUpdateableVersion()
+   {
+      String version = "";
+      
+      if(getAutoUpdateableConfig() != null)
+      {
+         version = getAutoUpdateableConfig().getString(
+            "autoupdateable-version");
+      }
+      
+      return version;
    }
    
    /**
@@ -606,7 +655,8 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
     *               
     * @return the AutoUpdateable application or null if one could not be loaded.
     */
-   protected AutoUpdateable loadAutoUpdateable(ConfigOptions config)
+   protected synchronized AutoUpdateable loadAutoUpdateable(
+      ConfigOptions config)
    {
       AutoUpdateable rval = null;
       
@@ -629,6 +679,9 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
          Class c = classLoader.loadClass(
             config.getString("autoupdateable-class"));
          rval = (AutoUpdateable)c.newInstance();
+         
+         // set the auto-updateable configuration
+         setAutoUpdateableConfig(config);
       }
       catch(Throwable t)
       {
