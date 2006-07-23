@@ -866,7 +866,8 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
       else
       {
          getLogger().error(getClass(), 
-            "Could not read AutoUpdateable configuration file!");
+            "Could not read AutoUpdateable configuration file!" +
+            ",filename=" + configFilename);
       }
       
       return rval;
