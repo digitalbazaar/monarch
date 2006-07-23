@@ -672,6 +672,9 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    {
       AutoUpdateable rval = null;
       
+      // get the class name for the AutoUpdateable
+      String className = config.getString("autoupdateable-class");
+
       try
       {
          // get the jars necessary to load the AutoUpdateable interface
@@ -688,8 +691,7 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
          ClassLoader classLoader = new URLClassLoader(urls);
          
          // load the AutoUpdateable
-         Class c = classLoader.loadClass(
-            config.getString("autoupdateable-class"));
+         Class c = classLoader.loadClass(className);
          rval = (AutoUpdateable)c.newInstance();
          
          // set the auto-updateable configuration
@@ -697,7 +699,9 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
       }
       catch(Throwable t)
       {
-         getLogger().error(getClass(), Logger.getStackTrace(t));
+         getLogger().error(getClass(), 
+            "Could not load AutoUpdateable application!,class=" + className);
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;
@@ -923,9 +927,6 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
          {
             // do not run application -- it can't be loaded
             rval = false;
-            
-            getLogger().error(getClass(), 
-               "Could not load AutoUpdateable application!");
          }
       }
       
