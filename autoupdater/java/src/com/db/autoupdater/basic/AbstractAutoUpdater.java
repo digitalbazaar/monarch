@@ -42,6 +42,12 @@ import com.db.util.JobDispatcher;
 public abstract class AbstractAutoUpdater implements AutoUpdater
 {
    /**
+    * A JobDispatcher for sending arguments to the running
+    * AutoUpdateable application.
+    */
+   protected JobDispatcher mArgumentDispatcher;
+   
+   /**
     * The currently running AutoUpdateable application.
     */
    protected AutoUpdateable mRunningAutoUpdateable;
@@ -51,12 +57,6 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
     * AutoUpdateable application.
     */
    protected ConfigOptions mAutoUpdateableConfig;
-   
-   /**
-    * A JobDispatcher for sending arguments to the running
-    * AutoUpdateable application.
-    */
-   protected JobDispatcher mArgumentDispatcher;
    
    /**
     * Set to true when this AutoUpdater requires a reload, false otherwise.
@@ -154,14 +154,14 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
     */
    public AbstractAutoUpdater()
    {
+      // create the argument dispatcher
+      mArgumentDispatcher = new JobDispatcher();
+
       // no auto-updateable application is presently running
       setRunningAutoUpdateable(null);
       
       // no configuration for the auto-updateable application yet
       setAutoUpdateableConfig(null);
-      
-      // create the argument dispatcher
-      mArgumentDispatcher = new JobDispatcher();
       
       // no reload required by default
       setRequiresReload(false);
