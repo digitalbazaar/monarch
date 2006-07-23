@@ -674,19 +674,26 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
       
       // get the class name for the AutoUpdateable
       String className = config.getString("autoupdateable-class");
+      
+      // get the jars necessary to load the AutoUpdateable interface
+      String classPath = config.getString("autoupdateable-classpath");
 
       try
       {
-         // get the jars necessary to load the AutoUpdateable interface
-         String classPath = config.getString("autoupdateable-classpath");
-         String[] split = classPath.split(",");
-         
-         URL[] urls = new URL[split.length];
-         for(int i = 0; i < urls.length; i++)
+         URL[] urls = new URL[0];
+         if(classPath != null && classPath.length() > 0)
          {
-            urls[i] = new URL(split[i]);
+            // split class path for urls
+            String[] split = classPath.split(",");
+         
+            // build url list
+            urls = new URL[split.length];
+            for(int i = 0; i < urls.length; i++)
+            {
+               urls[i] = new URL(split[i]);
+            }
          }
-
+         
          // create a class loader for the AutoUpdateable
          ClassLoader classLoader = new URLClassLoader(urls);
          
@@ -700,7 +707,9 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
       catch(Throwable t)
       {
          getLogger().error(getClass(), 
-            "Could not load AutoUpdateable application!,class=" + className);
+            "Could not load AutoUpdateable application!" +
+            ",class=" + className +
+            ",classpath=" + classPath);
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
