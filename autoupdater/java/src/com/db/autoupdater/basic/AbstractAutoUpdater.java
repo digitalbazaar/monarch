@@ -25,6 +25,18 @@ import com.db.util.JobDispatcher;
  * An extending class only needs to provide an UpdateScriptSource to
  * complete the implementation of this class.
  * 
+ * This AutoUpdater uses a configuration file to load an AutoUpdateable
+ * that uses a series of "key=value" pairs that end in end of line characters.
+ * 
+ * The file must include at least these two key-value pairs:
+ * 
+ * autoupdateable-classpath=a comma-separated list of URLs for jars or classes
+ * autoupdateable-class=the full name of the class that implements AutoUpdatable
+ * 
+ * It can also include a version:
+ * 
+ * autoupdateable-version=the version of the auto-updatable (a String)
+ * 
  * @author Dave Longley
  */
 public abstract class AbstractAutoUpdater implements AutoUpdater
