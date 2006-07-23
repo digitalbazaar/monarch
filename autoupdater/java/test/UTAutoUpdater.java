@@ -2,6 +2,7 @@
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
 import com.db.autoupdater.*;
+import com.db.autoupdater.basic.*;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 
@@ -28,32 +29,79 @@ public class UTAutoUpdater
          "dbautoupdater", Logger.ERROR_VERBOSITY);
       
       // create AutoUpdaterLoader
-      CustomAutoUpdaterLoader loader =
-         new CustomAutoUpdaterLoader();
-      
-      System.out.println("Starting AutoUpdater...");
+      CustomAutoUpdaterLoader loader = new CustomAutoUpdaterLoader();
       
       // run AutoUpdater
-      loader.runAutoUpdater("customautoupdateable.cfg", args);
+      runAutoUpdater(loader, "customautoupdateable.cfg", args);
+   }
+   
+   /**
+    * Runs the test AutoUpdater with the AutoUpdateable application specified
+    * in the configuration file with the given filename.
+    * 
+    * @param loader the auto-updater loader.
+    * @param configFilename the name of the configuration file that specifies
+    *                       the AutoUpdateable application to load.
+    * @param args the arguments to start the application with.
+    */
+   public static void runAutoUpdater(
+      AutoUpdaterLoader loader, String configFilename, String[] args)
+   {
+      System.out.println("Starting AutoUpdater...");
+
+      AutoUpdater updater = null;
+      boolean run = true;
+      while(run)
+      {
+         // load the auto-updater as necessary
+         if(updater == null)
+         {
+            updater = loader.loadAutoUpdater();
+         }
+      
+         if(updater != null)
+         {
+            // run the auto-updateable application
+            run = updater.runAutoUpdateable(configFilename, args);
+            
+            // if the updater needs a new loader, don't run again
+            if(updater.requiresNewLoader())
+            {
+               run = false;
+            }
+
+            // clean up the auto-updater if it needs reloading
+            if(updater.requiresReload())
+            {
+               updater = null;
+               System.gc();
+            }
+         }
+         else
+         {
+            System.out.println("Could not load CustomAutoUpdater!");
+            break;
+         }
+      }
       
       System.out.println("AutoUpdater Finished.");
-   }
+   }   
    
    /**
     * A simple CustomAutoUpdaterLoader.
     * 
     * @author Dave Longley
     */
-   public static class CustomAutoUpdaterLoader extends AbstractAutoUpdaterLoader
+   public static class CustomAutoUpdaterLoader implements AutoUpdaterLoader
    {
       /**
-       * Loads an AutoUpdater.
+       * Loads a CustomAutoUpdater.
        * 
-       * @return the loaded AutoUpdater.
+       * @return the loaded CustomAutoUpdater.
        */
-      public AbstractAutoUpdater loadAbstractAutoUpdater()
+      public AutoUpdater loadAutoUpdater()
       {
-         AbstractAutoUpdater rval = null;
+         AutoUpdater rval = null;
          
          System.out.println("Loading CustomAutoUpdater...");
          

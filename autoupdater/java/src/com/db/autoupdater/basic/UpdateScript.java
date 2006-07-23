@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.autoupdater;
+package com.db.autoupdater.basic;
 
 /**
- * An UpdateScript is a script that tells an AutoUpdater how to update
+ * An UpdateScript is a script that tells an AbstractAutoUpdater how to update
  * an application.
  * 
  * @author Dave Longley

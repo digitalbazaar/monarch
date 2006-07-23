@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.autoupdater;
+package com.db.autoupdater.basic;
 
 import java.io.File;
 

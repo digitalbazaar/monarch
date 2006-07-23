@@ -1,31 +1,54 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.autoupdater;
+package com.db.autoupdater.basic;
 
 import java.net.URL;
 import java.net.URLClassLoader;
 
+import com.db.autoupdater.AutoUpdateable;
+import com.db.autoupdater.AutoUpdater;
 import com.db.event.EventDelegate;
 import com.db.event.EventObject;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.util.ConfigFile;
 import com.db.util.ConfigOptions;
 import com.db.util.MethodInvoker;
+import com.db.util.JobDispatcher;
 
 /**
- * An AbstractAutoUpdater is a basic implementation of an AutoUpdater. It is
- * an application automatic updater. It retrieves an update script from a
- * UpdateScriptSource and processes it to update an application.
+ * An AbstractAutoUpdater is a basic, abstract implementation of an
+ * AutoUpdater. It retrieves an update script from a UpdateScriptSource
+ * and processes it to update an application.
+ * 
+ * An extending class only needs to provide an UpdateScriptSource to
+ * complete the implementation of this class.
  * 
  * @author Dave Longley
  */
 public abstract class AbstractAutoUpdater implements AutoUpdater
 {
    /**
+    * The currently running AutoUpdateable application.
+    */
+   protected AutoUpdateable mRunningAutoUpdateable;
+   
+   /**
+    * A JobDispatcher for sending arguments to the running
+    * AutoUpdateable application.
+    */
+   protected JobDispatcher mArgumentDispatcher;
+   
+   /**
     * Set to true when this AutoUpdater requires a reload, false otherwise.
     */
    protected boolean mRequiresReload;
+   
+   /**
+    * Set to true when this AutoUpdater requires a new loader, false otherwise.
+    */
+   protected boolean mRequiresNewLoader;
    
    /**
     * True while processing an update, false otherwise. 
@@ -113,8 +136,17 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
     */
    public AbstractAutoUpdater()
    {
+      // no auto-updateable application is presently running
+      setRunningAutoUpdateable(null);
+      
+      // create the argument dispatcher
+      mArgumentDispatcher = new JobDispatcher();
+      
       // no reload required by default
       setRequiresReload(false);
+      
+      // no new loader required by default
+      setRequiresNewLoader(false);
       
       // not processing an update by default
       setProcessingUpdate(false);
@@ -281,6 +313,51 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    {
       mApplicationShutdownEventDelegate.fireEvent(event);
    }
+   
+   /**
+    * Sets the currently running AutoUpdateable application.
+    * 
+    * @param application the auto-updateable application that is currently
+    *                    running.
+    */
+   protected synchronized void setRunningAutoUpdateable(
+      AutoUpdateable application)
+   {
+      mRunningAutoUpdateable = application;
+      
+      if(application != null)
+      {
+         // start dispatching arguments
+         getArgumentDispatcher().startDispatching();
+      }
+      else
+      {
+         // stop dispatching arguments
+         getArgumentDispatcher().stopDispatching();
+      }
+   }
+   
+   /**
+    * Gets the currently running AutoUpdateable application.
+    * 
+    * @return the currently running auto-updateable application, or null
+    *         if none is running.
+    */
+   protected AutoUpdateable getRunningAutoUpdateable()
+   {
+      return mRunningAutoUpdateable;
+   }
+   
+   /**
+    * Gets the argument dispatcher for sending arguments to the
+    * running AutoUpdateable.
+    * 
+    * @return the argument dispatcher.
+    */
+   protected JobDispatcher getArgumentDispatcher()
+   {
+      return mArgumentDispatcher;
+   }
 
    /**
     * Sets whether or not this AutoUpdater requires a reload.
@@ -291,6 +368,17 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    {
       mRequiresReload = reload;
    }
+   
+   /**
+    * Sets whether or not this AutoUpdater requires a new AutoUpdaterLoader.
+    * 
+    * @param newLoader true if this AutoUpdater requires a
+    *                  new AutoUpdaterLoader, false if not.
+    */
+   protected synchronized void setRequiresNewLoader(boolean newLoader)
+   {
+      mRequiresNewLoader = newLoader;
+   }   
    
    /**
     * Sets whether or not this AutoUpdater is processing an update.
@@ -511,6 +599,115 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    }
    
    /**
+    * Loads an AutoUpdateable application from the passed configuration.
+    * 
+    * @param config the configuration to load an AutoUpdateable application
+    *               from.
+    *               
+    * @return the AutoUpdateable application or null if one could not be loaded.
+    */
+   protected AutoUpdateable loadAutoUpdateable(ConfigOptions config)
+   {
+      AutoUpdateable rval = null;
+      
+      try
+      {
+         // get the jars necessary to load the AutoUpdateable interface
+         String classPath = config.getString("autoupdateable-classpath");
+         String[] split = classPath.split(",");
+         
+         URL[] urls = new URL[split.length];
+         for(int i = 0; i < urls.length; i++)
+         {
+            urls[i] = new URL(split[i]);
+         }
+
+         // create a class loader for the AutoUpdateable
+         ClassLoader classLoader = new URLClassLoader(urls);
+         
+         // load the AutoUpdateable
+         Class c = classLoader.loadClass(
+            config.getString("autoupdateable-class"));
+         rval = (AutoUpdateable)c.newInstance();
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(), Logger.getStackTrace(t));
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Runs an application while monitoring for updates in a background process.
+    * 
+    * This method returns true if the application has finished executing and
+    * should be run again once updates have been installed, and false if
+    * the application has finished executing and should not be run again, even
+    * after updates have been installed.
+    * 
+    * @param application the auto-updateable application to execute.
+    */
+   protected void run(AutoUpdateable application)
+   {
+      // check for an update, start the application if there isn't one
+      if(!checkForUpdate(application))
+      {
+         // set automatic check flag to true
+         setAutoCheckForUpdate(true);
+         
+         // start the update checker thread
+         Object[] params = new Object[]{application};
+         MethodInvoker updateChecker =
+            new MethodInvoker(this, "continuouslyCheckForUpdate", params);
+         mAutoCheckThread = updateChecker;
+         updateChecker.backgroundExecute();
+         
+         // fire event indicating that the auto-updateable application
+         // is being executed
+         EventObject event = new EventObject("executeApplication");
+         event.setData("cancel", false);
+         event.setDataKeyMessage("cancel",
+            "A boolean if set to true cancels application execution.");
+         fireExecuteApplicationEvent(event);
+         
+         // see if application execution should be cancelled
+         if(!event.getDataBooleanValue("cancel"))
+         {
+            // execute application
+            application.execute();
+         }
+         
+         try
+         {
+            // sleep while the application is running
+            while(application.isRunning())
+            {
+               Thread.sleep(1);
+            }
+
+            // interrupt update checker thread if not processing an update
+            if(!isProcessingUpdate())
+            {
+               updateChecker.interrupt();
+            }
+            
+            // join the update checker thread
+            updateChecker.join();
+         }
+         catch(InterruptedException e)
+         {
+            // interrupt threads
+            updateChecker.interrupt();
+            Thread.currentThread().interrupt();
+         }
+         
+         // set automatic check flag to false
+         setAutoCheckForUpdate(false);
+      }
+   }
+   
+   /**
     * Overridden to terminate the auto update checker thread. 
     */
    public void finalize()
@@ -581,113 +778,125 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    }
    
    /**
-    * Loads an AutoUpdateable application from the passed configuration.
+    * Runs the AutoUpdateable application specified the in the passed
+    * AutoUpdateable configuration. 
     * 
-    * @param config the configuration to load an AutoUpdateable application
-    *               from.
-    *               
-    * @return the AutoUpdateable application or null if one could not be loaded.
+    * @param configFilename the name of the configuration file used to
+    *                       load an AutoUpdateable application.
+    * @param args the arguments to start the application with.
+    *                       
+    * @return true if the AutoUpdateable application should be restarted,
+    *         false if not.
     */
-   public AutoUpdateable loadAutoUpdateable(ConfigOptions config)
+   public boolean runAutoUpdateable(String configFilename, String[] args)
    {
-      AutoUpdateable rval = null;
+      boolean rval = false;
       
-      try
+      // get the AutoUpdateable application's config file
+      ConfigFile configFile = new ConfigFile(configFilename);
+      if(configFile.read())      
       {
-         // get the jars necessary to load the AutoUpdateable interface
-         String classPath = config.getString("autoupdateable-classpath");
-         String[] split = classPath.split(",");
-         
-         URL[] urls = new URL[split.length];
-         for(int i = 0; i < urls.length; i++)
-         {
-            urls[i] = new URL(split[i]);
-         }
-
-         // create a class loader for the AutoUpdateable
-         ClassLoader classLoader =
-            new URLClassLoader(urls, getClass().getClassLoader());
-         
-         // load the AutoUpdateable
-         Class c = classLoader.loadClass(
-            config.getString("autoupdateable-class"));
-         rval = (AutoUpdateable)c.newInstance();
+         rval = runAutoUpdateable(configFile, args);
       }
-      catch(Throwable t)
+      else
       {
-         getLogger().error(getClass(), Logger.getStackTrace(t));
+         getLogger().error(getClass(), 
+            "Could not read AutoUpdateable configuration file!");
       }
       
       return rval;
    }
    
    /**
-    * Runs an application while monitoring for updates in a background process.
+    * Runs the AutoUpdateable application specified the in the AutoUpdateable
+    * configuration found in the file with the passed name.
     * 
-    * This method returns true if the application has finished executing and
-    * should be run again once updates have been installed, and false if
-    * the application has finished executing and should not be run again, even
-    * after updates have been installed.
-    * 
-    * @param application the auto-updateable application to execute.
+    * @param config the configuration to load an AutoUpdateable
+    *               application from.
+    * @param args the arguments to start the application with.
+    *               
+    * @return true if the AutoUpdateable application should be restarted,
+    *         false if not.
     */
-   public void run(AutoUpdateable application)
+   public boolean runAutoUpdateable(ConfigOptions config, String[] args)
    {
-      // check for an update, start the application if there isn't one
-      if(!checkForUpdate(application))
+      boolean rval = true;
+      
+      // keep running the AutoUpdateable application while it should
+      // restart and a reload of this AutoUpdater is not required
+      while(rval && !requiresReload())
       {
-         // set automatic check flag to true
-         setAutoCheckForUpdate(true);
-         
-         // start the update checker thread
-         Object[] params = new Object[]{application};
-         MethodInvoker updateChecker =
-            new MethodInvoker(this, "continuouslyCheckForUpdate", params);
-         mAutoCheckThread = updateChecker;
-         updateChecker.backgroundExecute();
-         
-         // fire event indicating that the auto-updateable application
-         // is being executed
-         EventObject event = new EventObject("executeApplication");
-         event.setData("cancel", false);
-         event.setDataKeyMessage("cancel",
-            "A boolean if set to true cancels application execution.");
-         fireExecuteApplicationEvent(event);
-         
-         // see if application execution should be cancelled
-         if(!event.getDataBooleanValue("cancel"))
+         // load the AutoUpdateable application
+         AutoUpdateable application = loadAutoUpdateable(config);
+         if(application != null)
          {
-            // execute application
-            application.execute();
-         }
+            // process the arguments
+            application.processArguments(args);
+            
+            // set running AutoUpdateable
+            setRunningAutoUpdateable(application);
+            
+            // run the application
+            run(application);
          
-         try
-         {
-            // sleep while the application is running
-            while(application.isRunning())
+            // AutoUpdateable no longer running
+            setRunningAutoUpdateable(null);
+         
+            // see if the application should not restart
+            if(!application.shouldRestart())
             {
-               Thread.sleep(1);
-            }
-
-            // interrupt update checker thread if not processing an update
-            if(!isProcessingUpdate())
-            {
-               updateChecker.interrupt();
+               // application should not restart
+               rval = false;
             }
             
-            // join the update checker thread
-            updateChecker.join();
+            // clean up AutoUpdateable application
+            application = null;
+            System.gc();
          }
-         catch(InterruptedException e)
+         else
          {
-            // interrupt threads
-            updateChecker.interrupt();
-            Thread.currentThread().interrupt();
+            // do not run application -- it can't be loaded
+            rval = false;
+            
+            getLogger().error(getClass(), 
+               "Could not load AutoUpdateable application!");
          }
-         
-         // set automatic check flag to false
-         setAutoCheckForUpdate(false);
       }
+      
+      return rval;
+   }
+   
+   /**
+    * Dispatches arguments to the currently running AutoUpdateable application.
+    * 
+    * This method is called from by the argument dispatcher.
+    * 
+    * @param args the arguments to dispatch.
+    */
+   public void dispatchArguments(String[] args)
+   {
+      // get the currently running AutoUpdateable
+      AutoUpdateable application = getRunningAutoUpdateable();
+      if(application != null)
+      {
+         // process the arguments
+         application.processArguments(args);
+      }
+   }
+   
+   /**
+    * Passes arguments to a running AutoUpdateable application.
+    * 
+    * @param args the arguments to pass to a running AutoUpdateable application.
+    */
+   public void passArguments(String[] args)   
+   {
+      // create a runnable job for dispatching the arguments
+      MethodInvoker job = new MethodInvoker(
+         this, "dispatchArguments", new Object[]{args});
+      
+      // queue the job
+      getArgumentDispatcher().queueJob(job);
    }
    
    /**
@@ -813,11 +1022,30 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    /**
     * Gets whether or not this AutoUpdater requires a reload.
     * 
+    * This method should return true whenever this AutoUpdater must
+    * be reloaded because its core libraries (i.e. classes/jars
+    * necessary to load this AutoUpdater) have changed via an update but the
+    * AutoUpdater can be reloaded.
+    * 
     * @return true if this AutoUpdater requires a reload, false if not.
     */
    public synchronized boolean requiresReload()
    {
       return mRequiresReload;
+   }
+   
+   /**
+    * Gets whether or not this AutoUpdater requires a shutdown.
+    * 
+    * This method should return true whenever an update has changed this
+    * AutoUpdater in such a way that it requires a new AutoUpdaterLoader
+    * to be loaded again.
+    * 
+    * @return true if this AutoUpdater requires a new loader, false if not.
+    */
+   public synchronized boolean requiresNewLoader()   
+   {
+      return mRequiresNewLoader;
    }
    
    /**

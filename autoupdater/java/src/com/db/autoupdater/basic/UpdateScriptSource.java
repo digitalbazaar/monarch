@@ -1,11 +1,13 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.autoupdater;
+package com.db.autoupdater.basic;
+
+import com.db.autoupdater.AutoUpdateable;
 
 /**
  * An UpdateScriptSource is a source for an UpdateScript. It provides a
- * script that an AutoUpdater can use to update an application.
+ * script that an AbstractAutoUpdater can use to update an application.
  * 
  * @author Dave Longley
  */
