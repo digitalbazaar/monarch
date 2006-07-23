@@ -30,3 +30,4 @@ dbstream.jar=${stream}/dist/dbstream.jar
 dbnet.jar=${net}/dist/dbnet.jar
 dbgui.jar=${gui}/dist/dbgui.jar
 dbautoupdater.jar=${autoupdater}/dist/dbautoupdater.jar
+dbautoupdater-basic.jar=${autoupdater}/dist/dbautoupdater-basic.jar

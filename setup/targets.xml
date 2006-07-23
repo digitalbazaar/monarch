@@ -13,6 +13,7 @@
     <pathelement location="${dbnet.jar}"/>
     <pathelement location="${dbgui.jar}"/>
     <pathelement location="${dbautoupdater.jar}"/>
+    <pathelement location="${dbautoupdater-basic.jar}"/>
   </path>
   
   <path id="run.classpath">
