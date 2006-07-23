@@ -21,10 +21,10 @@
 			<classpath refid="compile.classpath"/>
 		</javac>
 		<jar jarfile="${dist}/dbautoupdater.jar">
-			<fileset dir="build" excludes="${build}/test"/>
+			<fileset dir="build" includes="com/db/autoupdater/*" excludes="com/db/autoupdater/basic"/>
 		</jar>
-		<jar jarfile="${dist}/dbautoupdater-interfaces.jar">
-			<fileset dir="build" includes="com/db/autoupdater/AutoUpdater.class,com/db/autoupdater/AutoUpdaterLoader.class" excludes="${build}/test"/>
+		<jar jarfile="${dist}/dbautoupdater-basic.jar">
+			<fileset dir="build" includes="com/db/autoupdater/basic/*"/>
 		</jar>
   </target>
 
