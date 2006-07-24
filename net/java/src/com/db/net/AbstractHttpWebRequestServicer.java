@@ -323,8 +323,8 @@ implements HttpWebRequestServicer
     * @param request the http web request.
     * @param response the http web response.
     */
-   public abstract void serviceHttpWebRequest(HttpWebRequest request,
-                                              HttpWebResponse response);
+   public abstract void serviceHttpWebRequest(
+      HttpWebRequest request, HttpWebResponse response);
    
    /**
     * Allows an http web request path to be set for this servicer. This is the
