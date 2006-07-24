@@ -91,6 +91,9 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          // get the content encoding for the response
          String contentEncoding = response.getHeader().getContentEncoding();
          
+         // get the transfer encoding for the response
+         String transferEncoding = response.getHeader().getTransferEncoding();
+         
          // create a soap service call thread for servicing the remote call
          SoapServiceCallThread t = new SoapServiceCallThread(sm);
          t.start();
@@ -128,8 +131,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
             byte[] body = xml.getBytes();
             
             // zip body as appropriate
-            if(response.getHeader().getContentEncoding() != null &&
-               response.getHeader().getContentEncoding().contains("gzip"))
+            if(contentEncoding != null && contentEncoding.contains("gzip"))
             {
                GZipHttpContentCoder coder = new GZipHttpContentCoder();
                body = coder.encodeHttpContentData(body);
@@ -140,6 +142,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
             response.getHeader().setContentType("text/xml");
             response.getHeader().setContentEncoding(contentEncoding);
             response.getHeader().setContentLength(body.length);
+            response.getHeader().setTransferEncoding(transferEncoding);
             
             // send header
             if(response.sendHeader())
