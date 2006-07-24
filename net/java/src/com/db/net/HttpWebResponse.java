@@ -409,7 +409,34 @@ public class HttpWebResponse extends WebResponse
       }
       
       return rval;
-   }   
+   }
+   
+   /**
+    * Sends a 503 Server Unavailable http web response.
+    * 
+    * @return true if the http web response was successfully sent,
+    *         false if not.
+    */
+   public boolean sendServerUnavailableResponse()
+   {
+      boolean rval = false;
+      
+      String page =
+         "<html><body><h2>HTTP 503 Server Unavailable</h2></body></html>";
+      
+      getHeader().setStatusCode("503 Server Unavailable");
+      getHeader().setContentType("text/html");
+      getHeader().setContentEncoding(null);
+      getHeader().setContentLength(page.length());
+      getHeader().setConnection("close");
+      
+      if(sendHeader())
+      {
+         rval = sendBody(page);
+      }
+      
+      return rval;
+   }
    
    /**
     * Sends a 505 Version Not Supported http web response.
