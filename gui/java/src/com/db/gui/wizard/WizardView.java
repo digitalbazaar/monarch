@@ -198,6 +198,8 @@ public class WizardView extends JPanel implements ActionListener
          this, "wizardPageValidationPassed");
       page.getValidationFailedEventDelegate().addListener(
          this, "wizardPageValidationFailed");
+      page.getValidationPendingEventDelegate().addListener(
+         this, "wizardPageValidationPending");
    }
    
    /**
@@ -385,6 +387,22 @@ public class WizardView extends JPanel implements ActionListener
          mNextButton.setEnabled(false);
       }
    }
+   
+   /**
+    * Disables the next button when a wizard page's validation is
+    * pending if the page's view supports dynamic validation (it is a
+    * DynamicValidationWizardPageView).
+    * 
+    * @param event the validation pending event.
+    */
+   public void wizardPageValidationPending(EventObject event)
+   {
+      WizardPage page = (WizardPage)event.getData("page");
+      if(page.getView() instanceof DynamicValidationWizardPageView)
+      {
+         mNextButton.setEnabled(false);
+      }
+   }   
    
    /**
     * Displays the error dialog when a wizard page fails validation.
