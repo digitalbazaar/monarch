@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
@@ -240,7 +241,7 @@ public abstract class HttpHeader
     * 
     * @param headers the headers map.
     */
-   public void addHeaders(HashMap headers)
+   public void addHeaders(Map headers)
    {
       for(Iterator i = headers.keySet().iterator(); i.hasNext();) 
       {
@@ -288,7 +289,7 @@ public abstract class HttpHeader
     * 
     * @param headers the headers map.
     */
-   public void setHeaders(HashMap headers)
+   public void setHeaders(Map headers)
    {
       // clear the existing headers
       clearHeaders();

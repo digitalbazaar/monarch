@@ -4,6 +4,7 @@
 package com.db.net;
 
 import java.util.Date;
+import java.util.Map;
 
 import com.db.logging.Logger;
 
@@ -88,11 +89,8 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
    {
       try
       {
-         // get the content encoding for the response
-         String contentEncoding = response.getHeader().getContentEncoding();
-         
-         // get the transfer encoding for the response
-         String transferEncoding = response.getHeader().getTransferEncoding();
+         // store the headers for the response
+         Map headers = response.getHeader().getHeaders();
          
          // create a soap service call thread for servicing the remote call
          SoapServiceCallThread t = new SoapServiceCallThread(sm);
@@ -127,22 +125,23 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          {
             // soap response is ready, convert soap message
             String xml = sm.convertToXml();
-            
             byte[] body = xml.getBytes();
             
+            // restore the headers for the response
+            response.getHeader().setHeaders(headers);
+            
             // zip body as appropriate
-            if(contentEncoding != null && contentEncoding.contains("gzip"))
+            if(response.getHeader().getContentEncoding() != null &&
+               response.getHeader().getContentEncoding().contains("gzip"))
             {
                GZipHttpContentCoder coder = new GZipHttpContentCoder();
                body = coder.encodeHttpContentData(body);
             }
             
-            // set header
+            // set appropriate headers
             response.getHeader().useOKStatusCode();
             response.getHeader().setContentType("text/xml");
-            response.getHeader().setContentEncoding(contentEncoding);
             response.getHeader().setContentLength(body.length);
-            response.getHeader().setTransferEncoding(transferEncoding);
             
             // send header
             if(response.sendHeader())
