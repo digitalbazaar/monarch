@@ -236,6 +236,21 @@ public abstract class HttpHeader
    }
    
    /**
+    * Adds all of the headers in the given map.
+    * 
+    * @param headers the headers map.
+    */
+   public void addHeaders(HashMap headers)
+   {
+      for(Iterator i = headers.keySet().iterator(); i.hasNext();) 
+      {
+         String header = (String)i.next();
+         String value = (String)headers.get(header);
+         addHeader(header, value);
+      }
+   }
+   
+   /**
     * Removes a header.
     * 
     * @param header the name for the header.
@@ -266,6 +281,20 @@ public abstract class HttpHeader
    public String getHeader(String header)
    {
       return (String)mHeaders.get(biCapitalizeHeader(header));
+   }
+   
+   /**
+    * Sets all of the headers to the ones in the given map.
+    * 
+    * @param headers the headers map.
+    */
+   public void setHeaders(HashMap headers)
+   {
+      // clear the existing headers
+      clearHeaders();
+      
+      // add headers in the passed map
+      addHeaders(headers);
    }
    
    /**
