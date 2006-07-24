@@ -99,7 +99,25 @@ public abstract class VersionedXmlSerializer implements IXmlSerializer
     */
    public String convertToXml()
    {
-      return convertToXml(0);
+      String rval = "";
+      
+      try
+      {
+         rval = convertToXml(0);
+      }
+      catch(Throwable t)
+      {
+         // print error and stack trace
+         getLogger().error(getClass(), 
+            "Exception thrown while converting to xml!" +
+            ",\nexception= " + t +
+            ",\ncause= " + t.getCause());
+         getLogger().debug(getClass(), 
+            "Exception thrown while converting to xml!" +
+            ",\ntrace= " + Logger.getStackTrace(t));
+      }
+      
+      return rval;
    }
 
    /**
@@ -156,11 +174,11 @@ public abstract class VersionedXmlSerializer implements IXmlSerializer
       {
          // print error and stack trace
          getLogger().error(getClass(), 
-            " xml parsing exception" +
+            "Exception thrown while converting from xml!" +
             ",\nexception= " + t +
             ",\ncause= " + t.getCause());
          getLogger().debug(getClass(), 
-            "xml parsing exception" +
+            "Exception thrown while converting from xml!" +
             ",\ntrace= " + Logger.getStackTrace(t));
       }
 
