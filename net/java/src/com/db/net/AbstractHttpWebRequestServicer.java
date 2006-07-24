@@ -358,8 +358,8 @@ implements HttpWebRequestServicer
     * @param recursive true if subpaths should receive the same permissions,
     *                  false if not.
     */
-   public void setPathPermissions(String path, String permissions,
-                                  boolean recursive)
+   public void setPathPermissions(
+      String path, String permissions, boolean recursive)
    {
       // add a "c" for recursive, if appropriate
       if(recursive)
