@@ -77,6 +77,9 @@ implements ChangeReporter, Comparable
     */
    public FastProgressBar()
    {
+      // create change delegate
+      mChangeDelegate = new EventDelegate();
+
       // set value range and value
       setMinimumValue(0);
       setMaximumValue(100);
@@ -93,11 +96,21 @@ implements ChangeReporter, Comparable
       // initialize progress cycler thread to null
       mProgressCyclerThread = null;
       
-      // create change delegate
-      mChangeDelegate = new EventDelegate();
-      
       // update UI to install FastProgressBar UI
       updateUI();
+   }
+   
+   /**
+    * Fires the progress bar change event for this change reporter.
+    */
+   protected void fireFastProgressBarChanged()
+   {
+      // create change event
+      EventObject event = new EventObject("fastProgressBarChanged");
+      event.setData("source", this);
+      
+      // fire event
+      getChangeDelegate().fireEvent(event);
    }
    
    /**
@@ -198,6 +211,9 @@ implements ChangeReporter, Comparable
    public void updateUI()
    {
       setUI(new FastProgressBarUI(this));
+
+      // fire change event
+      fireFastProgressBarChanged();            
    }
    
    /**
@@ -229,6 +245,9 @@ implements ChangeReporter, Comparable
    public void setMinimumValue(int min)
    {
       mMinimumValue = min;
+      
+      // fire change event
+      fireFastProgressBarChanged();            
    }
    
    /**
@@ -249,6 +268,9 @@ implements ChangeReporter, Comparable
    public void setMaximumValue(int max)
    {
       mMaximumValue = max;
+      
+      // fire change event
+      fireFastProgressBarChanged();            
    }
    
    /**
@@ -269,6 +291,9 @@ implements ChangeReporter, Comparable
    public void setValue(int value)
    {
       mValue = value;
+      
+      // fire change event
+      fireFastProgressBarChanged();            
    }
    
    /**
@@ -330,6 +355,9 @@ implements ChangeReporter, Comparable
             // stop cycling progress
             stopCyclingProgress();
          }
+         
+         // fire change event
+         fireFastProgressBarChanged();            
       }
    }
    
@@ -352,6 +380,9 @@ implements ChangeReporter, Comparable
    public void setIndeterminateValue(int value)
    {
       mIndeterminateValue = value;
+      
+      // fire change event
+      fireFastProgressBarChanged();            
    }
    
    /**
@@ -372,7 +403,10 @@ implements ChangeReporter, Comparable
     */
    public void setIndeterminateInterval(long interval)
    {
-      mIndeterminateInterval = interval;      
+      mIndeterminateInterval = interval;
+      
+      // fire change event
+      fireFastProgressBarChanged();            
    }
    
    /**
@@ -412,6 +446,9 @@ implements ChangeReporter, Comparable
    public void setText(String text)
    {
       mText = text;
+      
+      // fire change event
+      fireFastProgressBarChanged();            
    }
    
    /**
@@ -423,29 +460,6 @@ implements ChangeReporter, Comparable
    public String getText()
    {
       return mText;
-   }
-   
-   /**
-    * Gets the change delegate for this change reporter. 
-    *
-    * @return the change delegate.
-    */
-   public EventDelegate getChangeDelegate()
-   {
-      return mChangeDelegate;
-   }
-   
-   /**
-    * Fires the progress bar change event for this change reporter.
-    */
-   public void fireFastProgressBarChanged()
-   {
-      // create change event
-      EventObject event = new EventObject("fastProgressBarChanged");
-      event.setData("source", this);
-      
-      // fire event
-      mChangeDelegate.fireEvent(event);
    }
    
    /**
@@ -477,4 +491,14 @@ implements ChangeReporter, Comparable
       
       return rval;
    }
+   
+   /**
+    * Gets the change delegate for this change reporter. 
+    *
+    * @return the change delegate.
+    */
+   public EventDelegate getChangeDelegate()
+   {
+      return mChangeDelegate;
+   }   
 }

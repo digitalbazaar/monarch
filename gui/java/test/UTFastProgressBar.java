@@ -501,9 +501,6 @@ implements ActionListener
       // set new data
       smTableFastProgressBar.setText(text);
       smTableFastProgressBar.setValue(progress);
-      
-      // repaint bar
-      smTableFastProgressBar.fireFastProgressBarChanged();
    }
    
    /**
