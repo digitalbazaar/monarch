@@ -26,7 +26,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
     * message to the soap client indicating that the soap
     * request hasn't been fulfilled yet (in milliseconds).
     */
-   protected static final int CONTINUE_TIME = 10000;
+   protected static final int CONTINUE_TIME = 20000;
    
    /**
     * Creates a soap http servicer that uses the passed soap web service.
