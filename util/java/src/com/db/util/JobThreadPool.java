@@ -309,11 +309,11 @@ public class JobThreadPool
    }
    
    /**
-    * Interrupts all threads in this pool and removes them.
+    * Interrupts all threads in this pool.
     */
-   public synchronized void terminateAllThreads()
+   public synchronized void interruptAllThreads()
    {
-      getLogger().detail(getClass(), "terminating all threads.");
+      getLogger().detail(getClass(), "interrupting all threads.");
       
       // iterate through all threads, interrupt and remove them
       for(Iterator i = mThreads.iterator(); i.hasNext();)
@@ -322,10 +322,43 @@ public class JobThreadPool
          
          // interrupt thread
          thread.interrupt();
-         
-         // remove thread
-         i.remove();
       }
+      
+      getLogger().detail(getClass(), "all threads interrupted.");      
+   }
+
+   /**
+    * Interrupts all threads in this pool and removes them.
+    */
+   public synchronized void terminateAllThreads()
+   {
+      // interrupt all the threads
+      interruptAllThreads();
+      
+      getLogger().detail(getClass(), "terminating all threads.");
+
+      try
+      {
+         // iterate through all threads, join and remove them
+         for(Iterator i = mThreads.iterator(); i.hasNext();)
+         {
+            JobThread thread = (JobThread)i.next();
+            
+            // join thread
+            thread.join();
+            
+            // remove thread
+            i.remove();
+         }
+      }
+      catch(InterruptedException e)
+      {
+         // ensure current thread is still interrupted
+         Thread.currentThread().interrupt();
+      }
+      
+      // clear threads
+      mThreads.clear();
       
       getLogger().detail(getClass(), "all threads terminated.");      
    }

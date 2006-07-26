@@ -170,8 +170,11 @@ public class JobThread extends Thread
                setJob(null);
             }
             
-            // go idle
-            goIdle();
+            if(!isInterrupted())
+            {
+               // go idle
+               goIdle();
+            }
          }
       }
       catch(Throwable t)
