@@ -19,8 +19,7 @@ import com.db.util.BoxingHashMap;
  * @author Dave Longley
  */
 public abstract class AbstractWebConnectionHandler
-implements WebConnectionHandler, WebConnectionAcceptedListener,
-           WebConnectionServicer
+implements WebConnectionHandler, WebConnectionServicer
 {
    /**
     * The web connection server used by this web connection handler to
@@ -94,7 +93,7 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
       int connections = getMaximumConnections(port);
       
       // create generic web connection acceptor
-      WebConnectionAcceptor wca = new WebConnectionAcceptor(connections);
+      WebConnectionAcceptor wca = new WebConnectionAcceptor(this, connections);
       
       return wca;
    }
@@ -247,17 +246,6 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
    }
    
    /**
-    * Called when a web connection is accepted.
-    * 
-    * @param webConnection the accepted web connection.
-    */
-   public void webConnectionAccepted(WebConnection webConnection)
-   {
-      // service the web connection
-      serviceWebConnection(webConnection);
-   }
-   
-   /**
     * Begins accepting web connections on the given port.
     */
    public synchronized void startAcceptingWebConnections(int port)
@@ -284,10 +272,6 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
             // create a web connection acceptor
             wca = createWebConnectionAcceptor(port);
 
-            // add web connection accepted listener to delegate
-            wca.getWebConnectionAcceptedDelegate().
-            addWebConnectionAcceptedListener(this);
-            
             // assign the server socket to the web connection acceptor
             mapServerSocketToWebConnectionAcceptor(serverSocket, wca);
          }
@@ -546,9 +530,8 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
       getLogger().debug(getClass(), "terminating all web connections...");
       
       // interrupt all web connection service threads
-      Iterator i = mWebConnectionServiceThreadToWebConnection.
-                   keySet().iterator();
-      while(i.hasNext())
+      for(Iterator i = mWebConnectionServiceThreadToWebConnection.
+          keySet().iterator(); i.hasNext();)
       {
          Thread thread = (Thread)i.next();
          
@@ -561,8 +544,8 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
       }
       
       // join all web connection service threads
-      i = mWebConnectionServiceThreadToWebConnection.keySet().iterator();
-      while(i.hasNext())
+      for(Iterator i = mWebConnectionServiceThreadToWebConnection.
+          keySet().iterator(); i.hasNext();)
       {
          Thread thread = (Thread)i.next();
          
@@ -578,8 +561,8 @@ implements WebConnectionHandler, WebConnectionAcceptedListener,
       }
       
       // terminate all accepted connections
-      i = mServerSocketToWebConnectionAcceptorMap.values().iterator();
-      while(i.hasNext())
+      for(Iterator i = mServerSocketToWebConnectionAcceptorMap.
+          values().iterator(); i.hasNext();)
       {
          WebConnectionAcceptor wca = (WebConnectionAcceptor)i.next();
          wca.terminateAllWebConnections();

@@ -14,7 +14,7 @@ import com.db.util.MethodInvoker;
 
 /**
  * This class accepts web connections with a particular server socket and
- * notifies listeners when a web connection has been accepted.
+ * hands them over to a WebConnectionServicer for servicing.
  * 
  * @author Dave Longley
  */
@@ -37,19 +37,23 @@ public class WebConnectionAcceptor
    protected JobThreadPool mAcceptedWebConnectionThreadPool; 
    
    /**
-    * A web connection accepted delegate for reporting web connection
-    * accepted messages.
+    * A web connection servicer for servicing accepted web connections.
     */
-   protected WebConnectionAcceptedDelegate mWebConnectionAcceptedDelegate;
+   protected WebConnectionServicer mWebConnectionServicer;
    
    /**
-    * Creates a new WebConnectionAcceptor with the specified maximum number of
-    * connections to accept at once.
+    * Creates a new WebConnectionAcceptor with the specified
+    * WebConnectionServicer and maximum number of connections to
+    * accept at once.
     * 
+    * @param wcs the web connection servicer for this connection acceptor. 
     * @param connections the maximum number of connections to accept at once.
     */
-   public WebConnectionAcceptor(int connections)
+   public WebConnectionAcceptor(WebConnectionServicer wcs, int connections)
    {
+      // store the web connection servicer
+      mWebConnectionServicer = wcs;
+
       // acceptor thread is null until startAcceptingWebConnections() is called
       mAcceptorThread = null;
       
@@ -62,9 +66,6 @@ public class WebConnectionAcceptor
       // set threads to expire automatically after they have been
       // idle for 5 minutes (300000 milliseconds)
       mAcceptedWebConnectionThreadPool.setJobThreadExpireTime(300000);
-      
-      // create web connection accepted delegate
-      mWebConnectionAcceptedDelegate = new WebConnectionAcceptedDelegate();
    }
    
    /**
@@ -299,13 +300,13 @@ public class WebConnectionAcceptor
    }
    
    /**
-    * Gets the web connection accepted delegate.
+    * Gets the web connection servicer for this web connection acceptor.
     * 
-    * @return the web connection accepted delegate.
+    * @return the web connection servicer for this web connection acceptor.
     */
-   public WebConnectionAcceptedDelegate getWebConnectionAcceptedDelegate()
+   public WebConnectionServicer getWebConnectionServicer()
    {
-      return mWebConnectionAcceptedDelegate;
+      return mWebConnectionServicer;
    }
 
    /**
@@ -351,11 +352,7 @@ public class WebConnectionAcceptor
        */
       public void handleAcceptedWebConnection(WebConnection webConnection)
       {
-         // true if a message was fired to handle the socket connection,
-         // false if one was not
-         boolean messageFired = false;
-         
-         // only fire message if acceptor thread is not interrupted
+         // only handle connection if acceptor thread is not interrupted
          if(!mAcceptorThread.isInterrupted())
          {
             String ip = webConnection.getRemoteIP();
@@ -369,32 +366,33 @@ public class WebConnectionAcceptor
                getLogger().debug(getClass(),
                   "web connection accepted,ip=" + ip);
             }
-         
-            // fire message indicating that a web connection has been accepted
-            if(getWebConnectionAcceptedDelegate().getListenerCount() > 0)
+            
+            // service the web connection
+            if(getWebConnectionServicer() != null)
             {
-               getWebConnectionAcceptedDelegate().
-               fireWebConnectionAccepted(webConnection);
-               messageFired = true;
+               // service the web connection
+               getWebConnectionServicer().serviceWebConnection(webConnection);
+            }
+            else
+            {
+               getLogger().error(getClass(),
+                  "No WebConnectionHandler found! Terminating connection.");
+               
+               // disconnect web connection
+               webConnection.disconnect();
             }
          }
          else
          {
+            getLogger().debug(getClass(),
+               "WebConnections no longer accepted! Terminating connection.");
+
             // web connection accepting has been interrupted, disconnect
             webConnection.disconnect();
          }
          
-         // if a message was not fired to handle the connection,
-         // then terminate it
-         if(!messageFired)
-         {
-            getLogger().error(getClass(),
-               "message was not fired to handle accepted " +
-               "web connection, terminating connection.");
-            
-            // disconnect web connection
-            webConnection.disconnect();
-         }
+         // make sure web connection is disconnected
+         webConnection.disconnect();
       }
       
       /**
