@@ -104,10 +104,13 @@ implements WebConnectionHandler, WebConnectionServicer
     * @param port the port to assign the server socket to.
     * @param serverSocket the server socket to assign to a port.
     */
-   protected synchronized void mapPortToServerSocket(
-      int port, ServerSocket serverSocket)
+   protected void mapPortToServerSocket(int port, ServerSocket serverSocket)
    {
-      mPortToServerSocketMap.put(port, serverSocket);
+      // lock on the map
+      synchronized(mPortToServerSocketMap)
+      {
+         mPortToServerSocketMap.put(port, serverSocket);
+      }
    }
    
    /**
@@ -115,9 +118,13 @@ implements WebConnectionHandler, WebConnectionServicer
     * 
     * @param port the port to unmap.
     */
-   protected synchronized void unmapPortFromServerSocket(int port)
+   protected void unmapPortFromServerSocket(int port)
    {
-      mPortToServerSocketMap.remove(port);
+      // lock on the map
+      synchronized(mPortToServerSocketMap)
+      {
+         mPortToServerSocketMap.remove(port);
+      }
    }   
 
    /**
@@ -139,10 +146,14 @@ implements WebConnectionHandler, WebConnectionServicer
     *                     acceptor to.
     * @param wca the web connection acceptor to assign to the server socket.
     */
-   protected synchronized void mapServerSocketToWebConnectionAcceptor(
+   protected void mapServerSocketToWebConnectionAcceptor(
       ServerSocket serverSocket, WebConnectionAcceptor wca)
    {
-      mServerSocketToWebConnectionAcceptorMap.put(serverSocket, wca);
+      // lock on the map
+      synchronized(mServerSocketToWebConnectionAcceptorMap)
+      {
+         mServerSocketToWebConnectionAcceptorMap.put(serverSocket, wca);
+      }
    }
 
    /**
@@ -150,10 +161,14 @@ implements WebConnectionHandler, WebConnectionServicer
     * 
     * @param serverSocket the server socket to unmap.
     */
-   protected synchronized void unmapServerSocketFromWebConnectionAcceptor(
+   protected void unmapServerSocketFromWebConnectionAcceptor(
       ServerSocket serverSocket)
    {
-      mServerSocketToWebConnectionAcceptorMap.remove(serverSocket);
+      // lock on the map
+      synchronized(mServerSocketToWebConnectionAcceptorMap)
+      {
+         mServerSocketToWebConnectionAcceptorMap.remove(serverSocket);
+      }
    }   
    
    /**
@@ -167,8 +182,16 @@ implements WebConnectionHandler, WebConnectionServicer
    protected WebConnectionAcceptor getWebConnectionAcceptor(
       ServerSocket serverSocket)
    {
-      return (WebConnectionAcceptor)mServerSocketToWebConnectionAcceptorMap.
-             get(serverSocket);
+      WebConnectionAcceptor rval = null;
+      
+      // lock on map
+      synchronized(mServerSocketToWebConnectionAcceptorMap)
+      {
+         rval = (WebConnectionAcceptor)mServerSocketToWebConnectionAcceptorMap.
+            get(serverSocket);
+      }
+      
+      return rval;
    }
    
    /**
@@ -177,10 +200,14 @@ implements WebConnectionHandler, WebConnectionServicer
     * @param thread the web connection service thread.
     * @param webConnection the web connection.
     */
-   protected synchronized void mapWebConnectionServiceThreadToWebConnection(
+   protected void mapWebConnectionServiceThreadToWebConnection(
       Thread thread, WebConnection webConnection)
    {
-      mWebConnectionServiceThreadToWebConnection.put(thread, webConnection);
+      // lock on the map
+      synchronized(mWebConnectionServiceThreadToWebConnection)
+      {
+         mWebConnectionServiceThreadToWebConnection.put(thread, webConnection);
+      }
    }
    
    /**
@@ -188,10 +215,14 @@ implements WebConnectionHandler, WebConnectionServicer
     * 
     * @param thread the web connection service thread to unmap.
     */
-   protected synchronized void unmapWebConnectionServiceThreadFromWebConnection(
+   protected void unmapWebConnectionServiceThreadFromWebConnection(
       Thread thread)
    {
-      mWebConnectionServiceThreadToWebConnection.remove(thread);
+      // lock on the map
+      synchronized(mWebConnectionServiceThreadToWebConnection)
+      {
+         mWebConnectionServiceThreadToWebConnection.remove(thread);
+      }
    }   
    
    /**
@@ -295,33 +326,41 @@ implements WebConnectionHandler, WebConnectionServicer
     */
    public synchronized void stopAcceptingWebConnections()
    {
-      // get all of the web connection acceptors and stop accepting connections
-      Iterator wcai = mServerSocketToWebConnectionAcceptorMap.
-                      values().iterator();
-      while(wcai.hasNext())
+      // lock on map
+      synchronized(mServerSocketToWebConnectionAcceptorMap)
       {
-         WebConnectionAcceptor wca = (WebConnectionAcceptor)wcai.next();
-         wca.stopAcceptingWebConnections();
+         // get all of the web connection acceptors and
+         // stop accepting connections
+         for(Iterator i = mServerSocketToWebConnectionAcceptorMap.
+             values().iterator(); i.hasNext();)
+         {
+            WebConnectionAcceptor wca = (WebConnectionAcceptor)i.next();
+            wca.stopAcceptingWebConnections();
+         }
       }
       
-      // close all server sockets
-      Iterator ssi = mPortToServerSocketMap.values().iterator();
-      while(ssi.hasNext())
+      // lock on map
+      synchronized(mPortToServerSocketMap)
       {
-         ServerSocket serverSocket = (ServerSocket)ssi.next();
+         // close all server sockets
+         for(Iterator i = mPortToServerSocketMap.values().iterator();
+             i.hasNext();)
+         {
+            ServerSocket serverSocket = (ServerSocket)i.next();
+            
+            try
+            {
+               serverSocket.close();
+            }
+            catch(Throwable t)
+            {
+               getLogger().debug(getClass(), Logger.getStackTrace(t));
+            }
+         }
          
-         try
-         {
-            serverSocket.close();
-         }
-         catch(Throwable t)
-         {
-            getLogger().debug(getClass(), Logger.getStackTrace(t));
-         }
+         // clear the port to server socket map
+         mPortToServerSocketMap.clear();
       }
-      
-      // clear the port to server socket map
-      mPortToServerSocketMap.clear();
       
       getLogger().debug(getClass(), "no longer accepting web connections.");
    }
@@ -346,9 +385,9 @@ implements WebConnectionHandler, WebConnectionServicer
          }
       }
       
-      // disconnect the server socket
       try
       {
+         // disconnect the server socket
          serverSocket.close();
       }
       catch(Throwable t)
@@ -421,8 +460,8 @@ implements WebConnectionHandler, WebConnectionServicer
          }
          
          // accept web proxy connection
-         wca.acceptWebProxyConnection(serverSocket, originalWebConnection,
-                                      webConnectionsSecure());
+         wca.acceptWebProxyConnection(
+            serverSocket, originalWebConnection, webConnectionsSecure());
       }
    }
    
@@ -493,8 +532,12 @@ implements WebConnectionHandler, WebConnectionServicer
     */
    public void setMaximumConnections(int port, int connections)
    {
-      // add map entry
-      mPortToMaximumConnections.put(port, connections);
+      // lock on map
+      synchronized(mPortToMaximumConnections)
+      {
+         // add map entry
+         mPortToMaximumConnections.put(port, connections);
+      }
    }
    
    /**
@@ -514,9 +557,13 @@ implements WebConnectionHandler, WebConnectionServicer
       // return 0 by default
       int rval = 0;
       
-      if(mPortToMaximumConnections.containsKey(port))
+      // lock on map
+      synchronized(mPortToMaximumConnections)
       {
-         rval = mPortToMaximumConnections.getInt(port);
+         if(mPortToMaximumConnections.containsKey(port))
+         {
+            rval = mPortToMaximumConnections.getInt(port);
+         }
       }
       
       return rval;
@@ -525,47 +572,38 @@ implements WebConnectionHandler, WebConnectionServicer
    /**
     * Terminates all web connections this web connection handler is handling.
     */
-   public synchronized void terminateWebConnections()
+   public void terminateWebConnections()
    {
       getLogger().debug(getClass(), "terminating all web connections...");
       
-      // interrupt all web connection service threads
-      for(Iterator i = mWebConnectionServiceThreadToWebConnection.
-          keySet().iterator(); i.hasNext();)
+      // lock on the map
+      synchronized(mWebConnectionServiceThreadToWebConnection)
       {
-         Thread thread = (Thread)i.next();
-         
-         WebConnection webConnection = getWebConnection(thread);
-         getLogger().debug(getClass(),
-            "terminating web connection,ip=" + webConnection.getRemoteIP());
+         // interrupt all web connection service threads
+         for(Iterator i = mWebConnectionServiceThreadToWebConnection.
+             keySet().iterator(); i.hasNext();)
+         {
+            Thread thread = (Thread)i.next();
+            
+            WebConnection webConnection = getWebConnection(thread);
+            getLogger().debug(getClass(),
+               "terminating web connection,ip=" + webConnection.getRemoteIP());
 
-         // interrupt thread
-         thread.interrupt();
-      }
-      
-      // join all web connection service threads
-      for(Iterator i = mWebConnectionServiceThreadToWebConnection.
-          keySet().iterator(); i.hasNext();)
-      {
-         Thread thread = (Thread)i.next();
-         
-         try
-         {
-            // attempt to join thread
-            thread.join(100);
-         }
-         catch(Throwable t)
-         {
-            getLogger().debug(getClass(), Logger.getStackTrace(t));
+            // interrupt thread
+            thread.interrupt();
          }
       }
       
-      // terminate all accepted connections
-      for(Iterator i = mServerSocketToWebConnectionAcceptorMap.
-          values().iterator(); i.hasNext();)
+      // lock on map
+      synchronized(mServerSocketToWebConnectionAcceptorMap)
       {
-         WebConnectionAcceptor wca = (WebConnectionAcceptor)i.next();
-         wca.terminateAllWebConnections();
+         // terminate all accepted connections
+         for(Iterator i = mServerSocketToWebConnectionAcceptorMap.
+             values().iterator(); i.hasNext();)
+         {
+            WebConnectionAcceptor wca = (WebConnectionAcceptor)i.next();
+            wca.terminateAllWebConnections();
+         }
       }
       
       getLogger().debug(getClass(), "all web connections terminated.");
@@ -577,7 +615,7 @@ implements WebConnectionHandler, WebConnectionServicer
     * 
     * @return the number of web connections currently being serviced.
     */
-   public synchronized int webConnectionsBeingServiced()
+   public int webConnectionsBeingServiced()
    {
       // return the number of web connection service threads
       return mWebConnectionServiceThreadToWebConnection.size();

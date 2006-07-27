@@ -212,8 +212,7 @@ public class ProxyPortWebServer extends WebServer
          
          // start the proxy port web server
          // start accepting connections on all web connection handlers
-         Iterator i = mPorts.iterator();
-         while(i.hasNext())
+         for(Iterator i = mPorts.iterator(); i.hasNext();)
          {
             int port = Integer.parseInt((String)i.next());
             WebConnectionHandler handler = super.getWebConnectionHandler(port);
@@ -243,8 +242,7 @@ public class ProxyPortWebServer extends WebServer
          getLogger().debug(getClass(), "stopping proxy port server...");
          
          // stop and terminate all connections on all web connection handlers
-         Iterator i = mPorts.iterator();
-         while(i.hasNext())
+         for(Iterator i = mPorts.iterator(); i.hasNext();)
          {
             int port = Integer.parseInt((String)i.next());
             WebConnectionHandler handler = super.getWebConnectionHandler(port);

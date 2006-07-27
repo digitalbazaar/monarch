@@ -61,8 +61,8 @@ public class WebServer
     * @param port the port to map to a web connection handler.
     * @param wch the web connection handler.
     */
-   protected void mapPortToWebConnectionHandler(int port,
-                                                WebConnectionHandler wch)
+   protected void mapPortToWebConnectionHandler(
+      int port, WebConnectionHandler wch)
    {
       mPortToWebConnectionHandler.put(port, wch);
    }
