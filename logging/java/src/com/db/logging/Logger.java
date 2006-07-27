@@ -319,6 +319,7 @@ public class Logger
     * it will set the verbosity and return true.
     *
     * @param fileVerbosity the verbosity to set.
+    * 
     * @return true if verbosity valid and set, false if not.
     */
    public synchronized  boolean setFileVerbosity(double fileVerbosity)
@@ -365,6 +366,7 @@ public class Logger
     * it will set the verbosity and return true.
     *
     * @param consoleVerbosity the verbosity to set.
+    * 
     * @return true if verbosity valid and set, false if not.
     */
    public synchronized boolean setConsoleVerbosity(double consoleVerbosity)
@@ -383,8 +385,21 @@ public class Logger
             }
             else
             {
-               mStreamToVerbosity.put(System.out,
-                                      new Double(mConsoleVerbosity));
+               mStreamToVerbosity.put(
+                  System.out, new Double(mConsoleVerbosity));
+            }
+         }
+         
+         if(System.err != null)
+         {
+            if(mConsoleVerbosity == NO_VERBOSITY)
+            {
+               mStreamToVerbosity.remove(System.err);
+            }
+            else
+            {
+               mStreamToVerbosity.put(
+                  System.err, new Double(mConsoleVerbosity));
             }
          }
          
@@ -409,6 +424,7 @@ public class Logger
     * a valid format, the method does nothing but return false.
     *
     * @param dateFormat the new date format.
+    * 
     * @return true if the date format is set, false if not.
     */
    public synchronized boolean setDateFormat(String dateFormat)
@@ -433,6 +449,7 @@ public class Logger
     * the file if it already exists.
     *
     * @param filename the name of the file to log to.
+    * 
     * @return true if succesfully opened the file for writing, false if not.
     */
    public boolean setFile(String filename)
@@ -448,6 +465,7 @@ public class Logger
     * @param filename the name of the file to log to.
     * @param append specifies whether or not to append to an existing
     *             file or to overwrite.
+    *             
     * @return true if succesfully opened the file for writing, false if not.
     */
    public synchronized boolean setFile(String filename, boolean append)
@@ -511,6 +529,7 @@ public class Logger
     * there will be no limit on the number of rotating files.
     *
     * @param numRotatingFiles the number of rotating log files.
+    * 
     * @return true if successfully set, false if not.
     */
    public synchronized boolean setNumRotatingFiles(long numRotatingFiles)
@@ -617,7 +636,7 @@ public class Logger
          {
             setFileVerbosity(verbosity);
          }
-         else if(ps == System.out)
+         else if(ps == System.out || ps == System.err)
          {
             setConsoleVerbosity(verbosity);
          }
@@ -632,6 +651,7 @@ public class Logger
     * Writes the passed string to this logger.
     *
     * @param text the text to write to this logger.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean log(String text)
@@ -644,6 +664,7 @@ public class Logger
     *
     * @param c the class to write to this logger for.
     * @param text the text to write to this logger.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean log(Class c, String text)
@@ -658,6 +679,7 @@ public class Logger
     * @param text the text to write to the log file.
     * @param verbosity the verbosity level that must be reached in
     *                  order for the text to be written to the log.
+    * 
     * @return true if the text was written, false if not.
     */
    public synchronized boolean log(Class c, String text, double verbosity)
@@ -675,6 +697,7 @@ public class Logger
     * @param header true to use the logger's header, false not to.
     * @param useCustomStreams true to print to custom streams, false to only
     *                         print to console/log file.
+    * 
     * @return true if the text was written, false if not.
     */
    public synchronized boolean log(Class c, String text, double verbosity, 
@@ -762,7 +785,8 @@ public class Logger
                         }
                         else
                         {
-                           if(ps == System.out || useCustomStreams)
+                           if(ps == System.out || ps == System.err||
+                              useCustomStreams)
                            {
                               ps.println(logText);
                            }
@@ -797,6 +821,7 @@ public class Logger
     * Gets the stack trace from a throwable object.
     * 
     * @param t the throwable object.
+    * 
     * @return the stack trace as a string.
     */
    public static String getStackTrace(Throwable t)
@@ -821,6 +846,7 @@ public class Logger
     * Verbosity is set to error level.
     *
     * @param text the text to write to this logger.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean error(String text)
@@ -834,6 +860,7 @@ public class Logger
     *
     * @param c the class to write to the logger for.
     * @param text the text to write to the logger.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean error(Class c, String text)
@@ -850,6 +877,7 @@ public class Logger
     * Verbosity is set to warning level.
     *
     * @param text the text to write to this logger.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean warning(String text)
@@ -863,6 +891,7 @@ public class Logger
     *
     * @param c the class to write for.
     * @param text the text to write to this logger.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean warning(Class c, String text)
@@ -879,6 +908,7 @@ public class Logger
     * Verbosity is set to message level.
     *
     * @param text the text to write to the logger.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean msg(String text)
@@ -892,6 +922,7 @@ public class Logger
     *
     * @param c the class to write to this logger for.
     * @param text the text to write to this logger.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean msg(Class c, String text)
@@ -908,6 +939,7 @@ public class Logger
     * Verbosity is set to debug level.
     *
     * @param text the text to write to this logger.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean debug(String text)
@@ -921,6 +953,7 @@ public class Logger
     *
     * @param c the class to write to this logger for.
     * @param text the text to write to this logger.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean debug(Class c, String text)
@@ -937,6 +970,7 @@ public class Logger
     * Verbosity is set to debug data level.
     *
     * @param text the text to write to this logger.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean debugData(String text)
@@ -950,6 +984,7 @@ public class Logger
     *
     * @param c the class to write to this logger for.
     * @param text the text to write to this logger.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean debugData(Class c, String text)
@@ -966,6 +1001,7 @@ public class Logger
     * Verbosity is set to detail level.
     *
     * @param text the text to write to the log file.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean detail(String text)
@@ -979,6 +1015,7 @@ public class Logger
     *
     * @param c the class to write to this logger for.
     * @param text the text to write to the log file.
+    * 
     * @return true if the text was written, false if not.
     */
    public boolean detail(Class c, String text)
