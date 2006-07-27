@@ -20,6 +20,10 @@ public interface HttpTransferDecoder
     * http header, and writes it to the passed output stream, unless
     * the output stream is null.
     * 
+    * This method should call setContentBytesReceived() on the passed
+    * HttpWebConnection to update the number of content bytes received
+    * as they are received. 
+    * 
     * @param header the http header for the http body.
     * @param hwc the http web connection to read the http body from. 
     * @param os the output stream to write the body to.

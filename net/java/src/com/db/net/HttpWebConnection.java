@@ -109,26 +109,6 @@ public class HttpWebConnection extends WebConnectionWrapper
    }
    
    /**
-    * Sets the number of content bytes received by this connection.
-    * 
-    * @param bytes the number of content bytes received by this connection.
-    */
-   protected void setContentBytesReceived(long bytes)
-   {
-      mContentBytesReceived = bytes;
-   }
-   
-   /**
-    * Sets the number of content bytes sent by this connection.
-    * 
-    * @param bytes the number of content bytes sent by this connection.
-    */
-   protected void setContentBytesSent(long bytes)
-   {
-      mContentBytesSent = bytes;
-   }
-   
-   /**
     * Sets the http content encoder for the specified content-encoding.
     * 
     * @param contentEncoding the content-encoding to use the content
@@ -639,8 +619,12 @@ public class HttpWebConnection extends WebConnectionWrapper
          // calculate transfer time
          long timespan = et - st;
          
-         // update content bytes sent
-         setContentBytesSent(getContentBytesSent() + totalWritten);
+         if(hte == null)
+         {
+            // update content bytes sent if no transfer encoder present
+            // otherwise the transfer encoder should have updated this
+            setContentBytesSent(getContentBytesSent() + totalWritten);
+         }
          
          getLogger().debug(getClass(),
             "http body (" + totalWritten + " bytes) sent in " +
@@ -995,8 +979,12 @@ public class HttpWebConnection extends WebConnectionWrapper
          // calculate transfer time
          long timespan = et - st;
          
-         // update content bytes received
-         setContentBytesReceived(getContentBytesReceived() + totalRead);
+         if(htd == null)
+         {
+            // update content bytes received if no transfer decoder is present
+            // otherwise the transfer decoder should have updated this
+            setContentBytesReceived(getContentBytesReceived() + totalRead);
+         }
          
          getLogger().debug(getClass(),
             "http body (" + totalRead + " bytes) received in " +
@@ -1158,8 +1146,12 @@ public class HttpWebConnection extends WebConnectionWrapper
             totalRead += numBytes;
          }
          
-         // update content bytes received
-         setContentBytesReceived(getContentBytesReceived() + totalRead);
+         if(htd == null)
+         {
+            // update content bytes received if no transfer decoder is present
+            // otherwise the transfer decoder should have updated this
+            setContentBytesReceived(getContentBytesReceived() + totalRead);
+         }
          
          // save last read boundary
          mLastReadBoundary = bis.getReachedBoundary();
@@ -1305,6 +1297,16 @@ public class HttpWebConnection extends WebConnectionWrapper
    }
    
    /**
+    * Sets the number of content bytes received by this connection.
+    * 
+    * @param bytes the number of content bytes received by this connection.
+    */
+   public void setContentBytesReceived(long bytes)
+   {
+      mContentBytesReceived = bytes;
+   }
+
+   /**
     * Gets the number of content bytes received by this connection.
     * 
     * @return the number of content bytes received by this connection.
@@ -1314,6 +1316,16 @@ public class HttpWebConnection extends WebConnectionWrapper
       return mContentBytesReceived;
    }
    
+   /**
+    * Sets the number of content bytes sent by this connection.
+    * 
+    * @param bytes the number of content bytes sent by this connection.
+    */
+   public void setContentBytesSent(long bytes)
+   {
+      mContentBytesSent = bytes;
+   }
+
    /**
     * Gets the number of content bytes sent by this connection.
     * 

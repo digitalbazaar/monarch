@@ -59,6 +59,10 @@ implements HttpTransferEncoder, HttpTransferDecoder
     * encodes the data according to the supported transfer-encoding, and
     * then writes the data out to the passed http web connection.
     * 
+    * This method should call setContentBytesSent() on the passed
+    * HttpWebConnection to update the number of content bytes sent
+    * as they are sent. 
+    * 
     * @param header the http header for the http body.
     * @param bodyStream the input stream with the body to encode.
     * @param hwc the http web connection to write the http body to.
@@ -76,6 +80,10 @@ implements HttpTransferEncoder, HttpTransferDecoder
     * Reads and decodes an http message body from the http web connection,
     * according to the supported transfer-encoding, and writes it to the
     * passed output stream, unless the output stream is null.
+    * 
+    * This method should call setContentBytesReceived() on the passed
+    * HttpWebConnection to update the number of content bytes received
+    * as they are received. 
     *  
     * @param header the http header for the http body.
     * @param hwc the http web connection to read the http body from. 
@@ -95,6 +103,10 @@ implements HttpTransferEncoder, HttpTransferDecoder
     * encodes the data according to the transfer-encoding in the passed
     * http header, and then writes the data out to the passed http
     * web connection.
+    * 
+    * This method should call setContentBytesSent() on the passed
+    * HttpWebConnection to update the number of content bytes sent
+    * as they are sent. 
     * 
     * @param header the http header for the http body.
     * @param bodyStream the input stream with the body to encode.
@@ -133,6 +145,10 @@ implements HttpTransferEncoder, HttpTransferDecoder
     * connection, according to the transfer-encoding in the passed
     * http header, and writes it to the passed output stream, unless
     * the output stream is null.
+    * 
+    * This method should call setContentBytesReceived() on the passed
+    * HttpWebConnection to update the number of content bytes received
+    * as they are received. 
     * 
     * @param header the http header for the http body.
     * @param hwc the http web connection to read the http body from. 

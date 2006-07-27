@@ -20,6 +20,10 @@ public interface HttpTransferEncoder
     * http header, and then writes the data out to the passed http
     * web connection.
     * 
+    * This method should call setContentBytesSent() on the passed
+    * HttpWebConnection to update the number of content bytes sent
+    * as they are sent. 
+    * 
     * @param header the http header for the http body.
     * @param bodyStream the input stream with the body to encode.
     * @param hwc the http web connection to write the http body to.
