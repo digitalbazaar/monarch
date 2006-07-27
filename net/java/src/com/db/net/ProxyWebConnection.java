@@ -123,7 +123,7 @@ public class ProxyWebConnection extends GenericWebConnection
    /**
     * Starts proxying data for this proxy web connection.
     */
-   public synchronized void startProxy()
+   public void startProxy()
    {
       // make sure proxy hasn't already been started
       if(mOriginalToNewProxyThread == null && mNewToOriginalProxyThread == null)
@@ -153,7 +153,7 @@ public class ProxyWebConnection extends GenericWebConnection
    /**
     * Disconnects the proxy (closes the sockets).
     */
-   public synchronized void disconnect()
+   public void disconnect()
    {
       boolean previouslyDisconnected = !isConnected();
       
