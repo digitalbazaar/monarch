@@ -48,6 +48,16 @@ public class HttpWebConnection extends WebConnectionWrapper
    protected String mLastReadBoundary;
    
    /**
+    * The total number of content-bytes received with this connection.
+    */
+   protected long mContentBytesReceived;
+   
+   /**
+    * The total number of content-bytes sents with this connection.
+    */
+   protected long mContentBytesSent;
+   
+   /**
     * Creates a new http web connection.
     * 
     * @param workerSocket the worker socket for this web connection.
@@ -92,6 +102,30 @@ public class HttpWebConnection extends WebConnectionWrapper
       // add gzip content decoder by default
       GZipHttpContentCoder gzipCoder = new GZipHttpContentCoder();
       setContentDecoder(gzipCoder.getSupportedContentEncoding(), gzipCoder);
+      
+      // no content bytes received or sent yet
+      setContentBytesReceived(0);
+      setContentBytesSent(0);
+   }
+   
+   /**
+    * Sets the number of content bytes received by this connection.
+    * 
+    * @param bytes the number of content bytes received by this connection.
+    */
+   protected void setContentBytesReceived(long bytes)
+   {
+      mContentBytesReceived = bytes;
+   }
+   
+   /**
+    * Sets the number of content bytes sent by this connection.
+    * 
+    * @param bytes the number of content bytes sent by this connection.
+    */
+   protected void setContentBytesSent(long bytes)
+   {
+      mContentBytesSent = bytes;
    }
    
    /**
@@ -605,6 +639,9 @@ public class HttpWebConnection extends WebConnectionWrapper
          // calculate transfer time
          long timespan = et - st;
          
+         // update content bytes sent
+         setContentBytesSent(getContentBytesSent() + totalWritten);
+         
          getLogger().debug(getClass(),
             "http body (" + totalWritten + " bytes) sent in " +
             timespan + " ms.");         
@@ -958,6 +995,9 @@ public class HttpWebConnection extends WebConnectionWrapper
          // calculate transfer time
          long timespan = et - st;
          
+         // update content bytes received
+         setContentBytesReceived(getContentBytesReceived() + totalRead);
+         
          getLogger().debug(getClass(),
             "http body (" + totalRead + " bytes) received in " +
             timespan + " ms.");         
@@ -1118,6 +1158,9 @@ public class HttpWebConnection extends WebConnectionWrapper
             totalRead += numBytes;
          }
          
+         // update content bytes received
+         setContentBytesReceived(getContentBytesReceived() + totalRead);
+         
          // save last read boundary
          mLastReadBoundary = bis.getReachedBoundary();
          
@@ -1259,5 +1302,25 @@ public class HttpWebConnection extends WebConnectionWrapper
    public String getLastReadBoundary()
    {
       return mLastReadBoundary;
+   }
+   
+   /**
+    * Gets the number of content bytes received by this connection.
+    * 
+    * @return the number of content bytes received by this connection.
+    */
+   public long getContentBytesReceived()
+   {
+      return mContentBytesReceived;
+   }
+   
+   /**
+    * Gets the number of content bytes sent by this connection.
+    * 
+    * @return the number of content bytes sent by this connection.
+    */
+   public long getContentBytesSent()
+   {
+      return mContentBytesSent;
    }
 }

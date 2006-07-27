@@ -24,7 +24,7 @@ public interface HttpTransferEncoder
     * @param bodyStream the input stream with the body to encode.
     * @param hwc the http web connection to write the http body to.
     * 
-    * @return the total number of bytes written.
+    * @return the total number of content bytes written.
     * 
     * @throws IOException
     * @throws InterruptedException

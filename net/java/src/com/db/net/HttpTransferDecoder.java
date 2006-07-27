@@ -24,7 +24,7 @@ public interface HttpTransferDecoder
     * @param hwc the http web connection to read the http body from. 
     * @param os the output stream to write the body to.
     * 
-    * @return the total number of bytes read.
+    * @return the total number of content bytes read.
     * 
     * @throws IOException
     * @throws InterruptedException

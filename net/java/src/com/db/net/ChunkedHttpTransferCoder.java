@@ -91,7 +91,7 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
     * @param bodyStream the input stream with the body to encode.
     * @param hwc the http web connection to write the http body to.
     * 
-    * @return the total number of bytes written.
+    * @return the total number of content bytes written.
     * 
     * @throws IOException
     * @throws InterruptedException
@@ -125,7 +125,7 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
     * @param hwc the http web connection to read the http body from. 
     * @param os the output stream to write the body to.
     * 
-    * @return the total number of bytes read.
+    * @return the total number of content bytes read.
     * 
     * @throws IOException
     * @throws InterruptedException
