@@ -161,49 +161,43 @@ public class WebConnectionWrapper implements WebConnection
    }
    
    /**
-    * Sets the read rate limit for the underlying web connection. A rate limit
-    * of 0 indicates no rate limit.
+    * Sets the underlying web connection's BandwidthThrottler for reading.
     * 
-    * @param rateLimit the read rate limit in bytes/second for this web
-    *                  connection.
+    * @param throttler the BandwidthThrottler to use when reading.
     */
-   public void setReadRateLimit(long rateLimit)
+   public void setReadBandwidthThrottler(BandwidthThrottler throttler)
    {
-      getWebConnection().setReadRateLimit(rateLimit);
-   }
-   
-   /**
-    * Gets the read rate limit for the underlying web connection. A rate limit
-    * of 0 indicates no rate limit.
-    * 
-    * @return the read rate limit in bytes/second for this web connection.
-    */
-   public long getReadRateLimit()
-   {
-      return getWebConnection().getReadRateLimit();
+      getWebConnection().setReadBandwidthThrottler(throttler);
    }
 
    /**
-    * Sets the write rate limit for the underlying web connection. A rate limit
-    * of 0 indicates no rate limit.
+    * Gets the underlying web connection's BandwidthThrottler for reading.
     * 
-    * @param rateLimit the write rate limit in bytes/second for this web
-    *                  connection.
+    * @return the underlying web connection's read BandwidthThrottler.
     */
-   public void setWriteRateLimit(long rateLimit)
+   public BandwidthThrottler getReadBandwidthThrottler()
    {
-      getWebConnection().setWriteRateLimit(rateLimit);
+      return getWebConnection().getReadBandwidthThrottler();
    }
    
    /**
-    * Gets the write rate limit for the underlying web connection. A rate limit
-    * of 0 indicates no rate limit.
+    * Sets the underlying web connection's BandwidthThrottler for writing.
     * 
-    * @return the write rate limit in bytes/second for this web connection.
+    * @param throttler the BandwidthThrottler to use when writing.
     */
-   public long getWriteRateLimit()   
+   public void setWriteBandwidthThrottler(BandwidthThrottler throttler)
    {
-      return getWebConnection().getWriteRateLimit();
+      getWebConnection().setWriteBandwidthThrottler(throttler);
+   }
+
+   /**
+    * Gets the underlying web connection's BandwidthThrottler for writing.
+    * 
+    * @return the underlying web connection's write BandwidthThrottler.
+    */
+   public BandwidthThrottler getWriteBandwidthThrottler()   
+   {
+      return getWebConnection().getWriteBandwidthThrottler();
    }
    
    /**

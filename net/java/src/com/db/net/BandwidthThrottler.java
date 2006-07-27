@@ -188,10 +188,9 @@ public class BandwidthThrottler
    }
 
    /**
-    * Sets the rate limit.
+    * Sets the rate limit in bytes/second. A value of 0 indicates no rate limit.
     * 
-    * @param rateLimit the bytes/second rate limit to use. A value of 0
-    *                  indicates no rate limit.
+    * @param rateLimit the bytes/second rate limit to use.
     */
    public synchronized void setRateLimit(long rateLimit)
    {
@@ -206,9 +205,9 @@ public class BandwidthThrottler
    }
    
    /**
-    * Gets the rate limit.
+    * Gets the rate limit in bytes/second. A value of 0 indicates no rate limit.
     * 
-    * @return the rate limit.
+    * @return the rate limit in bytes/second.
     */
    public synchronized long getRateLimit()
    {

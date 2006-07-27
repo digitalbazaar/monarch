@@ -109,39 +109,33 @@ public interface WebConnection
    public long getBytesWritten();
    
    /**
-    * Sets the read rate limit for this web connection. A rate limit
-    * of 0 indicates no rate limit.
+    * Sets this web connection's BandwidthThrottler for reading.
     * 
-    * @param rateLimit the read rate limit in bytes/second for this web
-    *                  connection.
+    * @param throttler the BandwidthThrottler to use when reading.
     */
-   public void setReadRateLimit(long rateLimit);
-   
-   /**
-    * Gets the read rate limit for this web connection. A rate limit
-    * of 0 indicates no rate limit.
-    * 
-    * @return the read rate limit in bytes/second for this web connection.
-    */
-   public long getReadRateLimit();
+   public void setReadBandwidthThrottler(BandwidthThrottler throttler);
 
    /**
-    * Sets the write rate limit for this web connection. A rate limit
-    * of 0 indicates no rate limit.
+    * Gets this web connection's BandwidthThrottler for reading.
     * 
-    * @param rateLimit the write rate limit in bytes/second for this web
-    *                  connection.
+    * @return this web connection's read BandwidthThrottler.
     */
-   public void setWriteRateLimit(long rateLimit);
+   public BandwidthThrottler getReadBandwidthThrottler();
    
    /**
-    * Gets the write rate limit for this web connection. A rate limit
-    * of 0 indicates no rate limit.
+    * Sets this web connection's BandwidthThrottler for writing.
     * 
-    * @return the write rate limit in bytes/second for this web connection.
+    * @param throttler the BandwidthThrottler to use when writing.
     */
-   public long getWriteRateLimit();
-   
+   public void setWriteBandwidthThrottler(BandwidthThrottler throttler);
+
+   /**
+    * Gets this web connection's BandwidthThrottler for writing.
+    * 
+    * @return this web connection's write BandwidthThrottler.
+    */
+   public BandwidthThrottler getWriteBandwidthThrottler();
+
    /**
     * Returns true if this web connection is connected, false if it is not.
     * 

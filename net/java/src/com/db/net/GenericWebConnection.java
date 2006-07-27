@@ -61,14 +61,14 @@ public class GenericWebConnection implements WebConnection
    protected long mBytesWritten;
    
    /**
-    * The read throttler.
+    * The read bandwidth throttler.
     */
-   protected BandwidthThrottler mReadThrottler;
+   protected BandwidthThrottler mReadBandwidthThrottler;
    
    /**
-    * The write throttler.
+    * The write bandwidth throttler.
     */
-   protected BandwidthThrottler mWriteThrottler;
+   protected BandwidthThrottler mWriteBandwidthThrottler;
    
    /**
     * Creates a new generic web connection.
@@ -92,8 +92,8 @@ public class GenericWebConnection implements WebConnection
       mBytesWritten = 0;
       
       // create the read and write throttlers
-      mReadThrottler = new BandwidthThrottler(0);
-      mWriteThrottler = new BandwidthThrottler(0);
+      mReadBandwidthThrottler = new BandwidthThrottler(0);
+      mWriteBandwidthThrottler = new BandwidthThrottler(0);
    }
    
    /**
@@ -128,7 +128,7 @@ public class GenericWebConnection implements WebConnection
       }
       
       // throttle the read
-      length = mReadThrottler.requestBytes(length);
+      length = getReadBandwidthThrottler().requestBytes(length);
 
       // do the read
       numBytes = getReadStream().read(buffer, offset, length);
@@ -318,7 +318,7 @@ public class GenericWebConnection implements WebConnection
          }
 
          // throttle the write
-         int numBytes = mWriteThrottler.requestBytes(length);
+         int numBytes = getWriteBandwidthThrottler().requestBytes(length);
 
          // do the write
          getWriteStream().write(buffer, offset, numBytes);
@@ -346,49 +346,43 @@ public class GenericWebConnection implements WebConnection
    }
    
    /**
-    * Sets the read rate limit for this web connection. A rate limit
-    * of 0 indicates no rate limit.
+    * Sets the underlying web connection's BandwidthThrottler for reading.
     * 
-    * @param rateLimit the read rate limit in bytes/second for this web
-    *                  connection.
+    * @param throttler the BandwidthThrottler to use when reading.
     */
-   public void setReadRateLimit(long rateLimit)
+   public void setReadBandwidthThrottler(BandwidthThrottler throttler)
    {
-      mReadThrottler.setRateLimit(rateLimit);
-   }
-   
-   /**
-    * Gets the read rate limit for this web connection. A rate limit
-    * of 0 indicates no rate limit.
-    * 
-    * @return the read rate limit in bytes/second for this web connection.
-    */
-   public long getReadRateLimit()
-   {
-      return mReadThrottler.getRateLimit();
+      mReadBandwidthThrottler = throttler;
    }
 
    /**
-    * Sets the write rate limit for this web connection. A rate limit
-    * of 0 indicates no rate limit.
+    * Gets the underlying web connection's BandwidthThrottler for reading.
     * 
-    * @param rateLimit the write rate limit in bytes/second for this web
-    *                  connection.
+    * @return the underlying web connection's read BandwidthThrottler.
     */
-   public void setWriteRateLimit(long rateLimit)
+   public BandwidthThrottler getReadBandwidthThrottler()
    {
-      mWriteThrottler.setRateLimit(rateLimit);
+      return mReadBandwidthThrottler;
    }
    
    /**
-    * Gets the write rate limit for this web connection. A rate limit
-    * of 0 indicates no rate limit.
+    * Sets the underlying web connection's BandwidthThrottler for writing.
     * 
-    * @return the write rate limit in bytes/second for this web connection.
+    * @param throttler the BandwidthThrottler to use when writing.
     */
-   public long getWriteRateLimit()
+   public void setWriteBandwidthThrottler(BandwidthThrottler throttler)
    {
-      return mWriteThrottler.getRateLimit();
+      mWriteBandwidthThrottler = throttler;
+   }
+
+   /**
+    * Gets the underlying web connection's BandwidthThrottler for writing.
+    * 
+    * @return the underlying web connection's write BandwidthThrottler.
+    */
+   public BandwidthThrottler getWriteBandwidthThrottler()   
+   {
+      return mWriteBandwidthThrottler;
    }
    
    /**
