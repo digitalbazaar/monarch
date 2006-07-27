@@ -229,6 +229,14 @@ public class JobDispatcher implements Runnable
    }
    
    /**
+    * Interrupts all running Jobs. Queued jobs will not be affected.
+    */
+   public synchronized void interruptAllRunningJobs()
+   {
+      getThreadPool().interruptAllThreads();
+   }   
+   
+   /**
     * Terminates all running Jobs. Queued jobs will not be affected.
     */
    public synchronized void terminateAllRunningJobs()
