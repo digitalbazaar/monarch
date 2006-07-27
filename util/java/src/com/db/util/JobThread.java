@@ -100,6 +100,8 @@ public class JobThread extends Thread
          interrupt();
          getLogger().detail(getClass(), "interrupted.");
       }
+      
+      getLogger().detail(getClass(), "no longer idle.");
    }
    
    /**
@@ -160,10 +162,12 @@ public class JobThread extends Thread
                catch(Throwable t)
                {
                   getLogger().error(getClass(), 
-                     "An exception occurred " +
-                     "while running a job,\ntrace= " +
-                     LoggerManager.getStackTrace(t));
-                  //getLogger().debug(Logger.getStackTrace(t));
+                     "An exception occurred while running a job" +
+                     ",\nexception= " + t);
+                  getLogger().debug(getClass(), 
+                     "An exception occurred while running a job" +
+                     ",\nexception= " + t +
+                     ",\ntrace= " + Logger.getStackTrace(t));                  
                }
                
                // thread no longer has job
@@ -180,9 +184,12 @@ public class JobThread extends Thread
       catch(Throwable t)
       {
          getLogger().error(getClass(), 
-            "An exception occurred on a JobThread,\ntrace= " +
-            LoggerManager.getStackTrace(t));
-         //getLogger().debug(Logger.getStackTrace(t));
+            "An exception occurred on a JobThread" +
+            ",\nexception= " + t);
+         getLogger().debug(getClass(), 
+            "An exception occurred on a JobThread" +
+            ",\nexception= " + t +
+            ",\ntrace= " + Logger.getStackTrace(t));                  
       }
       
       getLogger().detail(getClass(), "terminated.");
