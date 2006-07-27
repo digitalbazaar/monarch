@@ -393,7 +393,8 @@ public class HttpWebClient
       boolean rval = false;
       
       // keep reading while HTTP 1xx
-      while(response.receiveHeader() &&
+      boolean received = false;
+      while((received = response.receiveHeader()) &&
             response.getHeader().getStatusCode().startsWith("1"))
       {
          // read and discard body if status code is 1xx
@@ -401,7 +402,10 @@ public class HttpWebClient
       }
       
       // set whether or not the header was read
-      rval = !response.getHeader().getStatusCode().startsWith("1");
+      if(received)
+      {
+         rval = !response.getHeader().getStatusCode().startsWith("1");
+      }
       
       return rval;
    }

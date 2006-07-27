@@ -812,11 +812,19 @@ public class HttpWebConnection extends WebConnectionWrapper
             rval = header.parse(str);
          }
       }
+      catch(InterruptedException e)
+      {
+         getLogger().debug(getClass(),
+            "HttpWebConnection receiveHeader() interrupted.");
+      
+         // maintain interrupted status
+         Thread.currentThread().interrupt();         
+      }
       catch(Throwable t)
       {
          getLogger().debug(getClass(),
-            "could not receive http header!, " +
-            "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
+            "could not receive http header!, an exception occurred" +
+            ",\ntrace= " + Logger.getStackTrace(t));
       }
       
       return rval;
@@ -1134,6 +1142,22 @@ public class HttpWebConnection extends WebConnectionWrapper
                "http body part body (" + totalRead + " bytes) " +
                "skipped in " + timespan + " ms.");         
          }
+      }
+      catch(InterruptedException e)
+      {
+         if(os != null)
+         {
+            getLogger().debug(getClass(),
+               "HttpWebConnection receiveBodyPartBody() interrupted.");
+         }
+         else
+         {
+            getLogger().debug(getClass(),
+               "HttpWebConnection skipBodyPartBody() interrupted.");
+         }
+      
+         // maintain interrupted status
+         Thread.currentThread().interrupt();     
       }
       catch(Throwable t)
       {
