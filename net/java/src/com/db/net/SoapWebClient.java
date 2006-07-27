@@ -6,7 +6,6 @@ package com.db.net;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -269,7 +268,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          getLogger().debug(getClass(), "sending soap xml:\n" + xml);
          
          // start soap method timer
-         long st = new Date().getTime();
+         long st = System.currentTimeMillis();
          
          // send the request to the server
          if(sendRequest(request, body))
@@ -314,7 +313,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
                rval = getSoapMethodResult(xml, resultType);
                
                // get end time
-               long et = new Date().getTime();
+               long et = System.currentTimeMillis();
                long timespan = et - st;
                getLogger().debug(getClass(),
                   "total soap method (" + sm.getMethod() + ") " +
@@ -428,7 +427,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
       // remove old wsdl parser
       mWsdlParser = null;
       
-      long st = new Date().getTime();
+      long st = System.currentTimeMillis();
       
       // sent http get request
       try
@@ -477,7 +476,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          
          if(rval != null)
          {
-            long et = new Date().getTime();
+            long et = System.currentTimeMillis();
             long timespan = et - st;
             getLogger().debug(getClass(),
                "wsdl retrieved in " + timespan + " ms");

@@ -7,7 +7,6 @@ import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.Deflater;
@@ -603,7 +602,7 @@ public class GZipHeader
       }
       
       // get the current time as the modification time
-      long time = Math.round(((double)new Date().getTime()) / 1000);
+      long time = Math.round(((double)System.currentTimeMillis()) / 1000);
       
       // write the MTIME (modification time)
       writeUnsignedInt(time, rval, 4);

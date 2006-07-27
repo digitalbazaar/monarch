@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Date;
 import java.util.HashMap;
 
 import com.db.logging.Logger;
@@ -576,7 +575,7 @@ public class HttpWebConnection extends WebConnectionWrapper
          HttpTransferEncoder hte = getTransferEncoder(transferEncoding);
          
          // start time
-         long st = new Date().getTime();
+         long st = System.currentTimeMillis();
          long totalWritten = 0;
 
          // use transfer encoder if one is available
@@ -601,7 +600,7 @@ public class HttpWebConnection extends WebConnectionWrapper
          rval = true;
          
          // end time
-         long et = new Date().getTime();
+         long et = System.currentTimeMillis();
          
          // calculate transfer time
          long timespan = et - st;
@@ -660,7 +659,7 @@ public class HttpWebConnection extends WebConnectionWrapper
             }
             
             // start time
-            long st = new Date().getTime();
+            long st = System.currentTimeMillis();
    
             // write the boundary
             byte[] buffer = boundary.getBytes();
@@ -670,7 +669,7 @@ public class HttpWebConnection extends WebConnectionWrapper
             rval = true;
             
             // end time
-            long et = new Date().getTime();
+            long et = System.currentTimeMillis();
             
             // calculate transfer time
             long timespan = et - st;
@@ -916,7 +915,7 @@ public class HttpWebConnection extends WebConnectionWrapper
          HttpTransferDecoder htd = getTransferDecoder(transferEncoding);
          
          // start time
-         long st = new Date().getTime();
+         long st = System.currentTimeMillis();
          long totalRead = 0;
 
          // use transfer decoder if one is available
@@ -946,7 +945,7 @@ public class HttpWebConnection extends WebConnectionWrapper
          rval = true;
          
          // end time
-         long et = new Date().getTime();
+         long et = System.currentTimeMillis();
          
          // calculate transfer time
          long timespan = et - st;
@@ -1081,7 +1080,7 @@ public class HttpWebConnection extends WebConnectionWrapper
          HttpTransferDecoder htd = getTransferDecoder(transferEncoding);
          
          // start time
-         long st = new Date().getTime();
+         long st = System.currentTimeMillis();
          long totalRead = 0;
 
          // use transfer decoder if one is available
@@ -1118,7 +1117,7 @@ public class HttpWebConnection extends WebConnectionWrapper
          rval = true;
          
          // end time
-         long et = new Date().getTime();
+         long et = System.currentTimeMillis();
          
          // calculate transfer time
          long timespan = et - st;

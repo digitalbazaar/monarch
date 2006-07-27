@@ -284,7 +284,7 @@ public abstract class GenericSoapWebService implements SoapWebService
    {
       Object rval = null;
       
-      long st = new java.util.Date().getTime();
+      long st = System.currentTimeMillis();
 
       Thread thread = Thread.currentThread();
       
@@ -341,7 +341,7 @@ public abstract class GenericSoapWebService implements SoapWebService
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
-      long et = new java.util.Date().getTime();
+      long et = System.currentTimeMillis();
       getLogger().debug(getClass(),
          "total soap method (" + methodName + ") time: " + (et - st) + " ms");
       

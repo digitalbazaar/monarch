@@ -3,8 +3,6 @@
  */
 package com.db.util;
 
-import java.util.Date;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 
@@ -73,7 +71,7 @@ public class JobThread extends Thread
       
       try
       {
-         long startTime = new Date().getTime();
+         long startTime = System.currentTimeMillis();
          
          // wait until expire time
          wait(getExpireTime());
@@ -83,7 +81,7 @@ public class JobThread extends Thread
          if(getExpireTime() != 0 && !hasJob())
          {
             // check expired time
-            long now = new Date().getTime();
+            long now = System.currentTimeMillis();
             if(now - startTime >= getExpireTime())
             {
                getLogger().detail(getClass(), 

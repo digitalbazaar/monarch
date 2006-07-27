@@ -3,7 +3,6 @@
  */
 package com.db.net;
 
-import java.util.Date;
 import java.util.Map;
 
 import com.db.logging.Logger;
@@ -98,7 +97,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
 
          // while waiting for the call thread to complete, keep the
          // connection alive
-         long lastTime = new Date().getTime();
+         long lastTime = System.currentTimeMillis();
          long currentTime = lastTime;
          boolean connected = true;
          while(t.isAlive() && connected)
@@ -110,14 +109,14 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
                connected = response.sendContinueResponse();
                
                // reset last time
-               lastTime = new Date().getTime();
+               lastTime = System.currentTimeMillis();
             }
             
             // try to join the thread
             t.join(1);
             
             // update current time
-            currentTime = new Date().getTime();
+            currentTime = System.currentTimeMillis();
          }
    
          // send soap response if we are still connected
