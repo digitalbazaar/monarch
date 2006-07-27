@@ -51,16 +51,49 @@ public class GenericWebConnection implements WebConnection
    protected OutputStream mWriteStream;
    
    /**
+    * The number of bytes read so far.
+    */
+   protected long mBytesRead;
+   
+   /**
+    * The number of bytes written so far.
+    */
+   protected long mBytesWritten;
+   
+   /**
+    * The read throttler.
+    */
+   protected BandwidthThrottler mReadThrottler;
+   
+   /**
+    * The write throttler.
+    */
+   protected BandwidthThrottler mWriteThrottler;
+   
+   /**
     * Creates a new generic web connection.
     * 
     * @param workerSocket the worker socket for this web connection.
     */
    public GenericWebConnection(Socket workerSocket)
    {
+      // store worker socket
       mWorkerSocket = workerSocket;
+      
+      // set IP and port
       setRemoteIP(getRemoteIP(workerSocket));
       setRemotePort(getRemotePort(workerSocket));
+      
+      // not secure by default
       mSecure = false;
+
+      // no bytes read or written yet
+      mBytesRead = 0;
+      mBytesWritten = 0;
+      
+      // create the read and write throttlers
+      mReadThrottler = new BandwidthThrottler(0);
+      mWriteThrottler = new BandwidthThrottler(0);
    }
    
    /**
@@ -85,11 +118,26 @@ public class GenericWebConnection implements WebConnection
     * @throws IOException
     */
    public int read(byte[] buffer, int offset, int length)
-   throws IOException
+   throws IOException, InterruptedException
    {
       int numBytes = -1;
       
+      if(Thread.currentThread().isInterrupted())
+      {
+         throw new InterruptedException("WebConnection read interrupted!");
+      }
+      
+      // throttle the read
+      length = mReadThrottler.requestBytes(length);
+
+      // do the read
       numBytes = getReadStream().read(buffer, offset, length);
+      
+      // increment bytes read
+      if(numBytes != -1)
+      {
+         mBytesRead += numBytes;
+      }
       
       return numBytes;
    }
@@ -106,10 +154,10 @@ public class GenericWebConnection implements WebConnection
     * @return the actual number of bytes read or -1 if the end of the
     *         stream has been reached.
     *         
-    * @throws IOException
+    * @throws IOException, InterruptedException
     */
    public int blockedRead(byte[] buffer, int offset, int length)
-   throws IOException
+   throws IOException, InterruptedException
    {
       int read = 0;
       
@@ -118,6 +166,12 @@ public class GenericWebConnection implements WebConnection
       int numBytes = 0;
       while(length > 0 && numBytes != -1)
       {
+         if(Thread.currentThread().isInterrupted())
+         {
+            throw new InterruptedException(
+               "WebConnection blockedRead interrupted!");
+         }
+         
          // read into the buffer from the offset plus the amount of
          // data read so far
          numBytes = read(buffer, offset + read, length);
@@ -152,10 +206,16 @@ public class GenericWebConnection implements WebConnection
     * @param length the amount of data to write.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
    public void unread(byte[] buffer, int offset, int length)
-   throws IOException
+   throws IOException, InterruptedException
    {
+      if(Thread.currentThread().isInterrupted())
+      {
+         throw new InterruptedException("WebConnection unread interrupted!");
+      }
+      
       if(getReadStream() instanceof PushbackInputStream)
       {
          ((PushbackInputStream)getReadStream()).unread(buffer, offset, length);
@@ -165,6 +225,9 @@ public class GenericWebConnection implements WebConnection
          // unread with read stream
          mReadStream.unread(buffer, offset, length);
       }
+      
+      // decrement bytes read
+      mBytesRead -= length;
    }
    
    /**
@@ -176,8 +239,9 @@ public class GenericWebConnection implements WebConnection
     * @return the read line or null if the end of the stream was reached.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
-   public String readLine() throws IOException
+   public String readLine() throws IOException, InterruptedException
    {
       String line = "";
 
@@ -224,6 +288,16 @@ public class GenericWebConnection implements WebConnection
    }
    
    /**
+    * Gets the number of bytes read so far.
+    * 
+    * @return the number of bytes read so far.
+    */
+   public long getBytesRead()
+   {
+      return mBytesRead;
+   }
+   
+   /**
     * Writes data to this web connection.
     * 
     * @param buffer the buffer to write data from to this connection.
@@ -231,14 +305,90 @@ public class GenericWebConnection implements WebConnection
     * @param length the amount of data to write.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
    public void write(byte[] buffer, int offset, int length)
-   throws IOException
+   throws IOException, InterruptedException
    {
-      getWriteStream().write(buffer, offset, length);
-      
+      while(length > 0)
+      {
+         if(Thread.currentThread().isInterrupted())
+         {
+            throw new InterruptedException("WebConnection write interrupted!");
+         }
+
+         // throttle the write
+         int numBytes = mWriteThrottler.requestBytes(length);
+
+         // do the write
+         getWriteStream().write(buffer, offset, numBytes);
+         
+         // increment offset and decrement length
+         offset += numBytes;
+         length -= numBytes;
+         
+         // increment bytes written
+         mBytesWritten += numBytes;
+      }
+         
       // always flush ;)
       getWriteStream().flush();
+   }
+   
+   /**
+    * Gets the number of bytes written so far.
+    * 
+    * @return the number of bytes written so far.
+    */
+   public long getBytesWritten()   
+   {
+      return mBytesWritten;
+   }
+   
+   /**
+    * Sets the read rate limit for this web connection. A rate limit
+    * of 0 indicates no rate limit.
+    * 
+    * @param rateLimit the read rate limit in bytes/second for this web
+    *                  connection.
+    */
+   public void setReadRateLimit(long rateLimit)
+   {
+      mReadThrottler.setRateLimit(rateLimit);
+   }
+   
+   /**
+    * Gets the read rate limit for this web connection. A rate limit
+    * of 0 indicates no rate limit.
+    * 
+    * @return the read rate limit in bytes/second for this web connection.
+    */
+   public long getReadRateLimit()
+   {
+      return mReadThrottler.getRateLimit();
+   }
+
+   /**
+    * Sets the write rate limit for this web connection. A rate limit
+    * of 0 indicates no rate limit.
+    * 
+    * @param rateLimit the write rate limit in bytes/second for this web
+    *                  connection.
+    */
+   public void setWriteRateLimit(long rateLimit)
+   {
+      mWriteThrottler.setRateLimit(rateLimit);
+   }
+   
+   /**
+    * Gets the write rate limit for this web connection. A rate limit
+    * of 0 indicates no rate limit.
+    * 
+    * @return the write rate limit in bytes/second for this web connection.
+    */
+   public long getWriteRateLimit()
+   {
+      return mWriteThrottler.getRateLimit();
    }
    
    /**

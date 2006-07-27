@@ -66,10 +66,11 @@ implements HttpTransferEncoder, HttpTransferDecoder
     * @return the total number of bytes written.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
    protected abstract long writeHttpBodyImpl(
       HttpHeader header, InputStream bodyStream, HttpWebConnection hwc)
-   throws IOException;
+   throws IOException, InterruptedException;
    
    /**
     * Reads and decodes an http message body from the http web connection,
@@ -83,10 +84,11 @@ implements HttpTransferEncoder, HttpTransferDecoder
     * @return the total number of bytes read.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
    protected abstract long readHttpBodyImpl(
       HttpHeader header, HttpWebConnection hwc, OutputStream os)
-   throws IOException;
+   throws IOException, InterruptedException;
    
    /**
     * Reads data from the passed input stream until the end of the stream,
@@ -102,10 +104,11 @@ implements HttpTransferEncoder, HttpTransferDecoder
     * 
     * @throws IOException
     * @throws IllegalArgumentException
+    * @throws InterruptedException
     */
    public long writeHttpBody(
       HttpHeader header, InputStream bodyStream, HttpWebConnection hwc)
-   throws IOException, IllegalArgumentException
+   throws IOException, IllegalArgumentException, InterruptedException
    {
       long rval = 0;
       
@@ -138,10 +141,11 @@ implements HttpTransferEncoder, HttpTransferDecoder
     * @return the total number of bytes read.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
    public long readHttpBody(
       HttpHeader header, HttpWebConnection hwc, OutputStream os)
-   throws IOException   
+   throws IOException, InterruptedException
    {
       long rval = 0;
       

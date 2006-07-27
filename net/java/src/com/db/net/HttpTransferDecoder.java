@@ -27,8 +27,9 @@ public interface HttpTransferDecoder
     * @return the total number of bytes read.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
    public long readHttpBody(
       HttpHeader header, HttpWebConnection hwc, OutputStream os)
-   throws IOException;
+   throws IOException, InterruptedException;
 }

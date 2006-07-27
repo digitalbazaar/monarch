@@ -5,8 +5,18 @@ import com.db.util.MethodInvoker;
 import com.db.logging.*;
 import com.db.net.*;
 
+/**
+ * Tests an HttpServer.
+ * 
+ * @author Dave Longley
+ */
 public class UTHttpServer
 {
+   /**
+    * The main method.
+    * 
+    * @param args the args.
+    */
    public static void main(String[] args)
    {
       try
@@ -114,8 +124,8 @@ public class UTHttpServer
       try
       {
          // get a web connection
-         HttpWebClient client = new HttpWebClient("https://localhost:" + port);
-         HttpWebConnection hwc = (HttpWebConnection)client.connect();
+         HttpWebClient client = new HttpWebClient();
+         HttpWebConnection hwc = client.connect("https://localhost:" + port);
          
          String body = "test body";
          

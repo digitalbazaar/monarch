@@ -27,8 +27,9 @@ public interface HttpTransferEncoder
     * @return the total number of bytes written.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
    public long writeHttpBody(
       HttpHeader header, InputStream bodyStream, HttpWebConnection hwc)
-   throws IOException;
+   throws IOException, InterruptedException;
 }

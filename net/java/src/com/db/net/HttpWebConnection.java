@@ -406,6 +406,14 @@ public class HttpWebConnection extends WebConnectionWrapper
          
          getLogger().debug(getClass(), "http header sent.");
       }
+      catch(InterruptedException e)
+      {
+         getLogger().debug(getClass(),
+            "HttpWebConnection sendHeader() interrupted.");
+         
+         // maintain interrupted status
+         Thread.currentThread().interrupt();
+      }      
       catch(Throwable t)
       {
          getLogger().debug(getClass(),
@@ -446,6 +454,14 @@ public class HttpWebConnection extends WebConnectionWrapper
          rval = true;
          
          getLogger().debug(getClass(), "http body part header sent.");
+      }
+      catch(InterruptedException e)
+      {
+         getLogger().debug(getClass(),
+            "HttpWebConnection sendBodyPartHeader() interrupted.");
+         
+         // maintain interrupted status
+         Thread.currentThread().interrupt();
       }
       catch(Throwable t)
       {
@@ -594,6 +610,14 @@ public class HttpWebConnection extends WebConnectionWrapper
             "http body (" + totalWritten + " bytes) sent in " +
             timespan + " ms.");         
       }
+      catch(InterruptedException e)
+      {
+         getLogger().debug(getClass(),
+            "HttpWebConnection sendBody() interrupted.");
+         
+         // maintain interrupted status
+         Thread.currentThread().interrupt();
+      }      
       catch(Throwable t)
       {
          getLogger().debug(getClass(),
@@ -655,6 +679,14 @@ public class HttpWebConnection extends WebConnectionWrapper
                "http body part body (" + buffer.length +
                " bytes) sent in " + timespan + " ms.");         
          }
+         catch(InterruptedException e)
+         {
+            getLogger().debug(getClass(),
+               "HttpWebConnection sendBodyPartBody() interrupted.");
+            
+            // maintain interrupted status
+            Thread.currentThread().interrupt();
+         }         
          catch(Throwable t)
          {
             getLogger().debug(getClass(),
@@ -923,6 +955,14 @@ public class HttpWebConnection extends WebConnectionWrapper
             "http body (" + totalRead + " bytes) received in " +
             timespan + " ms.");         
       }
+      catch(InterruptedException e)
+      {
+         getLogger().debug(getClass(),
+            "HttpWebConnection receiveBody() interrupted.");
+         
+         // maintain interrupted status
+         Thread.currentThread().interrupt();
+      }
       catch(Throwable t)
       {
          getLogger().debug(getClass(),
@@ -1138,8 +1178,9 @@ public class HttpWebConnection extends WebConnectionWrapper
     * @return the read line or null if the end of the stream was reached.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
-   public String readCRLF() throws IOException
+   public String readCRLF() throws IOException, InterruptedException
    {
       String line = "";
 

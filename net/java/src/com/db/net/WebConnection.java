@@ -27,9 +27,10 @@ public interface WebConnection
     *         more data to read.
     *         
     * @throws IOException
+    * @throws InterruptedException
     */
    public int read(byte[] buffer, int offset, int length)
-   throws IOException;
+   throws IOException, InterruptedException;
    
    /**
     * Reads data from this web connection. This method will block until
@@ -44,9 +45,10 @@ public interface WebConnection
     *         stream has been reached.
     *         
     * @throws IOException
+    * @throws InterruptedException
     */
    public int blockedRead(byte[] buffer, int offset, int length)
-   throws IOException;
+   throws IOException, InterruptedException;
    
    /**
     * Unreads data back onto the web connection. This method is useful
@@ -61,9 +63,10 @@ public interface WebConnection
     * @param length the amount of data to write.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
    public void unread(byte[] buffer, int offset, int length)
-   throws IOException;
+   throws IOException, InterruptedException;
    
    /**
     * Reads a single line from this web connection that terminates in a
@@ -74,8 +77,16 @@ public interface WebConnection
     * @return the read line or null if the end of the stream was reached.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
-   public String readLine() throws IOException;
+   public String readLine() throws IOException, InterruptedException;
+   
+   /**
+    * Gets the number of bytes read so far.
+    * 
+    * @return the number of bytes read so far.
+    */
+   public long getBytesRead();
    
    /**
     * Writes data to this web connection.
@@ -85,9 +96,51 @@ public interface WebConnection
     * @param length the amount of data to write.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
    public void write(byte[] buffer, int offset, int length)
-   throws IOException;
+   throws IOException, InterruptedException;
+   
+   /**
+    * Gets the number of bytes written so far.
+    * 
+    * @return the number of bytes written so far.
+    */
+   public long getBytesWritten();
+   
+   /**
+    * Sets the read rate limit for this web connection. A rate limit
+    * of 0 indicates no rate limit.
+    * 
+    * @param rateLimit the read rate limit in bytes/second for this web
+    *                  connection.
+    */
+   public void setReadRateLimit(long rateLimit);
+   
+   /**
+    * Gets the read rate limit for this web connection. A rate limit
+    * of 0 indicates no rate limit.
+    * 
+    * @return the read rate limit in bytes/second for this web connection.
+    */
+   public long getReadRateLimit();
+
+   /**
+    * Sets the write rate limit for this web connection. A rate limit
+    * of 0 indicates no rate limit.
+    * 
+    * @param rateLimit the write rate limit in bytes/second for this web
+    *                  connection.
+    */
+   public void setWriteRateLimit(long rateLimit);
+   
+   /**
+    * Gets the write rate limit for this web connection. A rate limit
+    * of 0 indicates no rate limit.
+    * 
+    * @return the write rate limit in bytes/second for this web connection.
+    */
+   public long getWriteRateLimit();
    
    /**
     * Returns true if this web connection is connected, false if it is not.

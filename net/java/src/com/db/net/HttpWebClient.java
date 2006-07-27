@@ -75,6 +75,14 @@ public class HttpWebClient
       "Digital Bazaar Http Client 1.0";
    
    /**
+    * Creates a new http web client with no specified endpoint address.
+    */
+   public HttpWebClient()   
+   {
+      this("");
+   }
+   
+   /**
     * Creates a new http web client with the given endpoint address.
     * 
     * @param endpointAddress the endpoint address to connect to.
@@ -172,7 +180,7 @@ public class HttpWebClient
     * 
     * @return the web connection to the web service or null if failure.
     */
-   protected WebConnection getWebConnection()
+   protected HttpWebConnection getWebConnection()
    {
       HttpWebConnection hwc = null;
       
@@ -224,14 +232,38 @@ public class HttpWebClient
    }
    
    /**
-    * Attempts to connect to the web service. If a connection cannot be
-    * established, the connection will be retried multiple times.
+    * Attempts to connect to the web service at the stored end point address.
+    * If a connection cannot be established, the connection will be retried
+    * multiple times.
     * 
     * @return the web connection to the web service or null if failure.
     */
-   public WebConnection connect()
+   public HttpWebConnection connect()   
    {
-      WebConnection wc = null;
+      HttpWebConnection rval = null;
+      
+      if(!getEndpointAddress().equals(""))
+      {
+         rval = connect(getEndpointAddress());
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Attempts to connect to the web service. If a connection cannot be
+    * established, the connection will be retried multiple times.
+    * 
+    * @param endpointAddress the endpoint address to connect to.
+    * 
+    * @return the web connection to the web service or null if failure.
+    */
+   public HttpWebConnection connect(String endpointAddress)
+   {
+      HttpWebConnection wc = null;
+      
+      // set the end point address
+      setEndpointAddress(endpointAddress);
       
       getLogger().debug(getClass(), 
          "trying to establish an http web connection...");
@@ -388,7 +420,7 @@ public class HttpWebClient
       File rval = null;
       
       // get a web connection
-      HttpWebConnection connection = (HttpWebConnection)connect();
+      HttpWebConnection connection = connect();
       if(connection != null)
       {
          // create http web request

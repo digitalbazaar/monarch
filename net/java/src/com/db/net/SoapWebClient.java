@@ -360,7 +360,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          if(sm != null)
          {
             // connect to the soap server
-            HttpWebConnection hwc = (HttpWebConnection)connect();
+            HttpWebConnection hwc = connect();
             if(hwc != null)
             {
                try
@@ -433,7 +433,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
       // sent http get request
       try
       {
-         HttpWebConnection hwc = (HttpWebConnection)connect();
+         HttpWebConnection hwc = connect();
          if(hwc != null)
          {
             // create http web request

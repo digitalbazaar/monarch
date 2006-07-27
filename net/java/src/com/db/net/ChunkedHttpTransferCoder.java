@@ -94,10 +94,11 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
     * @return the total number of bytes written.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
    protected long writeHttpBodyImpl(
       HttpHeader header, InputStream bodyStream, HttpWebConnection hwc)
-   throws IOException
+   throws IOException, InterruptedException
    {
       long rval = 0;
       
@@ -127,10 +128,11 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
     * @return the total number of bytes read.
     * 
     * @throws IOException
+    * @throws InterruptedException
     */
    protected long readHttpBodyImpl(
       HttpHeader header, HttpWebConnection hwc, OutputStream os)
-   throws IOException
+   throws IOException, InterruptedException
    {
       long rval = 0;
       
@@ -217,9 +219,10 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
        * @return the number of body bytes read.
        * 
        * @throws IOException
+       * @throws InterruptedException
        */
       public int read(HttpHeader header, HttpWebConnection hwc, OutputStream os)
-      throws IOException
+      throws IOException, InterruptedException
       {
          int rval = 0;
          
@@ -310,9 +313,10 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
        * @return the number of body bytes written.
        * 
        * @throws IOException
+       * @throws InterruptedException
        */
       public int write(HttpHeader header, InputStream is, HttpWebConnection hwc)
-      throws IOException
+      throws IOException, InterruptedException
       {
          int rval = 0;
          

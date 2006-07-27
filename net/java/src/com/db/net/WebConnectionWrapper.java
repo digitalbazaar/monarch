@@ -44,20 +44,6 @@ public class WebConnectionWrapper implements WebConnection
    {
       mWebConnection.disconnect();
    }
-   
-   /**
-    * Writes data to the underlying web connection.
-    * 
-    * @param buffer the buffer to write data from to the web connection.
-    * @param offset the offset to start writing the data.
-    * @param length the amount of data to write.
-    * @throws IOException
-    */
-   public void write(byte[] buffer, int offset, int length)
-   throws IOException
-   {
-      getWebConnection().write(buffer, offset, length);
-   }
 
    /**
     * Reads data from the underlying web connection. The actual number of bytes
@@ -66,12 +52,15 @@ public class WebConnectionWrapper implements WebConnection
     * @param buffer the buffer to read data into from the web connection.
     * @param offset the offset to start writing the data into the buffer.
     * @param length the amount of data to read.
+    * 
     * @return the actual number of bytes read or -1 if there is no
     *         more data to read.
+    *         
     * @throws IOException
+    * @throws InterruptedException
     */
    public int read(byte[] buffer, int offset, int length)
-   throws IOException
+   throws IOException, InterruptedException
    {
       return getWebConnection().read(buffer, offset, length);
    }
@@ -84,12 +73,15 @@ public class WebConnectionWrapper implements WebConnection
     * @param buffer the buffer to read data into from the web connection.
     * @param offset the offset to start writing the data into the buffer.
     * @param length the amount of data to read.
+    * 
     * @return the actual number of bytes read or -1 if the end of the
     *         stream has been reached.
+    *         
     * @throws IOException
+    * @throws InterruptedException
     */
    public int blockedRead(byte[] buffer, int offset, int length)
-   throws IOException
+   throws IOException, InterruptedException
    {
       return getWebConnection().blockedRead(buffer, offset, length);
    }
@@ -105,10 +97,12 @@ public class WebConnectionWrapper implements WebConnection
     * @param buffer the buffer to write data from to this connection.
     * @param offset the offset to start writing the data.
     * @param length the amount of data to write.
+    * 
     * @throws IOException
+    * @throws InterruptedException
     */
    public void unread(byte[] buffer, int offset, int length)
-   throws IOException
+   throws IOException, InterruptedException
    {
       getWebConnection().unread(buffer, offset, length);
    }
@@ -120,11 +114,96 @@ public class WebConnectionWrapper implements WebConnection
     * will block until there is no more data to read or until it reads a line.
     * 
     * @return the read line or null if the end of the stream was reached.
+    * 
     * @throws IOException
+    * @throws InterruptedException
     */
-   public String readLine() throws IOException
+   public String readLine() throws IOException, InterruptedException
    {
       return getWebConnection().readLine();
+   }
+   
+   /**
+    * Gets the number of bytes read so far by the underlying web connection.
+    * 
+    * @return the number of bytes read so far by the underlying web connection.
+    */
+   public long getBytesRead()
+   {
+      return getWebConnection().getBytesRead();
+   }
+   
+   /**
+    * Writes data to the underlying web connection.
+    * 
+    * @param buffer the buffer to write data from to the web connection.
+    * @param offset the offset to start writing the data.
+    * @param length the amount of data to write.
+    * 
+    * @throws IOException
+    * @throws InterruptedException
+    */
+   public void write(byte[] buffer, int offset, int length)
+   throws IOException, InterruptedException
+   {
+      getWebConnection().write(buffer, offset, length);
+   }
+   
+   /**
+    * Gets the number of bytes written so far by the underlying web connection.
+    * 
+    * @return the number of bytes written so far by the underlying
+    *         web connection.
+    */
+   public long getBytesWritten()   
+   {
+      return getWebConnection().getBytesWritten();
+   }
+   
+   /**
+    * Sets the read rate limit for the underlying web connection. A rate limit
+    * of 0 indicates no rate limit.
+    * 
+    * @param rateLimit the read rate limit in bytes/second for this web
+    *                  connection.
+    */
+   public void setReadRateLimit(long rateLimit)
+   {
+      getWebConnection().setReadRateLimit(rateLimit);
+   }
+   
+   /**
+    * Gets the read rate limit for the underlying web connection. A rate limit
+    * of 0 indicates no rate limit.
+    * 
+    * @return the read rate limit in bytes/second for this web connection.
+    */
+   public long getReadRateLimit()
+   {
+      return getWebConnection().getReadRateLimit();
+   }
+
+   /**
+    * Sets the write rate limit for the underlying web connection. A rate limit
+    * of 0 indicates no rate limit.
+    * 
+    * @param rateLimit the write rate limit in bytes/second for this web
+    *                  connection.
+    */
+   public void setWriteRateLimit(long rateLimit)
+   {
+      getWebConnection().setWriteRateLimit(rateLimit);
+   }
+   
+   /**
+    * Gets the write rate limit for the underlying web connection. A rate limit
+    * of 0 indicates no rate limit.
+    * 
+    * @return the write rate limit in bytes/second for this web connection.
+    */
+   public long getWriteRateLimit()   
+   {
+      return getWebConnection().getWriteRateLimit();
    }
    
    /**
@@ -173,6 +252,7 @@ public class WebConnectionWrapper implements WebConnection
     * 
     * @return the input stream used to read and unread from the underlying
     *         web connection.
+    *         
     * @throws IOException
     */
    public InputStream getReadStream()
@@ -185,6 +265,7 @@ public class WebConnectionWrapper implements WebConnection
     * Gets the output stream used to write to the underlying web connection.
     * 
     * @return the output stream used to write to the underlying web connection.
+    * 
     * @throws IOException
     */
    public OutputStream getWriteStream()
