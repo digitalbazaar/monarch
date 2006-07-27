@@ -24,8 +24,7 @@ import javax.swing.table.TableCellRenderer;
  * @author Dave Longley
  */
 public class JComponentCellRenderer extends JComponent
-                                    implements ListCellRenderer,
-                                               TableCellRenderer
+implements ListCellRenderer, TableCellRenderer
 {
    /**
     * The component to paint with.
@@ -108,11 +107,8 @@ public class JComponentCellRenderer extends JComponent
     * 
     * @return A component whose paint() method will render the specified value.
     */
-   public Component getListCellRendererComponent(JList list,
-                                                 Object value,
-                                                 int index,
-                                                 boolean isSelected,
-                                                 boolean hasFocus)
+   public Component getListCellRendererComponent(
+      JList list, Object value, int index, boolean isSelected, boolean hasFocus)
    {
       if(value instanceof JComponent)
       {
@@ -124,24 +120,48 @@ public class JComponentCellRenderer extends JComponent
          mComponent = label;
       }
       
-      // for setting the current cell's colors
-      Color background;
-      
-      // if the cell is selected, set colors to list's selection colors
-      if(isSelected)
+      // set colors for component
+      if(mComponent instanceof FastProgressBar)
       {
-         background = list.getSelectionBackground();
+         // fast progress bar is currently a special case
+         FastProgressBar fpb = (FastProgressBar)mComponent;
+         
+         if(isSelected)
+         {
+            // use selected colors
+            fpb.useSelectedColors();
+         }
+         else
+         {
+            // reset colors
+            fpb.resetColors();
+         }
       }
       else
       {
-         background = list.getBackground();
-      }
+         // for setting the current cell's colors
+         Color foreground;
+         Color background;
+
+         // if the cell is selected, set colors to list's selection colors
+         if(isSelected)
+         {
+            foreground = list.getSelectionForeground();
+            background = list.getSelectionBackground();
+         }
+         else
+         {
+            foreground = list.getForeground();
+            background = list.getBackground();
+         }
       
-      // set the background color
-      if(mComponent != null)
-      {
-         mComponent.setBackground(background);
-      }      
+         // set the background color
+         if(mComponent != null)
+         {
+             mComponent.setForeground(foreground);
+             mComponent.setBackground(background);
+         }
+      }
       
       return mComponent;
    }
@@ -192,29 +212,54 @@ public class JComponentCellRenderer extends JComponent
          mComponent = label;
       }
       
-      // for setting the current cell's colors
-      Color background;
-        
-      // if the cell is selected, set colors to table's selection colors
-      if(isSelected)
+      // set colors for component
+      if(mComponent instanceof FastProgressBar)
       {
-         background = table.getSelectionBackground();
+         // fast progress bar is currently a special case
+         FastProgressBar fpb = (FastProgressBar)mComponent;
+         
+         if(isSelected)
+         {
+            // use selected colors
+            fpb.useSelectedColors();
+         }
+         else
+         {
+            // reset colors
+            fpb.resetColors();
+         }
       }
       else
       {
-         background = table.getBackground();
-      }
-        
-      // if its editable use the edit colors
-      if(hasFocus && table.isCellEditable(row, column))
-      {
-         background = UIManager.getColor("Table.focusCellBackground");
-      }
-        
-      // set the background color
-      if(mComponent != null)
-      {
-         mComponent.setBackground(background);
+         // for setting the current cell's colors
+         Color foreground;
+         Color background;
+           
+         // if the cell is selected, set colors to table's selection colors
+         if(isSelected)
+         {
+            foreground = table.getSelectionForeground();
+            background = table.getSelectionBackground();
+         }
+         else
+         {
+            foreground = table.getForeground();
+            background = table.getBackground();
+         }
+           
+         // if its editable use the edit colors
+         if(hasFocus && table.isCellEditable(row, column))
+         {
+            foreground = UIManager.getColor("Table.focusCellForeground");
+            background = UIManager.getColor("Table.focusCellBackground");
+         }
+           
+         // set the colors
+         if(mComponent != null)
+         {
+            mComponent.setForeground(foreground);
+            mComponent.setBackground(background);
+         }
       }
         
       return this;

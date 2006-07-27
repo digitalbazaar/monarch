@@ -68,9 +68,8 @@ public class JComponentCellEditor extends AbstractCellEditor
     *     
     * @return the component used for editing the cell. 
     */    
-   public Component getTableCellEditorComponent(JTable table, Object value,
-                                                boolean isSelected,
-                                                int row, int column)
+   public Component getTableCellEditorComponent(
+      JTable table, Object value, boolean isSelected, int row, int column)
    {
       mTable = table;
       

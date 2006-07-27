@@ -3,6 +3,8 @@
  */
 package com.db.gui;
 
+import java.awt.Color;
+
 import javax.swing.JComponent;
 
 import com.db.event.EventDelegate;
@@ -460,6 +462,37 @@ implements ChangeReporter, Comparable
    public String getText()
    {
       return mText;
+   }
+   
+   /**
+    * Resets the text, meter, and background colors for this progress bar.
+    */
+   public void resetColors()
+   {
+      // reset colors on UI
+      getFastProgressBarUI().resetTextAndMeterColors();
+      
+      // reset background
+      setBackground(getFastProgressBarUI().getDefaultBackgroundColor());
+   }   
+   
+   /**
+    * Uses the selected colors for this progress bar.
+    */
+   public void useSelectedColors()
+   {
+      // reset colors
+      resetColors();
+      
+      // swap colors
+      Color meterColor = getFastProgressBarUI().getMeterColor();
+      Color emptyMeterText = getFastProgressBarUI().getEmptyMeterTextColor();
+      Color fullMeterText = getFastProgressBarUI().getFullMeterTextColor();
+      
+      getFastProgressBarUI().setMeterColor(fullMeterText);
+      getFastProgressBarUI().setEmptyMeterTextColor(fullMeterText);
+      getFastProgressBarUI().setFullMeterTextColor(emptyMeterText);
+      setBackground(meterColor);
    }
    
    /**

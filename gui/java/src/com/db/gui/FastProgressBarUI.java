@@ -454,6 +454,16 @@ public class FastProgressBarUI extends ComponentUI
    }
    
    /**
+    * Gets the default background color.
+    * 
+    * @return the default background color.
+    */
+   public Color getDefaultBackgroundColor()
+   {
+      return UIManager.getColor("ProgressBar.background");
+   }
+   
+   /**
     * Resets the text colors to their default settings.
     */
    public void resetTextColors()
