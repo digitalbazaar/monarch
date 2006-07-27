@@ -390,19 +390,6 @@ public class Logger
             }
          }
          
-         if(System.err != null)
-         {
-            if(mConsoleVerbosity == NO_VERBOSITY)
-            {
-               mStreamToVerbosity.remove(System.err);
-            }
-            else
-            {
-               mStreamToVerbosity.put(
-                  System.err, new Double(mConsoleVerbosity));
-            }
-         }
-         
          rval = true;
       }
 
@@ -627,8 +614,8 @@ public class Logger
     * @param ps the print stream to modify.
     * @param verbosity the verbosity for the print stream.
     */
-   public synchronized void setPrintStreamVerbosity(PrintStream ps,
-                                                    double verbosity)
+   public synchronized void setPrintStreamVerbosity(
+      PrintStream ps, double verbosity)
    {
       if(ps != null)
       {
@@ -636,7 +623,7 @@ public class Logger
          {
             setFileVerbosity(verbosity);
          }
-         else if(ps == System.out || ps == System.err)
+         else if(ps == System.out)
          {
             setConsoleVerbosity(verbosity);
          }
@@ -785,8 +772,7 @@ public class Logger
                         }
                         else
                         {
-                           if(ps == System.out || ps == System.err||
-                              useCustomStreams)
+                           if(ps == System.out || useCustomStreams)
                            {
                               ps.println(logText);
                            }
