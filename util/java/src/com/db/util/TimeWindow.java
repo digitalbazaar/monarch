@@ -352,7 +352,7 @@ public class TimeWindow
     */
    public static double getItemsPerSecond(double items, double interval)
    {
-      // items / millisecond over 1000 = items / second
-      return getItemsPerMillisecond(items, interval) / 1000.0D;      
+      // items / millisecond * 1000 = items / second
+      return getItemsPerMillisecond(items, interval) * 1000.0D;      
    }
 }

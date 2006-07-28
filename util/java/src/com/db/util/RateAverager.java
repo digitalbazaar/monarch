@@ -193,6 +193,9 @@ public class RateAverager
       {
          // reset
          reset();
+
+         // now running
+         mRunning = true;
          
          // get the current time
          long now = System.currentTimeMillis();
@@ -319,7 +322,7 @@ public class RateAverager
     * @return the amount of time (in milliseconds) that this RateAverager
     *         has been running or was run.
     */
-   public long getRunTime()
+   public synchronized long getRunTime()
    {
       long rval = 0;
       
