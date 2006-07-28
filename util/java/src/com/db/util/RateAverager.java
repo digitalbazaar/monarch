@@ -235,6 +235,15 @@ public class RateAverager
    }
    
    /**
+    * Restarts this rate averager. Calls stop() and then start().
+    */
+   public synchronized void restart()
+   {
+      stop();
+      start();
+   }
+   
+   /**
     * Gets whether or not this RateAverager is running.
     * 
     * @return true if this RateAverager is running, false if not.
