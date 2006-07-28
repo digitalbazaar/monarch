@@ -15,6 +15,16 @@ import com.db.logging.LoggerManager;
  * during a window of time divided by the time passed in the window produces
  * the average rate.
  * 
+ * This RateAverager uses two consecutive time windows for storing item
+ * count increases. There is a "current window" and a "next window". The
+ * next window overlaps the current window by half of its length. When
+ * a call is made to the RateAverager to increase the item count, the
+ * item counts of the two windows are updated according to whether or not
+ * the current time falls within their ranges.
+ * 
+ * The current window will move to the next window and a new next window
+ * will be created as time progresses.
+ * 
  * @author Dave Longley
  */
 public class RateAverager
@@ -116,18 +126,23 @@ public class RateAverager
    }
    
    /**
-    * Updates the current and next windows with a new start time.
+    * Updates the current and next windows with a new start time. This will
+    * reset the windows.
     * 
     * @param time the new start time for the current window.
     */
    protected synchronized void setWindowStartTimes(long time)
    {
+      // reset the windows
+      getCurrentWindow().reset();
+      getNextWindow().reset();
+      
       // update the current window start time
-      getCurrentWindow().setStartTime(time, true);
+      getCurrentWindow().setStartTime(time);
       
       // get the next window start time
       long half = Math.round(time / 2.0D);
-      getNextWindow().setStartTime(time + half, true);
+      getNextWindow().setStartTime(time + half);
    }
    
    /**
@@ -328,14 +343,35 @@ public class RateAverager
     * 
     * @return the current rate in items per second.
     */
-   public double getCurrentRate()
+   public synchronized double getCurrentRate()
    {
       double rval = 0.0D;
       
       // make sure that the start time is not 0
       if(getStartTime() != 0)
       {
-         rval = getCurrentWindow().getIncreaseRate(System.currentTimeMillis());
+         // get the current time
+         long now = System.currentTimeMillis();
+         
+         // see if the current time does not fall within the current window
+         if(!getCurrentWindow().isTimeInWindow(now))
+         {
+            // see if the current time falls in the next window
+            if(getNextWindow().isTimeInWindow(now))
+            {
+               // time is in the next window, so move the current window
+               moveCurrentWindow();
+            }
+            else
+            {
+               // time is ahead of both windows, so set new start times
+               // for the windows
+               setWindowStartTimes(now);
+            }
+         }
+         
+         // get the current window rate
+         rval = getCurrentWindow().getIncreaseRate(now);
       }
       
       return rval;      
@@ -353,7 +389,7 @@ public class RateAverager
     * 
     * @return the total rate since the RateAverager was started.
     */
-   public double getTotalRate()
+   public synchronized double getTotalRate()
    {
       double rval = 0.0D;
       
