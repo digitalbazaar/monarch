@@ -47,8 +47,8 @@ public class UTRateAverager
          LoggerManager.setFile("dbutil", "ut-rateaverager.log", false);
          LoggerManager.setFileVerbosity("dbutil", Logger.DETAIL_VERBOSITY);
          
-         // create the rate averager with the default window length
-         smRateAverager = new RateAverager(100);
+         // create the rate averager
+         smRateAverager = new RateAverager(100, 1);
          
          // start rate averager
          smRateAverager.start();
