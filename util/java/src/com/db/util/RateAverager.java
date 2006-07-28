@@ -223,6 +223,9 @@ public class RateAverager
    {
       if(isRunning())
       {
+         // no longer running
+         mRunning = false;
+         
          // set stop time
          setStopTime(System.currentTimeMillis());
          
