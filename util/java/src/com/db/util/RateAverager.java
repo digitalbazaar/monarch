@@ -228,6 +228,9 @@ public class RateAverager
       // determine the rate for the items
       double rate = getItemsPerMillisecond(items, interval);
       
+      // get the time passed since the last item add time
+      // FIXME:
+      
       // add items as if the rate had been spread across the whole window
       mWindowItemCount += rate * getWindowLength();
       
