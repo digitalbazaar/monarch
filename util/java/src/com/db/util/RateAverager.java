@@ -406,6 +406,9 @@ public class RateAverager
          long overlap = getCurrentWindow().getCurrentTime() + interval -
             getNextWindow().getStartTime();
          
+         // subtract the amount of time already in the next window
+         overlap -= getNextWindow().getCurrentTime();
+         
          if(overlap > 0)
          {
             // get the portion of the item count in the overlap
