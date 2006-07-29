@@ -48,7 +48,7 @@ public class UTRateAverager
          LoggerManager.setFileVerbosity("dbutil", Logger.DETAIL_VERBOSITY);
          
          // create the rate averager
-         smRateAverager = new RateAverager(100);
+         smRateAverager = new RateAverager(2000);
          
          // start rate averager
          smRateAverager.start();
@@ -56,62 +56,24 @@ public class UTRateAverager
          // print rate
          printRate();
          
-         // increase item count
-         Thread.sleep(1);
-         smRateAverager.increaseItemCount(1);
-         
-         // print rate
-         printRate();
-         
-         // increase item count
-         Thread.sleep(1);
-         smRateAverager.increaseItemCount(1);
+         // add rate
+         smRateAverager.addRate(300, 1500);
          
          // print rate
          printRate();
 
-         // increase item count
-         Thread.sleep(1);
-         smRateAverager.increaseItemCount(1);
+         // add rate
+         smRateAverager.addRate(199, 1000);
          
          // print rate
          printRate();
          
-         // increase item count
-         Thread.sleep(1);
-         smRateAverager.increaseItemCount(1);
-         
-         // print rate
-         printRate();
-
-         // increase item count
-         Thread.sleep(1);
-         smRateAverager.increaseItemCount(1);
+         // add rate
+         smRateAverager.addRate(201, 1000);
          
          // print rate
          printRate();
 
-         // increase item count
-         Thread.sleep(1);
-         smRateAverager.increaseItemCount(1);
-         
-         // print rate
-         printRate();
-         
-         // increase item count
-         Thread.sleep(4);
-         smRateAverager.increaseItemCount(4);
-         
-         // print rate
-         printRate();
-
-         // increase item count
-         Thread.sleep(1);
-         smRateAverager.increaseItemCount(1);
-         
-         // print rate
-         printRate();
-         
          // stop rate averager
          smRateAverager.stop();
          

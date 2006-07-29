@@ -25,6 +25,8 @@ import com.db.logging.LoggerManager;
  * The current window will move to the next window and a new next window
  * will be created as time progresses.
  * 
+ * The time that this RateAverager uses can be relative or absolute.
+ * 
  * @author Dave Longley
  */
 public class RateAverager
@@ -43,6 +45,22 @@ public class RateAverager
     * The time (in milliseconds) at which this RateAverager stopped.
     */
    protected long mStopTime;
+   
+   /**
+    * The time (in milliseconds) that has passed since this RateAverager
+    * started.
+    */
+   protected long mTimePassed;
+   
+   /**
+    * The last time that time (in milliseconds) that a rate was added to this
+    * window. This is used to help convenience methods that can add the amount
+    * of time (in milliseconds) since the last addition of time to this
+    * window.
+    * 
+    * Uses absolute time only.
+    */
+   protected long mLastAddTime;
    
    /**
     * The current time window.
@@ -108,6 +126,12 @@ public class RateAverager
       setStartTime(0);
       setStopTime(0);
       
+      // reset time passed
+      mTimePassed = 0;
+      
+      // reset last time a rate was added
+      mLastAddTime = System.currentTimeMillis();
+
       // reset the windows
       resetWindows();
       
@@ -127,6 +151,8 @@ public class RateAverager
    /**
     * Sets the time (in milliseconds) at which this RateAverager started.
     * 
+    * The start time that this RateAverager uses can be relative or absolute.
+    * 
     * @param time the time (in milliseconds) at which this RateAverager started.
     */
    protected void setStartTime(long time)
@@ -137,6 +163,8 @@ public class RateAverager
    /**
     * Sets the time (in milliseconds) at which this RateAverager stopped.
     * 
+    * The stop time that this RateAverager uses can be relative or absolute.
+    * 
     * @param time the time (in milliseconds) at which this RateAverager stopped.
     */
    protected void setStopTime(long time)
@@ -145,16 +173,12 @@ public class RateAverager
    }
    
    /**
-    * Updates the current and next windows with a new start time. This will
-    * reset the windows.
+    * Updates the current and next windows with a new start time.
     * 
     * @param time the new start time for the current window.
     */
    protected void setWindowStartTimes(long time)
    {
-      // reset the windows
-      resetWindows();
-      
       // set current window start time
       getCurrentWindow().setStartTime(time);
       
@@ -230,8 +254,22 @@ public class RateAverager
    /**
     * Starts this RateAverager if it hasn't already started. When a
     * RateAverager starts, it clears all of its previously calculated data.
+    * 
+    * Uses a start time of 0.
     */
-   public synchronized void start()
+   public synchronized void start()   
+   {
+      start(0);
+   }
+   
+   /**
+    * Starts this RateAverager if it hasn't already started. When a
+    * RateAverager starts, it clears all of its previously calculated data.
+    * 
+    * @param time the start time to use (in milliseconds) -- can be absolute
+    *             or relative.
+    */
+   public synchronized void start(long time)
    {
       if(!isRunning())
       {
@@ -241,14 +279,11 @@ public class RateAverager
          // now running
          mRunning = true;
          
-         // get the current time
-         long now = System.currentTimeMillis();
-         
          // set start time
-         setStartTime(now);
+         setStartTime(time);
          
          // set window start times
-         setWindowStartTimes(now);
+         setWindowStartTimes(time);
          
          getLogger().detail(getClass(), "RateAverager started.");
       }
@@ -257,13 +292,29 @@ public class RateAverager
          getLogger().detail(getClass(), "RateAverager already started.");
       }
    }
+   
+   /**
+    * Stops this RateAverager if it is running. The calculated data for this
+    * RateAverager will not be cleared when the RateAverager stops, it will
+    * be cleared if start() is called again afterwards.
+    * 
+    * Uses a stop time of getCurrentTime().
+    */
+   public synchronized void stop()   
+   {
+      // stop at the current time
+      stop(getCurrentTime());
+   }
 
    /**
     * Stops this RateAverager if it is running. The calculated data for this
     * RateAverager will not be cleared when the RateAverager stops, it will
     * be cleared if start() is called again afterwards.
+    * 
+    * @param time the stop time to use (in milliseconds) -- can be absolute
+    *             or relative.
     */
-   public synchronized void stop()
+   public synchronized void stop(long time)
    {
       if(isRunning())
       {
@@ -271,7 +322,7 @@ public class RateAverager
          mRunning = false;
          
          // set stop time
-         setStopTime(System.currentTimeMillis());
+         setStopTime(time);
          
          getLogger().detail(getClass(), "RateAverager stopped.");
       }
@@ -283,11 +334,25 @@ public class RateAverager
    
    /**
     * Restarts this rate averager. Calls stop() and then start().
+    * 
+    * Uses a stop time of getCurrentTime() and a start time of 0.
     */
    public synchronized void restart()
    {
-      stop();
-      start();
+      stop(getCurrentTime());
+      start(0);
+   }   
+   
+   /**
+    * Restarts this rate averager. Calls stop() and then start().
+    * 
+    * @param time the restart time to use (in milliseconds) -- can be absolute
+    *             or relative.
+    */
+   public synchronized void restart(long time)
+   {
+      stop(time);
+      start(time);
    }
    
    /**
@@ -301,45 +366,116 @@ public class RateAverager
    }
    
    /**
-    * Increases the item count of the current window in this RateAverager.
+    * Adds a new rate to this RateAverager. Increases the item count and
+    * the amount of time passed for the current window in this RateAverager.
     * 
-    * @param increase the amount to increase the number of items by.
+    * The amount of time passed is updated by the amount of time that
+    * has passed since the last time a rate was added. If a rate hasn't
+    * been added yet, then the amount of time since this RateAverager
+    * started will be added. 
+    * 
+    * @param count the amount of items to increase the item count by.
     */
-   public synchronized void increaseItemCount(long increase)
+   public synchronized void addRate(long count)   
    {
-      // get the current time
-      long now = System.currentTimeMillis();
+      // add count and the amount of time passed since the last add
+      addRate(count, System.currentTimeMillis() - mLastAddTime);
+   }
+   
+   /**
+    * Adds a new rate to this RateAverager. Increases the item count and
+    * the amount of time passed for the current window in this RateAverager.
+    * 
+    * @param count the amount of items to increase the item count by.
+    * @param interval the interval overwhich the item count increased
+    *                 (in milliseconds).
+    */
+   public synchronized void addRate(long count, long interval)
+   {
+      // increase the time passed
+      mTimePassed = Math.max(0, mTimePassed + interval);
       
-      // see if the current time falls within the current window
-      if(getCurrentWindow().isTimeInWindow(now))
+      // FIXME: time just continually adds in UILauncher fix it
+      
+      // get the remaining time in the current window
+      long remaining = getCurrentWindow().getRemainingTime();
+      
+      // see if the interval can be added to the current window without
+      // overflowing
+      if(interval < remaining)
       {
-         // increase item count of the current window
-         getCurrentWindow().increaseItemCount(increase);
+         // get the overlap time between the current window and the next window
+         long overlap = getCurrentWindow().getCurrentTime() + interval -
+            getNextWindow().getStartTime();
          
-         // see if the time falls in next window as well
-         if(getNextWindow().isTimeInWindow(now))
+         if(overlap > 0)
          {
-            // increase item count of the next window
-            getNextWindow().increaseItemCount(increase);
+            // get the portion of the item count in the overlap
+            double rate = TimeWindow.getItemsPerMillisecond(count, interval);
+            long portion = Math.round(rate * overlap);
+            
+            // increase the next window count and time
+            getNextWindow().increaseItemCount(portion, overlap);
          }
-      }
-      else if(getNextWindow().isTimeInWindow(now))
-      {
-         // time falls within the next window, but not the current one
-         // so update the next window and then move the current window
-         getNextWindow().increaseItemCount(increase);
          
-         // move current window
-         moveCurrentWindow();
+         // add the count and interval to the current window
+         getCurrentWindow().increaseItemCount(count, interval);
       }
       else
       {
-         // the windows have already passed, so update window starting times
-         setWindowStartTimes(now);
+         // there is overflow, so we'll be moving windows
+         
+         // get the overflow of the interval that cannot be added to
+         // the current window
+         long overflow = interval - remaining;
+         
+         // add the amount of time it takes to get the next window up to
+         // the end of the current window
+         overflow += getCurrentWindow().getEndTime() -
+            getNextWindow().getCurrentTime();
+         
+         // get the remaining time in the next window
+         remaining = getNextWindow().getRemainingTime();
+         
+         // see if the overflow can be added to the next window
+         if(overflow < remaining)
+         {
+            // get the portion of the item count in the overflow
+            double rate = TimeWindow.getItemsPerMillisecond(count, interval);
+            long portion = Math.round(rate * overflow);
+            
+            // increase the next window count and time
+            getNextWindow().increaseItemCount(portion, overflow);
+            
+            // move the current window
+            moveCurrentWindow();
+         }
+         else
+         {
+            // reset the windows
+            resetWindows();
+            
+            // set the current window start time to half of a window - 1
+            // before the the current time
+            long startTime = getCurrentTime() - getHalfWindowLength() - 1;
+            setWindowStartTimes(startTime);
+
+            // get the remainder of the interval that will be used
+            long remainder = getCurrentTime() -
+               getCurrentWindow().getStartTime();
+            
+            // add the portion of the item count to the current window
+            double rate = TimeWindow.getItemsPerMillisecond(count, interval);
+            long portion = Math.round(rate * remainder);
+            getCurrentWindow().increaseItemCount(portion, remainder);
+         }
       }
       
       // add items to the total item count
-      mTotalItemCount = Math.max(0, mTotalItemCount + increase);
+      mTotalItemCount = Math.max(0, mTotalItemCount + count);
+      
+      // update the last rate add time
+      mLastAddTime = System.currentTimeMillis();
    }
    
    /**
@@ -365,8 +501,19 @@ public class RateAverager
    }
    
    /**
-    * Gets the total amount of time that this RateAverager has been
-    * running or was run.
+    * Gets the current time in this RateAverager. The current time in this
+    * RateAverager is the start time plus the time passed.
+    * 
+    * @return the current time in this RateAverager.
+    */
+   public synchronized long getCurrentTime()
+   {
+      return getStartTime() + getTimePassed();
+   }
+   
+   /**
+    * Gets the amount of time (in milliseconds) that has passed since
+    * this RateAverager started.
     * 
     * If this RateAverager is currently running, the amount of time it
     * has been running is returned.
@@ -376,16 +523,16 @@ public class RateAverager
     * 
     * If this RateAverager has not started, 0 is returned.
     * 
-    * @return the amount of time (in milliseconds) that this RateAverager
-    *         has been running or was run.
+    * @return the amount of time (in milliseconds) that has passed since this
+    *         RateAverager started.
     */
-   public synchronized long getRunTime()
+   public synchronized long getTimePassed()
    {
       long rval = 0;
       
       if(isRunning())
       {
-         rval = System.currentTimeMillis() - getStartTime();
+         rval = mTimePassed;
       }
       else
       {
@@ -407,30 +554,11 @@ public class RateAverager
    {
       double rval = 0.0D;
       
-      // make sure that the start time is not 0
-      if(getStartTime() != 0)
+      // make sure that the current time is greater than 0
+      if(getCurrentTime() > 0)
       {
-         // get the current time
-         long now = System.currentTimeMillis();
-         
-         // see if the current time does not fall within the current window
-         if(!getCurrentWindow().isTimeInWindow(now))
-         {
-            // see if the current time falls in the next window
-            if(getNextWindow().isTimeInWindow(now))
-            {
-               // move the current window
-               moveCurrentWindow();
-            }
-            else
-            {
-               // time is ahead of both windows, so set new start times
-               setWindowStartTimes(now);
-            }
-         }
-         
          // get the current window rate
-         rval = getCurrentWindow().getIncreaseRate(now);
+         rval = getCurrentWindow().getIncreaseRate();
       }
       
       return rval;      
@@ -452,11 +580,11 @@ public class RateAverager
    {
       double rval = 0.0D;
       
-      // make sure that the start time is not 0
-      if(getStartTime() != 0)
+      // make sure that the current time is greater than 0
+      if(getCurrentTime() > 0)
       {
          // get the rate in items per second
-         rval = TimeWindow.getItemsPerSecond(mTotalItemCount, getRunTime());
+         rval = TimeWindow.getItemsPerSecond(mTotalItemCount, getTimePassed());
       }
       
       return rval;

@@ -11,6 +11,8 @@ import com.db.logging.LoggerManager;
  * period of time. It can provide the rate at which the number of items
  * increased over that period of time.
  * 
+ * The time used in this window can be absolute or relative.
+ * 
  * @author Dave Longley
  */
 public class TimeWindow
@@ -29,6 +31,21 @@ public class TimeWindow
     * The number of items in this window.
     */
    protected long mItemCount;
+   
+   /**
+    * The amount of time (in milliseconds) that has passed in this window.
+    */
+   protected long mTimePassed;
+   
+   /**
+    * The last time that time (in milliseconds) that time was added to this
+    * window. This is used to help convenience methods that can add the amount
+    * of time (in milliseconds) since the last addition of time to this
+    * window.
+    * 
+    * Uses absolute time only.
+    */
+   protected long mLastAddTime;
    
    /**
     * Creates a new empty TimeWindow with no maximum length.
@@ -64,22 +81,26 @@ public class TimeWindow
     */
    protected synchronized void adjustItemCount(long timeChange)
    {
-      // get the current time
-      long now = System.currentTimeMillis();
-      
       // multiply the current rate by the time change and
       // increase the item count accordingly
-      increaseItemCount(Math.round(getIncreaseRate(now) * timeChange));      
+      increaseItemCount(Math.round(getIncreaseRate() * timeChange));      
    }
    
    /**
-    * Resets this window. This method will restore the start time and
-    * item count for this window to 0.
+    * Resets this window. This method will restore the start time, item
+    * count, and time passed in this window to 0.
+    * 
+    * This method will also reset the last time that time was added to
+    * this interval to the current time.
     */
    public synchronized void reset()
    {
       mStartTime = 0;
       mItemCount = 0;
+      mTimePassed = 0;
+      
+      // reset the last time that time was added
+      mLastAddTime = System.currentTimeMillis();
    }
    
    /**
@@ -100,14 +121,12 @@ public class TimeWindow
     * this window. The current rate is the item count over the amount of
     * time passed within this window.
     * 
-    * @param now the current time.
-    * 
     * @return the current rate in items per second.
     */
-   public synchronized double getIncreaseRateInItemsPerMillisecond(long now)   
+   public synchronized double getIncreaseRateInItemsPerMillisecond()   
    {
       // get the rate in items per millisecond
-      return getItemsPerMillisecond(getItemCount(), getInterval(now));      
+      return getItemsPerMillisecond(getItemCount(), getTimePassed());      
    }
    
    /**
@@ -115,14 +134,12 @@ public class TimeWindow
     * this window. The current rate is the item count over the amount of
     * time passed within this window.
     * 
-    * @param now the current time.
-    * 
     * @return the current rate in items per second.
     */
-   public synchronized double getIncreaseRate(long now)
+   public synchronized double getIncreaseRate()
    {
       // get the rate in items per second
-      return getItemsPerSecond(getItemCount(), getInterval(now));
+      return getItemsPerSecond(getItemCount(), getTimePassed());
    }
    
    /**
@@ -228,10 +245,10 @@ public class TimeWindow
    }
    
    /**
-    * Gets the time at which this window ends. This returns 0 if there
-    * is no maximum length for this window.
+    * Gets the time (in milliseconds) at which this window ends. This
+    * returns 0 if there is no maximum length for this window.
     * 
-    * @return the time at which this window ends.
+    * @return the time at which this window ends (in milliseconds).
     */
    public long getEndTime()
    {
@@ -239,17 +256,40 @@ public class TimeWindow
       
       if(getLength() > 0)
       {
-         rval = getStartTime() + getLength();
+         rval = getStartTime() + getLength() - 1;
       }
       
       return rval;
    }
    
    /**
-    * Returns true if the passed time falls within this window, false
-    * if not.
+    * Gets the current time (in milliseconds) in this window. The current
+    * time in this window is the start time plus the time passed in this window.
     * 
-    * @param time the time to check against this window.
+    * @return the current time (in milliseconds) in this window.
+    */
+   public synchronized long getCurrentTime()
+   {
+      return getStartTime() + getTimePassed();
+   }
+   
+   /**
+    * Gets the amount of time (in milliseconds) left in this window. The
+    * amount of time left in this window is the end time minus the current
+    * time. 
+    * 
+    * @return the amount of time (in milliseconds) left in this window.
+    */
+   public synchronized long getRemainingTime()
+   {
+      return getEndTime() - getCurrentTime();
+   }
+   
+   /**
+    * Returns true if the passed time  (in milliseconds) falls within this
+    * window, false if not.
+    * 
+    * @param time the time (in milliseconds) to check against this window.
     * 
     * @return true if the passed time is in this window, false if not.
     */
@@ -262,7 +302,7 @@ public class TimeWindow
       {
          // make that there is no maximum length or the time falls within
          // the maximum length
-         if(getLength() == 0 || time <= getEndTime())
+         if(getLength() == 0 || time < getEndTime())
          {
             rval = true;
          }
@@ -272,15 +312,67 @@ public class TimeWindow
    }
    
    /**
-    * Increases the item count in this window. There is no measure in place
-    * to ensure that items aren't added to this window once it has already
-    * ended.
+    * Increases the item count in this window. The amount of time passed
+    * in this window is unaffected by this method.
+    * 
+    * There is no measure in place to ensure that items aren't added to
+    * this window once it has already ended.
     * 
     * @param increase the amount of items to increase by.
     */
    public synchronized void increaseItemCount(long increase)
    {
       mItemCount = Math.max(0, mItemCount + increase);
+   }
+   
+   /**
+    * Increases the item count over a period of time. The amount of time
+    * passed in this window is increased by the passed interval.
+    * 
+    * There is no measure in place to ensure that items aren't added to
+    * this window once it has already ended.
+    * 
+    * @param increase the amount of items to increase by.
+    * @param interval the interval during which the item increase took place
+    *                 (in milliseconds).
+    */
+   public synchronized void increaseItemCount(long increase, long interval)   
+   {
+      increaseItemCount(increase);
+      increaseTimePassed(interval);
+   }
+   
+   /**
+    * Adds time (in milliseconds) to this window.
+    *  
+    * @param time the interval of time (in milliseconds) to add to
+    *             this window.
+    */
+   public synchronized void increaseTimePassed(long time) 
+   {
+      mTimePassed = Math.max(0, mTimePassed + time);
+
+      // see if this window has a maximum length
+      if(getLength() != 0)
+      {
+         // cap time passed at the length of the window
+         mTimePassed = Math.min(mTimePassed, getLength());
+      }
+      
+      // update last time that time was added
+      mLastAddTime = System.currentTimeMillis();
+   }
+   
+   /**
+    * Adds the amount of time (in milliseconds) since the last time
+    * that time was added to this window to this window. If time was never
+    * added to this window, then the time since the last time this
+    * window was reset will be added to this window.
+    */
+   public synchronized void increaseTimePassedWithCurrentTime()
+   {
+      // add the time since the last add time
+      increaseTimePassed(System.currentTimeMillis() - mLastAddTime);
    }
    
    /**
@@ -294,24 +386,14 @@ public class TimeWindow
    }
    
    /**
-    * Gets the current interval between now (the time passed) and the
-    * start of the window, if the window has not ended. If the window
-    * has ended, then the window length is returned.
+    * Gets the amount of time (in milliseconds) that has passed in this window.
     * 
-    * @param now the current time.
-    * 
-    * @return the current interval in this window.
+    * @return the amount of time (in milliseconds) that has passed in this
+    *         window.
     */
-   public synchronized long getInterval(long now)
+   public long getTimePassed()
    {
-      // if the time is not in this window, then use the end time
-      if(!isTimeInWindow(now))
-      {
-         now = getEndTime();
-      }
-      
-      // get the current interval
-      return now - getStartTime();
+      return mTimePassed;
    }
    
    /**
