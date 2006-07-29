@@ -395,8 +395,6 @@ public class RateAverager
       // increase the time passed
       mTimePassed = Math.max(0, mTimePassed + interval);
       
-      // FIXME: time just continually adds in UILauncher fix it
-      
       // get the remaining time in the current window
       long remaining = getCurrentWindow().getRemainingTime();
       
