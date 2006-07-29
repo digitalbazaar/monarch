@@ -53,26 +53,190 @@ public class UTRateAverager
          // start rate averager
          smRateAverager.start();
          
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(760, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(811, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(811, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(760, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(811, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(760, 15);
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         
+         // windows start moving here, rates should stay the same
+         printRate();
+         smRateAverager.addRate(819, 16);
+         printRate();
+         smRateAverager.addRate(768, 15);
+         printRate();
+         smRateAverager.addRate(820, 16);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(768, 15);
+         smRateAverager.addRate(819, 16);
+         smRateAverager.addRate(819, 16);
+         
+         // print rate
+         printRate();
+         
+         /*
          // print rate
          printRate();
          
          // add rate
-         smRateAverager.addRate(300, 1500);
+         smRateAverager.addRate(50, 250);
+
+         // print rate
+         printRate();
          
+         // add rate
+         smRateAverager.addRate(49, 250);
+
+         // print rate
+         printRate();
+         
+         // add rate
+         smRateAverager.addRate(50, 250);
+
+         // print rate
+         printRate();
+         
+         // add rate
+         smRateAverager.addRate(50, 250);
+
          // print rate
          printRate();
 
          // add rate
-         smRateAverager.addRate(199, 1000);
-         
+         smRateAverager.addRate(51, 250);
+
          // print rate
          printRate();
-         
+
          // add rate
-         smRateAverager.addRate(201, 1000);
-         
+         smRateAverager.addRate(50, 250);
+
          // print rate
-         printRate();
+         printRate();*/
 
          // stop rate averager
          smRateAverager.stop();

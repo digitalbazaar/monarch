@@ -122,8 +122,9 @@ public class BandwidthThrottler
       // get the passed time in the current window
       double passedTime = System.currentTimeMillis() - getWindowTime();
       
-      // determine how many bytes are available given the passed time
-      mAvailableBytes = Math.round(passedTime / 1000D * getRateLimit());
+      // determine how many bytes are available given the passed time --
+      // use the floor so as not to go over the rate limit
+      mAvailableBytes = (long)Math.floor(passedTime / 1000D * getRateLimit());
       
       // subtract the number of bytes already granted in this window
       mAvailableBytes -= mBytesGranted;

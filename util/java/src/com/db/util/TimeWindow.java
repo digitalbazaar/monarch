@@ -105,7 +105,8 @@ public class TimeWindow
    
    /**
     * Sets this window equal to another window. The length, start time,
-    * and item count of the other window will be copied to this window.
+    * item count, time passed, and the last add time of the other window
+    * will be copied to this window.
     * 
     * @param window the window to set this window equal to.
     */
@@ -114,6 +115,8 @@ public class TimeWindow
       mLength = window.getLength();
       mStartTime = window.getStartTime();
       mItemCount = window.getItemCount();
+      mTimePassed = window.getTimePassed();
+      mLastAddTime = window.mLastAddTime;
    }
    
    /**
