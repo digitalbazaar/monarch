@@ -48,7 +48,7 @@ public class UTRateAverager
          LoggerManager.setFileVerbosity("dbutil", Logger.DETAIL_VERBOSITY);
          
          // create the rate averager
-         smRateAverager = new RateAverager(100, 1);
+         smRateAverager = new RateAverager(100);
          
          // start rate averager
          smRateAverager.start();

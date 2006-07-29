@@ -15,15 +15,15 @@ import com.db.logging.LoggerManager;
  * during a window of time divided by the time passed in the window produces
  * the average rate.
  * 
- * This RateAverager uses some number of consecutive time windows for
- * storing item count increases. There is a "current window" and N >= 1
- * "next windows". Each next window overlaps the preceeding window by
- * half of its length. When a call is made to the RateAverager to increase
- * the item count, the item counts of the two windows are updated according
- * to whether or not the current time falls within their ranges.
+ * This RateAverager uses 2 consecutive time windows for storing item count
+ * increases. There is a "current window" and a "next window". The next
+ * window overlaps the current window by half of its length. When a call is
+ * made to the RateAverager to increase the item count, the item counts 
+ * of the two windows are updated according to whether or not the current
+ * time falls within their ranges.
  * 
  * The current window will move to the next window and a new next window
- * will be created as time progresses. A minimnu
+ * will be created as time progresses.
  * 
  * @author Dave Longley
  */
@@ -45,10 +45,14 @@ public class RateAverager
    protected long mStopTime;
    
    /**
-    * The windows for this RateAverager.
-    * FIXME: use a linked list instead -- it would be far more efficient
+    * The current time window.
     */
-   protected TimeWindow[] mTimeWindows;
+   protected TimeWindow mCurrentWindow;
+   
+   /**
+    * The next time window.
+    */
+   protected TimeWindow mNextWindow;
    
    /**
     * The total item count since the RateAverage started.
@@ -56,37 +60,43 @@ public class RateAverager
    protected long mTotalItemCount;
    
    /**
-    * Creates a new RateAverager with a default window length of
-    * 10 milliseconds and 1 next window.
+    * Creates a new RateAverager a default window length of 1 second.
     */
    public RateAverager()
    {
-      this(10, 1);
+      this(1000);
    }
    
    /**
-    * Creates a new RateAverager with the given window length and number
-    * of next windows. The more next windows that are used the more
-    * accurate a transfer rate may be -- however, at a cost of memory
-    * and processing time.
+    * Creates a new RateAverager with the given window length.
+    * 
+    * The longer the window length, the more accurate an average rate will
+    * be over a long period of time, the shorter the window length the more
+    * accurate an average rate will be over a shorter period of time.
     * 
     * @param windowLength the length of the window to use in milliseconds.
-    * @param nextWindows the number of next windows to use.
     */
-   public RateAverager(long windowLength, int nextWindows)
+   public RateAverager(long windowLength)
    {
-      // create the windows (current window + next windows)
-      mTimeWindows = new TimeWindow[1 + nextWindows];
-      for(int i = 0; i < mTimeWindows.length; i++)
-      {
-         mTimeWindows[i] = new TimeWindow();
-      }
-      
-      // set the window length
-      setWindowLength(windowLength);
+      // create the windows
+      createWindows(windowLength);
       
       // reset
       reset();
+   }
+   
+   /**
+    * Creates the time windows.
+    * 
+    * @param windowLength the length of the windows to use in milliseconds.
+    */
+   protected void createWindows(long windowLength)
+   {
+      // create current window
+      mCurrentWindow = new TimeWindow(windowLength);
+      
+      // create next window
+      mNextWindow = new TimeWindow(windowLength);
    }
    
    /**
@@ -106,15 +116,12 @@ public class RateAverager
    }
    
    /**
-    * Resets all of the time windows.
+    * Resets the time windows.
     */
    protected void resetWindows()
    {
-      // reset windows
-      for(int i = 0; i < mTimeWindows.length; i++)
-      {
-         mTimeWindows[i].reset();
-      }
+      getCurrentWindow().reset();
+      getNextWindow().reset();
    }
    
    /**
@@ -143,17 +150,26 @@ public class RateAverager
     * 
     * @param time the new start time for the current window.
     */
-   protected synchronized void setWindowStartTimes(long time)
+   protected void setWindowStartTimes(long time)
    {
-      // reset windows and update the window times
-      for(int i = 0; i < mTimeWindows.length; i++)
-      {
-         mTimeWindows[i].reset();
-         mTimeWindows[i].setStartTime(time);
-         
-         // get the next window start time
-         time += Math.round(getWindowLength() / 2.0D);
-      }
+      // reset the windows
+      resetWindows();
+      
+      // set current window start time
+      getCurrentWindow().setStartTime(time);
+      
+      // set next window start time
+      getNextWindow().setStartTime(time + getHalfWindowLength());
+   }
+   
+   /**
+    * Gets half of the current window length. Rounds up.
+    * 
+    * @return half of the current window length, rounded up.
+    */
+   protected long getHalfWindowLength()
+   {
+      return Math.round(getWindowLength() / 2.0D);
    }
    
    /**
@@ -161,94 +177,54 @@ public class RateAverager
     * 
     * @param length the new window length.
     */
-   protected synchronized void updateWindowLengths(long length)
+   protected void updateWindowLengths(long length)
    {
-      // set lengths, adjusting items and setting new start times
-      long time = getCurrentWindow().getStartTime();
-      for(int i = 0; i < mTimeWindows.length; i++)
-      {
-         mTimeWindows[i].setLength(length, true);
-         mTimeWindows[i].setStartTime(time);
-         
-         // get the next window start time
-         time += Math.round(length / 2.0D);
-      }
+      // set the current window length, adjusting items
+      getCurrentWindow().setLength(length, true);
+      
+      // set the next window length, adjusting items
+      getNextWindow().setLength(length, true);
+      
+      // update the next window start time
+      getNextWindow().setStartTime(
+         getCurrentWindow().getStartTime() + getHalfWindowLength());
    }
    
    /**
-    * Moves the current window <code>n</code> positions and resets the
-    * last <code>n</code> next windows. This method assumes n >= 1.
-    * 
-    * @param n the number of window positions to move the current window.
+    * Moves the current window to the next window and resets the next
+    * window.
     */
-   protected synchronized void moveCurrentWindow(int n)
+   protected void moveCurrentWindow()
    {
-      // FIXME: use a linked list instead, it would be more efficient
-      // to just drop nodes
+      // set the current window to the next window
+      getCurrentWindow().setEqualTo(getNextWindow());
       
-      // move the first 'n' windows
-      for(int i = 0; i < (mTimeWindows.length - n); i++)
-      {
-         mTimeWindows[i].setEqualTo(mTimeWindows[i + n]);
-      }
+      // reset the next window
+      getNextWindow().reset();
       
-      // reset the last 'n' windows
-      long half = Math.round(getWindowLength() / 2.0D);
-      for(int i = n; i < mTimeWindows.length; i++)
-      {
-         mTimeWindows[i].reset();
-         mTimeWindows[i].setStartTime(
-            mTimeWindows[i - 1].getStartTime() + half);
-      }
+      // set the next window start time
+      getNextWindow().setStartTime(
+         getCurrentWindow().getStartTime() + getHalfWindowLength());
    }
    
    /**
-    * Gets the current window.
+    * Gets the current time window.
     * 
-    * @return the current window.
+    * @return the current time window.
     */
    protected TimeWindow getCurrentWindow()
    {
-      return mTimeWindows[0];
+      return mCurrentWindow;
    }
    
    /**
-    * Gets the first next window (immediately following the current window).
+    * Gets the next time window.
     * 
-    * @return the first next window (immediately following the current window).
+    * @return the next time window.
     */
-   protected TimeWindow getFirstNextWindow()
+   protected TimeWindow getNextWindow()
    {
-      return mTimeWindows[1];
-   }
-   
-   /**
-    * Gets the index of the last window the passed time is in, if any.
-    * 
-    * @param time the time to get the TimeWindow for.
-    * 
-    * @return the index of the last window the passed time is in or -1 if
-    *         the time isn't in any of the windows.
-    */
-   protected int getLastWindowIndex(long time)
-   {
-      int rval = -1;
-      
-      // get the current window start time
-      long startTime = getCurrentWindow().getStartTime();
-      
-      // get half of the window length
-      long half = Math.round(getWindowLength() / 2.0D);
-      
-      // get relative time (relative to first window start time)
-      double relativeTime = time - startTime;
-      
-      // FIXME:
-      // get window index
-      int index = (int)Math.round(relativeTime / getWindowLength());
-      rval = index;
-      
-      return rval;
+      return mNextWindow;
    }
    
    /**
@@ -334,36 +310,32 @@ public class RateAverager
       // get the current time
       long now = System.currentTimeMillis();
       
-      // see if the current time falls within the current or next window
+      // see if the current time falls within the current window
       if(getCurrentWindow().isTimeInWindow(now))
       {
          // increase item count of the current window
          getCurrentWindow().increaseItemCount(increase);
          
-         // see if the first next window should be increased as well
-         if(getFirstNextWindow().isTimeInWindow(now))
+         // see if the time falls in next window as well
+         if(getNextWindow().isTimeInWindow(now))
          {
-            // increase item count of the first next window
-            getFirstNextWindow().increaseItemCount(increase);
+            // increase item count of the next window
+            getNextWindow().increaseItemCount(increase);
          }
+      }
+      else if(getNextWindow().isTimeInWindow(now))
+      {
+         // time falls within the next window, but not the current one
+         // so update the next window and then move the current window
+         getNextWindow().increaseItemCount(increase);
+         
+         // move current window
+         moveCurrentWindow();
       }
       else
       {
-         // get the index of the last window the time is in
-         int index = getLastWindowIndex(now);
-         if(index != -1)
-         {
-            // increase item count of the window
-            mTimeWindows[index].increaseItemCount(increase);
-            
-            // move the current window
-            moveCurrentWindow(index);
-         }
-         else
-         {
-            // all windows have already passed, so update window starting times
-            setWindowStartTimes(now);
-         }
+         // the windows have already passed, so update window starting times
+         setWindowStartTimes(now);
       }
       
       // add items to the total item count
@@ -444,16 +416,15 @@ public class RateAverager
          // see if the current time does not fall within the current window
          if(!getCurrentWindow().isTimeInWindow(now))
          {
-            // get the last window the time falls in
-            int index = getLastWindowIndex(now);
-            if(index != -1)
+            // see if the current time falls in the next window
+            if(getNextWindow().isTimeInWindow(now))
             {
-               // move windows
-               moveCurrentWindow(index);
+               // move the current window
+               moveCurrentWindow();
             }
             else
             {
-               // time is ahead of all windows, so set new start times
+               // time is ahead of both windows, so set new start times
                setWindowStartTimes(now);
             }
          }
@@ -503,7 +474,7 @@ public class RateAverager
    {
       // the window length must be at least two because two windows that
       // are 1/2 of the window length apart are always stored -- and
-      // this RateAverager is only accurate to 1 millisecond, not less
+      // this RateAverager is only accurate to 1 whole millisecond
       length = Math.max(2, length);
       
       // update window lengths
