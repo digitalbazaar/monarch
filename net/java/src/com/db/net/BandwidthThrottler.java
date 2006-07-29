@@ -62,7 +62,7 @@ public class BandwidthThrottler
     * Updates the time at which a window for requesting data began --
     * if the last request time was long enough ago.
     */
-   protected synchronized void updateWindowTime()
+   protected void updateWindowTime()
    {
       // cap the number of bytes granted per window at Integer.MAX_VALUE
       // so that there isn't any overflow -- this should also be a
@@ -84,7 +84,7 @@ public class BandwidthThrottler
     * 
     * @return the time at which the current window for requesting data began.
     */
-   protected synchronized long getWindowTime()
+   protected long getWindowTime()
    {
       return mWindowTime;
    }
@@ -93,7 +93,7 @@ public class BandwidthThrottler
     * Updates the amount of time (in milliseconds) that must pass before
     * a byte is available.
     */
-   protected synchronized void updateAvailableByteTime()
+   protected void updateAvailableByteTime()
    {
       // the amount of time until a byte is available is 1000 milliseconds
       // divided by the rate in bytes/second, with a minimum of 1 millisecond
@@ -109,7 +109,7 @@ public class BandwidthThrottler
     * @return the amount of time (in milliseconds) that must pass before
     *         a byte is available.
     */
-   protected synchronized int getAvailableByteTime()
+   protected int getAvailableByteTime()
    {
       return mAvailableByteTime;
    }
@@ -117,7 +117,7 @@ public class BandwidthThrottler
    /**
     * Updates the number of bytes that are currently available.
     */
-   protected synchronized void updateAvailableBytes()
+   protected void updateAvailableBytes()
    {
       // get the passed time in the current window
       double passedTime = System.currentTimeMillis() - getWindowTime();
@@ -136,7 +136,7 @@ public class BandwidthThrottler
     * 
     * @return the number of bytes that are currently available.
     */
-   protected synchronized long getAvailableBytes()
+   protected long getAvailableBytes()
    {
       return mAvailableBytes;
    }
@@ -148,7 +148,7 @@ public class BandwidthThrottler
     * 
     * @throws InterruptedException
     */
-   protected synchronized void limitBandwidth() throws InterruptedException
+   protected void limitBandwidth() throws InterruptedException
    {
       // update the window time
       updateWindowTime();
@@ -224,7 +224,7 @@ public class BandwidthThrottler
     * 
     * @return the rate limit in bytes/second.
     */
-   public synchronized long getRateLimit()
+   public long getRateLimit()
    {
       return mRateLimit;
    }
