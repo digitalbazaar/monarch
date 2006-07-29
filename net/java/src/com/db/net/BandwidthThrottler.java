@@ -21,20 +21,21 @@ public class BandwidthThrottler
    protected long mWindowTime;
    
    /**
-    * The amount of time (in milliseconds) that must pass before a byte
-    * is available.
+    * The number of bytes that have been granted in the current window.
     */
-   protected long mAvailableByteTime;
+   protected long mBytesGranted;   
+   
+   /**
+    * The amount of time (in milliseconds) that must pass before a byte
+    * is available. This number is never more than 1000 and never less
+    * than 1.
+    */
+   protected int mAvailableByteTime;
    
    /**
     * The number of available bytes.
     */
-   protected int mAvailableBytes;
-   
-   /**
-    * The number of bytes that have been permitted in the current window.
-    */
-   protected int mBytesPermitted;
+   protected long mAvailableBytes;
    
    /**
     * Creates a new BandwidthThrottler.
@@ -44,6 +45,12 @@ public class BandwidthThrottler
     */
    public BandwidthThrottler(int rateLimit)
    {
+      // initialize the current window time
+      mWindowTime = System.currentTimeMillis();
+      
+      // initialize the number of bytes granted in the current window
+      mBytesGranted = 0;
+      
       // initialize the available number of bytes
       mAvailableBytes = 0;
       
@@ -57,11 +64,18 @@ public class BandwidthThrottler
     */
    protected synchronized void updateWindowTime()
    {
-      // set the current window time
-      mWindowTime = System.currentTimeMillis();
-      
-      // reset the bytes permitted in this window
-      mBytesPermitted = 0;
+      // cap the number of bytes granted per window at Integer.MAX_VALUE
+      // so that there isn't any overflow -- this should also be a
+      // sufficiently large enough number such that rate calculations
+      // aren't affected very often at all
+      if(mBytesGranted > Integer.MAX_VALUE)
+      {
+         // set the current window time
+         mWindowTime = System.currentTimeMillis();
+         
+         // reset the bytes already granted in this window
+         mBytesGranted = 0;
+      }
    }
    
    /**
@@ -89,12 +103,13 @@ public class BandwidthThrottler
    
    /**
     * Gets the amount of time (in milliseconds) that must pass before
-    * a byte is available.
+    * a byte is available. This number is never more than 1000 and never
+    * less than 1.
     * 
     * @return the amount of time (in milliseconds) that must pass before
     *         a byte is available.
     */
-   protected synchronized long getAvailableByteTime()
+   protected synchronized int getAvailableByteTime()
    {
       return mAvailableByteTime;
    }
@@ -108,11 +123,10 @@ public class BandwidthThrottler
       double passedTime = System.currentTimeMillis() - getWindowTime();
       
       // determine how many bytes are available given the passed time
-      long bytes = Math.round(passedTime / 1000D * getRateLimit());
-      mAvailableBytes = (int)Math.min(Integer.MAX_VALUE, bytes);
+      mAvailableBytes = Math.round(passedTime / 1000D * getRateLimit());
       
-      // subtract the number of bytes already permitted in this window
-      mAvailableBytes -= mBytesPermitted;
+      // subtract the number of bytes already granted in this window
+      mAvailableBytes -= mBytesGranted;
       mAvailableBytes = Math.max(0, mAvailableBytes);
    }
    
@@ -121,7 +135,7 @@ public class BandwidthThrottler
     * 
     * @return the number of bytes that are currently available.
     */
-   protected synchronized int getAvailableBytes()
+   protected synchronized long getAvailableBytes()
    {
       return mAvailableBytes;
    }
@@ -173,10 +187,10 @@ public class BandwidthThrottler
          limitBandwidth();
          
          // get the available bytes
-         rval = Math.min(getAvailableBytes(), count);
+         rval = Math.min((int)getAvailableBytes(), count);
          
-         // increment the bytes permitted
-         mBytesPermitted += rval;
+         // increment the bytes granted
+         mBytesGranted += rval;
       }
       else
       {
