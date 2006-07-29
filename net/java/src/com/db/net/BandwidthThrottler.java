@@ -45,22 +45,28 @@ public class BandwidthThrottler
     */
    public BandwidthThrottler(int rateLimit)
    {
-      // initialize the current window time
-      mWindowTime = System.currentTimeMillis();
-      
-      // initialize the number of bytes granted in the current window
-      mBytesGranted = 0;
-      
       // initialize the available number of bytes
       mAvailableBytes = 0;
       
-      // set the rate limit
+      // set the rate limit (will also reset the window time if necessary)
       setRateLimit(rateLimit);
    }
    
    /**
+    * Resets the window time.
+    */
+   protected void resetWindowTime()
+   {
+      // set the current window time
+      mWindowTime = System.currentTimeMillis();
+         
+      // reset the bytes already granted in this window
+      mBytesGranted = 0;
+   }
+   
+   /**
     * Updates the time at which a window for requesting data began --
-    * if the last request time was long enough ago.
+    * if the number of granted bytes in the current window is high enough.
     */
    protected void updateWindowTime()
    {
@@ -214,6 +220,9 @@ public class BandwidthThrottler
       
       if(mRateLimit > 0)
       {
+         // reset the window time
+         resetWindowTime();
+         
          // update the available byte time
          updateAvailableByteTime();
       }
