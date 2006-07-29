@@ -70,17 +70,21 @@ public class BandwidthThrottler
     */
    protected void updateWindowTime()
    {
+      // get the passed time in the current window
+      long passedTime = System.currentTimeMillis() - getWindowTime();
+      
       // cap the number of bytes granted per window at Integer.MAX_VALUE
       // so that there isn't any overflow -- this should also be a
       // sufficiently large enough number such that rate calculations
       // aren't affected very often at all
       if(mBytesGranted > Integer.MAX_VALUE)
       {
-         // set the current window time
-         mWindowTime = System.currentTimeMillis();
-         
-         // reset the bytes already granted in this window
-         mBytesGranted = 0;
+         resetWindowTime();
+      }
+      else if(passedTime > 3600000)
+      {
+         // cap passed time at 1 hour to avoid overflow
+         resetWindowTime();
       }
    }
    
