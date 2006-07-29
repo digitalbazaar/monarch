@@ -81,9 +81,9 @@ public class BandwidthThrottler
       {
          resetWindowTime();
       }
-      else if(passedTime > 3600000)
+      else if(passedTime > 60000)
       {
-         // cap passed time at 1 hour to avoid overflow
+         // cap passed time at 1 minute to avoid overflow
          resetWindowTime();
       }
    }
