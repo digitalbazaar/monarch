@@ -16,14 +16,19 @@ public class BandwidthThrottler
    protected long mRateLimit;
    
    /**
-    * The time at which a window began for requesting data.
+    * The time (in milliseconds) at which a window began for requesting data.
     */
    protected long mWindowTime;
    
    /**
     * The number of bytes that have been granted in the current window.
     */
-   protected long mBytesGranted;   
+   protected long mBytesGranted;
+   
+   /**
+    * The last time (in milliseconds) a request was made for bytes.
+    */
+   protected long mLastRequestTime;
    
    /**
     * The amount of time (in milliseconds) that must pass before a byte
@@ -45,6 +50,9 @@ public class BandwidthThrottler
     */
    public BandwidthThrottler(int rateLimit)
    {
+      // initialize the last request time
+      mLastRequestTime = System.currentTimeMillis();
+      
       // initialize the available number of bytes
       mAvailableBytes = 0;
       
@@ -70,20 +78,39 @@ public class BandwidthThrottler
     */
    protected void updateWindowTime()
    {
-      // get the passed time in the current window
-      long passedTime = System.currentTimeMillis() - getWindowTime();
+      // get the current time
+      long now = System.currentTimeMillis();
       
-      // cap the number of bytes granted per window at Integer.MAX_VALUE
-      // so that there isn't any overflow -- this should also be a
+      // Cap the number of bytes granted per window at Integer.MAX_VALUE
+      // so that there isn't any overflow. This should also be a
       // sufficiently large enough number such that rate calculations
-      // aren't affected very often at all
+      // aren't affected very often at all.
       if(mBytesGranted > Integer.MAX_VALUE)
       {
          resetWindowTime();
       }
-      else if(passedTime > 60000)
+      else if(now - mLastRequestTime > 3000)
       {
-         // cap passed time at 1 minute to avoid overflow
+         // If it has been more than 3 seconds since the last request
+         // for bytes, then reset the time window.
+         //
+         // 3 seconds was chosen because the minimum rate limit is
+         // 1 byte per second. So if a request is made at that rate limit
+         // then at least one byte would be available after one second.
+         //
+         // If it subsequently actually takes one second to transfer the
+         // byte, then the next request would be somewhere shortly after
+         // 2 seconds.
+         // 
+         // It is assumed that any request more than a second later
+         // involves a different transfer so we shouldn't store up a
+         // lot of available bytes (by failing to reset the window) for
+         // that transfer artificially bloating its rate.
+         //
+         // If the assumption fails, and, for instance, it takes more
+         // than one second for a single byte to be transferred or bytes
+         // are only requested ever so often, then the requester will
+         // have to wait a maximum of one second to acquire another byte.
          resetWindowTime();
       }
    }
@@ -202,6 +229,9 @@ public class BandwidthThrottler
          
          // increment the bytes granted
          mBytesGranted += rval;
+         
+         // update last request time
+         mLastRequestTime = System.currentTimeMillis();
       }
       else
       {
