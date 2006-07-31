@@ -2032,11 +2032,13 @@ public class TabPanel extends JPanel
             // set the new selection based on the tab selection policy
             setSelected(getNextTabSelection(index));
          }
-         
-         // revalidate, repaint
-         invalidate();
-         validate();
-         repaint();
+         else
+         {
+            // revalidate, repaint
+            invalidate();
+            validate();
+            repaint();
+         }
          
          // fire removed event
          fireTabRemoved(content);
