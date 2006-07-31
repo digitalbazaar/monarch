@@ -2082,11 +2082,13 @@ public class TabPanel extends JPanel
          {
             selectTabContent(content);
          }
-         
-         // revalidate, repaint
-         invalidate();
-         validate();
-         repaint();
+         else
+         {
+            // revalidate, repaint
+            invalidate();
+            validate();
+            repaint();
+         }
       }
    }
    
@@ -2205,11 +2207,13 @@ public class TabPanel extends JPanel
             {
                selectTabContent(newContent);
             }
-            
-            // revalidate, repaint
-            invalidate();
-            validate();
-            repaint();
+            else
+            {
+               // revalidate, repaint
+               invalidate();
+               validate();
+               repaint();
+            }
          }
       }      
    }
