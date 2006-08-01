@@ -72,6 +72,11 @@ implements SortableTableModel, ComponentListener
    protected int mTotalPrefWidth;
    
    /**
+    * The column sorter for this table.
+    */
+   protected ColumnSorter mColumnSorter;
+   
+   /**
     * Creates a default simple table model.
     */
    public JComponentTableModel()
@@ -79,6 +84,9 @@ implements SortableTableModel, ComponentListener
       super();
       
       mRows = new Vector();
+      
+      // create the column sorter for this table
+      mColumnSorter = createColumnSorter();
    }
    
    /**
@@ -100,6 +108,9 @@ implements SortableTableModel, ComponentListener
             cr.getChangeDelegate().addListener(this, "stateChanged");
          }
       }
+      
+      // resort column
+      getColumnSorter().resort();
    }
    
    /**
@@ -110,6 +121,26 @@ implements SortableTableModel, ComponentListener
    protected Vector getRowData()
    {
       return mRows;
+   }
+   
+   /**
+    * Creates the column sorter for this model.
+    *
+    * @return the column sorter for this model.
+    */
+   protected ColumnSorter createColumnSorter()
+   {
+      return new ColumnSorter(this);
+   }
+   
+   /**
+    * Gets the column sorter for this model.
+    * 
+    * @return the column sorter for this model.
+    */
+   protected ColumnSorter getColumnSorter()
+   {
+      return mColumnSorter;
    }
    
    /**
@@ -475,6 +506,9 @@ implements SortableTableModel, ComponentListener
             cr.getChangeDelegate().addListener(this, "stateChanged");
          }
          
+         // resort column
+         getColumnSorter().resort();
+         
          rval = true;
          
          fireTableDataChanged();
@@ -694,8 +728,7 @@ implements SortableTableModel, ComponentListener
    public void sortColumn(int column, boolean ascending)
    {
       // sort the row data
-      ColumnSorter sorter = new ColumnSorter();
-      sorter.sort(this, column, ascending);
+      getColumnSorter().sort(column, ascending);
       
       if(getRowCount() > 0)
       {
@@ -783,19 +816,45 @@ implements SortableTableModel, ComponentListener
       protected boolean mAscending;
       
       /**
-       * Sorts a row data in a given column.
+       * Creates a new ColumnSorter.
        * 
-       * @param tm the table model with data to sort.
+       * @param model the model to sort.
+       */
+      public ColumnSorter(JComponentTableModel model)
+      {
+         // store model
+         mTableModel = model;
+         
+         // column -1 by default
+         mColumn = -1;
+         
+         // ascending by default
+         mAscending = true;
+      }
+      
+      /**
+       * Sorts row data in a given column.
+       * 
        * @param column the column to sort according to.
        * @param ascending true to sort ascending, false to sort descending.
        */
-      public void sort(JComponentTableModel tm,
-                       int column, boolean ascending)
+      public void sort(int column, boolean ascending)
       {
-         mTableModel = tm;
          mColumn = column;
          mAscending = ascending;
-         Collections.sort(tm.getRowData(), this);
+         Collections.sort(mTableModel.getRowData(), this);
+      }
+      
+      /**
+       * Resorts using the last sort parameters. If no column was previously
+       * sorted than no sorting will take place.
+       */
+      public void resort()
+      {
+         if(mColumn != -1)
+         {
+            sort(mColumn, mAscending);
+         }
       }
       
       /**
@@ -827,6 +886,16 @@ implements SortableTableModel, ComponentListener
          }
          
          return rval;
+      }
+      
+      /**
+       * Gets the column that was last sorted.
+       * 
+       * @return the column that was last sorted.
+       */
+      public int getSortedColumn()
+      {
+         return mColumn;
       }
    }
 }
