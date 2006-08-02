@@ -635,7 +635,7 @@ public class RateAverager
       if(count > 0)
       {
          // multiply the current rate by the count
-         rval = Math.round(getCurrentRate() * count);
+         rval = Math.round(count / getCurrentRate());
       }
       
       return rval;
