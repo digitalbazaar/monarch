@@ -621,24 +621,21 @@ public class RateAverager
    }
    
    /**
-    * Gets an ETA (in seconds) for the given total number of items. The
-    * passed item count will be subtracted from the total number of
-    * items already processed by this RateAverager.
+    * Gets an ETA (in seconds) for the given number of items.
     * 
-    * @param totalCount the total item count.
+    * @param count the item count to get an ETA for.
     * 
     * @return the amount of time (in seconds) until the passed number of
     *         items is reached according to the current rate. 
     */
-   public synchronized long getETA(long totalCount)
+   public synchronized long getETA(long count)
    {
       long rval = 0;
       
-      if(totalCount > mTotalItemCount)
+      if(count > 0)
       {
-         // multiply the current rate by the remaining item count and
-         // round up
-         rval = Math.round(getCurrentRate() * (mTotalItemCount - totalCount));
+         // multiply the current rate by the count
+         rval = Math.round(getCurrentRate() * count);
       }
       
       return rval;
