@@ -1,0 +1,32 @@
+To generate a new key:
+
+keytool -keystore mykeystorefile -genkey -alias myalias -keypass myaliaspassword
+
+Make sure to specify the "-keystore" option to specify the keystore location or else the
+default keystore file will be updated (BAD!). You have to type in the keystore password
+once you execute this command to update or create a new keystore.
+
+To sign a jar using the generated key from above and the alias from above:
+
+jarsigner -keystore mykeystorefile -storepass mykeystorepassword -keypass myaliaspassword test.jar myalias
+
+To create the fake test jar:
+
+jar cvf test.jar META-INF/FAKE.SF META-INF/FAKE.DSA test.txt
+
+To create a real test jar to sign:
+
+jar cvf test.jar test.txt
+
+To verify either test jar:
+
+jarsigner -keystore mykeystorefile -certs -verbose -verify test.jar
+
+The checked in keystore has two aliases:
+
+test
+test2
+
+Each password is "password"
+The keystore password is "password"
+
