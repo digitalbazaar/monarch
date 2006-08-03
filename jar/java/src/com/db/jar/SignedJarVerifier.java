@@ -7,11 +7,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.CodeSigner;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -76,7 +78,7 @@ public class SignedJarVerifier
     * @param aliases the list of aliases to use from the keystore.
     * @param all true to require that every alias has a certificate that
     *            verified the jar, false to require that at least one
-    *            alias have a certificate that has verified the jar.
+    *            alias has a certificate that has verified the jar.
     *            
     * @exception CertificateException if any certificates can't be loaded from
     *                                 the keystore.
@@ -97,6 +99,16 @@ public class SignedJarVerifier
       // load certificates into map
       loadCertificates(keystoreFilename, keystorePassword, aliases);
       mRequireAllCertificatesToVerify = all;
+      
+      // set the minimum number of certificates required to verify a jar entry
+      if(mRequireAllCertificatesToVerify)
+      {
+         mMinCertificateCount = aliases.length;
+      }
+      else
+      {
+         mMinCertificateCount = 1;
+      }      
    }
    
    /**
@@ -110,7 +122,7 @@ public class SignedJarVerifier
     * @param aliases the list of aliases to use from the keystore.
     * @param all true to require that every alias has a certificate that
     *            verified the jar, false to require that at least one
-    *            alias have a certificate that has verified the jar.
+    *            alias has a certificate that has verified the jar.
     *            
     * @exception KeyStoreException if there is an error with the keystore.
     */
@@ -401,10 +413,31 @@ public class SignedJarVerifier
                // stream will be at the end of the entry
                while(jis.read(buffer) != -1);
                
-               // get the certificates for the jar entry
-               Certificate[] entryCertificates = jarEntry.getCertificates();
-               if(entryCertificates != null)
+               // get the code signers for the jar entry
+               CodeSigner[] codeSigners = jarEntry.getCodeSigners();
+               if(codeSigners != null)
                {
+                  // get the list of certificates for the code signers
+                  ArrayList list = new ArrayList();
+                  for(int n = 0; n < codeSigners.length; n++)
+                  {
+                     // iterate through the certificates and add them to
+                     // the certificates list
+                     for(Iterator i = codeSigners[n].getSignerCertPath().
+                            getCertificates().iterator(); i.hasNext();)
+                     {
+                        list.add(i.next());
+                     }
+                  }
+                  
+                  // build an array of entry certificates
+                  Certificate[] entryCertificates =
+                     new Certificate[list.size()];
+                  for(int i = 0; i < list.size(); i++)
+                  {
+                     entryCertificates[i] = (Certificate)list.get(i);
+                  }
+               
                   // see if the certificates for the entry match those
                   // provided to this verifier -- if we can't find
                   // the appropriate matches, then we're missing a signature
@@ -412,13 +445,10 @@ public class SignedJarVerifier
                }
                else
                {
-                  // certificates are missing!
+                  // code signers are missing!
                   signatureMissing = true;
                }
             }
-            
-            // get the next entry
-            jarEntry = jis.getNextJarEntry();
          }
       }
       

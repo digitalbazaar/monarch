@@ -1,9 +1,6 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
-import java.io.File;
-import java.security.CodeSigner;
-
 import com.db.jar.*;
 
 /**
@@ -25,11 +22,10 @@ public class UTSignedJarClassLoader
          // the name of the jar to verify
          String jarName = "data/test.jar";
          
-         // create code signers
-         //CodeSigner signer1 = new CodeSigner();
-         
          // create a signed jar verifier
-         SignedJarVerifier verifier = new SignedJarVerifier();
+         String[] aliases = new String[]{"test", "test2"};
+         SignedJarVerifier verifier = new SignedJarVerifier(
+            "data/test-keystore", "password", aliases, false);
          
          // create a SignedJarClassLoader
          SignedJarClassLoader loader =
@@ -39,7 +35,7 @@ public class UTSignedJarClassLoader
          
          /*
          // create a file for the test jar
-         File file = new File(jarName);
+         java.io.File file = new java.io.File(jarName);
          
          // verify a jar
          boolean signed = verifier.verifyJar(file);
