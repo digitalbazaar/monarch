@@ -4,12 +4,13 @@
 package com.db.autoupdater.basic;
 
 import java.net.URL;
-import java.net.URLClassLoader;
 
 import com.db.autoupdater.AutoUpdateable;
 import com.db.autoupdater.AutoUpdater;
 import com.db.event.EventDelegate;
 import com.db.event.EventObject;
+import com.db.jar.SignedJarClassLoader;
+import com.db.jar.SignedJarVerifier;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.util.ConfigFile;
@@ -28,10 +29,27 @@ import com.db.util.JobDispatcher;
  * This AutoUpdater uses a configuration file to load an AutoUpdateable
  * that uses a series of "key=value" pairs that end in end of line characters.
  * 
- * The file must include at least these two key-value pairs:
+ * The file must include at least these 5 key-value pairs:
  * 
- * autoupdateable-classpath=a comma-separated list of URLs for jars or classes
- * autoupdateable-class=the full name of the class that implements AutoUpdatable
+ * autoupdateable-classpath=file:/some/path/jar1.jar,file:/lib/jar2.jar
+ *    a comma-separated list of URLs for jars or classes
+ * 
+ * autoupdateable-class=com.mycompany.ClassThatImplementsAutoUpdateable
+ *    the full name of the class that implements AutoUpdateable
+ * 
+ * autoupdateable-keystore=/some/path/to/my/.keystore
+ *    the path to the public keystore that contains the public keys for
+ *    verifying that the jars loaded for the AutoUpdateable have been
+ *    signed appropriately
+ * 
+ * autoupdateable-keystore-password=myinsecurekeystorepassword
+ *    the password for the public keystore, this is in plain text because
+ *    there is nothing secure about the public keystore as it is distributed
+ *    with the AutoUpdateable application and contains only public keys
+ * 
+ * autoupdateable-keystore-aliases=mykeystorealias1,mykeystorealias2
+ *    a comma delimited list of aliases for the keystore that must have
+ *    signed the jars used to load the AutoUpdateable 
  * 
  * It can also include a version:
  * 
@@ -677,9 +695,20 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
       
       // get the jars necessary to load the AutoUpdateable interface
       String classPath = config.getString("autoupdateable-classpath");
-
+      
+      // get the keystore necessary to load the AutoUpdateable interface
+      String keystore = config.getString("autoupdateable-keystore");
+      
+      // get the keystore plain text password
+      String password = config.getString("autoupdateable-keystore-password");
+      
+      // get the keystore aliases
+      String aliasList = config.getString("autoupdateable-keystore-aliases");
+      String[] aliases = aliasList.split(",");
+      
       try
       {
+         // build the url array for the class path
          URL[] urls = new URL[0];
          if(classPath != null && classPath.length() > 0)
          {
@@ -694,9 +723,13 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
             }
          }
          
-         // create a class loader for the AutoUpdateable
-         ClassLoader classLoader = new URLClassLoader(
-            urls, getClass().getClassLoader());
+         // create a SignedJarVerifier
+         SignedJarVerifier verifier = new SignedJarVerifier(
+            keystore, password, aliases, true);
+         
+         // create a SignedJarClassLoader for the AutoUpdateable
+         ClassLoader classLoader = new SignedJarClassLoader(
+            urls, getClass().getClassLoader(), verifier);
          
          // load the AutoUpdateable
          Class c = classLoader.loadClass(className);
