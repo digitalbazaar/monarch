@@ -54,7 +54,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       
       // create a soap message
       sm = new SoapMessage();
-      sm.setSerializerOptions(SoapMessage.SOAP_REQUEST);
+      sm.setXmlSerializerOptions(SoapMessage.SOAP_REQUEST);
       
       String xml = "";
       if(body != null)

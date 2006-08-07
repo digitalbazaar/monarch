@@ -98,6 +98,7 @@ public class WsdlParser implements IXmlSerializer
     * 
     * @param method the name of the method the params are for.
     * @param params a vector of ordered params.
+    * 
     * @return a map of params (name -> value) for a remote method, or null
     *         if an error occurred (like wrong number of params).
     */
@@ -146,9 +147,10 @@ public class WsdlParser implements IXmlSerializer
     * how to convert to and from xml.
     *
     * @param options the configuration options.
+    * 
     * @return true if options successfully set, false if not.    
     */
-   public boolean setSerializerOptions(int options)
+   public boolean setXmlSerializerOptions(int options)
    {
       return false;
    }
@@ -159,7 +161,7 @@ public class WsdlParser implements IXmlSerializer
     *
     * @return the configuration options.
     */
-   public int getSerializerOptions()
+   public int getXmlSerializerOptions()
    {
       return 0;
    }
@@ -191,6 +193,7 @@ public class WsdlParser implements IXmlSerializer
     *
     * @param indentLevel the number of spaces to place before the text
     *                    after each new line.
+    *                    
     * @return the xml-based representation of the object.
     */
    public String convertToXml(int indentLevel)
@@ -203,6 +206,7 @@ public class WsdlParser implements IXmlSerializer
     * it to it's internal representation.
     *
     * @param xmlText the xml text document that represents the object.
+    * 
     * @return true if successful, false otherwise.    
     */
    public boolean convertFromXml(String xmlText)
@@ -255,6 +259,7 @@ public class WsdlParser implements IXmlSerializer
     * back into this object's representation.
     *
     * @param element the parsed element that contains this objects information.
+    * 
     * @return true if successful, false otherwise.
     */
    public boolean convertFromXml(Element element)
@@ -324,6 +329,7 @@ public class WsdlParser implements IXmlSerializer
     * Parses a WSDL.
     * 
     * @param wsdl the WSDL to parse.
+    * 
     * @return true if successfully parsed, false if not.
     */
    public boolean parseWsdl(String wsdl)
@@ -335,6 +341,7 @@ public class WsdlParser implements IXmlSerializer
     * Gets the return type for a method.
     * 
     * @param method the method to get the return type for.
+    * 
     * @return the return type for the method.
     */
    public Class getReturnType(String method)
@@ -354,6 +361,7 @@ public class WsdlParser implements IXmlSerializer
     * 
     * @param value the string to convert.
     * @param type the type to convert the string to.
+    * 
     * @return the object the string was converted into.
     */
    public static Object parseObject(String value, Class type)

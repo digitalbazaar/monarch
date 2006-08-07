@@ -157,7 +157,7 @@ public class SoapMessage implements IXmlSerializer
    public SoapMessage()
    {
       mParams = new HashMap();
-      setSerializerOptions(SOAP_REQUEST);
+      setXmlSerializerOptions(SOAP_REQUEST);
       
       mClientIP = "0.0.0.0";
    }
@@ -255,7 +255,7 @@ public class SoapMessage implements IXmlSerializer
          faultCode == FAULT_CLIENT ||
          faultCode == FAULT_SERVER)
       {
-         setSerializerOptions(SOAP_FAULT);
+         setXmlSerializerOptions(SOAP_FAULT);
          mFaultCode = faultCode;
       }
    }
@@ -275,22 +275,22 @@ public class SoapMessage implements IXmlSerializer
    {
       if(faultCodeStr.equalsIgnoreCase("VersionMismatch"))
       {
-         setSerializerOptions(SOAP_FAULT);
+         setXmlSerializerOptions(SOAP_FAULT);
          mFaultCode = FAULT_VERSION_MISMATCH;
       }
       else if(faultCodeStr.equalsIgnoreCase("MustUnderstand"))
       {
-         setSerializerOptions(SOAP_FAULT);
+         setXmlSerializerOptions(SOAP_FAULT);
          mFaultCode = FAULT_MUST_UNDERSTAND;
       }
       else if(faultCodeStr.equalsIgnoreCase("Client"))
       {
-         setSerializerOptions(SOAP_FAULT);
+         setXmlSerializerOptions(SOAP_FAULT);
          mFaultCode = FAULT_CLIENT;
       }
       else if(faultCodeStr.equalsIgnoreCase("Server"))
       {
-         setSerializerOptions(SOAP_FAULT);
+         setXmlSerializerOptions(SOAP_FAULT);
          mFaultCode = FAULT_SERVER;
       }
    }
@@ -526,7 +526,7 @@ public class SoapMessage implements IXmlSerializer
     * 
     * @return true if options successfully set, false if not.    
     */
-   public boolean setSerializerOptions(int options)
+   public boolean setXmlSerializerOptions(int options)
    {
       boolean rval = false;
       
@@ -547,7 +547,7 @@ public class SoapMessage implements IXmlSerializer
     *
     * @return the configuration options.
     */
-   public int getSerializerOptions()
+   public int getXmlSerializerOptions()
    {
       return mXmlOptions;
    }
@@ -610,7 +610,7 @@ public class SoapMessage implements IXmlSerializer
       // add the envelope's body
       xml.append("<soap:Body>");
 
-      if(getSerializerOptions() == SOAP_REQUEST)
+      if(getXmlSerializerOptions() == SOAP_REQUEST)
       {
          xml.append("<tns:" + getMethod() + ">");
          
@@ -626,13 +626,13 @@ public class SoapMessage implements IXmlSerializer
          
          xml.append("</tns:" + getMethod() + ">");
       }
-      else if(getSerializerOptions() == SOAP_RESPONSE)
+      else if(getXmlSerializerOptions() == SOAP_RESPONSE)
       {
          xml.append("<tns:" + getMethod() + "Response>");
          xml.append("<result>" + XmlCoder.encode(getResult()) + "</result>");
          xml.append("</tns:" + getMethod() + "Response>");
       }
-      else if(getSerializerOptions() == SOAP_FAULT)
+      else if(getXmlSerializerOptions() == SOAP_FAULT)
       {
          xml.append("<soap:Fault>");
          xml.append("<faultcode>soap:" + XmlCoder.encode(getFaultCodeString()) +

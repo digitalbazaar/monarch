@@ -18,9 +18,10 @@ public interface IXmlSerializer
     * how to convert to and from xml.
     *
     * @param options the configuration options.
+    * 
     * @return true if options successfully set, false if not.
     */
-   public boolean setSerializerOptions(int options);
+   public boolean setXmlSerializerOptions(int options);
 
    /**
     * This method gets the options that are used to configure
@@ -28,7 +29,7 @@ public interface IXmlSerializer
     *
     * @return the configuration options.
     */
-   public int getSerializerOptions();
+   public int getXmlSerializerOptions();
    
    /**
     * Returns the root tag name for this serializer.
@@ -51,6 +52,7 @@ public interface IXmlSerializer
     *
     * @param indentLevel the number of spaces to place before the text
     *                    after each new line.
+    *                    
     * @return the XML-based representation of the object.
     */
    public String convertToXml(int indentLevel);
@@ -60,6 +62,7 @@ public interface IXmlSerializer
     * it to its internal representation.
     *
     * @param xmlText the xml text document that represents the object.
+    * 
     * @return true if successful, false otherwise.    
     */
    public boolean convertFromXml(String xmlText);
@@ -69,6 +72,7 @@ public interface IXmlSerializer
     * back into this object's representation.
     *
     * @param element the parsed element that contains this objects information.
+    * 
     * @return true if successful, false otherwise.
     */
    public boolean convertFromXml(Element element);

@@ -161,7 +161,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          {
             // create a new soap message for reading the response xml
             SoapMessage sm = new SoapMessage();
-            sm.setSerializerOptions(SoapMessage.SOAP_RESPONSE);
+            sm.setXmlSerializerOptions(SoapMessage.SOAP_RESPONSE);
             if(sm.convertFromXml(xml))
             {
                // get result
@@ -216,7 +216,7 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          {
             // create the soap message
             sm = new SoapMessage();
-            sm.setSerializerOptions(SoapMessage.SOAP_REQUEST);
+            sm.setXmlSerializerOptions(SoapMessage.SOAP_REQUEST);
             sm.setMethod(method);
             sm.setParams(paramMap);
             sm.setNamespace(wsdlParser.getNamespace());

@@ -66,7 +66,7 @@ public abstract class VersionedXmlSerializer implements IXmlSerializer
     * @param options the configuration options.
     * @return true if options successfully set, false if not.
     */
-   public boolean setSerializerOptions(int options)
+   public boolean setXmlSerializerOptions(int options)
    {
       // no options by default
       return false;
@@ -78,7 +78,7 @@ public abstract class VersionedXmlSerializer implements IXmlSerializer
     *
     * @return the configuration options.
     */
-   public int getSerializerOptions()
+   public int getXmlSerializerOptions()
    {
       // no options by default
       return 0;

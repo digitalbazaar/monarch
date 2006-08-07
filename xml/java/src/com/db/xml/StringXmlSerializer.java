@@ -63,7 +63,7 @@ public class StringXmlSerializer implements IXmlSerializer
     * @param options the configuration options.
     * @return true if options successfully set, false if not.    
     */
-   public boolean setSerializerOptions(int options)
+   public boolean setXmlSerializerOptions(int options)
    {
       return false;
    }
@@ -74,7 +74,7 @@ public class StringXmlSerializer implements IXmlSerializer
     *
     * @return the configuration options.
     */
-   public int getSerializerOptions()
+   public int getXmlSerializerOptions()
    {
       return 0;
    }

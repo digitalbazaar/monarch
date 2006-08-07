@@ -308,7 +308,7 @@ public abstract class GenericSoapWebService implements SoapWebService
 
          // set soap message result
          sm.setResult("" + rval);
-         sm.setSerializerOptions(SoapMessage.SOAP_RESPONSE);
+         sm.setXmlSerializerOptions(SoapMessage.SOAP_RESPONSE);
       }
       catch(Throwable t)
       {
