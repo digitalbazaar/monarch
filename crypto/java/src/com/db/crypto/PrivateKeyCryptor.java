@@ -94,6 +94,9 @@ public class PrivateKeyCryptor
    {
       boolean rval = false;
       
+      getLogger().debug(getClass(),
+         "Creating cryptor for storing encrypted password...");
+      
       // get a new password cryptor
       mPasswordCryptor = new Cryptor();
       
@@ -132,22 +135,23 @@ public class PrivateKeyCryptor
     * in an encrypted string.
     * 
     * @param km the key manager to get the private key from.
+    * @param password the password to store the private key with.
     * 
     * @return true if successfully stored, false if not.
     */
-   protected boolean storePrivateKeyInMemory(KeyManager km) 
+   protected boolean storePrivateKeyInMemory(KeyManager km, String password)
    {
       boolean rval = false;
       
       // store the encrypted private key in memory
       if(km.getPrivateKey() != null)
       {
-         // get a fresh cryptor
-         mKeyCryptor = new Cryptor();
+         getLogger().debug(getClass(),
+            "Storing encrypted private key in memory...");
          
          // store the encrypted private key
          byte[] encodedBytes = km.getPrivateKey().getEncoded();
-         mPrivateKey = mKeyCryptor.encrypt(encodedBytes);
+         mPrivateKey = Cryptor.encrypt(encodedBytes, password);
          
          rval = true;
       }
@@ -182,7 +186,7 @@ public class PrivateKeyCryptor
             if(km.loadPrivateKey(mKeyFilename, password))
             {
                // store the private key in memory
-               storePrivateKeyInMemory(km);
+               storePrivateKeyInMemory(km, password);
             }
             else
             {
@@ -280,7 +284,7 @@ public class PrivateKeyCryptor
                   if(km.storePrivateKey(mKeyFilename, password))
                   {
                      // store the keys in memory
-                     if(storePrivateKeyInMemory(km))
+                     if(storePrivateKeyInMemory(km, password))
                      {
                         // store the public key in memory
                         mPublicKey = km.getPublicKeyString();
@@ -355,7 +359,7 @@ public class PrivateKeyCryptor
                if(password != null)
                {
                   // store the keys in memory
-                  if(storePrivateKeyInMemory(km))
+                  if(storePrivateKeyInMemory(km, password))
                   {
                      // store the public key in memory
                      mPublicKey = km.getPublicKeyString();
@@ -429,6 +433,9 @@ public class PrivateKeyCryptor
       // store the encrypted private key in memory
       if(pkey != null)
       {
+         getLogger().debug(getClass(),
+            "Creating cryptor for storing encrypted private key...");
+         
          // get a fresh cryptor
          mKeyCryptor = new Cryptor();
          
@@ -487,6 +494,11 @@ public class PrivateKeyCryptor
             {
                rval = setPrivateKey(KeyManager.decodePrivateKey(decryptedKey));
             }
+         }
+         else
+         {
+            getLogger().debug(getClass(),
+               "Could not unlock encrypted private key.");
          }
       }
       catch(Throwable t)
@@ -564,7 +576,7 @@ public class PrivateKeyCryptor
             if(km.loadPrivateKey(mKeyFilename, password))
             {
                // store the private key in memory
-               storePrivateKeyInMemory(km);
+               storePrivateKeyInMemory(km, password);
             }
             else
             {
