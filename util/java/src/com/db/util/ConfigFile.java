@@ -88,13 +88,15 @@ public class ConfigFile extends ConfigOptions
       try
       {
          // write the configuration to a file
-         mProperties.store(new FileOutputStream(mFilename), header);
+         FileOutputStream fos = new FileOutputStream(mFilename);
+         mProperties.store(fos, header);
+         fos.close();
          rval = true;
       }
       catch(Throwable t)
       {
          getLogger().error(getClass(), 
-               "Could not write config file: \"" + mFilename + "\"");
+            "Could not write config file: \"" + mFilename + "\"");
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
 
@@ -122,8 +124,7 @@ public class ConfigFile extends ConfigOptions
    {
       boolean rval = false;
       
-      Iterator i = config.getKeys().iterator();
-      while(i.hasNext())
+      for(Iterator i = config.getKeys().iterator(); i.hasNext();)
       {
          String key = (String)i.next();
          setValue(key, config.getString(key));
@@ -157,8 +158,7 @@ public class ConfigFile extends ConfigOptions
       if(read)
       {
          // copy all values read from file into the configuration
-         Iterator i = getKeys().iterator();
-         while(i.hasNext())
+         for(Iterator i = getKeys().iterator(); i.hasNext();)
          {
             String key = (String)i.next();
             config.setValue(key, getString(key));
