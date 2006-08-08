@@ -75,7 +75,11 @@ public class GZipInputStream extends DeflaterInputStream
       
       // create the header input stream
       GZipHeader header = new GZipHeader();
-      header.setFHCrcFlag(true);
+      
+      // setting the CRC-16 flag is commented out for backwards compatibility
+      // with gzip versions <= 1.2.4
+      //header.setFHCrcFlag(true);
+      
       mHeaderInputStream = new ByteArrayInputStream(header.convertToBytes());
       
       // the header has not yet been read
