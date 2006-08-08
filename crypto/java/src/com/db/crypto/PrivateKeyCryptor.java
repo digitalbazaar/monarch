@@ -13,15 +13,12 @@ import java.security.PrivateKey;
  * A convenient private key cryptor class. Used to generate and store
  * encrypted private keys on disk and in memory.
  * 
+ * FIXME: This class could use some clean up and simplification.
+ * 
  * @author Dave Longley
  */
 public class PrivateKeyCryptor
 {
-   /**
-    * The cryptor for the private key.
-    */
-   protected Cryptor mKeyCryptor;
-
    /**
     * The encrypted private key.
     */
@@ -59,7 +56,6 @@ public class PrivateKeyCryptor
     */
    public PrivateKeyCryptor()
    {
-      mKeyCryptor = null;
       mPrivateKey = null;
       mKeyFilename = null;
       mEncryptedPassword = null;
@@ -74,7 +70,6 @@ public class PrivateKeyCryptor
     */
    public PrivateKeyCryptor(String keyFilename, String password)
    {
-      mKeyCryptor = null;
       mPrivateKey = null;
       mKeyFilename = keyFilename;
       mError = "";
@@ -131,6 +126,30 @@ public class PrivateKeyCryptor
    }
    
    /**
+    * Stores the private key in memory.
+    * 
+    * @param encodedBytes the private key in encoded bytes.
+    * @param password the password for the private key.
+    * 
+    * @return true if the private key was stored, false if not.
+    */
+   protected boolean storePrivateKeyInMemory(
+      byte[] encodedBytes, String password)
+   {
+      boolean rval = false;
+      
+      // store the encrypted private key in memory
+      if(encodedBytes != null)
+      {
+         // store the encrypted private key
+         mPrivateKey = Cryptor.encrypt(encodedBytes, password);
+         rval = true;
+      }
+      
+      return rval;
+   }   
+   
+   /**
     * Convenience method. Takes a key manager and stores its private key
     * in an encrypted string.
     * 
@@ -146,14 +165,9 @@ public class PrivateKeyCryptor
       // store the encrypted private key in memory
       if(km.getPrivateKey() != null)
       {
-         getLogger().debug(getClass(),
-            "Storing encrypted private key in memory...");
-         
          // store the encrypted private key
          byte[] encodedBytes = km.getPrivateKey().getEncoded();
-         mPrivateKey = Cryptor.encrypt(encodedBytes, password);
-         
-         rval = true;
+         rval = storePrivateKeyInMemory(encodedBytes, password);
       }
       
       return rval;
@@ -175,11 +189,13 @@ public class PrivateKeyCryptor
    protected byte[] getPrivateKeyEncodedBytes()
    {
       byte[] encodedKey = null;
-      
-      if(mPrivateKey == null)
+    
+      // get the decrypted password
+      String password = getDecryptedPassword();
+
+      if(password != null)
       {
-         String password = getDecryptedPassword();
-         if(password != null)
+         if(mPrivateKey == null)
          {
             // load key from disk
             KeyManager km = new KeyManager();
@@ -201,13 +217,13 @@ public class PrivateKeyCryptor
             getLogger().debug(getClass(),
                "ERROR - cannot use null password!");
          }
-      }
 
-      // make sure private key has been stored
-      if(mPrivateKey != null)
-      {
-         // decrypt the private key
-         encodedKey = mKeyCryptor.decrypt(mPrivateKey);
+         // make sure private key has been stored
+         if(mPrivateKey != null)
+         {
+            // decrypt the private key
+            encodedKey = Cryptor.decrypt(mPrivateKey, password);
+         }
       }
       
       return encodedKey;
@@ -433,16 +449,9 @@ public class PrivateKeyCryptor
       // store the encrypted private key in memory
       if(pkey != null)
       {
-         getLogger().debug(getClass(),
-            "Creating cryptor for storing encrypted private key...");
-         
-         // get a fresh cryptor
-         mKeyCryptor = new Cryptor();
-         
          // store the encrypted private key
          byte[] encodedBytes = pkey.getEncoded();
-         mPrivateKey = mKeyCryptor.encrypt(encodedBytes);
-         rval = true;
+         rval = storePrivateKeyInMemory(encodedBytes, getDecryptedPassword());
       }
       
       return rval;
