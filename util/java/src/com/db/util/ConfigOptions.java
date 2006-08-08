@@ -480,7 +480,7 @@ public class ConfigOptions
          }
          else
          {
-            mProperties.setProperty(key, null);
+            mProperties.remove(key);
          }
       }
       
