@@ -87,6 +87,7 @@ public class PrivateKeyCryptor
     * in memory.
     * 
     * @param password the plain-text password to store.
+    * 
     * @return true if successfully stored, false if not.
     */
    protected boolean storePasswordInMemory(String password)
@@ -131,6 +132,7 @@ public class PrivateKeyCryptor
     * in an encrypted string.
     * 
     * @param km the key manager to get the private key from.
+    * 
     * @return true if successfully stored, false if not.
     */
    protected boolean storePrivateKeyInMemory(KeyManager km) 
@@ -235,6 +237,7 @@ public class PrivateKeyCryptor
     * write the private key to disk.
     * 
     * @param password the password to use.
+    * 
     * @return true if successful, false if not.
     */
    public boolean generateKeys(String password)
@@ -248,6 +251,7 @@ public class PrivateKeyCryptor
     * 
     * @param keyFilename the private key filename to use.
     * @param password the password to use.
+    * 
     * @return true if successful, false if not.
     */
    public boolean generateKeys(String keyFilename, String password)
@@ -280,7 +284,6 @@ public class PrivateKeyCryptor
                      {
                         // store the public key in memory
                         mPublicKey = km.getPublicKeyString();
-                     
                         rval = true;
                      }
                      else
@@ -329,6 +332,7 @@ public class PrivateKeyCryptor
     * disk.
     * 
     * @param password the password to use.
+    * 
     * @return true if successful, false if not.
     */
    public boolean generateKeysInMemory(String password)
@@ -350,9 +354,18 @@ public class PrivateKeyCryptor
                password = getDecryptedPassword();
                if(password != null)
                {
-                  // store the public key in memory
-                  mPublicKey = km.getPublicKeyString();
-                  rval = true;
+                  // store the keys in memory
+                  if(storePrivateKeyInMemory(km))
+                  {
+                     // store the public key in memory
+                     mPublicKey = km.getPublicKeyString();
+                     rval = true;
+                  }
+                  else
+                  {
+                     getLogger().debug(getClass(),
+                        "ERROR - could not store keys in memory!");
+                  }
                }
                else
                {
@@ -406,6 +419,7 @@ public class PrivateKeyCryptor
     * Sets the private key.
     * 
     * @param pkey the private key.
+    * 
     * @return true if the private key was set, false if not.
     */
    public boolean setPrivateKey(PrivateKey pkey)
@@ -433,6 +447,7 @@ public class PrivateKeyCryptor
     *
     * @param encryptedKey the encrypted key in a base64-encoded string.
     * @param password the password to unlock the file.
+    * 
     * @return true if successful, false if not.
     */
    public boolean setEncryptedPrivateKey(String encryptedKey, String password)
@@ -452,6 +467,7 @@ public class PrivateKeyCryptor
     *
     * @param encryptedKey the encrypted key in a byte array.
     * @param password the password to unlock the file.
+    * 
     * @return true if successful, false if not.
     */
    public boolean setEncryptedPrivateKey(byte[] encryptedKey, String password)
@@ -613,6 +629,7 @@ public class PrivateKeyCryptor
     * private key stored in the private key file.
     * 
     * @param password the password to set and verify.
+    * 
     * @return true if verified, false if not. 
     */
    public boolean verify(String password)
@@ -627,6 +644,7 @@ public class PrivateKeyCryptor
     * 
     * @param keyFilename the private key filename.
     * @param password the password to set and verify.
+    * 
     * @return true if verified, false if not. 
     */
    public boolean verify(String keyFilename, String password)
@@ -651,6 +669,7 @@ public class PrivateKeyCryptor
     * not update the private key file.
     * 
     * @param password the plain-text password.
+    * 
     * @return true if successful, false if not.
     */
    public boolean setPassword(String password)
