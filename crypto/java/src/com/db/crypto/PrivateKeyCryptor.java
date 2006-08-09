@@ -212,11 +212,6 @@ public class PrivateKeyCryptor
                   "ERROR - invalid password!");
             }
          }
-         else
-         {
-            getLogger().debug(getClass(),
-               "ERROR - cannot use null password!");
-         }
 
          // make sure private key has been stored
          if(mPrivateKey != null)
@@ -224,6 +219,11 @@ public class PrivateKeyCryptor
             // decrypt the private key
             encodedKey = Cryptor.decrypt(mPrivateKey, password);
          }
+      }
+      else
+      {
+         getLogger().debug(getClass(),
+            "ERROR - cannot use null password!");
       }
       
       return encodedKey;
