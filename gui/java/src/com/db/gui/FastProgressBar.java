@@ -203,6 +203,9 @@ implements ChangeReporter, Comparable
          // ignore interrupted exception
       }
       
+      // set indeterminate value back to minimum value
+      setIndeterminateValue(getMinimumValue());
+
       // repaint once more
       repaint();
    }
@@ -215,7 +218,7 @@ implements ChangeReporter, Comparable
       setUI(new FastProgressBarUI(this));
 
       // fire change event
-      fireFastProgressBarChanged();            
+      fireFastProgressBarChanged();
    }
    
    /**
