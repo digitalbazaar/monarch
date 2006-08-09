@@ -5,6 +5,7 @@ package com.db.util;
 
 import com.db.logging.Logger;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Iterator;
@@ -18,9 +19,9 @@ import java.util.Properties;
 public class ConfigFile extends ConfigOptions
 {
    /**
-    * The name of the config file.
+    * The file for this config file.
     */
-   protected String mFilename;
+   protected File mFile;
    
    /**
     * A header to write in the file.
@@ -34,7 +35,7 @@ public class ConfigFile extends ConfigOptions
     */
    public ConfigFile(String filename)
    {
-      mFilename = filename;
+      mFile = new File(filename);
       mHeader = null;
    }
    
@@ -52,13 +53,15 @@ public class ConfigFile extends ConfigOptions
       try
       {
          // read the configuration from a file
-         mProperties.load(new FileInputStream(mFilename));
+         FileInputStream fis = new FileInputStream(mFile);
+         mProperties.load(fis);
+         fis.close();
          rval = true;
       }
       catch(Throwable t)
       {
          getLogger().error(getClass(), 
-               "Could not read config file: \"" + mFilename + "\"");
+            "Could not read config file: \"" + getFilename() + "\"");
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
 
@@ -88,7 +91,7 @@ public class ConfigFile extends ConfigOptions
       try
       {
          // write the configuration to a file
-         FileOutputStream fos = new FileOutputStream(mFilename);
+         FileOutputStream fos = new FileOutputStream(mFile);
          mProperties.store(fos, header);
          fos.close();
          rval = true;
@@ -96,7 +99,7 @@ public class ConfigFile extends ConfigOptions
       catch(Throwable t)
       {
          getLogger().error(getClass(), 
-            "Could not write config file: \"" + mFilename + "\"");
+            "Could not write config file: \"" + getFilename() + "\"");
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
 
@@ -164,5 +167,15 @@ public class ConfigFile extends ConfigOptions
             config.setValue(key, getString(key));
          }
       }
+   }
+   
+   /**
+    * Gets the filename for this config file.
+    * 
+    * @return the filename for this config file.
+    */
+   public String getFilename()
+   {
+      return mFile.getAbsolutePath();
    }
 }
