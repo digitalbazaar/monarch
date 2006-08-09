@@ -65,11 +65,12 @@ public class WsdlGenerator
     * 
     * @param port the port type.
     * @param wsInterface the web service interface.
+    * 
     * @return the xml for messages.
     */
    protected String generateMessagesXml(String port, Class wsInterface)
    {
-      String xml = "";
+      StringBuffer xml = new StringBuffer();
       
       Method[] methods = wsInterface.getDeclaredMethods();
       for(int i = 0; i < methods.length; i++)
@@ -80,11 +81,11 @@ public class WsdlGenerator
          Class[] types = m.getParameterTypes();
          if(types.length == 0)
          {
-            xml += " <message name=\"" + port + "_" + name + "\"/>\n";
+            xml.append(" <message name=\"" + port + "_" + name + "\"/>\n");
          }
          else
          {
-            xml += " <message name=\"" + port + "_" + name + "\">\n";
+            xml.append(" <message name=\"" + port + "_" + name + "\">\n");
 
             for(int t = 0; t < types.length; t++)
             {
@@ -93,25 +94,24 @@ public class WsdlGenerator
                
                String xsdtype = (String)mClassToXsdType.get(type);
                
-               xml +=
-                  "  <part name=\"" + paramName + "\" " +
-                  "type=\"" + xsdtype + "\"/>\n";
+               xml.append("  <part name=\"" + paramName + "\" " +
+                          "type=\"" + xsdtype + "\"/>\n");
             }
             
             // end the message
-            xml += " </message>\n";
+            xml.append(" </message>\n");
          }
          
          Class resultClass = m.getReturnType();
          String resultType = (String)mClassToXsdType.get(resultClass);
          
          // add the result message
-         xml += " <message name=\"" + port + "_" + name + "Response\">\n";
-         xml += "  <part name=\"result\" type=\"" + resultType + "\"/>\n";
-         xml += " </message>\n";
+         xml.append(" <message name=\"" + port + "_" + name + "Response\">\n");
+         xml.append("  <part name=\"result\" type=\"" + resultType + "\"/>\n");
+         xml.append(" </message>\n");
       }
       
-      return xml;
+      return xml.toString();
    }
    
    /**
@@ -119,13 +119,14 @@ public class WsdlGenerator
     * 
     * @param port the port type.
     * @param wsInterface the web service interface.
+    * 
     * @return the xml for port type.
     */
    protected String generatePortTypeXml(String port, Class wsInterface)   
    {
-      String xml = "";
+      StringBuffer xml = new StringBuffer();
       
-      xml += " <portType name=\"" + port + "\">\n";
+      xml.append(" <portType name=\"" + port + "\">\n");
       
       Method[] methods = wsInterface.getDeclaredMethods();
       for(int i = 0; i < methods.length; i++)
@@ -133,7 +134,7 @@ public class WsdlGenerator
          Method m = methods[i];
          String name = m.getName();
          
-         xml += "  <operation name=\"" + name + "\"";
+         xml.append("  <operation name=\"" + name + "\"");
 
          // build param order
          boolean putComma = false;
@@ -155,22 +156,22 @@ public class WsdlGenerator
          
          if(!paramOrder.equals(""))
          {
-            xml += " parameterOrder=\"" + paramOrder + "\">\n";
+            xml.append(" parameterOrder=\"" + paramOrder + "\">\n");
          }
          else
          {
-            xml += ">\n";
+            xml.append(">\n");
          }
          
-         xml += "   <input message=\"tns:" + port + "_" + name + "\"/>\n";
-         xml += "   <output message=\"tns:" + port + "_" + name +
-                "Response\"/>\n";
-         xml += "  </operation>\n";
+         xml.append("   <input message=\"tns:" + port + "_" + name + "\"/>\n");
+         xml.append("   <output message=\"tns:" + port + "_" + name +
+                    "Response\"/>\n");
+         xml.append("  </operation>\n");
       }
       
-      xml += " </portType>\n";
+      xml.append(" </portType>\n");
       
-      return xml;
+      return xml.toString();
    }
    
    /**
@@ -179,17 +180,18 @@ public class WsdlGenerator
     * @param port the port type.
     * @param namespace the namespace.
     * @param wsInterface the web service interface.
+    * 
     * @return the xml for binding.
     */
    protected String generateBindingXml(String port, String namespace,
                                        Class wsInterface)   
    {
-      String xml = "";
+      StringBuffer xml = new StringBuffer();
       
-      xml += " <binding name=\"" + port + "Binding\" " +
-             "type=\"tns:" + port + "\">\n";
-      xml += " <soap:binding transport=\"" + HTTP_SCHEMA + "\" " +
-             "style=\"rpc\"/>\n";
+      xml.append(" <binding name=\"" + port + "Binding\" " +
+                 "type=\"tns:" + port + "\">\n");
+      xml.append(" <soap:binding transport=\"" + HTTP_SCHEMA + "\" " +
+                 "style=\"rpc\"/>\n");
       
       Method[] methods = wsInterface.getDeclaredMethods();
       for(int i = 0; i < methods.length; i++)
@@ -197,27 +199,27 @@ public class WsdlGenerator
          Method m = methods[i];
          String name = m.getName();
          
-         xml += "  <operation name=\"" + name + "\">\n";
-         xml += "   <soap:operation soapAction=\"\"/>\n";
+         xml.append("  <operation name=\"" + name + "\">\n");
+         xml.append("   <soap:operation soapAction=\"\"/>\n");
          
-         xml += "   <input>\n";
-         xml += "    <soap:body " +
-                "encodingStyle=\"" + SoapMessage.ENCODING_SCHEMA + "\" " +
-                "use=\"encoded\" namespace=\"" + namespace + "\"/>\n";
-         xml += "   </input>\n";
+         xml.append("   <input>\n");
+         xml.append("    <soap:body " +
+                    "encodingStyle=\"" + SoapMessage.ENCODING_SCHEMA + "\" " +
+                    "use=\"encoded\" namespace=\"" + namespace + "\"/>\n");
+         xml.append("   </input>\n");
          
-         xml += "   <output>\n";
-         xml += "    <soap:body " +
-                "encodingStyle=\"" + SoapMessage.ENCODING_SCHEMA + "\" " +
-                "use=\"encoded\" namespace=\"" + namespace + "\"/>\n";
-         xml += "   </output>\n";
+         xml.append("   <output>\n");
+         xml.append("    <soap:body " +
+                    "encodingStyle=\"" + SoapMessage.ENCODING_SCHEMA + "\" " +
+                    "use=\"encoded\" namespace=\"" + namespace + "\"/>\n");
+         xml.append("   </output>\n");
          
-         xml += "  </operation>\n";
+         xml.append("  </operation>\n");
       }
 
-      xml += " </binding>\n";
+      xml.append(" </binding>\n");
 
-      return xml;
+      return xml.toString();
    }
    
    /**
@@ -228,62 +230,65 @@ public class WsdlGenerator
     * @param portType the port type.
     * @param uri the uri for the soap server.
     * @param wsInterface the web service interface.
+    * 
     * @return the generated WSDL.
     */
-   public String generateWsdl(String name, String namespace, String portType,
-                              String uri, Class wsInterface)
+   public String generateWsdl(
+      String name, String namespace, String portType, String uri,
+      Class wsInterface)
    {
-      String wsdl = "";
+      StringBuffer wsdl = new StringBuffer();
       
-      wsdl += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+      wsdl.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
       
       // definitions opening tag
-      wsdl +=
+      wsdl.append(
          "<definitions " +
          "xmlns=\"" + WSDL_NAMESPACE + "\" " +
          "xmlns:tns=\"" + namespace + "\" " +
          "xmlns:xsd=\"" + SoapMessage.XSD_NAMESPACE + "\" " +
          "xmlns:soap=\"" + SoapMessage.SOAP_NAMESPACE + "\" " +
-         "name=\"" + name + "\" targetNamespace=\"" + namespace + "\">\n";
+         "name=\"" + name + "\" targetNamespace=\"" + namespace + "\">\n");
       
       // types
-      wsdl += " <types/>\n";
+      wsdl.append(" <types/>\n");
       
       // messages
-      wsdl += generateMessagesXml(portType, wsInterface);
+      wsdl.append(generateMessagesXml(portType, wsInterface));
       
       // port type information
-      wsdl += generatePortTypeXml(portType, wsInterface);
+      wsdl.append(generatePortTypeXml(portType, wsInterface));
 
       // generate binding
-      wsdl += generateBindingXml(portType, namespace, wsInterface);
+      wsdl.append(generateBindingXml(portType, namespace, wsInterface));
       
-      wsdl += " <service " +
-              "name=\"" + name + "\">\n";
-      wsdl += "  <port " +
-              "name=\"" + portType + "Port\" " +
-              "binding=\"tns:" + portType + "Binding\">\n";
-      wsdl += "   <soap:address location=\"" + uri + "\" " +
-              "xmlns=\"" + WSDL_NAMESPACE + "\"/>\n";
-      wsdl += "  </port>\n";
-      wsdl += " </service>\n";
+      wsdl.append(" <service " +
+                  "name=\"" + name + "\">\n");
+      wsdl.append("  <port " +
+                  "name=\"" + portType + "Port\" " +
+                  "binding=\"tns:" + portType + "Binding\">\n");
+      wsdl.append("   <soap:address location=\"" + uri + "\" " +
+                  "xmlns=\"" + WSDL_NAMESPACE + "\"/>\n");
+      wsdl.append("  </port>\n");
+      wsdl.append(" </service>\n");
       
-      wsdl += "</definitions>";      
+      wsdl.append("</definitions>");
       
-      return wsdl;
+      return wsdl.toString();
    }
    
    /**
     * Generates a WSDL.
     *
     * @param gsh the generic soap handler to generate the WSDL for. 
+    * 
     * @return the generated WSDL.
     */
    public String generateWsdl(GenericSoapWebService gsh)   
    {
-      String wsdl = generateWsdl(gsh.getName(), gsh.getNamespace(),
-                                 gsh.getPortType(), gsh.getURI(),
-                                 gsh.getSoapInterface());
+      String wsdl = generateWsdl(
+         gsh.getName(), gsh.getNamespace(), gsh.getPortType(), gsh.getURI(),
+         gsh.getSoapInterface());
       
       return wsdl;
    }

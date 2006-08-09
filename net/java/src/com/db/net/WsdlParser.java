@@ -5,29 +5,21 @@ package com.db.net;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.ElementReader;
-import com.db.xml.IXmlSerializer;
 
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 /**
  * This class parses a WSDL for a soap client.
  * 
  * @author Dave Longley
  */
-public class WsdlParser implements IXmlSerializer
+public class WsdlParser extends AbstractXmlSerializer
 {
    /**
     * The name of the web service.
@@ -143,48 +135,13 @@ public class WsdlParser implements IXmlSerializer
    }
    
    /**
-    * This method takes options that are used to configure
-    * how to convert to and from xml.
-    *
-    * @param options the configuration options.
-    * 
-    * @return true if options successfully set, false if not.    
-    */
-   public boolean setXmlSerializerOptions(int options)
-   {
-      return false;
-   }
-
-   /**
-    * This method gets the options that are used to configure
-    * how to convert to and from xml.
-    *
-    * @return the configuration options.
-    */
-   public int getXmlSerializerOptions()
-   {
-      return 0;
-   }
-   
-   /**
     * Returns the root tag name for this serializer.
     * 
     * @return the root tag name for this serializer.
     */
    public String getRootTag()   
    {
-      return "";
-   }   
-
-   /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
-    * 
-    * @return the xml-based representation of the object.
-    */
-   public String convertToXml()
-   {
-      return convertToXml(0);
+      return "definitions";
    }
    
    /**
@@ -199,8 +156,8 @@ public class WsdlParser implements IXmlSerializer
    public String convertToXml(int indentLevel)
    {
       return "";
-   }
-   
+   }   
+
    /**
     * This method takes XML text (in full document form) and converts
     * it to it's internal representation.
@@ -213,43 +170,10 @@ public class WsdlParser implements IXmlSerializer
    {
       boolean rval = false;
       
-      getLogger().debug(getClass(), "WSDL:\n" + xmlText);
-      
       getLogger().debug(getClass(), "Loading WSDL from xml...");
-
-      try
-      {
-         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-         DocumentBuilder builder = factory.newDocumentBuilder();
-         
-         InputSource is = new InputSource(new StringReader(xmlText));
-         Document doc = builder.parse(is);
-         
-         // normalize text representation
-         doc.getDocumentElement().normalize();
-         
-         rval = convertFromXml(doc.getDocumentElement());
-      }
-      catch(SAXParseException spe)
-      {
-         getLogger().debug(getClass(),
-            "xml parsing error" +
-            ", line " + spe.getLineNumber() +
-            ", uri " + spe.getSystemId());
-         getLogger().debug(getClass(), "   " + spe.getMessage());
-         // print stack trace as below
-      }
-      catch(SAXException se)
-      {
-         Exception x = se.getException();
-         x = (x == null) ? se : x;
-         
-         getLogger().debug(getClass(), Logger.getStackTrace(x));
-      }
-      catch(Exception e)
-      {
-         getLogger().debug(getClass(), Logger.getStackTrace(e));
-      }    
+      getLogger().debugData(getClass(), "WSDL:\n" + xmlText);
+      
+      rval = super.convertFromXml(xmlText);
       
       return rval;
    }

@@ -5,23 +5,15 @@ package com.db.net;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.ElementReader;
-import com.db.xml.IXmlSerializer;
 import com.db.xml.XmlCoder;
 
 /**
@@ -29,7 +21,7 @@ import com.db.xml.XmlCoder;
  * 
  * @author Dave Longley
  */
-public class SoapMessage implements IXmlSerializer
+public class SoapMessage extends AbstractXmlSerializer
 {
    /**
     * The xml schema for a soap message (the xsd).
@@ -566,17 +558,6 @@ public class SoapMessage implements IXmlSerializer
    /**
     * This method takes the object representation and creates an
     * XML-based representation of the object.
-    * 
-    * @return the xml-based representation of the object.
-    */
-   public String convertToXml()
-   {
-      return convertToXml(0);
-   }
-   
-   /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
     *
     * @param indentLevel the number of spaces to place before the text
     *                    after each new line.
@@ -650,58 +631,6 @@ public class SoapMessage implements IXmlSerializer
       return xml.toString();
    }
 
-   /**
-    * This method takes XML text (in full document form) and converts
-    * it to it's internal representation.
-    *
-    * @param xmlText the xml text document that represents the object.
-    * 
-    * @return true if successful, false otherwise.    
-    */
-   public boolean convertFromXml(String xmlText)
-   {
-      boolean rval = false;
-      
-      getLogger().detail(getClass(),
-         "Loading soap message from xml:\n" + xmlText);
-
-      try
-      {
-         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-         DocumentBuilder builder = factory.newDocumentBuilder();
-         
-         InputSource is = new InputSource(new StringReader(xmlText));
-         Document doc = builder.parse(is);
-         
-         // normalize text representation
-         doc.getDocumentElement().normalize();
-         
-         rval = convertFromXml(doc.getDocumentElement());
-      }
-      catch(SAXParseException spe)
-      {
-         getLogger().debug(getClass(),
-            "xml parsing error" +
-            ", line " + spe.getLineNumber() +
-            ", uri " + spe.getSystemId());
-         getLogger().debug(getClass(), "   " + spe.getMessage());
-         // print stack trace as below
-      }
-      catch(SAXException se)
-      {
-         Exception x = se.getException();
-         x = (x == null) ? se : x;
-         
-         getLogger().debug(getClass(), Logger.getStackTrace(x));
-      }
-      catch(Exception e)
-      {
-         getLogger().debug(getClass(), Logger.getStackTrace(e));
-      }      
-      
-      return rval;
-   }
-   
    /**
     * This method takes a parsed DOM XML element and converts it
     * back into this object's representation.
@@ -804,14 +733,18 @@ public class SoapMessage implements IXmlSerializer
                         // FIXME: assumes "result" is being used
                         if(paramName.equals("result"))
                         {
-                           getLogger().debug(getClass(), 
+                           getLogger().debug(getClass(),
+                              "soap method result found.");
+                           getLogger().debugData(getClass(), 
                               "soap method result found,result=" +
                               paramValue);
                            setResult(paramValue);
                         }
                         else
                         {
-                           getLogger().debug(getClass(), 
+                           getLogger().debug(getClass(),
+                              "soap method param found.");
+                           getLogger().debugData(getClass(), 
                               "soap method param found,name=" + paramName +
                               ",value=" + paramValue);
                            

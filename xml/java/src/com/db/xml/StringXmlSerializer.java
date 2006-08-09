@@ -5,13 +5,16 @@ package com.db.xml;
 
 import org.w3c.dom.Element;
 
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
+
 /**
  * A StringXMLSerializer is a very simplistic XML serializer. Its purpose
  * is to serialize a string to XML for use with other XML objects.
  * 
  * @author Dave Longley
  */
-public class StringXmlSerializer implements IXmlSerializer
+public class StringXmlSerializer extends AbstractXmlSerializer
 {
    /**
     * The string.
@@ -55,29 +58,6 @@ public class StringXmlSerializer implements IXmlSerializer
    {
       return mString;
    }
-   
-   /**
-    * This method takes options that are used to configure
-    * how to convert to and from xml.
-    *
-    * @param options the configuration options.
-    * @return true if options successfully set, false if not.    
-    */
-   public boolean setXmlSerializerOptions(int options)
-   {
-      return false;
-   }
-
-   /**
-    * This method gets the options that are used to configure
-    * how to convert to and from xml.
-    *
-    * @return the configuration options.
-    */
-   public int getXmlSerializerOptions()
-   {
-      return 0;
-   }
 
    /**
     * Returns the root tag name for this serializer.
@@ -89,17 +69,6 @@ public class StringXmlSerializer implements IXmlSerializer
       return "string";
    }   
 
-   /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
-    * 
-    * @return the xml-based representation of this object.
-    */
-   public String convertToXml()
-   {
-      return convertToXml(0);
-   }
-   
    /**
     * This method takes XML text (in full document form) and converts
     * it to it's internal representation.
@@ -129,18 +98,6 @@ public class StringXmlSerializer implements IXmlSerializer
    }
    
    /**
-    * This method takes XML text (in full document form) and converts
-    * it to it's internal representation.
-    *
-    * @param xmlText the xml text document that represents the object.
-    * @return true if successful, false otherwise.    
-    */
-   public boolean convertFromXml(String xmlText)
-   {
-      return false;
-   }
-   
-   /**
     * This method takes a parsed DOM XML element and converts it
     * back into this object's representation.
     *
@@ -155,5 +112,15 @@ public class StringXmlSerializer implements IXmlSerializer
       setString(XmlCoder.decode(er.getStringValue()));
       
       return rval;
+   }
+   
+   /**
+    * Gets the logger for this xml serializer.
+    * 
+    * @return the logger for this xml serializer.
+    */
+   public Logger getLogger()
+   {
+      return LoggerManager.getLogger("dbxml");
    }
 }

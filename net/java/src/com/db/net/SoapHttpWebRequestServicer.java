@@ -60,13 +60,16 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       if(body != null)
       {
          xml = new String(body);
-         getLogger().debug(getClass(), "received soap xml:\n" + xml);
+         getLogger().debug(getClass(),
+            "received soap xml (see debug-data log for the actual xml).");
+         getLogger().debugData(getClass(), "received soap xml:\n" + xml);
       }
       
       // see if the soap message was valid
       if(body != null && !sm.convertFromXml(xml))
       {
-         getLogger().debug(getClass(), "no valid soap message");
+         getLogger().debug(getClass(),
+            "NO valid soap message found! Sending soap fault.");
          
          // create soap fault
          sm.setFaultCode(SoapMessage.FAULT_CLIENT);
@@ -301,7 +304,8 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       else
       {
          getLogger().debug(getClass(), 
-            "http content is not text/xml,contentType=" + contentType);
+            "http content is NOT text/xml -- sending bad request response" +
+            ",contentType=" + contentType);
          
          // send bad request
          response.sendBadRequestResponse();
