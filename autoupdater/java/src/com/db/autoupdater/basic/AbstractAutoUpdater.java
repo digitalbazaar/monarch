@@ -387,6 +387,9 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
       {
          // stop dispatching arguments
          getArgumentDispatcher().stopDispatching();
+         
+         // terminate all running jobs
+         getArgumentDispatcher().terminateAllRunningJobs();
       }
    }
    
@@ -767,11 +770,6 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    /**
     * Runs an application while monitoring for updates in a background process.
     * 
-    * This method returns true if the application has finished executing and
-    * should be run again once updates have been installed, and false if
-    * the application has finished executing and should not be run again, even
-    * after updates have been installed.
-    * 
     * @param application the auto-updateable application to execute.
     */
    protected void run(AutoUpdateable application)
@@ -811,12 +809,15 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
             {
                Thread.sleep(1);
             }
-
+            
             // interrupt update checker thread if not processing an update
             if(!isProcessingUpdate())
             {
                updateChecker.interrupt();
             }
+            
+            // set automatic check flag to false
+            setAutoCheckForUpdate(false);
             
             // join the update checker thread
             updateChecker.join();
@@ -828,7 +829,7 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
             Thread.currentThread().interrupt();
          }
          
-         // set automatic check flag to false
+         // ensure automatic check flag is set to false
          setAutoCheckForUpdate(false);
       }
    }
@@ -965,7 +966,7 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
             
             // run the application
             run(application);
-         
+            
             // AutoUpdateable no longer running
             setRunningAutoUpdateable(null);
          
