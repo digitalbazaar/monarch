@@ -368,6 +368,20 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
       {
          // start dispatching arguments
          getArgumentDispatcher().startDispatching();
+         
+         try
+         {
+            // wait until all of the arguments have been dispatched
+            while(getArgumentDispatcher().getQueuedJobCount() > 0)
+            {
+               Thread.sleep(1);
+            }
+         }
+         catch(InterruptedException e)
+         {
+            // ensure current thread is still interrupted
+            Thread.currentThread().interrupt();
+         }
       }
       else
       {
