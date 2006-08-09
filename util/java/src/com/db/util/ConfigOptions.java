@@ -61,7 +61,12 @@ public class ConfigOptions
       if(c != null && value != null)
       {
          // ensure that the value is an instance of the restricted class
-         if(!c.isInstance(value))
+         if(c.isInstance(value))
+         {
+            // value is instance of class
+            rval = true;
+         }
+         else
          {
             // if type is a primitive and value is a string, we may be
             // able to parse the string to the correct type
