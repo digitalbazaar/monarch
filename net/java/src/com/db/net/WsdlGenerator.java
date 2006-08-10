@@ -188,7 +188,7 @@ public class WsdlGenerator
    {
       StringBuffer xml = new StringBuffer();
       
-      xml.append(" <binding name=\"" + port + "Binding\" " +
+      xml.append(" <binding name=\"" + port + "SoapBinding\" " +
                  "type=\"tns:" + port + "\">\n");
       xml.append(" <soap:binding transport=\"" + HTTP_SCHEMA + "\" " +
                  "style=\"rpc\"/>\n");
@@ -266,7 +266,7 @@ public class WsdlGenerator
                   "name=\"" + name + "\">\n");
       wsdl.append("  <port " +
                   "name=\"" + portType + "Port\" " +
-                  "binding=\"tns:" + portType + "Binding\">\n");
+                  "binding=\"tns:" + portType + "SoapBinding\">\n");
       wsdl.append("   <soap:address location=\"" + uri + "\" " +
                   "xmlns=\"" + WSDL_NAMESPACE + "\"/>\n");
       wsdl.append("  </port>\n");
