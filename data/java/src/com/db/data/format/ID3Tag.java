@@ -300,4 +300,14 @@ public class ID3Tag
       
       return mStr;
    }
+   
+   /**
+    * Converts this ID3Tag to a string.
+    * 
+    * @return the ID3Tag as a string.
+    */
+   public String toString()
+   {
+      return convertToString();
+   }
 }
