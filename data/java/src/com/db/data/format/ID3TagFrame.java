@@ -93,7 +93,9 @@ public class ID3TagFrame
       {
          char c = (char)mFrameData[i];
          if(c != 0)
+         {
             strValue.append(c);
+         }
       }
       
       return strValue.toString();
@@ -106,24 +108,7 @@ public class ID3TagFrame
     */
    public int getSize()
    {
-      //int b1, b2, b3, b4;
-      //int tagDataLength;
-      
-      // THIS DOESN'T WORK FOR POORLY ENCODED FRAMES
-      
-      // Get the size of the tag
-      //b1 = mFrameHeader[4] << 21;
-      //b2 = mFrameHeader[5] << 14;
-      //b3 = mFrameHeader[6] << 7;
-      //b4 = mFrameHeader[7] & 0xFF;
-         
-      //tagDataLength = (b1 | b2 | b3 | b4);
-      
-      //return tagDataLength + mFrameHeader.length;
-      
-      // DOING CONVERSION INSTEAD
-      byte[] b = convertToBytes();
-      return b.length;
+      return mFrameHeader.length + mFrameData.length;
    }
    
    /**
@@ -133,13 +118,14 @@ public class ID3TagFrame
     * @param b the bytes to use as the tag frame data.
     * @param tagOffset the offset at which the id3 tag frame starts
     * @param length the number of valid bytes in the byte array.
+    * 
     * @return true if conversion was successful, false otherwise
     */
    public boolean convertFromBytes(byte[] b, int tagOffset, int length)
    {
       boolean rval = false;
       
-      if(tagOffset + 7 <= length)
+      if(tagOffset + 7 < length)
       {
          int b1, b2, b3, b4;
          
@@ -151,20 +137,6 @@ public class ID3TagFrame
          // get the tag data length
          int tagDataLength = (b1 | b2 | b3 | b4);
          
-//         // Print a bit-string
-//         LoggerManager.debug("dbdata", "0x");
-//         for(int i = 32; i >= 0; i--)
-//         {
-//            if((tagDataLength & (1 << i)) != 0)
-//               LoggerManager.debug("dbdata", "1");
-//            else
-//               LoggerManager.debug("dbdata", "0");
-//         }
-//         LoggerManager.debug("dbdata", "");
-//         
-//         LoggerManager.debug("dbdata",
-//              "CFB: tagDataLength = "+ tagDataLength);
-//      
          // make sure there is enough data for the conversion
          if(tagOffset + 10 + tagDataLength <= length)
          {
@@ -198,36 +170,33 @@ public class ID3TagFrame
       
       int dataLength = mFrameData.length;
       
-      // update the tag length      
-      //b[4] = (byte)((dataLength & 0x0fe00000) >> 21);
-      //b[5] = (byte)((dataLength & 0x001fc000) >> 14);
-      //b[6] = (byte)((dataLength & 0x00003f80) >> 7);
-      //b[7] = (byte)(dataLength & 0x0000007f);
-
       // update the tag frame length      
       b[4] = (byte)((dataLength & 0x0f000000) >> 24);
       b[5] = (byte)((dataLength & 0x00ff0000) >> 16);
       b[6] = (byte)((dataLength & 0x0000ff00) >> 8);
       b[7] = (byte)(dataLength  & 0x000000ff);
       
-      //LoggerManager.debug("dbdata", "UDL ["+ getName() +"] size: "+ dataLength);
-      //LoggerManager.debug("dbdata", "UDL bytes: ");
-      //LoggerManager.debug("dbdata", b[4]);
-      //LoggerManager.debug("dbdata", " "+ b[5]);
-      //LoggerManager.debug("dbdata", " "+ b[6]);
-      //LoggerManager.debug("dbdata", " "+ b[7]);
-      
       return b;
    }
 
    /**
-    * Converts this ID3 tag into a human-readable string.
+    * Converts this ID3 tag frame into a human-readable string.
     * 
-    * @return the human readable string associated with this ID3 tag.
+    * @return the human readable string associated with this ID3 tag frame.
     */
    public String convertToString()
    {
       return "[" + getName() + ":" + getSize() + ":'" +
              getDataAsString() + "']";
+   }
+   
+   /**
+    * Converts this ID3 tag frame into a human-readable string.
+    * 
+    * @return the human readable string associated with this ID3 tag frame.
+    */
+   public String toString()
+   {
+      return convertToString();
    }
 }
