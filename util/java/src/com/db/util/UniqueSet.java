@@ -120,24 +120,6 @@ public class UniqueSet implements Set
     */
    public boolean containsAll(Collection c)
    {
-      /*int count = c.size();
-      Iterator i1 = mCollection.iterator();
-      while(i1.hasNext() && count > 0)
-      {
-         Object obj = i1.next();
-         
-         Iterator i2 = c.iterator();
-         while(i2.hasNext())
-         {
-            if(obj.equals(i2.next()))
-            {
-               count--;
-               break;
-            }
-         }
-      }
-      
-      return count == 0;*/
       return mCollection.containsAll(c);
    }
    
@@ -256,8 +238,25 @@ public class UniqueSet implements Set
    public boolean addAll(UniqueSet us)
    {
       return mCollection.addAll(us);
-   }   
-
+   }
+   
+   /**
+    * Gets the first element from this unique set.
+    * 
+    * @return the first element, or null if there is no first element.
+    */
+   public Object getFirstElement()
+   {
+      Object rval = null;
+      
+      for(Iterator i = iterator(); i.hasNext();)
+      {
+         rval = i.next();
+      }
+      
+      return rval;
+   }
+   
    /**
     * Removes the specified object from this set if it is present.
     *
