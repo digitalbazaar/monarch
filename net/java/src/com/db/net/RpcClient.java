@@ -3,8 +3,6 @@
  */
 package com.db.net;
 
-import java.util.Vector;
-
 /**
  * An interface for rpc clients.
  * 
@@ -17,7 +15,8 @@ public interface RpcClient
     * 
     * @param method the name of the remote method.
     * @param params the parameters for the remote method.
+    * 
     * @return the return value from the remote method or null. 
     */
-   public Object callRemoteMethod(String method, Vector params);
+   public Object callRemoteMethod(String method, Object[] params);
 }

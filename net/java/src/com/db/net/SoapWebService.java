@@ -14,6 +14,7 @@ public interface SoapWebService
     * Calls the appropriate soap method.
     * 
     * @param sm the soap message.
+    * 
     * @return the return value from the called method.
     */
    public Object callSoapMethod(SoapMessage sm);
@@ -22,9 +23,17 @@ public interface SoapWebService
     * Returns true if the passed soap action is valid for this service.
     *
     * @param action the soap action to check.
+    * 
     * @return true if the passed soap action is valid, false if not.
     */
    public boolean isSoapActionValid(String action);
+   
+   /**
+    * Creates a soap message for use with this service.
+    * 
+    * @return a soap message for use with this service.
+    */
+   public SoapMessage createSoapMessage();
    
    /**
     * Gets the URI to the soap service.
@@ -34,11 +43,18 @@ public interface SoapWebService
    public String getURI();   
 
    /**
-    * Gets the WSDL as a string.
+    * Gets the WSDL.
     * 
-    * @return the WSDL as a string.
+    * @return the WSDL.
     */
-   public String getWsdl();
+   public Wsdl getWsdl();
+   
+   /**
+    * Gets the WSDL port type.
+    * 
+    * @return the WSDL port type.
+    */
+   public String getPortType();
    
    /**
     * Gets the path to the WSDL.

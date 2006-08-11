@@ -50,23 +50,21 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       getLogger().detail(getClass(), "looking for soap message...");
       
       // receive the body in the request
-      byte[] body = request.receiveBody();
+      String body = request.receiveBodyString();
       
       // create a soap message
-      sm = new SoapMessage();
+      sm = mSoapWebService.createSoapMessage();
       sm.setXmlSerializerOptions(SoapMessage.SOAP_REQUEST);
       
-      String xml = "";
       if(body != null)
       {
-         xml = new String(body);
          getLogger().debug(getClass(),
             "received soap xml (see debug-data log for the actual xml).");
-         getLogger().debugData(getClass(), "received soap xml:\n" + xml);
+         getLogger().debugData(getClass(), "received soap xml:\n" + body);
       }
       
       // see if the soap message was valid
-      if(body != null && !sm.convertFromXml(xml))
+      if(body != null && !sm.convertFromXml(body))
       {
          getLogger().debug(getClass(),
             "NO valid soap message found! Sending soap fault.");
@@ -217,11 +215,20 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          getLogger().detail(getClass(), "wsdl path match found");
          
          // get the wsdl from the soap web service
-         String wsdl = mSoapWebService.getWsdl();
-         if(wsdl != null && !wsdl.equals(""))
+         Wsdl wsdl = mSoapWebService.getWsdl();
+         if(wsdl != null)
          {
-            // send a wsdl in the response
-            sendWsdlResponse(response, wsdl);
+            String xml = wsdl.convertToXml();
+            if(!xml.equals(""))
+            {
+               // send a wsdl xml in the response
+               sendWsdlResponse(response, xml);
+            }
+            else
+            {
+               // send not found response
+               response.sendNotFoundResponse();
+            }            
          }
          else
          {
@@ -280,7 +287,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
             else
             {
                // create a soap fault message
-               sm = new SoapMessage();
+               sm = mSoapWebService.createSoapMessage();
                sm.setFaultCode(SoapMessage.FAULT_CLIENT);
                sm.setFaultString("Soap action is invalid.");
                sm.setFaultActor(mSoapWebService.getURI());

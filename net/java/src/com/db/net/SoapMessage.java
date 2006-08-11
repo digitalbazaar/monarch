@@ -5,7 +5,6 @@ package com.db.net;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.Iterator;
 
 import org.w3c.dom.Element;
@@ -54,6 +53,21 @@ public class SoapMessage extends AbstractXmlSerializer
       "http://schemas.xmlsoap.org/soap/envelope/";
    
    /**
+    * The WSDL for the web service.
+    */
+   protected Wsdl mWsdl;
+   
+   /**
+    * The port type for the web service.
+    */
+   protected WsdlPortType mPortType;
+   
+   /**
+    * The port type operation for the method.
+    */
+   protected WsdlPortTypeOperation mPortTypeOperation;
+   
+   /**
     * The name of the method to execute.
     */
    protected String mMethod;
@@ -61,18 +75,13 @@ public class SoapMessage extends AbstractXmlSerializer
    /**
     * The parameters for the method to execute.
     */
-   protected HashMap mParams;
+   protected Object[] mParams;
    
    /**
-    * The result of the executed method.
+    * The results of the executed method.
     */
-   protected String mResult;
-   
-   /**
-    * The xml namespace for this soap message. 
-    */
-   protected String mNamespace;
-   
+   protected Object[] mResults;
+
    /**
     * The address of the client for this soap message.
     */
@@ -106,22 +115,22 @@ public class SoapMessage extends AbstractXmlSerializer
    /**
     * A soap fault: when a version mismatch occurs.
     */
-   protected final static int FAULT_VERSION_MISMATCH = 0;
+   protected final static int FAULT_VERSION_MISMATCH = 1;
    
    /**
     * A soap fault: when something must be understood but is not.
     */
-   protected final static int FAULT_MUST_UNDERSTAND  = 1;
+   protected final static int FAULT_MUST_UNDERSTAND  = 2;
    
    /**
     * A soap fault: when a soap client faults.
     */
-   protected final static int FAULT_CLIENT           = 2;
+   protected final static int FAULT_CLIENT           = 4;
    
    /**
     * A soap fault: when a soap server faults.
     */
-   protected final static int FAULT_SERVER           = 4;
+   protected final static int FAULT_SERVER           = 8;
    
    /**
     * XML serializer options.
@@ -131,56 +140,312 @@ public class SoapMessage extends AbstractXmlSerializer
    /**
     * An XML serializer option for converting to/from a soap request. 
     */
-   protected final static int SOAP_REQUEST  = 0;
+   protected final static int SOAP_REQUEST  = 1;
    
    /**
     * An XML serializer option for converting to/from a soap response.
     */
-   protected final static int SOAP_RESPONSE = 1;
+   protected final static int SOAP_RESPONSE = 2;
    
    /**
     * An XML serializer option for converting to/from a soap fault. 
     */
-   protected final static int SOAP_FAULT    = 2;
+   protected final static int SOAP_FAULT    = 4;
    
    /**
     * Creates a new soap message.
+    * 
+    * @param wsdl the wsdl for the web service this soap message will be used
+    *             with.
+    * @param portType the name of the port type to use.
     */
-   public SoapMessage()
+   public SoapMessage(Wsdl wsdl, String portType)
    {
-      mParams = new HashMap();
+      // store the wsdl and port type
+      mWsdl = wsdl;
+      mPortType = mWsdl.getPortTypes().getPortType(portType);
+      mPortTypeOperation = null;
+      
+      if(mPortType == null)
+      {
+         throw new IllegalArgumentException(
+            "Port Type not valid for given Wsdl!");
+      }
+
+      // default to a soap request
       setXmlSerializerOptions(SOAP_REQUEST);
       
+      // set default client IP address
       mClientIP = "0.0.0.0";
    }
    
    /**
-    * Sets the namespace for this soap message.
+    * Finds the port type operation for the given method name.
+    *
+    * @param method the method name.
     * 
-    * @param namespace the namespace;
+    * @exception IllegalArgumentException thrown if there is no operation for
+    *                                     the given method name.
     */
-   public void setNamespace(String namespace)
+   protected void findPortTypeOperation(String method)
+   throws IllegalArgumentException
    {
-      mNamespace = namespace;
-   }
-
-   /**
-    * Gets the namespace for this soap message.
-    * 
-    * @return the namespace;
-    */
-   public String getNamespace()
-   {
-      return mNamespace;
+      // get the port type operation
+      mPortTypeOperation = mPortType.getOperations().getOperation(method);
+      
+      if(mPortTypeOperation == null)
+      {
+         throw new IllegalArgumentException(
+            "Method is not valid for the given Wsdl Port Type!");
+      }
    }
    
    /**
-    * Sets the method.
+    * Gets the WsdlMessage for a SOAP request.
+    * 
+    * @return the WsdlMessage for a SOAP request.
+    */
+   protected WsdlMessage getRequestMessage()
+   {
+      WsdlMessage rval = null;
+      
+      // get the message name
+      String messageName = "";
+      if(getPortTypeOperation().usesOnlyInputMessage())
+      {
+         messageName = getPortTypeOperation().getInputMessageName();
+      }
+      else if(getPortTypeOperation().usesOnlyOutputMessage())
+      {
+         messageName = getPortTypeOperation().getOutputMessageName();
+      }
+      else
+      {
+         if(getPortTypeOperation().isInputFirst())
+         {
+            messageName = getPortTypeOperation().getInputMessageName();
+         }
+         else
+         {
+            messageName = getPortTypeOperation().getOutputMessageName();
+         }
+      }
+      
+      // get the wsdl message
+      rval = mWsdl.getMessages().getMessage(messageName);
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the WsdlMessage for a SOAP response.
+    * 
+    * @return the WsdlMessage for a SOAP response.
+    */
+   protected WsdlMessage getResponseMessage()
+   {
+      WsdlMessage rval = null;
+      
+      // get the message name
+      String messageName = "";
+      if(getPortTypeOperation().usesOnlyInputMessage())
+      {
+         messageName = getPortTypeOperation().getInputMessageName();
+      }
+      else if(getPortTypeOperation().usesOnlyOutputMessage())
+      {
+         messageName = getPortTypeOperation().getOutputMessageName();
+      }
+      else
+      {
+         if(getPortTypeOperation().isInputFirst())
+         {
+            messageName = getPortTypeOperation().getOutputMessageName();
+         }
+         else
+         {
+            messageName = getPortTypeOperation().getInputMessageName();
+         }
+      }
+      
+      // get the wsdl message
+      rval = mWsdl.getMessages().getMessage(messageName);
+      
+      return rval;
+   }
+   
+   /**
+    * Converts a soap fault from an XML element reader pointing to the
+    * soap message body.
+    * 
+    * @param reader the element reader.
+    */
+   protected void convertSoapFaultFromXml(ElementReader reader)
+   {
+      // get fault code, fault string, and fault actor
+      ElementReader r = null;
+      
+      r = reader.getFirstElementReader("faultcode");
+      if(r != null)
+      {
+         String[] split = r.getStringValue().split(":");
+         if(split.length > 1)
+         {
+            setFaultCode(split[1]);
+         }
+      }
+      
+      r = reader.getFirstElementReader("faultstring");
+      if(r != null)
+      {
+         setFaultString(r.getStringValue());
+      }
+
+      r = reader.getFirstElementReader("faultactor");
+      if(r != null)
+      {
+         setFaultActor(r.getStringValue());
+      }
+   }
+   
+   /**
+    * Converts a soap request from an XML element reader pointing to the
+    * soap message body.
+    * 
+    * @param reader the element reader.
+    */
+   protected void convertSoapRequestFromXml(ElementReader reader)
+   {
+      // get the request message
+      WsdlMessage message = getRequestMessage();
+      
+      // build a parameters array
+      Object[] params = new Object[message.getParts().size()];
+      if(params.length > 0)
+      {
+         // iterate through the parts of the message
+         int count = 0;
+         for(Iterator i = reader.getElementReaders().iterator();
+             i.hasNext(); count++)
+         {
+            ElementReader partReader = (ElementReader)i.next();
+            
+            // get the appropriate message part
+            WsdlMessagePart part = message.getParts().getPart(
+               partReader.getTagName());
+            
+            // get the parameter value
+            String value = partReader.getStringValue();
+            
+            getLogger().debug(getClass(), "soap method parameter found.");
+            getLogger().debugData(getClass(), 
+               "soap method parameter found" +
+               ",name=" + part.getName() +
+               ",value=" + value +
+               ",type=" + part.getType());
+            
+            // parse the object
+            params[count] = Wsdl.parseObject(value, part.getType());
+         }
+         
+         getLogger().debug(getClass(), 
+            "number of soap method parameters read: " + count);
+      }
+      
+      // set the parameters
+      setParameters(params);
+   }
+   
+   /**
+    * Converts a soap response from an XML element reader pointing to the
+    * soap message body.
+    * 
+    * @param reader the element reader.
+    */
+   protected void convertSoapResponseFromXml(ElementReader reader)   
+   {
+      // get the response message
+      WsdlMessage message = getResponseMessage();
+      
+      // build a results array
+      Object[] results = new Object[message.getParts().size()];
+      
+      if(results.length > 0)
+      {
+         // iterate through the parts of the message
+         int count = 0;
+         for(Iterator i = reader.getElementReaders().iterator();
+             i.hasNext(); count++)
+         {
+            ElementReader partReader = (ElementReader)i.next();
+            
+            // get the appropriate message part
+            WsdlMessagePart part = message.getParts().getPart(
+               partReader.getTagName());
+            
+            // get the parameter value
+            String value = partReader.getStringValue();
+            
+            getLogger().debug(getClass(), "soap method result found.");
+            getLogger().debugData(getClass(), 
+               "soap method result found" +
+               ",name=" + part.getName() +
+               ",value=" + value +
+               ",type=" + part.getType());
+         
+            // parse the object
+            results[count] = Wsdl.parseObject(value, part.getType());
+         }
+         
+         getLogger().debug(getClass(), 
+            "number of soap method results read: " + count);
+      }
+      
+      // set the results
+      setResults(results);
+   }
+   
+   /**
+    * Gets the current port type operation.
+    * 
+    * @return the current port type operation.
+    */
+   protected WsdlPortTypeOperation getPortTypeOperation()
+   {
+      return mPortTypeOperation;
+   }
+   
+   /**
+    * Gets the WSDL for this soap message.
+    * 
+    * @return the WSDL for this soap message.
+    */
+   public Wsdl getWsdl()
+   {
+      return mWsdl;
+   }
+   
+   /**
+    * Gets the port type for this soap message.
+    * 
+    * @return the port type for this soap message.
+    */
+   public WsdlPortType getPortType()
+   {
+      return mPortType;
+   }
+   
+   /**
+    * Sets the method for this soap message.
     * 
     * @param method the method.
     */
    public void setMethod(String method)
    {
+      // try to find the operation for the given method
+      findPortTypeOperation(method);
+
+      // store method
       mMethod = method;
    }
    
@@ -195,43 +460,61 @@ public class SoapMessage extends AbstractXmlSerializer
    }
    
    /**
-    * Sets the params.
+    * Sets the parameters for the method.
     * 
-    * @param params the params.
+    * @param params the parameters for the method.
     */
-   public void setParams(HashMap params)
+   public void setParameters(Object[] params)
    {
       mParams = params;
+      if(mParams == null)
+      {
+         mParams = new Object[0];
+      }
    }
    
    /**
-    * Gets the params.
+    * Gets the parameters for the method.
     * 
-    * @return the params.
+    * @return the parameters for the method.
     */
-   public HashMap getParams()
+   public Object[] getParameters()
    {
+      if(mParams == null)
+      {
+         mParams = new Object[0];
+      }
+      
       return mParams;
    }
    
    /**
-    * Sets the result.
+    * Sets the results.
     * 
-    * @param result the result.
+    * @param results the results.
     */
-   public void setResult(String result)
+   public void setResults(Object[] results)
    {
-      mResult = result;
+      mResults = results;
+      if(mResults == null)
+      {
+         mResults = new Object[0];
+      }
    }
    
    /**
-    * Gets the result.
+    * Gets the results.
     * 
-    * @return the result.
+    * @return the results.
     */
-   public String getResult()
+   public Object[] getResults()
    {
-      return mResult;
+      if(mResults == null)
+      {
+         mResults = new Object[0];
+      }
+      
+      return mResults;
    }
    
    /**
@@ -566,15 +849,9 @@ public class SoapMessage extends AbstractXmlSerializer
     */
    public String convertToXml(int indentLevel)
    {
-      // FIXME: this code makes a couple of assumptions,
-      // like "result" will indicate a method result
-      
+      // FUTURE CODE: the current implementation makes some assumptions about
+      // soap encoding and so forth -- the same ones made by the Wsdl class  
       StringBuffer xml = new StringBuffer();
-      StringBuffer indent = new StringBuffer("\n");
-      for(int i = 0; i < indentLevel; i++)
-      {
-         indent.append(' ');
-      }
 
       if(indentLevel == 0)
       {
@@ -585,7 +862,7 @@ public class SoapMessage extends AbstractXmlSerializer
       xml.append("xmlns:xsd=\"" + XSD_NAMESPACE + "\" ");
       xml.append("xmlns:xsi=\"" + XSI_NAMESPACE + "\" ");
       xml.append("xmlns:enc=\"" + ENCODING_SCHEMA + "\" ");
-      xml.append("xmlns:tns=\"" + getNamespace() + "\" ");
+      xml.append("xmlns:tns=\"" + getWsdl().getTargetNamespace() + "\" ");
       xml.append("soap:encodingStyle=\"" + ENCODING_SCHEMA +"\">");
       
       // add the envelope's body
@@ -593,28 +870,46 @@ public class SoapMessage extends AbstractXmlSerializer
 
       if(getXmlSerializerOptions() == SOAP_REQUEST)
       {
-         xml.append("<tns:" + getMethod() + ">");
+         // get the request message
+         WsdlMessage message = getRequestMessage();
          
-         Iterator i = getParams().keySet().iterator();
-         while(i.hasNext())
+         xml.append("<tns:" + getPortTypeOperation().getName() + ">");
+         
+         // convert the parameters
+         int count = 0;
+         for(Iterator i = message.getParts().iterator(); i.hasNext(); count++)
          {
-            String paramName = (String)i.next();
-            String paramValue = "" + getParams().get(paramName);
-            xml.append("<" + paramName + ">");
-            xml.append(XmlCoder.encode(paramValue));
-            xml.append("</" + paramName + ">");
+            WsdlMessagePart part = (WsdlMessagePart)i.next();
+            xml.append("<" + part.getName() + ">");
+            xml.append(XmlCoder.encode("" + getParameters()[count]));
+            xml.append("</" + part.getName() + ">");
          }
          
-         xml.append("</tns:" + getMethod() + ">");
+         xml.append("</tns:" + getPortTypeOperation().getName() + ">");
       }
       else if(getXmlSerializerOptions() == SOAP_RESPONSE)
       {
-         xml.append("<tns:" + getMethod() + "Response>");
-         xml.append("<result>" + XmlCoder.encode(getResult()) + "</result>");
-         xml.append("</tns:" + getMethod() + "Response>");
+         // get the response message
+         WsdlMessage message = getResponseMessage();
+         
+         xml.append("<tns:" + message.getName() + ">");
+         
+         // convert the results
+         int count = 0;
+         for(Iterator i = message.getParts().iterator(); i.hasNext(); count++)
+         {
+            WsdlMessagePart part = (WsdlMessagePart)i.next();
+            xml.append("<" + part.getName() + ">");
+            xml.append(XmlCoder.encode("" + getResults()[count]));
+            xml.append("</" + part.getName() + ">");
+         }
+         
+         xml.append("</tns:" + message.getName() + ">");         
       }
       else if(getXmlSerializerOptions() == SOAP_FAULT)
       {
+         // convert the fault
+         
          xml.append("<soap:Fault>");
          xml.append("<faultcode>soap:" + XmlCoder.encode(getFaultCodeString()) +
                     "</faultcode>");
@@ -643,15 +938,9 @@ public class SoapMessage extends AbstractXmlSerializer
    {
       boolean rval = false;
       
-      // FIXME: this code makes a couple of assumptions,
-      // like "result" will indicate a method result
+      // FUTURE CODE: the current implementation makes some assumptions about
+      // soap encoding and so forth -- the same ones made by the Wsdl class
       
-      // reset method and params
-      setMethod("");
-      setParams(new HashMap());
-      
-      String namespace = "";
-
       ElementReader er = new ElementReader(element);
       
       // iterate through the envelope elements
@@ -673,38 +962,15 @@ public class SoapMessage extends AbstractXmlSerializer
             Iterator bi = envelopeER.getElementReaders().iterator();
             while(bi.hasNext() && !rval)
             {
-               ElementReader bodyER = (ElementReader)bi.next();
-               String name[] = bodyER.getTagName().split(":"); 
+               ElementReader bodyReader = (ElementReader)bi.next();
+               String name[] = bodyReader.getTagName().split(":"); 
                if(name.length > 1)
                {
                   // see if this is a soap fault
                   if(name[1].equals("Fault"))
                   {
-                     // get fault code, fault string, and fault actor
-                     ElementReader r =
-                        bodyER.getFirstElementReader("faultcode");
-                     if(r != null)
-                     {
-                        String[] split = r.getStringValue().split(":");
-                        if(split.length > 1)
-                        {
-                           setFaultCode(split[1]);
-                        }
-                     }
-                     
-                     r = bodyER.getFirstElementReader("faultstring");
-                     if(r != null)
-                     {
-                        setFaultString(r.getStringValue());
-                     }
-
-                     r = bodyER.getFirstElementReader("faultactor");
-                     if(r != null)
-                     {
-                        setFaultActor(r.getStringValue());
-                     }
-                     
-                     rval = true;
+                     // convert soap fault
+                     convertSoapFaultFromXml(bodyReader);
                   }
                   else
                   {
@@ -712,57 +978,27 @@ public class SoapMessage extends AbstractXmlSerializer
                         "got soap envelope method/response," +
                         "method/response=" + name[1]);
                      
-                     // if namespace not set, look it up
-                     if(namespace.equals(""))
+                     // get the incoming message 
+                     if((getXmlSerializerOptions() & SOAP_REQUEST) ==
+                        SOAP_REQUEST)
                      {
-                        namespace = bodyER.getNamespaceURI(name[0], false);
-                        setNamespace(namespace);
+                        // set the method
+                        setMethod(name[1]);
+
+                        // convert soap request
+                        convertSoapRequestFromXml(bodyReader);
                      }
-                     
-                     // set the method
-                     setMethod(name[1]);
-                     
-                     // set parameters
-                     Iterator pi = bodyER.getElementReaders().iterator();
-                     while(pi.hasNext())
+                     else if((getXmlSerializerOptions() & SOAP_RESPONSE) ==
+                        SOAP_RESPONSE)
                      {
-                        ElementReader paramER = (ElementReader)pi.next();
-                        String paramName = paramER.getTagName();
-                        String paramValue = paramER.getStringValue();
-
-                        // FIXME: assumes "result" is being used
-                        if(paramName.equals("result"))
-                        {
-                           getLogger().debug(getClass(),
-                              "soap method result found.");
-                           getLogger().debugData(getClass(), 
-                              "soap method result found,result=" +
-                              paramValue);
-                           setResult(paramValue);
-                        }
-                        else
-                        {
-                           getLogger().debug(getClass(),
-                              "soap method param found.");
-                           getLogger().debugData(getClass(), 
-                              "soap method param found,name=" + paramName +
-                              ",value=" + paramValue);
-                           
-                           // add the param to the map
-                           mParams.put(paramName, paramValue);
-                        }
+                        // convert soap response
+                        convertSoapResponseFromXml(bodyReader);
                      }
-
-                     getLogger().debug(getClass(), 
-                        "number of soap method parameters read: " +
-                        mParams.size());
-                     
-                     rval = true;
                   }
+                  
+                  rval = true;
                }
             }
-            
-            break;
          }
       }
       

@@ -5,8 +5,6 @@ package com.db.net;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Vector;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -30,24 +28,9 @@ public abstract class GenericSoapWebService implements SoapWebService
    protected Object mSoapImplementer;
    
    /**
-    * The name of the web service.
-    */
-   protected String mName;
-   
-   /**
-    * The name space for the web service.
-    */
-   protected String mNamespace;
-   
-   /**
     * The port type for the web service.
     */
    protected String mPortType;
-   
-   /**
-    * The uri for the soap web service.
-    */
-   protected String mURI;
    
    /**
     * The path to the wsdl.
@@ -55,45 +38,54 @@ public abstract class GenericSoapWebService implements SoapWebService
    protected String mWsdlPath;
    
    /**
+    * The Wsdl for this web service.
+    */
+   protected Wsdl mWsdl;
+   
+   /**
     * A map of threads executing soap methods to the soap messages
     * that they are processing.
     */
-   protected Hashtable mCallThreadToSoapMessage;
+   protected HashMap mCallThreadToSoapMessage;
    
    /**
     * Creates a generic soap web service. The soap implementer must be this
     * object.
     * 
+    * @param name the name of this web service.
+    * @param namespace the namespace for this web service.
     * @param soapInterface the soap interface for the web service.
     */
-   public GenericSoapWebService(Class soapInterface) 
+   public GenericSoapWebService(
+      String name, String namespace, Class soapInterface) 
    {
       mSoapImplementer = this;
       mSoapInterface = soapInterface;
-      mName = "";
-      mNamespace = "";
-      mPortType = "";
-      mURI = "";
+      mPortType = soapInterface.getSimpleName();
       mWsdlPath = "";
-      mCallThreadToSoapMessage = new Hashtable();
+      mWsdl = new Wsdl(name, namespace, soapInterface);
+      mCallThreadToSoapMessage = new HashMap();
    }
 
    /**
     * Creates a generic soap web service. Use this constructor if you wish
     * the soap implementer to be a different object than this one.
     * 
+    * @param name the name of this web service.
+    * @param namespace the namespace for this web service.
     * @param soapImplementer the implementing object of the soap interface.
     * @param soapInterface the soap interface for the web service.
     */
-   public GenericSoapWebService(Object soapImplementer, Class soapInterface) 
+   public GenericSoapWebService(
+      String name, String namespace,
+      Object soapImplementer, Class soapInterface) 
    {
       mSoapImplementer = soapImplementer;
       mSoapInterface = soapInterface;
-      mName = "";
-      mNamespace = "";
-      mPortType = "";
-      mURI = "";
+      mPortType = soapInterface.getSimpleName();
       mWsdlPath = "";
+      mWsdl = new Wsdl(name, namespace, soapInterface);
+      mCallThreadToSoapMessage = new HashMap();
    }
 
    /**
@@ -151,32 +143,6 @@ public abstract class GenericSoapWebService implements SoapWebService
    }
    
    /**
-    * Converts the parameter for a soap method to the appropriate
-    * type of object.
-    * 
-    * @param param the param string for a soap method.
-    * @param paramType the appropriate type of the result.
-    * @return the param converted to the appropriate type.
-    */
-   protected Object convertParam(String param, Class paramType)
-   {
-      Object rval = null;
-      
-      getLogger().debug(getClass(), "param type: " + paramType);
-      
-      try
-      {
-         rval = WsdlParser.parseObject(param, paramType);
-      }
-      catch(Throwable t)
-      {
-         getLogger().error(getClass(), "param invalid");
-      }
-      
-      return rval;
-   }
-   
-   /**
     * Gets the soap message, if any, for the client whose soap request
     * is being processed by this thread.
     * 
@@ -215,69 +181,12 @@ public abstract class GenericSoapWebService implements SoapWebService
       
       return clientIP;
    }
-   
-   /**
-    * Gets a vector of ordered parameters for a soap method from a
-    * mapping of parameter name to value.
-    * 
-    * @param method the method to get the ordered params for.
-    * @param params a mapping of parameter name to value.
-    * @return a vector of ordered parameter values.
-    */
-   public Vector getOrderedParams(String method, HashMap params)
-   {
-      Vector orderedParams = new Vector();
-
-      // build paramOrder
-      StringBuffer paramOrder = new StringBuffer();
-      Method[] methods = getSoapInterface().getDeclaredMethods();
-      Class[] types = new Class[0];
-      for(int i = 0; i < methods.length; i++)
-      {
-         Method m = methods[i];
-         if(m.getName().equals(method))
-         {
-            // get the param types
-            types = m.getParameterTypes();
-            int numParams = types.length;
-            if(params.size() == numParams)
-            {
-               for(int t = 0; t < types.length; t++)
-               {
-                  if(paramOrder.length() != 0)
-                  {
-                     paramOrder.append(',');
-                  }
-
-                  paramOrder.append(types[t].getSimpleName());
-                  paramOrder.append('_');
-                  paramOrder.append((t + 1));
-               }
-            }
-            
-            break;
-         }
-      }
-      
-      String[] paramNames = paramOrder.toString().split(",");
-      for(int i = 0; i < paramNames.length && i < types.length; i++)
-      {
-         String value = (String)params.get(paramNames[i]);
-         if(value != null)
-         {
-            // convert the value string into the appropriate type
-            Object param = convertParam(value, types[i]); 
-            orderedParams.add(param);
-         }
-      }
-      
-      return orderedParams;
-   }
 
    /**
     * Calls the appropriate soap method.
     * 
     * @param sm the soap message.
+    * 
     * @return the return value from the called method.
     */
    public Object callSoapMethod(SoapMessage sm)
@@ -288,26 +197,29 @@ public abstract class GenericSoapWebService implements SoapWebService
 
       Thread thread = Thread.currentThread();
       
-      String methodName = sm.getMethod();
+      String method = sm.getMethod();
       getLogger().debug(getClass(),
-         "attempting to call soap method: " + methodName);
+         "attempting to call soap method: " + method);
       
       try
       {
          // add the current thread to the thread->soap message map
          mCallThreadToSoapMessage.put(thread, sm);
          
-         // get the parameters in order
-         Vector params = getOrderedParams(methodName, sm.getParams());
-            
          // invoke the soap method
-         rval = invokeSoapMethod(methodName, params.toArray());
+         rval = invokeSoapMethod(method, sm.getParameters());
          
          // remove the thread from the thread->soap message map
          mCallThreadToSoapMessage.remove(thread);
 
          // set soap message result
-         sm.setResult("" + rval);
+         Object[] results = null;
+         if(rval != null)
+         {
+            results = new Object[]{rval};
+         }
+         
+         sm.setResults(results);
          sm.setXmlSerializerOptions(SoapMessage.SOAP_RESPONSE);
       }
       catch(Throwable t)
@@ -343,7 +255,7 @@ public abstract class GenericSoapWebService implements SoapWebService
       
       long et = System.currentTimeMillis();
       getLogger().debug(getClass(),
-         "total soap method (" + methodName + ") time: " + (et - st) + " ms");
+         "total soap method (" + method + ") time: " + (et - st) + " ms");
       
       return rval;
    }
@@ -352,27 +264,33 @@ public abstract class GenericSoapWebService implements SoapWebService
     * Returns true if the passed soap action is valid for this service.
     *
     * @param action the soap action to check.
+    * 
     * @return true if the passed soap action is valid, false if not.
     */
    public boolean isSoapActionValid(String action)
    {
       // generic soap web service always returns true
       return true;
-   }   
+   }
+   
+   /**
+    * Creates a soap message for use with this service.
+    * 
+    * @return a soap message for use with this service.
+    */
+   public SoapMessage createSoapMessage()   
+   {
+      return new SoapMessage(getWsdl(), getPortType());
+   }
 
    /**
-    * Gets the WSDL as a string.
+    * Gets the WSDL.
     * 
-    * @return the WSDL as a string.
+    * @return the WSDL.
     */
-   public String getWsdl()
+   public Wsdl getWsdl()
    {
-      String wsdl = "";
-      
-      WsdlGenerator wsdlGen = new WsdlGenerator();
-      wsdl = wsdlGen.generateWsdl(this);
-      
-      return wsdl;
+      return mWsdl;
    }
    
    /**
@@ -402,7 +320,7 @@ public abstract class GenericSoapWebService implements SoapWebService
     */
    public void setName(String name)
    {
-      mName = name;
+      getWsdl().setName(name);
    }
    
    /**
@@ -412,7 +330,7 @@ public abstract class GenericSoapWebService implements SoapWebService
     */
    public String getName()
    {
-      return mName;
+      return getWsdl().getName();
    }
    
    /**
@@ -422,7 +340,7 @@ public abstract class GenericSoapWebService implements SoapWebService
     */
    public void setNamespace(String namespace)
    {
-      mNamespace = namespace;
+      getWsdl().setTargetNamespace(namespace);
    }
    
    /**
@@ -432,7 +350,7 @@ public abstract class GenericSoapWebService implements SoapWebService
     */
    public String getNamespace()
    {
-      return mNamespace;
+      return getWsdl().getTargetNamespace();
    }
    
    /**
@@ -446,9 +364,9 @@ public abstract class GenericSoapWebService implements SoapWebService
    }
    
    /**
-    * Gets the port type for the web service.
+    * Gets the WSDL port type.
     * 
-    * @return the port type for the web service.
+    * @return the WSDL port type.
     */
    public String getPortType()
    {
@@ -462,7 +380,15 @@ public abstract class GenericSoapWebService implements SoapWebService
     */
    public void setURI(String uri)
    {
-      mURI = uri;
+      // get the service
+      WsdlService service = getWsdl().getServices().getService(getName());
+      
+      // get the port
+      WsdlSoapPort port =
+         (WsdlSoapPort)service.getPorts().getPort(getPortType() + "Port");
+      
+      // set the uri
+      port.setUri(uri);
    }
    
    /**
@@ -472,7 +398,15 @@ public abstract class GenericSoapWebService implements SoapWebService
     */
    public String getURI()
    {
-      return mURI;
+      // get the service
+      WsdlService service = getWsdl().getServices().getService(getName());
+      
+      // get the port
+      WsdlSoapPort port =
+         (WsdlSoapPort)service.getPorts().getPort(getPortType() + "Port");
+      
+      // return the uri
+      return port.getUri();
    }
    
    /**
