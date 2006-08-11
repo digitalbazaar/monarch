@@ -236,7 +236,6 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
          
          // read chunk-size
          String chunkSize = hwc.readCRLF();
-         
          if(chunkSize != null)
          {
             // ignore chunk-extension
@@ -305,11 +304,22 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
                   header.setTransferEncoding(transferEncoding);
                }
             }
-            else
+            else if(length == 0)
             {
                // read chunk-data CRLF
                hwc.readCRLF();
             }
+            else
+            {
+               // if the length is greater than zero then the
+               // whole chunk wasn't read
+               throw new IOException("Could not read entire chunk!");
+            }
+         }
+         else
+         {
+            // the chunk size could not be read!
+            throw new IOException("Could not read chunk size!");
          }
          
          return rval;
