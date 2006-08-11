@@ -32,7 +32,7 @@ public class UTAutoUpdater
       CustomAutoUpdaterLoader loader = new CustomAutoUpdaterLoader();
       
       // run AutoUpdater
-      runAutoUpdater(loader, "customautoupdateable.cfg", args);
+      runAutoUpdater(loader, args);
    }
    
    /**
@@ -40,12 +40,10 @@ public class UTAutoUpdater
     * in the configuration file with the given filename.
     * 
     * @param loader the auto-updater loader.
-    * @param configFilename the name of the configuration file that specifies
-    *                       the AutoUpdateable application to load.
     * @param args the arguments to start the application with.
     */
    public static void runAutoUpdater(
-      AutoUpdaterLoader loader, String configFilename, String[] args)
+      AutoUpdaterLoader loader, String[] args)
    {
       System.out.println("Starting AutoUpdater...");
 
@@ -62,7 +60,7 @@ public class UTAutoUpdater
          if(updater != null)
          {
             // run the auto-updateable application
-            run = updater.runAutoUpdateable(configFilename, args);
+            run = updater.runAutoUpdateable(args);
             
             // if the updater needs a new loader, don't run again
             if(updater.requiresNewLoader())
@@ -118,6 +116,16 @@ public class UTAutoUpdater
     */
    public static class CustomAutoUpdater extends AbstractAutoUpdater
    {
+      /**
+       * Gets the configuration filename for the auto-updateable.
+       * 
+       * @return the configuration filename for the auto-updateable.
+       */
+      protected String getConfigFilename()   
+      {
+         return "customautoupdateable.cfg";
+      }      
+      
       /**
        * Gets the UpdateScriptSource for this AutoUpdater. 
        * 

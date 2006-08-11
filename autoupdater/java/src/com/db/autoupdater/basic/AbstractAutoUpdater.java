@@ -29,6 +29,8 @@ import com.db.util.JobDispatcher;
  * This AutoUpdater uses a configuration file to load an AutoUpdateable
  * that uses a series of "key=value" pairs that end in end of line characters.
  * 
+ * Extending classes must provide the filename for this configuration file.
+ * 
  * The file must include at least these 5 key-value pairs:
  * 
  * autoupdateable-classpath=file:/some/path/jar1.jar,file:/lib/jar2.jar
@@ -53,7 +55,7 @@ import com.db.util.JobDispatcher;
  * 
  * It can also include a version:
  * 
- * autoupdateable-version=the version of the auto-updatable (a String)
+ * autoupdateable-version=the version of the auto-updateable (a String)
  * 
  * @author Dave Longley
  */
@@ -835,6 +837,13 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    }
    
    /**
+    * Gets the configuration filename for the auto-updateable.
+    * 
+    * @return the configuration filename for the auto-updateable.
+    */
+   protected abstract String getConfigFilename();
+   
+   /**
     * Overridden to terminate the auto update checker thread. 
     */
    public void finalize()
@@ -905,22 +914,19 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    }
    
    /**
-    * Runs the AutoUpdateable application specified the in the passed
-    * AutoUpdateable configuration. 
+    * Runs the AutoUpdateable application.
     * 
-    * @param configFilename the name of the configuration file used to
-    *                       load an AutoUpdateable application.
     * @param args the arguments to start the application with.
     *                       
     * @return true if the AutoUpdateable application should be restarted,
     *         false if not.
     */
-   public boolean runAutoUpdateable(String configFilename, String[] args)
+   public boolean runAutoUpdateable(String[] args)
    {
       boolean rval = false;
       
       // get the AutoUpdateable application's config file
-      ConfigFile configFile = new ConfigFile(configFilename);
+      ConfigFile configFile = new ConfigFile(getConfigFilename());
       if(configFile.read())      
       {
          rval = runAutoUpdateable(configFile, args);
@@ -929,7 +935,7 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
       {
          getLogger().error(getClass(), 
             "Could not read AutoUpdateable configuration file!" +
-            ",filename=" + configFilename);
+            ",filename=" + getConfigFilename());
       }
       
       return rval;
@@ -937,7 +943,7 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    
    /**
     * Runs the AutoUpdateable application specified the in the AutoUpdateable
-    * configuration found in the file with the passed name.
+    * configuration.
     * 
     * @param config the configuration to load an AutoUpdateable
     *               application from.

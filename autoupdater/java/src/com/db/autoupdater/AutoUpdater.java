@@ -18,17 +18,14 @@ package com.db.autoupdater;
 public interface AutoUpdater
 {
    /**
-    * Runs the AutoUpdateable application specified the in the passed
-    * AutoUpdateable configuration. 
+    * Runs the AutoUpdateable application. 
     * 
-    * @param configFilename the name of the configuration file used to
-    *                       load an AutoUpdateable application.
     * @param args the arguments to start the application with.
     *                       
     * @return true if the AutoUpdateable application should be restarted,
     *         false if not.
     */
-   public boolean runAutoUpdateable(String configFilename, String[] args);
+   public boolean runAutoUpdateable(String[] args);
    
    /**
     * Passes arguments to a running AutoUpdateable application.
