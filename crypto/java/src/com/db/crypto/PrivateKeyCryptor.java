@@ -569,6 +569,27 @@ public class PrivateKeyCryptor
    }
    
    /**
+    * Gets the private key as a PEM (PKCS8-Base64 with header/footer) string.
+    *
+    * @return the PEM private key or null.
+    */
+   public String getPEMPrivateKey()
+   {
+      String pem = null;
+      
+      String key = getPrivateKeyString();
+      if(key != null)
+      {
+         pem =
+            "-----BEGIN DSA PRIVATE KEY-----\n" +
+            key +
+            "\n-----END DSA PRIVATE KEY-----";
+      }
+      
+      return pem;
+   }
+   
+   /**
     * Gets the private key in encrypted form.
     *
     * @return the encrypted private key bytes or null.
@@ -632,6 +653,27 @@ public class PrivateKeyCryptor
    public String getPublicKeyString()
    {
       return mPublicKey;
+   }
+   
+   /**
+    * Gets the public key as a PEM (X.509-Base64 with a header/footer) string.
+    *
+    * @return the PEM public key or null.
+    */
+   public String getPEMPublicKey()
+   {
+      String pem = null;
+      
+      String key = getPublicKeyString();
+      if(key != null)
+      {
+         pem = 
+            "-----BEGIN PUBLIC KEY-----\n" +
+            key +
+            "\n-----END PUBLIC KEY-----";
+      }
+      
+      return pem;
    }
    
    /**

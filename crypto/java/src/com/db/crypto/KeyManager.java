@@ -610,10 +610,16 @@ public class KeyManager
     */
    public String getPEMPrivateKey()
    {
-      String pem =
-         "-----BEGIN DSA PRIVATE KEY-----\n" +
-         getPrivateKeyString() +
-         "\n-----END DSA PRIVATE KEY-----";
+      String pem = null;
+      
+      String key = getPrivateKeyString();
+      if(key != null)
+      {
+         pem =
+            "-----BEGIN DSA PRIVATE KEY-----\n" +
+            key +
+            "\n-----END DSA PRIVATE KEY-----";
+      }
       
       return pem;
    }
@@ -629,10 +635,16 @@ public class KeyManager
     */
    public String getPEMPublicKey()
    {
-      String pem =
-         "-----BEGIN PUBLIC KEY-----\n" +
-         getPublicKeyString() +
-         "\n-----END PUBLIC KEY-----";
+      String pem = null;
+      
+      String key = getPublicKeyString();
+      if(key != null)
+      {
+         pem = 
+            "-----BEGIN PUBLIC KEY-----\n" +
+            key +
+            "\n-----END PUBLIC KEY-----";
+      }
       
       return pem;      
    }   
