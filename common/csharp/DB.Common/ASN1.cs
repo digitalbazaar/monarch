@@ -12,7 +12,7 @@ namespace DB.Common
 {
    /// <summary>
    /// A class for storing data using the Abstract Syntax Notation Number One
-   /// format.
+   /// format using DER (Distinguished Encoding Rules) encoding.
    /// </summary>
    ///
    /// <remarks>
@@ -25,14 +25,19 @@ namespace DB.Common
    ///
    /// The Digital Signature Algorithm (DSA) creates public and private keys
    /// that are often stored in X.509 or PKCS#X formats -- which use
-   /// ASN.1. This class provides the most basic functionality required
-   /// to store and load DSA keys that are encoded according to ASN.1. 
+   /// ASN.1 (encoded in DER format). This class provides the most basic
+   /// functionality required to store and load DSA keys that are encoded
+   /// according to ASN.1. 
+   ///
+   /// The most common binary encodings for ASN.1 are BER (Basic Encoding Rules)
+   /// and DER (Distinguished Encoding Rules). DER is just a subset of BER
+   /// that has stricter requirements for how data must be encoded.
    ///
    /// Each ASN.1 structure has a tag (a byte identifying the ASN.1 structure
    /// type) and a byte array for the value of this ASN1 structure which
    /// may be data or a list of ASN.1 structures.
    ///
-   /// Each ASN.1 structure in binary is (Tag-Length-Value):
+   /// Each ASN.1 structure using BER is (Tag-Length-Value):
    /// 
    /// | byte 0 | bytes X | bytes Y |
    /// |--------|---------|----------
@@ -68,10 +73,10 @@ namespace DB.Common
    ///
    /// The length of an ASN.1 structure is specified after the tag
    /// identifier. The length may take up 1 or more bytes, it depends
-   /// on the length of the value of the ASN.1 structure. If the
-   /// ASN.1 structure has a value that has a length greater than
-   /// 127, more than 1 byte will be used to store its length, otherwise
-   /// just one byte will be used.
+   /// on the length of the value of the ASN.1 structure. DER encoding
+   /// requires that if the ASN.1 structure has a value that has a
+   /// length greater than 127, more than 1 byte will be used to store
+   /// its length, otherwise just one byte will be used.
    ///
    /// In the case that the length of the ASN.1 value is less than
    /// 127, 1 octet (byte) is used to store the "short form" length. The
