@@ -27,7 +27,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
 /**
- * A class for encrypting and decrypting data.
+ * A class for encrypting and decrypting data and signing and verifying data.
  * 
  * @author Dave Longley
  */
@@ -67,7 +67,9 @@ public class Cryptor
     *
     * @param text the text to run the algorithm on.
     * @param algorithm the algorithm to run.
+    * 
     * @return an array of bytes that represents the checksum or null.
+    * 
     * @throws NoSuchAlgorithmException
     * @throws UnsupportedEncodingException
     */
@@ -92,7 +94,9 @@ public class Cryptor
     *
     * @param file the file to run the algorithm on.
     * @param algorithm the algorithm to run.
+    * 
     * @return an array of bytes that represents the checksum or null.
+    * 
     * @throws NoSuchAlgorithmException
     */
    public static byte[] getChecksumBytes(File file, String algorithm)
@@ -151,7 +155,9 @@ public class Cryptor
     *
     * @param text the text to run the algorithm on.
     * @param algorithm the algorithm to run.
+    * 
     * @return the checksum in a hexidecimal formatted string or null.
+    * 
     * @throws NoSuchAlgorithmException
     * @throws UnsupportedEncodingException
     */
@@ -167,7 +173,9 @@ public class Cryptor
     *
     * @param file the file to run the algorithm on.
     * @param algorithm the algorithm to run.
+    * 
     * @return the checksum in a hexidecimal formatted string or null.
+    * 
     * @throws NoSuchAlgorithmException
     */
    public static String getChecksumString(File file, String algorithm)
@@ -181,7 +189,9 @@ public class Cryptor
     * Gets the MD5 checksum for the passed text.
     *
     * @param text the text to run the MD5 algorithm on.
+    * 
     * @return an array of bytes that represents the MD5 checksum or null.
+    * 
     * @throws NoSuchAlgorithmException
     * @throws UnsupportedEncodingException
     */
@@ -195,7 +205,9 @@ public class Cryptor
     * Gets the MD5 checksum for the passed file.
     *
     * @param file the file to run the MD5 algorithm on.
+    * 
     * @return an array of bytes that represents the MD5 checksum or null.
+    * 
     * @throws NoSuchAlgorithmException
     */
    public static byte[] getMD5ChecksumBytes(File file)
@@ -208,7 +220,9 @@ public class Cryptor
     * Gets the MD5 checksum for the passed text.
     *
     * @param text the text to run the MD5 algorithm on.
+    * 
     * @return the md5 checksum in a hexidecimal formatted string or null.
+    * 
     * @throws NoSuchAlgorithmException
     * @throws UnsupportedEncodingException
     */
@@ -223,7 +237,9 @@ public class Cryptor
     * Gets the MD5 checksum for the passed file.
     *
     * @param file the file to run the MD5 algorithm on.
+    * 
     * @return the md5 checksum in a hexidecimal formatted string or null.
+    * 
     * @throws NoSuchAlgorithmException
     */
    public static String getMD5ChecksumString(File file)
@@ -236,7 +252,9 @@ public class Cryptor
     * Gets the SHA1 checksum for the passed text.
     *
     * @param text the text to run the SHA1 algorithm on.
+    * 
     * @return an array of bytes that represents the SHA1 checksum or null.
+    * 
     * @throws NoSuchAlgorithmException
     * @throws UnsupportedEncodingException
     */
@@ -263,7 +281,9 @@ public class Cryptor
     * Gets the SHA1 checksum for the passed text.
     *
     * @param text the text to run the SHA1 algorithm on.
+    * 
     * @return the SHA1 checksum in a hexidecimal formatted string or null.
+    * 
     * @throws NoSuchAlgorithmException
     * @throws UnsupportedEncodingException
     */
@@ -278,7 +298,9 @@ public class Cryptor
     * Gets the SHA1 checksum for the passed file.
     *
     * @param file the file to run the SHA1 algorithm on.
+    * 
     * @return the SHA1 checksum in a hexidecimal formatted string or null.
+    * 
     * @throws NoSuchAlgorithmException
     */
    public static String getSHA1ChecksumString(File file)
@@ -291,6 +313,7 @@ public class Cryptor
     * Converts an array of bytes into a hexidecimal string.
     * 
     * @param bytes the array of bytes to convert.
+    * 
     * @return the hexidecimal string.
     */
    public static String convertBytesToHex(byte[] bytes)
@@ -329,6 +352,7 @@ public class Cryptor
     *
     * @param data the data to sign.
     * @param privateKey the privateKey to sign with.
+    * 
     * @return the signature if successfully signed, null if not. 
     */
    public static byte[] sign(byte[] data, PrivateKey privateKey)
@@ -366,6 +390,7 @@ public class Cryptor
     *
     * @param text the string to sign.
     * @param privateKey the privateKey to sign with.
+    * 
     * @return the signature if successfully signed, null if not. 
     */
    public static byte[] sign(String text, PrivateKey privateKey)
@@ -397,6 +422,7 @@ public class Cryptor
     *
     * @param data the data to sign.
     * @param key the Base64-PKCS8 privateKey to sign with.
+    * 
     * @return the signature if successfully signed, null if not. 
     */
    public static byte[] sign(byte[] data, String key)
@@ -411,6 +437,7 @@ public class Cryptor
     *
     * @param text the string to sign.
     * @param key the Base64-PKCS8 privateKey to sign with.
+    * 
     * @return the signature if successfully signed, null if not. 
     */
    public static byte[] sign(String text, String key)
@@ -426,6 +453,7 @@ public class Cryptor
     * @param sig the signature to verify.
     * @param data the data the signature is for.
     * @param key the public key to verify the signature.
+    * 
     * @return true if verified, false if not.
     */
    public static boolean verify(byte[] sig, byte[] data, PublicKey key)
@@ -459,6 +487,7 @@ public class Cryptor
     * @param sig the signature to verify.
     * @param data the data the signature is for.
     * @param key the public key to verify the signature.
+    * 
     * @return true if verified, false if not.
     */
    public static boolean verify(byte[] sig, byte[] data, String key)
@@ -475,6 +504,7 @@ public class Cryptor
     * @param sig the signature to verify.
     * @param text the text the signature is for.
     * @param key the public key to verify the signature.
+    * 
     * @return true if verified, false if not.
     */
    public static boolean verify(byte[] sig, String text, PublicKey key)
@@ -500,6 +530,7 @@ public class Cryptor
     * @param sig the signature to verify.
     * @param text the text the signature is for.
     * @param key the public key to verify the signature.
+    * 
     * @return true if verified, false if not.
     */
    public static boolean verify(byte[] sig, String text, String key)
@@ -513,6 +544,7 @@ public class Cryptor
     * Generates an internal secret key using the provided algorithm.
     *
     * @param algorithm the algorithm to use to generate the key.
+    * 
     * @return true if successful, false if not.
     */
    public boolean generateInternalKey(String algorithm)
@@ -525,6 +557,7 @@ public class Cryptor
     * Generates a secret key using the provided algorithm.
     *
     * @param algorithm the algorithm to use to generate the key.
+    * 
     * @return the generated secret key or null if failure.
     */
    public static SecretKey generateKey(String algorithm)
@@ -555,6 +588,7 @@ public class Cryptor
     * Generates a secret key from a password.
     *
     * @param password the password to use to generate the key.
+    * 
     * @return the generated secret key.
     */
    public static SecretKey generatePasswordKey(String password)
@@ -587,6 +621,7 @@ public class Cryptor
     * @param offset the offset to start at.
     * @param length the number of bytes to encrypt.
     * @param key the key to encrypt with.
+    * 
     * @return the encrypted data.
     */
    public static byte[] encrypt(byte[] data, int offset, int length, Key key)
@@ -616,6 +651,7 @@ public class Cryptor
     *
     * @param data the array of bytes to encrypt.
     * @param key the key to encrypt with.
+    * 
     * @return the encrypted data.
     */
    public static byte[] encrypt(byte[] data, Key key)
@@ -637,6 +673,7 @@ public class Cryptor
     * @param data the array of bytes to encrypt.
     * @param offset the offset to start at.
     * @param length the number of bytes to encrypt.
+    * 
     * @return the encrypted data.
     */
    public byte[] encrypt(byte[] data, int offset, int length)
@@ -653,6 +690,7 @@ public class Cryptor
     * Encrypts an array of bytes using an internal key.
     *
     * @param data the array of bytes to encrypt.
+    * 
     * @return the encrypted data.
     */
    public byte[] encrypt(byte[] data)
@@ -665,6 +703,7 @@ public class Cryptor
     *
     * @param data the array of bytes to encrypt.
     * @param password the password to generate the key.
+    * 
     * @return the encrypted data.
     */
    public static byte[] encrypt(byte[] data, String password)
@@ -678,6 +717,7 @@ public class Cryptor
     * @param data the array of bytes to encrypt.
     * @param salt the salt to use.
     * @param password the password to generate the key.
+    * 
     * @return the encrypted data.
     */
    public static byte[] encrypt(byte[] data, byte[] salt, String password)
@@ -721,6 +761,7 @@ public class Cryptor
     * @param offset the offset to start at.
     * @param length the number of bytes to decrypt.
     * @param key the key to decrypt with.
+    * 
     * @return the decrypted data.
     */   
    public static byte[] decrypt(byte[] data, int offset, int length, Key key)
@@ -750,6 +791,7 @@ public class Cryptor
     *
     * @param data the array of bytes to decrypt.
     * @param key the key to decrypt with.
+    * 
     * @return the decrypted data.
     */
    public static byte[] decrypt(byte[] data, Key key)
@@ -771,6 +813,7 @@ public class Cryptor
     * @param data the array of bytes to decrypt.
     * @param offset the offset to start at.
     * @param length the number of bytes to decrypt.
+    * 
     * @return the decrypted data.
     */   
    public byte[] decrypt(byte[] data, int offset, int length)
@@ -782,6 +825,7 @@ public class Cryptor
     * Decrypts an encrypted array of bytes using an internal key.
     *
     * @param data the array of bytes to decrypt.
+    * 
     * @return the decrypted data.
     */
    public byte[] decrypt(byte[] data)
@@ -794,6 +838,7 @@ public class Cryptor
     *
     * @param data the array of bytes to decrypt.
     * @param password the password to generate the key.
+    * 
     * @return the decrypted data.
     */
    public static byte[] decrypt(byte[] data, String password)
@@ -807,6 +852,7 @@ public class Cryptor
     * @param data the array of bytes to decrypt.
     * @param salt the salt to use.
     * @param password the password to generate the key.
+    * 
     * @return the decrypted data.
     */
    public static byte[] decrypt(byte[] data, byte[] salt, String password)
@@ -846,6 +892,7 @@ public class Cryptor
     * Encrypts a string of text.
     *
     * @param text the string to encrypt.
+    * 
     * @return the encrypted string or null.
     */
    public String encrypt(String text)
@@ -893,6 +940,7 @@ public class Cryptor
     *
     * @param text the string to encrypt.
     * @param password the password to generate the key.
+    * 
     * @return the encrypted string or null.
     */
    public static String encrypt(String text, String password)
@@ -926,6 +974,7 @@ public class Cryptor
     * Decrypts an encrypted string of text.
     *
     * @param data the string of data to decrypt.
+    * 
     * @return the decrypted text or null.
     */
    public String decrypt(String data)
@@ -960,6 +1009,7 @@ public class Cryptor
     *
     * @param data the string of data to decrypt.
     * @param password the password to generate the key.
+    * 
     * @return the decrypted text or null.
     */
    public static String decrypt(String data, String password)

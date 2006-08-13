@@ -31,6 +31,10 @@ import javax.crypto.spec.DESKeySpec;
  * A class that provides management code for private, public,
  * and secret keys.
  * 
+ * This class works with PKCS#8 (ASN.1 DER) encoded private keys and
+ * X.509 (ASN.1 DER) encoded public keys. It can also Base64 encode and decode
+ * those keys and therefore produce PEM formatted keys.
+ * 
  * @author Dave Longley
  */
 public class KeyManager
@@ -38,17 +42,17 @@ public class KeyManager
    /**
     * The last generated private key.
     */
-   private PrivateKey mPrivateKey;
+   protected PrivateKey mPrivateKey;
    
    /**
     * The last generated public key.
     */
-   private PublicKey mPublicKey;
+   protected PublicKey mPublicKey;
    
    /**
     * The last error that occurred.
     */
-   private String mError;
+   protected String mError;
    
    /**
     * Creates a KeyManager. For every new set of keys, a new
@@ -67,6 +71,7 @@ public class KeyManager
     * and encodes it with Base64 encoding. A string is the result.
     *
     * @param bytes the key in raw encoded byte form.
+    * 
     * @return the Base64-encoded string.
     */
    public static String encodeKey(byte[] bytes)
@@ -80,6 +85,7 @@ public class KeyManager
     * and encoding them with Base64 encoding. A string is the result.
     *
     * @param key the key to encode.
+    * 
     * @return the Base64-encoded string.
     */
    public static String encodeKey(Key key)
@@ -92,6 +98,7 @@ public class KeyManager
     * encoded byte form.
     * 
     * @param encodedKey the encoded key in Base64-encoded string form.
+    * 
     * @return the encodedKey in byte form.
     */
    public static byte[] decodeKey(String encodedKey)
@@ -168,6 +175,7 @@ public class KeyManager
     * Decodes any private key that is PKCS8-encoded.
     *
     * @param encodedKey the PKCS8-encoded byte array.
+    * 
     * @return the decoded private key object.
     */
    public static PrivateKey decodePrivateKey(byte[] encodedKey)
@@ -207,7 +215,8 @@ public class KeyManager
     * first Base64-decoded into a byte array, and then PKCS8-decoded
     * into a PrivateKey object.
     *
-    * @param encodedKey the Base64-PKCS8-encoded string.
+    * @param encodedKey the Base64-PKCS8(DER)-encoded string.
+    * 
     * @return the decoded public key object.
     */
    public static PrivateKey decodePrivateKey(String encodedKey)
@@ -226,6 +235,7 @@ public class KeyManager
     * Decodes any public key that is X509-encoded.
     *
     * @param encodedKey the X509-encoded byte array.
+    * 
     * @return the decoded public key object.
     */
    public static PublicKey decodePublicKey(byte[] encodedKey)
@@ -266,6 +276,7 @@ public class KeyManager
     * into a PublicKey object.
     *
     * @param encodedKey the Base64-X509-encoded string.
+    * 
     * @return the decoded public key object.
     */
    public static PublicKey decodePublicKey(String encodedKey)
@@ -284,6 +295,7 @@ public class KeyManager
     * Decodes a DES secret key from its encoded byte form.
     *
     * @param encodedKey the encoded byte array of key material.
+    * 
     * @return the decoded secret key object.
     */
    public static SecretKey decodeDESKey(byte[] encodedKey)
@@ -315,10 +327,11 @@ public class KeyManager
     * @param key the private key to store.
     * @param filename the name of the file to store the key in.
     * @param password the password to lock the file with.
+    * 
     * @return true if successful, false if not.
     */
-   public static boolean storePrivateKey(PrivateKey key,
-                                         String filename, String password)
+   public static boolean storePrivateKey(
+      PrivateKey key, String filename, String password)
    {
       boolean rval = false;
       
@@ -355,6 +368,7 @@ public class KeyManager
     *
     * @param filename the name of the file to store the key in.
     * @param password the password to lock the file with.
+    * 
     * @return true if successful, false if not.
     */
    public boolean storePrivateKey(String filename, String password)
@@ -367,6 +381,7 @@ public class KeyManager
     *
     * @param key the public key to store.
     * @param filename the name of the file to store the key in.
+    * 
     * @return true if successful, false if not.
     */
    public static boolean storePublicKey(PublicKey key, String filename)
@@ -401,6 +416,7 @@ public class KeyManager
     * Stores a public key in a file with the passed filename.
     *
     * @param filename the name of the file to store the key in.
+    * 
     * @return true if successful, false if not.
     */
    public boolean storePublicKey(String filename)
@@ -414,6 +430,7 @@ public class KeyManager
     *
     * @param filename the file that contains the private key.
     * @param password the password to unlock the file.
+    * 
     * @return true if successful, false if not.
     */
    public boolean loadPrivateKey(String filename, String password)
@@ -448,6 +465,7 @@ public class KeyManager
     *
     * @param encryptedKey the encrypted key in a base64-encoded string.
     * @param password the password to unlock the file.
+    * 
     * @return true if successful, false if not.
     */
    public boolean loadEncryptedPrivateKey(String encryptedKey, String password)
@@ -467,6 +485,7 @@ public class KeyManager
     *
     * @param encryptedKey the encrypted key in a byte array.
     * @param password the password to unlock the file.
+    * 
     * @return true if successful, false if not.
     */
    public boolean loadEncryptedPrivateKey(byte[] encryptedKey, String password)
@@ -505,6 +524,7 @@ public class KeyManager
     * Loads a public key from the file with the passed filename.
     *
     * @param filename the file that contains the public key.
+    * 
     * @return true if successful, false if not.
     */
    public boolean loadPublicKey(String filename)
@@ -577,6 +597,45 @@ public class KeyManager
    {
       return encodeKey(mPublicKey);
    }
+   
+   /**
+    * Returns a PEM private key. It is a string that represents a
+    * Base64-PKCS8-encoded private key that includes a header/footer describing
+    * the key as a DSA private key. This method PKCS8-encodes the previously
+    * generated private key in a byte array and then Base64-encodes the byte
+    * array to produce a string. It then adds the DSA PRIVATE KEY header and
+    * footer.
+    *
+    * @return the PEM formatted private key or null.
+    */
+   public String getPEMPrivateKey()
+   {
+      String pem =
+         "-----BEGIN DSA PRIVATE KEY-----\n" +
+         getPrivateKeyString() +
+         "\n-----END DSA PRIVATE KEY-----";
+      
+      return pem;
+   }
+   
+   /**
+    * Returns a PEM public key. It is a string that represents a
+    * Base64-X509-encoded public key that includes a header/footer describing
+    * the key as a public key. This method X509-encodes the previously
+    * generated public key in a byte array and then Base64-encodes the byte
+    * array to produce a string. It then adds a PUBLIC KEY header and footer.
+    *
+    * @return the PEM formatter public key or null.
+    */
+   public String getPEMPublicKey()
+   {
+      String pem =
+         "-----BEGIN PUBLIC KEY-----\n" +
+         getPublicKeyString() +
+         "\n-----END PUBLIC KEY-----";
+      
+      return pem;      
+   }   
    
    /**
     * Clears the error flag.
