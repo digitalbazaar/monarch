@@ -5,8 +5,18 @@ import java.io.File;
 
 import com.db.crypto.*;
 
+/**
+ * Runs a unit test on Cryptor.
+ * 
+ * @author Dave Longley
+ */
 public class UTCryptor
 {
+   /**
+    * Runs the unit test.
+    * 
+    * @param args the arguments.
+    */
    public static void main(String[] args)
    {
       try
