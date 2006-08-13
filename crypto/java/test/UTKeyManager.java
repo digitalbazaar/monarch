@@ -53,30 +53,29 @@ public class UTKeyManager
          
       }*/
       
-      
-      
-      
       if(!generated)
+      {
          System.exit(1);
+      }
 
       System.out.println();
       System.out.println("Key pair:");
       System.out.println();
-      System.out.println("Private Key:");
+      System.out.println("Private Key (ASN.1 DER[PKCS#8]->Base64 = PEM):");
+      System.out.println(km.getPEMPrivateKey());
+      System.out.println();
+      System.out.println("Public Key (ASN.1 DER[X.509]->Base64 = PEM):");
+      System.out.println(km.getPEMPublicKey());
+      System.out.println();
+
       String prkey = km.getPrivateKeyString();
-      System.out.println("\"" + prkey + "\"");
-      System.out.println();
-      System.out.println("Public Key:");
       String pukey = km.getPublicKeyString();
-      System.out.println("\"" + pukey + "\"");
-      System.out.println();
       
       // test sign with cryptor
       System.out.println("Signing with strings using cryptor: ");
       byte[] data = Cryptor.sign("text", prkey);
       System.out.println("Signature: " + data);
       System.out.println("Verified: " + Cryptor.verify(data, "text", pukey));
-      
 
       // store the keys
       System.out.println("Storing keys...");
@@ -169,10 +168,12 @@ public class UTKeyManager
          {
             System.out.println("PKeyCryptor generated keys...");
             
-            System.out.println("PUBLIC KEY: " + pkc.getPublicKeyString());
+            System.out.println("PUBLIC KEY:");
+            System.out.println(pkc.getPEMPublicKey());
             System.out.println();
             String s1 = pkc.getPrivateKeyString(); 
-            System.out.println("PRIVATE KEY: " + pkc.getPrivateKeyString());
+            System.out.println("PRIVATE KEY:");
+            System.out.println(pkc.getPEMPrivateKey());
             
             System.out.println();
             System.out.println("Clearing key and password...");
