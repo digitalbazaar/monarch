@@ -581,9 +581,9 @@ public class PrivateKeyCryptor
       if(key != null)
       {
          pem =
-            "-----BEGIN DSA PRIVATE KEY-----\n" +
+            "-----BEGIN PRIVATE KEY-----\n" +
             key +
-            "\n-----END DSA PRIVATE KEY-----";
+            "\n-----END PRIVATE KEY-----";
       }
       
       return pem;

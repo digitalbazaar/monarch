@@ -806,9 +806,9 @@ public class KeyManager
    /**
     * Returns a PEM private key. It is a string that represents a
     * Base64-PKCS8-encoded private key that includes a header/footer describing
-    * the key as a DSA private key. This method PKCS8-encodes the previously
+    * the key as a private key. This method PKCS8-encodes the previously
     * generated private key in a byte array and then Base64-encodes the byte
-    * array to produce a string. It then adds the DSA PRIVATE KEY header and
+    * array to produce a string. It then adds the PRIVATE KEY header and
     * footer.
     *
     * @return the PEM formatted private key or null.
@@ -821,9 +821,9 @@ public class KeyManager
       if(key != null)
       {
          pem =
-            "-----BEGIN DSA PRIVATE KEY-----\n" +
+            "-----BEGIN PRIVATE KEY-----\n" +
             key +
-            "\n-----END DSA PRIVATE KEY-----";
+            "\n-----END PRIVATE KEY-----";
       }
       
       return pem;
