@@ -74,7 +74,7 @@ public class KeyManager
     * 
     * @return the Base64-encoded string.
     */
-   public static String encodeKey(byte[] bytes)
+   public static String base64EncodeKey(byte[] bytes)
    {
       Base64Coder encoder = new Base64Coder();
       return encoder.encode(bytes);
@@ -88,9 +88,9 @@ public class KeyManager
     * 
     * @return the Base64-encoded string.
     */
-   public static String encodeKey(Key key)
+   public static String base64EncodeKey(Key key)
    {
-      return encodeKey(key.getEncoded());
+      return base64EncodeKey(key.getEncoded());
    }
    
    /**
@@ -101,7 +101,7 @@ public class KeyManager
     * 
     * @return the encodedKey in byte form.
     */
-   public static byte[] decodeKey(String encodedKey)
+   public static byte[] base64DecodeKey(String encodedKey)
    {
       byte[] key = null;
       
@@ -225,7 +225,7 @@ public class KeyManager
       
       if(encodedKey != null)
       {
-         privateKey = decodePrivateKey(decodeKey(encodedKey));
+         privateKey = decodePrivateKey(base64DecodeKey(encodedKey));
       }
 
       return privateKey;
@@ -285,7 +285,7 @@ public class KeyManager
       
       if(encodedKey != null)
       {
-         publicKey = decodePublicKey(decodeKey(encodedKey));
+         publicKey = decodePublicKey(base64DecodeKey(encodedKey));
       }
 
       return publicKey;
@@ -361,6 +361,57 @@ public class KeyManager
 
       return rval;
    }
+   
+   /**
+    * Stores the passed private key in a PEM file with the passed filename
+    * and password.
+    *
+    * @param key the private key to store.
+    * @param filename the name of the file to store the key in.
+    * @param password the password to lock the file with.
+    * 
+    * @return true if successful, false if not.
+    */
+   public static boolean storePEMPrivateKey(
+      PrivateKey key, String filename, String password)
+   {
+      boolean rval = false;
+      
+      if(key != null)
+      {
+         try
+         {
+            // encrypt the key with the passed password
+            byte[] bytes = Cryptor.encrypt(key.getEncoded(), password);
+            
+            // base64 encode bytes
+            String base64 = base64EncodeKey(bytes);
+            
+            // add PEM header and footer
+            String pem =
+               "-----BEGIN ENCRYPTED PRIVATE KEY-----\n" +
+               base64 +
+               "\n-----END ENCRYPTED PRIVATE KEY-----";
+         
+            // create private key file, write encrypted-encoded bytes
+            File file = new File(filename);
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(pem.getBytes());
+            fos.close();
+            
+            rval = true;
+         }
+         catch(Throwable t)
+         {
+            LoggerManager.getLogger("dbcrypto").debug(KeyManager.class, 
+               "Unable to write private key to file.");
+            LoggerManager.getLogger("dbcrypto").debug(
+               KeyManager.class, Logger.getStackTrace(t));
+         }
+      }
+
+      return rval;
+   }
 
    /**
     * Stores a private key in a file with the passed filename
@@ -375,6 +426,20 @@ public class KeyManager
    {
       return storePrivateKey(mPrivateKey, filename, password);
    }
+   
+   /**
+    * Stores a private key in a PEM file with the passed filename
+    * and password.
+    *
+    * @param filename the name of the file to store the key in.
+    * @param password the password to lock the file with.
+    * 
+    * @return true if successful, false if not.
+    */
+   public boolean storePEMPrivateKey(String filename, String password)
+   {
+      return storePEMPrivateKey(mPrivateKey, filename, password);
+   }   
 
    /**
     * Stores the passed public key in a file with the passed filename.
@@ -410,7 +475,52 @@ public class KeyManager
       }
       
       return rval;
-   }   
+   }
+   
+   /**
+    * Stores the passed public key in a PEM file with the passed filename.
+    *
+    * @param key the public key to store.
+    * @param filename the name of the file to store the key in.
+    * 
+    * @return true if successful, false if not.
+    */
+   public static boolean storePEMPublicKey(PublicKey key, String filename)
+   {
+      boolean rval = false;
+      
+      if(key != null)
+      {
+         try
+         {
+            // base64 encode key bytes
+            String base64 = base64EncodeKey(key.getEncoded());
+            
+            // add PEM header and footer
+            String pem =
+               "-----BEGIN PUBLIC KEY-----\n" +
+               base64 +
+               "\n-----END PUBLIC KEY-----";
+            
+            // create public key file, write encoded bytes
+            File file = new File(filename);
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(pem.getBytes());
+            fos.close();
+            
+            rval = true;
+         }
+         catch(Throwable t)
+         {
+            LoggerManager.getLogger("dbcrypto").error(KeyManager.class, 
+               "Unable to write public key to file.");
+            LoggerManager.getLogger("dbcrypto").debug(
+               KeyManager.class, Logger.getStackTrace(t));
+         }
+      }
+      
+      return rval;
+   }
 
    /**
     * Stores a public key in a file with the passed filename.
@@ -423,6 +533,18 @@ public class KeyManager
    {
       return storePublicKey(mPublicKey, filename);
    }
+   
+   /**
+    * Stores a public key in a PEM file with the passed filename.
+    *
+    * @param filename the name of the file to store the key in.
+    * 
+    * @return true if successful, false if not.
+    */
+   public boolean storePEMPublicKey(String filename)
+   {
+      return storePEMPublicKey(mPublicKey, filename);
+   }   
 
    /**
     * Loads a private key from the file with the passed filename,
@@ -458,6 +580,49 @@ public class KeyManager
 
       return rval;
    }
+   
+   /**
+    * Loads a private key from the PEM file with the passed filename,
+    * that is locked with the passed password.
+    *
+    * @param filename the file that contains the private key.
+    * @param password the password to unlock the file.
+    * 
+    * @return true if successful, false if not.
+    */
+   public boolean loadPEMPrivateKey(String filename, String password)
+   {
+      boolean rval = false;
+      
+      try
+      {
+         // open encrypted-encoded private key file, get bytes
+         File file = new File(filename);
+         FileInputStream fis = new FileInputStream(file);
+         byte[] bytes = new byte[(int)file.length()];
+         fis.read(bytes);
+         fis.close();
+         
+         // strip PEM header and footer
+         String pem = new String(bytes);
+         
+         int startIndex = pem.indexOf("\n") + 1;
+         int endIndex = pem.lastIndexOf("\n");
+         
+         String key = pem.substring(startIndex, endIndex);
+         
+         // load encrypted key
+         rval = loadEncryptedPrivateKey(base64DecodeKey(key), password);
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(), "Unable to load private key.");
+         mError = "key-file-not-found";
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
+      }
+
+      return rval;
+   }   
    
    /**
     * Loads a private key from the passed encrypted key (encoded in base64)
@@ -550,7 +715,47 @@ public class KeyManager
       }
 
       return rval;
-   }   
+   }
+   
+   /**
+    * Loads a public key from the PEM file with the passed filename.
+    *
+    * @param filename the file that contains the public key.
+    * 
+    * @return true if successful, false if not.
+    */
+   public boolean loadPEMPublicKey(String filename)
+   {
+      boolean rval = false;
+      
+      try
+      {
+         // open encoded public key file, get bytes
+         File file = new File(filename);
+         FileInputStream fis = new FileInputStream(file);
+         byte[] bytes = new byte[(int)file.length()];
+         fis.read(bytes);
+         fis.close();
+         
+         // strip PEM header and footer
+         String pem = new String(bytes);
+         
+         int startIndex = pem.indexOf("\n") + 1;
+         int endIndex = pem.lastIndexOf("\n");
+         
+         String key = pem.substring(startIndex, endIndex);
+
+         rval = ((mPublicKey = decodePublicKey(base64DecodeKey(key))) != null);
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(), "Unable to load public key.");
+         mError = "key-file-not-found";
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
+      }
+
+      return rval;
+   }
 
    /**
     * Returns the internal private key.
@@ -582,7 +787,7 @@ public class KeyManager
     */
    public String getPrivateKeyString()
    {
-      return encodeKey(mPrivateKey);
+      return base64EncodeKey(mPrivateKey);
    }
    
    /**
@@ -595,7 +800,7 @@ public class KeyManager
     */
    public String getPublicKeyString()
    {
-      return encodeKey(mPublicKey);
+      return base64EncodeKey(mPublicKey);
    }
    
    /**

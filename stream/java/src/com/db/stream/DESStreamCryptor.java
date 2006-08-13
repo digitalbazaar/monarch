@@ -130,7 +130,7 @@ public class DESStreamCryptor extends StreamCryptor
     */
    public static SecretKey decodeSecretKey(String encodedKey)
    {
-      return decodeSecretKey(KeyManager.decodeKey(encodedKey));
+      return decodeSecretKey(KeyManager.base64DecodeKey(encodedKey));
    }
 
    /**
@@ -142,7 +142,7 @@ public class DESStreamCryptor extends StreamCryptor
    public String getKey()
    {
       SecretKey key = (SecretKey)getCryptor().getKey();
-      return (key == null) ? null : KeyManager.encodeKey(key);
+      return (key == null) ? null : KeyManager.base64EncodeKey(key);
    }
    
    /**

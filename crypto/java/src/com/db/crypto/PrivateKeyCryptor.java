@@ -557,7 +557,7 @@ public class PrivateKeyCryptor
       if(encodedKey != null)
       {
          // encode the private key as a string
-         pkey = KeyManager.encodeKey(encodedKey);
+         pkey = KeyManager.base64EncodeKey(encodedKey);
       }
       else
       {
