@@ -18,8 +18,10 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.spec.AlgorithmParameterSpec;
+import java.util.Random;
 
 import javax.crypto.Cipher;
+import javax.crypto.EncryptedPrivateKeyInfo;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -754,6 +756,90 @@ public class Cryptor
    }
    
    /**
+    * Encrypts a PKCS#8 private key.
+    * 
+    * @param bytes the DER bytes for the PKCS#8 private key.
+    * @param password the password for the key.
+    * 
+    * @return the ASN.1 DER format [EncryptedPrivateKeyInfo] bytes with
+    *         the encrypted private key and its encryption information or
+    *         null if there is an error.
+    */
+   public static byte[] encryptPrivateKey(byte[] bytes, String password)
+   {
+      byte[] encodedBytes = null;
+      
+      try
+      {
+         // generate a key from the password
+         SecretKey key = generatePasswordKey(password);
+         
+         // generate a new random salt
+         Random random = new Random();
+         byte[] salt = new byte[8];
+         random.nextBytes(salt);
+
+         // create the parameter spec
+         AlgorithmParameterSpec apSpec =
+            new PBEParameterSpec(salt, smIterationCount);
+
+         // use a cipher to encrypt
+         Cipher cipher = Cipher.getInstance(key.getAlgorithm(), "SunJCE");
+         cipher.init(Cipher.ENCRYPT_MODE, key, apSpec);
+         byte[] encryptedKeyBytes = cipher.doFinal(bytes);
+         
+         // create encrypted private key info
+         EncryptedPrivateKeyInfo epki = new EncryptedPrivateKeyInfo(
+            cipher.getParameters(), encryptedKeyBytes);
+         
+         // get DER encoded bytes
+         encodedBytes = epki.getEncoded();
+      }
+      catch(Throwable t)
+      {
+         getLogger().debug(Cryptor.class, Logger.getStackTrace(t));
+      }
+      
+      return encodedBytes;
+   }
+   
+   /**
+    * Decrypts an encrypted PKCS#8 private key.
+    * 
+    * @param bytes the encrypted PKCS#8 private key bytes.
+    * @param password the password for the key.
+    * 
+    * @return the decrypted bytes or null if the password failed.
+    */
+   public static byte[] decryptPrivateKey(byte[] bytes, String password)
+   {
+      byte[] decryptedBytes = null;
+      
+      try
+      {
+         // get encrypted private key information
+         EncryptedPrivateKeyInfo epki = new EncryptedPrivateKeyInfo(bytes);
+         
+         // create the decryption key based on the password
+         SecretKeyFactory sf = SecretKeyFactory.getInstance(epki.getAlgName());
+         PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
+         Key decryptionKey = sf.generateSecret(keySpec);
+         
+         // clear out the password for security
+         keySpec.clearPassword();
+         
+         // decrypt the encrypted key data
+         decryptedBytes = decrypt(epki.getEncryptedData(), decryptionKey);
+      }
+      catch(Throwable t)
+      {
+         getLogger().debug(Cryptor.class, Logger.getStackTrace(t));
+      }
+      
+      return decryptedBytes;
+   }
+   
+   /**
     * Decrypts an array of bytes of length starting at offset using
     * the specified key.
     *
@@ -777,9 +863,9 @@ public class Cryptor
             cipher.init(Cipher.DECRYPT_MODE, key);
             decrypted = cipher.doFinal(data, offset, length);
          }
-         catch(Exception e)
+         catch(Throwable t)
          {
-            getLogger().debug(Cryptor.class, Logger.getStackTrace(e));
+            getLogger().debug(Cryptor.class, Logger.getStackTrace(t));
          }
       }
 

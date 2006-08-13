@@ -340,7 +340,8 @@ public class KeyManager
          try
          {
             // encrypt the key with the passed password
-            byte[] bytes = Cryptor.encrypt(key.getEncoded(), password);
+            byte[] bytes = Cryptor.encryptPrivateKey(
+               key.getEncoded(), password);
          
             // create private key file, write encrypted-encoded bytes
             File file = new File(filename);
@@ -382,7 +383,8 @@ public class KeyManager
          try
          {
             // encrypt the key with the passed password
-            byte[] bytes = Cryptor.encrypt(key.getEncoded(), password);
+            byte[] bytes = Cryptor.encryptPrivateKey(
+               key.getEncoded(), password);
             
             // base64 encode bytes
             String base64 = base64EncodeKey(bytes);
@@ -625,8 +627,9 @@ public class KeyManager
    }   
    
    /**
-    * Loads a private key from the passed encrypted key (encoded in base64)
-    * that is locked with the passed password.
+    * Loads a private key from the passed encrypted key (DER encoded
+    * EncryptedPrivateKeyInfo encoded in base64) that is locked with the
+    * passed password.
     *
     * @param encryptedKey the encrypted key in a base64-encoded string.
     * @param password the password to unlock the file.
@@ -645,8 +648,8 @@ public class KeyManager
    }
    
    /**
-    * Loads a private key from the passed encrypted key bytes
-    * that are locked with the passed password.
+    * Loads a private key from the passed DER encoded EncryptedPrivateKeyInfo
+    * bytes that are locked with the passed password.
     *
     * @param encryptedKey the encrypted key in a byte array.
     * @param password the password to unlock the file.
@@ -659,8 +662,64 @@ public class KeyManager
       
       try
       {
+         // decrypt the private key with the passed password
+         byte[] decryptedKey = Cryptor.decryptPrivateKey(
+            encryptedKey, password);
+         
+         // see if the decryption worked
+         if(decryptedKey != null)
+         {
+            // decode the key
+            if((mPrivateKey = decodePrivateKey(decryptedKey)) != null)
+            {
+               rval = true;
+            }
+            else
+            {
+               mError = "password-invalid";
+            }
+         }
+         else
+         {
+            // provided for backwards compatibility: try a straight
+            // decryption of the given bytes
+            rval = loadPrivateKeyFromEncryptedBytes(encryptedKey, password);
+         }
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(), "Unable to load private key.");
+         mError = "key-file-not-found";
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
+      }
+
+      return rval;      
+   }
+   
+   /**
+    * This method is provided for backward compatibility with the old
+    * method for encrypting private keys that did not wrap the encrypted
+    * private key bytes in a DER encoded EncryptedPrivateKeyInfo. 
+    * 
+    * Loads a private key from the passed straight-encrypted private key
+    * bytes that are locked with the passed password.
+    *
+    * @param encryptedKeyBytes the encrypted key bytes.
+    * @param password the password to unlock the file.
+    * 
+    * @return true if successful, false if not.
+    */
+   public boolean loadPrivateKeyFromEncryptedBytes(
+      byte[] encryptedKeyBytes, String password)
+   {
+      boolean rval = false;
+      
+      try
+      {
+         // try to 
+         
          // decrypt the key with the passed password
-         byte[] decryptedKey = Cryptor.decrypt(encryptedKey, password);
+         byte[] decryptedKey = Cryptor.decrypt(encryptedKeyBytes, password);
 
          // if decryptedKey is not null, decode the key
          if(decryptedKey != null)
@@ -682,7 +741,7 @@ public class KeyManager
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
 
-      return rval;      
+      return rval;
    }
    
    /**
