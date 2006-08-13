@@ -286,17 +286,24 @@ namespace DB.Common
          int dataIndex = 0;
          
          // encode all the groups
+         int lineLength = 0;
          for(int i = 0; i < groups; i++, dataIndex += 3)
          {
+            // encode the group
+            char[] chars = EncodeGroup(data, dataIndex);
+            
             // Base64 allows no more than 76 characters per line
-            // if the length is a multiple of 76, then insert a line break
-            if(encoded.Length != 0 && encoded.Length % 76 == 0)
+            // if the line length is greater 76, then insert a line break
+            if(lineLength + chars.Length > 76)
             {
                encoded.Append("\r\n");
+               lineLength = 0;
             }
+            
+            // update line length
+            lineLength += chars.Length;
 
-            // encode the group and add it to the buffer
-            char[] chars = EncodeGroup(data, dataIndex);
+            // add the group to the buffer
             encoded.Append(chars);
          }
          

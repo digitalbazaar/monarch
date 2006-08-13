@@ -154,6 +154,7 @@ public class Base64Coder
     * decoder map).
     * 
     * @param c the character to convert.
+    * 
     * @return the integer.
     */
    protected int charToInt(char c)
@@ -171,6 +172,7 @@ public class Base64Coder
     * 
     * @param data the byte array with the 3 bytes.
     * @param offset the offset where the 3 bytes start.
+    * 
     * @return the 4 characters.
     */
    public char[] encodeGroup(byte[] data, int offset)
@@ -196,6 +198,7 @@ public class Base64Coder
     * 
     * @param str the string with the characters to decode into bytes.
     * @param offset the offset to begin decoding at.
+    * 
     * @return the decoded bytes.
     */
    public byte[] decodeGroup(String str, int offset)
@@ -247,6 +250,7 @@ public class Base64Coder
     * Base64 encodes data.
     * 
     * @param data the byte array to encode.
+    * 
     * @return the Base64 encoded string.
     */
    public String encode(byte[] data)
@@ -281,17 +285,24 @@ public class Base64Coder
          int dataIndex = 0;
          
          // encode all the groups
+         int lineLength = 0;
          for(int i = 0; i < groups; i++, dataIndex += 3)
          {
+            // encode the group
+            char[] chars = encodeGroup(data, dataIndex);
+            
             // Base64 allows no more than 76 characters per line
-            // if the length is a multiple of 76, then insert a line break
-            if(encoded.length() != 0 && encoded.length() % 76 == 0)
+            // if the line length is greater 76, then insert a line break
+            if(lineLength + chars.length > 76)
             {
                encoded.append("\r\n");
+               lineLength = 0;
             }
+            
+            // update line length
+            lineLength += chars.length;
 
-            // encode the group and add it to the buffer
-            char[] chars = encodeGroup(data, dataIndex);
+            // add the group to the buffer
             encoded.append(chars);
          }
          
@@ -307,6 +318,7 @@ public class Base64Coder
     * Coder map.
     *  
     * @param str the Base64-encoded string.
+    * 
     * @return the decoded byte array.
     */
    public byte[] decode(String str)
