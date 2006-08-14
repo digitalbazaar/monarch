@@ -220,6 +220,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     *
     * @param signer the signer of the signature.
     * @param privateKey the privateKey to sign with.
+    * 
     * @return true if successfully signed, false if not. 
     */
    public boolean sign(long signer, PrivateKey privateKey)
@@ -244,6 +245,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     *
     * @param signer the signer of the signature.
     * @param key the Base64-PKCS8 privateKey to sign with.
+    * 
     * @return true if successfully signed, false if not. 
     */
    public boolean sign(long signer, String key)   
@@ -267,6 +269,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     *
     * @param signer the signer of the signature.
     * @param key the Base64-PKCS8 privateKey to sign with.
+    * 
     * @return true if successfully signed, false if not. 
     */
    public boolean sign(String signer, String key)
@@ -291,6 +294,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     *
     * @param signer the signer of the signature.
     * @param privateKey the privateKey to sign with.
+    * 
     * @return true if successfully signed, false if not. 
     */
    public synchronized boolean sign(String signer, PrivateKey privateKey)
@@ -314,9 +318,20 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
             // set the signer
             mSigner = signer;
             
-            // set algorithm to SHA1:key's algorithm
-            mAlgorithm = "SHA1/" + privateKey.getAlgorithm();
-         
+            // get the signature algorithm -- use SHA1
+            if(privateKey.getAlgorithm().equals("DSA"))
+            {
+               mAlgorithm = "SHAwithDSA";
+            }
+            else if(privateKey.getAlgorithm().equals("RSA"))
+            {
+               mAlgorithm = "SHA1withRSA";
+            }
+            else
+            {
+               mAlgorithm = "";
+            }
+            
             // sign the text
             byte[] sig = Cryptor.sign(mSignedText, privateKey);
             
@@ -350,6 +365,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     * string that represents the X.509 encoded public key.
     *
     * @param publicKey the public key to verify the signature.
+    * 
     * @return true if verified, false if not.
     */
    public synchronized boolean verify(String publicKey)
@@ -370,7 +386,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
                   // get the text to verify
                   String contents = parseContents();
 
-                  if(!mAlgorithm.startsWith("SHA1"))
+                  if(!mAlgorithm.startsWith("SHA"))
                   {
                      getLogger().debug(getClass(),
                         "unknown signature algorithm!," +
@@ -517,6 +533,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     *
     * @param indentLevel the number of spaces to place before the text
     *                    after each new line.
+    *                    
     * @return the xml-based representation of the object.
     */
    public String convertToXml(int indentLevel)

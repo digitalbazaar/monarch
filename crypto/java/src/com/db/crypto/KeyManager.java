@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.security.Key;
-import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -19,9 +18,7 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import java.security.spec.KeySpec;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -151,42 +148,78 @@ public class KeyManager
 
       return rval;
    }
-
+   
    /**
     * Generates a pair of keys, one public, one private and stores
-    * them internally. The keys are generated using DSA/SHA
-    * algorithms with 1024 bit encryption. They can be obtained by
+    * them internally. The keys are generated using the DSA
+    * algorithm with 1024 bit encryption. They can be obtained by
     * calling the appropriate get() method.
     *
     * @return true if successful, false if not.
     */
    public boolean generateKeyPair()
    {
+      return generateKeyPair("DSA");
+   }
+
+   /**
+    * Generates a pair of keys, one public, one private and stores
+    * them internally. The keys are generated using either DSA or RSA
+    * algorithms with 1024 bit encryption.
+    *
+    * @param algorithm (either "DSA" or "RSA").
+    *
+    * @return true if successful, false if not.
+    */
+   public boolean generateKeyPair(String algorithm)
+   {
       boolean rval = false;
       
       try
       {
-         // uses digital signature algorithm (DSA)
-         KeyPairGenerator kpg = KeyPairGenerator.getInstance("DSA");
-         
-         // set up a secure random number generator for key generation
-         // using SHA1 pseudo-random-number-generator provided by Sun
-         SecureRandom srng = SecureRandom.getInstance("SHA1PRNG", "SUN");
-         
-         // initialize the key generator with 1024 bit encryption
-         kpg.initialize(1024, srng);
-         
-         // generate the private and public keys
-         KeyPair keyPair = kpg.generateKeyPair();
-         mPrivateKey = keyPair.getPrivate();
-         mPublicKey = keyPair.getPublic();
+         if(algorithm.equals("DSA"))
+         {
+            // uses digital signature algorithm (DSA)
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("DSA");
+            
+            // set up a secure random number generator for key generation
+            // using SHA1 pseudo-random-number-generator provided by Sun
+            SecureRandom srng = SecureRandom.getInstance("SHA1PRNG", "SUN");
+            
+            // initialize the key generator with 1024 bit encryption
+            kpg.initialize(1024, srng);
+            
+            // generate the private and public keys
+            KeyPair keyPair = kpg.generateKeyPair();
+            mPrivateKey = keyPair.getPrivate();
+            mPublicKey = keyPair.getPublic();
 
-         rval = true;
+            rval = true;
+         }
+         else
+         {
+            // uses RSA
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+            
+            // set up a secure random number generator for key generation
+            // using SHA1 pseudo-random-number-generator provided by Sun
+            SecureRandom srng = SecureRandom.getInstance("SHA1PRNG", "SUN");
+            
+            // initialize the key generator with 1024 bit encryption
+            kpg.initialize(1024, srng);
+            
+            // generate the private and public keys
+            KeyPair keyPair = kpg.generateKeyPair();
+            mPrivateKey = keyPair.getPrivate();
+            mPublicKey = keyPair.getPublic();
+
+            rval = true;            
+         }
       }
       catch(NoSuchAlgorithmException nsae)
       {
          LoggerManager.getLogger("dbcrypto").error(KeyManager.class,  
-            "DSA algorithm not supported.");
+            "DSA/RSA algorithm not supported.");
          LoggerManager.getLogger("dbcrypto").debug(
             KeyManager.class, Logger.getStackTrace(nsae));
       }
@@ -749,26 +782,10 @@ public class KeyManager
 
       if(encodedKey != null)
       {
-         try
-         {
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encodedKey);
-            KeyFactory keyFactory = KeyFactory.getInstance("DSA");
-            privateKey = keyFactory.generatePrivate(keySpec);
-         }
-         catch(NoSuchAlgorithmException nsae)
-         {
-            LoggerManager.getLogger("dbcrypto").error(KeyManager.class,  
-               "DSA algorithm is not supported.");
-            LoggerManager.getLogger("dbcrypto").debug(KeyManager.class, 
-               Logger.getStackTrace(nsae));
-         }
-         catch(InvalidKeySpecException ikse)
-         {
-            LoggerManager.getLogger("dbcrypto").error(
-               KeyManager.class, "KeySpec is invalid.");
-            LoggerManager.getLogger("dbcrypto").debug(KeyManager.class, 
-               Logger.getStackTrace(ikse));
-         }
+         // use an PKCS#8 private key to create the private key --
+         // the key's algorithm will be automatically detected
+         Pkcs8PrivateKey key = new Pkcs8PrivateKey(encodedKey);
+         privateKey = key.getPrivateKey();
       }
       
       return privateKey;
@@ -809,26 +826,10 @@ public class KeyManager
 
       if(encodedKey != null)
       {
-         try
-         {
-            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encodedKey);
-            KeyFactory keyFactory = KeyFactory.getInstance("DSA");
-            publicKey = keyFactory.generatePublic(keySpec);
-         }
-         catch(NoSuchAlgorithmException nsae)
-         {
-            LoggerManager.getLogger("dbcrypto").error(KeyManager.class, 
-               "DSA algorithm is not supported.");
-            LoggerManager.getLogger("dbcrypto").debug(KeyManager.class, 
-               Logger.getStackTrace(nsae));
-         }
-         catch(InvalidKeySpecException ikse)
-         {
-            LoggerManager.getLogger("dbcrypto").error(
-               KeyManager.class, "KeySpec is invalid.");
-            LoggerManager.getLogger("dbcrypto").debug(KeyManager.class, 
-               Logger.getStackTrace(ikse));
-         }
+         // use an X.509 public key to create the public key --
+         // the key's algorithm will be automatically detected
+         X509PublicKey key = new X509PublicKey(encodedKey);
+         publicKey = key.getPublicKey();
       }
 
       return publicKey;
@@ -857,13 +858,15 @@ public class KeyManager
    }
 
    /**
-    * Decodes a DES secret key from its encoded byte form.
+    * Decodes a symmetric secret key from its encoded byte form.
     *
     * @param encodedKey the encoded byte array of key material.
+    * @param algorithm the algorithm for the key (i.e. "DES").
     * 
     * @return the decoded secret key object.
     */
-   public static SecretKey decodeDESKey(byte[] encodedKey)
+   public static SecretKey decodeSymmetricalKey(
+      byte[] encodedKey, String algorithm)
    {
       SecretKey secretKey = null;
 
@@ -871,8 +874,18 @@ public class KeyManager
       {
          try
          {
-            DESKeySpec keySpec = new DESKeySpec(encodedKey);
-            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
+            KeySpec keySpec = null;
+            if(algorithm.equals("DES"))
+            {
+               keySpec = new DESKeySpec(encodedKey);
+            }
+            else
+            {
+               throw new NoSuchAlgorithmException(algorithm);
+            }
+            
+            SecretKeyFactory keyFactory =
+               SecretKeyFactory.getInstance(algorithm);
             secretKey = keyFactory.generateSecret(keySpec);
          }
          catch(Throwable t)

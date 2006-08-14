@@ -39,7 +39,10 @@ public class UTKeyManager
       System.out.println("Generating keys...");
 
       KeyManager km = new KeyManager();
-      boolean generated = km.generateKeyPair();
+      
+      // USE either "RSA" or "DSA"
+      boolean generated = km.generateKeyPair("DSA");
+      //boolean generated = km.generateKeyPair("RSA");
 
       System.out.println("Keys generated: " + generated);
       

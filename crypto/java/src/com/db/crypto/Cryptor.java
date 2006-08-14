@@ -367,9 +367,19 @@ public class Cryptor
       {
          try
          {
-            // get the key's algorithm
+            // get the key algorithm
             String algorithm = privateKey.getAlgorithm();
-         
+            
+            // get the signature algorithm
+            if(algorithm.equals("DSA"))
+            {
+               algorithm = "SHAwithDSA";
+            }
+            else if(algorithm.equals("RSA"))
+            {
+               algorithm = "SHA1withRSA";
+            }
+            
             // sign the signature string with the private key
             Signature signature = Signature.getInstance(algorithm);
             signature.initSign(privateKey);
@@ -466,9 +476,22 @@ public class Cryptor
       if(key != null)
       {
          try
-         {         
+         {
+            // get the key algorithm
+            String algorithm = key.getAlgorithm();
+            
+            // get the signature algorithm
+            if(algorithm.equals("DSA"))
+            {
+               algorithm = "SHAwithDSA";
+            }
+            else if(algorithm.equals("RSA"))
+            {
+               algorithm = "SHA1withRSA";
+            }
+            
             // verify the digital signature
-            Signature signature = Signature.getInstance(key.getAlgorithm());
+            Signature signature = Signature.getInstance(algorithm);
             signature.initVerify(key);
             signature.update(data);
          
