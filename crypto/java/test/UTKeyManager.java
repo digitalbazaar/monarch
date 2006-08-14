@@ -87,7 +87,8 @@ public class UTKeyManager
       // test sign with cryptor
       System.out.println("Signing with strings using cryptor: ");
       byte[] data = Cryptor.sign("text", prkey);
-      System.out.println("Signature: " + data);
+      Base64Coder coder = new Base64Coder();
+      System.out.println("Signature:'" + coder.encode(data) + "'");
       System.out.println("Verified: " + Cryptor.verify(data, "text", pukey));
 
       // store the keys
