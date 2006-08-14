@@ -522,6 +522,28 @@ public class KeyManager
    }
    
    /**
+    * Encrypts the private key and returns it in DER format. The private
+    * key is stored as an EncryptedPrivateKeyInfo ASN.1 structure using DER
+    * encoding.
+    *
+    * @param password the password to lock the key with.
+    * 
+    * @return the DER formatted encrypted private key or null.
+    */
+   public byte[] getEncryptedPrivateKey(String password)   
+   {
+      byte[] encryptedKey = null;
+      
+      PrivateKey key = getPrivateKey();
+      if(key != null)
+      {
+         encryptedKey = getEncryptedPrivateKey(key, password);
+      }
+      
+      return encryptedKey;      
+   }
+   
+   /**
     * Returns the internal public key.
     * 
     * @return the internal public key.
@@ -581,6 +603,28 @@ public class KeyManager
       }
       
       return pem;
+   }
+   
+   /**
+    * Encrypts the private key and returns it in PEM format. The private
+    * key is stored as an EncryptedPrivateKeyInfo ASN.1 structure using DER
+    * encoding that is base64-encoded along with a PEM header and footer.
+    *
+    * @param password the password to lock the key with.
+    * 
+    * @return the PEM formatted encrypted private key or null.
+    */
+   public String getPEMEncryptedPrivateKey(String password)   
+   {
+      String pem = null;
+      
+      PrivateKey key = getPrivateKey();
+      if(key != null)
+      {
+         pem = getPEMEncryptedPrivateKey(key, password);
+      }
+      
+      return pem; 
    }
    
    /**
@@ -839,7 +883,55 @@ public class KeyManager
       }
 
       return secretKey;
-   }   
+   }
+   
+   /**
+    * Encrypts the passed private key and returns it DER format. The private
+    * key is stored as an EncryptedPrivateKeyInfo ASN.1 structure using DER
+    * encoding.
+    *
+    * @param key the private key to encrypt.
+    * @param password the password to lock the key with.
+    * 
+    * @return the DER formatted encrypted private key.
+    */
+   public static byte[] getEncryptedPrivateKey(PrivateKey key, String password)
+   {
+      // encrypt the key with the passed password
+      byte[] bytes = Cryptor.encryptPrivateKey(
+         key.getEncoded(), password);
+
+      return bytes;
+   }
+   
+   /**
+    * Encrypts the passed private key and returns it in PEM format. The private
+    * key is stored as an EncryptedPrivateKeyInfo ASN.1 structure using DER
+    * encoding that is base64-encoded along with a PEM header and footer.
+    *
+    * @param key the private key to encrypt.
+    * @param password the password to lock the key with.
+    * 
+    * @return the PEM formatted encrypted private key.
+    */
+   public static String getPEMEncryptedPrivateKey(
+      PrivateKey key, String password)   
+   {
+      // encrypt the key with the passed password
+      byte[] bytes = Cryptor.encryptPrivateKey(
+         key.getEncoded(), password);
+      
+      // base64 encode bytes
+      String base64 = base64EncodeKey(bytes);
+      
+      // add PEM header and footer
+      String pem =
+         ENCRYPTED_PRIVATE_KEY_PEM_HEADER +
+         "\n" + base64 + "\n" +
+         ENCRYPTED_PRIVATE_KEY_PEM_FOOTER;
+      
+      return pem;
+   }
 
    /**
     * Stores the passed private key in a file with the passed filename
@@ -862,8 +954,7 @@ public class KeyManager
          try
          {
             // encrypt the key with the passed password
-            byte[] bytes = Cryptor.encryptPrivateKey(
-               key.getEncoded(), password);
+            byte[] bytes = getEncryptedPrivateKey(key, password);
          
             // create private key file, write encrypted-encoded bytes
             File file = new File(filename);
@@ -906,18 +997,8 @@ public class KeyManager
       {
          try
          {
-            // encrypt the key with the passed password
-            byte[] bytes = Cryptor.encryptPrivateKey(
-               key.getEncoded(), password);
-            
-            // base64 encode bytes
-            String base64 = base64EncodeKey(bytes);
-            
-            // add PEM header and footer
-            String pem =
-               ENCRYPTED_PRIVATE_KEY_PEM_HEADER +
-               "\n" + base64 + "\n" +
-               ENCRYPTED_PRIVATE_KEY_PEM_FOOTER;
+            // get PEM encrypted private key
+            String pem = getPEMEncryptedPrivateKey(key, password);
          
             // create private key file, write encrypted-encoded bytes
             File file = new File(filename);
