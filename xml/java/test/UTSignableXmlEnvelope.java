@@ -1,12 +1,19 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
-import com.db.util.*;
 import com.db.crypto.*;
 import com.db.xml.*;
 
+/**
+ * A unit test for SignableXmlEnvelope.
+ * 
+ * @author Dave Longley
+ */
 public class UTSignableXmlEnvelope
 {
+   /**
+    * Does the envelope test.
+    */
    public static void doEnvelopeTest()
    {
       System.out.println("Putting string \"chicken\" into envelope...");
@@ -112,6 +119,11 @@ public class UTSignableXmlEnvelope
          outerEnvelope2.convertToXml());
    }
    
+   /**
+    * Performs the unit test.
+    * 
+    * @param args the arguments.
+    */
    public static void main(String[] args)
    {
       com.db.logging.LoggerManager.setConsoleVerbosity(

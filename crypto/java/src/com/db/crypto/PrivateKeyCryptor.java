@@ -5,7 +5,6 @@ package com.db.crypto;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
-import com.db.util.Base64Coder;
 
 import java.security.PrivateKey;
 
@@ -13,16 +12,15 @@ import java.security.PrivateKey;
  * A convenient private key cryptor class. Used to generate and store
  * encrypted private keys on disk and in memory.
  * 
- * FIXME: This class could use some clean up and simplification.
- * 
  * @author Dave Longley
  */
 public class PrivateKeyCryptor
 {
    /**
-    * The encrypted private key.
+    * The encrypted private key as an EncryptedPrivateKeyInfo ASN.1 structure
+    * in DER encoded format.
     */
-   protected byte[] mPrivateKey = null;
+   protected byte[] mEncryptedPrivateKey = null;
    
    /**
     * The plain-text public key.
@@ -56,7 +54,7 @@ public class PrivateKeyCryptor
     */
    public PrivateKeyCryptor()
    {
-      mPrivateKey = null;
+      mEncryptedPrivateKey = null;
       mKeyFilename = null;
       mEncryptedPassword = null;
       mError = "";
@@ -70,9 +68,9 @@ public class PrivateKeyCryptor
     */
    public PrivateKeyCryptor(String keyFilename, String password)
    {
-      mPrivateKey = null;
-      mKeyFilename = keyFilename;
+      mEncryptedPrivateKey = null;
       mError = "";
+      setPrivateKeyFilename(keyFilename);
       
       storePasswordInMemory(password);
    }
@@ -142,7 +140,8 @@ public class PrivateKeyCryptor
       if(encodedBytes != null)
       {
          // store the encrypted private key
-         mPrivateKey = Cryptor.encrypt(encodedBytes, password);
+         mEncryptedPrivateKey =
+            Cryptor.encryptPrivateKey(encodedBytes, password);
          rval = true;
       }
       
@@ -178,55 +177,246 @@ public class PrivateKeyCryptor
     */
    protected void clearPrivateKeyFromMemory()
    {
-      mPrivateKey = null;
+      mEncryptedPrivateKey = null;
+      System.gc();
    }
    
    /**
-    * Convenience method. Gets the private key as an encoded array of bytes.
-    *
-    * @return the encoded private key bytes or null.
+    * Loads the private key from disk and encrypts it into memory.
+    * 
+    * @param password the password for unlocking the key.
+    * 
+    * @return true if successful, false if not.
     */
-   protected byte[] getPrivateKeyEncodedBytes()
+   protected boolean loadPrivateKeyFromFile(String password)
    {
-      byte[] encodedKey = null;
-    
-      // get the decrypted password
-      String password = getDecryptedPassword();
-
+      boolean rval = false;
+      
+      // see if we can load the private key from disk
+      if(getPrivateKeyFilename() != null)
+      {
+         // create a key manager for loading the private key
+         KeyManager km = new KeyManager();
+         
+         boolean loaded = false;
+         if(getPrivateKeyFilename().toLowerCase().endsWith(".pem"))
+         {
+            // load private key from PEM format
+            loaded = km.loadPEMPrivateKeyFromFile(
+               getPrivateKeyFilename(), password);
+         }
+         else
+         {
+            // load private key from DER format
+            loaded = km.loadPrivateKeyFromFile(
+               getPrivateKeyFilename(), password);
+         }
+         
+         if(loaded)
+         {
+            // store private key in memory
+            storePrivateKeyInMemory(km, password);
+            rval = true;
+         }
+         else
+         {
+            // set error from key manager
+            setError(km.getError());
+            
+            // this is not an error condition, the password is just wrong
+            getLogger().debug(getClass(),
+               "Unable to unlock private key -- invalid password!");
+         }
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Stores a private key from the given key manager on disk.
+    * 
+    * @param km the key manager that has the private key to store.
+    * @param password the password to store the key with.
+    * 
+    * @return true if the private key was successfully stored, false if not.
+    */
+   protected boolean storePrivateKeyInFile(KeyManager km, String password)
+   {
+      boolean rval = false;
+      
+      // see if we can save the private key to disk
+      if(getPrivateKeyFilename() != null)
+      {
+         boolean stored = false;
+         if(getPrivateKeyFilename().toLowerCase().endsWith(".pem"))
+         {
+            // store private key in PEM format
+            stored = km.storePEMPrivateKey(
+               getPrivateKeyFilename(), password);
+         }
+         else
+         {
+            // store private key in DER format
+            stored = km.storePrivateKey(
+               getPrivateKeyFilename(), password);
+         }
+         
+         if(stored)
+         {
+            // store private key in memory
+            storePrivateKeyInMemory(km, password);
+            rval = true;
+         }
+         else
+         {
+            // set error from key manager
+            setError(km.getError());
+            
+            getLogger().error(getClass(), "Unable to store private key!");
+         }
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Generates a new set of public and private keys. Will overwrite
+    * the old keys stored in memory. The private key will not be written to
+    * disk.
+    * 
+    * @param km the key manager to use to generate the key pair.
+    * @param password the password to use.
+    * 
+    * @return true if successful, false if not.
+    */
+   protected boolean generateKeysInMemory(KeyManager km, String password)
+   {
+      boolean rval = false;
+      
       if(password != null)
       {
-         if(mPrivateKey == null)
+         // generate a pair of public/private keys
+         if(km.generateKeyPair())
          {
-            // load key from disk
-            KeyManager km = new KeyManager();
-            if(km.loadPrivateKey(mKeyFilename, password))
+            // store the new password
+            if(storePasswordInMemory(password))
             {
-               // store the private key in memory
-               storePrivateKeyInMemory(km, password);
+               // get the private key password
+               // we decrypt the password here to verify that it
+               // was stored in memory
+               password = getDecryptedPassword();
+               if(password != null)
+               {
+                  // store the private key in memory
+                  if(storePrivateKeyInMemory(km, password))
+                  {
+                     // store the public key in memory
+                     mPublicKey = km.getPublicKeyString();
+                     rval = true;
+                  }
+                  else
+                  {
+                     getLogger().error(getClass(),
+                        "Could not store private key in memory!");
+                  }
+               }
+               else
+               {
+                  getLogger().error(getClass(),
+                     "Could not decrypt password!");
+               }
             }
             else
             {
-               setError(km.getError());
-               
-               getLogger().debug(getClass(),
-                  "ERROR - invalid password!");
+               getLogger().error(getClass(),
+                  "Could not store encrypted password in memory!");
             }
          }
-
-         // make sure private key has been stored
-         if(mPrivateKey != null)
+         else
          {
-            // decrypt the private key
-            encodedKey = Cryptor.decrypt(mPrivateKey, password);
+            getLogger().error(getClass(),
+               "Could not generate key pair!");
          }
       }
       else
       {
-         getLogger().debug(getClass(),
-            "ERROR - cannot use null password!");
+         getLogger().error(getClass(),
+            "Password not set, cannot generate keys!");
+      }
+
+      return rval;      
+   }
+   
+   /**
+    * Gets the decrypted private key. This method will try to load the
+    * private key from disk if it isn't available in memory.
+    * 
+    * @param password the password to unlock the private key.
+    * 
+    * @return the decrypted private key or null if it cannot be loaded.
+    */
+   protected PrivateKey getPrivateKey(String password)
+   {
+      PrivateKey rval = null;
+      
+      // check the password
+      if(password != null)
+      {
+         // see if there is an encrypted private key in memory
+         if(mEncryptedPrivateKey != null)
+         {
+            byte[] decrypted = Cryptor.decryptPrivateKey(
+               mEncryptedPrivateKey, password);
+            
+            // decode the decrypted bytes
+            rval = KeyManager.decodePrivateKey(decrypted);
+         }
+         else
+         {
+            // try to load private key from disk
+            if(loadPrivateKeyFromFile(password))
+            {
+               // run getPrivateKey() again, this time the encrypted
+               // private key should be in memory
+               rval = getPrivateKey();
+            }
+         }
+      }
+      else
+      {
+         getLogger().error(getClass(),
+            "Error while retrieving private key -- password is null!");
       }
       
-      return encodedKey;
+      return rval;
+   }
+   
+   /**
+    * Gets the encrypted private key. This method will try to load the
+    * private key from disk if it isn't available in memory.
+    * 
+    * @param password the password to unlock the private key if necessary.
+    * 
+    * @return the encrypted private key or null if it cannot be loaded.
+    */
+   protected byte[] getEncryptedPrivateKey(String password)   
+   {
+      byte[] rval = null;
+      
+      if(mEncryptedPrivateKey == null)
+      {
+         // load the private key
+         if(getPrivateKey() != null)
+         {
+            rval = mEncryptedPrivateKey;
+         }
+      }
+      else
+      {
+         rval = mEncryptedPrivateKey;
+      }
+      
+      return rval;
    }
    
    /**
@@ -278,69 +468,25 @@ public class PrivateKeyCryptor
    {
       boolean rval = false;
       
-      if(password != null)
+      // create a key manager for generating keys
+      KeyManager km = new KeyManager();
+      
+      // generate the keys in memory first
+      if(generateKeysInMemory(km, password))
       {
-         // update private key file name
-         mKeyFilename = keyFilename;
+         // set private key file name
+         setPrivateKeyFilename(keyFilename);
          
-         // create a key manager and generate a pair of public/private keys
-         KeyManager km = new KeyManager();
-         if(km.generateKeyPair())
+         // store private key on disk
+         if(storePrivateKeyInFile(km, password))
          {
-            // store the new password
-            if(storePasswordInMemory(password))
-            {
-               // get the private key password
-               // we decrypt the password here to verify that it
-               // was stored in memory
-               password = getDecryptedPassword();
-               if(password != null)
-               {
-                  // store private key on disk
-                  if(km.storePrivateKey(mKeyFilename, password))
-                  {
-                     // store the keys in memory
-                     if(storePrivateKeyInMemory(km, password))
-                     {
-                        // store the public key in memory
-                        mPublicKey = km.getPublicKeyString();
-                        rval = true;
-                     }
-                     else
-                     {
-                        getLogger().debug(getClass(),
-                           "ERROR - could not store keys!");
-                     }
-                  }
-                  else
-                  {
-                     getLogger().debug(getClass(), 
-                        "ERROR - could not store key file!");
-                  }
-               }
-               else
-               {
-                  getLogger().debug(getClass(),
-                     "ERROR - could not decrypt password!");
-               }
-            }
-            else
-            {
-               getLogger().debug(getClass(),
-                  "ERROR - could not store " +
-                  "encrypted password!");
-            }
+            rval = true;
          }
          else
          {
-            getLogger().debug(getClass(),
-               "ERROR - could not generate keys!");
+            getLogger().error(getClass(), 
+               "Could not store private key on disk!");
          }
-      }
-      else
-      {
-         getLogger().debug(getClass(),
-            "ERROR - cannot generate keys with null password!");
       }
 
       return rval;
@@ -359,69 +505,16 @@ public class PrivateKeyCryptor
    {
       boolean rval = false;
       
-      if(password != null)
+      // create a key manager for generating keys
+      KeyManager km = new KeyManager();
+      
+      // generate the keys in memory
+      if(generateKeysInMemory(km, password))
       {
-         // create a key manager and generate a pair of public/private keys
-         KeyManager km = new KeyManager();
-         if(km.generateKeyPair())
-         {
-            // store the new password
-            if(storePasswordInMemory(password))
-            {
-               // get the private key password
-               // we decrypt the password here to verify that it
-               // was stored in memory
-               password = getDecryptedPassword();
-               if(password != null)
-               {
-                  // store the keys in memory
-                  if(storePrivateKeyInMemory(km, password))
-                  {
-                     // store the public key in memory
-                     mPublicKey = km.getPublicKeyString();
-                     rval = true;
-                  }
-                  else
-                  {
-                     getLogger().debug(getClass(),
-                        "ERROR - could not store keys in memory!");
-                  }
-               }
-               else
-               {
-                  getLogger().debug(getClass(),
-                     "ERROR - could not decrypt password!");
-               }
-            }
-            else
-            {
-               getLogger().debug(getClass(),
-                  "ERROR - could not store encrypted password!");
-            }
-         }
-         else
-         {
-            getLogger().debug(getClass(),
-               "ERROR - could not generate keys!");
-         }
+         rval = true;
       }
-      else
-      {
-         getLogger().debug(getClass(),
-            "ERROR - cannot generate keys with null password!");
-      }
-
+      
       return rval;
-   }
-   
-   /**
-    * Retrieves the encrypted private key password from memory.
-    * 
-    * @return the encryped private key password or null.
-    */
-   public String getEncryptedPassword()
-   {
-      return mEncryptedPassword;
    }
    
    /**
@@ -430,7 +523,7 @@ public class PrivateKeyCryptor
     * 
     * @return the plain-text password.
     */
-   public String getPlainTextPassword()
+   public String getPassword()
    {
       return getDecryptedPassword();
    }
@@ -458,62 +551,42 @@ public class PrivateKeyCryptor
    }
    
    /**
-    * Sets the private key from the passed encrypted key (encoded in base64)
+    * Sets the private key from the passed encrypted key (PEM formatted)
     * that is locked with the passed password.
     *
-    * @param encryptedKey the encrypted key in a base64-encoded string.
+    * @param pem the encrypted key in a PEM formatted string.
     * @param password the password to unlock the file.
     * 
     * @return true if successful, false if not.
     */
-   public boolean setEncryptedPrivateKey(String encryptedKey, String password)
-   {
-      boolean rval = false;
-      
-      Base64Coder base64 = new Base64Coder();
-      byte[] bytes = base64.decode(encryptedKey);
-      rval = setEncryptedPrivateKey(bytes, password);
-      
-      return rval;
-   }
-   
-   /**
-    * Sets the private key from the passed encrypted key bytes
-    * that are locked with the passed password.
-    *
-    * @param encryptedKey the encrypted key in a byte array.
-    * @param password the password to unlock the file.
-    * 
-    * @return true if successful, false if not.
-    */
-   public boolean setEncryptedPrivateKey(byte[] encryptedKey, String password)
+   public boolean setPEMEncryptedPrivateKey(String pem, String password)
    {
       boolean rval = false;
       
       try
       {
-         // decrypt the key with the passed password
-         byte[] decryptedKey = Cryptor.decrypt(encryptedKey, password);
-
-         // if decryptedKey is not null, decode the key
-         if(decryptedKey != null)
+         KeyManager km = new KeyManager();
+         
+         // load the PEM encrypted key
+         if(km.loadPEMPrivateKey(pem, password))
          {
-            // set password
+            // set this cryptor's password
             if(setPassword(password))
             {
-               rval = setPrivateKey(KeyManager.decodePrivateKey(decryptedKey));
+               // set this cryptor's private key
+               rval = setPrivateKey(km.getPrivateKey());
             }
          }
          else
          {
             getLogger().debug(getClass(),
-               "Could not unlock encrypted private key.");
+               "Could not unlock encrypted PEM private key.");
          }
       }
       catch(Throwable t)
       {
          getLogger().error(getClass(),
-            "Unable to load encrypted private key.");
+            "Unable to load encrypted PEM private key.");
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
 
@@ -527,25 +600,11 @@ public class PrivateKeyCryptor
     */
    public PrivateKey getPrivateKey()
    {
-      PrivateKey pkey = null;
-      
-      byte[] encodedKey = getPrivateKeyEncodedBytes();
-      if(encodedKey != null)
-      {
-         // decode the private key
-         pkey = KeyManager.decodePrivateKey(encodedKey);
-      }
-      else
-      {
-         getLogger().debug(getClass(),
-            "ERROR - could not get encoded key!");
-      }
-      
-      return pkey;
+      return getPrivateKey(getDecryptedPassword());
    }
    
    /**
-    * Gets the private key as a PKCS8-Base64 string.
+    * Gets the private key as a PKCS8(DER encoded)-Base64 string.
     *
     * @return the private key or null.
     */
@@ -553,16 +612,11 @@ public class PrivateKeyCryptor
    {
       String pkey = null;
       
-      byte[] encodedKey = getPrivateKeyEncodedBytes();
-      if(encodedKey != null)
+      PrivateKey key = getPrivateKey();
+      if(key != null)
       {
-         // encode the private key as a string
-         pkey = KeyManager.base64EncodeKey(encodedKey);
-      }
-      else
-      {
-         getLogger().debug(getClass(),
-            "ERROR - could not get encoded key!");
+         // encode the private key as a base64-encoded string
+         pkey = KeyManager.base64EncodeKey(key);
       }
       
       return pkey;
@@ -581,69 +635,36 @@ public class PrivateKeyCryptor
       if(key != null)
       {
          pem =
-            "-----BEGIN PRIVATE KEY-----\n" +
-            key +
-            "\n-----END PRIVATE KEY-----";
+            KeyManager.PRIVATE_KEY_PEM_HEADER +
+            "\n" + key + "\n" +
+            KeyManager.PRIVATE_KEY_PEM_FOOTER;
       }
       
       return pem;
    }
    
    /**
-    * Gets the private key in encrypted form.
+    * Gets the encrypted private key in PEM format
+    * (PKCS8-Base64 with header/footer) string.
     *
-    * @return the encrypted private key bytes or null.
+    * @return the PEM formatted encrypted private key or null.
     */
-   public byte[] getEncryptedPrivateKeyBytes()
+   public String getPEMEncryptedPrivateKey()
    {
-      if(mPrivateKey == null)
-      {
-         String password = getDecryptedPassword();
-         if(password != null)
-         {
-            // load key from disk
-            KeyManager km = new KeyManager();
-            if(km.loadPrivateKey(mKeyFilename, password))
-            {
-               // store the private key in memory
-               storePrivateKeyInMemory(km, password);
-            }
-            else
-            {
-               setError(km.getError());
-               
-               getLogger().debug(getClass(),
-                  "ERROR - invalid password!");
-            }
-         }
-         else
-         {
-            getLogger().debug(getClass(),
-               "ERROR - cannot use null password!");
-         }
-      }
-
-      return mPrivateKey;
-   }
-   
-   /**
-    * Gets the private key in encrypted form as a base64-encoded string.
-    *
-    * @return the encrypted private key bytes base64-encoded or null.
-    */
-   public String getEncryptedPrivateKeyString()
-   {
-      String rval = null;
+      String pem = null;
       
-      byte[] encryptedBytes = getEncryptedPrivateKeyBytes();
-      if(encryptedBytes != null)
+      byte[] encryptedKey = getEncryptedPrivateKey(getDecryptedPassword());
+      if(encryptedKey != null)
       {
-         Base64Coder base64 = new Base64Coder();
-         rval = base64.encode(encryptedBytes);
+         String key = KeyManager.base64EncodeKey(encryptedKey);
+         pem =
+            KeyManager.ENCRYPTED_PRIVATE_KEY_PEM_HEADER +
+            "\n" + key + "\n" +
+            KeyManager.ENCRYPTED_PRIVATE_KEY_PEM_FOOTER;
       }
       
-      return rval;
-   }
+      return pem;
+   }   
    
    /**
     * Gets the public key as a X.509-Base64 string.
@@ -703,7 +724,8 @@ public class PrivateKeyCryptor
    /**
     * Sets the private key filename and the password and then tries to
     * verify that the password unlocks the private key stored in the
-    * private key file.
+    * private key file. This method will clear the current private key
+    * from memory.
     * 
     * @param keyFilename the private key filename.
     * @param password the password to set and verify.
@@ -716,6 +738,7 @@ public class PrivateKeyCryptor
       
       if(setPassword(password))
       {
+         // get the private key filename
          setPrivateKeyFilename(keyFilename);
          
          if(getPrivateKey() != null)
@@ -729,7 +752,8 @@ public class PrivateKeyCryptor
    
    /**
     * Sets the private key password that is stored in memory. This does
-    * not update the private key file.
+    * not update the private key file. This method will clear the private
+    * key stored in memory.
     * 
     * @param password the plain-text password.
     * 
@@ -738,19 +762,18 @@ public class PrivateKeyCryptor
    public boolean setPassword(String password)
    {
       clearPrivateKeyFromMemory();
-      
       return storePasswordInMemory(password);
    }
    
    /**
-    * Sets the private key filename.
+    * Sets the private key filename. This method will clear the private key
+    * stored in memory.
     * 
     * @param keyFilename the name of the private key file.
     */
    public void setPrivateKeyFilename(String keyFilename)
    {
       clearPrivateKeyFromMemory();
-      
       mKeyFilename = keyFilename;
    }
    
@@ -770,7 +793,7 @@ public class PrivateKeyCryptor
    public void clear()
    {
       clearPrivateKeyFromMemory();
-      mEncryptedPassword = null;
+      mPasswordCryptor = null;
    }
    
    /**

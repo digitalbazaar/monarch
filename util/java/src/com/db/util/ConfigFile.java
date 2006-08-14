@@ -29,15 +29,32 @@ public class ConfigFile extends ConfigOptions
    protected String mHeader;
    
    /**
+    * Determines whether or not this ConfigFile should use XML.
+    */
+   protected boolean mUseXml;
+   
+   /**
     * Creates a new config file.
     * 
     * @param filename the name of the config file.
     */
    public ConfigFile(String filename)
    {
+      this(filename, false);
+   }
+   
+   /**
+    * Creates a new config file.
+    * 
+    * @param filename the name of the config file.
+    * @param useXml true if this config file should use XML, false if not.
+    */
+   public ConfigFile(String filename, boolean useXml)
+   {
       mFile = new File(filename);
       mHeader = null;
-   }
+      mUseXml = useXml;
+   }   
    
    /**
     * Loads the configuration settings from a file.
@@ -54,7 +71,16 @@ public class ConfigFile extends ConfigOptions
       {
          // read the configuration from a file
          FileInputStream fis = new FileInputStream(mFile);
-         mProperties.load(fis);
+         
+         if(mUseXml)
+         {
+            mProperties.loadFromXML(fis);
+         }
+         else
+         {
+            mProperties.load(fis);
+         }
+         
          fis.close();
          rval = true;
       }
@@ -92,7 +118,16 @@ public class ConfigFile extends ConfigOptions
       {
          // write the configuration to a file
          FileOutputStream fos = new FileOutputStream(mFile);
-         mProperties.store(fos, header);
+         
+         if(mUseXml)
+         {
+            mProperties.storeToXML(fos, header);
+         }
+         else
+         {
+            mProperties.store(fos, header);
+         }
+         
          fos.close();
          rval = true;
       }

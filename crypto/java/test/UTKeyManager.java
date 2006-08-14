@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
  */
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 import com.db.util.*;
 import com.db.crypto.*;
 
@@ -26,6 +28,11 @@ public class UTKeyManager
     */
    public static void main(String[] args)
    {
+      // set up logger
+      LoggerManager.setFile("dbcrypto", "ut-keymanager.log", false);
+      LoggerManager.setFileVerbosity("dbcrypto", Logger.DETAIL_VERBOSITY);
+      LoggerManager.setConsoleVerbosity("dbcrypto", Logger.ERROR_VERBOSITY);
+      
       System.out.println("\nTesting KeyManager...");
       System.out.println("------------------------\n");
 
@@ -94,8 +101,8 @@ public class UTKeyManager
       // load keys from disk
       System.out.println("Loading keys from disk...");
       
-      km.loadPrivateKey("private.key", "password");
-      km.loadPublicKey("public.key");
+      km.loadPrivateKeyFromFile("private.key", "password");
+      km.loadPublicKeyFromFile("public.key");
 
       System.out.println("Keys loaded from disk:");
       System.out.println("Private Key (ASN.1 DER[PKCS#8]->Base64 = PEM):");
@@ -114,8 +121,8 @@ public class UTKeyManager
       // load keys from disk
       System.out.println("Loading PEM keys from disk...");
       
-      km.loadPEMPrivateKey("private.pem", "password");
-      km.loadPEMPublicKey("public.pem");
+      km.loadPEMPrivateKeyFromFile("private.pem", "password");
+      km.loadPEMPublicKeyFromFile("public.pem");
 
       System.out.println("Keys loaded from disk:");
       System.out.println("Private Key (ASN.1 DER[PKCS#8]->Base64 = PEM):");

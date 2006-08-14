@@ -4,6 +4,8 @@
 import java.io.File;
 
 import com.db.crypto.*;
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 
 /**
  * Runs a unit test on Cryptor.
@@ -21,6 +23,11 @@ public class UTCryptor
    {
       try
       {
+         // set up logger
+         LoggerManager.setFile("dbcrypto", "ut-cryptor.log", false);
+         LoggerManager.setFileVerbosity("dbcrypto", Logger.DETAIL_VERBOSITY);
+         LoggerManager.setConsoleVerbosity("dbcrypto", Logger.ERROR_VERBOSITY);
+         
          File file = new File("test.mp3");
          String md5 = Cryptor.getMD5ChecksumString(file);
          String sha1 = Cryptor.getSHA1ChecksumString(file);

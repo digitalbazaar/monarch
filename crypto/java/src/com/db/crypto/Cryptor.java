@@ -18,6 +18,7 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.spec.AlgorithmParameterSpec;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Random;
 
 import javax.crypto.Cipher;
@@ -761,8 +762,8 @@ public class Cryptor
     * @param bytes the DER bytes for the PKCS#8 private key.
     * @param password the password for the key.
     * 
-    * @return the ASN.1 DER format [EncryptedPrivateKeyInfo] bytes with
-    *         the encrypted private key and its encryption information or
+    * @return a EncryptedPrivateKeyInfo ASN.1 structure in DER format with
+    *         the encrypted private key and its encryption information -- or
     *         null if there is an error.
     */
    public static byte[] encryptPrivateKey(byte[] bytes, String password)
@@ -804,12 +805,14 @@ public class Cryptor
    }
    
    /**
-    * Decrypts an encrypted PKCS#8 private key.
+    * Decrypts an encrypted PKCS#8 private key. The passed bytes should be
+    * an EncryptedPrivateKeyInfo ASN.1 structure in DER format.
     * 
     * @param bytes the encrypted PKCS#8 private key bytes.
     * @param password the password for the key.
     * 
-    * @return the decrypted bytes or null if the password failed.
+    * @return the decrypted bytes (PKCS#8 DER encoded) or null if the
+    *         password failed.
     */
    public static byte[] decryptPrivateKey(byte[] bytes, String password)
    {
@@ -825,11 +828,17 @@ public class Cryptor
          PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
          Key decryptionKey = sf.generateSecret(keySpec);
          
+         // create a cipher to decrypt
+         Cipher cipher = Cipher.getInstance(decryptionKey.getAlgorithm());
+         cipher.init(
+            Cipher.DECRYPT_MODE, decryptionKey, epki.getAlgParameters());
+         
+         // get the PKCS8 encoded key spec and the encoded bytes
+         PKCS8EncodedKeySpec pkcs8 = epki.getKeySpec(cipher);
+         decryptedBytes = pkcs8.getEncoded();
+
          // clear out the password for security
          keySpec.clearPassword();
-         
-         // decrypt the encrypted key data
-         decryptedBytes = decrypt(epki.getEncryptedData(), decryptionKey);
       }
       catch(Throwable t)
       {
@@ -956,7 +965,7 @@ public class Cryptor
          {
             // generate a key from the password
             SecretKey key = generatePasswordKey(password);
-
+            
             AlgorithmParameterSpec apSpec =
                new PBEParameterSpec(salt, smIterationCount);
          
