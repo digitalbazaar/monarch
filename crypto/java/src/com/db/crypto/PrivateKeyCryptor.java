@@ -296,7 +296,7 @@ public class PrivateKeyCryptor
       if(password != null)
       {
          // generate a pair of public/private keys
-         if(km.generateKeyPair())
+         if(km.generateKeyPair("DSA"))
          {
             // store the new password
             if(storePasswordInMemory(password))
