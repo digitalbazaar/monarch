@@ -688,10 +688,10 @@ public class PrivateKeyCryptor
       String key = getPublicKeyString();
       if(key != null)
       {
-         pem = 
-            "-----BEGIN PUBLIC KEY-----\n" +
-            key +
-            "\n-----END PUBLIC KEY-----";
+         pem =
+            KeyManager.PUBLIC_KEY_PEM_HEADER +
+            "\n" + key + "\n" +
+            KeyManager.PUBLIC_KEY_PEM_FOOTER;
       }
       
       return pem;
