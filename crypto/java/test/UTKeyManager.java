@@ -40,34 +40,13 @@ public class UTKeyManager
 
       KeyManager km = new KeyManager();
       
-      // USE either "RSA" or "DSA"
-      boolean generated = km.generateKeyPair("DSA");
-      //boolean generated = km.generateKeyPair("RSA");
+      // use either "RSA" or "DSA"
+      String algorithm = "DSA"; 
+      
+      // generate keys
+      boolean generated = km.generateKeyPair(algorithm);
 
-      System.out.println("Keys generated: " + generated);
-      
-      /*String publicKey =
-         "MIIBuDCCASwGByqGSM44BAEwggEfAoGBAP1/U4EddRIpUt9KnC7s5Of2EbdSPO9EAMMeP4C2USZp\n" + 
-         "RV1AIlH7WT2NWPq/xfW6MPbLm1Vs14E7gB00b/JmYLdrmVClpJ+f6AR7ECLCT7up1/63xhv4O1fnxqimFQ8E+4P208UewwI1VBNaFpEy9nXzrith1yrv8iIDGZ3RSAHHAhUAl2BQjxUjC8yykrmCouuEC/BYHPUCgYEA9+GghdabPd7LvKtcNrhXuXmUr7v6OuqC+VdMCz0HgmdRWVeOutRZT+ZxBxCBgLRJFnEj6EwoFhO3zwkyjMim4TwWeotUfI0o4KOuHiuzpnWRbqN/C/ohNWLx+2J6ASQ7zKTxvqhRkImog9/hWuWfBpKLZl6Ae1UlZAFMO/7PSSoDgYUAAoGBAOtjMoYgSVC251Xe2XV6l2zfC2QnztEJH9qv/aZ4zNM4E334UAFlKuxj6KxXBsYalgWxmIN4106RD8+9YI8GBoAUhX7P05NeFsnKP6x3j7SgeF2ngL0n0+0ffUVT3rFxnfpy3x6tgMrpSNG3/o/gdl8o8UPklPV3MOAW0lbHR+3T";
-      */
-      /*String publicKey =
-         "MIIBuDCCASwGByqGSM44BAEwggEfAoGBAP1/U4EddRIpUt9KnC7s5Of2EbdSPO9EAMMeP4C2USZp" + 
-         "RV1AIlH7WT2NWPq/xfW6MPbLm1Vs14E7gB00b/JmYLdrmVClpJ+f6AR7ECLCT7up1/63xhv4O1fnxqimFQ8E+4P208UewwI1VBNaFpEy9nXzrith1yrv8iIDGZ3RSAHHAhUAl2BQjxUjC8yykrmCouuEC/BYHPUCgYEA9+GghdabPd7LvKtcNrhXuXmUr7v6OuqC+VdMCz0HgmdRWVeOutRZT+ZxBxCBgLRJFnEj6EwoFhO3zwkyjMim4TwWeotUfI0o4KOuHiuzpnWRbqN/C/ohNWLx+2J6ASQ7zKTxvqhRkImog9/hWuWfBpKLZl6Ae1UlZAFMO/7PSSoDgYUAAoGBAOtjMoYgSVC251Xe2XV6l2zfC2QnztEJH9qv/aZ4zNM4E334UAFlKuxj6KxXBsYalgWxmIN4106RD8+9YI8GBoAUhX7P05NeFsnKP6x3j7SgeF2ngL0n0+0ffUVT3rFxnfpy3x6tgMrpSNG3/o/gdl8o8UPklPV3MOAW0lbHR+3T";
-      
-      if(km.loadPrivateKey("username.profile", "password"))
-      {
-         System.out.println("loaded key");
-         
-         PrivateKey pk = km.getPrivateKey();
-         String privateKey = km.getPrivateKeyString();
-         
-         byte[] signed1 = Cryptor.sign("chicken", pk);
-         byte[] signed2 = Cryptor.sign("chicken", privateKey);
-         
-         System.out.println("SIGNATURE 1: " + Cryptor.verify(signed1, "chicken", publicKey));
-         System.out.println("SIGNATURE 2: " + Cryptor.verify(signed2, "chicken", publicKey));
-         
-      }*/
+      System.out.println(algorithm + " Keys generated: " + generated);
       
       if(!generated)
       {
