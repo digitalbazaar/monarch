@@ -102,21 +102,8 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     */
    public SignableXmlEnvelope()
    {
-      this((IXmlSerializer)null);
+      this(null);
    }
-
-   /**
-    * Constructs a signable xml envelope that converts from
-    * the passed xml text.
-    *
-    * @param xmlText the xml text to convert from.
-    */
-   public SignableXmlEnvelope(String xmlText)
-   {
-      this();
-
-      convertFromXml(xmlText);
-   }   
 
    /**
     * Constructs a signable xml envelope that envelopes the
