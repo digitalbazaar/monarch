@@ -4,6 +4,13 @@
 import com.db.util.MethodInvoker;
 import com.db.logging.*;
 import com.db.net.*;
+import com.db.net.http.HttpGetRequestServicer;
+import com.db.net.http.HttpProxyPortWebServer;
+import com.db.net.http.HttpWebClient;
+import com.db.net.http.HttpWebConnection;
+import com.db.net.http.HttpWebRequest;
+import com.db.net.http.HttpWebRequestServicer;
+import com.db.net.http.HttpWebResponse;
 
 /**
  * Tests an HttpServer.
