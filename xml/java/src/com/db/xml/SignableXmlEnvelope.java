@@ -295,6 +295,10 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    public synchronized boolean sign(String signer, PrivateKey privateKey)
    {
       boolean rval = false;
+      
+      // set status to signed, regardless of whether or not signature is
+      // successful -- a sign() was attempted
+      setStatus("signed");
 
       // make sure there is a key to sign it with
       if(privateKey != null)
@@ -341,9 +345,6 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
             if(mSignature != null)
             {
                rval = true;
-               
-               // set status to signed
-               setStatus("signed");
             }
 
             if(mSignature == null)
