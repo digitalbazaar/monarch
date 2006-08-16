@@ -21,8 +21,16 @@ import org.w3c.dom.Element;
  * transported in a secure, signed vessel.
  * 
  * This envelope may be used in either "signed" or "unsigned" form to
- * transport information. Once sign() is called on this envelope, however,
- * its text contents will become locked until sign() is called again.
+ * transport information.
+ * 
+ * Whenever this envelope is signed, its content becomes locked. If
+ * the content of this envelope is changed after it has been signed, then
+ * it will fail verification. The envelope must be signed again if the
+ * contents are changed in order to pass verification. 
+ *
+ * In other words, once sign() is called on this envelope, if you want
+ * to modify its contents and pass verification, you must call sign()
+ * again after the modification.
  * 
  * This ensures the integrity of the signature generated when sign() was
  * called such that the text contents of this envelope will match that
@@ -52,16 +60,16 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
 {
    /**
     * The xml text that this envelope was last converted from. This
-    * is used to parse out the contents of the envelope for
-    * digital signing.
+    * is used to parse out the contents of the envelope for digital
+    * signature verification.
     */
    protected String mXmlEnvelope;
    
    /**
-    * The xml serializer interface that produces the
-    * xml that will be signed.
+    * The xml serializer interface that produces the xml that will
+    * be signed. This is the content for this envelope.
     */
-   protected IXmlSerializer mIXmlSerializer;
+   protected IXmlSerializer mContent;
    
    /**
     * The text that was signed.
@@ -135,7 +143,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    {
       super("2.0");
       
-      mIXmlSerializer = xmlSerializer;
+      mContent = xmlSerializer;
       mXmlEnvelope = "";
       mSignedText = null;
 
@@ -198,9 +206,9 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    protected synchronized void updateSignedText()
    {
       mSignedText = null;
-      if(mIXmlSerializer != null)
+      if(getContent() != null)
       {
-         mSignedText = mIXmlSerializer.convertToXml(1).trim();
+         mSignedText = getContent().convertToXml(1).trim();
       }
    }
 
@@ -495,26 +503,26 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    }
    
    /**
-    * Sets the interface that produces the xml text to
-    * envelope and sign.
+    * Sets the content of this envelope, that is, the object that implements
+    * an xml serializer interface that produces the xml text to envelope.
     *
     * @param xmlSerializer the xml serializer interface.
     */
-   public synchronized void setContents(IXmlSerializer xmlSerializer)
+   public synchronized void setContent(IXmlSerializer xmlSerializer)
    {
-      mIXmlSerializer = xmlSerializer;
+      mContent = xmlSerializer;
       mSignedText = null;
    }
 
    /**
-    * Gets the interface that produces the xml text to envelope
-    * and sign.
+    * Gets the content of this envelope, that is, the object that implements
+    * an xml serializer interface that produces the text to envelope.
     *
     * @return the xml serializer interface.
     */
-   public IXmlSerializer getContents()
+   public IXmlSerializer getContent()
    {
-      return mIXmlSerializer;
+      return mContent;
    }
    
    /**
@@ -574,9 +582,9 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
       {
          xml.append(mSignedText);
       }
-      else if(mIXmlSerializer != null)
+      else if(getContent() != null)
       {
-         xml.append(mIXmlSerializer.convertToXml(indentLevel + 1));
+         xml.append(getContent().convertToXml(indentLevel + 1));
       }
 
       xml.append(indent);
@@ -639,16 +647,16 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
          {
             er = (ElementReader)i.next();
 
-            if(!er.getTagName().equals("signature") && mIXmlSerializer != null)
+            if(!er.getTagName().equals("signature") && getContent() != null)
             {
                // if there is an embedded envelope load parsed contents
                if(er.getTagName().equals(getRootTag()))
                {
-                  rval &= mIXmlSerializer.convertFromXml(parseContents());
+                  rval &= getContent().convertFromXml(parseContents());
                }
                else
                {
-                  rval &= mIXmlSerializer.convertFromXml(er.getElement());
+                  rval &= getContent().convertFromXml(er.getElement());
                }
                
                break;
