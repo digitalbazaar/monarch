@@ -82,8 +82,8 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    protected String mSigner;
 
    /**
-    * The status of this signable xml entity. The status
-    * could be "valid" or "invalid".
+    * The status of this signable xml entity. The status can be
+    * "unsigned", "signed", or "invalid".
     */
    protected String mStatus;
    
@@ -148,7 +148,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
       mSignedText = null;
 
       mSigner = "0";
-      mStatus = "valid";
+      mStatus = "unsigned";
       mAlgorithm = "";
       mSignature = "";
    }
@@ -351,7 +351,13 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
                "BEGIN SIGN TEXT:" + mSignedText + ":END SIGN TEXT\n" +
                "SIGNATURE: '" + mSignature + "'");
 
-            rval = (mSignature != null);
+            if(mSignature != null)
+            {
+               rval = true;
+               
+               // set status to signed
+               setStatus("signed");
+            }
 
             if(mSignature == null)
             {
@@ -493,13 +499,14 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    /**
     * Returns true if this envelope's status is valid, false if not.
     * Whenever verify() fails on an envelope its status is set to
-    * invalid.
+    * invalid. Otherwise this envelope is valid whether its status is
+    * "signed" or "unsigned."
     * 
     * @return returns true if this envelope's status is valid, false if not.
     */
    public boolean isValid()
    {
-      return mStatus.equals("valid");
+      return !mStatus.equals("invalid");
    }
    
    /**
