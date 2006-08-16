@@ -72,9 +72,9 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    protected IXmlSerializer mContent;
    
    /**
-    * The text that was signed.
+    * The text to sign/that was signed.
     */
-   protected String mSignedText;
+   protected String mSignText;
 
    /**
     * The identity of the signer.
@@ -132,7 +132,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
       
       mContent = xmlSerializer;
       mXmlEnvelope = "";
-      mSignedText = null;
+      mSignText = "";
 
       mSigner = "0";
       mStatus = "unsigned";
@@ -190,13 +190,23 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    /**
     * Updates the text to sign.
     */
-   protected synchronized void updateSignedText()
+   protected synchronized void updateSignText()
    {
-      mSignedText = null;
+      mSignText = "";
       if(getContent() != null)
       {
-         mSignedText = getContent().convertToXml(1).trim();
+         mSignText = getContent().convertToXml(1).trim();
       }
+   }
+
+   /**
+    * Sets the status of this envelope.
+    * 
+    * @param status the status to set the envelope to.
+    */
+   protected void setStatus(String status)
+   {
+      mStatus = status;
    }
 
    /**
@@ -222,7 +232,6 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    {
       return sign("" + signer, privateKey);
    }
-   
    
    /**
     * Contructs a signature with the passed signer and
@@ -299,24 +308,18 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
       // set status to signed, regardless of whether or not signature is
       // successful -- a sign() was attempted
       setStatus("signed");
+      
+      // set the signer
+      mSigner = signer;
+
+      // update the text to sign
+      updateSignText();
 
       // make sure there is a key to sign it with
       if(privateKey != null)
       {
          try
          {
-            // update the text to sign
-            updateSignedText();
-            
-            // use blank string if signed text is null
-            if(mSignedText == null)
-            {
-               mSignedText = "";
-            }
-            
-            // set the signer
-            mSigner = signer;
-            
             // get the signature algorithm -- use SHA1
             if(privateKey.getAlgorithm().equals("DSA"))
             {
@@ -332,22 +335,21 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
             }
             
             // sign the text
-            byte[] sig = Cryptor.sign(mSignedText, privateKey);
+            byte[] sig = Cryptor.sign(mSignText, privateKey);
             
             // base64 encode the signature for xml transport
             Base64Coder encoder = new Base64Coder();
             mSignature = encoder.encode(sig);
             
             getLogger().detail(getClass(),
-               "BEGIN SIGN TEXT:" + mSignedText + ":END SIGN TEXT\n" +
+               "BEGIN SIGN TEXT:" + mSignText + ":END SIGN TEXT\n" +
                "SIGNATURE: '" + mSignature + "'");
 
             if(mSignature != null)
             {
                rval = true;
             }
-
-            if(mSignature == null)
+            else
             {
                mSignature = "";
             }
@@ -464,27 +466,6 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    }
 
    /**
-    * Sets the status of this envelope.
-    * 
-    * @param status the status to set the envelope to.
-    */
-   public void setStatus(String status)
-   {
-      mStatus = status;
-   }
-   
-   /**
-    * Gets the algorithm used to create the signature for the envelope.
-    * 
-    * @return the algorithm used to create the signature for the envelope,
-    *         or a blank string if the envelope is not signed.
-    */
-   public String getAlgorithm()
-   {
-      return mAlgorithm;
-   }
-
-   /**
     * Returns true if this envelope's status is valid, false if not.
     * Whenever verify() fails on an envelope its status is set to
     * "invalid". Otherwise this envelope is valid whether its status is
@@ -498,6 +479,17 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    }
    
    /**
+    * Gets the algorithm used to create the signature for the envelope.
+    * 
+    * @return the algorithm used to create the signature for the envelope,
+    *         or a blank string if the envelope is not signed.
+    */
+   public String getAlgorithm()
+   {
+      return mAlgorithm;
+   }
+   
+   /**
     * Sets the content of this envelope, that is, the object that implements
     * an xml serializer interface that produces the xml text to envelope.
     *
@@ -506,7 +498,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    public synchronized void setContent(IXmlSerializer xmlSerializer)
    {
       mContent = xmlSerializer;
-      mSignedText = null;
+      mSignText = "";
    }
 
    /**
@@ -572,10 +564,10 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
       xml.append(XmlCoder.encode(mSignature));
       xml.append("</signature>");
 
-      // use signed text, if available
-      if(mSignedText != null)
+      // use signed text, if this envelope is signed
+      if(getStatus().equals("signed"))
       {
-         xml.append(mSignedText);
+         xml.append(mSignText);
       }
       else if(getContent() != null)
       {
