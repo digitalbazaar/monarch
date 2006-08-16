@@ -499,14 +499,14 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    /**
     * Returns true if this envelope's status is valid, false if not.
     * Whenever verify() fails on an envelope its status is set to
-    * invalid. Otherwise this envelope is valid whether its status is
+    * "invalid". Otherwise this envelope is valid whether its status is
     * "signed" or "unsigned."
     * 
     * @return returns true if this envelope's status is valid, false if not.
     */
    public boolean isValid()
    {
-      return !mStatus.equals("invalid");
+      return !getStatus().equals("invalid");
    }
    
    /**
