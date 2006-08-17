@@ -138,7 +138,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
       mSignText = "";
       if(getContent() != null)
       {
-         mSignText = getContent().convertToXml(1).trim();
+         mSignText = getContent().convertToXml(1);
       }
    }
 
@@ -518,7 +518,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
       else if(getContent() != null)
       {
          // the envelope is not signed, so just convert
-         xml.append(XmlCoder.encode(getContent().convertToXml(1).trim()));
+         xml.append(XmlCoder.encode(getContent().convertToXml(1)));
       }
       
       // end content tag
@@ -574,7 +574,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
                mSignText = contentReader.getStringValue();
                
                // convert the xml content
-               rval = getContent().convertFromXml(mSignText);
+               rval = getContent().convertFromXml(mSignText.trim());
             }
             else
             {
