@@ -10,8 +10,6 @@ import com.db.logging.LoggerManager;
 import com.db.util.Base64Coder;
 
 import java.security.PrivateKey;
-import java.util.Iterator;
-import java.util.Vector;
 
 import org.w3c.dom.Element;
 
@@ -59,13 +57,6 @@ import org.w3c.dom.Element;
 public class SignableXmlEnvelope extends VersionedXmlSerializer
 {
    /**
-    * The xml text that this envelope was last converted from. This
-    * is used to parse out the contents of the envelope for digital
-    * signature verification.
-    */
-   protected String mXmlEnvelope;
-   
-   /**
     * The xml serializer interface that produces the xml that will
     * be signed. This is the content for this envelope.
     */
@@ -98,7 +89,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    protected String mSignature;
 
    /**
-    * Constructs a signable xml envelope with no xml serializer contents.
+    * Constructs a SignableXmlEnvelope with no yet set xml serializer content.
     */
    public SignableXmlEnvelope()
    {
@@ -106,18 +97,18 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    }
 
    /**
-    * Constructs a signable xml envelope that envelopes the
-    * xml text produced by the passed IXMLSerializer and
-    * converts from the passed xml text.
+    * Constructs a SignableXmlEnvelope that envelopes the passed xml
+    * serializer. 
     *
-    * @param xmlSerializer the xml serializer interface to envelope.
-    * @param xmlText the xml text to convert from.
+    * @param xmlSerializer the xml serializer to envelope.
+    * @param xml the xml to convert from.
     */
-   public SignableXmlEnvelope(IXmlSerializer xmlSerializer, String xmlText)
+   public SignableXmlEnvelope(IXmlSerializer xmlSerializer, String xml)
    {
       this(xmlSerializer);
 
-      convertFromXml(xmlText);
+      // convert from xml
+      convertFromXml(xml);
    }
 
    /**
@@ -131,60 +122,12 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
       super("2.0");
       
       mContent = xmlSerializer;
-      mXmlEnvelope = "";
       mSignText = "";
 
       mSigner = "0";
       mStatus = "unsigned";
       mAlgorithm = "";
       mSignature = "";
-   }
-
-   /**
-    * Parses out content of the envelope so it can be used to
-    * verify the digital signature of the envelope.
-    * 
-    * @return the content of the envelope in xml form.
-    */
-   protected String parseContents()
-   {
-      String contents = "";
-      
-      String sTag1 = "<signature";
-      String sTag2 = "</signature>";
-      String eTag = "</" + getRootTag() + ">";
-      
-      // look for beginning of signature tag
-      int start = mXmlEnvelope.indexOf(sTag1);
-      if(start != -1)
-      {
-         // look for end of signature tag
-         int end = mXmlEnvelope.indexOf(sTag2, start + sTag1.length());
-         if(end == -1)
-         {
-            end = mXmlEnvelope.indexOf("/>", start + sTag1.length());
-            if(end != -1)
-            {
-               end += 2;
-            }
-         }
-         else
-         {
-            end += sTag2.length();
-         }
-         
-         if(end != -1)
-         {
-            // look for closing envelope tag
-            int close = mXmlEnvelope.lastIndexOf(eTag);
-            if(close != -1)
-            {
-               contents = mXmlEnvelope.substring(end, close).trim();
-            }
-         }
-      }
-      
-      return contents;
    }
    
    /**
@@ -195,7 +138,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
       mSignText = "";
       if(getContent() != null)
       {
-         mSignText = getContent().convertToXml(1).trim();
+         mSignText = getContent().convertToXml(1);
       }
    }
 
@@ -387,9 +330,6 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
             {
                try
                {
-                  // get the text to verify
-                  String contents = parseContents();
-
                   if(!mAlgorithm.startsWith("SHA"))
                   {
                      getLogger().debug(getClass(),
@@ -402,11 +342,11 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
                   byte[] sig = decoder.decode(mSignature);
                   
                   getLogger().detail(getClass(),
-                     "BEGIN VERIFY TEXT:" + contents + ":END VERIFY TEXT\n" +
+                     "BEGIN VERIFY TEXT:" + mSignText + ":END VERIFY TEXT\n" +
                      "SIGNATURE: '" + mSignature + "'");
          
                   // verify the signature
-                  rval = Cryptor.verify(sig, contents, publicKey);
+                  rval = Cryptor.verify(sig, mSignText, publicKey);
                }
                catch(Exception e)
                {
@@ -546,6 +486,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
          //xml.append("<!DOCTYPE transaction SYSTEM \"bitmunk.dtd\">\n");
       }
 
+      // start tag
       xml.append(indent);
       xml.append('<');
       xml.append(getRootTag());
@@ -557,48 +498,39 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
       xml.append(XmlCoder.encode(getStatus()));
       xml.append("\">");
       
+      // signature tag
       xml.append(indent);
       xml.append(" <signature algorithm=\"");
       xml.append(XmlCoder.encode(getAlgorithm()));
       xml.append("\">");
       xml.append(XmlCoder.encode(mSignature));
       xml.append("</signature>");
+      
+      // start content tag
+      xml.append(indent);
+      xml.append(" <content>");
 
-      // use signed text, if this envelope is signed
       if(getStatus().equals("signed"))
       {
-         xml.append(mSignText);
+         // since the envelope is signed, use the sign text
+         xml.append(XmlCoder.encode(mSignText));
       }
       else if(getContent() != null)
       {
-         xml.append(getContent().convertToXml(indentLevel + 1));
+         // the envelope is not signed, so just convert
+         xml.append(XmlCoder.encode(getContent().convertToXml(1)));
       }
+      
+      // end content tag
+      xml.append("</content>");
 
+      // end tag
       xml.append(indent);
       xml.append("</");
       xml.append(getRootTag());
       xml.append('>');
 
       return xml.toString();
-   }
-   
-   /**
-    * This method takes XML text (in full document form) and converts
-    * it to it's internal representation.
-    *
-    * @param xmlText the xml text document that represents the object.
-    * 
-    * @return true if successful, false otherwise.    
-    */
-   public boolean convertFromXml(String xmlText)
-   {
-      boolean rval = false;
-      
-      mXmlEnvelope = xmlText;
-      
-      rval = super.convertFromXml(xmlText);
-      
-      return rval;
    }
    
    /**
@@ -622,32 +554,26 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
          mSigner = XmlCoder.decode(er.getStringAttribute("signer"));
          mStatus = XmlCoder.decode(er.getStringAttribute("status"));
          
-         ElementReader ser = er.getFirstElementReader("signature");
-         mAlgorithm = XmlCoder.decode(ser.getStringAttribute("algorithm"));
-         mSignature = XmlCoder.decode(ser.getStringValue());
+         // get signature information
+         ElementReader sigReader = er.getFirstElementReader("signature");
+         mAlgorithm = XmlCoder.decode(
+            sigReader.getStringAttribute("algorithm"));
+         mSignature = XmlCoder.decode(
+            sigReader.getStringValue());
          
          rval = true;
          
-         Vector ers = er.getElementReaders();
-         Iterator i = ers.iterator();
-         while(i.hasNext())
+         // if this envelope has content, get the content reader
+         if(getContent() != null)
          {
-            er = (ElementReader)i.next();
-
-            if(!er.getTagName().equals("signature") && getContent() != null)
-            {
-               // if there is an embedded envelope load parsed contents
-               if(er.getTagName().equals(getRootTag()))
-               {
-                  rval &= getContent().convertFromXml(parseContents());
-               }
-               else
-               {
-                  rval &= getContent().convertFromXml(er.getElement());
-               }
-               
-               break;
-            }
+            // get an element reader for the content
+            ElementReader contentReader = er.getFirstElementReader("content");
+            
+            // store the content xml as the sign text
+            mSignText = XmlCoder.decode(contentReader.getStringValue());
+            
+            // convert the xml content
+            getContent().convertFromXml(mSignText);
          }
       }
       

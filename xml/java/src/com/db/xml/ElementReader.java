@@ -369,10 +369,51 @@ public class ElementReader
    }
    
    /**
+    * Gets the first element.
+    * 
+    * @return the first element or null.
+    */
+   public Element getFirstElement()
+   {
+      Element rval = null;
+      
+      NodeList list = mElement.getChildNodes();
+      
+      for(int i = 0; i < list.getLength() && rval == null; i++)
+      {
+         if(list.item(i) instanceof Element)
+         {
+            rval = (Element)list.item(i);
+         }
+      }
+      
+      return rval;
+   }   
+   
+   /**
+    * Gets the first element wrapped as an element reader.
+    * 
+    * @return the first element reader or null.
+    */
+   public ElementReader getFirstElementReader()
+   {
+      ElementReader rval = null;
+      
+      Element e = getFirstElement();
+      if(e != null)
+      {
+         rval = new ElementReader(e);
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Gets the first element wrapped as an element reader
     * encountered with the passed tag name.
     * 
     * @param tagName the tag name of the element to look for.
+    * 
     * @return the first element with the passed tag name and
     *         wrapped by an element reader or null if no element
     *         with the tag name could be found.
