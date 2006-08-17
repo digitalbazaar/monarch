@@ -61,7 +61,7 @@ import org.w3c.dom.Element;
  * 
  * <envelope version="2.0" signer="100" status="signed">
  * 
- *  <signature algorithm="SHAwithDSA">a-base64-encoded-signature"</signature>
+ *  <signature algorithm="SHAwithDSA">a-base64-encoded-signature</signature>
  *  <content>my xml-encoded if necessary content</content>
  * 
  * </envelope>
