@@ -4,6 +4,7 @@
 package com.db.net.http;
 
 import com.db.net.GenericWebConnectionHandler;
+import com.db.net.WebConnectionSecurityManager;
 import com.db.net.WebServer;
 import com.db.net.ssl.SSLWebConnectionHandler;
 
@@ -339,4 +340,29 @@ public class HttpWebServer extends WebServer
    {
       return mSSLWebConnectionHandler.getMaximumConnections(getSecurePort());
    }
+   
+   /**
+    * Sets the web connection security manager for this HttpWebServer. The
+    * web connection security manager can only be set once.
+    * 
+    * @param securityManager the web connection sercurity manager for this
+    *                        HttpWebServer.
+    */
+   public void setWebConnectionSecurityManager(
+      WebConnectionSecurityManager securityManager)
+   {
+      mHttpWebConnectionServicer.setWebConnectionSecurityManager(
+         securityManager);
+   }
+   
+   /**
+    * Gets the web connection security manager for this HttpWebServer.
+    * 
+    * @return the web connection security manager for this HttpWebServer
+    *         (can be null if there is no installed security manager).
+    */
+   public WebConnectionSecurityManager getWebConnectionSecurityManager()
+   {
+      return mHttpWebConnectionServicer.getWebConnectionSecurityManager();
+   }   
 }
