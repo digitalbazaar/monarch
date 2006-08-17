@@ -264,9 +264,6 @@ public abstract class GenericSoapWebService implements SoapWebService
             mCallThreadToSoapMessage.remove(thread);
          }
 
-         getLogger().debug(getClass(), 
-            "failed to call soap method, sending soap fault.");
-
          // set soap fault
          if(t instanceof SoapMethodNotRecognizedException)
          {
@@ -290,6 +287,10 @@ public abstract class GenericSoapWebService implements SoapWebService
                               "when calling the specified soap method.");
             sm.setFaultActor(getURI());
          }
+         
+         getLogger().debug(getClass(), 
+            "failed to call soap method, sending soap fault" +
+            ",reason=" + sm.getFaultString());
 
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
