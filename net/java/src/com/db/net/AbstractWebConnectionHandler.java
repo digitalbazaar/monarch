@@ -6,6 +6,7 @@ package com.db.net;
 import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Vector;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -43,10 +44,14 @@ implements WebConnectionHandler, WebConnectionServicer
    protected HashMap mServerSocketToWebConnectionAcceptorMap;
    
    /**
-    * A table mapping web connection service threads to their
-    * web connections.
+    * A list of all of the current service threads.
     */
-   protected HashMap mWebConnectionServiceThreadToWebConnection;
+   protected Vector mServiceThreads;
+   
+   /**
+    * The web connection security manager for this web connection servicer.
+    */
+   protected WebConnectionSecurityManager mWebConnectionSecurityManager;
    
    /**
     * Creates a AbstractWebConnectionHandler.
@@ -68,8 +73,8 @@ implements WebConnectionHandler, WebConnectionServicer
       // create the server socket to web connection acceptor map
       mServerSocketToWebConnectionAcceptorMap = new HashMap();
       
-      // create web connection service thread to web connection
-      mWebConnectionServiceThreadToWebConnection = new HashMap();
+      // create service thread list
+      mServiceThreads = new Vector();
    }
    
    /**
@@ -195,47 +200,24 @@ implements WebConnectionHandler, WebConnectionServicer
    }
    
    /**
-    * Maps a web connection service thread to a web connection.
+    * Adds a service thread to the list of service threads.
     * 
-    * @param thread the web connection service thread.
-    * @param webConnection the web connection.
+    * @param thread the web connection service thread to add.
     */
-   protected void mapWebConnectionServiceThreadToWebConnection(
-      Thread thread, WebConnection webConnection)
+   protected void addServiceThread(WebConnectionServiceThread thread)
    {
-      // lock on the map
-      synchronized(mWebConnectionServiceThreadToWebConnection)
-      {
-         mWebConnectionServiceThreadToWebConnection.put(thread, webConnection);
-      }
+      mServiceThreads.add(thread);
    }
    
    /**
-    * Unmaps a web connection service thread from a web connection.
+    * Removes a service thread from the list of service threads.
     * 
-    * @param thread the web connection service thread to unmap.
+    * @param thread the service thread to remove.
     */
-   protected void unmapWebConnectionServiceThreadFromWebConnection(
-      Thread thread)
+   protected void removeServiceThread(WebConnectionServiceThread thread)
    {
-      // lock on the map
-      synchronized(mWebConnectionServiceThreadToWebConnection)
-      {
-         mWebConnectionServiceThreadToWebConnection.remove(thread);
-      }
+      mServiceThreads.remove(thread);
    }   
-   
-   /**
-    * Gets a web connection for a particular web connection service thread.
-    * 
-    * @param thread the web connection service thread.
-    * @return the web connection for the web connection service thread.
-    */
-   protected WebConnection getWebConnection(Thread thread)
-   {
-      return (WebConnection)mWebConnectionServiceThreadToWebConnection.
-          get(thread);
-   }
    
    /**
     * Services a web connection.
@@ -247,9 +229,12 @@ implements WebConnectionHandler, WebConnectionServicer
     */   
    public void serviceWebConnection(WebConnection webConnection)
    {
-      // add service thread to map
-      Thread thread = Thread.currentThread();
-      mapWebConnectionServiceThreadToWebConnection(thread, webConnection);
+      // create web connection service thread
+      WebConnectionServiceThread thread = new WebConnectionServiceThread(
+         Thread.currentThread(), webConnection);
+
+      // add service thread
+      addServiceThread(thread);
 
       try
       {
@@ -272,8 +257,8 @@ implements WebConnectionHandler, WebConnectionServicer
       // disconnect web connection if it isn't already disconnected
       webConnection.disconnect();
       
-      // remove service thread from list if thread wasn't interrupted
-      unmapWebConnectionServiceThreadFromWebConnection(thread);
+      // remove service thread
+      removeServiceThread(thread);
    }
    
    /**
@@ -576,16 +561,16 @@ implements WebConnectionHandler, WebConnectionServicer
    {
       getLogger().debug(getClass(), "terminating all web connections...");
       
-      // lock on the map
-      synchronized(mWebConnectionServiceThreadToWebConnection)
+      // lock on the service thread list
+      synchronized(mServiceThreads)
       {
          // interrupt all web connection service threads
-         for(Iterator i = mWebConnectionServiceThreadToWebConnection.
-             keySet().iterator(); i.hasNext();)
+         for(Iterator i = mServiceThreads.iterator(); i.hasNext();)
          {
-            Thread thread = (Thread)i.next();
+            WebConnectionServiceThread thread =
+               (WebConnectionServiceThread)i.next();
             
-            WebConnection webConnection = getWebConnection(thread);
+            WebConnection webConnection = thread.getWebConnection();
             getLogger().debug(getClass(),
                "terminating web connection,ip=" + webConnection.getRemoteIP());
 
@@ -618,7 +603,7 @@ implements WebConnectionHandler, WebConnectionServicer
    public int webConnectionsBeingServiced()
    {
       // return the number of web connection service threads
-      return mWebConnectionServiceThreadToWebConnection.size();
+      return mServiceThreads.size();
    }
    
    /**
@@ -629,5 +614,57 @@ implements WebConnectionHandler, WebConnectionServicer
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbnet");
+   }
+   
+   /**
+    * A WebConnectionServiceThread is a wrapper for a thread that is servicing
+    * a web connection.
+    * 
+    * @author Dave Longley
+    */
+   public class WebConnectionServiceThread
+   {
+      /**
+       * The thread servicing the web connection.
+       */
+      protected Thread mThread;
+      
+      /**
+       * The web connection being serviced.
+       */
+      protected WebConnection mWebConnection;
+      
+      /**
+       * Creates a new WebConnectionServiceThread that wraps the passed thread
+       * that is servicing the passed web connection.
+       * 
+       * @param thread the thread to wrap.
+       * @param webConnection the web connection being serviced. 
+       */
+      public WebConnectionServiceThread(
+         Thread thread, WebConnection webConnection)
+      {
+         // store thread and web connection
+         mThread = thread;
+         mWebConnection = webConnection;
+      }
+      
+      /**
+       * Interrupts this web connection service thread.
+       */
+      public void interrupt()
+      {
+         mThread.interrupt();
+      }
+      
+      /**
+       * Gets the web connection being serviced.
+       * 
+       * @return the web connection being serviced.
+       */
+      public WebConnection getWebConnection()
+      {
+         return mWebConnection;
+      }
    }
 }

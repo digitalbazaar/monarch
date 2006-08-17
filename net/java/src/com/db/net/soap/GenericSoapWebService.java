@@ -17,7 +17,7 @@ import com.db.util.MethodInvoker;
  * 
  * @author Dave Longley
  */
-public abstract class GenericSoapWebService implements SoapWebService
+public abstract class GenericSoapWebService implements SecureSoapWebService
 {
    /**
     * The soap interface. 
@@ -51,6 +51,11 @@ public abstract class GenericSoapWebService implements SoapWebService
    protected HashMap mCallThreadToSoapMessage;
    
    /**
+    * The soap security manager for this soap web service. 
+    */
+   protected SoapSecurityManager mSoapSecurityManager;
+   
+   /**
     * Creates a generic soap web service. The soap implementer must be this
     * object.
     * 
@@ -69,6 +74,9 @@ public abstract class GenericSoapWebService implements SoapWebService
          name, namespace, soapInterface,
          new WsdlSoapBindingFactory(), new WsdlSoapPortFactory());
       mCallThreadToSoapMessage = new HashMap();
+      
+      // install no soap security manager
+      setSoapSecurityManager(null);
    }
 
    /**
@@ -92,32 +100,10 @@ public abstract class GenericSoapWebService implements SoapWebService
          name, namespace, soapInterface,
          new WsdlSoapBindingFactory(), new WsdlSoapPortFactory());
       mCallThreadToSoapMessage = new HashMap();
+      
+      // install no soap security manager
+      setSoapSecurityManager(null);
    }
-   
-   /**
-    * Checks to see if the passed soap message passes security. Extending
-    * classes should implement this method to set their particular security
-    * profile.
-    * 
-    * When this method is called, a client is connected and awaiting a soap
-    * response. Information about the client (i.e. its IP address) can be
-    * checked in this method and a security exception can be thrown if
-    * appropriate.
-    * 
-    * If there is a particular security policy for certain soap methods this
-    * method should handle that policy and throw a security exception if
-    * appropriate.
-    * 
-    * A soap fault will be raised that indicates that the client was not
-    * authenticated if a security exception is thrown from this method.
-    * 
-    * @param sm the soap message sent by the client.
-    * 
-    * @exception SecurityException thrown if the client or the soap message
-    *                              sent by the client do not pass security.
-    */
-   protected abstract void checkSoapSecurity(SoapMessage sm)
-   throws SecurityException;
 
    /**
     * Invokes a method from the soap interface on the soap implementer. Throws
@@ -212,6 +198,38 @@ public abstract class GenericSoapWebService implements SoapWebService
       
       return clientIP;
    }
+   
+   /**
+    * Checks to see if the passed soap message passes security. Extending
+    * classes should implement this method to set their particular security
+    * profile.
+    * 
+    * When this method is called, a client is connected and awaiting a soap
+    * response. Information about the client (i.e. its IP address) can be
+    * checked in this method and a security exception can be thrown if
+    * appropriate.
+    * 
+    * If there is a particular security policy for certain soap methods this
+    * method should handle that policy and throw a security exception if
+    * appropriate.
+    * 
+    * A soap fault will be raised that indicates that the client was not
+    * authenticated if a security exception is thrown from this method.
+    * 
+    * @param sm the soap message sent by the client.
+    * 
+    * @exception SecurityException thrown if the client or the soap message
+    *                              sent by the client do not pass security.
+    */
+   public void checkSoapSecurity(SoapMessage sm) throws SecurityException
+   {
+      // get the security manager, if one exists
+      if(getSoapSecurityManager() != null)
+      {
+         // check security
+         getSoapSecurityManager().checkSoapSecurity(sm);
+      }
+   }
 
    /**
     * Calls the appropriate soap method.
@@ -275,10 +293,15 @@ public abstract class GenericSoapWebService implements SoapWebService
          }
          else if(t instanceof SecurityException)
          {
-            sm.setFaultCode(SoapMessage.FAULT_CLIENT);
-            sm.setFaultString("The client was not authorized to perform the " +
-                              "requested action.");
-            sm.setFaultActor(getURI());
+            // if the soap message isn't already a fault, create a default one
+            if(!sm.isFault())
+            {
+               sm.setFaultCode(SoapMessage.FAULT_CLIENT);
+               sm.setFaultString(
+                  "The client was not authorized to perform the " +
+                  "requested action.");
+               sm.setFaultActor(getURI());
+            }
          }
          else
          {
@@ -472,9 +495,35 @@ public abstract class GenericSoapWebService implements SoapWebService
    }
    
    /**
-    * Gets the logger.
+    * Sets the soap security manager for this soap web service. The soap
+    * security manager can only be set once.
     * 
-    * @return the logger.
+    * @param ssm the soap sercurity manager for this soap web service.
+    */
+   public void setSoapSecurityManager(SoapSecurityManager ssm)
+   {
+      // only set soap security manager if it is null
+      if(getSoapSecurityManager() == null)
+      {
+         mSoapSecurityManager = ssm;
+      }
+   }
+   
+   /**
+    * Gets the soap security manager for this soap web service.
+    * 
+    * @return the soap security manager for this soap web service
+    *         (can be null if there is no installed security manager).
+    */
+   public SoapSecurityManager getSoapSecurityManager()
+   {
+      return mSoapSecurityManager;
+   }
+   
+   /**
+    * Gets the logger for this soap web service.
+    * 
+    * @return the logger for this soap web service.
     */
    public Logger getLogger()
    {

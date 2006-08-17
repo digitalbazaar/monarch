@@ -92,8 +92,8 @@ public class WebConnectionAcceptor
     * @param serverSocket the server socket to accept a connection with.
     * @param secure whether or not the connection should be considered secure.
     */
-   public synchronized void acceptWebConnection(ServerSocket serverSocket,
-                                                boolean secure)
+   public synchronized void acceptWebConnection(
+      ServerSocket serverSocket, boolean secure)
    {
       // the worker socket that represents the accepted connection
       Socket workerSocket = null;
@@ -102,9 +102,9 @@ public class WebConnectionAcceptor
       {
          serverSocket.setSoTimeout(10);
          
-         // accept a connection
          try
          {
+            // accept a connection
             workerSocket = serverSocket.accept();
          }
          catch(SocketTimeoutException ste)
@@ -172,10 +172,8 @@ public class WebConnectionAcceptor
          Socket workerSocket = serverSocket.accept();
          
          // create proxy web connection
-         ProxyWebConnection proxyWebConnection =
-            new ProxyWebConnection(workerSocket,
-                                   originalWebConnection,
-                                   newWebConnection);
+         ProxyWebConnection proxyWebConnection = new ProxyWebConnection(
+               workerSocket, originalWebConnection, newWebConnection);
          proxyWebConnection.setSecure(secure);
          
          // start the proxy
@@ -234,7 +232,7 @@ public class WebConnectionAcceptor
     * 
     * @param serverSocket the socket to start accepting connections with.
     * @param secure whether or not the connections should be considered
-    *        secure.
+    *               secure.
     */
    public synchronized void startAcceptingWebConnections(
       ServerSocket serverSocket, boolean secure)

@@ -16,7 +16,8 @@ import com.db.logging.LoggerManager;
  * 
  * @author Dave Longley
  */
-public class ProxyPortWebConnectionServicer implements WebConnectionServicer
+public class ProxyPortWebConnectionServicer
+extends AbstractWebConnectionServicer
 {
    /**
     * A prioritized list of web connection handlers that is used to
@@ -57,7 +58,7 @@ public class ProxyPortWebConnectionServicer implements WebConnectionServicer
     *  
     * @param webConnection the web connection to be serviced.
     */   
-   public void serviceWebConnection(WebConnection webConnection)
+   public void serviceSecureWebConnection(WebConnection webConnection)
    {
       getLogger().debug(getClass(),
          "servicing web connection,ip=" + webConnection.getRemoteIP() + "...");

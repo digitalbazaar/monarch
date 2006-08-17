@@ -6,7 +6,7 @@ package com.db.net.soap;
 import com.db.net.wsdl.Wsdl;
 
 /**
- * Handles incoming SOAP requests.
+ * A SoapWebService services incoming SOAP requests and sends SOAP responses.
  * 
  * @author Dave Longley
  */

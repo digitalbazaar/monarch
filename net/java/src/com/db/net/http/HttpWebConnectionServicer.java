@@ -7,15 +7,15 @@ import java.util.HashMap;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.net.AbstractWebConnectionServicer;
 import com.db.net.WebConnection;
-import com.db.net.WebConnectionServicer;
 
 /**
  * An HttpWebConnectionServicer services an HTTP web connection. 
  * 
  * @author Dave Longley
  */
-public class HttpWebConnectionServicer implements WebConnectionServicer
+public class HttpWebConnectionServicer extends AbstractWebConnectionServicer
 {
    /**
     * The default http version for this http web connection servicer.
@@ -210,14 +210,15 @@ public class HttpWebConnectionServicer implements WebConnectionServicer
    }
    
    /**
-    * Services a web connection that is using the HTTP protocol.
+    * Services a web connection that has passed a security check and that is
+    * using the HTTP protocol.
     * 
     * The web connection should be serviced and disconnected when the
     * servicing is completed.
     *  
     * @param webConnection the web connection to be serviced.
     */
-   public void serviceWebConnection(WebConnection webConnection)
+   public void serviceSecureWebConnection(WebConnection webConnection)
    {
       // service http web connection
       HttpWebConnection hwc = new HttpWebConnection(webConnection);
