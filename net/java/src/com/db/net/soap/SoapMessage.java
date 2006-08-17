@@ -96,17 +96,26 @@ public class SoapMessage extends AbstractXmlSerializer
    protected String mClientIP;
    
    /**
-    * The fault code for this soap message, if any.
+    * The fault code for this soap message, if any. A fault code
+    * can be any of the following:
+    * 
+    * VersionMismatch.*
+    * MustUnderstand.*
+    * Client.*
+    * Server.*
     */
-   protected int mFaultCode;
+   protected String mFaultCode;
    
    /**
-    * The fault string for this soap message, if any.
+    * The fault string for this soap message, if any. This is a human
+    * readable string that provides a short explanation for the fault.
     */
    protected String mFaultString;
    
    /**
-    * The fault actor for this soap message, if any.
+    * The fault actor for this soap message, if any. The fault actor specifies
+    * who caused the fault to happen within the soap message path. The fault
+    * actor is a URI identifying the source of the fault.
     */
    protected String mFaultActor;
    
@@ -123,22 +132,22 @@ public class SoapMessage extends AbstractXmlSerializer
    /**
     * A soap fault: when a version mismatch occurs.
     */
-   protected final static int FAULT_VERSION_MISMATCH = 1;
+   protected final static String FAULT_VERSION_MISMATCH = "VersionMismatch";
    
    /**
     * A soap fault: when something must be understood but is not.
     */
-   protected final static int FAULT_MUST_UNDERSTAND  = 2;
+   protected final static String FAULT_MUST_UNDERSTAND = "MustUnderstand";
    
    /**
     * A soap fault: when a soap client faults.
     */
-   protected final static int FAULT_CLIENT           = 4;
+   protected final static String FAULT_CLIENT = "Client";
    
    /**
     * A soap fault: when a soap server faults.
     */
-   protected final static int FAULT_SERVER           = 8;
+   protected final static String FAULT_SERVER = "Server";
    
    /**
     * XML serializer options.
@@ -148,7 +157,7 @@ public class SoapMessage extends AbstractXmlSerializer
    /**
     * An XML serializer option for converting to/from a soap request. 
     */
-   protected final static int SOAP_REQUEST  = 1;
+   protected final static int SOAP_REQUEST = 1;
    
    /**
     * An XML serializer option for converting to/from a soap response.
@@ -158,7 +167,7 @@ public class SoapMessage extends AbstractXmlSerializer
    /**
     * An XML serializer option for converting to/from a soap fault. 
     */
-   protected final static int SOAP_FAULT    = 4;
+   protected final static int SOAP_FAULT = 4;
    
    /**
     * Creates a new soap message.
@@ -185,6 +194,10 @@ public class SoapMessage extends AbstractXmlSerializer
       
       // set default client IP address
       mClientIP = "0.0.0.0";
+      
+      // set default fault string and actor to blank
+      setFaultString("");
+      setFaultActor("");
    }
    
    /**
@@ -527,51 +540,35 @@ public class SoapMessage extends AbstractXmlSerializer
    
    /**
     * Sets the fault code. Whenever a fault code is set, the serializer
-    * type will be set to SOAP_FAULT.
+    * type will be set to SOAP_FAULT. The only acceptable strings are:
+    * 
+    * VersionMismatch.*
+    * MustUnderstand.*
+    * Client.*
+    * Server.*
     * 
     * @param faultCode the fault code.
     */
-   public void setFaultCode(int faultCode)
+   public void setFaultCode(String faultCode)
    {
-      if(faultCode == FAULT_VERSION_MISMATCH ||
-         faultCode == FAULT_MUST_UNDERSTAND ||
-         faultCode == FAULT_CLIENT ||
-         faultCode == FAULT_SERVER)
-      {
-         setXmlSerializerOptions(SOAP_FAULT);
-         mFaultCode = faultCode;
-      }
-   }
-   
-   /**
-    * Sets the fault code string. Whenever a fault code is set, the serializer
-    * type will be set to SOAP_FAULT. The only acceptable strings are:
-    * 
-    * VersionMismatch
-    * MustUnderstand
-    * Client
-    * Server
-    * 
-    * @param faultCodeStr the fault code string.
-    */
-   public void setFaultCode(String faultCodeStr)
-   {
-      if(faultCodeStr.equalsIgnoreCase("VersionMismatch"))
+      // FUTURE CODE: this code needs to actually check qualified names, etc
+      // for now, it sets only the most generic types and cuts off sub types
+      if(faultCode.startsWith("VersionMismatch"))
       {
          setXmlSerializerOptions(SOAP_FAULT);
          mFaultCode = FAULT_VERSION_MISMATCH;
       }
-      else if(faultCodeStr.equalsIgnoreCase("MustUnderstand"))
+      else if(faultCode.startsWith("MustUnderstand"))
       {
          setXmlSerializerOptions(SOAP_FAULT);
          mFaultCode = FAULT_MUST_UNDERSTAND;
       }
-      else if(faultCodeStr.equalsIgnoreCase("Client"))
+      else if(faultCode.startsWith("Client"))
       {
          setXmlSerializerOptions(SOAP_FAULT);
          mFaultCode = FAULT_CLIENT;
       }
-      else if(faultCodeStr.equalsIgnoreCase("Server"))
+      else if(faultCode.startsWith("Server"))
       {
          setXmlSerializerOptions(SOAP_FAULT);
          mFaultCode = FAULT_SERVER;
@@ -579,45 +576,18 @@ public class SoapMessage extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the fault code as a string.
+    * Gets the fault code.
     * 
-    * @return the fault code as a string
+    * @return the fault code or null if none is set.
     */
-   public String getFaultCodeString()
-   {
-      String rval = "";
-      
-      switch(getFaultCode())
-      {
-         case FAULT_VERSION_MISMATCH:
-            rval = "VersionMismatch";
-            break;
-         case FAULT_MUST_UNDERSTAND:
-            rval = "MustUnderstand";
-            break;
-         case FAULT_CLIENT:
-            rval = "Client";
-            break;
-         case FAULT_SERVER:
-            rval = "Server";
-            break;
-      }
-      
-      return rval;
-   }
-   
-   /**
-    * Gets the fault code as an integer.
-    * 
-    * @return the fault code as an integer.
-    */
-   public int getFaultCode()
+   public String getFaultCode()
    {
       return mFaultCode;
    }
    
    /**
-    * Sets the fault string.
+    * Sets the fault string. This is a human readable string that provides a
+    * short explanation for the fault.
     * 
     * @param faultString the fault string.
     */
@@ -627,7 +597,8 @@ public class SoapMessage extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the fault string.
+    * Gets the fault string. This is a human readable string that provides a
+    * short explanation for the fault.
     * 
     * @return the fault string.
     */
@@ -637,9 +608,13 @@ public class SoapMessage extends AbstractXmlSerializer
    }   
    
    /**
-    * Sets the fault actor.
+    * Sets the fault actor. The fault actor specifies who caused the
+    * fault to happen within the soap message path. The fault actor is
+    * a URI identifying the source of the fault (i.e. the destination of
+    * the soap message). It need not always be present unless the application
+    * raising the fault is not the destination.
     * 
-    * @param faultActor the fault actor.
+    * @param faultActor the fault actor (the URI for the source of the fault).
     */
    public void setFaultActor(String faultActor)
    {
@@ -647,9 +622,13 @@ public class SoapMessage extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the fault actor.
+    * Gets the fault actor. The fault actor specifies who caused the
+    * fault to happen within the soap message path. The fault actor is
+    * a URI identifying the source of the fault (i.e. the destination of
+    * the soap message). It need not always be present unless the application
+    * raising the fault is not the destination.
     * 
-    * @return the fault actor.
+    * @return the fault actor (the URI for the source of the fault).
     */
    public String getFaultActor()
    {
@@ -802,6 +781,36 @@ public class SoapMessage extends AbstractXmlSerializer
    }
    
    /**
+    * Returns true if this soap message is a soap request.
+    *
+    * @return true if this soap message is a soap request, false if not.
+    */
+   public boolean isRequest()
+   {
+      return (getXmlSerializerOptions() == SOAP_REQUEST);
+   }
+   
+   /**
+    * Returns true if this soap message is a soap response.
+    *
+    * @return true if this soap message is a soap response, false if not.
+    */
+   public boolean isResponse()
+   {
+      return (getXmlSerializerOptions() == SOAP_RESPONSE);
+   }
+   
+   /**
+    * Returns true if this soap message is a soap fault.
+    *
+    * @return true if this soap message is a soap fault, false if not.
+    */
+   public boolean isFault()
+   {
+      return (getXmlSerializerOptions() == SOAP_FAULT);
+   }
+   
+   /**
     * This method takes options that are used to configure
     * how to convert to and from xml.
     *
@@ -876,7 +885,7 @@ public class SoapMessage extends AbstractXmlSerializer
       // add the envelope's body
       xml.append("<soap:Body>");
 
-      if(getXmlSerializerOptions() == SOAP_REQUEST)
+      if(isRequest())
       {
          // get the request message
          WsdlMessage message = getRequestMessage();
@@ -895,7 +904,7 @@ public class SoapMessage extends AbstractXmlSerializer
          
          xml.append("</tns:" + getPortTypeOperation().getName() + ">");
       }
-      else if(getXmlSerializerOptions() == SOAP_RESPONSE)
+      else if(isResponse())
       {
          // get the response message
          WsdlMessage message = getResponseMessage();
@@ -914,12 +923,11 @@ public class SoapMessage extends AbstractXmlSerializer
          
          xml.append("</tns:" + message.getName() + ">");         
       }
-      else if(getXmlSerializerOptions() == SOAP_FAULT)
+      else if(isFault())
       {
          // convert the fault
-         
          xml.append("<soap:Fault>");
-         xml.append("<faultcode>soap:" + XmlCoder.encode(getFaultCodeString()) +
+         xml.append("<faultcode>soap:" + XmlCoder.encode(getFaultCode()) +
                     "</faultcode>");
          xml.append("<faultstring>" + XmlCoder.encode(getFaultString()) +
                     "</faultstring>");
@@ -987,8 +995,7 @@ public class SoapMessage extends AbstractXmlSerializer
                         "method/response=" + name[1]);
                      
                      // get the incoming message 
-                     if((getXmlSerializerOptions() & SOAP_REQUEST) ==
-                        SOAP_REQUEST)
+                     if(isRequest())
                      {
                         // set the method
                         setMethod(name[1]);
@@ -996,8 +1003,7 @@ public class SoapMessage extends AbstractXmlSerializer
                         // convert soap request
                         convertSoapRequestFromXml(bodyReader);
                      }
-                     else if((getXmlSerializerOptions() & SOAP_RESPONSE) ==
-                        SOAP_RESPONSE)
+                     else if(isResponse())
                      {
                         // convert soap response
                         convertSoapResponseFromXml(bodyReader);

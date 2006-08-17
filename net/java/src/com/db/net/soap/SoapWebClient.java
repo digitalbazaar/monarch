@@ -5,7 +5,6 @@ package com.db.net.soap;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
-import com.db.net.RpcClient;
 import com.db.net.http.GZipHttpContentCoder;
 import com.db.net.http.HttpBodyPartHeader;
 import com.db.net.http.HttpWebClient;
@@ -19,7 +18,7 @@ import com.db.net.wsdl.Wsdl;
  * 
  * @author Dave Longley
  */
-public class SoapWebClient extends HttpWebClient implements RpcClient
+public class SoapWebClient extends HttpWebClient
 {
    /**
     * The version of this soap web client.
@@ -75,8 +74,8 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
     * 
     * @return the http web request to use to send the soap message.
     */
-   protected HttpWebRequest createSoapHttpWebRequest(HttpWebConnection hwc,
-                                                     byte[] body)
+   protected HttpWebRequest createSoapHttpWebRequest(
+      HttpWebConnection hwc, byte[] body)
    {
       HttpWebRequest request = new HttpWebRequest(hwc);
       
@@ -135,8 +134,11 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
     * @param xml the soap xml string to get the soap method result from.
     * 
     * @return the soap method result.
+    * 
+    * @exception SoapFaultException thrown when a soap fault is raised.
     */
    protected Object getSoapMethodResult(SoapMessage sm, String xml)
+   throws SoapFaultException
    {
       Object rval = null;
       
@@ -146,27 +148,51 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
          sm.setXmlSerializerOptions(SoapMessage.SOAP_RESPONSE);
          if(sm.convertFromXml(xml))
          {
-            // get results
-            Object[] result = sm.getResults();
-            if(result.length > 0)
+            if(sm.isResponse())
             {
-               getLogger().debug(getClass(),
-                  "soap message result: " + result[0]);
-               rval = result[0];
+               // get results
+               Object[] result = sm.getResults();
+               if(result.length > 0)
+               {
+                  getLogger().debug(getClass(),
+                     "soap message result: " + result[0]);
+                  rval = result[0];
+               }
+               else
+               {
+                  getLogger().debug(getClass(),
+                     "no soap message result.");
+               }
             }
-            else
+            else if(sm.isFault())
             {
-               getLogger().debug(getClass(),
-                  "no soap message result.");
+               // throw exception, soap fault
+               throw new SoapFaultException(sm, "SOAP fault raised!");
             }
          }
       }
+      catch(SoapFaultException sfe)
+      {
+         // throw the soap fault exception
+         throw sfe;
+      }
       catch(Throwable t)
       {
+         // log error
          getLogger().error(getClass(),
             "could not get soap method result!, an exception occurred," +
             "exception= " + t);
          getLogger().debug(getClass(), Logger.getStackTrace(t));
+
+         // create a soap fault
+         sm.setFaultCode(SoapMessage.FAULT_SERVER);
+         sm.setFaultString(
+            "An exception was thrown while processing the soap message " +
+            "from the server.");
+         sm.setFaultActor("");
+         
+         // throw a soap fault exception
+         throw new SoapFaultException(sm, "SOAP fault raised!", t);
       }
 
       return rval;
@@ -180,8 +206,11 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
     * @param sm the soap request message for the method.
     * 
     * @return the return value from the soap method.
+    * 
+    * @exception SoapFaultException thrown when a soap fault is raised.
     */
    public Object callSoapMethod(HttpWebConnection hwc, SoapMessage sm)
+   throws SoapFaultException
    {
       Object rval = null;
       
@@ -264,15 +293,54 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
             {
                getLogger().error(getClass(),
                   "could not receive response from soap server!");
+               
+               // create a soap fault
+               sm.setFaultCode(SoapMessage.FAULT_SERVER);
+               sm.setFaultString(
+                  "The response could not be received from the server.");
+               sm.setFaultActor(getEndpointAddress());
+                  
+               // throw a soap fault exception
+               throw new SoapFaultException(sm, "SOAP fault raised!");
             }
          }
+         else
+         {
+            getLogger().error(getClass(),
+               "could not send request to soap server!");
+            
+            // create a soap fault
+            sm.setFaultCode(SoapMessage.FAULT_SERVER);
+            sm.setFaultString(
+               "The request could not be sent to the server.");
+            sm.setFaultActor(getEndpointAddress());
+               
+            // throw a soap fault exception
+            throw new SoapFaultException(sm, "SOAP fault raised!");
+         }
+      }
+      catch(SoapFaultException sfe)
+      {
+         // throw the soap fault exception
+         throw sfe;
       }
       catch(Throwable t)
       {
+         // log error
          getLogger().error(getClass(),
             "could not execute soap method!, an exception occurred," +
             "exception= " + t);
          getLogger().debug(getClass(), Logger.getStackTrace(t));
+            
+         // create a soap fault
+         sm.setFaultCode(SoapMessage.FAULT_SERVER);
+         sm.setFaultString(
+            "An exception was thrown while processing the soap message " +
+            "from the server.");
+         sm.setFaultActor(getEndpointAddress());
+            
+         // throw a soap fault exception
+         throw new SoapFaultException(sm, "SOAP fault raised!", t);
       }
       
       return rval;
@@ -285,9 +353,12 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
     * @param method the name of the remote method.
     * @param params the parameters for the remote method.
     * 
-    * @return the return value from the remote method or null. 
+    * @return the return value from the remote method or null.
+    * 
+    * @exception SoapFaultException thrown when a SOAP fault is raised.
     */
    public Object callRemoteMethod(String method, Object[] params)
+   throws SoapFaultException
    {
       Object rval = null;
       
@@ -295,39 +366,39 @@ public class SoapWebClient extends HttpWebClient implements RpcClient
       Wsdl wsdl = getWsdl();
       if(wsdl != null)
       {
+         // create a soap request message
+         SoapMessage sm = new SoapMessage(wsdl, mPortType);
+         sm.setXmlSerializerOptions(SoapMessage.SOAP_REQUEST);
+         sm.setMethod(method);
+         sm.setParameters(params);
+
          // connect to the soap server
          HttpWebConnection hwc = connect();
          if(hwc != null)
          {
-            try
-            {
-               // create a soap request message
-               SoapMessage sm = new SoapMessage(wsdl, mPortType);
-               sm.setXmlSerializerOptions(SoapMessage.SOAP_REQUEST);
-               sm.setMethod(method);
-               sm.setParameters(params);
-
-               // call the soap method
-               rval = callSoapMethod(hwc, sm);
-               
-               // disconnect web connection
-               hwc.disconnect();
-               
-               getLogger().debug(getClass(),
-                  "soap web client web connection closed.");
-            }
-            catch(Throwable t)
-            {
-               getLogger().error(getClass(),
-                  "could not execute soap method!, an exception occurred," +
-                  "exception= " + t);
-               getLogger().debug(getClass(), Logger.getStackTrace(t));
-            }
+            // call the soap method
+            rval = callSoapMethod(hwc, sm);
+            
+            // disconnect web connection
+            hwc.disconnect();
+            
+            getLogger().debug(getClass(),
+               "soap web client web connection closed.");
          }
          else
          {
+            // log error
             getLogger().error(getClass(),
                "soap web client could not establish connection!");
+               
+            // create a soap fault
+            sm.setFaultCode(SoapMessage.FAULT_SERVER);
+            sm.setFaultString(
+               "The server could not be reached.");
+            sm.setFaultActor(getEndpointAddress());
+            
+            // throw a soap fault exception
+            throw new SoapFaultException(sm, "SOAP fault raised!");
          }
       }
       
