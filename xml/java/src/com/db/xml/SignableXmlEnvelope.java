@@ -52,6 +52,36 @@ import org.w3c.dom.Element;
  * When an envelope is in a signed state any changes made to its xml
  * serializer contents will only be reflected upon calling sign().
  * 
+ * Xml Format:
+ * 
+ * The current version of SignableXmlEnvelope (2.0) uses the following
+ * xml format:
+ * 
+ * <pre>
+ * 
+ * <envelope version="2.0" signer="100" status="signed">
+ * 
+ *  <signature algorithm="SHAwithDSA">a-base64-encoded-signature"</signature>
+ *  <content>my xml-encoded if necessary content</content>
+ * 
+ * </envelope>
+ * 
+ * </pre>
+ * 
+ * The text in the content tag (the value of the content element) is the
+ * xml-encoded sign text. To verify the text, this envelope retrieves the
+ * content element's value, xml-decodes it, and checks it against the
+ * signature using the signature's algorithm and the public key associated
+ * with the signer of the envelope (in this case, signer "100"). The signer
+ * is actually stored as a string, so it doesn't necessarily have to be
+ * a number.
+ * 
+ * The content, for this implementation, is another xml structure that is
+ * exported to xml using any kind of whitespace formatting that the structure
+ * desires. Once the content value is read in, the whitespace at the beginning
+ * and end of the value is trimmed and this envelope's xml serializer content
+ * object parses it.
+ * 
  * @author Dave Longley
  */
 public class SignableXmlEnvelope extends VersionedXmlSerializer
