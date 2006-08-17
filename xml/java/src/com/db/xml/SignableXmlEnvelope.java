@@ -568,12 +568,19 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
          {
             // get an element reader for the content
             ElementReader contentReader = er.getFirstElementReader("content");
-            
-            // store the content xml as the sign text
-            mSignText = contentReader.getStringValue();
-            
-            // convert the xml content
-            getContent().convertFromXml(mSignText);
+            if(contentReader != null)
+            {
+               // store the content xml as the sign text
+               mSignText = contentReader.getStringValue();
+               
+               // convert the xml content
+               rval = getContent().convertFromXml(mSignText);
+            }
+            else
+            {
+               // blank out sign text
+               mSignText = "";
+            }
          }
       }
       
