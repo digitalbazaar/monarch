@@ -3,6 +3,8 @@
  */
 package com.db.net.soap;
 
+import java.io.IOException;
+
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.net.http.GZipHttpContentCoder;
@@ -167,7 +169,8 @@ public class SoapWebClient extends HttpWebClient
             else if(sm.isFault())
             {
                // throw exception, soap fault
-               throw new SoapFaultException(sm, "SOAP fault raised!");
+               throw new SoapFaultException(
+                  sm, "SOAP Fault: " + sm.getFaultString());
             }
          }
       }
@@ -176,13 +179,13 @@ public class SoapWebClient extends HttpWebClient
          // throw the soap fault exception
          throw sfe;
       }
-      catch(Throwable t)
+      catch(NullPointerException e)
       {
          // log error
          getLogger().error(getClass(),
             "could not get soap method result!, an exception occurred," +
-            "exception= " + t);
-         getLogger().debug(getClass(), Logger.getStackTrace(t));
+            "exception= " + e);
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
 
          // create a soap fault
          sm.setFaultCode(SoapMessage.FAULT_SERVER);
@@ -192,7 +195,8 @@ public class SoapWebClient extends HttpWebClient
          sm.setFaultActor("");
          
          // throw a soap fault exception
-         throw new SoapFaultException(sm, "SOAP fault raised!", t);
+         throw new SoapFaultException(
+            sm, "SOAP Fault: " + sm.getFaultString(), e);
       }
 
       return rval;
@@ -301,7 +305,8 @@ public class SoapWebClient extends HttpWebClient
                sm.setFaultActor(getEndpointAddress());
                   
                // throw a soap fault exception
-               throw new SoapFaultException(sm, "SOAP fault raised!");
+               throw new SoapFaultException(
+                  sm, "SOAP Fault: " + sm.getFaultString());
             }
          }
          else
@@ -316,7 +321,8 @@ public class SoapWebClient extends HttpWebClient
             sm.setFaultActor(getEndpointAddress());
                
             // throw a soap fault exception
-            throw new SoapFaultException(sm, "SOAP fault raised!");
+            throw new SoapFaultException(
+               sm, "SOAP Fault: " + sm.getFaultString());
          }
       }
       catch(SoapFaultException sfe)
@@ -324,13 +330,13 @@ public class SoapWebClient extends HttpWebClient
          // throw the soap fault exception
          throw sfe;
       }
-      catch(Throwable t)
+      catch(IOException e)
       {
          // log error
          getLogger().error(getClass(),
             "could not execute soap method!, an exception occurred," +
-            "exception= " + t);
-         getLogger().debug(getClass(), Logger.getStackTrace(t));
+            "exception= " + e);
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
             
          // create a soap fault
          sm.setFaultCode(SoapMessage.FAULT_SERVER);
@@ -340,7 +346,27 @@ public class SoapWebClient extends HttpWebClient
          sm.setFaultActor(getEndpointAddress());
             
          // throw a soap fault exception
-         throw new SoapFaultException(sm, "SOAP fault raised!", t);
+         throw new SoapFaultException(
+            sm, "SOAP Fault: " + sm.getFaultString(), e);         
+      }
+      catch(NullPointerException e)
+      {
+         // log error
+         getLogger().error(getClass(),
+            "could not execute soap method!, an exception occurred," +
+            "exception= " + e);
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
+            
+         // create a soap fault
+         sm.setFaultCode(SoapMessage.FAULT_SERVER);
+         sm.setFaultString(
+            "An exception was thrown while processing the soap message " +
+            "from the server.");
+         sm.setFaultActor(getEndpointAddress());
+            
+         // throw a soap fault exception
+         throw new SoapFaultException(
+            sm, "SOAP Fault: " + sm.getFaultString(), e);
       }
       
       return rval;
@@ -398,7 +424,8 @@ public class SoapWebClient extends HttpWebClient
             sm.setFaultActor(getEndpointAddress());
             
             // throw a soap fault exception
-            throw new SoapFaultException(sm, "SOAP fault raised!");
+            throw new SoapFaultException(
+               sm, "SOAP Fault: " + sm.getFaultString());
          }
       }
       

@@ -93,6 +93,31 @@ public abstract class GenericSoapWebService implements SoapWebService
          new WsdlSoapBindingFactory(), new WsdlSoapPortFactory());
       mCallThreadToSoapMessage = new HashMap();
    }
+   
+   /**
+    * Checks to see if the passed soap message passes security. Extending
+    * classes should implement this method to set their particular security
+    * profile.
+    * 
+    * When this method is called, a client is connected and awaiting a soap
+    * response. Information about the client (i.e. its IP address) can be
+    * checked in this method and a security exception can be thrown if
+    * appropriate.
+    * 
+    * If there is a particular security policy for certain soap methods this
+    * method should handle that policy and throw a security exception if
+    * appropriate.
+    * 
+    * A soap fault will be raised that indicates that the client was not
+    * authenticated if a security exception is thrown from this method.
+    * 
+    * @param sm the soap message sent by the client.
+    * 
+    * @exception SecurityException thrown if the client or the soap message
+    *                              sent by the client do not pass security.
+    */
+   protected abstract void checkSoapSecurity(SoapMessage sm)
+   throws SecurityException;
 
    /**
     * Invokes a method from the soap interface on the soap implementer. Throws
@@ -212,6 +237,9 @@ public abstract class GenericSoapWebService implements SoapWebService
          // add the current thread to the thread->soap message map
          mCallThreadToSoapMessage.put(thread, sm);
          
+         // check soap security before invoking method
+         checkSoapSecurity(sm);
+         
          // invoke the soap method
          rval = invokeSoapMethod(method, sm.getParameters());
          
@@ -246,6 +274,13 @@ public abstract class GenericSoapWebService implements SoapWebService
             sm.setFaultString("The soap method was not recognized by the " +
                               "server. Check the method signature and " +
                               "parameter names.");
+            sm.setFaultActor(getURI());
+         }
+         else if(t instanceof SecurityException)
+         {
+            sm.setFaultCode(SoapMessage.FAULT_CLIENT);
+            sm.setFaultString("The client was not authorized to perform the " +
+                              "requested action.");
             sm.setFaultActor(getURI());
          }
          else
