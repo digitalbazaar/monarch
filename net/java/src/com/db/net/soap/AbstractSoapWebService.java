@@ -13,11 +13,15 @@ import com.db.net.wsdl.WsdlService;
 import com.db.util.MethodInvoker;
 
 /**
- * A generic soap web service.
+ * An AbstractSoapWebService provides all of the basic underlying soap
+ * functionality needed to provide a secure soap web service. All that
+ * is needed by extending classes is an interface that defines the
+ * soap methods (and therefore port type) for the web service along
+ * with a name and namespace for the web service and its definitions.
  * 
  * @author Dave Longley
  */
-public abstract class GenericSoapWebService implements SecureSoapWebService
+public abstract class AbstractSoapWebService implements SecureSoapWebService
 {
    /**
     * The soap interface. 
@@ -56,14 +60,14 @@ public abstract class GenericSoapWebService implements SecureSoapWebService
    protected SoapSecurityManager mSoapSecurityManager;
    
    /**
-    * Creates a generic soap web service. The soap implementer must be this
+    * Creates an AbstractSoapWebService. The soap implementer must be this
     * object.
     * 
     * @param name the name of this web service.
     * @param namespace the namespace for this web service.
     * @param soapInterface the soap interface for the web service.
     */
-   public GenericSoapWebService(
+   public AbstractSoapWebService(
       String name, String namespace, Class soapInterface) 
    {
       mSoapImplementer = this;
@@ -80,7 +84,7 @@ public abstract class GenericSoapWebService implements SecureSoapWebService
    }
 
    /**
-    * Creates a generic soap web service. Use this constructor if you wish
+    * Creates an AbstractSoapWebService. Use this constructor if you wish
     * the soap implementer to be a different object than this one.
     * 
     * @param name the name of this web service.
@@ -88,7 +92,7 @@ public abstract class GenericSoapWebService implements SecureSoapWebService
     * @param soapImplementer the implementing object of the soap interface.
     * @param soapInterface the soap interface for the web service.
     */
-   public GenericSoapWebService(
+   public AbstractSoapWebService(
       String name, String namespace,
       Object soapImplementer, Class soapInterface) 
    {
@@ -334,7 +338,7 @@ public abstract class GenericSoapWebService implements SecureSoapWebService
     */
    public boolean isSoapActionValid(String action)
    {
-      // generic soap web service always returns true
+      // abstract soap web service always returns true
       return true;
    }
    
