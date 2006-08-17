@@ -10,6 +10,7 @@ import com.db.logging.LoggerManager;
 import com.db.util.Base64Coder;
 
 import java.security.PrivateKey;
+import java.security.PublicKey;
 
 import org.w3c.dom.Element;
 
@@ -335,7 +336,24 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
 
       return rval;
    }
+   
+   /**
+    * Attempts to verify that this object was digitally
+    * signed. The passed public key should be a Base64-encoded
+    * string that represents the X.509 encoded public key.
+    *
+    * @param publicKeyString the public key to verify the signature.
+    * 
+    * @return true if verified, false if not.
+    */
+   public synchronized boolean verify(String publicKeyString)
 
+   {
+      // obtain the decoded public key and verify
+      PublicKey publicKey = KeyManager.decodePublicKey(publicKeyString);
+      return verify(publicKey);
+   }
+   
    /**
     * Attempts to verify that this object was digitally
     * signed. The passed public key should be a Base64-encoded
@@ -345,7 +363,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     * 
     * @return true if verified, false if not.
     */
-   public synchronized boolean verify(String publicKey)
+   public synchronized boolean verify(PublicKey publicKey)   
    {
       boolean rval = false;
       
