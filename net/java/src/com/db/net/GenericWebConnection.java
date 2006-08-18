@@ -153,13 +153,13 @@ public class GenericWebConnection implements WebConnection
       // throttle the read
       length = getReadBandwidthThrottler().requestBytes(length);
 
+      // start timer
+      long start = System.currentTimeMillis();
+
       // keep reading until a byte is read or end of stream
       boolean read = true;
       while(read)
       {
-         // start timer
-         long start = System.currentTimeMillis();
-         
          try
          {
             // do the read
