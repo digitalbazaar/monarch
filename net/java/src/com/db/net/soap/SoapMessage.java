@@ -26,6 +26,11 @@ import com.db.xml.XmlCoder;
 /**
  * This class represents a SOAP message.
  * 
+ * FUTURE CODE: We want to split some of the functionality for this
+ * message up into separate classes (i.e. request/result/fault). The
+ * fault implementation is also incomplete, lacking code to handle
+ * a fault detail if one exists. 
+ * 
  * @author Dave Longley
  */
 public class SoapMessage extends AbstractXmlSerializer
