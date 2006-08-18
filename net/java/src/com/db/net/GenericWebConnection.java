@@ -9,6 +9,8 @@ import java.io.OutputStream;
 import java.io.PushbackInputStream;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -69,6 +71,12 @@ public class GenericWebConnection implements WebConnection
     * The write bandwidth throttler.
     */
    protected BandwidthThrottler mWriteBandwidthThrottler;
+
+   /**
+    * The read timeout for this web connection. This is the amount of
+    * time that must pass while doing a blocking read before timing out. 
+    */
+   protected long mReadTimeout;
    
    /**
     * Creates a new generic web connection.
@@ -79,6 +87,18 @@ public class GenericWebConnection implements WebConnection
    {
       // store worker socket
       mWorkerSocket = workerSocket;
+      
+      try
+      {
+         // set read timeout (short timeouts will be caught and tossed if the
+         // read timeout for this web connection hasn't been reached)
+         mWorkerSocket.setSoTimeout(500);
+      }
+      catch(SocketException ignore)
+      {
+         // only thrown if the socket is closed or an invalid timeout was
+         // specified, neither of which we are concerned about here
+      }
       
       // set IP and port
       setRemoteIP(getRemoteIP(workerSocket));
@@ -94,6 +114,9 @@ public class GenericWebConnection implements WebConnection
       // create the read and write throttlers
       mReadBandwidthThrottler = new BandwidthThrottler(0);
       mWriteBandwidthThrottler = new BandwidthThrottler(0);
+      
+      // default to no read timeout
+      setReadTimeout(0);
    }
    
    /**
@@ -130,8 +153,32 @@ public class GenericWebConnection implements WebConnection
       // throttle the read
       length = getReadBandwidthThrottler().requestBytes(length);
 
-      // do the read
-      numBytes = getReadStream().read(buffer, offset, length);
+      // start timer
+      long start = System.currentTimeMillis();
+      
+      try
+      {
+         // do the read
+         numBytes = getReadStream().read(buffer, offset, length);
+      }
+      catch(SocketTimeoutException e)
+      {
+         // end timer
+         long end = System.currentTimeMillis();
+         
+         // set the number of bytes read
+         numBytes = e.bytesTransferred;
+         
+         // see if the read timeout was reached
+         if(getReadTimeout() > 0)
+         {
+            if((end - start) > getReadTimeout())
+            {
+               // read timeout reached, throw the socket timeout exception 
+               throw e;
+            }
+         }
+      }
       
       // increment bytes read
       if(numBytes != -1)
@@ -514,17 +561,18 @@ public class GenericWebConnection implements WebConnection
     */
    public void setReadTimeout(int timeout)
    {
-      try
-      {
-         if(!isClosed())
-         {
-            getWorkerSocket().setSoTimeout(timeout);
-         }
-      }
-      catch(Throwable t)
-      {
-         getLogger().debug(getClass(), Logger.getStackTrace(t));
-      }
+      mReadTimeout = Math.max(0, timeout);
+   }
+   
+   /**
+    * Gets the read timeout for this web connection. This is the amount of
+    * time that must pass while doing a blocking read before timing out. 
+    * 
+    * @return the read timeout in milliseconds (0 for no timeout).
+    */
+   public long getReadTimeout()
+   {
+      return mReadTimeout;
    }
    
    /**

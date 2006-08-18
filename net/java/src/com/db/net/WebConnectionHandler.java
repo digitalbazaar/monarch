@@ -114,8 +114,15 @@ public interface WebConnectionHandler
    
    /**
     * Terminates all web connections this web connection handler is handling.
+    * Tries to shutdown web connections gracefully.
     */
    public void terminateWebConnections();
+   
+   /**
+    * Disconnects all web connections this web connection handler is
+    * handling immediately.
+    */
+   public void disconnectWebConnections();   
    
    /**
     * Returns the number of web connections this web connection handler is

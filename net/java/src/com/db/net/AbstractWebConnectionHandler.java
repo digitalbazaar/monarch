@@ -556,6 +556,7 @@ implements WebConnectionHandler, WebConnectionServicer
    
    /**
     * Terminates all web connections this web connection handler is handling.
+    * Tries to shutdown web connections gracefully.
     */
    public void terminateWebConnections()
    {
@@ -592,6 +593,51 @@ implements WebConnectionHandler, WebConnectionServicer
       }
       
       getLogger().debug(getClass(), "all web connections terminated.");
+   }
+   
+   /**
+    * Disconnects all web connections this web connection handler is
+    * handling immediately.
+    */
+   public void disconnectWebConnections()
+   {
+      getLogger().debug(getClass(), "disconnecting all web connections...");
+      
+      // lock on the service thread list
+      synchronized(mServiceThreads)
+      {
+         // interrupt all web connection service threads
+         for(Iterator i = mServiceThreads.iterator(); i.hasNext();)
+         {
+            WebConnectionServiceThread thread =
+               (WebConnectionServiceThread)i.next();
+            
+            WebConnection webConnection = thread.getWebConnection();
+            getLogger().debug(getClass(),
+               "forcefully disconnecting web connection,ip=" +
+               webConnection.getRemoteIP());
+            
+            // interrupt thread
+            thread.interrupt();
+
+            // disconnect web connection
+            webConnection.disconnect();
+         }
+      }
+      
+      // lock on map
+      synchronized(mServerSocketToWebConnectionAcceptorMap)
+      {
+         // terminate all accepted connections
+         for(Iterator i = mServerSocketToWebConnectionAcceptorMap.
+             values().iterator(); i.hasNext();)
+         {
+            WebConnectionAcceptor wca = (WebConnectionAcceptor)i.next();
+            wca.terminateAllWebConnections();
+         }
+      }
+      
+      getLogger().debug(getClass(), "all web connections disconnected.");  
    }
    
    /**

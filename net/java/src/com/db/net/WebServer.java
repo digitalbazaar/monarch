@@ -183,8 +183,7 @@ public class WebServer
          getLogger().debug(getClass(), "starting web server...");
 
          // start accepting connections on all web connection handlers
-         Iterator i = mPorts.iterator();
-         while(i.hasNext())
+         for(Iterator i = mPorts.iterator(); i.hasNext();)
          {
             int port = Integer.parseInt((String)i.next());
             WebConnectionHandler handler = getWebConnectionHandler(port);
@@ -212,8 +211,7 @@ public class WebServer
          getLogger().debug(getClass(), "stopping web server...");
          
          // stop and terminate all connections on all web connection handlers
-         Iterator i = mPorts.iterator();
-         while(i.hasNext())
+         for(Iterator i = mPorts.iterator(); i.hasNext();)
          {
             int port = Integer.parseInt((String)i.next());
             WebConnectionHandler handler = getWebConnectionHandler(port);
