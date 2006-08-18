@@ -384,14 +384,14 @@ public class GenericWebConnection implements WebConnection
          // throttle the write
          int numBytes = getWriteBandwidthThrottler().requestBytes(length);
          
-         // disable socket read timeout temporarily
+         // set socket read timeout to web connection read timeout temporarily
          int timeout = mWorkerSocket.getSoTimeout();
-         mWorkerSocket.setSoTimeout(0);
+         mWorkerSocket.setSoTimeout(getReadTimeout());
          
          // do the write
          getWriteStream().write(buffer, offset, numBytes);
          
-         // re-enable socket read timeout
+         // restore socket read timeout
          mWorkerSocket.setSoTimeout(timeout);
          
          // increment offset and decrement length
@@ -594,7 +594,7 @@ public class GenericWebConnection implements WebConnection
     * 
     * @return the read timeout in milliseconds (0 for no timeout).
     */
-   public long getReadTimeout()
+   public int getReadTimeout()
    {
       return mReadTimeout;
    }
