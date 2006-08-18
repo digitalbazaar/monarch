@@ -984,35 +984,44 @@ public class SoapMessage extends AbstractXmlSerializer
             while(bi.hasNext() && !rval)
             {
                ElementReader bodyReader = (ElementReader)bi.next();
-               String name[] = bodyReader.getTagName().split(":"); 
+               String name[] = bodyReader.getTagName().split(":");
+               String tagName = "";
                if(name.length > 1)
                {
-                  // see if this is a soap fault
-                  if(name[1].equals("Fault"))
+                  tagName = name[1];
+               }
+               else
+               {
+                  tagName = name[0];
+               }
+                  
+               // see if this is a soap fault
+               if(tagName.equals("Fault"))
+               {
+                  // convert soap fault
+                  convertSoapFaultFromXml(bodyReader);
+                  
+                  rval = true;
+               }
+               else
+               {
+                  getLogger().debug(getClass(),
+                     "got soap envelope method/response," +
+                     "method/response=" + tagName);
+                  
+                  // get the incoming message 
+                  if(isRequest())
                   {
-                     // convert soap fault
-                     convertSoapFaultFromXml(bodyReader);
-                  }
-                  else
-                  {
-                     getLogger().debug(getClass(),
-                        "got soap envelope method/response," +
-                        "method/response=" + name[1]);
-                     
-                     // get the incoming message 
-                     if(isRequest())
-                     {
-                        // set the method
-                        setMethod(name[1]);
+                     // set the method
+                     setMethod(tagName);
 
-                        // convert soap request
-                        convertSoapRequestFromXml(bodyReader);
-                     }
-                     else if(isResponse())
-                     {
-                        // convert soap response
-                        convertSoapResponseFromXml(bodyReader);
-                     }
+                     // convert soap request
+                     convertSoapRequestFromXml(bodyReader);
+                  }
+                  else if(isResponse())
+                  {
+                     // convert soap response
+                     convertSoapResponseFromXml(bodyReader);
                   }
                   
                   rval = true;
