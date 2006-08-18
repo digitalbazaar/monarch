@@ -89,17 +89,8 @@ public class GenericWebConnection implements WebConnection
       // store worker socket
       mWorkerSocket = workerSocket;
       
-      try
-      {
-         // set read timeout (short timeouts will be caught and tossed if the
-         // read timeout for this web connection hasn't been reached)
-         mWorkerSocket.setSoTimeout(250);
-      }
-      catch(SocketException ignore)
-      {
-         // only thrown if the socket is closed or an invalid timeout was
-         // specified, neither of which we are concerned about here
-      }
+      // reset socket timeout
+      resetSocketTimeout();
       
       // set IP and port
       setRemoteIP(getRemoteIP(workerSocket));
@@ -126,6 +117,24 @@ public class GenericWebConnection implements WebConnection
    protected void finalize()
    {
       disconnect();
+   }
+   
+   /**
+    * Resets the socket timeout for the underlying worker socket.
+    */
+   protected void resetSocketTimeout()
+   {
+      try
+      {
+         // set read timeout (short timeouts will be caught and tossed if the
+         // read timeout for this web connection hasn't been reached)
+         getWorkerSocket().setSoTimeout(250);
+      }
+      catch(SocketException ignore)
+      {
+         // only thrown if the socket is closed or an invalid timeout was
+         // specified, neither of which we are concerned about here
+      }
    }
 
    /**
@@ -385,14 +394,28 @@ public class GenericWebConnection implements WebConnection
          int numBytes = getWriteBandwidthThrottler().requestBytes(length);
          
          // set socket read timeout to web connection read timeout temporarily
-         int timeout = mWorkerSocket.getSoTimeout();
-         mWorkerSocket.setSoTimeout(getReadTimeout());
+         //
+         // Note: This is done because JSSE has a bug where SSL connections
+         // have to read when doing a write (when performing the initial
+         // SSL handshake) -- which can result in an unrecoverable socket
+         // timeout exception. In the future, if this bug is resolved and
+         // we can recover from a timeout, we want to handle that here just
+         // like we do in the read() method for this class.
+         //
+         // Now, since we need to be able to shutdown web connections somewhat
+         // gracefully, and that depends on interrupting the threads they are
+         // being used on, we must not allow a write() to block indefinitely.
+         //
+         // So, a timeout is set here -- that is hopefully long enough to
+         // negotiate an SSL handshake. We use 2 minutes.
+         int timeout = getWorkerSocket().getSoTimeout();
+         getWorkerSocket().setSoTimeout(120000);
          
          // do the write
          getWriteStream().write(buffer, offset, numBytes);
          
          // restore socket read timeout
-         mWorkerSocket.setSoTimeout(timeout);
+         getWorkerSocket().setSoTimeout(timeout);
          
          // increment offset and decrement length
          offset += numBytes;
