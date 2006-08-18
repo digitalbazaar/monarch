@@ -74,9 +74,10 @@ public class GenericWebConnection implements WebConnection
 
    /**
     * The read timeout for this web connection. This is the amount of
-    * time that must pass while doing a blocking read before timing out. 
+    * time that must pass while doing a blocking read before timing out.
+    * The time is in milliseconds. 
     */
-   protected long mReadTimeout;
+   protected int mReadTimeout;
    
    /**
     * Creates a new generic web connection.
@@ -383,8 +384,16 @@ public class GenericWebConnection implements WebConnection
          // throttle the write
          int numBytes = getWriteBandwidthThrottler().requestBytes(length);
 
+         
+         // disable socket read timeout temporarily
+         int timeout = mWorkerSocket.getSoTimeout();
+         mWorkerSocket.setSoTimeout(0);
+         
          // do the write
          getWriteStream().write(buffer, offset, numBytes);
+         
+         // re-enable socket read timeout
+         mWorkerSocket.setSoTimeout(timeout);
          
          // increment offset and decrement length
          offset += numBytes;
