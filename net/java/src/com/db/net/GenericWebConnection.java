@@ -383,7 +383,6 @@ public class GenericWebConnection implements WebConnection
 
          // throttle the write
          int numBytes = getWriteBandwidthThrottler().requestBytes(length);
-
          
          // disable socket read timeout temporarily
          int timeout = mWorkerSocket.getSoTimeout();
