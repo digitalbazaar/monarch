@@ -92,7 +92,7 @@ public class GenericWebConnection implements WebConnection
       {
          // set read timeout (short timeouts will be caught and tossed if the
          // read timeout for this web connection hasn't been reached)
-         mWorkerSocket.setSoTimeout(500);
+         mWorkerSocket.setSoTimeout(250);
       }
       catch(SocketException ignore)
       {
