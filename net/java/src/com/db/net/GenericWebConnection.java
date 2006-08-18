@@ -153,30 +153,41 @@ public class GenericWebConnection implements WebConnection
       // throttle the read
       length = getReadBandwidthThrottler().requestBytes(length);
 
-      // start timer
-      long start = System.currentTimeMillis();
-      
-      try
+      // keep reading until a byte is read or end of stream
+      boolean read = true;
+      while(read)
       {
-         // do the read
-         numBytes = getReadStream().read(buffer, offset, length);
-      }
-      catch(SocketTimeoutException e)
-      {
-         // end timer
-         long end = System.currentTimeMillis();
+         // start timer
+         long start = System.currentTimeMillis();
          
-         // set the number of bytes read
-         numBytes = e.bytesTransferred;
-         
-         // see if the read timeout was reached
-         if(getReadTimeout() > 0)
+         try
          {
-            if((end - start) > getReadTimeout())
+            // do the read
+            numBytes = getReadStream().read(buffer, offset, length);
+         }
+         catch(SocketTimeoutException e)
+         {
+            // end timer
+            long end = System.currentTimeMillis();
+            
+            // set the number of bytes read
+            numBytes = e.bytesTransferred;
+            
+            // see if the read timeout was reached
+            if(getReadTimeout() > 0)
             {
-               // read timeout reached, throw the socket timeout exception 
-               throw e;
+               if((end - start) > getReadTimeout())
+               {
+                  // read timeout reached, throw the socket timeout exception 
+                  throw e;
+               }
             }
+         }
+         
+         // stop reading if a byte was read or end of stream
+         if(numBytes > 0 || numBytes == -1)
+         {
+            read = false;
          }
       }
       
