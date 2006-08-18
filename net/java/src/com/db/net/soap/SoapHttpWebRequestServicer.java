@@ -21,7 +21,7 @@ import com.db.net.wsdl.Wsdl;
 public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
 {
    /**
-    * The soap webservice for this servicer.
+    * The soap web service for this servicer.
     */
    protected SoapWebService mSoapWebService;
    
@@ -387,7 +387,24 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
        */
       public void run()
       {
-         mSoapWebService.callSoapMethod(mSoapMessage);
+         try
+         {
+            mSoapWebService.callSoapMethod(mSoapMessage);
+         }
+         catch(Throwable t)
+         {
+            mSoapMessage.setFaultCode(SoapMessage.FAULT_SERVER);
+            mSoapMessage.setFaultString(
+               "An exception was thrown by the server " +
+               "when calling the specified soap method.");
+            mSoapMessage.setFaultActor(mSoapWebService.getURI());
+            
+            getLogger().debug(getClass(), 
+               "failed to call soap method, sending soap fault" +
+               ",reason=" + mSoapMessage.getFaultString());
+
+            getLogger().debug(getClass(), Logger.getStackTrace(t));
+         }
       }
    }
 }
