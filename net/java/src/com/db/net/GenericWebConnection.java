@@ -407,7 +407,9 @@ public class GenericWebConnection implements WebConnection
          // being used on, we must not allow a write() to block indefinitely.
          //
          // So, a timeout is set here -- that is hopefully long enough to
-         // negotiate an SSL handshake. We use 2 minutes.
+         // negotiate an SSL handshake. We use 2 minutes. So, at the most,
+         // when terminating a web connection, you'll have to wait for 2
+         // minutes.
          int timeout = getWorkerSocket().getSoTimeout();
          getWorkerSocket().setSoTimeout(120000);
          
