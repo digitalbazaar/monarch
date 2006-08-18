@@ -160,6 +160,11 @@ public class GenericWebConnection implements WebConnection
       boolean read = true;
       while(read)
       {
+         if(Thread.currentThread().isInterrupted())
+         {
+            throw new InterruptedException("WebConnection read interrupted!");
+         }
+         
          try
          {
             // do the read
