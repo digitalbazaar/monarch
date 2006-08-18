@@ -393,6 +393,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          }
          catch(Throwable t)
          {
+            // raise a soap fault
             mSoapMessage.setFaultCode(SoapMessage.FAULT_SERVER);
             mSoapMessage.setFaultString(
                "An exception was thrown by the server " +
