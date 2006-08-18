@@ -4,6 +4,7 @@
 package com.db.net.http;
 
 import com.db.net.ProxyPortWebServer;
+import com.db.net.WebConnectionSecurityManager;
 
 /**
  * An HttpProxyPortWebServer is a proxy port web server that has
@@ -216,5 +217,31 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
    public int getMaximumSecureConnections()
    {
       return getInternalHttpWebServer().getMaximumSecureConnections();
+   }
+   
+   /**
+    * Sets the web connection security manager for this HttpProxyPortWebServer.
+    * The web connection security manager can only be set once.
+    * 
+    * @param securityManager the web connection sercurity manager for this
+    *                        HttpProxyPortWebServer.
+    */
+   public void setWebConnectionSecurityManager(
+      WebConnectionSecurityManager securityManager)
+   {
+      mWebConnectionServicer.setWebConnectionSecurityManager(
+         securityManager);
+   }
+   
+   /**
+    * Gets the web connection security manager for this HttpProxyPortWebServer.
+    * 
+    * @return the web connection security manager for this
+    *         HttpProxyPortWebServer (can be null if there is no installed
+    *         security manager).
+    */
+   public WebConnectionSecurityManager getWebConnectionSecurityManager()
+   {
+      return mWebConnectionServicer.getWebConnectionSecurityManager();
    }   
 }
