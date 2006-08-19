@@ -9,7 +9,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -177,11 +179,31 @@ public class HttpWebClient
    }
    
    /**
+    * Creates an SSL context.
+    * 
+    * @return the created SSL context.
+    * 
+    * @throws KeyManagementException
+    * @throws NoSuchAlgorithmException
+    */
+   protected SSLContext createSSLContext()
+   throws KeyManagementException, NoSuchAlgorithmException
+   {
+      // create ssl context
+      SSLContext sslContext = SSLContext.getInstance("TLS");
+
+      // initialize ssl context
+      sslContext.init(mKeyManagers, mTrustManagers, null);
+      
+      return sslContext;
+   }
+   
+   /**
     * Gets a web connection to the web service.
     * 
     * @return the web connection to the web service or null if failure.
     */
-   protected HttpWebConnection getWebConnection()
+   protected synchronized HttpWebConnection getWebConnection()
    {
       HttpWebConnection hwc = null;
       
@@ -189,14 +211,15 @@ public class HttpWebClient
       {
          if(mSchema.equals("https"))
          {
-            // create ssl context, factory
-            SSLContext sslcontext = SSLContext.getInstance("TLS");
-            sslcontext.init(mKeyManagers, mTrustManagers, null);
-            SSLSocketFactory factory = sslcontext.getSocketFactory();
+            // create ssl context
+            SSLContext context = createSSLContext();
+            
+            // create ssl factory
+            SSLSocketFactory factory = context.getSocketFactory();
 
             // create ssl socket
             SSLSocket s = (SSLSocket)factory.createSocket(getHost(), getPort());
-            
+               
             String[] suites = factory.getSupportedCipherSuites();
             s.setEnabledCipherSuites(suites);
             
@@ -259,7 +282,7 @@ public class HttpWebClient
     * 
     * @return the web connection to the web service or null if failure.
     */
-   public HttpWebConnection connect(String endpointAddress)
+   public synchronized HttpWebConnection connect(String endpointAddress)
    {
       HttpWebConnection wc = null;
       
@@ -271,7 +294,7 @@ public class HttpWebClient
       
       // try 10 times = 10 seconds of retry
       int tries = 10;
-      for(int i = 0; i < tries; i++)
+      for(int i = 0; i < tries && !Thread.currentThread().isInterrupted(); i++)
       {
          wc = getWebConnection();
 
@@ -283,11 +306,17 @@ public class HttpWebClient
          
          try
          {
-            // sleep for a bit
-            Thread.sleep(1000);
+            // if not interrupted, then sleep for a bit before trying
+            // to connect again
+            if(!Thread.currentThread().isInterrupted())
+            {
+               Thread.sleep(1000);
+            }
          }
-         catch(Throwable t)
+         catch(InterruptedException e)
          {
+            // keep current thread interrupted
+            Thread.currentThread().interrupt();
          }
       }
       
@@ -553,6 +582,7 @@ public class HttpWebClient
     * 
     * @param keystore the name of the keystore file.
     * @param password the password to unlock the keystore.
+    * 
     * @return true if the ssl certificate was successfully loaded,
     *         false if not.
     */
@@ -567,11 +597,12 @@ public class HttpWebClient
     * @param keystore the name of the keystore file.
     * @param password the password to unlock the keystore.
     * @param algorithm the algorithm for the keystore.
+    * 
     * @return true if the ssl certificate was successfully loaded,
     *         false if not.
     */
-   public boolean setTrustedSSLKeystore(String keystore, String password,
-                                        String algorithm)
+   public synchronized boolean setTrustedSSLKeystore(
+      String keystore, String password, String algorithm)
    {
       boolean rval = false;
       
@@ -609,7 +640,7 @@ public class HttpWebClient
     * 
     * @param path the path to the web service.
     */
-   public void setWebServicePath(String path)
+   public synchronized void setWebServicePath(String path)
    {
       mPath = path;
    }
@@ -629,7 +660,7 @@ public class HttpWebClient
     * 
     * @param endpointAddress the endpoint address for this client.
     */
-   public void setEndpointAddress(String endpointAddress)
+   public synchronized void setEndpointAddress(String endpointAddress)
    {
       if(!mEndpointAddress.equals(endpointAddress))
       {
@@ -649,9 +680,9 @@ public class HttpWebClient
    }
    
    /**
-    * Gets the logger.
+    * Gets the logger for this http web client.
     * 
-    * @return the logger.
+    * @return the logger for this http web client.
     */
    public Logger getLogger()
    {
