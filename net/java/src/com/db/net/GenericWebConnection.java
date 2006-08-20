@@ -12,6 +12,10 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
+import javax.net.ssl.HandshakeCompletedEvent;
+import javax.net.ssl.HandshakeCompletedListener;
+import javax.net.ssl.SSLSocket;
+
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 
@@ -20,7 +24,8 @@ import com.db.logging.LoggerManager;
  * 
  * @author Dave Longley
  */
-public class GenericWebConnection implements WebConnection
+public class GenericWebConnection
+implements WebConnection, HandshakeCompletedListener
 {
    /**
     * The worker socket for this web connection.
@@ -89,8 +94,17 @@ public class GenericWebConnection implements WebConnection
       // store worker socket
       mWorkerSocket = workerSocket;
       
-      // reset socket timeout
-      resetSocketTimeout();
+      // if this worker socket is an SSL socket, then register a
+      // handshake completed listener
+      if(mWorkerSocket instanceof SSLSocket)
+      {
+         ((SSLSocket)mWorkerSocket).addHandshakeCompletedListener(this);
+      }
+      else
+      {
+         // reset socket timeout
+         resetSocketTimeout();
+      }
       
       // set IP and port
       setRemoteIP(getRemoteIP(workerSocket));
@@ -124,8 +138,7 @@ public class GenericWebConnection implements WebConnection
     */
    protected void resetSocketTimeout()
    {
-      // FIXME: uncomment this and fix the bug
-      /*try
+      try
       {
          // set read timeout (short timeouts will be caught and tossed if the
          // read timeout for this web connection hasn't been reached)
@@ -135,7 +148,7 @@ public class GenericWebConnection implements WebConnection
       {
          // only thrown if the socket is closed or an invalid timeout was
          // specified, neither of which we are concerned about here
-      }*/
+      }
    }
 
    /**
@@ -394,33 +407,8 @@ public class GenericWebConnection implements WebConnection
          // throttle the write
          int numBytes = getWriteBandwidthThrottler().requestBytes(length);
          
-         // set socket read timeout to web connection read timeout temporarily
-         //
-         // Note: This is done because JSSE has a bug where SSL connections
-         // have to read when doing a write (when performing the initial
-         // SSL handshake) -- which can result in an unrecoverable socket
-         // timeout exception. In the future, if this bug is resolved and
-         // we can recover from a timeout, we want to handle that here just
-         // like we do in the read() method for this class.
-         //
-         // Now, since we need to be able to shutdown web connections somewhat
-         // gracefully, and that depends on interrupting the threads they are
-         // being used on, we must not allow a write() to block indefinitely.
-         //
-         // So, a timeout is set here -- that is hopefully long enough to
-         // negotiate an SSL handshake. We use 2 minutes. So, at the most,
-         // when terminating a web connection, you'll have to wait for 2
-         // minutes.
-         // FIXME: uncomment this and fix bug
-         //int timeout = getWorkerSocket().getSoTimeout();
-         //getWorkerSocket().setSoTimeout(120000);
-         
          // do the write
          getWriteStream().write(buffer, offset, numBytes);
-         
-         // restore socket read timeout
-         // FIXME: uncomment this and fix bug
-         //getWorkerSocket().setSoTimeout(timeout);
          
          // increment offset and decrement length
          offset += numBytes;
@@ -544,6 +532,25 @@ public class GenericWebConnection implements WebConnection
       {
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
+   }
+   
+   /**
+    * This method is called if this web connection uses an SSL socket
+    * and the SSL handshake has completed.
+    * 
+    * @param event the handshake completed event.
+    */
+   public void handshakeCompleted(HandshakeCompletedEvent event) 
+   {
+      // now that the handshake has completed, set the socket timeout
+      resetSocketTimeout();
+      
+      // Note: This is done because JSSE has a bug where SSL connections
+      // have to read when doing a write (when performing the initial
+      // SSL handshake) -- which can result in an unrecoverable socket
+      // timeout exception. In the future, if this bug is resolved and
+      // we can recover from a timeout, we want to handle that just
+      // like we do in the read() method for this class.
    }
    
    /**
