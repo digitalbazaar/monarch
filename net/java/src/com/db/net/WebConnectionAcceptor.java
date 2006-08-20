@@ -199,9 +199,10 @@ public class WebConnectionAcceptor
     */
    public void acceptWebConnections(ServerSocket serverSocket, boolean secure)
    {
-      getLogger().debug(getClass(),
-         "accepting web connections on " +
-         "port " + serverSocket.getLocalPort());
+      // this is logged at a higher level
+      //getLogger().debug(getClass(),
+      //   "accepting web connections on " +
+      //   "port " + serverSocket.getLocalPort());
       
       // continue accepting connections until told otherwise or
       // if this thread is interrupted
@@ -221,9 +222,10 @@ public class WebConnectionAcceptor
          }
       }
       
-      getLogger().debug(getClass(),
-         "no longer accepting web " +
-         "connections on port " + serverSocket.getLocalPort());
+      // this is logged at a higher level
+      //getLogger().debug(getClass(),
+      //   "no longer accepting web " +
+      //   "connections on port " + serverSocket.getLocalPort());
    }
    
    /**

@@ -8,10 +8,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.Socket;
-import java.security.KeyManagementException;
+import java.net.URL;
 import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -27,49 +27,21 @@ import com.db.net.ssl.TrustAllSSLManager;
 
 /**
  * This client is used to connect to a web server that supports
- * http (HyperText Transfer protocol).
+ * http (HyperText Transfer Protocol).
  * 
  * @author Dave Longley
  */
 public class HttpWebClient
 {
    /**
-    * The host to connect to.
+    * The URL to connect to.
     */
-   protected String mHost;
-   
+   protected URL mUrl;
+
    /**
-    * The port to connect to.
+    * The SSL socket factory for creating SSL sockets.
     */
-   protected int mPort;
-   
-   /**
-    * The ssl key managers, if any. 
-    */
-   protected KeyManager[] mKeyManagers;
-   
-   /**
-    * The ssl trust managers, if any.
-    */
-   protected TrustManager[] mTrustManagers;
-   
-   /**
-    * The path that follows the host and port name, if any.
-    * 
-    * |      host     |port|path|
-    * http://localhost:8174/bss/
-    */
-   protected String mPath;
-   
-   /**
-    * The end point address for this http client.
-    */
-   protected String mEndpointAddress;
-   
-   /**
-    * The schema for the endpoint address, i.e. http, https.
-    */
-   protected String mSchema;
+   protected SSLSocketFactory mSSLSocketFactory;
    
    /**
     * The default user-agent name for this client.
@@ -78,165 +50,142 @@ public class HttpWebClient
       "Digital Bazaar Http Client 1.0";
    
    /**
-    * Creates a new http web client with no specified endpoint address.
+    * Creates a new http web client with no specified URL to connect to.
     */
    public HttpWebClient()   
    {
-      this("");
+      this((URL)null);
    }
    
    /**
-    * Creates a new http web client with the given endpoint address.
-    * 
-    * @param endpointAddress the endpoint address to connect to.
-    */
-   public HttpWebClient(String endpointAddress)
-   {
-      mEndpointAddress = "";
-      mKeyManagers = null;
-      mTrustManagers = new TrustManager[]{new TrustAllSSLManager()};
-      setEndpointAddress(endpointAddress);
-   }
-   
-   /**
-    * Creates a new http web client with the given host and port.
+    * Creates a new HttpWebClient with the given host and port.
     * 
     * @param host the host to connect to.
     * @param port the port to connect on.
+    * 
+    * @throws MalformedURLException
     */
-   public HttpWebClient(String host, int port)
+   public HttpWebClient(String host, int port) throws MalformedURLException
    {
       this(host + ":" + port);
-   }   
+   }
+
+   /**
+    * Creates a new HttpWebClient with the given URL.
+    * 
+    * @param url the URL to connect to.
+    * 
+    * @throws MalformedURLException
+    */
+   public HttpWebClient(String url) throws MalformedURLException
+   {
+      // set the URL
+      setUrl(url);
+   }
    
    /**
-    * Parses an endpoint address into host, port, and path.
+    * Creates a new HttpWebClient with the given URL.
+    * 
+    * @param url the URL to connect to.
     */
-   protected void parseEndpointAddress() 
+   public HttpWebClient(URL url)
    {
-      getLogger().debug(getClass(),
-         "parsing endpoint address for http web client...");
-      
-      String endpt = getEndpointAddress();
-      String[] schema = endpt.split("://");
-      
-      getLogger().debug(getClass(), "endpt=" + endpt);
-      
+      // set the URL
+      setUrl(url);
+   }
+   
+   /**
+    * Creates the internal SSL socket factory.
+    * 
+    * @param keyManagers the key managers for the factory.
+    * @param trustManagers the trust managers for the factory.
+    */
+   protected void createSSLSocketFactory(
+      KeyManager[] keyManagers, TrustManager[] trustManagers)
+   {
       try
       {
-         // for storing the uri, not including the schema
-         String uri;
-         
-         // schema first (http/https/etc)
-         if(schema.length > 1)
-         {
-            mSchema = schema[0];
-            uri = schema[1];
-         }
-         else
-         {
-            mSchema = "http";
-            uri = schema[0];
-         }
-         
-         getLogger().detail(getClass(), "schema=" + mSchema);
+         // create ssl context
+         SSLContext sslContext = SSLContext.getInstance("TLS");
 
-         // next split uri on colons
-         String[] colons = uri.split(":");
+         // initialize ssl context
+         sslContext.init(keyManagers, trustManagers, null);
          
-         // hostname first (localhost:port)
-         setHost(colons[0]);
-         
-         getLogger().detail(getClass(), "host=" + colons[0]);
-         
-         // split on slashes
-         String[] slashes = colons[1].split("/");
-         if(slashes.length >= 0)
-         {
-            // port first
-            int port = Integer.parseInt(slashes[0]);
-            setPort(port);
-            
-            getLogger().detail(getClass(), "port=" + getPort());
-               
-            // combine remaining slashes to get web service path
-            String path = "/";
-            for(int i = 1; i < slashes.length; i++)
-            {
-               path += slashes[i] + "/";
-            }
-            
-            setWebServicePath(path);
-            
-            getLogger().detail(getClass(), 
-               "web service path=" + getWebServicePath());
-         }
+         // create the ssl factory
+         mSSLSocketFactory = sslContext.getSocketFactory();
       }
       catch(Throwable t)
       {
+         getLogger().debug(getClass(), 
+            "could not create SSL socket factory.");
          getLogger().debug(getClass(), LoggerManager.getStackTrace(t));
+         
+         // set ssl factory to null
+         mSSLSocketFactory = null;
       }
    }
    
    /**
-    * Creates an SSL context.
+    * Gets the SSL socket factory.
     * 
-    * @return the created SSL context.
-    * 
-    * @throws KeyManagementException
-    * @throws NoSuchAlgorithmException
+    * @return the SSL socket factory.
     */
-   protected SSLContext createSSLContext()
-   throws KeyManagementException, NoSuchAlgorithmException
+   protected SSLSocketFactory getSSLSocketFactory()
    {
-      // create ssl context
-      SSLContext sslContext = SSLContext.getInstance("TLS");
-
-      // initialize ssl context
-      sslContext.init(mKeyManagers, mTrustManagers, null);
+      if(mSSLSocketFactory == null)
+      {
+         // create default SSL socket factory
+         
+         // use trust all manager
+         TrustManager[] trustManagers =
+            new TrustManager[]{new TrustAllSSLManager()};
+         
+         // create SSLSocketFactory
+         createSSLSocketFactory(null, trustManagers);
+      }
       
-      return sslContext;
+      return mSSLSocketFactory;
    }
    
    /**
-    * Gets a web connection to the web service.
+    * Gets an http web connection to the specified URL.
     * 
-    * @return the web connection to the web service or null if failure.
+    * @param url the URL to connect to.
+    * 
+    * @return the http web connection or null if the connection could
+    *         not be made.
     */
-   protected synchronized HttpWebConnection getWebConnection()
+   protected HttpWebConnection getWebConnection(URL url)
    {
       HttpWebConnection hwc = null;
       
       try
       {
-         if(mSchema.equals("https"))
+         // get a socket
+         Socket socket = null;
+         
+         if(url.getProtocol().equals("https"))
          {
-            // create ssl context
-            SSLContext context = createSSLContext();
-            
-            // create ssl factory
-            SSLSocketFactory factory = context.getSocketFactory();
-
             // create ssl socket
-            SSLSocket s = (SSLSocket)factory.createSocket(getHost(), getPort());
-               
-            String[] suites = factory.getSupportedCipherSuites();
-            s.setEnabledCipherSuites(suites);
+            socket = getSSLSocketFactory().createSocket(
+               url.getHost(), url.getPort());
             
-            // create web connection
-            hwc = new HttpWebConnection(s);
+            // set the enabled cipher suites
+            String[] suites = getSSLSocketFactory().getSupportedCipherSuites();
+            ((SSLSocket)socket).setEnabledCipherSuites(suites);
          }
          else
          {
-            // use regular socket
-            Socket s = new Socket(getHost(), getPort());
-
-            // create web connection
-            hwc = new HttpWebConnection(s);
+            // create a regular socket
+            socket = new Socket(url.getHost(), url.getPort());
          }
          
+         // create web connection
+         hwc = new HttpWebConnection(socket);
+         
          getLogger().debug(getClass(),
-            "connected to: " + getHost() + ":" + getPort());
+            "connected to: " +
+            url.getProtocol() + "://" + url.getHost() + ":" + url.getPort());
       }
       catch(Throwable t)
       {
@@ -256,80 +205,95 @@ public class HttpWebClient
    }
    
    /**
-    * Attempts to connect to the web service at the stored end point address.
+    * Attempts to connect to the stored endpoint address.
+    * 
     * If a connection cannot be established, the connection will be retried
     * multiple times.
     * 
-    * @return the web connection to the web service or null if failure.
+    * @return the HttpWebConnection to the endpoint address or null if failure.
     */
-   public HttpWebConnection connect()   
+   public synchronized HttpWebConnection connect()
    {
       HttpWebConnection rval = null;
       
-      if(!getEndpointAddress().equals(""))
-      {
-         rval = connect(getEndpointAddress());
-      }
+      rval = connect(getUrl());
       
       return rval;
    }
    
    /**
-    * Attempts to connect to the web service. If a connection cannot be
+    * Attempts to connect to the passed URL. If a connection cannot be
     * established, the connection will be retried multiple times.
     * 
-    * @param endpointAddress the endpoint address to connect to.
+    * @param url the URL to connect to.
     * 
-    * @return the web connection to the web service or null if failure.
+    * @return the web connection to the URL or null if failure.
+    * 
+    * @throws MalformedURLException
     */
-   public synchronized HttpWebConnection connect(String endpointAddress)
+   public synchronized HttpWebConnection connect(String url)
+   throws MalformedURLException 
+   {
+      return connect(new URL(url));
+   }
+   
+   /**
+    * Attempts to connect to the passed URL. If a connection cannot be
+    * established, the connection will be retried multiple times.
+    * 
+    * @param url the URL to connect to.
+    * 
+    * @return the web connection to the URL or null if failure.
+    */
+   public synchronized HttpWebConnection connect(URL url)
    {
       HttpWebConnection wc = null;
       
-      // set the end point address
-      setEndpointAddress(endpointAddress);
-      
-      getLogger().debug(getClass(), 
-         "trying to establish an http web connection...");
-      
-      // try 10 times = 10 seconds of retry
-      int tries = 10;
-      for(int i = 0; i < tries && !Thread.currentThread().isInterrupted(); i++)
+      if(url != null)
       {
-         wc = getWebConnection();
-
-         // if web connection acquired, break
-         if(wc != null)
-         {
-            break;
-         }
+         getLogger().debug(getClass(), 
+            "trying to establish an http web connection to '" +
+            url.toString() + "'...");
+      
+         // try to get a web connection
+         wc = getWebConnection(url);
          
-         try
+         // keep trying to get a web connection -- up to 10 times total
+         int tries = 10;
+         for(int i = 1; i < tries && wc == null &&
+             !Thread.currentThread().isInterrupted(); i++)
          {
-            // if not interrupted, then sleep for a bit before trying
-            // to connect again
-            if(!Thread.currentThread().isInterrupted())
+            try
             {
+               // sleep for a bit before trying again
                Thread.sleep(1000);
             }
+            catch(InterruptedException e)
+            {
+               // keep current thread interrupted
+               Thread.currentThread().interrupt();
+            }
+            
+            // try to get a web connection again
+            wc = getWebConnection(url);
          }
-         catch(InterruptedException e)
-         {
-            // keep current thread interrupted
-            Thread.currentThread().interrupt();
-         }
-      }
       
-      if(wc != null)
-      {
-         getLogger().debug(getClass(),
-            "http web connection established," +
-            "ip=" + wc.getHost() + ":" + wc.getRemotePort());
+         if(wc != null)
+         {
+            getLogger().debug(getClass(),
+               "http web connection established," +
+               "ip=" + wc.getHost() + ":" + wc.getRemotePort());
+         }
+         else
+         {
+            getLogger().error(getClass(), 
+               "could not establish an http web connection!");
+         }
       }
       else
       {
          getLogger().error(getClass(), 
-            "could not establish an http web connection!");
+            "could not establish an http web connection! URL was null!");
       }
       
       return wc;
@@ -448,21 +412,38 @@ public class HttpWebClient
     * 
     * @return the file if it was received or null if the file could not
     *         be received.
+    *         
+    * @throws MalformedURLException
     */
    public File getFile(String url, File directory)
+   throws MalformedURLException
+   {
+      return getFile(new URL(url), directory);
+   }
+   
+   /**
+    * A convenience method for performing an HTTP GET to retrieve a file.
+    * 
+    * @param url the URL for the file.
+    * @param directory the directory to store the file in.
+    * 
+    * @return the file if it was received or null if the file could not
+    *         be received.
+    */
+   public File getFile(URL url, File directory)
    {
       File rval = null;
       
       // get a web connection
-      HttpWebConnection connection = connect();
+      HttpWebConnection connection = connect(url);
       if(connection != null)
       {
          // create http web request
          HttpWebRequest request = new HttpWebRequest(connection);
          request.getHeader().setMethod("GET");
-         request.getHeader().setPath(url);
+         request.getHeader().setPath(url.getPath());
          request.getHeader().setVersion("HTTP/1.1");
-         request.getHeader().setHost(getHost() + ":" + getPort());
+         request.getHeader().setHost(url.getHost() + ":" + url.getPort());
          request.getHeader().setUserAgent(DEFAULT_USER_AGENT);
          request.getHeader().setConnection("close");
          
@@ -522,7 +503,7 @@ public class HttpWebClient
                         fos.close();
                      }
                   }
-                  catch(IOException e)
+                  catch(IOException ignore)
                   {
                   }
                }
@@ -534,46 +515,6 @@ public class HttpWebClient
       }
       
       return rval;
-   }
-
-   /**
-    * Sets the host to connect to.
-    * 
-    * @param host the host to connect to.
-    */
-   public void setHost(String host)
-   {
-      mHost = host;
-   }
-   
-   /**
-    * Gets the host to connect to.
-    * 
-    * @return the host to connect to.
-    */
-   public String getHost()
-   {
-      return mHost;
-   }
-   
-   /**
-    * Sets the port to connect on.
-    * 
-    * @param port the port to connect on.
-    */
-   public void setPort(int port)
-   {
-      mPort = port;
-   }
-   
-   /**
-    * Gets the port to connect on.
-    * 
-    * @return the port to connect on.
-    */
-   public int getPort()
-   {
-      return mPort;
    }
    
    /**
@@ -615,13 +556,14 @@ public class HttpWebClient
          // get key managers
          KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
          kmf.init(ks, password.toCharArray());
-         mKeyManagers = kmf.getKeyManagers();
          
          // get trust managers
          String alg = TrustManagerFactory.getDefaultAlgorithm();
          TrustManagerFactory tmf = TrustManagerFactory.getInstance(alg);
          tmf.init(ks);
-         mTrustManagers = tmf.getTrustManagers();
+         
+         // create SSL socket factory
+         createSSLSocketFactory(kmf.getKeyManagers(), tmf.getTrustManagers());
 
          rval = true;
       }
@@ -636,47 +578,53 @@ public class HttpWebClient
    }   
    
    /**
-    * Sets the path to the web service.
-    * 
-    * @param path the path to the web service.
-    */
-   public synchronized void setWebServicePath(String path)
-   {
-      mPath = path;
-   }
-   
-   /**
     * Gets the path to the web service.
     * 
     * @return the path to the web service.
     */
-   public String getWebServicePath()
+   public synchronized String getWebServicePath()
    {
-      return mPath;
+      String rval = null;
+      
+      if(getUrl() != null)
+      {
+         // get the URL path
+         rval = getUrl().getPath();
+      }
+      
+      return rval;
    }
    
    /**
-    * Sets the endpoint address.
+    * Sets the URL to connect to.
     * 
-    * @param endpointAddress the endpoint address for this client.
+    * @param url the URL to connect to.
+    * 
+    * @throws MalformedURLException
     */
-   public synchronized void setEndpointAddress(String endpointAddress)
+   public void setUrl(String url) throws MalformedURLException
    {
-      if(!mEndpointAddress.equals(endpointAddress))
-      {
-         mEndpointAddress = endpointAddress;
-         parseEndpointAddress();
-      }      
-   }   
-
+      setUrl(new URL(url));
+   }
+   
    /**
-    * Gets the endpoint address.
+    * Sets the URL to connect to.
     * 
-    * @return the endpoint address for this client.
+    * @param url the URL to connect to.
     */
-   public String getEndpointAddress()
+   public synchronized void setUrl(URL url)
    {
-      return mEndpointAddress;
+      mUrl = url;
+   }
+   
+   /**
+    * Gets the URL to connect to.
+    *
+    * @return the URl to connect to.
+    */
+   public synchronized URL getUrl()
+   {
+      return mUrl;
    }
    
    /**

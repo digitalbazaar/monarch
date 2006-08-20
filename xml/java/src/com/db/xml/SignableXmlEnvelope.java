@@ -338,16 +338,14 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    }
    
    /**
-    * Attempts to verify that this object was digitally
-    * signed. The passed public key should be a Base64-encoded
-    * string that represents the X.509 encoded public key.
+    * Attempts to verify that this object was digitally signed. The
+    * passed public key should be a base64-DER(X.509)-encoded string.
     *
     * @param publicKeyString the public key to verify the signature.
     * 
     * @return true if verified, false if not.
     */
    public synchronized boolean verify(String publicKeyString)
-
    {
       // obtain the decoded public key and verify
       PublicKey publicKey = KeyManager.decodePublicKey(publicKeyString);
@@ -355,9 +353,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    }
    
    /**
-    * Attempts to verify that this object was digitally
-    * signed. The passed public key should be a Base64-encoded
-    * string that represents the X.509 encoded public key.
+    * Attempts to verify that this object was digitally signed.
     *
     * @param publicKey the public key to verify the signature.
     * 
@@ -367,39 +363,35 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    {
       boolean rval = false;
       
-      // make sure the status is valid
-      if(isValid())
+      // make sure there is a signature
+      if(!mSignature.equals(""))
       {
-         // make sure there is a signature
-         if(!mSignature.equals(""))
+         // make sure there is a public key
+         if(publicKey != null)
          {
-            // make sure there is a public key
-            if(publicKey != null)
+            try
             {
-               try
+               if(!mAlgorithm.startsWith("SHA"))
                {
-                  if(!mAlgorithm.startsWith("SHA"))
-                  {
-                     getLogger().debug(getClass(),
-                        "unknown signature algorithm!," +
-                        "algorithm=" + mAlgorithm);
-                  }
-                  
-                  // base64 decode the signature
-                  Base64Coder decoder = new Base64Coder();
-                  byte[] sig = decoder.decode(mSignature);
-                  
-                  getLogger().detail(getClass(),
-                     "BEGIN VERIFY TEXT:" + mSignText + ":END VERIFY TEXT\n" +
-                     "SIGNATURE: '" + mSignature + "'");
-         
-                  // verify the signature
-                  rval = Cryptor.verify(sig, mSignText, publicKey);
+                  getLogger().debug(getClass(),
+                     "unknown signature algorithm!," +
+                     "algorithm=" + mAlgorithm);
                }
-               catch(Exception e)
-               {
-                  getLogger().debug(getClass(), Logger.getStackTrace(e));
-               }
+               
+               // base64 decode the signature
+               Base64Coder decoder = new Base64Coder();
+               byte[] sig = decoder.decode(mSignature);
+               
+               getLogger().detail(getClass(),
+                  "BEGIN VERIFY TEXT:" + mSignText + ":END VERIFY TEXT\n" +
+                  "SIGNATURE: '" + mSignature + "'");
+      
+               // verify the signature
+               rval = Cryptor.verify(sig, mSignText, publicKey);
+            }
+            catch(Exception e)
+            {
+               getLogger().debug(getClass(), Logger.getStackTrace(e));
             }
          }
       }
@@ -407,6 +399,10 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
       if(!rval)
       {
          setStatus("invalid");
+      }
+      else
+      {
+         setStatus("signed");
       }
 
       return rval;

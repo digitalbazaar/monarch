@@ -4,6 +4,9 @@
 package com.db.net.soap;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -48,18 +51,70 @@ public class SoapWebClient extends HttpWebClient
    protected boolean mUseGZip;
    
    /**
-    * Creates a new soap web client with the endpoint address to connect to.
+    * Creates a new soap web client with no specified endpoint address (URL) to
+    * connect to.
+    * 
+    * @param wsdlPath the path to the wsdl.
+    * @param portType the Wsdl port type to communicate according to.
+    */
+   public SoapWebClient(String wsdlPath, String portType)
+   {
+      mWsdlPath = wsdlPath;
+      mWsdl = null;
+      mPortType = portType;
+      
+      // do not use gzip compression by default
+      useGZip(false);
+   }
+   
+   /**
+    * Creates a new soap web client with the endpoint address (URL)
+    * to connect to.
     * 
     * @param endpointAddress the endpoint address to connect to.
-    * @param wsdlUrl the url to the wsdl.
+    * @param wsdlPath the path to the wsdl.
+    * @param portType the Wsdl port type to communicate according to.
+    * 
+    * @throws MalformedURLException
+    */
+   public SoapWebClient(
+      String endpointAddress, String wsdlPath, String portType)
+   throws MalformedURLException
+   {
+      this(new URL(endpointAddress), wsdlPath, portType);
+   }
+   
+   /**
+    * Creates a new soap web client with the endpoint address (URL)
+    * to connect to.
+    * 
+    * @param endpointAddress the endpoint address to connect to.
+    * @param wsdlPath the path to the wsdl.
+    * @param portType the Wsdl port type to communicate according to.
+    * 
+    * @throws MalformedURLException
+    */
+   public SoapWebClient(
+      URI endpointAddress, String wsdlPath, String portType)
+   throws MalformedURLException
+   {
+      this(endpointAddress.toURL(), wsdlPath, portType);
+   }
+   
+   /**
+    * Creates a new soap web client with the endpoint address (URL)
+    * to connect to.
+    * 
+    * @param endpointAddress the endpoint address to connect to.
+    * @param wsdlPath the path to the wsdl.
     * @param portType the Wsdl port type to communicate according to.
     */
    public SoapWebClient(
-      String endpointAddress, String wsdlUrl, String portType)
+      URL endpointAddress, String wsdlPath, String portType)
    {
       super(endpointAddress);
       
-      mWsdlPath = wsdlUrl;
+      mWsdlPath = wsdlPath;
       mWsdl = null;
       mPortType = portType;
       
@@ -85,7 +140,8 @@ public class SoapWebClient extends HttpWebClient
       request.getHeader().setMethod("POST");
       request.getHeader().setPath(getWebServicePath());
       request.getHeader().setVersion("HTTP/1.1");
-      request.getHeader().setHost(getHost() + ":" + getPort());
+      request.getHeader().setHost(
+         getUrl().getHost() + ":" + getUrl().getPort());
       request.getHeader().setContentType("text/xml; charset=utf-8");
       request.getHeader().setContentLength(body.length);
       request.getHeader().setUserAgent("Digital Bazaar SOAP Client " + VERSION);
@@ -118,9 +174,10 @@ public class SoapWebClient extends HttpWebClient
       request.getHeader().setMethod("GET");
       request.getHeader().setPath(mWsdlPath);
       request.getHeader().setVersion("HTTP/1.1");
-      request.getHeader().setHost(getHost() + ":" + getPort());
-      request.getHeader().setUserAgent("Digital Bazaar SOAP Client " + 
-                                       VERSION);
+      request.getHeader().setHost(
+         getUrl().getHost() + ":" + getUrl().getPort());
+      request.getHeader().setUserAgent(
+         "Digital Bazaar SOAP Client " + VERSION);
       request.getHeader().setConnection("close");
 
       // accept gzip compression
@@ -302,7 +359,7 @@ public class SoapWebClient extends HttpWebClient
                sm.setFaultCode(SoapMessage.FAULT_SERVER);
                sm.setFaultString(
                   "The response could not be received from the server.");
-               sm.setFaultActor(getEndpointAddress());
+               sm.setFaultActor(getUrl().toString());
                   
                // throw a soap fault exception
                throw new SoapFaultException(
@@ -318,7 +375,7 @@ public class SoapWebClient extends HttpWebClient
             sm.setFaultCode(SoapMessage.FAULT_SERVER);
             sm.setFaultString(
                "The request could not be sent to the server.");
-            sm.setFaultActor(getEndpointAddress());
+            sm.setFaultActor(getUrl().toString());
                
             // throw a soap fault exception
             throw new SoapFaultException(
@@ -343,7 +400,7 @@ public class SoapWebClient extends HttpWebClient
          sm.setFaultString(
             "An exception was thrown while processing the soap message " +
             "from the server.");
-         sm.setFaultActor(getEndpointAddress());
+         sm.setFaultActor(getUrl().toString());
             
          // throw a soap fault exception
          throw new SoapFaultException(
@@ -362,7 +419,7 @@ public class SoapWebClient extends HttpWebClient
          sm.setFaultString(
             "An exception was thrown while processing the soap message " +
             "from the server.");
-         sm.setFaultActor(getEndpointAddress());
+         sm.setFaultActor(getUrl().toString());
             
          // throw a soap fault exception
          throw new SoapFaultException(
@@ -421,7 +478,7 @@ public class SoapWebClient extends HttpWebClient
             sm.setFaultCode(SoapMessage.FAULT_SERVER);
             sm.setFaultString(
                "The server could not be reached.");
-            sm.setFaultActor(getEndpointAddress());
+            sm.setFaultActor(getUrl().toString());
             
             // throw a soap fault exception
             throw new SoapFaultException(
@@ -531,28 +588,6 @@ public class SoapWebClient extends HttpWebClient
    }
 
    /**
-    * Sets the endpoint address and wsdl url.
-    * 
-    * @param endpointAddress the endpoint address for this client.
-    * @param wsdlUrl the wsdl url.
-    */
-   public synchronized void setEndpointAddress(
-      String endpointAddress, String wsdlUrl)
-   {
-      if(!mEndpointAddress.equals(endpointAddress))
-      {
-         mEndpointAddress = endpointAddress;
-         parseEndpointAddress();
-      }
-      
-      if(!mWsdlPath.equalsIgnoreCase(wsdlUrl))
-      {
-         mWsdlPath = wsdlUrl;
-         mWsdl = null;
-      }
-   }
-
-   /**
     * Sets whether or not gzip compression should be used when sending
     * soap requests.
     * 
@@ -576,9 +611,9 @@ public class SoapWebClient extends HttpWebClient
    }
    
    /**
-    * Gets the logger.
+    * Gets the logger for this soap web client.
     * 
-    * @return the logger.
+    * @return the logger for this soap web client.
     */
    public Logger getLogger()
    {

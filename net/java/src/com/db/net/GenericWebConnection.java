@@ -124,7 +124,8 @@ public class GenericWebConnection implements WebConnection
     */
    protected void resetSocketTimeout()
    {
-      try
+      // FIXME: uncomment this and fix the bug
+      /*try
       {
          // set read timeout (short timeouts will be caught and tossed if the
          // read timeout for this web connection hasn't been reached)
@@ -134,7 +135,7 @@ public class GenericWebConnection implements WebConnection
       {
          // only thrown if the socket is closed or an invalid timeout was
          // specified, neither of which we are concerned about here
-      }
+      }*/
    }
 
    /**
@@ -410,14 +411,16 @@ public class GenericWebConnection implements WebConnection
          // negotiate an SSL handshake. We use 2 minutes. So, at the most,
          // when terminating a web connection, you'll have to wait for 2
          // minutes.
-         int timeout = getWorkerSocket().getSoTimeout();
-         getWorkerSocket().setSoTimeout(120000);
+         // FIXME: uncomment this and fix bug
+         //int timeout = getWorkerSocket().getSoTimeout();
+         //getWorkerSocket().setSoTimeout(120000);
          
          // do the write
          getWriteStream().write(buffer, offset, numBytes);
          
          // restore socket read timeout
-         getWorkerSocket().setSoTimeout(timeout);
+         // FIXME: uncomment this and fix bug
+         //getWorkerSocket().setSoTimeout(timeout);
          
          // increment offset and decrement length
          offset += numBytes;

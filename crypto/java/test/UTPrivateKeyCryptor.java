@@ -32,7 +32,7 @@ public class UTPrivateKeyCryptor
          // try out PrivateKeyCryptor
          PrivateKeyCryptor pkc = new PrivateKeyCryptor("test.pem", "password");
          
-         if(pkc.generateKeys())
+         if(pkc.generateKeys("DSA"))
          {
             System.out.println("PrivateKeyCryptor generated keys...");
             

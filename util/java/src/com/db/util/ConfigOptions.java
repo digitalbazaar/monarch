@@ -615,17 +615,53 @@ public class ConfigOptions
     */
    public synchronized void readConfigFrom(ConfigOptions config)
    {
+      readConfigFrom(config, true);
+   }
+   
+   /**
+    * Reads the configuration options from the passed configuration
+    * options object into this one. If overwrite is set, then every value
+    * in the passed configuration that has the same value type as this
+    * configuration will be used. If overwrite is not set, only those
+    * values that are new in the passed configuration will be added to
+    * this one.
+    * 
+    * @param config the config options object to read from.
+    * @param overwrite true to overwrite existing options, false to only
+    *                  copy new ones.
+    */
+   public synchronized void readConfigFrom(
+      ConfigOptions config, boolean overwrite)
+   {
       if(config != null)
       {
-         // copy properties
-         Iterator i = config.mProperties.keySet().iterator();
-         while(i.hasNext())
+         if(overwrite)
          {
-            String key = (String)i.next();
-            setValue(key, config.getValue(key));
+            // copy properties
+            for(Iterator i = config.mProperties.keySet().iterator();
+                i.hasNext();)
+            {
+               String key = (String)i.next();
+               setValue(key, config.getValue(key));
+            }
+         }
+         else
+         {
+            // copy properties
+            for(Iterator i = config.mProperties.keySet().iterator();
+                i.hasNext();)
+            {
+               String key = (String)i.next();
+               
+               // only update value if this config doesn't have it
+               if(!hasKey(key))
+               {
+                  setValue(key, config.getValue(key));
+               }
+            }
          }
       }
-   }
+   }   
    
    /**
     * Writes the configuration options in this object to the passed

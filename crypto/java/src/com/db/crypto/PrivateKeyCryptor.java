@@ -285,18 +285,20 @@ public class PrivateKeyCryptor
     * disk.
     * 
     * @param km the key manager to use to generate the key pair.
+    * @param algorithm the algorithm to use (i.e. "DSA" or "RSA").
     * @param password the password to use.
     * 
     * @return true if successful, false if not.
     */
-   protected boolean generateKeysInMemory(KeyManager km, String password)
+   protected boolean generateKeysInMemory(
+      KeyManager km, String algorithm, String password)
    {
       boolean rval = false;
       
       if(password != null)
       {
          // generate a pair of public/private keys
-         if(km.generateKeyPair("DSA"))
+         if(km.generateKeyPair(algorithm))
          {
             // store the new password
             if(storePasswordInMemory(password))
@@ -434,11 +436,13 @@ public class PrivateKeyCryptor
     * password and keyfile in memory. Will overwrite the old keys stored
     * in memory and write the private key to disk.
     * 
+    * @param algorithm the algorithm to use (i.e. "DSA" or "RSA").
     * @return true if successful, false if not.
     */
-   public boolean generateKeys()
+   public boolean generateKeys(String algorithm)
    {
-      return generateKeys(getPrivateKeyFilename(), getDecryptedPassword());
+      return generateKeys(
+         getPrivateKeyFilename(), algorithm, getDecryptedPassword());
    }
    
    /**
@@ -446,13 +450,14 @@ public class PrivateKeyCryptor
     * filename in memory. Will overwrite the old keys stored in memory and
     * write the private key to disk.
     * 
+    * @param algorithm the algorithm to use (i.e. "DSA" or "RSA").
     * @param password the password to use.
     * 
     * @return true if successful, false if not.
     */
-   public boolean generateKeys(String password)
+   public boolean generateKeys(String algorithm, String password)
    {
-      return generateKeys(getPrivateKeyFilename(), password);
+      return generateKeys(getPrivateKeyFilename(), algorithm, password);
    }
    
    /**
@@ -460,11 +465,13 @@ public class PrivateKeyCryptor
     * the old keys stored in memory and save the private key on disk.
     * 
     * @param keyFilename the private key filename to use.
+    * @param algorithm the algorithm to use (i.e. "DSA" or "RSA").
     * @param password the password to use.
     * 
     * @return true if successful, false if not.
     */
-   public boolean generateKeys(String keyFilename, String password)
+   public boolean generateKeys(
+      String keyFilename, String algorithm, String password)
    {
       boolean rval = false;
       
@@ -472,7 +479,7 @@ public class PrivateKeyCryptor
       KeyManager km = new KeyManager();
       
       // generate the keys in memory first
-      if(generateKeysInMemory(km, password))
+      if(generateKeysInMemory(km, algorithm, password))
       {
          // set private key file name
          setPrivateKeyFilename(keyFilename);
@@ -497,11 +504,12 @@ public class PrivateKeyCryptor
     * the old keys stored in memory. The private key will not be written to
     * disk.
     * 
+    * @param algorithm the algorithm to use (i.e. "DSA" or "RSA").
     * @param password the password to use.
     * 
     * @return true if successful, false if not.
     */
-   public boolean generateKeysInMemory(String password)
+   public boolean generateKeysInMemory(String algorithm, String password)
    {
       boolean rval = false;
       
@@ -509,7 +517,7 @@ public class PrivateKeyCryptor
       KeyManager km = new KeyManager();
       
       // generate the keys in memory
-      if(generateKeysInMemory(km, password))
+      if(generateKeysInMemory(km, algorithm, password))
       {
          rval = true;
       }
@@ -579,6 +587,9 @@ public class PrivateKeyCryptor
          }
          else
          {
+            // set the error to the key manager's error
+            setError(km.getError());
+            
             getLogger().debug(getClass(),
                "Could not unlock encrypted PEM private key.");
          }
@@ -785,6 +796,14 @@ public class PrivateKeyCryptor
    public String getPrivateKeyFilename()
    {
       return mKeyFilename;
+   }
+   
+   /**
+    * Clears the private key from memory.
+    */
+   public void clearPrivateKey()
+   {
+      clearPrivateKeyFromMemory();   
    }
    
    /**
