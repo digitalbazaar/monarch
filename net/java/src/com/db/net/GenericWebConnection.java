@@ -94,10 +94,27 @@ implements WebConnection, HandshakeCompletedListener
       // store worker socket
       mWorkerSocket = workerSocket;
       
+      // Note: this code is here temporarily, to handle the JSSE
+      // bug described in the handshake completed listener method
+      // below for this class, it can be removed if this bug is
+      // ever resolved
+      //
       // if this worker socket is an SSL socket, then register a
       // handshake completed listener
       if(mWorkerSocket instanceof SSLSocket)
       {
+         // set a socket timeout of 2 minutes for allowing a handshake to
+         // complete
+         try
+         {
+            mWorkerSocket.setSoTimeout(120000);
+         }
+         catch(SocketException ignore)
+         {
+            // we ignore this -- because our value is correct and if the
+            // socket is closed we don't care
+         }
+         
          ((SSLSocket)mWorkerSocket).addHandshakeCompletedListener(this);
       }
       else
