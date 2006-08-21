@@ -54,6 +54,12 @@ public class SoapWebClient extends HttpWebClient
     * Creates a new soap web client with no specified endpoint address (URL) to
     * connect to.
     * 
+    * FUTURE CODE: The "wsdlPath" should become a full path to a WSDL and the
+    * URL for using the web service should be obtained from the parsed WSDL
+    * and set in this client. If a WSDL is not going to be used, then another
+    * constructor should be specified that allows the web service endpoint to
+    * be set directly.
+    * 
     * @param wsdlPath the path to the wsdl.
     * @param portType the Wsdl port type to communicate according to.
     */
