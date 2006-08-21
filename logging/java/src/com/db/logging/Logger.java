@@ -487,10 +487,10 @@ public class Logger
    }
    
    /**
-    * Sets the maximum log file size. Setting the maximum log file
+    * Sets the maximum log file size (in bytes). Setting the maximum log file
     * size to -1 means that there is no maximum.
     * 
-    * @param fileSize the maximum log file size. -1 for no maximum.
+    * @param fileSize the maximum log file size (in bytes). -1 for no maximum.
     */
    public synchronized void setMaxFileSize(long fileSize)
    {
@@ -499,9 +499,9 @@ public class Logger
    }
    
    /**
-    * Gets the maximum log file size.
+    * Gets the maximum log file size (in bytes).
     * 
-    * @return the max log file size.
+    * @return the max log file size (in bytes).
     */
    public long getMaxFileSize()
    {
