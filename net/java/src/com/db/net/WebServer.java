@@ -221,6 +221,9 @@ public class WebServer
             
             // terminate web connections
             handler.terminateWebConnections();
+            
+            // disconnect web connections
+            handler.disconnectWebConnections();
          }
          
          // server is not running

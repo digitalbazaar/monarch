@@ -295,8 +295,9 @@ public class WebConnectionAcceptor
     */
    public void terminateAllWebConnections()
    {
-      // terminate all threads in the pool
-      getThreadPool().terminateAllThreads();
+      // terminate all threads in the pool, threads have up to 30 seconds
+      // to clean up
+      getThreadPool().terminateAllThreads(30000);
    }
    
    /**

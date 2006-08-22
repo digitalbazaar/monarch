@@ -252,6 +252,9 @@ public class ProxyPortWebServer extends WebServer
             
             // terminate web connections
             handler.terminateWebConnections();
+            
+            // disconnect web connections
+            handler.disconnectWebConnections();
          }
          
          // stop the internal web server
