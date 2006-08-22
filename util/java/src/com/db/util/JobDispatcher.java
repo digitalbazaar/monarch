@@ -234,14 +234,26 @@ public class JobDispatcher implements Runnable
    public synchronized void interruptAllRunningJobs()
    {
       getThreadPool().interruptAllThreads();
-   }   
+   }
    
    /**
-    * Terminates all running Jobs. Queued jobs will not be affected.
+    * Terminates all running Jobs. Queued jobs will not be affected. This
+    * method will wait until all of the threads are joined.
     */
    public synchronized void terminateAllRunningJobs()
    {
       getThreadPool().terminateAllThreads();
+   }   
+   
+   /**
+    * Terminates all running Jobs. Queued jobs will not be affected.
+    * 
+    * @param joinTime the amount of time (in milliseconds) to wait to join
+    *                 the running threads.
+    */
+   public synchronized void terminateAllRunningJobs(long joinTime)
+   {
+      getThreadPool().terminateAllThreads(joinTime);
    }
    
    /**
