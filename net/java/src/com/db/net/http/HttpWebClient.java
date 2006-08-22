@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
@@ -161,36 +162,36 @@ public class HttpWebClient
       
       try
       {
-         // get a socket
-         Socket socket = null;
+         // create an unconnected socket
+         Socket socket = new Socket();
+         
+         // connect the socket with a timeout of 10 seconds
+         InetSocketAddress address = new InetSocketAddress(
+            url.getHost(), url.getPort());
+         socket.connect(address, 10000);
          
          if(url.getProtocol().equals("https"))
          {
-            // create ssl socket
+            // wrap the socket with an SSL socket
             socket = getSSLSocketFactory().createSocket(
-               url.getHost(), url.getPort());
+               socket, url.getHost(), url.getPort(), true);
             
             // set the enabled cipher suites
             String[] suites = getSSLSocketFactory().getSupportedCipherSuites();
             ((SSLSocket)socket).setEnabledCipherSuites(suites);
          }
-         else
-         {
-            // create a regular socket
-            socket = new Socket(url.getHost(), url.getPort());
-         }
          
          // create web connection
          hwc = new HttpWebConnection(socket);
          
-         getLogger().debug(getClass(),
-            "connected to: " +
-            url.getProtocol() + "://" + url.getHost() + ":" + url.getPort());
+         getLogger().debug(getClass(), "connected to: " + url.toString());
       }
       catch(Throwable t)
       {
          getLogger().debug(getClass(), 
-            "could not establish an http web connection.");
+            "could not establish an http web connection" +
+            ",url='" + url.toString() + "'" +
+            ",reason=" + t);
          getLogger().debug(getClass(), LoggerManager.getStackTrace(t));
          
          if(hwc != null)
@@ -253,31 +254,18 @@ public class HttpWebClient
       {
          getLogger().debug(getClass(), 
             "trying to establish an http web connection to '" +
-            url.toString() + "'...");
-      
+            url + "'...");
+            
          // try to get a web connection
          wc = getWebConnection(url);
          
-         // keep trying to get a web connection -- up to 10 times total
-         int tries = 10;
-         for(int i = 1; i < tries && wc == null &&
+         // try twice more if a web connection could not be established
+         for(int i = 0; i < 2 && wc == null &&
              !Thread.currentThread().isInterrupted(); i++)
          {
-            try
-            {
-               // sleep for a bit before trying again
-               Thread.sleep(1000);
-            }
-            catch(InterruptedException e)
-            {
-               // keep current thread interrupted
-               Thread.currentThread().interrupt();
-            }
-            
-            // try to get a web connection again
             wc = getWebConnection(url);
          }
-      
+            
          if(wc != null)
          {
             getLogger().debug(getClass(),
@@ -287,13 +275,14 @@ public class HttpWebClient
          else
          {
             getLogger().error(getClass(), 
-               "could not establish an http web connection!");
+               "could not establish an http web connection!,url=" + url);
          }
       }
       else
       {
          getLogger().error(getClass(), 
-            "could not establish an http web connection! URL was null!");
+            "could not establish an http web connection! " +
+            "URL was null or blank!");
       }
       
       return wc;
