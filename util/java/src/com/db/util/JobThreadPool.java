@@ -328,9 +328,21 @@ public class JobThreadPool
    }
 
    /**
-    * Interrupts all threads in this pool and removes them.
+    * Interrupts all threads in this pool and removes them. This method waits
+    * indefinitely to join the threads.
     */
    public synchronized void terminateAllThreads()
+   {
+      terminateAllThreads(0);
+   }
+
+   /**
+    * Interrupts all threads in this pool and removes them.
+    *
+    * @param joinTime the maximum amount of time (in milliseconds) to wait to
+    *                 join the threads. 
+    */
+   public synchronized void terminateAllThreads(long joinTime)
    {
       // interrupt all the threads
       interruptAllThreads();
@@ -345,7 +357,7 @@ public class JobThreadPool
             JobThread thread = (JobThread)i.next();
             
             // join thread
-            thread.join();
+            thread.join(joinTime);
             
             // remove thread
             i.remove();
