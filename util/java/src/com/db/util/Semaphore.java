@@ -4,6 +4,7 @@
 package com.db.util;
 
 import java.util.Collection;
+import java.util.Random;
 import java.util.Vector;
 
 /**
@@ -28,17 +29,16 @@ public class Semaphore
     * True if this semaphore guarantees FIFO, false if not.
     */
    protected boolean mFair;
+   
+   /**
+    * A random number generator for unfair releasing of waiting threads.
+    */
+   protected Random mRandom;
 
    /**
     * The threads that may be waiting to acquire a permit.
     */
    protected Vector mWaitingThreads;
-   
-   /**
-    * This condition is set to true when threads must wait,
-    * and false when threads are being notified to wake up.
-    */
-   protected boolean mMustWait;
    
    /**
     * The lock object. This is the object to synchronize on when
@@ -61,12 +61,12 @@ public class Semaphore
       
       // set fair/not fair
       mFair = fair;
+      
+      // create random
+      mRandom = new Random();
 
       // create threads vector
       mWaitingThreads = new Vector();
-      
-      // set must wait to false
-      mMustWait = false;
       
       // create lock object
       mLockObject = new Object();
@@ -113,15 +113,13 @@ public class Semaphore
       // add thread to waiting threads
       addWaitingThread(Thread.currentThread());
       
-      // thread must wait
-      mMustWait = true;
-      
       try
       {
          // synchronize on lock object
          synchronized(mLockObject)
          {
-            while(mMustWait)
+            // wait while in the list of waiting threads
+            while(mustWait(Thread.currentThread()))
             {
                mLockObject.wait();
             }
@@ -129,6 +127,9 @@ public class Semaphore
       }
       catch(InterruptedException e)
       {
+         // maintain interrupted status
+         Thread.currentThread().interrupt();
+         
          // notify threads
          notifyThreads();
          
@@ -138,9 +139,6 @@ public class Semaphore
          // throw exception
          throw e;
       }
-      
-      // remove waiting thread
-      removeWaitingThread(Thread.currentThread());
    }
    
    /**
@@ -148,24 +146,22 @@ public class Semaphore
     */
    protected synchronized void notifyThreads()
    {
-      // thread(s) are being notified to stop waiting
-      mMustWait = false;
-      
       if(isFair())
       {
-         // synchronize on lock object
-         synchronized(mLockObject)
-         {
-            mLockObject.notify();
-         }
+         // remove the first waiting thread
+         removeFirstWaitingThread();
       }
       else
       {
-         // synchronize on lock object
-         synchronized(mLockObject)
-         {
-            mLockObject.notifyAll();
-         }
+         // remove a random waiting thread
+         removeRandomWaitingThread();
+      }
+
+      // synchronize on lock object
+      synchronized(mLockObject)
+      {
+         // notify all threads to wake up
+         mLockObject.notifyAll();
       }
    }
    
@@ -193,6 +189,49 @@ public class Semaphore
    {
       // remove thread
       mWaitingThreads.remove(thread);
+   }
+   
+   /**
+    * Removes the first waiting thread from the queue of waiting threads,
+    * if at least one thread is waiting. 
+    */
+   protected synchronized void removeFirstWaitingThread()
+   {
+      if(mWaitingThreads.size() > 0)
+      {
+         // remove first thread
+         mWaitingThreads.remove(0);
+      }
+   }
+
+   /**
+    * Removes a pseudo-random waiting thread from the queue of waiting threads,
+    * if at least one thread is waiting.
+    */
+   protected synchronized void removeRandomWaitingThread()
+   {
+      if(mWaitingThreads.size() > 0)
+      {
+         // get a random index
+         int index = mRandom.nextInt(mWaitingThreads.size());
+         
+         // remove the thread
+         mWaitingThreads.remove(index);
+      }
+   }
+   
+   /**
+    * Returns true if the passed thread is in the list of waiting threads,
+    * and therefore must wait, false if not.
+    *
+    * @param thread the thread to check.
+    * 
+    * @return true if the thread is in the list of waiting threads, and
+    *         therefore must wait, false if not.
+    */
+   protected synchronized boolean mustWait(Thread thread)
+   {
+      return mWaitingThreads.contains(thread);
    }
 
    /**
