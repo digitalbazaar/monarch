@@ -489,12 +489,10 @@ public class TabPanel extends JPanel
       
       if(!UIManager.getLookAndFeel().isNativeLookAndFeel())
       {
-         System.out.println("not native");
          rval = UIManager.getColor("TabbedPane.darkShadow");         
       }
       else
       {
-         System.out.println("native");
          rval = UIManager.getColor("controlDkShadow");         
       }
       
