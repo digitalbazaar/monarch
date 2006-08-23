@@ -311,8 +311,14 @@ public class TabPanel extends JPanel
       // set tab content insets
       mTabContentInsets = new Insets(4, 3, 3, 3);
       
-      // set the background color
-      setBackground(getShadowColor());//getContentAreaColor());
+      // set the background color (90% of unselected color -- darker)
+      double factor = 0.9;
+      Color background = new Color(
+         Math.max((int)(getUnselectedColor().getRed() * factor), 0), 
+         Math.max((int)(getUnselectedColor().getGreen() * factor), 0),
+         Math.max((int)(getUnselectedColor().getBlue() * factor), 0),
+         getUnselectedColor().getAlpha());      
+      setBackground(background);
       
       // make double buffered
       setDoubleBuffered(true);
@@ -2809,7 +2815,7 @@ public class TabPanel extends JPanel
          
          if(!isSelected)
          {
-            g.setColor(getShadowColor());
+            g.setColor(getBackground());
             g.drawLine(left, top - 2, right, top - 2);
             g.drawLine(left, top - 1, right, top - 1);
             g.drawLine(left, top, right, top);
