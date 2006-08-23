@@ -30,6 +30,9 @@ public abstract class WizardPageView extends JPanel
       
       // add bevelled border by default
       setBorder(BorderFactory.createLoweredBevelBorder());
+      
+      // set to transparent by default
+      setOpaque(false);
    }
    
    /**

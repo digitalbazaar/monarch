@@ -385,11 +385,11 @@ public class TabPanel extends JPanel
       
       if(!UIManager.getLookAndFeel().isNativeLookAndFeel())
       {
-         rval = UIManager.getColor("TabbedPane.contentAreaColor");         
+         rval = UIManager.getColor("TabbedPane.contentAreaColor");
       }
       else
       {
-         rval = UIManager.getColor("control");         
+         rval = UIManager.getColor("control");
       }
       
       if(rval == null)
@@ -489,10 +489,12 @@ public class TabPanel extends JPanel
       
       if(!UIManager.getLookAndFeel().isNativeLookAndFeel())
       {
+         System.out.println("not native");
          rval = UIManager.getColor("TabbedPane.darkShadow");         
       }
       else
       {
+         System.out.println("native");
          rval = UIManager.getColor("controlDkShadow");         
       }
       
@@ -531,29 +533,13 @@ public class TabPanel extends JPanel
    }    
    
    /**
-    * Gets the selected color.
+    * Gets the selected color (the color for selected tabs).
     * 
-    * @return the selected color.
+    * @return the selected color (the color for selected tabs).
     */
    protected Color getSelectedColor()
    {
-      Color rval = null;
-      
-      if(!UIManager.getLookAndFeel().isNativeLookAndFeel())
-      {
-         rval = UIManager.getColor("TabbedPane.selected");         
-      }
-      else
-      {
-         rval = UIManager.getColor("controlHighlight");         
-      }
-      
-      if(rval == null)
-      {
-         rval = Color.lightGray;
-      }
-      
-      return rval;
+      return getContentAreaColor();
    }
    
    /**

@@ -117,9 +117,11 @@ public class WizardView extends JPanel implements ActionListener
                       {0,1}, {1,1}, {2,1}, {3,1}}; // glue & buttons
       LayeredLayout ll = new LayeredLayout(plot);
       setLayout(ll);
+      setOpaque(false);
       
       // set up wizard pages panel
       mWizardPagesPanel = new JPanel();
+      mWizardPagesPanel.setOpaque(false);
       mWizardPagesLayout = new CardLayout();
       mWizardPagesPanel.setLayout(mWizardPagesLayout);
       
