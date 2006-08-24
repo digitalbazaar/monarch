@@ -8,8 +8,13 @@ import org.w3c.dom.Element;
 /**
  * An interface that allows an object to be serialized to
  * and from XML.
+ * 
+ * FUTURE CODE: This interface is quite clunky and doesn't take advantage
+ * of any good xml parsing technology. We want to move away from it in
+ * the future.
  *  
- * @author dlongley
+ * @author Dave Longley
+ * @author Manu Sporny
  */
 public interface IXmlSerializer
 {
