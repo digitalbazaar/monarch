@@ -877,7 +877,7 @@ public class SoapMessage extends AbstractXmlSerializer
       // FUTURE CODE: the current implementation makes some assumptions about
       // soap encoding and so forth -- the same ones made by the Wsdl class
       element.addAttribute(
-         "soap", ENVELOPE_NAMESPACE_URI, "xmlns", Wsdl.WSDL_NAMESPACE_URI);
+         "soapenv", ENVELOPE_NAMESPACE_URI, "xmlns", Wsdl.WSDL_NAMESPACE_URI);
       element.addAttribute(
          "xsd", XSD_NAMESPACE_URI, "xmlns", Wsdl.WSDL_NAMESPACE_URI);
       element.addAttribute(
@@ -889,11 +889,11 @@ public class SoapMessage extends AbstractXmlSerializer
          "xmlns", Wsdl.WSDL_NAMESPACE_URI);
       element.addAttribute(
          "encodingStyle", ENCODING_NAMESPACE_URI,
-         "soap", ENVELOPE_NAMESPACE_URI);
+         "soapenv", ENVELOPE_NAMESPACE_URI);
       
       // create the envelope's body element
       XmlElement bodyElement = new XmlElement(
-         "Body", "soap", ENVELOPE_NAMESPACE_URI);
+         "Body", "soapenv", ENVELOPE_NAMESPACE_URI);
       
       if(isRequest())
       {
@@ -952,11 +952,11 @@ public class SoapMessage extends AbstractXmlSerializer
       {
          // convert the fault
          XmlElement faultElement = new XmlElement(
-            "Fault", "soap", ENVELOPE_NAMESPACE_URI);
+            "Fault", "soapenv", ENVELOPE_NAMESPACE_URI);
          
          // faultcode
          XmlElement faultcodeElement = new XmlElement("faultcode");
-         faultcodeElement.setValue("soap:" + getFaultCode());
+         faultcodeElement.setValue("soapenv:" + getFaultCode());
          faultElement.addChild(faultcodeElement);
          
          // fault string
