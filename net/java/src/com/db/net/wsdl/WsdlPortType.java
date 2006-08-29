@@ -6,12 +6,10 @@ package com.db.net.wsdl;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.w3c.dom.Element;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
-import com.db.xml.ElementReader;
+import com.db.xml.XmlElement;
 
 /**
  * A WSDL Port Type.
@@ -24,6 +22,11 @@ import com.db.xml.ElementReader;
 public class WsdlPortType extends AbstractXmlSerializer
 {
    /**
+    * The WSDL this port type is associated with.
+    */
+   protected Wsdl mWsdl;
+   
+   /**
     * The name of this port type.
     */
    protected String mName;
@@ -35,21 +38,37 @@ public class WsdlPortType extends AbstractXmlSerializer
    
    /**
     * Creates a new blank WsdlPortType.
+    * 
+    * @param wsdl the WSDL this port type is associated with.
     */
-   public WsdlPortType()
+   public WsdlPortType(Wsdl wsdl)
    {
-      this("");
+      this(wsdl, "");
    }
    
    /**
     * Creates a new WsdlPortType with the given name.
     * 
+    * @param wsdl the WSDL this port type is associated with.
     * @param name the name of this port type.
     */
-   public WsdlPortType(String name)
+   public WsdlPortType(Wsdl wsdl, String name)
    {
+      // store wsdl
+      mWsdl = wsdl;
+      
       // store name
       setName(name);
+   }
+   
+   /**
+    * Gets the wsdl this operation is associated with.
+    * 
+    * @return the wsdl this operation is associated with.
+    */
+   public Wsdl getWsdl()
+   {
+      return mWsdl;
    }
    
    /**
@@ -99,58 +118,37 @@ public class WsdlPortType extends AbstractXmlSerializer
    }
    
    /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
+    * Creates an XmlElement from this object.
     *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    *                    
-    * @return the xml-based representation of the object.
+    * @return the XmlElement that represents this object.
     */
-   public String convertToXml(int indentLevel)
+   public XmlElement convertToXmlElement()
    {
-      StringBuffer xml = new StringBuffer();
+      // create xml element
+      XmlElement element = new XmlElement(getRootTag());
       
-      // build indent string
-      StringBuffer indent = new StringBuffer("\n");
-      for(int i = 0; i < indentLevel; i++)
-      {
-         indent.append(' ');
-      }
-
-      // start tag
-      xml.append(indent);
-      xml.append('<');
-      xml.append(getRootTag());
-      xml.append(" name=\"");
-      xml.append(getName());
-      xml.append("\">");
+      // add attributes
+      element.addAttribute("name", getName());
       
       // operations
       for(Iterator i = getOperations().iterator(); i.hasNext();)
       {
          WsdlPortTypeOperation operation = (WsdlPortTypeOperation)i.next();
-         xml.append(operation.convertToXml(indentLevel + 1));
+         element.addChild(operation.convertToXmlElement());
       }
       
-      // end tag
-      xml.append(indent);
-      xml.append("</");
-      xml.append(getRootTag());
-      xml.append('>');
-      
-      return xml.toString();
+      // return element
+      return element;      
    }
    
    /**
-    * This method takes a parsed DOM XML element and converts it
-    * back into this object's representation.
+    * Converts this object from an XmlElement.
     *
-    * @param element the parsed element that contains this objects information.
+    * @param element the XmlElement to convert from.
     * 
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXml(Element element)
+   public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
       
@@ -160,19 +158,18 @@ public class WsdlPortType extends AbstractXmlSerializer
       // clear operations
       getOperations().clear();
 
-      // get element reader
-      ElementReader er = new ElementReader(element);
-      if(er.getTagName().equals(getRootTag()))
+      if(element.getName().equals(getRootTag()))
       {
          // get name
-         setName(er.getStringAttribute("name"));
+         setName(element.getAttributeValue("name"));
          
          // read operations
-         for(Iterator i = er.getElements("operation").iterator(); i.hasNext();)
+         for(Iterator i = element.getChildren("operation").iterator();
+             i.hasNext();)
          {
-            Element e = (Element)i.next();
-            WsdlPortTypeOperation operation = new WsdlPortTypeOperation();
-            if(operation.convertFromXml(e))
+            XmlElement child = (XmlElement)i.next();
+            WsdlPortTypeOperation operation = new WsdlPortTypeOperation(this);
+            if(operation.convertFromXmlElement(child))
             {
                // operation converted, add it
                getOperations().add(operation);
@@ -185,10 +182,10 @@ public class WsdlPortType extends AbstractXmlSerializer
             // conversion successful
             rval = true;
          }
-      }
+      }      
       
       return rval;
-   }
+   }   
    
    /**
     * Gets the logger.
@@ -251,6 +248,10 @@ public class WsdlPortType extends AbstractXmlSerializer
       public WsdlPortTypeOperation getOperation(String name)
       {
          WsdlPortTypeOperation rval = null;
+         
+         // FIXME: we need to check namespaces
+         // strip off the namespace prefix
+         name = XmlElement.getBasicName(name);
          
          for(Iterator i = iterator(); i.hasNext() && rval == null;) 
          {

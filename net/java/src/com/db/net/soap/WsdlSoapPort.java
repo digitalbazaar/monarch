@@ -3,14 +3,12 @@
  */
 package com.db.net.soap;
 
-import org.w3c.dom.Element;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.net.wsdl.Wsdl;
 import com.db.net.wsdl.WsdlBinding;
 import com.db.net.wsdl.WsdlPort;
-import com.db.xml.ElementReader;
+import com.db.xml.XmlElement;
 
 /**
  * A WSDL Soap Port.
@@ -84,53 +82,34 @@ public class WsdlSoapPort extends WsdlPort
    }
    
    /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
+    * Creates an XmlElement from this object.
     *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    *                    
-    * @return the xml-based representation of the object.
+    * @return the XmlElement that represents this object.
     */
-   public String convertToXml(int indentLevel)
+   public XmlElement convertToXmlElement()
    {
-      StringBuffer xml = new StringBuffer();
+      // create the base port xml element
+      XmlElement element = createPortXmlElement();
       
-      // build indent string
-      StringBuffer indent = new StringBuffer("\n");
-      for(int i = 0; i < indentLevel; i++)
-      {
-         indent.append(' ');
-      }
-
-      // start tag
-      xml.append(indent);
-      xml.append(getPortOpeningTagXml());
+      // add the soap address element
+      XmlElement soapAddressElement = new XmlElement(
+         "address", "soap", Wsdl.WSDL_SOAP_NAMESPACE_URI);
+      soapAddressElement.addAttribute("location", getUri());
+      soapAddressElement.addAttribute("xmlns", Wsdl.WSDL_NAMESPACE_URI);
+      element.addChild(soapAddressElement);
       
-      // soap address
-      xml.append(indent);
-      xml.append(
-         "<soap:address location=\"" + getUri() + "\" " +
-         "xmlns=\"" + Wsdl.WSDL_NAMESPACE + "\"/>");
-      
-      // end tag
-      xml.append(indent);
-      xml.append("</");
-      xml.append(getRootTag());
-      xml.append('>');
-      
-      return xml.toString();      
+      // return element
+      return element;      
    }
    
    /**
-    * This method takes a parsed DOM XML element and converts it
-    * back into this object's representation.
+    * Converts this object from an XmlElement.
     *
-    * @param element the parsed element that contains this objects information.
+    * @param element the XmlElement to convert from.
     * 
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXml(Element element)
+   public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
       
@@ -140,18 +119,20 @@ public class WsdlSoapPort extends WsdlPort
       // clear uri
       setUri("");
       
-      // get element reader
-      ElementReader er = new ElementReader(element);
-      if(er.getTagName().equals(getRootTag()))
+      if(element.getName().equals(getRootTag()))
       {
          // get name
-         setName(er.getStringAttribute("name"));
+         setName(element.getAttributeValue("name"));
          
-         // get reader for soap address
-         ElementReader reader = er.getFirstElementReader("soap:address");
-         if(reader != null)
+         // get soap namespace prefix
+         String soapNs = element.findNamespace(Wsdl.WSDL_SOAP_NAMESPACE_URI);
+         
+         // get soap address element
+         XmlElement soapAddressElement = element.getFirstChild(
+            "address", soapNs);
+         if(soapAddressElement != null)
          {
-            setUri(reader.getStringAttribute("location"));
+            setUri(soapAddressElement.getAttributeValue("location"));
             
             // ensure there is a name
             if(!getName().equals(""))            
@@ -163,7 +144,7 @@ public class WsdlSoapPort extends WsdlPort
       }
       
       return rval;
-   }
+   }   
    
    /**
     * Gets the logger.

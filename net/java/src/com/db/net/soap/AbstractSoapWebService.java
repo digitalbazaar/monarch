@@ -403,23 +403,23 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
    }
    
    /**
-    * Sets the namespace for the web service.
+    * Sets the namespace URI for the web service.
     * 
-    * @param namespace the web service.
+    * @param namespaceUri URI the web service.
     */
-   public void setNamespace(String namespace)
+   public void setNamespaceUri(String namespaceUri)
    {
-      getWsdl().setTargetNamespace(namespace);
+      getWsdl().setTargetNamespaceUri(namespaceUri);
    }
    
    /**
-    * Gets the namespace for the web service.
+    * Gets the namespace URI for the web service.
     * 
-    * @return the namespace for the web service.
+    * @return the namespace URI for the web service.
     */
-   public String getNamespace()
+   public String getNamespaceUri()
    {
-      return getWsdl().getTargetNamespace();
+      return getWsdl().getTargetNamespaceUri();
    }
    
    /**

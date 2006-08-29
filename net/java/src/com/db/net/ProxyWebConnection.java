@@ -101,6 +101,10 @@ public class ProxyWebConnection extends GenericWebConnection
          {
             // socket closed
          }
+         else if(message.indexOf("software caused connection abort") != -1)
+         {
+            // connection aborted by software
+         }
          else if(message.indexOf("connection reset") == -1)
          {
             // not connection reset, there was an error, so display error

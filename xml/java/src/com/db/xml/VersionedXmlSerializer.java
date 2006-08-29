@@ -3,8 +3,6 @@
  */
 package com.db.xml;
 
-import org.w3c.dom.Element;
-
 import com.db.logging.Logger;
 
 /**
@@ -59,25 +57,47 @@ public abstract class VersionedXmlSerializer extends AbstractXmlSerializer
    public abstract String getRootTag();
    
    /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
+    * Creates an XmlElement from this object.
     *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    *                    
-    * @return the XML-based representation of the object.
+    * @return the XmlElement that represents this object.
     */
-   public abstract String convertToXml(int indentLevel);
+   public XmlElement convertToXmlElement()
+   {
+      // create xml element
+      XmlElement element = new XmlElement();
+      
+      // set name
+      element.setName(getRootTag());
 
+      // add version attribute
+      element.getAttributeMap().addAttribute("version", getVersion());
+      
+      // return element
+      return element;
+   }
+   
    /**
-    * This method takes a parsed DOM XML element and converts it
-    * back into this object's representation.
+    * Converts this object from an XmlElement.
     *
-    * @param element the parsed element that contains this objects information.
+    * @param element the XmlElement to convert from.
     * 
     * @return true if successful, false otherwise.
     */
-   public abstract boolean convertFromXml(Element element);
+   public boolean convertFromXmlElement(XmlElement element)   
+   {
+      boolean rval = false;
+
+      if(element != null && element.getAttributeMap().hasAttribute("version"))
+      {
+         // convert version element
+         setVersion(element.getAttributeMap().getAttributeValue("version"));
+         
+         // version attribute exists
+         rval = true;
+      }
+      
+      return rval;
+   }
    
    /**
     * Gets the logger for this xml serializer.

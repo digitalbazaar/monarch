@@ -7,8 +7,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
 
-import org.w3c.dom.Element;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.net.http.HttpBodyPartHeader;
@@ -20,8 +18,7 @@ import com.db.net.wsdl.WsdlMessagePart;
 import com.db.net.wsdl.WsdlPortType;
 import com.db.net.wsdl.WsdlPortTypeOperation;
 import com.db.xml.AbstractXmlSerializer;
-import com.db.xml.ElementReader;
-import com.db.xml.XmlCoder;
+import com.db.xml.XmlElement;
 
 /**
  * This class represents a SOAP message.
@@ -38,31 +35,31 @@ public class SoapMessage extends AbstractXmlSerializer
    /**
     * The xml schema for a soap message (the xsd).
     */
-   public static final String XSD_NAMESPACE =
+   public static final String XSD_NAMESPACE_URI =
       "http://www.w3.org/2001/XMLSchema";
    
    /**
     * The xml schema instance for a soap message.
     */
-   public static final String XSI_NAMESPACE =
+   public static final String XSI_NAMESPACE_URI =
       "http://www.w3.org/2001/XMLSchema-instance";
 
    /**
     * The soap namespace.
     */
-   public static final String SOAP_NAMESPACE =
+   public static final String SOAP_NAMESPACE_URI =
       "http://schemas.xmlsoap.org/wsdl/soap/";
 
    /**
     * The encoding schema.
     */
-   public static final String ENCODING_SCHEMA =
+   public static final String ENCODING_NAMESPACE_URI =
       "http://schemas.xmlsoap.org/soap/encoding/";
 
    /**
     * The envelope schema.
     */
-   public static final String ENVELOPE_SCHEMA =
+   public static final String ENVELOPE_NAMESPACE_URI =
       "http://schemas.xmlsoap.org/soap/envelope/";
    
    /**
@@ -222,7 +219,8 @@ public class SoapMessage extends AbstractXmlSerializer
       if(mPortTypeOperation == null)
       {
          throw new IllegalArgumentException(
-            "Method is not valid for the given Wsdl Port Type!");
+            "Method is not valid for the given Wsdl Port Type!" +
+            ",method=" + method);
       }
    }
    
@@ -301,47 +299,53 @@ public class SoapMessage extends AbstractXmlSerializer
    }
    
    /**
-    * Converts a soap fault from an XML element reader pointing to the
-    * soap message body.
+    * Converts a soap fault from an XmlElement.
     * 
-    * @param reader the element reader.
+    * @param element the XmlElement to convert from.
     */
-   protected void convertSoapFaultFromXml(ElementReader reader)
+   protected void convertSoapFaultFromXmlElement(XmlElement element)
    {
-      // get fault code, fault string, and fault actor
-      ElementReader r = null;
-      
-      r = reader.getFirstElementReader("faultcode");
-      if(r != null)
+      // get the fault code element
+      XmlElement faultcodeElement = element.getFirstChild("faultcode");
+      if(faultcodeElement != null)
       {
-         String[] split = r.getStringValue().split(":");
+         // FIXME: this is a hack to remove any namespace prefix
+         String[] split = faultcodeElement.getValue().split(":");
          if(split.length > 1)
          {
             setFaultCode(split[1]);
          }
+         else
+         {
+            setFaultCode(faultcodeElement.getValue());
+         }
       }
       
-      r = reader.getFirstElementReader("faultstring");
-      if(r != null)
+      // get the fault string element
+      XmlElement faultstringElement = element.getFirstChild("faultcode");
+      if(faultstringElement != null)
       {
-         setFaultString(r.getStringValue());
+         setFaultString(faultstringElement.getValue());
       }
-
-      r = reader.getFirstElementReader("faultactor");
-      if(r != null)
+      
+      // get the fault actor element
+      XmlElement faultactorElement = element.getFirstChild("faultcode");
+      if(faultactorElement != null)
       {
-         setFaultActor(r.getStringValue());
+         setFaultActor(faultactorElement.getValue());
       }
    }
    
    /**
-    * Converts a soap request from an XML element reader pointing to the
-    * soap message body.
+    * Converts a soap request from an XmlElement.
     * 
-    * @param reader the element reader.
+    * @param element the XmlElement to convert from.
     */
-   protected void convertSoapRequestFromXml(ElementReader reader)
+   protected void convertSoapRequestFromXmlElement(XmlElement element)
    {
+      // set the method name to the basic element name
+      setMethod(XmlElement.getBasicName(element.getName()));
+      
       // get the request message
       WsdlMessage message = getRequestMessage();
       
@@ -351,17 +355,17 @@ public class SoapMessage extends AbstractXmlSerializer
       {
          // iterate through the parts of the message
          int count = 0;
-         for(Iterator i = reader.getElementReaders().iterator();
+         for(Iterator i = element.getChildren().iterator();
              i.hasNext(); count++)
          {
-            ElementReader partReader = (ElementReader)i.next();
+            XmlElement partElement = (XmlElement)i.next();
             
             // get the appropriate message part
             WsdlMessagePart part = message.getParts().getPart(
-               partReader.getTagName());
+               partElement.getName());
             
             // get the parameter value
-            String value = partReader.getStringValue();
+            String value = partElement.getValue();
             
             getLogger().debug(getClass(), "soap method parameter found.");
             getLogger().debugData(getClass(), 
@@ -383,12 +387,11 @@ public class SoapMessage extends AbstractXmlSerializer
    }
    
    /**
-    * Converts a soap response from an XML element reader pointing to the
-    * soap message body.
+    * Converts a soap response from an XmlElement.
     * 
-    * @param reader the element reader.
+    * @param element the XmlElement to convert from.
     */
-   protected void convertSoapResponseFromXml(ElementReader reader)   
+   protected void convertSoapResponseFromXmlElement(XmlElement element)   
    {
       // get the response message
       WsdlMessage message = getResponseMessage();
@@ -400,17 +403,17 @@ public class SoapMessage extends AbstractXmlSerializer
       {
          // iterate through the parts of the message
          int count = 0;
-         for(Iterator i = reader.getElementReaders().iterator();
+         for(Iterator i = element.getChildren().iterator();
              i.hasNext(); count++)
          {
-            ElementReader partReader = (ElementReader)i.next();
+            XmlElement partElement = (XmlElement)i.next();
             
             // get the appropriate message part
             WsdlMessagePart part = message.getParts().getPart(
-               partReader.getTagName());
+               partElement.getName());
             
             // get the parameter value
-            String value = partReader.getStringValue();
+            String value = partElement.getValue();
             
             getLogger().debug(getClass(), "soap method result found.");
             getLogger().debugData(getClass(), 
@@ -858,175 +861,179 @@ public class SoapMessage extends AbstractXmlSerializer
    {
       // this is according to the set schema (env)
       return "Envelope";
-   }   
-
+   }
+   
    /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
+    * Creates an XmlElement from this object.
     *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    *                    
-    * @return the xml-based representation of the object.
+    * @return the XmlElement that represents this object.
     */
-   public String convertToXml(int indentLevel)
+   public XmlElement convertToXmlElement()
    {
+      // create xml element
+      XmlElement element = new XmlElement(
+         getRootTag(), "soap", Wsdl.WSDL_NAMESPACE_URI);
+      
       // FUTURE CODE: the current implementation makes some assumptions about
-      // soap encoding and so forth -- the same ones made by the Wsdl class  
-      StringBuffer xml = new StringBuffer();
-
-      if(indentLevel == 0)
-      {
-         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-      }
+      // soap encoding and so forth -- the same ones made by the Wsdl class
+      element.addAttribute(
+         "soap", ENVELOPE_NAMESPACE_URI, "xmlns", Wsdl.WSDL_NAMESPACE_URI);
+      element.addAttribute(
+         "xsd", XSD_NAMESPACE_URI, "xmlns", Wsdl.WSDL_NAMESPACE_URI);
+      element.addAttribute(
+         "xsi", XSI_NAMESPACE_URI, "xmlns", Wsdl.WSDL_NAMESPACE_URI);
+      element.addAttribute(
+         "enc", ENCODING_NAMESPACE_URI, "xmlns", Wsdl.WSDL_NAMESPACE_URI);
+      element.addAttribute(
+         "tns", getWsdl().getTargetNamespaceUri(),
+         "xmlns", Wsdl.WSDL_NAMESPACE_URI);
+      element.addAttribute(
+         "encodingStyle", ENCODING_NAMESPACE_URI,
+         "soap", ENVELOPE_NAMESPACE_URI);
       
-      xml.append("<soap:Envelope xmlns:soap=\"" + ENVELOPE_SCHEMA + "\" ");
-      xml.append("xmlns:xsd=\"" + XSD_NAMESPACE + "\" ");
-      xml.append("xmlns:xsi=\"" + XSI_NAMESPACE + "\" ");
-      xml.append("xmlns:enc=\"" + ENCODING_SCHEMA + "\" ");
-      xml.append("xmlns:tns=\"" + getWsdl().getTargetNamespace() + "\" ");
-      xml.append("soap:encodingStyle=\"" + ENCODING_SCHEMA +"\">");
+      // create the envelope's body element
+      XmlElement bodyElement = new XmlElement(
+         "Body", "soap", ENVELOPE_NAMESPACE_URI);
       
-      // add the envelope's body
-      xml.append("<soap:Body>");
-
       if(isRequest())
       {
          // get the request message
          WsdlMessage message = getRequestMessage();
          
-         xml.append("<tns:" + getPortTypeOperation().getName() + ">");
+         // create the operation element
+         XmlElement operationElement = new XmlElement(
+            getPortTypeOperation().getName(),
+            "tns", getWsdl().getTargetNamespaceUri());
          
          // convert the parameters
          int count = 0;
          for(Iterator i = message.getParts().iterator(); i.hasNext(); count++)
          {
             WsdlMessagePart part = (WsdlMessagePart)i.next();
-            xml.append("<" + part.getName() + ">");
-            xml.append(XmlCoder.encode("" + getParameters()[count]));
-            xml.append("</" + part.getName() + ">");
+            
+            // create part element
+            XmlElement partElement = new XmlElement(part.getName());
+            partElement.setValue("" + getParameters()[count]);
+            
+            // add part element to operation
+            operationElement.addChild(partElement);
          }
          
-         xml.append("</tns:" + getPortTypeOperation().getName() + ">");
+         // add operation element to body
+         bodyElement.addChild(operationElement);
       }
       else if(isResponse())
       {
          // get the response message
          WsdlMessage message = getResponseMessage();
          
-         xml.append("<tns:" + message.getName() + ">");
+         // create the message element
+         XmlElement messageElement = new XmlElement(
+            message.getName(), "tns", getWsdl().getTargetNamespaceUri());
          
          // convert the results
          int count = 0;
          for(Iterator i = message.getParts().iterator(); i.hasNext(); count++)
          {
             WsdlMessagePart part = (WsdlMessagePart)i.next();
-            xml.append("<" + part.getName() + ">");
-            xml.append(XmlCoder.encode("" + getResults()[count]));
-            xml.append("</" + part.getName() + ">");
+            
+            // create part element
+            XmlElement partElement = new XmlElement(part.getName());
+            partElement.setValue("" + getResults()[count]);
+            
+            // add part element to message
+            messageElement.addChild(partElement);
          }
          
-         xml.append("</tns:" + message.getName() + ">");         
+         // add message element to body
+         bodyElement.addChild(messageElement);
       }
       else if(isFault())
       {
          // convert the fault
-         xml.append("<soap:Fault>");
-         xml.append("<faultcode>soap:" + XmlCoder.encode(getFaultCode()) +
-                    "</faultcode>");
-         xml.append("<faultstring>" + XmlCoder.encode(getFaultString()) +
-                    "</faultstring>");
-         xml.append("<faultactor>" + XmlCoder.encode(getFaultActor()) +
-                    "</faultactor>");
-         xml.append("</soap:Fault>");
+         XmlElement faultElement = new XmlElement(
+            "Fault", "soap", ENVELOPE_NAMESPACE_URI);
+         
+         // faultcode
+         XmlElement faultcodeElement = new XmlElement("faultcode");
+         faultcodeElement.setValue("soap:" + getFaultCode());
+         faultElement.addChild(faultcodeElement);
+         
+         // fault string
+         XmlElement faultstringElement = new XmlElement("faultstring");
+         faultstringElement.setValue(getFaultString());
+         faultElement.addChild(faultstringElement);
+
+         // fault actor
+         XmlElement faultactorElement = new XmlElement("faultactor");
+         faultactorElement.setValue(getFaultActor());
+         faultElement.addChild(faultactorElement);
+         
+         // add fault element to body
+         bodyElement.addChild(faultElement);
       }
       
-      xml.append("</soap:Body>");
-      xml.append("</soap:Envelope>");
-
-      return xml.toString();
+      // add body element to main element
+      element.addChild(bodyElement);
+      
+      // return element
+      return element;      
    }
-
+   
    /**
-    * This method takes a parsed DOM XML element and converts it
-    * back into this object's representation.
+    * Converts this object from an XmlElement.
     *
-    * @param element the parsed element that contains this objects information.
+    * @param element the XmlElement to convert from.
     * 
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXml(Element element)
+   public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
       
       // FUTURE CODE: the current implementation makes some assumptions about
       // soap encoding and so forth -- the same ones made by the Wsdl class
       
-      ElementReader er = new ElementReader(element);
+      // get the envelope namespace prefix
+      String envNs = element.findNamespace(ENVELOPE_NAMESPACE_URI);
       
-      // iterate through the envelope elements
-      Iterator ei = er.getElementReadersNS(ENVELOPE_SCHEMA).iterator();
-      while(ei.hasNext())
+      getLogger().detail(getClass(), "soap envelope namespace prefix=" + envNs);
+      
+      // get the body element of the envelope
+      XmlElement bodyElement = element.getFirstChild("Body", envNs);
+      if(bodyElement != null)
       {
-         getLogger().detail(getClass(), "found soap envelope elements...");
+         getLogger().detail(getClass(), "found soap envelope body...");
          
-         // get the envelope prefix
-         String envPrefix = er.getPrefix(ENVELOPE_SCHEMA, false);
-         getLogger().detail(getClass(), "soap envelope prefix=" + envPrefix);
+         // get the child in the body
+         XmlElement child = bodyElement.getFirstChild();
          
-         ElementReader envelopeER = (ElementReader)ei.next();
-         if(envelopeER.getTagName().equals(envPrefix + ":Body"))
+         // determine if the child is a Fault or not
+         if(child.getName().equals("Fault"))
          {
-            getLogger().detail(getClass(), "got soap envelope body...");
+            // convert soap fault
+            convertSoapFaultFromXmlElement(child);
             
-            // go through all of the body (method/response) elements
-            Iterator bi = envelopeER.getElementReaders().iterator();
-            while(bi.hasNext() && !rval)
+            rval = true;
+         }
+         else
+         {
+            getLogger().debug(getClass(),
+               "got soap envelope method/response," +
+               "method/response=" + child.getName());
+            
+            if(isRequest())
             {
-               ElementReader bodyReader = (ElementReader)bi.next();
-               String name[] = bodyReader.getTagName().split(":");
-               String tagName = "";
-               if(name.length > 1)
-               {
-                  tagName = name[1];
-               }
-               else
-               {
-                  tagName = name[0];
-               }
-                  
-               // see if this is a soap fault
-               if(tagName.equals("Fault"))
-               {
-                  // convert soap fault
-                  convertSoapFaultFromXml(bodyReader);
-                  
-                  rval = true;
-               }
-               else
-               {
-                  getLogger().debug(getClass(),
-                     "got soap envelope method/response," +
-                     "method/response=" + tagName);
-                  
-                  // get the incoming message 
-                  if(isRequest())
-                  {
-                     // set the method
-                     setMethod(tagName);
-
-                     // convert soap request
-                     convertSoapRequestFromXml(bodyReader);
-                  }
-                  else if(isResponse())
-                  {
-                     // convert soap response
-                     convertSoapResponseFromXml(bodyReader);
-                  }
-                  
-                  rval = true;
-               }
+               // convert the request
+               convertSoapRequestFromXmlElement(child);
             }
+            else
+            {
+               // convert the response
+               convertSoapResponseFromXmlElement(child);
+            }
+            
+            rval = true;
          }
       }
       

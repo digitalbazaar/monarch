@@ -32,7 +32,6 @@ public class UTSignableXmlEnvelope
          System.exit(1);
       }
       
-
       StringXmlSerializer sxs = new StringXmlSerializer("chicken");
       SignableXmlEnvelope sxe = new SignableXmlEnvelope(sxs);
 
@@ -127,7 +126,7 @@ public class UTSignableXmlEnvelope
    public static void main(String[] args)
    {
       com.db.logging.LoggerManager.setConsoleVerbosity(
-         "dbcommon", com.db.logging.Logger.DEBUG_VERBOSITY);
+         "dbxml", com.db.logging.Logger.DEBUG_VERBOSITY);
       
       System.out.println("\nTesting SignableXMLEnvelope...");
       System.out.println("----------------------------\n");

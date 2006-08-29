@@ -5,12 +5,10 @@ package com.db.net.wsdl;
 
 import java.util.Iterator;
 
-import org.w3c.dom.Element;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
-import com.db.xml.ElementReader;
+import com.db.xml.XmlElement;
    
 /**
  * A WSDL Port Type Operation.
@@ -34,6 +32,11 @@ import com.db.xml.ElementReader;
  */
 public class WsdlPortTypeOperation extends AbstractXmlSerializer
 {
+   /**
+    * The WsdlPortType this operation is associated with.
+    */
+   protected WsdlPortType mPortType;
+   
    /**
     * The name of this operation.
     */
@@ -64,19 +67,25 @@ public class WsdlPortTypeOperation extends AbstractXmlSerializer
    
    /**
     * Creates a new blank Wsdl Port Type Operation.
+    * 
+    * @param portType the WsdlPortType this operation is associated with.
     */
-   public WsdlPortTypeOperation()   
+   public WsdlPortTypeOperation(WsdlPortType portType)   
    {
-      this("");
+      this(portType, "");
    }
    
    /**
     * Creates a new Wsdl Port Type Operation with the given name.
     * 
+    * @param portType the WsdlPortType this operation is associated with.
     * @param name the name of this operation.
     */
-   public WsdlPortTypeOperation(String name)
+   public WsdlPortTypeOperation(WsdlPortType portType, String name)
    {
+      // store port type
+      mPortType = portType;
+      
       // store name
       setName(name);
       
@@ -92,23 +101,43 @@ public class WsdlPortTypeOperation extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the XML for the input message.
+    * Adds the child XML element for the input message.
     * 
-    * @return the XML for the input message.
+    * @param element the element to add the child to.
     */
-   protected String getInputMessageXml()
+   protected void addInputMessageXml(XmlElement element)
    {
-      return "<input message=\"tns:" + getInputMessageName() + "\"/>";
+      // create child element
+      XmlElement child = new XmlElement("input");
+      child.addAttribute("message", "tns:" + getInputMessageName());
+      
+      // add child
+      element.addChild(child);
    }
    
    /**
-    * Gets the XML for the output message.
+    * Adds the child XML element for the output message.
     * 
-    * @return the XML for the output message.
+    * @param element the element to add the child to.
     */
-   protected String getOutputMessageXml()
+   protected void addOutputMessageXml(XmlElement element)
    {
-      return "<output message=\"tns:" + getOutputMessageName() + "\"/>";
+      // create child element
+      XmlElement child = new XmlElement("output");
+      child.addAttribute("message", "tns:" + getOutputMessageName());
+      
+      // add child
+      element.addChild(child);
+   }
+   
+   /**
+    * Gets the wsdl port type this operation is associated with.
+    * 
+    * @return the wsdl port type this operation is associated with.
+    */
+   public WsdlPortType getPortType()
+   {
+      return mPortType;
    }
    
    /**
@@ -286,89 +315,59 @@ public class WsdlPortTypeOperation extends AbstractXmlSerializer
    }
    
    /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
+    * Creates an XmlElement from this object.
     *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    *                    
-    * @return the xml-based representation of the object.
+    * @return the XmlElement that represents this object.
     */
-   public String convertToXml(int indentLevel)
+   public XmlElement convertToXmlElement()
    {
-      StringBuffer xml = new StringBuffer();
+      // create xml element
+      XmlElement element = new XmlElement(getRootTag());
       
-      // build indent string
-      StringBuffer indent = new StringBuffer("\n");
-      for(int i = 0; i < indentLevel; i++)
-      {
-         indent.append(' ');
-      }
-
-      // start tag
-      xml.append(indent);
-      xml.append('<');
-      xml.append(getRootTag());
-      xml.append(" name=\"");
-      xml.append(getName());
+      // add attributes
+      element.addAttribute("name", getName());
       
       // add optional parameter order if appropriate
       if(!getParameterOrder().equals(""))
       {
-         xml.append("\" parameterOrder=\"");
-         xml.append(getParameterOrder());
+         element.addAttribute("parameterOrder", getParameterOrder());
       }
-      
-      xml.append("\">");
       
       // message names
       if(usesOnlyInputMessage())
       {
-         xml.append(indent);
-         xml.append(" " + getInputMessageXml());
+         addInputMessageXml(element);
       }
       else if(usesOnlyOutputMessage())
       {
-         xml.append(indent);
-         xml.append(" " + getOutputMessageXml());
+         addOutputMessageXml(element);
       }
       else
       {
          if(isInputFirst())
          {
-            xml.append(indent);
-            xml.append(" " + getInputMessageXml());
-            xml.append(indent);
-            xml.append(" " + getOutputMessageXml());
+            addInputMessageXml(element);
+            addOutputMessageXml(element);
          }
          else
          {
-            xml.append(indent);
-            xml.append(" " + getOutputMessageXml());
-            xml.append(indent);
-            xml.append(" " + getInputMessageXml());
+            addOutputMessageXml(element);
+            addInputMessageXml(element);
          }
       }
       
-      // end tag
-      xml.append(indent);
-      xml.append("</");
-      xml.append(getRootTag());
-      xml.append('>');
-      
-      return xml.toString();
+      // return element
+      return element;      
    }
    
    /**
-    * This method takes a parsed DOM XML element and converts it
-    * back into this object's representation.
+    * Converts this object from an XmlElement.
     *
-    * @param element the parsed element that contains this objects
-    *                information.
+    * @param element the XmlElement to convert from.
     * 
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXml(Element element)
+   public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
       
@@ -382,35 +381,33 @@ public class WsdlPortTypeOperation extends AbstractXmlSerializer
       setInputMessageName("");
       setOutputMessageName("");
       
-      // get element reader
-      ElementReader er = new ElementReader(element);
-      if(er.getTagName().equals(getRootTag()))
+      if(element.getName().equals(getRootTag()))
       {
          // get name
-         setName(Wsdl.resolveName(er.getStringAttribute("name")));
+         setName(element.getAttributeValue("name"));
          
          // get parameter order
-         setParameterOrder(er.getStringAttribute("parameterOrder"));
+         setParameterOrder(element.getAttributeValue("parameterOrder"));
          
          // read message names
          boolean inputRead = false;
-         for(Iterator i = er.getElementReaders().iterator(); i.hasNext();)
+         for(Iterator i = element.getChildren().iterator(); i.hasNext();)
          {
-            ElementReader reader = (ElementReader)i.next();
-            if(reader.getTagName().equals("input"))
+            XmlElement child = (XmlElement)i.next();
+            if(child.getName().equals("input"))
             {
                // get the message name
-               setInputMessageName(reader.getStringAttribute("message"));
+               setInputMessageName(child.getAttributeValue("message"));
                
                if(!inputRead)
                {
                   inputRead = true;
                }
             }
-            else if(reader.getTagName().equals("output"))
+            else if(child.getName().equals("output"))
             {
                // get the message name
-               setOutputMessageName(reader.getStringAttribute("message"));
+               setOutputMessageName(child.getAttributeValue("message"));
                
                // set input first based on whether or not it has been read
                setInputFirst(inputRead);
@@ -425,7 +422,7 @@ public class WsdlPortTypeOperation extends AbstractXmlSerializer
             // conversion successful
             rval = true;
          }
-      }
+      }      
       
       return rval;
    }

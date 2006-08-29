@@ -6,13 +6,11 @@ package com.db.net.wsdl;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.w3c.dom.Element;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.net.soap.WsdlSoapPort;
 import com.db.xml.AbstractXmlSerializer;
-import com.db.xml.ElementReader;
+import com.db.xml.XmlElement;
 
 /**
  * A WSDL Service.
@@ -27,7 +25,7 @@ public class WsdlService extends AbstractXmlSerializer
    /**
     * The WSDL this service is associated with.
     */
-   protected Wsdl mWsdl;   
+   protected Wsdl mWsdl;
    
    /**
     * The name of this service.
@@ -42,7 +40,7 @@ public class WsdlService extends AbstractXmlSerializer
    /**
     * Creates a new blank WsdlService.
     * 
-    * @param wsdl the wsdl this binding is associated with.
+    * @param wsdl the wsdl this service is associated with.
     */
    public WsdlService(Wsdl wsdl)
    {
@@ -52,7 +50,7 @@ public class WsdlService extends AbstractXmlSerializer
    /**
     * Creates a new WsdlService with the given name.
     * 
-    * @param wsdl the wsdl this binding is associated with.
+    * @param wsdl the wsdl this service is associated with.
     * @param name the name of the service.
     */
    public WsdlService(Wsdl wsdl, String name)
@@ -65,9 +63,9 @@ public class WsdlService extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the wsdl this binding is associated with.
+    * Gets the wsdl this service is associated with.
     * 
-    * @return the wsdl this binding is associated with.
+    * @return the wsdl this service is associated with.
     */
    public Wsdl getWsdl()
    {
@@ -75,9 +73,9 @@ public class WsdlService extends AbstractXmlSerializer
    }
    
    /**
-    * Sets the name of this binding.
+    * Sets the name of this service.
     * 
-    * @param name the name of this binding.
+    * @param name the name of this service.
     */
    public void setName(String name)
    {
@@ -85,9 +83,9 @@ public class WsdlService extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the name of this binding.
+    * Gets the name of this service.
     * 
-    * @return the name of this binding.
+    * @return the name of this service.
     */
    public String getName()
    {
@@ -121,58 +119,37 @@ public class WsdlService extends AbstractXmlSerializer
    }
    
    /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
+    * Creates an XmlElement from this object.
     *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    *                    
-    * @return the xml-based representation of the object.
+    * @return the XmlElement that represents this object.
     */
-   public String convertToXml(int indentLevel)
+   public XmlElement convertToXmlElement()
    {
-      StringBuffer xml = new StringBuffer();
-      
-      // build indent string
-      StringBuffer indent = new StringBuffer("\n");
-      for(int i = 0; i < indentLevel; i++)
-      {
-         indent.append(' ');
-      }
+      // create xml element
+      XmlElement element = new XmlElement(getRootTag());
 
-      // start tag
-      xml.append(indent);
-      xml.append('<');
-      xml.append(getRootTag());
-      xml.append(" name=\"");
-      xml.append(getName());
-      xml.append("\">");
+      // add attributes
+      element.addAttribute("name", getName());
       
       // ports
       for(Iterator i = getPorts().iterator(); i.hasNext();)
       {
          WsdlPort port = (WsdlPort)i.next();
-         xml.append(port.convertToXml(indentLevel + 1));
+         element.addChild(port.convertToXmlElement());
       }
       
-      // end tag
-      xml.append(indent);
-      xml.append("</");
-      xml.append(getRootTag());
-      xml.append('>');
-      
-      return xml.toString();
+      // return element
+      return element;      
    }
    
    /**
-    * This method takes a parsed DOM XML element and converts it
-    * back into this object's representation.
+    * Converts this object from an XmlElement.
     *
-    * @param element the parsed element that contains this objects information.
+    * @param element the XmlElement to convert from.
     * 
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXml(Element element)
+   public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
       
@@ -182,32 +159,29 @@ public class WsdlService extends AbstractXmlSerializer
       // clear ports
       getPorts().clear();
 
-      // get element reader
-      ElementReader er = new ElementReader(element);
-      if(er.getTagName().equals(getRootTag()))
+      if(element.getName().equals(getRootTag()))
       {
          // get name
-         setName(er.getStringAttribute("name"));
+         setName(element.getAttributeValue("name"));
 
          // read ports
-         for(Iterator i = er.getElementReaders("port").iterator(); i.hasNext();)
+         for(Iterator i = element.getChildren("port").iterator(); i.hasNext();)
          {
-            ElementReader reader = (ElementReader)i.next();
+            XmlElement child = (XmlElement)i.next();
             
             // get binding
-            String bindingName = reader.getStringAttribute("binding");
+            String bindingName = child.getAttributeValue("binding");
             WsdlBinding binding =
                getWsdl().getBindings().getBinding(bindingName);
             if(binding != null)
             {
                // FUTURE CODE: current implementation can only read
                // WsdlSoapPorts
-               ElementReader soapReader =
-                  reader.getFirstElementReader("soap:address");
-               if(soapReader != null)
+               XmlElement soapElement = child.getFirstChild("soap:address");
+               if(soapElement != null)
                {
                   WsdlPort port = new WsdlSoapPort(binding);
-                  if(port.convertFromXml(reader.getElement()))
+                  if(port.convertFromXmlElement(soapElement))
                   {
                      // port converted, add it
                      getPorts().add(port);
@@ -225,7 +199,7 @@ public class WsdlService extends AbstractXmlSerializer
       }
       
       return rval;
-   }
+   }   
    
    /**
     * Gets the logger.

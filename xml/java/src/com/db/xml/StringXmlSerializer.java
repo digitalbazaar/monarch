@@ -3,8 +3,6 @@
  */
 package com.db.xml;
 
-import org.w3c.dom.Element;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 
@@ -67,53 +65,44 @@ public class StringXmlSerializer extends AbstractXmlSerializer
    public String getRootTag()   
    {
       return "string";
-   }   
-
-   /**
-    * This method takes XML text (in full document form) and converts
-    * it to it's internal representation.
-    *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    * @return true if successful, false otherwise.    
-    */
-   public String convertToXml(int indentLevel)
-   {
-      StringBuffer xml = new StringBuffer();
-      StringBuffer indent = new StringBuffer("\n");
-      for(int i = 0; i < indentLevel; i++)
-      {
-         indent.append(' ');
-      }
-
-      xml.append('<');
-      xml.append(getRootTag());
-      xml.append('>');
-      xml.append(XmlCoder.encode(getString()));
-      xml.append("</");
-      xml.append(getRootTag());
-      xml.append('>');
-
-      return xml.toString();
    }
    
    /**
-    * This method takes a parsed DOM XML element and converts it
-    * back into this object's representation.
+    * Creates an XmlElement from this object.
     *
-    * @param element the parsed element that contains this objects information.
+    * @return the XmlElement that represents this object.
+    */
+   public XmlElement convertToXmlElement()
+   {
+      // create xml element
+      XmlElement element = new XmlElement(getRootTag());
+      
+      // set data
+      element.setData(getString());
+      
+      // return element
+      return element;      
+   }
+   
+   /**
+    * Converts this object from an XmlElement.
+    *
+    * @param element the XmlElement to convert from.
+    * 
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXml(Element element)
+   public boolean convertFromXmlElement(XmlElement element)   
    {
-      boolean rval = true;
+      boolean rval = false;
       
-      ElementReader er = new ElementReader(element);
-      setString(XmlCoder.decode(er.getStringValue()));
+      // get data
+      setString(element.getData());
+      
+      rval = true;
       
       return rval;
    }
-   
+
    /**
     * Gets the logger for this xml serializer.
     * 

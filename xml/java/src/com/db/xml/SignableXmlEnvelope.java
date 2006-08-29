@@ -12,8 +12,6 @@ import com.db.util.Base64Coder;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
-import org.w3c.dom.Element;
-
 /**
  * A SignableXMLEnvelope is a transferrable container that allows
  * any object that implements the IXmlSerializer interface to be
@@ -169,7 +167,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
       mSignText = "";
       if(getContent() != null)
       {
-         mSignText = getContent().convertToXml(1);
+         mSignText = getContent().convertToXml(false, 0, 0);
       }
    }
 
@@ -504,127 +502,92 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    public String getRootTag()   
    {
       return "envelope";
-   }   
-
+   }
+   
    /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
+    * Creates an XmlElement from this object.
     *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    *                    
-    * @return the xml-based representation of the object.
+    * @return the XmlElement that represents this object.
     */
-   public String convertToXml(int indentLevel)
+   public XmlElement convertToXmlElement()
    {
-      StringBuffer xml = new StringBuffer();
-      StringBuffer indent = new StringBuffer("\n");
-      for(int i = 0; i < indentLevel; i++)
-      {
-         indent.append(' ');
-      }
-
-      if(indentLevel == 0)
-      {
-         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-         //xml.append("<!DOCTYPE transaction SYSTEM \"bitmunk.dtd\">\n");
-      }
-
-      // start tag
-      xml.append(indent);
-      xml.append('<');
-      xml.append(getRootTag());
-      xml.append(" version=\"");
-      xml.append(XmlCoder.encode(getVersion()));
-      xml.append("\" signer=\"");
-      xml.append(XmlCoder.encode(getSigner()));
-      xml.append("\" status=\"");
-      xml.append(XmlCoder.encode(getStatus()));
-      xml.append("\">");
+      // convert parent
+      XmlElement element = super.convertToXmlElement();
       
-      // signature tag
-      xml.append(indent);
-      xml.append(" <signature algorithm=\"");
-      xml.append(XmlCoder.encode(getAlgorithm()));
-      xml.append("\">");
-      xml.append(XmlCoder.encode(mSignature));
-      xml.append("</signature>");
+      // set element name
+      element.setName(getRootTag());
       
-      // start content tag
-      xml.append(indent);
-      xml.append(" <content>");
-
+      // add attributes
+      element.addAttribute("signer", getSigner());
+      element.addAttribute("status", getStatus());
+      
+      // create signature child element
+      XmlElement signatureElement = new XmlElement("signature");
+      signatureElement.addAttribute("algorithm", getAlgorithm());
+      
+      signatureElement.setValue(mSignature);
+      
+      // add signature child
+      element.addChild(signatureElement);
+      
+      // create content element
+      XmlElement contentElement = new XmlElement("content");
       if(getStatus().equals("signed"))
       {
          // since the envelope is signed, use the sign text
-         xml.append(XmlCoder.encode(mSignText));
+         contentElement.setValue(mSignText);
       }
       else if(getContent() != null)
       {
          // the envelope is not signed, so just convert
-         xml.append(XmlCoder.encode(getContent().convertToXml(1)));
+         contentElement.setValue(getContent().convertToXml(false, 0, 0));
       }
       
-      // end content tag
-      xml.append("</content>");
-
-      // end tag
-      xml.append(indent);
-      xml.append("</");
-      xml.append(getRootTag());
-      xml.append('>');
-
-      return xml.toString();
+      // add content child
+      element.addChild(contentElement);
+      
+      return element;
    }
    
    /**
-    * This method takes a parsed DOM XML element and converts it
-    * back into this object's representation.
+    * Converts this object from an XmlElement.
     *
-    * @param element the parsed element that contains this objects information.
+    * @param element the XmlElement to convert from.
     * 
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXml(Element element)
+   public boolean convertFromXmlElement(XmlElement element)   
    {
-      boolean rval = false;
+      // convert parent
+      boolean rval = super.convertFromXmlElement(element);
       
-      ElementReader er = new ElementReader(element);
+      // get signer, status
+      mSigner = element.getAttributeValue("signer");
+      mStatus = element.getAttributeValue("status");
       
-      if(er != null)
+      // get signature information
+      XmlElement signatureElement = element.getFirstChild("signature");
+      mAlgorithm = signatureElement.getAttributeValue("algorithm");
+      mSignature = signatureElement.getValue();
+         
+      rval = true;
+         
+      // if this envelope has content, get the content
+      if(getContent() != null)
       {
-         // get version, signer, status
-         setVersion(XmlCoder.decode(er.getStringAttribute("version"))); 
-         mSigner = XmlCoder.decode(er.getStringAttribute("signer"));
-         mStatus = XmlCoder.decode(er.getStringAttribute("status"));
-         
-         // get signature information
-         ElementReader sigReader = er.getFirstElementReader("signature");
-         mAlgorithm = XmlCoder.decode(
-            sigReader.getStringAttribute("algorithm"));
-         mSignature = XmlCoder.decode(
-            sigReader.getStringValue());
-         
-         rval = true;
-         
-         // if this envelope has content, get the content reader
-         if(getContent() != null)
+         XmlElement contentElement = element.getFirstChild("content");
+         if(contentElement != null && contentElement.getValue() != null)
          {
-            // get an element reader for the content
-            ElementReader contentReader = er.getFirstElementReader("content");
-            if(contentReader != null)
-            {
-               // store the content xml as the sign text
-               mSignText = contentReader.getStringValue();
-               
-               // convert the xml content
-               rval = getContent().convertFromXml(mSignText.trim());
-            }
-            else
-            {
-               // blank out sign text
-               mSignText = "";
-            }
+            // store the content xml as the sign text
+            mSignText = contentElement.getValue();
+            
+            // convert the xml content
+            rval = getContent().convertFromXml(mSignText.trim());
+         }
+         else
+         {
+            // blank out sign text
+            mSignText = "";
          }
       }
       

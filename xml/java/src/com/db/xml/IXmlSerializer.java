@@ -3,15 +3,12 @@
  */
 package com.db.xml;
 
-import org.w3c.dom.Element;
-
 /**
  * An interface that allows an object to be serialized to
  * and from XML.
  * 
- * FUTURE CODE: This interface is quite clunky and doesn't take advantage
- * of any good xml parsing technology. We want to move away from it in
- * the future.
+ * FUTURE CODE: This interface is a little clunky and doesn't take advantage
+ * of any good xml parsing technology. We want to improve it in the future.
  *  
  * @author Dave Longley
  * @author Manu Sporny
@@ -50,18 +47,27 @@ public interface IXmlSerializer
     * @return the XML-based representation of the object.
     */
    public String convertToXml();
-
+   
    /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
-    *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    *                    
-    * @return the XML-based representation of the object.
+    * Converts this object to XML.
+    * 
+    * @param header true to include an XML header, false not to.
+    * @param indentSize the number of spaces to indent this element.
+    * @param childIndentSize the number of additional spaces to indent
+    *                        each child.
+    * 
+    * @return the XML for this object.
     */
-   public String convertToXml(int indentLevel);
-
+   public String convertToXml(
+      boolean header, int indentSize, int childIndentSize);
+   
+   /**
+    * Creates an XmlElement from this object.
+    *
+    * @return the XmlElement that represents this object.
+    */
+   public XmlElement convertToXmlElement();
+   
    /**
     * This method takes XML text (in full document form) and converts
     * it to its internal representation.
@@ -73,12 +79,11 @@ public interface IXmlSerializer
    public boolean convertFromXml(String xmlText);
    
    /**
-    * This method takes a parsed DOM XML element and converts it
-    * back into this object's representation.
+    * Converts this object from an XmlElement.
     *
-    * @param element the parsed element that contains this objects information.
+    * @param element the XmlElement to convert from.
     * 
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXml(Element element);
+   public boolean convertFromXmlElement(XmlElement element);
 }

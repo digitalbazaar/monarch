@@ -60,13 +60,6 @@ public abstract class AbstractXmlSerializer implements IXmlSerializer
    }
    
    /**
-    * Returns the root tag name for this serializer.
-    * 
-    * @return the root tag name for this serializer.
-    */
-   public abstract String getRootTag();
-   
-   /**
     * This method takes the object representation and creates an
     * XML-based representation of the object.
     *
@@ -74,11 +67,32 @@ public abstract class AbstractXmlSerializer implements IXmlSerializer
     */
    public String convertToXml()
    {
+      // defaults to including a header
+      return convertToXml(true, 0, 1);
+   }
+   
+   /**
+    * Converts this object to XML.
+    * 
+    * @param header true to include an XML header, false not to.
+    * @param indentSize the number of spaces to indent this element.
+    * @param childIndentSize the number of additional spaces to indent
+    *                        each child.
+    * 
+    * @return the XML for this object.
+    */
+   public String convertToXml(
+      boolean header, int indentSize, int childIndentSize)
+   {
       String rval = "";
       
       try
       {
-         rval = convertToXml(0);
+         // convert this object to an xml element
+         XmlElement element = convertToXmlElement();
+         
+         // convert the element to XML
+         rval = element.convertToXml(header, indentSize, childIndentSize);
       }
       catch(Throwable t)
       {
@@ -91,20 +105,9 @@ public abstract class AbstractXmlSerializer implements IXmlSerializer
             "Exception thrown while converting to xml!" +
             ",\ntrace= " + Logger.getStackTrace(t));
       }
-      
+
       return rval;
    }
-
-   /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
-    *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    *                    
-    * @return the XML-based representation of the object.
-    */
-   public abstract String convertToXml(int indentLevel);
 
    /**
     * This method takes XML text (in full document form) and converts
@@ -119,7 +122,7 @@ public abstract class AbstractXmlSerializer implements IXmlSerializer
       boolean rval = false;
       
       getLogger().detail(getClass(), "converting from xml...");
-     
+      
       try
       {
          // get document builder
@@ -170,7 +173,45 @@ public abstract class AbstractXmlSerializer implements IXmlSerializer
     * 
     * @return true if successful, false otherwise.
     */
-   public abstract boolean convertFromXml(Element element);
+   public boolean convertFromXml(Element element)
+   {
+      boolean rval = false;
+      
+      // create an XmlElement
+      XmlElement xmlElement = new XmlElement();
+      
+      // convert the element from the passed DOM element
+      if(xmlElement.convertFromXml(element))
+      {
+         // convert this object from the xml element
+         rval = convertFromXmlElement(xmlElement);
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Returns the root tag name for this serializer.
+    * 
+    * @return the root tag name for this serializer.
+    */
+   public abstract String getRootTag();
+   
+   /**
+    * Creates an XmlElement from this object.
+    *
+    * @return the XmlElement that represents this object.
+    */
+   public abstract XmlElement convertToXmlElement();   
+   
+   /**
+    * Converts this object from an XmlElement.
+    *
+    * @param element the XmlElement to convert from.
+    * 
+    * @return true if successful, false otherwise.
+    */
+   public abstract boolean convertFromXmlElement(XmlElement element);
    
    /**
     * Gets the logger for this xml serializer.

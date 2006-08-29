@@ -3,13 +3,12 @@
  */
 package com.db.net.soap;
 
-import org.w3c.dom.Element;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.net.wsdl.Wsdl;
 import com.db.net.wsdl.WsdlPortTypeOperation;
 import com.db.xml.AbstractXmlSerializer;
-import com.db.xml.ElementReader;
+import com.db.xml.XmlElement;
 
 /**
  * A WSDL SOAP Binding Operation.
@@ -35,7 +34,7 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
    /**
     * The SOAP encoding namespace.
     */
-   public static final String SOAP_ENCODING_NAMESPACE =
+   public static final String SOAP_ENCODING_NAMESPACE_URI =
       "http://schemas.xmlsoap.org/soap/encoding/";   
    
    /**
@@ -54,14 +53,21 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the SOAP encoding XML.
+    * Adds the SOAP body element child to the passed XmlElement.
     * 
-    * @return the SOAP encoding XML.
+    * @param element the XmlElement to add the SOAP body element to.
     */
-   protected String getSoapEncodingXml()
+   protected void addSoapBodyToXmlElement(XmlElement element)
    {
-      return "<soap:body encodingStyle=\"" + SOAP_ENCODING_NAMESPACE +
-         "\" use=\"encoded\"/>";
+      // create the soap body element
+      XmlElement soapBodyElement = new XmlElement(
+         "body", "soap", Wsdl.WSDL_SOAP_NAMESPACE_URI);
+      soapBodyElement.addAttribute(
+         "encodingStyle", SOAP_ENCODING_NAMESPACE_URI);
+      soapBodyElement.addAttribute("use", "encoded");
+      
+      // add the soap body element as a child
+      element.addChild(soapBodyElement);
    }
    
    /**
@@ -126,139 +132,100 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
    }
    
    /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
+    * Creates an XmlElement from this object.
     *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    *                    
-    * @return the xml-based representation of the object.
+    * @return the XmlElement that represents this object.
     */
-   public String convertToXml(int indentLevel)
+   public XmlElement convertToXmlElement()
    {
-      StringBuffer xml = new StringBuffer();
+      // create xml element
+      XmlElement element = new XmlElement(getRootTag());
       
-      // build indent string
-      StringBuffer indent = new StringBuffer("\n");
-      for(int i = 0; i < indentLevel; i++)
-      {
-         indent.append(' ');
-      }
-
-      // start tag
-      xml.append(indent);
-      xml.append('<');
-      xml.append(getRootTag());
-      xml.append(" name=\"");
-      xml.append(getName());
-      xml.append("\">");
+      // add attributes
+      element.addAttribute("name", getName());
       
-      // soap action
-      xml.append(indent);
-      xml.append(
-         " <soap:operation soapAction=\"" + getSoapAction() + "\"/>");
+      // create and add soap operation element
+      XmlElement soapOperationElement = new XmlElement(
+         "operation", "soap", Wsdl.WSDL_SOAP_NAMESPACE_URI);
+      soapOperationElement.addAttribute("soapAction", getSoapAction());
+      element.addChild(soapOperationElement);
+      
+      // create input and output elements
+      XmlElement inputElement = new XmlElement("input");
+      addSoapBodyToXmlElement(inputElement);
+      
+      XmlElement outputElement = new XmlElement("output");
+      addSoapBodyToXmlElement(outputElement);
       
       if(getPortTypeOperation().usesOnlyInputMessage())
       {
-         // input
-         xml.append(indent);
-         xml.append(" <input>");
-         xml.append(indent);
-         xml.append("  " + getSoapEncodingXml());
-         xml.append(indent);
-         xml.append(" </input>");
+         // add input element as a child
+         element.addChild(inputElement);
       }
       else if(getPortTypeOperation().usesOnlyOutputMessage())
       {
-         // output
-         xml.append(indent);
-         xml.append(" <output>");
-         xml.append(indent);
-         xml.append("  " + getSoapEncodingXml());
-         xml.append(indent);
-         xml.append(" </output>");         }
+         // add output element as a child
+         element.addChild(outputElement);
+      }
       else
       {
          if(getPortTypeOperation().isInputFirst())
          {
-            // input
-            xml.append(indent);
-            xml.append(" <input>");
-            xml.append(indent);
-            xml.append("  " + getSoapEncodingXml());
-            xml.append(indent);
-            xml.append(" </input>");
-            
-            // output
-            xml.append(indent);
-            xml.append(" <output>");
-            xml.append(indent);
-            xml.append("  " + getSoapEncodingXml());
-            xml.append(indent);
-            xml.append(" </output>");               
+            // add input element as a child
+            element.addChild(inputElement);
+
+            // add output element as a child
+            element.addChild(outputElement);
          }
          else
          {
-            // output
-            xml.append(indent);
-            xml.append(" <output>");
-            xml.append(indent);
-            xml.append("  " + getSoapEncodingXml());
-            xml.append(indent);
-            xml.append(" </output>");
-            
-            // input
-            xml.append(indent);
-            xml.append(" <input>");
-            xml.append(indent);
-            xml.append("  " + getSoapEncodingXml());
-            xml.append(indent);
-            xml.append(" </input>");               
+            // add output element as a child
+            element.addChild(outputElement);
+
+            // add input element as a child
+            element.addChild(inputElement);
          }
       }
       
-      // end tag
-      xml.append(indent);
-      xml.append("</");
-      xml.append(getRootTag());
-      xml.append('>');
-      
-      return xml.toString();
+      // return element
+      return element;      
    }
    
    /**
-    * This method takes a parsed DOM XML element and converts it
-    * back into this object's representation.
+    * Converts this object from an XmlElement.
     *
-    * @param element the parsed element that contains this objects
-    *                information.
+    * @param element the XmlElement to convert from.
     * 
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXml(Element element)
+   public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
       
       // clear soap action
       setSoapAction("");
       
-      // get element reader
-      ElementReader er = new ElementReader(element);
-      if(er.getTagName().equals(getRootTag()))
+      if(element.getName().equals(getRootTag()))
       {
-         // get the soap operation element reader
-         ElementReader reader = er.getFirstElementReader("soap:operation");
+         // get the soap namespace
+         String soapNs = element.findNamespace(Wsdl.WSDL_SOAP_NAMESPACE_URI);
          
-         // set soap action
-         setSoapAction(reader.getStringAttribute("soapAction"));
+         // get the soap operation child
+         XmlElement soapOperationChild = element.getFirstChild(
+            "operation", soapNs); 
+         if(soapOperationChild != null)
+         {
+            // set soap action
+            setSoapAction(soapOperationChild.getAttributeValue("soapAction"));
          
-         // FUTURE CODE: current implementation assumes soap encoding
-         // parameters -- we'll want to parse these out in the future
+            // FUTURE CODE: current implementation assumes soap encoding
+            // parameters -- we'll want to parse these out in the future
+         }
          
          rval = true;
       }
       
-      return rval;
+      return rval;      
    }
    
    /**

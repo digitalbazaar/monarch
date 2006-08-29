@@ -6,12 +6,10 @@ package com.db.net.wsdl;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.w3c.dom.Element;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
-import com.db.xml.ElementReader;
+import com.db.xml.XmlElement;
 
 /**
  * A WSDL Message.
@@ -101,58 +99,36 @@ public class WsdlMessage extends AbstractXmlSerializer
    }
    
    /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
+    * Creates an XmlElement from this object.
     *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    *                    
-    * @return the xml-based representation of the object.
+    * @return the XmlElement that represents this object.
     */
-   public String convertToXml(int indentLevel)
+   public XmlElement convertToXmlElement()
    {
-      StringBuffer xml = new StringBuffer();
+      // create xml element
+      XmlElement element = new XmlElement(getRootTag());
       
-      // build indent string
-      StringBuffer indent = new StringBuffer("\n");
-      for(int i = 0; i < indentLevel; i++)
-      {
-         indent.append(' ');
-      }
-
-      // start tag
-      xml.append(indent);
-      xml.append('<');
-      xml.append(getRootTag());
-      xml.append(" name=\"");
-      xml.append(getName());
-      xml.append("\">");
+      // add attributes
+      element.getAttributeMap().addAttribute("name", getName());
       
       // parts
       for(Iterator i = getParts().iterator(); i.hasNext();)
       {
          WsdlMessagePart part = (WsdlMessagePart)i.next();
-         xml.append(part.convertToXml(indentLevel + 1));
+         element.addChild(part.convertToXmlElement());
       }
       
-      // end tag
-      xml.append(indent);
-      xml.append("</");
-      xml.append(getRootTag());
-      xml.append('>');
-      
-      return xml.toString();
+      return element;      
    }
    
    /**
-    * This method takes a parsed DOM XML element and converts it
-    * back into this object's representation.
+    * Converts this object from an XmlElement.
     *
-    * @param element the parsed element that contains this objects information.
+    * @param element the XmlElement to convert from.
     * 
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXml(Element element)
+   public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
       
@@ -162,19 +138,17 @@ public class WsdlMessage extends AbstractXmlSerializer
       // clear parts
       getParts().clear();
 
-      // get element reader
-      ElementReader er = new ElementReader(element);
-      if(er.getTagName().equals(getRootTag()))
+      if(element.getName().equals(getRootTag()))
       {
          // get name
-         setName(Wsdl.resolveName(er.getStringAttribute("name")));
+         setName(element.getAttributeValue("name"));
          
          // read parts
-         for(Iterator i = er.getElements("part").iterator(); i.hasNext();)
+         for(Iterator i = element.getChildren("part").iterator(); i.hasNext();)
          {
-            Element e = (Element)i.next();
+            XmlElement child = (XmlElement)i.next();
             WsdlMessagePart part = new WsdlMessagePart();
-            if(part.convertFromXml(e))
+            if(part.convertFromXmlElement(child))
             {
                // part converted, add it
                getParts().add(part);
@@ -190,7 +164,7 @@ public class WsdlMessage extends AbstractXmlSerializer
       }
       
       return rval;
-   }
+   }   
    
    /**
     * Gets the logger.

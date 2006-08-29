@@ -6,15 +6,13 @@ package com.db.net.soap;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.w3c.dom.Element;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.net.wsdl.Wsdl;
 import com.db.net.wsdl.WsdlBinding;
 import com.db.net.wsdl.WsdlPortType;
 import com.db.net.wsdl.WsdlPortTypeOperation;
-import com.db.xml.ElementReader;
+import com.db.xml.XmlElement;
 
 /**
  * A WSDL SOAP Binding.
@@ -39,7 +37,7 @@ public class WsdlSoapBinding extends WsdlBinding
    /**
     * The SOAP HTTP namespace.
     */
-   public static final String SOAP_OVER_HTTP_NAMESPACE =
+   public static final String SOAP_OVER_HTTP_NAMESPACE_URI =
       "http://schemas.xmlsoap.org/soap/http";
    
    /**
@@ -62,17 +60,6 @@ public class WsdlSoapBinding extends WsdlBinding
    public WsdlSoapBinding(Wsdl wsdl, String name, WsdlPortType portType)
    {
       super(wsdl, name, portType);
-   }
-   
-   /**
-    * Gets the SOAP transport XML.
-    * 
-    * @return the SOAP transport XML.
-    */
-   protected String getSoapTransportXml()
-   {
-      return "<soap:binding transport=\"" +
-         SOAP_OVER_HTTP_NAMESPACE + "\" style=\"rpc\"/>";
    }
    
    /**
@@ -120,68 +107,50 @@ public class WsdlSoapBinding extends WsdlBinding
       }
       
       return mOperationCollection;
-   }   
+   }
    
    /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
+    * Creates an XmlElement from this object.
     *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    *                    
-    * @return the xml-based representation of the object.
+    * @return the XmlElement that represents this object.
     */
-   public String convertToXml(int indentLevel)
+   public XmlElement convertToXmlElement()
    {
-      StringBuffer xml = new StringBuffer();
-      
-      // build indent string
-      StringBuffer indent = new StringBuffer("\n");
-      for(int i = 0; i < indentLevel; i++)
-      {
-         indent.append(' ');
-      }
+      // create xml element
+      XmlElement element = new XmlElement(getRootTag());
 
-      // start tag
-      xml.append(indent);
-      xml.append('<');
-      xml.append(getRootTag());
-      xml.append(" name=\"");
-      xml.append(getName());
-      xml.append("\" type=\"");
-      xml.append("tns:" + getPortType().getName());
-      xml.append("\">");
+      // add attributes
+      element.addAttribute("name", getName());
+      element.addAttribute("type", "tns:" + getPortType().getName());
+
+      // add soap transport element
+      XmlElement soapTransportElement = new XmlElement(
+         "binding", "soap", Wsdl.WSDL_SOAP_NAMESPACE_URI);
+      soapTransportElement.addAttribute(
+         "transport", SOAP_OVER_HTTP_NAMESPACE_URI);
+      soapTransportElement.addAttribute("style", "rpc");
+      element.addChild(soapTransportElement);
       
-      // soap transport xml
-      xml.append(indent);
-      xml.append(getSoapTransportXml());
-      
-      // soap binding operations
+      // add soap binding operations
       for(Iterator i = getOperations().iterator(); i.hasNext();)
       {
          WsdlSoapBindingOperation operation =
             (WsdlSoapBindingOperation)i.next();
-         xml.append(operation.convertToXml(indentLevel + 1));
+         element.addChild(operation.convertToXmlElement());
       }
       
-      // end tag
-      xml.append(indent);
-      xml.append("</");
-      xml.append(getRootTag());
-      xml.append('>');
-      
-      return xml.toString();
+      // return element
+      return element;      
    }
    
    /**
-    * This method takes a parsed DOM XML element and converts it
-    * back into this object's representation.
+    * Converts this object from an XmlElement.
     *
-    * @param element the parsed element that contains this objects information.
+    * @param element the XmlElement to convert from.
     * 
     * @return true if successful, false otherwise.
     */
-   public boolean convertFromXml(Element element)
+   public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
       
@@ -194,35 +163,43 @@ public class WsdlSoapBinding extends WsdlBinding
       // clear operations
       getOperations().clear();
 
-      // get element reader
-      ElementReader er = new ElementReader(element);
-      if(er.getTagName().equals(getRootTag()))
+      if(element.getName().equals(getRootTag()))
       {
          // get name
-         setName(Wsdl.resolveName(er.getStringAttribute("name")));
+         String name = element.getAttributeValue("name");
+         
+         // FIXME: strip the namespace prefix
+         name = XmlElement.getBasicName(name);
+
+         // set name
+         setName(name);
          
          // get the port type
-         String type = er.getStringAttribute("type");
+         String type = element.getAttributeValue("type");
          setPortType(getWsdl().getPortTypes().getPortType(type));
          
          // get the operations
          if(getPortType() != null)
          {
             boolean error = false;
-            for(Iterator i = er.getElementReaders("operation").iterator();
+            for(Iterator i = element.getChildren("operation").iterator();
                 i.hasNext() && !error;)
             {
-               ElementReader reader = (ElementReader)i.next();
+               XmlElement operationElement = (XmlElement)i.next();
                
                // get the operation name
-               String operationName = reader.getStringAttribute("name");
+               String operationName = 
+                  operationElement.getAttributeValue("name");
+               
+               // FIXME: strip the namespace prefix
+               operationName = XmlElement.getBasicName(operationName);
                
                // get the WsdlSoapBindingOperation and convert it
                WsdlSoapBindingOperation operation =
                   getOperations().getOperation(operationName);
                if(operation != null)
                {
-                  if(operation.convertFromXml(reader.getElement()))
+                  if(operation.convertFromXmlElement(operationElement))
                   {
                      // operation converted, add it
                      getOperations().add(operation);
@@ -250,7 +227,8 @@ public class WsdlSoapBinding extends WsdlBinding
          }
          else
          {
-            getLogger().error(getClass(), "No valid Wsdl Port Type found!");
+            getLogger().error(getClass(),
+               "No valid Wsdl Port Type found!,type=" + type);
          }
       }
       

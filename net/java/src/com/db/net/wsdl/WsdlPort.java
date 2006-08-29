@@ -3,11 +3,10 @@
  */
 package com.db.net.wsdl;
 
-import org.w3c.dom.Element;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
+import com.db.xml.XmlElement;
 
 /**
  * A WSDL Port.
@@ -58,14 +57,22 @@ public abstract class WsdlPort extends AbstractXmlSerializer
    }
 
    /**
-    * Gets the port XML. This will return the opening tag for the port.
+    * Creates the base XmlElement for this port. The port's name and
+    * binding will be added as attributes.
     * 
-    * @return the port XML.
+    * @return the port XmlElement.
     */
-   public String getPortOpeningTagXml()
+   public XmlElement createPortXmlElement()
    {
-      return "<port name=\"" + getName() + "\" binding=\"" +
-         "tns:" + getBinding().getName() + "\">";
+      // create the element
+      XmlElement element = new XmlElement("port");
+      
+      // add attributes
+      element.addAttribute("name", getName());
+      element.addAttribute("binding", "tns:" + getBinding().getName());
+
+      // return the element
+      return element;
    }
    
    /**
@@ -109,25 +116,20 @@ public abstract class WsdlPort extends AbstractXmlSerializer
    }
    
    /**
-    * This method takes the object representation and creates an
-    * XML-based representation of the object.
+    * Creates an XmlElement from this object.
     *
-    * @param indentLevel the number of spaces to place before the text
-    *                    after each new line.
-    *                    
-    * @return the xml-based representation of the object.
+    * @return the XmlElement that represents this object.
     */
-   public abstract String convertToXml(int indentLevel);
+   public abstract XmlElement convertToXmlElement();
    
    /**
-    * This method takes a parsed DOM XML element and converts it
-    * back into this object's representation.
+    * Converts this object from an XmlElement.
     *
-    * @param element the parsed element that contains this objects information.
+    * @param element the XmlElement to convert from.
     * 
     * @return true if successful, false otherwise.
     */
-   public abstract boolean convertFromXml(Element element);
+   public abstract boolean convertFromXmlElement(XmlElement element);
    
    /**
     * Gets the logger.
