@@ -369,10 +369,10 @@ public class SoapMessage extends AbstractXmlSerializer
             
             getLogger().debug(getClass(), "soap method parameter found.");
             getLogger().debugData(getClass(), 
-               "soap method parameter found" +
-               ",name=" + part.getName() +
-               ",value=" + value +
-               ",type=" + part.getType());
+               "soap method parameter found:" +
+               "\nname=" + part.getName() +
+               "\nvalue=" + value +
+               "\ntype=" + part.getType());
             
             // parse the object
             params[count] = Wsdl.parseObject(value, part.getType());
@@ -417,10 +417,10 @@ public class SoapMessage extends AbstractXmlSerializer
             
             getLogger().debug(getClass(), "soap method result found.");
             getLogger().debugData(getClass(), 
-               "soap method result found" +
-               ",name=" + part.getName() +
-               ",value=" + value +
-               ",type=" + part.getType());
+               "soap method result found:" +
+               "\nname=" + part.getName() +
+               "\nvalue=" + value +
+               "\ntype=" + part.getType());
          
             // parse the object
             results[count] = Wsdl.parseObject(value, part.getType());
