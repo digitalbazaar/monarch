@@ -208,7 +208,7 @@ public class XmlElement extends AbstractXmlSerializer
       }
       
       // see if this element has no children or data
-      if(!hasChildren() && getData() == null)
+      if(!hasChildren() && (getData() == null || getData().equals("")))
       {
          // end the start tag with an end tag
          xml.append("/>");
@@ -778,7 +778,14 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public String getData()
    {
-      return mData;
+      String rval = "";
+      
+      if(mData != null)
+      {
+         rval = mData;
+      }
+      
+      return rval;
    }
    
    /**
