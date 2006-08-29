@@ -209,6 +209,8 @@ public class SoapWebClient extends HttpWebClient
       
       try
       {
+         getLogger().debugData(getClass(), "received soap xml:\n" + xml);
+         
          // create a new soap message for reading the response xml
          sm.setXmlSerializerOptions(SoapMessage.SOAP_RESPONSE);
          if(sm.convertFromXml(xml))
@@ -305,7 +307,7 @@ public class SoapWebClient extends HttpWebClient
             request.getHeader().setContentLength(body.length);
          }
          
-         getLogger().debug(getClass(), "sending soap xml:\n" + xml);
+         getLogger().debugData(getClass(), "sending soap xml:\n" + xml);
          
          // start soap method timer
          long st = System.currentTimeMillis();

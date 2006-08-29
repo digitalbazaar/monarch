@@ -132,6 +132,8 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
             String xml = sm.convertToXml();
             byte[] body = xml.getBytes();
             
+            getLogger().debugData(getClass(), "sending soap xml:\n" + xml);            
+            
             // restore the headers for the response
             response.getHeader().setHeaders(headers);
             
