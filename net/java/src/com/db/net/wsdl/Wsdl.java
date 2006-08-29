@@ -911,6 +911,10 @@ public class Wsdl extends AbstractXmlSerializer
       {
          WsdlBinding rval = null;
          
+         // FIXME: we need to check namespaces
+         // strip off the namespace prefix
+         name = XmlElement.getBasicName(name);
+         
          for(Iterator i = iterator(); i.hasNext() && rval == null;) 
          {
             WsdlBinding binding = (WsdlBinding)i.next();
@@ -1008,6 +1012,10 @@ public class Wsdl extends AbstractXmlSerializer
       public WsdlService getService(String name)
       {
          WsdlService rval = null;
+         
+         // FIXME: we need to check namespaces
+         // strip off the namespace prefix
+         name = XmlElement.getBasicName(name);
          
          for(Iterator i = iterator(); i.hasNext() && rval == null;) 
          {
