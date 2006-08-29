@@ -93,6 +93,16 @@ public class WsdlService extends AbstractXmlSerializer
    }
    
    /**
+    * Gets the namespace URI for this service.
+    * 
+    * @return the namespace URI for this service.
+    */
+   public String getNamespaceUri()
+   {
+      return getWsdl().getTargetNamespaceUri();
+   }
+   
+   /**
     * Gets the ports for this service.
     * 
     * @return the ports for this service.

@@ -92,7 +92,17 @@ public abstract class WsdlBinding extends AbstractXmlSerializer
    {
       return mName;
    }
-
+   
+   /**
+    * Gets the namespace URI for this binding.
+    * 
+    * @return the namespace URI for this binding.
+    */
+   public String getNamespaceUri()
+   {
+      return getWsdl().getTargetNamespaceUri();
+   }
+   
    /**
     * Sets the port type for this binding.
     * 

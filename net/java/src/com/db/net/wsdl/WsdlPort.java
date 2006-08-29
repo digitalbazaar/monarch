@@ -106,6 +106,16 @@ public abstract class WsdlPort extends AbstractXmlSerializer
    }
    
    /**
+    * Gets the namespace URI for this port.
+    * 
+    * @return the namespace URI for this port.
+    */
+   public String getNamespaceUri()
+   {
+      return getBinding().getWsdl().getTargetNamespaceUri();
+   }
+   
+   /**
     * Returns the root tag name for this serializer.
     * 
     * @return the root tag name for this serializer.

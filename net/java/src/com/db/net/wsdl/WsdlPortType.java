@@ -57,14 +57,14 @@ public class WsdlPortType extends AbstractXmlSerializer
       // store wsdl
       mWsdl = wsdl;
       
-      // store name
+      // store name and namespace uri
       setName(name);
    }
    
    /**
-    * Gets the wsdl this operation is associated with.
+    * Gets the wsdl this port type is associated with.
     * 
-    * @return the wsdl this operation is associated with.
+    * @return the wsdl this port type is associated with.
     */
    public Wsdl getWsdl()
    {
@@ -90,6 +90,16 @@ public class WsdlPortType extends AbstractXmlSerializer
    {
       return mName;
    }
+   
+   /**
+    * Gets the namespace URI for this port type.
+    * 
+    * @return the namespace URI for this port type.
+    */
+   public String getNamespaceUri()
+   {
+      return getWsdl().getTargetNamespaceUri();
+   }   
    
    /**
     * Gets the operations for this port type.

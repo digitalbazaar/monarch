@@ -19,7 +19,7 @@ import java.util.Vector;
  * represents a description for a particular web service.
  * 
  * FIXME:
- * Note: Namespaces are not handled properly in the current implementation.
+ * Note: Namespaces are not handled quite right in the current implementation.
  * This needs to be corrected. Port type names, message names, etc -- should
  * all be checked against the target namespace. 
  * 
@@ -192,9 +192,9 @@ public class Wsdl extends AbstractXmlSerializer
          
          // create messages for the method
          WsdlMessage requestMessage =
-            new WsdlMessage(m.getName());
+            new WsdlMessage(this, m.getName());
          WsdlMessage responseMessage =
-            new WsdlMessage(m.getName() + "Response");
+            new WsdlMessage(this, m.getName() + "Response");
          
          // go through all of the parameters for the method
          // build parameter order string
@@ -473,7 +473,7 @@ public class Wsdl extends AbstractXmlSerializer
              i.hasNext();)
          {
             XmlElement child = (XmlElement)i.next();
-            WsdlMessage message = new WsdlMessage();
+            WsdlMessage message = new WsdlMessage(this);
             if(message.convertFromXmlElement(child))
             {
                getMessages().add(message);
@@ -706,7 +706,7 @@ public class Wsdl extends AbstractXmlSerializer
       {
          WsdlMessage rval = null;
          
-         // FIXME: we need to check namespaces
+         // FIXME: we need to check namespaces better
          // strip off the namespace prefix
          name = XmlElement.getBasicName(name);
          
@@ -809,7 +809,7 @@ public class Wsdl extends AbstractXmlSerializer
       {
          WsdlPortType rval = null;
          
-         // FIXME: we need to check namespaces
+         // FIXME: we need to check namespaces better
          // strip off the namespace prefix
          name = XmlElement.getBasicName(name);
          
@@ -911,7 +911,7 @@ public class Wsdl extends AbstractXmlSerializer
       {
          WsdlBinding rval = null;
          
-         // FIXME: we need to check namespaces
+         // FIXME: we need to check namespaces better
          // strip off the namespace prefix
          name = XmlElement.getBasicName(name);
          
@@ -1013,7 +1013,7 @@ public class Wsdl extends AbstractXmlSerializer
       {
          WsdlService rval = null;
          
-         // FIXME: we need to check namespaces
+         // FIXME: we need to check namespaces better
          // strip off the namespace prefix
          name = XmlElement.getBasicName(name);
          

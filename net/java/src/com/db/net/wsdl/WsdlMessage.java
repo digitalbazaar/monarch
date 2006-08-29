@@ -24,6 +24,11 @@ import com.db.xml.XmlElement;
 public class WsdlMessage extends AbstractXmlSerializer
 {
    /**
+    * The WSDL this message is associated with.
+    */
+   protected Wsdl mWsdl;
+   
+   /**
     * The name of this message.
     */
    protected String mName;
@@ -35,22 +40,38 @@ public class WsdlMessage extends AbstractXmlSerializer
    
    /**
     * Creates a new blank WsdlMessage.
+    * 
+    * @param wsdl the WSDL this message is associated with.
     */
-   public WsdlMessage()   
+   public WsdlMessage(Wsdl wsdl)   
    {
-      this("");
+      this(wsdl, "");
    }
    
    /**
     * Creates a new WsdlMessage with the given name.
     * 
+    * @param wsdl the WSDL this message is associated with.
     * @param name the name of this message.
     */
-   public WsdlMessage(String name)
+   public WsdlMessage(Wsdl wsdl, String name)
    {
+      // store wsdl
+      mWsdl = wsdl;
+      
       // store name
       setName(name);
    }
+   
+   /**
+    * Gets the wsdl this message is associated with.
+    * 
+    * @return the wsdl this message is associated with.
+    */
+   public Wsdl getWsdl()
+   {
+      return mWsdl;
+   }   
    
    /**
     * Sets the name of this message.
@@ -70,6 +91,16 @@ public class WsdlMessage extends AbstractXmlSerializer
    public String getName()
    {
       return mName;
+   }
+   
+   /**
+    * Gets the namespace URI for this message.
+    * 
+    * @return the namespace URI for this message.
+    */
+   public String getNamespaceUri()
+   {
+      return getWsdl().getTargetNamespaceUri();
    }
    
    /**
