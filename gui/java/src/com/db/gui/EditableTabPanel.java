@@ -454,7 +454,7 @@ public class EditableTabPanel extends TabPanel
       // create the close button
       JButton closeButton = new JButton();
       closeButton.setUI(new BasicButtonUI());
-      closeButton.setOpaque(false);
+      closeButton.setContentAreaFilled(false);
       closeButton.setBorderPainted(false);
       Color transparent = new Color(0, 0, 0, 0);
       closeButton.setBackground(transparent);
