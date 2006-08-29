@@ -291,18 +291,10 @@ public class XmlElement extends AbstractXmlSerializer
       {
          Node attributeNode = map.item(i);
          
-         // get the attribute name
+         // get the attribute name and namespace
          name = attributeNode.getNodeName();
-         namespace = null;
-         
-         // see if the name has a prefix
-         index = name.indexOf(":");
-         if(index != -1)
-         {
-            // parse out the namespace and name
-            namespace = name.substring(0, index);
-            name = name.substring(index + 1);
-         }
+         namespace = XmlElement.getNamespacePrefix(name);
+         name = XmlElement.getBasicName(name);
          
          // add attribute (XML decoding is handled automatically)
          attributes.addAttribute(
@@ -1116,12 +1108,12 @@ public class XmlElement extends AbstractXmlSerializer
     * @param name the name of the child with the value to retrieve.
     * 
     * @return the value of the first child of this XmlElement with the
-    *         specified name or null if this XmlElement doesn't have a first
-    *         child with the passed name or the child has no data.
+    *         specified name or a blank string if this XmlElement doesn't
+    *         have a first child with the passed name or the child has no data.
     */
    public String getFirstChildValue(String name)
    {
-      String rval = null;
+      String rval = "";
       
       // get the first child
       XmlElement child = getFirstChild(name);
@@ -1141,12 +1133,12 @@ public class XmlElement extends AbstractXmlSerializer
     * @param namespace the namespace of the child with the value to retrieve.
     * 
     * @return the value of the first child of this XmlElement with the
-    *         specified name or null if this XmlElement doesn't have a first
-    *         child with the passed name or the child has no data.
+    *         specified name or a blank string if this XmlElement doesn't
+    *         have a first child with the passed name or the child has no data.
     */
    public String getFirstChildValue(String name, String namespace)
    {
-      String rval = null;
+      String rval = "";
       
       // get the first child
       XmlElement child = getFirstChild(name, namespace);

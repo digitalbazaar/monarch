@@ -67,6 +67,11 @@ public class XmlAttribute
     */
    public void setValue(String value)
    {
+      if(value == null)
+      {
+         value = "";
+      }
+      
       mValue = value;
    }
    
