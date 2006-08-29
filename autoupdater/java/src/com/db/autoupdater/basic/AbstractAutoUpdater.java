@@ -195,8 +195,8 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
       // do not auto check for updates by default
       setAutoCheckForUpdate(false);
       
-      // default the auto check interval to 30 seconds
-      setAutoCheckForUpdateInterval(30000);
+      // default the auto check interval to 30 minutes (1800000 milliseconds)
+      setAutoCheckForUpdateInterval(1800000);
       
       // create check for update started event delegate
       mCheckForUpdateStartedEventDelegate = new EventDelegate();
