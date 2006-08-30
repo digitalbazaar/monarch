@@ -3,6 +3,10 @@
  */
 package com.db.gui;
 
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -32,6 +36,11 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
     * The text to display on the hyperlink.
     */
    protected String mText;
+   
+   /**
+    * The color of the text to display.
+    */
+   protected Color mTextColor;
    
    /**
     * The url for the hyperlink.
@@ -86,7 +95,7 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
     * 
     * @param e the action event to fire. 
     */
-   private void fireActionEvent(ActionEvent e)
+   protected void fireActionEvent(ActionEvent e)
    {
       Iterator i = mActionListeners.iterator();
       while(i.hasNext())
@@ -101,7 +110,7 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
     * 
     * @return the html with the link.
     */
-   private String createHtml()
+   protected String createHtml()
    {
       String html = "<html>";
       html += "<font face=\"" + getFont().getFontName() + "\">";
@@ -110,6 +119,27 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
       html += "</html>";
       
       return html;
+   }
+   
+   /**
+    * Turn on anti-aliasing.
+    * 
+    * @param g the graphics to paint with.
+    */
+   public void paint(Graphics g)
+   {
+      if(g instanceof Graphics2D)
+      {
+         Graphics2D g2 = (Graphics2D)g;
+         
+         // turn on text anti-aliasing
+         g2.setRenderingHint(
+            RenderingHints.KEY_TEXT_ANTIALIASING,
+            RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+      }
+      
+      // call super class paint
+      super.paint(g);
    }
    
    /**
@@ -193,6 +223,17 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
     */
    public void setPage(URL page)
    {
+   }
+   
+   /**
+    * Sets the text for the hyperlink.
+    * 
+    * @param text the text to display for the hyperlink.
+    */
+   public void setText(String text)
+   {
+      mText = text;
+      super.setText(createHtml());
    }   
    
    /**
@@ -206,13 +247,35 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
    }
 
    /**
-    * Sets the text for the hyperlink.
+    * Sets the text color for the hyperlink.
     * 
-    * @param text the text to display for the hyperlink.
+    * @param color the text color to display for the hyperlink.
     */
-   public void setText(String text)
+   public void setTextColor(Color color)
    {
-      mText = text;
+      mTextColor = color;
+      super.setText(createHtml());
+   }
+   
+   /**
+    * Gets the text color for the hyperlink.
+    * 
+    * @return the text color for the hyperlink.
+    */
+   public Color getTextColor()
+   {
+      return mTextColor;
+   }
+   
+   /**
+    * Sets the url for the hyperlink.
+    * 
+    * @param url the url for the hyperlink.
+    */
+   public void setUrl(String url)
+   {
+      mUrl = url;
+      setToolTipText(url);
       super.setText(createHtml());
    }
    
@@ -224,17 +287,5 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
    public String getUrl()
    {
       return mUrl;
-   }
-
-   /**
-    * Sets the url for the hyperlink.
-    * 
-    * @param url the url for the hyperlink.
-    */
-   public void setUrl(String url)
-   {
-      mUrl = url;
-      setToolTipText(url);
-      super.setText(createHtml());
    }
 }
