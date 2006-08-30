@@ -113,8 +113,11 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
    protected String createHtml()
    {
       String html = "<html>";
-      html += "<font face=\"" + getFont().getFontName() + "\">";
-      html += "<a href='" + mUrl + "'>" + mText + "</a>";
+      html += "<font";
+      html += " face=\"" + getFont().getFontName();
+      html += " size=\"" + (getFont().getSize()) + "\"";
+      html += ">";
+      html += "<a href=\"" + getUrl() + "\">" + mText + "</a>";
       html += "</font>";
       html += "</html>";
       
