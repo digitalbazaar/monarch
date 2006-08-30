@@ -204,7 +204,7 @@ public class SoapWebClient extends HttpWebClient
       // create a soap request message
       SoapMessage sm = new SoapMessage(wsdl, mPortType);
       
-      // FIXME: we need security extensions for soap web clients
+      // FIXME: do we need security extensions for soap web clients?
       sm.setSoapEnvelopeLoggingPermitted(false);
       
       return sm;
@@ -227,9 +227,10 @@ public class SoapWebClient extends HttpWebClient
       
       try
       {
-         // FIXME: we need security extensions for soap web clients that
-         // indicate whether or not logging is permitted
-         //getLogger().debugData(getClass(), "received soap xml:\n" + xml);
+         if(sm.isSoapEnvelopeLoggingPermitted())
+         {
+            getLogger().debugData(getClass(), "received soap xml:\n" + xml);
+         }
          
          // create a new soap message for reading the response xml
          sm.setXmlSerializerOptions(SoapMessage.SOAP_RESPONSE);
@@ -241,8 +242,12 @@ public class SoapWebClient extends HttpWebClient
                Object[] result = sm.getResults();
                if(result.length > 0)
                {
-                  getLogger().debug(getClass(),
-                     "soap message result: " + result[0]);
+                  if(sm.isSoapEnvelopeLoggingPermitted())
+                  {
+                     getLogger().debug(getClass(),
+                        "soap message result: " + result[0]);
+                  }
+                  
                   rval = result[0];
                }
                else
@@ -326,10 +331,11 @@ public class SoapWebClient extends HttpWebClient
             body = coder.encodeHttpContentData(body);
             request.getHeader().setContentLength(body.length);
          }
-         
-         // FIXME: we need security extensions for soap web clients that
-         // indicate whether or not logging is permitted
-         //getLogger().debugData(getClass(), "sending soap xml:\n" + xml);
+
+         if(sm.isSoapEnvelopeLoggingPermitted())
+         {
+            getLogger().debugData(getClass(), "sending soap xml:\n" + xml);
+         }
          
          // start soap method timer
          long st = System.currentTimeMillis();
