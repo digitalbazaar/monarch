@@ -82,11 +82,22 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
       setContentType("text/html");
       setFont(UIManager.getFont("Label.font"));
       
+      // get hyperlink text color
+      Color color = UIManager.getColor("Hyperlink.foreground");
+      if(color == null)
+      {
+         color = Color.blue;
+      }
+      
+      setTextColor(color);
+      
       addHyperlinkListener(this);
       setEditable(false);
       mActionListeners = new Vector();
 
       mActionCommand = "";
+      
+      // set the page
       setPage(text, url);
    }
    
@@ -112,10 +123,35 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
     */
    protected String createHtml()
    {
+      // encode text color as a hex string
+      String red = Integer.toHexString(getTextColor().getRed() & 0xFF);
+      String green = Integer.toHexString(getTextColor().getGreen() & 0xFF);
+      String blue = Integer.toHexString(getTextColor().getBlue() & 0xFF);
+      
+      if(red.length() < 2)
+      {
+         red = "0" + red;
+      }
+      
+      if(green.length() < 2)
+      {
+         green = "0" + green;
+      }
+      
+      if(blue.length() < 2)
+      {
+         blue = "0" + blue;
+      }      
+      
+      String color =
+         "#" + red.toUpperCase() + green.toUpperCase() + blue.toUpperCase();
+      
+      // create html
       String html = "<html>";
       html += "<font";
       html += " face=\"" + getFont().getFontName();
       html += " size=\"" + (getFont().getSize()) + "\"";
+      html += " color=\"" + color + "\"";
       html += ">";
       html += "<a href=\"" + getUrl() + "\">" + mText + "</a>";
       html += "</font>";
