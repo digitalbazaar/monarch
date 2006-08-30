@@ -350,7 +350,7 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
    public SoapMessage createSoapMessage()   
    {
       SoapMessage sm = new SoapMessage(getWsdl(), getPortType());
-      SoapPermission permission = new SoapPermission("envelope.logging");
+      SoapPermission permission = new SoapPermission("envelope.log");
       sm.setSoapEnvelopeLoggingPermitted(checkSoapPermission(permission));
       return sm;
    }
