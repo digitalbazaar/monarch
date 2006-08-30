@@ -87,29 +87,44 @@ public class PositionLayout implements LayoutManager2
          insets = new Insets(0, 0, 0, 0);
       }
       
-      // if constraints indicate filling, update them
+      // get container bounds, take into account insets
+      Rectangle containerBounds = new Rectangle(mContainerBounds);
+      containerBounds.x += insets.left;
+      containerBounds.y += insets.top;
+      containerBounds.width -= insets.right;
+      containerBounds.height -= insets.bottom;
+      
+      // if constraints indicate horizontal filling, update them
       if(constraints.size.width == PositionConstraints.HORIZONTAL_FILL)
       {
          constraints.size.width =
-            mContainerBounds.width - constraints.location.x - insets.left;
+            mContainerBounds.width - constraints.location.x;
       }
       
+      // if constraints indicate vertical filling, update them
       if(constraints.size.height == PositionConstraints.VERTICAL_FILL)
       {
          constraints.size.height =
-            mContainerBounds.height - constraints.location.y - insets.top;
+            mContainerBounds.height - constraints.location.y;
       }
       
-      // create boundary rectangle
+      // get rectangle for updating constraints
       Rectangle rect = new Rectangle(
-            constraints.location.x + insets.left,
-            constraints.location.y + insets.top, 
-            constraints.size.width - insets.left - insets.right,
-            constraints.size.height - insets.top - insets.bottom);
+         constraints.location.x,
+         constraints.location.y,
+         constraints.size.width, constraints.size.height);
       
-      // determine resize changes
-      int deltaX = container.getWidth() - mContainerBounds.width;
-      int deltaY = container.getHeight() - mContainerBounds.height;
+      // determine position changes
+      int deltaX = containerBounds.x;
+      int deltaY = containerBounds.y;
+      
+      // determine width resize changes
+      int deltaWidth = container.getWidth() - mContainerBounds.width;
+      deltaWidth -= insets.right;
+      
+      // determine height resize changes
+      int deltaHeight = container.getHeight() - mContainerBounds.height;
+      deltaHeight -= insets.bottom;
       
       // handle left/right anchoring
       if((constraints.anchor & PositionConstraints.ANCHOR_LEFT) != 0)
@@ -117,13 +132,18 @@ public class PositionLayout implements LayoutManager2
          // if right anchoring is turned on as well, then resize
          if((constraints.anchor & PositionConstraints.ANCHOR_RIGHT) != 0)
          {
-            // resize component
-            rect.width += deltaX;
+            // resize and move component
+            rect.width += (deltaWidth - deltaX);
          }
       }
       else if((constraints.anchor & PositionConstraints.ANCHOR_RIGHT) != 0)
       {
-         // move component
+         // move component according to width and position
+         rect.x += deltaWidth - deltaX;
+      }
+      else
+      {
+         // move component according to position
          rect.x += deltaX;
       }
 
@@ -133,13 +153,18 @@ public class PositionLayout implements LayoutManager2
          // if bottom anchoring is turned on as well, then resize
          if((constraints.anchor & PositionConstraints.ANCHOR_BOTTOM) != 0)
          {
-            // resize component
-            rect.height += deltaY;
+            // resize and move component
+            rect.height += (deltaHeight - deltaY);
          }
       }
       else if((constraints.anchor & PositionConstraints.ANCHOR_BOTTOM) != 0)
       {
-         // move component
+         // move component according to height and position
+         rect.y += deltaHeight - deltaY;
+      }
+      else
+      {
+         // move component according to position
          rect.y += deltaY;
       }
       
@@ -151,13 +176,18 @@ public class PositionLayout implements LayoutManager2
              PositionConstraints.ANCHOR_RIGHT) != 0)
          {
             // proportions the same to the left and right of the component
-            rect.x += Math.round(deltaX / 2.0D);
+            rect.x += Math.round((deltaWidth + deltaX) / 2.0D);
          }
       }
       else if((constraints.invertAnchor &
                PositionConstraints.ANCHOR_RIGHT) != 0)
       {
-         // move component
+         // move component according to width and position
+         rect.x += deltaWidth + deltaX;
+      }
+      else
+      {
+         // move component according to position
          rect.x += deltaX;
       }
 
@@ -169,13 +199,18 @@ public class PositionLayout implements LayoutManager2
              PositionConstraints.ANCHOR_BOTTOM) != 0)
          {
             // proportions the same to the top and bottom of the component
-            rect.y += Math.round(deltaY / 2.0D);
+            rect.y += Math.round((deltaHeight + deltaY) / 2.0D);
          }
       }
       else if((constraints.invertAnchor &
                PositionConstraints.ANCHOR_BOTTOM) != 0)
       {
-         // move component
+         // move component according to height and position
+         rect.y += deltaHeight + deltaY;
+      }
+      else
+      {
+         // move component according to position
          rect.y += deltaY;
       }
       

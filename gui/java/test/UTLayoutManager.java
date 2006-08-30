@@ -13,6 +13,7 @@ import java.util.HashMap;
 import com.db.gui.*;
 import com.db.logging.*;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -85,7 +86,7 @@ public class UTLayoutManager
       
       etp.addTab("tab 3", createCenteredComponentPanel());
       
-      etp.setSelectedIndex(0);
+      etp.setSelectedIndex(2);
       
       //frame.setContentPane(panel);
       //contentPane.setBorder(new LineBorder(java.awt.Color.red, 20));
@@ -423,6 +424,8 @@ public class UTLayoutManager
    {
       JPanel panel = new JPanel();
       
+      panel.setBorder(BorderFactory.createLineBorder(Color.black, 100));
+      
       // set layout
       panel.setLayout(new PositionLayout(panel, 300, 300));
       
@@ -434,8 +437,8 @@ public class UTLayoutManager
       PositionConstraints coloredPanelConstraints = new PositionConstraints();
       coloredPanelConstraints.location = new Point(100, 100);
       coloredPanelConstraints.size = new Dimension(100, 100);
-      coloredPanelConstraints.anchor =
-         PositionConstraints.ANCHOR_NONE;
+      //coloredPanelConstraints.anchor =
+         //PositionConstraints.ANCHOR_TOP_LEFT_RIGHT;
       coloredPanelConstraints.invertAnchor =
          PositionConstraints.ANCHOR_ALL;
       
