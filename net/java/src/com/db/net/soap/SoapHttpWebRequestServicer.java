@@ -70,8 +70,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          {
             SecureSoapWebService secure =
                (SecureSoapWebService)mSoapWebService;
-            SoapPermission permission =
-               new SoapPermission("envelope.logging");
+            SoapPermission permission = new SoapPermission("envelope.log");
             if(secure.checkSoapPermission(permission))
             {
                getLogger().debugData(getClass(),
@@ -155,8 +154,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
             {
                SecureSoapWebService secure =
                   (SecureSoapWebService)mSoapWebService;
-               SoapPermission permission =
-                  new SoapPermission("envelope.logging");
+               SoapPermission permission = new SoapPermission("envelope.log");
                if(secure.checkSoapPermission(permission))
                {
                   getLogger().debugData(getClass(),
