@@ -193,6 +193,24 @@ public class SoapWebClient extends HttpWebClient
    }
    
    /**
+    * Creates a soap message for this soap web client.
+    * 
+    * @param wsdl the wsdl for the soap web service.
+    * 
+    * @return a soap message for this soap web client.
+    */
+   protected SoapMessage createSoapMessage(Wsdl wsdl)
+   {
+      // create a soap request message
+      SoapMessage sm = new SoapMessage(wsdl, mPortType);
+      
+      // FIXME: we need security extensions for soap web clients
+      sm.setSoapEnvelopeLoggingPermitted(false);
+      
+      return sm;
+   }
+   
+   /**
     * Gets the soap method result from a soap xml string.
     * 
     * @param sm the soap message used in the soap request.
@@ -462,7 +480,7 @@ public class SoapWebClient extends HttpWebClient
       if(wsdl != null)
       {
          // create a soap request message
-         SoapMessage sm = new SoapMessage(wsdl, mPortType);
+         SoapMessage sm = createSoapMessage(wsdl);
          sm.setXmlSerializerOptions(SoapMessage.SOAP_REQUEST);
          sm.setMethod(method);
          sm.setParameters(params);
