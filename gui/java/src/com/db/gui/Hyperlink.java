@@ -124,27 +124,8 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
    protected String createHtml()
    {
       // encode text color as a hex string
-      String red = Integer.toHexString(getTextColor().getRed() & 0xFF);
-      String green = Integer.toHexString(getTextColor().getGreen() & 0xFF);
-      String blue = Integer.toHexString(getTextColor().getBlue() & 0xFF);
-      
-      if(red.length() < 2)
-      {
-         red = "0" + red;
-      }
-      
-      if(green.length() < 2)
-      {
-         green = "0" + green;
-      }
-      
-      if(blue.length() < 2)
-      {
-         blue = "0" + blue;
-      }      
-      
-      String color =
-         "#" + red.toUpperCase() + green.toUpperCase() + blue.toUpperCase();
+      String color = Integer.toHexString(getTextColor().getRGB());
+      color = "#" + color.substring(2, color.length());
       
       // create html
       String html = "<html>";
