@@ -13,8 +13,7 @@ import java.util.Vector;
  * 
  * @author Dave Longley
  */
-public class ExtensibleSoapSecurityManager
-implements SoapSecurityManager
+public class ExtensibleSoapSecurityManager extends AbstractSoapSecurityManager
 {
    /**
     * The extensions for this ExtensibleSoapSecurityManager.
@@ -35,9 +34,18 @@ implements SoapSecurityManager
     * extension has been added, it cannot be removed.
     * 
     * @param extension the SoapSecurityManager extension to add.
+    * 
+    * @exception IllegalArgumentException thrown if the passed extension is
+    *                                     null.
     */
    public void addExtension(SoapSecurityManager extension)
    {
+      if(extension == null)
+      {
+         throw new IllegalArgumentException(
+            "SoapSecurityManager extension must not be null.");
+      }
+      
       // add the extension
       mExtensions.add(extension);
    }
@@ -78,5 +86,29 @@ implements SoapSecurityManager
          SoapSecurityManager extension = (SoapSecurityManager)i.next();
          extension.checkSoapSecurity(sm);
       }
+   }
+   
+   /**
+    * Returns true if the passed permission is allowed, false if not.
+    *
+    * @param permission a SoapPermission to check.
+    *
+    * @return true if the passed permission is allowed, false if not.
+    */
+   public boolean checkSoapPermission(SoapPermission permission)
+   {
+      boolean rval = true;
+      
+      // check this manager's permissions
+      rval = super.checkSoapPermission(permission);
+      
+      // iterate through all of the extensions and check permissions
+      for(Iterator i = mExtensions.iterator(); i.hasNext() && rval;)
+      {
+         SoapSecurityManager extension = (SoapSecurityManager)i.next();
+         rval = extension.checkSoapPermission(permission);
+      }
+      
+      return rval;
    }
 }

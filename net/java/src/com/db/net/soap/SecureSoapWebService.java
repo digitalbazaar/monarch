@@ -4,8 +4,8 @@
 package com.db.net.soap;
 
 /**
- * A SecureSoapWebService is an extension to a SoapWebService that provides
- * a method for running security checks on soap messages/clients.
+ * A SecureSoapWebService is an extension to a SoapWebService provides
+ * methods for implementing specific security profiles.
  * 
  * @author Dave Longley
  */
@@ -40,4 +40,13 @@ public interface SecureSoapWebService extends SoapWebService
     *                              security check.
     */
    public void checkSoapSecurity(SoapMessage sm) throws SecurityException;
+   
+   /**
+    * Returns true if the passed permission is allowed, false if not.
+    *
+    * @param permission a SoapPermission to check.
+    *
+    * @return true if the passed permission is allowed, false if not.
+    */
+   public boolean checkSoapPermission(SoapPermission permission);
 }

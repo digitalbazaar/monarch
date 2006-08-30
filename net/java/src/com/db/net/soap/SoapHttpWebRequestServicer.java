@@ -65,7 +65,23 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       {
          getLogger().debug(getClass(),
             "received soap xml (see debug-data log for the actual xml).");
-         getLogger().debugData(getClass(), "received soap xml:\n" + body);
+         
+         if(mSoapWebService instanceof SecureSoapWebService)
+         {
+            SecureSoapWebService secure =
+               (SecureSoapWebService)mSoapWebService;
+            SoapPermission permission =
+               new SoapPermission("envelope.logging");
+            if(secure.checkSoapPermission(permission))
+            {
+               getLogger().debugData(getClass(),
+                  "received soap xml:\n" + body);            
+            }
+         }
+         else
+         {
+            getLogger().debugData(getClass(), "received soap xml:\n" + body);            
+         }
       }
       
       // see if the soap message was valid
@@ -132,7 +148,25 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
             String xml = sm.convertToXml();
             byte[] body = xml.getBytes();
             
-            getLogger().debugData(getClass(), "sending soap xml:\n" + xml);            
+            getLogger().debug(getClass(),
+               "sending soap xml (see debug-data log for the actual xml).");
+            
+            if(mSoapWebService instanceof SecureSoapWebService)
+            {
+               SecureSoapWebService secure =
+                  (SecureSoapWebService)mSoapWebService;
+               SoapPermission permission =
+                  new SoapPermission("envelope.logging");
+               if(secure.checkSoapPermission(permission))
+               {
+                  getLogger().debugData(getClass(),
+                     "sending soap xml:\n" + xml);            
+               }
+            }
+            else
+            {
+               getLogger().debugData(getClass(), "sending soap xml:\n" + xml);            
+            }
             
             // restore the headers for the response
             response.getHeader().setHeaders(headers);

@@ -349,7 +349,10 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
     */
    public SoapMessage createSoapMessage()   
    {
-      return new SoapMessage(getWsdl(), getPortType());
+      SoapMessage sm = new SoapMessage(getWsdl(), getPortType());
+      SoapPermission permission = new SoapPermission("envelope.logging");
+      sm.setSoapEnvelopeLoggingPermitted(checkSoapPermission(permission));
+      return sm;
    }
 
    /**
@@ -522,6 +525,25 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
    public SoapSecurityManager getSoapSecurityManager()
    {
       return mSoapSecurityManager;
+   }
+   
+   /**
+    * Returns true if the passed permission is allowed, false if not.
+    *
+    * @param permission a SoapPermission to check.
+    *
+    * @return true if the passed permission is allowed, false if not.
+    */
+   public boolean checkSoapPermission(SoapPermission permission)   
+   {
+      boolean rval = true;
+      
+      if(getSoapSecurityManager() != null)
+      {
+         rval = getSoapSecurityManager().checkSoapPermission(permission);
+      }
+      
+      return rval;
    }
    
    /**

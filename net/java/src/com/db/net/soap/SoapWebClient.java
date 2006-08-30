@@ -209,7 +209,9 @@ public class SoapWebClient extends HttpWebClient
       
       try
       {
-         getLogger().debugData(getClass(), "received soap xml:\n" + xml);
+         // FIXME: we need security extensions for soap web clients that
+         // indicate whether or not logging is permitted
+         //getLogger().debugData(getClass(), "received soap xml:\n" + xml);
          
          // create a new soap message for reading the response xml
          sm.setXmlSerializerOptions(SoapMessage.SOAP_RESPONSE);
@@ -307,7 +309,9 @@ public class SoapWebClient extends HttpWebClient
             request.getHeader().setContentLength(body.length);
          }
          
-         getLogger().debugData(getClass(), "sending soap xml:\n" + xml);
+         // FIXME: we need security extensions for soap web clients that
+         // indicate whether or not logging is permitted
+         //getLogger().debugData(getClass(), "sending soap xml:\n" + xml);
          
          // start soap method timer
          long st = System.currentTimeMillis();

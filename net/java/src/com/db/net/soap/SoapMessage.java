@@ -132,6 +132,11 @@ public class SoapMessage extends AbstractXmlSerializer
    protected HttpHeader mHttpHeader;
    
    /**
+    * True if logging of soap envelope information is permitted, false if not.
+    */
+   protected boolean mSoapEnvelopeLoggingPermitted;
+   
+   /**
     * A soap fault: when a version mismatch occurs.
     */
    protected final static String FAULT_VERSION_MISMATCH = "VersionMismatch";
@@ -368,11 +373,15 @@ public class SoapMessage extends AbstractXmlSerializer
             String value = partElement.getValue();
             
             getLogger().debug(getClass(), "soap method parameter found.");
-            getLogger().debugData(getClass(), 
-               "soap method parameter found:" +
-               "\nname=" + part.getName() +
-               "\nvalue=" + value +
-               "\ntype=" + part.getType());
+            
+            if(isSoapEnvelopeLoggingPermitted())
+            {
+               getLogger().debugData(getClass(), 
+                  "soap method parameter found:" +
+                  "\nname=" + part.getName() +
+                  "\nvalue=" + value +
+                  "\ntype=" + part.getType());
+            }
             
             // parse the object
             params[count] = Wsdl.parseObject(value, part.getType());
@@ -416,11 +425,15 @@ public class SoapMessage extends AbstractXmlSerializer
             String value = partElement.getValue();
             
             getLogger().debug(getClass(), "soap method result found.");
-            getLogger().debugData(getClass(), 
-               "soap method result found:" +
-               "\nname=" + part.getName() +
-               "\nvalue=" + value +
-               "\ntype=" + part.getType());
+            
+            if(isSoapEnvelopeLoggingPermitted())
+            {
+               getLogger().debugData(getClass(), 
+                  "soap method result found:" +
+                  "\nname=" + part.getName() +
+                  "\nvalue=" + value +
+                  "\ntype=" + part.getType());
+            }
          
             // parse the object
             results[count] = Wsdl.parseObject(value, part.getType());
@@ -786,6 +799,28 @@ public class SoapMessage extends AbstractXmlSerializer
       }
       
       return rval;
+   }
+   
+   /**
+    * Sets whether or not logging of soap envelope information is permitted.
+    * 
+    * @param allow true to allow logging soap envelope information,
+    *              false not to.
+    */
+   public void setSoapEnvelopeLoggingPermitted(boolean allow)
+   {
+      mSoapEnvelopeLoggingPermitted = allow;
+   }
+   
+   /**
+    * Gets whether or not logging of soap envelope information is permitted.
+    * 
+    * @return true if logging of soap envelope information is permitted,
+    *         false if not.
+    */
+   public boolean isSoapEnvelopeLoggingPermitted()
+   {
+      return mSoapEnvelopeLoggingPermitted;
    }
    
    /**

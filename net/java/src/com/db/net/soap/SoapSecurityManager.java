@@ -40,4 +40,13 @@ public interface SoapSecurityManager
     *                              security check.
     */
    public void checkSoapSecurity(SoapMessage sm) throws SecurityException;
+   
+   /**
+    * Returns true if the passed permission is allowed, false if not.
+    *
+    * @param permission a SoapPermission to check.
+    *
+    * @return true if the passed permission is allowed, false if not.
+    */
+   public boolean checkSoapPermission(SoapPermission permission);
 }
