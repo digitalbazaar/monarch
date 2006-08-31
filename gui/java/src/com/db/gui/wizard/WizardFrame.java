@@ -3,6 +3,7 @@
  */
 package com.db.gui.wizard;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -80,12 +81,17 @@ implements ActionListener, WindowListener
    {
       // dispose on close 
       setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-
-      // pack frame
-      pack();
       
-      // set size
-      setSize(640, 480);
+      // set size for content pane
+      int width = 640;
+      int height = 480;
+      getContentPane().setMinimumSize(new Dimension(width, height));
+      getContentPane().setPreferredSize(new Dimension(width, height));
+      getContentPane().setMaximumSize(new Dimension(width, height)); 
+
+      // pack frame (do not alter size after packing,
+      // it results in display bugs)
+      pack();
    }
    
    /**
