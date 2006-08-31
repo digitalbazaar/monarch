@@ -38,4 +38,31 @@ public class CollectionToString
       
       return sb.toString();
    }
+   
+   /**
+    * Glues the objects in the specified array together using the
+    * specified separator. Each object's string representation is obtained
+    * by calling String.valueOf(object).
+    * 
+    * @param array the array to glue together.
+    * @param separator the separator to use.
+    * 
+    * @return the string of glued objects from the collection.
+    */
+   public static String glue(Object[] array, String separator)
+   {
+      StringBuffer sb = new StringBuffer();
+      
+      for(int i = 0; i < array.length; i++)
+      {
+         if(i > 0)
+         {
+            sb.append(separator);
+         }
+         
+         sb.append(String.valueOf(array[i]));
+      }
+      
+      return sb.toString();      
+   }   
 }
