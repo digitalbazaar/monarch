@@ -313,9 +313,11 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
             Base64Coder encoder = new Base64Coder();
             mSignature = encoder.encode(sig);
             
+            /* commented out for security
             getLogger().detail(getClass(),
                "BEGIN SIGN TEXT:" + mSignText + ":END SIGN TEXT\n" +
                "SIGNATURE: '" + mSignature + "'");
+            */
 
             if(mSignature != null)
             {
@@ -380,9 +382,11 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
                Base64Coder decoder = new Base64Coder();
                byte[] sig = decoder.decode(mSignature);
                
+               /* commented out for security
                getLogger().detail(getClass(),
                   "BEGIN VERIFY TEXT:" + mSignText + ":END VERIFY TEXT\n" +
                   "SIGNATURE: '" + mSignature + "'");
+               */
       
                // verify the signature
                rval = Cryptor.verify(sig, mSignText, publicKey);

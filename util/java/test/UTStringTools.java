@@ -4,6 +4,7 @@
 import com.db.logging.LoggerManager;
 import com.db.logging.Logger;
 import com.db.util.StringTools;
+import com.db.util.UniqueSet;
 
 /**
  * A unit test for StringTools.
@@ -56,7 +57,15 @@ public class UTStringTools
             System.out.println(
                "\"" + testStrings[i] + "\" -> \"" + 
                StringTools.removeContent(testStrings[i], ",", "1234") + "\"");
-         }         
+         }
+         
+         UniqueSet set = new UniqueSet();
+         set.add("1");
+         set.add("2");
+         set.add("3");
+         set.add("4");
+         
+         System.out.println(StringTools.glue(set, ","));
       }
       catch(Throwable t)
       {
