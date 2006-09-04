@@ -291,5 +291,21 @@ public class UTAutoUpdater
          
          return rval;
       }
+      
+      /**
+       * Returns true if the AutoUpdater that processed this script requires
+       * a new loader, false if not.
+       * 
+       * @return true if the AutoUpdater that processed this script requires
+       *         a new loader, false if not.
+       */
+      public boolean autoUpdaterRequiresNewLoader()      
+      {
+         boolean rval = false;
+         
+         rval = true;
+         
+         return rval;
+      }
    }
 }

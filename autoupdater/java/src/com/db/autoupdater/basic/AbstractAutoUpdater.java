@@ -612,10 +612,13 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
             
             // process the script
             boolean success = script.process();
-
+            
             // set whether or not this AutoUpdater requires a reload
             setRequiresReload(script.autoUpdaterRequiresReload());
-
+            
+            // set whether or not this AutoUpdater requires a new loader
+            setRequiresNewLoader(script.autoUpdaterRequiresNewLoader());
+            
             if(success)
             {
                // script processing was successful

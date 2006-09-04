@@ -231,6 +231,27 @@ public class BasicUpdateScript implements UpdateScript
    }
    
    /**
+    * Returns true if the AutoUpdater that processed this script requires
+    * a new loader, false if not.
+    * 
+    * @return true if the AutoUpdater that processed this script requires
+    *         a new loader, false if not.
+    */
+   public boolean autoUpdaterRequiresNewLoader()
+   {
+      boolean rval = false;
+      
+      // reload auto-updater if a shutdown is required
+      if(getExitCommand() != null &&
+         getExitCommand().equals("shutdown"))
+      {
+         rval = true;
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Gets the update size (in bytes).
     * 
     * @return the update size (in bytes).

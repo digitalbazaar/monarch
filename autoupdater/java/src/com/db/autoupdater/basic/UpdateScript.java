@@ -62,4 +62,13 @@ public interface UpdateScript
     *         a reload, false if not.
     */
    public boolean autoUpdaterRequiresReload();
+   
+   /**
+    * Returns true if the AutoUpdater that processed this script requires
+    * a new loader, false if not.
+    * 
+    * @return true if the AutoUpdater that processed this script requires
+    *         a new loader, false if not.
+    */
+   public boolean autoUpdaterRequiresNewLoader();
 }
