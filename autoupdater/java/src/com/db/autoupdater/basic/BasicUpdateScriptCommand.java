@@ -4,12 +4,13 @@
 package com.db.autoupdater.basic;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.StringTokenizer;
+import java.util.Iterator;
+import java.util.Vector;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.xml.XmlElement;
 
 /**
  * A basic UpdateScriptCommand is an atomic BasicUpdateScript command.
@@ -26,66 +27,297 @@ public class BasicUpdateScriptCommand
     * The name of the command.
     */
    protected String mName;
+   
+   /**
+    * The arguments for the command.
+    */
+   protected Vector mArguments;
       
    /**
-    * The optional argument if it exists.
+    * A string denoting the version of the software.
     */
-   protected String mOptionalArgument;
-      
+   protected String mVersion;
+
    /**
     * The URL associated with the command.
     */
    protected URL mUrl;
       
    /**
-    * The MD5 sum associated with the command.
+    * The MD5 digest associated with the command.
     */
-   protected String mMd5Sum;
+   protected String mMd5Digest;
    
    /**
     * The size associated with the command.
     */
-   protected int mSize;
+   protected long mSize;
    
    /**
-    * The relative file path associated with the command.
+    * The relative file paths associated with the command.
     */
-   protected File mRelativePath;
-   
-   /**
-    * A floating point number denoting the version number of the
-    * software.
-    */
-   protected double mVersion;
+   protected Vector mRelativePaths;
    
    /**
     * A message to display.
     */
    protected String mMessage;
+   
+   /**
+    * The on_success argument if it exists.
+    */
+   protected String mOnSuccessArgument;
 
    /**
     * Creates a BasicUpdateScriptCommand.
     */
    public BasicUpdateScriptCommand()
    {
-      mName = null;
-      mOptionalArgument = null;
-      mUrl = null;
-      mMd5Sum = null;
-      mSize = -1;
-      mRelativePath = null;
-      mVersion = -1.0;
-      mMessage = null;
+      // create arguments and relative paths vectors
+      mArguments = new Vector();
+      mRelativePaths = new Vector();
    }
    
    /**
-    * Parses a command and it's arguments. Returns true if the parse
-    * was successful, false otherwise. The BNF for the possible commands
-    * is as follows:
+    * Resets the information for this command.
+    */
+   protected void reset()
+   {
+      mName = "";
+      mArguments.clear();
+
+      mVersion = "";
+      mUrl = null;
+      mMd5Digest = "";
+      mSize = -1;
+      mRelativePaths.clear();
+      mMessage = "";
+      mOnSuccessArgument = "";
+   }
+   
+   /**
+    * Parses a version command.
+    * 
+    * @return true if successfully parsed, false if not.
+    */
+   protected boolean parseVersionCommand()
+   {
+      boolean rval = false;
+      
+      try
+      {
+         // There should be 1 argument:
+         //
+         // 0. version
+         mVersion = (String)mArguments.get(0);
+         rval = true;
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(), 
+            "Version command in update script is invalid.");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Parses an install command.
+    * 
+    * @return true if successfully parsed, false if not.
+    */
+   protected boolean parseInstallCommand()
+   {
+      boolean rval = false;
+      
+      try
+      {
+         // There should be 4 arguments:
+         //
+         // 0. the URL for the file to download
+         // 1. the size of the file in bytes
+         // 2. the MD5 digest for the file
+         // 3. the final destination (relative path) for the file
+         
+         mUrl = new URL((String)mArguments.get(0));
+         mSize = Long.parseLong((String)mArguments.get(1));
+         mMd5Digest = (String)mArguments.get(2);
+         mRelativePaths.add(new File((String)mArguments.get(3)));
+         rval = true;
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(), 
+            "Install command in update script is invalid.");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Parses a delete command.
+    * 
+    * @return true if successfully parsed, false if not.
+    */
+   protected boolean parseDeleteCommand()
+   {
+      boolean rval = false;
+      
+      try
+      {
+         // There should be 1-n arguments:
+         //
+         // 0-n. the relative path of the file to delete
+         
+         if(mArguments.size() > 0)
+         {
+            for(Iterator i = mArguments.iterator(); i.hasNext();)
+            {
+               String path = (String)i.next();
+               mRelativePaths.add(new File(path));
+            }
+            
+            rval = true;
+         }
+         else
+         {
+            getLogger().error(getClass(),
+               "Delete command in update script is invalid.");
+         }
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(), 
+            "Delete command in update script is invalid.");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Parses a mkdir command.
+    * 
+    * @return true if successfully parsed, false if not.
+    */
+   protected boolean parseMakeDirectoryCommand()
+   {
+      boolean rval = false;
+      
+      try
+      {
+         // There should be 1 argument:
+         //
+         // 0. the relative path of the directory to create
+         
+         mRelativePaths.add(new File((String)mArguments.get(0)));
+         rval = true;
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(), 
+            "Make directory command in update script is invalid.");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Parses a rmdir command.
+    * 
+    * @return true if successfully parsed, false if not.
+    */
+   protected boolean parseRemoveDirectoryCommand()
+   {
+      boolean rval = false;
+      
+      try
+      {
+         // There should be 1 argument:
+         //
+         // 0. the relative path of the directory to remove
+         
+         mRelativePaths.add(new File((String)mArguments.get(0)));
+         rval = true;
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(), 
+            "Remove directory command in update script is invalid.");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Parses a message command.
+    * 
+    * @return true if successfully parsed, false if not.
+    */
+   protected boolean parseMessageCommand()
+   {
+      boolean rval = false;
+      
+      try
+      {
+         // There should be 1 argument:
+         //
+         // 0. the message to display
+         
+         mMessage = (String)mArguments.get(0);
+         rval = true;
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(), 
+            "Message command in update script is invalid.");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Parses a on_success command.
+    * 
+    * @return true if successfully parsed, false if not.
+    */
+   protected boolean parseOnSuccessCommand()
+   {
+      boolean rval = false;
+      
+      try
+      {
+         // There should be 1 argument:
+         //
+         // 0. restart|shutdown|manually_download
+         
+         mOnSuccessArgument = (String)mArguments.get(0);
+         rval = true;
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(), 
+            "On success command in update script is invalid.");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Parses a command from an XmlElement.
+    * 
+    * The BNF for the possible commands is as follows:
+    * 
     * <pre>
     * FILE := version VARGS
-    *         (install IARGS | delete DARGS | mkdir DARGS | rmdir DARGS)*
-    *         on_success OARGS
+    *         (install IARGS | delete DARGS | mkdir DARGS | rmdir DARGS |
+    *          message MARGS)* on_success? OARGS
     * 
     * LINE := COMMAND
     * 
@@ -105,7 +337,7 @@ public class BasicUpdateScriptCommand
     * 
     * IARGS := URL SIZE MD5SUM RELATIVE_PATH
     * 
-    * DARGS := RELATIVE_PATH
+    * DARGS := RELATIVE_PATH*
     * 
     * OARGS := (restart|shutdown|manually_download)
     * </pre>
@@ -113,129 +345,63 @@ public class BasicUpdateScriptCommand
     * VARGS are version arguments.
     * MARGS are message arguments.
     * DARGS are directory arguments.
-    * OARGS are optional arguments.
+    * OARGS are on success arguments.
     * 
-    * @param command the name of the command.
-    * @param arguments the argument list.
+    * @param element the xml element to parse the command from.
     * 
-    * @return true if the parse was successful, false otherwise.
+    * @return true if the command was parsed successfully, false if not.
     */
-   public boolean parseCommand(String command, String arguments)
+   public boolean parseCommand(XmlElement element)
    {
-      boolean success = false;
-      StringTokenizer st = new StringTokenizer(arguments, " ");
+      boolean rval = false;
       
-      // set the command name
-      mName = command;
+      // reset command information
+      reset();
       
-      if(command.equals("version"))
+      if(element.getName().equals("command"))
       {
-         String versionNumber = st.nextToken();
+         // get the name of the command
+         mName = element.getAttributeValue("name");
          
-         // try and parse the version number in the script file and convert
-         // it into a floating point number that can be easily compared.
-         try
+         // parse the arguments for the command
+         for(Iterator i = element.getChildren().iterator(); i.hasNext();)
          {
-            String fpVersion = "";
-            versionNumber = versionNumber.replace(".", "");
-            fpVersion = versionNumber.substring(0, 1) + "." + 
-                        versionNumber.substring(1);
-            mVersion = Float.parseFloat(fpVersion);
-            
-            success = true;
-         }
-         catch(NumberFormatException nfe)
-         {
-            getLogger().error(getClass(), 
-               "Version number in update script is invalid: " + versionNumber);
-         }
-      }
-      else if(command.equals("message"))
-      {
-         mMessage = st.nextToken();
-         success = true;
-      }
-      else if(command.equals("mkdir") || command.equals("rmdir") ||
-              command.equals("delete"))
-      {
-         String relativePath = st.nextToken();
-         
-         // check to see if the path that is passed in has a length
-         if(relativePath.length() > 0)
-         {
-            mRelativePath = new File(relativePath);
-            success = true;
-         }
-      }
-      else if(command.equals("install"))
-      {
-         success = true;
-         String url = st.nextToken();
-         String size = st.nextToken();
-         String md5sum = st.nextToken();
-         String relativePath = st.nextToken();
-         
-         if(url.length() > 0)
-         {
-            // parse the source URL for the install command
-            try
-            {
-               mUrl = new URL(url);
-            }
-            catch(MalformedURLException mue)
-            {
-               getLogger().error(getClass(), 
-                  "Update script install URL is invalid: " + url);
-               success &= false;
-            }
+            XmlElement argumentElement = (XmlElement)i.next();
+            mArguments.add(argumentElement.getValue());
          }
          
-         if(size.length() > 0)
+         // parse specific command
+         if(getName().equals("version"))
          {
-            // get the size of the file associated with the install command
-            try
-            {
-               mSize = Integer.parseInt(size);
-            }
-            catch(NumberFormatException nfe)
-            {
-               getLogger().error(getClass(), 
-                  "Update script install URL is invalid: " + url);
-               success &= false;
-            }
+            rval = parseVersionCommand();
          }
-         
-         if(md5sum.length() > 0)
+         else if(getName().equals("install"))
          {
-            // the MD5 sum string
-            mMd5Sum = md5sum;
+            rval = parseInstallCommand();
          }
-
-         // check to see if the path that is passed in has a length
-         if(relativePath.length() > 0)
+         else if(getName().equals("delete"))
          {
-            mRelativePath = new File(relativePath);
+            rval = parseDeleteCommand();
          }
-      }
-      else if(command.equals("on_success"))
-      {
-         String argument = st.nextToken();
-         
-         if(argument.equals("restart") || argument.equals("exit") ||
-            argument.equals("manually_download"))
+         else if(getName().equals("mkdir"))
          {
-            mOptionalArgument = argument;
-            success = true;
+            rval = parseMakeDirectoryCommand();
          }
-         else
+         else if(getName().equals("rmdir"))
          {
-            getLogger().error(getClass(), 
-               "Update script on_success command is invalid: " + argument);
-            success &= false;
+            rval = parseRemoveDirectoryCommand();
+         }
+         else if(getName().equals("message"))
+         {
+            rval = parseMessageCommand();
+         }
+         else if(getName().equals("on_success"))
+         {
+            rval = parseOnSuccessCommand();
          }
       }
       
-      return success;
+      return rval;
    }
    
    /**
@@ -249,13 +415,13 @@ public class BasicUpdateScriptCommand
    }
    
    /**
-    * Gets the optional argument if it exists.
+    * Gets the version number associated with the command.
     * 
-    * @return the optional argument if it exists.
+    * @return a string denoting the software version.
     */
-   public String getOptionalArgument()
+   public String getVersion()
    {
-      return mOptionalArgument;
+      return mVersion;
    }
    
    /**
@@ -270,14 +436,14 @@ public class BasicUpdateScriptCommand
    }
    
    /**
-    * Gets the MD5 sum associated with the command.
+    * Gets the MD5 digest associated with the command.
     * 
-    * @return the MD5 sum associated with the command if it exists, null is
-    *         returned if no MD5 sum is associated with it.
+    * @return the MD5 digest associated with the command if it exists, a
+    *         blank string is returned if no MD5 digest is associated with it.
     */
-   public String getMd5Sum()
+   public String getMd5Digest()
    {
-      return mMd5Sum;
+      return mMd5Digest;
    }
    
    /**
@@ -286,30 +452,37 @@ public class BasicUpdateScriptCommand
     * @return the size of the file associated with the command, -1 if 
     *         there is no size associated with the command.
     */
-   public int getSize()
+   public long getSize()
    {
       return mSize;
    }
    
    /**
-    * Gets the relative file path associated with the command.
+    * Gets the first relative path associated with the command.
     * 
-    * @return the relative file path associated with the command, null if
-    *         there is no file path associated with the command.
+    * @return the first relative path associated with the command.
     */
    public File getRelativePath()
    {
-      return mRelativePath;
+      File rval = null;
+      
+      if(mRelativePaths.size() > 0)
+      {
+         rval = (File)mRelativePaths.get(0);
+      }
+      
+      return rval;
    }
    
    /**
-    * Gets the version number associated with the command.
+    * Gets the relative file paths associated with the command.
     * 
-    * @return a double precision number denoting the software version.
+    * @return a vector of File objects that have the relative file paths
+    *         associated with the command.
     */
-   public double getVersion()
+   public Vector getRelativePaths()
    {
-      return mVersion;
+      return mRelativePaths;
    }
    
    /**
@@ -320,6 +493,16 @@ public class BasicUpdateScriptCommand
    public String getMessage()
    {
       return mMessage;
+   }
+   
+   /**
+    * Gets the on success argument if it exists.
+    * 
+    * @return the on success argument if it exists.
+    */
+   public String getOnSuccessArgument()
+   {
+      return mOnSuccessArgument;
    }
    
    /**

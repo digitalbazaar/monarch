@@ -9,7 +9,6 @@ import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
 import com.db.crypto.Cryptor;
@@ -17,6 +16,7 @@ import com.db.event.EventDelegate;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.util.MethodInvoker;
+import com.db.xml.XmlElement;
 
 /**
  * A BasicUpdateScript is one particular implementation of UpdateScript for
@@ -164,7 +164,7 @@ public class BasicUpdateScript implements UpdateScript
             rval = true;
          }
       }
-      catch(Throwable t)
+      catch(Throwable ignore)
       {
       }
       finally
@@ -181,7 +181,7 @@ public class BasicUpdateScript implements UpdateScript
                out.close();
             }
          }
-         catch(Throwable t)
+         catch(Throwable ignore)
          {
          }
       }
@@ -260,15 +260,16 @@ public class BasicUpdateScript implements UpdateScript
     * Performs the delete command given the update script command object.
     * 
     * @param command the update script command object.
+    * @param path the path of the file to delete.
     * 
     * @return true if the delete was successful, false otherwise.
     */
-   protected boolean performDeleteCommand(BasicUpdateScriptCommand command)
+   protected boolean performDeleteCommand(
+       BasicUpdateScriptCommand command, File path)
    {
       boolean rval = false;
       
-      File deleteFile =
-         new File(getWorkingPath() + command.getRelativePath().getPath());
+      File deleteFile = new File(getWorkingPath() + path.getPath());
       
       // attempt to delete the file
       if(deleteFile.exists())
@@ -395,7 +396,7 @@ public class BasicUpdateScript implements UpdateScript
       try
       {
          File destination = command.getRelativePath();
-         String md5 = command.getMd5Sum();
+         String md5 = command.getMd5Digest();
          
          // see if the destination can be written to
          if(!destination.exists() || destination.canWrite() &&
@@ -539,7 +540,7 @@ public class BasicUpdateScript implements UpdateScript
     */
    public synchronized boolean validate()
    {
-      boolean rval = true;
+      boolean rval = false;
       
       // default number of items to 0
       mDownloadItemCount = 0;
@@ -551,22 +552,24 @@ public class BasicUpdateScript implements UpdateScript
       String script = toString();
       if(script.length() > 0)
       {
-         String commands[] = script.split("\n");
-         
-         // parse each command in the file
-         for(int i = 0; i < commands.length; i++)
-         {            
-            if(commands[i].length() > 4)
+         // convert the script to an xml element and check its name and version
+         XmlElement element = new XmlElement();
+         if(element.convertFromXml(script) &&
+            element.getName().equals("update_script") &&
+            element.getAttributeValue("version").equals("1.0"))
+         {
+            rval = true;
+            
+            // parse each command
+            boolean versionCommand = false;
+            for(Iterator i = element.getChildren("command").iterator();
+                i.hasNext() && rval;)
             {
-               // parse the update script command
+               XmlElement commandElement = (XmlElement)i.next();
+
+               // parse the command
                BasicUpdateScriptCommand usc = new BasicUpdateScriptCommand();
-               StringTokenizer st = new StringTokenizer(commands[i], " ");
-               String command = st.nextToken();
-               String arguments = st.nextToken("\n");
-          
-               // if the command parse is successful, store the command,
-               // do not store it otherwise.
-               if(usc.parseCommand(command, arguments))
+               if(usc.parseCommand(commandElement))
                {
                   mCommands.add(usc);
                   
@@ -576,7 +579,11 @@ public class BasicUpdateScript implements UpdateScript
                      mUpdateSize += usc.getSize();
                   }
                   
-                  if(usc.getName().equals("install"))
+                  if(usc.getName().equals("version"))
+                  {
+                     versionCommand = true;
+                  }
+                  else if(usc.getName().equals("install"))
                   {
                      // increment install item count
                      mDownloadItemCount++;
@@ -587,11 +594,13 @@ public class BasicUpdateScript implements UpdateScript
                   rval = false;
                }
             }
+            
+            // ensure a version command was found
+            if(!versionCommand)
+            {
+               rval = false;
+            }
          }
-      }
-      else
-      {
-         rval = false;
       }
       
       return rval;
@@ -647,18 +656,25 @@ public class BasicUpdateScript implements UpdateScript
          }
          else if(command.getName().equals("delete"))
          {
-            // fire event
-            fireBasicUpdateScriptProcessEvent(
-               "fileChanged", command, commandNumber, 0,
-               command.getRelativePath(), "delete", 0, 0);
-
-            // perform delete
-            noError &= performDeleteCommand(command);
+            // perform a delete for each relative path
+            for(Iterator pi = command.getRelativePaths().iterator();
+                pi.hasNext();)
+            {
+               File path = (File)pi.next();
             
-            // fire event
-            fireBasicUpdateScriptProcessEvent(
-               "fileChanged", command, commandNumber, 0,
-               command.getRelativePath(), "delete", 0, 100);
+               // fire event
+               fireBasicUpdateScriptProcessEvent(
+                  "fileChanged", command, commandNumber, 0,
+                  path, "delete", 0, 0);
+
+               // perform delete
+               noError &= performDeleteCommand(command, path);
+            
+               // fire event
+               fireBasicUpdateScriptProcessEvent(
+                  "fileChanged", command, commandNumber, 0,
+                  path, "delete", 0, 100);
+            }
          }
          else if(command.getName().equals("mkdir"))
          {
@@ -797,8 +813,10 @@ public class BasicUpdateScript implements UpdateScript
    {
       boolean rval = false;
       
-      // reload auto-updater if a shutdown is required
-      if(getExitCommand() != null && getExitCommand().equals("shutdown"))
+      // reload auto-updater if a shutdown or a restart is required
+      if(getExitCommand() != null &&
+         getExitCommand().equals("shutdown") ||
+         getExitCommand().equals("restart"))
       {
          rval = true;
       }
@@ -820,7 +838,7 @@ public class BasicUpdateScript implements UpdateScript
          BasicUpdateScriptCommand lastCommand = 
             (BasicUpdateScriptCommand)mCommands.get(mCommands.size() - 1);
       
-         rval = lastCommand.getOptionalArgument();
+         rval = lastCommand.getOnSuccessArgument();
       }
       
       return rval;

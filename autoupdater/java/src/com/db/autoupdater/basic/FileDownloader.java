@@ -51,6 +51,9 @@ public class FileDownloader
    {
       boolean rval = false;
       
+      FileOutputStream fos = null;
+      BufferedInputStream bis = null;
+
       try
       {
          mBytesDownloaded = 0;
@@ -58,9 +61,6 @@ public class FileDownloader
          
          // get a connection for downloading
          URLConnection c = url.openConnection();
-         
-         FileOutputStream fos = null;
-         BufferedInputStream bis = null;
          
          getLogger().debug(getClass(), "Downloading file=" + url);
                
@@ -85,7 +85,17 @@ public class FileDownloader
          // close streams
          bis.close();
          fos.close();
-            
+         
+         // file downloaded
+         rval = true;
+      }
+      catch(Throwable t)
+      {
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
+      }
+      
+      try
+      {
          if(bis != null)
          {
             bis.close();
@@ -95,9 +105,6 @@ public class FileDownloader
          {
             fos.close();
          }
-         
-         // file downloaded
-         rval = true;
       }
       catch(Throwable t)
       {
