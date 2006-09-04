@@ -117,6 +117,7 @@ implements ListCellRenderer, TableCellRenderer
       else if(value != null)
       {
          JLabel label = new JLabel(value.toString());
+         label.setOpaque(true);
          mComponent = label;
       }
       
@@ -204,6 +205,7 @@ implements ListCellRenderer, TableCellRenderer
       else if(value != null)
       {
          JLabel label = new JLabel(value.toString());
+         label.setOpaque(true);
          
          // restrict label height
          Dimension max = label.getMaximumSize();
