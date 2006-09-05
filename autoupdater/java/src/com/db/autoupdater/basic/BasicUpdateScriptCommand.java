@@ -10,6 +10,7 @@ import java.util.Vector;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.util.BoxingHashMap;
 import com.db.xml.XmlElement;
 
 /**
@@ -319,43 +320,79 @@ public class BasicUpdateScriptCommand
       // reset command information
       reset();
       
-      if(element.getName().equals("command"))
+      try
       {
-         // get the name of the command
-         mName = element.getAttributeValue("name");
-         
-         // parse the arguments for the command
-         for(Iterator i = element.getChildren().iterator(); i.hasNext();)
+         if(element.getName().equals("command"))
          {
-            XmlElement argumentElement = (XmlElement)i.next();
-            mArguments.add(argumentElement.getValue());
+            // get the name of the command
+            mName = element.getAttributeValue("name");
+            
+            // parse the arguments for the command, put them in a temporary map
+            BoxingHashMap map = new BoxingHashMap();
+            boolean argumentsValid = true;
+            for(Iterator i = element.getChildren().iterator();
+                i.hasNext() && argumentsValid;)
+            {
+               XmlElement argumentElement = (XmlElement)i.next();
+               
+               // get the order attribute
+               int order = argumentElement.getAttributeIntValue("order");
+               
+               if(!map.containsKey(order))
+               {
+                  map.put(order, argumentElement.getValue());
+               }
+               else
+               {
+                  // duplicate argument -- arguments are invalid
+                  argumentsValid = false;
+               }
+            }
+            
+            // proceed if the arguments are valid
+            if(argumentsValid)
+            {
+               for(int i = 0; i < map.size(); i++)
+               {
+                  // add the arguments in order
+                  String argument = map.getString(i);
+                  mArguments.add(argument);
+               }
+               
+               // parse specific command
+               if(getName().equals("install"))
+               {
+                  rval = parseInstallCommand();
+               }
+               else if(getName().equals("delete"))
+               {
+                  rval = parseDeleteCommand();
+               }
+               else if(getName().equals("mkdir"))
+               {
+                  rval = parseMakeDirectoryCommand();
+               }
+               else if(getName().equals("rmdir"))
+               {
+                  rval = parseRemoveDirectoryCommand();
+               }
+               else if(getName().equals("message"))
+               {
+                  rval = parseMessageCommand();
+               }
+               else if(getName().equals("on_success"))
+               {
+                  rval = parseOnSuccessCommand();
+               }
+            }
          }
-         
-         // parse specific command
-         if(getName().equals("install"))
-         {
-            rval = parseInstallCommand();
-         }
-         else if(getName().equals("delete"))
-         {
-            rval = parseDeleteCommand();
-         }
-         else if(getName().equals("mkdir"))
-         {
-            rval = parseMakeDirectoryCommand();
-         }
-         else if(getName().equals("rmdir"))
-         {
-            rval = parseRemoveDirectoryCommand();
-         }
-         else if(getName().equals("message"))
-         {
-            rval = parseMessageCommand();
-         }
-         else if(getName().equals("on_success"))
-         {
-            rval = parseOnSuccessCommand();
-         }
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(), 
+            "Exception thrown while parsing a command in update script!" +
+            ",exception= " + t);
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;
