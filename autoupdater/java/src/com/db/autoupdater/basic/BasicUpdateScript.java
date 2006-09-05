@@ -110,7 +110,6 @@ public class BasicUpdateScript implements UpdateScript
             rval = true;
             
             // parse each command
-            boolean versionCommand = false;
             for(Iterator i = element.getChildren("command").iterator();
                 i.hasNext() && rval;)
             {
@@ -128,11 +127,7 @@ public class BasicUpdateScript implements UpdateScript
                      mUpdateSize += usc.getSize();
                   }
                   
-                  if(usc.getName().equals("version"))
-                  {
-                     versionCommand = true;
-                  }
-                  else if(usc.getName().equals("install"))
+                  if(usc.getName().equals("install"))
                   {
                      // increment install item count
                      mDownloadItemCount++;
@@ -142,12 +137,6 @@ public class BasicUpdateScript implements UpdateScript
                {
                   rval = false;
                }
-            }
-            
-            // ensure a version command was found
-            if(!versionCommand)
-            {
-               rval = false;
             }
          }
       }

@@ -34,11 +34,6 @@ public class BasicUpdateScriptCommand
    protected Vector mArguments;
       
    /**
-    * A string denoting the version of the software.
-    */
-   protected String mVersion;
-
-   /**
     * The URL associated with the command.
     */
    protected URL mUrl;
@@ -86,40 +81,12 @@ public class BasicUpdateScriptCommand
       mName = "";
       mArguments.clear();
 
-      mVersion = "";
       mUrl = null;
       mMd5Digest = "";
       mSize = -1;
       mRelativePaths.clear();
       mMessage = "";
       mOnSuccessArgument = "";
-   }
-   
-   /**
-    * Parses a version command.
-    * 
-    * @return true if successfully parsed, false if not.
-    */
-   protected boolean parseVersionCommand()
-   {
-      boolean rval = false;
-      
-      try
-      {
-         // There should be 1 argument:
-         //
-         // 0. version
-         mVersion = (String)mArguments.get(0);
-         rval = true;
-      }
-      catch(Throwable t)
-      {
-         getLogger().error(getClass(), 
-            "Version command in update script is invalid.");
-         getLogger().debug(getClass(), Logger.getStackTrace(t));
-      }
-      
-      return rval;
    }
    
    /**
@@ -315,21 +282,16 @@ public class BasicUpdateScriptCommand
     * The BNF for the possible commands is as follows:
     * 
     * <pre>
-    * FILE := version VARGS
-    *         (install IARGS | delete DARGS | mkdir DARGS | rmdir DARGS |
+    * FILE := (install IARGS | delete DARGS | mkdir DARGS | rmdir DARGS |
     *          message MARGS)* on_success? OARGS
     * 
     * LINE := COMMAND
     * 
-    * COMMAND := (version VARGS | message MARGS | install IARGS | delete DARGS | 
-    *             mkdir DARGS | rmdir DARGS | on_success OARGS)
-    * 
-    * N := DECIMAL_NUMBER
-    * VERSION_NUMBER := (N.N|N.N.N)
-    * VARGS := VERSION_NUMBER
+    * COMMAND := (install IARGS | delete DARGS | 
+    *             mkdir DARGS | rmdir DARGS | message MARGS | on_success OARGS)
     * 
     * URL := FILE_OR_HTTP_URL_STRING
-    * SIZE := N
+    * SIZE := LONG
     * MD5SUM := STRING
     * RELATIVE_PATH := RELATIVE_FILE_PATH
     * 
@@ -339,10 +301,9 @@ public class BasicUpdateScriptCommand
     * 
     * DARGS := RELATIVE_PATH*
     * 
-    * OARGS := (restart|shutdown|manually_download)
+    * OARGS := (restart|shutdown)
     * </pre>
     * 
-    * VARGS are version arguments.
     * MARGS are message arguments.
     * DARGS are directory arguments.
     * OARGS are on success arguments.
@@ -371,11 +332,7 @@ public class BasicUpdateScriptCommand
          }
          
          // parse specific command
-         if(getName().equals("version"))
-         {
-            rval = parseVersionCommand();
-         }
-         else if(getName().equals("install"))
+         if(getName().equals("install"))
          {
             rval = parseInstallCommand();
          }
@@ -412,16 +369,6 @@ public class BasicUpdateScriptCommand
    public String getName()
    {
       return mName;
-   }
-   
-   /**
-    * Gets the version number associated with the command.
-    * 
-    * @return a string denoting the software version.
-    */
-   public String getVersion()
-   {
-      return mVersion;
    }
    
    /**

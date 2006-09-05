@@ -520,7 +520,7 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
     * 
     * @return true if an update was processed, false if not.
     */
-   protected synchronized boolean checkForUpdate(AutoUpdateable application)
+   protected boolean checkForUpdate(AutoUpdateable application)
    {
       boolean rval = false;
       
@@ -582,7 +582,7 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
     * @param application the application that is running.
     * @param script the update script to process.
     */
-   protected synchronized void processUpdateScript(
+   protected void processUpdateScript(
       AutoUpdateable application, UpdateScript script)
    {
       // ensure this thread is not interrupted
@@ -776,12 +776,20 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
     * Runs an application while monitoring for updates in a background process.
     * 
     * @param application the auto-updateable application to execute.
+    * 
+    * @return true if an attempt was made to start the application (it
+    *         can be cancelled), false if not.
     */
-   protected void run(AutoUpdateable application)
+   protected boolean run(AutoUpdateable application)
    {
+      boolean rval = false;
+      
       // check for an update, start the application if there isn't one
       if(!checkForUpdate(application))
       {
+         // application start attempt made
+         rval = true;
+
          // set automatic check flag to true
          setAutoCheckForUpdate(true);
          
@@ -837,6 +845,8 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
          // ensure automatic check flag is set to false
          setAutoCheckForUpdate(false);
       }
+      
+      return rval;
    }
    
    /**
@@ -974,16 +984,20 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
             setRunningAutoUpdateable(application);
             
             // run the application
-            run(application);
+            boolean started = run(application);
             
             // AutoUpdateable no longer running
             setRunningAutoUpdateable(null);
-         
-            // see if the application should not restart
-            if(!application.shouldRestart())
+            
+            // see if an attempt was made to start the application
+            if(started)
             {
-               // application should not restart
-               rval = false;
+               // see if the application should not restart
+               if(!application.shouldRestart())
+               {
+                  // application should not restart
+                  rval = false;
+               }
             }
             
             // clean up AutoUpdateable application
@@ -1190,6 +1204,23 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    public synchronized boolean isProcessingUpdate()
    {
       return mProcessingUpdate;
+   }
+   
+   /**
+    * Gets whether or not this AutoUpdater has a running AutoUpdateable.
+    * 
+    * @return true if this AutoUpdater has a running AutoUpdateable.
+    */
+   public synchronized boolean isAutoUpdateableRunning()
+   {
+      boolean rval = false;
+      
+      if(getRunningAutoUpdateable() != null)
+      {
+         rval = getRunningAutoUpdateable().isRunning();
+      }
+      
+      return rval;
    }
    
    /**
