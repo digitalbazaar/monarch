@@ -27,6 +27,8 @@
     <ant antfile="build.xml" dir="gui/java" target="build"/>
     <echo message="========== Building Digital Bazaar autoupdater classes =========="/>
     <ant antfile="build.xml" dir="autoupdater/java" target="build"/>
+    <echo message="========== Building Digital Bazaar OperationEngine classes =========="/>
+    <ant antfile="build.xml" dir="ope/java" target="build"/>
   </target>
 
   <target name="clean"
@@ -53,6 +55,8 @@
     <ant antfile="build.xml" dir="gui/java" target="clean"/>
     <echo message="========== Cleaning Digital Bazaar autoupdater classes =========="/>
     <ant antfile="build.xml" dir="autoupdater/java" target="clean"/>
+    <echo message="========== Cleaning Digital Bazaar OperationEngine classes =========="/>
+    <ant antfile="build.xml" dir="ope/java" target="clean"/>
     </target>
 
 </project>
