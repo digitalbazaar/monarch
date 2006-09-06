@@ -165,16 +165,23 @@ public class HttpWebClient
          // create an unconnected socket
          Socket socket = new Socket();
          
+         // get the port to connect to
+         int port = url.getPort();
+         if(port == -1)
+         {
+            // get the default port
+            port = url.getDefaultPort();
+         }
+         
          // connect the socket with a timeout of 10 seconds
-         InetSocketAddress address = new InetSocketAddress(
-            url.getHost(), url.getPort());
+         InetSocketAddress address = new InetSocketAddress(url.getHost(), port);
          socket.connect(address, 10000);
          
          if(url.getProtocol().equals("https"))
          {
             // wrap the socket with an SSL socket
             socket = getSSLSocketFactory().createSocket(
-               socket, url.getHost(), url.getPort(), true);
+               socket, url.getHost(), port, true);
             
             // set the enabled cipher suites
             String[] suites = getSSLSocketFactory().getSupportedCipherSuites();
@@ -427,12 +434,20 @@ public class HttpWebClient
       HttpWebConnection connection = connect(url);
       if(connection != null)
       {
+         // get the port to connect to
+         int port = url.getPort();
+         if(port == -1)
+         {
+            // get the default port
+            port = url.getDefaultPort();
+         }
+         
          // create http web request
          HttpWebRequest request = new HttpWebRequest(connection);
          request.getHeader().setMethod("GET");
-         request.getHeader().setPath(url.getPath());
+         request.getHeader().setPath(url.toString());
          request.getHeader().setVersion("HTTP/1.1");
-         request.getHeader().setHost(url.getHost() + ":" + url.getPort());
+         request.getHeader().setHost(url.getHost() + ":" + port);
          request.getHeader().setUserAgent(DEFAULT_USER_AGENT);
          request.getHeader().setConnection("close");
          
