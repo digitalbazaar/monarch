@@ -101,6 +101,10 @@ public class ProxyWebConnection extends GenericWebConnection
          {
             // socket closed
          }
+         else if(message.indexOf("socket is closed") != -1)
+         {
+            // socket closed
+         }
          else if(message.indexOf("software caused connection abort") != -1)
          {
             // connection aborted by software
