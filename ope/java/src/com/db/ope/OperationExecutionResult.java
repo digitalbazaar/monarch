@@ -4,16 +4,17 @@
 package com.db.ope;
 
 /**
- * An ExecutingOperation represents an Operation that is being executed by
- * an OperationEngine and provides an interface for interrupting or terminating
- * the Operation.
+ * An OperationExecutionResult represents the result of executing an Operation
+ * on an OperationEngine. It provides an interface for interrupting or
+ * terminating the Operation and for obtaining information about the execution
+ * status.
  * 
  * This class is hides away lower-level functionality that should not be
  * accessible to the application that is running operations.
  * 
  * @author Dave Longley
  */
-public class ExecutingOperation
+public class OperationExecutionResult
 {
    /**
     * The OperationExecutor that is executing the operation.
@@ -21,7 +22,7 @@ public class ExecutingOperation
    protected OperationExecutor mExecutor;
    
    /**
-    * Creates a new ExecutingOperation for a given Operation. The passed
+    * Creates a new OperationExecutionResult for a given Operation. The passed
     * executor will either be the OperationExecutor instance used to execute
     * the Operation, or it will be null because the Operation cannot be
     * executed (the conditions necessary for its execution were not met).
@@ -29,7 +30,7 @@ public class ExecutingOperation
     * @param executor the operation executor that executes the operation or
     *                 null if the operation cannot be executed.
     */
-   public ExecutingOperation(OperationExecutor executor)
+   public OperationExecutionResult(OperationExecutor executor)
    {
       // store executor
       mExecutor = executor;

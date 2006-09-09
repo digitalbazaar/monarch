@@ -3,6 +3,8 @@
  */
 package com.db.ope;
 
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 import com.db.util.JobDispatcher;
 
 /**
@@ -163,11 +165,11 @@ public class OperationEngine
     * 
     * @param operation the Operation to execute.
     * 
-    * @return the ExecutingOperation that represents the executing Operation.
+    * @return the OperationExecutionResult for the execution.
     */
-   public ExecutingOperation execute(Operation operation)
+   public OperationExecutionResult execute(Operation operation)
    {
-      ExecutingOperation rval = null;
+      OperationExecutionResult rval = null;
 
       // FIXME: determine if the operation can be executed
       boolean canExecute = false;
@@ -177,18 +179,28 @@ public class OperationEngine
          // create an OperationExecutor
          OperationExecutor executor = new OperationExecutor(operation);
       
-         // create a new ExecutingOperation using the executor
-         rval = new ExecutingOperation(executor);
+         // create a new OperationExecutionResult using the executor
+         rval = new OperationExecutionResult(executor);
          
          // FIXME: implement me
       }
       else
       {
          // the operation cannot be executed, so create a new
-         // ExecutingOperation that has no executor
-         rval = new ExecutingOperation(null);
+         // OperationExecutionResult that has no executor
+         rval = new OperationExecutionResult(null);
       }
       
       return rval;
+   }
+   
+   /**
+    * Gets the logger for this OperationEngine.
+    * 
+    * @return the logger for this OperationEngine.
+    */
+   public Logger getLogger()
+   {
+      return LoggerManager.getLogger("dbope");
    }
 }

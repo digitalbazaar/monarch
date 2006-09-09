@@ -3,6 +3,8 @@
  */
 package com.db.ope;
 
+import com.db.util.MethodInvokedMessage;
+
 /**
  * An OperationExecutor is a class that executes an Operation for an
  * OperationEngine.
@@ -172,5 +174,17 @@ public class OperationExecutor implements Runnable
    public synchronized boolean hasFinished()
    {
       return mExecutionCompleted;
+   }
+   
+   /**
+    * Gets the MethodInvokedMessage for the method that was executed for
+    * the Operation.
+    * 
+    * @return the MethodInvokedMessage for the method executed for the
+    *         Operation.
+    */
+   public MethodInvokedMessage getMethodInvokedMessage()
+   {
+      return mOperation.getMethodInvoker().getMessage();
    }
 }
