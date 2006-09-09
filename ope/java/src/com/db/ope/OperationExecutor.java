@@ -36,6 +36,11 @@ public class OperationExecutor implements Runnable
    protected boolean mInterrupted;
    
    /**
+    * Set to true if this OperationExecutor is waiting to execute, false if not.
+    */
+   protected boolean mWaiting;
+   
+   /**
     * The thread this OperationExecutor is running on. This can be null if
     * it has not been set yet because the executor's run() method hasn't
     * been called yet.
@@ -63,6 +68,9 @@ public class OperationExecutor implements Runnable
       
       // operation not interrupted yet
       mInterrupted = false;
+      
+      // not waiting to execute yet
+      mWaiting = false;
       
       // no execution thread yet
       mExecutionThread = null;
@@ -96,8 +104,15 @@ public class OperationExecutor implements Runnable
             // wait while the engine indicates that the operation must wait
             while(mEngine.mustWait(this))
             {
+               // now waiting
+               mWaiting = true;
+               
+               // wait
                wait();
             }
+            
+            // no longer waiting
+            mWaiting = false;
          }
          
          // execute the operation's method invoker
@@ -211,6 +226,18 @@ public class OperationExecutor implements Runnable
    public synchronized boolean hasFinished()
    {
       return mExecutionCompleted;
+   }
+   
+   /**
+    * Returns true if this OperationExecutor is waiting to execute,
+    * false if not.
+    * 
+    * @return true if this OperationExecutor is waiting to execute,
+    *         false if not.
+    */
+   public synchronized boolean isWaiting()
+   {
+      return mWaiting;
    }
    
    /**

@@ -74,6 +74,23 @@ public class OperationExecutionResult
    }
    
    /**
+    * Returns true if the Operation is waiting to be executed, false if not.
+    * 
+    * @return true if the Operation is waiting to be executed, false if not.
+    */
+   public boolean isWaiting()
+   {
+      boolean rval = false;
+      
+      if(mExecutor != null)
+      {
+         rval = mExecutor.isWaiting();
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Gets the return value for the operation.
     * 
     * @return the return value for the operation.
