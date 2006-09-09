@@ -137,7 +137,7 @@ public class MethodInvoker extends Thread
       mLockObject = null;
       mLockMessageHandling = false;
       
-      mMessage = null;
+      mMessage = new MethodInvokedMessage();
       mListener = null;
       mCallbackMethodInvoker = null;
       
@@ -176,10 +176,7 @@ public class MethodInvoker extends Thread
       }
       catch(Throwable t)
       {
-         if(mMessage != null)
-         {
-            mMessage.setMethodException(t);
-         }
+         mMessage.setMethodException(t);
          
          getLogger().error(getClass(), 
             "an exception occurred while invoking method: '" + signature +
@@ -849,12 +846,11 @@ public class MethodInvoker extends Thread
    {
       // set listener and message
       mListener = mil;
-      mMessage = mim;
       
-      // if listener is not null, do not allow null message
-      if(mListener != null && mMessage == null)
+      // do not allow null message
+      if(mim != null)
       {
-         mMessage = new MethodInvokedMessage();
+         mMessage = mim;
       }
    }
    
@@ -870,12 +866,11 @@ public class MethodInvoker extends Thread
    {
       // set callback method invoker and message
       mCallbackMethodInvoker = cbInvoker;
-      mMessage = mim;
       
-      // if callback method invoker is not null, do not allow null message
-      if(mCallbackMethodInvoker != null && mMessage == null)
+      // do not allow null message
+      if(mim != null)
       {
-         mMessage = new MethodInvokedMessage();
+         mMessage = mim;
       }
    }
    
