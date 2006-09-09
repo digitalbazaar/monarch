@@ -37,7 +37,7 @@ public class OperationExecutionResult
    }
    
    /**
-    * Interrupts the executing Operation, if the Operation is executing.
+    * Interrupts the Operation whether it has started or is already running.
     */
    public void interrupt()
    {
@@ -71,6 +71,23 @@ public class OperationExecutionResult
    public boolean couldExecute()
    {
       return mExecutor != null;
+   }
+   
+   /**
+    * Returns true if the Operation has started executing, false if not.
+    * 
+    * @return true if the Operation has started executing, false if not.
+    */
+   public boolean hasStarted()
+   {
+      boolean rval = false;
+      
+      if(mExecutor != null)
+      {
+         rval = mExecutor.hasStarted();
+      }
+      
+      return rval;
    }
    
    /**
