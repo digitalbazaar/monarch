@@ -72,4 +72,76 @@ public class OperationExecutionResult
    {
       return mExecutor != null;
    }
+   
+   /**
+    * Gets the return value for the operation.
+    * 
+    * @return the return value for the operation.
+    * 
+    * @exception IllegalStateException thrown if this method is called before
+    *                                  the operation completes or if the
+    *                                  operation could not be executed.
+    */
+   public Object getOperationReturnValue() throws IllegalStateException
+   {
+      Object rval = null;
+      
+      if(mExecutor != null)
+      {
+         if(mExecutor.hasFinished())
+         {
+            rval = mExecutor.getMethodInvokedMessage().getMethodReturnValue();
+         }
+         else
+         {
+            throw new IllegalStateException(
+               "The operation has not finished executing, so it cannot " +
+               "have a return value yet.");
+         }
+      }
+      else
+      {
+         throw new IllegalStateException(
+            "The operation could not be executed so it cannot " +
+            "have a return value."); 
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets an exception that was thrown while executing the operation.
+    * 
+    * @return the exception thrown while executing the operation, can be null.
+    * 
+    * @exception IllegalStateException thrown if this method is called before
+    *                                  the operation completes or if the
+    *                                  operation could not be executed.
+    */
+   public Throwable getOperationException() throws IllegalStateException
+   {
+      Throwable rval = null;
+      
+      if(mExecutor != null)
+      {
+         if(mExecutor.hasFinished())
+         {
+            rval = mExecutor.getMethodInvokedMessage().getMethodException();
+         }
+         else
+         {
+            throw new IllegalStateException(
+               "The operation has not finished executing, so it cannot " +
+               "have an exception yet.");
+         }
+      }
+      else
+      {
+         throw new IllegalStateException(
+            "The operation could not be executed so it cannot " +
+            "have an exception."); 
+      }
+      
+      return rval;
+   }
 }

@@ -177,7 +177,7 @@ public class OperationEngine
       if(canExecute)
       {
          // create an OperationExecutor
-         OperationExecutor executor = new OperationExecutor(operation);
+         OperationExecutor executor = new OperationExecutor(this, operation);
       
          // create a new OperationExecutionResult using the executor
          rval = new OperationExecutionResult(executor);
@@ -190,6 +190,27 @@ public class OperationEngine
          // OperationExecutionResult that has no executor
          rval = new OperationExecutionResult(null);
       }
+      
+      return rval;
+   }
+   
+   /**
+    * Returns whether or not the passed OperationExecutor must wait before
+    * executing.
+    * 
+    * @param executor the OperationExecutor to check.
+    * 
+    * @return true if the OperationExecutor must wait to execute, false if not.
+    */
+   public boolean mustWait(OperationExecutor executor)
+   {
+      boolean rval = false;
+      
+      // FIXME: implement me
+      
+      // FIXME:
+      // if the executor must wait, then add it to the list of waiting
+      // executors that require notification to wakeup
       
       return rval;
    }

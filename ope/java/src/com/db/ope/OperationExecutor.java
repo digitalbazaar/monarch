@@ -3,6 +3,7 @@
  */
 package com.db.ope;
 
+import com.db.logging.Logger;
 import com.db.util.MethodInvokedMessage;
 
 /**
@@ -13,6 +14,11 @@ import com.db.util.MethodInvokedMessage;
  */
 public class OperationExecutor implements Runnable
 {
+   /**
+    * The OperationEngine this OperationExecutor is for.
+    */
+   protected OperationEngine mEngine;
+   
    /**
     * The Operation that is executed by this OperationExecutor.
     */
@@ -44,10 +50,14 @@ public class OperationExecutor implements Runnable
    /**
     * Creates a new OperationExecutor.
     * 
+    * @param engine the OperationEngine this OperationExecutor is for.
     * @param operation the Operation to execute.
     */
-   public OperationExecutor(Operation operation)
+   public OperationExecutor(OperationEngine engine, Operation operation)
    {
+      // store the engine
+      mEngine = engine;
+      
       // store the operation
       mOperation = operation;
       
@@ -66,33 +76,52 @@ public class OperationExecutor implements Runnable
     */
    public void run()
    {
-      // lock while setting the execution thread and checking for interruption
-      synchronized(this)
+      try
       {
-         // store the execution thread as the current thread
-         mExecutionThread = Thread.currentThread();
-         
-         // determine if the operation has been interrupted, if so,
-         // the execution thread must be interrupted
-         if(isInterrupted())
+         // lock while setting the execution thread and
+         // checking for interruption
+         synchronized(this)
          {
-            // interrupt the execution thread
-            mExecutionThread.interrupt();
+            // store the execution thread as the current thread
+            mExecutionThread = Thread.currentThread();
+            
+            // determine if the operation has been interrupted, if so,
+            // the execution thread must be interrupted
+            if(isInterrupted())
+            {
+               // interrupt the execution thread
+               mExecutionThread.interrupt();
+            }
+            
+            // wait while the engine indicates that the operation must wait
+            while(mEngine.mustWait(this))
+            {
+               wait();
+            }
          }
+         
+         // execute the operation's method invoker
+         getOperation().getMethodInvoker().execute();
+         
+         // operation execution completed
+         mExecutionCompleted = true;
       }
-      
-      // execute the operation's method invoker
-      mOperation.getMethodInvoker().execute();
+      catch(InterruptedException e)
+      {
+         // maintain interrupted status
+         Thread.currentThread().interrupt();
+         interrupt();
+         
+         // handle uncaught interruption
+         getLogger().debug(getClass(), "Operation interrupted.");
+      }
       
       // call the operation's callback, if one exists, on another thread --
       // an unsafe thread, it is not managed here
-      if(mOperation.getCallbackInvoker() != null)
+      if(getOperation().getCallbackInvoker() != null)
       {
-         mOperation.getCallbackInvoker().backgroundExecute();
+         getOperation().getCallbackInvoker().backgroundExecute();
       }
-      
-      // operation execution completed
-      mExecutionCompleted = true;
    }
    
    /**
@@ -123,6 +152,14 @@ public class OperationExecutor implements Runnable
       return mInterrupted;
    }
    
+   /**
+    * Notifies this OperationExecutor to wake up and continue operation if
+    * it was waiting.
+    */
+   public synchronized void wakeup()
+   {
+      notify();
+   }
    
    /**
     * Causes the current thread to wait for the Operation execution to
@@ -177,6 +214,16 @@ public class OperationExecutor implements Runnable
    }
    
    /**
+    * Gets the Operation that is executed by this OperationExecutor.
+    * 
+    * @return the Operation that is executed by this OperationExecutor.
+    */
+   public Operation getOperation()
+   {
+      return mOperation;
+   }
+   
+   /**
     * Gets the MethodInvokedMessage for the method that was executed for
     * the Operation.
     * 
@@ -185,6 +232,16 @@ public class OperationExecutor implements Runnable
     */
    public MethodInvokedMessage getMethodInvokedMessage()
    {
-      return mOperation.getMethodInvoker().getMessage();
+      return getOperation().getMethodInvoker().getMessage();
+   }
+   
+   /**
+    * Gets the logger for this OperationExecutor.
+    * 
+    * @return the logger for this OperationExecutor.
+    */
+   public Logger getLogger()
+   {
+      return mEngine.getLogger();
    }
 }
