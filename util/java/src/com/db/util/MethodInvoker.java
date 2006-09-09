@@ -892,6 +892,26 @@ public class MethodInvoker extends Thread
    }
    
    /**
+    * Gets the callback MethodInvoker for this MethodInvoker.
+    * 
+    * @return the callback MethodInvoker for this MethodInvoker (can be null).
+    */
+   public MethodInvoker getCallbackInvoker()
+   {
+      return mCallbackMethodInvoker;
+   }
+   
+   /**
+    * Gets the MethodInvokedMessage for this MethodInvoker.
+    * 
+    * @return the MethodInvokedMessage for this MethodInvoker.
+    */
+   public MethodInvokedMessage getMessage()
+   {
+      return mMessage;
+   }
+   
+   /**
     * Gets the logger.
     *
     * @return the logger.
