@@ -5,7 +5,6 @@ package com.db.ope;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;

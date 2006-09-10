@@ -11,14 +11,15 @@ import com.db.util.UniqueSet;
  * An AbstractOperationType provides convenience functionality for defining
  * an environment underwhich an Operation can be run.
  * 
- * For example, it provides methods for storing:
+ * For example, it provides methods for setting:
  * 
  * 1. which OperationTypes' Operations will block the execution of an Operation
  *    of this OperationType,
  * 2. which OperationType's Operations will be blocked by the execution of
  *    an Operation of this OperationType,
- * 3. and which OperationTypes' Operations must be executed synchronously with
- *    Operations of this OperationType.
+ * 3. which OperationTypes' Operations must be executed synchronously with
+ *    Operations of this OperationType,
+ * 4. and the maximum number of concurrent Operations of this OperationType.
  * 
  * @author Dave Longley
  */
@@ -45,6 +46,12 @@ public abstract class AbstractOperationType
    protected UniqueSet mSynchronousOperationTypes;
    
    /**
+    * The maximum number of Operations of this OperationType that can run
+    * concurrently. A value of 0 indicates there is no limitation.
+    */
+   protected int mMaxConcurrentOperations;
+   
+   /**
     * Creates a new AbstractOperationType.
     */
    public AbstractOperationType()
@@ -53,6 +60,9 @@ public abstract class AbstractOperationType
       mBlockingOperationTypes = new UniqueSet();
       mBlockedOperationTypes = new UniqueSet();
       mSynchronousOperationTypes = new UniqueSet();
+      
+      // set no limitation on the number of concurrent operations
+      setMaxConcurrentOperations(0);
    }
    
    /**
@@ -61,7 +71,7 @@ public abstract class AbstractOperationType
     * 
     * @param type the OperationType to add.
     */
-   public void addBlockingOperationType(OperationType type)
+   public synchronized void addBlockingOperationType(OperationType type)
    {
       mBlockingOperationTypes.add(type);
    }
@@ -72,7 +82,7 @@ public abstract class AbstractOperationType
     * 
     * @param type the OperationType to add.
     */
-   public void addBlockedOperationType(OperationType type)
+   public synchronized void addBlockedOperationType(OperationType type)
    {
       mBlockedOperationTypes.add(type);
    }
@@ -83,7 +93,7 @@ public abstract class AbstractOperationType
     * 
     * @param type the OperationType to add.
     */
-   public void addSynchronousOperationType(OperationType type)
+   public synchronized void addSynchronousOperationType(OperationType type)
    {
       mSynchronousOperationTypes.add(type);
    }
@@ -98,7 +108,8 @@ public abstract class AbstractOperationType
     * 
     * @return true if the passed Operation must wait before executing.
     */
-   public boolean canExecute(Operation operation, List currentOperations)
+   public synchronized boolean canExecute(
+      Operation operation, List currentOperations)
    {
       boolean rval = false;
       
@@ -117,12 +128,37 @@ public abstract class AbstractOperationType
     * 
     * @return true if the passed Operation must wait before executing.
     */
-   public boolean mustWait(Operation operation, List currentOperations)
+   public synchronized boolean mustWait(
+      Operation operation, List currentOperations)
    {
       boolean rval = false;
       
       // FIXME: implement me
       
       return rval;
+   }
+   
+   /**
+    * Sets the maximum number of Operations of this OperationType that can run
+    * concurrently. A value of 0 specifies no limitation.
+    * 
+    * @param max the maximum number of Operations of this OperationType that
+    *            can run concurrently, a value of 0 indicating no limitation.
+    */
+   public synchronized void setMaxConcurrentOperations(int max)
+   {
+      mMaxConcurrentOperations = Math.max(0, max); 
+   }
+   
+   /**
+    * Gets the maximum number of Operations of this OperationType that can run
+    * concurrently. A value of 0 specifies no limitation.
+    * 
+    * @return the maximum number of Operations of this OperationType that
+    *         can run concurrently, a value of 0 indicating no limitation.
+    */
+   public synchronized int getMaxConcurrentOperations()
+   {
+      return mMaxConcurrentOperations;
    }
 }
