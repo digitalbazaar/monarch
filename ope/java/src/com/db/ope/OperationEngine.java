@@ -3,9 +3,14 @@
  */
 package com.db.ope;
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
+
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.util.JobDispatcher;
+import com.db.util.UniqueSet;
 
 /**
  * An OperationEngine is a processing engine that executes Operations. The
@@ -18,17 +23,23 @@ import com.db.util.JobDispatcher;
  * behaviors -- while none of those behaviors really need to know all that much
  * about one another.
  * 
- * This engine accomplishes this by using the attributes defined for a
- * given OperationType to determine the environment in which it is allowed to
- * run. It handles the synchronization of the operations as well as monitors
- * the threads different operations are running on and ensures that the
- * operations can be interrupted and cleaned up nicely, provided that those
- * classes that use Operations comply with the Operation requirements. 
+ * This engine accomplishes this by using the OperationTypes that are added
+ * to this engine. An OperationType defines the environment underwhich an
+ * Operation is allowed to run. This engine handles the synchronization of the
+ * operations as well as monitors the threads different operations are running
+ * on and ensures that the operations can be interrupted and cleaned up nicely,
+ * provided that those classes that use Operations and define OperationTypes
+ * comply with the Operation requirements. 
  * 
  * @author Dave Longley
  */
 public class OperationEngine
 {
+   /**
+    * The set of OperationTypes supported by this engine. 
+    */
+   protected UniqueSet mOperationTypes;
+   
    /**
     * The JobDispatcher for dispatching OperationExecutors. This dispatcher
     * is used to store OperationExecutors in a queue and dispatch them for
@@ -49,6 +60,9 @@ public class OperationEngine
     */
    public OperationEngine()
    {
+      // create the operation types set
+      mOperationTypes = new UniqueSet();
+      
       // create the operation executor thread pool
       OperationExecutorThreadPool threadPool =
          new OperationExecutorThreadPool();
@@ -58,13 +72,52 @@ public class OperationEngine
    }
    
    /**
+    * Determines if the passed Operation can be executed by this engine. This
+    * method will first see if the Operation's type is even supported by this
+    * engine, and then it will check all of the supported OperationTypes to
+    * ensure that the passed Operation can be executed.
+    * 
+    * @param operation the Operation this engine seeks to execute.
+    * 
+    * @return true if the passed Operation can be executed, false if not.
+    */
+   protected synchronized boolean canExecute(Operation operation)
+   {
+      boolean rval = true;
+      
+      for(Iterator i = mOperationTypes.iterator(); i.hasNext() && rval;)
+      {
+         // FIXME: implement me, use correct operation list
+         OperationType type = (OperationType)i.next();
+         rval = type.canExecute(operation, getOperationList());
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Sets whether or not this OperationEngine is running.
     * 
     * @param running true if this OperationEngine is running, false if not.
     */
-   protected void setRunning(boolean running)
+   protected synchronized void setRunning(boolean running)
    {
       mRunning = running;
+   }
+   
+   /**
+    * Gets an immutable list of the currently executing Operations. This
+    * list does not include Operations that are waiting to execute.
+    * 
+    * @return an immutable list of the currently executing Operations.
+    */
+   protected List getOperationList()
+   {
+      List rval = null;
+      
+      // FIXME: implement me
+      
+      return rval;
    }
    
    /**
@@ -78,9 +131,8 @@ public class OperationEngine
       // only consider adding an OperationType if the engine is not running
       if(!isRunning())
       {
-         // FIXME: determine if the type is valid
-         
-         // FIXME: implement me
+         // add the operation type
+         mOperationTypes.add(type);
       }
    }
    
@@ -95,7 +147,8 @@ public class OperationEngine
       // only consider removing an OperationType if the engine is not running
       if(!isRunning())
       {
-         // FIXME: implement me
+         // remove the operation type
+         mOperationTypes.remove(type);
       }
    }
    
@@ -167,14 +220,12 @@ public class OperationEngine
     * 
     * @return the OperationExecutionResult for the execution.
     */
-   public OperationExecutionResult execute(Operation operation)
+   public synchronized OperationExecutionResult execute(Operation operation)
    {
       OperationExecutionResult rval = null;
 
-      // FIXME: determine if the operation can be executed
-      boolean canExecute = false;
-      //OperationType type = operation.getType();
-      if(canExecute)
+      // determine if the operation can be executed
+      if(canExecute(operation))
       {
          // create an OperationExecutor
          OperationExecutor executor = new OperationExecutor(this, operation);
@@ -182,7 +233,11 @@ public class OperationEngine
          // create a new OperationExecutionResult using the executor
          rval = new OperationExecutionResult(executor);
          
-         // FIXME: implement me
+         // FIXME: add the operation to the appropriate lists
+         // i.e. execution list, wait list?
+         
+         // queue the OperationExecutor with the dispatcher
+         mDispatcher.queueJob(executor);
       }
       else
       {
@@ -202,11 +257,17 @@ public class OperationEngine
     * 
     * @return true if the OperationExecutor must wait to execute, false if not.
     */
-   public boolean mustWait(OperationExecutor executor)
+   public synchronized boolean mustWait(OperationExecutor executor)
    {
       boolean rval = false;
       
       // FIXME: implement me
+      for(Iterator i = mOperationTypes.iterator(); i.hasNext() && !rval;)
+      {
+         // FIXME: implement me, use correct operation list
+         OperationType type = (OperationType)i.next();
+         rval = type.mustWait(executor.getOperation(), getOperationList());
+      }
       
       // FIXME:
       // if the executor must wait, then add it to the list of waiting
