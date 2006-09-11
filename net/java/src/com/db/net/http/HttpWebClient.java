@@ -24,6 +24,8 @@ import javax.net.ssl.TrustManagerFactory;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.net.WebClient;
+import com.db.net.WebConnection;
 import com.db.net.ssl.TrustAllSSLManager;
 
 /**
@@ -32,7 +34,7 @@ import com.db.net.ssl.TrustAllSSLManager;
  * 
  * @author Dave Longley
  */
-public class HttpWebClient
+public class HttpWebClient implements WebClient
 {
    /**
     * The URL to connect to.
@@ -230,19 +232,29 @@ public class HttpWebClient
    }
    
    /**
-    * Attempts to connect to the passed URL. If a connection cannot be
+    * Attempts to connect to the passed url. If a connection cannot be
     * established, the connection will be retried multiple times.
     * 
-    * @param url the URL to connect to.
+    * @param url the url to connect to.
     * 
-    * @return the web connection to the URL or null if failure.
-    * 
-    * @throws MalformedURLException
+    * @return the web connection to the url or null if failure.
     */
-   public synchronized HttpWebConnection connect(String url)
-   throws MalformedURLException 
+   public synchronized WebConnection connect(String url)
    {
-      return connect(new URL(url));
+      HttpWebConnection wc = null;
+      
+      try
+      {
+         wc = connect(new URL(url));
+      }
+      catch(MalformedURLException e)
+      {
+         getLogger().error(getClass(), 
+            "could not establish an http web connection! " +
+            "URL was malformed!,url=" + url);
+      }
+      
+      return wc;
    }
    
    /**

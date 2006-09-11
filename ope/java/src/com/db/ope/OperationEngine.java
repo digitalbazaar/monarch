@@ -114,7 +114,10 @@ public class OperationEngine
    {
       List rval = null;
       
-      // FIXME: implement me
+      // FIXME: implement me, when getting this list, remove the
+      // OperationExecutors that are completed (lazy cleanup that should
+      // always work since this list must be fetched to start a new
+      // operation)
       
       return rval;
    }

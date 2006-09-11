@@ -3,7 +3,6 @@
  */
 import com.db.util.MethodInvoker;
 import com.db.logging.*;
-import com.db.net.*;
 import com.db.net.http.HttpGetRequestServicer;
 import com.db.net.http.HttpProxyPortWebServer;
 import com.db.net.http.HttpWebClient;
@@ -132,7 +131,8 @@ public class UTHttpServer
       {
          // get a web connection
          HttpWebClient client = new HttpWebClient();
-         HttpWebConnection hwc = client.connect("https://localhost:" + port);
+         HttpWebConnection hwc = (HttpWebConnection)client.connect(
+            "https://localhost:" + port);
          
          String body = "test body";
          
