@@ -6,16 +6,16 @@ package com.db.net;
 import java.util.Iterator;
 
 /**
- * A proxy port web server is a web server with one port used for all incoming
- * connections. Once a connection is established, is it proxied to an internal
- * web server that will service it.
+ * A ProxyPortWebConnectionServer is a WebConnectionServer with one port used
+ * for all incoming web connections. Once a connection is established, is it
+ * proxied to an internal WebConnectionServer that will service it.
  * 
- * A proxy port web server allows a web server to be constructed such that
- * only one port must be opened for external access, yet multiple protocols
- * can be supported. For instance, an SSL-client may connect to a
- * ProxyPortWebServer's proxy port -- which accepts any connection protocol
- * and it will be forwarded to the internal web server for servicing as
- * an SSL connection.
+ * A ProxyPortWebConnectionServer allows a WebConnectionServer to be
+ * constructed such that only one port must be opened for external access,
+ * yet multiple protocols can be supported. For instance, an SSL-client may
+ * connect to a ProxyPortWebConnectionServer's proxy port -- which accepts any
+ * connection protocol and it will be forwarded to the internal web server for
+ * servicing as an SSL connection.
  * 
  * Any WebConnectionHandler added to this proxy port web server will be added
  * to its internal web server. This ProxyPortWebServer uses only one port for
@@ -24,12 +24,12 @@ import java.util.Iterator;
  * 
  * @author Dave Longley
  */
-public class ProxyPortWebServer extends WebServer
+public class ProxyPortWebConnectionServer extends WebConnectionServer
 {
    /**
-    * The internal web server.
+    * The internal web connection server.
     */
-   protected WebServer mInternalWebServer;
+   protected WebConnectionServer mInternalServer;
    
    /**
     * The proxy port for this proxy port web server.
@@ -53,24 +53,24 @@ public class ProxyPortWebServer extends WebServer
    protected ProxyPortWebConnectionServicer mWebConnectionServicer;
    
    /**
-    * Creates a new ProxyPortWebServer.
+    * Creates a new ProxyPortWebConnectionServer.
     */
-   public ProxyPortWebServer()
+   public ProxyPortWebConnectionServer()
    {
-      this(new WebServer());
+      this(new WebConnectionServer());
    }
    
    /**
-    * Creates a new ProxyPortWebServer using the given web server as
+    * Creates a new ProxyPortWebConnectionServer using the given web server as
     * the internal web server.
     * 
-    * @param internalWebServer the web server to use internally, behind
-    *                          the proxy port.
+    * @param internalServer the web connection server to use internally, behind
+    *                       the proxy port.
     */
-   public ProxyPortWebServer(WebServer internalWebServer)
+   public ProxyPortWebConnectionServer(WebConnectionServer internalServer)
    {
-      // set the internal web server
-      mInternalWebServer = internalWebServer;
+      // set the internal web connection server
+      mInternalServer = internalServer;
 
       // create the web connection handler
       mWebConnectionHandler = createWebConnectionHandler();
@@ -99,13 +99,13 @@ public class ProxyPortWebServer extends WebServer
    }
    
    /**
-    * Gets the internal web server.
+    * Gets the internal web connection server.
     * 
-    * @return the internal web server.
+    * @return the internal web connection server.
     */
-   protected WebServer getInternalWebServer()
+   protected WebConnectionServer getInternalServer()
    {
-      return mInternalWebServer;
+      return mInternalServer;
    }
    
    /**
@@ -133,7 +133,7 @@ public class ProxyPortWebServer extends WebServer
       mWebConnectionServicer.addPrioritizedWebConnectionHandler(wch, port);
       
       // add the web connection handler to the internal web server
-      return getInternalWebServer().addWebConnectionHandler(wch, port);
+      return getInternalServer().addWebConnectionHandler(wch, port);
    }
    
    /**
@@ -148,7 +148,7 @@ public class ProxyPortWebServer extends WebServer
       WebConnectionHandler wch)
    {
       // remove the web connection handler from the internal web server
-      getInternalWebServer().removeWebConnectionHandler(wch);
+      getInternalServer().removeWebConnectionHandler(wch);
       
       // remove the web connection handler from the priority list
       mWebConnectionServicer.removePrioritizedWebConnectionHandler(wch);
@@ -160,7 +160,7 @@ public class ProxyPortWebServer extends WebServer
    public synchronized void removeAllWebConnectionHandlers()
    {
       // remove all web connection handlers from internal web server
-      getInternalWebServer().removeAllWebConnectionHandlers();
+      getInternalServer().removeAllWebConnectionHandlers();
       
       // remove all web connection handlers from the priority list
       mWebConnectionServicer.removeAllPrioritizedWebConnectionHandlers();
@@ -194,16 +194,16 @@ public class ProxyPortWebServer extends WebServer
          super.addWebConnectionHandler(mWebConnectionHandler, getProxyPort());
          
          // start the internal web server
-         getInternalWebServer().start();
+         getInternalServer().start();
          
          // add all web connection handlers in the internal server to the
          // prioritized list that aren't already present in the list
-         int[] ports = getInternalWebServer().getWebConnectionHandlerPorts();
+         int[] ports = getInternalServer().getWebConnectionHandlerPorts();
          for(int i = 0; i < ports.length; i++)
          {
             // get web connection handler for the given port
             WebConnectionHandler wch =
-               getInternalWebServer().getWebConnectionHandler(ports[i]);
+               getInternalServer().getWebConnectionHandler(ports[i]);
             
             // add the prioritized web connection handler
             mWebConnectionServicer.addPrioritizedWebConnectionHandler(
@@ -258,7 +258,7 @@ public class ProxyPortWebServer extends WebServer
          }
          
          // stop the internal web server
-         getInternalWebServer().stop();
+         getInternalServer().stop();
          
          // remove web connection handler
          super.removeWebConnectionHandler(mWebConnectionHandler);
@@ -281,7 +281,7 @@ public class ProxyPortWebServer extends WebServer
    public WebConnectionHandler getWebConnectionHandler(int port)
    {
       // get the web connection handler from the internal web server
-      return getInternalWebServer().getWebConnectionHandler(port);
+      return getInternalServer().getWebConnectionHandler(port);
    }
    
    /**

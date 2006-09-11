@@ -4,12 +4,12 @@
 package com.db.net;
 
 /**
- * A WebClient is a basic interface for a client that provides WebConnections
- * to WebServers.
+ * A WebConnectionClient is a basic interface for a client that provides
+ * WebConnections to WebConnectionServers.
  * 
  * @author Dave Longley
  */
-public interface WebClient
+public interface WebConnectionClient
 {
    /**
     * Attempts to connect to the passed url.

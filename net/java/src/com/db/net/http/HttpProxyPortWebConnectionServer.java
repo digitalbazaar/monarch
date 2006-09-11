@@ -3,25 +3,26 @@
  */
 package com.db.net.http;
 
-import com.db.net.ProxyPortWebServer;
+import com.db.net.ProxyPortWebConnectionServer;
 import com.db.net.WebConnectionSecurityManager;
 
 /**
- * An HttpProxyPortWebServer is a proxy port web server that has
+ * An HttpProxyPortWebConnectionServer is a proxy port web server that has
  * generic and ssl web connection handlers that service connections using
  * an http web connection servicer.  
  * 
  * @author Dave Longley
  */
-public class HttpProxyPortWebServer extends ProxyPortWebServer
+public class HttpProxyPortWebConnectionServer
+extends ProxyPortWebConnectionServer
 {
    /**
-    * Creates a new HttpProxyPortWebServer.
+    * Creates a new HttpProxyPortWebConnectionServer.
     */
-   public HttpProxyPortWebServer()
+   public HttpProxyPortWebConnectionServer()
    {
-      // set internal web server to http web server
-      super(new HttpWebServer());
+      // set internal server to http web server
+      super(new HttpWebConnectionServer());
       
       // accept an infinite number of connections each internally by default
       setMaximumNonSecureConnections(0);
@@ -36,9 +37,9 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     *
     * @return the internal web server as an http web server.
     */
-   protected HttpWebServer getInternalHttpWebServer()
+   protected HttpWebConnectionServer getInternalHttpServer()
    {
-      return (HttpWebServer)getInternalWebServer();
+      return (HttpWebConnectionServer)getInternalServer();
    }
    
    /**
@@ -54,7 +55,7 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
    public void addNonSecureHttpWebRequestServicer(
       HttpWebRequestServicer hwrs, String path)
    {
-      getInternalHttpWebServer().addNonSecureHttpWebRequestServicer(hwrs, path);
+      getInternalHttpServer().addNonSecureHttpWebRequestServicer(hwrs, path);
    }
    
    /**
@@ -70,7 +71,7 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
    public void addSecureHttpWebRequestServicer(
       HttpWebRequestServicer hwrs, String path)
    {
-      getInternalHttpWebServer().addSecureHttpWebRequestServicer(hwrs, path);
+      getInternalHttpServer().addSecureHttpWebRequestServicer(hwrs, path);
    }
    
    /**
@@ -80,7 +81,7 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     */
    public void removeNonSecureHttpWebRequestServicer(String path)
    {
-      getInternalHttpWebServer().removeNonSecureHttpWebRequestServicer(path);
+      getInternalHttpServer().removeNonSecureHttpWebRequestServicer(path);
    }
    
    /**
@@ -90,7 +91,7 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     */
    public void removeSecureHttpWebRequestServicer(String path)
    {
-      getInternalHttpWebServer().removeSecureHttpWebRequestServicer(path);
+      getInternalHttpServer().removeSecureHttpWebRequestServicer(path);
    }
    
    /**
@@ -103,8 +104,8 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
    public synchronized void startNonSecure(int proxyPort, int nonSecureHttpPort)
    {
       // set ports
-      getInternalHttpWebServer().setNonSecurePort(nonSecureHttpPort);
-      getInternalHttpWebServer().setSecurePort(0);
+      getInternalHttpServer().setNonSecurePort(nonSecureHttpPort);
+      getInternalHttpServer().setSecurePort(0);
       
       // start server
       start(proxyPort);
@@ -120,8 +121,8 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
    public synchronized void startSecure(int proxyPort, int secureHttpPort)
    {
       // set ports
-      getInternalHttpWebServer().setNonSecurePort(0);
-      getInternalHttpWebServer().setSecurePort(secureHttpPort);
+      getInternalHttpServer().setNonSecurePort(0);
+      getInternalHttpServer().setSecurePort(secureHttpPort);
 
       // start server
       start(proxyPort);
@@ -138,8 +139,8 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
       int proxyPort, int nonSecureHttpPort, int secureHttpPort)   
    {
       // set ports
-      getInternalHttpWebServer().setNonSecurePort(nonSecureHttpPort);
-      getInternalHttpWebServer().setSecurePort(secureHttpPort);
+      getInternalHttpServer().setNonSecurePort(nonSecureHttpPort);
+      getInternalHttpServer().setSecurePort(secureHttpPort);
       
       // start server
       start(proxyPort);
@@ -152,7 +153,7 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     */
    public void setServerName(String serverName)
    {
-      getInternalHttpWebServer().setServerName(serverName);
+      getInternalHttpServer().setServerName(serverName);
    }
    
    /**
@@ -166,7 +167,7 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     */
    public boolean setSSLKeystore(String keystore, String password)
    {
-      return getInternalHttpWebServer().setSSLKeystore(keystore, password);
+      return getInternalHttpServer().setSSLKeystore(keystore, password);
    }
    
    /**
@@ -179,7 +180,7 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     */
    public void setMaximumNonSecureConnections(int connections)
    {
-      getInternalHttpWebServer().setMaximumNonSecureConnections(connections);
+      getInternalHttpServer().setMaximumNonSecureConnections(connections);
    }
    
    /**
@@ -191,7 +192,7 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     */
    public int getMaximumNonSecureConnections()
    {
-      return getInternalHttpWebServer().getMaximumNonSecureConnections();
+      return getInternalHttpServer().getMaximumNonSecureConnections();
    }
    
    /**
@@ -204,7 +205,7 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     */
    public void setMaximumSecureConnections(int connections)
    {
-      getInternalHttpWebServer().setMaximumSecureConnections(connections);
+      getInternalHttpServer().setMaximumSecureConnections(connections);
    }
    
    /**
@@ -216,7 +217,7 @@ public class HttpProxyPortWebServer extends ProxyPortWebServer
     */
    public int getMaximumSecureConnections()
    {
-      return getInternalHttpWebServer().getMaximumSecureConnections();
+      return getInternalHttpServer().getMaximumSecureConnections();
    }
    
    /**

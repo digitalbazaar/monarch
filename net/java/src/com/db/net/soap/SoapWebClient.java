@@ -3,8 +3,8 @@
  */
 package com.db.net.soap;
 
-import com.db.net.WebClient;
 import com.db.net.WebConnection;
+import com.db.net.WebConnectionClient;
 import com.db.net.wsdl.Wsdl;
 
 /**
@@ -13,7 +13,7 @@ import com.db.net.wsdl.Wsdl;
  * 
  * @author Dave Longley
  */
-public interface SoapWebClient extends WebClient
+public interface SoapWebClient extends WebConnectionClient
 {
    /**
     * Creates a soap request for this soap web client.

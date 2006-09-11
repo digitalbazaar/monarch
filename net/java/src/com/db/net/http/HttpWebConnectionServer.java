@@ -5,16 +5,17 @@ package com.db.net.http;
 
 import com.db.net.GenericWebConnectionHandler;
 import com.db.net.WebConnectionSecurityManager;
-import com.db.net.WebServer;
+import com.db.net.WebConnectionServer;
 import com.db.net.ssl.SSLWebConnectionHandler;
 
 /**
- * An HttpWebServer is a web server that has generic and ssl web connection
- * handlers that service connections using an http web connection servicer.  
+ * An HttpWebConnectionServer is a web connection server that has generic
+ * and ssl web connection handlers that service web connections using an http
+ * web connection servicer.  
  * 
  * @author Dave Longley
  */
-public class HttpWebServer extends WebServer
+public class HttpWebConnectionServer extends WebConnectionServer
 {
    /**
     * The http web connection servicer.
@@ -52,9 +53,9 @@ public class HttpWebServer extends WebServer
    public static final int DEFAULT_SECURE_HTTP_PORT = 443;
    
    /**
-    * Creates a new HttpWebServer.
+    * Creates a new HttpWebConnectionServer.
     */
-   public HttpWebServer()
+   public HttpWebConnectionServer()
    {
       // create http web connection servicer
       mHttpWebConnectionServicer = new HttpWebConnectionServicer();

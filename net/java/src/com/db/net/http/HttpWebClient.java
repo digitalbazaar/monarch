@@ -24,8 +24,8 @@ import javax.net.ssl.TrustManagerFactory;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
-import com.db.net.WebClient;
 import com.db.net.WebConnection;
+import com.db.net.WebConnectionClient;
 import com.db.net.ssl.TrustAllSSLManager;
 
 /**
@@ -34,7 +34,7 @@ import com.db.net.ssl.TrustAllSSLManager;
  * 
  * @author Dave Longley
  */
-public class HttpWebClient implements WebClient
+public class HttpWebClient implements WebConnectionClient
 {
    /**
     * The URL to connect to.

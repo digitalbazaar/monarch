@@ -12,12 +12,12 @@ import com.db.logging.LoggerManager;
 import com.db.util.BoxingHashMap;
 
 /**
- * A generic web server. This server communicates using WebConnections that
- * are established on ports that this server listens to.
+ * A generic WebConnectionServer. This server communicates using WebConnections
+ * that are established on ports that this server listens to.
  * 
  * @author Dave Longley
  */
-public class WebServer
+public class WebConnectionServer
 {
    /**
     * The ports for this web server in the order that they were added.
@@ -35,9 +35,9 @@ public class WebServer
    protected boolean mRunning;
    
    /**
-    * Creates a new web server.
+    * Creates a new WebConnectionServer.
     */
-   public WebServer()
+   public WebConnectionServer()
    {
       // create list for ports
       mPorts = new Vector();
@@ -49,7 +49,7 @@ public class WebServer
    }
    
    /**
-    * Disposes the web server. Stops the web server.
+    * Disposes this WebConnectionServer. Stops this WebConnectionServer.
     */
    protected void finalize()
    {

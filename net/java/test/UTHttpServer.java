@@ -4,7 +4,7 @@
 import com.db.util.MethodInvoker;
 import com.db.logging.*;
 import com.db.net.http.HttpGetRequestServicer;
-import com.db.net.http.HttpProxyPortWebServer;
+import com.db.net.http.HttpProxyPortWebConnectionServer;
 import com.db.net.http.HttpWebClient;
 import com.db.net.http.HttpWebConnection;
 import com.db.net.http.HttpWebRequest;
@@ -43,7 +43,8 @@ public class UTHttpServer
          int port = 9999;
          
          // create the http web server (proxy port version)
-         HttpProxyPortWebServer server = new HttpProxyPortWebServer();
+         HttpProxyPortWebConnectionServer server =
+            new HttpProxyPortWebConnectionServer();
          
          // create http web request servicers
          HttpGetRequestServicer getRequestServicer =
