@@ -9,7 +9,9 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 /**
- * This interface represents a web connection to a web server.
+ * This interface represents a web connection between a web client and
+ * a web server. The protocol for data transportation is not defined by
+ * this interface -- the implementing class has this responsibility.
  * 
  * @author Dave Longley
  */
