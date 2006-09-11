@@ -12,7 +12,8 @@ import com.db.logging.LoggerManager;
 import com.db.util.BoxingHashMap;
 
 /**
- * A generic web server. This server communicates over ports.
+ * A generic web server. This server communicates using WebConnections that
+ * are established on ports that this server listens to.
  * 
  * @author Dave Longley
  */
