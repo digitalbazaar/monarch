@@ -185,9 +185,9 @@ public abstract class HttpHeader
                // get header and value
                String header = token.substring(0, index);
                String value = "";
-               if(token.length() > index + 2)
+               if(token.length() > index + 1)
                {
-                  value = token.substring(index + 2, token.length());
+                  value = token.substring(index + 1, token.length());
                }
                
                addHeader(header, value);
