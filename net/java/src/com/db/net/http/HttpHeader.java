@@ -69,7 +69,17 @@ public abstract class HttpHeader
    {
       StringBuffer sb = new StringBuffer(header.length());
       
-      // bicapitalize the header
+      // make the header lowercase
+      header = header.toLowerCase();
+      
+      // capitalize the first letter
+      if(header.length() > 0)
+      {
+         char c = header.charAt(0);
+         header = Character.toUpperCase(c) + header.substring(1);
+      }
+      
+      // bicapitalize the rest of the header
       StringTokenizer st = new StringTokenizer(header, "-", true);
       while(st.hasMoreTokens())
       {
