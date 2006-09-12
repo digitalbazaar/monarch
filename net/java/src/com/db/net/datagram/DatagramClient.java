@@ -55,6 +55,37 @@ public class DatagramClient
    /**
     * Gets a DatagramMulticastStream to communicate with a multicast group.
     * 
+    * @param groupHost the multicast group host address (remote IP or hostname).
+    * @param groupPort the multicast group port.
+    * @param joinGroup true to join the multicast group, false not to (join
+    *                  the group if the stream should receive messages sent
+    *                  to the group).
+    * 
+    * @return the DatagramMulticastStream to send and receive datagrams with.
+    * 
+    * @exception IOException thrown if an IO exception occurs.
+    */
+   public DatagramMulticastStream getMulticastStream(
+      String groupHost, int groupPort, boolean joinGroup)
+   throws IOException
+   {
+      DatagramMulticastStream rval = null;
+      
+      if(joinGroup)
+      {
+         rval = getMulticastStream(groupPort, groupHost, groupPort, true);
+      }
+      else
+      {
+         rval = getMulticastStream(-1, groupHost, groupPort, false);
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets a DatagramMulticastStream to communicate with a multicast group.
+    * 
     * @param localPort the local port to bind to.
     * @param groupHost the multicast group host address (remote IP or hostname).
     * @param groupPort the multicast group port.
@@ -71,7 +102,15 @@ public class DatagramClient
    throws IOException
    {
       // create a new multicast socket
-      MulticastSocket socket = new MulticastSocket();
+      MulticastSocket socket = null;
+      if(localPort != -1)
+      {
+         socket = new MulticastSocket(localPort);
+      }
+      else
+      {
+         socket = new MulticastSocket();
+      }
       
       // create a datagram multicast stream
       DatagramMulticastStream stream =

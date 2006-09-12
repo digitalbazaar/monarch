@@ -3,6 +3,7 @@
  */
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.net.upnp.UPnPDeviceDiscoverer;
 
 /**
  * This class is used to test UPnP functionality.
@@ -31,6 +32,9 @@ public class UTUPnP
             "dbnet", Logger.ERROR_VERBOSITY);
          
          System.out.println("Starting UPnP functionality test...");
+         
+         UPnPDeviceDiscoverer discoverer = new UPnPDeviceDiscoverer();
+         discoverer.discover();
          
          // FIXME:
          
