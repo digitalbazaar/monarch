@@ -145,16 +145,15 @@ public class HttpWebConnectionServer extends WebConnectionServer
          if(getSecurePort() > 0)
          {
             // add ssl web connection handler for secure http port
-            addWebConnectionHandler(mSSLWebConnectionHandler,
-                                    getSecurePort());
+            addWebConnectionHandler(mSSLWebConnectionHandler, getSecurePort());
          }
          
          // add generic web connection handler last 
          if(getNonSecurePort() > 0)
          {
             // add generic web connection handler for non-secure http port
-            addWebConnectionHandler(mGenericWebConnectionHandler,
-                                    getNonSecurePort());
+            addWebConnectionHandler(
+               mGenericWebConnectionHandler, getNonSecurePort());
          }
          
          // start server
@@ -299,8 +298,7 @@ public class HttpWebConnectionServer extends WebConnectionServer
     */
    public void setMaximumNonSecureConnections(int connections)
    {
-      mGenericWebConnectionHandler.setMaximumConnections(
-         getNonSecurePort(), connections);
+      mGenericWebConnectionHandler.setMaxConcurrentConnections(connections);
    }
    
    /**
@@ -312,8 +310,7 @@ public class HttpWebConnectionServer extends WebConnectionServer
     */
    public int getMaximumNonSecureConnections()
    {
-      return mGenericWebConnectionHandler.getMaximumConnections(
-         getNonSecurePort());
+      return mGenericWebConnectionHandler.getMaxConcurrentConnections();
    }
    
    /**
@@ -326,8 +323,7 @@ public class HttpWebConnectionServer extends WebConnectionServer
     */
    public void setMaximumSecureConnections(int connections)
    {
-      mSSLWebConnectionHandler.setMaximumConnections(
-         getSecurePort(), connections);
+      mSSLWebConnectionHandler.setMaxConcurrentConnections(connections);
    }
    
    /**
@@ -339,7 +335,7 @@ public class HttpWebConnectionServer extends WebConnectionServer
     */
    public int getMaximumSecureConnections()
    {
-      return mSSLWebConnectionHandler.getMaximumConnections(getSecurePort());
+      return mSSLWebConnectionHandler.getMaxConcurrentConnections();
    }
    
    /**

@@ -31,20 +31,21 @@ public class UTHttpServer
          System.out.println("------------------\n");
          
          // set up logger
-         LoggerManager.setFile("dbcommon", "ut-httpserver.log", false);
-         LoggerManager.setFile("dbutil", "ut-httpserver.log");
+         LoggerManager.setFile("dbutil", "ut-httpserver.log", false);
          LoggerManager.setFileVerbosity("dbutil", Logger.DETAIL_VERBOSITY);
          LoggerManager.setFile("dbcrypto", "ut-httpserver.log");
          LoggerManager.setFile("dbxml", "ut-httpserver.log");
          LoggerManager.setFile("dbstream", "ut-httpserver.log");
          LoggerManager.setFile("dbnet", "ut-httpserver.log");
-         //LoggerManager.setFileVerbosity("dbcommon", Logger.ERROR_VERBOSITY);
+         LoggerManager.setConsoleVerbosity("dbnet", Logger.ERROR_VERBOSITY);
          
          int port = 9999;
          
          // create the http web server (proxy port version)
          HttpProxyPortWebConnectionServer server =
             new HttpProxyPortWebConnectionServer();
+         //com.db.net.http.HttpWebConnectionServer server =
+            //new com.db.net.http.HttpWebConnectionServer();
          
          // create http web request servicers
          HttpGetRequestServicer getRequestServicer =
@@ -59,6 +60,8 @@ public class UTHttpServer
             public void serviceHttpWebRequest(
                HttpWebRequest request, HttpWebResponse response)
             {
+               System.out.println("Servicing http web request...");
+               
                // if the request accepts gzip, set the content-encoding to gzip
                if(request.getHeader().getAcceptEncoding() != null &&
                   request.getHeader().getAcceptEncoding().contains("gzip"))
@@ -88,6 +91,7 @@ public class UTHttpServer
          
          // add http web request servicer
          server.addSecureHttpWebRequestServicer(hwrs, "/");
+         server.addNonSecureHttpWebRequestServicer(hwrs, "/");
          
          // start the server
          server.setMaximumNonSecureConnections(0);

@@ -45,6 +45,7 @@ public class WebConnectionServer
       // create the port to handler map
       mPortToWebConnectionHandler = new BoxingHashMap();
       
+      // not running by default
       mRunning = false;
    }
    

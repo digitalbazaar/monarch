@@ -74,9 +74,8 @@ extends AbstractWebConnectionServicer
          // if protocol is supported, then accept proxy web connection
          if(wch.isWebConnectionProtocolSupported(webConnection))
          {
-            // get port, accept proxy connection
-            int port = Integer.parseInt((String)mPortTable.get(wch));
-            wch.acceptProxyWebConnection(port, webConnection);
+            // accept proxy connection
+            wch.acceptProxyWebConnection(webConnection);
             servicing = true;
             break;
          }

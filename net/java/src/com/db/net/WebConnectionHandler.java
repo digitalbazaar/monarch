@@ -12,11 +12,17 @@ package com.db.net;
 public interface WebConnectionHandler
 {
    /**
-    * Begins accepting web connections on the given port.
+    * Starts accepting web connections on the given port. If this web
+    * connection handler is already listening on another port, this method
+    * should return false. If it is already listening on the passed port,
+    * it should have no effect and return true.
     * 
     * @param port the port to start accepting web connections on.
+    * 
+    * @return true if this web connection handler is now listening on the
+    *         specified port, false if not.
     */
-   public void startAcceptingWebConnections(int port);
+   public boolean startAcceptingWebConnections(int port);
    
    /**
     * Stops accepting all web connections. 
@@ -24,27 +30,14 @@ public interface WebConnectionHandler
    public void stopAcceptingWebConnections();
    
    /**
-    * Stops accepting all web connections on the specified port.
+    * Accepts a single proxy web connection. If this web connection handler
+    * is not accepting connections, then this method should return false.
     * 
-    * @param port the port to stop accepting web connections on.
-    */
-   public void stopAcceptingWebConnections(int port);
-   
-   /**
-    * Accepts a single web connection on the specified port.
-    * 
-    * @param port the port to accept the web connection on.
-    */
-   public void acceptWebConnection(int port);
-
-   /**
-    * Accepts a single proxy web connection on the specified port.
-    * 
-    * @param port the port to accept the web connection on.
     * @param originalWebConnection the original web connection to proxy.
+    * 
+    * @return true if the proxy web connection was accepted, false if not.
     */
-   public void acceptProxyWebConnection(
-      int port, WebConnection originalWebConnection);
+   public boolean acceptProxyWebConnection(WebConnection originalWebConnection);
    
    /**
     * Indicates whether or not connections handled by this web
@@ -80,37 +73,18 @@ public interface WebConnectionHandler
    public boolean isAcceptingWebConnections();
    
    /**
-    * Returns true if this web connection handler is accepting web connections
-    * on the specified port, false if it is not.
-    * 
-    * @param port the port to check for web connections being accepted.
-    * 
-    * @return true if this connection handler is accepting connections on
-    *         the specified port, false if not.
-    */
-   public boolean isAcceptingWebConnections(int port);
-   
-   /**
-    * sets the maximum number of connections to handle concurrently
-    * on a given port.
+    * Sets the maximum number of connections to handle concurrently.
     *
-    * @param port the port to set the maximum number of concurrent connections
-    *             for.
     * @param connections the maximum number of concurrent connections allowed.
     */
-   public void setMaximumConnections(int port, int connections);
+   public void setMaxConcurrentConnections(int connections);
    
    /**
-    * Gets the maximum number of connections to handle concurrently
-    * on a given port.
+    * Gets the maximum number of connections to handle concurrently.
     *
-    * @param port the port to get the maximum number of concurrent connections
-    *             for.
-    * 
-    * @return the maximum number of connections to handle concurrently
-    *         on a given port.
+    * @return the maximum number of connections to handle concurrently.
     */
-   public int getMaximumConnections(int port);
+   public int getMaxConcurrentConnections();
    
    /**
     * Terminates all web connections this web connection handler is handling.
@@ -131,4 +105,13 @@ public interface WebConnectionHandler
     * @return the number of web connections currently being serviced.
     */
    public int webConnectionsBeingServiced();
+   
+   /**
+    * Gets the port that this web connection handler is accepting web
+    * connections on.
+    * 
+    * @return the port that this web connection handler is accepting web
+    *         connections on, or 0 if it is not accepting connections.
+    */
+   public int getPort();
 }

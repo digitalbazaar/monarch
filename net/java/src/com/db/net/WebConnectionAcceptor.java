@@ -215,7 +215,7 @@ public class WebConnectionAcceptor
          try
          {
             // sleep to allow for other connections
-            Thread.sleep(100);
+            Thread.sleep(10);
          }
          catch(Throwable t)
          {
@@ -261,20 +261,26 @@ public class WebConnectionAcceptor
     */
    public synchronized void stopAcceptingWebConnections()
    {
-      // stop accepting web connections
-      mAcceptingWebConnections = false;
-      
-      // interrupt acceptor thread
-      mAcceptorThread.interrupt();
-      
-      try
+      if(isAcceptingWebConnections())
       {
-         // join acceptor thread
-         mAcceptorThread.join(1000);
-      }
-      catch(Throwable t)
-      {
-         getLogger().debug(getClass(), Logger.getStackTrace(t));
+         // stop accepting web connections
+         mAcceptingWebConnections = false;
+         
+         // interrupt acceptor thread
+         mAcceptorThread.interrupt();
+         
+         try
+         {
+            // join acceptor thread
+            mAcceptorThread.join(1000);
+         }
+         catch(Throwable t)
+         {
+            getLogger().debug(getClass(), Logger.getStackTrace(t));
+         }
+         
+         // clear acceptor thread
+         mAcceptorThread = null;
       }
    }
    
@@ -353,8 +359,9 @@ public class WebConnectionAcceptor
        */
       public void handleAcceptedWebConnection(WebConnection webConnection)
       {
-         // only handle connection if acceptor thread is not interrupted
-         if(!mAcceptorThread.isInterrupted())
+         // only handle connection if still accepting web connections and
+         // acceptor thread is not interrupted
+         if(isAcceptingWebConnections() && !mAcceptorThread.isInterrupted())
          {
             String ip = webConnection.getRemoteIP();
             if(webConnection instanceof ProxyWebConnection)

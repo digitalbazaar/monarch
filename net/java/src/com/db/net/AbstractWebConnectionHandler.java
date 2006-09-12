@@ -4,14 +4,11 @@
 package com.db.net;
 
 import java.net.ServerSocket;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
-
-import com.db.util.BoxingHashMap;
 
 /**
  * This class provides the basic functionality for a web connection handler.
@@ -23,25 +20,25 @@ public abstract class AbstractWebConnectionHandler
 implements WebConnectionHandler, WebConnectionServicer
 {
    /**
+    * The port for this web connection handler.
+    */
+   protected int mPort;
+   
+   /**
+    * The server socket for this web connection handler.
+    */
+   protected ServerSocket mServerSocket;
+   
+   /**
+    * The web connection acceptor for this connection handler.
+    */
+   protected WebConnectionAcceptor mWebConnectionAcceptor;
+   
+   /**
     * The web connection server used by this web connection handler to
     * service web connections.
     */
    protected WebConnectionServicer mWebConnectionServicer;
-
-   /**
-    * A table mapping ports to server sockets. 
-    */
-   protected BoxingHashMap mPortToServerSocketMap;
-   
-   /**
-    * A table mapping ports to maximum connections.
-    */
-   protected BoxingHashMap mPortToMaximumConnections;
-   
-   /**
-    * A table mapping server sockets to web connection acceptors.
-    */
-   protected HashMap mServerSocketToWebConnectionAcceptorMap;
    
    /**
     * A list of all of the current service threads.
@@ -54,27 +51,29 @@ implements WebConnectionHandler, WebConnectionServicer
    protected WebConnectionSecurityManager mWebConnectionSecurityManager;
    
    /**
+    * The maximum number of concurrent connections for this web connection
+    * handler. 
+    */
+   protected int mMaxConcurrentConnections;
+   
+   /**
     * Creates a AbstractWebConnectionHandler.
     * 
-    * @param wcs the web connection servicer used by this web connection handler
-    *            to service web connections.
+    * @param servicer the web connection servicer used by this web connection
+    *                 handler to service web connections.
     */
-   public AbstractWebConnectionHandler(WebConnectionServicer wcs)
+   public AbstractWebConnectionHandler(WebConnectionServicer servicer)
    {
-      // store web connection server
-      mWebConnectionServicer = wcs;
-      
-      // create the port to server socket map
-      mPortToServerSocketMap = new BoxingHashMap();
-      
-      // create the port to maximum connections map
-      mPortToMaximumConnections = new BoxingHashMap();
-      
-      // create the server socket to web connection acceptor map
-      mServerSocketToWebConnectionAcceptorMap = new HashMap();
+      // store web connection servicer
+      mWebConnectionServicer = servicer;
       
       // create service thread list
       mServiceThreads = new Vector();
+
+      // set default values
+      mPort = 0;
+      mServerSocket = null;
+      mMaxConcurrentConnections = 0;
    }
    
    /**
@@ -94,109 +93,33 @@ implements WebConnectionHandler, WebConnectionServicer
     */
    protected WebConnectionAcceptor createWebConnectionAcceptor(int port)
    {
-      // get the number of connections
-      int connections = getMaximumConnections(port);
-      
       // create generic web connection acceptor
-      WebConnectionAcceptor wca = new WebConnectionAcceptor(this, connections);
+      WebConnectionAcceptor wca = new WebConnectionAcceptor(
+         this, getMaxConcurrentConnections());
       
       return wca;
    }
    
    /**
-    * Maps a port to a server socket.
+    * Gets the server socket for this web connection handler.
     * 
-    * @param port the port to assign the server socket to.
-    * @param serverSocket the server socket to assign to a port.
+    * @return the server socket for this web connection handler or null if
+    *         no server socket is set yet.
     */
-   protected void mapPortToServerSocket(int port, ServerSocket serverSocket)
+   protected ServerSocket getServerSocket()
    {
-      // lock on the map
-      synchronized(mPortToServerSocketMap)
-      {
-         mPortToServerSocketMap.put(port, serverSocket);
-      }
+      return mServerSocket;
    }
    
    /**
-    * Unmaps a port from a server socket.
+    * Gets the web connection acceptor for this web connection handler.
     * 
-    * @param port the port to unmap.
+    * @return the web connection acceptor for this web connection handler or
+    *         null if one has not yet been assigned.
     */
-   protected void unmapPortFromServerSocket(int port)
+   protected WebConnectionAcceptor getWebConnectionAcceptor()
    {
-      // lock on the map
-      synchronized(mPortToServerSocketMap)
-      {
-         mPortToServerSocketMap.remove(port);
-      }
-   }   
-
-   /**
-    * Gets the server socket that is listening on the specified port.
-    * 
-    * @param port the port to get the server socket for.
-    * @return the server socket that is listening on the specified port,
-    *         or null if no socket is listening on the port.
-    */
-   protected ServerSocket getServerSocket(int port)
-   {
-      return (ServerSocket)mPortToServerSocketMap.get(port);
-   }
-   
-   /**
-    * Maps a server socket to a web connection acceptor.
-    * 
-    * @param serverSocket the server socket to assign the web connection
-    *                     acceptor to.
-    * @param wca the web connection acceptor to assign to the server socket.
-    */
-   protected void mapServerSocketToWebConnectionAcceptor(
-      ServerSocket serverSocket, WebConnectionAcceptor wca)
-   {
-      // lock on the map
-      synchronized(mServerSocketToWebConnectionAcceptorMap)
-      {
-         mServerSocketToWebConnectionAcceptorMap.put(serverSocket, wca);
-      }
-   }
-
-   /**
-    * Unmaps a server socket from a web connection acceptor.
-    * 
-    * @param serverSocket the server socket to unmap.
-    */
-   protected void unmapServerSocketFromWebConnectionAcceptor(
-      ServerSocket serverSocket)
-   {
-      // lock on the map
-      synchronized(mServerSocketToWebConnectionAcceptorMap)
-      {
-         mServerSocketToWebConnectionAcceptorMap.remove(serverSocket);
-      }
-   }   
-   
-   /**
-    * Gets the web connection acceptor for a particular server socket.
-    * 
-    * @param serverSocket the server socket to get the web connection acceptor
-    *                     for.
-    * @return the web connection acceptor for the given server socket or null
-    *         if one has not yet been assigned.
-    */
-   protected WebConnectionAcceptor getWebConnectionAcceptor(
-      ServerSocket serverSocket)
-   {
-      WebConnectionAcceptor rval = null;
-      
-      // lock on map
-      synchronized(mServerSocketToWebConnectionAcceptorMap)
-      {
-         rval = (WebConnectionAcceptor)mServerSocketToWebConnectionAcceptorMap.
-            get(serverSocket);
-      }
-      
-      return rval;
+      return mWebConnectionAcceptor;
    }
    
    /**
@@ -262,48 +185,68 @@ implements WebConnectionHandler, WebConnectionServicer
    }
    
    /**
-    * Begins accepting web connections on the given port.
+    * Starts accepting web connections on the given port. If this web
+    * connection handler is already listening on another port, this method
+    * should return false. If it is already listening on the passed port,
+    * it should have no effect and return true.
+    * 
+    * @param port the port to start accepting web connections on.
+    * 
+    * @return true if this web connection handler is now listening on the
+    *         specified port, false if not.
     */
-   public synchronized void startAcceptingWebConnections(int port)
+   public synchronized boolean startAcceptingWebConnections(int port)
    {
-      // determine if this handler is already accepting connections
-      // on the specified port
-      ServerSocket serverSocket = getServerSocket(port);
-      if(serverSocket == null)
-      {
-         // there is no server socket accepting connections on the
-         // specified port, so create one
-         serverSocket = createServerSocket(port);
-         
-         // map the port to the server socket
-         mapPortToServerSocket(port, serverSocket);
-      }
+      boolean rval = false;
       
-      if(serverSocket != null)
+      // determine if this handler is already accepting connections
+      if(isAcceptingWebConnections())
       {
-         // get the web connection acceptor for the server socket
-         WebConnectionAcceptor wca = getWebConnectionAcceptor(serverSocket);
-         if(wca == null)
+         if(getPort() == port)
          {
-            // create a web connection acceptor
-            wca = createWebConnectionAcceptor(port);
-
-            // assign the server socket to the web connection acceptor
-            mapServerSocketToWebConnectionAcceptor(serverSocket, wca);
+            // this handler is already accepting connections on the specified
+            // port, so return true
+            rval = true;
          }
-         
-         // start accepting connections
-         wca.startAcceptingWebConnections(serverSocket, webConnectionsSecure());
-         
-         getLogger().debug(getClass(),
-            "accepting web connections on port " + port + ".");
+         else
+         {
+            // this handler is accepting connections on another port, so
+            // return false (the default return value)
+         }
       }
       else
       {
-         getLogger().error(getClass(),
-            "could not create server socket to accept web connections " +
-            "on the specified port,port=" + port);
+         // this handler is not accepting connections yet, so set the port
+         mPort = port;
+         
+         // create a new server socket
+         mServerSocket = createServerSocket(getPort());
+         
+         // ensure the server socket was created successfully
+         if(mServerSocket != null)
+         {
+            // create a web connection acceptor
+            mWebConnectionAcceptor = createWebConnectionAcceptor(getPort());
+            
+            // start accepting connections
+            mWebConnectionAcceptor.startAcceptingWebConnections(
+               mServerSocket, webConnectionsSecure());
+            
+            // now accepting web connections
+            rval = true;
+            
+            getLogger().debug(getClass(),
+               "accepting web connections on port " + port + ".");
+         }
+         else
+         {
+            getLogger().error(getClass(),
+               "could not create server socket to accept web connections " +
+               "on the specified port,port=" + port);
+         }
       }
+      
+      return rval;
    }
    
    /**
@@ -311,143 +254,55 @@ implements WebConnectionHandler, WebConnectionServicer
     */
    public synchronized void stopAcceptingWebConnections()
    {
-      // lock on map
-      synchronized(mServerSocketToWebConnectionAcceptorMap)
+      // determine if this handler is accepting connections
+      if(isAcceptingWebConnections())
       {
-         // get all of the web connection acceptors and
-         // stop accepting connections
-         for(Iterator i = mServerSocketToWebConnectionAcceptorMap.
-             values().iterator(); i.hasNext();)
+         // get the web connection acceptor, and stop accepting web connections
+         getWebConnectionAcceptor().stopAcceptingWebConnections();
+         
+         try
          {
-            WebConnectionAcceptor wca = (WebConnectionAcceptor)i.next();
-            wca.stopAcceptingWebConnections();
+            // close the server socket
+            getServerSocket().close();
          }
-      }
-      
-      // lock on map
-      synchronized(mPortToServerSocketMap)
-      {
-         // close all server sockets
-         for(Iterator i = mPortToServerSocketMap.values().iterator();
-             i.hasNext();)
+         catch(Throwable t)
          {
-            ServerSocket serverSocket = (ServerSocket)i.next();
-            
-            try
-            {
-               serverSocket.close();
-            }
-            catch(Throwable t)
-            {
-               getLogger().debug(getClass(), Logger.getStackTrace(t));
-            }
+            getLogger().debug(getClass(), Logger.getStackTrace(t));
          }
          
-         // clear the port to server socket map
-         mPortToServerSocketMap.clear();
+         getLogger().debug(getClass(),
+            "no longer accepting web connections on port " + getPort() + ".");
+         
+         // reset web connection acceptor, server socket, and port
+         mWebConnectionAcceptor = null;
+         mPort = 0;
+         mServerSocket = null;
       }
-      
-      getLogger().debug(getClass(), "no longer accepting web connections.");
    }
    
    /**
-    * Stops accepting all web connections on the specified port. 
+    * Accepts a single proxy web connection. If this web connection handler
+    * is not accepting connections, then this method should return false.
     * 
-    * @param port the port to stop accepting web connections on.
-    */
-   public synchronized void stopAcceptingWebConnections(int port)
-   {
-      // get the server socket for the specified port
-      ServerSocket serverSocket = getServerSocket(port);
-      if(serverSocket != null)
-      {
-         // get the web connection acceptor for this server socket
-         WebConnectionAcceptor wca = getWebConnectionAcceptor(serverSocket);
-         if(wca != null)
-         {
-            // stop accepting connections
-            wca.stopAcceptingWebConnections();
-         }
-      }
-      
-      try
-      {
-         // disconnect the server socket
-         serverSocket.close();
-      }
-      catch(Throwable t)
-      {
-         getLogger().debug(getClass(), Logger.getStackTrace(t));
-      }
-
-      // remove the port from the server socket map
-      unmapPortFromServerSocket(port);
-      
-      getLogger().debug(getClass(), 
-         "no longer accepting web connections on port " + port + ".");
-   }
-   
-   /**
-    * Accepts a single web connection on the specified port.
-    * 
-    * @param port the port to accept the web connection on.
-    */
-   public void acceptWebConnection(int port)
-   {
-      // get the server socket for the specified port
-      ServerSocket serverSocket = getServerSocket(port);
-      if(serverSocket == null)
-      {
-         // server socket is null, so create one
-         serverSocket = createServerSocket(port);
-      }
-      
-      if(serverSocket != null)
-      {
-         // get the web connection acceptor for this server socket
-         WebConnectionAcceptor wca = getWebConnectionAcceptor(serverSocket);
-         if(wca == null)
-         {
-            // create a web connection acceptor
-            wca = createWebConnectionAcceptor(port);
-         }
-         
-         // accept web connection
-         wca.acceptWebConnection(serverSocket, webConnectionsSecure());
-      }
-   }
-
-   /**
-    * Accepts a single proxy web connection on the specified port.
-    * 
-    * @param port the port to accept the web connection on.
     * @param originalWebConnection the original web connection to proxy.
+    * 
+    * @return true if the proxy web connection was accepted, false if not.
     */
-   public void acceptProxyWebConnection(
-      int port, WebConnection originalWebConnection)
+   public boolean acceptProxyWebConnection(WebConnection originalWebConnection)   
    {
-      // get the server socket for the specified port
-      ServerSocket serverSocket = getServerSocket(port);
-      if(serverSocket == null)
+      boolean rval = false;
+      
+      if(isAcceptingWebConnections())
       {
-         // server socket is null, so create one
-         serverSocket = createServerSocket(port);
+         // accept web proxy connection
+         getWebConnectionAcceptor().acceptWebProxyConnection(
+            getServerSocket(), originalWebConnection, webConnectionsSecure());
+         
+         // connection accepted
+         rval = true;
       }
       
-      if(serverSocket != null)
-      {
-         // get the web connection acceptor for this server socket
-         WebConnectionAcceptor wca = getWebConnectionAcceptor(serverSocket);
-         if(wca == null)
-         {
-            // create a web connection acceptor
-            wca = createWebConnectionAcceptor(port);
-         }
-         
-         // accept web proxy connection
-         wca.acceptWebProxyConnection(
-            serverSocket, originalWebConnection, webConnectionsSecure());
-      }
+      return rval;
    }
    
    /**
@@ -468,9 +323,10 @@ implements WebConnectionHandler, WebConnectionServicer
    {
       boolean rval = false;
       
-      // if there are any web connection acceptors, then this
-      // web connection handler is accepting connections
-      if(mServerSocketToWebConnectionAcceptorMap.size() > 0)
+      // if the port is not 0, and a web connection acceptor and server socket
+      // exist, then this web connection handler is accepting connections
+      if(getPort() != 0 &&
+         getWebConnectionAcceptor() != null && getServerSocket() != null) 
       {
          rval = true;
       }
@@ -479,79 +335,27 @@ implements WebConnectionHandler, WebConnectionServicer
    }
    
    /**
-    * Returns true if this web connection handler is accepting web connections
-    * on the specified port, false if it is not.
-    * 
-    * @param port the port to check for web connections being accepted.
-    */
-   public synchronized boolean isAcceptingWebConnections(int port)
-   {
-      boolean rval = false;
-      
-      // get the server socket for the port
-      ServerSocket serverSocket = getServerSocket(port);
-      if(serverSocket != null)
-      {
-         // get the web connection acceptor for the server socket
-         WebConnectionAcceptor wca = getWebConnectionAcceptor(serverSocket);
-         if(wca != null)
-         {
-            // return whether or not the web connection acceptor is accepting
-            // connections
-            rval = wca.isAcceptingWebConnections();
-         }
-      }
-      
-      return rval;      
-   }
-   
-   /**
-    * sets the maximum number of connections to handle concurrently
-    * on a given port.
+    * Sets the maximum number of connections to handle concurrently.
     * 
     * If connections is 0, then there will be no maximum.
     *
-    * @param port the port to set the maximum number of concurrent connections
-    *             for.
     * @param connections the maximum number of concurrent connections allowed.
     */
-   public void setMaximumConnections(int port, int connections)
+   public synchronized void setMaxConcurrentConnections(int connections)
    {
-      // lock on map
-      synchronized(mPortToMaximumConnections)
-      {
-         // add map entry
-         mPortToMaximumConnections.put(port, connections);
-      }
+      mMaxConcurrentConnections = Math.max(0, connections);
    }
    
    /**
-    * Gets the maximum number of connections to handle concurrently
-    * on a given port.
+    * Gets the maximum number of connections to handle concurrently.
     * 
     * If connections is 0, then there is no maximum.
     *
-    * @param port the port to get the maximum number of concurrent connections
-    *             for.
-    * 
-    * @return the maximum number of connections to handle concurrently
-    *         on a given port.
+    * @return the maximum number of connections to handle concurrently.
     */
-   public int getMaximumConnections(int port)   
+   public synchronized int getMaxConcurrentConnections()
    {
-      // return 0 by default
-      int rval = 0;
-      
-      // lock on map
-      synchronized(mPortToMaximumConnections)
-      {
-         if(mPortToMaximumConnections.containsKey(port))
-         {
-            rval = mPortToMaximumConnections.getInt(port);
-         }
-      }
-      
-      return rval;
+      return mMaxConcurrentConnections;
    }
    
    /**
@@ -580,16 +384,10 @@ implements WebConnectionHandler, WebConnectionServicer
          }
       }
       
-      // lock on map
-      synchronized(mServerSocketToWebConnectionAcceptorMap)
+      // terminate all web connections
+      if(getWebConnectionAcceptor() != null)
       {
-         // terminate all accepted connections
-         for(Iterator i = mServerSocketToWebConnectionAcceptorMap.
-             values().iterator(); i.hasNext();)
-         {
-            WebConnectionAcceptor wca = (WebConnectionAcceptor)i.next();
-            wca.terminateAllWebConnections();
-         }
+         getWebConnectionAcceptor().terminateAllWebConnections();
       }
       
       getLogger().debug(getClass(), "all web connections terminated.");
@@ -625,16 +423,10 @@ implements WebConnectionHandler, WebConnectionServicer
          }
       }
       
-      // lock on map
-      synchronized(mServerSocketToWebConnectionAcceptorMap)
+      // terminate all web connections
+      if(getWebConnectionAcceptor() != null)
       {
-         // terminate all accepted connections
-         for(Iterator i = mServerSocketToWebConnectionAcceptorMap.
-             values().iterator(); i.hasNext();)
-         {
-            WebConnectionAcceptor wca = (WebConnectionAcceptor)i.next();
-            wca.terminateAllWebConnections();
-         }
+         getWebConnectionAcceptor().terminateAllWebConnections();
       }
       
       getLogger().debug(getClass(), "all web connections disconnected.");  
@@ -650,6 +442,18 @@ implements WebConnectionHandler, WebConnectionServicer
    {
       // return the number of web connection service threads
       return mServiceThreads.size();
+   }
+   
+   /**
+    * Gets the port that this web connection handler is accepting web
+    * connections on.
+    * 
+    * @return the port that this web connection handler is accepting web
+    *         connections on, or 0 if it is not accepting connections.
+    */
+   public int getPort()
+   {
+      return mPort;
    }
    
    /**

@@ -324,7 +324,7 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
     */
    public void setMaximumProxyConnections(int connections)
    {
-      mWebConnectionHandler.setMaximumConnections(getProxyPort(), connections);
+      mWebConnectionHandler.setMaxConcurrentConnections(connections);
    }
    
    /**
@@ -336,6 +336,6 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
     */
    public int getMaximumProxyConnections()
    {
-      return mWebConnectionHandler.getMaximumConnections(getProxyPort());
+      return mWebConnectionHandler.getMaxConcurrentConnections();
    }
 }
