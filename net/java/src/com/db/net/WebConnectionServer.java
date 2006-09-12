@@ -58,18 +58,6 @@ public class WebConnectionServer
    }   
    
    /**
-    * Maps a port to a web connection handler.
-    * 
-    * @param port the port to map to a web connection handler.
-    * @param wch the web connection handler.
-    */
-   protected void mapPortToWebConnectionHandler(
-      int port, WebConnectionHandler wch)
-   {
-      mPortToWebConnectionHandler.put(port, wch);
-   }
-   
-   /**
     * Adds a web connection handler to this web server. Only one web
     * connection handler is permitted per port.
     * 
@@ -99,7 +87,7 @@ public class WebConnectionServer
          mPorts.add("" + port);
          
          // so assign the port to the handler
-         mapPortToWebConnectionHandler(port, wch);
+         mPortToWebConnectionHandler.put(port, wch);
          
          // if the web server has already started, then start accepting
          // connections on the port
