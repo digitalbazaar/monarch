@@ -275,6 +275,7 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
     * internal web server.
     * 
     * @param port the port to get the web connection handler for.
+    * 
     * @return the web connection handler for the specified port or null
     *         if no web connection handler is assigned to the port.
     */
