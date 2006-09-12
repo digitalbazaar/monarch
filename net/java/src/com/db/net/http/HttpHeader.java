@@ -187,7 +187,8 @@ public abstract class HttpHeader
                String value = "";
                if(token.length() > index + 1)
                {
-                  value = token.substring(index + 1, token.length());
+                  // parse out and trim value
+                  value = token.substring(index + 1, token.length()).trim();
                }
                
                addHeader(header, value);
