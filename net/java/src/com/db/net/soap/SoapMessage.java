@@ -13,6 +13,7 @@ import com.db.net.http.HttpBodyPartHeader;
 import com.db.net.http.HttpHeader;
 import com.db.net.http.HttpWebConnection;
 import com.db.net.wsdl.Wsdl;
+import com.db.net.wsdl.WsdlBinding;
 import com.db.net.wsdl.WsdlMessage;
 import com.db.net.wsdl.WsdlMessagePart;
 import com.db.net.wsdl.WsdlPortType;
@@ -91,6 +92,11 @@ public class SoapMessage extends AbstractXmlSerializer
     * The results of the executed method.
     */
    protected Object[] mResults;
+   
+   /**
+    * The soap action to include with this message.
+    */
+   protected String mSoapAction;
 
    /**
     * The address of the client for this soap message.
@@ -195,6 +201,9 @@ public class SoapMessage extends AbstractXmlSerializer
          throw new IllegalArgumentException(
             "Port Type not valid for given Wsdl!");
       }
+      
+      // default soap action to blank
+      setSoapAction("");
 
       // default to a soap request
       setXmlSerializerOptions(SOAP_REQUEST);
@@ -226,6 +235,30 @@ public class SoapMessage extends AbstractXmlSerializer
          throw new IllegalArgumentException(
             "Method is not valid for the given Wsdl Port Type!" +
             ",method=" + method);
+      }
+      else
+      {
+         // get the soap binding from the wsdl
+         for(Iterator i = getWsdl().getBindings().iterator(); i.hasNext();)
+         {
+            WsdlBinding binding = (WsdlBinding)i.next();
+            if(binding.getPortType() == mPortType)
+            {
+               if(binding instanceof WsdlSoapBinding)
+               {
+                  // get the soap operation and set the soap action
+                  WsdlSoapBinding soapBinding = (WsdlSoapBinding)binding;
+                  WsdlSoapBindingOperation operation =
+                     soapBinding.getOperations().getOperation(
+                        mPortTypeOperation.getName());
+                  if(operation != null)
+                  {
+                     // set the soap action
+                     setSoapAction(operation.getSoapAction());
+                  }
+               }
+            }
+         }
       }
    }
    
@@ -851,6 +884,31 @@ public class SoapMessage extends AbstractXmlSerializer
    public boolean isFault()
    {
       return (getXmlSerializerOptions() == SOAP_FAULT);
+   }
+   
+   /**
+    * Sets the soap action associated with this soap message.
+    * 
+    * @param action the soap action associated with this soap message.
+    */
+   public void setSoapAction(String action)
+   {
+      if(action == null)
+      {
+         action = "";
+      }
+      
+      mSoapAction = action;
+   }
+   
+   /**
+    * Gets the soap action associated with this soap message.
+    * 
+    * @return the soap action associated with this soap message.
+    */
+   public String getSoapAction()
+   {
+      return mSoapAction;
    }
    
    /**

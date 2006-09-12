@@ -69,7 +69,7 @@ public abstract class HttpHeader
    {
       StringBuffer sb = new StringBuffer(header.length());
       
-      // make the header lowercase
+      // make header lower case
       header = header.toLowerCase();
       
       // capitalize the first letter
@@ -240,12 +240,12 @@ public abstract class HttpHeader
     */
    public void addHeader(String header, String value)
    {
-      if(value == null)
+      // remove the old header
+      removeHeader(header);
+
+      if(value != null)
       {
-         removeHeader(header);
-      }
-      else
-      {
+         // add the new header
          mHeaders.put(biCapitalizeHeader(header), value);
       }
    }
@@ -272,7 +272,11 @@ public abstract class HttpHeader
     */
    public void removeHeader(String header)
    {
-      mHeaders.remove(biCapitalizeHeader(header));
+      if(header != null)
+      {
+         // remove the old header
+         mHeaders.remove(biCapitalizeHeader(header));
+      }
    }
    
    /**
@@ -291,6 +295,7 @@ public abstract class HttpHeader
     * Gets the value of a header.
     * 
     * @param header the name of the header.
+    * 
     * @return the value of the header.
     */
    public String getHeader(String header)

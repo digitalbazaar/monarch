@@ -134,12 +134,13 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
     * the specified connection.
     * 
     * @param hwc the http web connection to send the http web request over.
+    * @param sm the soap message.
     * @param body the soap xml body in bytes.
     * 
     * @return the http web request to use to send the soap message.
     */
    protected HttpWebRequest createSoapHttpWebRequest(
-      HttpWebConnection hwc, byte[] body)
+      HttpWebConnection hwc, SoapMessage sm, byte[] body)
    {
       HttpWebRequest request = new HttpWebRequest(hwc);
       
@@ -153,7 +154,8 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
       request.getHeader().setContentLength(body.length);
       request.getHeader().setUserAgent("Digital Bazaar SOAP Client " + VERSION);
       request.getHeader().setConnection("close");
-      request.getHeader().addHeader("SOAPAction", "\"\"");
+      request.getHeader().addHeader(
+         "SOAPAction", "\"" + sm.getSoapAction() + "\"");
       
       // use gzip compression as appropriate
       if(usesGZip())
@@ -326,7 +328,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
          
          // create a soap http web request
          HttpWebRequest request = createSoapHttpWebRequest(
-            (HttpWebConnection)wc, body);
+            (HttpWebConnection)wc, sm, body);
          
          // get an http web response
          HttpWebResponse response = request.createHttpWebResponse();
