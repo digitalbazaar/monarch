@@ -6,6 +6,8 @@ package com.db.net.upnp;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.SocketTimeoutException;
+import java.util.Iterator;
+import java.util.Vector;
 
 import com.db.net.datagram.DatagramClient;
 import com.db.net.datagram.DatagramStream;
@@ -46,7 +48,10 @@ public class UPnPDeviceDiscoverer
     */
    public UPnPDevice[] discover() throws IOException
    {
-      UPnPDevice[] devices = new UPnPDevice[0];
+      UPnPDevice[] devices = null;
+      
+      // create a vector for storing discovered devices
+      Vector discoveredDevices = new Vector(); 
       
       // get a multicast stream
       DatagramClient client = new DatagramClient();
@@ -70,6 +75,8 @@ public class UPnPDeviceDiscoverer
       // send the datagram
       stream.sendDatagram(datagram);
       
+      // FIXME: we need to set up another stream to listen for the results
+      // because they may come back before we can start receiving datagrams
       try
       {
          // receive packets until timeout is reached
@@ -81,7 +88,12 @@ public class UPnPDeviceDiscoverer
             
             // parse a SsdpDiscoverResponse from the datagram
             SsdpDiscoverResponse response = new SsdpDiscoverResponse(datagram);
-            System.out.println(response.toString());
+            if(response.isValid())
+            {
+               // create a UPnPDevice from the response
+               UPnPDevice device = new UPnPDevice(response);
+               discoveredDevices.add(device);
+            }
          }
       }
       catch(SocketTimeoutException e)
@@ -89,8 +101,13 @@ public class UPnPDeviceDiscoverer
          // ignore timeout exception
       }
 
-      
-      // FIXME:
+      // create device array
+      devices = new UPnPDevice[discoveredDevices.size()];
+      int count = 0;
+      for(Iterator i = discoveredDevices.iterator(); i.hasNext(); count++)
+      {
+         devices[count] = (UPnPDevice)i.next();
+      }
       
       // return devices
       return devices;

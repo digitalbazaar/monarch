@@ -126,7 +126,7 @@ public class SsdpDiscoverRequest
     */
    public void setServiceType(String uri)
    {
-      getHeader().addHeader("ST", uri);
+      getHeader().addHeader("st", uri);
    }
    
    /**
@@ -136,7 +136,7 @@ public class SsdpDiscoverRequest
     */
    public String getServiceType()
    {
-      return getHeader().getHeader("ST");
+      return getHeader().getHeader("st");
    }
    
    /**

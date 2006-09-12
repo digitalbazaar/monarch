@@ -66,23 +66,76 @@ public class SsdpDiscoverResponse
    }
    
    /**
-    * Sets the service type (header "ST").
+    * Gets the usn for the device (header "usn").
     * 
-    * @param uri the service type (a URI).
+    * @return the usn for the device.
     */
-   public void setServiceType(String uri)
+   public String getUsn()
    {
-      getHeader().addHeader("ST", uri);
-   }
+      String rval = "";
+      
+      String server = getHeader().getHeader("usn");
+      if(server != null)
+      {
+         rval = server.trim();
+      }
+      
+      return rval;
+   }   
    
    /**
-    * Gets the service type (header "ST").
+    * Gets the service type (header "st").
     * 
     * @return the service type (a URI).
     */
    public String getServiceType()
    {
-      return getHeader().getHeader("ST");
+      String rval = "";
+      
+      String server = getHeader().getHeader("st");
+      if(server != null)
+      {
+         rval = server.trim();
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the server for the device (header "server").
+    * 
+    * @return the server for the device.
+    */
+   public String getServer()
+   {
+      String rval = "";
+      
+      String server = getHeader().getHeader("server");
+      if(server != null)
+      {
+         rval = server.trim();
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the location for the device's UPnP interface description
+    * (header "location").
+    * 
+    * @return the location for the device.
+    */
+   public String getLocation()
+   {
+      String rval = "";
+      
+      String server = getHeader().getHeader("location");
+      if(server != null)
+      {
+         rval = server.trim();
+      }
+      
+      return rval;
    }
    
    /**
@@ -98,24 +151,23 @@ public class SsdpDiscoverResponse
       if(getHeader().isValid())
       {
          // check header fields
-         /*
-         String location = getHeader().getHeader("location");
-         if(location != null && location.trim().length() == 0)
+         String usn = getUsn();
+         if(usn != null && usn.trim().length() == 0)
          {
-            String server = getHeader().getHeader("server");
-            if(server != null && server.trim().length() == 0)
+            String serviceType = getServiceType();
+            if(serviceType != null && serviceType.trim().length() == 0)
             {
-               String serviceType = getHeader().getHeader("st");
-               if(serviceType != null && serviceType.trim().length() == 0)
+               String server = getServer();
+               if(server != null && server.trim().length() == 0)
                {
-                  String usn = getHeader().getHeader("usn");
-                  if(usn != null && usn.trim().length() == 0)
+                  String location = getLocation();
+                  if(location != null && location.trim().length() == 0)
                   {
                      rval = true;
                   }
                }
             }
-         }*/
+         }
          
          rval = true;
       }
