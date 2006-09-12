@@ -127,8 +127,7 @@ public class WebConnectionServer
       WebConnectionHandler wch)
    {
       // remove the web connection handler from all ports
-      Iterator i = mPorts.iterator();
-      while(i.hasNext())
+      for(Iterator i = mPorts.iterator(); i.hasNext();)
       {
          int port = Integer.parseInt((String)i.next());
          WebConnectionHandler handler = getWebConnectionHandler(port);
@@ -154,8 +153,8 @@ public class WebConnectionServer
     */
    public synchronized void removeAllWebConnectionHandlers()
    {
-      Iterator i = mPortToWebConnectionHandler.values().iterator();
-      while(i.hasNext())
+      for(Iterator i = mPortToWebConnectionHandler.values().iterator();
+          i.hasNext();)
       {
          WebConnectionHandler handler = (WebConnectionHandler)i.next();
 
