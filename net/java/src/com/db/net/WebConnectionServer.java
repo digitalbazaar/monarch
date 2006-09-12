@@ -119,32 +119,34 @@ public class WebConnectionServer
    /**
     * Removes a web connection handler from this web server. If the web
     * server is already running, then it will stop accepting connections
-    * on all ports and its connections be terminated.
+    * and its connections be terminated.
     * 
     * @param wch the web connection handler to remove from this server.
     */
    public synchronized void removeWebConnectionHandler(
       WebConnectionHandler wch)
    {
-      // remove the web connection handler from all ports
-      for(Iterator i = mPorts.iterator(); i.hasNext();)
+      // try to get the web connection handler
+      wch = getWebConnectionHandler(wch.getPort());
+      if(wch != null)
       {
-         int port = Integer.parseInt((String)i.next());
-         WebConnectionHandler handler = getWebConnectionHandler(port);
-         if(handler == wch)
+         if(isRunning())
          {
             // stop accepting web connections
-            handler.stopAcceptingWebConnections();
+            wch.stopAcceptingWebConnections();
             
             // terminate existing web connections
-            handler.terminateWebConnections();
+            wch.terminateWebConnections();
             
-            // remove the port from the port list
-            mPorts.remove("" + port);
-
-            // remove the handler from the map
-            i.remove();
+            // disconnect web connections
+            wch.disconnectWebConnections();
          }
+         
+         // remove the port from the port list
+         mPorts.remove("" + wch.getPort());
+         
+         // unmap the handler
+         mPortToWebConnectionHandler.remove(wch.getPort());
       }
    }
    
@@ -163,6 +165,9 @@ public class WebConnectionServer
             
          // terminate existing web connections
          handler.terminateWebConnections();
+         
+         // disconnect web connections
+         handler.disconnectWebConnections();
       }
       
       // clear port list
@@ -269,8 +274,7 @@ public class WebConnectionServer
       Vector vector = new Vector();
       
       // add all web connection handlers according to port order
-      Iterator i = mPorts.iterator();
-      while(i.hasNext())
+      for(Iterator i = mPorts.iterator(); i.hasNext();)
       {
          int port = Integer.parseInt((String)i.next());
          WebConnectionHandler handler = getWebConnectionHandler(port);
@@ -297,8 +301,7 @@ public class WebConnectionServer
       int[] ports = new int[mPorts.size()];
       
       int n = 0;
-      Iterator i = mPorts.iterator();
-      while(i.hasNext())
+      for(Iterator i = mPorts.iterator(); i.hasNext();)
       {
          try
          {
