@@ -279,11 +279,8 @@ public class WebConnectionServer
          int port = Integer.parseInt((String)i.next());
          WebConnectionHandler handler = getWebConnectionHandler(port);
          
-         // add handler if it isn't already in the list
-         if(!vector.contains(handler))
-         {
-            vector.add(handler);
-         }
+         // add handler
+         vector.add(handler);
       }
       
       return vector;
