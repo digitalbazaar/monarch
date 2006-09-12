@@ -176,11 +176,14 @@ public abstract class HttpHeader
          {
             String token = st.nextToken();
             
-            int index = token.indexOf(": ");
+            int index = token.indexOf(":");
             if(index != -1)
             {
+               // trim the white space around the token
+               token = token.trim();
+               
                // get header and value
-               String header = token.substring(0, index); 
+               String header = token.substring(0, index);
                String value = "";
                if(token.length() > index + 2)
                {
