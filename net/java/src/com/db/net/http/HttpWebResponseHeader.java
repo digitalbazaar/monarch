@@ -157,9 +157,6 @@ public class HttpWebResponseHeader extends HttpHeader
    {
       StringBuffer sb = new StringBuffer();
       
-      // add date header
-      addDateHeader();
-
       // http response line format: HTTP/1.0 404 Not Found
       sb.append(getVersion());
       sb.append(' ');

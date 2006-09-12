@@ -31,7 +31,7 @@ public class UTUPnP
          LoggerManager.setConsoleVerbosity(
             "dbnet", Logger.ERROR_VERBOSITY);
          
-         System.out.println("Starting UPnP functionality test...");
+         System.out.println("Starting UPnP functionality test...\n");
          
          UPnPDeviceDiscoverer discoverer = new UPnPDeviceDiscoverer();
          discoverer.discover();

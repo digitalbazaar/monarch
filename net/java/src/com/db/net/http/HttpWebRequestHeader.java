@@ -475,9 +475,6 @@ public class HttpWebRequestHeader extends HttpHeader
    {
       StringBuffer sb = new StringBuffer();
       
-      // add date header
-      addDateHeader();
-
       // http request line format: METHOD /path/ HTTP/1.0
       sb.append(getMethod());
       sb.append(' ');

@@ -409,6 +409,9 @@ public class HttpWebConnection extends WebConnectionWrapper
       
       try
       {
+         // add date header
+         header.addDateHeader();
+         
          // get header string
          String str = header.toString();
          getLogger().debug(getClass(), "sending http header:\r\n" + str);
