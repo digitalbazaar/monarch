@@ -74,7 +74,7 @@ public class SsdpDiscoverResponse
    {
       String rval = "";
       
-      String server = getHeader().getHeader("usn");
+      String server = getHeader().getHeaderValue("usn");
       if(server != null)
       {
          rval = server.trim();
@@ -92,7 +92,7 @@ public class SsdpDiscoverResponse
    {
       String rval = "";
       
-      String server = getHeader().getHeader("st");
+      String server = getHeader().getHeaderValue("st");
       if(server != null)
       {
          rval = server.trim();
@@ -110,7 +110,7 @@ public class SsdpDiscoverResponse
    {
       String rval = "";
       
-      String server = getHeader().getHeader("server");
+      String server = getHeader().getHeaderValue("server");
       if(server != null)
       {
          rval = server.trim();
@@ -129,7 +129,7 @@ public class SsdpDiscoverResponse
    {
       String rval = "";
       
-      String server = getHeader().getHeader("location");
+      String server = getHeader().getHeaderValue("location");
       if(server != null)
       {
          rval = server.trim();

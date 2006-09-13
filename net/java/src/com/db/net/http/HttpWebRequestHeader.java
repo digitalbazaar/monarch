@@ -369,7 +369,7 @@ public class HttpWebRequestHeader extends HttpHeader
     */
    public String getUserAgent()
    {
-      return getHeader("User-Agent");
+      return getHeaderValue("User-Agent");
    }
    
    /**
@@ -389,7 +389,7 @@ public class HttpWebRequestHeader extends HttpHeader
     */
    public String getHost()
    {
-      return getHeader("Host");
+      return getHeaderValue("Host");
    }
    
    /**
@@ -410,7 +410,7 @@ public class HttpWebRequestHeader extends HttpHeader
     */
    public String getAccept()
    {
-      return getHeader("Accept");
+      return getHeaderValue("Accept");
    }
    
    /**
@@ -432,7 +432,7 @@ public class HttpWebRequestHeader extends HttpHeader
     */
    public String getAcceptEncoding()
    {
-      return getHeader("Accept-Encoding");
+      return getHeaderValue("Accept-Encoding");
    }   
    
    /**

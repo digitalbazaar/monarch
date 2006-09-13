@@ -130,7 +130,7 @@ public class HttpBodyPartHeader extends HttpHeader
     */
    public String getContentId()
    {
-      return getHeader("Content-ID");
+      return getHeaderValue("Content-ID");
    }   
    
    /**

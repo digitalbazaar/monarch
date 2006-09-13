@@ -69,7 +69,7 @@ public abstract class HttpHeader
    {
       StringBuffer sb = new StringBuffer(header.length());
       
-      // make header lower case
+      // ensure header is lower case to begin with
       header = header.toLowerCase();
       
       // capitalize the first letter
@@ -123,8 +123,8 @@ public abstract class HttpHeader
     * 
     * @return the joined string.
     */
-   protected String joinArray(String[] array, int beginIndex, int endIndex,
-                              String delimiter)
+   protected String joinArray(
+      String[] array, int beginIndex, int endIndex, String delimiter)
    {
       StringBuilder sb = new StringBuilder();
       
@@ -243,10 +243,10 @@ public abstract class HttpHeader
       // remove the old header
       removeHeader(header);
 
-      if(value != null)
+      if(header != null && value != null)
       {
          // add the new header
-         mHeaders.put(biCapitalizeHeader(header), value);
+         mHeaders.put(header.toLowerCase(), value);
       }
    }
    
@@ -275,7 +275,7 @@ public abstract class HttpHeader
       if(header != null)
       {
          // remove the old header
-         mHeaders.remove(biCapitalizeHeader(header));
+         mHeaders.remove(header.toLowerCase());
       }
    }
    
@@ -288,7 +288,7 @@ public abstract class HttpHeader
     */
    public boolean hasHeader(String header)
    {
-      return getHeader(header) != null;
+      return getHeaderValue(header) != null;
    }
    
    /**
@@ -298,9 +298,16 @@ public abstract class HttpHeader
     * 
     * @return the value of the header.
     */
-   public String getHeader(String header)
+   public String getHeaderValue(String header)
    {
-      return (String)mHeaders.get(biCapitalizeHeader(header));
+      String rval = null;
+      
+      if(header != null)
+      {
+         rval = (String)mHeaders.get(header.toLowerCase());
+      }
+      
+      return rval;
    }
    
    /**
@@ -374,7 +381,7 @@ public abstract class HttpHeader
     */
    public String getContentType()
    {
-      return getHeader("Content-Type");
+      return getHeaderValue("Content-Type");
    }
    
    /**
@@ -394,7 +401,7 @@ public abstract class HttpHeader
     */
    public String getContentEncoding()
    {
-      return getHeader("Content-Encoding");
+      return getHeaderValue("Content-Encoding");
    }
    
    /**
@@ -414,7 +421,7 @@ public abstract class HttpHeader
     */
    public String getTransferEncoding()
    {
-      return getHeader("Transfer-Encoding");
+      return getHeaderValue("Transfer-Encoding");
    }   
    
    /**
@@ -447,10 +454,10 @@ public abstract class HttpHeader
       
       try
       {
-         String len = getHeader("Content-Length");
+         String len = getHeaderValue("Content-Length");
          if(len != null)
          {
-            rval = Long.parseLong(getHeader("Content-Length"));
+            rval = Long.parseLong(getHeaderValue("Content-Length"));
          }
       }
       catch(Throwable t)
@@ -484,7 +491,7 @@ public abstract class HttpHeader
     */
    public String getContentDisposition()
    {
-      return getHeader("Content-Disposition");
+      return getHeaderValue("Content-Disposition");
    }
    
    /**
@@ -576,7 +583,7 @@ public abstract class HttpHeader
     */
    public String getConnection()
    {
-      return getHeader("Connection");
+      return getHeaderValue("Connection");
    }
    
    /**
@@ -698,13 +705,12 @@ public abstract class HttpHeader
       StringBuffer headers = new StringBuffer();
       
       // iterate through all headers
-      Iterator i = getHeaders().keySet().iterator();
-      while(i.hasNext())
+      for(Iterator i = getHeaders().keySet().iterator(); i.hasNext();)
       {
          String header = (String)i.next();
-         headers.append(header);
+         headers.append(biCapitalizeHeader(header));
          headers.append(": ");
-         headers.append(getHeader(header));
+         headers.append(getHeaderValue(header));
          headers.append(CRLF);
       }
       

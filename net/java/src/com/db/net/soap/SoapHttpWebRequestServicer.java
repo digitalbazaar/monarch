@@ -304,11 +304,11 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          SoapMessage sm = null;
          
          // get the soap action
-         String soapAction = request.getHeader().getHeader("SOAPAction");
+         String soapAction = request.getHeader().getHeaderValue("SOAPAction");
          getLogger().detail(getClass(), "SOAPAction is=" + soapAction);
          
          // see if the client is expecting a continue
-         String expect = request.getHeader().getHeader("Expect"); 
+         String expect = request.getHeader().getHeaderValue("Expect"); 
          if(expect != null && expect.equalsIgnoreCase("100-continue"))
          {
             // check to see if the soap action is appropriate
