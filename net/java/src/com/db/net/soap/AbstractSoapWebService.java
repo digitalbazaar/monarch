@@ -49,6 +49,11 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
    protected Wsdl mWsdl;
    
    /**
+    * The SOAP binding for this web service.
+    */
+   protected WsdlSoapBinding mSoapBinding;
+   
+   /**
     * A map of threads executing soap methods to the soap messages
     * that they are processing.
     */
@@ -81,6 +86,10 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
       
       // install no soap security manager
       setSoapSecurityManager(null);
+      
+      // get the soap binding for this service
+      mSoapBinding = (WsdlSoapBinding)mWsdl.getBindings().
+         getBinding(mPortType + "SoapBinding");
    }
 
    /**
@@ -107,6 +116,10 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
       
       // install no soap security manager
       setSoapSecurityManager(null);
+      
+      // get the soap binding for this service
+      mSoapBinding = (WsdlSoapBinding)mWsdl.getBindings().
+         getBinding(mPortType + "SoapBinding");
    }
 
    /**
@@ -363,6 +376,16 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
    public Wsdl getWsdl()
    {
       return mWsdl;
+   }
+   
+   /**
+    * Gets the SOAP binding for this web service.
+    * 
+    * @return the SOAP binding for this web service.
+    */
+   public WsdlSoapBinding getSoapBinding()
+   {
+      return mSoapBinding;
    }
    
    /**

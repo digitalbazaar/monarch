@@ -337,11 +337,15 @@ public class XmlElement extends AbstractXmlSerializer
    /**
     * Creates an XmlElement from this object.
     *
+    * @param parent the parent XmlElement for the XmlElement being created
+    *               (can be null). 
+    * 
     * @return the XmlElement that represents this object.
     */
-   public XmlElement convertToXmlElement()
+   public XmlElement convertToXmlElement(XmlElement parent)
    {
-      // return this element
+      // set parent and return this element
+      setParent(parent);
       return this;
    }
    

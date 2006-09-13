@@ -64,9 +64,12 @@ public interface IXmlSerializer
    /**
     * Creates an XmlElement from this object.
     *
+    * @param parent the parent XmlElement for the XmlElement being created
+    *               (can be null). 
+    * 
     * @return the XmlElement that represents this object.
     */
-   public XmlElement convertToXmlElement();
+   public XmlElement convertToXmlElement(XmlElement parent);
    
    /**
     * This method takes XML text (in full document form) and converts

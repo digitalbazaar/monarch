@@ -132,12 +132,16 @@ public class WsdlMessage extends AbstractXmlSerializer
    /**
     * Creates an XmlElement from this object.
     *
+    * @param parent the parent XmlElement for the XmlElement being created
+    *               (can be null). 
+    * 
     * @return the XmlElement that represents this object.
     */
-   public XmlElement convertToXmlElement()
+   public XmlElement convertToXmlElement(XmlElement parent)
    {
       // create xml element
       XmlElement element = new XmlElement(getRootTag());
+      element.setParent(parent);
       
       // add attributes
       element.getAttributeMap().addAttribute("name", getName());
@@ -146,7 +150,7 @@ public class WsdlMessage extends AbstractXmlSerializer
       for(Iterator i = getParts().iterator(); i.hasNext();)
       {
          WsdlMessagePart part = (WsdlMessagePart)i.next();
-         element.addChild(part.convertToXmlElement());
+         element.addChild(part.convertToXmlElement(element));
       }
       
       return element;      

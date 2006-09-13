@@ -511,12 +511,15 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
    /**
     * Creates an XmlElement from this object.
     *
+    * @param parent the parent XmlElement for the XmlElement being created
+    *               (can be null). 
+    * 
     * @return the XmlElement that represents this object.
     */
-   public XmlElement convertToXmlElement()
+   public XmlElement convertToXmlElement(XmlElement parent)
    {
       // convert parent
-      XmlElement element = super.convertToXmlElement();
+      XmlElement element = super.convertToXmlElement(parent);
       
       // set element name
       element.setName(getRootTag());

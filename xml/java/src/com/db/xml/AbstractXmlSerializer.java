@@ -89,7 +89,7 @@ public abstract class AbstractXmlSerializer implements IXmlSerializer
       try
       {
          // convert this object to an xml element
-         XmlElement element = convertToXmlElement();
+         XmlElement element = convertToXmlElement(null);
          
          // convert the element to XML
          rval = element.convertToXml(header, indentSize, childIndentSize);
@@ -200,9 +200,12 @@ public abstract class AbstractXmlSerializer implements IXmlSerializer
    /**
     * Creates an XmlElement from this object.
     *
+    * @param parent the parent XmlElement for the XmlElement being created
+    *               (can be null). 
+    * 
     * @return the XmlElement that represents this object.
     */
-   public abstract XmlElement convertToXmlElement();   
+   public abstract XmlElement convertToXmlElement(XmlElement parent);
    
    /**
     * Converts this object from an XmlElement.

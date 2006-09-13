@@ -6,6 +6,7 @@ package com.db.net.soap;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.net.wsdl.Wsdl;
+import com.db.net.wsdl.WsdlMessage;
 import com.db.net.wsdl.WsdlPortTypeOperation;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
@@ -89,7 +90,7 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
    public WsdlPortTypeOperation getPortTypeOperation()
    {
       return mPortTypeOperation;
-   }      
+   }
    
    /**
     * Gets the name of this operation.
@@ -119,7 +120,27 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
    public String getSoapAction()
    {
       return mSoapAction;
-   }      
+   }
+   
+   /**
+    * Gets the WsdlMessage for a SOAP request to a web service.
+    * 
+    * @return the WsdlMessage for a SOAP request to a web service.
+    */
+   public WsdlMessage getRequestMessage()
+   {
+      return getPortTypeOperation().getRequestMessage();
+   }
+   
+   /**
+    * Gets the WsdlMessage for a SOAP response from a web service.
+    * 
+    * @return the WsdlMessage for a SOAP response from a web service.
+    */
+   public WsdlMessage getResponseMessage()
+   {
+      return getPortTypeOperation().getResponseMessage();
+   }
    
    /**
     * Returns the root tag name for this serializer.
@@ -134,12 +155,16 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
    /**
     * Creates an XmlElement from this object.
     *
+    * @param parent the parent XmlElement for the XmlElement being created
+    *               (can be null). 
+    * 
     * @return the XmlElement that represents this object.
     */
-   public XmlElement convertToXmlElement()
+   public XmlElement convertToXmlElement(XmlElement parent)
    {
       // create xml element
       XmlElement element = new XmlElement(getRootTag());
+      element.setParent(parent);
       
       // add attributes
       element.addAttribute("name", getName());

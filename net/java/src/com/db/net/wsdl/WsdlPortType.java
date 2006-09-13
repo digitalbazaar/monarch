@@ -130,12 +130,16 @@ public class WsdlPortType extends AbstractXmlSerializer
    /**
     * Creates an XmlElement from this object.
     *
+    * @param parent the parent XmlElement for the XmlElement being created
+    *               (can be null). 
+    * 
     * @return the XmlElement that represents this object.
     */
-   public XmlElement convertToXmlElement()
+   public XmlElement convertToXmlElement(XmlElement parent)
    {
       // create xml element
       XmlElement element = new XmlElement(getRootTag());
+      element.setParent(parent);
       
       // add attributes
       element.addAttribute("name", getName());
@@ -144,7 +148,7 @@ public class WsdlPortType extends AbstractXmlSerializer
       for(Iterator i = getOperations().iterator(); i.hasNext();)
       {
          WsdlPortTypeOperation operation = (WsdlPortTypeOperation)i.next();
-         element.addChild(operation.convertToXmlElement());
+         element.addChild(operation.convertToXmlElement(element));
       }
       
       // return element

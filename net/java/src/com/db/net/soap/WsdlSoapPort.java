@@ -84,12 +84,15 @@ public class WsdlSoapPort extends WsdlPort
    /**
     * Creates an XmlElement from this object.
     *
+    * @param parent the parent XmlElement for the XmlElement being created
+    *               (can be null). 
+    * 
     * @return the XmlElement that represents this object.
     */
-   public XmlElement convertToXmlElement()
+   public XmlElement convertToXmlElement(XmlElement parent)
    {
       // create the base port xml element
-      XmlElement element = createPortXmlElement();
+      XmlElement element = createPortXmlElement(parent);
       
       // add the soap address element
       XmlElement soapAddressElement = new XmlElement(

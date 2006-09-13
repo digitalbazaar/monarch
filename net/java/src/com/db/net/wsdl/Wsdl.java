@@ -383,12 +383,16 @@ public class Wsdl extends AbstractXmlSerializer
    /**
     * Creates an XmlElement from this object.
     *
+    * @param parent the parent XmlElement for the XmlElement being created
+    *               (can be null). 
+    * 
     * @return the XmlElement that represents this object.
     */
-   public XmlElement convertToXmlElement()
+   public XmlElement convertToXmlElement(XmlElement parent)
    {
       // create xml element
       XmlElement element = new XmlElement(getRootTag());
+      element.setParent(parent);
       
       // add attributes
       element.addAttribute("xmlns", WSDL_NAMESPACE_URI);
@@ -409,28 +413,28 @@ public class Wsdl extends AbstractXmlSerializer
       for(Iterator i = getMessages().iterator(); i.hasNext();)
       {
          WsdlMessage message = (WsdlMessage)i.next();
-         element.addChild(message.convertToXmlElement());
+         element.addChild(message.convertToXmlElement(element));
       }
 
       // port types
       for(Iterator i = getPortTypes().iterator(); i.hasNext();)
       {
          WsdlPortType portType = (WsdlPortType)i.next();
-         element.addChild(portType.convertToXmlElement());
+         element.addChild(portType.convertToXmlElement(element));
       }
       
       // bindings
       for(Iterator i = getBindings().iterator(); i.hasNext();)
       {
          WsdlBinding binding = (WsdlBinding)i.next();
-         element.addChild(binding.convertToXmlElement());
+         element.addChild(binding.convertToXmlElement(element));
       }
       
       // services
       for(Iterator i = getServices().iterator(); i.hasNext();)
       {
          WsdlService service = (WsdlService)i.next();
-         element.addChild(service.convertToXmlElement());
+         element.addChild(service.convertToXmlElement(element));
       }
       
       return element;

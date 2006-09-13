@@ -305,6 +305,80 @@ public class WsdlPortTypeOperation extends AbstractXmlSerializer
    }
    
    /**
+    * Gets the WsdlMessage for a request made to a web service.
+    * 
+    * @return the WsdlMessage for a request made to a web service.
+    */
+   public WsdlMessage getRequestMessage()
+   {
+      WsdlMessage rval = null;
+      
+      // get the message name
+      String messageName = "";
+      if(usesOnlyInputMessage())
+      {
+         messageName = getInputMessageName();
+      }
+      else if(usesOnlyOutputMessage())
+      {
+         messageName = getOutputMessageName();
+      }
+      else
+      {
+         if(isInputFirst())
+         {
+            messageName = getInputMessageName();
+         }
+         else
+         {
+            messageName = getOutputMessageName();
+         }
+      }
+      
+      // get the wsdl message
+      rval = getPortType().getWsdl().getMessages().getMessage(messageName);
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the WsdlMessage for a response made from a web service.
+    * 
+    * @return the WsdlMessage for a response made from a web service.
+    */
+   public WsdlMessage getResponseMessage()
+   {
+      WsdlMessage rval = null;
+      
+      // get the message name
+      String messageName = "";
+      if(usesOnlyInputMessage())
+      {
+         messageName = getInputMessageName();
+      }
+      else if(usesOnlyOutputMessage())
+      {
+         messageName = getOutputMessageName();
+      }
+      else
+      {
+         if(isInputFirst())
+         {
+            messageName = getOutputMessageName();
+         }
+         else
+         {
+            messageName = getInputMessageName();
+         }
+      }
+      
+      // get the wsdl message
+      rval = getPortType().getWsdl().getMessages().getMessage(messageName);
+      
+      return rval;
+   }
+   
+   /**
     * Returns the root tag name for this serializer.
     * 
     * @return the root tag name for this serializer.
@@ -317,12 +391,16 @@ public class WsdlPortTypeOperation extends AbstractXmlSerializer
    /**
     * Creates an XmlElement from this object.
     *
+    * @param parent the parent XmlElement for the XmlElement being created
+    *               (can be null). 
+    * 
     * @return the XmlElement that represents this object.
     */
-   public XmlElement convertToXmlElement()
+   public XmlElement convertToXmlElement(XmlElement parent)
    {
       // create xml element
       XmlElement element = new XmlElement(getRootTag());
+      element.setParent(parent);
       
       // add attributes
       element.addAttribute("name", getName());
