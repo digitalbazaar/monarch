@@ -966,7 +966,10 @@ public class XmlElement extends AbstractXmlSerializer
       child.setParent(this);
       
       // add the child to the list of children
-      mChildren.add(child);
+      if(!mChildren.contains(child))
+      {
+         mChildren.add(child);
+      }
    }
    
    /**
