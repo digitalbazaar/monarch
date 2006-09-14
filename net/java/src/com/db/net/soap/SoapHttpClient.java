@@ -21,6 +21,8 @@ import com.db.net.http.HttpWebResponse;
 import com.db.net.wsdl.Wsdl;
 import com.db.net.wsdl.WsdlMessage;
 import com.db.net.wsdl.WsdlMessagePart;
+import com.db.net.wsdl.WsdlPort;
+import com.db.net.wsdl.WsdlService;
 
 /**
  * This is the base class for a SOAP client that uses HTTP.
@@ -58,6 +60,53 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
     * Whether or not gzip compression should be used.
     */
    protected boolean mUseGZip;
+   
+   /**
+    * Creates a new SoapHttpClient with the specified WSDL.
+    * 
+    * @param wsdl the WSDL to use.
+    * @param portType the Wsdl port type to communicate according to.
+    * 
+    * @exception MalformedURLException if the endpoint in the Wsdl is invalid.
+    */
+   public SoapHttpClient(Wsdl wsdl, String portType)
+   throws MalformedURLException
+   {
+      mWsdl = wsdl;
+      mWsdlPath = null;
+      mPortType = portType;
+      
+      // go through the services looking for a port with the right uri
+      boolean found = false;
+      for(Iterator is = mWsdl.getServices().iterator();
+          is.hasNext() && !found;)
+      {
+         WsdlService service = (WsdlService)is.next();
+         
+         // find the soap ports that match the port types
+         for(Iterator ip = service.getPorts().iterator();
+             ip.hasNext() && !found;)
+         {
+            WsdlPort port = (WsdlPort)ip.next();
+            
+            // ensure the port has a binding with the right port type
+            if(port.getBinding().getPortType().getName().equals(portType))
+            {
+               // see if the port is a soap port
+               if(port instanceof WsdlSoapPort)
+               {
+                  WsdlSoapPort soapPort = (WsdlSoapPort)port;
+                  
+                  // set the endpoint address
+                  setUrl(soapPort.getUri());
+               }
+            }
+         }
+      }
+      
+      // do not use gzip compression by default
+      useGZip(false);
+   }
    
    /**
     * Creates a new SoapHttpClient with no specified endpoint address (URL) to
