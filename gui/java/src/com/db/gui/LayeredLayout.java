@@ -187,11 +187,15 @@ public class LayeredLayout extends GridBagLayout
             
             // get the highest column
             if(col > mHighCol)
+            {
                mHighCol = col;
+            }
             
             // get the highest row
             if(row > mHighRow)
+            {
                mHighRow = row;
+            }
             
             // add an entry to the map
             putConstraints(new int[]{col, row}, new GridBagConstraints());
@@ -231,7 +235,9 @@ public class LayeredLayout extends GridBagLayout
          
          // find the previous coord
          if(value > coords[dim] && coords[dim] > prev)
+         {
             prev = coords[dim];
+         }
          
          // try to find the overlap coord
          if(foundCoords)
@@ -250,14 +256,20 @@ public class LayeredLayout extends GridBagLayout
          
          // found the current coordinates
          if(coords[0] == col && coords[1] == row)
+         {
             foundCoords = true;
+         }
       }
       
       // if another coord overlaps, set return value to difference
       if(overlap != -1)
+      {
          rval = overlap - value;
+      }
       else
+      {
          rval = (dim == 0) ? (mHighCol - prev) : (mHighRow - prev);
+      }
          
       return rval;
    }
@@ -318,7 +330,9 @@ public class LayeredLayout extends GridBagLayout
    protected void insertValue(Vector v, int value)
    {
       if(v.isEmpty())
+      {
          v.add(new Integer(value));
+      }
       else
       {
          boolean inserted = false;
@@ -335,7 +349,9 @@ public class LayeredLayout extends GridBagLayout
          }
          
          if(!inserted)
+         {
             v.add(new Integer(value));
+         }
       }
    }
    
