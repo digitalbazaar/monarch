@@ -3,12 +3,17 @@
  */
 package com.db.net.soap;
 
+import java.util.Iterator;
+
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.net.soap.AbstractSoapWebService.SoapMethodNotRecognizedException;
 import com.db.net.wsdl.Wsdl;
 import com.db.net.wsdl.WsdlMessage;
+import com.db.net.wsdl.WsdlMessagePart;
 import com.db.net.wsdl.WsdlPortTypeOperation;
 import com.db.xml.AbstractXmlSerializer;
+import com.db.xml.IXmlSerializer;
 import com.db.xml.XmlElement;
 
 /**
@@ -16,12 +21,22 @@ import com.db.xml.XmlElement;
  * 
  * A WSDL SOAP Binding Operation defines the message encoding and 
  * transmission protocol for a WSDL Port Type operation. It indicates
- * that messages will be encoded in a SOAP envelope and sent over HTTP. 
+ * that messages will be encoded in a SOAP envelope and sent over HTTP.
+ * 
+ * FUTURE CODE: When we move over to SOAP 1.2 or (even before that if we
+ * add complex object support) we want a clean redesign of the soap classes
+ * and interfaces to make it more streamlined and easy to use. This may
+ * include created a new interface for serializing complex objects to xml.  
  * 
  * @author Dave Longley
  */
 public class WsdlSoapBindingOperation extends AbstractXmlSerializer
 {
+   /**
+    * The WsdlSoapBinding this operation is for.
+    */
+   protected WsdlSoapBinding mBinding;
+   
    /**
     * The corresponding port type operation.
     */
@@ -42,10 +57,15 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
     * Creates a new Wsdl Soap Binding Operation with the given
     * associated port type operation.
     * 
+    * @param binding the WsdlSoapBinding this operation is for.
     * @param operation the associated port type operation.
     */
-   public WsdlSoapBindingOperation(WsdlPortTypeOperation operation)
+   public WsdlSoapBindingOperation(
+      WsdlSoapBinding binding, WsdlPortTypeOperation operation)
    {
+      // store binding
+      mBinding = binding;
+      
       // store port type operation
       setPortTypeOperation(operation);
       
@@ -72,6 +92,58 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
    }
    
    /**
+    * Creates a SoapOperation from a WsdlMessage and a set of parameter values.
+    * 
+    * @param message the WsdlMessage to create the SoapOperation from.
+    * @param params the parameter values.
+    * 
+    * @return the SoapOperation.
+    */
+   protected SoapOperation createSoapOperation(
+      WsdlMessage message, Object[] params)
+   {
+      // create soap operation
+      SoapOperation operation = new SoapOperation(
+         message.getName(), message.getNamespaceUri());
+      
+      // add soap operation parameters according to wsdl message
+      int count = 0;
+      for(Iterator i = message.getParts().iterator(); i.hasNext(); count++)
+      {
+         WsdlMessagePart part = (WsdlMessagePart)i.next();
+         
+         // create a soap operation parameter
+         SoapOperationParameter parameter = null;
+         if(params[count] instanceof IXmlSerializer)
+         {
+            // FUTURE CODE: how do we handle the target namespace here?
+            parameter = new SoapOperationParameter(
+               (IXmlSerializer)params[count], null);
+         }
+         else
+         {
+            parameter = new SoapOperationParameter(
+               part.getName(), String.valueOf(params[count]), null); 
+         }
+         
+         // add the parameter
+         operation.addParameter(parameter);
+      }
+      
+      return operation;      
+   }
+   
+   /**
+    * Gets the WsdlSoapBinding this operation is for.
+    * 
+    * @return the WsdlSoapBinding this operation is for.
+    */
+   public WsdlSoapBinding getBinding()
+   {
+      return mBinding;
+   }
+   
+   /**
     * Sets the port type operation associated with this operation.
     * 
     * @param operation the port type operation associated with this
@@ -83,7 +155,7 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
    }
    
    /**
-    * Sets the port type operation associated with this operation.
+    * Gets the port type operation associated with this operation.
     * 
     * @return the port type operation associated with this operation.
     */
@@ -123,23 +195,84 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the WsdlMessage for a SOAP request to a web service.
+    * Creates a SOAP request SoapOperation.
     * 
-    * @return the WsdlMessage for a SOAP request to a web service.
+    * @param params the parameter values for the operation.
+    * 
+    * @return the SOAP request SoapOperation.
     */
-   public WsdlMessage getRequestMessage()
+   public SoapOperation createRequestSoapOperation(Object[] params)
    {
-      return getPortTypeOperation().getRequestMessage();
+      // get the request message from the port type operation
+      WsdlMessage message = getPortTypeOperation().getRequestMessage();
+      
+      // create soap operation
+      SoapOperation operation = createSoapOperation(message, params);
+      
+      return operation;
    }
    
    /**
-    * Gets the WsdlMessage for a SOAP response from a web service.
+    * Creates a SOAP response SoapOperation.
     * 
-    * @return the WsdlMessage for a SOAP response from a web service.
+    * @param params the parameter values for the operation. 
+    * 
+    * @return the SOAP response SoapOperation.
     */
-   public WsdlMessage getResponseMessage()
+   public SoapOperation createResponseSoapOperation(Object[] params)
    {
-      return getPortTypeOperation().getResponseMessage();
+      // get the response message from the port type operation
+      WsdlMessage message = getPortTypeOperation().getResponseMessage();
+      
+      // create soap operation
+      SoapOperation operation = createSoapOperation(message, params);
+      
+      return operation;
+   }
+   
+   /**
+    * Gets the parameters for a SoapOperation as an array of objects.
+    * 
+    * @param operation the SoapOperation.
+    * 
+    * @return the parameters as an array of objects.
+    * 
+    * @exception SoapMethodNotRecognizedException thrown if the operation is
+    *                                             not recognized.
+    */
+   public Object[] getParameterArray(SoapOperation operation)
+   throws SoapMethodNotRecognizedException
+   {
+      Object[] params = new Object[operation.getParameters().size()];
+      
+      // get the wsdl request message
+      WsdlMessage message = getPortTypeOperation().getRequestMessage();
+      
+      // go through the parameters of the operation and parse them as objects
+      int count = 0;
+      for(Iterator i = operation.getParameters().iterator();
+          i.hasNext(); count++)
+      {
+         SoapOperationParameter p = (SoapOperationParameter)i.next();
+         
+         // get the message part
+         WsdlMessagePart part = message.getParts().getPart(p.getName());
+         
+         Object parameter = null;
+         if(p.isPrimitive())
+         {
+            parameter = Wsdl.parseObject(p.getValue(), part.getType());
+         }
+         else
+         {
+            parameter = getBinding().getWsdl().parseObject(
+               p.getValueAsXmlElement(), part.getType());
+         }
+         
+         params[count] = parameter;
+      }
+      
+      return params;
    }
    
    /**

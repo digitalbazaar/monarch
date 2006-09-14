@@ -84,4 +84,44 @@ public class XmlAttribute
    {
       return mValue;
    }
+   
+   /**
+    * Determines if this attribute is equal to another attribute.
+    * 
+    * @param obj the attribute to check for equality against.
+    * 
+    * @return true if this attribute is equal to another attribute,
+    *         false if not.
+    */
+   public boolean equals(Object obj)
+   {
+      boolean rval = false;
+      
+      if(this != obj)
+      {
+         if(obj instanceof XmlAttribute && obj != null)
+         {
+            XmlAttribute attribute = (XmlAttribute)obj;
+            String name = attribute.getName();
+            String value = attribute.getValue();
+            
+            // check name and value
+            if((getName() == null && name == null) ||
+               (getName() != null && getName().equals(name)))
+            {
+               if((getValue() == null && value == null) ||
+                  (getValue() != null && getValue().equals(value)))
+               {
+                  rval = true;
+               }
+            }
+         }
+      }
+      else
+      {
+         rval = true;
+      }
+      
+      return rval;
+   }
 }

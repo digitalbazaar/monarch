@@ -267,6 +267,24 @@ public class Wsdl extends AbstractXmlSerializer
    }
    
    /**
+    * Converts an XmlElement to its appropriate type. Throws an exception if
+    * the XmlElement could not be converted.
+    * 
+    * @param value the XmlElement to convert.
+    * @param type the type (as according to the definitions laid out in
+    *             this Wsdl) to convert the value to.
+    * 
+    * @return the object the string was converted into.
+    */
+   public Object parseObject(XmlElement value, String type)   
+   {
+      // FUTURE CODE: add support for complex object types defined
+      // in the Wsdl
+      throw new UnsupportedOperationException(
+         "This method has not been implemented yet.");
+   }
+   
+   /**
     * Sets the name for the web service.
     * 
     * @param name the name for the web service.

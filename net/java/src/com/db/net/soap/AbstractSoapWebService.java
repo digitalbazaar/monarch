@@ -121,6 +121,43 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
       mSoapBinding = (WsdlSoapBinding)mWsdl.getBindings().
          getBinding(mPortType + "SoapBinding");
    }
+   
+   /**
+    * Gets the parameters for a SoapOperation as an array of objects.
+    * 
+    * @param operation the SoapOperation.
+    * 
+    * @return the parameters as an array of objects.
+    * 
+    * @exception SoapMethodNotRecognizedException thrown if the operation is
+    *                                             not recognized.
+    */
+   protected Object[] getParameterArray(SoapOperation operation)
+   throws SoapMethodNotRecognizedException
+   {
+      Object[] params = new Object[0];
+      
+      try
+      {
+         // get the soap binding operation
+         WsdlSoapBindingOperation bindingOperation =
+            getSoapBinding().getOperations().getOperation(operation.getName());
+         
+         // get the parameters
+         params = bindingOperation.getParameterArray(operation);
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(),
+            "could not invoke soap method: " + operation.getName() +
+            ",soap method not recognized!");
+         throw new SoapMethodNotRecognizedException(
+            "Could not invoke soap method: " + operation.getName() +
+            ",soap method not recognized!", t);
+      }
+      
+      return params;
+   }
 
    /**
     * Invokes a method from the soap interface on the soap implementer. Throws
@@ -131,7 +168,7 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
     * 
     * @return the return value from the method.
     * 
-    * @throws Throwable 
+    * @exception Throwable thrown if some exception occurs.
     */
    protected Object invokeSoapMethod(String methodName, Object[] params)
    throws Throwable
@@ -207,7 +244,7 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
       SoapMessage sm =
          (SoapMessage)mCallThreadToSoapMessage.get(Thread.currentThread());
       
-      String ip = sm.getClientIP();
+      String ip = sm.getRemoteIP();
       if(ip != null)
       {
          clientIP = ip;
@@ -238,7 +275,7 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
     * @exception SecurityException thrown if the client or the soap message
     *                              sent by the client do not pass security.
     */
-   public void checkSoapSecurity(SoapMessage sm) throws SecurityException
+   public void checkSoapSecurity(RpcSoapMessage sm) throws SecurityException
    {
       // get the security manager, if one exists
       if(getSoapSecurityManager() != null)
@@ -247,7 +284,7 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
          getSoapSecurityManager().checkSoapSecurity(sm);
       }
    }
-
+   
    /**
     * Calls the appropriate soap method.
     * 
@@ -255,7 +292,7 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
     * 
     * @return the return value from the called method.
     */
-   public Object callSoapMethod(SoapMessage sm)
+   public Object callSoapMethod(RpcSoapMessage sm)
    {
       Object rval = null;
       
@@ -263,81 +300,126 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
 
       Thread thread = Thread.currentThread();
       
-      String method = sm.getMethod();
-      getLogger().debug(getClass(),
-         "attempting to call soap method: " + method);
-      
-      try
-      {
-         // add the current thread to the thread->soap message map
-         mCallThreadToSoapMessage.put(thread, sm);
-         
-         // check soap security before invoking method
-         checkSoapSecurity(sm);
-         
-         // invoke the soap method
-         rval = invokeSoapMethod(method, sm.getParameters());
-         
-         // remove the thread from the thread->soap message map
-         mCallThreadToSoapMessage.remove(thread);
+      // get the soap envelope from the message
+      RpcSoapEnvelope envelope = sm.getRpcSoapEnvelope();
 
-         // set soap message result
-         Object[] results = null;
-         if(rval != null)
-         {
-            results = new Object[]{rval};
-         }
-         
-         sm.setResults(results);
-         sm.setXmlSerializerOptions(SoapMessage.SOAP_RESPONSE);
-      }
-      catch(Throwable t)
+      // see the envelope has an operation to perform
+      if(envelope.containsSoapOperation())
       {
-         // remove the thread from the thread->soap message map
-         if(thread != null)
+         // get the soap operation
+         SoapOperation operation = envelope.getSoapOperation();
+         
+         getLogger().debug(getClass(),
+            "attempting to call soap method: " + operation.getName());
+      
+         try
          {
+            // add the current thread to the thread->soap message map
+            mCallThreadToSoapMessage.put(thread, sm);
+            
+            // check soap security before invoking method
+            checkSoapSecurity(sm);
+            
+            // get the method parameters
+            Object[] params = getParameterArray(operation);
+            
+            // invoke the soap method
+            rval = invokeSoapMethod(operation.getName(), params);
+            
+            // remove the thread from the thread->soap message map
             mCallThreadToSoapMessage.remove(thread);
-         }
 
-         // set soap fault
-         if(t instanceof SoapMethodNotRecognizedException)
-         {
-            sm.setFaultCode(SoapMessage.FAULT_CLIENT);
-            sm.setFaultString("The soap method was not recognized by the " +
-                              "server. Check the method signature and " +
-                              "parameter names.");
-            sm.setFaultActor(getURI());
-         }
-         else if(t instanceof SecurityException)
-         {
-            // if the soap message isn't already a fault, create a default one
-            if(!sm.isFault())
+            // set soap result
+            Object[] results = null;
+            if(rval != null)
             {
-               sm.setFaultCode(SoapMessage.FAULT_CLIENT);
-               sm.setFaultString(
-                  "The client was not authorized to perform the " +
-                  "requested action.");
-               sm.setFaultActor(getURI());
+               results = new Object[]{rval};
             }
+            
+            // get the soap binding operation
+            WsdlSoapBindingOperation bindingOperation =
+               getSoapBinding().getOperations().getOperation(
+                  operation.getName());
+            
+            // create a response soap operation
+            SoapOperation responseOperation =
+               bindingOperation.createResponseSoapOperation(results);
+            
+            // set the envelope's soap operation
+            envelope.setSoapOperation(responseOperation);
          }
-         else
+         catch(Throwable t)
          {
-            sm.setFaultCode(SoapMessage.FAULT_SERVER);
-            sm.setFaultString("An exception was thrown by the server " +
-                              "when calling the specified soap method.");
-            sm.setFaultActor(getURI());
+            // remove the thread from the thread->soap message map
+            if(thread != null)
+            {
+               mCallThreadToSoapMessage.remove(thread);
+            }
+            
+            // set soap fault
+            if(t instanceof SoapMethodNotRecognizedException)
+            {
+               SoapFault fault = new SoapFault();
+               fault.setFaultCode(SoapFault.FAULT_CLIENT);
+               fault.setFaultString(
+                  "The soap method was not recognized by the server. Check " +
+                  "the method signature and parameter names.");
+               fault.setFaultActor(getURI());
+               
+               envelope.setSoapFault(fault);
+            }
+            else if(t instanceof SecurityException)
+            {
+               // if the soap message doesn't already contain a fault, create
+               // a default one
+               if(!envelope.containsSoapFault())
+               {
+                  SoapFault fault = new SoapFault();
+                  fault.setFaultCode(SoapFault.FAULT_CLIENT);
+                  fault.setFaultString(
+                     "The client was not authorized to perform the " +
+                     "requested action.");
+                  fault.setFaultActor(getURI());
+                  
+                  envelope.setSoapFault(fault);
+               }
+            }
+            else
+            {
+               SoapFault fault = new SoapFault();
+               fault.setFaultCode(SoapFault.FAULT_SERVER);
+               fault.setFaultString(
+                  "An exception was thrown by the server " +
+                  "when calling the specified soap method.");
+               fault.setFaultActor(getURI());
+               
+               envelope.setSoapFault(fault);
+            }
+            
+            SoapFault fault = envelope.getSoapFault();
+            getLogger().debug(getClass(), 
+               "failed to call soap method, sending soap fault" +
+               ",reason=" + fault.getFaultString());
+            
+            getLogger().debug(getClass(), Logger.getStackTrace(t));
          }
          
-         getLogger().debug(getClass(), 
-            "failed to call soap method, sending soap fault" +
-            ",reason=" + sm.getFaultString());
-
-         getLogger().debug(getClass(), Logger.getStackTrace(t));
+         long et = System.currentTimeMillis();
+         getLogger().debug(getClass(),
+            "total soap method (" + operation.getName() + ") time: " +
+            (et - st) + " ms");
       }
-      
-      long et = System.currentTimeMillis();
-      getLogger().debug(getClass(),
-         "total soap method (" + method + ") time: " + (et - st) + " ms");
+      else
+      {
+         // soap operation was not found in the soap message
+         SoapFault fault = new SoapFault();
+         fault.setFaultCode(SoapFault.FAULT_CLIENT);
+         fault.setFaultString(
+            "No soap operation was found in the soap message.");
+         fault.setFaultActor(getURI());
+         
+         envelope.setSoapFault(fault);         
+      }
       
       return rval;
    }
@@ -360,9 +442,9 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
     * 
     * @return a soap message for use with this service.
     */
-   public SoapMessage createSoapMessage()   
+   public RpcSoapMessage createSoapMessage()   
    {
-      SoapMessage sm = new SoapMessage(getWsdl(), getPortType());
+      RpcSoapMessage sm = new RpcSoapMessage();
       SoapPermission permission = new SoapPermission("envelope.log");
       sm.setSoapEnvelopeLoggingPermitted(checkSoapPermission(permission));
       return sm;

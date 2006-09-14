@@ -24,6 +24,11 @@ import com.db.xml.XmlElement;
  * FUTURE CODE:
  * The current implementation assumes "rpc" style transportation will be
  * used not "literal." This can be updated in the future.
+ * 
+ * FUTURE CODE: When we move over to SOAP 1.2 or (even before that if we
+ * add complex object support) we want a clean redesign of the soap classes
+ * and interfaces to make it more streamlined and easy to use. This may
+ * include created a new interface for serializing complex objects to xml.  
  *  
  * @author Dave Longley
  */
@@ -87,7 +92,7 @@ public class WsdlSoapBinding extends WsdlBinding
 
             // create soap binding operation and add it
             WsdlSoapBindingOperation operation =
-               new WsdlSoapBindingOperation(portTypeOperation);
+               new WsdlSoapBindingOperation(this, portTypeOperation);
             getOperations().add(operation);
          }
       }

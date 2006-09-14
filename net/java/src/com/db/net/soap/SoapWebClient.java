@@ -24,7 +24,7 @@ public interface SoapWebClient extends WebConnectionClient
     * 
     * @return a soap message for this soap web client.
     */
-   public SoapMessage createSoapRequest(
+   public RpcSoapMessage createSoapRequest(
       Wsdl wsdl, String method, Object[] params);
    
    /**
@@ -38,7 +38,7 @@ public interface SoapWebClient extends WebConnectionClient
     * 
     * @exception SoapFaultException thrown when a soap fault is raised.
     */
-   public Object callSoapMethod(WebConnection wc, SoapMessage sm)
+   public Object callSoapMethod(WebConnection wc, RpcSoapMessage sm)
    throws SoapFaultException;
    
    /**

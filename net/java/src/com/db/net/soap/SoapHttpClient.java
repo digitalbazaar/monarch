@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Iterator;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -18,9 +19,16 @@ import com.db.net.http.HttpWebConnection;
 import com.db.net.http.HttpWebRequest;
 import com.db.net.http.HttpWebResponse;
 import com.db.net.wsdl.Wsdl;
+import com.db.net.wsdl.WsdlMessage;
+import com.db.net.wsdl.WsdlMessagePart;
 
 /**
  * This is the base class for a SOAP client that uses HTTP.
+ * 
+ * FUTURE CODE: When we move over to SOAP 1.2 or (even before that if we
+ * add complex object support) we want a clean redesign of the soap classes
+ * and interfaces to make it more streamlined and easy to use. This may
+ * include created a new interface for serializing complex objects to xml.  
  * 
  * @author Dave Longley
  */
@@ -140,7 +148,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
     * @return the http web request to use to send the soap message.
     */
    protected HttpWebRequest createSoapHttpWebRequest(
-      HttpWebConnection hwc, SoapMessage sm, byte[] body)
+      HttpWebConnection hwc, RpcSoapMessage sm, byte[] body)
    {
       HttpWebRequest request = new HttpWebRequest(hwc);
       
@@ -205,7 +213,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
     * 
     * @exception SoapFaultException thrown when a soap fault is raised.
     */
-   protected Object getSoapMethodResult(SoapMessage sm, String xml)
+   protected Object getSoapMethodResult(RpcSoapMessage sm, String xml)
    throws SoapFaultException
    {
       Object rval = null;
@@ -217,35 +225,49 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
             getLogger().debugData(getClass(), "received soap xml:\n" + xml);
          }
          
-         // create a new soap message for reading the response xml
-         sm.setXmlSerializerOptions(SoapMessage.SOAP_RESPONSE);
-         if(sm.convertFromXml(xml))
+         // convert the envelope from the xml
+         if(sm.getRpcSoapEnvelope().convertFromXml(xml))
          {
-            if(sm.isResponse())
+            if(sm.getRpcSoapEnvelope().containsSoapOperation())
             {
-               // get results
-               Object[] result = sm.getResults();
-               if(result.length > 0)
+               // get the soap operation
+               SoapOperation operation =
+                  sm.getRpcSoapEnvelope().getSoapOperation();
+               
+               // FIXME: we need a cleaner way to do this
+               if(operation.hasParameters())
                {
-                  if(sm.isSoapEnvelopeLoggingPermitted())
+                  SoapOperationParameter parameter =
+                     (SoapOperationParameter)operation.getParameters().get(0);
+                  WsdlMessage message = getWsdl().getMessages().getMessage(
+                     operation.getName());
+                  WsdlMessagePart part = message.getParts().getPart(
+                     parameter.getName());
+                  
+                  // assumes parameter is a primitive
+                  if(parameter.isPrimitive())
                   {
-                     getLogger().debug(getClass(),
-                        "soap message result: " + result[0]);
+                     rval = Wsdl.parseObject(
+                        parameter.getValue(), part.getType());
                   }
                   
-                  rval = result[0];
+                  if(sm.isSoapEnvelopeLoggingPermitted())
+                  {
+                     getLogger().debugData(getClass(),
+                        "soap message result: " + rval);
+                  }
                }
                else
                {
-                  getLogger().debug(getClass(),
-                     "no soap message result.");
+                  getLogger().debug(getClass(), "no soap message result.");
                }
             }
-            else if(sm.isFault())
+            else if(sm.getRpcSoapEnvelope().containsSoapFault())
             {
                // throw exception, soap fault
                throw new SoapFaultException(
-                  sm, "SOAP Fault: " + sm.getFaultString());
+                  sm, "SOAP Fault: " +
+                  sm.getRpcSoapEnvelope().getSoapFault().getFaultString());
             }
          }
       }
@@ -263,15 +285,18 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
          getLogger().debug(getClass(), Logger.getStackTrace(e));
 
          // create a soap fault
-         sm.setFaultCode(SoapMessage.FAULT_SERVER);
-         sm.setFaultString(
+         SoapFault fault = new SoapFault();
+         fault.setFaultCode(SoapFault.FAULT_SERVER);
+         fault.setFaultString(
             "An exception was thrown while processing the soap message " +
             "from the server.");
-         sm.setFaultActor("");
+         fault.setFaultActor("");
+         
+         sm.getRpcSoapEnvelope().setSoapFault(fault);
          
          // throw a soap fault exception
          throw new SoapFaultException(
-            sm, "SOAP Fault: " + sm.getFaultString(), e);
+            sm, "SOAP Fault: " + fault.getFaultString(), e);
       }
 
       return rval;
@@ -286,15 +311,34 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
     * 
     * @return a soap message for this soap web client.
     */
-   public SoapMessage createSoapRequest(
+   public RpcSoapMessage createSoapRequest(
       Wsdl wsdl, String method, Object[] params)
    {
       // create a soap request
-      SoapMessage sm = new SoapMessage(wsdl, mPortType);
-      sm.setXmlSerializerOptions(SoapMessage.SOAP_REQUEST);
-      sm.setMethod(method);
-      sm.setParameters(params);
+      RpcSoapMessage sm = new RpcSoapMessage();
+      
+      // create a soap operation
+      SoapOperation operation = new SoapOperation(
+         method, wsdl.getTargetNamespaceUri()); 
 
+      // FUTURE CODE: we need a cleaner way to do this
+      WsdlMessage message = wsdl.getMessages().getMessage(method);
+      int count = 0;
+      for(Iterator i = message.getParts().iterator(); i.hasNext(); count++)
+      {
+         WsdlMessagePart part = (WsdlMessagePart)i.next();
+         
+         // create a soap operation parameter
+         SoapOperationParameter parameter = new SoapOperationParameter(
+            part.getName(), String.valueOf(params[count]), null);
+         
+         // add the parameter to the operation
+         operation.addParameter(parameter);
+      }
+      
+      // put the operation in the soap message
+      sm.getRpcSoapEnvelope().setSoapOperation(operation);
+      
       // FIXME: do we need security extensions for soap web clients?
       sm.setSoapEnvelopeLoggingPermitted(false);
       
@@ -312,18 +356,21 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
     * 
     * @exception SoapFaultException thrown when a soap fault is raised.
     */
-   public Object callSoapMethod(WebConnection wc, SoapMessage sm)
+   public Object callSoapMethod(WebConnection wc, RpcSoapMessage sm)
    throws SoapFaultException   
    {
       Object rval = null;
       
       try
       {
+         // store the method name
+         String method = sm.getRpcSoapEnvelope().getSoapOperation().getName();
+         
          // set the attachment web connection for the soap message
          sm.setAttachmentWebConnection((HttpWebConnection)wc);
          
          // get the xml for the soap message
-         String xml = sm.convertToXml();
+         String xml = sm.getSoapEnvelope().convertToXml(true, 0, 0);
          byte[] body = xml.getBytes();
          
          // create a soap http web request
@@ -361,8 +408,11 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
                // see if the response is multipart or not
                if(response.isMultipart())
                {
-                  // set the response header for the soap message
+                  // set the response header and attachment connection for
+                  // the soap message
                   sm.setHttpHeader(response.getHeader());
+                  sm.setAttachmentWebConnection(
+                     response.getHttpWebConnection());
                   
                   // get the first part header
                   HttpBodyPartHeader header =
@@ -393,7 +443,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
                long et = System.currentTimeMillis();
                long timespan = et - st;
                getLogger().debug(getClass(),
-                  "total soap method (" + sm.getMethod() + ") " +
+                  "total soap method (" + method + ") " +
                   "time: " + timespan + " ms");
             }
             else
@@ -402,14 +452,17 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
                   "could not receive response from soap server!");
                
                // create a soap fault
-               sm.setFaultCode(SoapMessage.FAULT_SERVER);
-               sm.setFaultString(
+               SoapFault fault = new SoapFault();
+               fault.setFaultCode(SoapFault.FAULT_SERVER);
+               fault.setFaultString(
                   "The response could not be received from the server.");
-               sm.setFaultActor(getUrl().toString());
+               fault.setFaultActor(getUrl().toString());
+               
+               sm.getRpcSoapEnvelope().setSoapFault(fault);
                   
                // throw a soap fault exception
                throw new SoapFaultException(
-                  sm, "SOAP Fault: " + sm.getFaultString());
+                  sm, "SOAP Fault: " + fault.getFaultString());
             }
          }
          else
@@ -418,14 +471,17 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
                "could not send request to soap server!");
             
             // create a soap fault
-            sm.setFaultCode(SoapMessage.FAULT_SERVER);
-            sm.setFaultString(
+            SoapFault fault = new SoapFault();
+            fault.setFaultCode(SoapFault.FAULT_SERVER);
+            fault.setFaultString(
                "The request could not be sent to the server.");
-            sm.setFaultActor(getUrl().toString());
+            fault.setFaultActor(getUrl().toString());
+            
+            sm.getRpcSoapEnvelope().setSoapFault(fault);
                
             // throw a soap fault exception
             throw new SoapFaultException(
-               sm, "SOAP Fault: " + sm.getFaultString());
+               sm, "SOAP Fault: " + fault.getFaultString());
          }
       }
       catch(SoapFaultException sfe)
@@ -442,15 +498,18 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
          getLogger().debug(getClass(), Logger.getStackTrace(e));
             
          // create a soap fault
-         sm.setFaultCode(SoapMessage.FAULT_SERVER);
-         sm.setFaultString(
+         SoapFault fault = new SoapFault();
+         fault.setFaultCode(SoapFault.FAULT_SERVER);
+         fault.setFaultString(
             "An exception was thrown while processing the soap message " +
             "from the server.");
-         sm.setFaultActor(getUrl().toString());
+         fault.setFaultActor(getUrl().toString());
+         
+         sm.getRpcSoapEnvelope().setSoapFault(fault);
             
          // throw a soap fault exception
          throw new SoapFaultException(
-            sm, "SOAP Fault: " + sm.getFaultString(), e);         
+            sm, "SOAP Fault: " + fault.getFaultString(), e);         
       }
       catch(NullPointerException e)
       {
@@ -461,15 +520,18 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
          getLogger().debug(getClass(), Logger.getStackTrace(e));
             
          // create a soap fault
-         sm.setFaultCode(SoapMessage.FAULT_SERVER);
-         sm.setFaultString(
+         SoapFault fault = new SoapFault();
+         fault.setFaultCode(SoapFault.FAULT_SERVER);
+         fault.setFaultString(
             "An exception was thrown while processing the soap message " +
             "from the server.");
-         sm.setFaultActor(getUrl().toString());
+         fault.setFaultActor(getUrl().toString());
+         
+         sm.getRpcSoapEnvelope().setSoapFault(fault);
             
          // throw a soap fault exception
          throw new SoapFaultException(
-            sm, "SOAP Fault: " + sm.getFaultString(), e);
+            sm, "SOAP Fault: " + fault.getFaultString(), e);
       }
       
       return rval;
@@ -497,7 +559,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
       if(wsdl != null)
       {
          // create a soap request
-         SoapMessage sm = createSoapRequest(wsdl, method, params);
+         RpcSoapMessage sm = createSoapRequest(wsdl, method, params);
          
          // connect to the soap server
          HttpWebConnection hwc = connect();
@@ -519,14 +581,17 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
                "soap web client could not establish connection!");
                
             // create a soap fault
-            sm.setFaultCode(SoapMessage.FAULT_SERVER);
-            sm.setFaultString(
+            SoapFault fault = new SoapFault();
+            fault.setFaultCode(SoapFault.FAULT_SERVER);
+            fault.setFaultString(
                "The server could not be reached.");
-            sm.setFaultActor(getUrl().toString());
+            fault.setFaultActor(getUrl().toString());
+            
+            sm.getRpcSoapEnvelope().setSoapFault(fault);
             
             // throw a soap fault exception
             throw new SoapFaultException(
-               sm, "SOAP Fault: " + sm.getFaultString());
+               sm, "SOAP Fault: " + fault.getFaultString());
          }
       }
       

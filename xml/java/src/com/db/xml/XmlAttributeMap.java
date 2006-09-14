@@ -48,6 +48,17 @@ public class XmlAttributeMap
    }
    
    /**
+    * Adds a namespace mapping.
+    * 
+    * @param namespace the namespace prefix.
+    * @param namespaceUri the namespaceUri.
+    */
+   public void addNamespaceMapping(String namespace, String namespaceUri)
+   {
+      mNamespaceUriMap.put(namespace, namespaceUri);
+   }
+   
+   /**
     * Adds an attribute to this map.
     * 
     * @param name the name of the attribute.
@@ -70,19 +81,37 @@ public class XmlAttributeMap
    public void addAttribute(
       String name, String value, String namespace, String namespaceUri)
    {
-      if(namespace != null)
+      // only add the attribute if it isn't already in this map
+      if(!hasAttribute(name, namespace))
       {
-         // use fully qualified name
-         name = namespace + ":" + name;
+         if(namespace != null)
+         {
+            if(namespace.equals("xmlns"))
+            {
+               // defining a new namespace, so use the name as the
+               // namespace prefix and the value as the URI
+               
+               // add namespace -> namespace uri mapping
+               mNamespaceUriMap.put(name, value);
+            }
+            else
+            {
+               // using an already defined namespace prefix, so just add
+               // a mapping for the namespace
+               
+               // add namespace -> namespace uri mapping
+               mNamespaceUriMap.put(namespace, namespaceUri);
+            }
+            
+            // use fully qualified name
+            name = namespace + ":" + name;
+         }
          
-         // add namespace -> namespace uri mapping
-         mNamespaceUriMap.put(namespace, namespaceUri);
+         // add attribute and mapping
+         XmlAttribute attribute = new XmlAttribute(name, value);
+         mAttributes.add(attribute);
+         mAttributeMap.put(name, attribute);
       }
-      
-      // add attribute and mapping
-      XmlAttribute attribute = new XmlAttribute(name, value);
-      mAttributes.add(attribute);
-      mAttributeMap.put(name, attribute);
    }
    
    /**
@@ -409,6 +438,25 @@ public class XmlAttributeMap
    {
       return mAttributeMap.containsKey(name);
    }
+   
+   /**
+    * Gets whether or not an attribute with the specified name exists in
+    * this map.
+    * 
+    * @param name the name of the attribute to look for.
+    * @param namespace the namespace prefix for the attribute.
+    * 
+    * @return true if the attribute exists in this map, false if not.
+    */
+   public boolean hasAttribute(String name, String namespace)
+   {
+      if(namespace != null)
+      {
+         name = namespace + ":" + name;
+      }
+      
+      return hasAttribute(name);
+   }   
    
    /**
     * Gets a collection of the attribute names in this map. Changes to the

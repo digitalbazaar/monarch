@@ -8,6 +8,7 @@ import java.util.Map;
 import com.db.logging.Logger;
 import com.db.net.http.AbstractHttpWebRequestServicer;
 import com.db.net.http.GZipHttpContentCoder;
+import com.db.net.http.HttpBodyPartHeader;
 import com.db.net.http.HttpWebRequest;
 import com.db.net.http.HttpWebResponse;
 import com.db.net.wsdl.Wsdl;
@@ -15,6 +16,11 @@ import com.db.net.wsdl.Wsdl;
 /**
  * A soap http web request servicer. Handles soap messages sent via http
  * web requests.
+ * 
+ * FUTURE CODE: When we move over to SOAP 1.2 or (even before that if we
+ * add complex object support) we want a clean redesign of the soap classes
+ * and interfaces to make it more streamlined and easy to use. This may
+ * include created a new interface for serializing complex objects to xml.  
  * 
  * @author Dave Longley
  */
@@ -43,23 +49,43 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
    }   
    
    /**
-    * Reads the soap message from an http web request.
+    * Reads the rpc soap message from an http web request.
     * 
     * @param request the http web request to read the soap message from.
+    * 
     * @return the soap message read or a soap fault message.
     */
-   protected SoapMessage readSoapMessage(HttpWebRequest request)
+   protected RpcSoapMessage readSoapMessage(HttpWebRequest request)
    {
-      SoapMessage sm = null;
+      RpcSoapMessage sm = null;
       
       getLogger().detail(getClass(), "looking for soap message...");
       
-      // receive the body in the request
-      String body = request.receiveBodyString();
-      
       // create a soap message
       sm = mSoapWebService.createSoapMessage();
-      sm.setXmlSerializerOptions(SoapMessage.SOAP_REQUEST);
+      
+      // see if the request is multipart or not
+      String body = null;
+      if(request.isMultipart())
+      {
+         // set the header and attachment connection for the soap message
+         sm.setHttpHeader(request.getHeader());
+         sm.setAttachmentWebConnection(request.getHttpWebConnection());
+         
+         // get the first part header
+         HttpBodyPartHeader header = request.receiveBodyPartHeader();
+         
+         // receive the body part body if the header was received
+         if(header != null)
+         {
+            body = request.receiveBodyPartBodyString(header);
+         }
+      }
+      else
+      {
+         // receive the body in the request
+         body = request.receiveBodyString();
+      }
       
       if(body != null)
       {
@@ -81,18 +107,35 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          {
             getLogger().debugData(getClass(), "received soap xml:\n" + body);            
          }
+         
+         // see if the soap message was valid
+         if(!sm.getRpcSoapEnvelope().convertFromXml(body) ||
+            !sm.getRpcSoapEnvelope().containsSoapOperation())
+         {
+            getLogger().debug(getClass(),
+               "NO valid soap message found! Sending soap fault.");
+            
+            // create soap fault
+            SoapFault fault = new SoapFault();
+            fault.setFaultCode(SoapFault.FAULT_CLIENT);
+            fault.setFaultString("No valid soap message found.");
+            fault.setFaultActor(mSoapWebService.getURI());
+
+            sm.getRpcSoapEnvelope().setSoapFault(fault);
+         }
       }
-      
-      // see if the soap message was valid
-      if(body != null && !sm.convertFromXml(body))
+      else
       {
          getLogger().debug(getClass(),
             "NO valid soap message found! Sending soap fault.");
-         
+      
          // create soap fault
-         sm.setFaultCode(SoapMessage.FAULT_CLIENT);
-         sm.setFaultString("No valid soap message found.");
-         sm.setFaultActor(mSoapWebService.getURI());
+         SoapFault fault = new SoapFault();
+         fault.setFaultCode(SoapFault.FAULT_CLIENT);
+         fault.setFaultString("No valid soap message found.");
+         fault.setFaultActor(mSoapWebService.getURI());
+
+         sm.getRpcSoapEnvelope().setSoapFault(fault);
       }
       
       return sm;
@@ -105,7 +148,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
     * @param response the http web response to send the soap message with.
     * @param sm the soap message for the response.
     */
-   protected void sendSoapResponse(HttpWebResponse response, SoapMessage sm)
+   protected void sendSoapResponse(HttpWebResponse response, RpcSoapMessage sm)
    {
       try
       {
@@ -143,8 +186,8 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          // send soap response if we are still connected
          if(connected)
          {
-            // soap response is ready, convert soap message
-            String xml = sm.convertToXml();
+            // soap response is ready, convert soap envelope
+            String xml = sm.getSoapEnvelope().convertToXml(true, 0, 0);
             byte[] body = xml.getBytes();
             
             getLogger().debug(getClass(),
@@ -301,45 +344,43 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          String contentEncoding = response.getHeader().getContentEncoding();
 
          // get a soap message reference
-         SoapMessage sm = null;
+         RpcSoapMessage sm = null;
          
          // get the soap action
          String soapAction = request.getHeader().getHeaderValue("SOAPAction");
          getLogger().detail(getClass(), "SOAPAction is=" + soapAction);
          
-         // see if the client is expecting a continue
-         String expect = request.getHeader().getHeaderValue("Expect"); 
-         if(expect != null && expect.equalsIgnoreCase("100-continue"))
+         // check to see if the soap action is appropriate
+         if(mSoapWebService.isSoapActionValid(soapAction))
          {
-            // check to see if the soap action is appropriate
-            if(mSoapWebService.isSoapActionValid(soapAction))
+            // see if the client is expecting a continue
+            String expect = request.getHeader().getHeaderValue("Expect"); 
+            if(expect != null && expect.equalsIgnoreCase("100-continue"))
             {
                getLogger().debug(getClass(),
                   "sending 100 continue to get soap message...");
                
                // send the client a continue response
                response.sendContinueResponse();
-               
-               // read the soap message
-               sm = readSoapMessage(request);
             }
-            else
-            {
-               // create a soap fault message
-               sm = mSoapWebService.createSoapMessage();
-               sm.setFaultCode(SoapMessage.FAULT_CLIENT);
-               sm.setFaultString("Soap action is invalid.");
-               sm.setFaultActor(mSoapWebService.getURI());
-            }
-         }
-         else
-         {
+            
             // read the soap message
             sm = readSoapMessage(request);
          }
+         else
+         {
+            // create a soap fault message
+            sm = mSoapWebService.createSoapMessage();
+            SoapFault fault = new SoapFault();
+            fault.setFaultCode(SoapFault.FAULT_CLIENT);
+            fault.setFaultString("Soap action is invalid.");
+            fault.setFaultActor(mSoapWebService.getURI());
+            
+            sm.getRpcSoapEnvelope().setSoapFault(fault);
+         }
          
-         // set the client IP in the soap message
-         sm.setClientIP(request.getRemoteIP());
+         // set the remote IP in the soap message
+         sm.setRemoteIP(request.getRemoteIP());
          
          // set content encoding for response
          response.getHeader().setContentEncoding(contentEncoding); 
@@ -404,14 +445,14 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       /**
        * The soap message.
        */
-      protected SoapMessage mSoapMessage;
+      protected RpcSoapMessage mSoapMessage;
       
       /**
        * Creates a new soap service thread.
        * 
        * @param sm the soap message to use in the soap call.
        */
-      public SoapServiceCallThread(SoapMessage sm)
+      public SoapServiceCallThread(RpcSoapMessage sm)
       {
          mSoapMessage = sm;
       }
@@ -428,15 +469,18 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          catch(Throwable t)
          {
             // raise a soap fault
-            mSoapMessage.setFaultCode(SoapMessage.FAULT_SERVER);
-            mSoapMessage.setFaultString(
+            SoapFault fault = new SoapFault();
+            fault.setFaultCode(SoapFault.FAULT_SERVER);
+            fault.setFaultString(
                "An exception was thrown by the server " +
                "when calling the specified soap method.");
-            mSoapMessage.setFaultActor(mSoapWebService.getURI());
+            fault.setFaultActor(mSoapWebService.getURI());
+            
+            mSoapMessage.getRpcSoapEnvelope().setSoapFault(fault);
             
             getLogger().debug(getClass(), 
                "failed to call soap method, sending soap fault" +
-               ",reason=" + mSoapMessage.getFaultString());
+               ",reason=" + fault.getFaultString());
 
             getLogger().debug(getClass(), Logger.getStackTrace(t));
          }

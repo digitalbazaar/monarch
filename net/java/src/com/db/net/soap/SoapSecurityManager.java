@@ -39,7 +39,7 @@ public interface SoapSecurityManager
     * @exception SecurityException thrown if the soap message/client fail the
     *                              security check.
     */
-   public void checkSoapSecurity(SoapMessage sm) throws SecurityException;
+   public void checkSoapSecurity(RpcSoapMessage sm) throws SecurityException;
    
    /**
     * Returns true if the passed permission is allowed, false if not.

@@ -105,20 +105,20 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public XmlElement(String name, String namespace, String namespaceUri)
    {
+      // create the vector for this element's children
+      mChildren = new Vector();
+      
+      // create the attribute map for this element
+      mAttributes = new XmlAttributeMap();
+      
       // set the name of this element
       setName(name);
       
       // set the namespace of this element
       setNamespace(namespace, namespaceUri);
       
-      // create the attribute map for this element
-      mAttributes = new XmlAttributeMap();
-      
       // default this element's parent to null
       setParent(null);
-      
-      // create the vector for this element's children
-      mChildren = new Vector();
       
       // default to no data
       setData(null);
@@ -279,10 +279,9 @@ public class XmlElement extends AbstractXmlSerializer
          namespace = name.substring(0, index);
          name = name.substring(index + 1);
       }
-
+      
       // set name and namespace
       setName(name);
-      setNamespace(namespace, findNamespaceUri(namespace));
       
       // convert the attributes for this element
       XmlAttributeMap attributes = getAttributeMap();
@@ -292,15 +291,28 @@ public class XmlElement extends AbstractXmlSerializer
          Node attributeNode = map.item(i);
          
          // get the attribute name and namespace
-         name = attributeNode.getNodeName();
-         namespace = XmlElement.getNamespacePrefix(name);
-         name = XmlElement.getBasicName(name);
+         String attributeName = attributeNode.getNodeName();
+         String attributeNamespace =
+            XmlElement.getNamespacePrefix(attributeName);
+         attributeName = XmlElement.getBasicName(attributeName);
+         
+         // add a namespace mapping if appropriate
+         if(attributeNamespace != null && attributeNamespace.equals("xmlns"))
+         {
+            // add a namespace definition
+            attributes.addNamespaceMapping(
+               attributeName, attributeNode.getNodeValue());
+         }
          
          // add attribute (XML decoding is handled automatically)
          attributes.addAttribute(
-            name, attributeNode.getNodeValue(),
-            namespace, findNamespaceUri(namespace));
+            attributeName, attributeNode.getNodeValue(),
+            attributeNamespace, findNamespaceUri(attributeNamespace));
       }
+      
+      // set the namespace for this element now that the attributes have
+      // been parsed
+      setNamespace(namespace, findNamespaceUri(namespace));
       
       // convert the children for this element
       NodeList list = element.getChildNodes();
@@ -364,6 +376,7 @@ public class XmlElement extends AbstractXmlSerializer
       // copy the passed element's information
       setName(element.getName());
       setParent(element.getParent());
+      setNamespace(element.getNamespace(), element.getNamespaceUri());
       
       // copy attributes
       for(Iterator i = element.getAttributeMap().getAttributeNames().iterator();
@@ -453,6 +466,16 @@ public class XmlElement extends AbstractXmlSerializer
    {
       mNamespace = namespace;
       mNamespaceUri = namespaceUri;
+      
+      // set the namespace for all children, if not already set
+      for(Iterator i = getChildren().iterator(); i.hasNext();)
+      {
+         XmlElement child = (XmlElement)i.next();
+         if(child.getNamespace() == null)
+         {
+            child.setNamespace(namespace, namespaceUri);
+         }
+      }
    }
    
    /**
@@ -501,7 +524,7 @@ public class XmlElement extends AbstractXmlSerializer
             String value = getAttributeValue(name);
             if(value.equals(namespaceUri))
             {
-               rval = getAttributeMap().getNamespace(name);
+               rval = getAttributeMap().getNamespace(namespaceUri);
                found = true;
             }
          }
@@ -548,7 +571,7 @@ public class XmlElement extends AbstractXmlSerializer
          {
             String name = (String)i.next();
             
-            if(name.equals(namespace))
+            if(name.equals(namespace) || name.equals("xmlns:" + namespace))
             {
                rval = getAttributeValue(name);
                found = true;
@@ -684,6 +707,28 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public String getAttributeValue(String name)
    {
+      return getAttributeValue(name, null);
+   }
+   
+   /**
+    * A convenience method for getting an attribute value from this
+    * XmlElement's attribute map.
+    * 
+    * @param name the name of the attribute to get the value of.
+    * @param namespaceUri the namespace uri for the name.
+    * 
+    * @return the value of the attribute as a string, or a blank string if the
+    *         attribute does not exist.
+    */
+   public String getAttributeValue(String name, String namespaceUri)
+   {
+      String prefix = findNamespace(namespaceUri);
+      if(prefix != null)
+      {
+         // get full name
+         name = prefix + ":" + name;
+      }
+      
       return getAttributeMap().getAttributeValue(name);
    }
    

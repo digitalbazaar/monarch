@@ -19,7 +19,7 @@ public interface SoapWebService
     * 
     * @return the return value from the called method.
     */
-   public Object callSoapMethod(SoapMessage sm);
+   public Object callSoapMethod(RpcSoapMessage sm);
    
    /**
     * Returns true if the passed soap action is valid for this service.
@@ -35,7 +35,7 @@ public interface SoapWebService
     * 
     * @return a soap message for use with this service.
     */
-   public SoapMessage createSoapMessage();
+   public RpcSoapMessage createSoapMessage();
    
    /**
     * Gets the URI to the soap service.

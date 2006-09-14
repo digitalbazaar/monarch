@@ -78,7 +78,7 @@ public class ExtensibleSoapSecurityManager extends AbstractSoapSecurityManager
     * @exception SecurityException thrown if the soap message/client fail the
     *                              security check.
     */
-   public void checkSoapSecurity(SoapMessage sm) throws SecurityException   
+   public void checkSoapSecurity(RpcSoapMessage sm) throws SecurityException   
    {
       // iterate through all of the extensions and run a security check
       for(Iterator i = mExtensions.iterator(); i.hasNext();)

@@ -77,7 +77,7 @@ implements SoapSecurityManager
     * @exception SecurityException thrown if the soap message/client fail the
     *                              security check.
     */
-   public abstract void checkSoapSecurity(SoapMessage sm)
+   public abstract void checkSoapSecurity(RpcSoapMessage sm)
    throws SecurityException;   
    
    /**
