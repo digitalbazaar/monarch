@@ -8,9 +8,9 @@ import java.net.DatagramPacket;
 import com.db.net.http.HttpWebResponseHeader;
 
 /**
- * An SsdpDiscoverResponse is an HTTP based response to a SsdpDiscoverRequest
+ * An UPnPDiscoverResponse is an HTTP based response to a UPnPDiscoverResponse
  * that uses the Simple Service Discovery Protocol (SSDP). It provides
- * information about a discovered device.
+ * information about a discovered UPnP device.
  * 
  * The following is taken from:
  * 
@@ -30,7 +30,7 @@ import com.db.net.http.HttpWebResponseHeader;
  * 
  * @author Dave Longley
  */
-public class SsdpDiscoverResponse
+public class UPnPDiscoverResponse
 {
    /**
     * The HTTP web response header for this response.
@@ -38,11 +38,11 @@ public class SsdpDiscoverResponse
    protected HttpWebResponseHeader mHeader;
    
    /**
-    * Creates a new SsdpDiscoverResponse from a datagram.
+    * Creates a new UPnPDiscoverResponse from a datagram.
     * 
     * @param datagram the datagram to construct the response from.
     */
-   public SsdpDiscoverResponse(DatagramPacket datagram)
+   public UPnPDiscoverResponse(DatagramPacket datagram)
    {
       // create the response header
       mHeader = new HttpWebResponseHeader();
@@ -74,28 +74,28 @@ public class SsdpDiscoverResponse
    {
       String rval = "";
       
-      String server = getHeader().getHeaderValue("usn");
-      if(server != null)
+      String usn = getHeader().getHeaderValue("usn");
+      if(usn != null)
       {
-         rval = server.trim();
+         rval = usn.trim();
       }
       
       return rval;
    }   
    
    /**
-    * Gets the service type (header "st").
+    * Gets the search target (header "st").
     * 
-    * @return the service type (a URI).
+    * @return the search target (a URI).
     */
-   public String getServiceType()
+   public String getSearchTarget()
    {
       String rval = "";
       
-      String server = getHeader().getHeaderValue("st");
-      if(server != null)
+      String searchTarget = getHeader().getHeaderValue("st");
+      if(searchTarget != null)
       {
-         rval = server.trim();
+         rval = searchTarget.trim();
       }
       
       return rval;
@@ -129,10 +129,10 @@ public class SsdpDiscoverResponse
    {
       String rval = "";
       
-      String server = getHeader().getHeaderValue("location");
-      if(server != null)
+      String location = getHeader().getHeaderValue("location");
+      if(location != null)
       {
-         rval = server.trim();
+         rval = location.trim();
       }
       
       return rval;
@@ -154,7 +154,7 @@ public class SsdpDiscoverResponse
          String usn = getUsn();
          if(usn != null && usn.trim().length() == 0)
          {
-            String serviceType = getServiceType();
+            String serviceType = getSearchTarget();
             if(serviceType != null && serviceType.trim().length() == 0)
             {
                String server = getServer();

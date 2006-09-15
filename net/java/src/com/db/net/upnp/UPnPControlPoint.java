@@ -3,7 +3,7 @@
  */
 package com.db.net.upnp;
 
-import com.db.net.soap.SoapWebClient;
+import com.db.net.soap.SoapHttpClient;
 
 /**
  * A UPnP Control Point. This is a single point that is capable of
@@ -16,7 +16,7 @@ public class UPnPControlPoint
    /**
     * The SOAP client used to communicate with the UPnP device.
     */
-   protected SoapWebClient mSoapClient;
+   protected SoapHttpClient mSoapClient;
    
    /**
     * Creates a new UPnPControlPoint.

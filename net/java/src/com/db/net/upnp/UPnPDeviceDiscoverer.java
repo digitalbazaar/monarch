@@ -56,17 +56,17 @@ public class UPnPDeviceDiscoverer
       // get a multicast stream
       DatagramClient client = new DatagramClient();
       DatagramStream stream = client.getMulticastStream(
-         SsdpDiscoverRequest.SSDP_MULTICAST_ADDRESS,
-         SsdpDiscoverRequest.UPnP_SSDP_PORT, false);
+         UPnPDiscoverRequest.SSDP_MULTICAST_ADDRESS,
+         UPnPDiscoverRequest.UPnP_SSDP_PORT, false);
       
       // set the timeout to the discovery timeout
       stream.setReadTimeout(getTimeout());
       
-      // create a SSDP request
-      SsdpDiscoverRequest request = new SsdpDiscoverRequest();
+      // create a discover request
+      UPnPDiscoverRequest request = new UPnPDiscoverRequest();
       
-      // set the service type
-      request.setServiceType("upnp:rootdevice");
+      // set the search target
+      request.setSearchTarget("upnp:rootdevice");
       
       // create a datagram
       byte[] bytes = request.getBytes();
@@ -86,8 +86,8 @@ public class UPnPDeviceDiscoverer
             datagram = new DatagramPacket(buffer, buffer.length);
             stream.receiveDatagram(datagram);
             
-            // parse a SsdpDiscoverResponse from the datagram
-            SsdpDiscoverResponse response = new SsdpDiscoverResponse(datagram);
+            // parse a discover response from the datagram
+            UPnPDiscoverResponse response = new UPnPDiscoverResponse(datagram);
             if(response.isValid())
             {
                // create a UPnPDevice from the response

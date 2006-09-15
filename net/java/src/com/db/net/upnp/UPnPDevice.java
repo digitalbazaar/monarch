@@ -17,9 +17,9 @@ public class UPnPDevice
    protected String mUsn;
    
    /**
-    * The service type for this device.
+    * The search target for this device.
     */
-   protected String mServiceType;
+   protected String mSearchTarget;
    
    /**
     * The server for this device.
@@ -36,11 +36,11 @@ public class UPnPDevice
     * 
     * @param response the SsdpDiscoverResponse to create this device from.
     */
-   public UPnPDevice(SsdpDiscoverResponse response)
+   public UPnPDevice(UPnPDiscoverResponse response)
    {
       // get device information
       mUsn = response.getUsn();
-      mServiceType = response.getServiceType();
+      mSearchTarget = response.getSearchTarget();
       mServer = response.getServer();
       mLocation = response.getLocation();
    }
@@ -56,13 +56,13 @@ public class UPnPDevice
    }
    
    /**
-    * Gets the service type for this device
+    * Gets the search target for this device.
     * 
-    * @return the service type (a URI) for this device.
+    * @return the search target (a URI) for this device.
     */
-   public String getServiceType()
+   public String getSearchTarget()
    {
-      return mServiceType;
+      return mSearchTarget;
    }
    
    /**
@@ -97,7 +97,7 @@ public class UPnPDevice
       sb.append("UPnPDevice[");
       
       sb.append("usn=" + getUsn());
-      sb.append(",serviceType=" + getServiceType());
+      sb.append(",searchTarget=" + getSearchTarget());
       sb.append(",server=" + getServer());
       sb.append(",location=" + getLocation());
       
