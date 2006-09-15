@@ -23,7 +23,12 @@ public class UTUPnP
       try
       {
          // set up loggers
-         LoggerManager.setFile("dbnet", "ut-upnp.log", false);
+         LoggerManager.setFile("dbupnp", "ut-upnp.log", false);
+         LoggerManager.setConsoleVerbosity(
+            "dbupnp", Logger.ERROR_VERBOSITY);
+         
+         // set up loggers
+         LoggerManager.setFile("dbnet", "ut-upnp.log");
          LoggerManager.setConsoleVerbosity(
             "dbnet", Logger.ERROR_VERBOSITY);
          

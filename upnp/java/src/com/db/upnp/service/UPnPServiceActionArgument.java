@@ -54,10 +54,35 @@ import com.db.xml.XmlElement;
 public class UPnPServiceActionArgument extends AbstractXmlSerializer
 {
    /**
+    * The name for this argument.
+    */
+   protected String mName;
+   
+   /**
+    * The direction for the argument (either "in" or "out").
+    */
+   protected String mDirection;
+   
+   /**
+    * True if this argument is a return value, false if not.
+    */
+   protected boolean mReturnValue;
+   
+   /**
+    * The name of the state variable this argument applies to.
+    */
+   protected String mStateVariable;
+   
+   /**
     * Creates a new UPnPServiceActionArgument.
     */
    public UPnPServiceActionArgument()
    {
+      // set defaults
+      setName("");
+      setDirection(true);
+      setReturnValue(false);
+      setStateVariable("");
    }
    
    /**
@@ -67,7 +92,7 @@ public class UPnPServiceActionArgument extends AbstractXmlSerializer
     */
    public String getRootTag()   
    {
-      return "root";
+      return "argument";
    }
    
    /**
@@ -81,13 +106,34 @@ public class UPnPServiceActionArgument extends AbstractXmlSerializer
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
-      XmlElement scpdElement = new XmlElement(getRootTag());
-      scpdElement.setParent(parent);
+      XmlElement argumentElement = new XmlElement(getRootTag());
+      argumentElement.setParent(parent);
       
-      // FIXME:
+      // add the name element
+      XmlElement nameElement = new XmlElement("name");
+      nameElement.setValue(getName());
+      argumentElement.addChild(nameElement);
+      
+      // add the direction element
+      XmlElement directionElement = new XmlElement("direction");
+      directionElement.setValue(getDirection());
+      argumentElement.addChild(directionElement);
+      
+      // add the return value element, if applicable
+      if(isReturnValue())
+      {
+         XmlElement retvalElement = new XmlElement("retval");
+         argumentElement.addChild(retvalElement);
+      }
+      
+      // add the related state variable element
+      XmlElement relatedStateVariableElement =
+         new XmlElement("relatedStateVariable");
+      relatedStateVariableElement.setValue(getStateVariable());
+      argumentElement.addChild(relatedStateVariableElement);
       
       // return root element
-      return scpdElement;
+      return argumentElement;
    }
    
    /**
@@ -100,10 +146,123 @@ public class UPnPServiceActionArgument extends AbstractXmlSerializer
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = true;
-
-      // FIXME:
+      
+      // convert the name element
+      XmlElement nameElement = element.getFirstChild("name");
+      setName(nameElement.getValue());
+      
+      XmlElement directionElement = element.getFirstChild("direction");
+      String direction = directionElement.getValue();
+      setDirection(direction.equals("in"));
+      
+      XmlElement retvalElement = element.getFirstChild("retval");
+      setReturnValue(retvalElement != null);
+      
+      XmlElement relatedStateVariableElement =
+         element.getFirstChild("relatedStateVariable");
+      setStateVariable(relatedStateVariableElement.getValue());
       
       return rval;
+   }
+   
+   /**
+    * Sets the name for this argument.
+    * 
+    * @param name the name for this argument.
+    */
+   public void setName(String name)
+   {
+      mName = name;
+   }
+   
+   /**
+    * Gets the name for this argument.
+    * 
+    * @return the name for this argument.
+    */
+   public String getName()
+   {
+      return mName;
+   }
+   
+   /**
+    * Sets the direction for the argument (either "in" or "out").
+    * 
+    * @param in true to set the direction to "in", false to set it to "out."
+    */
+   public void setDirection(boolean in)
+   {
+      if(in)
+      {
+         mDirection = "in";
+      }
+      else
+      {
+         mDirection = "out";
+      }
+   }
+   
+   /**
+    * Sets the direction for the argument (either "in" or "out").
+    * 
+    * @return the direction for the argument.
+    */
+   public String getDirection()
+   {
+      return mDirection;
+   }
+   
+   /**
+    * Returns true if this argument's direction is "in," false if it is "out."
+    * 
+    * @return true if this argument's direction is "in," false if it is "out."
+    */
+   public boolean isDirectionIn()
+   {
+      return mDirection.equals("in");
+   }
+   
+   /**
+    * Sets whether or not this argument is a return value.
+    * 
+    * @param rval true if this argument is a return value, false if not.
+    */
+   public void setReturnValue(boolean rval)
+   {
+      mReturnValue = rval;
+      
+      // automatically set direction according to return value
+      setDirection(!rval);
+   }
+   
+   /**
+    * Gets whether or not this argument is a return value.
+    * 
+    * @return true if this argument is a return value, false if not.
+    */
+   public boolean isReturnValue()
+   {
+      return mReturnValue;
+   }
+   
+   /**
+    * Sets the name of the state variable this argument applies to.
+    * 
+    * @param name the name of the state variable this argument applies to.
+    */
+   public void setStateVariable(String name)
+   {
+      mStateVariable = name;
+   }
+   
+   /**
+    * Gets the name of the state variable this argument applies to.
+    * 
+    * @return the name of the state variable this argument applies to.
+    */
+   public String getStateVariable()
+   {
+      return mStateVariable;
    }
    
    /**
@@ -113,6 +272,6 @@ public class UPnPServiceActionArgument extends AbstractXmlSerializer
     */
    public Logger getLogger()
    {
-      return LoggerManager.getLogger("dbnet");
+      return LoggerManager.getLogger("dbupnp");
    }
 }

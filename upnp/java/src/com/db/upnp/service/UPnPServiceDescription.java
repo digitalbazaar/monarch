@@ -380,6 +380,6 @@ public class UPnPServiceDescription extends AbstractXmlSerializer
     */
    public Logger getLogger()
    {
-      return LoggerManager.getLogger("dbnet");
+      return LoggerManager.getLogger("dbupnp");
    }
 }
