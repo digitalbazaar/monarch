@@ -14,18 +14,72 @@ import com.db.net.http.HttpWebResponseHeader;
  * 
  * The following is taken from:
  * 
- * http://www.upnp.org/download/draft_cai_ssdp_v1_03.txt
+ * http://www.upnp.org/download/UPnPDA10_20000613.htm
  * 
  * -----------------------------------------------------------------------
- * 4.2.1.1.  Example 
- * 
  * HTTP/1.1 200 OK
- * S: uuid:ijklmnop-7dec-11d0-a765-00a0c91e6bf6
- * Ext: 
- * Cache-Control: no-cache="Ext", max-age = 5000
- * ST: ge:fridge
- * USN: uuid:abcdefgh-7dec-11d0-a765-00a0c91e6bf6
- * AL: <blender:ixl><http://foo/bar>  *
+ * CACHE-CONTROL: max-age = seconds until advertisement expires
+ * DATE: when response was generated
+ * EXT:
+ * LOCATION: URL for UPnP description for root device
+ * SERVER: OS/version UPnP/1.0 product/version
+ * ST: search target
+ * USN: advertisement UUID
+ * -----------------------------------------------------------------------
+ * Headers:
+ * 
+ * CACHE-CONTROL
+ * Required. Must have max-age directive that specifies number of seconds the
+ * advertisement is valid. After this duration, control points should assume
+ * the device (or service) is no longer available. Should be > 1800 seconds
+ * (30 minutes). Specified by UPnP vendor. Integer.
+ * 
+ * DATE
+ * Recommended. When response was generated. RFC 1123 date.
+ * 
+ * EXT
+ * Required. Confirms that the MAN header was understood.
+ * (Header only; no value.)
+ * 
+ * LOCATION
+ * Required. Contains a URL to the UPnP description of the root device. In
+ * some unmanaged networks, host of this URL may contain an IP address
+ * (versus a domain name). Specified by UPnP vendor. Single URL.
+ * 
+ * SERVER
+ * Required. Concatenation of OS name, OS version, UPnP/1.0, product name,
+ * and product version. Specified by UPnP vendor. String.
+ * 
+ * ST
+ * Required header defined by SSDP. Search Target. Single URI. If ST header
+ * in request was,
+ * 
+ * ssdp:all
+ * Respond 3+2d+k times for a root device with d embedded devices and s
+ * embedded services but only k distinct service types. Value for ST header
+ * must be the same as for the NT header in NOTIFY messages with ssdp:alive.
+ * (See above.) Single URI.
+ * 
+ * upnp:rootdevice
+ * Respond once for root device. Must be upnp:rootdevice. Single URI.
+ * 
+ * uuid:device-UUID
+ * Respond once for each device, root or embedded. Must be uuid:device-UUID.
+ * Device UUID specified by UPnP vendor. Single URI.
+ * 
+ * urn:schemas-upnp-org:device:deviceType:v
+ * Respond once for each device, root or embedded. Must be
+ * urn:schemas-upnp-org:device:deviceType:v. Device type and version defined
+ * by UPnP Forum working committee.
+ * 
+ * urn:schemas-upnp-org:service:serviceType:v
+ * Respond once for each service. Must be
+ * urn:schemas-upnp-org:service:serviceType:v. Service type and version defined
+ * by UPnP Forum working committee.
+ * 
+ * USN
+ * Required header defined by SSDP. Unique Service Name. (See list of required
+ * values for USN header in NOTIFY with ssdp:alive above.) Single URI. 
  * -----------------------------------------------------------------------
  * 
  * @author Dave Longley
@@ -66,43 +120,65 @@ public class UPnPDiscoverResponse
    }
    
    /**
-    * Gets the usn for the device (header "usn").
+    * Gets the number of seconds the advertisement is available.
     * 
-    * @return the usn for the device.
+    * @return the number of seconds the advertisement is available.
     */
-   public String getUsn()
+   public int getCacheControl()
    {
-      String rval = "";
+      int rval = 0;
       
-      String usn = getHeader().getHeaderValue("usn");
-      if(usn != null)
+      if(getHeader().hasHeader("cache-control"))
       {
-         rval = usn.trim();
-      }
-      
-      return rval;
-   }   
-   
-   /**
-    * Gets the search target (header "st").
-    * 
-    * @return the search target (a URI).
-    */
-   public String getSearchTarget()
-   {
-      String rval = "";
-      
-      String searchTarget = getHeader().getHeaderValue("st");
-      if(searchTarget != null)
-      {
-         rval = searchTarget.trim();
+         try
+         {
+            rval = Integer.parseInt(
+               getHeader().getHeaderValue("cache-control"));
+         }
+         catch(Throwable ignore)
+         {
+         }
       }
       
       return rval;
    }
    
    /**
-    * Gets the server for the device (header "server").
+    * Gets the date when the response was generated.
+    * 
+    * @return the date when the response was generated.
+    */
+   public String getDate()
+   {
+      String rval = "";
+      
+      if(getHeader().hasHeader("date"))
+      {
+         rval = getHeader().getHeaderValue("date");
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the location (a URL) for the UPnP device description.
+    * 
+    * @return the location for the device description.
+    */
+   public String getLocation()
+   {
+      String rval = "";
+      
+      if(getHeader().hasHeader("location"))
+      {
+         rval = getHeader().getHeaderValue("location").trim();
+      }
+      
+      return rval;
+   }   
+   
+   /**
+    * Gets the server for the device.
     * 
     * @return the server for the device.
     */
@@ -110,29 +186,43 @@ public class UPnPDiscoverResponse
    {
       String rval = "";
       
-      String server = getHeader().getHeaderValue("server");
-      if(server != null)
+      if(getHeader().hasHeader("server"))
       {
-         rval = server.trim();
+         rval = getHeader().getHeaderValue("server").trim();
+      }
+      
+      return rval;
+   }   
+   
+   /**
+    * Gets the search target.
+    * 
+    * @return the search target (a URI).
+    */
+   public String getSearchTarget()
+   {
+      String rval = "";
+      
+      if(getHeader().hasHeader("st"))
+      {
+         rval = getHeader().getHeaderValue("st").trim();
       }
       
       return rval;
    }
    
    /**
-    * Gets the location for the device's UPnP interface description
-    * (header "location").
+    * Gets the Unique Service Name for the device.
     * 
-    * @return the location for the device.
+    * @return the Unique Service Name for the device.
     */
-   public String getLocation()
+   public String getUsn()
    {
       String rval = "";
       
-      String location = getHeader().getHeaderValue("location");
-      if(location != null)
+      if(getHeader().hasHeader("usn"))
       {
-         rval = location.trim();
+         rval = getHeader().getHeaderValue("usn").trim();
       }
       
       return rval;
@@ -150,26 +240,16 @@ public class UPnPDiscoverResponse
 
       if(getHeader().isValid())
       {
-         // check header fields
-         String usn = getUsn();
-         if(usn != null && usn.trim().length() == 0)
+         // these headers must be present
+         if(getHeader().hasHeader("cache-control") &&
+            getHeader().hasHeader("ext") &&
+            getHeader().hasHeader("location") &&
+            getHeader().hasHeader("server") &&
+            getHeader().hasHeader("st") &&
+            getHeader().hasHeader("usn"))
          {
-            String serviceType = getSearchTarget();
-            if(serviceType != null && serviceType.trim().length() == 0)
-            {
-               String server = getServer();
-               if(server != null && server.trim().length() == 0)
-               {
-                  String location = getLocation();
-                  if(location != null && location.trim().length() == 0)
-                  {
-                     rval = true;
-                  }
-               }
-            }
+            rval = true;
          }
-         
-         rval = true;
       }
       
       return rval;

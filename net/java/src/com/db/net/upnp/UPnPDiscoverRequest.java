@@ -103,10 +103,10 @@ public class UPnPDiscoverRequest
       // "MAN" header is always "ssdp:discover" (with quotes)
       mHeader.addHeader("MAN", "\"ssdp:discover\"");
       
-      // default "MX" header is 3
+      // default wait time is 3 seconds
       mHeader.addHeader("MX", "3");
       
-      // set default "ST" (service type) to ssdp:all
+      // default search target is all devices
       setSearchTarget("ssdp:all");
    }
    
@@ -121,7 +121,7 @@ public class UPnPDiscoverRequest
    }
    
    /**
-    * Sets the search target (header "ST") to search for.
+    * Sets the search target to search for.
     * 
     * @param uri the search target (a URI) to search for.
     */
@@ -131,7 +131,7 @@ public class UPnPDiscoverRequest
    }
    
    /**
-    * Gets the search target (header "ST") to search for.
+    * Gets the search target to search for.
     * 
     * @return the search target (a URI) to search for.
     */
