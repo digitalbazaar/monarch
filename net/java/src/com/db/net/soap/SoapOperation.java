@@ -105,32 +105,6 @@ public class SoapOperation extends AbstractXmlSerializer
    }
    
    /**
-    * This method takes options that are used to configure
-    * how to convert to and from xml.
-    *
-    * @param options the configuration options.
-    * 
-    * @return true if options successfully set, false if not.    
-    */
-   public boolean setXmlSerializerOptions(int options)
-   {
-      // no options
-      return false;
-   }
-
-   /**
-    * This method gets the options that are used to configure
-    * how to convert to and from xml.
-    *
-    * @return the configuration options.
-    */
-   public int getXmlSerializerOptions()
-   {
-      // no options
-      return 0;
-   }
-   
-   /**
     * Returns the root tag name for this serializer.
     * 
     * @return the root tag name for this serializer.
