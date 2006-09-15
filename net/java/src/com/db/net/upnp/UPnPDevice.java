@@ -12,24 +12,24 @@ package com.db.net.upnp;
 public class UPnPDevice
 {
    /**
-    * The USN for the device.
-    */
-   protected String mUsn;
-   
-   /**
-    * The search target for this device.
-    */
-   protected String mSearchTarget;
-   
-   /**
     * The server for this device.
     */
    protected String mServer;
    
    /**
-    * The location for the device's UPnP interface description.
+    * The search target for this device.
+    */
+   protected String mSearchTarget;
+
+   /**
+    * The location (a URL) for this device's description.
     */
    protected String mLocation;
+   
+   /**
+    * The Unique Service Name for the device.
+    */
+   protected String mUsn;
    
    /**
     * Creates a new UPnPDevice from a SsdpDiscoverResponse.
@@ -39,22 +39,22 @@ public class UPnPDevice
    public UPnPDevice(UPnPDiscoverResponse response)
    {
       // get device information
-      mUsn = response.getUsn();
-      mSearchTarget = response.getSearchTarget();
       mServer = response.getServer();
+      mSearchTarget = response.getSearchTarget();
       mLocation = response.getLocation();
-   }
-
-   /**
-    * Gets the usn for the device.
-    * 
-    * @return the usn for the device.
-    */
-   public String getUsn()
-   {
-      return mUsn;
+      mUsn = response.getUsn();
    }
    
+   /**
+    * Gets the server for this device.
+    * 
+    * @return the server for this device.
+    */
+   public String getServer()
+   {
+      return mServer;
+   }   
+
    /**
     * Gets the search target for this device.
     * 
@@ -66,24 +66,24 @@ public class UPnPDevice
    }
    
    /**
-    * Gets the server for this device.
+    * Gets the location (a URL) for this UPnP device's description.
     * 
-    * @return the server for this device.
-    */
-   public String getServer()
-   {
-      return mServer;
-   }
-   
-   /**
-    * Gets the location for this device's UPnP interface description.
-    * 
-    * @return the location for the device's UPnP interface description.
+    * @return the location for this device's description.
     */
    public String getLocation()
    {
       return mLocation;
    }
+   
+   /**
+    * Gets the Unique Service Name for the device.
+    * 
+    * @return the Unique Service Name for the device.
+    */
+   public String getUsn()
+   {
+      return mUsn;
+   }   
    
    /**
     * Gets the string representation for this device.
@@ -96,10 +96,10 @@ public class UPnPDevice
       
       sb.append("UPnPDevice[");
       
-      sb.append("usn=" + getUsn());
+      sb.append("server=" + getServer());
       sb.append(",searchTarget=" + getSearchTarget());
-      sb.append(",server=" + getServer());
       sb.append(",location=" + getLocation());
+      sb.append(",usn=" + getUsn());
       
       sb.append("]");
       
