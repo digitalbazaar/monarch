@@ -334,6 +334,22 @@ public class UPnPServiceDescription extends AbstractXmlSerializer
    protected UPnPServiceStateTable mStateTable;
    
    /**
+    * The XML namespace for this service descrption.
+    */
+   public static final String XML_NAMESPACE =
+      "urn:schemas-upnp-org:service-1-0";
+   
+   /**
+    * The major spec version for this service descrption.
+    */
+   public static final String MAJOR_VERSION = "1";
+   
+   /**
+    * The minor spec version for this service descrption.
+    */
+   public static final String MINOR_VERSION = "0";
+   
+   /**
     * Creates a new UPnPServiceDescription.
     */
    public UPnPServiceDescription()
@@ -369,6 +385,23 @@ public class UPnPServiceDescription extends AbstractXmlSerializer
       XmlElement scpdElement = new XmlElement(getRootTag());
       scpdElement.setParent(parent);
       
+      // add namespace attribute
+      scpdElement.addAttribute("xmlns", XML_NAMESPACE);
+      
+      // add spec version element
+      XmlElement specVersionElement = new XmlElement("specVersion");
+      scpdElement.addChild(specVersionElement);
+      
+      // add major element
+      XmlElement majorElement = new XmlElement("major");
+      majorElement.setValue(MAJOR_VERSION);
+      specVersionElement.addChild(majorElement);
+      
+      // add minor element
+      XmlElement minorElement = new XmlElement("minor");
+      minorElement.setValue(MINOR_VERSION);
+      specVersionElement.addChild(minorElement);
+      
       // convert the action list, if it has actions
       if(getActionList().getActionCount() > 0)
       {
@@ -391,25 +424,40 @@ public class UPnPServiceDescription extends AbstractXmlSerializer
     */
    public boolean convertFromXmlElement(XmlElement element)   
    {
-      boolean rval = true;
+      boolean rval = false;
       
-      // clear action list and state table
-      getActionList().clear();
-      getStateTable().clear();
-      
-      // get action list element, if any
-      XmlElement actionListElement = element.getFirstChild("actionList");
-      if(actionListElement != null)
+      // check namespace and spec version
+      String namespace = element.getAttributeValue("xmlns");
+      if(namespace.equals(XML_NAMESPACE) && element.hasChild("specVersion"))
       {
-         rval = getActionList().convertFromXmlElement(actionListElement);
-      }
-      
-      if(rval)
-      {
-         // get state table element
-         XmlElement stateTableElement =
-            element.getFirstChild("serviceStateTable");
-         rval = getStateTable().convertFromXmlElement(stateTableElement);
+         // check major and minor spec versions
+         XmlElement specElement = element.getFirstChild("specVersion");
+         String major = specElement.getFirstChildValue("major");
+         String minor = specElement.getFirstChildValue("minor");
+            
+         if(major.equals(MAJOR_VERSION) && minor.equals(MINOR_VERSION))
+         {
+            rval = true;
+            
+            // clear action list and state table
+            getActionList().clear();
+            getStateTable().clear();
+            
+            // get action list element, if any
+            XmlElement actionListElement = element.getFirstChild("actionList");
+            if(actionListElement != null)
+            {
+               rval = getActionList().convertFromXmlElement(actionListElement);
+            }
+            
+            if(rval)
+            {
+               // get state table element
+               XmlElement stateTableElement =
+                  element.getFirstChild("serviceStateTable");
+               rval = getStateTable().convertFromXmlElement(stateTableElement);
+            }
+         }
       }
       
       return rval;

@@ -218,12 +218,6 @@ public class SoapEnvelope extends AbstractXmlSerializer
    {
       boolean rval = true;
       
-      // get the soap envelope namespace prefix
-      String prefix = element.findNamespace(SOAP_ENVELOPE_URI);
-      
-      getLogger().detail(getClass(),
-         "soap envelope namespace prefix=" + prefix);
-      
       // clear header block serializers
       mHeaderBlockSerializers.clear();
       
@@ -231,7 +225,8 @@ public class SoapEnvelope extends AbstractXmlSerializer
       mBodyContentSerializers.clear();
       
       // convert the header of the envelope, if any
-      XmlElement headerElement = element.getFirstChild("Header", prefix);
+      XmlElement headerElement = element.getFirstChild(
+         "Header", SOAP_ENVELOPE_URI);
       if(headerElement != null)
       {
          getLogger().detail(getClass(), "found soap envelope header...");
@@ -245,7 +240,7 @@ public class SoapEnvelope extends AbstractXmlSerializer
       }
       
       // convert the body of the envelope, if any
-      XmlElement bodyElement = element.getFirstChild("Body", prefix);
+      XmlElement bodyElement = element.getFirstChild("Body", SOAP_ENVELOPE_URI);
       if(bodyElement != null)
       {
          getLogger().detail(getClass(), "found soap envelope body...");

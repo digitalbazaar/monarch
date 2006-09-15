@@ -466,16 +466,6 @@ public class XmlElement extends AbstractXmlSerializer
    {
       mNamespace = namespace;
       mNamespaceUri = namespaceUri;
-      
-      // set the namespace for all children, if not already set
-      for(Iterator i = getChildren().iterator(); i.hasNext();)
-      {
-         XmlElement child = (XmlElement)i.next();
-         if(child.getNamespace() == null)
-         {
-            child.setNamespace(namespace, namespaceUri);
-         }
-      }
    }
    
    /**
@@ -485,7 +475,15 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public String getNamespace()
    {
-      return mNamespace;
+      String rval = mNamespace;
+      
+      if(mNamespace == null && getParent() != null)
+      {
+         // get parent's namespace
+         rval = getParent().getNamespace();
+      }
+      
+      return rval;
    }
    
    /**
@@ -495,7 +493,15 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public String getNamespaceUri()
    {
-      return mNamespaceUri;
+      String rval = mNamespaceUri;
+      
+      if(mNamespaceUri == null && getParent() != null)
+      {
+         // get parent's namespace URI
+         rval = getParent().getNamespaceUri();
+      }
+      
+      return rval;
    }
    
    /**
@@ -1107,20 +1113,20 @@ public class XmlElement extends AbstractXmlSerializer
    
    /**
     * Gets the first child of this XmlElement with the specified name and
-    * namespace.
+    * namespace URI.
     * 
     * @param name the name of the child to retrieve.
-    * @param namespace the namespace of the child to retrieve.
+    * @param namespaceUri the namespace URI of the child to retrieve.
     * 
     * @return the first child of this XmlElement with the specified name or
     *         null if this XmlElement doesn't have a first child with the
     *         passed name.
     */
-   public XmlElement getFirstChild(String name, String namespace)
+   public XmlElement getFirstChild(String name, String namespaceUri)
    {
       XmlElement rval = null;
       
-      if(name == null && namespace == null)
+      if(name == null && namespaceUri == null)
       {
          rval = getChildAt(0);
       }
@@ -1131,18 +1137,18 @@ public class XmlElement extends AbstractXmlSerializer
             XmlElement child = (XmlElement)i.next();
             if(name == null)
             {
-               if(child.getNamespace().equals(namespace))
+               if(child.getNamespaceUri().equals(namespaceUri))
                {
                   rval = child;
                }
             }
             else if(child.getName().equals(name))
             {
-               if(namespace == null)
+               if(namespaceUri == null || child.getNamespaceUri() == null)
                {
                   rval = child;
                }
-               else if(child.getNamespace().equals(namespace))
+               else if(child.getNamespaceUri().equals(namespaceUri))
                {
                   rval = child;
                }
@@ -1165,10 +1171,27 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public String getFirstChildValue(String name)
    {
+      return getFirstChildValue(name, null);
+   }
+   
+   /**
+    * Gets the value of the first child of this XmlElement with the specified
+    * name and namespace URI.
+    * 
+    * @param name the name of the child with the value to retrieve.
+    * @param namespaceUri the namespace URI of the child with the value to
+    *                     retrieve.
+    * 
+    * @return the value of the first child of this XmlElement with the
+    *         specified name or a blank string if this XmlElement doesn't
+    *         have a first child with the passed name or the child has no data.
+    */
+   public String getFirstChildValue(String name, String namespaceUri)
+   {
       String rval = "";
       
       // get the first child
-      XmlElement child = getFirstChild(name);
+      XmlElement child = getFirstChild(name, namespaceUri);
       if(child != null)
       {
          rval = child.getValue();
@@ -1178,29 +1201,32 @@ public class XmlElement extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the value of the first child of this XmlElement with the specified
-    * name and namespace.
+    * Returns true if this element has a child with the specified name.
     * 
-    * @param name the name of the child with the value to retrieve.
-    * @param namespace the namespace of the child with the value to retrieve.
+    * @param name the name of the child to check for.
     * 
-    * @return the value of the first child of this XmlElement with the
-    *         specified name or a blank string if this XmlElement doesn't
-    *         have a first child with the passed name or the child has no data.
+    * @return true if this element has a child element with the given name,
+    *         false if not.
     */
-   public String getFirstChildValue(String name, String namespace)
+   public boolean hasChild(String name)
    {
-      String rval = "";
-      
-      // get the first child
-      XmlElement child = getFirstChild(name, namespace);
-      if(child != null)
-      {
-         rval = child.getValue();
-      }
-      
-      return rval;
-   }   
+      return getFirstChild(name) != null;
+   }
+   
+   /**
+    * Returns true if this element has a child with the specified name and
+    * namespace URI.
+    * 
+    * @param name the name of the child to check for.
+    * @param namespaceUri the namespace URI for the child to check for.
+    * 
+    * @return true if this element has a child element with the given name and
+    *         namespace URI, false if not.
+    */
+   public boolean hasChild(String name, String namespaceUri)
+   {
+      return getFirstChild(name, namespaceUri) != null;
+   }
    
    /**
     * Gets the children for this XmlElement. Any changes to the returned
@@ -1240,23 +1266,23 @@ public class XmlElement extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the children for this XmlElement with the specified namespace. Any
-    * changes to the children in the returned collection will be reflected in
-    * this XmlElement.
+    * Gets the children for this XmlElement with the specified namespace URI.
+    * Any changes to the children in the returned collection will be reflected
+    * in this XmlElement.
     * 
-    * @param namespace the namespace of the children to return.
+    * @param namespaceUri the URI namespace of the children to return.
     * 
-    * @return the children with the specified namespace for this XmlElement in
-    *         a collection of XmlElements.
+    * @return the children with the specified namespace URI for this XmlElement
+    *         in a collection of XmlElements.
     */
-   public Collection getChildrenInNamespace(String namespace)
+   public Collection getChildrenWithNamespaceUri(String namespaceUri)
    {
       Vector rval = new Vector();
       
       for(Iterator i = mChildren.iterator(); i.hasNext();)
       {
          XmlElement child = (XmlElement)i.next();
-         if(child.getNamespace().equals(namespace))
+         if(child.getNamespaceUri().equals(namespaceUri))
          {
             rval.add(child);
          }
@@ -1267,16 +1293,16 @@ public class XmlElement extends AbstractXmlSerializer
       
    /**
     * Gets the children for this XmlElement with the specified name and
-    * namespace. Any changes to the children in the returned collection will
-    * be reflected in this XmlElement.
+    * namespace URI. Any changes to the children in the returned collection
+    * will be reflected in this XmlElement.
     * 
     * @param name the name of the children to return.
-    * @param namespace the namespace of the children to return.
+    * @param namespaceUri the namespace URI of the children to return.
     * 
-    * @return the children with the specified name and namespace for this
+    * @return the children with the specified name and namespaceURI for this
     *         XmlElement in a collection of XmlElements.
     */
-   public Collection getChildren(String name, String namespace)
+   public Collection getChildren(String name, String namespaceUri)
    {
       Vector rval = new Vector();
       
@@ -1284,7 +1310,8 @@ public class XmlElement extends AbstractXmlSerializer
       {
          XmlElement child = (XmlElement)i.next();
          if(child.getName().equals(name) &&
-            child.getNamespace().equals(namespace))
+            child.getNamespace() == null ||
+            child.getNamespace().equals(namespaceUri))
          {
             rval.add(child);
          }

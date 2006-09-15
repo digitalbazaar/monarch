@@ -280,6 +280,22 @@ import com.db.xml.XmlElement;
 public class UPnPDeviceDescription extends AbstractXmlSerializer
 {
    /**
+    * The XML namespace for this device descrption.
+    */
+   public static final String XML_NAMESPACE =
+      "urn:schemas-upnp-org:device-1-0";
+   
+   /**
+    * The major spec version for this device descrption.
+    */
+   public static final String MAJOR_VERSION = "1";
+   
+   /**
+    * The minor spec version for this device descrption.
+    */
+   public static final String MINOR_VERSION = "0";
+   
+   /**
     * Creates a new UPnPDeviceDescription.
     */
    public UPnPDeviceDescription()
@@ -310,6 +326,23 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
       XmlElement rootElement = new XmlElement(getRootTag());
       rootElement.setParent(parent);
       
+      // add namespace attribute
+      rootElement.addAttribute("xmlns", XML_NAMESPACE);
+      
+      // add spec version element
+      XmlElement specVersionElement = new XmlElement("specVersion");
+      rootElement.addChild(specVersionElement);
+      
+      // add major element
+      XmlElement majorElement = new XmlElement("major");
+      majorElement.setValue(MAJOR_VERSION);
+      specVersionElement.addChild(majorElement);
+      
+      // add minor element
+      XmlElement minorElement = new XmlElement("minor");
+      minorElement.setValue(MINOR_VERSION);
+      specVersionElement.addChild(minorElement);      
+      
       // FIXME:
       
       // return root element
@@ -325,9 +358,24 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
     */
    public boolean convertFromXmlElement(XmlElement element)   
    {
-      boolean rval = true;
-
-      // FIXME:
+      boolean rval = false;
+      
+      // check namespace and spec version
+      String namespace = element.getAttributeValue("xmlns");
+      if(namespace.equals(XML_NAMESPACE) && element.hasChild("specVersion"))
+      {
+         // check major and minor spec versions
+         XmlElement specElement = element.getFirstChild("specVersion");
+         String major = specElement.getFirstChildValue("major");
+         String minor = specElement.getFirstChildValue("minor");
+            
+         if(major.equals(MAJOR_VERSION) && minor.equals(MINOR_VERSION))
+         {
+            rval = true;
+            
+            // FIXME:
+         }
+      }
       
       return rval;
    }

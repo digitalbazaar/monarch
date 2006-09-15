@@ -142,8 +142,7 @@ public class UPnPServiceAction extends AbstractXmlSerializer
       getArgumentList().clear();
       
       // get name element
-      XmlElement nameElement = element.getFirstChild("name");
-      setName(nameElement.getValue());
+      setName(element.getFirstChildValue("name"));
       
       // get the argument list, if any
       XmlElement argumentListElement = element.getFirstChild("argumentList");

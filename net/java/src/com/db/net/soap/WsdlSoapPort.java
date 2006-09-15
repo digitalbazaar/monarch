@@ -127,12 +127,9 @@ public class WsdlSoapPort extends WsdlPort
          // get name
          setName(element.getAttributeValue("name"));
          
-         // get soap namespace prefix
-         String soapNs = element.findNamespace(Wsdl.WSDL_SOAP_NAMESPACE_URI);
-         
          // get soap address element
          XmlElement soapAddressElement = element.getFirstChild(
-            "address", soapNs);
+            "address", Wsdl.WSDL_SOAP_NAMESPACE_URI);
          if(soapAddressElement != null)
          {
             setUri(soapAddressElement.getAttributeValue("location"));

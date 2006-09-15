@@ -152,13 +152,10 @@ public class UPnPServiceActionArgument extends AbstractXmlSerializer
       setName(nameElement.getValue());
       
       // convert the direction element
-      XmlElement directionElement = element.getFirstChild("direction");
-      String direction = directionElement.getValue();
-      setDirection(direction.equals("in"));
+      setDirection(element.getFirstChildValue("direction").equals("in"));
       
       // convert the return value element
-      XmlElement retvalElement = element.getFirstChild("retval");
-      setReturnValue(retvalElement != null);
+      setReturnValue(element.hasChild("retval"));
       
       // convert the related state variable element
       XmlElement relatedStateVariableElement =

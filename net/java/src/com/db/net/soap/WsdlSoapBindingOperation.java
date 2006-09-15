@@ -365,12 +365,9 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
       
       if(element.getName().equals(getRootTag()))
       {
-         // get the soap namespace
-         String soapNs = element.findNamespace(Wsdl.WSDL_SOAP_NAMESPACE_URI);
-         
          // get the soap operation child
          XmlElement soapOperationChild = element.getFirstChild(
-            "operation", soapNs); 
+            "operation", Wsdl.WSDL_SOAP_NAMESPACE_URI); 
          if(soapOperationChild != null)
          {
             // set soap action
