@@ -23,6 +23,8 @@
     <ant antfile="build.xml" dir="stream/java" target="build"/>
     <echo message="========== Building Digital Bazaar net classes =========="/>
     <ant antfile="build.xml" dir="net/java" target="build"/>
+    <echo message="========== Building Digital Bazaar upnp classes =========="/>
+    <ant antfile="build.xml" dir="upnp/java" target="build"/>
     <echo message="========== Building Digital Bazaar gui classes =========="/>
     <ant antfile="build.xml" dir="gui/java" target="build"/>
     <echo message="========== Building Digital Bazaar autoupdater classes =========="/>
@@ -51,6 +53,8 @@
     <ant antfile="build.xml" dir="stream/java" target="clean"/>
     <echo message="========== Cleaning Digital Bazaar net classes =========="/>
     <ant antfile="build.xml" dir="net/java" target="clean"/>
+    <echo message="========== Cleaning Digital Bazaar upnp classes =========="/>
+    <ant antfile="build.xml" dir="upnp/java" target="clean"/>
     <echo message="========== Cleaning Digital Bazaar gui classes =========="/>
     <ant antfile="build.xml" dir="gui/java" target="clean"/>
     <echo message="========== Cleaning Digital Bazaar autoupdater classes =========="/>

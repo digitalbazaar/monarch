@@ -11,6 +11,7 @@
     <pathelement location="${dbxml.jar}"/>
     <pathelement location="${dbstream.jar}"/>
     <pathelement location="${dbnet.jar}"/>
+    <pathelement location="${dbupnp.jar}"/>
     <pathelement location="${dbjar.jar}"/>
     <pathelement location="${dbgui.jar}"/>
     <pathelement location="${dbautoupdater.jar}"/>
