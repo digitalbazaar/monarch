@@ -321,10 +321,28 @@ import com.db.xml.XmlElement;
 public class UPnPServiceDescription extends AbstractXmlSerializer
 {
    /**
+    * The UPnPServiceActionList for this service description. If this
+    * action list is empty, then the service this description is for
+    * doesn't have any actions -- this is legal.
+    */
+   protected UPnPServiceActionList mActionList;
+   
+   /**
+    * The UPnPServiceStateTable for this service description. Every
+    * service MUST have a state table that has at least 1 state variable.
+    */
+   protected UPnPServiceStateTable mStateTable;
+   
+   /**
     * Creates a new UPnPServiceDescription.
     */
    public UPnPServiceDescription()
    {
+      // create a new action list for this description
+      mActionList = new UPnPServiceActionList();
+      
+      // create a new state table for this description
+      mStateTable = new UPnPServiceStateTable();
    }
    
    /**
@@ -351,7 +369,14 @@ public class UPnPServiceDescription extends AbstractXmlSerializer
       XmlElement scpdElement = new XmlElement(getRootTag());
       scpdElement.setParent(parent);
       
-      // FIXME:
+      // convert the action list, if it has actions
+      if(getActionList().getActionCount() > 0)
+      {
+         scpdElement.addChild(getActionList().convertToXmlElement(scpdElement));
+      }
+      
+      // convert state table
+      scpdElement.addChild(getStateTable().convertToXmlElement(scpdElement));      
       
       // return root element
       return scpdElement;
@@ -367,10 +392,47 @@ public class UPnPServiceDescription extends AbstractXmlSerializer
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = true;
-
-      // FIXME:
+      
+      // clear action list and state table
+      getActionList().clear();
+      getStateTable().clear();
+      
+      // get action list element, if any
+      XmlElement actionListElement = element.getFirstChild("actionList");
+      if(actionListElement != null)
+      {
+         rval = getActionList().convertFromXmlElement(actionListElement);
+      }
+      
+      if(rval)
+      {
+         // get state table element
+         XmlElement stateTableElement =
+            element.getFirstChild("serviceStateTable");
+         rval = getStateTable().convertFromXmlElement(stateTableElement);
+      }
       
       return rval;
+   }
+   
+   /**
+    * Gets the action list for this service description.
+    * 
+    * @return the UPnPServiceActionList for this service description.
+    */
+   public UPnPServiceActionList getActionList()
+   {
+      return mActionList;
+   }
+   
+   /**
+    * Gets the state table for this service description.
+    * 
+    * @return the UPnPServiceStateTable for this service description.
+    */
+   public UPnPServiceStateTable getStateTable()
+   {
+      return mStateTable;
    }
    
    /**

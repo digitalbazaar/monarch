@@ -3,6 +3,9 @@
  */
 package com.db.upnp.service;
 
+import java.util.Iterator;
+import java.util.Vector;
+
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
@@ -200,10 +203,63 @@ import com.db.xml.XmlElement;
 public class UPnPServiceStateVariable extends AbstractXmlSerializer
 {
    /**
+    * The name for this state variable.
+    */
+   protected String mName;
+   
+   /**
+    * Set to "yes" if events are sent when this variable changes, set to
+    * "no" if not.
+    */
+   protected String mSendEvents; 
+   
+   /**
+    * The data type for this state variable.
+    */
+   protected String mDataType;
+   
+   /**
+    * The default value for this state variable. Null if there is no default
+    * value.
+    */
+   protected String mDefaultValue;
+   
+   /**
+    * The list of allowed values for this state variable.
+    */
+   protected Vector mAllowedValues;
+   
+   /**
+    * The minimum value for this state variable. Null if there is no minimum.
+    */
+   protected String mMinimumValue;
+   
+   /**
+    * The maximum value for this state variable. Null if there is no maximum.
+    */
+   protected String mMaximumValue;
+   
+   /**
+    * The step value for this state variable. Null if there is no step.
+    */
+   protected String mStep;
+   
+   /**
     * Creates a new UPnPServiceStateVariable.
     */
    public UPnPServiceStateVariable()
    {
+      // set defaults
+      setName("");
+      setSendEvents(true);
+      setDataType("string");
+      setDefaultValue(null);
+      setMinimumValue(null);
+      setMaximumValue(null);
+      setStep(null);
+      
+      // create allowed values list
+      mAllowedValues = new Vector();
    }
    
    /**
@@ -213,7 +269,7 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
     */
    public String getRootTag()   
    {
-      return "root";
+      return "stateVariable";
    }
    
    /**
@@ -226,14 +282,76 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
     */
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
-      // create the root element
-      XmlElement rootElement = new XmlElement(getRootTag());
-      rootElement.setParent(parent);
+      // create the state variable element
+      XmlElement stateVariableElement = new XmlElement(getRootTag());
+      stateVariableElement.setParent(parent);
       
-      // FIXME:
+      // add send events attribute
+      stateVariableElement.addAttribute("sendEvents", getSendEvents());
+      
+      // add name element
+      XmlElement nameElement = new XmlElement("name");
+      nameElement.setValue(getName());
+      stateVariableElement.addChild(nameElement);
+      
+      // add data type element
+      XmlElement dataTypeElement = new XmlElement("dataType");
+      dataTypeElement.setValue(getName());
+      stateVariableElement.addChild(dataTypeElement);
+      
+      // add default value element, if applicable
+      if(getDefaultValue() != null)
+      {
+         XmlElement defaultValueElement = new XmlElement("defaultValue");
+         defaultValueElement.setValue(getDefaultValue());
+         stateVariableElement.addChild(defaultValueElement);
+      }
+      
+      // add allowed value list, if applicable,
+      // otherwise add allowed value range, if applicable
+      if(hasAllowedValueList())
+      {
+         XmlElement allowedValueListElement =
+            new XmlElement("allowedValueList");
+         stateVariableElement.addChild(allowedValueListElement);
+         
+         // add each allowed value
+         for(Iterator i = getAllowedValues().iterator(); i.hasNext();)
+         {
+            String value = (String)i.next();
+            XmlElement allowedValueElement = new XmlElement("allowedValue");
+            allowedValueElement.setValue(value);
+            allowedValueListElement.addChild(allowedValueElement);
+         }
+      }
+      else if(hasAllowedValueRange())
+      {
+         // add allowed value range
+         XmlElement allowedValueRangeElement =
+            new XmlElement("allowedValueRange");
+         stateVariableElement.addChild(allowedValueRangeElement);
+         
+         // add minimum value element
+         XmlElement minimumValueElement = new XmlElement("minimumValue");
+         minimumValueElement.setValue(getMinimumValue());
+         allowedValueRangeElement.addChild(minimumValueElement);
+         
+         // add maximum value element
+         XmlElement maximumValueElement = new XmlElement("maximumValue");
+         maximumValueElement.setValue(getMaximumValue());
+         allowedValueRangeElement.addChild(maximumValueElement);
+         
+         // add step element, if applicable
+         if(getStep() != null)
+         {
+            XmlElement stepElement = new XmlElement("step");
+            stepElement.setValue(getStep());
+            allowedValueRangeElement.addChild(stepElement);
+         }
+      }
       
       // return root element
-      return rootElement;
+      return stateVariableElement;
    }
    
    /**
@@ -246,10 +364,311 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = true;
-
-      // FIXME:
+      
+      // get the send events attribute
+      String sendEvents = element.getAttributeValue("sendEvents");
+      setSendEvents(sendEvents.equals("yes"));
+      
+      // get the name element
+      XmlElement nameElement = element.getFirstChild("name");
+      setName(nameElement.getValue());
+      
+      // get the data type element
+      XmlElement dataTypeElement = element.getFirstChild("dataType");
+      setDataType(dataTypeElement.getValue());
+      
+      // get default value element, if any
+      XmlElement defaultValueElement = element.getFirstChild("defaultValue");
+      if(defaultValueElement != null)
+      {
+         setDefaultValue(defaultValueElement.getValue());
+      }
+      else
+      {
+         // no default value
+         setDefaultValue(null);
+      }
+      
+      // clear allowed values
+      getAllowedValues().clear();
+      
+      // clear allowed value range
+      setMinimumValue(null);
+      setMaximumValue(null);
+      setStep(null);
+      
+      // add allowed value list, if any
+      if(getDataType().equals("string"))
+      {
+         XmlElement allowedValueListElement =
+            element.getFirstChild("allowedValueList");
+         if(allowedValueListElement != null)
+         {
+            // add each allowed value
+            for(Iterator i = allowedValueListElement.
+                getChildren("allowedValue").iterator(); i.hasNext();)
+            {
+               XmlElement allowedValueElement = (XmlElement)i.next();
+               addAllowedValue(allowedValueElement.getValue());
+            }
+         }
+      }
+      else
+      {
+         // add allowed value range, if any
+         XmlElement allowedValueRangeElement =
+            element.getFirstChild("allowedValueRange");
+         if(allowedValueRangeElement != null)
+         {
+            // get minimum value element
+            XmlElement minimumValueElement =
+               allowedValueRangeElement.getFirstChild("minimumValue");
+            setMinimumValue(minimumValueElement.getValue());
+            
+            // add maximum value element
+            XmlElement maximumValueElement =
+               allowedValueRangeElement.getFirstChild("maximumValue");
+            setMaximumValue(maximumValueElement.getValue());
+            
+            // add step element, if applicable
+            if(getStep() != null)
+            {
+               XmlElement stepElement =
+                  allowedValueRangeElement.getFirstChild("step");
+               setStep(stepElement.getValue());
+            }
+         }
+      }
       
       return rval;
+   }
+   
+   /**
+    * Sets the name for this state variable. The name will be truncated at 31
+    * characters.
+    * 
+    * @param name the name for this state variable.
+    */
+   public void setName(String name)
+   {
+      if(name == null)
+      {
+         name = "";
+      }
+      else if(name.length() > 31)
+      {
+         name = name.substring(0, 32);
+      }
+      
+      mName = name;
+   }
+   
+   /**
+    * Gets the name for this state variable.
+    * 
+    * @return the name for this state variable.
+    */
+   public String getName()
+   {
+      return mName;
+   }
+   
+   /**
+    * Sets whether or not events are sent when this variable changes.
+    * 
+    * @param yes true if events are sent when this variable changes, false
+    *            if not.
+    */
+   public void setSendEvents(boolean yes)
+   {
+      if(yes)
+      {
+         mSendEvents = "yes";
+      }
+      else
+      {
+         mSendEvents = "no";
+      }
+   }
+   
+   /**
+    * Gets whether or not events are sent when this variable changes.
+    * 
+    * @return "yes" if events are sent when this variable changes, "no" if
+    *         not.
+    */
+   public String getSendEvents()
+   {
+      return mSendEvents;
+   }
+   
+   /**
+    * Sets the data type for this state variable.
+    * 
+    * @param dataType the data type for this state variable.
+    */
+   public void setDataType(String dataType)
+   {
+      mDataType = dataType;
+   }
+   
+   /**
+    * Gets the data type for this state variable.
+    * 
+    * @return the data type for this state variable.
+    */
+   public String getDataType()
+   {
+      return mDataType;
+   }
+   
+   /**
+    * Sets the default value for this state variable. Null if there is no
+    * default value.
+    * 
+    * @param defaultValue the default value for this state variable.
+    */
+   public void setDefaultValue(String defaultValue)
+   {
+      mDefaultValue = defaultValue;
+   }
+   
+   /**
+    * Gets the default value for this state variable. Null if there is no
+    * default value.
+    * 
+    * @return the default value for this state variable.
+    */
+   public String getDefaultValue()
+   {
+      return mDefaultValue;
+   }
+   
+   /**
+    * Adds an allowed value for this state variable.
+    * 
+    * @param value the allowed value to add.
+    */
+   public void addAllowedValue(String value)
+   {
+      getAllowedValues().add(value);
+   }
+   
+   /**
+    * Removes an allowed value from this state variable.
+    * 
+    * @param value the allowed value to remove.
+    */
+   public void removeAllowedValue(String value)
+   {
+      getAllowedValues().remove(value);
+   }
+   
+   /**
+    * Gets the list of allowed values for this state variable.
+    * 
+    * @return the list of allowed values for this state variable.
+    */
+   public Vector getAllowedValues()
+   {
+      return mAllowedValues;
+   }
+   
+   /**
+    * Clears the list of allowed values for this state variable.
+    */
+   public void clearAllowedValues()
+   {
+      getAllowedValues().clear();
+   }
+   
+   /**
+    * Returns true if this state variable has a list of allowed values,
+    * false if not.
+    * 
+    * @return true if this state variable has a list of allowed values,
+    *         false if not.
+    */
+   public boolean hasAllowedValueList()
+   {
+      return getDataType().equals("string") && getAllowedValues().size() > 0;
+   }
+   
+   /**
+    * Sets the minimum value for this state variable. Null if there is no
+    * minimum.
+    * 
+    * @param min the minimum value for this state variable.
+    */
+   public void setMinimumValue(String min)
+   {
+      mMinimumValue = min;
+   }
+
+   /**
+    * Gets the minimum value for this state variable. Null if there is no
+    * minimum.
+    * 
+    * @return the minimum value for this state variable.
+    */
+   public String getMinimumValue()
+   {
+      return mMinimumValue;
+   }
+   
+   /**
+    * Sets the maximum value for this state variable. Null if there is no
+    * maximum.
+    * 
+    * @param max the maximum value for this state variable.
+    */
+   public void setMaximumValue(String max)
+   {
+      mMaximumValue = max;
+   }   
+   
+   /**
+    * Gets the maximum value for this state variable. Null if there is no
+    * maximum.
+    * 
+    * @return the maximum value for this state variable.
+    */
+   public String getMaximumValue()
+   {
+      return mMaximumValue;
+   }
+   
+   /**
+    * Sets the step value for this state variable. Null if there is no step.
+    * 
+    * @param step the step value for this state variable.
+    */
+   public void setStep(String step)
+   {
+      mStep = step;
+   }
+
+   /**
+    * Gets the step value for this state variable. Null if there is no step.
+    * 
+    * @return the step value for this state variable.
+    */
+   public String getStep()
+   {
+      return mStep;
+   }
+   
+   /**
+    * Returns true if this state variable has a specified allowed value range,
+    * false if not.
+    * 
+    * @return true if this state variable has a specified allowed value range,
+    *         false if not.
+    */
+   public boolean hasAllowedValueRange()
+   {
+      // minimum value must be set if there is an allowed value range set
+      return mMinimumValue != null;
    }
    
    /**

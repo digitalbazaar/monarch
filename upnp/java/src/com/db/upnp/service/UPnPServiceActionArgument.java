@@ -151,13 +151,16 @@ public class UPnPServiceActionArgument extends AbstractXmlSerializer
       XmlElement nameElement = element.getFirstChild("name");
       setName(nameElement.getValue());
       
+      // convert the direction element
       XmlElement directionElement = element.getFirstChild("direction");
       String direction = directionElement.getValue();
       setDirection(direction.equals("in"));
       
+      // convert the return value element
       XmlElement retvalElement = element.getFirstChild("retval");
       setReturnValue(retvalElement != null);
       
+      // convert the related state variable element
       XmlElement relatedStateVariableElement =
          element.getFirstChild("relatedStateVariable");
       setStateVariable(relatedStateVariableElement.getValue());
@@ -166,12 +169,22 @@ public class UPnPServiceActionArgument extends AbstractXmlSerializer
    }
    
    /**
-    * Sets the name for this argument.
+    * Sets the name for this argument. The name will be truncated at 31
+    * characters.
     * 
     * @param name the name for this argument.
     */
    public void setName(String name)
    {
+      if(name == null)
+      {
+         name = "";
+      }
+      else if(name.length() > 31)
+      {
+         name = name.substring(0, 32);
+      }
+      
       mName = name;
    }
    

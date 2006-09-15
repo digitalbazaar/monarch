@@ -3,6 +3,9 @@
  */
 package com.db.upnp.service;
 
+import java.util.Iterator;
+import java.util.Vector;
+
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
@@ -70,10 +73,17 @@ import com.db.xml.XmlElement;
 public class UPnPServiceActionArgumentList extends AbstractXmlSerializer
 {
    /**
+    * The UPnPServiceActionArguments for this list.
+    */
+   protected Vector mArguments;
+   
+   /**
     * Creates a new UPnPServiceActionArgumentList.
     */
    public UPnPServiceActionArgumentList()
    {
+      // create the argument list
+      mArguments = new Vector();
    }
    
    /**
@@ -83,7 +93,7 @@ public class UPnPServiceActionArgumentList extends AbstractXmlSerializer
     */
    public String getRootTag()   
    {
-      return "root";
+      return "argumentList";
    }
    
    /**
@@ -97,13 +107,19 @@ public class UPnPServiceActionArgumentList extends AbstractXmlSerializer
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
-      XmlElement scpdElement = new XmlElement(getRootTag());
-      scpdElement.setParent(parent);
+      XmlElement listElement = new XmlElement(getRootTag());
+      listElement.setParent(parent);
       
-      // FIXME:
+      // convert each argument to an xml element child
+      for(Iterator i = getArguments().iterator(); i.hasNext();)
+      {
+         UPnPServiceActionArgument argument =
+            (UPnPServiceActionArgument)i.next();
+         listElement.addChild(argument.convertToXmlElement(listElement));
+      }
       
       // return root element
-      return scpdElement;
+      return listElement;
    }
    
    /**
@@ -116,10 +132,70 @@ public class UPnPServiceActionArgumentList extends AbstractXmlSerializer
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = true;
-
-      // FIXME:
+      
+      // clear argument list
+      clear();
+      
+      // convert arguments
+      for(Iterator i = element.getChildren("argument").iterator(); i.hasNext();)
+      {
+         XmlElement argumentElement = (XmlElement)i.next();
+         UPnPServiceActionArgument argument = new UPnPServiceActionArgument();
+         if(argument.convertFromXmlElement(argumentElement))
+         {
+            addArgument(argument);
+         }
+      }
       
       return rval;
+   }
+   
+   /**
+    * Adds a UPnPServiceActionArgument to this list.
+    * 
+    * @param argument the UPnPServiceActionArgument to add.
+    */
+   public void addArgument(UPnPServiceActionArgument argument)
+   {
+      getArguments().add(argument);
+   }
+   
+   /**
+    * Removes a UPnPServiceActionArgument from this list.
+    * 
+    * @param argument the UPnPServiceActionArgument to remove.
+    */
+   public void removeArgument(UPnPServiceActionArgument argument)
+   {
+      getArguments().remove(argument);
+   }
+   
+   /**
+    * Gets the UPnPServiceActionArguments for this list in a vector.
+    * 
+    * @return the UPnPServiceActionArguments for this list in a vector.
+    */
+   public Vector getArguments()
+   {
+      return mArguments;
+   }
+   
+   /**
+    * Clears the arguments from this list.
+    */
+   public void clear()
+   {
+      getArguments().clear();
+   }
+   
+   /**
+    * Gets the number of arguments in this list.
+    * 
+    * @return the number of arguments in this list.
+    */
+   public int getArgumentCount()
+   {
+      return getArguments().size();
    }
    
    /**
