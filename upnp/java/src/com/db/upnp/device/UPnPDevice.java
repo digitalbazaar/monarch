@@ -47,7 +47,7 @@ public class UPnPDevice
    public UPnPDeviceDescription getDescription()   
    {
       return mDescription;
-   }   
+   }
    
    /**
     * Gets the logger for this UPnPDevice.

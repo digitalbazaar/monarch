@@ -3,8 +3,11 @@
  */
 package com.db.upnp.service;
 
+import java.net.MalformedURLException;
+
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.net.http.HttpWebClient;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
 
@@ -134,6 +137,43 @@ public class UPnPService extends AbstractXmlSerializer
       
       // set the description for this service to null
       setDescription(null);
+   }
+   
+   /**
+    * Retrieves the UPnPServiceDescription for this service from its SCPD URL.
+    * 
+    * This method will do an HTTP GET to retrieve the UPnP Service Control
+    * Protocol Description from the URL set by setSpcdUrl().
+    * 
+    * @return true if the service description was retrieved successfully,
+    *         false if not.
+    * 
+    * @exception MalformedURLException thrown if the URL from getScpdUrl()
+    *                                  is malformed.
+    */
+   public boolean retrieveDescription()
+   throws MalformedURLException
+   {
+      boolean rval = false;
+      
+      // create http client and get the xml from the location 
+      HttpWebClient client = new HttpWebClient();
+      String xml = client.getContent(getScpdUrl());
+      if(xml != null)
+      {
+         // create a new UPnPServiceDescription
+         UPnPServiceDescription description = new UPnPServiceDescription();
+         
+         // convert the description from the retrieved xml
+         if(description.convertFromXml(xml))
+         {
+            // set the description to this service
+            setDescription(description);
+            rval = true;
+         }
+      }
+      
+      return rval;
    }
    
    /**

@@ -3,6 +3,10 @@
  */
 package com.db.upnp.device;
 
+import java.net.MalformedURLException;
+
+import com.db.net.http.HttpWebClient;
+
 /**
  * A UPnPRootDevice is a root device that has a UPnP server that allows it
  * to make itself available to a UPnPControlPoint. It has a "search target"
@@ -11,7 +15,7 @@ package com.db.upnp.device;
  * 
  * @author Dave Longley
  */
-public class UPnPRootDevice
+public class UPnPRootDevice extends UPnPDevice
 {
    /**
     * The server for the device.
@@ -44,6 +48,43 @@ public class UPnPRootDevice
       setLocation("");
       setUsn("");
    }
+   
+   /**
+    * Retrieves the UPnPDeviceDescription for this device from its location.
+    * 
+    * This method will do an HTTP GET to retrieve the UPnP Device Description
+    * from the URL set by setLocation().
+    * 
+    * @return true if the device description was retrieved successfully,
+    *         false if not.
+    * 
+    * @exception MalformedURLException thrown if the URL from getLocation()
+    *                                  is malformed.
+    */
+   public boolean retrieveDescription()
+   throws MalformedURLException
+   {
+      boolean rval = false;
+      
+      // create http client and get the xml from the location 
+      HttpWebClient client = new HttpWebClient();
+      String xml = client.getContent(getLocation());
+      if(xml != null)
+      {
+         // create a new UPnPDeviceDescription
+         UPnPDeviceDescription description = new UPnPDeviceDescription();
+         
+         // convert the description from the retrieved xml
+         if(description.convertFromXml(xml))
+         {
+            // set the description to this device
+            setDescription(description);
+            rval = true;
+         }
+      }
+      
+      return rval;
+   }   
    
    /**
     * Sets the server for this device.
