@@ -413,6 +413,78 @@ public class HttpWebClient implements WebConnectionClient
    }
    
    /**
+    * A convenience method for performing an HTTP GET to retrieve content
+    * as a string.
+    * 
+    * @param url the url for the content.
+    * 
+    * @return the retrieved content or null if no content could be retrieved.
+    * 
+    * @throws MalformedURLException
+    */
+   public String getContent(String url)
+   throws MalformedURLException
+   {
+      return getContent(new URL(url));
+   }
+   
+   /**
+    * A convenience method for performing an HTTP GET to retrieve content
+    * as a string.
+    * 
+    * @param url the url for the content.
+    * 
+    * @return the retrieved content or null if no content could be retrieved.
+    */
+   public String getContent(URL url)
+   {
+      String rval = null;
+      
+      // get a web connection
+      HttpWebConnection connection = connect(url);
+      if(connection != null)
+      {
+         // get the port to connect to
+         int port = url.getPort();
+         if(port == -1)
+         {
+            // get the default port
+            port = url.getDefaultPort();
+         }
+         
+         // create http web request
+         HttpWebRequest request = new HttpWebRequest(connection);
+         request.getHeader().setMethod("GET");
+         request.getHeader().setPath(url.toString());
+         request.getHeader().setVersion("HTTP/1.1");
+         request.getHeader().setHost(url.getHost() + ":" + port);
+         request.getHeader().setUserAgent(DEFAULT_USER_AGENT);
+         request.getHeader().setConnection("close");
+         
+         // send request
+         if(sendRequest(request))
+         {
+            // receive response header
+            HttpWebResponse response = request.createHttpWebResponse();
+            if(receiveResponseHeader(response))
+            {
+               // see if response was OK
+               if(response.getHeader().hasOKStatusCode())
+               {
+                  // receive body string
+                  rval = response.receiveBodyString();
+               }
+            }
+         }
+         
+         // disconnect
+         connection.disconnect();
+      }
+      
+      return rval;      
+   }
+   
+   /**
     * A convenience method for performing an HTTP GET to retrieve a file.
     * 
     * @param url the url for the file.

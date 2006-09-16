@@ -57,6 +57,31 @@ import com.db.xml.XmlElement;
 public class UPnPDeviceIcon extends AbstractXmlSerializer
 {
    /**
+    * The MIME type for this icon.
+    */
+   protected String mMimeType;
+   
+   /**
+    * The width (in horizontal pixels) for this icon.
+    */
+   protected int mWidth;
+   
+   /**
+    * The height (in vertical pixels) for this icon.
+    */
+   protected int mHeight;
+   
+   /**
+    * The color depth (number of color bits per pixel) for this icon.
+    */
+   protected int mDepth;
+   
+   /**
+    * The URL to the icon image (retrieved via HTTP).
+    */
+   protected String mIconUrl;
+   
+   /**
     * Creates a new UPnPDeviceIcon.
     */
    public UPnPDeviceIcon()
@@ -70,7 +95,7 @@ public class UPnPDeviceIcon extends AbstractXmlSerializer
     */
    public String getRootTag()   
    {
-      return "root";
+      return "icon";
    }
    
    /**
@@ -84,13 +109,36 @@ public class UPnPDeviceIcon extends AbstractXmlSerializer
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
-      XmlElement rootElement = new XmlElement(getRootTag());
-      rootElement.setParent(parent);
+      XmlElement iconElement = new XmlElement(getRootTag());
+      iconElement.setParent(parent);
       
-      // FIXME:
+      // create the mime type element
+      XmlElement mimeTypeElement = new XmlElement("mimeType");
+      mimeTypeElement.setValue(getMimeType());
+      iconElement.addChild(mimeTypeElement);
+      
+      // create the width element
+      XmlElement widthElement = new XmlElement("width");
+      widthElement.setValue(getWidth());
+      iconElement.addChild(widthElement);
+      
+      // create the height element
+      XmlElement heightElement = new XmlElement("height");
+      heightElement.setValue(getHeight());
+      iconElement.addChild(heightElement);
+      
+      // create the depth element
+      XmlElement depthElement = new XmlElement("depth");
+      depthElement.setValue(getDepth());
+      iconElement.addChild(depthElement);
+      
+      // create the icon url element
+      XmlElement urlElement = new XmlElement("url");
+      urlElement.setValue(getIconUrl());
+      iconElement.addChild(urlElement);
       
       // return root element
-      return rootElement;
+      return iconElement;
    }
    
    /**
@@ -103,10 +151,124 @@ public class UPnPDeviceIcon extends AbstractXmlSerializer
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = true;
-
-      // FIXME:
+      
+      // get the mime type element
+      setMimeType(element.getFirstChildValue("mimeType"));
+      
+      // get the width element
+      setWidth(Integer.parseInt(element.getFirstChildValue("width")));
+      
+      // get the height element
+      setHeight(Integer.parseInt(element.getFirstChildValue("height")));
+      
+      // get the depth element
+      setDepth(Integer.parseInt(element.getFirstChildValue("depth")));
+      
+      // get the icon url element
+      setIconUrl(element.getFirstChildValue("url"));
       
       return rval;
+   }
+   
+   /**
+    * Set the MIME type for this icon.
+    * 
+    * @param mimeType the MIME type for this icon.
+    */
+   public void setMimeType(String mimeType)
+   {
+      mMimeType = mimeType;
+   }
+   
+   /**
+    * Get the MIME type for this icon.
+    * 
+    * @return the MIME type for this icon.
+    */
+   public String getMimeType()
+   {
+      return mMimeType;
+   }
+   
+   /**
+    * Sets the width (in horizontal pixels) for this icon.
+    * 
+    * @param width the width (in horizontal pixels) for this icon.
+    */
+   public void setWidth(int width)
+   {
+      mWidth = width;
+   }
+   
+   /**
+    * Gets the width (in horizontal pixels) for this icon.
+    * 
+    * @return the width (in horizontal pixels) for this icon.
+    */
+   public int getWidth()
+   {
+      return mWidth;
+   }
+   
+   /**
+    * Sets the height (in vertical pixels) for this icon.
+    * 
+    * @param height the height (in vertical pixels) for this icon.
+    */
+   public void setHeight(int height)
+   {
+      mHeight = height;
+   }
+   
+   /**
+    * Gets the height (in vertical pixels) for this icon.
+    * 
+    * @return the height (in vertical pixels) for this icon.
+    */
+   public int getHeight()
+   {
+      return mHeight;
+   }
+   
+   /**
+    * Sets the color depth (number of color bits per pixel) for this icon.
+    * 
+    * @param depth the color depth (number of color bits per pixel) for this
+    *              icon.
+    */
+   public void setDepth(int depth)
+   {
+      mDepth = depth;
+   }
+   
+   /**
+    * Gets the color depth (the number of color bits per pixel) for this icon.
+    * 
+    * @return the color depth (number of color bits per pixel) for this icon.
+    */
+   public int getDepth()
+   {
+      return mDepth;
+   }   
+   
+   /**
+    * Sets the URL to the icon image (retrieved via HTTP).
+    * 
+    * @param iconUrl the URL to the icon image.
+    */
+   public void setIconUrl(String iconUrl)
+   {
+      mIconUrl = iconUrl;
+   }
+   
+   /**
+    * Gets the URL to the icon image (retrieved via HTTP).
+    * 
+    * @return the URL to the icon image.
+    */
+   public String getIconUrl()
+   {
+      return mIconUrl;
    }
    
    /**

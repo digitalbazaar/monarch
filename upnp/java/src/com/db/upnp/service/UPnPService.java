@@ -200,19 +200,19 @@ public class UPnPService extends AbstractXmlSerializer
    {
       boolean rval = true;
       
-      // create service type element
+      // get service type element
       setServiceType(element.getFirstChildValue("serviceType"));
       
-      // create service ID element
+      // get service ID element
       setServiceId(element.getFirstChildValue("serviceId"));
       
-      // create scpd URL element
+      // get scpd URL element
       setScpdUrl(element.getFirstChildValue("SCPDURL"));
       
-      // create control URL element
+      // get control URL element
       setControlUrl(element.getFirstChildValue("controlURL"));
       
-      // create event URL element
+      // get event URL element
       setEventUrl(element.getFirstChildValue("eventSubURL"));
       
       return rval;
