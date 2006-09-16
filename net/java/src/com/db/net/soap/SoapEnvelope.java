@@ -172,7 +172,7 @@ public class SoapEnvelope extends AbstractXmlSerializer
       if(mHeaderBlockSerializers.size() > 0)
       {
          // add the header element
-         XmlElement headerElement = new XmlElement("Header", SOAP_ENVELOPE_URI);
+         XmlElement headerElement = new XmlElement("Header");
          envelopeElement.addChild(headerElement);
          
          // add each header block
@@ -189,7 +189,7 @@ public class SoapEnvelope extends AbstractXmlSerializer
       if(mBodyContentSerializers.size() > 0)
       {
          // add the body element
-         XmlElement bodyElement = new XmlElement("Body", SOAP_ENVELOPE_URI);
+         XmlElement bodyElement = new XmlElement("Body");
          envelopeElement.addChild(bodyElement);
          
          // add each body sub-element

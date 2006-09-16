@@ -130,8 +130,7 @@ public class SoapFault extends AbstractXmlSerializer
       if(getFaultDetail() != null)
       {
          // create the faultdetail element, if any
-         XmlElement faultdetailElement =
-            new XmlElement("detail", SoapEnvelope.SOAP_ENVELOPE_URI);
+         XmlElement faultdetailElement = new XmlElement("detail");
          faultdetailElement.addChild(getFaultDetail());
          faultElement.addChild(faultdetailElement);
       }
