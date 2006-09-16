@@ -148,8 +148,7 @@ public class UPnPServiceActionArgument extends AbstractXmlSerializer
       boolean rval = true;
       
       // convert the name element
-      XmlElement nameElement = element.getFirstChild("name");
-      setName(nameElement.getValue());
+      setName(element.getFirstChildValue("name"));
       
       // convert the direction element
       setDirection(element.getFirstChildValue("direction").equals("in"));
@@ -158,9 +157,7 @@ public class UPnPServiceActionArgument extends AbstractXmlSerializer
       setReturnValue(element.hasChild("retval"));
       
       // convert the related state variable element
-      XmlElement relatedStateVariableElement =
-         element.getFirstChild("relatedStateVariable");
-      setStateVariable(relatedStateVariableElement.getValue());
+      setStateVariable(element.getFirstChildValue("relatedStateVariable"));
       
       return rval;
    }

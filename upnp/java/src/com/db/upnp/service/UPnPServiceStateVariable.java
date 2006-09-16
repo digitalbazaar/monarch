@@ -370,12 +370,10 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
       setSendEvents(sendEvents.equals("yes"));
       
       // get the name element
-      XmlElement nameElement = element.getFirstChild("name");
-      setName(nameElement.getValue());
+      setName(element.getFirstChildValue("name"));
       
       // get the data type element
-      XmlElement dataTypeElement = element.getFirstChild("dataType");
-      setDataType(dataTypeElement.getValue());
+      setDataType(element.getFirstChildValue("dataType"));
       
       // get default value element, if any
       XmlElement defaultValueElement = element.getFirstChild("defaultValue");
@@ -421,21 +419,17 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
          if(allowedValueRangeElement != null)
          {
             // get minimum value element
-            XmlElement minimumValueElement =
-               allowedValueRangeElement.getFirstChild("minimumValue");
-            setMinimumValue(minimumValueElement.getValue());
+            setMinimumValue(
+               allowedValueRangeElement.getFirstChildValue("minimumValue"));
             
             // add maximum value element
-            XmlElement maximumValueElement =
-               allowedValueRangeElement.getFirstChild("maximumValue");
-            setMaximumValue(maximumValueElement.getValue());
+            setMaximumValue(
+               allowedValueRangeElement.getFirstChildValue("maximumValue"));
             
             // add step element, if applicable
             if(getStep() != null)
             {
-               XmlElement stepElement =
-                  allowedValueRangeElement.getFirstChild("step");
-               setStep(stepElement.getValue());
+               setStep(allowedValueRangeElement.getFirstChildValue("step"));
             }
          }
       }

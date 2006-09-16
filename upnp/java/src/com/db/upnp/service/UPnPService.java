@@ -66,7 +66,7 @@ import com.db.xml.XmlElement;
  * specified by a UPnP vendor must be <= 64 characters. Single URI.
  * 
  * SCPDURL
- * Required. URL for service description (nee Service Control Protocol
+ * Required. URL for service description (see Service Control Protocol
  * Definition URL). (cf. section below on service description.) May be relative
  * to base URL. Specified by UPnP vendor. Single URL.
  * 
@@ -88,10 +88,52 @@ import com.db.xml.XmlElement;
 public class UPnPService extends AbstractXmlSerializer
 {
    /**
-    * Creates a new UPnPService.
+    * The service type for this service (a URI).
+    */
+   protected String mServiceType;
+   
+   /**
+    * The service ID for this service (a URI).
+    */
+   protected String mServiceId;
+   
+   /**
+    * The URL to the service description (Service Protocol Control Definition)
+    * for this service. It may be a relative URL.
+    */
+   protected String mScpdUrl;
+   
+   /**
+    * The URL used to control this service. This is the URL that control
+    * points post SOAP operations to in order to make use of this service. It
+    * may be a relative URL.
+    */
+   protected String mControlUrl;
+   
+   /**
+    * The URL used to handle events for this service. It may be a relative URL.
+    */
+   protected String mEventUrl;
+   
+   /**
+    * The UPnPServiceDescription for this UPnPService.
+    */
+   protected UPnPServiceDescription mDescription;
+   
+   /**
+    * Creates a new UPnPService with no set UPnPServiceDescription.
     */
    public UPnPService()
    {
+      // set defaults
+      setServiceType("urn:schemas-upnp-org:service:serviceType:v");
+      setServiceId("urn:upnp-org:serviceId:serviceID");
+      setScpdUrl("");
+      setControlUrl("");
+      setEventUrl("");
+      
+      // set the description for this service to null
+      setDescription(null);
    }
    
    /**
@@ -101,7 +143,7 @@ public class UPnPService extends AbstractXmlSerializer
     */
    public String getRootTag()   
    {
-      return "root";
+      return "service";
    }
    
    /**
@@ -115,13 +157,36 @@ public class UPnPService extends AbstractXmlSerializer
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
-      XmlElement rootElement = new XmlElement(getRootTag());
-      rootElement.setParent(parent);
+      XmlElement serviceElement = new XmlElement(getRootTag());
+      serviceElement.setParent(parent);
       
-      // FIXME:
+      // create service type element
+      XmlElement serviceTypeElement = new XmlElement("serviceType");
+      serviceTypeElement.setValue(getServiceType());
+      serviceElement.addChild(serviceTypeElement);
+      
+      // create service ID element
+      XmlElement serviceIdElement = new XmlElement("serviceId");
+      serviceIdElement.setValue(getServiceId());
+      serviceElement.addChild(serviceIdElement);
+      
+      // create scpd URL element
+      XmlElement scpdUrlElement = new XmlElement("SCPDURL");
+      scpdUrlElement.setValue(getScpdUrl());
+      serviceElement.addChild(scpdUrlElement);
+      
+      // create control URL element
+      XmlElement controlUrlElement = new XmlElement("controlURL");
+      controlUrlElement.setValue(getControlUrl());
+      serviceElement.addChild(controlUrlElement);
+      
+      // create event URL element
+      XmlElement eventUrlElement = new XmlElement("eventSubURL");
+      eventUrlElement.setValue(getEventUrl());
+      serviceElement.addChild(eventUrlElement);
       
       // return root element
-      return rootElement;
+      return serviceElement;
    }
    
    /**
@@ -134,10 +199,154 @@ public class UPnPService extends AbstractXmlSerializer
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = true;
-
-      // FIXME:
+      
+      // create service type element
+      setServiceType(element.getFirstChildValue("serviceType"));
+      
+      // create service ID element
+      setServiceId(element.getFirstChildValue("serviceId"));
+      
+      // create scpd URL element
+      setScpdUrl(element.getFirstChildValue("SCPDURL"));
+      
+      // create control URL element
+      setControlUrl(element.getFirstChildValue("controlURL"));
+      
+      // create event URL element
+      setEventUrl(element.getFirstChildValue("eventSubURL"));
       
       return rval;
+   }
+   
+   /**
+    * Sets the service type for this service (a URI).
+    * 
+    * @param serviceType the service type for this service.
+    */
+   public void setServiceType(String serviceType)
+   {
+      mServiceType = serviceType;
+   }
+   
+   /**
+    * Gets the service type for this service (a URI).
+    * 
+    * @return the service type for this service.
+    */
+   public String getServiceType()
+   {
+      return mServiceType;
+   }
+   
+   /**
+    * Sets the service ID for this service (a URI).
+    * 
+    * @param serviceId the service ID for this service.
+    */
+   public void setServiceId(String serviceId)
+   {
+      mServiceId = serviceId;
+   }
+   
+   /**
+    * Gets the service ID for this service (a URI).
+    * 
+    * @return the service ID for this service.
+    */
+   public String getServiceId()
+   {
+      return mServiceId;
+   }
+
+   /**
+    * Sets the URL to the service description (Service Protocol Control
+    * Definition) for this service. It may be a relative URL.
+    * 
+    * @param scpdUrl the URL to the service description for this service.
+    */
+   public void setScpdUrl(String scpdUrl)
+   {
+      mScpdUrl = scpdUrl;
+   }
+   
+   /**
+    * Gets the URL to the service description (Service Protocol Control
+    * Definition) for this service. It may be a relative URL.
+    * 
+    * @return the URL to the service description for this service.
+    */
+   public String getScpdUrl()
+   {
+      return mScpdUrl;
+   }
+   
+   /**
+    * Sets the URL used to control this service. This is the URL that control
+    * points post SOAP operations to in order to make use of this service. It
+    * may be a relative URL.
+    * 
+    * @param controlUrl the URL to control this service.
+    */
+   public void setControlUrl(String controlUrl)
+   {
+      mControlUrl = controlUrl;
+   }
+   
+   /**
+    * Gets the URL used to control this service. This is the URL that control
+    * points post SOAP operations to in order to make use of this service. It
+    * may be a relative URL.
+    * 
+    * @return the URL to control this service.
+    */
+   public String getControlUrl()
+   {
+      return mControlUrl;
+   }
+   
+   /**
+    * Sets the URL used to handle events for this service. It may be a relative
+    * URL. May be a blank string if there are no events for this service.
+    * 
+    * @param eventUrl the URL for events for this service (may be a blank
+    *                 string if there are no events for this service).
+    */
+   public void setEventUrl(String eventUrl)
+   {
+      mEventUrl = eventUrl;
+   }
+   
+   /**
+    * Gets the URL used to handle events for this service. It may be a relative
+    * URL. May be a blank string if there are no events for this service.
+    * 
+    * @return the URL for events for this service (may be a blank string if
+    *         there are no events for this service).
+    */
+   public String getEventUrl()
+   {
+      return mEventUrl;
+   }
+   
+   /**
+    * Sets the UPnPServiceDescription for this UPnPService.
+    * 
+    * @param description the UPnPServiceDescription for this UPnPService.
+    */
+   public void setDescription(UPnPServiceDescription description)
+   {
+      mDescription = description;
+   }
+
+   /**
+    * Gets the UPnPServiceDescription for this UPnPService. This method
+    * will return null if no description has been set for this UPnPService.
+    * 
+    * @return the UPnPServiceDescription for this UPnPService (can be null).
+    */
+   public UPnPServiceDescription getDescription()   
+   {
+      return mDescription;
    }
    
    /**

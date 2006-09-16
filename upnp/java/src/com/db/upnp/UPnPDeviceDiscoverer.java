@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import com.db.net.datagram.DatagramClient;
 import com.db.net.datagram.DatagramStream;
+import com.db.upnp.device.UPnPRootDevice;
 
 /**
  * A UPnP Device Discoverer. This is an object that is capable of
@@ -42,15 +43,15 @@ public class UPnPDeviceDiscoverer
    /**
     * Sends an SSDP message to discover UPnP devices.
     * 
-    * @return a list of the discovered UPnPDevices as UPnPDiscoverResults.
+    * @return a list of the discovered UPnPRootDevices.
     * 
     * @exception IOException thrown if an IO exception occurs.
     */
-   public UPnPDiscoverResult[] discover() throws IOException
+   public UPnPRootDevice[] discover() throws IOException
    {
-      UPnPDiscoverResult[] results = null;
+      UPnPRootDevice[] devices = null;
       
-      // create a vector for storing discover results
+      // create a vector for storing discovered devices
       Vector discoveredDevices = new Vector(); 
       
       // get a multicast stream
@@ -90,9 +91,17 @@ public class UPnPDeviceDiscoverer
             UPnPDiscoverResponse response = new UPnPDiscoverResponse(datagram);
             if(response.isValid())
             {
-               // create a UPnPDiscoverResult from the response
-               UPnPDiscoverResult result = new UPnPDiscoverResult(response);
-               discoveredDevices.add(result);
+               // create a UPnPRootDevice from the response
+               UPnPRootDevice device = new UPnPRootDevice();
+               
+               // get device information
+               device.setServer(response.getServer());
+               device.setSearchTarget(response.getSearchTarget());
+               device.setLocation(response.getLocation());
+               device.setUsn(response.getUsn());
+               
+               // add device to list of discovered devices
+               discoveredDevices.add(device);
             }
          }
       }
@@ -101,16 +110,16 @@ public class UPnPDeviceDiscoverer
          // ignore timeout exception
       }
 
-      // create results array
-      results = new UPnPDiscoverResult[discoveredDevices.size()];
+      // create devices array
+      devices = new UPnPRootDevice[discoveredDevices.size()];
       int count = 0;
       for(Iterator i = discoveredDevices.iterator(); i.hasNext(); count++)
       {
-         results[count] = (UPnPDiscoverResult)i.next();
+         devices[count] = (UPnPRootDevice)i.next();
       }
       
-      // return results
-      return results;
+      // return devices
+      return devices;
    }
    
    /**

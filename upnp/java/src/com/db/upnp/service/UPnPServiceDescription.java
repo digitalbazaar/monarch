@@ -9,7 +9,8 @@ import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
 
 /**
- * A UPnPServiceDescription is an XML document that describes a UPnPService. 
+ * A UPnPServiceDescription is an XML document that describes a UPnPService. It
+ * is a Service Procotol Control Definition (SCPD).
  * 
  * The following is taken from:
  * 

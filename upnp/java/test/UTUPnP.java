@@ -4,7 +4,7 @@
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.upnp.UPnPDeviceDiscoverer;
-import com.db.upnp.UPnPDiscoverResult;
+import com.db.upnp.device.UPnPRootDevice;
 
 /**
  * This class is used to test UPnP functionality.
@@ -36,15 +36,15 @@ public class UTUPnP
          
          System.out.println("Running UPnP device discovery...");
          UPnPDeviceDiscoverer discoverer = new UPnPDeviceDiscoverer();
-         UPnPDiscoverResult[] results = discoverer.discover();
+         UPnPRootDevice[] devices = discoverer.discover();
          System.out.println("UPnP device discovery complete.");
          
          System.out.println("Discovered UPnP devices:\n");
          
-         // display results
-         for(int i = 0; i < results.length; i++)
+         // display devices
+         for(int i = 0; i < devices.length; i++)
          {
-            System.out.println(results[i].toString());
+            System.out.println(devices[i].toString());
          }
          
          System.out.println("\nUPnP functionality test complete.");
