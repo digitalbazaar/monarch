@@ -150,8 +150,8 @@ public class SoapOperationParameter extends AbstractXmlSerializer
       if(mTargetNamespaceUri != null)
       {
          // set the namespace and add the attribute defining the namespace
-         element.setNamespace("tns", mTargetNamespaceUri);
-         element.addAttribute("tns", mTargetNamespaceUri, "xmlns", null);
+         element.setNamespaceUri(mTargetNamespaceUri);
+         element.addAttribute("xmlns:tns", mTargetNamespaceUri);
       }
       
       // return element

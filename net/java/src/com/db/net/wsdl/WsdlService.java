@@ -191,7 +191,8 @@ public class WsdlService extends AbstractXmlSerializer
             {
                // FUTURE CODE: current implementation can only read
                // WsdlSoapPorts
-               XmlElement soapElement = child.getFirstChild("soap:address");
+               XmlElement soapElement =
+                  child.getFirstChild("address", Wsdl.WSDL_SOAP_NAMESPACE_URI);
                if(soapElement != null)
                {
                   WsdlPort port = new WsdlSoapPort(binding);

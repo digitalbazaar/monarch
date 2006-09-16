@@ -156,7 +156,7 @@ public class UTSoap
          
          SoapOperation operation2 = new SoapOperation();
          operation2.convertFromXmlElement(
-            (XmlElement)envelope2.getBodyContents().get(0));
+            (com.db.xml.XmlElement)envelope2.getBodyContents().get(0));
          //envelope2.addBodyContentSerializer(operation2);
          SoapEnvelope envelope3 = new SoapEnvelope();
          envelope3.addBodyContentSerializer(operation2);

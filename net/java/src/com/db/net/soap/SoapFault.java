@@ -104,16 +104,13 @@ public class SoapFault extends AbstractXmlSerializer
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
-      XmlElement faultElement = new XmlElement(getRootTag());
+      XmlElement faultElement =
+         new XmlElement(getRootTag(), SoapEnvelope.SOAP_ENVELOPE_URI);
       faultElement.setParent(parent);
       
       // get the soap envelope namespace prefix
-      String envelopePrefix = faultElement.findNamespace(
+      String envelopePrefix = faultElement.findNamespacePrefix(
          SoapEnvelope.SOAP_ENVELOPE_URI);
-      
-      // set the namespace for the fault element
-      faultElement.setNamespace(
-         envelopePrefix, SoapEnvelope.SOAP_ENVELOPE_URI);
       
       // create the faultcode element
       XmlElement faultcodeElement = new XmlElement("faultcode");
@@ -133,9 +130,8 @@ public class SoapFault extends AbstractXmlSerializer
       if(getFaultDetail() != null)
       {
          // create the faultdetail element, if any
-         XmlElement faultdetailElement = new XmlElement("detail");
-         faultdetailElement.setNamespace(
-            envelopePrefix, SoapEnvelope.SOAP_ENVELOPE_URI);
+         XmlElement faultdetailElement =
+            new XmlElement("detail", SoapEnvelope.SOAP_ENVELOPE_URI);
          faultdetailElement.addChild(getFaultDetail());
          faultElement.addChild(faultdetailElement);
       }
@@ -160,7 +156,7 @@ public class SoapFault extends AbstractXmlSerializer
       if(faultcodeElement != null)
       {
          // remove any namespace prefix for the fault code
-         setFaultCode(XmlElement.getBasicName(faultcodeElement.getValue()));
+         setFaultCode(XmlElement.parseLocalName(faultcodeElement.getValue()));
       }
       
       // get the faultstring element

@@ -107,9 +107,20 @@ public class WsdlPortTypeOperation extends AbstractXmlSerializer
     */
    protected void addInputMessageXml(XmlElement element)
    {
+      // get the input message name
+      String name = getInputMessageName();
+      
+      // get the namespace prefix
+      String prefix = element.findNamespacePrefix(
+         getPortType().getNamespaceUri());
+      if(prefix != null)
+      {
+         name = prefix + ":" + name;
+      }
+      
       // create child element
       XmlElement child = new XmlElement("input");
-      child.addAttribute("message", "tns:" + getInputMessageName());
+      child.addAttribute("message", name);
       
       // add child
       element.addChild(child);
@@ -122,9 +133,20 @@ public class WsdlPortTypeOperation extends AbstractXmlSerializer
     */
    protected void addOutputMessageXml(XmlElement element)
    {
+      // get the output message name
+      String name = getOutputMessageName();
+      
+      // get the namespace prefix
+      String prefix = element.findNamespacePrefix(
+         getPortType().getNamespaceUri());
+      if(prefix != null)
+      {
+         name = prefix + ":" + name;
+      }
+      
       // create child element
       XmlElement child = new XmlElement("output");
-      child.addAttribute("message", "tns:" + getOutputMessageName());
+      child.addAttribute("message", name);
       
       // add child
       element.addChild(child);

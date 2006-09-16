@@ -156,25 +156,23 @@ public class SoapEnvelope extends AbstractXmlSerializer
     */
    public XmlElement convertToXmlElement(XmlElement parent)
    {
-      // use a namespace prefix of "soapenv" for the soap envelope elements
-      String prefix = "soapenv";
-
-      // create the root xml element, using the namespace prefix and the
-      // SOAP envelope URI that points to the SOAP envelope XML schema
+      // create the root xml element with the SOAP envelope namespace
       XmlElement envelopeElement = new XmlElement(
-         getRootTag(), prefix, SOAP_ENVELOPE_URI);
+         getRootTag(), SOAP_ENVELOPE_URI);
       envelopeElement.setParent(parent);
       
-      // add an attribute defining the "soapenv" namespace prefix
-      envelopeElement.addAttribute(prefix, SOAP_ENVELOPE_URI, "xmlns", null);
+      // use a namespace prefix of "soapenv" for the soap envelope elements
+      String prefix = "soapenv";
+      
+      // add an attribute defining the namespace prefix
+      envelopeElement.addAttribute("xmlns:" + prefix, SOAP_ENVELOPE_URI);
       
       // if there are header serializers present, then add a header element
       // and serialize the header blocks
       if(mHeaderBlockSerializers.size() > 0)
       {
          // add the header element
-         XmlElement headerElement =
-            new XmlElement("Header", prefix, SOAP_ENVELOPE_URI);
+         XmlElement headerElement = new XmlElement("Header", SOAP_ENVELOPE_URI);
          envelopeElement.addChild(headerElement);
          
          // add each header block
@@ -191,8 +189,7 @@ public class SoapEnvelope extends AbstractXmlSerializer
       if(mBodyContentSerializers.size() > 0)
       {
          // add the body element
-         XmlElement bodyElement =
-            new XmlElement("Body", prefix, SOAP_ENVELOPE_URI);
+         XmlElement bodyElement = new XmlElement("Body", SOAP_ENVELOPE_URI);
          envelopeElement.addChild(bodyElement);
          
          // add each body sub-element

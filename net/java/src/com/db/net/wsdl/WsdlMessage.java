@@ -144,7 +144,7 @@ public class WsdlMessage extends AbstractXmlSerializer
       element.setParent(parent);
       
       // add attributes
-      element.getAttributeMap().addAttribute("name", getName());
+      element.addAttribute("name", getName());
       
       // parts
       for(Iterator i = getParts().iterator(); i.hasNext();)

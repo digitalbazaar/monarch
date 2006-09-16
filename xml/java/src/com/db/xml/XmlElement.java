@@ -27,9 +27,9 @@ import com.db.logging.LoggerManager;
  * 
  * An XmlElement be parsed from an XML string or written out to an XML string.
  * 
- * FUTURE CODE: we need to better namespace support -- the way we check for
- * element names and attributes sometimes doesn't qualify them, which defeats
- * the purpose of namespaces.
+ * This class is essentially a simpler/dumber implementation of a DOM element
+ * that provides a less complex interface for manipulating XML. XmlElements are
+ * constructed from DOM elements when converting from XML.
  * 
  * @author Dave Longley
  */
@@ -41,20 +41,15 @@ public class XmlElement extends AbstractXmlSerializer
    protected String mName;
    
    /**
-    * The namespace for this element.
-    */
-   protected String mNamespace;
-   
-   /**
-    * The namespace URI for this element. This is the URI that this element's
-    * namespace prefix maps to.
+    * The namespace URI for this element. This is the URI that points to
+    * the definition for this element.
     */
    protected String mNamespaceUri;
    
    /**
-    * The attributes for this element.
+    * The list of XmlAttributes for this element.
     */
-   protected XmlAttributeMap mAttributes;
+   protected XmlAttributeList mAttributes;
    
    /**
     * The parent of this element (can be null).
@@ -87,7 +82,7 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public XmlElement(String name)
    {
-      this(name, null, null);
+      this(name, null);
    }
    
    /**
@@ -96,26 +91,22 @@ public class XmlElement extends AbstractXmlSerializer
     * 
     * @param name the name of this XmlElement -- this is the name that will
     *             be displayed inside of its root tag.
-    * @param namespace the namespace of this XmlElement -- this is the prefix
-    *                  that is displayed before the name of the element (null
-    *                  indicates the default namespace where no prefix is
-    *                  displayed before the name).
     * @param namespaceUri the URI (Universal Resource Indicator) that points
     *                     to the definition of the namespace for this element.
     */
-   public XmlElement(String name, String namespace, String namespaceUri)
+   public XmlElement(String name, String namespaceUri)
    {
       // create the vector for this element's children
       mChildren = new Vector();
       
-      // create the attribute map for this element
-      mAttributes = new XmlAttributeMap();
+      // create the attribute list for this element
+      mAttributes = new XmlAttributeList(this);
       
       // set the name of this element
       setName(name);
       
-      // set the namespace of this element
-      setNamespace(namespace, namespaceUri);
+      // set the namespace URI of this element
+      setNamespaceUri(namespaceUri);
       
       // default this element's parent to null
       setParent(null);
@@ -132,11 +123,11 @@ public class XmlElement extends AbstractXmlSerializer
       // reset the name of this element
       setName("");
       
-      // reset the namespace of this element
-      setNamespace(null, null);
+      // reset the namespace URI of this element
+      setNamespaceUri(null);
       
       // clear the attributes of this element
-      getAttributeMap().clear();
+      getAttributeList().clear();
       
       // clear the children of this element
       clearChildren();
@@ -189,22 +180,18 @@ public class XmlElement extends AbstractXmlSerializer
       
       // start root tag
       xml.append(indent);
-      xml.append("<" + getFullName());
+      xml.append("<" + getQualifiedName());
       
-      // see if this element has attributes
-      XmlAttributeMap attributes = getAttributeMap();
-      if(attributes.getAttributeCount() > 0)
+      // add this element's attributes
+      for(Iterator i = getAttributeList().getAttributes().iterator();
+          i.hasNext();)
       {
-         for(Iterator i = attributes.getAttributeNames().iterator();
-             i.hasNext();)
-         {
-            String name = (String)i.next();
-            
-            // encode and convert attribute
-            xml.append(" " + name + "=\"");
-            xml.append(XmlCoder.encode(attributes.getAttributeValue(name)));
-            xml.append("\"");
-         }
+         XmlAttribute attribute = (XmlAttribute)i.next();
+         
+         // encode and convert attribute
+         xml.append(" " + attribute.getQualifiedName() + "=\"");
+         xml.append(XmlCoder.encode(attribute.getValue()));
+         xml.append("\"");
       }
       
       // see if this element has no children or data
@@ -246,7 +233,7 @@ public class XmlElement extends AbstractXmlSerializer
          }
          
          // add the end tag
-         xml.append("</" + getFullName() + ">");
+         xml.append("</" + getQualifiedName() + ">");
       }
       
       return xml.toString();
@@ -269,50 +256,50 @@ public class XmlElement extends AbstractXmlSerializer
       
       // get the tag name
       String name = element.getTagName();
-      String namespace = null;
       
-      // see if the name has a prefix
-      int index = name.indexOf(":");
-      if(index != -1)
-      {
-         // parse out the namespace and name
-         namespace = name.substring(0, index);
-         name = name.substring(index + 1);
-      }
+      // get the namespace prefix and local name
+      String namespacePrefix = parseNamespacePrefix(name);
+      String localName = parseLocalName(name);
       
-      // set name and namespace
-      setName(name);
+      // set name
+      setName(localName);
       
       // convert the attributes for this element
-      XmlAttributeMap attributes = getAttributeMap();
       NamedNodeMap map = element.getAttributes();
       for(int i = 0; i < map.getLength(); i++)
       {
          Node attributeNode = map.item(i);
          
-         // get the attribute name and namespace
+         // get the attribute name and namespace prefix
          String attributeName = attributeNode.getNodeName();
-         String attributeNamespace =
-            XmlElement.getNamespacePrefix(attributeName);
-         attributeName = XmlElement.getBasicName(attributeName);
+         String attributeNamespaceUri = null;
          
-         // add a namespace mapping if appropriate
-         if(attributeNamespace != null && attributeNamespace.equals("xmlns"))
+         // if the attribute name is not defining a namespace, then
+         // look up the namespace URI and set the attribute name to the
+         // local name
+         if(!attributeName.equals("xmlns") &&
+            !attributeName.startsWith("xmlns:"))
          {
-            // add a namespace definition
-            attributes.addNamespaceMapping(
-               attributeName, attributeNode.getNodeValue());
+            // get the attribute namespace prefix
+            String attributeNamespacePrefix =
+               XmlElement.parseNamespacePrefix(attributeName);
+
+            // find the namespace URI for this attribute
+            attributeNamespaceUri = attributeNode.lookupNamespaceURI(
+               attributeNamespacePrefix);
+            
+            // set attribute name to the local name
+            attributeName = XmlElement.parseLocalName(attributeName);
          }
          
          // add attribute (XML decoding is handled automatically)
-         attributes.addAttribute(
-            attributeName, attributeNode.getNodeValue(),
-            attributeNamespace, findNamespaceUri(attributeNamespace));
+         getAttributeList().addAttribute(
+            attributeName, attributeNode.getNodeValue(), attributeNamespaceUri);
       }
       
-      // set the namespace for this element now that the attributes have
+      // set the namespace URI for this element now that the attributes have
       // been parsed
-      setNamespace(namespace, findNamespaceUri(namespace));
+      setNamespaceUri(findNamespaceUri(namespacePrefix));
       
       // convert the children for this element
       NodeList list = element.getChildNodes();
@@ -376,15 +363,16 @@ public class XmlElement extends AbstractXmlSerializer
       // copy the passed element's information
       setName(element.getName());
       setParent(element.getParent());
-      setNamespace(element.getNamespace(), element.getNamespaceUri());
+      setNamespaceUri(element.getNamespaceUri());
       
       // copy attributes
-      for(Iterator i = element.getAttributeMap().getAttributeNames().iterator();
+      for(Iterator i = element.getAttributeList().getAttributes().iterator();
           i.hasNext();)
       {
-         String name = (String)i.next();
-         String value = element.getAttributeMap().getAttributeValue(name);
-         getAttributeMap().addAttribute(name, value);
+         XmlAttribute attribute = (XmlAttribute)i.next();
+         addAttribute(
+            attribute.getName(), attribute.getValue(),
+            attribute.getNamespaceUri());
       }
       
       // copy children
@@ -408,11 +396,11 @@ public class XmlElement extends AbstractXmlSerializer
    }
    
    /**
-    * Sets the name of this XmlElement. This will set the base name
-    * for the XmlElement -- it will not include the namespace of this
+    * Sets the name of this XmlElement. This will set the local name for
+    * the XmlElement -- it will not include the namespace prefix of this
     * element.
     * 
-    * @param name the name of this XmlElement.
+    * @param name the local name of this XmlElement.
     */
    public void setName(String name)
    {
@@ -425,11 +413,11 @@ public class XmlElement extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the name of this XmlElement. This will return the base name
-    * for the XmlElement -- it will not include the namespace of this
+    * Gets the name of this XmlElement. This will return the local name
+    * for the XmlElement -- it will not include the namespace prefix of this
     * element.
     * 
-    * @return the name of this XmlElement.
+    * @return the local name of this XmlElement.
     */
    public String getName()
    {
@@ -437,53 +425,34 @@ public class XmlElement extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the full name of this XmlElement including its namespace. This
-    * will return the namespace of this element, followed by a colon,
-    * followed by the local name for the XmlElement.
+    * Gets the qualified name of this XmlElement. This includes its namespace
+    * prefix, followed by a colon, followed by its local name.
     * 
-    * @return the name of this XmlElement.
+    * @return the qualified name of this XmlElement.
     */
-   public String getFullName()
+   public String getQualifiedName()
    {
       String rval = getName();
       
-      if(getNamespace() != null && !getNamespace().equals(""))
+      String prefix = findNamespacePrefix(getNamespaceUri());
+      
+      if(prefix != null)
       {
-         rval = getNamespace() + ":" + getName();
+         rval = prefix + ":" + getName();
       }
       
       return rval;
-   }   
-   
-   /**
-    * Sets the namespace of this XmlElement.
-    * 
-    * @param namespace the namespace of this XmlElement.
-    * @param namespaceUri the URI that points to the definition for the
-    *                     namespace.
-    */
-   public void setNamespace(String namespace, String namespaceUri)
-   {
-      mNamespace = namespace;
-      mNamespaceUri = namespaceUri;
    }
    
    /**
-    * Gets the namespace of this XmlElement.
+    * Sets the namespace URI of this XmlElement.
     * 
-    * @return the namespace of this XmlElement.
+    * @param namespaceUri the URI that points to the definition for the
+    *                     namespace.
     */
-   public String getNamespace()
+   public void setNamespaceUri(String namespaceUri)
    {
-      String rval = mNamespace;
-      
-      if(mNamespace == null && getParent() != null)
-      {
-         // get parent's namespace
-         rval = getParent().getNamespace();
-      }
-      
-      return rval;
+      mNamespaceUri = namespaceUri;
    }
    
    /**
@@ -514,40 +483,25 @@ public class XmlElement extends AbstractXmlSerializer
     * @return the namespace prefix for the given namespace URI or null if the
     *         prefix could not be found.
     */
-   public String findNamespace(String namespaceUri)
+   public String findNamespacePrefix(String namespaceUri)
    {
       String rval = null;
       
       if(namespaceUri != null)
       {
-         // go through this element's attributes to find the namespace URI
-         boolean found = false;
-         for(Iterator i = getAttributeMap().getAttributeNames().iterator();
-             i.hasNext() && !found;)
+         // see if the namespace prefix is defined in this scope
+         if(getAttributeList().isNamespacePrefixDefined(namespaceUri))
          {
-            String name = (String)i.next();
-            
-            String value = getAttributeValue(name);
-            if(value.equals(namespaceUri))
+            // find the namespace prefix
+            rval = getAttributeList().findNamespacePrefix(namespaceUri);
+         }
+         else
+         {
+            // look up the parent tree for the prefix, if possible
+            if(getParent() != null) 
             {
-               rval = getAttributeMap().getNamespace(namespaceUri);
-               found = true;
+               rval = getParent().findNamespacePrefix(namespaceUri);
             }
-         }
-         
-         // if the mapping was not found, check this element's namespace URI
-         // to see if it matches the passed URI
-         if(!found && getNamespaceUri() != null &&
-            getNamespaceUri().equals(namespaceUri)) 
-         {
-            rval = getNamespace();
-            found = true;
-         }
-         
-         // if the mapping was not found at this level, look up the parent tree
-         if(!found && getParent() != null) 
-         {
-            rval = getParent().findNamespace(namespaceUri);
          }
       }
       
@@ -559,44 +513,27 @@ public class XmlElement extends AbstractXmlSerializer
     * first through this element's attributes for a mapping, and then looking
     * up its parent tree for a mapping.
     * 
-    * @param namespace the namespace prefix to find the namespace URI for.
+    * @param namespacePrefix the namespace prefix to find the namespace URI for.
     * 
     * @return the namespace URI for the given namespace prefix or null if the
     *         URI could not be found.
     */
-   public String findNamespaceUri(String namespace)
+   public String findNamespaceUri(String namespacePrefix)
    {
       String rval = null;
       
-      if(namespace != null)
+      // see if the namespace URI is defined at this scope
+      if(getAttributeList().isNamespaceUriDefined(namespacePrefix))
       {
-         // go through this element's attributes to find the namespace
-         boolean found = false;
-         for(Iterator i = getAttributeMap().getAttributeNames().iterator();
-             i.hasNext() && !found;)
+         // find the namespace URI
+         rval = getAttributeList().findNamespaceUri(namespacePrefix);
+      }
+      else
+      {
+         // look up the parent tree for the URI, if possible
+         if(getParent() != null) 
          {
-            String name = (String)i.next();
-            
-            if(name.equals(namespace) || name.equals("xmlns:" + namespace))
-            {
-               rval = getAttributeValue(name);
-               found = true;
-            }
-         }
-         
-         // if the mapping was not found, check this element's namespace
-         // to see if it matches the passed one
-         if(!found && getNamespace() != null &&
-            getNamespace().equals(namespace)) 
-         {
-            rval = getNamespaceUri();
-            found = true;
-         }
-         
-         // if the mapping was not found at this level, look up the parent tree
-         if(!found && getParent() != null) 
-         {
-            rval = getParent().findNamespaceUri(namespace);
+            rval = getParent().findNamespaceUri(namespacePrefix);
          }
       }
       
@@ -604,26 +541,26 @@ public class XmlElement extends AbstractXmlSerializer
    }   
    
    /**
-    * Gets the attribute map for this XmlElement. This map can be used to
+    * Gets the attribute list for this XmlElement. This list can be used to
     * add or remove attributes from this XmlElement.
     *
-    * @return the attribute map for this XmlElement.
+    * @return the attribute list for this XmlElement.
     */
-   public XmlAttributeMap getAttributeMap()
+   public XmlAttributeList getAttributeList()
    {
       return mAttributes;
    }
    
    /**
     * A convenience method for adding an attribute to this XmlElement's
-    * attribute map.
+    * attribute list.
     * 
     * @param name the name of the attribute to add.
     * @param value the value of the attribute to add.
     */
    public void addAttribute(String name, String value)
    {
-      getAttributeMap().addAttribute(name, value);
+      getAttributeList().addAttribute(name, value);
    }
    
    /**
@@ -635,7 +572,7 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public void addAttribute(String name, int value)
    {
-      getAttributeMap().addAttribute(name, value);
+      getAttributeList().addAttribute(name, value);
    }
    
    /**
@@ -647,7 +584,7 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public void addAttribute(String name, long value)
    {
-      getAttributeMap().addAttribute(name, value);
+      getAttributeList().addAttribute(name, value);
    }
    
    /**
@@ -659,7 +596,7 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public void addAttribute(String name, float value)
    {
-      getAttributeMap().addAttribute(name, value);
+      getAttributeList().addAttribute(name, value);
    }
    
    /**
@@ -671,7 +608,7 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public void addAttribute(String name, double value)
    {
-      getAttributeMap().addAttribute(name, value);
+      getAttributeList().addAttribute(name, value);
    }
    
    /**
@@ -683,7 +620,7 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public void addAttribute(String name, boolean value)
    {
-      getAttributeMap().addAttribute(name, value);
+      getAttributeList().addAttribute(name, value);
    }
    
    /**
@@ -692,14 +629,13 @@ public class XmlElement extends AbstractXmlSerializer
     * 
     * @param name the name of the attribute.
     * @param value the value of the attribute.
-    * @param namespace the namespace for the attribute.
     * @param namespaceUri the URI that points to the definition of the
     *                     namespace for the attribute.
     */
    public void addAttribute(
-      String name, String value, String namespace, String namespaceUri)
+      String name, String value, String namespaceUri)
    {
-      getAttributeMap().addAttribute(name, value, namespace, namespaceUri);
+      getAttributeList().addAttribute(name, value, namespaceUri);
    }
    
    /**
@@ -713,29 +649,7 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public String getAttributeValue(String name)
    {
-      return getAttributeValue(name, null);
-   }
-   
-   /**
-    * A convenience method for getting an attribute value from this
-    * XmlElement's attribute map.
-    * 
-    * @param name the name of the attribute to get the value of.
-    * @param namespaceUri the namespace uri for the name.
-    * 
-    * @return the value of the attribute as a string, or a blank string if the
-    *         attribute does not exist.
-    */
-   public String getAttributeValue(String name, String namespaceUri)
-   {
-      String prefix = findNamespace(namespaceUri);
-      if(prefix != null)
-      {
-         // get full name
-         name = prefix + ":" + name;
-      }
-      
-      return getAttributeMap().getAttributeValue(name);
+      return getAttributeValue(name, getNamespaceUri());
    }
    
    /**
@@ -749,7 +663,7 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public int getAttributeIntValue(String name)
    {
-      return getAttributeMap().getAttributeIntValue(name);
+      return getAttributeList().getAttributeIntValue(name);
    }
    
    /**
@@ -763,7 +677,7 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public long getAttributeLongValue(String name)
    {
-      return getAttributeMap().getAttributeLongValue(name);
+      return getAttributeList().getAttributeLongValue(name);
    }
    
    /**
@@ -777,7 +691,7 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public float getAttributeFloatValue(String name)
    {
-      return getAttributeMap().getAttributeFloatValue(name);
+      return getAttributeList().getAttributeFloatValue(name);
    }
    
    /**
@@ -791,7 +705,7 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public double getAttributeDoubleValue(String name)
    {
-      return getAttributeMap().getAttributeDoubleValue(name);
+      return getAttributeList().getAttributeDoubleValue(name);
    }
    
    /**
@@ -805,8 +719,50 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public boolean getAttributeBooleanValue(String name)
    {
-      return getAttributeMap().getAttributeBooleanValue(name);
-   }   
+      return getAttributeList().getAttributeBooleanValue(name);
+   }
+   
+   /**
+    * A convenience method for getting an attribute value from this
+    * XmlElement's attribute map.
+    * 
+    * @param name the name of the attribute to get the value of.
+    * @param namespaceUri the namespace uri for the attribute.
+    * 
+    * @return the value of the attribute as a string, or a blank string if the
+    *         attribute does not exist.
+    */
+   public String getAttributeValue(String name, String namespaceUri)
+   {
+      return getAttributeList().getAttributeValue(name, namespaceUri);
+   }
+   
+   /**
+    * A convenience method for checking whether or not this XmlElement has
+    * a particular attribute in its namespace.
+    * 
+    * @param name the local name for the attribute (unless the attribute is
+    *        used to define a namespace with "xmlns" in which case the name
+    *        should be the fully qualified name).
+    * 
+    * @return true if this XmlElement has an attribute with the given name,
+    *         false if not.
+    */
+   public boolean hasAttribute(String name)
+   {
+      boolean rval = false;
+
+      if(name.equals("xmlns") || name.startsWith("xmlns:"))
+      {
+         rval = getAttributeList().hasAttribute(name, null);
+      }
+      else
+      {
+         rval = getAttributeList().hasAttribute(name, getNamespaceUri());
+      }
+      
+      return rval;
+   }
    
    /**
     * Sets the data for this XmlElement.
@@ -1309,11 +1265,15 @@ public class XmlElement extends AbstractXmlSerializer
       for(Iterator i = mChildren.iterator(); i.hasNext();)
       {
          XmlElement child = (XmlElement)i.next();
-         if(child.getName().equals(name) &&
-            child.getNamespace() == null ||
-            child.getNamespace().equals(namespaceUri))
+         if(child.getName().equals(name))
          {
-            rval.add(child);
+            String childNamespaceUri = child.getNamespaceUri();
+            if((childNamespaceUri == null && namespaceUri == null) ||
+               (childNamespaceUri != null &&
+                childNamespaceUri.equals(namespaceUri)))
+            {
+               rval.add(child);
+            }
          }
       }
       
@@ -1377,7 +1337,7 @@ public class XmlElement extends AbstractXmlSerializer
     * 
     * @return the namespace for the name, or null if none exists.
     */
-   public static String getNamespacePrefix(String name)
+   public static String parseNamespacePrefix(String name)
    {
       String namespace = null;
       
@@ -1393,23 +1353,23 @@ public class XmlElement extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the basic name for the given fully qualified name (strips off
+    * Gets the local name for the given fully qualified name (strips off
     * the namespace prefix, if any). 
     *
-    * @param name the name to get the basic name for.
+    * @param qName the qualified name to get the local name for.
     * 
-    * @return the basic name.
+    * @return the local name.
     */
-   public static String getBasicName(String name)
+   public static String parseLocalName(String qName)
    {
-      String rval = name;
+      String rval = qName;
       
-      // split the name to get the namespace, if any
-      int index = name.indexOf(":");
+      // split the name to get the namespace prefix, if any
+      int index = qName.indexOf(":");
       if(index != -1)
       {
-         // get the basic name
-         rval = name.substring(index + 1);
+         // get the local name
+         rval = qName.substring(index + 1);
       }
       
       return rval;

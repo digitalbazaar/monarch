@@ -127,14 +127,25 @@ public class WsdlSoapBinding extends WsdlBinding
       // create xml element
       XmlElement element = new XmlElement(getRootTag());
       element.setParent(parent);
+      
+      // get the port type's name
+      String portTypeName = getPortType().getName();
+      
+      // get the port type's namespace prefix
+      String prefix =
+         element.findNamespacePrefix(getPortType().getNamespaceUri());
+      if(prefix != null)
+      {
+         portTypeName = prefix + ":" + portTypeName;
+      }
 
       // add attributes
       element.addAttribute("name", getName());
-      element.addAttribute("type", "tns:" + getPortType().getName());
+      element.addAttribute("type", portTypeName);
 
       // add soap transport element
       XmlElement soapTransportElement = new XmlElement(
-         "binding", "soap", Wsdl.WSDL_SOAP_NAMESPACE_URI);
+         "binding", Wsdl.WSDL_SOAP_NAMESPACE_URI);
       soapTransportElement.addAttribute(
          "transport", SOAP_OVER_HTTP_NAMESPACE_URI);
       soapTransportElement.addAttribute("style", "rpc");
@@ -178,7 +189,7 @@ public class WsdlSoapBinding extends WsdlBinding
          String name = element.getAttributeValue("name");
          
          // FIXME: strip the namespace prefix
-         name = XmlElement.getBasicName(name);
+         name = XmlElement.parseLocalName(name);
 
          // set name
          setName(name);
@@ -201,7 +212,7 @@ public class WsdlSoapBinding extends WsdlBinding
                   operationElement.getAttributeValue("name");
                
                // FIXME: strip the namespace prefix
-               operationName = XmlElement.getBasicName(operationName);
+               operationName = XmlElement.parseLocalName(operationName);
                
                // get the WsdlSoapBindingOperation and convert it
                WsdlSoapBindingOperation operation =

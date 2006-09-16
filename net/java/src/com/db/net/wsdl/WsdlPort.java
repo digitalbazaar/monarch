@@ -70,9 +70,19 @@ public abstract class WsdlPort extends AbstractXmlSerializer
       XmlElement element = new XmlElement("port");
       element.setParent(parent);
       
+      // get the binding name
+      String name = getBinding().getName();
+      
+      // get the namespace prefix for the binding
+      String prefix = element.findNamespacePrefix(getNamespaceUri());
+      if(prefix != null)
+      {
+         name = prefix + ":" + name;
+      }
+      
       // add attributes
       element.addAttribute("name", getName());
-      element.addAttribute("binding", "tns:" + getBinding().getName());
+      element.addAttribute("binding", name);
 
       // return the element
       return element;

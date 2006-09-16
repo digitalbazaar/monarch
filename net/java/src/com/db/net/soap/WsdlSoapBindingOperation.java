@@ -82,7 +82,7 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
    {
       // create the soap body element
       XmlElement soapBodyElement = new XmlElement(
-         "body", "soap", Wsdl.WSDL_SOAP_NAMESPACE_URI);
+         "body", Wsdl.WSDL_SOAP_NAMESPACE_URI);
       soapBodyElement.addAttribute(
          "encodingStyle", SOAP_ENCODING_NAMESPACE_URI);
       soapBodyElement.addAttribute("use", "encoded");
@@ -304,7 +304,7 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
       
       // create and add soap operation element
       XmlElement soapOperationElement = new XmlElement(
-         "operation", "soap", Wsdl.WSDL_SOAP_NAMESPACE_URI);
+         "operation", Wsdl.WSDL_SOAP_NAMESPACE_URI);
       soapOperationElement.addAttribute("soapAction", getSoapAction());
       element.addChild(soapOperationElement);
       
@@ -374,7 +374,7 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
             setSoapAction(soapOperationChild.getAttributeValue("soapAction"));
          
             // FUTURE CODE: current implementation assumes soap encoding
-            // parameters -- we'll want to parse these out in the future
+            // of parameters -- we'll want to parse these out in the future
          }
          
          rval = true;

@@ -265,7 +265,7 @@ public class WsdlPortType extends AbstractXmlSerializer
          
          // FIXME: we need to check namespaces
          // strip off the namespace prefix
-         name = XmlElement.getBasicName(name);
+         name = XmlElement.parseLocalName(name);
          
          for(Iterator i = iterator(); i.hasNext() && rval == null;) 
          {

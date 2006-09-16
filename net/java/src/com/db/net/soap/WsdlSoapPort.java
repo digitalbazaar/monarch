@@ -96,7 +96,7 @@ public class WsdlSoapPort extends WsdlPort
       
       // add the soap address element
       XmlElement soapAddressElement = new XmlElement(
-         "address", "soap", Wsdl.WSDL_SOAP_NAMESPACE_URI);
+         "address", Wsdl.WSDL_SOAP_NAMESPACE_URI);
       soapAddressElement.addAttribute("location", getUri());
       soapAddressElement.addAttribute("xmlns", Wsdl.WSDL_NAMESPACE_URI);
       element.addChild(soapAddressElement);

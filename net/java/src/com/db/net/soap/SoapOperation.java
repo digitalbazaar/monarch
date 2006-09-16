@@ -126,25 +126,18 @@ public class SoapOperation extends AbstractXmlSerializer
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
-      XmlElement operationElement = new XmlElement(getRootTag());
+      XmlElement operationElement =
+         new XmlElement(getRootTag(), mTargetNamespaceUri);
       operationElement.setParent(parent);
       
-      // set the namespace
-      operationElement.setNamespace("tns", mTargetNamespaceUri);
-      
       // add an attribute defining the namespace
-      operationElement.addAttribute("tns", mTargetNamespaceUri, "xmlns", null);
+      operationElement.addAttribute("xmlns:tns", mTargetNamespaceUri);
       
-      // get the soap envelope namespace prefix
-      String envelopePrefix = operationElement.findNamespace(
-         SoapEnvelope.SOAP_ENVELOPE_URI);
-      
-      // add an encoding style attribute
+      // add an encoding style attribute (in the SOAP envelope namespace)
       if(mEncodingStyleUri != null && mEncodingStyleUri.length() > 0)
       {
          operationElement.addAttribute(
-            "encodingStyle", mEncodingStyleUri,
-            envelopePrefix, SoapEnvelope.SOAP_ENVELOPE_URI);
+            "encodingStyle", mEncodingStyleUri, SoapEnvelope.SOAP_ENVELOPE_URI);
       }
       
       // add each parameter

@@ -74,7 +74,7 @@ public abstract class VersionedXmlSerializer extends AbstractXmlSerializer
       element.setName(getRootTag());
 
       // add version attribute
-      element.getAttributeMap().addAttribute("version", getVersion());
+      element.addAttribute("version", getVersion());
       
       // return element
       return element;
@@ -91,10 +91,10 @@ public abstract class VersionedXmlSerializer extends AbstractXmlSerializer
    {
       boolean rval = false;
 
-      if(element != null && element.getAttributeMap().hasAttribute("version"))
+      if(element != null && element.hasAttribute("version"))
       {
          // convert version element
-         setVersion(element.getAttributeMap().getAttributeValue("version"));
+         setVersion(element.getAttributeValue("version"));
          
          // version attribute exists
          rval = true;

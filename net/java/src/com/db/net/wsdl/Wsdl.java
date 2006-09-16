@@ -414,12 +414,9 @@ public class Wsdl extends AbstractXmlSerializer
       
       // add attributes
       element.addAttribute("xmlns", WSDL_NAMESPACE_URI);
-      element.addAttribute(
-         "xsd", XML_SCHEMA_NAMESPACE_URI, "xmlns", WSDL_NAMESPACE_URI);
-      element.addAttribute(
-         "soap", WSDL_SOAP_NAMESPACE_URI, "xmlns", WSDL_NAMESPACE_URI);
-      element.addAttribute(
-         "tns", getTargetNamespaceUri(), "xmlns", WSDL_NAMESPACE_URI);
+      element.addAttribute("xmlns:xsd", XML_SCHEMA_NAMESPACE_URI);
+      element.addAttribute("xmlns:soap", WSDL_SOAP_NAMESPACE_URI);
+      element.addAttribute("xmlns:tns", getTargetNamespaceUri());
       element.addAttribute("name", getName());
       element.addAttribute("targetNamespace", getTargetNamespaceUri());
       
@@ -484,11 +481,10 @@ public class Wsdl extends AbstractXmlSerializer
          getServices().clear();
          
          // get name
-         setName(element.getAttributeMap().getAttributeValue("name"));
+         setName(element.getAttributeValue("name"));
          
          // get target namespace URI
-         setTargetNamespaceUri(element.getAttributeMap().getAttributeValue(
-            "targetNamespace"));
+         setTargetNamespaceUri(element.getAttributeValue("targetNamespace"));
          
          // convert messages
          for(Iterator i = element.getChildren("message").iterator();
@@ -730,7 +726,7 @@ public class Wsdl extends AbstractXmlSerializer
          
          // FIXME: we need to check namespaces better
          // strip off the namespace prefix
-         name = XmlElement.getBasicName(name);
+         name = XmlElement.parseLocalName(name);
          
          for(Iterator i = iterator(); i.hasNext() && rval == null;) 
          {
@@ -833,7 +829,7 @@ public class Wsdl extends AbstractXmlSerializer
          
          // FIXME: we need to check namespaces better
          // strip off the namespace prefix
-         name = XmlElement.getBasicName(name);
+         name = XmlElement.parseLocalName(name);
          
          for(Iterator i = iterator(); i.hasNext() && rval == null;) 
          {
@@ -935,7 +931,7 @@ public class Wsdl extends AbstractXmlSerializer
          
          // FIXME: we need to check namespaces better
          // strip off the namespace prefix
-         name = XmlElement.getBasicName(name);
+         name = XmlElement.parseLocalName(name);
          
          for(Iterator i = iterator(); i.hasNext() && rval == null;) 
          {
@@ -1037,7 +1033,7 @@ public class Wsdl extends AbstractXmlSerializer
          
          // FIXME: we need to check namespaces better
          // strip off the namespace prefix
-         name = XmlElement.getBasicName(name);
+         name = XmlElement.parseLocalName(name);
          
          for(Iterator i = iterator(); i.hasNext() && rval == null;) 
          {
