@@ -446,20 +446,12 @@ public class HttpWebClient implements WebConnectionClient
       HttpWebConnection connection = connect(url);
       if(connection != null)
       {
-         // get the port to connect to
-         int port = url.getPort();
-         if(port == -1)
-         {
-            // get the default port
-            port = url.getDefaultPort();
-         }
-         
          // create http web request
          HttpWebRequest request = new HttpWebRequest(connection);
          request.getHeader().setMethod("GET");
          request.getHeader().setPath(path);
          request.getHeader().setVersion("HTTP/1.1");
-         request.getHeader().setHost(url.getHost() + ":" + port);
+         request.getHeader().setHost(connection.getHost());
          request.getHeader().setUserAgent(DEFAULT_USER_AGENT);
          request.getHeader().setConnection("close");
          
@@ -522,20 +514,12 @@ public class HttpWebClient implements WebConnectionClient
       HttpWebConnection connection = connect(url);
       if(connection != null)
       {
-         // get the port to connect to
-         int port = url.getPort();
-         if(port == -1)
-         {
-            // get the default port
-            port = url.getDefaultPort();
-         }
-         
          // create http web request
          HttpWebRequest request = new HttpWebRequest(connection);
          request.getHeader().setMethod("GET");
          request.getHeader().setPath(path);
          request.getHeader().setVersion("HTTP/1.1");
-         request.getHeader().setHost(url.getHost() + ":" + port);
+         request.getHeader().setHost(connection.getHost());
          request.getHeader().setUserAgent(DEFAULT_USER_AGENT);
          request.getHeader().setConnection("close");
          

@@ -577,7 +577,15 @@ implements WebConnection, HandshakeCompletedListener
     */
    public String getHost()
    {
-      return getWorkerSocket().getRemoteSocketAddress().toString();
+      String host = getWorkerSocket().getRemoteSocketAddress().toString();
+      
+      // remove leading slash, if any
+      if(host.startsWith("/"))
+      {
+         host = host.substring(1);
+      }
+      
+      return host; 
    }
    
    /**
