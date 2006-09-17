@@ -246,7 +246,12 @@ public class UPnPDevice extends AbstractXmlSerializer
    protected String mPresentationUrl;
    
    /**
-    * Creates a new UPnPDevice.
+    * The implementation for this device.
+    */
+   protected UPnPDeviceImplementation mImplementation;
+   
+   /**
+    * Creates a new UPnPDevice with no specified implementation.
     */
    public UPnPDevice()
    {
@@ -272,6 +277,9 @@ public class UPnPDevice extends AbstractXmlSerializer
       
       // create device list
       mDeviceList = new UPnPDeviceList();
+      
+      // default to no implementation for this device
+      setImplementation(null);
    }
    
    /**
@@ -760,6 +768,26 @@ public class UPnPDevice extends AbstractXmlSerializer
    public String getPresentationUrl()
    {
       return mPresentationUrl;
+   }
+   
+   /**
+    * Sets the implementation for this device.
+    * 
+    * @param implementation the implementation for this device (can be null).
+    */
+   public void setImplementation(UPnPDeviceImplementation implementation)
+   {
+      mImplementation = implementation;
+   }
+   
+   /**
+    * Gets the implementation for this device.
+    * 
+    * @return the implementation for this device (can be null).
+    */
+   public UPnPDeviceImplementation getImplementation()
+   {
+      return mImplementation;
    }
    
    /**

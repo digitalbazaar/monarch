@@ -121,7 +121,13 @@ public class UPnPService extends AbstractXmlSerializer
    protected UPnPServiceDescription mDescription;
    
    /**
-    * Creates a new UPnPService with no set UPnPServiceDescription.
+    * The implementation for this service.
+    */
+   protected UPnPServiceImplementation mImplementation;   
+   
+   /**
+    * Creates a new UPnPService with no set UPnPServiceDescription and
+    * no specified implementation.
     */
    public UPnPService()
    {
@@ -134,6 +140,9 @@ public class UPnPService extends AbstractXmlSerializer
       
       // set the description for this service to null
       setDescription(null);
+      
+      // default to no implementation for this service
+      setImplementation(null);
    }
    
    /**
@@ -348,6 +357,26 @@ public class UPnPService extends AbstractXmlSerializer
    {
       return mDescription;
    }
+   
+   /**
+    * Sets the implementation for this service.
+    * 
+    * @param implementation the implementation for this service (can be null).
+    */
+   public void setImplementation(UPnPServiceImplementation implementation)
+   {
+      mImplementation = implementation;
+   }
+   
+   /**
+    * Gets the implementation for this service.
+    * 
+    * @return the implementation for this service (can be null).
+    */
+   public UPnPServiceImplementation getImplementation()
+   {
+      return mImplementation;
+   }   
    
    /**
     * Gets the logger for this UPnPService.
