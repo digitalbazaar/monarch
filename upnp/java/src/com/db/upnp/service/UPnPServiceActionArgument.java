@@ -238,8 +238,11 @@ public class UPnPServiceActionArgument extends AbstractXmlSerializer
    {
       mReturnValue = rval;
       
-      // automatically set direction according to return value
-      setDirection(!rval);
+      if(rval)
+      {
+         // direction must be "out" if this argument is a return value
+         setDirection(false);
+      }
    }
    
    /**

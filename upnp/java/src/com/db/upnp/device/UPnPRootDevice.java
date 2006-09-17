@@ -7,6 +7,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import com.db.net.http.HttpWebClient;
+import com.db.upnp.service.UPnPService;
+import com.db.upnp.service.UPnPServiceDescription;
 
 /**
  * A UPnPRootDevice is a root UPnP device that has a UPnP server that allows it
@@ -60,6 +62,8 @@ public class UPnPRootDevice
    
    /**
     * Retrieves the UPnPDeviceDescription for this device from its location.
+    * The description will be set to this device if it is successfully
+    * retrieved.
     * 
     * This method will do an HTTP GET to retrieve the UPnP Device Description
     * from the URL set by setLocation().
@@ -70,7 +74,7 @@ public class UPnPRootDevice
     * @exception MalformedURLException thrown if the URL from getLocation()
     *                                  is malformed.
     */
-   public boolean retrieveDescription()
+   public boolean retrieveDeviceDescription()
    throws MalformedURLException
    {
       boolean rval = false;
@@ -98,6 +102,57 @@ public class UPnPRootDevice
             }
             
             rval = true;
+         }
+      }
+      
+      return rval;
+   }
+   
+   
+   /**
+    * Retrieves the UPnPServiceDescription for the specified service from its
+    * SCPD URL. The description will be set to the passed service if it is
+    * successfully retrieved.
+    * 
+    * This method will do an HTTP GET to retrieve the UPnP Service Control
+    * Protocol Description from the URL set by setSpcdUrl().
+    * 
+    * This method will fail if the description for this device is not yet
+    * available. Make sure to set it or retrieve it via the method
+    * retrieveDeviceDescription() before calling this method.
+    * 
+    * @param service the service to retrieve the description of.
+    * 
+    * @return true if the service description was retrieved successfully,
+    *         false if not.
+    * 
+    * @exception MalformedURLException thrown if the URL from getScpdUrl()
+    *                                  is malformed.
+    */
+   public boolean retrieveServiceDescription(UPnPService service)
+   throws MalformedURLException
+   {
+      boolean rval = false;
+      
+      if(getDescription() != null)
+      {
+         // create http client and get the xml from the location 
+         HttpWebClient client = new HttpWebClient();
+         URL url = new URL(
+            getDescription().getBaseUrl() + service.getScpdUrl());
+         String xml = client.getContent(url, url.getPath());
+         if(xml != null)
+         {
+            // create a new UPnPServiceDescription
+            UPnPServiceDescription description = new UPnPServiceDescription();
+            
+            // convert the description from the retrieved xml
+            if(description.convertFromXml(xml))
+            {
+               // set the description to the service
+               service.setDescription(description);
+               rval = true;
+            }
          }
       }
       

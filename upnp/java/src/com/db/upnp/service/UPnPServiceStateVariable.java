@@ -296,7 +296,7 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
       
       // add data type element
       XmlElement dataTypeElement = new XmlElement("dataType");
-      dataTypeElement.setValue(getName());
+      dataTypeElement.setValue(getDataType());
       stateVariableElement.addChild(dataTypeElement);
       
       // add default value element, if applicable

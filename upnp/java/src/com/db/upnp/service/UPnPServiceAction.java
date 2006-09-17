@@ -110,7 +110,8 @@ public class UPnPServiceAction extends AbstractXmlSerializer
       actionElement.setParent(parent);
       
       // add the name element
-      XmlElement nameElement = new XmlElement(getName());
+      XmlElement nameElement = new XmlElement("name");
+      nameElement.setValue(getName());
       actionElement.addChild(nameElement);
       
       // see if there are arguments for this action
