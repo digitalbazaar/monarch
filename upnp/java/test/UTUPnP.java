@@ -5,8 +5,8 @@ import java.util.Iterator;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
-import com.db.upnp.UPnPDeviceDiscoverer;
 import com.db.upnp.device.UPnPRootDevice;
+import com.db.upnp.discover.UPnPDeviceDiscoverer;
 import com.db.upnp.service.UPnPService;
 import com.db.upnp.service.UPnPServiceList;
 

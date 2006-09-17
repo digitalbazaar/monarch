@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.upnp;
+package com.db.upnp.discover;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -96,7 +96,6 @@ public class UPnPDeviceDiscoverer
                
                // get device information
                device.setServer(response.getServer());
-               device.setSearchTarget(response.getSearchTarget());
                device.setLocation(response.getLocation());
                device.setUsn(response.getUsn());
                

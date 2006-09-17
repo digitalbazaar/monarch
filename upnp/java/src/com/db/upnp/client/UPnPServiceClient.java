@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.upnp.control;
+package com.db.upnp.client;
 
 import java.net.MalformedURLException;
 

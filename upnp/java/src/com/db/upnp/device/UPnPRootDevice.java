@@ -12,9 +12,8 @@ import com.db.upnp.service.UPnPServiceDescription;
 
 /**
  * A UPnPRootDevice is a root UPnP device that has a UPnP server that allows it
- * to make itself available to a UPnPControlPoint. It has a "search target"
- * that identifies the type of device which allows it to be searched for. It
- * also has a location URL that points to its UPnPDeviceDescription.  
+ * to make itself available to a UPnPControlPoint. It has a location URL that
+ * points to its UPnPDeviceDescription and a Unique Service Name.  
  * 
  * @author Dave Longley
  */
@@ -25,11 +24,6 @@ public class UPnPRootDevice
     */
    protected String mServer;
    
-   /**
-    * The search target for the device.
-    */
-   protected String mSearchTarget;
-
    /**
     * The location (a URL) for the device's description.
     */
@@ -52,7 +46,6 @@ public class UPnPRootDevice
    {
       // set defaults
       setServer("");
-      setSearchTarget("upnp:rootdevice");
       setLocation("");
       setUsn("");
       
@@ -107,7 +100,6 @@ public class UPnPRootDevice
       
       return rval;
    }
-   
    
    /**
     * Retrieves the UPnPServiceDescription for the specified service from its
@@ -177,26 +169,6 @@ public class UPnPRootDevice
    public String getServer()
    {
       return mServer;
-   }
-   
-   /**
-    * Sets the search target for this device.
-    * 
-    * @param searchTarget the search target (a URI) for this device.
-    */
-   public void setSearchTarget(String searchTarget)
-   {
-      mSearchTarget = searchTarget;
-   }
-   
-   /**
-    * Gets the search target for this device.
-    * 
-    * @return the search target (a URI) for this device.
-    */
-   public String getSearchTarget()
-   {
-      return mSearchTarget;
    }
    
    /**
@@ -272,7 +244,6 @@ public class UPnPRootDevice
       sb.append("[UPnPRootDevice]");
       
       sb.append("\nserver=" + getServer());
-      sb.append("\nsearchTarget=" + getSearchTarget());
       sb.append("\nlocation=" + getLocation());
       sb.append("\nusn=" + getUsn());
       

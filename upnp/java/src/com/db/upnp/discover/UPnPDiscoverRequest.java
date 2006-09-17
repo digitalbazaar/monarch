@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.upnp;
+package com.db.upnp.discover;
 
 import com.db.net.http.HttpWebRequestHeader;
 
