@@ -3,6 +3,7 @@
  */
 package com.db.upnp.server.igd;
 
+import com.db.upnp.device.UPnPDevice;
 import com.db.upnp.server.ServerUPnPDeviceImplementation;
 
 /**
@@ -17,9 +18,24 @@ import com.db.upnp.server.ServerUPnPDeviceImplementation;
 public class InternetGatewayDevice implements ServerUPnPDeviceImplementation
 {
    /**
-    * Creates a new InternetGatewayDevice.
+    * The UPnPDevice this implementation is for.
     */
-   public InternetGatewayDevice()
+   protected UPnPDevice mDevice;
+   
+   /**
+    * The device type for an Internet Gateway Device.
+    */
+   public static final String IGD_DEVICE_TYPE =
+      "urn:schemas-upnporg:device:InternetGatewayDevice:1";   
+   
+   /**
+    * Creates a new InternetGatewayDevice for the specified UPnPDevice.
+    * 
+    * @param device the UPnPDevice to create this implementation for.
+    */
+   public InternetGatewayDevice(UPnPDevice device)
    {
+      // store device
+      mDevice = device;
    }
 }
