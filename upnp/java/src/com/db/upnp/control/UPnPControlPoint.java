@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.upnp;
+package com.db.upnp.control;
 
 /**
  * A UPnP Control Point. This is a single point that is capable of
