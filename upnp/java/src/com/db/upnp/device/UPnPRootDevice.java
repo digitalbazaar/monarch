@@ -5,8 +5,14 @@ package com.db.upnp.device;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Iterator;
 
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 import com.db.net.http.HttpWebClient;
+import com.db.net.http.HttpWebConnection;
+import com.db.net.http.HttpWebRequest;
+import com.db.net.http.HttpWebResponse;
 import com.db.upnp.service.UPnPService;
 import com.db.upnp.service.UPnPServiceDescription;
 
@@ -149,7 +155,249 @@ public class UPnPRootDevice
       }
       
       return rval;
-   }   
+   }
+   
+   /**
+    * Retrieves the UPnPServiceDescription for the specified service from its
+    * SCPD URL. The description will be set to the passed service if it is
+    * successfully retrieved.
+    * 
+    * This method will use the passed persistent http web connection to
+    * perform an HTTP GET to retrieve the UPnP Service Control Protocol
+    * Description from the URL set by setSpcdUrl().
+    * 
+    * This method will fail if the description for this device is not yet
+    * available. Make sure to set it or retrieve it via the method
+    * retrieveDeviceDescription() before calling this method.
+    * 
+    * @param service the service to retrieve the description of.
+    * @param connection the persistent web connection retrieve the
+    *                   description from.
+    * 
+    * @return true if the service description was retrieved successfully,
+    *         false if not.
+    */
+   public boolean retrieveServiceDescription(
+      UPnPService service, HttpWebConnection connection)
+   {
+      boolean rval = false;
+      
+      if(getDescription() != null)
+      {
+         // create an HttpWebRequest
+         HttpWebRequest request = new HttpWebRequest(connection);
+         
+         request.getHeader().setVersion("HTTP/1.1");
+         request.getHeader().setMethod("GET");
+         request.getHeader().setPath(service.getScpdUrl());
+         request.getHeader().setHost(connection.getRemoteHost());
+         request.getHeader().setUserAgent(HttpWebClient.DEFAULT_USER_AGENT);
+         request.getHeader().setConnection("Keep-Alive, Persistent");
+         request.getHeader().addHeader("Keep-Alive", "");
+         
+         // send request
+         if(request.sendHeader())
+         {
+            // create response
+            HttpWebResponse response = request.createHttpWebResponse();
+            
+            // receive response header
+            if(response.receiveHeader())
+            {
+               // receive response body
+               String xml = response.receiveBodyString();
+               if(xml != null)
+               {
+                  // create a new UPnPServiceDescription
+                  UPnPServiceDescription description =
+                     new UPnPServiceDescription();
+                  
+                  // convert the description from the retrieved xml
+                  if(description.convertFromXml(xml))
+                  {
+                     // set the description to the service
+                     service.setDescription(description);
+                     rval = true;
+                  }
+               }
+            }
+         }
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Retrieves all of the service descriptions for the passed embeded device.
+    * The descriptions will be retrieved if they haven't already been set. 
+    * 
+    * @param device the device to retrieve the service descriptions for.
+    * 
+    * @return true if all of the descriptions were retrieved successfully,
+    *         false if not.
+    */
+   public boolean retrieveServiceDescriptions(UPnPDevice device)
+   {
+      boolean rval = true;
+      
+      // get all top level service descriptions for the device
+      for(Iterator i = device.getServiceList().iterator(); i.hasNext();)
+      {
+         UPnPService service = (UPnPService)i.next();
+         if(service.getDescription() == null)
+         {
+            try
+            {
+               rval &= retrieveServiceDescription(service);
+            }
+            catch(MalformedURLException ignore)
+            {
+            }
+         }
+      }
+      
+      // get all embedded device service descriptions for the device
+      for(Iterator i = device.getDeviceList().iterator(); i.hasNext();)
+      {
+         UPnPDevice embeddedDevice = (UPnPDevice)i.next();
+         rval &= retrieveServiceDescriptions(embeddedDevice);
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Retrieves all of the service descriptions for the passed embeded device
+    * using the passed persistent HttpWebConnection.
+    * 
+    * The descriptions will be retrieved if they haven't already been set. 
+    * 
+    * @param device the device to retrieve the service descriptions for.
+    * @param connection the persistent web connection retrieve the
+    *                   descriptions from.
+    * 
+    * @return true if all of the descriptions were retrieved successfully,
+    *         false if not.
+    */
+   public boolean retrieveServiceDescriptions(
+      UPnPDevice device, HttpWebConnection connection)
+   {
+      boolean rval = true;
+      
+      // get all top level service descriptions for the device
+      for(Iterator i = device.getServiceList().iterator(); i.hasNext();)
+      {
+         UPnPService service = (UPnPService)i.next();
+         if(service.getDescription() == null)
+         {
+            rval &= retrieveServiceDescription(service, connection);
+         }
+      }
+      
+      // get all embedded device service descriptions for the device
+      for(Iterator i = device.getDeviceList().iterator(); i.hasNext();)
+      {
+         UPnPDevice embeddedDevice = (UPnPDevice)i.next();
+         rval &= retrieveServiceDescriptions(embeddedDevice, connection);
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Retrieves the description for this root device and all of the descriptions
+    * for its services and its embedded devices' services if their descriptions
+    * have not yet been retrieved.
+    * 
+    * @return true if all of the descriptions were retrieved successfully,
+    *         false if not.
+    */
+   public boolean retrieveAllDescriptions()
+   {
+      boolean rval = false;
+      
+      try
+      {
+         // get the description for this device, if necessary
+         if(getDescription() == null)
+         {
+            rval = retrieveDeviceDescription();
+         }
+         
+         if(rval)
+         {
+            // determine if there are service descriptions to look up
+            UPnPDevice rootDevice = getDescription().getDevice();
+            if(rootDevice.getDeviceList().getDeviceCount() > 0 ||
+               rootDevice.getServiceList().getServiceCount() > 0)
+            {
+               // determine if the descriptione has a base URL or not
+               if(!getDescription().getBaseUrl().equals(""))
+               {System.out.println("using persistent connection");
+                  // since this description has a base URL, we can use one
+                  // persistent http connection to get all of the descriptions
+                  
+                  HttpWebClient client = new HttpWebClient();
+                  client.setUrl(getDescription().getBaseUrl());
+                  
+                  // get an http web connection
+                  HttpWebConnection connection = client.connect();
+                  if(connection != null)
+                  {
+                     // retrieve all of the root service descriptions
+                     for(Iterator i = rootDevice.getServiceList().iterator();
+                         i.hasNext();) 
+                     {
+                        UPnPService service = (UPnPService)i.next();
+                        rval &= retrieveServiceDescription(service, connection);
+                     }
+                     
+                     // retrieve all of the embedded device service descriptions
+                     for(Iterator i = rootDevice.getDeviceList().iterator();
+                         i.hasNext();) 
+                     {
+                        UPnPDevice device = (UPnPDevice)i.next();
+                        rval &= retrieveServiceDescriptions(device, connection);
+                     }
+                     
+                     // disconnect connection
+                     connection.disconnect();
+                  }
+               }
+               else
+               {System.out.println("using individual connections");
+                  // retrieve all the root service descriptions
+                  for(Iterator i = rootDevice.getServiceList().iterator();
+                      i.hasNext();) 
+                  {
+                     UPnPService service = (UPnPService)i.next();
+                     if(service.getDescription() == null)
+                     {
+                        rval &= retrieveServiceDescription(service);
+                     }
+                  }
+                  
+                  // retrieve all the embedded service descriptions
+                  for(Iterator i = rootDevice.getDeviceList().iterator();
+                      i.hasNext();) 
+                  {
+                     UPnPDevice device = (UPnPDevice)i.next();
+                     rval &= retrieveServiceDescriptions(device);
+                  }
+               }
+            }
+         }
+      }
+      catch(MalformedURLException e)
+      {
+         getLogger().error(getClass(),
+            "Exception thrown while retrieving device/service descriptions!" +
+            ",exception=" + e);
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
+      }
+      
+      return rval;
+   }
    
    /**
     * Sets the server for this device.
@@ -250,5 +498,15 @@ public class UPnPRootDevice
       sb.append("\n");
       
       return sb.toString();
-   }   
+   }
+   
+   /**
+    * Gets the logger for this UPnPRootDevice.
+    * 
+    * @return the logger for this UPnPRootDevice.
+    */
+   public Logger getLogger()
+   {
+      return LoggerManager.getLogger("dbupnp");
+   }
 }

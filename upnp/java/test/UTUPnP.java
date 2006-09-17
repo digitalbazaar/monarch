@@ -53,8 +53,8 @@ public class UTUPnP
             System.out.println("GETTING DEVICE DESCRIPTION...");
             
             // get the device description
-            if(devices[i].retrieveDeviceDescription())
-            {
+            if(devices[i].retrieveAllDescriptions())//.retrieveDeviceDescription())
+            {/*
                System.out.println("DESCRIPTION RETRIEVED:\n");
                System.out.println(devices[i].getDescription().convertToXml());
                System.out.println();
@@ -81,7 +81,7 @@ public class UTUPnP
                         System.out.println();
                      }
                   }
-               }
+               }*/
             }
             else
             {

@@ -5,6 +5,7 @@ package com.db.upnp.client;
 
 import com.db.upnp.device.UPnPDevice;
 import com.db.upnp.client.igd.InternetGatewayDeviceClient;
+import com.db.upnp.client.igd.WanConnectionDeviceClient;
 
 /**
  * A ClientUPnPDeviceImplementationFactory is a factory used to produce
@@ -40,6 +41,16 @@ public class ClientUPnPDeviceImplementationFactory
          // create a internet gateway device client implementation
          InternetGatewayDeviceClient implementation =
             new InternetGatewayDeviceClient(device);
+         
+         // set the implementation to the device
+         device.setImplementation(implementation);
+      }
+      else if(device.getDeviceType().equals(
+               WanConnectionDeviceClient.WAN_CONNECTION_DEVICE_TYPE))
+      {
+         // create a WAN connection client implementation
+         WanConnectionDeviceClient implementation =
+            new WanConnectionDeviceClient(device);
          
          // set the implementation to the device
          device.setImplementation(implementation);

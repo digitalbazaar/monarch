@@ -158,13 +158,6 @@ public interface WebConnection
    public void disconnect();
    
    /**
-    * Gets the host for this web connection.
-    * 
-    * @return the host for this web connection.
-    */
-   public String getHost();
-   
-   /**
     * Gets the input stream used to read and unread from the web connection.
     * 
     * @return the input stream used to read and unread from the web connection.
@@ -205,6 +198,28 @@ public interface WebConnection
     * @return the local IP address for this web connection.
     */
    public String getLocalIP();
+   
+   /**
+    * Gets the local port for this web connection.
+    * 
+    * @return the local port for this web connection.
+    */
+   public int getLocalPort();
+   
+   /**
+    * Gets the remote host name for this web connection.
+    * 
+    * @return the remote host name for this web connection.
+    */
+   public String getRemoteHostName();
+   
+   /**
+    * Gets the remote host (remoteHostname:remotePort) for this web connection.
+    * 
+    * @return the remote host (remoteHostname:remotePort) for this
+    *         web connection.
+    */
+   public String getRemoteHost();
 
    /**
     * Sets the remote IP address for this web connection.
@@ -219,13 +234,6 @@ public interface WebConnection
     * @return the remote IP address for this web connection.
     */
    public String getRemoteIP();
-   
-   /**
-    * Gets the local port for this web connection.
-    * 
-    * @return the local port for this web connection.
-    */
-   public int getLocalPort();
    
    /**
     * Sets the remote port for this web connection.

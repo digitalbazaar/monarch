@@ -289,7 +289,7 @@ public class HttpWebClient implements WebConnectionClient
          {
             getLogger().debug(getClass(),
                "http web connection established," +
-               "ip=" + wc.getHost() + ":" + wc.getRemotePort());
+               "ip=" + wc.getRemoteHostName() + ":" + wc.getRemotePort());
          }
          else
          {
@@ -451,7 +451,7 @@ public class HttpWebClient implements WebConnectionClient
          request.getHeader().setMethod("GET");
          request.getHeader().setPath(path);
          request.getHeader().setVersion("HTTP/1.1");
-         request.getHeader().setHost(connection.getHost());
+         request.getHeader().setHost(connection.getRemoteHost());
          request.getHeader().setUserAgent(DEFAULT_USER_AGENT);
          request.getHeader().setConnection("close");
          
@@ -519,7 +519,7 @@ public class HttpWebClient implements WebConnectionClient
          request.getHeader().setMethod("GET");
          request.getHeader().setPath(path);
          request.getHeader().setVersion("HTTP/1.1");
-         request.getHeader().setHost(connection.getHost());
+         request.getHeader().setHost(connection.getRemoteHost());
          request.getHeader().setUserAgent(DEFAULT_USER_AGENT);
          request.getHeader().setConnection("close");
          

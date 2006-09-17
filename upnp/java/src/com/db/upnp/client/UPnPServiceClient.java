@@ -6,6 +6,10 @@ package com.db.upnp.client;
 import java.net.MalformedURLException;
 
 import com.db.net.http.HttpWebClient;
+import com.db.net.http.HttpWebConnection;
+import com.db.net.http.HttpWebRequest;
+import com.db.net.http.HttpWebResponse;
+import com.db.net.soap.SoapEnvelope;
 import com.db.upnp.device.UPnPRootDevice;
 import com.db.upnp.service.UPnPService;
 
@@ -60,5 +64,66 @@ public class UPnPServiceClient
       
       // set the URL for the http client
       mHttpClient.setUrl(baseUrl + controlUrl);
+   }
+   
+   /**
+    * Sends the passed SoapEnvelope to the service and returns the HTTP
+    * response code. The passed envelope will be updated if the server responds
+    * with its own envelope.
+    * 
+    * @param envelope the SoapEnvelope to send.
+    * 
+    * @return the HTTP response code.
+    */
+   public String sendSoapEnvelope(SoapEnvelope envelope) 
+   {
+      String rval = "503 Service Unavailable";
+      
+      // get an http web connection
+      HttpWebConnection connection = mHttpClient.connect();
+      if(connection != null)
+      {
+         // get the xml for the envelope
+         String xml = envelope.convertToXml(true, 0, 0);
+         
+         // create an HTTP request
+         HttpWebRequest request = new HttpWebRequest(connection);
+         request.getHeader().setContentLength(xml.length());
+         request.getHeader().setConnection("close");
+         
+         // send the request header
+         if(request.sendHeader())
+         {
+            // send the request body
+            request.sendBody(xml);
+            
+            // create a response
+            HttpWebResponse response = request.createHttpWebResponse();
+            
+            // receive the response header
+            if(response.receiveHeader())
+            {
+               // set the status code to the return value
+               rval = response.getHeader().getStatusCode();
+               
+               // receive the body, if any
+               if(response.getHeader().getContentLength() > 0)
+               {
+                  xml = response.receiveBodyString();
+                  if(xml != null)
+                  {
+                     // convert the rpc soap envelope from the received xml
+                     envelope.convertFromXml(xml);
+                     
+                  }
+               }
+            }
+         }
+         
+         // disconnect the connection
+         connection.disconnect();
+      }
+      
+      return rval;
    }
 }

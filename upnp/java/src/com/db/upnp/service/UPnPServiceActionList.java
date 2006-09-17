@@ -167,6 +167,16 @@ public class UPnPServiceActionList extends AbstractXmlSerializer
    }
    
    /**
+    * Gets an iterator over the actions in this list.
+    *
+    * @return an iterator over the UPnPServiceActions in this list.
+    */
+   public Iterator iterator()
+   {
+      return getActions().iterator();
+   }
+   
+   /**
     * Gets the number of actions in this list.
     * 
     * @return the number of actions in this list.

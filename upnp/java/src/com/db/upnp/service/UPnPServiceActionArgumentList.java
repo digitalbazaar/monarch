@@ -189,6 +189,16 @@ public class UPnPServiceActionArgumentList extends AbstractXmlSerializer
    }
    
    /**
+    * Gets an iterator over the arguments in this list.
+    *
+    * @return an iterator over the UPnPServiceActionArguments in this list.
+    */
+   public Iterator iterator()
+   {
+      return getArguments().iterator();
+   }
+   
+   /**
     * Gets the number of arguments in this list.
     * 
     * @return the number of arguments in this list.

@@ -231,16 +231,6 @@ public class WebConnectionWrapper implements WebConnection
    }
    
    /**
-    * Gets the host for the underlying web connection.
-    * 
-    * @return the host for the underlying web connection.
-    */
-   public String getHost()
-   {
-      return getWebConnection().getHost();
-   }
-   
-   /**
     * Gets the input stream used to read and unread from the underlying
     * web connection.
     * 
@@ -291,15 +281,26 @@ public class WebConnectionWrapper implements WebConnection
    }
    
    /**
-    * Gets the local IP address for the underlying web connection.
+    * Gets the remote host name for this web connection.
     * 
-    * @return the local IP address for the underlying web connection.
+    * @return the remote host name for this web connection.
     */
-   public String getLocalIP()
+   public String getRemoteHostName()
    {
-      return getWebConnection().getLocalIP();
+      return getWebConnection().getRemoteHostName();
    }
-
+   
+   /**
+    * Gets the remote host (remoteHostname:remotePort) for this web connection.
+    * 
+    * @return the remote host (remoteHostname:remotePort) for this
+    *         web connection.
+    */
+   public String getRemoteHost()   
+   {
+      return getWebConnection().getRemoteHost();
+   }
+   
    /**
     * Sets the remote IP address for the underlying web connection.
     * 
@@ -321,16 +322,6 @@ public class WebConnectionWrapper implements WebConnection
    }
    
    /**
-    * Gets the local port for the underlying web connection.
-    * 
-    * @return the local port for the underlying web connection.
-    */
-   public int getLocalPort()
-   {
-      return getWebConnection().getLocalPort();
-   }
-   
-   /**
     * Sets the remote port for the underlying web connection.
     * 
     * @param port the remote port for the underlying web connection.
@@ -348,6 +339,26 @@ public class WebConnectionWrapper implements WebConnection
    public int getRemotePort()
    {
       return getWebConnection().getRemotePort();
+   }
+   
+   /**
+    * Gets the local IP address for the underlying web connection.
+    * 
+    * @return the local IP address for the underlying web connection.
+    */
+   public String getLocalIP()
+   {
+      return getWebConnection().getLocalIP();
+   }
+
+   /**
+    * Gets the local port for the underlying web connection.
+    * 
+    * @return the local port for the underlying web connection.
+    */
+   public int getLocalPort()
+   {
+      return getWebConnection().getLocalPort();
    }
    
    /**

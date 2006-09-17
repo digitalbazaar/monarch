@@ -3,8 +3,11 @@
  */
 package com.db.upnp.client.igd;
 
+import java.util.Iterator;
+
 import com.db.upnp.client.ClientUPnPDeviceImplementation;
 import com.db.upnp.device.UPnPDevice;
+import com.db.upnp.service.UPnPService;
 
 /**
  * A Internet Gateway Device Client. This is a client for an Internet Gateway
@@ -35,5 +38,13 @@ implements ClientUPnPDeviceImplementation
    {
       // store device
       mDevice = device;
+      
+      // create the service implementations for the device
+      for(Iterator i = device.getServiceList().iterator(); i.hasNext();)
+      {
+         UPnPService service = (UPnPService)i.next();
+         
+         // FIXME:
+      }
    }
 }

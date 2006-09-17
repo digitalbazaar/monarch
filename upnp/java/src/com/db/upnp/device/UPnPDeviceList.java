@@ -158,6 +158,16 @@ public class UPnPDeviceList extends AbstractXmlSerializer
    {
       getDevices().clear();
    }
+
+   /**
+    * Gets an iterator over the devices in this list.
+    *
+    * @return an iterator over the UPnPDevices in this list.
+    */
+   public Iterator iterator()
+   {
+      return getDevices().iterator();
+   }
    
    /**
     * Gets the number of devices in this list.

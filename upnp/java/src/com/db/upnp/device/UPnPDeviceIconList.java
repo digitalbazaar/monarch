@@ -165,6 +165,16 @@ public class UPnPDeviceIconList extends AbstractXmlSerializer
    }
    
    /**
+    * Gets an iterator over the icons in this list.
+    *
+    * @return an iterator over the UPnPDeviceIcons in this list.
+    */
+   public Iterator iterator()
+   {
+      return getIcons().iterator();
+   }
+   
+   /**
     * Gets the number of icons in this list.
     * 
     * @return the number of icons in this list.

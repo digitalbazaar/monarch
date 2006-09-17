@@ -124,8 +124,8 @@ implements WebConnection, HandshakeCompletedListener
       }
       
       // set IP and port
-      setRemoteIP(getRemoteIP(workerSocket));
-      setRemotePort(getRemotePort(workerSocket));
+      setRemoteIP(workerSocket.getInetAddress().getHostAddress());
+      setRemotePort(workerSocket.getPort());
       
       // not secure by default
       mSecure = false;
@@ -571,24 +571,6 @@ implements WebConnection, HandshakeCompletedListener
    }
    
    /**
-    * Gets the host for this web connection.
-    * 
-    * @return the host for this web connection.
-    */
-   public String getHost()
-   {
-      String host = getWorkerSocket().getRemoteSocketAddress().toString();
-      
-      // remove leading slash, if any
-      if(host.startsWith("/"))
-      {
-         host = host.substring(1);
-      }
-      
-      return host; 
-   }
-   
-   /**
     * Gets the input stream used to read and unread from the web connection.
     * 
     * @return the input stream used to read and unread from the web connection.
@@ -666,8 +648,58 @@ implements WebConnection, HandshakeCompletedListener
     */
    public String getLocalIP()
    {
-      return getLocalIP(getWorkerSocket());
+      return getWorkerSocket().getLocalAddress().getHostAddress();
    }
+
+   /**
+    * Gets the local IP address for a socket.
+    * 
+    * @param s the socket to get the address of.
+    * 
+    * @return the local IP address for the socket.
+    */
+   public static String getLocalIP(Socket s)
+   {
+      String ip = "";
+      
+      if(s != null)
+      {
+         ip = getIP(s.getLocalSocketAddress());
+      }
+      
+      return ip;
+   }
+   
+   /**
+    * Gets the local port for this web connection.
+    * 
+    * @return the local port for this web connection.
+    */
+   public int getLocalPort()
+   {
+      return getWorkerSocket().getLocalPort();
+   }  
+   
+   /**
+    * Gets the remote host name for this web connection.
+    * 
+    * @return the remote host name for this web connection.
+    */
+   public String getRemoteHostName()
+   {
+      return getWorkerSocket().getInetAddress().getHostName();
+   }
+   
+   /**
+    * Gets the remote host (remoteHostname:remotePort) for this web connection.
+    * 
+    * @return the remote host (remoteHostname:remotePort) for this
+    *         web connection.
+    */
+   public String getRemoteHost()
+   {
+      return getRemoteHostName() + ":" + getRemotePort(); 
+   }   
 
    /**
     * Sets the remote IP address for this web connection.
@@ -719,91 +751,6 @@ implements WebConnection, HandshakeCompletedListener
       }
       
       return ip;
-   }
-   
-   /**
-    * Gets the local IP address for a socket.
-    * 
-    * @param s the socket to get the address of.
-    * 
-    * @return the local IP address for the socket.
-    */
-   public static String getLocalIP(Socket s)
-   {
-      String ip = "";
-      
-      if(s != null)
-      {
-         ip = getIP(s.getLocalSocketAddress());
-      }
-      
-      return ip;
-   }
-   
-   /**
-    * Gets the remote IP address for a socket.
-    * 
-    * @param s the socket to get the address of.
-    * 
-    * @return the remote IP address for the socket.
-    */
-   public static String getRemoteIP(Socket s)
-   {
-      String ip = "";
-      
-      if(s != null)
-      {
-         ip = getIP(s.getRemoteSocketAddress());
-      }
-      
-      return ip;
-   }
-   
-   /**
-    * Gets the remote port for a socket.
-    * 
-    * @param s the socket to get the remote port for.
-    * 
-    * @return the remote port for a socket or 0 if one could not be determined.
-    */
-   public static int getRemotePort(Socket s)
-   {
-      int rval = 0;
-      
-      if(s != null)
-      {
-         String address = s.getRemoteSocketAddress().toString();
-         
-         if(address.startsWith("/") && address.length() >= 1)
-         {
-            address = address.substring(1, address.length());
-
-            // chop off colon, if any
-            int index = address.indexOf(":");
-            if(index != -1 && index < (address.length() - 1))
-            {
-               try
-               {
-                  rval = Integer.parseInt(address.substring(index));
-               }
-               catch(Throwable t)
-               {
-               }
-            }
-         }
-      }
-      
-      return rval;
-   }   
-   
-   /**
-    * Gets the local port for this web connection.
-    * 
-    * @return the local port for this web connection.
-    */
-   public int getLocalPort()
-   {
-      return getWorkerSocket().getLocalPort();
    }
    
    /**

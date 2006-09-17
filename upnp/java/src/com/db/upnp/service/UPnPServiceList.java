@@ -165,6 +165,16 @@ public class UPnPServiceList extends AbstractXmlSerializer
    }
    
    /**
+    * Gets an iterator over the services in this list.
+    *
+    * @return an iterator over the UPnPServices in this list.
+    */
+   public Iterator iterator()
+   {
+      return getServices().iterator();
+   }
+   
+   /**
     * Gets the number of services in this list.
     * 
     * @return the number of services in this list.
