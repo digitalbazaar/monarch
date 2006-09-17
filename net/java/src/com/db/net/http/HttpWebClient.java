@@ -416,27 +416,29 @@ public class HttpWebClient implements WebConnectionClient
     * A convenience method for performing an HTTP GET to retrieve content
     * as a string.
     * 
-    * @param url the url for the content.
+    * @param url the url to connect to for the content.
+    * @param path the relative path to the content.
     * 
     * @return the retrieved content or null if no content could be retrieved.
     * 
     * @throws MalformedURLException
     */
-   public String getContent(String url)
+   public String getContent(String url, String path)
    throws MalformedURLException
    {
-      return getContent(new URL(url));
+      return getContent(new URL(url), path);
    }
    
    /**
     * A convenience method for performing an HTTP GET to retrieve content
     * as a string.
     * 
-    * @param url the url for the content.
+    * @param url the url to connect to for the content.
+    * @param path the relative path to the content.
     * 
     * @return the retrieved content or null if no content could be retrieved.
     */
-   public String getContent(URL url)
+   public String getContent(URL url, String path)
    {
       String rval = null;
       
@@ -455,7 +457,7 @@ public class HttpWebClient implements WebConnectionClient
          // create http web request
          HttpWebRequest request = new HttpWebRequest(connection);
          request.getHeader().setMethod("GET");
-         request.getHeader().setPath(url.toString());
+         request.getHeader().setPath(path);
          request.getHeader().setVersion("HTTP/1.1");
          request.getHeader().setHost(url.getHost() + ":" + port);
          request.getHeader().setUserAgent(DEFAULT_USER_AGENT);
@@ -487,7 +489,8 @@ public class HttpWebClient implements WebConnectionClient
    /**
     * A convenience method for performing an HTTP GET to retrieve a file.
     * 
-    * @param url the url for the file.
+    * @param url the url to connect to for the file.
+    * @param path the relative path to the file.
     * @param directory the directory to store the file in.
     * 
     * @return the file if it was received or null if the file could not
@@ -495,22 +498,23 @@ public class HttpWebClient implements WebConnectionClient
     *         
     * @throws MalformedURLException
     */
-   public File getFile(String url, File directory)
+   public File getFile(String url, String path, File directory)
    throws MalformedURLException
    {
-      return getFile(new URL(url), directory);
+      return getFile(new URL(url), path, directory);
    }
    
    /**
     * A convenience method for performing an HTTP GET to retrieve a file.
     * 
-    * @param url the URL for the file.
+    * @param url the URL to connect to for the file.
+    * @param path the relative path to the file.
     * @param directory the directory to store the file in.
     * 
     * @return the file if it was received or null if the file could not
     *         be received.
     */
-   public File getFile(URL url, File directory)
+   public File getFile(URL url, String path, File directory)
    {
       File rval = null;
       
@@ -529,7 +533,7 @@ public class HttpWebClient implements WebConnectionClient
          // create http web request
          HttpWebRequest request = new HttpWebRequest(connection);
          request.getHeader().setMethod("GET");
-         request.getHeader().setPath(url.toString());
+         request.getHeader().setPath(path);
          request.getHeader().setVersion("HTTP/1.1");
          request.getHeader().setHost(url.getHost() + ":" + port);
          request.getHeader().setUserAgent(DEFAULT_USER_AGENT);
@@ -555,7 +559,7 @@ public class HttpWebClient implements WebConnectionClient
                   }
                   
                   // get full path of file to write to
-                  String path =
+                  String fullPath =
                      directory.getAbsolutePath() + File.separator + filename;
                   
                   // create file output stream reference
@@ -564,7 +568,7 @@ public class HttpWebClient implements WebConnectionClient
                   try
                   {
                      // create file output stream for writing to the file
-                     fos = new FileOutputStream(path);
+                     fos = new FileOutputStream(fullPath);
 
                      // receive response body
                      response.receiveBody(fos);
@@ -573,7 +577,7 @@ public class HttpWebClient implements WebConnectionClient
                      fos.close();
                      
                      // file received
-                     rval = new File(path);
+                     rval = new File(fullPath);
                   }
                   catch(IOException e)
                   {

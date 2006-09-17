@@ -3,6 +3,9 @@
  */
 package com.db.upnp.service;
 
+import java.util.Iterator;
+import java.util.Vector;
+
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
@@ -47,10 +50,17 @@ import com.db.xml.XmlElement;
 public class UPnPServiceList extends AbstractXmlSerializer
 {
    /**
+    * The UPnPServices for this list.
+    */
+   protected Vector mServices;
+   
+   /**
     * Creates a new UPnPServiceList.
     */
    public UPnPServiceList()
    {
+      // create the services list
+      mServices = new Vector();
    }
    
    /**
@@ -60,7 +70,7 @@ public class UPnPServiceList extends AbstractXmlSerializer
     */
    public String getRootTag()   
    {
-      return "root";
+      return "serviceList";
    }
    
    /**
@@ -74,13 +84,18 @@ public class UPnPServiceList extends AbstractXmlSerializer
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
-      XmlElement rootElement = new XmlElement(getRootTag());
-      rootElement.setParent(parent);
+      XmlElement listElement = new XmlElement(getRootTag());
+      listElement.setParent(parent);
       
-      // FIXME:
+      // convert each service to an xml element child
+      for(Iterator i = getServices().iterator(); i.hasNext();)
+      {
+         UPnPService service = (UPnPService)i.next();
+         listElement.addChild(service.convertToXmlElement(listElement));
+      }
       
       // return root element
-      return rootElement;
+      return listElement;
    }
    
    /**
@@ -93,10 +108,70 @@ public class UPnPServiceList extends AbstractXmlSerializer
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = true;
-
-      // FIXME:
+      
+      // clear service list
+      clear();
+      
+      // convert services
+      for(Iterator i = element.getChildren("service").iterator(); i.hasNext();)
+      {
+         XmlElement serviceElement = (XmlElement)i.next();
+         UPnPService service = new UPnPService();
+         if(service.convertFromXmlElement(serviceElement))
+         {
+            addService(service);
+         }
+      }
       
       return rval;
+   }
+   
+   /**
+    * Adds a UPnPService to this list.
+    * 
+    * @param service the UPnPService to add.
+    */
+   public void addService(UPnPService service)
+   {
+      getServices().add(service);
+   }
+   
+   /**
+    * Removes a UPnPService from this list.
+    * 
+    * @param service the UPnPService to remove.
+    */
+   public void removeService(UPnPService service)
+   {
+      getServices().remove(service);
+   }
+   
+   /**
+    * Gets the UPnPService for this list in a vector.
+    * 
+    * @return the UPnPService for this list in a vector.
+    */
+   public Vector getServices()
+   {
+      return mServices;
+   }
+   
+   /**
+    * Clears the services from this list.
+    */
+   public void clear()
+   {
+      getServices().clear();
+   }
+   
+   /**
+    * Gets the number of services in this list.
+    * 
+    * @return the number of services in this list.
+    */
+   public int getServiceCount()
+   {
+      return getServices().size();
    }
    
    /**

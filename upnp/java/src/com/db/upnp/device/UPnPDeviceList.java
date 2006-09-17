@@ -3,8 +3,12 @@
  */
 package com.db.upnp.device;
 
+import java.util.Iterator;
+import java.util.Vector;
+
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.upnp.device.UPnPDevice;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
 
@@ -41,10 +45,17 @@ import com.db.xml.XmlElement;
 public class UPnPDeviceList extends AbstractXmlSerializer
 {
    /**
+    * The UPnPDevices for this list.
+    */
+   protected Vector mDevices;
+   
+   /**
     * Creates a new UPnPDeviceList.
     */
    public UPnPDeviceList()
    {
+      // create the devices list
+      mDevices = new Vector();
    }
    
    /**
@@ -54,7 +65,7 @@ public class UPnPDeviceList extends AbstractXmlSerializer
     */
    public String getRootTag()   
    {
-      return "root";
+      return "deviceList";
    }
    
    /**
@@ -68,13 +79,18 @@ public class UPnPDeviceList extends AbstractXmlSerializer
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
-      XmlElement rootElement = new XmlElement(getRootTag());
-      rootElement.setParent(parent);
+      XmlElement listElement = new XmlElement(getRootTag());
+      listElement.setParent(parent);
       
-      // FIXME:
+      // convert each device to an xml element child
+      for(Iterator i = getDevices().iterator(); i.hasNext();)
+      {
+         UPnPDevice device = (UPnPDevice)i.next();
+         listElement.addChild(device.convertToXmlElement(listElement));
+      }
       
       // return root element
-      return rootElement;
+      return listElement;
    }
    
    /**
@@ -87,10 +103,70 @@ public class UPnPDeviceList extends AbstractXmlSerializer
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = true;
-
-      // FIXME:
+      
+      // clear device list
+      clear();
+      
+      // convert devices
+      for(Iterator i = element.getChildren("device").iterator(); i.hasNext();)
+      {
+         XmlElement deviceElement = (XmlElement)i.next();
+         UPnPDevice device = new UPnPDevice();
+         if(device.convertFromXmlElement(deviceElement))
+         {
+            addDevice(device);
+         }
+      }
       
       return rval;
+   }
+   
+   /**
+    * Adds a UPnPDevice to this list.
+    * 
+    * @param device the UPnPDevice to add.
+    */
+   public void addDevice(UPnPDevice device)
+   {
+      getDevices().add(device);
+   }
+   
+   /**
+    * Removes a UPnPDevice from this list.
+    * 
+    * @param device the UPnPDevice to remove.
+    */
+   public void removeDevice(UPnPDevice device)
+   {
+      getDevices().remove(device);
+   }
+   
+   /**
+    * Gets the UPnPDevice for this list in a vector.
+    * 
+    * @return the UPnPDevice for this list in a vector.
+    */
+   public Vector getDevices()
+   {
+      return mDevices;
+   }
+   
+   /**
+    * Clears the devices from this list.
+    */
+   public void clear()
+   {
+      getDevices().clear();
+   }
+   
+   /**
+    * Gets the number of devices in this list.
+    * 
+    * @return the number of devices in this list.
+    */
+   public int getDeviceCount()
+   {
+      return getDevices().size();
    }
    
    /**

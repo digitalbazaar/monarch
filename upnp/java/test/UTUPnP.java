@@ -45,6 +45,20 @@ public class UTUPnP
          for(int i = 0; i < devices.length; i++)
          {
             System.out.println(devices[i].toString());
+            
+            System.out.println("GETTING DEVICE DESCRIPTION...");
+            
+            // get the device description
+            if(devices[i].retrieveDescription())
+            {
+               System.out.println("DESCRIPTION RETRIEVED:\n");
+               System.out.println(devices[i].getDescription().convertToXml());
+               System.out.println();
+            }
+            else
+            {
+               System.out.println("COULD NOT RETRIEVE DEVICE DESCRIPTION!\n");
+            }
          }
          
          System.out.println("\nUPnP functionality test complete.");

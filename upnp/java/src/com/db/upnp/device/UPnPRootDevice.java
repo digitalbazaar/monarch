@@ -4,18 +4,19 @@
 package com.db.upnp.device;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 
 import com.db.net.http.HttpWebClient;
 
 /**
- * A UPnPRootDevice is a root device that has a UPnP server that allows it
+ * A UPnPRootDevice is a root UPnP device that has a UPnP server that allows it
  * to make itself available to a UPnPControlPoint. It has a "search target"
  * that identifies the type of device which allows it to be searched for. It
  * also has a location URL that points to its UPnPDeviceDescription.  
  * 
  * @author Dave Longley
  */
-public class UPnPRootDevice extends UPnPDevice
+public class UPnPRootDevice
 {
    /**
     * The server for the device.
@@ -38,6 +39,11 @@ public class UPnPRootDevice extends UPnPDevice
    protected String mUsn;
    
    /**
+    * The UPnPDeviceDescription for this device.
+    */
+   protected UPnPDeviceDescription mDescription;   
+   
+   /**
     * Creates a new UPnPRootDevice with no set UPnPDeviceDescription.
     */
    public UPnPRootDevice()
@@ -47,6 +53,9 @@ public class UPnPRootDevice extends UPnPDevice
       setSearchTarget("upnp:rootdevice");
       setLocation("");
       setUsn("");
+      
+      // set no device description
+      setDescription(null);
    }
    
    /**
@@ -68,7 +77,8 @@ public class UPnPRootDevice extends UPnPDevice
       
       // create http client and get the xml from the location 
       HttpWebClient client = new HttpWebClient();
-      String xml = client.getContent(getLocation());
+      URL url = new URL(getLocation());
+      String xml = client.getContent(url, url.getPath());
       if(xml != null)
       {
          // create a new UPnPDeviceDescription
@@ -79,6 +89,14 @@ public class UPnPRootDevice extends UPnPDevice
          {
             // set the description to this device
             setDescription(description);
+            
+            // see if the description has no set base URL
+            if(description.getBaseUrl().equals(""))
+            {
+               // set the description's base URL to the location URL
+               description.setBaseUrl(getLocation());
+            }
+            
             rval = true;
          }
       }
@@ -165,6 +183,27 @@ public class UPnPRootDevice extends UPnPDevice
    {
       return mUsn;
    }
+   
+   /**
+    * Sets the UPnPDeviceDescription for this UPnPDevice.
+    * 
+    * @param description the UPnPDeviceDescription for this UPnPDevice.
+    */
+   public void setDescription(UPnPDeviceDescription description)
+   {
+      mDescription = description;
+   }
+
+   /**
+    * Gets the UPnPDeviceDescription for this UPnPDevice. This method
+    * will return null if no description has been set for this UPnPDevice.
+    * 
+    * @return the UPnPDeviceDescription for this UPnPDevice (can be null).
+    */
+   public UPnPDeviceDescription getDescription()   
+   {
+      return mDescription;
+   }   
    
    /**
     * Gets the string representation for this UPnPRootDevice.

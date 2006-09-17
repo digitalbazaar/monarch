@@ -4,6 +4,7 @@
 package com.db.upnp.service;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -158,7 +159,8 @@ public class UPnPService extends AbstractXmlSerializer
       
       // create http client and get the xml from the location 
       HttpWebClient client = new HttpWebClient();
-      String xml = client.getContent(getScpdUrl());
+      URL url = new URL(getScpdUrl());
+      String xml = client.getContent(url, url.getPath());
       if(xml != null)
       {
          // create a new UPnPServiceDescription

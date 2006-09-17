@@ -123,8 +123,7 @@ public class XmlAttribute
       // a reserved name, and it has a parent XmlElement, get the
       // namespace URI from that element
       if(mNamespaceUri == null &&
-         !getValue().equals("xml") && !getValue().equals("xmlns") &&
-         getParent() != null)
+         !getName().equals("xmlns") && getParent() != null)
       {
          rval = getParent().getNamespaceUri();
       }

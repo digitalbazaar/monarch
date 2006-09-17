@@ -335,9 +335,9 @@ public class UPnPServiceDescription extends AbstractXmlSerializer
    protected UPnPServiceStateTable mStateTable;
    
    /**
-    * The XML namespace for this service descrption.
+    * The XML namespace URI for this service descrption.
     */
-   public static final String XML_NAMESPACE =
+   public static final String XML_NAMESPACE_URI =
       "urn:schemas-upnp-org:service-1-0";
    
    /**
@@ -387,7 +387,7 @@ public class UPnPServiceDescription extends AbstractXmlSerializer
       scpdElement.setParent(parent);
       
       // add namespace attribute
-      scpdElement.addAttribute("xmlns", XML_NAMESPACE);
+      scpdElement.addAttribute("xmlns", XML_NAMESPACE_URI);
       
       // add spec version element
       XmlElement specVersionElement = new XmlElement("specVersion");
@@ -429,7 +429,7 @@ public class UPnPServiceDescription extends AbstractXmlSerializer
       
       // check namespace and spec version
       String namespace = element.getAttributeValue("xmlns");
-      if(namespace.equals(XML_NAMESPACE) && element.hasChild("specVersion"))
+      if(namespace.equals(XML_NAMESPACE_URI) && element.hasChild("specVersion"))
       {
          // check major and minor spec versions
          XmlElement specElement = element.getFirstChild("specVersion");

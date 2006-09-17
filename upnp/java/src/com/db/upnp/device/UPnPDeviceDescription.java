@@ -280,9 +280,19 @@ import com.db.xml.XmlElement;
 public class UPnPDeviceDescription extends AbstractXmlSerializer
 {
    /**
-    * The XML namespace for this device descrption.
+    * The base URL for all relative URLs in this description.
     */
-   public static final String XML_NAMESPACE =
+   protected String mBaseUrl;
+   
+   /**
+    * The UPnPDevice this description is for.
+    */
+   protected UPnPDevice mDevice;
+   
+   /**
+    * The XML namespace URI for this device descrption.
+    */
+   public static final String XML_NAMESPACE_URI =
       "urn:schemas-upnp-org:device-1-0";
    
    /**
@@ -300,6 +310,11 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
     */
    public UPnPDeviceDescription()
    {
+      // set defaults
+      setBaseUrl("");
+      
+      // create the UPnPDevice
+      mDevice = new UPnPDevice();
    }
    
    /**
@@ -327,7 +342,7 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
       rootElement.setParent(parent);
       
       // add namespace attribute
-      rootElement.addAttribute("xmlns", XML_NAMESPACE);
+      rootElement.addAttribute("xmlns", XML_NAMESPACE_URI);
       
       // add spec version element
       XmlElement specVersionElement = new XmlElement("specVersion");
@@ -343,7 +358,16 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
       minorElement.setValue(MINOR_VERSION);
       specVersionElement.addChild(minorElement);      
       
-      // FIXME:
+      // add base URL element, if applicable
+      if(!getBaseUrl().equals(""))
+      {
+         XmlElement baseUrlElement = new XmlElement("URLBase");
+         baseUrlElement.setValue(getBaseUrl());
+         rootElement.addChild(baseUrlElement);
+      }
+      
+      // convert device
+      rootElement.addChild(getDevice().convertToXmlElement(rootElement));
       
       // return root element
       return rootElement;
@@ -362,7 +386,7 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
       
       // check namespace and spec version
       String namespace = element.getAttributeValue("xmlns");
-      if(namespace.equals(XML_NAMESPACE) && element.hasChild("specVersion"))
+      if(namespace.equals(XML_NAMESPACE_URI) && element.hasChild("specVersion"))
       {
          // check major and minor spec versions
          XmlElement specElement = element.getFirstChild("specVersion");
@@ -373,11 +397,49 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
          {
             rval = true;
             
-            // FIXME:
+            // get the base URL, if applicable
+            XmlElement baseUrlElement = element.getFirstChild("URLBase");
+            if(baseUrlElement != null)
+            {
+               setBaseUrl(baseUrlElement.getValue());
+            }
+            
+            // convert device
+            getDevice().convertFromXmlElement(element.getFirstChild("device"));
          }
       }
       
       return rval;
+   }
+   
+   /**
+    * Sets the base URL for all relative URLs in this description.
+    * 
+    * @param baseUrl the base URL for all relative URLs in this description.
+    */
+   public void setBaseUrl(String baseUrl)
+   {
+      mBaseUrl = baseUrl;
+   }
+   
+   /**
+    * Gets the base URL for all relative URLs in this description.
+    * 
+    * @return the base URL for all relative URLs in this description.
+    */
+   public String getBaseUrl()
+   {
+      return mBaseUrl;
+   }
+   
+   /**
+    * Gets the UPnPDevice this description is for.
+    *
+    * @return the UPnPDevice this description is for.
+    */
+   public UPnPDevice getDevice()
+   {
+      return mDevice;
    }
    
    /**

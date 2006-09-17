@@ -3,6 +3,9 @@
  */
 package com.db.upnp.device;
 
+import java.util.Iterator;
+import java.util.Vector;
+
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
@@ -47,10 +50,17 @@ import com.db.xml.XmlElement;
 public class UPnPDeviceIconList extends AbstractXmlSerializer
 {
    /**
+    * The UPnPDeviceIcons for this list.
+    */
+   protected Vector mIcons;
+   
+   /**
     * Creates a new UPnPDeviceIconList.
     */
    public UPnPDeviceIconList()
    {
+      // create the icon list
+      mIcons = new Vector();
    }
    
    /**
@@ -60,7 +70,7 @@ public class UPnPDeviceIconList extends AbstractXmlSerializer
     */
    public String getRootTag()   
    {
-      return "root";
+      return "iconList";
    }
    
    /**
@@ -74,13 +84,18 @@ public class UPnPDeviceIconList extends AbstractXmlSerializer
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
-      XmlElement rootElement = new XmlElement(getRootTag());
-      rootElement.setParent(parent);
+      XmlElement listElement = new XmlElement(getRootTag());
+      listElement.setParent(parent);
       
-      // FIXME:
+      // convert each icon to an xml element child
+      for(Iterator i = getIcons().iterator(); i.hasNext();)
+      {
+         UPnPDeviceIcon icon = (UPnPDeviceIcon)i.next();
+         listElement.addChild(icon.convertToXmlElement(listElement));
+      }
       
       // return root element
-      return rootElement;
+      return listElement;
    }
    
    /**
@@ -93,10 +108,70 @@ public class UPnPDeviceIconList extends AbstractXmlSerializer
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = true;
-
-      // FIXME:
+      
+      // clear icon list
+      clear();
+      
+      // convert icons
+      for(Iterator i = element.getChildren("icon").iterator(); i.hasNext();)
+      {
+         XmlElement iconElement = (XmlElement)i.next();
+         UPnPDeviceIcon icon = new UPnPDeviceIcon();
+         if(icon.convertFromXmlElement(iconElement))
+         {
+            addIcon(icon);
+         }
+      }
       
       return rval;
+   }
+   
+   /**
+    * Adds a UPnPDeviceIcon to this list.
+    * 
+    * @param icon the UPnPDeviceIcon to add.
+    */
+   public void addIcon(UPnPDeviceIcon icon)
+   {
+      getIcons().add(icon);
+   }
+   
+   /**
+    * Removes a UPnPDeviceIcon from this list.
+    * 
+    * @param icon the UPnPDeviceIcon to remove.
+    */
+   public void removeIcon(UPnPDeviceIcon icon)
+   {
+      getIcons().remove(icon);
+   }
+   
+   /**
+    * Gets the UPnPDeviceIcons for this list in a vector.
+    * 
+    * @return the UPnPDeviceIcons for this list in a vector.
+    */
+   public Vector getIcons()
+   {
+      return mIcons;
+   }
+   
+   /**
+    * Clears the icons from this list.
+    */
+   public void clear()
+   {
+      getIcons().clear();
+   }
+   
+   /**
+    * Gets the number of icons in this list.
+    * 
+    * @return the number of icons in this list.
+    */
+   public int getIconCount()
+   {
+      return getIcons().size();
    }
    
    /**
