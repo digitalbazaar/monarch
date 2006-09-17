@@ -5,10 +5,10 @@ import java.util.Iterator;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.upnp.device.UPnPDevice;
 import com.db.upnp.device.UPnPRootDevice;
 import com.db.upnp.discover.UPnPDeviceDiscoverer;
 import com.db.upnp.service.UPnPService;
-import com.db.upnp.service.UPnPServiceList;
 
 /**
  * This class is used to test UPnP functionality.
@@ -17,6 +17,30 @@ import com.db.upnp.service.UPnPServiceList;
  */
 public class UTUPnP
 {
+   /**
+    * Prints out all of the descriptions for a given UPnPDevice.
+    * 
+    * @param device the UPnPDevice to print out the descriptions for.
+    */
+   public static void printoutDescriptions(UPnPDevice device)
+   {
+      // print out all of the service descriptions for the device
+      for(Iterator i = device.getServiceList().iterator(); i.hasNext();)
+      {
+         UPnPService service = (UPnPService)i.next();
+         System.out.println("SERVICE DESCRIPTION:");
+         System.out.println(service.getDescription().convertToXml());
+         System.out.println();
+      }
+      
+      // print out all of the embedded devices' descriptions
+      for(Iterator i = device.getDeviceList().iterator(); i.hasNext();)
+      {
+         UPnPDevice embeddedDevice = (UPnPDevice)i.next();
+         printoutDescriptions(embeddedDevice);
+      }
+   }
+   
    /**
     * Runs the unit test.
     *
@@ -52,9 +76,20 @@ public class UTUPnP
             
             System.out.println("GETTING DEVICE DESCRIPTION...");
             
+            if(devices[i].retrieveAllDescriptions())            
+            {
+               // print out the root description
+               System.out.println("ROOT DESCRIPTION:");
+               System.out.println(devices[i].getDescription().convertToXml());
+               System.out.println();
+               
+               // print out the descriptions for the device
+               printoutDescriptions(devices[i].getDescription().getDevice());
+            }
+            /*
             // get the device description
-            if(devices[i].retrieveAllDescriptions())//.retrieveDeviceDescription())
-            {/*
+            if(retrieveDeviceDescription())
+            {
                System.out.println("DESCRIPTION RETRIEVED:\n");
                System.out.println(devices[i].getDescription().convertToXml());
                System.out.println();
@@ -81,8 +116,8 @@ public class UTUPnP
                         System.out.println();
                      }
                   }
-               }*/
-            }
+               }
+            }*/
             else
             {
                System.out.println("COULD NOT RETRIEVE DEVICE DESCRIPTION!\n");

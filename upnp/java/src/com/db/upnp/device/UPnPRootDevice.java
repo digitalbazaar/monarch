@@ -192,8 +192,8 @@ public class UPnPRootDevice
          request.getHeader().setPath(service.getScpdUrl());
          request.getHeader().setHost(connection.getRemoteHost());
          request.getHeader().setUserAgent(HttpWebClient.DEFAULT_USER_AGENT);
-         request.getHeader().setConnection("Keep-Alive, Persistent");
-         request.getHeader().addHeader("Keep-Alive", "");
+         request.getHeader().addHeader("Persist", connection.getRemoteHost());
+         request.getHeader().setConnection("Keep-Alive, Persist");
          
          // send request
          if(request.sendHeader())
@@ -331,9 +331,15 @@ public class UPnPRootDevice
             if(rootDevice.getDeviceList().getDeviceCount() > 0 ||
                rootDevice.getServiceList().getServiceCount() > 0)
             {
+               // FUTURE CODE: persistent connections are not supported by
+               // all devices (even though they are required by HTTP/1.1),
+               // so we need to add code in here to check to see if a
+               // persistent connection is permitted before executing
+               // the code below to more rapidly retrieve descriptions
+               /*
                // determine if the descriptione has a base URL or not
                if(!getDescription().getBaseUrl().equals(""))
-               {System.out.println("using persistent connection");
+               {
                   // since this description has a base URL, we can use one
                   // persistent http connection to get all of the descriptions
                   
@@ -364,8 +370,8 @@ public class UPnPRootDevice
                      connection.disconnect();
                   }
                }
-               else
-               {System.out.println("using individual connections");
+               else*/
+               {
                   // retrieve all the root service descriptions
                   for(Iterator i = rootDevice.getServiceList().iterator();
                       i.hasNext();) 
