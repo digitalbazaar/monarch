@@ -604,7 +604,15 @@ public abstract class HttpHeader
             rval = true;
          }
       }
+      else if(connection.equalsIgnoreCase("Close"))
+      {
+         rval = false;
+      }
       else if(connection.equalsIgnoreCase("Keep-Alive"))
+      {
+         rval = true;
+      }
+      else if(connection.contains("Persist") || hasHeader("Persist"))
       {
          rval = true;
       }
