@@ -51,6 +51,11 @@ public class SoapEnvelope extends AbstractXmlSerializer
    protected Vector mBodyContentSerializers;
    
    /**
+    * The encoding style URI for this envelope.
+    */
+   protected String mEncodingStyleUri;
+   
+   /**
     * This URI points to the XML schema that defines the structure of a
     * SOAP envelope.
     */
@@ -74,6 +79,140 @@ public class SoapEnvelope extends AbstractXmlSerializer
       
       // create the body content serializers list
       mBodyContentSerializers = new Vector();
+      
+      // defaults to no special encoding style
+      setEncodingStyle(null);
+   }
+   
+   /**
+    * Returns the root tag name for this serializer.
+    * 
+    * @return the root tag name for this serializer.
+    */
+   public String getRootTag()   
+   {
+      // this is according to the soap envelope schema
+      return "Envelope";
+   }
+   
+   /**
+    * Creates an XmlElement from this object.
+    *
+    * @param parent the parent XmlElement for the XmlElement being created
+    *               (can be null). 
+    * 
+    * @return the XmlElement that represents this object.
+    */
+   public XmlElement convertToXmlElement(XmlElement parent)
+   {
+      // create the root xml element with the SOAP envelope namespace
+      XmlElement envelopeElement = new XmlElement(
+         getRootTag(), SOAP_ENVELOPE_URI);
+      envelopeElement.setParent(parent);
+      
+      // use a namespace prefix of "soapenv" for the soap envelope elements
+      String prefix = "soapenv";
+      
+      // add an attribute defining the namespace prefix
+      envelopeElement.addAttribute("xmlns:" + prefix, SOAP_ENVELOPE_URI);
+      
+      // add an encoding style attribute (in the SOAP envelope namespace),
+      // if applicable
+      if(getEncodingStyle() != null && getEncodingStyle().length() > 0)
+      {
+         envelopeElement.addAttribute(
+            "encodingStyle", getEncodingStyle(),
+            SoapEnvelope.SOAP_ENVELOPE_URI);
+      }
+      
+      // if there are header serializers present, then add a header element
+      // and serialize the header blocks
+      if(mHeaderBlockSerializers.size() > 0)
+      {
+         // add the header element
+         XmlElement headerElement = new XmlElement("Header");
+         envelopeElement.addChild(headerElement);
+         
+         // add each header block
+         for(Iterator i = mHeaderBlockSerializers.iterator(); i.hasNext();)
+         {
+            IXmlSerializer serializer = (IXmlSerializer)i.next();
+            headerElement.addChild(
+               serializer.convertToXmlElement(headerElement));
+         }
+      }
+      
+      // if there are body content serializers present, then add a body
+      // element and its contents
+      if(mBodyContentSerializers.size() > 0)
+      {
+         // add the body element
+         XmlElement bodyElement = new XmlElement("Body");
+         envelopeElement.addChild(bodyElement);
+         
+         // add each body sub-element
+         for(Iterator i = mBodyContentSerializers.iterator(); i.hasNext();)
+         {
+            IXmlSerializer serializer = (IXmlSerializer)i.next();
+            bodyElement.addChild(serializer.convertToXmlElement(bodyElement));
+         }
+      }
+      
+      // return envelope element
+      return envelopeElement;
+   }
+   
+   /**
+    * Converts this object from an XmlElement.
+    *
+    * @param element the XmlElement to convert from.
+    * 
+    * @return true if successful, false otherwise.
+    */
+   public boolean convertFromXmlElement(XmlElement element)
+   {
+      boolean rval = true;
+      
+      // clear header block serializers
+      mHeaderBlockSerializers.clear();
+      
+      // clear body content serializers
+      mBodyContentSerializers.clear();
+      
+      // get the encoding style, if any
+      setEncodingStyle(element.getAttributeValue(
+         "encodingStyle", SoapEnvelope.SOAP_ENVELOPE_URI));
+      
+      // convert the header of the envelope, if any
+      XmlElement headerElement = element.getFirstChild(
+         "Header", SOAP_ENVELOPE_URI);
+      if(headerElement != null)
+      {
+         getLogger().detail(getClass(), "found soap envelope header...");
+         
+         // add all children as header block serializers
+         for(Iterator i = headerElement.getChildren().iterator(); i.hasNext();)
+         {
+            XmlElement headerBlock = (XmlElement)i.next();
+            addHeaderBlockSerializer(headerBlock);
+         }
+      }
+      
+      // convert the body of the envelope, if any
+      XmlElement bodyElement = element.getFirstChild("Body", SOAP_ENVELOPE_URI);
+      if(bodyElement != null)
+      {
+         getLogger().detail(getClass(), "found soap envelope body...");
+         
+         // add all children as body content serializers
+         for(Iterator i = bodyElement.getChildren().iterator(); i.hasNext();)
+         {
+            XmlElement bodyContent = (XmlElement)i.next();
+            addBodyContentSerializer(bodyContent);
+         }
+      }
+      
+      return rval;
    }
    
    /**
@@ -136,122 +275,24 @@ public class SoapEnvelope extends AbstractXmlSerializer
    }
    
    /**
-    * Returns the root tag name for this serializer.
+    * Sets the encoding style URI for this envelope.
     * 
-    * @return the root tag name for this serializer.
+    * @param encodingStyleUri the URI for the encoding style for this envelope.
     */
-   public String getRootTag()   
+   public void setEncodingStyle(String encodingStyleUri)
    {
-      // this is according to the soap envelope schema
-      return "Envelope";
+      mEncodingStyleUri = encodingStyleUri;
    }
    
    /**
-    * Creates an XmlElement from this object.
-    *
-    * @param parent the parent XmlElement for the XmlElement being created
-    *               (can be null). 
+    * Gets the encoding style URI for this envelope.
     * 
-    * @return the XmlElement that represents this object.
+    * @return the URI for the encoding style for this envelope.
     */
-   public XmlElement convertToXmlElement(XmlElement parent)
+   public String getEncodingStyle()
    {
-      // create the root xml element with the SOAP envelope namespace
-      XmlElement envelopeElement = new XmlElement(
-         getRootTag(), SOAP_ENVELOPE_URI);
-      envelopeElement.setParent(parent);
-      
-      // use a namespace prefix of "soapenv" for the soap envelope elements
-      String prefix = "soapenv";
-      
-      // add an attribute defining the namespace prefix
-      envelopeElement.addAttribute("xmlns:" + prefix, SOAP_ENVELOPE_URI);
-      
-      // if there are header serializers present, then add a header element
-      // and serialize the header blocks
-      if(mHeaderBlockSerializers.size() > 0)
-      {
-         // add the header element
-         XmlElement headerElement = new XmlElement("Header");
-         envelopeElement.addChild(headerElement);
-         
-         // add each header block
-         for(Iterator i = mHeaderBlockSerializers.iterator(); i.hasNext();)
-         {
-            IXmlSerializer serializer = (IXmlSerializer)i.next();
-            headerElement.addChild(
-               serializer.convertToXmlElement(headerElement));
-         }
-      }
-      
-      // if there are body content serializers present, then add a body
-      // element and its contents
-      if(mBodyContentSerializers.size() > 0)
-      {
-         // add the body element
-         XmlElement bodyElement = new XmlElement("Body");
-         envelopeElement.addChild(bodyElement);
-         
-         // add each body sub-element
-         for(Iterator i = mBodyContentSerializers.iterator(); i.hasNext();)
-         {
-            IXmlSerializer serializer = (IXmlSerializer)i.next();
-            bodyElement.addChild(serializer.convertToXmlElement(bodyElement));
-         }
-      }
-      
-      // return envelope element
-      return envelopeElement;
-   }
-   
-   /**
-    * Converts this object from an XmlElement.
-    *
-    * @param element the XmlElement to convert from.
-    * 
-    * @return true if successful, false otherwise.
-    */
-   public boolean convertFromXmlElement(XmlElement element)
-   {
-      boolean rval = true;
-      
-      // clear header block serializers
-      mHeaderBlockSerializers.clear();
-      
-      // clear body content serializers
-      mBodyContentSerializers.clear();
-      
-      // convert the header of the envelope, if any
-      XmlElement headerElement = element.getFirstChild(
-         "Header", SOAP_ENVELOPE_URI);
-      if(headerElement != null)
-      {
-         getLogger().detail(getClass(), "found soap envelope header...");
-         
-         // add all children as header block serializers
-         for(Iterator i = headerElement.getChildren().iterator(); i.hasNext();)
-         {
-            XmlElement headerBlock = (XmlElement)i.next();
-            addHeaderBlockSerializer(headerBlock);
-         }
-      }
-      
-      // convert the body of the envelope, if any
-      XmlElement bodyElement = element.getFirstChild("Body", SOAP_ENVELOPE_URI);
-      if(bodyElement != null)
-      {
-         getLogger().detail(getClass(), "found soap envelope body...");
-         
-         // add all children as body content serializers
-         for(Iterator i = bodyElement.getChildren().iterator(); i.hasNext();)
-         {
-            XmlElement bodyContent = (XmlElement)i.next();
-            addBodyContentSerializer(bodyContent);
-         }
-      }
-      
-      return rval;
-   }
+      return mEncodingStyleUri;
+   }   
    
    /**
     * Gets the logger for this SoapEnvelope.
