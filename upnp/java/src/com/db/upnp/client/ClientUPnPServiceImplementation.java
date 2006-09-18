@@ -14,4 +14,18 @@ import com.db.upnp.service.UPnPServiceImplementation;
 public interface ClientUPnPServiceImplementation
 extends UPnPServiceImplementation
 {
+   /**
+    * Sets the UPnPServiceClient to use to communicate with the service.
+    * 
+    * @param client the UPnPServiceClient to use to communicate with the
+    *               service.
+    */
+   public void setServiceClient(UPnPServiceClient client);
+   
+   /**
+    * Gets the UPnPServiceClient to use to communicate with the service.
+    * 
+    * @return the UPnPServiceClient to use to communicate with the service.
+    */
+   public UPnPServiceClient getServiceClient();
 }

@@ -4,12 +4,15 @@
 package com.db.upnp.client.igd;
 
 import com.db.net.soap.RpcSoapEnvelope;
+import com.db.net.soap.SoapFault;
 import com.db.net.soap.SoapOperation;
 import com.db.net.soap.SoapOperationParameter;
 import com.db.upnp.client.ClientUPnPServiceImplementation;
 import com.db.upnp.client.UPnPServiceClient;
 import com.db.upnp.device.UPnPDevice;
+import com.db.upnp.service.UPnPError;
 import com.db.upnp.service.UPnPService;
+import com.db.xml.XmlElement;
 
 /**
  * A Layer3ForwardingServiceClient is a client for a Layer3ForwardingService.
@@ -33,7 +36,7 @@ implements ClientUPnPServiceImplementation
     * The service type for a Layer3Forwarding Service.
     */
    public static final String LAYER3_FORWARDING_SERVICE_TYPE =
-      "urn:schemas-upnporg:service:Layer3Forwarding:1";
+      "urn:schemas-upnp-org:service:Layer3Forwarding:1";
    
    /**
     * Creates a new Layer3ForwardingServiceClient.
@@ -56,15 +59,11 @@ implements ClientUPnPServiceImplementation
     * @param device the device with the new default connection service.
     * @param service the new default connection service.
     * 
-    * @return an error code:
-    * 
-    * "200 OK" Success.
+    * @return a UPnPError:
     * 
     * "402 Invalid Args" One of following: not enough IN arguments, too many IN
     * arguments, no IN argument by that name, one or more IN arguments are of
     * the wrong data type.
-    * 
-    * "503 Service Unavailable" The service was unavailable.
     * 
     * "501 Action Failed" May be returned in current state if service prevents
     * invoking of that action.
@@ -78,7 +77,7 @@ implements ClientUPnPServiceImplementation
     * "723 InvalidConnServiceSelection" The selected connection service
     * instance cannot be set as a default connection.   
     */
-   public String setDefaultConnectionService(
+   public UPnPError setDefaultConnectionService(
       UPnPDevice device, UPnPService service)
    {
       // create a comma-separated 2-tuple string to uniquely identify the
@@ -105,9 +104,7 @@ implements ClientUPnPServiceImplementation
     * 
     * @param serviceString the new default connection service.
     * 
-    * @return an error code:
-    * 
-    * "200 OK" Success.
+    * @return a UPnPError:
     * 
     * "402 Invalid Args" One of following: not enough IN arguments, too many IN
     * arguments, no IN argument by that name, one or more IN arguments are of
@@ -115,8 +112,6 @@ implements ClientUPnPServiceImplementation
     * 
     * "501 Action Failed" May be returned in current state if service prevents
     * invoking of that action.
-    * 
-    * "503 Service Unavailable" The service was unavailable.
     * 
     * "720 InvalidDeviceUUID" The UUID of a device specified in the action
     * arguments is invalid.
@@ -127,13 +122,13 @@ implements ClientUPnPServiceImplementation
     * "723 InvalidConnServiceSelection" The selected connection service
     * instance cannot be set as a default connection.   
     */
-   public String setDefaultConnectionService(String serviceString)
+   public UPnPError setDefaultConnectionService(String serviceString)
    {
-      String rval = "503 Service Unavailable";
+      UPnPError rval = new UPnPError(); 
       
       // create a soap operation
       SoapOperation operation = new SoapOperation(
-         "SetDefaultConnectionService", mService.getServiceType(), null);
+         "SetDefaultConnectionService", mService.getServiceType());
       
       // add parameters
       operation.addParameter(new SoapOperationParameter(
@@ -146,7 +141,19 @@ implements ClientUPnPServiceImplementation
       envelope.setSoapOperation(operation);
       
       // send the envelope
-      rval = getServiceClient().sendSoapEnvelope(envelope);
+      getServiceClient().sendSoapEnvelope(envelope, mService);
+      if(envelope.containsSoapFault())
+      {
+         // pull out the envelope's soap fault
+         SoapFault fault = envelope.getSoapFault();
+         
+         // get the detail
+         XmlElement detail = fault.getFaultDetail();
+         if(detail != null)
+         {
+            rval.convertFromXmlElement(detail);
+         }
+      }
       
       return rval;
    }
@@ -175,16 +182,14 @@ implements ClientUPnPServiceImplementation
     * 
     * "501 Action Failed" May be returned in current state if service prevents
     * invoking of that action.
-    * 
-    * "503 Service Unavailable" The service was unavailable.
     */
    public String getDefaultConnectionService()
    {
-      String rval = "503 Service Unavailable";
+      String rval = "0";
       
       // create a soap operation
       SoapOperation operation = new SoapOperation(
-         "GetDefaultConnectionService", mService.getServiceType(), null);
+         "GetDefaultConnectionService", mService.getServiceType());
       
       // create a rpc soap envelope
       RpcSoapEnvelope envelope = new RpcSoapEnvelope();
@@ -193,11 +198,8 @@ implements ClientUPnPServiceImplementation
       envelope.setSoapOperation(operation);
       
       // send the envelope
-      rval = getServiceClient().sendSoapEnvelope(envelope);
-      
-      // execute the soap operation
-      String code = getServiceClient().sendSoapEnvelope(envelope);
-      if(code.startsWith("200") && envelope.containsSoapOperation())
+      getServiceClient().sendSoapEnvelope(envelope, mService);
+      if(envelope.containsSoapOperation())
       {
          // pull out the envelope's soap operation
          operation = envelope.getSoapOperation();
@@ -209,6 +211,20 @@ implements ClientUPnPServiceImplementation
             SoapOperationParameter result =
                (SoapOperationParameter)operation.getParameters().get(0);
             rval = result.getValue();
+         }
+      }
+      else if(envelope.containsSoapFault())
+      {
+         // pull out the envelope's soap fault
+         SoapFault fault = envelope.getSoapFault();
+         
+         // get the detail
+         XmlElement detail = fault.getFaultDetail();
+         if(detail != null)
+         {
+            UPnPError error = new UPnPError();
+            error.convertFromXmlElement(detail);
+            rval = error.getErrorCode() + " " + error.getErrorDescription();
          }
       }
       

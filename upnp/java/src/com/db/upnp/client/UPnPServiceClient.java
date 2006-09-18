@@ -3,19 +3,18 @@
  */
 package com.db.upnp.client;
 
-import java.net.MalformedURLException;
-
 import com.db.net.http.HttpWebClient;
 import com.db.net.http.HttpWebConnection;
 import com.db.net.http.HttpWebRequest;
 import com.db.net.http.HttpWebResponse;
-import com.db.net.soap.SoapEnvelope;
+import com.db.net.soap.RpcSoapEnvelope;
+import com.db.net.soap.SoapOperation;
 import com.db.upnp.device.UPnPRootDevice;
 import com.db.upnp.service.UPnPService;
 
 /**
  * A UPnPServiceClient is a client that communicates with a UPnPDevice by
- * using one of its UPnPServices.
+ * using its UPnPServices.
  * 
  * @author Dave Longley
  */
@@ -27,68 +26,66 @@ public class UPnPServiceClient
    protected UPnPRootDevice mRootDevice;
    
    /**
-    * UPnPService the service this client communicates with.
-    */
-   protected UPnPService mService;
-   
-   /**
-    * The HTTP client used to make use of a UPnPService.
-    */
-   protected HttpWebClient mHttpClient;
-   
-   /**
     * Creates a new UPnPServiceClient for the specified UPnPService.
     * 
     * @param rootDevice the UPnPRootDevice this client is for.
-    * @param service the service to communicate with.
-    * 
-    * @exception MalformedURLException thrown if the base URL for the root
-    *                                  device or the control URL for the
-    *                                  service are malformed.
     */
-   public UPnPServiceClient(UPnPRootDevice rootDevice, UPnPService service)
-   throws MalformedURLException
+   public UPnPServiceClient(UPnPRootDevice rootDevice)
    {
-      // set the root device and service
+      // set the root device
       mRootDevice = rootDevice;
-      mService = service;
-      
-      // create the http client
-      mHttpClient = new HttpWebClient();
-      
-      // get the base URL for the root device
-      String baseUrl = rootDevice.getDescription().getBaseUrl();
-      
-      // get the control URL for the service
-      String controlUrl = service.getControlUrl();
-      
-      // set the URL for the http client
-      mHttpClient.setUrl(baseUrl + controlUrl);
    }
    
    /**
-    * Sends the passed SoapEnvelope to the service and returns the HTTP
-    * response code. The passed envelope will be updated if the server responds
-    * with its own envelope.
+    * Sends the passed SoapEnvelope to the passed UPnPService and returns the
+    * HTTP response code. The passed envelope will be updated if the server
+    * responds with its own envelope.
     * 
     * @param envelope the SoapEnvelope to send.
+    * @param service the UPnPService to send the envelope to.
     * 
-    * @return the HTTP response code.
+    * @return true if a connection was made to the service, false if not.
     */
-   public String sendSoapEnvelope(SoapEnvelope envelope) 
+   public boolean sendSoapEnvelope(
+      RpcSoapEnvelope envelope, UPnPService service)
    {
-      String rval = "503 Service Unavailable";
+      boolean rval = false;
+      
+      // get the url for the service --
+      // use the base URL for the root device
+      String url = mRootDevice.getDescription().getBaseUrl();
+      if(url.equals(""))
+      {
+         // use the control URL for the service
+         url = service.getControlUrl();
+      }
       
       // get an http web connection
-      HttpWebConnection connection = mHttpClient.connect();
+      HttpWebClient client = new HttpWebClient();
+      HttpWebConnection connection = (HttpWebConnection)client.connect(url);
       if(connection != null)
       {
+         rval = true;
+         
          // get the xml for the envelope
          String xml = envelope.convertToXml(true, 0, 0);
          
+         // get the operation from the envelope
+         SoapOperation operation = envelope.getSoapOperation();
+         
+         // set the soap action
+         String soapAction =
+            service.getServiceType() + "#" + operation.getName();
+         
          // create an HTTP request
          HttpWebRequest request = new HttpWebRequest(connection);
+         request.getHeader().setVersion("HTTP/1.1");
+         request.getHeader().setMethod("POST");
+         request.getHeader().setPath(url + service.getControlUrl());
+         request.getHeader().setHost(connection.getRemoteHost());
          request.getHeader().setContentLength(xml.length());
+         request.getHeader().setContentType("text/xml; charset=\"utf-8\"");
+         request.getHeader().addHeader("SOAPACTION", soapAction);
          request.getHeader().setConnection("close");
          
          // send the request header
@@ -103,18 +100,16 @@ public class UPnPServiceClient
             // receive the response header
             if(response.receiveHeader())
             {
-               // set the status code to the return value
-               rval = response.getHeader().getStatusCode();
-               
                // receive the body, if any
                if(response.getHeader().getContentLength() > 0)
                {
                   xml = response.receiveBodyString();
                   if(xml != null)
                   {
+                     System.out.println("received xml=" + xml);
+                     
                      // convert the rpc soap envelope from the received xml
                      envelope.convertFromXml(xml);
-                     
                   }
                }
             }

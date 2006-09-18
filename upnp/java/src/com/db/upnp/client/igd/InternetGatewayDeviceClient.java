@@ -3,8 +3,6 @@
  */
 package com.db.upnp.client.igd;
 
-import java.util.Iterator;
-
 import com.db.upnp.client.ClientUPnPDeviceImplementation;
 import com.db.upnp.device.UPnPDevice;
 import com.db.upnp.service.UPnPService;
@@ -24,10 +22,15 @@ implements ClientUPnPDeviceImplementation
    protected UPnPDevice mDevice;
    
    /**
+    * The Layer3Forwarding service client for the device.
+    */
+   protected Layer3ForwardingServiceClient mLayer3ForwardingClient; 
+   
+   /**
     * The device type for an Internet Gateway Device.
     */
    public static final String IGD_DEVICE_TYPE =
-      "urn:schemas-upnporg:device:InternetGatewayDevice:1";
+      "urn:schemas-upnp-org:device:InternetGatewayDevice:1";
    
    /**
     * Creates a new InternetGatewayDeviceClient for the specified UPnPDevice.
@@ -39,12 +42,20 @@ implements ClientUPnPDeviceImplementation
       // store device
       mDevice = device;
       
-      // create the service implementations for the device
-      for(Iterator i = device.getServiceList().iterator(); i.hasNext();)
-      {
-         UPnPService service = (UPnPService)i.next();
-         
-         // FIXME:
-      }
+      // get the layer 3 forwarding service client
+      UPnPService service = device.getServiceList().getFirstService(
+         Layer3ForwardingServiceClient.LAYER3_FORWARDING_SERVICE_TYPE);
+      mLayer3ForwardingClient =
+         (Layer3ForwardingServiceClient)service.getImplementation();
+   }
+   
+   /**
+    * Gets the Layer3ForwardingServiceClient.
+    * 
+    * @return the Layer3ForwardingServiceClient (can be null).
+    */
+   public Layer3ForwardingServiceClient getLayer3ForwardingServiceClient()
+   {
+      return mLayer3ForwardingClient;
    }
 }

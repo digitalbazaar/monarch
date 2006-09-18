@@ -147,6 +147,52 @@ public class UPnPServiceList extends AbstractXmlSerializer
    }
    
    /**
+    * Gets a particular service from this list according to its service ID.
+    * 
+    * @param serviceId the service ID of the UPnPService to retrieve. 
+    * 
+    * @return the retrieved UPnPService or null if no match was found.
+    */
+   public UPnPService getService(String serviceId)
+   {
+      UPnPService rval = null;
+      
+      for(Iterator i = iterator(); i.hasNext() && rval == null;)
+      {
+         UPnPService service = (UPnPService)i.next();
+         if(service.getServiceId().equals(serviceId))
+         {
+            rval = service;
+         }
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the first service from this list with the specified service type.
+    * 
+    * @param serviceType the service type of the UPnPService to retrieve. 
+    * 
+    * @return the retrieved UPnPService or null if no match was found.
+    */
+   public UPnPService getFirstService(String serviceType)
+   {
+      UPnPService rval = null;
+      
+      for(Iterator i = iterator(); i.hasNext() && rval == null;)
+      {
+         UPnPService service = (UPnPService)i.next();
+         if(service.getServiceType().equals(serviceType))
+         {
+            rval = service;
+         }
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Gets the UPnPService for this list in a vector.
     * 
     * @return the UPnPService for this list in a vector.

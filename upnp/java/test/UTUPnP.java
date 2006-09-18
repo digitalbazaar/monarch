@@ -2,12 +2,16 @@
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
 import java.util.Iterator;
+import java.util.Vector;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.upnp.client.UPnPControlPoint;
+import com.db.upnp.client.igd.InternetGatewayDeviceClient;
+import com.db.upnp.client.igd.Layer3ForwardingServiceClient;
 import com.db.upnp.device.UPnPDevice;
-import com.db.upnp.device.UPnPRootDevice;
-import com.db.upnp.discover.UPnPDeviceDiscoverer;
+//import com.db.upnp.device.UPnPRootDevice;
+//import com.db.upnp.discover.UPnPDeviceDiscoverer;
 import com.db.upnp.service.UPnPService;
 
 /**
@@ -62,67 +66,103 @@ public class UTUPnP
          
          System.out.println("Starting UPnP functionality test...\n");
          
-         System.out.println("Running UPnP device discovery...");
-         UPnPDeviceDiscoverer discoverer = new UPnPDeviceDiscoverer();
-         UPnPRootDevice[] devices = discoverer.discover();
-         System.out.println("UPnP device discovery complete.");
+         UPnPControlPoint controlPoint = new UPnPControlPoint();
+         controlPoint.discoverDevices(
+            InternetGatewayDeviceClient.IGD_DEVICE_TYPE);
          
-         System.out.println("Discovered UPnP devices:\n");
-         
-         // display devices
-         for(int i = 0; i < devices.length; i++)
+         Vector devices = controlPoint.getDiscoveredDevices(
+            InternetGatewayDeviceClient.IGD_DEVICE_TYPE);
+         for(Iterator i = devices.iterator(); i.hasNext();)
          {
-            System.out.println(devices[i].toString());
+            UPnPDevice device = (UPnPDevice)i.next();
             
-            System.out.println("GETTING DEVICE DESCRIPTION...");
-            
-            if(devices[i].retrieveAllDescriptions())            
+            if(device.getImplementation() != null)
             {
-               // print out the root description
-               System.out.println("ROOT DESCRIPTION:");
-               System.out.println(devices[i].getDescription().convertToXml());
-               System.out.println();
-               
-               // print out the descriptions for the device
-               printoutDescriptions(devices[i].getDescription().getDevice());
-            }
-            /*
-            // get the device description
-            if(retrieveDeviceDescription())
-            {
-               System.out.println("DESCRIPTION RETRIEVED:\n");
-               System.out.println(devices[i].getDescription().convertToXml());
-               System.out.println();
-               
-               // check the service list for the device for specified type
-               String serviceType =
-                  "urn:schemas-upnp-org:service:Layer3Forwarding:1";
-               UPnPServiceList serviceList = devices[i].getDescription().
-                  getDevice().getServiceList();
-               for(Iterator is = serviceList.getServices().iterator();
-                   is.hasNext();)
+               if(device.getImplementation()
+                     instanceof InternetGatewayDeviceClient)
                {
-                  UPnPService service = (UPnPService)is.next();
+                  System.out.println(
+                     "Internet Gateway Device Implementation Found!");
                   
-                  if(service.getServiceType().equals(serviceType))
+                  InternetGatewayDeviceClient igdc =
+                     (InternetGatewayDeviceClient)device.getImplementation();
+                  
+                  // get the layer 3 forwarding service client
+                  Layer3ForwardingServiceClient l3sc =
+                     igdc.getLayer3ForwardingServiceClient();
+                  if(l3sc != null)
                   {
-                     // get the service descrption
-                     if(devices[i].retrieveServiceDescription(service))
-                     {
-                        System.out.println(
-                           "Layer3Forwarding DESCRIPTION RETRIEVED:\n");
-                        System.out.println(
-                           service.getDescription().convertToXml());
-                        System.out.println();
-                     }
+                     System.out.println(
+                        "Layer 3 Forwarding Service Found!");
+                     
+                     System.out.println("DEFAULT CONNECTION SERVICE=" +
+                        l3sc.getDefaultConnectionService());
                   }
                }
-            }*/
-            else
-            {
-               System.out.println("COULD NOT RETRIEVE DEVICE DESCRIPTION!\n");
             }
          }
+         
+//         System.out.println("Running UPnP device discovery...");
+//         UPnPDeviceDiscoverer discoverer = new UPnPDeviceDiscoverer();
+//         UPnPRootDevice[] devices = discoverer.discover();
+//         System.out.println("UPnP device discovery complete.");
+//         
+//         System.out.println("Discovered UPnP devices:\n");
+//         
+//         // display devices
+//         for(int i = 0; i < devices.length; i++)
+//         {
+//            System.out.println(devices[i].toString());
+//            
+//            System.out.println("GETTING DEVICE DESCRIPTION...");
+//            
+//            if(devices[i].retrieveAllDescriptions())            
+//            {
+//               // print out the root description
+//               System.out.println("ROOT DESCRIPTION:");
+//               System.out.println(devices[i].getDescription().convertToXml());
+//               System.out.println();
+//               
+//               // print out the descriptions for the device
+//               printoutDescriptions(devices[i].getDescription().getDevice());
+//            }
+//            
+//            // get the device description
+//            if(retrieveDeviceDescription())
+//            {
+//               System.out.println("DESCRIPTION RETRIEVED:\n");
+//               System.out.println(devices[i].getDescription().convertToXml());
+//               System.out.println();
+//               
+//               // check the service list for the device for specified type
+//               String serviceType =
+//                  "urn:schemas-upnp-org:service:Layer3Forwarding:1";
+//               UPnPServiceList serviceList = devices[i].getDescription().
+//                  getDevice().getServiceList();
+//               for(Iterator is = serviceList.getServices().iterator();
+//                   is.hasNext();)
+//               {
+//                  UPnPService service = (UPnPService)is.next();
+//                  
+//                  if(service.getServiceType().equals(serviceType))
+//                  {
+//                     // get the service descrption
+//                     if(devices[i].retrieveServiceDescription(service))
+//                     {
+//                        System.out.println(
+//                           "Layer3Forwarding DESCRIPTION RETRIEVED:\n");
+//                        System.out.println(
+//                           service.getDescription().convertToXml());
+//                        System.out.println();
+//                     }
+//                  }
+//               }
+//            }
+//            else
+//            {
+//               System.out.println("COULD NOT RETRIEVE DEVICE DESCRIPTION!\n");
+//            }
+//         }
          
          System.out.println("\nUPnP functionality test complete.");
       }

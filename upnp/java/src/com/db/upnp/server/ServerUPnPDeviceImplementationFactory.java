@@ -23,26 +23,35 @@ public class ServerUPnPDeviceImplementationFactory
    
    /**
     * Creates the appropriate ServerUPnPDeviceImplementation for the given
-    * device and sets it to the device.
+    * device and sets it to the device, if the device does not already
+    * have an implementation.
     * 
     * @param device the device to create the implementation for.
     * 
     * @return true if the server implementation for the device was created
-    *         or false if no implementation exists for the given device. 
+    *         or false if not (i.e. no implementation exists for the given
+    *         device). 
     */
    public boolean createImplementation(UPnPDevice device)
    {
       boolean rval = false;
       
-      if(device.getDeviceType().equals(
-         InternetGatewayDevice.IGD_DEVICE_TYPE))
+      if(device.getImplementation() == null)
       {
-         // create a internet gateway device implementation
-         InternetGatewayDevice implementation =
-            new InternetGatewayDevice(device);
+         ServerUPnPDeviceImplementation implementation = null;
          
-         // set the implementation to the device
-         device.setImplementation(implementation);
+         if(device.getDeviceType().equals(
+            InternetGatewayDevice.IGD_DEVICE_TYPE))
+         {
+            // create a internet gateway device implementation
+            implementation = new InternetGatewayDevice(device);
+         }
+         
+         if(implementation != null)
+         {
+            // set the implementation to the device
+            device.setImplementation(implementation);
+         }
       }
       
       return rval;

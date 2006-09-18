@@ -275,8 +275,25 @@ public class HttpWebConnectionServicer extends AbstractWebConnectionServicer
                // set web connection read timeout based on keep alive value
                if(keepAlive)
                {
-                  // no timeout
-                  hwc.setReadTimeout(0);
+                  if(request.getHeader().hasHeader("Keep-Alive"))
+                  {
+                     try
+                     {
+                        int timeout = Integer.parseInt(
+                           request.getHeader().getHeaderValue("Keep-Alive"));
+                        hwc.setReadTimeout(timeout * 1000);
+                     }
+                     catch(Throwable ignore) 
+                     {
+                        // 5 minute timeout
+                        hwc.setReadTimeout(300000);
+                     }
+                  }
+                  else
+                  {
+                     // 5 minute timeout
+                     hwc.setReadTimeout(300000);
+                  }
                }
                else
                {

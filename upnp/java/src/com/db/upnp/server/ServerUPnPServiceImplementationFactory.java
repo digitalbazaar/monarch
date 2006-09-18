@@ -22,12 +22,14 @@ public class ServerUPnPServiceImplementationFactory
    
    /**
     * Creates the appropriate ServerUPnPServiceImplementation for the given
-    * service and sets it to the service.
+    * service and sets it to the service, if the service does not already
+    * have a set implementation.
     * 
     * @param service the service to create the implementation for.
     * 
     * @return true if the server implementation for the service was created
-    *         or false if no implementation exists for the given service. 
+    *         or false if not (i.e. no implementation exists for the given
+    *         service). 
     */
    public boolean createImplementation(UPnPService service)
    {
