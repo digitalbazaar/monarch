@@ -397,9 +397,17 @@ public class XmlElement extends AbstractXmlSerializer
           i.hasNext();)
       {
          XmlAttribute attribute = (XmlAttribute)i.next();
+         
+         // determine attribute namespace URI
+         String attributeNamespaceUri = null;
+         if(!attribute.getName().equals("xmlns") &&
+            !attribute.getName().startsWith("xmlns:"))
+         {
+            attributeNamespaceUri = attribute.getNamespaceUri();
+         }
+         
          addAttribute(
-            attribute.getName(), attribute.getValue(),
-            attribute.getNamespaceUri());
+            attribute.getName(), attribute.getValue(), attributeNamespaceUri);
       }
       
       // copy children
@@ -463,7 +471,7 @@ public class XmlElement extends AbstractXmlSerializer
       
       String prefix = findNamespacePrefix(getNamespaceUri());
       
-      if(prefix != null)
+      if(prefix != null && !prefix.equals(""))
       {
          rval = prefix + ":" + getName();
       }

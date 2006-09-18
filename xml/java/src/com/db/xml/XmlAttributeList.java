@@ -105,6 +105,21 @@ public class XmlAttributeList
       // only add the attribute if it isn't already in this map
       if(!hasAttribute(name, namespaceUri))
       {
+         // add namespace mapping, if appropriate
+         if(name.equals("xmlns"))
+         {
+            // defining the default namespace
+            addNamespaceMapping(null, value);
+         }
+         else if(name.startsWith("xmlns:"))
+         {
+            // get the local name for the attribute
+            String localName = XmlElement.parseLocalName(name);
+            
+            // defining a namespace with a prefix that is the local name
+            addNamespaceMapping(localName, value);
+         }
+         
          // add attribute
          XmlAttribute attribute = new XmlAttribute(name, value, namespaceUri);
          attribute.setParent(getXmlElement());

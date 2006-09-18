@@ -128,7 +128,7 @@ implements ClientUPnPServiceImplementation
       
       // create a soap operation
       SoapOperation operation = new SoapOperation(
-         "SetDefaultConnectionService", mService.getServiceType());
+         "SetDefaultConnectionService", mService.getServiceType(), null);
       
       // add parameters
       operation.addParameter(new SoapOperationParameter(
@@ -136,6 +136,9 @@ implements ClientUPnPServiceImplementation
       
       // create a rpc soap envelope
       RpcSoapEnvelope envelope = new RpcSoapEnvelope();
+      
+      // set encoding style
+      envelope.setEncodingStyle(RpcSoapEnvelope.SOAP_ENCODING_URI);
       
       // set the operation
       envelope.setSoapOperation(operation);
@@ -189,10 +192,13 @@ implements ClientUPnPServiceImplementation
       
       // create a soap operation
       SoapOperation operation = new SoapOperation(
-         "GetDefaultConnectionService", mService.getServiceType());
+         "GetDefaultConnectionService", mService.getServiceType(), null);
       
       // create a rpc soap envelope
       RpcSoapEnvelope envelope = new RpcSoapEnvelope();
+      
+      // set encoding style
+      envelope.setEncodingStyle(RpcSoapEnvelope.SOAP_ENCODING_URI);
       
       // set the operation
       envelope.setSoapOperation(operation);
