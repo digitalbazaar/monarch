@@ -36,7 +36,7 @@ public class HttpWebRequestHeader extends HttpHeader
       setVersion("HTTP/1.1");
       setMethod("GET");
       setPath("/");
-      setAccept("text/xml,text/html,image/gif,image/jpeg,*/*");
+      setAccept("*/*");
    }
    
    /**
