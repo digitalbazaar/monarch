@@ -264,8 +264,38 @@ public class XmlElement extends AbstractXmlSerializer
       // set name
       setName(localName);
       
-      // convert the attributes for this element
+      // add the namespace mappings for this element's attributes first
       NamedNodeMap map = element.getAttributes();
+      for(int i = 0; i < map.getLength(); i++)
+      {
+         Node attributeNode = map.item(i);
+         
+         // get the attribute name and namespace prefix
+         String attributeName = attributeNode.getNodeName();
+         
+         if(attributeName.equals("xmlns") || attributeName.startsWith("xmlns:"))
+         {
+            // parse the attribute local name
+            String attributeLocalName =
+               XmlElement.parseLocalName(attributeName);
+            if(attributeLocalName.equals("xmlns"))
+            {
+               // add null -> namespace URI mapping (a null namespace prefix
+               // will point to the default namespace URI in this scope)
+               getAttributeList().addNamespaceMapping(
+                  null, attributeNode.getNodeValue());
+            }
+            else
+            {
+               // defining a new namespace, with a specified prefix as the
+               // local name, so add namespace prefix -> namespace URI mapping
+               getAttributeList().addNamespaceMapping(
+                  attributeLocalName, attributeNode.getNodeValue());
+            }
+         }
+      }
+      
+      // convert the attributes for this element
       for(int i = 0; i < map.getLength(); i++)
       {
          Node attributeNode = map.item(i);
@@ -274,21 +304,18 @@ public class XmlElement extends AbstractXmlSerializer
          String attributeName = attributeNode.getNodeName();
          String attributeNamespaceUri = null;
          
-         // if the attribute name is not defining a namespace, then
-         // look up the namespace URI and set the attribute name to the
-         // local name
          if(!attributeName.equals("xmlns") &&
             !attributeName.startsWith("xmlns:"))
          {
             // get the attribute namespace prefix
             String attributeNamespacePrefix =
                XmlElement.parseNamespacePrefix(attributeName);
-
+            
             // find the namespace URI for this attribute
-            attributeNamespaceUri = attributeNode.lookupNamespaceURI(
+            attributeNamespaceUri = getAttributeList().findNamespaceUri(
                attributeNamespacePrefix);
             
-            // set attribute name to the local name
+            // use the local name as the attribute name
             attributeName = XmlElement.parseLocalName(attributeName);
          }
          

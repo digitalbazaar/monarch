@@ -48,6 +48,17 @@ public class XmlAttributeList
    }
    
    /**
+    * Adds a namespace mapping to this list.
+    * 
+    * @param namespacePrefix the namespace prefix.
+    * @param namespaceUri the namespace URI.
+    */
+   public void addNamespaceMapping(String namespacePrefix, String namespaceUri)
+   {
+      mNamespaceUriMap.put(namespacePrefix, namespaceUri);
+   }
+   
+   /**
     * Gets the XmlElement this list is for.
     * 
     * @return the XmlElement this list is for.
@@ -94,23 +105,6 @@ public class XmlAttributeList
       // only add the attribute if it isn't already in this map
       if(!hasAttribute(name, namespaceUri))
       {
-         // determine if a new namespace is being defined
-         String namespacePrefix = XmlElement.parseNamespacePrefix(name);
-         String localName = XmlElement.parseLocalName(name);
-         
-         if(namespacePrefix != null && namespacePrefix.equals("xmlns"))
-         {
-            // defining a new namespace, with a specified prefix as the
-            // local name, so add namespace prefix -> namespace URI mapping
-            mNamespaceUriMap.put(localName, value);
-         }
-         else if(name.equals("xmlns"))
-         {
-            // add null -> namespace URI mapping (a null namespace prefix will
-            // point to the default namespace URI in this scope)
-            mNamespaceUriMap.put(null, value);
-         }
-         
          // add attribute
          XmlAttribute attribute = new XmlAttribute(name, value, namespaceUri);
          attribute.setParent(getXmlElement());
