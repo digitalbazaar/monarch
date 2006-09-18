@@ -108,10 +108,8 @@ public class DatagramStream
     * 
     * @param timeout the timeout (in milliseconds) for receiving a datagram
     *                from this stream.
-    * 
-    * @exception IOException thrown if an IOException occurs.
     */
-   public void setReadTimeout(int timeout) throws IOException
+   public void setReadTimeout(int timeout)
    {
       if(!isClosed())
       {
