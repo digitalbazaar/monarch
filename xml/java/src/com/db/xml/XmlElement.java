@@ -67,6 +67,12 @@ public class XmlElement extends AbstractXmlSerializer
    protected String mData;
    
    /**
+    * True to inherit this XmlElement's namespace URI from its parent
+    * XmlElement if the namespace URI is set to null, false not to. 
+    */
+   protected boolean mInheritNamespaceUri;   
+   
+   /**
     * Creates a new blank XmlElement.
     */
    public XmlElement()
@@ -96,6 +102,23 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public XmlElement(String name, String namespaceUri)
    {
+      this(name, namespaceUri, true);
+   }
+   
+   /**
+    * Creates a new XmlElement with the specified name and namespace (the
+    * prefix for the name).
+    * 
+    * @param name the name of this XmlElement -- this is the name that will
+    *             be displayed inside of its root tag.
+    * @param namespaceUri the URI (Universal Resource Indicator) that points
+    *                     to the definition of the namespace for this element.
+    * @param inherit true to inherit this XmlElement's namespace URI from
+    *                its parent XmlElement if the namespace URI is set to
+    *                null, false not to.
+    */
+   public XmlElement(String name, String namespaceUri, boolean inherit)
+   {
       // create the vector for this element's children
       mChildren = new Vector();
       
@@ -107,6 +130,9 @@ public class XmlElement extends AbstractXmlSerializer
       
       // set the namespace URI of this element
       setNamespaceUri(namespaceUri);
+      
+      // set whether or not inherit namespace URI
+      setInheritNamespaceUri(inherit);
       
       // default this element's parent to null
       setParent(null);
@@ -264,6 +290,9 @@ public class XmlElement extends AbstractXmlSerializer
       // set name
       setName(localName);
       
+      // do not inherit namespace URI
+      setInheritNamespaceUri(false);
+      
       // add the namespace mappings for this element's attributes first
       NamedNodeMap map = element.getAttributes();
       for(int i = 0; i < map.getLength(); i++)
@@ -319,9 +348,11 @@ public class XmlElement extends AbstractXmlSerializer
             attributeName = XmlElement.parseLocalName(attributeName);
          }
          
-         // add attribute (XML decoding is handled automatically)
+         // add attribute (XML decoding is handled automatically), do not
+         // inherit namespace -- it should be set properly
          getAttributeList().addAttribute(
-            attributeName, attributeNode.getNodeValue(), attributeNamespaceUri);
+            attributeName, attributeNode.getNodeValue(),
+            attributeNamespaceUri, false);
       }
       
       // set the namespace URI for this element now that the attributes have
@@ -391,6 +422,7 @@ public class XmlElement extends AbstractXmlSerializer
       setName(element.getName());
       setParent(element.getParent());
       setNamespaceUri(element.getNamespaceUri());
+      setInheritNamespaceUri(element.getInheritNamespaceUri());
       
       // copy attributes
       for(Iterator i = element.getAttributeList().getAttributes().iterator();
@@ -407,7 +439,8 @@ public class XmlElement extends AbstractXmlSerializer
          }
          
          addAttribute(
-            attribute.getName(), attribute.getValue(), attributeNamespaceUri);
+            attribute.getName(), attribute.getValue(),
+            attributeNamespaceUri, attribute.getInheritNamespaceUri());
       }
       
       // copy children
@@ -499,7 +532,8 @@ public class XmlElement extends AbstractXmlSerializer
    {
       String rval = mNamespaceUri;
       
-      if(mNamespaceUri == null && getParent() != null)
+      if(getInheritNamespaceUri() &&
+         mNamespaceUri == null && getParent() != null)
       {
          // get parent's namespace URI
          rval = getParent().getNamespaceUri();
@@ -670,8 +704,26 @@ public class XmlElement extends AbstractXmlSerializer
    public void addAttribute(
       String name, String value, String namespaceUri)
    {
-      getAttributeList().addAttribute(name, value, namespaceUri);
+      getAttributeList().addAttribute(name, value, namespaceUri, true);
    }
+   
+   /**
+    * A convenience method for adding an attribute to this XmlElement's
+    * attribute map that has a special namespace.
+    * 
+    * @param name the name of the attribute.
+    * @param value the value of the attribute.
+    * @param namespaceUri the URI that points to the definition of the
+    *                     namespace for the attribute.
+    * @param inherit true to inherit this XmlElement's namespace URI if
+    *                the namespace URI is set to null (and not defining
+    *                a namespace), false not to.
+    */
+   public void addAttribute(
+      String name, String value, String namespaceUri, boolean inherit)
+   {
+      getAttributeList().addAttribute(name, value, namespaceUri, inherit);
+   }   
    
    /**
     * A convenience method for getting an attribute value from this
@@ -1364,6 +1416,32 @@ public class XmlElement extends AbstractXmlSerializer
    public XmlElement getParent()
    {
       return mParent;
+   }
+   
+   /**
+    * Set to true to inherit this XmlElement's namespace URI from its parent
+    * XmlElement if the namespace URI is set to null, false not to.
+    * 
+    * @param inherit true to inherit this XmlElement's namespace URI from
+    *                its parent XmlElement if the namespace URI is set to
+    *                null, false not to.
+    */
+   public void setInheritNamespaceUri(boolean inherit)
+   {
+      mInheritNamespaceUri = inherit;
+   }
+   
+   /**
+    * Gets whether to inherit this XmlElement's namespace URI from its parent
+    * XmlElement if the namespace URI is set to null.
+    * 
+    * @return true to inherit this XmlElement's namespace URI from
+    *         its parent XmlElement if the namespace URI is set to
+    *         null, false not to.
+    */
+   public boolean getInheritNamespaceUri()   
+   {
+      return mInheritNamespaceUri;
    }
    
    /**

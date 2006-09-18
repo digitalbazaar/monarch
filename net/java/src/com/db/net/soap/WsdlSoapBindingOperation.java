@@ -7,7 +7,6 @@ import java.util.Iterator;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
-import com.db.net.soap.AbstractSoapWebService.SoapMethodNotRecognizedException;
 import com.db.net.wsdl.Wsdl;
 import com.db.net.wsdl.WsdlMessage;
 import com.db.net.wsdl.WsdlMessagePart;
@@ -236,12 +235,8 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
     * @param operation the SoapOperation.
     * 
     * @return the parameters as an array of objects.
-    * 
-    * @exception SoapMethodNotRecognizedException thrown if the operation is
-    *                                             not recognized.
     */
    public Object[] getParameterArray(SoapOperation operation)
-   throws SoapMethodNotRecognizedException
    {
       Object[] params = new Object[operation.getParameters().size()];
       

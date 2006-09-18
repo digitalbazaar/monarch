@@ -32,6 +32,13 @@ public class XmlAttribute
    protected XmlElement mParent;
    
    /**
+    * True to inherit this XmlAttribute's namespace URI from its parent
+    * XmlElement if the namespace URI is set to null (and not defining a
+    * namespace), false not to. 
+    */
+   protected boolean mInheritNamespaceUri;
+   
+   /**
     * Creates a new blank XmlAttribute.
     */
    public XmlAttribute()
@@ -49,9 +56,27 @@ public class XmlAttribute
     */
    public XmlAttribute(String name, String value, String namespaceUri)
    {
+      this(name, value, namespaceUri, true);
+   }
+   
+   /**
+    * Creates a new XmlAttribute with the specified name, value,
+    * and namespace URI.
+    * 
+    * @param name the name of the XmlAttribute.
+    * @param value the value of the XmlAttribute.
+    * @param namespaceUri the namespace URI for this XmlAttribute.
+    * @param inherit true to inherit this XmlAttribute's namespace URI from
+    *                its parent XmlElement if the namespace URI is set to null
+    *                (and not defining a namespace), false not to.
+    */
+   public XmlAttribute(
+      String name, String value, String namespaceUri, boolean inherit)
+   {
       setName(name);
       setValue(value);
       setNamespaceUri(namespaceUri);
+      setInheritNamespaceUri(inherit);
    }
    
    /**
@@ -122,7 +147,7 @@ public class XmlAttribute
       // if this attribute has no set namespace URI and it is not
       // a reserved name, and it has a parent XmlElement, get the
       // namespace URI from that element
-      if(mNamespaceUri == null &&
+      if(getInheritNamespaceUri() && mNamespaceUri == null &&
          !getName().equals("xmlns") && getParent() != null)
       {
          rval = getParent().getNamespaceUri();
@@ -149,6 +174,34 @@ public class XmlAttribute
    public XmlElement getParent()
    {
       return mParent;
+   }
+   
+   /**
+    * Set to true to inherit this XmlAttribute's namespace URI from its parent
+    * XmlElement if the namespace URI is set to null (and not defining a
+    * namespace), false not to.
+    * 
+    * @param inherit true to inherit this XmlAttribute's namespace URI from
+    *                its parent XmlElement if the namespace URI is set to
+    *                null (and not defining a namespace), false not to.
+    */
+   public void setInheritNamespaceUri(boolean inherit)
+   {
+      mInheritNamespaceUri = inherit;
+   }
+   
+   /**
+    * Gets whether to inherit this XmlAttribute's namespace URI from its parent
+    * XmlElement if the namespace URI is set to null (and not defining a
+    * namespace).
+    * 
+    * @return true to inherit this XmlAttribute's namespace URI from
+    *         its parent XmlElement if the namespace URI is set to
+    *         null (and not defining a namespace), false not to.
+    */
+   public boolean getInheritNamespaceUri()   
+   {
+      return mInheritNamespaceUri;
    }
    
    /**

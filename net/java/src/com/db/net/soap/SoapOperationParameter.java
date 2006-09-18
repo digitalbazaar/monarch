@@ -146,7 +146,10 @@ public class SoapOperationParameter extends AbstractXmlSerializer
          // set value to parameter value
          element.setValue(getValue());
       }
-
+      
+      // do not inherit parent namespace
+      element.setInheritNamespaceUri(false);
+      
       if(mTargetNamespaceUri != null)
       {
          // set the namespace and add the attribute defining the namespace

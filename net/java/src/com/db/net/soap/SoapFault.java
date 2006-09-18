@@ -114,16 +114,19 @@ public class SoapFault extends AbstractXmlSerializer
       
       // create the faultcode element
       XmlElement faultcodeElement = new XmlElement("faultcode");
+      faultcodeElement.setInheritNamespaceUri(false);
       faultcodeElement.setValue(envelopePrefix + ":" + getFaultCode());
       faultElement.addChild(faultcodeElement);
       
       // create the faultstring element
       XmlElement faultstringElement = new XmlElement("faultstring");
+      faultstringElement.setInheritNamespaceUri(false);
       faultstringElement.setValue(getFaultString());
       faultElement.addChild(faultstringElement);
      
       // create the fault actor element
       XmlElement faultactorElement = new XmlElement("faultactor");
+      faultactorElement.setInheritNamespaceUri(false);
       faultactorElement.setValue(getFaultActor());
       faultElement.addChild(faultactorElement);
 
@@ -131,6 +134,7 @@ public class SoapFault extends AbstractXmlSerializer
       {
          // create the faultdetail element, if any
          XmlElement faultdetailElement = new XmlElement("detail");
+         faultdetailElement.setInheritNamespaceUri(false);
          faultdetailElement.addChild(getFaultDetail());
          faultElement.addChild(faultdetailElement);
       }

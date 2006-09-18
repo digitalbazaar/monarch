@@ -102,6 +102,25 @@ public class XmlAttributeList
    public void addAttribute(
       String name, String value, String namespaceUri)
    {
+      addAttribute(name, value, namespaceUri, true);
+   }
+   
+   /**
+    * Adds an attribute to this list.
+    * 
+    * @param name the local name of the attribute, unless the attribute is
+    *             defining a namespace prefix -> namespace URI mapping
+    *             using "xmlns".
+    * @param value the value of the attribute.
+    * @param namespaceUri the URI that points to the definition of the
+    *                     namespace for the attribute.
+    * @param inherit true to inherit this XmlElement's namespace URI if
+    *                the namespace URI is set to null (and not defining
+    *                a namespace), false not to.
+    */
+   public void addAttribute(
+      String name, String value, String namespaceUri, boolean inherit)
+   {
       // only add the attribute if it isn't already in this map
       if(!hasAttribute(name, namespaceUri))
       {

@@ -196,6 +196,20 @@ public class UTSoap
          String hostname = "localhost";
          setURI("http://" + hostname + ":" + port + "/soap/");
          setWsdlPath("/soap/?WSDL");
+         
+         setSoapSecurityManager(new SoapSecurityManager()
+         {
+            public void checkSoapSecurity(RpcSoapMessage sm)
+            throws SecurityException
+            {
+               //throw new SecurityException("Security check failed!");
+            }
+            
+            public boolean checkSoapPermission(SoapPermission permission)            
+            {
+               return true;
+            }
+         });
       }
       
       /**
