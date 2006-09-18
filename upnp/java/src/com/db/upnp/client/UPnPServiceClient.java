@@ -75,13 +75,13 @@ public class UPnPServiceClient
          
          // set the soap action
          String soapAction =
-            service.getServiceType() + "#" + operation.getName();
+            "\"" + service.getServiceType() + "#" + operation.getName() + "\"";
          
          // create an HTTP request
          HttpWebRequest request = new HttpWebRequest(connection);
          request.getHeader().setVersion("HTTP/1.1");
          request.getHeader().setMethod("POST");
-         request.getHeader().setPath(url + service.getControlUrl());
+         request.getHeader().setPath(service.getControlUrl());
          request.getHeader().setHost(connection.getRemoteHost());
          request.getHeader().setContentLength(xml.length());
          request.getHeader().setContentType("text/xml; charset=\"utf-8\"");
@@ -106,8 +106,6 @@ public class UPnPServiceClient
                   xml = response.receiveBodyString();
                   if(xml != null)
                   {
-                     System.out.println("received xml=" + xml);
-                     
                      // convert the rpc soap envelope from the received xml
                      envelope.convertFromXml(xml);
                   }
