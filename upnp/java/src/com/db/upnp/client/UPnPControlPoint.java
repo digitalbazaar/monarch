@@ -81,9 +81,6 @@ public class UPnPControlPoint
          
          for(int i = 0; i < devices.length; i++)
          {
-            if(devices[i].getLocation().startsWith("http://5"))
-            {
-            
             // retrieve the description for the root device
             if(devices[i].retrieveDeviceDescription())
             {
@@ -97,7 +94,6 @@ public class UPnPControlPoint
                
                // add the device
                mCachedDevices.add(devices[i].getDescription().getDevice());
-            }
             }
          }
       }
