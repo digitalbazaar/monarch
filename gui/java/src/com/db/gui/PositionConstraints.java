@@ -44,16 +44,22 @@ public class PositionConstraints implements Cloneable
    public static final int ANCHOR_BOTTOM = 0x08;
    
    /**
-    * Anchors in all directions.
+    * Anchors top and left.
     */
-   public static final int ANCHOR_ALL =
-      ANCHOR_LEFT | ANCHOR_RIGHT | ANCHOR_TOP | ANCHOR_BOTTOM;
+   public static final int ANCHOR_TOP_LEFT =
+      ANCHOR_TOP | ANCHOR_LEFT;
    
    /**
     * Anchors top, left, and right.
     */
    public static final int ANCHOR_TOP_LEFT_RIGHT =
       ANCHOR_TOP | ANCHOR_LEFT | ANCHOR_RIGHT;
+
+   /**
+    * Anchors in all directions.
+    */
+   public static final int ANCHOR_ALL =
+      ANCHOR_LEFT | ANCHOR_RIGHT | ANCHOR_TOP | ANCHOR_BOTTOM;
    
    /**
     * Indicates that a component should fill its parent container in a
