@@ -142,14 +142,14 @@ public class HttpWebConnectionServer extends WebConnectionServer
          removeAllWebConnectionHandlers();
 
          // add ssl web connection handler first
-         if(getSecurePort() > 0)
+         if(getSecurePort() > -1)
          {
             // add ssl web connection handler for secure http port
             addWebConnectionHandler(mSSLWebConnectionHandler, getSecurePort());
          }
          
          // add generic web connection handler last 
-         if(getNonSecurePort() > 0)
+         if(getNonSecurePort() > -1)
          {
             // add generic web connection handler for non-secure http port
             addWebConnectionHandler(
@@ -170,7 +170,7 @@ public class HttpWebConnectionServer extends WebConnectionServer
    public synchronized void startNonSecure(int nonSecurePort)
    {
       setNonSecurePort(nonSecurePort);
-      setSecurePort(0);
+      setSecurePort(-1);
       start();
    }
    
@@ -182,7 +182,7 @@ public class HttpWebConnectionServer extends WebConnectionServer
     */
    public synchronized void startSecure(int securePort)
    {
-      setNonSecurePort(0);
+      setNonSecurePort(-1);
       setSecurePort(securePort);
       start();
    }
