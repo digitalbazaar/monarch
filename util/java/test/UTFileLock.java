@@ -32,6 +32,8 @@ public class UTFileLock
          LoggerManager.setFileVerbosity("dbutil", Logger.DETAIL_VERBOSITY);
          LoggerManager.setConsoleVerbosity("dbutil", Logger.ERROR_VERBOSITY);
          
+         //String path = System.getProperty("user.home") + java.io.File.separator;
+         //String filename = path + "lockfile.lock";
          String filename = "lockfile.lock";
          
          // get a file lock
