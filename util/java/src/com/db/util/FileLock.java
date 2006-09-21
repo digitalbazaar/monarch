@@ -13,8 +13,8 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 
 /**
- * A FileLock is an object that is used to create or check for a file that
- * is used to lock the use of some resource.
+ * A FileLock is an object that is used to create a lock file that is used
+ * to lock the use of some resource.
  * 
  * The file this FileLock uses will be automatically deleted (if it was
  * created by this object) when this object goes out of scope or the JVM
