@@ -117,12 +117,12 @@ public class SslPortFileLock extends PortFileLock
    /**
     * Gets the socket to use to pass information.
     * 
-    * @param port the port to bind to.
+    * @param port the port to connect to.
     * 
     * @return the socket to use to pass information or null if the socket
-    *         could not bind to the port.
+    *         could not connect to the port.
     */
-   protected Socket bindSocket(int port)
+   protected Socket connectSocket(int port)
    {
       // use a SSL socket
       Socket rval = null;
@@ -140,8 +140,8 @@ public class SslPortFileLock extends PortFileLock
          InetSocketAddress address = new InetSocketAddress(
              "127.0.0.1", port);
          
-         // try to bind
-         socket.bind(address);
+         // try to connect
+         socket.connect(address);
          
          // use all supported cipher suites
          String[] suites = factory.getSupportedCipherSuites();

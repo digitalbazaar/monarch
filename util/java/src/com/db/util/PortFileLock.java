@@ -6,7 +6,6 @@ package com.db.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -137,12 +136,12 @@ public class PortFileLock extends FileLock
    /**
     * Gets the socket to use to pass information.
     * 
-    * @param port the port to bind to.
+    * @param port the port to connect to.
     * 
     * @return the socket to use to pass information or null if the socket
-    *         could not bind to the port.
+    *         could not connect to the port.
     */
-   protected Socket bindSocket(int port)
+   protected Socket connectSocket(int port)
    {
       // use a generic socket
       Socket rval = null;
@@ -156,15 +155,19 @@ public class PortFileLock extends FileLock
          InetSocketAddress address = new InetSocketAddress(
              "127.0.0.1", port);
          
-         // try to bind
-         socket.bind(address);
+         // try to connect
+         socket.connect(address);
          
          // set return value
          rval = socket;
       }
-      catch(Throwable ignore)
+      catch(Throwable t)
       {
-         // ignore failure, failure to be handled by the user of this class
+         // there was some error
+         getLogger().error(getClass(),
+            "An exception occurred while trying to connect to " +
+            "pass information!");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       
       return rval;
@@ -354,16 +357,19 @@ public class PortFileLock extends FileLock
    }
    
    /**
-    * Gets an output stream to write data to be passed to whomever has
-    * the lock this PortFileLock cannot acquire. This method is used, for
-    * instance, to send command line parameters to a running instance of an
-    * application that maintains the lock this PortFileLock cannot acquire. 
+    * Gets a socket to write data to whomever has the lock this PortFileLock
+    * cannot acquire. This method is used, for instance, to send command line
+    * parameters to a running instance of an application that maintains the
+    * lock this PortFileLock cannot acquire.
     * 
-    * @return the output stream to write to, or null if none is available.
+    * The caller of this method is required to close the socket when finished
+    * using it.
+    * 
+    * @return the socket to communicate with, or null if none is available.
     */
-   public OutputStream getOutputStream()
+   public Socket getCommSocket()
    {
-      OutputStream rval = null;
+      Socket rval = null;
       
       try
       {
@@ -379,18 +385,18 @@ public class PortFileLock extends FileLock
             // get the port number
             int port = Integer.parseInt(new String(buffer, 0, numBytes));
             
-            // bind a socket to the port number
-            Socket socket = bindSocket(port);
+            // connect a socket to the port
+            Socket socket = connectSocket(port);
             
-            // return the socket's output stream
-            rval = socket.getOutputStream();
+            // return the socket
+            rval = socket;
          }
       }
       catch(Throwable t)
       {
          // there was some IO error
          getLogger().error(getClass(),
-            "An exception occurred while trying to get an output stream!");
+            "An exception occurred while trying to get a comm socket!");
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       

@@ -220,10 +220,11 @@ public class FileLock
    {
       boolean rval = false;
       
-      // has a lock if the channel lock is not null and the channel is open
+      // has a lock if the channel lock is not null, the file exists, and
+      // the channel is open
       if(getChannelLock() != null)
       {
-         if(getChannelLock().channel().isOpen())
+         if(getFile().exists() && getChannelLock().channel().isOpen())
          {
             // channel is open and locked
             rval = true;
