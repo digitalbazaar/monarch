@@ -240,7 +240,14 @@ public class HttpWebConnectionServer extends WebConnectionServer
     */
    public int getNonSecurePort()
    {
-      return mNonSecurePort;
+      int rval = mNonSecurePort;
+      
+      if(isRunning())
+      {
+         rval = mGenericWebConnectionHandler.getPort();
+      }
+      
+      return rval;
    }
    
    /**
@@ -272,7 +279,14 @@ public class HttpWebConnectionServer extends WebConnectionServer
     */
    public int getSecurePort()
    {
-      return mSecurePort;
+      int rval = mSecurePort;
+      
+      if(isRunning())
+      {
+         rval = mSSLWebConnectionHandler.getPort();
+      }
+      
+      return rval;
    }
    
    /**

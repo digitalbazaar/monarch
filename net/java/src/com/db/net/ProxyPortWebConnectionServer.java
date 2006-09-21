@@ -232,6 +232,9 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
             
             // so assign the port to the handler
             mPortToWebConnectionHandler.put(handler.getPort(), handler);
+            
+            // remove the handler from the unassigned list
+            i.remove();
          }
          
          // server is running

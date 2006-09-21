@@ -216,15 +216,15 @@ implements WebConnectionHandler, WebConnectionServicer
       }
       else
       {
-         // this handler is not accepting connections yet, so set the port
-         mPort = port;
-         
          // create a new server socket
-         mServerSocket = createServerSocket(getPort());
+         mServerSocket = createServerSocket(port);
          
          // ensure the server socket was created successfully
          if(mServerSocket != null)
          {
+            // set the local port for this handler
+            mPort = mServerSocket.getLocalPort();
+            
             // create a web connection acceptor
             mWebConnectionAcceptor = createWebConnectionAcceptor(getPort());
             
