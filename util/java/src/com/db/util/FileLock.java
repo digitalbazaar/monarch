@@ -16,6 +16,9 @@ import com.db.logging.LoggerManager;
  * A FileLock is an object that is used to create a lock file that is used
  * to lock the use of some resource.
  * 
+ * A common use for this object is to prevent multiple instances of the
+ * same application from being run. 
+ * 
  * The file this FileLock uses will be automatically deleted (if it was
  * created by this object) when this object goes out of scope or the JVM
  * that created it exists.
@@ -61,6 +64,16 @@ public class FileLock
    }
    
    /**
+    * Gets the channel lock.
+    * 
+    * @return the channel lock.
+    */
+   protected java.nio.channels.FileLock getChannelLock()
+   {
+      return mChannelLock;
+   }
+   
+   /**
     * When disposing, this object deletes the file that this FileLock uses if
     * it has the lock, i.e. calls unlock().
     */
@@ -68,6 +81,58 @@ public class FileLock
    {
       // unlock
       unlock();
+   }
+   
+   /**
+    * Tries to acquire a lock for this FileLock.
+    * 
+    * @return true if this FileLock is now locked, false if a lock could not
+    *         be acquired.
+    */
+   public synchronized boolean tryLock()
+   {
+      // ensure lock has not already been acquired
+      if(!hasLock())
+      {
+         // set to true if the file was created
+         boolean created = false;
+         
+         try
+         {
+            // create the file, ensure the file doesn't already exist
+            created = getFile().createNewFile();
+            if(created)
+            {
+               // delete the file on exit
+               getFile().deleteOnExit();
+               
+               // get a file channel
+               FileChannel channel =
+                  new RandomAccessFile(getFile(), "rw").getChannel();
+               
+               // try to get a lock on the channel
+               mChannelLock = channel.tryLock();
+            }
+         }
+         catch(IOException e)
+         {
+            // see if the file was created
+            if(created)
+            {
+               // log the bug, there was an error
+               getLogger().debug(getClass(), Logger.getStackTrace(e));
+               
+               // delete the file
+               getFile().delete();
+            }
+            else
+            {
+               // no need to log the exception, a lock was only tried
+            }
+         }
+      }
+      
+      return hasLock();
    }
    
    /**
@@ -80,8 +145,6 @@ public class FileLock
     */
    public synchronized boolean lock()
    {
-      boolean rval = false;
-      
       if(!hasLock())
       {
          // set to true if the file was created
@@ -102,18 +165,13 @@ public class FileLock
                
                // lock on the channel
                mChannelLock = channel.lock();
-               if(mChannelLock != null)
-               {
-                  // lock successful
-                  rval = true;
-               }
             }
          }
          catch(AsynchronousCloseException e)
          {
             // another thread closed the channel, so try the lock again
             getLogger().debug(getClass(), Logger.getStackTrace(e));
-            rval = lock();
+            lock();
          }
          catch(IOException e)
          {
@@ -126,13 +184,8 @@ public class FileLock
             }
          }         
       }
-      else
-      {
-         // already locked
-         rval = true;
-      }
       
-      return rval;
+      return hasLock();
    }
    
    /**
@@ -145,7 +198,7 @@ public class FileLock
          try
          {
             // release the channel lock
-            mChannelLock.release();
+            getChannelLock().release();
          }
          catch(IOException e)
          {
@@ -168,9 +221,9 @@ public class FileLock
       boolean rval = false;
       
       // has a lock if the channel lock is not null and the channel is open
-      if(mChannelLock != null)
+      if(getChannelLock() != null)
       {
-         if(mChannelLock.channel().isOpen())
+         if(getChannelLock().channel().isOpen())
          {
             // channel is open and locked
             rval = true;
@@ -186,75 +239,11 @@ public class FileLock
    }
    
    /**
-    * Tries to acquire a lock for this FileLock.
-    * 
-    * @return true if this FileLock is now locked, false if a lock could not
-    *         be acquired.
-    */
-   public synchronized boolean tryLock()
-   {
-      boolean rval = false;
-      
-      // ensure lock has not already been acquired
-      if(!hasLock())
-      {
-         // set to true if the file was created
-         boolean created = false;
-         
-         try
-         {
-            // create the file, ensure the file doesn't already exist
-            created = getFile().createNewFile();
-            if(created)
-            {
-               // delete the file on exit
-               getFile().deleteOnExit();
-               
-               // get a file channel
-               FileChannel channel =
-                  new RandomAccessFile(getFile(), "rw").getChannel();
-               
-               // try to get a lock on the channel
-               mChannelLock = channel.tryLock();
-               if(mChannelLock != null)
-               {
-                  // lock successful
-                  rval = true;
-               }
-            }
-         }
-         catch(IOException e)
-         {
-            // see if the file was created
-            if(created)
-            {
-               // log the bug, there was an error
-               getLogger().debug(getClass(), Logger.getStackTrace(e));
-               
-               // delete the file
-               getFile().delete();
-            }
-            else
-            {
-               // no need to log the exception, a lock was only tried
-            }
-         }
-      }
-      else
-      {
-         // lock already acquired
-         rval = true;
-      }
-      
-      return rval;
-   }
-   
-   /**
     * Gets the file that this FileLock uses for locking.
     * 
     * @return the file that this FileLock uses for locking.
     */
-   public synchronized File getFile()
+   public File getFile()
    {
       return mFile;
    }
