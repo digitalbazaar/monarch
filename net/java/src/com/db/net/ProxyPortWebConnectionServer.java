@@ -130,7 +130,7 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
    {
       // add the web connection handler to the priority list for
       // determining supported protocols
-      mWebConnectionServicer.addPrioritizedWebConnectionHandler(wch, port);
+      mWebConnectionServicer.addPrioritizedWebConnectionHandler(wch);
       
       // add the web connection handler to the internal web server
       return getInternalServer().addWebConnectionHandler(wch, port);
@@ -198,16 +198,12 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
          
          // add all web connection handlers in the internal server to the
          // prioritized list that aren't already present in the list
-         int[] ports = getInternalServer().getWebConnectionHandlerPorts();
-         for(int i = 0; i < ports.length; i++)
+         for(Iterator i = getInternalServer().getWebConnectionHandlers().
+             iterator(); i.hasNext();)
          {
-            // get web connection handler for the given port
-            WebConnectionHandler wch =
-               getInternalServer().getWebConnectionHandler(ports[i]);
-            
             // add the prioritized web connection handler
-            mWebConnectionServicer.addPrioritizedWebConnectionHandler(
-               wch, ports[i]);
+            WebConnectionHandler wch = (WebConnectionHandler)i.next();
+            mWebConnectionServicer.addPrioritizedWebConnectionHandler(wch);
          }
          
          // start the proxy port web server
@@ -219,6 +215,23 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
             
             // start accepting web connections
             handler.startAcceptingWebConnections(port);
+         }
+         
+         // start accepting connections on all unassigned web connection
+         // handlers
+         for(Iterator i = mUnassignedWebConnectionHandlers.iterator();
+             i.hasNext();)
+         {
+            WebConnectionHandler handler = (WebConnectionHandler)i.next();
+            
+            // start accepting web connections on an ephemeral port
+            handler.startAcceptingWebConnections(0);
+            
+            // add port to the port list
+            mPorts.add("" + handler.getPort());
+            
+            // so assign the port to the handler
+            mPortToWebConnectionHandler.put(handler.getPort(), handler);
          }
          
          // server is running

@@ -71,7 +71,7 @@ implements WebConnectionHandler, WebConnectionServicer
       mServiceThreads = new Vector();
 
       // set default values
-      mPort = 0;
+      mPort = -1;
       mServerSocket = null;
       mMaxConcurrentConnections = 0;
    }
@@ -275,7 +275,7 @@ implements WebConnectionHandler, WebConnectionServicer
          
          // reset web connection acceptor, server socket, and port
          mWebConnectionAcceptor = null;
-         mPort = 0;
+         mPort = -1;
          mServerSocket = null;
       }
    }
@@ -449,7 +449,7 @@ implements WebConnectionHandler, WebConnectionServicer
     * connections on.
     * 
     * @return the port that this web connection handler is accepting web
-    *         connections on, or 0 if it is not accepting connections.
+    *         connections on, or -1 if it is not accepting connections.
     */
    public int getPort()
    {

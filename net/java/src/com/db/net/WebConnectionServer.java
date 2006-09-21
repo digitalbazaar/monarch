@@ -30,6 +30,13 @@ public class WebConnectionServer
    protected BoxingHashMap mPortToWebConnectionHandler;
    
    /**
+    * A list of web connection handlers that are assigned to use any free
+    * ephemeral port -- so that they don't have actual ports set yet until
+    * they start accepting web connections. 
+    */
+   protected Vector mUnassignedWebConnectionHandlers;
+   
+   /**
     * Whether or not this web server is running.
     */
    protected boolean mRunning;
@@ -44,6 +51,9 @@ public class WebConnectionServer
       
       // create the port to handler map
       mPortToWebConnectionHandler = new BoxingHashMap();
+      
+      // create vector for unassigned web connection handlers
+      mUnassignedWebConnectionHandlers = new Vector();
       
       // not running by default
       mRunning = false;
@@ -83,12 +93,6 @@ public class WebConnectionServer
       WebConnectionHandler existingHandler = getWebConnectionHandler(port);
       if(existingHandler == null)
       {
-         // add port to the port list
-         mPorts.add("" + port);
-         
-         // so assign the port to the handler
-         mPortToWebConnectionHandler.put(port, wch);
-         
          // if the web server has already started, then start accepting
          // connections on the port
          if(isRunning())
@@ -97,8 +101,28 @@ public class WebConnectionServer
             wch.startAcceptingWebConnections(port);
          }
          
-         // the handler was added
-         rval = true;
+         if(wch.getPort() > 0 || port > 0)
+         {
+            // use the larger port number
+            port = Math.max(wch.getPort(), port);
+            
+            // add port to the port list
+            mPorts.add("" + port);
+            
+            // so assign the port to the handler
+            mPortToWebConnectionHandler.put(port, wch);
+            
+            // the handler was added
+            rval = true;
+         }
+         else if(!isRunning())
+         {
+            // add an unassigned web connection handler
+            mUnassignedWebConnectionHandlers.add(wch);
+            
+            // the handler was added
+            rval = true;
+         }
       }
       
       return rval;
@@ -136,6 +160,9 @@ public class WebConnectionServer
          // unmap the handler
          mPortToWebConnectionHandler.remove(wch.getPort());
       }
+      
+      // remove the web connection handler from the unassigned list
+      mUnassignedWebConnectionHandlers.remove(wch);
    }
    
    /**
@@ -176,7 +203,7 @@ public class WebConnectionServer
       {
          getLogger().debug(getClass(), "starting web server...");
 
-         // start accepting connections on all web connection handlers
+         // start accepting connections on all assigned web connection handlers
          for(Iterator i = mPorts.iterator(); i.hasNext();)
          {
             int port = Integer.parseInt((String)i.next());
@@ -184,6 +211,23 @@ public class WebConnectionServer
             
             // start accepting web connections
             handler.startAcceptingWebConnections(port);
+         }
+         
+         // start accepting connections on all unassigned web connection
+         // handlers
+         for(Iterator i = mUnassignedWebConnectionHandlers.iterator();
+             i.hasNext();)
+         {
+            WebConnectionHandler handler = (WebConnectionHandler)i.next();
+            
+            // start accepting web connections on an ephemeral port
+            handler.startAcceptingWebConnections(0);
+            
+            // add port to the port list
+            mPorts.add("" + handler.getPort());
+            
+            // so assign the port to the handler
+            mPortToWebConnectionHandler.put(handler.getPort(), handler);
          }
          
          // server is running
@@ -266,6 +310,16 @@ public class WebConnectionServer
       {
          int port = Integer.parseInt((String)i.next());
          WebConnectionHandler handler = getWebConnectionHandler(port);
+         
+         // add handler
+         vector.add(handler);
+      }
+      
+      // add all unassigned web connection handlers
+      for(Iterator i = mUnassignedWebConnectionHandlers.iterator();
+          i.hasNext();)
+      {
+         WebConnectionHandler handler = (WebConnectionHandler)i.next();
          
          // add handler
          vector.add(handler);

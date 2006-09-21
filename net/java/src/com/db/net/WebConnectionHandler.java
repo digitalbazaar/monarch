@@ -111,7 +111,7 @@ public interface WebConnectionHandler
     * connections on.
     * 
     * @return the port that this web connection handler is accepting web
-    *         connections on, or 0 if it is not accepting connections.
+    *         connections on, or -1 if it is not accepting connections.
     */
    public int getPort();
 }

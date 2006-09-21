@@ -3,7 +3,6 @@
  */
 package com.db.net;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -29,21 +28,12 @@ extends AbstractWebConnectionServicer
    protected Vector mWebConnectionHandlerPriorityList;
    
    /**
-    * A table mapping web connection handlers to the ports they accept
-    * connections on.
-    */
-   protected HashMap mPortTable; 
-   
-   /**
     * Creates a new ProxyPortWebConnectionServicer.
     */
    public ProxyPortWebConnectionServicer()
    {
       // create the web connection handler priority list
       mWebConnectionHandlerPriorityList = new Vector();
-      
-      // create the port table
-      mPortTable = new HashMap();
    }
    
    /**
@@ -111,19 +101,14 @@ extends AbstractWebConnectionServicer
     * which web connection handler will handle a proxied web connection.
     * 
     * @param wch the web connection handler to add to the priority list.
-    * @param port the port that the web connection handler will listen on.
     */
-   public void addPrioritizedWebConnectionHandler(WebConnectionHandler wch,
-                                                  int port)
+   public void addPrioritizedWebConnectionHandler(WebConnectionHandler wch)
    {
       if(!hasPrioritizedWebConnectionHandler(wch))
       {
          // add the web connection handler to the priority list
          mWebConnectionHandlerPriorityList.add(wch);
       }
-      
-      // add a port entry for the web connection handler
-      mPortTable.put(wch, "" + port);
    }
    
    /**
@@ -137,9 +122,6 @@ extends AbstractWebConnectionServicer
    {
       // remove the web connection handler from the priority list
       mWebConnectionHandlerPriorityList.remove(wch);
-      
-      // remove the port entry for the web connection handler
-      mPortTable.remove(wch);
    }
    
    /**
@@ -151,9 +133,6 @@ extends AbstractWebConnectionServicer
    {
       // clear the web connection handler priority list
       mWebConnectionHandlerPriorityList.clear();
-      
-      // remove all port entries
-      mPortTable.clear();
    }
    
    /**
