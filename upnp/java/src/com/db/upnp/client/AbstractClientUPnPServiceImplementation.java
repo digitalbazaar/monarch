@@ -13,6 +13,7 @@ import com.db.upnp.service.UPnPService;
 import com.db.upnp.service.UPnPServiceAction;
 import com.db.upnp.service.UPnPServiceActionArgument;
 import com.db.upnp.service.UPnPServiceStateVariable;
+import com.db.util.BoxingHashMap;
 
 /**
  * An AbstractClientUPnPServiceImplementation provides the basic implementation
@@ -54,14 +55,15 @@ implements ClientUPnPServiceImplementation
     * @param actionName the name of the action.
     * @param params the parameters for the action.
     * 
-    * @return the return value from the action (can be null).
+    * @return a BoxingHashMap with the return values from the action (may
+    *         be empty).
     * 
     * @exception UPnPErrorException thrown if a UPnPError occurs.
     */
-   public Object performAction(String actionName, Object[] params)
+   public BoxingHashMap performAction(String actionName, Object[] params)
    throws UPnPErrorException
    {
-      Object rval = null;
+      BoxingHashMap rval = new BoxingHashMap();
       
       // find the action to perform in service's list of actions
       UPnPServiceAction action =
@@ -72,9 +74,7 @@ implements ClientUPnPServiceImplementation
          SoapOperation operation = new SoapOperation(
             action.getName(), getService().getServiceType(), null);
          
-         // add soap parameter for each action argument, store the return
-         // value argument, if any
-         UPnPServiceActionArgument retval = null;
+         // add soap parameter for each action argument with "in" direction
          int count = 0;
          for(Iterator i = action.getArgumentList().iterator();
              i.hasNext(); count++) 
@@ -87,11 +87,6 @@ implements ClientUPnPServiceImplementation
                // add soap parameter, use passed parameter value
                operation.addParameter(new SoapOperationParameter(
                   argument.getName(), String.valueOf(params[count]), null));
-            }
-            else
-            {
-               // store return value argument
-               retval = argument;
             }
          }
          
@@ -107,29 +102,38 @@ implements ClientUPnPServiceImplementation
          // send the envelope
          getServiceClient().sendSoapEnvelope(envelope, mService);
          
-         // see if the action has a return value argument
-         if(retval != null && envelope.containsSoapOperation())
+         // see if the envelope has a soap operation
+         if(envelope.containsSoapOperation())
          {
-            // get the state variable for the return value
-            UPnPServiceStateVariable variable =
-               getService().getDescription().getStateTable().
-               getStateVariable(retval.getStateVariable());
+            // pull out the envelope's soap operation
+            operation = envelope.getSoapOperation();
             
-            if(variable != null)
+            // get return value for each action argument with "out" direction
+            for(Iterator i = action.getArgumentList().iterator(); i.hasNext();) 
             {
-               // pull out the envelope's soap operation
-               operation = envelope.getSoapOperation();
+               UPnPServiceActionArgument argument =
+                  (UPnPServiceActionArgument)i.next();
                
-               // get the parameter in the operation
-               if(operation.getParameters().size() == 1)
+               if(argument.getDirection().equals("out"))
                {
+                  // get the state variable for the argument
+                  UPnPServiceStateVariable variable =
+                     getService().getDescription().getStateTable().
+                     getStateVariable(argument.getStateVariable());
+
                   // get the soap parameter that represents the result
-                  SoapOperationParameter result =
-                     (SoapOperationParameter)operation.getParameters().get(0);
+                  SoapOperationParameter parameter =
+                     operation.getParameter(argument.getName(), null);
                   
-                  // convert the return value to the appropriate type
-                  rval = UPnPServiceStateVariable.convertType(
-                     result.getValue(), variable.getDataType());
+                  if(variable != null && parameter != null)
+                  {
+                     // convert the return value to the appropriate type
+                     Object retval = UPnPServiceStateVariable.convertType(
+                        parameter.getValue(), variable.getDataType());
+                     
+                     // add an entry to the map
+                     rval.put(parameter.getName(), retval);
+                  }
                }
             }
          }

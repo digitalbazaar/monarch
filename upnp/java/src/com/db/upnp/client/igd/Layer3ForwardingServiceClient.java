@@ -7,6 +7,7 @@ import com.db.upnp.client.AbstractClientUPnPServiceImplementation;
 import com.db.upnp.device.UPnPDevice;
 import com.db.upnp.service.UPnPErrorException;
 import com.db.upnp.service.UPnPService;
+import com.db.util.BoxingHashMap;
 
 /**
  * A Layer3ForwardingServiceClient is a client for a Layer3ForwardingService.
@@ -137,6 +138,9 @@ extends AbstractClientUPnPServiceImplementation
     */
    public String getDefaultConnectionService() throws UPnPErrorException
    {
-      return (String)performAction("GetDefaultConnectionService", null);
+      BoxingHashMap retvals =
+         performAction("GetDefaultConnectionService", null);
+      
+      return retvals.getString("NewDefaultConnectionService");
    }
 }
