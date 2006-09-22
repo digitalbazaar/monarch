@@ -59,7 +59,7 @@ implements ActionListener, WindowListener
          this, "wizardCancelled");
       
       // create the wizard quit dialog
-      mQuitDialog = new WizardQuitDialog();
+      mQuitDialog = new WizardQuitDialog(owner);
       mQuitDialog.setModal(true);
       mQuitDialog.addActionListener(this);
       

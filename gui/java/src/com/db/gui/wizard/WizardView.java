@@ -95,12 +95,12 @@ public class WizardView extends JPanel implements ActionListener
       mWizardPages = new Vector();
       
       // create error dialog
-      mErrorDialog = new WizardErrorDialog();
+      mErrorDialog = new WizardErrorDialog(null);
       mErrorDialog.setModal(true);
       mErrorDialog.addActionListener(this);
       
       // create quit dialog
-      mQuitDialog = new WizardQuitDialog();
+      mQuitDialog = new WizardQuitDialog(null);
       mQuitDialog.setModal(true);
       mQuitDialog.addActionListener(this);
       

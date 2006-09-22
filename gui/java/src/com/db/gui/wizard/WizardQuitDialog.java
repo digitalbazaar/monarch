@@ -3,6 +3,7 @@
  */
 package com.db.gui.wizard;
 
+import java.awt.Frame;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 
@@ -33,9 +34,13 @@ public class WizardQuitDialog extends JDialog
    
    /**
     * Quit wizard dialog constructor.
+    * 
+    * @param owner the owner frame of this dialog.
     */
-   public WizardQuitDialog()
+   public WizardQuitDialog(Frame owner)
    {
+      super(owner);
+      
       setTitle("Quit wizard without saving?");
       
       // setup the content pane

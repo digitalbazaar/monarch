@@ -3,6 +3,7 @@
  */
 package com.db.gui.wizard;
 
+import java.awt.Frame;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.util.Iterator;
@@ -46,10 +47,14 @@ public class WizardErrorDialog extends JDialog
    protected JButton mOkButton;
    
    /**
-    * Sets up the support request dialog.
+    * Creates a support request dialog.
+    * 
+    * @param owner the owner frame of this dialog.
     */
-   public WizardErrorDialog()
+   public WizardErrorDialog(Frame owner)
    {
+      super(owner);
+      
       setTitle("Wizard Page Errors");
       
       // setup content pane
