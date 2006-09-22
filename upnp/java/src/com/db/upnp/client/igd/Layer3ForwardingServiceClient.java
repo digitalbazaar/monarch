@@ -10,6 +10,7 @@ import com.db.net.soap.SoapOperationParameter;
 import com.db.upnp.client.AbstractClientUPnPServiceImplementation;
 import com.db.upnp.device.UPnPDevice;
 import com.db.upnp.service.UPnPError;
+import com.db.upnp.service.UPnPErrorException;
 import com.db.upnp.service.UPnPService;
 import com.db.xml.XmlElement;
 
@@ -44,7 +45,7 @@ extends AbstractClientUPnPServiceImplementation
     * @param device the device with the new default connection service.
     * @param service the new default connection service.
     * 
-    * @return a UPnPError:
+    * @exception UPnPErrorException thrown if a UPnPError occurs:
     * 
     * "402 Invalid Args" One of following: not enough IN arguments, too many IN
     * arguments, no IN argument by that name, one or more IN arguments are of
@@ -62,15 +63,16 @@ extends AbstractClientUPnPServiceImplementation
     * "723 InvalidConnServiceSelection" The selected connection service
     * instance cannot be set as a default connection.   
     */
-   public UPnPError setDefaultConnectionService(
+   public void setDefaultConnectionService(
       UPnPDevice device, UPnPService service)
+   throws UPnPErrorException
    {
       // create a comma-separated 2-tuple string to uniquely identify the
       // passed device and service
       String serviceString =
          device.getUdn() + "," + service.getServiceId();
       
-      return setDefaultConnectionService(serviceString);
+      setDefaultConnectionService(serviceString);
    }
    
    /**
@@ -89,7 +91,7 @@ extends AbstractClientUPnPServiceImplementation
     * 
     * @param serviceString the new default connection service.
     * 
-    * @return a UPnPError:
+    * @exception UPnPErrorException thrown if a UPnPError occurs:
     * 
     * "402 Invalid Args" One of following: not enough IN arguments, too many IN
     * arguments, no IN argument by that name, one or more IN arguments are of
@@ -107,10 +109,9 @@ extends AbstractClientUPnPServiceImplementation
     * "723 InvalidConnServiceSelection" The selected connection service
     * instance cannot be set as a default connection.   
     */
-   public UPnPError setDefaultConnectionService(String serviceString)
+   public void setDefaultConnectionService(String serviceString)
+   throws UPnPErrorException
    {
-      UPnPError rval = new UPnPError(); 
-      
       // create a soap operation
       SoapOperation operation = new SoapOperation(
          "SetDefaultConnectionService", mService.getServiceType(), null);
@@ -139,11 +140,13 @@ extends AbstractClientUPnPServiceImplementation
          XmlElement detail = fault.getFaultDetail();
          if(detail != null)
          {
-            rval.convertFromXmlElement(detail);
+            UPnPError error = new UPnPError();
+            error.convertFromXmlElement(detail);
+            
+            // throw a new UPnPErrorException
+            throw new UPnPErrorException(error);
          }
       }
-      
-      return rval;
    }
    
    /**
@@ -161,8 +164,9 @@ extends AbstractClientUPnPServiceImplementation
     * "uuid:44f5824f-c57d-418c-a131-f22b34e14111:WANConnectionDevice:1,
     * urn:upnporg:serviceId:WANPPPConn1"
     * 
-    * @return the default connection service from the Layer3Forwarding service
-    *         or an error code:
+    * @return the default connection service from the Layer3Forwarding service.
+    * 
+    * @exception UPnPErrorException thrown if a UPnPError occurs:
     * 
     * "402 Invalid Args" One of following: not enough IN arguments, too many IN
     * arguments, no IN argument by that name, one or more IN arguments are of
@@ -171,9 +175,9 @@ extends AbstractClientUPnPServiceImplementation
     * "501 Action Failed" May be returned in current state if service prevents
     * invoking of that action.
     */
-   public String getDefaultConnectionService()
+   public String getDefaultConnectionService() throws UPnPErrorException
    {
-      String rval = "0";
+      String rval = "";
       
       // create a soap operation
       SoapOperation operation = new SoapOperation(
@@ -215,7 +219,9 @@ extends AbstractClientUPnPServiceImplementation
          {
             UPnPError error = new UPnPError();
             error.convertFromXmlElement(detail);
-            rval = error.getErrorCode() + " " + error.getErrorDescription();
+            
+            // throw a new UPnPErrorException
+            throw new UPnPErrorException(error);
          }
       }
       
