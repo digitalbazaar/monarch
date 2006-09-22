@@ -7,8 +7,7 @@ import com.db.net.soap.RpcSoapEnvelope;
 import com.db.net.soap.SoapFault;
 import com.db.net.soap.SoapOperation;
 import com.db.net.soap.SoapOperationParameter;
-import com.db.upnp.client.ClientUPnPServiceImplementation;
-import com.db.upnp.client.UPnPServiceClient;
+import com.db.upnp.client.AbstractClientUPnPServiceImplementation;
 import com.db.upnp.device.UPnPDevice;
 import com.db.upnp.service.UPnPError;
 import com.db.upnp.service.UPnPService;
@@ -20,18 +19,8 @@ import com.db.xml.XmlElement;
  * @author Dave Longley
  */
 public class Layer3ForwardingServiceClient
-implements ClientUPnPServiceImplementation
+extends AbstractClientUPnPServiceImplementation
 {
-   /**
-    * The UPnPService this client implementation is for.
-    */
-   protected UPnPService mService;
-   
-   /**
-    * The UPnPServiceClient that is used to communicate with the UPnPService.
-    */
-   protected UPnPServiceClient mServiceClient;
-   
    /**
     * The service type for a Layer3Forwarding Service.
     */
@@ -45,11 +34,7 @@ implements ClientUPnPServiceImplementation
     */
    public Layer3ForwardingServiceClient(UPnPService service)
    {
-      // store service
-      mService = service;
-      
-      // no service client set yet
-      setServiceClient(null);
+      super(service);
    }
    
    /**
@@ -235,26 +220,5 @@ implements ClientUPnPServiceImplementation
       }
       
       return rval;      
-   }
-   
-   /**
-    * Sets the UPnPServiceClient to use to communicate with the service.
-    * 
-    * @param client the UPnPServiceClient to use to communicate with the
-    *               service.
-    */
-   public void setServiceClient(UPnPServiceClient client)
-   {
-      mServiceClient = client;
-   }
-   
-   /**
-    * Gets the UPnPServiceClient to use to communicate with the service.
-    * 
-    * @return the UPnPServiceClient to use to communicate with the service.
-    */
-   public UPnPServiceClient getServiceClient()
-   {
-      return mServiceClient;
    }
 }

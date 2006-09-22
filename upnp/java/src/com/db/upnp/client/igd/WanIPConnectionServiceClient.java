@@ -3,8 +3,7 @@
  */
 package com.db.upnp.client.igd;
 
-import com.db.upnp.client.ClientUPnPServiceImplementation;
-import com.db.upnp.client.UPnPServiceClient;
+import com.db.upnp.client.AbstractClientUPnPServiceImplementation;
 import com.db.upnp.service.UPnPService;
 
 /**
@@ -16,18 +15,8 @@ import com.db.upnp.service.UPnPService;
  * @author Dave Longley
  */
 public class WanIPConnectionServiceClient
-implements ClientUPnPServiceImplementation
+extends AbstractClientUPnPServiceImplementation
 {
-   /**
-    * The UPnPService this client implementation is for.
-    */
-   protected UPnPService mService;
-
-   /**
-    * The UPnPServiceClient that is used to communicate with the UPnPService.
-    */
-   protected UPnPServiceClient mServiceClient;
-   
    /**
     * The service type for a WAN IP Connection Service.
     */
@@ -41,31 +30,6 @@ implements ClientUPnPServiceImplementation
     */
    public WanIPConnectionServiceClient(UPnPService service)
    {
-      // store service
-      mService = service;
-      
-      // no service client set yet
-      setServiceClient(null);
-   }
-   
-   /**
-    * Sets the UPnPServiceClient to use to communicate with the service.
-    * 
-    * @param client the UPnPServiceClient to use to communicate with the
-    *               service.
-    */
-   public void setServiceClient(UPnPServiceClient client)
-   {
-      mServiceClient = client;
-   }
-   
-   /**
-    * Gets the UPnPServiceClient to use to communicate with the service.
-    * 
-    * @return the UPnPServiceClient to use to communicate with the service.
-    */
-   public UPnPServiceClient getServiceClient()
-   {
-      return mServiceClient;
+      super(service);
    }
 }
