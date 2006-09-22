@@ -45,7 +45,7 @@ public class UTFileLock
          fileLock.setConnectionHandler(handler);
          
          // lock the file
-         if(fileLock.tryLock())
+         if(fileLock.lock())
          {
             System.out.println("file lock acquired");
          }

@@ -5,9 +5,6 @@ package com.db.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.channels.AsynchronousCloseException;
-import java.nio.channels.FileChannel;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -33,10 +30,9 @@ public class FileLock
    protected File mFile;
    
    /**
-    * The channel file lock (java.nio.channels.FileLock) if this FileLock
-    * as a lock, null otherwise.
+    * True if this FileLock has a lock, false if not.
     */
-   protected java.nio.channels.FileLock mChannelLock;
+   protected boolean mHasLock;
    
    /**
     * Creates a new FileLock that uses the file with the given filename for
@@ -59,18 +55,8 @@ public class FileLock
       // store the file
       mFile = file;
       
-      // no channel lock yet
-      mChannelLock = null;
-   }
-   
-   /**
-    * Gets the channel lock.
-    * 
-    * @return the channel lock.
-    */
-   protected java.nio.channels.FileLock getChannelLock()
-   {
-      return mChannelLock;
+      // no lock yet
+      mHasLock = false;
    }
    
    /**
@@ -81,58 +67,6 @@ public class FileLock
    {
       // unlock
       unlock();
-   }
-   
-   /**
-    * Tries to acquire a lock for this FileLock.
-    * 
-    * @return true if this FileLock is now locked, false if a lock could not
-    *         be acquired.
-    */
-   public synchronized boolean tryLock()
-   {
-      // ensure lock has not already been acquired
-      if(!hasLock())
-      {
-         // set to true if the file was created
-         boolean created = false;
-         
-         try
-         {
-            // create the file, ensure the file doesn't already exist
-            created = getFile().createNewFile();
-            if(created)
-            {
-               // delete the file on exit
-               getFile().deleteOnExit();
-               
-               // get a file channel
-               FileChannel channel =
-                  new RandomAccessFile(getFile(), "rw").getChannel();
-               
-               // try to get a lock on the channel
-               mChannelLock = channel.tryLock();
-            }
-         }
-         catch(IOException e)
-         {
-            // see if the file was created
-            if(created)
-            {
-               // log the bug, there was an error
-               getLogger().debug(getClass(), Logger.getStackTrace(e));
-               
-               // delete the file
-               getFile().delete();
-            }
-            else
-            {
-               // no need to log the exception, a lock was only tried
-            }
-         }
-      }
-      
-      return hasLock();
    }
    
    /**
@@ -159,19 +93,9 @@ public class FileLock
                // delete the file on exit
                getFile().deleteOnExit();
                
-               // get a file channel
-               FileChannel channel =
-                  new RandomAccessFile(getFile(), "rw").getChannel();
-               
-               // lock on the channel
-               mChannelLock = channel.lock();
+               // lock acquired
+               mHasLock = true;
             }
-         }
-         catch(AsynchronousCloseException e)
-         {
-            // another thread closed the channel, so try the lock again
-            getLogger().debug(getClass(), Logger.getStackTrace(e));
-            lock();
          }
          catch(IOException e)
          {
@@ -195,19 +119,11 @@ public class FileLock
    {
       if(hasLock())
       {
-         try
-         {
-            // release the channel lock
-            getChannelLock().release();
-         }
-         catch(IOException e)
-         {
-            // ignore this exception, only occurs if the channel is no
-            // longer open which means that no lock exists anyway
-            getLogger().debug(getClass(), Logger.getStackTrace(e));
-         }
+         // delete the file
+         getFile().delete();
          
-         mChannelLock = null;
+         // release the lock
+         mHasLock = false;
       }
    }
 
@@ -220,19 +136,17 @@ public class FileLock
    {
       boolean rval = false;
       
-      // has a lock if the channel lock is not null, the file exists, and
-      // the channel is open
-      if(getChannelLock() != null)
+      // has a lock mHasLock is true and the file exists
+      if(mHasLock)
       {
-         if(getFile().exists() && getChannelLock().channel().isOpen())
+         if(getFile().exists())
          {
-            // channel is open and locked
             rval = true;
          }
          else
          {
-            // throw out the lock, it is invalid because the channel isn't open
-            mChannelLock = null;
+            // throw out the lock, it is invalid because the file doesn't exist
+            mHasLock = false;
          }
       }
       

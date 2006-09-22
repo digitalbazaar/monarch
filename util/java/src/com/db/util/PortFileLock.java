@@ -5,12 +5,12 @@ package com.db.util;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.nio.ByteBuffer;
 
 import com.db.logging.Logger;
 
@@ -247,63 +247,7 @@ public class PortFileLock extends FileLock
    }
    
    /**
-    * Tries to acquire a lock for this PortFileLock.
-    * 
-    * This method will also try to open a port for communication.
-    * 
-    * @return true if this PortFileLock is now locked and its port is open,
-    *         false if a lock could not be acquired.
-    */
-   public synchronized boolean tryLock()
-   {
-      // ensure lock has not already been acquired
-      if(!hasLock())
-      {
-         // acquire the file lock
-         if(super.tryLock())
-         {
-            try
-            {
-               // get a server socket
-               ServerSocket socket = bindServerSocket(getPort());
-               if(socket != null)
-               {
-                  // write the port number to the lock file
-                  String port = "" + socket.getLocalPort();
-                  ByteBuffer buffer = ByteBuffer.wrap(port.getBytes());
-                  getChannelLock().channel().write(buffer);
-                  
-                  // start accepting connections in a background process
-                  MethodInvoker mi = new MethodInvoker(
-                     this, "acceptConnections", new Object[]{socket});
-                  mi.backgroundExecute();
-               }
-               else
-               {
-                  // socket could not be opened, so unlock
-                  unlock();
-               }
-            }
-            catch(Throwable t)
-            {
-               // there was some IO error
-               getLogger().error(getClass(),
-                  "An exception occurred while trying to open " +
-                  "a server socket!");
-               getLogger().debug(getClass(), Logger.getStackTrace(t));
-               
-               // unlock
-               unlock();
-            }
-         }
-      }
-      
-      return hasLock();
-   }
-   
-   /**
-    * Locks this FileLock, if it is not already locked. This method will
-    * block until the lock can be acquired.
+    * Locks this FileLock, if it is not already locked.
     * 
     * @return true if this FileLock successfully locked (or was already
     *         locked), false if it was not because it was already locked by
@@ -324,9 +268,9 @@ public class PortFileLock extends FileLock
                if(socket != null)
                {
                   // write the port number to the lock file
-                  String port = "" + socket.getLocalPort();
-                  ByteBuffer buffer = ByteBuffer.wrap(port.getBytes());
-                  getChannelLock().channel().write(buffer);
+                  FileOutputStream fos = new FileOutputStream(getFile(), true);
+                  fos.write(new String("" + socket.getLocalPort()).getBytes());
+                  fos.close();
                   
                   // start accepting connections in a background process
                   MethodInvoker mi = new MethodInvoker(
@@ -379,6 +323,7 @@ public class PortFileLock extends FileLock
          // largest port number is 65535 (5 bytes) written as text
          byte[] buffer = new byte[5];
          int numBytes = fis.read(buffer);
+         fis.close();
          
          if(numBytes > 0)
          {
