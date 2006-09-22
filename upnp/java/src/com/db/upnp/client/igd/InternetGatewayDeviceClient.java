@@ -27,9 +27,9 @@ implements ClientUPnPDeviceImplementation
    protected Layer3ForwardingServiceClient mLayer3ForwardingClient;
    
    /**
-    * The embedded WanConnectionDevice client.
+    * The embedded WanDevice client.
     */
-   protected WanConnectionDeviceClient mWanConnectionDeviceClient; 
+   protected WanDeviceClient mWanDeviceClient; 
    
    /**
     * The device type for an Internet Gateway Device.
@@ -53,11 +53,10 @@ implements ClientUPnPDeviceImplementation
       mLayer3ForwardingClient =
          (Layer3ForwardingServiceClient)service.getImplementation();
       
-      // get the WAN connection device client
+      // get the embedded WAN device client
       UPnPDevice embedded = device.getDeviceList().getFirstDevice(
-         WanConnectionDeviceClient.WAN_CONNECTION_DEVICE_TYPE);
-      mWanConnectionDeviceClient =
-         (WanConnectionDeviceClient)embedded.getImplementation();
+         WanDeviceClient.WAN_DEVICE_TYPE);
+      mWanDeviceClient = (WanDeviceClient)embedded.getImplementation();
    }
    
    /**
@@ -71,13 +70,13 @@ implements ClientUPnPDeviceImplementation
    }
    
    /**
-    * Gets the WanConnectionDeviceClient.
+    * Gets the WanDeviceClient.
     * 
-    * @return the WanConnectionDeviceClient (can be null).
+    * @return the WanDeviceClient (can be null).
     */
-   public WanConnectionDeviceClient getWanConnectionDeviceClient()
+   public WanDeviceClient getWanDeviceClient()
    {
-      return mWanConnectionDeviceClient;
+      return mWanDeviceClient;
    }
    
    /**
@@ -89,10 +88,9 @@ implements ClientUPnPDeviceImplementation
    {
       WanIPConnectionServiceClient rval = null;
       
-      if(getWanConnectionDeviceClient() != null)
+      if(getWanDeviceClient() != null)
       {
-         rval = getWanConnectionDeviceClient().
-            getWanIPConnectionServiceClient();
+         rval = getWanDeviceClient().getWanIPConnectionServiceClient();
       }
       
       return rval;

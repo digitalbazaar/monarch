@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ */
 package com.db.upnp.client.igd;
 
 import com.db.upnp.client.ClientUPnPDeviceImplementation;
