@@ -4,6 +4,7 @@
 package com.db.gui.wizard;
 
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -33,12 +34,15 @@ implements ActionListener, WindowListener
    protected WizardQuitDialog mQuitDialog;
    
    /**
-    * Creates a new WizardFrame.
+    * Creates a new WizardFrame with the specified owner frame.
     * 
     * @param wizard the wizard to display in the frame.
+    * @param owner the owner frame for this wizard (can be null).
     */
-   public WizardFrame(Wizard wizard)
+   public WizardFrame(Wizard wizard, Frame owner)
    {
+      super(owner);
+      
       // store wizard
       mWizard = wizard;
       

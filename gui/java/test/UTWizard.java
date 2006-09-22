@@ -74,7 +74,7 @@ public class UTWizard
          UTWizard.class, "wizardCancelled");
       
       // create wizard frame
-      WizardFrame frame = new WizardFrame(testWizard);
+      WizardFrame frame = new WizardFrame(testWizard, null);
       frame.setTitle("Test Wizard Frame");
       frame.setLocationRelativeTo(null);
       
