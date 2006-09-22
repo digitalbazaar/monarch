@@ -4,15 +4,12 @@
 package com.db.upnp.client.igd;
 
 import com.db.net.soap.RpcSoapEnvelope;
-import com.db.net.soap.SoapFault;
 import com.db.net.soap.SoapOperation;
 import com.db.net.soap.SoapOperationParameter;
 import com.db.upnp.client.AbstractClientUPnPServiceImplementation;
 import com.db.upnp.device.UPnPDevice;
-import com.db.upnp.service.UPnPError;
 import com.db.upnp.service.UPnPErrorException;
 import com.db.upnp.service.UPnPService;
-import com.db.xml.XmlElement;
 
 /**
  * A Layer3ForwardingServiceClient is a client for a Layer3ForwardingService.
@@ -131,22 +128,6 @@ extends AbstractClientUPnPServiceImplementation
       
       // send the envelope
       getServiceClient().sendSoapEnvelope(envelope, mService);
-      if(envelope.containsSoapFault())
-      {
-         // pull out the envelope's soap fault
-         SoapFault fault = envelope.getSoapFault();
-         
-         // get the detail
-         XmlElement detail = fault.getFaultDetail();
-         if(detail != null)
-         {
-            UPnPError error = new UPnPError();
-            error.convertFromXmlElement(detail);
-            
-            // throw a new UPnPErrorException
-            throw new UPnPErrorException(error);
-         }
-      }
    }
    
    /**
@@ -194,6 +175,8 @@ extends AbstractClientUPnPServiceImplementation
       
       // send the envelope
       getServiceClient().sendSoapEnvelope(envelope, mService);
+      
+      // get the returned value
       if(envelope.containsSoapOperation())
       {
          // pull out the envelope's soap operation
@@ -206,22 +189,6 @@ extends AbstractClientUPnPServiceImplementation
             SoapOperationParameter result =
                (SoapOperationParameter)operation.getParameters().get(0);
             rval = result.getValue();
-         }
-      }
-      else if(envelope.containsSoapFault())
-      {
-         // pull out the envelope's soap fault
-         SoapFault fault = envelope.getSoapFault();
-         
-         // get the detail
-         XmlElement detail = fault.getFaultDetail();
-         if(detail != null)
-         {
-            UPnPError error = new UPnPError();
-            error.convertFromXmlElement(detail);
-            
-            // throw a new UPnPErrorException
-            throw new UPnPErrorException(error);
          }
       }
       

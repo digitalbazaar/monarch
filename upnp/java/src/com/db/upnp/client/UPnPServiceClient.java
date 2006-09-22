@@ -8,9 +8,13 @@ import com.db.net.http.HttpWebConnection;
 import com.db.net.http.HttpWebRequest;
 import com.db.net.http.HttpWebResponse;
 import com.db.net.soap.RpcSoapEnvelope;
+import com.db.net.soap.SoapFault;
 import com.db.net.soap.SoapOperation;
 import com.db.upnp.device.UPnPRootDevice;
+import com.db.upnp.service.UPnPError;
+import com.db.upnp.service.UPnPErrorException;
 import com.db.upnp.service.UPnPService;
+import com.db.xml.XmlElement;
 
 /**
  * A UPnPServiceClient is a client that communicates with a UPnPDevice by
@@ -45,9 +49,12 @@ public class UPnPServiceClient
     * @param service the UPnPService to send the envelope to.
     * 
     * @return true if a connection was made to the service, false if not.
+    * 
+    * @exception UPnPErrorException thrown if a UPnPError occurs.
     */
    public boolean sendSoapEnvelope(
       RpcSoapEnvelope envelope, UPnPService service)
+   throws UPnPErrorException
    {
       boolean rval = false;
       
@@ -108,6 +115,24 @@ public class UPnPServiceClient
                   {
                      // convert the rpc soap envelope from the received xml
                      envelope.convertFromXml(xml);
+                     
+                     // see if the envelope contains a fault
+                     if(envelope.containsSoapFault())
+                     {
+                        // pull out the envelope's soap fault
+                        SoapFault fault = envelope.getSoapFault();
+                        
+                        // get the detail
+                        XmlElement detail = fault.getFaultDetail();
+                        if(detail != null)
+                        {
+                           UPnPError error = new UPnPError();
+                           error.convertFromXmlElement(detail);
+                           
+                           // throw a new UPnPErrorException
+                           throw new UPnPErrorException(error);
+                        }
+                     }                     
                   }
                }
             }
