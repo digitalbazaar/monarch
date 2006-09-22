@@ -230,6 +230,36 @@ public class SoapOperation extends AbstractXmlSerializer
    }
    
    /**
+    * Gets a parameter by its name and target namespace URI.
+    * 
+    * @param name the name of the parameter.
+    * @param tns the target namespace URI for the parameter.
+    * 
+    * @return the parameter with the given name and target namespace URI or
+    *         null if no match is found.
+    */
+   public SoapOperationParameter getParameter(String name, String tns)
+   {
+      SoapOperationParameter rval = null;
+      
+      for(Iterator i = getParameters().iterator(); i.hasNext() && rval == null;)
+      {
+         SoapOperationParameter parameter = (SoapOperationParameter)i.next();
+         
+         // compare name and target namespace
+         if(parameter.getName().equals(name) &&
+            (parameter.getTargetNamespaceUri() == null && tns == null) ||
+            (parameter.getTargetNamespaceUri() != null &&
+             parameter.getTargetNamespaceUri().equals(tns)))
+         {
+            rval = parameter;
+         }
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Gets the parameters for this operation in a vector.
     * 
     * @return a vector of SoapOperationParameters.

@@ -228,6 +228,30 @@ public class SoapOperationParameter extends AbstractXmlSerializer
    }
    
    /**
+    * Sets the target namespace URI that defines the XML elements of this
+    * parameter.
+    * 
+    * @param tns the target namespace URI that defines the XML elements of this
+    *            parameter (can be null).
+    */
+   public void setTargetNamespaceUri(String tns)
+   {
+      mTargetNamespaceUri = tns;
+   }
+   
+   /**
+    * Gets the target namespace URI that defines the XML elements of this
+    * parameter.
+    * 
+    * @return the target namespace URI that defines the XML elements of this
+    *         parameter (can be null).
+    */
+   public String getTargetNamespaceUri()
+   {
+      return mTargetNamespaceUri;
+   }
+   
+   /**
     * Sets the value for this parameter.
     * 
     * @param value the value for this parameter.
