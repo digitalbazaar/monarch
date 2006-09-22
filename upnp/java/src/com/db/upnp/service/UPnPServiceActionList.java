@@ -149,6 +149,30 @@ public class UPnPServiceActionList extends AbstractXmlSerializer
    }
    
    /**
+    * Gets an action from this list by its name.
+    * 
+    * @param name the name of the action to retrieve.
+    * 
+    * @return the retrieved action or null if no action with the given name
+    *         exists.
+    */
+   public UPnPServiceAction getAction(String name)
+   {
+      UPnPServiceAction rval = null;
+      
+      for(Iterator i = getActions().iterator(); i.hasNext() && rval == null;)
+      {
+         UPnPServiceAction action = (UPnPServiceAction)i.next();
+         if(action.getName().equals(name))
+         {
+            rval = action;
+         }
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Gets the UPnPServiceActions for this list in a vector.
     * 
     * @return the UPnPServiceActions for this list in a vector.

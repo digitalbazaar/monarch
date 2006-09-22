@@ -3,9 +3,6 @@
  */
 package com.db.upnp.client.igd;
 
-import com.db.net.soap.RpcSoapEnvelope;
-import com.db.net.soap.SoapOperation;
-import com.db.net.soap.SoapOperationParameter;
 import com.db.upnp.client.AbstractClientUPnPServiceImplementation;
 import com.db.upnp.device.UPnPDevice;
 import com.db.upnp.service.UPnPErrorException;
@@ -109,25 +106,7 @@ extends AbstractClientUPnPServiceImplementation
    public void setDefaultConnectionService(String serviceString)
    throws UPnPErrorException
    {
-      // create a soap operation
-      SoapOperation operation = new SoapOperation(
-         "SetDefaultConnectionService", mService.getServiceType(), null);
-      
-      // add parameters
-      operation.addParameter(new SoapOperationParameter(
-         "NewDefaultConnectionService", serviceString, null));
-      
-      // create a rpc soap envelope
-      RpcSoapEnvelope envelope = new RpcSoapEnvelope();
-      
-      // set encoding style
-      envelope.setEncodingStyle(RpcSoapEnvelope.SOAP_ENCODING_URI);
-      
-      // set the operation
-      envelope.setSoapOperation(operation);
-      
-      // send the envelope
-      getServiceClient().sendSoapEnvelope(envelope, mService);
+      performAction("SetDefaultConnectionService", new Object[]{serviceString});
    }
    
    /**
@@ -158,40 +137,6 @@ extends AbstractClientUPnPServiceImplementation
     */
    public String getDefaultConnectionService() throws UPnPErrorException
    {
-      String rval = "";
-      
-      // create a soap operation
-      SoapOperation operation = new SoapOperation(
-         "GetDefaultConnectionService", mService.getServiceType(), null);
-      
-      // create a rpc soap envelope
-      RpcSoapEnvelope envelope = new RpcSoapEnvelope();
-      
-      // set encoding style
-      envelope.setEncodingStyle(RpcSoapEnvelope.SOAP_ENCODING_URI);
-      
-      // set the operation
-      envelope.setSoapOperation(operation);
-      
-      // send the envelope
-      getServiceClient().sendSoapEnvelope(envelope, mService);
-      
-      // get the returned value
-      if(envelope.containsSoapOperation())
-      {
-         // pull out the envelope's soap operation
-         operation = envelope.getSoapOperation();
-         
-         // get the parameter in the operation
-         if(operation.getParameters().size() == 1)
-         {
-            // get the result
-            SoapOperationParameter result =
-               (SoapOperationParameter)operation.getParameters().get(0);
-            rval = result.getValue();
-         }
-      }
-      
-      return rval;      
+      return (String)performAction("GetDefaultConnectionService", null);
    }
 }

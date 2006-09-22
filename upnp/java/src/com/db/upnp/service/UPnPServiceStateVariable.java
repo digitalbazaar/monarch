@@ -3,6 +3,7 @@
  */
 package com.db.upnp.service;
 
+import java.text.DateFormat;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -673,5 +674,121 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbupnp");
+   }
+   
+   /**
+    * Converts a String value into the appropriate java type.
+    * 
+    * @param value the String value to convert to the appropriate java type.
+    * @param dataType the data type to convert to.
+    *  
+    * @return the appropriate java type.
+    */
+   public static Object convertType(String value, String dataType)
+   {
+      Object rval = null;
+      
+      try
+      {
+         if(dataType.equals("ui1"))
+         {
+            rval = new Byte(value);
+         }
+         else if(dataType.equals("ui2"))
+         {
+            rval = new Short(value);
+         }
+         else if(dataType.equals("ui4"))
+         {
+            rval = new Integer(value);
+         }
+         else if(dataType.equals("i1"))
+         {
+            rval = new Byte(value);
+         }
+         else if(dataType.equals("i2"))
+         {
+            rval = new Short(value);
+         }
+         else if(dataType.equals("i4"))
+         {
+            rval = new Integer(value);
+         }
+         else if(dataType.equals("int"))
+         {
+            rval = new Integer(value);
+         }
+         else if(dataType.equals("r4"))
+         {
+            rval = new Float(value);
+         }
+         else if(dataType.equals("r8"))
+         {
+            rval = new Double(value);
+         }
+         else if(dataType.equals("number"))
+         {
+            rval = new Double(value);
+         }
+         else if(dataType.equals("fixed.14.4"))
+         {
+            rval = new Double(value);
+         }
+         else if(dataType.equals("float"))
+         {
+            rval = new Float(value);
+         }
+         else if(dataType.equals("char"))
+         {
+            rval = new Character(value.charAt(0));
+         }
+         else if(dataType.equals("string"))
+         {
+            rval = value;
+         }
+         else if(dataType.equals("date"))
+         {
+            DateFormat df = DateFormat.getDateInstance();
+            rval = df.parse(value);
+         }
+         else if(dataType.equals("dateTime"))
+         {
+            DateFormat df = DateFormat.getDateTimeInstance();
+            rval = df.parse(value);
+         }
+         else if(dataType.equals("dateTime.tz"))
+         {
+            DateFormat df = DateFormat.getDateTimeInstance();
+            rval = df.parse(value);
+         }
+         else if(dataType.equals("time"))
+         {
+            DateFormat df = DateFormat.getTimeInstance();
+            rval = df.parse(value);
+         }
+         else if(dataType.equals("time.tz"))
+         {
+            DateFormat df = DateFormat.getTimeInstance();
+            rval = df.parse(value);
+         }
+         else if(dataType.equals("bin.base64"))
+         {
+            rval = value;
+         }
+         else if(dataType.equals("bin.hex"))
+         {
+            rval = value;
+         }
+         else if(dataType.equals("uri"))
+         {
+            rval = value;
+         }
+      }
+      catch(Throwable ignore)
+      {
+         // just return null object
+      }
+      
+      return rval;
    }
 }

@@ -323,6 +323,10 @@ public class UPnPRootDevice
          {
             rval = retrieveDeviceDescription();
          }
+         else
+         {
+            rval = true;
+         }
          
          if(rval)
          {
@@ -331,6 +335,22 @@ public class UPnPRootDevice
             if(rootDevice.getDeviceList().getDeviceCount() > 0 ||
                rootDevice.getServiceList().getServiceCount() > 0)
             {
+               // retrieve all the root service descriptions
+               for(Iterator i = rootDevice.getServiceList().iterator();
+                   i.hasNext();) 
+               {
+                  UPnPService service = (UPnPService)i.next();
+                  rval &= retrieveServiceDescription(service);
+               }
+               
+               // retrieve all the embedded service descriptions
+               for(Iterator i = rootDevice.getDeviceList().iterator();
+                   i.hasNext();) 
+               {
+                  UPnPDevice device = (UPnPDevice)i.next();
+                  rval &= retrieveServiceDescriptions(device);
+               }
+               
                // FUTURE CODE: persistent connections are not supported by
                // all devices (even though they are required by HTTP/1.1),
                // so we need to add code in here to check to see if a
@@ -369,28 +389,7 @@ public class UPnPRootDevice
                      // disconnect connection
                      connection.disconnect();
                   }
-               }
-               else*/
-               {
-                  // retrieve all the root service descriptions
-                  for(Iterator i = rootDevice.getServiceList().iterator();
-                      i.hasNext();) 
-                  {
-                     UPnPService service = (UPnPService)i.next();
-                     if(service.getDescription() == null)
-                     {
-                        rval &= retrieveServiceDescription(service);
-                     }
-                  }
-                  
-                  // retrieve all the embedded service descriptions
-                  for(Iterator i = rootDevice.getDeviceList().iterator();
-                      i.hasNext();) 
-                  {
-                     UPnPDevice device = (UPnPDevice)i.next();
-                     rval &= retrieveServiceDescriptions(device);
-                  }
-               }
+               }*/
             }
          }
       }

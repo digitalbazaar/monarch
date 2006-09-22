@@ -3,7 +3,16 @@
  */
 package com.db.upnp.client;
 
+import java.util.Iterator;
+
+import com.db.net.soap.RpcSoapEnvelope;
+import com.db.net.soap.SoapOperation;
+import com.db.net.soap.SoapOperationParameter;
+import com.db.upnp.service.UPnPErrorException;
 import com.db.upnp.service.UPnPService;
+import com.db.upnp.service.UPnPServiceAction;
+import com.db.upnp.service.UPnPServiceActionArgument;
+import com.db.upnp.service.UPnPServiceStateVariable;
 
 /**
  * An AbstractClientUPnPServiceImplementation provides the basic implementation
@@ -37,6 +46,96 @@ implements ClientUPnPServiceImplementation
       
       // no service client set yet
       setServiceClient(null);
+   }
+   
+   /**
+    * Performs an action using the service.
+    * 
+    * @param actionName the name of the action.
+    * @param params the parameters for the action.
+    * 
+    * @return the return value from the action (can be null).
+    * 
+    * @exception UPnPErrorException thrown if a UPnPError occurs.
+    */
+   public Object performAction(String actionName, Object[] params)
+   throws UPnPErrorException
+   {
+      Object rval = null;
+      
+      // find the action to perform in service's list of actions
+      UPnPServiceAction action =
+         getService().getDescription().getActionList().getAction(actionName);
+      if(action != null)
+      {
+         // create a soap operation
+         SoapOperation operation = new SoapOperation(
+            action.getName(), getService().getServiceType(), null);
+         
+         // add soap parameter for each action argument, store the return
+         // value argument, if any
+         UPnPServiceActionArgument retval = null;
+         int count = 0;
+         for(Iterator i = action.getArgumentList().iterator();
+             i.hasNext(); count++) 
+         {
+            UPnPServiceActionArgument argument =
+               (UPnPServiceActionArgument)i.next();
+            
+            if(argument.getDirection().equals("in"))
+            {
+               // add soap parameter, use passed parameter value
+               operation.addParameter(new SoapOperationParameter(
+                  argument.getName(), String.valueOf(params[count]), null));
+            }
+            else
+            {
+               // store return value argument
+               retval = argument;
+            }
+         }
+         
+         // create a rpc soap envelope
+         RpcSoapEnvelope envelope = new RpcSoapEnvelope();
+         
+         // set encoding style
+         envelope.setEncodingStyle(RpcSoapEnvelope.SOAP_ENCODING_URI);
+         
+         // set the operation
+         envelope.setSoapOperation(operation);
+         
+         // send the envelope
+         getServiceClient().sendSoapEnvelope(envelope, mService);
+         
+         // see if the action has a return value argument
+         if(retval != null && envelope.containsSoapOperation())
+         {
+            // get the state variable for the return value
+            UPnPServiceStateVariable variable =
+               getService().getDescription().getStateTable().
+               getStateVariable(retval.getStateVariable());
+            
+            if(variable != null)
+            {
+               // pull out the envelope's soap operation
+               operation = envelope.getSoapOperation();
+               
+               // get the parameter in the operation
+               if(operation.getParameters().size() == 1)
+               {
+                  // get the soap parameter that represents the result
+                  SoapOperationParameter result =
+                     (SoapOperationParameter)operation.getParameters().get(0);
+                  
+                  // convert the return value to the appropriate type
+                  rval = UPnPServiceStateVariable.convertType(
+                     result.getValue(), variable.getDataType());
+               }
+            }
+         }
+      }
+      
+      return rval;
    }
    
    /**
