@@ -142,6 +142,29 @@ public class UPnPDeviceList extends AbstractXmlSerializer
    }
    
    /**
+    * Gets the first device from this list with the specified device type.
+    * 
+    * @param deviceType the device type of the UPnPDevice to retrieve. 
+    * 
+    * @return the retrieved UPnPDevice or null if no match was found.
+    */
+   public UPnPDevice getFirstDevice(String deviceType)
+   {
+      UPnPDevice rval = null;
+      
+      for(Iterator i = iterator(); i.hasNext() && rval == null;)
+      {
+         UPnPDevice device = (UPnPDevice)i.next();
+         if(device.getDeviceType().equals(deviceType))
+         {
+            rval = device;
+         }
+      }
+      
+      return rval;
+   }   
+   
+   /**
     * Gets the UPnPDevice for this list in a vector.
     * 
     * @return the UPnPDevice for this list in a vector.
