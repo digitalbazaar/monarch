@@ -46,8 +46,15 @@ public class PortMapping
       // set defaults
       this();
       
-      // copy values from the passed map
-      mData.copyFrom(retvals);
+      // copy values
+      setRemoteHost(retvals.getString("NewRemoteHost"));
+      setExternalPort(retvals.getShort("NewExternalPort"));
+      setProtocol(retvals.getString("NewProtocol"));
+      setInternalPort(retvals.getShort("NewInternalPort"));
+      setInternalClient(retvals.getString("NewInternalClient"));
+      setEnabled(retvals.getBoolean("NewEnabled"));
+      setDescription(retvals.getString("NewPortMappingDescription"));
+      setLeaseDuration(retvals.getInt("NewLeaseDuration"));
    }
    
    /**
@@ -220,5 +227,30 @@ public class PortMapping
    public int getLeaseDuration()
    {
       return mData.getInt("PortMappingLeaseDuration");
+   }
+   
+   /**
+    * Gets a string representation of this PortMapping.
+    * 
+    * @return a string representation of this PortMapping.
+    */
+   public String toString()
+   {
+      StringBuffer sb = new StringBuffer();
+
+      sb.append("[PortMapping]");
+      
+      sb.append("\nRemoteHost=" + getRemoteHost());
+      sb.append("\nExternalPort=" + getExternalPort());
+      sb.append("\nProtocol=" + getProtocol());
+      sb.append("\nInternalPort=" + getInternalPort());
+      sb.append("\nInternalClient=" + getInternalClient());
+      sb.append("\nPortMappingEnabled=" + isEnabled());
+      sb.append("\nPortMappingDescription=" + getDescription());
+      sb.append("\nPortMappingLeaseDuration=" + getLeaseDuration());
+      
+      sb.append("\n");
+      
+      return sb.toString();      
    }
 }

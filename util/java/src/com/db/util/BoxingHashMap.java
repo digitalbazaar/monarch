@@ -2371,8 +2371,17 @@ public class BoxingHashMap extends HashMap
          Object key = i.next();
          Object value = map.get(key);
          
-         Class keyType = key.getClass();
-         Class valueType = value.getClass();
+         Class keyType = null;
+         if(key != null)
+         {
+            key = key.getClass();
+         }
+         
+         Class valueType = null;
+         if(value != null)
+         {
+            valueType = value.getClass();
+         }
          
          // copy key
          if(keyType == Byte.class)

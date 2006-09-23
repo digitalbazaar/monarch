@@ -9,6 +9,7 @@ import com.db.upnp.device.UPnPDevice;
 import com.db.upnp.device.UPnPRootDevice;
 import com.db.upnp.client.igd.InternetGatewayDeviceClient;
 import com.db.upnp.client.igd.WanConnectionDeviceClient;
+import com.db.upnp.client.igd.WanDeviceClient;
 
 /**
  * A ClientUPnPDeviceImplementationFactory is a factory used to produce
@@ -98,9 +99,15 @@ public class ClientUPnPDeviceImplementationFactory
             implementation = new InternetGatewayDeviceClient(device);
          }
          else if(device.getDeviceType().equals(
+                 WanDeviceClient.WAN_DEVICE_TYPE))
+         {
+            // create a WAN device client implementation
+            implementation = new WanDeviceClient(device);
+         }
+         else if(device.getDeviceType().equals(
                  WanConnectionDeviceClient.WAN_CONNECTION_DEVICE_TYPE))
          {
-            // create a WAN connection client implementation
+            // create a WAN connection device client implementation
             implementation = new WanConnectionDeviceClient(device);
          }
          

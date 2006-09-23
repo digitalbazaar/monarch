@@ -3,8 +3,13 @@
  */
 package com.db.upnp.client.igd;
 
+import java.net.ConnectException;
+
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 import com.db.upnp.client.ClientUPnPDeviceImplementation;
 import com.db.upnp.device.UPnPDevice;
+import com.db.upnp.service.UPnPErrorException;
 import com.db.upnp.service.UPnPService;
 
 /**
@@ -60,6 +65,88 @@ implements ClientUPnPDeviceImplementation
    }
    
    /**
+    * Adds a port mapping to the Internet Gateway Device.
+    * 
+    * @param portMapping the port mapping to add.
+    * 
+    * @exception UPnPErrorException thrown if a UPnPError occurs.
+    */
+   public void addPortMapping(PortMapping portMapping)
+   throws UPnPErrorException
+   {
+      try
+      {
+         getWanIPConnectionServiceClient().addPortMapping(portMapping);
+      }
+      catch(NullPointerException e)
+      {
+         // log exception
+         getLogger().error(getClass(),
+            "Could not add port mapping, " +
+            "no port mapping service implementation found!");
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
+      }      
+      catch(ConnectException e)
+      {
+         // log exception
+         getLogger().error(getClass(),
+            "Could not add port mapping, could not connect to service!");
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
+      }
+   }
+   
+   /**
+    * Removes a port mapping from the Internet Gateway Device.
+    * 
+    * @param portMapping the port mapping to remove.
+    * 
+    * @exception UPnPErrorException thrown if a UPnPError occurs.
+    */
+   public void removePortMapping(PortMapping portMapping)
+   throws UPnPErrorException   
+   {
+      removePortMapping(
+         portMapping.getRemoteHost(),
+         portMapping.getExternalPort(),
+         portMapping.getProtocol());
+   }
+   
+   /**
+    * Removes a port mapping from the Internet Gateway Device.
+    * 
+    * @param remoteHost the remote host (an IP address "x.x.x.x" as a string).
+    * @param externalPort the external port.
+    * @param protocol the protocol ("TCP" or "UDP").
+    * 
+    * @exception UPnPErrorException thrown if a UPnPError occurs.
+    */
+   public void removePortMapping(
+      String remoteHost, int externalPort, String protocol)
+   throws UPnPErrorException
+   {
+      try
+      {
+         getWanIPConnectionServiceClient().deletePortMapping(
+            remoteHost, externalPort, protocol);
+      }
+      catch(NullPointerException e)
+      {
+         // log exception
+         getLogger().error(getClass(),
+            "Could not remove port mapping, " +
+            "no port mapping service implementation found!");
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
+      }      
+      catch(ConnectException e)
+      {
+         // log exception
+         getLogger().error(getClass(),
+            "Could not remove port mapping, could not connect to service!");
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
+      }
+   }   
+   
+   /**
     * Gets the Layer3ForwardingServiceClient.
     * 
     * @return the Layer3ForwardingServiceClient (can be null).
@@ -94,5 +181,15 @@ implements ClientUPnPDeviceImplementation
       }
       
       return rval;
+   }
+   
+   /**
+    * Gets the logger for this InternetGatewayDeviceClient.
+    * 
+    * @return the logger for this InternetGatewayDeviceClient.
+    */
+   public Logger getLogger()
+   {
+      return LoggerManager.getLogger("dbupnp");
    }   
 }

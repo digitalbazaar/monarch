@@ -204,6 +204,33 @@ extends AbstractClientUPnPServiceImplementation
     * given remote host, external port, and protocol. When an entry is
     * deleted, PortMappingNumberOfEntries decrements.
     * 
+    * @param portMapping the port mapping to remove.
+    * 
+    * @exception ConnectException thrown if connection to the service is
+    *                             refused.
+    * @exception UPnPErrorException thrown if a UPnPError occurs:
+    * 
+    * "402 Invalid Args" One of following: not enough IN arguments, too many IN
+    * arguments, no IN argument by that name, one or more IN arguments are of
+    * the wrong data type.
+    * 
+    * "714 NoSuchEntryInArray" There was no entry to delete that matched the
+    * passed parameters.
+    */
+   public void deletePortMapping(PortMapping portMapping)
+   throws ConnectException, UPnPErrorException
+   {
+      deletePortMapping(
+         portMapping.getRemoteHost(),
+         portMapping.getExternalPort(),
+         portMapping.getProtocol());
+   }
+   
+   /**
+    * This action will delete a previously created port mapping with the
+    * given remote host, external port, and protocol. When an entry is
+    * deleted, PortMappingNumberOfEntries decrements.
+    * 
     * @param remoteHost the remote host (an IP address "x.x.x.x" as a string).
     * @param externalPort the external port.
     * @param protocol the protocol ("TCP" or "UDP").

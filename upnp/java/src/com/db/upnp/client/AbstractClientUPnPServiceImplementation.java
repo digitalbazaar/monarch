@@ -6,6 +6,8 @@ package com.db.upnp.client;
 import java.net.ConnectException;
 import java.util.Iterator;
 
+import com.db.logging.Logger;
+import com.db.logging.LoggerManager;
 import com.db.net.soap.RpcSoapEnvelope;
 import com.db.net.soap.SoapOperation;
 import com.db.net.soap.SoapOperationParameter;
@@ -174,5 +176,15 @@ implements ClientUPnPServiceImplementation
    public UPnPServiceClient getServiceClient()
    {
       return mServiceClient;
+   }
+   
+   /**
+    * Gets the logger for this ClientUPnPServiceImplementation.
+    * 
+    * @return the logger for this ClientUPnPServiceImplementation.
+    */
+   public Logger getLogger()
+   {
+      return LoggerManager.getLogger("dbupnp");
    }
 }

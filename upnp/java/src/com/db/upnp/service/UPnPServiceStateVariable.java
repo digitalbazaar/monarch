@@ -771,6 +771,21 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
             DateFormat df = DateFormat.getTimeInstance();
             rval = df.parse(value);
          }
+         else if(dataType.equals("boolean"))
+         {
+            if(value.equals("0"))
+            {
+               rval = new Boolean(false);
+            }
+            else if(value.equals("1"))
+            {
+               rval = new Boolean(true);
+            }
+            else
+            {
+               rval = new Boolean(value);
+            }
+         }
          else if(dataType.equals("bin.base64"))
          {
             rval = value;
