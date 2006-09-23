@@ -89,9 +89,24 @@ implements ClientUPnPServiceImplementation
             
             if(argument.getDirection().equals("in"))
             {
+               String value = String.valueOf(params[count]);
+               
+               // use "0" or "1" for booleans
+               if(params[count] instanceof Boolean)
+               {
+                  if(((Boolean)params[count]).booleanValue())
+                  {
+                     value = "1";
+                  }
+                  else
+                  {
+                     value = "0";
+                  }
+               }
+               
                // add soap parameter, use passed parameter value
                operation.addParameter(new SoapOperationParameter(
-                  argument.getName(), String.valueOf(params[count]), null));
+                  argument.getName(), value, null));
             }
          }
          

@@ -49,11 +49,11 @@ public class UTInternetGatewayControlPoint
          // create a port mapping
          PortMapping portMapping = new PortMapping();
          portMapping.setRemoteHost("");
-         portMapping.setExternalPort(8190);
+         portMapping.setExternalPort(8184);
          portMapping.setProtocol("TCP");
-         portMapping.setInternalPort(8190);
-         portMapping.setInternalClient("5.14.82.100");
-         portMapping.setEnabled(false);
+         portMapping.setInternalPort(8184);
+         portMapping.setInternalClient("192.168.0.100");
+         portMapping.setEnabled(true);
          portMapping.setDescription("UPnP Test");
          portMapping.setLeaseDuration(0);
          
@@ -63,11 +63,27 @@ public class UTInternetGatewayControlPoint
             InternetGatewayDeviceClient igd =
                (InternetGatewayDeviceClient)i.next();
             
+            // remove port mapping
+            igd.removePortMapping(portMapping);
+
             // add port mapping
             igd.addPortMapping(portMapping);
             
-            PortMapping mapping = igd.getWanIPConnectionServiceClient().getGenericPortMappingEntry(0);
+            // get port mapping
+            PortMapping mapping = igd.getWanIPConnectionServiceClient().
+               getGenericPortMappingEntry(0);
             System.out.println(mapping);
+            
+            /*
+            mapping = igd.getWanIPConnectionServiceClient().
+               getGenericPortMappingEntry(1);
+            System.out.println(mapping);
+            mapping = igd.getWanIPConnectionServiceClient().
+               getGenericPortMappingEntry(2);
+            System.out.println(mapping);
+            mapping = igd.getWanIPConnectionServiceClient().
+               getGenericPortMappingEntry(3);
+            System.out.println(mapping);*/
          }
          
          System.out.println("\nInternet Gateway Control Point test complete.");

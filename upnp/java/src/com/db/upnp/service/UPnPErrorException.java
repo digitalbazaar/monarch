@@ -26,7 +26,8 @@ public class UPnPErrorException extends Exception
     */
    public UPnPErrorException(UPnPError error)
    {
-      this(error, null, null);
+      this(
+         error, error.getErrorCode() + " " + error.getErrorDescription(), null);
    }
 
    /**
