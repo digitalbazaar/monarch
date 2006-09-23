@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.upnp.client;
+package com.db.upnp.client.igd;
 
 import java.util.Iterator;
 import java.util.Vector;
 
-import com.db.upnp.client.igd.InternetGatewayDeviceClient;
+import com.db.upnp.client.UPnPControlPoint;
 import com.db.upnp.device.UPnPDevice;
 
 /**

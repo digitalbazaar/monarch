@@ -6,7 +6,7 @@ import java.util.Vector;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
-import com.db.upnp.client.InternetGatewayControlPoint;
+import com.db.upnp.client.igd.InternetGatewayControlPoint;
 import com.db.upnp.client.igd.InternetGatewayDeviceClient;
 import com.db.upnp.client.igd.PortMapping;
 
