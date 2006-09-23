@@ -41,7 +41,7 @@ public interface DatagramHandler
     * Gets the port that this datagram handler is accepting datagrams on.
     * 
     * @return the port that this datagram handler is accepting datagrams on,
-    *         or 0 if it is not accepting datagrams.
+    *         or -1 if it is not accepting datagrams.
     */
    public int getPort();
 }
