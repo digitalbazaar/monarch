@@ -40,6 +40,11 @@ public class HttpWebClient implements WebConnectionClient
     * The URL to connect to.
     */
    protected URL mUrl;
+   
+   /**
+    * The connection timeout to use (in milliseconds).
+    */
+   protected int mConnectionTimeout;
 
    /**
     * The SSL socket factory for creating SSL sockets.
@@ -82,8 +87,7 @@ public class HttpWebClient implements WebConnectionClient
     */
    public HttpWebClient(String url) throws MalformedURLException
    {
-      // set the URL
-      setUrl(url);
+      this(new URL(url));
    }
    
    /**
@@ -95,6 +99,9 @@ public class HttpWebClient implements WebConnectionClient
    {
       // set the URL
       setUrl(url);
+      
+      // set the default connection timeout to 10 seconds
+      setConnectionTimeout(10000);
    }
    
    /**
@@ -177,7 +184,7 @@ public class HttpWebClient implements WebConnectionClient
          
          // connect the socket with a timeout of 10 seconds
          InetSocketAddress address = new InetSocketAddress(url.getHost(), port);
-         socket.connect(address, 10000);
+         socket.connect(address, getConnectionTimeout());
          
          if(url.getProtocol().equals("https"))
          {
@@ -224,9 +231,24 @@ public class HttpWebClient implements WebConnectionClient
     */
    public synchronized HttpWebConnection connect()
    {
+      return connect(2);
+   }
+   
+   /**
+    * Attempts to connect to the stored endpoint address.
+    * 
+    * If a connection cannot be established, the connection can be retried
+    * multiple times.
+    * 
+    * @param retries the number of connection retries to attempt.
+    * 
+    * @return the HttpWebConnection to the endpoint address or null if failure.
+    */
+   public synchronized HttpWebConnection connect(int retries)
+   {
       HttpWebConnection rval = null;
       
-      rval = connect(getUrl());
+      rval = connect(getUrl(), retries);
       
       return rval;
    }
@@ -239,13 +261,27 @@ public class HttpWebClient implements WebConnectionClient
     * 
     * @return the web connection to the url or null if failure.
     */
-   public synchronized WebConnection connect(String url)
+   public synchronized WebConnection connect(String url)   
+   {
+      return connect(url, 2);
+   }
+   
+   /**
+    * Attempts to connect to the passed url. If a connection cannot be
+    * established, the connection can be retried multiple times.
+    * 
+    * @param url the url to connect to.
+    * @param retries the number of connection retries to attempt.
+    * 
+    * @return the web connection to the url or null if failure.
+    */
+   public synchronized WebConnection connect(String url, int retries)
    {
       HttpWebConnection wc = null;
       
       try
       {
-         wc = connect(new URL(url));
+         wc = connect(new URL(url), retries);
       }
       catch(MalformedURLException e)
       {
@@ -267,6 +303,20 @@ public class HttpWebClient implements WebConnectionClient
     */
    public synchronized HttpWebConnection connect(URL url)
    {
+      return connect(url, 2);
+   }
+   
+   /**
+    * Attempts to connect to the passed URL. If a connection cannot be
+    * established, the connection can be retried multiple times.
+    * 
+    * @param url the URL to connect to.
+    * @param retries the number of connection retries to attempt.
+    * 
+    * @return the web connection to the URL or null if failure.
+    */
+   public synchronized HttpWebConnection connect(URL url, int retries)
+   {
       HttpWebConnection wc = null;
       
       if(url != null)
@@ -279,7 +329,7 @@ public class HttpWebClient implements WebConnectionClient
          wc = getWebConnection(url);
          
          // try twice more if a web connection could not be established
-         for(int i = 0; i < 2 && wc == null &&
+         for(int i = 0; i < retries && wc == null &&
              !Thread.currentThread().isInterrupted(); i++)
          {
             wc = getWebConnection(url);
@@ -414,7 +464,7 @@ public class HttpWebClient implements WebConnectionClient
    
    /**
     * A convenience method for performing an HTTP GET to retrieve content
-    * as a string.
+    * as a string. The GET will be retried multiple times upon failure.
     * 
     * @param url the url to connect to for the content.
     * @param path the relative path to the content.
@@ -426,12 +476,30 @@ public class HttpWebClient implements WebConnectionClient
    public String getContent(String url, String path)
    throws MalformedURLException
    {
-      return getContent(new URL(url), path);
+      return getContent(url, path, 2);
    }
    
    /**
     * A convenience method for performing an HTTP GET to retrieve content
-    * as a string.
+    * as a string. The GET can be retried multiple times upon failure.
+    * 
+    * @param url the url to connect to for the content.
+    * @param path the relative path to the content.
+    * @param retries the number of connection retries to attempt.
+    * 
+    * @return the retrieved content or null if no content could be retrieved.
+    * 
+    * @throws MalformedURLException
+    */
+   public String getContent(String url, String path, int retries)
+   throws MalformedURLException
+   {
+      return getContent(new URL(url), path, retries);
+   }
+   
+   /**
+    * A convenience method for performing an HTTP GET to retrieve content
+    * as a string. The GET will be retried multiple times upon failure.
     * 
     * @param url the url to connect to for the content.
     * @param path the relative path to the content.
@@ -440,10 +508,25 @@ public class HttpWebClient implements WebConnectionClient
     */
    public String getContent(URL url, String path)
    {
+      return getContent(url, path, 2);
+   }
+   
+   /**
+    * A convenience method for performing an HTTP GET to retrieve content
+    * as a string. The GET can be retried multiple times upon failure.
+    * 
+    * @param url the url to connect to for the content.
+    * @param path the relative path to the content.
+    * @param retries the number of connection retries to attempt.
+    * 
+    * @return the retrieved content or null if no content could be retrieved.
+    */
+   public String getContent(URL url, String path, int retries)
+   {
       String rval = null;
       
       // get a web connection
-      HttpWebConnection connection = connect(url);
+      HttpWebConnection connection = connect(url, retries);
       if(connection != null)
       {
          // create http web request
@@ -479,7 +562,8 @@ public class HttpWebClient implements WebConnectionClient
    }
    
    /**
-    * A convenience method for performing an HTTP GET to retrieve a file.
+    * A convenience method for performing an HTTP GET to retrieve a file. The
+    * GET will be performed multiple times upon failure.
     * 
     * @param url the url to connect to for the file.
     * @param path the relative path to the file.
@@ -493,11 +577,32 @@ public class HttpWebClient implements WebConnectionClient
    public File getFile(String url, String path, File directory)
    throws MalformedURLException
    {
-      return getFile(new URL(url), path, directory);
+      return getFile(url, path, directory, 2);
    }
    
    /**
-    * A convenience method for performing an HTTP GET to retrieve a file.
+    * A convenience method for performing an HTTP GET to retrieve a file. The
+    * GET can be performed multiple times upon failure.
+    * 
+    * @param url the url to connect to for the file.
+    * @param path the relative path to the file.
+    * @param directory the directory to store the file in.
+    * @param retries the number of connection retries to attempt.
+    * 
+    * @return the file if it was received or null if the file could not
+    *         be received.
+    *         
+    * @throws MalformedURLException
+    */
+   public File getFile(String url, String path, File directory, int retries)
+   throws MalformedURLException
+   {
+      return getFile(new URL(url), path, directory, retries);
+   }
+   
+   /**
+    * A convenience method for performing an HTTP GET to retrieve a file. The
+    * GET will be performed multiple times upon failure.
     * 
     * @param url the URL to connect to for the file.
     * @param path the relative path to the file.
@@ -508,10 +613,27 @@ public class HttpWebClient implements WebConnectionClient
     */
    public File getFile(URL url, String path, File directory)
    {
+      return getFile(url, path, directory, 2);
+   }
+   
+   /**
+    * A convenience method for performing an HTTP GET to retrieve a file. The
+    * GET can be performed multiple times upon failure.
+    * 
+    * @param url the URL to connect to for the file.
+    * @param path the relative path to the file.
+    * @param directory the directory to store the file in.
+    * @param retries the number of connection retries to attempt.
+    * 
+    * @return the file if it was received or null if the file could not
+    *         be received.
+    */
+   public File getFile(URL url, String path, File directory, int retries)
+   {
       File rval = null;
       
       // get a web connection
-      HttpWebConnection connection = connect(url);
+      HttpWebConnection connection = connect(url, retries);
       if(connection != null)
       {
          // create http web request
@@ -701,6 +823,26 @@ public class HttpWebClient implements WebConnectionClient
    public synchronized URL getUrl()
    {
       return mUrl;
+   }
+   
+   /**
+    * Sets the connection timeout for this client to use when connecting.
+    * 
+    * @param timeout the connection timeout (in milliseconds) for this client.
+    */
+   public synchronized void setConnectionTimeout(int timeout)
+   {
+      mConnectionTimeout = timeout;
+   }
+   
+   /**
+    * Gets the connection timeout for this client to use when connecting.
+    * 
+    * @return the connection timeout (in milliseconds) for this client.
+    */
+   public synchronized int getConnectionTimeout()
+   {
+      return mConnectionTimeout;
    }
    
    /**

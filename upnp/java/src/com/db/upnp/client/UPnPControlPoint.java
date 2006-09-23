@@ -125,6 +125,16 @@ public class UPnPControlPoint
    }
    
    /**
+    * Gets all of the devices discovered by this control point.
+    * 
+    * @return the UPnPDevices that have been discovered by this control point.
+    */
+   public Vector getDiscoveredDevices()
+   {
+      return mCachedDevices;
+   }
+   
+   /**
     * Gets the devices with the given device type that have been discovered by
     * this control point. 
     * 

@@ -81,7 +81,7 @@ public class UPnPRootDevice
       // create http client and get the xml from the location 
       HttpWebClient client = new HttpWebClient();
       URL url = new URL(getLocation());
-      String xml = client.getContent(url, url.getPath());
+      String xml = client.getContent(url, url.getPath(), 0);
       if(xml != null)
       {
          // create a new UPnPDeviceDescription
@@ -138,7 +138,7 @@ public class UPnPRootDevice
          HttpWebClient client = new HttpWebClient();
          URL url = new URL(
             getDescription().getBaseUrl() + service.getScpdUrl());
-         String xml = client.getContent(url, url.getPath());
+         String xml = client.getContent(url, url.getPath(), 0);
          if(xml != null)
          {
             // create a new UPnPServiceDescription

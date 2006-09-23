@@ -109,8 +109,6 @@ public class UPnPDeviceDiscoverer
             UPnPDiscoverResponse response = new UPnPDiscoverResponse(datagram);
             if(response.isValid())
             {
-               System.out.println("response=" + response.toString());
-               
                // create a UPnPRootDevice from the response
                UPnPRootDevice device = new UPnPRootDevice();
                
