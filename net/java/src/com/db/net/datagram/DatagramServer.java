@@ -27,7 +27,14 @@ public class DatagramServer
    /**
     * A table mapping ports to datagram handlers.
     */
-   protected BoxingHashMap mPortToDatagramHandler;   
+   protected BoxingHashMap mPortToDatagramHandler;
+   
+   /**
+    * A list of datagramm handlers that are assigned to use any free ephemeral
+    * port -- so that they don't have actual ports set yet until they start
+    * accepting datagrams. 
+    */
+   protected Vector mUnassignedDatagramHandlers;
 
    /**
     * Whether or not this server is running.
@@ -45,6 +52,9 @@ public class DatagramServer
       // create the port to handler map
       mPortToDatagramHandler = new BoxingHashMap();
       
+      // create vector for unassigned datagram handlers
+      mUnassignedDatagramHandlers = new Vector();
+      
       // server not running by default
       mRunning = false;
    }
@@ -56,17 +66,6 @@ public class DatagramServer
    {
       stop();
    }   
-   
-   /**
-    * Maps a port to a datagram handler.
-    * 
-    * @param port the port to map to a datagram handler.
-    * @param dh the datagram handler.
-    */
-   protected void mapPortToDatagramHandler(int port, DatagramHandler dh)
-   {
-      mPortToDatagramHandler.put(port, dh);
-   }
    
    /**
     * Adds a datagram handler to this server. Only one datagram handler is
@@ -92,12 +91,6 @@ public class DatagramServer
       DatagramHandler existingHandler = getDatagramHandler(port);
       if(existingHandler == null)
       {
-         // add port to the port list
-         mPorts.add("" + port);
-         
-         // so assign the port to the handler
-         mapPortToDatagramHandler(port, dh);
-         
          // if the server has already started, then start accepting datagrams
          // on the port
          if(isRunning())
@@ -106,8 +99,28 @@ public class DatagramServer
             dh.startAcceptingDatagrams(port);
          }
          
-         // the handler was added
-         rval = true;
+         if(dh.getPort() > 0 || port > 0)
+         {
+            // use the larger port number
+            port = Math.max(dh.getPort(), port);
+            
+            // add port to the port list
+            mPorts.add("" + port);
+            
+            // so assign the port to the handler
+            mPortToDatagramHandler.put(port, dh);
+            
+            // the handler was added
+            rval = true;
+         }
+         else if(!isRunning())
+         {
+            // add an unassigned datagram handler
+            mUnassignedDatagramHandlers.add(dh);
+            
+            // the handler was added
+            rval = true;
+         }         
       }
       
       return rval;
@@ -140,6 +153,9 @@ public class DatagramServer
          // unmap the datagram handler
          mPortToDatagramHandler.remove(dh.getPort());
       }
+
+      // remove the datagram handler from the unassigned list
+      mUnassignedDatagramHandlers.remove(dh);
    }
    
    /**
@@ -164,6 +180,9 @@ public class DatagramServer
       
       // clear map
       mPortToDatagramHandler.clear();
+      
+      // clear unassigned list
+      mUnassignedDatagramHandlers.clear();
    }
    
    /**
@@ -176,15 +195,33 @@ public class DatagramServer
       if(!isRunning())
       {
          getLogger().debug(getClass(), "starting datagram server...");
-
-         // start accepting datagrams on all datagram handlers
+         
+         // start accepting datagrams on all assigned datagram handlers
          for(Iterator i = mPorts.iterator(); i.hasNext();)
          {
             int port = Integer.parseInt((String)i.next());
-            DatagramHandler dh = getDatagramHandler(port);
+            DatagramHandler handler = getDatagramHandler(port);
             
             // start accepting datagrams
-            dh.startAcceptingDatagrams(port);
+            handler.startAcceptingDatagrams(port);
+         }
+         
+         // start accepting datagrams on all unassigned datagram handlers
+         for(Iterator i = mUnassignedDatagramHandlers.iterator(); i.hasNext();)
+         {
+            DatagramHandler handler = (DatagramHandler)i.next();
+            
+            // start accepting datagrams on an ephemeral port
+            handler.startAcceptingDatagrams(0);
+            
+            // add port to the port list
+            mPorts.add("" + handler.getPort());
+            
+            // so assign the port to the handler
+            mPortToDatagramHandler.put(handler.getPort(), handler);
+            
+            // remove the handler from the unassigned list
+            i.remove();
          }
          
          // server is running
@@ -268,6 +305,15 @@ public class DatagramServer
          // add datagram handler
          vector.add(dh);
       }
+      
+      // add all unassigned datagram handlers
+      for(Iterator i = mUnassignedDatagramHandlers.iterator(); i.hasNext();)
+      {
+         DatagramHandler handler = (DatagramHandler)i.next();
+         
+         // add handler
+         vector.add(handler);
+      }      
       
       return vector;
    }

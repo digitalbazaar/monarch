@@ -190,6 +190,9 @@ public class WebConnectionServer
       
       // clear map
       mPortToWebConnectionHandler.clear();
+      
+      // clear unassigned list
+      mUnassignedWebConnectionHandlers.clear();
    }
    
    /**
@@ -308,7 +311,7 @@ public class WebConnectionServer
    {
       Vector vector = new Vector();
       
-      // add all web connection handlers according to port order
+      // add all assigned web connection handlers according to port order
       for(Iterator i = mPorts.iterator(); i.hasNext();)
       {
          int port = Integer.parseInt((String)i.next());
