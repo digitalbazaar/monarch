@@ -3,6 +3,8 @@
  */
 package com.db.upnp.client.igd;
 
+import java.net.ConnectException;
+
 import com.db.upnp.client.AbstractClientUPnPServiceImplementation;
 import com.db.upnp.device.UPnPDevice;
 import com.db.upnp.service.UPnPErrorException;
@@ -40,6 +42,8 @@ extends AbstractClientUPnPServiceImplementation
     * @param device the device with the new default connection service.
     * @param service the new default connection service.
     * 
+    * @exception ConnectException thrown if connection to the service is
+    *                             refused.
     * @exception UPnPErrorException thrown if a UPnPError occurs:
     * 
     * "402 Invalid Args" One of following: not enough IN arguments, too many IN
@@ -60,7 +64,7 @@ extends AbstractClientUPnPServiceImplementation
     */
    public void setDefaultConnectionService(
       UPnPDevice device, UPnPService service)
-   throws UPnPErrorException
+   throws ConnectException, UPnPErrorException
    {
       // create a comma-separated 2-tuple string to uniquely identify the
       // passed device and service
@@ -86,6 +90,8 @@ extends AbstractClientUPnPServiceImplementation
     * 
     * @param serviceString the new default connection service.
     * 
+    * @exception ConnectException thrown if connection to the service is
+    *                             refused.
     * @exception UPnPErrorException thrown if a UPnPError occurs:
     * 
     * "402 Invalid Args" One of following: not enough IN arguments, too many IN
@@ -105,7 +111,7 @@ extends AbstractClientUPnPServiceImplementation
     * instance cannot be set as a default connection.   
     */
    public void setDefaultConnectionService(String serviceString)
-   throws UPnPErrorException
+   throws ConnectException, UPnPErrorException
    {
       performAction("SetDefaultConnectionService", new Object[]{serviceString});
    }
@@ -126,7 +132,9 @@ extends AbstractClientUPnPServiceImplementation
     * urn:upnporg:serviceId:WANPPPConn1"
     * 
     * @return the default connection service from the Layer3Forwarding service.
-    * 
+    *
+    * @exception ConnectException thrown if connection to the service is
+    *                             refused.
     * @exception UPnPErrorException thrown if a UPnPError occurs:
     * 
     * "402 Invalid Args" One of following: not enough IN arguments, too many IN
@@ -136,7 +144,8 @@ extends AbstractClientUPnPServiceImplementation
     * "501 Action Failed" May be returned in current state if service prevents
     * invoking of that action.
     */
-   public String getDefaultConnectionService() throws UPnPErrorException
+   public String getDefaultConnectionService()
+   throws ConnectException, UPnPErrorException
    {
       BoxingHashMap retvals =
          performAction("GetDefaultConnectionService", null);

@@ -51,7 +51,7 @@ public class UPnPControlPoint
     */
    public void startListeningForDevices()
    {
-      // FIXME: implement me
+      // FIXME: implement me, use the datagram server
    }
    
    /**
@@ -60,7 +60,28 @@ public class UPnPControlPoint
     */
    public void stopListeningForDevices()
    {
-      // FIXME: implement me
+      // FIXME: implement me, use the datagram server
+   }
+   
+   /**
+    * Discovers all root UPnP devices and caches them for use. This method may
+    * take some time to execute.
+    */
+   public void discoverDevices()   
+   {
+      discoverDevices("upnp:rootdevice");
+   }
+   
+   /**
+    * Discovers a specific kind of device (i.e. of a specific model like a
+    * dlink or linksys router) with the specified UDN and caches all found
+    * devices of that kind for use. This method may take some time to execute.
+    * 
+    * @param udn the Unique Device Name for the specific device to discover.
+    */
+   public void discoverDevice(String udn)
+   {
+      discoverDevices(udn);
    }
    
    /**
@@ -73,11 +94,9 @@ public class UPnPControlPoint
    {
       try
       {
-         // FIXME: change this up -- we don't want to always retrieve
-         // descriptions and create implementations, we only want to do so
-         // if we're interested
+         // discover devices of the appropriate type
          UPnPDeviceDiscoverer discoverer = new UPnPDeviceDiscoverer();
-         UPnPRootDevice[] devices = discoverer.discover();
+         UPnPRootDevice[] devices = discoverer.discover(deviceType);
          
          for(int i = 0; i < devices.length; i++)
          {
@@ -141,6 +160,14 @@ public class UPnPControlPoint
       }
       
       return devices;
+   }
+   
+   /**
+    * Clears the cached devices from this control point.
+    */
+   public void clearCachedDevices()
+   {
+      mCachedDevices.clear();
    }
    
    /**

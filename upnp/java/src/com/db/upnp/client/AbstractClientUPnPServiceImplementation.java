@@ -3,6 +3,7 @@
  */
 package com.db.upnp.client;
 
+import java.net.ConnectException;
 import java.util.Iterator;
 
 import com.db.net.soap.RpcSoapEnvelope;
@@ -58,10 +59,12 @@ implements ClientUPnPServiceImplementation
     * @return a BoxingHashMap with the return values from the action (may
     *         be empty).
     * 
+    * @exception ConnectException thrown if connection to the service is
+    *                             refused.
     * @exception UPnPErrorException thrown if a UPnPError occurs.
     */
    public BoxingHashMap performAction(String actionName, Object[] params)
-   throws UPnPErrorException
+   throws ConnectException, UPnPErrorException
    {
       BoxingHashMap rval = new BoxingHashMap();
       

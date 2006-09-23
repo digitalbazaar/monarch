@@ -9,6 +9,7 @@ import com.db.logging.LoggerManager;
 import com.db.upnp.client.UPnPControlPoint;
 import com.db.upnp.client.igd.InternetGatewayDeviceClient;
 import com.db.upnp.client.igd.Layer3ForwardingServiceClient;
+import com.db.upnp.client.igd.WanConnectionDeviceClient;
 import com.db.upnp.device.UPnPDevice;
 //import com.db.upnp.device.UPnPRootDevice;
 //import com.db.upnp.discover.UPnPDeviceDiscoverer;
@@ -68,7 +69,8 @@ public class UTUPnP
          
          UPnPControlPoint controlPoint = new UPnPControlPoint();
          controlPoint.discoverDevices(
-            InternetGatewayDeviceClient.IGD_DEVICE_TYPE);
+            WanConnectionDeviceClient.WAN_CONNECTION_DEVICE_TYPE);
+            //InternetGatewayDeviceClient.IGD_DEVICE_TYPE);
          
          Vector devices = controlPoint.getDiscoveredDevices(
             InternetGatewayDeviceClient.IGD_DEVICE_TYPE);

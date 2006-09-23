@@ -3,6 +3,8 @@
  */
 package com.db.upnp.client;
 
+import java.net.ConnectException;
+
 import com.db.net.http.HttpWebClient;
 import com.db.net.http.HttpWebConnection;
 import com.db.net.http.HttpWebRequest;
@@ -48,16 +50,14 @@ public class UPnPServiceClient
     * @param envelope the SoapEnvelope to send.
     * @param service the UPnPService to send the envelope to.
     * 
-    * @return true if a connection was made to the service, false if not.
-    * 
+    * @exception ConnectException thrown if connection to the service is
+    *                             refused.
     * @exception UPnPErrorException thrown if a UPnPError occurs.
     */
-   public boolean sendSoapEnvelope(
+   public void sendSoapEnvelope(
       RpcSoapEnvelope envelope, UPnPService service)
-   throws UPnPErrorException
+   throws ConnectException, UPnPErrorException
    {
-      boolean rval = false;
-      
       // get the url for the service --
       // use the base URL for the root device
       String url = mRootDevice.getDescription().getBaseUrl();
@@ -72,8 +72,6 @@ public class UPnPServiceClient
       HttpWebConnection connection = (HttpWebConnection)client.connect(url);
       if(connection != null)
       {
-         rval = true;
-         
          // get the xml for the envelope
          String xml = envelope.convertToXml(true, 0, 0);
          
@@ -141,7 +139,10 @@ public class UPnPServiceClient
          // disconnect the connection
          connection.disconnect();
       }
-      
-      return rval;
+      else
+      {
+         // throw connection exception
+         throw new ConnectException("Connection to UPnP service refused.");
+      }
    }
 }

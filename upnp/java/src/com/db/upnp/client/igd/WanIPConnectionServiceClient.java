@@ -3,6 +3,8 @@
  */
 package com.db.upnp.client.igd;
 
+import java.net.ConnectException;
+
 import com.db.upnp.client.AbstractClientUPnPServiceImplementation;
 import com.db.upnp.service.UPnPErrorException;
 import com.db.upnp.service.UPnPService;
@@ -48,6 +50,8 @@ extends AbstractClientUPnPServiceImplementation
     * @return a generic port mapping entry or null if no entry exists at
     *         the given index.
     * 
+    * @exception ConnectException thrown if connection to the service is
+    *                             refused.
     * @exception UPnPErrorException thrown if a UPnPError occurs:
     * 
     * "402 Invalid Args" One of following: not enough IN arguments, too many IN
@@ -55,7 +59,7 @@ extends AbstractClientUPnPServiceImplementation
     * the wrong data type.
     */
    public PortMapping getGenericPortMappingEntry(int index)
-   throws UPnPErrorException
+   throws ConnectException, UPnPErrorException
    {
       PortMapping rval = null;
       
@@ -91,6 +95,8 @@ extends AbstractClientUPnPServiceImplementation
     * @return the port mapping entry or null if none exists for the given
     *         parameters.
     * 
+    * @exception ConnectException thrown if connection to the service is
+    *                             refused.
     * @exception UPnPErrorException thrown if a UPnPError occurs:
     * 
     * "402 Invalid Args" One of following: not enough IN arguments, too many IN
@@ -102,7 +108,7 @@ extends AbstractClientUPnPServiceImplementation
     */
    public PortMapping getSpecificPortMappingEntry(
       String remoteHost, int externalPort, String protocol)
-   throws UPnPErrorException
+   throws ConnectException, UPnPErrorException
    {
       PortMapping rval = null;
       
@@ -141,6 +147,8 @@ extends AbstractClientUPnPServiceImplementation
     * 
     * @param portMapping the new port mapping to add.
     * 
+    * @exception ConnectException thrown if connection to the service is
+    *                             refused.
     * @exception UPnPErrorException thrown if a UPnPError occurs:
     * 
     * "402 Invalid Args" One of following: not enough IN arguments, too many IN
@@ -172,7 +180,7 @@ extends AbstractClientUPnPServiceImplementation
     * and cannot be a specific port value.
     */   
    public void addPortMapping(PortMapping portMapping)
-   throws UPnPErrorException
+   throws ConnectException, UPnPErrorException
    {
       // build the parameters array for the port mapping
       Object[] params = new Object[]
@@ -200,6 +208,8 @@ extends AbstractClientUPnPServiceImplementation
     * @param externalPort the external port.
     * @param protocol the protocol ("TCP" or "UDP").
     * 
+    * @exception ConnectException thrown if connection to the service is
+    *                             refused.
     * @exception UPnPErrorException thrown if a UPnPError occurs:
     * 
     * "402 Invalid Args" One of following: not enough IN arguments, too many IN
@@ -211,7 +221,7 @@ extends AbstractClientUPnPServiceImplementation
     */
    public void deletePortMapping(
       String remoteHost, int externalPort, String protocol)
-   throws UPnPErrorException
+   throws ConnectException, UPnPErrorException
    {
       // perform the action
       performAction(
@@ -224,6 +234,8 @@ extends AbstractClientUPnPServiceImplementation
     * 
     * @return the external IP address for the service.
     * 
+    * @exception ConnectException thrown if connection to the service is
+    *                             refused.
     * @exception UPnPErrorException thrown if a UPnPError occurs:
     * 
     * "402 Invalid Args" One of following: not enough IN arguments, too many IN
@@ -233,7 +245,7 @@ extends AbstractClientUPnPServiceImplementation
     * "501 ActionFailed" See UPnP Device Architecture section on Control.
     */
    public String getExternalIPAddress()
-   throws UPnPErrorException
+   throws ConnectException, UPnPErrorException
    {
       BoxingHashMap retvals =
          performAction("GetExternalIPAddress", null);

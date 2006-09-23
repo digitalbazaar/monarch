@@ -41,13 +41,31 @@ public class UPnPDeviceDiscoverer
    }
    
    /**
-    * Sends an SSDP message to discover UPnP devices.
+    * Sends an SSDP message to discover all UPnPRootDevices.
     * 
     * @return a list of the discovered UPnPRootDevices.
     * 
     * @exception IOException thrown if an IO exception occurs.
     */
-   public UPnPRootDevice[] discover() throws IOException
+   public UPnPRootDevice[] discover() throws IOException   
+   {
+      return discover("upnp:rootdevice");
+   }
+   
+   /**
+    * Sends an SSDP message to discover UPnP devices of a specific type. The
+    * passed search target URI can be "ssdb:all", "upnp:rootdevice", or a
+    * device type or UDN.
+    * 
+    * @param searchTarget the search target URI that indicates which devices
+    *                     to discover.
+    * 
+    * @return a list of the discovered UPnPRootDevices that have devices that
+    *         match the given search target URI.
+    * 
+    * @exception IOException thrown if an IO exception occurs.
+    */
+   public UPnPRootDevice[] discover(String searchTarget) throws IOException
    {
       UPnPRootDevice[] devices = null;
       
@@ -67,7 +85,7 @@ public class UPnPDeviceDiscoverer
       UPnPDiscoverRequest request = new UPnPDiscoverRequest();
       
       // set the search target
-      request.setSearchTarget("upnp:rootdevice");
+      request.setSearchTarget(searchTarget);
       
       // create a datagram
       byte[] bytes = request.getBytes();
@@ -91,6 +109,8 @@ public class UPnPDeviceDiscoverer
             UPnPDiscoverResponse response = new UPnPDiscoverResponse(datagram);
             if(response.isValid())
             {
+               System.out.println("response=" + response.toString());
+               
                // create a UPnPRootDevice from the response
                UPnPRootDevice device = new UPnPRootDevice();
                
