@@ -70,13 +70,18 @@ implements ClientUPnPDeviceImplementation
     * @param portMapping the port mapping to add.
     * 
     * @exception UPnPErrorException thrown if a UPnPError occurs.
+    * 
+    * @return true if the port mapping was added, false if not.
     */
-   public void addPortMapping(PortMapping portMapping)
+   public boolean addPortMapping(PortMapping portMapping)
    throws UPnPErrorException
    {
+      boolean rval = false;
+      
       try
       {
          getWanIPConnectionServiceClient().addPortMapping(portMapping);
+         rval = true;
       }
       catch(NullPointerException e)
       {
@@ -93,6 +98,46 @@ implements ClientUPnPDeviceImplementation
             "Could not add port mapping, could not connect to service!");
          getLogger().debug(getClass(), Logger.getStackTrace(e));
       }
+      
+      return rval;
+   }
+   
+   /**
+    * Adds a new port mapping, overwriting any existing port mapping.
+    * 
+    * @param portMapping the new port mapping.
+    * 
+    * @exception UPnPErrorException thrown if a UPnPError occurs.
+    * 
+    * @return true if the new port mapping was added, false if not.
+    */
+   public boolean overwritePortMapping(PortMapping portMapping)
+   throws UPnPErrorException
+   {
+      boolean rval = false;
+      
+      try
+      {
+         getWanIPConnectionServiceClient().overwritePortMapping(portMapping);
+         rval = true;
+      }
+      catch(NullPointerException e)
+      {
+         // log exception
+         getLogger().error(getClass(),
+            "Could not add port mapping, " +
+            "no port mapping service implementation found!");
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
+      }      
+      catch(ConnectException e)
+      {
+         // log exception
+         getLogger().error(getClass(),
+            "Could not add port mapping, could not connect to service!");
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
+      }
+      
+      return rval;
    }
    
    /**
@@ -101,11 +146,13 @@ implements ClientUPnPDeviceImplementation
     * @param portMapping the port mapping to remove.
     * 
     * @exception UPnPErrorException thrown if a UPnPError occurs.
+    * 
+    * @return true if the port mapping was removed, false if not.
     */
-   public void removePortMapping(PortMapping portMapping)
+   public boolean removePortMapping(PortMapping portMapping)
    throws UPnPErrorException   
    {
-      removePortMapping(
+      return removePortMapping(
          portMapping.getRemoteHost(),
          portMapping.getExternalPort(),
          portMapping.getProtocol());
@@ -119,15 +166,20 @@ implements ClientUPnPDeviceImplementation
     * @param protocol the protocol ("TCP" or "UDP").
     * 
     * @exception UPnPErrorException thrown if a UPnPError occurs.
+    * 
+    * @return true if the port mapping was removed, false if not.
     */
-   public void removePortMapping(
+   public boolean removePortMapping(
       String remoteHost, int externalPort, String protocol)
    throws UPnPErrorException
    {
+      boolean rval = false;
+      
       try
       {
          getWanIPConnectionServiceClient().deletePortMapping(
             remoteHost, externalPort, protocol);
+         rval = true;
       }
       catch(NullPointerException e)
       {
@@ -144,7 +196,9 @@ implements ClientUPnPDeviceImplementation
             "Could not remove port mapping, could not connect to service!");
          getLogger().debug(getClass(), Logger.getStackTrace(e));
       }
-   }   
+      
+      return rval;
+   }
    
    /**
     * Gets the Layer3ForwardingServiceClient.

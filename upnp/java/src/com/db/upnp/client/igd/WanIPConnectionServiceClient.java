@@ -200,6 +200,63 @@ extends AbstractClientUPnPServiceImplementation
    }
    
    /**
+    * Adds a new port mapping, overwriting any existing port mapping.
+    * 
+    * @param portMapping the new port mapping.
+    * 
+    * @exception ConnectException thrown if connection to the service is
+    *                             refused.
+    * @exception UPnPErrorException thrown if a UPnPError occurs:
+    * 
+    * "402 Invalid Args" One of following: not enough IN arguments, too many IN
+    * arguments, no IN argument by that name, one or more IN arguments are of
+    * the wrong data type.
+    * 
+    * "714 NoSuchEntryInArray" The specified array index is out of
+    * bounds.
+    * 
+    * "715 WildCardNotPermittedInSrcIP" The source IP address cannot be
+    * wild-carded.
+    * 
+    * "716 WildCardNotPermittedInExtPort" The external port cannot be
+    * wild-carded.
+    * 
+    * "724 SamePortValuesRequired" Internal and External port values must be
+    * the same.
+    * 
+    * "725 OnlyPermanentLeasesSupported" The NAT implementation only supports
+    * permanent lease times on port mappings.
+    * 
+    * "726 RemoteHostOnlySupportsWildcard" RemoteHost must be a wildcard and
+    * cannot be a specific IP address or DNS name.
+    * 
+    * "727 ExternalPortOnlySupportsWildcard" ExternalPort must be a wildcard
+    * and cannot be a specific port value.
+    */
+   public void overwritePortMapping(PortMapping portMapping)
+   throws ConnectException, UPnPErrorException
+   {
+      try
+      {
+         // delete the old port mapping
+         deletePortMapping(portMapping);
+      }
+      catch(UPnPErrorException e)
+      {
+         // see if the error was not a "no such entry" error -- otherwise
+         // we don't care
+         if(e.getUPnPError().getErrorCode() != 714)
+         {
+            // throw the error
+            throw e;
+         }
+      }      
+      
+      // add the new port mapping
+      addPortMapping(portMapping);
+   }
+   
+   /**
     * This action will delete a previously created port mapping with the
     * given remote host, external port, and protocol. When an entry is
     * deleted, PortMappingNumberOfEntries decrements.
