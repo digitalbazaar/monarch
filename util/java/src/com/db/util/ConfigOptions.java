@@ -792,7 +792,10 @@ public class ConfigOptions
       
       if(config1 != null && config2 != null)
       {
-         if(config1.getValue(key).equals(config2.getValue(key)))
+         Object value1 = config1.getValue(key);
+         Object value2 = config2.getValue(key);
+         if((value1 == null && value2 == null) ||
+            (value1 != null && value1.equals(value2)))
          {
             rval = true;
          }
