@@ -4,7 +4,7 @@
 package com.db.crypto;
 
 import java.math.BigInteger;
-import java.util.Iterator;
+//import java.util.Iterator;
 import java.util.Vector;
 
 import sun.security.util.DerInputStream;
@@ -315,10 +315,8 @@ public class Asn1Der
          // rebuild value byte array
          int offset = 0;
          setValue(new byte[length]);
-         for(Iterator i = values.iterator(); i.hasNext();)
+         for(byte[] derBytes: values)
          {
-            byte[] derBytes = (byte[])i.next();
-            
             // copy the derBytes to the internal value, increment offset
             System.arraycopy(derBytes, 0, getValue(), offset, derBytes.length);
             offset += derBytes.length;

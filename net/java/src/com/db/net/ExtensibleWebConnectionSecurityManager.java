@@ -3,7 +3,6 @@
  */
 package com.db.net;
 
-import java.util.Iterator;
 import java.util.Vector;
 
 /**
@@ -19,7 +18,7 @@ implements WebConnectionSecurityManager
    /**
     * The extensions for this ExtensibleWebConnectionSecurityManager.
     */
-   protected Vector mExtensions;
+   protected Vector<WebConnectionSecurityManager> mExtensions;
    
    /**
     * Creates a new ExtensibleWebConnectionSecurityManager.
@@ -27,7 +26,7 @@ implements WebConnectionSecurityManager
    public ExtensibleWebConnectionSecurityManager()
    {
       // create the extensions vector
-      mExtensions = new Vector();
+      mExtensions = new Vector<WebConnectionSecurityManager>();
    }
    
    /**
@@ -70,10 +69,8 @@ implements WebConnectionSecurityManager
    throws SecurityException   
    {
       // iterate through all of the extensions and run a security check
-      for(Iterator i = mExtensions.iterator(); i.hasNext();)
+      for(WebConnectionSecurityManager extension: mExtensions)
       {
-         WebConnectionSecurityManager extension =
-            (WebConnectionSecurityManager)i.next();
          extension.checkWebConnectionSecurity(webConnection);
       }
    }

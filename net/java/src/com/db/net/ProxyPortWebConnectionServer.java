@@ -198,37 +198,34 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
          
          // add all web connection handlers in the internal server to the
          // prioritized list that aren't already present in the list
-         for(Iterator i = getInternalServer().getWebConnectionHandlers().
-             iterator(); i.hasNext();)
+         for(WebConnectionHandler wch :
+             getInternalServer().getWebConnectionHandlers())
          {
             // add the prioritized web connection handler
-            WebConnectionHandler wch = (WebConnectionHandler)i.next();
             mWebConnectionServicer.addPrioritizedWebConnectionHandler(wch);
          }
          
          // start the proxy port web server
          // start accepting connections on all web connection handlers
-         for(Iterator i = mPorts.iterator(); i.hasNext();)
+         for(int port: mPorts)
          {
-            int port = Integer.parseInt((String)i.next());
-            WebConnectionHandler handler = super.getWebConnectionHandler(port);
-            
             // start accepting web connections
+            WebConnectionHandler handler = super.getWebConnectionHandler(port);
             handler.startAcceptingWebConnections(port);
          }
          
          // start accepting connections on all unassigned web connection
          // handlers
-         for(Iterator i = mUnassignedWebConnectionHandlers.iterator();
-             i.hasNext();)
+         for(Iterator<WebConnectionHandler> i =
+             mUnassignedWebConnectionHandlers.iterator(); i.hasNext();)
          {
-            WebConnectionHandler handler = (WebConnectionHandler)i.next();
+            WebConnectionHandler handler = i.next();
             
             // start accepting web connections on an ephemeral port
             handler.startAcceptingWebConnections(0);
             
             // add port to the port list
-            mPorts.add("" + handler.getPort());
+            mPorts.add(handler.getPort());
             
             // so assign the port to the handler
             mPortToWebConnectionHandler.put(handler.getPort(), handler);
@@ -258,9 +255,8 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
          getLogger().debug(getClass(), "stopping proxy port server...");
          
          // stop and terminate all connections on all web connection handlers
-         for(Iterator i = mPorts.iterator(); i.hasNext();)
+         for(int port: mPorts)
          {
-            int port = Integer.parseInt((String)i.next());
             WebConnectionHandler handler = super.getWebConnectionHandler(port);
             
             // stop accepting web connections

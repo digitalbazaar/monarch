@@ -18,7 +18,7 @@ public class ExtensibleSoapSecurityManager extends AbstractSoapSecurityManager
    /**
     * The extensions for this ExtensibleSoapSecurityManager.
     */
-   protected Vector mExtensions;
+   protected Vector<SoapSecurityManager> mExtensions;
    
    /**
     * Creates a new ExtensibleSoapSecurityManager.
@@ -26,7 +26,7 @@ public class ExtensibleSoapSecurityManager extends AbstractSoapSecurityManager
    public ExtensibleSoapSecurityManager()
    {
       // create the extensions vector
-      mExtensions = new Vector();
+      mExtensions = new Vector<SoapSecurityManager>();
    }
    
    /**
@@ -81,9 +81,8 @@ public class ExtensibleSoapSecurityManager extends AbstractSoapSecurityManager
    public void checkSoapSecurity(RpcSoapMessage sm) throws SecurityException   
    {
       // iterate through all of the extensions and run a security check
-      for(Iterator i = mExtensions.iterator(); i.hasNext();)
+      for(SoapSecurityManager extension: mExtensions)
       {
-         SoapSecurityManager extension = (SoapSecurityManager)i.next();
          extension.checkSoapSecurity(sm);
       }
    }
@@ -103,9 +102,10 @@ public class ExtensibleSoapSecurityManager extends AbstractSoapSecurityManager
       rval = super.checkSoapPermission(permission);
       
       // iterate through all of the extensions and check permissions
-      for(Iterator i = mExtensions.iterator(); i.hasNext() && rval;)
+      for(Iterator<SoapSecurityManager> i = mExtensions.iterator();
+          i.hasNext() && rval;)
       {
-         SoapSecurityManager extension = (SoapSecurityManager)i.next();
+         SoapSecurityManager extension = i.next();
          rval = extension.checkSoapPermission(permission);
       }
       

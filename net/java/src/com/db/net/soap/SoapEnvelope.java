@@ -3,7 +3,6 @@
  */
 package com.db.net.soap;
 
-import java.util.Iterator;
 import java.util.Vector;
 
 import com.db.logging.Logger;
@@ -42,13 +41,13 @@ public class SoapEnvelope extends AbstractXmlSerializer
     * The list of IXmlSerializers used to convert the header blocks for the
     * header of the SOAP envelope to or from XML.
     */
-   protected Vector mHeaderBlockSerializers;
+   protected Vector<IXmlSerializer> mHeaderBlockSerializers;
 
    /**
     * The list of IXmlSerializers used to convert the body content sub-elements
     * for the body of the SOAP envelope to or from XML.
     */
-   protected Vector mBodyContentSerializers;
+   protected Vector<IXmlSerializer> mBodyContentSerializers;
    
    /**
     * The encoding style URI for this envelope.
@@ -75,10 +74,10 @@ public class SoapEnvelope extends AbstractXmlSerializer
    public SoapEnvelope()
    {
       // create the header block serializers list
-      mHeaderBlockSerializers = new Vector();
+      mHeaderBlockSerializers = new Vector<IXmlSerializer>();
       
       // create the body content serializers list
-      mBodyContentSerializers = new Vector();
+      mBodyContentSerializers = new Vector<IXmlSerializer>();
       
       // defaults to no special encoding style
       setEncodingStyle(null);
@@ -134,9 +133,8 @@ public class SoapEnvelope extends AbstractXmlSerializer
          envelopeElement.addChild(headerElement);
          
          // add each header block
-         for(Iterator i = mHeaderBlockSerializers.iterator(); i.hasNext();)
+         for(IXmlSerializer serializer: mHeaderBlockSerializers)
          {
-            IXmlSerializer serializer = (IXmlSerializer)i.next();
             headerElement.addChild(
                serializer.convertToXmlElement(headerElement));
          }
@@ -151,9 +149,8 @@ public class SoapEnvelope extends AbstractXmlSerializer
          envelopeElement.addChild(bodyElement);
          
          // add each body sub-element
-         for(Iterator i = mBodyContentSerializers.iterator(); i.hasNext();)
+         for(IXmlSerializer serializer: mBodyContentSerializers)
          {
-            IXmlSerializer serializer = (IXmlSerializer)i.next();
             bodyElement.addChild(serializer.convertToXmlElement(bodyElement));
          }
       }
@@ -191,9 +188,8 @@ public class SoapEnvelope extends AbstractXmlSerializer
          getLogger().detail(getClass(), "found soap envelope header...");
          
          // add all children as header block serializers
-         for(Iterator i = headerElement.getChildren().iterator(); i.hasNext();)
+         for(XmlElement headerBlock: headerElement.getChildren())
          {
-            XmlElement headerBlock = (XmlElement)i.next();
             addHeaderBlockSerializer(headerBlock);
          }
       }
@@ -205,9 +201,8 @@ public class SoapEnvelope extends AbstractXmlSerializer
          getLogger().detail(getClass(), "found soap envelope body...");
          
          // add all children as body content serializers
-         for(Iterator i = bodyElement.getChildren().iterator(); i.hasNext();)
+         for(XmlElement bodyContent: bodyElement.getChildren())
          {
-            XmlElement bodyContent = (XmlElement)i.next();
             addBodyContentSerializer(bodyContent);
          }
       }
@@ -227,12 +222,12 @@ public class SoapEnvelope extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the header blocks (as XmlElements) from this SOAP envelope's
+    * Gets the header blocks (as IXmlSerializer) from this SOAP envelope's
     * header.
     * 
-    * @return a vector of XmlElements that make up the header.
+    * @return a vector of IXmlSerializer that make up the header.
     */
-   public Vector getHeaderBlocks()
+   public Vector<IXmlSerializer> getHeaderBlocks()
    {
       return mHeaderBlockSerializers;
    }
@@ -261,7 +256,7 @@ public class SoapEnvelope extends AbstractXmlSerializer
     * 
     * @return a vector of XmlElements that make up the body content.
     */
-   public Vector getBodyContents()
+   public Vector<IXmlSerializer> getBodyContents()
    {
       return mBodyContentSerializers;
    }

@@ -5,7 +5,6 @@ package com.db.logging;
 
 import java.io.PrintStream;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * A class to manage loggers.
@@ -267,10 +266,8 @@ public class LoggerManager
     */
    public static void resetLoggerFiles(String filename)
    {
-      Iterator i = smLoggers.values().iterator();
-      while(i.hasNext())
+      for(Logger logger: smLoggers.values())
       {
-         Logger logger = (Logger)i.next();
          if(logger.getFilename().equals(filename))
          {
             logger.setFile(filename, true);

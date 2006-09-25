@@ -7,6 +7,7 @@ import java.util.Iterator;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
+import com.db.xml.IXmlSerializer;
 import com.db.xml.XmlElement;
 
 /**
@@ -75,7 +76,7 @@ public class RpcSoapEnvelope extends SoapEnvelope
          // the envelope
          boolean foundFault = false;
          boolean foundOperation = false;
-         for(Iterator i = getBodyContents().iterator();
+         for(Iterator<IXmlSerializer> i = getBodyContents().iterator();
              i.hasNext() && !foundOperation && !foundFault;)
          {
             XmlElement contentElement = (XmlElement)i.next();

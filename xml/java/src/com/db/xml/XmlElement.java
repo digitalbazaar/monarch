@@ -59,7 +59,7 @@ public class XmlElement extends AbstractXmlSerializer
    /**
     * The children for this element.
     */
-   protected Vector mChildren;
+   protected Vector<XmlElement> mChildren;
    
    /**
     * The data/value for this element.
@@ -120,7 +120,7 @@ public class XmlElement extends AbstractXmlSerializer
    public XmlElement(String name, String namespaceUri, boolean inherit)
    {
       // create the vector for this element's children
-      mChildren = new Vector();
+      mChildren = new Vector<XmlElement>();
       
       // create the attribute list for this element
       mAttributes = new XmlAttributeList(this);
@@ -1285,7 +1285,7 @@ public class XmlElement extends AbstractXmlSerializer
     * 
     * @return the children for this XmlElement in a collection of XmlElements.
     */
-   public Collection getChildren()
+   public Collection<XmlElement> getChildren()
    {
       return mChildren;
    }

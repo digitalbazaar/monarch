@@ -118,7 +118,7 @@ implements SortableTableModel, ComponentListener
     * 
     * @return the row data as a vector.
     */
-   protected Vector<Object> getRowData()
+   protected Vector<? extends Object> getRowData()
    {
       return mRows;
    }

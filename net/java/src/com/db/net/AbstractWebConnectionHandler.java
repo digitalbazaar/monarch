@@ -4,7 +4,6 @@
 package com.db.net;
 
 import java.net.ServerSocket;
-import java.util.Iterator;
 import java.util.Vector;
 
 import com.db.logging.Logger;
@@ -370,11 +369,8 @@ implements WebConnectionHandler, WebConnectionServicer
       synchronized(mServiceThreads)
       {
          // interrupt all web connection service threads
-         for(Iterator i = mServiceThreads.iterator(); i.hasNext();)
+         for(WebConnectionServiceThread thread: mServiceThreads)
          {
-            WebConnectionServiceThread thread =
-               (WebConnectionServiceThread)i.next();
-            
             WebConnection webConnection = thread.getWebConnection();
             getLogger().debug(getClass(),
                "terminating web connection,ip=" + webConnection.getRemoteIP());
@@ -405,11 +401,8 @@ implements WebConnectionHandler, WebConnectionServicer
       synchronized(mServiceThreads)
       {
          // interrupt all web connection service threads
-         for(Iterator i = mServiceThreads.iterator(); i.hasNext();)
+         for(WebConnectionServiceThread thread: mServiceThreads)
          {
-            WebConnectionServiceThread thread =
-               (WebConnectionServiceThread)i.next();
-            
             WebConnection webConnection = thread.getWebConnection();
             getLogger().debug(getClass(),
                "forcefully disconnecting web connection,ip=" +

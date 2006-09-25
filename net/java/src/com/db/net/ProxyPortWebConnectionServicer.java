@@ -3,7 +3,6 @@
  */
 package com.db.net;
 
-import java.util.Iterator;
 import java.util.Vector;
 
 import com.db.logging.Logger;
@@ -25,7 +24,7 @@ extends AbstractWebConnectionServicer
     * supports the protocol of the accepted web connection will be the
     * web connection handler to have it proxied to it.
     */
-   protected Vector mWebConnectionHandlerPriorityList;
+   protected Vector<WebConnectionHandler> mWebConnectionHandlerPriorityList;
    
    /**
     * Creates a new ProxyPortWebConnectionServicer.
@@ -33,7 +32,7 @@ extends AbstractWebConnectionServicer
    public ProxyPortWebConnectionServicer()
    {
       // create the web connection handler priority list
-      mWebConnectionHandlerPriorityList = new Vector();
+      mWebConnectionHandlerPriorityList = new Vector<WebConnectionHandler>();
    }
    
    /**
@@ -56,11 +55,8 @@ extends AbstractWebConnectionServicer
       // go through the priority list to determine which web connection
       // handler to use
       boolean servicing = false;
-      Iterator i = mWebConnectionHandlerPriorityList.iterator();
-      while(i.hasNext())
+      for(WebConnectionHandler wch: mWebConnectionHandlerPriorityList)
       {
-         WebConnectionHandler wch = (WebConnectionHandler)i.next();
-         
          // if protocol is supported, then accept proxy web connection
          if(wch.isWebConnectionProtocolSupported(webConnection))
          {

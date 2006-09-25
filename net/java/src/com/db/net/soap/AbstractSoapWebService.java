@@ -57,7 +57,7 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
     * A map of threads executing soap methods to the soap messages
     * that they are processing.
     */
-   protected HashMap mCallThreadToSoapMessage;
+   protected HashMap<Thread, SoapMessage> mCallThreadToSoapMessage;
    
    /**
     * The soap security manager for this soap web service. 
@@ -82,7 +82,7 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
       mWsdl = new Wsdl(
          name, namespace, soapInterface,
          new WsdlSoapBindingFactory(), new WsdlSoapPortFactory());
-      mCallThreadToSoapMessage = new HashMap();
+      mCallThreadToSoapMessage = new HashMap<Thread, SoapMessage>();
       
       // install no soap security manager
       setSoapSecurityManager(null);
@@ -112,7 +112,7 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
       mWsdl = new Wsdl(
          name, namespace, soapInterface,
          new WsdlSoapBindingFactory(), new WsdlSoapPortFactory());
-      mCallThreadToSoapMessage = new HashMap();
+      mCallThreadToSoapMessage = new HashMap<Thread, SoapMessage>();
       
       // install no soap security manager
       setSoapSecurityManager(null);
@@ -225,7 +225,7 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
       SoapMessage rval = null;
       
       // get the soap message
-      rval = (SoapMessage)mCallThreadToSoapMessage.get(Thread.currentThread());
+      rval = mCallThreadToSoapMessage.get(Thread.currentThread());
       
       return rval;
    }
@@ -241,8 +241,7 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
       String clientIP = "0.0.0.0";
       
       // get the soap message
-      SoapMessage sm =
-         (SoapMessage)mCallThreadToSoapMessage.get(Thread.currentThread());
+      SoapMessage sm = mCallThreadToSoapMessage.get(Thread.currentThread());
       
       String ip = sm.getRemoteIP();
       if(ip != null)

@@ -18,7 +18,7 @@ implements SoapSecurityManager
    /**
     * The permissions to deny with this AbstractSoapSecurityManager.
     */
-   protected Vector mDeniedPermissions;
+   protected Vector<SoapPermission> mDeniedPermissions;
    
    /**
     * Creates a new AbstractSoapSecurityManager.
@@ -26,7 +26,7 @@ implements SoapSecurityManager
    public AbstractSoapSecurityManager()
    {
       // create the denied permissions vector
-      mDeniedPermissions = new Vector();
+      mDeniedPermissions = new Vector<SoapPermission>();
    }
    
    /**
@@ -92,9 +92,10 @@ implements SoapSecurityManager
       boolean rval = true;
       
       // iterate through all of the denied permissions
-      for(Iterator i = mDeniedPermissions.iterator(); i.hasNext() && rval;)
+      for(Iterator<SoapPermission> i = mDeniedPermissions.iterator();
+          i.hasNext() && rval;)
       {
-         SoapPermission denied = (SoapPermission)i.next();
+         SoapPermission denied = i.next();
          if(denied.equals(permission))
          {
             rval = false;
