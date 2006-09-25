@@ -40,7 +40,7 @@ public class ID3Tag
    /**
     * A mapping of tag frame name to tag frame. 
     */
-   protected HashMap mTagFrames;
+   protected HashMap<String, ID3TagFrame> mTagFrames;
    
    /**
     * Default constructor
@@ -52,7 +52,7 @@ public class ID3Tag
       
       mSize = 0;
       mValid = false;
-      mTagFrames = new HashMap();
+      mTagFrames = new HashMap<String, ID3TagFrame>();
    }
 
    /**
@@ -136,8 +136,7 @@ public class ID3Tag
     */
    public ID3TagFrame getTagFrame(String name)
    {
-      ID3TagFrame id3tf = (ID3TagFrame)mTagFrames.get(name);
-      return id3tf;
+      return mTagFrames.get(name);
    }
    
    /**

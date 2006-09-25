@@ -141,7 +141,7 @@ public class Asn1Der
     * A list of ASN1Der structures used to construct this ASN.1 DER structure,
     * if any.
     */
-   protected Vector mAsn1Ders;
+   protected Vector<Asn1Der> mAsn1Ders;
    
    /**
     * The ASN1Type of None.
@@ -219,7 +219,7 @@ public class Asn1Der
    {
       mTag = tag;
       mValue = val;
-      mAsn1Ders = new Vector();
+      mAsn1Ders = new Vector<Asn1Der>();
    }
    
    /**
@@ -304,7 +304,7 @@ public class Asn1Der
          // convert the list of ASN.1s and store the value as the value
          // of this ASN.1 structure
          int length = 0;
-         Vector values = new Vector();
+         Vector<byte[]> values = new Vector<byte[]>();
          for(int i = 0; i < getAsn1DerCount(); i++)
          {
             byte[] derBytes = getAsn1Der(i).convertToBytes();
@@ -589,7 +589,7 @@ public class Asn1Der
     */
    public Asn1Der getAsn1Der(int index)
    {
-      return (Asn1Der)mAsn1Ders.get(index);
+      return mAsn1Ders.get(index);
    }
    
    /**

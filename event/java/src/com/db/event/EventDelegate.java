@@ -19,12 +19,12 @@ public class EventDelegate
    /**
     * A list of all of the listeners of this delegate.
     */
-   protected Vector mListeners;
+   protected Vector<Object> mListeners;
    
    /**
     * A map of listener to the method to call to handle an event.
     */
-   protected HashMap mListenerToMethod;
+   protected HashMap<Object, String> mListenerToMethod;
 
    /**
     * Constructs a new event delegate.
@@ -32,10 +32,10 @@ public class EventDelegate
    public EventDelegate()
    {
       // create listener list
-      mListeners = new Vector();
+      mListeners = new Vector<Object>();
       
       // create listener to method map
-      mListenerToMethod = new HashMap();
+      mListenerToMethod = new HashMap<Object, String>();
    }
    
    /**
@@ -104,7 +104,7 @@ public class EventDelegate
          Object[] params = new Object[]{event};
          
          // get the listener method
-         String method = (String)mListenerToMethod.get(listener);
+         String method = mListenerToMethod.get(listener);
          
          // fire message
          MethodInvoker mi =

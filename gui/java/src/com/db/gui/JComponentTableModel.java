@@ -39,12 +39,12 @@ implements SortableTableModel, ComponentListener
    /**
     * Column classes for any table model.
     */
-   protected Class[] mColumnClasses;
+   protected Class<? extends Object>[] mColumnClasses;
    
    /**
     * The row data.
     */
-   protected Vector mRows;
+   protected Vector<Object> mRows;
    
    /**
     * Table that is to be resized.
@@ -64,7 +64,7 @@ implements SortableTableModel, ComponentListener
    /**
     * The column widths of the table.
     */
-   protected HashMap mColWidths;
+   protected HashMap<Integer, Integer> mColWidths;
    
    /**
     * The total preferred width of the table.
@@ -83,7 +83,7 @@ implements SortableTableModel, ComponentListener
    {
       super();
       
-      mRows = new Vector();
+      mRows = new Vector<Object>();
       
       // create the column sorter for this table
       mColumnSorter = createColumnSorter();
@@ -94,7 +94,7 @@ implements SortableTableModel, ComponentListener
     * 
     * @param rowData the row data to use.
     */
-   protected void setRowData(Vector rowData)
+   protected void setRowData(Vector<Object> rowData)
    {
       mRows = rowData;
       
@@ -118,7 +118,7 @@ implements SortableTableModel, ComponentListener
     * 
     * @return the row data as a vector.
     */
-   protected Vector getRowData()
+   protected Vector<Object> getRowData()
    {
       return mRows;
    }
@@ -255,7 +255,7 @@ implements SortableTableModel, ComponentListener
     * 
     * @param colClasses the column classes for this model.
     */
-   public void setColumnClasses(Class[] colClasses)
+   public void setColumnClasses(Class<Object>[] colClasses)
    {
       mColumnClasses = colClasses;
    }
@@ -274,11 +274,12 @@ implements SortableTableModel, ComponentListener
     * Gets the column class for a column.
     * 
     * @param column the column index.
+    * 
     * @return the class for the column.
     */
-   public Class getColumnClass(int column)
+   public Class<? extends Object> getColumnClass(int column)
    {
-      Class c = Object.class;
+      Class<? extends Object> c = Object.class;
       
       if(column >= 0 && column < mColumnClasses.length)
       {
@@ -367,7 +368,7 @@ implements SortableTableModel, ComponentListener
             mResizeTable = table;
             parent.getParent().addComponentListener(this);
             
-            mColWidths = new HashMap();
+            mColWidths = new HashMap<Integer, Integer>();
             mTotalPrefWidth = 0;
             TableColumnModel tcm = mResizeTable.getColumnModel();
             for(int i = 0; i < tcm.getColumnCount(); i++)
@@ -546,7 +547,7 @@ implements SortableTableModel, ComponentListener
    {
       boolean changed = false;
       
-      Vector objects = new Vector();
+      Vector<Object> objects = new Vector<Object>();
       for(int i = 0; i < rows.length; i++)
       {
          objects.add(getValueAt(rows[i]));
@@ -666,7 +667,7 @@ implements SortableTableModel, ComponentListener
          {
             if(tcm.getColumn(i).getResizable())
             {
-               Integer width = (Integer)mColWidths.get(new Integer(i));
+               Integer width = mColWidths.get(i);
                if(width != null)
                {
                   tcm.getColumn(i).setPreferredWidth(width.intValue() + add);
@@ -764,12 +765,12 @@ implements SortableTableModel, ComponentListener
       }
       else if(obj1 instanceof Comparable)
       {
-         Comparable c1 = (Comparable)obj1;
+         Comparable<Object> c1 = (Comparable<Object>)obj1;
          rval = c1.compareTo(obj2);
       }
       else if(obj1 instanceof Comparator)
       {
-         Comparator c1 = (Comparator)obj1;
+         Comparator<Object> c1 = (Comparator<Object>)obj1;
          rval = c1.compare(obj1, obj2);
       }
       else if(obj1 instanceof Number)

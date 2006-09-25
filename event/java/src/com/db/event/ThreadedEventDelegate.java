@@ -22,12 +22,12 @@ public class ThreadedEventDelegate
    /**
     * A map of listener to its event queue.
     */
-   protected HashMap mListenerToEventQueue;
+   protected HashMap<Object, Vector<Object>> mListenerToEventQueue;
    
    /**
     * A map of listener to its event thread.
     */
-   protected HashMap mListenerToEventThread;
+   protected HashMap<Object, Thread> mListenerToEventThread;
    
    /**
     * Constructs a new threaded event delegate.
@@ -35,10 +35,10 @@ public class ThreadedEventDelegate
    public ThreadedEventDelegate()
    {
       // create listener to event queue map
-      mListenerToEventQueue = new HashMap();
+      mListenerToEventQueue = new HashMap<Object, Vector<Object>>();
       
       // create listener to event thread map
-      mListenerToEventThread = new HashMap();
+      mListenerToEventThread = new HashMap<Object, Thread>();
    }
    
    /**
@@ -48,23 +48,24 @@ public class ThreadedEventDelegate
     * @param methodName the name of the method to call on the listener. 
     * @param queue the event queue with the listener's events.
     */
-   public void processEvents(Object listener, String methodName, Vector queue)
+   public void processEvents(
+      Object listener, String methodName, Vector<Object> queue)
    {
       // create aa event class to method map
-      HashMap classToMethod = new HashMap();
+      HashMap<Class, Method> classToMethod = new HashMap<Class, Method>();
       
       while(!Thread.currentThread().isInterrupted())
       {
          // pull all of the events out of the queue and store
          // them in a temporary event queue
-         Vector events = null;
+         Vector<Object> events = null;
             
          // lock on the queue, get its events, and clear it
          synchronized(queue)
          {
             if(queue.size() > 0)
             {
-               events = new Vector();
+               events = new Vector<Object>();
                events.addAll(queue);
                queue.clear();
             }
@@ -87,7 +88,7 @@ public class ThreadedEventDelegate
 
                   // get the method for the event class
                   Class eventClass = event.getClass();
-                  Method method = (Method)classToMethod.get(eventClass);
+                  Method method = classToMethod.get(eventClass);
                   if(method == null)
                   {
                      // find the method
@@ -160,7 +161,7 @@ public class ThreadedEventDelegate
       if(!hasListener(listener))
       {
          // add event queue for listener
-         Vector queue = new Vector();
+         Vector<Object> queue = new Vector<Object>();
          mListenerToEventQueue.put(listener, queue);
          
          // start event thread for listener
@@ -181,7 +182,7 @@ public class ThreadedEventDelegate
       if(hasListener(listener))
       {
          // interrupt listener event thread
-         Thread thread = (Thread)mListenerToEventThread.get(listener);
+         Thread thread = mListenerToEventThread.get(listener);
          thread.interrupt();
             
          // remove listener from maps
@@ -218,13 +219,12 @@ public class ThreadedEventDelegate
     */
    public synchronized void fireEvent(Object event)
    {
-      Iterator i = mListenerToEventThread.keySet().iterator();
-      while(i.hasNext())
+      for(Iterator i = mListenerToEventThread.keySet().iterator(); i.hasNext();)
       {
          Object listener = i.next();
          
          // get the event queue for the listener
-         Vector queue = (Vector)mListenerToEventQueue.get(listener);
+         Vector<Object> queue = mListenerToEventQueue.get(listener);
          
          // lock on the queue and push an event onto it
          synchronized(queue)

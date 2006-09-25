@@ -83,17 +83,17 @@ public class TabPanel extends JPanel
    /**
     * A map of tab area components to tab content components.
     */
-   protected HashMap mAreaToContent;
+   protected HashMap<Component, Component> mAreaToContent;
    
    /**
     * A map of tab content to tab area components.
     */
-   protected HashMap mContentToArea;
+   protected HashMap<Component, Component> mContentToArea;
    
    /**
     * A map of tab area parents to tab areas.
     */
-   protected HashMap mTabAreaParentToTabArea;
+   protected HashMap<Component, Component> mTabAreaParentToTabArea;
    
    /**
     * The panel for the tab content.
@@ -109,23 +109,23 @@ public class TabPanel extends JPanel
     * A hash map of ids (for the card layout) to the appropriate
     * content parent panels.
     */
-   protected HashMap mIdToContentParent;
+   protected HashMap<String, Component> mIdToContentParent;
    
    /**
     * A hash map of content parent panels to the appropriate
     * id (for the card layout).
     */
-   protected HashMap mContentParentToId;
+   protected HashMap<Component, String> mContentParentToId;
    
    /**
     * A hash map of content parent panels to their content children.
     */
-   protected HashMap mContentParentToContent;
+   protected HashMap<Component, Component> mContentParentToContent;
    
    /**
     * A mapping of tab content to flash thread.
     */
-   protected HashMap mFlashThreads;
+   protected HashMap<Component, Thread> mFlashThreads;
    
    /**
     * The currently selected content component, if any.
@@ -140,7 +140,7 @@ public class TabPanel extends JPanel
    /**
     * The tab panel listeners.
     */
-   protected Vector mTabPanelListeners;
+   protected Vector<TabPanelListener> mTabPanelListeners;
    
    /**
     * The tab panel handler.
@@ -160,7 +160,7 @@ public class TabPanel extends JPanel
    /**
     * An ordered list of the selected tabs. 
     */
-   protected Vector mSelectedTabs;
+   protected Vector<Component> mSelectedTabs;
    
    /**
     * The tab selection policy for this panel.
@@ -294,16 +294,16 @@ public class TabPanel extends JPanel
    protected void setup()
    {
       // create hash tables
-      mAreaToContent = new HashMap();
-      mContentToArea = new HashMap();
-      mTabAreaParentToTabArea = new HashMap();
-      mIdToContentParent = new HashMap();
-      mContentParentToId = new HashMap();
-      mContentParentToContent = new HashMap();
-      mFlashThreads = new HashMap();
+      mAreaToContent = new HashMap<Component, Component>();
+      mContentToArea = new HashMap<Component, Component>();
+      mTabAreaParentToTabArea = new HashMap<Component, Component>();
+      mIdToContentParent = new HashMap<String, Component>();
+      mContentParentToId = new HashMap<Component, String>();
+      mContentParentToContent = new HashMap<Component, Component>();
+      mFlashThreads = new HashMap<Component, Thread>();
       
       // create listener collections
-      mTabPanelListeners = new Vector();
+      mTabPanelListeners = new Vector<TabPanelListener>();
       
       // set tab area insets
       mTabAreaInsets = new Insets(7, 7, 3, 7);
@@ -374,7 +374,7 @@ public class TabPanel extends JPanel
       super.add(mTabContentPanel, tabContentPaneConstraints);
 
       // create vector for keeping track of selected tabs
-      mSelectedTabs = new Vector();
+      mSelectedTabs = new Vector<Component>();
       
       // set the default tab selection policy
       mTabSelectionPolicy = SELECT_PREVIOUSLY_SELECTED_TAB_POLICY;
@@ -843,7 +843,7 @@ public class TabPanel extends JPanel
     */
    protected Component getTabContentFromParent(Component parent)
    {
-      return (Component)mContentParentToContent.get(parent);
+      return mContentParentToContent.get(parent);
    }   
    
    /**
@@ -855,7 +855,7 @@ public class TabPanel extends JPanel
     */
    protected Component getTabAreaFromParent(Component parent)
    {
-      return (Component)mTabAreaParentToTabArea.get(parent);
+      return mTabAreaParentToTabArea.get(parent);
    }
    
    /**
@@ -933,7 +933,7 @@ public class TabPanel extends JPanel
     */
    protected Component getContentParent(String id)
    {
-      return (Component)mIdToContentParent.get(id);
+      return mIdToContentParent.get(id);
    }
 
    /**
@@ -952,7 +952,7 @@ public class TabPanel extends JPanel
          Component parent = content.getParent();
          if(parent != null)
          {
-            id = (String)mContentParentToId.get(parent);
+            id = mContentParentToId.get(parent);
          }
       }
       
@@ -1521,7 +1521,7 @@ public class TabPanel extends JPanel
                // get the last selected tab in the selected tabs list
                if(mSelectedTabs.size() > 0)
                {
-                  rval = (Component)mSelectedTabs.lastElement();
+                  rval = mSelectedTabs.lastElement();
                }
             }
             
@@ -2092,7 +2092,7 @@ public class TabPanel extends JPanel
     */
    public Component getTabArea(Component content)
    {
-      return (Component)mContentToArea.get(content);
+      return mContentToArea.get(content);
    }
    
    /**
@@ -2219,7 +2219,7 @@ public class TabPanel extends JPanel
     */
    public Component getTabContent(Component tabArea)
    {
-      return (Component)mAreaToContent.get(tabArea);
+      return mAreaToContent.get(tabArea);
    }
    
    /**

@@ -45,12 +45,12 @@ public class EditableTabPanel extends TabPanel
    /**
     * A mapping of close buttons to tab content components.
     */
-   protected HashMap mCloseButtonToContent;
+   protected HashMap<Component, Component> mCloseButtonToContent;
    
    /**
     * A mapping of tab content components to close buttons.
     */
-   protected HashMap mContentToCloseButton;
+   protected HashMap<Component, Component> mContentToCloseButton;
    
    /**
     * The close button unpressed icon.
@@ -120,8 +120,8 @@ public class EditableTabPanel extends TabPanel
    public EditableTabPanel()
    {
       // create hash tables
-      mCloseButtonToContent = new HashMap();
-      mContentToCloseButton = new HashMap();
+      mCloseButtonToContent = new HashMap<Component, Component>();
+      mContentToCloseButton = new HashMap<Component, Component>();
       
       // create the close button icons
       createCloseButtonIcons();
@@ -500,7 +500,7 @@ public class EditableTabPanel extends TabPanel
     */
    protected Component getTabContentForCloseButton(Component closeButton)
    {
-      return (Component)mCloseButtonToContent.get(closeButton);
+      return mCloseButtonToContent.get(closeButton);
    }
    
    /**

@@ -43,8 +43,7 @@ import com.db.event.EventObject;
  * @author Dave Longley
  */
 public class JComponentTableHeader extends JTableHeader
-                                   implements MouseListener,
-                                              MouseMotionListener
+implements MouseListener, MouseMotionListener
 {
    /**
     * The JComponentHeaderRenderer.
@@ -54,7 +53,7 @@ public class JComponentTableHeader extends JTableHeader
    /**
     * A map for column header renderers.
     */
-   protected HashMap mColumnHeaderRenderMap;
+   protected HashMap<String, Component> mColumnHeaderRenderMap;
    
    /**
     * An event delegate for when a column header has been pressed. 
@@ -78,7 +77,7 @@ public class JComponentTableHeader extends JTableHeader
       addMouseMotionListener(this);
       
       // create column header renderer map
-      mColumnHeaderRenderMap = new HashMap();
+      mColumnHeaderRenderMap = new HashMap<String, Component>();
       
       // create the column header pressed event delegate
       mColumnHeaderPressedEventDelegate = new EventDelegate();
@@ -510,13 +509,13 @@ public class JComponentTableHeader extends JTableHeader
                ListSelectionModel lsm = table.getSelectionModel();
 
                // get the table's selected rows
-               Vector selection = null;
+               Vector<Object> selection = null;
                JComponentTableModel jctm = null;
                if(tm instanceof JComponentTableModel)
                {
                   jctm = (JComponentTableModel)tm;
                   
-                  selection = new Vector();
+                  selection = new Vector<Object>();
                   for(int row = 0; row < jctm.getRowCount(); row++)
                   {
                      if(lsm.isSelectedIndex(row))

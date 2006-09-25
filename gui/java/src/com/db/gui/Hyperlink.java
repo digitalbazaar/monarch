@@ -50,7 +50,7 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
    /**
     * The action listeners for this hyperlink.
     */
-   protected Vector mActionListeners;
+   protected Vector<ActionListener> mActionListeners;
    
    /**
     * Creates a new default hyperlink.
@@ -93,7 +93,7 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
       
       addHyperlinkListener(this);
       setEditable(false);
-      mActionListeners = new Vector();
+      mActionListeners = new Vector<ActionListener>();
 
       mActionCommand = "";
       
@@ -170,7 +170,9 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
    public void addActionListener(ActionListener al)
    {
       if(al != null)
+      {
          mActionListeners.add(al);
+      }
    }
    
    /**

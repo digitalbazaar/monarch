@@ -27,14 +27,14 @@ public class LayeredLayout extends GridBagLayout
    /**
     * A mapping of grid coordinates to gridbag constraints. 
     */
-   protected HashMap mGbcMap;
+   protected HashMap<String, GridBagConstraints> mGbcMap;
    
    /**
     * A vector that stores the coordinates in the order they
     * were passed to the layout manager so that components can
     * be added in the same order.
     */
-   protected Vector mCoords;
+   protected Vector<int[]> mCoords;
    
    /**
     * An iterator that keeps track of which coordinate in the plot
@@ -126,7 +126,7 @@ public class LayeredLayout extends GridBagLayout
    protected GridBagConstraints getConstraints(int[] coords)
    {
       String str = coords[0] + "," + coords[1];
-      return (GridBagConstraints)mGbcMap.get(str);
+      return mGbcMap.get(str);
    }
    
    /**
@@ -172,8 +172,8 @@ public class LayeredLayout extends GridBagLayout
     */
    protected void initGbcMap(int[][] plot)
    {
-      mGbcMap = new HashMap();
-      mCoords = new Vector();
+      mGbcMap = new HashMap<String, GridBagConstraints>();
+      mCoords = new Vector<int[]>();
       mHighCol = 0;
       mHighRow = 0;
       
@@ -327,11 +327,11 @@ public class LayeredLayout extends GridBagLayout
     * @param v the vector to insert the value into.
     * @param value the value to insert.
     */
-   protected void insertValue(Vector v, int value)
+   protected void insertValue(Vector<Integer> v, int value)
    {
       if(v.isEmpty())
       {
-         v.add(new Integer(value));
+         v.add(value);
       }
       else
       {
@@ -339,10 +339,10 @@ public class LayeredLayout extends GridBagLayout
          int size = v.size();
          for(int i = 0; i < size; i++)
          {
-            int num = ((Integer)v.get(i)).intValue();
+            int num = v.get(i);
             if(value < num)
             {
-               v.insertElementAt(new Integer(value), i);
+               v.insertElementAt(value, i);
                inserted = true;
                break;
             }
@@ -350,7 +350,7 @@ public class LayeredLayout extends GridBagLayout
          
          if(!inserted)
          {
-            v.add(new Integer(value));
+            v.add(value);
          }
       }
    }
@@ -600,7 +600,7 @@ public class LayeredLayout extends GridBagLayout
       
       if(mCoordIterator < mCoords.size())
       {
-         int[] coord = (int[])mCoords.get(mCoordIterator);
+         int[] coord = mCoords.get(mCoordIterator);
          place(c, coord, hw, vw, hf, vf, anchor, insets);
       }
    }
@@ -870,7 +870,7 @@ public class LayeredLayout extends GridBagLayout
       // find which coordinate in the list this is to set component iterator
       for(int i = 0; i < mCoords.size(); i++)
       {
-         int[] value = (int[])mCoords.get(i);
+         int[] value = mCoords.get(i);
          if(value[0] == coords[0] && value[1] == coords[1])
          {
             mCoordIterator = i + 1;
@@ -942,11 +942,11 @@ public class LayeredLayout extends GridBagLayout
       
       if(mCoords.size() > 0 && mCoordIterator > mCoords.size())
       {
-         coords = (int[])mCoords.get(0);
+         coords = mCoords.get(0);
       }
       else if(mCoordIterator < mCoords.size())
       {
-         coords = (int[])mCoords.get(mCoordIterator);
+         coords = mCoords.get(mCoordIterator);
       }
       
       System.out.println("coords: " + coords[0] + "," + coords[1]);

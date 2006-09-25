@@ -29,7 +29,7 @@ public class PositionLayout implements LayoutManager2
    /**
     * A mapping of component to constraints.
     */
-   protected HashMap mConstraintsMap;
+   protected HashMap<Component, PositionConstraints> mConstraintsMap;
 
    /**
     * Creates a new position layout.
@@ -66,7 +66,7 @@ public class PositionLayout implements LayoutManager2
       }
       
       // create the constraints map
-      mConstraintsMap = new HashMap();
+      mConstraintsMap = new HashMap<Component, PositionConstraints>();
    }
    
    /**
@@ -278,7 +278,7 @@ public class PositionLayout implements LayoutManager2
     */
    public PositionConstraints getConstraints(Component comp)
    {
-      return (PositionConstraints)mConstraintsMap.get(comp);
+      return mConstraintsMap.get(comp);
    }
    
    /**

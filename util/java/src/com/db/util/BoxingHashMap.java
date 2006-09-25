@@ -15,7 +15,7 @@ import java.util.Iterator;
  * 
  * @author Dave Longley
  */
-public class BoxingHashMap extends HashMap
+public class BoxingHashMap extends HashMap<Object, Object>
 {
    /**
     * Creates a new, empty, BoxingHashMap.

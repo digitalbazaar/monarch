@@ -40,7 +40,7 @@ public class SignedJarVerifier
     * A hashmap of valid certificates. Each entry in the map is an alias
     * that points to a certificate chain.
     */
-   protected HashMap mAliasToCertificateChain;
+   protected HashMap<String, Certificate[]> mAliasToCertificateChain;
    
    /**
     * Stores the minimum number of certificates that must be validated for
@@ -221,7 +221,7 @@ public class SignedJarVerifier
    throws KeyStoreException
    {
       // create the certificates map
-      mAliasToCertificateChain = new HashMap();
+      mAliasToCertificateChain = new HashMap<String, Certificate[]>();
       
       // iterate through the aliases
       for(int i = 0; i < aliases.length; i++)
@@ -418,13 +418,14 @@ public class SignedJarVerifier
                if(codeSigners != null)
                {
                   // get the list of certificates for the code signers
-                  ArrayList list = new ArrayList();
+                  ArrayList<Certificate> list = new ArrayList<Certificate>();
                   for(int n = 0; n < codeSigners.length; n++)
                   {
                      // iterate through the certificates and add them to
                      // the certificates list
-                     for(Iterator i = codeSigners[n].getSignerCertPath().
-                            getCertificates().iterator(); i.hasNext();)
+                     for(Iterator<? extends Certificate> i =
+                         codeSigners[n].getSignerCertPath().
+                         getCertificates().iterator(); i.hasNext();)
                      {
                         list.add(i.next());
                      }
@@ -435,7 +436,7 @@ public class SignedJarVerifier
                      new Certificate[list.size()];
                   for(int i = 0; i < list.size(); i++)
                   {
-                     entryCertificates[i] = (Certificate)list.get(i);
+                     entryCertificates[i] = list.get(i);
                   }
                
                   // see if the certificates for the entry match those
