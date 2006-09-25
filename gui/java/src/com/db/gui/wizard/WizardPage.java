@@ -33,7 +33,7 @@ public abstract class WizardPage
    /**
     * The errors in this wizard page.
     */
-   protected Vector mErrors;
+   protected Vector<String> mErrors;
    
    /**
     * The view for this page.
@@ -70,7 +70,7 @@ public abstract class WizardPage
       mWizardTask = task;
       
       // create errors container
-      mErrors = new Vector();
+      mErrors = new Vector<String>();
       
       // create the validation passed event delegate
       mValidationPassedEventDelegate = new EventDelegate();

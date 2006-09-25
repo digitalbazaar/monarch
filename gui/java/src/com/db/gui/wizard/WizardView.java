@@ -50,7 +50,7 @@ public class WizardView extends JPanel implements ActionListener
    /**
     * The wizard pages that this view can display.
     */
-   protected Vector mWizardPages;
+   protected Vector<WizardPage> mWizardPages;
    
    /**
     * The cancel button.
@@ -92,7 +92,7 @@ public class WizardView extends JPanel implements ActionListener
          this, "displayErrorDialog");
       
       // create wizard pages list
-      mWizardPages = new Vector();
+      mWizardPages = new Vector<WizardPage>();
       
       // create error dialog
       mErrorDialog = new WizardErrorDialog(null);

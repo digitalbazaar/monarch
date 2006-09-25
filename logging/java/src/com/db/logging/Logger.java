@@ -71,7 +71,7 @@ public class Logger
    /**
     * A map of all of the logging print streams to their verbosities. 
     */
-   protected Hashtable mStreamToVerbosity;
+   protected Hashtable<PrintStream, Double> mStreamToVerbosity;
    
    /**
     * The default number of log files to rotate.
@@ -166,7 +166,7 @@ public class Logger
       mMaxFileSize = -1;
       mRotateId = -1;
       mNumRotatingFiles = DEFAULT_NUM_ROTATING_FILES;
-      mStreamToVerbosity = new Hashtable();
+      mStreamToVerbosity = new Hashtable<PrintStream, Double>();
    }
    
    /**
@@ -758,7 +758,7 @@ public class Logger
             {
                // get the next stream and its verbosity
                PrintStream ps = (PrintStream)i.next();
-               Double sv = (Double)mStreamToVerbosity.get(ps);
+               Double sv = mStreamToVerbosity.get(ps);
                
                if(sv != null)
                {

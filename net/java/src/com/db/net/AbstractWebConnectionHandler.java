@@ -43,7 +43,7 @@ implements WebConnectionHandler, WebConnectionServicer
    /**
     * A list of all of the current service threads.
     */
-   protected Vector mServiceThreads;
+   protected Vector<WebConnectionServiceThread> mServiceThreads;
    
    /**
     * The web connection security manager for this web connection servicer.
@@ -68,7 +68,7 @@ implements WebConnectionHandler, WebConnectionServicer
       mWebConnectionServicer = servicer;
       
       // create service thread list
-      mServiceThreads = new Vector();
+      mServiceThreads = new Vector<WebConnectionServiceThread>();
 
       // set default values
       mPort = -1;

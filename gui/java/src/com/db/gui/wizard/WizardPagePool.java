@@ -16,7 +16,7 @@ public class WizardPagePool
    /**
     * Hashmap of WizardPage name to WizardPages.
     */
-   protected HashMap mNameToWizardPage;
+   protected HashMap<String, WizardPage> mNameToWizardPage;
 
    /**
     * Creates a new wizard page pool.
@@ -24,7 +24,7 @@ public class WizardPagePool
    public WizardPagePool()
    {
       // create name to wizard page map
-      mNameToWizardPage = new HashMap();
+      mNameToWizardPage = new HashMap<String, WizardPage>();
    }
 
    /**
@@ -56,7 +56,7 @@ public class WizardPagePool
     */
    public WizardPage getPage(String name)
    {
-      return (WizardPage)mNameToWizardPage.get(name);
+      return mNameToWizardPage.get(name);
    }
    
    /**

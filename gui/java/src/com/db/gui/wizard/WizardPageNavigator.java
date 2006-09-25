@@ -30,7 +30,7 @@ public class WizardPageNavigator
     * 
     * The second top-most page is the previous page.
     */
-   protected Stack mStepStack;
+   protected Stack<WizardPage> mStepStack;
    
    /**
     * The current wizard page.
@@ -63,7 +63,7 @@ public class WizardPageNavigator
       setPageSelector(pageSelector);
       
       // create step stack
-      mStepStack = new Stack();
+      mStepStack = new Stack<WizardPage>();
       
       // no current page yet
       setCurrentPage(null);
@@ -100,7 +100,7 @@ public class WizardPageNavigator
       
       if(!mStepStack.isEmpty())
       {
-         rval = (WizardPage)mStepStack.pop();
+         rval = mStepStack.pop();
       }
       
       return rval;
@@ -126,7 +126,7 @@ public class WizardPageNavigator
       
       if(!mStepStack.isEmpty())
       {
-         rval = (WizardPage)mStepStack.peek();
+         rval = mStepStack.peek();
       }
       
       return rval;

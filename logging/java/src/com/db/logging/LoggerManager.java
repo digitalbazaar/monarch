@@ -22,14 +22,14 @@ public class LoggerManager
    /**
     * A map of logger names to loggers.
     */
-   protected static HashMap smLoggers;
+   protected static HashMap<String, Logger> smLoggers;
 
    /**
     * Creates the logger manager.
     */
    protected LoggerManager()
    {
-      smLoggers = new HashMap();
+      smLoggers = new HashMap<String, Logger>();
    }
    
    /**
@@ -78,7 +78,7 @@ public class LoggerManager
     */
    public static Logger getLogger(String name)
    {
-      Logger logger = (Logger)smLoggers.get(name);
+      Logger logger = smLoggers.get(name);
       if(logger == null)
       {
          createLogger(name);
