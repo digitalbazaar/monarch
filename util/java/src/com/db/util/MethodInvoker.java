@@ -72,7 +72,7 @@ public class MethodInvoker extends Thread
     * @param method the method to invoke.
     * @param params the parameters for the method.
     */
-   public MethodInvoker(Object agent, Method method, Object[] params)
+   public MethodInvoker(Object agent, Method method, Object... params)
    {
       // throw an exception if the method is null
       if(method == null)
@@ -92,7 +92,7 @@ public class MethodInvoker extends Thread
     * @param methodName the name of the method to invoke.
     * @param params the parameters for the method.
     */
-   public MethodInvoker(Object agent, String methodName, Object[] params)
+   public MethodInvoker(Object agent, String methodName, Object... params)
    {
       // throw an exception if the method name is null or a blank string
       if(methodName == null || methodName.equals(""))
@@ -115,7 +115,7 @@ public class MethodInvoker extends Thread
     * @param params the parameters for the method.
     */
    protected void initialize(
-      Object agent, String methodName, Method method, Object[] params)
+      Object agent, String methodName, Method method, Object... params)
    {
       // throw an exception if the agent is null
       if(agent == null)
@@ -157,7 +157,7 @@ public class MethodInvoker extends Thread
     * 
     * @return the return value from the method.
     */
-   protected Object invokeMethod(Method method, Object agent, Object[] params) 
+   protected Object invokeMethod(Method method, Object agent, Object... params) 
    {
       Object rval = null;
       
@@ -275,7 +275,7 @@ public class MethodInvoker extends Thread
     * 
     * @return the signature string.
     */
-   public static String getSignature(String methodName, Object[] params)
+   public static String getSignature(String methodName, Object... params)
    {
       // build signature string
       String signature = methodName + "(";
@@ -498,7 +498,7 @@ public class MethodInvoker extends Thread
     * @return the method to invoke or null if no such method exists.
     */
    public static Method findMethod(
-      Object agent, String methodName, Object[] params)
+      Object agent, String methodName, Object... params)
    {
       Method rval = null;
       

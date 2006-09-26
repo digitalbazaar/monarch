@@ -273,18 +273,18 @@ public class SortedSiblingTree<T>
       {
          boolean rval = false;
          
-         Object object = child.getObject();
+         T object = child.getObject();
          if(object instanceof Comparator)
          {
-            Comparator c = (Comparator)object;
+            Comparator<T> c = (Comparator<T>)object;
          
             // add the child according to its order
             Vector<SiblingNode> children = getChildren();
             int size = children.size();
             for(int i = 0; i < size && rval; i++)
             {
-               Object sibling = children.get(i).getObject();
-               if(c.compare(object, sibling) < 0)
+               T siblingObject = children.get(i).getObject();
+               if(c.compare(object, siblingObject) < 0)
                {
                   children.insertElementAt(child, i);
                   child.setParent(this);
