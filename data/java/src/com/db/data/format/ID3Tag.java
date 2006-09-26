@@ -6,7 +6,6 @@ package com.db.data.format;
 import com.db.logging.LoggerManager;
 
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * The ID3Tag class is used to parse, display/edit and write ID3 version
@@ -234,10 +233,8 @@ public class ID3Tag
       }
       
       // add tag frames
-      Iterator i = mTagFrames.values().iterator();
-      while(i.hasNext())
+      for(ID3TagFrame id3tf: mTagFrames.values())
       {
-         ID3TagFrame id3tf = (ID3TagFrame)i.next();
          tagSize += id3tf.getSize();
       }
       
@@ -267,10 +264,8 @@ public class ID3Tag
       }
       
       // copy all of the individual tag frames into the byte array
-      i = mTagFrames.values().iterator();
-      while(i.hasNext())
+      for(ID3TagFrame id3tf: mTagFrames.values())
       {
-         ID3TagFrame id3tf = (ID3TagFrame)i.next();
          byte[] b = id3tf.convertToBytes();
          
          System.arraycopy(b, 0, id3Bytes, offset, b.length);
@@ -290,10 +285,8 @@ public class ID3Tag
       String mStr = "";
 
       // convert tag frames to strings
-      Iterator i = mTagFrames.values().iterator();
-      while(i.hasNext())
+      for(ID3TagFrame id3tf: mTagFrames.values())
       {
-         ID3TagFrame id3tf = (ID3TagFrame)i.next();
          mStr += id3tf.convertToString() + "\n";
       }
       

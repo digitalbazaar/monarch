@@ -29,13 +29,13 @@ public abstract class AbstractOperationType
     * A set of OperationTypes that prevent (entirely) an Operation of this
     * OperationType from executing. 
     */
-   protected UniqueSet mBlockingOperationTypes;
+   protected UniqueSet<OperationType> mBlockingOperationTypes;
    
    /**
     * A set of OperationTypes whose Operations an executing Operation of this
     * OperationType will prevent (entirely) from executing.
     */
-   protected UniqueSet mBlockedOperationTypes;
+   protected UniqueSet<OperationType> mBlockedOperationTypes;
    
    /**
     * A set of OperationTypes that require an Operation of this OperationType
@@ -43,7 +43,7 @@ public abstract class AbstractOperationType
     * this OperationType and an OperationType in this set must execute
     * synchronously.  
     */
-   protected UniqueSet mSynchronousOperationTypes;
+   protected UniqueSet<OperationType> mSynchronousOperationTypes;
    
    /**
     * The maximum number of Operations of this OperationType that can run
@@ -57,9 +57,9 @@ public abstract class AbstractOperationType
    public AbstractOperationType()
    {
       // create the OperationType sets
-      mBlockingOperationTypes = new UniqueSet();
-      mBlockedOperationTypes = new UniqueSet();
-      mSynchronousOperationTypes = new UniqueSet();
+      mBlockingOperationTypes = new UniqueSet<OperationType>();
+      mBlockedOperationTypes = new UniqueSet<OperationType>();
+      mSynchronousOperationTypes = new UniqueSet<OperationType>();
       
       // set no limitation on the number of concurrent operations
       setMaxConcurrentOperations(0);

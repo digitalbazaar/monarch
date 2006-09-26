@@ -9,7 +9,6 @@ import com.db.logging.LoggerManager;
 import java.io.FilterInputStream;
 import java.io.InputStream;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Vector;
 
 /**
@@ -52,7 +51,7 @@ public class BoundaryInputStream extends FilterInputStream
    /**
     * A vector of boundaries.
     */
-   protected Vector mBoundaries;
+   protected Vector<String> mBoundaries;
    
    /**
     * Whether or not a boundary has been reached.
@@ -90,7 +89,7 @@ public class BoundaryInputStream extends FilterInputStream
       mBoundaryBuffer = new byte[1];
       mBoundaryBufferPos = 0;
 
-      mBoundaries = new Vector();
+      mBoundaries = new Vector<String>();
       mBoundaryReached = false;
       mMaxBoundaryLength = 1;
       mMinBoundaryLength = 1;
@@ -167,10 +166,9 @@ public class BoundaryInputStream extends FilterInputStream
    protected char[] getMatchingBoundaryChars()
    {
       // get all boundaries that are long enough
-      Vector v = new Vector();
-      for(int i = 0; i < mBoundaries.size(); i++)
+      Vector<String> v = new Vector<String>();
+      for(String boundary: mBoundaries)
       {
-         String boundary = (String)mBoundaries.get(i);
          if(boundary.length() > mBoundaryBufferPos)
          {
             v.add(boundary);
@@ -179,10 +177,11 @@ public class BoundaryInputStream extends FilterInputStream
       
       // get potential matches
       char[] matches = new char[v.size()];
-      for(int i = 0; i < v.size(); i++)
+      int i = 0;
+      for(String boundary: v)
       {
-         String boundary = (String)v.get(i);
          matches[i] = boundary.charAt(mBoundaryBufferPos);
+         i++;
       }
       
       return matches;
@@ -198,11 +197,8 @@ public class BoundaryInputStream extends FilterInputStream
       // only check if not checked previously and minimum reached
       if(!mBoundaryReached && mBoundaryBufferPos >= mMinBoundaryLength)
       {
-         Iterator i = mBoundaries.iterator();
-         while(i.hasNext())
+         for(String boundary: mBoundaries)
          {
-            String boundary = (String)i.next();
-            
             // get all the boundaries that have matching lengths
             if(boundary.length() == mBoundaryBufferPos)
             {
@@ -313,11 +309,8 @@ public class BoundaryInputStream extends FilterInputStream
       
       mMinBoundaryLength = boundary.length();
       
-      Iterator i = mBoundaries.iterator();
-      while(i.hasNext())
+      for(String b: mBoundaries)
       {
-         String b = (String)i.next();
-         
          // update max boundary length
          if(b.length() > mMaxBoundaryLength) 
          {

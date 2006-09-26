@@ -37,7 +37,7 @@ public class OperationEngine
    /**
     * The set of OperationTypes supported by this engine. 
     */
-   protected UniqueSet mOperationTypes;
+   protected UniqueSet<OperationType> mOperationTypes;
    
    /**
     * The JobDispatcher for dispatching OperationExecutors. This dispatcher
@@ -60,7 +60,7 @@ public class OperationEngine
    public OperationEngine()
    {
       // create the operation types set
-      mOperationTypes = new UniqueSet();
+      mOperationTypes = new UniqueSet<OperationType>();
       
       // create the operation executor thread pool
       OperationExecutorThreadPool threadPool =
