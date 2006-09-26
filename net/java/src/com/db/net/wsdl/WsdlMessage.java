@@ -216,12 +216,12 @@ public class WsdlMessage extends AbstractXmlSerializer
     * 
     * @author Dave Longley
     */
-   public class WsdlMessagePartCollection
+   public class WsdlMessagePartCollection implements Iterable<WsdlMessagePart>
    {
       /**
        * The underlying vector for storing parts. 
        */
-      protected Vector mParts;
+      protected Vector<WsdlMessagePart> mParts;
       
       /**
        * Creates a new WsdlMessagePartCollection.
@@ -229,7 +229,7 @@ public class WsdlMessage extends AbstractXmlSerializer
       public WsdlMessagePartCollection()
       {
          // initialize parts vector
-         mParts = new Vector();
+         mParts = new Vector<WsdlMessagePart>();
       }
       
       /**
@@ -288,7 +288,7 @@ public class WsdlMessage extends AbstractXmlSerializer
        * 
        * @return an iterator over the parts in this collection.
        */
-      public Iterator iterator()
+      public Iterator<WsdlMessagePart> iterator()
       {
          return mParts.iterator();
       }

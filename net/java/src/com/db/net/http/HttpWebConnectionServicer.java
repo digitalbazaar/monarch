@@ -26,13 +26,13 @@ public class HttpWebConnectionServicer extends AbstractWebConnectionServicer
     * Http web request servicers. Maps from path to non-secure http
     * web request servicer.
     */
-   protected HashMap mPathToNonSecureServicer;
+   protected HashMap<String, HttpWebRequestServicer> mPathToNonSecureServicer;
    
    /**
     * Http web request servicer. Maps from path to secure http
     * web request servicer.
     */
-   protected HashMap mPathToSecureServicer;
+   protected HashMap<String, HttpWebRequestServicer> mPathToSecureServicer;
    
    /**
     * The default server name to use in http web responses.
@@ -58,8 +58,8 @@ public class HttpWebConnectionServicer extends AbstractWebConnectionServicer
       mDefaultServerName = serverName;
       
       // create servicer maps
-      mPathToNonSecureServicer = new HashMap();
-      mPathToSecureServicer = new HashMap();
+      mPathToNonSecureServicer = new HashMap<String, HttpWebRequestServicer>();
+      mPathToSecureServicer = new HashMap<String, HttpWebRequestServicer>();
    }
    
    /**
@@ -93,7 +93,8 @@ public class HttpWebConnectionServicer extends AbstractWebConnectionServicer
     * @param path the path to the servicer.
     */
    protected void addHttpWebRequestServicer(
-      HashMap map, HttpWebRequestServicer hwrs, String path)
+      HashMap<String, HttpWebRequestServicer> map,
+      HttpWebRequestServicer hwrs, String path)
    {
       path = readyPath(path);
       

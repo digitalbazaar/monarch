@@ -146,9 +146,8 @@ public class WsdlService extends AbstractXmlSerializer
       element.addAttribute("name", getName());
       
       // ports
-      for(Iterator i = getPorts().iterator(); i.hasNext();)
+      for(WsdlPort port: getPorts())
       {
-         WsdlPort port = (WsdlPort)i.next();
          element.addChild(port.convertToXmlElement(element));
       }
       
@@ -179,10 +178,8 @@ public class WsdlService extends AbstractXmlSerializer
          setName(element.getAttributeValue("name"));
 
          // read ports
-         for(Iterator i = element.getChildren("port").iterator(); i.hasNext();)
+         for(XmlElement child: element.getChildren("port"))
          {
-            XmlElement child = (XmlElement)i.next();
-            
             // get binding
             String bindingName = child.getAttributeValue("binding");
             WsdlBinding binding =
@@ -231,12 +228,12 @@ public class WsdlService extends AbstractXmlSerializer
     * 
     * @author Dave Longley
     */
-   public class WsdlPortCollection
+   public class WsdlPortCollection implements Iterable<WsdlPort>
    {
       /**
        * The underlying vector for storing operations. 
        */
-      protected Vector mPorts;
+      protected Vector<WsdlPort> mPorts;
       
       /**
        * Creates a new Wsdl Port Collection.
@@ -244,7 +241,7 @@ public class WsdlService extends AbstractXmlSerializer
       public WsdlPortCollection()
       {
          // initialize ports vector
-         mPorts = new Vector();
+         mPorts = new Vector<WsdlPort>();
       }
       
       /**
@@ -278,9 +275,9 @@ public class WsdlService extends AbstractXmlSerializer
       {
          WsdlPort rval = null;
          
-         for(Iterator i = iterator(); i.hasNext() && rval == null;) 
+         for(Iterator<WsdlPort> i = iterator(); i.hasNext() && rval == null;) 
          {
-            WsdlPort port = (WsdlPort)i.next();
+            WsdlPort port = i.next();
             if(port.getName().equals(name))
             {
                rval = port;
@@ -303,7 +300,7 @@ public class WsdlService extends AbstractXmlSerializer
        * 
        * @return an iterator over the port in this collection.
        */
-      public Iterator iterator()
+      public Iterator<WsdlPort> iterator()
       {
          return mPorts.iterator();
       }

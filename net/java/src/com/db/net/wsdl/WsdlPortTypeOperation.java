@@ -3,8 +3,6 @@
  */
 package com.db.net.wsdl;
 
-import java.util.Iterator;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
@@ -491,9 +489,8 @@ public class WsdlPortTypeOperation extends AbstractXmlSerializer
          
          // read message names
          boolean inputRead = false;
-         for(Iterator i = element.getChildren().iterator(); i.hasNext();)
+         for(XmlElement child: element.getChildren())
          {
-            XmlElement child = (XmlElement)i.next();
             if(child.getName().equals("input"))
             {
                // get the message name

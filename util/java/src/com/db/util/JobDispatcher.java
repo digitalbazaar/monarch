@@ -26,7 +26,7 @@ public class JobDispatcher implements Runnable
     * The internal queue that holds the Runnable jobs that are
     * waiting to be dispatched.
     */
-   protected Vector mJobQueue;   
+   protected Vector<Runnable> mJobQueue;   
    
    /**
     * The thread used to dispatch the Runnable jobs.
@@ -57,7 +57,7 @@ public class JobDispatcher implements Runnable
       mThreadPool = pool;
       
       // create the job queue
-      mJobQueue = new Vector();
+      mJobQueue = new Vector<Runnable>();
       
       // no dispatcher thread yet
       mDispatcherThread = null;
@@ -92,7 +92,7 @@ public class JobDispatcher implements Runnable
       if(!mJobQueue.isEmpty())
       {
          // remove the top Runnable job
-         rval = (Runnable)mJobQueue.remove(0);
+         rval = mJobQueue.remove(0);
       }
       
       return rval;

@@ -29,12 +29,12 @@ public class ConfigOptions
    /**
     * A map of keys to their value's valid type.
     */
-   protected HashMap mValueTypeMap;
+   protected HashMap<String, Class> mValueTypeMap;
    
    /**
     * A list of commands detected when last parsing a set of arguments.
     */
-   protected Vector mCommands;
+   protected Vector<String> mCommands;
    
    /**
     * Creates a new config options object.
@@ -42,8 +42,8 @@ public class ConfigOptions
    public ConfigOptions()
    {
       mProperties = new Properties();
-      mValueTypeMap = new HashMap();
-      mCommands = new Vector();
+      mValueTypeMap = new HashMap<String, Class>();
+      mCommands = new Vector<String>();
    }
    
    /**
@@ -51,13 +51,14 @@ public class ConfigOptions
     * 
     * @param key the key for the value.
     * @param value the value to check.
+    * 
     * @return true if the value is the appropriate type, false if not.
     */
    protected boolean checkValueType(String key, Object value)
    {
       boolean rval = false;
       
-      Class c = (Class)mValueTypeMap.get(key);
+      Class c = mValueTypeMap.get(key);
       if(c != null && value != null)
       {
          // ensure that the value is an instance of the restricted class
@@ -100,14 +101,15 @@ public class ConfigOptions
     * Loads the configuration from an argument string.
     * 
     * @param args the arguments string.
+    * 
     * @return a list of arguments that could not be set.
     */
    public String[] parseArgs(String[] args)
    {
-      Vector invalidArgs = new Vector();
+      Vector<String> invalidArgs = new Vector<String>();
       
       // a vector for storing commands
-      mCommands = new Vector();
+      mCommands = new Vector<String>();
       
       String key = "";
       String value = "";
@@ -206,7 +208,7 @@ public class ConfigOptions
       String[] ia = new String[invalidArgs.size()];
       for(int i = 0; i < invalidArgs.size(); i++)
       {
-         ia[i] = (String)invalidArgs.get(i);
+         ia[i] = invalidArgs.get(i);
       }
       
       return ia;
@@ -218,6 +220,7 @@ public class ConfigOptions
     * 
     * @param value the string to convert.
     * @param type the type to convert the string to.
+    * 
     * @return the object the string was converted into.
     */
    public static Object parseObject(String value, Class type)
@@ -290,12 +293,13 @@ public class ConfigOptions
     * Gets the type for a value.
     *
     * @param key the key for the value to get the type for.
+    * 
     * @return the valid class for the value or null if no type
     *         restriction is set.
     */
    public Class getValueType(String key)
    {
-      return (Class)mValueTypeMap.get(key);
+      return mValueTypeMap.get(key);
    }
    
    /**
@@ -330,6 +334,7 @@ public class ConfigOptions
     * Gets a configuration value as a string.
     * 
     * @param key the key of the key-value pair.
+    * 
     * @return the configuration value as a string, null if the key is not found.
     */
    public String getValue(String key)
@@ -341,6 +346,7 @@ public class ConfigOptions
     * Gets a configuration value as a string.
     * 
     * @param key the key of the key-value pair.
+    * 
     * @return the configuration value as a string, a blank string if the
     *         key is not found.
     */
@@ -361,6 +367,7 @@ public class ConfigOptions
     * Gets a configuration value as a long.
     * 
     * @param key the key of the key-value pair.
+    * 
     * @return the configuration value as a long.
     */
    public long getLong(String key)
@@ -368,6 +375,7 @@ public class ConfigOptions
       long rval = 0;
       
       String value = getString(key);
+      
       try
       {
          rval = Long.parseLong(value);
@@ -385,6 +393,7 @@ public class ConfigOptions
     * Gets a configuration value as an int.
     * 
     * @param key the key of the key-value pair.
+    * 
     * @return the configuration value as an int.
     */
    public int getInt(String key)
@@ -409,6 +418,7 @@ public class ConfigOptions
     * Gets a configuration value as a double.
     * 
     * @param key the key of the key-value pair.
+    * 
     * @return the configuration value as a double.
     */
    public double getDouble(String key)
@@ -433,6 +443,7 @@ public class ConfigOptions
     * Gets a configuration value as a boolean.
     * 
     * @param key the key of the key-value pair.
+    * 
     * @return the configuration value as a boolean.
     */
    public boolean getBoolean(String key)
@@ -469,6 +480,7 @@ public class ConfigOptions
     * 
     * @param key the key of the key-value pair.
     * @param value the value of the key-value pair.
+    * 
     * @return true if the value could be set, false if not.
     */
    public synchronized boolean setValue(String key, Object value)
@@ -497,6 +509,7 @@ public class ConfigOptions
     * 
     * @param key the key of the key-value pair.
     * @param value the value of the key-value pair.
+    * 
     * @return true if the value could be set, false if not.
     */
    public boolean setValue(String key, String value)
@@ -509,6 +522,7 @@ public class ConfigOptions
     * 
     * @param key the key of the key-value pair.
     * @param value the value of the key-value pair.
+    * 
     * @return true if the value could be set, false if not.
     */
    public boolean setValue(String key, long value)
@@ -521,6 +535,7 @@ public class ConfigOptions
     * 
     * @param key the key of the key-value pair.
     * @param value the value of the key-value pair.
+    * 
     * @return true if the value could be set, false if not.
     */
    public boolean setValue(String key, int value)
@@ -533,6 +548,7 @@ public class ConfigOptions
     * 
     * @param key the key of the key-value pair.
     * @param value the value of the key-value pair.
+    * 
     * @return true if the value could be set, false if not.
     */
    public boolean setValue(String key, double value)
@@ -545,6 +561,7 @@ public class ConfigOptions
     * 
     * @param key the key of the key-value pair.
     * @param value the value of the key-value pair.
+    * 
     * @return true if the value could be set, false if not.
     */
    public boolean setValue(String key, boolean value)
@@ -566,14 +583,14 @@ public class ConfigOptions
     * Gets a set of all the keys that begin with the passed string.
     * 
     * @param prefix the prefix for the keys.
+    * 
     * @return a set of all the keys that begin with the passed string.
     */
    public synchronized Set getKeysStartingWith(String prefix)
    {
-      HashSet set = new HashSet();
+      HashSet<String> set = new HashSet<String>();
       
-      Iterator i = getKeys().iterator();
-      while(i.hasNext())
+      for(Iterator i = getKeys().iterator(); i.hasNext();)
       {
          String key = (String)i.next();
          if(key.startsWith(prefix))
@@ -591,7 +608,7 @@ public class ConfigOptions
     * 
     * @return a vector command strings.
     */
-   public Vector getCommands()
+   public Vector<String> getCommands()
    {
       return mCommands;
    }
@@ -715,6 +732,7 @@ public class ConfigOptions
     * does not exist.
     * 
     * @param dir the directory.
+    * 
     * @return true the directory exists or was created, false if not.
     */
    public boolean createDir(String dir)
@@ -742,6 +760,7 @@ public class ConfigOptions
     * 
     * @param key the key to the directory.
     * @param dir the directory to create and store as a configuration value.
+    * 
     * @return true if set properly and directory exists, false if not.
     */
    public boolean setDir(String key, String dir)
@@ -765,6 +784,7 @@ public class ConfigOptions
     * Gets a directory by first creating the directory if it doesn't exist.
     * 
     * @param key the key to the directory.
+    * 
     * @return the directory.
     */
    public String getDir(String key)
@@ -783,6 +803,7 @@ public class ConfigOptions
     * @param config1 the first configuration.
     * @param config2 the second configuration.
     * @param key the configuration key.
+    * 
     * @return true if the options are the same, false if not.
     */
    public static boolean compareConfigValue(

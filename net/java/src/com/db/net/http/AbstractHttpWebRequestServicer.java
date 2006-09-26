@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * An abstract http web request servicer. Contains convenience methods for
@@ -31,7 +30,7 @@ implements HttpWebRequestServicer
    /**
     * A map of relative paths to their permissions.
     */
-   protected HashMap mPathToPermissions;
+   protected HashMap<String, String> mPathToPermissions;
    
    /**
     * Creates an abstract http servicer.
@@ -39,7 +38,7 @@ implements HttpWebRequestServicer
    public AbstractHttpWebRequestServicer()
    {
       setHttpWebRequestServicerPath("/");
-      mPathToPermissions = new HashMap();
+      mPathToPermissions = new HashMap<String, String>();
    }
    
    /**
@@ -410,7 +409,7 @@ implements HttpWebRequestServicer
          "get permissions for servicer relative path:\n'" + path + "'");
       
       // see if the exact path is in the map
-      String value = (String)mPathToPermissions.get(path);
+      String value = mPathToPermissions.get(path);
       if(value != null)
       {
          // found permissions
@@ -426,10 +425,8 @@ implements HttpWebRequestServicer
          // get the path components of the path
          String[] pathComps = path.split("/");
          
-         Iterator i = mPathToPermissions.keySet().iterator();
-         while(i.hasNext())
+         for(String nextPath: mPathToPermissions.keySet())
          {
-            String nextPath = (String)i.next();
             boolean recursive = hasRecursivePermissions(nextPath);
             
             String gluedComps = "";
@@ -440,7 +437,7 @@ implements HttpWebRequestServicer
                // is recursive, then get permissions
                if(gluedComps.equals(nextPath) && recursive)
                {
-                  permissions = (String)mPathToPermissions.get(nextPath);
+                  permissions = mPathToPermissions.get(nextPath);
                   getLogger().debug(getClass(),
                      "permissions found:\n'" + permissions + "'");
                   break;
@@ -510,7 +507,7 @@ implements HttpWebRequestServicer
       // convert all "\\" to "/"
       path = path.replaceAll("\\\\", "/");
       
-      String permissions = (String)mPathToPermissions.get(path);
+      String permissions = mPathToPermissions.get(path);
       rval = (permissions.indexOf("c") != -1);
       
       return rval;

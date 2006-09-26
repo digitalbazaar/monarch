@@ -38,7 +38,7 @@ public class Semaphore
    /**
     * The threads that may be waiting to acquire a permit.
     */
-   protected Vector mWaitingThreads;
+   protected Vector<Thread> mWaitingThreads;
    
    /**
     * The lock object. This is the object to synchronize on when
@@ -66,7 +66,7 @@ public class Semaphore
       mRandom = new Random();
 
       // create threads vector
-      mWaitingThreads = new Vector();
+      mWaitingThreads = new Vector<Thread>();
       
       // create lock object
       mLockObject = new Object();
@@ -368,7 +368,7 @@ public class Semaphore
     *
     * @return collection of threads that may be waiting for permits.
     */
-   public synchronized Collection getQueuedThreads()
+   public synchronized Collection<Thread> getQueuedThreads()
    {
       return mWaitingThreads;
    }

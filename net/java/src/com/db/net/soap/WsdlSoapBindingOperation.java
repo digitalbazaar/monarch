@@ -3,8 +3,6 @@
  */
 package com.db.net.soap;
 
-import java.util.Iterator;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.net.wsdl.Wsdl;
@@ -107,10 +105,8 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
       
       // add soap operation parameters according to wsdl message
       int count = 0;
-      for(Iterator i = message.getParts().iterator(); i.hasNext(); count++)
+      for(WsdlMessagePart part: message.getParts())
       {
-         WsdlMessagePart part = (WsdlMessagePart)i.next();
-         
          // create a soap operation parameter
          SoapOperationParameter parameter = null;
          if(params[count] instanceof IXmlSerializer)
@@ -127,6 +123,9 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
          
          // add the parameter
          operation.addParameter(parameter);
+         
+         // increment count
+         count++;
       }
       
       return operation;      
@@ -245,11 +244,8 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
       
       // go through the parameters of the operation and parse them as objects
       int count = 0;
-      for(Iterator i = operation.getParameters().iterator();
-          i.hasNext(); count++)
+      for(SoapOperationParameter p: operation.getParameters())
       {
-         SoapOperationParameter p = (SoapOperationParameter)i.next();
-         
          // get the message part
          WsdlMessagePart part = message.getParts().getPart(p.getName());
          
@@ -265,6 +261,9 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
          }
          
          params[count] = parameter;
+         
+         // increment count
+         count++;
       }
       
       return params;

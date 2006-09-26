@@ -54,6 +54,7 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
     * Creates a new SSL server socket for listening on a port. 
     * 
     * @param port the port the server socket will listen on.
+    * 
     * @return the new server socket.
     */
    protected ServerSocket createServerSocket(int port)
@@ -137,6 +138,7 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
     * a web connection handler should accept a proxy web connection. 
     *
     * @param webConnection the web connection to inspect.
+    * 
     * @return true if the web connection's protocol is supported, false
     *         if it is not.
     */
@@ -279,6 +281,7 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
     * 
     * @param keystore the name of the keystore file.
     * @param password the password to unlock the keystore.
+    * 
     * @return true if the ssl certificate was successfully loaded,
     *         false if not.
     */
@@ -293,6 +296,7 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
     * @param keystore the name of the keystore file.
     * @param password the password to unlock the keystore.
     * @param algorithm the algorithm for the keystore.
+    * 
     * @return true if the ssl certificate was successfully loaded,
     *         false if not.
     */

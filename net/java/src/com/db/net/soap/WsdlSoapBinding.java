@@ -85,11 +85,8 @@ public class WsdlSoapBinding extends WsdlBinding
       if(portType != null)
       {
          // create corresponding soap binding operations
-         for(Iterator i = portType.getOperations().iterator(); i.hasNext();)
+         for(WsdlPortTypeOperation portTypeOperation: portType.getOperations())
          {
-            WsdlPortTypeOperation portTypeOperation =
-               (WsdlPortTypeOperation)i.next();
-
             // create soap binding operation and add it
             WsdlSoapBindingOperation operation =
                new WsdlSoapBindingOperation(this, portTypeOperation);
@@ -152,10 +149,8 @@ public class WsdlSoapBinding extends WsdlBinding
       element.addChild(soapTransportElement);
       
       // add soap binding operations
-      for(Iterator i = getOperations().iterator(); i.hasNext();)
+      for(WsdlSoapBindingOperation operation: getOperations())
       {
-         WsdlSoapBindingOperation operation =
-            (WsdlSoapBindingOperation)i.next();
          element.addChild(operation.convertToXmlElement(element));
       }
       
@@ -271,11 +266,12 @@ public class WsdlSoapBinding extends WsdlBinding
     * @author Dave Longley
     */
    public class WsdlSoapBindingOperationCollection
+   implements Iterable<WsdlSoapBindingOperation>
    {
       /**
        * The underlying vector for storing operations. 
        */
-      protected Vector mOperations;
+      protected Vector<WsdlSoapBindingOperation> mOperations;
       
       /**
        * Creates a new Wsdl SOAP Binding Operation Collection.
@@ -283,7 +279,7 @@ public class WsdlSoapBinding extends WsdlBinding
       public WsdlSoapBindingOperationCollection()
       {
          // initialize operations vector
-         mOperations = new Vector();
+         mOperations = new Vector<WsdlSoapBindingOperation>();
       }
       
       /**
@@ -317,10 +313,10 @@ public class WsdlSoapBinding extends WsdlBinding
       {
          WsdlSoapBindingOperation rval = null;
          
-         for(Iterator i = iterator(); i.hasNext() && rval == null;) 
+         for(Iterator<WsdlSoapBindingOperation> i = iterator();
+             i.hasNext() && rval == null;) 
          {
-            WsdlSoapBindingOperation operation =
-               (WsdlSoapBindingOperation)i.next();
+            WsdlSoapBindingOperation operation = i.next();
             if(operation.getName().equals(name))
             {
                rval = operation;
@@ -343,7 +339,7 @@ public class WsdlSoapBinding extends WsdlBinding
        * 
        * @return an iterator over the operation in this collection.
        */
-      public Iterator iterator()
+      public Iterator<WsdlSoapBindingOperation> iterator()
       {
          return mOperations.iterator();
       }

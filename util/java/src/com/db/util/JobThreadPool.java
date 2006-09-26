@@ -30,7 +30,7 @@ public class JobThreadPool
     * The list of threads in this pool. This is the list of total threads
     * in this pool.
     */
-   protected Vector mThreads;
+   protected Vector<JobThread> mThreads;
    
    /**
     * The expire time for JobThreads.
@@ -56,8 +56,8 @@ public class JobThreadPool
       // create the thread semaphore
       mThreadSemaphore = new Semaphore(poolSize, true);
       
-      // create the thread list
-      mThreads = new Vector();
+      // create the JobThread list
+      mThreads = new Vector<JobThread>();
       
       // default JobThread expire time to 0 (no expiration)
       setJobThreadExpireTime(0);
@@ -139,9 +139,9 @@ public class JobThreadPool
       }
       
       // iterate through threads, find one that is idle
-      for(Iterator i = mThreads.iterator(); i.hasNext();)
+      for(Iterator<JobThread> i = mThreads.iterator(); i.hasNext();)
       {
-         JobThread thread = (JobThread)i.next();
+         JobThread thread = i.next();
          if(thread.isIdle())
          {
             // if the thread is not alive, remove it and continue on
@@ -246,9 +246,10 @@ public class JobThreadPool
          int removeCount = mThreads.size() - size;
          
          // iterate through threads, remove idle threads
-         for(Iterator i = mThreads.iterator(); i.hasNext() && removeCount > 0;)
+         for(Iterator<JobThread> i = mThreads.iterator();
+             i.hasNext() && removeCount > 0;)
          {
-            JobThread thread = (JobThread)i.next();
+            JobThread thread = i.next();
             
             // if thread is idle, interrupt it and remove it
             if(thread.isIdle())
@@ -316,10 +317,8 @@ public class JobThreadPool
       getLogger().detail(getClass(), "interrupting all threads.");
       
       // iterate through all threads, interrupt and remove them
-      for(Iterator i = mThreads.iterator(); i.hasNext();)
+      for(JobThread thread: mThreads)
       {
-         JobThread thread = (JobThread)i.next();
-         
          // interrupt thread
          thread.interrupt();
       }
@@ -352,9 +351,9 @@ public class JobThreadPool
       try
       {
          // iterate through all threads, join and remove them
-         for(Iterator i = mThreads.iterator(); i.hasNext();)
+         for(Iterator<JobThread> i = mThreads.iterator(); i.hasNext();)
          {
-            JobThread thread = (JobThread)i.next();
+            JobThread thread = i.next();
             
             // join thread
             thread.join(joinTime);
@@ -394,10 +393,8 @@ public class JobThreadPool
       mJobThreadExpireTime = expireTime;
       
       // update all existing job threads
-      Iterator i = mThreads.iterator();
-      while(i.hasNext())
+      for(JobThread thread: mThreads)
       {
-         JobThread thread = (JobThread)i.next();
          thread.setExpireTime(expireTime);
       }
    }
@@ -449,9 +446,8 @@ public class JobThreadPool
       int rval = 0;
       
       // iterate through all threads, add up idle threads
-      for(Iterator i = mThreads.iterator(); i.hasNext();)
+      for(JobThread thread: mThreads)
       {
-         JobThread thread = (JobThread)i.next();
          if(thread.isIdle())
          {
             rval++;

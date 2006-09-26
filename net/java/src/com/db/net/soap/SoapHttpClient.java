@@ -78,16 +78,16 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
       
       // go through the services looking for a port with the right uri
       boolean found = false;
-      for(Iterator is = mWsdl.getServices().iterator();
+      for(Iterator<WsdlService> is = mWsdl.getServices().iterator();
           is.hasNext() && !found;)
       {
-         WsdlService service = (WsdlService)is.next();
+         WsdlService service = is.next();
          
          // find the soap ports that match the port types
-         for(Iterator ip = service.getPorts().iterator();
+         for(Iterator<WsdlPort> ip = service.getPorts().iterator();
              ip.hasNext() && !found;)
          {
-            WsdlPort port = (WsdlPort)ip.next();
+            WsdlPort port = ip.next();
             
             // ensure the port has a binding with the right port type
             if(port.getBinding().getPortType().getName().equals(portType))
@@ -287,7 +287,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
                if(operation.hasParameters())
                {
                   SoapOperationParameter parameter =
-                     (SoapOperationParameter)operation.getParameters().get(0);
+                     operation.getParameters().get(0);
                   WsdlMessage message = getWsdl().getMessages().getMessage(
                      operation.getName());
                   WsdlMessagePart part = message.getParts().getPart(
@@ -373,16 +373,17 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
       // FUTURE CODE: we need a cleaner way to do this
       WsdlMessage message = wsdl.getMessages().getMessage(method);
       int count = 0;
-      for(Iterator i = message.getParts().iterator(); i.hasNext(); count++)
+      for(WsdlMessagePart part: message.getParts())
       {
-         WsdlMessagePart part = (WsdlMessagePart)i.next();
-         
          // create a soap operation parameter
          SoapOperationParameter parameter = new SoapOperationParameter(
             part.getName(), String.valueOf(params[count]), null);
          
          // add the parameter to the operation
          operation.addParameter(parameter);
+         
+         // increment count
+         count++;
       }
       
       // put the operation in the soap message

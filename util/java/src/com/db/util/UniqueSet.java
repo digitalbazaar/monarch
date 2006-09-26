@@ -3,30 +3,32 @@
  */
 package com.db.util;
 
-import java.util.Set;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Vector;
 
 /**
  * A collection of unique objects. Whether or not an object
  * is distinct is determined only by its equals() method.
  * 
+ * @param <T> the type for this unique set.
+ * 
  * @author Dave Longley
  */
-public class UniqueSet implements Set
+public class UniqueSet<T> implements Set<T>
 {
    /**
     * The underlying collection that holds the objects.
     */
-   protected Collection mCollection;
+   protected Collection<T> mCollection;
    
    /**
     * Creates a new unique set.
     */
    public UniqueSet()
    {
-      mCollection = new Vector();
+      mCollection = new Vector<T>();
    }
    
    /**
@@ -36,11 +38,10 @@ public class UniqueSet implements Set
     * 
     * @param c the collection to use.
     */
-   public UniqueSet(Collection c)
+   public UniqueSet(Collection<? extends T> c)
    {
-      mCollection = new Vector();
-      Iterator i = c.iterator();
-      while(i.hasNext())
+      mCollection = new Vector<T>();
+      for(Iterator<? extends T> i = c.iterator(); i.hasNext();)
       {
          add(i.next());
       }
@@ -53,9 +54,9 @@ public class UniqueSet implements Set
     * 
     * @param array the array to use.
     */
-   public UniqueSet(Object[] array)
+   public UniqueSet(T[] array)
    {
-      mCollection = new Vector();
+      mCollection = new Vector<T>();
 
       for(int i = 0; i < array.length; i++)
       {
@@ -68,7 +69,7 @@ public class UniqueSet implements Set
     * 
     * @param intersect the collection to intersect with.
     */
-   public void intersect(Collection intersect)
+   public void intersect(Collection<?> intersect)
    {
       mCollection.retainAll(intersect);      
    }
@@ -78,7 +79,7 @@ public class UniqueSet implements Set
     * 
     * @param intersect the set to intersect with.
     */
-   public void intersect(UniqueSet intersect)
+   public void intersect(UniqueSet<?> intersect)
    {
       mCollection.retainAll(intersect);      
    }
@@ -88,26 +89,33 @@ public class UniqueSet implements Set
     * 
     * @param intersect the array to intersect with.
     */
-   public void intersect(Object[] intersect)
+   public void intersect(T[] intersect)
    {
-      mCollection.retainAll(new UniqueSet(intersect));
+      mCollection.retainAll(new UniqueSet<T>(intersect));
    }
    
    /**
     * Intersects this set with another collection.
     * 
     * @param c the collection intersect this set with.
+    * 
     * @return <tt>true</tt> if this collection changed as a result of the
     *         call.
     */
-   public boolean retainAll(Collection c)
+   public boolean retainAll(Collection<?> c)
    {
+      boolean rval = false;
+      
       if(!(c instanceof UniqueSet))
       {
-         c = new UniqueSet(c);
+         rval = mCollection.retainAll(new UniqueSet<Object>(c));
+      }
+      else
+      {
+         rval = mCollection.retainAll(c);
       }
       
-      return mCollection.retainAll(c);
+      return rval;
    }
    
    /**
@@ -118,7 +126,7 @@ public class UniqueSet implements Set
     * @return true if this set contains all of the elements in the passed
     *         collection, false if not.
     */
-   public boolean containsAll(Collection c)
+   public boolean containsAll(Collection<?> c)
    {
       return mCollection.containsAll(c);
    }
@@ -137,9 +145,10 @@ public class UniqueSet implements Set
     * Converts this set into an array.
     * 
     * @param array an array to copy the elements into.
+    * 
     * @return an array with the elements from this set. 
     */
-   public Object[] toArray(Object[] array)
+   public <X> X[] toArray(X[] array)
    {
       return mCollection.toArray(array);
    }
@@ -150,7 +159,7 @@ public class UniqueSet implements Set
     *
     * @return an Iterator over the elements in this set.
     */
-   public Iterator iterator()
+   public Iterator<T> iterator()
    {
       return mCollection.iterator();
    }
@@ -179,6 +188,7 @@ public class UniqueSet implements Set
     * Returns true if this set contains the specified object.
     *
     * @param o object whose presence in this set is to be tested.
+    * 
     * @return true if this set contains the specified object.
     */
    public boolean contains(Object o)
@@ -191,10 +201,11 @@ public class UniqueSet implements Set
     * present.
     *
     * @param o object to be added to this set.
+    * 
     * @return true if the set did not already contain the specified
     *         object and it was added, false if not.
     */
-   public boolean add(Object o)
+   public boolean add(T o)
    {
       boolean rval = false;
       
@@ -214,14 +225,12 @@ public class UniqueSet implements Set
     * @return true if at least one of the objects in the collection was added,
     *         false if not.
     */
-   public boolean addAll(Collection c)
+   public boolean addAll(Collection<? extends T> c)
    {
       boolean rval = true;
       
-      Iterator i = c.iterator();
-      while(i.hasNext())
+      for(T obj: c)
       {
-         Object obj = i.next();
          rval &= add(obj);
       }
       
@@ -232,10 +241,11 @@ public class UniqueSet implements Set
     * Adds all objects from the specified unique set to this set.
     *
     * @param us the unique set of objects to be added to this set.
+    * 
     * @return true if at least one of the objects in the set was added,
     *         false if not.
     */
-   public boolean addAll(UniqueSet us)
+   public boolean addAll(UniqueSet<? extends T> us)
    {
       return mCollection.addAll(us);
    }
@@ -249,7 +259,7 @@ public class UniqueSet implements Set
    {
       Object rval = null;
       
-      for(Iterator i = iterator(); i.hasNext();)
+      for(Iterator i = iterator(); i.hasNext() && rval == null;)
       {
          rval = i.next();
       }
@@ -261,6 +271,7 @@ public class UniqueSet implements Set
     * Removes the specified object from this set if it is present.
     *
     * @param o object to be removed from this set, if present.
+    * 
     * @return true if the set contained the specified object,
     *         false if not.
     */
@@ -276,7 +287,7 @@ public class UniqueSet implements Set
     * @param c elements to be removed from this set.
     * @return <tt>true</tt> if this set changed as a result of the call.
     */
-   public boolean removeAll(Collection c)
+   public boolean removeAll(Collection<?> c)
    {
       return mCollection.removeAll(c);
    }
@@ -296,6 +307,7 @@ public class UniqueSet implements Set
     * this set.
     *
     * @param o the object to be compared for equality with this set.
+    * 
     * @return <tt>true</tt> if the specified object is equal to this set.
     */
    public boolean equals(Object o)

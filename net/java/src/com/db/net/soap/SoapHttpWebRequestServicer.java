@@ -153,7 +153,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       try
       {
          // store the headers for the response
-         Map headers = response.getHeader().getHeaders();
+         Map<String, String> headers = response.getHeader().getHeaders();
          
          // create a soap service call thread for servicing the remote call
          SoapServiceCallThread t = new SoapServiceCallThread(sm);

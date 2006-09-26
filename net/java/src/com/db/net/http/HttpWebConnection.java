@@ -27,22 +27,22 @@ public class HttpWebConnection extends WebConnectionWrapper
    /**
     * A mapping of http content encoders for this web connection. 
     */
-   protected HashMap mContentEncoders;
+   protected HashMap<String, HttpContentEncoder> mContentEncoders;
    
    /**
     * A mapping of http content decoders for this web connection. 
     */
-   protected HashMap mContentDecoders;
+   protected HashMap<String, HttpContentDecoder> mContentDecoders;
    
    /**
     * A mapping of http transfer encoders for this web connection. 
     */
-   protected HashMap mTransferEncoders;
+   protected HashMap<String, HttpTransferEncoder> mTransferEncoders;
    
    /**
     * A mapping of http transfer decoders for this web connection. 
     */
-   protected HashMap mTransferDecoders;
+   protected HashMap<String, HttpTransferDecoder> mTransferDecoders;
    
    /**
     * The last read boundary. This is the last http multipart boundary
@@ -80,12 +80,12 @@ public class HttpWebConnection extends WebConnectionWrapper
       super(wc);
       
       // create maps for content encoders/decoders
-      mContentEncoders = new HashMap();
-      mContentDecoders = new HashMap();
+      mContentEncoders = new HashMap<String, HttpContentEncoder>();
+      mContentDecoders = new HashMap<String, HttpContentDecoder>();
       
       // create maps for transfer encoders/decoders
-      mTransferEncoders = new HashMap();
-      mTransferDecoders = new HashMap();
+      mTransferEncoders = new HashMap<String, HttpTransferEncoder>();
+      mTransferDecoders = new HashMap<String, HttpTransferDecoder>();
       
       // no last read boundary
       mLastReadBoundary = null;
@@ -154,7 +154,7 @@ public class HttpWebConnection extends WebConnectionWrapper
             String type = types[i].trim();
             
             // get content encoder
-            rval = (HttpContentEncoder)mContentEncoders.get(type);
+            rval = mContentEncoders.get(type);
          }
       }
       
@@ -226,7 +226,7 @@ public class HttpWebConnection extends WebConnectionWrapper
             String type = types[i].trim();
             
             // get content decoder
-            rval = (HttpContentDecoder)mContentDecoders.get(type);
+            rval = mContentDecoders.get(type);
          }      
       }
       
@@ -297,7 +297,7 @@ public class HttpWebConnection extends WebConnectionWrapper
             String type = types[i].trim();
             
             // get transfer encoder
-            rval = (HttpTransferEncoder)mTransferEncoders.get(type);
+            rval = mTransferEncoders.get(type);
          }
       }
       
@@ -368,7 +368,7 @@ public class HttpWebConnection extends WebConnectionWrapper
             String type = types[i].trim();
             
             // get transfer decoder
-            rval = (HttpTransferDecoder)mTransferDecoders.get(type);
+            rval = mTransferDecoders.get(type);
          }      
       }
       

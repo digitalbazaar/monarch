@@ -145,9 +145,8 @@ public class WsdlPortType extends AbstractXmlSerializer
       element.addAttribute("name", getName());
       
       // operations
-      for(Iterator i = getOperations().iterator(); i.hasNext();)
+      for(WsdlPortTypeOperation operation: getOperations())
       {
-         WsdlPortTypeOperation operation = (WsdlPortTypeOperation)i.next();
          element.addChild(operation.convertToXmlElement(element));
       }
       
@@ -217,11 +216,12 @@ public class WsdlPortType extends AbstractXmlSerializer
     * @author Dave Longley
     */
    public class WsdlPortTypeOperationCollection
+   implements Iterable<WsdlPortTypeOperation>
    {
       /**
        * The underlying vector for storing operations. 
        */
-      protected Vector mOperations;
+      protected Vector<WsdlPortTypeOperation> mOperations;
       
       /**
        * Creates a new Wsdl Port Type Operation Collection.
@@ -229,7 +229,7 @@ public class WsdlPortType extends AbstractXmlSerializer
       public WsdlPortTypeOperationCollection()
       {
          // initialize operations vector
-         mOperations = new Vector();
+         mOperations = new Vector<WsdlPortTypeOperation>();
       }
       
       /**
@@ -267,9 +267,10 @@ public class WsdlPortType extends AbstractXmlSerializer
          // strip off the namespace prefix
          name = XmlElement.parseLocalName(name);
          
-         for(Iterator i = iterator(); i.hasNext() && rval == null;) 
+         for(Iterator<WsdlPortTypeOperation> i = iterator();
+             i.hasNext() && rval == null;) 
          {
-            WsdlPortTypeOperation operation = (WsdlPortTypeOperation)i.next();
+            WsdlPortTypeOperation operation = i.next();
             if(operation.getName().equals(name))
             {
                rval = operation;
@@ -292,7 +293,7 @@ public class WsdlPortType extends AbstractXmlSerializer
        * 
        * @return an iterator over the operation in this collection.
        */
-      public Iterator iterator()
+      public Iterator<WsdlPortTypeOperation> iterator()
       {
          return mOperations.iterator();
       }

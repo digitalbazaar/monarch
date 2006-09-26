@@ -77,7 +77,8 @@ public class Wsdl extends AbstractXmlSerializer
    /**
     * A mapping from XML Schema data type to java class.
     */
-   protected static HashMap smXMLSchemaDataTypeToClass = new HashMap();
+   protected static HashMap<String, Class> smXMLSchemaDataTypeToClass =
+      new HashMap<String, Class>();
    
    static
    {
@@ -96,7 +97,8 @@ public class Wsdl extends AbstractXmlSerializer
    /**
     * A mapping from java class to XML Schema data type.
     */
-   protected static HashMap smClassToXMLSchemaDataType = new HashMap();
+   protected static HashMap<Class, String> smClassToXMLSchemaDataType =
+      new HashMap<Class, String>();
    
    static
    {
@@ -425,30 +427,26 @@ public class Wsdl extends AbstractXmlSerializer
       element.addChild(new XmlElement("types"));
       
       // messages
-      for(Iterator i = getMessages().iterator(); i.hasNext();)
+      for(WsdlMessage message: getMessages())
       {
-         WsdlMessage message = (WsdlMessage)i.next();
          element.addChild(message.convertToXmlElement(element));
       }
 
       // port types
-      for(Iterator i = getPortTypes().iterator(); i.hasNext();)
+      for(WsdlPortType portType: getPortTypes())
       {
-         WsdlPortType portType = (WsdlPortType)i.next();
          element.addChild(portType.convertToXmlElement(element));
       }
       
       // bindings
-      for(Iterator i = getBindings().iterator(); i.hasNext();)
+      for(WsdlBinding binding: getBindings())
       {
-         WsdlBinding binding = (WsdlBinding)i.next();
          element.addChild(binding.convertToXmlElement(element));
       }
       
       // services
-      for(Iterator i = getServices().iterator(); i.hasNext();)
+      for(WsdlService service: getServices())
       {
-         WsdlService service = (WsdlService)i.next();
          element.addChild(service.convertToXmlElement(element));
       }
       
@@ -487,10 +485,8 @@ public class Wsdl extends AbstractXmlSerializer
          setTargetNamespaceUri(element.getAttributeValue("targetNamespace"));
          
          // convert messages
-         for(Iterator i = element.getChildren("message").iterator();
-             i.hasNext();)
+         for(XmlElement child: element.getChildren("message"))
          {
-            XmlElement child = (XmlElement)i.next();
             WsdlMessage message = new WsdlMessage(this);
             if(message.convertFromXmlElement(child))
             {
@@ -499,10 +495,8 @@ public class Wsdl extends AbstractXmlSerializer
          }
          
          // convert port types
-         for(Iterator i = element.getChildren("portType").iterator();
-             i.hasNext();)
+         for(XmlElement child: element.getChildren("portType"))
          {
-            XmlElement child = (XmlElement)i.next();
             WsdlPortType portType = new WsdlPortType(this);
             if(portType.convertFromXmlElement(child))
             {
@@ -511,11 +505,8 @@ public class Wsdl extends AbstractXmlSerializer
          }
          
          // convert bindings
-         for(Iterator i = element.getChildren("binding").iterator();
-             i.hasNext();)
+         for(XmlElement child: element.getChildren("binding"))
          {
-            XmlElement child = (XmlElement)i.next();
-            
             // FUTURE CODE: current implementation assumes a soap binding
             WsdlBinding binding = new WsdlSoapBinding(this);
             if(binding.convertFromXmlElement(child))
@@ -525,10 +516,8 @@ public class Wsdl extends AbstractXmlSerializer
          }
          
          // convert services
-         for(Iterator i = element.getChildren("service").iterator();
-             i.hasNext();)
+         for(XmlElement child: element.getChildren("service"))
          {
-            XmlElement child = (XmlElement)i.next();
             WsdlService service = new WsdlService(this);
             if(service.convertFromXmlElement(child))
             {
@@ -579,7 +568,7 @@ public class Wsdl extends AbstractXmlSerializer
     */
    public static String getXsdDataType(Class type)
    {
-      return (String)smClassToXMLSchemaDataType.get(type); 
+      return smClassToXMLSchemaDataType.get(type); 
    }
    
    /**
@@ -591,7 +580,7 @@ public class Wsdl extends AbstractXmlSerializer
     */
    public static Class getJavaClass(String xsdType)
    {
-      return (Class)smXMLSchemaDataTypeToClass.get(xsdType); 
+      return smXMLSchemaDataTypeToClass.get(xsdType); 
    }
    
    /**
@@ -677,12 +666,12 @@ public class Wsdl extends AbstractXmlSerializer
     * 
     * @author Dave Longley
     */
-   public class WsdlMessageCollection
+   public class WsdlMessageCollection implements Iterable<WsdlMessage>
    {
       /**
        * The underlying vector for storing messages. 
        */
-      protected Vector mMessages;
+      protected Vector<WsdlMessage> mMessages;
       
       /**
        * Creates a new WsdlMessageCollection.
@@ -690,7 +679,7 @@ public class Wsdl extends AbstractXmlSerializer
       public WsdlMessageCollection()
       {
          // initialize messages vector
-         mMessages = new Vector();
+         mMessages = new Vector<WsdlMessage>();
       }
       
       /**
@@ -728,9 +717,9 @@ public class Wsdl extends AbstractXmlSerializer
          // strip off the namespace prefix
          name = XmlElement.parseLocalName(name);
          
-         for(Iterator i = iterator(); i.hasNext() && rval == null;) 
+         for(Iterator<WsdlMessage> i = iterator(); i.hasNext() && rval == null;) 
          {
-            WsdlMessage message = (WsdlMessage)i.next();
+            WsdlMessage message = i.next();
             if(message.getName().equals(name))
             {
                rval = message;
@@ -759,7 +748,7 @@ public class Wsdl extends AbstractXmlSerializer
        * 
        * @return an iterator over the messages in this collection.
        */
-      public Iterator iterator()
+      public Iterator<WsdlMessage> iterator()
       {
          return mMessages.iterator();
       }
@@ -780,12 +769,12 @@ public class Wsdl extends AbstractXmlSerializer
     * 
     * @author Dave Longley
     */
-   public class WsdlPortTypeCollection
+   public class WsdlPortTypeCollection implements Iterable<WsdlPortType>
    {
       /**
        * The underlying vector for storing port types. 
        */
-      protected Vector mPortTypes;
+      protected Vector<WsdlPortType> mPortTypes;
       
       /**
        * Creates a new WsdlPortTypeCollection.
@@ -793,7 +782,7 @@ public class Wsdl extends AbstractXmlSerializer
       public WsdlPortTypeCollection()
       {
          // initialize port types vector
-         mPortTypes = new Vector();
+         mPortTypes = new Vector<WsdlPortType>();
       }
       
       /**
@@ -831,9 +820,9 @@ public class Wsdl extends AbstractXmlSerializer
          // strip off the namespace prefix
          name = XmlElement.parseLocalName(name);
          
-         for(Iterator i = iterator(); i.hasNext() && rval == null;) 
+         for(Iterator<WsdlPortType> i = iterator(); i.hasNext() && rval == null;) 
          {
-            WsdlPortType portType = (WsdlPortType)i.next();
+            WsdlPortType portType = i.next();
             if(portType.getName().equals(name))
             {
                rval = portType;
@@ -861,7 +850,7 @@ public class Wsdl extends AbstractXmlSerializer
        * 
        * @return an iterator over the port types in this collection.
        */
-      public Iterator iterator()
+      public Iterator<WsdlPortType> iterator()
       {
          return mPortTypes.iterator();
       }
@@ -882,12 +871,12 @@ public class Wsdl extends AbstractXmlSerializer
     * 
     * @author Dave Longley
     */
-   public class WsdlBindingCollection
+   public class WsdlBindingCollection implements Iterable<WsdlBinding>
    {
       /**
        * The underlying vector for storing bindings. 
        */
-      protected Vector mBindings;
+      protected Vector<WsdlBinding> mBindings;
       
       /**
        * Creates a new WsdlBindingCollection.
@@ -895,7 +884,7 @@ public class Wsdl extends AbstractXmlSerializer
       public WsdlBindingCollection()
       {
          // initialize bindings vector
-         mBindings = new Vector();
+         mBindings = new Vector<WsdlBinding>();
       }
       
       /**
@@ -933,9 +922,9 @@ public class Wsdl extends AbstractXmlSerializer
          // strip off the namespace prefix
          name = XmlElement.parseLocalName(name);
          
-         for(Iterator i = iterator(); i.hasNext() && rval == null;) 
+         for(Iterator<WsdlBinding> i = iterator(); i.hasNext() && rval == null;) 
          {
-            WsdlBinding binding = (WsdlBinding)i.next();
+            WsdlBinding binding = i.next();
             if(binding.getName().equals(name))
             {
                rval = binding;
@@ -963,7 +952,7 @@ public class Wsdl extends AbstractXmlSerializer
        * 
        * @return an iterator over the bindings in this collection.
        */
-      public Iterator iterator()
+      public Iterator<WsdlBinding> iterator()
       {
          return mBindings.iterator();
       }
@@ -984,12 +973,12 @@ public class Wsdl extends AbstractXmlSerializer
     * 
     * @author Dave Longley
     */
-   public class WsdlServiceCollection
+   public class WsdlServiceCollection implements Iterable<WsdlService>
    {
       /**
        * The underlying vector for storing services. 
        */
-      protected Vector mServices;
+      protected Vector<WsdlService> mServices;
       
       /**
        * Creates a new WsdlServiceCollection.
@@ -997,7 +986,7 @@ public class Wsdl extends AbstractXmlSerializer
       public WsdlServiceCollection()
       {
          // initialize services vector
-         mServices = new Vector();
+         mServices = new Vector<WsdlService>();
       }
       
       /**
@@ -1035,9 +1024,9 @@ public class Wsdl extends AbstractXmlSerializer
          // strip off the namespace prefix
          name = XmlElement.parseLocalName(name);
          
-         for(Iterator i = iterator(); i.hasNext() && rval == null;) 
+         for(Iterator<WsdlService> i = iterator(); i.hasNext() && rval == null;) 
          {
-            WsdlService service = (WsdlService)i.next();
+            WsdlService service = i.next();
             if(service.getName().equals(name))
             {
                rval = service;
@@ -1065,7 +1054,7 @@ public class Wsdl extends AbstractXmlSerializer
        * 
        * @return an iterator over the services in this collection.
        */
-      public Iterator iterator()
+      public Iterator<WsdlService> iterator()
       {
          return mServices.iterator();
       }

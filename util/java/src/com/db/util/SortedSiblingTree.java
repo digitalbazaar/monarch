@@ -12,9 +12,11 @@ import java.util.Vector;
  * children of a node are ordered relative to their siblings,
  * not relative to the entire tree. 
  * 
+ * @param <T> the type of object to store in this SortedSiblingTree.
+ * 
  * @author Dave Longley
  */
-public class SortedSiblingTree
+public class SortedSiblingTree<T>
 {
    /**
     * The base sibling node. This node has no parents and its object is
@@ -35,9 +37,10 @@ public class SortedSiblingTree
     * 
     * @param node the node to start searching at.
     * @param object the object to search with.
+    * 
     * @return the sibling node or null if no match was found.
     */
-   protected SiblingNode findNode(SiblingNode node, Object object)
+   protected SiblingNode findNode(SiblingNode node, T object)
    {
       SiblingNode rval = null;
       
@@ -74,9 +77,10 @@ public class SortedSiblingTree
     * Finds a sibling node based on its object.
     * 
     * @param object the object to search with.
+    * 
     * @return the sibling node or null if no match was found.
     */
-   protected SiblingNode findNode(Object object)
+   protected SiblingNode findNode(T object)
    {
       return findNode(null, object);
    }
@@ -86,9 +90,10 @@ public class SortedSiblingTree
     * 
     * @param parent the parent object to add the child to.
     * @param child the child object to add.
+    * 
     * @return true if the child was added, false if not.
     */
-   public boolean add(Object parent, Object child)
+   public boolean add(T parent, T child)
    {
       boolean rval = false;
       
@@ -105,9 +110,10 @@ public class SortedSiblingTree
     * Adds a child as a root sibling.
     * 
     * @param child the child object to add.
+    * 
     * @return true if the child was added, false if not.
     */
-   public boolean add(Object child)
+   public boolean add(T child)
    {
       return add(null, child);
    }
@@ -117,9 +123,10 @@ public class SortedSiblingTree
     * 
     * @param parent the parent object to remove the child from.
     * @param child the child object to remove.
+    * 
     * @return true if the child was removed, false if not.
     */
-   public boolean remove(Object parent, Object child)
+   public boolean remove(T parent, T child)
    {
       boolean rval = false;
       
@@ -151,20 +158,19 @@ public class SortedSiblingTree
     * Gets the children of a parent.
     * 
     * @param parent the parent to get the children of.
+    * 
     * @return a vector of the parent's children. Calling "remove" or
     *         "add" on the returned vector will not affect the tree structure.
     */
-   public Vector getChildren(Object parent)
+   public Vector<T> getChildren(T parent)
    {
-      Vector children = new Vector();
+      Vector<T> children = new Vector<T>();
       
       SiblingNode node = findNode(parent);
       if(node != null)
       {
-         Iterator i = node.getChildren().iterator();
-         while(i.hasNext())
+         for(SiblingNode sn: node.getChildren())
          {
-            SiblingNode sn = (SiblingNode)i.next();
             children.add(sn.getObject());
          }
       }
@@ -192,7 +198,7 @@ public class SortedSiblingTree
       /**
        * The object stored in this node.
        */
-      protected Object mObject;
+      protected T mObject;
       
       /**
        * The parent of this node. 
@@ -202,18 +208,18 @@ public class SortedSiblingTree
       /**
        * The children of this sibling node.
        */
-      protected Vector mChildren;
+      protected Vector<SiblingNode> mChildren;
       
       /**
        * Creates a new sibling node.
        * 
        * @param obj the object to store in the node.
        */
-      public SiblingNode(Object obj)
+      public SiblingNode(T obj)
       {
          mObject = obj;
          mParent = null;
-         mChildren = new Vector();
+         mChildren = new Vector<SiblingNode>();
       }
       
       /**
@@ -221,7 +227,7 @@ public class SortedSiblingTree
        * 
        * @return the object inside of this node.
        */
-      public Object getObject()
+      public T getObject()
       {
          return mObject;
       }
@@ -251,7 +257,7 @@ public class SortedSiblingTree
        * 
        * @return the children of node.
        */
-      public Vector getChildren()
+      public Vector<SiblingNode> getChildren()
       {
          return mChildren;
       }
@@ -260,6 +266,7 @@ public class SortedSiblingTree
        * Adds a child to this node's children.
        * 
        * @param child the children node to add.
+       * 
        * @return true if the child was added, false if not.
        */
       public boolean addChild(SiblingNode child)
@@ -272,17 +279,16 @@ public class SortedSiblingTree
             Comparator c = (Comparator)object;
          
             // add the child according to its order
-            Vector children = getChildren();
+            Vector<SiblingNode> children = getChildren();
             int size = children.size();
-            for(int i = 0; i < size; i++)
+            for(int i = 0; i < size && rval; i++)
             {
-               Object sibling = ((SiblingNode)children.get(i)).getObject();
+               Object sibling = children.get(i).getObject();
                if(c.compare(object, sibling) < 0)
                {
                   children.insertElementAt(child, i);
                   child.setParent(this);
                   rval = true;
-                  break;
                }
             }
             
@@ -313,6 +319,7 @@ public class SortedSiblingTree
        * Removes a child from this node's children.
        * 
        * @param child the node to remove.
+       * 
        * @return true if the child was removed, false if not.
        */
       public boolean removeChild(SiblingNode child)
@@ -325,9 +332,9 @@ public class SortedSiblingTree
        * 
        * @return the siblings of this node (includes this node).
        */
-      public Vector getSiblings()
+      public Vector<SiblingNode> getSiblings()
       {
-         Vector siblings = null;
+         Vector<SiblingNode> siblings = null;
          
          if(mParent != null)
          {
@@ -335,7 +342,7 @@ public class SortedSiblingTree
          }
          else
          {
-            siblings = new Vector();
+            siblings = new Vector<SiblingNode>();
             siblings.add(this);            
          }
          

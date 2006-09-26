@@ -301,9 +301,9 @@ public class HttpWebRequestHeader extends HttpHeader
     * 
     * @return the hashmap of variables.
     */
-   public HashMap getPathVariables()
+   public HashMap<String, String> getPathVariables()
    {
-      HashMap vars = new HashMap();
+      HashMap<String, String> vars = new HashMap<String, String>();
       
       String path = getPath();
       

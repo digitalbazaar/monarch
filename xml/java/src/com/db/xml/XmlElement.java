@@ -209,11 +209,8 @@ public class XmlElement extends AbstractXmlSerializer
       xml.append("<" + getQualifiedName());
       
       // add this element's attributes
-      for(Iterator i = getAttributeList().getAttributes().iterator();
-          i.hasNext();)
+      for(XmlAttribute attribute: getAttributeList().getAttributes())
       {
-         XmlAttribute attribute = (XmlAttribute)i.next();
-         
          // encode and convert attribute
          xml.append(" " + attribute.getQualifiedName() + "=\"");
          xml.append(XmlCoder.encode(attribute.getValue()));
@@ -235,9 +232,8 @@ public class XmlElement extends AbstractXmlSerializer
          if(hasChildren())
          {
             // convert each child
-            for(Iterator i = getChildren().iterator(); i.hasNext();)
+            for(XmlElement child: getChildren())
             {
-               XmlElement child = (XmlElement)i.next();
                xml.append(child.convertToXml(
                   false, indentSize + childIndentSize, childIndentSize));
             }
@@ -425,11 +421,8 @@ public class XmlElement extends AbstractXmlSerializer
       setInheritNamespaceUri(element.getInheritNamespaceUri());
       
       // copy attributes
-      for(Iterator i = element.getAttributeList().getAttributes().iterator();
-          i.hasNext();)
+      for(XmlAttribute attribute: element.getAttributeList().getAttributes())
       {
-         XmlAttribute attribute = (XmlAttribute)i.next();
-         
          // determine attribute namespace URI
          String attributeNamespaceUri = null;
          if(!attribute.getName().equals("xmlns") &&
@@ -444,10 +437,8 @@ public class XmlElement extends AbstractXmlSerializer
       }
       
       // copy children
-      for(Iterator i = element.getChildren().iterator(); i.hasNext();)
+      for(XmlElement child: element.getChildren())
       {
-         XmlElement child = (XmlElement)i.next();
-         
          // create a new child and convert it
          XmlElement newChild = new XmlElement();
          newChild.convertFromXmlElement(child);
@@ -1116,7 +1107,7 @@ public class XmlElement extends AbstractXmlSerializer
       
       if(index >= 0 && index < getChildCount())
       {
-         rval = (XmlElement)mChildren.get(index);
+         rval = mChildren.get(index);
       }
       
       return rval;
@@ -1153,9 +1144,10 @@ public class XmlElement extends AbstractXmlSerializer
    {
       XmlElement rval = null;
       
-      for(Iterator i = mChildren.iterator(); i.hasNext() && rval == null;)
+      for(Iterator<XmlElement> i = mChildren.iterator();
+          i.hasNext() && rval == null;)
       {
-         XmlElement child = (XmlElement)i.next();
+         XmlElement child = i.next();
          if(child.getName().equals(name))
          {
             rval = child;
@@ -1180,9 +1172,10 @@ public class XmlElement extends AbstractXmlSerializer
    {
       XmlElement rval = null;
       
-      for(Iterator i = mChildren.iterator(); i.hasNext() && rval == null;)
+      for(Iterator<XmlElement> i = mChildren.iterator();
+          i.hasNext() && rval == null;)
       {
-         XmlElement child = (XmlElement)i.next();
+         XmlElement child = i.next();
          String childNamespaceUri = child.getNamespaceUri();
          
          // check name
@@ -1300,13 +1293,13 @@ public class XmlElement extends AbstractXmlSerializer
     * @return the children with the specified name for this XmlElement in
     *         a collection of XmlElements.
     */
-   public Collection getChildren(String name)
+   public Collection<XmlElement> getChildren(String name)
    {
-      Vector rval = new Vector();
+      Vector<XmlElement> rval = new Vector<XmlElement>();
       
-      for(Iterator i = mChildren.iterator(); i.hasNext();)
+      for(Iterator<XmlElement> i = mChildren.iterator(); i.hasNext();)
       {
-         XmlElement child = (XmlElement)i.next();
+         XmlElement child = i.next();
          if(child.getName().equals(name))
          {
             rval.add(child);
@@ -1326,13 +1319,14 @@ public class XmlElement extends AbstractXmlSerializer
     * @return the children with the specified namespace URI for this XmlElement
     *         in a collection of XmlElements.
     */
-   public Collection getChildrenWithNamespaceUri(String namespaceUri)
+   public Collection<XmlElement> getChildrenWithNamespaceUri(
+      String namespaceUri)
    {
-      Vector rval = new Vector();
+      Vector<XmlElement> rval = new Vector<XmlElement>();
       
-      for(Iterator i = mChildren.iterator(); i.hasNext();)
+      for(Iterator<XmlElement> i = mChildren.iterator(); i.hasNext();)
       {
-         XmlElement child = (XmlElement)i.next();
+         XmlElement child = i.next();
          String childNamespaceUri = child.getNamespaceUri();
          if((childNamespaceUri == null && namespaceUri == null) ||
             (childNamespaceUri != null &&
@@ -1356,13 +1350,13 @@ public class XmlElement extends AbstractXmlSerializer
     * @return the children with the specified name and namespaceURI for this
     *         XmlElement in a collection of XmlElements.
     */
-   public Collection getChildren(String name, String namespaceUri)
+   public Collection<XmlElement> getChildren(String name, String namespaceUri)
    {
-      Vector rval = new Vector();
+      Vector<XmlElement> rval = new Vector<XmlElement>();
       
-      for(Iterator i = mChildren.iterator(); i.hasNext();)
+      for(Iterator<XmlElement> i = mChildren.iterator(); i.hasNext();)
       {
-         XmlElement child = (XmlElement)i.next();
+         XmlElement child = i.next();
          if(child.getName().equals(name))
          {
             String childNamespaceUri = child.getNamespaceUri();

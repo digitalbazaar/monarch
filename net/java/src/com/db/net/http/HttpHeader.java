@@ -31,7 +31,7 @@ public abstract class HttpHeader
    /**
     * A map of the custom headers to their values.
     */
-   protected HashMap mHeaders;
+   protected HashMap<String, String> mHeaders;
    
    /**
     * Stores the boundary for multipart http messages.
@@ -52,7 +52,7 @@ public abstract class HttpHeader
       setVersion("HTTP/1.1");
       
       // create headers map
-      mHeaders = new HashMap();
+      mHeaders = new HashMap<String, String>();
       
       // no multipart boundary by default
       setBoundary(null);
@@ -304,7 +304,7 @@ public abstract class HttpHeader
       
       if(header != null)
       {
-         rval = (String)mHeaders.get(header.toLowerCase());
+         rval = mHeaders.get(header.toLowerCase());
       }
       
       return rval;
@@ -330,7 +330,7 @@ public abstract class HttpHeader
     * 
     * @return the headers map.
     */
-   public HashMap getHeaders()
+   public HashMap<String, String> getHeaders()
    {
       return mHeaders;
    }
@@ -739,9 +739,9 @@ public abstract class HttpHeader
    }
    
    /**
-    * Gets the logger.
+    * Gets the logger for this header.
     * 
-    * @return the logger.
+    * @return the logger for this header.
     */
    public Logger getLogger()
    {

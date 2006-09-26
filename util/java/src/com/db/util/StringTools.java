@@ -4,7 +4,6 @@
 package com.db.util;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * This class provides static methods for manipulating strings in useful ways.
@@ -21,7 +20,8 @@ public class StringTools
     * @param regex the regular expression to use.
     * @param collection the collection to put the split parts into.
     */
-   public static void split(String str, String regex, Collection collection)
+   public static void split(
+      String str, String regex, Collection<String> collection)
    {
       String[] split = str.split(regex);
       for(int i = 0; i < split.length; i++)
@@ -40,18 +40,19 @@ public class StringTools
     * 
     * @return the string of glued objects from the collection.
     */
-   public static String glue(Collection collection, String separator)
+   public static String glue(
+      Collection<? extends Object> collection, String separator)
    {
       StringBuffer sb = new StringBuffer();
       
-      for(Iterator i = collection.iterator(); i.hasNext();)
+      for(Object obj: collection)
       {
          if(sb.length() > 0)
          {
             sb.append(separator);
          }
          
-         sb.append(String.valueOf(i.next()));
+         sb.append(String.valueOf(obj));
       }
       
       return sb.toString();

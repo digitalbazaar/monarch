@@ -24,12 +24,12 @@ public class XmlAttributeList
    /**
     * The underlying vector that stores the XmlAttributes.
     */
-   protected Vector mAttributes;
+   protected Vector<XmlAttribute> mAttributes;
    
    /**
     * A map that maps namespace prefixes to namespace URIs.
     */
-   protected HashMap mNamespaceUriMap;
+   protected HashMap<String, String> mNamespaceUriMap;
    
    /**
     * Creates a new empty XmlAttributeList for the specified XmlElement.
@@ -41,10 +41,10 @@ public class XmlAttributeList
       mXmlElement = element;
       
       // create the underlying attributes vector
-      mAttributes = new Vector();
+      mAttributes = new Vector<XmlAttribute>();
       
       // create the namespace URI map
-      mNamespaceUriMap = new HashMap();
+      mNamespaceUriMap = new HashMap<String, String>();
    }
    
    /**
@@ -351,9 +351,10 @@ public class XmlAttributeList
          }
       }
       
-      for(Iterator i = getAttributes().iterator(); i.hasNext() && rval == null;)
+      for(Iterator<XmlAttribute> i = getAttributes().iterator();
+          i.hasNext() && rval == null;)
       {
-         XmlAttribute attribute = (XmlAttribute)i.next();
+         XmlAttribute attribute = i.next();
          String attributeNamespaceUri = attribute.getNamespaceUri();
          
          // check attribute names
@@ -378,7 +379,7 @@ public class XmlAttributeList
     * 
     * @return a set of the attributes in this map.
     */
-   public Collection getAttributes()
+   public Collection<XmlAttribute> getAttributes()
    {
       return mAttributes;
    }
@@ -409,11 +410,11 @@ public class XmlAttributeList
       if(namespaceUri != null)
       {
          // iterate through the namespace URI map
-         for(Iterator i = mNamespaceUriMap.keySet().iterator();
+         for(Iterator<String> i = mNamespaceUriMap.keySet().iterator();
              i.hasNext() && !rval;)
          {
-            String namespacePrefix = (String)i.next();
-            String uri = (String)mNamespaceUriMap.get(namespacePrefix);
+            String namespacePrefix = i.next();
+            String uri = mNamespaceUriMap.get(namespacePrefix);
             if(namespaceUri.equals(uri))
             {
                rval = true;
@@ -441,11 +442,11 @@ public class XmlAttributeList
       if(namespaceUri != null)
       {
          // iterate through the namespace URI map
-         for(Iterator i = mNamespaceUriMap.keySet().iterator();
+         for(Iterator<String> i = mNamespaceUriMap.keySet().iterator();
              i.hasNext() && rval == null;)
          {
-            String namespacePrefix = (String)i.next();
-            String uri = (String)mNamespaceUriMap.get(namespacePrefix);
+            String namespacePrefix = i.next();
+            String uri = mNamespaceUriMap.get(namespacePrefix);
             if(namespaceUri.equals(uri))
             {
                rval = namespacePrefix;
@@ -483,7 +484,7 @@ public class XmlAttributeList
     */
    public String findNamespaceUri(String namespacePrefix)
    {
-      return (String)mNamespaceUriMap.get(namespacePrefix);
+      return mNamespaceUriMap.get(namespacePrefix);
    }
    
    /**

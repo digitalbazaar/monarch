@@ -62,7 +62,7 @@ public class SoapOperation extends AbstractXmlSerializer
    /**
     * The SoapOperationParameters for this SoapOperation stored in a vector.
     */
-   protected Vector mParameters;
+   protected Vector<SoapOperationParameter> mParameters;
    
    /**
     * Creates a new blank SoapOperation that uses no set name and the
@@ -101,7 +101,7 @@ public class SoapOperation extends AbstractXmlSerializer
       mEncodingStyleUri = encodingStyle;
       
       // create the parameters vector
-      mParameters = new Vector();
+      mParameters = new Vector<SoapOperationParameter>();
    }
    
    /**
@@ -141,9 +141,8 @@ public class SoapOperation extends AbstractXmlSerializer
       }
       
       // add each parameter
-      for(Iterator i = mParameters.iterator(); i.hasNext();)
+      for(SoapOperationParameter parameter: mParameters)
       {
-         SoapOperationParameter parameter = (SoapOperationParameter)i.next();
          operationElement.addChild(
             parameter.convertToXmlElement(operationElement));
       }
@@ -175,15 +174,13 @@ public class SoapOperation extends AbstractXmlSerializer
       
       // convert the parameters
       int count = 0;
-      for(Iterator i = element.getChildren().iterator(); i.hasNext(); count++)
+      for(XmlElement parameterElement: element.getChildren())
       {
-         XmlElement parameterElement = (XmlElement)i.next();
-         
          // get the parameter to convert with
          SoapOperationParameter parameter = null;
          if(count < mParameters.size())
          {
-            parameter = (SoapOperationParameter)mParameters.get(count);
+            parameter = mParameters.get(count);
          }
          else
          {
@@ -194,6 +191,9 @@ public class SoapOperation extends AbstractXmlSerializer
          
          // convert the parameter from xml
          parameter.convertFromXmlElement(parameterElement);
+         
+         // increment count
+         count++;
       }
       
       return rval;
@@ -242,9 +242,10 @@ public class SoapOperation extends AbstractXmlSerializer
    {
       SoapOperationParameter rval = null;
       
-      for(Iterator i = getParameters().iterator(); i.hasNext() && rval == null;)
+      for(Iterator<SoapOperationParameter> i = getParameters().iterator();
+          i.hasNext() && rval == null;)
       {
-         SoapOperationParameter parameter = (SoapOperationParameter)i.next();
+         SoapOperationParameter parameter = i.next();
          
          // compare name and target namespace
          if(parameter.getName().equals(name) &&
@@ -264,7 +265,7 @@ public class SoapOperation extends AbstractXmlSerializer
     * 
     * @return a vector of SoapOperationParameters.
     */
-   public Vector getParameters()
+   public Vector<SoapOperationParameter> getParameters()
    {
       return mParameters;
    }
