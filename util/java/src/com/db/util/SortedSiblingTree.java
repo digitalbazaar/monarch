@@ -149,7 +149,7 @@ public class SortedSiblingTree<T>
     * @return a vector containing the root siblings. Calling "remove" or
     *         "add" on the returned vector will not affect the tree structure.
     */
-   public Vector getRootSiblings()
+   public Vector<T> getRootSiblings()
    {
       return getChildren(null);
    }   
@@ -269,6 +269,7 @@ public class SortedSiblingTree<T>
        * 
        * @return true if the child was added, false if not.
        */
+      @SuppressWarnings("unchecked")      
       public boolean addChild(SiblingNode child)
       {
          boolean rval = false;

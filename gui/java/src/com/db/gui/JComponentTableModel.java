@@ -752,6 +752,7 @@ implements SortableTableModel, ComponentListener
     * @return -1 if the first object is less than the second, 0 if the
     *         first is equal to the second, and 1 if the first is greater.
     */
+   @SuppressWarnings("unchecked")
    public int compareColumnData(int column, int row1, int row2)
    {
       int rval = 0;
@@ -839,6 +840,7 @@ implements SortableTableModel, ComponentListener
        * @param column the column to sort according to.
        * @param ascending true to sort ascending, false to sort descending.
        */
+      @SuppressWarnings("unchecked")
       public void sort(int column, boolean ascending)
       {
          mColumn = column;
