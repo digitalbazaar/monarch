@@ -100,15 +100,11 @@ public class EventDelegate
       {
          Object listener = i.next();
          
-         // store event as a parameter to the listener method 
-         Object[] params = new Object[]{event};
-         
          // get the listener method
          String method = mListenerToMethod.get(listener);
          
          // fire message
-         MethodInvoker mi =
-            new MethodInvoker(listener, method, params);
+         MethodInvoker mi = new MethodInvoker(listener, method, event);
          mi.execute();
       }
    }

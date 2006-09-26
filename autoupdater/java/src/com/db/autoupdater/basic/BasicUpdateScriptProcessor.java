@@ -374,9 +374,8 @@ public class BasicUpdateScriptProcessor
                FileDownloader downloader = new FileDownloader();
                
                // background execute file downloader
-               Object[] params = new Object[]{command.getUrl(), temp};
-               MethodInvoker mi =
-                  new MethodInvoker(downloader, "downloadFile", params);
+               MethodInvoker mi = new MethodInvoker(
+                  downloader, "downloadFile", command.getUrl(), temp);
                mi.backgroundExecute();
                
                long byteChange = 0;

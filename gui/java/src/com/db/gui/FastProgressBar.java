@@ -121,7 +121,7 @@ implements ChangeReporter, Comparable
    protected void startCyclingProgress()
    {
       // execute cycle progress in a background process 
-      MethodInvoker mi = new MethodInvoker(this, "cycleProgress", null);
+      MethodInvoker mi = new MethodInvoker(this, "cycleProgress");
       mi.backgroundExecute();
       
       // store progress cycler thread

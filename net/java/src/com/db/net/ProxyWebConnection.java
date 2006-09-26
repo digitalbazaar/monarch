@@ -137,16 +137,12 @@ public class ProxyWebConnection extends GenericWebConnection
       if(mOriginalToNewProxyThread == null && mNewToOriginalProxyThread == null)
       {
          // read from original web connection and write to new web connection
-         Object[] params1 = new Object[]{mOriginalWebConnection,
-                                         mNewWebConnection};
-         MethodInvoker originalToNew =
-             new MethodInvoker(this, "proxyData", params1);
+         MethodInvoker originalToNew = new MethodInvoker(
+            this, "proxyData", mOriginalWebConnection, mNewWebConnection);
       
          // read from new web connection and write to original web connection
-         Object[] params2 = new Object[]{mNewWebConnection,
-                                         mOriginalWebConnection};
-         MethodInvoker newToOriginal =
-            new MethodInvoker(this, "proxyData", params2);
+         MethodInvoker newToOriginal = new MethodInvoker(
+            this, "proxyData", mNewWebConnection, mOriginalWebConnection);
       
          // store threads
          mOriginalToNewProxyThread = originalToNew;

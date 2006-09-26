@@ -246,9 +246,8 @@ public class WebConnectionAcceptor
          mAcceptingWebConnections = true;
       
          // accept connections on another thread
-         Object[] params = new Object[]{serverSocket, new Boolean(secure)};
-         MethodInvoker mi =
-            new MethodInvoker(this, "acceptWebConnections", params);
+         MethodInvoker mi = new MethodInvoker(
+            this, "acceptWebConnections", serverSocket, secure);
          mi.backgroundExecute();
          
          // set acceptor thread

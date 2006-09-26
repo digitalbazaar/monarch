@@ -165,8 +165,8 @@ public class ThreadedEventDelegate
          mListenerToEventQueue.put(listener, queue);
          
          // start event thread for listener
-         Object[] params = new Object[]{listener, methodName, queue};
-         MethodInvoker mi = new MethodInvoker(this, "processEvents", params);
+         MethodInvoker mi = new MethodInvoker(
+            this, "processEvents", listener, methodName, queue);
          mListenerToEventThread.put(listener, mi);
          mi.backgroundExecute();
       }

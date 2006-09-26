@@ -206,8 +206,7 @@ public class PortFileLock extends FileLock
                         // execute handler in a background process
                         MethodInvoker mi = new MethodInvoker(
                            getConnectionHandler(),
-                           "handlePortFileLockConnection",
-                           new Object[]{worker});
+                           "handlePortFileLockConnection", worker);
                         mi.backgroundExecute();
                      }
                      else
@@ -274,7 +273,7 @@ public class PortFileLock extends FileLock
                   
                   // start accepting connections in a background process
                   MethodInvoker mi = new MethodInvoker(
-                     this, "acceptConnections", new Object[]{socket});
+                     this, "acceptConnections", socket);
                   mi.backgroundExecute();
                }
                else

@@ -306,8 +306,7 @@ implements ActionListener
          smTableTestButton.setEnabled(false);
          
          // start the table test in background
-         MethodInvoker mi = new MethodInvoker(this, 
-               "fireTableUpdateEvents", null);
+         MethodInvoker mi = new MethodInvoker(this, "fireTableUpdateEvents");
          mi.backgroundExecute();
       }
    }

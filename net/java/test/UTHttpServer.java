@@ -191,9 +191,8 @@ public class UTHttpServer
       for(int i = 0; i < count; i++)
       {
          //sendRequest(port);
-         Object[] params = new Object[]{new Integer(port)};
-         MethodInvoker mi =
-            new MethodInvoker(UTHttpServer.class, "sendRequest", params);
+         MethodInvoker mi = new MethodInvoker(
+            UTHttpServer.class, "sendRequest", port);
          mi.backgroundExecute();
       }
    }

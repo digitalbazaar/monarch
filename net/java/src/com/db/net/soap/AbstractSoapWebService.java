@@ -170,7 +170,7 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
     * 
     * @exception Throwable thrown if some exception occurs.
     */
-   protected Object invokeSoapMethod(String methodName, Object[] params)
+   protected Object invokeSoapMethod(String methodName, Object... params)
    throws Throwable
    {
       Object rval = null;

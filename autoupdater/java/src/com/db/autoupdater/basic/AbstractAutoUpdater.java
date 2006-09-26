@@ -794,9 +794,8 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
          setAutoCheckForUpdate(true);
          
          // start the update checker thread
-         Object[] params = new Object[]{application};
-         MethodInvoker updateChecker =
-            new MethodInvoker(this, "continuouslyCheckForUpdate", params);
+         MethodInvoker updateChecker = new MethodInvoker(
+            this, "continuouslyCheckForUpdate", application);
          mAutoCheckThread = updateChecker;
          updateChecker.backgroundExecute();
          
@@ -1041,7 +1040,7 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    {
       // create a runnable job for dispatching the arguments
       MethodInvoker job = new MethodInvoker(
-         this, "dispatchArguments", new Object[]{args});
+         this, "dispatchArguments", (Object[])args);
       
       // queue the job
       getArgumentDispatcher().queueJob(job);
