@@ -70,7 +70,12 @@ public class XmlElement extends AbstractXmlSerializer
     * True to inherit this XmlElement's namespace URI from its parent
     * XmlElement if the namespace URI is set to null, false not to. 
     */
-   protected boolean mInheritNamespaceUri;   
+   protected boolean mInheritNamespaceUri;
+   
+   /**
+    * The encoding for this element (i.e. "UTF-8").
+    */
+   protected String mEncoding;
    
    /**
     * Creates a new blank XmlElement.
@@ -139,6 +144,9 @@ public class XmlElement extends AbstractXmlSerializer
       
       // default to no data
       setData(null);
+      
+      // default encoding to UTF-8
+      setEncoding("UTF-8");
    }
    
    /**
@@ -190,7 +198,8 @@ public class XmlElement extends AbstractXmlSerializer
       // include header if appropriate
       if(header)
       {
-         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+         xml.append(
+            "<?xml version=\"1.0\" encoding=\"" + getEncoding() + "\"?>\n");
       }
       
       // create indentation string
@@ -1436,6 +1445,26 @@ public class XmlElement extends AbstractXmlSerializer
    public boolean getInheritNamespaceUri()   
    {
       return mInheritNamespaceUri;
+   }
+   
+   /**
+    * Sets the encoding for this element.
+    * 
+    * @param encoding the encoding for this element (i.e. "UTF-8").
+    */
+   public void setEncoding(String encoding)
+   {
+      mEncoding = encoding;
+   }
+   
+   /**
+    * Gets the encoding for this element.
+    * 
+    * @return the encoding for this element (i.e. "UTF-8").
+    */
+   public String getEncoding()
+   {
+      return mEncoding;
    }
    
    /**
