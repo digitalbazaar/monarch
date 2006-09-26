@@ -50,11 +50,12 @@ import com.db.xml.XmlElement;
  * @author Dave Longley
  */
 public class UPnPServiceActionList extends AbstractXmlSerializer
+implements Iterable<UPnPServiceAction>
 {
    /**
     * The UPnPServiceActions for this list.
     */
-   protected Vector mActions;
+   protected Vector<UPnPServiceAction> mActions;
    
    /**
     * Creates a new UPnPServiceActionList.
@@ -62,7 +63,7 @@ public class UPnPServiceActionList extends AbstractXmlSerializer
    public UPnPServiceActionList()
    {
       // create the actions list
-      mActions = new Vector();
+      mActions = new Vector<UPnPServiceAction>();
    }
    
    /**
@@ -90,9 +91,8 @@ public class UPnPServiceActionList extends AbstractXmlSerializer
       listElement.setParent(parent);
       
       // convert each action to an xml element child
-      for(Iterator i = getActions().iterator(); i.hasNext();)
+      for(UPnPServiceAction action: this)
       {
-         UPnPServiceAction action = (UPnPServiceAction)i.next();
          listElement.addChild(action.convertToXmlElement(listElement));
       }
       
@@ -115,9 +115,8 @@ public class UPnPServiceActionList extends AbstractXmlSerializer
       clear();
       
       // convert actions
-      for(Iterator i = element.getChildren("action").iterator(); i.hasNext();)
+      for(XmlElement actionElement: element.getChildren("action"))
       {
-         XmlElement actionElement = (XmlElement)i.next();
          UPnPServiceAction action = new UPnPServiceAction();
          if(action.convertFromXmlElement(actionElement))
          {
@@ -177,7 +176,7 @@ public class UPnPServiceActionList extends AbstractXmlSerializer
     * 
     * @return the UPnPServiceActions for this list in a vector.
     */
-   public Vector getActions()
+   public Vector<UPnPServiceAction> getActions()
    {
       return mActions;
    }
@@ -195,7 +194,7 @@ public class UPnPServiceActionList extends AbstractXmlSerializer
     *
     * @return an iterator over the UPnPServiceActions in this list.
     */
-   public Iterator iterator()
+   public Iterator<UPnPServiceAction> iterator()
    {
       return getActions().iterator();
    }

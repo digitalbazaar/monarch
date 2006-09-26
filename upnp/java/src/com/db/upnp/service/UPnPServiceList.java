@@ -48,11 +48,12 @@ import com.db.xml.XmlElement;
  * @author Dave Longley
  */
 public class UPnPServiceList extends AbstractXmlSerializer
+implements Iterable<UPnPService>
 {
    /**
     * The UPnPServices for this list.
     */
-   protected Vector mServices;
+   protected Vector<UPnPService> mServices;
    
    /**
     * Creates a new UPnPServiceList.
@@ -60,7 +61,7 @@ public class UPnPServiceList extends AbstractXmlSerializer
    public UPnPServiceList()
    {
       // create the services list
-      mServices = new Vector();
+      mServices = new Vector<UPnPService>();
    }
    
    /**
@@ -88,9 +89,8 @@ public class UPnPServiceList extends AbstractXmlSerializer
       listElement.setParent(parent);
       
       // convert each service to an xml element child
-      for(Iterator i = getServices().iterator(); i.hasNext();)
+      for(UPnPService service: getServices())
       {
-         UPnPService service = (UPnPService)i.next();
          listElement.addChild(service.convertToXmlElement(listElement));
       }
       
@@ -113,9 +113,8 @@ public class UPnPServiceList extends AbstractXmlSerializer
       clear();
       
       // convert services
-      for(Iterator i = element.getChildren("service").iterator(); i.hasNext();)
+      for(XmlElement serviceElement: element.getChildren("service"))
       {
-         XmlElement serviceElement = (XmlElement)i.next();
          UPnPService service = new UPnPService();
          if(service.convertFromXmlElement(serviceElement))
          {
@@ -157,9 +156,9 @@ public class UPnPServiceList extends AbstractXmlSerializer
    {
       UPnPService rval = null;
       
-      for(Iterator i = iterator(); i.hasNext() && rval == null;)
+      for(Iterator<UPnPService> i = iterator(); i.hasNext() && rval == null;)
       {
-         UPnPService service = (UPnPService)i.next();
+         UPnPService service = i.next();
          if(service.getServiceId().equals(serviceId))
          {
             rval = service;
@@ -180,9 +179,9 @@ public class UPnPServiceList extends AbstractXmlSerializer
    {
       UPnPService rval = null;
       
-      for(Iterator i = iterator(); i.hasNext() && rval == null;)
+      for(Iterator<UPnPService> i = iterator(); i.hasNext() && rval == null;)
       {
-         UPnPService service = (UPnPService)i.next();
+         UPnPService service = i.next();
          if(service.getServiceType().equals(serviceType))
          {
             rval = service;
@@ -197,7 +196,7 @@ public class UPnPServiceList extends AbstractXmlSerializer
     * 
     * @return the UPnPService for this list in a vector.
     */
-   public Vector getServices()
+   public Vector<UPnPService> getServices()
    {
       return mServices;
    }
@@ -215,7 +214,7 @@ public class UPnPServiceList extends AbstractXmlSerializer
     *
     * @return an iterator over the UPnPServices in this list.
     */
-   public Iterator iterator()
+   public Iterator<UPnPService> iterator()
    {
       return getServices().iterator();
    }

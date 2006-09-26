@@ -5,7 +5,6 @@ package com.db.upnp.device;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Iterator;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -241,9 +240,8 @@ public class UPnPRootDevice
       boolean rval = true;
       
       // get all top level service descriptions for the device
-      for(Iterator i = device.getServiceList().iterator(); i.hasNext();)
+      for(UPnPService service: device.getServiceList())
       {
-         UPnPService service = (UPnPService)i.next();
          if(service.getDescription() == null)
          {
             try
@@ -257,9 +255,8 @@ public class UPnPRootDevice
       }
       
       // get all embedded device service descriptions for the device
-      for(Iterator i = device.getDeviceList().iterator(); i.hasNext();)
+      for(UPnPDevice embeddedDevice: device.getDeviceList())
       {
-         UPnPDevice embeddedDevice = (UPnPDevice)i.next();
          rval &= retrieveServiceDescriptions(embeddedDevice);
       }
       
@@ -285,9 +282,8 @@ public class UPnPRootDevice
       boolean rval = true;
       
       // get all top level service descriptions for the device
-      for(Iterator i = device.getServiceList().iterator(); i.hasNext();)
+      for(UPnPService service: device.getServiceList())
       {
-         UPnPService service = (UPnPService)i.next();
          if(service.getDescription() == null)
          {
             rval &= retrieveServiceDescription(service, connection);
@@ -295,9 +291,8 @@ public class UPnPRootDevice
       }
       
       // get all embedded device service descriptions for the device
-      for(Iterator i = device.getDeviceList().iterator(); i.hasNext();)
+      for(UPnPDevice embeddedDevice: device.getDeviceList())
       {
-         UPnPDevice embeddedDevice = (UPnPDevice)i.next();
          rval &= retrieveServiceDescriptions(embeddedDevice, connection);
       }
       
@@ -336,18 +331,14 @@ public class UPnPRootDevice
                rootDevice.getServiceList().getServiceCount() > 0)
             {
                // retrieve all the root service descriptions
-               for(Iterator i = rootDevice.getServiceList().iterator();
-                   i.hasNext();) 
+               for(UPnPService service: rootDevice.getServiceList()) 
                {
-                  UPnPService service = (UPnPService)i.next();
                   rval &= retrieveServiceDescription(service);
                }
                
                // retrieve all the embedded service descriptions
-               for(Iterator i = rootDevice.getDeviceList().iterator();
-                   i.hasNext();) 
+               for(UPnPDevice device: rootDevice.getDeviceList()) 
                {
-                  UPnPDevice device = (UPnPDevice)i.next();
                   rval &= retrieveServiceDescriptions(device);
                }
                
@@ -371,18 +362,14 @@ public class UPnPRootDevice
                   if(connection != null)
                   {
                      // retrieve all of the root service descriptions
-                     for(Iterator i = rootDevice.getServiceList().iterator();
-                         i.hasNext();) 
+                     for(UPnPService service: rootDevice.getServiceList()) 
                      {
-                        UPnPService service = (UPnPService)i.next();
                         rval &= retrieveServiceDescription(service, connection);
                      }
                      
                      // retrieve all of the embedded device service descriptions
-                     for(Iterator i = rootDevice.getDeviceList().iterator();
-                         i.hasNext();) 
+                     for(UPnPDevice device: rootDevice.getDeviceList()) 
                      {
-                        UPnPDevice device = (UPnPDevice)i.next();
                         rval &= retrieveServiceDescriptions(device, connection);
                      }
                      

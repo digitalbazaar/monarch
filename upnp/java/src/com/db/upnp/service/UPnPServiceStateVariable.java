@@ -4,7 +4,6 @@
 package com.db.upnp.service;
 
 import java.text.DateFormat;
-import java.util.Iterator;
 import java.util.Vector;
 
 import com.db.logging.Logger;
@@ -228,7 +227,7 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
    /**
     * The list of allowed values for this state variable.
     */
-   protected Vector mAllowedValues;
+   protected Vector<String> mAllowedValues;
    
    /**
     * The minimum value for this state variable. Null if there is no minimum.
@@ -260,7 +259,7 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
       setStep(null);
       
       // create allowed values list
-      mAllowedValues = new Vector();
+      mAllowedValues = new Vector<String>();
    }
    
    /**
@@ -317,9 +316,8 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
          stateVariableElement.addChild(allowedValueListElement);
          
          // add each allowed value
-         for(Iterator i = getAllowedValues().iterator(); i.hasNext();)
+         for(String value: getAllowedValues())
          {
-            String value = (String)i.next();
             XmlElement allowedValueElement = new XmlElement("allowedValue");
             allowedValueElement.setValue(value);
             allowedValueListElement.addChild(allowedValueElement);
@@ -404,10 +402,9 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
          if(allowedValueListElement != null)
          {
             // add each allowed value
-            for(Iterator i = allowedValueListElement.
-                getChildren("allowedValue").iterator(); i.hasNext();)
+            for(XmlElement allowedValueElement:
+                allowedValueListElement.getChildren("allowedValue"))
             {
-               XmlElement allowedValueElement = (XmlElement)i.next();
                addAllowedValue(allowedValueElement.getValue());
             }
          }
@@ -564,7 +561,7 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
     * 
     * @return the list of allowed values for this state variable.
     */
-   public Vector getAllowedValues()
+   public Vector<String> getAllowedValues()
    {
       return mAllowedValues;
    }

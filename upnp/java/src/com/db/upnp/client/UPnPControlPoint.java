@@ -4,7 +4,6 @@
 package com.db.upnp.client;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Vector;
 
 import com.db.logging.Logger;
@@ -31,7 +30,7 @@ public class UPnPControlPoint
    /**
     * The UPnPDevices that this control point has cached for use.
     */
-   protected Vector mCachedDevices;
+   protected Vector<UPnPDevice> mCachedDevices;
    
    /**
     * Creates a new UPnPControlPoint.
@@ -42,7 +41,7 @@ public class UPnPControlPoint
       mServer = new DatagramServer();
       
       // create devices cache
-      mCachedDevices = new Vector();
+      mCachedDevices = new Vector<UPnPDevice>();
    }
    
    /**
@@ -143,15 +142,13 @@ public class UPnPControlPoint
     * @return the UPnPDevices with the given device type that have been
     *         discovered by this control point.
     */
-   public Vector getDiscoveredDevices(String deviceType)
+   public Vector<UPnPDevice> getDiscoveredDevices(String deviceType)
    {
-      Vector devices = new Vector();
+      Vector<UPnPDevice> devices = new Vector<UPnPDevice>();
       
       // go through the cached devices and add all devices with the given type
-      for(Iterator i = mCachedDevices.iterator(); i.hasNext();)
+      for(UPnPDevice device: mCachedDevices)
       {
-         UPnPDevice device = (UPnPDevice)i.next();
-         
          // check the device type
          if(device.getDeviceType().equals(deviceType))
          {
@@ -159,9 +156,8 @@ public class UPnPControlPoint
          }
          
          // go through embedded devices
-         for(Iterator id = device.getDeviceList().iterator(); id.hasNext();)
+         for(UPnPDevice embeddedDevice: device.getDeviceList())
          {
-            UPnPDevice embeddedDevice = (UPnPDevice)id.next();
             if(embeddedDevice.getDeviceType().equals(deviceType))
             {
                devices.add(embeddedDevice);

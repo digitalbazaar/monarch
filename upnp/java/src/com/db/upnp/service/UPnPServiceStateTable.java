@@ -68,11 +68,12 @@ import com.db.xml.XmlElement;
  * @author Dave Longley
  */
 public class UPnPServiceStateTable extends AbstractXmlSerializer
+implements Iterable<UPnPServiceStateVariable>
 {
    /**
     * A hash map of state variable names to state variables.
     */
-   protected HashMap mVariables;
+   protected HashMap<String, UPnPServiceStateVariable> mVariables;
    
    /**
     * Creates a new UPnPServiceStateTable.
@@ -80,7 +81,7 @@ public class UPnPServiceStateTable extends AbstractXmlSerializer
    public UPnPServiceStateTable()
    {
       // create the variables map
-      mVariables = new HashMap();
+      mVariables = new HashMap<String, UPnPServiceStateVariable>();
    }
    
    /**
@@ -108,9 +109,8 @@ public class UPnPServiceStateTable extends AbstractXmlSerializer
       serviceStateTableElement.setParent(parent);
       
       // convert and add each state variable
-      for(Iterator i = getStateVariables().iterator(); i.hasNext();)
+      for(UPnPServiceStateVariable variable: this)
       {
-         UPnPServiceStateVariable variable = (UPnPServiceStateVariable)i.next();
          serviceStateTableElement.addChild(variable.convertToXmlElement(
             serviceStateTableElement));
       }
@@ -134,10 +134,8 @@ public class UPnPServiceStateTable extends AbstractXmlSerializer
       clear();
       
       // get all the state variables
-      for(Iterator i = element.getChildren("stateVariable").iterator();
-          i.hasNext();)
+      for(XmlElement variableElement: element.getChildren("stateVariable"))
       {
-         XmlElement variableElement = (XmlElement)i.next();
          UPnPServiceStateVariable variable = new UPnPServiceStateVariable();
          if(variable.convertFromXmlElement(variableElement))
          {
@@ -180,7 +178,7 @@ public class UPnPServiceStateTable extends AbstractXmlSerializer
     */
    public UPnPServiceStateVariable getStateVariable(String name)
    {
-      return (UPnPServiceStateVariable)mVariables.get(name);
+      return mVariables.get(name);
    }
    
    /**
@@ -189,7 +187,7 @@ public class UPnPServiceStateTable extends AbstractXmlSerializer
     * @return a collection of all of the UPnPServiceStateVariables from this
     *         table.
     */
-   public Collection getStateVariables()
+   public Collection<UPnPServiceStateVariable> getStateVariables()
    {
       return mVariables.values();
    }
@@ -200,6 +198,16 @@ public class UPnPServiceStateTable extends AbstractXmlSerializer
    public void clear()
    {
       mVariables.clear();
+   }
+   
+   /**
+    * Gets an iterator over the state variables in this table.
+    *
+    * @return an iterator over the UPnPServiceStateVariables in this table.
+    */
+   public Iterator<UPnPServiceStateVariable> iterator()
+   {
+      return getStateVariables().iterator();
    }
    
    /**

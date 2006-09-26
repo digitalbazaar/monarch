@@ -71,11 +71,12 @@ import com.db.xml.XmlElement;
  * @author Dave Longley
  */
 public class UPnPServiceActionArgumentList extends AbstractXmlSerializer
+implements Iterable<UPnPServiceActionArgument>
 {
    /**
     * The UPnPServiceActionArguments for this list.
     */
-   protected Vector mArguments;
+   protected Vector<UPnPServiceActionArgument> mArguments;
    
    /**
     * Creates a new UPnPServiceActionArgumentList.
@@ -83,7 +84,7 @@ public class UPnPServiceActionArgumentList extends AbstractXmlSerializer
    public UPnPServiceActionArgumentList()
    {
       // create the argument list
-      mArguments = new Vector();
+      mArguments = new Vector<UPnPServiceActionArgument>();
    }
    
    /**
@@ -111,10 +112,8 @@ public class UPnPServiceActionArgumentList extends AbstractXmlSerializer
       listElement.setParent(parent);
       
       // convert each argument to an xml element child
-      for(Iterator i = getArguments().iterator(); i.hasNext();)
+      for(UPnPServiceActionArgument argument: this)
       {
-         UPnPServiceActionArgument argument =
-            (UPnPServiceActionArgument)i.next();
          listElement.addChild(argument.convertToXmlElement(listElement));
       }
       
@@ -137,9 +136,8 @@ public class UPnPServiceActionArgumentList extends AbstractXmlSerializer
       clear();
       
       // convert arguments
-      for(Iterator i = element.getChildren("argument").iterator(); i.hasNext();)
+      for(XmlElement argumentElement: element.getChildren("argument"))
       {
-         XmlElement argumentElement = (XmlElement)i.next();
          UPnPServiceActionArgument argument = new UPnPServiceActionArgument();
          if(argument.convertFromXmlElement(argumentElement))
          {
@@ -175,7 +173,7 @@ public class UPnPServiceActionArgumentList extends AbstractXmlSerializer
     * 
     * @return the UPnPServiceActionArguments for this list in a vector.
     */
-   public Vector getArguments()
+   public Vector<UPnPServiceActionArgument> getArguments()
    {
       return mArguments;
    }
@@ -193,7 +191,7 @@ public class UPnPServiceActionArgumentList extends AbstractXmlSerializer
     *
     * @return an iterator over the UPnPServiceActionArguments in this list.
     */
-   public Iterator iterator()
+   public Iterator<UPnPServiceActionArgument> iterator()
    {
       return getArguments().iterator();
    }

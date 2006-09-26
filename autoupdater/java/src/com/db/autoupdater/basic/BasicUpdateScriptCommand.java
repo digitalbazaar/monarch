@@ -32,7 +32,7 @@ public class BasicUpdateScriptCommand
    /**
     * The arguments for the command.
     */
-   protected Vector mArguments;
+   protected Vector<String> mArguments;
       
    /**
     * The URL associated with the command.
@@ -52,7 +52,7 @@ public class BasicUpdateScriptCommand
    /**
     * The relative file paths associated with the command.
     */
-   protected Vector mRelativePaths;
+   protected Vector<File> mRelativePaths;
    
    /**
     * A message to display.
@@ -70,8 +70,8 @@ public class BasicUpdateScriptCommand
    public BasicUpdateScriptCommand()
    {
       // create arguments and relative paths vectors
-      mArguments = new Vector();
-      mRelativePaths = new Vector();
+      mArguments = new Vector<String>();
+      mRelativePaths = new Vector<File>();
    }
    
    /**
@@ -108,10 +108,10 @@ public class BasicUpdateScriptCommand
          // 2. the MD5 digest for the file
          // 3. the final destination (relative path) for the file
          
-         mUrl = new URL((String)mArguments.get(0));
-         mSize = Long.parseLong((String)mArguments.get(1));
-         mMd5Digest = (String)mArguments.get(2);
-         mRelativePaths.add(new File((String)mArguments.get(3)));
+         mUrl = new URL(mArguments.get(0));
+         mSize = Long.parseLong(mArguments.get(1));
+         mMd5Digest = mArguments.get(2);
+         mRelativePaths.add(new File(mArguments.get(3)));
          rval = true;
       }
       catch(Throwable t)
@@ -141,9 +141,8 @@ public class BasicUpdateScriptCommand
          
          if(mArguments.size() > 0)
          {
-            for(Iterator i = mArguments.iterator(); i.hasNext();)
+            for(String path: mArguments)
             {
-               String path = (String)i.next();
                mRelativePaths.add(new File(path));
             }
             
@@ -180,7 +179,7 @@ public class BasicUpdateScriptCommand
          //
          // 0. the relative path of the directory to create
          
-         mRelativePaths.add(new File((String)mArguments.get(0)));
+         mRelativePaths.add(new File(mArguments.get(0)));
          rval = true;
       }
       catch(Throwable t)
@@ -208,7 +207,7 @@ public class BasicUpdateScriptCommand
          //
          // 0. the relative path of the directory to remove
          
-         mRelativePaths.add(new File((String)mArguments.get(0)));
+         mRelativePaths.add(new File(mArguments.get(0)));
          rval = true;
       }
       catch(Throwable t)
@@ -236,7 +235,7 @@ public class BasicUpdateScriptCommand
          //
          // 0. the message to display
          
-         mMessage = (String)mArguments.get(0);
+         mMessage = mArguments.get(0);
          rval = true;
       }
       catch(Throwable t)
@@ -264,7 +263,7 @@ public class BasicUpdateScriptCommand
          //
          // 0. restart|shutdown|manually_download
          
-         mOnSuccessArgument = (String)mArguments.get(0);
+         mOnSuccessArgument = mArguments.get(0);
          rval = true;
       }
       catch(Throwable t)
@@ -330,10 +329,10 @@ public class BasicUpdateScriptCommand
             // parse the arguments for the command, put them in a temporary map
             BoxingHashMap map = new BoxingHashMap();
             boolean argumentsValid = true;
-            for(Iterator i = element.getChildren().iterator();
+            for(Iterator<XmlElement> i = element.getChildren().iterator();
                 i.hasNext() && argumentsValid;)
             {
-               XmlElement argumentElement = (XmlElement)i.next();
+               XmlElement argumentElement = i.next();
                
                // get the order attribute
                int order = argumentElement.getAttributeIntValue("order");
@@ -452,7 +451,7 @@ public class BasicUpdateScriptCommand
       
       if(mRelativePaths.size() > 0)
       {
-         rval = (File)mRelativePaths.get(0);
+         rval = mRelativePaths.get(0);
       }
       
       return rval;
@@ -464,7 +463,7 @@ public class BasicUpdateScriptCommand
     * @return a vector of File objects that have the relative file paths
     *         associated with the command.
     */
-   public Vector getRelativePaths()
+   public Vector<File> getRelativePaths()
    {
       return mRelativePaths;
    }

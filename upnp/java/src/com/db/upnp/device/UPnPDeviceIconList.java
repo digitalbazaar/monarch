@@ -48,11 +48,12 @@ import com.db.xml.XmlElement;
  * @author Dave Longley
  */
 public class UPnPDeviceIconList extends AbstractXmlSerializer
+implements Iterable<UPnPDeviceIcon>
 {
    /**
     * The UPnPDeviceIcons for this list.
     */
-   protected Vector mIcons;
+   protected Vector<UPnPDeviceIcon> mIcons;
    
    /**
     * Creates a new UPnPDeviceIconList.
@@ -60,7 +61,7 @@ public class UPnPDeviceIconList extends AbstractXmlSerializer
    public UPnPDeviceIconList()
    {
       // create the icon list
-      mIcons = new Vector();
+      mIcons = new Vector<UPnPDeviceIcon>();
    }
    
    /**
@@ -88,9 +89,8 @@ public class UPnPDeviceIconList extends AbstractXmlSerializer
       listElement.setParent(parent);
       
       // convert each icon to an xml element child
-      for(Iterator i = getIcons().iterator(); i.hasNext();)
+      for(UPnPDeviceIcon icon: this)
       {
-         UPnPDeviceIcon icon = (UPnPDeviceIcon)i.next();
          listElement.addChild(icon.convertToXmlElement(listElement));
       }
       
@@ -113,9 +113,8 @@ public class UPnPDeviceIconList extends AbstractXmlSerializer
       clear();
       
       // convert icons
-      for(Iterator i = element.getChildren("icon").iterator(); i.hasNext();)
+      for(XmlElement iconElement: element.getChildren("icon"))
       {
-         XmlElement iconElement = (XmlElement)i.next();
          UPnPDeviceIcon icon = new UPnPDeviceIcon();
          if(icon.convertFromXmlElement(iconElement))
          {
@@ -151,7 +150,7 @@ public class UPnPDeviceIconList extends AbstractXmlSerializer
     * 
     * @return the UPnPDeviceIcons for this list in a vector.
     */
-   public Vector getIcons()
+   public Vector<UPnPDeviceIcon> getIcons()
    {
       return mIcons;
    }
@@ -169,7 +168,7 @@ public class UPnPDeviceIconList extends AbstractXmlSerializer
     *
     * @return an iterator over the UPnPDeviceIcons in this list.
     */
-   public Iterator iterator()
+   public Iterator<UPnPDeviceIcon> iterator()
    {
       return getIcons().iterator();
    }

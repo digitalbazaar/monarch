@@ -31,7 +31,7 @@ public class BasicUpdateScript implements UpdateScript
     * The commands that should be executed to perform the update, they are
     * stored in order of execution.
     */
-   protected Vector mCommands;
+   protected Vector<BasicUpdateScriptCommand> mCommands;
    
    /**
     * The total number of items to download.
@@ -70,7 +70,7 @@ public class BasicUpdateScript implements UpdateScript
       mProcessor = new BasicUpdateScriptProcessor(this);
 
       // create vector for storing commands
-      mCommands = new Vector();
+      mCommands = new Vector<BasicUpdateScriptCommand>();
       
       // default number of items to 0
       mDownloadItemCount = 0;
@@ -110,10 +110,10 @@ public class BasicUpdateScript implements UpdateScript
             rval = true;
             
             // parse each command
-            for(Iterator i = element.getChildren("command").iterator();
-                i.hasNext() && rval;)
+            for(Iterator<XmlElement> i =
+                element.getChildren("command").iterator(); i.hasNext() && rval;)
             {
-               XmlElement commandElement = (XmlElement)i.next();
+               XmlElement commandElement = i.next();
 
                // parse the command
                BasicUpdateScriptCommand usc = new BasicUpdateScriptCommand();
@@ -265,7 +265,7 @@ public class BasicUpdateScript implements UpdateScript
     * 
     * @return the commands for this script.
     */
-   public Vector getCommands()
+   public Vector<BasicUpdateScriptCommand> getCommands()
    {
       return mCommands;
    }
@@ -281,8 +281,8 @@ public class BasicUpdateScript implements UpdateScript
       
       if(mCommands.size() > 0)
       {
-         BasicUpdateScriptCommand lastCommand = 
-            (BasicUpdateScriptCommand)mCommands.get(mCommands.size() - 1);
+         BasicUpdateScriptCommand lastCommand =
+            mCommands.get(mCommands.size() - 1);
       
          rval = lastCommand.getOnSuccessArgument();
       }

@@ -38,23 +38,22 @@ public class InternetGatewayControlPoint extends UPnPControlPoint
     * 
     * @return the previously discovered Internet Gateway Devices in a vector.
     */
-   public Vector getDiscoveredInternetGateways()
+   public Vector<InternetGatewayDeviceClient> getDiscoveredInternetGateways()
    {
-      Vector igds = new Vector();
+      Vector<InternetGatewayDeviceClient> igds =
+         new Vector<InternetGatewayDeviceClient>();
       
       // get the discovered devices that are Internet Gateways
-      Vector devices = getDiscoveredDevices(
+      Vector<UPnPDevice> devices = getDiscoveredDevices(
          InternetGatewayDeviceClient.IGD_DEVICE_TYPE);
       
       // get all of the device implementations
-      for(Iterator i = devices.iterator(); i.hasNext();)
+      for(UPnPDevice device: devices)
       {
-         UPnPDevice device = (UPnPDevice)i.next();
-         
          if(device.getImplementation() != null &&
             device.getImplementation() instanceof InternetGatewayDeviceClient)
          {
-            igds.add(device.getImplementation());
+            igds.add((InternetGatewayDeviceClient)device.getImplementation());
          }
       }
       
@@ -70,16 +69,17 @@ public class InternetGatewayControlPoint extends UPnPControlPoint
     * @return all discovered Internet Gateway Devices with the specified
     *         external IP address.
     */
-   public Vector getDiscoveredInternetGateways(String externalIPAddress)
+   public Vector<InternetGatewayDeviceClient> getDiscoveredInternetGateways(
+      String externalIPAddress)
    {
       // get all discovered internet gateways
-      Vector igds = getDiscoveredInternetGateways();
+      Vector<InternetGatewayDeviceClient> igds = getDiscoveredInternetGateways();
       
       // remove internet gateways with external IP addresses that don't match
-      for(Iterator i = igds.iterator(); i.hasNext();)
+      for(Iterator<InternetGatewayDeviceClient> i = igds.iterator();
+          i.hasNext();)
       {
-         InternetGatewayDeviceClient igd =
-            (InternetGatewayDeviceClient)i.next();
+         InternetGatewayDeviceClient igd = i.next();
          
          try
          {

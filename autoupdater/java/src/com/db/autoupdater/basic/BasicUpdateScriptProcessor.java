@@ -37,7 +37,7 @@ public class BasicUpdateScriptProcessor
     * Stores temporary file names mapped to their appropriate
     * destination files. 
     */
-   protected HashMap mTempFiles;
+   protected HashMap<File, File> mTempFiles;
    
    /**
     * A BasicUpdateScriptProcessEventDelegate for firing
@@ -56,7 +56,7 @@ public class BasicUpdateScriptProcessor
       mScript = script;
 
       // create temp files map
-      mTempFiles = new HashMap();
+      mTempFiles = new HashMap<File, File>();
       
       // create delegate
       mBasicUpdateScriptProcessEventDelegate = new EventDelegate();
@@ -185,7 +185,7 @@ public class BasicUpdateScriptProcessor
    {
       boolean rval = true;
 
-      File sourceFile = (File)mTempFiles.get(command.getRelativePath());
+      File sourceFile = mTempFiles.get(command.getRelativePath());
       File targetFile =
          new File(getWorkingPath() + command.getRelativePath().getPath());
 
@@ -513,10 +513,11 @@ public class BasicUpdateScriptProcessor
       boolean noError = true;
       int commandNumber = 1;
       int downloadItemNumber = 1;
-      for(Iterator i = mScript.getCommands().iterator();
+      for(Iterator<BasicUpdateScriptCommand> i =
+          mScript.getCommands().iterator();
           i.hasNext() && noError && !mCancelProcessing;)
       {
-         BasicUpdateScriptCommand command = (BasicUpdateScriptCommand)i.next();
+         BasicUpdateScriptCommand command = i.next();
          if(command.getName().equals("install"))
          {
             // fire event
@@ -533,10 +534,11 @@ public class BasicUpdateScriptProcessor
       
       // execute each command of the script in order
       commandNumber = 1;
-      for(Iterator i = mScript.getCommands().iterator();
+      for(Iterator<BasicUpdateScriptCommand> i =
+          mScript.getCommands().iterator();
           i.hasNext() && noError && !mCancelProcessing;)
       {
-         BasicUpdateScriptCommand command = (BasicUpdateScriptCommand)i.next();
+         BasicUpdateScriptCommand command = i.next();
          
          if(command.getName().equals("install"))
          {
@@ -545,11 +547,8 @@ public class BasicUpdateScriptProcessor
          else if(command.getName().equals("delete"))
          {
             // perform a delete for each relative path
-            for(Iterator pi = command.getRelativePaths().iterator();
-                pi.hasNext();)
+            for(File path: command.getRelativePaths())
             {
-               File path = (File)pi.next();
-            
                // fire event
                fireBasicUpdateScriptProcessEvent(
                   "fileChanged", command, commandNumber, 0,
@@ -623,11 +622,8 @@ public class BasicUpdateScriptProcessor
       
       // move the old files back, installation failed
       boolean isValid = true;
-      Iterator i = mTempFiles.values().iterator();
-      while(i.hasNext())
+      for(File dest: mTempFiles.values())
       {
-         File dest = (File)i.next();
-         
          String oldPath = dest.getPath();
          if(oldPath.endsWith(".backup"))
          {
@@ -654,10 +650,8 @@ public class BasicUpdateScriptProcessor
       
       // delete all the old files
       boolean isValid = true;
-      Iterator i = mTempFiles.values().iterator();
-      while(i.hasNext())
+      for(File dest: mTempFiles.values())
       {
-         File dest = (File)i.next();
          rval &= dest.delete();
       }
 

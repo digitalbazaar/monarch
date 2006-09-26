@@ -6,7 +6,6 @@ package com.db.upnp.discover;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.SocketTimeoutException;
-import java.util.Iterator;
 import java.util.Vector;
 
 import com.db.net.datagram.DatagramClient;
@@ -70,7 +69,7 @@ public class UPnPDeviceDiscoverer
       UPnPRootDevice[] devices = null;
       
       // create a vector for storing discovered devices
-      Vector discoveredDevices = new Vector(); 
+      Vector<UPnPRootDevice> discoveredDevices = new Vector<UPnPRootDevice>(); 
       
       // get a multicast stream
       DatagramClient client = new DatagramClient();
@@ -130,9 +129,10 @@ public class UPnPDeviceDiscoverer
       // create devices array
       devices = new UPnPRootDevice[discoveredDevices.size()];
       int count = 0;
-      for(Iterator i = discoveredDevices.iterator(); i.hasNext(); count++)
+      for(UPnPRootDevice device: discoveredDevices)
       {
-         devices[count] = (UPnPRootDevice)i.next();
+         devices[count] = device;
+         count++;
       }
       
       // return devices

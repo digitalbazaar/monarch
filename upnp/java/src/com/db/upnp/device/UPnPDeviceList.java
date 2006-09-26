@@ -43,11 +43,12 @@ import com.db.xml.XmlElement;
  * @author Dave Longley
  */
 public class UPnPDeviceList extends AbstractXmlSerializer
+implements Iterable<UPnPDevice>
 {
    /**
     * The UPnPDevices for this list.
     */
-   protected Vector mDevices;
+   protected Vector<UPnPDevice> mDevices;
    
    /**
     * Creates a new UPnPDeviceList.
@@ -55,7 +56,7 @@ public class UPnPDeviceList extends AbstractXmlSerializer
    public UPnPDeviceList()
    {
       // create the devices list
-      mDevices = new Vector();
+      mDevices = new Vector<UPnPDevice>();
    }
    
    /**
@@ -83,9 +84,8 @@ public class UPnPDeviceList extends AbstractXmlSerializer
       listElement.setParent(parent);
       
       // convert each device to an xml element child
-      for(Iterator i = getDevices().iterator(); i.hasNext();)
+      for(UPnPDevice device: getDevices())
       {
-         UPnPDevice device = (UPnPDevice)i.next();
          listElement.addChild(device.convertToXmlElement(listElement));
       }
       
@@ -108,9 +108,8 @@ public class UPnPDeviceList extends AbstractXmlSerializer
       clear();
       
       // convert devices
-      for(Iterator i = element.getChildren("device").iterator(); i.hasNext();)
+      for(XmlElement deviceElement: element.getChildren("device"))
       {
-         XmlElement deviceElement = (XmlElement)i.next();
          UPnPDevice device = new UPnPDevice();
          if(device.convertFromXmlElement(deviceElement))
          {
@@ -152,9 +151,9 @@ public class UPnPDeviceList extends AbstractXmlSerializer
    {
       UPnPDevice rval = null;
       
-      for(Iterator i = iterator(); i.hasNext() && rval == null;)
+      for(Iterator<UPnPDevice> i = iterator(); i.hasNext() && rval == null;)
       {
-         UPnPDevice device = (UPnPDevice)i.next();
+         UPnPDevice device = i.next();
          if(device.getDeviceType().equals(deviceType))
          {
             rval = device;
@@ -169,7 +168,7 @@ public class UPnPDeviceList extends AbstractXmlSerializer
     * 
     * @return the UPnPDevice for this list in a vector.
     */
-   public Vector getDevices()
+   public Vector<UPnPDevice> getDevices()
    {
       return mDevices;
    }
@@ -187,7 +186,7 @@ public class UPnPDeviceList extends AbstractXmlSerializer
     *
     * @return an iterator over the UPnPDevices in this list.
     */
-   public Iterator iterator()
+   public Iterator<UPnPDevice> iterator()
    {
       return getDevices().iterator();
    }
