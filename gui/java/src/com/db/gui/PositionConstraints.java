@@ -50,6 +50,12 @@ public class PositionConstraints implements Cloneable
       ANCHOR_TOP | ANCHOR_LEFT;
    
    /**
+    * Anchors top and right.
+    */
+   public static final int ANCHOR_TOP_RIGHT =
+      ANCHOR_TOP | ANCHOR_RIGHT;
+   
+   /**
     * Anchors top, left, and right.
     */
    public static final int ANCHOR_TOP_LEFT_RIGHT =
