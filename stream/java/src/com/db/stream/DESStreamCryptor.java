@@ -27,20 +27,12 @@ public class DESStreamCryptor extends StreamCryptor
     * will result in undefined behavior.
     * 
     * @param encryptChunkSize the encrypt chunk size.
+    * 
     * @throws IllegalArgumentException
     */
-   public DESStreamCryptor(int encryptChunkSize)
-      throws IllegalArgumentException
+   public DESStreamCryptor(int encryptChunkSize) throws IllegalArgumentException
    {
-      // use 8 for padding
-      super(encryptChunkSize, encryptChunkSize + 8, 8);
-      
-      // encrypt chunk size must be a multiple of padding (8)
-      if(encryptChunkSize % 8 != 0)
-         throw new IllegalArgumentException();
-      
-      // generate a DES key for the encryption and decryption
-      getCryptor().generateInternalKey("DES");
+      this(encryptChunkSize, (SecretKey)null);
    }
    
    /**
@@ -53,6 +45,26 @@ public class DESStreamCryptor extends StreamCryptor
     * 
     * @param encryptChunkSize the encrypt chunk size.
     * @param key the key to use to encrypt and decrypt. 
+    * 
+    * @throws IllegalArgumentException
+    */
+   public DESStreamCryptor(int encryptChunkSize, String key)
+      throws IllegalArgumentException
+   {
+      this(encryptChunkSize, decodeSecretKey(key));
+   }
+   
+   /**
+    * Constructs a DES stream cryptor. The encrypt chunk size must be
+    * specified. The encrypt chunk size is the size that the internal
+    * chunk buffer must reach before it is encrypted. If the encrypt
+    * chunk size passed is not a multiple of padding, an illegal argument
+    * exception will be thrown and any further use of this object
+    * will result in undefined behavior.
+    * 
+    * @param encryptChunkSize the encrypt chunk size.
+    * @param key the key to use to encrypt and decrypt. 
+    * 
     * @throws IllegalArgumentException
     */
    public DESStreamCryptor(int encryptChunkSize, SecretKey key)
@@ -63,41 +75,27 @@ public class DESStreamCryptor extends StreamCryptor
       
       // encrypt chunk size must be a multiple of padding
       if(encryptChunkSize % 8 != 0)
+      {
          throw new IllegalArgumentException();
+      }
       
-      // generate a DES key for the encryption and decryption
-      getCryptor().setKey(key);
+      if(key == null)
+      {
+         // generate a DES key for the encryption and decryption
+         getCryptor().generateInternalKey("DES");
+      }
+      else
+      {
+         // set the key
+         getCryptor().setKey(key);
+      }
    }
-   
-   /**
-    * Constructs a DES stream cryptor. The encrypt chunk size must be
-    * specified. The encrypt chunk size is the size that the internal
-    * chunk buffer must reach before it is encrypted. If the encrypt
-    * chunk size passed is not a multiple of padding, an illegal argument
-    * exception will be thrown and any further use of this object
-    * will result in undefined behavior.
-    * 
-    * @param encryptChunkSize the encrypt chunk size.
-    * @param key the key to use to encrypt and decrypt. 
-    * @throws IllegalArgumentException
-    */
-   public DESStreamCryptor(int encryptChunkSize, String key)
-      throws IllegalArgumentException
-   {
-      super(encryptChunkSize, encryptChunkSize + 8, 8);
-      
-      // encrypt chunk size must be a multiple of 8
-      if(encryptChunkSize % 8 != 0)
-         throw new IllegalArgumentException();
-      
-      // generate a DES key for the encryption and decryption
-      setKey(key);
-   }   
    
    /**
     * Decodes a DES secret key from its encoded byte form.
     *
     * @param encodedKey the encoded byte array of key material.
+    * 
     * @return the decoded secret key object.
     */
    public static SecretKey decodeSecretKey(byte[] encodedKey)
@@ -126,6 +124,7 @@ public class DESStreamCryptor extends StreamCryptor
     * Decodes a DES secret key from its Base64-encoded string form.
     *
     * @param encodedKey the encoded byte array of key material.
+    * 
     * @return the decoded private key object.
     */
    public static SecretKey decodeSecretKey(String encodedKey)

@@ -8,36 +8,36 @@ import com.db.logging.LoggerManager;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.DESedeKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
- * A class that encrypts and decrypts streaming data
- * using the TripleDES "DESede" algorithm.
+ * A class that encrypts and decrypts streaming data using the "AES" algorithm
+ * (Advanced Encryption Algorithm).
  * 
  * @author Dave Longley
  */
-public class TripleDesStreamCryptor extends StreamCryptor
+public class AesStreamCryptor extends StreamCryptor
 {
    /**
-    * Constructs a TripleDES stream cryptor. The encrypt chunk size must be
-    * specified. The encrypt chunk size is the size that the internal chunk
-    * buffer must reach before it is encrypted. If the encrypt chunk size
-    * passed is not a multiple of 8, an illegal argument exception will be
-    * thrown and any further use of this object will result in undefined
-    * behavior.
+    * Constructs a AES stream cryptor. The encrypt chunk size must be
+    * specified. The encrypt chunk size is the size that the internal
+    * chunk buffer must reach before it is encrypted. If the encrypt
+    * chunk size passed is not a multiple of 16, an illegal argument
+    * exception will be thrown and any further use of this object
+    * will result in undefined behavior.
     * 
     * @param encryptChunkSize the encrypt chunk size.
     * 
     * @throws IllegalArgumentException
     */
-   public TripleDesStreamCryptor(int encryptChunkSize)
+   public AesStreamCryptor(int encryptChunkSize)
       throws IllegalArgumentException
    {
       this(encryptChunkSize, (SecretKey)null);
    }
    
    /**
-    * Constructs a TripleDES stream cryptor. The encrypt chunk size must be
+    * Constructs a AES stream cryptor. The encrypt chunk size must be
     * specified. The encrypt chunk size is the size that the internal
     * chunk buffer must reach before it is encrypted. If the encrypt
     * chunk size passed is not a multiple of padding, an illegal argument
@@ -45,18 +45,18 @@ public class TripleDesStreamCryptor extends StreamCryptor
     * will result in undefined behavior.
     * 
     * @param encryptChunkSize the encrypt chunk size.
-    * @param key the key to use to encrypt and decrypt. 
+    * @param key the key to use to encrypt and decrypt.
     * 
     * @throws IllegalArgumentException
     */
-   public TripleDesStreamCryptor(int encryptChunkSize, String key)
+   public AesStreamCryptor(int encryptChunkSize, String key)
       throws IllegalArgumentException
    {
       this(encryptChunkSize, decodeSecretKey(key));
-   }
+   }   
    
    /**
-    * Constructs a TripleDES stream cryptor. The encrypt chunk size must be
+    * Constructs a AES stream cryptor. The encrypt chunk size must be
     * specified. The encrypt chunk size is the size that the internal
     * chunk buffer must reach before it is encrypted. If the encrypt
     * chunk size passed is not a multiple of padding, an illegal argument
@@ -68,22 +68,22 @@ public class TripleDesStreamCryptor extends StreamCryptor
     * 
     * @throws IllegalArgumentException
     */
-   public TripleDesStreamCryptor(int encryptChunkSize, SecretKey key)
+   public AesStreamCryptor(int encryptChunkSize, SecretKey key)
       throws IllegalArgumentException
    {
-      // use 8 for padding
-      super(encryptChunkSize, encryptChunkSize + 8, 8);
+      // use 16 for padding
+      super(encryptChunkSize, encryptChunkSize + 16, 16);
       
       // encrypt chunk size must be a multiple of padding
-      if(encryptChunkSize % 8 != 0)
+      if(encryptChunkSize % 16 != 0)
       {
          throw new IllegalArgumentException();
       }
       
       if(key == null)
       {
-         // generate a DESede key for the encryption and decryption
-         getCryptor().generateInternalKey("DESede");
+         // generate a AES key for the encryption and decryption
+         getCryptor().generateInternalKey("AES");
       }
       else
       {
@@ -93,7 +93,7 @@ public class TripleDesStreamCryptor extends StreamCryptor
    }
    
    /**
-    * Decodes a TripleDES secret key from its encoded byte form.
+    * Decodes a AES secret key from its encoded byte form.
     *
     * @param encodedKey the encoded byte array of key material.
     * 
@@ -107,15 +107,13 @@ public class TripleDesStreamCryptor extends StreamCryptor
       {
          try
          {
-            DESedeKeySpec keySpec = new DESedeKeySpec(encodedKey);
-            SecretKeyFactory keyFactory =
-               SecretKeyFactory.getInstance("DESede");
+            SecretKeySpec keySpec = new SecretKeySpec(encodedKey, "AES");
+            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("AES");
             secretKey = keyFactory.generateSecret(keySpec);
          }
          catch(Exception e)
          {
-            LoggerManager.getLogger("dbstream").debug(
-               TripleDesStreamCryptor.class, 
+            LoggerManager.getLogger("dbstream").debug(AesStreamCryptor.class, 
                LoggerManager.getStackTrace(e));
          }
       }
@@ -124,7 +122,7 @@ public class TripleDesStreamCryptor extends StreamCryptor
    }
    
    /**
-    * Decodes a DES secret key from its Base64-encoded string form.
+    * Decodes a AES secret key from its Base64-encoded string form.
     *
     * @param encodedKey the encoded byte array of key material.
     * 
