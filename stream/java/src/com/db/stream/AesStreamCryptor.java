@@ -7,7 +7,6 @@ import com.db.crypto.KeyManager;
 import com.db.logging.LoggerManager;
 
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
@@ -107,9 +106,7 @@ public class AesStreamCryptor extends StreamCryptor
       {
          try
          {
-            SecretKeySpec keySpec = new SecretKeySpec(encodedKey, "AES");
-            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("AES");
-            secretKey = keyFactory.generateSecret(keySpec);
+            secretKey = new SecretKeySpec(encodedKey, "AES");
          }
          catch(Exception e)
          {
