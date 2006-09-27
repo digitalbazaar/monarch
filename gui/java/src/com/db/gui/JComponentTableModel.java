@@ -255,7 +255,7 @@ implements SortableTableModel, ComponentListener
     * 
     * @param colClasses the column classes for this model.
     */
-   public void setColumnClasses(Class<Object>[] colClasses)
+   public void setColumnClasses(Class<?>[] colClasses)
    {
       mColumnClasses = colClasses;
    }
