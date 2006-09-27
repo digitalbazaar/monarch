@@ -28,7 +28,7 @@ public class UTXmlSerializer
       try
       {
          // set up logger
-         LoggerManager.setFile("dbxml", "ut-filelock.log", false);
+         LoggerManager.setFile("dbxml", "ut-xmlserializer.log", false);
          LoggerManager.setFileVerbosity("dbxml", Logger.DETAIL_VERBOSITY);
          LoggerManager.setConsoleVerbosity("dbxml", Logger.ERROR_VERBOSITY);
          
@@ -224,6 +224,6 @@ public class UTXmlSerializer
       public Vector<Test1> getTest1sAsKids()
       {
          return mTest1s;
-      }      
+      }
    }
 }
