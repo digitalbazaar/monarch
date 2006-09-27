@@ -79,7 +79,7 @@ public class UTSemaphore
          
          // fire background thread to set permits
          mi = new MethodInvoker(
-            UTSemaphore.class, "setPermitCount", null);
+            UTSemaphore.class, "setPermitCount");
          mi.backgroundExecute();
          
          System.out.println("Acquiring 1 permit...");

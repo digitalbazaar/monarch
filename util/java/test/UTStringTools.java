@@ -59,7 +59,7 @@ public class UTStringTools
                StringTools.removeContent(testStrings[i], ",", "1234") + "\"");
          }
          
-         UniqueSet set = new UniqueSet();
+         UniqueSet<String> set = new UniqueSet<String>();
          set.add("1");
          set.add("2");
          set.add("3");

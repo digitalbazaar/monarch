@@ -64,15 +64,21 @@ public class UTInternetGatewayControlPoint
                (InternetGatewayDeviceClient)i.next();
             
             // remove port mapping
-            igd.removePortMapping(portMapping);
+            //igd.removePortMapping(portMapping);
 
             // add port mapping
-            igd.addPortMapping(portMapping);
+            //igd.addPortMapping(portMapping);
+            
+            // overwrite port mapping
+            igd.overwritePortMapping(portMapping);
             
             // get port mapping
             PortMapping mapping = igd.getWanIPConnectionServiceClient().
                getGenericPortMappingEntry(0);
             System.out.println(mapping);
+            
+            // remove port mapping
+            igd.removePortMapping(portMapping);
             
             /*
             mapping = igd.getWanIPConnectionServiceClient().

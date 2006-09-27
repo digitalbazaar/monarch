@@ -9,7 +9,6 @@ import com.db.logging.LoggerManager;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
@@ -574,7 +573,7 @@ public class ConfigOptions
     * 
     * @return a set of all the keys.
     */
-   public Set getKeys()
+   public Set<Object> getKeys()
    {
       return mProperties.keySet();
    }
@@ -586,16 +585,16 @@ public class ConfigOptions
     * 
     * @return a set of all the keys that begin with the passed string.
     */
-   public synchronized Set getKeysStartingWith(String prefix)
+   public synchronized Set<String> getKeysStartingWith(String prefix)
    {
       HashSet<String> set = new HashSet<String>();
       
-      for(Iterator i = getKeys().iterator(); i.hasNext();)
+      for(Object key: getKeys())
       {
-         String key = (String)i.next();
-         if(key.startsWith(prefix))
+         String strKey = (String)key;
+         if(strKey.startsWith(prefix))
          {
-            set.add(key);
+            set.add(strKey);
          }
       }
       
@@ -655,25 +654,23 @@ public class ConfigOptions
          if(overwrite)
          {
             // copy properties
-            for(Iterator i = config.mProperties.keySet().iterator();
-                i.hasNext();)
+            for(Object key: config.mProperties.keySet())
             {
-               String key = (String)i.next();
-               setValue(key, config.getValue(key));
+               String strKey = (String)key;
+               setValue(strKey, config.getValue(strKey));
             }
          }
          else
          {
             // copy properties
-            for(Iterator i = config.mProperties.keySet().iterator();
-                i.hasNext();)
+            for(Object key: config.mProperties.keySet())
             {
-               String key = (String)i.next();
+               String strKey = (String)key;
                
                // only update value if this config doesn't have it
-               if(!hasKey(key))
+               if(!hasKey(strKey))
                {
-                  setValue(key, config.getValue(key));
+                  setValue(strKey, config.getValue(strKey));
                }
             }
          }
@@ -692,11 +689,10 @@ public class ConfigOptions
       if(config != null)
       {
          // copy properties
-         Iterator i = mProperties.keySet().iterator();
-         while(i.hasNext())
+         for(Object key: mProperties.keySet())
          {
-            String key = (String)i.next();
-            config.setValue(key, getValue(key));
+            String strKey = (String)key;
+            config.setValue(strKey, getValue(strKey));
          }
       }
    }
@@ -714,10 +710,8 @@ public class ConfigOptions
       config.mCommands.addAll(mCommands);
       
       // copy value hash map
-      Iterator i = mValueTypeMap.keySet().iterator();
-      while(i.hasNext())
+      for(String key: mValueTypeMap.keySet())
       {
-         String key = (String)i.next();
          config.setValueType(key, getValueType(key));
       }
 

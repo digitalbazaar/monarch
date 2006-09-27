@@ -74,8 +74,11 @@ public class JobDispatcher implements Runnable
    {
       boolean rval = false;
       
-      // add the job to the queue
-      rval = mJobQueue.add(job);
+      if(job != null)
+      {
+         // add the job to the queue
+         rval = mJobQueue.add(job);
+      }
       
       return rval;
    }

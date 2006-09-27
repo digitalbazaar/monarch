@@ -3,7 +3,7 @@
  */
 package com.db.upnp.client.igd;
 
-import com.db.util.BoxingHashMap;
+import java.util.HashMap;
 
 /**
  * A PortMapping on an Internet Gateway Device.
@@ -15,7 +15,7 @@ public class PortMapping
    /**
     * A BoxingHashMap that stores the data for this PortMapping.
     */
-   protected BoxingHashMap mData;
+   protected HashMap<Object, Object> mData;
    
    /**
     * Creates a new blank PortMapping.
@@ -23,7 +23,7 @@ public class PortMapping
    public PortMapping()
    {
       // create data map
-      mData = new BoxingHashMap();
+      mData = new HashMap<Object, Object>();
       
       // set defaults
       setRemoteHost("");
@@ -41,20 +41,20 @@ public class PortMapping
     * 
     * @param retvals a map of return values from an action.
     */
-   public PortMapping(BoxingHashMap retvals)
+   public PortMapping(HashMap retvals)
    {
       // set defaults
       this();
       
       // copy values
-      setRemoteHost(retvals.getString("NewRemoteHost"));
-      setExternalPort(retvals.getShort("NewExternalPort"));
-      setProtocol(retvals.getString("NewProtocol"));
-      setInternalPort(retvals.getShort("NewInternalPort"));
-      setInternalClient(retvals.getString("NewInternalClient"));
-      setEnabled(retvals.getBoolean("NewEnabled"));
-      setDescription(retvals.getString("NewPortMappingDescription"));
-      setLeaseDuration(retvals.getInt("NewLeaseDuration"));
+      setRemoteHost((String)retvals.get("NewRemoteHost"));
+      setExternalPort((Short)retvals.get("NewExternalPort"));
+      setProtocol((String)retvals.get("NewProtocol"));
+      setInternalPort((Short)retvals.get("NewInternalPort"));
+      setInternalClient((String)retvals.get("NewInternalClient"));
+      setEnabled((Boolean)retvals.get("NewEnabled"));
+      setDescription((String)retvals.get("NewPortMappingDescription"));
+      setLeaseDuration((Integer)retvals.get("NewLeaseDuration"));
    }
    
    /**
@@ -78,7 +78,7 @@ public class PortMapping
     */
    public String getRemoteHost()
    {
-      return mData.getString("RemoteHost");
+      return (String)mData.get("RemoteHost");
    }
    
    /**
@@ -98,7 +98,7 @@ public class PortMapping
     */
    public int getExternalPort()
    {
-      return mData.getInt("ExternalPort");
+      return (Integer)mData.get("ExternalPort");
    }
    
    /**
@@ -122,7 +122,7 @@ public class PortMapping
     */
    public String getProtocol()
    {
-      return mData.getString("PortMappingProtocol");
+      return (String)mData.get("PortMappingProtocol");
    }
    
    /**
@@ -142,7 +142,7 @@ public class PortMapping
     */
    public int getInternalPort()
    {
-      return mData.getInt("InternalPort");
+      return (Integer)mData.get("InternalPort");
    }
    
    /**
@@ -166,7 +166,7 @@ public class PortMapping
     */
    public String getInternalClient()
    {
-      return mData.getString("InternalClient");
+      return (String)mData.get("InternalClient");
    }
    
    /**
@@ -186,7 +186,7 @@ public class PortMapping
     */
    public boolean isEnabled()
    {
-      return mData.getBoolean("PortMappingEnabled");
+      return (Boolean)mData.get("PortMappingEnabled");
    }
    
    /**
@@ -206,7 +206,7 @@ public class PortMapping
     */
    public String getDescription()
    {
-      return mData.getString("PortMappingDescription");
+      return (String)mData.get("PortMappingDescription");
    }
    
    /**
@@ -226,7 +226,7 @@ public class PortMapping
     */
    public int getLeaseDuration()
    {
-      return mData.getInt("PortMappingLeaseDuration");
+      return (Integer)mData.get("PortMappingLeaseDuration");
    }
    
    /**

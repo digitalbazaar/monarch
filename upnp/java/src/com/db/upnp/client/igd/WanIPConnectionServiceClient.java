@@ -4,11 +4,11 @@
 package com.db.upnp.client.igd;
 
 import java.net.ConnectException;
+import java.util.HashMap;
 
 import com.db.upnp.client.AbstractClientUPnPServiceImplementation;
 import com.db.upnp.service.UPnPErrorException;
 import com.db.upnp.service.UPnPService;
-import com.db.util.BoxingHashMap;
 
 /**
  * A WanIPConnectionServiceClient is a client for a WanIPConnection Service.
@@ -66,8 +66,7 @@ extends AbstractClientUPnPServiceImplementation
       try
       {
          // perform the action
-         BoxingHashMap retvals = performAction(
-            "GetGenericPortMappingEntry", new Object[]{new Integer(index)});
+         HashMap retvals = performAction("GetGenericPortMappingEntry", index);
          rval = new PortMapping(retvals);
       }
       catch(UPnPErrorException e)
@@ -115,9 +114,8 @@ extends AbstractClientUPnPServiceImplementation
       try
       {
          // perform the action
-         BoxingHashMap retvals = performAction(
-            "GetSpecificPortMappingEntry",
-            new Object[]{remoteHost, new Integer(externalPort), protocol});
+         HashMap retvals = performAction(
+            "GetSpecificPortMappingEntry", remoteHost, externalPort, protocol);
          rval = new PortMapping(retvals);
       }
       catch(UPnPErrorException e)
@@ -182,21 +180,16 @@ extends AbstractClientUPnPServiceImplementation
    public void addPortMapping(PortMapping portMapping)
    throws ConnectException, UPnPErrorException
    {
-      // build the parameters array for the port mapping
-      Object[] params = new Object[]
-      {
-         portMapping.getRemoteHost(),
-         new Integer(portMapping.getExternalPort()),
-         portMapping.getProtocol(),
-         new Integer(portMapping.getInternalPort()),
-         portMapping.getInternalClient(),
-         new Boolean(portMapping.isEnabled()),
-         portMapping.getDescription(),
-         new Integer(portMapping.getLeaseDuration())
-      };
-      
       // perform the action
-      performAction("AddPortMapping", params);
+      performAction("AddPortMapping",
+         portMapping.getRemoteHost(),
+         portMapping.getExternalPort(),
+         portMapping.getProtocol(),
+         portMapping.getInternalPort(),
+         portMapping.getInternalClient(),
+         portMapping.isEnabled(),
+         portMapping.getDescription(),
+         portMapping.getLeaseDuration());
    }
    
    /**
@@ -308,9 +301,7 @@ extends AbstractClientUPnPServiceImplementation
    throws ConnectException, UPnPErrorException
    {
       // perform the action
-      performAction(
-         "DeletePortMapping",
-         new Object[]{remoteHost, new Integer(externalPort), protocol});
+      performAction("DeletePortMapping", remoteHost, externalPort, protocol);
    }
    
    /**
@@ -331,9 +322,7 @@ extends AbstractClientUPnPServiceImplementation
    public String getExternalIPAddress()
    throws ConnectException, UPnPErrorException
    {
-      BoxingHashMap retvals =
-         performAction("GetExternalIPAddress", null);
-      
-      return retvals.getString("NewExternalIPAddress");
+      HashMap retvals = performAction("GetExternalIPAddress");
+      return (String)retvals.get("NewExternalIPAddress");
    }
 }

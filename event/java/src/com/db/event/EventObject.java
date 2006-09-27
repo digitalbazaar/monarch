@@ -3,8 +3,7 @@
  */
 package com.db.event;
 
-import com.db.util.BoxingHashMap;
-
+import java.util.HashMap;
 import java.util.Set;
 
 /**
@@ -22,13 +21,13 @@ public class EventObject implements Cloneable
    /**
     * A map of data bundled with this event.
     */
-   protected BoxingHashMap mDataMap;
+   protected HashMap<Object, Object> mDataMap;
    
    /**
     * A map of data keys to messages describing something about
     * their data values.
     */
-   protected BoxingHashMap mDataKeyMessageMap;
+   protected HashMap<Object, String> mDataKeyMessageMap;
    
    /**
     * Creates a new EventObject with no specified name.
@@ -46,8 +45,8 @@ public class EventObject implements Cloneable
    public EventObject(String name)
    {
       setName(name);
-      mDataMap = new BoxingHashMap();
-      mDataKeyMessageMap = new BoxingHashMap();
+      mDataMap = new HashMap<Object, Object>();
+      mDataKeyMessageMap = new HashMap<Object, String>();
    }
 
    /**
@@ -113,7 +112,7 @@ public class EventObject implements Cloneable
     */
    public byte getDataByteValue(Object key)
    {
-      return mDataMap.getByte(key);
+      return (Byte)mDataMap.get(key);
    }
    
    /**
@@ -136,7 +135,7 @@ public class EventObject implements Cloneable
     */
    public short getDataShortValue(Object key)
    {
-      return mDataMap.getShort(key);
+      return (Short)mDataMap.get(key);
    }
    
    /**
@@ -159,7 +158,7 @@ public class EventObject implements Cloneable
     */
    public int getDataIntValue(Object key)
    {
-      return mDataMap.getInt(key);
+      return (Integer)mDataMap.get(key);
    }
    
    /**
@@ -182,7 +181,7 @@ public class EventObject implements Cloneable
     */
    public long getDataLongValue(Object key)
    {
-      return mDataMap.getLong(key);
+      return (Long)mDataMap.get(key);
    }
    
    /**
@@ -205,7 +204,7 @@ public class EventObject implements Cloneable
     */
    public float getDataFloatValue(Object key)
    {
-      return mDataMap.getFloat(key);
+      return (Float)mDataMap.get(key);
    }
    
    /**
@@ -228,7 +227,7 @@ public class EventObject implements Cloneable
     */
    public double getDataDoubleValue(Object key)
    {
-      return mDataMap.getDouble(key);
+      return (Double)mDataMap.get(key);
    }
    
    /**
@@ -251,7 +250,7 @@ public class EventObject implements Cloneable
     */
    public boolean getDataBooleanValue(Object key)
    {
-      return mDataMap.getBoolean(key);
+      return (Boolean)mDataMap.get(key);
    }
    
    /**
@@ -274,7 +273,7 @@ public class EventObject implements Cloneable
     */
    public char getDataCharValue(Object key)
    {
-      return mDataMap.getChar(key);
+      return (Character)mDataMap.get(key);
    }
    
    /**
@@ -286,7 +285,7 @@ public class EventObject implements Cloneable
     */
    public String getDataStringValue(Object key)
    {
-      return mDataMap.getString(key);
+      return (String)mDataMap.get(key);
    }
    
    /**
@@ -297,10 +296,10 @@ public class EventObject implements Cloneable
    public void copyDataFrom(EventObject event)
    {
       // copy data map
-      mDataMap.copyFrom(event.mDataMap);
+      mDataMap.putAll(event.mDataMap);
       
       // copy data key message map
-      mDataKeyMessageMap.copyFrom(event.mDataKeyMessageMap);
+      mDataKeyMessageMap.putAll(event.mDataKeyMessageMap);
    }
    
    /**
@@ -356,7 +355,7 @@ public class EventObject implements Cloneable
    {
       String rval = "";
       
-      String message =(String)mDataKeyMessageMap.get(key);
+      String message = mDataKeyMessageMap.get(key);
       if(message != null)
       {
          rval = message;
@@ -376,10 +375,10 @@ public class EventObject implements Cloneable
       EventObject copy = new EventObject(getName());
       
       // copy data map
-      copy.mDataMap = mDataMap.copy();
+      copy.mDataMap.putAll(mDataMap);
       
       // copy data key message map
-      copy.mDataKeyMessageMap = mDataKeyMessageMap.copy();
+      copy.mDataKeyMessageMap.putAll(mDataKeyMessageMap);
       
       // return copy
       return copy;

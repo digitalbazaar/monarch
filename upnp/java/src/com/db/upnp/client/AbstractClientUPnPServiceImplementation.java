@@ -4,7 +4,7 @@
 package com.db.upnp.client;
 
 import java.net.ConnectException;
-import java.util.Iterator;
+import java.util.HashMap;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -16,7 +16,6 @@ import com.db.upnp.service.UPnPService;
 import com.db.upnp.service.UPnPServiceAction;
 import com.db.upnp.service.UPnPServiceActionArgument;
 import com.db.upnp.service.UPnPServiceStateVariable;
-import com.db.util.BoxingHashMap;
 
 /**
  * An AbstractClientUPnPServiceImplementation provides the basic implementation
@@ -65,10 +64,11 @@ implements ClientUPnPServiceImplementation
     *                             refused.
     * @exception UPnPErrorException thrown if a UPnPError occurs.
     */
-   public BoxingHashMap performAction(String actionName, Object[] params)
+   public HashMap<Object, Object> performAction(
+      String actionName, Object... params)
    throws ConnectException, UPnPErrorException
    {
-      BoxingHashMap rval = new BoxingHashMap();
+      HashMap<Object, Object> rval = new HashMap<Object, Object>();
       
       // find the action to perform in service's list of actions
       UPnPServiceAction action =
@@ -81,12 +81,8 @@ implements ClientUPnPServiceImplementation
          
          // add soap parameter for each action argument with "in" direction
          int count = 0;
-         for(Iterator i = action.getArgumentList().iterator();
-             i.hasNext(); count++) 
+         for(UPnPServiceActionArgument argument: action.getArgumentList()) 
          {
-            UPnPServiceActionArgument argument =
-               (UPnPServiceActionArgument)i.next();
-            
             if(argument.getDirection().equals("in"))
             {
                String value = String.valueOf(params[count]);
@@ -107,6 +103,9 @@ implements ClientUPnPServiceImplementation
                // add soap parameter, use passed parameter value
                operation.addParameter(new SoapOperationParameter(
                   argument.getName(), value, null));
+               
+               // increment count
+               count++;
             }
          }
          
@@ -129,11 +128,8 @@ implements ClientUPnPServiceImplementation
             operation = envelope.getSoapOperation();
             
             // get return value for each action argument with "out" direction
-            for(Iterator i = action.getArgumentList().iterator(); i.hasNext();) 
+            for(UPnPServiceActionArgument argument: action.getArgumentList()) 
             {
-               UPnPServiceActionArgument argument =
-                  (UPnPServiceActionArgument)i.next();
-               
                if(argument.getDirection().equals("out"))
                {
                   // get the state variable for the argument

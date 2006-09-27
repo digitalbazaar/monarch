@@ -5,12 +5,12 @@ package com.db.autoupdater.basic;
 
 import java.io.File;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
-import com.db.util.BoxingHashMap;
 import com.db.xml.XmlElement;
 
 /**
@@ -327,7 +327,7 @@ public class BasicUpdateScriptCommand
             mName = element.getAttributeValue("name");
             
             // parse the arguments for the command, put them in a temporary map
-            BoxingHashMap map = new BoxingHashMap();
+            HashMap<Integer, String> map = new HashMap<Integer, String>();
             boolean argumentsValid = true;
             for(Iterator<XmlElement> i = element.getChildren().iterator();
                 i.hasNext() && argumentsValid;)
@@ -354,7 +354,7 @@ public class BasicUpdateScriptCommand
                for(int i = 0; i < map.size(); i++)
                {
                   // add the arguments in order
-                  String argument = map.getString(i);
+                  String argument = map.get(i);
                   mArguments.add(argument);
                }
                

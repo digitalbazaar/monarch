@@ -4,12 +4,12 @@
 package com.db.upnp.client.igd;
 
 import java.net.ConnectException;
+import java.util.HashMap;
 
 import com.db.upnp.client.AbstractClientUPnPServiceImplementation;
 import com.db.upnp.device.UPnPDevice;
 import com.db.upnp.service.UPnPErrorException;
 import com.db.upnp.service.UPnPService;
-import com.db.util.BoxingHashMap;
 
 /**
  * A Layer3ForwardingServiceClient is a client for a Layer3ForwardingService.
@@ -113,7 +113,7 @@ extends AbstractClientUPnPServiceImplementation
    public void setDefaultConnectionService(String serviceString)
    throws ConnectException, UPnPErrorException
    {
-      performAction("SetDefaultConnectionService", new Object[]{serviceString});
+      performAction("SetDefaultConnectionService", serviceString);
    }
    
    /**
@@ -147,9 +147,7 @@ extends AbstractClientUPnPServiceImplementation
    public String getDefaultConnectionService()
    throws ConnectException, UPnPErrorException
    {
-      BoxingHashMap retvals =
-         performAction("GetDefaultConnectionService", null);
-      
-      return retvals.getString("NewDefaultConnectionService");
+      HashMap retvals = performAction("GetDefaultConnectionService");
+      return (String)retvals.get("NewDefaultConnectionService");
    }
 }

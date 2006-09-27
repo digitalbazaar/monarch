@@ -361,7 +361,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
     * @return a soap message for this soap web client.
     */
    public RpcSoapMessage createSoapRequest(
-      Wsdl wsdl, String method, Object[] params)
+      Wsdl wsdl, String method, Object... params)
    {
       // create a soap request
       RpcSoapMessage sm = new RpcSoapMessage();
@@ -599,7 +599,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
     * 
     * @exception SoapFaultException thrown when a SOAP fault is raised.
     */
-   public Object callSoapMethod(String method, Object[] params)
+   public Object callSoapMethod(String method, Object... params)
    throws SoapFaultException
    {
       Object rval = null;
