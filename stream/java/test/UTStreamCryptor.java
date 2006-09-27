@@ -1,12 +1,16 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
+import javax.crypto.SecretKey;
+
+import com.db.crypto.Cryptor;
 import com.db.logging.LoggerManager;
 import com.db.logging.Logger;
 import com.db.stream.AesStreamCryptor;
 import com.db.stream.DESStreamCryptor;
 import com.db.stream.StreamCryptor;
 import com.db.stream.TripleDesStreamCryptor;
+import com.db.util.Base64Coder;
 
 /**
  * A unit test for the StreamCryptor class (and extending classes).
@@ -43,10 +47,21 @@ public class UTStreamCryptor
          StreamCryptor sc;
          long time;
          
+         Base64Coder base64 = new Base64Coder();
+         
+         SecretKey desKey = Cryptor.generateKey("DES");
+         String desKeyStr = base64.encode(desKey.getEncoded());
+         
+         SecretKey tripleDesKey = Cryptor.generateKey("DESede");
+         String tripleDesKeyStr = base64.encode(tripleDesKey.getEncoded());
+         
+         SecretKey aesKey = Cryptor.generateKey("AES");
+         String aesKeyStr = base64.encode(aesKey.getEncoded());
+         
          // DES TEST:
          
          // create a DES stream cryptor
-         sc = new DESStreamCryptor(128);
+         sc = new DESStreamCryptor(64, desKeyStr);
          
          // encrypt file
          time = System.currentTimeMillis();
@@ -65,7 +80,7 @@ public class UTStreamCryptor
          // TRIPLE DES TEST:
          
          // create a TripleDES stream cryptor
-         sc = new TripleDesStreamCryptor(64);
+         sc = new TripleDesStreamCryptor(64, tripleDesKeyStr);
          
          // encrypt file
          time = System.currentTimeMillis();
@@ -84,7 +99,7 @@ public class UTStreamCryptor
          // AES TEST:
          
          // create a AES stream cryptor
-         sc = new AesStreamCryptor(64);
+         sc = new AesStreamCryptor(64, aesKeyStr);
          
          // encrypt file
          time = System.currentTimeMillis();
