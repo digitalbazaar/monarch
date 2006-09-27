@@ -30,6 +30,7 @@ public class UTStreamCryptor
       {
          // set up logger
          LoggerManager.setFile("dbstream", "ut-streamcryptor.log", false);
+         LoggerManager.setFile("dbcrypto", "ut-streamcryptor.log");
          LoggerManager.setFileVerbosity("dbstream", Logger.DETAIL_VERBOSITY);
          LoggerManager.setConsoleVerbosity("dbstream", Logger.ERROR_VERBOSITY);
          

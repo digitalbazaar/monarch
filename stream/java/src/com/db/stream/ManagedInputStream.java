@@ -254,6 +254,13 @@ public class ManagedInputStream extends FilterInputStream
             
             // increment read offset
             mReadOffset += length;
+            
+            // reset read offset and read position if appropriate
+            if(mReadOffset == mReadPos)
+            {
+               mReadPos = 0;
+               mReadOffset = 0;
+            }
          }
       }
 
@@ -374,10 +381,8 @@ public class ManagedInputStream extends FilterInputStream
                // see if this is the last chunk by checking to see if
                // end of stream reached and all data has passed through
                // data manager (or there isn't one)
-               boolean last = (mEndOfStream && mReadPos == 0); 
-               
-               mProcessedData =
-                  mProcessor.processStreamData(data, last);
+               boolean last = (mEndOfStream && mReadPos == 0);
+               mProcessedData = mProcessor.processStreamData(data, last);
             }
             else
             {

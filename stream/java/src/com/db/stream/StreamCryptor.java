@@ -20,24 +20,19 @@ import java.io.RandomAccessFile;
 /**
  * A class for encrypting and decrypting streaming data.
  * 
- * This class uses some specified encryption scheme to encrypt
- * streaming data. Once that data has been encrypted, the size of the
- * last encrypted chunk and the data/file size are appended to
- * the stream. The size of the last encrypted chunk takes up 4 bytes,
- * and the total data/file size takes up 8 bytes. So at the end of the
- * encrypted stream, a total of 12 bytes of information required for
- * decryption will be appended.
+ * This class uses some specified encryption scheme to encrypt streaming
+ * data. Once the data has been encrypted, the size of the original data
+ * (the unencrypted size) is appended to the stream. This size, stored
+ * as a long, takes up 8 bytes. This is required so that when the data
+ * is decrypted, any extra padding can be stripped off.
  * 
- * The last 8 bytes is the total number of encrypted bytes, and therefore
- * the true size that the data should be after decryption. The 4 bytes
- * preceeding those 8 bytes are the size of the very last encrypted chunk,
- * which, in all likelihood, will be smaller than the specified decrypt
- * chunk size. 
+ * So, at the end of the encrypted stream, 8 bytes of information will be
+ * appended.
  * 
  * @author Dave Longley
  */
-public abstract class StreamCryptor implements IStreamManager,
-                                               IStreamProcessor
+public abstract class StreamCryptor
+implements IStreamManager, IStreamProcessor
 {
    /**
     * The underlying Cryptor that does encryption/decryption.
@@ -91,11 +86,6 @@ public abstract class StreamCryptor implements IStreamManager,
    protected long mNumDecryptedBytes;
    
    /**
-    * The decrypt chunk size for the last chunk in the stream.
-    */
-   protected int mLastDecryptChunkSize;
-   
-   /**
     * Constructs a stream cryptor. The decrypt and encrypt chunk sizes must
     * be specified. The decrypt chunk size is the size of a chunk in
     * decrypt mode. The encrypt chunk size is the size of a chunk in
@@ -106,8 +96,8 @@ public abstract class StreamCryptor implements IStreamManager,
     * @param decryptChunkSize the size of a chunk to decrypt.
     * @param padding the padding size.
     */
-   public StreamCryptor(int encryptChunkSize, int decryptChunkSize,
-                        int padding)
+   public StreamCryptor(
+      int encryptChunkSize, int decryptChunkSize, int padding)
    {
       this(new Cryptor(), encryptChunkSize, decryptChunkSize, padding);
    }
@@ -125,9 +115,8 @@ public abstract class StreamCryptor implements IStreamManager,
     * @param decryptChunkSize the size of a chunk to decrypt.
     * @param padding the padding size.
     */
-   public StreamCryptor(Cryptor cryptor,
-                        int encryptChunkSize, int decryptChunkSize,
-                        int padding)
+   public StreamCryptor(
+      Cryptor cryptor, int encryptChunkSize, int decryptChunkSize, int padding)
    {
       mCryptor = cryptor;
       
@@ -138,7 +127,6 @@ public abstract class StreamCryptor implements IStreamManager,
 
       mNumBytesEncrypted = 0;
       mNumDecryptedBytes = 0;
-      mLastDecryptChunkSize = 0;
       
       // default mode is encryption
       setStreamCryptMode(StreamCryptor.ENCRYPT);
@@ -148,6 +136,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * Converts a long to a byte array.
     * 
     * @param l the long to convert.
+    * 
     * @return the byte array for the long.
     */
    protected byte[] convertToBytes(long l)
@@ -178,6 +167,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * 
     * @param data the data to encrypt.
     * @param last whether or not this is the last chunk of data in the stream.
+    * 
     * @return the encrypted chunk of data.
     */
    protected byte[] encryptChunk(byte[] data, boolean last)
@@ -191,17 +181,13 @@ public abstract class StreamCryptor implements IStreamManager,
       // check for last chunk
       if(data.length < getEncryptChunkSize() || last)
       {
-         // append last decrypt chunk size and file size
-         byte[] buffer = new byte[processed.length + 12];
+         // append data size
+         byte[] buffer = new byte[processed.length + 8];
          System.arraycopy(processed, 0, buffer, 0, processed.length);
          
-         // processed length is the last decrypt chunk size
-         byte[] bytes = convertToBytes(processed.length); 
-         System.arraycopy(bytes, 0, buffer, processed.length, 4);
-         
-         // number of bytes encrypted is decrypted file size
-         bytes = convertToBytes(getNumBytesEncrypted());
-         System.arraycopy(bytes, 0, buffer, processed.length + 4, 8);
+         // number of bytes encrypted is unencrypted data size
+         byte[] bytes = convertToBytes(getNumBytesEncrypted());
+         System.arraycopy(bytes, 0, buffer, processed.length, 8);
          
          processed = buffer;
       }
@@ -214,6 +200,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * 
     * @param data the data to decrypt.
     * @param last whether or not this is the last chunk of data in the stream.
+    * 
     * @return the decrypted chunk of data.
     */
    protected byte[] decryptChunk(byte[] data, boolean last)
@@ -222,33 +209,33 @@ public abstract class StreamCryptor implements IStreamManager,
       
       // see how many bytes left to decrypt
       long left = getNumBytesEncrypted() - getNumDecryptedBytes();
-
-      if(left != 0)
+      if(left > 0)
       {
-         // if fewer than decrypt chunk size bytes remaining,
-         // then use last decrypt chunk size
-         if(left < Integer.MAX_VALUE && left < getDecryptChunkSize())
+         // determine the length of the encrypted data based on whether or
+         // not this is the last chunk -- the last chunk has a trailer of
+         // 8 bytes that are not to be decrypted, but rather represent
+         // the size of the unencrypted data
+         int length = data.length;
+         if(last)
          {
-            if(data.length >= getLastDecryptChunkSize())
-            {
-               processed = getCryptor().decrypt(
-                     data, 0, getLastDecryptChunkSize());
-            }
-            else
-            {
-               getLogger().error(getClass(),
-                  "not enough data to decrypt last chunk!");
-            }
-         }
-         else
-         {
-            // decrypt data
-            processed = getCryptor().decrypt(data);
+            // remove trailer bytes
+            length = data.length - 8;
          }
          
-         // update total decrypted bytes
+         // decrypt the data
+         processed = getCryptor().decrypt(data, 0, length);
          if(processed != null)
          {
+            // if the processed length is longer than the remaining
+            // data, then trim the processed data
+            if(left < Integer.MAX_VALUE && processed.length > left)
+            {
+               byte[] buffer = new byte[(int)left];
+               System.arraycopy(processed, 0, buffer, 0, buffer.length);
+               processed = buffer;
+            }
+            
+            // update total decrypted bytes
             mNumDecryptedBytes += processed.length;
          }
          else
@@ -268,13 +255,13 @@ public abstract class StreamCryptor implements IStreamManager,
       // reset values
       mNumBytesEncrypted = 0;
       mNumDecryptedBytes = 0;
-      mLastDecryptChunkSize = 0;
    }
    
    /**
     * Converts a byte array to an int.
     * 
     * @param bytes the byte array to convert.
+    * 
     * @return the int for the byte array.
     */
    public static int convertToInt(byte[] bytes)
@@ -287,6 +274,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * 
     * @param bytes the byte array to convert.
     * @param offset the offset to start converting at.
+    * 
     * @return the int for the byte array.
     */
    public static int convertToInt(byte[] bytes, int offset)
@@ -318,6 +306,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * Converts an int to a byte array.
     * 
     * @param i the int to convert.
+    * 
     * @return the byte array for the int.
     */
    public static byte[] convertToBytes(int i)
@@ -348,6 +337,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * Converts a byte array to a long.
     * 
     * @param bytes the byte array to convert.
+    * 
     * @return the long for the byte array.
     */
    public static long convertToLong(byte[] bytes)
@@ -360,6 +350,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * 
     * @param bytes the byte array to convert.
     * @param offset the offset to start at.
+    * 
     * @return the long for the byte array.
     */
    public static long convertToLong(byte[] bytes, int offset)
@@ -392,6 +383,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * Gets the last decrypt chunk size for an encrypted file. 
     * 
     * @param src the encrypted file.
+    * 
     * @return the last decrypt chunk size.
     */
    public static int getLastDecryptChunkSize(File src)
@@ -421,6 +413,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * Gets the decrypted file size for an encrypted file. 
     * 
     * @param src the encrypted file.
+    * 
     * @return the decrypted file size.
     */
    public static long getDecryptedFileSize(File src)
@@ -452,6 +445,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * 
     * @param mis the managed input stream to read the data from.
     * @param outputStream the stream to write the encrypted data to.
+    * 
     * @return true if successfully encrypted, false if not.
     */
    public boolean encrypt(ManagedInputStream mis, OutputStream outputStream)
@@ -492,6 +486,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * 
     * @param src the file to read the data from.
     * @param dest the file to write the encrypted data to.
+    * 
     * @return true if successfully encrypted, false if not.
     */
    public boolean encrypt(File src, File dest)
@@ -530,6 +525,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * 
     * @param src the file to read the data from.
     * @param dest the file to write the encrypted data to.
+    * 
     * @return true if successfully encrypted, false if not.
     */
    public boolean encrypt(String src, String dest)
@@ -564,8 +560,7 @@ public abstract class StreamCryptor implements IStreamManager,
    
    /**
     * Prepares the decrypt stream by setting the number of bytes to be
-    * decrypted and the size of the last chunk to be decrypted (which
-    * may be different from the other chunks).
+    * decrypted.
     * 
     * @param src the source file that contains the data to be decrypted.
     */
@@ -573,16 +568,16 @@ public abstract class StreamCryptor implements IStreamManager,
    {
       try
       {
-         // seek to end of file and backup 12 bytes to get last
-         // decrypt chunk size and decrypted file size
+         // seek to end of file and backup 8 bytes to get the
+         // encrypted data size
          RandomAccessFile raf = new RandomAccessFile(src, "r");
-         raf.seek(raf.length() - 12);
-         byte[] bytes = new byte[12];
+         raf.seek(raf.length() - 8);
+         byte[] bytes = new byte[8];
          raf.readFully(bytes);
          raf.close();
          
-         setLastDecryptChunkSize(convertToInt(bytes));
-         setNumBytesEncrypted(convertToLong(bytes, 4));
+         // set the number of bytes that have been encrypted
+         setNumBytesEncrypted(convertToLong(bytes));
       }
       catch(Throwable t)
       {
@@ -603,6 +598,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * @param mis the managed input stream to read the data from.
     * @param outputStream the stream to write the decrypted data to.
     * @return true if successfully decrypted, false if not.
+    * 
     * @throws Exception
     */ 
    public boolean decrypt(ManagedInputStream mis, OutputStream outputStream)
@@ -610,7 +606,7 @@ public abstract class StreamCryptor implements IStreamManager,
    {
       boolean rval = false;
       
-      if(getNumBytesEncrypted() != 0 && getLastDecryptChunkSize() != 0)
+      if(getNumBytesEncrypted() != 0)
       {
          setStreamCryptMode(DECRYPT);
          
@@ -655,6 +651,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * 
     * @param src the file to read the data from.
     * @param dest the file to write the decrypted data to.
+    * 
     * @return true if successfully decrypted, false if not.
     */
    public boolean decrypt(File src, File dest)
@@ -698,6 +695,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * 
     * @param src the file to read the data from.
     * @param dest the file to write the decrypted data to.
+    * 
     * @return true if successfully decrypted, false if not.
     */
    public boolean decrypt(String src, String dest)
@@ -743,6 +741,7 @@ public abstract class StreamCryptor implements IStreamManager,
     * @param data the data that has been read so far.
     * @param offset the offset for valid data in the buffer.
     * @param length the number of valid bytes of data in the data buffer.
+    * 
     * @return the positive number of additional bytes required before
     *         the data can be processed, or the negative number of
     *         extra bytes to be saved until this method requests them, or
@@ -756,29 +755,25 @@ public abstract class StreamCryptor implements IStreamManager,
       switch(getStreamCryptMode())
       {
          case ENCRYPT:
+         {
             requiredBytes = getEncryptChunkSize() - length;
             break;
+         }
          case DECRYPT:
-            // see how many bytes left to decrypt
-            long left = getNumBytesEncrypted() - getNumDecryptedBytes();
+         {
+            // need enough bytes for decrypt chunk and 8 byte trailer
+            requiredBytes = getDecryptChunkSize() + 8 - length;
             
-            if(left != 0)
+            // determine if there are enough bytes available
+            if(requiredBytes <= 0)
             {
-               // check to see which of the two is smaller, the decrypt
-               // chunk size or what's required to get the remaining data
-               int less = getDecryptChunkSize();
-               if(left < Integer.MAX_VALUE && left < getDecryptChunkSize())
-               {
-                  // what's left is smaller, so this is the last chunk,
-                  // so set less to the last decrypt chunk size
-                  less = getLastDecryptChunkSize();
-               }
-               
-               // set required bytes according to whichever was less
-               requiredBytes = less - length;
+               // do not let the last 8 bytes through, they may be the trailer
+               // and therefore are not to be decrypted
+               requiredBytes -= 8;
             }
-
+            
             break;
+         }
       }
       
       return requiredBytes;
@@ -792,7 +787,8 @@ public abstract class StreamCryptor implements IStreamManager,
     * 
     * @param data the data to process.
     * @param last whether or not the passed data is the last data
-    *        in the associated stream. 
+    *        in the associated stream.
+    * 
     * @return the processed data.
     */
    public byte[] processStreamData(byte[] data, boolean last)
@@ -805,11 +801,15 @@ public abstract class StreamCryptor implements IStreamManager,
          switch(getStreamCryptMode())
          {
             case ENCRYPT:
+            {
                processed = encryptChunk(data, last);
                break;
+            }
             case DECRYPT:
+            {
                processed = decryptChunk(data, last);
                break;
+            }
          }
       }
       
@@ -925,28 +925,6 @@ public abstract class StreamCryptor implements IStreamManager,
    public long getNumDecryptedBytes()
    {
       return mNumDecryptedBytes;
-   }
-   
-   /**
-    * Sets the last decrypt chunk size. This is the size of the last
-    * chunk to be decrypted, which may differ from the other chunks.
-    * 
-    * @param size the last decrypt chunk size.
-    */
-   public void setLastDecryptChunkSize(int size)
-   {
-      mLastDecryptChunkSize = size;
-   }
-   
-   /**
-    * Gets the last decrypt chunk size. This is the size of the last
-    * chunk to be decrypted, which may differ from the other chunks.
-    * 
-    * @return the last decrypt chunk size.
-    */
-   public int getLastDecryptChunkSize()
-   {
-      return mLastDecryptChunkSize;
    }
    
    /**
