@@ -23,6 +23,8 @@ import java.security.spec.KeySpec;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
+import javax.crypto.spec.DESedeKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * A class that provides management code for private, public,
@@ -878,15 +880,25 @@ public class KeyManager
             if(algorithm.equals("DES"))
             {
                keySpec = new DESKeySpec(encodedKey);
+               SecretKeyFactory keyFactory =
+                  SecretKeyFactory.getInstance(algorithm);
+               secretKey = keyFactory.generateSecret(keySpec);
+            }
+            else if(algorithm.equals("DESede"))
+            {
+               keySpec = new DESedeKeySpec(encodedKey);
+               SecretKeyFactory keyFactory =
+                  SecretKeyFactory.getInstance(algorithm);
+               secretKey = keyFactory.generateSecret(keySpec);
+            }
+            else if(algorithm.equals("AES"))
+            {
+               secretKey = new SecretKeySpec(encodedKey, "AES");
             }
             else
             {
                throw new NoSuchAlgorithmException(algorithm);
             }
-            
-            SecretKeyFactory keyFactory =
-               SecretKeyFactory.getInstance(algorithm);
-            secretKey = keyFactory.generateSecret(keySpec);
          }
          catch(Throwable t)
          {

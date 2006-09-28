@@ -706,7 +706,7 @@ public class Cryptor
    {
       if(mKey == null)
       {
-         generateInternalKey("DES");
+         generateInternalKey("AES");
       }
       
       return encrypt(data, offset, length, mKey);
@@ -1022,7 +1022,7 @@ public class Cryptor
          // create a key if one does not exist
          if(mKey == null)
          {
-            mKey = generateKey("DES");
+            mKey = generateKey("AES");
          }
 
          if(mKey != null)

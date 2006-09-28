@@ -4,10 +4,8 @@
 package com.db.stream;
 
 import com.db.crypto.KeyManager;
-import com.db.logging.LoggerManager;
 
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 /**
  * A class that encrypts and decrypts streaming data using the "AES" algorithm
@@ -104,15 +102,7 @@ public class AesStreamCryptor extends StreamCryptor
 
       if(encodedKey != null)
       {
-         try
-         {
-            secretKey = new SecretKeySpec(encodedKey, "AES");
-         }
-         catch(Exception e)
-         {
-            LoggerManager.getLogger("dbstream").debug(AesStreamCryptor.class, 
-               LoggerManager.getStackTrace(e));
-         }
+         secretKey = KeyManager.decodeSymmetricalKey(encodedKey, "AES");
       }
 
       return secretKey;

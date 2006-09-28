@@ -4,11 +4,8 @@
 package com.db.stream;
 
 import com.db.crypto.KeyManager;
-import com.db.logging.LoggerManager;
 
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.DESedeKeySpec;
 
 /**
  * A class that encrypts and decrypts streaming data
@@ -105,19 +102,7 @@ public class TripleDesStreamCryptor extends StreamCryptor
 
       if(encodedKey != null)
       {
-         try
-         {
-            DESedeKeySpec keySpec = new DESedeKeySpec(encodedKey);
-            SecretKeyFactory keyFactory =
-               SecretKeyFactory.getInstance("DESede");
-            secretKey = keyFactory.generateSecret(keySpec);
-         }
-         catch(Exception e)
-         {
-            LoggerManager.getLogger("dbstream").debug(
-               TripleDesStreamCryptor.class, 
-               LoggerManager.getStackTrace(e));
-         }
+         secretKey = KeyManager.decodeSymmetricalKey(encodedKey, "DESede");
       }
 
       return secretKey;
