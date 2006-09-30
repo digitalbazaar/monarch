@@ -67,9 +67,8 @@ public class MpegAudioFrame
     * 
     * For Layer I:
     * 
-    * The number of bits used is 4 * the number of channels (stereo = 2,
-    * mono = 1) * the lowest subband + the number of subbands in use which is
-    * just 32 - the lowest subband.
+    * The number of bits used is two times (because stereo is 2 channels) the
+    * number of stereo subbands plus the number of mono subbands -- all times 4.
     * 
     * For Layer II:
     * 
@@ -77,9 +76,9 @@ public class MpegAudioFrame
     * 
     * For Layer III:
     * 
-    * The number of bits used is the same as the length of the side information.
-    * This is 32 bytes for MPEG 1/Stereo, 17 bytes for MPEG 1/Mono,
-    * 17 bytes for MPEG 2/2.5/Stereo, and 9 bytes for MPEG 2/2.5/Mono.
+    * The bits used are the side information. This is 32 bytes for
+    * MPEG 1/Stereo, 17 bytes for MPEG 1/Mono, 17 bytes for MPEG 2/2.5/Stereo,
+    * and 9 bytes for MPEG 2/2.5/Mono.
     * 
     * @return the calculated CRC.
     */
@@ -102,14 +101,18 @@ public class MpegAudioFrame
          switch(getHeader().getLayer())
          {
             case Layer1: 
-               // layer I uses channels and band range
-               audioDataBits = 4 * (channels * lowerBand) + (32 - lowerBand);
+               // layer I determines the amount of data to pass through the
+               // CRC algorithm by multiplying stereo bands by 2 channels
+               // and adding them to mono bands -- then multiplying by 4
+               // this algorithm simplifies that calculation ... when
+               // no stereo is used the lowerBand is set to 32
+               audioDataBits = 4 * (channels * lowerBand + (32 - lowerBand));
                break;
             case Layer2:
                // assume CRC is correct, not implemented
                break;
             case Layer3:
-               // layer III uses side information length (x8 to get bits)
+               // layer III uses side information for the CRC (x8 to get bits)
                audioDataBits = getHeader().getSideInformationLength() * 8;
                break;
          }
