@@ -3,6 +3,7 @@
  */
 package com.db.data.format;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 
 /**
@@ -658,6 +659,55 @@ public class MpegAudioFrameHeader
    }
    
    /**
+    * Gets the number of channels used in the frame.
+    * 
+    * @return the number of channels used in the frame.
+    */
+   public int getChannelCount()
+   {
+      // get the channel mode
+      ChannelMode cm = getChannelMode();
+      
+      // return the number of channels
+      return cm.channelCount();
+   }
+   
+   /**
+    * Gets the channel mode extension for the frame.
+    * 
+    * @return the channel mode extension for the frame.
+    */
+   public ChannelModeExtension getChannelModeExtension()
+   {
+      // get the header bytes
+      byte[] data = getBytes();
+      
+      // the channel mode extension is located in bits 5 and 4 for byte 3, so
+      // shift to the right 4 and then AND with 0x03
+      // with 00110000 >> 4 = 00000011 & 0x03 = 11
+      byte extension = (byte)((data[3] >> 4) & 0x03);
+      
+      // return the appropriate channel mode extension
+      return ChannelModeExtension.getChannelModeExtension(
+         extension, getLayer());      
+   }
+   
+   /**
+    * Gets the lowest subband the joint stereo is bound to. This value is
+    * required for CRC-16 calculation for Layer I frames.
+    * 
+    * @return the Joint Stereo subband lower bound.
+    */
+   public int getJointStereoLowerBand()
+   {
+      // get the channel mode extension
+      ChannelModeExtension extension = getChannelModeExtension();
+      
+      // return the lower band
+      return extension.lowerBand();
+   }
+   
+   /**
     * Sets whether or not the frame is marked as copyrighted.
     * 
     * @param copyrighted true to mark this frame as copyrighted, false to mark
@@ -750,7 +800,97 @@ public class MpegAudioFrameHeader
    }
    
    /**
-    * Gets the length of the frame in bytes.
+    * Gets the emphasis for the frame.
+    * 
+    * @return the emphasis for the frame.
+    */
+   public Emphasis getEmphasis()
+   {
+      // get the header bytes
+      byte[] data = getBytes();
+      
+      // the emphasis is located in bits 1 and 0 for byte 3, so shift
+      // AND with 0x03
+      // with 00000011 & 0x03 = 11
+      byte emphasis = (byte)(data[3] & 0x03);
+      
+      // return the appropriate emphasis
+      return Emphasis.getEmphasis(emphasis);
+   }
+   
+   /**
+    * Gets the side information size for this header in bytes. The side
+    * information is either 32, 17, or 9 bytes in length. This information
+    * is used to help decoders and is used to calculate the CRC-16 for
+    * Layer III MPEG Audio frames.
+    * 
+    * @return the side information length for this header in bytes.
+    */
+   public int getSideInformationLength()
+   {
+      int rval = 0;
+      
+      // get version
+      Version version = getVersion();
+      
+      // get channel count
+      int channels = getChannelCount();
+      
+      if(version == Version.Mpeg1)
+      {
+         if(channels == 2)
+         {
+            // MPEG 1, stereo = 32 bytes
+            rval = 32;
+         }
+         else if(channels == 1)
+         {
+            // MPEG 1, mono = 17 bytes
+            rval = 17;
+         }
+      }
+      else
+      {
+         if(channels == 2)
+         {
+            // MPEG 2/2.5, stereo = 17 bytes
+            rval = 17;
+         }
+         else
+         {
+            // MPEG 2/2.5, mono = 9 bytes
+            rval = 9;
+         }
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the length of the audio data in the frame (excluding the header and
+    * any CRC-16) in bytes.
+    * 
+    * @return the length of the audio data in the frame in bytes.
+    */
+   public int getAudioDataLength()
+   {
+      int rval = 0;
+      
+      // subtract the header length from the frame length
+      rval = getFrameLength() - 4;
+      
+      // subtract the CRC-16, if applicable
+      if(isCrcEnabled())
+      {
+         rval -= 2;
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the length of the frame in bytes. This includes the header of 4
+    * bytes, an option CRC-16 of 2 bytes, and the audio data. 
     * 
     * @return the length of the frame in bytes.
     */
@@ -1039,7 +1179,7 @@ public class MpegAudioFrameHeader
       {
          Layer rval = Layer.Reserved;
          
-         // set the appropriate version
+         // set the appropriate layer
          for(Layer l: Layer.values()) 
          {
             if(l.bitValues() == bitValues)
@@ -1062,24 +1202,24 @@ public class MpegAudioFrameHeader
    public enum ChannelMode
    {
       /**
-       * Stereo.
+       * Stereo. 2 Channels.
        */
-      Stereo("Stereo", (byte)0x00),
+      Stereo("Stereo", (byte)0x00, 2),
 
       /**
-       * Joint Stereo.
+       * Joint Stereo. 2 Channels.
        */
-      JointStereo("Joint Stereo", (byte)0x01),
+      JointStereo("Joint Stereo", (byte)0x01, 2),
       
       /**
-       * Dual Channel.
+       * Dual Channel. 2 Channels.
        */
-      DualChannel("Dual Channel", (byte)0x02),
+      DualChannel("Dual Channel", (byte)0x02, 2),
       
       /**
-       * Single Channel.
+       * Single Channel. 1 Channel.
        */
-      SingleChannel("Single Channel", (byte)0x03);
+      SingleChannel("Single Channel", (byte)0x03, 1);
       
       /**
        * The name for this channel mode.
@@ -1093,15 +1233,22 @@ public class MpegAudioFrameHeader
       protected byte mBitValues;
       
       /**
+       * The number of channels used by this mode.
+       */
+      protected int mChannelCount;
+      
+      /**
        * Creates a new ChannelMode with the specified bit values.
        * 
        * @param name the name for this channel mode.
        * @param bitValues the bit values for this channel mode.
+       * @param channels the number of channels used by this mode.
        */
-      ChannelMode(String name, byte bitValues)
+      ChannelMode(String name, byte bitValues, int channels)
       {
          mName = name;
          mBitValues = bitValues;
+         mChannelCount = channels;
       }
       
       /**
@@ -1112,6 +1259,16 @@ public class MpegAudioFrameHeader
       public byte bitValues()
       {
          return mBitValues;
+      }
+      
+      /**
+       * Gets the number of channels used by this mode.
+       * 
+       * @return the number of channels used by this mode.
+       */
+      public int channelCount()
+      {
+         return mChannelCount;
       }
       
       /**
@@ -1135,7 +1292,7 @@ public class MpegAudioFrameHeader
       {
          ChannelMode rval = ChannelMode.Stereo;
          
-         // set the appropriate version
+         // set the appropriate channel mode
          for(ChannelMode cm: ChannelMode.values()) 
          {
             if(cm.bitValues() == bitValues)
@@ -1148,6 +1305,285 @@ public class MpegAudioFrameHeader
          return rval;
       }
    }
+   
+   /**
+    * A ChannelModeExtension enumerates the possible channel mode extensions
+    * for MPEG Audio and their bit values in this header.
+    * 
+    * JJ: Channel Mode Extension (used only for Joint Stereo Channel Mode).
+    * 
+    * These bits are dynamically determined by an encoder using Joint Stereo
+    * Channel Mode.
+    * 
+    * For Layers I & II the frequency range of the MPEG data is divided into 32
+    * subbands. These two bits (JJ) determine where intensity stereo is applied
+    * like so:
+    * 
+    * Layers I & II
+    * bits  band range
+    * 00    4 - 31
+    * 01    8 - 31
+    * 10    12 - 31
+    * 11    16 - 31
+    * 
+    * For Layer III these two bits (JJ) determine which type of joint stereo
+    * is used (intensity stereo or m/s stereo). The frequency range is
+    * determined by the decompression algorithm.
+    * 
+    * Layer III
+    * bits Intensity Stereo  MS Stereo
+    * 00   off               off
+    * 01   on                off
+    * 10   off               on
+    * 11   on                on
+    * 
+    * @author Dave Longley
+    */
+   public enum ChannelModeExtension
+   {
+      /**
+       * Band range 4-31. Used with Layers I & II.
+       */
+      BandRange4("Band Range 4-31", (byte)0x00, 4),
+
+      /**
+       * Band range 8-31. Used with Layers I & II.
+       */
+      BandRange8("Band Range 8-31", (byte)0x01, 8),
+      
+      /**
+       * Band range 12-31. Used with Layers I & II.
+       */
+      BandRange12("Band Range 12-31", (byte)0x02, 12),
+      
+      /**
+       * Band range 16-31. Used with Layers I & II.
+       */
+      BandRange16("Band Range 16-31", (byte)0x03, 16),
+      
+      /**
+       * Intensity Stereo Off, MS Stereo Off. Used with Layer III.
+       */
+      IntensityOffMSOff("Intensity Stereo Off/MS Stereo Off", (byte)0x00, 32),
+
+      /**
+       * Intensity Stereo On, MS Stereo Off. Used with Layer III.
+       */
+      IntensityOnMSOff("Intensity Stereo On/MS Stereo Off", (byte)0x01, 32),
+      
+      /**
+       * Intensity Stereo Off, MS Stereo On. Used with Layer III.
+       */
+      IntensityOffMSOn("Intensity Stereo Off/MS Stereo On", (byte)0x02, 32),
+      
+      /**
+       * Intensity Stereo On, MS Stereo On. Used with Layer III.
+       */
+      IntensityOnMSOn("Intensity Stereo On/MS Stereo On", (byte)0x03, 32);
+      
+      /**
+       * The name for this channel mode.
+       */
+      protected String mName;
+      
+      /**
+       * The bit values for this channel mode. These values are using in an
+       * MpegAudioFrameHeader.
+       */
+      protected byte mBitValues;
+      
+      /**
+       * The lower band bound for this extension. This is only valid for
+       * Layer I & II extensions.
+       */
+      protected int mLowerBand;
+      
+      /**
+       * Creates a new ChannelModeExtension with the specified bit values.
+       * 
+       * @param name the name for this channel mode extension.
+       * @param bitValues the bit values for this channel mode extension.
+       * @param lowerBand the lowest subband for this extension.
+       */
+      ChannelModeExtension(String name, byte bitValues, int lowerBand)
+      {
+         mName = name;
+         mBitValues = bitValues;
+         mLowerBand = lowerBand;
+      }
+      
+      /**
+       * Returns the bit values for this channel mode extension as a byte.
+       *
+       * @return the bit values for this channel mode extension as a byte.
+       */
+      public byte bitValues()
+      {
+         return mBitValues;
+      }
+      
+      /**
+       * Returns the lower band bound for this extension. This is only
+       * valid for Layer I && II extensions. Always returns 32 (maximum
+       * subband) for Layer III.
+       * 
+       * @return the lower band bound.
+       */
+      public int lowerBand()
+      {
+         return mLowerBand;
+      }
+      
+      /**
+       * Returns the name for this channel mode extension.
+       * 
+       * @return the name for this channel mode extension.
+       */
+      public String toString()
+      {
+         return mName;
+      }
+      
+      /**
+       * Gets a channel mode extension from the given bit values.
+       * 
+       * @param bitValues the bit values for the channel mode extension 
+       *                  as a byte.
+       * @param layer the layer the extension is for.
+       * 
+       * @return the channel mode extension from the given bit values.
+       */
+      public static ChannelModeExtension getChannelModeExtension(
+         byte bitValues, Layer layer)
+      {
+         ChannelModeExtension rval = null;
+         
+         if(layer == Layer.Layer3)
+         {
+            // set the appropriate channel mode extension
+            for(ChannelModeExtension cme: EnumSet.range(
+                   IntensityOffMSOff, IntensityOnMSOn)) 
+            {
+               if(cme.bitValues() == bitValues)
+               {
+                  rval = cme;
+                  break;
+               }
+            }            
+         }
+         else
+         {
+            // set the appropriate channel mode extension
+            for(ChannelModeExtension cme: EnumSet.range(
+                   BandRange4, BandRange16)) 
+            {
+               if(cme.bitValues() == bitValues)
+               {
+                  rval = cme;
+                  break;
+               }
+            }
+         }
+         
+         return rval;
+      }
+   }
+   
+   /**
+    * An Emphasis tells a decoder to "re-equalize" sound after a sound
+    * suppression.
+    * 
+    * @author Dave Longley
+    */
+   public enum Emphasis
+   {
+      /**
+       * None.
+       */
+      None("None", (byte)0x00),
+
+      /**
+       * 50/15 ms.
+       */
+      FiftyFifteenMilliseconds("50/15 ms", (byte)0x01),
+      
+      /**
+       * Reserved.
+       */
+      Reserved("Reserved", (byte)0x02),
+      
+      /**
+       * CCIT J.17.
+       */
+      CCITJ17("CCIT J.17", (byte)0x03);
+      
+      /**
+       * The name for this emphasis.
+       */
+      protected String mName;
+      
+      /**
+       * The bit values for this emphasis. These values are using in an
+       * MpegAudioFrameHeader.
+       */
+      protected byte mBitValues;
+      
+      /**
+       * Creates a new Emphasis with the specified bit values.
+       * 
+       * @param name the name for this emphasis.
+       * @param bitValues the bit values for this emphasis.
+       */
+      Emphasis(String name, byte bitValues)
+      {
+         mName = name;
+         mBitValues = bitValues;
+      }
+      
+      /**
+       * Returns the bit values for this emphasis as a byte.
+       *
+       * @return the bit values for this emphasis as a byte.
+       */
+      public byte bitValues()
+      {
+         return mBitValues;
+      }
+      
+      /**
+       * Returns the name for this emphasis.
+       * 
+       * @return the name for this emphasis.
+       */
+      public String toString()
+      {
+         return mName;
+      }
+      
+      /**
+       * Gets a emphasis from the given bit values.
+       * 
+       * @param bitValues the bit values for the emphasis as a byte.
+       * 
+       * @return the emphasis from the given bit values.
+       */
+      public static Emphasis getEmphasis(byte bitValues)
+      {
+         Emphasis rval = Emphasis.None;
+         
+         // set the appropriate emphasis
+         for(Emphasis e: Emphasis.values()) 
+         {
+            if(e.bitValues() == bitValues)
+            {
+               rval = e;
+               break;
+            }
+         }
+         
+         return rval;
+      }
+   }   
    
    /**
     * A BitrateTable maps Bitrate Indices (as bit values in this header) to
