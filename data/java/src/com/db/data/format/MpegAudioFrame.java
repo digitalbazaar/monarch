@@ -3,6 +3,10 @@
  */
 package com.db.data.format;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.zip.CRC32;
 
 /**
@@ -141,27 +145,33 @@ public class MpegAudioFrame
    }
    
    /**
-    * Converts this frame from a byte array.
+    * Converts this frame from a byte array. This method will not check
+    * the CRC-16, if any, of the frame after conversion.
     * 
     * @param bytes the byte array to convert this frame from.
     * @param offset the offset to start converting from in the passed array.
     * @param length the number of valid bytes in the passed array.
     * 
-    * @return true if this frame is valid after converteing from the passed
-    *         array.
+    * @return true if this frame could be converted from the passed bytes.
     */
    public boolean convertFromBytes(byte[] bytes, int offset, int length)
    {
       boolean rval = false;
       
-      // FIXME:
+      // convert the header
+      if(getHeader().convertFromBytes(bytes, offset, length))
+      {
+         // convert the rest of the frame
+         rval = convertFromBytes(bytes, offset + 4, length - 4);
+      }
       
       return rval;
    }   
    
    /**
     * Converts this frame, excluding its header, from a byte array. The
-    * passed header will be used as the header for this frame. 
+    * passed header will be used as the header for this frame. This method
+    * will not check the CRC-16, if any, of the frame after conversion.
     * 
     * @param header the header to use for this frame.
     * @param bytes the byte array to convert this frame (excluding its header)
@@ -169,8 +179,7 @@ public class MpegAudioFrame
     * @param offset the offset to start converting from in the passed array.
     * @param length the number of valid bytes in the passed array.
     * 
-    * @return true if this frame is valid after converting from the passed
-    *         array.
+    * @return true if this frame could be converted from the passed bytes.
     */
    public boolean convertFromBytes(
       MpegAudioFrameHeader header, byte[] bytes, int offset, int length)
@@ -274,10 +283,111 @@ public class MpegAudioFrame
     */
    public byte[] getBytes()
    {
-      byte[] rval = new byte[0];
+      // create a byte array output stream
+      ByteArrayOutputStream baos = new ByteArrayOutputStream(
+         getHeader().getFrameLength());
       
-      // FIXME:
+      try
+      {
+         // write out the frame
+         write(baos);
+      }
+      catch(IOException ignore)
+      {
+         // should not occur -- if it does, its a memory error and we're
+         // out of luck anyway
+      }
+      
+      return baos.toByteArray();
+   }
+   
+   /**
+    * Reads this frame in from the passed input stream.
+    * 
+    * @param is the input stream to read this frame from.
+    * 
+    * @return true if the frame could be read, false if not.
+    * 
+    * @throws IOException if an IO error occurs.
+    */
+   public boolean read(InputStream is)
+   throws IOException
+   {
+      boolean rval = false;
+      
+      // read in 4 bytes for the header
+      byte[] header = new byte[4];
+      
+      int numBytes = -1;
+      int offset = 0;
+      int length = 4;
+      while((numBytes = is.read(header, offset, length)) != -1)
+      {
+         if(numBytes < length)
+         {
+            offset += numBytes;
+            length -= numBytes;
+         }
+      }
+      
+      if(numBytes != -1)
+      {
+         // try to convert the header
+         if(getHeader().convertFromBytes(header, 0, 4))
+         {
+            // read in the necessary data for the frame
+            byte[] frameData = new byte[getHeader().getFrameLength() - 4];
+            
+            int read = 0;
+            offset = 0;
+            length = frameData.length;
+            while((numBytes = is.read(frameData, offset, length)) != -1)
+            {
+               if(numBytes < length)
+               {
+                  offset += numBytes;
+                  length -= numBytes;
+               }
+               
+               read += numBytes;
+            }
+            
+            if(numBytes != -1 && read == frameData.length)
+            {
+               // convert the frame data
+               rval = convertFromBytes(
+                  getHeader(), frameData, 0, frameData.length);
+            }
+         }
+      }
       
       return rval;
+   }
+   
+   /**
+    * Writes this frame out to the passed output stream.
+    * 
+    * @param os the output stream to write this frame to.
+    * 
+    * @throws IOException if an IO error occurs.
+    */
+   public void write(OutputStream os)
+   throws IOException
+   {
+      // write out the header
+      os.write(getHeader().getBytes());
+      
+      // write out the CRC, if any
+      if(getHeader().isCrcEnabled())
+      {
+         // use big endian order (most significant byte first)
+         byte b0 = (byte)(getCrc() & 0xFFFF >> 8);
+         byte b1 = (byte)(getCrc() & 0xFF);
+         os.write(b0);
+         os.write(b1);
+      }
+      
+      // write out audio data
+      os.write(getAudioData());
    }
 }

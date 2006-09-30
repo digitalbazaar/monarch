@@ -991,6 +991,8 @@ public class MpegAudioFrameHeader
       }
       
       sb.append("\nChannel Mode: " + getChannelMode());
+      sb.append("\nChannel Mode Extension: " + getChannelModeExtension());
+      sb.append("\nEmphasis: " + getEmphasis());
       
       sb.append("\nCRC-16 Protected: " + isCrcEnabled());
       sb.append("\nPadded: " + isPadded());
