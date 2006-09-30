@@ -198,31 +198,7 @@ import java.util.HashMap;
  * 11 - Single Channel (Mono)
  * 
  * JJ: Channel Mode Extension (used only for Joint Stereo Channel Mode).
- * 
- * These bits are dynamically determined by an encoder using Joint Stereo
- * Channel Mode.
- * 
- * For Layers I & II the frequency range of the MPEG data is divided into 32
- * subbands. These two bits (JJ) determine where intensity stereo is applied
- * like so:
- * 
- * Layers I & II
- * bits  band range
- * 00    4 - 31
- * 01    8 - 31
- * 10    12 - 31
- * 11    16 - 31
- * 
- * For Layer III these two bits (JJ) determine which type of joint stereo
- * is used (intensity stereo or m/s stereo). The frequency range is determined
- * by the decompression algorithm.
- * 
- * Layer III
- * bits Intensity Stereo  MS Stereo
- * 00   off               off
- * 01   on                off
- * 10   off               on
- * 11   on                on
+ * See the ChannelModeExtension enumeration for details.
  * 
  * K: Copyright bit - Informational only.
  * 0 - Audio is not copyrighted.
@@ -315,9 +291,11 @@ public class MpegAudioFrameHeader
       boolean rval = false;
       
       // this header is valid if it has frame sync and its version,
-      // layer, bitrate, and sampling rate are valid
+      // layer, bitrate, sampling rate are valid, and if its bitrate
+      // and channel mode combination are valid
       if(hasFrameSync() && isVersionValid() && isLayerValid() &&
-         isBitrateValid() && isSamplingRateValid())
+         isBitrateValid() && isSamplingRateValid() &&
+         isBitrateChannelModeCombinationValid())
       {
          rval = true;
       }
@@ -673,6 +651,67 @@ public class MpegAudioFrameHeader
    }
    
    /**
+    * Determines if the bitrate and channel mode are valid combinations for
+    * the frame. This will always return true for Layers I & III, but false
+    * for Layers II in some select cases.
+    * 
+    * @return true if the bitrate and channel mode are valid combinations
+    *         for the frame, false if not.
+    */
+   public boolean isBitrateChannelModeCombinationValid()
+   {
+      boolean rval = false;
+      
+      // get the layer
+      Layer layer = getLayer();
+      
+      if(layer == Layer.Layer2)
+      {
+         // get the bitrate
+         int bitrate = getBitrate();
+         
+         // if the bitrate is free, 64000, or between 96000 and 192000 then
+         // any channel mode is permissible
+         if(bitrate == 0 || bitrate == 64000 ||
+            (bitrate >= 96000 && bitrate <= 192000))
+         {
+            rval = true;
+         }
+         else
+         {
+            // get the channel mode
+            ChannelMode cm = getChannelMode();
+            
+            // if the channel mode is single channel, then the bitrate must
+            // be between 32000 and 56000 or be 80000
+            if(cm == ChannelMode.SingleChannel)
+            {
+               if((bitrate >= 32000 && bitrate <= 56000) || bitrate == 80000)
+               {
+                  rval = true;
+               }
+            }
+            else
+            {
+               // bitrates greater than 224000 and less than 384000 are valid
+               // for stereo channel modes
+               if(bitrate >= 224000 && bitrate <= 384000)
+               {
+                  rval = true;
+               }
+            }
+         }
+      }
+      else
+      {
+         // all combinations are valid for Layers I & III
+         rval = true;
+      }
+      
+      return rval;
+   }   
+   
+   /**
     * Gets the channel mode extension for the frame.
     * 
     * @return the channel mode extension for the frame.
@@ -693,18 +732,20 @@ public class MpegAudioFrameHeader
    }
    
    /**
-    * Gets the lowest subband the joint stereo is bound to. This value is
-    * required for CRC-16 calculation for Layer I frames.
+    * Gets the highest subband the joint stereo is bound to. This means that
+    * there are 2 channels (stereo) of information for subbands up until this
+    * number -- the rest of the subbands use only 1 channel (mono). This value
+    * is required for CRC-16 calculation for Layer I frames.
     * 
-    * @return the Joint Stereo subband lower bound.
+    * @return the Joint Stereo Bound.
     */
-   public int getJointStereoLowerBand()
+   public int getJointStereoBound()
    {
       // get the channel mode extension
       ChannelModeExtension extension = getChannelModeExtension();
       
-      // return the lower band
-      return extension.lowerBand();
+      // return the upper band
+      return extension.upperStereoBand();
    }
    
    /**
@@ -1359,8 +1400,9 @@ public class MpegAudioFrameHeader
     * Channel Mode.
     * 
     * For Layers I & II the frequency range of the MPEG data is divided into 32
-    * subbands. These two bits (JJ) determine where intensity stereo is applied
-    * like so:
+    * subbands. These two bits (JJ) determine where intensity stereo is applied.
+    * The given ranges are where only a single channel is used -- everywhere
+    * else 2 channels are used:
     * 
     * Layers I & II
     * bits  band range
@@ -1368,6 +1410,10 @@ public class MpegAudioFrameHeader
     * 01    8 - 31
     * 10    12 - 31
     * 11    16 - 31
+    * 
+    * So, for bits 00, 4 stereo subbands are used and 28 mono subbands are
+    * used, for bits 01, 8 stereo subbands are used and 24 mono subbands
+    * are used -- and so on. 
     * 
     * For Layer III these two bits (JJ) determine which type of joint stereo
     * is used (intensity stereo or m/s stereo). The frequency range is
@@ -1385,24 +1431,24 @@ public class MpegAudioFrameHeader
    public enum ChannelModeExtension
    {
       /**
-       * Band range 4-31. Used with Layers I & II.
+       * Band range 4-31. Used with Layers I & II. Upper stereo subband is 4.
        */
-      BandRange4("Band Range 4-31", (byte)0x00, 4),
+      BandRange4("Stereo SubBands 0-3, Mono SubBands 4-31", (byte)0x00, 4),
 
       /**
-       * Band range 8-31. Used with Layers I & II.
+       * Band range 8-31. Used with Layers I & II. Upper stereo subband is 8.
        */
-      BandRange8("Band Range 8-31", (byte)0x01, 8),
+      BandRange8("Stereo SubBands 0-7, Mono SubBands 8-31", (byte)0x01, 8),
       
       /**
-       * Band range 12-31. Used with Layers I & II.
+       * Band range 12-31. Used with Layers I & II. Upper stereo subband is 12.
        */
-      BandRange12("Band Range 12-31", (byte)0x02, 12),
+      BandRange12("Stereo SubBands 0-11, Mono SubBands 12-31", (byte)0x02, 12),
       
       /**
-       * Band range 16-31. Used with Layers I & II.
+       * Band range 16-31. Used with Layers I & II. Upper stereo subband is 16.
        */
-      BandRange16("Band Range 16-31", (byte)0x03, 16),
+      BandRange16("Stereo SubBands 0-15, Mono SubBands 16-31", (byte)0x03, 16),
       
       /**
        * Intensity Stereo Off, MS Stereo Off. Used with Layer III.
@@ -1436,23 +1482,23 @@ public class MpegAudioFrameHeader
       protected byte mBitValues;
       
       /**
-       * The lower band bound for this extension. This is only valid for
+       * The upper band bound for this extension. This is only valid for
        * Layer I & II extensions.
        */
-      protected int mLowerBand;
+      protected int mUpperBand;
       
       /**
        * Creates a new ChannelModeExtension with the specified bit values.
        * 
        * @param name the name for this channel mode extension.
        * @param bitValues the bit values for this channel mode extension.
-       * @param lowerBand the lowest subband for this extension.
+       * @param upperBand the highest stereo subband for this extension.
        */
-      ChannelModeExtension(String name, byte bitValues, int lowerBand)
+      ChannelModeExtension(String name, byte bitValues, int upperBand)
       {
          mName = name;
          mBitValues = bitValues;
-         mLowerBand = lowerBand;
+         mUpperBand = upperBand;
       }
       
       /**
@@ -1466,15 +1512,17 @@ public class MpegAudioFrameHeader
       }
       
       /**
-       * Returns the lower band bound for this extension. This is only
-       * valid for Layer I && II extensions. Always returns 32 (maximum
-       * subband) for Layer III.
+       * Returns the upper band bound for stereo for this extension. This is
+       * the highest subband that 2 channels of information are used in (the
+       * rest only use 1 channel). This is only valid for Layer I && II
+       * extensions. Always returns 32 (stereo is determined in another method)
+       * for Layer III.
        * 
-       * @return the lower band bound.
+       * @return the upper stereo band.
        */
-      public int lowerBand()
+      public int upperStereoBand()
       {
-         return mLowerBand;
+         return mUpperBand;
       }
       
       /**

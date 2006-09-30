@@ -93,9 +93,9 @@ public class MpegAudioFrame
          // determine the number of bits of audio data to use in the CRC
          int audioDataBits = 0;
          
-         // get the channel count and lower band
+         // get the channel count and stereo subband bound
          int channels = getHeader().getChannelCount();
-         int lowerBand = getHeader().getJointStereoLowerBand();
+         int bound = getHeader().getJointStereoBound();
          
          // how many bits to use depends on the layer type
          switch(getHeader().getLayer())
@@ -105,8 +105,8 @@ public class MpegAudioFrame
                // CRC algorithm by multiplying stereo bands by 2 channels
                // and adding them to mono bands -- then multiplying by 4
                // this algorithm simplifies that calculation ... when
-               // no stereo is used the lowerBand is set to 32
-               audioDataBits = 4 * (channels * lowerBand + (32 - lowerBand));
+               // no stereo is used the bound is set to 32
+               audioDataBits = 4 * (channels * bound + (32 - bound));
                break;
             case Layer2:
                // assume CRC is correct, not implemented
