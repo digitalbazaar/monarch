@@ -7,7 +7,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.zip.CRC32;
+
+import sun.misc.CRC16;
 
 /**
  * An MpegAudioFrame is a single frame with MPEG Audio data.
@@ -118,6 +119,23 @@ public class MpegAudioFrame
             // determine the number of audio data bytes (round up)
             int audioDataBytes = (int)Math.round(((double)audioDataBits / 8));
             
+            // create a CRC-16
+            CRC16 crc16 = new CRC16();
+            
+            // update the data with the last 2 bytes of the header
+            crc16.update(getHeader().getBytes()[2]);
+            crc16.update(getHeader().getBytes()[3]);
+            
+            // update the data with the audio data bytes
+            for(int i = 0; i < audioDataBytes; i++)
+            {
+               crc16.update(getAudioData()[i]);
+            }
+            
+            // get the CRC-16 value
+            rval = crc16.value;
+            
+            /*
             // create a CRC-32
             CRC32 crc = new CRC32();
             
@@ -128,7 +146,7 @@ public class MpegAudioFrame
             crc.update(getAudioData(), 0, audioDataBytes);
             
             // AND the CRC-32 value to get the CRC-16
-            rval = (int)(crc.getValue() & 0xffff);
+            rval = (int)(crc.getValue() & 0xFFFF);*/
          }
       }
       
@@ -196,9 +214,9 @@ public class MpegAudioFrame
          if(getHeader().isCrcEnabled())
          {
             // read in the CRC-16, it should be the first 2 bytes
-            // of the frame data
-            byte b0 = bytes[offset++];
-            byte b1 = bytes[offset++];
+            // of the frame data, both bytes should be unsigned
+            int b0 = bytes[offset++] & 0xFF;
+            int b1 = bytes[offset++] & 0xFF;
             
             // the CRC is stored in Big Endian, so most significant byte first
             mCrc16 = (b0 << 8) | b1;
@@ -219,6 +237,9 @@ public class MpegAudioFrame
             
             // copy the audio data
             System.arraycopy(bytes, offset, mAudioData, 0, audioDataLength);
+            
+            // conversion successful
+            rval = true;
          }
       }
       
@@ -233,6 +254,27 @@ public class MpegAudioFrame
    public MpegAudioFrameHeader getHeader()
    {
       return mHeader;
+   }
+   
+   /**
+    * Gets the length of this frame in bytes.
+    * 
+    * @return the length of this frame in bytes.
+    */
+   public int getLength()
+   {
+      return getHeader().getFrameLength();
+   }
+   
+   /**
+    * Gets the length of this frame in seconds. This is the amount of time
+    * it takes to play the audio in this frame.
+    * 
+    * @return the audio length of this frame in seconds. 
+    */
+   public double getAudioLength()
+   {
+      return getHeader().getAudioLength();
    }
    
    /**
@@ -321,13 +363,10 @@ public class MpegAudioFrame
       int numBytes = -1;
       int offset = 0;
       int length = 4;
-      while((numBytes = is.read(header, offset, length)) != -1)
+      while(length > 0 && (numBytes = is.read(header, offset, length)) != -1)
       {
-         if(numBytes < length)
-         {
-            offset += numBytes;
-            length -= numBytes;
-         }
+         offset += numBytes;
+         length -= numBytes;
       }
       
       if(numBytes != -1)
@@ -341,14 +380,11 @@ public class MpegAudioFrame
             int read = 0;
             offset = 0;
             length = frameData.length;
-            while((numBytes = is.read(frameData, offset, length)) != -1)
+            while(length > 0 &&
+                  (numBytes = is.read(frameData, offset, length)) != -1)
             {
-               if(numBytes < length)
-               {
-                  offset += numBytes;
-                  length -= numBytes;
-               }
-               
+               offset += numBytes;
+               length -= numBytes;
                read += numBytes;
             }
             

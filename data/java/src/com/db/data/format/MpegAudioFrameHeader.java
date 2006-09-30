@@ -934,6 +934,44 @@ public class MpegAudioFrameHeader
    }
    
    /**
+    * Gets the length of the frame in seconds. This is the amount of time
+    * it takes to play the audio in the frame.
+    * 
+    * @return the length of the frame in seconds.
+    */
+   public double getAudioLength()
+   {
+      double rval = 0.0D;
+      
+      // get the version and layer
+      Version version = getVersion();
+      Layer layer = getLayer();
+      
+      // calculate the audio length based on the version and layer
+      if(layer == Layer.Layer1)
+      {
+         rval = 384D / getSamplingRate();
+      }
+      else if(layer == Layer.Layer2)
+      {
+         rval = 1152D / getSamplingRate();
+      }
+      else if(layer == Layer.Layer3)
+      {
+         if(version == Version.Mpeg1)
+         {
+            rval = 1152D / getSamplingRate();
+         }
+         else
+         {
+            rval = 576D / getSamplingRate();
+         }
+      }
+      
+      return rval;  
+   }
+   
+   /**
     * Gets the header data as a byte array. This byte array will be allocated
     * on demand.
     * 
@@ -999,6 +1037,9 @@ public class MpegAudioFrameHeader
       sb.append("\nPrivate Bit Set: " + isPrivateBitSet());
       sb.append("\nCopyrighted: " + isCopyrighted());
       sb.append("\nOriginal: " + isOriginal());
+      
+      sb.append("\nFrame Length: " + getFrameLength() + " bytes");
+      sb.append("\nAudio Length: " + getAudioLength() + " seconds");
       
       return sb.toString();
    }
