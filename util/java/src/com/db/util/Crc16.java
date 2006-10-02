@@ -280,11 +280,66 @@ package com.db.util;
  * 
  * Now, there are also more optimized ways to calculate a CRC. These
  * involve operating on bytes instead of just bits, and, furthermore, such
- * methods automatically account for the 2 necessary null bytes. 
+ * methods automatically account for the n necessary null bytes.
  * 
+ * To speed up processing the input bit stream we can break our bit stream
+ * up into chunks and XOR them onto our register (add them to the register
+ * all at once). Once we have a chunk on our register, we can go through the
+ * register bit by bit (of the chunk) shifting to the left once for each bit.
+ * We then check to see if the bit we shifted out was a 1 or not, just like
+ * before. If it was, then we divide the whole register by the polynomial key,
+ * again, just like before.
  * 
+ * This is simply a faster way to get the bit stream into the register and
+ * divide it by the key. It also has a positive side affect -- as we process
+ * each chunk all the way through, if we place the chunks at the top of the
+ * register, then the XOR with the key will automatically happen against the
+ * n zeros we require at the end of the input bit stream.
  * 
- * FIXME
+ * For instance, if we have a 4-bit key and we break our input up into
+ * 2 bit chunks and place each chunk at the top of the register, then when
+ * we have shifted both bits out, we will be XOR'ing the polynomial key against
+ * a register that has the 4 extra zeros we need (since, as you shift left,
+ * 0's are added to the right hand side of the register).
+ * 
+ * The same applies for any size register -- for our CRC-16 we have a 16-bit
+ * register, so if we want to process 1 byte at a time, we can place the
+ * byte at the top of the register (left most 8 bits) and shift it out one bit
+ * at a time (XOR'ing with the key as we shift out 1's) -- until the last bit
+ * is processed with a register that is full of the 16 0's we need.
+ * 
+ * Furthermore, if we add another byte to the process, our register get's
+ * XOR'd with the new byte, affectively wiping out the zero's that were in
+ * place until that next byte is processed and the zero's are divided against
+ * again. This allows us to update the CRC easily with new bytes.
+ * 
+ * A further optimization can be made by storing all of the XOR'd bytes in
+ * a table. There are only 256 different byte values -- and if we store
+ * the register that results from processing any one of these bytes, we
+ * can just look it up later and apply the value from the table. This is
+ * true because XOR'ing is equivalent to addition, as explained earlier, which
+ * is associative -- meaning it can happen in any order.
+ * 
+ * If, for every byte we process, we get the top of our register and XOR
+ * it with the incoming byte, we can then check the table for that value
+ * and get the pre-XOR'd register and XOR it against our register. This is
+ * the register that would result from running our byte through one bit at
+ * time -- except that we have already performed all of the calculations that
+ * were necessary.
+ * 
+ * In other words, we start out with an empty register. We add our byte to
+ * the top of the register via XOR. Our calculations would go through each bit
+ * of the top of the register, shifting left, and XOR'ing with the polynomial
+ * key when we shift out a 1. For any given byte at the top of the register,
+ * this calculation will always be the same -- so we can store this value in
+ * a table.
+ * 
+ * So, when we want to add a new byte to the register, we store the current top
+ * of the register, XOR our new byte with it, look up the value for that byte
+ * in the table, shift out the old top of the register and XOR that result with
+ * our new table value and store it as the new register.
+ * 
+ * Every new byte is just an "addition" (modulo 2) to our current register.
  * 
  * @author Dave Longley
  */
@@ -299,6 +354,11 @@ public class Crc16
     * The CRC polynomial key to use.
     */
    protected int mPolynomialKey;
+   
+   /**
+    * A table of pre-XOR'd registers. One value for each possible byte value.
+    */
+   protected int[] mRegisterTable = new int[256];
    
    /**
     * Creates a new Crc16 that uses a polynomial key of 0x8005.
@@ -318,14 +378,59 @@ public class Crc16
       // sets the polynomial key to use
       mPolynomialKey = key;
       
+      // initialize the register table
+      initializeTable();
+      
       // reset
       reset();
+   }
+   
+   /**
+    * Initializes the table of registers, one for each byte value.
+    */
+   protected void initializeTable()
+   {
+      // create a table value for each possible byte value
+      for(int i = 0; i < 256; i++)
+      {
+         // start with a clean register, shift the byte value to the
+         // top of the register
+         int register = i << 8;
+         
+         // go through each bit in the byte
+         for(int bit = 0; bit < 8; bit++)
+         {
+            // shift the register to the left
+            register <<= 1;
+            
+            // see if a 1 was shifted out
+            if((register & 0x10000) != 0)
+            {
+               // XOR with the polynomial key
+               register ^= mPolynomialKey;
+            }
+         }
+         
+         // cut the register to 16-bits
+         register &= 0xffff;
+         
+         // insert the register into the table
+         mRegisterTable[i] = register;
+      }
    }
    
    /**
     * Resets the CRC value to 0.
     */
    public void reset()
+   {
+      resetValueToZero();
+   }
+   
+   /**
+    * Resets the CRC value to 0.
+    */
+   public void resetValueToZero()
    {
       mCrcValue = 0;
    }
@@ -348,18 +453,38 @@ public class Crc16
       // get the byte as an unsigned int
       int value = b & 0xff;
       
-      // shift byte value left 8
-      value <<= 8;
+      // get the current top of the register
+      int top = mCrcValue >> 8;
       
-      // go through each bit
+      // XOR the stored top of the register with the new byte
+      top ^= value;
+      
+      // shift the old top out of the register and XOR with the register value
+      // from the table with the register to get the new crc value
+      mCrcValue = (mCrcValue << 8) ^ mRegisterTable[top];
+      
+      // cut crc to 16-bits (2 bytes)
+      mCrcValue &= 0xffff;
+      
+      /* This code is the code that doesn't make use of a table:
+      
+      // get the byte as an unsigned int
+      int value = b & 0xff;
+      
+      // shift the byte to the left 8 and add it to the top of the register
+      // so that it can be XOR'd against one bit at a time and so that when
+      // the bit is shifted out, the register will have the n zeros necessary
+      // before being XOR'd against the polynomial key
+      mCrcValue ^= value << 8;
+      
+      // go through each bit of the input byte
       for(int i = 0; i < 8; i++)
       {
-         // shift byte value and crc left 1
-         value <<= 1;
+         // shift out the first bit
          mCrcValue <<= 1;
          
-         // determine if the CRC value is divisible by the value
-         if(((mCrcValue ^ value) & 0x10000) != 0)
+         // see if a 1 was shifted out
+         if((mCrcValue & 0x10000) != 0)
          {
             // XOR the CRC value with the CRC polynomial
             mCrcValue ^= mPolynomialKey;
@@ -368,6 +493,7 @@ public class Crc16
       
       // cut crc to 16-bits (2 bytes)
       mCrcValue &= 0xffff;
+      */
    }
    
    /**
