@@ -23,12 +23,17 @@ public class MpegAudioFrame
     * This frame's header.
     */
    protected MpegAudioFrameHeader mHeader;
+   
+   /**
+    * An MpegAudioCrc16 calculator.
+    */
+   protected MpegAudioCrc16 mCrc16;
 
    /**
     * The CRC-16 for the frame, if the header's CRC protection bit is set.
     * Otherwise set to 0.
     */
-   protected int mCrc16;
+   protected int mCrc16Value;
    
    /**
     * Stores the audio data for this frame. This is all data that follows the
@@ -45,8 +50,11 @@ public class MpegAudioFrame
       // create a blank header
       mHeader = new MpegAudioFrameHeader();
       
+      // create CRC calculator
+      mCrc16 = new MpegAudioCrc16();
+      
       // no CRC set for this frame yet
-      mCrc16 = 0;
+      mCrc16Value = 0;
       
       // no audio data for this frame yet
       mAudioData = new byte[0];
@@ -120,17 +128,17 @@ public class MpegAudioFrame
             // determine the number of audio data bytes (round up)
             int audioDataBytes = (int)Math.round(((double)audioDataBits / 8));
             
-            // create an mpeg audio CRC-16
-            MpegAudioCrc16 crc16 = new MpegAudioCrc16();
+            // reset the mpeg audio crc 16
+            mCrc16.reset();
             
             // update the CRC with the last 2 header bytes 
-            crc16.update(getHeader().getBytes(), 2, 2);
+            mCrc16.update(getHeader().getBytes(), 2, 2);
             
             // update the CRC with the number of audio data bytes
-            crc16.update(getAudioData(), 0, audioDataBytes);
+            mCrc16.update(getAudioData(), 0, audioDataBytes);
             
             // get the crc-16
-            rval = crc16.getValue();
+            rval = mCrc16.getValue();
          }
       }
       
@@ -143,7 +151,7 @@ public class MpegAudioFrame
    protected void updateCrc()
    {
       // calculate the CRC
-      mCrc16 = calculateCrc();
+      mCrc16Value = calculateCrc();
    }
    
    /**
@@ -203,7 +211,7 @@ public class MpegAudioFrame
             int b1 = bytes[offset++] & 0xFF;
             
             // the CRC is stored in Big Endian, so most significant byte first
-            mCrc16 = (b0 << 8) | b1;
+            mCrc16Value = (b0 << 8) | b1;
             
             // decrement remaining length
             length -= 2;
@@ -289,7 +297,7 @@ public class MpegAudioFrame
     */
    public int getCrc()
    {
-      return mCrc16;
+      return mCrc16Value;
    }
    
    /**
