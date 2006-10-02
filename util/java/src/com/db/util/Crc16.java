@@ -389,7 +389,7 @@ public class Crc16
    /**
     * A table of pre-XOR'd registers. One value for each possible byte value.
     */
-   protected int[] mRegisterTable = new int[256];
+   protected short[] mRegisterTable = new short[256];
    
    /**
     * Creates a new Crc16 that uses a polynomial key of 0x8005.
@@ -446,7 +446,7 @@ public class Crc16
          register &= 0xffff;
          
          // insert the register into the table
-         mRegisterTable[i] = register;
+         mRegisterTable[i] = (short)register;
       }
    }
    
