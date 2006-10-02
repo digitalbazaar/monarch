@@ -30,9 +30,9 @@ public class UTCrc16
          
          Crc16 crc16 = new Crc16();
          crc16.update(b);
-         short c = (short)(crc16.getValue() & 0xffff);
-         System.out.println("crc=" + c);
-         System.out.println("crc hex=" + Integer.toHexString(c));
+         short c = (short)crc16.getValue();
+         System.out.println("crc=" + (c & 0xffff));
+         System.out.println("crc hex=" + Integer.toHexString(c & 0xffff));
          
          // CRC should be 38c5 in hex
       }
