@@ -944,32 +944,20 @@ public class MpegAudioFrameHeader
       Version version = getVersion();
       Layer layer = getLayer();
       
-      // get the bitrate and sampling rate for the frame
-      double bitrate = getBitrate();
-      double samplingRate = getSamplingRate();
+      // get the bitrate for the frame
+      int bitrate = getBitrate();
       
-      // get the padding for the frame
-      int padding = (isPadded()) ? 1 : 0;
-      
-      // calculate the frame length based on the version and layer
-      if(layer == Layer.Layer1)
+      if(bitrate != 0)
       {
-         rval = (int)Math.floor((12 * (bitrate / samplingRate) + padding) * 4);
+         // bitrate is not free format, so we know the frame length
+         rval = calculateFrameLength(
+                   version, layer, bitrate, getSamplingRate(), isPadded());
       }
-      else if(layer == Layer.Layer2)
+      else
       {
-         rval = (int)Math.floor(144 * (bitrate / samplingRate) + padding);
-      }
-      else if(layer == Layer.Layer3)
-      {
-         if(version == Version.Mpeg1)
-         {
-            rval = (int)Math.floor(144 * (bitrate / samplingRate) + padding);
-         }
-         else
-         {
-            rval = (int)Math.floor(72 * (bitrate / samplingRate) + padding);
-         }
+         // bitrate is free format, so we don't know the frame length,
+         // use the maximum
+         rval = calculateMaxFrameLength(version, layer);
       }
       
       return rval;
@@ -1084,6 +1072,99 @@ public class MpegAudioFrameHeader
       sb.append("\nAudio Length: " + getAudioLength() + " seconds");
       
       return sb.toString();
+   }
+   
+   /**
+    * Calculates frame length in bytes based on version, layer, bitrate,
+    * sampling rate, and padding.
+    * 
+    * @param version the MPEG version.
+    * @param layer the MPEG layer type.
+    * @param bitrate the bitrate (in bits/second).
+    * @param samplingRate the sampling rate (in samples/second).
+    * @param paddingEnabled true if a padding slot is used, false if not.
+    * 
+    * @return the frame length in bytes.
+    */
+   public static int calculateFrameLength(
+      Version version, Layer layer, double bitrate, double samplingRate,
+      boolean paddingEnabled)
+   {
+      int rval = 0;
+      
+      // get the padding for the frame
+      int padding = (paddingEnabled) ? 1 : 0;
+      
+      // calculate the frame length based on the version and layer
+      if(layer == Layer.Layer1)
+      {
+         rval = (int)Math.floor((12 * (bitrate / samplingRate) + padding) * 4);
+      }
+      else if(layer == Layer.Layer2)
+      {
+         rval = (int)Math.floor(144 * (bitrate / samplingRate) + padding);
+      }
+      else if(layer == Layer.Layer3)
+      {
+         if(version == Version.Mpeg1)
+         {
+            rval = (int)Math.floor(144 * (bitrate / samplingRate) + padding);
+         }
+         else
+         {
+            rval = (int)Math.floor(72 * (bitrate / samplingRate) + padding);
+         }
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Calculates the minimum frame length, in bytes, for the given version
+    * and layer.
+    * 
+    * @param version the MPEG version.
+    * @param layer the MPEG layer type.
+    * 
+    * @return the minimum frame length, in bytes, for the given version and
+    *         layer.
+    */
+   public static int calculateMinFrameLength(Version version, Layer layer)   
+   {
+      int rval = 0;
+      
+      // get the minimum bitrate and maximum sampling rate
+      int bitrate = smBitrateTable.getMinBitrate(version, layer);
+      int samplingRate = smSamplingRateTable.getMaxSamplingRate(version);
+      
+      // calculate frame length, use padding
+      rval = calculateFrameLength(version, layer, bitrate, samplingRate, true);
+      
+      return rval;
+   }
+   
+   /**
+    * Calculates the maximum frame length, in bytes, for the given version
+    * and layer.
+    * 
+    * @param version the MPEG version.
+    * @param layer the MPEG layer type.
+    * 
+    * @return the maximum frame length, in bytes, for the given version and
+    *         layer.
+    */
+   public static int calculateMaxFrameLength(Version version, Layer layer)   
+   {
+      int rval = 0;
+      
+      // get the maximum bitrate and minimum sampling rate
+      int bitrate = smBitrateTable.getMaxBitrate(version, layer);
+      int samplingRate = smSamplingRateTable.getMinSamplingRate(version);
+      
+      // calculate frame length, use padding
+      rval = calculateFrameLength(version, layer, bitrate, samplingRate, true);
+      
+      return rval;
    }
    
    /**
@@ -1865,6 +1946,33 @@ public class MpegAudioFrameHeader
          
          return rval;
       }
+      
+      /**
+       * Gets the minimum non-free-format bitrate for the given version and
+       * layer.
+       * 
+       * @param version the MPEG version.
+       * @param layer the MPEG layer type.
+       * 
+       * @return the minimum non-free-format bitrate (in bits/second).
+       */
+      public int getMinBitrate(Version version, Layer layer)
+      {
+         return getBitrate((byte)0x01, version, layer); 
+      }      
+      
+      /**
+       * Gets the maximum bitrate for the given version and layer.
+       * 
+       * @param version the MPEG version.
+       * @param layer the MPEG layer type.
+       * 
+       * @return the maximum bitrate (in bits/second).
+       */
+      public int getMaxBitrate(Version version, Layer layer)
+      {
+         return getBitrate((byte)0x0E, version, layer); 
+      }
    }
    
    /**
@@ -1954,6 +2062,30 @@ public class MpegAudioFrameHeader
          }
          
          return rval;
+      }
+      
+      /**
+       * Gets the minimum sampling rate for the given version.
+       * 
+       * @param version the MPEG version.
+       * 
+       * @return the minimum sampling rate (in samples/second).
+       */
+      public int getMinSamplingRate(Version version)
+      {
+         return getSamplingRate((byte)0x02, version); 
+      }      
+      
+      /**
+       * Gets the maximum sampling rate for the given version.
+       * 
+       * @param version the MPEG version.
+       * 
+       * @return the maximum sampling rate (in samples/second).
+       */
+      public int getMaxSamplingRate(Version version)
+      {
+         return getSamplingRate((byte)0x01, version); 
       }      
    }
 }
