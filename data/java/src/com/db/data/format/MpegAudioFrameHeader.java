@@ -10,8 +10,9 @@ import java.util.HashMap;
  * An MpegAudioFrameHeader is a header for an MpegAudioFrame.
  * 
  * MPEG Audio data is made up of frames. An MpegAudioFrame represents a single
- * frame. Each frame uses a *fixed* number of samples. Each frame contains a
- * header that is 4 bytes in length. This class represents that header.
+ * frame. Each frame uses a *fixed* number of samples. A sample is one complete
+ * cycle of a sound wave. Each frame contains a header that is 4 bytes in
+ * length. This class represents that header.
  * 
  * The header contains information about the frame including, but not limited
  * to, its version, its layer type, whether or not it is protected by a CRC,

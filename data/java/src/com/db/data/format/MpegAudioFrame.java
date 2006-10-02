@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import sun.misc.CRC16;
-
 /**
  * An MpegAudioFrame is a single frame with MPEG Audio data.
  * 
@@ -122,34 +120,17 @@ public class MpegAudioFrame
             // determine the number of audio data bytes (round up)
             int audioDataBytes = (int)Math.round(((double)audioDataBits / 8));
             
-            // create a CRC-16
-            CRC16 crc16 = new CRC16();
+            // create an mpeg audio CRC-16
+            MpegAudioCrc16 crc16 = new MpegAudioCrc16();
             
-            // update the data with the last 2 bytes of the header
-            crc16.update(getHeader().getBytes()[2]);
-            crc16.update(getHeader().getBytes()[3]);
+            // update the CRC with the last 2 header bytes 
+            crc16.update(getHeader().getBytes(), 2, 2);
             
-            // update the data with the audio data bytes
-            for(int i = 0; i < audioDataBytes; i++)
-            {
-               crc16.update(getAudioData()[i]);
-            }
+            // update the CRC with the number of audio data bytes
+            crc16.update(getAudioData(), 0, audioDataBytes);
             
-            // get the CRC-16 value
-            rval = crc16.value;
-            
-            /*
-            // create a CRC-32
-            CRC32 crc = new CRC32();
-            
-            // update the data with the last 2 bytes of the header
-            crc.update(getHeader().getBytes(), 2, 2);
-            
-            // update the data with the audio data bytes
-            crc.update(getAudioData(), 0, audioDataBytes);
-            
-            // AND the CRC-32 value to get the CRC-16
-            rval = (int)(crc.getValue() & 0xFFFF);*/
+            // get the crc-16
+            rval = crc16.getValue();
          }
       }
       
