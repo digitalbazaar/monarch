@@ -313,6 +313,37 @@ package com.db.util;
  * place until that next byte is processed and the zero's are divided against
  * again. This allows us to update the CRC easily with new bytes.
  * 
+ * This code can be used to accomplish the above:
+ * 
+ * public void update(byte b)
+ * {
+ *    // get the byte as an unsigned int
+ *    int value = b & 0xff;
+ *    
+ *    // shift the byte to the left 8 and add it to the top of the register
+ *    // so that it can be XOR'd against one bit at a time and so that when
+ *    // the bit is shifted out, the register will have the n zeros necessary
+ *    // before being XOR'd against the polynomial key
+ *    mCrcValue ^= value << 8;
+ *    
+ *    // go through each bit of the input byte
+ *    for(int i = 0; i < 8; i++)
+ *    {
+ *       // shift out the first bit
+ *       mCrcValue <<= 1;
+ *       
+ *       // see if a 1 was shifted out
+ *       if((mCrcValue & 0x10000) != 0)
+ *       {
+ *          // XOR the CRC value with the CRC polynomial
+ *          mCrcValue ^= mPolynomialKey;
+ *       }
+ *    }
+ *    
+ *    // cut crc to 16-bits (2 bytes)
+ *    mCrcValue &= 0xffff;
+ * }
+ * 
  * A further optimization can be made by storing all of the XOR'd bytes in
  * a table. There are only 256 different byte values -- and if we store
  * the register that results from processing any one of these bytes, we
@@ -465,35 +496,6 @@ public class Crc16
       
       // cut crc to 16-bits (2 bytes)
       mCrcValue &= 0xffff;
-      
-      /* This code is the code that doesn't make use of a table:
-      
-      // get the byte as an unsigned int
-      int value = b & 0xff;
-      
-      // shift the byte to the left 8 and add it to the top of the register
-      // so that it can be XOR'd against one bit at a time and so that when
-      // the bit is shifted out, the register will have the n zeros necessary
-      // before being XOR'd against the polynomial key
-      mCrcValue ^= value << 8;
-      
-      // go through each bit of the input byte
-      for(int i = 0; i < 8; i++)
-      {
-         // shift out the first bit
-         mCrcValue <<= 1;
-         
-         // see if a 1 was shifted out
-         if((mCrcValue & 0x10000) != 0)
-         {
-            // XOR the CRC value with the CRC polynomial
-            mCrcValue ^= mPolynomialKey;
-         }
-      }
-      
-      // cut crc to 16-bits (2 bytes)
-      mCrcValue &= 0xffff;
-      */
    }
    
    /**
