@@ -172,7 +172,7 @@ public class MpegAudioFrame
       if(getHeader().convertFromBytes(bytes, offset, length))
       {
          // convert the rest of the frame
-         rval = convertFromBytes(bytes, offset + 4, length - 4);
+         rval = convertFromBytes(getHeader(), bytes, offset + 4, length - 4);
       }
       
       return rval;
