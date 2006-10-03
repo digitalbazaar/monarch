@@ -146,15 +146,6 @@ public class MpegAudioFrame
    }
    
    /**
-    * Updates the CRC-16 for this frame based on its current data.
-    */
-   protected void updateCrc()
-   {
-      // calculate the CRC
-      mCrc16Value = calculateCrc();
-   }
-   
-   /**
     * Converts this frame from a byte array. This method will not check
     * the CRC-16, if any, of the frame after conversion.
     * 
@@ -236,7 +227,16 @@ public class MpegAudioFrame
       }
       
       return rval;
-   }   
+   }
+   
+   /**
+    * Updates the CRC-16 for this frame based on its current data.
+    */
+   public void updateCrc()
+   {
+      // calculate the CRC
+      mCrc16Value = calculateCrc();
+   }
    
    /**
     * Gets the header for this frame.
