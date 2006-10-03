@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
  */
-import java.awt.Component;
+//import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Iterator;
-import java.util.Vector;
+//import java.util.Iterator;
+//import java.util.Vector;
 
-import javax.swing.AbstractListModel;
+//import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -19,7 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.ListCellRenderer;
+//import javax.swing.ListCellRenderer;
 import javax.swing.UIManager;
 
 import com.db.gui.JComponentCellRenderer;
@@ -154,7 +154,7 @@ public class UTCustomRenderers implements ActionListener
       
       // create detail labels
       JLabel title = new JLabel("Some Title");
-      JLabel filename = new JLabel("");
+      //JLabel filename = new JLabel("");
       
       PositionConstraints titlePC = new PositionConstraints();
       titlePC.size = new Dimension(title.getPreferredSize());

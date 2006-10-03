@@ -80,39 +80,39 @@ public class UTJComponentTable implements ActionListener
       panel.setLayout(new PositionLayout(panel, 500, 500));
       
       // create table rows
-      Vector tableRows = new Vector();
+      Vector<Object> tableRows = new Vector<Object>();
       
-      Vector row0 = new Vector();
+      Vector<String> row0 = new Vector<String>();
       row0.add("row0");
       row0.add("row0");
       row0.add("row0");
       tableRows.add(row0);
 
-      Vector row1 = new Vector();
+      Vector<String> row1 = new Vector<String>();
       row1.add("row1");
       row1.add("row1");
       row1.add("row1");
       tableRows.add(row1);
       
-      Vector row2 = new Vector();
+      Vector<String> row2 = new Vector<String>();
       row2.add("row2");
       row2.add("row2");
       row2.add("row2");
       tableRows.add(row2);
 
-      Vector row3 = new Vector();
+      Vector<String> row3 = new Vector<String>();
       row3.add("row3");
       row3.add("row3");
       row3.add("row3");
       tableRows.add(row3);
       
-      Vector row4 = new Vector();
+      Vector<String> row4 = new Vector<String>();
       row4.add("row4");
       row4.add("row4");
       row4.add("row4");
       tableRows.add(row4);
 
-      Vector row5 = new Vector();
+      Vector<String> row5 = new Vector<String>();
       row5.add("row5");
       row5.add("row5");
       row5.add("row5");
@@ -154,7 +154,7 @@ public class UTJComponentTable implements ActionListener
        * 
        * @param tableRows a vector of the table rows.
        */
-      public TestTableModel(Vector tableRows)
+      public TestTableModel(Vector<Object> tableRows)
       {
          // set row data
          setRowData(tableRows);

@@ -3,7 +3,7 @@
  */
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FontMetrics;
+//import java.awt.FontMetrics;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -22,9 +22,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
+//import javax.swing.JTextField;
 import javax.swing.UIManager;
-import javax.swing.border.BevelBorder;
+//import javax.swing.border.BevelBorder;
 import javax.swing.border.LineBorder;
 
 /**
@@ -203,7 +203,8 @@ public class UTLayoutManager
       searchPanel.setLayout(new PositionLayout(searchPanel, 600, 600));
       
       // create search media type map
-      HashMap searchMediaTypeMap = new HashMap();
+      HashMap<String, String> searchMediaTypeMap =
+         new HashMap<String, String>();
       searchMediaTypeMap.put("Albums", "audio_album");
       searchMediaTypeMap.put("Songs", "audio_song");
       searchMediaTypeMap.put("Video Clips", "video_clip");

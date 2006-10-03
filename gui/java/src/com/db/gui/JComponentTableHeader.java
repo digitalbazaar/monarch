@@ -343,7 +343,7 @@ implements MouseListener, MouseMotionListener
        * Returns the component used for drawing the header. This method is
        * used to configure the renderer appropriately before drawing.
        *      
-       * @param table this parameter is not used in this cell renderer.
+       * @param t this parameter is not used in this cell renderer.
        * @param value the value of the cell to be rendered.
        * @param isSelected true if the cell to be rendered is selected,
        *                   otherwise false.
@@ -353,7 +353,7 @@ implements MouseListener, MouseMotionListener
        *     
        * @return the component used for drawing the cell. 
        */
-      public Component getTableCellRendererComponent(JTable table,
+      public Component getTableCellRendererComponent(JTable t,
                                                      Object value,
                                                      boolean isSelected,
                                                      boolean hasFocus,

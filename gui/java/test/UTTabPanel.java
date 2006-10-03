@@ -24,12 +24,32 @@ import javax.swing.UIManager;
  */
 public class UTTabPanel implements ActionListener, TabPanelListener
 {
+   /**
+    * The tab panel to test.
+    */
    public static EditableTabPanel mTabPanel;
    //public static TabPanel mTabPanel;
+   
+   /**
+    * Some label content to update.
+    */
    public static JLabel mContent0;
+   
+   /**
+    * Some button content to update.
+    */
    public static JButton mContent2;
+   
+   /**
+    * Some button content to update.
+    */
    public static JButton mTab0;
    
+   /**
+    * Runs the unit test.
+    * 
+    * @param args the arguments.
+    */
    public static void main(String[] args)
    {
       // set up logger
@@ -83,12 +103,12 @@ public class UTTabPanel implements ActionListener, TabPanelListener
       JButton content1 = new JButton("content1");
       mContent2 = new JButton("content2");
       JButton content3 = new JButton("content3");
-      JButton content4 = new JButton("content4");
-      JButton content5 = new JButton("content5");
-      JButton content6 = new JButton("content6");
-      JButton content7 = new JButton("content7");
-      JButton content8 = new JButton("content8");
-      JButton content9 = new JButton("content9");
+      //JButton content4 = new JButton("content4");
+      //JButton content5 = new JButton("content5");
+      //JButton content6 = new JButton("content6");
+      //JButton content7 = new JButton("content7");
+      //JButton content8 = new JButton("content8");
+      //JButton content9 = new JButton("content9");
       //JButton content10 = new JButton("content10");
       //JButton content11 = new JButton("content11");
       JButton content12 = new JButton("content12");
@@ -211,7 +231,7 @@ public class UTTabPanel implements ActionListener, TabPanelListener
    {
       if(e.getActionCommand().equals("tab_button"))
       {
-         EditableTabPanel tabPanel = (EditableTabPanel)mTabPanel;
+         EditableTabPanel tabPanel = mTabPanel;
          
          LoggerManager.getLogger("dbgui").debug(
             getClass(), "Tab button pressed!");

@@ -33,18 +33,18 @@ public class ArrowTreeCellRenderer extends DefaultTreeCellRenderer
    {
       // create the icons
       Image image = createOpenImage();
-      ImageIcon openIcon = new ImageIcon(image); 
+      ImageIcon openImageIcon = new ImageIcon(image); 
       
       image = createClosedImage();
-      ImageIcon closedIcon = new ImageIcon(image);
+      ImageIcon closedImageIcon = new ImageIcon(image);
       
       image = createLeafImage();
-      ImageIcon leafIcon = new ImageIcon(image);
+      ImageIcon leafImageIcon = new ImageIcon(image);
 
       // set the icons
-      setOpenIcon(openIcon);
-      setClosedIcon(closedIcon);
-      setLeafIcon(leafIcon);
+      setOpenIcon(openImageIcon);
+      setClosedIcon(closedImageIcon);
+      setLeafIcon(leafImageIcon);
    }
    
    /**

@@ -31,7 +31,7 @@ public class UTSignedJarClassLoader
          SignedJarClassLoader loader =
             new SignedJarClassLoader(jarName, verifier);
          
-         System.out.println("jars verified.");
+         System.out.println("jars verified by " + loader.getClass());
          
          /*
          // create a file for the test jar

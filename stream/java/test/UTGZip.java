@@ -23,6 +23,9 @@ import com.db.stream.UnGZipOutputStream;
  */
 public class UTGZip
 {
+   /**
+    * A lot of WSDL content to gzip and ungzip for testing.
+    */
    public static final String wsdlContent =
       "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" + 
       "<definitions xmlns=\"http://schemas.xmlsoap.org/wsdl/\" xmlns:tns=\"urn:BitmunkSVA\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\" name=\"BitmunkSVA\" targetNamespace=\"urn:BitmunkSVA\">\r\n" + 

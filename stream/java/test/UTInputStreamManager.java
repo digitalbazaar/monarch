@@ -7,6 +7,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
+/**
+ * A unit test for the input stream manager.
+ * 
+ * @author Dave Longley
+ */
 public class UTInputStreamManager implements IStreamManager, IStreamProcessor
 {
    public int manageStreamData(byte[] data, int offset, int length)
@@ -26,6 +31,12 @@ public class UTInputStreamManager implements IStreamManager, IStreamProcessor
 //      return (length == 256) ? 0 : 256 - length;
    }
 
+   /**
+    * Processes the stream data.
+    *
+    * @param data the data to process.
+    * @param last whether or not the data is the last chunk to process.
+    */
    public byte[] processStreamData(byte[] data, boolean last)
    {
       if(last)
@@ -34,10 +45,11 @@ public class UTInputStreamManager implements IStreamManager, IStreamProcessor
       return data;
    }
    
-   public UTInputStreamManager()
-   {
-   }
-   
+   /**
+    * Runs the unit test.
+    * 
+    * @param args the arguments.
+    */
    public static void main(String[] args)
    {
       String src = "test/data/test.mp3";

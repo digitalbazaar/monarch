@@ -13,25 +13,70 @@ import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * Runs a unit test for file encryption on a transferred file.
+ * 
+ * FIXME: this unit test is horribly out of date.
+ * 
+ * @author Dave Longley
+ */
 public class UTFileEncryption extends Thread
 {
-   // client and server side
+   /**
+    * The stream cryptor.
+    */
    public static DESStreamCryptor smDESSC = null;
-   public static final int smPacketSize = 65536;
    
+   /**
+    * The packet size.
+    */
+   public static final int smPacketSize = 65536;
+
+   /**
+    * The chunk size.
+    */
    public static final int smChunkSize = 65536;
 
-   // client size
+   /**
+    * The receive file.
+    */
    public static final String smReceiveFile = "test/data/transferredfile.mp3";
+   
+   /**
+    * The decrypted file.
+    */
    public static final String smDFile = "test/data/dfile.mp3";
 
-   // server side
+   /**
+    * The send file.
+    */
    public static final String smSendFile = "test/data/test.mp3";
+   
+   /**
+    * The server socket.
+    */
    public static ServerSocket smServerSocket;
+   
+   /**
+    * The file offset.
+    */
    public static long smOffset;
+   
+   /**
+    * The log print stream.
+    */
    public static PrintStream smLog;
+   
+   /**
+    * The total bytes.
+    */
    public static long smTotalBytes = 0;
    
+   /**
+    * Performs the file download.
+    * 
+    * @return the length of the file.
+    */
    public static long downloadFile()
    {
       PrintStream log = null;
@@ -95,6 +140,9 @@ public class UTFileEncryption extends Thread
       return totalBytes;
    }
 
+   /**
+    * Requests the file download.
+    */
    public static void requestDownload()
    {
       try
@@ -186,6 +234,11 @@ public class UTFileEncryption extends Thread
       }
    }
    
+   /**
+    * Runs the unit test.
+    * 
+    * @param args the arguments.
+    */
    public static void main(String[] args)
    {
       System.out.println("\nTesting File encryption...");
