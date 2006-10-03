@@ -409,7 +409,7 @@ public class MpegAudioFrame
       if(getHeader().isCrcEnabled())
       {
          // use big endian order (most significant byte first)
-         byte b0 = (byte)(getCrc() & 0xFFFF >> 8);
+         byte b0 = (byte)(getCrc() >> 8);
          byte b1 = (byte)(getCrc() & 0xFF);
          os.write(b0);
          os.write(b1);
