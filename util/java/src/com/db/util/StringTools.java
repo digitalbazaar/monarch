@@ -40,8 +40,7 @@ public class StringTools
     * 
     * @return the string of glued objects from the collection.
     */
-   public static String glue(
-      Collection<? extends Object> collection, String separator)
+   public static String glue(Collection<?> collection, String separator)
    {
       StringBuffer sb = new StringBuffer();
       
