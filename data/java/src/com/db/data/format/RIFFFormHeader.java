@@ -74,6 +74,7 @@ public class RIFFFormHeader extends RIFFListHeader
     * @param length the number of valid bytes beyond the offset.
     * @return true if successful, false if not.
     */
+   @Override
    public boolean convertFromBytes(byte[] b, int offset, int length)
    {
       boolean rval = false;

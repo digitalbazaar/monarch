@@ -88,6 +88,7 @@ public class SoapEnvelope extends AbstractXmlSerializer
     * 
     * @return the root tag name for this serializer.
     */
+   @Override
    public String getRootTag()   
    {
       // this is according to the soap envelope schema
@@ -102,6 +103,7 @@ public class SoapEnvelope extends AbstractXmlSerializer
     * 
     * @return the XmlElement that represents this object.
     */
+   @Override
    public XmlElement convertToXmlElement(XmlElement parent)
    {
       // create the root xml element with the SOAP envelope namespace
@@ -166,6 +168,7 @@ public class SoapEnvelope extends AbstractXmlSerializer
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXmlElement(XmlElement element)
    {
       boolean rval = true;
@@ -294,6 +297,7 @@ public class SoapEnvelope extends AbstractXmlSerializer
     * 
     * @return the logger for this SoapEnvelope.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbnet");

@@ -104,6 +104,7 @@ public class JComponentTable extends JTable
     *
     * @param dataModel the new data source for this table.
     */
+   @Override
    public void setModel(TableModel dataModel)
    {
       super.setModel(dataModel);
@@ -159,6 +160,7 @@ public class JComponentTable extends JTable
     * 
     * @return true if the cell is editable.
     */
+   @Override
    public boolean isCellEditable(int row, int column)   
    {
       boolean rval = false;
@@ -182,6 +184,7 @@ public class JComponentTable extends JTable
     *
     * @return the value of the preferredSize property
     */
+   @Override
    public Dimension getPreferredSize()
    {
       // keep preferred height
@@ -231,6 +234,7 @@ public class JComponentTable extends JTable
        * 
        * @param e the mouse event.
        */
+      @Override
       public void mouseClicked(MouseEvent e)
       {
          // handle double click

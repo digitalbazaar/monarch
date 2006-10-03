@@ -858,6 +858,7 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    /**
     * Overridden to terminate the auto update checker thread. 
     */
+   @Override
    public void finalize()
    {
       setAutoCheckForUpdate(false);

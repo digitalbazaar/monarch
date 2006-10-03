@@ -71,6 +71,7 @@ implements Iterable<UPnPServiceAction>
     * 
     * @return the root tag name for this serializer.
     */
+   @Override
    public String getRootTag()   
    {
       return "actionList";
@@ -84,6 +85,7 @@ implements Iterable<UPnPServiceAction>
     * 
     * @return the XmlElement that represents this object.
     */
+   @Override
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
@@ -107,6 +109,7 @@ implements Iterable<UPnPServiceAction>
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = true;
@@ -214,6 +217,7 @@ implements Iterable<UPnPServiceAction>
     * 
     * @return the logger for this UPnPServiceActionList.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbupnp");

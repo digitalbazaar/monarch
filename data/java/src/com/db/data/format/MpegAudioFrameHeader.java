@@ -1026,6 +1026,7 @@ public class MpegAudioFrameHeader
     * 
     * @return a human-readable string representation for this header.
     */
+   @Override
    public String toString()
    {
       StringBuffer sb = new StringBuffer();
@@ -1233,6 +1234,7 @@ public class MpegAudioFrameHeader
        * 
        * @return the name for this version.
        */
+      @Override
       public String toString()
       {
          return mName;
@@ -1329,6 +1331,7 @@ public class MpegAudioFrameHeader
        * 
        * @return the name for this layer.
        */
+      @Override
       public String toString()
       {
          return mName;
@@ -1442,6 +1445,7 @@ public class MpegAudioFrameHeader
        * 
        * @return the name for this channel mode.
        */
+      @Override
       public String toString()
       {
          return mName;
@@ -1612,6 +1616,7 @@ public class MpegAudioFrameHeader
        * 
        * @return the name for this channel mode extension.
        */
+      @Override
       public String toString()
       {
          return mName;
@@ -1728,6 +1733,7 @@ public class MpegAudioFrameHeader
        * 
        * @return the name for this emphasis.
        */
+      @Override
       public String toString()
       {
          return mName;

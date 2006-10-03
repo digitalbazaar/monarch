@@ -89,6 +89,7 @@ implements Iterable<UPnPServiceStateVariable>
     * 
     * @return the root tag name for this serializer.
     */
+   @Override
    public String getRootTag()   
    {
       return "serviceStateTable";
@@ -102,6 +103,7 @@ implements Iterable<UPnPServiceStateVariable>
     * 
     * @return the XmlElement that represents this object.
     */
+   @Override
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
@@ -126,6 +128,7 @@ implements Iterable<UPnPServiceStateVariable>
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = true;
@@ -215,6 +218,7 @@ implements Iterable<UPnPServiceStateVariable>
     * 
     * @return the logger for this UPnPServiceStateTable.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbupnp");

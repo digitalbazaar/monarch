@@ -145,6 +145,7 @@ public class UTWizard
        * 
        * @return the task for a Wizard.
        */
+      @Override
       public WizardTask createTask()
       {
          // create TestWizardTask
@@ -158,6 +159,7 @@ public class UTWizard
        * 
        * @return the page pool for a Wizard.
        */
+      @Override
       public WizardPagePool createPagePool(WizardTask task)
       {
          // create page pool
@@ -188,6 +190,7 @@ public class UTWizard
        * 
        * @return the page selector for a Wizard.
        */
+      @Override
       public WizardPageSelector createPageSelector(WizardPagePool pagePool)
       {
          // create TestWizardPageSelector
@@ -358,6 +361,7 @@ public class UTWizard
        * 
        * @return the view for this page.
        */
+      @Override
       protected WizardPageView createView()
       {
          return new TestWizardPageView(this);
@@ -372,6 +376,7 @@ public class UTWizard
        * 
        * @return true if the page is valid, false otherwise.
        */
+      @Override
       public boolean validate(WizardTask task)
       {
          boolean rval = false;
@@ -411,6 +416,7 @@ public class UTWizard
        *
        * @param task the WizardTask to update. 
        */
+      @Override
       public void updateWizardTask(WizardTask task)
       {
          // cast the wizard task
@@ -463,6 +469,7 @@ public class UTWizard
        * 
        * @return the user input panel.
        */
+      @Override
       protected JPanel createUserInputPanel()
       {
          JPanel panel = new JPanel();

@@ -68,8 +68,10 @@ public class HttpBodyPartHeader extends HttpHeader
     * Parses this http body part header from a string.
     * 
     * @param header the body part header in string format.
+    * 
     * @return true if the header was successfully parsed, false if not.
     */
+   @Override
    public boolean parse(String header)
    {
       boolean rval = false;
@@ -138,6 +140,7 @@ public class HttpBodyPartHeader extends HttpHeader
     * 
     * @return true if this header is valid, false if it is not.
     */
+   @Override
    public boolean isValid()
    {
       // body part headers assumed valid

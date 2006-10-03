@@ -54,6 +54,7 @@ public abstract class VersionedXmlSerializer extends AbstractXmlSerializer
     * 
     * @return the root tag name for this serializer.
     */
+   @Override
    public abstract String getRootTag();
    
    /**
@@ -64,6 +65,7 @@ public abstract class VersionedXmlSerializer extends AbstractXmlSerializer
     * 
     * @return the XmlElement that represents this object.
     */
+   @Override
    public XmlElement convertToXmlElement(XmlElement parent)
    {
       // create xml element
@@ -87,6 +89,7 @@ public abstract class VersionedXmlSerializer extends AbstractXmlSerializer
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
@@ -108,5 +111,6 @@ public abstract class VersionedXmlSerializer extends AbstractXmlSerializer
     * 
     * @return the logger for this xml serializer.
     */
+   @Override
    public abstract Logger getLogger();
 }

@@ -62,6 +62,7 @@ public class DatagramServer
    /**
     * Disposes this DatagramServer. Stops this DatagramServer.
     */
+   @Override
    protected void finalize()
    {
       stop();

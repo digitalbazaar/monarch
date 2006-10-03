@@ -57,6 +57,7 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
     * 
     * @return the new server socket.
     */
+   @Override
    protected ServerSocket createServerSocket(int port)
    {
       ServerSocket serverSocket = null; 
@@ -124,6 +125,7 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
     *         handler should be considered secure, false if they should
     *         not be considered secure. 
     */
+   @Override
    public boolean webConnectionsSecure()
    {
       // ssl connections considered secure

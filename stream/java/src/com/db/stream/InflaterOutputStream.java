@@ -165,6 +165,7 @@ public class InflaterOutputStream extends FilterOutputStream
     * 
     * @throws IOException
     */
+   @Override
    public void write(int b) throws IOException
    {
       mSingleByteBuffer[0] = (byte)(b & 0xff);
@@ -181,6 +182,7 @@ public class InflaterOutputStream extends FilterOutputStream
     * 
     * @throws IOException
     */
+   @Override
    public void write(byte[] b, int off, int len)
    throws IOException
    {
@@ -217,6 +219,7 @@ public class InflaterOutputStream extends FilterOutputStream
     * 
     * @throws IOException
     */
+   @Override
    public void close() throws IOException
    {
       // finish

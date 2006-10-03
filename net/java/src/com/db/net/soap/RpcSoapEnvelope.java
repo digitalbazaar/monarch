@@ -44,6 +44,7 @@ public class RpcSoapEnvelope extends SoapEnvelope
     * 
     * @return the root tag name for this serializer.
     */
+   @Override
    public String getRootTag()   
    {
       // this is according to the soap envelope schema
@@ -57,6 +58,7 @@ public class RpcSoapEnvelope extends SoapEnvelope
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
@@ -225,6 +227,7 @@ public class RpcSoapEnvelope extends SoapEnvelope
     * 
     * @return the logger for this RpcSoapEnvelope.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbnet");

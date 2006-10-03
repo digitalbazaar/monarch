@@ -708,6 +708,7 @@ public abstract class HttpHeader
     * 
     * @returns this http header object in string format.
     */
+   @Override
    public String toString()
    {
       StringBuffer headers = new StringBuffer();

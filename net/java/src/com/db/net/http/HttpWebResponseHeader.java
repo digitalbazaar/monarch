@@ -35,7 +35,8 @@ public class HttpWebResponseHeader extends HttpHeader
     * @param header the response header in string format.
     * 
     * @return true if the header was successfully parsed, false if not.
-    */   
+    */
+   @Override
    public boolean parse(String header)
    {
       boolean rval = false;
@@ -135,6 +136,7 @@ public class HttpWebResponseHeader extends HttpHeader
     * 
     * @return true if this header is valid, false if it is not.
     */
+   @Override
    public boolean isValid()
    {
       boolean rval = false;
@@ -152,7 +154,8 @@ public class HttpWebResponseHeader extends HttpHeader
     * Converts this http web response header object to string format.
     * 
     * @returns this http web response header object in string format.
-    */   
+    */
+   @Override
    public String toString()
    {
       StringBuffer sb = new StringBuffer();

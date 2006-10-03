@@ -175,6 +175,7 @@ public class XmlElement extends AbstractXmlSerializer
     * 
     * @return the root tag name for this serializer.
     */
+   @Override
    public String getRootTag()   
    {
       return getName();
@@ -190,6 +191,7 @@ public class XmlElement extends AbstractXmlSerializer
     * 
     * @return the XML for this object.
     */
+   @Override
    public String convertToXml(
       boolean header, int indentSize, int childIndentSize)
    {
@@ -278,6 +280,7 @@ public class XmlElement extends AbstractXmlSerializer
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXml(Element element)
    {
       boolean rval = true;
@@ -404,6 +407,7 @@ public class XmlElement extends AbstractXmlSerializer
     * 
     * @return the XmlElement that represents this object.
     */
+   @Override
    public XmlElement convertToXmlElement(XmlElement parent)
    {
       // set parent and return this element
@@ -418,6 +422,7 @@ public class XmlElement extends AbstractXmlSerializer
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXmlElement(XmlElement element)
    {
       // reset this element's information
@@ -1472,6 +1477,7 @@ public class XmlElement extends AbstractXmlSerializer
     * 
     * @return the logger for this xml serializer.
     */
+   @Override
    public Logger getLogger()   
    {
       return LoggerManager.getLogger("dbxml");

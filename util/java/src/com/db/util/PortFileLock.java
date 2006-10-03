@@ -252,6 +252,7 @@ public class PortFileLock extends FileLock
     *         locked), false if it was not because it was already locked by
     *         another process or because the file could not be created.
     */
+   @Override
    public synchronized boolean lock()
    {
       // ensure lock has not already been acquired

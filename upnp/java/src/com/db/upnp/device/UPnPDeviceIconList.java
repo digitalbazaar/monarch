@@ -69,6 +69,7 @@ implements Iterable<UPnPDeviceIcon>
     * 
     * @return the root tag name for this serializer.
     */
+   @Override
    public String getRootTag()   
    {
       return "iconList";
@@ -82,6 +83,7 @@ implements Iterable<UPnPDeviceIcon>
     * 
     * @return the XmlElement that represents this object.
     */
+   @Override
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
@@ -105,6 +107,7 @@ implements Iterable<UPnPDeviceIcon>
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = true;
@@ -188,6 +191,7 @@ implements Iterable<UPnPDeviceIcon>
     * 
     * @return the logger for this UPnPDeviceIconList.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbupnp");

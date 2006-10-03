@@ -310,6 +310,7 @@ public class UniqueSet<T> implements Set<T>
     * 
     * @return <tt>true</tt> if the specified object is equal to this set.
     */
+   @Override
    public boolean equals(Object o)
    {
       boolean rval = false;
@@ -338,6 +339,7 @@ public class UniqueSet<T> implements Set<T>
     *
     * @return the hash code value for this set.
     */
+   @Override
    public int hashCode()
    {
       return super.hashCode();

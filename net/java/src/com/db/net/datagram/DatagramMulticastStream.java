@@ -83,6 +83,7 @@ public class DatagramMulticastStream extends DatagramStream
     * 
     * @exception IOException thrown if an IO exception occurs.
     */
+   @Override
    public boolean sendDatagram(DatagramPacket datagram)
    throws IOException
    {
@@ -168,6 +169,7 @@ public class DatagramMulticastStream extends DatagramStream
     * 
     * The stream will leave the multicast group.
     */
+   @Override
    public void close()
    {
       close(true);

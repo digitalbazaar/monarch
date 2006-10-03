@@ -122,9 +122,11 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
     * 
     * @param wch the web connection handler to add to this server.
     * @param port the port the web connection handler will listen on.
+    * 
     * @return true if the web connection handler was successfully added,
     *         false if it was not.
     */
+   @Override
    public synchronized boolean addWebConnectionHandler(
       WebConnectionHandler wch, int port)
    {
@@ -144,6 +146,7 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
     * 
     * @param wch the web connection handler to remove from this server.
     */
+   @Override
    public synchronized void removeWebConnectionHandler(
       WebConnectionHandler wch)
    {
@@ -157,6 +160,7 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
    /**
     * Removes all web connection handlers from the internal web server.
     */
+   @Override
    public synchronized void removeAllWebConnectionHandlers()
    {
       // remove all web connection handlers from internal web server
@@ -183,6 +187,7 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
     * default proxy port. All web connection handlers will begin
     * accepting connections.
     */
+   @Override
    public synchronized void start()
    {
       // only start server if it isn't running
@@ -246,6 +251,7 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
     * handlers will stop accepting connections and terminate any connections
     * they are currently servicing.
     */
+   @Override
    public synchronized void stop()
    {
       // only stop server if it is running
@@ -291,6 +297,7 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
     * @return the web connection handler for the specified port or null
     *         if no web connection handler is assigned to the port.
     */
+   @Override
    public WebConnectionHandler getWebConnectionHandler(int port)
    {
       // get the web connection handler from the internal web server

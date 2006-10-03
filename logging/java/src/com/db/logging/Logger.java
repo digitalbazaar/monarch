@@ -173,6 +173,7 @@ public class Logger
     * Overloaded to ensure that the stream gets closed when garbage
     * collected.
     */
+   @Override
    protected void finalize()
    {
       closeStream();

@@ -298,6 +298,7 @@ public class ID3Tag
     * 
     * @return the ID3Tag as a string.
     */
+   @Override
    public String toString()
    {
       return convertToString();

@@ -246,6 +246,7 @@ public class XmlAttribute
     * @return true if this attribute is equal to another attribute,
     *         false if not.
     */
+   @Override
    public boolean equals(Object obj)
    {
       boolean rval = false;

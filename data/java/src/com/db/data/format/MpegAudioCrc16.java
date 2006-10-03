@@ -28,6 +28,7 @@ public class MpegAudioCrc16 extends Crc16
    /**
     * Resets the CRC value to 0xffff.
     */
+   @Override
    public void reset()
    {
       super.resetValueToMax();

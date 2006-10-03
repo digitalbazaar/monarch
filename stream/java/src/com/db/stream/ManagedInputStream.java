@@ -315,6 +315,7 @@ public class ManagedInputStream extends FilterInputStream
     * 
     * @throws IOException
     */
+   @Override
    public int read() throws IOException   
    {
       int data = -1;
@@ -345,6 +346,7 @@ public class ManagedInputStream extends FilterInputStream
     * 
     * @throws IOException
     */
+   @Override
    public int read(byte[] b, int off, int len)
       throws IOException
    {
@@ -439,6 +441,7 @@ public class ManagedInputStream extends FilterInputStream
     * 
     * @return the actual number of bytes skipped. 
     */
+   @Override
    public long skip(long n)
    {
       long count = 0;

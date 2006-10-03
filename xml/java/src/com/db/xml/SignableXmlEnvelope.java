@@ -503,6 +503,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     * 
     * @return the root tag name for this serializer.
     */
+   @Override
    public String getRootTag()   
    {
       return "envelope";
@@ -516,6 +517,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     * 
     * @return the XmlElement that represents this object.
     */
+   @Override
    public XmlElement convertToXmlElement(XmlElement parent)
    {
       // convert parent
@@ -563,6 +565,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXmlElement(XmlElement element)   
    {
       // convert parent
@@ -606,6 +609,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     * 
     * @return the logger for this xml serializer.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbxml");

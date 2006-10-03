@@ -102,6 +102,7 @@ implements MouseListener, MouseMotionListener
     *  
     * @param table the new table.
     */
+   @Override
    public void setTable(JTable table)
    {
       super.setTable(table);

@@ -191,8 +191,10 @@ public class PipeInputStream extends PushbackInputStream
     *
     * @return the next byte of data, or <code>-1</code> if the end of the
     *         stream is reached.
+    * 
     * @throws IOException
     */
+   @Override
    public int read() throws IOException
    {
       int b = -1;
@@ -224,11 +226,14 @@ public class PipeInputStream extends PushbackInputStream
     * @param buffer the buffer into which the data is read.
     * @param offset the start offset of the data.
     * @param length the maximum number of bytes read.
+    * 
     * @return the total number of bytes read into the buffer, or
     *         <code>-1</code> if there is no more data because the end of
     *         the stream has been reached.
+    * 
     * @throws IOException
     */
+   @Override
    public int read(byte buffer[], int offset, int length) throws IOException
    {
       int numBytes = -1;
@@ -288,6 +293,7 @@ public class PipeInputStream extends PushbackInputStream
     * 
     * @param b the byte to unread.
     */
+   @Override
    public void unread(int b)
    {
       byte[] buffer = new byte[1];
@@ -302,6 +308,7 @@ public class PipeInputStream extends PushbackInputStream
     * @param offset the offset to start unreading in the passed buffer.
     * @param length the number of bytes to unread.
     */
+   @Override
    public void unread(byte[] buffer, int offset, int length)
    {
       if((mUnreadPos + length) > mUnreadBuffer.length)
@@ -323,8 +330,10 @@ public class PipeInputStream extends PushbackInputStream
     *
     * @return the number of bytes that can be read from the input stream
     *         without blocking.
+    * 
     * @throws IOException
     */
+   @Override
    public int available() throws IOException    
    {
       int available = mUnreadPos;
@@ -342,9 +351,12 @@ public class PipeInputStream extends PushbackInputStream
     * returned.
     *
     * @param n the number of bytes to be skipped.
+    * 
     * @return the actual number of bytes skipped.
+    * 
     * @throws IOException
     */
+   @Override
    public long skip(long n) throws IOException
    {
       long skipped = 0;
@@ -378,6 +390,7 @@ public class PipeInputStream extends PushbackInputStream
     *
     * @throws IOException
     */
+   @Override
    public void close() throws IOException
    {
       super.close();
@@ -392,6 +405,7 @@ public class PipeInputStream extends PushbackInputStream
     * @param readlimit the maximum limit of bytes that can be read
     *                  before the mark position becomes invalid.
     */
+   @Override
    public synchronized void mark(int readlimit)
    {
       // do nothing
@@ -402,6 +416,7 @@ public class PipeInputStream extends PushbackInputStream
     * 
     * @throws IOException
     */
+   @Override
    public synchronized void reset() throws IOException
    {
       // do nothing
@@ -412,6 +427,7 @@ public class PipeInputStream extends PushbackInputStream
     *
     * @return false, this stream does not support the mark and set methods.
     */
+   @Override
    public boolean markSupported()
    {
       return false;

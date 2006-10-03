@@ -63,6 +63,7 @@ public class WebConnectionServer
    /**
     * Disposes this WebConnectionServer. Stops this WebConnectionServer.
     */
+   @Override
    protected void finalize()
    {
       stop();

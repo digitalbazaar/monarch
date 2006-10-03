@@ -91,6 +91,7 @@ public class JComponentCellEditor extends AbstractCellEditor
     * 
     * @return true if edited cell contains a valid value, false if not.
     */
+   @Override
    public boolean stopCellEditing()
    { 
       boolean rval = false;

@@ -228,6 +228,7 @@ public class BoundaryInputStream extends FilterInputStream
     * 
     * @return true if the read buffer was filled, false if not, and the
     *         boundary or end of the stream has been reached.
+    * 
     * @throws IOException 
     */
    protected boolean fillReadBuffer() throws IOException
@@ -345,8 +346,10 @@ public class BoundaryInputStream extends FilterInputStream
     * 
     * @return the byte read or -1 if a boundary or the end of the 
     *         stream has been reached.
+    * 
     * @throws IOException
     */
+   @Override
    public int read() throws IOException
    {
       int data = -1;
@@ -380,10 +383,13 @@ public class BoundaryInputStream extends FilterInputStream
     * @param b the buffer to read with.
     * @param off the offset to start reading at.
     * @param len the maximum number of bytes to read.
+    * 
     * @return the number of bytes read or -1 if a boundary or the end of the 
     *         stream has been reached.
+    * 
     * @throws IOException
-    */   
+    */
+   @Override
    public int read(byte b[], int off, int len) throws IOException
    {
       int numBytes = -1;
@@ -417,9 +423,12 @@ public class BoundaryInputStream extends FilterInputStream
     * returned.
     *
     * @param n the number of bytes to be skipped.
+    * 
     * @return the actual number of bytes skipped.
+    * 
     * @throws IOException
     */
+   @Override
    public long skip(long n) throws IOException
    {
       long skipped = -1;

@@ -544,6 +544,7 @@ implements ActionListener
        *  
        * @param table the table to alter.
        */
+      @Override
       public void setTableDimensions(JTable table)
       {
          int width = 0;

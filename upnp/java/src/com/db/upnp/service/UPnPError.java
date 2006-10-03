@@ -46,6 +46,7 @@ public class UPnPError extends AbstractXmlSerializer
     * 
     * @return the root tag name for this serializer.
     */
+   @Override
    public String getRootTag()   
    {
       return "UPnPError";
@@ -59,6 +60,7 @@ public class UPnPError extends AbstractXmlSerializer
     * 
     * @return the XmlElement that represents this object.
     */
+   @Override
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
@@ -89,6 +91,7 @@ public class UPnPError extends AbstractXmlSerializer
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
@@ -154,6 +157,7 @@ public class UPnPError extends AbstractXmlSerializer
     * 
     * @return the logger for this UPnPError.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbupnp");

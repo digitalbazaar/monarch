@@ -51,6 +51,7 @@ public class SoapPermission
     * @return true if the passed object is a SoapPermission and its name
     *         is the same as this SoapPermission's name, false otherwise.
     */
+   @Override
    public boolean equals(Object obj)
    {
       boolean rval = false;

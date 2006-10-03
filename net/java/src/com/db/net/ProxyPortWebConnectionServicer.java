@@ -46,7 +46,8 @@ extends AbstractWebConnectionServicer
     * servicing is completed.
     *  
     * @param webConnection the web connection to be serviced.
-    */   
+    */
+   @Override
    public void serviceSecureWebConnection(WebConnection webConnection)
    {
       getLogger().debug(getClass(),
@@ -149,6 +150,7 @@ extends AbstractWebConnectionServicer
     * 
     * @return the logger.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbnet");

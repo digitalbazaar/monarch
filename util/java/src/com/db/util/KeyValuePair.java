@@ -95,6 +95,7 @@ public class KeyValuePair implements Comparator
     * 
     * @param obj another key-value pair to compare to.
     */
+   @Override
    public boolean equals(Object obj)
    {
       boolean rval = false;

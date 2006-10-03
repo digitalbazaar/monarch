@@ -121,6 +121,7 @@ public class UTAutoUpdater
        * 
        * @return the configuration filename for the auto-updateable.
        */
+      @Override
       protected String getConfigFilename()   
       {
          return "customautoupdateable.cfg";
@@ -131,6 +132,7 @@ public class UTAutoUpdater
        * 
        * @return the UpdateScriptSource for this AutoUpdater.
        */
+      @Override
       public UpdateScriptSource getUpdateScriptSource()
       {
          UpdateScriptSource rval = null;

@@ -78,6 +78,7 @@ public class ExtensibleSoapSecurityManager extends AbstractSoapSecurityManager
     * @exception SecurityException thrown if the soap message/client fail the
     *                              security check.
     */
+   @Override
    public void checkSoapSecurity(RpcSoapMessage sm) throws SecurityException   
    {
       // iterate through all of the extensions and run a security check
@@ -94,6 +95,7 @@ public class ExtensibleSoapSecurityManager extends AbstractSoapSecurityManager
     *
     * @return true if the passed permission is allowed, false if not.
     */
+   @Override
    public boolean checkSoapPermission(SoapPermission permission)
    {
       boolean rval = true;

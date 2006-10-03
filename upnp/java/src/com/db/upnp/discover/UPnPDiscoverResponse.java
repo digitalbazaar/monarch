@@ -260,6 +260,7 @@ public class UPnPDiscoverResponse
     * 
     * @return this response in string format.
     */
+   @Override
    public String toString()
    {
       return getHeader().toString();

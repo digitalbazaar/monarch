@@ -146,6 +146,7 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
     * 
     * @param g the graphics to paint with.
     */
+   @Override
    public void paint(Graphics g)
    {
       if(g instanceof Graphics2D)
@@ -219,6 +220,7 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
     * 
     * @param text the text to display for the link.
     */
+   @Override
    public void setPage(String text)
    {
       mText = text;
@@ -243,6 +245,7 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
     * 
     * @param page the page to do nothing with.
     */
+   @Override
    public void setPage(URL page)
    {
    }
@@ -252,6 +255,7 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
     * 
     * @param text the text to display for the hyperlink.
     */
+   @Override
    public void setText(String text)
    {
       mText = text;
@@ -263,6 +267,7 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
     * 
     * @return the text for the hyperlink.
     */
+   @Override
    public String getText()
    {
       return mText;

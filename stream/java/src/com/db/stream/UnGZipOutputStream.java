@@ -299,6 +299,7 @@ public class UnGZipOutputStream extends InflaterOutputStream
     * 
     * @throws IOException
     */
+   @Override
    public void write(byte[] b, int off, int len) throws IOException
    {
       // write out data if the inflater isn't finished

@@ -75,6 +75,7 @@ public class WsdlSoapBinding extends WsdlBinding
     * 
     * @param portType the port type for this binding.
     */
+   @Override
    public void setPortType(WsdlPortType portType)
    {
       super.setPortType(portType);
@@ -119,6 +120,7 @@ public class WsdlSoapBinding extends WsdlBinding
     * 
     * @return the XmlElement that represents this object.
     */
+   @Override
    public XmlElement convertToXmlElement(XmlElement parent)
    {
       // create xml element
@@ -165,6 +167,7 @@ public class WsdlSoapBinding extends WsdlBinding
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
@@ -255,6 +258,7 @@ public class WsdlSoapBinding extends WsdlBinding
     * 
     * @return the logger.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbnet");

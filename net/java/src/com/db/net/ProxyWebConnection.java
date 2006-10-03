@@ -157,6 +157,7 @@ public class ProxyWebConnection extends GenericWebConnection
    /**
     * Disconnects the proxy (closes the sockets).
     */
+   @Override
    public void disconnect()
    {
       boolean previouslyDisconnected = !isConnected();

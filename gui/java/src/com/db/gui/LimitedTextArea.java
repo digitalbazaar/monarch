@@ -106,6 +106,7 @@ public class LimitedTextArea extends JTextArea
     * @exception IllegalArgumentException if pos is an invalid position in
     *                                     the model.
     */
+   @Override
    public void insert(String str, int pos)
    {
       Document doc = getDocument();
@@ -124,6 +125,7 @@ public class LimitedTextArea extends JTextArea
     *
     * @param str the text to append.
     */
+   @Override
    public void append(String str)
    {
       Document doc = getDocument();
@@ -148,6 +150,7 @@ public class LimitedTextArea extends JTextArea
     * @exception IllegalArgumentException if part of the range is an
     *                                     invalid position in the model.
     */
+   @Override
    public void replaceRange(String str, int start, int end)
    {
       Document doc = getDocument();

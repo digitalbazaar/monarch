@@ -145,6 +145,7 @@ implements WebConnection, HandshakeCompletedListener
    /**
     * Ensures the web connection gets disconnected.
     */
+   @Override
    protected void finalize()
    {
       disconnect();

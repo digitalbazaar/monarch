@@ -148,6 +148,7 @@ public class PositionConstraints implements Cloneable
     * 
     * @return a copy of these constraints.
     */
+   @Override
    public Object clone()
    {
       PositionConstraints clone = new PositionConstraints();
@@ -228,6 +229,7 @@ public class PositionConstraints implements Cloneable
     * 
     * @return a string representation of this constraints object.
     */
+   @Override
    public String toString()
    {
       StringBuffer sb = new StringBuffer();

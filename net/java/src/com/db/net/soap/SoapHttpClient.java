@@ -774,6 +774,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
     * 
     * @return the logger for this soap web client.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbnet");

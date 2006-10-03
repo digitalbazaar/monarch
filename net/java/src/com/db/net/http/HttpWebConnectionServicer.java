@@ -219,6 +219,7 @@ public class HttpWebConnectionServicer extends AbstractWebConnectionServicer
     *  
     * @param webConnection the web connection to be serviced.
     */
+   @Override
    public void serviceSecureWebConnection(WebConnection webConnection)
    {
       // service http web connection
@@ -453,6 +454,7 @@ public class HttpWebConnectionServicer extends AbstractWebConnectionServicer
     * 
     * @return the logger.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbnet");

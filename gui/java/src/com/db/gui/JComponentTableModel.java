@@ -236,8 +236,10 @@ implements SortableTableModel, ComponentListener
     * Gets a column name.
     * 
     * @param column the column index.
+    * 
     * @return the name of the column.
     */
+   @Override
    public String getColumnName(int column)
    {
       String colName = "NONE";
@@ -277,6 +279,7 @@ implements SortableTableModel, ComponentListener
     * 
     * @return the class for the column.
     */
+   @Override
    public Class<? extends Object> getColumnClass(int column)
    {
       Class<? extends Object> c = Object.class;
@@ -295,8 +298,10 @@ implements SortableTableModel, ComponentListener
     *
     * @param row the row of the cell.
     * @param column the column of the cell.
+    * 
     * @return return true if the class is JComponent for the cell.
     */
+   @Override
    public boolean isCellEditable(int row, int column)
    {
       boolean rval = false;

@@ -309,6 +309,7 @@ public class FastProgressBarUI extends ComponentUI
     * @param g the graphics to paint with.
     * @param component the component to paint.
     */
+   @Override
    public void paint(Graphics g, JComponent component)
    {
       paint(g, (FastProgressBar)component);
@@ -321,6 +322,7 @@ public class FastProgressBarUI extends ComponentUI
     * 
     * @return the component's minimum size.
     */
+   @Override
    public Dimension getMinimumSize(JComponent c)
    {
       return new Dimension(10, 10);
@@ -333,6 +335,7 @@ public class FastProgressBarUI extends ComponentUI
     * 
     * @return the component's maximum size.
     */
+   @Override
    public Dimension getMaximumSize(JComponent c)
    {
       return new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
@@ -345,6 +348,7 @@ public class FastProgressBarUI extends ComponentUI
     * 
     * @return the component's preferred size.
     */
+   @Override
    public Dimension getPreferredSize(JComponent c)
    {
       Dimension size = getMinimumSize(c);

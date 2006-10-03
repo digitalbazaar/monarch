@@ -54,6 +54,7 @@ implements ListCellRenderer, TableCellRenderer
     * @param w the width.
     * @param h the height.
     */
+   @Override
    public void setBounds(int x, int y, int w, int h)
    {
       if(mJTree != null)
@@ -77,6 +78,7 @@ implements ListCellRenderer, TableCellRenderer
     * 
     * @param g the graphics to paint with.
     */
+   @Override
    public void paint(Graphics g)
    { 
       if(mJTree != null)

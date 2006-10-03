@@ -100,6 +100,7 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
     * @throws IOException
     * @throws InterruptedException
     */
+   @Override
    protected long writeHttpBodyImpl(
       HttpHeader header, InputStream bodyStream, HttpWebConnection hwc)
    throws IOException, InterruptedException
@@ -138,6 +139,7 @@ public class ChunkedHttpTransferCoder extends AbstractHttpTransferCoder
     * @throws IOException
     * @throws InterruptedException
     */
+   @Override
    protected long readHttpBodyImpl(
       HttpHeader header, HttpWebConnection hwc, OutputStream os)
    throws IOException, InterruptedException

@@ -1946,7 +1946,8 @@ public class TabPanel extends JPanel
     * this container's subcomponents are modified (added to or
     * removed from the container, or layout-related information
     * changed) after the container has been displayed.
-    */   
+    */
+   @Override
    public void validate()
    {
       // update component constraints
@@ -2707,6 +2708,7 @@ public class TabPanel extends JPanel
        * Returns the insets of the border.
        * @param c the component for which this border insets value applies
        */
+      @Override
       public Insets getBorderInsets(Component c)
       {
          return getBorderInsets();
@@ -2718,6 +2720,7 @@ public class TabPanel extends JPanel
        * @param c the component for which this border insets value applies.
        * @param insets the object to be reinitialized.
        */
+      @Override
       public Insets getBorderInsets(Component c, Insets insets)
       {
          insets.left = mLeft;
@@ -2742,6 +2745,7 @@ public class TabPanel extends JPanel
        * 
        * @return true, a tab area border is opaque.
        */
+      @Override
       public boolean isBorderOpaque()
       {
          return true;
@@ -2780,9 +2784,17 @@ public class TabPanel extends JPanel
 
       /**
        * Draws the tab area border.
+       * 
+       * @param c the component to draw the border around.
+       * @param g the graphics to draw with.
+       * @param x the x position of the component.
+       * @param y the y position of the component.
+       * @param width the width of the component.
+       * @param height the height of the component.
        */
-      public void paintBorder(Component c, Graphics g,
-                              int x, int y, int width, int height)
+      @Override
+      public void paintBorder(
+         Component c, Graphics g, int x, int y, int width, int height)
       {
          // ensure valid
          ensureValid();
@@ -2868,9 +2880,17 @@ public class TabPanel extends JPanel
 
       /**
        * Draws the tab content border.
+       * 
+       * @param c the component to draw the border around.
+       * @param g the graphics to draw with.
+       * @param x the x position of the component.
+       * @param y the y position of the component.
+       * @param width the width of the component.
+       * @param height the height of the component.
        */
-      public void paintBorder(Component c, Graphics g,
-                              int x, int y, int width, int height)
+      @Override
+      public void paintBorder(
+         Component c, Graphics g, int x, int y, int width, int height)
       {
          // ensure valid
          ensureValid();
@@ -3470,6 +3490,7 @@ public class TabPanel extends JPanel
       /**
        * Flashes the tab area.
        */
+      @Override
       public void run()
       {
          // add tab panel listener

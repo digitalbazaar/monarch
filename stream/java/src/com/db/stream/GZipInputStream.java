@@ -110,6 +110,7 @@ public class GZipInputStream extends DeflaterInputStream
     *         
     * @throws IOException
     */
+   @Override
    public int read(byte b[], int off, int len) throws IOException
    {
       int rval = -1;
@@ -197,6 +198,7 @@ public class GZipInputStream extends DeflaterInputStream
     * 
     * @throws IOException
     */
+   @Override
    public int available() throws IOException
    {
       int rval = 0;

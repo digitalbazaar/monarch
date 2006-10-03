@@ -89,6 +89,7 @@ public class WsdlSoapPort extends WsdlPort
     * 
     * @return the XmlElement that represents this object.
     */
+   @Override
    public XmlElement convertToXmlElement(XmlElement parent)
    {
       // create the base port xml element
@@ -112,6 +113,7 @@ public class WsdlSoapPort extends WsdlPort
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
@@ -151,6 +153,7 @@ public class WsdlSoapPort extends WsdlPort
     * 
     * @return the logger.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbnet");

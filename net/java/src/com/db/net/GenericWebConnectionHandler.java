@@ -30,8 +30,10 @@ public class GenericWebConnectionHandler extends AbstractWebConnectionHandler
     * Creates a new server socket for listening on a port. 
     * 
     * @param port the port the server socket will listen on.
+    * 
     * @return the new server socket.
     */
+   @Override
    protected ServerSocket createServerSocket(int port)
    {
       ServerSocket serverSocket = null; 
@@ -60,6 +62,7 @@ public class GenericWebConnectionHandler extends AbstractWebConnectionHandler
     *         handler should be considered secure, false if they should
     *         not be considered secure. 
     */
+   @Override
    public boolean webConnectionsSecure()
    {
       // generic connections not considered secure
@@ -74,6 +77,7 @@ public class GenericWebConnectionHandler extends AbstractWebConnectionHandler
     * a web connection handler should accept a proxy web connection. 
     *
     * @param webConnection the web connection to inspect.
+    * 
     * @return true if the web connection's protocol is supported, false
     *         if it is not.
     */

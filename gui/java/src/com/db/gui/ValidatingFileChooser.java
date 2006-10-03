@@ -110,6 +110,7 @@ public class ValidatingFileChooser extends JFileChooser
     *
     * @see #APPROVE_SELECTION
     */
+   @Override
    public void approveSelection()
    {
       if(getFileChoiceValidator() != null)

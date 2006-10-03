@@ -138,6 +138,7 @@ public class EditableTabPanel extends TabPanel
     * 
     * @return the tab panel handler.
     */
+   @Override
    protected TabPanelHandler getTabPanelHandler()
    {
       if(mTabPanelHandler == null)
@@ -521,6 +522,7 @@ public class EditableTabPanel extends TabPanel
     * 
     * @return the new editable tab area border.
     */
+   @Override
    protected Border createTabAreaParentBorder()
    {
       // set a border to be painted later
@@ -589,6 +591,7 @@ public class EditableTabPanel extends TabPanel
     * 
     * @param tabArea the tab area to update.
     */
+   @Override
    protected void updateTabAreaConstraints(Component tabArea)
    {
       if(tabArea instanceof CloseButtonJPanel)
@@ -684,6 +687,7 @@ public class EditableTabPanel extends TabPanel
     * 
     * @return true if the content is selected, false if not.
     */
+   @Override
    protected synchronized boolean selectTabContent(Component content)
    {
       boolean rval = false;
@@ -748,8 +752,9 @@ public class EditableTabPanel extends TabPanel
     * @param content the component to display in the content area.
     * @param index the index to add the tab at. 
     */
-   public synchronized void addTab(Component tabArea,
-                                   Component content, int index)
+   @Override
+   public synchronized void addTab(
+      Component tabArea, Component content, int index)
    {
       // if this tab has already been added, do not re-add it
       String id = getContentParentId(content);
@@ -851,6 +856,7 @@ public class EditableTabPanel extends TabPanel
     * 
     * @param content the content component that was displayed in the tab.
     */
+   @Override
    public synchronized void removeTab(Component content)   
    {
       // get the close button associated with the content
@@ -876,6 +882,7 @@ public class EditableTabPanel extends TabPanel
     * @param content the tab content of the tab to change.  
     * @param tabArea the new tab area.
     */
+   @Override
    public synchronized void setTabArea(Component content, Component tabArea)
    {
       // get the old tab area
@@ -939,6 +946,7 @@ public class EditableTabPanel extends TabPanel
     * @param oldContent the old content for the tab.
     * @param newContent the new content for the tab.
     */
+   @Override
    public synchronized void setTabContent(
       Component oldContent, Component newContent)
    {
@@ -1072,6 +1080,7 @@ public class EditableTabPanel extends TabPanel
     * 
     * @param content the content component to set as selected.
     */
+   @Override
    public void setSelected(Component content)
    {
       if(getCloseButtonPolicy() ==
@@ -1372,9 +1381,17 @@ public class EditableTabPanel extends TabPanel
 
       /**
        * Draws the tab area border.
+       * 
+       * @param c the component to draw the border around.
+       * @param g the graphics to draw with.
+       * @param x the x position for the component.
+       * @param y the y position for the component.
+       * @param width the width of the component.
+       * @param height the height of the component.
        */
-      public void paintBorder(Component c, Graphics g,
-                              int x, int y, int width, int height)      
+      @Override
+      public void paintBorder(
+         Component c, Graphics g, int x, int y, int width, int height)      
       {
          // paint the main border
          super.paintBorder(c, g, x, y, width, height);
@@ -1456,6 +1473,7 @@ public class EditableTabPanel extends TabPanel
        * 
        * @param e the mouse event.
        */
+      @Override
       public void mousePressed(MouseEvent e)
       {
          super.mousePressed(e);
@@ -1485,6 +1503,7 @@ public class EditableTabPanel extends TabPanel
        * 
        * @param e the mouse event.
        */
+      @Override
       public void mouseReleased(MouseEvent e)
       {
          super.mouseReleased(e);
@@ -1544,6 +1563,7 @@ public class EditableTabPanel extends TabPanel
        * 
        * @param e the mouse event.
        */
+      @Override
       public void mouseEntered(MouseEvent e)
       {
          super.mouseEntered(e);
@@ -1567,6 +1587,7 @@ public class EditableTabPanel extends TabPanel
        * 
        * @param e the mouse event.
        */
+      @Override
       public void mouseExited(MouseEvent e)
       {
          super.mouseExited(e);
@@ -1595,7 +1616,10 @@ public class EditableTabPanel extends TabPanel
        * Due to platform-dependent Drag&Drop implementations, 
        * <code>MOUSE_DRAGGED</code> events may not be delivered during a native 
        * Drag&Drop operation.
+       * 
+       * @param e the mouse event.
        */
+      @Override
       public void mouseDragged(MouseEvent e)
       {
          super.mouseDragged(e);

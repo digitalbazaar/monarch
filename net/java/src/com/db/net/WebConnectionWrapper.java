@@ -40,6 +40,7 @@ public class WebConnectionWrapper implements WebConnection
    /**
     * Ensures the wrapped web connection gets disconnected.
     */
+   @Override
    protected void finalize()
    {
       mWebConnection.disconnect();

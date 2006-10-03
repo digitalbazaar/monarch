@@ -120,6 +120,7 @@ implements ActionListener, WindowListener
     * 
     * Stops listening to Wizard events.
     */
+   @Override
    public void finalize()
    {
       mWizard.getWizardStartedEventDelegate().removeListener(this);

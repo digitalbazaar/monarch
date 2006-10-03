@@ -36,6 +36,7 @@ public class GZipHttpContentCoder extends AbstractHttpContentCoder
     * 
     * @throws IOException
     */
+   @Override
    protected InputStream getHttpContentEncodedStream(
       InputStream unencodedStream)
    throws IOException
@@ -53,6 +54,7 @@ public class GZipHttpContentCoder extends AbstractHttpContentCoder
     * 
     * @throws IOException
     */
+   @Override
    protected OutputStream getHttpContentDecodedStream(OutputStream os)
    throws IOException   
    {

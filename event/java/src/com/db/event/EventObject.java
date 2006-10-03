@@ -369,6 +369,7 @@ public class EventObject implements Cloneable
     * 
     * @return a copy of this event object.
     */
+   @Override
    public Object clone()
    {
       // copy name

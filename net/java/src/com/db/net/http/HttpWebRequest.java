@@ -416,6 +416,7 @@ public class HttpWebRequest extends WebRequest
     * 
     * @return true if this web request is valid, false if it is not.
     */
+   @Override
    public boolean isValid()
    {
       boolean rval = false;

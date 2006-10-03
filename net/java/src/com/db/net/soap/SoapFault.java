@@ -87,6 +87,7 @@ public class SoapFault extends AbstractXmlSerializer
     * 
     * @return the root tag name for this serializer.
     */
+   @Override
    public String getRootTag()   
    {
       // according to soap envelope schema
@@ -101,6 +102,7 @@ public class SoapFault extends AbstractXmlSerializer
     * 
     * @return the XmlElement that represents this object.
     */
+   @Override
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
@@ -150,6 +152,7 @@ public class SoapFault extends AbstractXmlSerializer
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = true;
@@ -311,6 +314,7 @@ public class SoapFault extends AbstractXmlSerializer
     * 
     * @return the logger for this SoapOperation.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbnet");

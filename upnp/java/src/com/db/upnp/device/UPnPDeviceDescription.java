@@ -322,6 +322,7 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
     * 
     * @return the root tag name for this serializer.
     */
+   @Override
    public String getRootTag()   
    {
       return "root";
@@ -335,6 +336,7 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
     * 
     * @return the XmlElement that represents this object.
     */
+   @Override
    public XmlElement convertToXmlElement(XmlElement parent)   
    {
       // create the root element
@@ -380,6 +382,7 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public boolean convertFromXmlElement(XmlElement element)   
    {
       boolean rval = false;
@@ -447,6 +450,7 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
     * 
     * @return the logger for this UPnPDeviceDescription.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbupnp");

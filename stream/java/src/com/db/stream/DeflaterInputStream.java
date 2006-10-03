@@ -214,6 +214,7 @@ public class DeflaterInputStream extends FilterInputStream
     *         
     * @throws IOException
     */
+   @Override
    public int read() throws IOException
    {
       int rval = -1;
@@ -243,6 +244,7 @@ public class DeflaterInputStream extends FilterInputStream
     *         
     * @throws IOException
     */
+   @Override
    public int read(byte b[], int off, int len) throws IOException
    {
       int rval = -1;
@@ -300,6 +302,7 @@ public class DeflaterInputStream extends FilterInputStream
     * 
     * @throws IOException
     */
+   @Override
    public long skip(long n) throws IOException
    {
       long rval = 0;
@@ -336,6 +339,7 @@ public class DeflaterInputStream extends FilterInputStream
     * 
     * @throws IOException
     */
+   @Override
    public int available() throws IOException
    {
       int rval = 0;
@@ -369,6 +373,7 @@ public class DeflaterInputStream extends FilterInputStream
     * 
     * @throws IOException
     */
+   @Override
    public void close() throws IOException
    {
       // close underlying input stream

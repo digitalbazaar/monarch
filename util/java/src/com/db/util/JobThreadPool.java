@@ -69,6 +69,7 @@ public class JobThreadPool
    /**
     * When finalizing this thread pool, terminate all of its threads.
     */
+   @Override
    public void finalize()
    {
       // terminate all threads

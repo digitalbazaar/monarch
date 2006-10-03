@@ -74,6 +74,7 @@ public class SslPortFileLock extends PortFileLock
     * @return the socket to use to listen for information or null if the
     *         socket could not be bound to the specified port.
     */
+   @Override
    protected ServerSocket bindServerSocket(int port)
    {
       // use a SSL server socket
@@ -122,6 +123,7 @@ public class SslPortFileLock extends PortFileLock
     * @return the socket to use to pass information or null if the socket
     *         could not connect to the port.
     */
+   @Override
    protected Socket connectSocket(int port)
    {
       // use a SSL socket

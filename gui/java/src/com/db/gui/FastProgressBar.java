@@ -213,6 +213,7 @@ implements ChangeReporter, Comparable
    /**
     * Resets the UI property with a value from the current look and feel.
     */
+   @Override
    public void updateUI()
    {
       setUI(new FastProgressBarUI(this));
@@ -227,6 +228,7 @@ implements ChangeReporter, Comparable
     *
     * @return the UIClassID for this component.
     */
+   @Override
    public String getUIClassID()
    {
       return mUiClassId;

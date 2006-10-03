@@ -128,6 +128,7 @@ public abstract class WsdlBinding extends AbstractXmlSerializer
     * 
     * @return the root tag name for this serializer.
     */
+   @Override
    public String getRootTag()   
    {
       return "binding";
@@ -141,6 +142,7 @@ public abstract class WsdlBinding extends AbstractXmlSerializer
     * 
     * @return the XmlElement that represents this object.
     */
+   @Override
    public abstract XmlElement convertToXmlElement(XmlElement parent);
    
    /**
@@ -150,6 +152,7 @@ public abstract class WsdlBinding extends AbstractXmlSerializer
     * 
     * @return true if successful, false otherwise.
     */
+   @Override
    public abstract boolean convertFromXmlElement(XmlElement element);   
    
    /**
@@ -157,6 +160,7 @@ public abstract class WsdlBinding extends AbstractXmlSerializer
     * 
     * @return the logger.
     */
+   @Override
    public Logger getLogger()
    {
       return LoggerManager.getLogger("dbnet");
