@@ -171,6 +171,34 @@ public class BasicUpdateScriptProcessor
       
       return rval;
    }
+   
+   /**
+    * Deletes a directory recursively.
+    * 
+    * @param dir the directory to delete.
+    * 
+    * @exception SecurityException thrown if the directory could not be
+    *            deleted due to a security error.
+    */
+   protected void deleteDirectory(File dir)
+   {
+      // delete the directory's contents
+      File[] files = dir.listFiles();
+      for(File file: files)
+      {
+         if(file.isFile())
+         {
+            file.delete();
+         }
+         else
+         {
+            deleteDirectory(file);
+         }
+      }
+      
+      // delete the directory, it should now be empty
+      dir.delete();
+   }
 
    /**
     * Performs a install command given the update script command object.
@@ -313,20 +341,18 @@ public class BasicUpdateScriptProcessor
       // attempt to delete the directory
       if(deleteDir.exists())
       {
-         if(deleteDir.isDirectory())
+         if(deleteDir.isDirectory() && deleteDir.canWrite())
          {
-            if(deleteDir.canWrite())
+            try
             {
-               try
-               {
-                  rval = deleteDir.delete();
-               }
-               catch(SecurityException se)
-               {
-                  getLogger().error(getClass(), 
-                     "Permission denied while attempting to " +
-                     "delete directory: " + deleteDir.getAbsolutePath());
-               }
+               deleteDirectory(deleteDir);
+               rval = true;
+            }
+            catch(SecurityException se)
+            {
+               getLogger().error(getClass(), 
+                  "Permission denied while attempting to " +
+                  "delete directory: " + deleteDir.getAbsolutePath());
             }
          }
       }
