@@ -234,6 +234,19 @@ public class SignedJarVerifier
             // add entry to the map
             mAliasToCertificateChain.put(aliases[i], chain);
          }
+         else
+         {
+            // add a trusted certificate if one exists
+            Certificate cert = keystore.getCertificate(aliases[i]);
+            if(cert != null)
+            {
+               chain = new Certificate[1];
+               chain[0] = cert;
+
+               // add entry to the map
+               mAliasToCertificateChain.put(aliases[i], chain);
+            }
+         }
       }
    }
    
