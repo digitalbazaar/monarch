@@ -229,8 +229,11 @@ public class SignedJarVerifier
          // load certificates from keystore for the alias
          Certificate[] chain = keystore.getCertificateChain(aliases[i]);
          
-         // add entry to the map
-         mAliasToCertificateChain.put(aliases[i], chain);
+         if(chain != null)
+         {
+            // add entry to the map
+            mAliasToCertificateChain.put(aliases[i], chain);
+         }
       }
    }
    
@@ -305,8 +308,7 @@ public class SignedJarVerifier
       {
          Certificate[] chain = (Certificate[])i.next();
          
-         if(chain != null &&
-            findArrayCertificates(entryCertificates, chain, false))
+         if(findArrayCertificates(entryCertificates, chain, false))
          {
             foundCount++;
          }
