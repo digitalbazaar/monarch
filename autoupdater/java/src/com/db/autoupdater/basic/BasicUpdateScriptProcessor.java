@@ -482,6 +482,12 @@ public class BasicUpdateScriptProcessor
                   "failed", 0, 100);
             }
          }
+         else if (!mCancelProcessing)
+         {
+            getLogger().error(getClass(),
+               "Could not get write access for file!: " +
+               destination.getAbsolutePath());
+         }
       }
       catch(Throwable t)
       {
