@@ -3,6 +3,7 @@
  */
 package com.db.autoupdater.basic;
 
+import java.io.File;
 import java.net.URL;
 
 import com.db.autoupdater.AutoUpdateable;
@@ -33,8 +34,8 @@ import com.db.util.JobDispatcher;
  * 
  * The file must include at least these 5 key-value pairs:
  * 
- * autoupdateable-classpath=file:/some/path/jar1.jar,file:/lib/jar2.jar
- *    a comma-separated list of URLs for jars or classes
+ * autoupdateable-classpath=some/relative-path/jar1.jar,lib/jar2.jar
+ *    a comma-separated list of relative file paths for jars or classes
  * 
  * autoupdateable-class=com.mycompany.ClassThatImplementsAutoUpdateable
  *    the full name of the class that implements AutoUpdateable
@@ -741,7 +742,8 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
             urls = new URL[split.length];
             for(int i = 0; i < urls.length; i++)
             {
-               urls[i] = new URL(split[i]);
+               File file = new File(split[i]);
+               urls[i] = file.toURL();
             }
          }
          
