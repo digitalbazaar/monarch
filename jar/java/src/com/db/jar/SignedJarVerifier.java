@@ -305,7 +305,8 @@ public class SignedJarVerifier
       {
          Certificate[] chain = (Certificate[])i.next();
          
-         if(findArrayCertificates(entryCertificates, chain, false))
+         if(chain != null &&
+            findArrayCertificates(entryCertificates, chain, false))
          {
             foundCount++;
          }
