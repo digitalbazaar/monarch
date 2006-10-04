@@ -374,6 +374,7 @@ public class BasicUpdateScriptProcessor
     * @param command the current command.
     * @param commandNumber the command number.
     * @param downloadItemNumber the download item number.
+    * 
     * @return true if the downloaded file is valid, false if not.
     */
    protected boolean downloadFile(
@@ -388,8 +389,8 @@ public class BasicUpdateScriptProcessor
          File destination = command.getRelativePath();
          String md5 = command.getMd5Digest();
          
-         // see if the destination can be written to
-         if(!destination.exists() || destination.canWrite() &&
+         // see if the destination can be written to and not cancelling
+         if((!destination.exists() || destination.canWrite()) &&
             !mCancelProcessing)
          {
             // get a temp file for saving to
