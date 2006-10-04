@@ -65,7 +65,7 @@ public class FileDownloader
          getLogger().debug(getClass(), "Downloading file=" + url);
                
          // create file output stream for writing to temp file
-         fos = new FileOutputStream(file);
+         fos = new FileOutputStream(file, true);
 
          // get input stream for reading from connection
          bis = new BufferedInputStream(c.getInputStream());
