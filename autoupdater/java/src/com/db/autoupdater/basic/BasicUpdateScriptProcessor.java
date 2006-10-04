@@ -291,15 +291,16 @@ public class BasicUpdateScriptProcessor
     * object.
     * 
     * @param command the update script command object.
+    * @param path the path of the directory to create.
     * 
     * @return true if the delete was successful, false otherwise.
     */
-   protected boolean performMkdirCommand(BasicUpdateScriptCommand command)
+   protected boolean performMkdirCommand(
+      BasicUpdateScriptCommand command, File path)
    {
       boolean rval = false;
       
-      File createDir =
-         new File(getWorkingPath() + command.getRelativePath().getPath());
+      File createDir = new File(getWorkingPath() + path.getPath());
       
       // attempt to create the directory
       if(!createDir.exists())
@@ -328,15 +329,16 @@ public class BasicUpdateScriptProcessor
     * object.
     * 
     * @param command the update script command object.
+    * @param path the path of the directory to remove.
     * 
     * @return true if the delete was successful, false otherwise.
     */
-   protected boolean performRmdirCommand(BasicUpdateScriptCommand command)
+   protected boolean performRmdirCommand(
+      BasicUpdateScriptCommand command, File path)
    {
       boolean rval = false;
       
-      File deleteDir =
-         new File(getWorkingPath() + command.getRelativePath().getPath());
+      File deleteDir = new File(getWorkingPath() + path.getPath());
       
       // attempt to delete the directory
       if(deleteDir.exists())
@@ -590,33 +592,41 @@ public class BasicUpdateScriptProcessor
          }
          else if(command.getName().equals("mkdir"))
          {
-            // fire event
-            fireBasicUpdateScriptProcessEvent(
-               "directoryChanged", command, commandNumber, 0,
-               command.getRelativePath(), "create", 0, 0);
+            // perform a mkdir for each relative path
+            for(File path: command.getRelativePaths())
+            {
+               // fire event
+               fireBasicUpdateScriptProcessEvent(
+                  "directoryChanged", command, commandNumber, 0,
+                  command.getRelativePath(), "create", 0, 0);
 
-            // perform make directory
-            noError &= performMkdirCommand(command);
-            
-            // fire event
-            fireBasicUpdateScriptProcessEvent(
-               "directoryChanged", command, commandNumber, 0,
-               command.getRelativePath(), "create", 0, 100);
+               // perform make directory
+               noError &= performMkdirCommand(command, path);
+               
+               // fire event
+               fireBasicUpdateScriptProcessEvent(
+                  "directoryChanged", command, commandNumber, 0,
+                  command.getRelativePath(), "create", 0, 100);
+            }
          }
          else if(command.getName().equals("rmdir"))
          {
-            // fire event
-            fireBasicUpdateScriptProcessEvent(
-               "directoryChanged", command, commandNumber, 0,
-               command.getRelativePath(), "delete", 0, 0);
+            // perform a rmdir for each relative path
+            for(File path: command.getRelativePaths())
+            {
+               // fire event
+               fireBasicUpdateScriptProcessEvent(
+                  "directoryChanged", command, commandNumber, 0,
+                  command.getRelativePath(), "delete", 0, 0);
 
-            // perform remove directory
-            noError &= performRmdirCommand(command);
-            
-            // fire event
-            fireBasicUpdateScriptProcessEvent(
-               "directoryChanged", command, commandNumber, 0,
-               command.getRelativePath(), "delete", 0, 100);
+               // perform remove directory
+               noError &= performRmdirCommand(command, path);
+               
+               // fire event
+               fireBasicUpdateScriptProcessEvent(
+                  "directoryChanged", command, commandNumber, 0,
+                  command.getRelativePath(), "delete", 0, 100);
+            }
          }
 
          // fire event

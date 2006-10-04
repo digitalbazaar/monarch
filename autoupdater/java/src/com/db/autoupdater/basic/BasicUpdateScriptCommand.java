@@ -175,12 +175,24 @@ public class BasicUpdateScriptCommand
       
       try
       {
-         // There should be 1 argument:
+         // There should be 1-n arguments:
          //
-         // 0. the relative path of the directory to create
+         // 0-n. the relative path of the directory to create
          
-         mRelativePaths.add(new File(mArguments.get(0)));
-         rval = true;
+         if(mArguments.size() > 0)
+         {
+            for(String path: mArguments)
+            {
+               mRelativePaths.add(new File(path));
+            }
+            
+            rval = true;
+         }
+         else
+         {
+            getLogger().error(getClass(), 
+               "Make directory command in update script is invalid.");
+         }
       }
       catch(Throwable t)
       {
@@ -203,12 +215,24 @@ public class BasicUpdateScriptCommand
       
       try
       {
-         // There should be 1 argument:
+         // There should be 1-n arguments:
          //
-         // 0. the relative path of the directory to remove
+         // 0-n. the relative path of the directory to create
          
-         mRelativePaths.add(new File(mArguments.get(0)));
-         rval = true;
+         if(mArguments.size() > 0)
+         {
+            for(String path: mArguments)
+            {
+               mRelativePaths.add(new File(path));
+            }
+            
+            rval = true;
+         }
+         else
+         {
+            getLogger().error(getClass(), 
+               "Remove directory command in update script is invalid.");
+         }
       }
       catch(Throwable t)
       {
