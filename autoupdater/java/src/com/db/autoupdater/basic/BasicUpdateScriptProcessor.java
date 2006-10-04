@@ -117,6 +117,9 @@ public class BasicUpdateScriptProcessor
       
       try
       {
+         // delete the destination file
+         dest.delete();
+         
          // copy the file in one go
          in = new FileInputStream(src).getChannel();
          out = new FileOutputStream(dest).getChannel();
