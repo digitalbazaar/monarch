@@ -34,10 +34,9 @@ public class BasicUpdateScriptProcessor
    protected boolean mCancelProcessing;
    
    /**
-    * Stores temporary file names mapped to their appropriate
-    * destination files. 
+    * Stores destination files mapped to their temporary files.
     */
-   protected HashMap<File, File> mTempFiles;
+   protected HashMap<File, File> mDestToTemp;
    
    /**
     * A BasicUpdateScriptProcessEventDelegate for firing
@@ -56,7 +55,7 @@ public class BasicUpdateScriptProcessor
       mScript = script;
 
       // create temp files map
-      mTempFiles = new HashMap<File, File>();
+      mDestToTemp = new HashMap<File, File>();
       
       // create delegate
       mBasicUpdateScriptProcessEventDelegate = new EventDelegate();
@@ -157,19 +156,20 @@ public class BasicUpdateScriptProcessor
    /**
     * Backs up a given file to another file in the same directory.
     * 
-    * @param targetFile the source file to backup.
+    * @param destFile the destination file to backup.
+    * 
     * @return true if the backup was successful, false otherwise.
     */
-   protected boolean backupFile(File targetFile)
+   protected boolean backupFile(File destFile)
    {
       boolean rval = true;
       
-      // only perform a backup if the targetFile exists, quietly fail if it
+      // only perform a backup if the destFile exists, quietly fail if it
       // doesn't
-      if(targetFile.exists() && targetFile.isFile())
+      if(destFile.exists() && destFile.isFile())
       {
-         File backupFile = new File(targetFile.getAbsolutePath() + ".backup");
-         rval = copyFile(targetFile, backupFile);
+         File backupFile = new File(destFile.getAbsolutePath() + ".backup");
+         rval = copyFile(destFile, backupFile);
       }
       
       return rval;
@@ -218,9 +218,12 @@ public class BasicUpdateScriptProcessor
       BasicUpdateScriptCommand command, int commandNumber)
    {
       boolean rval = true;
-
-      File sourceFile = mTempFiles.get(command.getRelativePath());
-      File targetFile =
+      
+      // get the temp file
+      File tempFile = mDestToTemp.get(command.getRelativePath());
+      
+      // get the full destination path
+      File destFile =
          new File(getWorkingPath() + command.getRelativePath().getPath());
 
       // fire event
@@ -229,7 +232,7 @@ public class BasicUpdateScriptProcessor
          command.getRelativePath(), "backup", 0, 0);
       
       // backup file
-      rval &= backupFile(targetFile);
+      rval &= backupFile(destFile);
       
       // fire event
       fireBasicUpdateScriptProcessEvent(
@@ -242,7 +245,7 @@ public class BasicUpdateScriptProcessor
          command.getRelativePath(), "install", 0, 0);
       
       // copy file
-      rval &= copyFile(sourceFile, targetFile);
+      rval &= copyFile(tempFile, destFile);
       
       // fire event
       fireBasicUpdateScriptProcessEvent(
@@ -456,7 +459,7 @@ public class BasicUpdateScriptProcessor
                   if(tempMD5.equals(md5))
                   {
                      // file MD5 matches, if file is valid add to map
-                     mTempFiles.put(destination, temp);
+                     mDestToTemp.put(destination, temp);
                         
                      // fire event
                      fireBasicUpdateScriptProcessEvent(
@@ -533,7 +536,7 @@ public class BasicUpdateScriptProcessor
    public synchronized void reset()
    {
       // clear temp files map
-      mTempFiles.clear();
+      mDestToTemp.clear();
       
       // reset cancel
       mCancelProcessing = false;
@@ -549,7 +552,7 @@ public class BasicUpdateScriptProcessor
       boolean rval = false;
       
       // clear temporary files
-      mTempFiles.clear();
+      mDestToTemp.clear();
       
       // perform the download for every file that is needed for installation
       boolean noError = true;
@@ -672,15 +675,20 @@ public class BasicUpdateScriptProcessor
       
       // move the old files back, installation failed
       boolean isValid = true;
-      for(File dest: mTempFiles.values())
+      for(File relativeDestPath: mDestToTemp.keySet())
       {
-         String oldPath = dest.getPath();
-         if(oldPath.endsWith(".backup"))
+         // get the destination file
+         File dest = new File(getWorkingPath() + relativeDestPath.getPath());
+         
+         // see if a backup file exists
+         File backupFile = new File(dest.getAbsolutePath() + ".backup"); 
+         if(backupFile.exists())
          {
-            oldPath = oldPath.substring(0, oldPath.length() - 4);
-            File newFile = new File(oldPath);
-            newFile.delete();
-            isValid &= dest.renameTo(newFile);
+            // delete destination file
+            dest.delete();
+            
+            // rename backup file to destination file
+            isValid &= backupFile.renameTo(dest);
          }
       }
       
@@ -698,14 +706,14 @@ public class BasicUpdateScriptProcessor
    {
       boolean rval = false;
       
-      // delete all the old files
+      // delete all the old temp files
       boolean isValid = true;
-      for(File dest: mTempFiles.values())
+      for(File temp: mDestToTemp.values())
       {
-         rval &= dest.delete();
+         rval &= temp.delete();
       }
 
-      mTempFiles.clear();
+      mDestToTemp.clear();
       
       return (rval == isValid);
    }   
