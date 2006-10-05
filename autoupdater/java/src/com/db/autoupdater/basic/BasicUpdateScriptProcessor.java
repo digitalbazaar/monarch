@@ -6,6 +6,7 @@ package com.db.autoupdater.basic;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -128,8 +129,9 @@ public class BasicUpdateScriptProcessor
             rval = true;
          }
       }
-      catch(Throwable ignore)
+      catch(Throwable t)
       {
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
       finally
       {
@@ -180,29 +182,45 @@ public class BasicUpdateScriptProcessor
     * 
     * @param dir the directory to delete.
     * 
+    * @exception IOException thrown if the directory's canonical path could
+    *            not be determined.
     * @exception SecurityException thrown if the directory could not be
     *            deleted due to a security error.
     */
    protected void deleteDirectory(File dir)
+   throws IOException
    {
-      // delete the directory's contents
-      File[] files = dir.listFiles();
-      if(files != null)
+      // ensure the directory is not a symbolic link before trying to
+      // delete its contents
+      if(dir.getAbsolutePath().equals(dir.getCanonicalPath()))
       {
-         for(File file: files)
+         // delete the directory's contents
+         File[] files = dir.listFiles();
+         if(files != null)
          {
-            if(file.isFile())
+            for(File file: files)
             {
-               file.delete();
-            }
-            else if(file.isDirectory())
-            {
-               deleteDirectory(file);
+               if(file.isFile())
+               {
+                  // try to delete the file
+                  if(!file.delete())
+                  {
+                     // the file could not be deleted for some reason, so
+                     // try to handle it like a directory
+                     deleteDirectory(file);
+                  }
+               }
+               else
+               {
+                  // assume the file is a directory or symbolic link
+                  deleteDirectory(file);
+               }
             }
          }
       }
       
       // delete the directory, it should now be empty
+      // (or it was a symbolic link)
       dir.delete();
    }
 
@@ -277,11 +295,13 @@ public class BasicUpdateScriptProcessor
          {
             rval = deleteFile.delete();
          }
-         catch(SecurityException se)
+         catch(SecurityException e)
          {
             getLogger().error(getClass(), 
                "Permission denied while attempting to delete file: "+
                deleteFile.getAbsolutePath());
+            
+            getLogger().debug(getClass(), Logger.getStackTrace(e));
          }
       }
       else
@@ -315,10 +335,12 @@ public class BasicUpdateScriptProcessor
          {
             rval = createDir.mkdirs();
          }
-         catch(SecurityException se)
+         catch(SecurityException e)
          {
             getLogger().error(getClass(), 
                "Could not create directory: " + createDir.getAbsolutePath());
+            
+            getLogger().debug(getClass(), Logger.getStackTrace(e));
          }
       }
       else
@@ -355,11 +377,19 @@ public class BasicUpdateScriptProcessor
                deleteDirectory(deleteDir);
                rval = true;
             }
-            catch(SecurityException se)
+            catch(IOException e)
+            {
+               getLogger().error(getClass(), 
+                  "IOException thrown while attempting to " +
+                  "delete directory: " + deleteDir.getAbsolutePath());
+               getLogger().debug(getClass(), Logger.getStackTrace(e));
+            }
+            catch(SecurityException e)
             {
                getLogger().error(getClass(), 
                   "Permission denied while attempting to " +
                   "delete directory: " + deleteDir.getAbsolutePath());
+               getLogger().debug(getClass(), Logger.getStackTrace(e));
             }
          }
          else
