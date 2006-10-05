@@ -293,7 +293,16 @@ public class BasicUpdateScriptProcessor
       {
          try
          {
-            rval = deleteFile.delete();
+            if(deleteFile.delete())
+            {
+               rval = true;
+            }
+            else
+            {
+               getLogger().error(getClass(), 
+                  "Could not delete file! Was it a non-empty directory?: " +
+                  deleteFile.getAbsolutePath());
+            }
          }
          catch(SecurityException e)
          {
