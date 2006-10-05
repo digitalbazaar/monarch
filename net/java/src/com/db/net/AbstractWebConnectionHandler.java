@@ -239,8 +239,6 @@ implements WebConnectionHandler, WebConnectionServicer
             // set the local port for this handler
             mPort = mServerSocket.getLocalPort();
             
-            System.out.println("bind adress,port=" + mBindAddress + "," + mPort);
-            
             // create a web connection acceptor
             mWebConnectionAcceptor = createWebConnectionAcceptor(getPort());
             
