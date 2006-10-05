@@ -3,6 +3,8 @@
  */
 package com.db.net;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Iterator;
 
 /**
@@ -109,7 +111,8 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
    }
    
    /**
-    * Adds a web connection handler to the internal web server.
+    * Adds a web connection handler to the internal web server. The handler
+    * will bind to 127.0.0.1.
     * 
     * Only one web connection handler is permitted per port.
     * 
@@ -128,14 +131,55 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
     */
    @Override
    public synchronized boolean addWebConnectionHandler(
-      WebConnectionHandler wch, int port)
+      WebConnectionHandler wch, int port)   
+   {
+      boolean rval = false;
+      
+      try
+      {
+         InetAddress bindAddress = InetAddress.getByName("127.0.0.1");
+         rval = addWebConnectionHandler(wch, bindAddress, port);
+      }
+      catch(UnknownHostException ignore)
+      {
+         // 127.0.0.1 is always known
+      }
+      
+      return rval; 
+   }
+   
+   /**
+    * Adds a web connection handler to the internal web server. The handler
+    * will bind to the specified local bind address, where null indicates
+    * 0.0.0.0.
+    * 
+    * Only one web connection handler is permitted per port.
+    * 
+    * A web connection handler will fail to be added to listen on the
+    * given port if there already exists another web connection handler
+    * listening on that port.
+
+    * If the web server is already running, then the web connection handler
+    * will begin accepting connections on the specified port.
+    * 
+    * @param wch the web connection handler to add to this server.
+    * @param bindAddress the local address to bind to (null indicates 0.0.0.0).
+    * @param port the port the web connection handler will listen on.
+    * 
+    * @return true if the web connection handler was successfully added,
+    *         false if it was not.
+    */
+   @Override
+   public synchronized boolean addWebConnectionHandler(
+      WebConnectionHandler wch, InetAddress bindAddress, int port)
    {
       // add the web connection handler to the priority list for
       // determining supported protocols
       mWebConnectionServicer.addPrioritizedWebConnectionHandler(wch);
       
       // add the web connection handler to the internal web server
-      return getInternalServer().addWebConnectionHandler(wch, port);
+      return getInternalServer().addWebConnectionHandler(
+         wch, bindAddress, port);
    }
    
    /**
@@ -196,7 +240,8 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
          getLogger().debug(getClass(), "starting proxy port web server...");
          
          // add the web connection handler
-         super.addWebConnectionHandler(mWebConnectionHandler, getProxyPort());
+         super.addWebConnectionHandler(
+            mWebConnectionHandler, null, getProxyPort());
          
          // start the internal web server
          getInternalServer().start();
@@ -216,7 +261,7 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
          {
             // start accepting web connections
             WebConnectionHandler handler = super.getWebConnectionHandler(port);
-            handler.startAcceptingWebConnections(port);
+            handler.startAcceptingWebConnections(getBindAddress(handler), port);
          }
          
          // start accepting connections on all unassigned web connection
@@ -227,7 +272,7 @@ public class ProxyPortWebConnectionServer extends WebConnectionServer
             WebConnectionHandler handler = i.next();
             
             // start accepting web connections on an ephemeral port
-            handler.startAcceptingWebConnections(0);
+            handler.startAcceptingWebConnections(getBindAddress(handler), 0);
             
             // add port to the port list
             mPorts.add(handler.getPort());

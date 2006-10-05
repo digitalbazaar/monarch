@@ -3,6 +3,7 @@
  */
 package com.db.net.datagram;
 
+import java.net.InetAddress;
 import java.util.Collection;
 import java.util.HashMap; 
 import java.util.Iterator;
@@ -30,6 +31,12 @@ public class DatagramServer
    protected HashMap<Integer, DatagramHandler> mPortToDatagramHandler;
    
    /**
+    * A table mapping datagram handlers to bind addresses.
+    */
+   protected HashMap<DatagramHandler, InetAddress>
+      mDatagramHandlerToBindAddress;
+   
+   /**
     * A list of datagramm handlers that are assigned to use any free ephemeral
     * port -- so that they don't have actual ports set yet until they start
     * accepting datagrams. 
@@ -52,6 +59,10 @@ public class DatagramServer
       // create the port to handler map
       mPortToDatagramHandler = new HashMap<Integer, DatagramHandler>();
       
+      // create handler to bind address map
+      mDatagramHandlerToBindAddress =
+         new HashMap<DatagramHandler, InetAddress>();
+      
       // create vector for unassigned datagram handlers
       mUnassignedDatagramHandlers = new Vector<DatagramHandler>();
       
@@ -66,11 +77,11 @@ public class DatagramServer
    protected void finalize()
    {
       stop();
-   }   
+   }
    
    /**
-    * Adds a datagram handler to this server. Only one datagram handler is
-    * permitted per port.
+    * Adds a datagram handler to this server. The handler will bind to
+    * 0.0.0.0. Only one datagram handler is permitted per port.
     * 
     * A datagram handler will fail to be added to listen on the given port
     * if there already exists another datagram handler listening on that port.
@@ -84,7 +95,31 @@ public class DatagramServer
     * @return true if the datagram handler was successfully added, false if
     *         it was not.
     */
-   public synchronized boolean addDatagramHandler(DatagramHandler dh, int port)
+   public synchronized boolean addDatagramHandler(DatagramHandler dh, int port)   
+   {
+      return addDatagramHandler(dh, null, port);
+   }
+   
+   /**
+    * Adds a datagram handler to this server that will bind to a specific
+    * local address (null indicates 0.0.0.0). Only one datagram handler is
+    * permitted per port.
+    * 
+    * A datagram handler will fail to be added to listen on the given port
+    * if there already exists another datagram handler listening on that port.
+    * 
+    * If the server is already running, then the datagram handler will begin
+    * accepting datagrams on the specified port.
+    * 
+    * @param dh the datagram handler to add to this server.
+    * @param bindAddress the local address to bind to (null indicates 0.0.0.0).
+    * @param port the port the datagram handler will listen on.
+    * 
+    * @return true if the datagram handler was successfully added, false if
+    *         it was not.
+    */
+   public synchronized boolean addDatagramHandler(
+      DatagramHandler dh, InetAddress bindAddress, int port)
    {
       boolean rval = false;
       
@@ -97,7 +132,7 @@ public class DatagramServer
          if(isRunning())
          {
             // start accepting datagrams on the port
-            dh.startAcceptingDatagrams(port);
+            dh.startAcceptingDatagrams(bindAddress, port);
          }
          
          if(dh.getPort() > 0 || port > 0)
@@ -108,8 +143,9 @@ public class DatagramServer
             // add port to the port list
             mPorts.add(port);
             
-            // so assign the port to the handler
+            // so assign port to handler and handler to bind address
             mPortToDatagramHandler.put(port, dh);
+            mDatagramHandlerToBindAddress.put(dh, bindAddress);
             
             // the handler was added
             rval = true;
@@ -118,6 +154,9 @@ public class DatagramServer
          {
             // add an unassigned datagram handler
             mUnassignedDatagramHandlers.add(dh);
+            
+            // assign handler to bind address
+            mDatagramHandlerToBindAddress.put(dh, bindAddress);
             
             // the handler was added
             rval = true;
@@ -139,6 +178,9 @@ public class DatagramServer
       dh = getDatagramHandler(dh.getPort());
       if(dh != null)
       {
+         // save port
+         int port = dh.getPort();
+         
          if(isRunning())
          {
             // stop accepting datagrams
@@ -149,14 +191,17 @@ public class DatagramServer
          }
          
          // remove the port from the port list
-         mPorts.remove(dh.getPort());
+         mPorts.remove(port);
          
          // unmap the datagram handler
-         mPortToDatagramHandler.remove(dh.getPort());
+         mPortToDatagramHandler.remove(port);
       }
 
       // remove the datagram handler from the unassigned list
       mUnassignedDatagramHandlers.remove(dh);
+      
+      // unmap the bind address
+      mDatagramHandlerToBindAddress.remove(dh);
    }
    
    /**
@@ -176,8 +221,9 @@ public class DatagramServer
       // clear port list
       mPorts.clear();
       
-      // clear map
+      // clear maps
       mPortToDatagramHandler.clear();
+      mDatagramHandlerToBindAddress.clear();
       
       // clear unassigned list
       mUnassignedDatagramHandlers.clear();
@@ -199,7 +245,7 @@ public class DatagramServer
          {
             // start accepting datagrams
             DatagramHandler handler = getDatagramHandler(port);
-            handler.startAcceptingDatagrams(port);
+            handler.startAcceptingDatagrams(getBindAddress(handler), port);
          }
          
          // start accepting datagrams on all unassigned datagram handlers
@@ -209,7 +255,7 @@ public class DatagramServer
             DatagramHandler handler = i.next();
             
             // start accepting datagrams on an ephemeral port
-            handler.startAcceptingDatagrams(0);
+            handler.startAcceptingDatagrams(getBindAddress(handler), 0);
             
             // add port to the port list
             mPorts.add(handler.getPort());
@@ -279,6 +325,20 @@ public class DatagramServer
    public DatagramHandler getDatagramHandler(int port)
    {
       return mPortToDatagramHandler.get(port);
+   }
+
+   /**
+    * Gets the local bind address for the given datagram handler. This
+    * method will retrieve the bind address for the handler even if the
+    * handler is not accepting datagrams yet.
+    * 
+    * @param dh the datagram handler to get the local bind address for.
+    * 
+    * @return the local bind address the datagram handler uses/will use.
+    */
+   public InetAddress getBindAddress(DatagramHandler dh)
+   {
+      return mDatagramHandlerToBindAddress.get(dh);
    }
    
    /**

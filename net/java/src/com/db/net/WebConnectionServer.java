@@ -3,6 +3,7 @@
  */
 package com.db.net;
 
+import java.net.InetAddress;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,6 +31,12 @@ public class WebConnectionServer
    protected HashMap<Integer, WebConnectionHandler> mPortToWebConnectionHandler;
    
    /**
+    * A table mapping web connection handlers to bind addresses.
+    */
+   protected HashMap<WebConnectionHandler, InetAddress>
+      mWebConnectionHandlerToBindAddress;
+   
+   /**
     * A list of web connection handlers that are assigned to use any free
     * ephemeral port -- so that they don't have actual ports set yet until
     * they start accepting web connections. 
@@ -53,6 +60,10 @@ public class WebConnectionServer
       mPortToWebConnectionHandler =
          new HashMap<Integer, WebConnectionHandler>();
       
+      // create the handler to bind address map
+      mWebConnectionHandlerToBindAddress =
+         new HashMap<WebConnectionHandler, InetAddress>();
+      
       // create vector for unassigned web connection handlers
       mUnassignedWebConnectionHandlers = new Vector<WebConnectionHandler>();
       
@@ -67,11 +78,11 @@ public class WebConnectionServer
    protected void finalize()
    {
       stop();
-   }   
+   }
    
    /**
-    * Adds a web connection handler to this web server. Only one web
-    * connection handler is permitted per port.
+    * Adds a web connection handler to this web server. The handler will
+    * bind to 0.0.0.0. Only one web connection handler is permitted per port.
     * 
     * A web connection handler will fail to be added to listen on the
     * given port if there already exists another web connection handler
@@ -89,6 +100,31 @@ public class WebConnectionServer
    public synchronized boolean addWebConnectionHandler(
       WebConnectionHandler wch, int port)
    {
+      return addWebConnectionHandler(wch, null, port);
+   }
+   
+   /**
+    * Adds a web connection handler to this web server that will bind to
+    * a specific local address (null indicates 0.0.0.0). Only one web
+    * connection handler is permitted per port.
+    * 
+    * A web connection handler will fail to be added to listen on the
+    * given port if there already exists another web connection handler
+    * listening on that port.
+
+    * If the web server is already running, then the web connection handler
+    * will begin accepting connections on the specified port.
+    * 
+    * @param wch the web connection handler to add to this server.
+    * @param bindAddress the local address to bind to (null indicates 0.0.0.0).
+    * @param port the port the web connection handler will listen on.
+    * 
+    * @return true if the web connection handler was successfully added,
+    *         false if it was not.
+    */
+   public synchronized boolean addWebConnectionHandler(
+      WebConnectionHandler wch, InetAddress bindAddress, int port)
+   {
       boolean rval = false;
       
       // see if there is already a web connection handler on the provided port
@@ -100,7 +136,7 @@ public class WebConnectionServer
          if(isRunning())
          {
             // start accepting web connections on the port
-            wch.startAcceptingWebConnections(port);
+            wch.startAcceptingWebConnections(bindAddress, port);
          }
          
          if(wch.getPort() > 0 || port > 0)
@@ -111,8 +147,9 @@ public class WebConnectionServer
             // add port to the port list
             mPorts.add(port);
             
-            // so assign the port to the handler
+            // so assign port to handler and handler to bind address
             mPortToWebConnectionHandler.put(port, wch);
+            mWebConnectionHandlerToBindAddress.put(wch, bindAddress);
             
             // the handler was added
             rval = true;
@@ -121,6 +158,9 @@ public class WebConnectionServer
          {
             // add an unassigned web connection handler
             mUnassignedWebConnectionHandlers.add(wch);
+            
+            // assign handler to bind address
+            mWebConnectionHandlerToBindAddress.put(wch, bindAddress);
             
             // the handler was added
             rval = true;
@@ -144,6 +184,9 @@ public class WebConnectionServer
       wch = getWebConnectionHandler(wch.getPort());
       if(wch != null)
       {
+         // save port
+         int port = wch.getPort();
+         
          if(isRunning())
          {
             // stop accepting web connections
@@ -157,14 +200,17 @@ public class WebConnectionServer
          }
          
          // remove the port from the port list
-         mPorts.remove(wch.getPort());
+         mPorts.remove(port);
          
          // unmap the handler
-         mPortToWebConnectionHandler.remove(wch.getPort());
+         mPortToWebConnectionHandler.remove(port);
       }
       
       // remove the web connection handler from the unassigned list
       mUnassignedWebConnectionHandlers.remove(wch);
+      
+      // unmap the bind address
+      mWebConnectionHandlerToBindAddress.remove(wch);
    }
    
    /**
@@ -187,8 +233,9 @@ public class WebConnectionServer
       // clear port list
       mPorts.clear();
       
-      // clear map
+      // clear maps
       mPortToWebConnectionHandler.clear();
+      mWebConnectionHandlerToBindAddress.clear();
       
       // clear unassigned list
       mUnassignedWebConnectionHandlers.clear();
@@ -210,7 +257,7 @@ public class WebConnectionServer
          {
             // start accepting web connections
             WebConnectionHandler handler = getWebConnectionHandler(port);
-            handler.startAcceptingWebConnections(port);
+            handler.startAcceptingWebConnections(getBindAddress(handler), port);
          }
          
          // start accepting connections on all unassigned web connection
@@ -221,12 +268,12 @@ public class WebConnectionServer
             WebConnectionHandler handler = i.next();
             
             // start accepting web connections on an ephemeral port
-            handler.startAcceptingWebConnections(0);
+            handler.startAcceptingWebConnections(getBindAddress(handler), 0);
             
             // add port to the port list
             mPorts.add(handler.getPort());
             
-            // so assign the port to the handler
+            // so assign port to handler
             mPortToWebConnectionHandler.put(handler.getPort(), handler);
             
             // remove the handler from the unassigned list
@@ -294,6 +341,20 @@ public class WebConnectionServer
    public WebConnectionHandler getWebConnectionHandler(int port)
    {
       return mPortToWebConnectionHandler.get(port);
+   }
+   
+   /**
+    * Gets the local bind address for the given web connection handler. This
+    * method will retrieve the bind address for the handler even if the
+    * handler is not accepting web connections yet.
+    * 
+    * @param wch the web connection handler to get the local bind address for.
+    * 
+    * @return the local bind address the web connection handler uses/will use.
+    */
+   public InetAddress getBindAddress(WebConnectionHandler wch)
+   {
+      return mWebConnectionHandlerToBindAddress.get(wch);
    }
    
    /**

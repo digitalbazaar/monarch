@@ -4,6 +4,7 @@
 package com.db.net.ssl;
 
 import java.io.FileInputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.security.KeyStore;
 
@@ -51,14 +52,15 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
    }
    
    /**
-    * Creates a new SSL server socket for listening on a port. 
+    * Creates a new SSL server socket for listening on a port.
     * 
+    * @param bindAddress the local address to bind to (null indicates 0.0.0.0).
     * @param port the port the server socket will listen on.
     * 
     * @return the new server socket.
     */
    @Override
-   protected ServerSocket createServerSocket(int port)
+   protected ServerSocket createServerSocket(InetAddress bindAddress, int port)
    {
       ServerSocket serverSocket = null; 
       
@@ -83,7 +85,7 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
          
          // create ssl socket
          SSLServerSocket SSLServerSocket =
-            (SSLServerSocket)factory.createServerSocket(port);
+            (SSLServerSocket)factory.createServerSocket(port, 50, bindAddress);
          
          // client authorization not necessary
          SSLServerSocket.setNeedClientAuth(false);

@@ -3,6 +3,7 @@
  */
 package com.db.net;
 
+import java.net.InetAddress;
 import java.net.ServerSocket;
 
 import com.db.logging.Logger;
@@ -29,19 +30,20 @@ public class GenericWebConnectionHandler extends AbstractWebConnectionHandler
    /**
     * Creates a new server socket for listening on a port. 
     * 
+    * @param bindAddress the local address to bind to (null indicates 0.0.0.0).
     * @param port the port the server socket will listen on.
     * 
     * @return the new server socket.
     */
    @Override
-   protected ServerSocket createServerSocket(int port)
+   protected ServerSocket createServerSocket(InetAddress bindAddress, int port)
    {
       ServerSocket serverSocket = null; 
       
       try
       {
          // create a generic server socket
-         serverSocket = new ServerSocket(port);
+         serverSocket = new ServerSocket(port, 50, bindAddress);
       }
       catch(Throwable t)
       {

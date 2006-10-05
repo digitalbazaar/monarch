@@ -3,6 +3,7 @@
  */
 package com.db.net;
 
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.Vector;
 
@@ -18,6 +19,11 @@ import com.db.logging.LoggerManager;
 public abstract class AbstractWebConnectionHandler
 implements WebConnectionHandler, WebConnectionServicer
 {
+   /**
+    * The local bind address for this web connection handler.
+    */
+   protected InetAddress mBindAddress;
+   
    /**
     * The port for this web connection handler.
     */
@@ -70,6 +76,7 @@ implements WebConnectionHandler, WebConnectionServicer
       mServiceThreads = new Vector<WebConnectionServiceThread>();
 
       // set default values
+      mBindAddress = null;
       mPort = -1;
       mServerSocket = null;
       mMaxConcurrentConnections = 0;
@@ -78,10 +85,13 @@ implements WebConnectionHandler, WebConnectionServicer
    /**
     * Creates a new server socket for listening on a port. 
     * 
+    * @param bindAddress the local address to bind to (null indicates 0.0.0.0).
     * @param port the port the server socket will listen on.
+    * 
     * @return the new server socket.
     */
-   protected abstract ServerSocket createServerSocket(int port);
+   protected abstract ServerSocket createServerSocket(
+      InetAddress bindAddress, int port);
    
    /**
     * Creates a new web connection acceptor for accepting web connections. 
@@ -184,17 +194,19 @@ implements WebConnectionHandler, WebConnectionServicer
    }
    
    /**
-    * Starts accepting web connections on the given port. If this web
-    * connection handler is already listening on another port, this method
-    * should return false. If it is already listening on the passed port,
-    * it should have no effect and return true.
+    * Starts accepting web connections on the given local address and port.
+    * If this web connection handler is already listening on another port,
+    * this method should return false. If it is already listening on the
+    * passed port, it should have no effect and return true.
     * 
+    * @param bindAddress the local address to bind to (null indicates 0.0.0.0).
     * @param port the port to start accepting web connections on.
     * 
     * @return true if this web connection handler is now listening on the
     *         specified port, false if not.
     */
-   public synchronized boolean startAcceptingWebConnections(int port)
+   public synchronized boolean startAcceptingWebConnections(
+      InetAddress bindAddress, int port)
    {
       boolean rval = false;
       
@@ -216,13 +228,18 @@ implements WebConnectionHandler, WebConnectionServicer
       else
       {
          // create a new server socket
-         mServerSocket = createServerSocket(port);
+         mServerSocket = createServerSocket(bindAddress, port);
          
          // ensure the server socket was created successfully
          if(mServerSocket != null)
          {
+            // set the local bind address for this handler
+            mBindAddress = mServerSocket.getInetAddress();
+            
             // set the local port for this handler
             mPort = mServerSocket.getLocalPort();
+            
+            System.out.println("bind adress,port=" + mBindAddress + "," + mPort);
             
             // create a web connection acceptor
             mWebConnectionAcceptor = createWebConnectionAcceptor(getPort());
@@ -272,8 +289,9 @@ implements WebConnectionHandler, WebConnectionServicer
          getLogger().debug(getClass(),
             "no longer accepting web connections on port " + getPort() + ".");
          
-         // reset web connection acceptor, server socket, and port
+         // reset web connection acceptor, server socket, bind address, port
          mWebConnectionAcceptor = null;
+         mBindAddress = null;
          mPort = -1;
          mServerSocket = null;
       }
@@ -435,6 +453,19 @@ implements WebConnectionHandler, WebConnectionServicer
    {
       // return the number of web connection service threads
       return mServiceThreads.size();
+   }
+   
+   /**
+    * Gets the local bind address that this web connection handler is
+    * accepting web connections on.
+    * 
+    * @return the local bind address that this web connection handler is
+    *         accepting web connections on (null indicates the web connection
+    *         handler is not yet bound to an address).
+    */
+   public InetAddress getBindAddress()   
+   {
+      return mBindAddress;
    }
    
    /**

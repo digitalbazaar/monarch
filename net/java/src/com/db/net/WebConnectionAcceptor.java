@@ -157,8 +157,8 @@ public class WebConnectionAcceptor
          serverSocket.setSoTimeout(30000);
          
          // create a new client socket
-         Socket newClientSocket = new Socket(serverSocket.getInetAddress(),
-                                             serverSocket.getLocalPort());
+         Socket newClientSocket = new Socket(
+            serverSocket.getInetAddress(), serverSocket.getLocalPort());
          
          // create the new web connection, a proxy connection will
          // automatically pipe data between this connection and the

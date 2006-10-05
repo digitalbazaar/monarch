@@ -3,6 +3,8 @@
  */
 package com.db.net;
 
+import java.net.InetAddress;
+
 /**
  * A generic web connection handler. A class that implements this interface
  * can handle web connections.
@@ -12,17 +14,19 @@ package com.db.net;
 public interface WebConnectionHandler
 {
    /**
-    * Starts accepting web connections on the given port. If this web
-    * connection handler is already listening on another port, this method
-    * should return false. If it is already listening on the passed port,
-    * it should have no effect and return true.
+    * Starts accepting web connections on the given local address and port.
+    * If this web connection handler is already listening on another port,
+    * this method should return false. If it is already listening on the
+    * passed port, it should have no effect and return true.
     * 
+    * @param bindAddress the local address to bind to (null indicates 0.0.0.0).
     * @param port the port to start accepting web connections on.
     * 
     * @return true if this web connection handler is now listening on the
     *         specified port, false if not.
     */
-   public boolean startAcceptingWebConnections(int port);
+   public boolean startAcceptingWebConnections(
+      InetAddress bindAddress, int port);
    
    /**
     * Stops accepting all web connections. 
@@ -105,6 +109,16 @@ public interface WebConnectionHandler
     * @return the number of web connections currently being serviced.
     */
    public int webConnectionsBeingServiced();
+   
+   /**
+    * Gets the local bind address that this web connection handler is
+    * accepting web connections on.
+    * 
+    * @return the local bind address that this web connection handler is
+    *         accepting web connections on (null indicates the web connection
+    *         handler is not yet bound to an address).
+    */
+   public InetAddress getBindAddress();
    
    /**
     * Gets the port that this web connection handler is accepting web
