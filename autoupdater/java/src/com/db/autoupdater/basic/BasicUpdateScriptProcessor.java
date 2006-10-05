@@ -288,34 +288,26 @@ public class BasicUpdateScriptProcessor
       
       File deleteFile = new File(getWorkingPath() + path.getPath());
       
-      // attempt to delete the file
-      if(deleteFile.exists())
+      try
       {
-         try
+         if(deleteFile.delete())
          {
-            if(deleteFile.delete())
-            {
-               rval = true;
-            }
-            else
-            {
-               getLogger().error(getClass(), 
-                  "Could not delete file! Was it a non-empty directory?: " +
-                  deleteFile.getAbsolutePath());
-            }
+            rval = true;
          }
-         catch(SecurityException e)
+         else
          {
             getLogger().error(getClass(), 
-               "Permission denied while attempting to delete file: "+
+               "Could not delete file! Was it a non-empty directory?: " +
                deleteFile.getAbsolutePath());
-            
-            getLogger().debug(getClass(), Logger.getStackTrace(e));
          }
       }
-      else
+      catch(SecurityException e)
       {
-         rval = true;
+         getLogger().error(getClass(), 
+            "Permission denied while attempting to delete file: "+
+            deleteFile.getAbsolutePath());
+         
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
       }
       
       return rval;
@@ -376,40 +368,38 @@ public class BasicUpdateScriptProcessor
       
       File deleteDir = new File(getWorkingPath() + path.getPath());
       
-      // attempt to delete the directory
-      if(deleteDir.exists())
+      if(deleteDir.isDirectory())
       {
-         if(deleteDir.isDirectory())
+         try
          {
-            try
-            {
-               deleteDirectory(deleteDir);
-               rval = true;
-            }
-            catch(IOException e)
-            {
-               getLogger().error(getClass(), 
-                  "IOException thrown while attempting to " +
-                  "delete directory: " + deleteDir.getAbsolutePath());
-               getLogger().debug(getClass(), Logger.getStackTrace(e));
-            }
-            catch(SecurityException e)
-            {
-               getLogger().error(getClass(), 
-                  "Permission denied while attempting to " +
-                  "delete directory: " + deleteDir.getAbsolutePath());
-               getLogger().debug(getClass(), Logger.getStackTrace(e));
-            }
+            deleteDirectory(deleteDir);
+            rval = true;
          }
-         else
+         catch(IOException e)
          {
-            getLogger().error(getClass(),
-               "Could not remove directory, file wasn't a directory: " +
-               deleteDir.getAbsolutePath());
+            getLogger().error(getClass(), 
+               "IOException thrown while attempting to " +
+               "delete directory: " + deleteDir.getAbsolutePath());
+            getLogger().debug(getClass(), Logger.getStackTrace(e));
          }
+         catch(SecurityException e)
+         {
+            getLogger().error(getClass(), 
+               "Permission denied while attempting to " +
+               "delete directory: " + deleteDir.getAbsolutePath());
+            getLogger().debug(getClass(), Logger.getStackTrace(e));
+         }
+      }
+      else if(deleteDir.isFile())
+      {
+         getLogger().error(getClass(),
+            "Could not remove directory, it was a file: " +
+            deleteDir.getAbsolutePath());
       }
       else
       {
+         // may be a symbolic link, delete it
+         deleteDir.delete();
          rval = true;
       }
       
