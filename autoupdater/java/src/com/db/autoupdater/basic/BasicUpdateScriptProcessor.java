@@ -187,15 +187,18 @@ public class BasicUpdateScriptProcessor
    {
       // delete the directory's contents
       File[] files = dir.listFiles();
-      for(File file: files)
+      if(files != null)
       {
-         if(file.isFile())
+         for(File file: files)
          {
-            file.delete();
-         }
-         else
-         {
-            deleteDirectory(file);
+            if(file.isFile())
+            {
+               file.delete();
+            }
+            else if(file.isDirectory())
+            {
+               deleteDirectory(file);
+            }
          }
       }
       
@@ -267,18 +270,15 @@ public class BasicUpdateScriptProcessor
       // attempt to delete the file
       if(deleteFile.exists())
       {
-         if(deleteFile.canWrite())
+         try
          {
-            try
-            {
-               rval = deleteFile.delete();
-            }
-            catch(SecurityException se)
-            {
-               getLogger().error(getClass(), 
-                  "Permission denied while attempting to delete file: "+
-                  deleteFile.getAbsolutePath());
-            }
+            rval = deleteFile.delete();
+         }
+         catch(SecurityException se)
+         {
+            getLogger().error(getClass(), 
+               "Permission denied while attempting to delete file: "+
+               deleteFile.getAbsolutePath());
          }
       }
       else
@@ -315,8 +315,7 @@ public class BasicUpdateScriptProcessor
          catch(SecurityException se)
          {
             getLogger().error(getClass(), 
-               "Update script failed to create directory: "+
-               createDir.getAbsolutePath());
+               "Could not create directory: " + createDir.getAbsolutePath());
          }
       }
       else
@@ -346,7 +345,7 @@ public class BasicUpdateScriptProcessor
       // attempt to delete the directory
       if(deleteDir.exists())
       {
-         if(deleteDir.isDirectory() && deleteDir.canWrite())
+         if(deleteDir.isDirectory())
          {
             try
             {
@@ -359,6 +358,12 @@ public class BasicUpdateScriptProcessor
                   "Permission denied while attempting to " +
                   "delete directory: " + deleteDir.getAbsolutePath());
             }
+         }
+         else
+         {
+            getLogger().error(getClass(),
+               "Could not remove directory, file wasn't a directory: " +
+               deleteDir.getAbsolutePath());
          }
       }
       else
