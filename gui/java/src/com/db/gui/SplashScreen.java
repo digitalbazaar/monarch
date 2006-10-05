@@ -10,7 +10,6 @@ import java.awt.Font;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.JProgressBar;
 import javax.swing.JWindow;
 
 /**
@@ -19,9 +18,9 @@ import javax.swing.JWindow;
 public class SplashScreen extends JWindow
 {
    /**
-    * The progress bar.
+    * The fast progress bar.
     */
-   protected JProgressBar mProgressBar;
+   protected FastProgressBar mProgressBar;
    
    /**
     * The display image that is used by the window.
@@ -43,11 +42,12 @@ public class SplashScreen extends JWindow
       mImageLabel.setHorizontalAlignment(JLabel.CENTER);
       
       // setup progress bar
-      Font pgFont = new Font("SansSerif", Font.PLAIN, 12);
-      mProgressBar = new JProgressBar();
-      mProgressBar.setStringPainted(true);
-      mProgressBar.setString("");
+      mProgressBar = new FastProgressBar();
+      mProgressBar.setText("");
       mProgressBar.setIndeterminate(true);
+      
+      // set progress bar font
+      Font pgFont = new Font("SansSerif", Font.PLAIN, 12);
       mProgressBar.setFont(pgFont);
 
       panel.add(mImageLabel);
@@ -59,13 +59,23 @@ public class SplashScreen extends JWindow
    /**
     * Sets the progress bar's foreground and background color.
     * 
-    * @param fgColor the foreground color for the progress bar.
-    * @param bgColor the background color for the progress bar.
+    * @param backgroundColor the background color of the progress bar.
+    * @param meterColor the color of the progress bar when filled.
+    * @param fullTextColor the color of text when displayed against the
+    *                      full meter.
+    * @param emptyTextColor the color of text when displayed against the 
+    *                       empty meter.
     */
-   public void setProgressColor(Color fgColor, Color bgColor)
+   public void setProgressColor(
+      Color backgroundColor, Color meterColor, Color fullTextColor,
+      Color emptyTextColor)
    {
-      mProgressBar.setForeground(fgColor);
-      mProgressBar.setBackground(bgColor);
+      mProgressBar.setBackground(backgroundColor);
+      mProgressBar.getFastProgressBarUI().setMeterColor(meterColor);
+      mProgressBar.getFastProgressBarUI().setFullMeterTextColor(
+         fullTextColor);
+      mProgressBar.getFastProgressBarUI().setEmptyMeterTextColor(
+         emptyTextColor);
    }
    
    /**
@@ -100,6 +110,6 @@ public class SplashScreen extends JWindow
     */
    public void setProgressText(String text)
    {
-      mProgressBar.setString(text);
+      mProgressBar.setText(text);
    }
 }
