@@ -296,9 +296,17 @@ public class BasicUpdateScriptProcessor
          }
          else
          {
-            getLogger().error(getClass(), 
-               "Could not delete file! Was it a non-empty directory?: " +
-               deleteFile.getAbsolutePath());
+            if(deleteFile.exists())
+            {
+               getLogger().error(getClass(), 
+                  "Could not delete file! Was it a non-empty directory?: " +
+                  deleteFile.getAbsolutePath());
+            }
+            else
+            {
+               // file doesn't exist already
+               rval = true;
+            }
          }
       }
       catch(SecurityException e)
