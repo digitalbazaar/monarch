@@ -133,9 +133,6 @@ public abstract class AbstractXmlSerializer implements IXmlSerializer
          InputSource is = new InputSource(new StringReader(xmlText));
          Document doc = builder.parse(is);
          
-         // normalize text representation
-         doc.getDocumentElement().normalize();
-         
          // convert from xml
          if(convertFromXml(doc.getDocumentElement()))
          {
