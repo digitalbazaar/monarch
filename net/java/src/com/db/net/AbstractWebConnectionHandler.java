@@ -96,11 +96,9 @@ implements WebConnectionHandler, WebConnectionServicer
    /**
     * Creates a new web connection acceptor for accepting web connections. 
     * 
-    * @param port the port to create the web connection acceptor for.
-    * 
     * @return the new web connection acceptor.
     */
-   protected WebConnectionAcceptor createWebConnectionAcceptor(int port)
+   protected WebConnectionAcceptor createWebConnectionAcceptor()
    {
       // create generic web connection acceptor
       WebConnectionAcceptor wca = new WebConnectionAcceptor(
@@ -121,13 +119,18 @@ implements WebConnectionHandler, WebConnectionServicer
    }
    
    /**
-    * Gets the web connection acceptor for this web connection handler.
+    * Gets the web connection acceptor for this web connection handler. One
+    * will be created if one does not exist already.
     * 
-    * @return the web connection acceptor for this web connection handler or
-    *         null if one has not yet been assigned.
+    * @return the web connection acceptor for this web connection handler.
     */
    protected WebConnectionAcceptor getWebConnectionAcceptor()
    {
+      if(mWebConnectionAcceptor == null)
+      {
+         mWebConnectionAcceptor = createWebConnectionAcceptor();
+      }
+      
       return mWebConnectionAcceptor;
    }
    
@@ -239,11 +242,8 @@ implements WebConnectionHandler, WebConnectionServicer
             // set the local port for this handler
             mPort = mServerSocket.getLocalPort();
             
-            // create a web connection acceptor
-            mWebConnectionAcceptor = createWebConnectionAcceptor(getPort());
-            
             // start accepting connections
-            mWebConnectionAcceptor.startAcceptingWebConnections(
+            getWebConnectionAcceptor().startAcceptingWebConnections(
                mServerSocket, webConnectionsSecure());
             
             // now accepting web connections
@@ -287,8 +287,7 @@ implements WebConnectionHandler, WebConnectionServicer
          getLogger().debug(getClass(),
             "no longer accepting web connections on port " + getPort() + ".");
          
-         // reset web connection acceptor, server socket, bind address, port
-         mWebConnectionAcceptor = null;
+         // reset server socket, bind address, port
          mBindAddress = null;
          mPort = -1;
          mServerSocket = null;
@@ -336,17 +335,8 @@ implements WebConnectionHandler, WebConnectionServicer
     */
    public synchronized boolean isAcceptingWebConnections()
    {
-      boolean rval = false;
-      
-      // if the port is not 0, and a web connection acceptor and server socket
-      // exist, then this web connection handler is accepting connections
-      if(getPort() != 0 &&
-         getWebConnectionAcceptor() != null && getServerSocket() != null) 
-      {
-         rval = true;
-      }
-      
-      return rval;
+      // return whether or not the web connection acceptor is accepting
+      return getWebConnectionAcceptor().isAcceptingWebConnections();
    }
    
    /**
@@ -359,6 +349,8 @@ implements WebConnectionHandler, WebConnectionServicer
    public synchronized void setMaxConcurrentConnections(int connections)
    {
       mMaxConcurrentConnections = Math.max(0, connections);
+      getWebConnectionAcceptor().setMaxConcurrentConnections(
+         mMaxConcurrentConnections);
    }
    
    /**

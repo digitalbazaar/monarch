@@ -272,6 +272,19 @@ public class JobThreadPool
    }
    
    /**
+    * Gets the number of threads in this thread pool. If a size of
+    * 0 is returned, than there is no limit to the number of threads
+    * in this pool.
+    * 
+    * @return the number of threads in this thread pool. A size
+    *         of 0 specifies an unlimited number of threads.
+    */
+   public synchronized int getPoolSize()
+   {
+      return mThreadSemaphore.getMaxPermitCount();
+   }
+   
+   /**
     * Runs the passed Runnable job on an available JobThread.
     * 
     * This method will lock until an available thread is acquired or

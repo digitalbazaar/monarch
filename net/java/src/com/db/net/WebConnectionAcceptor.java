@@ -47,7 +47,8 @@ public class WebConnectionAcceptor
     * accept at once.
     * 
     * @param wcs the web connection servicer for this connection acceptor. 
-    * @param connections the maximum number of connections to accept at once.
+    * @param connections the maximum number of connections to accept at once
+    *                    with 0 indicating no maximum.
     */
    public WebConnectionAcceptor(WebConnectionServicer wcs, int connections)
    {
@@ -314,7 +315,31 @@ public class WebConnectionAcceptor
    {
       return mWebConnectionServicer;
    }
-
+   
+   /**
+    * Sets the maximum number of connections to accept concurrently.
+    * 
+    * @param connections the maximum number of connections to accept
+    *                    concurrently with 0 indicating an unlimited amount.
+    */
+   public void setMaxConcurrentConnections(int connections)
+   {
+      // set thread pool size
+      connections = Math.max(0, connections);
+      getThreadPool().setPoolSize(connections);
+   }
+   
+   /**
+    * Sets the maximum number of connections to accept concurrently.
+    * 
+    * @return the maximum number of connections to accept concurrently with
+    *         0 indicating an unlimited amount.
+    */
+   public int getMaxConcurrentConnections()
+   {
+      return getThreadPool().getPoolSize();
+   }
+   
    /**
     * Gets the logger.
     * 
