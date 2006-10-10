@@ -223,14 +223,8 @@ public class HttpWebConnectionServer extends WebConnectionServer
    {
       if(!isRunning())
       {
-         // save maximum connections
-         int connections = getMaximumNonSecureConnections();
-         
          // set port
          mNonSecurePort = nonSecurePort;
-         
-         // update maximum connections
-         setMaximumNonSecureConnections(connections);
       }
    }
    
@@ -262,14 +256,8 @@ public class HttpWebConnectionServer extends WebConnectionServer
    {
       if(!isRunning())
       {
-         // save maximum connections
-         int connections = getMaximumSecureConnections();
-         
          // set port
          mSecurePort = securePort;
-
-         // update maximum connections
-         setMaximumSecureConnections(connections);
       }
    }
    
