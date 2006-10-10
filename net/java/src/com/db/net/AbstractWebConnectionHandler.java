@@ -250,7 +250,7 @@ implements WebConnectionHandler, WebConnectionServicer
             rval = true;
             
             getLogger().debug(getClass(),
-               "accepting web connections on port " + port + ".");
+               "accepting web connections on port " + getPort() + ".");
          }
          else
          {
