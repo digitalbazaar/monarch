@@ -39,6 +39,11 @@ public class PortFileLock extends FileLock
    protected int mPort;
    
    /**
+    * The thread for accepting incoming connections. 
+    */
+   protected Thread mAcceptThread;
+   
+   /**
     * The connection handler for this PortFileLock. This is the object
     * that handles any incoming connections to the server socket that is
     * listening to the port for this PortFileLock. It can be null.
@@ -92,6 +97,9 @@ public class PortFileLock extends FileLock
       
       // set the port
       mPort = port;
+      
+      // no accept thread yet
+      mAcceptThread = null;
       
       // set no connection handler
       setConnectionHandler(null);
@@ -231,7 +239,7 @@ public class PortFileLock extends FileLock
          getLogger().debug(getClass(), Logger.getStackTrace(e));
       }
       
-      // release the lock
+      // ensure the lock is released
       unlock();
       
       try
@@ -275,6 +283,7 @@ public class PortFileLock extends FileLock
                   // start accepting connections in a background process
                   MethodInvoker mi = new MethodInvoker(
                      this, "acceptConnections", socket);
+                  mAcceptThread = mi;
                   mi.backgroundExecute();
                }
                else
@@ -298,6 +307,35 @@ public class PortFileLock extends FileLock
       }
       
       return hasLock();      
+   }
+   
+   /**
+    * Unlocks this PortFileLock, if it has a lock.
+    */
+   @Override
+   public void unlock()   
+   {
+      if(hasLock())
+      {
+         super.unlock();
+         
+         // join the accept thread, if one exists
+         if(mAcceptThread != null)
+         {
+            try
+            {
+               mAcceptThread.join(1000);
+            }
+            catch(Throwable t)
+            {
+               // log exception
+               getLogger().debug(getClass(), Logger.getStackTrace(t));
+            }
+            
+            // drop accept thread
+            mAcceptThread = null;
+         }
+      }
    }
    
    /**

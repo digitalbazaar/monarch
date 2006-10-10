@@ -62,8 +62,8 @@ public class UTAutoUpdater
             // run the auto-updateable application
             run = updater.runAutoUpdateable(args);
             
-            // if the updater needs a new loader, don't run again
-            if(updater.requiresNewLoader())
+            // if the updater needs a shutdown, don't run again
+            if(updater.requiresShutdown())
             {
                run = false;
             }
@@ -295,13 +295,13 @@ public class UTAutoUpdater
       }
       
       /**
-       * Returns true if the AutoUpdater that processed this script requires
-       * a new loader, false if not.
+       * Returns true if the AutoUpdate process should be shutdown, false 
+       * if not.
        * 
-       * @return true if the AutoUpdater that processed this script requires
-       *         a new loader, false if not.
+       * @return true if the AutoUpdate process should be shutdown, false
+       *         if not.
        */
-      public boolean autoUpdaterRequiresNewLoader()      
+      public boolean shutdownRequired()      
       {
          boolean rval = false;
          

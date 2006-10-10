@@ -20,6 +20,10 @@ import com.db.util.MethodInvoker;
 /**
  * A BasicUpdateScriptProcessor processes a BasicUpdateScript.
  * 
+ * FIXME: A lot of the functionality in this class needs to change when
+ * BasicUpdateScriptCommand is broken into individual classes that each
+ * execute their own behavior. This class should be drastically simplified.
+ * 
  * @author Dave Longley
  */
 public class BasicUpdateScriptProcessor
@@ -415,6 +419,48 @@ public class BasicUpdateScriptProcessor
    }
    
    /**
+    * Performs the patch command given the update script command object.
+    * 
+    * @param command the update script command object.
+    * 
+    * @return true if the patch was successful, false otherwise.
+    */
+   protected boolean performPatchCommand(
+       BasicUpdateScriptCommand command)
+   {
+      boolean rval = false;
+      
+      try
+      {
+         // get working directory
+         File dir = new File(System.getProperty("user.dir"));
+         
+         // execute patch
+         Process p = Runtime.getRuntime().exec(
+               command.getPatchExecutable(), null, dir);
+         
+         // wait for patch to complete
+         int exitCode = p.waitFor();
+         if(exitCode == 0)
+         {
+            rval = true;
+         }
+      }
+      catch(IOException e)
+      {
+         getLogger().error(getClass(), "Could not execute patch!,e= " + e);
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
+      }
+      catch(InterruptedException e)
+      {
+         getLogger().error(getClass(), "Interrupted during patch execution!");
+         getLogger().debug(getClass(), Logger.getStackTrace(e));
+      }
+      
+      return rval;
+   }   
+   
+   /**
     * Downloads a file to a temporary file name. The filename will be
     * stored in the temp map in case it is valid and is to be used. If
     * the temp file is invalid, it will be deleted.
@@ -683,7 +729,22 @@ public class BasicUpdateScriptProcessor
                   command.getRelativePath(), "delete", 0, 100);
             }
          }
-
+         else if(command.getName().equals("patch"))
+         {
+            // fire event
+            fireBasicUpdateScriptProcessEvent(
+               "executingPatch", command, commandNumber, 0,
+               null, null, 0, 0);
+            
+            // execute the patch
+            noError &= performPatchCommand(command);
+            
+            // fire event
+            fireBasicUpdateScriptProcessEvent(
+               "patchExecuted", command, commandNumber, 0,
+               null, null, 0, 100);
+         }
+         
          // fire event
          fireBasicUpdateScriptProcessEvent(
             "commandProcessed", command, commandNumber, 0, null, null, 0, 0);

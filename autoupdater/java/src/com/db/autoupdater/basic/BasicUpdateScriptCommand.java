@@ -19,6 +19,11 @@ import com.db.xml.XmlElement;
  * This class can be used to parse and verify that a particular command
  * in a BasicUpdateScript is valid.
  * 
+ * FIXME: This class needs to be broken up into an abstract base class
+ * and individual derived classes that parse out their specific commands
+ * and execute the appropriate behavior. Work on this has begun and has
+ * been backed up. The work stopped because there are more pressing issues.
+ * 
  * @author Manu Sporny
  * @author Dave Longley
  */
@@ -55,6 +60,11 @@ public class BasicUpdateScriptCommand
    protected Vector<File> mRelativePaths;
    
    /**
+    * The executable, and its arguments, for a patch.
+    */
+   protected String[] mPatchExecutable;
+   
+   /**
     * A message to display.
     */
    protected String mMessage;
@@ -86,6 +96,7 @@ public class BasicUpdateScriptCommand
       mMd5Digest = "";
       mSize = -1;
       mRelativePaths.clear();
+      mPatchExecutable = null;
       mMessage = "";
       mOnSuccessArgument = "";
    }
@@ -245,6 +256,44 @@ public class BasicUpdateScriptCommand
    }
    
    /**
+    * Parses a patch command.
+    * 
+    * @return true if successfully parsed, false if not.
+    */
+   protected boolean parsePatchCommand()
+   {
+      boolean rval = false;
+      
+      try
+      {
+         // There should be 1-n arguments:
+         //
+         // 1. the patch executable command to execute
+         // n. the arguments for the executable
+         
+         if(mArguments.size() > 0)
+         {
+            mPatchExecutable = new String[mArguments.size()];
+            mArguments.toArray(mPatchExecutable);
+            rval = true;
+         }
+         else
+         {
+            getLogger().error(getClass(),
+               "Patch command must have at least 1 argument!");
+         }
+      }
+      catch(Throwable t)
+      {
+         getLogger().error(getClass(), 
+            "Patch command in update script is invalid.");
+         getLogger().debug(getClass(), Logger.getStackTrace(t));
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Parses a message command.
     * 
     * @return true if successfully parsed, false if not.
@@ -307,12 +356,13 @@ public class BasicUpdateScriptCommand
     * 
     * <pre>
     * FILE := (install IARGS | delete DARGS | mkdir DARGS | rmdir DARGS |
-    *          message MARGS)* on_success? OARGS
+    *          patch PARGS | message MARGS)* on_success? OARGS
     * 
     * LINE := COMMAND
     * 
     * COMMAND := (install IARGS | delete DARGS | 
-    *             mkdir DARGS | rmdir DARGS | message MARGS | on_success OARGS)
+    *             mkdir DARGS | rmdir DARGS | patch PARGS |
+    *             message MARGS | on_success OARGS)
     * 
     * URL := FILE_OR_HTTP_URL_STRING
     * SIZE := LONG
@@ -325,11 +375,14 @@ public class BasicUpdateScriptCommand
     * 
     * DARGS := RELATIVE_PATH*
     * 
+    * PARGS := STRING+
+    * 
     * OARGS := (restart|shutdown)
     * </pre>
     * 
     * MARGS are message arguments.
     * DARGS are directory arguments.
+    * PARGS are patch arguments.
     * OARGS are on success arguments.
     * 
     * @param element the xml element to parse the command from.
@@ -399,6 +452,10 @@ public class BasicUpdateScriptCommand
                {
                   rval = parseRemoveDirectoryCommand();
                }
+               else if(getName().equals("patch"))
+               {
+                  rval = parsePatchCommand();
+               }
                else if(getName().equals("message"))
                {
                   rval = parseMessageCommand();
@@ -406,6 +463,11 @@ public class BasicUpdateScriptCommand
                else if(getName().equals("on_success"))
                {
                   rval = parseOnSuccessCommand();
+               }
+               else
+               {
+                  getLogger().error(getClass(),
+                     "Unknown command: " + getName());
                }
             }
          }
@@ -490,6 +552,16 @@ public class BasicUpdateScriptCommand
    public Vector<File> getRelativePaths()
    {
       return mRelativePaths;
+   }
+   
+   /**
+    * Gets the patch executable.
+    *
+    * @return the patch executable.
+    */
+   public String[] getPatchExecutable()
+   {
+      return mPatchExecutable;
    }
    
    /**

@@ -64,11 +64,11 @@ public interface UpdateScript
    public boolean autoUpdaterRequiresReload();
    
    /**
-    * Returns true if the AutoUpdater that processed this script requires
-    * a new loader, false if not.
+    * Returns true if the entire AutoUpdate process should be shutdown,
+    * false if not.
     * 
-    * @return true if the AutoUpdater that processed this script requires
-    *         a new loader, false if not.
+    * @return true if the entire AutoUpdateProcess should be shutdown,
+    *         false if not.
     */
-   public boolean autoUpdaterRequiresNewLoader();
+   public boolean shutdownRequired();
 }

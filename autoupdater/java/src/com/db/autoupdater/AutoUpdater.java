@@ -47,13 +47,10 @@ public interface AutoUpdater
    public boolean requiresReload();
    
    /**
-    * Gets whether or not this AutoUpdater requires a shutdown.
+    * Gets whether or not this AutoUpdater and the program that loaded it
+    * should be completely shutdown.
     * 
-    * This method should return true whenever an update has changed this
-    * AutoUpdater in such a way that it requires a new AutoUpdaterLoader
-    * to be loaded again.
-    * 
-    * @return true if this AutoUpdater requires a new loader, false if not.
+    * @return true if a complete shutdown of the AutoUpdate process is required.  
     */
-   public boolean requiresNewLoader();
+   public boolean requiresShutdown();
 }

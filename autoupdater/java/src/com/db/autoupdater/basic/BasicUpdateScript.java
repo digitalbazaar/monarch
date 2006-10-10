@@ -49,6 +49,11 @@ public class BasicUpdateScript implements UpdateScript
    protected BasicUpdateScriptProcessor mProcessor;
    
    /**
+    * The current version for the update script.
+    */
+   protected static final String SCRIPT_VERSION = "1.1";
+   
+   /**
     * Creates a new blank BasicUpdateScript.
     */
    public BasicUpdateScript()
@@ -105,7 +110,7 @@ public class BasicUpdateScript implements UpdateScript
          XmlElement element = new XmlElement();
          if(element.convertFromXml(script) &&
             element.getName().equals("update_script") &&
-            element.getAttributeValue("version").equals("1.0"))
+            element.getAttributeValue("version").equals(SCRIPT_VERSION))
          {
             rval = true;
             
@@ -138,6 +143,13 @@ public class BasicUpdateScript implements UpdateScript
                   rval = false;
                }
             }
+         }
+         
+         if(mCommands.size() == 0)
+         {
+            getLogger().debug(getClass(),
+               "Update script contains no commands, so it is invalid.");
+            rval = false;
          }
       }
       
@@ -210,8 +222,8 @@ public class BasicUpdateScript implements UpdateScript
       
       // reload auto-updater if a shutdown or a restart is required
       if(getExitCommand() != null &&
-         getExitCommand().equals("shutdown") ||
-         getExitCommand().equals("restart"))
+         (getExitCommand().equals("shutdown") ||
+          getExitCommand().equals("restart")))
       {
          rval = true;
       }
@@ -220,17 +232,17 @@ public class BasicUpdateScript implements UpdateScript
    }
    
    /**
-    * Returns true if the AutoUpdater that processed this script requires
-    * a new loader, false if not.
+    * Returns true if the entire AutoUpdate process should be shutdown,
+    * false if not.
     * 
-    * @return true if the AutoUpdater that processed this script requires
-    *         a new loader, false if not.
+    * @return true if the entire AutoUpdateProcess should be shutdown,
+    *         false if not.
     */
-   public boolean autoUpdaterRequiresNewLoader()
+   public boolean shutdownRequired()   
    {
       boolean rval = false;
       
-      // reload auto-updater if a shutdown is required
+      // see if exit command is "shutdown"
       if(getExitCommand() != null &&
          getExitCommand().equals("shutdown"))
       {

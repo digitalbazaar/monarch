@@ -85,9 +85,10 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    protected boolean mRequiresReload;
    
    /**
-    * Set to true when this AutoUpdater requires a new loader, false otherwise.
+    * Set to true when the entire AutoUpdater process should be shutdown,
+    * false otherwise.
     */
-   protected boolean mRequiresNewLoader;
+   protected boolean mRequiresShutdown;
    
    /**
     * True while processing an update, false otherwise. 
@@ -187,8 +188,8 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
       // no reload required by default
       setRequiresReload(false);
       
-      // no new loader required by default
-      setRequiresNewLoader(false);
+      // no shutdown required by default
+      setRequiresShutdown(false);
       
       // not processing an update by default
       setProcessingUpdate(false);
@@ -469,14 +470,14 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    }
    
    /**
-    * Sets whether or not this AutoUpdater requires a new AutoUpdaterLoader.
+    * Sets whether or not the entire AutoUpdate process should be shutdown.
     * 
-    * @param newLoader true if this AutoUpdater requires a
-    *                  new AutoUpdaterLoader, false if not.
+    * @param shutdown true if the entire AutoUpdate process should be shutdown,
+    *                 false if not.
     */
-   protected synchronized void setRequiresNewLoader(boolean newLoader)
+   protected synchronized void setRequiresShutdown(boolean shutdown)
    {
-      mRequiresNewLoader = newLoader;
+      mRequiresShutdown = shutdown;
    }   
    
    /**
@@ -617,8 +618,8 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
             // set whether or not this AutoUpdater requires a reload
             setRequiresReload(script.autoUpdaterRequiresReload());
             
-            // set whether or not this AutoUpdater requires a new loader
-            setRequiresNewLoader(script.autoUpdaterRequiresNewLoader());
+            // set whether or not this AutoUpdater requires a shutdown
+            setRequiresShutdown(script.shutdownRequired());
             
             if(success)
             {
@@ -1185,17 +1186,14 @@ public abstract class AbstractAutoUpdater implements AutoUpdater
    }
    
    /**
-    * Gets whether or not this AutoUpdater requires a shutdown.
+    * Gets whether or not this AutoUpdater and the program that loaded it
+    * should be completely shutdown.
     * 
-    * This method should return true whenever an update has changed this
-    * AutoUpdater in such a way that it requires a new AutoUpdaterLoader
-    * to be loaded again.
-    * 
-    * @return true if this AutoUpdater requires a new loader, false if not.
+    * @return true if a complete shutdown of the AutoUpdate process is required.  
     */
-   public synchronized boolean requiresNewLoader()   
+   public synchronized boolean requiresShutdown()   
    {
-      return mRequiresNewLoader;
+      return mRequiresShutdown;
    }
    
    /**
