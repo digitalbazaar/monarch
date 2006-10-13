@@ -722,7 +722,17 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
                   mWsdlPath = wsdlUrl;
                   mWsdl = wsdl;
                }
+               else
+               {
+                  getLogger().error(getClass(),
+                     "could not convert received wsdl from xml!");
+               }
             }
+         }
+         else
+         {
+            getLogger().error(getClass(),
+               "could not connect to soap web service!");
          }
          
          if(rval != null)
@@ -731,11 +741,6 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
             long timespan = et - st;
             getLogger().debug(getClass(),
                "wsdl retrieved in " + timespan + " ms");
-         }
-         else
-         {
-            getLogger().error(getClass(),
-               "could not convert received wsdl from xml!");
          }
       }
       catch(Throwable t)
