@@ -12,21 +12,22 @@ package com.db.net.soap;
 public class SoapFaultException extends Exception
 {
    /**
-    * The soap message that contains the soap fault.
+    * The soap fault.
     */
-   protected SoapMessage mSoapMessage;
+   protected SoapFault mSoapFault;
    
    /**
-    * Creates a new SoapFaultException with null as its detail message.
+    * Creates a new SoapFaultException with the SOAP Fault string as its
+    * detail message.
     * 
     * The cause is not initialized, and may subsequently be initialized by a
     * call to initCause().
     * 
-    * @param sm the soap message that contains the soap fault.
+    * @param fault the soap fault.
     */
-   public SoapFaultException(SoapMessage sm)
+   public SoapFaultException(SoapFault fault)
    {
-      this(sm, null, null);
+      this(fault, fault.getFaultString(), null);
    }
 
    /**
@@ -35,13 +36,13 @@ public class SoapFaultException extends Exception
     * The cause is not initialized, and may subsequently be initialized by
     * a call to initCause().
     *
-    * @param sm the soap message that contains the soap fault.
+    * @param fault the soap fault.
     * @param message the detail message.
     * 
     */
-   public SoapFaultException(SoapMessage sm, String message)
+   public SoapFaultException(SoapFault fault, String message)
    {
-      this(sm, message, null);
+      this(fault, message, null);
    }
    
    /**
@@ -49,40 +50,40 @@ public class SoapFaultException extends Exception
     * and cause. The detail message will be null if the cause is null,
     * otherwise it will be the string representation of the cause.
     *
-    * @param sm the soap message that contains the soap fault.
+    * @param fault the soap fault.
     * @param cause the cause (null is permitted and indicates that the
     *              cause is nonexistent or unknown).
     */
-   public SoapFaultException(SoapMessage sm, Throwable cause)
+   public SoapFaultException(SoapFault fault, Throwable cause)
    {
-      this(sm, null, cause);
+      this(fault, fault.getFaultString(), cause);
    }
 
    /**
     * Constructs a new exception with the specified detail message and
     * cause.
     *
-    * @param sm the soap message that contains the soap fault.
+    * @param fault the soap fault.
     * @param message the detail message.
     * @param cause the cause (null is permitted and indicates that the
     *              cause is nonexistent or unknown).
     */
-   public SoapFaultException(SoapMessage sm, String message, Throwable cause)
+   public SoapFaultException(SoapFault fault, String message, Throwable cause)
    {
       // initialize message and cause
       super(message, cause);
       
-      // store the soap message
-      mSoapMessage = sm;
+      // store the soap fault
+      mSoapFault = fault;
    }
    
    /**
-    * Gets the soap message containing the soap fault.
+    * Gets the soap fault.
     * 
-    * @return the soap message containing the soap fault.
+    * @return the soap fault.
     */
-   public SoapMessage getSoapMessage()
+   public SoapFault getSoapFault()
    {
-      return mSoapMessage;
+      return mSoapFault;
    }
 }

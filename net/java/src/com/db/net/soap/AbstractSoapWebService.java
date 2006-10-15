@@ -383,6 +383,11 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
                   envelope.setSoapFault(fault);
                }
             }
+            else if(t instanceof SoapFaultException)
+            {
+               SoapFaultException sfe = (SoapFaultException)t;
+               envelope.setSoapFault(sfe.getSoapFault());
+            }
             else
             {
                SoapFault fault = new SoapFault();

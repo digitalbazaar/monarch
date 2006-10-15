@@ -315,8 +315,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
             {
                // throw exception, soap fault
                throw new SoapFaultException(
-                  sm, "SOAP Fault: " +
-                  sm.getRpcSoapEnvelope().getSoapFault().getFaultString());
+                  sm.getRpcSoapEnvelope().getSoapFault());
             }
          }
       }
@@ -344,8 +343,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
          sm.getRpcSoapEnvelope().setSoapFault(fault);
          
          // throw a soap fault exception
-         throw new SoapFaultException(
-            sm, "SOAP Fault: " + fault.getFaultString(), e);
+         throw new SoapFaultException(fault, e);
       }
 
       return rval;
@@ -511,8 +509,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
                sm.getRpcSoapEnvelope().setSoapFault(fault);
                   
                // throw a soap fault exception
-               throw new SoapFaultException(
-                  sm, "SOAP Fault: " + fault.getFaultString());
+               throw new SoapFaultException(fault);
             }
          }
          else
@@ -530,8 +527,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
             sm.getRpcSoapEnvelope().setSoapFault(fault);
                
             // throw a soap fault exception
-            throw new SoapFaultException(
-               sm, "SOAP Fault: " + fault.getFaultString());
+            throw new SoapFaultException(fault);
          }
       }
       catch(SoapFaultException sfe)
@@ -558,8 +554,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
          sm.getRpcSoapEnvelope().setSoapFault(fault);
             
          // throw a soap fault exception
-         throw new SoapFaultException(
-            sm, "SOAP Fault: " + fault.getFaultString(), e);         
+         throw new SoapFaultException(fault, e);         
       }
       catch(NullPointerException e)
       {
@@ -580,8 +575,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
          sm.getRpcSoapEnvelope().setSoapFault(fault);
             
          // throw a soap fault exception
-         throw new SoapFaultException(
-            sm, "SOAP Fault: " + fault.getFaultString(), e);
+         throw new SoapFaultException(fault, e);
       }
       
       return rval;
@@ -641,7 +635,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
             
             // throw a soap fault exception
             throw new SoapFaultException(
-               sm, "SOAP Fault: " + fault.getFaultString());
+               fault, "SOAP Fault: " + fault.getFaultString());
          }
       }
       
