@@ -54,22 +54,22 @@ public class SoapFault extends AbstractXmlSerializer
    /**
     * A soap fault: when a version mismatch occurs.
     */
-   protected final static String FAULT_VERSION_MISMATCH = "VersionMismatch";
+   public final static String FAULT_VERSION_MISMATCH = "VersionMismatch";
    
    /**
     * A soap fault: when something must be understood but is not.
     */
-   protected final static String FAULT_MUST_UNDERSTAND = "MustUnderstand";
+   public final static String FAULT_MUST_UNDERSTAND = "MustUnderstand";
    
    /**
     * A soap fault: when a soap client faults.
     */
-   protected final static String FAULT_CLIENT = "Client";
+   public final static String FAULT_CLIENT = "Client";
    
    /**
     * A soap fault: when a soap server faults.
     */
-   protected final static String FAULT_SERVER = "Server";
+   public final static String FAULT_SERVER = "Server";
    
    /**
     * Creates a new SoapFault.
