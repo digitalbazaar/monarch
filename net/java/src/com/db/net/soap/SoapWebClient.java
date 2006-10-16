@@ -23,9 +23,12 @@ public interface SoapWebClient extends WebConnectionClient
     * @param params the parameters for the soap method.
     * 
     * @return a soap message for this soap web client.
+    * 
+    * @exception SoapFaultException thrown when a soap fault is raised.
     */
    public RpcSoapMessage createSoapRequest(
-      Wsdl wsdl, String method, Object... params);
+      Wsdl wsdl, String method, Object... params)
+   throws SoapFaultException;
    
    /**
     * Calls a remote soap method over the passed web connection using

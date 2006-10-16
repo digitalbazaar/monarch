@@ -357,9 +357,12 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
     * @param params the parameters for the soap method.
     * 
     * @return a soap message for this soap web client.
+    * 
+    * @exception SoapFaultException thrown when a soap fault is raised.
     */
    public RpcSoapMessage createSoapRequest(
       Wsdl wsdl, String method, Object... params)
+   throws SoapFaultException
    {
       // create a soap request
       RpcSoapMessage sm = new RpcSoapMessage();
@@ -370,6 +373,19 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
 
       // FUTURE CODE: we need a cleaner way to do this
       WsdlMessage message = wsdl.getMessages().getMessage(method);
+      if(message == null)
+      {
+         // create a soap fault
+         SoapFault fault = new SoapFault();
+         fault.setFaultCode(SoapFault.FAULT_CLIENT);
+         fault.setFaultString(
+            "The soap method specified was not recognized. Check " +
+            "the method signature and parameter names.");
+         fault.setFaultActor(getUrl().toString());
+         
+         throw new SoapFaultException(fault);
+      }
+      
       int count = 0;
       for(WsdlMessagePart part: message.getParts())
       {
@@ -634,8 +650,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
             sm.getRpcSoapEnvelope().setSoapFault(fault);
             
             // throw a soap fault exception
-            throw new SoapFaultException(
-               fault, "SOAP Fault: " + fault.getFaultString());
+            throw new SoapFaultException(fault);
          }
       }
       
