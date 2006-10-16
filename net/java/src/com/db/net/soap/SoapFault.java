@@ -166,14 +166,14 @@ public class SoapFault extends AbstractXmlSerializer
       }
       
       // get the faultstring element
-      XmlElement faultstringElement = element.getFirstChild("faultcode");
+      XmlElement faultstringElement = element.getFirstChild("faultstring");
       if(faultstringElement != null)
       {
          setFaultString(faultstringElement.getValue());
       }
       
       // get the faultactor element
-      XmlElement faultactorElement = element.getFirstChild("faultcode");
+      XmlElement faultactorElement = element.getFirstChild("faultactor");
       if(faultactorElement != null)
       {
          setFaultActor(faultactorElement.getValue());

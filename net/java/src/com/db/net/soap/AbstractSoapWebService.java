@@ -3,6 +3,7 @@
  */
 package com.db.net.soap;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
@@ -353,6 +354,16 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
             if(thread != null)
             {
                mCallThreadToSoapMessage.remove(thread);
+            }
+            
+            // see if the exception was an invocation exception
+            if(t instanceof InvocationTargetException)
+            {
+               // use the cause of the invocation exception, if any
+               if(t.getCause() != null)
+               {
+                  t = t.getCause();
+               }
             }
             
             // set soap fault
