@@ -112,25 +112,11 @@ public class JobDispatcher implements Runnable
    }
    
    /**
-    * Dispatches the next Runnable job in the queue, if one exists.
-    */
-   protected void dispatchNextJob()
-   {
-      // pop next Runnable job off of the queue
-      Runnable job = popJob();
-      if(job != null)
-      {
-         // run the job
-         getThreadPool().runJob(job);      
-      }
-   }
-   
-   /**
     * Queues a Runnable job for execution.
     * 
     * @param job the Runnable job to queue.
     */
-   public void queueJob(Runnable job)
+   public synchronized void queueJob(Runnable job)
    {
       pushJob(job);
    }
@@ -144,6 +130,20 @@ public class JobDispatcher implements Runnable
    public synchronized void dequeueJob(Runnable job)
    {
       mJobQueue.remove(job);
+   }
+   
+   /**
+    * Dispatches the next Runnable job in the queue, if one exists.
+    */
+   public void dispatchNextJob()
+   {
+      // pop next Runnable job off of the queue
+      Runnable job = popJob();
+      if(job != null)
+      {
+         // run the job
+         getThreadPool().runJob(job);      
+      }
    }
    
    /**
