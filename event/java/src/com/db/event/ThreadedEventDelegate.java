@@ -43,7 +43,7 @@ public class ThreadedEventDelegate
       mEventDispatchThread = null;
       
       // create the process events thread pool
-      mProcessEventsThreadPool = new JobThreadPool(0);
+      mProcessEventsThreadPool = new JobThreadPool(1);
       
       // create listener to event processor map
       mListenerToEventProcessor = new HashMap<Object, EventProcessor>();
@@ -149,6 +149,9 @@ public class ThreadedEventDelegate
          // add the listener to EventProcessor mapping
          mListenerToEventProcessor.put(listener, ep);
          
+         // set the number of thread available in the process events thread pool
+         mProcessEventsThreadPool.setPoolSize(mListenerToEventProcessor.size());
+         
          // if the event dispatch thread hasn't started, start it
          if(mEventDispatchThread == null)
          {
@@ -177,6 +180,10 @@ public class ThreadedEventDelegate
             mEventDispatchThread.interrupt();
             mEventDispatchThread = null;
          }
+         
+         // set the number of thread available in the process events thread pool
+         mProcessEventsThreadPool.setPoolSize(
+            Math.max(1, mListenerToEventProcessor.size()));
       }
    }
    

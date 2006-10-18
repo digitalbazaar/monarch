@@ -71,6 +71,9 @@ public class JobThread extends Thread
       
       try
       {
+         // set thread name
+         setName("JobThread: idle");
+         
          long startTime = System.currentTimeMillis();
          
          // wait until expire time
@@ -122,18 +125,18 @@ public class JobThread extends Thread
       // set job
       mJob = job;
       
-      if(job == null)
-      {
-         // set thread name
-         setName("JobThread: idle");
-      }
-      else
+      if(job != null)
       {
          // set thread name
          setName("JobThread: running job '" + getJob() + "'");
          
          // wake up thread
          wakeup();
+      }
+      else
+      {
+         // set thread name
+         setName("JobThread: no job");
       }
    }
    
