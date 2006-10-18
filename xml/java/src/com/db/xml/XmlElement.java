@@ -874,6 +874,13 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public void setData(String data)
    {
+      if(data != null)
+      {
+         // normalize whitespace (change all CRLF and CR to LF)
+         data = data.replaceAll("[\r\n]", "\n");
+         data = data.replaceAll("[\r]", "\n");
+      }
+      
       mData = data;
    }
    
