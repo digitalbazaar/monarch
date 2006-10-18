@@ -45,6 +45,9 @@ public class ThreadedEventDelegate
       // create the process events thread pool
       mProcessEventsThreadPool = new JobThreadPool(1);
       
+      // set 5 minute time limit on threads
+      mProcessEventsThreadPool.setJobThreadExpireTime(300000);
+      
       // create listener to event processor map
       mListenerToEventProcessor = new HashMap<Object, EventProcessor>();
    }
