@@ -228,14 +228,28 @@ implements MouseListener, MouseMotionListener
    }
    
    /**
+    * Programmatically sorts a particular column.
+    * 
+    * @param column the column that is to be sorted.
+    * @param ascending true to sort ascending, false to sort descending.
+    */
+   public void setSortedColumn(int column, boolean ascending)
+   {
+      // sort the column
+      mHeaderRenderer.sortColumn(column, ascending);
+      fireColumnHeaderPressed(column);
+      repaint();
+   }
+   
+   /**
     * This class allows any JComponent to become a header renderer for a table
     * and adds a sort button to right of that component if the column
     * is currently sorted.
     * 
     * @author Dave Longley
     */
-   public class JComponentHeaderRenderer implements TableCellRenderer,
-                                                    TableColumnModelListener
+   public class JComponentHeaderRenderer
+   implements TableCellRenderer, TableColumnModelListener
    {
       /**
        * The header this renderer is for.
@@ -320,13 +334,13 @@ implements MouseListener, MouseMotionListener
       {
          // create sort ascending button
          mSortAscendingButton = new BasicArrowButton(BasicArrowButton.NORTH);
-         mSortAscendingButton.setOpaque(false);
+         mSortAscendingButton.setContentAreaFilled(false);
          mSortAscendingButton.setUI(new BasicButtonUI());
          mSortAscendingButton.setBorder(BorderFactory.createEmptyBorder());
          
          // create sort descending button
          mSortDescendingButton = new BasicArrowButton(BasicArrowButton.SOUTH);            
-         mSortDescendingButton.setOpaque(false);
+         mSortDescendingButton.setContentAreaFilled(false);
          mSortDescendingButton.setUI(new BasicButtonUI());
          mSortDescendingButton.setBorder(BorderFactory.createEmptyBorder());
       }
@@ -354,11 +368,9 @@ implements MouseListener, MouseMotionListener
        *     
        * @return the component used for drawing the cell. 
        */
-      public Component getTableCellRendererComponent(JTable t,
-                                                     Object value,
-                                                     boolean isSelected,
-                                                     boolean hasFocus,
-                                                     int row, int column)
+      public Component getTableCellRendererComponent(
+         JTable t, Object value, boolean isSelected, boolean hasFocus,
+         int row, int column)
       {
          JPanel headerPanel = new JPanel();
          int[][] plot = {{0,0},{1,0}};
@@ -380,9 +392,8 @@ implements MouseListener, MouseMotionListener
             // if not pressed use lowered border, else use raised
             int type = (pressed) ? EtchedBorder.LOWERED : EtchedBorder.RAISED;
             headerPanel.setBorder(BorderFactory.createEtchedBorder(
-                  type,
-                  UIManager.getColor("controlHighlight"),
-                  UIManager.getColor("controlShadow")));
+               type, UIManager.getColor("controlHighlight"),
+               UIManager.getColor("controlShadow")));
             
             if(renderer != null)
             {
@@ -396,9 +407,9 @@ implements MouseListener, MouseMotionListener
          else
          {
             headerPanel.setBorder(BorderFactory.createEtchedBorder(
-                  EtchedBorder.LOWERED,
-                  UIManager.getColor("controlHighlight"),
-                  UIManager.getColor("controlDkShadow")));
+               EtchedBorder.LOWERED,
+               UIManager.getColor("controlHighlight"),
+               UIManager.getColor("controlDkShadow")));
          }
          
          JComponent jc = null;
@@ -474,8 +485,8 @@ implements MouseListener, MouseMotionListener
       public void setMouseOverColumn(int column)
       {
          mMouseOverColumn = column;
-      }      
-
+      }
+      
       /**
        * Clicks the sort button on a particular column.
        * 
@@ -496,6 +507,25 @@ implements MouseListener, MouseMotionListener
             {
                mSortAscending = !mSortAscending;
             }
+            
+            sortColumn(column, mSortAscending);
+         }
+      }
+      
+      /**
+       * Sorts a particular column.
+       * 
+       * @param column the column to sort.
+       * @param ascending true to use ascending sorting, false to sort 
+       *                  descending.
+       */
+      public void sortColumn(int column, boolean ascending)
+      {
+         if(column != -1)
+         {
+            // set column and sort direction
+            mSortedColumn = column;
+            mSortAscending = ascending;
             
             // get the table's model and sort it, if its sortable
             TableModel tm = table.getModel();
@@ -528,7 +558,7 @@ implements MouseListener, MouseMotionListener
                
                // sort the column
                SortableTableModel stm = (SortableTableModel)tm;
-               stm.sortColumn(column, mSortAscending);
+               stm.sortColumn(column, ascending);
                
                // set the new selection
                if(selection != null)

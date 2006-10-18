@@ -125,6 +125,7 @@ public class UTJComponentTable implements ActionListener
       JComponentTable table = new JComponentTable(model);
       ((JComponentTableHeader)table.getTableHeader()).setColumnHeaderRenderer(
          "First Column", new JButton("First Column"));
+      table.setSortedColumn(1, false);
       
       // create scroll pane for table
       JScrollPane scrollPane = new JScrollPane(table);

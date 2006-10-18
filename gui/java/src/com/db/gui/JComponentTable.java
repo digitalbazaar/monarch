@@ -197,6 +197,18 @@ public class JComponentTable extends JTable
    }
    
    /**
+    * Sets the sorted column.
+    * 
+    * @param column the column index.
+    * @param ascending true to sort ascending, false to sort descending.
+    */
+   public void setSortedColumn(int column, boolean ascending)
+   {
+      JComponentTableHeader header = (JComponentTableHeader)getTableHeader();
+      header.setSortedColumn(column, ascending);
+   }
+   
+   /**
     * Gets the double click event delegate.
     * 
     * @return the double click event delegate.
