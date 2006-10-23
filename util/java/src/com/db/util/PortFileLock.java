@@ -130,6 +130,8 @@ public class PortFileLock extends FileLock
          // try to bind
          socket.bind(address);
          
+         getLogger().debug(getClass(), "Bound to address: " + address);
+         
          // set return value
          rval = socket;
       }
@@ -166,6 +168,8 @@ public class PortFileLock extends FileLock
          // try to connect
          socket.connect(address);
          
+         getLogger().debug(getClass(), "Connected to address: " + address);
+         
          // set return value
          rval = socket;
       }
@@ -194,6 +198,9 @@ public class PortFileLock extends FileLock
          // set the timeout for the socket to something low so we can check
          // to make sure we still have a lock
          socket.setSoTimeout(10);
+         
+         getLogger().debug(getClass(),
+            "Accepting connections on " + socket.getLocalSocketAddress());         
          
          // keep accepting connections until the lock is released
          while(hasLock())
@@ -230,6 +237,10 @@ public class PortFileLock extends FileLock
                // ignore socket timeout exceptions
             }
          }
+         
+         getLogger().debug(getClass(),
+            "No longer accepting connections on " +
+            socket.getLocalSocketAddress());         
       }
       catch(IOException e)
       {
