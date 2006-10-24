@@ -318,6 +318,22 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
                   sm.getRpcSoapEnvelope().getSoapFault());
             }
          }
+         else
+         {
+            // raise soap fault, could not parse envelope
+            getLogger().error(getClass(),
+               "could not parse response from soap server!");
+            
+            // create a soap fault
+            SoapFault fault = new SoapFault();
+            fault.setFaultCode(SoapFault.FAULT_SERVER);
+            fault.setFaultString(
+               "The response from the server could not be parsed.");
+            fault.setFaultActor(getUrl().toString());
+            
+            // throw a soap fault exception
+            throw new SoapFaultException(fault);
+         }
       }
       catch(SoapFaultException sfe)
       {
