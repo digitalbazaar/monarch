@@ -641,14 +641,27 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
          HttpWebConnection hwc = connect();
          if(hwc != null)
          {
-            // call the soap method
-            rval = callSoapMethod(hwc, sm);
-            
-            // disconnect web connection
-            hwc.disconnect();
-            
-            getLogger().debug(getClass(),
-               "soap web client web connection closed.");
+            try
+            {
+               // call the soap method
+               rval = callSoapMethod(hwc, sm);
+               
+               // disconnect web connection
+               hwc.disconnect();
+               
+               getLogger().debug(getClass(),
+                  "soap web client web connection closed.");
+            }
+            catch(SoapFaultException e)
+            {
+               // disconnect web connection
+               hwc.disconnect();
+               
+               getLogger().debug(getClass(),
+                  "soap web client web connection closed.");
+               
+               throw e;
+            }
          }
          else
          {
