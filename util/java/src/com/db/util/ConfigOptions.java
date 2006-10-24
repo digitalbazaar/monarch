@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A class for managing configuration options.
@@ -105,112 +107,154 @@ public class ConfigOptions
     */
    public String[] parseArgs(String[] args)
    {
+      // create a vector for storing invalid arguments
       Vector<String> invalidArgs = new Vector<String>();
       
-      // a vector for storing commands
-      mCommands = new Vector<String>();
+      // clear vector for storing commands
+      mCommands.clear();
       
-      String key = "";
-      String value = "";
-      boolean setOption = false;
+      // glue the arguments together into one string
+      String arguments = StringTools.glue(args, " ");
       
-      String token = "";
-      int length = args.length;
-      for(int i = 0; i < length; i++)
+      // create a string for commands
+      String commandString = arguments;
+      
+      // create reference to matcher
+      Matcher matcher;
+      
+      // create double hyphen quoted option pattern:
+      //
+      // 1. match any number of spaces or the beginning of the line
+      // 2. 2 hyphens
+      // 3. at least 1 alphanumeric character (can be hyphenated)
+      // 4. an equals sign
+      // 5. a double quote sign
+      // 6. any number of not double quotes or escaped double quotes
+      // 7. a double quote sign
+      Pattern doubleHyphenQuotedOption = Pattern.compile(
+         "(([\\p{Blank}]+)|^)[\\-]{2}[a-zA-Z0-9\\-]+=[\"]" +
+         "(([^\"]*)|(?<!([^\\\\][\\\\])))[\"]");
+      matcher = doubleHyphenQuotedOption.matcher(arguments);
+      while(!matcher.hitEnd())
       {
-         token = args[i];
-         
-         try
+         if(matcher.find())
          {
-            if(key.length() > 0 && (setOption || token.startsWith("-")))
-            {
-               // try to set the value
-               if(!setValue(key, value))
-               {
-                  // value could not be set, argument is invalid
-                  invalidArgs.add(key);
-               }
-               
-               key = "";
-               value = "";
-               setOption = false;
-            }
+            // get the match
+            String match = arguments.substring(matcher.start(), matcher.end());
             
-            if(token.startsWith("-") && token.length() > 1)
+            // remove the match from the command string
+            commandString = commandString.replaceFirst(
+               Pattern.quote(match), "");
+            
+            // trim the match whitespace
+            match = match.trim();
+            
+            // get the equal sign index
+            int equalsIndex = match.indexOf('=');
+            
+            // get the key name
+            String key = match.substring(2, equalsIndex);
+            
+            // get the quoted contents as the value
+            String value = match.substring(equalsIndex + 2, match.length() - 1);
+            
+            // try to set the value
+            if(!setValue(key, value))
             {
-               if(token.startsWith("--") && token.length() > 2)
-               {
-                  // double-hyphen option, strip off the hyphens
-                  token = token.substring(2);
-                  
-                  // check for an equals sign
-                  int index = token.indexOf('=');
-                  if(index != -1)
-                  {
-                     // parse around the equals sign
-                     key = token.substring(0, index);
-                     if((index + 1) < token.length())
-                     {
-                        value = token.substring(index + 1);
-                     }
-                  }
-                  else
-                  {
-                     // if no equals sign, the key is the rest of the token
-                     key = token;
-                  }
-               }
-               else if(token.startsWith("-"))
-               {
-                  // single hyphen option, strip off the hyphen
-                  token = token.substring(1);
-                     
-                  // get the key
-                  key = token.substring(0, 1);
-                  if(token.length() > 1)
-                  {
-                     // get the value
-                     value = token.substring(1, token.length());
-                     setOption = true;
-                  }
-               }
+               // value could not be set, argument is invalid
+               invalidArgs.add(key);
             }
-            else if(key.equals(""))
-            {
-               // this is a command, so append it to the command vector
-               mCommands.add(token);
-            }
-            else
-            {
-               // this is part of a value for a key-value pair, so append it
-               value = (value.length() > 0) ? (value + " " + token) : token; 
-            }
-         }
-         catch(Throwable t)
-         {
-            getLogger().debug(getClass(), "could not parse argument!");
-            key = "";
-         }
-      }
-
-      // set any remaining value
-      if(key.length() > 0)
-      {
-         // try to set the value
-         if(!setValue(key, value))
-         {
-            // value could not be set, argument is invalid
-            invalidArgs.add(key);
          }
       }
       
-      String[] ia = new String[invalidArgs.size()];
-      for(int i = 0; i < invalidArgs.size(); i++)
+      // create double hyphen option pattern (not-quoted):
+      //
+      // 1. match any number of spaces or the beginning of the line
+      // 2. 2 hyphens
+      // 3. at least 1 alphanumeric character (can be hyphenated)
+      // 4. an equals sign
+      // 5. at least 1 alphanumeric character (can be hyphenated)
+      Pattern doubleHyphenOption = Pattern.compile(
+         "(([\\p{Blank}]+)|^)[\\-]{2}[a-zA-Z0-9\\-]+=[a-zA-Z0-9\\-]+");
+      matcher = doubleHyphenOption.matcher(arguments);
+      while(!matcher.hitEnd())
       {
-         ia[i] = invalidArgs.get(i);
+         if(matcher.find())
+         {
+            // get the match
+            String match = arguments.substring(matcher.start(), matcher.end());
+            
+            // remove the match from the command string
+            commandString = commandString.replaceFirst(
+               Pattern.quote(match), "");
+            
+            // trim the match whitespace
+            match = match.trim();
+            
+            // get the equal sign index
+            int equalsIndex = match.indexOf('=');
+            
+            // get the key name
+            String key = match.substring(2, equalsIndex);
+            
+            // get the value
+            String value = match.substring(equalsIndex + 1, match.length());
+            
+            // try to set the value
+            if(!setValue(key, value))
+            {
+               // value could not be set, argument is invalid
+               invalidArgs.add(key);
+            }
+         }
       }
       
-      return ia;
+      // create single hyphen option pattern:
+      // 
+      // 1. match any number of spaces or the beginning of the line
+      // 2. a single hyphen
+      // 3. an alphabetical character
+      // 4a. a space followed by an alphanumeric value OR
+      // 4b. a single alphanumeric character
+      Pattern singleHyphenOption = Pattern.compile(
+         "(([\\p{Blank}]+)|^)[\\-][a-zA-Z]" +
+         "(([\\p{Blank}][a-zA-Z0-9]+)|([a-zA-Z0-9]))");
+      matcher = singleHyphenOption.matcher(arguments);
+      while(!matcher.hitEnd())
+      {
+         if(matcher.find())
+         {
+            // get the match
+            String match = arguments.substring(matcher.start(), matcher.end());
+            
+            // remove the match from the command string
+            commandString = commandString.replaceFirst(
+               Pattern.quote(match), "");
+            
+            // trim the match whitespace
+            match = match.trim();
+            
+            // get the key name
+            String key = match.substring(1, 2);
+            
+            // get the value
+            String value = match.substring(2);
+            value = value.trim();
+            
+            // try to set the value
+            if(!setValue(key, value))
+            {
+               // value could not be set, argument is invalid
+               invalidArgs.add(key);
+            }
+         }
+      }
+      
+      // add the commands in the command string to the commands vector
+      StringTools.split(commandString.trim(), " ", mCommands);
+      
+      String[] array = new String[invalidArgs.size()];
+      return invalidArgs.toArray(array);
    }
    
    /**
