@@ -203,6 +203,7 @@ public class SignedJarVerifier
       FileInputStream fis = new FileInputStream(keystoreFilename);
       KeyStore keystore = KeyStore.getInstance("JKS");
       keystore.load(fis, keystorePassword.toCharArray());
+      fis.close();
       
       // load the certificates from the keystore
       loadCertificates(keystore, aliases);
