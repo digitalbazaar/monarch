@@ -214,11 +214,11 @@ public class ConfigOptions
       // 1. match any number of spaces or the beginning of the line
       // 2. a single hyphen
       // 3. an alphabetical character
-      // 4a. a space followed by an alphanumeric value OR
+      // 4a. a space followed by an alphanumeric value (or a hyphen) OR
       // 4b. a single alphanumeric character
       Pattern singleHyphenOption = Pattern.compile(
          "(([\\p{Blank}]+)|^)[\\-][a-zA-Z]" +
-         "(([\\p{Blank}][a-zA-Z0-9]+)|([a-zA-Z0-9]))");
+         "(([\\p{Blank}][a-zA-Z0-9\\-]+)|([a-zA-Z0-9]))");
       matcher = singleHyphenOption.matcher(arguments);
       while(!matcher.hitEnd())
       {
