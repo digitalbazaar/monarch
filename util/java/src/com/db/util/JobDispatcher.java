@@ -3,6 +3,7 @@
  */
 package com.db.util;
 
+import java.util.Iterator;
 import java.util.Vector;
 
 import com.db.logging.Logger;
@@ -99,6 +100,16 @@ public class JobDispatcher implements Runnable
       }
       
       return rval;
+   }
+   
+   /**
+    * Gets an iterator over the jobs in the queue (in FIFO order).
+    *
+    * @return an iterator over the jobs in the queue.
+    */
+   protected Iterator<Runnable> getJobIterator()
+   {
+      return mJobQueue.iterator();
    }
    
    /**
