@@ -120,7 +120,7 @@ public class OperationEngine
       {
          // get the execution environment for the operation
          OperationExecutionEnvironment environment =
-            executor.getOperation().getExecutionEnvironment();         
+            executor.getOperation().getExecutionEnvironment();
          
          // update the engine state
          environment.updateEngineState(
@@ -209,19 +209,33 @@ public class OperationEngine
             // get a lock on the current engine state
             synchronized(getState())
             {
+               // get the execution environment for the operation
+               OperationExecutionEnvironment environment =
+                  operation.getExecutionEnvironment();
+               
                // check the current engine state against the execution
                // environment for the operation
-               operation.getExecutionEnvironment().checkEngineState(getState());
+               environment.checkEngineState(getState());
+               
+               // create an OperationExecutor
+               OperationExecutor executor =
+                  new OperationExecutor(this, operation);
+               
+               // create a new OperationExecutionResult using the executor
+               rval = new OperationExecutionResult(executor);
+               
+               // update the engine state
+               environment.updateEngineState(
+                  executor.getExecutionState(),
+                  OperationExecutionState.Waiting,
+                  mState);
+               
+               // update execution state
+               executor.setExecutionState(OperationExecutionState.Waiting);
+               
+               // queue the OperationExecutor with the dispatcher
+               mDispatcher.queueJob(executor);
             }
-            
-            // create an OperationExecutor
-            OperationExecutor executor = new OperationExecutor(this, operation);
-         
-            // create a new OperationExecutionResult using the executor
-            rval = new OperationExecutionResult(executor);
-            
-            // queue the OperationExecutor with the dispatcher
-            mDispatcher.queueJob(executor);
          }
          catch(InappropriateOperationEngineState e)
          {
