@@ -22,22 +22,44 @@ public class OperationExecutionResult
    protected OperationExecutor mExecutor;
    
    /**
-    * Creates a new OperationExecutionResult for a given Operation. The passed
-    * executor will either be the OperationExecutor instance used to execute
-    * the Operation, or it will be null because the Operation cannot be
-    * executed (the conditions necessary for its execution were not met).
+    * Any exception that was thrown before the operation started execution. 
+    */
+   protected Exception mException;
+   
+   /**
+    * Creates a new OperationExecutionResult for an Operation. The passed
+    * executor is the OperationExecutor instance used to execute the Operation.
     * 
-    * @param executor the operation executor that executes the operation or
-    *                 null if the operation cannot be executed.
+    * @param executor the operation executor that executes the operation.
     */
    public OperationExecutionResult(OperationExecutor executor)
    {
       // store executor
       mExecutor = executor;
+      
+      // no exception yet
+      mException = null;
+   }   
+   
+   /**
+    * Creates a new OperationExecutionResult for an Operation that could
+    * not be executed. The passed exception explains why the Operation
+    * could not be executed.
+    * 
+    * @param e the exception that explains why the Operation could not be
+    *          executed.
+    */
+   public OperationExecutionResult(Exception e)
+   {
+      // no executor
+      mExecutor = null;
+      
+      // the exception
+      mException = e;
    }
    
    /**
-    * Interrupts the Operation whether it has started or is already running.
+    * Interrupts the Operation whether it is waiting to execute or is executing.
     */
    public void interrupt()
    {
@@ -48,18 +70,17 @@ public class OperationExecutionResult
    }
    
    /**
-    * Waits for the executing Operation to complete. This method causes
-    * the current thread to wait for the Operation execution to complete.
+    * Waits until Operation execution is completed or interrupted. This method
+    * causes the current thread to wait for the Operation execution to stop.
     * 
     * @exception InterruptedException thrown if the current thread is
-    *                                 interrupted while waiting for the
-    *                                 Operation execution to complete.
+    *            interrupted while waiting for the Operation execution to stop.
     */
-   public void waitForCompletion() throws InterruptedException
+   public void waitWhileExecuting() throws InterruptedException
    {
       if(mExecutor != null)
       {
-         mExecutor.waitForCompletion();
+         mExecutor.waitWhileExecuting();
       }
    }
    
@@ -74,55 +95,21 @@ public class OperationExecutionResult
    }
    
    /**
-    * Returns true if the Operation has started executing, false if not.
-    * 
-    * @return true if the Operation has started executing, false if not.
-    */
-   public boolean hasStarted()
-   {
-      boolean rval = false;
-      
-      if(mExecutor != null)
-      {
-         rval = mExecutor.hasStarted();
-      }
-      
-      return rval;
-   }
-   
-   /**
-    * Returns true if the Operation is waiting to be executed, false if not.
-    * 
-    * @return true if the Operation is waiting to be executed, false if not.
-    */
-   public boolean isWaiting()
-   {
-      boolean rval = false;
-      
-      if(mExecutor != null)
-      {
-         rval = mExecutor.isWaiting();
-      }
-      
-      return rval;
-   }
-   
-   /**
     * Gets the return value for the operation.
     * 
     * @return the return value for the operation.
     * 
     * @exception IllegalStateException thrown if this method is called before
-    *                                  the operation completes or if the
-    *                                  operation could not be executed.
+    *            the operation completes or if the operation could not be
+    *            executed.
     */
-   public Object getOperationReturnValue() throws IllegalStateException
+   public Object getReturnValue() throws IllegalStateException
    {
       Object rval = null;
       
       if(mExecutor != null)
       {
-         if(mExecutor.hasFinished())
+         if(mExecutor.hasStopped())
          {
             rval = mExecutor.getMethodInvokedMessage().getMethodReturnValue();
          }
@@ -149,16 +136,15 @@ public class OperationExecutionResult
     * @return the exception thrown while executing the operation, can be null.
     * 
     * @exception IllegalStateException thrown if this method is called before
-    *                                  the operation completes or if the
-    *                                  operation could not be executed.
+    *            the operation completes.
     */
-   public Throwable getOperationException() throws IllegalStateException
+   public Throwable getException() throws IllegalStateException
    {
       Throwable rval = null;
       
       if(mExecutor != null)
       {
-         if(mExecutor.hasFinished())
+         if(mExecutor.hasStopped())
          {
             rval = mExecutor.getMethodInvokedMessage().getMethodException();
          }
@@ -171,9 +157,7 @@ public class OperationExecutionResult
       }
       else
       {
-         throw new IllegalStateException(
-            "The operation could not be executed so it cannot " +
-            "have an exception."); 
+         return mException; 
       }
       
       return rval;

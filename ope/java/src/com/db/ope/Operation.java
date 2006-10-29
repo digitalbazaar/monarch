@@ -20,9 +20,9 @@ import com.db.util.MethodInvoker;
 public class Operation
 {
    /**
-    * The type of this operation.
+    * The environment underwhich this operation can execute.
     */
-   protected OperationType mType;
+   protected OperationExecutionEnvironment mExecutionEnvironment;
    
    /**
     * The MethodInvoker used to execute this operation.
@@ -36,7 +36,8 @@ public class Operation
    protected MethodInvoker mCallbackInvoker;
    
    /**
-    * Creates a new Operation of the given type with the given MethodInvoker.
+    * Creates a new Operation with the given required execution environment and
+    * the given MethodInvoker.
     * 
     * The passed MethodInvoker is used to invoke some method that contains
     * the actual code for this operation.
@@ -53,16 +54,18 @@ public class Operation
     * callback will be executed on an unsafe thread -- the management of that
     * thread is the responsibility of the caller of setCallbackInvoker().
     * 
-    * @param type the type of operation.
+    * @param environment the required execution environment for this operation.
     * @param invoker the methodInvoker to use to execute this operation.
     * 
     * @exception IllegalArgumentException thrown if the type or invoker is null.
     */
-   public Operation(OperationType type, MethodInvoker invoker)
+   public Operation(
+      OperationExecutionEnvironment environment, MethodInvoker invoker)
    {
-      if(type == null)
+      if(environment == null)
       {
-         throw new IllegalArgumentException("OperationType cannot be null!");
+         throw new IllegalArgumentException(
+            "OperationExecutionEnvironment cannot be null!");
       }
       
       if(invoker == null)
@@ -71,7 +74,7 @@ public class Operation
       }
       
       // store type and method invoker
-      mType = type;
+      mExecutionEnvironment = environment;
       mMethodInvoker = invoker;
       
       // callback invoker is null by default
@@ -79,13 +82,13 @@ public class Operation
    }
    
    /**
-    * Gets the type of this operation.
+    * Gets the execution environment underwhich this operation can execute.
     * 
-    * @return the type for this operation.
+    * @return the execution environment underwhich this operation can execute.
     */
-   public OperationType getType()
+   public OperationExecutionEnvironment getExecutionEnvironment()
    {
-      return mType;
+      return mExecutionEnvironment;
    }
    
    /**

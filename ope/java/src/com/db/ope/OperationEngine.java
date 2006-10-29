@@ -3,13 +3,8 @@
  */
 package com.db.ope;
 
-import java.util.Iterator;
-import java.util.List;
-
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
-import com.db.util.JobDispatcher;
-import com.db.util.UniqueSet;
 
 /**
  * An OperationEngine is a processing engine that executes Operations. The
@@ -22,31 +17,29 @@ import com.db.util.UniqueSet;
  * behaviors -- while none of those behaviors really need to know all that much
  * about one another.
  * 
- * This engine accomplishes this by using the OperationTypes that are added
- * to this engine. An OperationType defines the environment underwhich an
- * Operation is allowed to run. This engine handles the synchronization of the
- * operations as well as monitors the threads different operations are running
- * on and ensures that the operations can be interrupted and cleaned up nicely,
- * provided that those classes that use Operations and define OperationTypes
- * comply with the Operation requirements. 
+ * This engine accomplishes this requiring that every Operation have an
+ * OperationExecutionEnvironment that describes the conditions underwhich the
+ * Operation can execute. Before any Operation can be queued for execution,
+ * its OperationExecutionEnvironment checks the current OperationEngineState
+ * to ensure that the Operation can be executed.
  * 
  * @author Dave Longley
  */
 public class OperationEngine
 {
    /**
-    * The set of OperationTypes supported by this engine. 
+    * The current state of this OperationEngine.
     */
-   protected UniqueSet<OperationType> mOperationTypes;
+   protected MutableOperationEngineState mState;
    
    /**
-    * The JobDispatcher for dispatching OperationExecutors. This dispatcher
-    * is used to store OperationExecutors in a queue and dispatch them for
-    * execution when they can be executed. An OperationExecutor can only
-    * be pushed onto the queue for this dispatcher once the conditions
+    * The OperationExecutorDispatcher for dispatching OperationExecutors. This
+    * dispatcher is used to store OperationExecutors in a queue and dispatch
+    * them for execution when they can be executed. An OperationExecutor can
+    * only be pushed onto the queue for this dispatcher once the conditions
     * necessary for allowing it to run have been met.
     */
-   protected JobDispatcher mDispatcher;
+   protected OperationExecutorDispatcher mDispatcher;
    
    /**
     * Set to true when this OperationEngine is running, false when it
@@ -59,39 +52,11 @@ public class OperationEngine
     */
    public OperationEngine()
    {
-      // create the operation types set
-      mOperationTypes = new UniqueSet<OperationType>();
-      
-      // create the operation executor thread pool
-      OperationExecutorThreadPool threadPool =
-         new OperationExecutorThreadPool();
+      // create the state for this engine
+      mState = new MutableOperationEngineState();
       
       // create the operation executor dispatcher
-      mDispatcher = new JobDispatcher(threadPool);
-   }
-   
-   /**
-    * Determines if the passed Operation can be executed by this engine. This
-    * method will first see if the Operation's type is even supported by this
-    * engine, and then it will check all of the supported OperationTypes to
-    * ensure that the passed Operation can be executed.
-    * 
-    * @param operation the Operation this engine seeks to execute.
-    * 
-    * @return true if the passed Operation can be executed, false if not.
-    */
-   protected synchronized boolean canExecute(Operation operation)
-   {
-      boolean rval = true;
-      
-      for(Iterator i = mOperationTypes.iterator(); i.hasNext() && rval;)
-      {
-         // FIXME: implement me, use correct operation list
-         OperationType type = (OperationType)i.next();
-         rval = type.canExecute(operation, getOperationList());
-      }
-      
-      return rval;
+      mDispatcher = new OperationExecutorDispatcher(this);
    }
    
    /**
@@ -105,52 +70,63 @@ public class OperationEngine
    }
    
    /**
-    * Gets an immutable list of the currently executing Operations. This
-    * list does not include Operations that are waiting to execute.
+    * Requests immediate execution of an Operation. If the Operation can be
+    * immediately executed, then the state of this engine is updated
+    * appropriately.
     * 
-    * @return an immutable list of the currently executing Operations.
+    * @param executor the OperationExecutor requesting execution.
+    * 
+    * @return true if the Operation can be executed immediately, false if not.
     */
-   protected List getOperationList()
+   protected synchronized boolean requestExecution(OperationExecutor executor)
    {
-      List rval = null;
+      boolean rval = false;
       
-      // FIXME: implement me, when getting this list, remove the
-      // OperationExecutors that are completed (lazy cleanup that should
-      // always work since this list must be fetched to start a new
-      // operation)
+      // lock on the engine state
+      synchronized(getState())
+      {
+         // get the execution environment for the operation
+         OperationExecutionEnvironment environment =
+            executor.getOperation().getExecutionEnvironment();
+         
+         // see if the operation can be executed immediately
+         if(environment.canOperationExecuteImmediately(getState()))
+         {
+            // update the engine state
+            environment.updateEngineState(
+               executor.getExecutionState(),
+               OperationExecutionState.Executing,
+               mState);
+            
+            // execution granted
+            rval = true;
+         }
+      }
       
       return rval;
    }
    
    /**
-    * Adds an OperationType to this engine. OperationTypes can only be
-    * added to this engine when it is not running.
+    * Called when an Operation has completed or been interrupted to update the
+    * state of this engine.
     * 
-    * @param type the operation type to add to this engine.
+    * @param executor the OperationExecutor that completed execution or was
+    *                 interrupted.
     */
-   public synchronized void addOperationType(OperationType type)
+   protected synchronized void executionStopped(OperationExecutor executor)   
    {
-      // only consider adding an OperationType if the engine is not running
-      if(!isRunning())
+      // lock on the engine state
+      synchronized(getState())      
       {
-         // add the operation type
-         mOperationTypes.add(type);
-      }
-   }
-   
-   /**
-    * Removes an OperationType from this engine. OperationTypes can only be
-    * removed from this engine when it is not running.
-    * 
-    * @param type the operation type to remove from this engine.
-    */
-   public synchronized void removeOperationType(OperationType type)
-   {
-      // only consider removing an OperationType if the engine is not running
-      if(!isRunning())
-      {
-         // remove the operation type
-         mOperationTypes.remove(type);
+         // get the execution environment for the operation
+         OperationExecutionEnvironment environment =
+            executor.getOperation().getExecutionEnvironment();         
+         
+         // update the engine state
+         environment.updateEngineState(
+            OperationExecutionState.Executing,
+            executor.getExecutionState(),
+            mState);      
       }
    }
    
@@ -168,12 +144,11 @@ public class OperationEngine
          // now running
          setRunning(true);
          
-         // FIXME: implement me
+         // clear current state
+         mState.clear();
          
          // start dispatching operation executors
          mDispatcher.startDispatching();
-         
-         // FIXME: implement me
       }
    }
    
@@ -200,8 +175,6 @@ public class OperationEngine
          // terminate all running jobs (wait indefinitely -- operations *must*
          // terminate when they have been interrupted) 
          mDispatcher.terminateAllRunningJobs();
-         
-         // FIXME: implement me
       }
    }
    
@@ -221,61 +194,59 @@ public class OperationEngine
     * @param operation the Operation to execute.
     * 
     * @return the OperationExecutionResult for the execution.
+    * 
+    * @exception IllegalStateException thrown if the OperationEngine is not
+    *            running when this method is called.
     */
    public synchronized OperationExecutionResult execute(Operation operation)
    {
       OperationExecutionResult rval = null;
-
-      // determine if the operation can be executed
-      if(canExecute(operation))
-      {
-         // create an OperationExecutor
-         OperationExecutor executor = new OperationExecutor(this, operation);
       
-         // create a new OperationExecutionResult using the executor
-         rval = new OperationExecutionResult(executor);
+      if(isRunning())
+      {
+         try
+         {
+            // get a lock on the current engine state
+            synchronized(getState())
+            {
+               // check the current engine state against the execution
+               // environment for the operation
+               operation.getExecutionEnvironment().checkEngineState(getState());
+            }
+            
+            // create an OperationExecutor
+            OperationExecutor executor = new OperationExecutor(this, operation);
          
-         // FIXME: add the operation to the appropriate lists
-         // i.e. execution list, wait list?
-         
-         // queue the OperationExecutor with the dispatcher
-         mDispatcher.queueJob(executor);
+            // create a new OperationExecutionResult using the executor
+            rval = new OperationExecutionResult(executor);
+            
+            // queue the OperationExecutor with the dispatcher
+            mDispatcher.queueJob(executor);
+         }
+         catch(InappropriateOperationEngineState e)
+         {
+            // create a new OperationExecutionResult using the exception
+            rval = new OperationExecutionResult(e);
+         }
       }
       else
       {
-         // the operation cannot be executed, so create a new
-         // OperationExecutionResult that has no executor
-         rval = new OperationExecutionResult(null);
+         throw new IllegalStateException(
+            "The OperationEngine is not running so no Operations can be " +
+            "executed.");         
       }
       
       return rval;
    }
    
    /**
-    * Returns whether or not the passed OperationExecutor must wait before
-    * executing.
+    * Gets the current state of this engine in an immutable form.
     * 
-    * @param executor the OperationExecutor to check.
-    * 
-    * @return true if the OperationExecutor must wait to execute, false if not.
+    * @return the current state of this engine in an immutable form.
     */
-   public synchronized boolean mustWait(OperationExecutor executor)
+   public OperationEngineState getState()
    {
-      boolean rval = false;
-      
-      // FIXME: implement me
-      for(Iterator i = mOperationTypes.iterator(); i.hasNext() && !rval;)
-      {
-         // FIXME: implement me, use correct operation list
-         OperationType type = (OperationType)i.next();
-         rval = type.mustWait(executor.getOperation(), getOperationList());
-      }
-      
-      // FIXME:
-      // if the executor must wait, then add it to the list of waiting
-      // executors that require notification to wakeup
-      
-      return rval;
+      return mState;
    }
    
    /**

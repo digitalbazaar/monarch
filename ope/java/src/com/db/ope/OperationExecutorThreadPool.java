@@ -26,29 +26,4 @@ public class OperationExecutorThreadPool extends JobThreadPool
       // threads that execute operations
       setJobThreadExpireTime(300000);
    }
-   
-   /**
-    * Runs the passed Runnable job (An OperationExecutor) on an available
-    * JobThread.
-    * 
-    * This method will lock until an available thread is acquired or
-    * the current thread is interrupted.
-    * 
-    * @param job the Runnable job to run (a ContractProcessor).
-    * 
-    * @exception ClassCastException thrown if the passed job is not an
-    *                               OperationExecutor.
-    */
-   @Override
-   public void runJob(Runnable job)
-   {
-      // cast job to OperationExecutor
-      OperationExecutor executor = (OperationExecutor)job;
-      
-      // operation execution has begun
-      executor.setStarted(true);
-
-      // run operation executor
-      super.runJob(executor);
-   }
 }

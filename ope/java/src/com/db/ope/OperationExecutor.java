@@ -25,20 +25,9 @@ public class OperationExecutor implements Runnable
    protected Operation mOperation;
    
    /**
-    * Set to true if this OperationExecutor has started executing its
-    * Operation, false if not.
+    * The Operation's current execution state.
     */
-   protected boolean mStarted;
-   
-   /**
-    * Set to true if the Operation has been interrupted, false if not.
-    */
-   protected boolean mInterrupted;
-   
-   /**
-    * Set to true if this OperationExecutor is waiting to execute, false if not.
-    */
-   protected boolean mWaiting;
+   protected OperationExecutionState mExecutionState;
    
    /**
     * The thread this OperationExecutor is running on. This can be null if
@@ -46,11 +35,6 @@ public class OperationExecutor implements Runnable
     * been called yet.
     */
    protected Thread mExecutionThread;
-   
-   /**
-    * Set to true once the Operation's execution has completed, false otherwise.
-    */
-   protected boolean mExecutionCompleted;
    
    /**
     * Creates a new OperationExecutor.
@@ -66,17 +50,11 @@ public class OperationExecutor implements Runnable
       // store the operation
       mOperation = operation;
       
-      // operation not interrupted yet
-      mInterrupted = false;
-      
-      // not waiting to execute yet
-      mWaiting = false;
+      // no execution state
+      mExecutionState = OperationExecutionState.None;
       
       // no execution thread yet
       mExecutionThread = null;
-      
-      // execution not completed yet
-      mExecutionCompleted = false;
    }
    
    /**
@@ -84,52 +62,46 @@ public class OperationExecutor implements Runnable
     */
    public void run()
    {
-      try
+      // lock while setting the execution thread and
+      // checking for interruption
+      synchronized(this)
       {
-         // lock while setting the execution thread and
-         // checking for interruption
-         synchronized(this)
+         // store the execution thread as the current thread
+         mExecutionThread = Thread.currentThread();
+         
+         // determine if the operation has been interrupted, if so,
+         // the execution thread must be interrupted
+         if(getExecutionState() == OperationExecutionState.Interrupted)
          {
-            // store the execution thread as the current thread
-            mExecutionThread = Thread.currentThread();
-            
-            // determine if the operation has been interrupted, if so,
-            // the execution thread must be interrupted
-            if(isInterrupted())
-            {
-               // interrupt the execution thread
-               mExecutionThread.interrupt();
-            }
-            
-            // wait while the engine indicates that the operation must wait
-            while(mEngine.mustWait(this))
-            {
-               // now waiting
-               mWaiting = true;
-               
-               // wait
-               wait();
-            }
-            
-            // no longer waiting
-            mWaiting = false;
+            // interrupt the execution thread
+            mExecutionThread.interrupt();
          }
-         
-         // execute the operation's method invoker
-         getOperation().getMethodInvoker().execute();
-         
-         // operation execution completed
-         mExecutionCompleted = true;
       }
-      catch(InterruptedException e)
+      
+      // execute the operation's method invoker
+      getOperation().getMethodInvoker().execute();
+      
+      // see if an exception was thrown
+      Throwable t = getMethodInvokedMessage().getMethodException();
+      
+      // see if the operation was interrupted
+      if(t instanceof InterruptedException ||
+         (t.getCause() != null && t.getCause() instanceof InterruptedException))
       {
          // maintain interrupted status
-         Thread.currentThread().interrupt();
          interrupt();
          
          // handle uncaught interruption
          getLogger().debug(getClass(), "Operation interrupted.");
       }
+      else
+      {
+         // set execution state
+         setExecutionState(OperationExecutionState.Completed);
+      }
+      
+      // notify engine of end of execution
+      mEngine.executionStopped(this);
       
       // call the operation's callback, if one exists, on another thread --
       // an unsafe thread, it is not managed here
@@ -144,8 +116,8 @@ public class OperationExecutor implements Runnable
     */
    public synchronized void interrupt()
    {
-      // sets the operation to interrupted
-      mInterrupted = true;
+      // set execution state
+      setExecutionState(OperationExecutionState.Interrupted);
       
       // see if the execution thread has been set yet
       if(mExecutionThread != null)
@@ -156,88 +128,59 @@ public class OperationExecutor implements Runnable
    }
    
    /**
-    * Returns true if the executing Operation has been interrupted, false
-    * if not.
-    * 
-    * @return true if the executing Operation has been interrupted, false
-    *         if not.
-    */
-   public synchronized boolean isInterrupted()
-   {
-      return mInterrupted;
-   }
-   
-   /**
-    * Notifies this OperationExecutor to wake up and continue operation if
-    * it was waiting.
-    */
-   public synchronized void wakeup()
-   {
-      notify();
-   }
-   
-   /**
-    * Causes the current thread to wait for the Operation execution to
-    * complete.
+    * Waits until Operation execution is completed or interrupted. This method
+    * causes the current thread to wait for the Operation execution to stop.
     * 
     * @exception InterruptedException thrown if the current thread is
-    *                                 interrupted while waiting for the
-    *                                 Operation execution to complete.
+    *            interrupted while waiting for the Operation execution to stop.
     */
-   public void waitForCompletion() throws InterruptedException
+   public void waitWhileExecuting() throws InterruptedException   
    {
-      while(!mExecutionCompleted)
+      while(getExecutionState() != OperationExecutionState.Completed &&
+            getExecutionState() != OperationExecutionState.Interrupted)
       {
          Thread.sleep(1);
       }
    }
    
    /**
-    * Sets whether or not this OperationExecutor has started executing
-    * its Operation.
+    * Returns true if Operation execution has stopped due to Operation
+    * completion or interruption. 
     * 
-    * @param started true if this OperationExecutor has started executing
-    *                its Operation, false if not.
+    * @return true if Operation execution has stopped due to Operation
+    *         completion or interruption.
     */
-   public synchronized void setStarted(boolean started)
+   public boolean hasStopped()
    {
-      mStarted = started;
+      boolean rval = false;
+      
+      if(getExecutionState() != OperationExecutionState.Completed &&
+         getExecutionState() != OperationExecutionState.Interrupted)
+      {
+         rval = true;
+      }
+      
+      return rval;
    }
    
    /**
-    * Gets whether or not this OperationExecutor has started executing
-    * its Operation. 
+    * Sets the execution state for this OperationExecutor.
     * 
-    * @return true if this OperationExecutor has started executing its
-    *         Operation, false if not.
+    * @param state the execution state.
     */
-   public synchronized boolean hasStarted()
+   public synchronized void setExecutionState(OperationExecutionState state)
    {
-      return mStarted;
+      mExecutionState = state;
    }
    
    /**
-    * Returns true if this OperationExecutor has finished executing its
-    * Operation, false if not.
+    * Gets the execution state for this OperationExecutor.
     * 
-    * @return true if this OperationExecutor has finished executing its
-    *         Operation, false if not.
+    * @return state the execution state.
     */
-   public synchronized boolean hasFinished()
+   public synchronized OperationExecutionState getExecutionState()
    {
-      return mExecutionCompleted;
-   }
-   
-   /**
-    * Returns true if this OperationExecutor is waiting to execute,
-    * false if not.
-    * 
-    * @return true if this OperationExecutor is waiting to execute,
-    *         false if not.
-    */
-   public synchronized boolean isWaiting()
-   {
-      return mWaiting;
+      return mExecutionState;
    }
    
    /**
