@@ -3,6 +3,7 @@
  */
 package com.db.gui.wizard;
 
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
@@ -80,7 +81,7 @@ public class WizardErrorDialog extends JDialog
       
       // create text area
       mTextArea = new JTextArea();
-      mTextArea.setFont(mErrorLabel.getFont());
+      mTextArea.setFont(mErrorLabel.getFont().deriveFont(Font.PLAIN));
       mTextArea.setRows(5);
       mTextArea.setEditable(false);
       mTextArea.setLineWrap(true);

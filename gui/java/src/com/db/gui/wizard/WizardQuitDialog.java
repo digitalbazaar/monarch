@@ -3,6 +3,7 @@
  */
 package com.db.gui.wizard;
 
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
@@ -65,10 +66,12 @@ public class WizardQuitDialog extends JDialog
       // create message label 1
       JLabel mMessageLabel1 = new JLabel(
          "Are you sure you want to quit the wizard now?");
+      mMessageLabel1.setFont(mMessageLabel1.getFont().deriveFont(Font.BOLD));
       
       // create message label 2
       JLabel mMessageLabel2 = new JLabel(
          "Your progress in this wizard will not be saved.");
+      mMessageLabel2.setFont(mMessageLabel2.getFont().deriveFont(Font.PLAIN));
 
       // create quit button
       mQuitButton = new JButton("Quit");
