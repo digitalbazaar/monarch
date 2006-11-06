@@ -177,7 +177,7 @@ public class SignedJarClassLoader extends URLClassLoader
                // ensure that the path ends in "jar"
                rval = urls[i].getPath().endsWith("jar");
             }
-            else
+            else if(!urls[i].getPath().endsWith("jar"))
             {
                // currently only "jar" and "file" protocols are acceptable
                rval = false;
