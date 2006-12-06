@@ -107,12 +107,12 @@ public class SoapFault extends AbstractXmlSerializer
    {
       // create the root element
       XmlElement faultElement =
-         new XmlElement(getRootTag(), SoapEnvelope.SOAP_ENVELOPE_URI);
+         new XmlElement(getRootTag(), SoapEnvelope.SOAP_ENVELOPE_URIS[0]);
       faultElement.setParent(parent);
       
       // get the soap envelope namespace prefix
       String envelopePrefix = faultElement.findNamespacePrefix(
-         SoapEnvelope.SOAP_ENVELOPE_URI);
+         SoapEnvelope.SOAP_ENVELOPE_URIS[0]);
       
       // create the faultcode element
       XmlElement faultcodeElement = new XmlElement("faultcode");

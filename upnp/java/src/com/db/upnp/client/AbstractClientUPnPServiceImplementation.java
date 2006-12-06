@@ -113,7 +113,7 @@ implements ClientUPnPServiceImplementation
          RpcSoapEnvelope envelope = new RpcSoapEnvelope();
          
          // set encoding style
-         envelope.setEncodingStyle(RpcSoapEnvelope.SOAP_ENCODING_URI);
+         envelope.setEncodingStyle(RpcSoapEnvelope.SOAP_ENCODING_URIS[0]);
          
          // set the operation
          envelope.setSoapOperation(operation);

@@ -92,6 +92,9 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          getLogger().debug(getClass(),
             "received soap xml (see debug-data log for the actual xml).");
          
+         getLogger().debug(getClass(),
+            "XML=\n" + body);
+         
          if(mSoapWebService instanceof SecureSoapWebService)
          {
             SecureSoapWebService secure =

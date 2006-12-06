@@ -55,18 +55,24 @@ public class SoapEnvelope extends AbstractXmlSerializer
    protected String mEncodingStyleUri;
    
    /**
-    * This URI points to the XML schema that defines the structure of a
+    * These URIs point to the XML schema that defines the structure of a
     * SOAP envelope.
     */
-   public static final String SOAP_ENVELOPE_URI =
-      "http://schemas.xmlsoap.org/soap/envelope/";
+   public static final String[] SOAP_ENVELOPE_URIS =
+   {
+      "http://schemas.xmlsoap.org/soap/envelope/",
+      "http://www.w3.org/2003/05/soap-envelope"
+   };
    
    /**
-    * This URI points to the XML schema that defines how to encode information
+    * These URIs point to the XML schema that defines how to encode information
     * in XML for SOAP transportation.
     */
-   public static final String SOAP_ENCODING_URI =
-      "http://schemas.xmlsoap.org/soap/encoding/";
+   public static final String[] SOAP_ENCODING_URIS =
+   {
+      "http://schemas.xmlsoap.org/soap/encoding/",
+      "http://www.w3.org/2003/05/soap-encoding"
+   };
    
    /**
     * Creates a new SoapEnvelope.
@@ -108,14 +114,14 @@ public class SoapEnvelope extends AbstractXmlSerializer
    {
       // create the root xml element with the SOAP envelope namespace
       XmlElement envelopeElement = new XmlElement(
-         getRootTag(), SOAP_ENVELOPE_URI);
+         getRootTag(), SOAP_ENVELOPE_URIS[0]);
       envelopeElement.setParent(parent);
       
       // use a namespace prefix of "soapenv" for the soap envelope elements
       String prefix = "soapenv";
       
       // add an attribute defining the namespace prefix
-      envelopeElement.addAttribute("xmlns:" + prefix, SOAP_ENVELOPE_URI);
+      envelopeElement.addAttribute("xmlns:" + prefix, SOAP_ENVELOPE_URIS[0]);
       
       // add an encoding style attribute (in the SOAP envelope namespace),
       // if applicable
@@ -123,7 +129,7 @@ public class SoapEnvelope extends AbstractXmlSerializer
       {
          envelopeElement.addAttribute(
             "encodingStyle", getEncodingStyle(),
-            SoapEnvelope.SOAP_ENVELOPE_URI);
+            SoapEnvelope.SOAP_ENVELOPE_URIS[0]);
       }
       
       // if there are header serializers present, then add a header element
@@ -180,12 +186,28 @@ public class SoapEnvelope extends AbstractXmlSerializer
       mBodyContentSerializers.clear();
       
       // get the encoding style, if any
-      setEncodingStyle(element.getAttributeValue(
-         "encodingStyle", SoapEnvelope.SOAP_ENVELOPE_URI));
+      String encodingStyle = "";
+      for(String uri: SoapEnvelope.SOAP_ENCODING_URIS)
+      {
+         encodingStyle = element.getAttributeValue("encodingStyle", uri);
+         
+         if(!encodingStyle.equals(""))
+         {
+            break;
+         }
+      }
       
       // convert the header of the envelope, if any
-      XmlElement headerElement = element.getFirstChild(
-         "Header", SOAP_ENVELOPE_URI);
+      XmlElement headerElement = null;
+      for(String uri: SoapEnvelope.SOAP_ENVELOPE_URIS)
+      {
+         headerElement = element.getFirstChild("Header", uri);
+         if(headerElement != null)
+         {
+            break;
+         }
+      }
+      
       if(headerElement != null)
       {
          getLogger().detail(getClass(), "found soap envelope header...");
@@ -198,7 +220,16 @@ public class SoapEnvelope extends AbstractXmlSerializer
       }
       
       // convert the body of the envelope, if any
-      XmlElement bodyElement = element.getFirstChild("Body", SOAP_ENVELOPE_URI);
+      XmlElement bodyElement = null;
+      for(String uri: SoapEnvelope.SOAP_ENVELOPE_URIS)
+      {
+         bodyElement = element.getFirstChild("Body", uri);
+         if(bodyElement != null)
+         {
+            break;
+         }
+      }
+      
       if(bodyElement != null)
       {
          getLogger().detail(getClass(), "found soap envelope body...");

@@ -71,7 +71,7 @@ public class SoapOperation extends AbstractXmlSerializer
     */
    public SoapOperation()
    {
-      this("", null, SoapEnvelope.SOAP_ENCODING_URI);
+      this("", null, SoapEnvelope.SOAP_ENCODING_URIS[0]);
    }
    
    /**
@@ -83,7 +83,7 @@ public class SoapOperation extends AbstractXmlSerializer
     */
    public SoapOperation(String name, String tns)
    {
-      this(name, tns, SoapEnvelope.SOAP_ENCODING_URI);
+      this(name, tns, SoapEnvelope.SOAP_ENCODING_URIS[0]);
    }
    
    /**
@@ -139,7 +139,8 @@ public class SoapOperation extends AbstractXmlSerializer
       if(mEncodingStyleUri != null && mEncodingStyleUri.length() > 0)
       {
          operationElement.addAttribute(
-            "encodingStyle", mEncodingStyleUri, SoapEnvelope.SOAP_ENVELOPE_URI);
+            "encodingStyle", mEncodingStyleUri, 
+            SoapEnvelope.SOAP_ENVELOPE_URIS[0]);
       }
       
       // add each parameter
@@ -172,8 +173,16 @@ public class SoapOperation extends AbstractXmlSerializer
       mTargetNamespaceUri = element.getNamespaceUri();
       
       // get the encoding style
-      mEncodingStyleUri = element.getAttributeValue(
-         "encodingStyle", SoapEnvelope.SOAP_ENVELOPE_URI);
+      mEncodingStyleUri = "";
+      for(String uri: SoapEnvelope.SOAP_ENCODING_URIS)
+      {
+         mEncodingStyleUri = element.getAttributeValue("encodingStyle", uri);
+         
+         if(!mEncodingStyleUri.equals(""))
+         {
+            break;
+         }
+      }
       
       // convert the parameters
       int count = 0;
