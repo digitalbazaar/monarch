@@ -336,9 +336,11 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
    {
       // see if content type is xml
       String contentType = request.getHeader().getContentType();
-      if(contentType != null && contentType.indexOf("text/xml") != -1)
+      if(contentType != null &&
+         (contentType.indexOf("text/xml") != -1 ||
+         contentType.indexOf("soap") != -1))
       {
-         getLogger().detail(getClass(), "http content is text/xml");
+         getLogger().detail(getClass(), "http content is text/xml or soap");
          
          // save the content encoding for the response
          String contentEncoding = response.getHeader().getContentEncoding();
