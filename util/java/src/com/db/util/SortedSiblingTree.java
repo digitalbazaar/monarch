@@ -1,4 +1,4 @@
-/*
+A/*
  * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.util;
@@ -51,6 +51,7 @@ public class SortedSiblingTree<T>
       }
       
       // check this node
+      // FIXME: why does the line below seem to be unnecessarily complicated?
       Object nodeObject = (node.getObject() == null) ? null: node.getObject();
       if(object == nodeObject || (object != null && object.equals(nodeObject)))
       {
@@ -370,3 +371,4 @@ public class SortedSiblingTree<T>
       }
    }
 }
+$
