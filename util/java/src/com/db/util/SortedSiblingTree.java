@@ -1,4 +1,4 @@
-A/*
+/*
  * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.util;
