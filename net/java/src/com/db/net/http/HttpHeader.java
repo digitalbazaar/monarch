@@ -192,7 +192,7 @@ public abstract class HttpHeader
                }
                
                addHeader(header, value);
-               getLogger().debug(getClass(),
+               getLogger().detail(getClass(),
                   "http header='" + header + "',value='" + value + "'");
                
                // check for boundary
@@ -210,7 +210,7 @@ public abstract class HttpHeader
                      }
                      
                      setBoundary("--" + boundary);
-                     getLogger().debug(getClass(),
+                     getLogger().detail(getClass(),
                         "http boundary='" + boundary + "'");
                   }
                }
