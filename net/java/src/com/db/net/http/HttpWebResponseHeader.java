@@ -59,7 +59,7 @@ public class HttpWebResponseHeader extends HttpHeader
                setVersion(split[0]);
                setStatusCode(joinArray(split, 1, split.length, " "));
                
-               getLogger().debug(getClass(),
+               getLogger().detail(getClass(),
                   "http web response version=" + getVersion() +
                   ", status code=" + getStatusCode());
 

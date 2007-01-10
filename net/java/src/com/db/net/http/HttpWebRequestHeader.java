@@ -72,7 +72,7 @@ public class HttpWebRequestHeader extends HttpHeader
                setPath(split[1]);
                setVersion(split[2]);
                
-               getLogger().debug(getClass(),
+               getLogger().detail(getClass(),
                   "http web request method=" + getMethod() +
                   ", path=" + getPath() + ", version=" + getVersion());
 
