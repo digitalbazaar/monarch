@@ -1138,7 +1138,7 @@ public class XmlElement extends AbstractXmlSerializer
     * Gets the first child of this XmlElement. 
     * 
     * @return the first child of this XmlElement or null if this XmlElement
-    *         does not have a first child.
+    *         does not have a child.
     */
    public XmlElement getFirstChild()
    {
@@ -1158,8 +1158,7 @@ public class XmlElement extends AbstractXmlSerializer
     * @param name the name of the child to retrieve.
     * 
     * @return the first child of this XmlElement with the specified name or
-    *         null if this XmlElement doesn't have a first child with the
-    *         passed name.
+    *         null if this XmlElement doesn't have a child with the passed name.
     */
    public XmlElement getFirstChild(String name)
    {
@@ -1186,8 +1185,7 @@ public class XmlElement extends AbstractXmlSerializer
     * @param namespaceUri the namespace URI of the child to retrieve.
     * 
     * @return the first child of this XmlElement with the specified name or
-    *         null if this XmlElement doesn't have a first child with the
-    *         passed name.
+    *         null if this XmlElement doesn't have a child with the passed name.
     */
    public XmlElement getFirstChild(String name, String namespaceUri)
    {
@@ -1359,7 +1357,7 @@ public class XmlElement extends AbstractXmlSerializer
       
       return rval;
    }
-      
+   
    /**
     * Gets the children for this XmlElement with the specified name and
     * namespace URI. Any changes to the children in the returned collection
@@ -1378,6 +1376,254 @@ public class XmlElement extends AbstractXmlSerializer
       for(Iterator<XmlElement> i = mChildren.iterator(); i.hasNext();)
       {
          XmlElement child = i.next();
+         if(child.getName().equals(name))
+         {
+            String childNamespaceUri = child.getNamespaceUri();
+            if((childNamespaceUri == null && namespaceUri == null) ||
+               (childNamespaceUri != null &&
+                childNamespaceUri.equals(namespaceUri)))
+            {
+               rval.add(child);
+            }
+         }
+      }
+      
+      return rval;
+   }
+   
+   
+   
+   
+   /**
+    * Gets the first sub element of this XmlElement with the specified name.
+    * 
+    * @param name the name of the sub element to retrieve.
+    * 
+    * @return the first sub element of this XmlElement with the specified name
+    *         or null if this XmlElement doesn't have a sub element with the
+    *         passed name.
+    */
+   public XmlElement getFirstSubElement(String name)
+   {
+      XmlElement rval = null;
+      
+      // check the top level children
+      rval = getFirstChild(name);
+      if(rval == null)
+      {
+         // check each child if a sub element still hasn't been found
+         for(Iterator<XmlElement> i = mChildren.iterator();
+             i.hasNext() && rval == null;)
+         {
+            XmlElement child = i.next();
+            rval = child.getFirstSubElement(name);
+         }
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the first sub element of this XmlElement with the specified name and
+    * namespace URI.
+    * 
+    * @param name the name of the sub element to retrieve.
+    * @param namespaceUri the namespace URI of the sub element to retrieve.
+    * 
+    * @return the first sub element of this XmlElement with the specified name
+    *         or null if this XmlElement doesn't have a sub element with the
+    *         passed name.
+    */
+   public XmlElement getFirstSubElement(String name, String namespaceUri)
+   {
+      XmlElement rval = null;
+      
+      // first check the top level children
+      rval = getFirstChild(name, namespaceUri);
+      if(rval == null)
+      {
+         // check each child if a sub element still hasn't been found
+         for(Iterator<XmlElement> i = mChildren.iterator();
+             i.hasNext() && rval == null;)
+         {
+            XmlElement child = i.next();
+            rval = child.getFirstSubElement(name, namespaceUri);
+         }
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the value of the first sub element of this XmlElement with the
+    * specified name.
+    * 
+    * @param name the name of the sub element with the value to retrieve.
+    * 
+    * @return the value of the first sub element of this XmlElement with the
+    *         specified name or a blank string if this XmlElement doesn't
+    *         have a first sub element with the passed name or the sub element
+    *         has no data.
+    */
+   public String getFirstSubElementValue(String name)
+   {
+      String rval = "";
+      
+      // get the first sub element with the specified name
+      XmlElement subElement = getFirstSubElement(name);
+      if(subElement != null)
+      {
+         rval = subElement.getValue();
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the value of the first sub element of this XmlElement with the
+    * specified name and namespace URI.
+    * 
+    * @param name the name of the sub element with the value to retrieve.
+    * @param namespaceUri the namespace URI of the sub element with the value
+    *                     to retrieve.
+    * 
+    * @return the value of the first sub element of this XmlElement with the
+    *         specified name or a blank string if this XmlElement doesn't
+    *         have a first sub element with the passed name or the child has no
+    *         data.
+    */
+   public String getFirstSubElementValue(String name, String namespaceUri)
+   {
+      String rval = "";
+      
+      // get the first sub element
+      XmlElement subElement = getFirstSubElement(name, namespaceUri);
+      if(subElement != null)
+      {
+         rval = subElement.getValue();
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Returns true if this element has a sub element with the specified name.
+    * 
+    * @param name the name of the sub element to check for.
+    * 
+    * @return true if this element has a sub element with the given name,
+    *         false if not.
+    */
+   public boolean hasSubElement(String name)
+   {
+      return getFirstSubElement(name) != null;
+   }
+   
+   /**
+    * Returns true if this element has a sub element with the specified name
+    * and namespace URI.
+    * 
+    * @param name the name of the sub element to check for.
+    * @param namespaceUri the namespace URI for the sub element to check for.
+    * 
+    * @return true if this element has a sub element with the given name and
+    *         namespace URI, false if not.
+    */
+   public boolean hasSubElement(String name, String namespaceUri)
+   {
+      return getFirstSubElement(name, namespaceUri) != null;
+   }   
+   
+   /**
+    * Gets the sub elements for this XmlElement with the specified name.
+    * Any changes to the elements in the returned collection will be reflected
+    * in this XmlElement.
+    * 
+    * @param name the name of the elements to return.
+    * 
+    * @return the elements underneath this XmlElement with the specified name
+    *         in a collection of XmlElements.
+    */
+   public Collection<XmlElement> getSubElements(String name)
+   {
+      Vector<XmlElement> rval = new Vector<XmlElement>();
+      
+      for(Iterator<XmlElement> i = mChildren.iterator(); i.hasNext();)
+      {
+         XmlElement child = i.next();
+         
+         // add all of the sub elements in the child
+         rval.addAll(child.getSubElements(name));
+         
+         // add the child if appropriate
+         if(child.getName().equals(name))
+         {
+            rval.add(child);
+         }
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the sub elements for this XmlElement with the specified namespace
+    * URI. Any changes to the elements in the returned collection will be
+    * reflected in this XmlElement.
+    * 
+    * @param namespaceUri the URI namespace of the elements to return.
+    * 
+    * @return the elements with the specified namespace URI for this XmlElement
+    *         in a collection of XmlElements.
+    */
+   public Collection<XmlElement> getSubElementsWithNamespaceUri(
+      String namespaceUri)
+   {
+      Vector<XmlElement> rval = new Vector<XmlElement>();
+      
+      for(Iterator<XmlElement> i = mChildren.iterator(); i.hasNext();)
+      {
+         XmlElement child = i.next();
+         
+         // add all of the sub elements in the child
+         rval.addAll(child.getSubElementsWithNamespaceUri(namespaceUri));
+         
+         // add the child if appropriate
+         String childNamespaceUri = child.getNamespaceUri();
+         if((childNamespaceUri == null && namespaceUri == null) ||
+            (childNamespaceUri != null &&
+             childNamespaceUri.equals(namespaceUri)))
+         {
+            rval.add(child);
+         }
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the sub elements for this XmlElement with the specified name and
+    * namespace URI. Any changes to the elements in the returned collection
+    * will be reflected in this XmlElement.
+    * 
+    * @param name the name of the sub elements to return.
+    * @param namespaceUri the namespace URI of the sub elements to return.
+    * 
+    * @return the elements with the specified name and namespaceURI for this
+    *         XmlElement in a collection of XmlElements.
+    */
+   public Collection<XmlElement> getSubElements(
+      String name, String namespaceUri)
+   {
+      Vector<XmlElement> rval = new Vector<XmlElement>();
+      
+      for(Iterator<XmlElement> i = mChildren.iterator(); i.hasNext();)
+      {
+         XmlElement child = i.next();
+         
+         // add the sub elements in the child
+         rval.addAll(child.getSubElements(name, namespaceUri));
+         
+         // add child if appropriate
          if(child.getName().equals(name))
          {
             String childNamespaceUri = child.getNamespaceUri();
