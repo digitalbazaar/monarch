@@ -178,29 +178,7 @@ public class Logger
    {
       closeStream();
    }
-
-   /**
-    * Closes the output stream if it is open.
-    */
-   protected synchronized void closeStream()
-   {
-      if(mStream != null)
-      {
-         // remove stream from stream verbosity map
-         mStreamToVerbosity.remove(mStream);
-         
-         try
-         {
-            mStream.close();
-         }
-         catch(Exception e)
-         {
-         }
-         
-         mStream = null;
-      }
-   }
-
+   
    /**
     * Gets the current date in the appropriate format.
     * 
@@ -290,14 +268,17 @@ public class Logger
                   newFile = new File(rotateLog);
                }
             }
-
+            
+            // close log files temporarily
+            LoggerManager.closeLoggerFiles(mFilename);
+            
             // ensure the new file does not exist
             newFile.delete();
-
+            
             // rename current log file to new file
             file.renameTo(newFile);
             
-            // reset the log files
+            // reset log files
             LoggerManager.resetLoggerFiles(mFilename);
          }
       }
@@ -485,6 +466,29 @@ public class Logger
       }
 
       return rval;
+   }
+   
+   /**
+    * Closes the output stream if it is open.
+    */
+   public synchronized void closeStream()
+   {
+      if(mStream != null)
+      {
+         // remove stream from stream verbosity map
+         mStreamToVerbosity.remove(mStream);
+         
+         try
+         {
+            mStream.close();
+         }
+         catch(Exception e)
+         {
+            // ignore
+         }
+         
+         mStream = null;
+      }
    }
    
    /**
@@ -688,8 +692,9 @@ public class Logger
     * 
     * @return true if the text was written, false if not.
     */
-   public synchronized boolean log(Class c, String text, double verbosity, 
-                                   boolean header, boolean useCustomStreams)
+   public synchronized boolean log(
+      Class c, String text, double verbosity,
+      boolean header, boolean useCustomStreams)
    {
       boolean rval = false;
       

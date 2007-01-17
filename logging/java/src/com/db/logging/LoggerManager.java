@@ -276,6 +276,23 @@ public class LoggerManager
    }
    
    /**
+    * Closes logger files for all loggers that were using the
+    * passed file (identified by file name).
+    * 
+    * @param filename the name of the file.
+    */
+   public static void closeLoggerFiles(String filename)
+   {
+      for(Logger logger: smLoggers.values())
+      {
+         if(logger.getFilename().equals(filename))
+         {
+            logger.closeStream();
+         }
+      }
+   }   
+   
+   /**
     * Gets the print stream for the specified logger.
     * 
     * @param name the name of the logger.
