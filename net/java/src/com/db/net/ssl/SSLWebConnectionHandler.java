@@ -276,6 +276,11 @@ public class SSLWebConnectionHandler extends AbstractWebConnectionHandler
          }
       }
       
+      if(!rval)
+      {
+         getLogger().debug(getClass(), "SSL protocol NOT detected");
+      }
+      
       return rval;
    }
    
