@@ -38,7 +38,6 @@ public class SoapFaultException extends Exception
     *
     * @param fault the soap fault.
     * @param message the detail message.
-    * 
     */
    public SoapFaultException(SoapFault fault, String message)
    {
