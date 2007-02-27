@@ -12,6 +12,7 @@ import com.db.logging.LoggerManager;
 import com.db.net.wsdl.Wsdl;
 import com.db.net.wsdl.WsdlService;
 import com.db.util.MethodInvoker;
+import com.db.xml.XmlException;
 
 /**
  * An AbstractSoapWebService provides all of the basic underlying soap
@@ -398,6 +399,16 @@ public abstract class AbstractSoapWebService implements SecureSoapWebService
             {
                SoapFaultException sfe = (SoapFaultException)t;
                envelope.setSoapFault(sfe.getSoapFault());
+            }
+            else if(t instanceof XmlException)
+            {
+               SoapFault fault = new SoapFault();
+               fault.setFaultCode(SoapFault.FAULT_CLIENT);
+               fault.setFaultString(
+                  "The xml sent to the server was invalid.");
+               fault.setFaultActor(getURI());
+               
+               envelope.setSoapFault(fault);
             }
             else
             {
