@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.upnp.service;
 
@@ -10,6 +10,7 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A UPnPServiceStateVariable is an XML serializable state variable for
@@ -360,12 +361,13 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = true;
+      super.convertFromXmlElement(element);
       
       // get the send events attribute
       String sendEvents = element.getAttributeValue("sendEvents");
@@ -434,8 +436,6 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
             }
          }
       }
-      
-      return rval;
    }
    
    /**

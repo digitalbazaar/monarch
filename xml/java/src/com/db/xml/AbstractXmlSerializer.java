@@ -108,20 +108,19 @@ public abstract class AbstractXmlSerializer implements IXmlSerializer
 
       return rval;
    }
-
+   
    /**
-    * This method takes XML text (in full document form) and converts
-    * it to its internal representation.
+    * Converts this object from XML.
     *
     * @param xmlText the xml text document that represents the object.
     * 
-    * @return true if successful, false otherwise.    
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
-   public boolean convertFromXml(String xmlText)
+   public void convertFromXml(String xmlText) throws XmlException
    {
-      boolean rval = false;
-      
-      getLogger().detail(getClass(), "converting from xml...");
+      getLogger().detail(getClass(),
+         "converting " + getClass() + " from xml...");
       
       try
       {
@@ -134,18 +133,7 @@ public abstract class AbstractXmlSerializer implements IXmlSerializer
          Document doc = builder.parse(is);
          
          // convert from xml
-         if(convertFromXml(doc.getDocumentElement()))
-         {
-            getLogger().detail(getClass(),
-               "successfully converted from xml.");
-            
-            rval = true;
-         }
-         else
-         {
-            getLogger().detail(getClass(), 
-               "failed to convert from xml.");
-         }
+         convertFromXml(doc.getDocumentElement());
       }
       catch(Throwable t)
       {
@@ -157,9 +145,11 @@ public abstract class AbstractXmlSerializer implements IXmlSerializer
          getLogger().debug(getClass(), 
             "Exception thrown while converting from xml!" +
             ",\ntrace= " + Logger.getStackTrace(t));
+         
+         // throw new xml exception
+         throw new XmlException(
+            "Could not convert " + getClass() + " from xml!,cause=" + t, t);
       }
-
-      return rval;
    }
    
    /**
@@ -168,23 +158,19 @@ public abstract class AbstractXmlSerializer implements IXmlSerializer
     *
     * @param element the parsed element that contains this objects information.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
-   public boolean convertFromXml(Element element)
+   public void convertFromXml(Element element) throws XmlException
    {
-      boolean rval = false;
-      
       // create an XmlElement
       XmlElement xmlElement = new XmlElement();
       
       // convert the element from the passed DOM element
-      if(xmlElement.convertFromXml(element))
-      {
-         // convert this object from the xml element
-         rval = convertFromXmlElement(xmlElement);
-      }
+      xmlElement.convertFromXml(element);
       
-      return rval;
+      // convert this object from the xml element
+      convertFromXmlElement(xmlElement);
    }
    
    /**
@@ -209,9 +195,20 @@ public abstract class AbstractXmlSerializer implements IXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
-   public abstract boolean convertFromXmlElement(XmlElement element);
+   public void convertFromXmlElement(XmlElement element)
+      throws XmlException
+   {
+      if(!element.getName().equals(getRootTag()))
+      {
+         throw new XmlException(
+            "Invalid element name for " + getClass() + "! " +
+            "Looking for \"" + getRootTag() +
+            "\" but found \"" + element.getName() + "\"");
+      }
+   }
    
    /**
     * Gets the logger for this xml serializer.

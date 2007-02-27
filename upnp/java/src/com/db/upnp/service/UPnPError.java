@@ -7,6 +7,7 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A UPnPError is a error that occurred while communicating using UPnP. 
@@ -89,18 +90,17 @@ public class UPnPError extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
+      super.convertFromXmlElement(element);
       
       // check the namespace
       if(element.getNamespaceUri().equals(XML_NAMESPACE_URI))
       {
-         rval = true;
-         
          // get error code element
          setErrorCode(Integer.parseInt(
             element.getFirstChildValue("errorCode")));
@@ -108,8 +108,6 @@ public class UPnPError extends AbstractXmlSerializer
          // get error description element
          setErrorDescription(element.getFirstChildValue("errorDescription"));
       }
-      
-      return rval;
    }
    
    /**

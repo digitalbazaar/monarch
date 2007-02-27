@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.wsdl;
 
@@ -10,6 +10,7 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A WSDL Message.
@@ -163,12 +164,13 @@ public class WsdlMessage extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
+      super.convertFromXmlElement(element);
       
       // clear name
       setName("");
@@ -176,32 +178,22 @@ public class WsdlMessage extends AbstractXmlSerializer
       // clear parts
       getParts().clear();
 
-      if(element.getName().equals(getRootTag()))
+      // get name
+      setName(element.getAttributeValue("name"));
+      
+      // read parts
+      for(XmlElement child: element.getChildren("part"))
       {
-         // get name
-         setName(element.getAttributeValue("name"));
-         
-         // read parts
-         for(Iterator i = element.getChildren("part").iterator(); i.hasNext();)
-         {
-            XmlElement child = (XmlElement)i.next();
-            WsdlMessagePart part = new WsdlMessagePart();
-            if(part.convertFromXmlElement(child))
-            {
-               // part converted, add it
-               getParts().add(part);
-            }
-         }
-         
-         // ensure there is a name
-         if(!getName().equals(""))            
-         {
-            // conversion successful
-            rval = true;
-         }
+         WsdlMessagePart part = new WsdlMessagePart();
+         part.convertFromXmlElement(child);
+         getParts().add(part);
       }
       
-      return rval;
+      // ensure there is a name
+      if(getName().equals(""))            
+      {
+         throw new XmlException("No message name!");
+      }
    }   
    
    /**
@@ -267,12 +259,12 @@ public class WsdlMessage extends AbstractXmlSerializer
       {
          WsdlMessagePart rval = null;
          
-         for(Iterator i = iterator(); i.hasNext() && rval == null;) 
+         for(WsdlMessagePart part: this) 
          {
-            WsdlMessagePart part = (WsdlMessagePart)i.next();
             if(part.getName().equals(name))
             {
                rval = part;
+               break;
             }
          }
          

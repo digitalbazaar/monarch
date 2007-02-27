@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.autoupdater.basic;
 
@@ -10,6 +10,7 @@ import com.db.event.EventDelegate;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A BasicUpdateScript is one particular implementation of UpdateScript for
@@ -106,43 +107,51 @@ public class BasicUpdateScript implements UpdateScript
       String script = toString();
       if(script.length() > 0)
       {
-         // convert the script to an xml element and check its name and version
-         XmlElement element = new XmlElement();
-         if(element.convertFromXml(script) &&
-            element.getName().equals("update_script") &&
-            element.getAttributeValue("version").equals(SCRIPT_VERSION))
+         try
          {
-            rval = true;
+            // convert the script to an xml element and check its name and version
+            XmlElement element = new XmlElement();
+            element.convertFromXml(script);
             
-            // parse each command
-            for(Iterator<XmlElement> i =
-                element.getChildren("command").iterator(); i.hasNext() && rval;)
+            if(element.getName().equals("update_script") &&
+               element.getAttributeValue("version").equals(SCRIPT_VERSION))
             {
-               XmlElement commandElement = i.next();
-
-               // parse the command
-               BasicUpdateScriptCommand usc = new BasicUpdateScriptCommand();
-               if(usc.parseCommand(commandElement))
+               rval = true;
+               
+               // parse each command
+               for(Iterator<XmlElement> i =
+                   element.getChildren("command").iterator(); i.hasNext() && rval;)
                {
-                  mCommands.add(usc);
-                  
-                  if(usc.getSize() != -1)
+                  XmlElement commandElement = i.next();
+   
+                  // parse the command
+                  BasicUpdateScriptCommand usc = new BasicUpdateScriptCommand();
+                  if(usc.parseCommand(commandElement))
                   {
-                     // add size to total size
-                     mUpdateSize += usc.getSize();
+                     mCommands.add(usc);
+                     
+                     if(usc.getSize() != -1)
+                     {
+                        // add size to total size
+                        mUpdateSize += usc.getSize();
+                     }
+                     
+                     if(usc.getName().equals("install"))
+                     {
+                        // increment install item count
+                        mDownloadItemCount++;
+                     }
                   }
-                  
-                  if(usc.getName().equals("install"))
+                  else
                   {
-                     // increment install item count
-                     mDownloadItemCount++;
+                     rval = false;
                   }
-               }
-               else
-               {
-                  rval = false;
                }
             }
+         }
+         catch(XmlException e)
+         {
+            // script is invalid
          }
          
          if(mCommands.size() == 0)

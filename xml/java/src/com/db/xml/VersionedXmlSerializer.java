@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.xml;
 
@@ -87,23 +87,14 @@ public abstract class VersionedXmlSerializer extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
-
-      if(element != null && element.hasAttribute("version"))
-      {
-         // convert version element
-         setVersion(element.getAttributeValue("version"));
-         
-         // version attribute exists
-         rval = true;
-      }
-      
-      return rval;
+      // convert version element
+      setVersion(element.getAttributeValue("version"));
    }
    
    /**

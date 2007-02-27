@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.wsdl;
 
@@ -11,6 +11,7 @@ import com.db.logging.LoggerManager;
 import com.db.net.soap.WsdlSoapPort;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A WSDL Service.
@@ -162,12 +163,13 @@ public class WsdlService extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
+      super.convertFromXmlElement(element);
       
       // clear name
       setName("");
@@ -175,46 +177,37 @@ public class WsdlService extends AbstractXmlSerializer
       // clear ports
       getPorts().clear();
 
-      if(element.getName().equals(getRootTag()))
-      {
-         // get name
-         setName(element.getAttributeValue("name"));
+      // get name
+      setName(element.getAttributeValue("name"));
 
-         // read ports
-         for(XmlElement child: element.getChildren("port"))
+      // read ports
+      for(XmlElement child: element.getChildren("port"))
+      {
+         // get binding
+         String bindingName = child.getAttributeValue("binding");
+         WsdlBinding binding =
+            getWsdl().getBindings().getBinding(bindingName);
+         if(binding != null)
          {
-            // get binding
-            String bindingName = child.getAttributeValue("binding");
-            WsdlBinding binding =
-               getWsdl().getBindings().getBinding(bindingName);
-            if(binding != null)
+            // FUTURE CODE: current implementation can only read
+            // WsdlSoapPorts
+            XmlElement soapElement =
+               child.getFirstChild("address", Wsdl.WSDL_SOAP_NAMESPACE_URI);
+            if(soapElement != null)
             {
-               // FUTURE CODE: current implementation can only read
-               // WsdlSoapPorts
-               XmlElement soapElement =
-                  child.getFirstChild("address", Wsdl.WSDL_SOAP_NAMESPACE_URI);
-               if(soapElement != null)
-               {
-                  WsdlPort port = new WsdlSoapPort(binding);
-                  if(port.convertFromXmlElement(soapElement))
-                  {
-                     // port converted, add it
-                     getPorts().add(port);
-                  }
-               }
+               WsdlPort port = new WsdlSoapPort(binding);
+               port.convertFromXmlElement(child);
+               getPorts().add(port);
             }
          }
-
-         // ensure there is a name
-         if(!getName().equals(""))            
-         {
-            // conversion successful
-            rval = true;
-         }         
       }
       
-      return rval;
-   }   
+      // ensure there is a name
+      if(getName().equals(""))            
+      {
+         throw new XmlException("No service name!");
+      }         
+   }
    
    /**
     * Gets the logger.
@@ -279,12 +272,12 @@ public class WsdlService extends AbstractXmlSerializer
       {
          WsdlPort rval = null;
          
-         for(Iterator<WsdlPort> i = iterator(); i.hasNext() && rval == null;) 
+         for(WsdlPort port: this) 
          {
-            WsdlPort port = i.next();
             if(port.getName().equals(name))
             {
                rval = port;
+               break;
             }
          }
          

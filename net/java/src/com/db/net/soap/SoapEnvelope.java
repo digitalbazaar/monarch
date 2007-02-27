@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.soap;
 
@@ -10,6 +10,7 @@ import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.IXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A SoapEnvelope is an XML container for SOAP (Simple Object Access Protocol)
@@ -172,12 +173,13 @@ public class SoapEnvelope extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = true;
+      super.convertFromXmlElement(element);
       
       // clear header block serializers
       mHeaderBlockSerializers.clear();
@@ -240,8 +242,6 @@ public class SoapEnvelope extends AbstractXmlSerializer
             addBodyContentSerializer(bodyContent);
          }
       }
-      
-      return rval;
    }
    
    /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.upnp.client;
 
@@ -17,6 +17,7 @@ import com.db.upnp.service.UPnPError;
 import com.db.upnp.service.UPnPErrorException;
 import com.db.upnp.service.UPnPService;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A UPnPServiceClient is a client that communicates with a UPnPDevice by
@@ -111,26 +112,33 @@ public class UPnPServiceClient
                   xml = response.receiveBodyString();
                   if(xml != null)
                   {
-                     // convert the rpc soap envelope from the received xml
-                     envelope.convertFromXml(xml);
-                     
-                     // see if the envelope contains a fault
-                     if(envelope.containsSoapFault())
+                     try
                      {
-                        // pull out the envelope's soap fault
-                        SoapFault fault = envelope.getSoapFault();
+                        // convert the rpc soap envelope from the received xml
+                        envelope.convertFromXml(xml);
                         
-                        // get the detail
-                        XmlElement detail = fault.getFaultDetail();
-                        if(detail != null)
+                        // see if the envelope contains a fault
+                        if(envelope.containsSoapFault())
                         {
-                           UPnPError error = new UPnPError();
-                           error.convertFromXmlElement(detail);
+                           // pull out the envelope's soap fault
+                           SoapFault fault = envelope.getSoapFault();
                            
-                           // throw a new UPnPErrorException
-                           throw new UPnPErrorException(error);
-                        }
-                     }                     
+                           // get the detail
+                           XmlElement detail = fault.getFaultDetail();
+                           if(detail != null)
+                           {
+                              UPnPError error = new UPnPError();
+                              error.convertFromXmlElement(detail);
+                              
+                              // throw a new UPnPErrorException
+                              throw new UPnPErrorException(error);
+                           }
+                        }                     
+                     }
+                     catch(XmlException e)
+                     {
+                        // FIXME: ignore for now
+                     }
                   }
                }
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.upnp.device;
 
@@ -11,6 +11,7 @@ import com.db.logging.LoggerManager;
 import com.db.upnp.device.UPnPDevice;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A UPnPDeviceList represents a list of UPnPDevices.
@@ -100,12 +101,13 @@ implements Iterable<UPnPDevice>
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = true;
+      super.convertFromXmlElement(element);
       
       // clear device list
       clear();
@@ -114,13 +116,9 @@ implements Iterable<UPnPDevice>
       for(XmlElement deviceElement: element.getChildren("device"))
       {
          UPnPDevice device = new UPnPDevice();
-         if(device.convertFromXmlElement(deviceElement))
-         {
-            addDevice(device);
-         }
+         device.convertFromXmlElement(deviceElement);
+         addDevice(device);
       }
-      
-      return rval;
    }
    
    /**

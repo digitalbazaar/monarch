@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.wsdl;
 
@@ -8,6 +8,7 @@ import com.db.logging.LoggerManager;
 import com.db.net.soap.WsdlSoapBinding;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -460,97 +461,79 @@ public class Wsdl extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
+      super.convertFromXmlElement(element);
       
-      if(element.getName().equals(getRootTag()))
+      // set blank name and target namespace URI
+      setName("");
+      setTargetNamespaceUri("");
+      
+      // clear collections
+      getMessages().clear();
+      getPortTypes().clear();
+      getBindings().clear();
+      getServices().clear();
+      
+      // get name
+      setName(element.getAttributeValue("name"));
+      
+      // get target namespace URI
+      setTargetNamespaceUri(element.getAttributeValue("targetNamespace"));
+      
+      // convert messages
+      for(XmlElement child: element.getChildren("message"))
       {
-         rval = true;
-         
-         // set blank name and target namespace URI
-         setName("");
-         setTargetNamespaceUri("");
-         
-         // clear collections
-         getMessages().clear();
-         getPortTypes().clear();
-         getBindings().clear();
-         getServices().clear();
-         
-         // get name
-         setName(element.getAttributeValue("name"));
-         
-         // get target namespace URI
-         setTargetNamespaceUri(element.getAttributeValue("targetNamespace"));
-         
-         // convert messages
-         for(XmlElement child: element.getChildren("message"))
-         {
-            WsdlMessage message = new WsdlMessage(this);
-            if(message.convertFromXmlElement(child))
-            {
-               getMessages().add(message);
-            }
-         }
-         
-         // convert port types
-         for(XmlElement child: element.getChildren("portType"))
-         {
-            WsdlPortType portType = new WsdlPortType(this);
-            if(portType.convertFromXmlElement(child))
-            {
-               getPortTypes().add(portType);
-            }
-         }
-         
-         // convert bindings
-         for(XmlElement child: element.getChildren("binding"))
-         {
-            // FUTURE CODE: current implementation assumes a soap binding
-            WsdlBinding binding = new WsdlSoapBinding(this);
-            if(binding.convertFromXmlElement(child))
-            {
-               getBindings().add(binding);
-            }
-         }
-         
-         // convert services
-         for(XmlElement child: element.getChildren("service"))
-         {
-            WsdlService service = new WsdlService(this);
-            if(service.convertFromXmlElement(child))
-            {
-               getServices().add(service);
-            }
-         }
+         WsdlMessage message = new WsdlMessage(this);
+         message.convertFromXmlElement(child);
+         getMessages().add(message);
       }
       
-      return rval;
+      // convert port types
+      for(XmlElement child: element.getChildren("portType"))
+      {
+         WsdlPortType portType = new WsdlPortType(this);
+         portType.convertFromXmlElement(child);
+         getPortTypes().add(portType);
+      }
+      
+      // convert bindings
+      for(XmlElement child: element.getChildren("binding"))
+      {
+         // FUTURE CODE: current implementation assumes a soap binding
+         WsdlBinding binding = new WsdlSoapBinding(this);
+         binding.convertFromXmlElement(child);
+         getBindings().add(binding);
+      }
+      
+      // convert services
+      for(XmlElement child: element.getChildren("service"))
+      {
+         WsdlService service = new WsdlService(this);
+         service.convertFromXmlElement(child);
+         getServices().add(service);
+      }
    }   
    
    /**
-    * This method takes XML text (in full document form) and converts
-    * it to it's internal representation.
+    * Converts this object from XML.
     *
     * @param xmlText the xml text document that represents the object.
     * 
-    * @return true if successful, false otherwise.    
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXml(String xmlText)
+   public void convertFromXml(String xmlText) throws XmlException
    {
-      boolean rval = false;
-      
       getLogger().debug(getClass(), "Loading WSDL from xml...");
       getLogger().debugData(getClass(), "WSDL:\n" + xmlText);
       
-      rval = super.convertFromXml(xmlText);
-      
-      return rval;
+      super.convertFromXml(xmlText);
    }
    
    /**
@@ -722,12 +705,12 @@ public class Wsdl extends AbstractXmlSerializer
          // strip off the namespace prefix
          name = XmlElement.parseLocalName(name);
          
-         for(Iterator<WsdlMessage> i = iterator(); i.hasNext() && rval == null;) 
+         for(WsdlMessage message: this) 
          {
-            WsdlMessage message = i.next();
             if(message.getName().equals(name))
             {
                rval = message;
+               break;
             }
          }
          
@@ -825,12 +808,12 @@ public class Wsdl extends AbstractXmlSerializer
          // strip off the namespace prefix
          name = XmlElement.parseLocalName(name);
          
-         for(Iterator<WsdlPortType> i = iterator(); i.hasNext() && rval == null;) 
+         for(WsdlPortType portType: this) 
          {
-            WsdlPortType portType = i.next();
             if(portType.getName().equals(name))
             {
                rval = portType;
+               break;
             }
          }
          
@@ -927,12 +910,12 @@ public class Wsdl extends AbstractXmlSerializer
          // strip off the namespace prefix
          name = XmlElement.parseLocalName(name);
          
-         for(Iterator<WsdlBinding> i = iterator(); i.hasNext() && rval == null;) 
+         for(WsdlBinding binding: this) 
          {
-            WsdlBinding binding = i.next();
             if(binding.getName().equals(name))
             {
                rval = binding;
+               break;
             }
          }
          
@@ -1029,12 +1012,12 @@ public class Wsdl extends AbstractXmlSerializer
          // strip off the namespace prefix
          name = XmlElement.parseLocalName(name);
          
-         for(Iterator<WsdlService> i = iterator(); i.hasNext() && rval == null;) 
+         for(WsdlService service: this) 
          {
-            WsdlService service = i.next();
             if(service.getName().equals(name))
             {
                rval = service;
+               break;
             }
          }
          

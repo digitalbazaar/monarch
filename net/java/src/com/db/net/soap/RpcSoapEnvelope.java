@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.soap;
 
@@ -9,6 +9,7 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.IXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A RpcSoapEnvelope is a SoapEnvelope that holds either a SoapOperation
@@ -56,13 +57,12 @@ public class RpcSoapEnvelope extends SoapEnvelope
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
-      
       // clear soap operation and soap fault
       mSoapOperation = null;
       mSoapFault = null;
@@ -72,45 +72,42 @@ public class RpcSoapEnvelope extends SoapEnvelope
       SoapFault fault = new SoapFault();
       
       // convert the base class soap envelope
-      if(super.convertFromXmlElement(element))
+      super.convertFromXmlElement(element);
+      
+      // look for a soap fault or soap operation in the body content of
+      // the envelope
+      boolean foundFault = false;
+      boolean foundOperation = false;
+      for(Iterator<IXmlSerializer> i = getBodyContents().iterator();
+          i.hasNext() && !foundOperation && !foundFault;)
       {
-         // look for a soap fault or soap operation in the body content of
-         // the envelope
-         boolean foundFault = false;
-         boolean foundOperation = false;
-         for(Iterator<IXmlSerializer> i = getBodyContents().iterator();
-             i.hasNext() && !foundOperation && !foundFault;)
-         {
-            XmlElement contentElement = (XmlElement)i.next();
-            
-            // try to convert a fault
-            if(contentElement.getRootTag().equals(fault.getRootTag()))
-            {
-               foundFault = fault.convertFromXmlElement(contentElement);
-            }
-            else
-            {
-               // try to convert an operation
-               foundOperation = operation.convertFromXmlElement(contentElement);
-            }
-         }
+         XmlElement contentElement = (XmlElement)i.next();
          
-         // determine if a fault or an operation was found
-         if(foundFault)
+         // try to convert a fault
+         if(contentElement.getRootTag().equals(fault.getRootTag()))
          {
-            // set soap fault
-            setSoapFault(fault);
-            rval = true;
+            fault.convertFromXmlElement(contentElement);
+            foundFault = true;
          }
-         else if(foundOperation)
+         else
          {
-            // set soap operation
-            setSoapOperation(operation);
-            rval = true;
+            // try to convert an operation
+            operation.convertFromXmlElement(contentElement);
+            foundOperation = true;
          }
       }
       
-      return rval;
+      // determine if a fault or an operation was found
+      if(foundFault)
+      {
+         // set soap fault
+         setSoapFault(fault);
+      }
+      else if(foundOperation)
+      {
+         // set soap operation
+         setSoapOperation(operation);
+      }
    }
    
    /**

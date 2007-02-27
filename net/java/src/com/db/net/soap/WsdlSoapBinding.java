@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.soap;
 
@@ -13,6 +13,7 @@ import com.db.net.wsdl.WsdlBinding;
 import com.db.net.wsdl.WsdlPortType;
 import com.db.net.wsdl.WsdlPortTypeOperation;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A WSDL SOAP Binding.
@@ -165,12 +166,13 @@ public class WsdlSoapBinding extends WsdlBinding
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
+      super.convertFromXmlElement(element);
       
       // clear name
       setName("");
@@ -181,76 +183,61 @@ public class WsdlSoapBinding extends WsdlBinding
       // clear operations
       getOperations().clear();
 
-      if(element.getName().equals(getRootTag()))
-      {
-         // get name
-         String name = element.getAttributeValue("name");
-         
-         // FIXME: strip the namespace prefix
-         name = XmlElement.parseLocalName(name);
-
-         // set name
-         setName(name);
-         
-         // get the port type
-         String type = element.getAttributeValue("type");
-         setPortType(getWsdl().getPortTypes().getPortType(type));
-         
-         // get the operations
-         if(getPortType() != null)
-         {
-            boolean error = false;
-            for(Iterator i = element.getChildren("operation").iterator();
-                i.hasNext() && !error;)
-            {
-               XmlElement operationElement = (XmlElement)i.next();
-               
-               // get the operation name
-               String operationName = 
-                  operationElement.getAttributeValue("name");
-               
-               // FIXME: strip the namespace prefix
-               operationName = XmlElement.parseLocalName(operationName);
-               
-               // get the WsdlSoapBindingOperation and convert it
-               WsdlSoapBindingOperation operation =
-                  getOperations().getOperation(operationName);
-               if(operation != null)
-               {
-                  if(operation.convertFromXmlElement(operationElement))
-                  {
-                     // operation converted, add it
-                     getOperations().add(operation);
-                  }
-                  else
-                  {
-                     error = true;
-                  }
-               }
-               else
-               {
-                  error = true;
-                  getLogger().error(getClass(),
-                     "No valid Wsdl Soap Binding Operation found!" +
-                     ",operation_name=" + operationName);
-               }
-            }
-            
-            // ensure there is a name an no errors
-            if(!getName().equals("") && !error)            
-            {
-               // conversion successful
-               rval = true;
-            }            
-         }
-         else
-         {
-            getLogger().error(getClass(),
-               "No valid Wsdl Port Type found!,type=" + type);
-         }
-      }
+      // get name
+      String name = element.getAttributeValue("name");
       
-      return rval;
+      // FIXME: strip the namespace prefix
+      name = XmlElement.parseLocalName(name);
+
+      // set name
+      setName(name);
+      
+      // get the port type
+      String type = element.getAttributeValue("type");
+      setPortType(getWsdl().getPortTypes().getPortType(type));
+      
+      // get the operations
+      if(getPortType() != null)
+      {
+         for(XmlElement operationElement: element.getChildren("operation"))
+         {
+            // get the operation name
+            String operationName = 
+               operationElement.getAttributeValue("name");
+            
+            // FIXME: strip the namespace prefix
+            operationName = XmlElement.parseLocalName(operationName);
+            
+            // get the WsdlSoapBindingOperation and convert it
+            WsdlSoapBindingOperation operation =
+               getOperations().getOperation(operationName);
+            if(operation != null)
+            {
+               operation.convertFromXmlElement(operationElement);
+               getOperations().add(operation);
+            }
+            else
+            {
+               getLogger().error(getClass(),
+                  "No valid Wsdl Soap Binding Operation found!" +
+                  ",operation_name=" + operationName);
+               throw new XmlException(
+                  "No valid wsdl soap binding operation found!");
+            }
+         }
+         
+         // ensure there is a name
+         if(getName().equals(""))            
+         {
+            throw new XmlException("No soap binding name!");
+         }            
+      }
+      else
+      {
+         getLogger().error(getClass(),
+            "No valid Wsdl Port Type found!,type=" + type);
+         throw new XmlException("No valid wsdl port type found!");
+      }
    }
    
    /**
@@ -317,13 +304,12 @@ public class WsdlSoapBinding extends WsdlBinding
       {
          WsdlSoapBindingOperation rval = null;
          
-         for(Iterator<WsdlSoapBindingOperation> i = iterator();
-             i.hasNext() && rval == null;) 
+         for(WsdlSoapBindingOperation operation: this)
          {
-            WsdlSoapBindingOperation operation = i.next();
             if(operation.getName().equals(name))
             {
                rval = operation;
+               break;
             }
          }
          

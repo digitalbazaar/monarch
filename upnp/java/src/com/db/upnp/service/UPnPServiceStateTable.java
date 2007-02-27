@@ -11,6 +11,7 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A UPnPServiceStateTable is an XML serializable table for
@@ -126,12 +127,13 @@ implements Iterable<UPnPServiceStateVariable>
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = true;
+      super.convertFromXmlElement(element);
       
       // clear table
       clear();
@@ -140,14 +142,9 @@ implements Iterable<UPnPServiceStateVariable>
       for(XmlElement variableElement: element.getChildren("stateVariable"))
       {
          UPnPServiceStateVariable variable = new UPnPServiceStateVariable();
-         if(variable.convertFromXmlElement(variableElement))
-         {
-            // add variable
-            addStateVariable(variable);
-         }
+         variable.convertFromXmlElement(variableElement);
+         addStateVariable(variable);
       }
-      
-      return rval;
    }
    
    /**

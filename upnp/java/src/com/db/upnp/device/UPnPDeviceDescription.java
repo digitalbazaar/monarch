@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.upnp.device;
 
@@ -7,6 +7,7 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A UPnPDeviceDescription is an XML document that describes a UPnPDevice.
@@ -380,13 +381,12 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
-      
       // check namespace and spec version
       String namespace = element.getAttributeValue("xmlns");
       if(namespace.equals(XML_NAMESPACE_URI) && element.hasChild("specVersion"))
@@ -398,8 +398,6 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
             
          if(major.equals(MAJOR_VERSION) && minor.equals(MINOR_VERSION))
          {
-            rval = true;
-            
             // get the base URL, if applicable
             XmlElement baseUrlElement = element.getFirstChild("URLBase");
             if(baseUrlElement != null)
@@ -410,9 +408,11 @@ public class UPnPDeviceDescription extends AbstractXmlSerializer
             // convert device
             getDevice().convertFromXmlElement(element.getFirstChild("device"));
          }
+         else
+         {
+            throw new XmlException("Unsupported device spec version!");
+         }
       }
-      
-      return rval;
    }
    
    /**

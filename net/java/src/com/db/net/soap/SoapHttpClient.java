@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.soap;
 
@@ -23,6 +23,7 @@ import com.db.net.wsdl.WsdlMessage;
 import com.db.net.wsdl.WsdlMessagePart;
 import com.db.net.wsdl.WsdlPort;
 import com.db.net.wsdl.WsdlService;
+import com.db.xml.XmlException;
 
 /**
  * This is the base class for a SOAP client that uses HTTP.
@@ -274,51 +275,12 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
             getLogger().debugData(getClass(), "received soap xml:\n" + xml);
          }
          
-         // convert the envelope from the xml
-         if(sm.getRpcSoapEnvelope().convertFromXml(xml))
+         try
          {
-            if(sm.getRpcSoapEnvelope().containsSoapOperation())
-            {
-               // get the soap operation
-               SoapOperation operation =
-                  sm.getRpcSoapEnvelope().getSoapOperation();
-               
-               // FIXME: we need a cleaner way to do this
-               if(operation.hasParameters())
-               {
-                  SoapOperationParameter parameter =
-                     operation.getParameters().get(0);
-                  WsdlMessage message = getWsdl().getMessages().getMessage(
-                     operation.getName());
-                  WsdlMessagePart part = message.getParts().getPart(
-                     parameter.getName());
-                  
-                  // assumes parameter is a primitive
-                  if(parameter.isPrimitive())
-                  {
-                     rval = Wsdl.parseObject(
-                        parameter.getValue(), part.getType());
-                  }
-                  
-                  if(sm.isSoapEnvelopeLoggingPermitted())
-                  {
-                     getLogger().debugData(getClass(),
-                        "soap message result: " + rval);
-                  }
-               }
-               else
-               {
-                  getLogger().debug(getClass(), "no soap message result.");
-               }
-            }
-            else if(sm.getRpcSoapEnvelope().containsSoapFault())
-            {
-               // throw exception, soap fault
-               throw new SoapFaultException(
-                  sm.getRpcSoapEnvelope().getSoapFault());
-            }
+            // convert the envelope from the xml
+            sm.getRpcSoapEnvelope().convertFromXml(xml);
          }
-         else
+         catch(XmlException e)
          {
             // raise soap fault, could not parse envelope
             getLogger().error(getClass(),
@@ -333,6 +295,47 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
             
             // throw a soap fault exception
             throw new SoapFaultException(fault);
+         }
+         
+         if(sm.getRpcSoapEnvelope().containsSoapOperation())
+         {
+            // get the soap operation
+            SoapOperation operation =
+               sm.getRpcSoapEnvelope().getSoapOperation();
+            
+            // FIXME: we need a cleaner way to do this
+            if(operation.hasParameters())
+            {
+               SoapOperationParameter parameter =
+                  operation.getParameters().get(0);
+               WsdlMessage message = getWsdl().getMessages().getMessage(
+                  operation.getName());
+               WsdlMessagePart part = message.getParts().getPart(
+                  parameter.getName());
+               
+               // assumes parameter is a primitive
+               if(parameter.isPrimitive())
+               {
+                  rval = Wsdl.parseObject(
+                     parameter.getValue(), part.getType());
+               }
+               
+               if(sm.isSoapEnvelopeLoggingPermitted())
+               {
+                  getLogger().debugData(getClass(),
+                     "soap message result: " + rval);
+               }
+            }
+            else
+            {
+               getLogger().debug(getClass(), "no soap message result.");
+            }
+         }
+         else if(sm.getRpcSoapEnvelope().containsSoapFault())
+         {
+            // throw exception, soap fault
+            throw new SoapFaultException(
+               sm.getRpcSoapEnvelope().getSoapFault());
          }
       }
       catch(SoapFaultException sfe)
@@ -752,18 +755,22 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
             {
                // convert the wsdl from xml
                Wsdl wsdl = new Wsdl();
-               if(wsdl.convertFromXml(body))
+               
+               try
                {
+                  // convert wsdl
+                  wsdl.convertFromXml(body);
+                  
                   rval = wsdl;
                   
                   // save path and wsdl
                   mWsdlPath = wsdlUrl;
                   mWsdl = wsdl;
                }
-               else
+               catch(XmlException e)
                {
                   getLogger().error(getClass(),
-                     "could not convert received wsdl from xml!");
+                     "could not convert received wsdl from xml!,cause= " + e);
                }
             }
          }

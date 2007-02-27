@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.soap;
 
@@ -9,6 +9,7 @@ import com.db.net.wsdl.Wsdl;
 import com.db.net.wsdl.WsdlBinding;
 import com.db.net.wsdl.WsdlPort;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A WSDL Soap Port.
@@ -23,7 +24,7 @@ public class WsdlSoapPort extends WsdlPort
    /**
     * The URI for this port.
     */
-   protected String mUri; 
+   protected String mUri;
    
    /**
     * Creates a new blank WsdlSoapPort.
@@ -111,12 +112,13 @@ public class WsdlSoapPort extends WsdlPort
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
+      super.convertFromXmlElement(element);
       
       // clear name
       setName("");
@@ -124,28 +126,19 @@ public class WsdlSoapPort extends WsdlPort
       // clear uri
       setUri("");
       
-      if(element.getName().equals(getRootTag()))
-      {
-         // get name
-         setName(element.getAttributeValue("name"));
-         
-         // get soap address element
-         XmlElement soapAddressElement = element.getFirstChild(
-            "address", Wsdl.WSDL_SOAP_NAMESPACE_URI);
-         if(soapAddressElement != null)
-         {
-            setUri(soapAddressElement.getAttributeValue("location"));
-            
-            // ensure there is a name
-            if(!getName().equals(""))            
-            {
-               // conversion successful
-               rval = true;
-            }
-         }
-      }
+      // get name
+      setName(element.getAttributeValue("name"));
       
-      return rval;
+      // get soap address element
+      XmlElement soapAddressElement = element.getFirstChild(
+         "address", Wsdl.WSDL_SOAP_NAMESPACE_URI);
+      setUri(soapAddressElement.getAttributeValue("location"));
+      
+      // ensure there is a name
+      if(getName().equals(""))            
+      {
+         throw new XmlException("No soap port name!");
+      }
    }   
    
    /**

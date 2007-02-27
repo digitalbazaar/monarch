@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.upnp.device;
 
@@ -8,6 +8,7 @@ import com.db.logging.LoggerManager;
 import com.db.upnp.service.UPnPServiceList;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A UPnPDevice represents a device that supports the UPnP protocol. It
@@ -420,12 +421,13 @@ public class UPnPDevice extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = true;
+      super.convertFromXmlElement(element);
       
       // get device type element
       setDeviceType(element.getFirstChildValue("deviceType"));
@@ -492,8 +494,6 @@ public class UPnPDevice extends AbstractXmlSerializer
       
       // get presentation URL element, if applicable
       setPresentationUrl(element.getFirstChildValue("presentationURL"));
-      
-      return rval;
    }
    
    /**

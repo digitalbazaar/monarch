@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.xml;
 
@@ -131,8 +131,12 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     *
     * @param xmlSerializer the xml serializer to envelope.
     * @param xml the xml to convert from.
+    * 
+    * @throws XmlException thrown if this envelope could not be converted from
+    *                      xml.
     */
    public SignableXmlEnvelope(IXmlSerializer xmlSerializer, String xml)
+      throws XmlException
    {
       this(xmlSerializer);
 
@@ -563,13 +567,14 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
       // convert parent
-      boolean rval = super.convertFromXmlElement(element);
+      super.convertFromXmlElement(element);
       
       // get signer, status
       mSigner = element.getAttributeValue("signer");
@@ -579,9 +584,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
       XmlElement signatureElement = element.getFirstChild("signature");
       mAlgorithm = signatureElement.getAttributeValue("algorithm");
       mSignature = signatureElement.getValue();
-         
-      rval = true;
-         
+      
       // if this envelope has content, get the content
       if(getContent() != null)
       {
@@ -592,7 +595,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
             mSignText = contentElement.getValue();
             
             // convert the xml content
-            rval = getContent().convertFromXml(mSignText.trim());
+            getContent().convertFromXml(mSignText.trim());
          }
          else
          {
@@ -600,8 +603,6 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
             mSignText = "";
          }
       }
-      
-      return rval;
    }
    
    /**

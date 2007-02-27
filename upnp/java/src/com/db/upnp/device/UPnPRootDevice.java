@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.upnp.device;
 
@@ -14,6 +14,7 @@ import com.db.net.http.HttpWebRequest;
 import com.db.net.http.HttpWebResponse;
 import com.db.upnp.service.UPnPService;
 import com.db.upnp.service.UPnPServiceDescription;
+import com.db.xml.XmlException;
 
 /**
  * A UPnPRootDevice is a root UPnP device that has a UPnP server that allows it
@@ -86,9 +87,11 @@ public class UPnPRootDevice
          // create a new UPnPDeviceDescription
          UPnPDeviceDescription description = new UPnPDeviceDescription();
          
-         // convert the description from the retrieved xml
-         if(description.convertFromXml(xml))
+         try
          {
+            // convert the description from the retrieved xml
+            description.convertFromXml(xml);
+            
             // set the description to this device
             setDescription(description);
             
@@ -100,6 +103,11 @@ public class UPnPRootDevice
             }
             
             rval = true;
+         }
+         catch(XmlException e)
+         {
+            getLogger().error(getClass(),
+               "Bad device description!,cause= " + e);
          }
       }
       
@@ -143,12 +151,19 @@ public class UPnPRootDevice
             // create a new UPnPServiceDescription
             UPnPServiceDescription description = new UPnPServiceDescription();
             
-            // convert the description from the retrieved xml
-            if(description.convertFromXml(xml))
+            try
             {
+               // convert the description from the retrieved xml
+               description.convertFromXml(xml);
+               
                // set the description to the service
                service.setDescription(description);
                rval = true;
+            }
+            catch(XmlException e)
+            {
+               getLogger().error(getClass(), 
+                  "Bad service description!,cause= " + e);
             }
          }
       }
@@ -211,12 +226,19 @@ public class UPnPRootDevice
                   UPnPServiceDescription description =
                      new UPnPServiceDescription();
                   
-                  // convert the description from the retrieved xml
-                  if(description.convertFromXml(xml))
+                  try
                   {
+                     // convert the description from the retrieved xml
+                     description.convertFromXml(xml);
+                     
                      // set the description to the service
                      service.setDescription(description);
                      rval = true;
+                  }
+                  catch(XmlException e)
+                  {
+                     getLogger().error(getClass(),
+                        "Bad service description!,cause=" + e);
                   }
                }
             }

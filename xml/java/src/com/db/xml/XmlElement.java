@@ -278,13 +278,12 @@ public class XmlElement extends AbstractXmlSerializer
     *
     * @param element the parsed element that contains this objects information.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXml(Element element)
+   public void convertFromXml(Element element) throws XmlException
    {
-      boolean rval = true;
-
       // reset this element's information
       reset();
       
@@ -377,11 +376,10 @@ public class XmlElement extends AbstractXmlSerializer
             // create and convert child
             XmlElement child = new XmlElement();
             child.setParent(this);
-            if(child.convertFromXml((Element)list.item(i)))
-            {
-               // add child
-               addChild(child);
-            }
+            child.convertFromXml((Element)list.item(i));
+            
+            // add child
+            addChild(child);
          }
       }
       
@@ -395,8 +393,6 @@ public class XmlElement extends AbstractXmlSerializer
             setData(dataNode.getNodeValue());
          }
       }
-      
-      return rval;
    }
    
    /**
@@ -420,10 +416,11 @@ public class XmlElement extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
       // reset this element's information
       reset();
@@ -463,9 +460,6 @@ public class XmlElement extends AbstractXmlSerializer
       
       // copy data
       setData(element.getData());
-      
-      // always true
-      return true;
    }
    
    /**

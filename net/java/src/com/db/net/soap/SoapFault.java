@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.soap;
 
@@ -7,6 +7,7 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A SoapFault is a class that represents a SOAP (Simple Object Access Protocol)
@@ -150,12 +151,13 @@ public class SoapFault extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = true;
+      super.convertFromXmlElement(element);
       
       // get the faultcode element
       XmlElement faultcodeElement = element.getFirstChild("faultcode");
@@ -190,8 +192,6 @@ public class SoapFault extends AbstractXmlSerializer
          // no fault detail element
          mFaultDetail = null;
       }
-      
-      return rval;
    }
    
    /**

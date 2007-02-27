@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.wsdl;
 
@@ -7,6 +7,7 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
    
 /**
  * A WSDL message part. A message part is like a parameter (for an input
@@ -126,35 +127,30 @@ public class WsdlMessagePart extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
+      super.convertFromXmlElement(element);
       
       // clear part name and part type
       setName("");
       setType("");
       
-      if(element.getName().equals(getRootTag()))
-      {
-         // get part name
-         setName(element.getAttributeValue("name"));
-         
-         // get part type
-         setType(element.getAttributeValue("type"));
-         
-         // ensure there is a part name and type
-         if(!getName().equals("") && !getType().equals(""))            
-         {
-            // conversion successful
-            rval = true;
-         }
-      }
+      // get part name
+      setName(element.getAttributeValue("name"));
       
-      return rval;
-   }   
+      // get part type
+      setType(element.getAttributeValue("type"));
+      
+      // ensure there is a part name and type
+      if(getName().equals("") || getType().equals(""))            
+      {
+         throw new XmlException("No message part name or type!");
+      }
+   }
    
    /**
     * Gets the logger.

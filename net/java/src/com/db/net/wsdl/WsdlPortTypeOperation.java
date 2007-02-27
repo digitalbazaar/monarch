@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.wsdl;
 
@@ -7,6 +7,7 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
    
 /**
  * A WSDL Port Type Operation.
@@ -465,12 +466,13 @@ public class WsdlPortTypeOperation extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
+      super.convertFromXmlElement(element);
       
       // clear name
       setName("");
@@ -482,49 +484,43 @@ public class WsdlPortTypeOperation extends AbstractXmlSerializer
       setInputMessageName("");
       setOutputMessageName("");
       
-      if(element.getName().equals(getRootTag()))
-      {
-         // get name
-         setName(element.getAttributeValue("name"));
-         
-         // get parameter order
-         setParameterOrder(element.getAttributeValue("parameterOrder"));
-         
-         // read message names
-         boolean inputRead = false;
-         for(XmlElement child: element.getChildren())
-         {
-            if(child.getName().equals("input"))
-            {
-               // get the message name
-               setInputMessageName(child.getAttributeValue("message"));
-               
-               if(!inputRead)
-               {
-                  inputRead = true;
-               }
-            }
-            else if(child.getName().equals("output"))
-            {
-               // get the message name
-               setOutputMessageName(child.getAttributeValue("message"));
-               
-               // set input first based on whether or not it has been read
-               setInputFirst(inputRead);
-            }
-         }
-         
-         // ensure there is a name and at least one message
-         if(!getName().equals("") &&
-            (!getInputMessageName().equals("") ||
-             !getOutputMessageName().equals("")))
-         {
-            // conversion successful
-            rval = true;
-         }
-      }      
+      // get name
+      setName(element.getAttributeValue("name"));
       
-      return rval;
+      // get parameter order
+      setParameterOrder(element.getAttributeValue("parameterOrder"));
+      
+      // read message names
+      boolean inputRead = false;
+      for(XmlElement child: element.getChildren())
+      {
+         if(child.getName().equals("input"))
+         {
+            // get the message name
+            setInputMessageName(child.getAttributeValue("message"));
+            
+            if(!inputRead)
+            {
+               inputRead = true;
+            }
+         }
+         else if(child.getName().equals("output"))
+         {
+            // get the message name
+            setOutputMessageName(child.getAttributeValue("message"));
+            
+            // set input first based on whether or not it has been read
+            setInputFirst(inputRead);
+         }
+      }
+      
+      // ensure there is a name and at least one message
+      if(getName().equals("") ||
+         (getInputMessageName().equals("") &&
+          getOutputMessageName().equals("")))
+      {
+         throw new XmlException("No port type operation name or message name!");
+      }
    }
    
    /**

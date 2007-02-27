@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.wsdl;
 
@@ -10,6 +10,7 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A WSDL Port Type.
@@ -161,12 +162,13 @@ public class WsdlPortType extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
+      super.convertFromXmlElement(element);
       
       // clear name
       setName("");
@@ -174,33 +176,22 @@ public class WsdlPortType extends AbstractXmlSerializer
       // clear operations
       getOperations().clear();
 
-      if(element.getName().equals(getRootTag()))
-      {
-         // get name
-         setName(element.getAttributeValue("name"));
-         
-         // read operations
-         for(Iterator i = element.getChildren("operation").iterator();
-             i.hasNext();)
-         {
-            XmlElement child = (XmlElement)i.next();
-            WsdlPortTypeOperation operation = new WsdlPortTypeOperation(this);
-            if(operation.convertFromXmlElement(child))
-            {
-               // operation converted, add it
-               getOperations().add(operation);
-            }
-         }
-         
-         // ensure there is a name
-         if(!getName().equals(""))            
-         {
-            // conversion successful
-            rval = true;
-         }
-      }      
+      // get name
+      setName(element.getAttributeValue("name"));
       
-      return rval;
+      // read operations
+      for(XmlElement child: element.getChildren("operation"))
+      {
+         WsdlPortTypeOperation operation = new WsdlPortTypeOperation(this);
+         operation.convertFromXmlElement(child);
+         getOperations().add(operation);
+      }
+      
+      // ensure there is a name
+      if(getName().equals(""))            
+      {
+         throw new XmlException("No port type name!");
+      }
    }   
    
    /**
@@ -271,13 +262,12 @@ public class WsdlPortType extends AbstractXmlSerializer
          // strip off the namespace prefix
          name = XmlElement.parseLocalName(name);
          
-         for(Iterator<WsdlPortTypeOperation> i = iterator();
-             i.hasNext() && rval == null;) 
+         for(WsdlPortTypeOperation operation: this) 
          {
-            WsdlPortTypeOperation operation = i.next();
             if(operation.getName().equals(name))
             {
                rval = operation;
+               break;
             }
          }
          

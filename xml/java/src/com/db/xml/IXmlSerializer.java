@@ -72,21 +72,22 @@ public interface IXmlSerializer
    public XmlElement convertToXmlElement(XmlElement parent);
    
    /**
-    * This method takes XML text (in full document form) and converts
-    * it to its internal representation.
+    * Converts this object from XML.
     *
     * @param xmlText the xml text document that represents the object.
     * 
-    * @return true if successful, false otherwise.    
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
-   public boolean convertFromXml(String xmlText);
+   public void convertFromXml(String xmlText) throws XmlException;
    
    /**
     * Converts this object from an XmlElement.
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
-   public boolean convertFromXmlElement(XmlElement element);
+   public void convertFromXmlElement(XmlElement element) throws XmlException;
 }

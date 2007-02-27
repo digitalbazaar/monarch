@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.upnp.service;
 
@@ -10,6 +10,7 @@ import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A UPnPServiceActionList is a XML serializable list of UPnPServiceActions.
@@ -107,13 +108,14 @@ implements Iterable<UPnPServiceAction>
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = true;
-
+      super.convertFromXmlElement(element);
+      
       // clear action list
       clear();
       
@@ -121,13 +123,9 @@ implements Iterable<UPnPServiceAction>
       for(XmlElement actionElement: element.getChildren("action"))
       {
          UPnPServiceAction action = new UPnPServiceAction();
-         if(action.convertFromXmlElement(actionElement))
-         {
-            addAction(action);
-         }
+         action.convertFromXmlElement(actionElement);
+         addAction(action);
       }
-      
-      return rval;
    }
    
    /**

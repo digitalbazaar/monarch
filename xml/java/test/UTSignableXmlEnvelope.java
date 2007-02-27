@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 import com.db.crypto.*;
 import com.db.xml.*;
@@ -13,8 +13,10 @@ public class UTSignableXmlEnvelope
 {
    /**
     * Does the envelope test.
+    * 
+    * @exception XmlException thrown if an XmlException occurs.
     */
-   public static void doEnvelopeTest()
+   public static void doEnvelopeTest() throws XmlException
    {
       System.out.println("Putting string \"chicken\" into envelope...");
 
@@ -71,25 +73,13 @@ public class UTSignableXmlEnvelope
       // get a new envelope to test
       sxe = new SignableXmlEnvelope(new StringXmlSerializer());
 
-      if(sxe.convertFromXml(xmlText))
-      {
-         System.out.println("Successfully loaded envelope from XML\n");
-      }
-      else
-      {
-         System.out.println("ERROR!! COULD NOT LOAD ENVELOPE");
-      }
-
-      try
-      {
-         System.out.println("--- Convert to XML after XML load test ---");
-         System.out.println(sxe.convertToXml());
-      }
-      catch(NullPointerException e)
-      {
-         e.printStackTrace();
-      }
-
+      sxe.convertFromXml(xmlText);
+      
+      System.out.println("Successfully loaded envelope from XML\n");
+      
+      System.out.println("--- Convert to XML after XML load test ---");
+      System.out.println(sxe.convertToXml());
+      
       System.out.println("--- Verify Test ---");
 
       if(sxe.verify(km.getPublicKeyString()))
@@ -131,6 +121,13 @@ public class UTSignableXmlEnvelope
       System.out.println("\nTesting SignableXMLEnvelope...");
       System.out.println("----------------------------\n");
 
-      doEnvelopeTest();
+      try
+      {
+         doEnvelopeTest();
+      }
+      catch(Throwable t)
+      {
+         t.printStackTrace();
+      }
    }
 }

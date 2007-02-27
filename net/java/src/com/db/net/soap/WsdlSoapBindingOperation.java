@@ -12,6 +12,7 @@ import com.db.net.wsdl.WsdlPortTypeOperation;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.IXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A WSDL SOAP Binding Operation.
@@ -350,34 +351,26 @@ public class WsdlSoapBindingOperation extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
+      super.convertFromXmlElement(element);
       
       // clear soap action
       setSoapAction("");
       
-      if(element.getName().equals(getRootTag()))
-      {
-         // get the soap operation child
-         XmlElement soapOperationChild = element.getFirstChild(
-            "operation", Wsdl.WSDL_SOAP_NAMESPACE_URI); 
-         if(soapOperationChild != null)
-         {
-            // set soap action
-            setSoapAction(soapOperationChild.getAttributeValue("soapAction"));
-         
-            // FUTURE CODE: current implementation assumes soap encoding
-            // of parameters -- we'll want to parse these out in the future
-         }
-         
-         rval = true;
-      }
+      // get the soap operation child
+      XmlElement soapOperationChild = element.getFirstChild(
+         "operation", Wsdl.WSDL_SOAP_NAMESPACE_URI);
       
-      return rval;      
+      // set soap action
+      setSoapAction(soapOperationChild.getAttributeValue("soapAction"));
+      
+      // FUTURE CODE: current implementation assumes soap encoding
+      // of parameters -- we'll want to parse these out in the future
    }
    
    /**

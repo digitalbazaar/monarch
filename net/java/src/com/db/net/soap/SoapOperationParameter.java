@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.soap;
 
@@ -8,6 +8,7 @@ import com.db.logging.LoggerManager;
 import com.db.xml.AbstractXmlSerializer;
 import com.db.xml.IXmlSerializer;
 import com.db.xml.XmlElement;
+import com.db.xml.XmlException;
 
 /**
  * A SoapOperationParameter is a parameter for a SoapOperation that is
@@ -168,17 +169,16 @@ public class SoapOperationParameter extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = true;
-      
       // use the xml serializer if it is available
       if(mSerializer != null)
       {
-         rval = mSerializer.convertFromXmlElement(element);
+         mSerializer.convertFromXmlElement(element);
          
          // see if the xml element has children
          if(!element.hasChildren())
@@ -199,8 +199,6 @@ public class SoapOperationParameter extends AbstractXmlSerializer
       
       // get the target namespace uri
       mTargetNamespaceUri = element.getNamespaceUri();
-      
-      return rval;
    }
    
    /**

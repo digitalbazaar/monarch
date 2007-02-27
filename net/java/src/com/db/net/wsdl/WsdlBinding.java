@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.wsdl;
 
@@ -144,16 +144,6 @@ public abstract class WsdlBinding extends AbstractXmlSerializer
     */
    @Override
    public abstract XmlElement convertToXmlElement(XmlElement parent);
-   
-   /**
-    * Converts this object from an XmlElement.
-    *
-    * @param element the XmlElement to convert from.
-    * 
-    * @return true if successful, false otherwise.
-    */
-   @Override
-   public abstract boolean convertFromXmlElement(XmlElement element);   
    
    /**
     * Gets the logger.

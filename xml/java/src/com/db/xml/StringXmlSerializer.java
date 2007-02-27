@@ -95,21 +95,16 @@ public class StringXmlSerializer extends AbstractXmlSerializer
     *
     * @param element the XmlElement to convert from.
     * 
-    * @return true if successful, false otherwise.
+    * @exception XmlException thrown if this object could not be converted from
+    *                         xml.
     */
    @Override
-   public boolean convertFromXmlElement(XmlElement element)   
+   public void convertFromXmlElement(XmlElement element) throws XmlException
    {
-      boolean rval = false;
-      
       // get data
       setString(element.getData());
-      
-      rval = true;
-      
-      return rval;
    }
-
+   
    /**
     * Gets the logger for this xml serializer.
     * 

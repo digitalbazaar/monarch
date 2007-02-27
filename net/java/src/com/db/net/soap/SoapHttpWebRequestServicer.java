@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.soap;
 
@@ -12,6 +12,7 @@ import com.db.net.http.HttpBodyPartHeader;
 import com.db.net.http.HttpWebRequest;
 import com.db.net.http.HttpWebResponse;
 import com.db.net.wsdl.Wsdl;
+import com.db.xml.XmlException;
 
 /**
  * A soap http web request servicer. Handles soap messages sent via http
@@ -108,9 +109,23 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
             getLogger().debugData(getClass(), "received soap xml:\n" + body);            
          }
          
-         // see if the soap message was valid
-         if(!sm.getRpcSoapEnvelope().convertFromXml(body) ||
-            !sm.getRpcSoapEnvelope().containsSoapOperation())
+         try
+         {
+            // see if the soap message was valid
+            sm.getRpcSoapEnvelope().convertFromXml(body);
+         }
+         catch(XmlException e)
+         {
+            // create soap fault
+            SoapFault fault = new SoapFault();
+            fault.setFaultCode(SoapFault.FAULT_CLIENT);
+            fault.setFaultString("No valid soap message found");
+            fault.setFaultActor(mSoapWebService.getURI());
+            
+            sm.getRpcSoapEnvelope().setSoapFault(fault);
+         }
+         
+         if(!sm.getRpcSoapEnvelope().containsSoapOperation())
          {
             getLogger().debug(getClass(),
                "NO valid soap message found! Sending soap fault.");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.wsdl;
 
@@ -18,6 +18,5 @@ public interface WsdlPortFactory
     *
     * @return a new specific type of WsdlPort.
     */
-   public abstract WsdlPort createWsdlPort(
-      Wsdl wsdl, WsdlBinding binding);
+   public abstract WsdlPort createWsdlPort(Wsdl wsdl, WsdlBinding binding);
 }
