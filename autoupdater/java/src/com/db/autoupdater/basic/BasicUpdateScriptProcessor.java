@@ -484,7 +484,8 @@ public class BasicUpdateScriptProcessor
          String md5 = command.getMd5Digest();
          
          // see if the destination can be written to and not cancelling
-         if((!destination.exists() || destination.canWrite()) &&
+         if((!destination.exists() || destination.canWrite() ||
+             !destination.equals(destination.getCanonicalFile())) &&
             !mCancelProcessing)
          {
             // get a temp file for saving to
