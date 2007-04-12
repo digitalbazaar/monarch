@@ -3,7 +3,6 @@
  */
 package com.db.autoupdater.basic;
 
-import java.util.Iterator;
 import java.util.Vector;
 
 import com.db.event.EventDelegate;
@@ -119,11 +118,8 @@ public class BasicUpdateScript implements UpdateScript
                rval = true;
                
                // parse each command
-               for(Iterator<XmlElement> i =
-                   element.getChildren("command").iterator(); i.hasNext() && rval;)
+               for(XmlElement commandElement: element.getChildren("command"))
                {
-                  XmlElement commandElement = i.next();
-   
                   // parse the command
                   BasicUpdateScriptCommand usc = new BasicUpdateScriptCommand();
                   if(usc.parseCommand(commandElement))
@@ -145,13 +141,26 @@ public class BasicUpdateScript implements UpdateScript
                   else
                   {
                      rval = false;
+                     break;
                   }
                }
+            }
+            else
+            {
+               // script is invalid
+               getLogger().debug(getClass(),
+                  "Update script is invalid, wrong script version?" +
+                  "\nversion required=" + SCRIPT_VERSION +
+                  "\nversion received=" + element.getAttributeValue("version"));
             }
          }
          catch(XmlException e)
          {
             // script is invalid
+            getLogger().debug(getClass(),
+               "Update script is invalid, xml exception thrown.\n" +
+               "exception= " + e +
+               "trace= " + Logger.getStackTrace(e));
          }
          
          if(mCommands.size() == 0)
