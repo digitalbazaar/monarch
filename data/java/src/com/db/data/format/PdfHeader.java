@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazar, Inc.  All rights reserved.
  */
 package com.db.data.format;
 
@@ -21,7 +21,7 @@ import java.io.BufferedReader;
  * 
  * @author Dave Longley
  */
-public class PDFHeader
+public class PdfHeader
 {
    /**
     * The version of the pdf.
@@ -46,7 +46,7 @@ public class PDFHeader
    /**
     * Constructs a PDF Header with default values.
     */
-   public PDFHeader()
+   public PdfHeader()
    {
       mVersion = "1.4";
       mSize = 0;
@@ -71,6 +71,7 @@ public class PDFHeader
     * @param b the byte array to convert from.
     * @param offset the offset to start converting from.
     * @param length the number of valid bytes in the byte array.
+    * 
     * @return true if successful, false if not.
     */
    public boolean convertFromBytes(byte[] b, int offset, int length)
@@ -118,6 +119,7 @@ public class PDFHeader
     * Sets the version of the pdf.
     * 
     * @param version the version of the pdf.
+    * 
     * @return true if set, false if not.
     */
    public boolean setVersion(String version)

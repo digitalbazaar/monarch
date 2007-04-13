@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.http;
 
@@ -103,7 +103,7 @@ public class HttpWebConnection extends WebConnectionWrapper
       // be added manually on a per-implementation basis.
       
       // add gzip content decoder by default
-      GZipHttpContentCoder gzipCoder = new GZipHttpContentCoder();
+      GzipHttpContentCoder gzipCoder = new GzipHttpContentCoder();
       setContentDecoder(gzipCoder.getSupportedContentEncoding(), gzipCoder);
       
       // no content bytes received or sent yet

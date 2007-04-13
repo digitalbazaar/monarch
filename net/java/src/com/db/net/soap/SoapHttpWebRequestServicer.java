@@ -7,7 +7,7 @@ import java.util.Map;
 
 import com.db.logging.Logger;
 import com.db.net.http.AbstractHttpWebRequestServicer;
-import com.db.net.http.GZipHttpContentCoder;
+import com.db.net.http.GzipHttpContentCoder;
 import com.db.net.http.HttpBodyPartHeader;
 import com.db.net.http.HttpWebRequest;
 import com.db.net.http.HttpWebResponse;
@@ -231,7 +231,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
             if(response.getHeader().getContentEncoding() != null &&
                response.getHeader().getContentEncoding().contains("gzip"))
             {
-               GZipHttpContentCoder coder = new GZipHttpContentCoder();
+               GzipHttpContentCoder coder = new GzipHttpContentCoder();
                body = coder.encodeHttpContentData(body);
             }
             
@@ -273,7 +273,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       if(response.getHeader().getContentEncoding() != null &&
          response.getHeader().getContentEncoding().contains("gzip"))
       {
-         GZipHttpContentCoder coder = new GZipHttpContentCoder();
+         GzipHttpContentCoder coder = new GzipHttpContentCoder();
          
          try
          {

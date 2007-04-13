@@ -12,7 +12,7 @@ import java.util.Iterator;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 import com.db.net.WebConnection;
-import com.db.net.http.GZipHttpContentCoder;
+import com.db.net.http.GzipHttpContentCoder;
 import com.db.net.http.HttpBodyPartHeader;
 import com.db.net.http.HttpWebClient;
 import com.db.net.http.HttpWebConnection;
@@ -467,7 +467,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
          if(request.getHeader().getContentEncoding() != null &&
             request.getHeader().getContentEncoding().contains("gzip"))
          {
-            GZipHttpContentCoder coder = new GZipHttpContentCoder();
+            GzipHttpContentCoder coder = new GzipHttpContentCoder();
             body = coder.encodeHttpContentData(body);
             request.getHeader().setContentLength(body.length);
          }

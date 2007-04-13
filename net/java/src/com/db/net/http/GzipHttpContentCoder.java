@@ -1,28 +1,28 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.http;
 
-import com.db.stream.GZipInputStream;
-import com.db.stream.UnGZipOutputStream;
+import com.db.stream.GzipInputStream;
+import com.db.stream.UnGzipOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * A GZipHttpContentCoder is a class that is used to encode and decode
+ * A GzipHttpContentCoder is a class that is used to encode and decode
  * http message body content for http web requests and and http web responses
  * that have a content-encoding header value set to "gzip".  
  * 
  * @author Dave Longley
  */
-public class GZipHttpContentCoder extends AbstractHttpContentCoder
+public class GzipHttpContentCoder extends AbstractHttpContentCoder
 {
    /**
-    * Creates a new GZipHttpContentCoder object.
+    * Creates a new GzipHttpContentCoder object.
     */
-   public GZipHttpContentCoder()
+   public GzipHttpContentCoder()
    {
       super("gzip");
    }
@@ -42,7 +42,7 @@ public class GZipHttpContentCoder extends AbstractHttpContentCoder
    throws IOException
    {
       // return a gzip input stream
-      return new GZipInputStream(unencodedStream);
+      return new GzipInputStream(unencodedStream);
    }
    
    /**
@@ -59,6 +59,6 @@ public class GZipHttpContentCoder extends AbstractHttpContentCoder
    throws IOException   
    {
       // return a gzip output stream
-      return new UnGZipOutputStream(os);
+      return new UnGzipOutputStream(os);
    }
 }

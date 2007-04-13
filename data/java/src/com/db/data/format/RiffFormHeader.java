@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.data.format;
 
@@ -28,7 +28,7 @@ package com.db.data.format;
  *
  * @author Dave Longley
  */
-public class RIFFFormHeader extends RIFFListHeader
+public class RiffFormHeader extends RiffListHeader
 {
    /**
     * Constants.
@@ -36,31 +36,31 @@ public class RIFFFormHeader extends RIFFListHeader
    public static final int FORM_HEADER_SIZE = LIST_HEADER_SIZE;
    
    /**
-    * Constructs a RIFF Form header with default values.
+    * Constructs a Riff Form header with default values.
     */
-   public RIFFFormHeader()
+   public RiffFormHeader()
    {
       this(null);
    }
    
    /**
-    * Constructs a RIFF Form header with the passed parameters.
+    * Constructs a Riff Form header with the passed parameters.
     * 
     * @param form the form of RIFF.
     */
-   public RIFFFormHeader(String form)
+   public RiffFormHeader(String form)
    {
       super(form);
       mChunkHeader.setIdentifier("RIFF");
    }
    
    /**
-    * Constructs a RIFF Form header with the passed parameters.
+    * Constructs a Riff Form header with the passed parameters.
     * 
     * @param form the form of RIFF.
     * @param fileSize the file size of the file the header is for.
     */
-   public RIFFFormHeader(String form, int fileSize)
+   public RiffFormHeader(String form, int fileSize)
    {
       super(form, fileSize);
       mChunkHeader.setIdentifier("RIFF");

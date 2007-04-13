@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.stream;
 
@@ -10,15 +10,15 @@ import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.Deflater;
 
-import com.db.data.format.GZipHeader;
-import com.db.data.format.GZipTrailer;
+import com.db.data.format.GzipHeader;
+import com.db.data.format.GzipTrailer;
 
 /**
- * A GZipInputStream reads uncompressed data and gzips it.
+ * A GzipInputStream reads uncompressed data and gzips it.
  * 
  * @author Dave Longley
  */
-public class GZipInputStream extends DeflaterInputStream
+public class GzipInputStream extends DeflaterInputStream
 {
    /**
     * A CRC-32 for calculating the CRC-32 of the uncompressed data as
@@ -47,25 +47,25 @@ public class GZipInputStream extends DeflaterInputStream
    protected boolean mTrailerRead;
    
    /**
-    * Creates a new GZipInputStream using a compression level of
+    * Creates a new GzipInputStream using a compression level of
     * Deflater.DEFAULT_COMPRESSION level.
     * 
     * @param is the input stream to read the uncompressed data from.
     */
-   public GZipInputStream(InputStream is)
+   public GzipInputStream(InputStream is)
    {
       // create a deflater that supports GZIP
       this(is, Deflater.DEFAULT_COMPRESSION);
    }
    
    /**
-    * Creates a new GZipInputStream.
+    * Creates a new GzipInputStream.
     * 
     * @param is the input stream to read the uncompressed data from.
     * @param level the Deflater compression level to use (0-9), see
     *              Deflater class.
     */
-   public GZipInputStream(InputStream is, int level)
+   public GzipInputStream(InputStream is, int level)
    {
       // create a deflater that supports GZIP
       super(is, new Deflater(level, true));
@@ -74,7 +74,7 @@ public class GZipInputStream extends DeflaterInputStream
       mCrc32 = new CRC32();
       
       // create the header input stream
-      GZipHeader header = new GZipHeader();
+      GzipHeader header = new GzipHeader();
       
       // setting the CRC-16 flag is commented out for backwards compatibility
       // with gzip versions <= 1.2.4
@@ -164,7 +164,7 @@ public class GZipInputStream extends DeflaterInputStream
                if(mTrailerInputStream == null)
                {
                   // create trailer, set CRC-32 and ISIZE
-                  GZipTrailer trailer = new GZipTrailer();
+                  GzipTrailer trailer = new GzipTrailer();
                   trailer.setCrc32Value(mCrc32.getValue());
                   trailer.setISize(getDeflater().getBytesRead());
                   

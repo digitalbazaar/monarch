@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2004-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2004-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.data.format;
 
 /**
- * An ID3Tag Frame.
+ * An Id3Tag Frame.
  * 
  * @author Manu Sporny
  * @author Dave Longley
  */
-public class ID3TagFrame
+public class Id3TagFrame
 {
    /**
     * The frame header.
@@ -22,9 +22,9 @@ public class ID3TagFrame
    protected byte[] mFrameData; 
    
    /**
-    * Default constructor
+    * Creates an ID3 Tag Frame.
     */
-   public ID3TagFrame()
+   public Id3TagFrame()
    {
       mFrameHeader = new byte[10];
       mFrameData = new byte[1];

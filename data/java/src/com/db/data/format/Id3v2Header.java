@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.data.format;
 
 /**
- * An ID3v2 header. The currently supported version.revision is 3.0.
+ * An Id3v2 header. The currently supported version.revision is 3.0.
  * 
  * The format of the header is such:
  * 
@@ -23,7 +23,7 @@ package com.db.data.format;
  * 
  * @author Dave Longley
  */
-public class ID3v2Header
+public class Id3v2Header
 {
    /**
     * Supported version.
@@ -99,7 +99,7 @@ public class ID3v2Header
    /**
     * Constructs an ID3v2 header with default values.
     */
-   public ID3v2Header()
+   public Id3v2Header()
    {
       mVersion = SUPPORTED_VERSION;
       mRevision = SUPPORTED_REVISION;
@@ -123,10 +123,10 @@ public class ID3v2Header
     * @param footer true if the ID3 tag has a footer, false if not.
     * @param size the size of the extended header plus all of the frames.
     */
-   public ID3v2Header(int version, int revision,
-                      boolean unsynchronized, boolean extendedHeader,
-                      boolean experimental, boolean footer,
-                      int size)
+   public Id3v2Header(
+      int version, int revision, boolean unsynchronized,
+      boolean extendedHeader, boolean experimental,
+      boolean footer, int size)
    {
       mVersion = version;
       mRevision = revision;
@@ -148,9 +148,9 @@ public class ID3v2Header
     * @param footer true if the ID3 tag has a footer, false if not.
     * @param size the size of the extended header plus all of the frames.
     */
-   public ID3v2Header(boolean unsynchronized, boolean extendedHeader,
-                      boolean experimental, boolean footer,
-                      int size)
+   public Id3v2Header(
+      boolean unsynchronized, boolean extendedHeader,
+      boolean experimental, boolean footer, int size)
    {
       mVersion = SUPPORTED_VERSION;
       mRevision = SUPPORTED_REVISION;

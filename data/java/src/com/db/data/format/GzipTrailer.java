@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.data.format;
 
@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * An GZipTrailer is a trailer for gzip-formatted data. This is the trailer
+ * An GzipTrailer is a trailer for gzip-formatted data. This is the trailer
  * for one gzip "member".
  * 
  * It has the following format:
@@ -21,11 +21,11 @@ import java.io.InputStream;
  *                  uncompressed data.
  * ISIZE (Input SIZE) = The original size of the uncompressed data modulo 2^32.
  *  
- * GZip format information from: http://www.gzip.org/zlib/rfc-gzip.html 
+ * Gzip format information from: http://www.gzip.org/zlib/rfc-gzip.html 
  * 
  * @author Dave Longley
  */
-public class GZipTrailer
+public class GzipTrailer
 {
    /**
     * The CRC-32 value for this trailer.
@@ -38,9 +38,9 @@ public class GZipTrailer
    protected long mISize;
    
    /**
-    * Creates a new GZipTrailer.
+    * Creates a new GzipTrailer.
     */
-   public GZipTrailer()
+   public GzipTrailer()
    {
    }
 

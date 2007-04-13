@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.data.format;
 
@@ -75,11 +75,11 @@ import java.util.zip.Deflater;
  * the two least significant bytes of the CRC32 for all the bytes in the gzip
  * header up to but not including the CRC16.
  *  
- * GZip format information from: http://www.gzip.org/zlib/rfc-gzip.html 
+ * Gzip format information from: http://www.gzip.org/zlib/rfc-gzip.html 
  * 
  * @author Dave Longley
  */
-public class GZipHeader
+public class GzipHeader
 {
    /**
     * For computing the CRC-32 of this header.
@@ -142,9 +142,9 @@ public class GZipHeader
    public static final int GZIP_FCOMMENT = 0x16;
    
    /**
-    * Creates a new empty GZipHeader.
+    * Creates a new empty GzipHeader.
     */
-   public GZipHeader()
+   public GzipHeader()
    {
       // create a new CRC-32 for computing the CRC-16 of this header
       mCrc32 = new CRC32();

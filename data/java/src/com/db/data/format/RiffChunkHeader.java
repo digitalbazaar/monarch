@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.data.format;
 
@@ -14,7 +14,7 @@ package com.db.data.format;
  * 
  * @author Dave Longley
  */
-public class RIFFChunkHeader
+public class RiffChunkHeader
 {
    /**
     * The 4 byte chunk identifier. "JUNK" for junk chunks.
@@ -37,30 +37,30 @@ public class RIFFChunkHeader
    public static final int CHUNK_HEADER_SIZE = 8;
    
    /**
-    * Constructs a RIFF Chunk Header with default values.
+    * Constructs a Riff Chunk Header with default values.
     */
-   public RIFFChunkHeader()
+   public RiffChunkHeader()
    {
       this(null, CHUNK_HEADER_SIZE);
    }
    
    /**
-    * Constructs a RIFF Chunk Header with the passed parameters.
+    * Constructs a Riff Chunk Header with the passed parameters.
     * 
     * @param id the identifier of the chunk.
     */
-   public RIFFChunkHeader(String id)   
+   public RiffChunkHeader(String id)   
    {
       this(id, CHUNK_HEADER_SIZE);
    }
    
    /**
-    * Constructs a RIFF Chunk Header with the passed parameters.
+    * Constructs a Riff Chunk Header with the passed parameters.
     * 
     * @param id the identifier of the chunk.
     * @param size the size of the chunk.
     */
-   public RIFFChunkHeader(String id, int size)
+   public RiffChunkHeader(String id, int size)
    {
       if(id == null || id.length() != 4)
       {

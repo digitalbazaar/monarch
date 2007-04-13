@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.data.format;
 
@@ -14,12 +14,12 @@ package com.db.data.format;
  * 
  * @author Dave Longley
  */
-public class RIFFListHeader
+public class RiffListHeader
 {
    /**
-    * A RIFF Chunk Header.
+    * A Riff Chunk Header.
     */
-   protected RIFFChunkHeader mChunkHeader;
+   protected RiffChunkHeader mChunkHeader;
    
    /**
     * The 4 byte list identifier.
@@ -32,32 +32,32 @@ public class RIFFListHeader
    public static final int LIST_HEADER_SIZE = 12;
    
    /**
-    * Constructs a RIFF List Header with default values.
+    * Constructs a Riff List Header with default values.
     */
-   public RIFFListHeader()
+   public RiffListHeader()
    {
       this(null, LIST_HEADER_SIZE);
    }
    
    /**
-    * Constructs a RIFF List Header with the passed parameters.
+    * Constructs a Riff List Header with the passed parameters.
     * 
     * @param id the identifier of the list.
     */
-   public RIFFListHeader(String id)
+   public RiffListHeader(String id)
    {
       this(id, LIST_HEADER_SIZE);
    }   
    
    /**
-    * Constructs a RIFF List Header with the passed parameters.
+    * Constructs a Riff List Header with the passed parameters.
     * 
     * @param id the identifier of the list.
     * @param size the size of the list.
     */
-   public RIFFListHeader(String id, int size)
+   public RiffListHeader(String id, int size)
    {
-      mChunkHeader = new RIFFChunkHeader("LIST", size);
+      mChunkHeader = new RiffChunkHeader("LIST", size);
       
       if(id == null || id.length() != 4)
       {
@@ -161,7 +161,7 @@ public class RIFFListHeader
    /**
     * Sets the list size.
     *
-    * @param size the size of the RIFF list. 
+    * @param size the size of the Riff list. 
     */
    public void setListSize(long size)
    {
@@ -171,7 +171,7 @@ public class RIFFListHeader
    /**
     * Gets the list size.
     * 
-    * @return the size of the RIFF list.
+    * @return the size of the Riff list.
     */
    public long getListSize()
    {

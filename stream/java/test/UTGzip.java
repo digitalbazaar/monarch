@@ -12,16 +12,16 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.InflaterInputStream;
 
 import com.db.stream.DeflaterInputStream;
-import com.db.stream.GZipInputStream;
+import com.db.stream.GzipInputStream;
 import com.db.stream.InflaterOutputStream;
-import com.db.stream.UnGZipOutputStream;
+import com.db.stream.UnGzipOutputStream;
 
 /**
  * This class is used to test GZIP capability.
  *
  * @author Dave Longley
  */
-public class UTGZip
+public class UTGzip
 {
    /**
     * A lot of WSDL content to gzip and ungzip for testing.
@@ -1088,7 +1088,7 @@ public class UTGZip
          ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
          // ungzipper
-         UnGZipOutputStream ungzos = new UnGZipOutputStream(baos); 
+         UnGzipOutputStream ungzos = new UnGzipOutputStream(baos); 
          
          // read until content is unzipped
          numBytes = -1;
@@ -1132,7 +1132,7 @@ public class UTGZip
             content.getBytes());
          
          // gzipper
-         GZipInputStream gzis = new GZipInputStream(bais);
+         GzipInputStream gzis = new GzipInputStream(bais);
 
          // file to gzip to
          FileOutputStream fos = new FileOutputStream("test.zip");
@@ -1161,7 +1161,7 @@ public class UTGZip
          ByteArrayOutputStream baos = new ByteArrayOutputStream();
          
          // ungzipper
-         UnGZipOutputStream ungzos = new UnGZipOutputStream(baos); 
+         UnGzipOutputStream ungzos = new UnGzipOutputStream(baos); 
          
          // read until content is unzipped
          numBytes = -1;
@@ -1205,7 +1205,7 @@ public class UTGZip
             content.getBytes());
          
          // gzipper
-         GZipInputStream gzis = new GZipInputStream(bais);
+         GzipInputStream gzis = new GzipInputStream(bais);
 
          // file to gzip to
          FileOutputStream fos = new FileOutputStream("test.zip");
@@ -1234,7 +1234,7 @@ public class UTGZip
          ByteArrayOutputStream baos = new ByteArrayOutputStream();
          
          // ungzipper
-         UnGZipOutputStream ungzos = new UnGZipOutputStream(baos); 
+         UnGzipOutputStream ungzos = new UnGzipOutputStream(baos); 
          
          // read until content is unzipped
          numBytes = -1;

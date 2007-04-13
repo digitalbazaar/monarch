@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.stream;
 
@@ -9,15 +9,15 @@ import java.util.zip.CRC32;
 import java.util.zip.CheckedOutputStream;
 import java.util.zip.Inflater;
 
-import com.db.data.format.GZipHeader;
-import com.db.data.format.GZipTrailer;
+import com.db.data.format.GzipHeader;
+import com.db.data.format.GzipTrailer;
 
 /**
- * An UnGZipOutputStream un-gzips data and writes it to an output stream.
+ * An UnGzipOutputStream un-gzips data and writes it to an output stream.
  * 
  * @author Dave Longley
  */
-public class UnGZipOutputStream extends InflaterOutputStream
+public class UnGzipOutputStream extends InflaterOutputStream
 {
    /**
     * A CRC-32 for computing the CRC-32 of the streaming uncompressed data.
@@ -27,12 +27,12 @@ public class UnGZipOutputStream extends InflaterOutputStream
    /**
     * The GZipHeader for converting the gzip header.
     */
-   protected GZipHeader mHeader;
+   protected GzipHeader mHeader;
    
    /**
     * The GZipTrailer for converting the gzip trailer.
     */
-   protected GZipTrailer mTrailer;
+   protected GzipTrailer mTrailer;
    
    /**
     * For storing the header for the gzipped data.
@@ -70,11 +70,11 @@ public class UnGZipOutputStream extends InflaterOutputStream
    protected boolean mTrailerRead;
    
    /**
-    * Creates a new UnGZipOutputStream.
+    * Creates a new UnGzipOutputStream.
     * 
     * @param os the output stream to write uncompressed data to.
     */
-   public UnGZipOutputStream(OutputStream os)
+   public UnGzipOutputStream(OutputStream os)
    {
       // create an inflater that supports GZIP
       super(os, new Inflater(true));
@@ -87,10 +87,10 @@ public class UnGZipOutputStream extends InflaterOutputStream
       out = new CheckedOutputStream(out, mCrc32);
       
       // create a new gzip header
-      mHeader = new GZipHeader();
+      mHeader = new GzipHeader();
       
       // create a new gzip trailer
-      mTrailer = new GZipTrailer();
+      mTrailer = new GzipTrailer();
       
       // create the header buffer
       mHeaderBuffer = new byte[10];
