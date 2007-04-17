@@ -31,7 +31,7 @@ package com.db.data.format;
 public class RiffFormHeader extends RiffListHeader
 {
    /**
-    * Constants.
+    * The header size for a form chunk.
     */
    public static final int FORM_HEADER_SIZE = LIST_HEADER_SIZE;
    
@@ -72,6 +72,7 @@ public class RiffFormHeader extends RiffListHeader
     * @param b the byte array to convert from.
     * @param offset the offset to start converting from.
     * @param length the number of valid bytes beyond the offset.
+    * 
     * @return true if successful, false if not.
     */
    @Override

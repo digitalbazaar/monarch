@@ -32,7 +32,7 @@ public class RiffChunkHeader
    protected boolean mValid;
    
    /**
-    * Constants.
+    * The header size for a RIFF chunk.
     */
    public static final int CHUNK_HEADER_SIZE = 8;
    
@@ -85,7 +85,8 @@ public class RiffChunkHeader
    {
       byte[] size = new byte[4];
       
-      // convert to 4 bytes, most significant byte first
+      // convert to 4 bytes, convert most significant byte first (as
+      // the last byte)
       for(int i = 3; i >= 0; i--)
       {
          size[i] = (byte)(((mChunkSize >> (i * 8))) & 0xFF);
@@ -102,6 +103,7 @@ public class RiffChunkHeader
     * @param offset the offset to start reading from.
     * @param length number of valid bytes in the buffer following the
     *               offset.
+    * 
     * @return true if successful, false if not. 
     */
    protected boolean convertBytesToSize(byte[] b, int offset, int length)
@@ -112,7 +114,8 @@ public class RiffChunkHeader
       {
          mChunkSize = 0;
          
-         // least significant byte is first
+         // convert most significant byte first (it is the last byte)
+         // and then shift it left
          for(int i = 3; i >= 0; i--)
          {
             mChunkSize |= ((b[offset + i] & 0xFF) << (i * 8));
@@ -157,6 +160,7 @@ public class RiffChunkHeader
     * @param offset the offset to start converting from.
     * @param length the number of valid bytes in the buffer following the
     *               offset.
+    * 
     * @return true if successful, false if not.
     */
    public boolean convertFromBytes(byte[] b, int offset, int length)
@@ -186,6 +190,7 @@ public class RiffChunkHeader
     * 4 characters long.
     * 
     * @param id the identifier to set.
+    * 
     * @return true if set, false if not.
     */
    public boolean setIdentifier(String id)

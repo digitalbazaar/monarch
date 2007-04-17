@@ -27,7 +27,7 @@ public class RiffListHeader
    protected String mId;
    
    /**
-    * Constants.
+    * The header size for a list chunk.
     */
    public static final int LIST_HEADER_SIZE = 12;
    
@@ -99,6 +99,7 @@ public class RiffListHeader
     * @param offset the offset to start converting from.
     * @param length the number of valid bytes in the buffer following the
     *               offset.
+    * 
     * @return true if successful, false if not.
     */
    public boolean convertFromBytes(byte[] b, int offset, int length)
@@ -133,6 +134,7 @@ public class RiffListHeader
     * 4 characters long.
     * 
     * @param id the identifier to set.
+    * 
     * @return true if set, false if not.
     */
    public boolean setIdentifier(String id)
