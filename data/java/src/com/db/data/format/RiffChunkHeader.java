@@ -12,6 +12,9 @@ package com.db.data.format;
  * ----------------------------------------
  * | identifier | chunk size | chunk data |
  * 
+ * The identifier is a FOURCC (a four-character code).
+ * The chunk size a little-endian (least sig. first) 32-bit character.
+ * 
  * @author Dave Longley
  */
 public class RiffChunkHeader
