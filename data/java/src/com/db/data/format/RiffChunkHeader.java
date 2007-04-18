@@ -3,6 +3,9 @@
  */
 package com.db.data.format;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 /**
  * A RIFF Chunk. The chunk size does *NOT* include the header size.
  * 
@@ -128,6 +131,26 @@ public class RiffChunkHeader
       }
       
       return rval;
+   }
+   
+   /**
+    * Writes this RiffChunkHeader to an OutputStream.
+    * 
+    * @param os the OutputStream to write to.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   public void writeTo(OutputStream os) throws IOException
+   {
+      // write ID
+      os.write((byte)mId.charAt(0));
+      os.write((byte)mId.charAt(1));
+      os.write((byte)mId.charAt(2));
+      os.write((byte)mId.charAt(3));
+      
+      // write size
+      byte[] size = convertSizeToBytes();
+      os.write(size);
    }
    
    /**

@@ -3,6 +3,9 @@
  */
 package com.db.data.format;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 /**
  * A RIFF List Header.
  * 
@@ -68,6 +71,25 @@ public class RiffListHeader
          mId = id;
       }
    }
+   
+   /**
+    * Writes this RiffListHeader to an OutputStream.
+    * 
+    * @param os the OutputStream to write to.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   public void writeTo(OutputStream os) throws IOException
+   {
+      // write chunk header
+      mChunkHeader.writeTo(os);
+      
+      // write LIST ID
+      os.write((byte)mId.charAt(0));
+      os.write((byte)mId.charAt(1));
+      os.write((byte)mId.charAt(2));
+      os.write((byte)mId.charAt(3));
+   }   
    
    /**
     * Converts the header into a 12 byte array.

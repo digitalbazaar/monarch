@@ -4,9 +4,7 @@
 package com.db.data.format;
 
 import java.io.ByteArrayInputStream;
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * An GzipTrailer is a trailer for gzip-formatted data. This is the trailer
@@ -43,160 +41,6 @@ public class GzipTrailer
    public GzipTrailer()
    {
    }
-
-   /**
-    * Reads unsigned byte that has the most significant bit first (left). This
-    * is the default way in which bytes are read in Java.
-    * 
-    * The byte must be stored as an int because Java's bytes are unsigned.
-    * 
-    * @param is the input stream to read from.
-    * 
-    * @return the unsigned byte.
-    * 
-    * @throws IOException
-    */
-   protected int readUnsignedByte(InputStream is) throws IOException
-   {
-      // read the byte
-      int b = is.read();
-      
-      // ensure we aren't at the end of the stream
-      if(b == -1)
-      {
-         // throw an exception because this method should only be
-         // called when there is more data to be read
-         throw new EOFException();
-      }
-      
-      return b;
-   }
-   
-   /**
-    * Reads an unsigned short that is stored in the Intel or
-    * Little Endian byte order. That is, least significant byte first.
-    * 
-    * An unsigned short is stored in 2 bytes: 00 00
-    * 
-    * The short must be read as an int because Java's shorts are unsigned.
-    * 
-    * @param is the input stream to read from.
-    * 
-    * @return the unsigned short.
-    * 
-    * @throws IOException
-    */
-   protected int readUnsignedShort(InputStream is) throws IOException
-   {
-      int rval = 0;
-      
-      // read the first unsigned byte
-      int b1 = readUnsignedByte(is);
-      
-      // read the second unsigned byte
-      int b2 = readUnsignedByte(is);
-      
-      // shift the second byte to the left, it is more significant
-      // OR it with the first byte to combine them
-      rval = (b2 << 8) | b1;
-      
-      return rval;
-   }
-   
-   /**
-    * Reads unsigned integer (2 bytes) that is stored in the Intel or
-    * Little Endian byte order. That is, least significant byte first.
-    * 
-    * An unsigned int is stored in 4 bytes: 00 00 00 00
-    * 
-    * The integer must be stored as a long because Java uses unsigned
-    * integers for "int". 
-    * 
-    * @param is the input stream to read the integer from.
-    * 
-    * @return the unsigned integer.
-    * 
-    * @throws IOException
-    */
-   protected long readUnsignedInt(InputStream is) throws IOException
-   {
-      long rval = 0;
-      
-      // read the first unsigned short
-      long s1 = readUnsignedShort(is);
-      
-      // read the second unsigned short
-      long s2 = readUnsignedShort(is);
-      
-      // shift the second short to the left, it is more significant
-      // OR it with the first byte to combine them
-      rval = s2 << 16 | s1;
-      
-      return rval;
-   }
-   
-   /**
-    * Writes an unsigned byte.
-    * 
-    * The byte passed as an int because Java's bytes are unsigned.
-    * 
-    * The byte is written to the passed byte array.
-    * 
-    * @param ubyte the unsigned byte to write.
-    * @param buffer the buffer to write the unsigned byte to.
-    * @param offset the offset at which to write the unsigned byte.
-    */
-   protected void writeUnsignedByte(int ubyte, byte[] buffer, int offset)
-   {
-      buffer[offset] = (byte)(ubyte & 0xff);   
-   }
-
-   /**
-    * Writes an unsigned short in the Intel or Little Endian byte order.
-    * That is, least significant byte first.
-    * 
-    * An unsigned short is 2 bytes: 00 00
-    * 
-    * The short passed as an int because Java's shorts are unsigned.
-    * 
-    * The short is written to the passed byte array.
-    * 
-    * @param ushort the unsigned short to write.
-    * @param buffer the buffer to write the unsigned short to.
-    * @param offset the offset at which to write the unsigned short.
-    */
-   protected void writeUnsignedShort(int ushort, byte[] buffer, int offset)
-   {
-      // get the less significant byte for the short
-      buffer[offset] = (byte)(ushort & 0xff);
-      
-      // get the more significant byte for the short
-      buffer[offset + 1] = (byte)((ushort >> 8) & 0xff);
-   }   
-   
-   /**
-    * Writes an unsigned integer (4 bytes) in the Intel or Little Endian
-    * byte order. That is, least significant byte first.
-    * 
-    * An unsigned int is 4 bytes: 00 00 00 00
-    * 
-    * The integer must be passed as a long because Java uses unsigned
-    * integers for "int".
-    * 
-    * The integer is written to the passed byte array.
-    * 
-    * @param uint the unsigned int to write.
-    * @param buffer the buffer to write the unsigned int to.
-    * @param offset the offset at which to write the unsigned int.
-    */
-   protected void writeUnsignedInt(long uint, byte[] buffer, int offset)
-   {
-      // write the least significant short
-      writeUnsignedShort((int)(uint & 0xffff), buffer, offset);
-      
-      // write the most significant short
-      writeUnsignedShort((int)((uint >> 16) & 0xffff), buffer, offset + 2);
-   }   
    
    /**
     * Tries to convert this trailer from an array of bytes.
@@ -229,10 +73,10 @@ public class GzipTrailer
                buffer, offset, length);
             
             // read CRC-32 value as an unsigned int
-            setCrc32Value(readUnsignedInt(bais));
+            setCrc32Value(UnsignedBinaryIO.readUnsignedInt(bais));
             
             // read the ISIZE as an unsigned int
-            setISize(readUnsignedInt(bais));
+            setISize(UnsignedBinaryIO.readUnsignedInt(bais));
             
             // close the byte array input stream
             bais.close();
@@ -259,10 +103,10 @@ public class GzipTrailer
       byte[] rval = new byte[8];
       
       // write the CRC-32 value
-      writeUnsignedInt(getCrc32Value(), rval, 0);
+      UnsignedBinaryIO.writeUnsignedInt(getCrc32Value(), rval, 0);
       
       // write the ISIZE
-      writeUnsignedInt(getISize(), rval, 4);
+      UnsignedBinaryIO.writeUnsignedInt(getISize(), rval, 4);
       
       return rval;
    }
