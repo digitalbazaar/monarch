@@ -60,7 +60,7 @@ public class RiffListHeader
     */
    public RiffListHeader(String id, int size)
    {
-      mChunkHeader = new RiffChunkHeader("LIST", size);
+      mChunkHeader = new RiffChunkHeader("LIST", size + 4);
       
       if(id == null || id.length() != 4)
       {
@@ -183,23 +183,43 @@ public class RiffListHeader
    }
    
    /**
-    * Sets the list size.
+    * Sets the chunk size. The chunk size includes the FOURCC for the list.
     *
-    * @param size the size of the Riff list. 
+    * @param size the chunk size of the Riff list. 
     */
-   public void setListSize(long size)
+   public void setChunkSize(long size)
    {
       mChunkHeader.setChunkSize(size);
    }
    
    /**
-    * Gets the list size.
+    * Gets the chunk size. The chunk size includes the FOURCC for the list.
+    * 
+    * @return the chunk size of the Riff list.
+    */
+   public long getChunkSize()
+   {
+      return mChunkHeader.getChunkSize();
+   }   
+   
+   /**
+    * Sets the list size. The list size excludes the FOURCC for the list.
+    *
+    * @param size the size of the Riff list. 
+    */
+   public void setListSize(long size)
+   {
+      mChunkHeader.setChunkSize(size + 4);
+   }
+   
+   /**
+    * Gets the list size. The list size excludes the FOURCC for the list.
     * 
     * @return the size of the Riff list.
     */
    public long getListSize()
    {
-      return mChunkHeader.getChunkSize();
+      return mChunkHeader.getChunkSize() - 4;
    }
    
    /**

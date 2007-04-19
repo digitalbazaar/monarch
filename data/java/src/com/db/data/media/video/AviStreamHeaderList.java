@@ -135,21 +135,19 @@ public class AviStreamHeaderList
                // convert format
                if(mStreamFormat.convertFromBytes(b, offset, length))
                {
+                  // header list converted, 'strd' is not used
+                  rval = true;
+                  
                   // step forward past format
                   offset += mStreamFormat.getSize();
                   length -= mStreamFormat.getSize();
                   
-                  // look for stream data
+                  // look for stream data anyway
                   mStreamData = new AviStreamData();
                   if(length > 0)
                   {
                      // convert stream data
-                     rval = mStreamData.convertFromBytes(b, offset, length);
-                  }
-                  else
-                  {
-                     // no stream data present
-                     rval = true;
+                     mStreamData.convertFromBytes(b, offset, length);
                   }
                }
             }
@@ -175,7 +173,7 @@ public class AviStreamHeaderList
     * 
     * @return the size of this AviStreamHeaderList chunk.
     */
-   public int getChunkSize()
+   public int getListSize()
    {
       // AVI stream header list is expected to be much smaller than 32-bits
       return (int)mRiffHeader.getListSize();
@@ -188,6 +186,6 @@ public class AviStreamHeaderList
     */
    public int getSize()
    {
-      return getChunkSize() + RiffListHeader.LIST_HEADER_SIZE;
+      return getListSize() + RiffListHeader.LIST_HEADER_SIZE;
    }
 }

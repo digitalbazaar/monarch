@@ -94,7 +94,7 @@ public class AviStreamData
          // make sure length has enough data for the chunk
          if(length >= getSize())
          {
-            mData = new byte[getSize()];
+            mData = new byte[getChunkSize()];
             System.arraycopy(b, offset + RiffChunkHeader.CHUNK_HEADER_SIZE,
                mData, 0, getChunkSize());
             

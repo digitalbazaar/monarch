@@ -136,19 +136,21 @@ public class AviHeaderList
                   if(list.convertFromBytes(b, offset, length))
                   {
                      mStreamHeaderLists.add(list);
+                     
+                     // move to next stream header list
+                     offset += list.getSize();
+                     length -= list.getSize();
                   }
                   else
                   {
                      // invalid stream header list
                      getLogger().error(getClass(),
-                        "Invalid stream header list 'strl' detected at " +
+                        "Invalid stream header list detected at " +
                         "offset " + offset);
+                     
+                     // break
                      break;
                   }
-                  
-                  // move to next stream header list
-                  offset += list.getSize();
-                  length -= list.getSize();
                }
             }
          }
@@ -173,9 +175,20 @@ public class AviHeaderList
     * 
     * @return the size of this AviHeaderList.
     */
-   public long getSize()
+   public int getSize()
    {
-      return mRiffHeader.getListSize() + RiffListHeader.LIST_HEADER_SIZE;
+      // AVI header list is expected to be under 32-bits
+      return (int)mRiffHeader.getListSize() + RiffListHeader.LIST_HEADER_SIZE;
+   }
+   
+   /**
+    * Gets the main AviHeader.
+    * 
+    * @return the main AviHeader.
+    */
+   public AviHeader getMainHeader()
+   {
+      return mMainHeader;
    }
    
    /**
