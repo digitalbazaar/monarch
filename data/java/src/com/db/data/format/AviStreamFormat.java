@@ -56,6 +56,9 @@ public class AviStreamFormat
    {
       // create RIFF header
       mRiffHeader = new RiffChunkHeader("strf");
+      
+      // create empty data
+      mData = new byte[0];
    }
    
    /**
@@ -71,9 +74,43 @@ public class AviStreamFormat
       // write RIFF header
       mRiffHeader.writeTo(os);
       
-      // write stream data
+      // write data
       os.write(mData);
-   }   
+   }
+   
+   /**
+    * Converts this AviStreamFormat from a byte array.
+    * 
+    * @param b the byte array to convert from.
+    * @param offset the offset to start converting from.
+    * @param length the number of valid bytes in the buffer following the
+    *               offset.
+    * 
+    * @return true if successful, false if not.
+    */
+   public boolean convertFromBytes(byte[] b, int offset, int length)
+   {
+      boolean rval = false;
+      
+      // convert the RIFF header
+      if(mRiffHeader.convertFromBytes(b, offset, length) && isValid())
+      {
+         // make sure length has enough data for the chunk
+         if(length >= getSize())
+         {
+            // FIXME: use WaveFormatEx or BitMapInfo
+            
+            mData = new byte[getSize()];
+            System.arraycopy(b, offset + RiffChunkHeader.CHUNK_HEADER_SIZE,
+               mData, 0, getChunkSize());
+            
+            // converted successfully
+            rval = true;
+         }
+      }
+      
+      return rval;
+   }
    
    /**
     * Returns whether or not this AviStreamFormat is valid.
@@ -82,16 +119,28 @@ public class AviStreamFormat
     */
    public boolean isValid()
    {
-      return mRiffHeader.isValid();
+      return mRiffHeader.isValid() &&
+         mRiffHeader.getIdentifier().equals("strf");
    }
    
    /**
-    * Gets the size of this AviStreamFormat, not including its chunk header.
+    * Gets the size of this AviStreamFormat, excluding its chunk header.
+    * 
+    * @return the size of this AviStreamFormat chunk.
+    */
+   public int getChunkSize()
+   {
+      // AVI stream formats are smaller than 32-bits
+      return (int)mRiffHeader.getChunkSize();
+   }
+   
+   /**
+    * Gets the size of this AviStreamFormat, including its chunk header.
     * 
     * @return the size of this AviStreamFormat.
     */
-   public long getSize()
+   public int getSize()
    {
-      return mRiffHeader.getChunkSize();
+      return getChunkSize() + RiffChunkHeader.CHUNK_HEADER_SIZE;
    }
 }

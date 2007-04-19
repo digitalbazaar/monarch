@@ -47,7 +47,7 @@ public class RiffChunkHeader
     */
    public RiffChunkHeader()
    {
-      this(null, CHUNK_HEADER_SIZE);
+      this(null, 0);
    }
    
    /**
@@ -57,7 +57,7 @@ public class RiffChunkHeader
     */
    public RiffChunkHeader(String id)   
    {
-      this(id, CHUNK_HEADER_SIZE);
+      this(id, 0);
    }
    
    /**

@@ -50,6 +50,9 @@ public class AviStreamData
    {
       // create RIFF header
       mRiffHeader = new RiffChunkHeader("strd");
+      
+      // create empty data
+      mData = new byte[0];
    }
    
    /**
@@ -65,9 +68,41 @@ public class AviStreamData
       // write RIFF header
       mRiffHeader.writeTo(os);
       
-      // write stream data
+      // write data
       os.write(mData);
-   }   
+   }
+   
+   /**
+    * Converts this AviHeader from a byte array.
+    * 
+    * @param b the byte array to convert from.
+    * @param offset the offset to start converting from.
+    * @param length the number of valid bytes in the buffer following the
+    *               offset.
+    * 
+    * @return true if successful, false if not.
+    */
+   public boolean convertFromBytes(byte[] b, int offset, int length)
+   {
+      boolean rval = false;
+      
+      // convert the RIFF header
+      if(mRiffHeader.convertFromBytes(b, offset, length) && isValid())
+      {
+         // make sure length has enough data for the chunk
+         if(length >= getSize())
+         {
+            mData = new byte[getSize()];
+            System.arraycopy(b, offset + RiffChunkHeader.CHUNK_HEADER_SIZE,
+               mData, 0, getChunkSize());
+            
+            // converted successfully
+            rval = true;
+         }
+      }
+      
+      return rval;
+   }
    
    /**
     * Returns whether or not this AviStreamData is valid.
@@ -76,16 +111,28 @@ public class AviStreamData
     */
    public boolean isValid()
    {
-      return mRiffHeader.isValid();
+      return mRiffHeader.isValid() &&
+         mRiffHeader.getIdentifier().equals("strd");
    }
    
    /**
-    * Gets the size of this AviStreamData, not including its chunk header.
+    * Gets the size of this AviStreamData, excluding its chunk header.
+    * 
+    * @return the size of this AviStreamData chunk.
+    */
+   public int getChunkSize()
+   {
+      // AVI stream data is expected to be much smaller than 32-bits
+      return (int)mRiffHeader.getChunkSize();
+   }
+   
+   /**
+    * Gets the size of this AviStreamData, including its chunk header.
     * 
     * @return the size of this AviStreamData.
     */
-   public long getSize()
+   public int getSize()
    {
-      return mRiffHeader.getChunkSize();
+      return getChunkSize() + RiffChunkHeader.CHUNK_HEADER_SIZE;
    }
 }

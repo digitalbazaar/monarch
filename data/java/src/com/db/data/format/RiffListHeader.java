@@ -39,7 +39,7 @@ public class RiffListHeader
     */
    public RiffListHeader()
    {
-      this(null, LIST_HEADER_SIZE);
+      this(null, 0);
    }
    
    /**
@@ -49,7 +49,7 @@ public class RiffListHeader
     */
    public RiffListHeader(String id)
    {
-      this(id, LIST_HEADER_SIZE);
+      this(id, 0);
    }   
    
    /**

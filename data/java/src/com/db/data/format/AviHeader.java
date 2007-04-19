@@ -38,7 +38,7 @@ import java.io.OutputStream;
  * DWORD padding granularity
  * DWORD flags
  * DWORD total frames
- * DWORD initial frames
+ * DWORD initial frames (how far in front audio data is of video data)*
  * DWORD streams - 2 for video+audio streams
  * DWORD suggested buffer size - large enough to contain largest chunk
  * DWORD width - in pixels
@@ -50,18 +50,25 @@ import java.io.OutputStream;
  * 
  * The flags for the AVI Header 'avih':
  * 
- * AVIF_HASINDEX - indicates whether or not the AVI has an Index Chunk
+ * AVIF_HASINDEX (bit 4) - indicates whether or not the AVI has an Index Chunk
  * 
- * AVIF_MUSTUSEINDEX - indicates whether or not the index should determine
- * the order of the data
+ * AVIF_MUSTUSEINDEX (bit 5) - indicates whether or not the index should
+ * determine the order of the data
  * 
- * AVIF_ISINTERLEAVED - indicates whether or not the file is interleaved
+ * AVIF_ISINTERLEAVED (bit 8) - indicates whether or not the file is
+ * interleaved
  * 
- * AVIF_WASCAPTUREFILE - indicates whether or not the file is used for
+ * AVIF_WASCAPTUREFILE (bit 16) - indicates whether or not the file is used for
  * capturing real-time video
  * 
- * AVIF_COPYRIGHTED - indicates whether or not the file contains copyrighted
- * data
+ * AVIF_COPYRIGHTED (bit 17) - indicates whether or not the file contains
+ * copyrighted data
+ * 
+ * *Note: The initial frames data member specifies the number of frames
+ * the audio data is ahead of the video data. Typically, audio data should
+ * be moved forward enough frames to allow 0.75 seconds of audio data to
+ * be preloaded before the video data is loaded. This is only for interleaved
+ * files -- this should be ZERO for non-interleaved files.
  * 
  * @author Dave Longley
  */
@@ -111,7 +118,7 @@ public class AviHeader
       mRiffHeader = new RiffChunkHeader("avih");
       
       // create data for this empty header
-      mData = new byte[0];
+      mData = new byte[56];
    }
    
    /**
@@ -172,14 +179,12 @@ public class AviHeader
       if(mRiffHeader.convertFromBytes(b, offset, length) &&
          mRiffHeader.getIdentifier().equals("avih"))
       {
-         // step forward past RIFF header
-         offset += RiffChunkHeader.CHUNK_HEADER_SIZE;
-         length -= RiffChunkHeader.CHUNK_HEADER_SIZE;
-         
-         // make sure there is enough data to convert the header
-         if(length >= mRiffHeader.getChunkSize() &&
-            mRiffHeader.getChunkSize() == 56)
+         // make sure length has enough data for the chunk
+         if(length >= getSize() && getSize() == 64)
          {
+            System.arraycopy(b, offset + RiffChunkHeader.CHUNK_HEADER_SIZE,
+               mData, 0, getSize() - RiffChunkHeader.CHUNK_HEADER_SIZE);
+            
             // converted successfully
             rval = true;
          }
@@ -195,18 +200,29 @@ public class AviHeader
     */
    public boolean isValid()
    {
-      return mRiffHeader.isValid();
+      return mRiffHeader.isValid() &&
+         mRiffHeader.getIdentifier().equals("avih");
    }
    
    /**
-    * Gets the size of this AviHeader, not including its chunk header.
+    * Gets the size of this AviHeader, excluding its chunk header.
+    * 
+    * @return the size of this AviHeader chunk.
+    */
+   public int getChunkSize()
+   {
+      // AVI header chunk size is 56 bytes      
+      return (int)mRiffHeader.getChunkSize();
+   }
+   
+   /**
+    * Gets the size of this AviHeader including its chunk header.
     * 
     * @return the size of this AviHeader.
     */
    public int getSize()
    {
-      // AVI header size is smaller than 32-bits
-      return (int)mRiffHeader.getChunkSize();
+      return getChunkSize() + RiffChunkHeader.CHUNK_HEADER_SIZE;
    }
    
    /**

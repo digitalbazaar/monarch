@@ -64,12 +64,10 @@ public class AviStreamHeaderList
       // create RIFF header
       mRiffHeader = new RiffListHeader("strl");
       
-      // create stream header and format
+      // create stream header, format, and data
       mStreamHeader = new AviStreamHeader();
       mStreamFormat = new AviStreamFormat();
-      
-      // no stream data by default
-      mStreamData = null;
+      mStreamData = new AviStreamData();
    }
    
    /**
@@ -92,7 +90,7 @@ public class AviStreamHeaderList
       mStreamFormat.writeTo(os);
       
       // write stream data, if present
-      if(mStreamData != null)
+      if(mStreamData.getChunkSize() > 0)
       {
          mStreamData.writeTo(os);
       }
@@ -116,20 +114,43 @@ public class AviStreamHeaderList
       if(mRiffHeader.convertFromBytes(b, offset, length) &&
          mRiffHeader.getIdentifier().equals("strl"))
       {
-         // step forward past RIFF header
-         offset += RiffListHeader.LIST_HEADER_SIZE;
-         length -= RiffListHeader.LIST_HEADER_SIZE;
-         
          // make sure there is enough data to convert the header
-         if(length >= mRiffHeader.getListSize())
+         if(length >= getSize())
          {
-            // convert AviStreamHeaders:
+            // step forward past RIFF header
+            offset += RiffListHeader.LIST_HEADER_SIZE;
             
-            // FIXME:
+            // set length to list size
+            length = (int)mRiffHeader.getListSize();
             
-            
-            // converted successfully
-            rval = true;
+            // convert header
+            if(mStreamHeader.convertFromBytes(b, offset, length))
+            {
+               // step forward past header
+               offset += mStreamHeader.getSize();
+               length -= mStreamHeader.getSize();
+               
+               // convert format
+               if(mStreamFormat.convertFromBytes(b, offset, length))
+               {
+                  // step forward past format
+                  offset += mStreamFormat.getSize();
+                  length -= mStreamFormat.getSize();
+                  
+                  // look for stream data
+                  mStreamData = new AviStreamData();
+                  if(length > 0)
+                  {
+                     // convert stream data
+                     rval = mStreamData.convertFromBytes(b, offset, length);
+                  }
+                  else
+                  {
+                     // no stream data present
+                     rval = true;
+                  }
+               }
+            }
          }
       }
       
@@ -143,16 +164,28 @@ public class AviStreamHeaderList
     */
    public boolean isValid()
    {
-      return mRiffHeader.isValid();
+      return mRiffHeader.isValid() &&
+         mRiffHeader.getIdentifier().equals("strl");
    }
    
    /**
-    * Gets the size of this AviStreamHeaderList, not including its chunk header.
+    * Gets the size of this AviStreamHeaderList, excluding its chunk header.
+    * 
+    * @return the size of this AviStreamHeaderList chunk.
+    */
+   public int getChunkSize()
+   {
+      // AVI stream header list is expected to be much smaller than 32-bits
+      return (int)mRiffHeader.getListSize();
+   }
+   
+   /**
+    * Gets the size of this AviStreamHeaderList, including its chunk header.
     * 
     * @return the size of this AviStreamHeaderList.
     */
-   public long getSize()
+   public int getSize()
    {
-      return mRiffHeader.getListSize();
+      return getChunkSize() + RiffListHeader.LIST_HEADER_SIZE;
    }
 }

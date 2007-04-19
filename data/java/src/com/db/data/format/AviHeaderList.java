@@ -116,45 +116,39 @@ public class AviHeaderList
          // ensure there is enough data remaining to convert the header list
          if(length >= mRiffHeader.getListSize())
          {
+            // set length to size of list
+            length = (int)mRiffHeader.getListSize();
+            
+            // convert main header
             if(mMainHeader.convertFromBytes(b, offset, length))
             {
                // main header converted
                rval = true;
                
+               // move past header
+               offset += mMainHeader.getSize();
+               length -= mMainHeader.getSize();
+               
                // convert all stream header lists
-               if(mMainHeader.getSize() > 0)
+               while(length > 0)
                {
-                  // determine the number of bytes remaining in the overall
-                  // AviHeaderList
-                  long bytesRemaining =
-                     mRiffHeader.getListSize() - mMainHeader.getSize() -
-                     RiffChunkHeader.CHUNK_HEADER_SIZE;
-                  
-                  // step forward past main AVI header
-                  offset += RiffChunkHeader.CHUNK_HEADER_SIZE;
-                  length -= RiffChunkHeader.CHUNK_HEADER_SIZE;
-                  
-                  while(bytesRemaining > 0)
+                  AviStreamHeaderList list = new AviStreamHeaderList();
+                  if(list.convertFromBytes(b, offset, length))
                   {
-                     AviStreamHeaderList list = new AviStreamHeaderList();
-                     if(list.convertFromBytes(b, offset, length))
-                     {
-                        mStreamHeaderLists.add(list);
-                     }
-                     else
-                     {
-                        // invalid stream header list
-                        getLogger().error(getClass(),
-                           "Invalid stream header list 'strl' detected at " +
-                           "offset " + offset);
-                        break;
-                     }
-                     
-                     offset += RiffListHeader.LIST_HEADER_SIZE;
-                     length -= RiffListHeader.LIST_HEADER_SIZE;
-                     bytesRemaining -=
-                        (RiffListHeader.LIST_HEADER_SIZE + list.getSize());
+                     mStreamHeaderLists.add(list);
                   }
+                  else
+                  {
+                     // invalid stream header list
+                     getLogger().error(getClass(),
+                        "Invalid stream header list 'strl' detected at " +
+                        "offset " + offset);
+                     break;
+                  }
+                  
+                  // move to next stream header list
+                  offset += list.getSize();
+                  length -= list.getSize();
                }
             }
          }
@@ -170,17 +164,18 @@ public class AviHeaderList
     */
    public boolean isValid()
    {
-      return mRiffHeader.isValid() && mMainHeader.isValid();
+      return mRiffHeader.isValid() &&
+         mRiffHeader.getIdentifier().equals("hdrl") && mMainHeader.isValid();
    }
    
    /**
-    * Gets the size of this AviHeaderList, not including its RIFF header.
+    * Gets the size of this AviHeaderList, including its RIFF header.
     * 
     * @return the size of this AviHeaderList.
     */
    public long getSize()
    {
-      return mRiffHeader.getListSize();
+      return mRiffHeader.getListSize() + RiffListHeader.LIST_HEADER_SIZE;
    }
    
    /**
