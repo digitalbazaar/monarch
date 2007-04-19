@@ -436,7 +436,14 @@ public class AviHeader
     */
    public double getFrameRate()
    {
-      return (double)getDataRate() / getTimeScale();
+      double rval = 0.0;
+      
+      if(getTimeScale() != 0)
+      {
+         rval = (double)getDataRate() / getTimeScale();
+      }
+      
+      return rval;
    }
    
    /**
@@ -457,5 +464,35 @@ public class AviHeader
    public long getVideoLength()
    {
       return readDWord(52);
+   }
+   
+   /**
+    * Gets the time as calculated from microseconds/frame * total frames.
+    * 
+    * @return the time as calculated from microseconds/frame * total frames.
+    */
+   public long getTotalTime()
+   {
+      return getMicrosecondsPerFrame() * getTotalFrames();
+   }
+   
+   /**
+    * Gets the time, in seconds, as calculated from microseconds/frame * total
+    * frames.
+    * 
+    * @return the time, in seconds, as calculated from microseconds/frame *
+    *         total frames.
+    */
+   public double getTotalSeconds()
+   {
+      double rval = 0.0;
+      
+      if(getTotalFrames() != 0)
+      {
+         rval = getMicrosecondsPerFrame() / 1000000D;
+         rval *= getTotalFrames();
+      }
+      
+      return rval;
    }
 }
