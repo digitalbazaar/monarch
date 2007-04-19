@@ -74,8 +74,9 @@ public class BitMapInfo
       if(mHeader.convertFromBytes(b, offset, length))
       {
          // make sure length has enough data
-         if(length >= mHeader.getSize())
+         if(length >= mHeader.getBitMapInfoSize())
          {
+            mData = new byte[mHeader.getBitMapInfoSize()];
             System.arraycopy(b, offset, mData, 0, getSize());
             
             // converted successfully

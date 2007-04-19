@@ -6,6 +6,8 @@ package com.db.data.media.video;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.db.data.UnsignedBinaryIO;
+
 /**
  * A BITMAPINFOHEADER structure.
  * 
@@ -42,6 +44,30 @@ public class BitMapInfoHeader
       // create data
       mData = new byte[56];
    }
+   
+   /**
+    * Reads a DWORD from the internal data and discards an IO error.
+    *
+    * @param offset the offset to read from.
+    * 
+    * @return the read DWORD.
+    */
+   protected long readDWord(int offset)
+   {
+      long rval = 0;
+      
+      try
+      {
+         rval = UnsignedBinaryIO.readUnsignedInt(
+            mData, offset, mData.length - offset);
+      }
+      catch(IOException ignore)
+      {
+         // bad header
+      }
+      
+      return rval;
+   }   
    
    /**
     * Writes this BitMapInfoHeader to an OutputStream.
@@ -90,5 +116,15 @@ public class BitMapInfoHeader
    public int getSize()
    {
       return mData.length;
+   }   
+   
+   /**
+    * Gets the size of the BitMapInfo.
+    * 
+    * @return the size of the BitMapInfo.
+    */
+   public int getBitMapInfoSize()
+   {
+      return (int)readDWord(0);
    }
 }

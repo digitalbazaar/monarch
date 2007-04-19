@@ -100,8 +100,6 @@ public class AviStreamFormat
          // make sure length has enough data for the chunk
          if(length >= getSize())
          {
-            // FIXME: use WaveFormatEx or BitMapInfo
-            
             mData = new byte[getSize()];
             System.arraycopy(b, offset + RiffChunkHeader.CHUNK_HEADER_SIZE,
                mData, 0, getChunkSize());
@@ -144,5 +142,16 @@ public class AviStreamFormat
    public int getSize()
    {
       return getChunkSize() + RiffChunkHeader.CHUNK_HEADER_SIZE;
+   }
+   
+   /**
+    * Gets the data in this stream format. This data can be parsed into a
+    * BitMapInfo or WaveFormatEx structure.
+    * 
+    * @return the data in this stream format.
+    */
+   public byte[] getData()
+   {
+      return mData;
    }
 }
