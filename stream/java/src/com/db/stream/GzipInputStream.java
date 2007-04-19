@@ -10,8 +10,8 @@ import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.Deflater;
 
-import com.db.data.format.GzipHeader;
-import com.db.data.format.GzipTrailer;
+import com.db.data.compression.GzipHeader;
+import com.db.data.compression.GzipTrailer;
 
 /**
  * A GzipInputStream reads uncompressed data and gzips it.

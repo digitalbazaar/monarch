@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2004-2007 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.data.format;
+package com.db.data.media.audio;
 
 /**
  * An Id3Tag Frame.

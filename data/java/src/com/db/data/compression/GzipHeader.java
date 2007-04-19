@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.data.format;
+package com.db.data.compression;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.Deflater;
+
+import com.db.data.UnsignedBinaryIO;
 
 /**
  * An GZipHeader is a header for gzip-formatted data. This is the header

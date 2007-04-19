@@ -9,8 +9,8 @@ import java.util.zip.CRC32;
 import java.util.zip.CheckedOutputStream;
 import java.util.zip.Inflater;
 
-import com.db.data.format.GzipHeader;
-import com.db.data.format.GzipTrailer;
+import com.db.data.compression.GzipHeader;
+import com.db.data.compression.GzipTrailer;
 
 /**
  * An UnGzipOutputStream un-gzips data and writes it to an output stream.

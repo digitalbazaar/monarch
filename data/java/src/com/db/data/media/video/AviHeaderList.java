@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.data.format;
+package com.db.data.media.video;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Vector;
 
-import com.db.data.format.RiffListHeader;
+import com.db.data.media.RiffListHeader;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.data.format;
+package com.db.data.media.video;
 
 import java.io.IOException;
 import java.io.OutputStream;

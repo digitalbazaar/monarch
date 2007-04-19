@@ -1,10 +1,12 @@
 /*
  * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.data.format;
+package com.db.data.compression;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+
+import com.db.data.UnsignedBinaryIO;
 
 /**
  * An GzipTrailer is a trailer for gzip-formatted data. This is the trailer

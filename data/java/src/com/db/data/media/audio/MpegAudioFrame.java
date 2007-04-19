@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.data.format;
+package com.db.data.media.audio;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

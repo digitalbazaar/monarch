@@ -1,10 +1,13 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.data.format;
+package com.db.data.media.video;
 
 import java.io.IOException;
 import java.io.OutputStream;
+
+import com.db.data.UnsignedBinaryIO;
+import com.db.data.media.RiffChunkHeader;
 
 /**
  * An AVI main header ('avih').

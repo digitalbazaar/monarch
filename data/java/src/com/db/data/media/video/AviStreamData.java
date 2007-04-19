@@ -1,13 +1,15 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.data.format;
+package com.db.data.media.video;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.db.data.media.RiffChunkHeader;
+
 /**
- * An AVI Stream Header ('strh').
+ * An AVI Stream Data ('strd').
  * 
  * AVI Format is as follows:
  * 
@@ -29,48 +31,12 @@ import java.io.OutputStream;
  *    Index Chunk ('idx1' size data)
  *       Index Entry ({'00db','00dc','01wb',...})
  * 
- * -----------------------------------------------------------------
- * In a Stream Header 'strh'
- * (FOURCC means a four-character code, 4 bytes each)
- * (a DWORD is 4 bytes)
- * (10 DWORDS = 40 bytes + 2 FOURCC (8 bytes) + 8 bytes = 56 bytes):
- * -----------------------------------------------------------------
- * FOURCC type - 'vids' video, 'auds' audio, 'txts' text, 'mids' MIDI
- * FOURCC handler - the installable compressor or decompressor for the data
- * DWORD flags
- * DWORD reserved (WORD Priority, WORD Language)
- * DWORD initial frames (how far audio data is ahead of video data)
- * DWORD scale*
- * DWORD rate
- * DWORD start
- * DWORD length
- * DWORD suggested buffer size
- * DWORD quality
- * DWORD sample size
- * 4 shorts (8 bytes) for a rectangular frame (left, top, right, bottom),
- * units are in pixels and relative to the upper-left corner of the entire
- * movie rectangle.
- * 
- * The flags for the Stream Header:
- * 
- * AVISF_DISABLED - whether or not the data should only be rendered when
- * explicitly enabled by the user
- * 
- * AVISF_VIDEO_PALCHANGES - whether or not palette changes are embedded
- * in the file (chunks tagged like '00pc')
- * 
- * *Note: Dividing the rate by the scale gives the number of samples per
- * second. This is the frame rate for video streams. For audio streams,
- * this rate corresponds to the time required to play "nBlockAlign" bytes of
- * audio. "nBlockAlign" is a data member of the WAVEFORMATEX structure
- * that describes audio.
- * 
  * @author Dave Longley
  */
-public class AviStreamHeader
+public class AviStreamData
 {
    /**
-    * The AVI stream header RIFF header.
+    * The AVI stream data RIFF header.
     */
    protected RiffChunkHeader mRiffHeader;
    
@@ -80,19 +46,19 @@ public class AviStreamHeader
    protected byte[] mData;
    
    /**
-    * Constructs a new AviStreamHeader.
+    * Constructs a new AviStreamData.
     */
-   public AviStreamHeader()
+   public AviStreamData()
    {
       // create RIFF header
-      mRiffHeader = new RiffChunkHeader("strh");
+      mRiffHeader = new RiffChunkHeader("strd");
       
-      // create data
-      mData = new byte[56];
+      // create empty data
+      mData = new byte[0];
    }
    
    /**
-    * Writes this AviStreamHeader, including the RIFF header, to an
+    * Writes this AviStreamData, including the RIFF header, to an
     * OutputStream.
     * 
     * @param os the OutputStream to write to.
@@ -109,7 +75,7 @@ public class AviStreamHeader
    }
    
    /**
-    * Converts this AviStreamHeader from a byte array.
+    * Converts this AviHeader from a byte array.
     * 
     * @param b the byte array to convert from.
     * @param offset the offset to start converting from.
@@ -126,8 +92,9 @@ public class AviStreamHeader
       if(mRiffHeader.convertFromBytes(b, offset, length) && isValid())
       {
          // make sure length has enough data for the chunk
-         if(length >= getSize() && getSize() == 64)
+         if(length >= getSize())
          {
+            mData = new byte[getSize()];
             System.arraycopy(b, offset + RiffChunkHeader.CHUNK_HEADER_SIZE,
                mData, 0, getChunkSize());
             
@@ -140,31 +107,31 @@ public class AviStreamHeader
    }
    
    /**
-    * Returns whether or not this AviStreamHeader is valid.
+    * Returns whether or not this AviStreamData is valid.
     * 
     * @return true if valid, false if not.
     */
    public boolean isValid()
    {
       return mRiffHeader.isValid() &&
-         mRiffHeader.getIdentifier().equals("strh");
+         mRiffHeader.getIdentifier().equals("strd");
    }
    
    /**
-    * Gets the size of this AviStreamHeader, excluding its chunk header.
+    * Gets the size of this AviStreamData, excluding its chunk header.
     * 
-    * @return the size of this AviStreamHeader chunk.
+    * @return the size of this AviStreamData chunk.
     */
    public int getChunkSize()
    {
-      // AVI stream header size is 56 bytes
+      // AVI stream data is expected to be much smaller than 32-bits
       return (int)mRiffHeader.getChunkSize();
    }
    
    /**
-    * Gets the size of this AviStreamHeader, including its chunk header.
+    * Gets the size of this AviStreamData, including its chunk header.
     * 
-    * @return the size of this AviStreamHeader.
+    * @return the size of this AviStreamData.
     */
    public int getSize()
    {

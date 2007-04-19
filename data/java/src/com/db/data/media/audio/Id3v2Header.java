@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2003-2007 Digital Bazaar, Inc.  All rights reserved.
  */
-package com.db.data.format;
+package com.db.data.media.audio;
 
 /**
  * An Id3v2 header. The currently supported version.revision is 3.0.
