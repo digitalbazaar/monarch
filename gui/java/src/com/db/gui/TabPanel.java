@@ -537,7 +537,19 @@ public class TabPanel extends JPanel
     */
    protected Color getSelectedColor()
    {
-      return getContentAreaColor();
+      Color rval = null;
+      
+      if(!UIManager.getLookAndFeel().isNativeLookAndFeel())
+      {
+         rval = UIManager.getColor("TabbedPane.selected");
+      }
+      
+      if(rval == null)
+      {
+         rval = getContentAreaColor();
+      }
+      
+      return rval;
    }
    
    /**
@@ -724,14 +736,14 @@ public class TabPanel extends JPanel
    protected void setupTabContentPanel()
    {
       mTabContentPanel = new JPanel();
-      mTabContentPanel.setBackground(getSelectedColor());
+      mTabContentPanel.setBackground(getContentAreaColor());
       
       CardLayout cl = new CardLayout();
       mTabContentPanel.setLayout(cl);
 
       // create no selection content
       mNoSelectionContent = new JPanel();
-      mNoSelectionContent.setBackground(getSelectedColor());
+      mNoSelectionContent.setBackground(getContentAreaColor());
       
       // create a parent container to put the content component in
       Container parent = createTabContentParent(mNoSelectionContent);
@@ -3135,7 +3147,7 @@ public class TabPanel extends JPanel
          g.drawLine(left + 1, top, left + 1, bottom);
          
          // left selected
-         g.setColor(getSelectedColor());
+         g.setColor(getContentAreaColor());
          g.drawLine(left + 2, top, left + 2, bottom);
          
          // upper top
@@ -3177,7 +3189,7 @@ public class TabPanel extends JPanel
          }
          
          // lower top
-         g.setColor(getSelectedColor());
+         g.setColor(getContentAreaColor());
          g.drawLine(left + 2, top + 2, right - 4, top + 2);
          g.drawLine(left + 2, top + 3, right - 4, top + 3);
          
@@ -3185,7 +3197,7 @@ public class TabPanel extends JPanel
          g.drawLine(left + 2, top + 4, right - 4, top + 4);
          
          // right selected
-         g.setColor(getSelectedColor());
+         g.setColor(getContentAreaColor());
          g.drawLine(right - 2, top + 1, right - 2, bottom - 1);
 
          // right shadow
@@ -3197,7 +3209,7 @@ public class TabPanel extends JPanel
          g.drawLine(right, top + 1, right, bottom);
          
          // bottom selected
-         g.setColor(getSelectedColor());
+         g.setColor(getContentAreaColor());
          g.drawLine(left + 2, bottom - 2, right - 2, bottom - 2);
          
          // bottom shadow
