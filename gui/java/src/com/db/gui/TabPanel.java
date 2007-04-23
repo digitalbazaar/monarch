@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.gui;
 
@@ -311,14 +311,8 @@ public class TabPanel extends JPanel
       // set tab content insets
       mTabContentInsets = new Insets(4, 3, 3, 3);
       
-      // set the background color (90% of unselected color -- darker)
-      double factor = 0.9;
-      Color background = new Color(
-         Math.max((int)(getUnselectedColor().getRed() * factor), 0), 
-         Math.max((int)(getUnselectedColor().getGreen() * factor), 0),
-         Math.max((int)(getUnselectedColor().getBlue() * factor), 0),
-         getUnselectedColor().getAlpha());      
-      setBackground(background);
+      // set the main background color
+      setBackground(getMainBackgroundColor());
       
       // make double buffered
       setDoubleBuffered(true);
@@ -553,8 +547,14 @@ public class TabPanel extends JPanel
     */
    protected Color getFlashingColor()
    {
-      return getFocusColor();
-   }   
+      Color rval = UIManager.getColor("TabbedPane.flash");
+      if(rval == null)
+      {
+         rval = getFocusColor();
+      }
+      
+      return rval;
+   }
    
    /**
     * Gets the default flash interval (in milliseconds).
@@ -573,15 +573,19 @@ public class TabPanel extends JPanel
     */
    protected Color getUnselectedColor()
    {
-      Color c = getSelectedColor();
-      double scale = 0.9;
-      int r = Math.min(255, (int)Math.round(c.getRed() * scale));
-      int g = Math.min(255, (int)Math.round(c.getGreen() * scale));
-      int b = Math.min(255, (int)Math.round(c.getBlue() * scale));
+      Color rval = UIManager.getColor("TabbedPane.unselected");
+      if(rval == null)
+      {
+         rval = getSelectedColor();
+         double scale = 0.9;
+         int r = Math.min(255, (int)Math.round(rval.getRed() * scale));
+         int g = Math.min(255, (int)Math.round(rval.getGreen() * scale));
+         int b = Math.min(255, (int)Math.round(rval.getBlue() * scale));
+         
+         rval = new Color(r, g, b);
+      }
       
-      c = new Color(r, g, b);
-
-      return c;
+      return rval;
    }
    
    /**
@@ -591,17 +595,42 @@ public class TabPanel extends JPanel
     */
    protected Color getUnselectedHighlightColor()
    {
-      Color c = getUnselectedColor();
-      double scale = 1.05;
-      int r = Math.min(255, (int)Math.round(c.getRed() * scale));
-      int g = Math.min(255, (int)Math.round(c.getGreen() * scale));
-      int b = Math.min(255, (int)Math.round(c.getBlue() * scale));
+      Color rval = UIManager.getColor("TabbedPane.unselectedHighlight");
+      if(rval == null)
+      {
+         rval = getUnselectedColor();
+         double scale = 1.05;
+         int r = Math.min(255, (int)Math.round(rval.getRed() * scale));
+         int g = Math.min(255, (int)Math.round(rval.getGreen() * scale));
+         int b = Math.min(255, (int)Math.round(rval.getBlue() * scale));
+         
+         rval = new Color(r, g, b);
+      }
       
-      c = new Color(r, g, b);
-       
-      return c;
+      return rval;
    }
-
+   
+   /**
+    * Gets the main background color for the main panel.
+    * 
+    * @return the main background color for the main panel.
+    */
+   protected Color getMainBackgroundColor()
+   {
+      Color rval = UIManager.getColor("TabbedPane.mainBackground");
+      if(rval == null)
+      {
+         double factor = 0.9;
+         rval = new Color(
+            Math.max((int)(getUnselectedColor().getRed() * factor), 0), 
+            Math.max((int)(getUnselectedColor().getGreen() * factor), 0),
+            Math.max((int)(getUnselectedColor().getBlue() * factor), 0),
+            getUnselectedColor().getAlpha());
+      }
+      
+      return rval;
+   }
+   
    /**
     * Ensures that this tab panel is valid.
     */
@@ -1808,9 +1837,9 @@ public class TabPanel extends JPanel
             // start flashing tab again, if appropriate
             if(flash)
             {
-               startFlashingTab(content, taft.getFlashColor(),
-                                taft.getFlashInterval(),
-                                taft.stopWhenSelected());
+               startFlashingTab(
+                  content, taft.getFlashColor(), taft.getFlashInterval(),
+                  taft.stopWhenSelected());
             }
          }
       }
@@ -2615,8 +2644,8 @@ public class TabPanel extends JPanel
     * @param stopWhenSelected true to stop flashing upon selection, false to
     *                         keep flashing until instructed to stop.
     */
-   public void startFlashingTab(Component content, Color color, long interval,
-                                boolean stopWhenSelected)
+   public void startFlashingTab(
+      Component content, Color color, long interval, boolean stopWhenSelected)
    {
       // make sure thread isn't already flashing
       TabAreaFlashThread taft = getTabAreaFlashThread(content);
@@ -3367,8 +3396,8 @@ public class TabPanel extends JPanel
        * @param tabArea the tab area to flash.
        * @param tabContent the tab content for the tab area.
        */
-      public TabAreaFlashThread(TabPanel tabPanel, 
-                                Component tabArea, Component tabContent)
+      public TabAreaFlashThread(
+         TabPanel tabPanel, Component tabArea, Component tabContent)
       {
          mTabPanel = tabPanel;
          mTabArea = tabArea;
@@ -3384,8 +3413,8 @@ public class TabPanel extends JPanel
        * @param stopWhenSelected true to stop flashing upon selection, false to
        *                         keep flashing until instructed to stop.
        */
-      public synchronized void startFlashing(Color color, long interval,
-                                             boolean stopWhenSelected)
+      public synchronized void startFlashing(
+         Color color, long interval, boolean stopWhenSelected)
       {
          mFlash = true;
          mFlashColor = color;
@@ -3477,8 +3506,8 @@ public class TabPanel extends JPanel
        * @param oldSelection the old tab selection (can be null).
        * @param newSelection the new tab selection.
        */
-      public void tabSelectionChanged(Component oldSelection,
-                                      Component newSelection)      
+      public void tabSelectionChanged(
+         Component oldSelection, Component newSelection)      
       {
          // if stopping when selected and was selected, then stop flashing
          if(stopWhenSelected() && newSelection == mTabContent)
