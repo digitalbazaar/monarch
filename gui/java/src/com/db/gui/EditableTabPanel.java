@@ -31,6 +31,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JButton;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.plaf.basic.BasicButtonUI;
 
@@ -165,6 +166,110 @@ public class EditableTabPanel extends TabPanel
    }
    
    /**
+    * Gets the close button outline color.
+    * 
+    * @return the close button outline color.
+    */
+   protected Color getCloseButtonOutlineColor()
+   {
+      Color rval = null;
+      
+      if(!UIManager.getLookAndFeel().isNativeLookAndFeel())
+      {
+         rval = UIManager.getColor("TabbedPane.closeButtonOutline");         
+      }
+      else
+      {
+         rval = UIManager.getColor("TabbedPane.closeButtonOutline");         
+      }
+      
+      if(rval == null)
+      {
+         rval = Color.black;
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the close button pressed color.
+    * 
+    * @return the close button pressed color.
+    */
+   protected Color getCloseButtonPressedColor()
+   {
+      Color rval = null;
+      
+      if(!UIManager.getLookAndFeel().isNativeLookAndFeel())
+      {
+         rval = UIManager.getColor("TabbedPane.closeButtonPressed");         
+      }
+      else
+      {
+         rval = UIManager.getColor("TabbedPane.closeButtonPressed");         
+      }
+      
+      if(rval == null)
+      {
+         rval = Color.red;
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the close button mouse over color.
+    * 
+    * @return the close button mouse over color.
+    */
+   protected Color getCloseButtonMouseOverColor()
+   {
+      Color rval = null;
+      
+      if(!UIManager.getLookAndFeel().isNativeLookAndFeel())
+      {
+         rval = UIManager.getColor("TabbedPane.closeButtonMouseOver");         
+      }
+      else
+      {
+         rval = UIManager.getColor("TabbedPane.closeButtonMouseOver");         
+      }
+      
+      if(rval == null)
+      {
+         rval = Color.pink;
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Gets the drag border color.
+    * 
+    * @return the drag border color.
+    */
+   protected Color getDragBorderColor()
+   {
+      Color rval = null;
+      
+      if(!UIManager.getLookAndFeel().isNativeLookAndFeel())
+      {
+         rval = UIManager.getColor("TabbedPane.dragBorderColor");         
+      }
+      else
+      {
+         rval = UIManager.getColor("TabbedPane.dragBorderColor");         
+      }
+      
+      if(rval == null)
+      {
+         rval = Color.red;
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Gets the general path for drawing a curvy X.
     * 
     * @param top the top of the x.
@@ -176,8 +281,8 @@ public class EditableTabPanel extends TabPanel
     * 
     * @return the path used to draw the x.
     */
-   protected GeneralPath getCurvyXPath(int top, int left, int bottom, int right,
-                                       int middle, int width)
+   protected GeneralPath getCurvyXPath(
+      int top, int left, int bottom, int right, int middle, int width)
    {
       // set path for x
       GeneralPath path = new GeneralPath();
@@ -228,8 +333,8 @@ public class EditableTabPanel extends TabPanel
     * 
     * @return the path used to draw the x.
     */
-   protected GeneralPath getXPath(int top, int left, int bottom, int right,
-                                  int middle, int width)
+   protected GeneralPath getXPath(
+      int top, int left, int bottom, int right, int middle, int width)
    {
       // set path for x
       GeneralPath path = new GeneralPath();
@@ -272,9 +377,9 @@ public class EditableTabPanel extends TabPanel
    protected Image createCloseButtonUnpressedImage()
    {
       // setup the close button image
-      BufferedImage image = new BufferedImage(CLOSE_BUTTON_IMAGE_SIZE,
-                                              CLOSE_BUTTON_IMAGE_SIZE,
-                                              BufferedImage.TYPE_4BYTE_ABGR);
+      BufferedImage image = new BufferedImage(
+         CLOSE_BUTTON_IMAGE_SIZE, CLOSE_BUTTON_IMAGE_SIZE,
+         BufferedImage.TYPE_4BYTE_ABGR);
       
       // set the insets for the x
       int insets = 3;
@@ -300,7 +405,7 @@ public class EditableTabPanel extends TabPanel
          //RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       
       // draw the x
-      g2.setColor(Color.black);
+      g2.setColor(getCloseButtonOutlineColor());
       g2.setStroke(bs);
       g2.draw(path);
       
@@ -318,9 +423,9 @@ public class EditableTabPanel extends TabPanel
    protected Image createCloseButtonPressedImage()
    {
       // setup the close button image
-      BufferedImage image = new BufferedImage(CLOSE_BUTTON_IMAGE_SIZE,
-                                              CLOSE_BUTTON_IMAGE_SIZE,
-                                              BufferedImage.TYPE_4BYTE_ABGR);
+      BufferedImage image = new BufferedImage(
+         CLOSE_BUTTON_IMAGE_SIZE, CLOSE_BUTTON_IMAGE_SIZE,
+         BufferedImage.TYPE_4BYTE_ABGR);
       
       // set the insets for the x
       int insets = 3;
@@ -346,7 +451,7 @@ public class EditableTabPanel extends TabPanel
          //RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);      
       
       // draw the x outline
-      g2.setColor(Color.black);
+      g2.setColor(getCloseButtonOutlineColor());
       g2.setStroke(bs);
       g2.draw(path);
 
@@ -354,7 +459,7 @@ public class EditableTabPanel extends TabPanel
       path = getCurvyXPath(top + 1, left + 1, bottom - 1, right - 1, middle, 1);
 
       // draw filler
-      g2.setColor(Color.red);
+      g2.setColor(getCloseButtonPressedColor());
       g2.draw(path);
       
       // set path for x filler
@@ -377,9 +482,9 @@ public class EditableTabPanel extends TabPanel
    protected Image createCloseButtonMouseOverImage()
    {
       // setup the close button image
-      BufferedImage image = new BufferedImage(CLOSE_BUTTON_IMAGE_SIZE,
-                                              CLOSE_BUTTON_IMAGE_SIZE,
-                                              BufferedImage.TYPE_4BYTE_ABGR);
+      BufferedImage image = new BufferedImage(
+         CLOSE_BUTTON_IMAGE_SIZE, CLOSE_BUTTON_IMAGE_SIZE,
+         BufferedImage.TYPE_4BYTE_ABGR);
       
       // set the insets for the x
       int insets = 3;
@@ -405,7 +510,7 @@ public class EditableTabPanel extends TabPanel
          //RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       
       // draw the x outline
-      g2.setColor(Color.black);
+      g2.setColor(getCloseButtonOutlineColor());
       g2.setStroke(bs);
       g2.draw(path);
 
@@ -413,7 +518,7 @@ public class EditableTabPanel extends TabPanel
       path = getCurvyXPath(top + 1, left + 1, bottom - 1, right - 1, middle, 1);
 
       // draw filler
-      g2.setColor(Color.pink);
+      g2.setColor(getCloseButtonMouseOverColor());
       g2.draw(path);
       
       // set path for x filler
@@ -1425,7 +1530,7 @@ public class EditableTabPanel extends TabPanel
                int right = c.getWidth();
                
                // draw the drag border
-               g.setColor(Color.red);
+               g.setColor(getDragBorderColor());
                
                if(paintLeft)
                {
