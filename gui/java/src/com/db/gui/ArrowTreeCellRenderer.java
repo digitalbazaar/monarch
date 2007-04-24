@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.UIManager;
 import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -58,7 +59,9 @@ public class ArrowTreeCellRenderer extends DefaultTreeCellRenderer
       BufferedImage image = new BufferedImage(
          ARROW_IMAGE_SIZE, ARROW_IMAGE_SIZE, BufferedImage.TYPE_4BYTE_ABGR);
       
-      BasicArrowButton b = new BasicArrowButton(BasicArrowButton.SOUTH);
+      ColoredBasicArrowButton b = new ColoredBasicArrowButton(
+         BasicArrowButton.SOUTH,
+         UIManager.getColor("ArrowTreeCellRenderer.foreground"));
       b.setUI(new BasicButtonUI());
       b.setBackground(new Color(0, 0, 0, 0));
       b.setContentAreaFilled(false);
@@ -83,7 +86,9 @@ public class ArrowTreeCellRenderer extends DefaultTreeCellRenderer
       BufferedImage image = new BufferedImage(
          ARROW_IMAGE_SIZE, ARROW_IMAGE_SIZE, BufferedImage.TYPE_4BYTE_ABGR);
       
-      BasicArrowButton b = new BasicArrowButton(BasicArrowButton.EAST);
+      ColoredBasicArrowButton b = new ColoredBasicArrowButton(
+         BasicArrowButton.EAST,
+         UIManager.getColor("ArrowTreeCellRenderer.foreground"));
       b.setUI(new BasicButtonUI());
       b.setBackground(new Color(0, 0, 0, 0));
       b.setContentAreaFilled(false);
