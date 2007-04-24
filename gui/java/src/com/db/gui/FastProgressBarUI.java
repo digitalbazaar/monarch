@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.gui;
 
@@ -10,13 +10,12 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 
 import javax.swing.JComponent;
 import javax.swing.LookAndFeel;
 import javax.swing.UIManager;
 import javax.swing.plaf.ComponentUI;
-
-import com.sun.java.swing.SwingUtilities2;
 
 /**
  * This class draws the ui for a FastProgressBar.
@@ -220,6 +219,40 @@ public class FastProgressBarUI extends ComponentUI
    }
    
    /**
+    * Draws the string at the specified location.
+    *
+    * @param c JComponent that will display the string, may be null
+    * @param g Graphics to draw the text to
+    * @param text String to display
+    * @param x X coordinate to draw the text at
+    * @param y Y coordinate to draw the text at
+    */
+   protected void drawString(
+      JComponent c, Graphics g, String text, int x, int y)
+   {
+      // FIXME: THIS METHOD IS TAKEN FROM com.sun.java.swing.SwingUtilities2
+      // because it has been discontinued in Java 6
+      
+      // All non-editable widgets that draw strings call into this
+      // methods.  By non-editable that means widgets like JLabel, JButton
+      // but NOT JTextComponents.
+      if(text == null || text.length() <= 0 )
+      {
+         //no need to paint empty strings
+         return;
+      }
+      
+      Graphics2D g2 = (Graphics2D)g;
+      Object oldAAValue = g2.getRenderingHint(
+         RenderingHints.KEY_TEXT_ANTIALIASING);
+      g2.setRenderingHint(
+         RenderingHints.KEY_TEXT_ANTIALIASING,
+         RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+         g.drawString(text, x, y);
+      g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, oldAAValue);
+   }
+   
+   /**
     * Paints the text for the passed progress bar on top of an existing
     * indeterminate box or determinate meter.
     * 
@@ -245,8 +278,7 @@ public class FastProgressBarUI extends ComponentUI
          // get the text width
          FontMetrics fontMetrics =
             progressBar.getFontMetrics(progressBar.getFont());
-         int textWidth = SwingUtilities2.stringWidth(
-            progressBar, fontMetrics, text);
+         int textWidth = fontMetrics.stringWidth(text);
          
          // get progress bar width and height
          double width = progressBarBounds.width;
@@ -266,14 +298,14 @@ public class FastProgressBarUI extends ComponentUI
          
          // draw empty meter text
          g.setColor(getEmptyMeterTextColor());
-         SwingUtilities2.drawString(progressBar, g, text, x, y);
+         drawString(progressBar, g, text, x, y);
          
          // set clipping bounds
          g.setClip(boxOrMeterBounds);
          
          // draw full meter text
          g.setColor(getFullMeterTextColor());
-         SwingUtilities2.drawString(progressBar, g, text, x, y);
+         drawString(progressBar, g, text, x, y);
          
          // restore the old clipping bounds
          g.setClip(oldClipBounds);
@@ -370,8 +402,7 @@ public class FastProgressBarUI extends ComponentUI
       // set preferred width to text width, if there is text
       if(progressBar.getText() != null) 
       {
-         textSize.width = SwingUtilities2.stringWidth(
-            progressBar, fontMetrics, progressBar.getText());
+         textSize.width = fontMetrics.stringWidth(progressBar.getText());
       }
       
       // increase size as necessary
