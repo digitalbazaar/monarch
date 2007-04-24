@@ -221,35 +221,27 @@ public class FastProgressBarUI extends ComponentUI
    /**
     * Draws the string at the specified location.
     *
-    * @param c JComponent that will display the string, may be null
-    * @param g Graphics to draw the text to
-    * @param text String to display
-    * @param x X coordinate to draw the text at
-    * @param y Y coordinate to draw the text at
+    * @param c the component.
+    * @param g the graphics.
+    * @param text the string to draw.
+    * @param x the x coordinate to draw the text at.
+    * @param y the y coordinate to draw the text at.
     */
    protected void drawString(
       JComponent c, Graphics g, String text, int x, int y)
    {
-      // FIXME: THIS METHOD IS TAKEN FROM com.sun.java.swing.SwingUtilities2
-      // because it has been discontinued in Java 6
-      
-      // All non-editable widgets that draw strings call into this
-      // methods.  By non-editable that means widgets like JLabel, JButton
-      // but NOT JTextComponents.
-      if(text == null || text.length() <= 0 )
+      if(text != null && text.length() > 0)
       {
-         //no need to paint empty strings
-         return;
-      }
-      
-      Graphics2D g2 = (Graphics2D)g;
-      Object oldAAValue = g2.getRenderingHint(
-         RenderingHints.KEY_TEXT_ANTIALIASING);
-      g2.setRenderingHint(
-         RenderingHints.KEY_TEXT_ANTIALIASING,
-         RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+         Graphics2D g2 = (Graphics2D)g;
+         
+         // turn on anti-aliasing
+         g2.setRenderingHint(
+            RenderingHints.KEY_TEXT_ANTIALIASING,
+            RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+         
+         // draw string
          g.drawString(text, x, y);
-      g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, oldAAValue);
+      }
    }
    
    /**
