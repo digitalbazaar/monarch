@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.gui;
 
@@ -55,14 +55,13 @@ public class ArrowTreeCellRenderer extends DefaultTreeCellRenderer
    protected Image createOpenImage()
    {
       // setup the image
-      BufferedImage image = new BufferedImage(ARROW_IMAGE_SIZE,
-                                              ARROW_IMAGE_SIZE,
-                                              BufferedImage.TYPE_4BYTE_ABGR);
+      BufferedImage image = new BufferedImage(
+         ARROW_IMAGE_SIZE, ARROW_IMAGE_SIZE, BufferedImage.TYPE_4BYTE_ABGR);
       
       BasicArrowButton b = new BasicArrowButton(BasicArrowButton.SOUTH);
       b.setUI(new BasicButtonUI());
       b.setBackground(new Color(0, 0, 0, 0));
-      b.setOpaque(false);
+      b.setContentAreaFilled(false);
       b.setBorder(BorderFactory.createEmptyBorder());
       b.setBounds(0, 0, ARROW_IMAGE_SIZE, ARROW_IMAGE_SIZE);
       
@@ -81,20 +80,19 @@ public class ArrowTreeCellRenderer extends DefaultTreeCellRenderer
    protected Image createClosedImage()
    {
       // setup the image
-      BufferedImage image = new BufferedImage(ARROW_IMAGE_SIZE,
-                                              ARROW_IMAGE_SIZE,
-                                              BufferedImage.TYPE_4BYTE_ABGR);
+      BufferedImage image = new BufferedImage(
+         ARROW_IMAGE_SIZE, ARROW_IMAGE_SIZE, BufferedImage.TYPE_4BYTE_ABGR);
       
       BasicArrowButton b = new BasicArrowButton(BasicArrowButton.EAST);
       b.setUI(new BasicButtonUI());
       b.setBackground(new Color(0, 0, 0, 0));
-      b.setOpaque(false);
+      b.setContentAreaFilled(false);
       b.setBorder(BorderFactory.createEmptyBorder());
       b.setBounds(0, 0, ARROW_IMAGE_SIZE, ARROW_IMAGE_SIZE);
       
       Graphics g = image.createGraphics();
       g.translate(0, 2);
-      b.paint(g);      
+      b.paint(g);
       
       return image;
    }
@@ -107,9 +105,8 @@ public class ArrowTreeCellRenderer extends DefaultTreeCellRenderer
    protected Image createLeafImage()
    {
       // setup the image
-      BufferedImage image = new BufferedImage(ARROW_IMAGE_SIZE / 4,
-                                              ARROW_IMAGE_SIZE,
-                                              BufferedImage.TYPE_4BYTE_ABGR);
+      BufferedImage image = new BufferedImage(
+         ARROW_IMAGE_SIZE / 4, ARROW_IMAGE_SIZE, BufferedImage.TYPE_4BYTE_ABGR);
       
       return image;
    }
