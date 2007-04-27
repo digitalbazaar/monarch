@@ -177,7 +177,7 @@ std::string Base64Coder::encode(char* data)
          lineLength += 4;
          
          // add the group to the buffer
-         rval.append(group);
+         rval.append(group, 4);
       }
    }
    
@@ -195,7 +195,7 @@ char* Base64Coder::decode(std::string str)
    replaceAll(str, "\t", "");
    
    // make sure the string has length
-   int length = str.size() - 1;
+   int length = str.size();
    if(length != 0)
    {
       // get and check the number of groups, must be a multiple of 4

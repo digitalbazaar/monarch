@@ -7,19 +7,23 @@ using namespace db::util;
 
 void runBase64Test()
 {
-	cout << "Running Base64 Test" << endl;
+	cout << "Running Base64 Test" << endl << endl;
 	
 	char data[] = {'a', 'b', 'c', 'd'};
 	string encoded = Base64Coder::encode(data);
-	cout << encoded << endl;
+	cout << "encoded=" << encoded << endl;
 	
 	char* decoded = Base64Coder::decode(encoded);
+   int length = sizeof(decoded);
 	
-	cout << sizeof(decoded) << endl;
+	cout << "decoded bytes=" << length << endl;
+   for(int i = 0; i < length; i++)
+   {
+      cout << "decoded[" << i << "]=" << decoded[i] << endl;
+   }
 	
 	string encoded2 = Base64Coder::encode(decoded);
-	cout << encoded2 << endl;
-	cout << decoded << endl;
+	cout << "encoded again=" << encoded2 << endl;
 	
    if(decoded != NULL)
    {
