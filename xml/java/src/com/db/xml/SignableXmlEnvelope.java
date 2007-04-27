@@ -595,7 +595,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
             mSignText = contentElement.getValue();
             
             // convert the xml content
-            getContent().convertFromXml(mSignText.trim());
+            getContent().convertFromXml(mSignText);
          }
          else
          {
