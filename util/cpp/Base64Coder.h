@@ -147,10 +147,12 @@ public:
     * Base64 encodes data.
     * 
     * @param data the byte array to encode.
+    * @param offset the offset in the data to start encoding at. 
+    * @param length the number of bytes in the data to encode.
     * 
     * @return the Base64 encoded string.
     */
-   static std::string encode(char* data);
+   static std::string encode(char* data, int offset, int length);
    
    /**
     * Decodes a Base64-encoded string. Calls AbstractPreferences

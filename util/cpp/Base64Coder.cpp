@@ -127,15 +127,12 @@ int Base64Coder::decodeGroup(std::string str, int offset, char* bytes)
    return rval;
 }
 
-std::string Base64Coder::encode(char* data)
+std::string Base64Coder::encode(char* data, int offset, int length)
 {
    std::string rval = "";
    
-   if(data != NULL)
+   if(data != NULL && length > 0)
    {
-      // get the length of the data
-      int length = sizeof(data);
-      
       // Base64 encoding requires 24 bit groups, and each
       // byte is 8 bits, so the data should be broken into groups
       // of 3 bytes each
@@ -155,15 +152,13 @@ std::string Base64Coder::encode(char* data)
       // add end of line characters padding
       encodedLength += (encodedLength / 76);
       
-      int dataIndex = 0;
-      
       // encode all the groups
       int lineLength = 0;
-      for(int i = 0; i < groups; i++, dataIndex += 3)
+      for(int i = 0; i < groups; i++, offset += 3)
       {
          // encode the group
          char group[4];
-         encodeGroup(data, dataIndex, length, group);
+         encodeGroup(data, offset, length, group);
          
          // Base64 allows no more than 76 characters per line
          // if the line length is greater 76, then insert a line break
