@@ -123,6 +123,14 @@ public:
    virtual void join(unsigned long time = 0);
    
    /**
+    * Detaches this Thread. This means that this Thread can no longer be
+    * waited for via a join() call. This allows for the thread to be
+    * automatically cleaned up by the OS once it terminates. Otherwise
+    * a join() call must be made to appropriately clean up the thread.
+    */
+   virtual void detach();
+   
+   /**
     * Returns true if this Thread is still alive, false if not.
     * 
     * @return true if this Thread is still alive, false if not.

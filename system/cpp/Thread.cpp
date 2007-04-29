@@ -32,12 +32,6 @@ Thread::Thread(Runnable* runnable, std::string name)
    
    // thread is not started yet
    mStarted = false;
-   
-   // create the current thread key if it hasn't been created yet
-   pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
-   
-   // set thread specific data to this pointer
-   pthread_setspecific(CURRENT_THREAD_KEY, this);
 }
 
 Thread::~Thread()
@@ -105,11 +99,25 @@ bool Thread::hasStarted()
 
 void Thread::join(unsigned long time)
 {
-   // FIXME: not implemented
+   // join thread
+   int status;
+   pthread_join(mPThread, (void **)&status);
+}
+
+void Thread::detach()
+{
+   // detach thread
+   pthread_detach(mPThread);
 }
 
 void Thread::run()
 {
+   // create the current thread key if it hasn't been created yet
+   pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
+   
+   // set thread specific data to "this" pointer
+   pthread_setspecific(CURRENT_THREAD_KEY, this);
+   
    // thread is alive
    mAlive = true;
    

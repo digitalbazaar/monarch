@@ -65,26 +65,31 @@ void runThreadTest()
    cout << "Running Thread Test" << endl << endl;
    
    TestRunnable r1;
-   Thread t1(&r1);
+   Thread t1(&r1, "Thread 1");
    
    TestRunnable r2;
-   Thread t2(&r2);
+   Thread t2(&r2, "Thread 2");
    
    TestRunnable r3;
-   Thread t3(&r3);
+   Thread t3(&r3, "Thread 3");
    
    TestRunnable r4;
-   Thread t4(&r4);
+   Thread t4(&r4, "Thread 4");
+   
+   TestRunnable r5;
+   Thread t5(&r5, "Thread 5");
    
    t1.start();
    t2.start();
    t3.start();
    t4.start();
+   t5.start();
    
    t1.join();
    t2.join();
    t3.join();
    t4.join();
+   t5.join();
 }
 
 int main()
