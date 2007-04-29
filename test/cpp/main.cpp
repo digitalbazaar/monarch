@@ -61,7 +61,7 @@ class TestRunnable : public virtual Object, public virtual Runnable
       
       if(name == "Thread 1")
       {
-         cout << "Waiting for Thread 5..." << endl;
+         cout << "Thread 1 Waiting for Thread 5..." << endl;
          
          lock();
          wait();
@@ -69,12 +69,22 @@ class TestRunnable : public virtual Object, public virtual Runnable
          
          cout << "Thread 1 Finished." << endl;
       }
-      else if(name == "Thread 5")
+      else if(name == "Thread 3")
       {
-         cout << "Waking up Thread 1..." << endl;
+         cout << "Thread 3 Waiting for Thread 5..." << endl;
          
          lock();
-         notify();
+         wait();
+         unlock();
+         
+         cout << "Thread 3 Finished." << endl;
+      }
+      else if(name == "Thread 5")
+      {
+         cout << "Thread 5 waking up threads..." << endl;
+         
+         lock();
+         notifyAll();
          unlock();
       }
    }
