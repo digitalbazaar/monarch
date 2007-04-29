@@ -131,48 +131,54 @@ void BandwidthThrottler::limitBandwidth()
    }
 }
 
-// FIXME: this method was synchronized in java
 unsigned int BandwidthThrottler::requestBytes(unsigned int count)
 {
    unsigned int rval = 0;
    
-   if(getRateLimit() > 0)
+   lock();
    {
-      // limit the bandwidth
-      limitBandwidth();
-      
-      // get the available bytes
-      rval = Math::minimum(getAvailableBytes(), count);
-      
-      // increment the bytes granted
-      mBytesGranted += rval;
-      
-      // update last request time
-      mLastRequestTime = System::getCurrentMilliseconds();
+      if(getRateLimit() > 0)
+      {
+         // limit the bandwidth
+         limitBandwidth();
+         
+         // get the available bytes
+         rval = Math::minimum(getAvailableBytes(), count);
+         
+         // increment the bytes granted
+         mBytesGranted += rval;
+         
+         // update last request time
+         mLastRequestTime = System::getCurrentMilliseconds();
+      }
+      else
+      {
+         // no rate limit, return the count
+         rval = count;
+      }
    }
-   else
-   {
-      // no rate limit, return the count
-      rval = count;
-   }
+   unlock();
    
    return rval;
 }
 
-// FIXME: this method was synchronized in java
 void BandwidthThrottler::setRateLimit(unsigned long long rateLimit)
 {
-   // set new rate limit
-   mRateLimit = Math::maximum(0, rateLimit);
-   
-   if(mRateLimit > 0)
+   lock();
    {
-      // reset the window time
-      resetWindowTime();
+      // set new rate limit
+      mRateLimit = Math::maximum(0, rateLimit);
       
-      // update the available byte time
-      updateAvailableByteTime();
+      if(mRateLimit > 0)
+      {
+         // reset the window time
+         resetWindowTime();
+         
+         // update the available byte time
+         updateAvailableByteTime();
+      }
    }
+   unlock();
 }
 
 unsigned long long BandwidthThrottler::getRateLimit()

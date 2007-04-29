@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Object.h"
+#include "Thread.h"
 
 using namespace std;
 using namespace db::rt;
@@ -13,6 +14,9 @@ Object::Object()
    
    // initialize conditional
    pthread_cond_init(&mWaitCondition, NULL);
+   
+   // no lock owner yet
+   mLockOwner = NULL;
 }
 
 Object::~Object()
@@ -39,12 +43,30 @@ bool Object::equals(const Object& obj) const
 
 void Object::lock()
 {
-   // lock this Object's mutex
-   pthread_mutex_lock(&mMutex);
+   // get the current thread
+   Thread* t = Thread::currentThread();
+   
+   // try to lock this Object's mutex
+   int rc = pthread_mutex_trylock(&mMutex);
+   if(rc != 0)
+   {
+      // see if this thread already owns the lock
+      if(t != mLockOwner)
+      {
+         // thread doesn't own the lock, so lock this Object's mutex
+         pthread_mutex_lock(&mMutex);
+      }
+   }
+   
+   // set the lock owner
+   mLockOwner = t;
 }
 
 void Object::unlock()
 {
+   // clear the lock owner
+   mLockOwner = NULL;
+   
    // unlock this Object's mutex
    pthread_mutex_unlock(&mMutex);
 }

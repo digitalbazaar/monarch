@@ -16,7 +16,7 @@ namespace rt
  *
  * @author Dave Longley
  */
-class InterruptedException : public Exception
+class InterruptedException : public virtual Exception
 {
 public:
    /**

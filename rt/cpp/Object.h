@@ -4,12 +4,15 @@
 #ifndef Object_H
 #define Object_H
 
-#include "pthread.h"
+#include <pthread.h>
 
 namespace db
 {
 namespace rt
 {
+
+// forward declare Thread
+class Thread;
 
 /**
  * An Object represents a single object in an object-oriented system.
@@ -28,6 +31,11 @@ protected:
     * The condition used to wait and signal the executing Thread.
     */
    pthread_cond_t mWaitCondition;
+   
+   /**
+    * Stores the Thread that holds the lock on this Object.
+    */
+   Thread* mLockOwner;
    
 public:
    /**
