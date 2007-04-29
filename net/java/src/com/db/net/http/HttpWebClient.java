@@ -562,6 +562,94 @@ public class HttpWebClient implements WebConnectionClient
    }
    
    /**
+    * A convenience method for performing an HTTP POST to send content
+    * (application/x-www-form-urlencoded) as a string and receive it as a
+    * string.
+    * 
+    * @param url the url to POST to.
+    * @param content the content to POST.
+    * 
+    * @return the retrieved content or null if no content was retrieved.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   public String post(URL url, String content) throws IOException
+   {
+      return post(url, content, 0);
+   }
+   
+   /**
+    * A convenience method for performing an HTTP POST to send content
+    * (application/x-www-form-urlencoded) as a string and receive it as a
+    * string. The POST can be retried multiple times upon failure.
+    * 
+    * @param url the url to POST to.
+    * @param content the content to POST.
+    * @param retries the number of connection retries to attempt.
+    * 
+    * @return the retrieved content or null if no content was retrieved.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   public String post(URL url, String content, int retries)
+   throws IOException
+   {
+      String rval = null;
+      
+      // get a web connection
+      HttpWebConnection connection = connect(url, retries);
+      if(connection != null)
+      {
+         // create http web request
+         HttpWebRequest request = new HttpWebRequest(connection);
+         request.getHeader().setMethod("POST");
+         request.getHeader().setPath(url.getPath());
+         request.getHeader().setVersion("HTTP/1.1");
+         request.getHeader().setContentType(
+            "application/x-www-form-urlencoded");
+         request.getHeader().setContentLength(content.length());
+         request.getHeader().setHost(connection.getRemoteHost());
+         request.getHeader().setUserAgent(DEFAULT_USER_AGENT);
+         request.getHeader().setConnection("close");
+         
+         // send request
+         if(sendRequest(request, content))
+         {
+            // receive response header
+            HttpWebResponse response = request.createHttpWebResponse();
+            if(receiveResponseHeader(response))
+            {
+               // see if response was OK
+               if(response.getHeader().hasOKStatusCode())
+               {
+                  // receive body string
+                  rval = response.receiveBodyString();
+               }
+            }
+            else
+            {
+               throw new IOException(
+                  "Could not receive response from " + url.toString());
+            }
+         }
+         else
+         {
+            throw new IOException(
+               "Could not send request to " + url.toString());
+         }
+         
+         // disconnect
+         connection.disconnect();
+      }
+      else
+      {
+         throw new IOException("Could not connect to " + url.toString());
+      }
+      
+      return rval;
+   }
+   
+   /**
     * A convenience method for performing an HTTP GET to retrieve a file. The
     * GET will be performed multiple times upon failure.
     * 

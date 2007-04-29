@@ -116,7 +116,7 @@ public class OperationEngine
    protected synchronized void executionStopped(OperationExecutor executor)   
    {
       // lock on the engine state
-      synchronized(getState())      
+      synchronized(getState())
       {
          // get the execution environment for the operation
          OperationExecutionEnvironment environment =
