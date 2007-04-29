@@ -49,7 +49,7 @@ int main()
 {
    cout << "Tests starting..." << endl << endl;
    
-   //runBase64Test();
+   runBase64Test();
    runTimeTest();
    
    cout << endl << "Tests finished." << endl;

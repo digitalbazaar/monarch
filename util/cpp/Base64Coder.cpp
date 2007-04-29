@@ -72,13 +72,14 @@ int Base64Coder::charToInt(char c)
    return rval;
 }
 
-void Base64Coder::encodeGroup(char* data, int offset, int length, char* group)
+void Base64Coder::encodeGroup(
+   char* data, size_t offset, size_t length, char* group)
 {
-   int len = length - offset;
+   size_t len = length - offset;
    
-   int b0 = data[offset++] & 0xFF;
-   int b1 = (len > 1) ? data[offset++] & 0xFF : 0;
-   int b2 = (len > 2) ? data[offset++] & 0xFF : 0;
+   unsigned int b0 = data[offset++] & 0xFF;
+   unsigned int b1 = (len > 1) ? data[offset++] & 0xFF : 0;
+   unsigned int b2 = (len > 2) ? data[offset++] & 0xFF : 0;
    
    group[0] = INDEX_TO_BASE64[b0 >> 2];
    group[1] = INDEX_TO_BASE64[(b0 << 4 | b1 >> 4) & 0x3F];
@@ -86,9 +87,10 @@ void Base64Coder::encodeGroup(char* data, int offset, int length, char* group)
    group[3] = (len > 2) ? INDEX_TO_BASE64[b2 & 0x3F] : '='; 
 }
 
-int Base64Coder::decodeGroup(std::string str, int offset, char* bytes)
+unsigned int Base64Coder::decodeGroup(
+   std::string str, size_t offset, char* bytes)
 {
-	int rval = 0;
+	unsigned int rval = 0;
 	
    // get 6-bit integer values
    int index[4];
@@ -127,7 +129,7 @@ int Base64Coder::decodeGroup(std::string str, int offset, char* bytes)
    return rval;
 }
 
-std::string Base64Coder::encode(char* data, int offset, int length)
+std::string Base64Coder::encode(char* data, size_t offset, size_t length)
 {
    std::string rval = "";
    
@@ -136,7 +138,7 @@ std::string Base64Coder::encode(char* data, int offset, int length)
       // Base64 encoding requires 24 bit groups, and each
       // byte is 8 bits, so the data should be broken into groups
       // of 3 bytes each
-      int groups = length / 3;
+      size_t groups = length / 3;
       
       // see if there is an incomplete group
       if(groups * 3 != length)
@@ -154,7 +156,7 @@ std::string Base64Coder::encode(char* data, int offset, int length)
       
       // encode all the groups
       int lineLength = 0;
-      for(int i = 0; i < groups; i++, offset += 3)
+      for(size_t i = 0; i < groups; i++, offset += 3)
       {
          // encode the group
          char group[4];

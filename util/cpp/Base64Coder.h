@@ -130,7 +130,8 @@ public:
     * @param length the length of the byte array.
     * @param group the group to populate with 4 characters.
     */
-   static void encodeGroup(char* data, int offset, int length, char* group);
+   static void encodeGroup(
+      char* data, size_t offset, size_t length, char* group);
    
    /**
     * Decodes ONE group of Base64 characters into bytes.
@@ -141,7 +142,7 @@ public:
     * 
     * @return the number of decoded bytes (1 to 3).
     */
-   static int decodeGroup(std::string str, int offset, char* bytes);
+   static size_t decodeGroup(std::string str, size_t offset, char* bytes);
    
    /**
     * Base64 encodes data.
@@ -152,7 +153,7 @@ public:
     * 
     * @return the Base64 encoded string.
     */
-   static std::string encode(char* data, int offset, int length);
+   static std::string encode(char* data, size_t offset, size_t length);
    
    /**
     * Decodes a Base64-encoded string. Calls AbstractPreferences
