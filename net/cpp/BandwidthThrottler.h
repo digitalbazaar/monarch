@@ -13,7 +13,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class BandwidthThrottler// : public virtual db::rt::Object
+class BandwidthThrottler : public virtual db::rt::Object
 {
 protected:
    /**
