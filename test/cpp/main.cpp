@@ -9,7 +9,7 @@
 #include "System.h"
 
 using namespace std;
-using namespace db::system;
+using namespace db::rt;
 using namespace db::util;
 
 void runBase64Test()

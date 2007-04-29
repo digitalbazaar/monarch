@@ -6,7 +6,7 @@
 #include "System.h"
 
 using namespace db::net;
-using namespace db::system;
+using namespace db::rt;
 using namespace db::util;
 
 BandwidthThrottler::BandwidthThrottler(unsigned long long rateLimit)
@@ -19,6 +19,10 @@ BandwidthThrottler::BandwidthThrottler(unsigned long long rateLimit)
    
    // set the rate limit (will also reset the window time if necessary)
    setRateLimit(rateLimit);
+}
+
+BandwidthThrottler::~BandwidthThrottler()
+{
 }
 
 void BandwidthThrottler::resetWindowTime()
@@ -79,7 +83,7 @@ void BandwidthThrottler::updateAvailableByteTime()
    // the amount of time until a byte is available is 1000 milliseconds
    // divided by the rate in bytes/second, with a minimum of 1 millisecond
    mAvailableByteTime = (unsigned long long)Math::round(1000. / getRateLimit());
-   mAvailableByteTime = Math::max(1, mAvailableByteTime);
+   mAvailableByteTime = Math::maximum(1, mAvailableByteTime);
 }
 
 unsigned long long BandwidthThrottler::getAvailableByteTime()
@@ -99,7 +103,7 @@ void BandwidthThrottler::updateAvailableBytes()
    
    // subtract the number of bytes already granted in this window
    mAvailableBytes -= mBytesGranted;
-   mAvailableBytes = Math::max(0, mAvailableBytes);
+   mAvailableBytes = Math::maximum(0, mAvailableBytes);
 }
 
 unsigned long long BandwidthThrottler::getAvailableBytes()
@@ -138,7 +142,7 @@ unsigned int BandwidthThrottler::requestBytes(unsigned int count)
       limitBandwidth();
       
       // get the available bytes
-      rval = Math::min(getAvailableBytes(), count);
+      rval = Math::minimum(getAvailableBytes(), count);
       
       // increment the bytes granted
       mBytesGranted += rval;
@@ -159,7 +163,7 @@ unsigned int BandwidthThrottler::requestBytes(unsigned int count)
 void BandwidthThrottler::setRateLimit(unsigned long long rateLimit)
 {
    // set new rate limit
-   mRateLimit = Math::max(0, rateLimit);
+   mRateLimit = Math::maximum(0, rateLimit);
    
    if(mRateLimit > 0)
    {

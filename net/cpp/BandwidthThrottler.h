@@ -1,6 +1,8 @@
 #ifndef BandwidthThrottler_H
 #define BandwidthThrottler_H
 
+#include "Object.h"
+
 namespace db
 {
 namespace net
@@ -11,7 +13,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class BandwidthThrottler
+class BandwidthThrottler// : public virtual db::rt::Object
 {
 protected:
    /**
@@ -111,6 +113,11 @@ public:
     *                  indicates no rate limit.
     */
    BandwidthThrottler(unsigned long long rateLimit);
+   
+   /**
+    * Destructs this BandwidthThrottler.
+    */
+   virtual ~BandwidthThrottler();
    
    /**
     * Requests the passed number of bytes from this throttler. This method

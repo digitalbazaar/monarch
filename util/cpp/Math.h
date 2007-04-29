@@ -27,14 +27,14 @@ public:
    static const int MAX_INT_VALUE = MAX_UINT_VALUE / 2;
    
    /**
-    * The maximum unsigned long value.
+    * The maximum unsigned long long value.
     */
-   static const unsigned long MAX_ULONG_VALUE = 0xFFFFFFFFFFFFFFFFLL;
+   static const unsigned long long MAX_ULONG_VALUE = 0xFFFFFFFFFFFFFFFFLL;
    
    /**
-    * The maximum signed long value.
+    * The maximum signed long long value.
     */
-   static const long MAX_LONG_VALUE = MAX_ULONG_VALUE / 2;
+   static const long long MAX_LONG_VALUE = MAX_ULONG_VALUE / 2;
    
    /**
     * Rounds a double up to the next largest whole number.
@@ -58,7 +58,7 @@ public:
     * 
     * @return the larger of the two longs.
     */
-   static long max(long first, long second);
+   static long maximum(long first, long second);
    
    /**
     * Given two longs, the smaller is returned.
@@ -68,7 +68,7 @@ public:
     * 
     * @return the smaller of the two longs.
     */
-   static long min(long first, long second);
+   static long minimum(long first, long second);
    
    /**
     * Rounds a double up if it is closer to the next largest whole number,
@@ -89,12 +89,12 @@ inline long double Math::floor(long double number)
    return floor(number);
 }
 
-inline long Math::max(long first, long second)
+inline long Math::maximum(long first, long second)
 {
    return (second > first) ? second : first;
 }
 
-inline long Math::min(long first, long second)
+inline long Math::minimum(long first, long second)
 {
    return (second < first) ? second : first;
 }
