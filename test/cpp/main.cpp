@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "Base64Coder.h"
+#include "System.h"
 
 using namespace std;
 using namespace db::util;
@@ -31,11 +32,25 @@ void runBase64Test()
    }
 }
 
+void runTimeTest()
+{
+   cout << "Running Time Test" << endl << endl;
+   
+   unsigned long long start = System::getCurrentMilliseconds();
+   
+   cout << "Time start=" << start << endl;
+   
+   unsigned long long end = System::getCurrentMilliseconds();
+   
+   cout << "Time end=" << end << endl;
+}
+
 int main()
 {
    cout << "Tests starting..." << endl << endl;
    
-   runBase64Test();
+   //runBase64Test();
+   runTimeTest();
    
    cout << endl << "Tests finished." << endl;
 }
