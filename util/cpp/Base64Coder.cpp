@@ -54,7 +54,7 @@ const int Base64Coder::BASE64_TO_INDEX[] =
 void Base64Coder::replaceAll(
    std::string& str, std::string find, std::string replace)
 {
-	unsigned int found = str.find(find);
+	std::string::size_type found = str.find(find);
 	while(found != std::string::npos)
 	{
 		str.replace(found, find.length(), replace);
@@ -87,10 +87,9 @@ void Base64Coder::encodeGroup(
    group[3] = (len > 2) ? INDEX_TO_BASE64[b2 & 0x3F] : '='; 
 }
 
-unsigned int Base64Coder::decodeGroup(
-   std::string str, size_t offset, char* bytes)
+size_t Base64Coder::decodeGroup(std::string str, size_t offset, char* bytes)
 {
-	unsigned int rval = 0;
+	size_t rval = 0;
 	
    // get 6-bit integer values
    int index[4];
@@ -149,13 +148,13 @@ std::string Base64Coder::encode(char* data, size_t offset, size_t length)
       // the string buffer for string the encoded data
       // Base64 encoding turns 3 bytes into 4 characters, so the
       // length of the encoded data will be:
-      int encodedLength = groups * 4;
+      size_t encodedLength = groups * 4;
       
       // add end of line characters padding
       encodedLength += (encodedLength / 76);
       
       // encode all the groups
-      int lineLength = 0;
+      size_t lineLength = 0;
       for(size_t i = 0; i < groups; i++, offset += 3)
       {
          // encode the group
@@ -192,15 +191,15 @@ char* Base64Coder::decode(std::string str)
    replaceAll(str, "\t", "");
    
    // make sure the string has length
-   int length = str.size();
+   size_t length = str.size();
    if(length != 0)
    {
       // get and check the number of groups, must be a multiple of 4
-      int groups = length / 4;
+      size_t groups = length / 4;
       if(groups * 4 == length)
       {
          // get the number of pad characters
-         int padChars = 0;
+         size_t padChars = 0;
          if(str[length - 2] == '=')
          {
             padChars = 2;
@@ -212,19 +211,19 @@ char* Base64Coder::decode(std::string str)
          
          // calculate the decoded length, it should be the number of
          // groups * 3 - padBytes
-         int decodedLength = groups * 3 - padChars;
+         size_t decodedLength = groups * 3 - padChars;
          
          // allocate space for the byte array
          rval = new char[decodedLength];
          
-         int dataIndex = 0;
-         int strIndex = 0;
+         size_t dataIndex = 0;
+         size_t strIndex = 0;
          
          // decode all the groups
-         for(int i = 0; i < groups; i++, strIndex += 4)
+         for(size_t i = 0; i < groups; i++, strIndex += 4)
          {
             char bytes[3];
-            int len = decodeGroup(str, strIndex, bytes);
+            size_t len = decodeGroup(str, strIndex, bytes);
             
             // copy the decoded bytes into the decoded buffer
             memcpy(rval + dataIndex, bytes, len);
