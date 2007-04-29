@@ -167,42 +167,18 @@ bool Thread::interrupted()
 
 void Thread::sleep(unsigned long time)
 {
-   // FIXME: not implemented
-}
-
-/*
-// FIXME: continue here -- we need to set the wait object
-// on the thread so it can call notify on it
-void Thread::waitOn(Object* obj)
-{
-   // FIXME:
-}
-
-void Thread::setWaitObject(Object* obj)
-{
-   // FIXME:
-}*/
-
-void Thread::synchronize(Object* obj)
-{
-   // get the current thread
-   Thread* thread = Thread::currentThread();
+   // FIXME: implement me
+   /*
+   struct timespec waitTime;
+   waitTime.tv_sec = (unsigned long long)(time / 1000LL);
+   waitTime.tv_nsec = (unsigned long long)((time % 1000LL) * 1000000LL);
    
-   if(thread != NULL)
-   {
-      // set synchronized object
-      thread->mSynchronizedObject = obj;
-   }
-}
-
-void Thread::unsynchronize(Object *obj)
-{
-   // get the current thread
-   Thread* thread = Thread::currentThread();
+   struct timespec remainingTime;
    
-   if(thread != NULL)
+   int interrupted = nanosleep(&waitTime, &remainingTime);
+   if(interrupted != 0)
    {
-      // unset synchronized object
-      thread->mSynchronizedObject = NULL;
-   }
+      // FIXME:
+      // throw interrupted exception, include time remaining
+   }*/
 }

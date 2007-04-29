@@ -84,7 +84,7 @@ public:
     * @param time the number of milliseconds to wait for, 0 to wait
     *             until notify() or notifyAll() is called.
     */
-   virtual void wait(long time = 0);
+   virtual void wait(unsigned long time = 0);
    
    /**
     * Compares this Object to another Object. If the other Object is equal
@@ -100,6 +100,6 @@ public:
    virtual bool operator==(const Object &rhs) const;
 };
 
-} // end namespace util
+} // end namespace system
 } // end namespace db
 #endif

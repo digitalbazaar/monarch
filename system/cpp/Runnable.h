@@ -23,6 +23,6 @@ public:
    virtual void run() = 0;
 };
 
-} // end namespace util
+} // end namespace system
 } // end namespace db
 #endif

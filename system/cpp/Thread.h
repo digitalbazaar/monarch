@@ -64,11 +64,6 @@ protected:
    bool mStarted;
    
    /**
-    * The Object that this thread is currently synchronized with.
-    */
-   Object* mSynchronizedObject;
-   
-   /**
     * Used to ensure that the current thread key is initialized only once.
     */
    static pthread_once_t CURRENT_THREAD_KEY_INIT;
@@ -202,23 +197,8 @@ public:
     * @param time the number of milliseconds to sleep for.
     */
    static void sleep(unsigned long time);
-   
-   /**
-    * Synchronizes the currently executing Thread on the specified Object.
-    *
-    * @param obj the Object to synchronize the currently executing Thread with.
-    */
-   static void synchronize(Object* obj);
-   
-   /**
-    * Unsynchronizes the currently executing Thread from the specified Object.
-    *
-    * @param obj the Object to unsynchronize the currently executing Thread
-    *            from.
-    */
-   static void unsynchronize(Object *obj);
 };
 
-} // end namespace util
+} // end namespace system
 } // end namespace db
 #endif

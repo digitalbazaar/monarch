@@ -2,7 +2,6 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Object.h"
-#include "Thread.h"
 
 using namespace std;
 using namespace db::system;
@@ -42,18 +41,12 @@ void Object::lock()
 {
    // lock this Object's mutex
    pthread_mutex_lock(&mMutex);
-   
-   // synchronize the current thread with this Object
-   Thread::synchronize(this);
 }
 
 void Object::unlock()
 {
    // unlock this Object's mutex
    pthread_mutex_unlock(&mMutex);
-   
-   // synchronize the current thread with this Object
-   Thread::unsynchronize(this);
 }
 
 void Object::notify()
@@ -68,7 +61,7 @@ void Object::notifyAll()
    pthread_cond_broadcast(&mWaitCondition);
 }
 
-void Object::wait(long time)
+void Object::wait(unsigned long time)
 {
    // wait on this Object's wait condition
    pthread_cond_wait(&mWaitCondition, &mMutex);

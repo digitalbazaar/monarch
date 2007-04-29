@@ -23,6 +23,6 @@ public:
    static unsigned long long getCurrentMilliseconds();
 };
 
-} // end namespace util
+} // end namespace system
 } // end namespace db
 #endif

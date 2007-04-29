@@ -111,8 +111,8 @@ static inline int gettimeofday(struct timeval* tv, struct timezone* tz)
       time /= 10;
       
       // store time in seconds and microseconds (1 microsecond = 1000000 sec)
-      tv->tv_sec  = (long)(time / 1000000);
-      tv->tv_usec = (long)(time % 1000000);
+      tv->tv_sec  = (unsigned long)(time / 1000000UL);
+      tv->tv_usec = (unsigned long)(time % 1000000UL);
    }
    
    // populate timezone
