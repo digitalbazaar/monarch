@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
 #include "Base64Coder.h"
 
 using namespace db::util;

@@ -1,9 +1,15 @@
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
 #include <iostream>
 
 #include "Base64Coder.h"
+#include "Runnable.h"
+#include "Thread.h"
 #include "System.h"
 
 using namespace std;
+using namespace db::system;
 using namespace db::util;
 
 void runBase64Test()
@@ -45,12 +51,49 @@ void runTimeTest()
    cout << "Time end=" << end << endl;
 }
 
+class TestRunnable : public Runnable
+{
+   virtual void run()
+   {
+      cout << Thread::currentThread()->getName() <<
+         ": This is a TestRunnable thread." << endl;
+   }
+};
+
+void runThreadTest()
+{
+   cout << "Running Thread Test" << endl << endl;
+   
+   TestRunnable r1;
+   Thread t1(&r1);
+   
+   TestRunnable r2;
+   Thread t2(&r2);
+   
+   TestRunnable r3;
+   Thread t3(&r3);
+   
+   TestRunnable r4;
+   Thread t4(&r4);
+   
+   t1.start();
+   t2.start();
+   t3.start();
+   t4.start();
+   
+   t1.join();
+   t2.join();
+   t3.join();
+   t4.join();
+}
+
 int main()
 {
    cout << "Tests starting..." << endl << endl;
    
-   runBase64Test();
-   runTimeTest();
+   //runBase64Test();
+   //runTimeTest();
+   runThreadTest();
    
    cout << endl << "Tests finished." << endl;
 }

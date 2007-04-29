@@ -1,8 +1,12 @@
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
 #include "BandwidthThrottler.h"
 #include "Math.h"
 #include "System.h"
 
 using namespace db::net;
+using namespace db::system;
 using namespace db::util;
 
 BandwidthThrottler::BandwidthThrottler(unsigned long long rateLimit)

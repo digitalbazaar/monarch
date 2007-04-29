@@ -1,6 +1,7 @@
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
 #include "System.h"
-
-#include <iostream>
 
 // check for the appropriate time header to include:
 #if TIME_WITH_SYS_TIME
@@ -143,7 +144,7 @@ static inline int gettimeofday(struct timeval* tv, struct timezone* tz)
 
 #endif // end of defining gettimeofday()
 
-using namespace db::util;
+using namespace db::system;
 
 unsigned long long System::getCurrentMilliseconds()
 {
