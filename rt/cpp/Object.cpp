@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Object.h"
+#include "Exception.h"
 #include "Thread.h"
 
 using namespace std;
@@ -85,10 +86,16 @@ void Object::notifyAll()
 
 void Object::wait(unsigned long timeout)
 {
-   // FIXME: implement timeout
-   
-   // wait on this Object's wait condition
-   pthread_cond_wait(&mWaitCondition, &mMutex);
+   if(timeout == 0)
+   {
+      // wait indefinitely on this Object's wait condition
+      pthread_cond_wait(&mWaitCondition, &mMutex);
+   }
+   else
+   {
+      // FIXME: implement timeout
+      throw Exception("Object::wait(timeout) not implemented yet!");
+   }
 }
 
 bool Object::operator==(const Object &rhs) const

@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Thread.h"
+#include "InterruptedException.h"
 
 using namespace std;
 using namespace db::rt;
@@ -99,9 +100,17 @@ bool Thread::hasStarted()
 
 void Thread::join(unsigned long time)
 {
-   // join thread
-   int status;
-   pthread_join(mPThread, (void **)&status);
+   if(time == 0)
+   {
+      // join thread, wait for it to detach/terminate indefinitely
+      int status;
+      pthread_join(mPThread, (void **)&status);
+   }
+   else
+   {
+      // FIXME: implement me
+      throw Exception("Thread::join(timeout) not implemented yet!");
+   }
 }
 
 void Thread::detach()
@@ -168,6 +177,7 @@ bool Thread::interrupted()
 void Thread::sleep(unsigned long time)
 {
    // FIXME: implement me
+   throw Exception("Thread::sleep() not implemented yet!");
    /*
    struct timespec waitTime;
    waitTime.tv_sec = (unsigned long long)(time / 1000LL);

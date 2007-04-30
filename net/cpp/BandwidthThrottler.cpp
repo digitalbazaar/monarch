@@ -4,6 +4,7 @@
 #include "BandwidthThrottler.h"
 #include "Math.h"
 #include "System.h"
+#include "Thread.h"
 
 using namespace db::net;
 using namespace db::rt;
@@ -123,8 +124,8 @@ void BandwidthThrottler::limitBandwidth()
    // available byte time
    while(getAvailableBytes() == 0)
    {
-      // FIXME: perform sleep here
-      //Thread.sleep(getAvailableByteTime());
+      // sleep
+      Thread::sleep(getAvailableByteTime());
       
       // update the number of available bytes
       updateAvailableBytes();

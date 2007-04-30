@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Semaphore.h"
+#include "InterruptedException.h"
 
 #include <cstdlib>
 #include <ctime>
@@ -51,40 +52,41 @@ void Semaphore::decreasePermitsLeft(int decrease)
    unlock();
 }
 
-void Semaphore::waitThread()// throw InterruptedException
+void Semaphore::waitThread()
 {
-   // add thread to waiting threads
-   addWaitingThread(Thread::currentThread());
+   // get the current thread
+   Thread* t = Thread::currentThread();
    
-   // FIXME: handle interruption exceptions
-   //try
-   //{
+   // add thread to waiting threads
+   addWaitingThread(t);
+   
+   try
+   {
       // synchronize on lock object
       mLockObject.lock();
       {
          // wait while in the list of waiting threads
-         while(mustWait(Thread::currentThread()))
+         while(mustWait(t))
          {
             mLockObject.wait();
          }
       }
       mLockObject.unlock();
-   /*
    }
    catch(InterruptedException e)
    {
       // maintain interrupted status
-      Thread::currentThread()->interrupt();
+      t->interrupt();
       
       // notify threads
       notifyThreads();
       
       // remove waiting thread
-      removeWaitingThread(Thread::currentThread());
+      removeWaitingThread(t);
       
       // throw exception
       throw e;
-   }*/
+   }
 }
 
 void Semaphore::notifyThreads()
@@ -193,12 +195,12 @@ bool Semaphore::mustWait(Thread* thread)
    return rval;
 }
 
-void Semaphore::acquire()// throws InterruptedException
+void Semaphore::acquire()
 {
    acquire(1);
 }
 
-void Semaphore::acquire(int permits)// throws InterruptedException
+void Semaphore::acquire(int permits)
 {
    // while there are not enough permits, wait for them
    while(availablePermits() - permits < 0)

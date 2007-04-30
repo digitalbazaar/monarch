@@ -142,8 +142,8 @@ int main()
    cout << "Tests starting..." << endl << endl;
    
    //runBase64Test();
-   runTimeTest();
-   //runThreadTest();
+   //runTimeTest();
+   runThreadTest();
    
    cout << endl << "Tests finished." << endl;
 }
