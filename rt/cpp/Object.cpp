@@ -3,6 +3,7 @@
  */
 #include "Object.h"
 #include "Exception.h"
+#include "InterruptedException.h"
 #include "Thread.h"
 
 using namespace std;

@@ -112,7 +112,7 @@ unsigned long long BandwidthThrottler::getAvailableBytes()
    return mAvailableBytes;
 }
 
-void BandwidthThrottler::limitBandwidth()
+void BandwidthThrottler::limitBandwidth() throw(InterruptedException)
 {
    // update the window time
    updateWindowTime();
@@ -133,6 +133,7 @@ void BandwidthThrottler::limitBandwidth()
 }
 
 unsigned int BandwidthThrottler::requestBytes(unsigned int count)
+throw(InterruptedException)
 {
    unsigned int rval = 0;
    

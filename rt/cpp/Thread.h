@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Object.h"
+#include "InterruptedException.h"
 #include "Runnable.h"
 
 namespace db
@@ -195,8 +196,11 @@ public:
     * number of milliseconds.
     *
     * @param time the number of milliseconds to sleep for.
+    * 
+    * @exception InterruptedException thrown if this Thread is interrupted
+    *            while sleeping.
     */
-   static void sleep(unsigned long time);
+   static void sleep(unsigned long time) throw(InterruptedException);
 };
 
 } // end namespace rt

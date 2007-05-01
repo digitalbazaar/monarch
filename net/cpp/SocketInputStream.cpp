@@ -4,6 +4,7 @@
 #include "SocketInputStream.h"
 #include "Socket.h"
 
+using namespace db::io;
 using namespace db::net;
 
 SocketInputStream::SocketInputStream(Socket* s)
@@ -15,7 +16,7 @@ SocketInputStream::~SocketInputStream()
 {
 }
 
-inline bool SocketInputStream::read(char& b)
+inline bool SocketInputStream::read(char& b) throw(IOException)
 {
    bool rval = false;
    
@@ -29,7 +30,7 @@ inline bool SocketInputStream::read(char& b)
 }
 
 inline int SocketInputStream::read(
-   char* b, unsigned int offset, unsigned int length)
+   char* b, unsigned int offset, unsigned int length) throw(IOException)
 {
-   return mSocket->read(b, offset, length);
+   return mSocket->receive(b, offset, length);
 }

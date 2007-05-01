@@ -51,7 +51,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   virtual bool read(char& b);
+   virtual bool read(char& b) throw(db::io::IOException);
    
    /**
     * Reads some bytes from the stream. This method will block until at least
@@ -68,7 +68,8 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   virtual int read(char* b, unsigned int offset, unsigned int length);
+   virtual int read(char* b, unsigned int offset, unsigned int length)
+   throw(db::io::IOException);
 };
 
 } // end namespace net

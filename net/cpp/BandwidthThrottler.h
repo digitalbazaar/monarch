@@ -2,6 +2,7 @@
 #define BandwidthThrottler_H
 
 #include "Object.h"
+#include "InterruptedException.h"
 
 namespace db
 {
@@ -103,7 +104,7 @@ protected:
     * @exception InterruptedException thrown if the thread this throttler
     *            is waiting on gets interrupted.
     */
-   void limitBandwidth();
+   void limitBandwidth() throw(db::rt::InterruptedException);
    
 public:
    /**
@@ -131,7 +132,8 @@ public:
     * @exception InterruptedException thrown if the thread this throttler
     *            is waiting on gets interrupted.
     */
-   unsigned int requestBytes(unsigned int count);
+   unsigned int requestBytes(unsigned int count)
+   throw(db::rt::InterruptedException);
    
    /**
     * Sets the rate limit in bytes/second. A value of 0 indicates no rate limit.

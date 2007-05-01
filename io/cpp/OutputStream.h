@@ -5,6 +5,7 @@
 #define OutputStream_H
 
 #include "Object.h"
+#include "IOException.h"
 
 namespace db
 {
@@ -37,7 +38,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual void write(char b) = 0;
+   virtual void write(char b) throw(IOException) = 0;
    
    /**
     * Writes some bytes to the stream.
@@ -48,7 +49,8 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual void write(char* b, unsigned int offset, unsigned int length);
+   virtual void write(char* b, unsigned int offset, unsigned int length)
+   throw(IOException);
    
    /**
     * Closes the stream.
@@ -59,7 +61,7 @@ public:
 };
 
 inline void OutputStream::write(
-   char* b, unsigned int offset, unsigned int length)
+   char* b, unsigned int offset, unsigned int length) throw(IOException)
 {
    int limit = offset + length;
    for(int i = offset; i < limit; i++)

@@ -5,6 +5,7 @@
 #define InputStream_H
 
 #include "Object.h"
+#include "IOException.h"
 
 namespace db
 {
@@ -41,7 +42,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   virtual bool read(char& b) = 0;
+   virtual bool read(char& b) throw(IOException) = 0;
    
    /**
     * Reads some bytes from the stream. This method will block until at least
@@ -58,7 +59,8 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   virtual int read(char* b, unsigned int offset, unsigned int length);
+   virtual int read(
+      char* b, unsigned int offset, unsigned int length) throw(IOException);
    
    /**
     * Skips some bytes in the stream. This method will block until the
@@ -73,17 +75,18 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   virtual unsigned long skip(unsigned long count);
+   virtual unsigned long skip(unsigned long count) throw(IOException);
    
    /**
     * Closes the stream.
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   virtual void close();
+   virtual void close() throw(IOException);
 };
 
 inline int InputStream::read(char* b, unsigned int offset, unsigned int length)
+throw(IOException)
 {
    int rval = -1;
    
@@ -98,7 +101,7 @@ inline int InputStream::read(char* b, unsigned int offset, unsigned int length)
    return rval;
 }
 
-inline unsigned long InputStream::skip(unsigned long count)
+inline unsigned long InputStream::skip(unsigned long count) throw(IOException)
 {
    // read and dump bytes
    char b[2048];
@@ -115,7 +118,7 @@ inline unsigned long InputStream::skip(unsigned long count)
    return numBytes;
 }
 
-inline void InputStream::close()
+inline void InputStream::close() throw(IOException)
 {
    // nothing to do in base class
 }

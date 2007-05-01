@@ -47,7 +47,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual void write(char b);
+   virtual void write(char b) throw(db::io::IOException);
    
    /**
     * Writes some bytes to the stream.
@@ -58,7 +58,8 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual void write(char* b, unsigned int offset, unsigned int length);
+   virtual void write(char* b, unsigned int offset, unsigned int length)
+   throw(db::io::IOException);
 };
 
 } // end namespace net

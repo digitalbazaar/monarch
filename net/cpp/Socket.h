@@ -5,7 +5,10 @@
 #define Socket_H
 
 #include "Object.h"
+#include "IOException.h"
 #include "SocketAddress.h"
+#include "SocketException.h"
+#include "SocketTimeoutException.h"
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
 
@@ -62,7 +65,7 @@ public:
     * 
     * @exception SocketException thrown if the address could not be bound.
     */
-   virtual void bind(SocketAddress* address);
+   virtual void bind(SocketAddress* address) throw(SocketException);
    
    /**
     * Listens for a connection to this Socket and accepts it. This method
@@ -78,7 +81,8 @@ public:
     * @exception SocketTimeoutException thrown if the timeout is reached
     *            before a connection was made.
     */
-   virtual void accept(Socket* socket, unsigned int timeout);
+   virtual void accept(Socket* socket, unsigned int timeout)
+   throw(SocketException, SocketTimeoutException);
    
    /**
     * Connects this Socket to the given address.
@@ -88,7 +92,8 @@ public:
     * 
     * @exception SocketException thrown if a socket error occurs.
     */
-   virtual void connect(SocketAddress* address, unsigned int timeout);
+   virtual void connect(SocketAddress* address, unsigned int timeout)
+   throw(SocketException);
    
    /**
     * Closes this Socket. This will be done automatically when the Socket is
@@ -129,7 +134,8 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual int read(char* b, int offset, int length);
+   virtual int receive(char* b, int offset, int length)
+   throw(db::io::IOException);
    
    /**
     * Writes raw data to this Socket.
@@ -143,7 +149,8 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual void write(char* b, int offset, int length);
+   virtual void send(char* b, int offset, int length)
+   throw (db::io::IOException);
 };
 
 } // end namespace net

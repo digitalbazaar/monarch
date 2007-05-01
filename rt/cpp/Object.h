@@ -11,7 +11,7 @@ namespace db
 namespace rt
 {
 
-// forward declare Thread
+// forward declare Thread, InterruptedException
 class Thread;
 
 /**
@@ -91,6 +91,9 @@ public:
     *
     * @param timeout the number of milliseconds to wait for a notify call
     *                before timing out, 0 to wait indefinitely.
+    * 
+    * @exception InterruptedException thrown if the current Thread is
+    *            interrupted while waiting.
     */
    virtual void wait(unsigned long timeout = 0);
    

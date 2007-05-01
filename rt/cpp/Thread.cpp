@@ -2,7 +2,6 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Thread.h"
-#include "InterruptedException.h"
 
 using namespace std;
 using namespace db::rt;
@@ -174,7 +173,7 @@ bool Thread::interrupted()
    return rval;
 }
 
-void Thread::sleep(unsigned long time)
+void Thread::sleep(unsigned long time) throw(InterruptedException)
 {
    // FIXME: implement me
    throw Exception("Thread::sleep() not implemented yet!");

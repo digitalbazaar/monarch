@@ -4,6 +4,7 @@
 #include "SocketOutputStream.h"
 #include "Socket.h"
 
+using namespace db::io;
 using namespace db::net;
 
 SocketOutputStream::SocketOutputStream(Socket* s)
@@ -15,14 +16,14 @@ SocketOutputStream::~SocketOutputStream()
 {
 }
 
-inline void SocketOutputStream::write(char b)
+inline void SocketOutputStream::write(char b) throw(IOException)
 {
    char buffer[1] = {b};
    write(buffer, 0, 1);
 }
 
 inline void SocketOutputStream::write(
-   char* b, unsigned int offset, unsigned int length)
+   char* b, unsigned int offset, unsigned int length) throw(IOException)
 {
-   mSocket->write(b, offset, length);
+   mSocket->send(b, offset, length);
 }

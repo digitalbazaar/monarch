@@ -70,7 +70,7 @@ protected:
     * 
     * @exception InterruptedException thrown if the thread is interrupted.
     */
-   void waitThread();
+   void waitThread() throw(InterruptedException);
    
    /**
     * Notifies thread(s) to wake up.
@@ -136,7 +136,7 @@ public:
     *
     * @exception InterruptedException thrown if the thread is interrupted.
     */
-   void acquire();
+   void acquire() throw(InterruptedException);
    
    /**
     * Acquires the given number of permits or blocks until one
@@ -146,7 +146,7 @@ public:
     * 
     * @exception InterruptedException thrown if the thread is interrupted.
     */
-   void acquire(int permits);
+   void acquire(int permits) throw(InterruptedException);
    
    /**
     * Acquires a permit if one is available.
