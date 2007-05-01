@@ -40,6 +40,25 @@ protected:
     * The stream for writing to the Socket.
     */
    SocketOutputStream mOutputStream;
+   
+   /**
+    * Creates a Socket with the specified type and protocol and assigns its
+    * file descriptor to mFileDescriptor.
+    * 
+    * @param type the type of Socket to create.
+    * @param protocol the protocol for the Socket.
+    * 
+    * @exception SocketException thrown if the Socket could not be created.
+    */
+   virtual void create(int type, int protocol) throw(SocketException);
+   
+   /**
+    * Initializes this Socket by acquiring a file descriptor for it. This
+    * method must be called before trying to use this Socket.
+    * 
+    * @exception SocketException thrown if the Socket could not be initialized.
+    */
+   virtual void initialize() throw(SocketException) = 0;
 
 public:
    /**
@@ -53,19 +72,13 @@ public:
    virtual ~Socket();
    
    /**
-    * Initializes this Socket by acquiring a file descriptor for it. This
-    * method must be called before trying to use this Socket.
-    */
-   virtual void initialize();
-   
-   /**
     * Binds this Socket to a SocketAddress.
     * 
     * @param address the address to bind to.
     * 
     * @exception SocketException thrown if the address could not be bound.
     */
-   virtual void bind(SocketAddress* address) throw(SocketException);
+   virtual void bind(SocketAddress* address) throw(SocketException) = 0;
    
    /**
     * Listens for a connection to this Socket and accepts it. This method
@@ -82,7 +95,7 @@ public:
     *            before a connection was made.
     */
    virtual void accept(Socket* socket, unsigned int timeout)
-   throw(SocketException, SocketTimeoutException);
+   throw(SocketException, SocketTimeoutException) = 0;
    
    /**
     * Connects this Socket to the given address.
@@ -93,7 +106,7 @@ public:
     * @exception SocketException thrown if a socket error occurs.
     */
    virtual void connect(SocketAddress* address, unsigned int timeout)
-   throw(SocketException);
+   throw(SocketException) = 0;
    
    /**
     * Closes this Socket. This will be done automatically when the Socket is
