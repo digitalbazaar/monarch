@@ -5,6 +5,7 @@
 #define Socket_H
 
 #include "Object.h"
+#include "SocketDefinitions.h"
 #include "SocketAddress.h"
 #include "SocketException.h"
 #include "SocketTimeoutException.h"

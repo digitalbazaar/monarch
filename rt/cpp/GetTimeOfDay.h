@@ -4,13 +4,18 @@
 #ifndef GetTimeOfDay_H
 #define GetTimeOfDay_H
 
+// include types
+#ifndef WIN32
+   #include <sys/types.h>
+#endif
+
 // check for the appropriate time header to include:
-#if TIME_WITH_SYS_TIME
+#ifdef TIME_WITH_SYS_TIME
    // first include sys/time and then time 
    #include <sys/time.h>
    #include <time.h>
 #else
-   #if HAVE_SYS_TIME_H
+   #ifdef HAVE_SYS_TIME_H
       // include just sys/time
       #include <sys/time.h>
    #else
@@ -21,14 +26,13 @@
 #endif
 
 // define gettimeofday() as necessary
-#if !HAVE_GETTIMEOFDAY || MINGW
+#ifndef HAVE_GETTIMEOFDAY
 
-#if WIN32
+#ifdef WIN32
    // include windows headers for obtaining time
    #include <windows.h>
-   #include <winsock2.h>
 #else
-   // unknown system, cannot implement gettimeofday
+   // may be unknown system, cannot implement gettimeofday
    #include <errno.h>
 #endif
 
@@ -83,7 +87,7 @@ struct timezone
 inline static int gettimeofday(struct timeval* tv, struct timezone* tz)
 {
 // if on a windows system, define the method
-#if WIN32
+#ifdef WIN32
    // define tzinit flag (whether or not the timezone has been initialized)
    static bool tzinit = false;
    

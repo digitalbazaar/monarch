@@ -2,7 +2,6 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Socket.h"
-#include "SocketDefinitions.h"
 #include "InterruptedException.h"
 
 using namespace db::io;
@@ -51,6 +50,9 @@ void Socket::populateAddressStructure(
 
 void Socket::create(int type, int protocol) throw(SocketException)
 {
+   // use PF_INET = "protocol family internet" (which just so happens to have
+   // the same value as AF_INET but that's only because different protocols
+   // were never used with the same address family
    int fd = socket(PF_INET, type, protocol);
    if(fd < 0)
    {
@@ -179,7 +181,7 @@ Socket* Socket::accept(unsigned int timeout) throw(SocketException)
    
    // create address object
    struct sockaddr_in addr;
-   int addrSize = sizeof(addr);
+   socklen_t addrSize = sizeof(addr);
    
    // accept a connection
    int fd = ::accept(mFileDescriptor, (sockaddr*)&addr, &addrSize);
@@ -320,7 +322,7 @@ void Socket::getLocalAddress(SocketAddress* address) throw(SocketException)
    }
    
    sockaddr_in addr;
-   int addrSize = sizeof(addr);
+   socklen_t addrSize = sizeof(addr);
    
    int error = getsockname(mFileDescriptor, (sockaddr*)&addr, &addrSize);
    if(error < 0)
@@ -350,7 +352,7 @@ void Socket::getRemoteAddress(SocketAddress* address) throw(SocketException)
    }
    
    sockaddr_in addr;
-   int addrSize = sizeof(addr);
+   socklen_t addrSize = sizeof(addr);
    
    int error = getpeername(mFileDescriptor, (sockaddr*)&addr, &addrSize);
    if(error < 0)

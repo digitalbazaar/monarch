@@ -18,6 +18,16 @@ class Runnable
 {
 public:
    /**
+    * Constructs this Runnable.
+    */
+   Runnable() {};
+   
+   /**
+    * Destructs this Runnable.
+    */
+   virtual ~Runnable() {};
+   
+   /**
     * Runs some implementation specific operation.
     */
    virtual void run() = 0;

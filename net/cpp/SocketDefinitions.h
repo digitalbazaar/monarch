@@ -18,13 +18,51 @@
    #include <netdb.h>
    // includes sockaddr_in structure for internet addresses and
    // methods for converting numbers to network byte order (big-endian)
-   #include <netinet/in.h>   
+   #include <netinet/in.h>
+   // include inet_aton() and inet_ntoa()
+   #include <arpa/inet.h>   
 #endif
 
 // for errors
 #include <errno.h>
 
+//// define IP protocols as necessary
+//#ifndef IPPROTO_IP
+//   #define IPPROTO_IP     0
+//#endif
+//#ifndef IPPROTO_ICMP
+//   #define IPPROTO_ICMP   1
+//#endif
+//#ifndef IPPROTO_GGP
+//   #define IPPROTO_GGP    2
+//#endif
+//#ifndef IPPROTO_TCP
+//   #define IPPROTO_TCP    6
+//#endif
+//#ifndef IPPROTO_PUP
+//   #define IPPROTO_PUP    12
+//#endif
+//#ifndef IPPROTO_UDP
+//   #define IPPROTO_UDP    17
+//#endif
+//#ifndef IPPROTO_IDP
+//   #define IPPROTO_IDP    22
+//#endif
+//#ifndef IPPROTO_ND
+//   #define IPPROTO_ND     77
+//#endif
+//
+//#ifndef IPPROTO_RAW
+//   #define IPPROTO_RAW    255
+//#endif
+//#ifndef IPPROTO_MAX
+//   #define IPPROTO_MAX    256
+//#endif
+
 #ifdef WIN32
+   // define socklen_t
+   typedef int socklen_t;
+   
    // define close() for closesocket()
    inline static int close(int fd)
    {
@@ -34,14 +72,14 @@
    // define inet_aton()
    inline static int inet_aton(const char* in, struct in_addr* out)
    {
-      int rval = -1;
+      int rval = 0;
       
       long long addrLong = inet_addr(in);
       if(addrLong != -1 || in == "255.255.255.255")
       {
          // successful conversion
          out->s_addr = (unsigned long)addrLong;
-         rval = 0;
+         rval = 1;
       }
       
       return rval;

@@ -2,7 +2,6 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "UdpSocket.h"
-#include "SocketDefinitions.h"
 
 using namespace db::io;
 using namespace db::net;
@@ -100,7 +99,7 @@ throw(SocketException)
    {
       // create sockaddr_in (internet socket address) structure, if appropriate
       struct sockaddr_in addr;
-      int addrSize = sizeof(addr);
+      socklen_t addrSize = sizeof(addr);
       
       // receive some data
       rval = recvfrom(
@@ -146,7 +145,7 @@ throw(SocketException)
    
    // create sockaddr_in (internet socket address) structure
    struct sockaddr_in addr;
-   int addrSize = sizeof(addr);
+   socklen_t addrSize = sizeof(addr);
    
    // populate address structure
    populateAddressStructure(address, addr);
