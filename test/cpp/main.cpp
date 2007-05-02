@@ -158,6 +158,9 @@ void runLinuxSocketTest()
       "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
    socket.send(request, 0, sizeof(request));
    
+   // set receive timeout (10 seconds = 10000 milliseconds)
+   socket.setReceiveTimeout(10000);
+   
    char response[2048];
    int numBytes = 0;
    string str = "";
