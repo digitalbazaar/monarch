@@ -32,7 +32,24 @@ Socket::~Socket()
    close();
 }
 
-void Socket::create(int type, int protocol) throw (SocketException)
+void Socket::populateAddressStructure(
+   SocketAddress* address, sockaddr_in& addr)
+{
+   // the address family is internet (AF_INET = address family internet)
+   addr.sin_family = AF_INET;
+   
+   // htons = "Host To Network Short" which means order the short in
+   // network byte order (big-endian)
+   addr.sin_port = htons(address->getPort());
+   
+   // converts an address to network byte order
+   inet_aton(address->getAddress().c_str(), &addr.sin_addr);
+   
+   // zero-out the rest of the address structure
+   memset(&addr.sin_zero, '\0', 8);
+}
+
+void Socket::create(int type, int protocol) throw(SocketException)
 {
    // FIXME: initialize winsock needed?
    //#ifdef WIN32
@@ -46,11 +63,12 @@ void Socket::create(int type, int protocol) throw (SocketException)
       throw SocketException("Could not create Socket!", strerror(errno));
    }
    
+   // set reuse address flag
    // disables "address already in use" errors by reclaiming ports that
    // are waiting to be cleaned up
-   int option = 1;
+   int reuse = 1;
    int error = setsockopt(
-      fd, SOL_SOCKET, SO_REUSEADDR, (char *)&option, sizeof(option));
+      fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
    if(error < 0)
    {
       // close socket
@@ -63,6 +81,53 @@ void Socket::create(int type, int protocol) throw (SocketException)
    mFileDescriptor = fd;
 }
 
+bool Socket::select() throw(SocketException)
+{
+   bool rval = false;
+   
+   // create a file descriptor set to select on
+   fd_set readfds;
+   FD_ZERO(&readfds);
+   
+   // add file descriptor to set
+   FD_SET((unsigned int)mFileDescriptor, &readfds);
+   
+   // "n" parameter is the highest numbered descriptor plus 1
+   int n = mFileDescriptor + 1;
+   
+   // use socket receive timeout
+   // create timeout (1 millisecond is 1000 microseconds) 
+   struct timeval tv;
+   tv.tv_sec = getReceiveTimeout() / 1000LL;
+   tv.tv_usec = (getReceiveTimeout() % 1000LL) * 1000LL;
+   
+   // wait for data to arrive on the socket
+   int error = ::select(n, &readfds, NULL, NULL, &tv);
+   if(error < 0)
+   {
+      if(errno == EINTR)
+      {
+         // throw interrupted exception
+         throw InterruptedException(
+            "Socket read interrupted!", strerror(errno));
+      }
+      
+      // error occurred, get string message
+      throw SocketException("Could not read from Socket!", strerror(errno));
+   }
+   else if(error == 0)
+   {
+      // timeout occurred
+      throw SocketTimeoutException("Socket read timed out!", strerror(errno));
+   }
+   else
+   {
+      rval = FD_ISSET(mFileDescriptor, &readfds);
+   }
+   
+   return rval;
+}
+
 void Socket::bind(SocketAddress* address) throw(SocketException)
 {
    // initialize as necessary
@@ -71,15 +136,8 @@ void Socket::bind(SocketAddress* address) throw(SocketException)
    // create sockaddr_in (internet socket address) structure
    struct sockaddr_in addr;
    
-   // the address family is internet (AF_INET = address family internet)
-   addr.sin_family = AF_INET;
-   
-   // htons = "Host To Network Short" which means order the short in
-   // network byte order (big-endian)
-   addr.sin_port = htons(address->getPort());
-   
-   // converts an address to network byte order
-   inet_aton(address->getAddress().c_str(), &addr.sin_addr);
+   // populate address structure
+   populateAddressStructure(address, addr);
    
    // bind
    int error = ::bind(
@@ -146,18 +204,13 @@ throw(SocketException)
    // initialize as necessary
    initialize();
    
+   // FIXME: handle timeout somehow
+   
    // create sockaddr_in (internet socket address) structure
    struct sockaddr_in addr;
    
-   // the address family is internet (AF_INET = address family internet)
-   addr.sin_family = AF_INET;
-   
-   // htons = "Host To Network Short" which means order the short in
-   // network byte order (big-endian)
-   addr.sin_port = htons(address->getPort());
-   
-   // converts an address to network byte order
-   inet_aton(address->getAddress().c_str(), &addr.sin_addr);
+   // populate address structure
+   populateAddressStructure(address, addr);
    
    // connect
    int error = ::connect(
@@ -195,68 +248,31 @@ int Socket::receive(char* b, int offset, int length) throw(SocketException)
       throw SocketException("Cannot read from unconnected Socket!");
    }
    
-   // create a file descriptor set to select on
-   fd_set readfds;
-   FD_ZERO(&readfds);
-   
-   // add file descriptor to set
-   FD_SET((unsigned int)mFileDescriptor, &readfds);
-   
-   // "n" parameter is the highest numbered descriptor plus 1
-   int n = mFileDescriptor + 1;
-   
-   // use socket receive timeout
-   // create timeout (1 millisecond is 1000 microseconds) 
-   struct timeval tv;
-   tv.tv_sec = getReceiveTimeout() / 1000LL;
-   tv.tv_usec = (getReceiveTimeout() % 1000LL) * 1000LL;
-   
-   // wait for data to arrive on the socket
-   int error = select(n, &readfds, NULL, NULL, &tv);
-   if(error < 0)
+   // wait for data to become available
+   if(select())
    {
-      if(errno == EINTR)
+      // receive some data
+      rval = ::recv(mFileDescriptor, b + offset, length, 0);
+      if(rval < -1)
       {
-         // throw interrupted exception
-         throw InterruptedException(
-            "Socket read interrupted!", strerror(errno));
+         switch(errno)
+         {
+            case ECONNRESET:
+               throw SocketException(
+                  "Could not read from Socket!", strerror(errno));
+               break;
+            case EWOULDBLOCK:
+               // do nothing, receive would block
+               break;
+            default:
+               throw SocketException(
+                  "Could not read from Socket!", strerror(errno));
+         }
       }
-      
-      // error occurred, get string message
-      throw SocketException("Could not read from Socket!", strerror(errno));
-   }
-   else if(error == 0)
-   {
-      // timeout occurred
-      throw SocketTimeoutException("Socket read timed out!", strerror(errno));
-   }
-   else
-   {
-      if(FD_ISSET(mFileDescriptor, &readfds))
+      else if(rval == 0)
       {
-         // receive some data
-         rval = ::recv(mFileDescriptor, b + offset, length, 0);
-         if(rval < -1)
-         {
-            switch(errno)
-            {
-               case ECONNRESET:
-                  throw SocketException(
-                     "Could not read from Socket!", strerror(errno));
-                  break;
-               case EWOULDBLOCK:
-                  // do nothing, receive would block
-                  break;
-               default:
-                  throw SocketException(
-                     "Could not read from Socket!", strerror(errno));
-            }
-         }
-         else if(rval == 0)
-         {
-            // socket is closed now
-            rval = -1;
-         }
+         // socket is closed now
+         rval = -1;
       }
    }
    

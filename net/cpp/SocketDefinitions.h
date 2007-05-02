@@ -47,6 +47,52 @@
       return rval;
    }
    
+   // define multicast values
+   #ifndef IP_MULTICAST_IF
+      #define IP_MULTICAST_IF           9
+   #endif
+   #ifndef IP_MULTICAST_TTL
+      #define IP_MULTICAST_TTL          10
+   #endif
+   #ifndef IP_MULTICAST_LOOP
+      #define IP_MULTICAST_LOOP         11
+   #endif
+   #ifndef IP_ADD_MEMBERSHIP
+      #define IP_ADD_MEMBERSHIP         12
+   #endif
+   #ifndef IP_DROP_MEMBERSHIP
+      #define IP_DROP_MEMBERSHIP        13
+   #endif
+   #ifndef IP_DEFAULT_MULTICAST_TTL
+      #define IP_DEFAULT_MULTICAST_TTL  1
+   #endif
+   #ifndef IP_DEFAULT_MULTICAST_LOOP
+      #define IP_DEFAULT_MULTICAST_LOOP 1
+   #endif
+   #ifndef IP_MAX_MEMBERSHIPS
+      #define IP_MAX_MEMBERSHIPS        20
+   #endif
+   #ifndef DESTINATION_MCAST
+      #define DESTINATION_MCAST         "234.5.6.7"
+   #endif
+   #ifndef DESTINATION_PORT
+      #define DESTINATION_PORT          4567
+   #endif
+   
+   // define structure for multicast requests to join/leave groups
+   typedef struct ip_mreq
+   {
+      /**
+       * The multicast group address.
+       */
+      struct in_addr imr_multiaddr;
+      
+      /**
+       * The interface to join on.
+       */
+      struct in_addr imr_interface;
+   }IP_MREQ;
+   
    // define standard errors according to winsock errors
    #ifndef EWOULDBLOCK
       #define EWOULDBLOCK       WSAEWOULDBLOCK

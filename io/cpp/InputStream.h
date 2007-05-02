@@ -54,7 +54,7 @@ public:
     * @param offset the offset at which to start filling the array.
     * @param length the maximum number of bytes to read into the buffer.
     * 
-    * @return the number of bytes read from the stream of -1 if the end of the
+    * @return the number of bytes read from the stream or -1 if the end of the
     *         stream has been reached.
     * 
     * @exception IOException thrown if an IO error occurs.

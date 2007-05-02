@@ -66,6 +66,15 @@ protected:
    unsigned int mBacklog;
    
    /**
+    * Populates a sockaddr_in structure using a SocketAddress object.
+    * 
+    * @param address the SocketAddress object to use.
+    * @param addr the sockaddr_in structure to populate.
+    */
+   virtual void populateAddressStructure(
+      SocketAddress* address, sockaddr_in& addr);
+   
+   /**
     * Creates a Socket with the specified type and protocol and assigns its
     * file descriptor to mFileDescriptor.
     * 
@@ -75,6 +84,16 @@ protected:
     * @exception SocketException thrown if the Socket could not be created.
     */
    virtual void create(int type, int protocol) throw(SocketException);
+   
+   /**
+    * Blocks until data is available for receiving or until a connection
+    * closes.
+    * 
+    * @return true if data is available for receiving.
+    * 
+    * @exception SocketException thrown if a socket error occurs.
+    */
+   virtual bool select() throw(SocketException);
    
    /**
     * Initializes this Socket by acquiring a file descriptor for it. This
@@ -184,7 +203,7 @@ public:
     * @param offset the offset at which to start filling the array.
     * @param length the maximum number of bytes to read into the buffer.
     * 
-    * @return the number of bytes read from the stream of -1 if the end of the
+    * @return the number of bytes read from the stream or -1 if the end of the
     *         stream (the Socket has closed) has been reached.
     * 
     * @exception SocketException thrown if a socket error occurs. 
