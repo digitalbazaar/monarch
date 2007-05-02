@@ -6,7 +6,7 @@
 
 #ifdef WIN32
    // windows socket library
-   #include <winsock.h>
+   #include <winsock2.h>
 #else
    // data types
    #include <sys/types.h>

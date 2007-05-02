@@ -51,12 +51,6 @@ void Socket::populateAddressStructure(
 
 void Socket::create(int type, int protocol) throw(SocketException)
 {
-   // FIXME: initialize winsock needed?
-   //#ifdef WIN32
-   //WSADATA wsaData;
-   //WSAStartup(MAKEWORD(2, 2), &wsaData)
-   //#endif
-   
    int fd = socket(PF_INET, type, protocol);
    if(fd < 0)
    {

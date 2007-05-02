@@ -8,8 +8,11 @@
 #include "Runnable.h"
 #include "Thread.h"
 #include "System.h"
+#include "TcpSocket.h"
+#include "InternetAddress.h"
 
 using namespace std;
+using namespace db::net;
 using namespace db::rt;
 using namespace db::util;
 
@@ -137,13 +140,53 @@ void runThreadTest()
    t5.join();
 }
 
+void runSocketTest()
+{
+   // initialize winsock
+#ifdef WIN32
+   WSADATA wsaData;
+   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
+   {
+      cout << "ERROR!!!" << endl;
+   }
+#endif
+   
+   // create tcp socket
+   TcpSocket socket;
+   
+   // create address
+   // "www.google.com"
+   InternetAddress address("64.233.161.99", 80);
+   
+   // connect
+   socket.connect(&address);
+   
+   // close
+   socket.close();
+   
+   cout << "DONE!" << endl;
+   
+   // cleanup winsock
+#ifdef WIN32
+   WSACleanup();
+#endif
+}
+
 int main()
 {
    cout << "Tests starting..." << endl << endl;
    
-   //runBase64Test();
-   //runTimeTest();
-   runThreadTest();
+   try
+   {
+      //runBase64Test();
+      //runTimeTest();
+      //runThreadTest();
+      runSocketTest();
+   }
+   catch(...)
+   {
+      cout << "Exception caught!" << endl;
+   }
    
    cout << endl << "Tests finished." << endl;
 }

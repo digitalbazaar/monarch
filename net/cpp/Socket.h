@@ -115,7 +115,7 @@ protected:
     */
    virtual Socket* createConnectedSocket(unsigned int fd)
    throw(SocketException) = 0;
-
+   
 public:
    /**
     * Creates a new Socket.
@@ -180,7 +180,7 @@ public:
     * 
     * @exception SocketException thrown if a socket error occurs.
     */
-   virtual void connect(SocketAddress* address, unsigned int timeout)
+   virtual void connect(SocketAddress* address, unsigned int timeout = 30)
    throw(SocketException);
    
    /**
