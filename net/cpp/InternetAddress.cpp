@@ -21,6 +21,7 @@ InternetAddress::~InternetAddress()
 {
 }
 
+#include <iostream.h>
 void InternetAddress::setAddress(const string& address) throw(SocketException)
 {
    // store the address as the host
@@ -39,7 +40,7 @@ void InternetAddress::setAddress(const string& address) throw(SocketException)
       }
       
       mHost = host->h_name;
-      mAddress = host->h_addr;
+      mAddress = inet_ntoa(*(in_addr*)host->h_addr);
    }
 }
 

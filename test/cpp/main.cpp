@@ -178,9 +178,8 @@ void runLinuxSocketTest()
    TcpSocket socket;
    
    // create address
-   // "www.google.com"
-   //InternetAddress address("64.233.161.99", 80);
-   InternetAddress address("127.0.0.1", 80);
+   //InternetAddress address("127.0.0.1", 80);
+   InternetAddress address("www.google.com", 80);
    cout << address.getAddress() << endl;
    
    // connect
