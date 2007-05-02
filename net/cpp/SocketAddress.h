@@ -36,10 +36,19 @@ public:
    /**
     * Creates a new SocketAddress.
     */
-   SocketAddress() : mAddress(""), mPort(0) {};
+   SocketAddress() : mAddress("0.0.0.0"), mPort(0) {};
    
    /**
-    * Creates a new SocketAddress.
+    * Creates a new SocketAddress with the specified address and port.
+    * 
+    * @param address the address (or host).
+    * @param port the socket port.
+    */
+   SocketAddress(std::string address, unsigned short port) :
+      mAddress(address), mPort(port) {};
+   
+   /**
+    * Destructs this SocketAddress.
     */
    virtual ~SocketAddress() {};   
    

@@ -93,6 +93,12 @@ void Socket::bind(SocketAddress* address) throw(SocketException)
    mBound = true;
 }
 
+void Socket::bind(unsigned short port)
+{
+   SocketAddress address("0.0.0.0", port);
+   bind(&address);
+}
+
 void Socket::listen(unsigned int backlog) throw(SocketException)
 {
    if(!isBound())

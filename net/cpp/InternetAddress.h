@@ -4,6 +4,8 @@
 #ifndef InternetAddress_H
 #define InternetAddress_H
 
+#include <string>
+
 #include "SocketAddress.h"
 
 namespace db
@@ -36,7 +38,15 @@ public:
    InternetAddress();
    
    /**
-    * Creates a new InternetAddress.
+    * Creates a new InternetAddress with the specified address and port.
+    * 
+    * @param address the address (or host).
+    * @param port the socket port.
+    */
+   InternetAddress(const std::string& address, unsigned short port);
+   
+   /**
+    * Destructs this InternetAddress.
     */
    virtual ~InternetAddress();
    

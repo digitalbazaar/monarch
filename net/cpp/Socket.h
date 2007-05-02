@@ -118,6 +118,16 @@ public:
    virtual void bind(SocketAddress* address) throw(SocketException);
    
    /**
+    * Binds this Socket to a local port on the local machine's IP address.
+    * 
+    * This will bind to INADDR_ANY or 0.0.0.0 in IPv4.
+    * A port of 0 will bind to a random emphemeral port.
+    * 
+    * @param port the port to bind to.
+    */
+   virtual void bind(unsigned short port);
+   
+   /**
     * Causes this Socket to start listening for incoming connections.
     * 
     * @param backlog the number of connections to keep backlogged.
@@ -127,8 +137,8 @@ public:
    virtual void listen(unsigned int backlog = 50) throw(SocketException);
    
    /**
-    * Listens for a connection to this Socket and accepts it. This method
-    * will block until a connection is made to this Socket.
+    * Accepts a connection to this Socket. This method will block until a
+    * connection is made to this Socket. If this socket is 
     * 
     * The passed socket will be initialized to the file descriptor that points
     * to the socket that can be used to communicate with the connected socket.

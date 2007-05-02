@@ -11,6 +11,12 @@ InternetAddress::InternetAddress()
 {
 }
 
+InternetAddress::InternetAddress(const string& address, unsigned short port)
+{
+   setAddress(address);
+   mPort = port;
+}
+
 InternetAddress::~InternetAddress()
 {
 }
