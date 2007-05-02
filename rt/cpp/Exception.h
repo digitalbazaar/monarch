@@ -38,8 +38,13 @@ public:
     * @param message the message for this Exception.
     * @param code the code for this Exception.
     */
-   Exception(std::string message = "", std::string code = "");
-
+   Exception(const std::string& message = "", const std::string& code = "");
+   
+   /**
+    * Destructs this Exception.
+    */
+   virtual ~Exception();
+   
    /**
     * Gets the message for this Exception.
     *

@@ -16,7 +16,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class UdpSocket : public virtual Socket
+class UdpSocket : public Socket
 {
 protected:
    /**

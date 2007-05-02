@@ -16,7 +16,7 @@ namespace io
  *
  * @author Dave Longley
  */
-class IOException : public virtual db::rt::Exception
+class IOException : public db::rt::Exception
 {
 public:
    /**
@@ -27,7 +27,12 @@ public:
     * @param message the message for this Exception.
     * @param code the code for this Exception.
     */
-   IOException(std::string message = "", std::string code = "");
+   IOException(const std::string& message = "", const std::string& code = "");
+   
+   /**
+    * Destructs this IOException.
+    */
+   virtual ~IOException();
 };
 
 } // end namespace io

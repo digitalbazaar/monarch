@@ -55,7 +55,7 @@ void runTimeTest()
    cout << "Time end=" << end << endl;
 }
 
-class TestRunnable : public virtual Object, public virtual Runnable
+class TestRunnable : public virtual Object, public Runnable
 {
    virtual void run()
    {
@@ -140,7 +140,7 @@ void runThreadTest()
    t5.join();
 }
 
-void runSocketTest()
+void runWindowsSocketTest()
 {
    // initialize winsock
 #ifdef WIN32
@@ -172,6 +172,35 @@ void runSocketTest()
 #endif
 }
 
+void runLinuxSocketTest()
+{
+   // create tcp socket
+   TcpSocket socket;
+   
+   // create address
+   // "www.google.com"
+   //InternetAddress address("64.233.161.99", 80);
+   InternetAddress address("127.0.0.1", 80);
+   cout << address.getAddress() << endl;
+   
+   // connect
+   socket.connect(&address);
+   
+   char request[] = "GET / HTTP/1.0\r\nContent-Length: 0\r\n\r\n";
+   socket.send(request, 0, sizeof(request));
+   
+   char response[2048];
+   int numBytes = socket.receive(response, 0, 2048);
+   
+   cout << "numBytes received: " << numBytes << endl;
+   
+   // close
+   socket.close();
+   
+   cout << "DONE!" << endl;
+}
+
+
 int main()
 {
    cout << "Tests starting..." << endl << endl;
@@ -181,7 +210,14 @@ int main()
       //runBase64Test();
       //runTimeTest();
       //runThreadTest();
-      runSocketTest();
+      //runWindowsSocketTest();
+      runLinuxSocketTest();
+   }
+   catch(SocketException& e)
+   {
+      cout << "SocketException caught!" << endl;
+      cout << "message: " << e.getMessage() << endl;
+      cout << "code: " << e.getCode() << endl;
    }
    catch(...)
    {

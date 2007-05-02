@@ -7,7 +7,11 @@ using namespace std;
 using namespace db::io;
 using namespace db::rt;
 
-IOException::IOException(string message, string code) :
+IOException::IOException(const string& message, const string& code) :
    Exception(message, code)
+{
+}
+
+IOException::~IOException()
 {
 }

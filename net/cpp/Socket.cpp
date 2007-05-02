@@ -93,12 +93,17 @@ bool Socket::select() throw(SocketException)
    
    // use socket receive timeout
    // create timeout (1 millisecond is 1000 microseconds) 
-   struct timeval tv;
-   tv.tv_sec = getReceiveTimeout() / 1000LL;
-   tv.tv_usec = (getReceiveTimeout() % 1000LL) * 1000LL;
+   struct timeval* tv = NULL;
+   if(getReceiveTimeout() > 0)
+   {
+      struct timeval timeout;
+      timeout.tv_sec = getReceiveTimeout() / 1000LL;
+      timeout.tv_usec = (getReceiveTimeout() % 1000LL) * 1000LL;
+      tv = &timeout;
+   }
    
    // wait for data to arrive on the socket
-   int error = ::select(n, &readfds, NULL, NULL, &tv);
+   int error = ::select(n, &readfds, NULL, NULL, tv);
    if(error < 0)
    {
       if(errno == EINTR)

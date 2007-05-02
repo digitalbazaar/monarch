@@ -6,7 +6,11 @@
 using namespace std;
 using namespace db::rt;
 
-InterruptedException::InterruptedException(string message, string code) :
-   Exception(message, code)
+InterruptedException::InterruptedException(
+   const string& message, const string& code) : Exception(message, code)
+{
+}
+
+InterruptedException::~InterruptedException()
 {
 }

@@ -16,7 +16,7 @@ namespace rt
  *
  * @author Dave Longley
  */
-class InterruptedException : public virtual Exception
+class InterruptedException : public Exception
 {
 public:
    /**
@@ -27,7 +27,13 @@ public:
     * @param message the message for this Exception.
     * @param code the code for this Exception.
     */
-   InterruptedException(std::string message = "", std::string code = "");
+   InterruptedException(
+      const std::string& message = "", const std::string& code = "");
+   
+   /**
+    * Destructs this InterruptedException.
+    */
+   virtual ~InterruptedException();
 };
 
 } // end namespace rt

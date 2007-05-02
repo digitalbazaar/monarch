@@ -16,7 +16,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class TcpSocket : public virtual Socket
+class TcpSocket : public Socket
 {
 protected:
    /**

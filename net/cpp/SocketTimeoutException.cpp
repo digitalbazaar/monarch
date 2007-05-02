@@ -6,7 +6,11 @@
 using namespace std;
 using namespace db::net;
 
-SocketTimeoutException::SocketTimeoutException(string message, string code) :
-   SocketException(message, code)
+SocketTimeoutException::SocketTimeoutException(
+   const string& message, const string& code) : SocketException(message, code)
+{
+}
+
+SocketTimeoutException::~SocketTimeoutException()
 {
 }

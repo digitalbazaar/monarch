@@ -19,7 +19,7 @@ class Socket;
  * 
  * @author Dave Longley
  */
-class SocketOutputStream : public virtual db::io::OutputStream
+class SocketOutputStream : public db::io::OutputStream
 {
 protected:
    /**

@@ -16,7 +16,7 @@ namespace net
  *
  * @author Dave Longley
  */
-class SocketException : public virtual db::io::IOException
+class SocketException : public db::io::IOException
 {
 public:
    /**
@@ -27,7 +27,13 @@ public:
     * @param message the message for this Exception.
     * @param code the code for this Exception.
     */
-   SocketException(std::string message = "", std::string code = "");
+   SocketException(
+      const std::string& message = "", const std::string& code = "");
+   
+   /**
+    * Destructs this SocketException.
+    */
+   virtual ~SocketException();
 };
 
 } // end namespace net

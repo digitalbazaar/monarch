@@ -6,11 +6,15 @@
 using namespace std;
 using namespace db::rt;
 
-Exception::Exception(string message, string code)
+Exception::Exception(const string& message, const string& code)
 {
    // store message and code
    mMessage = message;
    mCode = code;
+}
+
+Exception::~Exception()
+{
 }
 
 const string& Exception::getMessage()

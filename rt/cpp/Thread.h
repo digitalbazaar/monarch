@@ -26,7 +26,7 @@ namespace rt
  *
  * @author Dave Longley
  */
-class Thread : public virtual Object, public virtual Runnable
+class Thread : public virtual Object, public Runnable
 {
 protected:
    /**

@@ -25,16 +25,22 @@ void InternetAddress::setAddress(const string& address) throw(SocketException)
 {
    // store the address as the host
    mHost = address;
+   mAddress = address;
    
-   // try to resolve the address
-   struct hostent* host = gethostbyname(address.c_str());
-   if(host == NULL)
+   // try to convert the passed address to an internet address
+   in_addr addr;
+   if(inet_aton(address.c_str(), &addr) == 0)
    {
-      throw SocketException("Unknown host: " + address + "!");
+      // could not convert, so try to resolve the address
+      struct hostent* host = gethostbyname(address.c_str());
+      if(host == NULL)
+      {
+         throw SocketException("Unknown host: " + address + "!");
+      }
+      
+      mHost = host->h_name;
+      mAddress = host->h_addr;
    }
-   
-   mHost = host->h_name;
-   mAddress = host->h_addr;
 }
 
 const string& InternetAddress::getHost()

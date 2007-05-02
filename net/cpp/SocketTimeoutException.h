@@ -16,7 +16,7 @@ namespace net
  *
  * @author Dave Longley
  */
-class SocketTimeoutException : public virtual SocketException
+class SocketTimeoutException : public SocketException
 {
 public:
    /**
@@ -27,7 +27,13 @@ public:
     * @param message the message for this Exception.
     * @param code the code for this Exception.
     */
-   SocketTimeoutException(std::string message = "", std::string code = "");
+   SocketTimeoutException(
+      const std::string& message = "", const std::string& code = "");
+   
+   /**
+    * Destructs this SocketTimeoutException.
+    */
+   virtual ~SocketTimeoutException();
 };
 
 } // end namespace net

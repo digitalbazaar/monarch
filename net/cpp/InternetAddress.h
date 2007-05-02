@@ -23,7 +23,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class InternetAddress : public virtual SocketAddress
+class InternetAddress : public SocketAddress
 {
 protected:
    /**
