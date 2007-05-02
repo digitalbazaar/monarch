@@ -63,6 +63,27 @@ public:
       char* b, unsigned int offset, unsigned int length) throw(IOException);
    
    /**
+    * Peeks ahead and looks at some bytes in the stream. This method will block
+    * until at least one byte can be read or until the end of the stream is
+    * reached. A value of -1 will be returned if the end of the stream has been
+    * reached, otherwise the number of bytes read in the peek will be returned.
+    * 
+    * A subsequent call to read() or peek() will first read any previously
+    * peeked-at bytes.
+    * 
+    * @param b the array of bytes to fill.
+    * @param offset the offset at which to start filling the array.
+    * @param length the maximum number of bytes to read into the buffer.
+    * 
+    * @return the number of bytes read from the stream or -1 if the end of the
+    *         stream has been reached.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   virtual int peek(char* b, unsigned int offset, unsigned int length)
+   throw(db::io::IOException);
+   
+   /**
     * Skips some bytes in the stream. This method will block until the
     * some number of bytes up to specified number of bytes have been skipped
     * or the end of the stream is reached. This method will return the
@@ -99,6 +120,13 @@ throw(IOException)
    }
    
    return rval;
+}
+
+inline int InputStream::peek(char* b, unsigned int offset, unsigned int length)
+throw(IOException)
+{
+   // extending classes must implement this method
+   throw IOException("InputStream::peek() is not implemented!");
 }
 
 inline unsigned long InputStream::skip(unsigned long count) throw(IOException)
