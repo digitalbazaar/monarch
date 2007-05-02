@@ -186,20 +186,27 @@ void runLinuxSocketTest()
    // connect
    socket.connect(&address);
    
-   char request[] = "GET / HTTP/1.0\r\nContent-Length: 0\r\n\r\n";
+   char request[] =
+      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
    socket.send(request, 0, sizeof(request));
    
    char response[2048];
-   int numBytes = socket.receive(response, 0, 2048);
-   
-   cout << "numBytes received: " << numBytes << endl;
+   int numBytes = 0;
+   string str = "";
+   while((numBytes = socket.receive(response, 0, 2048)) != -1)
+   {
+      cout << "numBytes received: " << numBytes << endl;
+      str.append(response, numBytes);
+   }
    
    // close
    socket.close();
    
-   cout << "DONE!" << endl;
+   cout << "Socket connection closed." << endl;
+   cout << "Response:" << endl << str << endl;
+   
+   cout << endl << "Socket test complete." << endl;
 }
-
 
 int main()
 {
