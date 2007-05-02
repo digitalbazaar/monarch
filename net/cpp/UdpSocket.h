@@ -50,6 +50,13 @@ public:
     * Destructs this UdpSocket.
     */
    virtual ~UdpSocket();
+   
+   /**
+    * Enables/disables broadcasting via this socket.
+    * 
+    * @param enable true to enable broadcasting, false to disable it.
+    */
+   virtual void setBroadcastEnabled(bool enable) throw(SocketException);
 };
 
 } // end namespace net

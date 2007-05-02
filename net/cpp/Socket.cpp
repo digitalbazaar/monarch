@@ -270,10 +270,20 @@ void Socket::send(char* b, int offset, int length) throw(SocketException)
       throw SocketException("Cannot write to unconnected Socket!");
    }
    
-   int error = ::send(mFileDescriptor, b + offset, length, 0);
-   if(error < 0)
+   // send all data (send can fail to send all bytes in one go because the
+   // socket send buffer was full)
+   while(length > 0)
    {
-      throw SocketException("Could not write to Socket!", strerror(errno));
+      int bytes = ::send(mFileDescriptor, b + offset, length, 0);
+      if(bytes < 0)
+      {
+         throw SocketException("Could not write to Socket!", strerror(errno));
+      }
+      else if(bytes > 0)
+      {
+         offset += bytes;
+         length -= bytes;
+      }
    }
 }
 
