@@ -23,6 +23,12 @@ namespace net
  */
 class InternetAddress : public virtual SocketAddress
 {
+protected:
+   /**
+    * The hostname.
+    */
+   std::string mHost;
+   
 public:
    /**
     * Creates a new InternetAddress.
@@ -32,7 +38,23 @@ public:
    /**
     * Creates a new InternetAddress.
     */
-   ~InternetAddress();
+   virtual ~InternetAddress();
+   
+   /**
+    * Sets the address part of the socket address. 
+    * 
+    * @param address the address to use.
+    * 
+    * @exception SocketException thrown if the address is invalid.
+    */
+   virtual void setAddress(const std::string& address) throw(SocketException);
+   
+   /**
+    * Gets the hostname for this address.
+    * 
+    * @return the hostname for this address.
+    */
+   virtual const std::string& getHost();
 };
 
 } // end namespace net

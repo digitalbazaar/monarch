@@ -22,16 +22,13 @@ void TcpSocket::initialize() throw(SocketException)
    }
 }
 
-void TcpSocket::bind(SocketAddress* address) throw(SocketException)
+Socket* TcpSocket::createConnectedSocket(unsigned int fd) throw(SocketException)
 {
-}
-
-void TcpSocket::accept(Socket* socket, unsigned int timeout)
-throw(SocketException, SocketTimeoutException)
-{
-}
-
-void TcpSocket::connect(SocketAddress* address, unsigned int timeout)
-throw(SocketException)
-{
+   // create a new TcpSocket
+   TcpSocket* socket = new TcpSocket();
+   socket->mFileDescriptor = fd;
+   socket->mBound = true;
+   socket->mConnected = true;
+   
+   return socket;
 }

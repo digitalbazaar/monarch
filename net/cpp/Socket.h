@@ -5,7 +5,6 @@
 #define Socket_H
 
 #include "Object.h"
-#include "IOException.h"
 #include "SocketAddress.h"
 #include "SocketException.h"
 #include "SocketTimeoutException.h"
@@ -32,6 +31,21 @@ protected:
    int mFileDescriptor;
    
    /**
+    * True when this Socket is bound, false when not.
+    */
+   bool mBound;
+   
+   /**
+    * True when this Socket is listening, false when not.
+    */
+   bool mListening;
+   
+   /**
+    * True when this Socket is connected, false when not.
+    */
+   bool mConnected;
+   
+   /**
     * The stream for reading from the Socket.
     */
    SocketInputStream mInputStream;
@@ -40,6 +54,16 @@ protected:
     * The stream for writing to the Socket.
     */
    SocketOutputStream mOutputStream;
+   
+   /**
+    * The receive timeout (in milliseconds) for reading from the Socket.
+    */
+   unsigned long long mReceiveTimeout;
+   
+   /**
+    * The number of Socket connections to keep backlogged while listening.
+    */
+   unsigned int mBacklog;
    
    /**
     * Creates a Socket with the specified type and protocol and assigns its
@@ -59,6 +83,19 @@ protected:
     * @exception SocketException thrown if the Socket could not be initialized.
     */
    virtual void initialize() throw(SocketException) = 0;
+   
+   /**
+    * Creates a new Socket with the given file descriptor that points to
+    * the socket for an accepted connection.
+    * 
+    * @param fd the file descriptor for the socket.
+    * 
+    * @return the allocated Socket.
+    * 
+    * @exception SocketException thrown if a socket error occurs.
+    */
+   virtual Socket* createConnectedSocket(unsigned int fd)
+   throw(SocketException) = 0;
 
 public:
    /**
@@ -78,7 +115,16 @@ public:
     * 
     * @exception SocketException thrown if the address could not be bound.
     */
-   virtual void bind(SocketAddress* address) throw(SocketException) = 0;
+   virtual void bind(SocketAddress* address) throw(SocketException);
+   
+   /**
+    * Causes this Socket to start listening for incoming connections.
+    * 
+    * @param backlog the number of connections to keep backlogged.
+    * 
+    * @exception SocketException thrown if the address could not be bound.
+    */
+   virtual void listen(unsigned int backlog = 50) throw(SocketException);
    
    /**
     * Listens for a connection to this Socket and accepts it. This method
@@ -90,12 +136,12 @@ public:
     * @param socket the socket to use to communicate with the connected socket.
     * @param timeout the timeout, in seconds, 0 for no timeout.
     * 
+    * @return a new Socket that controls the socket that can be used to
+    *         communicate with the connected socket.
+    * 
     * @exception SocketException thrown if a socket error occurs.
-    * @exception SocketTimeoutException thrown if the timeout is reached
-    *            before a connection was made.
     */
-   virtual void accept(Socket* socket, unsigned int timeout)
-   throw(SocketException, SocketTimeoutException) = 0;
+   virtual Socket* accept(unsigned int timeout) throw(SocketException);
    
    /**
     * Connects this Socket to the given address.
@@ -106,27 +152,13 @@ public:
     * @exception SocketException thrown if a socket error occurs.
     */
    virtual void connect(SocketAddress* address, unsigned int timeout)
-   throw(SocketException) = 0;
+   throw(SocketException);
    
    /**
     * Closes this Socket. This will be done automatically when the Socket is
     * destructed.
     */
    virtual void close();
-   
-   /**
-    * Gets the SocketInputStream for reading from this Socket.
-    * 
-    * @return the SocketInputStream for reading from this Socket.
-    */
-   virtual SocketInputStream& getInputStream();
-   
-   /**
-    * Gets the SocketOutputStream for writing to this Socket.
-    * 
-    * @return the SocketOutputStream for writing to this Socket.
-    */
-   virtual SocketOutputStream& getOutputStream();
    
    /**
     * Reads raw data from this Socket. This method will block until at least
@@ -145,10 +177,9 @@ public:
     * @return the number of bytes read from the stream of -1 if the end of the
     *         stream (the Socket has closed) has been reached.
     * 
-    * @exception IOException thrown if an IO error occurs. 
+    * @exception SocketException thrown if a socket error occurs. 
     */
-   virtual int receive(char* b, int offset, int length)
-   throw(db::io::IOException);
+   virtual int receive(char* b, int offset, int length) throw(SocketException);
    
    /**
     * Writes raw data to this Socket.
@@ -160,10 +191,83 @@ public:
     * @param offset the offset at which to start reading from the array.
     * @param length the number of bytes to write to the stream.
     * 
-    * @exception IOException thrown if an IO error occurs. 
+    * @exception SocketException thrown if a socket error occurs. 
     */
-   virtual void send(char* b, int offset, int length)
-   throw (db::io::IOException);
+   virtual void send(char* b, int offset, int length) throw(SocketException);
+   
+   /**
+    * Returns true if this Socket is bound, false if not.
+    * 
+    * @return true if this Socket is bound, false if not.
+    */
+   virtual bool isBound();
+   
+   /**
+    * Returns true if this Socket is listening, false if not.
+    * 
+    * @return true if this Socket is listening, false if not.
+    */
+   virtual bool isListening();
+   
+   /**
+    * Returns true if this Socket is connected, false if not.
+    * 
+    * @return true if this Socket is connected, false if not.
+    */
+   virtual bool isConnected();
+   
+   /**
+    * Gets the local SocketAddress for this Socket.
+    * 
+    * @param address the SocketAddress to populate.
+    */
+   virtual void getLocalAddress(SocketAddress* address) throw(SocketException);
+   
+   /**
+    * Gets the remote SocketAddress for this Socket.
+    * 
+    * @param address the SocketAddress to populate.
+    */
+   virtual void getRemoteAddress(SocketAddress* address) throw(SocketException);   
+   
+   /**
+    * Gets the SocketInputStream for reading from this Socket.
+    * 
+    * @return the SocketInputStream for reading from this Socket.
+    */
+   virtual SocketInputStream& getInputStream();
+   
+   /**
+    * Gets the SocketOutputStream for writing to this Socket.
+    * 
+    * @return the SocketOutputStream for writing to this Socket.
+    */
+   virtual SocketOutputStream& getOutputStream();
+   
+   /**
+    * Sets the receive timeout for this Socket. This is the amount of time that
+    * this Socket will block waiting to receive data.
+    * 
+    * @param timeout the receive timeout in milliseconds.
+    */
+   virtual void setReceiveTimeout(unsigned long long timeout);
+   
+   /**
+    * Gets the receive timeout for this Socket. This is the amount of time that
+    * this Socket will block waiting to receive data.
+    * 
+    * @return the receive timeout in milliseconds.
+    */
+   virtual unsigned long long getReceiveTimeout();
+   
+   /**
+    * Gets the number of Socket connections that can be kept backlogged while
+    * listening.
+    * 
+    * @return the number of Socket connections that can be kept backlogged
+    *         while listening.
+    */
+   virtual unsigned int getBacklog();   
 };
 
 } // end namespace net

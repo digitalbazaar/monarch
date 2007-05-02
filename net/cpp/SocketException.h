@@ -4,7 +4,7 @@
 #ifndef SocketException_H
 #define SocketException_H
 
-#include "Exception.h"
+#include "IOException.h"
 
 namespace db
 {
@@ -16,7 +16,7 @@ namespace net
  *
  * @author Dave Longley
  */
-class SocketException : public virtual db::rt::Exception
+class SocketException : public virtual db::io::IOException
 {
 public:
    /**

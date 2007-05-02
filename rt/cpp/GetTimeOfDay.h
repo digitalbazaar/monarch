@@ -80,7 +80,7 @@ struct timezone
  * 
  * @return 0 if the method executed with success, -1 if not.
  */
-static inline int gettimeofday(struct timeval* tv, struct timezone* tz)
+inline static int gettimeofday(struct timeval* tv, struct timezone* tz)
 {
 // if on a windows system, define the method
 #if WIN32

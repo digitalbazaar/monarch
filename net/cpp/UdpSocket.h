@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef TcpSocket_H
-#define TcpSocket_H
+#ifndef UdpSocket_H
+#define UdpSocket_H
 
 #include "Socket.h"
 
@@ -12,11 +12,11 @@ namespace net
 {
 
 /**
- * A TcpSocket is a Socket that uses the TCP/IP protocol.
+ * A UdpSocket is a Socket that usesUDP datagrams.
  * 
  * @author Dave Longley
  */
-class TcpSocket : public virtual Socket
+class UdpSocket : public virtual Socket
 {
 protected:
    /**
@@ -38,18 +38,18 @@ protected:
     * @exception SocketException thrown if a socket error occurs.
     */
    virtual Socket* createConnectedSocket(unsigned int fd)
-   throw(SocketException);
+   throw(SocketException);   
    
 public:
    /**
-    * Creates a new TcpSocket.
+    * Creates a new UdpSocket.
     */
-   TcpSocket();
+   UdpSocket();
    
    /**
-    * Destructs this TcpSocket.
+    * Destructs this UdpSocket.
     */
-   virtual ~TcpSocket();
+   virtual ~UdpSocket();
 };
 
 } // end namespace net
