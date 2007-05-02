@@ -4,7 +4,7 @@
 #ifndef UdpSocket_H
 #define UdpSocket_H
 
-#include "Socket.h"
+#include "AbstractSocket.h"
 
 namespace db
 {
@@ -16,7 +16,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class UdpSocket : public Socket
+class UdpSocket : public AbstractSocket
 {
 protected:
    /**

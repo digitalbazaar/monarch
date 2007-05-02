@@ -4,7 +4,7 @@
 #ifndef TcpSocket_H
 #define TcpSocket_H
 
-#include "Socket.h"
+#include "AbstractSocket.h"
 
 namespace db
 {
@@ -16,7 +16,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class TcpSocket : public Socket
+class TcpSocket : public AbstractSocket
 {
 protected:
    /**

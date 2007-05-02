@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "Socket.h"
+#include "AbstractSocket.h"
 #include "InterruptedException.h"
 
 using namespace db::io;
 using namespace db::net;
 using namespace db::rt;
 
-Socket::Socket() : mInputStream(this), mOutputStream(this)
+AbstractSocket::AbstractSocket() : mInputStream(this), mOutputStream(this)
 {
    // file descriptor is invalid at this point
    mFileDescriptor = -1;
@@ -25,13 +25,13 @@ Socket::Socket() : mInputStream(this), mOutputStream(this)
    mBacklog = 50;
 }
 
-Socket::~Socket()
+AbstractSocket::~AbstractSocket()
 {
    // close socket
    close();
 }
 
-void Socket::populateAddressStructure(
+void AbstractSocket::populateAddressStructure(
    SocketAddress* address, sockaddr_in& addr)
 {
    // the address family is internet (AF_INET = address family internet)
@@ -48,7 +48,7 @@ void Socket::populateAddressStructure(
    memset(&addr.sin_zero, '\0', 8);
 }
 
-void Socket::create(int type, int protocol) throw(SocketException)
+void AbstractSocket::create(int type, int protocol) throw(SocketException)
 {
    // use PF_INET = "protocol family internet" (which just so happens to have
    // the same value as AF_INET but that's only because different protocols
@@ -77,7 +77,7 @@ void Socket::create(int type, int protocol) throw(SocketException)
    mFileDescriptor = fd;
 }
 
-bool Socket::select() throw(SocketException)
+bool AbstractSocket::select() throw(SocketException)
 {
    bool rval = false;
    
@@ -129,7 +129,7 @@ bool Socket::select() throw(SocketException)
    return rval;
 }
 
-void Socket::bind(SocketAddress* address) throw(SocketException)
+void AbstractSocket::bind(SocketAddress* address) throw(SocketException)
 {
    // initialize as necessary
    initialize();
@@ -152,13 +152,13 @@ void Socket::bind(SocketAddress* address) throw(SocketException)
    mBound = true;
 }
 
-void Socket::bind(unsigned short port)
+void AbstractSocket::bind(unsigned short port)
 {
    SocketAddress address("0.0.0.0", port);
    bind(&address);
 }
 
-void Socket::listen(unsigned int backlog) throw(SocketException)
+void AbstractSocket::listen(unsigned int backlog) throw(SocketException)
 {
    if(!isBound())
    {
@@ -177,7 +177,7 @@ void Socket::listen(unsigned int backlog) throw(SocketException)
    }
 }
 
-Socket* Socket::accept(unsigned int timeout) throw(SocketException)
+Socket* AbstractSocket::accept(unsigned int timeout) throw(SocketException)
 {
    if(!isListening())
    {
@@ -199,7 +199,7 @@ Socket* Socket::accept(unsigned int timeout) throw(SocketException)
    return createConnectedSocket(fd);
 }
 
-void Socket::connect(SocketAddress* address, unsigned int timeout)
+void AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
 throw(SocketException)
 {
    // initialize as necessary
@@ -226,7 +226,7 @@ throw(SocketException)
    mConnected = true;
 }
 
-void Socket::close()
+void AbstractSocket::close()
 {
    // close the socket
    ::close(mFileDescriptor);
@@ -240,7 +240,8 @@ void Socket::close()
    mConnected = false;
 }
 
-int Socket::receive(char* b, int offset, int length) throw(SocketException)
+int AbstractSocket::receive(char* b, int offset, int length)
+throw(SocketException)
 {
    int rval = -1;
    
@@ -280,7 +281,8 @@ int Socket::receive(char* b, int offset, int length) throw(SocketException)
    return rval;
 }
 
-void Socket::send(char* b, int offset, int length) throw(SocketException)
+void AbstractSocket::send(char* b, int offset, int length)
+throw(SocketException)
 {
    if(!isConnected())
    {
@@ -304,22 +306,23 @@ void Socket::send(char* b, int offset, int length) throw(SocketException)
    }
 }
 
-bool Socket::isBound()
+bool AbstractSocket::isBound()
 {
    return mBound;
 }
 
-bool Socket::isListening()
+bool AbstractSocket::isListening()
 {
    return mListening;
 }
 
-bool Socket::isConnected()
+bool AbstractSocket::isConnected()
 {
    return mConnected;
 }
 
-void Socket::getLocalAddress(SocketAddress* address) throw(SocketException)
+void AbstractSocket::getLocalAddress(SocketAddress* address)
+throw(SocketException)
 {
    if(!isBound())
    {
@@ -348,7 +351,8 @@ void Socket::getLocalAddress(SocketAddress* address) throw(SocketException)
    address->setPort(addr.sin_port);
 }
 
-void Socket::getRemoteAddress(SocketAddress* address) throw(SocketException)
+void AbstractSocket::getRemoteAddress(SocketAddress* address)
+throw(SocketException)
 {
    if(!isConnected())
    {
@@ -378,27 +382,27 @@ void Socket::getRemoteAddress(SocketAddress* address) throw(SocketException)
    address->setPort(addr.sin_port);
 }
 
-SocketInputStream& Socket::getInputStream()
+SocketInputStream& AbstractSocket::getInputStream()
 {
    return mInputStream;
 }
 
-SocketOutputStream& Socket::getOutputStream()
+SocketOutputStream& AbstractSocket::getOutputStream()
 {
    return mOutputStream;
 }
 
-void Socket::setReceiveTimeout(unsigned long long timeout)
+void AbstractSocket::setReceiveTimeout(unsigned long long timeout)
 {
    mReceiveTimeout = timeout;
 }
 
-unsigned long long Socket::getReceiveTimeout()
+unsigned long long AbstractSocket::getReceiveTimeout()
 {
    return mReceiveTimeout;
 }
 
-unsigned int Socket::getBacklog()
+unsigned int AbstractSocket::getBacklog()
 {
    return mBacklog;
 }

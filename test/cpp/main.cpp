@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include <iostream>
+#include <openssl/ssl.h>
 
 #include "Base64Coder.h"
 #include "Object.h"
@@ -140,38 +141,6 @@ void runThreadTest()
    t5.join();
 }
 
-void runWindowsSocketTest()
-{
-   // initialize winsock
-#ifdef WIN32
-   WSADATA wsaData;
-   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
-   {
-      cout << "ERROR!!!" << endl;
-   }
-#endif
-   
-   // create tcp socket
-   TcpSocket socket;
-   
-   // create address
-   // "www.google.com"
-   InternetAddress address("64.233.161.99", 80);
-   
-   // connect
-   socket.connect(&address);
-   
-   // close
-   socket.close();
-   
-   cout << "DONE!" << endl;
-   
-   // cleanup winsock
-#ifdef WIN32
-   WSACleanup();
-#endif
-}
-
 void runLinuxSocketTest()
 {
    // create tcp socket
@@ -207,6 +176,56 @@ void runLinuxSocketTest()
    cout << endl << "Socket test complete." << endl;
 }
 
+void runWindowsSocketTest()
+{
+   // initialize winsock
+#ifdef WIN32
+   WSADATA wsaData;
+   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
+   {
+      cout << "ERROR! Could not initialize winsock!" << endl;
+   }
+#endif
+   
+   // run linux socket test
+   runLinuxSocketTest();
+   
+   // cleanup winsock
+#ifdef WIN32
+   WSACleanup();
+#endif
+}
+
+void runLinuxSslSocketTest()
+{
+   // openssl initialization code
+   SSL_load_error_strings();
+   SSL_library_init();
+   
+   // FIXME:
+   // seed PRNG
+}
+
+void runWindowsSslSocketTest()
+{
+// initialize winsock
+#ifdef WIN32
+   WSADATA wsaData;
+   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
+   {
+      cout << "ERROR! Could not initialize winsock!" << endl;
+   }
+#endif
+   
+   // run linux ssl socket test
+   runLinuxSslSocketTest();
+   
+// cleanup winsock
+#ifdef WIN32
+   WSACleanup();
+#endif   
+}
+
 int main()
 {
    cout << "Tests starting..." << endl << endl;
@@ -218,6 +237,7 @@ int main()
       //runThreadTest();
       //runWindowsSocketTest();
       runLinuxSocketTest();
+      //runLinuxSslSocketTest();
    }
    catch(SocketException& e)
    {

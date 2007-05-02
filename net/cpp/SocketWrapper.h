@@ -1,15 +1,10 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Socket_H
-#define Socket_H
+#ifndef SocketWrapper_H
+#define SocketWrapper_H
 
-#include "SocketDefinitions.h"
-#include "SocketAddress.h"
-#include "SocketException.h"
-#include "SocketTimeoutException.h"
-#include "SocketInputStream.h"
-#include "SocketOutputStream.h"
+#include "Socket.h"
 
 namespace db
 {
@@ -17,22 +12,55 @@ namespace net
 {
 
 /**
- * A Socket is an interface for an end point for communication.
+ * A SocketWrapper wraps an existing Socket and may add functionality to
+ * manipulate that underlying Socket or how it is used in some fashion.
  * 
  * @author Dave Longley
  */
-class Socket
+class SocketWrapper : public virtual db::rt::Object, public Socket
 {
-public:
+protected:
    /**
-    * Creates a new Socket.
+    * The wrapped Socket.
     */
-   Socket() {};
+   Socket* mSocket;
    
    /**
-    * Destructs this Socket.
+    * Set to true to clean up the memory for the wrapped Socket upon
+    * destruction, false otherwise.
     */
-   virtual ~Socket() {};
+   bool mCleanupSocket;
+   
+public:
+   /**
+    * Creates a new SocketWrapper around the passed Socket.
+    * 
+    * @param socket the Socket to wrap.
+    * @param cleanup true to reclaim the memory used for the wrapped Socket
+    *                upon destruction, false to do nothing.
+    */
+   SocketWrapper(Socket* socket, bool cleanup = false);
+   
+   /**
+    * Destructs this SocketWrapper.
+    */
+   virtual ~SocketWrapper();
+   
+   /**
+    * Sets the wrapped Socket.
+    *
+    * @param socket the Socket to wrap.
+    * @param cleanup true to reclaim the memory used for the wrapped Socket
+    *                upon destruction, false to do nothing.
+    */
+   virtual void setSocket(Socket* socket, bool cleanup = false);
+   
+   /**
+    * Gets the wrapped Socket.
+    * 
+    * @return the wrapped Socket.
+    */
+   virtual Socket* getSocket();
    
    /**
     * Binds this Socket to a SocketAddress.
@@ -41,7 +69,7 @@ public:
     * 
     * @exception SocketException thrown if the address could not be bound.
     */
-   virtual void bind(SocketAddress* address) throw(SocketException) = 0;
+   virtual void bind(SocketAddress* address) throw(SocketException);
    
    /**
     * Causes this Socket to start listening for incoming connections.
@@ -50,7 +78,7 @@ public:
     * 
     * @exception SocketException thrown if the address could not be bound.
     */
-   virtual void listen(unsigned int backlog = 50) throw(SocketException) = 0;
+   virtual void listen(unsigned int backlog = 50) throw(SocketException);
    
    /**
     * Accepts a connection to this Socket. This method will block until a
@@ -67,7 +95,7 @@ public:
     * 
     * @exception SocketException thrown if a socket error occurs.
     */
-   virtual Socket* accept(unsigned int timeout) throw(SocketException) = 0;
+   virtual Socket* accept(unsigned int timeout) throw(SocketException);
    
    /**
     * Connects this Socket to the given address.
@@ -78,13 +106,13 @@ public:
     * @exception SocketException thrown if a socket error occurs.
     */
    virtual void connect(SocketAddress* address, unsigned int timeout = 30)
-   throw(SocketException) = 0;
+   throw(SocketException);
    
    /**
     * Closes this Socket. This will be done automatically when the Socket is
     * destructed.
     */
-   virtual void close() = 0;
+   virtual void close();
    
    /**
     * Reads raw data from this Socket. This method will block until at least
@@ -105,8 +133,7 @@ public:
     * 
     * @exception SocketException thrown if a socket error occurs. 
     */
-   virtual int receive(char* b, int offset, int length)
-   throw(SocketException) = 0;
+   virtual int receive(char* b, int offset, int length) throw(SocketException);
    
    /**
     * Writes raw data to this Socket.
@@ -120,59 +147,56 @@ public:
     * 
     * @exception SocketException thrown if a socket error occurs. 
     */
-   virtual void send(char* b, int offset, int length)
-   throw(SocketException) = 0;
+   virtual void send(char* b, int offset, int length) throw(SocketException);
    
    /**
     * Returns true if this Socket is bound, false if not.
     * 
     * @return true if this Socket is bound, false if not.
     */
-   virtual bool isBound() = 0;
+   virtual bool isBound();
    
    /**
     * Returns true if this Socket is listening, false if not.
     * 
     * @return true if this Socket is listening, false if not.
     */
-   virtual bool isListening() = 0;
+   virtual bool isListening();
    
    /**
     * Returns true if this Socket is connected, false if not.
     * 
     * @return true if this Socket is connected, false if not.
     */
-   virtual bool isConnected() = 0;
+   virtual bool isConnected();
    
    /**
     * Gets the local SocketAddress for this Socket.
     * 
     * @param address the SocketAddress to populate.
     */
-   virtual void getLocalAddress(SocketAddress* address)
-   throw(SocketException) = 0;
+   virtual void getLocalAddress(SocketAddress* address) throw(SocketException);
    
    /**
     * Gets the remote SocketAddress for this Socket.
     * 
     * @param address the SocketAddress to populate.
     */
-   virtual void getRemoteAddress(SocketAddress* address)
-   throw(SocketException) = 0;   
+   virtual void getRemoteAddress(SocketAddress* address) throw(SocketException);   
    
    /**
     * Gets the SocketInputStream for reading from this Socket.
     * 
     * @return the SocketInputStream for reading from this Socket.
     */
-   virtual SocketInputStream& getInputStream() = 0;
+   virtual SocketInputStream& getInputStream();
    
    /**
     * Gets the SocketOutputStream for writing to this Socket.
     * 
     * @return the SocketOutputStream for writing to this Socket.
     */
-   virtual SocketOutputStream& getOutputStream() = 0;
+   virtual SocketOutputStream& getOutputStream();
    
    /**
     * Sets the receive timeout for this Socket. This is the amount of time that
@@ -180,7 +204,7 @@ public:
     * 
     * @param timeout the receive timeout in milliseconds.
     */
-   virtual void setReceiveTimeout(unsigned long long timeout) = 0;
+   virtual void setReceiveTimeout(unsigned long long timeout);
    
    /**
     * Gets the receive timeout for this Socket. This is the amount of time that
@@ -188,7 +212,7 @@ public:
     * 
     * @return the receive timeout in milliseconds.
     */
-   virtual unsigned long long getReceiveTimeout() = 0;
+   virtual unsigned long long getReceiveTimeout();
    
    /**
     * Gets the number of Socket connections that can be kept backlogged while
@@ -197,7 +221,7 @@ public:
     * @return the number of Socket connections that can be kept backlogged
     *         while listening.
     */
-   virtual unsigned int getBacklog() = 0;
+   virtual unsigned int getBacklog();
 };
 
 } // end namespace net
