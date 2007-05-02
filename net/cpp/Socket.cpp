@@ -122,7 +122,7 @@ Socket* Socket::accept(unsigned int timeout) throw(SocketException)
 {
    if(!isListening())
    {
-      throw SocketException("Cannot accept with an non-listening Socket!");
+      throw SocketException("Cannot accept with a non-listening Socket!");
    }
    
    // create address object
@@ -304,6 +304,11 @@ bool Socket::isConnected()
 
 void Socket::getLocalAddress(SocketAddress* address) throw(SocketException)
 {
+   if(!isBound())
+   {
+      throw SocketException("Cannot get local address for an unbound Socket!");
+   }
+   
    sockaddr_in addr;
    int addrSize = sizeof(addr);
    
@@ -328,6 +333,12 @@ void Socket::getLocalAddress(SocketAddress* address) throw(SocketException)
 
 void Socket::getRemoteAddress(SocketAddress* address) throw(SocketException)
 {
+   if(!isConnected())
+   {
+      throw SocketException(
+         "Cannot get local address for an unconnected Socket!");
+   }
+   
    sockaddr_in addr;
    int addrSize = sizeof(addr);
    
