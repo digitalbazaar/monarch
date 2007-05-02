@@ -125,7 +125,7 @@ throw(IOException)
 inline int InputStream::peek(char* b, unsigned int offset, unsigned int length)
 throw(IOException)
 {
-   // extending classes must implement this method
+   // extending classes must implement this method if they want support
    throw IOException("InputStream::peek() is not implemented!");
 }
 
