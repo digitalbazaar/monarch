@@ -3,12 +3,15 @@
  */
 #include "AbstractSocket.h"
 #include "InterruptedException.h"
+#include "PeekInputStream.h"
+#include "SocketInputStream.h"
+#include "SocketOutputStream.h"
 
 using namespace db::io;
 using namespace db::net;
 using namespace db::rt;
 
-AbstractSocket::AbstractSocket() : mInputStream(this), mOutputStream(this)
+AbstractSocket::AbstractSocket()
 {
    // file descriptor is invalid at this point
    mFileDescriptor = -1;
@@ -17,6 +20,10 @@ AbstractSocket::AbstractSocket() : mInputStream(this), mOutputStream(this)
    mBound = false;
    mListening = false;
    mConnected = false;
+   
+   // create input and output streams
+   mInputStream = new PeekInputStream(new SocketInputStream(this), true);
+   mOutputStream = new SocketOutputStream(this);
    
    // no receive timeout (socket will block)
    mReceiveTimeout = 0;
@@ -29,6 +36,10 @@ AbstractSocket::~AbstractSocket()
 {
    // close socket
    close();
+   
+   // destruct input and output streams
+   delete mInputStream;
+   delete mOutputStream;
 }
 
 void AbstractSocket::populateAddressStructure(
@@ -382,12 +393,12 @@ throw(SocketException)
    address->setPort(addr.sin_port);
 }
 
-SocketInputStream& AbstractSocket::getInputStream()
+InputStream* AbstractSocket::getInputStream()
 {
    return mInputStream;
 }
 
-SocketOutputStream& AbstractSocket::getOutputStream()
+OutputStream* AbstractSocket::getOutputStream()
 {
    return mOutputStream;
 }

@@ -5,14 +5,12 @@
 #define SocketOutputStream_H
 
 #include "OutputStream.h"
+#include "Socket.h"
 
 namespace db
 {
 namespace net
 {
-
-// forward declare Socket
-class Socket;   
 
 /**
  * A SocketOutputStream is used to write bytes to a Socket.
@@ -47,7 +45,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual void write(char b) throw(db::io::IOException);
+   virtual void write(const char& b) throw(db::io::IOException);
    
    /**
     * Writes some bytes to the stream.

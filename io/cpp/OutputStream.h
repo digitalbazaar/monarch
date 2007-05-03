@@ -38,7 +38,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual void write(char b) throw(IOException) = 0;
+   virtual void write(const char& b) throw(IOException) = 0;
    
    /**
     * Writes some bytes to the stream.

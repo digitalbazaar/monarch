@@ -185,18 +185,18 @@ public:
    virtual void getRemoteAddress(SocketAddress* address) throw(SocketException);   
    
    /**
-    * Gets the SocketInputStream for reading from this Socket.
+    * Gets the InputStream for reading from this Socket.
     * 
-    * @return the SocketInputStream for reading from this Socket.
+    * @return the InputStream for reading from this Socket.
     */
-   virtual SocketInputStream& getInputStream();
+   virtual db::io::InputStream* getInputStream();
    
    /**
-    * Gets the SocketOutputStream for writing to this Socket.
+    * Gets the OutputStream for writing to this Socket.
     * 
-    * @return the SocketOutputStream for writing to this Socket.
+    * @return the OutputStream for writing to this Socket.
     */
-   virtual SocketOutputStream& getOutputStream();
+   virtual db::io::OutputStream* getOutputStream();
    
    /**
     * Sets the receive timeout for this Socket. This is the amount of time that

@@ -3,6 +3,7 @@
  */
 #include "SocketWrapper.h"
 
+using namespace db::io;
 using namespace db::net;
 
 SocketWrapper::SocketWrapper(Socket* socket, bool cleanup)
@@ -94,12 +95,12 @@ throw(SocketException)
    getSocket()->getRemoteAddress(address);
 }
 
-SocketInputStream& SocketWrapper::getInputStream()
+InputStream* SocketWrapper::getInputStream()
 {
    return getSocket()->getInputStream();
 }
 
-SocketOutputStream& SocketWrapper::getOutputStream()
+OutputStream* SocketWrapper::getOutputStream()
 {
    return getSocket()->getOutputStream();
 }

@@ -6,6 +6,8 @@
 
 #include "Object.h"
 #include "Socket.h"
+#include "InputStream.h"
+#include "OutputStream.h"
 
 namespace db
 {
@@ -45,12 +47,12 @@ protected:
    /**
     * The stream for reading from the Socket.
     */
-   SocketInputStream mInputStream;
+   db::io::InputStream* mInputStream;
    
    /**
     * The stream for writing to the Socket.
     */
-   SocketOutputStream mOutputStream;
+   db::io::OutputStream* mOutputStream;
    
    /**
     * The receive timeout (in milliseconds) for reading from the Socket.
@@ -257,18 +259,18 @@ public:
    virtual void getRemoteAddress(SocketAddress* address) throw(SocketException);   
    
    /**
-    * Gets the SocketInputStream for reading from this Socket.
+    * Gets the InputStream for reading from this Socket.
     * 
-    * @return the SocketInputStream for reading from this Socket.
+    * @return the InputStream for reading from this Socket.
     */
-   virtual SocketInputStream& getInputStream();
+   virtual db::io::InputStream* getInputStream();
    
    /**
-    * Gets the SocketOutputStream for writing to this Socket.
+    * Gets the OutputStream for writing to this Socket.
     * 
-    * @return the SocketOutputStream for writing to this Socket.
+    * @return the OutputStream for writing to this Socket.
     */
-   virtual SocketOutputStream& getOutputStream();
+   virtual db::io::OutputStream* getOutputStream();
    
    /**
     * Sets the receive timeout for this Socket. This is the amount of time that

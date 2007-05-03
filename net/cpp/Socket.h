@@ -4,12 +4,12 @@
 #ifndef Socket_H
 #define Socket_H
 
+#include "InputStream.h"
+#include "OutputStream.h"
 #include "SocketDefinitions.h"
 #include "SocketAddress.h"
 #include "SocketException.h"
 #include "SocketTimeoutException.h"
-#include "SocketInputStream.h"
-#include "SocketOutputStream.h"
 
 namespace db
 {
@@ -161,18 +161,18 @@ public:
    throw(SocketException) = 0;   
    
    /**
-    * Gets the SocketInputStream for reading from this Socket.
+    * Gets the InputStream for reading from this Socket.
     * 
-    * @return the SocketInputStream for reading from this Socket.
+    * @return the InputStream for reading from this Socket.
     */
-   virtual SocketInputStream& getInputStream() = 0;
+   virtual db::io::InputStream* getInputStream() = 0;
    
    /**
-    * Gets the SocketOutputStream for writing to this Socket.
+    * Gets the OutputStream for writing to this Socket.
     * 
-    * @return the SocketOutputStream for writing to this Socket.
+    * @return the OutputStream for writing to this Socket.
     */
-   virtual SocketOutputStream& getOutputStream() = 0;
+   virtual db::io::OutputStream* getOutputStream() = 0;
    
    /**
     * Sets the receive timeout for this Socket. This is the amount of time that
