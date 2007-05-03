@@ -164,11 +164,34 @@ void runLinuxSocketTest()
    char response[2048];
    int numBytes = 0;
    string str = "";
-   while((numBytes = socket.receive(response, 0, 2048)) != -1)
+   
+   cout << endl << "DOING A PEEK!" << endl;
+   
+   numBytes = socket.getInputStream()->peek(response, 0, 2048);
+   if(numBytes != -1)
+   {
+      cout << "Peeked " << numBytes << " bytes." << endl;
+      string peek = "";
+      peek.append(response, numBytes);
+      cout << "Peek bytes=" << peek << endl;
+   }
+   
+   cout << endl << "DOING ACTUAL READ NOW!" << endl;
+   
+   while((numBytes = socket.getInputStream()->read(response, 0, 2048)) != -1)
    {
       cout << "numBytes received: " << numBytes << endl;
       str.append(response, numBytes);
    }
+   
+//   char response[2048];
+//   int numBytes = 0;
+//   string str = "";
+//   while((numBytes = socket.receive(response, 0, 2048)) != -1)
+//   {
+//      cout << "numBytes received: " << numBytes << endl;
+//      str.append(response, numBytes);
+//   }
    
    // close
    socket.close();
