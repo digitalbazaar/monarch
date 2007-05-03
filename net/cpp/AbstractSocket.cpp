@@ -239,16 +239,19 @@ throw(SocketException)
 
 void AbstractSocket::close()
 {
-   // close the socket
-   ::close(mFileDescriptor);
-   
-   // file descriptor is invalid again
-   mFileDescriptor = -1;
-   
-   // not bound, listening, or connected
-   mBound = false;
-   mListening = false;
-   mConnected = false;
+   if(mFileDescriptor != -1)
+   {
+      // close the socket
+      ::close(mFileDescriptor);
+      
+      // file descriptor is invalid again
+      mFileDescriptor = -1;
+      
+      // not bound, listening, or connected
+      mBound = false;
+      mListening = false;
+      mConnected = false;
+   }
 }
 
 int AbstractSocket::receive(char* b, int offset, int length)

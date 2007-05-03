@@ -8,7 +8,7 @@
 #include <string>
 
 #include "Object.h"
-#include "SslSocket.h"
+#include "TcpSocket.h"
 
 namespace db
 {
@@ -42,13 +42,15 @@ public:
    virtual ~SslContext();
    
    /**
-    * Creates a new SslSocket that wraps the passed TcpSocket.
+    * Creates a new openssl "SSL" object for a TcpSocket.
     * 
-    * @param socket the TcpSocket to wrap.
-    * @param cleanup true to reclaim the memory used for the wrapped Socket
-    *                upon destruction, false to do nothing.
+    * @param socket the TcpSocket to create the SSL object for.
+    * @param true if the socket is a client socket, false if it is a server
+    *        socket.
+    * 
+    * @return the created SSL object.
     */
-   virtual SslSocket* createSocket(TcpSocket* socket, bool cleanup = false);
+   virtual SSL* createSSL(TcpSocket* socket, bool client);
 };
 
 } // end namespace net
