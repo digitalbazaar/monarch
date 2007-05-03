@@ -31,11 +31,10 @@ SslSocket::SslSocket(
 
 SslSocket::~SslSocket()
 {
-   // free SSL object
+   // free SSL object (implicitly frees read BIO)
    SSL_free(mSSL);
    
-   // free bios
-   BIO_free(mReadBio);
+   // free write BIO
    BIO_free(mWriteBio);
    
    // destruct input and output streams

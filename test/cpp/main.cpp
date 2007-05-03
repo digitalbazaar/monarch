@@ -11,6 +11,7 @@
 #include "System.h"
 #include "TcpSocket.h"
 #include "InternetAddress.h"
+#include "SslSocket.h"
 
 using namespace std;
 using namespace db::net;
@@ -143,6 +144,8 @@ void runThreadTest()
 
 void runLinuxSocketTest()
 {
+   cout << "Running Socket Test" << endl << endl;
+   
    // create tcp socket
    TcpSocket socket;
    
@@ -224,12 +227,71 @@ void runWindowsSocketTest()
 
 void runLinuxSslSocketTest()
 {
+   cout << "Running SSL Socket Test" << endl << endl;
+   
    // openssl initialization code
-   SSL_load_error_strings();
    SSL_library_init();
+   SSL_load_error_strings();
    
    // FIXME:
    // seed PRNG
+   
+   // create tcp socket
+   TcpSocket socket;
+   
+   // create address
+   InternetAddress address("127.0.0.1", 443);
+   //InternetAddress address("www.google.com", 80);
+   cout << address.getAddress() << endl;
+   
+   // connect
+   socket.connect(&address);
+   
+   // create an SSL context
+   SslContext context;
+   
+   // create an SSL socket
+   SslSocket sslSocket(&context, &socket, true, false);
+   
+   char request[] =
+      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+   sslSocket.send(request, 0, sizeof(request));
+   
+   // set receive timeout (10 seconds = 10000 milliseconds)
+   sslSocket.setReceiveTimeout(10000);
+   
+   char response[2048];
+   int numBytes = 0;
+   string str = "";
+   
+   /*
+   cout << endl << "DOING A PEEK!" << endl;
+   
+   numBytes = socket.getInputStream()->peek(response, 0, 2048);
+   if(numBytes != -1)
+   {
+      cout << "Peeked " << numBytes << " bytes." << endl;
+      string peek = "";
+      peek.append(response, numBytes);
+      cout << "Peek bytes=" << peek << endl;
+   }
+   
+   cout << endl << "DOING ACTUAL READ NOW!" << endl;
+   */
+   
+   while((numBytes = sslSocket.getInputStream()->read(response, 0, 2048)) != -1)
+   {
+      cout << "numBytes received: " << numBytes << endl;
+      str.append(response, numBytes);
+   }
+   
+   // close
+   sslSocket.close();
+   
+   cout << "SSL Socket connection closed." << endl;
+   //cout << "Response:" << endl << str << endl;
+   
+   cout << endl << "SSL Socket test complete." << endl;
 }
 
 void runWindowsSslSocketTest()
@@ -262,8 +324,8 @@ int main()
       //runTimeTest();
       //runThreadTest();
       //runWindowsSocketTest();
-      runLinuxSocketTest();
-      //runLinuxSslSocketTest();
+      //runLinuxSocketTest();
+      runLinuxSslSocketTest();
    }
    catch(SocketException& e)
    {
