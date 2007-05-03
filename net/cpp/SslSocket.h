@@ -49,7 +49,35 @@ protected:
    /**
     * The stream for writing to the Socket.
     */
-   db::io::OutputStream* mOutputStream;   
+   db::io::OutputStream* mOutputStream;
+   
+   /**
+    * Reads some raw data from the underlying TCP socket and stores it in the
+    * SSL read BIO. This method will block until at least one byte can be
+    * read or until the end of the stream is reached (the Socket has closed).
+    * 
+    * @param b the array of bytes to fill.
+    * @param offset the offset at which to start filling the array.
+    * @param length the maximum number of bytes to read into the buffer.
+    * 
+    * @return the number of bytes read or -1 if the end of the stream has
+    *         been reached (the Socket has closed).
+    * 
+    * @exception IOException thrown if an IO error occurs. 
+    */
+   virtual int tcpRead() throw(db::io::IOException);
+   
+   /**
+    * Flushes the data from the SSL write BIO to the underlying TCP Socket.
+    * This method will block until all of the data has been written.
+    * 
+    * @param b the array of bytes to write.
+    * @param offset the offset at which to start reading from the array.
+    * @param length the number of bytes to write to the stream.
+    * 
+    * @exception IOException thrown if an IO error occurs. 
+    */
+   virtual void tcpWrite() throw(db::io::IOException);
    
 public:
    /**

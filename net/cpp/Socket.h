@@ -105,11 +105,12 @@ public:
     * 
     * @exception SocketException thrown if a socket error occurs. 
     */
-   virtual int receive(char* b, int offset, int length)
+   virtual int receive(char* b, unsigned int offset, unsigned int length)
    throw(SocketException) = 0;
    
    /**
-    * Writes raw data to this Socket.
+    * Writes raw data to this Socket. This method will block until all of
+    * the data has been written.
     * 
     * Note: This method is *not* preferred. Use getOutputStream() to obtain the
     * output stream for this Socket.
@@ -120,7 +121,7 @@ public:
     * 
     * @exception SocketException thrown if a socket error occurs. 
     */
-   virtual void send(char* b, int offset, int length)
+   virtual void send(char* b, unsigned int offset, unsigned int length)
    throw(SocketException) = 0;
    
    /**
