@@ -254,7 +254,7 @@ void AbstractSocket::close()
    }
 }
 
-int AbstractSocket::receive(char* b, int offset, int length)
+int AbstractSocket::receive(char* b, unsigned int offset, unsigned int length)
 throw(SocketException)
 {
    int rval = -1;
@@ -295,7 +295,7 @@ throw(SocketException)
    return rval;
 }
 
-void AbstractSocket::send(char* b, int offset, int length)
+void AbstractSocket::send(char* b, unsigned int offset, unsigned int length)
 throw(SocketException)
 {
    if(!isConnected())

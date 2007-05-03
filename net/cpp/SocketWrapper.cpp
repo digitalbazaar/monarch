@@ -57,13 +57,14 @@ void SocketWrapper::close()
    getSocket()->close();
 }
 
-int SocketWrapper::receive(char* b, int offset, int length)
+int SocketWrapper::receive(char* b, unsigned int offset, unsigned int length)
 throw(SocketException)
 {
    return getSocket()->receive(b, offset, length);
 }
 
-void SocketWrapper::send(char* b, int offset, int length) throw(SocketException)
+void SocketWrapper::send(char* b, unsigned int offset, unsigned int length)
+throw(SocketException)
 {
    getSocket()->send(b, offset, length);
 }
