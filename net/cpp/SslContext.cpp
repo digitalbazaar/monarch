@@ -11,9 +11,9 @@ SslContext::SslContext(const std::string& protocol)
    
    // create SSL context object
    //mContext = SSL_CTX_new(SSLv2_method());
-   //mContext = SSL_CTX_new(SSLv23_method());
+   mContext = SSL_CTX_new(SSLv23_method());
    //mContext = SSL_CTX_new(SSLv3_method());
-   mContext = SSL_CTX_new(TLSv1_method());
+   //mContext = SSL_CTX_new(TLSv1_method());
    
    // turn on all options (this enables a bunch of bug fixes for various
    // SSL implementations that may communicate with sockets created in
