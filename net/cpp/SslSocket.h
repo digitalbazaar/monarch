@@ -100,6 +100,38 @@ public:
    virtual ~SslSocket();
    
    /**
+    * Closes this Socket. This will be done automatically when the Socket is
+    * destructed.
+    */
+   virtual void close();   
+   
+   /**
+    * Explicitly performs an SSL handshake to initiate communications. A
+    * handshake will be automatically performed by calling receive() or
+    * send() (or using this Socket's input/output streams) -- so this method
+    * does not *need* to be called. It can be called if an explicit handshake
+    * is desired.
+    * 
+    * @exception SocketException thrown if a socket error occurs.
+    */
+   virtual void performHandshake() throw(db::io::IOException);
+   
+   /**
+    * Writes raw data to this Socket.
+    * 
+    * Note: This method is *not* preferred. Use getOutputStream() to obtain the
+    * output stream for this Socket.
+    * 
+    * @param b the array of bytes to write.
+    * @param offset the offset at which to start reading from the array.
+    * @param length the number of bytes to write to the stream.
+    * 
+    * @exception IOException thrown if an IO error occurs. 
+    */
+   virtual void send(char* b, unsigned int offset, unsigned int length)
+   throw(db::io::IOException);
+   
+   /**
     * Reads raw data from this Socket. This method will block until at least
     * one byte can be read or until the end of the stream is reached (the
     * Socket has closed). A value of -1 will be returned if the end of the
@@ -116,23 +148,10 @@ public:
     * @return the number of bytes read from the stream or -1 if the end of the
     *         stream (the Socket has closed) has been reached.
     * 
-    * @exception SocketException thrown if a socket error occurs. 
+    * @exception IOException thrown if an IO error occurs. 
     */
-   virtual int receive(char* b, int offset, int length) throw(SocketException);
-   
-   /**
-    * Writes raw data to this Socket.
-    * 
-    * Note: This method is *not* preferred. Use getOutputStream() to obtain the
-    * output stream for this Socket.
-    * 
-    * @param b the array of bytes to write.
-    * @param offset the offset at which to start reading from the array.
-    * @param length the number of bytes to write to the stream.
-    * 
-    * @exception SocketException thrown if a socket error occurs. 
-    */
-   virtual void send(char* b, int offset, int length) throw(SocketException);
+   virtual int receive(char* b, unsigned int offset, unsigned int length)
+   throw(db::io::IOException);
    
    /**
     * Gets the InputStream for reading from this Socket.

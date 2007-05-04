@@ -83,9 +83,41 @@ void UdpSocket::leaveGroup(SocketAddress* group) throw(SocketException)
    }
 }
 
+void UdpSocket::sendDatagram(
+   char* b, int offset, int length, SocketAddress* address) throw(IOException)
+{
+   if(!isBound())
+   {
+      throw SocketException("Cannot write to unbound Socket!");
+   }
+   
+   // create sockaddr_in (internet socket address) structure
+   struct sockaddr_in addr;
+   socklen_t addrSize = sizeof(addr);
+   
+   // populate address structure
+   populateAddressStructure(address, addr);
+   
+   // send all data (send can fail to send all bytes in one go because the
+   // socket send buffer was full)
+   while(length > 0)
+   {
+      int bytes = sendto(
+         mFileDescriptor, b + offset, length, 0, (sockaddr*)&addr, addrSize);
+      if(bytes < 0)
+      {
+         throw SocketException("Could not write to Socket!", strerror(errno));
+      }
+      else if(bytes > 0)
+      {
+         offset += bytes;
+         length -= bytes;
+      }
+   }   
+}
+
 int UdpSocket::receiveDatagram(
-   char* b, int offset, int length, SocketAddress* address)
-throw(SocketException)
+   char* b, int offset, int length, SocketAddress* address) throw(IOException)
 {
    int rval = 0;
    
@@ -132,40 +164,6 @@ throw(SocketException)
    }
    
    return rval;
-}
-
-void UdpSocket::sendDatagram(
-   char* b, int offset, int length, SocketAddress* address)
-throw(SocketException)
-{
-   if(!isBound())
-   {
-      throw SocketException("Cannot write to unbound Socket!");
-   }
-   
-   // create sockaddr_in (internet socket address) structure
-   struct sockaddr_in addr;
-   socklen_t addrSize = sizeof(addr);
-   
-   // populate address structure
-   populateAddressStructure(address, addr);
-   
-   // send all data (send can fail to send all bytes in one go because the
-   // socket send buffer was full)
-   while(length > 0)
-   {
-      int bytes = sendto(
-         mFileDescriptor, b + offset, length, 0, (sockaddr*)&addr, addrSize);
-      if(bytes < 0)
-      {
-         throw SocketException("Could not write to Socket!", strerror(errno));
-      }
-      else if(bytes > 0)
-      {
-         offset += bytes;
-         length -= bytes;
-      }
-   }   
 }
 
 void UdpSocket::setMulticastTimeToLive(unsigned char ttl) throw(SocketException)

@@ -237,25 +237,33 @@ throw(SocketException)
    mConnected = true;
 }
 
-void AbstractSocket::close()
+void AbstractSocket::send(char* b, unsigned int offset, unsigned int length)
+throw(IOException)
 {
-   if(mFileDescriptor != -1)
+   if(!isConnected())
    {
-      // close the socket
-      ::close(mFileDescriptor);
-      
-      // file descriptor is invalid again
-      mFileDescriptor = -1;
-      
-      // not bound, listening, or connected
-      mBound = false;
-      mListening = false;
-      mConnected = false;
+      throw SocketException("Cannot write to unconnected Socket!");
+   }
+   
+   // send all data (send can fail to send all bytes in one go because the
+   // socket send buffer was full)
+   while(length > 0)
+   {
+      int bytes = ::send(mFileDescriptor, b + offset, length, 0);
+      if(bytes < 0)
+      {
+         throw SocketException("Could not write to Socket!", strerror(errno));
+      }
+      else if(bytes > 0)
+      {
+         offset += bytes;
+         length -= bytes;
+      }
    }
 }
 
 int AbstractSocket::receive(char* b, unsigned int offset, unsigned int length)
-throw(SocketException)
+throw(IOException)
 {
    int rval = -1;
    
@@ -295,28 +303,20 @@ throw(SocketException)
    return rval;
 }
 
-void AbstractSocket::send(char* b, unsigned int offset, unsigned int length)
-throw(SocketException)
+void AbstractSocket::close()
 {
-   if(!isConnected())
+   if(mFileDescriptor != -1)
    {
-      throw SocketException("Cannot write to unconnected Socket!");
-   }
-   
-   // send all data (send can fail to send all bytes in one go because the
-   // socket send buffer was full)
-   while(length > 0)
-   {
-      int bytes = ::send(mFileDescriptor, b + offset, length, 0);
-      if(bytes < 0)
-      {
-         throw SocketException("Could not write to Socket!", strerror(errno));
-      }
-      else if(bytes > 0)
-      {
-         offset += bytes;
-         length -= bytes;
-      }
+      // close the socket
+      ::close(mFileDescriptor);
+      
+      // file descriptor is invalid again
+      mFileDescriptor = -1;
+      
+      // not bound, listening, or connected
+      mBound = false;
+      mListening = false;
+      mConnected = false;
    }
 }
 
@@ -419,4 +419,9 @@ unsigned long long AbstractSocket::getReceiveTimeout()
 unsigned int AbstractSocket::getBacklog()
 {
    return mBacklog;
+}
+
+int AbstractSocket::getFileDescriptor()
+{
+   return mFileDescriptor;
 }

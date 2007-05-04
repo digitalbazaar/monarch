@@ -73,6 +73,20 @@ public:
    virtual void leaveGroup(SocketAddress* group) throw(SocketException);
    
    /**
+    * Writes a datagram to some SocketAddress.
+    * 
+    * @param b the array of bytes to write.
+    * @param offset the offset at which to start reading from the array.
+    * @param length the number of bytes to write to the stream.
+    * @param address the SocketAddres to write to.
+    * 
+    * @exception IOException thrown if an IO error occurs. 
+    */
+   virtual void sendDatagram(
+      char* b, int offset, int length, SocketAddress* address)
+   throw(db::io::IOException);
+   
+   /**
     * Receives a datagram. This method will block until at least one datagram
     * can be read. The address the datagram is from will be written to the
     * passed SocketAddress, if it is not NULL.
@@ -84,25 +98,11 @@ public:
     * 
     * @return the number of bytes read.
     * 
-    * @exception SocketException thrown if a socket error occurs. 
+    * @exception IOException thrown if an IO error occurs. 
     */
    virtual int receiveDatagram(
       char* b, int offset, int length, SocketAddress* address = NULL)
-   throw(SocketException);
-   
-   /**
-    * Writes a datagram to some SocketAddress.
-    * 
-    * @param b the array of bytes to write.
-    * @param offset the offset at which to start reading from the array.
-    * @param length the number of bytes to write to the stream.
-    * @param address the SocketAddres to write to.
-    * 
-    * @exception SocketException thrown if a socket error occurs. 
-    */
-   virtual void sendDatagram(
-      char* b, int offset, int length, SocketAddress* address)
-   throw(SocketException);
+   throw(db::io::IOException);
    
    /**
     * Sets the multicast time-to-live (TTL). This is the number of hops a

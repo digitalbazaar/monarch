@@ -232,27 +232,33 @@ void runLinuxSslSocketTest()
    // openssl initialization code
    SSL_library_init();
    SSL_load_error_strings();
+   OpenSSL_add_all_algorithms();
    
    // FIXME:
    // seed PRNG
+   
+   // create an SSL context
+   SslContext context;
    
    // create tcp socket
    TcpSocket socket;
    
    // create address
    InternetAddress address("127.0.0.1", 443);
+   //InternetAddress address("127.0.0.1", 19020);
    //InternetAddress address("www.google.com", 80);
    cout << address.getAddress() << endl;
    
    // connect
    socket.connect(&address);
    
-   // create an SSL context
-   SslContext context;
-   
    // create an SSL socket
    SslSocket sslSocket(&context, &socket, true, false);
    
+   // perform handshake
+   sslSocket.performHandshake();
+   
+   /*
    char request[] =
       "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
    sslSocket.send(request, 0, sizeof(request));
@@ -263,6 +269,7 @@ void runLinuxSslSocketTest()
    char response[2048];
    int numBytes = 0;
    string str = "";
+   */
    
    /*
    cout << endl << "DOING A PEEK!" << endl;
@@ -279,11 +286,12 @@ void runLinuxSslSocketTest()
    cout << endl << "DOING ACTUAL READ NOW!" << endl;
    */
    
+   /*
    while((numBytes = sslSocket.getInputStream()->read(response, 0, 2048)) != -1)
    {
       cout << "numBytes received: " << numBytes << endl;
       str.append(response, numBytes);
-   }
+   }*/
    
    // close
    sslSocket.close();

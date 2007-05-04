@@ -52,21 +52,21 @@ throw(SocketException)
    getSocket()->connect(address, timeout);
 }
 
-void SocketWrapper::close()
+void SocketWrapper::send(char* b, unsigned int offset, unsigned int length)
+throw(IOException)
 {
-   getSocket()->close();
+   getSocket()->send(b, offset, length);
 }
 
 int SocketWrapper::receive(char* b, unsigned int offset, unsigned int length)
-throw(SocketException)
+throw(IOException)
 {
    return getSocket()->receive(b, offset, length);
 }
 
-void SocketWrapper::send(char* b, unsigned int offset, unsigned int length)
-throw(SocketException)
+void SocketWrapper::close()
 {
-   getSocket()->send(b, offset, length);
+   getSocket()->close();
 }
 
 bool SocketWrapper::isBound()

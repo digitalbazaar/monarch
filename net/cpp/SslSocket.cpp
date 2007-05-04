@@ -8,6 +8,10 @@
 
 #include <openssl/err.h>
 
+// TEMPCODE: remove this, it's here for testing
+#include <iostream>
+using namespace std;
+
 using namespace db::io;
 using namespace db::net;
 
@@ -17,6 +21,10 @@ SslSocket::SslSocket(
 {
    // create ssl object
    mSSL = context->createSSL(socket, client);
+   
+   // FIXME: remove this -- it uses the file descriptor directly for a
+   // test only (which works)
+   //SSL_set_fd(mSSL, socket->getFileDescriptor());
    
    // allocate bio pair using default sizes (large enough for SSL records)
    BIO_new_bio_pair(&mReadBio, 0, &mWriteBio, 0);
@@ -35,7 +43,7 @@ SslSocket::~SslSocket()
    SSL_free(mSSL);
    
    // free write BIO
-   BIO_free(mWriteBio);
+   //BIO_free(mWriteBio);
    
    // destruct input and output streams
    delete mInputStream;
@@ -46,8 +54,10 @@ int SslSocket::tcpRead() throw(IOException)
 {
    int rval = -1;
    
-   // determine how many bytes must be read into the SSL read BIO
-   size_t length = BIO_ctrl_get_read_request(mReadBio);
+   // determine how many bytes can be written into the SSL read BIO
+   size_t length = BIO_get_write_guarantee(mReadBio);
+   
+   cout << "--tcpRead() " << length << " bytes" << endl;
    
    // read from the underlying socket
    InputStream* is = mSocket->getInputStream();
@@ -55,6 +65,8 @@ int SslSocket::tcpRead() throw(IOException)
    int numBytes = 0;
    while(length > 0 && (numBytes = is->read(b, 0, length)) != -1)
    {
+      cout << "--tcpRead() BIO WRITE " << numBytes << " bytes" << endl;
+      
       // write to SSL read BIO
       BIO_write(mReadBio, b, numBytes);
       
@@ -65,6 +77,8 @@ int SslSocket::tcpRead() throw(IOException)
       rval = (rval == -1) ? numBytes : rval + numBytes;
    }
    
+   cout << "--tcpRead() FINISHED " << rval << " bytes" << endl;
+   
    return rval;
 }
 
@@ -73,21 +87,80 @@ void SslSocket::tcpWrite() throw(IOException)
    // determine how many bytes must be written from the SSL write BIO
    size_t length = BIO_ctrl_pending(mWriteBio);
    
+   cout << "--tcpWrite() " << length << " bytes" << endl;
+   
    // read from the SSL write BIO
    char b[length];
    int numBytes = 0;
    while(length > 0 && (numBytes = BIO_read(mWriteBio, b, length)) != -1)
    {
+      cout << "--tcpWrite() SOCKET WRITE " << numBytes << " bytes" << endl;
+      
       // write to underlying socket
       mSocket->getOutputStream()->write(b, 0, numBytes);
       
       // decrement remaining bytes to write
       length -= numBytes;
    }
+   
+   cout << "--tcpWrite() FINISHED" << endl;
 }
 
-int SslSocket::receive(char* b, int offset, int length)
-throw(SocketException)
+void SslSocket::performHandshake() throw(IOException)
+{
+   cout << "SSL_do_handshake()..." << endl;
+   
+   // do SSL_do_handshake()
+   int ret = 0;
+   while((ret = SSL_do_handshake(mSSL)) <= 0)
+   {
+      // get the last error
+      int error = SSL_get_error(mSSL, ret);
+      switch(error)
+      {
+         case SSL_ERROR_ZERO_RETURN:
+            cout << "SSL_do_handshake() CONNECTION CLOSED" << endl;
+            throw SocketException(
+               "Could not perform SSL handshake! Socket closed.");
+            break;
+         case SSL_ERROR_WANT_READ:
+            cout << "SSL_do_handshake() WANT READ" << endl;
+            // more data is required from the socket
+            if(tcpRead() == -1)
+            {
+               throw SocketException(
+                  "Could not perform SSL handshake! Socket closed.");
+            }
+            break;
+         case SSL_ERROR_WANT_WRITE:
+            cout << "SSL_do_handshake() WANT WRITE" << endl;
+            // data must be flushed to the socket
+            tcpWrite();
+            break;
+         default:
+            cout << "SSL_do_handshake() ERROR" << endl;
+            // an error occurred
+            throw SocketException(
+               "Could not perform SSL handshake!",
+               ERR_error_string(ERR_get_error(), NULL));
+      }
+   }
+}
+
+void SslSocket::close()
+{
+   if(isConnected())
+   {
+      // shutdown SSL
+      SSL_shutdown(mSSL);
+   }
+   
+   // close connection
+   getSocket()->close();
+}
+
+int SslSocket::receive(char* b, unsigned int offset, unsigned int length)
+throw(IOException)
 {
    int rval = -1;
    
@@ -96,21 +169,24 @@ throw(SocketException)
       throw SocketException("Cannot read from unconnected Socket!");
    }
    
-   // do SSL_read()
+   cout << "SSL_read()..." << endl;
+   
+   // do SSL_read() (implicit handshake performed as necessary)
    int ret = 0;
    bool closed = false;
    while(!closed && (ret = SSL_read(mSSL, b + offset, length)) <= 0)
    {
       // get the last error
       int error = SSL_get_error(mSSL, ret);
-      
       switch(error)
       {
          case SSL_ERROR_ZERO_RETURN:
+            cout << "SSL_read() CONNECTION CLOSED" << endl;
             // the connection was shutdown
             closed = true;
             break;
          case SSL_ERROR_WANT_READ:
+            cout << "SSL_read() WANT READ" << endl;
             // more data is required from the socket
             if(tcpRead() == -1)
             {
@@ -119,13 +195,16 @@ throw(SocketException)
             }
             break;
          case SSL_ERROR_WANT_WRITE:
+            cout << "SSL_read() WANT WRITE" << endl;
             // data must be flushed to the socket
             tcpWrite();
             break;
          default:
+            cout << "SSL_read() ERROR" << endl;
             // an error occurred
             throw SocketException(
-               "Could not read from Socket!", ERR_error_string(error, NULL));
+               "Could not read from Socket!",
+               ERR_error_string(ERR_get_error(), NULL));
       }
    }
    
@@ -138,49 +217,59 @@ throw(SocketException)
    return rval;
 }
 
-void SslSocket::send(char* b, int offset, int length)
-throw(SocketException)
+void SslSocket::send(char* b, unsigned int offset, unsigned int length)
+throw(IOException)
 {
    if(!isConnected())
    {
       throw SocketException("Cannot write to unconnected Socket!");
    }
    
-   // do SSL_write()
+   cout << "SSL_write()..." << endl;
+   
+   // do SSL_write() (implicit handshake performed as necessary)
    int ret = 0;
-   while((ret <= SSL_write(mSSL, b + offset, length)) <= 0)
+   bool closed = false;
+   while(!closed && (ret <= SSL_write(mSSL, b + offset, length)) <= 0)
    {
       // get the last error
       int error = SSL_get_error(mSSL, ret);
-      
       switch(error)
       {
          case SSL_ERROR_ZERO_RETURN:
+            cout << "SSL_write() CONNECTION CLOSED" << endl;
             // the connection was shutdown
             throw SocketException(
                "Could not write to Socket! Socket closed.",
-               ERR_error_string(error, NULL));
+               ERR_error_string(ERR_get_error(), NULL));
             break;
          case SSL_ERROR_WANT_READ:
+            cout << "SSL_write() WANT READ" << endl;
             // more data is required from the socket
             if(tcpRead() == -1)
             {
                // the connection was shutdown
                throw SocketException(
-                  "Could not write to Socket! Socket closed.", strerror(errno));
+                  "Could not write to Socket! Socket closed.",
+                  strerror(errno));
             }
             break;
          case SSL_ERROR_WANT_WRITE:
+            cout << "SSL_write() WANT WRITE" << endl;
             // data must be flushed to the socket
             tcpWrite();
             break;
          default:
+            cout << "SSL_write() ERROR" << endl;
             // an error occurred
             throw SocketException(
                "Could not write to Socket!",
-               ERR_error_string(error, NULL));
+               ERR_error_string(ERR_get_error(), NULL));
       }
    }
+   
+   // flush all data to the socket
+   tcpWrite();
 }
 
 InputStream* SslSocket::getInputStream()
