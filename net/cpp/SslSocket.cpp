@@ -22,15 +22,11 @@ SslSocket::SslSocket(
    // create ssl object
    mSSL = context->createSSL(socket, client);
    
-   // FIXME: remove this -- it uses the file descriptor directly for a
-   // test only (which works)
-   //SSL_set_fd(mSSL, socket->getFileDescriptor());
-   
    // allocate bio pair using default sizes (large enough for SSL records)
-   BIO_new_bio_pair(&mReadBio, 0, &mWriteBio, 0);
+   BIO_new_bio_pair(&mSSLBio, 0, &mSocketBio, 0);
    
-   // assign bio pair to SSL
-   SSL_set_bio(mSSL, mReadBio, mWriteBio);
+   // assign SSL BIO to SSL
+   SSL_set_bio(mSSL, mSSLBio, mSSLBio);
    
    // create input and output streams
    mInputStream = new PeekInputStream(new SocketInputStream(this), true);
@@ -39,11 +35,11 @@ SslSocket::SslSocket(
 
 SslSocket::~SslSocket()
 {
-   // free SSL object (implicitly frees read BIO)
+   // free SSL object (implicitly frees SSL BIO)
    SSL_free(mSSL);
    
-   // free write BIO
-   //BIO_free(mWriteBio);
+   // free Socket BIO
+   BIO_free(mSocketBio);
    
    // destruct input and output streams
    delete mInputStream;
@@ -54,56 +50,63 @@ int SslSocket::tcpRead() throw(IOException)
 {
    int rval = -1;
    
-   // determine how many bytes can be written into the SSL read BIO
-   size_t length = BIO_get_write_guarantee(mReadBio);
+   // flush the Socket BIO
+   tcpWrite();
    
-   cout << "--tcpRead() " << length << " bytes" << endl;
-   
-   // read from the underlying socket
-   InputStream* is = mSocket->getInputStream();
-   char b[length];
-   int numBytes = 0;
-   while(length > 0 && (numBytes = is->read(b, 0, length)) != -1)
+   // determine how many bytes can be written to the Socket BIO
+   size_t length = BIO_ctrl_get_write_guarantee(mSocketBio);
+   if(length > 0)
    {
-      cout << "--tcpRead() BIO WRITE " << numBytes << " bytes" << endl;
+      cout << "--tcpRead() " << length << " bytes" << endl;
       
-      // write to SSL read BIO
-      BIO_write(mReadBio, b, numBytes);
+      // read from the underlying socket
+      InputStream* is = mSocket->getInputStream();
+      char b[length];
+      int numBytes = 0;
+      while(length > 0 && (numBytes = is->read(b, 0, length)) != -1)
+      {
+         cout << "--tcpRead() BIO WRITE " << numBytes << " bytes" << endl;
+         
+         // write to Socket BIO
+         BIO_write(mSocketBio, b, numBytes);
+         
+         // decrement remaining bytes to read
+         length -= numBytes;
+         
+         // update bytes read
+         rval = (rval == -1) ? numBytes : rval + numBytes;
+      }
       
-      // decrement remaining bytes to read
-      length -= numBytes;
-      
-      // update bytes read
-      rval = (rval == -1) ? numBytes : rval + numBytes;
+      cout << "--tcpRead() FINISHED " << rval << " bytes" << endl;
    }
-   
-   cout << "--tcpRead() FINISHED " << rval << " bytes" << endl;
    
    return rval;
 }
 
 void SslSocket::tcpWrite() throw(IOException)
 {
-   // determine how many bytes must be written from the SSL write BIO
-   size_t length = BIO_ctrl_pending(mWriteBio);
-   
-   cout << "--tcpWrite() " << length << " bytes" << endl;
-   
-   // read from the SSL write BIO
-   char b[length];
-   int numBytes = 0;
-   while(length > 0 && (numBytes = BIO_read(mWriteBio, b, length)) != -1)
+   // determine how many bytes can be read from the Socket BIO
+   size_t length = BIO_ctrl_pending(mSocketBio);
+   if(length > 0)
    {
-      cout << "--tcpWrite() SOCKET WRITE " << numBytes << " bytes" << endl;
+      cout << "--tcpWrite() " << length << " bytes" << endl;
       
-      // write to underlying socket
-      mSocket->getOutputStream()->write(b, 0, numBytes);
+      // read from the Socket BIO
+      char b[length];
+      int numBytes = 0;
+      while(length > 0 && (numBytes = BIO_read(mSocketBio, b, length)) != -1)
+      {
+         cout << "--tcpWrite() SOCKET WRITE " << numBytes << " bytes" << endl;
+         
+         // write to underlying socket
+         mSocket->getOutputStream()->write(b, 0, numBytes);
+         
+         // decrement remaining bytes to write
+         length -= numBytes;
+      }
       
-      // decrement remaining bytes to write
-      length -= numBytes;
+      cout << "--tcpWrite() FINISHED" << endl;
    }
-   
-   cout << "--tcpWrite() FINISHED" << endl;
 }
 
 void SslSocket::performHandshake() throw(IOException)

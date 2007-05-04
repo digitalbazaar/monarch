@@ -20,7 +20,7 @@ SslContext::SslContext(const std::string& protocol)
    // this context)
    //SSL_CTX_set_options(mContext, SSL_OP_ALL);
    
-   SSL_CTX_set_mode(mContext, SSL_MODE_AUTO_RETRY);
+   //SSL_CTX_set_mode(mContext, SSL_MODE_AUTO_RETRY);
    
    // FIXME: remove this after testing
    //SSL_CTX_set_verify(mContext, SSL_VERIFY_NONE, NULL);

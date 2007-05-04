@@ -30,16 +30,25 @@ protected:
    SSL* mSSL;
    
    /**
-    * A BIO (Basic Input/Output) for SSL data to be read from once it has
-    * been read from the socket.
+    * A BIO (Basic Input/Output) for SSL data.
+    * 
+    * A read on this BIO will read data that has been pulled from the Socket.
+    * 
+    * A write on this BIO will provide SSL data for the Socket BIO to
+    * send out to the Socket.
     */
-   BIO* mReadBio;
+   BIO* mSSLBio;
    
    /**
-    * A BIO (Basic Input/Output) for SSL data to be written to before it is
-    * sent out to the socket.
+    * A BIO (Basic Input/Output) for socket data.
+    * 
+    * A read on this BIO will read SSL data written by the SSL layer. That
+    * data can then be sent out to the Socket.
+    * 
+    * A write on this BIO will provide data for the SSL layer to read. Data
+    * read from the Socket is written to this BIO.
     */
-   BIO* mWriteBio;
+   BIO* mSocketBio;
    
    /**
     * The stream for reading from the Socket.

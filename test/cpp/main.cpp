@@ -255,21 +255,19 @@ void runLinuxSslSocketTest()
    // create an SSL socket
    SslSocket sslSocket(&context, &socket, true, false);
    
+   // set receive timeout (10 seconds = 10000 milliseconds)
+   sslSocket.setReceiveTimeout(10000);
+   
    // perform handshake
    sslSocket.performHandshake();
    
-   /*
    char request[] =
       "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
    sslSocket.send(request, 0, sizeof(request));
    
-   // set receive timeout (10 seconds = 10000 milliseconds)
-   sslSocket.setReceiveTimeout(10000);
-   
    char response[2048];
    int numBytes = 0;
    string str = "";
-   */
    
    /*
    cout << endl << "DOING A PEEK!" << endl;
@@ -286,12 +284,11 @@ void runLinuxSslSocketTest()
    cout << endl << "DOING ACTUAL READ NOW!" << endl;
    */
    
-   /*
    while((numBytes = sslSocket.getInputStream()->read(response, 0, 2048)) != -1)
    {
       cout << "numBytes received: " << numBytes << endl;
       str.append(response, numBytes);
-   }*/
+   }
    
    // close
    sslSocket.close();
@@ -300,6 +297,9 @@ void runLinuxSslSocketTest()
    //cout << "Response:" << endl << str << endl;
    
    cout << endl << "SSL Socket test complete." << endl;
+   
+   // clean up SSL
+   EVP_cleanup();
 }
 
 void runWindowsSslSocketTest()
