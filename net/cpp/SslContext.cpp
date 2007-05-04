@@ -18,9 +18,7 @@ SslContext::SslContext(const std::string& protocol)
    // turn on all options (this enables a bunch of bug fixes for various
    // SSL implementations that may communicate with sockets created in
    // this context)
-   //SSL_CTX_set_options(mContext, SSL_OP_ALL);
-   
-   //SSL_CTX_set_mode(mContext, SSL_MODE_AUTO_RETRY);
+   SSL_CTX_set_options(mContext, SSL_OP_ALL);
    
    // FIXME: remove this after testing
    //SSL_CTX_set_verify(mContext, SSL_VERIFY_NONE, NULL);

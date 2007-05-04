@@ -258,8 +258,8 @@ void runLinuxSslSocketTest()
    // set receive timeout (10 seconds = 10000 milliseconds)
    sslSocket.setReceiveTimeout(10000);
    
-   // perform handshake
-   sslSocket.performHandshake();
+   // perform handshake (automatically happens, this call isn't necessary)
+   //sslSocket.performHandshake();
    
    char request[] =
       "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
@@ -269,10 +269,9 @@ void runLinuxSslSocketTest()
    int numBytes = 0;
    string str = "";
    
-   /*
    cout << endl << "DOING A PEEK!" << endl;
    
-   numBytes = socket.getInputStream()->peek(response, 0, 2048);
+   numBytes = sslSocket.getInputStream()->peek(response, 0, 2048);
    if(numBytes != -1)
    {
       cout << "Peeked " << numBytes << " bytes." << endl;
@@ -282,7 +281,6 @@ void runLinuxSslSocketTest()
    }
    
    cout << endl << "DOING ACTUAL READ NOW!" << endl;
-   */
    
    while((numBytes = sslSocket.getInputStream()->read(response, 0, 2048)) != -1)
    {

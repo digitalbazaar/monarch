@@ -8,10 +8,6 @@
 
 #include <openssl/err.h>
 
-// TEMPCODE: remove this, it's here for testing
-#include <iostream>
-using namespace std;
-
 using namespace db::io;
 using namespace db::net;
 
@@ -27,6 +23,9 @@ SslSocket::SslSocket(
    
    // assign SSL BIO to SSL
    SSL_set_bio(mSSL, mSSLBio, mSSLBio);
+   
+   // no ssl session negotiated yet
+   mSessionNegotiated = false;
    
    // create input and output streams
    mInputStream = new PeekInputStream(new SocketInputStream(this), true);
@@ -57,16 +56,12 @@ int SslSocket::tcpRead() throw(IOException)
    size_t length = BIO_ctrl_get_read_request(mSocketBio);
    if(length > 0)
    {
-      cout << "--tcpRead() " << length << " bytes" << endl;
-      
       // read from the underlying socket
       InputStream* is = mSocket->getInputStream();
       char b[length];
       int numBytes = 0;
       while(length > 0 && (numBytes = is->read(b, 0, length)) != -1)
       {
-         cout << "--tcpRead() BIO WRITE " << numBytes << " bytes" << endl;
-         
          // write to Socket BIO
          BIO_write(mSocketBio, b, numBytes);
          
@@ -76,8 +71,6 @@ int SslSocket::tcpRead() throw(IOException)
          // update bytes read
          rval = (rval == -1) ? numBytes : rval + numBytes;
       }
-      
-      cout << "--tcpRead() FINISHED " << rval << " bytes" << endl;
    }
    
    return rval;
@@ -89,30 +82,22 @@ void SslSocket::tcpWrite() throw(IOException)
    size_t length = BIO_ctrl_pending(mSocketBio);
    if(length > 0)
    {
-      cout << "--tcpWrite() " << length << " bytes" << endl;
-      
       // read from the Socket BIO
       char b[length];
       int numBytes = 0;
       while(length > 0 && (numBytes = BIO_read(mSocketBio, b, length)) != -1)
       {
-         cout << "--tcpWrite() SOCKET WRITE " << numBytes << " bytes" << endl;
-         
          // write to underlying socket
          mSocket->getOutputStream()->write(b, 0, numBytes);
          
          // decrement remaining bytes to write
          length -= numBytes;
       }
-      
-      cout << "--tcpWrite() FINISHED" << endl;
    }
 }
 
 void SslSocket::performHandshake() throw(IOException)
 {
-   cout << "SSL_do_handshake()..." << endl;
-   
    // do SSL_do_handshake()
    int ret = 0;
    while((ret = SSL_do_handshake(mSSL)) <= 0)
@@ -122,12 +107,10 @@ void SslSocket::performHandshake() throw(IOException)
       switch(error)
       {
          case SSL_ERROR_ZERO_RETURN:
-            cout << "SSL_do_handshake() CONNECTION CLOSED" << endl;
             throw SocketException(
                "Could not perform SSL handshake! Socket closed.");
             break;
          case SSL_ERROR_WANT_READ:
-            cout << "SSL_do_handshake() WANT READ" << endl;
             // more data is required from the socket
             if(tcpRead() == -1)
             {
@@ -136,18 +119,19 @@ void SslSocket::performHandshake() throw(IOException)
             }
             break;
          case SSL_ERROR_WANT_WRITE:
-            cout << "SSL_do_handshake() WANT WRITE" << endl;
             // data must be flushed to the socket
             tcpWrite();
             break;
          default:
-            cout << "SSL_do_handshake() ERROR" << endl;
             // an error occurred
             throw SocketException(
                "Could not perform SSL handshake!",
                ERR_error_string(ERR_get_error(), NULL));
       }
    }
+   
+   // session negotiated
+   mSessionNegotiated = true;
 }
 
 void SslSocket::close()
@@ -172,7 +156,11 @@ throw(IOException)
       throw SocketException("Cannot read from unconnected Socket!");
    }
    
-   cout << "SSL_read()..." << endl;
+   // perform a handshake as necessary
+   if(!mSessionNegotiated)
+   {
+      performHandshake();
+   }
    
    // do SSL_read() (implicit handshake performed as necessary)
    int ret = 0;
@@ -184,12 +172,10 @@ throw(IOException)
       switch(error)
       {
          case SSL_ERROR_ZERO_RETURN:
-            cout << "SSL_read() CONNECTION CLOSED" << endl;
             // the connection was shutdown
             closed = true;
             break;
          case SSL_ERROR_WANT_READ:
-            cout << "SSL_read() WANT READ" << endl;
             // more data is required from the socket
             if(tcpRead() == -1)
             {
@@ -198,12 +184,10 @@ throw(IOException)
             }
             break;
          case SSL_ERROR_WANT_WRITE:
-            cout << "SSL_read() WANT WRITE" << endl;
             // data must be flushed to the socket
             tcpWrite();
             break;
          default:
-            cout << "SSL_read() ERROR" << endl;
             // an error occurred
             throw SocketException(
                "Could not read from Socket!",
@@ -228,7 +212,11 @@ throw(IOException)
       throw SocketException("Cannot write to unconnected Socket!");
    }
    
-   cout << "SSL_write()..." << endl;
+   // perform a handshake as necessary
+   if(!mSessionNegotiated)
+   {
+      performHandshake();
+   }
    
    // do SSL_write() (implicit handshake performed as necessary)
    int ret = 0;
@@ -240,14 +228,12 @@ throw(IOException)
       switch(error)
       {
          case SSL_ERROR_ZERO_RETURN:
-            cout << "SSL_write() CONNECTION CLOSED" << endl;
             // the connection was shutdown
             throw SocketException(
                "Could not write to Socket! Socket closed.",
                ERR_error_string(ERR_get_error(), NULL));
             break;
          case SSL_ERROR_WANT_READ:
-            cout << "SSL_write() WANT READ" << endl;
             // more data is required from the socket
             if(tcpRead() == -1)
             {
@@ -258,12 +244,10 @@ throw(IOException)
             }
             break;
          case SSL_ERROR_WANT_WRITE:
-            cout << "SSL_write() WANT WRITE" << endl;
             // data must be flushed to the socket
             tcpWrite();
             break;
          default:
-            cout << "SSL_write() ERROR" << endl;
             // an error occurred
             throw SocketException(
                "Could not write to Socket!",
