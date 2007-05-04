@@ -53,8 +53,8 @@ int SslSocket::tcpRead() throw(IOException)
    // flush the Socket BIO
    tcpWrite();
    
-   // determine how many bytes can be written to the Socket BIO
-   size_t length = BIO_ctrl_get_write_guarantee(mSocketBio);
+   // determine how many bytes are required from the Socket BIO
+   size_t length = BIO_ctrl_get_read_request(mSocketBio);
    if(length > 0)
    {
       cout << "--tcpRead() " << length << " bytes" << endl;

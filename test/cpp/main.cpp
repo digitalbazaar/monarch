@@ -294,7 +294,7 @@ void runLinuxSslSocketTest()
    sslSocket.close();
    
    cout << "SSL Socket connection closed." << endl;
-   //cout << "Response:" << endl << str << endl;
+   cout << "Response:" << endl << str << endl;
    
    cout << endl << "SSL Socket test complete." << endl;
    
