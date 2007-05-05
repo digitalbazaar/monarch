@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
 #ifndef Math_H
 #define Math_H
 
@@ -25,7 +28,7 @@ public:
    /**
     * The maximum unsigned integer value.
     */
-   static const unsigned int MAX_UINT_VALUE = 0xFFFFFFFF;
+   static const unsigned int MAX_UINT_VALUE = 0xffffffff;
    
    /**
     * The maximum signed integer value.
@@ -35,7 +38,7 @@ public:
    /**
     * The maximum unsigned long long value.
     */
-   static const unsigned long long MAX_ULONG_VALUE = 0xFFFFFFFFFFFFFFFFLL;
+   static const unsigned long long MAX_ULONG_VALUE = 0xffffffffffffffffLL;
    
    /**
     * The maximum signed long long value.

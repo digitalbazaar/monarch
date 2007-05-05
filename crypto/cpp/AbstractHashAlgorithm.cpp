@@ -9,6 +9,9 @@ AbstractHashAlgorithm::AbstractHashAlgorithm()
 {
    // initialize the message digest context
    EVP_MD_CTX_init(&mMessageDigestContext);
+   
+   // set the hash function to null
+   mHashFunction = NULL;
 }
 
 AbstractHashAlgorithm::~AbstractHashAlgorithm()
@@ -27,7 +30,7 @@ void AbstractHashAlgorithm::reset()
 }
 
 void AbstractHashAlgorithm::update(
-   char* b, unsigned int offset, unsigned int length)
+   const char* b, unsigned int offset, unsigned int length)
 {
    // if the hash function hasn't been set, then call reset to set it
    if(mHashFunction == NULL)

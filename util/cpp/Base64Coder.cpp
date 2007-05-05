@@ -80,14 +80,14 @@ void Base64Coder::encodeGroup(
 {
    size_t len = length - offset;
    
-   unsigned int b0 = data[offset++] & 0xFF;
-   unsigned int b1 = (len > 1) ? data[offset++] & 0xFF : 0;
-   unsigned int b2 = (len > 2) ? data[offset++] & 0xFF : 0;
+   unsigned int b0 = data[offset++] & 0xff;
+   unsigned int b1 = (len > 1) ? data[offset++] & 0xff : 0;
+   unsigned int b2 = (len > 2) ? data[offset++] & 0xff : 0;
    
    group[0] = INDEX_TO_BASE64[b0 >> 2];
-   group[1] = INDEX_TO_BASE64[(b0 << 4 | b1 >> 4) & 0x3F];
-   group[2] = (len > 1) ? INDEX_TO_BASE64[(b1 << 2 | b2 >> 6) & 0x3F] : '=';
-   group[3] = (len > 2) ? INDEX_TO_BASE64[b2 & 0x3F] : '='; 
+   group[1] = INDEX_TO_BASE64[(b0 << 4 | b1 >> 4) & 0x3f];
+   group[2] = (len > 1) ? INDEX_TO_BASE64[(b1 << 2 | b2 >> 6) & 0x3f] : '=';
+   group[3] = (len > 2) ? INDEX_TO_BASE64[b2 & 0x3f] : '='; 
 }
 
 size_t Base64Coder::decodeGroup(std::string str, size_t offset, char* bytes)
@@ -183,18 +183,22 @@ std::string Base64Coder::encode(char* data, size_t offset, size_t length)
    return rval;
 }
 
-char* Base64Coder::decode(std::string str)
+size_t Base64Coder::decode(const std::string& str, char** data)
 {
-   char* rval = NULL;
+   size_t rval = 0;
+   
+   // point data at NULL
+   *data = NULL;
    
    // remove all white space
-   replaceAll(str, " ", "");
-   replaceAll(str, "\n", "");
-   replaceAll(str, "\r", "");
-   replaceAll(str, "\t", "");
+   std::string input = str;
+   replaceAll(input, " ", "");
+   replaceAll(input, "\n", "");
+   replaceAll(input, "\r", "");
+   replaceAll(input, "\t", "");
    
    // make sure the string has length
-   size_t length = str.size();
+   size_t length = input.size();
    if(length != 0)
    {
       // get and check the number of groups, must be a multiple of 4
@@ -203,11 +207,11 @@ char* Base64Coder::decode(std::string str)
       {
          // get the number of pad characters
          size_t padChars = 0;
-         if(str[length - 2] == '=')
+         if(input[length - 2] == '=')
          {
             padChars = 2;
          }
-         else if(str[length - 1] == '=')
+         else if(input[length - 1] == '=')
          {
             padChars = 1;
          }
@@ -217,7 +221,8 @@ char* Base64Coder::decode(std::string str)
          size_t decodedLength = groups * 3 - padChars;
          
          // allocate space for the byte array
-         rval = new char[decodedLength];
+         *data = new char[decodedLength];
+         rval = decodedLength;
          
          size_t dataIndex = 0;
          size_t strIndex = 0;
@@ -226,10 +231,10 @@ char* Base64Coder::decode(std::string str)
          for(size_t i = 0; i < groups; i++, strIndex += 4)
          {
             char bytes[3];
-            size_t len = decodeGroup(str, strIndex, bytes);
+            size_t len = decodeGroup(input, strIndex, bytes);
             
             // copy the decoded bytes into the decoded buffer
-            memcpy(rval + dataIndex, bytes, len);
+            memcpy((*data) + dataIndex, bytes, len);
             dataIndex += len;
          }
       }

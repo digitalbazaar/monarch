@@ -4,6 +4,8 @@
 #ifndef HashAlgorithm_H
 #define HashAlgorithm_H
 
+#include <string>
+
 namespace db
 {
 namespace crypto
@@ -49,13 +51,14 @@ public:
    
    /**
     * Updates the data to hash. This method can be called repeatedly with
-    * smaller chunks of the data that is to be hashed.
+    * chunks of the data that is to be hashed.
     * 
     * @param b a buffer with data to hash.
     * @param offset the offset at which the data begins.
     * @param length the length of the data.
     */
-   virtual void update(char* b, unsigned int offset, unsigned int length) = 0;
+   virtual void update(
+      const char* b, unsigned int offset, unsigned int length) = 0;
    
    /**
     * Puts the hash value into an array of bytes. The length of the hash value
@@ -71,6 +74,13 @@ public:
     * @return the length of the hash value in bytes.
     */
    virtual unsigned int getValueLength();
+   
+   /**
+    * Gets the hash value as a hexadecimal string.
+    * 
+    * @return the hash value as a hexadecimal string. 
+    */
+   virtual std::string getHexValue();
 };
 
 } // end namespace crypto

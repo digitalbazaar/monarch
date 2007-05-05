@@ -2,9 +2,11 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "MessageDigest.h"
+#include "Convert.h"
 
 using namespace std;
 using namespace db::crypto;
+using namespace db::util;
 
 MessageDigest::MessageDigest(const string& algorithm)
 throw(UnsupportedAlgorithmException)
@@ -43,4 +45,20 @@ const EVP_MD* MessageDigest::getHashFunction()
    }
    
    return rval;
+}
+
+void MessageDigest::updateMessage(const std::string& str)
+{
+   update(str.c_str(), 0, str.length());
+}
+
+string MessageDigest::getDigest()
+{
+   // get the hash value
+   unsigned int length = getValueLength();
+   char hashValue[length];
+   getValue(hashValue);
+   
+   // convert the hash value into hexadecimal
+   return Convert::bytesToHex(hashValue, 0, length);
 }

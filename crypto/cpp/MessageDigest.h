@@ -51,6 +51,21 @@ public:
     * Destructs this MessageDigest.
     */
    virtual ~MessageDigest();
+   
+   /**
+    * Updates the message to digest with a string. This method can be called
+    * repeatedly with chunks of the message that is to be digested.
+    * 
+    * @param str the string to digest.
+    */
+   virtual void updateMessage(const std::string& str);   
+   
+   /**
+    * Gets the message digest as a hexadecimal string.
+    * 
+    * @return the message digest as a hexadecimal string. 
+    */
+   virtual std::string getDigest();   
 };
 
 } // end namespace crypto

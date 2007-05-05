@@ -12,8 +12,10 @@
 #include "TcpSocket.h"
 #include "InternetAddress.h"
 #include "SslSocket.h"
+#include "MessageDigest.h"
 
 using namespace std;
+using namespace db::crypto;
 using namespace db::net;
 using namespace db::rt;
 using namespace db::util;
@@ -26,8 +28,8 @@ void runBase64Test()
 	string encoded = Base64Coder::encode(data, 0, 4);
 	cout << "encoded=" << encoded << endl;
 	
-	char* decoded = Base64Coder::decode(encoded);
-   int length = sizeof(decoded);
+   char* decoded;
+	int length = Base64Coder::decode(encoded, &decoded);
 	
 	cout << "decoded bytes=" << length << endl;
    for(int i = 0; i < length; i++)
@@ -320,6 +322,24 @@ void runWindowsSslSocketTest()
 #endif   
 }
 
+void runMessageDigestTest()
+{
+   cout << "Running MessageDigest Test" << endl << endl;
+   
+   MessageDigest md("SHA1");
+   md.updateMessage("THIS IS A MESSAGE");
+   string digest = md.getDigest();
+   
+   cout << "Digest=" << digest << endl;
+   
+   //char hashValue[20];
+   //md.getValue(hashValue);
+   //string hv = Base64Coder::encode(hashValue, 0, 20);
+   //cout << "hashValue=" << hv << endl;
+   
+   cout << "MessageDigest test complete." << endl << endl;
+}
+
 int main()
 {
    cout << "Tests starting..." << endl << endl;
@@ -333,12 +353,18 @@ int main()
       //runLinuxSocketTest();
       //runWindowsSslSocketTest();
       //runLinuxSslSocketTest();
+      runMessageDigestTest();
    }
    catch(SocketException& e)
    {
       cout << "SocketException caught!" << endl;
       cout << "message: " << e.getMessage() << endl;
       cout << "code: " << e.getCode() << endl;
+   }
+   catch(UnsupportedAlgorithmException& e)
+   {
+      cout << "UnsupportedAlgorithmException caught!" << endl;
+      cout << "message: " << e.getMessage() << endl;
    }
    catch(...)
    {

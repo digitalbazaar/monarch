@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
 #ifndef Base64Coder_H
 #define Base64Coder_H
 
@@ -145,26 +148,27 @@ public:
    static size_t decodeGroup(std::string str, size_t offset, char* bytes);
    
    /**
-    * Base64 encodes data.
+    * Base64 encodes data. The passed array of bytes is transformed into a
+    * base64-encoded string.
     * 
     * @param data the byte array to encode.
     * @param offset the offset in the data to start encoding at. 
     * @param length the number of bytes in the data to encode.
     * 
-    * @return the Base64 encoded string.
+    * @return the base64-encoded string.
     */
    static std::string encode(char* data, size_t offset, size_t length);
    
    /**
-    * Decodes a Base64-encoded string. Calls AbstractPreferences
-    * getByteArray() method which Base64 decodes a value from the internal
-    * Coder map.
+    * Base64 decodes data. The passed base64-encoded string is transformed
+    * into a byte array of data.
     *  
     * @param str the Base64-encoded string.
+    * @param data a pointer to a byte array that will be set by this method.
     * 
-    * @return the decoded byte array.
+    * @return the number of decoded bytes.
     */
-   static char* decode(std::string str);
+   static size_t decode(const std::string& str, char** data);
 };
 
 } // end namespace util
