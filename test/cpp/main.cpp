@@ -326,16 +326,37 @@ void runMessageDigestTest()
 {
    cout << "Running MessageDigest Test" << endl << endl;
    
-   MessageDigest md("SHA1");
-   md.updateMessage("THIS IS A MESSAGE");
-   string digest = md.getDigest();
+   // correct values
+   string correctMd5 = "78eebfd9d42958e3f31244f116ab7bbe";
+   string correctSha1 = "5f24f4d6499fd2d44df6c6e94be8b14a796c071d";   
    
-   cout << "Digest=" << digest << endl;
+   MessageDigest testMd5("MD5");
+   testMd5.updateMessage("THIS IS A MESSAGE");
+   string digestMd5 = testMd5.getDigest();
    
-   //char hashValue[20];
-   //md.getValue(hashValue);
-   //string hv = Base64Coder::encode(hashValue, 0, 20);
-   //cout << "hashValue=" << hv << endl;
+   cout << "MD5 Digest=" << digestMd5 << endl;
+   if(digestMd5 == correctMd5)
+   {
+      cout << "MD5 is correct!" << endl;
+   }
+   else
+   {
+      cout << "MD5 is incorrect!" << endl;
+   }
+   
+   MessageDigest testSha1("SHA1");
+   testSha1.updateMessage("THIS IS A MESSAGE");
+   string digestSha1 = testSha1.getDigest();
+   
+   cout << "SHA-1 Digest=" << digestSha1 << endl;
+   if(digestSha1 == correctSha1)
+   {
+      cout << "SHA-1 is correct!" << endl;
+   }
+   else
+   {
+      cout << "SHA-1 is incorrect!" << endl;
+   }
    
    cout << "MessageDigest test complete." << endl << endl;
 }
