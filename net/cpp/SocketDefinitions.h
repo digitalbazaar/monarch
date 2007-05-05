@@ -74,11 +74,11 @@
    {
       int rval = 0;
       
-      long long addrLong = inet_addr(in);
-      if(addrLong != -1 || in == "255.255.255.255")
+      unsigned long long addrLong = inet_addr(in);
+      if(addrLong != 0xFFFFFFFF || in == "255.255.255.255")
       {
          // successful conversion
-         out->s_addr = (unsigned long)addrLong;
+         out->s_addr = addrLong;
          rval = 1;
       }
       

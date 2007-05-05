@@ -21,7 +21,6 @@ InternetAddress::~InternetAddress()
 {
 }
 
-#include <iostream.h>
 void InternetAddress::setAddress(const string& address) throw(SocketException)
 {
    // store the address as the host
