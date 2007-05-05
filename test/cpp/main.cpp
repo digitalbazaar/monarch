@@ -331,7 +331,8 @@ int main()
       //runThreadTest();
       //runWindowsSocketTest();
       //runLinuxSocketTest();
-      runLinuxSslSocketTest();
+      //runWindowsSslSocketTest();
+      //runLinuxSslSocketTest();
    }
    catch(SocketException& e)
    {
