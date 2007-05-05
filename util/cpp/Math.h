@@ -15,6 +15,12 @@ namespace util
  */
 class Math
 {
+private:
+   /**
+    * Creates a new Math object.
+    */
+   Math() {};
+   
 public:
    /**
     * The maximum unsigned integer value.
