@@ -4,7 +4,7 @@
 #ifndef MessageDigest_H
 #define MessageDigest_H
 
-#include "AbstractHashAlgorithm.h"
+#include "CryptoHashAlgorithm.h"
 #include "UnsupportedAlgorithmException.h"
 
 #include <string>
@@ -15,12 +15,12 @@ namespace crypto
 {
 
 /**
- * A MessageDigest is a type of HashAlgorithm that "digests" a message and
- * produces a "message digest".
+ * A MessageDigest is a type of CryptoHashAlgorithm that "digests" a message
+ * and produces a "message digest".
  * 
  * @author Dave Longley
  */
-class MessageDigest : public AbstractHashAlgorithm
+class MessageDigest : public CryptoHashAlgorithm
 {
 protected:
    /**

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef AbstractHashAlgorithm_H
-#define AbstractHashAlgorithm_H
+#ifndef CryptoHashAlgorithm_H
+#define CryptoHashAlgorithm_H
 
 #include "HashAlgorithm.h"
 #include "Object.h"
@@ -15,12 +15,14 @@ namespace crypto
 {
 
 /**
- * The AbstractHashAlgorithm class provides an abstract base class for
- * HashAlgorithms that uses OpenSSL's implementations for hash algorithms.
+ * The CryptoHashAlgorithm class provides an abstract base class for
+ * cryptographic HashAlgorithms. It uses OpenSSL's implementations for
+ * crypographic hash algorithms.
  * 
  * @author Dave Longley
  */
-class AbstractHashAlgorithm : public virtual db::rt::Object
+class CryptoHashAlgorithm : 
+public virtual db::rt::Object, public db::util::HashAlgorithm
 {
 protected:
    /**
@@ -42,14 +44,14 @@ protected:
 
 public:
    /**
-    * Creates a new AbstractHashAlgorithm.
+    * Creates a new CryptoHashAlgorithm.
     */
-   AbstractHashAlgorithm();
+   CryptoHashAlgorithm();
    
    /**
-    * Destructs this AbstractHashAlgorithm.
+    * Destructs this CryptoHashAlgorithm.
     */
-   virtual ~AbstractHashAlgorithm();
+   virtual ~CryptoHashAlgorithm();
    
    /**
     * Resets this HashAlgorithm so it can be used again with new input.

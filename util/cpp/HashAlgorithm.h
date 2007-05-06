@@ -4,11 +4,9 @@
 #ifndef HashAlgorithm_H
 #define HashAlgorithm_H
 
-#include <string>
-
 namespace db
 {
-namespace crypto
+namespace util
 {
 
 /**
@@ -66,23 +64,16 @@ public:
     * 
     * @param b a buffer to fill with the hash value bytes.
     */
-   virtual void getValue(unsigned char* b) = 0;
+   virtual void getValue(char* b) = 0;
    
    /**
     * Gets the length of the hash value in bytes.
     * 
     * @return the length of the hash value in bytes.
     */
-   virtual unsigned int getValueLength();
-   
-   /**
-    * Gets the hash value as a hexadecimal string.
-    * 
-    * @return the hash value as a hexadecimal string. 
-    */
-   virtual std::string getHexValue();
+   virtual unsigned int getValueLength() = 0;
 };
 
-} // end namespace crypto
+} // end namespace util
 } // end namespace db
 #endif

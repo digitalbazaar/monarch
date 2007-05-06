@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "AbstractHashAlgorithm.h"
+#include "CryptoHashAlgorithm.h"
 
 using namespace db::crypto;
 
-AbstractHashAlgorithm::AbstractHashAlgorithm()
+CryptoHashAlgorithm::CryptoHashAlgorithm()
 {
    // initialize the message digest context
    EVP_MD_CTX_init(&mMessageDigestContext);
@@ -14,13 +14,13 @@ AbstractHashAlgorithm::AbstractHashAlgorithm()
    mHashFunction = NULL;
 }
 
-AbstractHashAlgorithm::~AbstractHashAlgorithm()
+CryptoHashAlgorithm::~CryptoHashAlgorithm()
 {
    // clean up the message digest context
    EVP_MD_CTX_cleanup(&mMessageDigestContext);
 }
 
-void AbstractHashAlgorithm::reset()
+void CryptoHashAlgorithm::reset()
 {
    // get the hash function for this algorithm
    mHashFunction = getHashFunction();
@@ -29,7 +29,7 @@ void AbstractHashAlgorithm::reset()
    EVP_DigestInit_ex(&mMessageDigestContext, mHashFunction, NULL);
 }
 
-void AbstractHashAlgorithm::update(
+void CryptoHashAlgorithm::update(
    const char* b, unsigned int offset, unsigned int length)
 {
    // if the hash function hasn't been set, then call reset to set it
@@ -42,7 +42,7 @@ void AbstractHashAlgorithm::update(
    EVP_DigestUpdate(&mMessageDigestContext, b + offset, length);
 }
 
-void AbstractHashAlgorithm::getValue(char* b)
+void CryptoHashAlgorithm::getValue(char* b)
 {
    // if the hash function hasn't been set, then call reset to set it
    if(mHashFunction == NULL)
@@ -55,7 +55,7 @@ void AbstractHashAlgorithm::getValue(char* b)
    EVP_DigestFinal_ex(&mMessageDigestContext, (unsigned char*)b, &length);
 }
 
-unsigned int AbstractHashAlgorithm::getValueLength()
+unsigned int CryptoHashAlgorithm::getValueLength()
 {
    // if the hash function hasn't been set, then call reset to set it
    if(mHashFunction == NULL)
