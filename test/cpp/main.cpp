@@ -13,6 +13,7 @@
 #include "InternetAddress.h"
 #include "SslSocket.h"
 #include "MessageDigest.h"
+#include "Crc16.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -363,6 +364,37 @@ void runMessageDigestTest()
    cout << "MessageDigest test complete." << endl << endl;
 }
 
+void runCrcTest()
+{
+   cout << "Running CRC Test" << endl << endl;
+   
+   unsigned int correctValue = 6013;
+   
+   Crc16 crc16;
+   char b[] = {10, 20, 30, 40, 50, 60, 70, 80};
+//   crc16.update(10);
+//   crc16.update(20);
+//   crc16.update(30);
+//   crc16.update(40);
+//   crc16.update(50);
+//   crc16.update(60);
+//   crc16.update(70);
+//   crc16.update(80);
+   crc16.update(b, 0, 8);
+   
+   cout << "CRC-16=" << crc16.getChecksum() << endl;
+   if(crc16.getChecksum() == correctValue)
+   {
+      cout << "CRC-16 is correct!" << endl;
+   }
+   else
+   {
+      cout << "CRC-16 is incorrect!" << endl;
+   }
+   
+   cout << "CRC test complete." << endl << endl;
+}
+
 int main()
 {
    cout << "Tests starting..." << endl << endl;
@@ -376,7 +408,8 @@ int main()
       //runLinuxSocketTest();
       //runWindowsSslSocketTest();
       //runLinuxSslSocketTest();
-      runMessageDigestTest();
+      //runMessageDigestTest();
+      runCrcTest();
    }
    catch(SocketException& e)
    {

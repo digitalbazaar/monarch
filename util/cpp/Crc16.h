@@ -385,26 +385,57 @@ namespace util
  */
 class Crc16 : public virtual db::rt::Object, public HashAlgorithm
 {
+protected:
+   /**
+    * The current CRC value.
+    */
+   unsigned int mCrcValue;
+   
+   /**
+    * Set to true once the register table has been initialized.
+    */
+   static bool REGISTER_TABLE_INITIALIZED;
+   
+   /**
+    * A table of pre-XOR'd registers. One value for each possible byte value.
+    */
+   static short REGISTER_TABLE[256];
+   
+   /**
+    * Initializes the table of registers for a given polynomial, one register
+    * for each byte value.
+    * 
+    * @param key the polynomial key to use.
+    */
+   static bool initializeTable(const unsigned int& key);
+   
 public:
    /**
     * The length of a checksum for the CRC-16 algorithm in bytes.
     */
-   static unsigned int CRC16_CHECKSUM_LENGTH = 2;
+   static const unsigned int CRC16_CHECKSUM_LENGTH = 2;
    
    /**
     * Creates a new Crc16.
     */
-   Crc16() {};
+   Crc16();
    
    /**
     * Destructs this Crc16.
     */
-   virtual ~Crc16() {};
+   virtual ~Crc16();
    
    /**
     * Resets this HashAlgorithm so it can be used again with new input.
     */ 
-   virtual void reset() = 0;
+   virtual void reset();
+   
+   /**
+    * Updates the current CRC value with the given byte.
+    * 
+    * @param b the byte to update the CRC value with.
+    */
+   void update(const unsigned char& b);
    
    /**
     * Updates the data to hash. This method can be called repeatedly with
@@ -414,7 +445,7 @@ public:
     * @param offset the offset at which the data begins.
     * @param length the length of the data.
     */
-   virtual void update(char* b, unsigned int offset, unsigned int length) = 0;
+   virtual void update(const char* b, unsigned int offset, unsigned int length);
    
    /**
     * Puts the hash value into an array of bytes. The length of the hash value
@@ -429,8 +460,15 @@ public:
     * 
     * @return the length of the hash value in bytes.
     */
-   virtual unsigned int getValueLength();   
-}
+   virtual unsigned int getValueLength();
+   
+   /**
+    * Gets the hash value (the checksum) as an integer.
+    * 
+    * @return the checksum for this CRC.
+    */
+   unsigned int getChecksum();
+};
 
 } // end namespace util
 } // end namespace db
