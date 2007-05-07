@@ -25,6 +25,22 @@ class AsymmetricKeyFactory : public virtual db::rt::Object
 {
 protected:
    /**
+    * Creates a new DSA key pair.
+    * 
+    * @param privateKey a pointer to point at the new PrivateKey.
+    * @param publicKey a pointer to point at the new PublicKey.
+    */
+   void createDsaKeyPair(PrivateKey** privateKey, PublicKey** publicKey);
+   
+   /**
+    * Creates a new RSA key pair.
+    * 
+    * @param privateKey a pointer to point at the new PrivateKey.
+    * @param publicKey a pointer to point at the new PublicKey.
+    */
+   void createRsaKeyPair(PrivateKey** privateKey, PublicKey** publicKey);
+   
+   /**
     * A callback function that is called to obtain a password to unlock
     * an encrypted key.
     * 
@@ -36,7 +52,7 @@ protected:
     * @return the length of the password.
     */
    static int passwordCallback(char* b, int length, int flag, void* userData);
-      
+   
 public:
    /**
     * Creates a new AsymmetricKeyFactory.
@@ -47,6 +63,21 @@ public:
     * Destructs this AsymmetricKeyFactory.
     */
    virtual ~AsymmetricKeyFactory();
+   
+   /**
+    * Creates a new key pair using the given algorithm.
+    * 
+    * @param algorithm the algorithm to use.
+    * @param privateKey a pointer to point at the new PrivateKey.
+    * @param publicKey a pointer to point at the new PublicKey.
+    * 
+    * @exception UnsupportedAlgorithmException thrown if the passed algorithm
+    *            is not supported.
+    */
+   void createKeyPair(
+      std::string const& algorithm,
+      PrivateKey** privateKey, PublicKey** publicKey)
+   throw(UnsupportedAlgorithmException);
    
    /**
     * Loads a private key from a PEM formatted string. A PEM formatted

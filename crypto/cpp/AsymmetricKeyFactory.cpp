@@ -46,6 +46,127 @@ int AsymmetricKeyFactory::passwordCallback(
    return length;
 }
 
+void AsymmetricKeyFactory::createDsaKeyPair(
+   PrivateKey** privateKey, PublicKey** publicKey)
+{
+   // generate DSA parameters
+   DSA* dsa = DSA_generate_parameters(
+      1024, NULL, 0, NULL, NULL, NULL, NULL);
+   if(dsa != NULL)
+   {
+      // generate DSA keys
+      if(DSA_generate_key(dsa) == 1)
+      {
+         // store private key temporarily
+         BIGNUM* x = dsa->priv_key;
+         
+         // clear private key
+         dsa->priv_key = NULL;
+         
+         // create public key
+         EVP_PKEY* pub = EVP_PKEY_new();
+         EVP_PKEY_set1_DSA(pub, dsa);
+         *publicKey = new PublicKey(pub);
+         
+         // store public key and params
+         BIGNUM* p = dsa->p;
+         BIGNUM* q = dsa->q;
+         BIGNUM* g = dsa->g;
+         BIGNUM* y = dsa->pub_key;
+         
+         // clear public key and params
+         dsa->p = NULL;
+         dsa->q = NULL;
+         dsa->g = NULL;
+         dsa->pub_key = NULL;
+         
+         // restore private key
+         dsa->priv_key = x;
+         
+         // create private key
+         EVP_PKEY* priv = EVP_PKEY_new();
+         EVP_PKEY_set1_DSA(priv, dsa);
+         *privateKey = new PrivateKey(priv);
+         
+         // restore public key and params
+         dsa->p = p;
+         dsa->q = q;
+         dsa->g = g;
+         dsa->pub_key = y;
+         
+         // free DSA
+         DSA_free(dsa);
+      }
+   }
+}
+
+void AsymmetricKeyFactory::createRsaKeyPair(
+   PrivateKey** privateKey, PublicKey** publicKey)
+{
+   // generate RSA keys
+   RSA* rsa = RSA_generate_key(1024, 3, NULL, NULL);
+   if(rsa != NULL)
+   {
+      // store private key exponent temporarily
+      BIGNUM* d = rsa->d;
+      
+      // clear private key exponent
+      rsa->d = NULL;
+      
+      // create public key
+      EVP_PKEY* pub = EVP_PKEY_new();
+      EVP_PKEY_set1_RSA(pub, rsa);
+      *publicKey = new PublicKey(pub);
+      
+      // store public key exponent temporarily
+      BIGNUM* e = rsa->e;
+      
+      // clear public key exponent
+      rsa->e = NULL;
+      
+      // restore private key exponent
+      rsa->d = d;
+      
+      // create private key
+      EVP_PKEY* priv = EVP_PKEY_new();
+      EVP_PKEY_set1_RSA(priv, rsa);
+      *privateKey = new PrivateKey(priv);
+      
+      // restore public key exponent
+      rsa->e = e;
+      
+      // free RSA
+      RSA_free(rsa);
+   }
+}
+
+void AsymmetricKeyFactory::createKeyPair(
+   const std::string& algorithm,
+   PrivateKey** privateKey, PublicKey** publicKey)
+throw(UnsupportedAlgorithmException)
+{
+   // set private and public keys to null
+   *privateKey = NULL;
+   *publicKey = NULL;
+   
+   if(algorithm == "DSA")
+   {
+      // create DSA key pair
+      createDsaKeyPair(privateKey, publicKey);
+   }
+   else if(algorithm == "RSA")
+   {
+      // create RSA key pair
+      createRsaKeyPair(privateKey, publicKey);
+   }
+   else
+   {
+      // unknown algorithm
+      throw UnsupportedAlgorithmException(
+         "Key algorithm '" + algorithm + "' is not supported!");
+   }
+}
+
 PrivateKey* AsymmetricKeyFactory::loadPrivateKeyFromPem(
    const string& pem, const string& password)
 throw(IOException)
