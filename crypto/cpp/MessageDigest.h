@@ -53,13 +53,44 @@ public:
    virtual ~MessageDigest();
    
    /**
+    * Resets this HashAlgorithm so it can be used again with new input.
+    */ 
+   virtual void reset();
+   
+   /**
     * Updates the message to digest with a string. This method can be called
     * repeatedly with chunks of the message that is to be digested.
     * 
     * @param str the string to digest.
     */
-   virtual void updateMessage(const std::string& str);   
+   virtual void update(const std::string& str);
    
+   /**
+    * Updates the data to hash. This method can be called repeatedly with
+    * chunks of the data that is to be hashed.
+    * 
+    * @param b a buffer with data to hash.
+    * @param offset the offset at which the data begins.
+    * @param length the length of the data.
+    */
+   virtual void update(const char* b, unsigned int offset, unsigned int length);
+   
+   /**
+    * Puts the hash value into an array of bytes. The length of the hash value
+    * is dependent on the specific algorithm.
+    * 
+    * @param b a buffer to fill with the hash value bytes.
+    * @param length the length of the value.
+    */
+   virtual void getValue(char* b, unsigned int& length);
+   
+   /**
+    * Gets the maximum length of the hash value in bytes.
+    * 
+    * @return the maximum length of the hash value in bytes.
+    */
+   virtual unsigned int getValueLength();   
+      
    /**
     * Gets the message digest as a hexadecimal string.
     * 

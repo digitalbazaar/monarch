@@ -332,9 +332,9 @@ void runMessageDigestTest()
    string correctSha1 = "5f24f4d6499fd2d44df6c6e94be8b14a796c071d";   
    
    MessageDigest testMd5("MD5");
-   testMd5.updateMessage("THIS ");
-   testMd5.updateMessage("IS A");
-   testMd5.updateMessage(" MESSAGE");
+   testMd5.update("THIS ");
+   testMd5.update("IS A");
+   testMd5.update(" MESSAGE");
    string digestMd5 = testMd5.getDigest();
    
    cout << "MD5 Digest=" << digestMd5 << endl;
@@ -348,7 +348,7 @@ void runMessageDigestTest()
    }
    
    MessageDigest testSha1("SHA1");
-   testSha1.updateMessage("THIS IS A MESSAGE");
+   testSha1.update("THIS IS A MESSAGE");
    string digestSha1 = testSha1.getDigest();
    
    cout << "SHA-1 Digest=" << digestSha1 << endl;

@@ -23,7 +23,7 @@ throw(UnsupportedAlgorithmException)
    {
       // unsupported algorithm
       throw UnsupportedAlgorithmException(
-         "Unsupported algorithm '" + algorithm + "'"); 
+         "Unsupported hash algorithm '" + algorithm + "'"); 
    }
 }
 
@@ -47,9 +47,54 @@ const EVP_MD* MessageDigest::getHashFunction()
    return rval;
 }
 
-void MessageDigest::updateMessage(const std::string& str)
+void MessageDigest::reset()
+{
+   // get the hash function for this algorithm
+   mHashFunction = getHashFunction();
+   
+   // initialize the message digest context (NULL uses the default engine)
+   EVP_DigestInit_ex(&mMessageDigestContext, mHashFunction, NULL);
+}
+
+void MessageDigest::update(const std::string& str)
 {
    update(str.c_str(), 0, str.length());
+}
+
+void MessageDigest::update(
+   const char* b, unsigned int offset, unsigned int length)
+{
+   // if the hash function hasn't been set, then call reset to set it
+   if(mHashFunction == NULL)
+   {
+      reset();
+   }
+   
+   // update message digest context
+   EVP_DigestUpdate(&mMessageDigestContext, b + offset, length);
+}
+
+void MessageDigest::getValue(char* b, unsigned int& length)
+{
+   // if the hash function hasn't been set, then call reset to set it
+   if(mHashFunction == NULL)
+   {
+      reset();
+   }
+   
+   // get the final value from the message digest context
+   EVP_DigestFinal_ex(&mMessageDigestContext, (unsigned char*)b, &length);
+}
+
+unsigned int MessageDigest::getValueLength()
+{
+   // if the hash function hasn't been set, then call reset to set it
+   if(mHashFunction == NULL)
+   {
+      reset();
+   }
+   
+   return EVP_MD_size(mHashFunction);
 }
 
 string MessageDigest::getDigest()
@@ -57,7 +102,7 @@ string MessageDigest::getDigest()
    // get the hash value
    unsigned int length = getValueLength();
    char hashValue[length];
-   getValue(hashValue);
+   getValue(hashValue, length);
    
    // convert the hash value into hexadecimal
    return Convert::bytesToHex(hashValue, 0, length);

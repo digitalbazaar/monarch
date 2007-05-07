@@ -452,13 +452,14 @@ public:
     * is CRC16_CHECKSUM_LENGTH (2 bytes).
     * 
     * @param b a buffer to fill with the hash data.
+    * @param length the length of the value.
     */
-   virtual void getValue(char* b);
+   virtual void getValue(char* b, unsigned int& length);
    
    /**
-    * Gets the length of the hash value in bytes.
+    * Gets the maximum length of the hash value in bytes.
     * 
-    * @return the length of the hash value in bytes.
+    * @return the maximum length of the hash value in bytes.
     */
    virtual unsigned int getValueLength();
    

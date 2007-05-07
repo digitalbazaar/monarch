@@ -87,13 +87,16 @@ void Crc16::update(const char* b, unsigned int offset, unsigned int length)
    }
 }
 
-void Crc16::getValue(char* b)
+void Crc16::getValue(char* b, unsigned int& length)
 {
    unsigned char* value = (unsigned char*)b;
    
    // write the crc value into the passed byte array (little-endian)
    value[0] = mCrcValue & 0xff;
    value[1] = (mCrcValue >> 8) & 0xff;
+   
+   // set length of checksum
+   length = getValueLength();
 }
 
 unsigned int Crc16::getValueLength()

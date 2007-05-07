@@ -63,13 +63,14 @@ public:
     * is dependent on the specific algorithm.
     * 
     * @param b a buffer to fill with the hash value bytes.
+    * @param length the length of the value.
     */
-   virtual void getValue(char* b) = 0;
+   virtual void getValue(char* b, unsigned int& length) = 0;
    
    /**
-    * Gets the length of the hash value in bytes.
+    * Gets the maximum length of the hash value in bytes.
     * 
-    * @return the length of the hash value in bytes.
+    * @return the maximum length of the hash value in bytes.
     */
    virtual unsigned int getValueLength() = 0;
 };
