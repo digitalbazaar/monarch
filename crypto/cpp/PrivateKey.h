@@ -43,6 +43,13 @@ public:
     * Destructs this PrivateKey.
     */
    virtual ~PrivateKey() {};
+   
+   /**
+    * Gets the algorithm for this key.
+    * 
+    * @return the algorithm for this key.
+    */
+   virtual const std::string& getAlgorithm() = 0;   
 };
 
 } // end namespace crypto

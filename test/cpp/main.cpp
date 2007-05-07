@@ -409,7 +409,7 @@ int main()
       //runWindowsSslSocketTest();
       //runLinuxSslSocketTest();
       //runMessageDigestTest();
-      runCrcTest();
+      //runCrcTest();
    }
    catch(SocketException& e)
    {

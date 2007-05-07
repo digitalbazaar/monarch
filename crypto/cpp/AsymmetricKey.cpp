@@ -3,28 +3,10 @@
  */
 #include "AsymmetricKey.h"
 
-using namespace std;
 using namespace db::crypto;
 
-AsymmetricKey::AsymmetricKey(const string& algorithm)
-throw(UnsupportedAlgorithmException)
+AsymmetricKey::AsymmetricKey()
 {
-   // make sure the passed algorithm is supported
-   if(algorithm == "DSA")
-   {
-      mAlgorithm = algorithm;
-   }
-   else if(algorithm == "RSA")
-   {
-      mAlgorithm = algorithm;
-   }
-   else
-   {
-      // unsupported algorithm
-      throw UnsupportedAlgorithmException(
-         "Unsupported key algorithm '" + algorithm + "'"); 
-   }
-   
    // allocate the public/private key structure
    mKey = EVP_PKEY_new();
 }
@@ -38,9 +20,4 @@ AsymmetricKey::~AsymmetricKey()
 EVP_PKEY* AsymmetricKey::getPKEY()
 {
    return mKey;
-}
-
-const string& AsymmetricKey::getAlgorithm()
-{
-   return mAlgorithm;
 }

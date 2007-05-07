@@ -29,22 +29,11 @@ protected:
     */
    EVP_PKEY* mKey;
    
-   /**
-    * The algorithm for this key.
-    */
-   std::string mAlgorithm; 
-   
 public:
    /**
-    * Creates a new AsymmetricKey with the given algorithm.
-    * 
-    * @param algorithm the key algorithm to use.
-    * 
-    * @exception UnsupportedAlgorithmException thrown if the passed algorithm
-    *            is not recognized or implemented.
+    * Creates a new AsymmetricKey.
     */
-   AsymmetricKey(const std::string& algorithm)
-   throw(UnsupportedAlgorithmException);
+   AsymmetricKey();
    
    /**
     * Destructs this AsymmetricKey.
@@ -63,7 +52,7 @@ public:
     * 
     * @return the algorithm for this key.
     */
-   virtual const std::string& getAlgorithm();
+   virtual const std::string& getAlgorithm() = 0;
 };
 
 } // end namespace crypto
