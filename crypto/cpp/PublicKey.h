@@ -31,34 +31,31 @@ namespace crypto
  * key can be verified by anyone who has the sender's public key. This ensures
  * that any verified message was sent from the sender and has not been altered.
  * 
+ * This class uses OpenSSL's implementation of public keys.
+ * 
  * @author Dave Longley
  */
-class PublicKey
+class PublicKey : public AsymmetricKey
 {
 public:
    /**
-    * Creates a new PublicKey.
+    * Creates a new PublicKey from a PKEY structure.
+    * 
+    * @param pkey the PKEY structure with the data for the key.
     */
-   PublicKey() {};
+   PublicKey(EVP_PKEY* pkey);
    
    /**
     * Destructs this PublicKey.
     */
-   virtual ~PublicKey() {};
+   virtual ~PublicKey();
    
    /**
     * Creates a DigitalSignature to verify data with.
     * 
     * @return the DigitalSignature to verify data with.
     */
-   virtual DigitalSignature* createSignature() = 0;
-   
-   /**
-    * Gets the algorithm for this key.
-    * 
-    * @return the algorithm for this key.
-    */
-   virtual const std::string& getAlgorithm() = 0;   
+   virtual DigitalSignature* createSignature();
 };
 
 } // end namespace crypto

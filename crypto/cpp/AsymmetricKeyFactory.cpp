@@ -2,8 +2,8 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "AsymmetricKeyFactory.h"
-#include "BasicPrivateKey.h"
-#include "BasicPublicKey.h"
+#include "PrivateKey.h"
+#include "PublicKey.h"
 #include "Math.h"
 
 #include <openssl/err.h>
@@ -71,24 +71,42 @@ throw(IOException)
    }
    
    // wrap the PKEY structure and return it
-   BasicPrivateKey* key = new BasicPrivateKey(pkey);
+   PrivateKey* key = new PrivateKey(pkey);
    return key;
 }
 
-/*
-void AsymmetricKeyFactory::writePrivateKeyToPem() throw(IOException)
+string AsymmetricKeyFactory::writePrivateKeyToPem(
+   PrivateKey* key, const string& password)
+throw(IOException)
 {
+   string rval = "";
+   
    // create a memory BIO
-   char b[2048];
-   BIO* bio = BIO_new_mem_buf(b, 2048);
+   BIO* bio = BIO_new(BIO_s_mem());
    
    // write the key to the bio
    int error = PEM_write_bio_PKCS8PrivateKey(
-      bio, getPKEY(), const EVP_CIPHER *enc,
-      char *kstr, int klen, pem_password_cb *cb, void *u);
-   PEM_write_bio_PKCS8PrivateKey(bp, key, EVP_des_ede3_cbc(), NULL, 0, 0, "hello")
+      bio, key->getPKEY(), EVP_des_ede3_cbc(), NULL, 0, NULL,
+      (void*)password.c_str());
+   if(error == 0)
+   {
+      throw IOException(
+         "Could not write private key to PEM!",
+         ERR_error_string(ERR_get_error(), NULL));
+   }
+   
+   // get the memory buffer from the bio
+   BUF_MEM* mem;
+   BIO_get_mem_ptr(bio, &mem);
+   
+   // add characters to the string
+   rval.append(mem->data, mem->length);
+   
+   // free the bio
+   BIO_free(bio);
+   
+   return rval;
 }
-*/
 
 PublicKey* AsymmetricKeyFactory::loadPublicKeyFromPem(const string& pem)
 throw(IOException)
@@ -113,6 +131,36 @@ throw(IOException)
    }
    
    // wrap the PKEY structure and return it
-   BasicPublicKey* key = new BasicPublicKey(pkey);
+   PublicKey* key = new PublicKey(pkey);
    return key;
+}
+
+string AsymmetricKeyFactory::writePublicKeyToPem(PublicKey* key)
+throw(IOException)
+{
+   string rval = "";
+   
+   // create a memory BIO
+   BIO* bio = BIO_new(BIO_s_mem());
+   
+   // write the key to the bio
+   int error = PEM_write_bio_PUBKEY(bio, key->getPKEY());
+   if(error == 0)
+   {
+      throw IOException(
+         "Could not write private key to PEM!",
+         ERR_error_string(ERR_get_error(), NULL));
+   }
+   
+   // get the memory buffer from the bio
+   BUF_MEM* mem;
+   BIO_get_mem_ptr(bio, &mem);
+   
+   // add characters to the string
+   rval.append(mem->data, mem->length);
+   
+   // free the bio
+   BIO_free(bio);
+   
+   return rval;
 }

@@ -12,7 +12,7 @@ namespace crypto
 {
 
 /**
- * A PrivateKey provides an interface for private keys.
+ * A PrivateKey is a secret cryptographic asymmetric key.
  * 
  * In asymmetric cryptography a pair of keys, one public and one private
  * are used. An entity's public key, as the name suggests, is public and does
@@ -31,34 +31,31 @@ namespace crypto
  * key can be verified by anyone who has the sender's public key. This ensures
  * that any verified message was sent from the sender and has not been altered.
  * 
+ * This class uses OpenSSL's implementation of private keys.
+ * 
  * @author Dave Longley
  */
-class PrivateKey
+class PrivateKey : public AsymmetricKey
 {
 public:
    /**
-    * Creates a new PrivateKey.
+    * Creates a new PrivateKey from a PKEY structure.
+    * 
+    * @param pkey the PKEY structure with the data for the key.
     */
-   PrivateKey() {};
+   PrivateKey(EVP_PKEY* pkey);
    
    /**
     * Destructs this PrivateKey.
     */
-   virtual ~PrivateKey() {};
+   virtual ~PrivateKey();
    
    /**
     * Creates a DigitalSignature to sign data with.
     * 
     * @return the DigitalSignature to sign data with.
     */
-   virtual DigitalSignature* createSignature() = 0;
-   
-   /**
-    * Gets the algorithm for this key.
-    * 
-    * @return the algorithm for this key.
-    */
-   virtual const std::string& getAlgorithm() = 0;
+   virtual DigitalSignature* createSignature();
 };
 
 } // end namespace crypto

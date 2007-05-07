@@ -431,7 +431,7 @@ void runAsymmetricKeyLoadingTest()
       // close stream
       fis1.close();
       
-      cout << "private key PEM=" << endl << privatePem << endl;
+      cout << "Private Key PEM=" << endl << privatePem << endl;
       
       // read in PEM public key
       File file2("/work/src/dbcpp/dbcore/trunk/Debug/public.pem");
@@ -447,8 +447,8 @@ void runAsymmetricKeyLoadingTest()
       // close stream
       fis2.close();
       
-      cout << "public key PEM=" << endl << publicPem << endl;
-      
+      cout << "Public Key PEM=" << endl << publicPem << endl;
+           
       // get an asymmetric key factory
       AsymmetricKeyFactory factory;
       
@@ -488,6 +488,14 @@ void runAsymmetricKeyLoadingTest()
       {
          cout << "Digital Signature NOT VERIFIED!" << endl;
       }
+      
+      string outPrivatePem =
+         factory.writePrivateKeyToPem(privateKey, "password");
+      string outPublicPem =
+         factory.writePublicKeyToPem(publicKey);
+      
+      cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
+      cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
       
       // delete the private key
       delete privateKey;

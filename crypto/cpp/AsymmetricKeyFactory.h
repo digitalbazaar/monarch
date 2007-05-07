@@ -65,6 +65,22 @@ public:
    throw(db::io::IOException);
    
    /**
+    * Writes a private key to a PEM formatted string. A PEM formatted
+    * string is just the base64-encoded version of an ASN.1 DER-encoded key
+    * structure that has a header and footer.
+    * 
+    * @param key the PrivateKey to write to a PEM string.
+    * @param password the password to use to encrypt the key.
+    * 
+    * @return the PEM string.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   std::string writePrivateKeyToPem(
+      PrivateKey* key, const std::string& password)
+   throw(db::io::IOException);
+   
+   /**
     * Loads a public key from a PEM formatted string. A PEM formatted
     * string is just the base64-encoded version of an ASN.1 DER-encoded key
     * structure that has a header and footer.
@@ -78,6 +94,20 @@ public:
     */
    virtual PublicKey* loadPublicKeyFromPem(const std::string& pem)
    throw(db::io::IOException);
+   
+   /**
+    * Writes a public key to a PEM formatted string. A PEM formatted
+    * string is just the base64-encoded version of an ASN.1 DER-encoded key
+    * structure that has a header and footer.
+    * 
+    * @param key the PublicKey to write to a PEM string.
+    * @param password the password to use to encrypt the key.
+    * 
+    * @return the PEM string.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   std::string writePublicKeyToPem(PublicKey* key) throw(db::io::IOException);
 };
 
 } // end namespace crypto
