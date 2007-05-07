@@ -7,8 +7,6 @@
 #include "AsymmetricKey.h"
 #include "PrivateKey.h"
 
-#include <string>
-
 namespace db
 {
 namespace crypto
@@ -21,17 +19,13 @@ namespace crypto
  */
 class BasicPrivateKey : public AsymmetricKey, public PrivateKey
 {
-protected:
-   /**
-    * The algorithm for this key.
-    */
-   std::string mAlgorithm;
-   
 public:
    /**
-    * Creates a new BasicPrivateKey.
+    * Creates a new BasicPrivateKey from a PKEY structure.
+    * 
+    * @param pkey the PKEY structure with the data for the key.
     */
-   BasicPrivateKey();
+   BasicPrivateKey(EVP_PKEY* pkey);
    
    /**
     * Destructs this BasicPrivateKey.
@@ -50,7 +44,7 @@ public:
     * 
     * @return the algorithm for this key.
     */
-   virtual const std::string& getAlgorithm();
+   virtual const std::string& getAlgorithm();   
 };
 
 } // end namespace crypto

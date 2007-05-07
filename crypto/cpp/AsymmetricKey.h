@@ -29,11 +29,18 @@ protected:
     */
    EVP_PKEY* mKey;
    
+   /**
+    * The algorithm for this key.
+    */
+   std::string mAlgorithm;
+   
 public:
    /**
-    * Creates a new AsymmetricKey.
+    * Creates a new AsymmetricKey from a PKEY structure.
+    * 
+    * @param pkey the PKEY structure with the data for the key.
     */
-   AsymmetricKey();
+   AsymmetricKey(EVP_PKEY* pkey);
    
    /**
     * Destructs this AsymmetricKey.
@@ -52,7 +59,7 @@ public:
     * 
     * @return the algorithm for this key.
     */
-   virtual const std::string& getAlgorithm() = 0;
+   virtual const std::string& getAlgorithm();
 };
 
 } // end namespace crypto

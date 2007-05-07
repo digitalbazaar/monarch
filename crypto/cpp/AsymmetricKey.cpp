@@ -3,12 +3,16 @@
  */
 #include "AsymmetricKey.h"
 
+using namespace std;
 using namespace db::crypto;
 
-AsymmetricKey::AsymmetricKey()
+AsymmetricKey::AsymmetricKey(EVP_PKEY* pkey)
 {
-   // allocate the public/private key structure
-   mKey = EVP_PKEY_new();
+   // set the public/private key structure
+   mKey = pkey;
+   
+   // no algorithm yet
+   mAlgorithm = "";
 }
 
 AsymmetricKey::~AsymmetricKey()
@@ -20,4 +24,24 @@ AsymmetricKey::~AsymmetricKey()
 EVP_PKEY* AsymmetricKey::getPKEY()
 {
    return mKey;
+}
+
+const string& AsymmetricKey::getAlgorithm()
+{
+   if(mAlgorithm.length() == 0)
+   {
+      switch(EVP_PKEY_type(getPKEY()->type))
+      {
+         case EVP_PKEY_DSA:
+            mAlgorithm = "DSA";
+            break;
+         case EVP_PKEY_RSA:
+            mAlgorithm = "RSA";
+            break;
+         default:
+            mAlgorithm = "NONE";
+      }
+   }
+   
+   return mAlgorithm;
 }

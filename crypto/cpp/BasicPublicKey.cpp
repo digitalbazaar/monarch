@@ -5,12 +5,9 @@
 
 using namespace std;
 using namespace db::crypto;
-using namespace db::io;
 
-BasicPublicKey::BasicPublicKey()
+BasicPublicKey::BasicPublicKey(EVP_PKEY* pkey) : AsymmetricKey(pkey)
 {
-   // no algorithm set yet
-   mAlgorithm = "";
 }
 
 BasicPublicKey::~BasicPublicKey()
@@ -25,17 +22,5 @@ DigitalSignature* BasicPublicKey::createSignature()
 
 const string& BasicPublicKey::getAlgorithm()
 {
-   if(mAlgorithm.length() == 0)
-   {
-      if(getPKEY()->type == EVP_PKEY_DSA)
-      {
-         mAlgorithm = "DSA";
-      }
-      else if(getPKEY()->type == EVP_PKEY_RSA)
-      {
-         mAlgorithm = "RSA";
-      }
-   }
-   
-   return mAlgorithm;
+   return AsymmetricKey::getAlgorithm();
 }

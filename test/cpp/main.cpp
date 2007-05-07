@@ -3,6 +3,8 @@
  */
 #include <iostream>
 #include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <openssl/rand.h>
 
 #include "Base64Coder.h"
 #include "Object.h"
@@ -402,41 +404,108 @@ void runAsymmetricKeyLoadingTest()
 {
    cout << "Running Asymmetric Key Loading Test" << endl << endl;
    
+   // include crypto error strings
+   ERR_load_crypto_strings();
+   
+   // add all algorithms
+   OpenSSL_add_all_algorithms();
+   
+   // seed PRNG
+   //RAND_load_file("/dev/urandom", 1024);
+   
    try
    {
-      // read in PEM
-      File file("/work/src/dbcpp/dbcore/trunk/Debug/username.pem");
-      FileInputStream fis(&file);
+      // read in PEM private key
+      File file1("/work/src/dbcpp/dbcore/trunk/Debug/private.pem");
+      FileInputStream fis1(&file1);
       
-      string pem = "";
+      string privatePem = "";
       
       char b[2048];
       int numBytes;
-      while((numBytes = fis.read(b, 0, 2048)) != -1)
+      while((numBytes = fis1.read(b, 0, 2048)) != -1)
       {
-         pem.append(b, numBytes);
+         privatePem.append(b, numBytes);
       }
       
-      fis.close();
+      // close stream
+      fis1.close();
       
-      cout << "PEM=" << endl << pem << endl;
+      cout << "private key PEM=" << endl << privatePem << endl;
+      
+      // read in PEM public key
+      File file2("/work/src/dbcpp/dbcore/trunk/Debug/public.pem");
+      FileInputStream fis2(&file2);
+      
+      string publicPem = "";
+      
+      while((numBytes = fis2.read(b, 0, 2048)) != -1)
+      {
+         publicPem.append(b, numBytes);
+      }
+      
+      // close stream
+      fis2.close();
+      
+      cout << "public key PEM=" << endl << publicPem << endl;
       
       // get an asymmetric key factory
       AsymmetricKeyFactory factory;
       
       // load the private key
-      PrivateKey* key = factory.loadPrivateKeyFromPem(pem, "password");
+      PrivateKey* privateKey = factory.loadPrivateKeyFromPem(
+         privatePem, "password");
+      
+      cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
+      
+      // load the public key
+      PublicKey* publicKey = factory.loadPublicKeyFromPem(publicPem);
+      
+      cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
+      
+      // sign some data
+      char data[] = {1,2,3,4,5,6,7,8};
+      DigitalSignature* ds1 = privateKey->createSignature();
+      ds1->update(data, 0, 8);
+      
+      // get the signature
+      char sig[ds1->getValueLength()];
+      unsigned int length;
+      ds1->getValue(sig, length);
+      delete ds1;
+      
+      // verify the signature
+      DigitalSignature* ds2 = publicKey->createSignature();
+      ds2->update(data, 0, 8);
+      bool verified = ds2->verify(sig, length);
+      delete ds2;
+      
+      if(verified)
+      {
+         cout << "Digital Signature Verified!" << endl;
+      }
+      else
+      {
+         cout << "Digital Signature NOT VERIFIED!" << endl;
+      }
       
       // delete the private key
-      delete key;
+      delete privateKey;
+      
+      // delete the public key
+      delete publicKey;
    }
    catch(IOException &e)
    {
       cout << "IOException caught!" << endl;
       cout << e.getMessage() << endl;
+      cout << e.getCode() << endl;
    }
    
    cout << "Asymmetric Key Loading test complete." << endl << endl;
+   
+   // clean up crypto strings
+   EVP_cleanup();
 }
 
 int main()
