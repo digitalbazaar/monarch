@@ -3,6 +3,7 @@
  */
 #include "FileInputStream.h"
 
+using namespace std;
 using namespace db::io;
 
 FileInputStream::FileInputStream(File* file) throw(IOException)
@@ -11,7 +12,7 @@ FileInputStream::FileInputStream(File* file) throw(IOException)
    mFile = file;
    
    // try to open the file
-   mStream.open(file->getName().c_str());
+   mStream.open(file->getName().c_str(), ios::in | ios::binary);
    if(!mStream.is_open())
    {
       throw IOException("Could not open file '" + mFile->getName() + "'!");
@@ -20,17 +21,34 @@ FileInputStream::FileInputStream(File* file) throw(IOException)
 
 FileInputStream::~FileInputStream()
 {
+   // close the ifstream if it is open
+   if(mStream.is_open())
+   {
+      mStream.close();
+   }
 }
 
 bool FileInputStream::read(char& b) throw(IOException)
 {
-   mStream.read(&b, 1);
-   if(mStream.fail())
+   bool rval = false;
+   
+   if(!mStream.eof())
    {
-      throw IOException("Could not read from file '" + mFile->getName() + "'!");
+      // do read
+      mStream.read(&b, 1);
+      
+      // see if a failure other than EOF occurred
+      if(mStream.fail() && !mStream.eof())
+      {
+         throw IOException(
+            "Could not read from file '" + mFile->getName() + "'!");
+      }
+      
+      // read successful, not end of stream yet
+      rval = true;
    }
    
-   return !mStream.eof();
+   return rval;
 }
 
 int FileInputStream::read(
@@ -39,15 +57,23 @@ throw(IOException)
 {
    int rval = -1;
    
-   mStream.read(b + offset, length);
-   if(mStream.fail())
+   if(!mStream.eof())
    {
-      throw IOException("Could not read from file '" + mFile->getName() + "'!");
-   }
-   
-   if(mStream.gcount() > 0)
-   {
-      rval = mStream.gcount();
+      // do read
+      mStream.read(b + offset, length);
+      
+      // see if a failure other than EOF occurred
+      if(mStream.fail() && !mStream.eof())
+      {
+         throw IOException(
+            "Could not read from file '" + mFile->getName() + "'!");
+      }
+      
+      // get the number of bytes read
+      if(mStream.gcount() > 0)
+      {
+         rval = mStream.gcount();
+      }
    }
    
    return rval;

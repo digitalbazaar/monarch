@@ -15,9 +15,11 @@
 #include "MessageDigest.h"
 #include "Crc16.h"
 #include "AsymmetricKeyFactory.h"
+#include "FileInputStream.h"
 
 using namespace std;
 using namespace db::crypto;
+using namespace db::io;
 using namespace db::net;
 using namespace db::rt;
 using namespace db::util;
@@ -400,9 +402,39 @@ void runAsymmetricKeyLoadingTest()
 {
    cout << "Running Asymmetric Key Loading Test" << endl << endl;
    
-   //AsymmetricKeyFactory factory;
-   
-   //factory->loadPrivateKeyFromPem()
+   try
+   {
+      // read in PEM
+      File file("/work/src/dbcpp/dbcore/trunk/Debug/username.pem");
+      FileInputStream fis(&file);
+      
+      string pem = "";
+      
+      char b[2048];
+      int numBytes;
+      while((numBytes = fis.read(b, 0, 2048)) != -1)
+      {
+         pem.append(b, numBytes);
+      }
+      
+      fis.close();
+      
+      cout << "PEM=" << endl << pem << endl;
+      
+      // get an asymmetric key factory
+      AsymmetricKeyFactory factory;
+      
+      // load the private key
+      PrivateKey* key = factory.loadPrivateKeyFromPem(pem, "password");
+      
+      // delete the private key
+      delete key;
+   }
+   catch(IOException &e)
+   {
+      cout << "IOException caught!" << endl;
+      cout << e.getMessage() << endl;
+   }
    
    cout << "Asymmetric Key Loading test complete." << endl << endl;
 }
