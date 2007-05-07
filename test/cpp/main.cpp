@@ -14,6 +14,7 @@
 #include "SslSocket.h"
 #include "MessageDigest.h"
 #include "Crc16.h"
+#include "AsymmetricKeyFactory.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -240,9 +241,6 @@ void runLinuxSslSocketTest()
    // FIXME:
    // seed PRNG
    
-   // create an SSL context
-   SslContext context;
-   
    // create tcp socket
    TcpSocket socket;
    
@@ -254,6 +252,9 @@ void runLinuxSslSocketTest()
    
    // connect
    socket.connect(&address);
+   
+   // create an SSL context
+   SslContext context;
    
    // create an SSL socket
    SslSocket sslSocket(&context, &socket, true, false);
@@ -395,6 +396,17 @@ void runCrcTest()
    cout << "CRC test complete." << endl << endl;
 }
 
+void runAsymmetricKeyLoadingTest()
+{
+   cout << "Running Asymmetric Key Loading Test" << endl << endl;
+   
+   //AsymmetricKeyFactory factory;
+   
+   //factory->loadPrivateKeyFromPem()
+   
+   cout << "Asymmetric Key Loading test complete." << endl << endl;
+}
+
 int main()
 {
    cout << "Tests starting..." << endl << endl;
@@ -410,6 +422,7 @@ int main()
       //runLinuxSslSocketTest();
       //runMessageDigestTest();
       //runCrcTest();
+      runAsymmetricKeyLoadingTest();
    }
    catch(SocketException& e)
    {

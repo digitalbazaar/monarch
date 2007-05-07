@@ -49,7 +49,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual void write(char* b, unsigned int offset, unsigned int length)
+   virtual void write(const char* b, unsigned int offset, unsigned int length)
    throw(IOException);
    
    /**
@@ -61,7 +61,7 @@ public:
 };
 
 inline void OutputStream::write(
-   char* b, unsigned int offset, unsigned int length) throw(IOException)
+   const char* b, unsigned int offset, unsigned int length) throw(IOException)
 {
    int limit = offset + length;
    for(int i = offset; i < limit; i++)

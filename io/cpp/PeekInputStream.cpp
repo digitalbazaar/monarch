@@ -30,10 +30,9 @@ bool PeekInputStream::read(char& b) throw(IOException)
 {
    bool rval = false;
    
-   char buffer[1];
-   if(read(buffer, 0, 1) != -1)
+   if(read(&b, 0, 1) != -1)
    {
-      b = buffer[0];
+      rval = true;
    }
    
    return rval;

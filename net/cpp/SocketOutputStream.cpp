@@ -17,12 +17,11 @@ SocketOutputStream::~SocketOutputStream()
 
 inline void SocketOutputStream::write(const char& b) throw(IOException)
 {
-   char buffer[1] = {b};
-   write(buffer, 0, 1);
+   write(&b, 0, 1);
 }
 
 inline void SocketOutputStream::write(
-   char* b, unsigned int offset, unsigned int length) throw(IOException)
+   const char* b, unsigned int offset, unsigned int length) throw(IOException)
 {
    // send data through the socket
    mSocket->send(b, offset, length);

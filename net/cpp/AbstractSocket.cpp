@@ -237,7 +237,8 @@ throw(SocketException)
    mConnected = true;
 }
 
-void AbstractSocket::send(char* b, unsigned int offset, unsigned int length)
+void AbstractSocket::send(
+   const char* b, unsigned int offset, unsigned int length)
 throw(IOException)
 {
    if(!isConnected())

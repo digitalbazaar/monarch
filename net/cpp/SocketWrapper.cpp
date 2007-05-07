@@ -52,7 +52,8 @@ throw(SocketException)
    getSocket()->connect(address, timeout);
 }
 
-void SocketWrapper::send(char* b, unsigned int offset, unsigned int length)
+void SocketWrapper::send(
+   const char* b, unsigned int offset, unsigned int length)
 throw(IOException)
 {
    getSocket()->send(b, offset, length);

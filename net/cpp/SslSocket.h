@@ -142,7 +142,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual void send(char* b, unsigned int offset, unsigned int length)
+   virtual void send(const char* b, unsigned int offset, unsigned int length)
    throw(db::io::IOException);
    
    /**

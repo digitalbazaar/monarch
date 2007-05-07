@@ -4,6 +4,8 @@
 #ifndef PrivateKey_H
 #define PrivateKey_H
 
+#include "DigitalSignature.h"
+
 namespace db
 {
 namespace crypto
@@ -45,11 +47,18 @@ public:
    virtual ~PrivateKey() {};
    
    /**
+    * Creates a DigitalSignature to sign data with.
+    * 
+    * @return the DigitalSignature to sign data with.
+    */
+   virtual DigitalSignature* createSignature() = 0;
+   
+   /**
     * Gets the algorithm for this key.
     * 
     * @return the algorithm for this key.
     */
-   virtual const std::string& getAlgorithm() = 0;   
+   virtual const std::string& getAlgorithm() = 0;
 };
 
 } // end namespace crypto

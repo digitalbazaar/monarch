@@ -4,6 +4,8 @@
 #ifndef PublicKey_H
 #define PublicKey_H
 
+#include "DigitalSignature.h"
+
 namespace db
 {
 namespace crypto
@@ -43,6 +45,13 @@ public:
     * Destructs this PublicKey.
     */
    virtual ~PublicKey() {};
+   
+   /**
+    * Creates a DigitalSignature to verify data with.
+    * 
+    * @return the DigitalSignature to verify data with.
+    */
+   virtual DigitalSignature* createSignature() = 0;
    
    /**
     * Gets the algorithm for this key.

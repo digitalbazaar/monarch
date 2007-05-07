@@ -64,7 +64,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual void write(char* b, unsigned int offset, unsigned int length)
+   virtual void write(const char* b, unsigned int offset, unsigned int length)
    throw(IOException);
    
    /**

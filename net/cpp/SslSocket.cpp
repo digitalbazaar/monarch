@@ -146,6 +146,61 @@ void SslSocket::close()
    getSocket()->close();
 }
 
+void SslSocket::send(const char* b, unsigned int offset, unsigned int length)
+throw(IOException)
+{
+   if(!isConnected())
+   {
+      throw SocketException("Cannot write to unconnected Socket!");
+   }
+   
+   // perform a handshake as necessary
+   if(!mSessionNegotiated)
+   {
+      performHandshake();
+   }
+   
+   // do SSL_write() (implicit handshake performed as necessary)
+   int ret = 0;
+   bool closed = false;
+   while(!closed && (ret <= SSL_write(mSSL, b + offset, length)) <= 0)
+   {
+      // get the last error
+      int error = SSL_get_error(mSSL, ret);
+      switch(error)
+      {
+         case SSL_ERROR_ZERO_RETURN:
+            // the connection was shutdown
+            throw SocketException(
+               "Could not write to Socket! Socket closed.",
+               ERR_error_string(ERR_get_error(), NULL));
+            break;
+         case SSL_ERROR_WANT_READ:
+            // more data is required from the socket
+            if(tcpRead() == -1)
+            {
+               // the connection was shutdown
+               throw SocketException(
+                  "Could not write to Socket! Socket closed.",
+                  strerror(errno));
+            }
+            break;
+         case SSL_ERROR_WANT_WRITE:
+            // data must be flushed to the socket
+            tcpWrite();
+            break;
+         default:
+            // an error occurred
+            throw SocketException(
+               "Could not write to Socket!",
+               ERR_error_string(ERR_get_error(), NULL));
+      }
+   }
+   
+   // flush all data to the socket
+   tcpWrite();
+}
+
 int SslSocket::receive(char* b, unsigned int offset, unsigned int length)
 throw(IOException)
 {
@@ -202,61 +257,6 @@ throw(IOException)
    }
    
    return rval;
-}
-
-void SslSocket::send(char* b, unsigned int offset, unsigned int length)
-throw(IOException)
-{
-   if(!isConnected())
-   {
-      throw SocketException("Cannot write to unconnected Socket!");
-   }
-   
-   // perform a handshake as necessary
-   if(!mSessionNegotiated)
-   {
-      performHandshake();
-   }
-   
-   // do SSL_write() (implicit handshake performed as necessary)
-   int ret = 0;
-   bool closed = false;
-   while(!closed && (ret <= SSL_write(mSSL, b + offset, length)) <= 0)
-   {
-      // get the last error
-      int error = SSL_get_error(mSSL, ret);
-      switch(error)
-      {
-         case SSL_ERROR_ZERO_RETURN:
-            // the connection was shutdown
-            throw SocketException(
-               "Could not write to Socket! Socket closed.",
-               ERR_error_string(ERR_get_error(), NULL));
-            break;
-         case SSL_ERROR_WANT_READ:
-            // more data is required from the socket
-            if(tcpRead() == -1)
-            {
-               // the connection was shutdown
-               throw SocketException(
-                  "Could not write to Socket! Socket closed.",
-                  strerror(errno));
-            }
-            break;
-         case SSL_ERROR_WANT_WRITE:
-            // data must be flushed to the socket
-            tcpWrite();
-            break;
-         default:
-            // an error occurred
-            throw SocketException(
-               "Could not write to Socket!",
-               ERR_error_string(ERR_get_error(), NULL));
-      }
-   }
-   
-   // flush all data to the socket
-   tcpWrite();
 }
 
 InputStream* SslSocket::getInputStream()

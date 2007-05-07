@@ -4,7 +4,7 @@
 #ifndef RsaPrivateKey_H
 #define RsaPrivateKey_H
 
-#include "AbstractPrivateKey.h"
+#include "BasicPrivateKey.h"
 
 namespace db
 {
@@ -16,14 +16,8 @@ namespace crypto
  * 
  * @author Dave Longley
  */
-class RsaPrivateKey : public AbstractPrivateKey
+class RsaPrivateKey : public BasicPrivateKey
 {
-protected:
-   /**
-    * The algorithm for this key.
-    */
-   static const std::string KEY_ALGORITHM;
-   
 public:
    /**
     * Creates a new RsaPrivateKey.
@@ -34,13 +28,6 @@ public:
     * Destructs this RsaPrivateKey.
     */
    virtual ~RsaPrivateKey();
-      
-   /**
-    * Gets the algorithm for this key.
-    * 
-    * @return the algorithm for this key.
-    */
-   virtual const std::string& getAlgorithm();   
 };
 
 } // end namespace crypto
