@@ -744,7 +744,7 @@ int main()
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
-      //runDsaAsymmetricKeyCreationTest();
+      runDsaAsymmetricKeyCreationTest();
       runRsaAsymmetricKeyCreationTest();
    }
    catch(SocketException& e)

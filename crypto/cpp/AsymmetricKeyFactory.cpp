@@ -57,10 +57,14 @@ void AsymmetricKeyFactory::createDsaKeyPair(
       // generate DSA keys
       if(DSA_generate_key(dsa) == 1)
       {
-         // store private key temporarily
+         // store private/public key parameters
+         BIGNUM* p = dsa->p;
+         BIGNUM* q = dsa->q;
+         BIGNUM* g = dsa->g;
          BIGNUM* x = dsa->priv_key;
+         BIGNUM* y = dsa->pub_key;
          
-         // clear private key
+         // clear private parameters
          dsa->priv_key = NULL;
          
          // create public key
@@ -68,19 +72,13 @@ void AsymmetricKeyFactory::createDsaKeyPair(
          EVP_PKEY_set1_DSA(pub, dsa);
          *publicKey = new PublicKey(pub);
          
-         // store public key and params
-         BIGNUM* p = dsa->p;
-         BIGNUM* q = dsa->q;
-         BIGNUM* g = dsa->g;
-         BIGNUM* y = dsa->pub_key;
-         
-         // clear public key and params
+         // clear public parameters
          dsa->p = NULL;
          dsa->q = NULL;
          dsa->g = NULL;
          dsa->pub_key = NULL;
          
-         // restore private key
+         // restore private parameters
          dsa->priv_key = x;
          
          // create private key
@@ -88,7 +86,7 @@ void AsymmetricKeyFactory::createDsaKeyPair(
          EVP_PKEY_set1_DSA(priv, dsa);
          *privateKey = new PrivateKey(priv);
          
-         // restore public key and params
+         // restore public parameters
          dsa->p = p;
          dsa->q = q;
          dsa->g = g;
@@ -107,33 +105,46 @@ void AsymmetricKeyFactory::createRsaKeyPair(
    RSA* rsa = RSA_generate_key(1024, 3, NULL, NULL);
    if(rsa != NULL)
    {
-      // store private key exponent temporarily
+      // store private/public key parameters
       BIGNUM* d = rsa->d;
-      
-      // clear private key exponent
-      rsa->d = NULL;
-      
-      // create public key
-      EVP_PKEY* pub = EVP_PKEY_new();
-      EVP_PKEY_set1_RSA(pub, rsa);
-      *publicKey = new PublicKey(pub);
-      
-      // store public key exponent temporarily
       BIGNUM* e = rsa->e;
+      BIGNUM* p = rsa->p;
+      BIGNUM* q = rsa->q;
+      BIGNUM* dmp1 = rsa->dmp1;
+      BIGNUM* dmq1 = rsa->dmq1;
+      BIGNUM* iqmp = rsa->iqmp;
       
-      // clear public key exponent
+      // clear public parameters
       rsa->e = NULL;
-      
-      // restore private key exponent
-      rsa->d = d;
       
       // create private key
       EVP_PKEY* priv = EVP_PKEY_new();
       EVP_PKEY_set1_RSA(priv, rsa);
       *privateKey = new PrivateKey(priv);
       
-      // restore public key exponent
+      // clear private parameters
+      rsa->d = NULL;
+      rsa->p = NULL;
+      rsa->q = NULL;
+      rsa->dmp1 = NULL;
+      rsa->dmq1 = NULL;
+      rsa->iqmp = NULL;
+      
+      // restore public parameters
       rsa->e = e;
+      
+      // create public key
+      EVP_PKEY* pub = EVP_PKEY_new();
+      EVP_PKEY_set1_RSA(pub, rsa);
+      *publicKey = new PublicKey(pub);
+      
+      // restore private parameters
+      rsa->d = d;
+      rsa->p = p;
+      rsa->q = q;
+      rsa->dmp1 = dmp1;
+      rsa->dmq1 = dmq1;
+      rsa->iqmp = iqmp;
       
       // free RSA
       RSA_free(rsa);
