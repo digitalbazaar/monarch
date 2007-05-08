@@ -16,6 +16,6 @@ PrivateKey::~PrivateKey()
 
 DigitalSignature* PrivateKey::createSignature()
 {
-   DigitalSignature* rval = new DigitalSignature(this, true);
+   DigitalSignature* rval = new DigitalSignature(this);
    return rval;
 }

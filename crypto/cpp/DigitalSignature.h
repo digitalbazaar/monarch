@@ -12,6 +12,10 @@ namespace db
 namespace crypto
 {
 
+// forward declare private and public keys
+class PrivateKey;
+class PublicKey;
+
 /**
  * A DigitalSignature is used in asymmetric cryptography to authenticate a
  * particular entity. It is a type of cryptographic hash algorithm.
@@ -46,13 +50,18 @@ protected:
    
 public:
    /**
-    * Creates a new DigitalSignature that uses the given asymmetric key to
-    * sign or verify with.
+    * Creates a new DigitalSignature that uses the given private key to sign.
     * 
-    * @param key the AsymmetricKey to use.
-    * @param sign true to sign data, false to use verify data. 
+    * @param key the PrivateKey to sign with.
     */
-   DigitalSignature(AsymmetricKey* key, bool sign);
+   DigitalSignature(PrivateKey* key);
+   
+   /**
+    * Creates a new DigitalSignature that uses the given public key to verify.
+    * 
+    * @param key the PublicKey to verify with.
+    */
+   DigitalSignature(PublicKey* key);
    
    /**
     * Destructs this DigitalSignature.
@@ -78,8 +87,9 @@ public:
     * Puts the signature into an array of bytes. The length of the signature
     * is dependent on the specific algorithm.
     * 
-    * This method will only be effective when this DigitalSignature is in sign
-    * mode. To verify a DigitalSignature that is in verify mode, call verify().
+    * This method will only be effective if this DigitalSignature was created
+    * with a PrivateKey. To verify a DigitalSignature it must be created with
+    * a PublicKey and verify() must be called.
     * 
     * @param b a buffer to fill with the hash value bytes.
     * @param length the length of the value.
@@ -96,9 +106,9 @@ public:
    /**
     * Verifies the passed signature against the generated hash value.
     * 
-    * This method will only be effective when this DigitalSignature is in
-    * verify mode. To obtain the signature for a DigitalSignature in sign
-    * mode, call getValue().
+    * This method will only be effective when this DigitalSignature was
+    * created with a PublicKey. To obtain the value of a DigitalSignature,
+    * it must be created with a PrivateKey and getValue() must be called.
     * 
     * @param b an array of bytes containing the signature.
     * @param length the length of the signature in bytes.

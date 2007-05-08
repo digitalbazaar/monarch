@@ -16,6 +16,6 @@ PublicKey::~PublicKey()
 
 DigitalSignature* PublicKey::createSignature()
 {
-   DigitalSignature* rval = new DigitalSignature(this, false);
+   DigitalSignature* rval = new DigitalSignature(this);
    return rval;
 }

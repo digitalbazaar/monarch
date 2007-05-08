@@ -2,16 +2,27 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "DigitalSignature.h"
+#include "PrivateKey.h"
+#include "PublicKey.h"
 
 using namespace db::crypto;
 
-DigitalSignature::DigitalSignature(AsymmetricKey* key, bool sign)
+DigitalSignature::DigitalSignature(PrivateKey* key)
 {
    // store key
    mKey = key;
    
-   // set sign mode
-   mSignMode = sign;
+   // set sign mode to true
+   mSignMode = true;
+}
+
+DigitalSignature::DigitalSignature(PublicKey* key)
+{
+   // store key
+   mKey = key;
+   
+   // set sign mode to false
+   mSignMode = false;
 }
 
 DigitalSignature::~DigitalSignature()
