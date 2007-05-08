@@ -744,7 +744,7 @@ int main()
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
-      runDsaAsymmetricKeyCreationTest();
+      //runDsaAsymmetricKeyCreationTest();
       runRsaAsymmetricKeyCreationTest();
    }
    catch(SocketException& e)
@@ -757,6 +757,13 @@ int main()
    {
       cout << "UnsupportedAlgorithmException caught!" << endl;
       cout << "message: " << e.getMessage() << endl;
+      cout << "code: " << e.getCode() << endl;
+   }
+   catch(Exception &e)
+   {
+      cout << "Exception caught!" << endl;
+      cout << "message: " << e.getMessage() << endl;
+      cout << "code: " << e.getCode() << endl;
    }
    catch(...)
    {

@@ -12,7 +12,7 @@ namespace crypto
 {
 
 /**
- * A PublicKey provides an interface for public keys.
+ * A PublicKey is a non-secret cryptographic asymmetric key.
  * 
  * In asymmetric cryptography a pair of keys, one public and one private
  * are used. An entity's public key, as the name suggests, is public and does
