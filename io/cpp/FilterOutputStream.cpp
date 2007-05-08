@@ -25,10 +25,10 @@ void FilterOutputStream::write(const char& b) throw(IOException)
    mOutputStream->write(b);
 }
 
-void FilterOutputStream::write(
-   const char* b, unsigned int offset, unsigned int length) throw(IOException)
+void FilterOutputStream::write(const char* b, unsigned int length)
+throw(IOException)
 {
-   mOutputStream->write(b, offset, length);
+   mOutputStream->write(b, length);
 }
 
 void FilterOutputStream::close()

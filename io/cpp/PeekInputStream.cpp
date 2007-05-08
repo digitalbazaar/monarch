@@ -30,7 +30,7 @@ bool PeekInputStream::read(char& b) throw(IOException)
 {
    bool rval = false;
    
-   if(read(&b, 0, 1) != -1)
+   if(read(&b, 1) != -1)
    {
       rval = true;
    }
@@ -38,8 +38,7 @@ bool PeekInputStream::read(char& b) throw(IOException)
    return rval;
 }
 
-int PeekInputStream::read(
-   char* b, unsigned int offset, unsigned int length) throw(IOException)
+int PeekInputStream::read(char* b, unsigned int length) throw(IOException)
 {
    int rval = -1;
    
@@ -47,7 +46,7 @@ int PeekInputStream::read(
    {
       // read from the peek buffer first
       int count = Math::minimum(mPeekLength, length);
-      memcpy(b + offset, mPeekBuffer + mPeekOffset, count);
+      memcpy(b, mPeekBuffer + mPeekOffset, count);
       
       // update peek buffer
       mPeekOffset += count;
@@ -64,14 +63,13 @@ int PeekInputStream::read(
    else
    {
       // read from the underlying stream
-      rval = mInputStream->read(b, offset, length);
+      rval = mInputStream->read(b, length);
    }
    
    return rval;
 }
 
-int PeekInputStream::peek(char* b, unsigned int offset, unsigned int length)
-throw(IOException)
+int PeekInputStream::peek(char* b, unsigned int length) throw(IOException)
 {
    int rval = -1;
    
@@ -92,7 +90,7 @@ throw(IOException)
       
       // read from the underlying stream until the peek buffer gets more data
       size_t offset = mPeekOffset + mPeekLength;
-      int count = mInputStream->read(mPeekBuffer, offset, mPeekSize - offset);
+      int count = mInputStream->read(mPeekBuffer + offset, mPeekSize - offset);
       if(count > 0)
       {
          // increase the peek bytes length
@@ -104,7 +102,7 @@ throw(IOException)
    if(mPeekLength > 0)
    {
       int count = Math::minimum(mPeekLength, length);
-      memcpy(b + offset, mPeekBuffer + mPeekOffset, count);
+      memcpy(b, mPeekBuffer + mPeekOffset, count);
       
       // update bytes read
       rval = count;

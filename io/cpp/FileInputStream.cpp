@@ -51,16 +51,14 @@ bool FileInputStream::read(char& b) throw(IOException)
    return rval;
 }
 
-int FileInputStream::read(
-   char* b, unsigned int offset, unsigned int length)
-throw(IOException)
+int FileInputStream::read(char* b, unsigned int length) throw(IOException)
 {
    int rval = -1;
    
    if(!mStream.eof())
    {
       // do read
-      mStream.read(b + offset, length);
+      mStream.read(b, length);
       
       // see if a failure other than EOF occurred
       if(mStream.fail() && !mStream.eof())

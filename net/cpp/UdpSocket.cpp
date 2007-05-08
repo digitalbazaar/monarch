@@ -84,7 +84,8 @@ void UdpSocket::leaveGroup(SocketAddress* group) throw(SocketException)
 }
 
 void UdpSocket::sendDatagram(
-   char* b, int offset, int length, SocketAddress* address) throw(IOException)
+   const char* b, unsigned int length, SocketAddress* address)
+throw(IOException)
 {
    if(!isBound())
    {
@@ -100,6 +101,7 @@ void UdpSocket::sendDatagram(
    
    // send all data (send can fail to send all bytes in one go because the
    // socket send buffer was full)
+   unsigned int offset = 0;
    while(length > 0)
    {
       int bytes = sendto(
@@ -113,11 +115,12 @@ void UdpSocket::sendDatagram(
          offset += bytes;
          length -= bytes;
       }
-   }   
+   }
 }
 
 int UdpSocket::receiveDatagram(
-   char* b, int offset, int length, SocketAddress* address) throw(IOException)
+   char* b, unsigned int length, SocketAddress* address)
+throw(IOException)
 {
    int rval = 0;
    
@@ -135,7 +138,7 @@ int UdpSocket::receiveDatagram(
       
       // receive some data
       rval = recvfrom(
-         mFileDescriptor, b + offset, length, 0, (sockaddr*)&addr, &addrSize);
+         mFileDescriptor, b, length, 0, (sockaddr*)&addr, &addrSize);
       if(rval < -1)
       {
          switch(errno)

@@ -60,7 +60,7 @@ int SslSocket::tcpRead() throw(IOException)
       InputStream* is = mSocket->getInputStream();
       char b[length];
       int numBytes = 0;
-      while(length > 0 && (numBytes = is->read(b, 0, length)) != -1)
+      while(length > 0 && (numBytes = is->read(b, length)) != -1)
       {
          // write to Socket BIO
          BIO_write(mSocketBio, b, numBytes);
@@ -88,7 +88,7 @@ void SslSocket::tcpWrite() throw(IOException)
       while(length > 0 && (numBytes = BIO_read(mSocketBio, b, length)) != -1)
       {
          // write to underlying socket
-         mSocket->getOutputStream()->write(b, 0, numBytes);
+         mSocket->getOutputStream()->write(b, numBytes);
          
          // decrement remaining bytes to write
          length -= numBytes;
@@ -146,8 +146,7 @@ void SslSocket::close()
    getSocket()->close();
 }
 
-void SslSocket::send(const char* b, unsigned int offset, unsigned int length)
-throw(IOException)
+void SslSocket::send(const char* b, unsigned int length) throw(IOException)
 {
    if(!isConnected())
    {
@@ -163,7 +162,7 @@ throw(IOException)
    // do SSL_write() (implicit handshake performed as necessary)
    int ret = 0;
    bool closed = false;
-   while(!closed && (ret <= SSL_write(mSSL, b + offset, length)) <= 0)
+   while(!closed && (ret <= SSL_write(mSSL, b, length)) <= 0)
    {
       // get the last error
       int error = SSL_get_error(mSSL, ret);
@@ -201,8 +200,7 @@ throw(IOException)
    tcpWrite();
 }
 
-int SslSocket::receive(char* b, unsigned int offset, unsigned int length)
-throw(IOException)
+int SslSocket::receive(char* b, unsigned int length) throw(IOException)
 {
    int rval = -1;
    
@@ -220,7 +218,7 @@ throw(IOException)
    // do SSL_read() (implicit handshake performed as necessary)
    int ret = 0;
    bool closed = false;
-   while(!closed && (ret = SSL_read(mSSL, b + offset, length)) <= 0)
+   while(!closed && (ret = SSL_read(mSSL, b, length)) <= 0)
    {
       // get the last error
       int error = SSL_get_error(mSSL, ret);

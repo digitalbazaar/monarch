@@ -19,7 +19,7 @@ namespace io
  * 
  * @author Dave Longley
  */
-class FileInputStream : public db::io::InputStream
+class FileInputStream : public InputStream
 {
 protected:
    /**
@@ -67,7 +67,6 @@ public:
     * otherwise the number of bytes read will be returned.
     * 
     * @param b the array of bytes to fill.
-    * @param offset the offset at which to start filling the array.
     * @param length the maximum number of bytes to read into the buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
@@ -75,8 +74,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   virtual int read(char* b, unsigned int offset, unsigned int length)
-   throw(IOException);
+   virtual int read(char* b, unsigned int length) throw(IOException);
    
    /**
     * Closes the stream.

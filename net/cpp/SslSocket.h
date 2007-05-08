@@ -70,10 +70,6 @@ protected:
     * SSL read BIO. This method will block until at least one byte can be
     * read or until the end of the stream is reached (the Socket has closed).
     * 
-    * @param b the array of bytes to fill.
-    * @param offset the offset at which to start filling the array.
-    * @param length the maximum number of bytes to read into the buffer.
-    * 
     * @return the number of bytes read or -1 if the end of the stream has
     *         been reached (the Socket has closed).
     * 
@@ -84,10 +80,6 @@ protected:
    /**
     * Flushes the data from the SSL write BIO to the underlying TCP Socket.
     * This method will block until all of the data has been written.
-    * 
-    * @param b the array of bytes to write.
-    * @param offset the offset at which to start reading from the array.
-    * @param length the number of bytes to write to the stream.
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
@@ -137,12 +129,11 @@ public:
     * output stream for this Socket.
     * 
     * @param b the array of bytes to write.
-    * @param offset the offset at which to start reading from the array.
     * @param length the number of bytes to write to the stream.
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual void send(const char* b, unsigned int offset, unsigned int length)
+   virtual void send(const char* b, unsigned int length)
    throw(db::io::IOException);
    
    /**
@@ -156,7 +147,6 @@ public:
     * input stream for this Socket.
     * 
     * @param b the array of bytes to fill.
-    * @param offset the offset at which to start filling the array.
     * @param length the maximum number of bytes to read into the buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
@@ -164,8 +154,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual int receive(char* b, unsigned int offset, unsigned int length)
-   throw(db::io::IOException);
+   virtual int receive(char* b, unsigned int length) throw(db::io::IOException);
    
    /**
     * Gets the InputStream for reading from this Socket.

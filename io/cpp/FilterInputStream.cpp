@@ -25,18 +25,14 @@ bool FilterInputStream::read(char& b) throw(IOException)
    return mInputStream->read(b);
 }
 
-int FilterInputStream::read(
-   char* b, unsigned int offset, unsigned int length)
-throw(IOException)
+int FilterInputStream::read(char* b, unsigned int length) throw(IOException)
 {
-   return mInputStream->read(b, offset, length);
+   return mInputStream->read(b, length);
 }
 
-int FilterInputStream::peek(
-   char* b, unsigned int offset, unsigned int length)
-throw(IOException)
+int FilterInputStream::peek(char* b, unsigned int length) throw(IOException)
 {
-   return mInputStream->peek(b, offset, length);
+   return mInputStream->peek(b, length);
 }
 
 unsigned long FilterInputStream::skip(unsigned long count)

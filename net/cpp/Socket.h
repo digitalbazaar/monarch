@@ -88,12 +88,11 @@ public:
     * output stream for this Socket.
     * 
     * @param b the array of bytes to write.
-    * @param offset the offset at which to start reading from the array.
     * @param length the number of bytes to write to the stream.
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual void send(const char* b, unsigned int offset, unsigned int length)
+   virtual void send(const char* b, unsigned int length)
    throw(db::io::IOException) = 0;
    
    /**
@@ -107,7 +106,6 @@ public:
     * input stream for this Socket.
     * 
     * @param b the array of bytes to fill.
-    * @param offset the offset at which to start filling the array.
     * @param length the maximum number of bytes to read into the buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
@@ -115,7 +113,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual int receive(char* b, unsigned int offset, unsigned int length)
+   virtual int receive(char* b, unsigned int length)
    throw(db::io::IOException) = 0;
    
    /**

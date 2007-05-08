@@ -44,12 +44,11 @@ public:
     * Writes some bytes to the stream.
     * 
     * @param b the array of bytes to write.
-    * @param offset the offset at which to start reading from the array.
     * @param length the number of bytes to write to the stream.
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
-   virtual void write(const char* b, unsigned int offset, unsigned int length)
+   virtual void write(const char* b, unsigned int length)
    throw(IOException);
    
    /**
@@ -60,13 +59,12 @@ public:
    virtual void close();
 };
 
-inline void OutputStream::write(
-   const char* b, unsigned int offset, unsigned int length) throw(IOException)
+inline void OutputStream::write(const char* b, unsigned int length)
+throw(IOException)
 {
-   int limit = offset + length;
-   for(int i = offset; i < limit; i++)
+   for(unsigned int i = 0; i < length; i++)
    {
-      write(b[offset]);
+      write(b[i]);
    }
 }
 

@@ -51,7 +51,6 @@ public:
     * otherwise the number of bytes read will be returned.
     * 
     * @param b the array of bytes to fill.
-    * @param offset the offset at which to start filling the array.
     * @param length the maximum number of bytes to read into the buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
@@ -59,8 +58,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   virtual int read(
-      char* b, unsigned int offset, unsigned int length) throw(IOException);
+   virtual int read(char* b, unsigned int length) throw(IOException);
    
    /**
     * Peeks ahead and looks at some bytes in the stream. This method will block
@@ -72,7 +70,6 @@ public:
     * peeked-at bytes.
     * 
     * @param b the array of bytes to fill.
-    * @param offset the offset at which to start filling the array.
     * @param length the maximum number of bytes to read into the buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
@@ -80,7 +77,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   virtual int peek(char* b, unsigned int offset, unsigned int length)
+   virtual int peek(char* b, unsigned int length)
    throw(db::io::IOException);
    
    /**
@@ -106,23 +103,22 @@ public:
    virtual void close() throw(IOException);
 };
 
-inline int InputStream::read(char* b, unsigned int offset, unsigned int length)
+inline int InputStream::read(char* b, unsigned int length)
 throw(IOException)
 {
    int rval = -1;
    
    char c;
-   int limit = offset + length;
-   for(int i = offset; i < limit && read(c); i++)
+   for(unsigned int i = 0; i < length && read(c); i++)
    {
-      b[offset] = c;
+      b[i] = c;
       rval = (rval == -1) ? 1 : rval + 1;
    }
    
    return rval;
 }
 
-inline int InputStream::peek(char* b, unsigned int offset, unsigned int length)
+inline int InputStream::peek(char* b, unsigned int length)
 throw(IOException)
 {
    // extending classes must implement this method if they want support
@@ -136,7 +132,7 @@ inline unsigned long InputStream::skip(unsigned long count) throw(IOException)
    unsigned int length = (count < 2048) ? count : 2048; 
    int numBytes = 0;
    unsigned long skipped = 0;
-   while((numBytes = read(b, 0, length)) != -1 && count > 0)
+   while((numBytes = read(b, length)) != -1 && count > 0)
    {
       skipped += numBytes;
       count -= numBytes;

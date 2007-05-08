@@ -167,7 +167,7 @@ void runLinuxSocketTest()
    
    char request[] =
       "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-   socket.send(request, 0, sizeof(request));
+   socket.send(request, sizeof(request));
    
    // set receive timeout (10 seconds = 10000 milliseconds)
    socket.setReceiveTimeout(10000);
@@ -178,7 +178,7 @@ void runLinuxSocketTest()
    
    cout << endl << "DOING A PEEK!" << endl;
    
-   numBytes = socket.getInputStream()->peek(response, 0, 2048);
+   numBytes = socket.getInputStream()->peek(response, 2048);
    if(numBytes != -1)
    {
       cout << "Peeked " << numBytes << " bytes." << endl;
@@ -189,7 +189,7 @@ void runLinuxSocketTest()
    
    cout << endl << "DOING ACTUAL READ NOW!" << endl;
    
-   while((numBytes = socket.getInputStream()->read(response, 0, 2048)) != -1)
+   while((numBytes = socket.getInputStream()->read(response, 2048)) != -1)
    {
       cout << "numBytes received: " << numBytes << endl;
       str.append(response, numBytes);
@@ -271,7 +271,7 @@ void runLinuxSslSocketTest()
    
    char request[] =
       "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-   sslSocket.send(request, 0, sizeof(request));
+   sslSocket.send(request, sizeof(request));
    
    char response[2048];
    int numBytes = 0;
@@ -279,7 +279,7 @@ void runLinuxSslSocketTest()
    
    cout << endl << "DOING A PEEK!" << endl;
    
-   numBytes = sslSocket.getInputStream()->peek(response, 0, 2048);
+   numBytes = sslSocket.getInputStream()->peek(response, 2048);
    if(numBytes != -1)
    {
       cout << "Peeked " << numBytes << " bytes." << endl;
@@ -290,7 +290,7 @@ void runLinuxSslSocketTest()
    
    cout << endl << "DOING ACTUAL READ NOW!" << endl;
    
-   while((numBytes = sslSocket.getInputStream()->read(response, 0, 2048)) != -1)
+   while((numBytes = sslSocket.getInputStream()->read(response, 2048)) != -1)
    {
       cout << "numBytes received: " << numBytes << endl;
       str.append(response, numBytes);
@@ -423,7 +423,7 @@ void runAsymmetricKeyLoadingTest()
       
       char b[2048];
       int numBytes;
-      while((numBytes = fis1.read(b, 0, 2048)) != -1)
+      while((numBytes = fis1.read(b, 2048)) != -1)
       {
          privatePem.append(b, numBytes);
       }
@@ -439,7 +439,7 @@ void runAsymmetricKeyLoadingTest()
       
       string publicPem = "";
       
-      while((numBytes = fis2.read(b, 0, 2048)) != -1)
+      while((numBytes = fis2.read(b, 2048)) != -1)
       {
          publicPem.append(b, numBytes);
       }
@@ -745,7 +745,7 @@ int main()
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
       //runDsaAsymmetricKeyCreationTest();
-      runRsaAsymmetricKeyCreationTest();
+      //runRsaAsymmetricKeyCreationTest();
    }
    catch(SocketException& e)
    {

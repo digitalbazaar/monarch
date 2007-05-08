@@ -76,14 +76,13 @@ public:
     * Writes a datagram to some SocketAddress.
     * 
     * @param b the array of bytes to write.
-    * @param offset the offset at which to start reading from the array.
     * @param length the number of bytes to write to the stream.
     * @param address the SocketAddres to write to.
     * 
     * @exception IOException thrown if an IO error occurs. 
     */
    virtual void sendDatagram(
-      char* b, int offset, int length, SocketAddress* address)
+      const char* b, unsigned int length, SocketAddress* address)
    throw(db::io::IOException);
    
    /**
@@ -92,7 +91,6 @@ public:
     * passed SocketAddress, if it is not NULL.
     * 
     * @param b the array of bytes to fill.
-    * @param offset the offset at which to start filling the array.
     * @param length the maximum number of bytes to read into the buffer.
     * @param address the SocketAddress to populate.
     * 
@@ -101,7 +99,7 @@ public:
     * @exception IOException thrown if an IO error occurs. 
     */
    virtual int receiveDatagram(
-      char* b, int offset, int length, SocketAddress* address = NULL)
+      char* b, unsigned int length, SocketAddress* address = NULL)
    throw(db::io::IOException);
    
    /**

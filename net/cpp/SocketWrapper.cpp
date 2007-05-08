@@ -52,17 +52,14 @@ throw(SocketException)
    getSocket()->connect(address, timeout);
 }
 
-void SocketWrapper::send(
-   const char* b, unsigned int offset, unsigned int length)
-throw(IOException)
+void SocketWrapper::send(const char* b, unsigned int length) throw(IOException)
 {
-   getSocket()->send(b, offset, length);
+   getSocket()->send(b, length);
 }
 
-int SocketWrapper::receive(char* b, unsigned int offset, unsigned int length)
-throw(IOException)
+int SocketWrapper::receive(char* b, unsigned int length) throw(IOException)
 {
-   return getSocket()->receive(b, offset, length);
+   return getSocket()->receive(b, length);
 }
 
 void SocketWrapper::close()

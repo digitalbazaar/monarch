@@ -237,9 +237,7 @@ throw(SocketException)
    mConnected = true;
 }
 
-void AbstractSocket::send(
-   const char* b, unsigned int offset, unsigned int length)
-throw(IOException)
+void AbstractSocket::send(const char* b, unsigned int length) throw(IOException)
 {
    if(!isConnected())
    {
@@ -248,6 +246,7 @@ throw(IOException)
    
    // send all data (send can fail to send all bytes in one go because the
    // socket send buffer was full)
+   unsigned int offset = 0;
    while(length > 0)
    {
       int bytes = ::send(mFileDescriptor, b + offset, length, 0);
@@ -263,8 +262,7 @@ throw(IOException)
    }
 }
 
-int AbstractSocket::receive(char* b, unsigned int offset, unsigned int length)
-throw(IOException)
+int AbstractSocket::receive(char* b, unsigned int length) throw(IOException)
 {
    int rval = -1;
    
@@ -277,7 +275,7 @@ throw(IOException)
    if(select())
    {
       // receive some data
-      rval = ::recv(mFileDescriptor, b + offset, length, 0);
+      rval = ::recv(mFileDescriptor, b, length, 0);
       if(rval < -1)
       {
          switch(errno)
