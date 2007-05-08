@@ -37,8 +37,7 @@ public:
     * @param offset the offset at which to start converting.
     * @param length the number of bytes to convert. 
     */
-   static std::string bytesToHex(
-      char* b, unsigned int offset, unsigned int length);
+   static std::string bytesToHex(const char* b, unsigned int length);
 };
 
 } // end namespace util

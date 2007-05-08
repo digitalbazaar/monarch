@@ -65,8 +65,7 @@ void DigitalSignature::reset()
    }
 }
 
-void DigitalSignature::update(
-   const char* b, unsigned int offset, unsigned int length)
+void DigitalSignature::update(const char* b, unsigned int length)
 {
    // if the hash function hasn't been set, then call reset to set it
    if(mHashFunction == NULL)
@@ -77,11 +76,11 @@ void DigitalSignature::update(
    // update message digest context according to sign mode
    if(mSignMode)
    {
-      EVP_SignUpdate(&mMessageDigestContext, b + offset, length);
+      EVP_SignUpdate(&mMessageDigestContext, b, length);
    }
    else
    {
-      EVP_VerifyUpdate(&mMessageDigestContext, b + offset, length);
+      EVP_VerifyUpdate(&mMessageDigestContext, b, length);
    }
 }
 

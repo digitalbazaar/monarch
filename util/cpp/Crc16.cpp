@@ -77,13 +77,12 @@ void Crc16::update(const unsigned char& b)
    mCrcValue &= 0xffff;
 }
 
-void Crc16::update(const char* b, unsigned int offset, unsigned int length)
+void Crc16::update(const char* b, unsigned int length)
 {
    // go through every byte
-   unsigned int end = offset + length;
-   for(; offset < end; offset++)
+   for(unsigned int i = 0; i < length; i++)
    {
-      update(b[offset]);
+      update(b[i]);
    }
 }
 

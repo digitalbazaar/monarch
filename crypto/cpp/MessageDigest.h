@@ -70,10 +70,9 @@ public:
     * chunks of the data that is to be hashed.
     * 
     * @param b a buffer with data to hash.
-    * @param offset the offset at which the data begins.
     * @param length the length of the data.
     */
-   virtual void update(const char* b, unsigned int offset, unsigned int length);
+   virtual void update(const char* b, unsigned int length);
    
    /**
     * Puts the hash value into an array of bytes. The length of the hash value

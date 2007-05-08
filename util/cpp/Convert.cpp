@@ -13,8 +13,7 @@ const char Convert::HEX_CHARS[16] =
    'a', 'b', 'c', 'd', 'e', 'f'
 };
 
-string Convert::bytesToHex(
-   char* bytes, unsigned int offset, unsigned int length)
+string Convert::bytesToHex(const char* bytes, unsigned int length)
 {
    string rval = "";
    

@@ -385,7 +385,7 @@ void runCrcTest()
 //   crc16.update(60);
 //   crc16.update(70);
 //   crc16.update(80);
-   crc16.update(b, 0, 8);
+   crc16.update(b, 8);
    
    cout << "CRC-16=" << crc16.getChecksum() << endl;
    if(crc16.getChecksum() == correctValue)
@@ -466,7 +466,7 @@ void runAsymmetricKeyLoadingTest()
       // sign some data
       char data[] = {1,2,3,4,5,6,7,8};
       DigitalSignature* ds1 = privateKey->createSignature();
-      ds1->update(data, 0, 8);
+      ds1->update(data, 8);
       
       // get the signature
       char sig[ds1->getValueLength()];
@@ -476,7 +476,7 @@ void runAsymmetricKeyLoadingTest()
       
       // verify the signature
       DigitalSignature* ds2 = publicKey->createSignature();
-      ds2->update(data, 0, 8);
+      ds2->update(data, 8);
       bool verified = ds2->verify(sig, length);
       delete ds2;
       
@@ -565,7 +565,7 @@ void runDsaAsymmetricKeyCreationTest()
          // sign some data
          char data[] = {1,2,3,4,5,6,7,8};
          DigitalSignature* ds1 = privateKey->createSignature();
-         ds1->update(data, 0, 8);
+         ds1->update(data, 8);
          
          // get the signature
          char sig[ds1->getValueLength()];
@@ -575,7 +575,7 @@ void runDsaAsymmetricKeyCreationTest()
          
          // verify the signature
          DigitalSignature* ds2 = publicKey->createSignature();
-         ds2->update(data, 0, 8);
+         ds2->update(data, 8);
          bool verified = ds2->verify(sig, length);
          delete ds2;
          
@@ -671,7 +671,7 @@ void runRsaAsymmetricKeyCreationTest()
          // sign some data
          char data[] = {1,2,3,4,5,6,7,8};
          DigitalSignature* ds1 = privateKey->createSignature();
-         ds1->update(data, 0, 8);
+         ds1->update(data, 8);
          
          // get the signature
          char sig[ds1->getValueLength()];
@@ -681,7 +681,7 @@ void runRsaAsymmetricKeyCreationTest()
          
          // verify the signature
          DigitalSignature* ds2 = publicKey->createSignature();
-         ds2->update(data, 0, 8);
+         ds2->update(data, 8);
          bool verified = ds2->verify(sig, length);
          delete ds2;
          
@@ -741,8 +741,8 @@ int main()
       //runLinuxSocketTest();
       //runWindowsSslSocketTest();
       //runLinuxSslSocketTest();
-      //runMessageDigestTest();
-      //runCrcTest();
+      runMessageDigestTest();
+      runCrcTest();
       //runAsymmetricKeyLoadingTest();
       //runDsaAsymmetricKeyCreationTest();
       //runRsaAsymmetricKeyCreationTest();

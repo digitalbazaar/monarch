@@ -64,11 +64,9 @@ public:
     * repeatedly with chunks of the data that is to be encrypted or decrypted.
     * 
     * @param in a buffer with data to encrypt/decrypt.
-    * @param inOffset the offset at which the data begins.
     * @param inLength the length of the data.
     */
-   virtual void update(
-      const char* in, unsigned int inOffset, unsigned int inLength) = 0;
+   virtual void update(const char* in, unsigned int inLength) = 0;
    
    /**
     * Puts the final chunk of encrypted or decrypted data into an array of

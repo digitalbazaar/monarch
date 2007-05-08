@@ -75,11 +75,9 @@ public:
     * with chunks of the data that is to be sealed or opened.
     * 
     * @param in a buffer with data to seal/open.
-    * @param inOffset the offset at which the data begins.
     * @param inLength the length of the data.
     */
-   virtual void update(
-      const char* in, unsigned int inOffset, unsigned int inLength) = 0;
+   virtual void update(const char* in, unsigned int inLength) = 0;
    
    /**
     * Puts the final chunk of sealed or opened data into an array of bytes.

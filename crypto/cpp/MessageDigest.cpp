@@ -58,11 +58,10 @@ void MessageDigest::reset()
 
 void MessageDigest::update(const std::string& str)
 {
-   update(str.c_str(), 0, str.length());
+   update(str.c_str(), str.length());
 }
 
-void MessageDigest::update(
-   const char* b, unsigned int offset, unsigned int length)
+void MessageDigest::update(const char* b, unsigned int length)
 {
    // if the hash function hasn't been set, then call reset to set it
    if(mHashFunction == NULL)
@@ -71,7 +70,7 @@ void MessageDigest::update(
    }
    
    // update message digest context
-   EVP_DigestUpdate(&mMessageDigestContext, b + offset, length);
+   EVP_DigestUpdate(&mMessageDigestContext, b, length);
 }
 
 void MessageDigest::getValue(char* b, unsigned int& length)
@@ -105,5 +104,5 @@ string MessageDigest::getDigest()
    getValue(hashValue, length);
    
    // convert the hash value into hexadecimal
-   return Convert::bytesToHex(hashValue, 0, length);
+   return Convert::bytesToHex(hashValue, length);
 }

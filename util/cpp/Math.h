@@ -50,14 +50,14 @@ public:
     * 
     * @param number the double to round up.
     */
-   static long double ceil(long double number);
+   static const long double& ceil(const long double& number);
    
    /**
     * Rounds a double down to the next smallest whole number.
     * 
     * @param number the double to round down.
     */
-   static long double floor(long double number);
+   static const long double& floor(const long double& number);
    
    /**
     * Given two double longs, the larger is returned.
@@ -67,7 +67,7 @@ public:
     * 
     * @return the larger of the two longs.
     */
-   static long maximum(long first, long second);
+   static const long& maximum(const long& first, const long& second);
    
    /**
     * Given two longs, the smaller is returned.
@@ -77,7 +77,7 @@ public:
     * 
     * @return the smaller of the two longs.
     */
-   static long minimum(long first, long second);
+   static const long& minimum(const long& first, const long& second);
    
    /**
     * Rounds a double up if it is closer to the next largest whole number,
@@ -85,30 +85,30 @@ public:
     * 
     * @param number the double to round. 
     */
-   static long double round(long double number);
+   static const long double& round(const long double& number);
 };
 
-inline long double Math::ceil(long double number)
+inline const long double& Math::ceil(const long double& number)
 {
    return ceil(number);
 }
 
-inline long double Math::floor(long double number)
+inline const long double& Math::floor(const long double& number)
 {
    return floor(number);
 }
 
-inline long Math::maximum(long first, long second)
+inline const long& Math::maximum(const long& first, const long& second)
 {
    return (second > first) ? second : first;
 }
 
-inline long Math::minimum(long first, long second)
+inline const long& Math::minimum(const long& first, const long& second)
 {
    return (second < first) ? second : first;
 }
 
-inline long double Math::round(long double number)
+inline const long double& Math::round(const long double& number)
 {
    return round(number);
 }
