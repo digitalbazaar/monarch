@@ -134,7 +134,7 @@ public:
     * @param group the group to populate with 4 characters.
     */
    static void encodeGroup(
-      const char* data, size_t offset, size_t length, char* group);
+      const char* data, unsigned int offset, unsigned int length, char* group);
    
    /**
     * Decodes ONE group of Base64 characters into bytes.
@@ -143,7 +143,7 @@ public:
     * @param bytes the decoded byte array to populate (of size 3).
     * @param length to store the number of decoded bytes (1 to 3).
     */
-   static void decodeGroup(const char* str, char* bytes, size_t& length);
+   static void decodeGroup(const char* str, char* bytes, unsigned int& length);
    
    /**
     * Base64 encodes data. The passed array of bytes is transformed into a
@@ -154,7 +154,7 @@ public:
     * 
     * @return the base64-encoded string.
     */
-   static std::string encode(const char* data, size_t length);
+   static std::string encode(const char* data, unsigned int length);
    
    /**
     * Base64 decodes data. The passed base64-encoded string is transformed
@@ -162,10 +162,10 @@ public:
     *  
     * @param str the Base64-encoded string.
     * @param data a pointer to a byte array that will be set by this method.
-    * 
-    * @return the number of decoded bytes.
+    * @param length to store the number of decoded bytes.
     */
-   static size_t decode(const std::string& str, char** data);
+   static void decode(
+      const std::string& str, char** data, unsigned int& length);
 };
 
 } // end namespace util

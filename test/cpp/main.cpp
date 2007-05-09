@@ -35,10 +35,11 @@ void runBase64Test()
 	cout << "encoded=" << encoded << endl;
 	
    char* decoded;
-	int length = Base64Coder::decode(encoded, &decoded);
+	unsigned int length;
+   Base64Coder::decode(encoded, &decoded, length);
 	
 	cout << "decoded bytes=" << length << endl;
-   for(int i = 0; i < length; i++)
+   for(unsigned int i = 0; i < length; i++)
    {
       cout << "decoded[" << i << "]=" << decoded[i] << endl;
    }

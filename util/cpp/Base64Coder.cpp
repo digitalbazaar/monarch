@@ -3,6 +3,7 @@
  */
 #include "Base64Coder.h"
 
+using namespace std;
 using namespace db::util;
 
 const char Base64Coder::INDEX_TO_BASE64[] =
@@ -55,10 +56,10 @@ const int Base64Coder::BASE64_TO_INDEX[] =
 };
 
 void Base64Coder::replaceAll(
-   std::string& str, std::string find, std::string replace)
+   string& str, string find, string replace)
 {
-	std::string::size_type found = str.find(find);
-	while(found != std::string::npos)
+	string::size_type found = str.find(find);
+	while(found != string::npos)
 	{
 		str.replace(found, find.length(), replace);
 		found = str.find(find);
@@ -76,9 +77,9 @@ int Base64Coder::charToInt(const char& c)
 }
 
 void Base64Coder::encodeGroup(
-   const char* data, size_t offset, size_t length, char* group)
+   const char* data, unsigned int offset, unsigned int length, char* group)
 {
-   size_t len = length - offset;
+   unsigned int len = length - offset;
    
    unsigned int b0 = data[offset++] & 0xff;
    unsigned int b1 = (len > 1) ? data[offset++] & 0xff : 0;
@@ -90,7 +91,8 @@ void Base64Coder::encodeGroup(
    group[3] = (len > 2) ? INDEX_TO_BASE64[b2 & 0x3f] : '='; 
 }
 
-void Base64Coder::decodeGroup(const char* str, char* bytes, size_t& length)
+void Base64Coder::decodeGroup(
+   const char* str, char* bytes, unsigned int& length)
 {
    // get 6-bit integer values
    int index[4];
@@ -127,16 +129,16 @@ void Base64Coder::decodeGroup(const char* str, char* bytes, size_t& length)
    }
 }
 
-std::string Base64Coder::encode(const char* data, size_t length)
+string Base64Coder::encode(const char* data, unsigned int length)
 {
-   std::string rval = "";
+   string rval = "";
    
    if(data != NULL && length > 0)
    {
       // Base64 encoding requires 24 bit groups, and each
       // byte is 8 bits, so the data should be broken into groups
       // of 3 bytes each
-      size_t groups = length / 3;
+      unsigned int groups = length / 3;
       
       // see if there is an incomplete group
       if(groups * 3 != length)
@@ -147,15 +149,15 @@ std::string Base64Coder::encode(const char* data, size_t length)
       // the string buffer for string the encoded data
       // Base64 encoding turns 3 bytes into 4 characters, so the
       // length of the encoded data will be:
-      size_t encodedLength = groups * 4;
+      unsigned int encodedLength = groups * 4;
       
       // add end of line characters padding
       encodedLength += (encodedLength / 76);
       
       // encode all the groups
-      size_t offset = 0;
-      size_t lineLength = 0;
-      for(size_t i = 0; i < groups; i++, offset += 3)
+      unsigned int offset = 0;
+      unsigned int lineLength = 0;
+      for(unsigned int i = 0; i < groups; i++, offset += 3)
       {
          // encode the group
          char group[4];
@@ -180,54 +182,51 @@ std::string Base64Coder::encode(const char* data, size_t length)
    return rval;
 }
 
-size_t Base64Coder::decode(const std::string& str, char** data)
+void Base64Coder::decode(const string& str, char** data, unsigned int& length)
 {
-   size_t rval = 0;
-   
-   // point data at NULL
+   // point data at NULL and set length to 0
    *data = NULL;
+   length = 0;
    
    // remove all white space
-   std::string input = str;
+   string input = str;
    replaceAll(input, " ", "");
    replaceAll(input, "\n", "");
    replaceAll(input, "\r", "");
    replaceAll(input, "\t", "");
    
    // make sure the string has length
-   size_t length = input.size();
-   if(length != 0)
+   unsigned int len = input.size();
+   if(len != 0)
    {
       // get and check the number of groups, must be a multiple of 4
-      size_t groups = length / 4;
-      if(groups * 4 == length)
+      unsigned int groups = len / 4;
+      if(groups * 4 == len)
       {
          // get the number of pad characters
-         size_t padChars = 0;
-         if(input[length - 2] == '=')
+         unsigned int padChars = 0;
+         if(input[len - 2] == '=')
          {
             padChars = 2;
          }
-         else if(input[length - 1] == '=')
+         else if(input[len - 1] == '=')
          {
             padChars = 1;
          }
          
          // calculate the decoded length, it should be the number of
          // groups * 3 - padBytes
-         size_t decodedLength = groups * 3 - padChars;
+         length = groups * 3 - padChars;
          
          // allocate space for the byte array
-         *data = new char[decodedLength];
-         rval = decodedLength;
+         *data = new char[length];
          
-         size_t dataIndex = 0;
-         size_t strIndex = 0;
-         size_t len = 0;
+         unsigned int dataIndex = 0;
+         unsigned int strIndex = 0;
          char bytes[3];
          
          // decode all the groups
-         for(size_t i = 0; i < groups; i++, strIndex += 4)
+         for(unsigned int i = 0; i < groups; i++, strIndex += 4)
          {
             // copy the decoded bytes into the decoded buffer
             decodeGroup(input.c_str() + strIndex, bytes, len);
@@ -236,6 +235,4 @@ size_t Base64Coder::decode(const std::string& str, char** data)
          }
       }
    }
-   
-   return rval;
 }
