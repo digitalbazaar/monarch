@@ -30,8 +30,8 @@ void runBase64Test()
 {
 	cout << "Running Base64 Test" << endl << endl;
 	
-	char data[] = {'a', 'b', 'c', 'd'};
-	string encoded = Base64Coder::encode(data, 4);
+	char data[] = {'a', 'b', 'c', 'd', 'e'};
+	string encoded = Base64Coder::encode(data + 1, 4);
 	cout << "encoded=" << encoded << endl;
 	
    char* decoded;

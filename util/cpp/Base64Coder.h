@@ -139,13 +139,11 @@ public:
    /**
     * Decodes ONE group of Base64 characters into bytes.
     * 
-    * @param str the string with the characters to decode into bytes.
-    * @param offset the offset to begin decoding at.
+    * @param str the characters to decode into bytes.
     * @param bytes the decoded byte array to populate (of size 3).
-    * 
-    * @return the number of decoded bytes (1 to 3).
+    * @param length to store the number of decoded bytes (1 to 3).
     */
-   static size_t decodeGroup(std::string str, size_t offset, char* bytes);
+   static void decodeGroup(const char* str, char* bytes, size_t& length);
    
    /**
     * Base64 encodes data. The passed array of bytes is transformed into a

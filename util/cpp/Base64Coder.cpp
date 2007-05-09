@@ -90,15 +90,13 @@ void Base64Coder::encodeGroup(
    group[3] = (len > 2) ? INDEX_TO_BASE64[b2 & 0x3f] : '='; 
 }
 
-size_t Base64Coder::decodeGroup(std::string str, size_t offset, char* bytes)
+void Base64Coder::decodeGroup(const char* str, char* bytes, size_t& length)
 {
-	size_t rval = 0;
-	
    // get 6-bit integer values
    int index[4];
    for(int i = 0; i < 4; i++)
    {
-   	index[i] = charToInt(str[offset++]);
+   	index[i] = charToInt(str[i]);
    }
    
    // this byte will definitely be used, padding or not
@@ -109,26 +107,24 @@ size_t Base64Coder::decodeGroup(std::string str, size_t offset, char* bytes)
    if(index[2] == -2)
    {
    	// 1 decoded byte
-   	rval = 1;
+   	length = 1;
       bytes[0] = b0;
    }
    else if(index[3] == -2)
    {
    	// 2 decoded bytes 
-      rval = 2;
+      length = 2;
       bytes[0] = b0;
       bytes[1] = (char)(index[1] << 4 | index[2] >> 2);
    }
    else
    {
    	// 3 decoded bytes
-      rval = 3;
+      length = 3;
       bytes[0] = b0;
       bytes[1] = (char)(index[1] << 4 | index[2] >> 2);
       bytes[2] = (char)(index[2] << 6 | index[3]);
    }
-   
-   return rval;
 }
 
 std::string Base64Coder::encode(const char* data, size_t length)
@@ -227,14 +223,14 @@ size_t Base64Coder::decode(const std::string& str, char** data)
          
          size_t dataIndex = 0;
          size_t strIndex = 0;
+         size_t len = 0;
+         char bytes[3];
          
          // decode all the groups
          for(size_t i = 0; i < groups; i++, strIndex += 4)
          {
-            char bytes[3];
-            size_t len = decodeGroup(input, strIndex, bytes);
-            
             // copy the decoded bytes into the decoded buffer
+            decodeGroup(input.c_str() + strIndex, bytes, len);
             memcpy((*data) + dataIndex, bytes, len);
             dataIndex += len;
          }
