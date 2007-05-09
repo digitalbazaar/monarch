@@ -129,12 +129,11 @@ public:
     * Encodes 3 bytes into 4 characters.
     * 
     * @param data the byte array with the 3 bytes.
-    * @param offset the offset where the 3 bytes start.
     * @param length the length of the byte array.
     * @param group the group to populate with 4 characters.
     */
    static void encodeGroup(
-      const char* data, unsigned int offset, unsigned int length, char* group);
+      const char* data, unsigned int length, char* group);
    
    /**
     * Decodes ONE group of Base64 characters into bytes.

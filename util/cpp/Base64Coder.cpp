@@ -77,18 +77,16 @@ int Base64Coder::charToInt(const char& c)
 }
 
 void Base64Coder::encodeGroup(
-   const char* data, unsigned int offset, unsigned int length, char* group)
+   const char* data, unsigned int length, char* group)
 {
-   unsigned int len = length - offset;
-   
-   unsigned int b0 = data[offset++] & 0xff;
-   unsigned int b1 = (len > 1) ? data[offset++] & 0xff : 0;
-   unsigned int b2 = (len > 2) ? data[offset++] & 0xff : 0;
+   unsigned int b0 = data[0] & 0xff;
+   unsigned int b1 = (length > 1) ? data[1] & 0xff : 0;
+   unsigned int b2 = (length > 2) ? data[2] & 0xff : 0;
    
    group[0] = INDEX_TO_BASE64[b0 >> 2];
    group[1] = INDEX_TO_BASE64[(b0 << 4 | b1 >> 4) & 0x3f];
-   group[2] = (len > 1) ? INDEX_TO_BASE64[(b1 << 2 | b2 >> 6) & 0x3f] : '=';
-   group[3] = (len > 2) ? INDEX_TO_BASE64[b2 & 0x3f] : '='; 
+   group[2] = (length > 1) ? INDEX_TO_BASE64[(b1 << 2 | b2 >> 6) & 0x3f] : '=';
+   group[3] = (length > 2) ? INDEX_TO_BASE64[b2 & 0x3f] : '='; 
 }
 
 void Base64Coder::decodeGroup(
@@ -155,13 +153,13 @@ string Base64Coder::encode(const char* data, unsigned int length)
       encodedLength += (encodedLength / 76);
       
       // encode all the groups
+      char group[4];
       unsigned int offset = 0;
       unsigned int lineLength = 0;
       for(unsigned int i = 0; i < groups; i++, offset += 3)
       {
          // encode the group
-         char group[4];
-         encodeGroup(data, offset, length, group);
+         encodeGroup(data + offset, length - offset, group);
          
          // Base64 allows no more than 76 characters per line
          // if the line length is greater 76, then insert a line break
@@ -196,7 +194,7 @@ void Base64Coder::decode(const string& str, char** data, unsigned int& length)
    replaceAll(input, "\t", "");
    
    // make sure the string has length
-   unsigned int len = input.size();
+   unsigned int len = input.length();
    if(len != 0)
    {
       // get and check the number of groups, must be a multiple of 4
@@ -221,11 +219,10 @@ void Base64Coder::decode(const string& str, char** data, unsigned int& length)
          // allocate space for the byte array
          *data = new char[length];
          
+         // decode all the groups
+         char bytes[3];
          unsigned int dataIndex = 0;
          unsigned int strIndex = 0;
-         char bytes[3];
-         
-         // decode all the groups
          for(unsigned int i = 0; i < groups; i++, strIndex += 4)
          {
             // copy the decoded bytes into the decoded buffer
