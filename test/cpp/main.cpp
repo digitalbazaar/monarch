@@ -31,7 +31,7 @@ void runBase64Test()
 	cout << "Running Base64 Test" << endl << endl;
 	
 	char data[] = {'a', 'b', 'c', 'd'};
-	string encoded = Base64Coder::encode(data, 0, 4);
+	string encoded = Base64Coder::encode(data, 4);
 	cout << "encoded=" << encoded << endl;
 	
    char* decoded;
@@ -43,7 +43,7 @@ void runBase64Test()
       cout << "decoded[" << i << "]=" << decoded[i] << endl;
    }
 	
-	string encoded2 = Base64Coder::encode(decoded, 0, 4);
+	string encoded2 = Base64Coder::encode(decoded, 4);
 	cout << "encoded again=" << encoded2 << endl;
 	
    if(decoded != NULL)
@@ -734,15 +734,15 @@ int main()
    
    try
    {
-      //runBase64Test();
+      runBase64Test();
       //runTimeTest();
       //runThreadTest();
       //runWindowsSocketTest();
       //runLinuxSocketTest();
       //runWindowsSslSocketTest();
       //runLinuxSslSocketTest();
-      runMessageDigestTest();
-      runCrcTest();
+      //runMessageDigestTest();
+      //runCrcTest();
       //runAsymmetricKeyLoadingTest();
       //runDsaAsymmetricKeyCreationTest();
       //runRsaAsymmetricKeyCreationTest();

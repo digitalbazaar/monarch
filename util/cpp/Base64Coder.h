@@ -123,7 +123,7 @@ public:
     * 
     * @return the integer.
     */
-   static int charToInt(char c);
+   static int charToInt(const char& c);
    
    /**
     * Encodes 3 bytes into 4 characters.
@@ -134,7 +134,7 @@ public:
     * @param group the group to populate with 4 characters.
     */
    static void encodeGroup(
-      char* data, size_t offset, size_t length, char* group);
+      const char* data, size_t offset, size_t length, char* group);
    
    /**
     * Decodes ONE group of Base64 characters into bytes.
@@ -152,12 +152,11 @@ public:
     * base64-encoded string.
     * 
     * @param data the byte array to encode.
-    * @param offset the offset in the data to start encoding at. 
     * @param length the number of bytes in the data to encode.
     * 
     * @return the base64-encoded string.
     */
-   static std::string encode(char* data, size_t offset, size_t length);
+   static std::string encode(const char* data, size_t length);
    
    /**
     * Base64 decodes data. The passed base64-encoded string is transformed

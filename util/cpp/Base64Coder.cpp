@@ -65,7 +65,7 @@ void Base64Coder::replaceAll(
 	}
 }
 
-int Base64Coder::charToInt(char c)
+int Base64Coder::charToInt(const char& c)
 {
    int rval = -1;
    
@@ -76,7 +76,7 @@ int Base64Coder::charToInt(char c)
 }
 
 void Base64Coder::encodeGroup(
-   char* data, size_t offset, size_t length, char* group)
+   const char* data, size_t offset, size_t length, char* group)
 {
    size_t len = length - offset;
    
@@ -131,7 +131,7 @@ size_t Base64Coder::decodeGroup(std::string str, size_t offset, char* bytes)
    return rval;
 }
 
-std::string Base64Coder::encode(char* data, size_t offset, size_t length)
+std::string Base64Coder::encode(const char* data, size_t length)
 {
    std::string rval = "";
    
@@ -157,6 +157,7 @@ std::string Base64Coder::encode(char* data, size_t offset, size_t length)
       encodedLength += (encodedLength / 76);
       
       // encode all the groups
+      size_t offset = 0;
       size_t lineLength = 0;
       for(size_t i = 0; i < groups; i++, offset += 3)
       {
