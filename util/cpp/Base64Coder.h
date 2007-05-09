@@ -113,7 +113,7 @@ public:
     * @param replace the string to replace "find" with.
     */
    static void replaceAll(
-      std::string& str, std::string find, std::string replace);
+      std::string& str, const std::string& find, const std::string& replace);
    
    /**
     * Converts a character into an integer (according to the

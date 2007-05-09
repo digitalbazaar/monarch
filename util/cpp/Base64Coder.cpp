@@ -56,7 +56,7 @@ const int Base64Coder::BASE64_TO_INDEX[] =
 };
 
 void Base64Coder::replaceAll(
-   string& str, string find, string replace)
+   string& str, const string& find, const string& replace)
 {
 	string::size_type found = str.find(find);
 	while(found != string::npos)
