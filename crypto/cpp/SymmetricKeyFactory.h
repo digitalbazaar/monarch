@@ -21,11 +21,25 @@ class SymmetricKeyFactory : public virtual db::rt::Object
 {
 protected:
    /**
-    * Creates a new AES256 key.
+    * Creates a new 256-bit AES key.
     * 
     * @param key a pointer to point at the new SymmetricKey.
     */
    void createAes256Key(SymmetricKey** key);
+   
+   /**
+    * Creates a new 128-bit AES key.
+    * 
+    * @param key a pointer to point at the new SymmetricKey.
+    */
+   void createAes128Key(SymmetricKey** key);
+   
+   /**
+    * Creates a new 168-bit Triple DES key.
+    * 
+    * @param key a pointer to point at the new SymmetricKey.
+    */
+   void createTripleDesKey(SymmetricKey** key);
    
 public:
    /**

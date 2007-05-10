@@ -3,6 +3,7 @@
  */
 #include <iostream>
 #include <openssl/ssl.h>
+#include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
 
@@ -19,6 +20,7 @@
 #include "AsymmetricKeyFactory.h"
 #include "FileInputStream.h"
 #include "DigitalEnvelope.h"
+#include "DefaultBlockCipher.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -853,6 +855,108 @@ void runEnvelopeTest(const std::string& algorithm)
    EVP_cleanup();
 }
 
+void runCipherTest(const string& algorithm)
+{
+   cout << "Running " << algorithm << " Cipher Test" << endl << endl;
+   
+   // include crypto error strings
+   ERR_load_crypto_strings();
+   
+   // add all algorithms
+   OpenSSL_add_all_algorithms();
+   
+   // seed PRNG
+   //RAND_load_file("/dev/urandom", 1024);
+   
+   try
+   {
+      // create a secret message
+      char message[] = "I'll never teelllll!";
+      int length = sizeof(message);
+      
+      string display1 = "";
+      display1.append(message, length);
+      cout << "Encrypting message '" << display1 << "'" << endl;
+      cout << "Message Length=" << length << endl;
+      
+      // FIXME: remove this -- use a key factory
+      char data[16] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+      unsigned int ivLength = EVP_CIPHER_iv_length(EVP_aes_256_cbc());
+      char iv[ivLength];
+      
+      SymmetricKey key("AES256");
+      key.setData(data, 16, iv, false);
+      
+      // get a default block cipher
+      DefaultBlockCipher cipher;
+      
+      cout << "Starting encryption..." << endl;
+      
+      cipher.startEncrypting(&key);
+      
+      if(true)//key != NULL)
+      {
+         // update encryption
+         char output[2048];
+         int outLength;
+         int totalOut = 0;
+         cipher.update(message, length, output, outLength);
+         cout << "Updated encryption..." << endl;
+         totalOut += outLength;
+         
+         // finish the envelope
+         cout << "Output Length=" << outLength << endl;
+         cipher.finish(output + outLength, outLength);
+         cout << "Finished encryption..." << endl;
+         totalOut += outLength;
+         
+         cout << "Total Output Length=" << totalOut << endl;
+         
+         cout << "Starting decryption..." << endl;
+         cipher.startDecrypting(&key);
+         
+         // update the decryption
+         char input[2048];
+         int inLength;
+         int totalIn = 0;
+         cipher.update(output, totalOut, input, inLength);
+         cout << "Updated decryption..." << endl;
+         totalIn += inLength;
+         
+         // finish the decryption
+         cout << "Input Length=" << inLength << endl;
+         cipher.finish(input + inLength, inLength);
+         cout << "Finished decrypting..." << endl;
+         totalIn += inLength;
+         
+         cout << "Total Input Length=" << totalIn << endl;
+         
+         // create a string to display the received message
+         string display2 = "";
+         display2.append(input, totalIn);
+         
+         cout << "Decrypted message '" << display2 << "'" << endl;
+      }
+      
+      // cleanup key
+      /*if(key != NULL)
+      {
+         delete key;
+      }*/
+   }
+   catch(Exception &e)
+   {
+      cout << "Exception caught!" << endl;
+      cout << e.getMessage() << endl;
+      cout << e.getCode() << endl;
+   }
+   
+   cout << algorithm << " Cipher test complete." << endl << endl;
+   
+   // clean up crypto strings
+   EVP_cleanup();
+}
+
 int main()
 {
    cout << "Tests starting..." << endl << endl;
@@ -872,7 +976,8 @@ int main()
       //runDsaAsymmetricKeyCreationTest();
       //runRsaAsymmetricKeyCreationTest();
       //runEnvelopeTest("DSA");
-      runEnvelopeTest("RSA");
+      //runEnvelopeTest("RSA");
+      runCipherTest("AES256");
    }
    catch(SocketException& e)
    {

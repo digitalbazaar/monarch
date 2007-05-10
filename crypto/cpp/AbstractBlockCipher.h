@@ -6,8 +6,10 @@
 
 #include "BlockCipher.h"
 #include "Object.h"
+#include "UnsupportedAlgorithmException.h"
 
 #include <openssl/evp.h>
+#include <string>
 
 namespace db
 {
@@ -40,10 +42,13 @@ protected:
    
    /**
     * Gets the cipher function for this Cipher.
-    *
+    * 
+    * @param algorithm the cipher algorithm. 
+    * 
     * @return the cipher function to use.
     */
-   virtual const EVP_CIPHER* getCipherFunction() = 0;
+   virtual const EVP_CIPHER* getCipherFunction(const std::string& algorithm)
+   throw(UnsupportedAlgorithmException);
    
 public:
    /**

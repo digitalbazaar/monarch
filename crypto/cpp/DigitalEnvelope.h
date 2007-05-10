@@ -7,7 +7,6 @@
 #include "AbstractBlockCipher.h"
 #include "AsymmetricKey.h"
 #include "SymmetricKey.h"
-#include "UnsupportedAlgorithmException.h"
 
 namespace db
 {
@@ -42,14 +41,6 @@ class PublicKey;
  */
 class DigitalEnvelope : public AbstractBlockCipher
 {
-protected:
-   /**
-    * Gets the cipher function for this Cipher.
-    *
-    * @return the cipher function to use.
-    */
-   virtual const EVP_CIPHER* getCipherFunction();
-   
 public:
    /**
     * Creates a new DigitalEnvelope.

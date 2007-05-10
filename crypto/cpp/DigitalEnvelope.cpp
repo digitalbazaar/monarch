@@ -33,17 +33,11 @@ void DigitalEnvelope::startSealing(
    SymmetricKey** symmetricKeys, unsigned int keys)
 throw(IOException, UnsupportedAlgorithmException)
 {
-   if(algorithm != "AES256")
-   {
-      throw UnsupportedAlgorithmException(
-         "Unsupported key algorithm '" + algorithm + "'!");
-   }
-   
    // enable encryption mode
    mEncryptMode = true;
    
    // get the cipher function
-   mCipherFunction = getCipherFunction();
+   mCipherFunction = getCipherFunction(algorithm);
    
    // create symmetric key buffers for each public key
    EVP_PKEY* pKeys[keys];
@@ -112,17 +106,11 @@ void DigitalEnvelope::startOpening(
    PrivateKey* privateKey, SymmetricKey* symmetricKey)
 throw(IOException, UnsupportedAlgorithmException)
 {
-   if(symmetricKey->getAlgorithm() != "AES256")
-   {
-      throw UnsupportedAlgorithmException(
-         "Unsupported key algorithm '" + symmetricKey->getAlgorithm() + "'!"); 
-   }
-   
    // disable encryption mode
    mEncryptMode = false;
    
    // get the cipher function
-   mCipherFunction = getCipherFunction();
+   mCipherFunction = getCipherFunction(symmetricKey->getAlgorithm());
    
    // get the symmetric key data
    char* eKey;
@@ -142,13 +130,8 @@ throw(IOException, UnsupportedAlgorithmException)
    }
 }
 
-const EVP_CIPHER* DigitalEnvelope::getCipherFunction()
-{
-   return EVP_aes_256_cbc();
-}
-
 void DigitalEnvelope::update(char* in, int inLength, char* out, int& outLength)
- throw(IOException)
+throw(IOException)
 {
    // only proceed if the cipher function has been set
    if(mCipherFunction != NULL)
