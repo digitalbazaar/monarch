@@ -104,7 +104,7 @@ void DigitalSignature::getValue(char* b, unsigned int& length)
 unsigned int DigitalSignature::getValueLength()
 {
    // get the maximum signature size
-   return EVP_PKEY_size(mKey->getPKEY());
+   return mKey->getOutputSize();
 }
 
 bool DigitalSignature::verify(const char* b, unsigned int length)

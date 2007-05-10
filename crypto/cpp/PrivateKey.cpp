@@ -5,6 +5,7 @@
 
 using namespace std;
 using namespace db::crypto;
+using namespace db::io;
 
 PrivateKey::PrivateKey(EVP_PKEY* pkey) : AsymmetricKey(pkey)
 {
@@ -12,6 +13,14 @@ PrivateKey::PrivateKey(EVP_PKEY* pkey) : AsymmetricKey(pkey)
 
 PrivateKey::~PrivateKey()
 {
+}
+
+DigitalEnvelope* PrivateKey::createEnvelope(SymmetricKey* key)
+throw(IOException)
+{
+   DigitalEnvelope* rval = new DigitalEnvelope();
+   rval->startOpening(this, key);
+   return rval;
 }
 
 DigitalSignature* PrivateKey::createSignature()

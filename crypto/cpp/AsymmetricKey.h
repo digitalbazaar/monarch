@@ -5,7 +5,6 @@
 #define AsymmetricKey_H
 
 #include "IOException.h"
-#include "UnsupportedAlgorithmException.h"
 
 #include <openssl/evp.h>
 #include <string>
@@ -60,6 +59,15 @@ public:
     * @return the algorithm for this key.
     */
    virtual const std::string& getAlgorithm();
+   
+   /**
+    * Gets the maximum size, in bytes, required to hold a signature or single
+    * encryption/decryption using this key.
+    * 
+    * @return the maximum size, in bytes, required to hold a signature or
+    *         single encryption/decryption using this key. 
+    */
+   virtual unsigned int getOutputSize();
 };
 
 } // end namespace crypto

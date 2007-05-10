@@ -18,6 +18,7 @@
 #include "Crc16.h"
 #include "AsymmetricKeyFactory.h"
 #include "FileInputStream.h"
+#include "DigitalEnvelope.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -729,13 +730,135 @@ void runRsaAsymmetricKeyCreationTest()
    EVP_cleanup();
 }
 
+void runEnvelopeTest(const std::string& algorithm)
+{
+   cout << "Running " << algorithm << " Envelope Test" << endl << endl;
+   
+   // include crypto error strings
+   ERR_load_crypto_strings();
+   
+   // add all algorithms
+   OpenSSL_add_all_algorithms();
+   
+   // seed PRNG
+   //RAND_load_file("/dev/urandom", 1024);
+   
+   try
+   {
+      // get an asymmetric key factory
+      AsymmetricKeyFactory factory;
+      
+      // create a new key pair
+      PrivateKey* privateKey;
+      PublicKey* publicKey;
+      factory.createKeyPair("RSA", &privateKey, &publicKey);
+      
+      if(privateKey != NULL && publicKey != NULL)
+      {
+         try
+         {
+            // create a secret message
+            char message[] =
+               "This is a confidential message. For British Eyes Only.";
+            int length = sizeof(message);
+            
+            string display1 = "";
+            display1.append(message, length);
+            cout << "Sending message '" << display1 << "'" << endl;
+            cout << "Message Length=" << length << endl;
+            
+            // create an outgoing envelope
+            SymmetricKey* secretKey;
+            DigitalEnvelope* outEnv = publicKey->createEnvelope(&secretKey);
+            cout << "Created outgoing envelope..." << endl;
+            
+            // update the envelope
+            char output[2048];
+            int outLength;
+            int totalOut = 0;
+            outEnv->update(message, length, output, outLength);
+            cout << "Updated outgoing envelope..." << endl;
+            totalOut += outLength;
+            
+            // finish the envelope
+            cout << "Output Length=" << outLength << endl;
+            outEnv->finish(output + outLength, outLength);
+            cout << "Finished sealing outgoing envelope..." << endl;
+            totalOut += outLength;
+            
+            cout << "Total Output Length=" << totalOut << endl;
+            
+            // create an incoming envelope
+            DigitalEnvelope* inEnv = privateKey->createEnvelope(secretKey);
+            cout << "Created incoming envelope..." << endl;
+            
+            // update the envelope
+            char input[2048];
+            int inLength;
+            int totalIn = 0;
+            inEnv->update(output, totalOut, input, inLength);
+            cout << "Updated incoming envelope..." << endl;
+            totalIn += inLength;
+            
+            // finish the envelope
+            cout << "Input Length=" << inLength << endl;
+            inEnv->finish(input + inLength, inLength);
+            cout << "Finished opening incoming envelope..." << endl;
+            totalIn += inLength;
+            
+            cout << "Total Input Length=" << totalIn << endl;
+            
+            // create a string to display the received message
+            string display2 = "";
+            display2.append(input, totalIn);
+            
+            cout << "Received message '" << display2 << "'" << endl;
+            
+            // delete envelopes and key
+            delete secretKey;
+            delete outEnv;
+            delete inEnv;
+         }
+         catch(IOException &e)
+         {
+            cout << "IOException caught in envelope method!" << endl;
+            cout << "message: " << e.getMessage() << endl;
+            cout << "code: " << e.getCode() << endl;
+         }
+      }
+      
+      // cleanup private key
+      if(privateKey != NULL)
+      {
+         delete privateKey;
+      }
+      
+      // cleanup public key
+      if(publicKey != NULL)
+      {
+         delete publicKey;
+      }
+   }
+   catch(Exception &e)
+   {
+      cout << "Exception caught!" << endl;
+      cout << e.getMessage() << endl;
+      cout << e.getCode() << endl;
+   }
+   
+   cout << algorithm << " Envelope test complete." << endl << endl;
+   
+   // clean up crypto strings
+   EVP_cleanup();
+}
+
 int main()
 {
    cout << "Tests starting..." << endl << endl;
    
    try
    {
-      runBase64Test();
+      //runBase64Test();
       //runTimeTest();
       //runThreadTest();
       //runWindowsSocketTest();
@@ -747,6 +870,8 @@ int main()
       //runAsymmetricKeyLoadingTest();
       //runDsaAsymmetricKeyCreationTest();
       //runRsaAsymmetricKeyCreationTest();
+      //runEnvelopeTest("DSA");
+      runEnvelopeTest("RSA");
    }
    catch(SocketException& e)
    {

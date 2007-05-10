@@ -4,6 +4,7 @@
 #ifndef PublicKey_H
 #define PublicKey_H
 
+#include "DigitalEnvelope.h"
 #include "DigitalSignature.h"
 
 namespace db
@@ -51,7 +52,27 @@ public:
    virtual ~PublicKey();
    
    /**
+    * Creates a DigitalEnvelope to send a confidential message with.
+    * 
+    * A random symmetric key will be generated and used to seal the envelope.
+    * It will be encrypted with this PublicKey so that it can only be unlocked
+    * by the PrivateKey associated with this PublicKey.
+    * 
+    * The caller of this method is responsible for freeing the
+    * generated SymmetricKey and DigitalEnvelope.
+    * 
+    * @param key to store the encrypted SymmetricKey used to seal the envelope.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   virtual DigitalEnvelope* createEnvelope(SymmetricKey** key)
+   throw(db::io::IOException);
+   
+   /**
     * Creates a DigitalSignature to verify data with.
+    * 
+    * The caller of this method is responsible for freeing the generated
+    * DigitalSignature.
     * 
     * @return the DigitalSignature to verify data with.
     */

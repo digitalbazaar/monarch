@@ -4,6 +4,7 @@
 #ifndef PrivateKey_H
 #define PrivateKey_H
 
+#include "DigitalEnvelope.h"
 #include "DigitalSignature.h"
 
 namespace db
@@ -51,7 +52,28 @@ public:
    virtual ~PrivateKey();
    
    /**
+    * Creates a DigitalEnvelope to receive a confidential message with.
+    * 
+    * The encrypted symmetric key that was used to seal the envelope must be
+    * passed to this method so that it can be unlocked with this PrivateKey.
+    * Once it has been unlocked by this method, the DigitalEnvelope can be
+    * used to open the message.
+    * 
+    * The caller of this method is responsible for freeing the generated
+    * DigitalEnvelope.
+    * 
+    * @param key the encrypted SymmetricKey to open the envelope with.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   virtual DigitalEnvelope* createEnvelope(SymmetricKey* key)
+   throw(db::io::IOException);
+   
+   /**
     * Creates a DigitalSignature to sign data with.
+    * 
+    * The caller of this method is responsible for freeing the generated
+    * DigitalSignature.
     * 
     * @return the DigitalSignature to sign data with.
     */

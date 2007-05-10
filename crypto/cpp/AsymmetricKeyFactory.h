@@ -7,8 +7,7 @@
 #include "IOException.h"
 #include "PrivateKey.h"
 #include "PublicKey.h"
-
-#include <string>
+#include "UnsupportedAlgorithmException.h"
 
 namespace db
 {
@@ -66,6 +65,9 @@ public:
    
    /**
     * Creates a new key pair using the given algorithm.
+    * 
+    * The caller of this method is responsible for freeing the generated
+    * PrivateKey and PublicKey.
     * 
     * @param algorithm the algorithm to use.
     * @param privateKey a pointer to point at the new PrivateKey.

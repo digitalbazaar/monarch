@@ -45,3 +45,8 @@ const string& AsymmetricKey::getAlgorithm()
    
    return mAlgorithm;
 }
+
+unsigned int AsymmetricKey::getOutputSize()
+{
+   return EVP_PKEY_size(getPKEY());
+}

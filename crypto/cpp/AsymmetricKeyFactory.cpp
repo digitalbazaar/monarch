@@ -2,8 +2,6 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "AsymmetricKeyFactory.h"
-#include "PrivateKey.h"
-#include "PublicKey.h"
 #include "Math.h"
 
 #include <openssl/err.h>
