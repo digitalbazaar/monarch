@@ -61,12 +61,16 @@ public:
     * The caller of this method is responsible for freeing the
     * generated SymmetricKey and DigitalEnvelope.
     * 
+    * @param algorithm the algorithm to use for the encryption.
     * @param key to store the encrypted SymmetricKey used to seal the envelope.
     * 
     * @exception IOException thrown if an IO error occurs.
+    * @exception UnsupportedAlgorithmException thrown if an unsupported key
+    *            algorithm is used.
     */
-   virtual DigitalEnvelope* createEnvelope(SymmetricKey** key)
-   throw(db::io::IOException);
+   virtual DigitalEnvelope* createEnvelope(
+      const std::string& algorithm, SymmetricKey** key)
+   throw(db::io::IOException, UnsupportedAlgorithmException);
    
    /**
     * Creates a DigitalSignature to verify data with.

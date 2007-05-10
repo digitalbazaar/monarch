@@ -65,9 +65,11 @@ public:
     * @param key the encrypted SymmetricKey to open the envelope with.
     * 
     * @exception IOException thrown if an IO error occurs.
+    * @exception UnsupportedAlgorithmException thrown if an unsupported key
+    *            algorithm is used.
     */
    virtual DigitalEnvelope* createEnvelope(SymmetricKey* key)
-   throw(db::io::IOException);
+   throw(db::io::IOException, UnsupportedAlgorithmException);
    
    /**
     * Creates a DigitalSignature to sign data with.

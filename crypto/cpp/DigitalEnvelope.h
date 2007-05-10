@@ -7,6 +7,7 @@
 #include "AbstractBlockCipher.h"
 #include "AsymmetricKey.h"
 #include "SymmetricKey.h"
+#include "UnsupportedAlgorithmException.h"
 
 namespace db
 {
@@ -73,13 +74,18 @@ public:
     * The caller of this method is responsible for freeing the generated
     * SymmetricKey.
     * 
+    * @param algorithm the algorithm to use for the encryption.
     * @param publicKey the PublicKey to encrypt the symmetric key with.
     * @param symmetricKey to store the encrypted SymmetricKey.
     * 
     * @exception IOException thrown if an IO error occurs.
+    * @exception UnsupportedAlgorithmException thrown if an unsupported key
+    *            algorithm is used.
     */
-   virtual void startSealing(PublicKey* publicKey, SymmetricKey** symmetricKey)
-   throw(db::io::IOException);
+   virtual void startSealing(
+      const std::string& algorithm,
+      PublicKey* publicKey, SymmetricKey** symmetricKey)
+   throw(db::io::IOException, UnsupportedAlgorithmException);
    
    /**
     * Starts sealing this DigitalEnvelope by using the given array of public
@@ -104,14 +110,18 @@ public:
     * The caller of this method is responsible for freeing the generated
     * SymmetricKeys.
     * 
+    * @param algorithm the algorithm to use for the encryption.
     * @param publicKey the PublicKey to encrypt the symmetric key with.
     * @param symmetricKey to store the encrypted SymmetricKey.
     * 
     * @exception IOException thrown if an IO error occurs.
+    * @exception UnsupportedAlgorithmException thrown if an unsupported key
+    *            algorithm is used.
     */
    virtual void startSealing(
+      const std::string& algorithm,
       PublicKey** publicKeys, SymmetricKey** symmetricKeys, unsigned int keys)
-   throw(db::io::IOException);
+   throw(db::io::IOException, UnsupportedAlgorithmException);
    
    /**
     * Starts opening this DigitalEnvelope by using the given private key to
@@ -126,9 +136,11 @@ public:
     * @param symmetricKey the SymmetricKey to open the envelope with.
     * 
     * @exception IOException thrown if an IO error occurs.
+    * @exception UnsupportedAlgorithmException thrown if an unsupported key
+    *            algorithm is used.
     */
    virtual void startOpening(PrivateKey* privateKey, SymmetricKey* symmetricKey)
-   throw(db::io::IOException);
+   throw(db::io::IOException, UnsupportedAlgorithmException);
    
    /**
     * Updates the data that is being sealed or opened. This method can be
@@ -149,8 +161,7 @@ public:
    /**
     * Puts the final chunk of sealed or opened data into an array of bytes.
     * 
-    * The out buffer must be at least getBlockSize() bytes long to receive
-    * data.
+    * The out buffer must be at least getBlockSize() bytes long.
     * 
     * @param out a buffer to fill with the data.
     * @param length to store the number of bytes put into the output buffer.

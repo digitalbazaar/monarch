@@ -769,7 +769,8 @@ void runEnvelopeTest(const std::string& algorithm)
             
             // create an outgoing envelope
             SymmetricKey* secretKey;
-            DigitalEnvelope* outEnv = publicKey->createEnvelope(&secretKey);
+            DigitalEnvelope* outEnv = publicKey->createEnvelope(
+               "AES256", &secretKey);
             cout << "Created outgoing envelope..." << endl;
             
             // update the envelope

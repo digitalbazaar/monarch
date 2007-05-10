@@ -8,6 +8,7 @@
 
 #include <openssl/err.h>
 
+using namespace std;
 using namespace db::crypto;
 using namespace db::io;
 
@@ -20,16 +21,24 @@ DigitalEnvelope::~DigitalEnvelope()
 }
 
 void DigitalEnvelope::startSealing(
-   PublicKey* publicKey, SymmetricKey** symmetricKey) throw(IOException)
+   const string& algorithm, PublicKey* publicKey, SymmetricKey** symmetricKey)
+throw(IOException, UnsupportedAlgorithmException)
 {
    // use just a single public key
-   startSealing(&publicKey, symmetricKey, 1);
+   startSealing(algorithm, &publicKey, symmetricKey, 1);
 }
 
 void DigitalEnvelope::startSealing(
-   PublicKey** publicKeys, SymmetricKey** symmetricKeys, unsigned int keys)
-throw(IOException)
+   const string& algorithm, PublicKey** publicKeys,
+   SymmetricKey** symmetricKeys, unsigned int keys)
+throw(IOException, UnsupportedAlgorithmException)
 {
+   if(algorithm != "AES256")
+   {
+      throw UnsupportedAlgorithmException(
+         "Unsupported key algorithm '" + algorithm + "'!");
+   }
+   
    // enable encryption mode
    mEncryptMode = true;
    
@@ -68,7 +77,7 @@ throw(IOException)
          }
          
          // create encrypted symmetric key
-         symmetricKeys[i] = new SymmetricKey("AES256");
+         symmetricKeys[i] = new SymmetricKey(algorithm);
          symmetricKeys[i]->assignData(eKeys[i], eKeyLengths[i], ivCopy, true);
       }
       
@@ -101,8 +110,14 @@ throw(IOException)
 
 void DigitalEnvelope::startOpening(
    PrivateKey* privateKey, SymmetricKey* symmetricKey)
-throw(IOException)
+throw(IOException, UnsupportedAlgorithmException)
 {
+   if(symmetricKey->getAlgorithm() != "AES256")
+   {
+      throw UnsupportedAlgorithmException(
+         "Unsupported key algorithm '" + symmetricKey->getAlgorithm() + "'!"); 
+   }
+   
    // disable encryption mode
    mEncryptMode = false;
    

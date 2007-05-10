@@ -39,6 +39,8 @@ public:
     * be called repeatedly with chunks of the data that is to be encrypted or
     * decrypted.
     * 
+    * The out buffer must be at least inLength + getBlockSize().
+    * 
     * @param in a buffer with data to encrypt/decrypt.
     * @param inLength the length of the data.
     * @param out a buffer to fill with encrypted/decrypted data.
@@ -52,6 +54,8 @@ public:
    /**
     * Puts the final chunk of encrypted or decrypted data into an array of
     * bytes.
+    * 
+    * The out buffer must be at least getBlockSize() bytes long.
     * 
     * @param out a buffer to fill with the data.
     * @param length to store the number of bytes put into the output buffer.
