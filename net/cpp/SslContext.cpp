@@ -20,6 +20,13 @@ SslContext::SslContext(const std::string& protocol)
    // this context)
    SSL_CTX_set_options(mContext, SSL_OP_ALL);
    
+   // FIXME:
+   // implement reusing SSL sessions to speed up connection initialization
+   // either here or below
+   //SSL_CTX_set_session_id_context(
+   //   context, const unsigned char* serverIdContext,
+   //   sizeof(serverIdContext));
+   
    // FIXME: remove this after testing
    //SSL_CTX_set_verify(mContext, SSL_VERIFY_NONE, NULL);
    //SSL_CTX_set_cipher_list(mContext, "DEFAULT");
@@ -37,6 +44,13 @@ SslContext::~SslContext()
 SSL* SslContext::createSSL(TcpSocket* socket, bool client)
 {
    SSL* ssl = SSL_new(mContext);
+   
+   // FIXME:
+   // implement reusing SSL sessions to speed up connection initialization
+   // either here or above
+   //SSL_set_session_id_context(
+   //   ssl, const unsigned char* serverIdContext,
+   //   sizeof(serverIdContext));
    
    // set connect state on SSL
    if(client)
