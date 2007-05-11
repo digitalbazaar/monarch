@@ -30,7 +30,7 @@ throw(UnsupportedAlgorithmException)
 {
    const EVP_CIPHER* rval;
    
-   if(algorithm == "AES256")
+   if(algorithm == "AES" || algorithm == "AES256")
    {
       rval = EVP_aes_256_cbc();
    }

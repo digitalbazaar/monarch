@@ -21,25 +21,16 @@ class SymmetricKeyFactory : public virtual db::rt::Object
 {
 protected:
    /**
-    * Creates a new 256-bit AES key.
+    * Creates a random key using the passed algorithm.
     * 
+    * @param algorithm the algorithm for the key.
     * @param key a pointer to point at the new SymmetricKey.
-    */
-   void createAes256Key(SymmetricKey** key);
-   
-   /**
-    * Creates a new 128-bit AES key.
     * 
-    * @param key a pointer to point at the new SymmetricKey.
+    * @exception UnsupportedAlgorithmException thrown if the passed algorithm
+    *            is not supported.
     */
-   void createAes128Key(SymmetricKey** key);
-   
-   /**
-    * Creates a new 168-bit Triple DES key.
-    * 
-    * @param key a pointer to point at the new SymmetricKey.
-    */
-   void createTripleDesKey(SymmetricKey** key);
+   void createRandomKey(const std::string& algorithm, SymmetricKey** key)
+   throw(UnsupportedAlgorithmException);
    
 public:
    /**

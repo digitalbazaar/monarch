@@ -3,9 +3,11 @@
  */
 #include "AsymmetricKeyFactory.h"
 #include "Math.h"
+#include "System.h"
 
 #include <openssl/err.h>
 #include <openssl/pem.h>
+#include <openssl/rand.h>
 
 using namespace std;
 using namespace db::crypto;
@@ -157,6 +159,11 @@ throw(UnsupportedAlgorithmException)
    // set private and public keys to null
    *privateKey = NULL;
    *publicKey = NULL;
+   
+   // add random bytes from the time
+   struct timeval tv;
+   gettimeofday(&tv, 0);
+   RAND_add(&tv, sizeof(tv), 0.0);
    
    if(algorithm == "DSA")
    {

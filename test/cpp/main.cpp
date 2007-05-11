@@ -879,22 +879,16 @@ void runCipherTest(const string& algorithm)
       cout << "Encrypting message '" << display1 << "'" << endl;
       cout << "Message Length=" << length << endl;
       
-      // FIXME: remove this -- use a key factory
-      char data[16] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
-      unsigned int ivLength = EVP_CIPHER_iv_length(EVP_aes_256_cbc());
-      char iv[ivLength];
-      
-      SymmetricKey key("AES256");
-      key.setData(data, 16, iv, false);
-      
       // get a default block cipher
       DefaultBlockCipher cipher;
       
       cout << "Starting encryption..." << endl;
       
-      cipher.startEncrypting(&key);
+      // generate a new key for the encryption
+      SymmetricKey* key = NULL;
+      cipher.startEncrypting(algorithm, &key);
       
-      if(true)//key != NULL)
+      if(key != NULL)
       {
          // update encryption
          char output[2048];
@@ -913,7 +907,7 @@ void runCipherTest(const string& algorithm)
          cout << "Total Output Length=" << totalOut << endl;
          
          cout << "Starting decryption..." << endl;
-         cipher.startDecrypting(&key);
+         cipher.startDecrypting(key);
          
          // update the decryption
          char input[2048];
@@ -939,10 +933,10 @@ void runCipherTest(const string& algorithm)
       }
       
       // cleanup key
-      /*if(key != NULL)
+      if(key != NULL)
       {
          delete key;
-      }*/
+      }
    }
    catch(Exception &e)
    {
