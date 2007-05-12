@@ -77,8 +77,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   virtual int peek(char* b, unsigned int length)
-   throw(db::io::IOException);
+   virtual int peek(char* b, unsigned int length) throw(IOException);
    
    /**
     * Skips some bytes in the stream. This method will block until the

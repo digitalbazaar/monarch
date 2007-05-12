@@ -762,7 +762,7 @@ void runEnvelopeTest(const std::string& algorithm)
             // create a secret message
             char message[] =
                "This is a confidential message. For British Eyes Only.";
-            int length = sizeof(message);
+            int length = strlen(message);
             
             string display1 = "";
             display1.append(message, length);
@@ -872,7 +872,7 @@ void runCipherTest(const string& algorithm)
    {
       // create a secret message
       char message[] = "I'll never teelllll!";
-      int length = sizeof(message);
+      int length = strlen(message);
       
       string display1 = "";
       display1.append(message, length);

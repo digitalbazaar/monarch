@@ -41,9 +41,14 @@ public:
    static const unsigned long long MAX_ULONG_VALUE = 0xffffffffffffffffLL;
    
    /**
+    * The half of the maximum signed long long value.
+    */
+   static const unsigned long HALF_MAX_LONG_VALUE = MAX_ULONG_VALUE / 2;
+   
+   /**
     * The maximum signed long long value.
     */
-   static const long long MAX_LONG_VALUE = MAX_ULONG_VALUE / 2;
+   static const long long MAX_LONG_VALUE = HALF_MAX_LONG_VALUE;
    
    /**
     * Rounds a double up to the next largest whole number.

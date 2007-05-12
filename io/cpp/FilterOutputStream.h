@@ -70,7 +70,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   virtual void close();
+   virtual void close() throw(IOException);
 };
 
 } // end namespace io

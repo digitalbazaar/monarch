@@ -56,7 +56,7 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   virtual void close();
+   virtual void close() throw(IOException);
 };
 
 inline void OutputStream::write(const char* b, unsigned int length)
@@ -68,7 +68,7 @@ throw(IOException)
    }
 }
 
-inline void OutputStream::close()
+inline void OutputStream::close() throw(IOException)
 {
    // nothing to do in base class
 }

@@ -31,7 +31,7 @@ throw(IOException)
    mOutputStream->write(b, length);
 }
 
-void FilterOutputStream::close()
+void FilterOutputStream::close() throw(IOException)
 {
    mOutputStream->close();
 }
