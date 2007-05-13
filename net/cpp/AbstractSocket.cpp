@@ -6,6 +6,7 @@
 #include "PeekInputStream.h"
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
+#include "Thread.h"
 
 using namespace db::io;
 using namespace db::net;
@@ -91,6 +92,20 @@ void AbstractSocket::create(int type, int protocol) throw(SocketException)
 bool AbstractSocket::select(bool read) throw(SocketException)
 {
    bool rval = false;
+   
+   // get the current thread
+   Thread* thread = Thread::currentThread();
+   if(thread != NULL && thread->isInterrupted())
+   {
+      if(read)
+      {
+         throw InterruptedException("Socket read interrupted!");
+      }
+      else
+      {
+         throw InterruptedException("Socket write interrupted!");
+      }
+   }
    
    // create a file descriptor set to select on
    fd_set fds;
