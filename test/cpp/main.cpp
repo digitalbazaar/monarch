@@ -382,7 +382,7 @@ void runLinuxServerSocketTest()
    cout << "Server Socket connection closed." << endl;
    cout << "Request:" << endl << str << endl;
    
-   cout << endl << "Socket test complete." << endl;
+   cout << endl << "Server Socket test complete." << endl;
 }
 
 void runWindowsServerSocketTest()
@@ -398,6 +398,93 @@ void runWindowsServerSocketTest()
    
    // run linux server socket test
    runLinuxServerSocketTest();
+   
+// cleanup winsock
+#ifdef WIN32
+   WSACleanup();
+#endif   
+}
+
+void runLinuxSslServerSocketTest()
+{
+   cout << "Running SSL Server Socket Test" << endl << endl;
+   
+   // openssl initialization code
+   SSL_library_init();
+   SSL_load_error_strings();
+   OpenSSL_add_all_algorithms();   
+   
+   // create tcp socket
+   TcpSocket socket;
+   
+   // bind and listen
+   socket.bind(1024);
+   socket.listen();
+   
+   // accept a connection
+   TcpSocket* worker = (TcpSocket*)socket.accept(10);
+   
+   // create an SSL context
+   SslContext context;
+   
+   // create an SSL socket
+   SslSocket sslSocket(&context, worker, false, false);
+   
+   // set receive timeout (10 seconds = 10000 milliseconds)
+   sslSocket.setReceiveTimeout(10000);
+   
+   char request[2048];
+   int numBytes = 0;
+   string str = "";
+   
+   cout << endl << "DOING A PEEK!" << endl;
+   
+   numBytes = worker->getInputStream()->peek(request, 2048);
+   if(numBytes != -1)
+   {
+      cout << "Peeked " << numBytes << " bytes." << endl;
+      string peek = "";
+      peek.append(request, numBytes);
+      cout << "Peek bytes=" << peek << endl;
+   }
+   
+   cout << endl << "DOING ACTUAL READ NOW!" << endl;
+   
+   while((numBytes = sslSocket.getInputStream()->read(request, 2048)) != -1)
+   {
+      cout << "numBytes received: " << numBytes << endl;
+      str.append(request, numBytes);
+   }
+   
+   // close ssl socket socket
+   sslSocket.close();
+   delete worker;
+   
+   // close server socket
+   socket.close();
+   
+   cout << "SSL Server Socket connection closed." << endl;
+   cout << "Request:" << endl << str << endl;
+   
+   cout << endl << "SSL Server Socket test complete." << endl;
+   
+   // clean up SSL
+   EVP_cleanup();
+}
+
+void runWindowsSslServerSocketTest()
+{
+// initialize winsock
+#ifdef WIN32
+   WSADATA wsaData;
+   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
+   {
+      cout << "ERROR! Could not initialize winsock!" << endl;
+   }
+#endif
+   
+   // run linux SSL server socket test
+   runLinuxSslServerSocketTest();
    
 // cleanup winsock
 #ifdef WIN32
@@ -1037,8 +1124,10 @@ int main()
       //runLinuxSocketTest();
       //runWindowsSslSocketTest();
       //runLinuxSslSocketTest();
-      runWindowsServerSocketTest();
+      //runWindowsServerSocketTest();
       //runLinuxServerSocketTest();
+      //runWindowsSslServerSocketTest();
+      //runLinuxSslServerSocketTest();
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
