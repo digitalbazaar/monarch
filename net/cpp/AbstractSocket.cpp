@@ -113,8 +113,8 @@ bool AbstractSocket::select() throw(SocketException)
       tv = &timeout;
    }
    
-   // wait for data to arrive on the socket
-   int error = ::select(n, &readfds, NULL, NULL, tv);
+   // wait for data to arrive on the socket (or for an exception)
+   int error = ::select(n, &readfds, NULL, &readfds, tv);
    if(error < 0)
    {
       if(errno == EINTR)
@@ -278,19 +278,7 @@ int AbstractSocket::receive(char* b, unsigned int length) throw(IOException)
       rval = ::recv(mFileDescriptor, b, length, 0);
       if(rval < -1)
       {
-         switch(errno)
-         {
-            case ECONNRESET:
-               throw SocketException(
-                  "Could not read from Socket!", strerror(errno));
-               break;
-            case EWOULDBLOCK:
-               // do nothing, receive would block
-               break;
-            default:
-               throw SocketException(
-                  "Could not read from Socket!", strerror(errno));
-         }
+         throw SocketException("Could not read from Socket!", strerror(errno));
       }
       else if(rval == 0)
       {

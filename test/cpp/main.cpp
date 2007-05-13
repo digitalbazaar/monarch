@@ -960,7 +960,7 @@ int main()
       //runBase64Test();
       //runTimeTest();
       //runThreadTest();
-      //runWindowsSocketTest();
+      runWindowsSocketTest();
       //runLinuxSocketTest();
       //runWindowsSslSocketTest();
       //runLinuxSslSocketTest();
@@ -971,7 +971,7 @@ int main()
       //runRsaAsymmetricKeyCreationTest();
       //runEnvelopeTest("DSA");
       //runEnvelopeTest("RSA");
-      runCipherTest("AES256");
+      //runCipherTest("AES256");
    }
    catch(SocketException& e)
    {
