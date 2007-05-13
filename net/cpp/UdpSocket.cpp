@@ -105,20 +105,18 @@ throw(IOException)
    while(length > 0)
    {
       // wait for socket to become writable
-      if(select(false))
+      select(false, getSendTimeout());
+      
+      int bytes = sendto(
+         mFileDescriptor, b + offset, length, 0, (sockaddr*)&addr, addrSize);
+      if(bytes < 0)
       {
-         int bytes = sendto(
-            mFileDescriptor, b + offset, length, 0, (sockaddr*)&addr, addrSize);
-         if(bytes < 0)
-         {
-            throw SocketException(
-               "Could not write to Socket!", strerror(errno));
-         }
-         else if(bytes > 0)
-         {
-            offset += bytes;
-            length -= bytes;
-         }
+         throw SocketException("Could not write to Socket!", strerror(errno));
+      }
+      else if(bytes > 0)
+      {
+         offset += bytes;
+         length -= bytes;
       }
    }
 }
@@ -135,29 +133,27 @@ throw(IOException)
    }
    
    // wait for data to become available
-   if(select(true))
+   select(true, getReceiveTimeout());
+   
+   // create sockaddr_in (internet socket address) structure, if appropriate
+   struct sockaddr_in addr;
+   socklen_t addrSize = sizeof(addr);
+   
+   // receive some data
+   rval = recvfrom(
+      mFileDescriptor, b, length, 0, (sockaddr*)&addr, &addrSize);
+   if(rval < -1)
    {
-      // create sockaddr_in (internet socket address) structure, if appropriate
-      struct sockaddr_in addr;
-      socklen_t addrSize = sizeof(addr);
+      throw SocketException("Could not read from Socket!", strerror(errno));
+   }
+   else if(rval != 0 && address != NULL)
+   {
+      // put address into SocketAddress
+      address->setAddress(inet_ntoa(addr.sin_addr));
       
-      // receive some data
-      rval = recvfrom(
-         mFileDescriptor, b, length, 0, (sockaddr*)&addr, &addrSize);
-      if(rval < -1)
-      {
-         throw SocketException(
-            "Could not read from Socket!", strerror(errno));
-      }
-      else if(rval != 0 && address != NULL)
-      {
-         // put address into SocketAddress
-         address->setAddress(inet_ntoa(addr.sin_addr));
-         
-         // FIXME: handle converting from network byte order to little-endian
-         address->setPort(addr.sin_port);
-         //address->setPort(nstoh(addr.sin_port));
-      }
+      // FIXME: handle converting from network byte order to little-endian
+      address->setPort(addr.sin_port);
+      //address->setPort(nstoh(addr.sin_port));
    }
    
    return rval;

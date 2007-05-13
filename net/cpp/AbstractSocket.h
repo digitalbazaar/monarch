@@ -95,12 +95,12 @@ protected:
     * 
     * @param read true to block until data can be received, false to block
     *             until data can be sent.
-    * 
-    * @return true if data is available for receiving or sending.
+    * @param timeout the timeout to use in milliseconds (0 for no timeout).
     * 
     * @exception SocketException thrown if a socket error occurs.
     */
-   virtual bool select(bool read) throw(SocketException);
+   virtual void select(bool read, unsigned long long timeout)
+   throw(SocketException);
    
    /**
     * Initializes this Socket by acquiring a file descriptor for it. This

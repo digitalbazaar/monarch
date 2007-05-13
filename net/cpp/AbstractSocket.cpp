@@ -89,10 +89,9 @@ void AbstractSocket::create(int type, int protocol) throw(SocketException)
    mFileDescriptor = fd;
 }
 
-bool AbstractSocket::select(bool read) throw(SocketException)
+void AbstractSocket::select(bool read, unsigned long long timeout)
+throw(SocketException)
 {
-   bool rval = false;
-   
    // get the current thread
    Thread* thread = Thread::currentThread();
    if(thread != NULL && thread->isInterrupted())
@@ -119,16 +118,13 @@ bool AbstractSocket::select(bool read) throw(SocketException)
    
    // create timeout
    struct timeval* tv = NULL;
-   struct timeval timeout;
-   
-   // use a socket receive/send timeout
-   unsigned long long millis = read ? getReceiveTimeout() : getSendTimeout();
-   if(millis > 0)
+   struct timeval to;
+   if(timeout > 0)
    {
-      // create timeout (1 millisecond is 1000 microseconds) 
-      timeout.tv_sec = millis / 1000LL;
-      timeout.tv_usec = (millis % 1000LL) * 1000LL;
-      tv = &timeout;
+      // set timeout (1 millisecond is 1000 microseconds) 
+      to.tv_sec = timeout / 1000LL;
+      to.tv_usec = (timeout % 1000LL) * 1000LL;
+      tv = &to;
    }
    
    int error;
@@ -187,12 +183,6 @@ bool AbstractSocket::select(bool read) throw(SocketException)
             "Socket write timed out!", strerror(errno));
       }
    }
-   else
-   {
-      rval = FD_ISSET(mFileDescriptor, &fds);
-   }
-   
-   return rval;
 }
 
 void AbstractSocket::bind(SocketAddress* address) throw(SocketException)
@@ -254,6 +244,8 @@ Socket* AbstractSocket::accept(unsigned int timeout) throw(SocketException)
    struct sockaddr_in addr;
    socklen_t addrSize = sizeof(addr);
    
+   // FIXME: do select()
+   
    // accept a connection
    int fd = ::accept(mFileDescriptor, (sockaddr*)&addr, &addrSize);
    if(fd < 0)
@@ -271,13 +263,34 @@ throw(SocketException)
    // initialize as necessary
    initialize();
    
-   // FIXME: handle connection timeout somehow
-   
    // create sockaddr_in (internet socket address) structure
    struct sockaddr_in addr;
    
    // populate address structure
    populateAddressStructure(address, addr);
+   
+   // FIXME: handle connection timeout somehow
+   // make socket non-blocking temporarily
+   // linux:
+   //fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
+   //
+   // windows:
+   //int nonBlock = 1;
+   //int block = 1;
+   //ioctlsocket(mFileDescriptor, FIONBIO, &nonBlock);
+   
+   // call connect
+   
+   // check for success > 0, errno == EINPROGRESS (call select()), other error
+   // int error = ::connect()
+   // if(error < 0)
+   // {
+   //    if(errno == EINPROGRESS)
+   //    {
+   //       select(false, timeout * 1000LL));
+   // 
+   
+   
    
    // connect
    int error = ::connect(
@@ -305,20 +318,18 @@ void AbstractSocket::send(const char* b, unsigned int length) throw(IOException)
    while(length > 0)
    {
       // wait for socket to become writable
-      if(select(false))
+      select(false, getSendTimeout());
+      
+      // send some data
+      int bytes = ::send(mFileDescriptor, b + offset, length, 0);
+      if(bytes < 0)
       {
-         // send some data
-         int bytes = ::send(mFileDescriptor, b + offset, length, 0);
-         if(bytes < 0)
-         {
-            throw SocketException(
-               "Could not write to Socket!", strerror(errno));
-         }
-         else if(bytes > 0)
-         {
-            offset += bytes;
-            length -= bytes;
-         }
+         throw SocketException("Could not write to Socket!", strerror(errno));
+      }
+      else if(bytes > 0)
+      {
+         offset += bytes;
+         length -= bytes;
       }
    }
 }
@@ -333,19 +344,18 @@ int AbstractSocket::receive(char* b, unsigned int length) throw(IOException)
    }
    
    // wait for data to become available
-   if(select(true))
+   select(true, getReceiveTimeout());
+   
+   // receive some data
+   rval = ::recv(mFileDescriptor, b, length, 0);
+   if(rval < -1)
    {
-      // receive some data
-      rval = ::recv(mFileDescriptor, b, length, 0);
-      if(rval < -1)
-      {
-         throw SocketException("Could not read from Socket!", strerror(errno));
-      }
-      else if(rval == 0)
-      {
-         // socket is closed now
-         rval = -1;
-      }
+      throw SocketException("Could not read from Socket!", strerror(errno));
+   }
+   else if(rval == 0)
+   {
+      // socket is closed now
+      rval = -1;
    }
    
    return rval;
