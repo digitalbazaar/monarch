@@ -104,16 +104,21 @@ throw(IOException)
    unsigned int offset = 0;
    while(length > 0)
    {
-      int bytes = sendto(
-         mFileDescriptor, b + offset, length, 0, (sockaddr*)&addr, addrSize);
-      if(bytes < 0)
+      // wait for socket to become writable
+      if(select(false))
       {
-         throw SocketException("Could not write to Socket!", strerror(errno));
-      }
-      else if(bytes > 0)
-      {
-         offset += bytes;
-         length -= bytes;
+         int bytes = sendto(
+            mFileDescriptor, b + offset, length, 0, (sockaddr*)&addr, addrSize);
+         if(bytes < 0)
+         {
+            throw SocketException(
+               "Could not write to Socket!", strerror(errno));
+         }
+         else if(bytes > 0)
+         {
+            offset += bytes;
+            length -= bytes;
+         }
       }
    }
 }
@@ -130,7 +135,7 @@ throw(IOException)
    }
    
    // wait for data to become available
-   if(select())
+   if(select(true))
    {
       // create sockaddr_in (internet socket address) structure, if appropriate
       struct sockaddr_in addr;
@@ -141,19 +146,8 @@ throw(IOException)
          mFileDescriptor, b, length, 0, (sockaddr*)&addr, &addrSize);
       if(rval < -1)
       {
-         switch(errno)
-         {
-            case ECONNRESET:
-               throw SocketException(
-                  "Could not read from Socket!", strerror(errno));
-               break;
-            case EWOULDBLOCK:
-               // do nothing, receive would block
-               break;
-            default:
-               throw SocketException(
-                  "Could not read from Socket!", strerror(errno));
-         }
+         throw SocketException(
+            "Could not read from Socket!", strerror(errno));
       }
       else if(rval != 0 && address != NULL)
       {

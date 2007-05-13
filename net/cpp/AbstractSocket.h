@@ -55,6 +55,11 @@ protected:
    db::io::OutputStream* mOutputStream;
    
    /**
+    * The send timeout (in milliseconds) for writing to the Socket.
+    */
+   unsigned long long mSendTimeout;
+   
+   /**
     * The receive timeout (in milliseconds) for reading from the Socket.
     */
    unsigned long long mReceiveTimeout;
@@ -85,14 +90,17 @@ protected:
    virtual void create(int type, int protocol) throw(SocketException);
    
    /**
-    * Blocks until data is available for receiving or until a connection
-    * closes.
+    * Blocks until data is available for receiving, the socket can be
+    * written to, a timeout, or until a connection closes.
     * 
-    * @return true if data is available for receiving.
+    * @param read true to block until data can be received, false to block
+    *             until data can be sent.
+    * 
+    * @return true if data is available for receiving or sending.
     * 
     * @exception SocketException thrown if a socket error occurs.
     */
-   virtual bool select() throw(SocketException);
+   virtual bool select(bool read) throw(SocketException);
    
    /**
     * Initializes this Socket by acquiring a file descriptor for it. This
@@ -271,6 +279,22 @@ public:
     * @return the OutputStream for writing to this Socket.
     */
    virtual db::io::OutputStream* getOutputStream();
+   
+   /**
+    * Sets the send timeout for this Socket. This is the amount of time that
+    * this Socket will block waiting to send data.
+    * 
+    * @param timeout the send timeout in milliseconds.
+    */
+   virtual void setSendTimeout(unsigned long long timeout);
+   
+   /**
+    * Gets the send timeout for this Socket. This is the amount of time that
+    * this Socket will block waiting to send data.
+    * 
+    * @return the send timeout in milliseconds.
+    */
+   virtual unsigned long long getSendTimeout();
    
    /**
     * Sets the receive timeout for this Socket. This is the amount of time that

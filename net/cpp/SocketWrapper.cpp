@@ -104,6 +104,16 @@ OutputStream* SocketWrapper::getOutputStream()
    return getSocket()->getOutputStream();
 }
 
+void SocketWrapper::setSendTimeout(unsigned long long timeout)
+{
+   getSocket()->setSendTimeout(timeout);
+}
+
+unsigned long long SocketWrapper::getSendTimeout()
+{
+   return getSocket()->getSendTimeout();
+}
+
 void SocketWrapper::setReceiveTimeout(unsigned long long timeout)
 {
    getSocket()->setReceiveTimeout(timeout);

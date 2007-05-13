@@ -88,53 +88,93 @@ void AbstractSocket::create(int type, int protocol) throw(SocketException)
    mFileDescriptor = fd;
 }
 
-bool AbstractSocket::select() throw(SocketException)
+bool AbstractSocket::select(bool read) throw(SocketException)
 {
    bool rval = false;
    
    // create a file descriptor set to select on
-   fd_set readfds;
-   FD_ZERO(&readfds);
+   fd_set fds;
+   FD_ZERO(&fds);
    
    // add file descriptor to set
-   FD_SET((unsigned int)mFileDescriptor, &readfds);
+   FD_SET((unsigned int)mFileDescriptor, &fds);
    
    // "n" parameter is the highest numbered descriptor plus 1
    int n = mFileDescriptor + 1;
    
-   // use socket receive timeout
-   // create timeout (1 millisecond is 1000 microseconds) 
+   // create timeout
    struct timeval* tv = NULL;
-   if(getReceiveTimeout() > 0)
+   struct timeval timeout;
+   
+   // use a socket receive/send timeout
+   unsigned long long millis = read ? getReceiveTimeout() : getSendTimeout();
+   if(millis > 0)
    {
-      struct timeval timeout;
-      timeout.tv_sec = getReceiveTimeout() / 1000LL;
-      timeout.tv_usec = (getReceiveTimeout() % 1000LL) * 1000LL;
+      // create timeout (1 millisecond is 1000 microseconds) 
+      timeout.tv_sec = millis / 1000LL;
+      timeout.tv_usec = (millis % 1000LL) * 1000LL;
       tv = &timeout;
    }
    
-   // wait for data to arrive on the socket (or for an exception)
-   int error = ::select(n, &readfds, NULL, &readfds, tv);
+   int error;
+   if(read)
+   {
+      // wait for data to arrive for reading or for an exception
+      error = ::select(n, &fds, NULL, &fds, tv);
+   }
+   else
+   {
+      // wait for writability or for an exception
+      error = ::select(n, NULL, &fds, &fds, tv);
+   }
+   
    if(error < 0)
    {
       if(errno == EINTR)
       {
-         // throw interrupted exception
-         throw InterruptedException(
-            "Socket read interrupted!", strerror(errno));
+         if(read)
+         {
+            // throw interrupted exception
+            throw InterruptedException(
+               "Socket read interrupted!", strerror(errno));
+         }
+         else
+         {
+            // throw interrupted exception
+            throw InterruptedException(
+               "Socket write interrupted!", strerror(errno));
+         }
       }
       
-      // error occurred, get string message
-      throw SocketException("Could not read from Socket!", strerror(errno));
+      if(read)
+      {
+         // error occurred, get string message
+         throw SocketException("Could not read from Socket!", strerror(errno));
+      }
+      else
+      {
+         // error occurred, get string message
+         throw SocketException("Could not write to Socket!", strerror(errno));
+      }
    }
    else if(error == 0)
    {
-      // timeout occurred
-      throw SocketTimeoutException("Socket read timed out!", strerror(errno));
+      if(read)
+      {
+         // read timeout occurred
+         throw SocketTimeoutException(
+            "Socket read timed out!", strerror(errno));
+      }
+      else
+      {
+         // write timeout occurred
+         throw SocketTimeoutException(
+            "Socket write timed out!", strerror(errno));
+      }
    }
    else
    {
-      rval = FD_ISSET(mFileDescriptor, &readfds);
+      rval = FD_ISSET(mFileDescriptor, &fds);
    }
    
    return rval;
@@ -216,7 +256,7 @@ throw(SocketException)
    // initialize as necessary
    initialize();
    
-   // FIXME: handle timeout somehow
+   // FIXME: handle connection timeout somehow
    
    // create sockaddr_in (internet socket address) structure
    struct sockaddr_in addr;
@@ -249,15 +289,21 @@ void AbstractSocket::send(const char* b, unsigned int length) throw(IOException)
    unsigned int offset = 0;
    while(length > 0)
    {
-      int bytes = ::send(mFileDescriptor, b + offset, length, 0);
-      if(bytes < 0)
+      // wait for socket to become writable
+      if(select(false))
       {
-         throw SocketException("Could not write to Socket!", strerror(errno));
-      }
-      else if(bytes > 0)
-      {
-         offset += bytes;
-         length -= bytes;
+         // send some data
+         int bytes = ::send(mFileDescriptor, b + offset, length, 0);
+         if(bytes < 0)
+         {
+            throw SocketException(
+               "Could not write to Socket!", strerror(errno));
+         }
+         else if(bytes > 0)
+         {
+            offset += bytes;
+            length -= bytes;
+         }
       }
    }
 }
@@ -272,7 +318,7 @@ int AbstractSocket::receive(char* b, unsigned int length) throw(IOException)
    }
    
    // wait for data to become available
-   if(select())
+   if(select(true))
    {
       // receive some data
       rval = ::recv(mFileDescriptor, b, length, 0);
@@ -391,6 +437,16 @@ InputStream* AbstractSocket::getInputStream()
 OutputStream* AbstractSocket::getOutputStream()
 {
    return mOutputStream;
+}
+
+void AbstractSocket::setSendTimeout(unsigned long long timeout)
+{
+   mSendTimeout = timeout;
+}
+
+unsigned long long AbstractSocket::getSendTimeout()
+{
+   return mSendTimeout;
 }
 
 void AbstractSocket::setReceiveTimeout(unsigned long long timeout)

@@ -174,6 +174,22 @@ public:
    virtual db::io::OutputStream* getOutputStream() = 0;
    
    /**
+    * Sets the send timeout for this Socket. This is the amount of time that
+    * this Socket will block waiting to send data.
+    * 
+    * @param timeout the send timeout in milliseconds.
+    */
+   virtual void setSendTimeout(unsigned long long timeout) = 0;
+   
+   /**
+    * Gets the send timeout for this Socket. This is the amount of time that
+    * this Socket will block waiting to send data.
+    * 
+    * @return the send timeout in milliseconds.
+    */
+   virtual unsigned long long getSendTimeout() = 0;
+   
+   /**
     * Sets the receive timeout for this Socket. This is the amount of time that
     * this Socket will block waiting to receive data.
     * 
