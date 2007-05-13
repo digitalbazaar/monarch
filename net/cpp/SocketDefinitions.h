@@ -20,7 +20,9 @@
    // methods for converting numbers to network byte order (big-endian)
    #include <netinet/in.h>
    // include inet_aton() and inet_ntoa()
-   #include <arpa/inet.h>   
+   #include <arpa/inet.h>
+   // include fcntl
+   #include <sys/fcntl.h>
 #endif
 
 // for errors
@@ -62,6 +64,12 @@
 #ifdef WIN32
    // define socklen_t
    typedef int socklen_t;
+   
+   // define fcntl() for iocntl()
+   inline static int fcntl(int fd, long cmd, unsigned long arg)
+   {
+      return ioctlsocket(fd, cmd, &arg);
+   }
    
    // define close() for closesocket()
    inline static int close(int fd)
@@ -130,6 +138,14 @@
        */
       struct in_addr imr_interface;
    }IP_MREQ;
+   
+   // define socket blocking options
+   #ifndef F_SETFL
+      #define F_SETFL           FIONBIO
+   #endif
+   #ifndef O_NONBLOCK
+      #define O_NONBLOCK        1
+   #endif
    
    // define standard errors according to winsock errors
    #ifndef EWOULDBLOCK

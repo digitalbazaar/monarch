@@ -162,7 +162,7 @@ void runLinuxSocketTest()
    TcpSocket socket;
    
    // create address
-   //InternetAddress address("127.0.0.1", 80);
+   //InternetAddress address("127.0.0.1", 1024);
    InternetAddress address("www.google.com", 80);
    cout << address.getAddress() << endl;
    
@@ -325,6 +325,79 @@ void runWindowsSslSocketTest()
    
    // run linux ssl socket test
    runLinuxSslSocketTest();
+   
+// cleanup winsock
+#ifdef WIN32
+   WSACleanup();
+#endif   
+}
+
+void runLinuxServerSocketTest()
+{
+   cout << "Running Server Socket Test" << endl << endl;
+   
+   // create tcp socket
+   TcpSocket socket;
+   
+   // bind and listen
+   socket.bind(1024);
+   socket.listen();
+   
+   // accept a connection
+   Socket* worker = socket.accept(10);
+   
+   // set receive timeout (10 seconds = 10000 milliseconds)
+   worker->setReceiveTimeout(10000);
+   
+   char request[2048];
+   int numBytes = 0;
+   string str = "";
+   
+   cout << endl << "DOING A PEEK!" << endl;
+   
+   numBytes = worker->getInputStream()->peek(request, 2048);
+   if(numBytes != -1)
+   {
+      cout << "Peeked " << numBytes << " bytes." << endl;
+      string peek = "";
+      peek.append(request, numBytes);
+      cout << "Peek bytes=" << peek << endl;
+   }
+   
+   cout << endl << "DOING ACTUAL READ NOW!" << endl;
+   
+   while((numBytes = worker->getInputStream()->read(request, 2048)) != -1)
+   {
+      cout << "numBytes received: " << numBytes << endl;
+      str.append(request, numBytes);
+   }
+   
+   // close worker socket
+   worker->close();
+   delete worker;
+   
+   // close server socket
+   socket.close();
+   
+   cout << "Server Socket connection closed." << endl;
+   cout << "Request:" << endl << str << endl;
+   
+   cout << endl << "Socket test complete." << endl;
+}
+
+void runWindowsServerSocketTest()
+{
+// initialize winsock
+#ifdef WIN32
+   WSADATA wsaData;
+   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
+   {
+      cout << "ERROR! Could not initialize winsock!" << endl;
+   }
+#endif
+   
+   // run linux server socket test
+   runLinuxServerSocketTest();
    
 // cleanup winsock
 #ifdef WIN32
@@ -960,10 +1033,12 @@ int main()
       //runBase64Test();
       //runTimeTest();
       //runThreadTest();
-      runWindowsSocketTest();
+      //runWindowsSocketTest();
       //runLinuxSocketTest();
       //runWindowsSslSocketTest();
       //runLinuxSslSocketTest();
+      runWindowsServerSocketTest();
+      //runLinuxServerSocketTest();
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();

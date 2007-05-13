@@ -6,7 +6,6 @@
 
 #include "InputStream.h"
 #include "OutputStream.h"
-#include "SocketDefinitions.h"
 #include "SocketAddress.h"
 #include "SocketException.h"
 #include "SocketTimeoutException.h"

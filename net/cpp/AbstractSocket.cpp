@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "AbstractSocket.h"
+#include "SocketDefinitions.h"
 #include "InterruptedException.h"
 #include "PeekInputStream.h"
 #include "SocketInputStream.h"
@@ -26,8 +27,9 @@ AbstractSocket::AbstractSocket()
    mInputStream = new PeekInputStream(new SocketInputStream(this), true);
    mOutputStream = new SocketOutputStream(this);
    
-   // no receive timeout (socket will block)
+   // no receive or send timeouts (socket will block)
    mReceiveTimeout = 0;
+   mSendTimeout = 0;
    
    // default backlog is 50
    mBacklog = 50;
@@ -231,6 +233,9 @@ void AbstractSocket::listen(unsigned int backlog) throw(SocketException)
    {
       throw SocketException("Could not listen on Socket!", strerror(errno));
    }
+   
+   // now listening
+   mListening = true;
 }
 
 Socket* AbstractSocket::accept(unsigned int timeout) throw(SocketException)
@@ -244,7 +249,8 @@ Socket* AbstractSocket::accept(unsigned int timeout) throw(SocketException)
    struct sockaddr_in addr;
    socklen_t addrSize = sizeof(addr);
    
-   // FIXME: do select()
+   // wait for a connection
+   select(true, timeout * 1000LL);
    
    // accept a connection
    int fd = ::accept(mFileDescriptor, (sockaddr*)&addr, &addrSize);
@@ -269,36 +275,49 @@ throw(SocketException)
    // populate address structure
    populateAddressStructure(address, addr);
    
-   // FIXME: handle connection timeout somehow
    // make socket non-blocking temporarily
-   // linux:
-   //fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
-   //
-   // windows:
-   //int nonBlock = 1;
-   //int block = 1;
-   //ioctlsocket(mFileDescriptor, FIONBIO, &nonBlock);
-   
-   // call connect
-   
-   // check for success > 0, errno == EINPROGRESS (call select()), other error
-   // int error = ::connect()
-   // if(error < 0)
-   // {
-   //    if(errno == EINPROGRESS)
-   //    {
-   //       select(false, timeout * 1000LL));
-   // 
-   
-   
+   fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
    
    // connect
    int error = ::connect(
       mFileDescriptor, (struct sockaddr*)&addr, sizeof(addr));
    if(error < 0)
    {
-      throw new SocketException("Could not connect Socket!", strerror(errno));
+      try
+      {
+         // wait until the connection can be written to
+         select(false, timeout * 1000LL);
+      }
+      catch(SocketTimeoutException &e)
+      {
+         // restore socket to blocking
+         fcntl(mFileDescriptor, F_SETFL, 0);
+         
+         // throw exception
+         throw SocketTimeoutException(
+            "Socket connection timed out!", e.getCode());
+      }
+      
+      // get the last error on the socket
+      int lastError;
+      socklen_t lastErrorLength = sizeof(lastError);
+      getsockopt(
+         mFileDescriptor, SOL_SOCKET, SO_ERROR,
+         (char*)&lastError, &lastErrorLength);
+      if(lastError != 0)
+      {
+         // restore socket to blocking
+         fcntl(mFileDescriptor, F_SETFL, 0);
+         
+         // throw exception
+         throw SocketException(
+            "Could not connect Socket! Connection refused.",
+            strerror(lastError));
+      }
    }
+   
+   // restore socket to blocking
+   fcntl(mFileDescriptor, F_SETFL, 0);
    
    // now connected and bound
    mBound = true;
