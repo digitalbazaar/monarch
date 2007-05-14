@@ -1,18 +1,19 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef WebResponse_H
-#define WebResponse_H
+#ifndef WebRequest_H
+#define WebRequest_H
 
 #include "Object.h"
+#include "WebConnection.h"
 
 namespace db
 {
 namespace net
 {
 
-// forward declare WebConnection
-class WebConnection;
+// forward declare WebResponse
+class WebResponse;
 
 /**
  * A WebRequest provides methods for sending or receiving a request over a
@@ -40,6 +41,15 @@ public:
     * Destructs this WebRequest.
     */
    virtual ~WebRequest();
+   
+   /**
+    * Creates a new WebResponse.
+    * 
+    * The caller of this method is responsible for freeing the created response.
+    * 
+    * @return the new WebResponse.
+    */
+   virtual WebResponse* createResponse() = 0;
 };
 
 } // end namespace net

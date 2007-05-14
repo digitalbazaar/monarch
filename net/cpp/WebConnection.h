@@ -5,12 +5,14 @@
 #define WebConnection_H
 
 #include "Connection.h"
-#include "WebRequest.h"
 
 namespace db
 {
 namespace net
 {
+
+// forward declare WebRequest
+class WebRequest;
 
 /**
  * A WebConnection is a class that represents an internet connection that
@@ -34,6 +36,15 @@ public:
     * Destructs this WebConnection.
     */
    virtual ~WebConnection();
+   
+   /**
+    * Creates a new WebRequest.
+    * 
+    * The caller of this method is responsible for freeing the created request.
+    * 
+    * @return the new WebRequest.
+    */
+   virtual WebRequest* createRequest() = 0;
 };
 
 } // end namespace net
