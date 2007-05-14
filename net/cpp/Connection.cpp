@@ -112,6 +112,18 @@ void Connection::close()
    getSocket()->close();
 }
 
+void Connection::getLocalAddress(InternetAddress* address)
+throw(SocketException)
+{
+   getSocket()->getLocalAddress(address);
+}
+
+void Connection::getRemoteAddress(InternetAddress* address)
+throw(SocketException)
+{
+   getSocket()->getRemoteAddress(address);
+}
+
 Socket* Connection::getSocket()
 {
    return mSocket;

@@ -6,6 +6,7 @@
 
 #include "Object.h"
 #include "Socket.h"
+#include "InternetAddress.h"
 #include "BandwidthThrottler.h"
 #include "ConnectionInputStream.h"
 #include "ConnectionOutputStream.h"
@@ -158,6 +159,22 @@ public:
     * Closes this Connection.
     */
    virtual void close();
+   
+   /**
+    * Gets the local InternetAddress for this Connection.
+    * 
+    * @param address the InternetAddress to populate.
+    */
+   virtual void getLocalAddress(InternetAddress* address)
+   throw(SocketException);
+   
+   /**
+    * Gets the remote InternetAddress for this Connection.
+    * 
+    * @param address the InternetAddress to populate.
+    */
+   virtual void getRemoteAddress(InternetAddress* address)
+   throw(SocketException);
    
    /**
     * Gets the Socket used by this Connection.

@@ -174,6 +174,8 @@ public:
     * Gets the local SocketAddress for this Socket.
     * 
     * @param address the SocketAddress to populate.
+    * 
+    * @exception SocketException if a socket error occurs.
     */
    virtual void getLocalAddress(SocketAddress* address) throw(SocketException);
    
@@ -181,8 +183,10 @@ public:
     * Gets the remote SocketAddress for this Socket.
     * 
     * @param address the SocketAddress to populate.
+    * 
+    * @exception SocketException if a socket error occurs.
     */
-   virtual void getRemoteAddress(SocketAddress* address) throw(SocketException);   
+   virtual void getRemoteAddress(SocketAddress* address) throw(SocketException);
    
    /**
     * Gets the InputStream for reading from this Socket.
