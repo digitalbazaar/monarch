@@ -9,6 +9,9 @@
 #include "InputStream.h"
 #include "OutputStream.h"
 
+// forward declare socket address
+struct sockaddr_in;
+
 namespace db
 {
 namespace net
