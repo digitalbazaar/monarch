@@ -30,6 +30,11 @@ protected:
    
 public:
    /**
+    * The standard line break for HTTP, carriage return + line feed.
+    */
+   static const std::string CRLF;
+   
+   /**
     * Creates a new HttpHeader.
     */
    HttpHeader();
@@ -55,6 +60,13 @@ public:
     * @param value the value to add to the header.
     */
    virtual void addHeader(const std::string& header, const std::string& value);
+   
+   /**
+    * Removes a header.
+    * 
+    * @param header the header to remove.
+    */
+   virtual void removeHeader(const std::string& header);
    
    /**
     * Gets a header value.

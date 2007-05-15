@@ -6,6 +6,9 @@
 using namespace std;
 using namespace db::net::http;
 
+// define CRLF
+const std::string CRLF = "\r\n";
+
 HttpHeader::HttpHeader()
 {
 }
@@ -16,24 +19,51 @@ HttpHeader::~HttpHeader()
 
 void HttpHeader::setHeader(const string& header, const string& value)
 {
+   // bicapitalize header
+   string bic = header;
+   biCapitalize(bic);
+   
+   // insert header
+   mHeaders[bic] = value;
 }
 
 void HttpHeader::addHeader(const string& header, const string& value)
 {
+   // bicapitalize header
+   string bic = header;
+   biCapitalize(bic);
+   
+   // get existing value
+   string existing = "";
+   getHeader(bic, existing);
+   
+   // append new value
+   setHeader(bic, existing + ", " + value);
+}
+
+void HttpHeader::removeHeader(const string& header)
+{
+   // bicapitalize header
+   string bic = header;
+   biCapitalize(bic);
+   
+   // erase it
+   mHeaders.erase(bic);
 }
 
 bool HttpHeader::getHeader(const string& header, string& value)
 {
    bool rval = false;
    
-   // biCapitalize header
-   string str = header;
-   biCapitalize(str);
+   // bicapitalize header
+   string bic = header;
+   biCapitalize(bic);
    
    // find header entry
-   map<string, string>::iterator i = mHeaders.find(str);
+   map<string, string>::iterator i = mHeaders.find(bic);
    if(i != mHeaders.end()) 
    {
+      // get value
       value = i->second;
       rval = true;
    }
