@@ -21,11 +21,13 @@
 #include "FileInputStream.h"
 #include "DigitalEnvelope.h"
 #include "DefaultBlockCipher.h"
+#include "http/HttpHeader.h"
 
 using namespace std;
 using namespace db::crypto;
 using namespace db::io;
 using namespace db::net;
+using namespace db::net::http;
 using namespace db::rt;
 using namespace db::util;
 
@@ -1111,6 +1113,15 @@ void runCipherTest(const string& algorithm)
    EVP_cleanup();
 }
 
+void runHttpHeaderTest()
+{
+   // test bicapitalization of http headers
+   string header = "ThIs-a-BICaPitAlized-hEADer";
+   HttpHeader::biCapitalize(header);
+   
+   cout << "BiCapitalized Header=" << header << endl;
+}
+
 int main()
 {
    cout << "Tests starting..." << endl << endl;
@@ -1136,6 +1147,7 @@ int main()
       //runEnvelopeTest("DSA");
       //runEnvelopeTest("RSA");
       //runCipherTest("AES256");
+      runHttpHeaderTest();
    }
    catch(SocketException& e)
    {
