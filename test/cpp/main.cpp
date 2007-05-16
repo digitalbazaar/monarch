@@ -21,6 +21,8 @@
 #include "FileInputStream.h"
 #include "DigitalEnvelope.h"
 #include "DefaultBlockCipher.h"
+#include "Convert.h"
+#include "Url.h"
 #include "http/HttpHeader.h"
 
 using namespace std;
@@ -1113,13 +1115,90 @@ void runCipherTest(const string& algorithm)
    EVP_cleanup();
 }
 
+void runConvertTest()
+{
+   cout << "Starting Convert test." << endl << endl;
+   
+   // convert to hex
+   char data[] = "abcdefghiABCDEFGZXYW0123987{;}*%6,./.12`~";
+   string original(data, strlen(data));
+   
+   cout << "test data=" << original << endl;
+   
+   string lowerHex = Convert::bytesToHex(data, strlen(data));
+   string upperHex = Convert::bytesToHex(data, strlen(data));
+   
+   cout << "lower-case hex=" << lowerHex << endl;
+   cout << "lower-case hex length=" << lowerHex.length() << endl;
+   cout << "upper-case hex=" << upperHex << endl;
+   cout << "upper-case hex length=" << upperHex.length() << endl;
+   
+   char decoded1[lowerHex.length() / 2];
+   char decoded2[upperHex.length() / 2];
+   
+   unsigned int length1;
+   unsigned int length2;
+   Convert::hexToBytes(lowerHex.c_str(), lowerHex.length(), decoded1, length1);
+   Convert::hexToBytes(upperHex.c_str(), upperHex.length(), decoded2, length2);
+   
+   string ascii1(decoded1, length1);
+   
+   string ascii2(decoded2, length2);
+   
+   cout << "lower-case hex to ascii=" << ascii1 << endl;
+   cout << "lower-case hex length=" << length1 << endl;
+   cout << "upper-case hex to ascii=" << ascii2 << endl;
+   cout << "upper-case hex length=" << length2 << endl;
+   
+   if(ascii1 == ascii2 && ascii1 == original)
+   {
+      cout << "Test successful!" << endl;
+   }
+   else
+   {
+      cout << "Test FAILED! Strings do not match!" << endl;
+   }
+   
+   cout << "Convert test complete." << endl << endl;
+}
+
+void runUrlTest()
+{
+   cout << "Starting Url test." << endl << endl;
+   
+   string str = "billy bob & \"jane\" +^%2{13.";
+   
+   string encoded = Url::encode(str.c_str(), str.length());
+   string decoded = Url::decode(encoded.c_str(), encoded.length());
+   
+   cout << "test data=" << str << endl;
+   
+   cout << "url encoded=" << encoded << endl;
+   cout << "url decoded=" << decoded << endl;
+   
+   if(decoded == str)
+   {
+      cout << "Test successful!" << endl;
+   }
+   else
+   {
+      cout << "Test FAILED! Strings do not match!" << endl;
+   }
+   
+   cout << "Url test complete." << endl << endl;
+}
+
 void runHttpHeaderTest()
 {
+   cout << "Starting HttpHeader test." << endl << endl;
+   
    // test bicapitalization of http headers
    string header = "ThIs-a-BICaPitAlized-hEADer";
    HttpHeader::biCapitalize(header);
    
    cout << "BiCapitalized Header=" << header << endl;
+   
+   cout << "HttpHeader test complete." << endl << endl;
 }
 
 int main()
@@ -1147,7 +1226,9 @@ int main()
       //runEnvelopeTest("DSA");
       //runEnvelopeTest("RSA");
       //runCipherTest("AES256");
-      runHttpHeaderTest();
+      //runConvertTest();
+      runUrlTest();
+      //runHttpHeaderTest();
    }
    catch(SocketException& e)
    {

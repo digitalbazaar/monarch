@@ -29,15 +29,46 @@ private:
     */
    static const char HEX_CHARS[16];
    
+   /**
+    * A static array for converting bytes into upper-case hexadecimal strings.
+    */
+   static const char UPPER_HEX_CHARS[16];
+   
 public:
    /**
-    * Converts an array of bytes into a hexadecimal string.
+    * Converts an array of bytes into a lower-case hexadecimal string.
     * 
     * @param b the array of bytes to convert.
     * @param offset the offset at which to start converting.
-    * @param length the number of bytes to convert. 
+    * @param length the number of bytes to convert.
+    * 
+    * @return the lower-case hexadecimal string. 
     */
    static std::string bytesToHex(const char* b, unsigned int length);
+   
+   /**
+    * Converts an array of bytes into an upper-case hexadecimal string.
+    * 
+    * @param b the array of bytes to convert.
+    * @param offset the offset at which to start converting.
+    * @param length the number of bytes to convert.
+    * 
+    * @return the upper-case hexadecimal string. 
+    */
+   static std::string bytesToUpperHex(const char* b, unsigned int length);
+   
+   /**
+    * Converts a hexadecimal string to an array of bytes. The passed
+    * array of bytes must be at least hex.length() / 2 bytes long.
+    * 
+    * @param hex the hexadecimal string to convert.
+    * @param hexLength the number of hex characters.
+    * @param b the array of bytes to populate.
+    * @param length to store the length of the array of bytes.
+    */
+   static void hexToBytes(
+      const char* hex, unsigned int hexLength,
+      char* bytes, unsigned int& length);
 };
 
 } // end namespace util

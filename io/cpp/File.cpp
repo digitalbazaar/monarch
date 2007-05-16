@@ -8,7 +8,6 @@ using namespace db::io;
 
 File::File()
 {
-   mName = "";
 }
 
 File::File(const string& name)

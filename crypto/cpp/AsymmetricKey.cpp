@@ -10,9 +10,6 @@ AsymmetricKey::AsymmetricKey(EVP_PKEY* pkey)
 {
    // set the public/private key structure
    mKey = pkey;
-   
-   // no algorithm yet
-   mAlgorithm = "";
 }
 
 AsymmetricKey::~AsymmetricKey()
