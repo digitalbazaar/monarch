@@ -71,7 +71,7 @@ void Convert::hexToBytes(
    unsigned char c2;
    for(unsigned int i = 0; i < hexLength; i += 2)
    {
-      // hexadecimal uses 2 digits, each with 16 values (or 4 bits):
+      // hexadecimal uses 2 digits, each with 16 values
       if(i + 1 < hexLength)
       {
          c1 = hex[i];
