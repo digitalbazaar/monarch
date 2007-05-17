@@ -643,11 +643,14 @@ void runLinuxClientServerTest(InternetAddress* address)
    
    // close sockets
    client.close();
-   worker->close();
    server.close();
    
    // delete worker
-   delete worker;
+   if(worker != NULL)
+   {
+      worker->close();
+      delete worker;
+   }
    
    cout << "Sockets closed." << endl;
    
@@ -1399,9 +1402,9 @@ int main()
       //runWindowsSslServerSocketTest();
       //runLinuxSslServerSocketTest();
       //InternetAddress address("127.0.0.1", 9999);
-      Internet6Address address("::1", 9999);
+      //Internet6Address address("::0", 9999);
       //runWindowsClientServerTest();
-      runLinuxClientServerTest(&address);
+      //runLinuxClientServerTest(&address);
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
