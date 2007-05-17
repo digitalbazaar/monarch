@@ -63,18 +63,28 @@ public:
    virtual ~SocketAddress();
    
    /**
-    * Converts this address to a sockaddr structure.
+    * Converts this address to a sockaddr structure. The passed structure
+    * must be large enough to accommodate the address or this method
+    * will fail.
     * 
     * @param addr the sockaddr structure to populate.
+    * @param size the size of the passed structure which will be updated to
+    *             the number of bytes used in the structure upon completion.
+    * 
+    * @return true if the sockaddr was populated, false if not.
     */
-   virtual void toSockAddr(sockaddr* addr) = 0;
+   virtual bool toSockAddr(sockaddr* addr, unsigned int& size) = 0;
    
    /**
-    * Converts this address from a sockaddr structure.
+    * Converts this address from a sockaddr structure. The passed structure
+    * must be large enough to contain the address or this method will fail.
     * 
     * @param addr the sockaddr structure convert from.
+    * @param size the size of the sockaddr structure to convert from.
+    * 
+    * @return true if converted, false if not.
     */
-   virtual void fromSockAddr(const sockaddr* addr) = 0;
+   virtual bool fromSockAddr(const sockaddr* addr, unsigned int size) = 0;
    
    /**
     * Sets the protocol for the socket address. 

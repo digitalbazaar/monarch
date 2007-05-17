@@ -34,38 +34,57 @@ Internet6Address::~Internet6Address()
 {
 }
 
-void Internet6Address::toSockAddr(sockaddr* addr)
+bool Internet6Address::toSockAddr(sockaddr* addr, unsigned int& size)
 {
+   bool rval = false;
+   
    // use sockaddr_in6 (IPv6)
-   struct sockaddr_in6* sa = (sockaddr_in6*)addr;
+   if(size >= sizeof(sockaddr_in6))
+   {
+      struct sockaddr_in6* sa = (sockaddr_in6*)addr;
+      size = sizeof(sockaddr_in6);
+      memset(sa, '\0', size);
+      
+      // the address family is internet 6 (AF_INET = address family internet)
+      sa->sin6_family = AF_INET6;
+      
+      // htons = "Host To Network Short" which means order the short in
+      // network byte order (big-endian)
+      sa->sin6_port = htons(getPort());
+      
+      // converts an address to network byte order
+      rval = (inet_pton(AF_INET6, getAddress().c_str(), &sa->sin6_addr) == 1);
+   }
    
-   // clear the socket address
-   memset(sa, '\0', sizeof(sa));
-   
-   // the address family is internet 6 (AF_INET = address family internet)
-   sa->sin6_family = AF_INET6;
-   
-   // htons = "Host To Network Short" which means order the short in
-   // network byte order (big-endian)
-   sa->sin6_port = htons(getPort());
-   
-   // converts an address to network byte order
-   inet_pton(AF_INET6, getAddress().c_str(), &sa->sin6_addr);
+   return rval;
 }
 
-void Internet6Address::fromSockAddr(const sockaddr* addr)
+bool Internet6Address::fromSockAddr(const sockaddr* addr, unsigned int size)
 {
+   bool rval = false;
+   
    // use sockaddr_in6 (IPv6)
-   struct sockaddr_in6* sa = (sockaddr_in6*)addr;
+   if(size >= sizeof(sockaddr_in6))
+   {
+      struct sockaddr_in6* sa = (sockaddr_in6*)addr;
+      
+      // get address
+      char dst[32];
+      memset(&dst, '\0', 32);
+      if(inet_ntop(AF_INET6, &sa->sin6_addr, dst, 32) != NULL)
+      {
+         // set address
+         setAddress(dst);
+         
+         // converting from network byte order to little-endian
+         setPort(ntohs(sa->sin6_port));
+         
+         // conversion successful
+         rval = true;
+      }
+   }
    
-   // get address
-   char dst[32];
-   memset(&dst, '\0', 32);
-   inet_ntop(AF_INET6, &sa->sin6_addr, dst, 32);
-   setAddress(dst);
-   
-   // FIXME: handle converting from network byte order to little-endian
-   setPort(sa->sin6_port);
+   return rval;
 }
 
 void Internet6Address::setHost(const std::string& host)
@@ -105,13 +124,14 @@ const string& Internet6Address::getHost()
    {
       // get a IPv6 address structure
       struct sockaddr_in6 sa;
-      toSockAddr((sockaddr*)&sa);
+      unsigned int size = sizeof(sockaddr_in6);
+      toSockAddr((sockaddr*)&sa, size);
       
       // NULL specifies that we don't care about getting a "service" name
-      // given in sockaddr_in will be returned
+      // given in sockaddr_in6 will be returned
       char dst[100];
       memset(&dst, '\0', 100);
-      getnameinfo((sockaddr*)&sa, sizeof(sa), dst, 100, NULL, 0, 0);
+      getnameinfo((sockaddr*)&sa, size, dst, 100, NULL, 0, 0);
       
       // set host name
       mHost = dst;
@@ -125,10 +145,12 @@ bool Internet6Address::isMulticast()
 {
    bool rval = false;
    
-   struct sockaddr_in6 addr;
-   toSockAddr((sockaddr*)&addr);
+   // get a IPv6 address structure
+   struct sockaddr_in6 sa;
+   unsigned int size = sizeof(sockaddr_in6);
+   toSockAddr((sockaddr*)&sa, size);
    
-   if(IN6_IS_ADDR_MULTICAST(&addr.sin6_addr) != 0)
+   if(IN6_IS_ADDR_MULTICAST(&sa.sin6_addr) != 0)
    {
       rval = true;
    }

@@ -154,12 +154,10 @@ throw(IOException)
       throw SocketException("Cannot write to unbound Socket!");
    }
    
-   // create sockaddr structure
-   struct sockaddr addr;
-   socklen_t addrSize = sizeof(addr);
-   
    // populate address structure
-   address->toSockAddr(&addr);
+   unsigned int size = 130;
+   char addr[size];
+   address->toSockAddr((sockaddr*)&addr, size);
    
    // send all data (send can fail to send all bytes in one go because the
    // socket send buffer was full)
@@ -170,7 +168,7 @@ throw(IOException)
       select(false, getSendTimeout());
       
       int bytes = sendto(
-         mFileDescriptor, b + offset, length, 0, &addr, addrSize);
+         mFileDescriptor, b + offset, length, 0, (sockaddr*)&addr, size);
       if(bytes < 0)
       {
          throw SocketException("Could not write to Socket!", strerror(errno));
@@ -197,12 +195,12 @@ throw(IOException)
    // wait for data to become available
    select(true, getReceiveTimeout());
    
-   // create sockaddr structure
-   struct sockaddr addr;
-   socklen_t addrSize = sizeof(addr);
+   // get address structure
+   unsigned int size = 130;
+   char addr[size];
    
    // receive some data
-   rval = recvfrom(mFileDescriptor, b, length, 0, &addr, &addrSize);
+   rval = recvfrom(mFileDescriptor, b, length, 0, (sockaddr*)&addr, &size);
    if(rval < -1)
    {
       throw SocketException("Could not read from Socket!", strerror(errno));
@@ -210,7 +208,7 @@ throw(IOException)
    else if(rval != 0 && address != NULL)
    {
       // convert socket address
-      address->fromSockAddr(&addr);
+      address->fromSockAddr((sockaddr*)&addr, size);
    }
    
    return rval;

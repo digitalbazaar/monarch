@@ -174,11 +174,12 @@ void AbstractSocket::bind(SocketAddress* address) throw(SocketException)
    initialize(address);
    
    // populate address structure
-   struct sockaddr addr;
-   address->toSockAddr(&addr);
+   unsigned int size = 130;
+   char addr[size];
+   address->toSockAddr((sockaddr*)&addr, size);
    
    // bind
-   int error = ::bind(mFileDescriptor, &addr, sizeof(addr));
+   int error = ::bind(mFileDescriptor, (sockaddr*)&addr, size);
    if(error < 0)
    {
       throw new SocketException("Could not bind Socket!", strerror(errno));
@@ -217,15 +218,11 @@ Socket* AbstractSocket::accept(unsigned int timeout) throw(SocketException)
       throw SocketException("Cannot accept with a non-listening Socket!");
    }
    
-   // create address object
-   struct sockaddr addr;
-   socklen_t addrSize = sizeof(addr);
-   
    // wait for a connection
    select(true, timeout * 1000LL);
    
    // accept a connection
-   int fd = ::accept(mFileDescriptor, &addr, &addrSize);
+   int fd = ::accept(mFileDescriptor, NULL, NULL);
    if(fd < 0)
    {
       throw SocketException("Could not accept connection!", strerror(errno));
@@ -242,14 +239,16 @@ throw(SocketException)
    initialize(address);
    
    // populate address structure
-   struct sockaddr addr;
-   address->toSockAddr(&addr);
+   unsigned int size = 130;
+   char addr[size];
+   address->toSockAddr((sockaddr*)&addr, size);
    
    // make socket non-blocking temporarily
    fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
    
    // connect
-   int error = ::connect(mFileDescriptor, &addr, sizeof(addr));
+   int error = ::connect(mFileDescriptor, (sockaddr*)addr, size);
+   
    if(error < 0)
    {
       try
@@ -389,25 +388,20 @@ throw(SocketException)
       throw SocketException("Cannot get local address for an unbound Socket!");
    }
    
-   struct sockaddr addr;
-   socklen_t addrSize = sizeof(addr);
+   // get address structure
+   unsigned int size = 130;
+   char addr[size];
    
-   int error = getsockname(mFileDescriptor, &addr, &addrSize);
+   // get local information
+   int error = getsockname(mFileDescriptor, (sockaddr*)&addr, &size);
    if(error < 0)
    {
       throw SocketException(
          "Could not get Socket local address!", strerror(errno));
    }
    
-   error = getsockname(mFileDescriptor, &addr, &addrSize);
-   if(error < 0)
-   {
-      throw SocketException(
-         "Could not get Socket local port!", strerror(errno));
-   }
-   
    // convert socket address
-   address->fromSockAddr(&addr);
+   address->fromSockAddr((sockaddr*)&addr, size);
 }
 
 void AbstractSocket::getRemoteAddress(SocketAddress* address)
@@ -419,25 +413,20 @@ throw(SocketException)
          "Cannot get local address for an unconnected Socket!");
    }
    
-   struct sockaddr addr;
-   socklen_t addrSize = sizeof(addr);
+   // get address structure
+   unsigned int size = 130;
+   char addr[size];
    
-   int error = getpeername(mFileDescriptor, &addr, &addrSize);
+   // get remote information
+   int error = getpeername(mFileDescriptor, (sockaddr*)&addr, &size);
    if(error < 0)
    {
       throw SocketException(
          "Could not get Socket remote address!", strerror(errno));
    }
    
-   error = getpeername(mFileDescriptor, &addr, &addrSize);
-   if(error < 0)
-   {
-      throw SocketException(
-         "Could not get Socket remote port!", strerror(errno));
-   }
-   
    // convert socket address
-   address->fromSockAddr(&addr);
+   address->fromSockAddr((sockaddr*)&addr, size);
 }
 
 InputStream* AbstractSocket::getInputStream()

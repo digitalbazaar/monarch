@@ -602,6 +602,8 @@ void runLinuxClientServerTest(InternetAddress* address)
    server.bind(address);
    server.listen();
    
+   cout << "Server listening at host: " << address->getHost() << endl;
+   cout << "Server listening at address: " << address->getAddress() << endl;
    cout << "Server listening on port: " << address->getPort() << endl;
    
    // connect with client
@@ -1396,7 +1398,8 @@ int main()
       //runLinuxServerSocketTest();
       //runWindowsSslServerSocketTest();
       //runLinuxSslServerSocketTest();
-      InternetAddress address("127.0.0.1", 9999);
+      //InternetAddress address("127.0.0.1", 9999);
+      Internet6Address address("::1", 9999);
       //runWindowsClientServerTest();
       runLinuxClientServerTest(&address);
       //runMessageDigestTest();

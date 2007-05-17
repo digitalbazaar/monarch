@@ -30,38 +30,57 @@ InternetAddress::~InternetAddress()
 {
 }
 
-void InternetAddress::toSockAddr(sockaddr* addr)
+bool InternetAddress::toSockAddr(sockaddr* addr, unsigned int& size)
 {
+   bool rval = false;
+   
    // use sockaddr_in (IPv4)
-   struct sockaddr_in* sa = (sockaddr_in*)addr;
+   if(size >= sizeof(sockaddr_in))
+   {
+      struct sockaddr_in* sa = (sockaddr_in*)addr;
+      size = sizeof(sockaddr_in);
+      memset(sa, '\0', size);
+      
+      // the address family is internet (AF_INET = address family internet)
+      sa->sin_family = AF_INET;
+      
+      // htons = "Host To Network Short" which means order the short in
+      // network byte order (big-endian)
+      sa->sin_port = htons(getPort());
+      
+      // converts an address to network byte order
+      rval = (inet_pton(AF_INET, getAddress().c_str(), &sa->sin_addr) == 1);
+   }
    
-   // clear the socket address
-   memset(sa, '\0', sizeof(sa));
-   
-   // the address family is internet (AF_INET = address family internet)
-   sa->sin_family = AF_INET;
-   
-   // htons = "Host To Network Short" which means order the short in
-   // network byte order (big-endian)
-   sa->sin_port = htons(getPort());
-   
-   // converts an address to network byte order
-   inet_pton(AF_INET, getAddress().c_str(), &sa->sin_addr);
+   return rval;
 }
 
-void InternetAddress::fromSockAddr(const sockaddr* addr)
+bool InternetAddress::fromSockAddr(const sockaddr* addr, unsigned int size)
 {
+   bool rval = false;
+   
    // use sockaddr_in (IPv4)
-   struct sockaddr_in* sa = (sockaddr_in*)addr;
+   if(size >= sizeof(sockaddr_in))
+   {
+      struct sockaddr_in* sa = (sockaddr_in*)addr;
+      
+      // get address
+      char dst[32];
+      memset(&dst, '\0', 32);
+      if(inet_ntop(AF_INET, &sa->sin_addr, dst, 32) != NULL)
+      {
+         // set address
+         setAddress(dst);
+         
+         // converting from network byte order to little-endian
+         setPort(ntohs(sa->sin_port));
+         
+         // conversion successful
+         rval = true;
+      }
+   }
    
-   // get address
-   char dst[32];
-   memset(&dst, '\0', 32);
-   inet_ntop(AF_INET, &sa->sin_addr, dst, 32);
-   setAddress(dst);
-   
-   // FIXME: handle converting from network byte order to little-endian
-   setPort(sa->sin_port);
+   return rval;
 }
 
 void InternetAddress::setAddress(const string& address)
@@ -110,13 +129,14 @@ const string& InternetAddress::getHost()
    {
       // get a IPv4 address structure
       struct sockaddr_in sa;
-      toSockAddr((sockaddr*)&sa);
+      unsigned int size = sizeof(sockaddr_in);
+      toSockAddr((sockaddr*)&sa, size);
       
       // NULL specifies that we don't care about getting a "service" name
       // given in sockaddr_in will be returned
       char dst[100];
       memset(&dst, '\0', 100);
-      getnameinfo((sockaddr*)&sa, sizeof(sa), dst, 100, NULL, 0, 0);
+      getnameinfo((sockaddr*)&sa, size, dst, 100, NULL, 0, 0);
       
       // set host name
       mHost = dst;
@@ -130,10 +150,12 @@ bool InternetAddress::isMulticast()
 {
    bool rval = false;
    
-   struct sockaddr_in addr;
-   toSockAddr((sockaddr*)&addr);
+   // get a IPv4 address structure
+   struct sockaddr_in sa;
+   unsigned int size = sizeof(sockaddr_in);
+   toSockAddr((sockaddr*)&sa, size);
    
-   if(IN_MULTICAST(ntohl(addr.sin_addr.s_addr)) != 0)
+   if(IN_MULTICAST(ntohl(sa.sin_addr.s_addr)) != 0)
    {
       rval = true;
    }
