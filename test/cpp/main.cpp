@@ -586,6 +586,92 @@ void runWindowsSslServerSocketTest()
 #endif   
 }
 
+void runLinuxClientServerTest(InternetAddress* address)
+{
+   cout << "Running Client Server Test" << endl << endl;
+   
+   // create tcp server socket and client sockets
+   TcpSocket server;
+   TcpSocket client;
+   
+   // set receive timeouts to 10 seconds
+   server.setReceiveTimeout(10000);
+   client.setReceiveTimeout(10000);
+   
+   // bind and listen with server
+   server.bind(address);
+   server.listen();
+   
+   cout << "Server listening on port: " << address->getPort() << endl;
+   
+   // connect with client
+   client.connect(address);
+   
+   cout << "Client connected." << endl;
+   
+   // accept a connection
+   TcpSocket* worker = (TcpSocket*)server.accept(10);
+   
+   cout << "Client connection accepted by Server." << endl;
+   
+   // send some data with client
+   string clientData = "Hello there, Server.";
+   client.getOutputStream()->write(clientData.c_str(), clientData.length());
+   
+   cout << "Client sent: " << clientData << endl;
+   
+   // receive the client data
+   char read[2048];
+   int numBytes = worker->getInputStream()->read(read, 2048);
+   string serverReceived(read, numBytes);
+   
+   cout << "Server received: " << serverReceived << endl;
+   
+   // send some data with server
+   string serverData = "G'day, Client.";
+   worker->getOutputStream()->write(serverData.c_str(), serverData.length());
+   
+   cout << "Server sent: " << serverData << endl;
+   
+   // receive the server data
+   numBytes = client.getInputStream()->read(read, 2048);
+   string clientReceived(read, numBytes);
+   
+   cout << "Client received: " << clientReceived << endl;
+   
+   // close sockets
+   client.close();
+   worker->close();
+   server.close();
+   
+   // delete worker
+   delete worker;
+   
+   cout << "Sockets closed." << endl;
+   
+   cout << endl << "Client/Server test complete." << endl;
+}
+
+void runWindowsClientServerTest(InternetAddress* serverAddress)
+{
+// initialize winsock
+#ifdef WIN32
+   WSADATA wsaData;
+   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
+   {
+      cout << "ERROR! Could not initialize winsock!" << endl;
+   }
+#endif
+   
+   // run linux client/server test
+   runLinuxClientServerTest(serverAddress);
+   
+// cleanup winsock
+#ifdef WIN32
+   WSACleanup();
+#endif   
+}
+
 void runMessageDigestTest()
 {
    cout << "Running MessageDigest Test" << endl << endl;
@@ -1303,13 +1389,16 @@ int main()
       //runWindowsAddressResolveTest();
       //runLinuxAddressResolveTest();
       //runWindowsSocketTest();
-      runLinuxSocketTest();
+      //runLinuxSocketTest();
       //runWindowsSslSocketTest();
       //runLinuxSslSocketTest();
       //runWindowsServerSocketTest();
       //runLinuxServerSocketTest();
       //runWindowsSslServerSocketTest();
       //runLinuxSslServerSocketTest();
+      InternetAddress address("127.0.0.1", 9999);
+      //runWindowsClientServerTest();
+      runLinuxClientServerTest(&address);
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
