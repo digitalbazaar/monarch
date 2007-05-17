@@ -1301,9 +1301,9 @@ int main()
       //runTimeTest();
       //runThreadTest();
       //runWindowsAddressResolveTest();
-      runLinuxAddressResolveTest();
+      //runLinuxAddressResolveTest();
       //runWindowsSocketTest();
-      //runLinuxSocketTest();
+      runLinuxSocketTest();
       //runWindowsSslSocketTest();
       //runLinuxSslSocketTest();
       //runWindowsServerSocketTest();

@@ -86,6 +86,13 @@ public:
     * @return the hostname for this address.
     */
    virtual const std::string& getHost();
+   
+   /**
+    * Returns true if this address is a multicast address, false if not.
+    * 
+    * @return true if this address is a multicast address, false if not.
+    */
+   virtual bool isMulticast();
 };
 
 } // end namespace net

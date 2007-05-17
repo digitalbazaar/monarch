@@ -23,9 +23,11 @@ protected:
     * Initializes this Socket by acquiring a file descriptor for it. This
     * method must be called before trying to use this TcpSocket.
     * 
+    * @param address the SocketAddress for the Socket.
+    * 
     * @exception SocketException thrown if the Socket could not be initialized.
     */
-   virtual void initialize() throw(SocketException);
+   virtual void initialize(SocketAddress* address) throw(SocketException);
    
    /**
     * Creates a new Socket with the given file descriptor that points to

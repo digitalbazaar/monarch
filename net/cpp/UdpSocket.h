@@ -23,9 +23,11 @@ protected:
     * Initializes this Socket by acquiring a file descriptor for it. This
     * method must be called before trying to use this TcpSocket.
     * 
+    * @param address the SocketAddress for the Socket.
+    * 
     * @exception SocketException thrown if the Socket could not be initialized.
     */
-   virtual void initialize() throw(SocketException);
+   virtual void initialize(SocketAddress* address) throw(SocketException);
    
    /**
     * Creates a new Socket with the given file descriptor that points to
@@ -103,8 +105,22 @@ public:
    throw(db::io::IOException);
    
    /**
-    * Sets the multicast time-to-live (TTL). This is the number of hops a
-    * datagram should make before dying. 
+    * Sets the IPv6 multicast hops. This is the number of hops a datagram
+    * should make before dying.
+    * 
+    * Note: This method is for IPv6 only.
+    * 
+    * @param hops the number of hops to use.
+    * 
+    * @exception SocketException if a socket error occurs.
+    */
+   virtual void setMulticastHops(unsigned char hops) throw(SocketException);
+   
+   /**
+    * Sets the IPv4 multicast time-to-live (TTL). This is the number of hops a
+    * datagram should make before dying.
+    * 
+    * Note: This method is for IPv4 only.
     * 
     * @param ttl the time-to-live to use.
     * 

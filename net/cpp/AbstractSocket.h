@@ -73,12 +73,15 @@ protected:
     * Creates a Socket with the specified type and protocol and assigns its
     * file descriptor to mFileDescriptor.
     * 
-    * @param type the type of Socket to create.
-    * @param protocol the protocol for the Socket.
+    * @param domain the communication domain (i.e. PF_INET or PF_INET6).
+    * @param type the type of Socket to create (i.e. SOCK_STREAM or SOCK_DGRAM).
+    * @param protocol the protocol for the Socket
+    *                 (i.e. IPPROTO_TCP or IPPROTO_UDP).
     * 
     * @exception SocketException thrown if the Socket could not be created.
     */
-   virtual void create(int type, int protocol) throw(SocketException);
+   virtual void create(int domain, int type, int protocol)
+   throw(SocketException);
    
    /**
     * Blocks until data is available for receiving, the socket can be
@@ -97,9 +100,11 @@ protected:
     * Initializes this Socket by acquiring a file descriptor for it. This
     * method must be called before trying to use this Socket.
     * 
+    * @param address the SocketAddress for the Socket.
+    * 
     * @exception SocketException thrown if the Socket could not be initialized.
     */
-   virtual void initialize() throw(SocketException) = 0;
+   virtual void initialize(SocketAddress* address) throw(SocketException) = 0;
    
    /**
     * Creates a new Socket with the given file descriptor that points to

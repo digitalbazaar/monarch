@@ -9,11 +9,16 @@ using namespace db::net;
 
 InternetAddress::InternetAddress()
 {
+   // set protocol
+   setProtocol("IPv4");
 }
 
 InternetAddress::InternetAddress(const string& host, unsigned short port)
 throw(UnknownHostException)
 {
+   // set protocol
+   setProtocol("IPv4");
+   
    // resolve host
    setHost(host);
    
@@ -119,4 +124,19 @@ const string& InternetAddress::getHost()
    
    // return host
    return mHost;
+}
+
+bool InternetAddress::isMulticast()
+{
+   bool rval = false;
+   
+   struct sockaddr_in addr;
+   toSockAddr((sockaddr*)&addr);
+   
+   if(IN_MULTICAST(ntohl(addr.sin_addr.s_addr)) != 0)
+   {
+      rval = true;
+   }
+   
+   return rval;
 }

@@ -15,11 +15,23 @@ TcpSocket::~TcpSocket()
 {
 }
 
-void TcpSocket::initialize() throw(SocketException)
+void TcpSocket::initialize(SocketAddress* address) throw(SocketException)
 {
    if(mFileDescriptor == -1)
    {
-      create(SOCK_STREAM, IPPROTO_TCP);
+      // use PF_INET = "protocol family internet" (which just so happens to
+      // have the same value as AF_INET but that's only because different
+      // protocols were never used with the same address family
+      if(address->getProtocol() == "IPv6")
+      {
+         // use IPv6
+         create(PF_INET6, SOCK_STREAM, IPPROTO_TCP);
+      }
+      else
+      {
+         // default to IPv4
+         create(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+      }
    }
 }
 

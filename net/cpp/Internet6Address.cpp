@@ -9,13 +9,20 @@ using namespace db::net;
 
 Internet6Address::Internet6Address()
 {
-   mAddress = "::1/128";
+   // set protocol
+   setProtocol("IPv6");
+   
+   // set default address and port
+   mAddress = "::0";
    mPort = 0;
 }
 
 Internet6Address::Internet6Address(const string& host, unsigned short port)
 throw(UnknownHostException)
 {
+   // set protocol
+   setProtocol("IPv6");
+   
    // resolve host
    setHost(host);
    
@@ -112,4 +119,19 @@ const string& Internet6Address::getHost()
    
    // return host
    return mHost;
+}
+
+bool Internet6Address::isMulticast()
+{
+   bool rval = false;
+   
+   struct sockaddr_in6 addr;
+   toSockAddr((sockaddr*)&addr);
+   
+   if(IN6_IS_ADDR_MULTICAST(&addr.sin6_addr) != 0)
+   {
+      rval = true;
+   }
+   
+   return rval;
 }

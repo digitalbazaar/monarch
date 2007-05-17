@@ -45,12 +45,10 @@ AbstractSocket::~AbstractSocket()
    delete mOutputStream;
 }
 
-void AbstractSocket::create(int type, int protocol) throw(SocketException)
+void AbstractSocket::create(int domain, int type, int protocol)
+throw(SocketException)
 {
-   // use PF_INET = "protocol family internet" (which just so happens to have
-   // the same value as AF_INET but that's only because different protocols
-   // were never used with the same address family
-   int fd = socket(PF_INET, type, protocol);
+   int fd = socket(domain, type, protocol);
    if(fd < 0)
    {
       throw SocketException("Could not create Socket!", strerror(errno));
@@ -173,17 +171,14 @@ throw(SocketException)
 void AbstractSocket::bind(SocketAddress* address) throw(SocketException)
 {
    // initialize as necessary
-   initialize();
-   
-   // create sockaddr_in (internet socket address) structure
-   struct sockaddr_in addr;
+   initialize(address);
    
    // populate address structure
-   address->toSockAddr((sockaddr*)&addr);
+   struct sockaddr addr;
+   address->toSockAddr(&addr);
    
    // bind
-   int error = ::bind(
-      mFileDescriptor, (struct sockaddr*)&addr, sizeof(addr));
+   int error = ::bind(mFileDescriptor, &addr, sizeof(addr));
    if(error < 0)
    {
       throw new SocketException("Could not bind Socket!", strerror(errno));
@@ -223,14 +218,14 @@ Socket* AbstractSocket::accept(unsigned int timeout) throw(SocketException)
    }
    
    // create address object
-   struct sockaddr_in addr;
+   struct sockaddr addr;
    socklen_t addrSize = sizeof(addr);
    
    // wait for a connection
    select(true, timeout * 1000LL);
    
    // accept a connection
-   int fd = ::accept(mFileDescriptor, (sockaddr*)&addr, &addrSize);
+   int fd = ::accept(mFileDescriptor, &addr, &addrSize);
    if(fd < 0)
    {
       throw SocketException("Could not accept connection!", strerror(errno));
@@ -244,20 +239,17 @@ void AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
 throw(SocketException)
 {
    // initialize as necessary
-   initialize();
-   
-   // create sockaddr_in (internet socket address) structure
-   struct sockaddr_in addr;
+   initialize(address);
    
    // populate address structure
-   address->toSockAddr((sockaddr*)&addr);
+   struct sockaddr addr;
+   address->toSockAddr(&addr);
    
    // make socket non-blocking temporarily
    fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
    
    // connect
-   int error = ::connect(
-      mFileDescriptor, (struct sockaddr*)&addr, sizeof(addr));
+   int error = ::connect(mFileDescriptor, &addr, sizeof(addr));
    if(error < 0)
    {
       try
@@ -397,17 +389,17 @@ throw(SocketException)
       throw SocketException("Cannot get local address for an unbound Socket!");
    }
    
-   struct sockaddr_in addr;
+   struct sockaddr addr;
    socklen_t addrSize = sizeof(addr);
    
-   int error = getsockname(mFileDescriptor, (sockaddr*)&addr, &addrSize);
+   int error = getsockname(mFileDescriptor, &addr, &addrSize);
    if(error < 0)
    {
       throw SocketException(
          "Could not get Socket local address!", strerror(errno));
    }
    
-   error = getsockname(mFileDescriptor, (sockaddr*)&addr, &addrSize);
+   error = getsockname(mFileDescriptor, &addr, &addrSize);
    if(error < 0)
    {
       throw SocketException(
@@ -415,7 +407,7 @@ throw(SocketException)
    }
    
    // convert socket address
-   address->fromSockAddr((sockaddr*)&addr);
+   address->fromSockAddr(&addr);
 }
 
 void AbstractSocket::getRemoteAddress(SocketAddress* address)
@@ -427,17 +419,17 @@ throw(SocketException)
          "Cannot get local address for an unconnected Socket!");
    }
    
-   struct sockaddr_in addr;
+   struct sockaddr addr;
    socklen_t addrSize = sizeof(addr);
    
-   int error = getpeername(mFileDescriptor, (sockaddr*)&addr, &addrSize);
+   int error = getpeername(mFileDescriptor, &addr, &addrSize);
    if(error < 0)
    {
       throw SocketException(
          "Could not get Socket remote address!", strerror(errno));
    }
    
-   error = getpeername(mFileDescriptor, (sockaddr*)&addr, &addrSize);
+   error = getpeername(mFileDescriptor, &addr, &addrSize);
    if(error < 0)
    {
       throw SocketException(
@@ -445,7 +437,7 @@ throw(SocketException)
    }
    
    // convert socket address
-   address->fromSockAddr((sockaddr*)&addr);
+   address->fromSockAddr(&addr);
 }
 
 InputStream* AbstractSocket::getInputStream()

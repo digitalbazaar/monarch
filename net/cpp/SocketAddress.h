@@ -26,6 +26,11 @@ class SocketAddress
 {
 protected:
    /**
+    * The protocol associated with this socket address.
+    */
+   std::string mProtocol;
+   
+   /**
     * The address part of the socket address.
     */
    std::string mAddress;
@@ -44,10 +49,13 @@ public:
    /**
     * Creates a new SocketAddress with the specified address and port.
     * 
+    * @param protocol the protocol.
     * @param address the address (or host).
     * @param port the socket port.
     */
-   SocketAddress(const std::string& address, unsigned short port);
+   SocketAddress(
+      const std::string& protocol,
+      const std::string& address, unsigned short port);
    
    /**
     * Destructs this SocketAddress.
@@ -67,6 +75,20 @@ public:
     * @param addr the sockaddr structure convert from.
     */
    virtual void fromSockAddr(const sockaddr* addr) = 0;
+   
+   /**
+    * Sets the protocol for the socket address. 
+    * 
+    * @param protocol the protocol to use.
+    */
+   virtual void setProtocol(const std::string& protocol);
+   
+   /**
+    * Gets the protocol for the socket address. 
+    * 
+    * @return the protocol.
+    */
+   virtual const std::string& getProtocol();
    
    /**
     * Sets the address part of the socket address. 
