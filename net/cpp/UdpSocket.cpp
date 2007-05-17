@@ -40,8 +40,9 @@ throw(SocketException)
    // create multicast request
    struct ip_mreq request;
    
+   // FIXME: AF_INET6 support?
    // set multicast address
-   inet_aton(group->getAddress().c_str(), &request.imr_multiaddr);
+   inet_pton(AF_INET, group->getAddress().c_str(), &request.imr_multiaddr);
    
    if(localAddress == NULL)
    {
@@ -50,10 +51,13 @@ throw(SocketException)
    }
    else
    {
+      // FIXME: AF_INET6 support?
       // set local interface
-      inet_aton(localAddress->getAddress().c_str(), &request.imr_interface);
+      inet_pton(
+         AF_INET, localAddress->getAddress().c_str(), &request.imr_interface);
    }
    
+   // FIXME: IPPROTO_IPV6 support?
    int error = setsockopt(
       mFileDescriptor, IPPROTO_IP, IP_ADD_MEMBERSHIP,
       (char*)&request, sizeof(request));
@@ -68,12 +72,14 @@ void UdpSocket::leaveGroup(SocketAddress* group) throw(SocketException)
    // create multicast request
    struct ip_mreq request;
    
+   // FIXME: AF_INET6 support?
    // set multicast address
-   inet_aton(group->getAddress().c_str(), &request.imr_multiaddr);
+   inet_pton(AF_INET, group->getAddress().c_str(), &request.imr_multiaddr);
    
    // use any address for local interface
    request.imr_interface.s_addr = INADDR_ANY;
    
+   // FIXME: IPPROTO_IPV6 support?
    int error = setsockopt(
       mFileDescriptor, IPPROTO_IP, IP_DROP_MEMBERSHIP,
       (char*)&request, sizeof(request));
@@ -98,7 +104,7 @@ throw(IOException)
    socklen_t addrSize = sizeof(addr);
    
    // populate address structure
-   populateAddressStructure(address, addr);
+   address->toSockAddr((sockaddr*)&addr);
    
    // send all data (send can fail to send all bytes in one go because the
    // socket send buffer was full)
@@ -149,12 +155,8 @@ throw(IOException)
    }
    else if(rval != 0 && address != NULL)
    {
-      // put address into SocketAddress
-      address->setAddress(inet_ntoa(addr.sin_addr));
-      
-      // FIXME: handle converting from network byte order to little-endian
-      address->setPort(addr.sin_port);
-      //address->setPort(nstoh(addr.sin_port));
+      // convert socket address
+      address->fromSockAddr((sockaddr*)&addr);
    }
    
    return rval;

@@ -8,6 +8,9 @@
 
 #include <string>
 
+// forward declare socket address
+struct sockaddr;
+
 namespace db
 {
 namespace net
@@ -36,7 +39,7 @@ public:
    /**
     * Creates a new SocketAddress.
     */
-   SocketAddress() : mAddress("0.0.0.0"), mPort(0) {};
+   SocketAddress();
    
    /**
     * Creates a new SocketAddress with the specified address and port.
@@ -44,29 +47,40 @@ public:
     * @param address the address (or host).
     * @param port the socket port.
     */
-   SocketAddress(std::string address, unsigned short port) :
-      mAddress(address), mPort(port) {};
+   SocketAddress(const std::string& address, unsigned short port);
    
    /**
     * Destructs this SocketAddress.
     */
-   virtual ~SocketAddress() {};   
+   virtual ~SocketAddress();
+   
+   /**
+    * Converts this address to a sockaddr structure.
+    * 
+    * @param addr the sockaddr structure to populate.
+    */
+   virtual void toSockAddr(sockaddr* addr) = 0;
+   
+   /**
+    * Converts this address from a sockaddr structure.
+    * 
+    * @param addr the sockaddr structure convert from.
+    */
+   virtual void fromSockAddr(const sockaddr* addr) = 0;
    
    /**
     * Sets the address part of the socket address. 
     * 
     * @param address the address to use.
-    * 
-    * @exception SocketException thrown if the address is invalid.
     */
-   virtual void setAddress(const std::string& address) throw(SocketException);
+   virtual void setAddress(const std::string& address);
    
    /**
     * Gets the address part of the socket address. 
     * 
     * @return the address.
     */
-   virtual std::string getAddress();
+   virtual const std::string& getAddress();
    
    /**
     * Sets the port part of the socket address.
@@ -82,27 +96,6 @@ public:
     */
    virtual unsigned short getPort();
 };
-
-inline void SocketAddress::setAddress(const std::string& address)
-throw(SocketException)
-{
-   mAddress = address;
-}
-
-inline std::string SocketAddress::getAddress()
-{
-   return mAddress;
-}
-
-inline void SocketAddress::setPort(unsigned short port)
-{
-   mPort = port;
-}
-
-inline unsigned short SocketAddress::getPort()
-{
-   return mPort;
-}
 
 } // end namespace net
 } // end namespace db

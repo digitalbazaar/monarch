@@ -19,7 +19,7 @@
    // includes sockaddr_in structure for internet addresses and
    // methods for converting numbers to network byte order (big-endian)
    #include <netinet/in.h>
-   // include inet_aton() and inet_ntoa()
+   // include inet_pton() and inet_ntop()
    #include <arpa/inet.h>
    // include fcntl
    #include <sys/fcntl.h>
@@ -65,29 +65,150 @@
    // define socklen_t
    typedef int socklen_t;
    
-   // define fcntl() for iocntl()
+   // define fcntl() for ioctlsocket():
+   
+   /**
+    * Changes some control aspect of a file descriptor.
+    * 
+    * @param fd the file descriptor to change.
+    * @param cmd the command identifying the kind of change to be made.
+    * @param arg the argument for the command.
+    * 
+    * @return -1 for an error and errno will be set, otherwise something else
+    *         that is dependent on the specific command.
+    */
    inline static int fcntl(int fd, long cmd, unsigned long arg)
    {
       return ioctlsocket(fd, cmd, &arg);
    }
    
-   // define close() for closesocket()
+   // define close() for closesocket():
+   
+   /**
+    * Closes the passed file descriptor.
+    * 
+    * @param fd the file descriptor to close.
+    */
    inline static int close(int fd)
    {
       return closesocket(fd);
    }
    
-   // define inet_aton()
-   inline static int inet_aton(const char* in, struct in_addr* out)
+   // define inet_ntop():
+   
+   /**
+    * Converts an address from network byte order format to a presentation
+    * numerical formatted address.
+    * 
+    * @param af the address family (AF_INET for IPv4, AF_INET6 for IPv6).
+    * @param src the source address to convert (an in_addr or in6_addr).
+    * @param dst the buffer to store the converted numerical address in.
+    * @param size the size of dst in bytes.
+    * 
+    * @return a pointer to dst on success, NULL on failure (errno is set).
+    */
+   const char *inet_ntop(int af, const void* src, char* dst, unsigned int size)
    {
-      int rval = 0;
+      const char* rval = NULL;
       
-      unsigned long long addrLong = inet_addr(in);
-      if(addrLong != 0xFFFFFFFF || in == "255.255.255.255")
+      // this method uses getnameinfo() which translates a socket address
+      // to a node name and service location -- it has this prototype:
+      //
+      // getnameinfo(const struct sockaddr* sa, socklen_t salen,
+      //    char* node, coklen_t nodelen, char* service, socklen_t servicelen,
+      //    int flags);
+      
+      // check address family
+      if(af == AF_INET)
       {
-         // successful conversion
-         out->s_addr = addrLong;
+         // get a zero'd-out IPv4 address structure
+         struct sockaddr_in sa;
+         memset(&sa, '\0', sizeof(sa));
+         
+         // set the address family to IPv4
+         sa.sin_family = AF_INET;
+         
+         // copy the source in_addr into the structure
+         memcpy(&sa.sin_addr, src, sizeof(in_addr));
+         
+         // NULL specifies that we don't care about getting a "service" name
+         // NI_NUMERICHOST ensures that the numeric form of the address
+         // given in sockaddr_in will be returned
+         getnameinfo(
+            (sockaddr*)&sa, sizeof(sa), dst, size, NULL, 0, NI_NUMERICHOST);
+         
+         // point at dst
+         rval = dst;
+      }
+      else if(af == AF_INET6)
+      {
+         // get a zero'd-out IPv6 address structure
+         struct sockaddr_in6 sa;
+         memset(&sa, '\0', sizeof(sa));
+         
+         // set the address family to IPv6
+         sa.sin6_family = AF_INET6;
+         
+         // copy the source in_addr into the structure
+         memcpy(&sa.sin6_addr, src, sizeof(in_addr6));
+         
+         // NULL specifies that we don't care about getting a "service" name
+         // NI_NUMERICHOST ensures that the numeric form of the address
+         // given in sockaddr_in will be returned
+         getnameinfo(
+            (sockaddr*)&sa, sizeof(sa), dst, size, NULL, 0, NI_NUMERICHOST);
+         
+         // point at dst
+         rval = dst;
+      }
+      
+      return rval;
+   }
+   
+   /**
+    * Converts a presentation (numerical or hostname) formatted address to a
+    * network byte order format address.
+    * 
+    * @param af the address family (AF_INET for IPv4, AF_INET6 for IPv6).
+    * @param src the buffer with the presentation address.
+    * @param dst the buffer to store the converted address
+    *            (a sockaddr_in or sockaddr_in6).
+    * 
+    * @return >= 1 on success, 0 for an unparseable address, and -1 for an
+    *         error with errno set.
+    */
+   int inet_pton(int af, const char* src, void* dst)
+   {
+      int rval = -1;
+      
+      // this method uses getaddrinfo() which obtains address information,
+      // it has this prototype:
+      //
+      // getaddrinfo(const char* nodename, const char* servicename,
+      //    const struct addrinfo* hints, struct addrinfo** res);
+      
+      // create hints address structure
+      struct addrinfo hints;
+      memset(&hints, '\0', sizeof(hints));
+      hints.ai_family = af;      
+      
+      // create pointer for storing allocated resolved address
+      struct addrinfo* res = NULL;
+      
+      // get address information
+      int error = getaddrinfo(src, NULL, NULL, &res);
+      if(error = 0)
+      {
          rval = 1;
+      }
+      
+      if(res != NULL)
+      {
+         // copy the result
+         memcpy(dst, res->ai_addr, res->ai_addrlen);
+         
+         // free the result
+         freeaddrinfo(res);
       }
       
       return rval;

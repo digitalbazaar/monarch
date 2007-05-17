@@ -13,7 +13,7 @@
 #include "Thread.h"
 #include "System.h"
 #include "TcpSocket.h"
-#include "InternetAddress.h"
+#include "Internet6Address.h"
 #include "SslSocket.h"
 #include "MessageDigest.h"
 #include "Crc16.h"
@@ -58,6 +58,8 @@ void runBase64Test()
    {
 	   delete [] decoded;
    }
+   
+   cout << endl << "Base64 Test complete." << endl;
 }
 
 void runTimeTest()
@@ -71,6 +73,8 @@ void runTimeTest()
    unsigned long long end = System::getCurrentMilliseconds();
    
    cout << "Time end=" << end << endl;
+   
+   cout << endl << "Time Test complete." << endl;
 }
 
 class TestRunnable : public virtual Object, public Runnable
@@ -156,6 +160,90 @@ void runThreadTest()
    t3.join();
    t4.join();
    t5.join();
+   
+   cout << endl << "Thread Test complete." << endl;
+}
+
+void runLinuxAddressResolveTest()
+{
+   cout << "Running Address Resolve Test" << endl << endl;
+   
+   // create IPv4 address
+   InternetAddress ip4;
+   
+   cout << "Testing IPv4..." << endl << endl;
+   
+   ip4.setHost("www.bitmunk.com");
+   cout << "www.bitmunk.com = " << ip4.getAddress() << endl;
+   
+   ip4.setHost("www.google.com");
+   cout << "www.google.com = " << ip4.getAddress() << endl;
+   
+   ip4.setHost("www.yahoo.com");
+   cout << "www.yahoo.com = " << ip4.getAddress() << endl;
+   
+   ip4.setHost("www.microsoft.com");
+   cout << "www.microsoft.com = " << ip4.getAddress() << endl;
+   
+   cout << endl;
+   
+   ip4.setAddress("192.168.0.1");
+   cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   
+   ip4.setAddress("192.168.0.8");
+   cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   
+   ip4.setAddress("216.239.51.99");
+   cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   
+   // create IPv6 address
+   Internet6Address ip6;
+   
+   cout << endl << "Testing IPv6..." << endl << endl;
+   
+   ip6.setHost("ip6-localhost");
+   cout << "ip6-localhost = " << ip6.getAddress() << endl;
+   
+   ip6.setHost("yuna.digitalbazaar.com");
+   cout << "yuna.digitalbazaar.com = " << ip6.getAddress() << endl;
+   
+   /*
+   ip6.setHost("www.google.com");
+   cout << "www.google.com = " << ip6.getAddress() << endl;
+   
+   ip6.setHost("www.yahoo.com");
+   cout << "www.yahoo.com = " << ip6.getAddress() << endl;
+   
+   ip6.setHost("www.microsoft.com");
+   cout << "www.microsoft.com = " << ip6.getAddress() << endl;
+   */
+   
+   cout << endl;
+   
+   ip6.setAddress("fc00:840:db:bb:d::8");
+   cout << ip6.getAddress() << " = " << ip6.getHost() << endl;
+   
+   cout << endl << "Address Resolve Test complete." << endl << endl;
+}
+
+void runWindowsAddressResolveTest()
+{
+   // initialize winsock
+#ifdef WIN32
+   WSADATA wsaData;
+   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
+   {
+      cout << "ERROR! Could not initialize winsock!" << endl;
+   }
+#endif
+   
+   // run linux address resolve test
+   runLinuxAddressResolveTest();
+   
+   // cleanup winsock
+#ifdef WIN32
+   WSACleanup();
+#endif
 }
 
 void runLinuxSocketTest()
@@ -166,9 +254,9 @@ void runLinuxSocketTest()
    TcpSocket socket;
    
    // create address
-   //InternetAddress address("127.0.0.1", 1024);
+   //InternetAddress address("127.0.0.1", 80);
    InternetAddress address("www.google.com", 80);
-   cout << address.getAddress() << endl;
+   cout << "Connecting to: " << address.getAddress() << endl;
    
    // connect
    socket.connect(&address);
@@ -216,7 +304,7 @@ void runLinuxSocketTest()
    socket.close();
    
    cout << "Socket connection closed." << endl;
-   cout << "Response:" << endl << str << endl;
+   //cout << "Response:" << endl << str << endl;
    
    cout << endl << "Socket test complete." << endl;
 }
@@ -344,7 +432,8 @@ void runLinuxServerSocketTest()
    TcpSocket socket;
    
    // bind and listen
-   socket.bind(1024);
+   InternetAddress address("127.0.0.1", 1024);
+   socket.bind(&address);
    socket.listen();
    
    // accept a connection
@@ -422,7 +511,8 @@ void runLinuxSslServerSocketTest()
    TcpSocket socket;
    
    // bind and listen
-   socket.bind(1024);
+   InternetAddress address("127.0.0.1", 1024);
+   socket.bind(&address);
    socket.listen();
    
    // accept a connection
@@ -534,7 +624,7 @@ void runMessageDigestTest()
       cout << "SHA-1 is incorrect!" << endl;
    }
    
-   cout << "MessageDigest test complete." << endl << endl;
+   cout << endl << "MessageDigest test complete." << endl;
 }
 
 void runCrcTest()
@@ -565,7 +655,7 @@ void runCrcTest()
       cout << "CRC-16 is incorrect!" << endl;
    }
    
-   cout << "CRC test complete." << endl << endl;
+   cout << endl << "CRC test complete." << endl;
 }
 
 void runAsymmetricKeyLoadingTest()
@@ -678,7 +768,7 @@ void runAsymmetricKeyLoadingTest()
       cout << e.getCode() << endl;
    }
    
-   cout << "Asymmetric Key Loading test complete." << endl << endl;
+   cout << endl << "Asymmetric Key Loading test complete." << endl;
    
    // clean up crypto strings
    EVP_cleanup();
@@ -784,7 +874,7 @@ void runDsaAsymmetricKeyCreationTest()
       cout << e.getCode() << endl;
    }
    
-   cout << "DSA Asymmetric Key Creation test complete." << endl << endl;
+   cout << endl << "DSA Asymmetric Key Creation test complete." << endl;
    
    // clean up crypto strings
    EVP_cleanup();
@@ -890,7 +980,7 @@ void runRsaAsymmetricKeyCreationTest()
       cout << e.getCode() << endl;
    }
    
-   cout << "RSA Asymmetric Key Creation test complete." << endl << endl;
+   cout << endl << "RSA Asymmetric Key Creation test complete." << endl;
    
    // clean up crypto strings
    EVP_cleanup();
@@ -1013,7 +1103,7 @@ void runEnvelopeTest(const std::string& algorithm)
       cout << e.getCode() << endl;
    }
    
-   cout << algorithm << " Envelope test complete." << endl << endl;
+   cout << endl << algorithm << " Envelope test complete." << endl;
    
    // clean up crypto strings
    EVP_cleanup();
@@ -1109,7 +1199,7 @@ void runCipherTest(const string& algorithm)
       cout << e.getCode() << endl;
    }
    
-   cout << algorithm << " Cipher test complete." << endl << endl;
+   cout << endl << algorithm << " Cipher test complete." << endl;
    
    // clean up crypto strings
    EVP_cleanup();
@@ -1159,7 +1249,7 @@ void runConvertTest()
       cout << "Test FAILED! Strings do not match!" << endl;
    }
    
-   cout << "Convert test complete." << endl << endl;
+   cout << endl << "Convert test complete." << endl;
 }
 
 void runUrlTest()
@@ -1185,7 +1275,7 @@ void runUrlTest()
       cout << "Test FAILED! Strings do not match!" << endl;
    }
    
-   cout << "Url test complete." << endl << endl;
+   cout << endl << "Url test complete." << endl;
 }
 
 void runHttpHeaderTest()
@@ -1198,7 +1288,7 @@ void runHttpHeaderTest()
    
    cout << "BiCapitalized Header=" << header << endl;
    
-   cout << "HttpHeader test complete." << endl << endl;
+   cout << endl << "HttpHeader test complete." << endl;
 }
 
 int main()
@@ -1210,6 +1300,8 @@ int main()
       //runBase64Test();
       //runTimeTest();
       //runThreadTest();
+      //runWindowsAddressResolveTest();
+      runLinuxAddressResolveTest();
       //runWindowsSocketTest();
       //runLinuxSocketTest();
       //runWindowsSslSocketTest();
@@ -1227,7 +1319,7 @@ int main()
       //runEnvelopeTest("RSA");
       //runCipherTest("AES256");
       //runConvertTest();
-      runUrlTest();
+      //runUrlTest();
       //runHttpHeaderTest();
    }
    catch(SocketException& e)

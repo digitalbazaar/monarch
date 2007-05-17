@@ -9,9 +9,6 @@
 #include "InputStream.h"
 #include "OutputStream.h"
 
-// forward declare socket address
-struct sockaddr_in;
-
 namespace db
 {
 namespace net
@@ -71,15 +68,6 @@ protected:
     * The number of Socket connections to keep backlogged while listening.
     */
    unsigned int mBacklog;
-   
-   /**
-    * Populates a sockaddr_in structure using a SocketAddress object.
-    * 
-    * @param address the SocketAddress object to use.
-    * @param addr the sockaddr_in structure to populate.
-    */
-   virtual void populateAddressStructure(
-      SocketAddress* address, sockaddr_in& addr);
    
    /**
     * Creates a Socket with the specified type and protocol and assigns its
@@ -145,16 +133,6 @@ public:
     * @exception SocketException thrown if the address could not be bound.
     */
    virtual void bind(SocketAddress* address) throw(SocketException);
-   
-   /**
-    * Binds this Socket to a local port on the local machine's IP address.
-    * 
-    * This will bind to INADDR_ANY or 0.0.0.0 in IPv4.
-    * A port of 0 will bind to a random emphemeral port.
-    * 
-    * @param port the port to bind to.
-    */
-   virtual void bind(unsigned short port);
    
    /**
     * Causes this Socket to start listening for incoming connections.

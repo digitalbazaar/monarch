@@ -45,23 +45,6 @@ AbstractSocket::~AbstractSocket()
    delete mOutputStream;
 }
 
-void AbstractSocket::populateAddressStructure(
-   SocketAddress* address, sockaddr_in& addr)
-{
-   // the address family is internet (AF_INET = address family internet)
-   addr.sin_family = AF_INET;
-   
-   // htons = "Host To Network Short" which means order the short in
-   // network byte order (big-endian)
-   addr.sin_port = htons(address->getPort());
-   
-   // converts an address to network byte order
-   inet_aton(address->getAddress().c_str(), &addr.sin_addr);
-   
-   // zero-out the rest of the address structure
-   memset(&addr.sin_zero, '\0', 8);
-}
-
 void AbstractSocket::create(int type, int protocol) throw(SocketException)
 {
    // use PF_INET = "protocol family internet" (which just so happens to have
@@ -196,7 +179,7 @@ void AbstractSocket::bind(SocketAddress* address) throw(SocketException)
    struct sockaddr_in addr;
    
    // populate address structure
-   populateAddressStructure(address, addr);
+   address->toSockAddr((sockaddr*)&addr);
    
    // bind
    int error = ::bind(
@@ -208,12 +191,6 @@ void AbstractSocket::bind(SocketAddress* address) throw(SocketException)
    
    // now bound
    mBound = true;
-}
-
-void AbstractSocket::bind(unsigned short port)
-{
-   SocketAddress address("0.0.0.0", port);
-   bind(&address);
 }
 
 void AbstractSocket::listen(unsigned int backlog) throw(SocketException)
@@ -273,7 +250,7 @@ throw(SocketException)
    struct sockaddr_in addr;
    
    // populate address structure
-   populateAddressStructure(address, addr);
+   address->toSockAddr((sockaddr*)&addr);
    
    // make socket non-blocking temporarily
    fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
@@ -420,7 +397,7 @@ throw(SocketException)
       throw SocketException("Cannot get local address for an unbound Socket!");
    }
    
-   sockaddr_in addr;
+   struct sockaddr_in addr;
    socklen_t addrSize = sizeof(addr);
    
    int error = getsockname(mFileDescriptor, (sockaddr*)&addr, &addrSize);
@@ -437,9 +414,8 @@ throw(SocketException)
          "Could not get Socket local port!", strerror(errno));
    }
    
-   // set address and port
-   address->setAddress(inet_ntoa(addr.sin_addr));
-   address->setPort(addr.sin_port);
+   // convert socket address
+   address->fromSockAddr((sockaddr*)&addr);
 }
 
 void AbstractSocket::getRemoteAddress(SocketAddress* address)
@@ -451,7 +427,7 @@ throw(SocketException)
          "Cannot get local address for an unconnected Socket!");
    }
    
-   sockaddr_in addr;
+   struct sockaddr_in addr;
    socklen_t addrSize = sizeof(addr);
    
    int error = getpeername(mFileDescriptor, (sockaddr*)&addr, &addrSize);
@@ -468,9 +444,8 @@ throw(SocketException)
          "Could not get Socket remote port!", strerror(errno));
    }
    
-   // set address and port
-   address->setAddress(inet_ntoa(addr.sin_addr));
-   address->setPort(addr.sin_port);
+   // convert socket address
+   address->fromSockAddr((sockaddr*)&addr);
 }
 
 InputStream* AbstractSocket::getInputStream()

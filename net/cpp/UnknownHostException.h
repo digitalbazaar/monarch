@@ -1,0 +1,42 @@
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
+#ifndef UnknownHostException_H
+#define UnknownHostException_H
+
+#include "Exception.h"
+
+namespace db
+{
+namespace net
+{
+
+/**
+ * An UnknownHostException is thrown when host's internet address cannot
+ * be resolved.
+ *
+ * @author Dave Longley
+ */
+class UnknownHostException : public db::rt::Exception
+{
+public:
+   /**
+    * Creates a new UnknownHostException.
+    *
+    * A message and code may be optionally specified.
+    *
+    * @param message the message for this Exception.
+    * @param code the code for this Exception.
+    */
+   UnknownHostException(
+      const std::string& message = "", const std::string& code = "");
+   
+   /**
+    * Destructs this UnknownHostException.
+    */
+   virtual ~UnknownHostException();
+};
+
+} // end namespace net
+} // end namespace db
+#endif
