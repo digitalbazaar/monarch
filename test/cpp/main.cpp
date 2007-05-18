@@ -587,9 +587,14 @@ void runWindowsSslServerSocketTest()
 #endif   
 }
 
-void runLinuxTcpClientServerTest(InternetAddress* address)
+void runLinuxTcpClientServerTest()
 {
    cout << "Running TCP Client/Server Test" << endl << endl;
+   
+   InternetAddress* address;
+   //InternetAddress ia("127.0.0.1", 9999);
+   //Internet6Address ia("::0", 9999);
+   //address = &ia;
    
    // create tcp server and client sockets
    TcpSocket server;
@@ -670,7 +675,7 @@ void runWindowsTcpClientServerTest(InternetAddress* address)
 #endif
    
    // run linux client/server test
-   runLinuxTcpClientServerTest(address);
+   runLinuxTcpClientServerTest();
    
 // cleanup winsock
 #ifdef WIN32
@@ -678,9 +683,18 @@ void runWindowsTcpClientServerTest(InternetAddress* address)
 #endif   
 }
 
-void runLinuxUdpClientServerTest(InternetAddress* sa, InternetAddress* ca)
+void runLinuxUdpClientServerTest()
 {
    cout << "Running UDP Client/Server Test" << endl << endl;
+   
+   InternetAddress* sa;
+   InternetAddress* ca;
+   //InternetAddress serverAddress("127.0.0.1", 9999);
+   //InternetAddress clientAddress("127.0.0.1", 0);
+   //Internet6Address serverAddress("::0", 9999);
+   //Internet6Address clientAddress("::1", 0);
+   //sa = &serverAddress;
+   //ca = &clientAddress;
    
    // create udp server and client sockets
    UdpSocket server;
@@ -743,7 +757,7 @@ void runLinuxUdpClientServerTest(InternetAddress* sa, InternetAddress* ca)
    cout << endl << "UDP Client/Server test complete." << endl;
 }
 
-void runWindowsUdpClientServerTest(InternetAddress* sa, InternetAddress* ca)
+void runWindowsUdpClientServerTest()
 {
 // initialize winsock
 #ifdef WIN32
@@ -755,7 +769,7 @@ void runWindowsUdpClientServerTest(InternetAddress* sa, InternetAddress* ca)
 #endif
    
    // run linux client/server test
-   runLinuxUdpClientServerTest(sa, ca);
+   runLinuxUdpClientServerTest();
    
 // cleanup winsock
 #ifdef WIN32
@@ -1483,18 +1497,14 @@ int main()
       //runLinuxSocketTest();
       //runWindowsSslSocketTest();
       //runLinuxSslSocketTest();
-      //runWindowsServerSocketTest();
+      runWindowsServerSocketTest();
       //runLinuxServerSocketTest();
       //runWindowsSslServerSocketTest();
       //runLinuxSslServerSocketTest();
-      InternetAddress sa("127.0.0.1", 9999);
-      //InternetAddress ca("127.0.0.1", 0);
-      //Internet6Address sa("::0", 9999);
-      //Internet6Address ca("::1", 0);
-      //runWindowsTcpClientServerTest(&sa);
-      //runLinuxTcpClientServerTest(&sa);
-      //runWindowsUdpClientServerTest(&sa, &ca);
-      //runLinuxUdpClientServerTest(&sa, &ca);
+      //runWindowsTcpClientServerTest();
+      //runLinuxTcpClientServerTest();
+      //runWindowsUdpClientServerTest();
+      //runLinuxUdpClientServerTest();
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();

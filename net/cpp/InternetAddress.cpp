@@ -136,7 +136,7 @@ const string& InternetAddress::getHost()
       // given in sockaddr_in will be returned
       char dst[100];
       memset(&dst, '\0', 100);
-      if(getnameinfo((sockaddr*)&sa, size, dst, 100, NULL, 0, 0) != NULL)
+      if(getnameinfo((sockaddr*)&sa, size, dst, 100, NULL, 0, 0) == 0)
       {
          // set host name
          mHost = dst;

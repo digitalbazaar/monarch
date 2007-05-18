@@ -131,10 +131,16 @@ const string& Internet6Address::getHost()
       // given in sockaddr_in6 will be returned
       char dst[100];
       memset(&dst, '\0', 100);
-      getnameinfo((sockaddr*)&sa, size, dst, 100, NULL, 0, 0);
-      
-      // set host name
-      mHost = dst;
+      if(getnameinfo((sockaddr*)&sa, size, dst, 100, NULL, 0, 0) == 0)
+      {
+         // set host name
+         mHost = dst;
+      }
+      else
+      {
+         // use address
+         mHost = getAddress();
+      }
    }
    
    // return host
