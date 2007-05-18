@@ -202,11 +202,11 @@ void runLinuxAddressResolveTest()
    
    cout << endl << "Testing IPv6..." << endl << endl;
    
-   ip6.setHost("ip6-localhost");
-   cout << "ip6-localhost = " << ip6.getAddress() << endl;
+   //ip6.setHost("ip6-localhost");
+   //cout << "ip6-localhost = " << ip6.getAddress() << endl;
    
-   ip6.setHost("yuna.digitalbazaar.com");
-   cout << "yuna.digitalbazaar.com = " << ip6.getAddress() << endl;
+   //ip6.setHost("yuna.digitalbazaar.com");
+   //cout << "yuna.digitalbazaar.com = " << ip6.getAddress() << endl;
    
    /*
    ip6.setHost("www.google.com");
@@ -1488,13 +1488,13 @@ int main()
       //runWindowsSslServerSocketTest();
       //runLinuxSslServerSocketTest();
       InternetAddress sa("127.0.0.1", 9999);
-      InternetAddress ca("127.0.0.1", 0);
+      //InternetAddress ca("127.0.0.1", 0);
       //Internet6Address sa("::0", 9999);
       //Internet6Address ca("::1", 0);
       //runWindowsTcpClientServerTest(&sa);
       //runLinuxTcpClientServerTest(&sa);
       //runWindowsUdpClientServerTest(&sa, &ca);
-      runLinuxUdpClientServerTest(&sa, &ca);
+      //runLinuxUdpClientServerTest(&sa, &ca);
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
