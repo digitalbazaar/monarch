@@ -196,7 +196,7 @@ throw(IOException)
    select(true, getReceiveTimeout());
    
    // get address structure
-   unsigned int size = 130;
+   socklen_t size = 130;
    char addr[size];
    
    // receive some data

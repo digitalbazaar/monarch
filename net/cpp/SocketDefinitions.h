@@ -7,6 +7,7 @@
 #ifdef WIN32
    // windows socket library
    #include <winsock2.h>
+   #include <ws2tcpip.h>
 #else
    // data types
    #include <sys/types.h>
@@ -107,7 +108,8 @@
     * 
     * @return a pointer to dst on success, NULL on failure (errno is set).
     */
-   const char *inet_ntop(int af, const void* src, char* dst, unsigned int size)
+   inline static const char *inet_ntop(
+      int af, const void* src, char* dst, unsigned int size)
    {
       const char* rval = NULL;
       
@@ -177,7 +179,7 @@
     * @return >= 1 on success, 0 for an unparseable address, and -1 for an
     *         error with errno set.
     */
-   int inet_pton(int af, const char* src, void* dst)
+   inline static int inet_pton(int af, const char* src, void* dst)
    {
       int rval = -1;
       
@@ -246,20 +248,6 @@
       #define DESTINATION_PORT          4567
    #endif
    
-   // define structure for multicast requests to join/leave groups
-   typedef struct ip_mreq
-   {
-      /**
-       * The multicast group address.
-       */
-      struct in_addr imr_multiaddr;
-      
-      /**
-       * The interface to join on.
-       */
-      struct in_addr imr_interface;
-   }IP_MREQ;
-   
    // define socket blocking options
    #ifndef F_SETFL
       #define F_SETFL           FIONBIO
@@ -267,6 +255,16 @@
    #ifndef O_NONBLOCK
       #define O_NONBLOCK        1
    #endif
+   
+   // define getnameinfo()/getaddrinfo() constants
+   /*
+   #ifndef NI_NUMERICHOST
+      #define NI_NUMERICHOST    1
+   #endif
+   #ifndef NI_NUMERICSERV
+      #define NI_NUMERICSERV    2
+   #endif
+   */
    
    // define standard errors according to winsock errors
    #ifndef EWOULDBLOCK

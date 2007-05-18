@@ -389,7 +389,7 @@ throw(SocketException)
    }
    
    // get address structure
-   unsigned int size = 130;
+   socklen_t size = 130;
    char addr[size];
    
    // get local information
@@ -414,7 +414,7 @@ throw(SocketException)
    }
    
    // get address structure
-   unsigned int size = 130;
+   socklen_t size = 130;
    char addr[size];
    
    // get remote information
