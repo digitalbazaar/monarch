@@ -294,9 +294,9 @@ throw(SocketException)
 
 void AbstractSocket::send(const char* b, unsigned int length) throw(IOException)
 {
-   if(!isConnected())
+   if(!isBound())
    {
-      throw SocketException("Cannot write to unconnected Socket!");
+      throw SocketException("Cannot write to unbound Socket!");
    }
    
    // send all data (send can fail to send all bytes in one go because the
@@ -325,9 +325,9 @@ int AbstractSocket::receive(char* b, unsigned int length) throw(IOException)
 {
    int rval = -1;
    
-   if(!isConnected())
+   if(!isBound())
    {
-      throw SocketException("Cannot read from unconnected Socket!");
+      throw SocketException("Cannot read from unbound Socket!");
    }
    
    // wait for data to become available

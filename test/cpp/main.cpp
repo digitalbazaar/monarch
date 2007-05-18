@@ -13,6 +13,7 @@
 #include "Thread.h"
 #include "System.h"
 #include "TcpSocket.h"
+#include "UdpSocket.h"
 #include "Internet6Address.h"
 #include "SslSocket.h"
 #include "MessageDigest.h"
@@ -586,11 +587,11 @@ void runWindowsSslServerSocketTest()
 #endif   
 }
 
-void runLinuxClientServerTest(InternetAddress* address)
+void runLinuxTcpClientServerTest(InternetAddress* address)
 {
-   cout << "Running Client Server Test" << endl << endl;
+   cout << "Running TCP Client/Server Test" << endl << endl;
    
-   // create tcp server socket and client sockets
+   // create tcp server and client sockets
    TcpSocket server;
    TcpSocket client;
    
@@ -654,10 +655,10 @@ void runLinuxClientServerTest(InternetAddress* address)
    
    cout << "Sockets closed." << endl;
    
-   cout << endl << "Client/Server test complete." << endl;
+   cout << endl << "TCP Client/Server test complete." << endl;
 }
 
-void runWindowsClientServerTest(InternetAddress* serverAddress)
+void runWindowsTcpClientServerTest(InternetAddress* address)
 {
 // initialize winsock
 #ifdef WIN32
@@ -669,7 +670,92 @@ void runWindowsClientServerTest(InternetAddress* serverAddress)
 #endif
    
    // run linux client/server test
-   runLinuxClientServerTest(serverAddress);
+   runLinuxTcpClientServerTest(address);
+   
+// cleanup winsock
+#ifdef WIN32
+   WSACleanup();
+#endif   
+}
+
+void runLinuxUdpClientServerTest(InternetAddress* sa, InternetAddress* ca)
+{
+   cout << "Running UDP Client/Server Test" << endl << endl;
+   
+   // create udp server and client sockets
+   UdpSocket server;
+   UdpSocket client;
+   
+   // set receive timeouts to 10 seconds
+   server.setReceiveTimeout(10000);
+   client.setReceiveTimeout(10000);
+   
+   // bind with server
+   server.bind(sa);
+   
+   cout << "Server bound at host: " << sa->getHost() << endl;
+   cout << "Server bound at address: " << sa->getAddress() << endl;
+   cout << "Server bound on port: " << sa->getPort() << endl;
+   
+   // bind with client
+   client.bind(ca);
+   client.getLocalAddress(ca);
+   
+   cout << "Client bound at host: " << ca->getHost() << endl;
+   cout << "Client bound at address: " << ca->getAddress() << endl;
+   cout << "Client bound on port: " << ca->getPort() << endl;
+   
+   // send some data with client
+   string clientData = "Hello there, Server.";
+   client.sendDatagram(clientData.c_str(), clientData.length(), sa);
+   
+   cout << "Client sent: " << clientData << endl;
+   
+   // receive the client data
+   char read[2048];
+   int numBytes = server.receiveDatagram(read, 2048, ca);
+   string serverReceived(read, numBytes);
+   
+   cout << "Server received: " << serverReceived << endl;
+   cout << "Data from: " << ca->getAddress();
+   cout << ":" << ca->getPort() << endl;
+   
+   // send some data with server
+   string serverData = "G'day, Client.";
+   server.sendDatagram(serverData.c_str(), serverData.length(), ca);
+   
+   cout << "Server sent: " << serverData << endl;
+   
+   // receive the server data
+   numBytes = client.receiveDatagram(read, 2048, sa);
+   string clientReceived(read, numBytes);
+   
+   cout << "Client received: " << clientReceived << endl;
+   cout << "Data from: " << sa->getAddress();
+   cout << ":" << sa->getPort() << endl;
+   
+   // close sockets
+   client.close();
+   server.close();
+   
+   cout << "Sockets closed." << endl;
+   
+   cout << endl << "UDP Client/Server test complete." << endl;
+}
+
+void runWindowsUdpClientServerTest(InternetAddress* sa, InternetAddress* ca)
+{
+// initialize winsock
+#ifdef WIN32
+   WSADATA wsaData;
+   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
+   {
+      cout << "ERROR! Could not initialize winsock!" << endl;
+   }
+#endif
+   
+   // run linux client/server test
+   runLinuxUdpClientServerTest(sa, ca);
    
 // cleanup winsock
 #ifdef WIN32
@@ -1401,10 +1487,14 @@ int main()
       //runLinuxServerSocketTest();
       //runWindowsSslServerSocketTest();
       //runLinuxSslServerSocketTest();
-      //InternetAddress address("127.0.0.1", 9999);
-      //Internet6Address address("::0", 9999);
-      //runWindowsClientServerTest(&address);
-      //runLinuxClientServerTest(&address);
+      //InternetAddress sa("127.0.0.1", 9999);
+      //InternetAddress ca("127.0.0.1", 0);
+      Internet6Address sa("::0", 9999);
+      Internet6Address ca("::1", 0);
+      //runWindowsTcpClientServerTest(&sa);
+      runLinuxTcpClientServerTest(&sa);
+      //runWindowsUdpClientServerTest(&sa, &ca);
+      //runLinuxUdpClientServerTest(&sa, &ca);
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
