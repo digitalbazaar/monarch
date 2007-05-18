@@ -20,14 +20,18 @@ class TcpSocket : public AbstractSocket
 {
 protected:
    /**
-    * Initializes this Socket by acquiring a file descriptor for it. This
-    * method must be called before trying to use this TcpSocket.
+    * Acquiring a file descriptor for this Socket. This method must be called
+    * before trying to use this Socket.
     * 
-    * @param address the SocketAddress for the Socket.
+    * This method is called automatically by the default implementation.
     * 
-    * @exception SocketException thrown if the Socket could not be initialized.
+    * @param domain the communication domain for this Socket (i.e. IPv4, IPv6).
+    * 
+    * @exception SocketException thrown if a file descriptor could not be
+    *            acquired.
     */
-   virtual void initialize(SocketAddress* address) throw(SocketException);
+   virtual void acquireFileDescriptor(const std::string& domain)
+   throw(SocketException);
    
    /**
     * Creates a new Socket with the given file descriptor that points to

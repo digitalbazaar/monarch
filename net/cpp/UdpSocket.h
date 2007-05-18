@@ -20,14 +20,45 @@ class UdpSocket : public AbstractSocket
 {
 protected:
    /**
-    * Initializes this Socket by acquiring a file descriptor for it. This
-    * method must be called before trying to use this TcpSocket.
+    * Acquiring a file descriptor for this Socket. This method must be called
+    * before trying to use this Socket.
     * 
-    * @param address the SocketAddress for the Socket.
+    * This method is called automatically by the default implementation.
     * 
-    * @exception SocketException thrown if the Socket could not be initialized.
+    * @param domain the communication domain for this Socket (i.e. IPv4, IPv6).
+    * 
+    * @exception SocketException thrown if a file descriptor could not be
+    *            acquired.
     */
-   virtual void initialize(SocketAddress* address) throw(SocketException);
+   virtual void acquireFileDescriptor(const std::string& domain)
+   throw(SocketException);
+   
+   /**
+    * Initializes the input stream for this Socket, if it is not already
+    * initialized. This method must be called before trying to read from this
+    * Socket.
+    *
+    * This method should be reentrant such that multiple calls can be
+    * performed safely and will not cause the stream to be reset.
+    * 
+    * This method is called automatically by the default implementation.
+    * 
+    * @exception SocketException thrown if the input stream could not be
+    *            initialized.
+    */
+   virtual void initializeInput() throw(SocketException);
+   
+   /**
+    * Initializes the output stream for this Socket, if it is not already
+    * initialized. This method must be called before trying to write to this
+    * Socket.
+    * 
+    * This method is called automatically by the default implementation.
+    * 
+    * @exception SocketException thrown if the output stream could not be
+    *            initialized.
+    */
+   virtual void initializeOutput() throw(SocketException);
    
    /**
     * Creates a new Socket with the given file descriptor that points to

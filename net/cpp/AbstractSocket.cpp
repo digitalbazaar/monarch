@@ -23,9 +23,9 @@ AbstractSocket::AbstractSocket()
    mListening = false;
    mConnected = false;
    
-   // create input and output streams
-   mInputStream = new PeekInputStream(new SocketInputStream(this), true);
-   mOutputStream = new SocketOutputStream(this);
+   // input/output uninitialized
+   mInputStream = NULL;
+   mOutputStream = NULL;
    
    // no receive or send timeouts (socket will block)
    mReceiveTimeout = 0;
@@ -39,10 +39,6 @@ AbstractSocket::~AbstractSocket()
 {
    // close socket
    close();
-   
-   // destruct input and output streams
-   delete mInputStream;
-   delete mOutputStream;
 }
 
 void AbstractSocket::create(int domain, int type, int protocol)
@@ -168,10 +164,46 @@ throw(SocketException)
    }
 }
 
+void AbstractSocket::initializeInput() throw(SocketException)
+{
+   if(mInputStream == NULL)
+   {
+      // create input stream
+      mInputStream = new PeekInputStream(new SocketInputStream(this), true);
+   }
+}
+
+void AbstractSocket::initializeOutput() throw(SocketException)
+{
+   if(mOutputStream == NULL)
+   {
+      // create output stream
+      mOutputStream = new SocketOutputStream(this);
+   }
+}
+
+void AbstractSocket::shutdownInput() throw(SocketException)
+{
+   // delete input stream
+   if(mInputStream == NULL)
+   {
+      delete mInputStream;
+   }
+}
+
+void AbstractSocket::shutdownOutput() throw(SocketException)
+{
+   // delete output stream
+   if(mOutputStream == NULL)
+   {
+      delete mOutputStream;
+   }
+}
+
 void AbstractSocket::bind(SocketAddress* address) throw(SocketException)
 {
-   // initialize as necessary
-   initialize(address);
+   // acquire file descriptor
+   acquireFileDescriptor(address->getProtocol());
    
    // populate address structure
    unsigned int size = 130;
@@ -184,6 +216,10 @@ void AbstractSocket::bind(SocketAddress* address) throw(SocketException)
    {
       throw new SocketException("Could not bind Socket!", strerror(errno));
    }
+   
+   // initialize input and output
+   initializeInput();
+   initializeOutput();
    
    // now bound
    mBound = true;
@@ -235,8 +271,8 @@ Socket* AbstractSocket::accept(unsigned int timeout) throw(SocketException)
 void AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
 throw(SocketException)
 {
-   // initialize as necessary
-   initialize(address);
+   // acquire file descriptor
+   acquireFileDescriptor(address->getProtocol());
    
    // populate address structure
    unsigned int size = 130;
@@ -286,6 +322,10 @@ throw(SocketException)
    
    // restore socket to blocking
    fcntl(mFileDescriptor, F_SETFL, 0);
+   
+   // initialize input and output
+   initializeInput();
+   initializeOutput();
    
    // now connected and bound
    mBound = true;
@@ -352,6 +392,10 @@ void AbstractSocket::close()
 {
    if(mFileDescriptor != -1)
    {
+      // shutdown input and output
+      shutdownInput();
+      shutdownOutput();
+      
       // close the socket
       ::close(mFileDescriptor);
       

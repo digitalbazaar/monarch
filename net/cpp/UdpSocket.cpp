@@ -3,7 +3,11 @@
  */
 #include "UdpSocket.h"
 #include "SocketDefinitions.h"
+#include "PeekInputStream.h"
+#include "SocketInputStream.h"
+#include "SocketOutputStream.h"
 
+using namespace std;
 using namespace db::io;
 using namespace db::net;
 
@@ -15,23 +19,44 @@ UdpSocket::~UdpSocket()
 {
 }
 
-void UdpSocket::initialize(SocketAddress* address) throw(SocketException)
+void UdpSocket::acquireFileDescriptor(const string& domain)
+throw(SocketException)
 {
    if(mFileDescriptor == -1)
    {
       // use PF_INET = "protocol family internet" (which just so happens to
       // have the same value as AF_INET but that's only because different
       // protocols were never used with the same address family
-      if(address->getProtocol() == "IPv6")
+      if(domain == "IPv6")
       {
          // use IPv6
-         create(PF_INET6, SOCK_STREAM, IPPROTO_UDP);
+         create(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
       }
       else
       {
          // default to IPv4
-         create(PF_INET, SOCK_STREAM, IPPROTO_UDP);
+         create(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
       }
+   }
+}
+
+void UdpSocket::initializeInput() throw(SocketException)
+{
+   if(mInputStream == NULL)
+   {
+      // FIXME: use DatagramInputStream
+      // create input stream
+      mInputStream = new PeekInputStream(new SocketInputStream(this), true);
+   }
+}
+
+void UdpSocket::initializeOutput() throw(SocketException)
+{
+   if(mOutputStream == NULL)
+   {
+      // FIXME: use DatagramOutputStream
+      // create output stream
+      mOutputStream = new SocketOutputStream(this);
    }
 }
 
@@ -42,6 +67,10 @@ Socket* UdpSocket::createConnectedSocket(unsigned int fd) throw(SocketException)
    socket->mFileDescriptor = fd;
    socket->mBound = true;
    socket->mConnected = true;
+   
+   // initialize input and output
+   socket->initializeInput();
+   socket->initializeOutput();
    
    return socket;
 }

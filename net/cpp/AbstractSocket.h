@@ -9,14 +9,16 @@
 #include "InputStream.h"
 #include "OutputStream.h"
 
+#include <string>
+
 namespace db
 {
 namespace net
 {
 
 /**
- * An AbstractSocket provides the basic implementation for a Sock. This is the
- * base class for types of Sockets that have specific protocols and
+ * An AbstractSocket provides the basic implementation for a Socket. This is
+ * the base class for types of Sockets that have specific protocols and
  * implementations.
  * 
  * @author Dave Longley
@@ -97,14 +99,67 @@ protected:
    throw(SocketException);
    
    /**
-    * Initializes this Socket by acquiring a file descriptor for it. This
-    * method must be called before trying to use this Socket.
+    * Acquiring a file descriptor for this Socket. This method must be called
+    * before trying to use this Socket.
     * 
-    * @param address the SocketAddress for the Socket.
+    * This method is called automatically by the default implementation.
     * 
-    * @exception SocketException thrown if the Socket could not be initialized.
+    * @param domain the communication domain for this Socket (i.e. IPv4, IPv6).
+    * 
+    * @exception SocketException thrown if a file descriptor could not be
+    *            acquired.
     */
-   virtual void initialize(SocketAddress* address) throw(SocketException) = 0;
+   virtual void acquireFileDescriptor(const std::string& domain)
+   throw(SocketException) = 0;
+   
+   /**
+    * Initializes the input stream for this Socket, if it is not already
+    * initialized. This method must be called before trying to read from this
+    * Socket.
+    *
+    * This method should be reentrant such that multiple calls can be
+    * performed safely and will not cause the stream to be reset.
+    * 
+    * This method is called automatically by the default implementation.
+    * 
+    * @exception SocketException thrown if the input stream could not be
+    *            initialized.
+    */
+   virtual void initializeInput() throw(SocketException);
+   
+   /**
+    * Initializes the output stream for this Socket, if it is not already
+    * initialized. This method must be called before trying to write to this
+    * Socket.
+    * 
+    * This method is called automatically by the default implementation.
+    * 
+    * @exception SocketException thrown if the output stream could not be
+    *            initialized.
+    */
+   virtual void initializeOutput() throw(SocketException);
+   
+   /**
+    * Shuts down the input stream for this Socket, if it is currently
+    * initialized.
+    * 
+    * This method is called automatically by the default implementation.
+    * 
+    * @exception SocketException thrown if the input stream could not be
+    *            shutdown.
+    */
+   virtual void shutdownInput() throw(SocketException);
+   
+   /**
+    * Shuts down the output stream for this Socket, if it is currently
+    * initialized.
+    * 
+    * This method is called automatically by the default implementation.
+    * 
+    * @exception SocketException thrown if the output stream could not be
+    *            shutdown.
+    */
+   virtual void shutdownOutput() throw(SocketException);
    
    /**
     * Creates a new Socket with the given file descriptor that points to
