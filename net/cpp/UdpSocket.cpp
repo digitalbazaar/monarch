@@ -40,26 +40,6 @@ throw(SocketException)
    }
 }
 
-void UdpSocket::initializeInput() throw(SocketException)
-{
-   if(mInputStream == NULL)
-   {
-      // FIXME: use DatagramInputStream
-      // create input stream
-      mInputStream = new PeekInputStream(new SocketInputStream(this), true);
-   }
-}
-
-void UdpSocket::initializeOutput() throw(SocketException)
-{
-   if(mOutputStream == NULL)
-   {
-      // FIXME: use DatagramOutputStream
-      // create output stream
-      mOutputStream = new SocketOutputStream(this);
-   }
-}
-
 Socket* UdpSocket::createConnectedSocket(unsigned int fd) throw(SocketException)
 {
    // create a new UdpSocket

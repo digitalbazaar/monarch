@@ -38,7 +38,7 @@ public:
     * 
     * @param address the address to bind to.
     * 
-    * @exception SocketException thrown if the address could not be bound.
+    * @exception SocketException thrown if a socket error occurs.
     */
    virtual void bind(SocketAddress* address) throw(SocketException) = 0;
    
@@ -47,7 +47,7 @@ public:
     * 
     * @param backlog the number of connections to keep backlogged.
     * 
-    * @exception SocketException thrown if the address could not be bound.
+    * @exception SocketException thrown if a socket error occurs.
     */
    virtual void listen(unsigned int backlog = 50) throw(SocketException) = 0;
    

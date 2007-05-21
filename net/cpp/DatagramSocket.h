@@ -1,0 +1,186 @@
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
+#ifndef DatagramSocket_H
+#define DatagramSocket_H
+
+#include "Datagram.h"
+#include "UdpSocket.h"
+
+namespace db
+{
+namespace net
+{
+
+/**
+ * A DatagramSocket provides a communication interface for transmitting and
+ * receiving Datagrams.
+ * 
+ * @author Dave Longley
+ */
+class DatagramSocket : protected UdpSocket
+{
+public:
+   /**
+    * Creates a new DatagramSocket.
+    */
+   DatagramSocket();
+   
+   /**
+    * Destructs this DatagramSocket.
+    */
+   virtual ~DatagramSocket();
+   
+   /**
+    * Binds this Socket to the passed address.
+    * 
+    * @param address the InternetAddress to bind to.
+    * 
+    * @exception SocketException thrown if a socket error occurs.
+    */ 
+   virtual void bind(InternetAddress* address) throw(SocketException);
+   
+   /**
+    * Joins a multicast group with the given address.
+    * 
+    * @param group the multicast group address.
+    * @param localAddress the local address to bind to.
+    * 
+    * @exception SocketException thrown if a socket error occurs.
+    */
+   virtual void joinGroup(
+      InternetAddress* group, InternetAddress* localAddress = NULL)
+   throw(SocketException);
+   
+   /**
+    * Leaves a multicast group with the given address.
+    * 
+    * @param group the multicast group address.
+    * 
+    * @exception SocketException thrown if a socket error occurs.
+    */
+   virtual void leaveGroup(InternetAddress* group) throw(SocketException);
+   
+   /**
+    * Sends a Datagram.
+    * 
+    * @param datagram the Datagram to send.
+    * 
+    * @exception IOException thrown if an IO error occurs. 
+    */
+   virtual void send(Datagram* datagram) throw(db::io::IOException);
+   
+   /**
+    * Receives a datagram. This method will block until at least one Datagram
+    * can be read. The address the Datagram is from and its data will be
+    * written to the passed Datagram.
+    * 
+    * If the passed Datagram does not have a data buffer large enough to
+    * accommodate the received data, then it will be truncated.
+    * 
+    * @param datagram the Datagram to populate.
+    * 
+    * @exception IOException thrown if an IO error occurs. 
+    */
+   virtual void receive(Datagram* datagram) throw(db::io::IOException);
+   
+   /**
+    * Sets the IPv6 multicast hops. This is the number of hops a datagram
+    * should make before dying.
+    * 
+    * Note: This method is for IPv6 only.
+    * 
+    * @param hops the number of hops to use.
+    * 
+    * @exception SocketException if a socket error occurs.
+    */
+   virtual void setMulticastHops(unsigned char hops) throw(SocketException);
+   
+   /**
+    * Sets the IPv4 multicast time-to-live (TTL). This is the number of hops a
+    * datagram should make before dying.
+    * 
+    * Note: This method is for IPv4 only.
+    * 
+    * @param ttl the time-to-live to use.
+    * 
+    * @exception SocketException if a socket error occurs.
+    */
+   virtual void setMulticastTimeToLive(unsigned char ttl)
+   throw(SocketException);
+   
+   /**
+    * Enables/disables broadcasting via this socket.
+    * 
+    * @param enable true to enable broadcasting, false to disable it.
+    * 
+    * @exception SocketException if a socket error occurs.
+    */
+   virtual void setBroadcastEnabled(bool enable) throw(SocketException);
+   
+   /**
+    * Closes this Socket. This will be done automatically when the Socket is
+    * destructed.
+    */
+   virtual void close();
+   
+   /**
+    * Returns true if this Socket is bound, false if not.
+    * 
+    * @return true if this Socket is bound, false if not.
+    */
+   virtual bool isBound();
+   
+   /**
+    * Returns true if this Socket is connected, false if not.
+    * 
+    * @return true if this Socket is connected, false if not.
+    */
+   virtual bool isConnected();
+   
+   /**
+    * Gets the local address for this Socket.
+    * 
+    * @param address the address to populate.
+    * 
+    * @exception SocketException if a socket error occurs.
+    */
+   virtual void getLocalAddress(InternetAddress* address)
+   throw(SocketException);   
+   
+   /**
+    * Sets the send timeout for this Socket. This is the amount of time that
+    * this Socket will block waiting to send data.
+    * 
+    * @param timeout the send timeout in milliseconds.
+    */
+   virtual void setSendTimeout(unsigned long long timeout);
+   
+   /**
+    * Gets the send timeout for this Socket. This is the amount of time that
+    * this Socket will block waiting to send data.
+    * 
+    * @return the send timeout in milliseconds.
+    */
+   virtual unsigned long long getSendTimeout();
+   
+   /**
+    * Sets the receive timeout for this Socket. This is the amount of time that
+    * this Socket will block waiting to receive data.
+    * 
+    * @param timeout the receive timeout in milliseconds.
+    */
+   virtual void setReceiveTimeout(unsigned long long timeout);
+   
+   /**
+    * Gets the receive timeout for this Socket. This is the amount of time that
+    * this Socket will block waiting to receive data.
+    * 
+    * @return the receive timeout in milliseconds.
+    */
+   virtual unsigned long long getReceiveTimeout();
+};
+
+} // end namespace net
+} // end namespace db
+#endif

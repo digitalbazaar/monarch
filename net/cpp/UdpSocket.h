@@ -34,33 +34,6 @@ protected:
    throw(SocketException);
    
    /**
-    * Initializes the input stream for this Socket, if it is not already
-    * initialized. This method must be called before trying to read from this
-    * Socket.
-    *
-    * This method should be reentrant such that multiple calls can be
-    * performed safely and will not cause the stream to be reset.
-    * 
-    * This method is called automatically by the default implementation.
-    * 
-    * @exception SocketException thrown if the input stream could not be
-    *            initialized.
-    */
-   virtual void initializeInput() throw(SocketException);
-   
-   /**
-    * Initializes the output stream for this Socket, if it is not already
-    * initialized. This method must be called before trying to write to this
-    * Socket.
-    * 
-    * This method is called automatically by the default implementation.
-    * 
-    * @exception SocketException thrown if the output stream could not be
-    *            initialized.
-    */
-   virtual void initializeOutput() throw(SocketException);
-   
-   /**
     * Creates a new Socket with the given file descriptor that points to
     * the socket for an accepted connection.
     * 

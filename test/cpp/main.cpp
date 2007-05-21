@@ -14,6 +14,7 @@
 #include "System.h"
 #include "TcpSocket.h"
 #include "UdpSocket.h"
+#include "DatagramSocket.h"
 #include "Internet6Address.h"
 #include "SslSocket.h"
 #include "MessageDigest.h"
@@ -777,6 +778,106 @@ void runWindowsUdpClientServerTest()
 #endif   
 }
 
+void runLinuxDatagramTest()
+{
+   cout << "Running Datagram Test" << endl << endl;
+   
+   InternetAddress* sa;
+   InternetAddress* ca;
+   InternetAddress serverAddress("127.0.0.1", 9999);
+   InternetAddress clientAddress("127.0.0.1", 0);
+   //Internet6Address serverAddress("::1", 9999);
+   //Internet6Address clientAddress("::1", 0);
+   sa = &serverAddress;
+   ca = &clientAddress;
+   
+   // create datagram server and client sockets
+   DatagramSocket server;
+   DatagramSocket client;
+   
+   // set receive timeouts to 10 seconds
+   server.setReceiveTimeout(10000);
+   client.setReceiveTimeout(10000);
+   
+   // bind with server
+   server.bind(sa);
+   
+   cout << "Server bound at host: " << sa->getHost() << endl;
+   cout << "Server bound at address: " << sa->getAddress() << endl;
+   cout << "Server bound on port: " << sa->getPort() << endl;
+   
+   // bind with client
+   client.bind(ca);
+   client.getLocalAddress(ca);
+   
+   cout << "Client bound at host: " << ca->getHost() << endl;
+   cout << "Client bound at address: " << ca->getAddress() << endl;
+   cout << "Client bound on port: " << ca->getPort() << endl;
+   
+   // create a datagram
+   Datagram d1(sa);
+   d1.assignString("Hello there, Server.");
+   
+   // send the datagram with the client
+   client.send(&d1);
+   
+   cout << "Client sent: " << d1.getString() << endl;
+   
+   // create a datagram
+   char externalData[2048];
+   Datagram d2(ca);
+   d2.setData(externalData, 2048, false);
+   
+   // receive a datagram
+   server.receive(&d2);
+   
+   cout << "Server received: " << d2.getString() << endl;
+   cout << "Data from: " << d2.getAddress()->getAddress();
+   cout << ":" << d2.getAddress()->getPort() << endl;
+   
+   // send a datagram with the server
+   d2.assignString("G'day, Client.");
+   server.send(&d2);
+   
+   cout << "Server sent: " << d2.getString() << endl;
+   
+   // receive the server datagram
+   Datagram d3(sa, 2048);
+   client.receive(&d3);
+   
+   cout << "Client received: " << d3.getString() << endl;
+   cout << "Data from: " << d3.getAddress()->getAddress();
+   cout << ":" << d3.getAddress()->getPort() << endl;
+   
+   // close sockets
+   client.close();
+   server.close();
+   
+   cout << "Sockets closed." << endl;
+   
+   cout << endl << "Datagram test complete." << endl;
+}
+
+void runWindowsDatagramTest()
+{
+// initialize winsock
+#ifdef WIN32
+   WSADATA wsaData;
+   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
+   {
+      cout << "ERROR! Could not initialize winsock!" << endl;
+   }
+#endif
+   
+   // run linux datagram test
+   runLinuxDatagramTest();
+   
+// cleanup winsock
+#ifdef WIN32
+   WSACleanup();
+#endif   
+}
+
 void runMessageDigestTest()
 {
    cout << "Running MessageDigest Test" << endl << endl;
@@ -1504,7 +1605,9 @@ int main()
       //runWindowsTcpClientServerTest();
       //runLinuxTcpClientServerTest();
       //runWindowsUdpClientServerTest();
-      runLinuxUdpClientServerTest();
+      //runLinuxUdpClientServerTest();
+      //runWindowsDatagramTest();
+      runLinuxDatagramTest();
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
