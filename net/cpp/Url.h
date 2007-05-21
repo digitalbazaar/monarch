@@ -105,6 +105,13 @@ public:
    virtual const std::string& getQuery();
    
    /**
+    * Gets the default port for the scheme (protocol) of this url.
+    * 
+    * @return the default port for the scheme (protocol) of this url.
+    */
+   virtual unsigned int getDefaultPort();
+   
+   /**
     * Converts this url to a string.
     * 
     * @return the string version of this url.

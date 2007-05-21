@@ -143,6 +143,30 @@ std::string Url::toString()
    return mScheme + ":" + mSchemeSpecificPart;
 }
 
+unsigned int Url::getDefaultPort()
+{
+   unsigned int rval = 0;
+   
+   if(getScheme() == "http")
+   {
+      rval = 80;
+   }
+   else if(getScheme() == "https")
+   {
+      rval = 443;
+   }
+   else if(getScheme() == "ftp")
+   {
+      rval = 21;
+   }
+   else if(getScheme() == "sftp")
+   {
+      rval = 22;
+   }
+   
+   return rval;
+}
+
 string Url::encode(const char* str, unsigned int length)
 {
    string rval;
