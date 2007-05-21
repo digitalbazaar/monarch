@@ -784,10 +784,10 @@ void runLinuxDatagramTest()
    
    InternetAddress* sa;
    InternetAddress* ca;
-   InternetAddress serverAddress("127.0.0.1", 9999);
-   InternetAddress clientAddress("127.0.0.1", 0);
-   //Internet6Address serverAddress("::1", 9999);
-   //Internet6Address clientAddress("::1", 0);
+   //InternetAddress serverAddress("127.0.0.1", 9999);
+   //InternetAddress clientAddress("127.0.0.1", 0);
+   Internet6Address serverAddress("::1", 9999);
+   Internet6Address clientAddress("::1", 0);
    sa = &serverAddress;
    ca = &clientAddress;
    
@@ -1544,9 +1544,9 @@ void runConvertTest()
    cout << endl << "Convert test complete." << endl;
 }
 
-void runUrlTest()
+void runUrlEncodeTest()
 {
-   cout << "Starting Url test." << endl << endl;
+   cout << "Starting Url Encode/Decode test." << endl << endl;
    
    string str = "billy bob & \"jane\" +^%2{13.";
    
@@ -1566,6 +1566,22 @@ void runUrlTest()
    {
       cout << "Test FAILED! Strings do not match!" << endl;
    }
+   
+   cout << endl << "Url Encode/Decode test complete." << endl;
+}
+
+void runUrlTest()
+{
+   cout << "Starting Url test." << endl << endl;
+   
+   Url url("http://www.bitmunk.com/mypath?variable1=test");
+   
+   cout << "url=" << url.toString() << endl;
+   cout << "scheme=" << url.getScheme() << endl;
+   cout << "scheme specific part=" << url.getSchemeSpecificPart() << endl;
+   cout << "authority=" << url.getAuthority() << endl;
+   cout << "path=" << url.getPath() << endl;
+   cout << "query=" << url.getQuery() << endl;
    
    cout << endl << "Url test complete." << endl;
 }
@@ -1607,7 +1623,7 @@ int main()
       //runWindowsUdpClientServerTest();
       //runLinuxUdpClientServerTest();
       //runWindowsDatagramTest();
-      runLinuxDatagramTest();
+      //runLinuxDatagramTest();
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
@@ -1617,7 +1633,8 @@ int main()
       //runEnvelopeTest("RSA");
       //runCipherTest("AES256");
       //runConvertTest();
-      //runUrlTest();
+      //runUrlEncodeTest();
+      runUrlTest();
       //runHttpHeaderTest();
    }
    catch(SocketException& e)

@@ -11,10 +11,10 @@ using namespace db::util;
 Url::Url(const string& url) throw(MalformedUrlException)
 {
    // find the first colon
-   string::size_type index = url.find_first_of(':', 0);
+   string::size_type index = url.find_first_of(':');
    if(index == string::npos)
    {
-      // no color found
+      // no colon found
       throw MalformedUrlException("Url is missing a colon!");
    }
    
@@ -42,7 +42,67 @@ Url::Url(const string& url) throw(MalformedUrlException)
    
    if(index != url.length() - 1)
    {
+      // get scheme specific part
       mSchemeSpecificPart = url.substr(index + 1);
+      
+      // get authority, path, and query:
+      
+      // authority is preceeded by double slash "//" and
+      // is terminated by single slash "/", a question mark "?", or
+      // the end of the url
+      index = mSchemeSpecificPart.find_first_of("//");
+      if(index == 0 && mSchemeSpecificPart.length() > 2)
+      {
+         string::size_type slash = mSchemeSpecificPart.find_first_of('/', 2);
+         string::size_type qMark = mSchemeSpecificPart.find_first_of('?', 2);
+         
+         // see if a query exists
+         if(qMark != string::npos)
+         {
+            // a query exists
+            
+            // get the path
+            if(slash != string::npos && slash < qMark)
+            {
+               // get authority
+               mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
+               
+               // get path
+               mPath = mSchemeSpecificPart.substr(slash, qMark - slash);
+            }
+            else
+            {
+               // get authority
+               mAuthority = mSchemeSpecificPart.substr(2, qMark - 2);
+               
+               // use base path
+               mPath = "/";
+            }
+            
+            // get query
+            if(qMark != mSchemeSpecificPart.length() - 1) 
+            {
+               mQuery = mSchemeSpecificPart.substr(qMark + 1);
+            }
+         }
+         else if(slash != string::npos)
+         {
+            // no query -- just authority and path
+            
+            // get authority
+            mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
+            
+            // get path
+            mPath = mSchemeSpecificPart.substr(slash);
+         }
+         else
+         {
+            // no path or query, just authority
+            
+            // get authority
+            mAuthority = mSchemeSpecificPart.substr(2);
+         }
+      }
    }
 }
 
@@ -58,6 +118,26 @@ const string& Url::getScheme()
 const string& Url::getSchemeSpecificPart() 
 {
    return mSchemeSpecificPart;
+}
+
+const string& Url::getAuthority()
+{
+   return mAuthority;
+}
+
+const string& Url::getPath()
+{
+   return mPath;
+}
+
+const string& Url::getQuery()
+{
+   return mQuery;
+}
+
+std::string Url::toString()
+{
+   return mScheme + ":" + mSchemeSpecificPart;
 }
 
 string Url::encode(const char* str, unsigned int length)

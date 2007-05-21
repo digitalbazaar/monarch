@@ -20,6 +20,10 @@ namespace net
  * 
  * <scheme>:<scheme-specific-part>
  * 
+ * A common, but not required, syntax for urls is as follows:
+ * 
+ * <scheme>://<authority><path>?<query>
+ * 
  * @author Dave Longley
  */
 class Url : public virtual db::rt::Object
@@ -34,6 +38,21 @@ protected:
     * The scheme-specific-part for this url.
     */
    std::string mSchemeSpecificPart;
+   
+   /**
+    * The authority part of this url, if one exists.
+    */
+   std::string mAuthority;
+   
+   /**
+    * The path of this url, if one exists.
+    */
+   std::string mPath;
+   
+   /**
+    * The query of this url, if one exists.
+    */
+   std::string mQuery;
    
 public:
    /**
@@ -63,6 +82,34 @@ public:
     * @return the scheme-specific-part for this url.
     */
    virtual const std::string& getSchemeSpecificPart();
+   
+   /**
+    * Gets the authority of this url, if one exists.
+    * 
+    * @return the authority of this url or a blank string.
+    */
+   virtual const std::string& getAuthority();
+   
+   /**
+    * Gets the path of this url, if one exists.
+    * 
+    * @return the path of this url or a blank string.
+    */
+   virtual const std::string& getPath();
+   
+   /**
+    * Gets the query of this url, if one exists.
+    * 
+    * @return the query of this url or a blank string.
+    */
+   virtual const std::string& getQuery();
+   
+   /**
+    * Converts this url to a string.
+    * 
+    * @return the string version of this url.
+    */
+   virtual std::string toString();
    
    /**
     * URL-encodes the passed string.
