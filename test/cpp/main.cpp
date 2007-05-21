@@ -592,9 +592,9 @@ void runLinuxTcpClientServerTest()
    cout << "Running TCP Client/Server Test" << endl << endl;
    
    InternetAddress* address;
-   //InternetAddress ia("127.0.0.1", 9999);
+   InternetAddress ia("127.0.0.1", 9999);
    //Internet6Address ia("::0", 9999);
-   //address = &ia;
+   address = &ia;
    
    // create tcp server and client sockets
    TcpSocket server;
@@ -689,12 +689,12 @@ void runLinuxUdpClientServerTest()
    
    InternetAddress* sa;
    InternetAddress* ca;
-   //InternetAddress serverAddress("127.0.0.1", 9999);
-   //InternetAddress clientAddress("127.0.0.1", 0);
+   InternetAddress serverAddress("127.0.0.1", 9999);
+   InternetAddress clientAddress("127.0.0.1", 0);
    //Internet6Address serverAddress("::0", 9999);
    //Internet6Address clientAddress("::1", 0);
-   //sa = &serverAddress;
-   //ca = &clientAddress;
+   sa = &serverAddress;
+   ca = &clientAddress;
    
    // create udp server and client sockets
    UdpSocket server;
@@ -1497,14 +1497,14 @@ int main()
       //runLinuxSocketTest();
       //runWindowsSslSocketTest();
       //runLinuxSslSocketTest();
-      runWindowsServerSocketTest();
+      //runWindowsServerSocketTest();
       //runLinuxServerSocketTest();
       //runWindowsSslServerSocketTest();
       //runLinuxSslServerSocketTest();
       //runWindowsTcpClientServerTest();
       //runLinuxTcpClientServerTest();
       //runWindowsUdpClientServerTest();
-      //runLinuxUdpClientServerTest();
+      runLinuxUdpClientServerTest();
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();

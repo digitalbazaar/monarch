@@ -136,11 +136,29 @@
          // NULL specifies that we don't care about getting a "service" name
          // NI_NUMERICHOST ensures that the numeric form of the address
          // given in sockaddr_in will be returned
-         getnameinfo(
+         int error = getnameinfo(
             (sockaddr*)&sa, sizeof(sa), dst, size, NULL, 0, NI_NUMERICHOST);
-         
-         // point at dst
-         rval = dst;
+         if(error == 0)
+         {
+            // point at dst
+            rval = dst;
+         }
+         else
+         {
+            // set error
+            if(error == EAI_FAMILY)
+            {
+               errno = EAFNOSUPPORT;
+            }
+            else if(error == EAI_OVERFLOW)
+            {
+               errno = ENOSPC;
+            }
+            else if(error != EAI_SYSTEM)
+            {
+               errno = error;
+            }
+         }
       }
       else if(af == AF_INET6)
       {
@@ -152,16 +170,34 @@
          sa.sin6_family = AF_INET6;
          
          // copy the source in_addr into the structure
-         memcpy(&sa.sin6_addr, src, sizeof(in_addr6));
+         memcpy(&sa.sin6_addr, src, sizeof(in6_addr));
          
          // NULL specifies that we don't care about getting a "service" name
          // NI_NUMERICHOST ensures that the numeric form of the address
          // given in sockaddr_in will be returned
-         getnameinfo(
+         int error = getnameinfo(
             (sockaddr*)&sa, sizeof(sa), dst, size, NULL, 0, NI_NUMERICHOST);
-         
-         // point at dst
-         rval = dst;
+         if(error == 0)
+         {
+            // point at dst
+            rval = dst;
+         }
+         else
+         {
+            // set error
+            if(error == EAI_FAMILY)
+            {
+               errno = EAFNOSUPPORT;
+            }
+            else if(error == EAI_OVERFLOW)
+            {
+               errno = ENOSPC;
+            }
+            else if(error != EAI_SYSTEM)
+            {
+               errno = error;
+            }
+         }
       }
       
       return rval;
@@ -174,7 +210,7 @@
     * @param af the address family (AF_INET for IPv4, AF_INET6 for IPv6).
     * @param src the buffer with the presentation address.
     * @param dst the buffer to store the converted address
-    *            (a sockaddr_in or sockaddr_in6).
+    *            (an in_addr or in6_addr).
     * 
     * @return >= 1 on success, 0 for an unparseable address, and -1 for an
     *         error with errno set.
@@ -198,16 +234,26 @@
       struct addrinfo* res = NULL;
       
       // get address information
-      int error = getaddrinfo(src, NULL, NULL, &res);
-      if(error = 0)
+      int error = getaddrinfo(src, NULL, &hints, &res);
+      if(error == 0)
       {
          rval = 1;
       }
       
       if(res != NULL)
       {
-         // copy the result
-         memcpy(dst, res->ai_addr, res->ai_addrlen);
+         if(af == AF_INET)
+         {
+            // copy the IPv4 result
+            struct sockaddr_in* addr = (sockaddr_in*)res->ai_addr;
+            memcpy(dst, &addr->sin_addr, sizeof(in_addr));
+         }
+         else if(af == AF_INET6)
+         {
+            // copy the IPv6 result
+            struct sockaddr_in6* addr = (sockaddr_in6*)res->ai_addr;
+            memcpy(dst, &addr->sin6_addr, sizeof(in6_addr));
+         }
          
          // free the result
          freeaddrinfo(res);

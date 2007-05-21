@@ -65,9 +65,9 @@ bool InternetAddress::fromSockAddr(const sockaddr* addr, unsigned int size)
       struct sockaddr_in* sa = (sockaddr_in*)addr;
       
       // get address
-      char dst[32];
-      memset(&dst, '\0', 32);
-      if(inet_ntop(AF_INET, &sa->sin_addr, dst, 32) != NULL)
+      char dst[INET_ADDRSTRLEN];
+      memset(&dst, '\0', size);
+      if(inet_ntop(AF_INET, &sa->sin_addr, dst, INET_ADDRSTRLEN) != NULL)
       {
          // set address
          setAddress(dst);
@@ -114,9 +114,9 @@ throw(UnknownHostException)
    memcpy(&addr, res->ai_addr, res->ai_addrlen);
    
    // get the address
-   char dst[32];
-   memset(&dst, '\0', 32);
-   inet_ntop(AF_INET, &addr.sin_addr, dst, 32);
+   char dst[INET_ADDRSTRLEN];
+   memset(&dst, '\0', INET_ADDRSTRLEN);
+   inet_ntop(AF_INET, &addr.sin_addr, dst, INET_ADDRSTRLEN);
    mAddress = dst;
    
    // free result
