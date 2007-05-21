@@ -689,10 +689,10 @@ void runLinuxUdpClientServerTest()
    
    InternetAddress* sa;
    InternetAddress* ca;
-   InternetAddress serverAddress("127.0.0.1", 9999);
-   InternetAddress clientAddress("127.0.0.1", 0);
-   //Internet6Address serverAddress("::0", 9999);
-   //Internet6Address clientAddress("::1", 0);
+   //InternetAddress serverAddress("127.0.0.1", 9999);
+   //InternetAddress clientAddress("127.0.0.1", 0);
+   Internet6Address serverAddress("::1", 9999);
+   Internet6Address clientAddress("::1", 0);
    sa = &serverAddress;
    ca = &clientAddress;
    
