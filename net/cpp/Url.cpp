@@ -159,9 +159,17 @@ unsigned int Url::getDefaultPort()
    {
       rval = 21;
    }
-   else if(getScheme() == "sftp")
+   else if(getScheme() == "sftp" || getScheme() == "ssh")
    {
       rval = 22;
+   }
+   else if(getScheme() == "telnet")
+   {
+      rval = 23;
+   }
+   else if(getScheme() == "smtp")
+   {
+      rval = 25;
    }
    
    return rval;
