@@ -21,6 +21,9 @@ Url::Url(const string& url) throw(MalformedUrlException)
    // split string into the scheme and scheme-specific-part
    mScheme = url.substr(0, index);
    
+   // make scheme lower case
+   transform(mScheme.begin(), mScheme.end(), mScheme.begin(), tolower);
+   
    // check scheme for validity
    char c;
    for(string::iterator i = mScheme.begin(); i != mScheme.end(); i++)
