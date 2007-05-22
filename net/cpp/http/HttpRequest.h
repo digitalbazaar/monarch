@@ -5,7 +5,7 @@
 #define HttpRequest_H
 
 #include "WebRequest.h"
-#include "HttpHeader.h"
+#include "HttpRequestHeader.h"
 
 namespace db
 {
@@ -26,9 +26,9 @@ class HttpRequest : public db::net::WebRequest
 {
 protected:
    /**
-    * The HttpHeader for this request.
+    * The header for this request.
     */
-   HttpHeader mHeader;
+   HttpRequestHeader mHeader;
    
 public:
    /**
@@ -50,7 +50,14 @@ public:
     * 
     * @return the new HttpResponse.
     */
-   virtual db::net::WebResponse* createResponse();   
+   virtual db::net::WebResponse* createResponse();
+   
+   /**
+    * Gets the header for this request.
+    * 
+    * @return the header for this request.
+    */
+   virtual HttpRequestHeader getHeader();
 };
 
 } // end namespace http

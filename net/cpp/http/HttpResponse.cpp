@@ -14,3 +14,8 @@ HttpResponse::HttpResponse(HttpRequest* request) : WebResponse(request)
 HttpResponse::~HttpResponse()
 {
 }
+
+HttpResponseHeader HttpResponse::getHeader()
+{
+   return mHeader;
+}

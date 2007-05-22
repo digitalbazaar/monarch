@@ -17,16 +17,6 @@ HttpHeader::~HttpHeader()
 {
 }
 
-void HttpHeader::setStartLine(const std::string& startLine)
-{
-   mStartLine = startLine;
-}
-
-const string& HttpHeader::getStartLine()
-{
-   return mStartLine;
-}
-
 void HttpHeader::setHeader(const string& header, const string& value)
 {
    // bicapitalize header

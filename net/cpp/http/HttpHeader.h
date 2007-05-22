@@ -32,11 +32,6 @@ class HttpHeader : public virtual db::rt::Object
 {
 protected:
    /**
-    * The start line for this header.
-    */
-   std::string mStartLine;
-   
-   /**
     * The map containing the headers.
     */
    std::map<std::string, std::string> mHeaders;
@@ -58,18 +53,11 @@ public:
    virtual ~HttpHeader();
    
    /**
-    * Sets the start line for this HttpHeader.
-    * 
-    * @param startLine the start line for this HttpHeader.
-    */
-   virtual void setStartLine(const std::string& startLine);
-   
-   /**
     * Gets the start line for this HttpHeader.
     * 
     * @return the startLine for this HttpHeader.
     */
-   virtual const std::string& getStartLine();
+   virtual std::string getStartLine() = 0;
    
    /**
     * Sets a header value.

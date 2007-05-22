@@ -20,3 +20,8 @@ WebResponse* HttpRequest::createResponse()
 {
    return new HttpResponse(this);
 }
+
+HttpRequestHeader HttpRequest::getHeader()
+{
+   return mHeader;
+}

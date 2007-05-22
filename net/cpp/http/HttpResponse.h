@@ -5,7 +5,7 @@
 #define HttpResponse_H
 
 #include "WebResponse.h"
-#include "HttpHeader.h"
+#include "HttpResponseHeader.h"
 
 namespace db
 {
@@ -26,9 +26,9 @@ class HttpResponse : public db::net::WebResponse
 {
 protected:
    /**
-    * The HttpHeader for this response.
+    * The header for this response.
     */
-   HttpHeader mHeader;
+   HttpResponseHeader mHeader;
    
 public:
    /**
@@ -42,6 +42,13 @@ public:
     * Destructs this HttpResponse.
     */
    virtual ~HttpResponse();
+   
+   /**
+    * Gets the header for this response.
+    * 
+    * @return the header for this response.
+    */
+   virtual HttpResponseHeader getHeader();
 };
 
 } // end namespace http
