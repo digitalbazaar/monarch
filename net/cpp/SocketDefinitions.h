@@ -66,6 +66,203 @@
    // define socklen_t
    typedef int socklen_t;
    
+   // define multicast values
+   #ifndef IP_MULTICAST_IF
+      #define IP_MULTICAST_IF           9
+   #endif
+   #ifndef IP_MULTICAST_TTL
+      #define IP_MULTICAST_TTL          10
+   #endif
+   #ifndef IP_MULTICAST_LOOP
+      #define IP_MULTICAST_LOOP         11
+   #endif
+   #ifndef IP_ADD_MEMBERSHIP
+      #define IP_ADD_MEMBERSHIP         12
+   #endif
+   #ifndef IP_DROP_MEMBERSHIP
+      #define IP_DROP_MEMBERSHIP        13
+   #endif
+   #ifndef IP_DEFAULT_MULTICAST_TTL
+      #define IP_DEFAULT_MULTICAST_TTL  1
+   #endif
+   #ifndef IP_DEFAULT_MULTICAST_LOOP
+      #define IP_DEFAULT_MULTICAST_LOOP 1
+   #endif
+   #ifndef IP_MAX_MEMBERSHIPS
+      #define IP_MAX_MEMBERSHIPS        20
+   #endif
+   #ifndef DESTINATION_MCAST
+      #define DESTINATION_MCAST         "234.5.6.7"
+   #endif
+   #ifndef DESTINATION_PORT
+      #define DESTINATION_PORT          4567
+   #endif
+   
+   // define socket blocking options
+   #ifndef F_SETFL
+      #define F_SETFL           FIONBIO
+   #endif
+   #ifndef O_NONBLOCK
+      #define O_NONBLOCK        1
+   #endif
+   
+   // define getnameinfo()/getaddrinfo() constants
+   /*
+   #ifndef NI_NUMERICHOST
+      #define NI_NUMERICHOST    1
+   #endif
+   #ifndef NI_NUMERICSERV
+      #define NI_NUMERICSERV    2
+   #endif
+   */
+   
+   #ifndef EAI_ADDRFAMILY
+      #define EAI_ADDRFAMILY    -6
+   #endif
+   #ifndef EAI_SYSTEM
+      #define EAI_SYSTEM        -11
+   #endif
+   #ifndef EAI_OVERFLOW
+      #define EAI_OVERFLOW      -12
+   #endif
+   
+   // define standard errors according to winsock errors
+   #ifndef EWOULDBLOCK
+      #define EWOULDBLOCK       WSAEWOULDBLOCK
+   #endif
+   #ifndef EINPROGRESS
+      #define EINPROGRESS       WSAEINPROGRESS
+   #endif
+   #ifndef EALREADY
+      #define EALREADY          WSAEALREADY
+   #endif
+   #ifndef ENOTSOCK
+      #define ENOTSOCK          WSAENOTSOCK
+   #endif
+   #ifndef EDESTADDRREQ
+      #define EDESTADDRREQ      WSAEDESTADDRREQ
+   #endif
+   #ifndef EMSGSIZE
+      #define EMSGSIZE          WSAEMSGSIZE
+   #endif
+   #ifndef EPROTOTYPE
+      #define EPROTOTYPE        WSAEPROTOTYPE
+   #endif
+   #ifndef ENOPROTOOPT
+      #define ENOPROTOOPT       WSAENOPROTOOPT
+   #endif
+   #ifndef EPROTONOSUPPORT
+      #define EPROTONOSUPPORT   WSAEPROTONOSUPPORT
+   #endif
+   #ifndef ESOCKTNOSUPPORT
+      #define ESOCKTNOSUPPORT   WSAESOCKTNOSUPPORT
+   #endif
+   #ifndef EOPNOTSUPP
+      #define EOPNOTSUPP        WSAEOPNOTSUPP
+   #endif
+   #ifndef EPFNOSUPPORT
+      #define EPFNOSUPPORT      WSAEPFNOSUPPORT
+   #endif
+   #ifndef EAFNOSUPPORT
+      #define EAFNOSUPPORT      WSAEAFNOSUPPORT
+   #endif
+   #ifndef EADDRINUSE
+      #define EADDRINUSE        WSAEADDRINUSE
+   #endif
+   #ifndef EADDRNOTAVAIL
+      #define EADDRNOTAVAIL     WSAEADDRNOTAVAIL
+   #endif
+   #ifndef ENETDOWN
+      #define ENETDOWN          WSAENETDOWN
+   #endif
+   #ifndef ENETUNREACH
+      #define ENETUNREACH       WSAENETUNREACH
+   #endif
+   #ifndef ENETRESET
+      #define ENETRESET         WSAENETRESET
+   #endif
+   #ifndef ECONNABORTED
+      #define ECONNABORTED      WSAECONNABORTED
+   #endif
+   #ifndef ECONNRESET
+      #define ECONNRESET        WSAECONNRESET
+   #endif
+   #ifndef ENOBUFS
+      #define ENOBUFS           WSAENOBUFS
+   #endif
+   #ifndef EISCONN
+      #define EISCONN           WSAEISCONN
+   #endif
+   #ifndef ENOTCONN
+      #define ENOTCONN          WSAENOTCONN
+   #endif
+   #ifndef ESHUTDOWN
+      #define ESHUTDOWN         WSAESHUTDOWN
+   #endif
+   #ifndef ETOOMANYREFS
+      #define ETOOMANYREFS      WSAETOOMANYREFS
+   #endif
+   #ifndef ETIMEDOUT
+      #define ETIMEDOUT         WSAETIMEDOUT
+   #endif
+   #ifndef ECONNREFUSED
+      #define ECONNREFUSED      WSAECONNREFUSED
+   #endif
+   #ifndef ELOOP
+      #define ELOOP             WSAELOOP
+   #endif
+   #ifndef ENAMETOOLONG
+      #define ENAMETOOLONG      WSAENAMETOOLONG
+   #endif
+   #ifndef EHOSTDOWN
+      #define EHOSTDOWN         WSAEHOSTDOWN
+   #endif
+   #ifndef EHOSTUNREACH
+      #define EHOSTUNREACH      WSAEHOSTUNREACH
+   #endif
+   #ifndef ENOTEMPTY
+      #define ENOTEMPTY         WSAENOTEMPTY
+   #endif
+   #ifndef EPROCLIM
+      #define EPROCLIM          WSAEUSERS
+   #endif
+   #ifndef EDQUOT
+      #define EDQUOT            WSAEDQUOT
+   #endif
+   #ifndef ESTALE
+      #define ESTALE            WSAESTALE
+   #endif
+   #ifndef EREMOTE
+      #define EREMOTE           WSAEREMOTE
+   #endif
+   #ifndef EAI_AGAIN
+      #define EAI_AGAIN         WSATRY_AGAIN
+   #endif
+   #ifndef EAI_BADFLAGS
+      #define EAI_BADFLAGS      WSAEINVAL
+   #endif
+   #ifndef EAI_FAIL
+      #define EAI_FAIL          WSANO_RECOVERY
+   #endif
+   #ifndef EAI_FAMILY
+      #define EAI_FAMILY        WSAEAFNOSUPPORT
+   #endif
+   #ifndef EAI_MEMORY
+      #define EAI_MEMORY        WSA_NOT_ENOUGH_MEMORY
+   #endif
+   #ifndef EAI_NODATA
+      #define EAI_NODATA        WSANO_DATA
+   #endif
+   #ifndef EAI_NONAME
+      #define EAI_NONAME        WSAHOST_NOT_FOUND
+   #endif
+   #ifndef EAI_SERVICE
+      #define EAI_SERVICE       WSATYPE_NOT_FOUND
+   #endif
+   #ifndef EAI_SOCKTYPE
+      #define EAI_SOCKTYPE      WSAESOCKTNOSUPPORT
+   #endif
+   
    // define fcntl() for ioctlsocket():
    
    /**
@@ -261,194 +458,7 @@
       
       return rval;
    }
-   
-   // define multicast values
-   #ifndef IP_MULTICAST_IF
-      #define IP_MULTICAST_IF           9
-   #endif
-   #ifndef IP_MULTICAST_TTL
-      #define IP_MULTICAST_TTL          10
-   #endif
-   #ifndef IP_MULTICAST_LOOP
-      #define IP_MULTICAST_LOOP         11
-   #endif
-   #ifndef IP_ADD_MEMBERSHIP
-      #define IP_ADD_MEMBERSHIP         12
-   #endif
-   #ifndef IP_DROP_MEMBERSHIP
-      #define IP_DROP_MEMBERSHIP        13
-   #endif
-   #ifndef IP_DEFAULT_MULTICAST_TTL
-      #define IP_DEFAULT_MULTICAST_TTL  1
-   #endif
-   #ifndef IP_DEFAULT_MULTICAST_LOOP
-      #define IP_DEFAULT_MULTICAST_LOOP 1
-   #endif
-   #ifndef IP_MAX_MEMBERSHIPS
-      #define IP_MAX_MEMBERSHIPS        20
-   #endif
-   #ifndef DESTINATION_MCAST
-      #define DESTINATION_MCAST         "234.5.6.7"
-   #endif
-   #ifndef DESTINATION_PORT
-      #define DESTINATION_PORT          4567
-   #endif
-   
-   // define socket blocking options
-   #ifndef F_SETFL
-      #define F_SETFL           FIONBIO
-   #endif
-   #ifndef O_NONBLOCK
-      #define O_NONBLOCK        1
-   #endif
-   
-   // define getnameinfo()/getaddrinfo() constants
-   /*
-   #ifndef NI_NUMERICHOST
-      #define NI_NUMERICHOST    1
-   #endif
-   #ifndef NI_NUMERICSERV
-      #define NI_NUMERICSERV    2
-   #endif
-   */
-   
-   // define standard errors according to winsock errors
-   #ifndef EWOULDBLOCK
-      #define EWOULDBLOCK       WSAEWOULDBLOCK
-   #endif
-   #ifndef EINPROGRESS
-      #define EINPROGRESS       WSAEINPROGRESS
-   #endif
-   #ifndef EALREADY
-      #define EALREADY          WSAEALREADY
-   #endif
-   #ifndef ENOTSOCK
-      #define ENOTSOCK          WSAENOTSOCK
-   #endif
-   #ifndef EDESTADDRREQ
-      #define EDESTADDRREQ      WSAEDESTADDRREQ
-   #endif
-   #ifndef EMSGSIZE
-      #define EMSGSIZE          WSAEMSGSIZE
-   #endif
-   #ifndef EPROTOTYPE
-      #define EPROTOTYPE        WSAEPROTOTYPE
-   #endif
-   #ifndef ENOPROTOOPT
-      #define ENOPROTOOPT       WSAENOPROTOOPT
-   #endif
-   #ifndef EPROTONOSUPPORT
-      #define EPROTONOSUPPORT   WSAEPROTONOSUPPORT
-   #endif
-   #ifndef ESOCKTNOSUPPORT
-      #define ESOCKTNOSUPPORT   WSAESOCKTNOSUPPORT
-   #endif
-   #ifndef EOPNOTSUPP
-      #define EOPNOTSUPP        WSAEOPNOTSUPP
-   #endif
-   #ifndef EPFNOSUPPORT
-      #define EPFNOSUPPORT      WSAEPFNOSUPPORT
-   #endif
-   #ifndef EAFNOSUPPORT
-      #define EAFNOSUPPORT      WSAEAFNOSUPPORT
-   #endif
-   #ifndef EADDRINUSE
-      #define EADDRINUSE        WSAEADDRINUSE
-   #endif
-   #ifndef EADDRNOTAVAIL
-      #define EADDRNOTAVAIL     WSAEADDRNOTAVAIL
-   #endif
-   #ifndef ENETDOWN
-      #define ENETDOWN          WSAENETDOWN
-   #endif
-   #ifndef ENETUNREACH
-      #define ENETUNREACH       WSAENETUNREACH
-   #endif
-   #ifndef ENETRESET
-      #define ENETRESET         WSAENETRESET
-   #endif
-   #ifndef ECONNABORTED
-      #define ECONNABORTED      WSAECONNABORTED
-   #endif
-   #ifndef ECONNRESET
-      #define ECONNRESET        WSAECONNRESET
-   #endif
-   #ifndef ENOBUFS
-      #define ENOBUFS           WSAENOBUFS
-   #endif
-   #ifndef EISCONN
-      #define EISCONN           WSAEISCONN
-   #endif
-   #ifndef ENOTCONN
-      #define ENOTCONN          WSAENOTCONN
-   #endif
-   #ifndef ESHUTDOWN
-      #define ESHUTDOWN         WSAESHUTDOWN
-   #endif
-   #ifndef ETOOMANYREFS
-      #define ETOOMANYREFS      WSAETOOMANYREFS
-   #endif
-   #ifndef ETIMEDOUT
-      #define ETIMEDOUT         WSAETIMEDOUT
-   #endif
-   #ifndef ECONNREFUSED
-      #define ECONNREFUSED      WSAECONNREFUSED
-   #endif
-   #ifndef ELOOP
-      #define ELOOP             WSAELOOP
-   #endif
-   #ifndef ENAMETOOLONG
-      #define ENAMETOOLONG      WSAENAMETOOLONG
-   #endif
-   #ifndef EHOSTDOWN
-      #define EHOSTDOWN         WSAEHOSTDOWN
-   #endif
-   #ifndef EHOSTUNREACH
-      #define EHOSTUNREACH      WSAEHOSTUNREACH
-   #endif
-   #ifndef ENOTEMPTY
-      #define ENOTEMPTY         WSAENOTEMPTY
-   #endif
-   #ifndef EPROCLIM
-      #define EPROCLIM          WSAEUSERS
-   #endif
-   #ifndef EDQUOT
-      #define EDQUOT            WSAEDQUOT
-   #endif
-   #ifndef ESTALE
-      #define ESTALE            WSAESTALE
-   #endif
-   #ifndef EREMOTE
-      #define EREMOTE           WSAEREMOTE
-   #endif
-   #ifndef EAI_AGAIN
-      #define EAI_AGAIN         WSATRY_AGAIN
-   #endif
-   #ifndef EAI_BADFLAGS
-      #define EAI_BADFLAGS      WSAEINVAL
-   #endif
-   #ifndef EAI_FAIL
-      #define EAI_FAIL          WSANO_RECOVERY
-   #endif
-   #ifndef EAI_FAMILY
-      #define EAI_FAMILY        WSAEAFNOSUPPORT
-   #endif
-   #ifndef EAI_MEMORY
-      #define EAI_MEMORY        WSA_NOT_ENOUGH_MEMORY
-   #endif
-   #ifndef EAI_NODATA
-      #define EAI_NODATA        WSANO_DATA
-   #endif
-   #ifndef EAI_NONAME
-      #define EAI_NONAME        WSAHOST_NOT_FOUND
-   #endif
-   #ifndef EAI_SERVICE
-      #define EAI_SERVICE       WSATYPE_NOT_FOUND
-   #endif
-   #ifndef EAI_SOCKTYPE
-      #define EAI_SOCKTYPE      WSAESOCKTNOSUPPORT
-   #endif
-
+// end #ifdef WIN32
 #endif
 
 #endif
