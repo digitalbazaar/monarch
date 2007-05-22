@@ -69,6 +69,16 @@ public:
    static void hexToBytes(
       const char* hex, unsigned int hexLength,
       char* bytes, unsigned int& length);
+   
+   /**
+    * Converts a hexadecimal string to an integer.
+    * 
+    * @param hex the hexadecimal string to convert.
+    * @param hexLength the number of hex characters.
+    * 
+    * @return the integer.
+    */
+   static int hexToInt(const char* hex, unsigned int hexLength);
 };
 
 } // end namespace util

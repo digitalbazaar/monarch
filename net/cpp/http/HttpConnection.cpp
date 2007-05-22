@@ -4,6 +4,7 @@
 #include "HttpConnection.h"
 #include "HttpRequest.h"
 
+using namespace std;
 using namespace db::net;
 using namespace db::net::http;
 

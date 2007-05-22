@@ -89,7 +89,22 @@ public:
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   bool readLine(std::string& line) throw(db::io::IOException);
+   virtual bool readLine(std::string& line) throw(db::io::IOException);
+   
+   /**
+    * Reads a single line from this connection that terminates in a
+    * end of line character ('\n') and a carriage return ('\r'). This is
+    * called a CRLF ("\r\n"). This method will block until there is no more
+    * data to read or until it reads a line.
+    * 
+    * @param line the string to write the line to.
+    * 
+    * @return true if a line was read, false if the end of the stream was
+    *         reached.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   virtual bool readCrlf(std::string& line) throw(db::io::IOException);
    
    /**
     * Peeks ahead and looks at some bytes in the stream. This method will block

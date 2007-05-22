@@ -6,6 +6,8 @@
 
 #include "WebConnection.h"
 
+#include <string>
+
 namespace db
 {
 namespace net

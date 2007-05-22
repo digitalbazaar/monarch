@@ -110,3 +110,53 @@ void Convert::hexToBytes(
       }
    }
 }
+
+int Convert::hexToInt(const char* hex, unsigned int hexLength)
+{
+   int rval = 0;
+   
+   unsigned char c1;
+   unsigned char c2;
+   for(unsigned int i = 0; i < hexLength; i += 2)
+   {
+      // hexadecimal uses 2 digits, each with 16 values
+      if(i + 1 < hexLength)
+      {
+         c1 = hex[i];
+         c2 = hex[i + 1];
+         
+         // ASCII '0' = 48, ASCII 'A' = 65, ASCII 'a' = 97
+         // so subtract 48, so subtract 55, so subtract 87
+         
+         // convert first hex digit
+         if(c1 > 47 && c1 < 58)
+         {
+            c1 = 16 * (c1 - 48);
+         }
+         else if(c1 > 64 && c1 < 91)
+         {
+            c1 = 16 * (c1 - 55);
+         }
+         else if(c1 > 96 && c1 < 123)
+         {
+            c1 = 16 * (c1 - 87);
+         }
+         
+         // convert second hex digit and add
+         if(c2 > 47 && c2 < 58)
+         {
+            rval += c1 + c2 - 48;
+         }
+         else if(c2 > 64 && c2 < 91)
+         {
+            rval += c1 + c2 - 55;
+         }
+         else if(c2 > 96 && c2 < 123)
+         {
+            rval += c1 + c2 - 87;
+         }
+      }
+   }
+   
+   return rval;
+}
