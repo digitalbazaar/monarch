@@ -1,0 +1,50 @@
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
+#ifndef HttpResponse_H
+#define HttpResponse_H
+
+#include "WebResponse.h"
+#include "HttpHeader.h"
+
+namespace db
+{
+namespace net
+{
+namespace http
+{
+
+// forward declare HttpRequest
+class HttpRequest;
+
+/**
+ * An HttpResponse is a WebResponse that uses the HTTP protocol.
+ * 
+ * @author Dave Longley
+ */
+class HttpResponse : public db::net::WebResponse
+{
+protected:
+   /**
+    * The HttpHeader for this response.
+    */
+   HttpHeader mHeader;
+   
+public:
+   /**
+    * Creates a new HttpResponse for the passed HttpRequest.
+    * 
+    * @param request the HttpRequest this response is for.
+    */
+   HttpResponse(HttpRequest* request);
+   
+   /**
+    * Destructs this HttpResponse.
+    */
+   virtual ~HttpResponse();
+};
+
+} // end namespace http
+} // end namespace net
+} // end namespace db
+#endif

@@ -16,13 +16,26 @@ namespace http
 {
 
 /**
- * An HttpHeader provides is a collection of HTTP header fields.
+ * An HttpHeader is the header for an HTTP Message. It contains a start-line,
+ * and, optionally, a collection of HTTP header fields.
+ * 
+ * Both http requests and responses use an HttpHeader. A request uses a
+ * request-line for its start-line and a response uses a status-line for its
+ * start-line.
+ * 
+ * A multipart http message will use a MIME boundary as the start-line for
+ * its HttpHeader.
  * 
  * @author Dave Longley
  */
 class HttpHeader : public virtual db::rt::Object
 {
 protected:
+   /**
+    * The start line for this header.
+    */
+   std::string mStartLine;
+   
    /**
     * The map containing the headers.
     */
@@ -32,7 +45,7 @@ public:
    /**
     * The standard line break for HTTP, carriage return + line feed.
     */
-   static const std::string CRLF;
+   static const char CRLF[];
    
    /**
     * Creates a new HttpHeader.
@@ -43,6 +56,20 @@ public:
     * Destructs this HttpHeader.
     */
    virtual ~HttpHeader();
+   
+   /**
+    * Sets the start line for this HttpHeader.
+    * 
+    * @param startLine the start line for this HttpHeader.
+    */
+   virtual void setStartLine(const std::string& startLine);
+   
+   /**
+    * Gets the start line for this HttpHeader.
+    * 
+    * @return the startLine for this HttpHeader.
+    */
+   virtual const std::string& getStartLine();
    
    /**
     * Sets a header value.
