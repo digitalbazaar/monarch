@@ -60,36 +60,36 @@ public:
    virtual std::string getStartLine() = 0;
    
    /**
-    * Sets a header value.
+    * Sets a header field.
     * 
-    * @param header the header to set.
-    * @param value the value for the header.
+    * @param header the header field to set.
+    * @param value the value for the header field.
     */
    virtual void setHeader(const std::string& header, const std::string& value);
    
    /**
-    * Adds a value to an existing header. If the header does not exist,
-    * it will be created.
+    * Adds a value to an existing header field. If the header field does not
+    * exist, it will be created.
     * 
-    * @param header the header to update.
-    * @param value the value to add to the header.
+    * @param header the header field to update.
+    * @param value the value to add to the header field.
     */
    virtual void addHeader(const std::string& header, const std::string& value);
    
    /**
-    * Removes a header.
+    * Removes a header field.
     * 
-    * @param header the header to remove.
+    * @param header the header field to remove.
     */
    virtual void removeHeader(const std::string& header);
    
    /**
-    * Gets a header value.
+    * Gets a header field value.
     * 
-    * @param header the header to get the value of.
+    * @param header the header field to get the value of.
     * @param value the value to populate.
     * 
-    * @return true if the header exists, false if not.
+    * @return true if the header field exists, false if not.
     */
    virtual bool getHeader(const std::string& header, std::string& value);
    
