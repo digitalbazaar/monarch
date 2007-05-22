@@ -7,8 +7,8 @@
 using namespace db::net;
 using namespace db::net::http;
 
-HttpConnection::HttpConnection(Socket* s, bool cleanup) :
-   WebConnection(s, cleanup)
+HttpConnection::HttpConnection(Connection* c, bool cleanup) :
+   WebConnection(c, cleanup)
 {
 }
 

@@ -112,14 +112,12 @@ void Connection::close()
    getSocket()->close();
 }
 
-void Connection::getLocalAddress(InternetAddress* address)
-throw(SocketException)
+void Connection::getLocalAddress(SocketAddress* address) throw(SocketException)
 {
    getSocket()->getLocalAddress(address);
 }
 
-void Connection::getRemoteAddress(InternetAddress* address)
-throw(SocketException)
+void Connection::getRemoteAddress(SocketAddress* address) throw(SocketException)
 {
    getSocket()->getRemoteAddress(address);
 }

@@ -6,7 +6,7 @@
 
 #include "Object.h"
 #include "Socket.h"
-#include "InternetAddress.h"
+#include "SocketAddress.h"
 #include "BandwidthThrottler.h"
 #include "ConnectionInputStream.h"
 #include "ConnectionOutputStream.h"
@@ -17,7 +17,7 @@ namespace net
 {
 
 /**
- * A Connection is a class that represents an internet connection between
+ * A Connection is a class that represents a socket connection between
  * a client and a server. The protocol for data transportation is determined
  * by the Socket used when creating this Connection.
  * 
@@ -66,8 +66,8 @@ public:
     * Creates a new Connection that wraps the passed Socket.
     * 
     * @param s the Socket for this Connection.
-    * @param true to clean up the Socket when this Connection is destructed,
-    *        false to leave it alone. 
+    * @param cleanup true to clean up the Socket when this Connection is
+    *                destructed, false to leave it alone. 
     */
    Connection(Socket* s, bool cleanup);
    
@@ -161,19 +161,19 @@ public:
    virtual void close();
    
    /**
-    * Gets the local InternetAddress for this Connection.
+    * Gets the local SocketAddress for this Connection.
     * 
-    * @param address the InternetAddress to populate.
+    * @param address the SocketAddress to populate.
     */
-   virtual void getLocalAddress(InternetAddress* address)
+   virtual void getLocalAddress(SocketAddress* address)
    throw(SocketException);
    
    /**
-    * Gets the remote InternetAddress for this Connection.
+    * Gets the remote SocketAddress for this Connection.
     * 
-    * @param address the InternetAddress to populate.
+    * @param address the SocketAddress to populate.
     */
-   virtual void getRemoteAddress(InternetAddress* address)
+   virtual void getRemoteAddress(SocketAddress* address)
    throw(SocketException);
    
    /**

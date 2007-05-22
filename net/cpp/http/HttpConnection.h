@@ -22,13 +22,13 @@ class HttpConnection : public db::net::WebConnection
 {
 public:
    /**
-    * Creates a new HttpConnection that wraps the passed Socket.
+    * Creates a new HttpConnection that wraps the passed Connection.
     * 
-    * @param s the Socket for this HttpConnection.
-    * @param true to clean up the Socket when this HttpConnection is destructed,
-    *        false to leave it alone. 
+    * @param c the Connection to wrap.
+    * @param cleanup true to clean up the Connection when this HttpConnection
+    *                is destructed, false to leave it alone. 
     */
-   HttpConnection(Socket* s, bool cleanup);
+   HttpConnection(Connection* c, bool cleanup);
    
    /**
     * Destructs this HttpConnection.
