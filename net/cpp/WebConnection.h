@@ -34,6 +34,20 @@ protected:
     */
    bool mCleanupConnection;
    
+   /**
+    * Gets the InputStream for reading from the underlying Connection.
+    * 
+    * @return the InputStream for reading from the underlying Connection.
+    */
+   virtual ConnectionInputStream* getInputStream();
+   
+   /**
+    * Gets the OutputStream for writing to the underlying Connection.
+    * 
+    * @return the OutputStream for writing to the underlying Connection.
+    */
+   virtual ConnectionOutputStream* getOutputStream();
+   
 public:
    /**
     * Creates a new WebConnection that wraps the passed Connection.
@@ -68,31 +82,17 @@ public:
    virtual void setBandwidthThrottler(BandwidthThrottler* bt, bool read);
    
    /**
-    * Gets a BandwidthThrottler used by this Connection.
+    * Gets a BandwidthThrottler used by this WebConnection.
     * 
     * @param read true to get the BandwidthThrottler used for reading, false to
     *        get the BandwidthThrottler used for writing.
     * 
-    * @return a BandwidthThrottler used by this Connection (may be NULL).
+    * @return a BandwidthThrottler used by this WebConnection (may be NULL).
     */
    virtual BandwidthThrottler* getBandwidthThrottler(bool read);
    
    /**
-    * Gets the InputStream for reading from this Connection.
-    * 
-    * @return the InputStream for reading from this Connection.
-    */
-   virtual ConnectionInputStream* getInputStream();
-   
-   /**
-    * Gets the OutputStream for writing to this Connection.
-    * 
-    * @return the OutputStream for writing to this Connection.
-    */
-   virtual ConnectionOutputStream* getOutputStream();
-   
-   /**
-    * Gets the total number of bytes read from this Connection so far. This
+    * Gets the total number of bytes read from this WebConnection so far. This
     * includes any bytes that were skipped but not any bytes that were peeked.
     * 
     * @return the total number of bytes read so far.
@@ -100,14 +100,14 @@ public:
    virtual const unsigned long long& getBytesRead();
    
    /**
-    * Gets the number of bytes written to this Connection so far.
+    * Gets the number of bytes written to this WebConnection so far.
     * 
     * @return the number of bytes written so far.
     */
    virtual const unsigned long long& getBytesWritten();
    
    /**
-    * Sets the read timeout for this Connection. This is the amount of
+    * Sets the read timeout for this WebConnection. This is the amount of
     * time that must pass while doing a read before timing out. 
     * 
     * @param timeout the read timeout in milliseconds (0 for no timeout).
@@ -115,35 +115,35 @@ public:
    virtual void setReadTimeout(unsigned long long timeout);
    
    /**
-    * Marks this Connection as secure or non-secure.
+    * Marks this WebConnection as secure or non-secure.
     *
-    * @param secure true to mark this Connection as secure, false to
+    * @param secure true to mark this WebConnection as secure, false to
     *               mark it as non-secure.
     */
    virtual void setSecure(bool secure);
    
    /**
-    * Returns whether or not this Connection has been marked as secure.
+    * Returns whether or not this WebConnection has been marked as secure.
     * 
-    * @return true if this Connection has been marked as secure, false
+    * @return true if this WebConnection has been marked as secure, false
     *         if it has been marked as non-secure.
     */
    virtual bool isSecure();
    
    /**
-    * Returns true if this Connection is closed, false if it is not.
+    * Returns true if this WebConnection is closed, false if it is not.
     * 
-    * @return true if this Connection is closed, false if not.
+    * @return true if this WebConnection is closed, false if not.
     */
    virtual bool isClosed();
    
    /**
-    * Closes this Connection.
+    * Closes this WebConnection.
     */
    virtual void close();
    
    /**
-    * Gets the local InternetAddress for this Connection.
+    * Gets the local InternetAddress for this WebConnection.
     * 
     * @param address the InternetAddress to populate.
     */
@@ -151,7 +151,7 @@ public:
    throw(SocketException);
    
    /**
-    * Gets the remote InternetAddress for this Connection.
+    * Gets the remote InternetAddress for this WebConnection.
     * 
     * @param address the InternetAddress to populate.
     */
@@ -159,9 +159,9 @@ public:
    throw(SocketException);
    
    /**
-    * Gets the Socket used by this Connection.
+    * Gets the Socket used by this WebConnection.
     * 
-    * @return the Socket used by this Connection.
+    * @return the Socket used by this WebConnection.
     */
    virtual Socket* getSocket();   
 };

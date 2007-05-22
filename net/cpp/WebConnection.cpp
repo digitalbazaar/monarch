@@ -20,16 +20,6 @@ WebConnection::~WebConnection()
    }
 }
 
-void WebConnection::setBandwidthThrottler(BandwidthThrottler* bt, bool read)
-{
-   mConnection->setBandwidthThrottler(bt, read);
-}
-
-BandwidthThrottler* WebConnection::getBandwidthThrottler(bool read)
-{
-   return mConnection->getBandwidthThrottler(read);
-}
-
 ConnectionInputStream* WebConnection::getInputStream()
 {
    return mConnection->getInputStream();
@@ -38,6 +28,16 @@ ConnectionInputStream* WebConnection::getInputStream()
 ConnectionOutputStream* WebConnection::getOutputStream()
 {
    return mConnection->getOutputStream();
+}
+
+void WebConnection::setBandwidthThrottler(BandwidthThrottler* bt, bool read)
+{
+   mConnection->setBandwidthThrottler(bt, read);
+}
+
+BandwidthThrottler* WebConnection::getBandwidthThrottler(bool read)
+{
+   return mConnection->getBandwidthThrottler(read);
 }
 
 const unsigned long long& WebConnection::getBytesRead()
