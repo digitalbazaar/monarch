@@ -141,7 +141,7 @@ public:
     * 
     * @return the total number of bytes read so far.
     */
-   virtual const unsigned long long& getBytesRead();
+   virtual unsigned long long getBytesRead();
 };
 
 } // end namespace net

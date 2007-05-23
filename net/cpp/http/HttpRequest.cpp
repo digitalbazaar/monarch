@@ -21,7 +21,7 @@ WebResponse* HttpRequest::createResponse()
    return new HttpResponse(this);
 }
 
-HttpRequestHeader HttpRequest::getHeader()
+HttpRequestHeader* HttpRequest::getHeader()
 {
-   return mHeader;
+   return &mHeader;
 }

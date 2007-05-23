@@ -149,7 +149,7 @@ void ConnectionInputStream::close() throw(IOException)
    mConnection->getSocket()->getInputStream()->close();
 }
 
-const unsigned long long& ConnectionInputStream::getBytesRead()
+unsigned long long ConnectionInputStream::getBytesRead()
 {
    return mBytesRead;
 }

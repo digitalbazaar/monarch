@@ -79,7 +79,7 @@ public:
     * 
     * @return the number of bytes written so far.
     */
-   virtual const unsigned long long& getBytesWritten();
+   virtual unsigned long long getBytesWritten();
 };
 
 } // end namespace net

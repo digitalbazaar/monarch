@@ -115,14 +115,14 @@ public:
     * 
     * @return the total number of bytes read so far.
     */
-   virtual const unsigned long long& getBytesRead();
+   virtual unsigned long long getBytesRead();
    
    /**
     * Gets the number of bytes written to this Connection so far.
     * 
     * @return the number of bytes written so far.
     */
-   virtual const unsigned long long& getBytesWritten();
+   virtual unsigned long long getBytesWritten();
    
    /**
     * Sets the read timeout for this Connection. This is the amount of

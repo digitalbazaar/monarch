@@ -4,6 +4,7 @@
 #include "HttpTransferChunkedInputStream.h"
 #include "HttpHeader.h"
 #include "Convert.h"
+#include "Math.h"
 
 #include <string>
 
@@ -73,11 +74,6 @@ throw(IOException)
          
          // increment bytes read
          rval = (rval == -1) ? numBytes : rval + numBytes;
-         
-         // FIXME:
-         // update http web connection content bytes received
-         //hc->setContentBytesReceived(
-         //   hc->getContentBytesReceived() + numBytes);
       }
       else
       {

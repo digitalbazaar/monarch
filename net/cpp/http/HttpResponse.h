@@ -48,7 +48,7 @@ public:
     * 
     * @return the header for this response.
     */
-   virtual HttpResponseHeader getHeader();
+   virtual HttpResponseHeader* getHeader();
 };
 
 } // end namespace http

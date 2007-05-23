@@ -15,7 +15,7 @@ HttpResponse::~HttpResponse()
 {
 }
 
-HttpResponseHeader HttpResponse::getHeader()
+HttpResponseHeader* HttpResponse::getHeader()
 {
-   return mHeader;
+   return &mHeader;
 }

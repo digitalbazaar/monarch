@@ -5,6 +5,9 @@
 #define HttpConnection_H
 
 #include "WebConnection.h"
+#include "InputStream.h"
+#include "OutputStream.h"
+#include "HttpHeader.h"
 
 #include <string>
 
@@ -22,6 +25,17 @@ namespace http
  */
 class HttpConnection : public db::net::WebConnection
 {
+protected:
+   /**
+    * The total number of content bytes read by this HttpConnection.
+    */
+   unsigned long long mContentBytesRead;
+   
+   /**
+    * The total number of content bytes written by this HttpConnection.
+    */
+   unsigned long long mContentBytesWritten;
+   
 public:
    /**
     * Creates a new HttpConnection that wraps the passed Connection.
@@ -45,6 +59,82 @@ public:
     * @return the new HttpRequest.
     */
    virtual db::net::WebRequest* createRequest();
+   
+   /**
+    * Sends a message header. This method will block until the entire header
+    * has been sent or until the connection times out.
+    * 
+    * @param header the header to send.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   virtual void sendHeader(HttpHeader* header) throw(db::io::IOException);
+   
+   /**
+    * Receives a message header. This method will block until the entire
+    * header has been received or until the connection times out.
+    * 
+    * @param header the header to populate.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   virtual void receiveHeader(HttpHeader* header) throw(db::io::IOException);
+   
+   /**
+    * Sends the message body for the given header. This method will block
+    * until the entire body has been sent or until the connection times out.
+    * 
+    * @param header the header to send the message body for.
+    * @param is the InputStream to read the body from.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   virtual void sendBody(HttpHeader* header, db::io::InputStream* is)
+   throw(db::io::IOException);
+   
+   /**
+    * Receives the message body for the given header. This method will block
+    * until the entire body has been received or until the connection times out.
+    * 
+    * @param header the header to receive the message body for.
+    * @param os the OutputStream to write the body to.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   virtual void receiveBody(HttpHeader* header, db::io::OutputStream* os)
+   throw(db::io::IOException);
+   
+   /**
+    * Sets the total number of content bytes read from this HttpConnection so
+    * far. This includes any bytes that were skipped but not any bytes that
+    * were peeked.
+    * 
+    * @param count the total number of content bytes read so far.
+    */
+   virtual void setContentBytesRead(unsigned long long count);
+   
+   /**
+    * Gets the total number of content bytes read from this HttpConnection so
+    * far. This includes any bytes that were skipped but not any bytes that
+    * were peeked.
+    * 
+    * @return the total number of content bytes read so far.
+    */
+   virtual unsigned long long getContentBytesRead();
+   
+   /**
+    * Sets the number of content bytes written to this HttpConnection so far.
+    * 
+    * @param count the number of content bytes written so far.
+    */
+   virtual void setContentBytesWritten(unsigned long long count);
+   
+   /**
+    * Gets the number of content bytes written to this HttpConnection so far.
+    * 
+    * @return the number of content bytes written so far.
+    */
+   virtual unsigned long long getContentBytesWritten();
 };
 
 } // end namespace http

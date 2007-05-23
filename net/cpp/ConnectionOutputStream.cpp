@@ -74,7 +74,7 @@ void ConnectionOutputStream::close() throw(IOException)
    mConnection->getSocket()->getOutputStream()->close();
 }
 
-const unsigned long long& ConnectionOutputStream::getBytesWritten()
+unsigned long long ConnectionOutputStream::getBytesWritten()
 {
    return mBytesWritten;
 }

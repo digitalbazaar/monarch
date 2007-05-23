@@ -74,12 +74,12 @@ ConnectionOutputStream* Connection::getOutputStream()
    return mOutputStream;
 }
 
-const unsigned long long& Connection::getBytesRead()
+unsigned long long Connection::getBytesRead()
 {
    return mInputStream->getBytesRead();
 }
 
-const unsigned long long& Connection::getBytesWritten()
+unsigned long long Connection::getBytesWritten()
 {
    return mOutputStream->getBytesWritten();
 }
