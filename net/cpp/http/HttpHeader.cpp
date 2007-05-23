@@ -71,6 +71,11 @@ bool HttpHeader::getHeader(const string& header, string& value)
    return rval;
 }
 
+void HttpHeader::toString(string& str)
+{
+   
+}
+
 void HttpHeader::biCapitalize(string& header)
 {
    // capitalize the first letter

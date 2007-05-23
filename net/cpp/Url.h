@@ -112,11 +112,11 @@ public:
    virtual unsigned int getDefaultPort();
    
    /**
-    * Converts this url to a string.
+    * Writes this url to the passed string.
     * 
-    * @return the string version of this url.
+    * @param str the string to store this url in.
     */
-   virtual std::string toString();
+   virtual void toString(std::string& str);
    
    /**
     * URL-encodes the passed string.

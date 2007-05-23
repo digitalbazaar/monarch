@@ -138,9 +138,9 @@ const string& Url::getQuery()
    return mQuery;
 }
 
-std::string Url::toString()
+void Url::toString(string& str)
 {
-   return mScheme + ":" + mSchemeSpecificPart;
+   str.append(mScheme + ":" + mSchemeSpecificPart);
 }
 
 unsigned int Url::getDefaultPort()

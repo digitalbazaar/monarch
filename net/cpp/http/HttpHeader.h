@@ -55,9 +55,9 @@ public:
    /**
     * Gets the start line for this HttpHeader.
     * 
-    * @return the startLine for this HttpHeader.
+    * @param line the startLine to populate.
     */
-   virtual std::string getStartLine() = 0;
+   virtual void getStartLine(std::string& line) = 0;
    
    /**
     * Sets a header field.
@@ -92,6 +92,13 @@ public:
     * @return true if the header field exists, false if not.
     */
    virtual bool getHeader(const std::string& header, std::string& value);
+   
+   /**
+    * Writes this header to a string.
+    * 
+    * @param str the string to write this header to.
+    */
+   virtual void toString(std::string& str);
    
    /**
     * BiCapitalizes the passed header so that it is normalized as an

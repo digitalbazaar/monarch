@@ -14,11 +14,11 @@ HttpResponseHeader::~HttpResponseHeader()
 {
 }
 
-string HttpResponseHeader::getStartLine()
+void HttpResponseHeader::getStartLine(string& line)
 {
    char code[10];
    sprintf(code, "%d", getStatusCode()); 
-   return "HTTP/" + getVersion() + " " + code + " " + getStatusMessage();
+   line.append("HTTP/" + getVersion() + " " + code + " " + getStatusMessage());
 }
 
 void HttpResponseHeader::setVersion(const string& version)

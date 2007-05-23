@@ -62,9 +62,9 @@ public:
    /**
     * Gets the start line for this HttpHeader.
     * 
-    * @return the startLine for this HttpHeader.
+    * @param line the startLine to populate.
     */
-   virtual std::string getStartLine();
+   virtual void getStartLine(std::string& line);
    
    /**
     * Sets the HTTP method for the request.

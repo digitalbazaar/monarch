@@ -14,9 +14,9 @@ HttpRequestHeader::~HttpRequestHeader()
 {
 }
 
-string HttpRequestHeader::getStartLine()
+void HttpRequestHeader::getStartLine(string& line)
 {
-   return getMethod() + " " + getPath() + " HTTP/" + getVersion();
+   line.append(getMethod() + " " + getPath() + " HTTP/" + getVersion());
 }
 
 void HttpRequestHeader::setMethod(const string& method)
