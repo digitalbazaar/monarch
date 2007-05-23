@@ -1609,7 +1609,7 @@ void runHttpHeaderTest()
    header.setHeader("Content-Type", "text/html");
    header.setHeader("Connection", "close");
    
-   cout << "Request Header:" << endl;
+   cout << endl << "Request Header:" << endl;
    
    string str;
    header.toString(str);
