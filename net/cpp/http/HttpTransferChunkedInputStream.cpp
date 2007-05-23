@@ -90,8 +90,7 @@ throw(IOException)
       string line;
       while(is->readCrlf(line) && line != "")
       {
-         // FIXME:
-         //trailerHeaders.append(line + HttpHeader::CRLF);
+         trailerHeaders.append(line + HttpHeader::CRLF);
          line.erase();
       }
       

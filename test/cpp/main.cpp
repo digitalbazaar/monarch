@@ -26,6 +26,8 @@
 #include "Convert.h"
 #include "Url.h"
 #include "http/HttpHeader.h"
+#include "http/HttpRequest.h"
+#include "http/HttpResponse.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -1576,7 +1578,10 @@ void runUrlTest()
    
    Url url("http://www.bitmunk.com/mypath?variable1=test");
    
-   cout << "url=" << url.toString() << endl;
+   string str;
+   url.toString(str);
+   
+   cout << "url=" << str << endl;
    cout << "scheme=" << url.getScheme() << endl;
    cout << "scheme specific part=" << url.getSchemeSpecificPart() << endl;
    cout << "authority=" << url.getAuthority() << endl;
@@ -1591,10 +1596,26 @@ void runHttpHeaderTest()
    cout << "Starting HttpHeader test." << endl << endl;
    
    // test bicapitalization of http headers
-   string header = "ThIs-a-BICaPitAlized-hEADer";
-   HttpHeader::biCapitalize(header);
+   string test = "ThIs-a-BICaPitAlized-hEADer";
+   HttpHeader::biCapitalize(test);
    
-   cout << "BiCapitalized Header=" << header << endl;
+   cout << "BiCapitalized Header=" << test << endl;
+   
+   HttpRequestHeader header;
+   header.setMethod("GET");
+   header.setPath("/");
+   header.setVersion("1.1");
+   header.setHeader("host", "localhost:80");
+   header.setHeader("Content-Type", "text/html");
+   header.setHeader("Connection", "close");
+   
+   cout << "Request Header:" << endl;
+   
+   string str;
+   header.toString(str);
+   cout << str;
+   
+   cout << "End of Request Header." << endl;
    
    cout << endl << "HttpHeader test complete." << endl;
 }
@@ -1634,8 +1655,8 @@ int main()
       //runCipherTest("AES256");
       //runConvertTest();
       //runUrlEncodeTest();
-      runUrlTest();
-      //runHttpHeaderTest();
+      //runUrlTest();
+      runHttpHeaderTest();
    }
    catch(SocketException& e)
    {

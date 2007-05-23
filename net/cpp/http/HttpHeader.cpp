@@ -7,7 +7,7 @@ using namespace std;
 using namespace db::net::http;
 
 // define CRLF
-const char CRLF[] = "\r\n";
+const char HttpHeader::CRLF[] = "\r\n";
 
 HttpHeader::HttpHeader()
 {
@@ -73,7 +73,19 @@ bool HttpHeader::getHeader(const string& header, string& value)
 
 void HttpHeader::toString(string& str)
 {
+   // append the start line and CRLF
+   getStartLine(str);
+   str.append(CRLF);
    
+   // append all headers
+   for(map<string, string>::iterator i = mHeaders.begin();
+      i != mHeaders.end(); i++)
+   {
+      str.append(i->first + ": " + i->second + CRLF);
+   }
+   
+   // add CRLF
+   str.append(CRLF);
 }
 
 void HttpHeader::biCapitalize(string& header)
