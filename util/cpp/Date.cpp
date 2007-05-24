@@ -26,7 +26,13 @@ string& Date::format(string& str, const string& format)
    StringTools::replaceAll(f, "hh", "%I");
    StringTools::replaceAll(f, "mm", "%M");
    StringTools::replaceAll(f, "ss", "%S");
-   
+
+// gmtime_r is thread-safe -- but may need to write something for
+// windows support
+//   time_t t;
+//   struct tm tm;
+//   t = time(NULL);
+//   gmtime_r(&t,&tm);   
    //gmtime(&mTimeData);
    
 //   // add date
