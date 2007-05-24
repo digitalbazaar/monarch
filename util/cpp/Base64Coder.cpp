@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Base64Coder.h"
+#include "StringTools.h"
 
 using namespace std;
 using namespace db::util;
@@ -54,17 +55,6 @@ const int Base64Coder::BASE64_TO_INDEX[] =
    /* 'n','o','p','q','r','s','t','u','v','w','x','y','z' */
        39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
 };
-
-void Base64Coder::replaceAll(
-   string& str, const string& find, const string& replace)
-{
-	string::size_type found = str.find(find);
-	while(found != string::npos)
-	{
-		str.replace(found, find.length(), replace);
-		found = str.find(find);
-	}
-}
 
 int Base64Coder::charToInt(const char& c)
 {
@@ -188,10 +178,10 @@ void Base64Coder::decode(const string& str, char** data, unsigned int& length)
    
    // remove all white space
    string input = str;
-   replaceAll(input, " ", "");
-   replaceAll(input, "\n", "");
-   replaceAll(input, "\r", "");
-   replaceAll(input, "\t", "");
+   StringTools::replaceAll(input, " ", "");
+   StringTools::replaceAll(input, "\n", "");
+   StringTools::replaceAll(input, "\r", "");
+   StringTools::replaceAll(input, "\t", "");
    
    // make sure the string has length
    unsigned int len = input.length();

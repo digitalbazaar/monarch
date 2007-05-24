@@ -26,6 +26,18 @@ private:
    
 public:
    /**
+    * Replaces all instances in "str" of "find" with "replace".
+    * 
+    * @param str the string to operate on.
+    * @param find the string to find.
+    * @param replace the string to replace "find" with.
+    * 
+    * @return a reference to "str".
+    */
+   static std::string& replaceAll(
+      std::string& str, const std::string& find, const std::string& replace);
+   
+   /**
     * Trims characters from the front and back of the passed string. Any
     * character in the second parameter will be trimmed.
     * 

@@ -99,18 +99,18 @@ public:
    virtual bool getHeader(const std::string& header, std::string& value);
    
    /**
+    * Parses this header from the passed string.
+    * 
+    * @param str the string to parse from.
+    */
+   virtual void parse(const std::string& str);
+   
+   /**
     * Writes this header to a string.
     * 
     * @param str the string to write this header to.
     */
    virtual void toString(std::string& str);
-   
-   /**
-    * Converts this header from the passed string.
-    * 
-    * @param str the string to convert from.
-    */
-   virtual void fromString(const std::string& str);
    
    /**
     * BiCapitalizes the passed header so that it is normalized as an
