@@ -185,15 +185,15 @@ string Url::encode(const char* str, unsigned int length)
       c = str[i];
       
       // see if the character is "safe" (0-9, A-Z, or a-z)
-      if(c >= '0' && c <= '9') 
+      if((unsigned int)(c - '0') < 10u)
       {
          rval += c;
       }
-      else if(c >= 'A' && c <= 'Z')
+      else if((unsigned int)(c - 'A') < 26u)
       {
          rval += c;
       }
-      else if(c >= 'a' && c <= 'z')
+      else if((unsigned int)(c - 'a') < 26u)
       {
          rval += c;
       }
@@ -224,15 +224,15 @@ string Url::decode(const char* str, unsigned int length)
       c = str[i];
       
       // see if the character is "safe" (0-9, A-Z, or a-z)
-      if(c >= '0' && c <= '9') 
+      if((unsigned int)(c - '0') < 10u)
       {
          rval += c;
       }
-      else if(c >= 'A' && c <= 'Z')
+      else if((unsigned int)(c - 'A') < 26u)
       {
          rval += c;
       }
-      else if(c >= 'a' && c <= 'z')
+      else if((unsigned int)(c - 'a') < 26u)
       {
          rval += c;
       }

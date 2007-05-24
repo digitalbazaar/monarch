@@ -1674,9 +1674,9 @@ int main()
       //runEnvelopeTest("RSA");
       //runCipherTest("AES256");
       //runConvertTest();
-      //runUrlEncodeTest();
+      runUrlEncodeTest();
       //runUrlTest();
-      runHttpHeaderTest();
+      //runHttpHeaderTest();
    }
    catch(SocketException& e)
    {
