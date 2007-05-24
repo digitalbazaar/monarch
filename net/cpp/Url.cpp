@@ -11,7 +11,7 @@ using namespace db::util;
 Url::Url(const string& url) throw(MalformedUrlException)
 {
    // find the first colon
-   string::size_type index = url.find_first_of(':');
+   string::size_type index = url.find(':');
    if(index == string::npos)
    {
       // no colon found
@@ -53,11 +53,11 @@ Url::Url(const string& url) throw(MalformedUrlException)
       // authority is preceeded by double slash "//" and
       // is terminated by single slash "/", a question mark "?", or
       // the end of the url
-      index = mSchemeSpecificPart.find_first_of("//");
+      index = mSchemeSpecificPart.find("//");
       if(index == 0 && mSchemeSpecificPart.length() > 2)
       {
-         string::size_type slash = mSchemeSpecificPart.find_first_of('/', 2);
-         string::size_type qMark = mSchemeSpecificPart.find_first_of('?', 2);
+         string::size_type slash = mSchemeSpecificPart.find('/', 2);
+         string::size_type qMark = mSchemeSpecificPart.find('?', 2);
          
          // see if a query exists
          if(qMark != string::npos)

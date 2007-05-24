@@ -84,6 +84,11 @@ public:
    virtual void removeHeader(const std::string& header);
    
    /**
+    * Clears all header fields.
+    */
+   virtual void clearHeaders();
+   
+   /**
     * Gets a header field value.
     * 
     * @param header the header field to get the value of.
@@ -99,6 +104,13 @@ public:
     * @param str the string to write this header to.
     */
    virtual void toString(std::string& str);
+   
+   /**
+    * Converts this header from the passed string.
+    * 
+    * @param str the string to convert from.
+    */
+   virtual void fromString(const std::string& str);
    
    /**
     * BiCapitalizes the passed header so that it is normalized as an

@@ -2,9 +2,11 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "HttpHeader.h"
+#include "StringTools.h"
 
 using namespace std;
 using namespace db::net::http;
+using namespace db::util;
 
 // define CRLF
 const char HttpHeader::CRLF[] = "\r\n";
@@ -19,49 +21,56 @@ HttpHeader::~HttpHeader()
 
 void HttpHeader::setHeader(const string& header, const string& value)
 {
-   // bicapitalize header
+   // bicapitalize and trim header
    string bic = header;
-   biCapitalize(bic);
+   biCapitalize(StringTools::trim(bic));
    
-   // insert header
-   mHeaders[bic] = value;
+   // trim and set value
+   string v = value;
+   mHeaders[bic] = StringTools::trim(v);
 }
 
 void HttpHeader::addHeader(const string& header, const string& value)
 {
-   // bicapitalize header
+   // bicapitalize and trim header
    string bic = header;
-   biCapitalize(bic);
+   biCapitalize(StringTools::trim(bic));
    
    // get existing value
    string existing = "";
    getHeader(bic, existing);
    
-   // append new value
-   setHeader(bic, existing + ", " + value);
+   // trim and append new value
+   string v = value;
+   setHeader(bic, existing + ", " + StringTools::trim(v));
 }
 
 void HttpHeader::removeHeader(const string& header)
 {
-   // bicapitalize header
+   // bicapitalize and trim header
    string bic = header;
-   biCapitalize(bic);
+   biCapitalize(StringTools::trim(bic));
    
    // erase it
    mHeaders.erase(bic);
+}
+
+void HttpHeader::clearHeaders()
+{
+   mHeaders.clear();
 }
 
 bool HttpHeader::getHeader(const string& header, string& value)
 {
    bool rval = false;
    
-   // bicapitalize header
+   // bicapitalize and trim header
    string bic = header;
-   biCapitalize(bic);
+   biCapitalize(StringTools::trim(bic));
    
    // find header entry
    map<string, string>::iterator i = mHeaders.find(bic);
-   if(i != mHeaders.end()) 
+   if(i != mHeaders.end())
    {
       // get value
       value = i->second;
@@ -86,6 +95,38 @@ void HttpHeader::toString(string& str)
    
    // add CRLF
    str.append(CRLF);
+}
+
+void HttpHeader::fromString(const string& str)
+{
+   // clear headers
+   clearHeaders();
+   
+   // parse lines according to CRLF (and skip start-line)
+   string line;
+   string::size_type lineStart = str.find(CRLF);
+   string::size_type lineEnd = 0;
+   while(lineStart < str.length() - 2 &&
+         (lineEnd = str.find(CRLF, lineStart + 2)) != string::npos)
+   {
+      // get line
+      line = str.substr(lineStart + 2, lineEnd - lineStart - 2);
+      lineStart = lineEnd;
+      
+      // parse header
+      string::size_type colon = line.find(':');
+      if(colon != string::npos)
+      {
+         if(colon != line.length() - 1)
+         {
+            setHeader(line.substr(0, colon), line.substr(colon + 1));
+         }
+         else
+         {
+            setHeader(line.substr(0, colon), "");
+         }
+      }
+   }
 }
 
 void HttpHeader::biCapitalize(string& header)

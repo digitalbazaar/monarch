@@ -12,6 +12,7 @@
 #include "Runnable.h"
 #include "Thread.h"
 #include "System.h"
+#include "StringTools.h"
 #include "TcpSocket.h"
 #include "UdpSocket.h"
 #include "DatagramSocket.h"
@@ -1595,11 +1596,17 @@ void runHttpHeaderTest()
 {
    cout << "Starting HttpHeader test." << endl << endl;
    
+   /*
    // test bicapitalization of http headers
    string test = "ThIs-a-BICaPitAlized-hEADer";
    HttpHeader::biCapitalize(test);
    
    cout << "BiCapitalized Header=" << test << endl;
+   */
+   
+//   string t = "   d  f  ";
+//   StringTools::trim(t);
+//   cout << "t='" << t << "'" << endl;
    
    HttpRequestHeader header;
    header.setMethod("GET");
@@ -1616,6 +1623,19 @@ void runHttpHeaderTest()
    cout << str;
    
    cout << "End of Request Header." << endl;
+   
+   cout << endl << "Parsed Request Header:" << endl;
+   
+   HttpRequestHeader header2;
+   header2.setMethod("GET");
+   header2.setPath("/");
+   header2.setVersion("1.1");
+   header2.fromString(str);
+   str.erase();
+   header2.toString(str);
+   cout << str;
+   
+   cout << "End of Parsed Request Header." << endl;
    
    cout << endl << "HttpHeader test complete." << endl;
 }
