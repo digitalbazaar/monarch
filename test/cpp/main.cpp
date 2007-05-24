@@ -1630,7 +1630,7 @@ void runHttpHeaderTest()
    header2.setMethod("GET");
    header2.setPath("/");
    header2.setVersion("1.1");
-   header2.fromString(str);
+   header2.parse(str);
    str.erase();
    header2.toString(str);
    cout << str;
