@@ -26,6 +26,7 @@
 #include "DefaultBlockCipher.h"
 #include "Convert.h"
 #include "Url.h"
+#include "Date.h"
 #include "http/HttpHeader.h"
 #include "http/HttpRequest.h"
 #include "http/HttpResponse.h"
@@ -1592,6 +1593,25 @@ void runUrlTest()
    cout << endl << "Url test complete." << endl;
 }
 
+void runDateTest()
+{
+   cout << "Starting Date test." << endl << endl;
+   
+   TimeZone gmt = TimeZone::getTimeZone("GMT");
+   TimeZone local = TimeZone::getTimeZone();
+   
+   Date d;
+   string str;
+   //d.format(str);
+   //d.format(str, "E EEEE d dd M MMMM MM yy w ww yyyy a");
+   //d.format(str, "EEEE, MMMM dd yyyy hh:mm:ss a", &local);
+   d.format(str, "EEE, d MMM yyyy HH:mm:ss", &gmt);
+   
+   cout << "Current Date: " << str << endl;
+   
+   cout << endl << "Date test complete." << endl;
+}
+
 void runHttpHeaderTest()
 {
    cout << "Starting HttpHeader test." << endl << endl;
@@ -1674,8 +1694,9 @@ int main()
       //runEnvelopeTest("RSA");
       //runCipherTest("AES256");
       //runConvertTest();
-      runUrlEncodeTest();
+      //runUrlEncodeTest();
       //runUrlTest();
+      runDateTest();
       //runHttpHeaderTest();
    }
    catch(SocketException& e)

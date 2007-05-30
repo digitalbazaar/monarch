@@ -29,7 +29,7 @@ string& StringTools::replaceAll(
    while(found != string::npos)
    {
       str.replace(found, find.length(), replace);
-      found = str.find(find);
+      found = str.find(find, found + replace.length());
    }
    
    return str;

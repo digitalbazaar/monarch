@@ -3,6 +3,9 @@
  */
 #include "System.h"
 
+// include NULL
+#include <stddef.h>
+
 using namespace db::rt;
 
 unsigned long long System::getCurrentMilliseconds()

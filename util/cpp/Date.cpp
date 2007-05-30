@@ -9,38 +9,109 @@ using namespace db::util;
 
 Date::Date()
 {
+   // get the current time
+   mSecondsSinceEpoch = time(NULL);
+   gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
 }
 
 Date::~Date()
 {
 }
 
-string& Date::format(string& str, const string& format)
+string& Date::format(string& str, const string& format, TimeZone* tz)
 {
    string f = format;
-   StringTools::replaceAll(f, "EEE", "%a");
-   StringTools::replaceAll(f, "d", "%d");
-   StringTools::replaceAll(f, "MMM", "%b");
-   StringTools::replaceAll(f, "yyyy", "%Y");
-   StringTools::replaceAll(f, "HH", "%H");
-   StringTools::replaceAll(f, "hh", "%I");
-   StringTools::replaceAll(f, "mm", "%M");
-   StringTools::replaceAll(f, "ss", "%S");
-
-// gmtime_r is thread-safe -- but may need to write something for
-// windows support
-//   time_t t;
-//   struct tm tm;
-//   t = time(NULL);
-//   gmtime_r(&t,&tm);   
-   //gmtime(&mTimeData);
    
-//   // add date
-//   SimpleDateFormat df = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
-//   TimeZone tz = TimeZone.getTimeZone("GMT");
-//   df.setTimeZone(tz);
+   // year (4 digit)
+   StringTools::replaceAll(f, "yyyy", "%Y");
+   
+   // year (2 digit)
+   StringTools::replaceAll(f, "yy", "%0y");
+   
+   // month in year (full)
+   StringTools::replaceAll(f, "MMMM", "%B");
+   
+   // month in year (abbreviated)
+   StringTools::replaceAll(f, "MMM", "%b");
+   
+   // month in year (number)
+   StringTools::replaceAll(f, "MM", "%0b");
+   StringTools::replaceAll(f, "M", "%b");
+   
+   // week in year
+   StringTools::replaceAll(f, "ww", "%0U");
+   StringTools::replaceAll(f, "w", "%U");
+   
+   // day in year
+   StringTools::replaceAll(f, "DDD", "%0j");
+   StringTools::replaceAll(f, "D", "%j");
+   
+   // day in month
+   StringTools::replaceAll(f, "dd", "%0d");
+   StringTools::replaceAll(f, " d ", " %d ");
+   StringTools::replaceAll(f, " d", " %d");
+   
+   // day in week (full)
+   StringTools::replaceAll(f, "EEEE", "%A");
+   
+   // day in week (abbreviated)
+   StringTools::replaceAll(f, "EEE", "%a");
+   StringTools::replaceAll(f, "EE", "%a");
+   StringTools::replaceAll(f, "E", "%a");
+   
+   // AM/PM
+   StringTools::replaceAll(f, " a ", " %p ");
+   StringTools::replaceAll(f, " a", " %p");
+   
+   // hour in day (0-24)
+   StringTools::replaceAll(f, "HH", "%0H");
+   StringTools::replaceAll(f, " H ", " %H ");
+   StringTools::replaceAll(f, " H", "%H");
+   
+   // hour in day (1-12)
+   StringTools::replaceAll(f, "hh", "%0I");
+   StringTools::replaceAll(f, "h", "%I");
+   
+   // minute in hour
+   StringTools::replaceAll(f, "mm", "%0M");
+   StringTools::replaceAll(f, "m", "%M");
+   
+   // second in minute
+   StringTools::replaceAll(f, "ss", "%0S");
+   StringTools::replaceAll(f, "s", "%S");
+   
+   struct tm time;
+   
+   // apply time zone
+   if(tz == NULL)
+   {
+      // get local time
+      localtime_r(&mSecondsSinceEpoch, &time);
+   }
+   else if(tz->getMinutesWest() != 0)
+   {
+      // remove minutes west and get time
+      time_t seconds = mSecondsSinceEpoch - tz->getMinutesWest() * 60UL;
+      gmtime_r(&seconds, &time);
+   }
+   else
+   {
+      // use stored time
+      time = mBrokenDownTime;
+   }
+   
+   // print the time to a string
+   unsigned int size = format.length() + 100;
+   char out[size];
+   memset(out, '\0', size);
+   strftime(out, size, f.c_str(), &time);
+   str.append(out);
+   
+   return str;
 }
 
 Date& Date::parse(const string& str, const string& format)     
 {
+   // FIXME: implement me
+   return *this;
 }

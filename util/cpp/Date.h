@@ -6,6 +6,7 @@
 
 #include "Object.h"
 #include "System.h"
+#include "TimeZone.h"
 
 #include <string>
 
@@ -23,9 +24,14 @@ class Date : public virtual db::rt::Object
 {
 protected:
    /**
-    * The time data structure.
+    * The number of seconds past the epoch.
     */
-   time_t mTimeData;
+   time_t mSecondsSinceEpoch;
+   
+   /**
+    * The broken down GMT data structure.
+    */
+   struct tm mBrokenDownTime;
 
 public:
    /**
@@ -43,12 +49,14 @@ public:
     * 
     * @param str the string to write the date to.
     * @param format the format to get the Date in.
+    * @param tz the TimeZone to get the Date in (NULL for local time).
     * 
     * @return a reference to the string that was written to.
     */
    virtual std::string& format(
       std::string& str,
-      const std::string& format = "EEE, d MMM yyyy HH:mm:ss");
+      const std::string& format = "EEE, d MMM yyyy HH:mm:ss",
+      TimeZone* tz = NULL);
    
    /**
     * Parses this Date from the passed string according to the passed format.
