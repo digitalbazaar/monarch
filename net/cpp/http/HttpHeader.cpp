@@ -129,10 +129,40 @@ void HttpHeader::toString(string& str)
    str.append(CRLF);
 }
 
-//void HttpHeader::setDate()
-//{
-//   // FIXME:
-//}
+void HttpHeader::setDate(Date* date)
+{
+   // get GMT time zone
+   TimeZone gmt = TimeZone::getTimeZone("GMT");
+   string str;
+   string format = "EEE, d MMM yyyy HH:mm:ss GMT";
+   
+   if(date == NULL)
+   {
+      // get current date
+      Date now;
+      now.format(str, format, &gmt);
+   }
+   else
+   {
+      date->format(str, format, &gmt);
+   }
+   
+   // set date header
+   setHeader("Date", str);
+}
+
+bool HttpHeader::getDate(Date& date)
+{
+   bool rval = false;
+   
+   string str;
+   if(getHeader("Date", str))
+   {
+      rval = date.parse(str, "EEE, d MMM yyyy HH:mm:ss GMT");
+   }
+   
+   return rval;
+}
 
 void HttpHeader::biCapitalize(string& header)
 {

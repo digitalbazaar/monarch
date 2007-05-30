@@ -110,8 +110,8 @@ string& Date::format(string& str, const string& format, TimeZone* tz)
    return str;
 }
 
-Date& Date::parse(const string& str, const string& format)     
+bool Date::parse(const string& str, const string& format)     
 {
    // FIXME: implement me
-   return *this;
+   return false;
 }

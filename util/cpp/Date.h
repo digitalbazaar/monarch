@@ -64,9 +64,9 @@ public:
     * @param str the string to convert the date from.
     * @param format the format for the date.
     * 
-    * @return a reference to this Date.
+    * @return true if the Date was successfully parsed, false if not.
     */
-   virtual Date& parse(const std::string& str, const std::string& format);
+   virtual bool parse(const std::string& str, const std::string& format);
 };
 
 } // end namespace util

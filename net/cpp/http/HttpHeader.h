@@ -5,6 +5,8 @@
 #define HttpHeader_H
 
 #include "Object.h"
+#include "Date.h"
+
 #include <map>
 #include <string>
 
@@ -111,6 +113,23 @@ public:
     * @param str the string to write this header to.
     */
    virtual void toString(std::string& str);
+   
+   /**
+    * Sets the GMT date for this header. A value of NULL will set the date
+    * to the current GMT.
+    * 
+    * @param date the date to use.
+    */
+   virtual void setDate(db::util::Date* date);
+   
+   /** 
+    * Gets the GMT date for this header.
+    * 
+    * @param date the Date to populate.
+    * 
+    * @return the GMT date for this header, false if no date header exists.
+    */
+   virtual bool getDate(db::util::Date& date);
    
    /**
     * BiCapitalizes the passed header so that it is normalized as an
