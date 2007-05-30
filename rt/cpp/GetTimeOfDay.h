@@ -4,18 +4,9 @@
 #ifndef GetTimeOfDay_H
 #define GetTimeOfDay_H
 
-// include types and time
-#ifndef WIN32
-   #include <sys/types.h>
-   #include <sys/time.h>
-#endif
-
-#ifdef WIN32
-   // include windows headers for obtaining time
-   #include <windows.h>
-#endif
-
-// include errno
+// include types, time, and errno
+#include <sys/types.h>
+#include <sys/time.h>
 #include <errno.h>
 
 // define time between the epoch (01/01/1970) and UTC (01/01/1601)
@@ -27,23 +18,11 @@
    #define EPOCH_UTC_TENTHMICROSECS_DELTA 116444736000000000LL
 #endif
 
-// define gettimeofday() as necessary
+// define gettimeofday() for windows as necessary
 #ifdef WIN32
 
-// define timeval structure
-//struct timeval
-//{
-//   /**
-//    * The number of seconds since the epoch.
-//    */
-//   time_t tv_sec;
-//   
-//   /**
-//    * The number of microseconds in edition to the number of seconds
-//    * since the epoch.
-//    */
-//   suseconds_t tv_usec;
-//};
+// include windows headers for obtaining time
+#include <windows.h>
 
 // define timezone structure
 struct timezone
@@ -155,6 +134,10 @@ inline static bool gIsLeapYear(unsigned int year)
    // 2000 is
    return (year % 4 == 0) && !((year % 100 == 0) && !(year % 400 == 0));
 }
+
+// undefine macros for gmtime_r and localtime_r
+#undef gmtime_r
+#undef localtime_r
 
 /**
  * Breaks the passed time_t struct (seconds since the epoch) into a broken-down

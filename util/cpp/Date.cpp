@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Date.h"
+#include "System.h"
 #include "StringTools.h"
 
 using namespace std;
@@ -26,7 +27,7 @@ string& Date::format(string& str, const string& format, TimeZone* tz)
    StringTools::replaceAll(f, "yyyy", "%Y");
    
    // year (2 digit)
-   StringTools::replaceAll(f, "yy", "%0y");
+   StringTools::replaceAll(f, "yy", "%y");
    
    // month in year (full)
    StringTools::replaceAll(f, "MMMM", "%B");
@@ -35,19 +36,19 @@ string& Date::format(string& str, const string& format, TimeZone* tz)
    StringTools::replaceAll(f, "MMM", "%b");
    
    // month in year (number)
-   StringTools::replaceAll(f, "MM", "%0b");
+   StringTools::replaceAll(f, "MM", "%b");
    StringTools::replaceAll(f, "M", "%b");
    
    // week in year
-   StringTools::replaceAll(f, "ww", "%0U");
+   StringTools::replaceAll(f, "ww", "%U");
    StringTools::replaceAll(f, "w", "%U");
    
    // day in year
-   StringTools::replaceAll(f, "DDD", "%0j");
+   StringTools::replaceAll(f, "DDD", "%j");
    StringTools::replaceAll(f, "D", "%j");
    
    // day in month
-   StringTools::replaceAll(f, "dd", "%0d");
+   StringTools::replaceAll(f, "dd", "%d");
    StringTools::replaceAll(f, " d ", " %d ");
    StringTools::replaceAll(f, " d", " %d");
    
@@ -64,20 +65,20 @@ string& Date::format(string& str, const string& format, TimeZone* tz)
    StringTools::replaceAll(f, " a", " %p");
    
    // hour in day (0-24)
-   StringTools::replaceAll(f, "HH", "%0H");
+   StringTools::replaceAll(f, "HH", "%H");
    StringTools::replaceAll(f, " H ", " %H ");
    StringTools::replaceAll(f, " H", "%H");
    
    // hour in day (1-12)
-   StringTools::replaceAll(f, "hh", "%0I");
+   StringTools::replaceAll(f, "hh", "%I");
    StringTools::replaceAll(f, "h", "%I");
    
    // minute in hour
-   StringTools::replaceAll(f, "mm", "%0M");
+   StringTools::replaceAll(f, "mm", "%M");
    StringTools::replaceAll(f, "m", "%M");
    
    // second in minute
-   StringTools::replaceAll(f, "ss", "%0S");
+   StringTools::replaceAll(f, "ss", "%S");
    StringTools::replaceAll(f, "s", "%S");
    
    struct tm time;

@@ -1604,8 +1604,9 @@ void runDateTest()
    string str;
    //d.format(str);
    //d.format(str, "E EEEE d dd M MMMM MM yy w ww yyyy a");
-   //d.format(str, "EEEE, MMMM dd yyyy hh:mm:ss a", &local);
-   d.format(str, "EEE, d MMM yyyy HH:mm:ss", &gmt);
+   //d.format(str, "EEEE, MMMM dd yyyy hh:mm:ss a");
+   d.format(str, "EEEE, MMMM dd yyyy hh:mm:ss a", &local);
+   //d.format(str, "EEE, d MMM yyyy HH:mm:ss", &gmt);
    
    cout << "Current Date: " << str << endl;
    
