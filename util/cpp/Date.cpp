@@ -23,6 +23,11 @@ string& Date::format(string& str, const string& format, TimeZone* tz)
 {
    string f = format;
    
+   // FIXME: need to get negative lookbehind assertions working for regex
+   
+   // AM/PM
+   StringTools::regexReplaceAll(f, "\\ba\\b", "%p");
+   
    // year (4 digit)
    StringTools::regexReplaceAll(f, "\\by{4}\\b", "%Y");
    
@@ -49,9 +54,6 @@ string& Date::format(string& str, const string& format, TimeZone* tz)
    
    // day in week (abbreviated)
    StringTools::regexReplaceAll(f, "\\bE{1,3}\\b", "%a");
-   
-   // AM/PM
-   StringTools::regexReplaceAll(f, "\\ba\\b", "%p");
    
    // hour in day (0-24)
    StringTools::regexReplaceAll(f, "\\bH{1,2}\\b", "%H");

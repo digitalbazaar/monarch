@@ -32,8 +32,11 @@ bool Pattern::match(
    // create match struct
    regmatch_t match[1];
    
+   // if offset is not 0, then not at beginning of the line
+   int flags = (offset == 0) ? 0 : REG_NOTBOL;
+   
    // execute regex
-   if(regexec(&getStorage(), str + offset, 1, match, 0) == 0)
+   if(regexec(&getStorage(), str + offset, 1, match, flags) == 0)
    {
       rval = true;
       
@@ -51,7 +54,6 @@ throw(InvalidRegexException)
    // create a new Pattern
    Pattern* p = new Pattern();
    
-   // use extended regular expressions
    int flags = REG_EXTENDED;
    
    // use case-insensitive as appropriate
