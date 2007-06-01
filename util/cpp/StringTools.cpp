@@ -2,9 +2,11 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "StringTools.h"
+#include "regex/Pattern.h"
 
 using namespace std;
 using namespace db::util;
+using namespace db::util::regex;
 
 string& StringTools::trim(string& str, const string& trimChars)
 {
@@ -31,6 +33,28 @@ string& StringTools::replaceAll(
       str.replace(found, find.length(), replace);
       found = str.find(find, found + replace.length());
    }
+   
+   return str;
+}
+
+string& StringTools::regexReplaceAll(
+   string& str, const string& regex, const string& replace)
+throw(InvalidRegexException)
+{
+   // compile regex pattern
+   Pattern* p = Pattern::compile(regex.c_str());
+   
+   // replace all matches
+   unsigned int start, end;
+   unsigned int index = 0;
+   while(p->match(str.c_str(), index, start, end))
+   {
+      str.replace(start, end - start, replace);
+      index = start + replace.length();
+   }
+   
+   // free regex pattern
+   delete p;
    
    return str;
 }

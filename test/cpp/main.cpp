@@ -1627,6 +1627,13 @@ void runRegexTest()
    
    delete p;
    
+   cout << endl << "Doing replace all test..." << endl << endl;
+   
+   cout << "change 'green' to 'blue'" << endl;
+   cout << submatches << endl;
+   StringTools::regexReplaceAll(submatches, "green", "blue");
+   cout << submatches << endl;
+   
    cout << endl << "Regex test complete." << endl;
 }
 
