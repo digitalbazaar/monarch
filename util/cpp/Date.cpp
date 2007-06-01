@@ -18,70 +18,52 @@ Date::Date()
 Date::~Date()
 {
 }
-
+#include <iostream>
 string& Date::format(string& str, const string& format, TimeZone* tz)
 {
    string f = format;
    
    // year (4 digit)
-   StringTools::replaceAll(f, "yyyy", "%Y");
+   StringTools::regexReplaceAll(f, "\\by{4}\\b", "%Y");
    
    // year (2 digit)
-   StringTools::replaceAll(f, "yy", "%y");
+   StringTools::regexReplaceAll(f, "\\by{1,2}\\b", "%y");
    
    // month in year (full)
-   StringTools::replaceAll(f, "MMMM", "%B");
+   StringTools::regexReplaceAll(f, "\\bM{4,}\\b", "%B");
    
    // month in year (abbreviated)
-   StringTools::replaceAll(f, "MMM", "%b");
-   
-   // month in year (number)
-   StringTools::replaceAll(f, "MM", "%b");
-   StringTools::replaceAll(f, " M ", " %b ");
-   StringTools::replaceAll(f, " M", " %b");
-   StringTools::replaceAll(f, "M ", "%b ");
+   StringTools::regexReplaceAll(f, "\\bM{1,3}\\b", "%b");
    
    // week in year
-   StringTools::replaceAll(f, "ww", "%U");
-   StringTools::replaceAll(f, " w ", "%U");
+   StringTools::regexReplaceAll(f, "\\bw{1,2}\\b", "%U");
    
    // day in year
-   StringTools::replaceAll(f, "DDD", "%j");
-   StringTools::replaceAll(f, "D", "%j");
+   StringTools::regexReplaceAll(f, "\\bD{1,3}\\b", "%j");
    
    // day in month
-   StringTools::replaceAll(f, "dd", "%d");
-   StringTools::replaceAll(f, " d ", " %d ");
-   StringTools::replaceAll(f, " d", " %d");
+   StringTools::regexReplaceAll(f, "\\bd{1,2}\\b", "%d");
    
    // day in week (full)
-   StringTools::replaceAll(f, "EEEE", "%A");
+   StringTools::regexReplaceAll(f, "\\bE{4,}\\b", "%A");
    
    // day in week (abbreviated)
-   StringTools::replaceAll(f, "EEE", "%a");
-   StringTools::replaceAll(f, "EE", "%a");
-   StringTools::replaceAll(f, "E", "%a");
+   StringTools::regexReplaceAll(f, "\\bE{1,3}\\b", "%a");
    
    // AM/PM
-   StringTools::replaceAll(f, " a ", " %p ");
-   StringTools::replaceAll(f, " a", " %p");
+   StringTools::regexReplaceAll(f, "\\ba\\b", "%p");
    
    // hour in day (0-24)
-   StringTools::replaceAll(f, "HH", "%H");
-   StringTools::replaceAll(f, " H ", " %H ");
-   StringTools::replaceAll(f, " H", "%H");
+   StringTools::regexReplaceAll(f, "\\bH{1,2}\\b", "%H");
    
    // hour in day (1-12)
-   StringTools::replaceAll(f, "hh", "%I");
-   StringTools::replaceAll(f, "h", "%I");
+   StringTools::regexReplaceAll(f, "\\bh{1,2}\\b", "%I");
    
    // minute in hour
-   StringTools::replaceAll(f, "mm", "%M");
-   StringTools::replaceAll(f, "m", "%M");
+   StringTools::regexReplaceAll(f, "\\bm{1,2}\\b", "%M");
    
    // second in minute
-   StringTools::replaceAll(f, "ss", "%S");
-   StringTools::replaceAll(f, "s", "%S");
+   StringTools::regexReplaceAll(f, "\\bs{1,2}\\b", "%S");
    
    struct tm time;
    

@@ -1743,8 +1743,8 @@ int main()
       //runConvertTest();
       //runUrlEncodeTest();
       //runUrlTest();
-      runRegexTest();
-      //runDateTest();
+      //runRegexTest();
+      runDateTest();
       //runHttpHeaderTest();
    }
    catch(SocketException& e)
