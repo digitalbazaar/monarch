@@ -37,11 +37,13 @@ string& Date::format(string& str, const string& format, TimeZone* tz)
    
    // month in year (number)
    StringTools::replaceAll(f, "MM", "%b");
-   StringTools::replaceAll(f, "M", "%b");
+   StringTools::replaceAll(f, " M ", " %b ");
+   StringTools::replaceAll(f, " M", " %b");
+   StringTools::replaceAll(f, "M ", "%b ");
    
    // week in year
    StringTools::replaceAll(f, "ww", "%U");
-   StringTools::replaceAll(f, "w", "%U");
+   StringTools::replaceAll(f, " w ", "%U");
    
    // day in year
    StringTools::replaceAll(f, "DDD", "%j");

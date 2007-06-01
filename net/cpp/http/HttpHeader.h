@@ -118,9 +118,9 @@ public:
     * Sets the GMT date for this header. A value of NULL will set the date
     * to the current GMT.
     * 
-    * @param date the date to use.
+    * @param date the date to use (NULL to use the current date).
     */
-   virtual void setDate(db::util::Date* date);
+   virtual void setDate(db::util::Date* date = NULL);
    
    /** 
     * Gets the GMT date for this header.

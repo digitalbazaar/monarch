@@ -26,6 +26,7 @@
 #include "DefaultBlockCipher.h"
 #include "Convert.h"
 #include "Url.h"
+#include "regex/Pattern.h"
 #include "Date.h"
 #include "http/HttpHeader.h"
 #include "http/HttpRequest.h"
@@ -38,6 +39,7 @@ using namespace db::net;
 using namespace db::net::http;
 using namespace db::rt;
 using namespace db::util;
+using namespace db::util::regex;
 
 void runBase64Test()
 {
@@ -1593,6 +1595,41 @@ void runUrlTest()
    cout << endl << "Url test complete." << endl;
 }
 
+void runRegexTest()
+{
+   cout << "Starting Regex test." << endl << endl;
+   
+   string regex = "[a-z]{3}";
+   string str = "abc";
+   
+   if(Pattern::match(regex.c_str(), str.c_str()))
+   {
+      cout << "Simple pattern matches!" << endl;
+   }
+   else
+   {
+      cout << "Simple pattern DOES NOT MATCH!" << endl;
+   }
+   
+   cout << endl << "Doing sub-match test..." << endl << endl;
+   
+   string submatches = "Look for green globs of green matter in green goo.";
+   Pattern* p = Pattern::compile("green");
+   
+   unsigned int start, end;
+   unsigned int index = 0;
+   while(p->match(submatches.c_str(), index, start, end))
+   {
+      cout << "Found match at (" << start << ", " << end << ")" << endl;
+      cout << "Match=" << submatches.substr(start, end - start) << endl;
+      index = end;
+   }
+   
+   delete p;
+   
+   cout << endl << "Regex test complete." << endl;
+}
+
 void runDateTest()
 {
    cout << "Starting Date test." << endl << endl;
@@ -1630,6 +1667,7 @@ void runHttpHeaderTest()
 //   cout << "t='" << t << "'" << endl;
    
    HttpRequestHeader header;
+   header.setDate();
    header.setMethod("GET");
    header.setPath("/");
    header.setVersion("1.1");
@@ -1648,6 +1686,7 @@ void runHttpHeaderTest()
    cout << endl << "Parsed Request Header:" << endl;
    
    HttpRequestHeader header2;
+   header2.setDate();
    header2.setMethod("GET");
    header2.setPath("/");
    header2.setVersion("1.1");
@@ -1697,7 +1736,8 @@ int main()
       //runConvertTest();
       //runUrlEncodeTest();
       //runUrlTest();
-      runDateTest();
+      runRegexTest();
+      //runDateTest();
       //runHttpHeaderTest();
    }
    catch(SocketException& e)

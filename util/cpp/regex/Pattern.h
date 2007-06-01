@@ -1,0 +1,102 @@
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
+#ifndef Pattern_H
+#define Pattern_H
+
+#include "Object.h"
+#include "InvalidRegexException.h"
+
+#include <regex.h>
+
+namespace db
+{
+namespace util
+{
+namespace regex
+{
+
+/**
+ * A Pattern is a utility class for storing compiled regular expressions.
+ * 
+ * @author Dave Longley
+ */
+class Pattern : public virtual db::rt::Object
+{
+protected:
+   /**
+    * The storage struct for the pattern.
+    */
+   regex_t mStorage;
+   
+   /**
+    * Creates a new Pattern.
+    */
+   Pattern();
+   
+   /**
+    * Gets the storage for this Pattern.
+    * 
+    * @return the storage for this Pattern.
+    */
+   regex_t& getStorage(); 
+   
+public:
+   /**
+    * Destructs this Pattern.
+    */
+   virtual ~Pattern();
+   
+   /**
+    * Matches this pattern against the passed string at the given offset and
+    * sets the offsets for the next match, if one can be found.
+    * 
+    * @param str the string to match this pattern against.
+    * @param offset the offset in the string to start matching at.
+    * @param start the starting offset for the found match, if one was found.
+    * @param end the ending offset for the found match, if one was found.
+    * 
+    * @return true if a match was found, false if not.
+    */
+   virtual bool match(
+      const char* str, unsigned int offset,
+      unsigned int& start, unsigned int& end);
+   
+   /**
+    * Compiles a regular expression into a Pattern.
+    * 
+    * The caller of this method must free the returned Pattern.
+    * 
+    * @param regex the regular expression to compile.
+    * @param matchCase true to match case, false to be case-insensitive.
+    * @param subMatches true to allow sub-matches, false not to.
+    * 
+    * @return the compiled Pattern.
+    * 
+    * @exception InvalidRegexException thrown when the passed regular expression
+    *            is not valid/could not be compiled.
+    */
+   static Pattern* compile(
+      const char* regex, bool matchCase = true, bool subMatches = true)
+   throw(InvalidRegexException);
+   
+   /**
+    * Matches the passed regex against the given string.
+    * 
+    * @param regex the regex to use.
+    * @param str the string to match this pattern against.
+    * @param matchCase true to match case, false to be case-insensitive.
+    * 
+    * @return true if the passed string matches the regex, false if not.
+    * 
+    * @exception InvalidRegexException thrown when the passed regular expression
+    *            is not valid/could not be compiled.
+    */
+   static bool match(const char* regex, const char* str, bool matchCase = true)
+   throw(InvalidRegexException);
+};
+
+} // end namespace regex
+} // end namespace util
+} // end namespace db
+#endif
