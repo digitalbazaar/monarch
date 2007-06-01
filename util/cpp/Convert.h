@@ -79,6 +79,24 @@ public:
     * @return the integer.
     */
    static int hexToInt(const char* hex, unsigned int hexLength);
+   
+   /**
+    * Converts an integer into a lower-case hexadecimal string.
+    * 
+    * @param n the integer to convert.
+    * 
+    * @return the lower-case hexadecimal string. 
+    */
+   static std::string intToHex(int n);
+   
+   /**
+    * Converts an integer into an upper-case hexadecimal string.
+    * 
+    * @param n the integer to convert.
+    * 
+    * @return the upper-case hexadecimal string. 
+    */
+   static std::string intToUpperHex(int n);
 };
 
 } // end namespace util

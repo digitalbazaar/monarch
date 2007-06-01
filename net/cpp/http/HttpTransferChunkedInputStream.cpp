@@ -33,6 +33,7 @@ throw(IOException)
 {
    int rval = -1;
    
+   // get underlying connection input stream
    ConnectionInputStream* is = (ConnectionInputStream*)mInputStream;
    
    if(mChunkBytesLeft == 0 && !mLastChunk)
@@ -80,6 +81,9 @@ throw(IOException)
          throw IOException("Could not read HTTP chunk!");
       }
    }
+   
+   // FIXME: increment content bytes read
+   // hwc.setContentBytesRead(hwc.getContentBytesRead() + numBytes);
    
    // if this is the last chunk, then read in the
    // chunk trailer and last CRLF

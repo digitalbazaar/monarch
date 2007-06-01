@@ -5,6 +5,8 @@
 #define HttpTransferChunkedOutputStream_H
 
 #include "FilterOutputStream.h"
+#include "ConnectionOutputStream.h"
+#include "HttpHeader.h"
 
 namespace db
 {
@@ -78,18 +80,44 @@ namespace http
 class HttpTransferChunkedOutputStream :
 public virtual db::io::FilterOutputStream
 {
+protected:
+   /**
+    * The HttpHeader to use.
+    */
+   HttpHeader* mHeader;
+   
 public:
    /**
     * Creates a new HttpTransferChunkedOutputStream.
     * 
-    * @param os the underlying OutputStream to wrap.
+    * @param os the underlying ConnectionOutputStream to wrap.
+    * @param header the HttpHeader to use.
     */
-   HttpTransferChunkedOutputStream(db::io::OutputStream* os);
+   HttpTransferChunkedOutputStream(
+      db::net::ConnectionOutputStream* os, HttpHeader* header);
    
    /**
     * Destructs this HttpTransferChunkedOutputStream.
     */
    virtual ~HttpTransferChunkedOutputStream();
+   
+   /**
+    * Writes some bytes to the stream.
+    * 
+    * @param b the array of bytes to write.
+    * @param length the number of bytes to write to the stream.
+    * 
+    * @exception IOException thrown if an IO error occurs. 
+    */
+   virtual void write(const char* b, unsigned int length)
+   throw(db::io::IOException);
+   
+   /**
+    * Closes the stream.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   virtual void close() throw(db::io::IOException);
 };
 
 } // end namespace http

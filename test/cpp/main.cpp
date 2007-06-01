@@ -1547,6 +1547,13 @@ void runConvertTest()
       cout << "Test FAILED! Strings do not match!" << endl;
    }
    
+   cout << "10 to lower-case hex=" << Convert::intToHex(10) << endl;
+   cout << "33 to lower-case hex=" << Convert::intToHex(33) << endl;
+   cout << "100 to lower-case hex=" << Convert::intToHex(100) << endl;
+   cout << "10 to upper-case hex=" << Convert::intToUpperHex(10) << endl;
+   cout << "33 to upper-case hex=" << Convert::intToUpperHex(33) << endl;
+   cout << "100 to upper-case hex=" << Convert::intToUpperHex(100) << endl;
+   
    cout << endl << "Convert test complete." << endl;
 }
 
@@ -1740,11 +1747,11 @@ int main()
       //runEnvelopeTest("DSA");
       //runEnvelopeTest("RSA");
       //runCipherTest("AES256");
-      //runConvertTest();
+      runConvertTest();
       //runUrlEncodeTest();
       //runUrlTest();
       //runRegexTest();
-      runDateTest();
+      //runDateTest();
       //runHttpHeaderTest();
    }
    catch(SocketException& e)

@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Convert.h"
+#include "StringTools.h"
 
 using namespace std;
 using namespace db::util;
@@ -156,6 +157,48 @@ int Convert::hexToInt(const char* hex, unsigned int hexLength)
             rval += c1 + c2 - 87;
          }
       }
+   }
+   
+   return rval;
+}
+
+string Convert::intToHex(int n)
+{
+   string rval;
+   
+   for(int i = 2 * sizeof(int) - 1; i >= 0; i--)
+   {
+      rval += HEX_CHARS[(n >> (i * 4)) & 0x0F];
+   }
+   
+   // trim leading zeros
+   StringTools::trim(rval, "0");
+   
+   // append single leading zero as necessary
+   if(rval.length() % 2 != 0)
+   {
+      rval.insert(rval.begin(), '0');
+   }
+   
+   return rval;
+}
+
+string Convert::intToUpperHex(int n)
+{
+   string rval;
+   
+   for(int i = 2 * sizeof(int) - 1; i >= 0; i--)
+   {
+      rval += UPPER_HEX_CHARS[(n >> (i * 4)) & 0x0F];
+   }
+   
+   // trim leading zeros
+   StringTools::trim(rval, "0");
+   
+   // append single leading zero as necessary
+   if(rval.length() % 2 != 0)
+   {
+      rval.insert(rval.begin(), '0');
    }
    
    return rval;
