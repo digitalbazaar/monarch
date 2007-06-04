@@ -82,8 +82,7 @@ void JobThread::setJob(Runnable* job)
    {
       // set thread name
       string str;
-      getJob()->toString(str);
-      setName("JobThread: running job '" + str + "'");
+      setName("JobThread: running job '" + getJob()->toString(str) + "'");
       
       // wake up thread
       wakeup();

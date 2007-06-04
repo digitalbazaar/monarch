@@ -43,7 +43,8 @@ public:
    /**
     * The half of the maximum signed long long value.
     */
-   static const unsigned long HALF_MAX_LONG_VALUE = MAX_ULONG_VALUE / 2;
+   static const unsigned long HALF_MAX_LONG_VALUE =
+      (unsigned long)(MAX_ULONG_VALUE / 2);
    
    /**
     * The maximum signed long long value.

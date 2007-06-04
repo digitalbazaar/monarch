@@ -114,9 +114,11 @@ public:
    /**
     * Gets a string representation for this Object.
     * 
+    * @param str the string to populate.
+    * 
     * @return a string representation for this Object.
     */
-   virtual void toString(std::string& str);
+   virtual std::string& toString(std::string& str);
 };
 
 } // end namespace rt

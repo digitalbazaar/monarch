@@ -138,9 +138,10 @@ const string& Url::getQuery()
    return mQuery;
 }
 
-void Url::toString(string& str)
+string& Url::toString(string& str)
 {
    str.append(mScheme + ":" + mSchemeSpecificPart);
+   return str;
 }
 
 unsigned int Url::getDefaultPort()

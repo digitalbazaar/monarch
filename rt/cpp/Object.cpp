@@ -104,7 +104,8 @@ bool Object::operator==(const Object &rhs) const
    return equals(rhs);
 }
 
-void Object::toString(std::string& str)
+string& Object::toString(string& str)
 {
    str = "Object";
+   return str;
 }

@@ -12,6 +12,7 @@
 #include "Runnable.h"
 #include "Thread.h"
 #include "System.h"
+#include "JobDispatcher.h"
 #include "StringTools.h"
 #include "TcpSocket.h"
 #include "UdpSocket.h"
@@ -170,6 +171,42 @@ void runThreadTest()
    t5.join();
    
    cout << endl << "Thread Test complete." << endl;
+}
+
+class TestJob : public virtual Object, public Runnable
+{
+   virtual void run()
+   {
+      cout << "Running a Job" << endl;
+   }
+};
+
+void runJobThreadPoolTest()
+{
+   cout << "Running JobThreadPool Test" << endl << endl;
+   
+   // create a job thread pool
+   JobThreadPool pool(10);
+   
+   // create jobs
+   TestJob job1;
+   
+   // run jobs
+   pool.runJob(&job1);
+   
+   // sleep
+   sleep(2);
+   
+   cout << endl << "JobThreadPool Test complete." << endl << endl;
+}
+
+void runJobDispatcherTest()
+{
+   cout << "Running JobThreadPool Test" << endl << endl;
+   
+   // FIXME:
+   
+   cout << endl << "JobThreadPool Test complete." << endl << endl;
 }
 
 void runLinuxAddressResolveTest()
@@ -1723,6 +1760,8 @@ int main()
       //runBase64Test();
       //runTimeTest();
       //runThreadTest();
+      runJobThreadPoolTest();
+      //runJobDispatcherTest();
       //runWindowsAddressResolveTest();
       //runLinuxAddressResolveTest();
       //runWindowsSocketTest();
@@ -1747,7 +1786,7 @@ int main()
       //runEnvelopeTest("DSA");
       //runEnvelopeTest("RSA");
       //runCipherTest("AES256");
-      runConvertTest();
+      //runConvertTest();
       //runUrlEncodeTest();
       //runUrlTest();
       //runRegexTest();

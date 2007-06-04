@@ -115,8 +115,10 @@ public:
     * Writes this url to the passed string.
     * 
     * @param str the string to store this url in.
+    * 
+    * @return the string representation for this url.
     */
-   virtual void toString(std::string& str);
+   virtual std::string& toString(std::string& str);
    
    /**
     * URL-encodes the passed string.

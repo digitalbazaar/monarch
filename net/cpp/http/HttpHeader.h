@@ -111,8 +111,10 @@ public:
     * Writes this header to a string.
     * 
     * @param str the string to write this header to.
+    * 
+    * @return the string.
     */
-   virtual void toString(std::string& str);
+   virtual std::string& toString(std::string& str);
    
    /**
     * Sets the GMT date for this header. A value of NULL will set the date

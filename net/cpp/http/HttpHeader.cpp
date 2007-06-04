@@ -112,7 +112,7 @@ void HttpHeader::parse(const string& str)
    }
 }
 
-void HttpHeader::toString(string& str)
+string& HttpHeader::toString(string& str)
 {
    // append the start line and CRLF
    getStartLine(str);
@@ -127,6 +127,8 @@ void HttpHeader::toString(string& str)
    
    // add CRLF
    str.append(CRLF);
+   
+   return str;
 }
 
 void HttpHeader::setDate(Date* date)

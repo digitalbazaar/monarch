@@ -37,14 +37,17 @@ public:
    /**
     * Gets a string representation for this Runnable.
     * 
+    * @param str the string to populate.
+    * 
     * @return a string representation for this Runnable.
     */
-   virtual void toString(std::string& str);
+   virtual std::string& toString(std::string& str);
 };
 
-inline void Runnable::toString(std::string& str)
+inline std::string& Runnable::toString(std::string& str)
 {
    str = "Runnable";
+   return str;
 }
 
 } // end namespace rt
