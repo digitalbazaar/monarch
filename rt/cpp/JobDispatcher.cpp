@@ -13,6 +13,9 @@ JobDispatcher::JobDispatcher()
    mThreadPool = new JobThreadPool(0);
    mCleanupThreadPool = true;
    
+   // no dispatcher thread yet
+   mDispatcherThread = NULL;
+   
    // set thread expire time to 5 minutes (300000 milliseconds) by default
    getThreadPool()->setJobThreadExpireTime(300000);
 }
@@ -21,6 +24,7 @@ JobDispatcher::JobDispatcher(JobThreadPool* pool, bool cleanupPool)
 {
    // store the thread pool
    mThreadPool = pool;
+   mCleanupThreadPool = cleanupPool;
    
    // no dispatcher thread yet
    mDispatcherThread = NULL;

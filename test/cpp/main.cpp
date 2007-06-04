@@ -185,7 +185,7 @@ void runJobThreadPoolTest()
 {
    cout << "Running JobThreadPool Test" << endl << endl;
    
-   // create a job thread pool
+   // create a job thread pool with 10 threads
    JobThreadPool pool(10);
    
    // create jobs
@@ -202,11 +202,37 @@ void runJobThreadPoolTest()
 
 void runJobDispatcherTest()
 {
-   cout << "Running JobThreadPool Test" << endl << endl;
+   cout << "Running JobDispatcher Test" << endl << endl;
    
-   // FIXME:
+   // create a job dispatcher
+   JobDispatcher jd;
    
-   cout << endl << "JobThreadPool Test complete." << endl << endl;
+   // create jobs
+   TestJob job1;
+   TestJob job2;
+   TestJob job3;
+   TestJob job4;
+   TestJob job5;
+   TestJob job6;
+   
+   // queue jobs
+   jd.queueJob(&job1);
+   jd.queueJob(&job2);
+   jd.queueJob(&job3);
+   jd.queueJob(&job4);
+   jd.queueJob(&job5);
+   jd.queueJob(&job6);
+   
+   // start dispatching
+   jd.startDispatching();
+   
+   // sleep
+   sleep(2);
+   
+   // stop dispatching
+   jd.stopDispatching();
+   
+   cout << endl << "JobDispatcher Test complete." << endl << endl;
 }
 
 void runLinuxAddressResolveTest()
@@ -1760,8 +1786,8 @@ int main()
       //runBase64Test();
       //runTimeTest();
       //runThreadTest();
-      runJobThreadPoolTest();
-      //runJobDispatcherTest();
+      //runJobThreadPoolTest();
+      runJobDispatcherTest();
       //runWindowsAddressResolveTest();
       //runLinuxAddressResolveTest();
       //runWindowsSocketTest();
