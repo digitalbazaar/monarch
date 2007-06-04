@@ -130,11 +130,6 @@ JobThread* JobThreadPool::getIdleThread()
    return rval;
 }
 
-/**
- * Runs the passed Runnable job on an idle JobThread.
- * 
- * @param job the Runnable job to run.
- */
 void JobThreadPool::runJobOnIdleThread(Runnable* job)
 {
    // synchronize
@@ -149,15 +144,6 @@ void JobThreadPool::runJobOnIdleThread(Runnable* job)
    unlock();
 }
 
-/**
- * Sets the number of threads in this thread pool. If a size of
- * 0 is specified, than there will be no limit to the number of
- * threads in this pool.
- * 
- * @param size the number of threads in this thread pool. A size
- *             of 0 specifies an unlimited number of threads. Size
- *             must be a non-negative number.
- */
 void JobThreadPool::setPoolSize(unsigned int size)
 {
    // synchronize
@@ -206,27 +192,11 @@ void JobThreadPool::setPoolSize(unsigned int size)
    unlock();
 }
 
-/**
- * Gets the number of threads in this thread pool. If a size of
- * 0 is returned, than there is no limit to the number of threads
- * in this pool.
- * 
- * @return the number of threads in this thread pool. A size
- *         of 0 specifies an unlimited number of threads.
- */
 unsigned int JobThreadPool::getPoolSize()
 {
    return mThreadSemaphore.getMaxPermitCount();
 }
 
-/**
- * Runs the passed Runnable job on an available JobThread.
- * 
- * This method will lock until an available thread is acquired or
- * the current thread is interrupted.
- * 
- * @param job the Runnable job to run.
- */
 void JobThreadPool::runJob(Runnable* job)
 {
    bool permitAcquired = false;
@@ -257,9 +227,6 @@ void JobThreadPool::runJob(Runnable* job)
    }
 }
 
-/**
- * Interrupts all threads in this pool.
- */
 void JobThreadPool::interruptAllThreads()
 {
    // synchronize
@@ -321,13 +288,6 @@ void JobThreadPool::terminateAllThreads(unsigned long long joinTime)
    cout << "all threads terminated." << endl;
 }
 
-/**
- * Sets the expire time for all JobThreads.
- * 
- * @param expireTime the amount of time that must pass while JobThreads
- *                   are idle in order for them to expire -- if 0 is passed
- *                   then JobThreads will never expire.
- */
 void JobThreadPool::setJobThreadExpireTime(unsigned long long expireTime)
 {
    // synchronize
@@ -346,21 +306,11 @@ void JobThreadPool::setJobThreadExpireTime(unsigned long long expireTime)
    unlock();
 }
 
-/**
- * Gets the expire time for all JobThreads.
- * 
- * @return the expire time for all JobThreads.
- */
 unsigned long long JobThreadPool::getJobThreadExpireTime()
 {
    return mJobThreadExpireTime;
 }
 
-/**
- * Gets the current number of JobThreads in the pool.
- * 
- * @return the current number of JobThreads in the pool.
- */
 unsigned int JobThreadPool::getJobThreadCount()
 {
    unsigned int rval = 0;
@@ -375,13 +325,6 @@ unsigned int JobThreadPool::getJobThreadCount()
    return rval;
 }
 
-/**
- * Gets the current number of running JobThreads.
- * 
- * Returns getJobThreadCount() - getIdleJobThreadCount().
- * 
- * @return the current number of running JobThreads.
- */
 unsigned int JobThreadPool::getRunningJobThreadCount()
 {
    unsigned int rval = 0;
@@ -392,11 +335,6 @@ unsigned int JobThreadPool::getRunningJobThreadCount()
    return rval;
 }
 
-/**
- * Gets the current number of idle JobThreads.
- * 
- * @return the current number of idle JobThreads.
- */
 unsigned int JobThreadPool::getIdleJobThreadCount()
 {
    unsigned int rval = 0;
