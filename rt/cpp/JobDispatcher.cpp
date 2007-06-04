@@ -217,12 +217,12 @@ void JobDispatcher::interruptAllRunningJobs()
    unlock();
 }
 
-void JobDispatcher::terminateAllRunningJobs(unsigned long long joinTime)
+void JobDispatcher::terminateAllRunningJobs()
 {
    // synchronize
    lock();
    {
-      getThreadPool()->terminateAllThreads(joinTime);
+      getThreadPool()->terminateAllThreads();
    }
    unlock();
 }

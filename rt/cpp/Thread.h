@@ -111,12 +111,9 @@ public:
    
    /**
     * Causes the currently executing Thread to wait until this Thread
-    * completes or until the specified time expires.
-    *
-    * @param time the number of milliseconds to wait for this Thread to
-    *             complete (0 to wait indefinitely).
+    * completes.
     */
-   virtual void join(unsigned long time = 0);
+   virtual void join();
    
    /**
     * Detaches this Thread. This means that this Thread can no longer be

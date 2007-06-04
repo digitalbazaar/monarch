@@ -18,6 +18,10 @@ Thread::Thread(Runnable* runnable, std::string name)
    // make thread joinable
    pthread_attr_setdetachstate(&mPThreadAttributes, PTHREAD_CREATE_JOINABLE);
    
+   // make thread cancelable upon joins/waits/etc
+   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+   pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+   
    // store runnable
    mRunnable = runnable;
    
@@ -85,6 +89,9 @@ void Thread::interrupt()
 {
    // set interrupted flag
    mInterrupted = true;
+   
+   // cancel thread
+   pthread_cancel(mPThread);
 }
 
 bool Thread::isInterrupted()
@@ -97,19 +104,11 @@ bool Thread::hasStarted()
    return mStarted;
 }
 
-void Thread::join(unsigned long time)
+void Thread::join()
 {
-   if(time == 0)
-   {
-      // join thread, wait for it to detach/terminate indefinitely
-      int status;
-      pthread_join(mPThread, (void **)&status);
-   }
-   else
-   {
-      // FIXME: implement me
-      throw Exception("Thread::join(timeout) not implemented yet!");
-   }
+   // join thread, wait for it to detach/terminate indefinitely
+   int status;
+   pthread_join(mPThread, (void **)&status);
 }
 
 void Thread::detach()

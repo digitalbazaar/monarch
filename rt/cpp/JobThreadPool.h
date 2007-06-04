@@ -137,12 +137,9 @@ public:
    virtual void interruptAllThreads();
    
    /**
-    * Interrupts all threads in this pool and removes them.
-    *
-    * @param joinTime the maximum amount of time (in milliseconds) to wait to
-    *                 join the threads, 0 to wait indefinitely.
+    * Interrupts all threads in this pool, joins, and removes them.
     */
-   virtual void terminateAllThreads(unsigned long long joinTime);
+   virtual void terminateAllThreads();
    
    /**
     * Sets the expire time for all JobThreads.

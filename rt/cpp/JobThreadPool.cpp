@@ -19,7 +19,7 @@ JobThreadPool::JobThreadPool(unsigned int poolSize) :
 JobThreadPool::~JobThreadPool()
 {
    // terminate all threads
-   terminateAllThreads(0);
+   terminateAllThreads();
 }
 
 void JobThreadPool::acquireThreadPermit() throw(InterruptedException)
@@ -259,7 +259,7 @@ void JobThreadPool::interruptAllThreads()
    unlock();
 }
 
-void JobThreadPool::terminateAllThreads(unsigned long long joinTime)
+void JobThreadPool::terminateAllThreads()
 {
    // interrupt all the threads
    interruptAllThreads();
@@ -280,7 +280,7 @@ void JobThreadPool::terminateAllThreads(unsigned long long joinTime)
             cout << "joining thread..." << endl;
             
             // join thread
-            thread->join(joinTime);
+            thread->join();
             
             // interrupt and detach thread if it is still alive
             if(thread->isAlive())
