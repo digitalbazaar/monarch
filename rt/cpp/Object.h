@@ -5,6 +5,7 @@
 #define Object_H
 
 #include <pthread.h>
+#include <string>
 
 namespace db
 {
@@ -109,6 +110,13 @@ public:
     * @return true if the passed Object equals this one.
     */
    virtual bool operator==(const Object &rhs) const;
+   
+   /**
+    * Gets a string representation for this Object.
+    * 
+    * @return a string representation for this Object.
+    */
+   virtual void toString(std::string& str);
 };
 
 } // end namespace rt

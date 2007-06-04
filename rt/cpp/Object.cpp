@@ -103,3 +103,8 @@ bool Object::operator==(const Object &rhs) const
 {
    return equals(rhs);
 }
+
+void Object::toString(std::string& str)
+{
+   str = "Object";
+}

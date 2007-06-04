@@ -4,7 +4,7 @@
 #include "Object.h"
 #include "Thread.h"
 
-#include <vector>
+#include <list>
 
 namespace db
 {
@@ -38,7 +38,7 @@ protected:
    /**
     * The threads that may be waiting to acquire a permit.
     */
-   std::vector<Thread*> mWaitingThreads;
+   std::list<Thread*> mWaitingThreads;
    
    /**
     * The lock object. This is the object to synchronize on when
@@ -208,7 +208,7 @@ public:
     *
     * @return collection of threads that may be waiting for permits.
     */
-   const std::vector<Thread*>& getQueuedThreads();
+   const std::list<Thread*>& getQueuedThreads();
    
    /**
     * Returns an estimate of the number of threads that are

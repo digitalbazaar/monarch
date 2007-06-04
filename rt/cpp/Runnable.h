@@ -4,6 +4,8 @@
 #ifndef Runnable_H
 #define Runnable_H
 
+#include <string>
+
 namespace db
 {
 namespace rt
@@ -31,7 +33,19 @@ public:
     * Runs some implementation specific operation.
     */
    virtual void run() = 0;
+   
+   /**
+    * Gets a string representation for this Runnable.
+    * 
+    * @return a string representation for this Runnable.
+    */
+   virtual void toString(std::string& str);
 };
+
+inline void Runnable::toString(std::string& str)
+{
+   str = "Runnable";
+}
 
 } // end namespace rt
 } // end namespace db

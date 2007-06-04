@@ -118,7 +118,7 @@ void Semaphore::addWaitingThread(Thread* thread)
    lock();
    {
       // if this thread isn't in the wait queue, add it
-      vector<Thread*>::iterator i =
+      list<Thread*>::iterator i =
          find(mWaitingThreads.begin(), mWaitingThreads.end(), thread);
       if(i == mWaitingThreads.end())
       {
@@ -133,12 +133,7 @@ void Semaphore::removeWaitingThread(Thread* thread)
    lock();
    {
       // remove thread
-      vector<Thread*>::iterator i =
-         find(mWaitingThreads.begin(), mWaitingThreads.end(), thread);
-      if(i != mWaitingThreads.end())
-      {
-         mWaitingThreads.erase(i);
-      }
+      mWaitingThreads.remove(thread);
    }
    unlock();
 }
@@ -150,7 +145,7 @@ void Semaphore::removeFirstWaitingThread()
       if(mWaitingThreads.size() > 0)
       {
          // remove first thread
-         mWaitingThreads.erase(mWaitingThreads.begin());
+         mWaitingThreads.pop_front();
       }
    }
    unlock();
@@ -164,11 +159,11 @@ void Semaphore::removeRandomWaitingThread()
       {
          // get a random index
          unsigned int index = rand() % mWaitingThreads.size();
-         Thread* thread = mWaitingThreads[index];
+         list<Thread*>::iterator i = mWaitingThreads.begin();
+         for(unsigned int count = 0;
+             count < index && i != mWaitingThreads.end(); i++, count++);
          
          // remove thread
-         vector<Thread*>::iterator i =
-            find(mWaitingThreads.begin(), mWaitingThreads.end(), thread);
          mWaitingThreads.erase(i);
       }
    }
@@ -181,7 +176,7 @@ bool Semaphore::mustWait(Thread* thread)
    
    lock();
    {
-      vector<Thread*>::iterator i =
+      list<Thread*>::iterator i =
          find(mWaitingThreads.begin(), mWaitingThreads.end(), thread);
       if(i != mWaitingThreads.end())
       {
@@ -286,7 +281,7 @@ bool Semaphore::isFair()
    return mFair;
 }
 
-const vector<Thread*>& Semaphore::getQueuedThreads()
+const list<Thread*>& Semaphore::getQueuedThreads()
 {
    return mWaitingThreads;
 }
