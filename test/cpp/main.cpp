@@ -177,7 +177,7 @@ class TestJob : public virtual Object, public Runnable
 {
    virtual void run()
    {
-      cout << "Running a Job" << endl;
+      cout << endl << "TestJob: Running a Job" << endl;
    }
 };
 
@@ -195,7 +195,7 @@ void runJobThreadPoolTest()
    pool.runJob(&job1);
    
    // sleep
-   sleep(2);
+   sleep(1);
    
    cout << endl << "JobThreadPool Test complete." << endl << endl;
 }

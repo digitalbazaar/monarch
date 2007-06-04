@@ -5,6 +5,7 @@
 #include "Exception.h"
 #include "InterruptedException.h"
 #include "Thread.h"
+#include "GetTimeOfDay.h"
 
 using namespace std;
 using namespace db::rt;
@@ -94,8 +95,25 @@ void Object::wait(unsigned long timeout)
    }
    else
    {
-      // FIXME: implement timeout
-      throw Exception("Object::wait(timeout) not implemented yet!");
+      // determine seconds and nanoseconds (timeout is in milliseconds and
+      // 1000 milliseconds = 1 second = 1000000 nanoseconds
+      unsigned long secs = timeout / 1000UL;
+      unsigned long nsecs = timeout % 1000UL * 1000000UL;
+      
+      struct timeval now;
+      struct timespec timeout;
+      gettimeofday(&now, NULL);
+      
+      // add timeout to current time (1 microsecond = 1000 nanoseconds)
+      timeout.tv_sec = now.tv_sec + secs;
+      timeout.tv_nsec = now.tv_usec * 1000UL + nsecs;
+      
+      // do timed wait
+      int rc = pthread_cond_timedwait(&mWaitCondition, &mMutex, &timeout);
+      if(rc == ETIMEDOUT)
+      {
+         // timeout reached
+      }
    }
 }
 

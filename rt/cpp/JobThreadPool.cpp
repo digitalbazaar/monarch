@@ -64,7 +64,7 @@ JobThread* JobThreadPool::getIdleThread()
       
       // iterate through threads, find one that is idle
       for(vector<JobThread*>::iterator i = mThreads.begin();
-          i != mThreads.end(); i++)
+          i != mThreads.end();)
       {
          JobThread* thread = *i;
          if(thread->isIdle())
@@ -75,7 +75,7 @@ JobThread* JobThreadPool::getIdleThread()
                cout << "removing expired thread." << endl;
                
                // remove thread
-               mThreads.erase(i);
+               i = mThreads.erase(i);
                delete thread;
                
                // decrement extra threads
@@ -95,18 +95,29 @@ JobThread* JobThreadPool::getIdleThread()
                   thread->detach();
                   
                   // remove thread
-                  mThreads.erase(i);
+                  i = mThreads.erase(i);
                   delete thread;
                   
                   // decrement extra threads
                   extraThreads--;
                }
-               else if(rval == NULL)
+               else
                {
-                  // return this thread
-                  rval = thread;
+                  if(rval == NULL)
+                  {
+                     // return this thread
+                     rval = thread;
+                  }
+                  
+                  // move to the next thread
+                  i++;
                }
             }
+         }
+         else
+         {
+            // move to the next thread
+            i++;
          }
       }
       
@@ -177,7 +188,7 @@ void JobThreadPool::setPoolSize(unsigned int size)
                thread->detach();
                
                // remove it from the pool
-               mThreads.erase(i);
+               i = mThreads.erase(i);
                delete thread;
                
                // decrement remove count
@@ -262,15 +273,26 @@ void JobThreadPool::terminateAllThreads(unsigned long long joinTime)
       {
          // iterate through all threads, join and remove them
          for(vector<JobThread*>::iterator i = mThreads.begin();
-             i != mThreads.end(); i++)
+             i != mThreads.end();)
          {
             JobThread* thread = *i;
+            
+            cout << "joining thread..." << endl;
             
             // join thread
             thread->join(joinTime);
             
+            // interrupt and detach thread if it is still alive
+            if(thread->isAlive())
+            {
+               thread->interrupt();
+               thread->detach();
+            }
+            
+            cout << "thread joined." << endl;
+            
             // remove thread
-            mThreads.erase(i);
+            i = mThreads.erase(i);
             delete thread;
          }
       }

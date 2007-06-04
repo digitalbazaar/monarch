@@ -175,19 +175,13 @@ bool Thread::interrupted()
 
 void Thread::sleep(unsigned long time) throw(InterruptedException)
 {
-   // FIXME: implement me
-   throw Exception("Thread::sleep() not implemented yet!");
-   /*
-   struct timespec waitTime;
-   waitTime.tv_sec = (unsigned long long)(time / 1000LL);
-   waitTime.tv_nsec = (unsigned long long)((time % 1000LL) * 1000000LL);
+   // create a lock object
+   Object lock;
    
-   struct timespec remainingTime;
-   
-   int interrupted = nanosleep(&waitTime, &remainingTime);
-   if(interrupted != 0)
+   lock.lock();
    {
-      // FIXME:
-      // throw interrupted exception, include time remaining
-   }*/
+      // wait on the lock object for the specified time
+      lock.wait(time);
+   }
+   lock.unlock();
 }
