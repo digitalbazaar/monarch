@@ -196,14 +196,30 @@ public class RiffChunkHeader
       if(b != null && length >= CHUNK_HEADER_SIZE)
       {
          mId = "";
-         mId += (char)b[offset];
-         mId += (char)b[offset + 1];
-         mId += (char)b[offset + 2];
-         mId += (char)b[offset + 3];
+         if(b[offset] > 0)
+         {
+            mId += (char)b[offset];
+         }
          
-         rval = true;
+         if(b[offset + 1] > 0)
+         {
+            mId += (char)b[offset + 1];
+         }
          
-         rval &= convertBytesToSize(b, offset + 4, length);
+         if(b[offset + 2] > 0)
+         {
+            mId += (char)b[offset + 2];
+         }
+         
+         if(b[offset + 3] > 0)
+         {
+            mId += (char)b[offset + 3];
+         }
+         
+         if(mId.length() == 4)
+         {
+            rval = convertBytesToSize(b, offset + 4, length);
+         }
       }
       
       setValid(rval);

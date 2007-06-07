@@ -136,12 +136,31 @@ public class RiffListHeader
             if(mChunkHeader.getIdentifier().equals("LIST"))
             {
                mId = "";
-               mId += (char)b[offset + 8];
-               mId += (char)b[offset + 9];
-               mId += (char)b[offset + 10];
-               mId += (char)b[offset + 11];
                
-               rval = true;
+               if(b[offset + 8] > 0)
+               {
+                  mId += (char)b[offset + 8];
+               }
+               
+               if(b[offset + 9] > 0)
+               {
+                  mId += (char)b[offset + 9];
+               }
+               
+               if(b[offset + 10] > 0)
+               {
+                  mId += (char)b[offset + 10];
+               }
+               
+               if(b[offset + 11] > 0)
+               {
+                  mId += (char)b[offset + 11];
+               }
+               
+               if(mId.length() == 4)
+               {
+                  rval = true;
+               }
             }
          }
       }
