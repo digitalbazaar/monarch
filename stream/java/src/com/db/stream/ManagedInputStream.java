@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.stream;
 
@@ -10,6 +10,13 @@ import java.io.InputStream;
 import com.db.logging.LoggerManager;
 
 /**
+ * FIXME: This class will soon be marked deprecated. It is way too memory
+ * intensive and is being replaced with a simpler architecture of a
+ * MutatorInputStream (for mutating data as it is read using implementation
+ * specific algorithms) and a InspectorInputStream/FormatDetectionInputStream
+ * for detecting data formats that has a very small memory footprint where
+ * a series of DataInspectors/DataFormatDetectors share the same memory source. 
+ * 
  * A managed input stream is a composition of a FilterInputStream and
  * two interfaces: IStreamManager and IStreamProcessor. It is an
  * input stream that allows the data that is read when any read()
