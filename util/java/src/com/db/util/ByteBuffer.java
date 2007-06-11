@@ -70,7 +70,7 @@ public class ByteBuffer
       // determine if the data needs to be shifted
       if(mOffset > 0)
       {
-         int overflow = length - getFreeSpace() - mOffset;
+         int overflow = length - getFreeSpace() + mOffset;
          if(overflow > 0)
          {
             // shift the data in the buffer
@@ -168,7 +168,7 @@ public class ByteBuffer
          allocateSpace(getFreeSpace(), false);
          
          // read
-         rval = is.read(mBuffer, mOffset, getFreeSpace());
+         rval = is.read(mBuffer, mOffset + mCount, getFreeSpace());
          
          if(rval != -1)
          {
@@ -196,6 +196,11 @@ public class ByteBuffer
    {
       length = Math.min(length, getUsedSpace());
       System.arraycopy(mBuffer, mOffset, b, offset, length);
+      
+      // move internal pointer
+      mOffset += length;
+      mCount -= length;
+      
       return length;
    }
    
@@ -214,7 +219,7 @@ public class ByteBuffer
    public int get(ByteBuffer b, int length, boolean resize)
    {
       // put data into passed buffer
-      int rval = b.put(mBuffer, mOffset, length, resize);
+      int rval = b.put(mBuffer, mOffset, Math.min(mCount, length), resize);
       
       // move internal pointer and change count
       mOffset += rval;

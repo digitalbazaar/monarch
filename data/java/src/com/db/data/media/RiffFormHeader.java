@@ -4,7 +4,8 @@
 package com.db.data.media;
 
 /**
- * A RIFF Form header. The list size does *NOT* include the header size.
+ * A RIFF Form header. The file size does *NOT* include the header size. So
+ * it should, usually, be the length of the file - 8.
  * 
  * The format of the header is such:
  * 
@@ -112,7 +113,7 @@ public class RiffFormHeader extends RiffListHeader
     */
    public void setFileSize(long fileSize)
    {
-      setListSize(fileSize);
+      setChunkSize(fileSize);
    }
    
    /**
@@ -122,7 +123,7 @@ public class RiffFormHeader extends RiffListHeader
     */
    public long getFileSize()
    {
-      return getListSize();
+      return getChunkSize();
    }
    
    /**

@@ -50,10 +50,10 @@ public class MutatorInputStream extends FilterInputStream
       super(is);
       
       // create read buffer
-      mReadBuffer = new ByteBuffer(16384);
+      mReadBuffer = new ByteBuffer(8192);
       
       // create mutated buffer
-      mMutatedData = new ByteBuffer(0);
+      mMutatedData = new ByteBuffer(8192);
       
       // create one byte buffer
       mOneByteBuffer = new byte[1];

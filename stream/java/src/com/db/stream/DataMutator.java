@@ -80,8 +80,8 @@ public class DataMutator
       {
          if(mAlgorithm != null)
          {
-            // mutate the data
-            mAlgorithm.mutateData(mSource, mDestination);
+            // keep mutating while algorithm can run
+            while(mAlgorithm.mutateData(mSource, mDestination));
          }
          else
          {
