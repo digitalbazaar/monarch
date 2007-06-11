@@ -108,11 +108,8 @@ public class MutatorInputStream extends FilterInputStream
    {
       int rval = -1;
       
-      // while there is no data in the mutator, read
-      while(!mMutator.hasData() && mMutator.put(in) != -1);
-      
-      // check for data in the mutator, otherwise end of stream
-      if(mMutator.hasData())
+      // mutate data
+      if(mMutator.mutate(in))
       {
          // get data from the mutator
          rval = mMutator.get(b, offset, length);

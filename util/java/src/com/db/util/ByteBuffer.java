@@ -73,8 +73,12 @@ public class ByteBuffer
          int overflow = length - getFreeSpace() + mOffset;
          if(overflow > 0)
          {
-            // shift the data in the buffer
-            System.arraycopy(mBuffer, mOffset, mBuffer, 0, mCount);
+            if(mCount > 0)
+            {
+               // shift the data in the buffer
+               System.arraycopy(mBuffer, mOffset, mBuffer, 0, mCount);
+            }
+            
             mOffset = 0;
          }
       }
@@ -93,14 +97,17 @@ public class ByteBuffer
          throw new IllegalArgumentException("ByteBufferSize capacity be >= 0");
       }
       
-      // create a new buffer
-      byte[] newBuffer = new byte[capacity];
-      
-      // copy the data into the new buffer, truncate old count as necessary
-      mCount = Math.min(capacity, mCount);
-      System.arraycopy(mBuffer, mOffset, newBuffer, 0, mCount);
-      mOffset = 0;
-      mBuffer = newBuffer;
+      if(capacity != getCapacity())
+      {
+         // create a new buffer
+         byte[] newBuffer = new byte[capacity];
+         
+         // copy the data into the new buffer, truncate old count as necessary
+         mCount = Math.min(capacity, mCount);
+         System.arraycopy(mBuffer, mOffset, newBuffer, 0, mCount);
+         mOffset = 0;
+         mBuffer = newBuffer;
+      }
    }
    
    /**

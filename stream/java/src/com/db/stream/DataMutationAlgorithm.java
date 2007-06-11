@@ -27,7 +27,8 @@ public interface DataMutationAlgorithm
     * @param finalize true to finalize the mutation, false not to.
     * 
     * @return true if there was enough data in the source buffer to run the
-    *         mutation algorithm (which may or may not produce mutated bytes).
+    *         mutation algorithm (which may or may not produce mutated bytes),
+    *         false if more data is required.
     */
    public boolean mutateData(ByteBuffer src, ByteBuffer dest, boolean finalize);
 }

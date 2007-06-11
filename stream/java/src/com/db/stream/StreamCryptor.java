@@ -270,7 +270,7 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
       dest.put(processed, 0, processed.length, true);
       
       // check for last chunk
-      if(last)
+      if(last && src.isEmpty())
       {
          // append data size to buffer
          byte[] bytes = convertToBytes(getNumBytesEncrypted());
@@ -301,31 +301,32 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
          // 8 bytes that are not to be decrypted, but rather represent
          // the size of the unencrypted data
          int length = Math.min(src.getUsedSpace(), getDecryptChunkSize());
-         if(last)
+         int size = length;
+         if(last && src.getUsedSpace() == length)
          {
             // remove trailer bytes
-            length -= 8;
+            size -= 8;
          }
          
          // decrypt the data
          byte[] processed = getCryptor().decrypt(
-            src.getBytes(), src.getOffset(), length);
+            src.getBytes(), src.getOffset(), size);
          src.clear(length);
          if(processed != null)
          {
-            // if the processed length is longer than the remaining
+            // if the processed size is longer than the remaining
             // data, then trim the processed data
-            length = processed.length;
-            if(left < Integer.MAX_VALUE && length > left)
+            size = processed.length;
+            if(left < Integer.MAX_VALUE && size > left)
             {
-               length = (int)left;
+               size = (int)left;
             }
             
             // put processed data in destination buffer
-            dest.put(processed, 0, length, true);
+            dest.put(processed, 0, size, true);
             
             // update total decrypted bytes
-            mNumDecryptedBytes += length;
+            mNumDecryptedBytes += size;
             
             // data decrypted
             rval = true;
@@ -553,7 +554,7 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
       try
       {
          // get a packet buffer
-         byte[] packet = new byte[mEncryptChunkSize];
+         byte[] packet = new byte[16384];
          
          int numBytes = -1;
          
@@ -745,7 +746,7 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
          try
          {
             // get a packet buffer
-            byte[] packet = new byte[mDecryptChunkSize];
+            byte[] packet = new byte[2048];
 
             int numBytes = -1;
             
@@ -1014,14 +1015,16 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
       boolean rval = false;
       
       // resize source, it must be able to hold decrypt chunk size and
-      // 8 byte trailer
+      // 8 byte trailer (if there isn't more than this amount of data,
+      // no mutation will happen until the finalize flag is set indicating
+      // that the last chunk is to be encrypted/decrypted)
       int size = getDecryptChunkSize() + 8;
       
       if(src.getCapacity() <= size)
       {
          src.resize(size + 1);
       }
-      else if(src.getUsedSpace() > size || finalize)
+      else if(!src.isEmpty() && (src.getUsedSpace() > size || finalize))
       {
          switch(getStreamCryptMode())
          {

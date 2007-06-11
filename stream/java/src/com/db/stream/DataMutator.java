@@ -14,7 +14,7 @@ import com.db.util.ByteBuffer;
  * 
  * @author Dave Longley
  */
-public class DataMutator
+public class DataMutator implements DataMutationAlgorithm
 {
    /**
     * The source ByteBuffer with unmutated data.
@@ -43,8 +43,8 @@ public class DataMutator
       mSource = src;
       mDestination = dest;
       
-      // no algorithm yet
-      mAlgorithm = null;
+      // no algorithm yet, use default
+      mAlgorithm = this;
    }
    
    /**
@@ -58,45 +58,38 @@ public class DataMutator
    }
    
    /**
-    * Reads data from the passed input stream and mutates it.
+    * Runs a mutation algorithm on data read from the passed input stream
+    * until some mutated bytes are available.
     * 
-    * This method will block until at one byte can be read from the input
-    * stream, unless this source buffer for this mutator is already full, or
-    * until the end of the stream has been reached.
+    * This method will block until this DataMutator has mutated data that can
+    * be retrieved or until the end of the input stream has been reached and
+    * there is no more mutated data available.
     * 
     * @param is the input stream to read from.
     * 
-    * @return the number of bytes read from the input stream and put into
-    *         this mutator, or -1 if the end of the input stream was reached.
+    * @return true if mutated data is available, false if the end of the
+    *         stream has been reached and no more mutated data is available.
     * 
     * @exception IOException thrown if an IO error occurs.
     */
-   public int put(InputStream is) throws IOException
+   public boolean mutate(InputStream is) throws IOException
    {
-      int rval = mSource.put(is);
-      
-      // only mutate data if the destination is empty and source is not
-      if(mDestination.isEmpty() && !mSource.isEmpty())
+      // mutate while no data is available and not finalized
+      boolean finalize = false;
+      boolean read = mSource.isEmpty();
+      while(!hasData() && !finalize)
       {
-         if(mAlgorithm != null)
+         // read as necessary
+         if(read)
          {
-            // keep mutating while algorithm can run
-            while(mAlgorithm.mutateData(mSource, mDestination, false));
-            
-            if(rval == -1)
-            {
-               // end of stream, so finalize mutation
-               mAlgorithm.mutateData(mSource, mDestination, true);
-            }
+            finalize = (mSource.put(is) == -1);
          }
-         else
-         {
-            // get all data from source and put it in destination
-            mSource.get(mDestination, mSource.getUsedSpace(), true);
-         }
+         
+         // try to mutate data
+         read = !mAlgorithm.mutateData(mSource, mDestination, finalize);
       }
       
-      return rval;
+      return hasData();
    }
    
    /**
@@ -126,5 +119,35 @@ public class DataMutator
    public boolean hasData()
    {
       return !mDestination.isEmpty();
+   }
+   
+   /**
+    * Gets data out of the source ByteBuffer, mutates it in some implementation
+    * specific fashion, and then puts it in the destination ByteBuffer. The
+    * actual number of mutated bytes is returned, which may be zero if there
+    * are not enough bytes in the source buffer to produce mutated bytes.
+    * 
+    * Note: The destination buffer will be resized to accommodate any mutated
+    * bytes.
+    * 
+    * @param src the source ByteBuffer with bytes to mutate.
+    * @param dest the destination ByteBuffer to write the mutated bytes to.
+    * @param finalize true to finalize the mutation, false not to.
+    * 
+    * @return true if there was enough data in the source buffer to run the
+    *         mutation algorithm (which may or may not produce mutated bytes).
+    */
+   public boolean mutateData(ByteBuffer src, ByteBuffer dest, boolean finalize)   
+   {
+      boolean rval = false;
+      
+      if(!mSource.isEmpty())
+      {
+         // get all data from source and put it in destination
+         mSource.get(mDestination, mSource.getUsedSpace(), true);
+         rval = true;
+      }
+      
+      return rval;
    }
 }

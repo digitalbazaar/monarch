@@ -34,6 +34,7 @@ import com.db.logging.LoggerManager;
  * 
  * @author Dave Longley
  */
+@Deprecated
 public class ManagedInputStream extends FilterInputStream
 {
    /**
