@@ -24,9 +24,10 @@ public interface DataMutationAlgorithm
     * 
     * @param src the source ByteBuffer with bytes to mutate.
     * @param dest the destination ByteBuffer to write the mutated bytes to.
+    * @param finalize true to finalize the mutation, false not to.
     * 
     * @return true if there was enough data in the source buffer to run the
     *         mutation algorithm (which may or may not produce mutated bytes).
     */
-   public boolean mutateData(ByteBuffer src, ByteBuffer dest);
+   public boolean mutateData(ByteBuffer src, ByteBuffer dest, boolean finalize);
 }

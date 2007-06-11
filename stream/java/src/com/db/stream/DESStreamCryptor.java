@@ -101,7 +101,7 @@ public class DESStreamCryptor extends StreamCryptor
 
       if(encodedKey != null)
       {
-         secretKey = KeyManager.decodeSymmetricalKey(encodedKey, "AES");         
+         secretKey = KeyManager.decodeSymmetricalKey(encodedKey, "DES");         
       }
 
       return secretKey;

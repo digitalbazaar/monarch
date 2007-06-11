@@ -75,13 +75,19 @@ public class DataMutator
    {
       int rval = mSource.put(is);
       
-      // only mutate data if the destination is empty
-      if(mDestination.isEmpty())
+      // only mutate data if the destination is empty and source is not
+      if(mDestination.isEmpty() && !mSource.isEmpty())
       {
          if(mAlgorithm != null)
          {
             // keep mutating while algorithm can run
-            while(mAlgorithm.mutateData(mSource, mDestination));
+            while(mAlgorithm.mutateData(mSource, mDestination, false));
+            
+            if(rval == -1)
+            {
+               // end of stream, so finalize mutation
+               mAlgorithm.mutateData(mSource, mDestination, true);
+            }
          }
          else
          {
