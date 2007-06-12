@@ -194,8 +194,7 @@ public class UTFileEncryption extends Thread
          
          // get a managed input stream, reads from file stream and modifies
          // with DESStreamCryptor
-         ManagedInputStream mis = new ManagedInputStream(fis,
-                                                         smDESSC, smDESSC);
+         MutatorInputStream mis = new MutatorInputStream(fis, smDESSC);
          
          // get a packet buffer for file transferring
          byte[] packet = new byte[smPacketSize];

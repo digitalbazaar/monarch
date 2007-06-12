@@ -15,7 +15,6 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
@@ -33,8 +32,7 @@ import java.io.RandomAccessFile;
  * 
  * @author Dave Longley
  */
-public abstract class StreamCryptor
-implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
+public abstract class StreamCryptor implements DataMutationAlgorithm
 {
    /**
     * The underlying Cryptor that does encryption/decryption.
@@ -162,91 +160,6 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
       }
       
       return bytes;
-   }
-   
-   /**
-    * Encrypts a chunk of data.
-    * 
-    * @param data the data to encrypt.
-    * @param last whether or not this is the last chunk of data in the stream.
-    * 
-    * @return the encrypted chunk of data.
-    */
-   protected byte[] encryptChunk(byte[] data, boolean last)
-   {
-      byte[] processed = null;
-      
-      // update the total bytes encrypted
-      mNumBytesEncrypted += data.length;
-      processed = getCryptor().encrypt(data);
-
-      // check for last chunk
-      if(data.length < getEncryptChunkSize() || last)
-      {
-         // append data size
-         byte[] buffer = new byte[processed.length + 8];
-         System.arraycopy(processed, 0, buffer, 0, processed.length);
-         
-         // number of bytes encrypted is unencrypted data size
-         byte[] bytes = convertToBytes(getNumBytesEncrypted());
-         System.arraycopy(bytes, 0, buffer, processed.length, 8);
-         
-         processed = buffer;
-      }
-      
-      return processed;
-   }
-   
-   /**
-    * Decrypts a chunk of data.
-    * 
-    * @param data the data to decrypt.
-    * @param last whether or not this is the last chunk of data in the stream.
-    * 
-    * @return the decrypted chunk of data.
-    */
-   protected byte[] decryptChunk(byte[] data, boolean last)
-   {
-      byte[] processed = null;
-      
-      // see how many bytes left to decrypt
-      long left = getNumBytesEncrypted() - getNumDecryptedBytes();
-      if(left > 0)
-      {
-         // determine the length of the encrypted data based on whether or
-         // not this is the last chunk -- the last chunk has a trailer of
-         // 8 bytes that are not to be decrypted, but rather represent
-         // the size of the unencrypted data
-         int length = data.length;
-         if(last)
-         {
-            // remove trailer bytes
-            length = data.length - 8;
-         }
-         
-         // decrypt the data
-         processed = getCryptor().decrypt(data, 0, length);
-         if(processed != null)
-         {
-            // if the processed length is longer than the remaining
-            // data, then trim the processed data
-            if(left < Integer.MAX_VALUE && processed.length > left)
-            {
-               byte[] buffer = new byte[(int)left];
-               System.arraycopy(processed, 0, buffer, 0, buffer.length);
-               processed = buffer;
-            }
-            
-            // update total decrypted bytes
-            mNumDecryptedBytes += processed.length;
-         }
-         else
-         {
-            getLogger().error(getClass(), "decrypted data is null!");
-         }
-      }
-      
-      return processed;
    }
    
    /**
@@ -537,12 +450,12 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
     * passed output stream. It is assumed the passed input stream will
     * make use of this StreamCryptor to encrypt.
     * 
-    * @param is the input stream to read the data from.
+    * @param mis the input stream to read the data from.
     * @param outputStream the stream to write the encrypted data to.
     * 
     * @return true if successfully encrypted, false if not.
     */
-   public boolean encrypt(InputStream is, OutputStream outputStream)
+   public boolean encrypt(MutatorInputStream mis, OutputStream outputStream)
    {
       boolean rval = false;
 
@@ -556,10 +469,9 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
          // get a packet buffer
          byte[] packet = new byte[16384];
          
-         int numBytes = -1;
-         
          // encrypt the data and write to output stream
-         while((numBytes = is.read(packet)) != -1)
+         int numBytes = -1;
+         while((numBytes = mis.read(packet)) != -1)
          {
             outputStream.write(packet, 0, numBytes);
          }
@@ -593,8 +505,8 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
          FileInputStream fis = new FileInputStream(src);
          FileOutputStream fos = new FileOutputStream(dest);
          
-         // create a managed input stream
-         ManagedInputStream mis = new ManagedInputStream(fis, this, this);
+         // create a mutator input stream
+         MutatorInputStream mis = new MutatorInputStream(fis, this);
          
          // encrypt the data and write to file
          rval = encrypt(mis, fos);
@@ -624,71 +536,7 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
     */
    public boolean encrypt(String src, String dest)
    {
-      boolean rval = false;
-      
-      try
-      {
-         // open the file streams
-         FileInputStream fis = new FileInputStream(src);
-         FileOutputStream fos = new FileOutputStream(dest);
-         
-         // create a managed input stream
-         ManagedInputStream mis = new ManagedInputStream(fis, this, this);
-         
-         // encrypt the data and write to file
-         rval = encrypt(mis, fos);
-         
-         // close the file streams
-         fis.close();
-         fos.close();
-         
-         rval = true;
-      }
-      catch(Exception e)
-      {
-         getLogger().debug(getClass(), Logger.getStackTrace(e));
-      }
-      
-      return rval;
-   }
-   
-   /**
-    * Opens the passed source file, encrypts it, and writes it to the
-    * destination file.
-    * 
-    * @param src the file to read the data from.
-    * @param dest the file to write the encrypted data to.
-    * 
-    * @return true if successfully encrypted, false if not.
-    */
-   public boolean encrypt2(String src, String dest)
-   {
-      boolean rval = false;
-      
-      try
-      {
-         // open the file streams
-         FileInputStream fis = new FileInputStream(src);
-         FileOutputStream fos = new FileOutputStream(dest);
-         
-         // create a mutator input stream
-         MutatorInputStream mis = new MutatorInputStream(fis, this);
-         
-         // encrypt the data and write to file
-         rval = encrypt(mis, fos);
-         
-         // close the file streams
-         fis.close();
-         fos.close();
-         
-         rval = true;
-      }
-      catch(Exception e)
-      {
-         getLogger().debug(getClass(), Logger.getStackTrace(e));
-      }
-      
-      return rval;
+      return encrypt(new File(src), new File(dest));
    }
    
    /**
@@ -728,13 +576,13 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
     * 
     * The decrypted data will be written to the passed output stream.
     * 
-    * @param is the input stream to read the data from.
+    * @param mis the input stream to read the data from.
     * @param outputStream the stream to write the decrypted data to.
     * @return true if successfully decrypted, false if not.
     * 
     * @throws Exception
     */ 
-   public boolean decrypt(InputStream is, OutputStream outputStream)
+   public boolean decrypt(MutatorInputStream mis, OutputStream outputStream)
    throws Exception
    {
       boolean rval = false;
@@ -746,12 +594,11 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
          try
          {
             // get a packet buffer
-            byte[] packet = new byte[2048];
-
-            int numBytes = -1;
+            byte[] packet = new byte[16384];
             
             // decrypt the data and write to output stream
-            while((numBytes = is.read(packet)) != -1)
+            int numBytes = -1;
+            while((numBytes = mis.read(packet)) != -1)
             {
                outputStream.write(packet, 0, numBytes);
             }
@@ -797,8 +644,8 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
          FileInputStream fis = new FileInputStream(src);
          FileOutputStream fos = new FileOutputStream(dest);
          
-         // create a managed input stream
-         ManagedInputStream mis = new ManagedInputStream(fis, this, this);
+         // create a mutator input stream
+         MutatorInputStream mis = new MutatorInputStream(fis, this);
          
          // prepare the decrypt stream
          prepareDecryptStream(src); 
@@ -833,165 +680,7 @@ implements IStreamManager, IStreamProcessor, DataMutationAlgorithm
     */
    public boolean decrypt(String src, String dest)
    {
-      boolean rval = false;
-      
-      try
-      {
-         // open the file streams
-         FileInputStream fis = new FileInputStream(src);
-         FileOutputStream fos = new FileOutputStream(dest);
-         
-         // create a managed input stream
-         ManagedInputStream mis = new ManagedInputStream(fis, this, this);
-         
-         // prepare the decrypt stream
-         prepareDecryptStream(new File(src)); 
-         
-         // decrypt the data and write to file
-         rval = decrypt(mis, fos);
-         
-         // close the file stream
-         fis.close();
-         fos.close();
-         
-         rval = true;
-      }
-      catch(Exception e)
-      {
-         getLogger().debug(getClass(), Logger.getStackTrace(e));
-      }
-      
-      return rval;
-   }
-   
-   /**
-    * Opens the passed source file, decrypts it, and writes it to the
-    * destination file. The size of the decrypted data
-    * in bytes must be passed to resize the file to remove extra
-    * padding.
-    * 
-    * @param src the file to read the data from.
-    * @param dest the file to write the decrypted data to.
-    * 
-    * @return true if successfully decrypted, false if not.
-    */
-   public boolean decrypt2(String src, String dest)
-   {
-      boolean rval = false;
-      
-      try
-      {
-         // open the file streams
-         FileInputStream fis = new FileInputStream(src);
-         FileOutputStream fos = new FileOutputStream(dest);
-         
-         // create a mutator input stream
-         MutatorInputStream mis = new MutatorInputStream(fis, this);
-         
-         // prepare the decrypt stream
-         prepareDecryptStream(new File(src));
-         
-         // decrypt the data and write to file
-         rval = decrypt(mis, fos);
-         
-         // close the file stream
-         fis.close();
-         fos.close();
-         
-         rval = true;
-      }
-      catch(Exception e)
-      {
-         getLogger().debug(getClass(), Logger.getStackTrace(e));
-      }
-      
-      return rval;
-   }
-   
-   /**
-    * Checks the passed buffer to see if it is ready to be
-    * processed, if it isn't it returns the number of
-    * additional bytes needed. If it is ready to be
-    * processed, the number of extra bytes that shouldn't
-    * be yet processed is returned (zero or a negative number).
-    * 
-    * @param data the data that has been read so far.
-    * @param offset the offset for valid data in the buffer.
-    * @param length the number of valid bytes of data in the data buffer.
-    * 
-    * @return the positive number of additional bytes required before
-    *         the data can be processed, or the negative number of
-    *         extra bytes to be saved until this method requests them, or
-    *         zero indicating that the data is ready to be processed.
-    */
-   public int manageStreamData(byte[] data, int offset, int length)   
-   {
-      int requiredBytes = 0;
-      
-      // determine how much more to read based on crypt mode
-      switch(getStreamCryptMode())
-      {
-         case ENCRYPT:
-         {
-            requiredBytes = getEncryptChunkSize() - length;
-            break;
-         }
-         case DECRYPT:
-         {
-            // need enough bytes for decrypt chunk and 8 byte trailer
-            requiredBytes = getDecryptChunkSize() + 8 - length;
-            
-            // determine if there are enough bytes available
-            if(requiredBytes <= 0)
-            {
-               // do not let the last 8 bytes through, they may be the trailer
-               // and therefore are not to be decrypted
-               requiredBytes -= 8;
-            }
-            
-            break;
-         }
-      }
-      
-      return requiredBytes;
-   }
-   
-   /**
-    * Processes the passed data and returns the resulting processed data.
-    * 
-    * The second parameter indicates whether the passed data is the
-    * last data in the stream that is using this interface.
-    * 
-    * @param data the data to process.
-    * @param last whether or not the passed data is the last data
-    *        in the associated stream.
-    * 
-    * @return the processed data.
-    */
-   public byte[] processStreamData(byte[] data, boolean last)
-   {
-      byte[] processed = null;
-      
-      if(data != null)
-      {
-         // encrypt or decrypt based on crypt mode
-         switch(getStreamCryptMode())
-         {
-            case ENCRYPT:
-            {
-               processed = encryptChunk(data, last);
-               break;
-            }
-            case DECRYPT:
-            {
-               processed = decryptChunk(data, last);
-               break;
-            }
-         }
-      }
-      
-      // return processed data
-      return processed;
+      return decrypt(new File(src), new File(dest));
    }
    
    /**

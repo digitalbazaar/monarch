@@ -181,14 +181,14 @@ public class UTStreamCryptor
          
          // encrypt file
          time = System.currentTimeMillis();
-         sc.encrypt2(src, desEncrypted);
+         sc.encrypt(src, desEncrypted);
          System.out.println(
             "DES encrypt complete,time=" +
             (System.currentTimeMillis() - time));
          
          // decrypt file
          time = System.currentTimeMillis();
-         sc.decrypt2(desEncrypted, desDecrypted);
+         sc.decrypt(desEncrypted, desDecrypted);
          System.out.println(
             "DES decrypt complete,time=" +
             (System.currentTimeMillis() - time));
@@ -200,14 +200,14 @@ public class UTStreamCryptor
          
          // encrypt file
          time = System.currentTimeMillis();
-         sc.encrypt2(src, tripleDesEncrypted);
+         sc.encrypt(src, tripleDesEncrypted);
          System.out.println(
             "TripleDES encrypt complete,time=" +
             (System.currentTimeMillis() - time));
          
          // decrypt file
          time = System.currentTimeMillis();
-         sc.decrypt2(tripleDesEncrypted, tripleDesDecrypted);
+         sc.decrypt(tripleDesEncrypted, tripleDesDecrypted);
          System.out.println(
             "TripleDES decrypt complete,time=" +
             (System.currentTimeMillis() - time));
@@ -219,13 +219,13 @@ public class UTStreamCryptor
          
          // encrypt file
          time = System.currentTimeMillis();
-         sc.encrypt2(src, aesEncrypted);
+         sc.encrypt(src, aesEncrypted);
          time = System.currentTimeMillis() - time;
          System.out.println("AES encrypt complete,time=" + time);
          
          // decrypt file
          time = System.currentTimeMillis();
-         sc.decrypt2(aesEncrypted, aesDecrypted);
+         sc.decrypt(aesEncrypted, aesDecrypted);
          time = System.currentTimeMillis() - time;
          System.out.println("AES decrypt complete,time=" + time);
       }
