@@ -184,3 +184,8 @@ void Thread::sleep(unsigned long time) throw(InterruptedException)
    }
    lock.unlock();
 }
+
+void Thread::yield()
+{
+   pthread_yield();
+}

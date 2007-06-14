@@ -198,6 +198,15 @@ public:
     *            while sleeping.
     */
    static void sleep(unsigned long time) throw(InterruptedException);
+   
+   /**
+    * Causes the currently executing Thread to yield for a moment. Yielding
+    * causes the current thread to relinquish use of its processor and places
+    * the thread in a wait queue. Once the other threads in the queue have
+    * taken a turn using the processor the thread gets rescheduled for
+    * execution.
+    */
+   static void yield();
 };
 
 } // end namespace rt
