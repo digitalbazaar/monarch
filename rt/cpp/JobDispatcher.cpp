@@ -240,8 +240,8 @@ void JobDispatcher::run()
          // dispatch the next Runnable job
          dispatchNextJob();
          
-         // sleep
-         Thread::sleep(1);
+         // yield
+         Thread::yield();
       }
    }
    catch(InterruptedException e)
