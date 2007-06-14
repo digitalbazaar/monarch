@@ -187,5 +187,5 @@ void Thread::sleep(unsigned long time) throw(InterruptedException)
 
 void Thread::yield()
 {
-   pthread_yield();
+   sched_yield();
 }
