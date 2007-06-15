@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006 Digital Bazar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2007 Digital Bazar, Inc.  All rights reserved.
  */
 import java.io.File;
 
@@ -29,8 +29,8 @@ public class UTCryptor
          LoggerManager.setConsoleVerbosity("dbcrypto", Logger.ERROR_VERBOSITY);
          
          File file = new File("test.mp3");
-         String md5 = Cryptor.getMD5ChecksumString(file);
-         String sha1 = Cryptor.getSHA1ChecksumString(file);
+         String md5 = Hasher.getMD5ChecksumString(file);
+         String sha1 = Hasher.getSHA1ChecksumString(file);
          
          System.out.println("size: " + file.length());
          System.out.println("md5: " + md5);

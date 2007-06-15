@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.stream;
 
@@ -16,67 +16,30 @@ import javax.crypto.SecretKey;
 public class TripleDesStreamCryptor extends StreamCryptor
 {
    /**
-    * Constructs a TripleDES stream cryptor. The encrypt chunk size must be
-    * specified. The encrypt chunk size is the size that the internal chunk
-    * buffer must reach before it is encrypted. If the encrypt chunk size
-    * passed is not a multiple of 8, an illegal argument exception will be
-    * thrown and any further use of this object will result in undefined
-    * behavior.
-    * 
-    * @param encryptChunkSize the encrypt chunk size.
-    * 
-    * @throws IllegalArgumentException
+    * Constructs a TripleDES stream cryptor with an auto-generated key.
     */
-   public TripleDesStreamCryptor(int encryptChunkSize)
-      throws IllegalArgumentException
+   public TripleDesStreamCryptor()
    {
-      this(encryptChunkSize, (SecretKey)null);
+      this((SecretKey)null);
    }
    
    /**
-    * Constructs a TripleDES stream cryptor. The encrypt chunk size must be
-    * specified. The encrypt chunk size is the size that the internal
-    * chunk buffer must reach before it is encrypted. If the encrypt
-    * chunk size passed is not a multiple of padding, an illegal argument
-    * exception will be thrown and any further use of this object
-    * will result in undefined behavior.
+    * Constructs a TripleDES stream cryptor with the specified key.
     * 
-    * @param encryptChunkSize the encrypt chunk size.
     * @param key the key to use to encrypt and decrypt. 
-    * 
-    * @throws IllegalArgumentException
     */
-   public TripleDesStreamCryptor(int encryptChunkSize, String key)
-      throws IllegalArgumentException
+   public TripleDesStreamCryptor(String key)
    {
-      this(encryptChunkSize, decodeSecretKey(key));
+      this(decodeSecretKey(key));
    }
    
    /**
-    * Constructs a TripleDES stream cryptor. The encrypt chunk size must be
-    * specified. The encrypt chunk size is the size that the internal
-    * chunk buffer must reach before it is encrypted. If the encrypt
-    * chunk size passed is not a multiple of padding, an illegal argument
-    * exception will be thrown and any further use of this object
-    * will result in undefined behavior.
+    * Constructs a TripleDES stream cryptor with the specified key.
     * 
-    * @param encryptChunkSize the encrypt chunk size.
     * @param key the key to use to encrypt and decrypt. 
-    * 
-    * @throws IllegalArgumentException
     */
-   public TripleDesStreamCryptor(int encryptChunkSize, SecretKey key)
-      throws IllegalArgumentException
+   public TripleDesStreamCryptor(SecretKey key)
    {
-      // use 8 for padding
-      super(encryptChunkSize, encryptChunkSize + 8, 8);
-      
-      // encrypt chunk size must be a multiple of padding
-      if(encryptChunkSize % 8 != 0)
-      {
-         throw new IllegalArgumentException();
-      }
-      
       if(key == null)
       {
          // generate a DESede key for the encryption and decryption

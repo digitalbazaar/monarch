@@ -32,6 +32,12 @@ public class DataMutator implements DataMutationAlgorithm
    protected DataMutationAlgorithm mAlgorithm;
    
    /**
+    * True if the data mutation algorithm has been called with the finish
+    * flag set, false if not.
+    */
+   protected boolean mAlgorithmFinished;
+   
+   /**
     * Creates a new DataMutator.
     * 
     * @param src the source ByteBuffer to read from.
@@ -45,6 +51,7 @@ public class DataMutator implements DataMutationAlgorithm
       
       // no algorithm yet, use default
       mAlgorithm = this;
+      mAlgorithmFinished = false;
    }
    
    /**
@@ -55,6 +62,7 @@ public class DataMutator implements DataMutationAlgorithm
    public void setAlgorithm(DataMutationAlgorithm algorithm)
    {
       mAlgorithm = algorithm;
+      mAlgorithmFinished = false;
    }
    
    /**
@@ -74,19 +82,19 @@ public class DataMutator implements DataMutationAlgorithm
     */
    public boolean mutate(InputStream is) throws IOException
    {
-      // mutate while no data is available and not finalized
-      boolean finalize = false;
+      // mutate while no data is available and not finished
       boolean read = mSource.isEmpty();
-      while(!hasData() && !finalize)
+      while(!hasData() && !mAlgorithmFinished)
       {
          // read as necessary
          if(read)
          {
-            finalize = (mSource.put(is) == -1);
+            mAlgorithmFinished = (mSource.put(is) == -1);
          }
          
          // try to mutate data
-         read = !mAlgorithm.mutateData(mSource, mDestination, finalize);
+         read = !mAlgorithm.mutateData(
+            mSource, mDestination, mAlgorithmFinished);
       }
       
       return hasData();
@@ -132,12 +140,12 @@ public class DataMutator implements DataMutationAlgorithm
     * 
     * @param src the source ByteBuffer with bytes to mutate.
     * @param dest the destination ByteBuffer to write the mutated bytes to.
-    * @param finalize true to finalize the mutation, false not to.
+    * @param finish true to finish the mutation algorithm, false not to.
     * 
     * @return true if there was enough data in the source buffer to run the
     *         mutation algorithm (which may or may not produce mutated bytes).
     */
-   public boolean mutateData(ByteBuffer src, ByteBuffer dest, boolean finalize)   
+   public boolean mutateData(ByteBuffer src, ByteBuffer dest, boolean finish)   
    {
       boolean rval = false;
       

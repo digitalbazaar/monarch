@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 import com.db.stream.*;
 import com.db.logging.LoggerManager;
@@ -25,7 +25,7 @@ public class UTFileEncryption extends Thread
    /**
     * The stream cryptor.
     */
-   public static DESStreamCryptor smDESSC = null;
+   public static AesStreamCryptor smCryptor = null;
    
    /**
     * The packet size.
@@ -189,12 +189,11 @@ public class UTFileEncryption extends Thread
          // get a stream to transmit the file
          fis = new FileInputStream(smSendFile);
 
-         // get a DES stream cryptor for encrypting the file
-         smDESSC = new DESStreamCryptor(smChunkSize);
+         // get a AES stream cryptor for encrypting the file
+         smCryptor = new AesStreamCryptor();
          
-         // get a managed input stream, reads from file stream and modifies
-         // with DESStreamCryptor
-         MutatorInputStream mis = new MutatorInputStream(fis, smDESSC);
+         // get a mutator input stream
+         MutatorInputStream mis = new MutatorInputStream(fis, smCryptor);
          
          // get a packet buffer for file transferring
          byte[] packet = new byte[smPacketSize];
@@ -275,15 +274,15 @@ public class UTFileEncryption extends Thread
       downloadFile();
       
       System.out.println("total bytes encrypted: " +
-                         smDESSC.getNumBytesEncrypted());
+         smCryptor.getNumBytesEncrypted());
       
       //long fileSize = smDESSC.getNumBytesEncrypted();
-      String dkey = smDESSC.getKey();
+      String dkey = smCryptor.getKey();
       
-      smDESSC = new DESStreamCryptor(smChunkSize, dkey);
+      smCryptor = new AesStreamCryptor(dkey);
       
       // decrypt the file
-      if(!smDESSC.decrypt(new File(smReceiveFile), new File(smDFile)))
+      if(!smCryptor.decrypt(new File(smReceiveFile), new File(smDFile)))
       {
          System.out.println("FAILURE: File decryption failed!");
       }

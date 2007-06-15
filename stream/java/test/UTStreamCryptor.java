@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 import javax.crypto.SecretKey;
 
@@ -7,7 +7,6 @@ import com.db.crypto.Cryptor;
 import com.db.logging.LoggerManager;
 import com.db.logging.Logger;
 import com.db.stream.AesStreamCryptor;
-import com.db.stream.DESStreamCryptor;
 import com.db.stream.StreamCryptor;
 import com.db.stream.TripleDesStreamCryptor;
 import com.db.util.Base64Coder;
@@ -36,9 +35,6 @@ public class UTStreamCryptor
          
          String src = "test/data/test.mp3";
          
-         String desEncrypted = "test/data/des-encrypted.tmp";
-         String desDecrypted = "test/data/des-decrypted.mp3";
-         
          String tripleDesEncrypted = "test/data/des3-encrypted.tmp";
          String tripleDesDecrypted = "test/data/des3-decrypted.mp3";
 
@@ -50,44 +46,20 @@ public class UTStreamCryptor
          
          Base64Coder base64 = new Base64Coder();
          
-//         SecretKey desKey = Cryptor.generateKey("DES");
-//         String desKeyStr = base64.encode(desKey.getEncoded());
-//         
 //         SecretKey tripleDesKey = Cryptor.generateKey("DESede");
 //         String tripleDesKeyStr = base64.encode(tripleDesKey.getEncoded());
 //         
 //         SecretKey aesKey = Cryptor.generateKey("AES");
 //         String aesKeyStr = base64.encode(aesKey.getEncoded());
          
-         String desKeyStr = "ABCDEFG";
-         
          String tripleDesKeyStr = "ABCDEFG";
          
          String aesKeyStr = "ABCDEFG";
          
-         // DES TEST:
-         
-         // create a DES stream cryptor
-         sc = new DESStreamCryptor(64, desKeyStr);
-         
-         // encrypt file
-         time = System.currentTimeMillis();
-         sc.encrypt(src, desEncrypted);
-         System.out.println(
-            "DES encrypt complete,time=" +
-            (System.currentTimeMillis() - time));
-         
-         // decrypt file
-         time = System.currentTimeMillis();
-         sc.decrypt(desEncrypted, desDecrypted);
-         System.out.println(
-            "DES decrypt complete,time=" +
-            (System.currentTimeMillis() - time));
-         
          // TRIPLE DES TEST:
          
          // create a TripleDES stream cryptor
-         sc = new TripleDesStreamCryptor(64, tripleDesKeyStr);
+         sc = new TripleDesStreamCryptor(tripleDesKeyStr);
          
          // encrypt file
          time = System.currentTimeMillis();
@@ -106,7 +78,7 @@ public class UTStreamCryptor
          // AES TEST:
          
          // create a AES stream cryptor
-         sc = new AesStreamCryptor(64, aesKeyStr);
+         sc = new AesStreamCryptor(aesKeyStr);
          
          // encrypt file
          time = System.currentTimeMillis();
@@ -145,9 +117,6 @@ public class UTStreamCryptor
          
          String src = "test/data/test.mp3";
          
-         String desEncrypted = "test/data/des-encrypted.tmp";
-         String desDecrypted = "test/data/des-decrypted.mp3";
-         
          String tripleDesEncrypted = "test/data/des3-encrypted.tmp";
          String tripleDesDecrypted = "test/data/des3-decrypted.mp3";
 
@@ -159,44 +128,20 @@ public class UTStreamCryptor
          
          Base64Coder base64 = new Base64Coder();
          
-//         SecretKey desKey = Cryptor.generateKey("DES");
-//         String desKeyStr = base64.encode(desKey.getEncoded());
-//         
 //         SecretKey tripleDesKey = Cryptor.generateKey("DESede");
 //         String tripleDesKeyStr = base64.encode(tripleDesKey.getEncoded());
 //         
 //         SecretKey aesKey = Cryptor.generateKey("AES");
 //         String aesKeyStr = base64.encode(aesKey.getEncoded());
          
-         String desKeyStr = "ABCDEFG";
-         
          String tripleDesKeyStr = "ABCDEFG";
          
          String aesKeyStr = "ABCDEFG";
          
-         // DES TEST:
-         
-         // create a DES stream cryptor
-         sc = new DESStreamCryptor(64, desKeyStr);
-         
-         // encrypt file
-         time = System.currentTimeMillis();
-         sc.encrypt(src, desEncrypted);
-         System.out.println(
-            "DES encrypt complete,time=" +
-            (System.currentTimeMillis() - time));
-         
-         // decrypt file
-         time = System.currentTimeMillis();
-         sc.decrypt(desEncrypted, desDecrypted);
-         System.out.println(
-            "DES decrypt complete,time=" +
-            (System.currentTimeMillis() - time));
-         
          // TRIPLE DES TEST:
          
          // create a TripleDES stream cryptor
-         sc = new TripleDesStreamCryptor(64, tripleDesKeyStr);
+         sc = new TripleDesStreamCryptor(tripleDesKeyStr);
          
          // encrypt file
          time = System.currentTimeMillis();
@@ -215,7 +160,7 @@ public class UTStreamCryptor
          // AES TEST:
          
          // create a AES stream cryptor
-         sc = new AesStreamCryptor(64, aesKeyStr);
+         sc = new AesStreamCryptor(aesKeyStr);
          
          // encrypt file
          time = System.currentTimeMillis();

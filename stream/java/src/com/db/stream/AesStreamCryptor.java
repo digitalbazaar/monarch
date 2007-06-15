@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.stream;
 
@@ -16,67 +16,30 @@ import javax.crypto.SecretKey;
 public class AesStreamCryptor extends StreamCryptor
 {
    /**
-    * Constructs a AES stream cryptor. The encrypt chunk size must be
-    * specified. The encrypt chunk size is the size that the internal
-    * chunk buffer must reach before it is encrypted. If the encrypt
-    * chunk size passed is not a multiple of 16, an illegal argument
-    * exception will be thrown and any further use of this object
-    * will result in undefined behavior.
-    * 
-    * @param encryptChunkSize the encrypt chunk size.
-    * 
-    * @throws IllegalArgumentException
+    * Constructs a AES stream cryptor with an auto-generated key.
     */
-   public AesStreamCryptor(int encryptChunkSize)
-      throws IllegalArgumentException
+   public AesStreamCryptor()
    {
-      this(encryptChunkSize, (SecretKey)null);
+      this((SecretKey)null);
    }
    
    /**
-    * Constructs a AES stream cryptor. The encrypt chunk size must be
-    * specified. The encrypt chunk size is the size that the internal
-    * chunk buffer must reach before it is encrypted. If the encrypt
-    * chunk size passed is not a multiple of padding, an illegal argument
-    * exception will be thrown and any further use of this object
-    * will result in undefined behavior.
+    * Constructs a AES stream cryptor with the specified key.
     * 
-    * @param encryptChunkSize the encrypt chunk size.
     * @param key the key to use to encrypt and decrypt.
-    * 
-    * @throws IllegalArgumentException
     */
-   public AesStreamCryptor(int encryptChunkSize, String key)
-      throws IllegalArgumentException
+   public AesStreamCryptor(String key)
    {
-      this(encryptChunkSize, decodeSecretKey(key));
-   }   
+      this(decodeSecretKey(key));
+   }
    
    /**
-    * Constructs a AES stream cryptor. The encrypt chunk size must be
-    * specified. The encrypt chunk size is the size that the internal
-    * chunk buffer must reach before it is encrypted. If the encrypt
-    * chunk size passed is not a multiple of padding, an illegal argument
-    * exception will be thrown and any further use of this object
-    * will result in undefined behavior.
+    * Constructs a AES stream cryptor with the specified key.
     * 
-    * @param encryptChunkSize the encrypt chunk size.
     * @param key the key to use to encrypt and decrypt. 
-    * 
-    * @throws IllegalArgumentException
     */
-   public AesStreamCryptor(int encryptChunkSize, SecretKey key)
-      throws IllegalArgumentException
+   public AesStreamCryptor(SecretKey key)
    {
-      // use 16 for padding
-      super(encryptChunkSize, encryptChunkSize + 16, 16);
-      
-      // encrypt chunk size must be a multiple of padding
-      if(encryptChunkSize % 16 != 0)
-      {
-         throw new IllegalArgumentException();
-      }
-      
       if(key == null)
       {
          // generate a AES key for the encryption and decryption

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.autoupdater.basic;
 
@@ -11,7 +11,7 @@ import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import com.db.crypto.Cryptor;
+import com.db.crypto.Hasher;
 import com.db.event.EventDelegate;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -539,7 +539,7 @@ public class BasicUpdateScriptProcessor
                      "download", byteChange, totalBytes);
                
                   // check the MD5 sum of the file to see if it matches
-                  String tempMD5 = Cryptor.getMD5ChecksumString(temp);
+                  String tempMD5 = Hasher.getMD5ChecksumString(temp);
                   if(tempMD5.equals(md5))
                   {
                      // file MD5 matches, if file is valid add to map

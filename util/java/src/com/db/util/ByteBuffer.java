@@ -48,13 +48,37 @@ public class ByteBuffer
    }
    
    /**
+    * Creates a new ByteBuffer that wraps the passed ByteBuffer.
+    * 
+    * @param b the ByteBuffer to wrap.
+    */
+   public ByteBuffer(ByteBuffer b)
+   {
+      // set the byte buffer
+      setBytes(b.getBytes(), b.getOffset(), b.getUsedSpace());
+   }
+   
+   /**
+    * Creates a new ByteBuffer that wraps the passed buffer of bytes.
+    * 
+    * @param b the buffer of bytes to wrap.
+    * @param offset the offset at which valid bytes begin.
+    * @param length the number of valid bytes.
+    */
+   public ByteBuffer(byte[] b, int offset, int length)
+   {
+      // set the byte buffer
+      setBytes(b, offset, length);
+   }
+   
+   /**
     * Allocates enough space in the current buffer for the passed number of
     * bytes.
     * 
     * @param length the number of bytes that need to be written to this buffer.
     * @param resize true to resize the buffer as is necessary, false not to. 
     */
-   protected void allocateSpace(int length, boolean resize)
+   public void allocateSpace(int length, boolean resize)
    {
       if(resize)
       {
@@ -166,7 +190,7 @@ public class ByteBuffer
     */
    public int put(InputStream is) throws IOException
    {
-      int rval = -1;
+      int rval = 0;
       
       // if the buffer is not full, do a read
       if(!isFull())
@@ -278,6 +302,30 @@ public class ByteBuffer
    }
    
    /**
+    * Trims data from the end of this buffer without resizing it.
+    * 
+    * @param length the number of bytes to trim off the end of this buffer.
+    * 
+    * @return the actual number of bytes trimmed.
+    */
+   public int trim(int length)
+   {
+      int rval = length;
+      
+      if(mCount < length)
+      {
+         rval = mCount;
+         mCount = 0;
+      }
+      else
+      {
+         mCount -= length;
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Gets the capacity of this buffer.
     * 
     * @return the capacity of this buffer.
@@ -325,6 +373,20 @@ public class ByteBuffer
    public boolean isEmpty()
    {
       return getUsedSpace() == 0;
+   }
+   
+   /**
+    * Sets the internal buffer.
+    * 
+    * @param b the buffer to use.
+    * @param offset the offset at which the valid bytes start in the buffer.
+    * @param length the number of valid bytes in the buffer.
+    */
+   public void setBytes(byte[] b, int offset, int length)
+   {
+      mBuffer = b;
+      mOffset = offset;
+      mCount = length;
    }
    
    /**

@@ -3,7 +3,7 @@
  */
 package com.db.xml;
 
-import com.db.crypto.Cryptor;
+import com.db.crypto.DigitalSignature;
 import com.db.crypto.KeyManager;
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -311,7 +311,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
             }
             
             // sign the text
-            byte[] sig = Cryptor.sign(mSignText, privateKey);
+            byte[] sig = DigitalSignature.sign(mSignText, privateKey);
             
             // base64 encode the signature for xml transport
             Base64Coder encoder = new Base64Coder();
@@ -393,7 +393,7 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
                */
       
                // verify the signature
-               rval = Cryptor.verify(sig, mSignText, publicKey);
+               rval = DigitalSignature.verify(sig, mSignText, publicKey);
             }
             catch(Exception e)
             {
