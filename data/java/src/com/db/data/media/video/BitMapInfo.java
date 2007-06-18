@@ -76,8 +76,9 @@ public class BitMapInfo
          // make sure length has enough data
          if(length >= mHeader.getBitMapInfoSize())
          {
-            mData = new byte[mHeader.getBitMapInfoSize()];
-            System.arraycopy(b, offset, mData, 0, getSize());
+            // FIXME: do not copy data for now
+//            mData = new byte[mHeader.getBitMapInfoSize()];
+//            System.arraycopy(b, offset, mData, 0, getSize());
             
             // converted successfully
             rval = true;
