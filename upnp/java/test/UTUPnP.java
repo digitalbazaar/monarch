@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -72,7 +72,7 @@ public class UTUPnP
             WanConnectionDeviceClient.WAN_CONNECTION_DEVICE_TYPE);
             //InternetGatewayDeviceClient.IGD_DEVICE_TYPE);
          
-         Vector devices = controlPoint.getDiscoveredDevices(
+         List<UPnPDevice> devices = controlPoint.getDiscoveredDevices(
             InternetGatewayDeviceClient.IGD_DEVICE_TYPE);
          for(Iterator i = devices.iterator(); i.hasNext();)
          {

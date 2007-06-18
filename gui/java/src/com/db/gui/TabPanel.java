@@ -22,8 +22,9 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -140,7 +141,7 @@ public class TabPanel extends JPanel
    /**
     * The tab panel listeners.
     */
-   protected Vector<TabPanelListener> mTabPanelListeners;
+   protected List<TabPanelListener> mTabPanelListeners;
    
    /**
     * The tab panel handler.
@@ -160,7 +161,7 @@ public class TabPanel extends JPanel
    /**
     * An ordered list of the selected tabs. 
     */
-   protected Vector<Component> mSelectedTabs;
+   protected LinkedList<Component> mSelectedTabs;
    
    /**
     * The tab selection policy for this panel.
@@ -303,7 +304,7 @@ public class TabPanel extends JPanel
       mFlashThreads = new HashMap<Component, Thread>();
       
       // create listener collections
-      mTabPanelListeners = new Vector<TabPanelListener>();
+      mTabPanelListeners = new LinkedList<TabPanelListener>();
       
       // set tab area insets
       mTabAreaInsets = new Insets(7, 7, 3, 7);
@@ -368,7 +369,7 @@ public class TabPanel extends JPanel
       super.add(mTabContentPanel, tabContentPaneConstraints);
 
       // create vector for keeping track of selected tabs
-      mSelectedTabs = new Vector<Component>();
+      mSelectedTabs = new LinkedList<Component>();
       
       // set the default tab selection policy
       mTabSelectionPolicy = SELECT_PREVIOUSLY_SELECTED_TAB_POLICY;
@@ -1560,9 +1561,9 @@ public class TabPanel extends JPanel
             if(getTabSelectionPolicy() == SELECT_PREVIOUSLY_SELECTED_TAB_POLICY)
             {
                // get the last selected tab in the selected tabs list
-               if(mSelectedTabs.size() > 0)
+               if(!mSelectedTabs.isEmpty())
                {
-                  rval = mSelectedTabs.lastElement();
+                  rval = mSelectedTabs.getLast();
                }
             }
             

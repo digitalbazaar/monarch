@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.soap;
 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * An ExtensibleSoapSecurityManager is a SoapSecurityManager that can be
@@ -18,15 +19,15 @@ public class ExtensibleSoapSecurityManager extends AbstractSoapSecurityManager
    /**
     * The extensions for this ExtensibleSoapSecurityManager.
     */
-   protected Vector<SoapSecurityManager> mExtensions;
+   protected List<SoapSecurityManager> mExtensions;
    
    /**
     * Creates a new ExtensibleSoapSecurityManager.
     */
    public ExtensibleSoapSecurityManager()
    {
-      // create the extensions vector
-      mExtensions = new Vector<SoapSecurityManager>();
+      // create the extensions list
+      mExtensions = new LinkedList<SoapSecurityManager>();
    }
    
    /**

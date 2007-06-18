@@ -4,7 +4,8 @@
 package com.db.upnp.service;
 
 import java.text.DateFormat;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -228,7 +229,7 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
    /**
     * The list of allowed values for this state variable.
     */
-   protected Vector<String> mAllowedValues;
+   protected List<String> mAllowedValues;
    
    /**
     * The minimum value for this state variable. Null if there is no minimum.
@@ -260,7 +261,7 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
       setStep(null);
       
       // create allowed values list
-      mAllowedValues = new Vector<String>();
+      mAllowedValues = new LinkedList<String>();
    }
    
    /**
@@ -564,7 +565,7 @@ public class UPnPServiceStateVariable extends AbstractXmlSerializer
     * 
     * @return the list of allowed values for this state variable.
     */
-   public Vector<String> getAllowedValues()
+   public List<String> getAllowedValues()
    {
       return mAllowedValues;
    }

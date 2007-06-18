@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.xml;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * An XmlAttributeMap is a list of XML attributes for an XML element. This
@@ -24,7 +25,7 @@ public class XmlAttributeList
    /**
     * The underlying vector that stores the XmlAttributes.
     */
-   protected Vector<XmlAttribute> mAttributes;
+   protected List<XmlAttribute> mAttributes;
    
    /**
     * A map that maps namespace prefixes to namespace URIs.
@@ -40,8 +41,8 @@ public class XmlAttributeList
    {
       mXmlElement = element;
       
-      // create the underlying attributes vector
-      mAttributes = new Vector<XmlAttribute>();
+      // create the underlying attributes list
+      mAttributes = new LinkedList<XmlAttribute>();
       
       // create the namespace URI map
       mNamespaceUriMap = new HashMap<String, String>();

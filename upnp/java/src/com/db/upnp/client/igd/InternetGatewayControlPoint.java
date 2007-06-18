@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.upnp.client.igd;
 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.upnp.client.UPnPControlPoint;
 import com.db.upnp.device.UPnPDevice;
@@ -38,13 +39,13 @@ public class InternetGatewayControlPoint extends UPnPControlPoint
     * 
     * @return the previously discovered Internet Gateway Devices in a vector.
     */
-   public Vector<InternetGatewayDeviceClient> getDiscoveredInternetGateways()
+   public List<InternetGatewayDeviceClient> getDiscoveredInternetGateways()
    {
-      Vector<InternetGatewayDeviceClient> igds =
-         new Vector<InternetGatewayDeviceClient>();
+      List<InternetGatewayDeviceClient> igds =
+         new LinkedList<InternetGatewayDeviceClient>();
       
       // get the discovered devices that are Internet Gateways
-      Vector<UPnPDevice> devices = getDiscoveredDevices(
+      List<UPnPDevice> devices = getDiscoveredDevices(
          InternetGatewayDeviceClient.IGD_DEVICE_TYPE);
       
       // get all of the device implementations
@@ -69,11 +70,11 @@ public class InternetGatewayControlPoint extends UPnPControlPoint
     * @return all discovered Internet Gateway Devices with the specified
     *         external IP address.
     */
-   public Vector<InternetGatewayDeviceClient> getDiscoveredInternetGateways(
+   public List<InternetGatewayDeviceClient> getDiscoveredInternetGateways(
       String externalIPAddress)
    {
       // get all discovered internet gateways
-      Vector<InternetGatewayDeviceClient> igds = getDiscoveredInternetGateways();
+      List<InternetGatewayDeviceClient> igds = getDiscoveredInternetGateways();
       
       // remove internet gateways with external IP addresses that don't match
       for(Iterator<InternetGatewayDeviceClient> i = igds.iterator();

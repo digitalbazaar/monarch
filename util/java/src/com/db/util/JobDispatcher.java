@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.util;
 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -27,7 +27,7 @@ public class JobDispatcher implements Runnable
     * The internal queue that holds the Runnable jobs that are
     * waiting to be dispatched.
     */
-   protected Vector<Runnable> mJobQueue;   
+   protected LinkedList<Runnable> mJobQueue;   
    
    /**
     * The thread used to dispatch the Runnable jobs.
@@ -58,7 +58,7 @@ public class JobDispatcher implements Runnable
       mThreadPool = pool;
       
       // create the job queue
-      mJobQueue = new Vector<Runnable>();
+      mJobQueue = new LinkedList<Runnable>();
       
       // no dispatcher thread yet
       mDispatcherThread = null;
@@ -96,7 +96,7 @@ public class JobDispatcher implements Runnable
       if(!mJobQueue.isEmpty())
       {
          // remove the top Runnable job
-         rval = mJobQueue.remove(0);
+         rval = mJobQueue.poll();
       }
       
       return rval;

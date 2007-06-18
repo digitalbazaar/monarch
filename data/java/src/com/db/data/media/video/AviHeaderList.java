@@ -5,7 +5,8 @@ package com.db.data.media.video;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.data.media.RiffListHeader;
 import com.db.logging.Logger;
@@ -52,7 +53,7 @@ public class AviHeaderList
    /**
     * The AviStreamHeaderLists in this header list.
     */
-   protected Vector<AviStreamHeaderList> mStreamHeaderLists;
+   protected List<AviStreamHeaderList> mStreamHeaderLists;
    
    /**
     * Constructs a new AviHeaderList.
@@ -66,7 +67,7 @@ public class AviHeaderList
       mMainHeader = new AviHeader();
       
       // create the container for the stream header lists
-      mStreamHeaderLists = new Vector<AviStreamHeaderList>();
+      mStreamHeaderLists = new LinkedList<AviStreamHeaderList>();
    }
    
    /**

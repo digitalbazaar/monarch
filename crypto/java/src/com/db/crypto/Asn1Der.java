@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.crypto;
 
 import java.math.BigInteger;
 //import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import sun.security.util.DerInputStream;
@@ -141,7 +142,7 @@ public class Asn1Der
     * A list of ASN1Der structures used to construct this ASN.1 DER structure,
     * if any.
     */
-   protected Vector<Asn1Der> mAsn1Ders;
+   protected List<Asn1Der> mAsn1Ders;
    
    /**
     * The ASN1Type of None.

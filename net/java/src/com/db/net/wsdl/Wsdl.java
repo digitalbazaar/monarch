@@ -13,7 +13,8 @@ import com.db.xml.XmlException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * A WSDL is a Web Services Description Language. An instance of this class
@@ -657,17 +658,17 @@ public class Wsdl extends AbstractXmlSerializer
    public class WsdlMessageCollection implements Iterable<WsdlMessage>
    {
       /**
-       * The underlying vector for storing messages. 
+       * The underlying list for storing messages. 
        */
-      protected Vector<WsdlMessage> mMessages;
+      protected List<WsdlMessage> mMessages;
       
       /**
        * Creates a new WsdlMessageCollection.
        */
       public WsdlMessageCollection()
       {
-         // initialize messages vector
-         mMessages = new Vector<WsdlMessage>();
+         // initialize messages list
+         mMessages = new LinkedList<WsdlMessage>();
       }
       
       /**
@@ -760,17 +761,17 @@ public class Wsdl extends AbstractXmlSerializer
    public class WsdlPortTypeCollection implements Iterable<WsdlPortType>
    {
       /**
-       * The underlying vector for storing port types. 
+       * The underlying list for storing port types. 
        */
-      protected Vector<WsdlPortType> mPortTypes;
+      protected List<WsdlPortType> mPortTypes;
       
       /**
        * Creates a new WsdlPortTypeCollection.
        */
       public WsdlPortTypeCollection()
       {
-         // initialize port types vector
-         mPortTypes = new Vector<WsdlPortType>();
+         // initialize port types list
+         mPortTypes = new LinkedList<WsdlPortType>();
       }
       
       /**
@@ -862,17 +863,17 @@ public class Wsdl extends AbstractXmlSerializer
    public class WsdlBindingCollection implements Iterable<WsdlBinding>
    {
       /**
-       * The underlying vector for storing bindings. 
+       * The underlying list for storing bindings. 
        */
-      protected Vector<WsdlBinding> mBindings;
+      protected List<WsdlBinding> mBindings;
       
       /**
        * Creates a new WsdlBindingCollection.
        */
       public WsdlBindingCollection()
       {
-         // initialize bindings vector
-         mBindings = new Vector<WsdlBinding>();
+         // initialize bindings list
+         mBindings = new LinkedList<WsdlBinding>();
       }
       
       /**
@@ -964,17 +965,17 @@ public class Wsdl extends AbstractXmlSerializer
    public class WsdlServiceCollection implements Iterable<WsdlService>
    {
       /**
-       * The underlying vector for storing services. 
+       * The underlying list for storing services. 
        */
-      protected Vector<WsdlService> mServices;
+      protected List<WsdlService> mServices;
       
       /**
        * Creates a new WsdlServiceCollection.
        */
       public WsdlServiceCollection()
       {
-         // initialize services vector
-         mServices = new Vector<WsdlService>();
+         // initialize services list
+         mServices = new LinkedList<WsdlService>();
       }
       
       /**

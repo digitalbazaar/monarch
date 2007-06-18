@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.util;
 
 import java.util.Comparator;
-import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -60,10 +61,9 @@ public class SortedSiblingTree<T>
       else
       {
          // check this node's children
-         Iterator i = node.getChildren().iterator();
-         while(i.hasNext())
+         for(SiblingNode sn: node.getChildren())
          {
-            rval = findNode((SiblingNode)i.next(), object);
+            rval = findNode(sn, object);
             if(rval != null)
             {
                break;
@@ -147,10 +147,10 @@ public class SortedSiblingTree<T>
    /**
     * Gets all of the root siblings of this tree.
     * 
-    * @return a vector containing the root siblings. Calling "remove" or
+    * @return a list containing the root siblings. Calling "remove" or
     *         "add" on the returned vector will not affect the tree structure.
     */
-   public Vector<T> getRootSiblings()
+   public List<T> getRootSiblings()
    {
       return getChildren(null);
    }   
@@ -160,12 +160,12 @@ public class SortedSiblingTree<T>
     * 
     * @param parent the parent to get the children of.
     * 
-    * @return a vector of the parent's children. Calling "remove" or
+    * @return a list of the parent's children. Calling "remove" or
     *         "add" on the returned vector will not affect the tree structure.
     */
-   public Vector<T> getChildren(T parent)
+   public List<T> getChildren(T parent)
    {
-      Vector<T> children = new Vector<T>();
+      List<T> children = new LinkedList<T>();
       
       SiblingNode node = findNode(parent);
       if(node != null)
@@ -334,9 +334,9 @@ public class SortedSiblingTree<T>
        * 
        * @return the siblings of this node (includes this node).
        */
-      public Vector<SiblingNode> getSiblings()
+      public List<SiblingNode> getSiblings()
       {
-         Vector<SiblingNode> siblings = null;
+         List<SiblingNode> siblings = null;
          
          if(mParent != null)
          {
@@ -344,7 +344,7 @@ public class SortedSiblingTree<T>
          }
          else
          {
-            siblings = new Vector<SiblingNode>();
+            siblings = new LinkedList<SiblingNode>();
             siblings.add(this);            
          }
          
@@ -360,11 +360,9 @@ public class SortedSiblingTree<T>
       {
          int rval = getChildren().size();
          
-         Iterator i = getChildren().iterator();
-         while(i.hasNext())
+         for(SiblingNode sn: getChildren())
          {
-            SiblingNode child = (SiblingNode)i.next();
-            rval += child.getDescendantCount();
+            rval += sn.getDescendantCount();
          }
          
          return rval;

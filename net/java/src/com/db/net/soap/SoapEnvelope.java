@@ -3,7 +3,8 @@
  */
 package com.db.net.soap;
 
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -42,13 +43,13 @@ public class SoapEnvelope extends AbstractXmlSerializer
     * The list of IXmlSerializers used to convert the header blocks for the
     * header of the SOAP envelope to or from XML.
     */
-   protected Vector<IXmlSerializer> mHeaderBlockSerializers;
+   protected List<IXmlSerializer> mHeaderBlockSerializers;
 
    /**
     * The list of IXmlSerializers used to convert the body content sub-elements
     * for the body of the SOAP envelope to or from XML.
     */
-   protected Vector<IXmlSerializer> mBodyContentSerializers;
+   protected List<IXmlSerializer> mBodyContentSerializers;
    
    /**
     * The encoding style URI for this envelope.
@@ -81,10 +82,10 @@ public class SoapEnvelope extends AbstractXmlSerializer
    public SoapEnvelope()
    {
       // create the header block serializers list
-      mHeaderBlockSerializers = new Vector<IXmlSerializer>();
+      mHeaderBlockSerializers = new LinkedList<IXmlSerializer>();
       
       // create the body content serializers list
-      mBodyContentSerializers = new Vector<IXmlSerializer>();
+      mBodyContentSerializers = new LinkedList<IXmlSerializer>();
       
       // defaults to no special encoding style
       setEncodingStyle(null);
@@ -261,7 +262,7 @@ public class SoapEnvelope extends AbstractXmlSerializer
     * 
     * @return a vector of IXmlSerializer that make up the header.
     */
-   public Vector<IXmlSerializer> getHeaderBlocks()
+   public List<IXmlSerializer> getHeaderBlocks()
    {
       return mHeaderBlockSerializers;
    }
@@ -290,7 +291,7 @@ public class SoapEnvelope extends AbstractXmlSerializer
     * 
     * @return a vector of XmlElements that make up the body content.
     */
-   public Vector<IXmlSerializer> getBodyContents()
+   public List<IXmlSerializer> getBodyContents()
    {
       return mBodyContentSerializers;
    }

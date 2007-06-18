@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net;
 
@@ -7,7 +7,8 @@ import java.net.InetAddress;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -23,7 +24,7 @@ public class WebConnectionServer
    /**
     * The ports for this web server in the order that they were added.
     */
-   protected Vector<Integer> mPorts;
+   protected List<Integer> mPorts;
    
    /**
     * A table mapping ports to web connection handlers.
@@ -41,7 +42,7 @@ public class WebConnectionServer
     * ephemeral port -- so that they don't have actual ports set yet until
     * they start accepting web connections. 
     */
-   protected Vector<WebConnectionHandler> mUnassignedWebConnectionHandlers;
+   protected List<WebConnectionHandler> mUnassignedWebConnectionHandlers;
    
    /**
     * Whether or not this web server is running.
@@ -54,7 +55,7 @@ public class WebConnectionServer
    public WebConnectionServer()
    {
       // create list for ports
-      mPorts = new Vector<Integer>();
+      mPorts = new LinkedList<Integer>();
       
       // create the port to handler map
       mPortToWebConnectionHandler =
@@ -65,7 +66,7 @@ public class WebConnectionServer
          new HashMap<WebConnectionHandler, InetAddress>();
       
       // create vector for unassigned web connection handlers
-      mUnassignedWebConnectionHandlers = new Vector<WebConnectionHandler>();
+      mUnassignedWebConnectionHandlers = new LinkedList<WebConnectionHandler>();
       
       // not running by default
       mRunning = false;
@@ -366,20 +367,20 @@ public class WebConnectionServer
     */
    public Collection<WebConnectionHandler> getWebConnectionHandlers()
    {
-      Vector<WebConnectionHandler> vector = new Vector<WebConnectionHandler>();
+      List<WebConnectionHandler> list = new LinkedList<WebConnectionHandler>();
       
       // add all assigned web connection handlers according to port order
       for(int port: mPorts)
       {
          // add handler
          WebConnectionHandler handler = getWebConnectionHandler(port);
-         vector.add(handler);
+         list.add(handler);
       }
       
       // add all unassigned web connection handlers
-      vector.addAll(mUnassignedWebConnectionHandlers);
+      list.addAll(mUnassignedWebConnectionHandlers);
       
-      return vector;
+      return list;
    }
    
    /**

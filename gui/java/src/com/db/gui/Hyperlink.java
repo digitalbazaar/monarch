@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.gui;
 
@@ -13,7 +13,8 @@ import java.awt.event.ActionEvent;
 import java.net.URL;
 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.JEditorPane;
 import javax.swing.UIManager;
@@ -50,7 +51,7 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
    /**
     * The action listeners for this hyperlink.
     */
-   protected Vector<ActionListener> mActionListeners;
+   protected List<ActionListener> mActionListeners;
    
    /**
     * Creates a new default hyperlink.
@@ -93,7 +94,7 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
       
       addHyperlinkListener(this);
       setEditable(false);
-      mActionListeners = new Vector<ActionListener>();
+      mActionListeners = new LinkedList<ActionListener>();
 
       mActionCommand = "";
       

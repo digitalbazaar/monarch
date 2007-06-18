@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.datagram;
 
@@ -7,7 +7,8 @@ import java.net.InetAddress;
 import java.util.Collection;
 import java.util.HashMap; 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -23,7 +24,7 @@ public class DatagramServer
    /**
     * The ports for this server in the order that they were added.
     */
-   protected Vector<Integer> mPorts;
+   protected List<Integer> mPorts;
    
    /**
     * A table mapping ports to datagram handlers.
@@ -41,7 +42,7 @@ public class DatagramServer
     * port -- so that they don't have actual ports set yet until they start
     * accepting datagrams. 
     */
-   protected Vector<DatagramHandler> mUnassignedDatagramHandlers;
+   protected List<DatagramHandler> mUnassignedDatagramHandlers;
 
    /**
     * Whether or not this server is running.
@@ -54,7 +55,7 @@ public class DatagramServer
    public DatagramServer()
    {
       // create list for ports
-      mPorts = new Vector<Integer>();
+      mPorts = new LinkedList<Integer>();
       
       // create the port to handler map
       mPortToDatagramHandler = new HashMap<Integer, DatagramHandler>();
@@ -64,7 +65,7 @@ public class DatagramServer
          new HashMap<DatagramHandler, InetAddress>();
       
       // create vector for unassigned datagram handlers
-      mUnassignedDatagramHandlers = new Vector<DatagramHandler>();
+      mUnassignedDatagramHandlers = new LinkedList<DatagramHandler>();
       
       // server not running by default
       mRunning = false;
@@ -350,20 +351,20 @@ public class DatagramServer
     */
    public Collection<DatagramHandler> getDatagramListeners()
    {
-      Vector<DatagramHandler> vector = new Vector<DatagramHandler>();
+      List<DatagramHandler> list = new LinkedList<DatagramHandler>();
       
       // add all datagram handlers according to port order
       for(int port: mPorts)
       {
          // add datagram handler
          DatagramHandler dh = getDatagramHandler(port);
-         vector.add(dh);
+         list.add(dh);
       }
       
       // add all unassigned datagram handlers
-      vector.addAll(mUnassignedDatagramHandlers);
+      list.addAll(mUnassignedDatagramHandlers);
       
-      return vector;
+      return list;
    }
    
    /**

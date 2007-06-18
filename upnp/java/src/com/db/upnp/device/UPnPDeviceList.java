@@ -4,7 +4,8 @@
 package com.db.upnp.device;
 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -49,7 +50,7 @@ implements Iterable<UPnPDevice>
    /**
     * The UPnPDevices for this list.
     */
-   protected Vector<UPnPDevice> mDevices;
+   protected List<UPnPDevice> mDevices;
    
    /**
     * Creates a new UPnPDeviceList.
@@ -57,7 +58,7 @@ implements Iterable<UPnPDevice>
    public UPnPDeviceList()
    {
       // create the devices list
-      mDevices = new Vector<UPnPDevice>();
+      mDevices = new LinkedList<UPnPDevice>();
    }
    
    /**
@@ -169,7 +170,7 @@ implements Iterable<UPnPDevice>
     * 
     * @return the UPnPDevice for this list in a vector.
     */
-   public Vector<UPnPDevice> getDevices()
+   public List<UPnPDevice> getDevices()
    {
       return mDevices;
    }

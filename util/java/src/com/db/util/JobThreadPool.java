@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.util;
 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -30,7 +31,7 @@ public class JobThreadPool
     * The list of threads in this pool. This is the list of total threads
     * in this pool.
     */
-   protected Vector<JobThread> mThreads;
+   protected List<JobThread> mThreads;
    
    /**
     * The expire time for JobThreads.
@@ -57,7 +58,7 @@ public class JobThreadPool
       mThreadSemaphore = new Semaphore(poolSize, true);
       
       // create the JobThread list
-      mThreads = new Vector<JobThread>();
+      mThreads = new LinkedList<JobThread>();
       
       // default JobThread expire time to 0 (no expiration)
       setJobThreadExpireTime(0);

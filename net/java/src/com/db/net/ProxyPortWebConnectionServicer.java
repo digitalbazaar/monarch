@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net;
 
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -24,7 +25,7 @@ extends AbstractWebConnectionServicer
     * supports the protocol of the accepted web connection will be the
     * web connection handler to have it proxied to it.
     */
-   protected Vector<WebConnectionHandler> mWebConnectionHandlerPriorityList;
+   protected List<WebConnectionHandler> mWebConnectionHandlerPriorityList;
    
    /**
     * Creates a new ProxyPortWebConnectionServicer.
@@ -32,7 +33,8 @@ extends AbstractWebConnectionServicer
    public ProxyPortWebConnectionServicer()
    {
       // create the web connection handler priority list
-      mWebConnectionHandlerPriorityList = new Vector<WebConnectionHandler>();
+      mWebConnectionHandlerPriorityList =
+         new LinkedList<WebConnectionHandler>();
    }
    
    /**

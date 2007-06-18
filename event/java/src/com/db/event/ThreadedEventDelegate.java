@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.event;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.LoggerManager;
 import com.db.util.JobThreadPool;
@@ -272,7 +273,7 @@ public class ThreadedEventDelegate
       /**
        * The queue that stores the events to be processed by the listener.
        */
-      protected Vector<Object> mEventQueue;
+      protected List<Object> mEventQueue;
       
       /**
        * Set to true if this EventProcessor is currently processing events,
@@ -297,7 +298,7 @@ public class ThreadedEventDelegate
          mEventClassToMethod = new HashMap<Class, Method>();
          
          // create event queue
-         mEventQueue = new Vector<Object>();
+         mEventQueue = new LinkedList<Object>();
          
          // not processing
          mIsProcessing = false;
@@ -308,7 +309,7 @@ public class ThreadedEventDelegate
        * 
        * @param queue the event queue with the events to process.
        */
-      protected void processEvents(Vector<Object> queue)
+      protected void processEvents(List<Object> queue)
       {
          // process all of the events in the passed queue
          for(Object event: queue)
@@ -375,7 +376,7 @@ public class ThreadedEventDelegate
       public void processEvents()
       {
          // create a temporary event queue
-         Vector<Object> queue = new Vector<Object>();
+         List<Object> queue = new LinkedList<Object>();
          
          // synchronize on the event queue
          synchronized(mEventQueue)

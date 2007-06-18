@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.upnp.discover;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.SocketTimeoutException;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.net.datagram.DatagramClient;
 import com.db.net.datagram.DatagramStream;
@@ -69,7 +70,8 @@ public class UPnPDeviceDiscoverer
       UPnPRootDevice[] devices = null;
       
       // create a vector for storing discovered devices
-      Vector<UPnPRootDevice> discoveredDevices = new Vector<UPnPRootDevice>(); 
+      List<UPnPRootDevice> discoveredDevices =
+         new LinkedList<UPnPRootDevice>(); 
       
       // get a multicast stream
       DatagramClient client = new DatagramClient();

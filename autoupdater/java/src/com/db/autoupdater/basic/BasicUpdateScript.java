@@ -3,6 +3,7 @@
  */
 package com.db.autoupdater.basic;
 
+import java.util.List;
 import java.util.Vector;
 
 import com.db.event.EventDelegate;
@@ -31,7 +32,7 @@ public class BasicUpdateScript implements UpdateScript
     * The commands that should be executed to perform the update, they are
     * stored in order of execution.
     */
-   protected Vector<BasicUpdateScriptCommand> mCommands;
+   protected List<BasicUpdateScriptCommand> mCommands;
    
    /**
     * The total number of items to download.
@@ -295,7 +296,7 @@ public class BasicUpdateScript implements UpdateScript
     * 
     * @return the commands for this script.
     */
-   public Vector<BasicUpdateScriptCommand> getCommands()
+   public List<BasicUpdateScriptCommand> getCommands()
    {
       return mCommands;
    }

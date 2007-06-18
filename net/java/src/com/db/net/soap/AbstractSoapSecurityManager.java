@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.soap;
 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * An AbstractSoapSecurityManager is a SoapSecurityManager that can be
@@ -18,7 +19,7 @@ implements SoapSecurityManager
    /**
     * The permissions to deny with this AbstractSoapSecurityManager.
     */
-   protected Vector<SoapPermission> mDeniedPermissions;
+   protected List<SoapPermission> mDeniedPermissions;
    
    /**
     * Creates a new AbstractSoapSecurityManager.
@@ -26,7 +27,7 @@ implements SoapSecurityManager
    public AbstractSoapSecurityManager()
    {
       // create the denied permissions vector
-      mDeniedPermissions = new Vector<SoapPermission>();
+      mDeniedPermissions = new LinkedList<SoapPermission>();
    }
    
    /**

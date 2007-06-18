@@ -6,9 +6,11 @@ package com.db.stream;
 import java.io.IOException;
 import java.io.FilterInputStream;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.util.ByteBuffer;
 
@@ -29,7 +31,7 @@ public class InspectorInputStream extends FilterInputStream
     * Stores the data inspectors that are waiting to inspect the currently
     * buffered data.
     */
-   protected Vector<DataInspectorMetaData> mWaiting;
+   protected List<DataInspectorMetaData> mWaiting;
    
    /**
     * An internal buffer for storing data read from the underlying stream.
@@ -61,7 +63,7 @@ public class InspectorInputStream extends FilterInputStream
       mInspectors = new HashMap<String, DataInspectorMetaData>();
       
       // create list of inspectors that are waiting to inspect
-      mWaiting = new Vector<DataInspectorMetaData>();
+      mWaiting = new LinkedList<DataInspectorMetaData>();
       
       // create read buffer
       mReadBuffer = new ByteBuffer(2048);
@@ -116,6 +118,23 @@ public class InspectorInputStream extends FilterInputStream
       }
       
       return rval;
+   }
+   
+   /**
+    * Gets all of the DataInspectors from this stream.
+    * 
+    * @return all of the DataInspectors from this stream.
+    */
+   public Collection<DataInspector> getInspectors()
+   {
+      LinkedList<DataInspector> list = new LinkedList<DataInspector>();
+      
+      for(DataInspectorMetaData metaData: mInspectors.values())
+      {
+         list.add(metaData.getInspector());
+      }
+      
+      return list;
    }
    
    /**

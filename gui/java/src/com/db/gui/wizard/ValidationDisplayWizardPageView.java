@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.gui.wizard;
 
@@ -197,7 +197,7 @@ implements DynamicValidationWizardPageView
       if(getPage().getErrors().size() > 0)
       {
          // get the first error
-         String error = (String)getPage().getErrors().get(0);
+         String error = getPage().getErrors().get(0);
 
          if(pending)
          {

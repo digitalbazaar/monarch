@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.gui.wizard;
 
@@ -7,8 +7,7 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
-import java.util.Iterator;
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -130,19 +129,17 @@ public class WizardErrorDialog extends JDialog
    /**
     * Set the warning strings displayed in the dialog.
     * 
-    * @param errors a vector of warning strings that are to be
+    * @param errors a list of warning strings that are to be
     *               displayed in the dialog.
     */
-   public void setWarnings(Vector errors)
+   public void setWarnings(List<String> errors)
    {
       // clear text area
       mTextArea.setText("");
       
       // add all of the warnings to the text area
-      Iterator i = errors.iterator();         
-      while(i.hasNext())
+      for(String warning: errors)
       {
-         String warning = (String)i.next();
          mTextArea.append(warning + "\n\n");
       }
       

@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.gui.wizard;
 
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.event.EventDelegate;
 import com.db.event.EventObject;
@@ -33,7 +34,7 @@ public abstract class WizardPage
    /**
     * The errors in this wizard page.
     */
-   protected Vector<String> mErrors;
+   protected List<String> mErrors;
    
    /**
     * The view for this page.
@@ -70,7 +71,7 @@ public abstract class WizardPage
       mWizardTask = task;
       
       // create errors container
-      mErrors = new Vector<String>();
+      mErrors = new LinkedList<String>();
       
       // create the validation passed event delegate
       mValidationPassedEventDelegate = new EventDelegate();
@@ -247,7 +248,7 @@ public abstract class WizardPage
     * @return an empty vector of Strings if there are no errors, or a 
     *         vector of error strings.
     */
-   public Vector getErrors()
+   public List<String> getErrors()
    {
       return mErrors;
    }

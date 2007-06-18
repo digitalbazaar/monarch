@@ -4,6 +4,7 @@
 package com.db.net.soap;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import com.db.logging.Logger;
@@ -63,7 +64,7 @@ public class SoapOperation extends AbstractXmlSerializer
    /**
     * The SoapOperationParameters for this SoapOperation stored in a vector.
     */
-   protected Vector<SoapOperationParameter> mParameters;
+   protected List<SoapOperationParameter> mParameters;
    
    /**
     * Creates a new blank SoapOperation that uses no set name and the
@@ -271,11 +272,11 @@ public class SoapOperation extends AbstractXmlSerializer
    }
    
    /**
-    * Gets the parameters for this operation in a vector.
+    * Gets the parameters for this operation in a list.
     * 
-    * @return a vector of SoapOperationParameters.
+    * @return a list of SoapOperationParameters.
     */
-   public Vector<SoapOperationParameter> getParameters()
+   public List<SoapOperationParameter> getParameters()
    {
       return mParameters;
    }

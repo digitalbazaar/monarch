@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.gui.wizard;
 
@@ -8,7 +8,8 @@ import java.awt.Component;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -50,7 +51,7 @@ public class WizardView extends JPanel implements ActionListener
    /**
     * The wizard pages that this view can display.
     */
-   protected Vector<WizardPage> mWizardPages;
+   protected List<WizardPage> mWizardPages;
    
    /**
     * The cancel button.
@@ -92,7 +93,7 @@ public class WizardView extends JPanel implements ActionListener
          this, "displayErrorDialog");
       
       // create wizard pages list
-      mWizardPages = new Vector<WizardPage>();
+      mWizardPages = new LinkedList<WizardPage>();
       
       // create error dialog
       mErrorDialog = new WizardErrorDialog(null);

@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.xml;
 
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -59,7 +59,7 @@ public class XmlElement extends AbstractXmlSerializer
    /**
     * The children for this element.
     */
-   protected Vector<XmlElement> mChildren;
+   protected List<XmlElement> mChildren;
    
    /**
     * The data/value for this element.
@@ -124,8 +124,8 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public XmlElement(String name, String namespaceUri, boolean inherit)
    {
-      // create the vector for this element's children
-      mChildren = new Vector<XmlElement>();
+      // create the list for this element's children
+      mChildren = new LinkedList<XmlElement>();
       
       // create the attribute list for this element
       mAttributes = new XmlAttributeList(this);
@@ -1158,13 +1158,12 @@ public class XmlElement extends AbstractXmlSerializer
    {
       XmlElement rval = null;
       
-      for(Iterator<XmlElement> i = mChildren.iterator();
-          i.hasNext() && rval == null;)
+      for(XmlElement child: mChildren)
       {
-         XmlElement child = i.next();
          if(child.getName().equals(name))
          {
             rval = child;
+            break;
          }
       }
       
@@ -1185,10 +1184,8 @@ public class XmlElement extends AbstractXmlSerializer
    {
       XmlElement rval = null;
       
-      for(Iterator<XmlElement> i = mChildren.iterator();
-          i.hasNext() && rval == null;)
+      for(XmlElement child: mChildren)
       {
-         XmlElement child = i.next();
          String childNamespaceUri = child.getNamespaceUri();
          
          // check name
@@ -1200,6 +1197,7 @@ public class XmlElement extends AbstractXmlSerializer
                 childNamespaceUri.equals(namespaceUri)))
             {
                rval = child;
+               break;
             }               
          }
       }
@@ -1308,11 +1306,10 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public Collection<XmlElement> getChildren(String name)
    {
-      Vector<XmlElement> rval = new Vector<XmlElement>();
+      List<XmlElement> rval = new LinkedList<XmlElement>();
       
-      for(Iterator<XmlElement> i = mChildren.iterator(); i.hasNext();)
+      for(XmlElement child: mChildren)
       {
-         XmlElement child = i.next();
          if(child.getName().equals(name))
          {
             rval.add(child);
@@ -1335,11 +1332,10 @@ public class XmlElement extends AbstractXmlSerializer
    public Collection<XmlElement> getChildrenWithNamespaceUri(
       String namespaceUri)
    {
-      Vector<XmlElement> rval = new Vector<XmlElement>();
+      List<XmlElement> rval = new LinkedList<XmlElement>();
       
-      for(Iterator<XmlElement> i = mChildren.iterator(); i.hasNext();)
+      for(XmlElement child: mChildren)
       {
-         XmlElement child = i.next();
          String childNamespaceUri = child.getNamespaceUri();
          if((childNamespaceUri == null && namespaceUri == null) ||
             (childNamespaceUri != null &&
@@ -1365,11 +1361,10 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public Collection<XmlElement> getChildren(String name, String namespaceUri)
    {
-      Vector<XmlElement> rval = new Vector<XmlElement>();
+      List<XmlElement> rval = new LinkedList<XmlElement>();
       
-      for(Iterator<XmlElement> i = mChildren.iterator(); i.hasNext();)
+      for(XmlElement child: mChildren)
       {
-         XmlElement child = i.next();
          if(child.getName().equals(name))
          {
             String childNamespaceUri = child.getNamespaceUri();
@@ -1406,11 +1401,13 @@ public class XmlElement extends AbstractXmlSerializer
       if(rval == null)
       {
          // check each child if a sub element still hasn't been found
-         for(Iterator<XmlElement> i = mChildren.iterator();
-             i.hasNext() && rval == null;)
+         for(XmlElement child: mChildren)
          {
-            XmlElement child = i.next();
             rval = child.getFirstSubElement(name);
+            if(rval != null)
+            {
+               break;
+            }
          }
       }
       
@@ -1437,11 +1434,13 @@ public class XmlElement extends AbstractXmlSerializer
       if(rval == null)
       {
          // check each child if a sub element still hasn't been found
-         for(Iterator<XmlElement> i = mChildren.iterator();
-             i.hasNext() && rval == null;)
+         for(XmlElement child: mChildren)
          {
-            XmlElement child = i.next();
             rval = child.getFirstSubElement(name, namespaceUri);
+            if(rval != null)
+            {
+               break;
+            }
          }
       }
       
@@ -1540,12 +1539,10 @@ public class XmlElement extends AbstractXmlSerializer
     */
    public Collection<XmlElement> getSubElements(String name)
    {
-      Vector<XmlElement> rval = new Vector<XmlElement>();
+      List<XmlElement> rval = new LinkedList<XmlElement>();
       
-      for(Iterator<XmlElement> i = mChildren.iterator(); i.hasNext();)
+      for(XmlElement child: mChildren)
       {
-         XmlElement child = i.next();
-         
          // add all of the sub elements in the child
          rval.addAll(child.getSubElements(name));
          
@@ -1572,12 +1569,10 @@ public class XmlElement extends AbstractXmlSerializer
    public Collection<XmlElement> getSubElementsWithNamespaceUri(
       String namespaceUri)
    {
-      Vector<XmlElement> rval = new Vector<XmlElement>();
+      List<XmlElement> rval = new LinkedList<XmlElement>();
       
-      for(Iterator<XmlElement> i = mChildren.iterator(); i.hasNext();)
+      for(XmlElement child: mChildren)
       {
-         XmlElement child = i.next();
-         
          // add all of the sub elements in the child
          rval.addAll(child.getSubElementsWithNamespaceUri(namespaceUri));
          
@@ -1608,12 +1603,10 @@ public class XmlElement extends AbstractXmlSerializer
    public Collection<XmlElement> getSubElements(
       String name, String namespaceUri)
    {
-      Vector<XmlElement> rval = new Vector<XmlElement>();
+      List<XmlElement> rval = new LinkedList<XmlElement>();
       
-      for(Iterator<XmlElement> i = mChildren.iterator(); i.hasNext();)
+      for(XmlElement child: mChildren)
       {
-         XmlElement child = i.next();
-         
          // add the sub elements in the child
          rval.addAll(child.getSubElements(name, namespaceUri));
          

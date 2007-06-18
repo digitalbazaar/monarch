@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.util;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Set;
-import java.util.Vector;
 
 /**
  * A collection of unique objects. Whether or not an object
@@ -28,7 +28,7 @@ public class UniqueSet<T> implements Set<T>
     */
    public UniqueSet()
    {
-      mCollection = new Vector<T>();
+      mCollection = new LinkedList<T>();
    }
    
    /**
@@ -40,10 +40,10 @@ public class UniqueSet<T> implements Set<T>
     */
    public UniqueSet(Collection<? extends T> c)
    {
-      mCollection = new Vector<T>();
-      for(Iterator<? extends T> i = c.iterator(); i.hasNext();)
+      mCollection = new LinkedList<T>();
+      for(T t: c)
       {
-         add(i.next());
+         add(t);
       }
    }
    
@@ -56,8 +56,7 @@ public class UniqueSet<T> implements Set<T>
     */
    public UniqueSet(T[] array)
    {
-      mCollection = new Vector<T>();
-
+      mCollection = new LinkedList<T>();
       for(int i = 0; i < array.length; i++)
       {
          add(array[i]);

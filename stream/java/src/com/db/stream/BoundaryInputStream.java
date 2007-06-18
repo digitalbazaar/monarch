@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.stream;
 
@@ -9,7 +9,8 @@ import com.db.logging.LoggerManager;
 import java.io.FilterInputStream;
 import java.io.InputStream;
 import java.io.IOException;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * This class is used to read from an input stream until a boundary
@@ -51,7 +52,7 @@ public class BoundaryInputStream extends FilterInputStream
    /**
     * A vector of boundaries.
     */
-   protected Vector<String> mBoundaries;
+   protected List<String> mBoundaries;
    
    /**
     * Whether or not a boundary has been reached.
@@ -89,7 +90,7 @@ public class BoundaryInputStream extends FilterInputStream
       mBoundaryBuffer = new byte[1];
       mBoundaryBufferPos = 0;
 
-      mBoundaries = new Vector<String>();
+      mBoundaries = new LinkedList<String>();
       mBoundaryReached = false;
       mMaxBoundaryLength = 1;
       mMinBoundaryLength = 1;
@@ -166,7 +167,7 @@ public class BoundaryInputStream extends FilterInputStream
    protected char[] getMatchingBoundaryChars()
    {
       // get all boundaries that are long enough
-      Vector<String> v = new Vector<String>();
+      List<String> v = new LinkedList<String>();
       for(String boundary: mBoundaries)
       {
          if(boundary.length() > mBoundaryBufferPos)

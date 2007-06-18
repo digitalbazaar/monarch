@@ -4,7 +4,8 @@
 package com.db.net.wsdl;
 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -215,17 +216,17 @@ public class WsdlMessage extends AbstractXmlSerializer
    public class WsdlMessagePartCollection implements Iterable<WsdlMessagePart>
    {
       /**
-       * The underlying vector for storing parts. 
+       * The underlying list for storing parts. 
        */
-      protected Vector<WsdlMessagePart> mParts;
+      protected List<WsdlMessagePart> mParts;
       
       /**
        * Creates a new WsdlMessagePartCollection.
        */
       public WsdlMessagePartCollection()
       {
-         // initialize parts vector
-         mParts = new Vector<WsdlMessagePart>();
+         // initialize parts list
+         mParts = new LinkedList<WsdlMessagePart>();
       }
       
       /**

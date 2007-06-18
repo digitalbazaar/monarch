@@ -4,7 +4,8 @@
 package com.db.net.wsdl;
 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -228,17 +229,17 @@ public class WsdlService extends AbstractXmlSerializer
    public class WsdlPortCollection implements Iterable<WsdlPort>
    {
       /**
-       * The underlying vector for storing operations. 
+       * The underlying list for storing operations. 
        */
-      protected Vector<WsdlPort> mPorts;
+      protected List<WsdlPort> mPorts;
       
       /**
        * Creates a new Wsdl Port Collection.
        */
       public WsdlPortCollection()
       {
-         // initialize ports vector
-         mPorts = new Vector<WsdlPort>();
+         // initialize ports list
+         mPorts = new LinkedList<WsdlPort>();
       }
       
       /**

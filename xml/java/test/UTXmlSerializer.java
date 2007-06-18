@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.LoggerManager;
 import com.db.logging.Logger;
@@ -165,14 +166,14 @@ public class UTXmlSerializer
       /**
        * A vector Test1s.
        */
-      protected Vector<Test1> mTest1s;
+      protected List<Test1> mTest1s;
       
       /**
        * Creates a new Test.
        */
       public Test3()
       {
-         mTest1s = new Vector<Test1>();
+         mTest1s = new LinkedList<Test1>();
          
          mTest1s.add(new Test1());
          mTest1s.add(new Test1());
@@ -209,7 +210,7 @@ public class UTXmlSerializer
       @XmlElementAnnotation(
          name = "test", namespaceUri = "urn:test3",
          serializeIterableAsChildren = true)
-      public Vector<Test1> getTest1sAsRootChildren()
+      public List<Test1> getTest1sAsRootChildren()
       {
          return mTest1s;
       }
@@ -221,7 +222,7 @@ public class UTXmlSerializer
        */
       @XmlElementAnnotation(
          name = "kid", serializeIterableAsChildren = true)
-      public Vector<Test1> getTest1sAsKids()
+      public List<Test1> getTest1sAsKids()
       {
          return mTest1s;
       }

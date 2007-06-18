@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2003-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2003-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.util;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Random;
-import java.util.Vector;
 
 /**
  * A Semaphore class that stores the maximum number of permits allowed
@@ -38,7 +38,7 @@ public class Semaphore
    /**
     * The threads that may be waiting to acquire a permit.
     */
-   protected Vector<Thread> mWaitingThreads;
+   protected LinkedList<Thread> mWaitingThreads;
    
    /**
     * The lock object. This is the object to synchronize on when
@@ -66,7 +66,7 @@ public class Semaphore
       mRandom = new Random();
 
       // create threads vector
-      mWaitingThreads = new Vector<Thread>();
+      mWaitingThreads = new LinkedList<Thread>();
       
       // create lock object
       mLockObject = new Object();
@@ -200,7 +200,7 @@ public class Semaphore
       if(mWaitingThreads.size() > 0)
       {
          // remove first thread
-         mWaitingThreads.remove(0);
+         mWaitingThreads.poll();
       }
    }
 

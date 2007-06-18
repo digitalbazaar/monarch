@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.event;
 
@@ -7,7 +7,8 @@ import com.db.util.MethodInvoker;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * This class is used to delegate events to listeners.
@@ -19,7 +20,7 @@ public class EventDelegate
    /**
     * A list of all of the listeners of this delegate.
     */
-   protected Vector<Object> mListeners;
+   protected List<Object> mListeners;
    
    /**
     * A map of listener to the method to call to handle an event.
@@ -32,7 +33,7 @@ public class EventDelegate
    public EventDelegate()
    {
       // create listener list
-      mListeners = new Vector<Object>();
+      mListeners = new LinkedList<Object>();
       
       // create listener to method map
       mListenerToMethod = new HashMap<Object, String>();

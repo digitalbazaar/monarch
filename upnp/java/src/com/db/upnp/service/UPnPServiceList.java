@@ -4,7 +4,8 @@
 package com.db.upnp.service;
 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -54,7 +55,7 @@ implements Iterable<UPnPService>
    /**
     * The UPnPServices for this list.
     */
-   protected Vector<UPnPService> mServices;
+   protected List<UPnPService> mServices;
    
    /**
     * Creates a new UPnPServiceList.
@@ -62,7 +63,7 @@ implements Iterable<UPnPService>
    public UPnPServiceList()
    {
       // create the services list
-      mServices = new Vector<UPnPService>();
+      mServices = new LinkedList<UPnPService>();
    }
    
    /**
@@ -197,7 +198,7 @@ implements Iterable<UPnPService>
     * 
     * @return the UPnPService for this list in a vector.
     */
-   public Vector<UPnPService> getServices()
+   public List<UPnPService> getServices()
    {
       return mServices;
    }

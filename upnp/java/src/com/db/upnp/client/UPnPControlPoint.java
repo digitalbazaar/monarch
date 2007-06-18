@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.upnp.client;
 
 import java.io.IOException;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -30,7 +31,7 @@ public class UPnPControlPoint
    /**
     * The UPnPDevices that this control point has cached for use.
     */
-   protected Vector<UPnPDevice> mCachedDevices;
+   protected List<UPnPDevice> mCachedDevices;
    
    /**
     * Creates a new UPnPControlPoint.
@@ -41,7 +42,7 @@ public class UPnPControlPoint
       mServer = new DatagramServer();
       
       // create devices cache
-      mCachedDevices = new Vector<UPnPDevice>();
+      mCachedDevices = new LinkedList<UPnPDevice>();
    }
    
    /**
@@ -128,7 +129,7 @@ public class UPnPControlPoint
     * 
     * @return the UPnPDevices that have been discovered by this control point.
     */
-   public Vector getDiscoveredDevices()
+   public List<UPnPDevice> getDiscoveredDevices()
    {
       return mCachedDevices;
    }
@@ -142,9 +143,9 @@ public class UPnPControlPoint
     * @return the UPnPDevices with the given device type that have been
     *         discovered by this control point.
     */
-   public Vector<UPnPDevice> getDiscoveredDevices(String deviceType)
+   public List<UPnPDevice> getDiscoveredDevices(String deviceType)
    {
-      Vector<UPnPDevice> devices = new Vector<UPnPDevice>();
+      List<UPnPDevice> devices = new LinkedList<UPnPDevice>();
       
       // go through the cached devices and add all devices with the given type
       for(UPnPDevice device: mCachedDevices)

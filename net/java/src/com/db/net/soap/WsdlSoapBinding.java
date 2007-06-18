@@ -4,7 +4,8 @@
 package com.db.net.soap;
 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -262,7 +263,7 @@ public class WsdlSoapBinding extends WsdlBinding
       /**
        * The underlying vector for storing operations. 
        */
-      protected Vector<WsdlSoapBindingOperation> mOperations;
+      protected List<WsdlSoapBindingOperation> mOperations;
       
       /**
        * Creates a new Wsdl SOAP Binding Operation Collection.
@@ -270,7 +271,7 @@ public class WsdlSoapBinding extends WsdlBinding
       public WsdlSoapBindingOperationCollection()
       {
          // initialize operations vector
-         mOperations = new Vector<WsdlSoapBindingOperation>();
+         mOperations = new LinkedList<WsdlSoapBindingOperation>();
       }
       
       /**

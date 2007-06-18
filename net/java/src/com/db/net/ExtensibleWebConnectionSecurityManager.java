@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net;
 
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * An ExtensibleWebConnectionSecurityManager is a WebConnectionSecurityManager
@@ -18,15 +19,15 @@ implements WebConnectionSecurityManager
    /**
     * The extensions for this ExtensibleWebConnectionSecurityManager.
     */
-   protected Vector<WebConnectionSecurityManager> mExtensions;
+   protected List<WebConnectionSecurityManager> mExtensions;
    
    /**
     * Creates a new ExtensibleWebConnectionSecurityManager.
     */
    public ExtensibleWebConnectionSecurityManager()
    {
-      // create the extensions vector
-      mExtensions = new Vector<WebConnectionSecurityManager>();
+      // create the extensions list
+      mExtensions = new LinkedList<WebConnectionSecurityManager>();
    }
    
    /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.util;
 
@@ -9,9 +9,10 @@ import com.db.logging.LoggerManager;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,7 +36,7 @@ public class ConfigOptions
    /**
     * A list of commands detected when last parsing a set of arguments.
     */
-   protected Vector<String> mCommands;
+   protected List<String> mCommands;
    
    /**
     * Creates a new config options object.
@@ -44,7 +45,7 @@ public class ConfigOptions
    {
       mProperties = new Properties();
       mValueTypeMap = new HashMap<String, Class>();
-      mCommands = new Vector<String>();
+      mCommands = new LinkedList<String>();
    }
    
    /**
@@ -108,7 +109,7 @@ public class ConfigOptions
    public String[] parseArgs(String[] args)
    {
       // create a vector for storing invalid arguments
-      Vector<String> invalidArgs = new Vector<String>();
+      List<String> invalidArgs = new LinkedList<String>();
       
       // clear vector for storing commands
       mCommands.clear();
@@ -649,9 +650,9 @@ public class ConfigOptions
     * Gets the set of commands detected when the last set of arguments
     * was parsed. 
     * 
-    * @return a vector command strings.
+    * @return a list of command strings.
     */
-   public Vector<String> getCommands()
+   public List<String> getCommands()
    {
       return mCommands;
    }

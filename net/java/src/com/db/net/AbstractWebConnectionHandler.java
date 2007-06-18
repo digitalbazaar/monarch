@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net;
 
 import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -48,7 +49,7 @@ implements WebConnectionHandler, WebConnectionServicer
    /**
     * A list of all of the current service threads.
     */
-   protected Vector<WebConnectionServiceThread> mServiceThreads;
+   protected List<WebConnectionServiceThread> mServiceThreads;
    
    /**
     * The web connection security manager for this web connection servicer.
@@ -73,7 +74,7 @@ implements WebConnectionHandler, WebConnectionServicer
       mWebConnectionServicer = servicer;
       
       // create service thread list
-      mServiceThreads = new Vector<WebConnectionServiceThread>();
+      mServiceThreads = new LinkedList<WebConnectionServiceThread>();
 
       // set default values
       mBindAddress = null;

@@ -4,7 +4,8 @@
 package com.db.upnp.device;
 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -54,7 +55,7 @@ implements Iterable<UPnPDeviceIcon>
    /**
     * The UPnPDeviceIcons for this list.
     */
-   protected Vector<UPnPDeviceIcon> mIcons;
+   protected List<UPnPDeviceIcon> mIcons;
    
    /**
     * Creates a new UPnPDeviceIconList.
@@ -62,7 +63,7 @@ implements Iterable<UPnPDeviceIcon>
    public UPnPDeviceIconList()
    {
       // create the icon list
-      mIcons = new Vector<UPnPDeviceIcon>();
+      mIcons = new LinkedList<UPnPDeviceIcon>();
    }
    
    /**
@@ -151,7 +152,7 @@ implements Iterable<UPnPDeviceIcon>
     * 
     * @return the UPnPDeviceIcons for this list in a vector.
     */
-   public Vector<UPnPDeviceIcon> getIcons()
+   public List<UPnPDeviceIcon> getIcons()
    {
       return mIcons;
    }

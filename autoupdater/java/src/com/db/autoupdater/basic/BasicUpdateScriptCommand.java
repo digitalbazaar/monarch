@@ -7,6 +7,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import com.db.logging.Logger;
@@ -37,7 +38,7 @@ public class BasicUpdateScriptCommand
    /**
     * The arguments for the command.
     */
-   protected Vector<String> mArguments;
+   protected List<String> mArguments;
       
    /**
     * The URL associated with the command.
@@ -57,7 +58,7 @@ public class BasicUpdateScriptCommand
    /**
     * The relative file paths associated with the command.
     */
-   protected Vector<File> mRelativePaths;
+   protected List<File> mRelativePaths;
    
    /**
     * The executable, and its arguments, for a patch.
@@ -546,10 +547,10 @@ public class BasicUpdateScriptCommand
    /**
     * Gets the relative file paths associated with the command.
     * 
-    * @return a vector of File objects that have the relative file paths
+    * @return a list of File objects that have the relative file paths
     *         associated with the command.
     */
-   public Vector<File> getRelativePaths()
+   public List<File> getRelativePaths()
    {
       return mRelativePaths;
    }

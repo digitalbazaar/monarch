@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.List;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -57,7 +57,8 @@ public class UTInternetGatewayControlPoint
          portMapping.setDescription("UPnP Test");
          portMapping.setLeaseDuration(0);
          
-         Vector igds = controlPoint.getDiscoveredInternetGateways();
+         List<InternetGatewayDeviceClient> igds =
+            controlPoint.getDiscoveredInternetGateways();
          for(Iterator i = igds.iterator(); i.hasNext();)
          {
             InternetGatewayDeviceClient igd =

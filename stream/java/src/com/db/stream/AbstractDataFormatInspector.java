@@ -10,7 +10,8 @@ package com.db.stream;
  * 
  * @author Dave Longley
  */
-public abstract class AbstractDataFormatInspector implements DataInspector
+public abstract class AbstractDataFormatInspector
+implements DataFormatInspector
 {
    /**
     * A flag that indicates whether or not this inspector has inspected
