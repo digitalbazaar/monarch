@@ -212,7 +212,8 @@ public class InspectorInputStream extends FilterInputStream
                {
                   // inspect data using inspector
                   int inspected = metaData.getInspector().inspectData(
-                     mReadBuffer.getBytes(), metaData.getInspectedBytes(),
+                     mReadBuffer.getBytes(),
+                     mReadBuffer.getOffset() + metaData.getInspectedBytes(),
                      uninspectedBytes);
                   
                   // see if any data was inspected
