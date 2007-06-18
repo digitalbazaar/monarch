@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import com.db.util.ByteBuffer;
+
 /**
  * An MpegAudioFrame is a single frame with MPEG Audio data.
  * 
@@ -40,7 +42,7 @@ public class MpegAudioFrame
     * header -- or the CRC-16, if a CRC-16 is used, as the CRC-16 follows
     * the header.
     */
-   protected byte[] mAudioData;
+   protected ByteBuffer mAudioData;
    
    /**
     * Creates a new blank MpegAudioFrame.
@@ -57,92 +59,7 @@ public class MpegAudioFrame
       mCrc16Value = 0;
       
       // no audio data for this frame yet
-      mAudioData = new byte[0];
-   }
-   
-   /**
-    * Gets the CRC-16 for this frame based on its current data.
-    * 
-    * The CRC-16 for a frame is calculated by using the last 2 bytes of
-    * the frames header along with a number of bits from the audio data
-    * that follows the checksum. The checksum itself must not be included
-    * in the calculation.
-    * 
-    * The number of bits used from the audio data is determined by the
-    * layer type.
-    * 
-    * For Layer I:
-    * 
-    * The number of bits used is two times (because stereo is 2 channels) the
-    * number of stereo subbands plus the number of mono subbands -- all times 4.
-    * 
-    * For Layer II:
-    * 
-    * Unimplemented.
-    * 
-    * For Layer III:
-    * 
-    * The bits used are the side information. This is 32 bytes for
-    * MPEG 1/Stereo, 17 bytes for MPEG 1/Mono, 17 bytes for MPEG 2/2.5/Stereo,
-    * and 9 bytes for MPEG 2/2.5/Mono.
-    * 
-    * @return the calculated CRC.
-    */
-   protected int calculateCrc()
-   {
-      int rval = 0;
-      
-      if(getHeader().isCrcEnabled())
-      {
-         // CRC is enabled
-         
-         // determine the number of bits of audio data to use in the CRC
-         int audioDataBits = 0;
-         
-         // get the channel count and stereo subband bound
-         int channels = getHeader().getChannelCount();
-         int bound = getHeader().getJointStereoBound();
-         
-         // how many bits to use depends on the layer type
-         switch(getHeader().getLayer())
-         {
-            case Layer1: 
-               // layer I determines the amount of data to pass through the
-               // CRC algorithm by multiplying stereo bands by 2 channels
-               // and adding them to mono bands -- then multiplying by 4
-               // this algorithm simplifies that calculation ... when
-               // no stereo is used the bound is set to 32
-               audioDataBits = 4 * (channels * bound + (32 - bound));
-               break;
-            case Layer2:
-               // assume CRC is correct, not implemented
-               break;
-            case Layer3:
-               // layer III uses side information for the CRC (x8 to get bits)
-               audioDataBits = getHeader().getSideInformationLength() * 8;
-               break;
-         }
-         
-         if(audioDataBits > 0)
-         {
-            // determine the number of audio data bytes (round up)
-            int audioDataBytes = (int)Math.round(((double)audioDataBits / 8));
-            
-            // reset the mpeg audio crc 16
-            mCrc16.reset();
-            
-            // update the CRC with the last 2 header bytes 
-            mCrc16.update(getHeader().getBytes(), 2, 2);
-            
-            // update the CRC with the number of audio data bytes
-            mCrc16.update(getAudioData(), 0, audioDataBytes);
-            
-            // get the crc-16
-            rval = mCrc16.getValue();
-         }
-      }
-      
-      return rval;
+      mAudioData = new ByteBuffer(0);
    }
    
    /**
@@ -152,10 +69,13 @@ public class MpegAudioFrame
     * @param bytes the byte array to convert this frame from.
     * @param offset the offset to start converting from in the passed array.
     * @param length the number of valid bytes in the passed array.
+    * @param copyAudioData true to copy the bytes for the audio data, false
+    *                      not to.
     * 
     * @return true if this frame could be converted from the passed bytes.
     */
-   public boolean convertFromBytes(byte[] bytes, int offset, int length)
+   public boolean convertFromBytes(
+      byte[] bytes, int offset, int length, boolean copyAudioData)
    {
       boolean rval = false;
       
@@ -163,7 +83,8 @@ public class MpegAudioFrame
       if(getHeader().convertFromBytes(bytes, offset, length))
       {
          // convert the rest of the frame
-         rval = convertFromBytes(getHeader(), bytes, offset + 4, length - 4);
+         rval = convertFromBytes(
+            getHeader(), bytes, offset + 4, length - 4, copyAudioData);
       }
       
       return rval;
@@ -179,11 +100,14 @@ public class MpegAudioFrame
     *              from.
     * @param offset the offset to start converting from in the passed array.
     * @param length the number of valid bytes in the passed array.
+    * @param copyAudioData true to copy the bytes for the audio data, false
+    *                      not to.
     * 
     * @return true if this frame could be converted from the passed bytes.
     */
    public boolean convertFromBytes(
-      MpegAudioFrameHeader header, byte[] bytes, int offset, int length)
+      MpegAudioFrameHeader header, byte[] bytes, int offset, int length,
+      boolean copyAudioData)
    {
       boolean rval = false;
       
@@ -212,14 +136,17 @@ public class MpegAudioFrame
          int audioDataLength = getHeader().getAudioDataLength();
          if(length >= audioDataLength) 
          {
-            // allocate enough room for the data
-            if(mAudioData.length != audioDataLength) 
+            if(copyAudioData)
             {
-               mAudioData = new byte[audioDataLength];
+               // put data into buffer
+               mAudioData.clear();
+               mAudioData.put(bytes, offset, audioDataLength, true);
             }
-            
-            // copy the audio data
-            System.arraycopy(bytes, offset, mAudioData, 0, audioDataLength);
+            else
+            {
+               // set audio data
+               mAudioData = new ByteBuffer(bytes, offset, audioDataLength);
+            }
             
             // conversion successful
             rval = true;
@@ -235,7 +162,8 @@ public class MpegAudioFrame
    public void updateCrc()
    {
       // calculate the CRC
-      mCrc16Value = calculateCrc();
+      mCrc16Value = mCrc16.calculateCrc(
+         getHeader(), getAudioData().getBytes(), getAudioData().getOffset());
    }
    
    /**
@@ -279,7 +207,8 @@ public class MpegAudioFrame
       boolean rval = false;
       
       // calculate the CRC for the current data
-      int crc16 = calculateCrc();
+      int crc16 = mCrc16.calculateCrc(
+         getHeader(), getAudioData().getBytes(), getAudioData().getOffset());
       
       // check it against the current CRC
       if(crc16 == getCrc())
@@ -305,7 +234,7 @@ public class MpegAudioFrame
     * 
     * @return the audio data for this frame.
     */
-   public byte[] getAudioData()
+   public ByteBuffer getAudioData()
    {
       return mAudioData;
    }
@@ -384,7 +313,7 @@ public class MpegAudioFrame
             {
                // convert the frame data
                rval = convertFromBytes(
-                  getHeader(), frameData, 0, frameData.length);
+                  getHeader(), frameData, 0, frameData.length, false);
             }
          }
       }
@@ -416,6 +345,6 @@ public class MpegAudioFrame
       }
       
       // write out audio data
-      os.write(getAudioData());
+      getAudioData().get(os);
    }
 }

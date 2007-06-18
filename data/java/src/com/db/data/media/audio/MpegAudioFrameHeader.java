@@ -932,7 +932,7 @@ public class MpegAudioFrameHeader
    
    /**
     * Gets the length of the frame in bytes. This includes the header of 4
-    * bytes, an option CRC-16 of 2 bytes, and the audio data. 
+    * bytes, an optional CRC-16 of 2 bytes, and the audio data. 
     * 
     * @return the length of the frame in bytes.
     */

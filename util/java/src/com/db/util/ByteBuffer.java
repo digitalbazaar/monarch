@@ -5,6 +5,7 @@ package com.db.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * A ByteBuffer holds an internal array of bytes that can be dynamically
@@ -137,6 +138,23 @@ public class ByteBuffer
    /**
     * Puts data from the passed buffer into this buffer.
     * 
+    * @param b the byte to put into this buffer.
+    * @param resize true to automatically resize this buffer if the passed
+    *               byte will not otherwise fit.
+    * 
+    * @return the actual number of bytes put into this buffer, which may be
+    *         less than the number of bytes requested if this buffer is full.
+    */
+   public int put(byte b, boolean resize)
+   {
+      byte[] buf = new byte[1];
+      buf[0] = b;
+      return put(buf, 0, 1, resize);
+   }
+   
+   /**
+    * Puts data from the passed buffer into this buffer.
+    * 
     * @param b the buffer with data to put into this buffer.
     * @param offset the offset at which to start retrieving data.
     * @param length the number of bytes to put into this buffer.
@@ -172,6 +190,25 @@ public class ByteBuffer
       mCount += length;
       
       return length;
+   }
+   
+   /**
+    * Puts data copied from the passed ByteBuffer into this buffer. The passed
+    * ByteBuffer is *not* altered.
+    * 
+    * @param b the ByteBuffer to copy data from.
+    * @param length the number of bytes to copy.
+    * @param resize true to automatically resize this buffer if the passed
+    *               number of bytes will not otherwise fit.
+    * 
+    * @return the actual number of bytes put into this buffer, which may be
+    *         less than the number of bytes requested if this buffer is full
+    *         or if the passed ByteBuffer does not have enough bytes.
+    */
+   public int put(ByteBuffer b, int length, boolean resize)
+   {
+      length = Math.min(length, b.getUsedSpace());
+      return put(b.getBytes(), b.getOffset(), length, resize);
    }
    
    /**
@@ -237,8 +274,8 @@ public class ByteBuffer
    
    /**
     * Gets data out of this buffer and puts it into the passed ByteBuffer. This
-    * method will increment the internal pointer of this buffer by the number
-    * of bytes retrieved.
+    * method will increment the internal pointer of this buffer and the
+    * passed buffer by the number of bytes retrieved.
     * 
     * @param b the ByteBuffer to put the retrieved data into.
     * @param length the maximum number of bytes to get.
@@ -255,6 +292,28 @@ public class ByteBuffer
       // move internal pointer and change count
       mOffset += rval;
       mCount -= rval;
+      
+      return rval;
+   }
+   
+   /**
+    * Gets data out of this buffer and writes it to the passed output stream.
+    * This method will increment the internal pointer of this buffer by the
+    * number of bytes retrieved.
+    * 
+    * @param os the OutputStream to write the retrieved data to.
+    * 
+    * @return the actual number of bytes retrieved, which may be 0 if this
+    *         buffer is empty.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   public int get(OutputStream os) throws IOException
+   {
+      int rval = mCount;
+      
+      os.write(mBuffer, mOffset, mCount);
+      mOffset = mCount = 0;
       
       return rval;
    }
