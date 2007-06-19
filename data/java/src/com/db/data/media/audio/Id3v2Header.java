@@ -9,7 +9,7 @@ package com.db.data.media.audio;
  * 
  * The format of the header is such:
  * 
- * | bytes 1-3 | byte 4  |  byte 5  | byte 6  | byte 7-9 |
+ * | bytes 0-2 | byte 3  |  byte 4  | byte 5  | byte 6-9 |
  * -------------------------------------------------------
  * |   "ID3"   | version | revision |  flags  |   size   |
  * 

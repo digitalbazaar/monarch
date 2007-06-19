@@ -195,7 +195,8 @@ public class InspectorInputStream extends FilterInputStream
          // reset the number of available bytes to the maximum
          mAvailableBytes = mReadBuffer.getUsedSpace();
          
-         // keep inspecting while inspectors are waiting
+         // keep inspecting while inspectors are waiting and not end of stream
+         boolean eos = false;
          while(!mWaiting.isEmpty() && !mReadBuffer.isEmpty())
          {
             // run waiting inspectors
@@ -238,15 +239,19 @@ public class InspectorInputStream extends FilterInputStream
                }
             }
             
-            // remove all waiting inspectors if the read buffer is full
-            if(mReadBuffer.isFull())
+            // remove all waiting inspectors if the read buffer is full or eos
+            if(mReadBuffer.isFull() || eos)
             {
                mWaiting.clear();
             }
             else if(!mWaiting.isEmpty())
             {
                // read more data into the read buffer
-               mReadBuffer.put(in);
+               if(mReadBuffer.put(in) == -1)
+               {
+                  // end of stream
+                  eos = true;
+               }
             }
          }
       }
