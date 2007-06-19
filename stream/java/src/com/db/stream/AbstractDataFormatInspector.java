@@ -26,8 +26,8 @@ implements DataFormatInspector
    protected boolean mFormatRecognized;
    
    /**
-    * True if this inspector should continue to inspect data after being
-    * satisfied, false if not.
+    * True if this inspector should continue to inspect data after successfully
+    * recognizing the data format, false if not.
     */
    protected boolean mInspectAfterSatisfied;
    
@@ -100,7 +100,7 @@ implements DataFormatInspector
       int rval = 0;
       
       // inspect data if not satisfied or if keep-inspecting enabled
-      if(!isDataSatisfied() || keepInspecting())
+      if(!isDataSatisfied() || keepInspecting() && isFormatRecognized())
       {
          // skip bytes as appropriate
          if(mSkipBytes > 0)
@@ -172,7 +172,7 @@ implements DataFormatInspector
    
    /**
     * Sets whether or not this inspector should keep inspecting data after
-    * being data-satisfied, false if not.
+    * successfully recognizing the data format, false if not.
     * 
     * @param inspect true to keep inspecting, false not to.
     */
@@ -183,7 +183,7 @@ implements DataFormatInspector
    
    /**
     * Gets whether or not this inspector should keep inspecting data after
-    * being data-satisfied, false if not.
+    * successfully recognizing the data format, false if not.
     * 
     * @return true to keep inspecting, false not to.
     */

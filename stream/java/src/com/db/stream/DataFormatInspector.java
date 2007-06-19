@@ -31,7 +31,7 @@ public interface DataFormatInspector extends DataInspector
    
    /**
     * Sets whether or not this inspector should keep inspecting data after
-    * being data-satisfied, false if not.
+    * successfully recognizing the data format, false if not.
     * 
     * @param inspect true to keep inspecting, false not to.
     */
@@ -39,7 +39,7 @@ public interface DataFormatInspector extends DataInspector
    
    /**
     * Gets whether or not this inspector should keep inspecting data after
-    * being data-satisfied, false if not.
+    * successfully recognizing the data format, false if not.
     * 
     * @return true to keep inspecting, false not to.
     */
