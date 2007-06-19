@@ -249,6 +249,19 @@ public class ByteBuffer
    }
    
    /**
+    * Gets data out of this buffer. This method will increment the internal
+    * pointer of this buffer by the number of bytes retrieved.
+    * 
+    * @return the actual number of bytes retrieved, which may be 0 if this
+    *         buffer is empty.
+    */
+   public int get()
+   {
+      byte[] b = new byte[1];
+      return get(b, 0, 1);
+   }
+   
+   /**
     * Gets data out of this buffer and puts it into the passed buffer. This
     * method will increment the internal pointer of this buffer by the number
     * of bytes retrieved.
