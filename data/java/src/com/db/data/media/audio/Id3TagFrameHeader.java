@@ -7,6 +7,11 @@ package com.db.data.media.audio;
  * An Id3TagFrameHeader stores the ID of an ID3 tag frame, its size, and
  * some flags.
  * 
+ * Tag frame headers use a regular 4-byte Big-Endian integer for frame size,
+ * whereas the main ID3v2 tag header uses a synchsafe size where bit 7 of
+ * each byte is set to 0. Again, tag frame headers DO NOT use "synchsafe"
+ * sizes, they use regular sizes with all 8 bits available.
+ * 
  * @author Dave Longley
  */
 public class Id3TagFrameHeader

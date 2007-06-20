@@ -192,9 +192,6 @@ public class InspectorInputStream extends FilterInputStream
          // add all inspector meta-data to the waiting list
          mWaiting.addAll(mInspectors.values());
          
-         // reset the number of available bytes to the maximum
-         mAvailableBytes = mReadBuffer.getUsedSpace();
-         
          // keep inspecting while inspectors are waiting and not end of stream
          boolean eos = false;
          while(!mWaiting.isEmpty() && !mReadBuffer.isEmpty())
@@ -224,10 +221,6 @@ public class InspectorInputStream extends FilterInputStream
                      metaData.setInspectedBytes(
                         metaData.getInspectedBytes() + inspected);
                      
-                     // update the amount of available bytes
-                     mAvailableBytes = Math.min(
-                        mAvailableBytes, metaData.getInspectedBytes());
-                     
                      // inspector is no longer waiting
                      i.remove();
                   }
@@ -253,6 +246,18 @@ public class InspectorInputStream extends FilterInputStream
                   eos = true;
                }
             }
+         }
+      }
+      
+      // reset the number of available bytes to the maximum
+      mAvailableBytes = mReadBuffer.getUsedSpace();
+      for(DataInspectorMetaData metaData: mInspectors.values())
+      {
+         if(metaData.getInspectedBytes() > 0)
+         {
+            // update the amount of available bytes
+            mAvailableBytes = Math.min(
+               mAvailableBytes, metaData.getInspectedBytes());
          }
       }
       
