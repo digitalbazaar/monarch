@@ -56,8 +56,9 @@ public class Id3Tag
     * in the given header.
     * 
     * @param header the frame header to add.
+    * @param updateSize true to update the tag size, false not to.
     */
-   public void addFrameHeader(Id3TagFrameHeader header)
+   public void addFrameHeader(Id3TagFrameHeader header, boolean updateSize)
    {
       // add map entry as appropriate
       if(mFrameHeaderMap.get(header.getId()) == null)
@@ -68,9 +69,12 @@ public class Id3Tag
       // add frame header
       mFrameHeaders.add(header);
       
-      // update tag size
-      getHeader().setTagSize(
-         getHeader().getTagSize() + header.getFrameSize() + 10);
+      if(updateSize)
+      {
+         // update tag size
+         getHeader().setTagSize(
+            getHeader().getTagSize() + header.getFrameSize() + 10);
+      }
    }
    
    /**

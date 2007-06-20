@@ -47,6 +47,11 @@ public class Id3v2Header
    public static final int HEADER_SIZE = 10;
    
    /**
+    * The maximum tag size in bytes.
+    */
+   public static final int MAX_TAG_SIZE = 268435456;
+   
+   /**
     * Unsynchronized flag (bit 7).
     */
    public static final int UNSYNCHRONIZED_BIT = 0x80;
