@@ -5,8 +5,8 @@ package com.db.net;
 
 import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Vector;
 
 import com.db.logging.Logger;
 import com.db.logging.LoggerManager;
@@ -74,7 +74,7 @@ implements WebConnectionHandler, WebConnectionServicer
       mWebConnectionServicer = servicer;
       
       // create service thread list
-      mServiceThreads = new LinkedList<WebConnectionServiceThread>();
+      mServiceThreads = new Vector<WebConnectionServiceThread>();
 
       // set default values
       mBindAddress = null;
