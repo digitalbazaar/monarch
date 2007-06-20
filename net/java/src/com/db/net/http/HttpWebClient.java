@@ -749,7 +749,17 @@ public class HttpWebClient implements WebConnectionClient
                   
                   if(filename == null)
                   {
-                     filename = "tempfile.tmp";
+                     try
+                     {
+                        File file = File.createTempFile(
+                           "bmdownload", "tmp", directory);
+                        file.delete();
+                        filename = file.getName();
+                     }
+                     catch(IOException e)
+                     {
+                        filename = "tempfile.tmp";
+                     }
                   }
                   
                   // get full path of file to write to
