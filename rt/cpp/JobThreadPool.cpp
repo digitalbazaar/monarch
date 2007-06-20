@@ -69,6 +69,7 @@ JobThread* JobThreadPool::getIdleThread()
          JobThread* thread = *i;
          if(thread->isIdle())
          {
+            // FIXME: threads are always not alive -- why?
             // if the thread is not alive, remove it and continue on
             if(!thread->isAlive())
             {
@@ -107,6 +108,7 @@ JobThread* JobThreadPool::getIdleThread()
                   {
                      // return this thread
                      rval = thread;
+                     cout << "using idle thread" << endl;
                   }
                   
                   // move to the next thread

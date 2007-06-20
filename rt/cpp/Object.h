@@ -12,7 +12,7 @@ namespace db
 namespace rt
 {
 
-// forward declare Thread, InterruptedException
+// forward declare Thread
 class Thread;
 
 /**

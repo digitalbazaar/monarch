@@ -115,6 +115,16 @@ void Object::wait(unsigned long timeout)
          // timeout reached
       }
    }
+   
+   // get the current thread
+   Thread* thread = Thread::currentThread();
+   if(thread != NULL)
+   {
+      if(thread->isInterrupted())
+      {
+         throw InterruptedException("Thread interrupted.");
+      }
+   }
 }
 
 bool Object::operator==(const Object &rhs) const

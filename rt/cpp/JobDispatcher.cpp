@@ -240,11 +240,11 @@ void JobDispatcher::run()
          // dispatch the next Runnable job
          dispatchNextJob();
          
-         // yield
-         Thread::yield();
+         // sleep (allows for interruption)
+         Thread::sleep(1);
       }
    }
-   catch(InterruptedException e)
+   catch(InterruptedException& e)
    {
       // toggle interrupted flag to true
       Thread::currentThread()->interrupt();

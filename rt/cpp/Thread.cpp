@@ -179,8 +179,16 @@ void Thread::sleep(unsigned long time) throw(InterruptedException)
    
    lock.lock();
    {
-      // wait on the lock object for the specified time
-      lock.wait(time);
+      try
+      {
+         // wait on the lock object for the specified time
+         lock.wait(time);
+      }
+      catch(InterruptedException& e)
+      {
+         lock.unlock();
+         throw e;
+      }
    }
    lock.unlock();
 }

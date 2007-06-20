@@ -205,7 +205,9 @@ void runJobDispatcherTest()
    cout << "Running JobDispatcher Test" << endl << endl;
    
    // create a job dispatcher
-   JobDispatcher jd;
+   //JobDispatcher jd;
+   JobThreadPool pool(3);
+   JobDispatcher jd(&pool, false);
    
    // create jobs
    TestJob job1;
