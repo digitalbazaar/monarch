@@ -100,7 +100,7 @@ implements DataFormatInspector
       int rval = 0;
       
       // inspect data if not satisfied or if keep-inspecting enabled
-      if(!isDataSatisfied() || keepInspecting() && isFormatRecognized())
+      if(!isDataSatisfied() || (keepInspecting() && isFormatRecognized()))
       {
          // skip bytes as appropriate
          if(mSkipBytes > 0)
