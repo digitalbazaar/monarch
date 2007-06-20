@@ -207,7 +207,7 @@ public:
     * taken a turn using the processor the thread gets rescheduled for
     * execution.
     * 
-    * Yielding does not create a thread cancelation point -- which means that
+    * Yielding does not create a thread cancellation point -- which means that
     * a thread will not check for interruption while yielding. 
     */
    static void yield();
