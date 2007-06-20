@@ -206,7 +206,7 @@ public class Id3TagFrameHeader
       setId(new String(b, offset, 4));
       
       // convert frame size
-      setFrameSize(Id3v2Header.convertSynchsafeBytesToInt(b, offset + 4));
+      setFrameSize(convertBytesToInt(b, offset + 4));
       
       // convert flags
       setFlags1(b[offset + 8]);
@@ -227,7 +227,7 @@ public class Id3TagFrameHeader
       System.arraycopy(id, 0, b, offset, id.length);
       
       // set size
-      Id3v2Header.convertIntToSynchsafeBytes(getFrameSize(), b, offset + 4);
+      convertIntToBytes(getFrameSize(), b, offset + 4);
       
       // set flags
       b[offset + 8] = getFlagByte1();
@@ -430,5 +430,43 @@ public class Id3TagFrameHeader
          "[ID3TagFrameHeader]\n" +
          "Frame ID=" + getId() + "\n" +
          "Frame Size=" + getFrameSize() + "\n";
+   }
+   
+   /**
+    * Converts the given integer into a 32-bit (4 byte) byte array. The
+    * byte-order is Big Endian.
+    * 
+    * @param integer the integer to convert.
+    * @param b the byte array to write the 4 bytes to.
+    * @param offset the offset at which to start writing.
+    */
+   public static void convertIntToBytes(int integer, byte[] b, int offset)
+   {
+      for(int i = 0; i < 4; i++)
+      {
+         b[offset + i] = (byte)((integer >> ((3 - i) * 8)) & 0xFF);
+      }
+   }
+   
+   /**
+    * Converts a 32-bit (4 byte) byte array into an integer. The byte-order
+    * is Big Endian.
+    * 
+    * @param b the byte array to read from.
+    * @param offset the offset to start reading from.
+    * 
+    * @return the converted size. 
+    */
+   public static int convertBytesToInt(byte[] b, int offset)
+   {
+      int rval = 0;
+      
+      // most significant byte first
+      for(int i = 0; i < 4; i++)
+      {
+         rval |= (b[offset + i] << ((3 - i) * 8));
+      }
+      
+      return rval;
    }
 }
