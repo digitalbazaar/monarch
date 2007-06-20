@@ -359,7 +359,7 @@ public class Id3v2Header
       // most significant byte first
       for(int i = 0; i < 4; i++)
       {
-         rval |= (b[offset + i] << ((3 - i) * 7));
+         rval |= ((b[offset + i] & 0x7F) << ((3 - i) * 7));
       }
       
       return rval;

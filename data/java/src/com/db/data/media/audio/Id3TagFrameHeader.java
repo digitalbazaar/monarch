@@ -469,7 +469,7 @@ public class Id3TagFrameHeader
       // most significant byte first
       for(int i = 0; i < 4; i++)
       {
-         rval |= (b[offset + i] << ((3 - i) * 8));
+         rval |= ((b[offset + i] & 0xFF) << ((3 - i) * 8));
       }
       
       return rval;
