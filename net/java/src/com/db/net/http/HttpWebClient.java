@@ -752,7 +752,7 @@ public class HttpWebClient implements WebConnectionClient
                      try
                      {
                         File file = File.createTempFile(
-                           "bmdownload", "tmp", directory);
+                           "bmdownload", ".tmp", directory);
                         file.delete();
                         filename = file.getName();
                      }

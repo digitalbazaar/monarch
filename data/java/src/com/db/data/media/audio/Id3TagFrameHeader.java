@@ -52,6 +52,13 @@ public class Id3TagFrameHeader
    protected String mId;
    
    /**
+    * Sets the description of the frame. This is useful for differentiation
+    * when multiple frames with the same ID are used but contain different
+    * data.
+    */
+   protected String mDescription;
+   
+   /**
     * The size of the frame, in bytes.
     */
    protected int mFrameSize;
@@ -98,6 +105,7 @@ public class Id3TagFrameHeader
    public Id3TagFrameHeader()
    {
       mId = "";
+      mDescription = "";
       mFrameSize = 0;
       mTagAlteredDiscardFrame = false;
       mFileAlteredDiscardFrame = false;
@@ -245,6 +253,26 @@ public class Id3TagFrameHeader
    {
       return mId;
    }
+   
+   /**
+    * Sets the description of the frame.
+    * 
+    * @param description the description to use.
+    */
+   public void setDescription(String description)
+   {
+      mDescription = description;
+   }
+   
+   /**
+    * Gets the description of the frame.
+    * 
+    * @return the description of the frame.
+    */
+   public String getDescription()
+   {
+      return mDescription;
+   }   
    
    /**
     * Sets the size of the frame (total frame length - header size of 10).

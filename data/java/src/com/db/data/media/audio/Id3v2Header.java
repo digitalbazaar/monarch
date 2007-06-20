@@ -334,11 +334,18 @@ public class Id3v2Header
    public static void convertIntToSynchsafeBytes(
       int integer, byte[] b, int offset)
    {
-      // only 28 significant bits in the integer
+//      // only 28 significant bits in the integer
+//      for(int i = 0; i < 4; i++)
+//      {
+//         b[offset + i] = (byte)((integer >> (28 - ((i + 1) * 7))) & 0x7F);
+//      }
+      
+      // FIXME: it looks like windows operates on wrong tag length format?
       for(int i = 0; i < 4; i++)
       {
-         b[offset + i] = (byte)((integer >> (28 - ((i + 1) * 7))) & 0x7F);
+         b[offset + i] = (byte)((integer >> ((3 - i) * 8)) & 0xFF);
       }
+      
    }
    
    /**
