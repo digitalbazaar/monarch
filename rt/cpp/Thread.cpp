@@ -193,7 +193,8 @@ void Thread::sleep(unsigned long time) throw(InterruptedException)
    lock.unlock();
 }
 
-void Thread::yield()
+void Thread::yield() throw(InterruptedException)
 {
+   pthread_testcancel();
    sched_yield();
 }

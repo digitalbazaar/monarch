@@ -207,10 +207,10 @@ public:
     * taken a turn using the processor the thread gets rescheduled for
     * execution.
     * 
-    * Yielding does not create a thread cancellation point -- which means that
-    * a thread will not check for interruption while yielding. 
+    * Yielding creates a thread cancellation point -- which means that the
+    * thread may be interrupted upon yielding. 
     */
-   static void yield();
+   static void yield() throw(InterruptedException);
 };
 
 } // end namespace rt
