@@ -116,6 +116,9 @@ void Object::wait(unsigned long timeout)
       }
    }
    
+   // FIXME: add cleanup handlers to throw InterruptedException()
+   // and remove the following code:
+   
    // get the current thread
    Thread* thread = Thread::currentThread();
    if(thread != NULL)

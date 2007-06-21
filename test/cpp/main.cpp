@@ -195,7 +195,7 @@ void runJobThreadPoolTest()
    pool.runJob(&job1);
    
    // sleep
-   sleep(1);
+   //sleep(1);
    
    cout << endl << "JobThreadPool Test complete." << endl << endl;
 }
@@ -229,7 +229,7 @@ void runJobDispatcherTest()
    jd.startDispatching();
    
    // sleep
-   sleep(2);
+   //sleep(2);
    
    // stop dispatching
    jd.stopDispatching();

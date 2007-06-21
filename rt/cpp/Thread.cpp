@@ -90,6 +90,8 @@ void Thread::interrupt()
    // set interrupted flag
    mInterrupted = true;
    
+   // FIXME: add cleanup handlers to throw InterruptedException()
+   
    // cancel thread
    pthread_cancel(mPThread);
 }
