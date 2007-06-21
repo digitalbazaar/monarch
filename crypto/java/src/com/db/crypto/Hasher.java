@@ -77,18 +77,28 @@ public class Hasher
             // open file
             fis = new FileInputStream(file);
             
+            boolean interrupted = false;
             byte[] buffer = new byte[2048];
             int numBytes = -1;
             while((numBytes = fis.read(buffer)) != -1)
             {
                // update digest
                md.update(buffer, 0, numBytes);
+               
+               if(Thread.currentThread().isInterrupted())
+               {
+                  interrupted = true;
+                  break;
+               }
             }
             
             // close file
             fis.close();
             
-            checksum = md.digest();
+            if(!interrupted)
+            {
+               checksum = md.digest();
+            }
          }
          catch(Throwable t)
          {
