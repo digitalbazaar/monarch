@@ -77,7 +77,7 @@ public class Hasher
             // open file
             fis = new FileInputStream(file);
             
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[2048];
             int numBytes = -1;
             while((numBytes = fis.read(buffer)) != -1)
             {
