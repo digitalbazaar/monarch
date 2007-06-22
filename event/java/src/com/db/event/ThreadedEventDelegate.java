@@ -46,8 +46,8 @@ public class ThreadedEventDelegate
       // create the process events thread pool
       mProcessEventsThreadPool = new JobThreadPool(1);
       
-      // set 5 minute time limit on threads
-      mProcessEventsThreadPool.setJobThreadExpireTime(300000);
+      // set 1 minute time limit on threads
+      mProcessEventsThreadPool.setJobThreadExpireTime(30000);
       
       // create listener to event processor map
       mListenerToEventProcessor = new HashMap<Object, EventProcessor>();
@@ -86,12 +86,13 @@ public class ThreadedEventDelegate
          while(!Thread.currentThread().isInterrupted())
          {
             // lock while iterating over event processors
-            synchronized(this)
+            synchronized(mListenerToEventProcessor)
             {
                // go through each event processor
                for(EventProcessor ep: mListenerToEventProcessor.values())
                {
                   // lock on the event processor
+                  MethodInvoker job = null;
                   synchronized(ep)
                   {
                      // if the event processor is not processing events and has
@@ -100,15 +101,17 @@ public class ThreadedEventDelegate
                      if(!ep.isProcessing() && ep.hasEvents())
                      {
                         // create process events job
-                        MethodInvoker job = new MethodInvoker(
-                           ep, "processEvents");
+                        job = new MethodInvoker(ep, "processEvents");
                         
                         // indicate that the event processor is now in use
                         ep.setProcessing(true);
-                        
-                        // run the job via the process events thread pool
-                        mProcessEventsThreadPool.runJob(job);
                      }
+                  }
+                  
+                  if(job != null)
+                  {
+                     // run the job via the process events thread pool
+                     mProcessEventsThreadPool.runJob(job);
                   }
                }
             }
@@ -131,12 +134,11 @@ public class ThreadedEventDelegate
     * @param methodName the name of the listener method to call to handle
     *                   an event.
     */
-   public synchronized void addListener(Object listener, String methodName)
+   public void addListener(Object listener, String methodName)
    {
       if(listener == null)
       {
-         throw new IllegalArgumentException(
-            "Cannot add a 'null' listener.");
+         throw new IllegalArgumentException("Cannot add a 'null' listener.");
       }
 
       if(methodName == null)
@@ -145,23 +147,26 @@ public class ThreadedEventDelegate
             "Cannot add a listener with a 'null' method name.");
       }
       
-      if(!hasListener(listener))
+      synchronized(mListenerToEventProcessor)
       {
-         // create an EventProcessor
-         EventProcessor ep = new EventProcessor(listener, methodName);
-         
-         // add the listener to EventProcessor mapping
-         mListenerToEventProcessor.put(listener, ep);
-         
-         // set the number of thread available in the process events thread pool
-         mProcessEventsThreadPool.setPoolSize(mListenerToEventProcessor.size());
-         
-         // if the event dispatch thread hasn't started, start it
-         if(mEventDispatchThread == null)
+         if(!hasListener(listener))
          {
-            MethodInvoker mi = new MethodInvoker(this, "dispatchEvents");
-            mEventDispatchThread = mi;
-            mi.backgroundExecute();
+            // create an EventProcessor
+            EventProcessor ep = new EventProcessor(listener, methodName);
+            
+            // add the listener to EventProcessor mapping
+            mListenerToEventProcessor.put(listener, ep);
+            
+            // set the number of thread available in the process events thread pool
+            mProcessEventsThreadPool.setPoolSize(mListenerToEventProcessor.size());
+            
+            // if the event dispatch thread hasn't started, start it
+            if(mEventDispatchThread == null)
+            {
+               MethodInvoker mi = new MethodInvoker(this, "dispatchEvents");
+               mEventDispatchThread = mi;
+               mi.backgroundExecute();
+            }
          }
       }
    }
@@ -171,23 +176,26 @@ public class ThreadedEventDelegate
     * 
     * @param listener the listener to remove.
     */
-   public synchronized void removeListener(Object listener)
+   public void removeListener(Object listener)
    {
-      if(hasListener(listener))
+      synchronized(mListenerToEventProcessor)
       {
-         // remove listener to EventProcessor mapping
-         mListenerToEventProcessor.remove(listener);
-         
-         // if there are no more listeners, stop the event dispatch thread
-         if(mListenerToEventProcessor.size() == 0)
+         if(hasListener(listener))
          {
-            mEventDispatchThread.interrupt();
-            mEventDispatchThread = null;
+            // remove listener to EventProcessor mapping
+            mListenerToEventProcessor.remove(listener);
+            
+            // if there are no more listeners, stop the event dispatch thread
+            if(mListenerToEventProcessor.size() == 0)
+            {
+               mEventDispatchThread.interrupt();
+               mEventDispatchThread = null;
+            }
+            
+            // set the number of thread available in the process events thread pool
+            mProcessEventsThreadPool.setPoolSize(
+               Math.max(1, mListenerToEventProcessor.size()));
          }
-         
-         // set the number of thread available in the process events thread pool
-         mProcessEventsThreadPool.setPoolSize(
-            Math.max(1, mListenerToEventProcessor.size()));
       }
    }
    
@@ -200,13 +208,16 @@ public class ThreadedEventDelegate
     * @return true if the listener is already listening to this delegate,
     *         false if not. 
     */
-   public synchronized boolean hasListener(Object listener)
+   public boolean hasListener(Object listener)
    {
       boolean rval = false;
       
-      if(mListenerToEventProcessor.get(listener) != null)
+      synchronized(mListenerToEventProcessor)
       {
-         rval = true;
+         if(mListenerToEventProcessor.get(listener) != null)
+         {
+            rval = true;
+         }
       }
       
       return rval;
@@ -217,12 +228,15 @@ public class ThreadedEventDelegate
     * 
     * @param event the event to fire.
     */
-   public synchronized void fireEvent(Object event)
+   public void fireEvent(Object event)
    {
-      // add the event to all of the event processors
-      for(EventProcessor ep: mListenerToEventProcessor.values()) 
+      synchronized(mListenerToEventProcessor)
       {
-         ep.addEvent(event);
+         // add the event to all of the event processors
+         for(EventProcessor ep: mListenerToEventProcessor.values()) 
+         {
+            ep.addEvent(event);
+         }
       }
    }
    
@@ -401,7 +415,7 @@ public class ThreadedEventDelegate
        * @param processing true if this EventProcessor is processing events,
        *                   false if not.
        */
-      public synchronized void setProcessing(boolean processing)
+      public void setProcessing(boolean processing)
       {
          mIsProcessing = processing;
       }
@@ -413,7 +427,7 @@ public class ThreadedEventDelegate
        * @return true if this EventProcessor is currently processing events,
        *         false if not.
        */
-      public synchronized boolean isProcessing()
+      public boolean isProcessing()
       {
          return mIsProcessing;
       }
@@ -424,9 +438,16 @@ public class ThreadedEventDelegate
        * @return true if this EventProcessor has events to process, false
        *         if not. 
        */
-      public synchronized boolean hasEvents()
+      public boolean hasEvents()
       {
-         return !mEventQueue.isEmpty();
+         boolean rval = false;
+         
+         synchronized(mEventQueue)
+         {
+            rval = !mEventQueue.isEmpty();
+         }
+         
+         return rval;
       }
    }
 }
