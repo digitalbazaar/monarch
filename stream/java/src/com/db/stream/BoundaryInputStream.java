@@ -75,6 +75,11 @@ public class BoundaryInputStream extends FilterInputStream
    protected int mMinBoundaryLength;
    
    /**
+    * A buffer for skipping data.
+    */
+   protected static byte[] mSkipBuffer;
+   
+   /**
     * Creates a new boundary input stream.
     * 
     * @param is the input stream to read from. 
@@ -432,25 +437,32 @@ public class BoundaryInputStream extends FilterInputStream
    @Override
    public long skip(long n) throws IOException
    {
-      long skipped = 0;
+      long rval = 0;
       
-      // skip n bytes, or until boundary/end of stream reached
-      for(long i = 0; i < n; i++)
+      if(mSkipBuffer == null)
       {
-         int data = read();
-         if(data == -1)
-         {
-            // boundary or end of stream reached, break out
-            break;
-         }
-         
-         // increment amount skipped
-         skipped = (i + 1);
+         mSkipBuffer = new byte[2048];
+      }
+      byte[] b = mSkipBuffer;
+      
+      // read into dummy buffer
+      long remaining = n;
+      int numBytes = Math.max(b.length, (int)n);
+      while(remaining > 0 && (numBytes = read(b, 0, numBytes)) != -1)
+      {
+         remaining -= numBytes;
+         numBytes = Math.max(b.length, (int)n);
       }
       
-      return skipped;
+      if(remaining < n)
+      {
+         // some bytes were skipped
+         rval = n - remaining;
+      }
+      
+      return rval;
    }
-
+   
    /**
     * Gets the boundary that was reached or null if one wasn't.
     * 

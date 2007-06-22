@@ -52,7 +52,7 @@ public class InspectorInputStream extends FilterInputStream
    /**
     * A buffer for skipping data.
     */
-   protected byte[] mSkipBuffer;
+   protected static byte[] mSkipBuffer;
    
    /**
     * Creates a new InspectorInputStream.
@@ -300,10 +300,14 @@ public class InspectorInputStream extends FilterInputStream
    {
       long rval = 0;
       
-      long remaining = n;
+      if(mSkipBuffer == null)
+      {
+         mSkipBuffer = new byte[2048];
+      }
+      byte[] b = mSkipBuffer;
       
       // read into dummy buffer
-      byte[] b = new byte[2048];
+      long remaining = n;
       int numBytes = Math.max(b.length, (int)n);
       while(remaining > 0 && (numBytes = read(b, 0, numBytes)) != -1)
       {

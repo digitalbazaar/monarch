@@ -53,6 +53,11 @@ public class DeflaterInputStream extends FilterInputStream
    protected boolean mEndOfUnderlyingStream;
    
    /**
+    * A buffer for skipping data.
+    */
+   protected static byte[] mSkipBuffer;
+   
+   /**
     * Creates a new DeflaterInputStream with a default Deflater and
     * a default buffer size of 2048 bytes.
     * 
@@ -288,7 +293,7 @@ public class DeflaterInputStream extends FilterInputStream
       
       return rval;
    }
-
+   
    /**
     * Skips over and discards <code>n</code> bytes of data from the 
     * input stream. The <code>skip</code> method may, for a variety of 
@@ -307,29 +312,28 @@ public class DeflaterInputStream extends FilterInputStream
    {
       long rval = 0;
       
-      if(n != 0)
+      if(mSkipBuffer == null)
       {
-         int numBytes = 0;
-         
-         int bufferSize = 2048;
-         byte[] buffer = new byte[bufferSize];
-         
-         // read through stream until n reached, discarding data
-         while(numBytes != -1 && rval != n)
-         {
-            // get the number of bytes to read
-            int readSize = Math.min((int)(n - rval), bufferSize);
-            
-            numBytes = read(buffer, 0, readSize);
-            
-            if(numBytes > 0)
-            {                  
-               rval += numBytes;
-            }
-         }
+         mSkipBuffer = new byte[2048];
+      }
+      byte[] b = mSkipBuffer;
+      
+      // read into dummy buffer
+      long remaining = n;
+      int numBytes = Math.max(b.length, (int)n);
+      while(remaining > 0 && (numBytes = read(b, 0, numBytes)) != -1)
+      {
+         remaining -= numBytes;
+         numBytes = Math.max(b.length, (int)n);
       }
       
-      return rval;      
+      if(remaining < n)
+      {
+         // some bytes were skipped
+         rval = n - remaining;
+      }
+      
+      return rval;
    }
    
    /**
