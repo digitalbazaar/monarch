@@ -147,9 +147,18 @@ public class ByteBuffer
     */
    public int put(byte b, boolean resize)
    {
-      byte[] buf = new byte[1];
-      buf[0] = b;
-      return put(buf, 0, 1, resize);
+      // allocate space for the data
+      allocateSpace(1, resize);
+      
+      // copy data into the buffer
+      int length = Math.min(1, mBuffer.length - (mOffset + mCount));
+      if(length == 1)
+      {
+         mBuffer[mOffset + mCount] = b;
+         mCount++;
+      }
+      
+      return length;      
    }
    
    /**
@@ -246,19 +255,6 @@ public class ByteBuffer
       }
       
       return rval;
-   }
-   
-   /**
-    * Gets data out of this buffer. This method will increment the internal
-    * pointer of this buffer by the number of bytes retrieved.
-    * 
-    * @return the actual number of bytes retrieved, which may be 0 if this
-    *         buffer is empty.
-    */
-   public int get()
-   {
-      byte[] b = new byte[1];
-      return get(b, 0, 1);
    }
    
    /**
@@ -424,7 +420,7 @@ public class ByteBuffer
     */
    public int getFreeSpace()
    {
-      return mBuffer.length - mCount;
+      return getCapacity() - mCount;
    }
    
    /**

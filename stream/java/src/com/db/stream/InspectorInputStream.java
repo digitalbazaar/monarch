@@ -50,6 +50,11 @@ public class InspectorInputStream extends FilterInputStream
    protected byte[] mOneByteBuffer;
    
    /**
+    * A buffer for skipping data.
+    */
+   protected byte[] mSkipBuffer;
+   
+   /**
     * Creates a new InspectorInputStream.
     * 
     * @param is the underlying InputStream to read from.
@@ -286,24 +291,30 @@ public class InspectorInputStream extends FilterInputStream
     *
     * @param n the number of bytes to be skipped.
     * 
-    * @return the actual number of bytes skipped or -1 if the end of the
-    *         stream is reached.
+    * @return the actual number of bytes skipped.
     * 
     * @exception IOException thrown if an IO error occurs.
     */
    @Override
    public long skip(long n) throws IOException
    {
-      long rval = -1;
+      long rval = 0;
+      
+      long remaining = n;
       
       // read into dummy buffer
       byte[] b = new byte[2048];
       int numBytes = Math.max(b.length, (int)n);
-      while(n > 0 && (numBytes = read(b, 0, numBytes)) != -1)
+      while(remaining > 0 && (numBytes = read(b, 0, numBytes)) != -1)
       {
-         n -= numBytes;
-         rval = (rval == -1) ? numBytes : rval + numBytes;
+         remaining -= numBytes;
          numBytes = Math.max(b.length, (int)n);
+      }
+      
+      if(remaining < n)
+      {
+         // some bytes were skipped
+         rval = n - remaining;
       }
       
       return rval;

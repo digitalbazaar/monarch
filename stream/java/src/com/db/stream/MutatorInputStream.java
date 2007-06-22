@@ -125,26 +125,13 @@ public class MutatorInputStream extends FilterInputStream
     *
     * @param n the number of bytes to be skipped.
     * 
-    * @return the actual number of bytes skipped or -1 if the end of the
-    *         stream is reached.
+    * @return the actual number of bytes skipped.
     * 
     * @exception IOException thrown if an IO error occurs.
     */
    @Override
    public long skip(long n) throws IOException
    {
-      long rval = -1;
-      
-      // read into dummy buffer
-      byte[] b = new byte[2048];
-      int numBytes = Math.max(b.length, (int)n);
-      while(n > 0 && (numBytes = read(b, 0, numBytes)) != -1)
-      {
-         n -= numBytes;
-         rval = (rval == -1) ? numBytes : rval + numBytes;
-         numBytes = Math.max(b.length, (int)n);
-      }
-      
-      return rval;
+      return mMutator.skipMutatedBytes(in, n);
    }
 }

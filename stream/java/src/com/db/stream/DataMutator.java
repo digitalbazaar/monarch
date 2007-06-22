@@ -101,6 +101,44 @@ public class DataMutator implements DataMutationAlgorithm
    }
    
    /**
+    * Runs a mutation algorithm on data read from the passed input stream
+    * and skips the mutated bytes that are generated.
+    * 
+    * This method will block until this DataMutator has skipped the some
+    * mutated data (it will try to skip the requested amount) or until the
+    * end of the input stream has been reached and there is no more mutated
+    * data to skip.
+    * 
+    * @param is the input stream to read from.
+    * @param count the number of mutated bytes to skip. 
+    * 
+    * @return the number of skipped mutated bytes.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   public long skipMutatedBytes(InputStream is, long count)
+   throws IOException
+   {
+      long rval = 0;
+      
+      // mutate and skip data
+      long remaining = count;
+      while(remaining > 0 && mutate(is))
+      {
+         // clear bytes
+         remaining -= mDestination.clear((int)remaining);
+      }
+      
+      if(remaining < count)
+      {
+         // some bytes were skipped
+         rval = count - remaining;
+      }
+      
+      return rval;
+   }
+   
+   /**
     * Gets data out of this mutator and puts it into the passed buffer. The
     * amount of data may be less than the requested amount if this mutator
     * does not have enough data.

@@ -432,7 +432,7 @@ public class BoundaryInputStream extends FilterInputStream
    @Override
    public long skip(long n) throws IOException
    {
-      long skipped = -1;
+      long skipped = 0;
       
       // skip n bytes, or until boundary/end of stream reached
       for(long i = 0; i < n; i++)
@@ -443,7 +443,7 @@ public class BoundaryInputStream extends FilterInputStream
             // boundary or end of stream reached, break out
             break;
          }
-
+         
          // increment amount skipped
          skipped = (i + 1);
       }
