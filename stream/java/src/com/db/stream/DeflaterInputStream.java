@@ -55,7 +55,7 @@ public class DeflaterInputStream extends FilterInputStream
    /**
     * A buffer for skipping data.
     */
-   protected static byte[] mSkipBuffer;
+   protected static byte[] mSkipBuffer = null;
    
    /**
     * Creates a new DeflaterInputStream with a default Deflater and

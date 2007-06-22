@@ -52,7 +52,7 @@ public class InspectorInputStream extends FilterInputStream
    /**
     * A buffer for skipping data.
     */
-   protected static byte[] mSkipBuffer;
+   protected static byte[] mSkipBuffer = null;
    
    /**
     * Creates a new InspectorInputStream.

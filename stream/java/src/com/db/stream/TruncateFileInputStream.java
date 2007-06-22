@@ -32,6 +32,11 @@ public class TruncateFileInputStream extends FileInputStream
    protected byte[] mOneByteBuffer;
    
    /**
+    * A buffer for skipping data.
+    */
+   protected static byte[] mSkipBuffer = null;
+   
+   /**
     * Creates a new TruncateFileInputStream that reads from the passed
     * file and truncates it at the specified length.
     * 
@@ -126,10 +131,14 @@ public class TruncateFileInputStream extends FileInputStream
    {
       long rval = 0;
       
-      long remaining = n;
+      if(mSkipBuffer == null)
+      {
+         mSkipBuffer = new byte[2048];
+      }
+      byte[] b = mSkipBuffer;
       
       // read into dummy buffer
-      byte[] b = new byte[2048];
+      long remaining = n;
       int numBytes = Math.max(b.length, (int)n);
       while(remaining > 0 && (numBytes = read(b, 0, numBytes)) != -1)
       {
@@ -143,6 +152,6 @@ public class TruncateFileInputStream extends FileInputStream
          rval = n - remaining;
       }
       
-      return rval;      
+      return rval;
    }
 }
