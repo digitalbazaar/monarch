@@ -4,6 +4,7 @@
 package com.db.gui;
 
 import java.awt.Color;
+import java.awt.Graphics;
 
 import javax.swing.JComponent;
 
@@ -18,8 +19,7 @@ import com.db.util.MethodInvoker;
  * @author Dave Longley
  * @author Mike Johnson
  */
-public class FastProgressBar
-extends JComponent
+public class FastProgressBar extends JComponent
 implements ChangeReporter, Comparable
 {
    /**
@@ -75,6 +75,20 @@ implements ChangeReporter, Comparable
    protected EventDelegate mChangeDelegate;
    
    /**
+    * Set to true if a repaint() has been scheduled and not yet fulfilled
+    * for this progress bar.
+    */
+   protected boolean mRepaintScheduled;
+   
+   /**
+    * Stores the UI for this progress bar.
+    * 
+    * FIXME: This should be a static instance that is shared between
+    * all progress bars. 
+    */
+   protected FastProgressBarUI mUI;
+   
+   /**
     * Creates a new FastProgressBar.
     */
    public FastProgressBar()
@@ -99,7 +113,11 @@ implements ChangeReporter, Comparable
       mProgressCyclerThread = null;
       
       // update UI to install FastProgressBar UI
+      mUI = null;
       updateUI();
+      
+      // no repaint scheduled yet
+      mRepaintScheduled = false;
    }
    
    /**
@@ -200,7 +218,8 @@ implements ChangeReporter, Comparable
       }
       catch(InterruptedException ignore)
       {
-         // ignore interrupted exception
+         // ignore interrupted exception (but keep flag set)
+         Thread.currentThread().interrupt();
       }
       
       // set indeterminate value back to minimum value
@@ -216,10 +235,79 @@ implements ChangeReporter, Comparable
    @Override
    public void updateUI()
    {
-      setUI(new FastProgressBarUI(this));
-
+      if(mUI == null) 
+      {
+         mUI = new FastProgressBarUI(this);
+      }
+      setUI(mUI);
+      
       // fire change event
       fireFastProgressBarChanged();
+   }
+   
+   /**
+    * Paints this component. Overridden to reset variable that tracks painting.
+    * 
+    * @param g the graphics to use.
+    */
+   @Override
+   public void paint(Graphics g)
+   {
+      // now painting
+      mRepaintScheduled = true;
+      
+      // paint
+      super.paint(g);
+      
+      // no repaint scheduled
+      mRepaintScheduled = false;
+   }
+   
+   /**
+    * Paints this component in the specified region immediately. Overridden
+    * to reset variable that tracks painting.
+    * 
+    * @param x the x value of the region to be painted.
+    * @param y the y value of the region to be painted.
+    * @param w the width of the region to be painted.
+    * @param h the height of the region to be painted.
+    */
+   @Override
+   public void paintImmediately(int x,int y,int w, int h)   
+   {
+      // now painting
+      mRepaintScheduled = true;
+      
+      // paint
+      super.paintImmediately(x, y, w, h);
+      
+      // no repaint scheduled
+      mRepaintScheduled = false;
+   }
+   
+   /**
+    * Repaints this progress bar if a repaint hasn't already been scheduled.
+    */
+   @Override
+   public void repaint()
+   {
+      if(!isRepaintScheduled())
+      {
+         mRepaintScheduled = true;
+         super.repaint();
+      }
+   }
+   
+   /**
+    * Returns true if a repaint() has been scheduled for this progress bar,
+    * false if not.
+    * 
+    * @return true if a repaint() has been scheduled for this progress bar,
+    *         false if not.
+    */
+   public boolean isRepaintScheduled()
+   {
+      return mRepaintScheduled;
    }
    
    /**
