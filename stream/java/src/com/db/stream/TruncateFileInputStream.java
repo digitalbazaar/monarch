@@ -108,6 +108,7 @@ public class TruncateFileInputStream extends FileInputStream
          rval = super.read(b, offset, Math.min((int)mBytesRemaining, length));
          if(rval != -1)
          {
+            rval = Math.min((int)mBytesRemaining, rval);
             mBytesRemaining -= rval;
          }
       }

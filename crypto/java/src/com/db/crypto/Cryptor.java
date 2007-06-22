@@ -115,7 +115,7 @@ public class Cryptor
       }
       catch(Throwable t)
       {
-         getLogger().error(getClass(),
+         getLogger().debug(getClass(),
             "Could not initialize cipher!,exception= " + t);
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
@@ -160,7 +160,7 @@ public class Cryptor
       }
       catch(Throwable t)
       {
-         getLogger().error(getClass(),
+         getLogger().debug(getClass(),
             "Could not update encryption!,exception= " + t);
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
@@ -208,7 +208,7 @@ public class Cryptor
       }
       catch(Throwable t)
       {
-         getLogger().error(getClass(),
+         getLogger().debug(getClass(),
             "Could not finish encryption!,exception= " + t);
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
@@ -253,7 +253,7 @@ public class Cryptor
       }
       catch(Throwable t)
       {
-         getLogger().error(getClass(),
+         getLogger().debug(getClass(),
             "Could not update decryption!,exception= " + t);
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
@@ -301,7 +301,7 @@ public class Cryptor
       }
       catch(Throwable t)
       {
-         getLogger().error(getClass(),
+         getLogger().debug(getClass(),
             "Could not finish decryption!,exception= " + t);
          getLogger().debug(getClass(), Logger.getStackTrace(t));
       }
