@@ -281,6 +281,11 @@ public class Hyperlink extends JEditorPane implements HyperlinkListener
     */
    public void setTextColor(Color color)
    {
+      if(color == null)
+      {
+         color = Color.blue;
+      }
+      
       mTextColor = color;
       super.setText(createHtml());
    }
