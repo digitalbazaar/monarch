@@ -73,7 +73,7 @@ public class RateAverager
    protected TimeWindow mNextWindow;
    
    /**
-    * The total item count since the RateAverage started.
+    * The total item count since the RateAverager started.
     */
    protected long mTotalItemCount;
    
@@ -586,6 +586,16 @@ public class RateAverager
       }
       
       return rval;
+   }
+   
+   /**
+    * Gets the total item count since the RateAverager started.
+    * 
+    * @return the total item count since the RateAverager started.
+    */
+   public long getTotalItemCount()
+   {
+      return mTotalItemCount;
    }
    
    /**
