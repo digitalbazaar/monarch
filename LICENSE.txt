@@ -4,7 +4,7 @@ This file contains Original Code and/or Modifications of Original Code
 as defined in and that are subject to the Digital Bazaar Open Source License
 Version 1.0 (the 'License'). You may not use this file except in
 compliance with the License. Please obtain a copy of the License at
-http://wiki.digitalbazaar.com/index.php/Digital_Bazaar_Open_Source_License
+http://wiki.digitalbazaar.com/en/Digital_Bazaar_Open_Source_License
 and read it before using this file.
 
 The Original Code and all software distributed under the License are
