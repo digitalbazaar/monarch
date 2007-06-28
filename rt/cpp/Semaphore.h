@@ -68,9 +68,10 @@ protected:
    /**
     * Tells the current thread to wait.
     * 
-    * @exception InterruptedException thrown if the thread is interrupted.
+    * @return an InterruptedException if the thread is interrupted, NULL
+    *         otherwise.
     */
-   void waitThread() throw(InterruptedException);
+   InterruptedException* waitThread();
    
    /**
     * Notifies thread(s) to wake up.

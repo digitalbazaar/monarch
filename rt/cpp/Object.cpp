@@ -48,10 +48,10 @@ void Object::notifyAll()
    mMonitor.notify();
 }
 
-void Object::wait(unsigned long timeout)
+InterruptedException* Object::wait(unsigned long timeout)
 {
    // instruct the current thread to wait to enter this Object's monitor
-   Thread::waitToEnter(&mMonitor, timeout);
+   return Thread::waitToEnter(&mMonitor, timeout);
 }
 
 bool Object::operator==(const Object &rhs) const

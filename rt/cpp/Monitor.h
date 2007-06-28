@@ -48,7 +48,12 @@ private:
    /**
     * Stores the Thread that is in this Monitor.
     */
-   Thread* mCurrentThread;   
+   Thread* mCurrentThread;
+   
+   /**
+    * A counter for the number of requested locks by the current Thread.
+    */
+   unsigned int mLockCount;
    
 public:
    /**

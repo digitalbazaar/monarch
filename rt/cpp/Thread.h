@@ -226,10 +226,10 @@ public:
     *
     * @param time the number of milliseconds to sleep for.
     * 
-    * @exception InterruptedException thrown if this Thread is interrupted
-    *            while sleeping.
+    * @return an InterruptedException if this Thread is interrupted while
+    *         sleeping, NULL otherwise.
     */
-   static void sleep(unsigned long time) throw(InterruptedException);
+   static InterruptedException* sleep(unsigned long time);
    
    /**
     * Causes the current thread to yield for a moment. Yielding causes the
@@ -237,11 +237,8 @@ public:
     * slice) and places the thread in a wait queue. Once the other threads
     * in the queue have taken a turn using the processor the thread gets
     * rescheduled for execution.
-    * 
-    * Yielding creates a thread cancellation point -- which means that the
-    * thread may be canceled upon yielding. 
     */
-   static void yield() throw(InterruptedException);
+   static void yield();
    
    /**
     * Causes the current thread to wait to enter the given Monitor until
@@ -250,8 +247,12 @@ public:
     * @param m the Monitor to wait to enter.
     * @param timeout the number of milliseconds to wait before timing out, 
     *                0 to wait indefinitely.
+    * 
+    * @return an InterruptedException if this Thread is interrupted while
+    *         sleeping, NULL otherwise.
     */
-   static void waitToEnter(Monitor* m, unsigned long timeout = 0);
+   static InterruptedException* waitToEnter(
+      Monitor* m, unsigned long timeout = 0);
    
    /**
     * Sets the Exception for the current thread. This will store the passed

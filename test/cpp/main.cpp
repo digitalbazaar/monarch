@@ -103,6 +103,9 @@ class TestRunnable : public virtual Object, public Runnable
             lock();
             lock();
             wait();
+            unlock();
+            unlock();
+            unlock();
          }
          unlock();
          
@@ -126,12 +129,13 @@ class TestRunnable : public virtual Object, public Runnable
          lock();
          lock();
          lock();
-         lock();
          {
             wait(5000);
             
             // FIXME: add code to check for timeout
          }
+         unlock();
+         unlock();
          unlock();
          
          if(Thread::interrupted())
@@ -158,6 +162,9 @@ class TestRunnable : public virtual Object, public Runnable
          {
             notify();
          }
+         unlock();
+         unlock();
+         unlock();
          unlock();
          
          cout << "Thread 5 Finished." << endl;

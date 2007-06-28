@@ -51,41 +51,35 @@ void Semaphore::decreasePermitsLeft(int decrease)
    unlock();
 }
 
-void Semaphore::waitThread() throw(InterruptedException)
+InterruptedException* Semaphore::waitThread()
 {
+   InterruptedException* rval = NULL;
+   
    // get the current thread
    Thread* t = Thread::currentThread();
    
    // add thread to waiting threads
    addWaitingThread(t);
    
-   try
+   // synchronize on lock object
+   mLockObject.lock();
    {
-      // synchronize on lock object
-      mLockObject.lock();
+      // wait while in the list of waiting threads
+      while(mustWait(t))
       {
-         // wait while in the list of waiting threads
-         while(mustWait(t))
+         if((rval = mLockObject.wait()) != NULL)
          {
-            mLockObject.wait();
+            // thread has been interrupted, so notify other waiting
+            // threads and remove this thread from the wait list
+            notifyThreads();
+            removeWaitingThread(t);
+            break;
          }
       }
-      mLockObject.unlock();
    }
-   catch(InterruptedException e)
-   {
-      // maintain interrupted status
-      t->interrupt();
-      
-      // notify threads
-      notifyThreads();
-      
-      // remove waiting thread
-      removeWaitingThread(t);
-      
-      // throw exception
-      throw e;
-   }
+   mLockObject.unlock();
+   
+   return rval;
 }
 
 void Semaphore::notifyThreads()

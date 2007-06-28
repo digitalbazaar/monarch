@@ -260,26 +260,25 @@ bool Thread::interrupted()
    return rval;
 }
 
-void Thread::sleep(unsigned long time) throw(InterruptedException)
+InterruptedException* Thread::sleep(unsigned long time)
 {
-   // FIXME: return an interrupted exception or NULL
+   InterruptedException* rval = NULL;
    
    // create a lock object
    Object lock;
    
    lock.lock();
    {
-      // FIXME: get interrupted exception from return value of wait
-      
       // wait on the lock object for the specified time
-      lock.wait(time);
+      rval = lock.wait(time);
    }
    lock.unlock();
+   
+   return rval;
 }
 
-void Thread::yield() throw(InterruptedException)
+void Thread::yield()
 {
-   pthread_testcancel();
    sched_yield();
 }
 
@@ -301,8 +300,10 @@ Exception* Thread::getException()
    return (Exception*)pthread_getspecific(EXCEPTION_KEY);
 }
 
-void Thread::waitToEnter(Monitor* m, unsigned long timeout)
+InterruptedException* Thread::waitToEnter(Monitor* m, unsigned long timeout)
 {
+   InterruptedException* rval = NULL;
+   
    Thread* t = currentThread();
    if(t != NULL)
    {
@@ -324,6 +325,16 @@ void Thread::waitToEnter(Monitor* m, unsigned long timeout)
       // clear the current thread's wait monitor
       t->mWaitMonitor = NULL;
       
-      // FIXME: create interrupted exception if interrupted
+      // create interrupted exception if interrupted
+      if(t->isInterrupted())
+      {
+         rval = new InterruptedException(
+            "Thread '" + t->getName() + "' interrupted");
+      }
    }
+   
+   // set exception
+   setException(rval);
+   
+   return rval;
 }

@@ -13,6 +13,9 @@ namespace db
 namespace rt
 {
 
+// forward declare InterruptedException
+class InterruptedException;
+
 /**
  * An Object represents a single object in an object-oriented system.
  *
@@ -81,10 +84,10 @@ public:
     * @param timeout the number of milliseconds to wait for a notify call
     *                before timing out, 0 to wait indefinitely.
     * 
-    * @exception InterruptedException thrown if the current Thread is
-    *            interrupted while waiting.
+    * @return an InterruptedException if the current Thread is interrupted
+    *         while waiting, NULL otherwise.
     */
-   virtual void wait(unsigned long timeout = 0);
+   virtual InterruptedException* wait(unsigned long timeout = 0);
    
    /**
     * Compares this Object to another Object. If the other Object is equal
