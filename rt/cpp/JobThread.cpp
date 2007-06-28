@@ -25,12 +25,10 @@ Runnable* JobThread::getJob()
    return mJob;
 }
 
-// FIXME: remove iostream include
+// FIXME: remove iostream include and print outs
 #include <iostream>
 void JobThread::goIdle()
 {
-   cout << "going idle" << endl;
-   
    try
    {
       // set thread name
@@ -38,8 +36,14 @@ void JobThread::goIdle()
       
       unsigned long long startTime = System::getCurrentMilliseconds();
       
-      // wait until expire time
-      wait(getExpireTime());
+      lock();
+      {
+         cout << "JobThread: going idle..." << endl;
+         // wait until expire time
+         wait(getExpireTime());
+         cout << "JobThread: no longer idle." << endl;
+      }
+      unlock();
       
       // if this thread has an expire time set and this thread still has
       // no job see if the time has expired
@@ -60,17 +64,17 @@ void JobThread::goIdle()
    {
       // ensure interrupted flag remains flipped
       interrupt();
-      
-      cout << "interrupted" << endl;
    }
-   
-   cout << "no longer idle" << endl;
 }
 
 void JobThread::wakeup()
 {
-   // notify thread to stop waiting
-   notify();
+   lock();
+   {
+      // notify thread to stop waiting
+      notify();
+   }
+   unlock();
 }
 
 void JobThread::setJob(Runnable* job)
@@ -96,7 +100,7 @@ void JobThread::setJob(Runnable* job)
 
 void JobThread::run()
 {
-   cout << "JobThread started." << endl;
+   cout << "JobThread: started." << endl;
    
    try
    {
@@ -106,6 +110,8 @@ void JobThread::run()
          Runnable* job = getJob();
          if(job != NULL)
          {
+            cout << "JobThread: starting a job..." << endl;
+            
             try
             {
                // run job
@@ -120,6 +126,8 @@ void JobThread::run()
             
             // thread no longer has job
             setJob(NULL);
+            
+            cout << "JobThread: finished a job." << endl;
          }
          
          if(!isInterrupted())
@@ -127,6 +135,11 @@ void JobThread::run()
             // go idle
             goIdle();
          }
+      }
+      
+      if(isInterrupted())
+      {
+         cout << "JobThread: interrupted." << endl;
       }
    }
    catch(Exception& e)

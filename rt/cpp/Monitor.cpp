@@ -16,11 +16,11 @@ Monitor::Monitor()
    // initialize conditional
    pthread_cond_init(&mWaitCondition, NULL);
    
-   // no waiting necessary yet
-   mMustWait = false;
+   // threads must wait on the wait condition
+   mMustWait = true;
    
    // no current thread yet
-   mCurrentThread = NULL;
+   mCurrentThread = NULL;   
 }
 
 Monitor::~Monitor()
@@ -39,30 +39,35 @@ void Monitor::enter()
    
    // get the current thread
    Thread* t = Thread::currentThread();
-   
-   // try to lock this monitor's mutex
-   int rc = pthread_mutex_trylock(&mMutex);
-   if(rc != 0)
+   if(t != NULL)
    {
-      // see if this thread is already in this monitor
-      if(t != mCurrentThread)
+      // try to lock this monitor's mutex
+      int rc = pthread_mutex_trylock(&mMutex);
+      if(rc != 0)
       {
-         // thread isn't in the monitor, so lock this monitor's mutex
-         pthread_mutex_lock(&mMutex);
+         // see if this thread is already in this monitor
+         if(t != mCurrentThread)
+         {
+            // thread isn't in the monitor, so lock this monitor's mutex
+            pthread_mutex_lock(&mMutex);
+         }
       }
+      
+      // set the current thread
+      mCurrentThread = t;
    }
-   
-   // set the current thread
-   mCurrentThread = t;
 }
 
 void Monitor::exit()
 {
-   // clear the current thread
-   mCurrentThread = NULL;
-   
-   // unlock this monitor's mutex
-   pthread_mutex_unlock(&mMutex);
+   if(mCurrentThread != NULL)
+   {
+      // clear the current thread
+      mCurrentThread = NULL;
+      
+      // unlock this monitor's mutex
+      pthread_mutex_unlock(&mMutex);
+   }
 }
 
 void Monitor::wait(unsigned long timeout)

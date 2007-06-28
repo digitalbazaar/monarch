@@ -3,6 +3,7 @@
  */
 #include "Thread.h"
 #include "System.h"
+#include "Math.h"
 
 using namespace std;
 using namespace db::rt;
@@ -38,6 +39,12 @@ Thread::Thread(Runnable* runnable, std::string name)
    
    // thread is not alive yet
    mAlive = false;
+   
+   // thread not detached yet
+   mDetached = false;
+   
+   // thread has not exited yet
+   mExited = false;
    
    // thread is not interrupted yet
    mInterrupted = false;
@@ -100,8 +107,12 @@ void* Thread::execute(void* thread)
    Thread* t = (Thread*)thread;
    t->run();
    
+   // detach thread
+   t->detach();
+   
    // exit thread
    pthread_exit(NULL);
+   t->mExited = true;
    return NULL;
 }
 
@@ -109,16 +120,19 @@ bool Thread::start()
 {
    bool rval = false;
    
-   // create the POSIX thread
-   int rc = pthread_create(
-      &mPThread, &mPThreadAttributes, execute, (void*)this);
-      
-   // if the thread was created successfully, return true
-   if(rc == 0)
+   if(!hasStarted())
    {
-      // thread has started
-      mStarted = true;
-      rval = true;
+      // create the POSIX thread
+      int rc = pthread_create(
+         &mPThread, &mPThreadAttributes, execute, (void*)this);
+         
+      // if the thread was created successfully, return true
+      if(rc == 0)
+      {
+         // thread has started
+         mStarted = true;
+         rval = true;
+      }
    }
    
    return rval;
@@ -165,9 +179,13 @@ void Thread::join()
    // synchronize
    lock();
    {
-      // join thread, wait for it to detach/terminate indefinitely
-      int status;
-      pthread_join(mPThread, (void **)&status);
+      if(!mDetached && !mExited)
+      {
+         // join thread, wait for it to detach/terminate indefinitely
+         int status;
+         pthread_join(mPThread, (void **)&status);
+         mExited = true;
+      }
    }
    unlock();
 }
@@ -177,8 +195,12 @@ void Thread::detach()
    // synchronize
    lock();
    {
-      // detach thread
-      pthread_detach(mPThread);
+      if(!mDetached && !mExited)
+      {
+         // detach thread
+         pthread_detach(mPThread);
+         mDetached = true;
+      }
    }
    unlock();
 }
@@ -204,19 +226,26 @@ bool Thread::interrupted()
    bool rval = false;
    
    // get the current thread's interrupted status
-   Thread* thread = Thread::currentThread();
-   rval = thread->isInterrupted();
-   
-   // clear interrupted flag
-   thread->mInterrupted = false;
+   Thread* t = Thread::currentThread();
+   if(t != NULL)
+   {
+      // synchronize
+      t->lock();
+      {
+         rval = t->isInterrupted();
+         
+         // clear interrupted flag
+         t->mInterrupted = false;
+      }
+      t->unlock();
+   }
    
    return rval;
 }
 
 void Thread::sleep(unsigned long time) throw(InterruptedException)
 {
-   // FIXME: make thread return some kind of interrupted code instead
-   // of using an exception
+   // FIXME: return an interrupted exception or NULL
    
    // create a lock object
    Object lock;
@@ -225,8 +254,7 @@ void Thread::sleep(unsigned long time) throw(InterruptedException)
    {
       try
       {
-         // FIXME: get interrupted code from the wait method instead of
-         // using an exception
+         // FIXME: get interrupted exception from return value of wait
          
          // wait on the lock object for the specified time
          lock.wait(time);
@@ -263,23 +291,36 @@ Exception* Thread::getException()
    // get the exception for the current thread, if any
    return (Exception*)pthread_getspecific(EXCEPTION_KEY);
 }
-
+#include <iostream>
 void Thread::waitToEnter(Monitor* m, unsigned long timeout)
 {
-   // get the current thread and set its wait monitor
    Thread* t = currentThread();
-   t->mWaitMonitor = m;
-   
-   // get the current time and determine if wait should be indefinite
-   unsigned long long time = System::getCurrentMilliseconds();
-   bool indefinite = timeout == 0;
-   
-   // wait while not interrupted, must wait, and timeout not exhausted
-   while(!t->isInterrupted() && m->mustWait() && (indefinite || timeout > 0))
+   if(t != NULL)
    {
-      m->wait(timeout);
-      timeout -= (System::getCurrentMilliseconds() - time);
+      // set the current thread's wait monitor
+      t->mWaitMonitor = m;
+      
+      // get the current time and determine if wait should be indefinite
+      unsigned long long time = System::getCurrentMilliseconds();
+      bool indefinite = (timeout == 0);
+      cout << "interrupted=" << t->isInterrupted() << endl;
+      cout << "mustWait=" << m->mustWait() << endl;
+      cout << "indefinite=" << indefinite << endl;
+      // wait while not interrupted, must wait, and timeout not exhausted
+      while(!t->isInterrupted() && m->mustWait() && (indefinite || timeout > 0))
+      {
+         m->wait(timeout);
+         time = (System::getCurrentMilliseconds() - time);
+         timeout -= (time > timeout) ? timeout : time;
+      }
+      
+      // clear the current thread's wait monitor
+      t->mWaitMonitor = NULL;
+      
+      // FIXME: create interrupted exception if interrupted
    }
-   
-   // FIXME: create interrupted exception if interrupted
+   else
+   {
+      cout << "why isn't this a thread?" << endl;
+   }
 }

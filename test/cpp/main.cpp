@@ -115,6 +115,10 @@ class TestRunnable : public virtual Object, public Runnable
             cout << "Thread 1 Finished." << endl;
          }
       }
+      else if(name == "Thread 2")
+      {
+         cout << "Thread 2 Finished." << endl;
+      }
       else if(name == "Thread 3")
       {
          cout << "Thread 3 Waiting for Thread 5..." << endl;
@@ -139,6 +143,10 @@ class TestRunnable : public virtual Object, public Runnable
             cout << "Thread 3 Finished." << endl;
          }         
       }
+      else if(name == "Thread 4")
+      {
+         cout << "Thread 4 Finished." << endl;
+      }
       else if(name == "Thread 5")
       {
          cout << "Thread 5 waking up a thread..." << endl;
@@ -151,6 +159,8 @@ class TestRunnable : public virtual Object, public Runnable
             notify();
          }
          unlock();
+         
+         cout << "Thread 5 Finished." << endl;
       }
    }
 };
@@ -202,21 +212,42 @@ class TestJob : public virtual Object, public Runnable
    }
 };
 
+class TestRunJobThreadPoolTest : public Runnable
+{
+public:
+   void run()
+   {
+      // create a job thread pool with 10 threads
+      JobThreadPool pool(10);
+      
+      // create jobs
+      TestJob job1;
+      
+      // run jobs
+      pool.runJob(&job1);
+      
+      // wait
+      pool.lock();
+      {
+         cout << "Waiting for jobs to complete..." << endl;
+         pool.wait(100);
+         cout << "Finished waiting for jobs to complete." << endl;
+      }
+      pool.unlock();
+      
+      // terminate all jobs
+      pool.terminateAllThreads();
+   }
+};
+
 void runJobThreadPoolTest()
 {
    cout << "Running JobThreadPool Test" << endl << endl;
    
-   // create a job thread pool with 10 threads
-   JobThreadPool pool(10);
-   
-   // create jobs
-   TestJob job1;
-   
-   // run jobs
-   pool.runJob(&job1);
-   
-   // sleep
-   //sleep(1);
+   TestRunJobThreadPoolTest runnable;
+   Thread t(&runnable);
+   t.start();
+   t.join();
    
    cout << endl << "JobThreadPool Test complete." << endl << endl;
 }
@@ -1808,8 +1839,8 @@ int main()
    {
       //runBase64Test();
       //runTimeTest();
-      runThreadTest();
-      //runJobThreadPoolTest();
+      //runThreadTest();
+      runJobThreadPoolTest();
       //runJobDispatcherTest();
       //runWindowsAddressResolveTest();
       //runLinuxAddressResolveTest();

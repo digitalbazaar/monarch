@@ -48,7 +48,7 @@ private:
    /**
     * Stores the Thread that is in this Monitor.
     */
-   Thread* mCurrentThread;
+   Thread* mCurrentThread;   
    
 public:
    /**

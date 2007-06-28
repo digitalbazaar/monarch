@@ -61,6 +61,16 @@ protected:
    bool mAlive;
    
    /**
+    * Stores whether or not this Thread has been detached.
+    */
+   bool mDetached;
+   
+   /**
+    * Stores whether or not this Thread has exited.
+    */
+   bool mExited;
+   
+   /**
     * Stores whether or not this Thread has been interrupted.
     */
    bool mInterrupted;
@@ -130,7 +140,7 @@ public:
    
    /**
     * Starts this Thread. A POSIX thread will be created and this Thread's
-    * run() method will be executed.
+    * run() method will be executed. This thread can only be started once.
     *
     * @return true if the Thread started successfully, false if not.
     */
@@ -151,7 +161,8 @@ public:
    virtual void detach();
    
    /**
-    * Returns true if this Thread is still alive, false if not.
+    * Returns true if this Thread is still alive, false if not. A Thread
+    * is alive if it has been started and is running.
     * 
     * @return true if this Thread is still alive, false if not.
     */

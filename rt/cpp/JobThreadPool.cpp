@@ -52,6 +52,9 @@ JobThread* JobThreadPool::getIdleThread()
 {
    JobThread* rval = NULL;
    
+   cout << "Acquiring idle JobThread for new job..." << endl;
+   cout << "current thread2=" << Thread::currentThread() << endl;
+   
    // synchronize
    lock();
    {
@@ -140,6 +143,8 @@ JobThread* JobThreadPool::getIdleThread()
    }
    unlock();
    
+   cout << "Idle JobThread for new job acquired." << endl;
+   
    return rval;
 }
 
@@ -221,6 +226,8 @@ void JobThreadPool::runJob(Runnable* job)
       
       // permit acquired
       permitAcquired = true;
+      
+      cout << "current thread1=" << Thread::currentThread() << endl;
       
       // run the job on an idle thread
       runJobOnIdleThread(job);
