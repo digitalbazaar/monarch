@@ -208,11 +208,11 @@ class TestJob : public virtual Object, public Runnable
 {
    virtual void run()
    {
-      cout << endl << "TestJob: Running a Job" << endl;
+      cout << endl << "TestJob: Running a job" << endl;
    }
 };
 
-class TestRunJobThreadPoolTest : public Runnable
+class TestRunJobThreadPoolTest : public virtual Object, public Runnable
 {
 public:
    void run()
@@ -227,13 +227,13 @@ public:
       pool.runJob(&job1);
       
       // wait
-      pool.lock();
+      lock();
       {
          cout << "Waiting for jobs to complete..." << endl;
-         pool.wait(100);
+         wait(100);
          cout << "Finished waiting for jobs to complete." << endl;
       }
-      pool.unlock();
+      unlock();
       
       // terminate all jobs
       pool.terminateAllThreads();

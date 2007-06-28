@@ -43,11 +43,11 @@ Thread::Thread(Runnable* runnable, std::string name)
    // thread not detached yet
    mDetached = false;
    
-   // thread has not exited yet
-   mExited = false;
-   
    // thread is not interrupted yet
    mInterrupted = false;
+   
+   // thread has not joined yet
+   mJoined = false;
    
    // thread is not started yet
    mStarted = false;
@@ -61,32 +61,11 @@ Thread::~Thread()
 
 void Thread::run()
 {
-   // create the current thread key if it hasn't been created yet
-   pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
-   
-   // set thread specific data for current thread to "this" pointer
-   pthread_setspecific(CURRENT_THREAD_KEY, this);
-   
-   // create the exception key if it hasn't been created yet
-   pthread_once(&EXCEPTION_KEY_INIT, Thread::createExceptionKey);
-   
-   // set thread specific data for exception to NULL (no exception yet)
-   pthread_setspecific(EXCEPTION_KEY, NULL);
-   
-   // thread is alive
-   mAlive = true;
-   
    // if a Runnable if available, use it
    if(mRunnable != NULL)
    {
       mRunnable->run();
    }
-   
-   // thread is no longer alive
-   mAlive = false;
-   
-   // clean up any exception
-   setException(NULL);
 }
 
 void Thread::createCurrentThreadKey()
@@ -103,16 +82,38 @@ void Thread::createExceptionKey()
 
 void* Thread::execute(void* thread)
 {
-   // run the passed thread's run() method
+   // get the Thread object
    Thread* t = (Thread*)thread;
+   
+   // create the current thread key if it hasn't been created yet
+   pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
+   
+   // set thread specific data for current thread to the Thread
+   pthread_setspecific(CURRENT_THREAD_KEY, t);
+   
+   // create the exception key if it hasn't been created yet
+   pthread_once(&EXCEPTION_KEY_INIT, Thread::createExceptionKey);
+   
+   // set thread specific data for exception to NULL (no exception yet)
+   pthread_setspecific(EXCEPTION_KEY, NULL);
+   
+   // thread is alive
+   t->mAlive = true;
+   
+   // run the passed thread's run() method
    t->run();
+   
+   // thread is no longer alive
+   t->mAlive = false;
+   
+   // clean up any exception
+   setException(NULL);   
    
    // detach thread
    t->detach();
    
    // exit thread
    pthread_exit(NULL);
-   t->mExited = true;
    return NULL;
 }
 
@@ -176,33 +177,49 @@ bool Thread::hasStarted()
 
 void Thread::join()
 {
+   bool join = false;
+   
    // synchronize
    lock();
    {
-      if(!mDetached && !mExited)
+      // check for previous detachments/joins
+      if(!mDetached && !mJoined)
       {
-         // join thread, wait for it to detach/terminate indefinitely
-         int status;
-         pthread_join(mPThread, (void **)&status);
-         mExited = true;
+         join = true;
+         mJoined = true;
       }
    }
    unlock();
+   
+   if(join)
+   {
+      // join thread, wait for it to detach/terminate indefinitely
+      int status;
+      pthread_join(mPThread, (void **)&status);
+   }
 }
 
 void Thread::detach()
 {
+   bool detach = false;
+   
    // synchronize
    lock();
    {
-      if(!mDetached && !mExited)
+      // check for previous detachments/joins
+      if(!mDetached && !mJoined)
       {
-         // detach thread
-         pthread_detach(mPThread);
+         detach = true;
          mDetached = true;
       }
    }
    unlock();
+   
+   if(detach)
+   {
+      // detach thread
+      pthread_detach(mPThread);
+   }
 }
 
 void Thread::setName(string name)
@@ -252,18 +269,10 @@ void Thread::sleep(unsigned long time) throw(InterruptedException)
    
    lock.lock();
    {
-      try
-      {
-         // FIXME: get interrupted exception from return value of wait
-         
-         // wait on the lock object for the specified time
-         lock.wait(time);
-      }
-      catch(InterruptedException& e)
-      {
-         lock.unlock();
-         throw e;
-      }
+      // FIXME: get interrupted exception from return value of wait
+      
+      // wait on the lock object for the specified time
+      lock.wait(time);
    }
    lock.unlock();
 }
@@ -291,7 +300,7 @@ Exception* Thread::getException()
    // get the exception for the current thread, if any
    return (Exception*)pthread_getspecific(EXCEPTION_KEY);
 }
-#include <iostream>
+
 void Thread::waitToEnter(Monitor* m, unsigned long timeout)
 {
    Thread* t = currentThread();
@@ -303,9 +312,7 @@ void Thread::waitToEnter(Monitor* m, unsigned long timeout)
       // get the current time and determine if wait should be indefinite
       unsigned long long time = System::getCurrentMilliseconds();
       bool indefinite = (timeout == 0);
-      cout << "interrupted=" << t->isInterrupted() << endl;
-      cout << "mustWait=" << m->mustWait() << endl;
-      cout << "indefinite=" << indefinite << endl;
+      
       // wait while not interrupted, must wait, and timeout not exhausted
       while(!t->isInterrupted() && m->mustWait() && (indefinite || timeout > 0))
       {
@@ -318,9 +325,5 @@ void Thread::waitToEnter(Monitor* m, unsigned long timeout)
       t->mWaitMonitor = NULL;
       
       // FIXME: create interrupted exception if interrupted
-   }
-   else
-   {
-      cout << "why isn't this a thread?" << endl;
    }
 }

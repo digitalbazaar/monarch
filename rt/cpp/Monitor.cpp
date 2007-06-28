@@ -37,21 +37,12 @@ void Monitor::enter()
    // threads must wait
    mMustWait = true;
    
-   // get the current thread
+   // ensure the current thread isn't already in the monitor
    Thread* t = Thread::currentThread();
-   if(t != NULL)
+   if(t != NULL && mCurrentThread != t)
    {
-      // try to lock this monitor's mutex
-      int rc = pthread_mutex_trylock(&mMutex);
-      if(rc != 0)
-      {
-         // see if this thread is already in this monitor
-         if(t != mCurrentThread)
-         {
-            // thread isn't in the monitor, so lock this monitor's mutex
-            pthread_mutex_lock(&mMutex);
-         }
-      }
+      // lock this monitor's mutex
+      pthread_mutex_lock(&mMutex);
       
       // set the current thread
       mCurrentThread = t;
@@ -60,7 +51,9 @@ void Monitor::enter()
 
 void Monitor::exit()
 {
-   if(mCurrentThread != NULL)
+   // ensure the current thread is in the monitor
+   Thread* t = Thread::currentThread();
+   if(t != NULL && mCurrentThread == t)
    {
       // clear the current thread
       mCurrentThread = NULL;
@@ -72,32 +65,43 @@ void Monitor::exit()
 
 void Monitor::wait(unsigned long timeout)
 {
-   if(timeout == 0)
+   // ensure the current thread is in the monitor
+   Thread* t = Thread::currentThread();
+   if(t != NULL && mCurrentThread == t)
    {
-      // wait indefinitely on this Object's wait condition
-      pthread_cond_wait(&mWaitCondition, &mMutex);
-   }
-   else
-   {
-      // determine seconds and nanoseconds (timeout is in milliseconds and
-      // 1000 milliseconds = 1 second = 1000000 nanoseconds
-      unsigned long secs = timeout / 1000UL;
-      unsigned long nsecs = timeout % 1000UL * 1000000UL;
+      // clear the thread from the monitor
+      mCurrentThread = NULL;
       
-      struct timeval now;
-      struct timespec timeout;
-      gettimeofday(&now, NULL);
-      
-      // add timeout to current time (1 microsecond = 1000 nanoseconds)
-      timeout.tv_sec = now.tv_sec + secs;
-      timeout.tv_nsec = now.tv_usec * 1000UL + nsecs;
-      
-      // do timed wait
-      int rc = pthread_cond_timedwait(&mWaitCondition, &mMutex, &timeout);
-      if(rc == ETIMEDOUT)
+      if(timeout == 0)
       {
-         // timeout reached
+         // wait indefinitely on the wait condition
+         pthread_cond_wait(&mWaitCondition, &mMutex);
       }
+      else
+      {
+         // determine seconds and nanoseconds (timeout is in milliseconds and
+         // 1000 milliseconds = 1 second = 1000000 nanoseconds
+         unsigned long secs = timeout / 1000UL;
+         unsigned long nsecs = timeout % 1000UL * 1000000UL;
+         
+         struct timeval now;
+         struct timespec timeout;
+         gettimeofday(&now, NULL);
+         
+         // add timeout to current time (1 microsecond = 1000 nanoseconds)
+         timeout.tv_sec = now.tv_sec + secs;
+         timeout.tv_nsec = now.tv_usec * 1000UL + nsecs;
+         
+         // do timed wait
+         int rc = pthread_cond_timedwait(&mWaitCondition, &mMutex, &timeout);
+         if(rc == ETIMEDOUT)
+         {
+            // timeout reached
+         }
+      }
+      
+      // restore current thread
+      mCurrentThread = t;
    }
 }
 

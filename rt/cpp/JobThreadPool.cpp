@@ -6,6 +6,9 @@
 using namespace std;
 using namespace db::rt;
 
+// FIXME: remove iostream and print outs
+#include <iostream>
+
 JobThreadPool::JobThreadPool(unsigned int poolSize) :
    mThreadSemaphore(poolSize, true)
 {
@@ -46,14 +49,11 @@ JobThread* JobThreadPool::createJobThread()
    return new JobThread(getJobThreadExpireTime());
 }
 
-// FIXME: remove iostream
-#include <iostream>
 JobThread* JobThreadPool::getIdleThread()
 {
    JobThread* rval = NULL;
    
    cout << "Acquiring idle JobThread for new job..." << endl;
-   cout << "current thread2=" << Thread::currentThread() << endl;
    
    // synchronize
    lock();
@@ -72,7 +72,6 @@ JobThread* JobThreadPool::getIdleThread()
          JobThread* thread = *i;
          if(thread->isIdle())
          {
-            // FIXME: threads are always not alive -- why?
             // if the thread is not alive, remove it and continue on
             if(!thread->isAlive())
             {
@@ -87,7 +86,7 @@ JobThread* JobThreadPool::getIdleThread()
             }
             else
             {
-               // if there are extra idle threads, interrupt and remove thread
+               // if there are extra idle threads, interrupt this idle one
                if(extraThreads > 0)
                {
                   cout << "interrupting extra thread." << endl;
@@ -98,12 +97,11 @@ JobThread* JobThreadPool::getIdleThread()
                   // detach thread
                   thread->detach();
                   
-                  // remove thread
-                  i = mThreads.erase(i);
-                  delete thread;
-                  
                   // decrement extra threads
                   extraThreads--;
+                  
+                  // move to next thread
+                  i++;
                }
                else
                {
@@ -227,8 +225,6 @@ void JobThreadPool::runJob(Runnable* job)
       // permit acquired
       permitAcquired = true;
       
-      cout << "current thread1=" << Thread::currentThread() << endl;
-      
       // run the job on an idle thread
       runJobOnIdleThread(job);
    }
@@ -290,13 +286,6 @@ void JobThreadPool::terminateAllThreads()
             
             // join thread
             thread->join();
-            
-            // interrupt and detach thread if it is still alive
-            if(thread->isAlive())
-            {
-               thread->interrupt();
-               thread->detach();
-            }
             
             cout << "thread joined." << endl;
             

@@ -7,6 +7,9 @@
 using namespace std;
 using namespace db::rt;
 
+// FIXME: remove iostream include and print outs
+#include <iostream>
+
 JobThread::JobThread(unsigned long long expireTime) : Thread(this)
 {
    // no Runnable job to run yet
@@ -25,45 +28,35 @@ Runnable* JobThread::getJob()
    return mJob;
 }
 
-// FIXME: remove iostream include and print outs
-#include <iostream>
 void JobThread::goIdle()
 {
-   try
+   // set thread name
+   setName("JobThread: idle");
+   
+   unsigned long long startTime = System::getCurrentMilliseconds();
+   
+   lock();
    {
-      // set thread name
-      setName("JobThread: idle");
-      
-      unsigned long long startTime = System::getCurrentMilliseconds();
-      
-      lock();
-      {
-         cout << "JobThread: going idle..." << endl;
-         // wait until expire time
-         wait(getExpireTime());
-         cout << "JobThread: no longer idle." << endl;
-      }
-      unlock();
-      
-      // if this thread has an expire time set and this thread still has
-      // no job see if the time has expired
-      if(getExpireTime() != 0 && !hasJob())
-      {
-         // check expired time
-         unsigned long long now = System::getCurrentMilliseconds();
-         if(now - startTime >= getExpireTime())
-         {
-            cout << "idle expire time reached, interrupting..." << endl;
-            
-            // thread must expire
-            interrupt();
-         }
-      }
+      // wait until expire time
+      wait(getExpireTime());
    }
-   catch(InterruptedException e)
+   unlock();
+   
+   // FIXME: check for interruption based on wait's return value
+   
+   // if this thread has an expire time set and this thread still has
+   // no job see if the time has expired
+   if(getExpireTime() != 0 && !hasJob())
    {
-      // ensure interrupted flag remains flipped
-      interrupt();
+      // check expired time
+      unsigned long long now = System::getCurrentMilliseconds();
+      if(now - startTime >= getExpireTime())
+      {
+         cout << "idle expire time reached, interrupting..." << endl;
+         
+         // thread must expire
+         interrupt();
+      }
    }
 }
 

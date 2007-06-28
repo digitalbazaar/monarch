@@ -66,14 +66,14 @@ protected:
    bool mDetached;
    
    /**
-    * Stores whether or not this Thread has exited.
-    */
-   bool mExited;
-   
-   /**
     * Stores whether or not this Thread has been interrupted.
     */
    bool mInterrupted;
+   
+   /**
+    * Stores whether or not this Thread has joined.
+    */
+   bool mJoined;
    
    /**
     * Stores whether or not this Thread has been started.
