@@ -4,16 +4,14 @@
 #ifndef Object_H
 #define Object_H
 
-#include <pthread.h>
 #include <string>
+
+#include "Monitor.h"
 
 namespace db
 {
 namespace rt
 {
-
-// forward declare Thread
-class Thread;
 
 /**
  * An Object represents a single object in an object-oriented system.
@@ -24,19 +22,9 @@ class Object
 {
 protected:
    /**
-    * The mutex for this Object.
+    * The Monitor for this Object.
     */
-   pthread_mutex_t mMutex;
-   
-   /**
-    * The condition used to wait and signal the executing Thread.
-    */
-   pthread_cond_t mWaitCondition;
-   
-   /**
-    * Stores the Thread that holds the lock on this Object.
-    */
-   Thread* mLockOwner;
+   Monitor mMonitor;
    
 public:
    /**

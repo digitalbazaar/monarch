@@ -95,7 +95,7 @@ class TestRunnable : public virtual Object, public Runnable
       
       if(name == "Thread 1")
       {
-         cout << "Thread 1 Waiting for Thread 5..." << endl;
+         cout << "Thread 1 Waiting for interruption..." << endl;
          
          lock();
          {
@@ -106,7 +106,14 @@ class TestRunnable : public virtual Object, public Runnable
          }
          unlock();
          
-         cout << "Thread 1 Finished." << endl;
+         if(Thread::interrupted())
+         {
+            cout << "Thread 1 Interrupted." << endl;
+         }
+         else
+         {
+            cout << "Thread 1 Finished." << endl;
+         }
       }
       else if(name == "Thread 3")
       {
@@ -117,22 +124,31 @@ class TestRunnable : public virtual Object, public Runnable
          lock();
          lock();
          {
-            wait();
+            wait(5000);
+            
+            // FIXME: add code to check for timeout
          }
          unlock();
          
-         cout << "Thread 3 Finished." << endl;
+         if(Thread::interrupted())
+         {
+            cout << "Thread 3 Interrupted." << endl;
+         }
+         else
+         {
+            cout << "Thread 3 Finished." << endl;
+         }         
       }
       else if(name == "Thread 5")
       {
-         cout << "Thread 5 waking up threads..." << endl;
+         cout << "Thread 5 waking up a thread..." << endl;
          
          lock();
          lock();
          lock();
          lock();
          {
-            notifyAll();
+            notify();
          }
          unlock();
       }
@@ -164,11 +180,16 @@ void runThreadTest()
    t4.start();
    t5.start();
    
-   t1.join();
+   t1.interrupt();
+   
+   //t1.join();
    t2.join();
    t3.join();
+   t1.join();
    t4.join();
+   //t1.interrupt();
    t5.join();
+   //t1.join();
    
    cout << endl << "Thread Test complete." << endl;
 }
@@ -1787,9 +1808,9 @@ int main()
    {
       //runBase64Test();
       //runTimeTest();
-      //runThreadTest();
+      runThreadTest();
       //runJobThreadPoolTest();
-      runJobDispatcherTest();
+      //runJobDispatcherTest();
       //runWindowsAddressResolveTest();
       //runLinuxAddressResolveTest();
       //runWindowsSocketTest();

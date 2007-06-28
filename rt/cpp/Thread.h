@@ -27,7 +27,7 @@ namespace rt
  *
  * @author Dave Longley
  */
-class Thread : public virtual Object, public Runnable
+class Thread : public virtual Object, protected Runnable
 {
 protected:
    /**
@@ -39,6 +39,11 @@ protected:
     * The attributes for the POSIX thread.
     */
    pthread_attr_t mPThreadAttributes;
+   
+   /**
+    * The Monitor this Thread is waiting to enter.
+    */
+   Monitor* mWaitMonitor;
    
    /**
     * The Runnable associated with this Thread.
@@ -66,6 +71,12 @@ protected:
    bool mStarted;
    
    /**
+    * This method is called when a new POSIX thread is created (on that
+    * POSIX thread). It runs the Runnable associated with this Thread.
+    */
+   virtual void run();
+   
+   /**
     * Used to ensure that the current thread key is initialized only once.
     */
    static pthread_once_t CURRENT_THREAD_KEY_INIT;
@@ -79,6 +90,21 @@ protected:
     * Creates the current thread key.
     */
    static void createCurrentThreadKey();
+   
+   /**
+    * Used to ensure that the exception key is initialized only once.
+    */
+   static pthread_once_t EXCEPTION_KEY_INIT;
+   
+   /**
+    * A thread key for obtaining the last thread-local exception.
+    */
+   static pthread_key_t EXCEPTION_KEY;
+   
+   /**
+    * Creates the exception key.
+    */
+   static void createExceptionKey();
    
    /**
     * The method used to execute the POSIX thread. The passed Thread object
@@ -152,11 +178,6 @@ public:
    virtual bool hasStarted();
    
    /**
-    * Runs the Runnable associated with this Thread.
-    */
-   virtual void run();
-   
-   /**
     * Sets the name of this Thread.
     *
     * @param name the name for this Thread.
@@ -179,19 +200,18 @@ public:
    static Thread* currentThread();
    
    /**
-    * Returns true if the currently executing Thread has been interrupted,
-    * false if not. The interrupted status of the currently executing Thread
-    * is cleared when this method is called. This means that if this method
-    * is called twice in immediate succession, the second call will always
-    * return false.
+    * Returns true if the current thread has been interrupted, false if not.
+    * The interrupted status of the currently executing Thread is cleared when
+    * this method is called. This means that if this method is called twice
+    * in immediate succession, the second call will always return false.
     *
     * @return true if this Thread has been interrupted, false if not.
     */
    static bool interrupted();
    
    /**
-    * Causes the currently executing Thread to sleep for the specified
-    * number of milliseconds.
+    * Causes the current thread to sleep for the specified number of
+    * milliseconds.
     *
     * @param time the number of milliseconds to sleep for.
     * 
@@ -201,16 +221,45 @@ public:
    static void sleep(unsigned long time) throw(InterruptedException);
    
    /**
-    * Causes the currently executing Thread to yield for a moment. Yielding
-    * causes the current thread to relinquish use of its processor and places
-    * the thread in a wait queue. Once the other threads in the queue have
-    * taken a turn using the processor the thread gets rescheduled for
-    * execution.
+    * Causes the current thread to yield for a moment. Yielding causes the
+    * current thread to relinquish use of its processor (gives up its time
+    * slice) and places the thread in a wait queue. Once the other threads
+    * in the queue have taken a turn using the processor the thread gets
+    * rescheduled for execution.
     * 
     * Yielding creates a thread cancellation point -- which means that the
-    * thread may be interrupted upon yielding. 
+    * thread may be canceled upon yielding. 
     */
    static void yield() throw(InterruptedException);
+   
+   /**
+    * Causes the current thread to wait to enter the given Monitor until
+    * that Monitor's wait condition has been satisfied.
+    * 
+    * @param m the Monitor to wait to enter.
+    * @param timeout the number of milliseconds to wait before timing out, 
+    *                0 to wait indefinitely.
+    */
+   static void waitToEnter(Monitor* m, unsigned long timeout = 0);
+   
+   /**
+    * Sets the Exception for the current thread. This will store the passed
+    * exception in thread-local memory and delete it when the current
+    * thread exits or when it is replaced by another call to setException()
+    * on the same thread.
+    * 
+    * @param e the Exception for this thread.
+    */
+   static void setException(Exception* e);
+   
+   /**
+    * Gets the Exception for the current thread. This will be the last
+    * Exception that was set on this thread. It is stored in thread-local
+    * memory and automatically cleaned up when the thread exits.
+    * 
+    * @return the last Exception for the current thread, which may be NULL.
+    */
+   static Exception* getException();
 };
 
 } // end namespace rt
