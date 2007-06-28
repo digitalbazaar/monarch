@@ -252,39 +252,57 @@ void runJobThreadPoolTest()
    cout << endl << "JobThreadPool Test complete." << endl << endl;
 }
 
+class TestRunJobDispatcherTest : public virtual Object, public Runnable
+{
+public:
+   void run()
+   {
+      // create a job dispatcher
+      //JobDispatcher jd;
+      JobThreadPool pool(3);
+      JobDispatcher jd(&pool, false);
+      
+      // create jobs
+      TestJob job1;
+      TestJob job2;
+      TestJob job3;
+      TestJob job4;
+      TestJob job5;
+      TestJob job6;
+      
+      // queue jobs
+      jd.queueJob(&job1);
+      jd.queueJob(&job2);
+      jd.queueJob(&job3);
+      jd.queueJob(&job4);
+      jd.queueJob(&job5);
+      jd.queueJob(&job6);
+      
+      // start dispatching
+      jd.startDispatching();
+      
+      // wait
+      lock();
+      {
+         cout << "Waiting for jobs to complete..." << endl;
+         wait(100);
+         cout << "Finished waiting for jobs to complete." << endl;
+      }
+      unlock();
+      
+      // stop dispatching
+      jd.stopDispatching();      
+   }
+};
+
 void runJobDispatcherTest()
 {
    cout << "Running JobDispatcher Test" << endl << endl;
    
-   // create a job dispatcher
-   //JobDispatcher jd;
-   JobThreadPool pool(3);
-   JobDispatcher jd(&pool, false);
-   
-   // create jobs
-   TestJob job1;
-   TestJob job2;
-   TestJob job3;
-   TestJob job4;
-   TestJob job5;
-   TestJob job6;
-   
-   // queue jobs
-   jd.queueJob(&job1);
-   jd.queueJob(&job2);
-   jd.queueJob(&job3);
-   jd.queueJob(&job4);
-   jd.queueJob(&job5);
-   jd.queueJob(&job6);
-   
-   // start dispatching
-   jd.startDispatching();
-   
-   // sleep
-   //sleep(2);
-   
-   // stop dispatching
-   jd.stopDispatching();
+   TestRunJobDispatcherTest runnable;
+   Thread t(&runnable);
+   t.start();
+   t.join();
    
    cout << endl << "JobDispatcher Test complete." << endl << endl;
 }
@@ -1840,8 +1858,8 @@ int main()
       //runBase64Test();
       //runTimeTest();
       //runThreadTest();
-      runJobThreadPoolTest();
-      //runJobDispatcherTest();
+      //runJobThreadPoolTest();
+      runJobDispatcherTest();
       //runWindowsAddressResolveTest();
       //runLinuxAddressResolveTest();
       //runWindowsSocketTest();
