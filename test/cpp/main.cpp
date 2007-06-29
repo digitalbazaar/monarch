@@ -235,14 +235,9 @@ void runJobThreadPoolTest()
    pool.runJob(&job1);
    
    // wait
-   Object lock;
-   lock.lock();
-   {
-      cout << "Waiting for jobs to complete..." << endl;
-      lock.wait(100);
-      cout << "Finished waiting for jobs to complete." << endl;
-   }
-   lock.unlock();
+   cout << "Waiting for jobs to complete..." << endl;
+   Thread::sleep(100);
+   cout << "Finished waiting for jobs to complete." << endl;
    
    // terminate all jobs
    pool.terminateAllThreads();
@@ -279,14 +274,9 @@ void runJobDispatcherTest()
    jd.startDispatching();
    
    // wait
-   Object lock;
-   lock.lock();
-   {
-      cout << "Waiting for jobs to complete..." << endl;
-      lock.wait(100);
-      cout << "Finished waiting for jobs to complete." << endl;
-   }
-   lock.unlock();
+   cout << "Waiting for jobs to complete..." << endl;
+   Thread::sleep(100);
+   cout << "Finished waiting for jobs to complete." << endl;
    
    // stop dispatching
    jd.stopDispatching();      
@@ -1867,6 +1857,34 @@ void runHttpHeaderTest()
    cout << endl << "HttpHeader test complete." << endl;
 }
 
+class InterruptTest : public virtual Object, public Runnable
+{
+public:
+   /**
+    * Runs the unit tests.
+    */
+   virtual void run()
+   {
+      runLinuxServerSocketTest();
+   }
+};
+
+void runInterruptTest()
+{
+   InterruptTest runnable;
+   Thread t(&runnable);
+   t.start();
+   
+   cout << "Waiting for thread..." << endl;
+   Thread::sleep(2000);
+   cout << "Interrupting thread..." << endl;
+   t.interrupt();
+   
+   cout << "Joining thread..." << endl;
+   t.join();
+   cout << "Thread joined." << endl;
+}
+
 class RunTests : public virtual Object, public Runnable
 {
 public:
@@ -1880,9 +1898,10 @@ public:
       //runBase64Test();
       //runTimeTest();
       //runThreadTest();
+      runInterruptTest();
       // FIXME: need to add runSemaphoreTest()
       //runJobThreadPoolTest();
-      runJobDispatcherTest();
+      //runJobDispatcherTest();
       //runWindowsAddressResolveTest();
       //runLinuxAddressResolveTest();
       //runWindowsSocketTest();

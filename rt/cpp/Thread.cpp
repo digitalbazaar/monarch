@@ -8,6 +8,9 @@
 using namespace std;
 using namespace db::rt;
 
+// FIXME: REMOVE ME!
+#include <iostream>
+
 // initialize current thread key parameters
 pthread_once_t Thread::CURRENT_THREAD_KEY_INIT = PTHREAD_ONCE_INIT;
 pthread_key_t Thread::CURRENT_THREAD_KEY;
@@ -16,9 +19,8 @@ pthread_key_t Thread::CURRENT_THREAD_KEY;
 pthread_once_t Thread::EXCEPTION_KEY_INIT = PTHREAD_ONCE_INIT;
 pthread_key_t Thread::EXCEPTION_KEY;
 
-// initialize interruption lock and SIGINT value
-Object Thread::INTERRUPTION_LOCK;
-bool Thread::SIGINT_RECEIVED = false;
+// initialize signal handler parameters
+pthread_once_t Thread::SIGINT_HANDLER_INIT = PTHREAD_ONCE_INIT;
 
 Thread::Thread(Runnable* runnable, std::string name)
 {
@@ -84,17 +86,25 @@ void Thread::createExceptionKey()
    pthread_key_create(&EXCEPTION_KEY, NULL);
 }
 
+void Thread::installSigIntHandler()
+{
+   // create the SIGINT handler
+   struct sigaction newsa;
+   newsa.sa_handler = handleSigInt;
+   newsa.sa_flags = 0;
+   sigemptyset(&newsa.sa_mask);
+   
+   // set the SIGINT handler
+   sigaction(SIGINT, &newsa, NULL);
+}
+
+void Thread::handleSigInt(int signum)
+{
+   // no action is necessary, thread already interrupted
+}
+
 void* Thread::execute(void* thread)
 {
-//   // create signal set containing only SIGINT
-//   sigset_t newset;
-//   sigemptyset(newset);
-//   sigaddset(&newset, SIGINT);
-//   
-//   // block all (and only) SIGINT signals
-//   sigset_t oldset;
-//   sigthreadmask(SIG_SETMASK, &newset, &oldset);
-   
    // get the Thread object
    Thread* t = (Thread*)thread;
    
@@ -109,6 +119,9 @@ void* Thread::execute(void* thread)
    
    // set thread specific data for exception to NULL (no exception yet)
    pthread_setspecific(EXCEPTION_KEY, NULL);
+   
+   // install signal handler
+   pthread_once(&SIGINT_HANDLER_INIT, Thread::installSigIntHandler);
    
    // thread is alive
    t->mAlive = true;
@@ -125,18 +138,9 @@ void* Thread::execute(void* thread)
    // detach thread
    t->detach();
    
-//   // reblock old signals
-//   sigthreadmask(SIG_SETMASK, &oldset, NULL);
-   
    // exit thread
    pthread_exit(NULL);
    return NULL;
-}
-
-void Thread::handleSigInt(int signum)
-{
-   // SIGINT received
-   SIGINT_RECEIVED = true;
 }
 
 bool Thread::start()
@@ -158,7 +162,18 @@ bool Thread::start()
       }
    }
    
-   return rval;
+   return rval;}
+
+void Thread::sendSignal(int signum)
+{
+   lock();
+   {
+      if(hasStarted() && isAlive())
+      {
+         pthread_kill(mPThread, signum);
+      }
+   }
+   unlock();
 }
 
 bool Thread::isAlive()
@@ -178,7 +193,7 @@ void Thread::interrupt()
          mInterrupted = true;
          
          // send SIGINT to thread
-         pthread_kill(mPThread, SIGINT);
+         sendSignal(SIGINT);
          
          // wake up thread if necessary
          if(mWaitMonitor != NULL)
@@ -278,53 +293,10 @@ bool Thread::interrupted(bool clear)
          {
             rval = true;
          }
-         else
+         else if(clear)
          {
-            // FIXME: this code was put on hold because windows hates it
-            // -- we would also need to install the handler before select()
-            // calls and unblock SIGINT at that point, which could be done
-            // by adding a "select" like call to Thread for ease of use
-            
-//            // synchronize on interruption lock
-//            INTERRUPTION_LOCK.lock();
-//            {
-//               // create the SIGINT handler
-//               sigaction newsa;
-//               newsa.sa_handler = handleSigInt;
-//               newsa.sa_flags = 0;
-//               sigemptyset(&newsa.sa_mask);
-//               
-//               // set the SIGINT handler
-//               sigaction oldsa;
-//               sigaction(SIGINT, &newsa, &oldsa);
-//               
-//               // unblock all signals on this thread
-//               sigset_t newset;
-//               sigemptyset(newset);
-//               sigset_t oldset;
-//               sigthreadmask(SIG_SETMASK, &newset, &oldset);
-//               
-//               // SIGINT, if any, will be handled here
-//               if(SIGINT_RECEIVED)
-//               {
-//                  // SIGINT received, thread is interrupted
-//                  rval = t->mInterrupted = true;
-//                  SIGINT_RECEIVED = false;
-//               }
-//               
-//               // reblock old signals
-//               sigthreadmask(SIG_SETMASK, &oldset, NULL);
-//               
-//               // restore old SIGINT handler
-//               sigaction(SIGINT, &oldsa, NULL);
-//            }
-//            INTERRUPTION_LOCK.unlock();
-            
-            if(clear)
-            {
-               // clear interrupted flag
-               t->mInterrupted = false;
-            }
+            // clear interrupted flag
+            t->mInterrupted = false;
          }
       }
       t->unlock();
@@ -353,6 +325,80 @@ InterruptedException* Thread::sleep(unsigned long time)
 void Thread::yield()
 {
    sched_yield();
+}
+
+int Thread::select(
+   int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds,
+   unsigned long long timeout, const sigset_t* sigmask)
+{
+   // create timeout
+   struct timeval* tv = NULL;
+   struct timeval to;
+   if(timeout > 0)
+   {
+      // set timeout (1 millisecond is 1000 microseconds) 
+      to.tv_sec = timeout / 1000LL;
+      to.tv_usec = (timeout % 1000LL) * 1000LL;
+      tv = &to;
+   }
+   
+   return select(nfds, readfds, writefds, exceptfds, tv, sigmask);
+}
+
+int Thread::select(
+   int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds,
+   struct timeval* timeout, const sigset_t* sigmask)
+{
+   int rval = 0;
+   
+   // FIXME: signals supposedly don't make select() return in windows
+   // this needs to be tested and potentially remedied somehow
+   
+   // FIXME: furthermore, even if we block SIGINT (interruption signal) up
+   // until we reach the select call -- and then unblock right before it
+   // the signal could still sneak in right before select() is called and
+   // control is transferred to the kernel, and therefore we'd handle the
+   // SIGINT before the select() call and select() wouldn't get interrupted
+   // (there is pselect() for doing that unblocking atomically, but
+   // it's UNIX only) -- this may be solved by writing to another file
+   // descriptor when we receive SIGINTs and checking that file descriptor
+   // as well as the one we are waiting on -- but this might not be a
+   // viable solution for windows
+   
+   // block SIGINTs
+   blockSignal(SIGINT);
+   
+   Thread* t = Thread::currentThread();
+   if(!t->isInterrupted())
+   {
+      // FIXME: pselect() required here to do atomic unblocking & selecting
+      
+      // wait for data to arrive for reading or for an exception
+      unblockSignal(SIGINT);
+      rval = ::select(nfds, readfds, writefds, exceptfds, timeout);
+      if(rval < 0)
+      {
+         if(errno == EINTR)
+         {
+            // interrupt thread
+            t->interrupt();
+         }
+      }
+   }
+   else
+   {
+      rval = -1;
+      errno = EINTR;
+   }
+   
+   if(t->isInterrupted())
+   {
+      // set interrupted exception
+      setException(new InterruptedException(
+         "Thread '" + t->getName() + "' interrupted"));
+   }
+   
+   return rval;
 }
 
 void Thread::setException(Exception* e)
@@ -437,4 +483,34 @@ InterruptedException* Thread::waitToEnter(Monitor* m, unsigned long timeout)
    setException(rval);
    
    return rval;
+}
+void Thread::setSignalMask(const sigset_t* newmask, sigset_t* oldmask)
+{
+   // set signal mask for this thread
+   pthread_sigmask(SIG_SETMASK, newmask, oldmask);
+}
+
+void Thread::blockSignal(int signum)
+{
+   // unblock signal on this thread
+   sigset_t newset;
+   sigemptyset(&newset);
+   sigaddset(&newset, signum);
+   pthread_sigmask(SIG_BLOCK, &newset, NULL);
+}
+
+void Thread::unblockSignal(int signum)
+{
+   // unblock signal on this thread
+   sigset_t newset;
+   sigemptyset(&newset);
+   sigaddset(&newset, signum);
+   pthread_sigmask(SIG_UNBLOCK, &newset, NULL);
+}
+
+void Thread::setSignalHandler(
+   int signum, const struct sigaction* newaction, struct sigaction* oldaction)
+{
+   // set signal handler
+   sigaction(signum, newaction, oldaction);
 }

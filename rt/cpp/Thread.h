@@ -112,19 +112,26 @@ protected:
    static pthread_key_t EXCEPTION_KEY;
    
    /**
-    * A static mutex for interruption handling.
+    * Used to ensure that the SIGINT handler is initialized only once.
     */
-   static Object INTERRUPTION_LOCK;
-   
-   /**
-    * A static value indicating whether or not a SIGINT was received.
-    */
-   static bool SIGINT_RECEIVED;
+   static pthread_once_t SIGINT_HANDLER_INIT;
    
    /**
     * Creates the exception key.
     */
    static void createExceptionKey();
+   
+   /**
+    * Installs the SIGINT handler that can interrupt the current thread.
+    */
+   static void installSigIntHandler();
+   
+   /**
+    * The SIGINT handler that ensures threads get interrupted.
+    * 
+    * @param signum the signal to handle.
+    */
+   static void handleSigInt(int signum);
    
    /**
     * The method used to execute the POSIX thread. The passed Thread object
@@ -134,13 +141,6 @@ protected:
     */
    static void* execute(void* thread);
    
-   /**
-    * The SIGINT handler that ensures threads get interrupted.
-    * 
-    * @param signum the signal to handle.
-    */
-   static void handleSigInt(int signum);
-
 public:
    /**
     * Creates a new Thread that uses the given Runnable.
@@ -162,6 +162,13 @@ public:
     * @return true if the Thread started successfully, false if not.
     */
    virtual bool start();
+   
+   /**
+    * Sends a signal to this Thread.
+    * 
+    * @param signum the signal to send.
+    */
+   virtual void sendSignal(int signum);
    
    /**
     * Causes the currently executing Thread to wait until this Thread
@@ -261,6 +268,68 @@ public:
    static void yield();
    
    /**
+    * Causes the current thread to wait until one or more of the given
+    * file descriptors become ready for some kind of IO operation or until
+    * the given timeout is reached. This method allows this thread to be
+    * interrupted during the select().
+    * 
+    * Note: errno can be set as such:
+    * 
+    * EBADF  An invalid file descriptor was in the set (i.e. already closed).
+    * EINTR  A signal was caught.
+    * EINVAL nfds is negative or the value in the timeout is invalid.
+    * ENOMEM unable to allocate memory.
+    * 
+    * @param nfds the highest-numbered file descriptor in any of the given
+    *             three sets, plus 1.
+    * @param readfds a set of file descriptors to monitor for readability.
+    * @param writefds a set of file descriptors to monitor for writeability.
+    * @param exceptfds a set of file descriptors to monitor for exceptions.
+    * @param timeout the timeout to use (0 for indefinite wait).
+    * @param sigmask a signal mask to set atomically so that whatever signals
+    *                are not masked will be received inside of the select()
+    *                call.
+    * 
+    * @return the number of file descriptors contained in the three returned
+    *         descriptor sets which may be 0, -1 if an error occurred and
+    *         errno is set appropriately. 
+    */
+   static int select(
+      int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds,
+      unsigned long long timeout, const sigset_t* sigmask = NULL);
+   
+   /**
+    * Causes the current thread to wait until one or more of the given
+    * file descriptors become ready for some kind of IO operation or until
+    * the given timeout is reached. This method allows this thread to be
+    * interrupted during the select().
+    * 
+    * Note: errno can be set as such:
+    * 
+    * EBADF  An invalid file descriptor was in the set (i.e. already closed).
+    * EINTR  A signal was caught.
+    * EINVAL nfds is negative or the value in the timeout is invalid.
+    * ENOMEM unable to allocate memory.
+    * 
+    * @param nfds the highest-numbered file descriptor in any of the given
+    *             three sets, plus 1.
+    * @param readfds a set of file descriptors to monitor for readability.
+    * @param writefds a set of file descriptors to monitor for writeability.
+    * @param exceptfds a set of file descriptors to monitor for exceptions.
+    * @param timeout the timeout to use (0 for polling, NULL for indefinite).
+    * @param sigmask a signal mask to set atomically so that whatever signals
+    *                are not masked will be received inside of the select()
+    *                call.
+    * 
+    * @return the number of file descriptors contained in the three returned
+    *         descriptor sets which may be 0, -1 if an error occurred and
+    *         errno is set appropriately. 
+    */
+   static int select(
+      int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds,
+      struct timeval* timeout, const sigset_t* sigmask = NULL);
+   
+   /**
     * Causes the current thread to wait to enter the given Monitor until
     * that Monitor's wait condition has been satisfied.
     * 
@@ -311,6 +380,39 @@ public:
     * Clears any Exception from the current thread.
     */
    static void clearException();
+   
+   /**
+    * Sets the signal mask for the current thread.
+    * 
+    * @param newmask the new set of signals to mask for this thread.
+    * @param oldmask to store the old signal mask.
+    */
+   static void setSignalMask(const sigset_t* newmask, sigset_t* oldmask);
+   
+   /**
+    * Blocks a single signal for the current thread.
+    * 
+    * @param signum the signal to block.
+    */
+   static void blockSignal(int signum);
+   
+   /**
+    * Unblocks a single signal for the current thread.
+    * 
+    * @param signum the signal to unblock.
+    */
+   static void unblockSignal(int signum);
+   
+   /**
+    * Sets a signal handler for the current thread.
+    * 
+    * @param signum the signal to handle.
+    * @param newaction the signal handler to use.
+    * @param oldaction to store the old signal handler.
+    */
+   static void setSignalHandler(
+      int signum, const struct sigaction* newaction,
+      struct sigaction* oldaction);
 };
 
 } // end namespace rt

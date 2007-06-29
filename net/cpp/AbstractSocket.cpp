@@ -93,49 +93,22 @@ bool AbstractSocket::select(bool read, unsigned long long timeout)
       // "n" parameter is the highest numbered descriptor plus 1
       int n = mFileDescriptor + 1;
       
-      // create timeout
-      struct timeval* tv = NULL;
-      struct timeval to;
-      if(timeout > 0)
-      {
-         // set timeout (1 millisecond is 1000 microseconds) 
-         to.tv_sec = timeout / 1000LL;
-         to.tv_usec = (timeout % 1000LL) * 1000LL;
-         tv = &to;
-      }
-      
-      // FIXME: signals supposedly don't make select() return in windows
-      // this needs to be tested and potentially remedied somehow
-      // furthermore, even if we block SIGINT (interruption signal) up
-      // until we reach the select call -- and then unblock right before it
-      // the signal could still sneak in right before select() is called and
-      // control is transferred to the kernel, and therefore we'd handle the
-      // SIGINT before the select() call and select() wouldn't get interrupted
-      // (there is pselect() for doing that unblocking atomically, but
-      // it's UNIX only) -- this can be solved by writing to another file
-      // descriptor when we receive SIGINTs and checking that file descriptor
-      // as well as the one we are waiting on -- but this might not be a
-      // viable solution for windows
-      
       int error;
       if(read)
       {
          // wait for data to arrive for reading or for an exception
-         error = ::select(n, &fds, NULL, &fds, tv);
+         error = Thread::select(n, &fds, NULL, &fds, timeout);
       }
       else
       {
          // wait for writability or for an exception
-         error = ::select(n, NULL, &fds, &fds, tv);
+         error = Thread::select(n, NULL, &fds, &fds, timeout);
       }
       
       if(error < 0)
       {
          if(errno == EINTR)
          {
-            // interrupt thread
-            Thread::currentThread()->interrupt();
-            
             if(read)
             {
                // interrupted exception
