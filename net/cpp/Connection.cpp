@@ -85,7 +85,7 @@ unsigned long long Connection::getBytesWritten()
    return mOutputStream->getBytesWritten();
 }
 
-void Connection::setReadTimeout(unsigned long long timeout)
+void Connection::setReadTimeout(unsigned long timeout)
 {
    // set the receive timeout
    getSocket()->setReceiveTimeout(timeout);

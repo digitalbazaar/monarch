@@ -130,7 +130,7 @@ public:
     * 
     * @param timeout the read timeout in milliseconds (0 for no timeout).
     */
-   virtual void setReadTimeout(unsigned long long timeout);
+   virtual void setReadTimeout(unsigned long timeout);
    
    /**
     * Marks this Connection as secure or non-secure.

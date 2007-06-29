@@ -112,7 +112,7 @@ public:
     * 
     * @param timeout the read timeout in milliseconds (0 for no timeout).
     */
-   virtual void setReadTimeout(unsigned long long timeout);
+   virtual void setReadTimeout(unsigned long timeout);
    
    /**
     * Marks this WebConnection as secure or non-secure.

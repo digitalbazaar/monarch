@@ -50,7 +50,7 @@ const unsigned long long WebConnection::getBytesWritten()
    return mConnection->getBytesWritten();
 }
 
-void WebConnection::setReadTimeout(unsigned long long timeout)
+void WebConnection::setReadTimeout(unsigned long timeout)
 {
    mConnection->setReadTimeout(timeout);
 }
