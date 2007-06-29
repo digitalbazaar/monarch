@@ -1882,7 +1882,7 @@ public:
       //runThreadTest();
       // FIXME: need to add runSemaphoreTest()
       //runJobThreadPoolTest();
-      //runJobDispatcherTest();
+      runJobDispatcherTest();
       //runWindowsAddressResolveTest();
       //runLinuxAddressResolveTest();
       //runWindowsSocketTest();

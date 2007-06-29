@@ -30,22 +30,23 @@ WebRequest* HttpConnection::createRequest()
    return new HttpRequest(this);
 }
 
-void HttpConnection::sendHeader(HttpHeader* header)
-throw(IOException)
+db::io::IOException* HttpConnection::sendHeader(HttpHeader* header)
 {
    // FIXME:
+   return NULL;
 }
 
-void HttpConnection::receiveHeader(HttpHeader* header)
-throw(IOException)
+db::io::IOException* HttpConnection::receiveHeader(HttpHeader* header)
 {
    // FIXME:
+   return NULL;
 }
 
-void HttpConnection::sendBody(HttpHeader* header, InputStream* is)
-throw(IOException)
+db::io::IOException* HttpConnection::sendBody(
+   HttpHeader* header, InputStream* is)
 {
    // FIXME:
+   return NULL;
    
 //   // update http connection content bytes written (reset as necessary)
 //   if(getContentBytesWritten() > Math::HALF_MAX_LONG_VALUE)
@@ -56,10 +57,11 @@ throw(IOException)
 //   setContentBytesWritten(getContentBytesWritten() + numBytes);
 }
 
-void HttpConnection::receiveBody(HttpHeader* header, OutputStream* os)
-throw(IOException)
+db::io::IOException* HttpConnection::receiveBody(
+   HttpHeader* header, OutputStream* os)
 {
    // FIXME:
+   return NULL;
    
 //   // update http connection content bytes read (reset as necessary)
 //   if(getContentBytesRead() > Math::HALF_MAX_LONG_VALUE)

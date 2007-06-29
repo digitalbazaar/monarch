@@ -95,51 +95,33 @@ void JobThread::run()
 {
    cout << "JobThread: started." << endl;
    
-   try
+   while(!isInterrupted())
    {
-      while(!isInterrupted())
+      // get the Runnable job to run
+      Runnable* job = getJob();
+      if(job != NULL)
       {
-         // get the Runnable job to run
-         Runnable* job = getJob();
-         if(job != NULL)
-         {
-            cout << "JobThread: starting a job..." << endl;
-            
-            try
-            {
-               // run job
-               job->run();
-            }
-            catch(Exception& e)
-            {
-               cout << "exception caught while running job!" << endl;
-               cout << "message=" << e.getMessage() << endl;
-               cout << "code=" << e.getCode() << endl;
-            }
-            
-            // thread no longer has job
-            setJob(NULL);
-            
-            cout << "JobThread: finished a job." << endl;
-         }
+         cout << "JobThread: starting a job..." << endl;
          
-         if(!isInterrupted())
-         {
-            // go idle
-            goIdle();
-         }
+         // run job
+         job->run();
+         
+         // thread no longer has job
+         setJob(NULL);
+         
+         cout << "JobThread: finished a job." << endl;
       }
       
-      if(isInterrupted())
+      if(!isInterrupted())
       {
-         cout << "JobThread: interrupted." << endl;
+         // go idle
+         goIdle();
       }
    }
-   catch(Exception& e)
+   
+   if(isInterrupted())
    {
-      cout << "exception caught on JobThread!" << endl;
-      cout << "message=" << e.getMessage() << endl;
-      cout << "code=" << e.getCode() << endl;
+      cout << "JobThread: interrupted." << endl;
    }
    
    cout << "JobThread terminated." << endl;

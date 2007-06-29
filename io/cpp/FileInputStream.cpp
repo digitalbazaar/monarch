@@ -53,8 +53,8 @@ int FileInputStream::read(char* b, unsigned int length)
       // see if a failure other than EOF occurred
       if(mStream.fail() && !mStream.eof())
       {
-         throw IOException(
-            "Could not read from file '" + mFile->getName() + "'!");
+         Thread::setException(new IOException(
+            "Could not read from file '" + mFile->getName() + "'!"));
       }
       else if(mStream.gcount() > 0)
       {

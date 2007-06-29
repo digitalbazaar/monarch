@@ -233,21 +233,13 @@ void JobDispatcher::terminateAllRunningJobs()
 
 void JobDispatcher::run()
 {
-   try
+   while(!Thread::interrupted(false))
    {
-      while(!Thread::currentThread()->isInterrupted())
-      {
-         // dispatch the next Runnable job
-         dispatchNextJob();
-         
-         // yield
-         Thread::yield();
-      }
-   }
-   catch(InterruptedException& e)
-   {
-      // toggle interrupted flag to true
-      Thread::currentThread()->interrupt();
+      // dispatch the next Runnable job
+      dispatchNextJob();
+      
+      // yield
+      Thread::yield();
    }
 }
 
