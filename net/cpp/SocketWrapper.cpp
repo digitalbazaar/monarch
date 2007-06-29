@@ -101,22 +101,22 @@ OutputStream* SocketWrapper::getOutputStream()
    return getSocket()->getOutputStream();
 }
 
-void SocketWrapper::setSendTimeout(unsigned long long timeout)
+void SocketWrapper::setSendTimeout(unsigned long timeout)
 {
    getSocket()->setSendTimeout(timeout);
 }
 
-unsigned long long SocketWrapper::getSendTimeout()
+unsigned long SocketWrapper::getSendTimeout()
 {
    return getSocket()->getSendTimeout();
 }
 
-void SocketWrapper::setReceiveTimeout(unsigned long long timeout)
+void SocketWrapper::setReceiveTimeout(unsigned long timeout)
 {
    getSocket()->setReceiveTimeout(timeout);
 }
 
-unsigned long long SocketWrapper::getReceiveTimeout()
+unsigned long SocketWrapper::getReceiveTimeout()
 {
    return getSocket()->getReceiveTimeout();
 }

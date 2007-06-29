@@ -87,22 +87,22 @@ bool DatagramSocket::getLocalAddress(InternetAddress* address)
    return UdpSocket::getLocalAddress(address);
 }
 
-void DatagramSocket::setSendTimeout(unsigned long long timeout)
+void DatagramSocket::setSendTimeout(unsigned long timeout)
 {
    UdpSocket::setSendTimeout(timeout);
 }
 
-unsigned long long DatagramSocket::getSendTimeout()
+unsigned long DatagramSocket::getSendTimeout()
 {
    return UdpSocket::getSendTimeout();
 }
 
-void DatagramSocket::setReceiveTimeout(unsigned long long timeout)
+void DatagramSocket::setReceiveTimeout(unsigned long timeout)
 {
    UdpSocket::setReceiveTimeout(timeout);
 }
 
-unsigned long long DatagramSocket::getReceiveTimeout()
+unsigned long DatagramSocket::getReceiveTimeout()
 {
    return UdpSocket::getReceiveTimeout();
 }

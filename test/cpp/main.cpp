@@ -1865,7 +1865,16 @@ public:
     */
    virtual void run()
    {
-      runLinuxServerSocketTest();
+      //runLinuxServerSocketTest();
+      runWindowsServerSocketTest();
+      
+      if(Thread::hasException())
+      {
+         Exception* e = Thread::getException();
+         cout << "Exception occurred!" << endl;
+         cout << "message: " << e->getMessage() << endl;
+         cout << "code: " << e->getCode() << endl;
+      }      
    }
 };
 
@@ -1877,6 +1886,8 @@ void runInterruptTest()
    
    cout << "Waiting for thread..." << endl;
    Thread::sleep(2000);
+   cout << "Finished waiting for thread." << endl;
+   
    cout << "Interrupting thread..." << endl;
    t.interrupt();
    

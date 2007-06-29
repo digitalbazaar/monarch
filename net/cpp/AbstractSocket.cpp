@@ -77,7 +77,7 @@ bool AbstractSocket::create(int domain, int type, int protocol)
    return rval;
 }
 
-bool AbstractSocket::select(bool read, unsigned long long timeout)
+bool AbstractSocket::select(bool read, long long timeout)
 {
    Exception* exception = NULL;
    
@@ -561,22 +561,22 @@ OutputStream* AbstractSocket::getOutputStream()
    return mOutputStream;
 }
 
-void AbstractSocket::setSendTimeout(unsigned long long timeout)
+void AbstractSocket::setSendTimeout(unsigned long timeout)
 {
    mSendTimeout = timeout;
 }
 
-unsigned long long AbstractSocket::getSendTimeout()
+unsigned long AbstractSocket::getSendTimeout()
 {
    return mSendTimeout;
 }
 
-void AbstractSocket::setReceiveTimeout(unsigned long long timeout)
+void AbstractSocket::setReceiveTimeout(unsigned long timeout)
 {
    mReceiveTimeout = timeout;
 }
 
-unsigned long long AbstractSocket::getReceiveTimeout()
+unsigned long AbstractSocket::getReceiveTimeout()
 {
    return mReceiveTimeout;
 }

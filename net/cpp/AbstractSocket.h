@@ -91,11 +91,12 @@ protected:
     * 
     * @param read true to block until data can be received, false to block
     *             until data can be sent.
-    * @param timeout the timeout to use in milliseconds (0 for no timeout).
+    * @param timeout the timeout to use in milliseconds (0 for no timeout
+    *                and -1 for immediate timeout).
     * 
     * @return false if an exception occurred, false if not.
     */
-   virtual bool select(bool read, unsigned long long timeout);
+   virtual bool select(bool read, long long timeout);
    
    /**
     * Acquiring a file descriptor for this Socket. This method must be called
@@ -316,7 +317,7 @@ public:
     * 
     * @param timeout the send timeout in milliseconds.
     */
-   virtual void setSendTimeout(unsigned long long timeout);
+   virtual void setSendTimeout(unsigned long timeout);
    
    /**
     * Gets the send timeout for this Socket. This is the amount of time that
@@ -324,7 +325,7 @@ public:
     * 
     * @return the send timeout in milliseconds.
     */
-   virtual unsigned long long getSendTimeout();
+   virtual unsigned long getSendTimeout();
    
    /**
     * Sets the receive timeout for this Socket. This is the amount of time that
@@ -332,7 +333,7 @@ public:
     * 
     * @param timeout the receive timeout in milliseconds.
     */
-   virtual void setReceiveTimeout(unsigned long long timeout);
+   virtual void setReceiveTimeout(unsigned long timeout);
    
    /**
     * Gets the receive timeout for this Socket. This is the amount of time that
@@ -340,7 +341,7 @@ public:
     * 
     * @return the receive timeout in milliseconds.
     */
-   virtual unsigned long long getReceiveTimeout();
+   virtual unsigned long getReceiveTimeout();
    
    /**
     * Gets the number of Socket connections that can be kept backlogged while
