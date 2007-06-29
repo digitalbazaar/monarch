@@ -1897,7 +1897,7 @@ public:
       //runLinuxTcpClientServerTest();
       //runWindowsUdpClientServerTest();
       //runLinuxUdpClientServerTest();
-      runWindowsDatagramTest();
+      //runWindowsDatagramTest();
       //runLinuxDatagramTest();
       //runMessageDigestTest();
       //runCrcTest();

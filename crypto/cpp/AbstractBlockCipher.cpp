@@ -2,9 +2,12 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "AbstractBlockCipher.h"
+#include "UnsupportedAlgorithmException.h"
+#include "Thread.h"
 
 using namespace std;
 using namespace db::crypto;
+using namespace db::rt;
 
 AbstractBlockCipher::AbstractBlockCipher(bool encrypt)
 {
@@ -26,9 +29,8 @@ AbstractBlockCipher::~AbstractBlockCipher()
 
 const EVP_CIPHER* AbstractBlockCipher::getCipherFunction(
    const string& algorithm)
-throw(UnsupportedAlgorithmException)
 {
-   const EVP_CIPHER* rval;
+   const EVP_CIPHER* rval = NULL;
    
    if(algorithm == "AES" || algorithm == "AES256")
    {
@@ -44,8 +46,8 @@ throw(UnsupportedAlgorithmException)
    }
    else
    {
-      throw UnsupportedAlgorithmException(
-         "Unsupported key algorithm '" + algorithm + "'!");
+      Thread::setException(new UnsupportedAlgorithmException(
+         "Unsupported key algorithm '" + algorithm + "'!"));
    }
    
    return rval;

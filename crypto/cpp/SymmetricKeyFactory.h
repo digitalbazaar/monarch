@@ -26,11 +26,9 @@ protected:
     * @param algorithm the algorithm for the key.
     * @param key a pointer to point at the new SymmetricKey.
     * 
-    * @exception UnsupportedAlgorithmException thrown if the passed algorithm
-    *            is not supported.
+    * @return true if no exception occurred, false if not.
     */
-   void createRandomKey(const std::string& algorithm, SymmetricKey** key)
-   throw(UnsupportedAlgorithmException);
+   bool createRandomKey(const std::string& algorithm, SymmetricKey** key);
    
 public:
    /**
@@ -52,11 +50,9 @@ public:
     * @param algorithm the algorithm to use.
     * @param key a pointer to point at the new SymmetricKey.
     * 
-    * @exception UnsupportedAlgorithmException thrown if the passed algorithm
-    *            is not supported.
+    * @return true if no exception occurred, false if not.
     */
-   void createKey(std::string const& algorithm, SymmetricKey** key)
-   throw(UnsupportedAlgorithmException);
+   bool createKey(std::string const& algorithm, SymmetricKey** key);
 };
 
 } // end namespace crypto

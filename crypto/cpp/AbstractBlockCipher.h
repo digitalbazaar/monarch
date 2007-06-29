@@ -6,7 +6,6 @@
 
 #include "BlockCipher.h"
 #include "Object.h"
-#include "UnsupportedAlgorithmException.h"
 
 #include <openssl/evp.h>
 #include <string>
@@ -41,14 +40,14 @@ protected:
    const EVP_CIPHER* mCipherFunction;   
    
    /**
-    * Gets the cipher function for this Cipher.
+    * Gets the cipher function for this Cipher. An UnsupportedAlgorithmException
+    * may be raised if the passed algorithm is not supported.
     * 
     * @param algorithm the cipher algorithm. 
     * 
     * @return the cipher function to use.
     */
-   virtual const EVP_CIPHER* getCipherFunction(const std::string& algorithm)
-   throw(UnsupportedAlgorithmException);
+   virtual const EVP_CIPHER* getCipherFunction(const std::string& algorithm);
    
 public:
    /**

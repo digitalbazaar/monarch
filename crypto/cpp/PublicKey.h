@@ -64,13 +64,10 @@ public:
     * @param algorithm the algorithm to use for the encryption.
     * @param key to store the encrypted SymmetricKey used to seal the envelope.
     * 
-    * @exception IOException thrown if an IO error occurs.
-    * @exception UnsupportedAlgorithmException thrown if an unsupported key
-    *            algorithm is used.
+    * @return the created envelope or NULL if an exception occurred.
     */
    virtual DigitalEnvelope* createEnvelope(
-      const std::string& algorithm, SymmetricKey** key)
-   throw(db::io::IOException, UnsupportedAlgorithmException);
+      const std::string& algorithm, SymmetricKey** key);
    
    /**
     * Creates a DigitalSignature to verify data with.

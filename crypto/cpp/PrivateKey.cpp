@@ -16,22 +16,15 @@ PrivateKey::~PrivateKey()
 }
 
 DigitalEnvelope* PrivateKey::createEnvelope(SymmetricKey* key)
-throw(IOException, UnsupportedAlgorithmException)
 {
    DigitalEnvelope* rval = new DigitalEnvelope();
    
-   try
+   // start opening
+   if(!rval->startOpening(this, key))
    {
-      // start opening
-      rval->startOpening(this, key);
-   }
-   catch(UnsupportedAlgorithmException &e)
-   {
-      // delete envelope
+      // open failed, delete envelope
       delete rval;
-      
-      // throw exception
-      throw e;
+      rval = NULL;
    }
    
    return rval;

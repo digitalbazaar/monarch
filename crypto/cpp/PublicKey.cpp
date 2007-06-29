@@ -17,22 +17,15 @@ PublicKey::~PublicKey()
 
 DigitalEnvelope* PublicKey::createEnvelope(
    const std::string& algorithm, SymmetricKey** key)
-throw(IOException, UnsupportedAlgorithmException)
 {
    DigitalEnvelope* rval = new DigitalEnvelope();
    
-   try
+   // start sealing
+   if(!rval->startSealing(algorithm, this, key))
    {
-      // start sealing
-      rval->startSealing(algorithm, this, key);
-   }
-   catch(UnsupportedAlgorithmException &e)
-   {
-      // delete envelope
+      // seal failed, delete envelope
       delete rval;
-      
-      // throw exception
-      throw e;
+      rval = NULL;
    }
    
    return rval;

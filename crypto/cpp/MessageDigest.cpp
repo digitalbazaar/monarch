@@ -2,14 +2,16 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "MessageDigest.h"
+#include "UnsupportedAlgorithmException.h"
 #include "Convert.h"
+#include "Thread.h"
 
 using namespace std;
 using namespace db::crypto;
+using namespace db::rt;
 using namespace db::util;
 
 MessageDigest::MessageDigest(const string& algorithm)
-throw(UnsupportedAlgorithmException)
 {
    if(algorithm == "SHA1")
    {
@@ -22,8 +24,8 @@ throw(UnsupportedAlgorithmException)
    else
    {
       // unsupported algorithm
-      throw UnsupportedAlgorithmException(
-         "Unsupported hash algorithm '" + algorithm + "'"); 
+      Thread::setException(new UnsupportedAlgorithmException(
+         "Unsupported hash algorithm '" + algorithm + "'"));
    }
 }
 

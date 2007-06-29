@@ -2,8 +2,11 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "AsymmetricKeyFactory.h"
+#include "IOException.h"
+#include "UnsupportedAlgorithmException.h"
 #include "Math.h"
 #include "System.h"
+#include "Thread.h"
 
 #include <openssl/err.h>
 #include <openssl/pem.h>
@@ -12,6 +15,7 @@
 using namespace std;
 using namespace db::crypto;
 using namespace db::io;
+using namespace db::rt;
 using namespace db::util;
 
 AsymmetricKeyFactory::AsymmetricKeyFactory()
@@ -151,11 +155,12 @@ void AsymmetricKeyFactory::createRsaKeyPair(
    }
 }
 
-void AsymmetricKeyFactory::createKeyPair(
+bool AsymmetricKeyFactory::createKeyPair(
    const std::string& algorithm,
    PrivateKey** privateKey, PublicKey** publicKey)
-throw(UnsupportedAlgorithmException)
 {
+   bool rval = true;
+   
    // set private and public keys to null
    *privateKey = NULL;
    *publicKey = NULL;
@@ -178,15 +183,19 @@ throw(UnsupportedAlgorithmException)
    else
    {
       // unknown algorithm
-      throw UnsupportedAlgorithmException(
-         "Key algorithm '" + algorithm + "' is not supported!");
+      rval = false;
+      Thread::setException(new UnsupportedAlgorithmException(
+         "Key algorithm '" + algorithm + "' is not supported!"));
    }
+   
+   return rval;
 }
 
 PrivateKey* AsymmetricKeyFactory::loadPrivateKeyFromPem(
    const string& pem, const string& password)
-throw(IOException)
 {
+   PrivateKey* key = NULL;
+   
    // create a read-only memory bio
    BIO* bio = BIO_new_mem_buf((void*)pem.c_str(), pem.length());
    BIO_set_close(bio, BIO_NOCLOSE);
@@ -199,22 +208,23 @@ throw(IOException)
    // free the bio
    BIO_free(bio);
    
-   if(pkey == NULL)
+   if(pkey != NULL)
    {
-      // throw an IOException
-      throw IOException(
+      // wrap the PKEY structure in a PrivateKey
+      key = new PrivateKey(pkey);
+   }
+   else
+   {
+      Thread::setException(new IOException(
          "Could not load private key from PEM!",
-         ERR_error_string(ERR_get_error(), NULL));
+         ERR_error_string(ERR_get_error(), NULL)));
    }
    
-   // wrap the PKEY structure and return it
-   PrivateKey* key = new PrivateKey(pkey);
    return key;
 }
 
 string AsymmetricKeyFactory::writePrivateKeyToPem(
    PrivateKey* key, const string& password)
-throw(IOException)
 {
    string rval = "";
    
@@ -225,29 +235,32 @@ throw(IOException)
    int error = PEM_write_bio_PKCS8PrivateKey(
       bio, key->getPKEY(), EVP_des_ede3_cbc(), NULL, 0, NULL,
       (void*)password.c_str());
-   if(error == 0)
+   if(error != 0)
    {
-      throw IOException(
-         "Could not write private key to PEM!",
-         ERR_error_string(ERR_get_error(), NULL));
+      // get the memory buffer from the bio
+      BUF_MEM* mem;
+      BIO_get_mem_ptr(bio, &mem);
+      
+      // add characters to the string
+      rval.append(mem->data, mem->length);
+      
+      // free the bio
+      BIO_free(bio);
    }
-   
-   // get the memory buffer from the bio
-   BUF_MEM* mem;
-   BIO_get_mem_ptr(bio, &mem);
-   
-   // add characters to the string
-   rval.append(mem->data, mem->length);
-   
-   // free the bio
-   BIO_free(bio);
+   else
+   {
+      Thread::setException(new IOException(
+         "Could not write private key to PEM!",
+         ERR_error_string(ERR_get_error(), NULL)));
+   }
    
    return rval;
 }
 
 PublicKey* AsymmetricKeyFactory::loadPublicKeyFromPem(const string& pem)
-throw(IOException)
 {
+   PublicKey* key = NULL;
+   
    // create a read-only memory bio
    BIO* bio = BIO_new_mem_buf((void*)pem.c_str(), pem.length());
    BIO_set_close(bio, BIO_NOCLOSE);
@@ -259,21 +272,22 @@ throw(IOException)
    // free the bio
    BIO_free(bio);
    
-   if(pkey == NULL)
+   if(pkey != NULL)
    {
-      // throw an IOException
-      throw IOException(
+      // wrap the PKEY structure in a PublicKey
+      key = new PublicKey(pkey);
+   }
+   else
+   {
+      Thread::setException(new IOException(
          "Could not load public key from PEM!",
-         ERR_error_string(ERR_get_error(), NULL));
+         ERR_error_string(ERR_get_error(), NULL)));
    }
    
-   // wrap the PKEY structure and return it
-   PublicKey* key = new PublicKey(pkey);
    return key;
 }
 
 string AsymmetricKeyFactory::writePublicKeyToPem(PublicKey* key)
-throw(IOException)
 {
    string rval = "";
    
@@ -282,22 +296,24 @@ throw(IOException)
    
    // write the key to the bio
    int error = PEM_write_bio_PUBKEY(bio, key->getPKEY());
-   if(error == 0)
+   if(error != 0)
    {
-      throw IOException(
-         "Could not write private key to PEM!",
-         ERR_error_string(ERR_get_error(), NULL));
+      // get the memory buffer from the bio
+      BUF_MEM* mem;
+      BIO_get_mem_ptr(bio, &mem);
+      
+      // add characters to the string
+      rval.append(mem->data, mem->length);
+      
+      // free the bio
+      BIO_free(bio);
    }
-   
-   // get the memory buffer from the bio
-   BUF_MEM* mem;
-   BIO_get_mem_ptr(bio, &mem);
-   
-   // add characters to the string
-   rval.append(mem->data, mem->length);
-   
-   // free the bio
-   BIO_free(bio);
+   else
+   {
+      Thread::setException(new IOException(
+         "Could not write private key to PEM!",
+         ERR_error_string(ERR_get_error(), NULL)));
+   }
    
    return rval;
 }

@@ -4,10 +4,8 @@
 #ifndef AsymmetricKeyFactory_H
 #define AsymmetricKeyFactory_H
 
-#include "IOException.h"
 #include "PrivateKey.h"
 #include "PublicKey.h"
-#include "UnsupportedAlgorithmException.h"
 
 namespace db
 {
@@ -73,13 +71,11 @@ public:
     * @param privateKey a pointer to point at the new PrivateKey.
     * @param publicKey a pointer to point at the new PublicKey.
     * 
-    * @exception UnsupportedAlgorithmException thrown if the passed algorithm
-    *            is not supported.
+    * @return true if no exception occurred, false if not.
     */
-   void createKeyPair(
+   bool createKeyPair(
       std::string const& algorithm,
-      PrivateKey** privateKey, PublicKey** publicKey)
-   throw(UnsupportedAlgorithmException);
+      PrivateKey** privateKey, PublicKey** publicKey);
    
    /**
     * Loads a private key from a PEM formatted string. A PEM formatted
@@ -89,13 +85,10 @@ public:
     * @param pem the PEM string to load the key from.
     * @param password the password to use to load the key.
     * 
-    * @return the loaded PrivateKey.
-    * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return the loaded PrivateKey or NULL if an exception occurred.
     */
    virtual PrivateKey* loadPrivateKeyFromPem(
-      const std::string& pem, const std::string& password)
-   throw(db::io::IOException);
+      const std::string& pem, const std::string& password);
    
    /**
     * Writes a private key to a PEM formatted string. A PEM formatted
@@ -105,13 +98,10 @@ public:
     * @param key the PrivateKey to write to a PEM string.
     * @param password the password to use to encrypt the key.
     * 
-    * @return the PEM string.
-    * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return the PEM string or a blank string of an exception occurred.
     */
    std::string writePrivateKeyToPem(
-      PrivateKey* key, const std::string& password)
-   throw(db::io::IOException);
+      PrivateKey* key, const std::string& password);
    
    /**
     * Loads a public key from a PEM formatted string. A PEM formatted
@@ -121,12 +111,9 @@ public:
     * @param pem the PEM string to load the key from.
     * @param password the password to use to load the key.
     * 
-    * @return the loaded PublicKey.
-    * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return the loaded PublicKey or NULL if an exception occurred.
     */
-   virtual PublicKey* loadPublicKeyFromPem(const std::string& pem)
-   throw(db::io::IOException);
+   virtual PublicKey* loadPublicKeyFromPem(const std::string& pem);
    
    /**
     * Writes a public key to a PEM formatted string. A PEM formatted
@@ -136,11 +123,9 @@ public:
     * @param key the PublicKey to write to a PEM string.
     * @param password the password to use to encrypt the key.
     * 
-    * @return the PEM string.
-    * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return the PEM string or a blank string of an exception occurred.
     */
-   std::string writePublicKeyToPem(PublicKey* key) throw(db::io::IOException);
+   std::string writePublicKeyToPem(PublicKey* key);
 };
 
 } // end namespace crypto

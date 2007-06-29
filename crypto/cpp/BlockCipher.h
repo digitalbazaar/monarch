@@ -4,8 +4,6 @@
 #ifndef BlockCipher_H
 #define BlockCipher_H
 
-#include "IOException.h"
-
 namespace db
 {
 namespace crypto
@@ -46,10 +44,9 @@ public:
     * @param out a buffer to fill with encrypted/decrypted data.
     * @param outLength to store the number of bytes put into the output buffer.
     * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return true if no exception occurred, false if not.
     */
-   virtual void update(char* in, int inLength, char* out, int& outLength)
-   throw(db::io::IOException) = 0;
+   virtual bool update(char* in, int inLength, char* out, int& outLength) = 0;
    
    /**
     * Puts the final chunk of encrypted or decrypted data into an array of
@@ -60,10 +57,9 @@ public:
     * @param out a buffer to fill with the data.
     * @param length to store the number of bytes put into the output buffer.
     * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return true if no exception occurred, false if not.
     */
-   virtual void finish(char* out, int& length)
-   throw(db::io::IOException) = 0;
+   virtual bool finish(char* out, int& length) = 0;
    
    /**
     * Gets the cipher block size.

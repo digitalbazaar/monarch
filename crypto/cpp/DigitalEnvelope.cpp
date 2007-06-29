@@ -5,12 +5,14 @@
 #include "PrivateKey.h"
 #include "PublicKey.h"
 #include "SymmetricKeyFactory.h"
+#include "Thread.h"
 
 #include <openssl/err.h>
 
 using namespace std;
 using namespace db::crypto;
 using namespace db::io;
+using namespace db::rt;
 
 DigitalEnvelope::DigitalEnvelope() : AbstractBlockCipher(true)
 {
@@ -20,119 +22,138 @@ DigitalEnvelope::~DigitalEnvelope()
 {
 }
 
-void DigitalEnvelope::startSealing(
+bool DigitalEnvelope::startSealing(
    const string& algorithm, PublicKey* publicKey, SymmetricKey** symmetricKey)
-throw(IOException, UnsupportedAlgorithmException)
 {
    // use just a single public key
-   startSealing(algorithm, &publicKey, symmetricKey, 1);
+   return startSealing(algorithm, &publicKey, symmetricKey, 1);
 }
 
-void DigitalEnvelope::startSealing(
+bool DigitalEnvelope::startSealing(
    const string& algorithm, PublicKey** publicKeys,
    SymmetricKey** symmetricKeys, unsigned int keys)
-throw(IOException, UnsupportedAlgorithmException)
 {
+   bool rval = false;
+   
    // enable encryption mode
    mEncryptMode = true;
    
    // get the cipher function
    mCipherFunction = getCipherFunction(algorithm);
-   
-   // create symmetric key buffers for each public key
-   EVP_PKEY* pKeys[keys];
-   char* eKeys[keys];
-   int eKeyLengths[keys];
-   for(unsigned int i = 0; i < keys; i++)
+   if(mCipherFunction != NULL)
    {
-      pKeys[i] = publicKeys[i]->getPKEY();
-      eKeys[i] = new char[publicKeys[i]->getOutputSize()];
-   }
-   
-   // create iv buffer
-   unsigned int ivLength = EVP_CIPHER_iv_length(mCipherFunction);
-   char* iv = (ivLength == 0) ? NULL : new char[ivLength];
-   
-   // initialize sealing the envelope
-   if(EVP_SealInit(
-      &mCipherContext, mCipherFunction,
-      (unsigned char**)eKeys, eKeyLengths, (unsigned char*)iv,
-      pKeys, keys) == 1)
-   {
-      // set the encrypted symmetric key data
+      // create symmetric key buffers for each public key
+      EVP_PKEY* pKeys[keys];
+      char* eKeys[keys];
+      int eKeyLengths[keys];
       for(unsigned int i = 0; i < keys; i++)
       {
-         // copy iv
-         char* ivCopy = NULL;
-         if(ivLength > 0)
+         pKeys[i] = publicKeys[i]->getPKEY();
+         eKeys[i] = new char[publicKeys[i]->getOutputSize()];
+      }
+      
+      // create iv buffer
+      unsigned int ivLength = EVP_CIPHER_iv_length(mCipherFunction);
+      char* iv = (ivLength == 0) ? NULL : new char[ivLength];
+      
+      // initialize sealing the envelope
+      if(EVP_SealInit(
+         &mCipherContext, mCipherFunction,
+         (unsigned char**)eKeys, eKeyLengths, (unsigned char*)iv,
+         pKeys, keys) == 1)
+      {
+         // initialization successful
+         rval = true;
+         
+         // set the encrypted symmetric key data
+         for(unsigned int i = 0; i < keys; i++)
          {
-            ivCopy = new char[ivLength];
-            memcpy(ivCopy, iv, ivLength);
+            // copy iv
+            char* ivCopy = NULL;
+            if(ivLength > 0)
+            {
+               ivCopy = new char[ivLength];
+               memcpy(ivCopy, iv, ivLength);
+            }
+            
+            // create encrypted symmetric key
+            symmetricKeys[i] = new SymmetricKey(algorithm);
+            symmetricKeys[i]->assignData(
+               eKeys[i], eKeyLengths[i], ivCopy, true);
          }
          
-         // create encrypted symmetric key
-         symmetricKeys[i] = new SymmetricKey(algorithm);
-         symmetricKeys[i]->assignData(eKeys[i], eKeyLengths[i], ivCopy, true);
+         if(iv != NULL)
+         {
+            // delete iv buffer (freeing the other buffers is up
+            // to the SymmetricKeys)
+            delete [] iv;
+         }
       }
-      
-      if(iv != NULL)
+      else
       {
-         // delete iv buffer (freeing the other buffers is up
-         // to the SymmetricKeys)
-         delete [] iv;
+         // delete all allocated key data
+         for(unsigned int i = 0; i < keys; i++)
+         {
+            delete [] eKeys[i];
+         }
+         
+         if(iv != NULL)
+         {
+            // delete iv buffer (freeing the other buffers is up to the
+            // SymmetricKeys)
+            delete [] iv;
+         }
+         
+         Thread::setException(new IOException(
+            "Could not start opening envelope!",
+            ERR_error_string(ERR_get_error(), NULL)));
       }
    }
-   else
-   {
-      // delete all allocated key data
-      for(unsigned int i = 0; i < keys; i++)
-      {
-         delete [] eKeys[i];
-      }
-      
-      if(iv != NULL)
-      {
-         // delete iv buffer (freeing the other buffers is up to the SymmetricKeys)
-         delete [] iv;
-      }
-      
-      throw IOException(
-         "Could not start opening envelope!",
-         ERR_error_string(ERR_get_error(), NULL));
-   }
+   
+   return rval;
 }
 
-void DigitalEnvelope::startOpening(
+bool DigitalEnvelope::startOpening(
    PrivateKey* privateKey, SymmetricKey* symmetricKey)
-throw(IOException, UnsupportedAlgorithmException)
 {
+   bool rval = false;
+   
    // disable encryption mode
    mEncryptMode = false;
    
    // get the cipher function
    mCipherFunction = getCipherFunction(symmetricKey->getAlgorithm());
-   
-   // get the symmetric key data
-   char* eKey;
-   unsigned int eKeyLength;
-   char* iv;
-   symmetricKey->getData(&eKey, eKeyLength, &iv);
-   
-   // initialize opening the envelope
-   if(EVP_OpenInit(
-      &mCipherContext, mCipherFunction,
-      (unsigned char*)eKey, eKeyLength, (unsigned char*)iv,
-      privateKey->getPKEY()) != 1)
+   if(mCipherFunction != NULL)
    {
-      throw IOException(
-         "Could not start opening envelope!",
-         ERR_error_string(ERR_get_error(), NULL));
+      // get the symmetric key data
+      char* eKey;
+      unsigned int eKeyLength;
+      char* iv;
+      symmetricKey->getData(&eKey, eKeyLength, &iv);
+      
+      // initialize opening the envelope
+      if(EVP_OpenInit(
+         &mCipherContext, mCipherFunction,
+         (unsigned char*)eKey, eKeyLength, (unsigned char*)iv,
+         privateKey->getPKEY()) == 1)
+      {
+         rval = true;
+      }
+      else
+      {
+         Thread::setException(new IOException(
+            "Could not start opening envelope!",
+            ERR_error_string(ERR_get_error(), NULL)));
+      }
    }
+   
+   return rval;
 }
 
-void DigitalEnvelope::update(char* in, int inLength, char* out, int& outLength)
-throw(IOException)
+bool DigitalEnvelope::update(char* in, int inLength, char* out, int& outLength)
 {
+   bool rval = false;
+   
    // only proceed if the cipher function has been set
    if(mCipherFunction != NULL)
    {
@@ -141,11 +162,15 @@ throw(IOException)
          // seal more data
          if(EVP_SealUpdate(
             &mCipherContext, (unsigned char*)out, &outLength,
-            (unsigned char*)in, inLength) != 1)
+            (unsigned char*)in, inLength) == 1)
          {
-            throw IOException(
+            rval = true;
+         }
+         else
+         {
+            Thread::setException(new IOException(
                "Could not seal envelope data!",
-               ERR_error_string(ERR_get_error(), NULL));
+               ERR_error_string(ERR_get_error(), NULL)));
          }
       }
       else
@@ -153,40 +178,68 @@ throw(IOException)
          // open more data
          if(EVP_OpenUpdate(
             &mCipherContext, (unsigned char*)out, &outLength,
-            (unsigned char*)in, inLength) != 1)
+            (unsigned char*)in, inLength) == 1)
          {
-            throw IOException(
+            rval = true;
+         }
+         else
+         {
+            Thread::setException(new IOException(
                "Could not open envelope data!",
-               ERR_error_string(ERR_get_error(), NULL));
+               ERR_error_string(ERR_get_error(), NULL)));
          }
       }
    }
+   else
+   {
+      Thread::setException(new IOException(
+         "Cannot update envelope; envelope not started!"));
+   }
+   
+   return rval;
 }
 
-void DigitalEnvelope::finish(char* out, int& length) throw(IOException)
+bool DigitalEnvelope::finish(char* out, int& length)
 {
+   bool rval = false;
+   
    // only proceed if the cipher function has been set
    if(mCipherFunction != NULL)
    {
       if(isEncryptEnabled())
       {
          // finish sealing
-         if(EVP_SealFinal(&mCipherContext, (unsigned char*)out, &length) != 1)
+         if(EVP_SealFinal(&mCipherContext, (unsigned char*)out, &length) == 1)
          {
-            throw IOException(
+            rval = true;
+         }
+         else
+         {
+            Thread::setException(new IOException(
                "Could not finish sealing envelope!",
-               ERR_error_string(ERR_get_error(), NULL));
+               ERR_error_string(ERR_get_error(), NULL)));
          }
       }
       else
       {
          // finish opening
-         if(EVP_OpenFinal(&mCipherContext, (unsigned char*)out, &length) != 1)
+         if(EVP_OpenFinal(&mCipherContext, (unsigned char*)out, &length) == 1)
          {
-            throw IOException(
+            rval = true;
+         }
+         else
+         {
+            Thread::setException(new IOException(
                "Could not finish opening envelope!",
-               ERR_error_string(ERR_get_error(), NULL));
+               ERR_error_string(ERR_get_error(), NULL)));
          }
       }
    }
+   else
+   {
+      Thread::setException(new IOException(
+         "Cannot finish envelope; envelope not started!"));
+   }
+   
+   return rval;
 }

@@ -3,6 +3,7 @@
  */
 #include "SymmetricKeyFactory.h"
 #include "System.h"
+#include "Thread.h"
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -10,6 +11,7 @@
 
 using namespace std;
 using namespace db::crypto;
+using namespace db::rt;
 
 SymmetricKeyFactory::SymmetricKeyFactory()
 {
@@ -19,10 +21,11 @@ SymmetricKeyFactory::~SymmetricKeyFactory()
 {
 }
 
-void SymmetricKeyFactory::createRandomKey(
+bool SymmetricKeyFactory::createRandomKey(
    const std::string& algorithm, SymmetricKey** key)
-throw(UnsupportedAlgorithmException)
 {
+   bool rval = true;
+   
    const EVP_CIPHER* cipherType = NULL;
    
    if(algorithm == "AES" || algorithm == "AES256")
@@ -40,32 +43,37 @@ throw(UnsupportedAlgorithmException)
    else
    {
       // unknown algorithm
-      throw UnsupportedAlgorithmException(
-         "Key algorithm '" + algorithm + "' is not supported!");
+      rval = false;
+      Thread::setException(new UnsupportedAlgorithmException(
+         "Key algorithm '" + algorithm + "' is not supported!"));
    }
    
-   // get random bytes for data
-   unsigned int keyLength = EVP_CIPHER_key_length(cipherType);
-   char *data = new char[keyLength];
-   RAND_bytes((unsigned char*)data, keyLength);
-   
-   // get random bytes for IV
-   char* iv = NULL;
-   unsigned int ivLength = EVP_CIPHER_iv_length(cipherType);
-   if(ivLength > 0)
+   if(rval)
    {
-      iv = new char[ivLength];
-      RAND_bytes((unsigned char*)iv, ivLength);
+      // get random bytes for data
+      unsigned int keyLength = EVP_CIPHER_key_length(cipherType);
+      char *data = new char[keyLength];
+      RAND_bytes((unsigned char*)data, keyLength);
+      
+      // get random bytes for IV
+      char* iv = NULL;
+      unsigned int ivLength = EVP_CIPHER_iv_length(cipherType);
+      if(ivLength > 0)
+      {
+         iv = new char[ivLength];
+         RAND_bytes((unsigned char*)iv, ivLength);
+      }
+      
+      // create symmetric key and assign key data/IV
+      *key = new SymmetricKey("AES256");
+      (*key)->assignData(data, keyLength, iv, false);
    }
    
-   // create symmetric key and assign key data/IV
-   *key = new SymmetricKey("AES256");
-   (*key)->assignData(data, keyLength, iv, false);
+   return rval;
 }
 
-void SymmetricKeyFactory::createKey(
+bool SymmetricKeyFactory::createKey(
    const std::string& algorithm, SymmetricKey** key)
-throw(UnsupportedAlgorithmException)
 {
    // set key to null
    *key = NULL;
@@ -76,5 +84,5 @@ throw(UnsupportedAlgorithmException)
    RAND_add(&tv, sizeof(tv), 0.0);
    
    // create random key
-   createRandomKey(algorithm, key);
+   return createRandomKey(algorithm, key);
 }

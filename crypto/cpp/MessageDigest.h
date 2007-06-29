@@ -5,7 +5,6 @@
 #define MessageDigest_H
 
 #include "CryptoHashAlgorithm.h"
-#include "UnsupportedAlgorithmException.h"
 
 #include <string>
 
@@ -37,15 +36,16 @@ protected:
 
 public:
    /**
-    * Creates a new MessageDigest that uses the passed hash algorithm.
+    * Creates a new MessageDigest that uses the passed hash algorithm. An
+    * UnsupportedAlgorithmException may be raised if the given algorithm
+    * is not supported.
     * 
     * @param algorithm the hash algorithm to use.
     * 
     * @exception UnsupportedAlgorithmException thrown if the passed algorithm
     *            is not recognized or implemented.
     */
-   MessageDigest(const std::string& algorithm)
-   throw(UnsupportedAlgorithmException);
+   MessageDigest(const std::string& algorithm);
    
    /**
     * Destructs this MessageDigest.

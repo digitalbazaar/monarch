@@ -41,38 +41,29 @@ public:
     * 
     * @param algorithm the algorithm to use to encrypt.
     * @param symmetricKey to store the generated SymmetricKey.
-    * 
-    * @exception IOException thrown if an IO error occurs.
-    * @exception UnsupportedAlgorithmException thrown if an unsupported key
-    *            algorithm is used.
+    *
+    * @return true if no exception occurred, false if not. 
     */
-   virtual void startEncrypting(
-      const std::string& algorithm, SymmetricKey** symmetricKey)
-   throw(db::io::IOException, UnsupportedAlgorithmException);
+   virtual bool startEncrypting(
+      const std::string& algorithm, SymmetricKey** symmetricKey);
    
    /**
     * Starts encrypting with the given SymmetricKey.
     * 
     * @param symmetricKey to start encrypting with.
-    * 
-    * @exception IOException thrown if an IO error occurs.
-    * @exception UnsupportedAlgorithmException thrown if an unsupported key
-    *            algorithm is used.
+    *
+    * @return true if no exception occurred, false if not. 
     */
-   virtual void startEncrypting(SymmetricKey* symmetricKey)
-   throw(db::io::IOException, UnsupportedAlgorithmException);
+   virtual bool startEncrypting(SymmetricKey* symmetricKey);
    
    /**
     * Starts decrypting with the given SymmetricKey.
     * 
     * @param symmetricKey to start decrypting with.
     * 
-    * @exception IOException thrown if an IO error occurs.
-    * @exception UnsupportedAlgorithmException thrown if an unsupported key
-    *            algorithm is used.
+    * @return true if no exception occurred, false if not.
     */
-   virtual void startDecrypting(SymmetricKey* symmetricKey)
-   throw(db::io::IOException, UnsupportedAlgorithmException);
+   virtual bool startDecrypting(SymmetricKey* symmetricKey);
    
    /**
     * Updates the data that is being encrypted or decrypted. This method can be
@@ -86,10 +77,9 @@ public:
     * @param out a buffer to fill with encrypt/decrypt data.
     * @param outLength to store the number of bytes put into the output buffer.
     * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return true if no exception occurred, false if not.
     */
-   virtual void update(char* in, int inLength, char* out, int& outLength)
-   throw(db::io::IOException);
+   virtual bool update(char* in, int inLength, char* out, int& outLength);
    
    /**
     * Puts the final chunk of encrypted or decrypted data into an array of
@@ -100,9 +90,9 @@ public:
     * @param out a buffer to fill with the data.
     * @param length to store the number of bytes put into the output buffer.
     * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return true if no exception occurred, false if not.
     */
-   virtual void finish(char* out, int& length) throw(db::io::IOException);
+   virtual bool finish(char* out, int& length);
 };
 
 } // end namespace crypto
