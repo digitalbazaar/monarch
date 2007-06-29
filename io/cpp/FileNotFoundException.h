@@ -12,7 +12,7 @@ namespace io
 {
 
 /**
- * A FileNotFoundException is thrown when a file cannot be found.
+ * A FileNotFoundException is raised when a file cannot be found.
  *
  * @author Dave Longley
  */

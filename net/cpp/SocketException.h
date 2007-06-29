@@ -12,7 +12,7 @@ namespace net
 {
 
 /**
- * A SocketException is thrown when some kind of Socket error occurs.
+ * A SocketException is raised when some kind of Socket error occurs.
  *
  * @author Dave Longley
  */

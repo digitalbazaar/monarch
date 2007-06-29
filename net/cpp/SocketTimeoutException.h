@@ -12,7 +12,7 @@ namespace net
 {
 
 /**
- * A SocketTimeoutException is thrown when a socket timeout occurs.
+ * A SocketTimeoutException is raised when a socket timeout occurs.
  *
  * @author Dave Longley
  */

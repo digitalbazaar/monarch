@@ -12,7 +12,7 @@ namespace io
 {
 
 /**
- * An IOException is thrown when some kind of IO error occurs.
+ * An IOException is raised when some kind of IO error occurs.
  *
  * @author Dave Longley
  */

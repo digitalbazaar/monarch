@@ -12,7 +12,7 @@ namespace rt
 {
 
 /**
- * An IllegalArgumentException is thrown when an invalid argument is passed
+ * An IllegalArgumentException is raised when an invalid argument is passed
  * to a method.
  *
  * @author Dave Longley

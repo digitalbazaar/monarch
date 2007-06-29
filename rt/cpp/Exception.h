@@ -14,11 +14,11 @@ namespace rt
 {
 
 /**
- * An Exception is thrown when some kind of unhandled behavior occurs.
+ * An Exception is raised when some kind of unhandled behavior occurs.
  * 
  * In the current implementation of db::rt, a single Exception is stored in
  * thread-local memory for each thread. Whenever an Object's method needs to
- * throw an Exception, it calls Thread::setException() with a dynamically
+ * raise an Exception, it calls Thread::setException() with a dynamically
  * allocated Exception (or derivative). The memory cleanup will be handled
  * by the thread when setting new exceptions and when the thread dies.
  * 

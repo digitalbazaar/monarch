@@ -12,7 +12,7 @@ namespace net
 {
 
 /**
- * An UnknownHostException is thrown when host's internet address cannot
+ * An UnknownHostException is raised when host's internet address cannot
  * be resolved.
  *
  * @author Dave Longley

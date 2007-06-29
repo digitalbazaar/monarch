@@ -12,7 +12,7 @@ namespace crypto
 {
 
 /**
- * An UnsupportedAlgorithmException is thrown when a some kind of request for
+ * An UnsupportedAlgorithmException is raised when a some kind of request for
  * an algorithm that is not recognized or implemented occurs.
  *
  * @author Dave Longley

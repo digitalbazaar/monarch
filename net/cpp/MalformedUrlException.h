@@ -12,7 +12,7 @@ namespace net
 {
 
 /**
- * A MalformedUrlException is thrown when a URL is malformed.
+ * A MalformedUrlException is raised when a URL is malformed.
  *
  * @author Dave Longley
  */

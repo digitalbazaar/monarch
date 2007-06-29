@@ -12,7 +12,7 @@ namespace rt
 {
 
 /**
- * An InterruptedException is thrown when some kind of operation is interrupted.
+ * An InterruptedException is raised when some kind of operation is interrupted.
  *
  * @author Dave Longley
  */
