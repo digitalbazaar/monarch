@@ -85,14 +85,14 @@ void* Thread::execute(void* thread)
    // get the Thread object
    Thread* t = (Thread*)thread;
    
-   // create the current thread key if it hasn't been created yet
+   // create the current thread key, if not created
    pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
+   
+   // create the exception key, if not created
+   pthread_once(&EXCEPTION_KEY_INIT, Thread::createExceptionKey);
    
    // set thread specific data for current thread to the Thread
    pthread_setspecific(CURRENT_THREAD_KEY, t);
-   
-   // create the exception key if it hasn't been created yet
-   pthread_once(&EXCEPTION_KEY_INIT, Thread::createExceptionKey);
    
    // set thread specific data for exception to NULL (no exception yet)
    pthread_setspecific(EXCEPTION_KEY, NULL);
@@ -238,7 +238,7 @@ Thread* Thread::currentThread()
    return (Thread*)pthread_getspecific(CURRENT_THREAD_KEY);
 }
 
-bool Thread::interrupted()
+bool Thread::interrupted(bool clear)
 {
    bool rval = false;
    
@@ -251,8 +251,11 @@ bool Thread::interrupted()
       {
          rval = t->isInterrupted();
          
-         // clear interrupted flag
-         t->mInterrupted = false;
+         if(clear)
+         {
+            // clear interrupted flag
+            t->mInterrupted = false;
+         }
       }
       t->unlock();
    }
@@ -284,20 +287,47 @@ void Thread::yield()
 
 void Thread::setException(Exception* e)
 {
-   // store the existing exception for the current thread, if any
-   Exception* existing = getException();
-   
-   // replace the existing exception
-   pthread_setspecific(EXCEPTION_KEY, e);
-   
-   // delete the old exception
-   delete existing;
+   if(currentThread() != NULL)
+   {
+      // get the existing exception for the current thread, if any
+      Exception* existing = getException();
+      if(existing != e)
+      {
+         // replace the existing exception
+         pthread_setspecific(EXCEPTION_KEY, e);
+         
+         // delete the old exception
+         delete existing;
+      }
+   }
+   else if(e != NULL)
+   {
+      // delete passed exception, since we are not on a thread
+      delete e;
+   }
 }
 
 Exception* Thread::getException()
 {
-   // get the exception for the current thread, if any
-   return (Exception*)pthread_getspecific(EXCEPTION_KEY);
+   Exception* rval = NULL;
+   
+   if(currentThread() != NULL)
+   {
+      // get the exception for the current thread, if any
+      rval = (Exception*)pthread_getspecific(EXCEPTION_KEY);
+   }
+   
+   return rval;
+}
+
+bool Thread::hasException()
+{
+   return getException() != NULL;
+}
+
+void Thread::clearException()
+{
+   setException(NULL);
 }
 
 InterruptedException* Thread::waitToEnter(Monitor* m, unsigned long timeout)

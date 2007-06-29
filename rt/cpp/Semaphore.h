@@ -1,7 +1,6 @@
 #ifndef Semaphore_H
 #define Semaphore_H
 
-#include "Object.h"
 #include "Thread.h"
 
 #include <list>
@@ -68,8 +67,7 @@ protected:
    /**
     * Tells the current thread to wait.
     * 
-    * @return an InterruptedException if the thread is interrupted, NULL
-    *         otherwise.
+    * @return an InterruptedException if the thread is interrupted, NULL if not.
     */
    InterruptedException* waitThread();
    
@@ -135,9 +133,9 @@ public:
     * Acquires a permit, or blocks until one is * available or until
     * interrupted.
     *
-    * @exception InterruptedException thrown if the thread is interrupted.
+    * @return an InterruptedException if the thread is interrupted, NULL if not.
     */
-   void acquire() throw(InterruptedException);
+   InterruptedException* acquire();
    
    /**
     * Acquires the given number of permits or blocks until one
@@ -145,9 +143,9 @@ public:
     *
     * @param permits the number of permits to acquire.
     * 
-    * @exception InterruptedException thrown if the thread is interrupted.
+    * @return an InterruptedException if the thread is interrupted, NULL if not.
     */
-   void acquire(int permits) throw(InterruptedException);
+   InterruptedException* acquire(int permits);
    
    /**
     * Acquires a permit if one is available.

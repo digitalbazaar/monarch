@@ -4,8 +4,6 @@
 #ifndef SocketAddress_H
 #define SocketAddress_H
 
-#include "SocketException.h"
-
 #include <string>
 
 // forward declare socket address

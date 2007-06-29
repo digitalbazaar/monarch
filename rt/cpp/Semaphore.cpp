@@ -65,7 +65,7 @@ InterruptedException* Semaphore::waitThread()
    mLockObject.lock();
    {
       // wait while in the list of waiting threads
-      while(mustWait(t))
+      while(rval == NULL && mustWait(t))
       {
          if((rval = mLockObject.wait()) != NULL)
          {
@@ -73,7 +73,6 @@ InterruptedException* Semaphore::waitThread()
             // threads and remove this thread from the wait list
             notifyThreads();
             removeWaitingThread(t);
-            break;
          }
       }
    }
@@ -183,22 +182,29 @@ bool Semaphore::mustWait(Thread* thread)
    return rval;
 }
 
-void Semaphore::acquire() throw(InterruptedException)
+InterruptedException* Semaphore::acquire()
 {
-   acquire(1);
+   return acquire(1);
 }
 
-void Semaphore::acquire(int permits) throw(InterruptedException)
+InterruptedException* Semaphore::acquire(int permits)
 {
+   InterruptedException* rval = NULL;
+   
    // while there are not enough permits, wait for them
-   while(availablePermits() - permits < 0)
+   while(rval == NULL && availablePermits() - permits < 0)
    {
       // wait thread
-      waitThread();
+      rval = waitThread();
    }
    
-   // permits have been granted, decrease permits left
-   decreasePermitsLeft(permits);
+   if(rval == NULL)
+   {
+      // permits have been granted, decrease permits left
+      decreasePermitsLeft(permits);
+   }
+   
+   return rval;
 }
 
 bool Semaphore::tryAcquire()

@@ -58,12 +58,9 @@ public:
     * @param replace the string to replace "find" with.
     * 
     * @return a reference to "str".
-    * 
-    * @exception InvalidRegexException thrown if the passed regex is invalid.
     */
    static std::string& regexReplaceAll(
-      std::string& str, const std::string& regex, const std::string& replace)
-   throw(db::util::regex::InvalidRegexException);
+      std::string& str, const std::string& regex, const std::string& replace);
 };
 
 } // end namespace util

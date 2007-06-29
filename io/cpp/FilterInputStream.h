@@ -47,33 +47,19 @@ public:
    virtual ~FilterInputStream();
    
    /**
-    * Reads a single byte from the stream. This method will block until
-    * a byte can be read or until the end of the stream is reached.
-    * 
-    * @param a single byte to populate from the stream.
-    * 
-    * @return true if a byte was read, false if the end of the stream was
-    *         reached.
-    * 
-    * @exception IOException thrown if an IO error occurs.
-    */
-   virtual bool read(char& b) throw(IOException);
-   
-   /**
     * Reads some bytes from the stream. This method will block until at least
     * one byte can be read or until the end of the stream is reached. A
-    * value of -1 will be returned if the end of the stream has been reached,
-    * otherwise the number of bytes read will be returned.
+    * value of -1 will be returned if the end of the stream has been reached
+    * or an IO exception occurred, otherwise the number of bytes read will be
+    * returned.
     * 
     * @param b the array of bytes to fill.
     * @param length the maximum number of bytes to read into the buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
-    *         stream has been reached.
-    * 
-    * @exception IOException thrown if an IO error occurs.
+    *         stream has been reached or an IO exception occurred.
     */
-   virtual int read(char* b, unsigned int length) throw(IOException);
+   virtual int read(char* b, unsigned int length);
    
    /**
     * Peeks ahead and looks at some bytes in the stream. This method will block
@@ -88,33 +74,27 @@ public:
     * @param length the maximum number of bytes to read into the buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
-    *         stream has been reached.
-    * 
-    * @exception IOException thrown if an IO error occurs.
+    *         stream has been reached or an IO exception occurred.
     */
-   virtual int peek(char* b, unsigned int length) throw(IOException);
+   virtual int peek(char* b, unsigned int length);
    
    /**
     * Skips some bytes in the stream. This method will block until the
     * some number of bytes up to specified number of bytes have been skipped
     * or the end of the stream is reached. This method will return the
-    * number of bytes skipped.
+    * number of bytes skipped or -1 if the end of the stream was reached.
     * 
     * @param count the number of bytes to skip.
     * 
     * @return the actual number of bytes skipped (which may be zero), or -1 if
-    *         the end of the stream is reached.
-    * 
-    * @exception IOException thrown if an IO error occurs.
+    *         the end of the stream is reached or an IO exception occurred.
     */
-   virtual unsigned long skip(unsigned long count) throw(IOException);
+   virtual long skip(long count);
    
    /**
     * Closes the stream.
-    * 
-    * @exception IOException thrown if an IO error occurs.
     */
-   virtual void close() throw(IOException);
+   virtual void close();
 };
 
 } // end namespace io

@@ -48,33 +48,19 @@ public:
    virtual ~ConnectionInputStream();
    
    /**
-    * Reads a single byte from the stream. This method will block until
-    * a byte can be read or until the end of the stream is reached.
-    * 
-    * @param a single byte to populate from the stream.
-    * 
-    * @return true if a byte was read, false if the end of the stream was
-    *         reached.
-    * 
-    * @exception IOException thrown if an IO error occurs.
-    */
-   virtual bool read(char& b) throw(db::io::IOException);
-   
-   /**
     * Reads some bytes from the stream. This method will block until at least
     * one byte can be read or until the end of the stream is reached. A
-    * value of -1 will be returned if the end of the stream has been reached,
-    * otherwise the number of bytes read will be returned.
+    * value of -1 will be returned if the end of the stream has been reached
+    * or an IO exception occurred, otherwise the number of bytes read will be
+    * returned.
     * 
     * @param b the array of bytes to fill.
     * @param length the maximum number of bytes to read into the buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
-    *         stream has been reached.
-    * 
-    * @exception IOException thrown if an IO error occurs.
+    *         stream has been reached or an IO exception occurred.
     */
-   virtual int read(char* b, unsigned int length) throw(db::io::IOException);
+   virtual int read(char* b, unsigned int length);
    
    /**
     * Reads a single line from the connection that terminates in a
@@ -85,11 +71,9 @@ public:
     * @param line the string to write the line to.
     * 
     * @return true if a line was read, false if the end of the stream was
-    *         reached.
-    * 
-    * @exception IOException thrown if an IO error occurs.
+    *         reached or an IO exception occurred.
     */
-   virtual bool readLine(std::string& line) throw(db::io::IOException);
+   virtual bool readLine(std::string& line);
    
    /**
     * Reads a single line from this connection that terminates in a
@@ -100,11 +84,9 @@ public:
     * @param line the string to write the line to.
     * 
     * @return true if a line was read, false if the end of the stream was
-    *         reached.
-    * 
-    * @exception IOException thrown if an IO error occurs.
+    *         reached or an IO exception occurred.
     */
-   virtual bool readCrlf(std::string& line) throw(db::io::IOException);
+   virtual bool readCrlf(std::string& line);
    
    /**
     * Peeks ahead and looks at some bytes in the stream. This method will block
@@ -115,25 +97,21 @@ public:
     * A subsequent call to read() or peek() will first read any previously
     * peeked-at bytes.
     * 
-    * Note: Any installer read BandwidthThrottler will not be used when
+    * Note: Any installed read BandwidthThrottler will not be used when
     * peeking.
     * 
     * @param b the array of bytes to fill.
     * @param length the maximum number of bytes to read into the buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
-    *         stream has been reached.
-    * 
-    * @exception IOException thrown if an IO error occurs.
+    *         stream has been reached or an IO exception occurred.
     */
-   virtual int peek(char* b, unsigned int length) throw(db::io::IOException);
+   virtual int peek(char* b, unsigned int length);
    
    /**
     * Closes the stream.
-    * 
-    * @exception IOException thrown if an IO error occurs.
     */
-   virtual void close() throw(db::io::IOException);
+   virtual void close();
    
    /**
     * Gets the total number of bytes read so far. This includes any bytes

@@ -27,11 +27,10 @@ protected:
     * 
     * @param domain the communication domain for this Socket (i.e. IPv4, IPv6).
     * 
-    * @exception SocketException thrown if a file descriptor could not be
-    *            acquired.
+    * @return true if the file descriptor could be acquired, false if
+    *         an exception occurred.
     */
-   virtual void acquireFileDescriptor(const std::string& domain)
-   throw(SocketException);
+   virtual bool acquireFileDescriptor(const std::string& domain);
    
    /**
     * Creates a new Socket with the given file descriptor that points to
@@ -40,11 +39,8 @@ protected:
     * @param fd the file descriptor for the socket.
     * 
     * @return the allocated Socket.
-    * 
-    * @exception SocketException thrown if a socket error occurs.
     */
-   virtual Socket* createConnectedSocket(unsigned int fd)
-   throw(SocketException);
+   virtual Socket* createConnectedSocket(unsigned int fd);
    
 public:
    /**

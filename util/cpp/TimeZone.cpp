@@ -23,7 +23,6 @@ unsigned int TimeZone::getMinutesWest()
 }
 
 TimeZone TimeZone::getTimeZone(const string& tz)
-throw(IllegalArgumentException)
 {
    TimeZone rval;
    
@@ -51,7 +50,7 @@ throw(IllegalArgumentException)
       // 8 hours west
       rval.mMinutesWest = 480;
    }
-   else if(tz == "")
+   else
    {
       // get local time zone
       struct timezone tz;
@@ -59,10 +58,6 @@ throw(IllegalArgumentException)
       
       // FIXME: this is wrong for EDT (it reports EST)
       rval.mMinutesWest = tz.tz_minuteswest;
-   }
-   else
-   {
-      throw IllegalArgumentException("Invalid time zone '" + tz + "'!");
    }
    
    return rval;

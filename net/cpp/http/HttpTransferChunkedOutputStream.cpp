@@ -23,36 +23,40 @@ HttpTransferChunkedOutputStream::~HttpTransferChunkedOutputStream()
 {
 }
 
-void HttpTransferChunkedOutputStream::write(const char* b, unsigned int length)
-throw(IOException)
+bool HttpTransferChunkedOutputStream::write(const char* b, unsigned int length)
 {
+   bool rval = true;
+   
    if(length > 0)
    {
       // get the chunk-size
       string chunkSize = Convert::intToHex(length);
       
       // write chunk-size
-      mOutputStream->write(chunkSize.c_str(), chunkSize.length());
+      rval &= mOutputStream->write(chunkSize.c_str(), chunkSize.length());
       
       // write CRLF
-      mOutputStream->write(HttpHeader::CRLF, 2);
+      rval &= mOutputStream->write(HttpHeader::CRLF, 2);
       
       // write chunk data
-      mOutputStream->write(b, length);
+      rval &= mOutputStream->write(b, length);
       
       // FIXME: increment content bytes written
       // update http connection content bytes written
       //hwc.setContentBytesWritten(hwc.getContentBytesWritten() + length);
       
       // write CRLF
-      mOutputStream->write(HttpHeader::CRLF, 2);
+      rval &= mOutputStream->write(HttpHeader::CRLF, 2);
    }
+   
+   return rval;
 }
 
-void HttpTransferChunkedOutputStream::close() throw(IOException)
+void HttpTransferChunkedOutputStream::close()
 {
    // write chunk-size of "0"
-   mOutputStream->write('0');
+   char c = '0';
+   mOutputStream->write(&c, 1);
    
    // write CRLF
    mOutputStream->write(HttpHeader::CRLF, 2);

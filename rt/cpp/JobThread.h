@@ -5,7 +5,6 @@
 #define JobThread_H
 
 #include "Thread.h"
-#include "IllegalArgumentException.h"
 
 namespace db
 {
@@ -101,8 +100,7 @@ public:
     *                   is idle in order for it to expire -- if 0 is passed
     *                   then this JobThread will never expire.
     */
-   virtual void setExpireTime(unsigned long long expireTime)
-   throw(IllegalArgumentException);
+   virtual void setExpireTime(unsigned long long expireTime);
    
    /**
     * Gets the expire time for this job thread.

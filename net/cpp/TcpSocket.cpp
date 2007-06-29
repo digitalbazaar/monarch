@@ -19,9 +19,10 @@ TcpSocket::~TcpSocket()
 {
 }
 
-void TcpSocket::acquireFileDescriptor(const string& domain)
-throw(SocketException)
+bool TcpSocket::acquireFileDescriptor(const string& domain)
 {
+   bool rval = true;
+   
    if(mFileDescriptor == -1)
    {
       // use PF_INET = "protocol family internet" (which just so happens to
@@ -30,17 +31,19 @@ throw(SocketException)
       if(domain == "IPv6")
       {
          // use IPv6
-         create(PF_INET6, SOCK_STREAM, IPPROTO_TCP);
+         rval = create(PF_INET6, SOCK_STREAM, IPPROTO_TCP);
       }
       else
       {
          // default to IPv4
-         create(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+         rval = create(PF_INET, SOCK_STREAM, IPPROTO_TCP);
       }
    }
+   
+   return rval;
 }
 
-Socket* TcpSocket::createConnectedSocket(unsigned int fd) throw(SocketException)
+Socket* TcpSocket::createConnectedSocket(unsigned int fd)
 {
    // create a new TcpSocket
    TcpSocket* socket = new TcpSocket();

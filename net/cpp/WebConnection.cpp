@@ -40,12 +40,12 @@ BandwidthThrottler* WebConnection::getBandwidthThrottler(bool read)
    return mConnection->getBandwidthThrottler(read);
 }
 
-const unsigned long long& WebConnection::getBytesRead()
+const unsigned long long WebConnection::getBytesRead()
 {
    return mConnection->getBytesRead();
 }
 
-const unsigned long long& WebConnection::getBytesWritten()
+const unsigned long long WebConnection::getBytesWritten()
 {
    return mConnection->getBytesWritten();
 }
@@ -75,16 +75,14 @@ void WebConnection::close()
    mConnection->close();
 }
 
-void WebConnection::getLocalAddress(InternetAddress* address)
-throw(SocketException)
+SocketException* WebConnection::getLocalAddress(InternetAddress* address)
 {
-   mConnection->getLocalAddress(address);
+   return mConnection->getLocalAddress(address);
 }
 
-void WebConnection::getRemoteAddress(InternetAddress* address)
-throw(SocketException)
+SocketException* WebConnection::getRemoteAddress(InternetAddress* address)
 {
-   mConnection->getRemoteAddress(address);
+   return mConnection->getRemoteAddress(address);
 }
 
 Socket* WebConnection::getSocket()

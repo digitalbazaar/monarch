@@ -213,12 +213,15 @@ public:
    /**
     * Returns true if the current thread has been interrupted, false if not.
     * The interrupted status of the currently executing Thread is cleared when
-    * this method is called. This means that if this method is called twice
-    * in immediate succession, the second call will always return false.
+    * this method is called with the flag set to clear (the default). This
+    * means that if this method is called twice in immediate succession, the
+    * second call will always return false.
     *
+    * @param clear true to clear the interrupted status of the current thread.
+    * 
     * @return true if this Thread has been interrupted, false if not.
     */
-   static bool interrupted();
+   static bool interrupted(bool clear = true);
    
    /**
     * Causes the current thread to sleep for the specified number of
@@ -227,7 +230,7 @@ public:
     * @param time the number of milliseconds to sleep for.
     * 
     * @return an InterruptedException if this Thread is interrupted while
-    *         sleeping, NULL otherwise.
+    *         sleeping, NULL if not.
     */
    static InterruptedException* sleep(unsigned long time);
    
@@ -249,7 +252,7 @@ public:
     *                0 to wait indefinitely.
     * 
     * @return an InterruptedException if this Thread is interrupted while
-    *         sleeping, NULL otherwise.
+    *         sleeping, NULL if not.
     */
    static InterruptedException* waitToEnter(
       Monitor* m, unsigned long timeout = 0);
@@ -260,7 +263,13 @@ public:
     * thread exits or when it is replaced by another call to setException()
     * on the same thread.
     * 
-    * @param e the Exception for this thread.
+    * If no current Thread object can be found, then the passed Exception
+    * will be deleted immediately.
+    * 
+    * It is safe to call Thread::setException(Thread::getException()), no
+    * memory will be mistakenly collected. 
+    * 
+    * @param e the Exception to set for the current thread.
     */
    static void setException(Exception* e);
    
@@ -272,6 +281,19 @@ public:
     * @return the last Exception for the current thread, which may be NULL.
     */
    static Exception* getException();
+   
+   /**
+    * Returns true if the current thread has encountered an Exception that
+    * can be retrieved by calling Thread::getException(), false if not.
+    * 
+    * @return true if the current thread an Exception, false if not.
+    */
+   static bool hasException();
+   
+   /**
+    * Clears any Exception from the current thread.
+    */
+   static void clearException();
 };
 
 } // end namespace rt

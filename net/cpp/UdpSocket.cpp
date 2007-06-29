@@ -10,6 +10,13 @@
 using namespace std;
 using namespace db::io;
 using namespace db::net;
+using namespace db::rt;
+
+// FIXME: this class and others need to have another look taken at
+// their exception code -- this class will fail to send/recv any
+// datagrams when *any* exception is set, when this code should instead
+// probably mirror other code that only checks for the exceptions it
+// cares about
 
 UdpSocket::UdpSocket()
 {
@@ -19,9 +26,10 @@ UdpSocket::~UdpSocket()
 {
 }
 
-void UdpSocket::acquireFileDescriptor(const string& domain)
-throw(SocketException)
+bool UdpSocket::acquireFileDescriptor(const string& domain)
 {
+   bool rval = true;
+   
    if(mFileDescriptor == -1)
    {
       // use PF_INET = "protocol family internet" (which just so happens to
@@ -30,17 +38,19 @@ throw(SocketException)
       if(domain == "IPv6")
       {
          // use IPv6
-         create(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+         rval = create(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
       }
       else
       {
          // default to IPv4
-         create(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+         rval = create(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
       }
    }
+   
+   return rval;
 }
 
-Socket* UdpSocket::createConnectedSocket(unsigned int fd) throw(SocketException)
+Socket* UdpSocket::createConnectedSocket(unsigned int fd)
 {
    // create a new UdpSocket
    UdpSocket* socket = new UdpSocket();
@@ -55,8 +65,7 @@ Socket* UdpSocket::createConnectedSocket(unsigned int fd) throw(SocketException)
    return socket;
 }
 
-void UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
-throw(SocketException)
+bool UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
 {
    int error = 0;
    
@@ -105,11 +114,14 @@ throw(SocketException)
    
    if(error < 0)
    {
-      throw SocketException("Could not join multicast group!", strerror(errno));
+      Thread::setException(new SocketException(
+         "Could not join multicast group!", strerror(errno)));
    }
+   
+   return error == 0;
 }
 
-void UdpSocket::leaveGroup(SocketAddress* group) throw(SocketException)
+bool UdpSocket::leaveGroup(SocketAddress* group)
 {
    int error = 0;
    
@@ -149,81 +161,89 @@ void UdpSocket::leaveGroup(SocketAddress* group) throw(SocketException)
    
    if(error < 0)
    {
-      throw SocketException(
-         "Could not leave multicast group!", strerror(errno));
+      Thread::setException(new SocketException(
+         "Could not leave multicast group!", strerror(errno)));
    }
+   
+   return error == 0;
 }
 
-void UdpSocket::sendDatagram(
+bool UdpSocket::sendDatagram(
    const char* b, unsigned int length, SocketAddress* address)
-throw(IOException)
 {
    if(!isBound())
    {
-      throw SocketException("Cannot write to unbound Socket!");
+      Thread::setException(new SocketException(
+         "Cannot write to unbound Socket!"));
    }
-   
-   // populate address structure
-   unsigned int size = 130;
-   char addr[size];
-   address->toSockAddr((sockaddr*)&addr, size);
-   
-   // send all data (send can fail to send all bytes in one go because the
-   // socket send buffer was full)
-   unsigned int offset = 0;
-   while(length > 0)
+   else
    {
-      // wait for socket to become writable
-      select(false, getSendTimeout());
+      // populate address structure
+      unsigned int size = 130;
+      char addr[size];
+      address->toSockAddr((sockaddr*)&addr, size);
       
-      int bytes = sendto(
-         mFileDescriptor, b + offset, length, 0, (sockaddr*)&addr, size);
-      if(bytes < 0)
+      // send all data (send can fail to send all bytes in one go because the
+      // socket send buffer was full)
+      unsigned int offset = 0;
+      while(length > 0 && !Thread::hasException())
       {
-         throw SocketException("Could not write to Socket!", strerror(errno));
-      }
-      else if(bytes > 0)
-      {
-         offset += bytes;
-         length -= bytes;
+         // wait for socket to become writable
+         if(select(false, getSendTimeout()))
+         {
+            int bytes = ::sendto(
+               mFileDescriptor, b + offset, length, 0, (sockaddr*)&addr, size);
+            if(bytes < 0)
+            {
+               Thread::setException(new SocketException(
+                  "Could not write to Socket!", strerror(errno)));
+            }
+            else if(bytes > 0)
+            {
+               offset += bytes;
+               length -= bytes;
+            }
+         }
       }
    }
+   
+   return !Thread::hasException();
 }
 
 int UdpSocket::receiveDatagram(
    char* b, unsigned int length, SocketAddress* address)
-throw(IOException)
 {
-   int rval = 0;
+   int rval = -1;
    
    if(!isBound())
    {
-      throw SocketException("Cannot read from unbound Socket!");
+      Thread::setException(new SocketException(
+         "Cannot read from unbound Socket!"));
    }
-   
-   // wait for data to become available
-   select(true, getReceiveTimeout());
-   
-   // get address structure
-   socklen_t size = 130;
-   char addr[size];
-   
-   // receive some data
-   rval = recvfrom(mFileDescriptor, b, length, 0, (sockaddr*)&addr, &size);
-   if(rval < -1)
+   else if(select(true, getReceiveTimeout()))
    {
-      throw SocketException("Could not read from Socket!", strerror(errno));
-   }
-   else if(rval != 0 && address != NULL)
-   {
-      // convert socket address
-      address->fromSockAddr((sockaddr*)&addr, size);
+      // get address structure
+      socklen_t size = 130;
+      char addr[size];
+      
+      // receive some data
+      rval = ::recvfrom(mFileDescriptor, b, length, 0, (sockaddr*)&addr, &size);
+      if(rval < -1)
+      {
+         Thread::setException(new SocketException(
+            "Could not read from Socket!", strerror(errno)));
+      }
+      else if(rval != 0 && address != NULL)
+      {
+         // convert socket address
+         address->fromSockAddr((sockaddr*)&addr, size);
+      }
    }
    
    return rval;
 }
 
-void UdpSocket::setMulticastHops(unsigned char hops) throw(SocketException)
+bool UdpSocket::setMulticastHops(unsigned char hops)
 {
    int error = 0;
    
@@ -234,12 +254,14 @@ void UdpSocket::setMulticastHops(unsigned char hops) throw(SocketException)
    
    if(error < 0)
    {
-      throw SocketException("Could not set multicast hops!", strerror(errno));
+      Thread::setException(new SocketException(
+         "Could not set multicast hops!", strerror(errno)));
    }
+   
+   return error == 0;
 }
 
-void UdpSocket::setMulticastTimeToLive(unsigned char ttl)
-throw(SocketException)
+bool UdpSocket::setMulticastTimeToLive(unsigned char ttl)
 {
    int error = 0;
    
@@ -249,11 +271,14 @@ throw(SocketException)
    
    if(error < 0)
    {
-      throw SocketException("Could not set multicast TTL!", strerror(errno));
+      Thread::setException(new SocketException(
+         "Could not set multicast TTL!", strerror(errno)));
    }
+   
+   return error == 0;
 }
 
-void UdpSocket::setBroadcastEnabled(bool enable) throw(SocketException)
+bool UdpSocket::setBroadcastEnabled(bool enable)
 {
    // set broadcast flag
    int broadcast = (enable) ? 1 : 0;
@@ -262,6 +287,9 @@ void UdpSocket::setBroadcastEnabled(bool enable) throw(SocketException)
       (char *)&broadcast, sizeof(broadcast));
    if(error < 0)
    {
-      throw SocketException("Could not set broadcast flag!", strerror(errno));
+      Thread::setException(new SocketException(
+         "Could not set broadcast flag!", strerror(errno)));
    }
+   
+   return error == 0;
 }

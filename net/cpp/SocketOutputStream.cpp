@@ -15,14 +15,8 @@ SocketOutputStream::~SocketOutputStream()
 {
 }
 
-inline void SocketOutputStream::write(const char& b) throw(IOException)
-{
-   write(&b, 1);
-}
-
-inline void SocketOutputStream::write(const char* b, unsigned int length)
-throw(IOException)
+inline bool SocketOutputStream::write(const char* b, unsigned int length)
 {
    // send data through the socket
-   mSocket->send(b, length);
+   return mSocket->send(b, length);
 }

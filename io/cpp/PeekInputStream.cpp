@@ -26,19 +26,7 @@ PeekInputStream::~PeekInputStream()
    }
 }
 
-bool PeekInputStream::read(char& b) throw(IOException)
-{
-   bool rval = false;
-   
-   if(read(&b, 1) != -1)
-   {
-      rval = true;
-   }
-   
-   return rval;
-}
-
-int PeekInputStream::read(char* b, unsigned int length) throw(IOException)
+int PeekInputStream::read(char* b, unsigned int length)
 {
    int rval = -1;
    
@@ -69,7 +57,7 @@ int PeekInputStream::read(char* b, unsigned int length) throw(IOException)
    return rval;
 }
 
-int PeekInputStream::peek(char* b, unsigned int length) throw(IOException)
+int PeekInputStream::peek(char* b, unsigned int length)
 {
    int rval = -1;
    

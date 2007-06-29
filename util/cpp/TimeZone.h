@@ -5,7 +5,6 @@
 #define TimeZone_H
 
 #include "Object.h"
-#include "IllegalArgumentException.h"
 
 #include <string>
 
@@ -54,12 +53,8 @@ public:
     *           the local time zone).
     * 
     * @return the TimeZone for the given abbreviation.
-    * 
-    * @exception IllegalArgumentException thrown if the passed time zone
-    *            abbreviation is invalid.
     */
-   static TimeZone getTimeZone(const std::string& tz = "")
-   throw(db::rt::IllegalArgumentException);
+   static TimeZone getTimeZone(const std::string& tz = "");
 };
 
 } // end namespace util

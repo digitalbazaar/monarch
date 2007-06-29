@@ -112,8 +112,10 @@ unsigned long long BandwidthThrottler::getAvailableBytes()
    return mAvailableBytes;
 }
 
-void BandwidthThrottler::limitBandwidth() throw(InterruptedException)
+InterruptedException* BandwidthThrottler::limitBandwidth()
 {
+   InterruptedException* rval = NULL;
+   
    // update the window time
    updateWindowTime();
 
@@ -122,33 +124,38 @@ void BandwidthThrottler::limitBandwidth() throw(InterruptedException)
    
    // while there aren't any available bytes, sleep for the
    // available byte time
-   while(getAvailableBytes() == 0)
+   while(rval == NULL && getAvailableBytes() == 0)
    {
       // sleep
-      Thread::sleep(getAvailableByteTime());
+      rval = Thread::sleep(getAvailableByteTime());
       
       // update the number of available bytes
       updateAvailableBytes();
    }
+   
+   return rval;
 }
 
-unsigned int BandwidthThrottler::requestBytes(unsigned int count)
-throw(InterruptedException)
+InterruptedException* BandwidthThrottler::requestBytes(
+   unsigned int count, unsigned int& permitted)
 {
-   unsigned int rval = 0;
+   InterruptedException* rval = NULL;
+   
+   // no bytes permitted yet
+   permitted = 0;
    
    lock();
    {
       if(getRateLimit() > 0)
       {
          // limit the bandwidth
-         limitBandwidth();
+         rval = limitBandwidth();
          
          // get the available bytes
-         rval = Math::minimum(getAvailableBytes(), count);
+         permitted = Math::minimum(getAvailableBytes(), count);
          
          // increment the bytes granted
-         mBytesGranted += rval;
+         mBytesGranted += permitted;
          
          // update last request time
          mLastRequestTime = System::getCurrentMilliseconds();
@@ -156,7 +163,7 @@ throw(InterruptedException)
       else
       {
          // no rate limit, return the count
-         rval = count;
+         permitted = count;
       }
    }
    unlock();

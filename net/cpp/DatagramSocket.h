@@ -34,11 +34,11 @@ public:
    /**
     * Binds this Socket to the passed address.
     * 
-    * @param address the InternetAddress to bind to.
+    * @param address the address to bind to.
     * 
-    * @exception SocketException thrown if a socket error occurs.
-    */ 
-   virtual void bind(InternetAddress* address) throw(SocketException);
+    * @return true if bound, false if an exception occurred.
+    */
+   virtual bool bind(InternetAddress* address);   
    
    /**
     * Joins a multicast group with the given address.
@@ -46,29 +46,28 @@ public:
     * @param group the multicast group address.
     * @param localAddress the local address to bind to.
     * 
-    * @exception SocketException thrown if a socket error occurs.
+    * @return true if the join was successful, false if an exception occurred.
     */
-   virtual void joinGroup(
-      InternetAddress* group, InternetAddress* localAddress = NULL)
-   throw(SocketException);
+   virtual bool joinGroup(
+      InternetAddress* group, InternetAddress* localAddress = NULL);
    
    /**
     * Leaves a multicast group with the given address.
     * 
     * @param group the multicast group address.
     * 
-    * @exception SocketException thrown if a socket error occurs.
+    * @return true if the leave was successful, false if an exception occurred.
     */
-   virtual void leaveGroup(InternetAddress* group) throw(SocketException);
+   virtual bool leaveGroup(InternetAddress* group);
    
    /**
     * Sends a Datagram.
     * 
     * @param datagram the Datagram to send.
     * 
-    * @exception IOException thrown if an IO error occurs. 
+    * @return true if the Datagram was sent, false if an exception occurred. 
     */
-   virtual void send(Datagram* datagram) throw(db::io::IOException);
+   virtual bool send(Datagram* datagram);
    
    /**
     * Receives a datagram. This method will block until at least one Datagram
@@ -80,9 +79,9 @@ public:
     * 
     * @param datagram the Datagram to populate.
     * 
-    * @exception IOException thrown if an IO error occurs. 
+    * @return true if a Datagram was received, false if an exception occurred. 
     */
-   virtual void receive(Datagram* datagram) throw(db::io::IOException);
+   virtual bool receive(Datagram* datagram);
    
    /**
     * Sets the IPv6 multicast hops. This is the number of hops a datagram
@@ -92,9 +91,9 @@ public:
     * 
     * @param hops the number of hops to use.
     * 
-    * @exception SocketException if a socket error occurs.
+    * @return true if the hops were set, false if an exception occurred.
     */
-   virtual void setMulticastHops(unsigned char hops) throw(SocketException);
+   virtual bool setMulticastHops(unsigned char hops);
    
    /**
     * Sets the IPv4 multicast time-to-live (TTL). This is the number of hops a
@@ -104,19 +103,18 @@ public:
     * 
     * @param ttl the time-to-live to use.
     * 
-    * @exception SocketException if a socket error occurs.
+    * @return true if the ttl was set, false if an exception occurred.
     */
-   virtual void setMulticastTimeToLive(unsigned char ttl)
-   throw(SocketException);
+   virtual bool setMulticastTimeToLive(unsigned char ttl);
    
    /**
     * Enables/disables broadcasting via this socket.
     * 
     * @param enable true to enable broadcasting, false to disable it.
     * 
-    * @exception SocketException if a socket error occurs.
+    * @return true if broadcasting was set, false if an exception occurred.
     */
-   virtual void setBroadcastEnabled(bool enable) throw(SocketException);
+   virtual bool setBroadcastEnabled(bool enable);   
    
    /**
     * Closes this Socket. This will be done automatically when the Socket is
@@ -143,10 +141,9 @@ public:
     * 
     * @param address the address to populate.
     * 
-    * @exception SocketException if a socket error occurs.
+    * @return true if the address was populated, false if an exception occurred.
     */
-   virtual void getLocalAddress(InternetAddress* address)
-   throw(SocketException);   
+   virtual bool getLocalAddress(InternetAddress* address);
    
    /**
     * Sets the send timeout for this Socket. This is the amount of time that

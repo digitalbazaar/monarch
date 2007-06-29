@@ -20,18 +20,12 @@ FilterOutputStream::~FilterOutputStream()
    }
 }
 
-void FilterOutputStream::write(const char& b) throw(IOException)
+bool FilterOutputStream::write(const char* b, unsigned int length)
 {
-   mOutputStream->write(b);
+   return mOutputStream->write(b, length);
 }
 
-void FilterOutputStream::write(const char* b, unsigned int length)
-throw(IOException)
-{
-   mOutputStream->write(b, length);
-}
-
-void FilterOutputStream::close() throw(IOException)
+void FilterOutputStream::close()
 {
    mOutputStream->close();
 }

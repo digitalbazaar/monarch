@@ -13,51 +13,58 @@ DatagramSocket::~DatagramSocket()
 {
 }
 
-void DatagramSocket::bind(InternetAddress* address) throw(SocketException)
+bool DatagramSocket::bind(InternetAddress* address)
 {
    return UdpSocket::bind(address);
 }
 
-void DatagramSocket::joinGroup(
-   InternetAddress* group, InternetAddress* localAddress) throw(SocketException)
+bool DatagramSocket::joinGroup(
+   InternetAddress* group, InternetAddress* localAddress)
 {
-   UdpSocket::joinGroup(group, localAddress);
+   return UdpSocket::joinGroup(group, localAddress);
 }
 
-void DatagramSocket::leaveGroup(InternetAddress* group) throw(SocketException)
+bool DatagramSocket::leaveGroup(InternetAddress* group)
 {
-   UdpSocket::leaveGroup(group);
+   return UdpSocket::leaveGroup(group);
 }
 
-void DatagramSocket::send(Datagram* datagram) throw(db::io::IOException)
+bool DatagramSocket::send(Datagram* datagram)
 {
    unsigned int length = 0;
    char* data = datagram->getData(length);
-   UdpSocket::sendDatagram(data, length, datagram->getAddress());
+   return UdpSocket::sendDatagram(data, length, datagram->getAddress());
 }
 
-void DatagramSocket::receive(Datagram* datagram) throw(db::io::IOException)
+bool DatagramSocket::receive(Datagram* datagram)
 {
+   bool rval = false;
+   
    unsigned int length = 0;
    char* data = datagram->getData(length);
-   length = UdpSocket::receiveDatagram(data, length, datagram->getAddress());
-   datagram->setLength(length);
+   int size = UdpSocket::receiveDatagram(data, length, datagram->getAddress());
+   if(size != -1)
+   {
+      datagram->setLength(size);
+      rval = true;
+   }
+   
+   return rval;
 }
 
-void DatagramSocket::setMulticastHops(unsigned char hops) throw(SocketException)
+bool DatagramSocket::setMulticastHops(unsigned char hops)
 {
-   UdpSocket::setMulticastHops(hops);
+   return UdpSocket::setMulticastHops(hops);
 }
 
-void DatagramSocket::setMulticastTimeToLive(unsigned char ttl)
-throw(SocketException)
+bool DatagramSocket::setMulticastTimeToLive(unsigned char ttl)
 {
-   UdpSocket::setMulticastTimeToLive(ttl);
+   return UdpSocket::setMulticastTimeToLive(ttl);
 }
 
-void DatagramSocket::setBroadcastEnabled(bool enable) throw(SocketException)
+bool DatagramSocket::setBroadcastEnabled(bool enable)
 {
-   UdpSocket::setBroadcastEnabled(enable);
+   return UdpSocket::setBroadcastEnabled(enable);
 }
 
 void DatagramSocket::close()
@@ -75,10 +82,9 @@ bool DatagramSocket::isConnected()
    return UdpSocket::isConnected();
 }
 
-void DatagramSocket::getLocalAddress(InternetAddress* address)
-throw(SocketException)
+bool DatagramSocket::getLocalAddress(InternetAddress* address)
 {
-   UdpSocket::getLocalAddress(address);
+   return UdpSocket::getLocalAddress(address);
 }
 
 void DatagramSocket::setSendTimeout(unsigned long long timeout)

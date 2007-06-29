@@ -164,17 +164,21 @@ public:
     * Gets the local SocketAddress for this Connection.
     * 
     * @param address the SocketAddress to populate.
+    * 
+    * @return a SocketException if the address could not be obtained, NULL
+    *         otherwise.
     */
-   virtual void getLocalAddress(SocketAddress* address)
-   throw(SocketException);
+   virtual SocketException* getLocalAddress(SocketAddress* address);
    
    /**
     * Gets the remote SocketAddress for this Connection.
     * 
     * @param address the SocketAddress to populate.
+    * 
+    * @return a SocketException if the address could not be obtained, NULL
+    *         otherwise.
     */
-   virtual void getRemoteAddress(SocketAddress* address)
-   throw(SocketException);
+   virtual SocketException* getRemoteAddress(SocketAddress* address);
    
    /**
     * Gets the Socket used by this Connection.

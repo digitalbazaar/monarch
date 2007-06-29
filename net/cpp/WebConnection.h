@@ -97,14 +97,14 @@ public:
     * 
     * @return the total number of bytes read so far.
     */
-   virtual const unsigned long long& getBytesRead();
+   virtual const unsigned long long getBytesRead();
    
    /**
     * Gets the number of bytes written to this WebConnection so far.
     * 
     * @return the number of bytes written so far.
     */
-   virtual const unsigned long long& getBytesWritten();
+   virtual const unsigned long long getBytesWritten();
    
    /**
     * Sets the read timeout for this WebConnection. This is the amount of
@@ -146,17 +146,21 @@ public:
     * Gets the local InternetAddress for this WebConnection.
     * 
     * @param address the InternetAddress to populate.
+    * 
+    * @return a SocketException if the address could not be obtained, NULL
+    *         otherwise.
     */
-   virtual void getLocalAddress(InternetAddress* address)
-   throw(SocketException);
+   virtual SocketException* getLocalAddress(InternetAddress* address);
    
    /**
     * Gets the remote InternetAddress for this WebConnection.
     * 
     * @param address the InternetAddress to populate.
+    * 
+    * @return a SocketException if the address could not be obtained, NULL
+    *         otherwise.
     */
-   virtual void getRemoteAddress(InternetAddress* address)
-   throw(SocketException);
+   virtual SocketException* getRemoteAddress(InternetAddress* address);   
    
    /**
     * Gets the Socket used by this WebConnection.

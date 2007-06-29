@@ -96,13 +96,14 @@ class TestRunnable : public virtual Object, public Runnable
       if(name == "Thread 1")
       {
          cout << "Thread 1 Waiting for interruption..." << endl;
+         InterruptedException* e = NULL;
          
          lock();
          {
             lock();
             lock();
             lock();
-            wait();
+            e = wait();
             unlock();
             unlock();
             unlock();
@@ -111,7 +112,8 @@ class TestRunnable : public virtual Object, public Runnable
          
          if(Thread::interrupted())
          {
-            cout << "Thread 1 Interrupted." << endl;
+            cout << "Thread 1 Interrupted. Exception message="
+                 << e->getMessage() << endl;
          }
          else
          {
@@ -219,97 +221,75 @@ class TestJob : public virtual Object, public Runnable
    }
 };
 
-class TestRunJobThreadPoolTest : public virtual Object, public Runnable
-{
-public:
-   void run()
-   {
-      // create a job thread pool with 10 threads
-      JobThreadPool pool(10);
-      
-      // create jobs
-      TestJob job1;
-      
-      // run jobs
-      pool.runJob(&job1);
-      
-      // wait
-      lock();
-      {
-         cout << "Waiting for jobs to complete..." << endl;
-         wait(100);
-         cout << "Finished waiting for jobs to complete." << endl;
-      }
-      unlock();
-      
-      // terminate all jobs
-      pool.terminateAllThreads();
-   }
-};
-
 void runJobThreadPoolTest()
 {
    cout << "Running JobThreadPool Test" << endl << endl;
    
-   TestRunJobThreadPoolTest runnable;
-   Thread t(&runnable);
-   t.start();
-   t.join();
+   // create a job thread pool with 10 threads
+   JobThreadPool pool(10);
+   
+   // create jobs
+   TestJob job1;
+   
+   // run jobs
+   pool.runJob(&job1);
+   
+   // wait
+   Object lock;
+   lock.lock();
+   {
+      cout << "Waiting for jobs to complete..." << endl;
+      lock.wait(100);
+      cout << "Finished waiting for jobs to complete." << endl;
+   }
+   lock.unlock();
+   
+   // terminate all jobs
+   pool.terminateAllThreads();
    
    cout << endl << "JobThreadPool Test complete." << endl << endl;
 }
-
-class TestRunJobDispatcherTest : public virtual Object, public Runnable
-{
-public:
-   void run()
-   {
-      // create a job dispatcher
-      //JobDispatcher jd;
-      JobThreadPool pool(3);
-      JobDispatcher jd(&pool, false);
-      
-      // create jobs
-      TestJob job1;
-      TestJob job2;
-      TestJob job3;
-      TestJob job4;
-      TestJob job5;
-      TestJob job6;
-      
-      // queue jobs
-      jd.queueJob(&job1);
-      jd.queueJob(&job2);
-      jd.queueJob(&job3);
-      jd.queueJob(&job4);
-      jd.queueJob(&job5);
-      jd.queueJob(&job6);
-      
-      // start dispatching
-      jd.startDispatching();
-      
-      // wait
-      lock();
-      {
-         cout << "Waiting for jobs to complete..." << endl;
-         wait(100);
-         cout << "Finished waiting for jobs to complete." << endl;
-      }
-      unlock();
-      
-      // stop dispatching
-      jd.stopDispatching();      
-   }
-};
 
 void runJobDispatcherTest()
 {
    cout << "Running JobDispatcher Test" << endl << endl;
    
-   TestRunJobDispatcherTest runnable;
-   Thread t(&runnable);
-   t.start();
-   t.join();
+   // create a job dispatcher
+   //JobDispatcher jd;
+   JobThreadPool pool(3);
+   JobDispatcher jd(&pool, false);
+   
+   // create jobs
+   TestJob job1;
+   TestJob job2;
+   TestJob job3;
+   TestJob job4;
+   TestJob job5;
+   TestJob job6;
+   
+   // queue jobs
+   jd.queueJob(&job1);
+   jd.queueJob(&job2);
+   jd.queueJob(&job3);
+   jd.queueJob(&job4);
+   jd.queueJob(&job5);
+   jd.queueJob(&job6);
+   
+   // start dispatching
+   jd.startDispatching();
+   
+   // wait
+   Object lock;
+   lock.lock();
+   {
+      cout << "Waiting for jobs to complete..." << endl;
+      lock.wait(100);
+      cout << "Finished waiting for jobs to complete." << endl;
+   }
+   lock.unlock();
+   
+   // stop dispatching
+   jd.stopDispatching();      
    
    cout << endl << "JobDispatcher Test complete." << endl << endl;
 }
@@ -400,61 +380,67 @@ void runLinuxSocketTest()
 {
    cout << "Running Socket Test" << endl << endl;
    
-   // create tcp socket
-   TcpSocket socket;
-   
    // create address
    //InternetAddress address("127.0.0.1", 80);
    InternetAddress address("www.google.com", 80);
-   cout << "Connecting to: " << address.getAddress() << endl;
    
-   // connect
-   socket.connect(&address);
-   
-   char request[] =
-      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-   socket.send(request, sizeof(request));
-   
-   // set receive timeout (10 seconds = 10000 milliseconds)
-   socket.setReceiveTimeout(10000);
-   
-   char response[2048];
-   int numBytes = 0;
-   string str = "";
-   
-   cout << endl << "DOING A PEEK!" << endl;
-   
-   numBytes = socket.getInputStream()->peek(response, 2048);
-   if(numBytes != -1)
+   // ensure host was known
+   if(!Thread::hasException())
    {
-      cout << "Peeked " << numBytes << " bytes." << endl;
-      string peek = "";
-      peek.append(response, numBytes);
-      cout << "Peek bytes=" << peek << endl;
+      cout << "Connecting to: " << address.getAddress() << endl;
+      
+      // create tcp socket
+      TcpSocket socket;
+      
+      // connect
+      socket.connect(&address);
+      
+      char request[] =
+         "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+      socket.send(request, sizeof(request));
+      
+      // set receive timeout (10 seconds = 10000 milliseconds)
+      socket.setReceiveTimeout(10000);
+      
+      char response[2048];
+      int numBytes = 0;
+      string str = "";
+      
+      cout << endl << "DOING A PEEK!" << endl;
+      
+      numBytes = socket.getInputStream()->peek(response, 2048);
+      if(numBytes != -1)
+      {
+         cout << "Peeked " << numBytes << " bytes." << endl;
+         string peek = "";
+         peek.append(response, numBytes);
+         cout << "Peek bytes=" << peek << endl;
+      }
+      
+      cout << endl << "DOING ACTUAL READ NOW!" << endl;
+      
+      while((numBytes = socket.getInputStream()->read(response, 2048)) != -1)
+      {
+         cout << "numBytes received: " << numBytes << endl;
+         str.append(response, numBytes);
+      }
+      
+   //   char response[2048];
+   //   int numBytes = 0;
+   //   string str = "";
+   //   while((numBytes = socket.receive(response, 0, 2048)) != -1)
+   //   {
+   //      cout << "numBytes received: " << numBytes << endl;
+   //      str.append(response, numBytes);
+   //   }
+      
+      cout << "Response:" << endl << str << endl;
+      
+      // close
+      socket.close();
+      
+      cout << "Socket connection closed." << endl;
    }
-   
-   cout << endl << "DOING ACTUAL READ NOW!" << endl;
-   
-   while((numBytes = socket.getInputStream()->read(response, 2048)) != -1)
-   {
-      cout << "numBytes received: " << numBytes << endl;
-      str.append(response, numBytes);
-   }
-   
-//   char response[2048];
-//   int numBytes = 0;
-//   string str = "";
-//   while((numBytes = socket.receive(response, 0, 2048)) != -1)
-//   {
-//      cout << "numBytes received: " << numBytes << endl;
-//      str.append(response, numBytes);
-//   }
-   
-   // close
-   socket.close();
-   
-   cout << "Socket connection closed." << endl;
-   //cout << "Response:" << endl << str << endl;
    
    cout << endl << "Socket test complete." << endl;
 }
@@ -491,62 +477,67 @@ void runLinuxSslSocketTest()
    // FIXME:
    // seed PRNG
    
-   // create tcp socket
-   TcpSocket socket;
-   
    // create address
    InternetAddress address("127.0.0.1", 443);
    //InternetAddress address("127.0.0.1", 19020);
    //InternetAddress address("www.google.com", 80);
    cout << address.getAddress() << endl;
    
-   // connect
-   socket.connect(&address);
-   
-   // create an SSL context
-   SslContext context;
-   
-   // create an SSL socket
-   SslSocket sslSocket(&context, &socket, true, false);
-   
-   // set receive timeout (10 seconds = 10000 milliseconds)
-   sslSocket.setReceiveTimeout(10000);
-   
-   // perform handshake (automatically happens, this call isn't necessary)
-   //sslSocket.performHandshake();
-   
-   char request[] =
-      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-   sslSocket.send(request, sizeof(request));
-   
-   char response[2048];
-   int numBytes = 0;
-   string str = "";
-   
-   cout << endl << "DOING A PEEK!" << endl;
-   
-   numBytes = sslSocket.getInputStream()->peek(response, 2048);
-   if(numBytes != -1)
+   // ensure host was known
+   if(!Thread::hasException())
    {
-      cout << "Peeked " << numBytes << " bytes." << endl;
-      string peek = "";
-      peek.append(response, numBytes);
-      cout << "Peek bytes=" << peek << endl;
+      // create tcp socket
+      TcpSocket socket;
+      
+      // connect
+      socket.connect(&address);
+      
+      // create an SSL context
+      SslContext context;
+      
+      // create an SSL socket
+      SslSocket sslSocket(&context, &socket, true, false);
+      
+      // set receive timeout (10 seconds = 10000 milliseconds)
+      sslSocket.setReceiveTimeout(10000);
+      
+      // perform handshake (automatically happens, this call isn't necessary)
+      //sslSocket.performHandshake();
+      
+      char request[] =
+         "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+      sslSocket.send(request, sizeof(request));
+      
+      char response[2048];
+      int numBytes = 0;
+      string str = "";
+      
+      cout << endl << "DOING A PEEK!" << endl;
+      
+      numBytes = sslSocket.getInputStream()->peek(response, 2048);
+      if(numBytes != -1)
+      {
+         cout << "Peeked " << numBytes << " bytes." << endl;
+         string peek = "";
+         peek.append(response, numBytes);
+         cout << "Peek bytes=" << peek << endl;
+      }
+      
+      cout << endl << "DOING ACTUAL READ NOW!" << endl;
+      
+      while((numBytes = sslSocket.getInputStream()->read(response, 2048)) != -1)
+      {
+         cout << "numBytes received: " << numBytes << endl;
+         str.append(response, numBytes);
+      }
+      
+      cout << "Response:" << endl << str << endl;
+      
+      // close
+      sslSocket.close();
+      
+      cout << "SSL Socket connection closed." << endl;
    }
-   
-   cout << endl << "DOING ACTUAL READ NOW!" << endl;
-   
-   while((numBytes = sslSocket.getInputStream()->read(response, 2048)) != -1)
-   {
-      cout << "numBytes received: " << numBytes << endl;
-      str.append(response, numBytes);
-   }
-   
-   // close
-   sslSocket.close();
-   
-   cout << "SSL Socket connection closed." << endl;
-   cout << "Response:" << endl << str << endl;
    
    cout << endl << "SSL Socket test complete." << endl;
    
@@ -578,52 +569,81 @@ void runLinuxServerSocketTest()
 {
    cout << "Running Server Socket Test" << endl << endl;
    
-   // create tcp socket
-   TcpSocket socket;
-   
    // bind and listen
    InternetAddress address("127.0.0.1", 1024);
-   socket.bind(&address);
-   socket.listen();
    
-   // accept a connection
-   Socket* worker = socket.accept(10);
-   
-   // set receive timeout (10 seconds = 10000 milliseconds)
-   worker->setReceiveTimeout(10000);
-   
-   char request[2048];
-   int numBytes = 0;
-   string str = "";
-   
-   cout << endl << "DOING A PEEK!" << endl;
-   
-   numBytes = worker->getInputStream()->peek(request, 2048);
-   if(numBytes != -1)
+   // ensure host was known
+   if(!Thread::hasException())
    {
-      cout << "Peeked " << numBytes << " bytes." << endl;
-      string peek = "";
-      peek.append(request, numBytes);
-      cout << "Peek bytes=" << peek << endl;
+      // create tcp socket
+      TcpSocket socket;
+      
+      if(socket.bind(&address))
+      {
+         cout << "Server socket bound..." << endl;
+      }
+      else
+      {
+         cout << "Could not bind server socket!" << endl;
+      }
+      
+      if(socket.listen())
+      {
+         cout << "Listening for a connection..." << endl;
+      }
+      else
+      {
+         cout << "Could not listen with server socket!" << endl;
+      }
+      
+      // accept a connection
+      Socket* worker = socket.accept(10);
+      if(worker != NULL)
+      {
+         cout << "Accepted a connection!" << endl;
+         
+         // set receive timeout (10 seconds = 10000 milliseconds)
+         worker->setReceiveTimeout(10000);
+         
+         char request[2048];
+         int numBytes = 0;
+         string str = "";
+         
+         cout << endl << "DOING A PEEK!" << endl;
+         
+         numBytes = worker->getInputStream()->peek(request, 2048);
+         if(numBytes != -1)
+         {
+            cout << "Peeked " << numBytes << " bytes." << endl;
+            string peek = "";
+            peek.append(request, numBytes);
+            cout << "Peek bytes=" << peek << endl;
+         }
+         
+         cout << endl << "DOING ACTUAL READ NOW!" << endl;
+         
+         while((numBytes = worker->getInputStream()->read(request, 2048)) != -1)
+         {
+            cout << "numBytes received: " << numBytes << endl;
+            str.append(request, numBytes);
+         }
+         
+         cout << "Request:" << endl << str << endl;
+         
+         // close worker socket
+         worker->close();
+         delete worker;
+      }
+      else
+      {
+         cout << "Could not accept a connection!" << endl;
+      }
+      
+      // close server socket
+      socket.close();
+      
+      cout << "Server Socket connection closed." << endl;
    }
-   
-   cout << endl << "DOING ACTUAL READ NOW!" << endl;
-   
-   while((numBytes = worker->getInputStream()->read(request, 2048)) != -1)
-   {
-      cout << "numBytes received: " << numBytes << endl;
-      str.append(request, numBytes);
-   }
-   
-   // close worker socket
-   worker->close();
-   delete worker;
-   
-   // close server socket
-   socket.close();
-   
-   cout << "Server Socket connection closed." << endl;
-   cout << "Request:" << endl << str << endl;
    
    cout << endl << "Server Socket test complete." << endl;
 }
@@ -657,58 +677,87 @@ void runLinuxSslServerSocketTest()
    SSL_load_error_strings();
    OpenSSL_add_all_algorithms();   
    
-   // create tcp socket
-   TcpSocket socket;
-   
    // bind and listen
    InternetAddress address("127.0.0.1", 1024);
-   socket.bind(&address);
-   socket.listen();
    
-   // accept a connection
-   TcpSocket* worker = (TcpSocket*)socket.accept(10);
-   
-   // create an SSL context
-   SslContext context;
-   
-   // create an SSL socket
-   SslSocket sslSocket(&context, worker, false, false);
-   
-   // set receive timeout (10 seconds = 10000 milliseconds)
-   sslSocket.setReceiveTimeout(10000);
-   
-   char request[2048];
-   int numBytes = 0;
-   string str = "";
-   
-   cout << endl << "DOING A PEEK!" << endl;
-   
-   numBytes = worker->getInputStream()->peek(request, 2048);
-   if(numBytes != -1)
+   // ensure host was known
+   if(!Thread::hasException())
    {
-      cout << "Peeked " << numBytes << " bytes." << endl;
-      string peek = "";
-      peek.append(request, numBytes);
-      cout << "Peek bytes=" << peek << endl;
+      // create tcp socket
+      TcpSocket socket;
+      
+      if(socket.bind(&address))
+      {
+         cout << "Server socket bound..." << endl;
+      }
+      else
+      {
+         cout << "Could not bind server socket!" << endl;
+      }
+      
+      if(socket.listen())
+      {
+         cout << "Listening for a connection..." << endl;
+      }
+      else
+      {
+         cout << "Could not listen with server socket!" << endl;
+      }
+      
+      // accept a connection
+      TcpSocket* worker = (TcpSocket*)socket.accept(10);
+      if(worker != NULL)
+      {
+         cout << "Accepted a connection!" << endl;
+         
+         // create an SSL context
+         SslContext context;
+         
+         // create an SSL socket
+         SslSocket sslSocket(&context, worker, false, false);
+         
+         // set receive timeout (10 seconds = 10000 milliseconds)
+         sslSocket.setReceiveTimeout(10000);
+         
+         char request[2048];
+         int numBytes = 0;
+         string str = "";
+         
+         cout << endl << "DOING A PEEK!" << endl;
+         
+         numBytes = worker->getInputStream()->peek(request, 2048);
+         if(numBytes != -1)
+         {
+            cout << "Peeked " << numBytes << " bytes." << endl;
+            string peek = "";
+            peek.append(request, numBytes);
+            cout << "Peek bytes=" << peek << endl;
+         }
+         
+         cout << endl << "DOING ACTUAL READ NOW!" << endl;
+         
+         while((numBytes = sslSocket.getInputStream()->read(request, 2048)) != -1)
+         {
+            cout << "numBytes received: " << numBytes << endl;
+            str.append(request, numBytes);
+         }
+         
+         cout << "Request:" << endl << str << endl;
+         
+         // close ssl socket socket
+         sslSocket.close();
+         delete worker;
+      }
+      else
+      {
+         cout << "Could not accept a connection!" << endl;
+      }
+      
+      // close server socket
+      socket.close();
+      
+      cout << "SSL Server Socket connection closed." << endl;
    }
-   
-   cout << endl << "DOING ACTUAL READ NOW!" << endl;
-   
-   while((numBytes = sslSocket.getInputStream()->read(request, 2048)) != -1)
-   {
-      cout << "numBytes received: " << numBytes << endl;
-      str.append(request, numBytes);
-   }
-   
-   // close ssl socket socket
-   sslSocket.close();
-   delete worker;
-   
-   // close server socket
-   socket.close();
-   
-   cout << "SSL Server Socket connection closed." << endl;
-   cout << "Request:" << endl << str << endl;
    
    cout << endl << "SSL Server Socket test complete." << endl;
    
@@ -745,74 +794,78 @@ void runLinuxTcpClientServerTest()
    //Internet6Address ia("::0", 9999);
    address = &ia;
    
-   // create tcp server and client sockets
-   TcpSocket server;
-   TcpSocket client;
-   
-   // set receive timeouts to 10 seconds
-   server.setReceiveTimeout(10000);
-   client.setReceiveTimeout(10000);
-   
-   // bind and listen with server
-   server.bind(address);
-   server.listen();
-   
-   cout << "Server listening at host: " << address->getHost() << endl;
-   cout << "Server listening at address: " << address->getAddress() << endl;
-   cout << "Server listening on port: " << address->getPort() << endl;
-   
-   // connect with client
-   client.connect(address);
-   
-   cout << "Client connected." << endl;
-   
-   // accept a connection
-   TcpSocket* worker = (TcpSocket*)server.accept(10);
-   
-   cout << "Client connection accepted by Server." << endl;
-   
-   // send some data with client
-   string clientData = "Hello there, Server.";
-   client.getOutputStream()->write(clientData.c_str(), clientData.length());
-   
-   cout << "Client sent: " << clientData << endl;
-   
-   // receive the client data
-   char read[2048];
-   int numBytes = worker->getInputStream()->read(read, 2048);
-   string serverReceived(read, numBytes);
-   
-   cout << "Server received: " << serverReceived << endl;
-   
-   // send some data with server
-   string serverData = "G'day, Client.";
-   worker->getOutputStream()->write(serverData.c_str(), serverData.length());
-   
-   cout << "Server sent: " << serverData << endl;
-   
-   // receive the server data
-   numBytes = client.getInputStream()->read(read, 2048);
-   string clientReceived(read, numBytes);
-   
-   cout << "Client received: " << clientReceived << endl;
-   
-   // close sockets
-   client.close();
-   server.close();
-   
-   // delete worker
-   if(worker != NULL)
+   // ensure host was known
+   if(!Thread::hasException())
    {
-      worker->close();
-      delete worker;
+      // create tcp server and client sockets
+      TcpSocket server;
+      TcpSocket client;
+      
+      // set receive timeouts to 10 seconds
+      server.setReceiveTimeout(10000);
+      client.setReceiveTimeout(10000);
+      
+      // bind and listen with server
+      server.bind(address);
+      server.listen();
+      
+      cout << "Server listening at host: " << address->getHost() << endl;
+      cout << "Server listening at address: " << address->getAddress() << endl;
+      cout << "Server listening on port: " << address->getPort() << endl;
+      
+      // connect with client
+      client.connect(address);
+      
+      cout << "Client connected." << endl;
+      
+      // accept a connection
+      TcpSocket* worker = (TcpSocket*)server.accept(10);
+      
+      cout << "Client connection accepted by Server." << endl;
+      
+      // send some data with client
+      string clientData = "Hello there, Server.";
+      client.getOutputStream()->write(clientData.c_str(), clientData.length());
+      
+      cout << "Client sent: " << clientData << endl;
+      
+      // receive the client data
+      char read[2048];
+      int numBytes = worker->getInputStream()->read(read, 2048);
+      string serverReceived(read, numBytes);
+      
+      cout << "Server received: " << serverReceived << endl;
+      
+      // send some data with server
+      string serverData = "G'day, Client.";
+      worker->getOutputStream()->write(serverData.c_str(), serverData.length());
+      
+      cout << "Server sent: " << serverData << endl;
+      
+      // receive the server data
+      numBytes = client.getInputStream()->read(read, 2048);
+      string clientReceived(read, numBytes);
+      
+      cout << "Client received: " << clientReceived << endl;
+      
+      // close sockets
+      client.close();
+      server.close();
+      
+      // delete worker
+      if(worker != NULL)
+      {
+         worker->close();
+         delete worker;
+      }
+      
+      cout << "Sockets closed." << endl;
    }
-   
-   cout << "Sockets closed." << endl;
    
    cout << endl << "TCP Client/Server test complete." << endl;
 }
 
-void runWindowsTcpClientServerTest(InternetAddress* address)
+void runWindowsTcpClientServerTest()
 {
 // initialize winsock
 #ifdef WIN32
@@ -838,70 +891,74 @@ void runLinuxUdpClientServerTest()
    
    InternetAddress* sa;
    InternetAddress* ca;
-   //InternetAddress serverAddress("127.0.0.1", 9999);
-   //InternetAddress clientAddress("127.0.0.1", 0);
-   Internet6Address serverAddress("::1", 9999);
-   Internet6Address clientAddress("::1", 0);
+   InternetAddress serverAddress("127.0.0.1", 9999);
+   InternetAddress clientAddress("127.0.0.1", 0);
+   //Internet6Address serverAddress("::1", 9999);
+   //Internet6Address clientAddress("::1", 0);
    sa = &serverAddress;
    ca = &clientAddress;
    
-   // create udp server and client sockets
-   UdpSocket server;
-   UdpSocket client;
-   
-   // set receive timeouts to 10 seconds
-   server.setReceiveTimeout(10000);
-   client.setReceiveTimeout(10000);
-   
-   // bind with server
-   server.bind(sa);
-   
-   cout << "Server bound at host: " << sa->getHost() << endl;
-   cout << "Server bound at address: " << sa->getAddress() << endl;
-   cout << "Server bound on port: " << sa->getPort() << endl;
-   
-   // bind with client
-   client.bind(ca);
-   client.getLocalAddress(ca);
-   
-   cout << "Client bound at host: " << ca->getHost() << endl;
-   cout << "Client bound at address: " << ca->getAddress() << endl;
-   cout << "Client bound on port: " << ca->getPort() << endl;
-   
-   // send some data with client
-   string clientData = "Hello there, Server.";
-   client.sendDatagram(clientData.c_str(), clientData.length(), sa);
-   
-   cout << "Client sent: " << clientData << endl;
-   
-   // receive the client data
-   char read[2048];
-   int numBytes = server.receiveDatagram(read, 2048, ca);
-   string serverReceived(read, numBytes);
-   
-   cout << "Server received: " << serverReceived << endl;
-   cout << "Data from: " << ca->getAddress();
-   cout << ":" << ca->getPort() << endl;
-   
-   // send some data with server
-   string serverData = "G'day, Client.";
-   server.sendDatagram(serverData.c_str(), serverData.length(), ca);
-   
-   cout << "Server sent: " << serverData << endl;
-   
-   // receive the server data
-   numBytes = client.receiveDatagram(read, 2048, sa);
-   string clientReceived(read, numBytes);
-   
-   cout << "Client received: " << clientReceived << endl;
-   cout << "Data from: " << sa->getAddress();
-   cout << ":" << sa->getPort() << endl;
-   
-   // close sockets
-   client.close();
-   server.close();
-   
-   cout << "Sockets closed." << endl;
+   // ensure host was known
+   if(!Thread::hasException())
+   {
+      // create udp server and client sockets
+      UdpSocket server;
+      UdpSocket client;
+      
+      // set receive timeouts to 10 seconds
+      server.setReceiveTimeout(10000);
+      client.setReceiveTimeout(10000);
+      
+      // bind with server
+      server.bind(sa);
+      
+      cout << "Server bound at host: " << sa->getHost() << endl;
+      cout << "Server bound at address: " << sa->getAddress() << endl;
+      cout << "Server bound on port: " << sa->getPort() << endl;
+      
+      // bind with client
+      client.bind(ca);
+      client.getLocalAddress(ca);
+      
+      cout << "Client bound at host: " << ca->getHost() << endl;
+      cout << "Client bound at address: " << ca->getAddress() << endl;
+      cout << "Client bound on port: " << ca->getPort() << endl;
+      
+      // send some data with client
+      string clientData = "Hello there, Server.";
+      client.sendDatagram(clientData.c_str(), clientData.length(), sa);
+      
+      cout << "Client sent: " << clientData << endl;
+      
+      // receive the client data
+      char read[2048];
+      int numBytes = server.receiveDatagram(read, 2048, ca);
+      string serverReceived(read, numBytes);
+      
+      cout << "Server received: " << serverReceived << endl;
+      cout << "Data from: " << ca->getAddress();
+      cout << ":" << ca->getPort() << endl;
+      
+      // send some data with server
+      string serverData = "G'day, Client.";
+      server.sendDatagram(serverData.c_str(), serverData.length(), ca);
+      
+      cout << "Server sent: " << serverData << endl;
+      
+      // receive the server data
+      numBytes = client.receiveDatagram(read, 2048, sa);
+      string clientReceived(read, numBytes);
+      
+      cout << "Client received: " << clientReceived << endl;
+      cout << "Data from: " << sa->getAddress();
+      cout << ":" << sa->getPort() << endl;
+      
+      // close sockets
+      client.close();
+      server.close();
+      
+      cout << "Sockets closed." << endl;
+   }
    
    cout << endl << "UDP Client/Server test complete." << endl;
 }
@@ -932,76 +989,80 @@ void runLinuxDatagramTest()
    
    InternetAddress* sa;
    InternetAddress* ca;
-   //InternetAddress serverAddress("127.0.0.1", 9999);
-   //InternetAddress clientAddress("127.0.0.1", 0);
-   Internet6Address serverAddress("::1", 9999);
-   Internet6Address clientAddress("::1", 0);
+   InternetAddress serverAddress("127.0.0.1", 9999);
+   InternetAddress clientAddress("127.0.0.1", 0);
+   //Internet6Address serverAddress("::1", 9999);
+   //Internet6Address clientAddress("::1", 0);
    sa = &serverAddress;
    ca = &clientAddress;
    
-   // create datagram server and client sockets
-   DatagramSocket server;
-   DatagramSocket client;
-   
-   // set receive timeouts to 10 seconds
-   server.setReceiveTimeout(10000);
-   client.setReceiveTimeout(10000);
-   
-   // bind with server
-   server.bind(sa);
-   
-   cout << "Server bound at host: " << sa->getHost() << endl;
-   cout << "Server bound at address: " << sa->getAddress() << endl;
-   cout << "Server bound on port: " << sa->getPort() << endl;
-   
-   // bind with client
-   client.bind(ca);
-   client.getLocalAddress(ca);
-   
-   cout << "Client bound at host: " << ca->getHost() << endl;
-   cout << "Client bound at address: " << ca->getAddress() << endl;
-   cout << "Client bound on port: " << ca->getPort() << endl;
-   
-   // create a datagram
-   Datagram d1(sa);
-   d1.assignString("Hello there, Server.");
-   
-   // send the datagram with the client
-   client.send(&d1);
-   
-   cout << "Client sent: " << d1.getString() << endl;
-   
-   // create a datagram
-   char externalData[2048];
-   Datagram d2(ca);
-   d2.setData(externalData, 2048, false);
-   
-   // receive a datagram
-   server.receive(&d2);
-   
-   cout << "Server received: " << d2.getString() << endl;
-   cout << "Data from: " << d2.getAddress()->getAddress();
-   cout << ":" << d2.getAddress()->getPort() << endl;
-   
-   // send a datagram with the server
-   d2.assignString("G'day, Client.");
-   server.send(&d2);
-   
-   cout << "Server sent: " << d2.getString() << endl;
-   
-   // receive the server datagram
-   Datagram d3(sa, 2048);
-   client.receive(&d3);
-   
-   cout << "Client received: " << d3.getString() << endl;
-   cout << "Data from: " << d3.getAddress()->getAddress();
-   cout << ":" << d3.getAddress()->getPort() << endl;
-   
-   // close sockets
-   client.close();
-   server.close();
-   
-   cout << "Sockets closed." << endl;
+   // ensure host was known
+   if(!Thread::hasException())
+   {
+      // create datagram server and client sockets
+      DatagramSocket server;
+      DatagramSocket client;
+      
+      // set receive timeouts to 10 seconds
+      server.setReceiveTimeout(10000);
+      client.setReceiveTimeout(10000);
+      
+      // bind with server
+      server.bind(sa);
+      
+      cout << "Server bound at host: " << sa->getHost() << endl;
+      cout << "Server bound at address: " << sa->getAddress() << endl;
+      cout << "Server bound on port: " << sa->getPort() << endl;
+      
+      // bind with client
+      client.bind(ca);
+      client.getLocalAddress(ca);
+      
+      cout << "Client bound at host: " << ca->getHost() << endl;
+      cout << "Client bound at address: " << ca->getAddress() << endl;
+      cout << "Client bound on port: " << ca->getPort() << endl;
+      
+      // create a datagram
+      Datagram d1(sa);
+      d1.assignString("Hello there, Server.");
+      
+      // send the datagram with the client
+      client.send(&d1);
+      
+      cout << "Client sent: " << d1.getString() << endl;
+      
+      // create a datagram
+      char externalData[2048];
+      Datagram d2(ca);
+      d2.setData(externalData, 2048, false);
+      
+      // receive a datagram
+      server.receive(&d2);
+      
+      cout << "Server received: " << d2.getString() << endl;
+      cout << "Data from: " << d2.getAddress()->getAddress();
+      cout << ":" << d2.getAddress()->getPort() << endl;
+      
+      // send a datagram with the server
+      d2.assignString("G'day, Client.");
+      server.send(&d2);
+      
+      cout << "Server sent: " << d2.getString() << endl;
+      
+      // receive the server datagram
+      Datagram d3(sa, 2048);
+      client.receive(&d3);
+      
+      cout << "Client received: " << d3.getString() << endl;
+      cout << "Data from: " << d3.getAddress()->getAddress();
+      cout << ":" << d3.getAddress()->getPort() << endl;
+      
+      // close sockets
+      client.close();
+      server.close();
+      
+      cout << "Sockets closed." << endl;
+   }
    
    cout << endl << "Datagram test complete." << endl;
 }
@@ -1111,54 +1172,142 @@ void runAsymmetricKeyLoadingTest()
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
    
-   try
+   // read in PEM private key
+   File file1("/work/src/dbcpp/dbcore/trunk/Debug/private.pem");
+   FileInputStream fis1(&file1);
+   
+   string privatePem = "";
+   
+   char b[2048];
+   int numBytes;
+   while((numBytes = fis1.read(b, 2048)) != -1)
    {
-      // read in PEM private key
-      File file1("/work/src/dbcpp/dbcore/trunk/Debug/private.pem");
-      FileInputStream fis1(&file1);
-      
-      string privatePem = "";
-      
-      char b[2048];
-      int numBytes;
-      while((numBytes = fis1.read(b, 2048)) != -1)
-      {
-         privatePem.append(b, numBytes);
-      }
-      
-      // close stream
-      fis1.close();
-      
-      cout << "Private Key PEM=" << endl << privatePem << endl;
-      
-      // read in PEM public key
-      File file2("/work/src/dbcpp/dbcore/trunk/Debug/public.pem");
-      FileInputStream fis2(&file2);
-      
-      string publicPem = "";
-      
-      while((numBytes = fis2.read(b, 2048)) != -1)
-      {
-         publicPem.append(b, numBytes);
-      }
-      
-      // close stream
-      fis2.close();
-      
-      cout << "Public Key PEM=" << endl << publicPem << endl;
-           
-      // get an asymmetric key factory
-      AsymmetricKeyFactory factory;
-      
-      // load the private key
-      PrivateKey* privateKey = factory.loadPrivateKeyFromPem(
-         privatePem, "password");
-      
+      privatePem.append(b, numBytes);
+   }
+   
+   // close stream
+   fis1.close();
+   
+   cout << "Private Key PEM=" << endl << privatePem << endl;
+   
+   // read in PEM public key
+   File file2("/work/src/dbcpp/dbcore/trunk/Debug/public.pem");
+   FileInputStream fis2(&file2);
+   
+   string publicPem = "";
+   
+   while((numBytes = fis2.read(b, 2048)) != -1)
+   {
+      publicPem.append(b, numBytes);
+   }
+   
+   // close stream
+   fis2.close();
+   
+   cout << "Public Key PEM=" << endl << publicPem << endl;
+        
+   // get an asymmetric key factory
+   AsymmetricKeyFactory factory;
+   
+   // load the private key
+   PrivateKey* privateKey = factory.loadPrivateKeyFromPem(
+      privatePem, "password");
+   
+   cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
+   
+   // load the public key
+   PublicKey* publicKey = factory.loadPublicKeyFromPem(publicPem);
+   
+   cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
+   
+   // sign some data
+   char data[] = {1,2,3,4,5,6,7,8};
+   DigitalSignature* ds1 = privateKey->createSignature();
+   ds1->update(data, 8);
+   
+   // get the signature
+   char sig[ds1->getValueLength()];
+   unsigned int length;
+   ds1->getValue(sig, length);
+   delete ds1;
+   
+   // verify the signature
+   DigitalSignature* ds2 = publicKey->createSignature();
+   ds2->update(data, 8);
+   bool verified = ds2->verify(sig, length);
+   delete ds2;
+   
+   if(verified)
+   {
+      cout << "Digital Signature Verified!" << endl;
+   }
+   else
+   {
+      cout << "Digital Signature NOT VERIFIED!" << endl;
+   }
+   
+   string outPrivatePem =
+      factory.writePrivateKeyToPem(privateKey, "password");
+   string outPublicPem =
+      factory.writePublicKeyToPem(publicKey);
+   
+   cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
+   cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
+   
+   // delete the private key
+   delete privateKey;
+   
+   // delete the public key
+   delete publicKey;
+   
+   cout << endl << "Asymmetric Key Loading test complete." << endl;
+   
+   // clean up crypto strings
+   EVP_cleanup();
+}
+
+void runDsaAsymmetricKeyCreationTest()
+{
+   cout << "Running DSA Asymmetric Key Creation Test" << endl << endl;
+   
+   // include crypto error strings
+   ERR_load_crypto_strings();
+   
+   // add all algorithms
+   OpenSSL_add_all_algorithms();
+   
+   // seed PRNG
+   //RAND_load_file("/dev/urandom", 1024);
+   
+   // get an asymmetric key factory
+   AsymmetricKeyFactory factory;
+   
+   // create a new key pair
+   PrivateKey* privateKey;
+   PublicKey* publicKey;
+   factory.createKeyPair("DSA", &privateKey, &publicKey);
+   
+   if(privateKey != NULL)
+   {
+      cout << "DSA Private Key created!" << endl;
+   }
+   else
+   {
+      cout << "DSA Private Key creation FAILED!" << endl;
+   }
+   
+   if(publicKey != NULL)
+   {
+      cout << "DSA Public Key created!" << endl;
+   }
+   else
+   {
+      cout << "DSA Public Key creation FAILED!" << endl;
+   }
+   
+   if(privateKey != NULL && publicKey != NULL)
+   {
       cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
-      
-      // load the public key
-      PublicKey* publicKey = factory.loadPublicKeyFromPem(publicPem);
-      
       cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
       
       // sign some data
@@ -1194,124 +1343,18 @@ void runAsymmetricKeyLoadingTest()
       
       cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
       cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
-      
-      // delete the private key
+   }
+   
+   // cleanup private key
+   if(privateKey != NULL)
+   {
       delete privateKey;
-      
-      // delete the public key
+   }
+   
+   // cleanup public key
+   if(publicKey != NULL)
+   {
       delete publicKey;
-   }
-   catch(IOException &e)
-   {
-      cout << "IOException caught!" << endl;
-      cout << e.getMessage() << endl;
-      cout << e.getCode() << endl;
-   }
-   
-   cout << endl << "Asymmetric Key Loading test complete." << endl;
-   
-   // clean up crypto strings
-   EVP_cleanup();
-}
-
-void runDsaAsymmetricKeyCreationTest()
-{
-   cout << "Running DSA Asymmetric Key Creation Test" << endl << endl;
-   
-   // include crypto error strings
-   ERR_load_crypto_strings();
-   
-   // add all algorithms
-   OpenSSL_add_all_algorithms();
-   
-   // seed PRNG
-   //RAND_load_file("/dev/urandom", 1024);
-   
-   try
-   {
-      // get an asymmetric key factory
-      AsymmetricKeyFactory factory;
-      
-      // create a new key pair
-      PrivateKey* privateKey;
-      PublicKey* publicKey;
-      factory.createKeyPair("DSA", &privateKey, &publicKey);
-      
-      if(privateKey != NULL)
-      {
-         cout << "DSA Private Key created!" << endl;
-      }
-      else
-      {
-         cout << "DSA Private Key creation FAILED!" << endl;
-      }
-      
-      if(publicKey != NULL)
-      {
-         cout << "DSA Public Key created!" << endl;
-      }
-      else
-      {
-         cout << "DSA Public Key creation FAILED!" << endl;
-      }
-      
-      if(privateKey != NULL && publicKey != NULL)
-      {
-         cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
-         cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
-         
-         // sign some data
-         char data[] = {1,2,3,4,5,6,7,8};
-         DigitalSignature* ds1 = privateKey->createSignature();
-         ds1->update(data, 8);
-         
-         // get the signature
-         char sig[ds1->getValueLength()];
-         unsigned int length;
-         ds1->getValue(sig, length);
-         delete ds1;
-         
-         // verify the signature
-         DigitalSignature* ds2 = publicKey->createSignature();
-         ds2->update(data, 8);
-         bool verified = ds2->verify(sig, length);
-         delete ds2;
-         
-         if(verified)
-         {
-            cout << "Digital Signature Verified!" << endl;
-         }
-         else
-         {
-            cout << "Digital Signature NOT VERIFIED!" << endl;
-         }
-         
-         string outPrivatePem =
-            factory.writePrivateKeyToPem(privateKey, "password");
-         string outPublicPem =
-            factory.writePublicKeyToPem(publicKey);
-         
-         cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-         cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
-      }
-      
-      // cleanup private key
-      if(privateKey != NULL)
-      {
-         delete privateKey;
-      }
-      
-      // cleanup public key
-      if(publicKey != NULL)
-      {
-         delete publicKey;
-      }
-   }
-   catch(Exception &e)
-   {
-      cout << "Exception caught!" << endl;
-      cout << e.getMessage() << endl;
-      cout << e.getCode() << endl;
    }
    
    cout << endl << "DSA Asymmetric Key Creation test complete." << endl;
@@ -1333,91 +1376,82 @@ void runRsaAsymmetricKeyCreationTest()
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
    
-   try
+   // get an asymmetric key factory
+   AsymmetricKeyFactory factory;
+   
+   // create a new key pair
+   PrivateKey* privateKey;
+   PublicKey* publicKey;
+   factory.createKeyPair("RSA", &privateKey, &publicKey);
+   
+   if(privateKey != NULL)
    {
-      // get an asymmetric key factory
-      AsymmetricKeyFactory factory;
-      
-      // create a new key pair
-      PrivateKey* privateKey;
-      PublicKey* publicKey;
-      factory.createKeyPair("RSA", &privateKey, &publicKey);
-      
-      if(privateKey != NULL)
-      {
-         cout << "RSA Private Key created!" << endl;
-      }
-      else
-      {
-         cout << "RSA Private Key creation FAILED!" << endl;
-      }
-      
-      if(publicKey != NULL)
-      {
-         cout << "RSA Public Key created!" << endl;
-      }
-      else
-      {
-         cout << "RSA Public Key creation FAILED!" << endl;
-      }
-      
-      if(privateKey != NULL && publicKey != NULL)
-      {
-         cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
-         cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
-         
-         // sign some data
-         char data[] = {1,2,3,4,5,6,7,8};
-         DigitalSignature* ds1 = privateKey->createSignature();
-         ds1->update(data, 8);
-         
-         // get the signature
-         char sig[ds1->getValueLength()];
-         unsigned int length;
-         ds1->getValue(sig, length);
-         delete ds1;
-         
-         // verify the signature
-         DigitalSignature* ds2 = publicKey->createSignature();
-         ds2->update(data, 8);
-         bool verified = ds2->verify(sig, length);
-         delete ds2;
-         
-         if(verified)
-         {
-            cout << "Digital Signature Verified!" << endl;
-         }
-         else
-         {
-            cout << "Digital Signature NOT VERIFIED!" << endl;
-         }
-         
-         string outPrivatePem =
-            factory.writePrivateKeyToPem(privateKey, "password");
-         string outPublicPem =
-            factory.writePublicKeyToPem(publicKey);
-         
-         cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-         cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
-      }
-      
-      // cleanup private key
-      if(privateKey != NULL)
-      {
-         delete privateKey;
-      }
-      
-      // cleanup public key
-      if(publicKey != NULL)
-      {
-         delete publicKey;
-      }
+      cout << "RSA Private Key created!" << endl;
    }
-   catch(Exception &e)
+   else
    {
-      cout << "Exception caught!" << endl;
-      cout << e.getMessage() << endl;
-      cout << e.getCode() << endl;
+      cout << "RSA Private Key creation FAILED!" << endl;
+   }
+   
+   if(publicKey != NULL)
+   {
+      cout << "RSA Public Key created!" << endl;
+   }
+   else
+   {
+      cout << "RSA Public Key creation FAILED!" << endl;
+   }
+   
+   if(privateKey != NULL && publicKey != NULL)
+   {
+      cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
+      cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
+      
+      // sign some data
+      char data[] = {1,2,3,4,5,6,7,8};
+      DigitalSignature* ds1 = privateKey->createSignature();
+      ds1->update(data, 8);
+      
+      // get the signature
+      char sig[ds1->getValueLength()];
+      unsigned int length;
+      ds1->getValue(sig, length);
+      delete ds1;
+      
+      // verify the signature
+      DigitalSignature* ds2 = publicKey->createSignature();
+      ds2->update(data, 8);
+      bool verified = ds2->verify(sig, length);
+      delete ds2;
+      
+      if(verified)
+      {
+         cout << "Digital Signature Verified!" << endl;
+      }
+      else
+      {
+         cout << "Digital Signature NOT VERIFIED!" << endl;
+      }
+      
+      string outPrivatePem =
+         factory.writePrivateKeyToPem(privateKey, "password");
+      string outPublicPem =
+         factory.writePublicKeyToPem(publicKey);
+      
+      cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
+      cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
+   }
+   
+   // cleanup private key
+   if(privateKey != NULL)
+   {
+      delete privateKey;
+   }
+   
+   // cleanup public key
+   if(publicKey != NULL)
+   {
+      delete publicKey;
    }
    
    cout << endl << "RSA Asymmetric Key Creation test complete." << endl;
@@ -1439,108 +1473,90 @@ void runEnvelopeTest(const std::string& algorithm)
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
    
-   try
+   // get an asymmetric key factory
+   AsymmetricKeyFactory factory;
+   
+   // create a new key pair
+   PrivateKey* privateKey;
+   PublicKey* publicKey;
+   factory.createKeyPair("RSA", &privateKey, &publicKey);
+   
+   if(privateKey != NULL && publicKey != NULL)
    {
-      // get an asymmetric key factory
-      AsymmetricKeyFactory factory;
+      // create a secret message
+      char message[] =
+         "This is a confidential message. For British Eyes Only.";
+      int length = strlen(message);
       
-      // create a new key pair
-      PrivateKey* privateKey;
-      PublicKey* publicKey;
-      factory.createKeyPair("RSA", &privateKey, &publicKey);
+      string display1 = "";
+      display1.append(message, length);
+      cout << "Sending message '" << display1 << "'" << endl;
+      cout << "Message Length=" << length << endl;
       
-      if(privateKey != NULL && publicKey != NULL)
-      {
-         try
-         {
-            // create a secret message
-            char message[] =
-               "This is a confidential message. For British Eyes Only.";
-            int length = strlen(message);
-            
-            string display1 = "";
-            display1.append(message, length);
-            cout << "Sending message '" << display1 << "'" << endl;
-            cout << "Message Length=" << length << endl;
-            
-            // create an outgoing envelope
-            SymmetricKey* secretKey;
-            DigitalEnvelope* outEnv = publicKey->createEnvelope(
-               "AES256", &secretKey);
-            cout << "Created outgoing envelope..." << endl;
-            
-            // update the envelope
-            char output[2048];
-            int outLength;
-            int totalOut = 0;
-            outEnv->update(message, length, output, outLength);
-            cout << "Updated outgoing envelope..." << endl;
-            totalOut += outLength;
-            
-            // finish the envelope
-            cout << "Output Length=" << outLength << endl;
-            outEnv->finish(output + outLength, outLength);
-            cout << "Finished sealing outgoing envelope..." << endl;
-            totalOut += outLength;
-            
-            cout << "Total Output Length=" << totalOut << endl;
-            
-            // create an incoming envelope
-            DigitalEnvelope* inEnv = privateKey->createEnvelope(secretKey);
-            cout << "Created incoming envelope..." << endl;
-            
-            // update the envelope
-            char input[2048];
-            int inLength;
-            int totalIn = 0;
-            inEnv->update(output, totalOut, input, inLength);
-            cout << "Updated incoming envelope..." << endl;
-            totalIn += inLength;
-            
-            // finish the envelope
-            cout << "Input Length=" << inLength << endl;
-            inEnv->finish(input + inLength, inLength);
-            cout << "Finished opening incoming envelope..." << endl;
-            totalIn += inLength;
-            
-            cout << "Total Input Length=" << totalIn << endl;
-            
-            // create a string to display the received message
-            string display2 = "";
-            display2.append(input, totalIn);
-            
-            cout << "Received message '" << display2 << "'" << endl;
-            
-            // delete envelopes and key
-            delete secretKey;
-            delete outEnv;
-            delete inEnv;
-         }
-         catch(IOException &e)
-         {
-            cout << "IOException caught in envelope method!" << endl;
-            cout << "message: " << e.getMessage() << endl;
-            cout << "code: " << e.getCode() << endl;
-         }
-      }
+      // create an outgoing envelope
+      SymmetricKey* secretKey;
+      DigitalEnvelope* outEnv = publicKey->createEnvelope(
+         "AES256", &secretKey);
+      cout << "Created outgoing envelope..." << endl;
       
-      // cleanup private key
-      if(privateKey != NULL)
-      {
-         delete privateKey;
-      }
+      // update the envelope
+      char output[2048];
+      int outLength;
+      int totalOut = 0;
+      outEnv->update(message, length, output, outLength);
+      cout << "Updated outgoing envelope..." << endl;
+      totalOut += outLength;
       
-      // cleanup public key
-      if(publicKey != NULL)
-      {
-         delete publicKey;
-      }
+      // finish the envelope
+      cout << "Output Length=" << outLength << endl;
+      outEnv->finish(output + outLength, outLength);
+      cout << "Finished sealing outgoing envelope..." << endl;
+      totalOut += outLength;
+      
+      cout << "Total Output Length=" << totalOut << endl;
+      
+      // create an incoming envelope
+      DigitalEnvelope* inEnv = privateKey->createEnvelope(secretKey);
+      cout << "Created incoming envelope..." << endl;
+      
+      // update the envelope
+      char input[2048];
+      int inLength;
+      int totalIn = 0;
+      inEnv->update(output, totalOut, input, inLength);
+      cout << "Updated incoming envelope..." << endl;
+      totalIn += inLength;
+      
+      // finish the envelope
+      cout << "Input Length=" << inLength << endl;
+      inEnv->finish(input + inLength, inLength);
+      cout << "Finished opening incoming envelope..." << endl;
+      totalIn += inLength;
+      
+      cout << "Total Input Length=" << totalIn << endl;
+      
+      // create a string to display the received message
+      string display2 = "";
+      display2.append(input, totalIn);
+      
+      cout << "Received message '" << display2 << "'" << endl;
+      
+      // delete envelopes and key
+      delete secretKey;
+      delete outEnv;
+      delete inEnv;
    }
-   catch(Exception &e)
+   
+   // cleanup private key
+   if(privateKey != NULL)
    {
-      cout << "Exception caught!" << endl;
-      cout << e.getMessage() << endl;
-      cout << e.getCode() << endl;
+      delete privateKey;
+   }
+   
+   // cleanup public key
+   if(publicKey != NULL)
+   {
+      delete publicKey;
    }
    
    cout << endl << algorithm << " Envelope test complete." << endl;
@@ -1562,81 +1578,72 @@ void runCipherTest(const string& algorithm)
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
    
-   try
+   // create a secret message
+   char message[] = "I'll never teelllll!";
+   int length = strlen(message);
+   
+   string display1 = "";
+   display1.append(message, length);
+   cout << "Encrypting message '" << display1 << "'" << endl;
+   cout << "Message Length=" << length << endl;
+   
+   // get a default block cipher
+   DefaultBlockCipher cipher;
+   
+   cout << "Starting encryption..." << endl;
+   
+   // generate a new key for the encryption
+   SymmetricKey* key = NULL;
+   cipher.startEncrypting(algorithm, &key);
+   
+   if(key != NULL)
    {
-      // create a secret message
-      char message[] = "I'll never teelllll!";
-      int length = strlen(message);
+      // update encryption
+      char output[2048];
+      int outLength;
+      int totalOut = 0;
+      cipher.update(message, length, output, outLength);
+      cout << "Updated encryption..." << endl;
+      totalOut += outLength;
       
-      string display1 = "";
-      display1.append(message, length);
-      cout << "Encrypting message '" << display1 << "'" << endl;
-      cout << "Message Length=" << length << endl;
+      // finish the envelope
+      cout << "Output Length=" << outLength << endl;
+      cipher.finish(output + outLength, outLength);
+      cout << "Finished encryption..." << endl;
+      totalOut += outLength;
       
-      // get a default block cipher
-      DefaultBlockCipher cipher;
+      cout << "Total Output Length=" << totalOut << endl;
       
-      cout << "Starting encryption..." << endl;
+      cout << "Starting decryption..." << endl;
+      cipher.startDecrypting(key);
       
-      // generate a new key for the encryption
-      SymmetricKey* key = NULL;
-      cipher.startEncrypting(algorithm, &key);
+      // update the decryption
+      char input[2048];
+      int inLength;
+      int totalIn = 0;
+      cipher.update(output, totalOut, input, inLength);
+      cout << "Updated decryption..." << endl;
+      totalIn += inLength;
       
-      if(key != NULL)
-      {
-         // update encryption
-         char output[2048];
-         int outLength;
-         int totalOut = 0;
-         cipher.update(message, length, output, outLength);
-         cout << "Updated encryption..." << endl;
-         totalOut += outLength;
-         
-         // finish the envelope
-         cout << "Output Length=" << outLength << endl;
-         cipher.finish(output + outLength, outLength);
-         cout << "Finished encryption..." << endl;
-         totalOut += outLength;
-         
-         cout << "Total Output Length=" << totalOut << endl;
-         
-         cout << "Starting decryption..." << endl;
-         cipher.startDecrypting(key);
-         
-         // update the decryption
-         char input[2048];
-         int inLength;
-         int totalIn = 0;
-         cipher.update(output, totalOut, input, inLength);
-         cout << "Updated decryption..." << endl;
-         totalIn += inLength;
-         
-         // finish the decryption
-         cout << "Input Length=" << inLength << endl;
-         cipher.finish(input + inLength, inLength);
-         cout << "Finished decrypting..." << endl;
-         totalIn += inLength;
-         
-         cout << "Total Input Length=" << totalIn << endl;
-         
-         // create a string to display the received message
-         string display2 = "";
-         display2.append(input, totalIn);
-         
-         cout << "Decrypted message '" << display2 << "'" << endl;
-      }
+      // finish the decryption
+      cout << "Input Length=" << inLength << endl;
+      cipher.finish(input + inLength, inLength);
+      cout << "Finished decrypting..." << endl;
+      totalIn += inLength;
       
-      // cleanup key
-      if(key != NULL)
-      {
-         delete key;
-      }
+      cout << "Total Input Length=" << totalIn << endl;
+      
+      // create a string to display the received message
+      string display2 = "";
+      display2.append(input, totalIn);
+      
+      cout << "Decrypted message '" << display2 << "'" << endl;
    }
-   catch(Exception &e)
+   
+   // cleanup key
+   if(key != NULL)
    {
-      cout << "Exception caught!" << endl;
-      cout << e.getMessage() << endl;
-      cout << e.getCode() << endl;
+      delete key;
    }
    
    cout << endl << algorithm << " Cipher test complete." << endl;
@@ -1731,15 +1738,19 @@ void runUrlTest()
    
    Url url("http://www.bitmunk.com/mypath?variable1=test");
    
-   string str;
-   url.toString(str);
-   
-   cout << "url=" << str << endl;
-   cout << "scheme=" << url.getScheme() << endl;
-   cout << "scheme specific part=" << url.getSchemeSpecificPart() << endl;
-   cout << "authority=" << url.getAuthority() << endl;
-   cout << "path=" << url.getPath() << endl;
-   cout << "query=" << url.getQuery() << endl;
+   // ensure URL was valid
+   if(!Thread::hasException())
+   {
+      string str;
+      url.toString(str);
+      
+      cout << "url=" << str << endl;
+      cout << "scheme=" << url.getScheme() << endl;
+      cout << "scheme specific part=" << url.getSchemeSpecificPart() << endl;
+      cout << "authority=" << url.getAuthority() << endl;
+      cout << "path=" << url.getPath() << endl;
+      cout << "query=" << url.getQuery() << endl;
+   }
    
    cout << endl << "Url test complete." << endl;
 }
@@ -1856,17 +1867,22 @@ void runHttpHeaderTest()
    cout << endl << "HttpHeader test complete." << endl;
 }
 
-int main()
+class RunTests : public virtual Object, public Runnable
 {
-   cout << "Tests starting..." << endl << endl;
-   
-   try
+public:
+   /**
+    * Runs the unit tests.
+    */
+   virtual void run()
    {
+      cout << "Tests starting..." << endl << endl;
+      
       //runBase64Test();
       //runTimeTest();
       //runThreadTest();
+      // FIXME: need to add runSemaphoreTest()
       //runJobThreadPoolTest();
-      runJobDispatcherTest();
+      //runJobDispatcherTest();
       //runWindowsAddressResolveTest();
       //runLinuxAddressResolveTest();
       //runWindowsSocketTest();
@@ -1881,7 +1897,7 @@ int main()
       //runLinuxTcpClientServerTest();
       //runWindowsUdpClientServerTest();
       //runLinuxUdpClientServerTest();
-      //runWindowsDatagramTest();
+      runWindowsDatagramTest();
       //runLinuxDatagramTest();
       //runMessageDigestTest();
       //runCrcTest();
@@ -1897,29 +1913,25 @@ int main()
       //runRegexTest();
       //runDateTest();
       //runHttpHeaderTest();
+      
+      cout << endl << "Tests finished." << endl;
+      
+      if(Thread::hasException())
+      {
+         Exception* e = Thread::getException();
+         cout << "Exception occurred!" << endl;
+         cout << "message: " << e->getMessage() << endl;
+         cout << "code: " << e->getCode() << endl;
+      }
    }
-   catch(SocketException& e)
-   {
-      cout << "SocketException caught!" << endl;
-      cout << "message: " << e.getMessage() << endl;
-      cout << "code: " << e.getCode() << endl;
-   }
-   catch(UnsupportedAlgorithmException& e)
-   {
-      cout << "UnsupportedAlgorithmException caught!" << endl;
-      cout << "message: " << e.getMessage() << endl;
-      cout << "code: " << e.getCode() << endl;
-   }
-   catch(Exception &e)
-   {
-      cout << "Exception caught!" << endl;
-      cout << "message: " << e.getMessage() << endl;
-      cout << "code: " << e.getCode() << endl;
-   }
-   catch(...)
-   {
-      cout << "Exception caught!" << endl;
-   }
+};
+
+int main()
+{
+   RunTests runnable;
+   Thread t(&runnable);
+   t.start();
+   t.join();
    
-   cout << endl << "Tests finished." << endl;
+   return 0;
 }

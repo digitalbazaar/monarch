@@ -56,18 +56,26 @@ protected:
    
 public:
    /**
-    * Creates a new Url from the passed string.
-    * 
+    * Creates a new Url from the passed string. An exception may be raised
+    * if the url is malformed.
+    *
     * @param url the string to create this Url from.
-    * 
-    * @exception MalformedUrlException thrown if the URL is malformed.
     */
-   Url(const std::string& url) throw(MalformedUrlException);
+   Url(const std::string& url);
    
    /**
     * Destructs this Url.
     */
    virtual ~Url();
+   
+   /**
+    * Sets this Url to the passed string.
+    * 
+    * @param url the string to create this Url from.
+    * 
+    * @return a MalformedUrlException if the URL is malformed, NULL if not.
+    */
+   virtual MalformedUrlException* setUrl(const std::string& url);
    
    /**
     * Gets the scheme for this url.

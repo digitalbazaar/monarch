@@ -66,9 +66,9 @@ public:
     * 
     * @param header the header to send.
     * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return an IOException if an IO error occurs, NULL if not.
     */
-   virtual void sendHeader(HttpHeader* header) throw(db::io::IOException);
+   virtual db::io::IOException* sendHeader(HttpHeader* header);
    
    /**
     * Receives a message header. This method will block until the entire
@@ -76,9 +76,9 @@ public:
     * 
     * @param header the header to populate.
     * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return an IOException if an IO error occurs, NULL if not.
     */
-   virtual void receiveHeader(HttpHeader* header) throw(db::io::IOException);
+   virtual db::io::IOException* receiveHeader(HttpHeader* header);
    
    /**
     * Sends the message body for the given header. This method will block
@@ -87,10 +87,10 @@ public:
     * @param header the header to send the message body for.
     * @param is the InputStream to read the body from.
     * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return an IOException if an IO error occurs, NULL if not.
     */
-   virtual void sendBody(HttpHeader* header, db::io::InputStream* is)
-   throw(db::io::IOException);
+   virtual db::io::IOException* sendBody(
+      HttpHeader* header, db::io::InputStream* is);
    
    /**
     * Receives the message body for the given header. This method will block
@@ -99,10 +99,10 @@ public:
     * @param header the header to receive the message body for.
     * @param os the OutputStream to write the body to.
     * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return an IOException if an IO error occurs, NULL if not.
     */
-   virtual void receiveBody(HttpHeader* header, db::io::OutputStream* os)
-   throw(db::io::IOException);
+   virtual db::io::IOException* receiveBody(
+      HttpHeader* header, db::io::OutputStream* os);
    
    /**
     * Sets the total number of content bytes read from this HttpConnection so

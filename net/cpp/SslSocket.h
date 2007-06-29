@@ -70,20 +70,18 @@ protected:
     * SSL read BIO. This method will block until at least one byte can be
     * read or until the end of the stream is reached (the Socket has closed).
     * 
-    * @return the number of bytes read or -1 if the end of the stream has
-    *         been reached (the Socket has closed).
-    * 
-    * @exception IOException thrown if an IO error occurs. 
+    * @return the number of bytes read or -1 if the end of the stream has been
+    *         reached (the Socket has closed) or an exception occurred.
     */
-   virtual int tcpRead() throw(db::io::IOException);
+   virtual int tcpRead();
    
    /**
     * Flushes the data from the SSL write BIO to the underlying TCP Socket.
     * This method will block until all of the data has been written.
     * 
-    * @exception IOException thrown if an IO error occurs. 
+    * @return true if the write was successful, false if an exception occurred.
     */
-   virtual void tcpWrite() throw(db::io::IOException);
+   virtual bool tcpWrite();
    
 public:
    /**
@@ -118,12 +116,14 @@ public:
     * does not *need* to be called. It can be called if an explicit handshake
     * is desired.
     * 
-    * @exception SocketException thrown if a socket error occurs.
+    * @return true if the handshake was successful, false if an exception
+    *         occurred.
     */
-   virtual void performHandshake() throw(db::io::IOException);
+   virtual bool performHandshake();
    
    /**
-    * Writes raw data to this Socket.
+    * Writes raw data to this Socket. This method will block until all of
+    * the data has been written.
     * 
     * Note: This method is *not* preferred. Use getOutputStream() to obtain the
     * output stream for this Socket.
@@ -131,10 +131,9 @@ public:
     * @param b the array of bytes to write.
     * @param length the number of bytes to write to the stream.
     * 
-    * @exception IOException thrown if an IO error occurs. 
+    * @return true if the data was sent, false if an exception occurred.
     */
-   virtual void send(const char* b, unsigned int length)
-   throw(db::io::IOException);
+   virtual bool send(const char* b, unsigned int length);
    
    /**
     * Reads raw data from this Socket. This method will block until at least
@@ -150,11 +149,10 @@ public:
     * @param length the maximum number of bytes to read into the buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
-    *         stream (the Socket has closed) has been reached.
-    * 
-    * @exception IOException thrown if an IO error occurs. 
+    *         stream (the Socket has closed) has been reached or an error
+    *         occurred.
     */
-   virtual int receive(char* b, unsigned int length) throw(db::io::IOException);
+   virtual int receive(char* b, unsigned int length);   
    
    /**
     * Gets the InputStream for reading from this Socket.

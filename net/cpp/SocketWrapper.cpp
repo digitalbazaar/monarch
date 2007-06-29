@@ -31,33 +31,32 @@ Socket* SocketWrapper::getSocket()
    return mSocket;
 }
 
-void SocketWrapper::bind(SocketAddress* address) throw(SocketException)
+bool SocketWrapper::bind(SocketAddress* address)
 {
-   getSocket()->bind(address);
+   return getSocket()->bind(address);
 }
 
-void SocketWrapper::listen(unsigned int backlog) throw(SocketException)
+bool SocketWrapper::listen(unsigned int backlog)
 {
-   getSocket()->listen(backlog);
+   return getSocket()->listen(backlog);
 }
 
-Socket* SocketWrapper::accept(unsigned int timeout) throw(SocketException)
+Socket* SocketWrapper::accept(unsigned int timeout)
 {
    return getSocket()->accept(timeout);
 }
 
-void SocketWrapper::connect(SocketAddress* address, unsigned int timeout)
-throw(SocketException)
+bool SocketWrapper::connect(SocketAddress* address, unsigned int timeout)
 {
-   getSocket()->connect(address, timeout);
+   return getSocket()->connect(address, timeout);
 }
 
-void SocketWrapper::send(const char* b, unsigned int length) throw(IOException)
+bool SocketWrapper::send(const char* b, unsigned int length)
 {
-   getSocket()->send(b, length);
+   return getSocket()->send(b, length);
 }
 
-int SocketWrapper::receive(char* b, unsigned int length) throw(IOException)
+int SocketWrapper::receive(char* b, unsigned int length)
 {
    return getSocket()->receive(b, length);
 }
@@ -82,16 +81,14 @@ bool SocketWrapper::isConnected()
    return getSocket()->isConnected();
 }
 
-void SocketWrapper::getLocalAddress(SocketAddress* address)
-throw(SocketException)
+bool SocketWrapper::getLocalAddress(SocketAddress* address)
 {
-   getSocket()->getLocalAddress(address);
+   return getSocket()->getLocalAddress(address);
 }
 
-void SocketWrapper::getRemoteAddress(SocketAddress* address)
-throw(SocketException)   
+bool SocketWrapper::getRemoteAddress(SocketAddress* address)
 {
-   getSocket()->getRemoteAddress(address);
+   return getSocket()->getRemoteAddress(address);
 }
 
 InputStream* SocketWrapper::getInputStream()

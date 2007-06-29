@@ -20,28 +20,22 @@ FilterInputStream::~FilterInputStream()
    }
 }
 
-bool FilterInputStream::read(char& b) throw(IOException)
-{
-   return mInputStream->read(b);
-}
-
-int FilterInputStream::read(char* b, unsigned int length) throw(IOException)
+int FilterInputStream::read(char* b, unsigned int length)
 {
    return mInputStream->read(b, length);
 }
 
-int FilterInputStream::peek(char* b, unsigned int length) throw(IOException)
+int FilterInputStream::peek(char* b, unsigned int length)
 {
    return mInputStream->peek(b, length);
 }
 
-unsigned long FilterInputStream::skip(unsigned long count)
-throw(IOException)
+long FilterInputStream::skip(long count)
 {
    return mInputStream->skip(count);
 }
 
-void FilterInputStream::close() throw(IOException)
+void FilterInputStream::close()
 {
    mInputStream->close();
 }

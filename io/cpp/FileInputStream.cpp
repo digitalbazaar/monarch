@@ -5,18 +5,12 @@
 
 using namespace std;
 using namespace db::io;
+using namespace db::rt;
 
-FileInputStream::FileInputStream(File* file) throw(IOException)
+FileInputStream::FileInputStream(File* file)
 {
    // store file
    mFile = file;
-   
-   // try to open the file
-   mStream.open(file->getName().c_str(), ios::in | ios::binary);
-   if(!mStream.is_open())
-   {
-      throw IOException("Could not open file '" + mFile->getName() + "'!");
-   }
 }
 
 FileInputStream::~FileInputStream()
@@ -28,34 +22,30 @@ FileInputStream::~FileInputStream()
    }
 }
 
-bool FileInputStream::read(char& b) throw(IOException)
+bool FileInputStream::ensureOpen()
 {
-   bool rval = false;
+   bool rval = true;
    
-   if(!mStream.eof())
+   // try to open the file
+   if(!mStream.is_open())
    {
-      // do read
-      mStream.read(&b, 1);
-      
-      // see if a failure other than EOF occurred
-      if(mStream.fail() && !mStream.eof())
+      mStream.open(mFile->getName().c_str(), ios::in | ios::binary);
+      if(!mStream.is_open())
       {
-         throw IOException(
-            "Could not read from file '" + mFile->getName() + "'!");
+         rval = false;
+         Thread::setException(new IOException(
+            "Could not open file '" + mFile->getName() + "'!"));
       }
-      
-      // read successful, not end of stream yet
-      rval = true;
    }
    
    return rval;
 }
 
-int FileInputStream::read(char* b, unsigned int length) throw(IOException)
+int FileInputStream::read(char* b, unsigned int length)
 {
    int rval = -1;
    
-   if(!mStream.eof())
+   if(ensureOpen() && !mStream.eof())
    {
       // do read
       mStream.read(b, length);
@@ -66,10 +56,9 @@ int FileInputStream::read(char* b, unsigned int length) throw(IOException)
          throw IOException(
             "Could not read from file '" + mFile->getName() + "'!");
       }
-      
-      // get the number of bytes read
-      if(mStream.gcount() > 0)
+      else if(mStream.gcount() > 0)
       {
+         // get the number of bytes read
          rval = mStream.gcount();
       }
    }
@@ -77,7 +66,7 @@ int FileInputStream::read(char* b, unsigned int length) throw(IOException)
    return rval;
 }
 
-void FileInputStream::close() throw(IOException)
+void FileInputStream::close()
 {
    // close the stream
    mStream.close();

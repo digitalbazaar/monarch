@@ -3,7 +3,6 @@
  */
 #include "Connection.h"
 #include "Math.h"
-#include "Thread.h"
 
 using namespace std;
 using namespace db::io;
@@ -21,59 +20,43 @@ ConnectionInputStream::~ConnectionInputStream()
 {
 }
 
-bool ConnectionInputStream::read(char& b) throw(IOException)
+int ConnectionInputStream::read(char* b, unsigned int length)
 {
-   bool rval = false;
-   
-   if(read(&b, 1) != -1)
-   {
-      rval = true;
-   }
-   
-   return rval;
-}
-
-int ConnectionInputStream::read(char* b, unsigned int length) throw(IOException)
-{
-   // get the current thread
-   Thread* thread = Thread::currentThread();
-   
-   // check for an interruption
-   if(thread != NULL && thread->isInterrupted())
-   {
-      throw InterruptedException("Connection read interrupted!");
-   }
+   int rval = -1;
    
    // throttle the read as appropriate
    BandwidthThrottler* bt = mConnection->getBandwidthThrottler(true);
    if(bt != NULL)
    {
-      length = bt->requestBytes(length);
+      bt->requestBytes(length, length);
    }
    
-   // read from the socket input stream
-   int numBytes = mConnection->getSocket()->getInputStream()->read(b, length);
-   if(numBytes > 0)
+   if(!Thread::interrupted(false))
    {
-      // update bytes read (reset as necessary)
-      if(mBytesRead > Math::HALF_MAX_LONG_VALUE)
+      // read from the socket input stream
+      rval = mConnection->getSocket()->getInputStream()->read(b, length);
+      if(rval > 0)
       {
-         mBytesRead = 0;
+         // update bytes read (reset as necessary)
+         if(mBytesRead > Math::HALF_MAX_LONG_VALUE)
+         {
+            mBytesRead = 0;
+         }
+         
+         mBytesRead += rval;
       }
-      
-      mBytesRead += numBytes;
    }
    
-   return numBytes;
+   return rval;
 }
 
-bool ConnectionInputStream::readLine(string& line) throw(IOException)
+bool ConnectionInputStream::readLine(string& line)
 {
    bool rval = false;
    
    // read one character at a time
    char c;
-   while(read(c) && c != '\n')
+   while(read(&c, 1) && c != '\n')
    {
       // see if the character is a carriage return
       if(c == '\r')
@@ -82,7 +65,7 @@ bool ConnectionInputStream::readLine(string& line) throw(IOException)
          if(peek(&c, 1) != -1 && c == '\n')
          {
             // read the character in and discard it
-            read(c);
+            read(&c, 1);
          }
          
          // set character to an eol since a carriage return is treated the same
@@ -101,14 +84,14 @@ bool ConnectionInputStream::readLine(string& line) throw(IOException)
    return rval;
 }
 
-bool ConnectionInputStream::readCrlf(string& line) throw(IOException)
+bool ConnectionInputStream::readCrlf(string& line)
 {
    bool rval = false;
    
    // read one character at a time until a CRLF is found
    bool found = false;
    char c, p;
-   while(!found && read(c))
+   while(!found && read(&c, 1))
    {
       // see if the character is a carriage return
       if(c == '\r')
@@ -117,7 +100,7 @@ bool ConnectionInputStream::readCrlf(string& line) throw(IOException)
          if(peek(&p, 1) != -1 && p == '\n')
          {
             // read the character in and discard it
-            read(p);
+            read(&p, 1);
             
             // CRLF found
             found = true;
@@ -137,13 +120,13 @@ bool ConnectionInputStream::readCrlf(string& line) throw(IOException)
    return rval;
 }
 
-int ConnectionInputStream::peek(char* b, unsigned int length) throw(IOException)
+int ConnectionInputStream::peek(char* b, unsigned int length)
 {
    // peek using socket input stream
    return mConnection->getSocket()->getInputStream()->peek(b, length);
 }
 
-void ConnectionInputStream::close() throw(IOException)
+void ConnectionInputStream::close()
 {
    // close socket input stream
    mConnection->getSocket()->getInputStream()->close();

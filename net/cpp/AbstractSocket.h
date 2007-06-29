@@ -23,7 +23,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class AbstractSocket : public virtual db::rt::Object, public Socket
+class AbstractSocket : public Socket
 {
 protected:
    /**
@@ -80,10 +80,10 @@ protected:
     * @param protocol the protocol for the Socket
     *                 (i.e. IPPROTO_TCP or IPPROTO_UDP).
     * 
-    * @exception SocketException thrown if the Socket could not be created.
+    * @return true if the socket could be created, false if an exception
+    *         occurred.
     */
-   virtual void create(int domain, int type, int protocol)
-   throw(SocketException);
+   virtual bool create(int domain, int type, int protocol);
    
    /**
     * Blocks until data is available for receiving, the socket can be
@@ -93,10 +93,9 @@ protected:
     *             until data can be sent.
     * @param timeout the timeout to use in milliseconds (0 for no timeout).
     * 
-    * @exception SocketException thrown if a socket error occurs.
+    * @return false if an exception occurred, false if not.
     */
-   virtual void select(bool read, unsigned long long timeout)
-   throw(SocketException);
+   virtual bool select(bool read, unsigned long long timeout);
    
    /**
     * Acquiring a file descriptor for this Socket. This method must be called
@@ -106,11 +105,10 @@ protected:
     * 
     * @param domain the communication domain for this Socket (i.e. IPv4, IPv6).
     * 
-    * @exception SocketException thrown if a file descriptor could not be
-    *            acquired.
+    * @return true if the file descriptor could be acquired, false if
+    *         an exception occurred.
     */
-   virtual void acquireFileDescriptor(const std::string& domain)
-   throw(SocketException) = 0;
+   virtual bool acquireFileDescriptor(const std::string& domain) = 0;
    
    /**
     * Initializes the input stream for this Socket, if it is not already
@@ -122,10 +120,9 @@ protected:
     * 
     * This method is called automatically by the default implementation.
     * 
-    * @exception SocketException thrown if the input stream could not be
-    *            initialized.
+    * @return true if no exception occurred, false if not.
     */
-   virtual void initializeInput() throw(SocketException);
+   virtual bool initializeInput();
    
    /**
     * Initializes the output stream for this Socket, if it is not already
@@ -134,10 +131,9 @@ protected:
     * 
     * This method is called automatically by the default implementation.
     * 
-    * @exception SocketException thrown if the output stream could not be
-    *            initialized.
+    * @return true if no exception occurred, false if not.
     */
-   virtual void initializeOutput() throw(SocketException);
+   virtual bool initializeOutput();
    
    /**
     * Shuts down the input stream for this Socket, if it is currently
@@ -145,10 +141,9 @@ protected:
     * 
     * This method is called automatically by the default implementation.
     * 
-    * @exception SocketException thrown if the input stream could not be
-    *            shutdown.
+    * @return true if no exception occurred, false if not. 
     */
-   virtual void shutdownInput() throw(SocketException);
+   virtual bool shutdownInput();
    
    /**
     * Shuts down the output stream for this Socket, if it is currently
@@ -156,10 +151,9 @@ protected:
     * 
     * This method is called automatically by the default implementation.
     * 
-    * @exception SocketException thrown if the output stream could not be
-    *            shutdown.
+    * @return true if no exception occurred, false if not.
     */
-   virtual void shutdownOutput() throw(SocketException);
+   virtual bool shutdownOutput();
    
    /**
     * Creates a new Socket with the given file descriptor that points to
@@ -167,12 +161,9 @@ protected:
     * 
     * @param fd the file descriptor for the socket.
     * 
-    * @return the allocated Socket.
-    * 
-    * @exception SocketException thrown if a socket error occurs.
+    * @return the allocated connected Socket.
     */
-   virtual Socket* createConnectedSocket(unsigned int fd)
-   throw(SocketException) = 0;
+   virtual Socket* createConnectedSocket(unsigned int fd) = 0;
    
 public:
    /**
@@ -190,35 +181,32 @@ public:
     * 
     * @param address the address to bind to.
     * 
-    * @exception SocketException thrown if a socket error occurs.
+    * @return true if bound, false if an exception occurred.
     */
-   virtual void bind(SocketAddress* address) throw(SocketException);
+   virtual bool bind(SocketAddress* address);
    
    /**
     * Causes this Socket to start listening for incoming connections.
     * 
     * @param backlog the number of connections to keep backlogged.
     * 
-    * @exception SocketException thrown if a socket error occurs.
+    * @return true if listening, false if an exception occurred.
     */
-   virtual void listen(unsigned int backlog = 50) throw(SocketException);
+   virtual bool listen(unsigned int backlog = 50);
    
    /**
     * Accepts a connection to this Socket. This method will block until a
-    * connection is made to this Socket. If this socket is 
+    * connection is made to this Socket. 
     * 
-    * The passed socket will be initialized to the file descriptor that points
-    * to the socket that can be used to communicate with the connected socket.
+    * The returned Socket will wrap the file descriptor that is used to
+    * communicated with the connected socket.
     * 
-    * @param socket the socket to use to communicate with the connected socket.
     * @param timeout the timeout, in seconds, 0 for no timeout.
     * 
-    * @return a new Socket that controls the socket that can be used to
-    *         communicate with the connected socket.
-    * 
-    * @exception SocketException thrown if a socket error occurs.
+    * @return an allocated Socket to use to communicate with the connected
+    *         socket or NULL if an error occurs.
     */
-   virtual Socket* accept(unsigned int timeout) throw(SocketException);
+   virtual Socket* accept(unsigned int timeout);
    
    /**
     * Connects this Socket to the given address.
@@ -226,10 +214,9 @@ public:
     * @param address the address to connect to.
     * @param timeout the timeout, in seconds, 0 for no timeout.
     * 
-    * @exception SocketException thrown if a socket error occurs.
+    * @return true if no exception occurred, false if an exception occurred.
     */
-   virtual void connect(SocketAddress* address, unsigned int timeout = 30)
-   throw(SocketException);
+   virtual bool connect(SocketAddress* address, unsigned int timeout = 30);
    
    /**
     * Writes raw data to this Socket. This method will block until all of
@@ -241,10 +228,9 @@ public:
     * @param b the array of bytes to write.
     * @param length the number of bytes to write to the stream.
     * 
-    * @exception IOException thrown if an IO error occurs. 
+    * @return true if the data was sent, false if an exception occurred.
     */
-   virtual void send(const char* b, unsigned int length)
-   throw(db::io::IOException);
+   virtual bool send(const char* b, unsigned int length);
    
    /**
     * Reads raw data from this Socket. This method will block until at least
@@ -260,11 +246,10 @@ public:
     * @param length the maximum number of bytes to read into the buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
-    *         stream (the Socket has closed) has been reached.
-    * 
-    * @exception IOException thrown if an IO error occurs. 
+    *         stream (the Socket has closed) has been reached or an error
+    *         occurred.
     */
-   virtual int receive(char* b, unsigned int length) throw(db::io::IOException);
+   virtual int receive(char* b, unsigned int length);
    
    /**
     * Closes this Socket. This will be done automatically when the Socket is
@@ -298,18 +283,18 @@ public:
     * 
     * @param address the SocketAddress to populate.
     * 
-    * @exception SocketException if a socket error occurs.
+    * @return true if the address was populated, false if an exception occurred.
     */
-   virtual void getLocalAddress(SocketAddress* address) throw(SocketException);
+   virtual bool getLocalAddress(SocketAddress* address);
    
    /**
     * Gets the remote SocketAddress for this Socket.
     * 
     * @param address the SocketAddress to populate.
     * 
-    * @exception SocketException if a socket error occurs.
+    * @return true if the address was populated, false if an exception occurred.
     */
-   virtual void getRemoteAddress(SocketAddress* address) throw(SocketException);
+   virtual bool getRemoteAddress(SocketAddress* address);
    
    /**
     * Gets the InputStream for reading from this Socket.

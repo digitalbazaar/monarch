@@ -41,35 +41,43 @@ AbstractSocket::~AbstractSocket()
    close();
 }
 
-void AbstractSocket::create(int domain, int type, int protocol)
-throw(SocketException)
+bool AbstractSocket::create(int domain, int type, int protocol)
 {
+   bool rval = false;
+   
    int fd = socket(domain, type, protocol);
-   if(fd < 0)
+   if(fd >= 0)
    {
-      throw SocketException("Could not create Socket!", strerror(errno));
+      // set reuse address flag
+      // disables "address already in use" errors by reclaiming ports that
+      // are waiting to be cleaned up
+      int reuse = 1;
+      int error = setsockopt(
+         fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
+      if(error < 0)
+      {
+         // close socket
+         close();
+         
+         Thread::setException(new SocketException(
+            "Could not create Socket!", strerror(errno)));
+      }
+      else
+      {
+         mFileDescriptor = fd;
+         rval = true;
+      }
+   }
+   else
+   {
+      Thread::setException(new SocketException(
+         "Could not create Socket!", strerror(errno)));
    }
    
-   // set reuse address flag
-   // disables "address already in use" errors by reclaiming ports that
-   // are waiting to be cleaned up
-   int reuse = 1;
-   int error = setsockopt(
-      fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
-   if(error < 0)
-   {
-      // close socket
-      close();
-      
-      // throw exception
-      throw SocketException("Could not create Socket!", strerror(errno));
-   }
-   
-   mFileDescriptor = fd;
+   return rval;
 }
 
-void AbstractSocket::select(bool read, unsigned long long timeout)
-throw(SocketException)
+bool AbstractSocket::select(bool read, unsigned long long timeout)
 {
    // get the current thread
    Thread* thread = Thread::currentThread();
@@ -77,312 +85,358 @@ throw(SocketException)
    {
       if(read)
       {
-         throw InterruptedException("Socket read interrupted!");
+         Thread::setException(new InterruptedException(
+            "Socket read interrupted!"));
       }
       else
       {
-         throw InterruptedException("Socket write interrupted!");
+         Thread::setException(new InterruptedException(
+            "Socket write interrupted!"));
       }
    }
    
-   // create a file descriptor set to select on
-   fd_set fds;
-   FD_ZERO(&fds);
-   
-   // add file descriptor to set
-   FD_SET((unsigned int)mFileDescriptor, &fds);
-   
-   // "n" parameter is the highest numbered descriptor plus 1
-   int n = mFileDescriptor + 1;
-   
-   // create timeout
-   struct timeval* tv = NULL;
-   struct timeval to;
-   if(timeout > 0)
+   if(!Thread::hasException())
    {
-      // set timeout (1 millisecond is 1000 microseconds) 
-      to.tv_sec = timeout / 1000LL;
-      to.tv_usec = (timeout % 1000LL) * 1000LL;
-      tv = &to;
-   }
-   
-   int error;
-   if(read)
-   {
-      // wait for data to arrive for reading or for an exception
-      error = ::select(n, &fds, NULL, &fds, tv);
-   }
-   else
-   {
-      // wait for writability or for an exception
-      error = ::select(n, NULL, &fds, &fds, tv);
-   }
-   
-   if(error < 0)
-   {
-      if(errno == EINTR)
+      // create a file descriptor set to select on
+      fd_set fds;
+      FD_ZERO(&fds);
+      
+      // add file descriptor to set
+      FD_SET((unsigned int)mFileDescriptor, &fds);
+      
+      // "n" parameter is the highest numbered descriptor plus 1
+      int n = mFileDescriptor + 1;
+      
+      // create timeout
+      struct timeval* tv = NULL;
+      struct timeval to;
+      if(timeout > 0)
       {
+         // set timeout (1 millisecond is 1000 microseconds) 
+         to.tv_sec = timeout / 1000LL;
+         to.tv_usec = (timeout % 1000LL) * 1000LL;
+         tv = &to;
+      }
+      
+      int error;
+      if(read)
+      {
+         // wait for data to arrive for reading or for an exception
+         error = ::select(n, &fds, NULL, &fds, tv);
+      }
+      else
+      {
+         // wait for writability or for an exception
+         error = ::select(n, NULL, &fds, &fds, tv);
+      }
+      
+      if(error < 0)
+      {
+         if(errno == EINTR)
+         {
+            // ensure thread is interrupted
+            Thread::currentThread()->interrupt();
+            
+            if(read)
+            {
+               // interrupted exception
+               Thread::setException(new InterruptedException(
+                  "Socket read interrupted!", strerror(errno)));
+            }
+            else
+            {
+               // interrupted exception
+               Thread::setException(new InterruptedException(
+                  "Socket write interrupted!", strerror(errno)));
+            }
+         }
+         
          if(read)
          {
-            // throw interrupted exception
-            throw InterruptedException(
-               "Socket read interrupted!", strerror(errno));
+            // error occurred, get string message
+            Thread::setException(new SocketException(
+               "Could not read from Socket!", strerror(errno)));
          }
          else
          {
-            // throw interrupted exception
-            throw InterruptedException(
-               "Socket write interrupted!", strerror(errno));
+            // error occurred, get string message
+            Thread::setException(new SocketException(
+               "Could not write to Socket!", strerror(errno)));
          }
       }
-      
-      if(read)
+      else if(error == 0)
       {
-         // error occurred, get string message
-         throw SocketException("Could not read from Socket!", strerror(errno));
-      }
-      else
-      {
-         // error occurred, get string message
-         throw SocketException("Could not write to Socket!", strerror(errno));
-      }
-   }
-   else if(error == 0)
-   {
-      if(read)
-      {
-         // read timeout occurred
-         throw SocketTimeoutException(
-            "Socket read timed out!", strerror(errno));
-      }
-      else
-      {
-         // write timeout occurred
-         throw SocketTimeoutException(
-            "Socket write timed out!", strerror(errno));
+         if(read)
+         {
+            // read timeout occurred
+            Thread::setException(new SocketTimeoutException(
+               "Socket read timed out!", strerror(errno)));
+         }
+         else
+         {
+            // write timeout occurred
+            Thread::setException(new SocketTimeoutException(
+               "Socket write timed out!", strerror(errno)));
+         }
       }
    }
+   
+   return !Thread::hasException();
 }
 
-void AbstractSocket::initializeInput() throw(SocketException)
+bool AbstractSocket::initializeInput()
 {
    if(mInputStream == NULL)
    {
       // create input stream
       mInputStream = new PeekInputStream(new SocketInputStream(this), true);
    }
+   
+   return true;
 }
 
-void AbstractSocket::initializeOutput() throw(SocketException)
+bool AbstractSocket::initializeOutput()
 {
    if(mOutputStream == NULL)
    {
       // create output stream
       mOutputStream = new SocketOutputStream(this);
    }
+   
+   return true;
 }
 
-void AbstractSocket::shutdownInput() throw(SocketException)
+bool AbstractSocket::shutdownInput()
 {
    // delete input stream
    if(mInputStream == NULL)
    {
       delete mInputStream;
    }
+   
+   return true;
 }
 
-void AbstractSocket::shutdownOutput() throw(SocketException)
+bool AbstractSocket::shutdownOutput()
 {
    // delete output stream
    if(mOutputStream == NULL)
    {
       delete mOutputStream;
    }
+   
+   return true;
 }
 
-void AbstractSocket::bind(SocketAddress* address) throw(SocketException)
+bool AbstractSocket::bind(SocketAddress* address)
 {
    // acquire file descriptor
-   acquireFileDescriptor(address->getProtocol());
-   
-   // populate address structure
-   unsigned int size = 130;
-   char addr[size];
-   address->toSockAddr((sockaddr*)&addr, size);
-   
-   // bind
-   int error = ::bind(mFileDescriptor, (sockaddr*)&addr, size);
-   if(error < 0)
+   if(acquireFileDescriptor(address->getProtocol()))
    {
-      throw new SocketException("Could not bind Socket!", strerror(errno));
+      // populate address structure
+      unsigned int size = 130;
+      char addr[size];
+      address->toSockAddr((sockaddr*)&addr, size);
+      
+      // bind
+      int error = ::bind(mFileDescriptor, (sockaddr*)&addr, size);
+      if(error < 0)
+      {
+         Thread::setException(new SocketException(
+            "Could not bind Socket!", strerror(errno)));
+      }
+      else
+      {
+         // initialize input and output
+         initializeInput();
+         initializeOutput();
+         
+         // now bound
+         mBound = true;
+      }
    }
    
-   // initialize input and output
-   initializeInput();
-   initializeOutput();
-   
-   // now bound
-   mBound = true;
+   return mBound;
 }
 
-void AbstractSocket::listen(unsigned int backlog) throw(SocketException)
+bool AbstractSocket::listen(unsigned int backlog)
 {
    if(!isBound())
    {
-      // throw exception
-      throw SocketException("Cannot listen on unbound Socket!"); 
+      Thread::setException(new SocketException(
+         "Cannot listen on unbound Socket!")); 
    }
-   
-   // set backlog
-   mBacklog = backlog;
-   
-   // listen
-   int error = ::listen(mFileDescriptor, backlog);
-   if(error < 0)
+   else
    {
-      throw SocketException("Could not listen on Socket!", strerror(errno));
+      // set backlog
+      mBacklog = backlog;
+      
+      // listen
+      int error = ::listen(mFileDescriptor, backlog);
+      if(error < 0)
+      {
+         Thread::setException(new SocketException(
+            "Could not listen on Socket!", strerror(errno)));
+      }
+      else
+      {
+         // now listening
+         mListening = true;
+      }
    }
    
-   // now listening
-   mListening = true;
+   return mListening;
 }
 
-Socket* AbstractSocket::accept(unsigned int timeout) throw(SocketException)
+Socket* AbstractSocket::accept(unsigned int timeout)
 {
+   Socket* rval = NULL;
+   
    if(!isListening())
    {
-      throw SocketException("Cannot accept with a non-listening Socket!");
+      Thread::setException(new SocketException(
+         "Cannot accept with a non-listening Socket!"));
    }
-   
-   // wait for a connection
-   select(true, timeout * 1000LL);
-   
-   // accept a connection
-   int fd = ::accept(mFileDescriptor, NULL, NULL);
-   if(fd < 0)
+   else
    {
-      throw SocketException("Could not accept connection!", strerror(errno));
+      // wait for a connection
+      if(select(true, timeout * 1000LL))
+      {
+         // accept a connection
+         int fd = ::accept(mFileDescriptor, NULL, NULL);
+         if(fd < 0)
+         {
+            Thread::setException(new SocketException(
+               "Could not accept connection!", strerror(errno)));
+         }
+         else
+         {
+            // create a connected Socket
+            rval = createConnectedSocket(fd);
+         }
+      }
    }
    
-   // create a connected Socket
-   return createConnectedSocket(fd);
+   return rval;
 }
 
-void AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
-throw(SocketException)
+bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
 {
    // acquire file descriptor
-   acquireFileDescriptor(address->getProtocol());
-   
-   // populate address structure
-   unsigned int size = 130;
-   char addr[size];
-   address->toSockAddr((sockaddr*)&addr, size);
-   
-   // make socket non-blocking temporarily
-   fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
-   
-   // connect
-   int error = ::connect(mFileDescriptor, (sockaddr*)addr, size);
-   
-   if(error < 0)
+   if(acquireFileDescriptor(address->getProtocol()))
    {
-      try
+      // populate address structure
+      unsigned int size = 130;
+      char addr[size];
+      address->toSockAddr((sockaddr*)&addr, size);
+      
+      // make socket non-blocking temporarily
+      fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
+      
+      // connect
+      int error = ::connect(mFileDescriptor, (sockaddr*)addr, size);
+      
+      if(error < 0)
       {
          // wait until the connection can be written to
-         select(false, timeout * 1000LL);
-      }
-      catch(SocketTimeoutException &e)
-      {
-         // restore socket to blocking
-         fcntl(mFileDescriptor, F_SETFL, 0);
-         
-         // throw exception
-         throw SocketTimeoutException(
-            "Socket connection timed out!", e.getCode());
+         if(select(false, timeout * 1000LL))
+         {
+            // get the last error on the socket
+            int lastError;
+            socklen_t lastErrorLength = sizeof(lastError);
+            getsockopt(
+               mFileDescriptor, SOL_SOCKET, SO_ERROR,
+               (char*)&lastError, &lastErrorLength);
+            if(lastError != 0)
+            {
+               Thread::setException(new SocketException(
+                  "Could not connect Socket! Connection refused.",
+                  strerror(lastError)));
+            }
+         }
       }
       
-      // get the last error on the socket
-      int lastError;
-      socklen_t lastErrorLength = sizeof(lastError);
-      getsockopt(
-         mFileDescriptor, SOL_SOCKET, SO_ERROR,
-         (char*)&lastError, &lastErrorLength);
-      if(lastError != 0)
+      // restore socket to blocking
+      fcntl(mFileDescriptor, F_SETFL, 0);
+      
+      if(!Thread::hasException())
       {
-         // restore socket to blocking
-         fcntl(mFileDescriptor, F_SETFL, 0);
+         // initialize input and output
+         initializeInput();
+         initializeOutput();
          
-         // throw exception
-         throw SocketException(
-            "Could not connect Socket! Connection refused.",
-            strerror(lastError));
+         // now connected and bound
+         mBound = true;
+         mConnected = true;
       }
    }
    
-   // restore socket to blocking
-   fcntl(mFileDescriptor, F_SETFL, 0);
-   
-   // initialize input and output
-   initializeInput();
-   initializeOutput();
-   
-   // now connected and bound
-   mBound = true;
-   mConnected = true;
+   return mConnected;
 }
 
-void AbstractSocket::send(const char* b, unsigned int length) throw(IOException)
+bool AbstractSocket::send(const char* b, unsigned int length)
 {
    if(!isBound())
    {
-      throw SocketException("Cannot write to unbound Socket!");
+      Thread::setException(new SocketException(
+         "Cannot write to unbound Socket!"));
+   }
+   else
+   {
+      // send all data (send can fail to send all bytes in one go because the
+      // socket send buffer was full)
+      unsigned int offset = 0;
+      while(!Thread::hasException() && length > 0)
+      {
+         // wait for socket to become writable
+         if(select(false, getSendTimeout()))
+         {
+            // send some data
+            int bytes = ::send(mFileDescriptor, b + offset, length, 0);
+            if(bytes < 0)
+            {
+               Thread::setException(new SocketException(
+                  "Could not write to Socket!", strerror(errno)));
+            }
+            else if(bytes > 0)
+            {
+               offset += bytes;
+               length -= bytes;
+            }
+         }
+      }
    }
    
-   // send all data (send can fail to send all bytes in one go because the
-   // socket send buffer was full)
-   unsigned int offset = 0;
-   while(length > 0)
-   {
-      // wait for socket to become writable
-      select(false, getSendTimeout());
-      
-      // send some data
-      int bytes = ::send(mFileDescriptor, b + offset, length, 0);
-      if(bytes < 0)
-      {
-         throw SocketException("Could not write to Socket!", strerror(errno));
-      }
-      else if(bytes > 0)
-      {
-         offset += bytes;
-         length -= bytes;
-      }
-   }
+   return !Thread::hasException();
 }
 
-int AbstractSocket::receive(char* b, unsigned int length) throw(IOException)
+int AbstractSocket::receive(char* b, unsigned int length)
 {
    int rval = -1;
    
    if(!isBound())
    {
-      throw SocketException("Cannot read from unbound Socket!");
+      Thread::setException(new SocketException(
+         "Cannot read from unbound Socket!"));
    }
-   
-   // wait for data to become available
-   select(true, getReceiveTimeout());
-   
-   // receive some data
-   rval = ::recv(mFileDescriptor, b, length, 0);
-   if(rval < -1)
+   else
    {
-      throw SocketException("Could not read from Socket!", strerror(errno));
-   }
-   else if(rval == 0)
-   {
-      // socket is closed now
-      rval = -1;
+      // wait for data to become available
+      if(select(true, getReceiveTimeout()))
+      {
+         // receive some data
+         rval = ::recv(mFileDescriptor, b, length, 0);
+         if(rval < -1)
+         {
+            Thread::setException(new SocketException(
+               "Could not read from Socket!", strerror(errno)));
+         }
+         else if(rval == 0)
+         {
+            // socket is closed now
+            rval = -1;
+         }
+      }
    }
    
    return rval;
@@ -424,53 +478,62 @@ bool AbstractSocket::isConnected()
    return mConnected;
 }
 
-void AbstractSocket::getLocalAddress(SocketAddress* address)
-throw(SocketException)
+bool AbstractSocket::getLocalAddress(SocketAddress* address)
 {
    if(!isBound())
    {
-      throw SocketException("Cannot get local address for an unbound Socket!");
+      Thread::setException(new SocketException(
+         "Cannot get local address for an unbound Socket!"));
    }
-   
-   // get address structure
-   socklen_t size = 130;
-   char addr[size];
-   
-   // get local information
-   int error = getsockname(mFileDescriptor, (sockaddr*)&addr, &size);
-   if(error < 0)
+   else
    {
-      throw SocketException(
-         "Could not get Socket local address!", strerror(errno));
+      // get address structure
+      socklen_t size = 130;
+      char addr[size];
+      
+      // get local information
+      int error = getsockname(mFileDescriptor, (sockaddr*)&addr, &size);
+      if(error < 0)
+      {
+         Thread::setException(new SocketException(
+            "Could not get Socket local address!", strerror(errno)));
+      }
+      
+      // convert socket address
+      address->fromSockAddr((sockaddr*)&addr, size);
    }
    
-   // convert socket address
-   address->fromSockAddr((sockaddr*)&addr, size);
+   return !Thread::hasException();
 }
 
-void AbstractSocket::getRemoteAddress(SocketAddress* address)
-throw(SocketException)
+bool AbstractSocket::getRemoteAddress(SocketAddress* address)
 {
    if(!isConnected())
    {
-      throw SocketException(
-         "Cannot get local address for an unconnected Socket!");
+      Thread::setException(new SocketException(
+         "Cannot get local address for an unconnected Socket!"));
    }
-   
-   // get address structure
-   socklen_t size = 130;
-   char addr[size];
-   
-   // get remote information
-   int error = getpeername(mFileDescriptor, (sockaddr*)&addr, &size);
-   if(error < 0)
+   else
    {
-      throw SocketException(
-         "Could not get Socket remote address!", strerror(errno));
+      // get address structure
+      socklen_t size = 130;
+      char addr[size];
+      
+      // get remote information
+      int error = getpeername(mFileDescriptor, (sockaddr*)&addr, &size);
+      if(error < 0)
+      {
+         Thread::setException(new SocketException(
+            "Could not get Socket remote address!", strerror(errno)));
+      }
+      else
+      {
+         // convert socket address
+         address->fromSockAddr((sockaddr*)&addr, size);
+      }
    }
    
-   // convert socket address
-   address->fromSockAddr((sockaddr*)&addr, size);
+   return !Thread::hasException();
 }
 
 InputStream* AbstractSocket::getInputStream()

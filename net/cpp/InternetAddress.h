@@ -37,15 +37,13 @@ public:
    InternetAddress();
    
    /**
-    * Creates a new InternetAddress with the specified host and port.
-    * 
+    * Creates a new InternetAddress with the specified host and port. An
+    * exception may be raised if the host is unknown.
+    *
     * @param host the host.
     * @param port the socket port.
-    * 
-    * @exception UnknownHostException thrown if the host cannot be resolved.
     */
-   InternetAddress(const std::string& host, unsigned short port)
-   throw(UnknownHostException);
+   InternetAddress(const std::string& host, unsigned short port);
    
    /**
     * Destructs this InternetAddress.
@@ -86,9 +84,11 @@ public:
    /**
     * Sets the hostname for this address.
     * 
-    * @return the hostname for this address.
+    * @param host the hostname for this address.
+    * 
+    * @return an UnknownHostException if the host is not known, NULL otherwise.
     */
-   virtual void setHost(const std::string& host) throw(UnknownHostException);
+   virtual UnknownHostException* setHost(const std::string& host);
    
    /**
     * Gets the hostname for this address.

@@ -12,6 +12,7 @@ using namespace std;
 using namespace db::io;
 using namespace db::net;
 using namespace db::net::http;
+using namespace db::rt;
 using namespace db::util;
 
 HttpTransferChunkedInputStream::HttpTransferChunkedInputStream(
@@ -29,9 +30,10 @@ HttpTransferChunkedInputStream::~HttpTransferChunkedInputStream()
 }
 
 int HttpTransferChunkedInputStream::read(char* b, unsigned int length)
-throw(IOException)
 {
    int rval = -1;
+   
+   Exception* exception = NULL;
    
    // get underlying connection input stream
    ConnectionInputStream* is = (ConnectionInputStream*)mInputStream;
@@ -59,13 +61,14 @@ throw(IOException)
       else
       {
          // the chunk size could not be read!
-         throw IOException("Could not read HTTP chunk size!");
+         exception = new IOException("Could not read HTTP chunk size!");
       }
    }
    
    // read the chunk into the passed data buffer
    int numBytes = 0;
-   while(mChunkBytesLeft > 0 && numBytes != -1)
+   while(exception == NULL && !Thread::interrupted(false) &&
+         mChunkBytesLeft > 0 && numBytes != -1)
    {
       numBytes = is->read(b, length);
       if(numBytes != -1)
@@ -78,7 +81,7 @@ throw(IOException)
       }
       else
       {
-         throw IOException("Could not read HTTP chunk!");
+         exception = new IOException("Could not read HTTP chunk!");
       }
    }
    
@@ -87,7 +90,7 @@ throw(IOException)
    
    // if this is the last chunk, then read in the
    // chunk trailer and last CRLF
-   if(mLastChunk)
+   if(exception == NULL && mLastChunk)
    {
       // build trailer headers
       string trailerHeaders;
@@ -117,7 +120,7 @@ throw(IOException)
       }
       */
    }
-   else if(mChunkBytesLeft == 0)
+   else if(exception == NULL && mChunkBytesLeft == 0)
    {
       // read chunk-data CRLF
       string throwout;
@@ -127,13 +130,18 @@ throw(IOException)
    {
       // if the length is greater than zero then the
       // whole chunk wasn't read
-      throw IOException("Could not read entire HTTP chunk!");
+      exception = new IOException("Could not read entire HTTP chunk!");
+   }
+   
+   if(exception)
+   {
+      Thread::setException(exception);
    }
    
    return rval;
 }
 
-void HttpTransferChunkedInputStream::close() throw(IOException)
+void HttpTransferChunkedInputStream::close()
 {
    // does nothing, do not close underlying stream
 }

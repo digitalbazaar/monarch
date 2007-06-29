@@ -3,114 +3,132 @@
  */
 #include "Url.h"
 #include "Convert.h"
+#include "Thread.h"
 
 using namespace std;
 using namespace db::net;
+using namespace db::rt;
 using namespace db::util;
 
-Url::Url(const string& url) throw(MalformedUrlException)
+Url::Url(const string& url)
 {
+   setUrl(url);
+}
+
+Url::~Url()
+{
+}
+
+MalformedUrlException* Url::setUrl(const string& url)
+{
+   MalformedUrlException* rval = NULL;
+   
    // find the first colon
    string::size_type index = url.find(':');
    if(index == string::npos)
    {
       // no colon found
-      throw MalformedUrlException("Url is missing a colon!");
+      rval = new MalformedUrlException("Url is missing a colon!");
+      Thread::setException(rval);
    }
-   
-   // split string into the scheme and scheme-specific-part
-   mScheme = url.substr(0, index);
-   
-   // make scheme lower case
-   transform(mScheme.begin(), mScheme.end(), mScheme.begin(), tolower);
-   
-   // check scheme for validity
-   char c;
-   for(string::iterator i = mScheme.begin(); i != mScheme.end(); i++)
+   else
    {
-      // character must be 'a'-'z', '+', '.', or '-'
-      c = *i;
-      if(c > 'z')
-      {
-         throw MalformedUrlException(
-            "Url scheme contains invalid characters!");
-      }
+      // split string into the scheme and scheme-specific-part
+      mScheme = url.substr(0, index);
       
-      if(c < 'a' && (c != '+' || c != '.' || c != '-'))
-      {
-         throw MalformedUrlException(
-            "Url scheme contains invalid characters!");
-      }
-   }
-   
-   if(index != url.length() - 1)
-   {
-      // get scheme specific part
-      mSchemeSpecificPart = url.substr(index + 1);
+      // make scheme lower case
+      transform(mScheme.begin(), mScheme.end(), mScheme.begin(), tolower);
       
-      // get authority, path, and query:
-      
-      // authority is preceeded by double slash "//" and
-      // is terminated by single slash "/", a question mark "?", or
-      // the end of the url
-      index = mSchemeSpecificPart.find("//");
-      if(index == 0 && mSchemeSpecificPart.length() > 2)
+      // check scheme for validity
+      char c;
+      for(string::iterator i = mScheme.begin(); i != mScheme.end(); i++)
       {
-         string::size_type slash = mSchemeSpecificPart.find('/', 2);
-         string::size_type qMark = mSchemeSpecificPart.find('?', 2);
-         
-         // see if a query exists
-         if(qMark != string::npos)
+         // character must be 'a'-'z', '+', '.', or '-'
+         c = *i;
+         if(c > 'z')
          {
-            // a query exists
+            rval = new MalformedUrlException(
+               "Url scheme contains invalid characters!");
+            Thread::setException(rval);
+            break;
+         }
+         
+         if(c < 'a' && (c != '+' || c != '.' || c != '-'))
+         {
+            rval = new MalformedUrlException(
+               "Url scheme contains invalid characters!");
+            Thread::setException(rval);
+            break;
+         }
+      }
+      
+      if(rval == NULL && index != url.length() - 1)
+      {
+         // get scheme specific part
+         mSchemeSpecificPart = url.substr(index + 1);
+         
+         // get authority, path, and query:
+         
+         // authority is preceeded by double slash "//" and
+         // is terminated by single slash "/", a question mark "?", or
+         // the end of the url
+         index = mSchemeSpecificPart.find("//");
+         if(index == 0 && mSchemeSpecificPart.length() > 2)
+         {
+            string::size_type slash = mSchemeSpecificPart.find('/', 2);
+            string::size_type qMark = mSchemeSpecificPart.find('?', 2);
             
-            // get the path
-            if(slash != string::npos && slash < qMark)
+            // see if a query exists
+            if(qMark != string::npos)
             {
+               // a query exists
+               
+               // get the path
+               if(slash != string::npos && slash < qMark)
+               {
+                  // get authority
+                  mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
+                  
+                  // get path
+                  mPath = mSchemeSpecificPart.substr(slash, qMark - slash);
+               }
+               else
+               {
+                  // get authority
+                  mAuthority = mSchemeSpecificPart.substr(2, qMark - 2);
+                  
+                  // use base path
+                  mPath = "/";
+               }
+               
+               // get query
+               if(qMark != mSchemeSpecificPart.length() - 1) 
+               {
+                  mQuery = mSchemeSpecificPart.substr(qMark + 1);
+               }
+            }
+            else if(slash != string::npos)
+            {
+               // no query -- just authority and path
+               
                // get authority
                mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
                
                // get path
-               mPath = mSchemeSpecificPart.substr(slash, qMark - slash);
+               mPath = mSchemeSpecificPart.substr(slash);
             }
             else
             {
-               // get authority
-               mAuthority = mSchemeSpecificPart.substr(2, qMark - 2);
+               // no path or query, just authority
                
-               // use base path
-               mPath = "/";
+               // get authority
+               mAuthority = mSchemeSpecificPart.substr(2);
             }
-            
-            // get query
-            if(qMark != mSchemeSpecificPart.length() - 1) 
-            {
-               mQuery = mSchemeSpecificPart.substr(qMark + 1);
-            }
-         }
-         else if(slash != string::npos)
-         {
-            // no query -- just authority and path
-            
-            // get authority
-            mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
-            
-            // get path
-            mPath = mSchemeSpecificPart.substr(slash);
-         }
-         else
-         {
-            // no path or query, just authority
-            
-            // get authority
-            mAuthority = mSchemeSpecificPart.substr(2);
          }
       }
    }
-}
-
-Url::~Url()
-{
+   
+   return rval;
 }
 
 const string& Url::getScheme()

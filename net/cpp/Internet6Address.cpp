@@ -3,9 +3,11 @@
  */
 #include "Internet6Address.h"
 #include "SocketDefinitions.h"
+#include "Thread.h"
 
 using namespace std;
 using namespace db::net;
+using namespace db::rt;
 
 Internet6Address::Internet6Address()
 {
@@ -18,7 +20,6 @@ Internet6Address::Internet6Address()
 }
 
 Internet6Address::Internet6Address(const string& host, unsigned short port)
-throw(UnknownHostException)
 {
    // set protocol
    setProtocol("IPv6");
@@ -87,9 +88,10 @@ bool Internet6Address::fromSockAddr(const sockaddr* addr, unsigned int size)
    return rval;
 }
 
-void Internet6Address::setHost(const std::string& host)
-throw(UnknownHostException)
+UnknownHostException* Internet6Address::setHost(const std::string& host)
 {
+   UnknownHostException* rval = NULL;
+   
    // create hints address structure
    struct addrinfo hints;
    memset(&hints, '\0', sizeof(hints));
@@ -101,21 +103,24 @@ throw(UnknownHostException)
    // get address information
    if(getaddrinfo(host.c_str(), NULL, &hints, &res) != 0)
    {
-      throw UnknownHostException("Unknown host '" + host + "'!");
+      rval = new UnknownHostException("Unknown host '" + host + "'!");
+      Thread::setException(rval);
    }
-   
-   // copy the first result
-   struct sockaddr_in6 addr;
-   memcpy(&addr, res->ai_addr, res->ai_addrlen);
-   
-   // get the address
-   char dst[INET6_ADDRSTRLEN];
-   memset(&dst, '\0', INET6_ADDRSTRLEN);
-   inet_ntop(AF_INET6, &addr.sin6_addr, dst, INET6_ADDRSTRLEN);
-   mAddress = dst;
-   
-   // free result
-   freeaddrinfo(res);
+   else
+   {
+      // copy the first result
+      struct sockaddr_in6 addr;
+      memcpy(&addr, res->ai_addr, res->ai_addrlen);
+      
+      // get the address
+      char dst[INET6_ADDRSTRLEN];
+      memset(&dst, '\0', INET6_ADDRSTRLEN);
+      inet_ntop(AF_INET6, &addr.sin6_addr, dst, INET6_ADDRSTRLEN);
+      mAddress = dst;
+      
+      // free result
+      freeaddrinfo(res);
+   }
 }
 
 const string& Internet6Address::getHost()

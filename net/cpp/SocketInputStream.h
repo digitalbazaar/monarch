@@ -39,19 +39,6 @@ public:
    virtual ~SocketInputStream();
    
    /**
-    * Reads a single byte from the stream. This method will block until
-    * a byte can be read or until the end of the stream is reached.
-    * 
-    * @param a single byte to populate from the stream.
-    * 
-    * @return true if a byte was read, false if the end of the stream was
-    *         reached.
-    * 
-    * @exception IOException thrown if an IO error occurs.
-    */
-   virtual bool read(char& b) throw(db::io::IOException);
-   
-   /**
     * Reads some bytes from the stream. This method will block until at least
     * one byte can be read or until the end of the stream is reached. A
     * value of -1 will be returned if the end of the stream has been reached,
@@ -62,10 +49,8 @@ public:
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
     *         stream has been reached.
-    * 
-    * @exception IOException thrown if an IO error occurs.
     */
-   virtual int read(char* b, unsigned int length) throw(db::io::IOException);
+   virtual int read(char* b, unsigned int length);
 };
 
 } // end namespace net

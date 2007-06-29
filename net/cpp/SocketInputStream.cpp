@@ -15,19 +15,7 @@ SocketInputStream::~SocketInputStream()
 {
 }
 
-bool SocketInputStream::read(char& b) throw(IOException)
-{
-   bool rval = false;
-   
-   if(read(&b, 1) != -1)
-   {
-      rval = true;
-   }
-   
-   return rval;
-}
-
-int SocketInputStream::read(char* b, unsigned int length) throw(IOException)
+int SocketInputStream::read(char* b, unsigned int length)
 {
    // read from the socket
    return mSocket->receive(b, length);

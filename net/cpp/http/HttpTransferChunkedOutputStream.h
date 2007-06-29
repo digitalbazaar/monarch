@@ -107,17 +107,15 @@ public:
     * @param b the array of bytes to write.
     * @param length the number of bytes to write to the stream.
     * 
-    * @exception IOException thrown if an IO error occurs. 
+    * @return true if the write was successful, false if an IO exception
+    *         occurred. 
     */
-   virtual void write(const char* b, unsigned int length)
-   throw(db::io::IOException);
+   virtual bool write(const char* b, unsigned int length);
    
    /**
     * Closes the stream.
-    * 
-    * @exception IOException thrown if an IO error occurs.
     */
-   virtual void close() throw(db::io::IOException);
+   virtual void close();
 };
 
 } // end namespace http

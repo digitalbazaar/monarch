@@ -13,7 +13,8 @@ namespace db
 namespace rt
 {
 
-// forward declare InterruptedException
+// forward declare Exception and InterruptedException
+class Exception;
 class InterruptedException;
 
 /**
@@ -85,7 +86,7 @@ public:
     *                before timing out, 0 to wait indefinitely.
     * 
     * @return an InterruptedException if the current Thread is interrupted
-    *         while waiting, NULL otherwise.
+    *         while waiting, NULL if not.
     */
    virtual InterruptedException* wait(unsigned long timeout = 0);
    

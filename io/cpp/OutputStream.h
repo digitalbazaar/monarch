@@ -16,6 +16,9 @@ namespace io
  * An OutputStream is the abstract base class for all classes that represent an
  * output stream of bytes.
  * 
+ * If an exception occurs during an operation it can be retrieved via
+ * getException().
+ * 
  * @author Dave Longley
  */
 class OutputStream : public virtual db::rt::Object
@@ -32,46 +35,21 @@ public:
    virtual ~OutputStream() {};
    
    /**
-    * Writes a single byte to the stream.
-    * 
-    * @param b the byte to write.
-    * 
-    * @exception IOException thrown if an IO error occurs. 
-    */
-   virtual void write(const char& b) throw(IOException) = 0;
-   
-   /**
     * Writes some bytes to the stream.
     * 
     * @param b the array of bytes to write.
     * @param length the number of bytes to write to the stream.
     * 
-    * @exception IOException thrown if an IO error occurs. 
+    * @return true if the write was successful, false if an IO exception
+    *         occurred. 
     */
-   virtual void write(const char* b, unsigned int length)
-   throw(IOException);
+   virtual bool write(const char* b, unsigned int length) = 0;
    
    /**
     * Closes the stream.
-    * 
-    * @exception IOException thrown if an IO error occurs.
     */
-   virtual void close() throw(IOException);
+   virtual void close() {};
 };
-
-inline void OutputStream::write(const char* b, unsigned int length)
-throw(IOException)
-{
-   for(unsigned int i = 0; i < length; i++)
-   {
-      write(b[i]);
-   }
-}
-
-inline void OutputStream::close() throw(IOException)
-{
-   // nothing to do in base class
-}
 
 } // end namespace io
 } // end namespace db

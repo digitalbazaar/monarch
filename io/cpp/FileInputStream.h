@@ -31,16 +31,22 @@ protected:
     * The ifstream to read with.
     */
    std::ifstream mStream;
+   
+   /**
+    * Ensures the file is open for reading.
+    * 
+    * @return true if the file is opened for reading, false if it cannot be
+    *         opened.
+    */
+   bool ensureOpen();
 
 public:
    /**
     * Creates a new FileInputStream that opens the passed File for reading.
     * 
     * @param file the File to read from.
-    * 
-    * @exception IOException thrown if an IO error occurs.
     */
-   FileInputStream(File* file) throw(IOException);
+   FileInputStream(File* file);
    
    /**
     * Destructs this FileInputStream.
@@ -48,40 +54,26 @@ public:
    virtual ~FileInputStream();
    
    /**
-    * Reads a single byte from the stream. This method will block until
-    * a byte can be read or until the end of the stream is reached.
-    * 
-    * @param a single byte to populate from the stream.
-    * 
-    * @return true if a byte was read, false if the end of the stream was
-    *         reached.
-    * 
-    * @exception IOException thrown if an IO error occurs.
-    */
-   virtual bool read(char& b) throw(IOException);
-   
-   /**
     * Reads some bytes from the stream. This method will block until at least
     * one byte can be read or until the end of the stream is reached. A
-    * value of -1 will be returned if the end of the stream has been reached,
-    * otherwise the number of bytes read will be returned.
+    * value of -1 will be returned if the end of the stream has been reached
+    * or an IO exception occurred, otherwise the number of bytes read will be
+    * returned.
     * 
     * @param b the array of bytes to fill.
     * @param length the maximum number of bytes to read into the buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
-    *         stream has been reached.
-    * 
-    * @exception IOException thrown if an IO error occurs.
+    *         stream has been reached or an IO exception occurred.
     */
-   virtual int read(char* b, unsigned int length) throw(IOException);
+   virtual int read(char* b, unsigned int length);   
+   
+   // FIXME: implement peek, do a read then an unget with ifstream
    
    /**
     * Closes the stream.
-    * 
-    * @exception IOException thrown if an IO error occurs.
     */
-   virtual void close() throw(IOException);   
+   virtual void close();
 };
 
 } // end namespace io

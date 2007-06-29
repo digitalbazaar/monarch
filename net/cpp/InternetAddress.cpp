@@ -3,9 +3,11 @@
  */
 #include "InternetAddress.h"
 #include "SocketDefinitions.h"
+#include "Thread.h"
 
 using namespace std;
 using namespace db::net;
+using namespace db::rt;
 
 InternetAddress::InternetAddress()
 {
@@ -14,7 +16,6 @@ InternetAddress::InternetAddress()
 }
 
 InternetAddress::InternetAddress(const string& host, unsigned short port)
-throw(UnknownHostException)
 {
    // set protocol
    setProtocol("IPv4");
@@ -92,9 +93,10 @@ void InternetAddress::setAddress(const string& address)
    mHost = "";
 }
 
-void InternetAddress::setHost(const std::string& host)
-throw(UnknownHostException)
+UnknownHostException* InternetAddress::setHost(const std::string& host)
 {
+   UnknownHostException* rval = NULL;
+   
    // create hints address structure
    struct addrinfo hints;
    memset(&hints, '\0', sizeof(hints));
@@ -106,21 +108,26 @@ throw(UnknownHostException)
    // get address information
    if(getaddrinfo(host.c_str(), NULL, &hints, &res) != 0)
    {
-      throw UnknownHostException("Unknown host '" + host + "'!");
+      rval = new UnknownHostException("Unknown host '" + host + "'!");
+      Thread::setException(rval);
+   }
+   else
+   {
+      // copy the first result
+      struct sockaddr_in addr;
+      memcpy(&addr, res->ai_addr, res->ai_addrlen);
+      
+      // get the address
+      char dst[INET_ADDRSTRLEN];
+      memset(&dst, '\0', INET_ADDRSTRLEN);
+      inet_ntop(AF_INET, &addr.sin_addr, dst, INET_ADDRSTRLEN);
+      mAddress = dst;
+      
+      // free result
+      freeaddrinfo(res);
    }
    
-   // copy the first result
-   struct sockaddr_in addr;
-   memcpy(&addr, res->ai_addr, res->ai_addrlen);
-   
-   // get the address
-   char dst[INET_ADDRSTRLEN];
-   memset(&dst, '\0', INET_ADDRSTRLEN);
-   inet_ntop(AF_INET, &addr.sin_addr, dst, INET_ADDRSTRLEN);
-   mAddress = dst;
-   
-   // free result
-   freeaddrinfo(res);
+   return rval;
 }
 
 const string& InternetAddress::getHost()

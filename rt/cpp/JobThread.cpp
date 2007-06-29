@@ -156,14 +156,7 @@ bool JobThread::isIdle()
 }
 
 void JobThread::setExpireTime(unsigned long long expireTime)
-throw(IllegalArgumentException)
 {
-   // expire time must be non-negative
-   if(expireTime < 0)
-   {
-      throw IllegalArgumentException("JobThread expire time must be >= 0");
-   }
-   
    mExpireTime = expireTime;
 }
 

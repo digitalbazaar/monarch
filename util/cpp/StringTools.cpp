@@ -39,22 +39,23 @@ string& StringTools::replaceAll(
 
 string& StringTools::regexReplaceAll(
    string& str, const string& regex, const string& replace)
-throw(InvalidRegexException)
 {
    // compile regex pattern
    Pattern* p = Pattern::compile(regex.c_str());
-   
-   // replace all matches
-   unsigned int start, end;
-   unsigned int index = 0;
-   while(p->match(str.c_str(), index, start, end))
+   if(p != NULL)
    {
-      str.replace(start, end - start, replace);
-      index = start + replace.length();
+      // replace all matches
+      unsigned int start, end;
+      unsigned int index = 0;
+      while(p->match(str.c_str(), index, start, end))
+      {
+         str.replace(start, end - start, replace);
+         index = start + replace.length();
+      }
+      
+      // free regex pattern
+      delete p;
    }
-   
-   // free regex pattern
-   delete p;
    
    return str;
 }

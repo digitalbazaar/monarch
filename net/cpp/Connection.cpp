@@ -4,6 +4,7 @@
 #include "Connection.h"
 
 using namespace db::net;
+using namespace db::rt;
 
 Connection::Connection(Socket* s, bool cleanup)
 {
@@ -112,14 +113,28 @@ void Connection::close()
    getSocket()->close();
 }
 
-void Connection::getLocalAddress(SocketAddress* address) throw(SocketException)
+SocketException* Connection::getLocalAddress(SocketAddress* address)
 {
-   getSocket()->getLocalAddress(address);
+   SocketException* rval = NULL;
+   
+   if(!getSocket()->getLocalAddress(address))
+   {
+      rval = (SocketException*)Thread::getException();
+   }
+   
+   return rval;
 }
 
-void Connection::getRemoteAddress(SocketAddress* address) throw(SocketException)
+SocketException* Connection::getRemoteAddress(SocketAddress* address)
 {
-   getSocket()->getRemoteAddress(address);
+   SocketException* rval = NULL;
+   
+   if(!getSocket()->getRemoteAddress(address))
+   {
+      rval = (SocketException*)Thread::getException();
+   }
+   
+   return rval;
 }
 
 Socket* Connection::getSocket()
