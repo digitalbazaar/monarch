@@ -179,17 +179,16 @@ bool AbstractSocket::select(bool read, unsigned long long timeout)
          }
       }
    }
-   else
+   
+   if(exception == NULL && Thread::interrupted(false))
    {
       if(read)
       {
-         exception = new InterruptedException(
-            "Socket read interrupted!");
+         exception = new InterruptedException("Socket read interrupted!");
       }
       else
       {
-         exception = new InterruptedException(
-            "Socket write interrupted!");
+         exception = new InterruptedException("Socket write interrupted!");
       }
    }
    
