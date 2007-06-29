@@ -41,9 +41,6 @@ public:
     * is not supported.
     * 
     * @param algorithm the hash algorithm to use.
-    * 
-    * @exception UnsupportedAlgorithmException thrown if the passed algorithm
-    *            is not recognized or implemented.
     */
    MessageDigest(const std::string& algorithm);
    

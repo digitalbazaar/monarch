@@ -25,7 +25,7 @@ JobThreadPool::~JobThreadPool()
    terminateAllThreads();
 }
 
-void JobThreadPool::acquireThreadPermit() throw(InterruptedException)
+InterruptedException* JobThreadPool::acquireThreadPermit()
 {
    // If this pool allows an infinite number of threads, then
    // the number of permits will be zero -- since threads are
@@ -217,22 +217,17 @@ void JobThreadPool::runJob(Runnable* job)
 {
    bool permitAcquired = false;
    
-   try
+   // acquire a thread permit
+   if(acquireThreadPermit() == NULL)
    {
-      // acquire a thread permit
-      acquireThreadPermit();
-      
       // permit acquired
       permitAcquired = true;
       
       // run the job on an idle thread
       runJobOnIdleThread(job);
    }
-   catch(InterruptedException& e)
+   else
    {
-      // toggle interrupt thread to true
-      Thread::currentThread()->interrupt();
-      
       cout << "thread acquisition interrupted." << endl;
    }
    
@@ -274,30 +269,22 @@ void JobThreadPool::terminateAllThreads()
    // synchronize
    lock();
    {
-      try
+      // iterate through all threads, join and remove them
+      for(vector<JobThread*>::iterator i = mThreads.begin();
+          i != mThreads.end();)
       {
-         // iterate through all threads, join and remove them
-         for(vector<JobThread*>::iterator i = mThreads.begin();
-             i != mThreads.end();)
-         {
-            JobThread* thread = *i;
-            
-            cout << "joining thread..." << endl;
-            
-            // join thread
-            thread->join();
-            
-            cout << "thread joined." << endl;
-            
-            // remove thread
-            i = mThreads.erase(i);
-            delete thread;
-         }
-      }
-      catch(InterruptedException e)
-      {
-         // ensure current thread is still interrupted
-         Thread::currentThread()->interrupt();
+         JobThread* thread = *i;
+         
+         cout << "joining thread..." << endl;
+         
+         // join thread
+         thread->join();
+         
+         cout << "thread joined." << endl;
+         
+         // remove thread
+         i = mThreads.erase(i);
+         delete thread;
       }
       
       // clear threads

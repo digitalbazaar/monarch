@@ -14,7 +14,7 @@ namespace regex
 {
 
 /**
- * An InvalidRegularExpressionException is thrown when an invalid regular
+ * An InvalidRegularExpressionException is raised when an invalid regular
  * expression is detected.
  *
  * @author Dave Longley

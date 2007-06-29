@@ -5,7 +5,6 @@
 #define Pattern_H
 
 #include "Object.h"
-#include "InvalidRegexException.h"
 
 //#include <regex.h>
 
@@ -71,14 +70,10 @@ public:
     * @param matchCase true to match case, false to be case-insensitive.
     * @param subMatches true to allow sub-matches, false not to.
     * 
-    * @return the compiled Pattern.
-    * 
-    * @exception InvalidRegexException thrown when the passed regular expression
-    *            is not valid/could not be compiled.
+    * @return the compiled Pattern or NULL if an exception occurred.
     */
    static Pattern* compile(
-      const char* regex, bool matchCase = true, bool subMatches = true)
-   throw(InvalidRegexException);
+      const char* regex, bool matchCase = true, bool subMatches = true);
    
    /**
     * Matches the passed regex against the given string.
@@ -87,13 +82,10 @@ public:
     * @param str the string to match this pattern against.
     * @param matchCase true to match case, false to be case-insensitive.
     * 
-    * @return true if the passed string matches the regex, false if not.
-    * 
-    * @exception InvalidRegexException thrown when the passed regular expression
-    *            is not valid/could not be compiled.
+    * @return true if the passed string matches the regex, false if not or
+    *         if an exception occurred.
     */
-   static bool match(const char* regex, const char* str, bool matchCase = true)
-   throw(InvalidRegexException);
+   static bool match(const char* regex, const char* str, bool matchCase = true);
 };
 
 } // end namespace regex

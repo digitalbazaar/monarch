@@ -49,10 +49,10 @@ protected:
     * This method will lock until an available thread is acquired or
     * the current thread is interrupted.
     * 
-    * @exception InterruptedException thrown if the current thread is
-    *            interrupted while waiting for a thread to run a job.
+    * @return an InterruptedException if the current thread is interrupted
+    *         while waiting for a thread to run a job, NULL otherwise.
     */
-   virtual void acquireThreadPermit() throw(InterruptedException);
+   virtual InterruptedException* acquireThreadPermit();
    
    /**
     * Releases a thread permit that was used to run a job.

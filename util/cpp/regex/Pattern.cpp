@@ -2,10 +2,13 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Pattern.h"
+#include "InvalidRegexException.h"
+#include "Thread.h"
 
 #include <string>
 
 using namespace std;
+using namespace db::rt;
 using namespace db::util::regex;
 
 Pattern::Pattern()
@@ -49,7 +52,6 @@ bool Pattern::match(
 }
 
 Pattern* Pattern::compile(const char* regex, bool matchCase, bool subMatches)
-throw(InvalidRegexException)
 {
    // create a new Pattern
    Pattern* p = new Pattern();
@@ -81,23 +83,24 @@ throw(InvalidRegexException)
 //      delete p;
 //      p = NULL;
 //      
-//      // throw exception
-//      throw InvalidRegexException(message);
+//      Thread::setException(new InvalidRegexException(message));
 //   }
    
    return p;
 }
 
 bool Pattern::match(const char* regex, const char* str, bool matchCase)
-throw(InvalidRegexException)
 {
    bool rval = false;
    
 //   // compile a pattern with no sub matches allowed
 //   Pattern* p = compile(regex, matchCase, false);
 //   
-//   // execute regex
-//   rval = regexec(&p->getStorage(), str, 0, NULL, 0) == 0;
+//   if(p != NULL)
+//   {
+//      // execute regex
+//      rval = regexec(&p->getStorage(), str, 0, NULL, 0) == 0;
+//   }
 //   
 //   // delete pattern
 //   delete p;

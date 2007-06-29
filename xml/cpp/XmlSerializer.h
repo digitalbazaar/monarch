@@ -37,10 +37,10 @@ public:
     * @param object the Object to serialize.
     * @param os the OutputStream to write to.
     * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual serialize(db::rt::Object* object, db::io::OutputStream* os)
-   throw(db::io::IOException) = 0;
+   virtual bool serialize(
+      db::rt::Object* object, db::io::OutputStream* os) = 0;
    
    /**
     * Deserializes the passed Object from xml.
@@ -48,10 +48,10 @@ public:
     * @param object the Object to deserialize.
     * @param is the InputStream to read from.
     * 
-    * @exception IOException thrown if an IO error occurs.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual deserialize(db::rt::Object* object, db::io::InputStream* is)
-   throw(db::io::IOException) = 0;
+   virtual bool deserialize(
+      db::rt::Object* object, db::io::InputStream* is) = 0;
 };
 
 } // end namespace xml
