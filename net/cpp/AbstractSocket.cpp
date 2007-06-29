@@ -110,7 +110,7 @@ bool AbstractSocket::select(bool read, unsigned long long timeout)
       // until we reach the select call -- and then unblock right before it
       // the signal could still sneak in right before select() is called and
       // control is transferred to the kernel, and therefore we'd handle the
-      // SIGINT before the select() call and it wouldn't get interrupted
+      // SIGINT before the select() call and select() wouldn't get interrupted
       // (there is pselect() for doing that unblocking atomically, but
       // it's UNIX only) -- this can be solved by writing to another file
       // descriptor when we receive SIGINTs and checking that file descriptor

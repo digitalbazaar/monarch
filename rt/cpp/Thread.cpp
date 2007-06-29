@@ -16,6 +16,10 @@ pthread_key_t Thread::CURRENT_THREAD_KEY;
 pthread_once_t Thread::EXCEPTION_KEY_INIT = PTHREAD_ONCE_INIT;
 pthread_key_t Thread::EXCEPTION_KEY;
 
+// initialize interruption lock and SIGINT value
+Object Thread::INTERRUPTION_LOCK;
+bool Thread::SIGINT_RECEIVED = false;
+
 Thread::Thread(Runnable* runnable, std::string name)
 {
    // initialize POSIX thread attributes
@@ -82,6 +86,15 @@ void Thread::createExceptionKey()
 
 void* Thread::execute(void* thread)
 {
+//   // create signal set containing only SIGINT
+//   sigset_t newset;
+//   sigemptyset(newset);
+//   sigaddset(&newset, SIGINT);
+//   
+//   // block all (and only) SIGINT signals
+//   sigset_t oldset;
+//   sigthreadmask(SIG_SETMASK, &newset, &oldset);
+   
    // get the Thread object
    Thread* t = (Thread*)thread;
    
@@ -112,9 +125,18 @@ void* Thread::execute(void* thread)
    // detach thread
    t->detach();
    
+//   // reblock old signals
+//   sigthreadmask(SIG_SETMASK, &oldset, NULL);
+   
    // exit thread
    pthread_exit(NULL);
    return NULL;
+}
+
+void Thread::handleSigInt(int signum)
+{
+   // SIGINT received
+   SIGINT_RECEIVED = true;
 }
 
 bool Thread::start()
@@ -154,6 +176,9 @@ void Thread::interrupt()
       {
          // set interrupted flag
          mInterrupted = true;
+         
+         // send SIGINT to thread
+         pthread_kill(mPThread, SIGINT);
          
          // wake up thread if necessary
          if(mWaitMonitor != NULL)
@@ -249,12 +274,57 @@ bool Thread::interrupted(bool clear)
       // synchronize
       t->lock();
       {
-         rval = t->isInterrupted();
-         
-         if(clear)
+         if(t->isInterrupted())
          {
-            // clear interrupted flag
-            t->mInterrupted = false;
+            rval = true;
+         }
+         else
+         {
+            // FIXME: this code was put on hold because windows hates it
+            // -- we would also need to install the handler before select()
+            // calls and unblock SIGINT at that point, which could be done
+            // by adding a "select" like call to Thread for ease of use
+            
+//            // synchronize on interruption lock
+//            INTERRUPTION_LOCK.lock();
+//            {
+//               // create the SIGINT handler
+//               sigaction newsa;
+//               newsa.sa_handler = handleSigInt;
+//               newsa.sa_flags = 0;
+//               sigemptyset(&newsa.sa_mask);
+//               
+//               // set the SIGINT handler
+//               sigaction oldsa;
+//               sigaction(SIGINT, &newsa, &oldsa);
+//               
+//               // unblock all signals on this thread
+//               sigset_t newset;
+//               sigemptyset(newset);
+//               sigset_t oldset;
+//               sigthreadmask(SIG_SETMASK, &newset, &oldset);
+//               
+//               // SIGINT, if any, will be handled here
+//               if(SIGINT_RECEIVED)
+//               {
+//                  // SIGINT received, thread is interrupted
+//                  rval = t->mInterrupted = true;
+//                  SIGINT_RECEIVED = false;
+//               }
+//               
+//               // reblock old signals
+//               sigthreadmask(SIG_SETMASK, &oldset, NULL);
+//               
+//               // restore old SIGINT handler
+//               sigaction(SIGINT, &oldsa, NULL);
+//            }
+//            INTERRUPTION_LOCK.unlock();
+            
+            if(clear)
+            {
+               // clear interrupted flag
+               t->mInterrupted = false;
+            }
          }
       }
       t->unlock();

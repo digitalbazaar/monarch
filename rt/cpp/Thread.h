@@ -112,6 +112,16 @@ protected:
    static pthread_key_t EXCEPTION_KEY;
    
    /**
+    * A static mutex for interruption handling.
+    */
+   static Object INTERRUPTION_LOCK;
+   
+   /**
+    * A static value indicating whether or not a SIGINT was received.
+    */
+   static bool SIGINT_RECEIVED;
+   
+   /**
     * Creates the exception key.
     */
    static void createExceptionKey();
@@ -123,6 +133,13 @@ protected:
     * @param thread the Thread that is executing (to be cast to a Thread*).
     */
    static void* execute(void* thread);
+   
+   /**
+    * The SIGINT handler that ensures threads get interrupted.
+    * 
+    * @param signum the signal to handle.
+    */
+   static void handleSigInt(int signum);
 
 public:
    /**
