@@ -121,6 +121,8 @@ UnknownHostException* Internet6Address::setHost(const std::string& host)
       // free result
       freeaddrinfo(res);
    }
+   
+   return rval;
 }
 
 const string& Internet6Address::getHost()

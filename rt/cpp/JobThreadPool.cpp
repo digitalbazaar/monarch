@@ -27,6 +27,8 @@ JobThreadPool::~JobThreadPool()
 
 InterruptedException* JobThreadPool::acquireThreadPermit()
 {
+   InterruptedException* rval = NULL;
+   
    // If this pool allows an infinite number of threads, then
    // the number of permits will be zero -- since threads are
    // always permitted. Therefore, only try to acquire a
@@ -34,8 +36,10 @@ InterruptedException* JobThreadPool::acquireThreadPermit()
    // permit is automatically granted.
    if(mThreadSemaphore.getMaxPermitCount() != 0)
    {
-      mThreadSemaphore.acquire();
+      rval = mThreadSemaphore.acquire();
    }
+   
+   return rval;
 }
 
 void JobThreadPool::releaseThreadPermit()
