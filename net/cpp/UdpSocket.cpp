@@ -12,12 +12,6 @@ using namespace db::io;
 using namespace db::net;
 using namespace db::rt;
 
-// FIXME: this class and others need to have another look taken at
-// their exception code -- this class will fail to send/recv any
-// datagrams when *any* exception is set, when this code should instead
-// probably mirror other code that only checks for the exceptions it
-// cares about
-
 UdpSocket::UdpSocket()
 {
 }
@@ -171,10 +165,11 @@ bool UdpSocket::leaveGroup(SocketAddress* group)
 bool UdpSocket::sendDatagram(
    const char* b, unsigned int length, SocketAddress* address)
 {
+   Exception* exception = NULL;
+   
    if(!isBound())
    {
-      Thread::setException(new SocketException(
-         "Cannot write to unbound Socket!"));
+      exception = new SocketException("Cannot write to unbound Socket!");
    }
    else
    {
@@ -186,7 +181,7 @@ bool UdpSocket::sendDatagram(
       // send all data (send can fail to send all bytes in one go because the
       // socket send buffer was full)
       unsigned int offset = 0;
-      while(length > 0 && !Thread::hasException())
+      while(length > 0 && exception == NULL)
       {
          // wait for socket to become writable
          if(select(false, getSendTimeout()))
@@ -195,8 +190,8 @@ bool UdpSocket::sendDatagram(
                mFileDescriptor, b + offset, length, 0, (sockaddr*)&addr, size);
             if(bytes < 0)
             {
-               Thread::setException(new SocketException(
-                  "Could not write to Socket!", strerror(errno)));
+               exception = new SocketException(
+                  "Could not write to Socket!", strerror(errno));
             }
             else if(bytes > 0)
             {
@@ -204,10 +199,14 @@ bool UdpSocket::sendDatagram(
                length -= bytes;
             }
          }
+         else
+         {
+            exception = Thread::getException();
+         }
       }
    }
    
-   return !Thread::hasException();
+   return exception == NULL;
 }
 
 int UdpSocket::receiveDatagram(
@@ -230,6 +229,7 @@ int UdpSocket::receiveDatagram(
       rval = ::recvfrom(mFileDescriptor, b, length, 0, (sockaddr*)&addr, &size);
       if(rval < -1)
       {
+         rval = -1;
          Thread::setException(new SocketException(
             "Could not read from Socket!", strerror(errno)));
       }
