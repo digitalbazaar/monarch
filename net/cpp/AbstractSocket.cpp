@@ -106,6 +106,16 @@ bool AbstractSocket::select(bool read, unsigned long long timeout)
       
       // FIXME: signals supposedly don't make select() return in windows
       // this needs to be tested and potentially remedied somehow
+      // furthermore, even if we block SIGINT (interruption signal) up
+      // until we reach the select call -- and then unblock right before it
+      // the signal could still sneak in right before select() is called and
+      // control is transferred to the kernel, and therefore we'd handle the
+      // SIGINT before the select() call and it wouldn't get interrupted
+      // (there is pselect() for that, but it's UNIX only) -- this can
+      // be solved by writing to another file descriptor when we receive
+      // SIGINTs and checking that file descriptor as well as the one
+      // we are waiting on -- but this might not be a viable solution for
+      // windows
       
       int error;
       if(read)
