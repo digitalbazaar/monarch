@@ -48,15 +48,6 @@ public class XmlCoder
       }
       else if(!string.equals(""))
       {
-         try
-         {
-            string = new String(string.getBytes(), "UTF-8");
-         }
-         catch(Exception ignore)
-         {
-            // utf-8 is supported
-         }
-         
          string = string.replaceAll("&", "&amp;");
          string = string.replaceAll("\"", "&quot;");
          string = string.replaceAll("'", "&apos;");
