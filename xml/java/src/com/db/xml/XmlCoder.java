@@ -87,15 +87,6 @@ public class XmlCoder
          string = string.replaceAll("&apos;", "'");
          string = string.replaceAll("&quot;", "\"");
          string = string.replaceAll("&amp;", "&");
-         
-         try
-         {
-            string = new String(string.getBytes("UTF-8"));
-         }
-         catch(Exception ignore)
-         {
-            // utf-8 is supported
-         }
       }
       
       return string;
