@@ -12,7 +12,6 @@ import com.db.net.http.HttpBodyPartHeader;
 import com.db.net.http.HttpWebRequest;
 import com.db.net.http.HttpWebResponse;
 import com.db.net.wsdl.Wsdl;
-import com.db.xml.XmlException;
 
 /**
  * A soap http web request servicer. Handles soap messages sent via http
@@ -66,7 +65,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
       sm = mSoapWebService.createSoapMessage();
       
       // see if the request is multipart or not
-      String body = null;
+      byte[] body = null;
       if(request.isMultipart())
       {
          // set the header and attachment connection for the soap message
@@ -79,13 +78,13 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          // receive the body part body if the header was received
          if(header != null)
          {
-            body = request.receiveBodyPartBodyString(header);
+            body = request.receiveBodyPartBody(header);
          }
       }
       else
       {
          // receive the body in the request
-         body = request.receiveBodyString();
+         body = request.receiveBody();
       }
       
       if(body != null)
@@ -100,8 +99,15 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
             SoapPermission permission = new SoapPermission("envelope.log");
             if(secure.checkSoapPermission(permission))
             {
-               getLogger().debugData(getClass(),
-                  "received soap xml:\n" + body);            
+               try
+               {
+                  getLogger().debugData(getClass(),
+                     "received soap xml:\n" + new String(body, "UTF-8"));            
+               }
+               catch(Exception e)
+               {
+                  // shouldn't happen, UTF-8 is supported
+               }
             }
          }
          else
@@ -112,9 +118,9 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          try
          {
             // see if the soap message was valid
-            sm.getRpcSoapEnvelope().convertFromXml(body);
+            sm.getRpcSoapEnvelope().convertFromXml(new String(body, "UTF-8"));
          }
-         catch(XmlException e)
+         catch(Exception e)
          {
             // create soap fault
             SoapFault fault = new SoapFault();

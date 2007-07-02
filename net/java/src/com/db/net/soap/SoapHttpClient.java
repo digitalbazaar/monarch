@@ -516,7 +516,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
                xml = "";
                if(body != null)
                {
-                  xml = new String(body); 
+                  xml = new String(body, "UTF-8"); 
                }
                
                // get the soap method result
