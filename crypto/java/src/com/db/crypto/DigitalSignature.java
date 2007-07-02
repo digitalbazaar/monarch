@@ -37,6 +37,11 @@ public class DigitalSignature
       // make sure there is a key to sign with
       if(privateKey != null)
       {
+         if(data == null)
+         {
+            data = new byte[0];
+         }
+         
          try
          {
             // get the key algorithm
@@ -68,38 +73,6 @@ public class DigitalSignature
 
       return sig;
    }
-
-   /**
-    * Signs the passed string with the passed private key and
-    * returns the signature. The signature will be Base64-encoded.
-    *
-    * @param text the string to sign.
-    * @param privateKey the privateKey to sign with.
-    * 
-    * @return the signature if successfully signed, null if not. 
-    */
-   public static byte[] sign(String text, PrivateKey privateKey)
-   {
-      byte[] data = null;
-
-      try
-      {
-         if(text != null)
-         {
-            data = text.getBytes("UTF-8");
-         }
-         else
-         {
-            data = new byte[0];
-         }
-      }
-      catch(Exception e)
-      {
-         getLogger().debug(DigitalSignature.class, Logger.getStackTrace(e));
-      }
-
-      return sign(data, privateKey);
-   }
    
    /**
     * Signs the passed byte array with the passed private key and
@@ -115,22 +88,7 @@ public class DigitalSignature
       PrivateKey privateKey = KeyManager.decodePrivateKey(key);
       return sign(data, privateKey);
    }
-
-   /**
-    * Signs the passed string with the passed private key and
-    * returns the signature. The signature will be Base64-encoded.
-    *
-    * @param text the string to sign.
-    * @param key the Base64-PKCS8 privateKey to sign with.
-    * 
-    * @return the signature if successfully signed, null if not. 
-    */
-   public static byte[] sign(String text, String key)
-   {
-      PrivateKey privateKey = KeyManager.decodePrivateKey(key);
-      return sign(text, privateKey);
-   }
-
+   
    /**
     * Attempts to verify the signature for the passed byte array
     * using the passed public key.
@@ -193,49 +151,6 @@ public class DigitalSignature
       // obtain the decoded public key
       PublicKey publicKey = KeyManager.decodePublicKey(key);
       return verify(sig, data, publicKey);
-   }
-
-   /**
-    * Attempts to verify the signature for the passed string
-    * using the passed public key.
-    *
-    * @param sig the signature to verify.
-    * @param text the text the signature is for.
-    * @param key the public key to verify the signature.
-    * 
-    * @return true if verified, false if not.
-    */
-   public static boolean verify(byte[] sig, String text, PublicKey key)
-   {
-      byte[] data = null;
-
-      try
-      {
-         data = text.getBytes("UTF-8");
-      }
-      catch(Exception e)
-      {
-         getLogger().debug(DigitalSignature.class, Logger.getStackTrace(e));
-      }
-      
-      return verify(sig, data, key);
-   }
-
-   /**
-    * Attempts to verify the signature for the passed string
-    * using the passed Base64-X509-encoded public key.
-    *
-    * @param sig the signature to verify.
-    * @param text the text the signature is for.
-    * @param key the public key to verify the signature.
-    * 
-    * @return true if verified, false if not.
-    */
-   public static boolean verify(byte[] sig, String text, String key)
-   {
-      // obtain the decoded public key
-      PublicKey publicKey = KeyManager.decodePublicKey(key);
-      return verify(sig, text, publicKey);
    }
    
    /**

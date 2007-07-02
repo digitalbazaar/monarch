@@ -311,7 +311,8 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
             }
             
             // sign the text
-            byte[] sig = DigitalSignature.sign(mSignText, privateKey);
+            byte[] sig = DigitalSignature.sign(
+               mSignText.getBytes("UTF-8"), privateKey);
             
             // base64 encode the signature for xml transport
             Base64Coder encoder = new Base64Coder();
@@ -391,9 +392,10 @@ public class SignableXmlEnvelope extends VersionedXmlSerializer
                   "BEGIN VERIFY TEXT:" + mSignText + ":END VERIFY TEXT\n" +
                   "SIGNATURE: '" + mSignature + "'");
                */
-      
+               
                // verify the signature
-               rval = DigitalSignature.verify(sig, mSignText, publicKey);
+               rval = DigitalSignature.verify(
+                  sig, mSignText.getBytes("UTF-8"), publicKey);
             }
             catch(Exception e)
             {

@@ -68,11 +68,12 @@ public class UTKeyManager
       
       // test sign with cryptor
       System.out.println("Signing with strings using cryptor: ");
-      byte[] data = DigitalSignature.sign("text", prkey);
+      byte[] data = DigitalSignature.sign("text".getBytes(), prkey);
       Base64Coder coder = new Base64Coder();
       System.out.println("Signature:'" + coder.encode(data) + "'");
       System.out.println(
-         "Verified: " + DigitalSignature.verify(data, "text", pukey));
+         "Verified: " + DigitalSignature.verify(
+            data, "text".getBytes(), pukey));
 
       // store the keys
       System.out.println("Storing keys in DER-Base64 format...");
@@ -131,7 +132,8 @@ public class UTKeyManager
       // sign the data with the private key
       // base64 encode the signature
       Base64Coder encoder = new Base64Coder();
-      sig = encoder.encode(DigitalSignature.sign(mData, privateKey));
+      sig = encoder.encode(
+         DigitalSignature.sign(mData.getBytes(), privateKey));
 
       System.out.println("Verifying data with public key...");
 
@@ -145,7 +147,7 @@ public class UTKeyManager
          PublicKey key = KeyManager.decodePublicKey(publicKey);
          
          // verify the digital signature
-         if(DigitalSignature.verify(bytes, mData, key))
+         if(DigitalSignature.verify(bytes, mData.getBytes(), key))
          {
             System.out.println("SUCCESS: The data has been verified!");
          }
