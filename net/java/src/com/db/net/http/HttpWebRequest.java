@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.http;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 
 import com.db.net.WebRequest;
 
@@ -77,7 +78,8 @@ public class HttpWebRequest extends WebRequest
    }
    
    /**
-    * Sends the body of this http web request as a string.
+    * Sends the body of this http web request as a string (uses the
+    * default encoding of ISO-8859-1).
     * 
     * @param body the body of this http web request as a string.
     * 
@@ -87,8 +89,15 @@ public class HttpWebRequest extends WebRequest
    {
       boolean rval = false;
       
-      HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.sendBody(body, getHeader());
+      try
+      {
+         HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
+         rval = hwc.sendBody(body.getBytes("ISO-8859-1"), getHeader());
+      }
+      catch(UnsupportedEncodingException ignore)
+      {
+         // latin should be supported
+      }
       
       return rval;
    }
@@ -145,27 +154,6 @@ public class HttpWebRequest extends WebRequest
       rval = hwc.sendBody(is, getHeader());
       
       return rval;
-   }
-   
-   /**
-    * Sends an http body part body for this http web request as a string.
-    * 
-    * @param body the body as a string.
-    * @param header the http body part header associated with the body.
-    * @param lastBodyPart true if this body is for the last body part,
-    *                     false if not.
-    *                     
-    * @return true if the body was successfully sent, false if not.
-    */
-   public boolean sendBodyPartBody(
-      String body, HttpBodyPartHeader header, boolean lastBodyPart)
-   {
-      boolean rval = false;
-      
-      HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.sendBodyPartBody(body, getHeader(), header, lastBodyPart);
-      
-      return rval;      
    }
    
    /**
@@ -273,23 +261,6 @@ public class HttpWebRequest extends WebRequest
    
    /**
     * Receives the body of this http web request and returns it as
-    * a string.
-    * 
-    * @return the body of this http web request as a string, or null if
-    *         the body could not be received.
-    */
-   public String receiveBodyString()
-   {
-      String rval = null;
-      
-      HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.receiveBodyString(getHeader());
-      
-      return rval;
-   }
-   
-   /**
-    * Receives the body of this http web request and returns it as
     * a byte array.
     * 
     * @return the body of this http web request as a byte array, or null if
@@ -319,24 +290,6 @@ public class HttpWebRequest extends WebRequest
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
       rval = hwc.receiveBody(os, getHeader());
-      
-      return rval;
-   }
-   
-   /**
-    * Receives an http body part body as a string.
-    *
-    * @param header the http body part header associated with the body.
-    * 
-    * @return the body of the body part as a string, or null if the body
-    *         could not be received. 
-    */
-   public String receiveBodyPartBodyString(HttpBodyPartHeader header)
-   {
-      String rval = null;
-      
-      HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.receiveBodyPartBodyString(getHeader(), header);
       
       return rval;
    }

@@ -417,7 +417,7 @@ public class HttpWebConnection extends WebConnectionWrapper
          getLogger().debug(getClass(), "sending http header:\r\n" + str);
          
          // get header in bytes
-         byte[] buffer = str.getBytes();
+         byte[] buffer = str.getBytes("ISO-8859-1");
          
          // write to web connection
          getWebConnection().write(buffer, 0, buffer.length);
@@ -466,7 +466,7 @@ public class HttpWebConnection extends WebConnectionWrapper
          str = boundary + HttpHeader.CRLF + str;
          
          // get header in bytes
-         byte[] buffer = str.getBytes();
+         byte[] buffer = str.getBytes("ISO-8859-1");
          
          // write to web connection
          getWebConnection().write(buffer, 0, buffer.length);
@@ -488,23 +488,6 @@ public class HttpWebConnection extends WebConnectionWrapper
             "could not send http body part header!, " +
             "an exception occurred,\ntrace= " + Logger.getStackTrace(t));
       }      
-      
-      return rval;
-   }
-   
-   /**
-    * Sends an http body as a string.
-    * 
-    * @param body the http body as a string.
-    * @param header the http header associated with the body.
-    * 
-    * @return true if the body was successfully sent, false if not.
-    */
-   public boolean sendBody(String body, HttpHeader header)
-   {
-      boolean rval = false;
-      
-      rval = sendBody(body.getBytes(), header);
       
       return rval;
    }
@@ -689,7 +672,7 @@ public class HttpWebConnection extends WebConnectionWrapper
             long st = System.currentTimeMillis();
    
             // write the boundary
-            byte[] buffer = boundary.getBytes();
+            byte[] buffer = boundary.getBytes("ISO-8859-1");
             getWebConnection().write(buffer, 0, buffer.length);
             
             // writing complete
@@ -720,29 +703,6 @@ public class HttpWebConnection extends WebConnectionWrapper
                "an exception occurred!,\ntrace= " + Logger.getStackTrace(t));
          }
       }
-      
-      return rval;
-   }
-   
-   /**
-    * Sends an http body part body as a string.
-    * 
-    * @param body the body as a string.
-    * @param parentHeader the parent http header associated with the body.
-    * @param bodyPartHeader the http body part header associated with the body.
-    * @param endBoundary true if the end boundary should be used after this
-    *                    part, false if not.
-    *                    
-    * @return true if the body was successfully sent, false if not.
-    */
-   public boolean sendBodyPartBody(
-      String body, HttpHeader parentHeader,
-      HttpBodyPartHeader bodyPartHeader, boolean endBoundary)
-   {
-      boolean rval = false;
-      
-      rval = sendBodyPartBody(body.getBytes(), parentHeader,
-         bodyPartHeader, endBoundary);
       
       return rval;
    }
@@ -852,27 +812,6 @@ public class HttpWebConnection extends WebConnectionWrapper
          getLogger().debug(getClass(),
             "could not receive http header!, an exception occurred" +
             ",\ntrace= " + Logger.getStackTrace(t));
-      }
-      
-      return rval;
-   }
-   
-   /**
-    * Receives an http body and returns it as a string.
-    * 
-    * @param header the http header associated with the body.
-    *                      
-    * @return the http body as a string, or null if a body could not
-    *         be received.
-    */
-   public String receiveBodyString(HttpHeader header)
-   {
-      String rval = null;
-      
-      byte[] body = receiveBody(header);
-      if(body != null)
-      {
-         rval = new String(body);
       }
       
       return rval;
@@ -1009,29 +948,6 @@ public class HttpWebConnection extends WebConnectionWrapper
          getLogger().debug(getClass(),
             "could not receive http body!, " +
             "an exception occurred!,\ntrace= " + Logger.getStackTrace(t));
-      }
-      
-      return rval;
-   }
-   
-   /**
-    * Receives an http body part body and returns it as a string.
-    * 
-    * @param parentHeader the parent http header associated with the body.
-    * @param bodyPartHeader the http body part header associated with the body.
-    * 
-    * @return the http body part body as a string, or null if a body part
-    *         body could not be received.
-    */
-   public String receiveBodyPartBodyString(
-      HttpHeader parentHeader, HttpBodyPartHeader bodyPartHeader)
-   {
-      String rval = null;
-      
-      byte[] body = receiveBodyPartBody(parentHeader, bodyPartHeader);
-      if(body != null)
-      {
-         rval = new String(body);
       }
       
       return rval;

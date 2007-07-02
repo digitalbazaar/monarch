@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.http;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 
 import com.db.net.WebResponse;
 
@@ -78,7 +79,8 @@ public class HttpWebResponse extends WebResponse
    }
    
    /**
-    * Sends the body of this http web response as a string.
+    * Sends the body of this http web response as a string (uses the default
+    * encoding of ISO-8859-1).
     * 
     * @param body the body of this http web response as a string.
     * 
@@ -88,8 +90,15 @@ public class HttpWebResponse extends WebResponse
    {
       boolean rval = false;
       
-      HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.sendBody(body, getHeader());
+      try
+      {
+         HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
+         rval = hwc.sendBody(body.getBytes("ISO-8859-1"), getHeader());
+      }
+      catch(UnsupportedEncodingException ignore)
+      {
+         // latin should be supported
+      }
       
       return rval;
    }
@@ -146,27 +155,6 @@ public class HttpWebResponse extends WebResponse
       rval = hwc.sendBody(is, getHeader());
       
       return rval;
-   }
-   
-   /**
-    * Sends an http body part body for this http web response as a string.
-    * 
-    * @param body the body as a byte array.
-    * @param header the http body part header associated with the body.
-    * @param lastBodyPart true if this body is for the last body part,
-    *                     false if not.
-    *                     
-    * @return true if the body was successfully sent, false if not.
-    */
-   public boolean sendBodyPartBody(
-      String body, HttpBodyPartHeader header, boolean lastBodyPart)
-   {
-      boolean rval = false;
-      
-      HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.sendBodyPartBody(body, getHeader(), header, lastBodyPart);
-      
-      return rval;      
    }
    
    /**
@@ -292,14 +280,20 @@ public class HttpWebResponse extends WebResponse
          "<html><body><h2>HTTP 400 Bad Request</h2></body></html>";
       
       getHeader().setStatusCode("400 Bad Request");
-      getHeader().setContentType("text/html");
+      getHeader().setContentType("text/html; charset=utf-8");
       getHeader().setContentEncoding(null);
       getHeader().setContentLength(page.length());
       getHeader().setConnection("close");
       
       if(sendHeader())
       {
-         rval = sendBody(page);
+         try
+         {
+            rval = sendBody(page.getBytes("UTF-8"));
+         }
+         catch(UnsupportedEncodingException ignore)
+         {
+         }
       }
       
       return rval;
@@ -319,14 +313,20 @@ public class HttpWebResponse extends WebResponse
          "<html><body><h2>HTTP 403 Forbidden</h2></body></html>";
       
       getHeader().setStatusCode("403 Forbidden");
-      getHeader().setContentType("text/html");
+      getHeader().setContentType("text/html; charset=utf-8");
       getHeader().setContentEncoding(null);
       getHeader().setContentLength(page.length());
       getHeader().setConnection("close");
       
       if(sendHeader())
       {
-         rval = sendBody(page);
+         try
+         {
+            rval = sendBody(page.getBytes("UTF-8"));
+         }
+         catch(UnsupportedEncodingException ignore)
+         {
+         }
       }
       
       return rval;
@@ -346,14 +346,20 @@ public class HttpWebResponse extends WebResponse
          "<html><body><h2>HTTP 404 Not Found</h2></body></html>";
       
       getHeader().setStatusCode("404 Not Found");
-      getHeader().setContentType("text/html");
+      getHeader().setContentType("text/html; charset=utf-8");
       getHeader().setContentEncoding(null);
       getHeader().setContentLength(page.length());
       getHeader().setConnection("close");
       
       if(sendHeader())
       {
-         rval = sendBody(page);
+         try
+         {
+            rval = sendBody(page.getBytes("UTF-8"));
+         }
+         catch(UnsupportedEncodingException ignore)
+         {
+         }
       }
       
       return rval;
@@ -373,14 +379,20 @@ public class HttpWebResponse extends WebResponse
          "<html><body><h2>HTTP 405 Method Not Allowed</h2></body></html>";
       
       getHeader().setStatusCode("405 Method Not Allowed");
-      getHeader().setContentType("text/html");
+      getHeader().setContentType("text/html; charset=utf-8");
       getHeader().setContentEncoding(null);
       getHeader().setContentLength(page.length());
       getHeader().setConnection("close");
       
       if(sendHeader())
       {
-         rval = sendBody(page);
+         try
+         {
+            rval = sendBody(page.getBytes("UTF-8"));
+         }
+         catch(UnsupportedEncodingException ignore)
+         {
+         }
       }
       
       return rval;
@@ -400,14 +412,20 @@ public class HttpWebResponse extends WebResponse
          "<html><body><h2>HTTP 500 Server Error</h2></body></html>";
       
       getHeader().setStatusCode("500 Server Error");
-      getHeader().setContentType("text/html");
+      getHeader().setContentType("text/html; charset=utf-8");
       getHeader().setContentEncoding(null);
       getHeader().setContentLength(page.length());
       getHeader().setConnection("close");
       
       if(sendHeader())
       {
-         rval = sendBody(page);
+         try
+         {
+            rval = sendBody(page.getBytes("UTF-8"));
+         }
+         catch(UnsupportedEncodingException ignore)
+         {
+         }
       }
       
       return rval;
@@ -427,14 +445,20 @@ public class HttpWebResponse extends WebResponse
          "<html><body><h2>HTTP 503 Server Unavailable</h2></body></html>";
       
       getHeader().setStatusCode("503 Server Unavailable");
-      getHeader().setContentType("text/html");
+      getHeader().setContentType("text/html; charset=utf-8");
       getHeader().setContentEncoding(null);
       getHeader().setContentLength(page.length());
       getHeader().setConnection("close");
       
       if(sendHeader())
       {
-         rval = sendBody(page);
+         try
+         {
+            rval = sendBody(page.getBytes("UTF-8"));
+         }
+         catch(UnsupportedEncodingException ignore)
+         {
+         }
       }
       
       return rval;
@@ -454,14 +478,20 @@ public class HttpWebResponse extends WebResponse
          "<html><body><h2>HTTP 505 Version Not Supported</h2></body></html>";
       
       getHeader().setStatusCode("505 Version Not Supported");
-      getHeader().setContentType("text/html");
+      getHeader().setContentType("text/html; charset=utf-8");
       getHeader().setContentEncoding(null);
       getHeader().setContentLength(page.length());
       getHeader().setConnection("close");
       
       if(sendHeader())
       {
-         rval = sendBody(page);
+         try
+         {
+            rval = sendBody(page.getBytes("UTF-8"));
+         }
+         catch(UnsupportedEncodingException ignore)
+         {
+         }
       }
       
       return rval;
@@ -504,23 +534,6 @@ public class HttpWebResponse extends WebResponse
    
    /**
     * Receives the body of this http web response and returns it as
-    * a string.
-    * 
-    * @return the body of this http web response as a string, or null if
-    *         the body could not be received.
-    */
-   public String receiveBodyString()
-   {
-      String rval = null;
-      
-      HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.receiveBodyString(getHeader());
-      
-      return rval;
-   }
-   
-   /**
-    * Receives the body of this http web response and returns it as
     * a byte array.
     * 
     * @return the body of this http web response as a byte array, or null if
@@ -550,24 +563,6 @@ public class HttpWebResponse extends WebResponse
       
       HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
       rval = hwc.receiveBody(os, getHeader());
-      
-      return rval;
-   }
-   
-   /**
-    * Receives an http body part body as a string.
-    *
-    * @param header the http body part header associated with the body.
-    * 
-    * @return the body of the body part as a string, or null if the body
-    *         could not be received. 
-    */
-   public String receiveBodyPartBodyString(HttpBodyPartHeader header)
-   {
-      String rval = null;
-      
-      HttpWebConnection hwc = (HttpWebConnection)getWebConnection();
-      rval = hwc.receiveBodyPartBodyString(getHeader(), header);
       
       return rval;
    }

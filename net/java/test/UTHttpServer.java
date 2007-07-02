@@ -72,8 +72,15 @@ public class UTHttpServer
                
                if(request.getHeader().getMethod().equals("POST"))
                {
-                  String body = request.receiveBodyString();
-                  System.out.println("RECEIVED POST BODY:\n" + body);
+                  try
+                  {
+                     String body =
+                        new String(request.receiveBody(), "ISO-8859-1");
+                     System.out.println("RECEIVED POST BODY:\n" + body);
+                  }
+                  catch(Throwable ignore)
+                  {
+                  }
                   
                   response.sendMethodNotAllowedResponse();
                }
@@ -169,7 +176,8 @@ public class UTHttpServer
          response.receiveHeader();
          System.out.println("\nresponse header=\n" +
                             response.getHeader().toString());
-         System.out.println("response body=\n" + response.receiveBodyString());
+         byte[] b = response.receiveBody();
+         System.out.println("response body=\n" + new String(b, "ISO-8859-1"));
          
          // disconnect
          hwc.disconnect();

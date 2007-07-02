@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.net.http;
 
@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
@@ -378,7 +379,8 @@ public class HttpWebClient implements WebConnectionClient
    }
    
    /**
-    * Sends an http web request from the client to the server.
+    * Sends an http web request from the client to the server using
+    * the default encoding ISO-8859-1.
     * 
     * @param request the http web request to send to the server.
     * @param body the body to send along with the request.
@@ -548,8 +550,15 @@ public class HttpWebClient implements WebConnectionClient
                // see if response was OK
                if(response.getHeader().hasOKStatusCode())
                {
-                  // receive body string
-                  rval = response.receiveBodyString();
+                  try
+                  {
+                     // receive body string, use default encoding of ISO-8859-1
+                     rval = new String(response.receiveBody(), "ISO-8859-1");
+                  }
+                  catch(UnsupportedEncodingException ignore)
+                  {
+                     // latin should be supported
+                  }
                }
             }
          }
@@ -622,8 +631,15 @@ public class HttpWebClient implements WebConnectionClient
                // see if response was OK
                if(response.getHeader().hasOKStatusCode())
                {
-                  // receive body string
-                  rval = response.receiveBodyString();
+                  try
+                  {
+                     // receive body string, use default encoding of ISO-8859-1
+                     rval = new String(response.receiveBody(), "ISO-8859-1");
+                  }
+                  catch(UnsupportedEncodingException ignore)
+                  {
+                     // latin should be supported
+                  }
                }
             }
             else

@@ -17,7 +17,6 @@ import com.db.upnp.service.UPnPError;
 import com.db.upnp.service.UPnPErrorException;
 import com.db.upnp.service.UPnPService;
 import com.db.xml.XmlElement;
-import com.db.xml.XmlException;
 
 /**
  * A UPnPServiceClient is a client that communicates with a UPnPDevice by
@@ -109,10 +108,11 @@ public class UPnPServiceClient
                // receive the body, if any
                if(response.getHeader().getContentLength() > 0)
                {
-                  xml = response.receiveBodyString();
-                  if(xml != null)
+                  byte[] b = response.receiveBody();
+                  try
                   {
-                     try
+                     xml = new String(b, "UTF-8");
+                     if(xml != null)
                      {
                         // convert the rpc soap envelope from the received xml
                         envelope.convertFromXml(xml);
@@ -135,10 +135,10 @@ public class UPnPServiceClient
                            }
                         }                     
                      }
-                     catch(XmlException e)
-                     {
-                        // FIXME: ignore for now
-                     }
+                  }
+                  catch(Exception e)
+                  {
+                     // FIXME: ignore for now
                   }
                }
             }

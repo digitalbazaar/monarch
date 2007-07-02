@@ -739,8 +739,8 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
             String body = null;
             if(receiveResponseHeader(response))
             {
-               // receive body
-               body = response.receiveBodyString();
+               // receive body, use UTF-8
+               body = new String(response.receiveBody(), "UTF-8");
             }
             
             // disconnect web connection

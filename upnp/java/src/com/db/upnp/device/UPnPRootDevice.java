@@ -219,15 +219,16 @@ public class UPnPRootDevice
             if(response.receiveHeader())
             {
                // receive response body
-               String xml = response.receiveBodyString();
-               if(xml != null)
+               byte[] b = response.receiveBody();
+               try
                {
-                  // create a new UPnPServiceDescription
-                  UPnPServiceDescription description =
-                     new UPnPServiceDescription();
-                  
-                  try
+                  String xml = new String(b, "UTF-8");
+                  if(xml != null)
                   {
+                     // create a new UPnPServiceDescription
+                     UPnPServiceDescription description =
+                        new UPnPServiceDescription();
+                     
                      // convert the description from the retrieved xml
                      description.convertFromXml(xml);
                      
@@ -235,11 +236,11 @@ public class UPnPRootDevice
                      service.setDescription(description);
                      rval = true;
                   }
-                  catch(XmlException e)
-                  {
-                     getLogger().error(getClass(),
-                        "Bad service description!,cause=" + e);
-                  }
+               }
+               catch(Exception e)
+               {
+                  getLogger().error(getClass(),
+                     "Bad service description!,cause=" + e);
                }
             }
          }
