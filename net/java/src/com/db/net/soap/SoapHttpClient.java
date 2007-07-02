@@ -454,7 +454,7 @@ public class SoapHttpClient extends HttpWebClient implements SoapWebClient
          
          // get the xml for the soap message
          String xml = sm.getSoapEnvelope().convertToXml(true, 0, 0);
-         byte[] body = xml.getBytes();
+         byte[] body = xml.getBytes("UTF-8");
          
          // create a soap http web request
          HttpWebRequest request = createSoapHttpWebRequest(

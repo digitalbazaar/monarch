@@ -43,7 +43,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
     * 
     * @param sws the soap web service for this servicer.
     */
-   public SoapHttpWebRequestServicer(SoapWebService sws) 
+   public SoapHttpWebRequestServicer(SoapWebService sws)
    {
       mSoapWebService = sws;
    }   
@@ -209,7 +209,7 @@ public class SoapHttpWebRequestServicer extends AbstractHttpWebRequestServicer
          {
             // soap response is ready, convert soap envelope
             String xml = sm.getSoapEnvelope().convertToXml(true, 0, 0);
-            byte[] body = xml.getBytes();
+            byte[] body = xml.getBytes("UTF-8");
             
             getLogger().debug(getClass(),
                "sending soap xml (see debug-data log for the actual xml).");

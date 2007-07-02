@@ -95,8 +95,6 @@ public class XmlCoder
          catch(Exception ignore)
          {
             // utf-8 is supported
-            // FIXME: remove me
-            ignore.printStackTrace();
          }
       }
       
