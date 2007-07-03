@@ -70,7 +70,7 @@ public class RiffChunkHeader
    {
       if(id == null || id.length() != 4)
       {
-         id = "";
+         mId = "";
       }
       else
       {

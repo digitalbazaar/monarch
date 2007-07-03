@@ -114,17 +114,17 @@ public class AviHeaderList
          offset += RiffListHeader.LIST_HEADER_SIZE;
          length -= RiffListHeader.LIST_HEADER_SIZE;
          
-         // ensure there is enough data remaining to convert the header list
-         if(length >= mRiffHeader.getListSize())
+         // convert main header
+         if(mMainHeader.convertFromBytes(b, offset, length))
          {
-            // set length to size of list
-            length = (int)mRiffHeader.getListSize();
+            // main header converted
+            rval = true;
             
-            // convert main header
-            if(mMainHeader.convertFromBytes(b, offset, length))
+            // ensure there is enough data remaining to convert the header list
+            if(length >= mRiffHeader.getListSize())
             {
-               // main header converted
-               rval = true;
+               // set length to size of list
+               length = (int)mRiffHeader.getListSize();
                
                // move past header
                offset += mMainHeader.getSize();

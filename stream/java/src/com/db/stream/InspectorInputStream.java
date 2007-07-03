@@ -374,7 +374,7 @@ public class InspectorInputStream extends FilterInputStream
        */
       public void setInspectedBytes(int count)
       {
-         mInspectedBytes = count;
+         mInspectedBytes = Math.max(0, count);
       }
       
       /**
