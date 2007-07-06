@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "PluginManager.h"
+#include "ModuleLibrary.h"
 
 using namespace std;
 using namespace db::modest;
 
-PluginManager::PluginManager()
+ModuleLibrary::ModuleLibrary()
 {
 }
 
-PluginManager::~PluginManager()
+ModuleLibrary::~ModuleLibrary()
 {
 }

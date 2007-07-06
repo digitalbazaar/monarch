@@ -51,7 +51,7 @@ inline static char* dlerror()
    {
       // create char*
       rval = new char[size];
-      memcpy(str, lpBuffer, size);
+      memcpy(rval, lpBuffer, size);
    }
    
    // free lpBuffer
@@ -73,7 +73,7 @@ inline static char* dlerror()
  */
 inline static void* dlsym(void* handle, const char* symbol)
 {
-   return GetProcAddress(handle, symbol);
+   return (void*)GetProcAddress((HINSTANCE)handle, symbol);
 }
 
 /**
@@ -88,7 +88,7 @@ inline static void* dlsym(void* handle, const char* symbol)
 inline static int dlclose(void* handle) 
 {
    // FreeLibrary's return value is the opposite of standard dlclose()
-   return FreeLibrary(handle) != 0;
+   return (FreeLibrary((HINSTANCE)handle) == 0) ? 1 : 0;
 }
 
 #endif // end windows definitions
