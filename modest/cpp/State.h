@@ -4,6 +4,8 @@
 #ifndef State_H
 #define State_H
 
+#include "ImmutableState.h"
+
 namespace db
 {
 namespace modest
@@ -15,7 +17,7 @@ namespace modest
  * 
  * @author Dave Longley
  */
-class State
+class State : public ImmutableState
 {
 public:
    /**
