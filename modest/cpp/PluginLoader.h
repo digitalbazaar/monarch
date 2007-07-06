@@ -12,10 +12,7 @@ namespace modest
 {
 
 /**
- * A PluginLoader is used to load (and unload) Plugins. As long as this
- * PluginLoader is in memory, its the Plugins that it has loaded will remain
- * loaded unless manually unloaded. When this PluginLoader is destructed, the
- * Plugins it has loaded will be destructed. 
+ * A PluginLoader is used to load (and unload) Plugins.
  * 
  * @author Dave Longley
  */
