@@ -24,7 +24,7 @@ namespace rt
  * 
  * @author Dave Longley
  */
-class Exception : public virtual Object
+class Exception
 {
 protected:
    /**
