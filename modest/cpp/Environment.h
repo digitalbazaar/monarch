@@ -4,6 +4,8 @@
 #ifndef Environment_H
 #define Environment_H
 
+#include "ImmutableState.h"
+
 namespace db
 {
 namespace modest
@@ -11,7 +13,7 @@ namespace modest
 
 /**
  * An Environment defines a set of state conditions. An Environment can inspect
- * an Engine's State to see whether or not that Engine is in it.
+ * an Engine's State to see whether or not that State is compatible with it.
  * 
  * @author Dave Longley
  */
@@ -29,8 +31,14 @@ public:
    virtual ~Environment();
    
    /**
-    * Returns true if the passed State is in the 
+    * Returns true if the passed State meets the conditions of this Environment.
     * 
+    * @param state the ImmutableState to inspect for compatibility.
+    * 
+    * @return true if the ImmutableState meets the conditions of this
+    *         Environment, false if not.
+    */
+   virtual bool isCompatible(ImmutableState* state);
 };
 
 } // end namespace modest

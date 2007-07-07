@@ -4,6 +4,9 @@
 #ifndef Operation_H
 #define Operation_H
 
+#include "Thread.h"
+#include "Environment.h"
+
 namespace db
 {
 namespace modest
@@ -23,18 +26,59 @@ namespace modest
  * 
  * @author Dave Longley
  */
-class Operation
+class Operation : public virtual db::rt::Object, public db::rt::Runnable
 {
+protected:
+   /**
+    * The Runnable for this Operation.
+    */
+   db::rt::Runnable* mRunnable;
+   
+   /**
+    * The execution Environment for this Operation.
+    */
+   Environment* mExecutionEnvironment;
+   
+   /**
+    * The Thread this Operation is executing on.
+    */
+   db::rt::Thread* mThread;
+   
+   /**
+    * Set to true if this Operation has been interrupted, false otherwise.
+    */
+   bool mInterrupted;
+   
 public:
    /**
-    * Creates a new Operation.
+    * Creates a new Operation that can execute the given Runnable in the
+    * given Environment.
+    * 
+    * @param r the Runnable to execute.
+    * @param e the Environment underwhich the Runnable can execute.
     */
-   Operation();
+   Operation(db::rt::Runnable* r, Environment* e);
    
    /**
     * Destructs this Operation.
     */
    virtual ~Operation();
+   
+   /**
+    * Interrupts this Operation. If this Operation is waiting to be
+    * executed, it will be cancelled. If this Operation is already executing,
+    * then a call to Operation::isInterrupted() will return true.
+    * 
+    * Operations that are interrupted must cease activity and exit gracefully.
+    */
+   virtual void interrupt();
+   
+   /**
+    * Returns true if the current Operation has been interrupted, false if not.
+    * 
+    * @return true if the current Operation has been interrupted, false if not.
+    */
+   static bool isInterrupted();
 };
 
 } // end namespace modest

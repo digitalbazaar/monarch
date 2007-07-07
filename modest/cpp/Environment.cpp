@@ -13,3 +13,9 @@ Environment::Environment()
 Environment::~Environment()
 {
 }
+
+bool Environment::isCompatible(ImmutableState* state)
+{
+   // FIXME:
+   return false;
+}
