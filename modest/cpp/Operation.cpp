@@ -34,5 +34,10 @@ void Operation::interrupt()
 
 bool Operation::isInterrupted()
 {
+   return mInterrupted;
+}
+
+bool Operation::interrupted()
+{
    return Thread::interrupted();
 }

@@ -67,18 +67,27 @@ public:
    /**
     * Interrupts this Operation. If this Operation is waiting to be
     * executed, it will be cancelled. If this Operation is already executing,
-    * then a call to Operation::isInterrupted() will return true.
+    * then a call to Operation::interrupted() will return true inside of
+    * the Runnable for this Operation. A call to isInterrupted() will return
+    * true from anywhere.
     * 
     * Operations that are interrupted must cease activity and exit gracefully.
     */
    virtual void interrupt();
    
    /**
+    * Returns true if this Operation has been interrupted, false if not.
+    * 
+    * @return true if this Operation has been interrupted, false if not.
+    */
+   virtual bool isInterrupted();
+   
+   /**
     * Returns true if the current Operation has been interrupted, false if not.
     * 
     * @return true if the current Operation has been interrupted, false if not.
     */
-   static bool isInterrupted();
+   static bool interrupted();
 };
 
 } // end namespace modest
