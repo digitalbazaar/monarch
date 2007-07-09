@@ -45,11 +45,14 @@ public:
    virtual ~Kernel();
    
    /**
-    * Gets this Kernel's Engine.
-    * 
-    * @return this Kernel's Engine.
+    * Starts this Kernel's Engine.
     */
-   virtual Engine* getEngine();
+   virtual void startEngine();
+   
+   /**
+    * Stops this Kernel's Engine.
+    */
+   virtual void stopEngine();
    
    /**
     * Gets this Kernel's ModuleLibrary.

@@ -4,7 +4,7 @@
 #ifndef ModuleLibrary_H
 #define ModuleLibrary_H
 
-#include "Object.h"
+#include "Exception.h"
 #include "ModuleLoader.h"
 
 namespace db
@@ -42,6 +42,25 @@ public:
     * Destructs this ModuleLibrary.
     */
    virtual ~ModuleLibrary();
+   
+   /**
+    * Loads a Module into this ModuleLibrary, if it has not already been loaded.
+    * 
+    * @param filename the name of the file where the Module resides.
+    * 
+    * @return an Exception if the Module could not be loaded.
+    */
+   virtual db::rt::Exception* loadModule(const std::string& filename);
+   
+   /**
+    * Gets the interface to the Module with the given name.
+    * 
+    * @param name the name of the Module to get the interface for.
+    * 
+    * @return the Module's interface, or NULL if the Module does not exist
+    *         or it has no interface.
+    */
+   virtual ModuleInterface* getModuleInterface(const std::string& name);
 };
 
 } // end namespace modest

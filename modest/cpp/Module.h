@@ -4,6 +4,8 @@
 #ifndef Module_H
 #define Module_H
 
+#include "ModuleInterface.h"
+
 namespace db
 {
 namespace modest
@@ -22,12 +24,20 @@ public:
    /**
     * Creates a new Module.
     */
-   Module();
+   Module() {};
    
    /**
     * Destructs this Module.
     */
-   virtual ~Module();
+   virtual ~Module() {};
+   
+   /**
+    * Gets the interface for this Module. The returned object should be
+    * cast to the appropriate extended ModuleInterface class for this Module.
+    * 
+    * @return the interface that provides access to this Module's functionality.
+    */
+   virtual ModuleInterface* getInterface() = 0;
 };
 
 } // end namespace modest

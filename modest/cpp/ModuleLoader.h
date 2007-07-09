@@ -4,6 +4,8 @@
 #ifndef ModuleLoader_H
 #define ModuleLoader_H
 
+#include "Module.h"
+
 namespace db
 {
 namespace modest

@@ -19,9 +19,14 @@ Kernel::~Kernel()
    delete mModuleLibrary;
 }
 
-Engine* Kernel::getEngine()
+void Kernel::startEngine()
 {
-   return mEngine;
+   mEngine->start();
+}
+
+void Kernel::stopEngine()
+{
+   mEngine->stop();
 }
 
 ModuleLibrary* Kernel::getModuleLibrary()
