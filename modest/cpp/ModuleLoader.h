@@ -4,8 +4,6 @@
 #ifndef ModuleLoader_H
 #define ModuleLoader_H
 
-#include "Object.h"
-
 namespace db
 {
 namespace modest
@@ -16,7 +14,7 @@ namespace modest
  * 
  * @author Dave Longley
  */
-class ModuleLoader : public virtual db::rt::Object
+class ModuleLoader
 {
 public:
    /**

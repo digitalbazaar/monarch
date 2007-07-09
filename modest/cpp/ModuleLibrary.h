@@ -5,6 +5,7 @@
 #define ModuleLibrary_H
 
 #include "Object.h"
+#include "ModuleLoader.h"
 
 namespace db
 {
@@ -25,6 +26,12 @@ namespace modest
  */
 class ModuleLibrary : public virtual db::rt::Object
 {
+protected:
+   /**
+    * The ModuleLoader that is used to load and unload Modules.
+    */
+   ModuleLoader mLoader;
+   
 public:
    /**
     * Creates a new ModuleLibrary.

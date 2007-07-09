@@ -43,17 +43,20 @@ public:
    virtual bool canExecuteOperation(ImmutableState* s) = 0;
    
    /**
-    * Returns true if the passed State meets the conditions of this evironment
-    * such that an Operation that requires this Environment could be queued to
-    * be checked later for execution by an Engine with the given State.
+    * Returns true if the passed State cannot meet the conditions of this
+    * environment such that an Operation that requires this Environment must
+    * be immediately canceled.
+    * 
+    * This method may return false when an Operation may not be able to be
+    * executed immediately, but it needn't be canceled either, instead it
+    * can be checked again later for execution or cancelation.
     * 
     * @param s the ImmutableState to inspect.
     * 
-    * @return true if an Engine with the given State could place an Operation
-    *         with this environment in a wait queue to check it later for
-    *         execution.
+    * @return true if an Engine with the given State must cancel an Operation
+    *         with this environment, false if not.
     */
-   virtual bool canQueueOperation(ImmutableState* s) = 0;
+   virtual bool mustCancelOperation(ImmutableState* s) = 0;
 };
 
 } // end namespace modest

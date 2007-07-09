@@ -93,14 +93,14 @@ int OperationExecutor::checkEnvironment()
       ImmutableState* s = (ImmutableState*)mState;
       if(!e->canExecuteOperation(s))
       {
-         if(!mOperation->isInterrupted() && e->canQueueOperation(s))
+         if(!mOperation->isInterrupted() && !e->mustCancelOperation(s))
          {
-            // operation must wait
+            // operation can wait
             rval = 1;
          }
          else
          {
-            // operation is canceled
+            // operation must be canceled
             rval = 2;
             mOperation->mCanceled = true;
             mDispatcher->addExpiredExecutor(this);
