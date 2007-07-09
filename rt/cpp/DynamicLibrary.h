@@ -6,8 +6,12 @@
 
 #ifndef WIN32
 #include <dlfcn.h>
+
 #else
 #include <windows.h>
+
+// this flag is not used in windows
+#define RTLD_NOW 0
 
 /**
  * Opens a dynamic library.
@@ -21,6 +25,8 @@ inline static void* dlopen(const char* filename, int flag)
 {
    return LoadLibrary(filename);
 }
+
+static char gDynamicLibraryError[100];
 
 /**
  * Gets a dynamically allocated null-terminated string with the last
@@ -49,9 +55,18 @@ inline static char* dlerror()
    
    if(size > 0)
    {
-      // create char*
-      rval = new char[size];
-      memcpy(rval, lpBuffer, size);
+      // copy into global error
+      if(size >= 100)
+      {
+         memcpy(gDynamicLibraryError, lpBuffer, 100);
+         memset(gDynamicLibraryError + 99, 0, 1);
+      }
+      else
+      {
+         memcpy(gDynamicLibraryError, lpBuffer, size);
+      }
+      
+      rval = gDynamicLibraryError;
    }
    
    // free lpBuffer

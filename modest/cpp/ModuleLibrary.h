@@ -7,10 +7,15 @@
 #include "Exception.h"
 #include "ModuleLoader.h"
 
+#include <map>
+
 namespace db
 {
 namespace modest
 {
+
+// forward declare Kernel
+class Kernel;
 
 /**
  * A ModuleLibrary is used to maintain a list of loaded Modules and to allow
@@ -22,21 +27,43 @@ namespace modest
  * A ModuleLibrary can be used to look up registered Modules and their
  * available Operations.
  * 
+ * This class provides no dependency checking -- it is left up to the Modules
+ * to check for their own dependencies and up to the application to ensure
+ * that Modules get unloaded in a safe order, if they are unloaded while
+ * the Modest Engine is running. 
+ * 
  * @author Dave Longley
  */
 class ModuleLibrary : public virtual db::rt::Object
 {
 protected:
    /**
-    * The ModuleLoader that is used to load and unload Modules.
+    * The Kernel this library is for.
+    */
+   Kernel* mKernel;
+   
+   /**
+    * The ModuleLoader that is used to load Modules from files.
     */
    ModuleLoader mLoader;
    
+   /**
+    * The map of loaded Modules.
+    */
+   std::map<std::string, ModuleInfo*> mModules;
+   
+   /**
+    * Finds a loaded Module by its name.
+    */
+   Module* findModule(const std::string& name);
+   
 public:
    /**
-    * Creates a new ModuleLibrary.
+    * Creates a new ModuleLibrary for the specified Kernel.
+    * 
+    * @param k the Kernel this ModuleLibrary is for.
     */
-   ModuleLibrary();
+   ModuleLibrary(Kernel* k);
    
    /**
     * Destructs this ModuleLibrary.
@@ -48,9 +75,24 @@ public:
     * 
     * @param filename the name of the file where the Module resides.
     * 
-    * @return an Exception if the Module could not be loaded.
+    * @return true if the Module was loaded, false if not.
     */
-   virtual db::rt::Exception* loadModule(const std::string& filename);
+   virtual bool loadModule(const std::string& filename);
+   
+   /**
+    * Unloads a Module from this ModuleLibrary, if it is loaded.
+    * 
+    * @param name the name of the Module to unload.
+    */
+   virtual void unloadModule(const std::string& name);
+   
+   /**
+    * Gets the ModuleId for the Module with the given name.
+    * 
+    * @return the ModuleId for the Module with the given name or NULL if one
+    *         does not exist.
+    */
+   virtual const ModuleId* getModuleId(const std::string& name);
    
    /**
     * Gets the interface to the Module with the given name.

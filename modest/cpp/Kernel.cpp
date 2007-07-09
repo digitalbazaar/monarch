@@ -3,14 +3,13 @@
  */
 #include "Kernel.h"
 
-using namespace std;
 using namespace db::modest;
 
 Kernel::Kernel()
 {
    // create engine and module library
    mEngine = new Engine();
-   mModuleLibrary = new ModuleLibrary();
+   mModuleLibrary = new ModuleLibrary(this);
 }
 
 Kernel::~Kernel()
@@ -19,14 +18,9 @@ Kernel::~Kernel()
    delete mModuleLibrary;
 }
 
-void Kernel::startEngine()
+Engine* Kernel::getEngine()
 {
-   mEngine->start();
-}
-
-void Kernel::stopEngine()
-{
-   mEngine->stop();
+   return mEngine;
 }
 
 ModuleLibrary* Kernel::getModuleLibrary()

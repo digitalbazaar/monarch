@@ -45,14 +45,9 @@ public:
    virtual ~Kernel();
    
    /**
-    * Starts this Kernel's Engine.
+    * Gets this Kernel's Engine.
     */
-   virtual void startEngine();
-   
-   /**
-    * Stops this Kernel's Engine.
-    */
-   virtual void stopEngine();
+   virtual Engine* getEngine();
    
    /**
     * Gets this Kernel's ModuleLibrary.
@@ -64,4 +59,38 @@ public:
 
 } // end namespace modest
 } // end namespace db
+
+// prevent C++ name mangling
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// define MODEST_API directive
+#ifdef WIN32
+   #ifdef MODEST_API_EXPORT
+      #define MODEST_API __declspec(dllexport);
+   #else
+      #define MODEST_API __declspec(dllimport);
+   #endif
+#else
+   #define MODEST_API
+#endif
+
+extern MODEST_API db::modest::Kernel* createModestKernel()
+{
+   return new db::modest::Kernel();
+}
+
+extern MODEST_API void freeModestKernel(db::modest::Kernel* k)
+{
+   delete k;
+}
+
+typedef db::modest::Kernel* (*CreateModestKernelFn)();
+typedef void (*FreeModestKernelFn)(db::modest::Kernel*);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

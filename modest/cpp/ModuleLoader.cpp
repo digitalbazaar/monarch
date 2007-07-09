@@ -3,9 +3,11 @@
  */
 #include "ModuleLoader.h"
 #include "DynamicLibrary.h"
+#include "Thread.h"
 
 using namespace std;
 using namespace db::modest;
+using namespace db::rt;
 
 ModuleLoader::ModuleLoader()
 {
@@ -13,4 +15,63 @@ ModuleLoader::ModuleLoader()
 
 ModuleLoader::~ModuleLoader()
 {
+}
+
+ModuleInfo* ModuleLoader::loadModule(std::string const& filename)
+{
+   ModuleInfo* rval = NULL;
+   
+   // open library
+   void* handle = dlopen(filename.c_str(), RTLD_NOW);
+   if(handle != NULL)
+   {
+      // clear error
+      char* error = dlerror();
+      CreateModestModuleFn create;
+      FreeModestModuleFn free;
+      
+      // try to get create module function
+      create = (CreateModestModuleFn)dlsym(handle, "createModestModule");
+      if((error = dlerror()) == NULL)
+      {
+         // clear error
+         char* error = dlerror();
+         
+         // try to get free module function
+         free = (FreeModestModuleFn)dlsym(handle, "freeModestModule");
+         error = dlerror();
+      }
+      
+      if(error != NULL)
+      {
+         // create ModuleInfo
+         rval = new ModuleInfo();
+         rval->module = create();
+         rval->freeModule = free;
+      }
+      else
+      {
+         // could not load create or free functions
+         Thread::setException(new Exception(
+            "Could not load module '" + filename + "'"));
+      }
+   }
+   else
+   {
+      // failed to open module
+      Thread::setException(new Exception(
+         "Could not load module '" + filename + "'"));
+   }
+   
+   return rval;
+}
+
+void ModuleLoader::unloadModule(ModuleInfo* mi)
+{
+   // free module
+   mi->freeModule(mi->module);
+   
+   // delete module info
+   delete mi;
+   mi = NULL;
 }

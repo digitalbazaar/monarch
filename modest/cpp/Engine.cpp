@@ -4,7 +4,6 @@
 #include "Engine.h"
 #include "OperationExecutor.h"
 
-using namespace std;
 using namespace db::modest;
 
 Engine::Engine()

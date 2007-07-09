@@ -5,7 +5,6 @@
 #include "OperationDispatcher.h"
 #include "Thread.h"
 
-using namespace std;
 using namespace db::modest;
 using namespace db::rt;
 

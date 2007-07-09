@@ -3,7 +3,6 @@
  */
 #include "Operation.h"
 
-using namespace std;
 using namespace db::modest;
 using namespace db::rt;
 
