@@ -97,12 +97,16 @@ const ModuleId* ModuleLibrary::getModuleId(const std::string& name)
 {
    const ModuleId* rval = NULL;
    
-   // find Module
-   Module* m = findModule(name);
-   if(m != NULL)
+   lock();
    {
-      rval = &m->getId();
+      // find Module
+      Module* m = findModule(name);
+      if(m != NULL)
+      {
+         rval = &m->getId();
+      }
    }
+   unlock();
    
    return rval;
 }
@@ -111,12 +115,16 @@ ModuleInterface* ModuleLibrary::getModuleInterface(const string& name)
 {
    ModuleInterface* rval = NULL;
    
-   // find Module
-   Module* m = findModule(name);
-   if(m != NULL)
+   lock();
    {
-      rval = m->getInterface();
+      // find Module
+      Module* m = findModule(name);
+      if(m != NULL)
+      {
+         rval = m->getInterface();
+      }
    }
+   unlock();
    
    return rval;
 }
