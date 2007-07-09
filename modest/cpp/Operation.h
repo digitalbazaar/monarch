@@ -83,7 +83,7 @@ protected:
 public:
    /**
     * Creates a new Operation that can execute the given Runnable in the
-    * given environment.
+    * given environment. The passed Runnable must be fully interruptible.
     * 
     * @param r the Runnable to execute.
     * @param e the environment underwhich this Operation can execute.

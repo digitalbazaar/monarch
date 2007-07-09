@@ -3,9 +3,11 @@
  */
 #include "OperationExecutor.h"
 #include "OperationDispatcher.h"
+#include "Thread.h"
 
 using namespace std;
 using namespace db::modest;
+using namespace db::rt;
 
 OperationExecutor::OperationExecutor(
    State* s, Operation* op, OperationDispatcher* od)
@@ -21,11 +23,12 @@ OperationExecutor::~OperationExecutor()
 
 void OperationExecutor::run()
 {
-   // operation started
+   // operation started on the current thread
+   mOperation->mThread = Thread::currentThread();
    mOperation->mStarted = true;
    
    // run the operation's runnable
-   if(mOperation->getRunnable() != NULL)
+   if(mOperation->getRunnable() != NULL && !mOperation->isInterrupted())
    {
       mOperation->getRunnable()->run();
    }
