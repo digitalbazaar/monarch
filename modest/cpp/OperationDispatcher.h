@@ -101,6 +101,22 @@ public:
     * @return the therad pool for running Operations.
     */
    virtual db::rt::JobThreadPool* getThreadPool();
+   
+   /**
+    * Gets the number of Operations that are in the queue to be executed.
+    * 
+    * @return the number of Operations that are queued to be executed.
+    */
+   virtual unsigned int getQueuedOperationCount();
+   
+   /**
+    * Gets the number of Operations that are in the queue and that are
+    * running.
+    * 
+    * @return the number of Operations that are queued to be executed
+    *         plus the Operations that are already running.
+    */
+   virtual unsigned int getTotalOperationCount();
 };
 
 } // end namespace modest

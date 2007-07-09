@@ -92,7 +92,19 @@ void OperationDispatcher::stopDispatching()
 
 void OperationDispatcher::clearQueuedOperations()
 {
-   JobDispatcher::clearQueuedJobs();
+   // synchronize
+   lock();
+   {
+      // delete OperationExecutors in the queue
+      for(list<Runnable*>::iterator i = mJobQueue.begin();
+          i != mJobQueue.end();)
+      {
+         OperationExecutor* e = (OperationExecutor*)(*i);
+         i = mJobQueue.erase(i);
+         delete e;
+      }
+   }
+   unlock();   
 }
 
 void OperationDispatcher::terminateRunningOperations()
@@ -112,4 +124,14 @@ void OperationDispatcher::addExpiredExecutor(OperationExecutor* e)
 JobThreadPool* OperationDispatcher::getThreadPool()
 {
    return JobDispatcher::getThreadPool();
+}
+
+unsigned int OperationDispatcher::getQueuedOperationCount()
+{
+   return JobDispatcher::getQueuedJobCount();
+}
+
+unsigned int OperationDispatcher::getTotalOperationCount()
+{
+   return JobDispatcher::getTotalJobCount();
 }
