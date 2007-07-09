@@ -29,7 +29,7 @@ void Operation::waitFor()
       // wait until Operation finishes or is canceled
       while(!finished() && !canceled())
       {
-        wait();
+         wait();
       }
    }
    unlock();
@@ -42,16 +42,11 @@ bool Operation::started()
 
 void Operation::interrupt()
 {
-   // synchronize
-   lock();
+   mInterrupted = true;
+   if(mThread != NULL)
    {
-      mInterrupted = true;
-      if(mThread != NULL)
-      {
-         mThread->interrupt();
-      }
+      mThread->interrupt();
    }
-   unlock();
 }
 
 bool Operation::isInterrupted()
