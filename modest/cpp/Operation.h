@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Operation_H
-#define Operation_H
+#ifndef db_modest_Operation_H
+#define db_modest_Operation_H
 
 #include "Thread.h"
 #include "OperationEnvironment.h"

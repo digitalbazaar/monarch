@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef InvalidRegexException_H
-#define InvalidRegexException_H
+#ifndef db_util_regex_InvalidRegexException_H
+#define db_util_regex_InvalidRegexException_H
 
 #include "Exception.h"
 

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Thread_H
-#define Thread_H
+#ifndef db_rt_Thread_H
+#define db_rt_Thread_H
 
 #include <pthread.h>
 #include <sys/types.h>

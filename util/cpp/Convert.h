@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Convert_H
-#define Convert_H
+#ifndef db_util_Convert_H
+#define db_util_Convert_H
 
 #include <string>
 

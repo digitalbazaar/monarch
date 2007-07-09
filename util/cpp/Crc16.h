@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Crc16_H
-#define Crc16_H
+#ifndef db_util_Crc16_H
+#define db_util_Crc16_H
 
 #include "HashAlgorithm.h"
 #include "Object.h"

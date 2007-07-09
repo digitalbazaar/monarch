@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef State_H
-#define State_H
+#ifndef db_modest_State_H
+#define db_modest_State_H
 
 #include <map>
 

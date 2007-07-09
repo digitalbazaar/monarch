@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef InputStream_H
-#define InputStream_H
+#ifndef db_io_InputStream_H
+#define db_io_InputStream_H
 
 #include "Thread.h"
 #include "IOException.h"

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef GetTimeOfDay_H
-#define GetTimeOfDay_H
+#ifndef db_rt_GetTimeOfDay_H
+#define db_rt_GetTimeOfDay_H
 
 // include types, time, and errno
 #include <sys/types.h>

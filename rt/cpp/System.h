@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef System_H
-#define System_H
+#ifndef db_rt_System_H
+#define db_rt_System_H
 
 // defines gettimeofday() as needed
 #include "GetTimeOfDay.h"

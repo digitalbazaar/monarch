@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef OperationDispatcher_H
-#define OperationDispatcher_H
+#ifndef db_modest_OperationDispatcher_H
+#define db_modest_OperationDispatcher_H
 
 #include "JobDispatcher.h"
 #include "Operation.h"

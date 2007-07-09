@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef SocketAddress_H
-#define SocketAddress_H
+#ifndef db_net_SocketAddress_H
+#define db_net_SocketAddress_H
 
 #include <string>
 

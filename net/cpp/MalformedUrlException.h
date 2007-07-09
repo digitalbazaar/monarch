@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef MalformedUrlException_H
-#define MalformedUrlException_H
+#ifndef db_net_MalformedUrlException_H
+#define db_net_MalformedUrlException_H
 
 #include "Exception.h"
 

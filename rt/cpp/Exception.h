@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Exception_H
-#define Exception_H
+#ifndef db_rt_Exception_H
+#define db_rt_Exception_H
 
 #include <string>
 

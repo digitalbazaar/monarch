@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef HttpResponseHeader_H
-#define HttpResponseHeader_H
+#ifndef db_net_http_HttpResponseHeader_H
+#define db_net_http_HttpResponseHeader_H
 
 #include "HttpHeader.h"
 

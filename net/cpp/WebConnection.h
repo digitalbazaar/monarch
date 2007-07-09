@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef WebConnection_H
-#define WebConnection_H
+#ifndef db_net_WebConnection_H
+#define db_net_WebConnection_H
 
 #include "Connection.h"
 #include "InternetAddress.h"

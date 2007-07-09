@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef HashAlgorithm_H
-#define HashAlgorithm_H
+#ifndef db_util_HashAlgorithm_H
+#define db_util_HashAlgorithm_H
 
 namespace db
 {

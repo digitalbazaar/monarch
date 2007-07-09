@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef SocketOutputStream_H
-#define SocketOutputStream_H
+#ifndef db_net_SocketOutputStream_H
+#define db_net_SocketOutputStream_H
 
 #include "OutputStream.h"
 #include "Socket.h"

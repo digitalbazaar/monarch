@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef AbstractBlockCipher_H
-#define AbstractBlockCipher_H
+#ifndef db_crypto_AbstractBlockCipher_H
+#define db_crypto_AbstractBlockCipher_H
 
 #include "BlockCipher.h"
 #include "Object.h"

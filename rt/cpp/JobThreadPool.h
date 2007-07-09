@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef JobThreadPool_H
-#define JobThreadPool_H
+#ifndef db_rt_JobThreadPool_H
+#define db_rt_JobThreadPool_H
 
 #include "Object.h"
 #include "Semaphore.h"

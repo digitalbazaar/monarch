@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef FilterInputStream_H
-#define FilterInputStream_H
+#ifndef db_io_FilterInputStream_H
+#define db_io_FilterInputStream_H
 
 #include "InputStream.h"
 

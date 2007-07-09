@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef IllegalArgumentException_H
-#define IllegalArgumentException_H
+#ifndef db_rt_IllegalArgumentException_H
+#define db_rt_IllegalArgumentException_H
 
 #include "Exception.h"
 

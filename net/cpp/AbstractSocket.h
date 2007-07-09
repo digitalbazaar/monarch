@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef AbstractSocket_H
-#define AbstractSocket_H
+#ifndef db_net_AbstractSocket_H
+#define db_net_AbstractSocket_H
 
 #include "Object.h"
 #include "Socket.h"

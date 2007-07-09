@@ -1,5 +1,8 @@
-#ifndef BandwidthThrottler_H
-#define BandwidthThrottler_H
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
+#ifndef db_net_BandwidthThrottler_H
+#define db_net_BandwidthThrottler_H
 
 #include "Object.h"
 #include "InterruptedException.h"

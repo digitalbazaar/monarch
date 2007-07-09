@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef SymmetricKeyFactory_H
-#define SymmetricKeyFactory_H
+#ifndef db_crypto_SymmetricKeyFactory_H
+#define db_crypto_SymmetricKeyFactory_H
 
 #include "SymmetricKey.h"
 #include "UnsupportedAlgorithmException.h"

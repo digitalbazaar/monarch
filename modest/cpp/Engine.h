@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Engine_H
-#define Engine_H
+#ifndef db_modest_Engine_H
+#define db_modest_Engine_H
 
 #include "Operation.h"
 #include "OperationDispatcher.h"

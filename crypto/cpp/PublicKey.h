@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef PublicKey_H
-#define PublicKey_H
+#ifndef db_crypto_PublicKey_H
+#define db_crypto_PublicKey_H
 
 #include "DigitalEnvelope.h"
 #include "DigitalSignature.h"

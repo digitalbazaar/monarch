@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Runnable_H
-#define Runnable_H
+#ifndef db_rt_Runnable_H
+#define db_rt_Runnable_H
 
 #include <string>
 

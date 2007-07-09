@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef SslContext_H
-#define SslContext_H
+#ifndef db_net_SslContext_H
+#define db_net_SslContext_H
 
 #include <openssl/ssl.h>
 #include <string>

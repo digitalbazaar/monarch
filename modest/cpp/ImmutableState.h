@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef ImmutableState_H
-#define ImmutableState_H
+#ifndef db_modest_ImmutableState_H
+#define db_modest_ImmutableState_H
 
 #include <string>
 

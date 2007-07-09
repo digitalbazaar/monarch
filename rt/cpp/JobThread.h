@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef JobThread_H
-#define JobThread_H
+#ifndef db_rt_JobThread_H
+#define db_rt_JobThread_H
 
 #include "Thread.h"
 

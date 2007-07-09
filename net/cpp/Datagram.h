@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Datagram_H
-#define Datagram_H
+#ifndef db_net_Datagram_H
+#define db_net_Datagram_H
 
 #include "Object.h"
 #include "InternetAddress.h"

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef StringTools_H
-#define StringTools_H
+#ifndef db_util_StringTools_H
+#define db_util_StringTools_H
 
 #include <string>
 #include "regex/InvalidRegexException.h"

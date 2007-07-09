@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef CryptoHashAlgorithm_H
-#define CryptoHashAlgorithm_H
+#ifndef db_crypto_CryptoHashAlgorithm_H
+#define db_crypto_CryptoHashAlgorithm_H
 
 #include "HashAlgorithm.h"
 #include "Object.h"

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Date_H
-#define Date_H
+#ifndef db_util_Date_H
+#define db_util_Date_H
 
 #include "Object.h"
 #include "System.h"

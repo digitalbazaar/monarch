@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef BlockCipher_H
-#define BlockCipher_H
+#ifndef db_crypto_BlockCipher_H
+#define db_crypto_BlockCipher_H
 
 namespace db
 {

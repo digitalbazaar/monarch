@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef DigitalSignature_H
-#define DigitalSignature_H
+#ifndef db_crypto_DigitalSignature_H
+#define db_crypto_DigitalSignature_H
 
 #include "CryptoHashAlgorithm.h"
 #include "AsymmetricKey.h"

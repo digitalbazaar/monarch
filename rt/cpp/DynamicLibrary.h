@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef DynamicLibrary_H
-#define DynamicLibrary_H
+#ifndef db_rt_DynamicLibrary_H
+#define db_rt_DynamicLibrary_H
 
 #ifndef WIN32
 #include <dlfcn.h>

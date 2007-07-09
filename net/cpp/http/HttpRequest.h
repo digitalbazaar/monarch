@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef HttpRequest_H
-#define HttpRequest_H
+#ifndef db_net_http_HttpRequest_H
+#define db_net_http_HttpRequest_H
 
 #include "WebRequest.h"
 #include "HttpRequestHeader.h"

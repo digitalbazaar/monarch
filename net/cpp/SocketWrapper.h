@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef SocketWrapper_H
-#define SocketWrapper_H
+#ifndef db_net_SocketWrapper_H
+#define db_net_SocketWrapper_H
 
 #include "Socket.h"
 

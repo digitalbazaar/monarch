@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef FileNotFoundException_H
-#define FileNotFoundException_H
+#ifndef db_io_FileNotFoundException_H
+#define db_io_FileNotFoundException_H
 
 #include "IOException.h"
 

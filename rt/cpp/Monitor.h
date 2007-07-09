@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Monitor_H
-#define Monitor_H
+#ifndef db_rt_Monitor_H
+#define db_rt_Monitor_H
 
 #include <pthread.h>
 

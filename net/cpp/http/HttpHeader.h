@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef HttpHeader_H
-#define HttpHeader_H
+#ifndef db_net_http_HttpHeader_H
+#define db_net_http_HttpHeader_H
 
 #include "Object.h"
 #include "Date.h"

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef File_H
-#define File_H
+#ifndef db_io_File_H
+#define db_io_File_H
 
 #include "Object.h"
 

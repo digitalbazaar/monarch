@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Math_H
-#define Math_H
+#ifndef db_util_Math_H
+#define db_util_Math_H
 
 #include <math.h>
 

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Connection_H
-#define Connection_H
+#ifndef db_net_Connection_H
+#define db_net_Connection_H
 
 #include "Object.h"
 #include "Socket.h"

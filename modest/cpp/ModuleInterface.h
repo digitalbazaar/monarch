@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef ModuleInterface_H
-#define ModuleInterface_H
+#ifndef db_modest_ModuleInterface_H
+#define db_modest_ModuleInterface_H
 
 namespace db
 {

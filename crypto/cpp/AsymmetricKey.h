@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef AsymmetricKey_H
-#define AsymmetricKey_H
+#ifndef db_crypto_AsymmetricKey_H
+#define db_crypto_AsymmetricKey_H
 
 #include "IOException.h"
 

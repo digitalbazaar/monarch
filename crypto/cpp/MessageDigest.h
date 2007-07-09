@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef MessageDigest_H
-#define MessageDigest_H
+#ifndef db_crypto_MessageDigest_H
+#define db_crypto_MessageDigest_H
 
 #include "CryptoHashAlgorithm.h"
 

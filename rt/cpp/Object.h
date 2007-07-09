@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Object_H
-#define Object_H
+#ifndef db_rt_Object_H
+#define db_rt_Object_H
 
 #include <string>
 

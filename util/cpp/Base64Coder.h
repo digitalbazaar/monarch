@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Base64Coder_H
-#define Base64Coder_H
+#ifndef db_util_Base64Coder_H
+#define db_util_Base64Coder_H
 
 #include <string>
 

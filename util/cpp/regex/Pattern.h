@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Pattern_H
-#define Pattern_H
+#ifndef db_util_regex_Pattern_H
+#define db_util_regex_Pattern_H
 
 #include "Object.h"
 

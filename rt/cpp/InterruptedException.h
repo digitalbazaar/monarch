@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef InterruptedException_H
-#define InterruptedException_H
+#ifndef db_rt_InterruptedException_H
+#define db_rt_InterruptedException_H
 
 #include "Exception.h"
 

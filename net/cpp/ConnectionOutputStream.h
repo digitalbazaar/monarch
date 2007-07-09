@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef ConnectionOutputStream_H
-#define ConnectionOutputStream_H
+#ifndef db_net_ConnectionOutputStream_H
+#define db_net_ConnectionOutputStream_H
 
 #include "OutputStream.h"
 #include <string>

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef UdpSocket_H
-#define UdpSocket_H
+#ifndef db_net_UdpSocket_H
+#define db_net_UdpSocket_H
 
 #include "AbstractSocket.h"
 

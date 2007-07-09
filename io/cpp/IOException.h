@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef IOException_H
-#define IOException_H
+#ifndef db_io_IOException_H
+#define db_io_IOException_H
 
 #include "Exception.h"
 

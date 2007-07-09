@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef SocketDefinitions_H
-#define SocketDefinitions_H
+#ifndef db_net_SocketDefinitions_H
+#define db_net_SocketDefinitions_H
 
 #ifdef WIN32
    // windows socket library

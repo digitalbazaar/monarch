@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef UnsupportedAlgorithmException_H
-#define UnsupportedAlgorithmException_H
+#ifndef db_crypto_UnsupportedAlgorithmException_H
+#define db_crypto_UnsupportedAlgorithmException_H
 
 #include "Exception.h"
 

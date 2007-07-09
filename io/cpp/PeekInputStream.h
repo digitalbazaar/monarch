@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef PeekInputStream_H
-#define PeekInputStream_H
+#ifndef db_io_PeekInputStream_H
+#define db_io_PeekInputStream_H
 
 #include "FilterInputStream.h"
 

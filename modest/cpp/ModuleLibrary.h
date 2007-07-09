@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef ModuleLibrary_H
-#define ModuleLibrary_H
+#ifndef db_modest_ModuleLibrary_H
+#define db_modest_ModuleLibrary_H
 
 #include "Exception.h"
 #include "ModuleLoader.h"

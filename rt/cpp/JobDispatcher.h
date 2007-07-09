@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef JobDispatcher_H
-#define JobDispatcher_H
+#ifndef db_rt_JobDispatcher_H
+#define db_rt_JobDispatcher_H
 
 #include "JobThreadPool.h"
 

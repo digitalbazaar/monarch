@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef UnknownHostException_H
-#define UnknownHostException_H
+#ifndef db_net_UnknownHostException_H
+#define db_net_UnknownHostException_H
 
 #include "Exception.h"
 

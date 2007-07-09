@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef HttpConnection_H
-#define HttpConnection_H
+#ifndef db_net_http_HttpConnection_H
+#define db_net_http_HttpConnection_H
 
 #include "WebConnection.h"
 #include "InputStream.h"

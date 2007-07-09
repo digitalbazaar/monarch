@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef XmlSerializer_H
-#define XmlSerializer_H
+#ifndef db_xml_XmlSerializer_H
+#define db_xml_XmlSerializer_H
 
 #include "InputStream.h"
 #include "OutputStream.h"

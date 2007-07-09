@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef FileInputStream_H
-#define FileInputStream_H
+#ifndef db_io_FileInputStream_H
+#define db_io_FileInputStream_H
 
 #include "File.h"
 #include "InputStream.h"

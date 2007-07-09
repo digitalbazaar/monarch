@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef HttpTransferChunkedOutputStream_H
-#define HttpTransferChunkedOutputStream_H
+#ifndef db_net_http_HttpTransferChunkedOutputStream_H
+#define db_net_http_HttpTransferChunkedOutputStream_H
 
 #include "FilterOutputStream.h"
 #include "ConnectionOutputStream.h"

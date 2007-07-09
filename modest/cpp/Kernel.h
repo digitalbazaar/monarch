@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Kernel_H
-#define Kernel_H
+#ifndef db_modest_Kernel_H
+#define db_modest_Kernel_H
 
 #include "Engine.h"
 #include "ModuleLibrary.h"

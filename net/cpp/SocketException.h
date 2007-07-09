@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef SocketException_H
-#define SocketException_H
+#ifndef db_net_SocketException_H
+#define db_net_SocketException_H
 
 #include "IOException.h"
 

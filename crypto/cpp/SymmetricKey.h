@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef SymmetricKey_H
-#define SymmetricKey_H
+#ifndef db_crypto_SymmetricKey_H
+#define db_crypto_SymmetricKey_H
 
 #include "Object.h"
 

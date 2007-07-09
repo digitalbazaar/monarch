@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef SslSocket_H
-#define SslSocket_H
+#ifndef db_net_SslSocket_H
+#define db_net_SslSocket_H
 
 #include "TcpSocket.h"
 #include "SocketWrapper.h"

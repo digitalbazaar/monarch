@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef DefaultBlockCipher_H
-#define DefaultBlockCipher_H
+#ifndef db_crypto_DefaultBlockCipher_H
+#define db_crypto_DefaultBlockCipher_H
 
 #include "AbstractBlockCipher.h"
 #include "SymmetricKey.h"

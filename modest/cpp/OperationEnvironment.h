@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef OperationEnvironment_H
-#define OperationEnvironment_H
+#ifndef db_modest_OperationEnvironment_H
+#define db_modest_OperationEnvironment_H
 
 #include "ImmutableState.h"
 

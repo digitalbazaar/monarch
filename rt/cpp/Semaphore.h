@@ -1,5 +1,8 @@
-#ifndef Semaphore_H
-#define Semaphore_H
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
+#ifndef db_rt_Semaphore_H
+#define db_rt_Semaphore_H
 
 #include "Thread.h"
 

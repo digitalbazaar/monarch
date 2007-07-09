@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef OperationExecutor_H
-#define OperationExecutor_H
+#ifndef db_modest_OperationExecutor_H
+#define db_modest_OperationExecutor_H
 
 #include "State.h"
 #include "OperationDispatcher.h"

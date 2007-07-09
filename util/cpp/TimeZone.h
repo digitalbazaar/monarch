@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef TimeZone_H
-#define TimeZone_H
+#ifndef db_util_TimeZone_H
+#define db_util_TimeZone_H
 
 #include "Object.h"
 

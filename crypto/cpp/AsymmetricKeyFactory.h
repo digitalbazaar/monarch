@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef AsymmetricKeyFactory_H
-#define AsymmetricKeyFactory_H
+#ifndef db_crypto_AsymmetricKeyFactory_H
+#define db_crypto_AsymmetricKeyFactory_H
 
 #include "PrivateKey.h"
 #include "PublicKey.h"

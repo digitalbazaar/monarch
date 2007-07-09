@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef DigitalEnvelope_H
-#define DigitalEnvelope_H
+#ifndef db_crypto_DigitalEnvelope_H
+#define db_crypto_DigitalEnvelope_H
 
 #include "AbstractBlockCipher.h"
 #include "AsymmetricKey.h"

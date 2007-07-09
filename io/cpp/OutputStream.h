@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef OutputStream_H
-#define OutputStream_H
+#ifndef db_io_OutputStream_H
+#define db_io_OutputStream_H
 
 #include "Object.h"
 #include "IOException.h"

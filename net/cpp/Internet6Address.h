@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef Internet6Address_H
-#define Internet6Address_H
+#ifndef db_net_Internet6Address_H
+#define db_net_Internet6Address_H
 
 #include "InternetAddress.h"
 #include "UnknownHostException.h"
