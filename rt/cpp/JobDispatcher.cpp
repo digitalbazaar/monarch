@@ -135,8 +135,6 @@ bool JobDispatcher::isQueued(Runnable* job)
    return rval;
 }
 
-// FIXME: remove iostream
-#include <iostream>
 void JobDispatcher::startDispatching()
 {
    // synchronize
@@ -144,19 +142,11 @@ void JobDispatcher::startDispatching()
    {
       if(!isDispatching())
       {
-         cout << "JobDispatcher starting dispatching..." << endl;
-         
          // create new dispatcher thread
          mDispatcherThread = new Thread(this);
          
          // start dispatcher thread
          mDispatcherThread->start();
-         
-         cout << "JobDispatcher started dispatching." << endl;
-      }
-      else
-      {
-         cout << "JobDispatcher is already dispatching." << endl;
       }
    }
    unlock();
@@ -169,19 +159,12 @@ void JobDispatcher::stopDispatching()
    {
       if(isDispatching())
       {
-         cout << "JobDispatcher stopping dispatching..." << endl;
-         
          // interrupt dispatcher thread
          getDispatcherThread()->interrupt();
          
          // clean up dispatcher thread
+         delete mDispatcherThread;
          mDispatcherThread = NULL;
-         
-         cout << "JobDispatcher stopped dispatching." << endl;
-      }
-      else
-      {
-         cout << "JobDispatcher is already not dispatching." << endl;
       }
    }
    unlock();

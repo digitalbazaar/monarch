@@ -4,7 +4,8 @@
 #ifndef Engine_H
 #define Engine_H
 
-#include "Object.h"
+#include "Operation.h"
+#include "OperationDispatcher.h"
 
 namespace db
 {
@@ -31,6 +32,17 @@ namespace modest
  */
 class Engine : public virtual db::rt::Object
 {
+protected:
+   /**
+    * The State of this Engine.
+    */
+   State* mState;
+   
+   /**
+    * The OperationDispatcher for dispatching Operations.
+    */
+   OperationDispatcher* mOpDispatcher;
+   
 public:
    /**
     * Creates a new Engine.
@@ -41,6 +53,37 @@ public:
     * Destructs this Engine.
     */
    virtual ~Engine();
+   
+   /**
+    * Queues the passed Operation for execution. The Operation may fail to
+    * execute if this Engine's State is not compatible with the Operation's
+    * execution environment. The Operation may also be placed in a wait queue
+    * to be checked later for execution.
+    * 
+    * After this method has been called, the Operation may be waited on until
+    * it finishes or is canceled, by calling op->waitFor().
+    * 
+    * @param op the Operation to execute.
+    */
+   virtual void queue(Operation* op);
+   
+   /**
+    * Starts this Engine. This will begin executing queued Operations.
+    */
+   virtual void start();
+   
+   /**
+    * Stops this Engine. This will stop executing queued Operations and
+    * interrupt all currently running Operations.
+    */
+   virtual void stop();
+   
+   /**
+    * Gets State of this Engine in an immutable form.
+    * 
+    * @return the State of this Engine in an immutable form.
+    */
+   virtual ImmutableState* getState();
 };
 
 } // end namespace modest

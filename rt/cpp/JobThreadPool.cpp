@@ -6,9 +6,6 @@
 using namespace std;
 using namespace db::rt;
 
-// FIXME: remove iostream and print outs
-#include <iostream>
-
 JobThreadPool::JobThreadPool(unsigned int poolSize) :
    mThreadSemaphore(poolSize, true)
 {
@@ -57,8 +54,6 @@ JobThread* JobThreadPool::getIdleThread()
 {
    JobThread* rval = NULL;
    
-   cout << "Acquiring idle JobThread for new job..." << endl;
-   
    // synchronize
    lock();
    {
@@ -79,8 +74,6 @@ JobThread* JobThreadPool::getIdleThread()
             // if the thread is not alive, remove it and continue on
             if(!thread->isAlive())
             {
-               cout << "removing expired thread." << endl;
-               
                // remove thread
                i = mThreads.erase(i);
                delete thread;
@@ -93,8 +86,6 @@ JobThread* JobThreadPool::getIdleThread()
                // if there are extra idle threads, interrupt this idle one
                if(extraThreads > 0)
                {
-                  cout << "interrupting extra thread." << endl;
-                  
                   // interrupt thread
                   thread->interrupt();
                   
@@ -113,7 +104,6 @@ JobThread* JobThreadPool::getIdleThread()
                   {
                      // return this thread
                      rval = thread;
-                     cout << "using idle thread" << endl;
                   }
                   
                   // move to the next thread
@@ -134,8 +124,6 @@ JobThread* JobThreadPool::getIdleThread()
          // create new job thread
          rval = createJobThread();
          
-         cout << "adding new thread." << endl;
-         
          // add thread to pool
          mThreads.push_back(rval);
          
@@ -144,8 +132,6 @@ JobThread* JobThreadPool::getIdleThread()
       }
    }
    unlock();
-   
-   cout << "Idle JobThread for new job acquired." << endl;
    
    return rval;
 }
@@ -219,26 +205,25 @@ unsigned int JobThreadPool::getPoolSize()
 
 void JobThreadPool::runJob(Runnable* job)
 {
-   bool permitAcquired = false;
-   
-   // acquire a thread permit
-   if(acquireThreadPermit() == NULL)
+   if(job != NULL)
    {
-      // permit acquired
-      permitAcquired = true;
+      bool permitAcquired = false;
       
-      // run the job on an idle thread
-      runJobOnIdleThread(job);
-   }
-   else
-   {
-      cout << "thread acquisition interrupted." << endl;
-   }
-   
-   // if a permit was acquired, release it
-   if(permitAcquired)
-   {
-      releaseThreadPermit();
+      // acquire a thread permit
+      if(acquireThreadPermit() == NULL)
+      {
+         // permit acquired
+         permitAcquired = true;
+         
+         // run the job on an idle thread
+         runJobOnIdleThread(job);
+      }
+      
+      // if a permit was acquired, release it
+      if(permitAcquired)
+      {
+         releaseThreadPermit();
+      }
    }
 }
 
@@ -247,8 +232,6 @@ void JobThreadPool::interruptAllThreads()
    // synchronize
    lock();
    {
-      cout << "interrupting all threads." << endl;
-      
       // iterate through all threads, interrupt each
       for(vector<JobThread*>::iterator i = mThreads.begin();
           i != mThreads.end(); i++)
@@ -257,8 +240,6 @@ void JobThreadPool::interruptAllThreads()
          JobThread* thread = *i;
          thread->interrupt();
       }
-      
-      cout << "all threads interrupted." << endl;      
    }
    unlock();
 }
@@ -267,8 +248,6 @@ void JobThreadPool::terminateAllThreads()
 {
    // interrupt all the threads
    interruptAllThreads();
-   
-   cout << "terminating all threads." << endl;
    
    // synchronize
    lock();
@@ -279,12 +258,8 @@ void JobThreadPool::terminateAllThreads()
       {
          JobThread* thread = *i;
          
-         cout << "joining thread..." << endl;
-         
          // join thread
          thread->join();
-         
-         cout << "thread joined." << endl;
          
          // remove thread
          i = mThreads.erase(i);
@@ -295,8 +270,6 @@ void JobThreadPool::terminateAllThreads()
       mThreads.clear();
    }
    unlock();
-   
-   cout << "all threads terminated." << endl;
 }
 
 void JobThreadPool::setJobThreadExpireTime(unsigned long long expireTime)

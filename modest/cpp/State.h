@@ -6,6 +6,7 @@
 
 #include <map>
 
+#include "Object.h"
 #include "ImmutableState.h"
 
 namespace db
@@ -40,7 +41,7 @@ typedef struct StateVariable
  * 
  * @author Dave Longley
  */
-class State : public ImmutableState
+class State : public virtual db::rt::Object, public ImmutableState
 {
 protected:
    /**

@@ -51,28 +51,28 @@ protected:
     * 
     * @return true if added or already in the queue, false if not.
     */
-   bool pushJob(Runnable* job);
+   virtual bool pushJob(Runnable* job);
    
    /**
     * Pops the next Runnable job off of the queue.
     * 
     * @return job the popped Runnable job.
     */
-   Runnable* popJob(); 
+   virtual Runnable* popJob(); 
    
    /**
     * Gets an iterator over the jobs in the queue (in FIFO order).
     *
     * @return an iterator over the jobs in the queue.
     */
-   std::list<Runnable*>::iterator getJobIterator();
+   virtual std::list<Runnable*>::iterator getJobIterator();
    
    /**
     * Gets the dispatcher thread.
     * 
     * @return the dispatcher thread.
     */
-   Thread* getDispatcherThread();
+   virtual Thread* getDispatcherThread();
    
 public:
    /**
@@ -100,7 +100,7 @@ public:
     * 
     * @param job the Runnable job to queue.
     */
-   void queueJob(Runnable* job);
+   virtual void queueJob(Runnable* job);
    
    /**
     * Dequeues a Runnable job so that it will no longer be
@@ -108,12 +108,12 @@ public:
     * 
     * @param job the Runnable job to dequeue.
     */
-   void dequeueJob(Runnable* job);
+   virtual void dequeueJob(Runnable* job);
    
    /**
     * Dispatches the next Runnable job in the queue, if one exists.
     */
-   void dispatchNextJob();
+   virtual void dispatchNextJob();
    
    /**
     * Returns true if the passed Runnable job is in the queue
@@ -124,68 +124,60 @@ public:
     * @return true if the passed Runnable job is in the queue to
     *         be dispatched, false if not.
     */
-   bool isQueued(Runnable* job);
+   virtual bool isQueued(Runnable* job);
    
    /**
     * Starts dispatching Runnable jobs.
     */
-   void startDispatching();
+   virtual void startDispatching();
    
    /**
     * Stops dispatching Runnable jobs. This does not terminate the jobs
     * that are already running.
     */
-   void stopDispatching();
+   virtual void stopDispatching();
    
    /**
     * Returns true if this JobDispatcher is dispatching jobs, false if not.
     * 
     * @return true if this JobDispatcher is dispatching jobs, false if not.
     */
-   bool isDispatching();
+   virtual bool isDispatching();
    
    /**
     * Removes all queued jobs. Already running jobs will not be affected.
     */
-   void clearQueuedJobs();
+   virtual void clearQueuedJobs();
    
    /**
     * Interrupts all running Jobs. Queued jobs will not be affected.
     */
-   void interruptAllRunningJobs();
+   virtual void interruptAllRunningJobs();
    
    /**
     * Terminates all running Jobs. Queued jobs will not be affected. This
     * method will wait until all of the threads are joined.
     */
-   void terminateAllRunningJobs();
-   
-   /**
-    * Terminates all running Jobs. Queued jobs will not be affected.
-    * 
-    * @param joinTime the amount of time (in milliseconds) to wait to join
-    *                 the running threads.
-    */
-   void terminateAllRunningJobs(unsigned long long joinTime);
-   
+   virtual void terminateAllRunningJobs();
+      
    /**
     * Called to start dispatching Runnable jobs.
     */
-   void run();
+   virtual void run();
    
    /**
     * Gets the JobThreadPool.
     * 
     * @return the thread pool for running jobs.
     */
-   JobThreadPool* getThreadPool();
+   virtual JobThreadPool* getThreadPool();
    
    /**
     * Gets the number of Runnable jobs that are in the queue.
     * 
     * @return the number of Runnable jobs that are queued to be dispatched.
     */
-   unsigned int getQueuedJobCount();
+   virtual unsigned int getQueuedJobCount();
    
    /**
     * Gets the number of Runnable jobs that are in the queue and that are
@@ -194,7 +186,7 @@ public:
     * @return the number of Runnable jobs that are queued to be dispatched
     *         plus the Runnable jobs that are already running.
     */
-   unsigned int getTotalJobCount();
+   virtual unsigned int getTotalJobCount();
 };
 
 } // end namespace rt
