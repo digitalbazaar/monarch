@@ -1,0 +1,181 @@
+# Makefile to compile the Digital Bazaar C++ libraries
+
+# Clean does not create a target file so this will
+# make sure it always runs when typing "make clean"
+.PHONY: clean
+
+# Compiler
+CC = g++
+
+# Include path
+INCLUDES = -Irt/cpp -Imodest/cpp -Iutil/cpp -Iio/cpp -Icrypto/cpp -Inet/cpp -Ixml/cpp
+
+# Compiler flags:
+# -g	include debug information
+CFLAGS = -g $(INCLUDES)
+
+# Archive builder
+AR = ar
+ARFLAGS = cr
+
+# Library path
+LIBS = -Lrt/cpp/dist -Lmodest/cpp/dist -Lutil/cpp/dist -Lio/cpp/dist -Lcrypto/cpp/dist -Lnet/cpp/dist -Lxml/cpp/dist
+
+# Linker flags:
+LDFLAGS = $(LIBS)
+
+# The DB build directories
+BUILD = \
+	test/cpp/build \
+        rt/cpp/build \
+        modest/cpp/build \
+        util/cpp/build \
+        io/cpp/build \
+        crypto/cpp/build \
+        net/cpp/build \
+        xml/cpp/build
+
+# The DB dist directories
+DIST = \
+	test/cpp/dist \
+        rt/cpp/dist \
+        modest/cpp/dist \
+        util/cpp/dist \
+        io/cpp/dist \
+        crypto/cpp/dist \
+        net/cpp/dist \
+        xml/cpp/dist
+
+# CPP files
+DBRT_CPP = $(wildcard rt/cpp/**/*.cpp)
+DBMODEST_CPP = $(wildcard modest/cpp/**/*.cpp)
+DBUTIL_CPP = $(wildcard util/cpp/**/*.cpp)
+DBIO_CPP = $(wildcard io/cpp/**/*.cpp)
+DBCRYPTO_CPP = $(wildcard crypto/cpp/**/*.cpp)
+DBNET_CPP = $(wildcard net/cpp/**/*.cpp)
+DBXML_CPP = $(wildcard xml/cpp/**/*.cpp)
+
+# Object files
+DBRT_OBJS = $(DBRT_CPP:rt/cpp/%.cpp=rt/cpp/build/%.o)
+DBMODEST_OBJS = $(DBMODEST_CPP:modest/cpp/%.cpp=modest/cpp/build/%.o)
+DBUTIL_OBJS = $(DBUTIL_CPP:util/cpp/%.cpp=util/cpp/build/%.o)
+DBIO_OBJS = $(DBIO_CPP:io/cpp/%.cpp=io/cpp/build/%.o)
+DBCRYPTO_OBJS = $(DBCRYPTO_CPP:crypto/cpp/%.cpp=crypto/cpp/build/%.o)
+DBNET_OBJS = $(DBNET_CPP:net/cpp/%.cpp=net/cpp/build/%.o)
+DBXML_OBJS = $(DBXML_CPP:xml/cpp/%.cpp=xml/cpp/build/%.o)
+
+# Individual DB libraries as make targets
+# This will need to be changed for a windows build
+DBRT_LIB = rt/cpp/dist/libdbrt.a
+DBRT_SHARED_LIB = rt/cpp/dist/libdbrt.so
+DBMODEST_LIB = modest/cpp/dist/libdbmodest.a
+DBMODEST_SHARED_LIB = modest/cpp/dist/libdbmodest.so
+DBUTIL_LIB = util/cpp/dist/libdbutil.a
+DBUTIL_SHARED_LIB = util/cpp/dist/libdbutil.so
+DBIO_LIB = io/cpp/dist/libdbio.a
+DBIO_SHARED_LIB = io/cpp/dist/libdbio.so
+DBCRYPTO_LIB = crypto/cpp/dist/libdbcrypto.a
+DBCRYPTO_SHARED_LIB = crypto/cpp/dist/libdbcrypto.so
+DBNET_LIB = net/cpp/dist/libdbnet.a
+DBNET_SHARED_LIB = net/cpp/dist/libdbnet.so
+DBXML_LIB = xml/cpp/dist/libdbxml.a
+DBXML_SHARED_LIB = xml/cpp/dist/libdbxml.so
+
+# DB executables
+TEST_EXE = test/cpp/dist/test.exe
+
+# Builds all binaries
+all: libdbrt libdbmodest libdbutil libdbio libdbcrypto libdbnet test
+	@echo Make all finished.
+
+# Cleans all build and dist files
+clean:
+	@echo Cleaning all DB build and dist files...
+	rm -rf $(BUILD) $(DIST)
+	@echo Make clean finished.
+
+# Builds the DB runtime libraries
+libdbrt: $(DBRT_OBJS)
+	$(AR) $(ARFLAGS) rt/cpp/dist/$@.a $^
+	$(CC) -shared -o rt/cpp/dist/$@.so $^
+
+# Builds the DB modest libraries
+libdbmodest: $(DBMODEST_OBJS)
+	$(AR) $(ARFLAGS) modest/cpp/dist/$@.a $^
+	$(CC) -shared -o modest/cpp/dist/$@.so $^
+
+# Builds the DB utilities libraries
+libdbutil: $(DBUTIL_OBJS)
+	$(AR) $(ARFLAGS) util/cpp/dist/$@.a $^
+	$(CC) -shared -o util/cpp/dist/$@.so $^
+
+# Builds the DB io libraries
+libdbio: $(DBIO_OBJS)
+	$(AR) $(ARFLAGS) io/cpp/dist/$@.a $^
+	$(CC) -shared -o io/cpp/dist/$@.so $^
+
+# Builds the DB crypto libraries
+libdbcrypto: $(DBCRYPTO_OBJS)
+	$(AR) $(ARFLAGS) crypto/cpp/dist/$@.a $^
+	$(CC) -shared -o crypto/cpp/dist/$@.so $^
+
+# Builds the DB net libraries
+libdbnet: $(DBNET_OBJS)
+	$(AR) $(ARFLAGS) net/cpp/dist/$@.a $^
+	$(CC) -shared -o net/cpp/dist/$@.so $^
+
+# Builds the DB xml libraries
+libdbxml: $(DBXML_OBJS)
+	$(AR) $(ARFLAGS) xml/cpp/dist/$@.a $^
+	$(CC) -shared -o xml/cpp/dist/$@.so $^
+
+# Builds the DB test.exe binary
+test: test/cpp/build/main.o $(DBLIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o$(TEST_EXE) test/cpp/build/main.o -ldbrt -ldbmodest -ldbutil -ldbio -ldbcrypto -ldbnet -ldbxml -lpthread -lcrypto -lssl
+
+# Builds DB runtime object files
+rt/cpp/build/%.o: rt/cpp/%.cpp
+	-@mkdir rt/cpp/build
+	-@mkdir rt/cpp/dist
+	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
+
+# Builds DB modest object files
+modest/cpp/build/%.o: modest/cpp/%.cpp
+	-@mkdir modest/cpp/build
+	-@mkdir modest/cpp/dist
+	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
+
+# Builds DB utility object files
+util/cpp/build/%.o: util/cpp/%.cpp
+	-@mkdir util/cpp/build
+	-@mkdir util/cpp/dist
+	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
+
+# Builds DB io object files
+io/cpp/build/%.o: io/cpp/%.cpp
+	-@mkdir io/cpp/build
+	-@mkdir io/cpp/dist
+	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
+
+# Builds DB cryptography object files
+crypto/cpp/build/%.o: crypto/cpp/%.cpp
+	-@mkdir crypto/cpp/build
+	-@mkdir crypto/cpp/dist
+	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
+
+# Builds DB net object files
+net/cpp/build/%.o: net/cpp/%.cpp
+	-@mkdir net/cpp/build
+	-@mkdir net/cpp/build/http
+	-@mkdir net/cpp/dist
+	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
+
+# Builds DB xml object files
+xml/cpp/build/%.o: xml/cpp/%.cpp
+	-@mkdir xml/cpp/build
+	-@mkdir xml/cpp/dist
+	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
+
+# Builds Test object file
+test/cpp/build/main.o: test/cpp/main.cpp
+	$(CC) $(CFLAGS) -o $@ -c $^
