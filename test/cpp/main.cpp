@@ -42,6 +42,10 @@ using namespace db::rt;
 using namespace db::util;
 using namespace db::util::regex;
 
+// WTF? this is required to get static library building for no reason
+#include "PeekInputStream.h"
+PeekInputStream s(NULL, false);
+
 void runBase64Test()
 {
 	cout << "Running Base64 Test" << endl << endl;

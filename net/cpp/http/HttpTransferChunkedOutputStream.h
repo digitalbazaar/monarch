@@ -78,7 +78,7 @@ namespace http
  * @author Dave Longley
  */
 class HttpTransferChunkedOutputStream :
-public virtual db::io::FilterOutputStream
+public db::io::FilterOutputStream
 {
 protected:
    /**

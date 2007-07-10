@@ -76,7 +76,7 @@ namespace http
  * 
  * @author Dave Longley
  */
-class HttpTransferChunkedInputStream : public virtual db::io::PeekInputStream
+class HttpTransferChunkedInputStream : public db::io::PeekInputStream
 {
 protected:
    /**

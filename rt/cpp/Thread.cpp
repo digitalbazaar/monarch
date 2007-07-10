@@ -3,7 +3,6 @@
  */
 #include "Thread.h"
 #include "System.h"
-#include "Math.h"
 
 using namespace std;
 using namespace db::rt;

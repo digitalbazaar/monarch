@@ -47,13 +47,14 @@ DIST = \
         xml/cpp/dist
 
 # CPP files
-DBRT_CPP = $(wildcard rt/cpp/**/*.cpp)
-DBMODEST_CPP = $(wildcard modest/cpp/**/*.cpp)
-DBUTIL_CPP = $(wildcard util/cpp/**/*.cpp)
-DBIO_CPP = $(wildcard io/cpp/**/*.cpp)
-DBCRYPTO_CPP = $(wildcard crypto/cpp/**/*.cpp)
-DBNET_CPP = $(wildcard net/cpp/**/*.cpp)
-DBXML_CPP = $(wildcard xml/cpp/**/*.cpp)
+FIND_CPP = $(wildcard $(dir)/*.cpp)
+DBRT_CPP = $(foreach dir,rt/cpp,$(FIND_CPP))
+DBMODEST_CPP = $(foreach dir,modest/cpp,$(FIND_CPP))
+DBUTIL_CPP = $(foreach dir,util/cpp,$(FIND_CPP)) $(foreach dir,util/cpp/regex,$(FIND_CPP))
+DBIO_CPP = $(foreach dir,io/cpp,$(FIND_CPP))
+DBCRYPTO_CPP = $(foreach dir,crypto/cpp,$(FIND_CPP))
+DBNET_CPP = $(foreach dir,net/cpp,$(FIND_CPP)) $(foreach dir,net/cpp/http,$(FIND_CPP))
+DBXML_CPP = $(foreach dir,xml/cpp,$(FIND_CPP))
 
 # Object files
 DBRT_OBJS = $(DBRT_CPP:rt/cpp/%.cpp=rt/cpp/build/%.o)
@@ -85,7 +86,7 @@ DBXML_SHARED_LIB = xml/cpp/dist/libdbxml.so
 TEST_EXE = test/cpp/dist/test.exe
 
 # Builds all binaries
-all: libdbrt libdbmodest libdbutil libdbio libdbcrypto libdbnet test
+all: test
 	@echo Make all finished.
 
 # Cleans all build and dist files
@@ -111,6 +112,7 @@ libdbutil: $(DBUTIL_OBJS)
 
 # Builds the DB io libraries
 libdbio: $(DBIO_OBJS)
+	echo DBIO_CPP
 	$(AR) $(ARFLAGS) io/cpp/dist/$@.a $^
 	$(CC) -shared -o io/cpp/dist/$@.so $^
 
@@ -130,52 +132,55 @@ libdbxml: $(DBXML_OBJS)
 	$(CC) -shared -o xml/cpp/dist/$@.so $^
 
 # Builds the DB test.exe binary
-test: test/cpp/build/main.o $(DBLIBS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o$(TEST_EXE) test/cpp/build/main.o -ldbrt -ldbmodest -ldbutil -ldbio -ldbcrypto -ldbnet -ldbxml -lpthread -lcrypto -lssl
+test: libdbrt libdbmodest libdbutil libdbio libdbcrypto libdbnet test/cpp/build/main.o
+	$(CC) $(CFLAGS) -o $(TEST_EXE) test/cpp/build/main.o rt/cpp/dist/libdbrt.a modest/cpp/dist/libdbmodest.a util/cpp/dist/libdbutil.a io/cpp/dist/libdbio.a crypto/cpp/dist/libdbcrypto.a net/cpp/dist/libdbnet.a -lpthread -lcrypto -lssl
+
+#	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TEST_EXE) #test/cpp/build/main.o -ldbrt -ldbmodest -ldbutil -ldbio -ldbcrypto -ldbnet -lcrypto -lssl -lpthread
 
 # Builds DB runtime object files
 rt/cpp/build/%.o: rt/cpp/%.cpp
-	-@mkdir rt/cpp/build
-	-@mkdir rt/cpp/dist
+	@mkdir -p rt/cpp/build
+	@mkdir -p rt/cpp/dist
 	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
 
 # Builds DB modest object files
 modest/cpp/build/%.o: modest/cpp/%.cpp
-	-@mkdir modest/cpp/build
-	-@mkdir modest/cpp/dist
+	@mkdir -p modest/cpp/build
+	@mkdir -p modest/cpp/dist
 	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
 
 # Builds DB utility object files
 util/cpp/build/%.o: util/cpp/%.cpp
-	-@mkdir util/cpp/build
-	-@mkdir util/cpp/dist
+	@mkdir -p util/cpp/build/regex
+	@mkdir -p util/cpp/dist
 	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
 
 # Builds DB io object files
 io/cpp/build/%.o: io/cpp/%.cpp
-	-@mkdir io/cpp/build
-	-@mkdir io/cpp/dist
+	@mkdir -p io/cpp/build
+	@mkdir -p io/cpp/dist
 	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
 
 # Builds DB cryptography object files
 crypto/cpp/build/%.o: crypto/cpp/%.cpp
-	-@mkdir crypto/cpp/build
-	-@mkdir crypto/cpp/dist
+	@mkdir -p crypto/cpp/build
+	@mkdir -p crypto/cpp/dist
 	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
 
 # Builds DB net object files
 net/cpp/build/%.o: net/cpp/%.cpp
-	-@mkdir net/cpp/build
-	-@mkdir net/cpp/build/http
-	-@mkdir net/cpp/dist
+	@mkdir -p net/cpp/build/http
+	@mkdir -p net/cpp/dist
 	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
 
 # Builds DB xml object files
 xml/cpp/build/%.o: xml/cpp/%.cpp
-	-@mkdir xml/cpp/build
-	-@mkdir xml/cpp/dist
+	@mkdir -p xml/cpp/build
+	@mkdir -p xml/cpp/dist
 	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
 
 # Builds Test object file
 test/cpp/build/main.o: test/cpp/main.cpp
+	@mkdir -p test/cpp/build
+	@mkdir -p test/cpp/dist
 	$(CC) $(CFLAGS) -o $@ -c $^
