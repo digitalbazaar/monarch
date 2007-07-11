@@ -1960,7 +1960,8 @@ public:
       
       if(mLogout)
       {
-         s->setInteger("logging.out", true);
+         s->setBoolean("logging.out", true);
+         cout << "Logging out..." << endl;
       }
    }
    
@@ -1972,7 +1973,8 @@ public:
       
       if(mLogout)
       {
-         s->setInteger("logged.out", true);
+         s->setBoolean("logged.out", true);
+         cout << "Logged out." << endl;
       }
    }
 };
@@ -1981,10 +1983,13 @@ class RunOp : public virtual Object, public Runnable
 {
 protected:
    string mName;
+   unsigned long mTime;
+   
 public:
-   RunOp(string name)
+   RunOp(string name, unsigned long time)
    {
       mName = name;
+      mTime = time;
    }
    
    virtual void run()
@@ -1994,7 +1999,7 @@ public:
       
       lock();
       {
-         wait(1000);
+         wait(mTime);
       }
       unlock();
       
@@ -2018,26 +2023,29 @@ void runModestTest()
    cout << "Modest engine started." << endl;
    k.getEngine()->start();
    
-   RunOp r1("Number 1");
-   RunOp r2("Number 2");
-   RunOp r3("Number 3");
-   RunOp r4("Number 4");
-   RunOp r5("Number 5");
+   RunOp r1("Number 1", 1000);
+   RunOp r2("Number 2", 1000);
+   RunOp r3("Number 3", 1000);
+   RunOp r4("Number 4", 1000);
+   RunOp r5("Number 5", 1000);
+   RunOp rLogout("Logout", 1000);
    
-   TestStateMutator sm1(false);
-   TestStateMutator sm2(true);
+   TestStateMutator sm(false);
+   TestStateMutator smLogout(true);
    TestOpEnvironment e;
    
-   Operation op1(&r1, &e, &sm1);
-   Operation op2(&r2, &e, &sm1);
-   Operation op3(&r3, &e, &sm1);
-   Operation op4(&r4, &e, &sm1);
-   Operation op5(&r5, &e, &sm1);
+   Operation op1(&r1, &e, &sm);
+   Operation op2(&r2, &e, &sm);
+   Operation op3(&r3, &e, &sm);
+   Operation op4(&r4, &e, &sm);
+   Operation op5(&r5, &e, &sm);
+   Operation opLogout(&rLogout, &e, &smLogout);
    
    k.getEngine()->queue(&op1);
    k.getEngine()->queue(&op2);
    k.getEngine()->queue(&op3);
    k.getEngine()->queue(&op4);
+   k.getEngine()->queue(&opLogout);
    k.getEngine()->queue(&op5);
    
    op1.waitFor();
@@ -2045,6 +2053,7 @@ void runModestTest()
    op3.waitFor();
    op4.waitFor();
    op5.waitFor();
+   opLogout.waitFor();
    
    k.getEngine()->stop();
    cout << "Modest engine stopped." << endl;

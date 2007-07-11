@@ -115,7 +115,7 @@ void JobDispatcher::dispatchNextJob()
    if(job != NULL)
    {
       // run the job
-      getThreadPool()->runJob(job);      
+      getThreadPool()->runJob(job);
    }
 }
 
@@ -221,8 +221,8 @@ void JobDispatcher::run()
       // dispatch the next Runnable job
       dispatchNextJob();
       
-      // yield
-      Thread::yield();
+      // sleep
+      Thread::sleep(1);
    }
 }
 

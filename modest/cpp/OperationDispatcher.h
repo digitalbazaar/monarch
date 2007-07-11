@@ -31,6 +31,13 @@ protected:
    Engine* mEngine;
    
    /**
+    * The set to true when a dispatch should occur. This is true to begin with
+    * and is set to true when a new operation is queued or executed, or when
+    * one expires.
+    */
+   bool mDispatch;
+   
+   /**
     * A list of expired OperationExecutors to clean up.
     */
    std::list<OperationExecutor*> mExpiredExecutors;
