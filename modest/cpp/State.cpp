@@ -50,22 +50,29 @@ StateVariable* State::createVariable(const string& name, int type)
    {
       // create new variable
       var = new StateVariable();
-      var->s = NULL;
+      var->type = type;
+      
+      // create string as appropriate
+      if(type == 3)
+      {
+         var->s = new string();
+      }
+      
+      // store variable in table
       mVarTable[name] = var;
    }
    
-   // set variable type
-   var->type = type;
-   
-   // allocate or delete string as appropriate
-   if(type == 3 && var->s == NULL)
+   if(var->type != type)
    {
-      var->s = new string();
-   }
-   else if(type != 3 && var->s != NULL)
-   {
-      delete var->s;
-      var->s = NULL;
+      // allocate or delete string as appropriate
+      if(type == 3)
+      {
+         var->s = new string();
+      }
+      else if(var->type == 3)
+      {
+         delete var->s;
+      }
    }
    
    return var;

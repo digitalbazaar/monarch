@@ -1902,11 +1902,157 @@ void runInterruptTest()
    cout << "Thread joined." << endl;
 }
 
+class TestOpEnvironment : public OperationEnvironment
+{
+public:
+   virtual bool canExecuteOperation(ImmutableState* s)
+   {
+      bool rval = false;
+      
+      int ops = 0;
+      s->getInteger("number.of.ops", ops);
+      cout << "Number of Ops: " << ops << endl;
+      
+      bool loggingOut = false;
+      s->getBoolean("logging.out", loggingOut);
+      cout << "User logging out: " << loggingOut << endl;
+      
+      rval = !loggingOut && ops < 3;
+      if(!rval)
+      {
+         cout << "Operation must wait or cancel." << endl;
+      }
+      else
+      {
+         cout << "Operation can run." << endl;
+      }
+      
+      return rval;
+   }
+   
+   virtual bool mustCancelOperation(ImmutableState* s)
+   {
+      bool loggedOut = false;
+      s->getBoolean("logged.out", loggedOut);
+      cout << "User logged out: " << loggedOut << endl;
+      
+      if(loggedOut)
+      {
+         cout << "Operation must cancel, user logged out." << endl;
+      }
+      
+      return !loggedOut;
+   }
+};
+
+class TestStateMutator : public StateMutator
+{
+protected:
+   bool mLogout;
+public:
+   TestStateMutator(bool logout)
+   {
+      mLogout = logout;
+   }
+   
+   virtual void mutatePreExecutionState(State* s, Operation* op)
+   {
+      int ops = 0;
+      s->getInteger("number.of.ops", ops);
+      s->setInteger("number.of.ops", ++ops);
+      cout << "Updated number of Ops: " << ops << endl;
+      
+      if(mLogout)
+      {
+         s->setInteger("logging.out", true);
+      }
+   }
+   
+   virtual void mutatePostExecutionState(State* s, Operation* op)
+   {
+      int ops = 0;
+      s->getInteger("number.of.ops", ops);
+      s->setInteger("number.of.ops", --ops);
+      cout << "Updated number of Ops: " << ops << endl;
+      
+      if(mLogout)
+      {
+         s->setInteger("logged.out", true);
+      }
+   }
+};
+
+class RunOp : public virtual Object, public Runnable
+{
+protected:
+   string mName;
+public:
+   RunOp(string name)
+   {
+      mName = name;
+   }
+   
+   virtual void run()
+   {
+      cout << "Operation running: " <<
+         Thread::currentThread()->getName() << endl;
+      
+      lock();
+      {
+         wait(1000);
+      }
+      unlock();
+      
+      cout << "Operation finished: " <<
+         Thread::currentThread()->getName() << endl;
+   }
+   
+   virtual string& toString(string& str)
+   {
+      str = mName;
+      return mName;
+   }
+};
+
 void runModestTest()
 {
    cout << "Starting Modest test." << endl << endl;
    
    Kernel k;
+   
+   cout << "Modest engine started." << endl;
+   k.getEngine()->start();
+   
+   RunOp r1("Number 1");
+   RunOp r2("Number 2");
+   RunOp r3("Number 3");
+   RunOp r4("Number 4");
+   RunOp r5("Number 5");
+   
+   TestStateMutator sm1(false);
+   TestStateMutator sm2(true);
+   TestOpEnvironment e;
+   
+   Operation op1(&r1, &e, &sm1);
+   Operation op2(&r2, &e, &sm1);
+   Operation op3(&r3, &e, &sm1);
+   Operation op4(&r4, &e, &sm1);
+   Operation op5(&r5, &e, &sm1);
+   
+   k.getEngine()->queue(&op1);
+   k.getEngine()->queue(&op2);
+   k.getEngine()->queue(&op3);
+   k.getEngine()->queue(&op4);
+   k.getEngine()->queue(&op5);
+   
+   op1.waitFor();
+   op2.waitFor();
+   op3.waitFor();
+   op4.waitFor();
+   op5.waitFor();
+   
+   k.getEngine()->stop();
+   cout << "Modest engine stopped." << endl;
    
    cout << endl << "Modest test complete." << endl;
 }

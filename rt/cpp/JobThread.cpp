@@ -7,9 +7,6 @@
 using namespace std;
 using namespace db::rt;
 
-// FIXME: remove iostream include and print outs
-#include <iostream>
-
 JobThread::JobThread(unsigned long long expireTime) : Thread(this)
 {
    // no Runnable job to run yet
@@ -42,20 +39,19 @@ void JobThread::goIdle()
    }
    unlock();
    
-   // FIXME: check for interruption based on wait's return value
-   
-   // if this thread has an expire time set and this thread still has
-   // no job see if the time has expired
-   if(getExpireTime() != 0 && !hasJob())
+   if(!isInterrupted())
    {
-      // check expired time
-      unsigned long long now = System::getCurrentMilliseconds();
-      if(now - startTime >= getExpireTime())
+      // if this thread has an expire time set and this thread still has
+      // no job see if the time has expired
+      if(getExpireTime() != 0 && !hasJob())
       {
-         cout << "idle expire time reached, interrupting..." << endl;
-         
-         // thread must expire
-         interrupt();
+         // check expired time
+         unsigned long long now = System::getCurrentMilliseconds();
+         if(now - startTime >= getExpireTime())
+         {
+            // thread must expire
+            interrupt();
+         }
       }
    }
 }
@@ -93,23 +89,17 @@ void JobThread::setJob(Runnable* job)
 
 void JobThread::run()
 {
-   cout << "JobThread: started." << endl;
-   
    while(!isInterrupted())
    {
       // get the Runnable job to run
       Runnable* job = getJob();
       if(job != NULL)
       {
-         cout << "JobThread: starting a job..." << endl;
-         
          // run job
          job->run();
          
          // thread no longer has job
          setJob(NULL);
-         
-         cout << "JobThread: finished a job." << endl;
       }
       
       if(!isInterrupted())
@@ -118,13 +108,6 @@ void JobThread::run()
          goIdle();
       }
    }
-   
-   if(isInterrupted())
-   {
-      cout << "JobThread: interrupted." << endl;
-   }
-   
-   cout << "JobThread terminated." << endl;
 }
 
 bool JobThread::hasJob()
