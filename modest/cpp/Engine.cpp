@@ -17,6 +17,9 @@ Engine::~Engine()
    // ensure engine is stopped
    stop();
    
+   // clear queued operations
+   mOpDispatcher->clearQueuedOperations();
+   
    delete mOpDispatcher;
    delete mState;
 }

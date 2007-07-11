@@ -15,6 +15,7 @@ OperationExecutor::OperationExecutor(
    mState = s;
    mOperation = op;
    mDispatcher = od;
+   mCollectable = false;
 }
 
 OperationExecutor::~OperationExecutor()
@@ -63,6 +64,9 @@ void OperationExecutor::run()
       mOperation->notifyAll();
    }
    mOperation->unlock();
+   
+   // mark this executor as collectable
+   mCollectable = true;
 }
 
 void OperationExecutor::execute()
@@ -108,6 +112,11 @@ int OperationExecutor::checkEnvironment()
    }
    
    return rval;
+}
+
+bool OperationExecutor::isCollectable()
+{
+   return mCollectable;
 }
 
 string& OperationExecutor::toString(string& str)

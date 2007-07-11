@@ -8,7 +8,7 @@
 using namespace std;
 using namespace db::modest;
 using namespace db::rt;
-
+#include <iostream>
 OperationDispatcher::OperationDispatcher(Engine* e)
 {
    mEngine = e;
@@ -16,6 +16,20 @@ OperationDispatcher::OperationDispatcher(Engine* e)
 
 OperationDispatcher::~OperationDispatcher()
 {
+   // stop dispatching
+   stopDispatching();
+   
+   // terminate all running operations
+   terminateRunningOperations();
+   
+   // clear all queued operations
+   clearQueuedOperations();
+   
+   // cleanup any expired executors
+   while(!mExpiredExecutors.empty())
+   {
+      cleanupExpiredExecutors();
+   }
 }
 
 void OperationDispatcher::dispatchNextJob()
@@ -76,8 +90,15 @@ void OperationDispatcher::cleanupExpiredExecutors()
           i != mExpiredExecutors.end();)
       {
          OperationExecutor* e = *i;
-         i = mExpiredExecutors.erase(i);
-         delete e;
+         if(e->isCollectable())
+         {
+            i = mExpiredExecutors.erase(i);
+            delete e;
+         }
+         else
+         {
+            i++;
+         }
       }
    }
    unlock();
@@ -100,7 +121,6 @@ void OperationDispatcher::stopDispatching()
 
 void OperationDispatcher::clearQueuedOperations()
 {
-   // synchronize
    lock();
    {
       // delete OperationExecutors in the queue

@@ -1941,7 +1941,7 @@ public:
          cout << "Operation must cancel, user logged out." << endl;
       }
       
-      return !loggedOut;
+      return loggedOut;
    }
 };
 
