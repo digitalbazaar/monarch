@@ -22,6 +22,9 @@ void OperationDispatcher::dispatchNextJob()
 {
    OperationExecutor* e = NULL;
    
+   // lock state, executor will unlock it
+   mEngine->getState()->lock();
+   
    lock();
    {
       // look up the queue until an Operation is found that can be executed
@@ -50,14 +53,19 @@ void OperationDispatcher::dispatchNextJob()
    }
    unlock();
    
-   // clean up any expired executors
-   cleanupExpiredExecutors();
-   
    if(e != NULL)
    {
       // execute Operation
       e->execute();
    }
+   else
+   {
+      // no executor, so unlock state
+      mEngine->getState()->unlock();
+   }
+   
+   // clean up any expired executors
+   cleanupExpiredExecutors();
 }
 
 void OperationDispatcher::cleanupExpiredExecutors()

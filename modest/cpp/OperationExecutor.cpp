@@ -69,13 +69,12 @@ void OperationExecutor::execute()
    // do pre-execution state mutation
    if(mOperation->getStateMutator() != NULL)
    {
-      mState->lock();
-      {
-         mOperation->getStateMutator()->mutatePreExecutionState(
-            mState, mOperation);
-      }
-      mState->unlock();
+      mOperation->getStateMutator()->mutatePreExecutionState(
+         mState, mOperation);
    }
+   
+   // unlock state, it will have been locked by dispatcher
+   mState->unlock();
    
    // run using dispatcher's thread pool
    mDispatcher->getThreadPool()->runJob(this);

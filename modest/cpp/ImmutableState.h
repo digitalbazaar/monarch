@@ -4,6 +4,7 @@
 #ifndef db_modest_ImmutableState_H
 #define db_modest_ImmutableState_H
 
+#include "Object.h"
 #include <string>
 
 namespace db
@@ -16,7 +17,7 @@ namespace modest
  * 
  * @author Dave Longley
  */
-class ImmutableState
+class ImmutableState : public virtual db::rt::Object
 {
 public:
    /**
