@@ -55,7 +55,7 @@ bool JobDispatcher::pushJob(Runnable* job)
       lock();
       {
          // add the job to the queue
-         mJobQueue.push_front(job);
+         mJobQueue.push_back(job);
          rval = true;
       }
       unlock();
