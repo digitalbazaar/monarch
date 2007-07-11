@@ -2027,11 +2027,11 @@ void runModestTest()
    cout << "Modest engine started." << endl;
    k.getEngine()->start();
    
-   RunOp r1("Number 1", 1000);
-   RunOp r2("Number 2", 1000);
-   RunOp r3("Number 3", 1000);
-   RunOp r4("Number 4", 1000);
-   RunOp r5("Number 5", 1000);
+   RunOp r1("Number 1", 2000);
+   RunOp r2("Number 2", 2000);
+   RunOp r3("Number 3", 2000);
+   RunOp r4("Number 4", 2000);
+   RunOp r5("Number 5", 2000);
    RunOp rLogout("Logout", 1000);
    
    TestStateMutator sm(false);
