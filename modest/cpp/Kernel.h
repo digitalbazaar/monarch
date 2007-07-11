@@ -76,15 +76,8 @@ extern "C" {
    #define MODEST_API
 #endif
 
-extern MODEST_API db::modest::Kernel* createModestKernel()
-{
-   return new db::modest::Kernel();
-}
-
-extern MODEST_API void freeModestKernel(db::modest::Kernel* k)
-{
-   delete k;
-}
+extern MODEST_API db::modest::Kernel* createModestKernel();
+extern MODEST_API void freeModestKernel(db::modest::Kernel* k);
 
 typedef db::modest::Kernel* (*CreateModestKernelFn)();
 typedef void (*FreeModestKernelFn)(db::modest::Kernel*);

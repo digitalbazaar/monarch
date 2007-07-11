@@ -46,6 +46,16 @@ DIST = \
         net/cpp/dist \
         xml/cpp/dist
 
+# H files
+FIND_H = $(wildcard $(dir)/*.h)
+DBRT_H = $(foreach dir,rt/cpp,$(FIND_H))
+DBMODEST_H = $(foreach dir,modest/cpp,$(FIND_H))
+DBUTIL_H = $(foreach dir,util/cpp,$(FIND_H)) $(foreach dir,util/cpp/regex,$(FIND_H))
+DBIO_H = $(foreach dir,io/cpp,$(FIND_H))
+DBCRYPTO_H = $(foreach dir,crypto/cpp,$(FIND_H))
+DBNET_H = $(foreach dir,net/cpp,$(FIND_H)) $(foreach dir,net/cpp/http,$(FIND_H))
+DBXML_H = $(foreach dir,xml/cpp,$(FIND_H))
+
 # CPP files
 FIND_CPP = $(wildcard $(dir)/*.cpp)
 DBRT_CPP = $(foreach dir,rt/cpp,$(FIND_CPP))

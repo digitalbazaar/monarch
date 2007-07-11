@@ -32,10 +32,12 @@
 #include "http/HttpHeader.h"
 #include "http/HttpRequest.h"
 #include "http/HttpResponse.h"
+#include "Kernel.h"
 
 using namespace std;
 using namespace db::crypto;
 using namespace db::io;
+using namespace db::modest;
 using namespace db::net;
 using namespace db::net::http;
 using namespace db::rt;
@@ -1900,6 +1902,15 @@ void runInterruptTest()
    cout << "Thread joined." << endl;
 }
 
+void runModestTest()
+{
+   cout << "Starting Modest test." << endl << endl;
+   
+   Kernel k;
+   
+   cout << endl << "Modest test complete." << endl;
+}
+
 class RunTests : public virtual Object, public Runnable
 {
 public:
@@ -1913,10 +1924,11 @@ public:
       //runBase64Test();
       //runTimeTest();
       //runThreadTest();
-      runInterruptTest();
+      //runInterruptTest();
       // FIXME: need to add runSemaphoreTest()
       //runJobThreadPoolTest();
       //runJobDispatcherTest();
+      runModestTest();
       //runWindowsAddressResolveTest();
       //runLinuxAddressResolveTest();
       //runWindowsSocketTest();

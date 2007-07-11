@@ -27,3 +27,13 @@ ModuleLibrary* Kernel::getModuleLibrary()
 {
    return mModuleLibrary;
 }
+
+inline Kernel* createModestKernel()
+{
+   return new db::modest::Kernel();
+}
+
+inline void freeModestKernel(Kernel* k)
+{
+   delete k;
+}
