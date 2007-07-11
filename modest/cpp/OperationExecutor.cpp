@@ -5,6 +5,7 @@
 #include "OperationDispatcher.h"
 #include "Thread.h"
 
+using namespace std;
 using namespace db::modest;
 using namespace db::rt;
 
@@ -107,4 +108,16 @@ int OperationExecutor::checkEnvironment()
    }
    
    return rval;
+}
+
+string& OperationExecutor::toString(string& str)
+{
+   str = "OperationExecutor";
+   
+   if(mOperation->getRunnable() != NULL)
+   {
+      mOperation->getRunnable()->toString(str);
+   }
+   
+   return str;
 }

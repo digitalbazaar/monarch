@@ -77,6 +77,15 @@ public:
     *         if it should be canceled.
     */
    virtual int checkEnvironment();
+   
+   /**
+    * Gets a string representation for this Runnable.
+    * 
+    * @param str the string to populate.
+    * 
+    * @return a string representation for this Runnable.
+    */
+   virtual std::string& toString(std::string& str);
 };
 
 } // end namespace modest
