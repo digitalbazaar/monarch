@@ -30,16 +30,17 @@ void JobThread::goIdle()
    // set thread name
    setName("JobThread: idle");
    
+   InterruptedException* e = NULL;
    unsigned long long startTime = System::getCurrentMilliseconds();
    
    lock();
    {
       // wait until expire time
-      wait(getExpireTime());
+      e = wait(getExpireTime());
    }
    unlock();
    
-   if(!isInterrupted())
+   if(e == NULL && !isInterrupted())
    {
       // if this thread has an expire time set and this thread still has
       // no job see if the time has expired

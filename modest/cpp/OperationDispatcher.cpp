@@ -8,7 +8,7 @@
 using namespace std;
 using namespace db::modest;
 using namespace db::rt;
-#include <iostream>
+
 OperationDispatcher::OperationDispatcher(Engine* e)
 {
    mEngine = e;

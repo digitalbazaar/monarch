@@ -1937,6 +1937,10 @@ public:
       {
          cout << "Operation must cancel, user logged out." << endl;
       }
+      else
+      {
+         cout << "Operation can wait, user is not logged out yet." << endl;
+      }
       
       return loggedOut;
    }
@@ -2054,6 +2058,8 @@ void runModestTest()
    op4.waitFor();
    op5.waitFor();
    opLogout.waitFor();
+   
+   cout << "Operations complete." << endl;
    
    k.getEngine()->stop();
    cout << "Modest engine stopped." << endl;

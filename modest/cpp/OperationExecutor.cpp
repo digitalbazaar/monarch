@@ -107,6 +107,16 @@ int OperationExecutor::checkEnvironment()
             rval = 2;
             mOperation->mCanceled = true;
             mDispatcher->addExpiredExecutor(this);
+            
+            mOperation->lock();
+            {
+               // wake up all waiting threads
+               mOperation->notifyAll();
+            }
+            mOperation->unlock();
+            
+            // mark executor as collectable
+            mCollectable = true;
          }
       }
    }

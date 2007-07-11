@@ -46,7 +46,7 @@ void JobThreadPool::releaseThreadPermit()
 
 JobThread* JobThreadPool::createJobThread()
 {
-   // create job thrad
+   // create job thread
    return new JobThread(getJobThreadExpireTime());
 }
 
@@ -258,10 +258,8 @@ void JobThreadPool::terminateAllThreads()
       {
          JobThread* thread = *i;
          
-         // join thread
+         // join and remove thread
          thread->join();
-         
-         // remove thread
          i = mThreads.erase(i);
          delete thread;
       }
