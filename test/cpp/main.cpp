@@ -1911,11 +1911,9 @@ public:
       
       int ops = 0;
       s->getInteger("number.of.ops", ops);
-      cout << "Number of Ops: " << ops << endl;
       
       bool loggingOut = false;
       s->getBoolean("logging.out", loggingOut);
-      cout << "User logging out: " << loggingOut << endl;
       
       rval = !loggingOut && ops < 3;
       if(!rval)
@@ -1934,7 +1932,6 @@ public:
    {
       bool loggedOut = false;
       s->getBoolean("logged.out", loggedOut);
-      cout << "User logged out: " << loggedOut << endl;
       
       if(loggedOut)
       {
@@ -1960,7 +1957,6 @@ public:
       int ops = 0;
       s->getInteger("number.of.ops", ops);
       s->setInteger("number.of.ops", ++ops);
-      cout << "Updated number of Ops: " << ops << endl;
       
       if(mLogout)
       {
@@ -1973,7 +1969,6 @@ public:
       int ops = 0;
       s->getInteger("number.of.ops", ops);
       s->setInteger("number.of.ops", --ops);
-      cout << "Updated number of Ops: " << ops << endl;
       
       if(mLogout)
       {
