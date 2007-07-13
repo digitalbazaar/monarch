@@ -24,6 +24,8 @@
 // include windows headers for obtaining time
 #include <windows.h>
 
+#ifndef __MINGW32__
+
 // define timezone structure
 struct timezone
 {
@@ -102,6 +104,8 @@ inline static int gettimeofday(struct timeval* tv, struct timezone* tz)
    // success
    return 0;
 }
+
+#endif
 
 // define the number of days per month (in non-leap years)
 static const short gDaysInPreviousMonth[12] =
