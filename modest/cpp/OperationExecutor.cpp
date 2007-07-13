@@ -106,7 +106,6 @@ int OperationExecutor::checkEnvironment()
             // operation must be canceled
             rval = 2;
             mOperation->mCanceled = true;
-            mDispatcher->addExpiredExecutor(this);
             
             mOperation->lock();
             {

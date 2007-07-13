@@ -63,6 +63,7 @@ void OperationDispatcher::dispatchNextJob()
                case 2:
                   // Operation is canceled
                   i = mJobQueue.erase(i);
+                  addExpiredExecutor(e);
                   e = NULL;
                   break;
             }

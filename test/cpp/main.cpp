@@ -2084,7 +2084,7 @@ public:
       // FIXME: need to add runSemaphoreTest()
       //runJobThreadPoolTest();
       //runJobDispatcherTest();
-      runModestTest();
+      //runModestTest();
       //runWindowsAddressResolveTest();
       //runLinuxAddressResolveTest();
       //runWindowsSocketTest();
@@ -2115,6 +2115,7 @@ public:
       //runRegexTest();
       //runDateTest();
       //runHttpHeaderTest();
+      //runConfigTest();
       
       cout << endl << "Tests finished." << endl;
       
