@@ -157,7 +157,7 @@ rt/cpp/build/%.o: rt/cpp/%.cpp
 modest/cpp/build/%.o: modest/cpp/%.cpp
 	@mkdir -p modest/cpp/build
 	@mkdir -p modest/cpp/dist
-	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
+	$(CC) $(CFLAGS) -fPIC -o $@ -c $^ -DMODEST_API_EXPORT
 
 # Builds DB utility object files
 util/cpp/build/%.o: util/cpp/%.cpp
