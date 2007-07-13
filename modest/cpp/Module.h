@@ -101,9 +101,9 @@ extern "C" {
 // define MODULE_API directive
 #ifdef WIN32
    #ifdef MODEST_MODULE_API_EXPORT
-      #define MODEST_MODULE_API __declspec(dllexport);
+      #define MODEST_MODULE_API __declspec(dllexport)
    #else
-      #define MODEST_MODULE_API __declspec(dllimport);
+      #define MODEST_MODULE_API __declspec(dllimport)
    #endif
 #else
    #define MODEST_MODULE_API
