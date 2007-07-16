@@ -6,8 +6,6 @@
 
 #include "Object.h"
 
-#include <string>
-
 namespace db
 {
 namespace util
@@ -96,7 +94,7 @@ public:
     * 
     * @param window the window to set this window equal to.
     */
-   virtual void setEqualTo(TimeWindow* window);
+   virtual void setEqualTo(TimeWindow& window);
    
    /**
     * Gets the current rate at which the item count is increasing in

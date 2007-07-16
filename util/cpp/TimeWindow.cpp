@@ -5,8 +5,8 @@
 #include "System.h"
 #include "Math.h"
 
-using namespace db::util;
 using namespace db::rt;
+using namespace db::util;
 
 TimeWindow::TimeWindow(unsigned long long length)
 {
@@ -45,15 +45,15 @@ void TimeWindow::reset()
    unlock();
 }
 
-void TimeWindow::setEqualTo(TimeWindow* window)
+void TimeWindow::setEqualTo(TimeWindow& window)
 {
    lock();
    {
-      mLength = window->getLength();
-      mStartTime = window->getStartTime();
-      mItemCount = window->getItemCount();
-      mTimePassed = window->getTimePassed();
-      mLastAddTime = window->mLastAddTime;
+      mLength = window.getLength();
+      mStartTime = window.getStartTime();
+      mItemCount = window.getItemCount();
+      mTimePassed = window.getTimePassed();
+      mLastAddTime = window.mLastAddTime;
    }
    unlock();
 }
