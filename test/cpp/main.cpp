@@ -1902,7 +1902,7 @@ void runInterruptTest()
    cout << "Thread joined." << endl;
 }
 
-class TestOpEnvironment : public OperationEnvironment
+class TestGuard : public OperationGuard
 {
 public:
    virtual bool canExecuteOperation(ImmutableState* s)
@@ -2036,14 +2036,14 @@ void runModestTest()
    
    TestStateMutator sm(false);
    TestStateMutator smLogout(true);
-   TestOpEnvironment e;
+   TestGuard g;
    
-   Operation op1(&r1, &e, &sm);
-   Operation op2(&r2, &e, &sm);
-   Operation op3(&r3, &e, &sm);
-   Operation op4(&r4, &e, &sm);
-   Operation op5(&r5, &e, &sm);
-   Operation opLogout(&rLogout, &e, &smLogout);
+   Operation op1(&r1, &g, &sm);
+   Operation op2(&r2, &g, &sm);
+   Operation op3(&r3, &g, &sm);
+   Operation op4(&r4, &g, &sm);
+   Operation op5(&r5, &g, &sm);
+   Operation opLogout(&rLogout, &g, &smLogout);
    
    k.getEngine()->queue(&op1);
    k.getEngine()->queue(&op2);
@@ -2084,7 +2084,7 @@ public:
       // FIXME: need to add runSemaphoreTest()
       //runJobThreadPoolTest();
       //runJobDispatcherTest();
-      //runModestTest();
+      runModestTest();
       //runWindowsAddressResolveTest();
       //runLinuxAddressResolveTest();
       //runWindowsSocketTest();

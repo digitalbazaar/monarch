@@ -49,7 +49,7 @@ void OperationDispatcher::dispatchNextJob()
              e == NULL && i != mJobQueue.end();)
          {
             e = (OperationExecutor*)(*i);
-            switch(e->checkEnvironment())
+            switch(e->checkGuard())
             {
                case 0:
                   // Operation is executable

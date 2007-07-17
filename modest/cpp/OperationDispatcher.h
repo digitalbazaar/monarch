@@ -18,7 +18,7 @@ class OperationExecutor;
 /**
  * An OperationDispatcher is used to dispatch Operations for execution. Before
  * any Operation can be dispatched for execution, the associated Engine's
- * State must be checked against the Operation's environment for compatibility.
+ * State must be checked against the Operation's guard for compatibility.
  * 
  * @author Dave Longley
  */

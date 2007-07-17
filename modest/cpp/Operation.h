@@ -5,7 +5,7 @@
 #define db_modest_Operation_H
 
 #include "Thread.h"
-#include "OperationEnvironment.h"
+#include "OperationGuard.h"
 #include "StateMutator.h"
 
 namespace db
@@ -20,7 +20,7 @@ class OperationExecutor;
 /**
  * An Operation is some set of instructions that can be executed by an
  * Engine provided that its current State is compatible with this Operation's
- * OperationEnvironment. An Operation may change the current State of the
+ * OperationGuard. An Operation may change the current State of the
  * Engine that executes it.
  * 
  * Operations running on the same Engine share its State information and can
@@ -40,9 +40,9 @@ protected:
    db::rt::Runnable* mRunnable;
    
    /**
-    * The environment required for this Operation to execute.
+    * The guard that decides when this Operation can execute.
     */
-   OperationEnvironment* mEnvironment;
+   OperationGuard* mGuard;
    
    /**
     * The StateMutator for this Operation.
@@ -83,16 +83,14 @@ protected:
 public:
    /**
     * Creates a new Operation that can execute the given Runnable in the
-    * given environment. The passed Runnable must be fully interruptible.
+    * given guard. The passed Runnable must be fully interruptible.
     * 
     * @param r the Runnable to execute.
-    * @param e the environment underwhich this Operation can execute.
+    * @param g the OperationGuard underwhich this Operation can execute.
     * @param m the StateMutator for this Operation.
     */
    Operation(
-      db::rt::Runnable* r,
-      OperationEnvironment* e = NULL,
-      StateMutator* m = NULL);
+      db::rt::Runnable* r, OperationGuard* g = NULL, StateMutator* m = NULL);
    
    /**
     * Destructs this Operation.
@@ -152,11 +150,11 @@ public:
    virtual db::rt::Runnable* getRunnable();
    
    /**
-    * Gets this Operation's required environment.
+    * Gets this Operation's guard.
     * 
-    * @return this Operation's required environment, which may be NULL.
+    * @return this Operation's guard, which may be NULL.
     */
-   virtual OperationEnvironment* getEnvironment();
+   virtual OperationGuard* getGuard();
    
    /**
     * Gets this Operation's StateMutator.

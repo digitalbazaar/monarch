@@ -85,18 +85,18 @@ void OperationExecutor::execute()
    mDispatcher->getThreadPool()->runJob(this);
 }
 
-int OperationExecutor::checkEnvironment()
+int OperationExecutor::checkGuard()
 {
    int rval = 0;
    
-   // check the Operation's environment restrictions
-   OperationEnvironment* e = mOperation->getEnvironment();
-   if(e != NULL)
+   // check the Operation' guard restrictions, if a guard exists
+   OperationGuard* g = mOperation->getGuard();
+   if(g != NULL)
    {
       ImmutableState* s = (ImmutableState*)mState;
-      if(!e->canExecuteOperation(s))
+      if(!g->canExecuteOperation(s))
       {
-         if(!mOperation->isInterrupted() && !e->mustCancelOperation(s))
+         if(!mOperation->isInterrupted() && !g->mustCancelOperation(s))
          {
             // operation can wait
             rval = 1;

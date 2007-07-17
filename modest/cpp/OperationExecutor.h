@@ -75,13 +75,13 @@ public:
    virtual void execute();
    
    /**
-    * Checks the Operation's environment restrictions to see if the Operation
+    * Checks the Operation's guard restrictions to see if the Operation
     * can be executed, should wait, or should be canceled.
     * 
     * @return 0 if the Operation can be executed, 1 if it should wait, or 2
     *         if it should be canceled.
     */
-   virtual int checkEnvironment();
+   virtual int checkGuard();
    
    /**
     * Returns true when the memory for this executor can be recovered.

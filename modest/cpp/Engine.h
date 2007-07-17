@@ -57,8 +57,8 @@ public:
    /**
     * Queues the passed Operation for execution. The Operation may fail to
     * execute if this Engine's State is not compatible with the Operation's
-    * execution environment. The Operation may also be placed in a wait queue
-    * to be checked later for execution.
+    * guard. The Operation may also be placed in a wait queue to be checked
+    * later for execution.
     * 
     * After this method has been called, the Operation may be waited on until
     * it finishes or is canceled, by calling op->waitFor().

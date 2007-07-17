@@ -6,10 +6,10 @@
 using namespace db::modest;
 using namespace db::rt;
 
-Operation::Operation(Runnable* r, OperationEnvironment* e, StateMutator* m)
+Operation::Operation(Runnable* r, OperationGuard* g, StateMutator* m)
 {
    mRunnable = r;
-   mEnvironment = e;
+   mGuard = g;
    mStateMutator = m;
    
    mStarted = false;
@@ -69,9 +69,9 @@ Runnable* Operation::getRunnable()
    return mRunnable;
 }
 
-OperationEnvironment* Operation::getEnvironment()
+OperationGuard* Operation::getGuard()
 {
-   return mEnvironment;
+   return mGuard;
 }
 
 StateMutator* Operation::getStateMutator()

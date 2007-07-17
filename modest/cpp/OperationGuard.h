@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_modest_OperationEnvironment_H
-#define db_modest_OperationEnvironment_H
+#ifndef db_modest_OperationGuard_H
+#define db_modest_OperationGuard_H
 
 #include "ImmutableState.h"
 
@@ -12,40 +12,40 @@ namespace modest
 {
 
 /**
- * An OperationEnvironment defines a set of conditions that a State must meet
+ * An OperationGuard defines a set of conditions that a State must meet
  * in order for its Engine to be able to execute an Operation.
  * 
  * @author Dave Longley
  */
-class OperationEnvironment
+class OperationGuard
 {
 public:
    /**
-    * Creates a new OperationEnvironment.
+    * Creates a new OperationGuard.
     */
-   OperationEnvironment() {};
+   OperationGuard() {};
    
    /**
-    * Destructs this OperationEnvironment.
+    * Destructs this OperationGuard.
     */
-   virtual ~OperationEnvironment() {};
+   virtual ~OperationGuard() {};
    
    /**
-    * Returns true if the passed State meets the conditions of this environment
-    * such that an Operation that requires this environment could be executed
+    * Returns true if the passed State meets the conditions of this guard
+    * such that an Operation that requires this guard could be executed
     * immediately by an Engine with the given State.
     * 
     * @param s the ImmutableState to inspect.
     * 
     * @return true if an Engine with the given State could immediately execute
-    *         an Operation with this environment.
+    *         an Operation with this guard.
     */
    virtual bool canExecuteOperation(ImmutableState* s) = 0;
    
    /**
     * Returns true if the passed State cannot meet the conditions of this
-    * environment such that an Operation that requires this Environment must
-    * be immediately canceled.
+    * guard such that an Operation that requires this guard must be
+    * immediately canceled.
     * 
     * This method may return false when an Operation may not be able to be
     * executed immediately, but it needn't be canceled either, instead it
@@ -54,7 +54,7 @@ public:
     * @param s the ImmutableState to inspect.
     * 
     * @return true if an Engine with the given State must cancel an Operation
-    *         with this environment, false if not.
+    *         with this guard, false if not.
     */
    virtual bool mustCancelOperation(ImmutableState* s) = 0;
 };
