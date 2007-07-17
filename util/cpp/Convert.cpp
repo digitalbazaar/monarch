@@ -4,6 +4,8 @@
 #include "Convert.h"
 #include "StringTools.h"
 
+#include <sstream>
+
 using namespace std;
 using namespace db::util;
 
@@ -199,6 +201,26 @@ string Convert::intToUpperHex(int n)
    if(rval.length() % 2 != 0)
    {
       rval.insert(rval.begin(), '0');
+   }
+   
+   return rval;
+}
+
+string Convert::integerToString(long long n)
+{
+   ostringstream oss;
+   oss << n;
+   return oss.str();
+}
+
+bool Convert::stringToInteger(const string& s, long long& n)
+{
+   bool rval = false;
+   
+   istringstream iss(s);
+   if(iss >> n)
+   {
+      rval = true;
    }
    
    return rval;

@@ -97,6 +97,25 @@ public:
     * @return the upper-case hexadecimal string. 
     */
    static std::string intToUpperHex(int n);
+   
+   /**
+    * Converts an integer to a string.
+    * 
+    * @param n the integer to convert.
+    * 
+    * @return the string.
+    */
+   static std::string integerToString(long long n);
+   
+   /**
+    * Converts a string to an integer.
+    * 
+    * @param s the string to convert.
+    * @param n the integer to populate.
+    * 
+    * @return true if the string could be converted to an integer, false if not.
+    */
+   static bool stringToInteger(const std::string& s, long long& n);
 };
 
 } // end namespace util
