@@ -113,6 +113,15 @@ void RateAverager::start(unsigned long long time)
    unlock();
 }
 
+void RateAverager::stop()
+{
+   lock();
+   {
+      stop(getCurrentTime());
+   }
+   unlock();
+}
+
 void RateAverager::stop(unsigned long long time)
 {
    lock();
