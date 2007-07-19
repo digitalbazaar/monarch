@@ -33,60 +33,62 @@ OperationDispatcher::~OperationDispatcher()
    }
 }
 
-void OperationDispatcher::dispatchNextJob()
+bool OperationDispatcher::canDispatch()
 {
-   if(mDispatch)
-   {
-      OperationExecutor* e = NULL;
-      
-      // lock state, executor will unlock it
-      mEngine->getState()->lock();
-      
-      lock();
-      {
-         // look up the queue until an Operation is found that can be executed
-         for(list<Runnable*>::iterator i = mJobQueue.begin();
-             e == NULL && i != mJobQueue.end();)
-         {
-            e = (OperationExecutor*)(*i);
-            switch(e->checkGuard())
-            {
-               case 0:
-                  // Operation is executable
-                  i = mJobQueue.erase(i);
-                  break;
-               case 1:
-                  // move to next Operation
-                  i++;
-                  e = NULL;
-                  break;
-               case 2:
-                  // Operation is canceled
-                  i = mJobQueue.erase(i);
-                  addExpiredExecutor(e);
-                  e = NULL;
-                  break;
-            }
-         }
-      }
-      unlock();
-      
-      if(e != NULL)
-      {
-         // execute Operation
-         e->execute();
-         mDispatch = true;
-      }
-      else
-      {
-         // no executor, so unlock state
-         mEngine->getState()->unlock();
-         mDispatch = false;
-      }
-   }
-   
    // clean up any expired executors
    cleanupExpiredExecutors();
+   
+   return mDispatch;
+}
+
+void OperationDispatcher::dispatchNextJob()
+{
+   OperationExecutor* e = NULL;
+   
+   // lock state, executor will unlock it
+   mEngine->getState()->lock();
+   
+   lock();
+   {
+      // look up the queue until an Operation is found that can be executed
+      for(list<Runnable*>::iterator i = mJobQueue.begin();
+          e == NULL && i != mJobQueue.end();)
+      {
+         e = (OperationExecutor*)(*i);
+         switch(e->checkGuard())
+         {
+            case 0:
+               // Operation is executable
+               i = mJobQueue.erase(i);
+               break;
+            case 1:
+               // move to next Operation
+               i++;
+               e = NULL;
+               break;
+            case 2:
+               // Operation is canceled
+               i = mJobQueue.erase(i);
+               addExpiredExecutor(e);
+               e = NULL;
+               break;
+         }
+      }
+   }
+   unlock();
+   
+   if(e != NULL)
+   {
+      // execute Operation
+      e->execute();
+      mDispatch = true;
+   }
+   else
+   {
+      // no executor, so unlock state
+      mEngine->getState()->unlock();
+      mDispatch = false;
+   }
 }
 
 void OperationDispatcher::cleanupExpiredExecutors()
@@ -125,6 +127,9 @@ void OperationDispatcher::startDispatching()
 void OperationDispatcher::stopDispatching()
 {
    JobDispatcher::stopDispatching();
+   
+   // clean up any expired executors
+   cleanupExpiredExecutors();
 }
 
 void OperationDispatcher::clearQueuedOperations()
@@ -146,6 +151,9 @@ void OperationDispatcher::clearQueuedOperations()
 void OperationDispatcher::terminateRunningOperations()
 {
    JobDispatcher::terminateAllRunningJobs();
+   
+   // clean up any expired executors
+   cleanupExpiredExecutors();
 }
 
 void OperationDispatcher::addExpiredExecutor(OperationExecutor* e)

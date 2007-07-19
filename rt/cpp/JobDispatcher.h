@@ -58,7 +58,14 @@ protected:
     * 
     * @return job the popped Runnable job.
     */
-   virtual Runnable* popJob(); 
+   virtual Runnable* popJob();
+   
+   /**
+    * Returns true if this dispatcher has a job it can dispatch.
+    * 
+    * @return true if this dispatcher has a job it can dispatch.
+    */
+   virtual bool canDispatch();
    
    /**
     * Gets an iterator over the jobs in the queue (in FIFO order).

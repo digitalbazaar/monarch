@@ -43,6 +43,13 @@ protected:
    std::list<OperationExecutor*> mExpiredExecutors;
    
    /**
+    * Returns true if this dispatcher has a job it can dispatch.
+    * 
+    * @return true if this dispatcher has a job it can dispatch.
+    */
+   virtual bool canDispatch();
+   
+   /**
     * Dispatches the next Operation available.
     */
    virtual void dispatchNextJob();

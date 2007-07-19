@@ -83,6 +83,19 @@ Runnable* JobDispatcher::popJob()
    return rval;
 }
 
+bool JobDispatcher::canDispatch()
+{
+   bool rval = false;
+   
+   lock();
+   {
+      rval = !mJobQueue.empty();
+   }
+   unlock();
+   
+   return rval;
+}
+
 list<Runnable*>::iterator JobDispatcher::getJobIterator()
 {
    return mJobQueue.begin();
@@ -221,11 +234,16 @@ void JobDispatcher::run()
 {
    while(!Thread::interrupted(false))
    {
-      // dispatch the next Runnable job
-      dispatchNextJob();
-      
-      // sleep
-      Thread::sleep(1);
+      // see if jobs can dispatch
+      if(canDispatch())
+      {
+         // dispatch the next Runnable job
+         dispatchNextJob();
+      }
+      else
+      {
+         Thread::sleep(1);
+      }
    }
 }
 

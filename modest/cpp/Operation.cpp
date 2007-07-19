@@ -42,11 +42,18 @@ bool Operation::started()
 
 void Operation::interrupt()
 {
-   mInterrupted = true;
-   if(mThread != NULL)
+   lock();
    {
-      mThread->interrupt();
+      if(!mInterrupted)
+      {
+         mInterrupted = true;
+         if(mThread != NULL)
+         {
+            mThread->interrupt();
+         }
+      }
    }
+   unlock();
 }
 
 bool Operation::isInterrupted()
