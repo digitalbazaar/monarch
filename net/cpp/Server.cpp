@@ -114,7 +114,7 @@ bool Server::isRunning()
    return rval;
 }
 
-unsigned long Server::getConnectionCount()
+unsigned int Server::getConnectionCount()
 {
    return mConnectionCount;
 }

@@ -134,7 +134,7 @@ public:
     * 
     * @return the current number of connections to this Server.
     */
-   virtual unsigned long getConnectionCount();
+   virtual unsigned int getConnectionCount();
 };
 
 } // end namespace net
