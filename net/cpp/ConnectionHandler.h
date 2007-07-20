@@ -14,8 +14,8 @@ namespace net
 
 /**
  * A ConnectionHandler listens for incoming connections on a given address,
- * detects the protocol for communication and passes the connection off
- * to a ConnectionServicer.
+ * uses a SocketDataPresenter to handle the presentation layer (i.e. SSL),
+ * and then passes the connection off to a ConnectionServicer.
  * 
  * @author Dave Longley
  */
@@ -54,11 +54,21 @@ public:
    virtual ~ConnectionHandler();
    
    /**
+    * Starts listening for connections.
+    */
+   virtual void startListening();
+   
+   /**
+    * Stops listening for connections.
+    */
+   virtual void stopListening();
+   
+   /**
     * Gets the current number of connections being handled.
     * 
     * @return the current number of connections being handled.
     */
-   virtual unsigned long getConnectionCount();
+   virtual unsigned int getConnectionCount();
    
    /**
     * Gets the address for this ConnectionHandler.

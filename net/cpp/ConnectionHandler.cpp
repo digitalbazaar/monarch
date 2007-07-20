@@ -20,7 +20,7 @@ ConnectionHandler::~ConnectionHandler()
    }
 }
 
-unsigned long ConnectionHandler::getConnectionCount()
+unsigned int ConnectionHandler::getConnectionCount()
 {
    return mConnectionCount;
 }
