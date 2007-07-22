@@ -7,6 +7,7 @@
 #include "ConnectionHandler.h"
 #include "DatagramHandler.h"
 #include "Kernel.h"
+#include "OperationList.h"
 
 #include <map>
 
@@ -27,13 +28,20 @@ typedef struct PortHandler
    int type;
    
    /**
-    * A pointer to the appropriate handler.
+    * A pointer to the appropriate handler. The handler can also be
+    * retrieved as Runnables.
     */
    union
    {
       ConnectionHandler* connectionHandler;
       DatagramHandler* datagramHandler;
+      db::rt::Runnable* runnable;
    };
+   
+   /**
+    * The Operation that is running a Connection or Datagram handler.
+    */
+   db::modest::Operation* mOperation;
 };
 
 /**
@@ -65,9 +73,25 @@ protected:
    bool mRunning;
    
    /**
+    * All of the running Connection and Datagram handlers.
+    */
+   db::modest::OperationList mRunningHandlers;
+   
+   /**
+    * The maximum number of concurrent connections to handle.
+    */
+   unsigned int mMaxConnectionCount;
+   
+   /**
     * The current number of connections to this Server.
     */
-   unsigned long mConnectionCount;
+   unsigned int mConnectionCount;
+   
+   /**
+    * Connection handler is a friend so it can access the connection
+    * semaphore.
+    */
+   friend class ConnectionHandler;
    
    /**
     * Gets the PortHandler associated with the given port or NULL if none
@@ -98,6 +122,8 @@ public:
     */
    virtual ~Server();
    
+   // FIXME: change this to ConnectionServicer and have ConnectionHandlers
+   // be allocated and freed internally
    /**
     * Adds a ConnectionHandler to this Server or replaces an existing one.
     * 
@@ -105,6 +131,8 @@ public:
     */
    virtual void addConnectionHandler(ConnectionHandler* h);
    
+   // FIXME: change this to DatagramServicer and have DatagramHandler
+   // be allocated and freed internally
    /**
     * Adds a DatagramHandler to this Server or replaces an existing one.
     * 
@@ -128,6 +156,27 @@ public:
     * @return true if this Server is running, false if not.
     */
    virtual bool isRunning();
+   
+   /**
+    * Gets the Kernel used to run Operations for this Server.
+    */
+   virtual db::modest::Kernel* getKernel();
+   
+   /**
+    * Sets the maximum number of concurrent connections this Server should
+    * allow.
+    * 
+    * @param count the maximum number of concurrent connections this Server
+    *        should allow.
+    */
+   virtual void setMaxConnectionCount(unsigned int count);
+   
+   /**
+    * Gets the maximum number of concurrent connections this Server allows.
+    * 
+    * @return the maximum number of concurrent connections this Server allows.
+    */
+   virtual unsigned int getMaxConnectionCount();
    
    /**
     * Gets the current number of connections to this Server.

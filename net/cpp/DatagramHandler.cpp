@@ -19,6 +19,11 @@ DatagramHandler::~DatagramHandler()
    }
 }
 
+void DatagramHandler::run()
+{
+   // FIXME:
+}
+
 InternetAddress* DatagramHandler::getAddress()
 {
    return mAddress;

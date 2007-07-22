@@ -11,6 +11,7 @@
 #include "Object.h"
 #include "Runnable.h"
 #include "Thread.h"
+#include "Semaphore.h"
 #include "System.h"
 #include "JobDispatcher.h"
 #include "StringTools.h"
@@ -1902,6 +1903,15 @@ void runInterruptTest()
    cout << "Thread joined." << endl;
 }
 
+void runSemaphoreTest()
+{
+   // seed random
+   //srand((unsigned int)time(0));
+   
+   // FIXME:
+   // Semaphore
+}
+
 class TestGuard : public OperationGuard
 {
 public:
@@ -2081,7 +2091,7 @@ public:
       //runTimeTest();
       //runThreadTest();
       //runInterruptTest();
-      // FIXME: need to add runSemaphoreTest()
+      //runSemaphoreTest();
       //runJobThreadPoolTest();
       //runJobDispatcherTest();
       runModestTest();

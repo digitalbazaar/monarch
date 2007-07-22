@@ -4,7 +4,6 @@
 #include "Semaphore.h"
 
 #include <cstdlib>
-#include <ctime>
 
 using namespace std;
 using namespace db::rt;
@@ -17,9 +16,6 @@ Semaphore::Semaphore(int permits, bool fair)
    
    // set fair/not fair
    mFair = fair;
-   
-   // seed random
-   srand((unsigned int)time(0));
 }
 
 Semaphore::~Semaphore()

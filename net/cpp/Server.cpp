@@ -7,9 +7,10 @@ using namespace std;
 using namespace db::modest;
 using namespace db::net;
 
-Server::Server(Kernel* k)
+Server::Server(Kernel* k) : mRunningHandlers(true)
 {
    mKernel = k;
+   mMaxConnectionCount = 10000;
    mConnectionCount = 0;
 }
 
@@ -83,7 +84,19 @@ void Server::start()
    {
       if(!isRunning())
       {
-         // FIXME:
+         // now running
+         mRunning = true;
+         mConnectionCount = 0;
+         
+         // start all handlers
+         for(map<unsigned short, PortHandler*>::iterator i =
+             mPortHandlers.begin(); i != mPortHandlers.end(); i++)
+         {
+            PortHandler* ph = i->second;
+            Operation* op = new Operation(ph->runnable, NULL, NULL);
+            mRunningHandlers.add(op);
+            mKernel->getEngine()->queue(op);
+         }
       }
    }
    unlock();
@@ -95,7 +108,11 @@ void Server::stop()
    {
       if(isRunning())
       {
-         // FIXME:
+         // terminate all handlers
+         mRunningHandlers.terminate();
+         
+         // no longer running
+         mRunning = false;
       }
    }
    unlock();
@@ -103,15 +120,22 @@ void Server::stop()
 
 bool Server::isRunning()
 {
-   bool rval = false;
-   
-   lock();
-   {
-      rval = mRunning;
-   }
-   unlock();
-   
-   return rval;
+   return mRunning;
+}
+
+Kernel* Server::getKernel()
+{
+   return mKernel;
+}
+
+void Server::setMaxConnectionCount(unsigned int count)
+{
+   mMaxConnectionCount = count;
+}
+
+unsigned int Server::getMaxConnectionCount()
+{
+   return mMaxConnectionCount;
 }
 
 unsigned int Server::getConnectionCount()

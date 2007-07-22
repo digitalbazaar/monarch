@@ -130,7 +130,7 @@ public:
    /**
     * Destructs this Semaphore.
     */
-   ~Semaphore();
+   virtual ~Semaphore();
    
    /**
     * Acquires a permit, or blocks until one is * available or until

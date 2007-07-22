@@ -6,6 +6,7 @@
 
 #include "Datagram.h"
 #include "InternetAddress.h"
+#include "Runnable.h"
 
 namespace db
 {
@@ -18,7 +19,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class DatagramHandler : public virtual db::rt::Object
+class DatagramHandler : public virtual db::rt::Object, public db::rt::Runnable
 {
 protected:
    /**
@@ -46,6 +47,11 @@ public:
     * Destructs this DatagramHandler.
     */
    virtual ~DatagramHandler();
+   
+   /**
+    * Runs this DatagramHandler.
+    */
+   virtual void run();
    
    /**
     * Gets the address for this DatagramHandler.
