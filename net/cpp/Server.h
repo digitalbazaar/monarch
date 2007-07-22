@@ -4,10 +4,12 @@
 #ifndef db_net_Server_H
 #define db_net_Server_H
 
-#include "ConnectionHandler.h"
-#include "DatagramHandler.h"
 #include "Kernel.h"
 #include "OperationList.h"
+#include "InternetAddress.h"
+#include "Runnable.h"
+#include "ConnectionService.h"
+#include "DatagramService.h"
 
 #include <map>
 
@@ -17,40 +19,28 @@ namespace net
 {
 
 /**
- * A PortHandler is either a ConnectionHandler or a DatagramHandler.
+ * A PortService has a Runnable service and an operation for running it.
  */
-typedef struct PortHandler
+typedef struct PortService
 {
    /**
-    * The type of port handler is 0 for a ConnectionHandler and 1
-    * for a DatagramHandler.
+    * The Runnable service.
     */
-   int type;
+   db::rt::Runnable* service;
    
    /**
-    * A pointer to the appropriate handler. The handler can also be
-    * retrieved as Runnables.
+    * The Operation used to run this service.
     */
-   union
-   {
-      ConnectionHandler* connectionHandler;
-      DatagramHandler* datagramHandler;
-      db::rt::Runnable* runnable;
-   };
-   
-   /**
-    * The Operation that is running a Connection or Datagram handler.
-    */
-   db::modest::Operation* mOperation;
+   db::modest::Operation* operation;
 };
 
 /**
  * A Server communicates by using Connections that are established on
- * ports that this Server listens to or by using Datagrams that are
- * sent/received on ports that this Server binds to.
+ * ports that this server listens to or by using Datagrams received on
+ * ports this server binds to.
  * 
- * This Server maintains a list of PortHandlers that either use
- * Connections or Datagrams to handle traffic over a port.
+ * This server maintains a list of PortServices that service Connection or
+ * Datagram traffic over a specific port.
  * 
  * @author Dave Longley
  */
@@ -63,9 +53,9 @@ protected:
    db::modest::Kernel* mKernel;
    
    /**
-    * A map of ports to PortHandlers.
+    * A map of ports to PortServices.
     */
-   std::map<unsigned short, PortHandler*> mPortHandlers;
+   std::map<unsigned short, PortService*> mPortServices;
    
    /**
     * True if this server is running, false if not.
@@ -73,9 +63,9 @@ protected:
    bool mRunning;
    
    /**
-    * All of the running Connection and Datagram handlers.
+    * All of the running PortServices.
     */
-   db::modest::OperationList mRunningHandlers;
+   db::modest::OperationList mRunningServices;
    
    /**
     * The maximum number of concurrent connections to handle.
@@ -83,31 +73,38 @@ protected:
    unsigned int mMaxConnectionCount;
    
    /**
-    * The current number of connections to this Server.
+    * The current number of connections to this server.
     */
    unsigned int mConnectionCount;
    
    /**
-    * Connection handler is a friend so it can access the connection
-    * semaphore.
+    * Connection service is a friend so it can access the connection count.
     */
-   friend class ConnectionHandler;
+   friend class ConnectionService;
    
    /**
-    * Gets the PortHandler associated with the given port or NULL if none
+    * Gets the PortService associated with the given port or NULL if none
     * exists.
     * 
-    * @return the PortHandler associated with the given port or NULL if
+    * @return the PortService associated with the given port or NULL if
     *         none exists.
     */
-   virtual PortHandler* getPortHandler(unsigned short port);
+   virtual PortService* getPortService(unsigned short port);
    
    /**
-    * Creates a PortHandler for the given port if one does not already exist.
+    * Creates a PortService for the given port if one does not already exist,
+    * or erases an existing PortService's Runnable service.
     * 
-    * @return the PortHandler associated with the given port.
+    * @return the PortService associated with the given port.
     */
-   virtual PortHandler* createPortHandler(unsigned short port);
+   virtual PortService* createPortService(unsigned short port);
+   
+   /**
+    * Starts a PortService.
+    * 
+    * @param ps the PortService to start.
+    */
+   virtual void startPortService(PortService* ps);
    
 public:
    /**
@@ -122,66 +119,66 @@ public:
     */
    virtual ~Server();
    
-   // FIXME: change this to ConnectionServicer and have ConnectionHandlers
-   // be allocated and freed internally
    /**
-    * Adds a ConnectionHandler to this Server or replaces an existing one.
+    * Adds a ConnectionServicer to this server or replaces an existing one.
     * 
-    * @param h the ConnectionHandler to add.
+    * @param a the address to listen on.
+    * @param s the ConnectionServicer to service Connections with.
+    * @param p the SocketDataPresenter to use to present data to the servicer.
     */
-   virtual void addConnectionHandler(ConnectionHandler* h);
-   
-   // FIXME: change this to DatagramServicer and have DatagramHandler
-   // be allocated and freed internally
-   /**
-    * Adds a DatagramHandler to this Server or replaces an existing one.
-    * 
-    * @param h the DatagramHandler to add.
-    */
-   virtual void addDatagramHandler(DatagramHandler* h);
+   virtual void addConnectionService(
+      InternetAddress* a, ConnectionServicer* s, SocketDataPresenter* p = NULL);
    
    /**
-    * Starts this Server if it isn't already running.
+    * Adds a DatagramService to this server or replaces an existing one.
+    * 
+    * @param a the address to bind to.
+    * @param s the DatagramServicer to service Datagrams with.
+    */
+   virtual void addDatagramService(InternetAddress* a, DatagramServicer* s);
+   
+   /**
+    * Starts this server if it isn't already running.
     */
    virtual void start();
    
    /**
-    * Stops this Server if it is running.
+    * Stops this server if it is running.
     */
    virtual void stop();
    
    /**
-    * Returns true if this Server is running.
+    * Returns true if this server is running.
     * 
-    * @return true if this Server is running, false if not.
+    * @return true if this server is running, false if not.
     */
    virtual bool isRunning();
    
    /**
-    * Gets the Kernel used to run Operations for this Server.
+    * Gets the Kernel used to run Operations for this server.
     */
    virtual db::modest::Kernel* getKernel();
    
    /**
-    * Sets the maximum number of concurrent connections this Server should
+    * Sets the maximum number of concurrent connections this server should
     * allow.
     * 
-    * @param count the maximum number of concurrent connections this Server
+    * @param count the maximum number of concurrent connections this server
     *        should allow.
     */
    virtual void setMaxConnectionCount(unsigned int count);
    
    /**
-    * Gets the maximum number of concurrent connections this Server allows.
+    * Gets the maximum number of concurrent connections this server allows.
     * 
-    * @return the maximum number of concurrent connections this Server allows.
+    * @return the maximum number of concurrent connections this server allows.
     */
    virtual unsigned int getMaxConnectionCount();
    
    /**
-    * Gets the current number of connections to this Server.
+    * Gets the current number of connections to this server.
     * 
-    * @return the current number of connections to this Server.
+    * @return the current number of connections to this server.
     */
    virtual unsigned int getConnectionCount();
 };

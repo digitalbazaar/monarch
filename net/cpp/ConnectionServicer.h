@@ -31,7 +31,8 @@ public:
    virtual ~ConnectionServicer() {};
    
    /**
-    * Services the passed Connection and closes it when finished.
+    * Services the passed Connection. The connection will automatically be
+    * closed after it is serviced.
     * 
     * @param c the Connection to service.
     */

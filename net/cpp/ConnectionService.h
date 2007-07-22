@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_net_ConnectionHandler_H
-#define db_net_ConnectionHandler_H
+#ifndef db_net_ConnectionService_H
+#define db_net_ConnectionService_H
 
 #include "InternetAddress.h"
 #include "OperationGuard.h"
 #include "StateMutator.h"
 #include "Runnable.h"
-#include "SocketDataPresenterList.h"
+#include "SocketDataPresenter.h"
 #include "OperationList.h"
 #include "ConnectionServicer.h"
 #include "ConnectionWorker.h"
@@ -22,7 +22,7 @@ namespace net
 class Server;
 
 /**
- * A ConnectionHandler listens for incoming Socket connections on a given
+ * A ConnectionService listens for incoming Socket connections on a given
  * address and accepts them.
  * 
  * When a connection is accepted, a SocketDataPresenter is used to create a
@@ -32,7 +32,7 @@ class Server;
  * 
  * @author Dave Longley
  */
-class ConnectionHandler :
+class ConnectionService :
 public virtual db::rt::Object,
 public db::modest::OperationGuard,
 public db::modest::StateMutator,
@@ -40,30 +40,29 @@ public db::rt::Runnable
 {
 protected:
    /**
-    * The Server associated with this ConnectionHandler.
+    * The Server associated with this ConnectionService.
     */
    Server* mServer;
    
    /**
-    * The ConnectionServicer for this Handler.
-    */
-   ConnectionServicer* mServicer;
-   
-   /**
-    * The address to listen on.
+    * The address to listen for Connections on.
     */
    InternetAddress* mAddress;
    
    /**
-    * The list of SocketDataPresenters to use to create SocketWrappers for
-    * presenting data in a standard format.
+    * The ConnectionServicer for this service.
     */
-   SocketDataPresenterList mDataPresenterList;
+   ConnectionServicer* mServicer;
+   
+   /**
+    * The SocketDataPresenter to use to present data in a standard format.
+    */
+   SocketDataPresenter* mDataPresenter;
    
    /**
     * A list of Operations running ConnectionServicers.
     */
-   db::modest::OperationList mServicerOperations;
+   db::modest::OperationList mRunningServicers;
    
    /**
     * A list of ConnectionWorkers.
@@ -83,23 +82,27 @@ protected:
    /**
     * Cleans up any expired ConnectionWorkers.
     */
-   virtual void cleanupConnectionWorkers();
+   virtual void cleanupWorkers();
    
 public:
    /**
-    * Creates a new ConnectionHandler for a Server.
+    * Creates a new ConnectionService for a Server.
     * 
-    * @param server the Server this handler is for.
-    * @param cs the ConnectionServicer to use to service accepted Connections.
-    * @param address the address to listen on.
+    * @param server the Server this service is for.
+    * @param address the address to listen for Connections on.
+    * @param servicer the ConnectionServicer to service Connections with.
+    * @param presenter the SocketDataPresenter to present data with.
     */
-   ConnectionHandler(
-      Server* server, ConnectionServicer* cs, InternetAddress* address);
+   ConnectionService(
+      Server* server,
+      InternetAddress* address,
+      ConnectionServicer* servicer,
+      SocketDataPresenter* presenter);
    
    /**
-    * Destructs this ConnectionHandler.
+    * Destructs this ConnectionService.
     */
-   virtual ~ConnectionHandler();
+   virtual ~ConnectionService();
    
    /**
     * Returns true if the passed State meets the conditions of this guard
@@ -152,7 +155,7 @@ public:
       db::modest::State* s, db::modest::Operation* op);
    
    /**
-    * Runs this ConnectionHandler.
+    * Runs this ConnectionService.
     */
    virtual void run();
    
@@ -172,39 +175,32 @@ public:
    virtual void serviceConnection(Connection* c);
    
    /**
-    * Gets the ConnectionServicer for this handler.
-    * 
-    * @return the ConnectionServicer for this handler.
-    */
-   virtual ConnectionServicer* getServicer();
-   
-   /**
-    * Sets the maximum number of concurrent connections this handler should
+    * Sets the maximum number of concurrent connections this service should
     * allow.
     * 
-    * @param count the maximum number of concurrent connections this handler
+    * @param count the maximum number of concurrent connections this service
     *        should allow.
     */
    virtual void setMaxConnectionCount(unsigned int count);
    
    /**
-    * Gets the maximum number of concurrent connections this handler allows.
+    * Gets the maximum number of concurrent connections this service allows.
     * 
-    * @return the maximum number of concurrent connections this handler allows.
+    * @return the maximum number of concurrent connections this service allows.
     */
    virtual unsigned int getMaxConnectionCount();
    
    /**
-    * Gets the current number of connections being handled.
+    * Gets the current number of connections being serviced.
     * 
-    * @return the current number of connections being handled.
+    * @return the current number of connections being serviced.
     */
    virtual unsigned int getConnectionCount();
    
    /**
-    * Gets the address for this ConnectionHandler.
+    * Gets the address for this ConnectionService.
     * 
-    * @return the address for this ConnectionHandler.
+    * @return the address for this ConnectionService.
     */
    virtual InternetAddress* getAddress();
 };

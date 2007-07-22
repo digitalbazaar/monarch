@@ -5,10 +5,11 @@
 
 using namespace db::net;
 
-ConnectionAcceptor::ConnectionAcceptor(Socket* s, ConnectionHandler* h)
+ConnectionAcceptor::ConnectionAcceptor(
+   Socket* socket, ConnectionService* service)
 {
-   mSocket = s;
-   mHandler = h;
+   mSocket = socket;
+   mService = service;
 }
 
 ConnectionAcceptor::~ConnectionAcceptor()
@@ -22,6 +23,6 @@ void ConnectionAcceptor::run()
    if(s != NULL)
    {
       // create Connection from connected Socket
-      mHandler->createConnection(s);
+      mService->createConnection(s);
    }
 }

@@ -33,7 +33,8 @@ void SocketDataPresenterList::addSocketDataPresenter(SocketDataPresenter* sdp)
    unlock();
 }
 
-Socket* SocketDataPresenterList::createPresentationWrapper(Socket* s)
+Socket* SocketDataPresenterList::createPresentationWrapper(
+   Socket* s, bool& secure)
 {
    Socket* rval = NULL;
    
@@ -43,13 +44,14 @@ Socket* SocketDataPresenterList::createPresentationWrapper(Socket* s)
       for(list<SocketDataPresenter*>::iterator i = mDataPresenters.begin();
           i != mDataPresenters.end() && rval == NULL; i++)
       {
-         rval = (*i)->createPresentationWrapper(s);
+         rval = (*i)->createPresentationWrapper(s, secure);
       }
       
       // no presentation wrapper, so just use regular socket
       if(rval == NULL)
       {
          rval = s;
+         secure = false;
       }
    }
    unlock();

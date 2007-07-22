@@ -34,6 +34,7 @@
 #include "http/HttpRequest.h"
 #include "http/HttpResponse.h"
 #include "Kernel.h"
+#include "Server.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -45,9 +46,10 @@ using namespace db::rt;
 using namespace db::util;
 using namespace db::util::regex;
 
-// WTF? this is required to get static library building for no reason
+// WTF? this is required to get static library building for unknown reason
 #include "PeekInputStream.h"
 PeekInputStream s(NULL, false);
+OperationList l(false);
 
 void runBase64Test()
 {
@@ -291,7 +293,7 @@ void runJobDispatcherTest()
    cout << endl << "JobDispatcher Test complete." << endl << endl;
 }
 
-void runLinuxAddressResolveTest()
+void runAddressResolveTest()
 {
    cout << "Running Address Resolve Test" << endl << endl;
    
@@ -353,27 +355,7 @@ void runLinuxAddressResolveTest()
    cout << endl << "Address Resolve Test complete." << endl << endl;
 }
 
-void runWindowsAddressResolveTest()
-{
-   // initialize winsock
-#ifdef WIN32
-   WSADATA wsaData;
-   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
-   {
-      cout << "ERROR! Could not initialize winsock!" << endl;
-   }
-#endif
-   
-   // run linux address resolve test
-   runLinuxAddressResolveTest();
-   
-   // cleanup winsock
-#ifdef WIN32
-   WSACleanup();
-#endif
-}
-
-void runLinuxSocketTest()
+void runSocketTest()
 {
    cout << "Running Socket Test" << endl << endl;
    
@@ -442,27 +424,7 @@ void runLinuxSocketTest()
    cout << endl << "Socket test complete." << endl;
 }
 
-void runWindowsSocketTest()
-{
-   // initialize winsock
-#ifdef WIN32
-   WSADATA wsaData;
-   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
-   {
-      cout << "ERROR! Could not initialize winsock!" << endl;
-   }
-#endif
-   
-   // run linux socket test
-   runLinuxSocketTest();
-   
-   // cleanup winsock
-#ifdef WIN32
-   WSACleanup();
-#endif
-}
-
-void runLinuxSslSocketTest()
+void runSslSocketTest()
 {
    cout << "Running SSL Socket Test" << endl << endl;
    
@@ -542,27 +504,7 @@ void runLinuxSslSocketTest()
    EVP_cleanup();
 }
 
-void runWindowsSslSocketTest()
-{
-// initialize winsock
-#ifdef WIN32
-   WSADATA wsaData;
-   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
-   {
-      cout << "ERROR! Could not initialize winsock!" << endl;
-   }
-#endif
-   
-   // run linux ssl socket test
-   runLinuxSslSocketTest();
-   
-// cleanup winsock
-#ifdef WIN32
-   WSACleanup();
-#endif   
-}
-
-void runLinuxServerSocketTest()
+void runServerSocketTest()
 {
    cout << "Running Server Socket Test" << endl << endl;
    
@@ -645,27 +587,7 @@ void runLinuxServerSocketTest()
    cout << endl << "Server Socket test complete." << endl;
 }
 
-void runWindowsServerSocketTest()
-{
-// initialize winsock
-#ifdef WIN32
-   WSADATA wsaData;
-   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
-   {
-      cout << "ERROR! Could not initialize winsock!" << endl;
-   }
-#endif
-   
-   // run linux server socket test
-   runLinuxServerSocketTest();
-   
-// cleanup winsock
-#ifdef WIN32
-   WSACleanup();
-#endif   
-}
-
-void runLinuxSslServerSocketTest()
+void runSslServerSocketTest()
 {
    cout << "Running SSL Server Socket Test" << endl << endl;
    
@@ -762,27 +684,7 @@ void runLinuxSslServerSocketTest()
    EVP_cleanup();
 }
 
-void runWindowsSslServerSocketTest()
-{
-// initialize winsock
-#ifdef WIN32
-   WSADATA wsaData;
-   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
-   {
-      cout << "ERROR! Could not initialize winsock!" << endl;
-   }
-#endif
-   
-   // run linux SSL server socket test
-   runLinuxSslServerSocketTest();
-   
-// cleanup winsock
-#ifdef WIN32
-   WSACleanup();
-#endif   
-}
-
-void runLinuxTcpClientServerTest()
+void runTcpClientServerTest()
 {
    cout << "Running TCP Client/Server Test" << endl << endl;
    
@@ -862,27 +764,7 @@ void runLinuxTcpClientServerTest()
    cout << endl << "TCP Client/Server test complete." << endl;
 }
 
-void runWindowsTcpClientServerTest()
-{
-// initialize winsock
-#ifdef WIN32
-   WSADATA wsaData;
-   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
-   {
-      cout << "ERROR! Could not initialize winsock!" << endl;
-   }
-#endif
-   
-   // run linux client/server test
-   runLinuxTcpClientServerTest();
-   
-// cleanup winsock
-#ifdef WIN32
-   WSACleanup();
-#endif   
-}
-
-void runLinuxUdpClientServerTest()
+void runUdpClientServerTest()
 {
    cout << "Running UDP Client/Server Test" << endl << endl;
    
@@ -960,27 +842,7 @@ void runLinuxUdpClientServerTest()
    cout << endl << "UDP Client/Server test complete." << endl;
 }
 
-void runWindowsUdpClientServerTest()
-{
-// initialize winsock
-#ifdef WIN32
-   WSADATA wsaData;
-   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
-   {
-      cout << "ERROR! Could not initialize winsock!" << endl;
-   }
-#endif
-   
-   // run linux client/server test
-   runLinuxUdpClientServerTest();
-   
-// cleanup winsock
-#ifdef WIN32
-   WSACleanup();
-#endif   
-}
-
-void runLinuxDatagramTest()
+void runDatagramTest()
 {
    cout << "Running Datagram Test" << endl << endl;
    
@@ -1064,27 +926,7 @@ void runLinuxDatagramTest()
    cout << endl << "Datagram test complete." << endl;
 }
 
-void runWindowsDatagramTest()
-{
-// initialize winsock
-#ifdef WIN32
-   WSADATA wsaData;
-   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
-   {
-      cout << "ERROR! Could not initialize winsock!" << endl;
-   }
-#endif
-   
-   // run linux datagram test
-   runLinuxDatagramTest();
-   
-// cleanup winsock
-#ifdef WIN32
-   WSACleanup();
-#endif   
-}
-
-void runMessageDigestTest()
+void runDigestTest()
 {
    cout << "Running MessageDigest Test" << endl << endl;
    
@@ -1872,8 +1714,7 @@ public:
     */
    virtual void run()
    {
-      //runLinuxServerSocketTest();
-      runWindowsServerSocketTest();
+      runServerSocketTest();
       
       if(Thread::hasException())
       {
@@ -2077,6 +1918,37 @@ void runModestTest()
    cout << endl << "Modest test complete." << endl;
 }
 
+class TestConnectionServicer : public ConnectionServicer
+{
+   void serviceConnection(Connection* c)
+   {
+      cout << "Servicing connection!" << endl;
+      cout << "Finished servicing connection." << endl;
+   }
+};
+
+void runServerTest()
+{
+   cout << "Starting Server test." << endl << endl;
+   
+   // create kernel and server
+   Kernel k;
+   Server server(&k);
+   
+   // create generic service
+   TestConnectionServicer tcs;
+   InternetAddress address("localhost", 80);
+   server.addConnectionService(&address, &tcs);
+   
+   server.start();
+   cout << "Server started." << endl;
+   
+   server.stop();
+   cout << "Server stopped." << endl;
+   
+   cout << endl << "Server test complete." << endl;
+}
+
 class RunTests : public virtual Object, public Runnable
 {
 public:
@@ -2094,23 +1966,16 @@ public:
       //runSemaphoreTest();
       //runJobThreadPoolTest();
       //runJobDispatcherTest();
-      runModestTest();
-      //runWindowsAddressResolveTest();
-      //runLinuxAddressResolveTest();
-      //runWindowsSocketTest();
-      //runLinuxSocketTest();
-      //runWindowsSslSocketTest();
-      //runLinuxSslSocketTest();
-      //runWindowsServerSocketTest();
-      //runLinuxServerSocketTest();
-      //runWindowsSslServerSocketTest();
-      //runLinuxSslServerSocketTest();
-      //runWindowsTcpClientServerTest();
-      //runLinuxTcpClientServerTest();
-      //runWindowsUdpClientServerTest();
-      //runLinuxUdpClientServerTest();
-      //runWindowsDatagramTest();
-      //runLinuxDatagramTest();
+      //runModestTest();
+      //runAddressResolveTest();
+      //runSocketTest();
+      //runSslSocketTest();
+      //runServerSocketTest();
+      //runSslServerSocketTest();
+      //runTcpClientServerTest();
+      //runUdpClientServerTest();
+      // FIXME: datagram test on windows bug: client doesn't receive msg
+      //runDatagramTest();
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
@@ -2126,6 +1991,7 @@ public:
       //runDateTest();
       //runHttpHeaderTest();
       //runConfigTest();
+      runServerTest();
       
       cout << endl << "Tests finished." << endl;
       
@@ -2141,10 +2007,24 @@ public:
 
 int main()
 {
+   // initialize winsock
+   #ifdef WIN32
+      WSADATA wsaData;
+      if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
+      {
+         cout << "ERROR! Could not initialize winsock!" << endl;
+      }
+   #endif
+   
    RunTests runnable;
    Thread t(&runnable);
    t.start();
    t.join();
+   
+   // cleanup winsock
+   #ifdef WIN32
+      WSACleanup();
+   #endif
    
    return 0;
 }

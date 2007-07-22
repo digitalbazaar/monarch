@@ -6,7 +6,7 @@
 
 #include "Runnable.h"
 #include "Socket.h"
-#include "ConnectionHandler.h"
+#include "ConnectionService.h"
 
 namespace db
 {
@@ -15,7 +15,7 @@ namespace net
 
 /**
  * A ConnectionAcceptor accepts a Socket connection and passes the connected
- * Socket to the associated ConnectionHandler.
+ * Socket to the associated ConnectionService.
  * 
  * @author Dave Longley
  */
@@ -28,19 +28,19 @@ protected:
    Socket* mSocket;
    
    /**
-    * The ConnectionHandler.
+    * The ConnectionService.
     */
-   ConnectionHandler* mHandler;
+   ConnectionService* mService;
    
 public:
    /**
     * Creates a new ConnectionAcceptor that uses the passed server Socket to
     * accept connections.
     * 
-    * @param s the server Socket to use to accept connections.
-    * @param h the ConnectionHandler to pass the connected Socket to.
+    * @param socket the server Socket to use to accept connections.
+    * @param service the ConnectionService to pass the connected Socket to.
     */
-   ConnectionAcceptor(Socket* s, ConnectionHandler* h);
+   ConnectionAcceptor(Socket* socket, ConnectionService* service);
    
    /**
     * Destructs this ConnectionAcceptor.
@@ -48,7 +48,7 @@ public:
    virtual ~ConnectionAcceptor();
    
    /**
-    * Accepts a connection and passes it to a ConnectionHandler.
+    * Accepts a socket connection and passes it to a ConnectionService.
     */
    virtual void run();
 };

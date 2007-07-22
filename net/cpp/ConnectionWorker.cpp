@@ -2,14 +2,14 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "ConnectionWorker.h"
-#include "ConnectionHandler.h"
+#include "ConnectionService.h"
 
 using namespace db::net;
 using namespace db::modest;
 
-ConnectionWorker::ConnectionWorker(ConnectionHandler* h, Connection* c)
+ConnectionWorker::ConnectionWorker(ConnectionService* s, Connection* c)
 {
-   mHandler = h;
+   mService = s;
    mConnection = c;
 }
 
@@ -23,12 +23,7 @@ ConnectionWorker::~ConnectionWorker()
 void ConnectionWorker::run()
 {
    // service the connection
-   mHandler->serviceConnection(mConnection);
-}
-
-Connection* ConnectionWorker::getConnection()
-{
-   return mConnection;
+   mService->serviceConnection(mConnection);
 }
 
 void ConnectionWorker::setOperation(Operation* op)

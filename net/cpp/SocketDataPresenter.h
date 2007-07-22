@@ -41,11 +41,13 @@ public:
     * when it is freed.
     * 
     * @param s the Socket to wrap.
+    * @param secure true if the wrapper is considered a secure protocol,
+    *               like SSL, false if not.
     * 
     * @return the wrapped Socket or NULL if this presenter cannot provide
     *         the presentation layer for the socket data.
     */
-   virtual Socket* createPresentationWrapper(Socket* s) = 0;
+   virtual Socket* createPresentationWrapper(Socket* s, bool& secure) = 0;
 };
 
 } // end namespace net

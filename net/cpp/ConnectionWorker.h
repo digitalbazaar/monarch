@@ -13,11 +13,11 @@ namespace db
 namespace net
 {
 
-// forward declare ConnectionHandler
-class ConnectionHandler;
+// forward declare ConnectionService
+class ConnectionService;
 
 /**
- * A ConnectionWorker is a Runnable object that works for a ConnectionHandler
+ * A ConnectionWorker is a Runnable object that works for a ConnectionService
  * to get a Connection serviced.
  * 
  * @author Dave Longley
@@ -26,9 +26,9 @@ class ConnectionWorker : public db::rt::Runnable
 {
 protected:
    /**
-    * The ConnectionHandler this worker works for.
+    * The ConnectionService this worker works for.
     */
-   ConnectionHandler* mHandler;
+   ConnectionService* mService;
    
    /**
     * The Connection to get serviced.
@@ -42,13 +42,13 @@ protected:
    
 public:
    /**
-    * Creates a new ConnectionWorker that works for the passed ConnectionHandler
+    * Creates a new ConnectionWorker that works for the passed ConnectionService
     * to get the passed Connection serviced.
     * 
-    * @param h the ConnectionHandler.
+    * @param s the ConnectionService.
     * @param c the Connection to get serviced.
     */
-   ConnectionWorker(ConnectionHandler* s, Connection* c);
+   ConnectionWorker(ConnectionService* s, Connection* c);
    
    /**
     * Destructs this ConnectionWorker.
@@ -59,13 +59,6 @@ public:
     * Gets the Connection serviced.
     */
    virtual void run();
-   
-   /**
-    * Gets the Connection.
-    * 
-    * @return the Connection.
-    */
-   virtual Connection* getConnection();
    
    /**
     * Sets the Operation used to run this worker.
