@@ -1943,10 +1943,14 @@ void runServerTest()
    InternetAddress address("localhost", 10080);
    server.addConnectionService(&address, &tcs);
    
+   // create generic service
+   TestConnectionServicer tcs2;
+   server.addConnectionService(&address, &tcs2);
+   
    server.start();
    cout << "Server started." << endl;
    
-   Thread::sleep(3000);
+   Thread::sleep(10000);
    
    server.stop();
    cout << "Server stopped." << endl;

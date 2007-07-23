@@ -60,7 +60,7 @@ PortService* Server::createPortService(unsigned short port)
          {
             // stop old service
             rval->operation->interrupt();
-            rval->operation->waitFor();
+            rval->operation->waitFor(false);
             mRunningServices.prune();
          }
          
