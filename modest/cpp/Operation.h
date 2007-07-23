@@ -65,6 +65,11 @@ protected:
    bool mInterrupted;
    
    /**
+    * Set to true once this Operation has stopped.
+    */
+   bool mStopped;
+   
+   /**
     * Set to true if this Operation finished, false otherwise.
     */
    bool mFinished;
@@ -73,16 +78,6 @@ protected:
     * Set to true if this Operation was canceled, false otherwise.
     */
    bool mCanceled;
-   
-   /**
-    * Set to true once this Operation has stopped.
-    */
-   bool mStopped;
-   
-   /**
-    * Set to true once this Operation is collectable.
-    */
-   bool mCollectable;
    
    /**
     * OperationExecutor is a friend so that it can manipulate Operations
@@ -108,12 +103,13 @@ public:
    virtual ~Operation();
    
    /**
-    * Waits for this Operation to finish or be canceled once it has been
-    * executed by an Engine. This method is interruptible by default, meaning
-    * the method can return before the Operation is finished or canceled if
-    * the current thread is interrupted. If the Operation *must* be finished
-    * or canceled before the current thread can continue, this method can
-    * be made uninterruptible by passing false.
+    * Waits for this Operation to stop once it has been queued by an Engine.
+    * The Operation will be marked as finished or canceled.
+    * 
+    * This method is interruptible by default, meaning the method can return
+    * before the Operation stops if the current thread is interrupted. If the
+    * Operation *must* be stopped before the current thread can continue, this
+    * method can be made uninterruptible by passing false.
     * 
     * @param interruptible true if the current thread can be interrupted
     *                      and return from this call, false if the Operation
@@ -148,6 +144,15 @@ public:
    virtual bool isInterrupted();
    
    /**
+    * Returns true if the Engine that this Operation was queued with has
+    * stopped the Operation. Only once this method returns true is it
+    * safe to reclaim any memory allocated for this Operation.
+    * 
+    * @return true if this Operation has stopped, false if it is still in use.
+    */
+   virtual bool stopped();
+   
+   /**
     * Returns true if this Operation finished and was not canceled. Even
     * if this method returns true, this Operation's memory should not be
     * reclaimed until collectable() returns true.
@@ -166,13 +171,6 @@ public:
     *         false otherwise.
     */
    virtual bool canceled();
-   
-   /**
-    * Returns true if it is safe to reclaim this Operation's memory.
-    * 
-    * @return true if it is safe to reclaim this Operation's memory.
-    */
-   virtual bool collectable();
    
    /**
     * Gets the Runnable for this Operation.

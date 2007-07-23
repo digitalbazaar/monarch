@@ -293,11 +293,12 @@ bool Thread::interrupted(bool clear)
          if(t->isInterrupted())
          {
             rval = true;
-         }
-         else if(clear)
-         {
-            // clear interrupted flag
-            t->mInterrupted = false;
+            
+            if(clear)
+            {
+               // clear interrupted flag
+               t->mInterrupted = false;
+            }
          }
       }
       t->unlock();
@@ -548,15 +549,19 @@ InterruptedException* Thread::waitToEnter(Monitor* m, unsigned long timeout)
       t->mWaitMonitor = m;
       
       // get the current time and determine if wait should be indefinite
-      unsigned long long time = System::getCurrentMilliseconds();
+      unsigned long long past = System::getCurrentMilliseconds();
+      unsigned long long present;
+      unsigned long long change;
       bool indefinite = (timeout == 0);
       
       // wait while not interrupted, must wait, and timeout not exhausted
       while(!t->isInterrupted() && m->mustWait() && (indefinite || timeout > 0))
       {
          m->wait(timeout);
-         time = (System::getCurrentMilliseconds() - time);
-         timeout -= (time > timeout) ? timeout : time;
+         present = System::getCurrentMilliseconds();
+         change = present - past;
+         past = present;
+         timeout -= (change > timeout) ? timeout : change;
       }
       
       // clear the current thread's wait monitor

@@ -14,25 +14,23 @@ Operation::Operation(Runnable* r, OperationGuard* g, StateMutator* m)
    
    mStarted = false;
    mInterrupted = false;
+   mStopped = false;
    mFinished = false;
    mCanceled = false;
-   mStopped = false;
-   mCollectable = false;
 }
 
 Operation::~Operation()
 {
 }
-#include <iostream>
+
 bool Operation::waitFor(bool interruptible)
 {
    bool rval = false;
    
-   std::cout << "Operation waitFor() grabbing lock" << std::endl;
    lock();
    {
-      // wait until Operation has stopped
-      while(!mStopped)
+      // wait until Operation is stopped
+      while(!stopped())
       {
          if(wait() != NULL)
          {
@@ -52,12 +50,10 @@ bool Operation::waitFor(bool interruptible)
       }
    }
    unlock();
-   std::cout << "Operation waitFor() released lock" << std::endl;
    
    // ensure thread remains interrupted
    if(rval)
    {
-      std::cout << "Operation waitFor() HAD TO CALL INTERRUPT" << std::endl;
       Thread::currentThread()->interrupt();
    }
    
@@ -90,6 +86,11 @@ bool Operation::isInterrupted()
    return mInterrupted;
 }
 
+bool Operation::stopped()
+{
+   return mStopped;
+}
+
 bool Operation::finished()
 {
    return mFinished;
@@ -98,11 +99,6 @@ bool Operation::finished()
 bool Operation::canceled()
 {
    return mCanceled;
-}
-
-bool Operation::collectable()
-{
-   return mCollectable;
 }
 
 Runnable* Operation::getRunnable()

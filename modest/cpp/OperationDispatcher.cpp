@@ -14,7 +14,7 @@ OperationDispatcher::OperationDispatcher(Engine* e)
    mEngine = e;
    mDispatch = true;
 }
-#include <iostream>
+
 OperationDispatcher::~OperationDispatcher()
 {
    // stop dispatching
@@ -143,14 +143,10 @@ void OperationDispatcher::clearQueuedOperations()
 
 void OperationDispatcher::terminateRunningOperations()
 {
-   cout << "terminating all running OPS" << endl;
    JobDispatcher::terminateAllRunningJobs();
-   cout << "all running OPS terminated." << endl;
    
-   cout << "cleaning all expired EEs" << endl;
    // clean up any expired executors
    cleanupExpiredExecutors();
-   cout << "all expired EEs cleaned,EE count=" << mExpiredExecutors.size() << endl;
 }
 
 void OperationDispatcher::addExpiredExecutor(OperationExecutor* e)

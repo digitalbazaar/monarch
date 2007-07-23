@@ -35,14 +35,11 @@ void Engine::start()
 {
    mOpDispatcher->startDispatching();
 }
-#include <iostream>
+
 void Engine::stop()
 {
-   std::cout << "Engine: STOPPING DISPATCH" << std::endl;
    mOpDispatcher->stopDispatching();
-   std::cout << "Engine: TERMINATING ALL RUNNING" << std::endl;
    mOpDispatcher->terminateRunningOperations();
-   std::cout << "Engine: ALL RUNNING TERMINATED." << std::endl;
 }
 
 ImmutableState* Engine::getState()

@@ -20,11 +20,9 @@ OperationExecutor::OperationExecutor(
 OperationExecutor::~OperationExecutor()
 {
 }
-#include <iostream>
+
 void OperationExecutor::run()
 {
-   cout << ".......STARTING OPERATIONEXECUTOR" << endl;
-   
    mOperation->lock();
    {
       // operation started on the current thread
@@ -67,8 +65,6 @@ void OperationExecutor::run()
       mState->unlock();
    }
    
-   cout << ".......FINISHED OPERATIONEXECUTOR" << endl;
-   
    // executor now expired
    mDispatcher->addExpiredExecutor(this);
 }
@@ -93,8 +89,6 @@ int OperationExecutor::checkGuard()
 {
    int rval = 0;
    
-   cout << "***********CHECKING GUARD" << endl;
-   
    // check the Operation' guard restrictions, if a guard exists
    OperationGuard* g = mOperation->getGuard();
    if(g != NULL)
@@ -115,34 +109,24 @@ int OperationExecutor::checkGuard()
       }
    }
    
-   cout << "***********GUARD CHECKED" << endl;
-   
    return rval;
 }
 
 void OperationExecutor::cleanup()
 {
-   cout << ".........................OPERATION EXECUTOR CLEANUP!" << endl;
    // if operation did not finish, then it was canceled
    if(!mOperation->finished())
    {
       mOperation->mCanceled = true;
    }
    
-   cout << ".........................OPERATION EXECUTOR ACQUIRING LOCK!" << endl;
    mOperation->lock();
    {
-      cout << ".........................OPERATION EXECUTOR NOTIFYING!" << endl;
       // wake up all waiting threads
       mOperation->mStopped = true;
       mOperation->notifyAll();
    }
    mOperation->unlock();
-   
-   // operation is now collectable
-   mOperation->mCollectable = true;
-   
-   cout << ".........................OPERATION EXECUTOR CLEANUP COMPLETE!" << endl;
 }
 
 string& OperationExecutor::toString(string& str)

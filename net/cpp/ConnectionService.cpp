@@ -30,28 +30,24 @@ ConnectionService::ConnectionService(
 ConnectionService::~ConnectionService()
 {
 }
-#include <iostream>
+
 void ConnectionService::cleanupWorkers()
 {
-   cout << "cleaning ConnectionService workers" << endl;
    for(list<ConnectionWorker*>::iterator i = mWorkers.begin();
        i != mWorkers.end();)
    {
       ConnectionWorker* cw = *i;
-      if(cw->getOperation()->finished() || cw->getOperation()->canceled())
+      if(cw->getOperation()->stopped())
       {
          // delete the worker
          delete cw;
          i = mWorkers.erase(i);
-         cout << "Connection service worker cleaned." << endl;
       }
       else
       {
-         cout << ".......Connection service worker NOT CLEANED!" << endl;
          i++;
       }
    }
-   cout << "WORKERS LEFT=" << mWorkers.size() << endl;
 }
 
 bool ConnectionService::canExecuteOperation(ImmutableState* s)
@@ -125,8 +121,6 @@ void ConnectionService::mutatePostExecutionState(State* s, Operation* op)
 
 void ConnectionService::run()
 {
-   cout << ".......starting connection service" << endl;
-   
    // no connections yet
    mConnectionCount = 0;
    
@@ -142,8 +136,6 @@ void ConnectionService::run()
       Thread* t = Thread::currentThread();
       while(!t->isInterrupted())
       {
-         cout << "starting accept op" << endl;
-         
          // run accept operation
          Operation op(&ca, this, this);
          mServer->getKernel()->getEngine()->queue(&op);
@@ -152,26 +144,17 @@ void ConnectionService::run()
          mRunningServicers.prune();
          cleanupWorkers();
          
-         cout << "waiting for accept op" << endl;
-         
          // wait for operation to complete, do not allow interruptions
          op.waitFor(false);
-         
-         cout << "accept op complete,finished=" << op.finished() << ",canceled=" << op.canceled() << endl;
       }
-      
-      cout << "ConnectionService interrupted." << endl;
    }
    
    // close socket
    s.close();
    
    // terminate running servicers, clean up workers
-   cout << "ConnectionService terminating all workers" << endl;
    mRunningServicers.terminate();
-   cout << "All ConnectionService workers terminated" << endl;
    cleanupWorkers();
-   cout << "All ConnectionService workers cleaned" << endl;
 }
 
 void ConnectionService::createConnection(Socket* s)

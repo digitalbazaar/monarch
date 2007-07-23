@@ -1940,7 +1940,7 @@ void runServerTest()
    
    // create generic service
    TestConnectionServicer tcs;
-   InternetAddress address("localhost", 80);
+   InternetAddress address("localhost", 10080);
    server.addConnectionService(&address, &tcs);
    
    server.start();

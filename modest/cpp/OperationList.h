@@ -65,13 +65,13 @@ public:
    virtual void interrupt();
    
    /**
-    * Waits for every single Operation in this list to finish or be canceled.
+    * Waits for every single Operation in this list to stop. Each Operation
+    * will be marked as finished or canceled.
     * 
     * This method is interruptible by default, meaning the method can return
-    * before all Operations are finished or canceled if the current thread is
-    * interrupted. If all Operations *must* be finished or canceled before the
-    * current thread can continue, this method can be made uninterruptible by
-    * passing false.
+    * before all Operations are stopped if the current thread is interrupted.
+    * If all Operations *must* be stopped before the current thread can
+    * continue, this method can be made uninterruptible by passing false.
     * 
     * @param interruptible true if the current thread can be interrupted
     *                      and return from this call, false if all the
