@@ -109,7 +109,9 @@ public:
     * This method is interruptible by default, meaning the method can return
     * before the Operation stops if the current thread is interrupted. If the
     * Operation *must* be stopped before the current thread can continue, this
-    * method can be made uninterruptible by passing false.
+    * method can be made uninterruptible by passing false (if the thread is
+    * interrupted, this method will return it in an interrupted state after the
+    * Operation has stopped).
     * 
     * @param interruptible true if the current thread can be interrupted
     *                      and return from this call, false if the Operation
