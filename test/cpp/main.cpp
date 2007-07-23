@@ -1945,9 +1945,9 @@ class TestConnectionServicer3 : public ConnectionServicer
    }
 };
 
-void runServerTest()
+void runServerConnectionTest()
 {
-   cout << "Starting Server test." << endl << endl;
+   cout << "Starting Server Connection test." << endl << endl;
    
    // create kernel
    Kernel k;
@@ -1985,7 +1985,46 @@ void runServerTest()
    // stop kernel engine
    k.getEngine()->stop();
    
-   cout << endl << "Server test complete." << endl;
+   cout << endl << "Server Connection test complete." << endl;
+}
+
+class TestDatagramServicer : public DatagramServicer
+{
+   void serviceDatagrams(DatagramSocket* s)
+   {
+      cout << "Servicing datagrams!" << endl;
+      cout << "Finished servicing datagrams." << endl;
+   }
+};
+
+void runServerDatagramTest()
+{
+   cout << "Starting Server Datagram test." << endl << endl;
+   
+   // create kernel
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create server
+   Server server(&k);
+   InternetAddress address("localhost", 10080);
+   
+   // create datagram service
+   TestDatagramServicer tds;
+   server.addDatagramService(&address, &tds);
+   
+   server.start();
+   cout << "Server started." << endl;
+   
+   Thread::sleep(10000);
+   
+   server.stop();
+   cout << "Server stopped." << endl;
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   cout << endl << "Server Datagram test complete." << endl;
 }
 
 class RunTests : public virtual Object, public Runnable
@@ -2030,7 +2069,8 @@ public:
       //runDateTest();
       //runHttpHeaderTest();
       //runConfigTest();
-      runServerTest();
+      runServerConnectionTest();
+      //runServerDatagramTest();
       
       cout << endl << "Tests finished." << endl;
       
