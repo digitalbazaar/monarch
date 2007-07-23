@@ -11,6 +11,7 @@ Operation::Operation(Runnable* r, OperationGuard* g, StateMutator* m)
    mRunnable = r;
    mGuard = g;
    mStateMutator = m;
+   mThread = NULL;
    
    mStarted = false;
    mInterrupted = false;

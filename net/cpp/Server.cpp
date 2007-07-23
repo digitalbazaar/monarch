@@ -64,7 +64,7 @@ PortService* Server::createPortService(unsigned short port)
             mRunningServices.prune();
          }
          
-         // delete service
+         // delete old service
          delete rval->service;
       }
    }

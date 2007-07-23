@@ -1918,12 +1918,30 @@ void runModestTest()
    cout << endl << "Modest test complete." << endl;
 }
 
-class TestConnectionServicer : public ConnectionServicer
+class TestConnectionServicer1 : public ConnectionServicer
 {
    void serviceConnection(Connection* c)
    {
-      cout << "Servicing connection!" << endl;
-      cout << "Finished servicing connection." << endl;
+      cout << "1: Servicing connection!" << endl;
+      cout << "1: Finished servicing connection." << endl;
+   }
+};
+
+class TestConnectionServicer2 : public ConnectionServicer
+{
+   void serviceConnection(Connection* c)
+   {
+      cout << "2: Servicing connection!" << endl;
+      cout << "2: Finished servicing connection." << endl;
+   }
+};
+
+class TestConnectionServicer3 : public ConnectionServicer
+{
+   void serviceConnection(Connection* c)
+   {
+      cout << "3: Servicing connection!" << endl;
+      cout << "3: Finished servicing connection." << endl;
    }
 };
 
@@ -1937,18 +1955,27 @@ void runServerTest()
    
    // create server
    Server server(&k);
-   
-   // create generic service
-   TestConnectionServicer tcs;
    InternetAddress address("localhost", 10080);
-   server.addConnectionService(&address, &tcs);
    
    // create generic service
-   TestConnectionServicer tcs2;
+   TestConnectionServicer1 tcs1;
+   server.addConnectionService(&address, &tcs1);
+   
+   // create generic service (stomp on other service)
+   TestConnectionServicer2 tcs2;
    server.addConnectionService(&address, &tcs2);
    
    server.start();
    cout << "Server started." << endl;
+   
+   // create generic service (stomp on second service, dynamically stop/start)
+   TestConnectionServicer3 tcs3;
+   server.addConnectionService(&address, &tcs3);
+   
+   Thread::sleep(5000);
+   
+   // create generic service (stomp on third service, dynamically stop/start)
+   server.addConnectionService(&address, &tcs2);
    
    Thread::sleep(10000);
    
