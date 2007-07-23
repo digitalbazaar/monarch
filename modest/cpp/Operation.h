@@ -80,6 +80,11 @@ protected:
    bool mStopped;
    
    /**
+    * Set to true once this Operation is collectable.
+    */
+   bool mCollectable;
+   
+   /**
     * OperationExecutor is a friend so that it can manipulate Operations
     * without publically exposing protected Operation information.
     */
@@ -143,7 +148,9 @@ public:
    virtual bool isInterrupted();
    
    /**
-    * Returns true if this Operation finished and was not canceled.
+    * Returns true if this Operation finished and was not canceled. Even
+    * if this method returns true, this Operation's memory should not be
+    * reclaimed until collectable() returns true.
     * 
     * @return true if this Operation finished and was not canceled,
     *         false otherwise.
@@ -151,12 +158,21 @@ public:
    virtual bool finished();
    
    /**
-    * Returns true if this Operation was canceled and did not finish.
+    * Returns true if this Operation was canceled and did not finish. Even
+    * if this method returns true, this Operation's memory should not be
+    * reclaimed until collectable() returns true. 
     * 
     * @return true if this Operation was canceled and did not finish,
     *         false otherwise.
     */
    virtual bool canceled();
+   
+   /**
+    * Returns true if it is safe to reclaim this Operation's memory.
+    * 
+    * @return true if it is safe to reclaim this Operation's memory.
+    */
+   virtual bool collectable();
    
    /**
     * Gets the Runnable for this Operation.

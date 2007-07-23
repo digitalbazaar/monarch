@@ -60,7 +60,7 @@ void OperationList::prune()
       for(list<Operation*>::iterator i = mOperations.begin();
           i != mOperations.end();)
       {
-         if((*i)->finished() || (*i)->canceled())
+         if((*i)->collectable())
          {
             cout << "Pruning" << endl;
             if(mCleanup)

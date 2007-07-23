@@ -25,15 +25,26 @@ void OperationExecutor::run()
 {
    cout << ".......STARTING OPERATIONEXECUTOR" << endl;
    
-   // operation started on the current thread
-   mOperation->mThread = Thread::currentThread();
-   mOperation->mStarted = true;
+   mOperation->lock();
+   {
+      // operation started on the current thread
+      mOperation->mThread = Thread::currentThread();
+      mOperation->mStarted = true;
+   }
+   mOperation->unlock();
    
    // run the operation's runnable
    if(mOperation->getRunnable() != NULL && !mOperation->isInterrupted())
    {
       mOperation->getRunnable()->run();
    }
+   
+   mOperation->lock();
+   {
+      // clear thread from Operation
+      mOperation->mThread = NULL;
+   }
+   mOperation->unlock();
    
    // determine if the operation was finished or canceled
    if(mOperation->isInterrupted())
@@ -118,13 +129,18 @@ void OperationExecutor::cleanup()
       mOperation->mCanceled = true;
    }
    
+   cout << ".........................OPERATION EXECUTOR ACQUIRING LOCK!" << endl;
    mOperation->lock();
    {
+      cout << ".........................OPERATION EXECUTOR NOTIFYING!" << endl;
       // wake up all waiting threads
       mOperation->mStopped = true;
       mOperation->notifyAll();
    }
    mOperation->unlock();
+   
+   // operation is now collectable
+   mOperation->mCollectable = true;
    
    cout << ".........................OPERATION EXECUTOR CLEANUP COMPLETE!" << endl;
 }
