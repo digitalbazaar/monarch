@@ -35,6 +35,7 @@
 #include "http/HttpResponse.h"
 #include "Kernel.h"
 #include "Server.h"
+#include "SslSocketDataPresenter.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -1923,6 +1924,27 @@ class TestConnectionServicer1 : public ConnectionServicer
    void serviceConnection(Connection* c)
    {
       cout << "1: Servicing connection!" << endl;
+      
+      char b[2048];
+      int numBytes = 0;
+      string str = "";
+      
+      cout << endl << "Reading HTTP..." << endl;
+      
+      InputStream* is = c->getInputStream();
+      numBytes = is->peek(b, 2048);
+      if(numBytes != -1)
+      {
+         cout << "Read " << numBytes << " bytes." << endl;
+         string str = "";
+         str.append(b, numBytes);
+         cout << "HTTP=" << endl << str << endl;
+      }
+      
+      OutputStream* os = c->getOutputStream();
+      str = "HTTP/1.0 404 Not Found\r\n";
+      os->write(str.c_str(), str.length());
+      
       cout << "1: Finished servicing connection." << endl;
    }
 };
@@ -1986,6 +2008,46 @@ void runServerConnectionTest()
    k.getEngine()->stop();
    
    cout << endl << "Server Connection test complete." << endl;
+}
+
+void runServerSslConnectionTest()
+{
+   cout << "Starting Server SSL Connection test." << endl << endl;
+   
+   // openssl initialization code
+   SSL_library_init();
+   SSL_load_error_strings();
+   OpenSSL_add_all_algorithms();
+   
+   // create kernel
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create server
+   Server server(&k);
+   InternetAddress address("localhost", 10080);
+   
+   // create SSL-only service
+   TestConnectionServicer1 tcs1;
+   SslContext context;
+   SslSocketDataPresenter presenter(&context);
+   server.addConnectionService(&address, &tcs1, &presenter);
+   
+   server.start();
+   cout << "Server started." << endl;
+   
+   Thread::sleep(10000);
+   
+   server.stop();
+   cout << "Server stopped." << endl;
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   // clean up SSL
+   EVP_cleanup();
+   
+   cout << endl << "Server SSL Connection test complete." << endl;
 }
 
 class TestDatagramServicer : public DatagramServicer
@@ -2069,7 +2131,8 @@ public:
       //runDateTest();
       //runHttpHeaderTest();
       //runConfigTest();
-      runServerConnectionTest();
+      //runServerConnectionTest();
+      runServerSslConnectionTest();
       //runServerDatagramTest();
       
       cout << endl << "Tests finished." << endl;
