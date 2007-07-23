@@ -46,13 +46,6 @@ Socket* SocketDataPresenterList::createPresentationWrapper(
       {
          rval = (*i)->createPresentationWrapper(s, secure);
       }
-      
-      // no presentation wrapper, so just use regular socket
-      if(rval == NULL)
-      {
-         rval = s;
-         secure = false;
-      }
    }
    unlock();
    

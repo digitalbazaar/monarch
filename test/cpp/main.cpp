@@ -35,6 +35,7 @@
 #include "http/HttpResponse.h"
 #include "Kernel.h"
 #include "Server.h"
+#include "NullSocketDataPresenter.h"
 #include "SslSocketDataPresenter.h"
 #include "SocketDataPresenterList.h"
 
@@ -50,8 +51,9 @@ using namespace db::util::regex;
 
 // WTF? this is required to get static library building for unknown reason
 #include "PeekInputStream.h"
-PeekInputStream s(NULL, false);
-OperationList l(false);
+PeekInputStream g_junk1(NULL, false);
+OperationList g_junk2(false);
+NullSocketDataPresenter g_junk3; 
 
 void runBase64Test()
 {
@@ -2037,9 +2039,11 @@ void runServerSslConnectionTest()
    // create SSL/generic service
    TestConnectionServicer1 tcs1;
    SslContext context;
-   SslSocketDataPresenter presenter(&context);
+   SslSocketDataPresenter presenter1(&context);
+   NullSocketDataPresenter presenter2;
    SocketDataPresenterList list(false);
-   list.add(&presenter);
+   list.add(&presenter1);
+   list.add(&presenter2);
    server.addConnectionService(&address, &tcs1, &list);
    
    server.start();
