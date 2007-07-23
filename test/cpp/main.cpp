@@ -1931,8 +1931,11 @@ void runServerTest()
 {
    cout << "Starting Server test." << endl << endl;
    
-   // create kernel and server
+   // create kernel
    Kernel k;
+   k.getEngine()->start();
+   
+   // create server
    Server server(&k);
    
    // create generic service
@@ -1943,8 +1946,13 @@ void runServerTest()
    server.start();
    cout << "Server started." << endl;
    
+   Thread::sleep(3000);
+   
    server.stop();
    cout << "Server stopped." << endl;
+   
+   // stop kernel engine
+   k.getEngine()->stop();
    
    cout << endl << "Server test complete." << endl;
 }

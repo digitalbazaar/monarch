@@ -243,7 +243,7 @@ void JobThreadPool::interruptAllThreads()
    }
    unlock();
 }
-
+#include <iostream>
 void JobThreadPool::terminateAllThreads()
 {
    // interrupt all the threads
@@ -252,16 +252,20 @@ void JobThreadPool::terminateAllThreads()
    // synchronize
    lock();
    {
+      cout << "thread COUNT=" << mThreads.size() << endl;
       // iterate through all threads, join and remove them
       for(vector<JobThread*>::iterator i = mThreads.begin();
           i != mThreads.end();)
       {
          JobThread* thread = *i;
-         
+         cout << "trying to join thread,thread=" << thread->getName() << endl;
          // join and remove thread
          thread->join();
+         cout << "thread joined." << endl;
          i = mThreads.erase(i);
+         cout << "erasing thread" << endl;
          delete thread;
+         cout << "thread erased." << endl;
       }
       
       // clear threads

@@ -75,6 +75,11 @@ protected:
    bool mCanceled;
    
    /**
+    * Set to true once this Operation has stopped.
+    */
+   bool mStopped;
+   
+   /**
     * OperationExecutor is a friend so that it can manipulate Operations
     * without publically exposing protected Operation information.
     */
@@ -99,9 +104,20 @@ public:
    
    /**
     * Waits for this Operation to finish or be canceled once it has been
-    * executed by an Engine.
+    * executed by an Engine. This method is interruptible by default, meaning
+    * the method can return before the Operation is finished or canceled if
+    * the current thread is interrupted. If the Operation *must* be finished
+    * or canceled before the current thread can continue, this method can
+    * be made uninterruptible by passing false.
+    * 
+    * @param interruptible true if the current thread can be interrupted
+    *                      and return from this call, false if the Operation
+    *                      must complete before this call will return.
+    * 
+    * @return true if the current thread was interrupted while waiting, false
+    *         if not.
     */
-   virtual void waitFor();
+   virtual bool waitFor(bool interruptible = true);
    
    /**
     * Returns true if this Operation has started, false if not.

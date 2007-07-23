@@ -37,15 +37,17 @@ void OperationList::interrupt()
    }
    unlock();
 }
-
-void OperationList::waitFor()
+#include <iostream>
+void OperationList::waitFor(bool interruptible)
 {
    lock();
    {
       for(list<Operation*>::iterator i = mOperations.begin();
           i != mOperations.end(); i++)
       {
-         (*i)->waitFor();
+         cout << "OperationList waiting..." << endl;
+         (*i)->waitFor(interruptible);
+         cout << "OperationList wait complete" << endl;
       }
    }
    unlock();
@@ -60,6 +62,7 @@ void OperationList::prune()
       {
          if((*i)->finished() || (*i)->canceled())
          {
+            cout << "Pruning" << endl;
             if(mCleanup)
             {
                // reclaim memory if clean up flag is set
@@ -68,9 +71,11 @@ void OperationList::prune()
             
             // remove operation from list
             i = mOperations.erase(i);
+            cout << "Pruned." << endl;
          }
          else
          {
+            cout << "NOT PRUNING" << endl;
             i++;
          }
       }
@@ -82,9 +87,15 @@ void OperationList::terminate()
 {
    lock();
    {
+      cout << "interrupting all" << endl;
       interrupt();
-      waitFor();
+      cout << "all interrupted" << endl;
+      cout << "waiting for all" << endl;
+      waitFor(false);
+      cout << "wait all finished" << endl;
+      cout << "pruning all" << endl;
       prune();
+      cout << "all pruned." << endl;
    }
    unlock();
 }

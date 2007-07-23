@@ -41,11 +41,6 @@ protected:
     */
    OperationDispatcher* mDispatcher;
    
-   /**
-    * Set to true when the memory for this executor can be recovered.
-    */
-   bool mCollectable;
-   
 public:
    /**
     * Creates a new OperationExecutor that can safely mutate the passed
@@ -84,11 +79,9 @@ public:
    virtual int checkGuard();
    
    /**
-    * Returns true when the memory for this executor can be recovered.
-    * 
-    * @return true when this executor is collectable.
+    * Cleans up this executor once it has expired.
     */
-   virtual bool isCollectable();
+   virtual void cleanup();
    
    /**
     * Gets a string representation for this Runnable.

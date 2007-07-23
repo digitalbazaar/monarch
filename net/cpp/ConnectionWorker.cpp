@@ -18,6 +18,9 @@ ConnectionWorker::~ConnectionWorker()
    // ensure the connection is closed and delete it
    mConnection->close();
    delete mConnection;
+   
+   // delete operation
+   delete mOperation;
 }
 
 void ConnectionWorker::run()

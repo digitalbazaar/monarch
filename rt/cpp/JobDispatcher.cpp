@@ -167,23 +167,46 @@ void JobDispatcher::startDispatching()
 
 void JobDispatcher::stopDispatching()
 {
+   Thread* t = NULL;
+   
    // synchronize
    lock();
    {
       if(isDispatching())
       {
          // interrupt dispatcher thread
-         getDispatcherThread()->interrupt();
-         
-         // join dispatcher thread
-         getDispatcherThread()->join();
-         
-         // clean up dispatcher thread
-         delete mDispatcherThread;
+         t = getDispatcherThread();
+         t->interrupt();
          mDispatcherThread = NULL;
       }
    }
    unlock();
+   
+   if(t != NULL)
+   {
+      // join old dispatcher thread
+      t->join();
+      
+      // clean up old thread
+      delete t;
+   }
+}
+
+void JobDispatcher::run()
+{
+   while(!Thread::interrupted(false))
+   {
+      // see if jobs can dispatch
+      if(canDispatch())
+      {
+         // dispatch the next Runnable job
+         dispatchNextJob();
+      }
+      else
+      {
+         Thread::sleep(1);
+      }
+   }
 }
 
 bool JobDispatcher::isDispatching()
@@ -228,23 +251,6 @@ void JobDispatcher::terminateAllRunningJobs()
       getThreadPool()->terminateAllThreads();
    }
    unlock();
-}
-
-void JobDispatcher::run()
-{
-   while(!Thread::interrupted(false))
-   {
-      // see if jobs can dispatch
-      if(canDispatch())
-      {
-         // dispatch the next Runnable job
-         dispatchNextJob();
-      }
-      else
-      {
-         Thread::sleep(1);
-      }
-   }
 }
 
 JobThreadPool* JobDispatcher::getThreadPool()

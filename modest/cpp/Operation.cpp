@@ -16,23 +16,48 @@ Operation::Operation(Runnable* r, OperationGuard* g, StateMutator* m)
    mInterrupted = false;
    mFinished = false;
    mCanceled = false;
+   mStopped = false;
 }
 
 Operation::~Operation()
 {
 }
 
-void Operation::waitFor()
+bool Operation::waitFor(bool interruptible)
 {
+   bool rval = false;
+   
    lock();
    {
-      // wait until Operation finishes or is canceled
-      while(!finished() && !canceled())
+      // wait until Operation has stopped
+      while(!mStopped)
       {
-         wait();
+         if(wait() != NULL)
+         {
+            // thread was interrupted
+            rval = true;
+            
+            if(interruptible)
+            {
+               break;
+            }
+            else
+            {
+               // clear thread interruption
+               Thread::interrupted(true);
+            }
+         }
       }
    }
    unlock();
+   
+   // ensure thread remains interrupted
+   if(rval)
+   {
+      Thread::currentThread()->interrupt();
+   }
+   
+   return rval;
 }
 
 bool Operation::started()

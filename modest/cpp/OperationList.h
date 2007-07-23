@@ -66,8 +66,19 @@ public:
    
    /**
     * Waits for every single Operation in this list to finish or be canceled.
+    * 
+    * This method is interruptible by default, meaning the method can return
+    * before all Operations are finished or canceled if the current thread is
+    * interrupted. If all Operations *must* be finished or canceled before the
+    * current thread can continue, this method can be made uninterruptible by
+    * passing false.
+    * 
+    * @param interruptible true if the current thread can be interrupted
+    *                      and return from this call, false if all the
+    *                      Operations must complete before this call will
+    *                      return.
     */
-   virtual void waitFor();
+   virtual void waitFor(bool interruptible = true);
    
    /**
     * Checks for expired Operations and removes them from this list. If this
@@ -77,7 +88,9 @@ public:
    virtual void prune();
    
    /**
-    * Interrupts, waits for, and prunes all Operations in this list.
+    * Interrupts, waits for, and prunes all Operations in this list. This
+    * method will not return until every Operation in this list has terminated,
+    * even if the current thread is interrupted.
     */
    virtual void terminate();
 };

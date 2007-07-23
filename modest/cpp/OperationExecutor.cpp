@@ -15,15 +15,16 @@ OperationExecutor::OperationExecutor(
    mState = s;
    mOperation = op;
    mDispatcher = od;
-   mCollectable = false;
 }
 
 OperationExecutor::~OperationExecutor()
 {
 }
-
+#include <iostream>
 void OperationExecutor::run()
 {
+   cout << ".......STARTING OPERATIONEXECUTOR" << endl;
+   
    // operation started on the current thread
    mOperation->mThread = Thread::currentThread();
    mOperation->mStarted = true;
@@ -55,18 +56,10 @@ void OperationExecutor::run()
       mState->unlock();
    }
    
+   cout << ".......FINISHED OPERATIONEXECUTOR" << endl;
+   
    // executor now expired
    mDispatcher->addExpiredExecutor(this);
-   
-   mOperation->lock();
-   {
-      // wake up all waiting threads
-      mOperation->notifyAll();
-   }
-   mOperation->unlock();
-   
-   // mark this executor as collectable
-   mCollectable = true;
 }
 
 void OperationExecutor::execute()
@@ -89,6 +82,8 @@ int OperationExecutor::checkGuard()
 {
    int rval = 0;
    
+   cout << "***********CHECKING GUARD" << endl;
+   
    // check the Operation' guard restrictions, if a guard exists
    OperationGuard* g = mOperation->getGuard();
    if(g != NULL)
@@ -105,36 +100,44 @@ int OperationExecutor::checkGuard()
          {
             // operation must be canceled
             rval = 2;
-            mOperation->mCanceled = true;
-            
-            mOperation->lock();
-            {
-               // wake up all waiting threads
-               mOperation->notifyAll();
-            }
-            mOperation->unlock();
-            
-            // mark executor as collectable
-            mCollectable = true;
          }
       }
    }
    
+   cout << "***********GUARD CHECKED" << endl;
+   
    return rval;
 }
 
-bool OperationExecutor::isCollectable()
+void OperationExecutor::cleanup()
 {
-   return mCollectable;
+   cout << ".........................OPERATION EXECUTOR CLEANUP!" << endl;
+   // if operation did not finish, then it was canceled
+   if(!mOperation->finished())
+   {
+      mOperation->mCanceled = true;
+   }
+   
+   mOperation->lock();
+   {
+      // wake up all waiting threads
+      mOperation->mStopped = true;
+      mOperation->notifyAll();
+   }
+   mOperation->unlock();
+   
+   cout << ".........................OPERATION EXECUTOR CLEANUP COMPLETE!" << endl;
 }
 
 string& OperationExecutor::toString(string& str)
 {
-   str = "OperationExecutor";
-   
    if(mOperation->getRunnable() != NULL)
    {
-      mOperation->getRunnable()->toString(str);
+      str = "Operation: " + mOperation->getRunnable()->toString(str);
+   }
+   else
+   {
+      str = "Operation: NULL";
    }
    
    return str;

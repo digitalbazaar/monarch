@@ -14,20 +14,28 @@ Server::Server(Kernel* k) : mRunningServices(true)
    mMaxConnectionCount = 10000;
    mConnectionCount = 0;
 }
-
+#include <iostream>
 Server::~Server()
 {
+   cout << "~Server()" << endl;
+   
    // ensure server is stopped
    stop();
+   
+   cout << "~Server() ensured stop()" << endl;
    
    // delete all port services
    for(map<unsigned short, PortService*>::iterator i = mPortServices.begin();
        i != mPortServices.end(); i++)
    {
+      cout << "deleting port service" << endl;
       // delete Runnable service and actual PortService
       delete i->second->service;
       delete i->second;
+      cout << "port service deleted." << endl;
    }
+   
+   cout << "~Server() all port services deleted." << endl;
 }
 
 PortService* Server::getPortService(unsigned short port)
@@ -74,6 +82,7 @@ PortService* Server::createPortService(unsigned short port)
 
 void Server::startPortService(PortService* ps)
 {
+   cout << "starting port service" << endl;
    ps->operation = new Operation(ps->service, NULL, NULL);
    mRunningServices.add(ps->operation);
    mKernel->getEngine()->queue(ps->operation);
@@ -120,6 +129,8 @@ void Server::start()
    {
       if(!isRunning())
       {
+         cout << "starting up port services" << endl;
+         
          // now running
          mRunning = true;
          mConnectionCount = 0;
@@ -130,6 +141,8 @@ void Server::start()
          {
             startPortService(i->second);
          }
+         
+         cout << "port services started." << endl;
       }
    }
    unlock();
@@ -141,8 +154,12 @@ void Server::stop()
    {
       if(isRunning())
       {
+         cout << "terminating all port services" << endl;
+         
          // terminate all services
          mRunningServices.terminate();
+         
+         cout << "all port services terminated" << endl;
          
          // no longer running
          mRunning = false;

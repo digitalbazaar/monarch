@@ -51,6 +51,15 @@ public:
     * Accepts a socket connection and passes it to a ConnectionService.
     */
    virtual void run();
+   
+   /**
+    * Gets a string representation for this Runnable.
+    * 
+    * @param str the string to populate.
+    * 
+    * @return a string representation for this Runnable.
+    */
+   virtual std::string& toString(std::string& str);
 };
 
 } // end namespace net

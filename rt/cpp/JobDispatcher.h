@@ -145,6 +145,11 @@ public:
    virtual void stopDispatching();
    
    /**
+    * Called to start dispatching Runnable jobs.
+    */
+   virtual void run();
+   
+   /**
     * Returns true if this JobDispatcher is dispatching jobs, false if not.
     * 
     * @return true if this JobDispatcher is dispatching jobs, false if not.
@@ -166,11 +171,6 @@ public:
     * method will wait until all of the threads are joined.
     */
    virtual void terminateAllRunningJobs();
-      
-   /**
-    * Called to start dispatching Runnable jobs.
-    */
-   virtual void run();
    
    /**
     * Gets the JobThreadPool.

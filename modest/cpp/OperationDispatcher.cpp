@@ -14,7 +14,7 @@ OperationDispatcher::OperationDispatcher(Engine* e)
    mEngine = e;
    mDispatch = true;
 }
-
+#include <iostream>
 OperationDispatcher::~OperationDispatcher()
 {
    // stop dispatching
@@ -25,12 +25,6 @@ OperationDispatcher::~OperationDispatcher()
    
    // clear all queued operations
    clearQueuedOperations();
-   
-   // cleanup any expired executors
-   while(!mExpiredExecutors.empty())
-   {
-      cleanupExpiredExecutors();
-   }
 }
 
 bool OperationDispatcher::canDispatch()
@@ -99,15 +93,11 @@ void OperationDispatcher::cleanupExpiredExecutors()
           i != mExpiredExecutors.end();)
       {
          OperationExecutor* e = *i;
-         if(e->isCollectable())
-         {
-            i = mExpiredExecutors.erase(i);
-            delete e;
-         }
-         else
-         {
-            i++;
-         }
+         
+         // clean up executor
+         e->cleanup();
+         i = mExpiredExecutors.erase(i);
+         delete e;
       }
    }
    unlock();
@@ -136,24 +126,31 @@ void OperationDispatcher::clearQueuedOperations()
 {
    lock();
    {
-      // delete OperationExecutors in the queue
+      // expire OperationExecutors in the queue
       for(list<Runnable*>::iterator i = mJobQueue.begin();
           i != mJobQueue.end();)
       {
          OperationExecutor* e = (OperationExecutor*)(*i);
          i = mJobQueue.erase(i);
-         delete e;
+         addExpiredExecutor(e);
       }
+      
+      // cleanup expired executors
+      cleanupExpiredExecutors();
    }
-   unlock();   
+   unlock();
 }
 
 void OperationDispatcher::terminateRunningOperations()
 {
+   cout << "terminating all running OPS" << endl;
    JobDispatcher::terminateAllRunningJobs();
+   cout << "all running OPS terminated." << endl;
    
+   cout << "cleaning all expired EEs" << endl;
    // clean up any expired executors
    cleanupExpiredExecutors();
+   cout << "all expired EEs cleaned,EE count=" << mExpiredExecutors.size() << endl;
 }
 
 void OperationDispatcher::addExpiredExecutor(OperationExecutor* e)
