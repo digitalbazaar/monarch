@@ -36,6 +36,7 @@
 #include "Kernel.h"
 #include "Server.h"
 #include "SslSocketDataPresenter.h"
+#include "SocketDataPresenterList.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -2027,11 +2028,19 @@ void runServerSslConnectionTest()
    Server server(&k);
    InternetAddress address("localhost", 10080);
    
-   // create SSL-only service
+//   // create SSL-only service
+//   TestConnectionServicer1 tcs1;
+//   SslContext context;
+//   SslSocketDataPresenter presenter(&context);
+//   server.addConnectionService(&address, &tcs1, &presenter);
+   
+   // create SSL/generic service
    TestConnectionServicer1 tcs1;
    SslContext context;
    SslSocketDataPresenter presenter(&context);
-   server.addConnectionService(&address, &tcs1, &presenter);
+   SocketDataPresenterList list(false);
+   list.add(&presenter);
+   server.addConnectionService(&address, &tcs1, &list);
    
    server.start();
    cout << "Server started." << endl;

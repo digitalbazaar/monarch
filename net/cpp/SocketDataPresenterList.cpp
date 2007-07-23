@@ -24,7 +24,7 @@ SocketDataPresenterList::~SocketDataPresenterList()
    }
 }
 
-void SocketDataPresenterList::addSocketDataPresenter(SocketDataPresenter* sdp)
+void SocketDataPresenterList::add(SocketDataPresenter* sdp)
 {
    lock();
    {

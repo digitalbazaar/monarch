@@ -26,6 +26,11 @@ protected:
     */
    SslContext* mContext;
    
+   /**
+    * Detects whether or not the passed socket speaks SSL.
+    */
+   virtual bool detectSsl(Socket* s);
+   
 public:
    /**
     * Creates a new SslSocketDataPresenter.

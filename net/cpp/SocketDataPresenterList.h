@@ -56,7 +56,7 @@ public:
     * 
     * @param sdp the SocketDataPresenter to add.
     */
-   virtual void addSocketDataPresenter(SocketDataPresenter* sdp);
+   virtual void add(SocketDataPresenter* sdp);
    
    /**
     * Wraps the passed Socket if this presenter can provide the presentation
