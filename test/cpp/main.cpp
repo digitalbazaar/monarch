@@ -2166,14 +2166,14 @@ public:
       //runUdpClientServerTest();
       // FIXME: datagram test on windows bug: client doesn't receive msg
       //runDatagramTest();
-      runMessageDigestTest();
+      //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
       //runDsaAsymmetricKeyCreationTest();
-      runRsaAsymmetricKeyCreationTest();
-      runEnvelopeTest("DSA");
+      //runRsaAsymmetricKeyCreationTest();
+      //runEnvelopeTest("DSA");
       //runEnvelopeTest("RSA");
-      runCipherTest("AES256");
+      //runCipherTest("AES256");
       //runConvertTest();
       //runUrlEncodeTest();
       //runUrlTest();
@@ -2183,7 +2183,7 @@ public:
       //runConfigTest();
       //runServerConnectionTest();
       //runServerSslConnectionTest();
-      //runServerDatagramTest();
+      runServerDatagramTest();
       
       cout << endl << "Tests finished." << endl;
       
