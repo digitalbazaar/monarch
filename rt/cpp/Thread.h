@@ -30,6 +30,12 @@ namespace rt
  */
 class Thread : public virtual Object, protected Runnable
 {
+private:
+   /**
+    * The main thread. This should not be accessed by any extending class.
+    */
+   static Thread MAIN_THREAD;
+   
 protected:
    /**
     * The POSIX thread wrapped by this class.

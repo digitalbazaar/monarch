@@ -7,6 +7,9 @@
 using namespace std;
 using namespace db::rt;
 
+// initialize main thread
+Thread Thread::MAIN_THREAD(NULL, "main");
+
 // initialize current thread key parameters
 pthread_once_t Thread::CURRENT_THREAD_KEY_INIT = PTHREAD_ONCE_INIT;
 pthread_key_t Thread::CURRENT_THREAD_KEY;
@@ -281,7 +284,19 @@ Thread* Thread::currentThread()
    pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
    
    // get a pointer to the current thread
-   return (Thread*)pthread_getspecific(CURRENT_THREAD_KEY);
+   Thread* t = (Thread*)pthread_getspecific(CURRENT_THREAD_KEY);
+   if(t == NULL)
+   {
+      // on the main thread, so initialize main thread and set specific data
+      t = &Thread::MAIN_THREAD;
+      t->mPThread = pthread_self();
+      t->mAlive = true;
+      t->mDetached = true;
+      t->mStarted = true;
+      pthread_setspecific(CURRENT_THREAD_KEY, t);
+   }
+   
+   return t;
 }
 
 bool Thread::interrupted(bool clear)

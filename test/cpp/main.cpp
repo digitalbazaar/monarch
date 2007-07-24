@@ -2183,7 +2183,7 @@ public:
       //runConfigTest();
       //runServerConnectionTest();
       //runServerSslConnectionTest();
-      runServerDatagramTest();
+      //runServerDatagramTest();
       
       cout << endl << "Tests finished." << endl;
       
