@@ -75,12 +75,14 @@ void Thread::createCurrentThreadKey()
 {
    // create the thread key for obtaining the current thread
    pthread_key_create(&CURRENT_THREAD_KEY, NULL);
+   pthread_setspecific(CURRENT_THREAD_KEY, NULL);
 }
 
 void Thread::createExceptionKey()
 {
    // create the thread key for obtaining the last thread-local exception
    pthread_key_create(&EXCEPTION_KEY, NULL);
+   pthread_setspecific(EXCEPTION_KEY, NULL);
 }
 
 // Note: disabled due to a lack of support in windows
@@ -275,6 +277,9 @@ const string& Thread::getName()
 
 Thread* Thread::currentThread()
 {
+   // create the current thread key, if not created
+   pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
+   
    // get a pointer to the current thread
    return (Thread*)pthread_getspecific(CURRENT_THREAD_KEY);
 }
@@ -521,6 +526,9 @@ void Thread::setException(Exception* e)
 Exception* Thread::getException()
 {
    Exception* rval = NULL;
+   
+   // create the exception key, if not created
+   pthread_once(&EXCEPTION_KEY_INIT, Thread::createExceptionKey);
    
    if(currentThread() != NULL)
    {
