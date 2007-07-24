@@ -15,8 +15,8 @@ public:
    ~MessageDigest();
    
    void reset();
-   void update(const char* b);
-   char* getValue();
+   void update(const std::string& b);
+   std::string getValue();
    std::string getDigest();
 };
 
@@ -32,6 +32,7 @@ public:
    ~PrivateKey();
    
    DigitalSignature* createSignature();
+   std::string getAlgorithm();
 };
 
 class PublicKey
@@ -43,6 +44,7 @@ public:
    ~PublicKey();
    
    DigitalSignature* createSignature();
+   std::string getAlgorithm();
 };
 
 class DigitalSignature
@@ -55,9 +57,9 @@ public:
    ~DigitalSignature();
    
    void reset();
-   void update(const char* b);
-   char* getValue();
-   bool verify(const char* b); 
+   void update(const std::string& b);
+   std::string getValue();
+   bool verify(const std::string& b);
 };
 
 class KeyFactory

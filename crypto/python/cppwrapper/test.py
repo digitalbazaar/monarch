@@ -10,6 +10,8 @@ result = kf.createKeyPair("DSA", privateKey, publicKey)
 print result
 print kf.writePrivateKeyToPem(privateKey, "password")
 print kf.writePublicKeyToPem(publicKey)
+print privateKey.getAlgorithm()
+print publicKey.getAlgorithm()
 
 md5 = MessageDigest("MD5")
 md5.update("THIS ")

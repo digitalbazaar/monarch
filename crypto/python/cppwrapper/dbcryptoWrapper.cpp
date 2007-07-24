@@ -26,26 +26,21 @@ void MessageDigest::reset()
    ((db::crypto::MessageDigest*)_md)->reset();
 }
 
-void MessageDigest::update(const char* b)
+void MessageDigest::update(const string& b)
 {
-   ((db::crypto::MessageDigest*)_md)->update(b, strlen(b));
+   ((db::crypto::MessageDigest*)_md)->update(b.c_str(), b.length());
 }
 
-char* MessageDigest::getValue()
+string MessageDigest::getValue()
 {
    db::crypto::MessageDigest* md =
       (db::crypto::MessageDigest*)_md;
    
    unsigned int length = md->getValueLength();
-   char* value = new char[length];
+   char value[length];
    md->getValue(value, length);
    
-   if(length < md->getValueLength())
-   {
-      memset(value + length, 0, 1);
-   }
-   
-   return value;
+   return string(value, length);
 }
 
 string MessageDigest::getDigest()
@@ -71,6 +66,11 @@ DigitalSignature* PrivateKey::createSignature()
    return new DigitalSignature(this);
 }
 
+string PrivateKey::getAlgorithm()
+{
+   return ((db::crypto::PrivateKey*)_key)->getAlgorithm();
+}
+
 PublicKey::PublicKey()
 {
    _key = NULL;
@@ -87,6 +87,11 @@ PublicKey::~PublicKey()
 DigitalSignature* PublicKey::createSignature()
 {
    return new DigitalSignature(this);
+}
+
+string PublicKey::getAlgorithm()
+{
+   return ((db::crypto::PublicKey*)_key)->getAlgorithm();
 }
 
 DigitalSignature::DigitalSignature(PrivateKey* key)
@@ -111,31 +116,27 @@ void DigitalSignature::reset()
    ((db::crypto::DigitalSignature*)_signature)->reset();
 }
 
-void DigitalSignature::update(const char* b)
+void DigitalSignature::update(const string& b)
 {
-   ((db::crypto::DigitalSignature*)_signature)->update(b, strlen(b));
+   ((db::crypto::DigitalSignature*)_signature)->update(b.c_str(), b.length());
 }
 
-char* DigitalSignature::getValue()
+string DigitalSignature::getValue()
 {
    db::crypto::DigitalSignature* sig =
       (db::crypto::DigitalSignature*)_signature;
    
    unsigned int length = sig->getValueLength();
-   char* value = new char[length];
+   char value[length];
    sig->getValue(value, length);
    
-   if(length < sig->getValueLength())
-   {
-      memset(value + length, 0, 1);
-   }
-   
-   return value;
+   return string(value, length);
 }
 
-bool DigitalSignature::verify(const char* b) 
+bool DigitalSignature::verify(const string& b) 
 {
-   return ((db::crypto::DigitalSignature*)_signature)->verify(b, strlen(b));
+   return ((db::crypto::DigitalSignature*)_signature)->verify(
+      b.c_str(), b.length());
 }
 
 KeyFactory::KeyFactory()
