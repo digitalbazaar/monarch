@@ -38,24 +38,21 @@ void Monitor::enter()
    // threads must wait
    mMustWait = true;
    
+   // ensure the current thread isn't already in the monitor
    Thread* t = Thread::currentThread();
-   if(t != NULL)
+   if(mCurrentThread != t)
    {
-      // ensure the current thread isn't already in the monitor
-      if(mCurrentThread != t)
-      {
-         // lock this monitor's mutex
-         pthread_mutex_lock(&mMutex);
-         
-         // set the current thread and lock count
-         mCurrentThread = t;
-         mLockCount = 1;
-      }
-      else
-      {
-         // increment lock count
-         mLockCount++;
-      }
+      // lock this monitor's mutex
+      pthread_mutex_lock(&mMutex);
+      
+      // set the current thread and lock count
+      mCurrentThread = t;
+      mLockCount = 1;
+   }
+   else
+   {
+      // increment lock count
+      mLockCount++;
    }
 }
 
@@ -63,7 +60,7 @@ void Monitor::exit()
 {
    // ensure the current thread is in the monitor
    Thread* t = Thread::currentThread();
-   if(t != NULL && mCurrentThread == t)
+   if(mCurrentThread == t)
    {
       if(mLockCount == 1)
       {
@@ -86,7 +83,7 @@ void Monitor::wait(unsigned long timeout)
 {
    // ensure the current thread is in the monitor
    Thread* t = Thread::currentThread();
-   if(t != NULL && mCurrentThread == t)
+   if(mCurrentThread == t)
    {
       // clear the thread from the monitor and store old lock count
       mCurrentThread = NULL;

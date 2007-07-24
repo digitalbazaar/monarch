@@ -912,6 +912,8 @@ void runDatagramTest()
       
       cout << "Server sent: " << d2.getString() << endl;
       
+      // FIXME: bug where internal datagram buffer is used -- doesn't
+      // produce any text
       // receive the server datagram
       Datagram d3(sa, 2048);
       client.receive(&d3);
@@ -2051,42 +2053,43 @@ void runServerSslConnectionTest()
    
    // create SSL/generic service
    TestConnectionServicer1 tcs1;
-   SslContext context;
-   SslSocketDataPresenter presenter1(&context);
-   NullSocketDataPresenter presenter2;
-   SocketDataPresenterList list(false);
-   list.add(&presenter1);
-   list.add(&presenter2);
-   server.addConnectionService(&address, &tcs1, &list);
+//   SslContext context;
+//   SslSocketDataPresenter presenter1(&context);
+//   NullSocketDataPresenter presenter2;
+//   SocketDataPresenterList list(false);
+//   list.add(&presenter1);
+//   list.add(&presenter2);
+   server.addConnectionService(&address, &tcs1);//, &list);
    
    server.start();
    cout << "Server started." << endl;
    
-//   unsigned long long start = System::getCurrentMilliseconds();
-//   
-//   // blast connections
-//   int connections = 500;
-//   char b[2048];
-//   string request =
-//      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-//   for(int i = 0; i < connections; i++)
-//   {
-//      // send request
-//      TcpSocket socket;
-//      socket.connect(&address);
-//      socket.send(request.c_str(), request.length());
-//      //socket.receive(b, 2048);
-//      //socket.close();
-//   }
-//   
-//   unsigned long long end = System::getCurrentMilliseconds();
-//   double rate = (double)connections / ((end - start) / 1000);
-//   
-//   Thread::sleep(10000);
-//   
-//   cout << "Connections/second=" << rate << endl;
+   unsigned long long start = System::getCurrentMilliseconds();
+   
+   // blast connections
+   int connections = 1;
+   char b[2048];
+   string request =
+      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+   for(int i = 0; i < connections; i++)
+   {
+      // send request
+      TcpSocket socket;
+      cout << "connected: " << socket.connect(&address) << endl;
+      cout << Thread::getException()->getMessage() << endl;
+      socket.send(request.c_str(), request.length());
+      socket.receive(b, 2048);
+      socket.close();
+   }
+   
+   unsigned long long end = System::getCurrentMilliseconds();
+   double rate = (double)connections / ((end - start) / 1000);
    
    Thread::sleep(10000);
+   
+   cout << "Connections/second=" << rate << endl;
+   
+   //Thread::sleep(10000);
    
    server.stop();
    cout << "Server stopped." << endl;
@@ -2164,7 +2167,7 @@ public:
       //runSslServerSocketTest();
       //runTcpClientServerTest();
       //runUdpClientServerTest();
-      // FIXME: datagram test on windows bug: client doesn't receive msg
+      // FIXME: datagram test on bug: client doesn't receive msg
       //runDatagramTest();
       //runMessageDigestTest();
       //runCrcTest();
@@ -2182,7 +2185,7 @@ public:
       //runHttpHeaderTest();
       //runConfigTest();
       //runServerConnectionTest();
-      //runServerSslConnectionTest();
+      runServerSslConnectionTest();
       //runServerDatagramTest();
       
       cout << endl << "Tests finished." << endl;

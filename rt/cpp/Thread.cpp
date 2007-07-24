@@ -305,24 +305,22 @@ bool Thread::interrupted(bool clear)
    
    // get the current thread's interrupted status
    Thread* t = Thread::currentThread();
-   if(t != NULL)
+   
+   // synchronize
+   t->lock();
    {
-      // synchronize
-      t->lock();
+      if(t->isInterrupted())
       {
-         if(t->isInterrupted())
+         rval = true;
+         
+         if(clear)
          {
-            rval = true;
-            
-            if(clear)
-            {
-               // clear interrupted flag
-               t->mInterrupted = false;
-            }
+            // clear interrupted flag
+            t->mInterrupted = false;
          }
       }
-      t->unlock();
    }
+   t->unlock();
    
    return rval;
 }
@@ -515,26 +513,18 @@ int Thread::select(
 
 void Thread::setException(Exception* e)
 {
-   if(currentThread() != NULL)
+   // get the existing exception for the current thread, if any
+   Exception* existing = getException();
+   if(existing != e)
    {
-      // get the existing exception for the current thread, if any
-      Exception* existing = getException();
-      if(existing != e)
+      // replace the existing exception
+      pthread_setspecific(EXCEPTION_KEY, e);
+      
+      if(existing != NULL)
       {
-         // replace the existing exception
-         pthread_setspecific(EXCEPTION_KEY, e);
-         
-         if(existing != NULL)
-         {
-            // delete the old exception
-            delete existing;
-         }
+         // delete the old exception
+         delete existing;
       }
-   }
-   else if(e != NULL)
-   {
-      // delete passed exception, since we are not on a thread
-      delete e;
    }
 }
 
@@ -545,11 +535,8 @@ Exception* Thread::getException()
    // create the exception key, if not created
    pthread_once(&EXCEPTION_KEY_INIT, Thread::createExceptionKey);
    
-   if(currentThread() != NULL)
-   {
-      // get the exception for the current thread, if any
-      rval = (Exception*)pthread_getspecific(EXCEPTION_KEY);
-   }
+   // get the exception for the current thread, if any
+   rval = (Exception*)pthread_getspecific(EXCEPTION_KEY);
    
    return rval;
 }
@@ -568,37 +555,34 @@ InterruptedException* Thread::waitToEnter(Monitor* m, unsigned long timeout)
 {
    InterruptedException* rval = NULL;
    
+   // set the current thread's wait monitor
    Thread* t = currentThread();
-   if(t != NULL)
+   t->mWaitMonitor = m;
+   
+   // get the current time and determine if wait should be indefinite
+   unsigned long long past = System::getCurrentMilliseconds();
+   unsigned long long present;
+   unsigned long long change;
+   bool indefinite = (timeout == 0);
+   
+   // wait while not interrupted, must wait, and timeout not exhausted
+   while(!t->isInterrupted() && m->mustWait() && (indefinite || timeout > 0))
    {
-      // set the current thread's wait monitor
-      t->mWaitMonitor = m;
-      
-      // get the current time and determine if wait should be indefinite
-      unsigned long long past = System::getCurrentMilliseconds();
-      unsigned long long present;
-      unsigned long long change;
-      bool indefinite = (timeout == 0);
-      
-      // wait while not interrupted, must wait, and timeout not exhausted
-      while(!t->isInterrupted() && m->mustWait() && (indefinite || timeout > 0))
-      {
-         m->wait(timeout);
-         present = System::getCurrentMilliseconds();
-         change = present - past;
-         past = present;
-         timeout -= (change > timeout) ? timeout : change;
-      }
-      
-      // clear the current thread's wait monitor
-      t->mWaitMonitor = NULL;
-      
-      // create interrupted exception if interrupted
-      if(t->isInterrupted())
-      {
-         rval = new InterruptedException(
-            "Thread '" + t->getName() + "' interrupted");
-      }
+      m->wait(timeout);
+      present = System::getCurrentMilliseconds();
+      change = present - past;
+      past = present;
+      timeout -= (change > timeout) ? timeout : change;
+   }
+   
+   // clear the current thread's wait monitor
+   t->mWaitMonitor = NULL;
+   
+   // create interrupted exception if interrupted
+   if(t->isInterrupted())
+   {
+      rval = new InterruptedException(
+         "Thread '" + t->getName() + "' interrupted");
    }
    
    // set exception
