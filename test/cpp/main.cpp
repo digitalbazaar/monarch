@@ -1924,6 +1924,16 @@ void runModestTest()
 
 class TestConnectionServicer1 : public ConnectionServicer
 {
+public:
+   unsigned int serviced;
+   
+   TestConnectionServicer1()
+   {
+      serviced = 0;
+   }
+   
+   virtual ~TestConnectionServicer1() {}
+   
    void serviceConnection(Connection* c)
    {
       cout << "1: Servicing connection!" << endl;
@@ -1949,6 +1959,9 @@ class TestConnectionServicer1 : public ConnectionServicer
       os->write(str.c_str(), str.length());
       
       cout << "1: Finished servicing connection." << endl;
+      
+      serviced++;
+      cout << "Connections serviced=" << serviced << endl;
    }
 };
 
@@ -2049,7 +2062,29 @@ void runServerSslConnectionTest()
    server.start();
    cout << "Server started." << endl;
    
+   unsigned long long start = System::getCurrentMilliseconds();
+   
+   // blast connections
+   int connections = 500;
+   char b[2048];
+   string request =
+      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+   for(int i = 0; i < connections; i++)
+   {
+      // send request
+      TcpSocket socket;
+      socket.connect(&address);
+      socket.send(request.c_str(), request.length());
+      //socket.receive(b, 2048);
+      //socket.close();
+   }
+   
+   unsigned long long end = System::getCurrentMilliseconds();
+   double rate = (double)connections / ((end - start) / 1000);
+   
    Thread::sleep(10000);
+   
+   cout << "Connections/second=" << rate << endl;
    
    server.stop();
    cout << "Server stopped." << endl;

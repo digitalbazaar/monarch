@@ -25,6 +25,20 @@ void OperationList::add(Operation* op)
    unlock();
 }
 
+void OperationList::remove(Operation* op)
+{
+   lock();
+   {
+      list<Operation*>::iterator i =
+         find(mOperations.begin(), mOperations.end(), op);
+      if(i != mOperations.end())
+      {
+         mOperations.erase(i);
+      }
+   }
+   unlock();
+}
+
 void OperationList::interrupt()
 {
    lock();

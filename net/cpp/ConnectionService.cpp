@@ -39,6 +39,9 @@ void ConnectionService::cleanupWorkers()
       ConnectionWorker* cw = *i;
       if(cw->getOperation()->stopped())
       {
+         // remove the operation from the running servicers list
+         mRunningServicers.remove(cw->getOperation());
+         
          // delete the worker
          delete cw;
          i = mWorkers.erase(i);
