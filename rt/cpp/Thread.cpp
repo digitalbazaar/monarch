@@ -504,8 +504,11 @@ void Thread::setException(Exception* e)
          // replace the existing exception
          pthread_setspecific(EXCEPTION_KEY, e);
          
-         // delete the old exception
-         delete existing;
+         if(existing != NULL)
+         {
+            // delete the old exception
+            delete existing;
+         }
       }
    }
    else if(e != NULL)
