@@ -6,6 +6,7 @@
 #include "PublicKey.h"
 #include "SymmetricKeyFactory.h"
 #include "Thread.h"
+#include "IOException.h"
 
 #include <openssl/err.h>
 

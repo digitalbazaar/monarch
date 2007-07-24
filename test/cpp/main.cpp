@@ -930,7 +930,7 @@ void runDatagramTest()
    cout << endl << "Datagram test complete." << endl;
 }
 
-void runDigestTest()
+void runMessageDigestTest()
 {
    cout << "Running MessageDigest Test" << endl << endl;
    
@@ -2166,14 +2166,14 @@ public:
       //runUdpClientServerTest();
       // FIXME: datagram test on windows bug: client doesn't receive msg
       //runDatagramTest();
-      //runMessageDigestTest();
+      runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
       //runDsaAsymmetricKeyCreationTest();
-      //runRsaAsymmetricKeyCreationTest();
-      //runEnvelopeTest("DSA");
+      runRsaAsymmetricKeyCreationTest();
+      runEnvelopeTest("DSA");
       //runEnvelopeTest("RSA");
-      //runCipherTest("AES256");
+      runCipherTest("AES256");
       //runConvertTest();
       //runUrlEncodeTest();
       //runUrlTest();
@@ -2182,7 +2182,7 @@ public:
       //runHttpHeaderTest();
       //runConfigTest();
       //runServerConnectionTest();
-      runServerSslConnectionTest();
+      //runServerSslConnectionTest();
       //runServerDatagramTest();
       
       cout << endl << "Tests finished." << endl;

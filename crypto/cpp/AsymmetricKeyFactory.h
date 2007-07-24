@@ -18,7 +18,7 @@ namespace crypto
  * 
  * @author Dave Longley
  */
-class AsymmetricKeyFactory : public virtual db::rt::Object
+class AsymmetricKeyFactory
 {
 protected:
    /**

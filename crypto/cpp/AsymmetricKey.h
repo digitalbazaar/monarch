@@ -4,8 +4,6 @@
 #ifndef db_crypto_AsymmetricKey_H
 #define db_crypto_AsymmetricKey_H
 
-#include "IOException.h"
-
 #include <openssl/evp.h>
 #include <string>
 
@@ -20,7 +18,7 @@ namespace crypto
  * 
  * @author Dave Longley
  */
-class AsymmetricKey : public virtual db::rt::Object
+class AsymmetricKey
 {
 protected:
    /**

@@ -4,8 +4,6 @@
 #ifndef db_crypto_SymmetricKey_H
 #define db_crypto_SymmetricKey_H
 
-#include "Object.h"
-
 #include <string>
 
 namespace db
@@ -20,7 +18,7 @@ namespace crypto
  * 
  * @author Dave Longley
  */
-class SymmetricKey : public virtual db::rt::Object
+class SymmetricKey
 {
 protected:
    /**

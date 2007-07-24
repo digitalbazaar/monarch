@@ -5,7 +5,6 @@
 #define db_crypto_CryptoHashAlgorithm_H
 
 #include "HashAlgorithm.h"
-#include "Object.h"
 
 #include <openssl/evp.h>
 
@@ -21,8 +20,7 @@ namespace crypto
  * 
  * @author Dave Longley
  */
-class CryptoHashAlgorithm : 
-public virtual db::rt::Object, public db::util::HashAlgorithm
+class CryptoHashAlgorithm : public db::util::HashAlgorithm
 {
 protected:
    /**

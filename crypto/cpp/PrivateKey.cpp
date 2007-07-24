@@ -5,7 +5,6 @@
 
 using namespace std;
 using namespace db::crypto;
-using namespace db::io;
 
 PrivateKey::PrivateKey(EVP_PKEY* pkey) : AsymmetricKey(pkey)
 {

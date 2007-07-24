@@ -5,7 +5,6 @@
 #define db_crypto_AbstractBlockCipher_H
 
 #include "BlockCipher.h"
-#include "Object.h"
 
 #include <openssl/evp.h>
 #include <string>
@@ -21,7 +20,7 @@ namespace crypto
  * 
  * @author Dave Longley
  */
-class AbstractBlockCipher : public virtual db::rt::Object, public BlockCipher
+class AbstractBlockCipher : public BlockCipher
 {
 protected:
    /**

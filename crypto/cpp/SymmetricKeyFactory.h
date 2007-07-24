@@ -17,7 +17,7 @@ namespace crypto
  * 
  * @author Dave Longley
  */
-class SymmetricKeyFactory : public virtual db::rt::Object
+class SymmetricKeyFactory
 {
 protected:
    /**
