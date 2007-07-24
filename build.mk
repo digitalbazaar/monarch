@@ -8,11 +8,12 @@
 CC = g++
 
 # Include path
-INCLUDES = -Irt/cpp -Imodest/cpp -Iutil/cpp -Iio/cpp -Icrypto/cpp -Inet/cpp -Ixml/cpp
+INCLUDES = -Irt/cpp -Imodest/cpp -Iutil/cpp -Iio/cpp -Icrypto/cpp -Icrypto/python/cppwrapper -Inet/cpp -Ixml/cpp
 
 # Compiler flags:
 # -g	include debug information
 CFLAGS = -g $(INCLUDES)
+PYTHON_INCLUDE = -I/usr/include/python2.4
 
 # Archive builder
 AR = ar
@@ -126,10 +127,11 @@ libdbio: $(DBIO_OBJS)
 	$(AR) $(ARFLAGS) io/cpp/dist/$@.a $^
 	$(CC) -shared -o io/cpp/dist/$@.so $^
 
-# Builds the DB crypto libraries
-libdbcrypto: $(DBCRYPTO_OBJS)
+# Builds the DB crypto libraries and wrappers
+libdbcrypto: $(DBCRYPTO_OBJS) crypto/python/cppwrapper/dbcryptoWrapper.o crypto/python/cppwrapper/dbcrypto_wrapper.o
 	$(AR) $(ARFLAGS) crypto/cpp/dist/$@.a $^
 	$(CC) -shared -o crypto/cpp/dist/$@.so $^
+	$(CC) -shared crypto/python/cppwrapper/dbcrypto_wrapper.o $(DBRT_LIB) $(DBIO_LIB) $(DBCRYPTO_LIB) $(DBUTIL_LIB) -lpthread -lcrypto -lssl -o crypto/python/cppwrapper/_dbcrypto.so
 
 # Builds the DB net libraries
 libdbnet: $(DBNET_OBJS)
@@ -176,6 +178,15 @@ crypto/cpp/build/%.o: crypto/cpp/%.cpp
 	@mkdir -p crypto/cpp/build
 	@mkdir -p crypto/cpp/dist
 	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
+
+# Build DB cryptography wrapper for python
+crypto/python/cppwrapper/dbcryptoWrapper.o: crypto/python/cppwrapper/dbcryptoWrapper.cpp
+	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
+
+# Build DB cryptography swig wrapper for python
+crypto/python/cppwrapper/dbcrypto_wrapper.o:
+	swig -c++ -python -o crypto/python/cppwrapper/dbcrypto_wrapper.c crypto/python/cppwrapper/dbcrypto.i
+	$(CC) $(CFLAGS) $(PYTHON_INCLUDE) -fPIC -o crypto/python/cppwrapper/dbcrypto_wrapper.o -c crypto/python/cppwrapper/dbcrypto_wrapper.c
 
 # Builds DB net object files
 net/cpp/build/%.o: net/cpp/%.cpp
