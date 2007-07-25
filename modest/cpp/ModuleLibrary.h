@@ -4,6 +4,7 @@
 #ifndef db_modest_ModuleLibrary_H
 #define db_modest_ModuleLibrary_H
 
+#include "Object.h"
 #include "Exception.h"
 #include "ModuleLoader.h"
 

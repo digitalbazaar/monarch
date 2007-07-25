@@ -114,14 +114,8 @@ void* Thread::execute(void* thread)
    // create the current thread key, if not created
    pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
    
-   // create the exception key, if not created
-   pthread_once(&EXCEPTION_KEY_INIT, Thread::createExceptionKey);
-   
    // set thread specific data for current thread to the Thread
    pthread_setspecific(CURRENT_THREAD_KEY, t);
-   
-   // set thread specific data for exception to NULL (no exception yet)
-   pthread_setspecific(EXCEPTION_KEY, NULL);
    
    // Note: disabled due to a lack of support in windows
    // install signal handler

@@ -26,20 +26,32 @@ Engine::~Engine()
 
 void Engine::queue(Operation* op)
 {
-   // create an OperationExecutor
-   OperationExecutor* e = new OperationExecutor(mState, op, mOpDispatcher);
-   mOpDispatcher->queueOperation(e);
+   lock();
+   {
+      // create an OperationExecutor
+      OperationExecutor* e = new OperationExecutor(mState, op, mOpDispatcher);
+      mOpDispatcher->queueOperation(e);
+   }
+   unlock();
 }
 
 void Engine::start()
 {
-   mOpDispatcher->startDispatching();
+   lock();
+   {
+      mOpDispatcher->startDispatching();
+   }
+   unlock();
 }
 
 void Engine::stop()
 {
-   mOpDispatcher->stopDispatching();
-   mOpDispatcher->terminateRunningOperations();
+   lock();
+   {
+      mOpDispatcher->stopDispatching();
+      mOpDispatcher->terminateRunningOperations();
+   }
+   unlock();
 }
 
 ImmutableState* Engine::getState()

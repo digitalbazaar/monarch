@@ -94,7 +94,7 @@ protected:
     * @param timeout the timeout to use in milliseconds (0 for no timeout
     *                and -1 for immediate timeout).
     * 
-    * @return false if an exception occurred, false if not.
+    * @return false if an exception occurred, true if not.
     */
    virtual bool select(bool read, long long timeout);
    

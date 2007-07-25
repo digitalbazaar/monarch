@@ -6,8 +6,6 @@
 
 #include <string>
 
-#include "Object.h"
-
 namespace db
 {
 namespace rt
