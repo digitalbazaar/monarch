@@ -2034,7 +2034,7 @@ void runServerConnectionTest()
    Object lock;
    lock.lock();
    {
-      lock.wait(60000);
+      lock.wait(30000);
    }
    lock.unlock();
    //Thread::sleep(60000);
@@ -2166,22 +2166,22 @@ void runServerSslConnectionTest()
    unsigned long long start = System::getCurrentMilliseconds();
    
    t1.start();
-   t2.start();
-   t3.start();
-   t4.start();
-   t5.start();
-   t6.start();
-   t7.start();
-   t8.start();
+//   t2.start();
+//   t3.start();
+//   t4.start();
+//   t5.start();
+//   t6.start();
+//   t7.start();
+//   t8.start();
    
    t1.join();
-   t2.join();
-   t3.join();
-   t4.join();
-   t5.join();
-   t6.join();
-   t7.join();
-   t8.join();
+//   t2.join();
+//   t3.join();
+//   t4.join();
+//   t5.join();
+//   t6.join();
+//   t7.join();
+//   t8.join();
    cout << "all client threads joined." << endl;
    
    unsigned long long end = System::getCurrentMilliseconds();
@@ -2293,8 +2293,8 @@ public:
       //runDateTest();
       //runHttpHeaderTest();
       //runConfigTest();
-      runServerConnectionTest();
-      //runServerSslConnectionTest();
+      //runServerConnectionTest();
+      runServerSslConnectionTest();
       //runServerDatagramTest();
       
       cout << endl << "Tests finished." << endl;

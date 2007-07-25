@@ -71,7 +71,12 @@ int PeekInputStream::peek(char* b, unsigned int length)
          char* oldBuffer = mPeekBuffer;
          mPeekBuffer = new char[length];
          memcpy(mPeekBuffer, oldBuffer + mPeekOffset, mPeekLength);
-         delete [] oldBuffer;
+         
+         if(oldBuffer != NULL)
+         {
+            delete [] oldBuffer;
+         }
+         
          mPeekOffset = 0;
          mPeekSize = length;
       }

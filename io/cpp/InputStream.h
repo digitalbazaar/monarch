@@ -21,7 +21,7 @@ namespace io
  * 
  * @author Dave Longley
  */
-class InputStream : public virtual db::rt::Object
+class InputStream
 {
 public:
    /**
