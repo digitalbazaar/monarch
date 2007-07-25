@@ -104,7 +104,8 @@ public:
    virtual void assignData(const char* data, unsigned int length);
    
    /**
-    * Sets the length of the data for this Datagram.
+    * Sets the length of the data for this Datagram. The length cannot be
+    * set larger than the current length, only smaller.
     * 
     * @param length the length of the data for this Datagram.
     */

@@ -14,7 +14,7 @@ Datagram::Datagram(InternetAddress* address, unsigned int length)
    if(length > 0)
    {
       mData = new char[length];
-      mLength = 0;
+      mLength = length;
    }
    else
    {
@@ -90,7 +90,8 @@ void Datagram::assignData(const char* data, unsigned int length)
 
 void Datagram::setLength(unsigned int length)
 {
-   mLength = length;
+   // cannot set larger than existing length
+   mLength = (length > mLength) ? mLength : length;
 }
 
 char* Datagram::getData(unsigned int& length)

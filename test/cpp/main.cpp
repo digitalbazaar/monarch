@@ -912,8 +912,6 @@ void runDatagramTest()
       
       cout << "Server sent: " << d2.getString() << endl;
       
-      // FIXME: bug where internal datagram buffer is used -- doesn't
-      // produce any text
       // receive the server datagram
       Datagram d3(sa, 2048);
       client.receive(&d3);
@@ -2229,8 +2227,7 @@ public:
       //runSslServerSocketTest();
       //runTcpClientServerTest();
       //runUdpClientServerTest();
-      // FIXME: datagram test on bug: client doesn't receive msg
-      //runDatagramTest();
+      runDatagramTest();
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
@@ -2247,7 +2244,7 @@ public:
       //runHttpHeaderTest();
       //runConfigTest();
       //runServerConnectionTest();
-      runServerSslConnectionTest();
+      //runServerSslConnectionTest();
       //runServerDatagramTest();
       
       cout << endl << "Tests finished." << endl;
