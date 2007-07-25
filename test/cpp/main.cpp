@@ -1955,7 +1955,8 @@ public:
       }
       
       OutputStream* os = c->getOutputStream();
-      str = "HTTP/1.0 404 Not Found\r\n";
+      //str = "HTTP/1.0 404 Not Found\r\n";
+      str = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\n\r\n";
       os->write(str.c_str(), str.length());
       
       cout << "1: Finished servicing connection." << endl;
@@ -2030,7 +2031,13 @@ void runServerConnectionTest()
 //         Thread::getException()->getMessage() << endl;
 //   }
    
-   Thread::sleep(60000);
+   Object lock;
+   lock.lock();
+   {
+      lock.wait(60000);
+   }
+   lock.unlock();
+   //Thread::sleep(60000);
    
    server.stop();
    cout << "Server stopped." << endl;
