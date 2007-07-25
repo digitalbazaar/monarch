@@ -1993,15 +1993,15 @@ void runServerConnectionTest()
    
    // create server
    Server server(&k);
-   InternetAddress address("localhost", 19100);
+   InternetAddress address("kasumi.digitalbazaar.com", 19100);
    
    // create generic service
    TestConnectionServicer1 tcs1;
    server.addConnectionService(&address, &tcs1);
    
-   // create generic service (stomp on other service)
-   TestConnectionServicer2 tcs2;
-   server.addConnectionService(&address, &tcs2);
+//   // create generic service (stomp on other service)
+//   TestConnectionServicer2 tcs2;
+//   server.addConnectionService(&address, &tcs2);
    
    if(server.start())
    {
@@ -2013,24 +2013,24 @@ void runServerConnectionTest()
          Thread::getException()->getMessage() << endl;
    }
    
-   // create generic service (stomp on second service, dynamically stop/start)
-   TestConnectionServicer3 tcs3;
-   if(!server.addConnectionService(&address, &tcs3))
-   {
-      cout << "Could not start service 3!, exception=" <<
-         Thread::getException()->getMessage() << endl;
-   }
+//   // create generic service (stomp on second service, dynamically stop/start)
+//   TestConnectionServicer3 tcs3;
+//   if(!server.addConnectionService(&address, &tcs3))
+//   {
+//      cout << "Could not start service 3!, exception=" <<
+//         Thread::getException()->getMessage() << endl;
+//   }
+//   
+//   Thread::sleep(5000);
+//   
+//   // create generic service (stomp on third service, dynamically stop/start)
+//   if(!server.addConnectionService(&address, &tcs2))
+//   {
+//      cout << "Could not start service 2!, exception=" <<
+//         Thread::getException()->getMessage() << endl;
+//   }
    
-   Thread::sleep(5000);
-   
-   // create generic service (stomp on third service, dynamically stop/start)
-   if(!server.addConnectionService(&address, &tcs2))
-   {
-      cout << "Could not start service 2!, exception=" <<
-         Thread::getException()->getMessage() << endl;
-   }
-   
-   Thread::sleep(10000);
+   Thread::sleep(60000);
    
    server.stop();
    cout << "Server stopped." << endl;
@@ -2040,6 +2040,7 @@ void runServerConnectionTest()
    
    cout << endl << "Server Connection test complete." << endl;
 }
+unsigned int gConnections = 0;
 
 class BlastConnections : public Runnable
 {
@@ -2059,6 +2060,11 @@ public:
    {
       //Thread::sleep(20000);
       
+      TcpSocket socket;
+      socket.setReceiveTimeout(1000);
+      
+      //InternetAddress address2("mojo.bitmunk.com", 9120);
+      
       // blast connections
       int connections = 50;
       char b[1024];
@@ -2066,15 +2072,15 @@ public:
          "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
       for(int i = 0; i < connections; i++)
       {
-         cout << "trying to connect" << endl;
-         // send request
-         TcpSocket socket;
+         // connect
          if(socket.connect(address))
          {
             cout << "connected" << endl;
+            
+            // send request
             if(socket.send(request.c_str(), request.length()))
             {
-               cout << "data sent" << endl;
+               // receive response
                socket.receive(b, 1024);
             }
             else
@@ -2089,7 +2095,10 @@ public:
                Thread::getException()->getMessage() << endl;
          }
          
+         // close socket
          socket.close();
+         
+         gConnections++;
       }      
    }
 };
@@ -2139,38 +2148,43 @@ void runServerSslConnectionTest()
    
    BlastConnections bc(&address);
    Thread t1(&bc);
-//   Thread t2(&bc);
-//   Thread t3(&bc);
-//   Thread t4(&bc);
-//   Thread t5(&bc);
-//   Thread t6(&bc);
-//   Thread t7(&bc);
-//   Thread t8(&bc);
+   Thread t2(&bc);
+   Thread t3(&bc);
+   Thread t4(&bc);
+   Thread t5(&bc);
+   Thread t6(&bc);
+   Thread t7(&bc);
+   Thread t8(&bc);
    
    unsigned long long start = System::getCurrentMilliseconds();
    
    t1.start();
-//   t2.start();
-//   t3.start();
-//   t4.start();
-//   t5.start();
-//   t6.start();
-//   t7.start();
-//   t8.start();
+   t2.start();
+   t3.start();
+   t4.start();
+   t5.start();
+   t6.start();
+   t7.start();
+   t8.start();
    
    t1.join();
-//   t2.join();
-//   t3.join();
-//   t4.join();
-//   t5.join();
-//   t6.join();
-//   t7.join();
-//   t8.join();
-   cout << "all threads joined." << endl;
+   t2.join();
+   t3.join();
+   t4.join();
+   t5.join();
+   t6.join();
+   t7.join();
+   t8.join();
+   cout << "all client threads joined." << endl;
    
    unsigned long long end = System::getCurrentMilliseconds();
-   double rate = (double)tcs1.serviced / ((end - start) / 1000);
+   long double time = end - start;
+   long double secs = time / 1000.0;
+   unsigned int connections = gConnections;//tcs1.serviced
+   double rate = (double)connections / secs;
    
+   cout << "Connections=" << tcs1.serviced << endl;
+   cout << "Time=" << time << " ms = " << secs << " secs" << endl;
    cout << "Connections/second=" << rate << endl;
    
    server.stop();
@@ -2272,8 +2286,8 @@ public:
       //runDateTest();
       //runHttpHeaderTest();
       //runConfigTest();
-      //runServerConnectionTest();
-      runServerSslConnectionTest();
+      runServerConnectionTest();
+      //runServerSslConnectionTest();
       //runServerDatagramTest();
       
       cout << endl << "Tests finished." << endl;
