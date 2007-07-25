@@ -1950,10 +1950,10 @@ public:
       numBytes = is->peek(b, 2048);
       if(numBytes != -1)
       {
-         cout << "Read " << numBytes << " bytes." << endl;
-         string str = "";
-         str.append(b, numBytes);
-         cout << "HTTP=" << endl << str << endl;
+//         cout << "Read " << numBytes << " bytes." << endl;
+//         string str = "";
+//         str.append(b, numBytes);
+//         cout << "HTTP=" << endl << str << endl;
       }
       
       OutputStream* os = c->getOutputStream();
@@ -2028,6 +2028,40 @@ void runServerConnectionTest()
    cout << endl << "Server Connection test complete." << endl;
 }
 
+class BlastConnections : public Runnable
+{
+public:
+   InternetAddress* address;
+   
+   BlastConnections(InternetAddress* a)
+   {
+      address = a;
+   }
+   
+   virtual ~BlastConnections()
+   {
+   }
+   
+   void run()
+   {
+      // blast connections
+      int connections = 50;
+      char b[2048];
+      string request =
+         "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+      for(int i = 0; i < connections; i++)
+      {
+         // send request
+         TcpSocket socket;
+         socket.connect(address);
+         //cout << Thread::getException()->getMessage() << endl;
+         socket.send(request.c_str(), request.length());
+         socket.receive(b, 2048);
+         socket.close();
+      }      
+   }
+};
+
 void runServerSslConnectionTest()
 {
    cout << "Starting Server SSL Connection test." << endl << endl;
@@ -2053,39 +2087,67 @@ void runServerSslConnectionTest()
    
    // create SSL/generic service
    TestConnectionServicer1 tcs1;
-//   SslContext context;
-//   SslSocketDataPresenter presenter1(&context);
-//   NullSocketDataPresenter presenter2;
-//   SocketDataPresenterList list(false);
-//   list.add(&presenter1);
-//   list.add(&presenter2);
-   server.addConnectionService(&address, &tcs1);//, &list);
+   SslContext context;
+   SslSocketDataPresenter presenter1(&context);
+   NullSocketDataPresenter presenter2;
+   SocketDataPresenterList list(false);
+   list.add(&presenter1);
+   list.add(&presenter2);
+   server.addConnectionService(&address, &tcs1, &list);
    
    server.start();
    cout << "Server started." << endl;
    
+   BlastConnections bc(&address);
+   Thread t1(&bc);
+   Thread t2(&bc);
+   Thread t3(&bc);
+   Thread t4(&bc);
+   Thread t5(&bc);
+   Thread t6(&bc);
+   Thread t7(&bc);
+   Thread t8(&bc);
+   
    unsigned long long start = System::getCurrentMilliseconds();
    
+   t1.start();
+   t2.start();
+   t3.start();
+   t4.start();
+   t5.start();
+   t6.start();
+   t7.start();
+   t8.start();
+   
+   t1.join();
+   t2.join();
+   t3.join();
+   t4.join();
+   t5.join();
+   t6.join();
+   t7.join();
+   t8.join();
+   
    // blast connections
-   int connections = 1;
-   char b[2048];
-   string request =
-      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-   for(int i = 0; i < connections; i++)
-   {
-      // send request
-      TcpSocket socket;
-      cout << "connected: " << socket.connect(&address) << endl;
-      cout << Thread::getException()->getMessage() << endl;
-      socket.send(request.c_str(), request.length());
-      socket.receive(b, 2048);
-      socket.close();
-   }
+//   int connections = 200;
+//   char b[2048];
+//   string request =
+//      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+//   for(int i = 0; i < connections; i++)
+//   {
+//      // send request
+//      TcpSocket socket;
+//      cout << "connected: " << socket.connect(&address) << endl;
+//      //cout << Thread::getException()->getMessage() << endl;
+//      socket.send(request.c_str(), request.length());
+//      //socket.receive(b, 2048);
+//      //socket.close();
+//   }
    
    unsigned long long end = System::getCurrentMilliseconds();
-   double rate = (double)connections / ((end - start) / 1000);
+   double rate = (double)tcs1.serviced / ((end - start) / 1000);
    
-   Thread::sleep(10000);
+   //Thread::sleep(10000);
    
    cout << "Connections/second=" << rate << endl;
    
