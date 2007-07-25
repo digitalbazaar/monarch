@@ -63,6 +63,17 @@ Thread::~Thread()
 {
    // destroy the POSIX thread attributes
    pthread_attr_destroy(&mPThreadAttributes);
+   
+   if(this == &MAIN_THREAD)
+   {
+      // ensure keys are initialized
+      currentThread();
+      getException();
+      
+      // delete thread keys
+      pthread_key_delete(CURRENT_THREAD_KEY);
+      pthread_key_delete(EXCEPTION_KEY);
+   }
 }
 
 void Thread::run()

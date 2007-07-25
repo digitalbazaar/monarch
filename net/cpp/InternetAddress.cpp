@@ -122,8 +122,11 @@ UnknownHostException* InternetAddress::setHost(const std::string& host)
       memset(&dst, '\0', INET_ADDRSTRLEN);
       inet_ntop(AF_INET, &addr.sin_addr, dst, INET_ADDRSTRLEN);
       mAddress = dst;
-      
-      // free result
+   }
+   
+   if(res != NULL)
+   {
+      // free res if it got allocated
       freeaddrinfo(res);
    }
    
