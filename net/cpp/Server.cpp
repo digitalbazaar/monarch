@@ -7,7 +7,7 @@ using namespace std;
 using namespace db::modest;
 using namespace db::net;
 
-Server::Server(Kernel* k) : mRunningServices(true)
+Server::Server(Kernel* k)
 {
    mKernel = k;
    mRunning = false;
@@ -24,8 +24,6 @@ Server::~Server()
    for(map<unsigned short, PortService*>::iterator i = mPortServices.begin();
        i != mPortServices.end(); i++)
    {
-      // delete Runnable service and actual PortService
-      delete i->second->service;
       delete i->second;
    }
 }
@@ -43,79 +41,69 @@ PortService* Server::getPortService(unsigned short port)
    return rval;
 }
 
-PortService* Server::createPortService(unsigned short port)
+bool Server::addPortService(PortService* ps)
 {
-   PortService* rval = getPortService(port);
-   if(rval == NULL)
+   bool rval = false;
+   
+   // get old port service
+   PortService* old = getPortService(ps->getAddress()->getPort());
+   if(old != NULL)
    {
-      // create new port service
-      rval = new PortService();
-      mPortServices[port] = rval;
+      // stop and delete old port service
+      old->stop();
+      delete old;
+   }
+   
+   // set new port service
+   mPortServices[ps->getAddress()->getPort()] = ps;
+   
+   // start service if server is running
+   if(isRunning())
+   {
+      rval = ps->start();
    }
    else
    {
-      if(rval->service != NULL)
-      {
-         if(isRunning())
-         {
-            // stop old service
-            rval->operation->interrupt();
-            rval->operation->waitFor(false);
-            mRunningServices.prune();
-         }
-         
-         // delete old service
-         delete rval->service;
-      }
+      // no need to start service
+      rval = true;
    }
    
    return rval;
 }
 
-void Server::startPortService(PortService* ps)
-{
-   ps->operation = new Operation(ps->service, NULL, NULL);
-   mRunningServices.add(ps->operation);
-   mKernel->getEngine()->queue(ps->operation);
-}
-
-void Server::addConnectionService(
+bool Server::addConnectionService(
    InternetAddress* a, ConnectionServicer* s, SocketDataPresenter* p)
 {
+   bool rval = false;
+   
    lock();
    {
-      // create a PortService with a ConnectionService
-      PortService* ps = createPortService(a->getPort());
-      ps->service = new ConnectionService(this, a, s, p);
-      
-      // start service if server is running
-      if(isRunning())
-      {
-         startPortService(ps);
-      }
+      // add ConnectionService
+      rval = addPortService(new ConnectionService(this, a, s, p));
    }
    unlock();
+   
+   return rval;
 }
 
-void Server::addDatagramService(InternetAddress* a, DatagramServicer* s)
+bool Server::addDatagramService(InternetAddress* a, DatagramServicer* s)
 {
+   bool rval = false;
+   
    lock();
    {
-      // create a PortService with a DatagramService
-      PortService* ps = createPortService(a->getPort());
-      ps->service = new DatagramService(a, s);
-      
-      // start service if server is running
-      if(isRunning())
-      {
-         startPortService(ps);
-      }
+      // add DatagramService
+      rval = addPortService(new DatagramService(this, a, s));
    }
    unlock();
+   
+   return rval;
 }
 
-void Server::start()
+bool Server::start()
 {
+   bool rval = true;
+   
    lock();
    {
       if(!isRunning())
@@ -124,15 +112,17 @@ void Server::start()
          mRunning = true;
          mConnectionCount = 0;
          
-         // start all services
+         // start all port services
          for(map<unsigned short, PortService*>::iterator i =
              mPortServices.begin(); i != mPortServices.end(); i++)
          {
-            startPortService(i->second);
+            rval &= i->second->start();
          }
       }
    }
    unlock();
+   
+   return rval;
 }
 
 void Server::stop()
@@ -141,8 +131,19 @@ void Server::stop()
    {
       if(isRunning())
       {
-         // terminate all services
-         mRunningServices.terminate();
+         // interrupt all port services
+         for(map<unsigned short, PortService*>::iterator i =
+             mPortServices.begin(); i != mPortServices.end(); i++)
+         {
+            i->second->interrupt();
+         }
+         
+         // stop all port services
+         for(map<unsigned short, PortService*>::iterator i =
+             mPortServices.begin(); i != mPortServices.end(); i++)
+         {
+            i->second->stop();
+         }
          
          // no longer running
          mRunning = false;

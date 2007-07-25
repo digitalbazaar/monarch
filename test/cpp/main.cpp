@@ -1993,7 +1993,7 @@ void runServerConnectionTest()
    
    // create server
    Server server(&k);
-   InternetAddress address("localhost", 10080);
+   InternetAddress address("localhost", 19100);
    
    // create generic service
    TestConnectionServicer1 tcs1;
@@ -2003,17 +2003,32 @@ void runServerConnectionTest()
    TestConnectionServicer2 tcs2;
    server.addConnectionService(&address, &tcs2);
    
-   server.start();
-   cout << "Server started." << endl;
+   if(server.start())
+   {
+      cout << "Server started." << endl;
+   }
+   else if(Thread::getException() != NULL)
+   {
+      cout << "Server started with errors=" <<
+         Thread::getException()->getMessage() << endl;
+   }
    
    // create generic service (stomp on second service, dynamically stop/start)
    TestConnectionServicer3 tcs3;
-   server.addConnectionService(&address, &tcs3);
+   if(!server.addConnectionService(&address, &tcs3))
+   {
+      cout << "Could not start service 3!, exception=" <<
+         Thread::getException()->getMessage() << endl;
+   }
    
    Thread::sleep(5000);
    
    // create generic service (stomp on third service, dynamically stop/start)
-   server.addConnectionService(&address, &tcs2);
+   if(!server.addConnectionService(&address, &tcs2))
+   {
+      cout << "Could not start service 2!, exception=" <<
+         Thread::getException()->getMessage() << endl;
+   }
    
    Thread::sleep(10000);
    
@@ -2042,19 +2057,38 @@ public:
    
    void run()
    {
+      //Thread::sleep(20000);
+      
       // blast connections
       int connections = 50;
-      char b[2048];
+      char b[1024];
       string request =
          "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
       for(int i = 0; i < connections; i++)
       {
+         cout << "trying to connect" << endl;
          // send request
          TcpSocket socket;
-         socket.connect(address);
-         //cout << Thread::getException()->getMessage() << endl;
-         socket.send(request.c_str(), request.length());
-         socket.receive(b, 2048);
+         if(socket.connect(address))
+         {
+            cout << "connected" << endl;
+            if(socket.send(request.c_str(), request.length()))
+            {
+               cout << "data sent" << endl;
+               socket.receive(b, 1024);
+            }
+            else
+            {
+               cout << "Exception=" <<
+                  Thread::getException()->getMessage() << endl;
+            }
+         }
+         else
+         {
+            cout << "Exception=" <<
+               Thread::getException()->getMessage() << endl;
+         }
+         
          socket.close();
       }      
    }
@@ -2075,7 +2109,7 @@ void runServerSslConnectionTest()
    
    // create server
    Server server(&k);
-   InternetAddress address("localhost", 10080);
+   InternetAddress address("localhost", 19100);
    
 //   // create SSL-only service
 //   TestConnectionServicer1 tcs1;
@@ -2093,63 +2127,51 @@ void runServerSslConnectionTest()
    list.add(&presenter2);
    server.addConnectionService(&address, &tcs1, &list);
    
-   server.start();
-   cout << "Server started." << endl;
+   if(server.start())
+   {
+      cout << "Server started." << endl;
+   }
+   else if(Thread::getException() != NULL)
+   {
+      cout << "Server started with errors=" <<
+         Thread::getException()->getMessage() << endl;
+   }
    
    BlastConnections bc(&address);
    Thread t1(&bc);
-   Thread t2(&bc);
-   Thread t3(&bc);
-   Thread t4(&bc);
-   Thread t5(&bc);
-   Thread t6(&bc);
-   Thread t7(&bc);
-   Thread t8(&bc);
+//   Thread t2(&bc);
+//   Thread t3(&bc);
+//   Thread t4(&bc);
+//   Thread t5(&bc);
+//   Thread t6(&bc);
+//   Thread t7(&bc);
+//   Thread t8(&bc);
    
    unsigned long long start = System::getCurrentMilliseconds();
    
    t1.start();
-   t2.start();
-   t3.start();
-   t4.start();
-   t5.start();
-   t6.start();
-   t7.start();
-   t8.start();
+//   t2.start();
+//   t3.start();
+//   t4.start();
+//   t5.start();
+//   t6.start();
+//   t7.start();
+//   t8.start();
    
    t1.join();
-   t2.join();
-   t3.join();
-   t4.join();
-   t5.join();
-   t6.join();
-   t7.join();
-   t8.join();
-   
-   // blast connections
-//   int connections = 200;
-//   char b[2048];
-//   string request =
-//      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-//   for(int i = 0; i < connections; i++)
-//   {
-//      // send request
-//      TcpSocket socket;
-//      cout << "connected: " << socket.connect(&address) << endl;
-//      //cout << Thread::getException()->getMessage() << endl;
-//      socket.send(request.c_str(), request.length());
-//      //socket.receive(b, 2048);
-//      //socket.close();
-//   }
+//   t2.join();
+//   t3.join();
+//   t4.join();
+//   t5.join();
+//   t6.join();
+//   t7.join();
+//   t8.join();
+   cout << "all threads joined." << endl;
    
    unsigned long long end = System::getCurrentMilliseconds();
    double rate = (double)tcs1.serviced / ((end - start) / 1000);
    
-   //Thread::sleep(10000);
-   
    cout << "Connections/second=" << rate << endl;
-   
-   //Thread::sleep(10000);
    
    server.stop();
    cout << "Server stopped." << endl;
@@ -2188,8 +2210,15 @@ void runServerDatagramTest()
    TestDatagramServicer tds;
    server.addDatagramService(&address, &tds);
    
-   server.start();
-   cout << "Server started." << endl;
+   if(server.start())
+   {
+      cout << "Server started." << endl;
+   }
+   else if(Thread::getException() != NULL)
+   {
+      cout << "Server started with errors=" <<
+         Thread::getException()->getMessage() << endl;
+   }
    
    Thread::sleep(10000);
    
@@ -2227,7 +2256,7 @@ public:
       //runSslServerSocketTest();
       //runTcpClientServerTest();
       //runUdpClientServerTest();
-      runDatagramTest();
+      //runDatagramTest();
       //runMessageDigestTest();
       //runCrcTest();
       //runAsymmetricKeyLoadingTest();
@@ -2244,7 +2273,7 @@ public:
       //runHttpHeaderTest();
       //runConfigTest();
       //runServerConnectionTest();
-      //runServerSslConnectionTest();
+      runServerSslConnectionTest();
       //runServerDatagramTest();
       
       cout << endl << "Tests finished." << endl;

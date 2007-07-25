@@ -5,38 +5,57 @@
 #include "Convert.h"
 
 using namespace std;
+using namespace db::modest;
 using namespace db::net;
 using namespace db::util;
 
 DatagramService::DatagramService(
-   InternetAddress* address, DatagramServicer* servicer)
+   Server* server, InternetAddress* address, DatagramServicer* servicer) :
+   PortService(server, address)
 {
-   mAddress = address;
+   mSocket = NULL;
 }
 
 DatagramService::~DatagramService()
 {
+   // ensure service is stopped
+   DatagramService::stop();
+}
+
+Operation* DatagramService::initialize()
+{
+   Operation* rval = NULL;
+   
+   // create datagram socket
+   mSocket = new DatagramSocket();
+   
+   // bind socket to the address
+   if(mSocket->bind(mAddress))
+   {
+      // create Operation for running service
+      rval = new Operation(this, NULL, NULL);
+   }
+   
+   return rval;
+}
+
+void DatagramService::cleanup()
+{
+   if(mSocket != NULL)
+   {
+      // clean up socket
+      delete mSocket;
+      mSocket = NULL;
+   }
 }
 
 void DatagramService::run()
 {
-   // create datagram socket
-   DatagramSocket s;
-   
-   // bind socket to the address
-   if(s.bind(mAddress))
-   {
-      // service datagrams
-      mServicer->serviceDatagrams(&s);
-   }
+   // service datagrams
+   mServicer->serviceDatagrams(mSocket);
    
    // close socket
-   s.close();
-}
-
-InternetAddress* DatagramService::getAddress()
-{
-   return mAddress;
+   mSocket->close();
 }
 
 string& DatagramService::toString(string& str)

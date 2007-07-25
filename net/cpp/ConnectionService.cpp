@@ -17,18 +17,50 @@ ConnectionService::ConnectionService(
    Server* server,
    InternetAddress* address,
    ConnectionServicer* servicer,
-   SocketDataPresenter* presenter) : mRunningServicers(false)
+   SocketDataPresenter* presenter) :
+   PortService(server, address), mRunningServicers(false)
 {
-   mServer = server;
-   mAddress = address;
    mServicer = servicer;
    mDataPresenter = presenter;
+   mSocket = NULL;
    mMaxConnectionCount = 10000;
    mConnectionCount = 0;
 }
 
 ConnectionService::~ConnectionService()
 {
+   // ensure service is stopped
+   ConnectionService::stop();
+}
+
+Operation* ConnectionService::initialize()
+{
+   Operation* rval = NULL;
+   
+   // no connections yet
+   mConnectionCount = 0;
+   
+   // create tcp socket
+   mSocket = new TcpSocket();
+   
+   // bind socket to the address and start listening
+   if(mSocket->bind(mAddress) && mSocket->listen())
+   {
+      // create Operation for running service
+      rval = new Operation(this, NULL, NULL);
+   }
+   
+   return rval;
+}
+
+void ConnectionService::cleanup()
+{
+   if(mSocket != NULL)
+   {
+      // clean up socket
+      delete mSocket;
+      mSocket = NULL;
+   }
 }
 
 void ConnectionService::cleanupWorkers()
@@ -124,36 +156,25 @@ void ConnectionService::mutatePostExecutionState(State* s, Operation* op)
 
 void ConnectionService::run()
 {
-   // no connections yet
-   mConnectionCount = 0;
+   // create a connection acceptor
+   ConnectionAcceptor ca(mSocket, this);
    
-   // create tcp socket
-   TcpSocket s;
-   
-   // bind socket to the address and start listening
-   if(s.bind(mAddress) && s.listen())
+   while(!Operation::interrupted())
    {
-      // create a connection acceptor
-      ConnectionAcceptor ca(&s, this);
+      // run accept operation
+      Operation op(&ca, this, this);
+      mServer->getKernel()->getEngine()->queue(&op);
       
-      Thread* t = Thread::currentThread();
-      while(!t->isInterrupted())
-      {
-         // run accept operation
-         Operation op(&ca, this, this);
-         mServer->getKernel()->getEngine()->queue(&op);
-         
-         // prune running servicers, clean up workers
-         mRunningServicers.prune();
-         cleanupWorkers();
-         
-         // wait for operation to complete, do not allow interruptions
-         op.waitFor(false);
-      }
+      // prune running servicers, clean up workers
+      mRunningServicers.prune();
+      cleanupWorkers();
+      
+      // wait for operation to complete, do not allow interruptions
+      op.waitFor(false);
    }
    
    // close socket
-   s.close();
+   mSocket->close();
    
    // terminate running servicers, clean up workers
    mRunningServicers.terminate();
@@ -224,11 +245,6 @@ unsigned int ConnectionService::getMaxConnectionCount()
 unsigned int ConnectionService::getConnectionCount()
 {
    return mConnectionCount;
-}
-
-InternetAddress* ConnectionService::getAddress()
-{
-   return mAddress;
 }
 
 string& ConnectionService::toString(string& str)

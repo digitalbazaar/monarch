@@ -349,6 +349,12 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
             }
          }
       }
+      else
+      {
+         // now connected and bound
+         mBound = true;
+         mConnected = true;
+      }
       
       // restore socket to blocking
       fcntl(mFileDescriptor, F_SETFL, 0);

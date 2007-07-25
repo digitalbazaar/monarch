@@ -4,10 +4,9 @@
 #ifndef db_net_ConnectionService_H
 #define db_net_ConnectionService_H
 
-#include "InternetAddress.h"
+#include "PortService.h"
 #include "OperationGuard.h"
 #include "StateMutator.h"
-#include "Runnable.h"
 #include "SocketDataPresenter.h"
 #include "OperationList.h"
 #include "ConnectionServicer.h"
@@ -17,9 +16,6 @@ namespace db
 {
 namespace net
 {
-
-// forward declare Server
-class Server;
 
 /**
  * A ConnectionService listens for incoming Socket connections on a given
@@ -33,22 +29,11 @@ class Server;
  * @author Dave Longley
  */
 class ConnectionService :
-public virtual db::rt::Object,
+public PortService,
 public db::modest::OperationGuard,
-public db::modest::StateMutator,
-public db::rt::Runnable
+public db::modest::StateMutator
 {
 protected:
-   /**
-    * The Server associated with this ConnectionService.
-    */
-   Server* mServer;
-   
-   /**
-    * The address to listen for Connections on.
-    */
-   InternetAddress* mAddress;
-   
    /**
     * The ConnectionServicer for this service.
     */
@@ -58,6 +43,11 @@ protected:
     * The SocketDataPresenter to use to present data in a standard format.
     */
    SocketDataPresenter* mDataPresenter;
+   
+   /**
+    * The Socket for this service.
+    */
+   Socket* mSocket;
    
    /**
     * A list of Operations running ConnectionServicers.
@@ -78,6 +68,24 @@ protected:
     * The current number of connections being handled.
     */
    unsigned int mConnectionCount;
+   
+   /**
+    * Initializes this service and creates the Operation for running it. If
+    * the service could not be initialized, an exception should be set on the
+    * current thread indicating the reason why the service could not be
+    * initialized.
+    * 
+    * @return the Operation for running this service, or NULL if the
+    *         service could not be initialized.
+    */
+   virtual db::modest::Operation* initialize();
+   
+   /**
+    * Called to clean up resources for this service that were created or
+    * obtained via a call to initialize(). If there are no resources to
+    * clean up, then this method should have no effect.
+    */
+   virtual void cleanup();
    
    /**
     * Cleans up any expired ConnectionWorkers.
@@ -196,13 +204,6 @@ public:
     * @return the current number of connections being serviced.
     */
    virtual unsigned int getConnectionCount();
-   
-   /**
-    * Gets the address for this ConnectionService.
-    * 
-    * @return the address for this ConnectionService.
-    */
-   virtual InternetAddress* getAddress();
    
    /**
     * Gets a string representation for this Runnable.

@@ -19,22 +19,6 @@ namespace net
 {
 
 /**
- * A PortService has a Runnable service and an operation for running it.
- */
-typedef struct PortService
-{
-   /**
-    * The Runnable service.
-    */
-   db::rt::Runnable* service;
-   
-   /**
-    * The Operation used to run this service.
-    */
-   db::modest::Operation* operation;
-};
-
-/**
  * A Server communicates by using Connections that are established on
  * ports that this server listens to or by using Datagrams received on
  * ports this server binds to.
@@ -63,11 +47,6 @@ protected:
    bool mRunning;
    
    /**
-    * All of the running PortServices.
-    */
-   db::modest::OperationList mRunningServices;
-   
-   /**
     * The maximum number of concurrent connections to handle.
     */
    unsigned int mMaxConnectionCount;
@@ -92,19 +71,15 @@ protected:
    virtual PortService* getPortService(unsigned short port);
    
    /**
-    * Creates a PortService for the given port if one does not already exist,
-    * or erases an existing PortService's Runnable service.
+    * Adds a new PortService for the given port. If an old service exists
+    * on the given port, it is stopped and removed. If the server is running,
+    * the new service is started.
     * 
-    * @return the PortService associated with the given port.
-    */
-   virtual PortService* createPortService(unsigned short port);
-   
-   /**
-    * Starts a PortService.
+    * @param ps the new PortService to add.
     * 
-    * @param ps the PortService to start.
+    * @return true if the service was added/started properly.
     */
-   virtual void startPortService(PortService* ps);
+   virtual bool addPortService(PortService* ps);
    
 public:
    /**
@@ -120,27 +95,39 @@ public:
    virtual ~Server();
    
    /**
-    * Adds a ConnectionServicer to this server or replaces an existing one.
+    * Adds a ConnectionServicer to this server or replaces an existing one. If
+    * the server is running the service will be started.
     * 
     * @param a the address to listen on.
     * @param s the ConnectionServicer to service Connections with.
     * @param p the SocketDataPresenter to use to present data to the servicer.
+    * 
+    * @return if the server is running: true if the service started, false
+    *         if not; if the server is not running: true.
     */
-   virtual void addConnectionService(
+   virtual bool addConnectionService(
       InternetAddress* a, ConnectionServicer* s, SocketDataPresenter* p = NULL);
    
    /**
-    * Adds a DatagramService to this server or replaces an existing one.
+    * Adds a DatagramService to this server or replaces an existing one. If
+    * the server is running the service will be started.
     * 
     * @param a the address to bind to.
     * @param s the DatagramServicer to service Datagrams with.
+    * 
+    * @return if the server is running: true if the service started, false
+    *         if not; if the server is not running: true.
     */
-   virtual void addDatagramService(InternetAddress* a, DatagramServicer* s);
+   virtual bool addDatagramService(InternetAddress* a, DatagramServicer* s);
    
    /**
-    * Starts this server if it isn't already running.
+    * Starts this server if it isn't already running. If a service fails to
+    * start, an exception should be set on the current thread indicating why.
+    * 
+    * @return true if all of the services for this server started, false if
+    *         at least one failed.
     */
-   virtual void start();
+   virtual bool start();
    
    /**
     * Stops this server if it is running.
