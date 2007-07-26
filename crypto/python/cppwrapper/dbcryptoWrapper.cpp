@@ -63,7 +63,14 @@ PrivateKey::~PrivateKey()
 
 DigitalSignature* PrivateKey::createSignature()
 {
-   return new DigitalSignature(this);
+   DigitalSignature* rval = NULL;
+   
+   if(_key != NULL)
+   {
+      rval = new DigitalSignature(this);
+   }
+   
+   return rval;
 }
 
 string PrivateKey::getAlgorithm()
@@ -86,7 +93,14 @@ PublicKey::~PublicKey()
 
 DigitalSignature* PublicKey::createSignature()
 {
-   return new DigitalSignature(this);
+   DigitalSignature* rval = NULL;
+   
+   if(_key != NULL)
+   {
+      rval = new DigitalSignature(this);
+   }
+   
+   return rval;
 }
 
 string PublicKey::getAlgorithm()
@@ -208,9 +222,18 @@ bool KeyFactory::loadPrivateKeyFromPem(
 string KeyFactory::writePrivateKeyToPem(
    PrivateKey* key, const std::string& password)
 {
+   string rval;
+   
    db::crypto::AsymmetricKeyFactory* f =
       (db::crypto::AsymmetricKeyFactory*)_aKeyFactory;
-   return f->writePrivateKeyToPem((db::crypto::PrivateKey*)key->_key, password);
+   
+   if(key->_key != NULL)
+   {
+      rval = f->writePrivateKeyToPem(
+         (db::crypto::PrivateKey*)key->_key, password);
+   }
+   
+   return rval;
 }
 
 bool KeyFactory::loadPublicKeyFromPem(PublicKey* key, const string& pem)
@@ -238,8 +261,15 @@ bool KeyFactory::loadPublicKeyFromPem(PublicKey* key, const string& pem)
 
 string KeyFactory::writePublicKeyToPem(PublicKey* key)
 {
+   string rval;
+   
    db::crypto::AsymmetricKeyFactory* f =
       (db::crypto::AsymmetricKeyFactory*)_aKeyFactory;
    
-   return f->writePublicKeyToPem((db::crypto::PublicKey*)key->_key);
+   if(key->_key != NULL)
+   {
+      rval = f->writePublicKeyToPem((db::crypto::PublicKey*)key->_key);
+   }
+   
+   return rval;
 }
