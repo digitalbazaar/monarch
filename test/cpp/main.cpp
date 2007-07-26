@@ -2293,8 +2293,8 @@ public:
       //runDateTest();
       //runHttpHeaderTest();
       //runConfigTest();
-      runServerConnectionTest();
-      //runServerSslConnectionTest();
+      //runServerConnectionTest();
+      runServerSslConnectionTest();
       //runServerDatagramTest();
       
       cout << endl << "Tests finished." << endl;

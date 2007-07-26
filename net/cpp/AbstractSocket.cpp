@@ -202,6 +202,7 @@ bool AbstractSocket::shutdownInput()
    if(mInputStream != NULL)
    {
       delete mInputStream;
+      mInputStream = NULL;
    }
    
    return true;
@@ -213,6 +214,7 @@ bool AbstractSocket::shutdownOutput()
    if(mOutputStream != NULL)
    {
       delete mOutputStream;
+      mOutputStream = NULL;
    }
    
    return true;
