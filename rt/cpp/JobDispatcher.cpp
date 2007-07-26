@@ -194,7 +194,8 @@ void JobDispatcher::stopDispatching()
 
 void JobDispatcher::run()
 {
-   while(!Thread::interrupted(false))
+   Thread* t = Thread::currentThread();
+   while(!t->isInterrupted())
    {
       // see if jobs can dispatch
       if(canDispatch())

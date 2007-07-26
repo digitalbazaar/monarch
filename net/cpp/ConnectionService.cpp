@@ -159,7 +159,7 @@ void ConnectionService::run()
    // create a connection acceptor
    ConnectionAcceptor ca(mSocket, this);
    
-   while(!Operation::interrupted())
+   while(!mOperation->isInterrupted())
    {
       // run accept operation
       Operation op(&ca, this, this);
