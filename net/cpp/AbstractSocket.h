@@ -116,7 +116,7 @@ protected:
     * initialized. This method must be called before trying to read from this
     * Socket.
     *
-    * This method should be reentrant such that multiple calls can be
+    * This method should be indempotent such that multiple calls can be
     * performed safely and will not cause the stream to be reset.
     * 
     * This method is called automatically by the default implementation.
@@ -129,6 +129,9 @@ protected:
     * Initializes the output stream for this Socket, if it is not already
     * initialized. This method must be called before trying to write to this
     * Socket.
+    * 
+    * This method should be indempotent such that multiple calls can be
+    * performed safely and will not cause the stream to be reset.
     * 
     * This method is called automatically by the default implementation.
     * 

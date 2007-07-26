@@ -234,6 +234,10 @@ bool AbstractSocket::bind(SocketAddress* address)
       int error = ::bind(mFileDescriptor, (sockaddr*)&addr, size);
       if(error < 0)
       {
+         // shutdown input/output
+         shutdownInput();
+         shutdownOutput();
+         
          string str;
          Thread::setException(new SocketException(
             "Could not bind Socket! " + address->toString(str),
@@ -348,11 +352,21 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
             }
             else
             {
+               // shutdown input/output
+               shutdownInput();
+               shutdownOutput();
+               
                string str;
                Thread::setException(new SocketException(
                   "Could not connect Socket! Connection refused. " +
                   address->toString(str), strerror(lastError)));
             }
+         }
+         else
+         {
+            // shutdown input/output
+            shutdownInput();
+            shutdownOutput();
          }
       }
       else
