@@ -66,11 +66,13 @@ Thread::~Thread()
    
    if(this == &MAIN_THREAD)
    {
-      // ensure keys are initialized
+      // ensure keys are initialized, clear any exceptions
       currentThread();
-      getException();
+      setException(NULL);
       
       // delete thread keys
+      pthread_setspecific(CURRENT_THREAD_KEY, NULL);
+      pthread_setspecific(EXCEPTION_KEY, NULL);
       pthread_key_delete(CURRENT_THREAD_KEY);
       pthread_key_delete(EXCEPTION_KEY);
    }
@@ -88,15 +90,30 @@ void Thread::run()
 void Thread::createCurrentThreadKey()
 {
    // create the thread key for obtaining the current thread
-   pthread_key_create(&CURRENT_THREAD_KEY, NULL);
+   pthread_key_create(&CURRENT_THREAD_KEY, &cleanupCurrentThreadKeyValue);
    pthread_setspecific(CURRENT_THREAD_KEY, NULL);
+}
+
+void Thread::cleanupCurrentThreadKeyValue(void* thread)
+{
+   // no action is necessary, key is automatically set to NULL
 }
 
 void Thread::createExceptionKey()
 {
    // create the thread key for obtaining the last thread-local exception
-   pthread_key_create(&EXCEPTION_KEY, NULL);
+   pthread_key_create(&EXCEPTION_KEY, &cleanupExceptionKeyValue);
    pthread_setspecific(EXCEPTION_KEY, NULL);
+}
+
+void Thread::cleanupExceptionKeyValue(void* e)
+{
+   if(e != NULL)
+   {
+      // clean up exception
+      Exception* ex = (Exception*)e;
+      delete ex;
+   }
 }
 
 // Note: disabled due to a lack of support in windows

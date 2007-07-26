@@ -30,7 +30,7 @@ Operation* DatagramService::initialize()
    mSocket = new DatagramSocket();
    
    // bind socket to the address
-   if(mSocket->bind(mAddress))
+   if(mSocket->bind(getAddress()))
    {
       // create Operation for running service
       rval = new Operation(this, NULL, NULL);
@@ -60,7 +60,7 @@ void DatagramService::run()
 
 string& DatagramService::toString(string& str)
 {
-   string port = Convert::integerToString(mAddress->getPort());
-   str = "DatagramService [" + mAddress->getHost() + ":" + port + "]";
+   string port = Convert::integerToString(getAddress()->getPort());
+   str = "DatagramService [" + getAddress()->getHost() + ":" + port + "]";
    return str;
 }

@@ -2034,7 +2034,7 @@ void runServerConnectionTest()
    Object lock;
    lock.lock();
    {
-      lock.wait(30000);
+      //lock.wait(30000);
    }
    lock.unlock();
    //Thread::sleep(60000);
@@ -2166,7 +2166,7 @@ void runServerSslConnectionTest()
    unsigned long long start = System::getCurrentMilliseconds();
    
    t1.start();
-//   t2.start();
+   t2.start();
 //   t3.start();
 //   t4.start();
 //   t5.start();
@@ -2175,7 +2175,7 @@ void runServerSslConnectionTest()
 //   t8.start();
    
    t1.join();
-//   t2.join();
+   t2.join();
 //   t3.join();
 //   t4.join();
 //   t5.join();
@@ -2293,8 +2293,8 @@ public:
       //runDateTest();
       //runHttpHeaderTest();
       //runConfigTest();
-      //runServerConnectionTest();
-      runServerSslConnectionTest();
+      runServerConnectionTest();
+      //runServerSslConnectionTest();
       //runServerDatagramTest();
       
       cout << endl << "Tests finished." << endl;
@@ -2329,6 +2329,8 @@ int main()
    #ifdef WIN32
       WSACleanup();
    #endif
+   
+   Thread::setException(new Exception("Main thread exception leak test"));
    
    return 0;
 }

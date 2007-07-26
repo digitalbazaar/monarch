@@ -44,7 +44,7 @@ Operation* ConnectionService::initialize()
    mSocket = new TcpSocket();
    
    // bind socket to the address and start listening
-   if(mSocket->bind(mAddress) && mSocket->listen())
+   if(mSocket->bind(getAddress()) && mSocket->listen())
    {
       // create Operation for running service
       rval = new Operation(this, NULL, NULL);
@@ -95,7 +95,7 @@ bool ConnectionService::canExecuteOperation(ImmutableState* s)
    // get permit counts for server and service
    int serverPermits = mServer->getMaxConnectionCount();
    int servicePermits = mMaxConnectionCount;
-   string port = Convert::integerToString(mAddress->getPort());
+   string port = Convert::integerToString(getAddress()->getPort());
    s->getInteger(key + ".permits", serverPermits);
    s->getInteger(key + ".ports." + port + ".permits", servicePermits);
    
@@ -128,7 +128,7 @@ void ConnectionService::mutatePreExecutionState(State* s, Operation* op)
    // get permit counts for server and service
    int serverPermits = mServer->getMaxConnectionCount();
    int servicePermits = mMaxConnectionCount;
-   string port = Convert::integerToString(mAddress->getPort());
+   string port = Convert::integerToString(getAddress()->getPort());
    s->getInteger(key + ".permits", serverPermits);
    s->getInteger(key + ".ports." + port + ".permits", servicePermits);
    
@@ -145,7 +145,7 @@ void ConnectionService::mutatePostExecutionState(State* s, Operation* op)
    // get permit counts for server and service
    int serverPermits = mServer->getMaxConnectionCount();
    int servicePermits = mMaxConnectionCount;
-   string port = Convert::integerToString(mAddress->getPort());
+   string port = Convert::integerToString(getAddress()->getPort());
    s->getInteger(key + ".permits", serverPermits);
    s->getInteger(key + ".ports." + port + ".permits", servicePermits);
    
@@ -249,7 +249,7 @@ unsigned int ConnectionService::getConnectionCount()
 
 string& ConnectionService::toString(string& str)
 {
-   string port = Convert::integerToString(mAddress->getPort());
-   str = "ConnectionService [" + mAddress->getHost() + ":" + port + "]";
+   string port = Convert::integerToString(getAddress()->getPort());
+   str = "ConnectionService [" + getAddress()->getHost() + ":" + port + "]";
    return str;
 }

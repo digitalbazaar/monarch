@@ -104,11 +104,6 @@ protected:
    static pthread_key_t CURRENT_THREAD_KEY;
    
    /**
-    * Creates the current thread key.
-    */
-   static void createCurrentThreadKey();
-   
-   /**
     * Used to ensure that the exception key is initialized only once.
     */
    static pthread_once_t EXCEPTION_KEY_INIT;
@@ -125,9 +120,28 @@ protected:
 //   static pthread_once_t SIGINT_HANDLER_INIT;
    
    /**
+    * Creates the current thread key.
+    */
+   static void createCurrentThreadKey();
+   
+   /**
+    * Clears the value of the current thread key.
+    * 
+    * @param thread the current Thread.
+    */
+   static void cleanupCurrentThreadKeyValue(void* thread);
+   
+   /**
     * Creates the exception key.
     */
    static void createExceptionKey();
+   
+   /**
+    * Clears the value of the exception key.
+    * 
+    * @param e the exception on the current Thread.
+    */
+   static void cleanupExceptionKeyValue(void* e);
    
 // Note: disabled due to a lack of support in windows
 //   /**
