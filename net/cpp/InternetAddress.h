@@ -103,6 +103,15 @@ public:
     * @return true if this address is a multicast address, false if not.
     */
    virtual bool isMulticast();
+   
+   /**
+    * Gets a string representation for this InternetAddress.
+    * 
+    * @param str the string to populate.
+    * 
+    * @return a string representation for this InternetAddress.
+    */
+   virtual std::string& toString(std::string& str);
 };
 
 } // end namespace net

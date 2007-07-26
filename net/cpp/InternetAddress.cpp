@@ -4,10 +4,12 @@
 #include "InternetAddress.h"
 #include "SocketDefinitions.h"
 #include "Thread.h"
+#include "Convert.h"
 
 using namespace std;
 using namespace db::net;
 using namespace db::rt;
+using namespace db::util;
 
 InternetAddress::InternetAddress()
 {
@@ -177,4 +179,12 @@ bool InternetAddress::isMulticast()
    }
    
    return rval;
+}
+
+string& InternetAddress::toString(string& str)
+{
+   string port = Convert::integerToString(getPort());
+   str = "InternetAddress [" + getHost() + ":" + port + "," +
+      getAddress() + ":" + port + "]";
+   return str;
 }

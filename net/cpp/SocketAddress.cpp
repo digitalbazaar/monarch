@@ -3,9 +3,11 @@
  */
 #include "SocketAddress.h"
 #include "SocketDefinitions.h"
+#include "Convert.h"
 
 using namespace std;
 using namespace db::net;
+using namespace db::util;
 
 SocketAddress::SocketAddress()
 {
@@ -54,4 +56,11 @@ void SocketAddress::setPort(unsigned short port)
 unsigned short SocketAddress::getPort()
 {
    return mPort;
+}
+
+string& SocketAddress::toString(string& str)
+{
+   string port = Convert::integerToString(getPort());
+   str = "SocketAddress [" + getAddress() + ":" + port + "]";
+   return str;
 }

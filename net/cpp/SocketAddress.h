@@ -125,6 +125,15 @@ public:
     * @return the port.
     */
    virtual unsigned short getPort();
+   
+   /**
+    * Gets a string representation for this SocketAddress.
+    * 
+    * @param str the string to populate.
+    * 
+    * @return a string representation for this SocketAddress.
+    */
+   virtual std::string& toString(std::string& str);
 };
 
 } // end namespace net

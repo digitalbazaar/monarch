@@ -9,6 +9,7 @@
 #include "SocketOutputStream.h"
 #include "Thread.h"
 
+using namespace std;
 using namespace db::io;
 using namespace db::net;
 using namespace db::rt;
@@ -231,8 +232,10 @@ bool AbstractSocket::bind(SocketAddress* address)
       int error = ::bind(mFileDescriptor, (sockaddr*)&addr, size);
       if(error < 0)
       {
+         string str;
          Thread::setException(new SocketException(
-            "Could not bind Socket!", strerror(errno)));
+            "Could not bind Socket! " + address->toString(str),
+            strerror(errno)));
       }
       else
       {
@@ -343,9 +346,10 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
             }
             else
             {
+               string str;
                Thread::setException(new SocketException(
-                  "Could not connect Socket! Connection refused.",
-                  strerror(lastError)));
+                  "Could not connect Socket! Connection refused. " +
+                  address->toString(str), strerror(lastError)));
             }
          }
       }
