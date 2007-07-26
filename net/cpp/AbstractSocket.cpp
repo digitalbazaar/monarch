@@ -123,18 +123,20 @@ bool AbstractSocket::select(bool read, long long timeout)
                   "Socket write interrupted!", strerror(errno));
             }
          }
-         
-         if(read)
-         {
-            // error occurred, get string message
-            exception = new SocketException(
-               "Could not read from Socket!", strerror(errno));
-         }
          else
          {
-            // error occurred, get string message
-            exception = new SocketException(
-               "Could not write to Socket!", strerror(errno));
+            if(read)
+            {
+               // error occurred, get string message
+               exception = new SocketException(
+                  "Could not read from Socket!", strerror(errno));
+            }
+            else
+            {
+               // error occurred, get string message
+               exception = new SocketException(
+                  "Could not write to Socket!", strerror(errno));
+            }
          }
       }
       else if(error == 0)
