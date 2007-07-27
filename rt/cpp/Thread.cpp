@@ -464,9 +464,9 @@ int Thread::select(bool read, unsigned int fd, long long timeout)
    }
    else
    {
-      // create 1 millisecond timeout (1 millisecond is 1000 microseconds)
+      // create 10 millisecond timeout (1 millisecond is 1000 microseconds)
       to.tv_sec = 0;
-      to.tv_usec = 1000LL;
+      to.tv_usec = (10000LL < remaining ? remaining : 10000LL);
    }
    
    unsigned long long start = System::getCurrentMilliseconds();
@@ -520,6 +520,7 @@ int Thread::select(bool read, unsigned int fd, long long timeout)
          end = System::getCurrentMilliseconds();
          remaining -= (end - start);
          start = end;
+         to.tv_usec = (10000LL < remaining ? remaining : 10000LL);
       }
    }
    
