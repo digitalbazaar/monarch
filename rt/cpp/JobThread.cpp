@@ -4,7 +4,6 @@
 #include "JobThread.h"
 #include "System.h"
 
-using namespace std;
 using namespace db::rt;
 
 JobThread::JobThread(unsigned long long expireTime) : Thread(this)
@@ -28,9 +27,6 @@ void JobThread::goIdle()
    {
       if(mJob == NULL)
       {
-         // set thread name
-         setName("JobThread: idle");
-         
          unsigned long long startTime = System::getCurrentMilliseconds();
          
          // wait until expire time
@@ -65,17 +61,8 @@ void JobThread::setJob(Runnable* job, Semaphore* semaphore, int permits)
       
       if(job != NULL)
       {
-         // set thread name
-         string str;
-         setName("JobThread: running job '" + mJob->toString(str) + "'");
-         
          // notify thread to stop waiting
          notifyAll();
-      }
-      else
-      {
-         // set thread name
-         setName("JobThread: no job");
       }
    }
    unlock();

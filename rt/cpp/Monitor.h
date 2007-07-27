@@ -36,6 +36,11 @@ private:
    pthread_mutex_t mMutex;
    
    /**
+    * The mutex attributes for this Monitor.
+    */
+   pthread_mutexattr_t mMutexAttributes;
+   
+   /**
     * The condition used to wait and signal threads.
     */
    pthread_cond_t mWaitCondition;

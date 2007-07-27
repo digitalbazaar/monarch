@@ -42,7 +42,7 @@ Thread::Thread(Runnable* runnable, const char* name)
    
    // set name
    mName = NULL;
-   setName(name);
+   assignName(name);
    
    // thread is not alive yet
    mAlive = false;
@@ -91,6 +91,41 @@ void Thread::run()
    if(mRunnable != NULL)
    {
       mRunnable->run();
+   }
+}
+
+void Thread::assignName(const char* name)
+{
+   if(name == NULL)
+   {
+      if(mName == NULL)
+      {
+         mName = new char[1];
+      }
+      else if(strlen(mName) > 0)
+      {
+         delete mName;
+         mName = new char[1];
+      }
+      
+      mName[0] = 0;
+   }
+   else
+   {
+      if(mName == NULL)
+      {
+         mName = new char[100];
+      }
+      else if(strlen(mName) == 0)
+      {
+         delete mName;
+         mName = new char[100];
+      }
+      
+      unsigned int length = strlen(name);
+      length = (length > 99 ? 99 : length);
+      memcpy(mName, name, length);
+      memset(mName + length, 0, 1);
    }
 }
 
@@ -306,37 +341,7 @@ void Thread::setName(const char* name)
 {
    lock();
    {
-      if(name == NULL)
-      {
-         if(mName == NULL)
-         {
-            mName = new char[1];
-         }
-         else if(strlen(mName) > 0)
-         {
-            delete mName;
-            mName = new char[1];
-         }
-         
-         mName[0] = 0;
-      }
-      else
-      {
-         if(mName == NULL)
-         {
-            mName = new char[100];
-         }
-         else if(strlen(mName) == 0)
-         {
-            delete mName;
-            mName = new char[100];
-         }
-         
-         unsigned int length = strlen(name);
-         length = (length > 99 ? 99 : length);
-         memcpy(mName, name, length);
-         memset(mName + length, 0, 1);
-      }
+      assignName(name);
    }
    unlock();
 }

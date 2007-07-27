@@ -115,8 +115,9 @@ public:
    
    virtual void run()
    {
-      string name = Thread::currentThread()->getName();
-      cout << name << ": This is a TestRunnable thread." << endl;
+      Thread* t = Thread::currentThread();
+      string name = t->getName();
+      cout << name << ": This is a TestRunnable thread,addr=" << t << endl;
       
       if(name == "Thread 1")
       {
@@ -213,6 +214,8 @@ void runThreadTest()
    Thread t4(&r1, "Thread 4");
    Thread t5(&r1, "Thread 5");
    
+   cout << "Threads starting..." << endl;
+   
    t1.start();
    t2.start();
    t3.start();
@@ -221,14 +224,11 @@ void runThreadTest()
    
    t1.interrupt();
    
-   //t1.join();
    t2.join();
    t3.join();
    t1.join();
    t4.join();
-   //t1.interrupt();
    t5.join();
-   //t1.join();
    
    cout << endl << "Thread Test complete." << endl;
 }

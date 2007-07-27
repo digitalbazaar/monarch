@@ -10,8 +10,12 @@ using namespace db::rt;
 
 Monitor::Monitor()
 {
+   // initialize mutex attributes
+   pthread_mutexattr_init(&mMutexAttributes);
+   pthread_mutexattr_settype(&mMutexAttributes, PTHREAD_MUTEX_RECURSIVE);
+   
    // initialize mutex
-   pthread_mutex_init(&mMutex, NULL);
+   pthread_mutex_init(&mMutex, &mMutexAttributes);
    
    // initialize conditional
    pthread_cond_init(&mWaitCondition, NULL);
@@ -26,51 +30,41 @@ Monitor::~Monitor()
    // destroy mutex
    pthread_mutex_destroy(&mMutex);
    
+   // destroy mutex attributes
+   pthread_mutexattr_destroy(&mMutexAttributes);
+   
    // destroy conditional
    pthread_cond_destroy(&mWaitCondition);
 }
 
 void Monitor::enter()
 {
-   // ensure the current thread isn't already in the monitor
-   Thread* t = Thread::currentThread();
-   if(mCurrentThread != t)
+   // lock this monitor's mutex
+   pthread_mutex_lock(&mMutex);
+   
+   // increment lock count
+   mLockCount++;
+   
+   if(mLockCount == 1)
    {
-      // lock this monitor's mutex
-      pthread_mutex_lock(&mMutex);
-      
-      // set the current thread and lock count
-      mCurrentThread = t;
-      mLockCount = 1;
-   }
-   else
-   {
-      // increment lock count
-      mLockCount++;
+      // set current thread
+      mCurrentThread = Thread::currentThread();
    }
 }
 
 void Monitor::exit()
 {
-   // ensure the current thread is in the monitor
-   Thread* t = Thread::currentThread();
-   if(mCurrentThread == t)
+   // decrement lock count
+   mLockCount--;
+   
+   if(mLockCount == 0)
    {
-      if(mLockCount == 1)
-      {
-         // clear the current thread and lock count
-         mCurrentThread = NULL;
-         mLockCount = 0;
-         
-         // unlock this monitor's mutex
-         pthread_mutex_unlock(&mMutex);
-      }
-      else
-      {
-         // decrement lock count
-         mLockCount--;
-      }
+      // clear the current thread
+      mCurrentThread = NULL;
    }
+   
+   // unlock this monitor's mutex
+   pthread_mutex_unlock(&mMutex);
 }
 
 void Monitor::wait(Thread* t, unsigned long timeout)
@@ -81,7 +75,12 @@ void Monitor::wait(Thread* t, unsigned long timeout)
       // clear the thread from the monitor and store old lock count
       mCurrentThread = NULL;
       unsigned int lockCount = mLockCount;
-      mLockCount = 0;
+      
+      // decrement lock count until 1
+      while(mLockCount > 1)
+      {
+         exit();
+      }
       
       if(timeout == 0)
       {
@@ -111,9 +110,14 @@ void Monitor::wait(Thread* t, unsigned long timeout)
          }
       }
       
-      // restore current thread and lock count
+      // restore current thread
       mCurrentThread = t;
-      mLockCount = lockCount;
+      
+      // increment lock count until old lock count is reached
+      while(mLockCount < lockCount)
+      {
+         enter();
+      }
    }
 }
 

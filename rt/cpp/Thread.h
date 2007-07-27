@@ -94,6 +94,13 @@ protected:
    virtual void run();
    
    /**
+    * Allocates space for this Thread's name and sets it.
+    * 
+    * @param name the name to assign to this thread.
+    */
+   virtual void assignName(const char* name);
+   
+   /**
     * Used to ensure that the current thread key is initialized only once.
     */
    static pthread_once_t CURRENT_THREAD_KEY_INIT;
