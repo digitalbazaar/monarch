@@ -27,8 +27,7 @@ public:
     * @param message the message for this Exception.
     * @param code the code for this Exception.
     */
-   FileNotFoundException(
-      const std::string& message = "", const std::string& code = "");
+   FileNotFoundException(const char* message = NULL, const char* code = NULL);
    
    /**
     * Destructs this FileNotFoundException.

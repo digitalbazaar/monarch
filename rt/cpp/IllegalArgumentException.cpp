@@ -3,11 +3,10 @@
  */
 #include "IllegalArgumentException.h"
 
-using namespace std;
 using namespace db::rt;
 
 IllegalArgumentException::IllegalArgumentException(
-   const string& message, const string& code) : Exception(message, code)
+   const char* message, const char* code) : Exception(message, code)
 {
 }
 

@@ -5,7 +5,6 @@
 #include "UnsupportedAlgorithmException.h"
 #include "Thread.h"
 
-using namespace std;
 using namespace db::crypto;
 using namespace db::rt;
 
@@ -27,27 +26,28 @@ AbstractBlockCipher::~AbstractBlockCipher()
    EVP_CIPHER_CTX_cleanup(&mCipherContext);
 }
 
-const EVP_CIPHER* AbstractBlockCipher::getCipherFunction(
-   const string& algorithm)
+const EVP_CIPHER* AbstractBlockCipher::getCipherFunction(const char* algorithm)
 {
    const EVP_CIPHER* rval = NULL;
    
-   if(algorithm == "AES" || algorithm == "AES256")
+   if(strcmp(algorithm, "AES") == 0 || strcmp(algorithm, "AES256") == 0)
    {
       rval = EVP_aes_256_cbc();
    }
-   else if(algorithm == "AES128")
+   else if(strcmp(algorithm, "AES128") == 0)
    {
       rval = EVP_aes_128_cbc();
    }
-   else if(algorithm == "3DES")
+   else if(strcmp(algorithm, "3DES") == 0)
    {
       rval = EVP_des_ede3_cbc();
    }
    else
    {
-      Thread::setException(new UnsupportedAlgorithmException(
-         "Unsupported key algorithm '" + algorithm + "'!"));
+      char* msg = new char[27 + strlen(algorithm) + 2 + 1];
+      sprintf(msg, "Unsupported key algorithm '%s'!", algorithm);
+      Thread::setException(new UnsupportedAlgorithmException(msg));
+      delete msg;
    }
    
    return rval;

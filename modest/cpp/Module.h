@@ -6,6 +6,7 @@
 
 #include "ModuleInterface.h"
 #include "Exception.h"
+#include <string>
 
 namespace db
 {

@@ -2,12 +2,9 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "DatagramService.h"
-#include "Convert.h"
 
-using namespace std;
 using namespace db::modest;
 using namespace db::net;
-using namespace db::util;
 
 DatagramService::DatagramService(
    Server* server, InternetAddress* address, DatagramServicer* servicer) :
@@ -56,11 +53,4 @@ void DatagramService::run()
    
    // close socket
    mSocket->close();
-}
-
-string& DatagramService::toString(string& str)
-{
-   string port = Convert::integerToString(getAddress()->getPort());
-   str = "DatagramService [" + getAddress()->getHost() + ":" + port + "]";
-   return str;
 }

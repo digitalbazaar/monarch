@@ -3,12 +3,11 @@
  */
 #include "UnsupportedAlgorithmException.h"
 
-using namespace std;
 using namespace db::crypto;
 using namespace db::rt;
 
 UnsupportedAlgorithmException::UnsupportedAlgorithmException(
-   const string& message, const string& code) : Exception(message, code)
+   const char* message, const char* code) : Exception(message, code)
 {
 }
 

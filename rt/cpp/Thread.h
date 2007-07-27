@@ -8,7 +8,6 @@
 #include <sys/types.h>
 #include <sched.h>
 #include <signal.h>
-#include <string>
 
 #include "Object.h"
 #include "InterruptedException.h"
@@ -99,6 +98,13 @@ protected:
     * @param name the name to assign to this thread.
     */
    virtual void assignName(const char* name);
+   
+   /**
+    * Creates an InterruptedException for this thread.
+    * 
+    * @return the allocated InterruptedException.
+    */
+   virtual InterruptedException* createInterruptedException();
    
    /**
     * Used to ensure that the current thread key is initialized only once.
@@ -252,13 +258,6 @@ public:
     * @return true if this Thread has been started, false if not.
     */
    virtual bool hasStarted();
-   
-   /**
-    * Sets the name of this Thread.
-    * 
-    * @param name the name for this Thread.
-    */
-   virtual void setName(const std::string& str);
    
    /**
     * Sets the name of this Thread.

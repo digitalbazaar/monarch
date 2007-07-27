@@ -3,11 +3,10 @@
  */
 #include "SocketTimeoutException.h"
 
-using namespace std;
 using namespace db::net;
 
 SocketTimeoutException::SocketTimeoutException(
-   const string& message, const string& code) : SocketException(message, code)
+   const char* message, const char* code) : SocketException(message, code)
 {
 }
 

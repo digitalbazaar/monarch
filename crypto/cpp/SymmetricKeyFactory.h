@@ -28,7 +28,7 @@ protected:
     * 
     * @return true if no exception occurred, false if not.
     */
-   bool createRandomKey(const std::string& algorithm, SymmetricKey** key);
+   bool createRandomKey(const char* algorithm, SymmetricKey** key);
    
 public:
    /**
@@ -52,7 +52,7 @@ public:
     * 
     * @return true if no exception occurred, false if not.
     */
-   bool createKey(std::string const& algorithm, SymmetricKey** key);
+   bool createKey(const char* algorithm, SymmetricKey** key);
 };
 
 } // end namespace crypto

@@ -33,15 +33,20 @@ const EVP_MD* DigitalSignature::getHashFunction()
 {
    const EVP_MD* rval = NULL;
    
-   if(mKey->getAlgorithm() == "DSA")
+   if(strcmp(mKey->getAlgorithm(), "DSA") == 0)
    {
       // dss1 is the same as sha1 but there's some weird algorithm
       // linking thing with OpenSSL that currently requires this
       // to be used -- it is supposed to go away eventually
       rval = EVP_dss1();
    }
-   else if(mKey->getAlgorithm() == "RSA")
+   else if(strcmp(mKey->getAlgorithm(), "RSA") == 0)
    {
+      rval = EVP_sha1();
+   }
+   else
+   {
+      // default to SHA1
       rval = EVP_sha1();
    }
    

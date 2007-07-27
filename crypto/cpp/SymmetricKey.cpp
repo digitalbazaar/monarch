@@ -3,10 +3,9 @@
  */
 #include "SymmetricKey.h"
 
-using namespace std;
 using namespace db::crypto;
 
-SymmetricKey::SymmetricKey(const string& algorithm)
+SymmetricKey::SymmetricKey(const char* algorithm)
 {
    // no key data yet
    mData = NULL;
@@ -14,9 +13,11 @@ SymmetricKey::SymmetricKey(const string& algorithm)
    
    // no IV yet
    mIv = NULL;
+   mIvLength = 0;
    
    // set algorithm
-   mAlgorithm = algorithm;
+   mAlgorithm = new char[strlen(algorithm) + 1];
+   strcpy(mAlgorithm, algorithm);
    
    // default to unencrypted
    mEncrypted = false;
@@ -27,6 +28,7 @@ SymmetricKey::~SymmetricKey()
    // clean up
    freeData();
    freeIv();
+   delete mAlgorithm;
 }
 
 void SymmetricKey::freeData()
@@ -50,10 +52,12 @@ void SymmetricKey::freeIv()
    }
    
    mIv = NULL;
+   mIvLength = 0;
 }
 
 void SymmetricKey::assignData(
-   char* data, unsigned int length, char* iv, bool encrypted)
+   char* data, unsigned int length,
+   char* iv, unsigned int ivLength, bool encrypted)
 {
    // free existing data and IV
    freeData();
@@ -63,22 +67,24 @@ void SymmetricKey::assignData(
    mData = data;
    mDataLength = length;
    mIv = iv;
+   mIvLength = ivLength;
    
    // set encrypted flag
    mEncrypted = encrypted;
 }
 
 void SymmetricKey::setData(
-   const char* data, unsigned int length, const char* iv, bool encrypted)
+   const char* data, unsigned int length,
+   const char* iv, unsigned int ivLength, bool encrypted)
 {
    // free existing data as necessary
-   if(mData != NULL && sizeof(mData) <= length)
+   if(mData != NULL && mDataLength <= length)
    {
       freeData();
    }
    
    // free existing IV as necessary
-   if(iv == NULL || (mIv != NULL && sizeof(mIv) <= sizeof(iv)))
+   if(iv == NULL || (mIv != NULL && mIvLength <= ivLength))
    {
       freeIv();
    }
@@ -92,7 +98,7 @@ void SymmetricKey::setData(
    // allocate IV as necessary
    if(mIv == NULL && iv != NULL)
    {
-      mIv = new char[sizeof(iv)];
+      mIv = new char[ivLength];
    }
    
    // copy data
@@ -102,21 +108,25 @@ void SymmetricKey::setData(
    // copy iv
    if(iv != NULL)
    {
-      memcpy(mIv, iv, sizeof(iv));
+      memcpy(mIv, iv, ivLength);
+      mIvLength = ivLength;
    }
    
    // set encrypted flag
    mEncrypted = encrypted;
 }
 
-void SymmetricKey::getData(char** data, unsigned int& length, char** iv)
+void SymmetricKey::getData(
+   char** data, unsigned int& length,
+   char** iv, unsigned int& ivLength)
 {
    *data = mData;
    length = mDataLength;
    *iv = mIv;
+   ivLength = mIvLength;
 }
 
-const string& SymmetricKey::getAlgorithm()
+const char* SymmetricKey::getAlgorithm()
 {
    return mAlgorithm;
 }

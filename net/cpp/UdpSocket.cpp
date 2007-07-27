@@ -7,7 +7,6 @@
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
 
-using namespace std;
 using namespace db::io;
 using namespace db::net;
 using namespace db::rt;
@@ -20,7 +19,7 @@ UdpSocket::~UdpSocket()
 {
 }
 
-bool UdpSocket::acquireFileDescriptor(const string& domain)
+bool UdpSocket::acquireFileDescriptor(const char* domain)
 {
    bool rval = true;
    
@@ -29,7 +28,7 @@ bool UdpSocket::acquireFileDescriptor(const string& domain)
       // use PF_INET = "protocol family internet" (which just so happens to
       // have the same value as AF_INET but that's only because different
       // protocols were never used with the same address family
-      if(domain == "IPv6")
+      if(strcmp(domain, "IPv6") == 0)
       {
          // use IPv6
          rval = create(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);

@@ -5,7 +5,7 @@
 
 using namespace db::net;
 
-SslContext::SslContext(const std::string& protocol)
+SslContext::SslContext(const char* protocol)
 {
    // FIXME: handle protocol "SSLv2/SSLv3/TLS"
    

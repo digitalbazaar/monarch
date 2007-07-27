@@ -109,7 +109,7 @@ protected:
     * @return true if the file descriptor could be acquired, false if
     *         an exception occurred.
     */
-   virtual bool acquireFileDescriptor(const std::string& domain) = 0;
+   virtual bool acquireFileDescriptor(const char* domain) = 0;
    
    /**
     * Initializes the input stream for this Socket, if it is not already

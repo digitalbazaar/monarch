@@ -59,11 +59,12 @@ bool ModuleLibrary::loadModule(const string& filename)
          else
          {
             // module is already loaded, set exception and unload it
-            Thread::setException(new Exception(
+            string msg =
                "Could not load module '" + filename +
                "', module named '" + mi->module->getId().name +
                "' with version '" + mi->module->getId().version +
-               "' already loaded."));
+               "' already loaded.";
+            Thread::setException(new Exception(msg.c_str()));
             mLoader.unloadModule(mi);
          }
       }

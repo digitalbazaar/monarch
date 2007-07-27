@@ -67,7 +67,7 @@ public:
     * @return the created envelope or NULL if an exception occurred.
     */
    virtual DigitalEnvelope* createEnvelope(
-      const std::string& algorithm, SymmetricKey** key);
+      const char* algorithm, SymmetricKey** key);
    
    /**
     * Creates a DigitalSignature to verify data with.

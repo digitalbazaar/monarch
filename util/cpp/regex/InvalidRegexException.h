@@ -30,8 +30,7 @@ public:
     * @param message the message for this Exception.
     * @param code the code for this Exception.
     */
-   InvalidRegexException(
-      const std::string& message = "", const std::string& code = "");
+   InvalidRegexException(const char* message = NULL, const char* code = NULL);
    
    /**
     * Destructs this InvalidRegexException.

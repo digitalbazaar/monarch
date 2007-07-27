@@ -24,8 +24,8 @@ MessageDigest::MessageDigest(const string& algorithm)
    else
    {
       // unsupported algorithm
-      Thread::setException(new UnsupportedAlgorithmException(
-         "Unsupported hash algorithm '" + algorithm + "'"));
+      string msg = "Unsupported hash algorithm '" + algorithm + "'";
+      Thread::setException(new UnsupportedAlgorithmException(msg.c_str()));
    }
 }
 

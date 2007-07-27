@@ -156,8 +156,7 @@ void AsymmetricKeyFactory::createRsaKeyPair(
 }
 
 bool AsymmetricKeyFactory::createKeyPair(
-   const std::string& algorithm,
-   PrivateKey** privateKey, PublicKey** publicKey)
+   const char* algorithm, PrivateKey** privateKey, PublicKey** publicKey)
 {
    bool rval = true;
    
@@ -170,12 +169,12 @@ bool AsymmetricKeyFactory::createKeyPair(
    gettimeofday(&tv, 0);
    RAND_add(&tv, sizeof(tv), 0.0);
    
-   if(algorithm == "DSA")
+   if(strcmp(algorithm, "DSA") == 0)
    {
       // create DSA key pair
       createDsaKeyPair(privateKey, publicKey);
    }
-   else if(algorithm == "RSA")
+   else if(strcmp(algorithm, "RSA") == 0)
    {
       // create RSA key pair
       createRsaKeyPair(privateKey, publicKey);
@@ -184,8 +183,10 @@ bool AsymmetricKeyFactory::createKeyPair(
    {
       // unknown algorithm
       rval = false;
-      Thread::setException(new UnsupportedAlgorithmException(
-         "Key algorithm '" + algorithm + "' is not supported!"));
+      char* msg = new char[15 + strlen(algorithm) + 19 + 1];
+      sprintf(msg, "Key algorithm '%s' is not supported!", algorithm);
+      Thread::setException(new UnsupportedAlgorithmException(msg));
+      delete msg;
    }
    
    return rval;

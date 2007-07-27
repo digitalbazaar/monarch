@@ -102,15 +102,6 @@ public:
     * @return the address for this PortService.
     */
    virtual InternetAddress* getAddress();
-   
-   /**
-    * Gets a string representation for this Runnable.
-    * 
-    * @param str the string to populate.
-    * 
-    * @return a string representation for this Runnable.
-    */
-   virtual std::string& toString(std::string& str);
 };
 
 } // end namespace net

@@ -81,15 +81,6 @@ public:
     * Cleans up this executor once it has expired.
     */
    virtual void cleanup();
-   
-   /**
-    * Gets a string representation for this Runnable.
-    * 
-    * @param str the string to populate.
-    * 
-    * @return a string representation for this Runnable.
-    */
-   virtual std::string& toString(std::string& str);
 };
 
 } // end namespace modest

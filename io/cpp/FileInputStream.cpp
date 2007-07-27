@@ -33,8 +33,8 @@ bool FileInputStream::ensureOpen()
       if(!mStream.is_open())
       {
          rval = false;
-         Thread::setException(new IOException(
-            "Could not open file '" + mFile->getName() + "'!"));
+         string msg = "Could not open file '" + mFile->getName() + "'!";
+         Thread::setException(new IOException(msg.c_str()));
       }
    }
    
@@ -53,8 +53,8 @@ int FileInputStream::read(char* b, unsigned int length)
       // see if a failure other than EOF occurred
       if(mStream.fail() && !mStream.eof())
       {
-         Thread::setException(new IOException(
-            "Could not read from file '" + mFile->getName() + "'!"));
+         string msg = "Could not read from file '" + mFile->getName() + "'!";
+         Thread::setException(new IOException(msg.c_str()));
       }
       else if(mStream.gcount() > 0)
       {

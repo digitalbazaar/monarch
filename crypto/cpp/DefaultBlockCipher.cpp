@@ -8,7 +8,6 @@
 
 #include <openssl/err.h>
 
-using namespace std;
 using namespace db::crypto;
 using namespace db::io;
 using namespace db::rt;
@@ -22,7 +21,7 @@ DefaultBlockCipher::~DefaultBlockCipher()
 }
 
 bool DefaultBlockCipher::startEncrypting(
-   const std::string& algorithm, SymmetricKey** symmetricKey)
+   const char* algorithm, SymmetricKey** symmetricKey)
 {
    // create a symmetric key
    SymmetricKeyFactory factory;
@@ -47,7 +46,8 @@ bool DefaultBlockCipher::startEncrypting(SymmetricKey* symmetricKey)
       char* key;
       unsigned int length;
       char* iv;
-      symmetricKey->getData(&key, length, &iv);
+      unsigned int ivLength;
+      symmetricKey->getData(&key, length, &iv, ivLength);
       
       // initialize encryption
       if(EVP_EncryptInit_ex(
@@ -82,7 +82,8 @@ bool DefaultBlockCipher::startDecrypting(SymmetricKey* symmetricKey)
       char* key;
       unsigned int length;
       char* iv;
-      symmetricKey->getData(&key, length, &iv);
+      unsigned int ivLength;
+      symmetricKey->getData(&key, length, &iv, ivLength);
       
       // initialize decryption
       if(EVP_DecryptInit_ex(

@@ -4,7 +4,6 @@
 #include "Object.h"
 #include "Thread.h"
 
-using namespace std;
 using namespace db::rt;
 
 Object::Object()
@@ -57,10 +56,4 @@ InterruptedException* Object::wait(unsigned long timeout)
 bool Object::operator==(const Object &rhs) const
 {
    return equals(rhs);
-}
-
-string& Object::toString(string& str)
-{
-   str = "Object";
-   return str;
 }

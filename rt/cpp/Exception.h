@@ -4,7 +4,7 @@
 #ifndef db_rt_Exception_H
 #define db_rt_Exception_H
 
-#include <string>
+#include <stddef.h>
 
 namespace db
 {
@@ -28,12 +28,12 @@ protected:
    /**
     * A message for this Exception.
     */
-   std::string mMessage;
+   char* mMessage;
 
    /**
     * A code associated with this Exception.
     */
-   std::string mCode;
+   char* mCode;
 
 public:
    /**
@@ -42,7 +42,7 @@ public:
     * @param message the message for this Exception.
     * @param code the code for this Exception.
     */
-   Exception(const std::string& message = "", const std::string& code = "");
+   Exception(const char* message = NULL, const char* code = NULL);
    
    /**
     * Destructs this Exception.
@@ -54,14 +54,14 @@ public:
     *
     * @return the message for this Exception.
     */
-   const std::string& getMessage();
+   const char* getMessage();
 
    /**
     * Gets the code for this Exception.
     *
     * @return the code for this Exception.
     */
-   const std::string& getCode();
+   const char* getCode();
 };
 
 } // end namespace rt

@@ -4,7 +4,6 @@
 #include "Thread.h"
 #include "System.h"
 
-using namespace std;
 using namespace db::rt;
 
 // initialize main thread
@@ -129,6 +128,19 @@ void Thread::assignName(const char* name)
       memcpy(mName, name, length);
       memset(mName + length, 0, 1);
    }
+}
+
+InterruptedException* Thread::createInterruptedException()
+{
+   InterruptedException* rval = NULL;
+   
+   char* msg = new char[8 + strlen(getName()) + 13 + 1];
+   sprintf(msg, "Thread '%s' interrupted", getName());
+   
+   rval = new InterruptedException(msg);
+   delete msg;
+   
+   return rval;
 }
 
 void Thread::createCurrentThreadKey()
@@ -338,11 +350,6 @@ void Thread::detach()
    }
 }
 
-void Thread::setName(const string& name)
-{
-   setName(name.c_str());
-}
-
 void Thread::setName(const char* name)
 {
    lock();
@@ -530,8 +537,7 @@ int Thread::select(bool read, unsigned int fd, long long timeout)
       errno = EINTR;
       
       // set interrupted exception
-      setException(new InterruptedException(
-         "Thread '" + string(t->getName()) + "' interrupted"));
+      setException(t->createInterruptedException());
    }
    
    return rval;
@@ -694,8 +700,7 @@ int Thread::select(
       errno = EINTR;
       
       // set interrupted exception
-      setException(new InterruptedException(
-         "Thread '" + string(t->getName()) + "' interrupted"));
+      setException(t->createInterruptedException());
    }
    
    return rval;
@@ -773,10 +778,8 @@ InterruptedException* Thread::waitToEnter(Monitor* m, unsigned long timeout)
    // create interrupted exception if interrupted
    if(t->isInterrupted())
    {
-      rval = new InterruptedException(
-         "Thread '" + string(t->getName()) + "' interrupted");
-      
       // set exception
+      rval = t->createInterruptedException();
       setException(rval);
    }
    

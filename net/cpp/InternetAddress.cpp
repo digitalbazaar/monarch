@@ -110,7 +110,10 @@ UnknownHostException* InternetAddress::setHost(const std::string& host)
    // get address information
    if(getaddrinfo(host.c_str(), NULL, &hints, &res) != 0)
    {
-      rval = new UnknownHostException("Unknown host '" + host + "'!");
+      char* msg = new char[17 + host.length()];
+      sprintf(msg, "Unknown host '%s'!", host.c_str());
+      rval = new UnknownHostException(msg);
+      delete msg;
       Thread::setException(rval);
    }
    else

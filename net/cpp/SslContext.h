@@ -34,7 +34,7 @@ public:
     * 
     * @param protocol the protocol to be used for this context.
     */
-   SslContext(const std::string& protocol = "SSLv2/SSLv3/TLS");
+   SslContext(const char* protocol = "SSLv2/SSLv3/TLS");
    
    /**
     * Destructs this SslContext.

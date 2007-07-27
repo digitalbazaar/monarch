@@ -15,7 +15,7 @@ PublicKey::~PublicKey()
 }
 
 DigitalEnvelope* PublicKey::createEnvelope(
-   const std::string& algorithm, SymmetricKey** key)
+   const char* algorithm, SymmetricKey** key)
 {
    DigitalEnvelope* rval = new DigitalEnvelope();
    

@@ -5,7 +5,6 @@
 #include "OperationDispatcher.h"
 #include "Thread.h"
 
-using namespace std;
 using namespace db::modest;
 using namespace db::rt;
 
@@ -121,18 +120,4 @@ void OperationExecutor::cleanup()
       mOperation->notifyAll();
    }
    mOperation->unlock();
-}
-
-string& OperationExecutor::toString(string& str)
-{
-   if(mOperation->getRunnable() != NULL)
-   {
-      str = "Operation: " + mOperation->getRunnable()->toString(str);
-   }
-   else
-   {
-      str = "Operation: NULL";
-   }
-   
-   return str;
 }

@@ -5,7 +5,6 @@
 #define db_net_ConnectionOutputStream_H
 
 #include "OutputStream.h"
-#include <string>
 
 namespace db
 {

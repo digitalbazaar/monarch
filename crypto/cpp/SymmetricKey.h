@@ -37,9 +37,14 @@ protected:
    char* mIv;
    
    /**
+    * The length of the IV.
+    */
+   unsigned int mIvLength;
+   
+   /**
     * The algorithm for this key.
     */
-   std::string mAlgorithm;
+   char* mAlgorithm;
    
    /**
     * True if this key is encrypted, false if not.
@@ -62,7 +67,7 @@ public:
     * 
     * @param algorithm the algorithm to use.
     */
-   SymmetricKey(const std::string& algorithm);
+   SymmetricKey(const char* algorithm);
    
    /**
     * Destructs this SymmetricKey.
@@ -79,10 +84,12 @@ public:
     * @param data the buffer of data.
     * @param length the length, in bytes, of the data.
     * @param iv the buffer of IV data.
+    * @param ivLength the length of the IV data.
     * @param true if the data is encrypted, false if not.
     */
    virtual void assignData(
-      char* data, unsigned int length, char* iv, bool encrypted);
+      char* data, unsigned int length,
+      char* iv, unsigned int ivLength, bool encrypted);
    
    /**
     * Sets the data and IV for this key. This method will copy the passed
@@ -93,10 +100,12 @@ public:
     * @param data the buffer of data.
     * @param length the length, in bytes, of the data.
     * @param iv the buffer of IV data.
+    * @param ivLength the length of the IV data.
     * @param true if the data is encrypted, false if not.
     */
    virtual void setData(
-      const char* data, unsigned int length, const char* iv, bool encrypted);
+      const char* data, unsigned int length,
+      const char* iv, unsigned int ivLength, bool encrypted);
    
    /**
     * Gets the data and data length for this key. This method will provide
@@ -105,15 +114,18 @@ public:
     * @param data to store the data for this key.
     * @param length to store the data length for this key.
     * @param iv to store the IV for this key.
+    * @param ivLength to store the length of the IV data.
     */
-   virtual void getData(char** data, unsigned int& length, char** iv);
+   virtual void getData(
+      char** data, unsigned int& length,
+      char** iv, unsigned int& ivLength);
    
    /**
     * Gets the algorithm for this key.
     * 
     * @return the algorithm for this key.
     */
-   virtual const std::string& getAlgorithm();
+   virtual const char* getAlgorithm();
    
    /**
     * Gets whether or not the key data is encrypted.

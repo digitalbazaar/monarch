@@ -3,7 +3,6 @@
  */
 #include "ConnectionAcceptor.h"
 
-using namespace std;
 using namespace db::net;
 
 ConnectionAcceptor::ConnectionAcceptor(
@@ -26,10 +25,4 @@ void ConnectionAcceptor::run()
       // create Connection from connected Socket
       mService->createConnection(s);
    }
-}
-
-string& ConnectionAcceptor::toString(string& str)
-{
-   str = "ConnectionAcceptor for " + mService->toString(str);
-   return str;
 }

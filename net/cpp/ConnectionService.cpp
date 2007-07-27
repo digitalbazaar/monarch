@@ -246,10 +246,3 @@ unsigned int ConnectionService::getConnectionCount()
 {
    return mConnectionCount;
 }
-
-string& ConnectionService::toString(string& str)
-{
-   string port = Convert::integerToString(getAddress()->getPort());
-   str = "ConnectionService [" + getAddress()->getHost() + ":" + port + "]";
-   return str;
-}

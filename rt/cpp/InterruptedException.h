@@ -27,8 +27,7 @@ public:
     * @param message the message for this Exception.
     * @param code the code for this Exception.
     */
-   InterruptedException(
-      const std::string& message = "", const std::string& code = "");
+   InterruptedException(const char* message = NULL, const char* code = NULL);
    
    /**
     * Destructs this InterruptedException.

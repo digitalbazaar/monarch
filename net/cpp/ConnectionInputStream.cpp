@@ -31,7 +31,8 @@ int ConnectionInputStream::read(char* b, unsigned int length)
       bt->requestBytes(length, length);
    }
    
-   if(!Thread::interrupted(false))
+   Thread* t = Thread::currentThread();
+   if(!t->isInterrupted())
    {
       // read from the socket input stream
       rval = mConnection->getSocket()->getInputStream()->read(b, length);

@@ -103,15 +103,6 @@ public:
     * @return true if the passed Object equals this one.
     */
    virtual bool operator==(const Object &rhs) const;
-   
-   /**
-    * Gets a string representation for this Object.
-    * 
-    * @param str the string to populate.
-    * 
-    * @return a string representation for this Object.
-    */
-   virtual std::string& toString(std::string& str);
 };
 
 } // end namespace rt

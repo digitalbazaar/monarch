@@ -3,11 +3,10 @@
  */
 #include "InterruptedException.h"
 
-using namespace std;
 using namespace db::rt;
 
 InterruptedException::InterruptedException(
-   const string& message, const string& code) : Exception(message, code)
+   const char* message, const char* code) : Exception(message, code)
 {
 }
 

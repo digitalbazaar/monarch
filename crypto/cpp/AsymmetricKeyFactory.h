@@ -74,8 +74,7 @@ public:
     * @return true if no exception occurred, false if not.
     */
    bool createKeyPair(
-      std::string const& algorithm,
-      PrivateKey** privateKey, PublicKey** publicKey);
+      const char* algorithm, PrivateKey** privateKey, PublicKey** publicKey);
    
    /**
     * Loads a private key from a PEM formatted string. A PEM formatted

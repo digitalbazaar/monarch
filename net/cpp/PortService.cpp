@@ -3,12 +3,9 @@
  */
 #include "PortService.h"
 #include "Server.h"
-#include "Convert.h"
 
-using namespace std;
 using namespace db::modest;
 using namespace db::net;
-using namespace db::util;
 
 PortService::PortService(Server* server, InternetAddress* address)
 {
@@ -72,11 +69,4 @@ void PortService::stop()
 InternetAddress* PortService::getAddress()
 {
    return mAddress;
-}
-
-string& PortService::toString(string& str)
-{
-   string port = Convert::integerToString(mAddress->getPort());
-   str = "PortService [" + mAddress->getHost() + ":" + port + "]";
-   return str;
 }

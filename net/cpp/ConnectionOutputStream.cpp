@@ -5,7 +5,6 @@
 #include "Math.h"
 #include "Thread.h"
 
-using namespace std;
 using namespace db::io;
 using namespace db::net;
 using namespace db::rt;
@@ -28,7 +27,8 @@ inline bool ConnectionOutputStream::write(const char* b, unsigned int length)
    // set the data offset
    unsigned int offset = 0;
    unsigned numBytes = length;
-   while(rval && length > 0 && !Thread::interrupted(false))
+   Thread* t = Thread::currentThread();
+   while(rval && length > 0 && !t->isInterrupted())
    {
       // throttle the write as appropriate
       BandwidthThrottler* bt = mConnection->getBandwidthThrottler(false);

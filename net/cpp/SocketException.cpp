@@ -3,10 +3,9 @@
  */
 #include "SocketException.h"
 
-using namespace std;
 using namespace db::net;
 
-SocketException::SocketException(const string& message, const string& code) :
+SocketException::SocketException(const char* message, const char* code) :
    IOException(message, code)
 {
 }

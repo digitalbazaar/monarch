@@ -29,7 +29,7 @@ protected:
    /**
     * The algorithm for this key.
     */
-   std::string mAlgorithm;
+   char* mAlgorithm;
    
 public:
    /**
@@ -56,7 +56,7 @@ public:
     * 
     * @return the algorithm for this key.
     */
-   virtual const std::string& getAlgorithm();
+   virtual const char* getAlgorithm();
    
    /**
     * Gets the maximum size, in bytes, required to hold a signature or single

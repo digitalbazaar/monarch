@@ -3,11 +3,10 @@
  */
 #include "MalformedUrlException.h"
 
-using namespace std;
 using namespace db::net;
 
 MalformedUrlException::MalformedUrlException(
-   const string& message, const string& code) : Exception(message, code)
+   const char* message, const char* code) : Exception(message, code)
 {
 }
 

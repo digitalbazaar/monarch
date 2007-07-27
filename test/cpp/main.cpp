@@ -547,7 +547,7 @@ void runServerSocketTest()
    cout << "Running Server Socket Test" << endl << endl;
    
    // bind and listen
-   InternetAddress address("127.0.0.1", 1024);
+   InternetAddress address("127.0.0.1", 19100);
    
    // ensure host was known
    if(!Thread::hasException())
@@ -573,47 +573,23 @@ void runServerSocketTest()
          cout << "Could not listen with server socket!" << endl;
       }
       
-      // accept a connection
-      Socket* worker = socket.accept(10);
-      if(worker != NULL)
+      string str = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\n\r\n";
+      while(true)
       {
-         cout << "Accepted a connection!" << endl;
-         
-         // set receive timeout (10 seconds = 10000 milliseconds)
-         worker->setReceiveTimeout(10000);
-         
-         char request[2048];
-         int numBytes = 0;
-         string str = "";
-         
-         cout << endl << "DOING A PEEK!" << endl;
-         
-         numBytes = worker->getInputStream()->peek(request, 2048);
-         if(numBytes != -1)
+         // accept a connection
+         Socket* worker = socket.accept(1);
+         if(worker != NULL)
          {
-            cout << "Peeked " << numBytes << " bytes." << endl;
-            string peek = "";
-            peek.append(request, numBytes);
-            cout << "Peek bytes=" << peek << endl;
+            char request[100];
+            int numBytes = 0;
+            
+            numBytes = worker->getInputStream()->peek(request, 100);
+            worker->getOutputStream()->write(str.c_str(), str.length());
+            
+            // close worker socket
+            worker->close();
+            delete worker;
          }
-         
-         cout << endl << "DOING ACTUAL READ NOW!" << endl;
-         
-         while((numBytes = worker->getInputStream()->read(request, 2048)) != -1)
-         {
-            cout << "numBytes received: " << numBytes << endl;
-            str.append(request, numBytes);
-         }
-         
-         cout << "Request:" << endl << str << endl;
-         
-         // close worker socket
-         worker->close();
-         delete worker;
-      }
-      else
-      {
-         cout << "Could not accept a connection!" << endl;
       }
       
       // close server socket
@@ -1471,7 +1447,7 @@ void runCipherTest(const string& algorithm)
    
    // generate a new key for the encryption
    SymmetricKey* key = NULL;
-   cipher.startEncrypting(algorithm, &key);
+   cipher.startEncrypting(algorithm.c_str(), &key);
    
    if(key != NULL)
    {
@@ -1782,15 +1758,6 @@ void runInterruptTest()
    cout << "Thread joined." << endl;
 }
 
-void runSemaphoreTest()
-{
-   // seed random
-   //srand((unsigned int)time(0));
-   
-   // FIXME:
-   // Semaphore
-}
-
 class TestGuard : public OperationGuard
 {
 public:
@@ -1958,10 +1925,13 @@ class TestConnectionServicer1 : public ConnectionServicer
 {
 public:
    unsigned int serviced;
+   string reply;
    
    TestConnectionServicer1()
    {
       serviced = 0;
+      reply = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\n\r\n";
+      //reply = "HTTP/1.0 404 Not Found\r\n";
    }
    
    virtual ~TestConnectionServicer1() {}
@@ -1972,7 +1942,6 @@ public:
       
       char b[100];
       int numBytes = 0;
-      string str = "";
       
       //cout << endl << "Reading HTTP..." << endl;
       
@@ -1987,9 +1956,7 @@ public:
       }
       
       OutputStream* os = c->getOutputStream();
-      //str = "HTTP/1.0 404 Not Found\r\n";
-      str = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\n\r\n";
-      os->write(str.c_str(), str.length());
+      os->write(reply.c_str(), reply.length());
       
       //cout << "1: Finished servicing connection." << endl;
       
@@ -2298,7 +2265,6 @@ public:
 //      runTimeTest();
 //      runThreadTest();
 //      runInterruptTest();
-//      runSemaphoreTest();
 //      runJobThreadPoolTest();
 //      runJobDispatcherTest();
 //      runModestTest();

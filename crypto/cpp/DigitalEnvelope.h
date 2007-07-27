@@ -72,7 +72,7 @@ public:
     * @return true if no exception occurred, false if not.
     */
    virtual bool startSealing(
-      const std::string& algorithm,
+      const char* algorithm,
       PublicKey* publicKey, SymmetricKey** symmetricKey);
    
    /**
@@ -105,7 +105,7 @@ public:
     * @return true if no exception occurred, false if not. 
     */
    virtual bool startSealing(
-      const std::string& algorithm,
+      const char* algorithm,
       PublicKey** publicKeys, SymmetricKey** symmetricKeys, unsigned int keys);
    
    /**

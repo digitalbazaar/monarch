@@ -3,11 +3,10 @@
  */
 #include "IOException.h"
 
-using namespace std;
 using namespace db::io;
 using namespace db::rt;
 
-IOException::IOException(const string& message, const string& code) :
+IOException::IOException(const char* message, const char* code) :
    Exception(message, code)
 {
 }

@@ -10,12 +10,18 @@ AsymmetricKey::AsymmetricKey(EVP_PKEY* pkey)
 {
    // set the public/private key structure
    mKey = pkey;
+   mAlgorithm = NULL;
 }
 
 AsymmetricKey::~AsymmetricKey()
 {
    // free the public/private key structure
    EVP_PKEY_free(mKey);
+   
+   if(mAlgorithm != NULL)
+   {
+      delete mAlgorithm;
+   }
 }
 
 EVP_PKEY* AsymmetricKey::getPKEY()
@@ -23,9 +29,9 @@ EVP_PKEY* AsymmetricKey::getPKEY()
    return mKey;
 }
 
-const string& AsymmetricKey::getAlgorithm()
+const char* AsymmetricKey::getAlgorithm()
 {
-   if(mAlgorithm.length() == 0)
+   if(mAlgorithm == NULL)
    {
       switch(EVP_PKEY_type(getPKEY()->type))
       {

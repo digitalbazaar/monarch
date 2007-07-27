@@ -9,7 +9,6 @@
 #include <openssl/rand.h>
 #include <openssl/err.h>
 
-using namespace std;
 using namespace db::crypto;
 using namespace db::rt;
 
@@ -22,21 +21,21 @@ SymmetricKeyFactory::~SymmetricKeyFactory()
 }
 
 bool SymmetricKeyFactory::createRandomKey(
-   const std::string& algorithm, SymmetricKey** key)
+   const char* algorithm, SymmetricKey** key)
 {
    bool rval = true;
    
    const EVP_CIPHER* cipherType = NULL;
    
-   if(algorithm == "AES" || algorithm == "AES256")
+   if(strcmp(algorithm, "AES") == 0 || strcmp(algorithm, "AES256") == 0)
    {
       cipherType = EVP_aes_256_cbc();
    }
-   else if(algorithm == "AES128")
+   else if(strcmp(algorithm, "AES128") == 0)
    {
       cipherType = EVP_aes_128_cbc();
    }
-   else if(algorithm == "3DES")   
+   else if(strcmp(algorithm, "3DES") == 0)
    {
       cipherType = EVP_des_ede3_cbc();
    }
@@ -44,8 +43,10 @@ bool SymmetricKeyFactory::createRandomKey(
    {
       // unknown algorithm
       rval = false;
-      Thread::setException(new UnsupportedAlgorithmException(
-         "Key algorithm '" + algorithm + "' is not supported!"));
+      char* msg = new char[15 + strlen(algorithm) + 19 + 1];
+      sprintf(msg, "Key algorithm '%s' is not supported!", algorithm);
+      Thread::setException(new UnsupportedAlgorithmException(msg));
+      delete msg;
    }
    
    if(rval)
@@ -66,14 +67,13 @@ bool SymmetricKeyFactory::createRandomKey(
       
       // create symmetric key and assign key data/IV
       *key = new SymmetricKey("AES256");
-      (*key)->assignData(data, keyLength, iv, false);
+      (*key)->assignData(data, keyLength, iv, ivLength, false);
    }
    
    return rval;
 }
 
-bool SymmetricKeyFactory::createKey(
-   const std::string& algorithm, SymmetricKey** key)
+bool SymmetricKeyFactory::createKey(const char* algorithm, SymmetricKey** key)
 {
    // set key to null
    *key = NULL;

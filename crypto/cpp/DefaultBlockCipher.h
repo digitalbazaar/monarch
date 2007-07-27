@@ -45,7 +45,7 @@ public:
     * @return true if no exception occurred, false if not. 
     */
    virtual bool startEncrypting(
-      const std::string& algorithm, SymmetricKey** symmetricKey);
+      const char* algorithm, SymmetricKey** symmetricKey);
    
    /**
     * Starts encrypting with the given SymmetricKey.

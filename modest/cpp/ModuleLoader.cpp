@@ -52,15 +52,15 @@ ModuleInfo* ModuleLoader::loadModule(std::string const& filename)
       else
       {
          // could not load create or free functions
-         Thread::setException(new Exception(
-            "Could not load module '" + filename + "'"));
+         string msg = "Could not load module '" + filename + "'";
+         Thread::setException(new Exception(msg.c_str()));
       }
    }
    else
    {
       // failed to open module
-      Thread::setException(new Exception(
-         "Could not load module '" + filename + "'"));
+      string msg = "Could not load module '" + filename + "'";
+      Thread::setException(new Exception(msg.c_str()));
    }
    
    return rval;

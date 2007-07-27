@@ -46,7 +46,7 @@ protected:
     * 
     * @return the cipher function to use.
     */
-   virtual const EVP_CIPHER* getCipherFunction(const std::string& algorithm);
+   virtual const EVP_CIPHER* getCipherFunction(const char* algorithm);
    
 public:
    /**

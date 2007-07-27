@@ -24,14 +24,14 @@ DigitalEnvelope::~DigitalEnvelope()
 }
 
 bool DigitalEnvelope::startSealing(
-   const string& algorithm, PublicKey* publicKey, SymmetricKey** symmetricKey)
+   const char* algorithm, PublicKey* publicKey, SymmetricKey** symmetricKey)
 {
    // use just a single public key
    return startSealing(algorithm, &publicKey, symmetricKey, 1);
 }
 
 bool DigitalEnvelope::startSealing(
-   const string& algorithm, PublicKey** publicKeys,
+   const char* algorithm, PublicKey** publicKeys,
    SymmetricKey** symmetricKeys, unsigned int keys)
 {
    bool rval = false;
@@ -80,7 +80,7 @@ bool DigitalEnvelope::startSealing(
             // create encrypted symmetric key
             symmetricKeys[i] = new SymmetricKey(algorithm);
             symmetricKeys[i]->assignData(
-               eKeys[i], eKeyLengths[i], ivCopy, true);
+               eKeys[i], eKeyLengths[i], ivCopy, ivLength, true);
          }
          
          if(iv != NULL)
@@ -130,7 +130,8 @@ bool DigitalEnvelope::startOpening(
       char* eKey;
       unsigned int eKeyLength;
       char* iv;
-      symmetricKey->getData(&eKey, eKeyLength, &iv);
+      unsigned int ivLength;
+      symmetricKey->getData(&eKey, eKeyLength, &iv, ivLength);
       
       // initialize opening the envelope
       if(EVP_OpenInit(

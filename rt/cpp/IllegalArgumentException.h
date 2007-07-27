@@ -29,7 +29,7 @@ public:
     * @param code the code for this Exception.
     */
    IllegalArgumentException(
-      const std::string& message = "", const std::string& code = "");
+      const char* message = NULL, const char* code = NULL);
    
    /**
     * Destructs this IllegalArgumentException.

@@ -30,7 +30,7 @@ protected:
     * @return true if the file descriptor could be acquired, false if
     *         an exception occurred.
     */
-   virtual bool acquireFileDescriptor(const std::string& domain);
+   virtual bool acquireFileDescriptor(const char* domain);
    
    /**
     * Creates a new Socket with the given file descriptor that points to

@@ -14,8 +14,7 @@ SslSocketDataPresenter::SslSocketDataPresenter(SslContext* context)
 SslSocketDataPresenter::~SslSocketDataPresenter()
 {
 }
-#include <iostream>
-using namespace std;
+
 bool SslSocketDataPresenter::detectSsl(Socket* s)
 {
    bool rval = false;
