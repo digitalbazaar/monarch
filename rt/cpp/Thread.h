@@ -106,6 +106,11 @@ protected:
    static pthread_once_t CURRENT_THREAD_KEY_INIT;
    
    /**
+    * Set to true once the current thread key has been initialized.
+    */
+   static bool CURRENT_THREAD_KEY_INITIALIZED;
+   
+   /**
     * A thread key for obtaining the current thread.
     */
    static pthread_key_t CURRENT_THREAD_KEY;
@@ -114,6 +119,11 @@ protected:
     * Used to ensure that the exception key is initialized only once.
     */
    static pthread_once_t EXCEPTION_KEY_INIT;
+   
+   /**
+    * Set to true once the exception key has been initialized.
+    */
+   static bool EXCEPTION_KEY_INITIALIZED;
    
    /**
     * A thread key for obtaining the last thread-local exception.

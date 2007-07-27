@@ -3,7 +3,6 @@
  */
 #include "Monitor.h"
 #include "GetTimeOfDay.h"
-#include "Thread.h"
 
 using namespace std;
 using namespace db::rt;
@@ -20,8 +19,7 @@ Monitor::Monitor()
    // initialize conditional
    pthread_cond_init(&mWaitCondition, NULL);
    
-   // no current thread or locks yet
-   mCurrentThread = NULL;
+   // no locks yet
    mLockCount = 0;
 }
 
@@ -44,12 +42,6 @@ void Monitor::enter()
    
    // increment lock count
    mLockCount++;
-   
-   if(mLockCount == 1)
-   {
-      // set current thread
-      mCurrentThread = Thread::currentThread();
-   }
 }
 
 void Monitor::exit()
@@ -57,67 +49,53 @@ void Monitor::exit()
    // decrement lock count
    mLockCount--;
    
-   if(mLockCount == 0)
-   {
-      // clear the current thread
-      mCurrentThread = NULL;
-   }
-   
    // unlock this monitor's mutex
    pthread_mutex_unlock(&mMutex);
 }
 
-void Monitor::wait(Thread* t, unsigned long timeout)
+void Monitor::wait(unsigned long timeout)
 {
-   // ensure the current thread is in the monitor
-   if(mCurrentThread == t)
+   // store old lock count
+   unsigned int lockCount = mLockCount;
+   
+   // decrement lock count until 1
+   while(mLockCount > 1)
    {
-      // clear the thread from the monitor and store old lock count
-      mCurrentThread = NULL;
-      unsigned int lockCount = mLockCount;
+      exit();
+   }
+   
+   if(timeout == 0)
+   {
+      // wait indefinitely on the wait condition
+      pthread_cond_wait(&mWaitCondition, &mMutex);
+   }
+   else
+   {
+      // determine seconds and nanoseconds (timeout is in milliseconds and
+      // 1000 milliseconds = 1 second = 1000000 nanoseconds
+      unsigned long secs = timeout / 1000UL;
+      unsigned long nsecs = timeout % 1000UL * 1000000UL;
       
-      // decrement lock count until 1
-      while(mLockCount > 1)
-      {
-         exit();
-      }
+      struct timeval now;
+      struct timespec timeout;
+      gettimeofday(&now, NULL);
       
-      if(timeout == 0)
-      {
-         // wait indefinitely on the wait condition
-         pthread_cond_wait(&mWaitCondition, &mMutex);
-      }
-      else
-      {
-         // determine seconds and nanoseconds (timeout is in milliseconds and
-         // 1000 milliseconds = 1 second = 1000000 nanoseconds
-         unsigned long secs = timeout / 1000UL;
-         unsigned long nsecs = timeout % 1000UL * 1000000UL;
-         
-         struct timeval now;
-         struct timespec timeout;
-         gettimeofday(&now, NULL);
-         
-         // add timeout to current time (1 microsecond = 1000 nanoseconds)
-         timeout.tv_sec = now.tv_sec + secs;
-         timeout.tv_nsec = now.tv_usec * 1000UL + nsecs;
-         
-         // do timed wait
-         int rc = pthread_cond_timedwait(&mWaitCondition, &mMutex, &timeout);
-         if(rc == ETIMEDOUT)
-         {
-            // timeout reached
-         }
-      }
+      // add timeout to current time (1 microsecond = 1000 nanoseconds)
+      timeout.tv_sec = now.tv_sec + secs;
+      timeout.tv_nsec = now.tv_usec * 1000UL + nsecs;
       
-      // restore current thread
-      mCurrentThread = t;
-      
-      // increment lock count until old lock count is reached
-      while(mLockCount < lockCount)
+      // do timed wait
+      int rc = pthread_cond_timedwait(&mWaitCondition, &mMutex, &timeout);
+      if(rc == ETIMEDOUT)
       {
-         enter();
+         // timeout reached
       }
+   }
+   
+   // increment lock count until old lock count is reached
+   while(mLockCount < lockCount)
+   {
+      enter();
    }
 }
 

@@ -1887,8 +1887,7 @@ public:
    
    virtual void run()
    {
-      cout << "Operation running: " <<
-         Thread::currentThread()->getName() << endl;
+      cout << "Operation running: " << mName << endl;
       
       lock();
       {
@@ -1896,8 +1895,7 @@ public:
       }
       unlock();
       
-      cout << "Operation finished: " <<
-         Thread::currentThread()->getName() << endl;
+      cout << "Operation finished: " << mName << endl;
    }
    
    virtual string& toString(string& str)
@@ -1972,14 +1970,14 @@ public:
    {
       //cout << "1: Servicing connection!" << endl;
       
-      char b[2048];
+      char b[100];
       int numBytes = 0;
       string str = "";
       
       //cout << endl << "Reading HTTP..." << endl;
       
       InputStream* is = c->getInputStream();
-      numBytes = is->peek(b, 2048);
+      numBytes = is->peek(b, 100);
       if(numBytes != -1)
       {
 //         cout << "Read " << numBytes << " bytes." << endl;
@@ -1996,7 +1994,7 @@ public:
       //cout << "1: Finished servicing connection." << endl;
       
       serviced++;
-      cout << "Connections serviced=" << serviced << endl;
+      //cout << "Connections serviced=" << serviced << endl;
    }
 };
 

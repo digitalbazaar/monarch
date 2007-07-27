@@ -11,9 +11,6 @@ namespace db
 namespace rt
 {
 
-// forward declare Thread
-class Thread;
-
 /**
  * A Monitor provides mutual exclusion and synchronization capabilities for
  * Objects. The actual routines that can be executed inside of a Monitor are
@@ -44,11 +41,6 @@ private:
     * The condition used to wait and signal threads.
     */
    pthread_cond_t mWaitCondition;
-   
-   /**
-    * Stores the Thread that is in this Monitor.
-    */
-   Thread* mCurrentThread;
    
    /**
     * A counter for the number of requested locks by the current Thread.
@@ -84,11 +76,10 @@ public:
     * Causes the current thread to wait on this Monitor's wait condition until
     * it is signaled or until the specified timeout is reached.
     * 
-    * @param t a pointer to the current thread.
     * @param timeout the number of milliseconds to wait before timing out,
     *                0 to wait indefinitely.
     */
-   void wait(Thread* t, unsigned long timeout = 0);
+   void wait(unsigned long timeout = 0);
    
    /**
     * Releases the wait condition and signals a single thread to wake up. The

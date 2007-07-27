@@ -12,10 +12,12 @@ Thread Thread::MAIN_THREAD(NULL, "main");
 
 // initialize current thread key parameters
 pthread_once_t Thread::CURRENT_THREAD_KEY_INIT = PTHREAD_ONCE_INIT;
+bool Thread::CURRENT_THREAD_KEY_INITIALIZED = false;
 pthread_key_t Thread::CURRENT_THREAD_KEY;
 
 // initialize exception key parameters
 pthread_once_t Thread::EXCEPTION_KEY_INIT = PTHREAD_ONCE_INIT;
+bool Thread::EXCEPTION_KEY_INITIALIZED = false;
 pthread_key_t Thread::EXCEPTION_KEY;
 
 // Note: disabled due to a lack of support in windows
@@ -181,8 +183,12 @@ void* Thread::execute(void* thread)
    // get the Thread object
    Thread* t = (Thread*)thread;
    
-   // create the current thread key, if not created
-   pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
+   if(!CURRENT_THREAD_KEY_INITIALIZED)
+   {
+      // create the current thread key
+      pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
+      CURRENT_THREAD_KEY_INITIALIZED = true;
+   }
    
    // set thread specific data for current thread to the Thread
    pthread_setspecific(CURRENT_THREAD_KEY, t);
@@ -361,8 +367,12 @@ const char* Thread::getName()
 
 Thread* Thread::currentThread()
 {
-   // create the current thread key, if not created
-   pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
+   if(!CURRENT_THREAD_KEY_INITIALIZED)
+   {
+      // create the current thread key
+      pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
+      CURRENT_THREAD_KEY_INITIALIZED = true;
+   }
    
    // get a pointer to the current thread
    Thread* t = (Thread*)pthread_getspecific(CURRENT_THREAD_KEY);
@@ -613,8 +623,12 @@ Exception* Thread::getException()
 {
    Exception* rval = NULL;
    
-   // create the exception key, if not created
-   pthread_once(&EXCEPTION_KEY_INIT, Thread::createExceptionKey);
+   if(!EXCEPTION_KEY_INITIALIZED)
+   {
+      // create the exception key
+      pthread_once(&EXCEPTION_KEY_INIT, Thread::createExceptionKey);
+      EXCEPTION_KEY_INITIALIZED = true;
+   }
    
    // get the exception for the current thread, if any
    rval = (Exception*)pthread_getspecific(EXCEPTION_KEY);
@@ -647,7 +661,7 @@ InterruptedException* Thread::waitToEnter(Monitor* m, unsigned long timeout)
    // wait if not interrupted and timeout not exhausted
    if(!t->isInterrupted())
    {
-      m->wait(t, timeout);
+      m->wait(timeout);
    }
    
    // clear the current thread's wait monitor
