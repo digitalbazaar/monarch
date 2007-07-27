@@ -84,28 +84,8 @@ bool AbstractSocket::select(bool read, long long timeout)
    
    if(!Thread::interrupted(false))
    {
-      // create a file descriptor set to select on
-      fd_set fds;
-      FD_ZERO(&fds);
-      
-      // add file descriptor to set
-      FD_SET((unsigned int)mFileDescriptor, &fds);
-      
-      // "n" parameter is the highest numbered descriptor plus 1
-      int n = mFileDescriptor + 1;
-      
-      int error;
-      if(read)
-      {
-         // wait for data to arrive for reading or for an exception
-         error = Thread::select(n, &fds, NULL, &fds, timeout);
-      }
-      else
-      {
-         // wait for writability or for an exception
-         error = Thread::select(n, NULL, &fds, &fds, timeout);
-      }
-      
+      // wait for readability/writability
+      int error = Thread::select(read, (unsigned int)mFileDescriptor, timeout);
       if(error < 0)
       {
          if(errno == EINTR)

@@ -438,6 +438,104 @@ void Thread::yield()
    sched_yield();
 }
 
+int Thread::select(bool read, unsigned int fd, long long timeout)
+{
+   int rval = 0;
+   
+   // create a file descriptor set to select on
+   fd_set fds;
+   FD_ZERO(&fds);
+   
+   // add file descriptor to set
+   FD_SET(fd, &fds);
+   
+   // "n" parameter is the highest numbered descriptor plus 1
+   int n = fd + 1;
+   
+   // keep selecting (polling) until timeout is reached
+   long long remaining = (timeout <= 0) ? 1 : timeout;
+   
+   struct timeval to;
+   if(timeout < 0)
+   {
+      // create instant timeout (polling)
+      to.tv_sec = 0;
+      to.tv_usec = 0;
+   }
+   else
+   {
+      // create 1 millisecond timeout (1 millisecond is 1000 microseconds)
+      to.tv_sec = 0;
+      to.tv_usec = 1000LL;
+   }
+   
+   unsigned long long start = System::getCurrentMilliseconds();
+   unsigned long long end;
+   
+   Thread* t = Thread::currentThread();
+   while(!t->isInterrupted() && remaining > 0 && rval == 0)
+   {
+      // wait for file descriptors to be updated
+      if(read)
+      {
+         // wait for readability
+         rval = ::select(n, &fds, NULL, &fds, &to);
+      }
+      else
+      {
+         // wait for writability
+         rval = ::select(n, NULL, &fds, &fds, &to);
+      }
+      
+      if(rval < 0)
+      {
+         if(errno == EINTR)
+         {
+            // interrupt thread
+            t->interrupt();
+         }
+         else if(errno == 0)
+         {
+            // no error, just timed out
+            rval = 0;
+         }
+      }
+      
+      // select() implementation may alter sets or timeout, so reset them
+      // if calling select() again
+      if(remaining > 0 && rval == 0 && timeout >= 0)
+      {
+         // clear set and re-add file descriptor
+         FD_ZERO(&fds);
+         FD_SET(fd, &fds);
+         
+         // reset timeout
+         to.tv_sec = 0;
+         to.tv_usec = 1000LL;
+      }
+      
+      if(timeout != 0)
+      {
+         // decrement remaining time
+         end = System::getCurrentMilliseconds();
+         remaining -= (end - start);
+         start = end;
+      }
+   }
+   
+   if(t->isInterrupted())
+   {
+      rval = -1;
+      errno = EINTR;
+      
+      // set interrupted exception
+      setException(new InterruptedException(
+         "Thread '" + string(t->getName()) + "' interrupted"));
+   }
+   
+   return rval;
+}
+
 int Thread::select(
    int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds,
    long long timeout, const sigset_t* sigmask)
