@@ -39,9 +39,18 @@ InterruptedException* JobThreadPool::acquireThreadPermit()
    return rval;
 }
 
-void JobThreadPool::releaseThreadPermit()
+bool JobThreadPool::tryAcquireThreadPermit()
 {
-   mThreadSemaphore.release();
+   bool rval = true;
+   
+   // only try to acquire a permit if infinite threads
+   // is not enable
+   if(mThreadSemaphore.getMaxPermitCount() != 0)
+   {
+      rval = mThreadSemaphore.tryAcquire();
+   }
+   
+   return rval;
 }
 
 JobThread* JobThreadPool::createJobThread()
@@ -145,7 +154,7 @@ void JobThreadPool::runJobOnIdleThread(Runnable* job)
       JobThread* thread = getIdleThread();
       
       // set job
-      thread->setJob(job);
+      thread->setJob(job, &mThreadSemaphore, 1);
    }
    unlock();
 }
@@ -203,26 +212,34 @@ unsigned int JobThreadPool::getPoolSize()
    return mThreadSemaphore.getMaxPermitCount();
 }
 
-void JobThreadPool::runJob(Runnable* job)
+bool JobThreadPool::tryRunJob(Runnable* job)
 {
+   bool rval = false;
+   
    if(job != NULL)
    {
-      bool permitAcquired = false;
-      
-      // acquire a thread permit
-      if(acquireThreadPermit() == NULL)
+      if(tryAcquireThreadPermit())
       {
          // permit acquired
-         permitAcquired = true;
+         rval = true;
          
          // run the job on an idle thread
          runJobOnIdleThread(job);
       }
-      
-      // if a permit was acquired, release it
-      if(permitAcquired)
+   }
+   
+   return rval;
+}
+
+void JobThreadPool::runJob(Runnable* job)
+{
+   if(job != NULL)
+   {
+      // acquire a thread permit
+      if(acquireThreadPermit() == NULL)
       {
-         releaseThreadPermit();
+         // run the job on an idle thread
+         runJobOnIdleThread(job);
       }
    }
 }

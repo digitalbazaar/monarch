@@ -59,15 +59,14 @@ public:
    virtual ~OperationExecutor();
    
    /**
+    * Performs the Operation's pre-execution state mutation.
+    */
+   virtual void doPreExecutionStateMutation();
+   
+   /**
     * Executes the Operation's Runnable on the current Thread.
     */
    virtual void run();
-   
-   /**
-    * Executes the Operation's Runnable using the OperationDispatcher's
-    * thread pool.
-    */
-   virtual void execute();
    
    /**
     * Checks the Operation's guard restrictions to see if the Operation

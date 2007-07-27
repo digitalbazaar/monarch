@@ -60,7 +60,7 @@ protected:
    /**
     * The name for this thread.
     */
-   std::string mName;
+   char* mName;
    
    /**
     * Stores whether or not this Thread is alive.
@@ -171,7 +171,7 @@ public:
     * @param runnable the Runnable to use.
     * @param name a name for the Thread.
     */
-   Thread(Runnable* runnable, std::string name = "");
+   Thread(Runnable* runnable, const char* name = NULL);
    
    /**
     * Destructs this Thread and deletes its Runnable.
@@ -238,17 +238,24 @@ public:
    
    /**
     * Sets the name of this Thread.
+    * 
+    * @param name the name for this Thread.
+    */
+   virtual void setName(const std::string& str);
+   
+   /**
+    * Sets the name of this Thread.
     *
     * @param name the name for this Thread.
     */
-   virtual void setName(std::string name);
+   virtual void setName(const char* name);
    
    /**
     * Gets the name of this Thread.
     *
     * @return the name of this Thread.
     */
-   virtual const std::string& getName();
+   virtual const char* getName();
    
    /**
     * Returns the currently executing Thread.

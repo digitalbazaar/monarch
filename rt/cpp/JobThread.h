@@ -5,6 +5,7 @@
 #define db_rt_JobThread_H
 
 #include "Thread.h"
+#include "Semaphore.h"
 
 namespace db
 {
@@ -27,27 +28,25 @@ protected:
    Runnable* mJob;
    
    /**
+    * A semaphore to update when a Job completes.
+    */
+   Semaphore* mSemaphore;
+   
+   /**
+    * The number of permits the current Job is holding.
+    */
+   int mPermits;
+   
+   /**
     * The amount of idle time (in milliseconds) that must pass before this
     * JobThread automatically expires.
     */
    unsigned long long mExpireTime;
    
    /**
-    * Gets the Runnable job to run, if any.
-    * 
-    * @return the Runnable job to run, if any.
-    */
-   virtual Runnable* getJob();
-   
-   /**
     * Makes this thread idle.
     */
    virtual void goIdle();
-   
-   /**
-    * Wakes up this thread.
-    */
-   virtual void wakeup();
    
 public:
    /**
@@ -71,8 +70,10 @@ public:
     * thread will be considered idle (with no job).
     * 
     * @param job the job for this thread or null if this thread has no job.
+    * @param semaphore a Semaphore to update when the Job completes.
+    * @param permits the number of permits for the Job.
     */
-   virtual void setJob(Runnable* job);
+   virtual void setJob(Runnable* job, Semaphore* semaphore, int permits);
    
    /**
     * Runs this thread.

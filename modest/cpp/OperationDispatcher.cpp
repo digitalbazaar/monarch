@@ -35,16 +35,19 @@ bool OperationDispatcher::canDispatch()
    return mDispatch;
 }
 
-void OperationDispatcher::dispatchNextJob()
+void OperationDispatcher::dispatchJobs()
 {
    OperationExecutor* e = NULL;
    
-   // lock state, executor will unlock it
+   // lock state
    mEngine->getState()->lock();
    
    lock();
    {
-      // look up the queue until an Operation is found that can be executed
+      // turn off dispatching until an Operation executes or is canceled
+      mDispatch = false;
+      
+      // execute all Operations that can be executed
       for(list<Runnable*>::iterator i = mJobQueue.begin();
           e == NULL && i != mJobQueue.end();)
       {
@@ -53,7 +56,18 @@ void OperationDispatcher::dispatchNextJob()
          {
             case 0:
                // Operation is executable
+               mDispatch = true;
                i = mJobQueue.erase(i);
+               
+               // run pre-execution state mutation
+               e->doPreExecutionStateMutation();
+               
+               // try to run the operation
+               if(getThreadPool()->tryRunJob(e))
+               {
+                  // Operation executed, no need to run it outside of loop
+                  e = NULL;
+               }
                break;
             case 1:
                // move to next Operation
@@ -71,17 +85,13 @@ void OperationDispatcher::dispatchNextJob()
    }
    unlock();
    
+   // unlock state
+   mEngine->getState()->unlock();
+   
    if(e != NULL)
    {
-      // execute Operation
-      e->execute();
-      mDispatch = true;
-   }
-   else
-   {
-      // no executor, so unlock state
-      mEngine->getState()->unlock();
-      mDispatch = false;
+      // execute Operation, allow thread blocking
+      getThreadPool()->runJob(e);
    }
 }
 

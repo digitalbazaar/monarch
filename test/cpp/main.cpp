@@ -101,6 +101,18 @@ void runTimeTest()
 
 class TestRunnable : public virtual Object, public Runnable
 {
+public:
+   bool mustWait;
+   
+   TestRunnable()
+   {
+      mustWait = true;
+   }
+   
+   virtual ~TestRunnable()
+   {
+   }
+   
    virtual void run()
    {
       string name = Thread::currentThread()->getName();
@@ -145,9 +157,9 @@ class TestRunnable : public virtual Object, public Runnable
          lock();
          lock();
          {
-            wait(5000);
-            
-            // FIXME: add code to check for timeout
+            cout << "Thread 3 starting wait..." << endl;
+            while(mustWait && wait(5000) != NULL);
+            cout << "Thread 3 Awake!" << endl;
          }
          unlock();
          unlock();
@@ -175,7 +187,10 @@ class TestRunnable : public virtual Object, public Runnable
          lock();
          lock();
          {
+            mustWait = false;
+            cout << "Thread 5 notifying a thread..." << endl;
             notify();
+            cout << "Thread 5 notified another thread." << endl;
          }
          unlock();
          unlock();
@@ -193,17 +208,9 @@ void runThreadTest()
    
    TestRunnable r1;
    Thread t1(&r1, "Thread 1");
-   
-   //TestRunnable r2;
    Thread t2(&r1, "Thread 2");
-   
-   //TestRunnable r3;
    Thread t3(&r1, "Thread 3");
-   
-   //TestRunnable r4;
    Thread t4(&r1, "Thread 4");
-   
-   //TestRunnable r5;
    Thread t5(&r1, "Thread 5");
    
    t1.start();
@@ -226,11 +233,38 @@ void runThreadTest()
    cout << endl << "Thread Test complete." << endl;
 }
 
-class TestJob : public virtual Object, public Runnable
+class TestJob : public Runnable
 {
+public:
+   string mName;
+   
+   TestJob(const string& name)
+   {
+      mName = name;
+   }
+   
+   virtual ~TestJob()
+   {
+   }
+   
    virtual void run()
    {
-      cout << endl << "TestJob: Running a job" << endl;
+      cout << endl << "TestJob: Running a job,name=" << mName << endl;
+      
+      if(mName == "1")
+      {
+         Thread::sleep(3000);
+      }
+      else if(mName == "2")
+      {
+         Thread::sleep(1000);
+      }
+      else
+      {
+         Thread::sleep(1000);
+      }
+      
+      cout << endl << "TestJob: Finished a job,name=" << mName << endl;
    }
 };
 
@@ -242,7 +276,7 @@ void runJobThreadPoolTest()
    JobThreadPool pool(10);
    
    // create jobs
-   TestJob job1;
+   TestJob job1("1");
    
    // run jobs
    pool.runJob(&job1);
@@ -268,12 +302,12 @@ void runJobDispatcherTest()
    JobDispatcher jd(&pool, false);
    
    // create jobs
-   TestJob job1;
-   TestJob job2;
-   TestJob job3;
-   TestJob job4;
-   TestJob job5;
-   TestJob job6;
+   TestJob job1("1");
+   TestJob job2("2");
+   TestJob job3("3");
+   TestJob job4("4");
+   TestJob job5("5");
+   TestJob job6("6");
    
    // queue jobs
    jd.queueJob(&job1);
@@ -288,7 +322,7 @@ void runJobDispatcherTest()
    
    // wait
    cout << "Waiting for jobs to complete..." << endl;
-   Thread::sleep(100);
+   Thread::sleep(5000);
    cout << "Finished waiting for jobs to complete." << endl;
    
    // stop dispatching
@@ -1936,13 +1970,13 @@ public:
    
    void serviceConnection(Connection* c)
    {
-      cout << "1: Servicing connection!" << endl;
+      //cout << "1: Servicing connection!" << endl;
       
       char b[2048];
       int numBytes = 0;
       string str = "";
       
-      cout << endl << "Reading HTTP..." << endl;
+      //cout << endl << "Reading HTTP..." << endl;
       
       InputStream* is = c->getInputStream();
       numBytes = is->peek(b, 2048);
@@ -1959,7 +1993,7 @@ public:
       str = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\n\r\n";
       os->write(str.c_str(), str.length());
       
-      cout << "1: Finished servicing connection." << endl;
+      //cout << "1: Finished servicing connection." << endl;
       
       serviced++;
       cout << "Connections serviced=" << serviced << endl;
@@ -1994,7 +2028,7 @@ void runServerConnectionTest()
    
    // create server
    Server server(&k);
-   InternetAddress address("kasumi.digitalbazaar.com", 19100);
+   InternetAddress address("localhost", 19100);
    
    // create generic service
    TestConnectionServicer1 tcs1;
@@ -2034,7 +2068,7 @@ void runServerConnectionTest()
    Object lock;
    lock.lock();
    {
-      //lock.wait(30000);
+      lock.wait(30000);
    }
    lock.unlock();
    //Thread::sleep(60000);
@@ -2262,40 +2296,40 @@ public:
    {
       cout << "Tests starting..." << endl << endl;
       
-      //runBase64Test();
-      //runTimeTest();
-      //runThreadTest();
-      //runInterruptTest();
-      //runSemaphoreTest();
-      //runJobThreadPoolTest();
-      //runJobDispatcherTest();
-      //runModestTest();
-      //runAddressResolveTest();
-      //runSocketTest();
-      //runSslSocketTest();
-      //runServerSocketTest();
-      //runSslServerSocketTest();
-      //runTcpClientServerTest();
-      //runUdpClientServerTest();
-      //runDatagramTest();
-      //runMessageDigestTest();
-      //runCrcTest();
-      //runAsymmetricKeyLoadingTest();
-      //runDsaAsymmetricKeyCreationTest();
-      //runRsaAsymmetricKeyCreationTest();
-      //runEnvelopeTest("DSA");
-      //runEnvelopeTest("RSA");
-      //runCipherTest("AES256");
-      //runConvertTest();
-      //runUrlEncodeTest();
-      //runUrlTest();
-      //runRegexTest();
-      //runDateTest();
-      //runHttpHeaderTest();
-      //runConfigTest();
-      //runServerConnectionTest();
-      runServerSslConnectionTest();
-      //runServerDatagramTest();
+//      runBase64Test();
+//      runTimeTest();
+//      runThreadTest();
+//      runInterruptTest();
+//      runSemaphoreTest();
+//      runJobThreadPoolTest();
+//      runJobDispatcherTest();
+//      runModestTest();
+//      runAddressResolveTest();
+//      runSocketTest();
+//      runSslSocketTest();
+//      runServerSocketTest();
+//      runSslServerSocketTest();
+//      runTcpClientServerTest();
+//      runUdpClientServerTest();
+//      runDatagramTest();
+//      runMessageDigestTest();
+//      runCrcTest();
+//      runAsymmetricKeyLoadingTest();
+//      runDsaAsymmetricKeyCreationTest();
+//      runRsaAsymmetricKeyCreationTest();
+//      runEnvelopeTest("DSA");
+//      runEnvelopeTest("RSA");
+//      runCipherTest("AES256");
+//      runConvertTest();
+//      runUrlEncodeTest();
+//      runUrlTest();
+//      runRegexTest();
+//      runDateTest();
+//      runHttpHeaderTest();
+//      runConfigTest();
+      runServerConnectionTest();
+//      runServerSslConnectionTest();
+//      runServerDatagramTest();
       
       cout << endl << "Tests finished." << endl;
       

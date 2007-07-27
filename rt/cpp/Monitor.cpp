@@ -16,9 +16,6 @@ Monitor::Monitor()
    // initialize conditional
    pthread_cond_init(&mWaitCondition, NULL);
    
-   // threads must wait on the wait condition
-   mMustWait = true;
-   
    // no current thread or locks yet
    mCurrentThread = NULL;
    mLockCount = 0;
@@ -35,9 +32,6 @@ Monitor::~Monitor()
 
 void Monitor::enter()
 {
-   // threads must wait
-   mMustWait = true;
-   
    // ensure the current thread isn't already in the monitor
    Thread* t = Thread::currentThread();
    if(mCurrentThread != t)
@@ -79,10 +73,9 @@ void Monitor::exit()
    }
 }
 
-void Monitor::wait(unsigned long timeout)
+void Monitor::wait(Thread* t, unsigned long timeout)
 {
    // ensure the current thread is in the monitor
-   Thread* t = Thread::currentThread();
    if(mCurrentThread == t)
    {
       // clear the thread from the monitor and store old lock count
@@ -126,18 +119,12 @@ void Monitor::wait(unsigned long timeout)
 
 void Monitor::notify()
 {
-   // threads do not need to wait again when they wake up
-   mMustWait = false;
-   
    // signal a thread locked on the conditional to wake up
    pthread_cond_signal(&mWaitCondition);
 }
 
 void Monitor::notifyAll()
 {
-   // threads do not need to wait again when they wake up
-   mMustWait = false;
-   
    // signal all threads to wake up
    signalAll();
 }
@@ -146,9 +133,4 @@ void Monitor::signalAll()
 {
    // signal all threads locked on the conditional to wake up
    pthread_cond_broadcast(&mWaitCondition);
-}
-
-bool Monitor::mustWait()
-{
-   return mMustWait;
 }

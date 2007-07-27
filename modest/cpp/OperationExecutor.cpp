@@ -69,20 +69,14 @@ void OperationExecutor::run()
    mDispatcher->addExpiredExecutor(this);
 }
 
-void OperationExecutor::execute()
+void OperationExecutor::doPreExecutionStateMutation()
 {
-   // do pre-execution state mutation
+   // do pre-execution state mutation (state already locked)
    if(mOperation->getStateMutator() != NULL)
    {
       mOperation->getStateMutator()->mutatePreExecutionState(
          mState, mOperation);
    }
-   
-   // unlock state, it will have been locked by dispatcher
-   mState->unlock();
-   
-   // run using dispatcher's thread pool
-   mDispatcher->getThreadPool()->runJob(this);
 }
 
 int OperationExecutor::checkGuard()

@@ -41,11 +41,6 @@ private:
    pthread_cond_t mWaitCondition;
    
    /**
-    * Stores whether or not threads need to wait to enter this Monitor.
-    */
-   bool mMustWait;
-   
-   /**
     * Stores the Thread that is in this Monitor.
     */
    Thread* mCurrentThread;
@@ -84,10 +79,11 @@ public:
     * Causes the current thread to wait on this Monitor's wait condition until
     * it is signaled or until the specified timeout is reached.
     * 
+    * @param t a pointer to the current thread.
     * @param timeout the number of milliseconds to wait before timing out,
     *                0 to wait indefinitely.
     */
-   void wait(unsigned long timeout = 0);
+   void wait(Thread* t, unsigned long timeout = 0);
    
    /**
     * Releases the wait condition and signals a single thread to wake up. The
@@ -106,13 +102,6 @@ public:
     * re-entering (or deciding not to) a waiting state.
     */
    void signalAll();
-   
-   /**
-    * Returns true if threads must wait to enter this Monitor, false if not.
-    * 
-    * @return true if threads must wait to enter this Monitor, false if not.
-    */
-   bool mustWait();
 };
 
 } // end namespace rt

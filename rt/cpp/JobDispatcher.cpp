@@ -121,15 +121,26 @@ void JobDispatcher::dequeueJob(Runnable* job)
    unlock();
 }
 
-void JobDispatcher::dispatchNextJob()
+void JobDispatcher::dispatchJobs()
 {
-   // pop next Runnable job off of the queue
-   Runnable* job = popJob();
-   if(job != NULL)
+   lock();
    {
-      // run the job
-      getThreadPool()->runJob(job);
+      // try to run all jobs in the queue
+      bool run = true;
+      for(list<Runnable*>::iterator i = mJobQueue.begin();
+          run && i != mJobQueue.end();)
+      {
+         if(getThreadPool()->tryRunJob(*i))
+         {
+            i = mJobQueue.erase(i);
+         }
+         else
+         {
+            run = false;
+         }
+      }
    }
+   unlock();
 }
 
 bool JobDispatcher::isQueued(Runnable* job)
@@ -200,8 +211,8 @@ void JobDispatcher::run()
       // see if jobs can dispatch
       if(canDispatch())
       {
-         // dispatch the next Runnable job
-         dispatchNextJob();
+         // dispatch jobs
+         dispatchJobs();
       }
       else
       {

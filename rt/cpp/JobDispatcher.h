@@ -15,7 +15,7 @@ namespace rt
 
 /**
  * A JobDispatcher is a class that maintains a queue of Runnable jobs
- * that are dispatched on a separate thread to a JobThreadPool.
+ * that are dispatched on a separate thread in a JobThreadPool.
  * 
  * @author Dave Longley
  */
@@ -118,9 +118,9 @@ public:
    virtual void dequeueJob(Runnable* job);
    
    /**
-    * Dispatches the next Runnable job in the queue, if one exists.
+    * Dispatches the Runnable jobs in the queue that can be dispatched.
     */
-   virtual void dispatchNextJob();
+   virtual void dispatchJobs();
    
    /**
     * Returns true if the passed Runnable job is in the queue

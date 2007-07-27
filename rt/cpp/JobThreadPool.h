@@ -55,9 +55,12 @@ protected:
    virtual InterruptedException* acquireThreadPermit();
    
    /**
-    * Releases a thread permit that was used to run a job.
+    * Tries to acquire a thread permit for running a job. If a permit
+    * can be acquired, it will be. This method will not block.
+    * 
+    * @return true if a permit was acquired, false if not.
     */
-   virtual void releaseThreadPermit();
+   virtual bool tryAcquireThreadPermit();
    
    /**
     * Creates a new JobThread.
@@ -120,6 +123,17 @@ public:
     *         of 0 specifies an unlimited number of threads.
     */
    virtual unsigned int getPoolSize();
+   
+   /**
+    * Tries to run the passed Runnable job on an available JobThread. If a
+    * thread is available, this method will return true. If not, this method
+    * will not block, but will instead return false.
+    * 
+    * @param job the Runnable job to run.
+    * 
+    * @return true if the job could run, false if not.
+    */
+   virtual bool tryRunJob(Runnable* job);
    
    /**
     * Runs the passed Runnable job on an available JobThread.

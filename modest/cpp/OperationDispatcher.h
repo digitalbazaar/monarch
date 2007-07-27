@@ -50,9 +50,9 @@ protected:
    virtual bool canDispatch();
    
    /**
-    * Dispatches the next Operation available.
+    * Dispatches the Operations that can be dispatched.
     */
-   virtual void dispatchNextJob();
+   virtual void dispatchJobs();
    
    /**
     * Cleans up any expired executors.

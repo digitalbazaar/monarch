@@ -22,7 +22,7 @@ pthread_key_t Thread::EXCEPTION_KEY;
 // initialize signal handler parameters
 //pthread_once_t Thread::SIGINT_HANDLER_INIT = PTHREAD_ONCE_INIT;
 
-Thread::Thread(Runnable* runnable, std::string name)
+Thread::Thread(Runnable* runnable, const char* name)
 {
    // initialize POSIX thread attributes
    pthread_attr_init(&mPThreadAttributes);
@@ -41,7 +41,8 @@ Thread::Thread(Runnable* runnable, std::string name)
    mRunnable = runnable;
    
    // set name
-   mName = name;
+   mName = NULL;
+   setName(name);
    
    // thread is not alive yet
    mAlive = false;
@@ -75,6 +76,12 @@ Thread::~Thread()
       pthread_setspecific(EXCEPTION_KEY, NULL);
       pthread_key_delete(CURRENT_THREAD_KEY);
       pthread_key_delete(EXCEPTION_KEY);
+   }
+   
+   // delete name
+   if(mName != NULL)
+   {
+      delete [] mName;
    }
 }
 
@@ -290,14 +297,61 @@ void Thread::detach()
    }
 }
 
-void Thread::setName(string name)
+void Thread::setName(const string& name)
 {
-   mName = name;
+   setName(name.c_str());
 }
 
-const string& Thread::getName()
+void Thread::setName(const char* name)
 {
-   return mName;
+   lock();
+   {
+      if(name == NULL)
+      {
+         if(mName == NULL)
+         {
+            mName = new char[1];
+         }
+         else if(strlen(mName) > 0)
+         {
+            delete mName;
+            mName = new char[1];
+         }
+         
+         mName[0] = 0;
+      }
+      else
+      {
+         if(mName == NULL)
+         {
+            mName = new char[100];
+         }
+         else if(strlen(mName) == 0)
+         {
+            delete mName;
+            mName = new char[100];
+         }
+         
+         unsigned int length = strlen(name);
+         length = (length > 99 ? 99 : length);
+         memcpy(mName, name, length);
+         memset(mName + length, 0, 1);
+      }
+   }
+   unlock();
+}
+
+const char* Thread::getName()
+{
+   const char* rval = NULL;
+   
+   lock();
+   {
+      rval = mName;
+   }
+   unlock();
+   
+   return rval;
 }
 
 Thread* Thread::currentThread()
@@ -527,7 +581,7 @@ int Thread::select(
       
       // set interrupted exception
       setException(new InterruptedException(
-         "Thread '" + t->getName() + "' interrupted"));
+         "Thread '" + string(t->getName()) + "' interrupted"));
    }
    
    return rval;
@@ -579,36 +633,34 @@ InterruptedException* Thread::waitToEnter(Monitor* m, unsigned long timeout)
    
    // set the current thread's wait monitor
    Thread* t = currentThread();
-   t->mWaitMonitor = m;
-   
-   // get the current time and determine if wait should be indefinite
-   unsigned long long past = System::getCurrentMilliseconds();
-   unsigned long long present;
-   unsigned long long change;
-   bool indefinite = (timeout == 0);
-   
-   // wait while not interrupted, must wait, and timeout not exhausted
-   while(!t->isInterrupted() && m->mustWait() && (indefinite || timeout > 0))
+   t->lock();
    {
-      m->wait(timeout);
-      present = System::getCurrentMilliseconds();
-      change = present - past;
-      past = present;
-      timeout -= (change > timeout) ? timeout : change;
+      t->mWaitMonitor = m;
+   }
+   t->unlock();
+   
+   // wait if not interrupted and timeout not exhausted
+   if(!t->isInterrupted())
+   {
+      m->wait(t, timeout);
    }
    
    // clear the current thread's wait monitor
-   t->mWaitMonitor = NULL;
+   t->lock();
+   {
+      t->mWaitMonitor = NULL;
+   }
+   t->unlock();
    
    // create interrupted exception if interrupted
    if(t->isInterrupted())
    {
       rval = new InterruptedException(
-         "Thread '" + t->getName() + "' interrupted");
+         "Thread '" + string(t->getName()) + "' interrupted");
+      
+      // set exception
+      setException(rval);
    }
-   
-   // set exception
-   setException(rval);
    
    return rval;
 }

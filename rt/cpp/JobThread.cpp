@@ -11,6 +11,8 @@ JobThread::JobThread(unsigned long long expireTime) : Thread(this)
 {
    // no Runnable job to run yet
    mJob = NULL;
+   mSemaphore = NULL;
+   mPermits = 0;
    
    // sets the expire time for this thread
    setExpireTime(expireTime);
@@ -20,72 +22,63 @@ JobThread::~JobThread()
 {
 }
 
-Runnable* JobThread::getJob()
-{
-   return mJob;
-}
-
 void JobThread::goIdle()
 {
-   // set thread name
-   setName("JobThread: idle");
-   
-   InterruptedException* e = NULL;
-   unsigned long long startTime = System::getCurrentMilliseconds();
-   
    lock();
    {
-      // wait until expire time
-      e = wait(getExpireTime());
-   }
-   unlock();
-   
-   if(e == NULL && !isInterrupted())
-   {
-      // if this thread has an expire time set and this thread still has
-      // no job see if the time has expired
-      if(getExpireTime() != 0 && !hasJob())
+      if(mJob == NULL)
       {
-         // check expired time
-         unsigned long long now = System::getCurrentMilliseconds();
-         if(now - startTime >= getExpireTime())
+         // set thread name
+         setName("JobThread: idle");
+         
+         unsigned long long startTime = System::getCurrentMilliseconds();
+         
+         // wait until expire time
+         if(wait(getExpireTime()) == NULL)
          {
-            // thread must expire
-            interrupt();
+            // if this thread has an expire time set and this thread still has
+            // no job see if the time has expired
+            if(getExpireTime() != 0 && mJob == NULL)
+            {
+               // check expired time
+               unsigned long long now = System::getCurrentMilliseconds();
+               if(now - startTime >= getExpireTime())
+               {
+                  // thread must expire
+                  interrupt();
+               }
+            }
          }
       }
    }
-}
-
-void JobThread::wakeup()
-{
-   lock();
-   {
-      // notify thread to stop waiting
-      notify();
-   }
    unlock();
 }
 
-void JobThread::setJob(Runnable* job)
+void JobThread::setJob(Runnable* job, Semaphore* semaphore, int permits)
 {
-   // set job
-   mJob = job;
-   
-   if(job != NULL)
+   lock();
    {
-      // set thread name
-      string str;
-      setName("JobThread: running job '" + getJob()->toString(str) + "'");
+      // set job, semaphore, and permits
+      mJob = job;
+      mSemaphore = semaphore;
+      mPermits = permits;
       
-      // wake up thread
-      wakeup();
+      if(job != NULL)
+      {
+         // set thread name
+         string str;
+         setName("JobThread: running job '" + mJob->toString(str) + "'");
+         
+         // notify thread to stop waiting
+         notifyAll();
+      }
+      else
+      {
+         // set thread name
+         setName("JobThread: no job");
+      }
    }
-   else
-   {
-      // set thread name
-      setName("JobThread: no job");
-   }
+   unlock();
 }
 
 void JobThread::run()
@@ -93,27 +86,42 @@ void JobThread::run()
    while(!isInterrupted())
    {
       // get the Runnable job to run
-      Runnable* job = getJob();
+      Runnable* job = mJob;
       if(job != NULL)
       {
          // run job
          job->run();
          
-         // thread no longer has job
-         setJob(NULL);
+         lock();
+         {
+            // release permits for job
+            if(mSemaphore != NULL)
+            {
+               mSemaphore->release(mPermits);
+            }
+            
+            // thread no longer has job
+            setJob(NULL, NULL, 0);
+         }
+         unlock();
       }
       
-      if(!isInterrupted())
-      {
-         // go idle
-         goIdle();
-      }
+      // go idle
+      goIdle();
    }
 }
 
 bool JobThread::hasJob()
 {
-   return getJob() != NULL;
+   bool rval = false;
+   
+   lock();
+   {
+      rval = (mJob != NULL);
+   }
+   unlock();
+   
+   return rval;
 }
 
 bool JobThread::isIdle()
