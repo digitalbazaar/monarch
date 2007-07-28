@@ -29,8 +29,11 @@ OperationDispatcher::~OperationDispatcher()
 
 bool OperationDispatcher::canDispatch()
 {
-   // clean up any expired executors
-   cleanupExpiredExecutors();
+   if(!mExpiredExecutors.empty())
+   {
+      // clean up any expired executors
+      cleanupExpiredExecutors();
+   }
    
    return mDispatch;
 }
