@@ -92,9 +92,11 @@ void JobThread::run()
          }
          unlock();
       }
-      
-      // go idle
-      goIdle();
+      else
+      {
+         // go idle
+         goIdle();
+      }
    }
 }
 

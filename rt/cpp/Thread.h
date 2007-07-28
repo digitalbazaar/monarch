@@ -37,14 +37,14 @@ private:
    
 protected:
    /**
-    * The POSIX thread wrapped by this class.
+    * The ID of the POSIX thread wrapped by this class.
     */
-   pthread_t mPThread;
+   pthread_t mThreadId;
    
    /**
     * The attributes for the POSIX thread.
     */
-   pthread_attr_t mPThreadAttributes;
+   pthread_attr_t mThreadAttributes;
    
    /**
     * The Monitor this Thread is waiting to enter.

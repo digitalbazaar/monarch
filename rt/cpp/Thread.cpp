@@ -26,10 +26,10 @@ pthread_key_t Thread::EXCEPTION_KEY;
 Thread::Thread(Runnable* runnable, const char* name)
 {
    // initialize POSIX thread attributes
-   pthread_attr_init(&mPThreadAttributes);
+   pthread_attr_init(&mThreadAttributes);
    
    // make thread joinable
-   pthread_attr_setdetachstate(&mPThreadAttributes, PTHREAD_CREATE_JOINABLE);
+   pthread_attr_setdetachstate(&mThreadAttributes, PTHREAD_CREATE_JOINABLE);
    
    // make thread cancelable upon joins/waits/etc
    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -64,7 +64,7 @@ Thread::Thread(Runnable* runnable, const char* name)
 Thread::~Thread()
 {
    // destroy the POSIX thread attributes
-   pthread_attr_destroy(&mPThreadAttributes);
+   pthread_attr_destroy(&mThreadAttributes);
    
    if(this == &MAIN_THREAD)
    {
@@ -237,7 +237,7 @@ bool Thread::start()
    {
       // create the POSIX thread
       int rc = pthread_create(
-         &mPThread, &mPThreadAttributes, execute, (void*)this);
+         &mThreadId, &mThreadAttributes, execute, (void*)this);
          
       // if the thread was created successfully, return true
       if(rc == 0)
@@ -248,7 +248,8 @@ bool Thread::start()
       }
    }
    
-   return rval;}
+   return rval;
+}
 
 // Note: disabled due to lack of support in windows
 //void Thread::sendSignal(int signum)
@@ -257,7 +258,7 @@ bool Thread::start()
 //   {
 //      if(hasStarted() && isAlive())
 //      {
-//         pthread_kill(mPThread, signum);
+//         pthread_kill(mThreadId, signum);
 //      }
 //   }
 //   unlock();
@@ -323,7 +324,7 @@ void Thread::join()
    {
       // join thread, wait for it to detach/terminate indefinitely
       int status;
-      pthread_join(mPThread, (void **)&status);
+      pthread_join(mThreadId, (void **)&status);
    }
 }
 
@@ -346,7 +347,7 @@ void Thread::detach()
    if(detach)
    {
       // detach thread
-      pthread_detach(mPThread);
+      pthread_detach(mThreadId);
    }
 }
 
@@ -387,7 +388,7 @@ Thread* Thread::currentThread()
    {
       // on the main thread, so initialize main thread and set specific data
       t = &Thread::MAIN_THREAD;
-      t->mPThread = pthread_self();
+      t->mThreadId = pthread_self();
       t->mAlive = true;
       t->mDetached = true;
       t->mStarted = true;
