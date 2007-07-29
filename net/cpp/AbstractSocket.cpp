@@ -81,69 +81,54 @@ bool AbstractSocket::select(bool read, long long timeout)
 {
    Exception* exception = NULL;
    
-   if(!Thread::interrupted(false))
+   // wait for readability/writability
+   int error = Thread::select(read, (unsigned int)mFileDescriptor, timeout);
+   if(error < 0)
    {
-      // wait for readability/writability
-      int error = Thread::select(read, (unsigned int)mFileDescriptor, timeout);
-      if(error < 0)
-      {
-         if(errno == EINTR)
-         {
-            if(read)
-            {
-               // interrupted exception
-               exception = new InterruptedException(
-                  "Socket read interrupted!", strerror(errno));
-            }
-            else
-            {
-               // interrupted exception
-               exception = new InterruptedException(
-                  "Socket write interrupted!", strerror(errno));
-            }
-         }
-         else
-         {
-            if(read)
-            {
-               // error occurred, get string message
-               exception = new SocketException(
-                  "Could not read from Socket!", strerror(errno));
-            }
-            else
-            {
-               // error occurred, get string message
-               exception = new SocketException(
-                  "Could not write to Socket!", strerror(errno));
-            }
-         }
-      }
-      else if(error == 0)
+      if(errno == EINTR)
       {
          if(read)
          {
-            // read timeout occurred
-            exception = new SocketTimeoutException(
-               "Socket read timed out!", strerror(errno));
+            // interrupted exception
+            exception = new InterruptedException(
+               "Socket read interrupted!", strerror(errno));
          }
          else
          {
-            // write timeout occurred
-            exception = new SocketTimeoutException(
-               "Socket write timed out!", strerror(errno));
+            // interrupted exception
+            exception = new InterruptedException(
+               "Socket write interrupted!", strerror(errno));
          }
-      }
-   }
-   
-   if(exception == NULL && Thread::interrupted(false))
-   {
-      if(read)
-      {
-         exception = new InterruptedException("Socket read interrupted!");
       }
       else
       {
-         exception = new InterruptedException("Socket write interrupted!");
+         if(read)
+         {
+            // error occurred, get string message
+            exception = new SocketException(
+               "Could not read from Socket!", strerror(errno));
+         }
+         else
+         {
+            // error occurred, get string message
+            exception = new SocketException(
+               "Could not write to Socket!", strerror(errno));
+         }
+      }
+   }
+   else if(error == 0)
+   {
+      if(read)
+      {
+         // read timeout occurred
+         exception = new SocketTimeoutException(
+            "Socket read timed out!", strerror(errno));
+      }
+      else
+      {
+         // write timeout occurred
+         exception = new SocketTimeoutException(
+            "Socket write timed out!", strerror(errno));
       }
    }
    
