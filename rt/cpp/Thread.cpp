@@ -428,15 +428,14 @@ InterruptedException* Thread::sleep(unsigned long time)
 {
    InterruptedException* rval = NULL;
    
-   // create a lock object
-   Object lock;
-   
-   lock.lock();
+   // enter an arbitrary monitor
+   Monitor m;
+   m.enter();
    {
-      // wait on the lock object for the specified time
-      rval = lock.wait(time);
+      // wait to re-enter the monitor until the specified time
+      rval = waitToEnter(&m, time);
    }
-   lock.unlock();
+   m.exit();
    
    return rval;
 }
