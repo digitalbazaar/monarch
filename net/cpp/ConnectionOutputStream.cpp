@@ -58,7 +58,7 @@ inline bool ConnectionOutputStream::write(const char* b, unsigned int length)
       }
    }
    
-   return rval && !Thread::interrupted(false);
+   return rval && !t->isInterrupted();
 }
 
 void ConnectionOutputStream::close()
