@@ -28,19 +28,29 @@ class Monitor
 {
 private:
    /**
-    * The mutex for this Monitor.
+    * The spin lock for this Monitor.
     */
-   pthread_mutex_t mMutex;
+   pthread_spinlock_t mSpinLock;
    
    /**
-    * The mutex attributes for this Monitor.
+    * The wait mutex for this Monitor.
     */
-   pthread_mutexattr_t mMutexAttributes;
+   pthread_mutex_t mWaitMutex;
    
    /**
     * The condition used to wait and signal threads.
     */
    pthread_cond_t mWaitCondition;
+   
+   /**
+    * Stores the pthread ID of the thread that is currently in this Monitor.
+    */
+   pthread_t mThreadId;
+   
+   /**
+    * Stores whether or not a thread is currently in this Monitor.
+    */
+   bool mHasThread;
    
    /**
     * A counter for the number of requested locks by the current Thread.
