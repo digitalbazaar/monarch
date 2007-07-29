@@ -37,7 +37,7 @@ inline bool ConnectionOutputStream::write(const char* b, unsigned int length)
          bt->requestBytes(length, numBytes);
       }
       
-      if(!Thread::interrupted(false))
+      if(!t->isInterrupted())
       {
          // send data through the socket output stream
          if(rval = mConnection->getSocket()->getOutputStream()->write(
