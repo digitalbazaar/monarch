@@ -19,6 +19,7 @@ Monitor::Monitor()
    pthread_cond_init(&mWaitCondition, NULL);
    
    // no locks yet
+   mThreadId = pthread_self();
    mHasThread = false;
    mLockCount = 0;
 }
