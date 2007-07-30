@@ -61,6 +61,12 @@ protected:
    virtual Runnable* popJob();
    
    /**
+    * Wakes up this dispatcher if it has gone to sleep waiting for
+    * jobs to become dispatchable.
+    */
+   virtual void wakeup();
+   
+   /**
     * Returns true if this dispatcher has a job it can dispatch.
     * 
     * @return true if this dispatcher has a job it can dispatch.
@@ -103,15 +109,17 @@ public:
    virtual ~JobDispatcher();
    
    /**
-    * Queues a Runnable job for execution.
+    * Queues a Runnable job for execution. The dispatcher will automatically
+    * be woken up when a new job is added.
     * 
     * @param job the Runnable job to queue.
     */
    virtual void queueJob(Runnable* job);
    
    /**
-    * Dequeues a Runnable job so that it will no longer be
-    * executed if it has not already begun execution.
+    * Dequeues a Runnable job so that it will no longer be executed if it
+    * has not already begun execution. The dispatcher will automatically
+    * be woken up when a job is removed.
     * 
     * @param job the Runnable job to dequeue.
     */

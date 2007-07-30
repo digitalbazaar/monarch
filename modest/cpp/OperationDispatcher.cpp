@@ -112,6 +112,9 @@ void OperationDispatcher::cleanupExpiredExecutors()
          i = mExpiredExecutors.erase(i);
          delete e;
       }
+      
+      // wake up dispatcher
+      wakeup();
    }
    unlock();
 }
@@ -168,6 +171,9 @@ void OperationDispatcher::addExpiredExecutor(OperationExecutor* e)
    {
       mExpiredExecutors.push_back(e);
       mDispatch = true;
+      
+      // wake up dispatcher
+      wakeup();
    }
    unlock();
 }

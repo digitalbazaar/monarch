@@ -8,8 +8,10 @@
 #include "OperationList.h"
 #include "InternetAddress.h"
 #include "Runnable.h"
-#include "ConnectionService.h"
-#include "DatagramService.h"
+#include "PortService.h"
+#include "ConnectionServicer.h"
+#include "SocketDataPresenter.h"
+#include "DatagramServicer.h"
 
 #include <map>
 
@@ -47,9 +49,9 @@ protected:
    bool mRunning;
    
    /**
-    * The maximum number of concurrent connections to handle.
+    * The connection semaphore for this server.
     */
-   unsigned int mMaxConnectionCount;
+   db::rt::Semaphore mConnectionSemaphore;
    
    /**
     * The current number of connections to this server.

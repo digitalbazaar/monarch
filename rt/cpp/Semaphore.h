@@ -4,14 +4,15 @@
 #ifndef db_rt_Semaphore_H
 #define db_rt_Semaphore_H
 
-#include "Thread.h"
-
 #include <list>
 
 namespace db
 {
 namespace rt
 {
+
+// forward declare Thread
+class Thread;
 
 /**
  * A Semaphore class that stores the maximum number of permits allowed
@@ -70,9 +71,11 @@ protected:
    /**
     * Tells the current thread to wait.
     * 
+    * @param t the current thread.
+    * 
     * @return an InterruptedException if the thread is interrupted, NULL if not.
     */
-   InterruptedException* waitThread();
+   InterruptedException* waitThread(Thread* t);
    
    /**
     * Notifies thread(s) to wake up.
@@ -133,8 +136,7 @@ public:
    virtual ~Semaphore();
    
    /**
-    * Acquires a permit, or blocks until one is * available or until
-    * interrupted.
+    * Acquires a permit, or blocks until one is available or until interrupted.
     *
     * @return an InterruptedException if the thread is interrupted, NULL if not.
     */
@@ -143,7 +145,7 @@ public:
    /**
     * Acquires the given number of permits or blocks until one
     * is available or until interrupted.
-    *
+    * 
     * @param permits the number of permits to acquire.
     * 
     * @return an InterruptedException if the thread is interrupted, NULL if not.

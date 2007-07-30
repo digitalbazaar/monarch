@@ -2,16 +2,17 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Server.h"
+#include "ConnectionService.h"
+#include "DatagramService.h"
 
 using namespace std;
 using namespace db::modest;
 using namespace db::net;
 
-Server::Server(Kernel* k)
+Server::Server(Kernel* k) : mConnectionSemaphore(10000, true)
 {
    mKernel = k;
    mRunning = false;
-   mMaxConnectionCount = 10000;
    mConnectionCount = 0;
 }
 
@@ -164,12 +165,12 @@ Kernel* Server::getKernel()
 
 void Server::setMaxConnectionCount(unsigned int count)
 {
-   mMaxConnectionCount = count;
+   mConnectionSemaphore.setMaxPermitCount(count);
 }
 
 unsigned int Server::getMaxConnectionCount()
 {
-   return mMaxConnectionCount;
+   return mConnectionSemaphore.getMaxPermitCount();
 }
 
 unsigned int Server::getConnectionCount()

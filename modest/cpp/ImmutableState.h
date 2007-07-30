@@ -5,7 +5,6 @@
 #define db_modest_ImmutableState_H
 
 #include "Object.h"
-#include <string>
 
 namespace db
 {

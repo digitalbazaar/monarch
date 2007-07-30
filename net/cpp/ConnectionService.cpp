@@ -2,37 +2,26 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "ConnectionService.h"
-#include "ConnectionAcceptor.h"
 #include "Server.h"
 #include "TcpSocket.h"
-#include "Convert.h"
 
 using namespace std;
 using namespace db::modest;
 using namespace db::net;
 using namespace db::rt;
-using namespace db::util;
-
-// initialize server connections permits key
-const char* ConnectionService::SERVER_CONNECTION_PERMITS_KEY =
-   "com.db.net.server.connections.permits";
 
 ConnectionService::ConnectionService(
    Server* server,
    InternetAddress* address,
    ConnectionServicer* servicer,
    SocketDataPresenter* presenter) :
-   PortService(server, address), mRunningServicers(false)
+   PortService(server, address),
+   mConnectionSemaphore(10000, true), mRunningServicers(false)
 {
    mServicer = servicer;
    mDataPresenter = presenter;
    mSocket = NULL;
-   mMaxConnectionCount = 10000;
    mConnectionCount = 0;
-   mConnectionPermitsKey =
-      "com.db.net.server.connections.ports." +
-      Convert::integerToString(getAddress()->getPort()) +
-      ".permits";
 }
 
 ConnectionService::~ConnectionService()
@@ -55,7 +44,7 @@ Operation* ConnectionService::initialize()
    if(mSocket->bind(getAddress()) && mSocket->listen())
    {
       // create Operation for running service
-      rval = new Operation(this, NULL, NULL);
+      rval = new Operation(this, this, NULL);
    }
    
    return rval;
@@ -95,78 +84,49 @@ void ConnectionService::cleanupWorkers()
 
 bool ConnectionService::canExecuteOperation(ImmutableState* s)
 {
-   bool rval = false;
-   
-   // get permit counts for server and service
-   int serverPermits = mServer->getMaxConnectionCount();
-   int servicePermits = mMaxConnectionCount;
-   s->getInteger(SERVER_CONNECTION_PERMITS_KEY, serverPermits);
-   s->getInteger(mConnectionPermitsKey.c_str(), servicePermits);
-   
-   // subtract current connection counts
-   serverPermits = (mServer->getConnectionCount() > serverPermits) ?
-      0 : serverPermits -= mServer->getConnectionCount();
-   servicePermits = (mConnectionCount > servicePermits) ?
-      0 : servicePermits -= mConnectionCount;
-   
-   // can only execute if permits exist for both server and service
-   if(serverPermits > 0 && servicePermits > 0)
-   {
-      rval = true;
-   }
-   
-   return rval;
+   // can execute if server is running
+   return mServer->isRunning();
 }
 
 bool ConnectionService::mustCancelOperation(ImmutableState* s)
 {
-   // cancel accepting connections if server is no longer running
+   // must cancel if server is no longer running
    return !mServer->isRunning();
-}
-
-void ConnectionService::mutatePreExecutionState(State* s, Operation* op)
-{
-   // get permit counts for server and service
-   int serverPermits = mServer->getMaxConnectionCount();
-   int servicePermits = mMaxConnectionCount;
-   s->getInteger(SERVER_CONNECTION_PERMITS_KEY, serverPermits);
-   s->getInteger(mConnectionPermitsKey.c_str(), servicePermits);
-   
-   // decrement permits
-   s->setInteger(SERVER_CONNECTION_PERMITS_KEY, serverPermits - 1);
-   s->setInteger(mConnectionPermitsKey.c_str(), servicePermits - 1);
-}
-
-void ConnectionService::mutatePostExecutionState(State* s, Operation* op)
-{
-   // get permit counts for server and service
-   int serverPermits = mServer->getMaxConnectionCount();
-   int servicePermits = mMaxConnectionCount;
-   s->getInteger(SERVER_CONNECTION_PERMITS_KEY, serverPermits);
-   s->getInteger(mConnectionPermitsKey.c_str(), servicePermits);
-   
-   // increment permits
-   s->setInteger(SERVER_CONNECTION_PERMITS_KEY, serverPermits + 1);
-   s->setInteger(mConnectionPermitsKey.c_str(), servicePermits + 1);
 }
 
 void ConnectionService::run()
 {
-   // create a connection acceptor
-   ConnectionAcceptor ca(mSocket, this);
-   
    while(!mOperation->isInterrupted())
    {
-      // run accept operation
-      Operation op(&ca, this, this);
-      mServer->getKernel()->getEngine()->queue(&op);
+      // acquire service connection permit
+      if(mConnectionSemaphore.acquire() == NULL)
+      {
+         // acquire server connection permit
+         if(mServer->mConnectionSemaphore.acquire() == NULL)
+         {
+            Socket* s = mSocket->accept(0);
+            if(s != NULL)
+            {
+               // create Connection from the connected Socket
+               createConnection(s);
+            }
+            else
+            {
+               // release connection permits
+               mServer->mConnectionSemaphore.release();
+               mConnectionSemaphore.release();
+            }
+         }
+         else
+         {
+            // release service connection permit
+            mConnectionSemaphore.release();
+         }
+      }
       
       // prune running servicers, clean up workers
       mRunningServicers.prune();
       cleanupWorkers();
-      
-      // wait for operation to complete, do not allow interruptions
-      op.waitFor(false);
    }
    
    // close socket
@@ -212,6 +172,10 @@ void ConnectionService::createConnection(Socket* s)
       // close socket, data cannot be presented in standard format
       s->close();
       delete s;
+      
+      // release connection permits
+      mServer->mConnectionSemaphore.release();
+      mConnectionSemaphore.release();
    }
 }
 
@@ -226,16 +190,20 @@ void ConnectionService::serviceConnection(Connection* c)
    // decrease connection count
    mServer->mConnectionCount--;
    mConnectionCount--;
+   
+   // release connection permits
+   mServer->mConnectionSemaphore.release();
+   mConnectionSemaphore.release();
 }
 
 void ConnectionService::setMaxConnectionCount(unsigned int count)
 {
-   mMaxConnectionCount = count;
+   mConnectionSemaphore.setMaxPermitCount(count);
 }
 
 unsigned int ConnectionService::getMaxConnectionCount()
 {
-   return mMaxConnectionCount;
+   return mConnectionSemaphore.getMaxPermitCount();
 }
 
 unsigned int ConnectionService::getConnectionCount()

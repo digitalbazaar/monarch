@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Semaphore.h"
+#include "Thread.h"
 
 #include <cstdlib>
 
@@ -47,12 +48,9 @@ void Semaphore::decreasePermitsLeft(int decrease)
    unlock();
 }
 
-InterruptedException* Semaphore::waitThread()
+InterruptedException* Semaphore::waitThread(Thread* t)
 {
    InterruptedException* rval = NULL;
-   
-   // get the current thread
-   Thread* t = Thread::currentThread();
    
    // add thread to waiting threads
    addWaitingThread(t);
@@ -188,10 +186,11 @@ InterruptedException* Semaphore::acquire(int permits)
    InterruptedException* rval = NULL;
    
    // while there are not enough permits, wait for them
+   Thread* t = Thread::currentThread();
    while(rval == NULL && availablePermits() - permits < 0)
    {
       // wait thread
-      rval = waitThread();
+      rval = waitThread(t);
    }
    
    if(rval == NULL)

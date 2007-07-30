@@ -5,11 +5,11 @@
 #define db_net_ConnectionService_H
 
 #include "PortService.h"
+#include "Server.h"
 #include "OperationGuard.h"
-#include "StateMutator.h"
+#include "ConnectionServicer.h"
 #include "SocketDataPresenter.h"
 #include "OperationList.h"
-#include "ConnectionServicer.h"
 #include "ConnectionWorker.h"
 
 namespace db
@@ -30,8 +30,7 @@ namespace net
  */
 class ConnectionService :
 public PortService,
-public db::modest::OperationGuard,
-public db::modest::StateMutator
+public db::modest::OperationGuard
 {
 protected:
    /**
@@ -50,6 +49,11 @@ protected:
    Socket* mSocket;
    
    /**
+    * The connection semaphore for this service.
+    */
+   db::rt::Semaphore mConnectionSemaphore;
+   
+   /**
     * A list of Operations running ConnectionServicers.
     */
    db::modest::OperationList mRunningServicers;
@@ -60,19 +64,9 @@ protected:
    std::list<ConnectionWorker*> mWorkers;
    
    /**
-    * The maximum number of connections to handle.
-    */
-   unsigned int mMaxConnectionCount;
-   
-   /**
     * The current number of connections being handled.
     */
    unsigned int mConnectionCount;
-   
-   /**
-    * The connection permits key for this service.
-    */
-   std::string mConnectionPermitsKey;
    
    /**
     * Initializes this service and creates the Operation for running it. If
@@ -96,11 +90,6 @@ protected:
     * Cleans up any expired ConnectionWorkers.
     */
    virtual void cleanupWorkers();
-   
-   /**
-    * The server permits key.
-    */
-   static const char* SERVER_CONNECTION_PERMITS_KEY;
    
 public:
    /**
@@ -149,28 +138,6 @@ public:
     *         with this guard, false if not.
     */
    virtual bool mustCancelOperation(db::modest::ImmutableState* s);
-   
-   /**
-    * Alters the passed State directly before an Operation executes.
-    * 
-    * @param s the State to alter.
-    * @param op the Operation to be executed.
-    */
-   virtual void mutatePreExecutionState(
-      db::modest::State* s, db::modest::Operation* op);
-   
-   /**
-    * Alters the passed State directly after an Operation finishes or
-    * was canceled.
-    * 
-    * The passed Operation may be checked to see if it finished or was
-    * canceled, etc.
-    * 
-    * @param s the State to alter.
-    * @param op the Operation that finished or was canceled.
-    */
-   virtual void mutatePostExecutionState(
-      db::modest::State* s, db::modest::Operation* op);
    
    /**
     * Runs this ConnectionService.

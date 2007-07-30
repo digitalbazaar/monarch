@@ -57,6 +57,9 @@ bool JobDispatcher::pushJob(Runnable* job)
          // add the job to the queue
          mJobQueue.push_back(job);
          rval = true;
+         
+         // wake up dispatcher
+         wakeup();
       }
       unlock();
    }
@@ -83,17 +86,19 @@ Runnable* JobDispatcher::popJob()
    return rval;
 }
 
-bool JobDispatcher::canDispatch()
+void JobDispatcher::wakeup()
 {
-   bool rval = false;
-   
    lock();
    {
-      rval = !mJobQueue.empty();
+      // wake up dispatcher
+      notifyAll();
    }
    unlock();
-   
-   return rval;
+}
+
+bool JobDispatcher::canDispatch()
+{
+   return mJobQueue.empty();
 }
 
 list<Runnable*>::iterator JobDispatcher::getJobIterator()
@@ -117,6 +122,9 @@ void JobDispatcher::dequeueJob(Runnable* job)
    lock();
    {
       mJobQueue.remove(job);
+      
+      // wake up dispatcher in case jobs can be dispatched
+      wakeup();
    }
    unlock();
 }
@@ -208,15 +216,17 @@ void JobDispatcher::run()
    Thread* t = Thread::currentThread();
    while(!t->isInterrupted())
    {
-      // see if jobs can dispatch
+      //lock();
       if(canDispatch())
       {
-         // dispatch jobs
+         //unlock();
          dispatchJobs();
       }
       else
       {
          Thread::sleep(1);
+         //wait();
+         //unlock();
       }
    }
 }
