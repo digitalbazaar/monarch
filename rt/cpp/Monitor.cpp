@@ -99,15 +99,15 @@ void Monitor::wait(unsigned long timeout)
       unsigned long nsecs = timeout % 1000UL * 1000000UL;
       
       struct timeval now;
-      struct timespec timeout;
+      struct timespec to;
       gettimeofday(&now, NULL);
       
       // add timeout to current time (1 microsecond = 1000 nanoseconds)
-      timeout.tv_sec = now.tv_sec + secs;
-      timeout.tv_nsec = now.tv_usec * 1000UL + nsecs;
+      to.tv_sec = now.tv_sec + secs;
+      to.tv_nsec = now.tv_usec * 1000UL + nsecs;
       
       // do timed wait
-      int rc = pthread_cond_timedwait(&mWaitCondition, &mWaitMutex, &timeout);
+      int rc = pthread_cond_timedwait(&mWaitCondition, &mWaitMutex, &to);
       if(rc == ETIMEDOUT)
       {
          // timeout reached
