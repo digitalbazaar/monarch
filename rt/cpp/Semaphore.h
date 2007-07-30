@@ -45,12 +45,6 @@ protected:
    std::list<Thread*> mWaitingThreads;
    
    /**
-    * The lock object. This is the object to synchronize on when
-    * calling wait() or notify(). 
-    */
-   Object mLockObject;
-   
-   /**
     * Increases the number of permits left by the specified number if
     * an increase by that number would not exceed the maximum permit count.
     * Otherwise the number of permits left will be set to the maximum

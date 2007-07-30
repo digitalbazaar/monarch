@@ -27,33 +27,33 @@ bool Object::equals(const Object& obj) const
    return rval;
 }
 
-void Object::lock()
+inline void Object::lock()
 {
    mMonitor.enter();
 }
 
-void Object::unlock()
+inline void Object::unlock()
 {
    mMonitor.exit();
 }
 
-void Object::notify()
+inline void Object::notify()
 {
    mMonitor.notify();
 }
 
-void Object::notifyAll()
+inline void Object::notifyAll()
 {
    mMonitor.notify();
 }
 
-InterruptedException* Object::wait(unsigned long timeout)
+inline InterruptedException* Object::wait(unsigned long timeout)
 {
    // instruct the current thread to wait to enter this Object's monitor
    return Thread::waitToEnter(&mMonitor, timeout);
 }
 
-bool Object::operator==(const Object &rhs) const
+inline bool Object::operator==(const Object &rhs) const
 {
    return equals(rhs);
 }

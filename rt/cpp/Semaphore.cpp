@@ -25,153 +25,111 @@ Semaphore::~Semaphore()
 
 int Semaphore::increasePermitsLeft(int increase)
 {
-   lock();
-   {
-      // only increase, at most, by the difference between the
-      // max permit count and the permits left
-      int permits = mPermits - mPermitsLeft;
-      increase = (permits < increase) ? permits : increase;
-      
-      mPermitsLeft += increase;
-   }
-   unlock();
+   // only increase, at most, by the difference between the
+   // max permit count and the permits left
+   int permits = mPermits - mPermitsLeft;
+   increase = (permits < increase) ? permits : increase;
+   mPermitsLeft += increase;
    
    return increase;
 }
 
 void Semaphore::decreasePermitsLeft(int decrease)
 {
-   lock();
-   {
-      mPermitsLeft -= decrease;
-   }
-   unlock();
+   mPermitsLeft -= decrease;
 }
 
 InterruptedException* Semaphore::waitThread(Thread* t)
 {
    InterruptedException* rval = NULL;
    
-   // add thread to waiting threads
+   // add waiting thread
    addWaitingThread(t);
    
-   // synchronize on lock object
-   mLockObject.lock();
+   // wait while not interrupted and in the list of waiting threads
+   while(rval == NULL && mustWait(t))
    {
-      // wait while in the list of waiting threads
-      while(rval == NULL && mustWait(t))
+      if((rval = wait()) != NULL)
       {
-         if((rval = mLockObject.wait()) != NULL)
-         {
-            // thread has been interrupted, so notify other waiting
-            // threads and remove this thread from the wait list
-            notifyThreads();
-            removeWaitingThread(t);
-         }
+         // thread has been interrupted, so notify other waiting
+         // threads and remove this thread from the wait list
+         notifyThreads();
+         removeWaitingThread(t);
       }
    }
-   mLockObject.unlock();
    
    return rval;
 }
 
 void Semaphore::notifyThreads()
 {
-   lock();
+   if(isFair())
    {
-      if(isFair())
-      {
-         // remove the first waiting thread
-         removeFirstWaitingThread();
-      }
-      else
-      {
-         // remove a random waiting thread
-         removeRandomWaitingThread();
-      }
-      
-      // notify all threads to wake up
-      mLockObject.lock();
-      {
-         mLockObject.notifyAll();
-      }
-      mLockObject.unlock();
+      // remove the first waiting thread
+      removeFirstWaitingThread();
    }
-   unlock();
+   else
+   {
+      // remove a random waiting thread
+      removeRandomWaitingThread();
+   }
+   
+   // notify all threads to wake up
+   notifyAll();
 }
 
 void Semaphore::addWaitingThread(Thread* thread)
 {
-   lock();
+   // if this thread isn't in the wait queue, add it
+   list<Thread*>::iterator i =
+      find(mWaitingThreads.begin(), mWaitingThreads.end(), thread);
+   if(i == mWaitingThreads.end())
    {
-      // if this thread isn't in the wait queue, add it
-      list<Thread*>::iterator i =
-         find(mWaitingThreads.begin(), mWaitingThreads.end(), thread);
-      if(i == mWaitingThreads.end())
-      {
-         mWaitingThreads.push_back(thread);
-      }
+      mWaitingThreads.push_back(thread);
    }
-   unlock();
 }
 
 void Semaphore::removeWaitingThread(Thread* thread)
 {
-   lock();
-   {
-      // remove thread
-      mWaitingThreads.remove(thread);
-   }
-   unlock();
+   // remove thread
+   mWaitingThreads.remove(thread);
 }
 
 void Semaphore::removeFirstWaitingThread()
 {
-   lock();
+   if(!mWaitingThreads.empty())
    {
-      if(mWaitingThreads.size() > 0)
-      {
-         // remove first thread
-         mWaitingThreads.pop_front();
-      }
+      // remove first thread
+      mWaitingThreads.pop_front();
    }
-   unlock();
 }
 
 void Semaphore::removeRandomWaitingThread()
 {
-   lock();
+   if(!mWaitingThreads.empty())
    {
-      if(mWaitingThreads.size() > 0)
-      {
-         // get a random index
-         unsigned int index = rand() % mWaitingThreads.size();
-         list<Thread*>::iterator i = mWaitingThreads.begin();
-         for(unsigned int count = 0;
-             count < index && i != mWaitingThreads.end(); i++, count++);
-         
-         // remove thread
-         mWaitingThreads.erase(i);
-      }
+      // get a random index
+      unsigned int index = rand() % mWaitingThreads.size();
+      list<Thread*>::iterator i = mWaitingThreads.begin();
+      for(unsigned int count = 0;
+          count < index && i != mWaitingThreads.end(); i++, count++);
+      
+      // remove thread
+      mWaitingThreads.erase(i);
    }
-   unlock();
 }
 
 bool Semaphore::mustWait(Thread* thread)
 {
    bool rval = false;
    
-   lock();
+   list<Thread*>::iterator i =
+      find(mWaitingThreads.begin(), mWaitingThreads.end(), thread);
+   if(i != mWaitingThreads.end())
    {
-      list<Thread*>::iterator i =
-         find(mWaitingThreads.begin(), mWaitingThreads.end(), thread);
-      if(i != mWaitingThreads.end())
-      {
-         // thread is in the wait list
-         rval = true;
-      }
+      // thread is in the wait list
+      rval = true;
    }
-   unlock();
    
    return rval;
 }
@@ -185,19 +143,23 @@ InterruptedException* Semaphore::acquire(int permits)
 {
    InterruptedException* rval = NULL;
    
-   // while there are not enough permits, wait for them
-   Thread* t = Thread::currentThread();
-   while(rval == NULL && availablePermits() - permits < 0)
+   lock();
    {
-      // wait thread
-      rval = waitThread(t);
+      // see if enough permits are available
+      Thread* t = Thread::currentThread();
+      while(rval == NULL && availablePermits() - permits < 0)
+      {
+         // must wait for permits
+         rval = waitThread(t);
+      }
+      
+      if(rval == NULL)
+      {
+         // permits have been granted, decrease permits left
+         decreasePermitsLeft(permits);
+      }
    }
-   
-   if(rval == NULL)
-   {
-      // permits have been granted, decrease permits left
-      decreasePermitsLeft(permits);
-   }
+   unlock();
    
    return rval;
 }
@@ -248,8 +210,8 @@ int Semaphore::release(int permits)
    {
       // increase the number of permits left
       rval = increasePermitsLeft(permits);
-   
-      // if fair, notify in order, otherwise notify all
+      
+      // notify threads for number of permits
       for(int i = 0; i < permits; i++)
       {
          // notify threads
@@ -283,36 +245,32 @@ const list<Thread*>& Semaphore::getQueuedThreads()
 
 int Semaphore::getQueueLength()
 {
-   int rval = 0;
-   
-   lock();
-   {
-      rval = mWaitingThreads.size();
-   }
-   unlock();
-   
-   return rval;
+   return mWaitingThreads.size();
 }
 
 void Semaphore::setMaxPermitCount(int max)
 {
-   // store old permit count
-   int oldPermitCount = getMaxPermitCount();
-   
-   // set new permit count
-   mPermits = max;
-   
-   // release more permits or decrease permits left
-   if(max > oldPermitCount)
+   lock();
    {
-      // release used permits
-      release(max - oldPermitCount);
+      // store old permit count
+      int oldPermitCount = getMaxPermitCount();
+      
+      // set new permit count
+      mPermits = max;
+      
+      // release more permits or decrease permits left
+      if(max > oldPermitCount)
+      {
+         // release used permits
+         release(max - oldPermitCount);
+      }
+      else
+      {
+         // decrease permits left
+         decreasePermitsLeft(oldPermitCount - max);
+      }
    }
-   else
-   {
-      // decrease permits left
-      decreasePermitsLeft(oldPermitCount - max);
-   }
+   unlock();
 }
 
 int Semaphore::getMaxPermitCount()

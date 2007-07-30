@@ -272,18 +272,26 @@ void runJobThreadPoolTest()
 {
    cout << "Running JobThreadPool Test" << endl << endl;
    
-   // create a job thread pool with 10 threads
-   JobThreadPool pool(10);
+   // create a job thread pool
+   JobThreadPool pool(3);
    
    // create jobs
    TestJob job1("1");
+   TestJob job2("2");
+   TestJob job3("3");
+   TestJob job4("4");
+   TestJob job5("5");
    
    // run jobs
    pool.runJob(&job1);
+   pool.runJob(&job2);
+   pool.runJob(&job3);
+   pool.runJob(&job4);
+   pool.runJob(&job5);
    
    // wait
    cout << "Waiting for jobs to complete..." << endl;
-   Thread::sleep(100);
+   Thread::sleep(10000);
    cout << "Finished waiting for jobs to complete." << endl;
    
    // terminate all jobs
@@ -1993,7 +2001,7 @@ void runServerConnectionTest()
    
    // create server
    Server server(&k);
-   InternetAddress address("localhost", 19100);
+   InternetAddress address("0.0.0.0", 19100);
    
    // create generic service
    TestConnectionServicer1 tcs1;
@@ -2033,6 +2041,7 @@ void runServerConnectionTest()
    Object lock;
    lock.lock();
    {
+      //lock.wait();//lock.wait(120000);
       lock.wait(30000);
    }
    lock.unlock();
