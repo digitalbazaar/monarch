@@ -55,7 +55,7 @@ Operation* ConnectionService::initialize()
    if(mSocket->bind(getAddress()) && mSocket->listen())
    {
       // create Operation for running service
-      rval = new Operation(this, this, this);
+      rval = new Operation(this, NULL, NULL);
    }
    
    return rval;
