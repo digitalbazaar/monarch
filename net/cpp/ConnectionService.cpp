@@ -98,13 +98,18 @@ void ConnectionService::run()
 {
    while(!mOperation->isInterrupted())
    {
+      // prune running servicers, clean up workers
+      mRunningServicers.prune();
+      cleanupWorkers();
+      
       // acquire service connection permit
       if(mConnectionSemaphore.acquire() == NULL)
       {
          // acquire server connection permit
          if(mServer->mConnectionSemaphore.acquire() == NULL)
          {
-            Socket* s = mSocket->accept(0);
+            // wait for 5 seconds for a connection
+            Socket* s = mSocket->accept(5);
             if(s != NULL)
             {
                // create Connection from the connected Socket
@@ -123,10 +128,6 @@ void ConnectionService::run()
             mConnectionSemaphore.release();
          }
       }
-      
-      // prune running servicers, clean up workers
-      mRunningServicers.prune();
-      cleanupWorkers();
    }
    
    // close socket

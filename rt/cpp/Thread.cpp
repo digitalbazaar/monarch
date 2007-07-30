@@ -460,7 +460,7 @@ int Thread::select(bool read, unsigned int fd, long long timeout)
    int n = fd + 1;
    
    // keep selecting (polling) until timeout is reached
-   long long remaining = (timeout <= 0) ? 1 : timeout;
+   long long remaining = (timeout <= 0) ? 10LL : timeout;
    
    struct timeval to;
    if(timeout < 0)
@@ -473,14 +473,14 @@ int Thread::select(bool read, unsigned int fd, long long timeout)
    {
       // create 10 millisecond timeout (1 millisecond is 1000 microseconds)
       to.tv_sec = 0;
-      to.tv_usec = (10000LL < remaining ? remaining : 10000LL);
+      to.tv_usec = (remaining < 10LL ? remaining * 1000LL : 10000LL);
    }
    
    unsigned long long start = System::getCurrentMilliseconds();
    unsigned long long end;
    
    Thread* t = Thread::currentThread();
-   while(!t->isInterrupted() && remaining > 0 && rval == 0)
+   while(remaining > 0 && rval == 0 && !t->isInterrupted())
    {
       // wait for file descriptors to be updated
       if(read)
@@ -494,23 +494,18 @@ int Thread::select(bool read, unsigned int fd, long long timeout)
          rval = ::select(n, NULL, &fds, &fds, &to);
       }
       
-      if(rval < 0)
+      if(rval < 0 && errno == 0)
       {
-         if(errno == EINTR)
-         {
-            // interrupt thread
-            t->interrupt();
-         }
-         else if(errno == 0)
-         {
-            // no error, just timed out
-            rval = 0;
-         }
+         // no error, just timed out
+         rval = 0;
+         
+         // NOTE: select() may EINTR here but it is up to
+         // the calling method to determine what to do about it
       }
       
       // select() implementation may alter sets or timeout, so reset them
-      // if calling select() again
-      if(remaining > 0 && rval == 0 && timeout >= 0)
+      // if calling select() again (not interrupted and timeout >= 0)
+      if(rval == 0 && timeout >= 0)
       {
          // clear set and re-add file descriptor
          FD_ZERO(&fds);
@@ -527,7 +522,7 @@ int Thread::select(bool read, unsigned int fd, long long timeout)
          end = System::getCurrentMilliseconds();
          remaining -= (end - start);
          start = end;
-         to.tv_usec = (10000LL < remaining ? remaining : 10000LL);
+         to.tv_usec = (remaining < 10LL ? remaining * 1000LL : 10000LL);
       }
    }
    
@@ -622,7 +617,7 @@ int Thread::select(
    }
    
    // keep selecting (polling) until timeout is reached
-   long long remaining = (timeout <= 0) ? 1 : timeout;
+   long long remaining = (timeout <= 0) ? 1LL : timeout;
    
    struct timeval to;
    if(timeout < 0)
@@ -646,23 +641,19 @@ int Thread::select(
    {
       // wait for file descriptors to be updated
       rval = ::select(nfds, readfds, writefds, exceptfds, &to);
-      if(rval < 0)
+      
+      if(rval < 0 && errno == 0)
       {
-         if(errno == EINTR)
-         {
-            // interrupt thread
-            t->interrupt();
-         }
-         else if(errno == 0)
-         {
-            // no error, just timed out
-            rval = 0;
-         }
+         // no error, just timed out
+         rval = 0;
+         
+         // NOTE: select() may return EINTR but it is up to
+         // the calling method to determine what to do about it
       }
       
       // select() implementation may alter sets or timeout, so reset them
       // if calling select() again
-      if(remaining > 0 && rval == 0 && timeout >= 0)
+      if(rval == 0 && timeout >= 0)
       {
          // reset file descriptor sets
          if(readfds != NULL)

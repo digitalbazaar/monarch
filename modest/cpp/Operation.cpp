@@ -84,6 +84,18 @@ void Operation::interrupt()
 
 bool Operation::isInterrupted()
 {
+   if(!mInterrupted)
+   {
+      lock();
+      {
+         if(mThread != NULL)
+         {
+            mInterrupted = mThread->isInterrupted();
+         }
+      }
+      unlock();
+   }
+   
    return mInterrupted;
 }
 

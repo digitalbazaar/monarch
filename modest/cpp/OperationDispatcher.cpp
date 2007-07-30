@@ -108,9 +108,6 @@ void OperationDispatcher::cleanupExpiredExecutors()
       }
    }
    mExpiredExecutorsLock.unlock();
-   
-   // wake up dispatcher
-   wakeup();
 }
 
 void OperationDispatcher::queueOperation(OperationExecutor* e)
@@ -182,6 +179,9 @@ void OperationDispatcher::clearQueuedOperations()
       mExpiredExecutorsLock.unlock();
    }
    unlock();
+   
+   // wake up dispatcher
+   wakeup();
 }
 
 void OperationDispatcher::terminateRunningOperations()
@@ -190,6 +190,9 @@ void OperationDispatcher::terminateRunningOperations()
    
    // clean up any expired executors
    cleanupExpiredExecutors();
+   
+   // wake up dispatcher
+   wakeup();
 }
 
 void OperationDispatcher::addExpiredExecutor(OperationExecutor* e)
