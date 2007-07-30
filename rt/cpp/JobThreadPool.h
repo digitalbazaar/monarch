@@ -8,6 +8,7 @@
 #include "Semaphore.h"
 #include "JobThread.h"
 
+#include <list>
 #include <vector>
 
 namespace db
@@ -33,41 +34,24 @@ protected:
    Semaphore mThreadSemaphore;
    
    /**
-    * The list of threads in this pool. This is the list of total threads
-    * in this pool.
+    * The list of all threads in this pool.
     */
-   std::vector<JobThread*> mThreads;
+   std::list<JobThread*> mThreads;
+   
+   /**
+    * The list of idle threads in this pool.
+    */
+   std::list<JobThread*> mIdleThreads;
+   
+   /**
+    * A lock for modifying the thread lists.
+    */
+   Object mListLock;
    
    /**
     * The expire time for JobThreads (in milliseconds).
     */
    unsigned long long mJobThreadExpireTime;
-   
-   /**
-    * Acquires a thread permit for running a job.
-    * 
-    * This method will lock until an available thread is acquired or
-    * the current thread is interrupted.
-    * 
-    * @return an InterruptedException if the current thread is interrupted
-    *         while waiting for a thread to run a job, NULL otherwise.
-    */
-   virtual InterruptedException* acquireThreadPermit();
-   
-   /**
-    * Tries to acquire a thread permit for running a job. If a permit
-    * can be acquired, it will be. This method will not block.
-    * 
-    * @return true if a permit was acquired, false if not.
-    */
-   virtual bool tryAcquireThreadPermit();
-   
-   /**
-    * Creates a new JobThread.
-    * 
-    * @return the new JobThread.
-    */
-   virtual JobThread* createJobThread();
    
    /**
     * Gets an idle thread. This method will also clean up any extra
@@ -81,6 +65,13 @@ protected:
     * @return an idle thread.
     */
    virtual JobThread* getIdleThread();
+   
+   /**
+    * Removes up to the passed number of idle threads.
+    * 
+    * @param count the maximum number of idle threads to remove.
+    */
+   virtual void removeIdleThreads(unsigned int count);
    
    /**
     * Runs the passed Runnable job on an idle JobThread.
@@ -105,26 +96,6 @@ public:
    virtual ~JobThreadPool();
    
    /**
-    * Sets the number of threads in this thread pool. If a size of
-    * 0 is specified, than there will be no limit to the number of
-    * threads in this pool.
-    * 
-    * @param size the number of threads in this thread pool. A size
-    *             of 0 specifies an unlimited number of threads.
-    */
-   virtual void setPoolSize(unsigned int size);
-   
-   /**
-    * Gets the number of threads in this thread pool. If a size of
-    * 0 is returned, than there is no limit to the number of threads
-    * in this pool.
-    * 
-    * @return the number of threads in this thread pool. A size
-    *         of 0 specifies an unlimited number of threads.
-    */
-   virtual unsigned int getPoolSize();
-   
-   /**
     * Tries to run the passed Runnable job on an available JobThread. If a
     * thread is available, this method will return true. If not, this method
     * will not block, but will instead return false.
@@ -146,6 +117,13 @@ public:
    virtual void runJob(Runnable* job);
    
    /**
+    * Called by a JobThread when it completes its job.
+    * 
+    * @param t the JobThread that completed its job.
+    */
+   virtual void jobCompleted(JobThread* t);
+   
+   /**
     * Interrupts all threads in this pool.
     */
    virtual void interruptAllThreads();
@@ -154,6 +132,26 @@ public:
     * Interrupts all threads in this pool, joins, and removes them.
     */
    virtual void terminateAllThreads();
+   
+   /**
+    * Sets the number of threads in this thread pool. If a size of
+    * 0 is specified, than there will be no limit to the number of
+    * threads in this pool.
+    * 
+    * @param size the number of threads in this thread pool. A size
+    *             of 0 specifies an unlimited number of threads.
+    */
+   virtual void setPoolSize(unsigned int size);
+   
+   /**
+    * Gets the number of threads in this thread pool. If a size of
+    * 0 is returned, than there is no limit to the number of threads
+    * in this pool.
+    * 
+    * @return the number of threads in this thread pool. A size
+    *         of 0 specifies an unlimited number of threads.
+    */
+   virtual unsigned int getPoolSize();
    
    /**
     * Sets the expire time for all JobThreads.

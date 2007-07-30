@@ -2,16 +2,16 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "JobThread.h"
+#include "JobThreadPool.h"
 #include "System.h"
 
 using namespace db::rt;
 
 JobThread::JobThread(unsigned long long expireTime) : Thread(this)
 {
-   // no Runnable job to run yet
+   // no job to run yet
    mJob = NULL;
-   mSemaphore = NULL;
-   mPermits = 0;
+   mThreadPool = NULL;
    
    // sets the expire time for this thread
    setExpireTime(expireTime);
@@ -50,14 +50,13 @@ void JobThread::goIdle()
    unlock();
 }
 
-void JobThread::setJob(Runnable* job, Semaphore* semaphore, int permits)
+void JobThread::setJob(Runnable* job, JobThreadPool* pool)
 {
    lock();
    {
-      // set job, semaphore, and permits
+      // set job and pool
       mJob = job;
-      mSemaphore = semaphore;
-      mPermits = permits;
+      mThreadPool = pool;
       
       if(job != NULL)
       {
@@ -72,25 +71,16 @@ void JobThread::run()
 {
    while(!isInterrupted())
    {
-      // get the Runnable job to run
-      Runnable* job = mJob;
-      if(job != NULL)
+      if(hasJob())
       {
          // run job
-         job->run();
+         mJob->run();
          
-         lock();
+         // notify pool that job is complete
+         if(mThreadPool != NULL)
          {
-            // release permits for job
-            if(mSemaphore != NULL)
-            {
-               mSemaphore->release(mPermits);
-            }
-            
-            // thread no longer has job
-            setJob(NULL, NULL, 0);
+            mThreadPool->jobCompleted(this);
          }
-         unlock();
       }
       else
       {
@@ -111,11 +101,6 @@ bool JobThread::hasJob()
    unlock();
    
    return rval;
-}
-
-bool JobThread::isIdle()
-{
-   return !hasJob();
 }
 
 void JobThread::setExpireTime(unsigned long long expireTime)

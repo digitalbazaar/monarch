@@ -10,10 +10,7 @@ JobThreadPool::JobThreadPool(unsigned int poolSize) :
    mThreadSemaphore(poolSize, true)
 {
    // default JobThread expire time to 0 (no expiration)
-   setJobThreadExpireTime(0);
-   
-   // set the pool size (number of threads)
-   setPoolSize(poolSize);
+   mJobThreadExpireTime = 0;
 }
 
 JobThreadPool::~JobThreadPool()
@@ -22,146 +19,196 @@ JobThreadPool::~JobThreadPool()
    terminateAllThreads();
 }
 
-InterruptedException* JobThreadPool::acquireThreadPermit()
-{
-   InterruptedException* rval = NULL;
-   
-   // If this pool allows an infinite number of threads, then
-   // the number of permits will be zero -- since threads are
-   // always permitted. Therefore, only try to acquire a
-   // permit if there are more than 0 permits -- otherwise a
-   // permit is automatically granted.
-   if(mThreadSemaphore.getMaxPermitCount() != 0)
-   {
-      rval = mThreadSemaphore.acquire();
-   }
-   
-   return rval;
-}
-
-bool JobThreadPool::tryAcquireThreadPermit()
-{
-   bool rval = true;
-   
-   // only try to acquire a permit if infinite threads
-   // is not enable
-   if(mThreadSemaphore.getMaxPermitCount() != 0)
-   {
-      rval = mThreadSemaphore.tryAcquire();
-   }
-   
-   return rval;
-}
-
-JobThread* JobThreadPool::createJobThread()
-{
-   // create job thread
-   return new JobThread(getJobThreadExpireTime());
-}
-
 JobThread* JobThreadPool::getIdleThread()
 {
    JobThread* rval = NULL;
    
-   // synchronize
-   lock();
+   mListLock.lock();
    {
-      // get the number of extra threads
-      int extraThreads = 0;
-      if(mThreadSemaphore.getMaxPermitCount() > 0)
+      if(!mIdleThreads.empty())
       {
-         extraThreads = mThreads.size() - mThreadSemaphore.getMaxPermitCount();
+         // grab the first idle thread
+         rval = mIdleThreads.front();
+         mIdleThreads.pop_front();
       }
-      
-      // iterate through threads, find one that is idle
-      for(vector<JobThread*>::iterator i = mThreads.begin();
-          i != mThreads.end();)
+      else
       {
-         JobThread* thread = *i;
-         if(thread->isIdle())
-         {
-            // if the thread is not alive, remove it and continue on
-            if(!thread->isAlive())
-            {
-               // remove thread
-               i = mThreads.erase(i);
-               delete thread;
-               
-               // decrement extra threads
-               extraThreads--;
-            }
-            else
-            {
-               // if there are extra idle threads, interrupt this idle one
-               if(extraThreads > 0)
-               {
-                  // interrupt thread
-                  thread->interrupt();
-                  
-                  // detach thread
-                  thread->detach();
-                  
-                  // decrement extra threads
-                  extraThreads--;
-                  
-                  // move to next thread
-                  i++;
-               }
-               else
-               {
-                  if(rval == NULL)
-                  {
-                     // return this thread
-                     rval = thread;
-                  }
-                  
-                  // move to the next thread
-                  i++;
-               }
-            }
-         }
-         else
-         {
-            // move to the next thread
-            i++;
-         }
-      }
-      
-      // if no idle thread was found
-      if(rval == NULL)
-      {
-         // create new job thread
-         rval = createJobThread();
-         
-         // add thread to pool
+         // create new job thread and add to thread list
+         rval = new JobThread(getJobThreadExpireTime());
          mThreads.push_back(rval);
-         
-         // start the thread
-         rval->start();
       }
    }
-   unlock();
+   mListLock.unlock();
+   
+   // clean up extra threads if applicable
+   if(!mIdleThreads.empty() && mThreadSemaphore.getMaxPermitCount() > 0)
+   {
+      // get the number of extra threads
+      int extraThreads =
+         mThreads.size() - mThreadSemaphore.getMaxPermitCount();
+      
+      // remove extra idle threads
+      if(extraThreads > 0)
+      {
+         removeIdleThreads((unsigned int)extraThreads);
+      }
+   }
    
    return rval;
 }
 
+void JobThreadPool::removeIdleThreads(unsigned int count)
+{
+   if(!mIdleThreads.empty())
+   {
+      list<JobThread*> temp;
+      
+      mListLock.lock();
+      {
+         for(list<JobThread*>::iterator i = mIdleThreads.begin();
+             count > 0 && i != mIdleThreads.end(); count--)
+         {
+            // interrupt and erase threads
+            JobThread* t = *i;
+            t->interrupt();
+            i = mIdleThreads.erase(i);
+            mThreads.remove(t);
+            temp.push_back(t);
+         }
+      }
+      mListLock.unlock();
+      
+      // join and clean up threads
+      for(list<JobThread*>::iterator i = temp.begin(); i != temp.end(); i++)
+      {
+         (*i)->join();
+         delete (*i);
+      }
+   }
+}
+
 void JobThreadPool::runJobOnIdleThread(Runnable* job)
 {
-   // synchronize
    lock();
    {
       // get an idle thread
-      JobThread* thread = getIdleThread();
+      JobThread* t = getIdleThread();
       
       // set job
-      thread->setJob(job, &mThreadSemaphore, 1);
+      t->setJob(job, this);
+      
+      // if the thread hasn't started yet, start it
+      if(!t->hasStarted())
+      {
+         t->start();
+      }
+   }
+   unlock();
+}
+
+bool JobThreadPool::tryRunJob(Runnable* job)
+{
+   bool rval = false;
+   
+   if(job != NULL)
+   {
+      // only try to acquire a permit if infinite threads is not enabled
+      rval = true;
+      if(mThreadSemaphore.getMaxPermitCount() != 0)
+      {
+         rval = mThreadSemaphore.tryAcquire();
+      }
+      
+      if(rval)
+      {
+         // run the job on an idle thread
+         runJobOnIdleThread(job);
+      }
+   }
+   
+   return rval;
+}
+
+void JobThreadPool::runJob(Runnable* job)
+{
+   if(job != NULL)
+   {
+      // only acquire a permit if infinite threads is not enabled
+      bool permitAcquired = true;
+      if(mThreadSemaphore.getMaxPermitCount() != 0)
+      {
+         permitAcquired = (mThreadSemaphore.acquire() == NULL);
+      }
+      
+      if(permitAcquired)
+      {
+         // run the job on an idle thread
+         runJobOnIdleThread(job);
+      }
+   }
+}
+
+void JobThreadPool::jobCompleted(JobThread* t)
+{
+   // clear the thread's job
+   t->setJob(NULL, NULL);
+   
+   mListLock.lock();
+   {
+      // add the job to the front of the idle list, so it is more
+      // likely to get assigned immediately
+      mIdleThreads.push_front(t);
+   }
+   mListLock.unlock();
+   
+   // release thread permit
+   mThreadSemaphore.release();
+}
+
+void JobThreadPool::interruptAllThreads()
+{
+   lock();
+   {
+      mListLock.lock();
+      {
+         // interrupt all threads
+         for(list<JobThread*>::iterator i = mThreads.begin();
+             i != mThreads.end(); i++)
+         {
+            (*i)->interrupt();
+         }
+      }
+      mListLock.unlock();
+   }
+   unlock();
+}
+
+void JobThreadPool::terminateAllThreads()
+{
+   lock();
+   {
+      // interrupt all the threads
+      interruptAllThreads();
+      
+      // join and remove all threads
+      for(list<JobThread*>::iterator i = mThreads.begin();
+          i != mThreads.end();)
+      {
+         JobThread* t = *i;
+         i = mThreads.erase(i);
+         t->join();
+         delete t;
+      }
+      
+      // clear threads
+      mThreads.clear();
+      mIdleThreads.clear();
    }
    unlock();
 }
 
 void JobThreadPool::setPoolSize(unsigned int size)
 {
-   // synchronize
    lock();
    {
       // Note: threads are created lazily so if the thread pool size
@@ -173,32 +220,7 @@ void JobThreadPool::setPoolSize(unsigned int size)
       // remove threads as necessary
       if(mThreads.size() > size && size != 0)
       {
-         // get number of threads to remove
-         int removeCount = mThreads.size() - size;
-         
-         // iterate through threads, remove idle threads
-         for(vector<JobThread*>::iterator i = mThreads.begin();
-             i != mThreads.end() && removeCount > 0; i++)
-         {
-            JobThread* thread = *i;
-            
-            // if thread is idle, terminate it and remove it
-            if(thread->isIdle())
-            {
-               // interrupt thread
-               thread->interrupt();
-               
-               // detach thread
-               thread->detach();
-               
-               // remove it from the pool
-               i = mThreads.erase(i);
-               delete thread;
-               
-               // decrement remove count
-               removeCount--;
-            }
-         }
+         removeIdleThreads(mThreads.size() - size);
       }
       
       // set semaphore permits
@@ -212,94 +234,22 @@ unsigned int JobThreadPool::getPoolSize()
    return mThreadSemaphore.getMaxPermitCount();
 }
 
-bool JobThreadPool::tryRunJob(Runnable* job)
-{
-   bool rval = false;
-   
-   if(job != NULL)
-   {
-      if(tryAcquireThreadPermit())
-      {
-         // permit acquired
-         rval = true;
-         
-         // run the job on an idle thread
-         runJobOnIdleThread(job);
-      }
-   }
-   
-   return rval;
-}
-
-void JobThreadPool::runJob(Runnable* job)
-{
-   if(job != NULL)
-   {
-      // acquire a thread permit
-      if(acquireThreadPermit() == NULL)
-      {
-         // run the job on an idle thread
-         runJobOnIdleThread(job);
-      }
-   }
-}
-
-void JobThreadPool::interruptAllThreads()
-{
-   // synchronize
-   lock();
-   {
-      // iterate through all threads, interrupt each
-      for(vector<JobThread*>::iterator i = mThreads.begin();
-          i != mThreads.end(); i++)
-      {
-         // interrupt thread
-         JobThread* thread = *i;
-         thread->interrupt();
-      }
-   }
-   unlock();
-}
-
-void JobThreadPool::terminateAllThreads()
-{
-   // interrupt all the threads
-   interruptAllThreads();
-   
-   // synchronize
-   lock();
-   {
-      // iterate through all threads, join and remove them
-      for(vector<JobThread*>::iterator i = mThreads.begin();
-          i != mThreads.end();)
-      {
-         // join and remove thread
-         JobThread* thread = *i;
-         thread->join();
-         i = mThreads.erase(i);
-         delete thread;
-      }
-      
-      // clear threads
-      mThreads.clear();
-   }
-   unlock();
-}
-
 void JobThreadPool::setJobThreadExpireTime(unsigned long long expireTime)
 {
-   // synchronize
    lock();
    {
       mJobThreadExpireTime = expireTime;
       
-      // update all existing job threads
-      for(vector<JobThread*>::iterator i = mThreads.begin();
-          i != mThreads.end(); i++)
+      mListLock.lock();
       {
-         JobThread* thread = *i;
-         thread->setExpireTime(expireTime);
+         // update all existing job threads
+         for(list<JobThread*>::iterator i = mThreads.begin();
+             i != mThreads.end(); i++)
+         {
+            (*i)->setExpireTime(expireTime);
+         }
       }
+      mListLock.unlock();
    }
    unlock();
 }
@@ -311,47 +261,24 @@ unsigned long long JobThreadPool::getJobThreadExpireTime()
 
 unsigned int JobThreadPool::getJobThreadCount()
 {
-   unsigned int rval = 0;
-   
-   // synchronize
-   lock();
-   {
-      rval = mThreads.size();
-   }
-   unlock();
-   
-   return rval;
+   return mThreads.size();
 }
 
 unsigned int JobThreadPool::getRunningJobThreadCount()
 {
    unsigned int rval = 0;
    
-   // subtract idle threads from total threads
-   rval = getJobThreadCount() - getIdleJobThreadCount();
+   mListLock.lock();
+   {
+      // subtract idle threads from total threads
+      rval = mThreads.size() - mIdleThreads.size();
+   }
+   mListLock.unlock();
    
    return rval;
 }
 
 unsigned int JobThreadPool::getIdleJobThreadCount()
 {
-   unsigned int rval = 0;
-   
-   // synchronize
-   lock();
-   {
-      // iterate through all threads, add up idle threads
-      for(vector<JobThread*>::iterator i = mThreads.begin();
-          i != mThreads.end(); i++)
-      {
-         JobThread* thread = *i;
-         if(thread->isIdle())
-         {
-            rval++;
-         }
-      }
-   }
-   unlock();
-   
-   return rval;
+   return mIdleThreads.size();
 }

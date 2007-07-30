@@ -98,7 +98,7 @@ void JobDispatcher::wakeup()
 
 bool JobDispatcher::canDispatch()
 {
-   return mJobQueue.empty();
+   return !mJobQueue.empty();
 }
 
 list<Runnable*>::iterator JobDispatcher::getJobIterator()

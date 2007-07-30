@@ -12,6 +12,9 @@ namespace db
 namespace rt
 {
 
+// forward declare JobThreadPool
+class JobThreadPool;
+
 /**
  * A JobThread is a thread that runs Runnable jobs and sleeps while it is
  * not running a job. This thread can be used in conjunction with a
@@ -28,14 +31,9 @@ protected:
    Runnable* mJob;
    
    /**
-    * A semaphore to update when a Job completes.
+    * The JobThreadPool to notify when a job completes.
     */
-   Semaphore* mSemaphore;
-   
-   /**
-    * The number of permits the current Job is holding.
-    */
-   int mPermits;
+   JobThreadPool* mThreadPool;
    
    /**
     * The amount of idle time (in milliseconds) that must pass before this
@@ -70,10 +68,9 @@ public:
     * thread will be considered idle (with no job).
     * 
     * @param job the job for this thread or null if this thread has no job.
-    * @param semaphore a Semaphore to update when the Job completes.
-    * @param permits the number of permits for the Job.
+    * @param pool the JobThreadPool to notify when the job completes.
     */
-   virtual void setJob(Runnable* job, Semaphore* semaphore, int permits);
+   virtual void setJob(Runnable* job, JobThreadPool* pool);
    
    /**
     * Runs this thread.
@@ -86,13 +83,6 @@ public:
     * @return true if this thread has a job, false if it is idle.
     */
    virtual bool hasJob();
-   
-   /**
-    * Returns true if this thread has no job, false if it does.
-    * 
-    * @return true if this thread has no job, false if it does.
-    */
-   virtual bool isIdle();
    
    /**
     * Sets the expire time for this job thread.
