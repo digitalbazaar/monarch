@@ -4,6 +4,7 @@
 #ifndef db_rt_Semaphore_H
 #define db_rt_Semaphore_H
 
+#include "Object.h"
 #include <list>
 
 namespace db
