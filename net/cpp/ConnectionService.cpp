@@ -13,6 +13,10 @@ using namespace db::net;
 using namespace db::rt;
 using namespace db::util;
 
+// initialize server connections permits key
+const char* ConnectionService::SERVER_CONNECTION_PERMITS_KEY =
+   "com.db.net.server.connections.permits";
+
 ConnectionService::ConnectionService(
    Server* server,
    InternetAddress* address,
@@ -25,6 +29,10 @@ ConnectionService::ConnectionService(
    mSocket = NULL;
    mMaxConnectionCount = 10000;
    mConnectionCount = 0;
+   mConnectionPermitsKey =
+      "com.db.net.server.connections.ports." +
+      Convert::integerToString(getAddress()->getPort()) +
+      ".permits";
 }
 
 ConnectionService::~ConnectionService()
@@ -89,15 +97,11 @@ bool ConnectionService::canExecuteOperation(ImmutableState* s)
 {
    bool rval = false;
    
-   // base key
-   string key = "com.db.net.server.connections";
-   
    // get permit counts for server and service
    int serverPermits = mServer->getMaxConnectionCount();
    int servicePermits = mMaxConnectionCount;
-   string port = Convert::integerToString(getAddress()->getPort());
-   s->getInteger(key + ".permits", serverPermits);
-   s->getInteger(key + ".ports." + port + ".permits", servicePermits);
+   s->getInteger(SERVER_CONNECTION_PERMITS_KEY, serverPermits);
+   s->getInteger(mConnectionPermitsKey.c_str(), servicePermits);
    
    // subtract current connection counts
    serverPermits = (mServer->getConnectionCount() > serverPermits) ?
@@ -122,36 +126,28 @@ bool ConnectionService::mustCancelOperation(ImmutableState* s)
 
 void ConnectionService::mutatePreExecutionState(State* s, Operation* op)
 {
-   // base key
-   string key = "com.db.net.server.connections";
-   
    // get permit counts for server and service
    int serverPermits = mServer->getMaxConnectionCount();
    int servicePermits = mMaxConnectionCount;
-   string port = Convert::integerToString(getAddress()->getPort());
-   s->getInteger(key + ".permits", serverPermits);
-   s->getInteger(key + ".ports." + port + ".permits", servicePermits);
+   s->getInteger(SERVER_CONNECTION_PERMITS_KEY, serverPermits);
+   s->getInteger(mConnectionPermitsKey.c_str(), servicePermits);
    
    // decrement permits
-   s->setInteger(key + ".permits", serverPermits - 1);
-   s->setInteger(key + ".ports." + port + ".permits", servicePermits - 1);
+   s->setInteger(SERVER_CONNECTION_PERMITS_KEY, serverPermits - 1);
+   s->setInteger(mConnectionPermitsKey.c_str(), servicePermits - 1);
 }
 
 void ConnectionService::mutatePostExecutionState(State* s, Operation* op)
 {
-   // base key
-   string key = "com.db.net.server.connections";
-   
    // get permit counts for server and service
    int serverPermits = mServer->getMaxConnectionCount();
    int servicePermits = mMaxConnectionCount;
-   string port = Convert::integerToString(getAddress()->getPort());
-   s->getInteger(key + ".permits", serverPermits);
-   s->getInteger(key + ".ports." + port + ".permits", servicePermits);
+   s->getInteger(SERVER_CONNECTION_PERMITS_KEY, serverPermits);
+   s->getInteger(mConnectionPermitsKey.c_str(), servicePermits);
    
    // increment permits
-   s->setInteger(key + ".permits", serverPermits + 1);
-   s->setInteger(key + ".ports." + port + ".permits", servicePermits + 1);
+   s->setInteger(SERVER_CONNECTION_PERMITS_KEY, serverPermits + 1);
+   s->setInteger(mConnectionPermitsKey.c_str(), servicePermits + 1);
 }
 
 void ConnectionService::run()

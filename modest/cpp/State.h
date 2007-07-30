@@ -14,6 +14,23 @@ namespace db
 namespace modest
 {
 
+typedef struct StringComparator
+{
+   /**
+    * Compares two null-terminated strings, returning true if the first is
+    * less than the second, false if not.
+    * 
+    * @param s1 the first string.
+    * @param s2 the second string.
+    * 
+    * @return true if the s1 < s2, false if not.
+    */
+   bool operator()(const char* s1, const char* s2) const
+   {
+      return strcmp(s1, s2) < 0;
+   }
+};
+
 /**
  * A StateVariable is a boolean, 32-bit signed integer, or a string.
  */
@@ -47,7 +64,7 @@ protected:
    /**
     * The variable table.
     */
-   std::map<std::string, StateVariable*> mVarTable;
+   std::map<const char*, StateVariable*, StringComparator> mVarTable;
    
    /**
     * Gets an existing StateVariable by its name.
@@ -56,7 +73,7 @@ protected:
     * 
     * @return an existing StateVariable or NULL.
     */
-   virtual StateVariable* getVariable(const std::string& name);
+   virtual StateVariable* getVariable(const char* name);
    
    /**
     * Creates a new StateVariable with the given name if it does not
@@ -67,7 +84,7 @@ protected:
     * 
     * @return the StateVariable.
     */
-   virtual StateVariable* createVariable(const std::string& name, int type);
+   virtual StateVariable* createVariable(const char* name, int type);
    
 public:
    /**
@@ -86,7 +103,7 @@ public:
     * @param name the name of the boolean to set.
     * @param value the value of the boolean.
     */
-   virtual void setBoolean(const std::string& name, bool value);
+   virtual void setBoolean(const char* name, bool value);
    
    /**
     * Gets a boolean from this State by its name.
@@ -96,7 +113,7 @@ public:
     * 
     * @return true if the boolean exists, false if not.
     */
-   virtual bool getBoolean(const std::string& name, bool& value);
+   virtual bool getBoolean(const char* name, bool& value);
    
    /**
     * Sets a 32-bit signed integer in this State.
@@ -104,7 +121,7 @@ public:
     * @param name the name of the integer to set.
     * @param value the value of the integer.
     */
-   virtual void setInteger(const std::string& name, int value);
+   virtual void setInteger(const char* name, int value);
    
    /**
     * Gets a 32-bit signed integer from this State by its name.
@@ -114,7 +131,7 @@ public:
     * 
     * @return true if the integer exists, false if not.
     */
-   virtual bool getInteger(const std::string& name, int& value);
+   virtual bool getInteger(const char* name, int& value);
    
    /**
     * Sets a string in this State. The string will be copied to this
@@ -123,17 +140,17 @@ public:
     * @param name the name of the string to set.
     * @param value the value of the string.
     */
-   virtual void setString(const std::string& name, const std::string& value);
+   virtual void setString(const char* name, const std::string& value);
    
    /**
     * Gets a string from this State by its name.
     * 
     * @param name the name of the string to retrieve.
-    * @param value a pointer to point at the value of the string.
+    * @param value a string to set to the value of the string.
     * 
     * @return true if the string exists, false if not.
     */
-   virtual bool getString(const std::string& name, std::string** value);
+   virtual bool getString(const char* name, std::string& value);
 };
 
 } // end namespace modest

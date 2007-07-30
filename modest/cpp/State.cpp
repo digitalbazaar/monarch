@@ -13,8 +13,8 @@ State::State()
 State::~State()
 {
    // delete all state variables
-   for(map<string, StateVariable*>::iterator i = mVarTable.begin();
-       i != mVarTable.end(); i++)
+   for(map<const char*, StateVariable*, StringComparator>::iterator i =
+       mVarTable.begin(); i != mVarTable.end(); i++)
    {
       StateVariable* var = i->second;
       
@@ -29,11 +29,12 @@ State::~State()
    }
 }
 
-StateVariable* State::getVariable(const string& name)
+StateVariable* State::getVariable(const char* name)
 {
    StateVariable* rval = NULL;
    
-   map<string, StateVariable*>::iterator i = mVarTable.find(name);
+   map<const char*, StateVariable*, StringComparator>::iterator i =
+      mVarTable.find(name);
    if(i != mVarTable.end())
    {
       rval = i->second;
@@ -42,7 +43,7 @@ StateVariable* State::getVariable(const string& name)
    return rval;
 }
 
-StateVariable* State::createVariable(const string& name, int type)
+StateVariable* State::createVariable(const char* name, int type)
 {
    // check for an existing variable
    StateVariable* var = getVariable(name);
@@ -78,14 +79,14 @@ StateVariable* State::createVariable(const string& name, int type)
    return var;
 }
 
-void State::setBoolean(const string& name, bool value)
+void State::setBoolean(const char* name, bool value)
 {
    // create the variable and set its value
    StateVariable* var = createVariable(name, 1);
    var->b = value;
 }
 
-bool State::getBoolean(const string& name, bool& value)
+bool State::getBoolean(const char* name, bool& value)
 {
    bool rval = false;
    
@@ -99,14 +100,14 @@ bool State::getBoolean(const string& name, bool& value)
    return rval;
 }
 
-void State::setInteger(const string& name, int value)
+void State::setInteger(const char* name, int value)
 {
    // create the variable and set its value
    StateVariable* var = createVariable(name, 2);
    var->i = value;
 }
 
-bool State::getInteger(const string& name, int& value)
+bool State::getInteger(const char* name, int& value)
 {
    bool rval = false;
    
@@ -120,21 +121,21 @@ bool State::getInteger(const string& name, int& value)
    return rval;
 }
 
-void State::setString(const string& name, const string& value)
+void State::setString(const char* name, const string& value)
 {
    // create the variable and set its value
    StateVariable* var = createVariable(name, 3);
    var->s->assign(value);
 }
 
-bool State::getString(const string& name, string** value)
+bool State::getString(const char* name, string& value)
 {
    bool rval = false;
    
    StateVariable* var = getVariable(name);
    if(var != NULL && var->type == 3)
    {
-      value = &(var->s);
+      value = *(var->s);
       rval = true;
    }
    

@@ -70,6 +70,11 @@ protected:
    unsigned int mConnectionCount;
    
    /**
+    * The connection permits key for this service.
+    */
+   std::string mConnectionPermitsKey;
+   
+   /**
     * Initializes this service and creates the Operation for running it. If
     * the service could not be initialized, an exception should be set on the
     * current thread indicating the reason why the service could not be
@@ -91,6 +96,11 @@ protected:
     * Cleans up any expired ConnectionWorkers.
     */
    virtual void cleanupWorkers();
+   
+   /**
+    * The server permits key.
+    */
+   static const char* SERVER_CONNECTION_PERMITS_KEY;
    
 public:
    /**

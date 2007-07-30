@@ -38,7 +38,7 @@ public:
     * 
     * @return true if the boolean exists, false if not.
     */
-   virtual bool getBoolean(const std::string& name, bool& value) = 0;
+   virtual bool getBoolean(const char* name, bool& value) = 0;
    
    /**
     * Gets a 32-bit signed integer from this State by its name.
@@ -48,17 +48,17 @@ public:
     * 
     * @return true if the integer exists, false if not.
     */
-   virtual bool getInteger(const std::string& name, int& value) = 0;
+   virtual bool getInteger(const char* name, int& value) = 0;
    
    /**
     * Gets a string from this State by its name.
     * 
     * @param name the name of the string to retrieve.
-    * @param value a pointer to point at the value of the string.
+    * @param value a string to set to the value of the string.
     * 
     * @return true if the string exists, false if not.
     */
-   virtual bool getString(const std::string& name, std::string** value) = 0;
+   virtual bool getString(const char* name, std::string& value) = 0;
 };
 
 } // end namespace modest
