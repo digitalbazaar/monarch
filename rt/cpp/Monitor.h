@@ -28,15 +28,9 @@ class Monitor
 {
 private:
    /**
-    * The main lock for this Monitor.
+    * The mutex for this Monitor.
     */
-   //pthread_spinlock_t mMainLock;
-   pthread_mutex_t mMainLock;
-   
-   /**
-    * The wait mutex for this Monitor.
-    */
-   pthread_mutex_t mWaitMutex;
+   pthread_mutex_t mMutex;
    
    /**
     * The condition used to wait and signal threads.

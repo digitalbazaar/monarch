@@ -518,7 +518,7 @@ int Thread::select(bool read, unsigned int fd, long long timeout)
          
          // reset timeout
          to.tv_sec = 0;
-         to.tv_usec = 1000LL;
+         to.tv_usec = 10000LL;
       }
       
       if(timeout != 0)

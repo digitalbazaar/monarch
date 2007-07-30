@@ -51,17 +51,16 @@ bool JobDispatcher::pushJob(Runnable* job)
    
    if(job != NULL)
    {
-      // synchronize
       lock();
       {
          // add the job to the queue
          mJobQueue.push_back(job);
          rval = true;
-         
-         // wake up dispatcher
-         wakeup();
       }
       unlock();
+      
+      // wake up dispatcher
+      wakeup();
    }
    
    return rval;
@@ -71,7 +70,6 @@ Runnable* JobDispatcher::popJob()
 {
    Runnable* rval = NULL;
    
-   // synchronize
    lock();
    {
       if(!mJobQueue.empty())
@@ -88,12 +86,12 @@ Runnable* JobDispatcher::popJob()
 
 void JobDispatcher::wakeup()
 {
-   lock();
+   mWaitLock.lock();
    {
       // wake up dispatcher
-      notifyAll();
+      mWaitLock.notifyAll();
    }
-   unlock();
+   mWaitLock.unlock();
 }
 
 bool JobDispatcher::canDispatch()
@@ -118,15 +116,14 @@ void JobDispatcher::queueJob(Runnable* job)
 
 void JobDispatcher::dequeueJob(Runnable* job)
 {
-   // synchronize
    lock();
    {
       mJobQueue.remove(job);
-      
-      // wake up dispatcher in case jobs can be dispatched
-      wakeup();
    }
    unlock();
+   
+   // wake up dispatcher
+   wakeup();
 }
 
 void JobDispatcher::dispatchJobs()
@@ -155,7 +152,6 @@ bool JobDispatcher::isQueued(Runnable* job)
 {
    bool rval = false;
    
-   // synchronize
    lock();
    {
       list<Runnable*>::iterator i =
@@ -169,7 +165,6 @@ bool JobDispatcher::isQueued(Runnable* job)
 
 void JobDispatcher::startDispatching()
 {
-   // synchronize
    lock();
    {
       if(!isDispatching())
@@ -188,7 +183,6 @@ void JobDispatcher::stopDispatching()
 {
    Thread* t = NULL;
    
-   // synchronize
    lock();
    {
       if(isDispatching())
@@ -203,10 +197,8 @@ void JobDispatcher::stopDispatching()
    
    if(t != NULL)
    {
-      // join old dispatcher thread
+      // join and clean up old dispatcher thread
       t->join();
-      
-      // clean up old thread
       delete t;
    }
 }
@@ -216,17 +208,20 @@ void JobDispatcher::run()
    Thread* t = Thread::currentThread();
    while(!t->isInterrupted())
    {
-      //lock();
       if(canDispatch())
       {
-         //unlock();
          dispatchJobs();
       }
       else
       {
-         Thread::sleep(1);
-         //wait();
-         //unlock();
+         mWaitLock.lock();
+         {
+            if(!canDispatch())
+            {
+               mWaitLock.wait();
+            }
+         }
+         mWaitLock.unlock();
       }
    }
 }
@@ -235,7 +230,6 @@ bool JobDispatcher::isDispatching()
 {
    bool rval = false;
    
-   // synchronize
    lock();
    {
       rval = (getDispatcherThread() != NULL);
@@ -247,7 +241,6 @@ bool JobDispatcher::isDispatching()
 
 void JobDispatcher::clearQueuedJobs()
 {
-   // synchronize
    lock();
    {
       mJobQueue.clear();
@@ -257,7 +250,6 @@ void JobDispatcher::clearQueuedJobs()
 
 void JobDispatcher::interruptAllRunningJobs()
 {
-   // synchronize
    lock();
    {
       getThreadPool()->interruptAllThreads();
@@ -267,7 +259,6 @@ void JobDispatcher::interruptAllRunningJobs()
 
 void JobDispatcher::terminateAllRunningJobs()
 {
-   // synchronize
    lock();
    {
       getThreadPool()->terminateAllThreads();
@@ -284,7 +275,6 @@ unsigned int JobDispatcher::getQueuedJobCount()
 {
    unsigned int rval = 0;
    
-   // synchronize
    lock();
    {
       rval = mJobQueue.size();
@@ -298,7 +288,6 @@ unsigned int JobDispatcher::getTotalJobCount()
 {
    unsigned int rval = 0;
    
-   // synchronize
    lock();
    {
       rval = getQueuedJobCount() + getThreadPool()->getIdleJobThreadCount();

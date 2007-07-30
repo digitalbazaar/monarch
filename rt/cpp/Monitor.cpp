@@ -16,12 +16,8 @@ Monitor::Monitor()
    // use fastest type of mutex
    pthread_mutexattr_settype(&mutexAttr, PTHREAD_MUTEX_NORMAL);
    
-   // initialize main lock
-   //pthread_spin_init(&mMainLock, PTHREAD_PROCESS_PRIVATE);
-   pthread_mutex_init(&mMainLock, &mutexAttr);
-   
-   // initialize wait mutex
-   pthread_mutex_init(&mWaitMutex, &mutexAttr);
+   // initialize mutex
+   pthread_mutex_init(&mMutex, &mutexAttr);
    
    // initialize wait conditional
    pthread_cond_init(&mWaitCondition, NULL);
@@ -37,12 +33,8 @@ Monitor::Monitor()
 
 Monitor::~Monitor()
 {
-   // destroy main lock
-   //pthread_spin_destroy(&mMainLock);
-   pthread_mutex_destroy(&mMainLock);
-   
-   // destroy wait mutex
-   pthread_mutex_destroy(&mWaitMutex);
+   // destroy mutex
+   pthread_mutex_destroy(&mMutex);
    
    // destroy wait conditional
    pthread_cond_destroy(&mWaitCondition);
@@ -55,9 +47,8 @@ void Monitor::enter()
    int rc = pthread_equal(mThreadId, self);
    if(rc == 0 || !mHasThread)
    {
-      // lock this monitor's main lock
-      //pthread_spin_lock(&mMainLock);
-      pthread_mutex_lock(&mMainLock);
+      // lock this monitor's mutex
+      pthread_mutex_lock(&mMutex);
       
       // set thread that is in this monitor
       mHasThread = true;
@@ -78,17 +69,13 @@ void Monitor::exit()
       // no longer a thread in this monitor
       mHasThread = false;
       
-      // unlock this monitor's main lock
-      //pthread_spin_unlock(&mMainLock);
-      pthread_mutex_unlock(&mMainLock);
+      // unlock this monitor's mutex
+      pthread_mutex_unlock(&mMutex);
    }
 }
 
 void Monitor::wait(unsigned long timeout)
 {
-   // lock monitor's wait mutex
-   pthread_mutex_lock(&mWaitMutex);
-   
    // store old thread and lock count
    pthread_t threadId = mThreadId;
    unsigned int lockCount = mLockCount;
@@ -97,14 +84,10 @@ void Monitor::wait(unsigned long timeout)
    mHasThread = false;
    mLockCount = 0;
    
-   // unlock monitor's main lock
-   //pthread_spin_unlock(&mMainLock);
-   pthread_mutex_unlock(&mMainLock);
-   
    if(timeout == 0)
    {
       // wait indefinitely on the wait condition
-      pthread_cond_wait(&mWaitCondition, &mWaitMutex);
+      pthread_cond_wait(&mWaitCondition, &mMutex);
    }
    else
    {
@@ -122,24 +105,17 @@ void Monitor::wait(unsigned long timeout)
       to.tv_nsec = now.tv_usec * 1000UL + nsecs;
       
       // do timed wait
-      int rc = pthread_cond_timedwait(&mWaitCondition, &mWaitMutex, &to);
+      int rc = pthread_cond_timedwait(&mWaitCondition, &mMutex, &to);
       if(rc == ETIMEDOUT)
       {
          // timeout reached
       }
    }
    
-   // lock monitor's main lock
-   //pthread_spin_lock(&mMainLock);
-   pthread_mutex_lock(&mMainLock);
-   
    // restore old thread and lock count
    mThreadId = threadId;
    mHasThread = true;
    mLockCount = lockCount;
-   
-   // unlock monitor's wait mutex
-   pthread_mutex_unlock(&mWaitMutex);
 }
 
 void Monitor::notify()

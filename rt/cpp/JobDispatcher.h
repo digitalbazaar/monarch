@@ -45,6 +45,11 @@ protected:
    Thread* mDispatcherThread;
    
    /**
+    * The wait lock for this dispatcher.
+    */
+   Object mWaitLock;
+   
+   /**
     * Adds a Runnable job to the queue.
     * 
     * @param job the Runnable job to add to the queue.
@@ -153,7 +158,7 @@ public:
    virtual void stopDispatching();
    
    /**
-    * Called to start dispatching Runnable jobs.
+    * Called by startDispatching() to dispatch Runnable jobs.
     */
    virtual void run();
    

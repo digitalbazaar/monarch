@@ -43,6 +43,11 @@ protected:
    std::list<OperationExecutor*> mExpiredExecutors;
    
    /**
+    * A lock for modifying the expired executors list.
+    */
+   Object mExpiredExecutorsLock;
+   
+   /**
     * Returns true if this dispatcher has a job it can dispatch.
     * 
     * @return true if this dispatcher has a job it can dispatch.
@@ -89,6 +94,11 @@ public:
     * that are already running.
     */
    virtual void stopDispatching();
+   
+   /**
+    * Called by startDispatching() to dispatch Operations.
+    */
+   virtual void run();
    
    /**
     * Clears all queued Operations.

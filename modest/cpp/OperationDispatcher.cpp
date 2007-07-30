@@ -12,7 +12,7 @@ using namespace db::rt;
 OperationDispatcher::OperationDispatcher(Engine* e)
 {
    mEngine = e;
-   mDispatch = true;
+   mDispatch = false;
 }
 
 OperationDispatcher::~OperationDispatcher()
@@ -29,12 +29,6 @@ OperationDispatcher::~OperationDispatcher()
 
 bool OperationDispatcher::canDispatch()
 {
-   if(!mExpiredExecutors.empty())
-   {
-      // clean up any expired executors
-      cleanupExpiredExecutors();
-   }
-   
    return mDispatch;
 }
 
@@ -100,7 +94,7 @@ void OperationDispatcher::dispatchJobs()
 
 void OperationDispatcher::cleanupExpiredExecutors()
 {
-   lock();
+   mExpiredExecutorsLock.lock();
    {
       for(list<OperationExecutor*>::iterator i = mExpiredExecutors.begin();
           i != mExpiredExecutors.end();)
@@ -112,17 +106,17 @@ void OperationDispatcher::cleanupExpiredExecutors()
          i = mExpiredExecutors.erase(i);
          delete e;
       }
-      
-      // wake up dispatcher
-      wakeup();
    }
-   unlock();
+   mExpiredExecutorsLock.unlock();
+   
+   // wake up dispatcher
+   wakeup();
 }
 
 void OperationDispatcher::queueOperation(OperationExecutor* e)
 {
-   JobDispatcher::queueJob(e);
    mDispatch = true;
+   JobDispatcher::queueJob(e);
 }
 
 void OperationDispatcher::startDispatching()
@@ -138,21 +132,54 @@ void OperationDispatcher::stopDispatching()
    cleanupExpiredExecutors();
 }
 
+void OperationDispatcher::run()
+{
+   Thread* t = Thread::currentThread();
+   while(!t->isInterrupted())
+   {
+      if(!mExpiredExecutors.empty())
+      {
+         // clean up any expired executors
+         cleanupExpiredExecutors();
+      }
+      
+      if(canDispatch())
+      {
+         dispatchJobs();
+      }
+      else
+      {
+         mWaitLock.lock();
+         {
+            if(!canDispatch())
+            {
+               mWaitLock.wait();
+            }
+         }
+         mWaitLock.unlock();
+      }
+   }
+}
+
 void OperationDispatcher::clearQueuedOperations()
 {
    lock();
    {
-      // expire OperationExecutors in the queue
-      for(list<Runnable*>::iterator i = mJobQueue.begin();
-          i != mJobQueue.end();)
+      mExpiredExecutorsLock.lock();
       {
-         OperationExecutor* e = (OperationExecutor*)(*i);
-         i = mJobQueue.erase(i);
-         addExpiredExecutor(e);
+         // expire OperationExecutors in the queue
+         for(list<Runnable*>::iterator i = mJobQueue.begin();
+             i != mJobQueue.end();)
+         {
+            OperationExecutor* e = (OperationExecutor*)(*i);
+            i = mJobQueue.erase(i);
+            addExpiredExecutor(e);
+         }
+         
+         // cleanup expired executors
+         cleanupExpiredExecutors();
       }
-      
-      // cleanup expired executors
-      cleanupExpiredExecutors();
+      mExpiredExecutorsLock.unlock();
    }
    unlock();
 }
@@ -167,15 +194,15 @@ void OperationDispatcher::terminateRunningOperations()
 
 void OperationDispatcher::addExpiredExecutor(OperationExecutor* e)
 {
-   lock();
+   mExpiredExecutorsLock.lock();
    {
       mExpiredExecutors.push_back(e);
       mDispatch = true;
-      
-      // wake up dispatcher
-      wakeup();
    }
-   unlock();
+   mExpiredExecutorsLock.unlock();
+   
+   // wake up dispatcher
+   wakeup();
 }
 
 JobThreadPool* OperationDispatcher::getThreadPool()
