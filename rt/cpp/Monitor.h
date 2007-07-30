@@ -28,9 +28,10 @@ class Monitor
 {
 private:
    /**
-    * The spin lock for this Monitor.
+    * The main lock for this Monitor.
     */
-   pthread_spinlock_t mSpinLock;
+   //pthread_spinlock_t mMainLock;
+   pthread_mutex_t mMainLock;
    
    /**
     * The wait mutex for this Monitor.
