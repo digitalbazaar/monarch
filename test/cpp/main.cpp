@@ -1685,7 +1685,17 @@ void runDateTest()
    string str2;
    d2.format(str2, "%a, %d %b %Y %H:%M:%S", "c", &local);
    
-   cout << "Parsed Date: " << str2 << endl;
+   cout << "Parsed Date 1: " << str2 << endl;
+   
+   // FIXME: parser may have a problem with AM/PM
+   // parse date again
+   Date d3;
+   str = "Thu, 02 Aug 2007 10:30:00";
+   d3.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
+   string str3;
+   d3.format(str3, "%a, %d %b %Y %H:%M:%S", "c", &local);
+   
+   cout << "Parsed Date 2: " << str3 << endl;
    
    cout << endl << "Date test complete." << endl;
 }
@@ -2054,8 +2064,8 @@ void runServerConnectionTest()
    Object lock;
    lock.lock();
    {
-      //lock.wait();//lock.wait(120000);
-      lock.wait(30000);
+      lock.wait();//lock.wait(120000);
+      //lock.wait(30000);
    }
    lock.unlock();
    //Thread::sleep(60000);
