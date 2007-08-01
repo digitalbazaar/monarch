@@ -24,14 +24,18 @@ int ConnectionInputStream::read(char* b, unsigned int length)
 {
    int rval = -1;
    
+   Thread* t = Thread::currentThread();
+   
    // throttle the read as appropriate
    BandwidthThrottler* bt = mConnection->getBandwidthThrottler(true);
    if(bt != NULL)
    {
-      bt->requestBytes(length, length);
+      if(!t->isInterrupted())
+      {
+         bt->requestBytes(length, length);
+      }
    }
    
-   Thread* t = Thread::currentThread();
    if(!t->isInterrupted())
    {
       // read from the socket input stream
@@ -56,6 +60,7 @@ bool ConnectionInputStream::readLine(string& line)
    bool rval = false;
    
    // read one character at a time
+   line.erase();
    char c;
    while(read(&c, 1) && c != '\n')
    {
@@ -90,6 +95,7 @@ bool ConnectionInputStream::readCrlf(string& line)
    bool rval = false;
    
    // read one character at a time until a CRLF is found
+   line.erase();
    bool found = false;
    char c, p;
    while(!found && read(&c, 1))

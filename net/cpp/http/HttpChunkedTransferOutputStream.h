@@ -1,11 +1,12 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_net_http_HttpTransferChunkedInputStream_H
-#define db_net_http_HttpTransferChunkedInputStream_H
+#ifndef db_net_http_HttpChunkedTransferOutputStream_H
+#define db_net_http_HttpChunkedTransferOutputStream_H
 
-#include "PeekInputStream.h"
-#include "ConnectionInputStream.h"
+#include "FilterOutputStream.h"
+#include "ConnectionOutputStream.h"
+#include "HttpHeader.h"
 
 namespace db
 {
@@ -15,7 +16,7 @@ namespace http
 {
 
 /**
- * A HttpTransferChunkedInputStream is a class that is used to decode
+ * A HttpChunkedTransferOutputStream is a class that is used to encode
  * http message bodies for http requests and and http responses that have a
  * transfer-encoding header value set to "chunked".
  * 
@@ -76,49 +77,48 @@ namespace http
  * 
  * @author Dave Longley
  */
-class HttpTransferChunkedInputStream : public db::io::PeekInputStream
+class HttpChunkedTransferOutputStream :
+public db::io::FilterOutputStream
 {
 protected:
    /**
-    * Stores the number of bytes left to read for the current chunk.
+    * The HttpHeader to use for header trailers.
     */
-   int mChunkBytesLeft;
+   HttpHeader* mHeader;
    
    /**
-    * Set to true if the last chunk is being processed.
+    * Stores the amount of data sent to include in the header trailers.
     */
-   bool mLastChunk;
+   unsigned long long mDataSent;
    
 public:
    /**
-    * Creates a new HttpTransferChunkedInputStream.
+    * Creates a new HttpChunkedTransferOutputStream.
     * 
-    * @param is the underlying ConnectionInputStream to wrap.
+    * @param os the ConnectionOutputStream to send data over.
+    * @param header the HttpHeader to use for header trailers.
     */
-   HttpTransferChunkedInputStream(db::net::ConnectionInputStream* is);
+   HttpChunkedTransferOutputStream(
+      ConnectionOutputStream* os, HttpHeader* header);
    
    /**
-    * Destructs this HttpTransferChunkedInputStream.
+    * Destructs this HttpChunkedTransferOutputStream.
     */
-   virtual ~HttpTransferChunkedInputStream();
+   virtual ~HttpChunkedTransferOutputStream();
    
    /**
-    * Reads some bytes from the stream. This method will block until at least
-    * one byte can be read or until the end of the stream is reached. A
-    * value of -1 will be returned if the end of the stream has been reached
-    * or an IO exception occurred, otherwise the number of bytes read will be
-    * returned.
+    * Writes some bytes to the stream.
     * 
-    * @param b the array of bytes to fill.
-    * @param length the maximum number of bytes to read into the buffer.
+    * @param b the array of bytes to write.
+    * @param length the number of bytes to write to the stream.
     * 
-    * @return the number of bytes read from the stream or -1 if the end of the
-    *         stream has been reached or an IO exception occurred.
+    * @return true if the write was successful, false if an IO exception
+    *         occurred. 
     */
-   virtual int read(char* b, unsigned int length);
+   virtual bool write(const char* b, unsigned int length);
    
    /**
-    * Closes the stream. This will not close the underlying http stream.
+    * Closes the stream.
     */
    virtual void close();
 };

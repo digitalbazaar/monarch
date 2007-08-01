@@ -3,6 +3,7 @@
  */
 #include "HttpHeader.h"
 #include "StringTools.h"
+#include "Convert.h"
 
 using namespace std;
 using namespace db::net::http;
@@ -17,6 +18,11 @@ HttpHeader::HttpHeader()
 
 HttpHeader::~HttpHeader()
 {
+}
+
+void HttpHeader::setHeader(const string& header, long long value)
+{
+   setHeader(header, Convert::integerToString(value));
 }
 
 void HttpHeader::setHeader(const string& header, const string& value)
@@ -58,6 +64,19 @@ void HttpHeader::removeHeader(const string& header)
 void HttpHeader::clearHeaders()
 {
    mHeaders.clear();
+}
+
+bool HttpHeader::getHeader(const string& header, long long& value)
+{
+   bool rval = false;
+   
+   string str;
+   if(getHeader(header, str))
+   {
+      rval = Convert::stringToInteger(str, value);
+   }
+   
+   return rval;
 }
 
 bool HttpHeader::getHeader(const string& header, string& value)
@@ -174,16 +193,16 @@ bool HttpHeader::getDate(Date& date)
    return rval;
 }
 
-void HttpHeader::biCapitalize(string& header)
+void HttpHeader::biCapitalize(string& field)
 {
    // capitalize the first letter
-   transform(header.begin(), header.begin() + 1, header.begin(), toupper);
+   transform(field.begin(), field.begin() + 1, field.begin(), toupper);
    
    // decapitalize all other letters
-   transform(header.begin() + 1, header.end(), header.begin() + 1, tolower);
+   transform(field.begin() + 1, field.end(), field.begin() + 1, tolower);
    
    // capitalize all other letters that occur after hyphens
-   for(string::iterator i = header.begin() + 1; i != header.end(); i++)
+   for(string::iterator i = field.begin() + 1; i != field.end(); i++)
    {
       if(*(i - 1) == '-')
       {

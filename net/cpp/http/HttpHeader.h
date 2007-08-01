@@ -75,6 +75,14 @@ public:
     * @param header the header field to set.
     * @param value the value for the header field.
     */
+   virtual void setHeader(const std::string& header, long long value);
+   
+   /**
+    * Sets a header field.
+    * 
+    * @param header the header field to set.
+    * @param value the value for the header field.
+    */
    virtual void setHeader(const std::string& header, const std::string& value);
    
    /**
@@ -97,6 +105,16 @@ public:
     * Clears all header fields.
     */
    virtual void clearHeaders();
+   
+   /**
+    * Gets a header field value.
+    * 
+    * @param header the header field to get the value of.
+    * @param value the value to populate.
+    * 
+    * @return true if the header field exists, false if not.
+    */
+   virtual bool getHeader(const std::string& header, long long& value);
    
    /**
     * Gets a header field value.

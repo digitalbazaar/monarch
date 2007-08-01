@@ -1,12 +1,9 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "HttpTransferChunkedInputStream.h"
-#include "HttpHeader.h"
+#include "HttpChunkedTransferInputStream.h"
 #include "Convert.h"
 #include "Math.h"
-
-#include <string>
 
 using namespace std;
 using namespace db::io;
@@ -15,9 +12,13 @@ using namespace db::net::http;
 using namespace db::rt;
 using namespace db::util;
 
-HttpTransferChunkedInputStream::HttpTransferChunkedInputStream(
-   ConnectionInputStream* is) : PeekInputStream(is, false)
+HttpChunkedTransferInputStream::HttpChunkedTransferInputStream(
+   ConnectionInputStream* is, HttpHeader* header) :
+PeekInputStream(is, false)
 {
+   // store header
+   mHeader = header;
+   
    // no current chunk yet
    mChunkBytesLeft = 0;
    
@@ -25,11 +26,11 @@ HttpTransferChunkedInputStream::HttpTransferChunkedInputStream(
    mLastChunk = false;
 }
 
-HttpTransferChunkedInputStream::~HttpTransferChunkedInputStream()
+HttpChunkedTransferInputStream::~HttpChunkedTransferInputStream()
 {
 }
 
-int HttpTransferChunkedInputStream::read(char* b, unsigned int length)
+int HttpChunkedTransferInputStream::read(char* b, unsigned int length)
 {
    int rval = -1;
    
@@ -66,8 +67,9 @@ int HttpTransferChunkedInputStream::read(char* b, unsigned int length)
    }
    
    // read the chunk into the passed data buffer
+   Thread* t = Thread::currentThread();
    int numBytes = 0;
-   while(exception == NULL && !Thread::interrupted(false) &&
+   while(exception == NULL && !t->isInterrupted() &&
          mChunkBytesLeft > 0 && numBytes != -1)
    {
       numBytes = is->read(b, length);
@@ -85,9 +87,6 @@ int HttpTransferChunkedInputStream::read(char* b, unsigned int length)
       }
    }
    
-   // FIXME: increment content bytes read
-   // hwc.setContentBytesRead(hwc.getContentBytesRead() + numBytes);
-   
    // if this is the last chunk, then read in the
    // chunk trailer and last CRLF
    if(exception == NULL && mLastChunk)
@@ -97,28 +96,12 @@ int HttpTransferChunkedInputStream::read(char* b, unsigned int length)
       string line;
       while(is->readCrlf(line) && line != "")
       {
-         trailerHeaders.append(line + HttpHeader::CRLF);
-         line.erase();
+         trailerHeaders.append(line);
+         trailerHeaders.append(HttpHeader::CRLF);
       }
       
-      // FIXME:
       // parse trailer headers
-      //header->parseHeaders(trailerHeaders->toString());
-      
-      // FIXME:
-      // remove "chunked" from transfer-encoding header
-      /*
-      String transferEncoding = header.getTransferEncoding();
-      transferEncoding.replaceAll("chunked", "");
-      if(transferEncoding.equals(""))
-      {
-         header.setTransferEncoding(null);
-      }
-      else
-      {
-         header.setTransferEncoding(transferEncoding);
-      }
-      */
+      mHeader->parse(trailerHeaders);
    }
    else if(exception == NULL && mChunkBytesLeft == 0)
    {
@@ -126,14 +109,13 @@ int HttpTransferChunkedInputStream::read(char* b, unsigned int length)
       string throwout;
       is->readCrlf(throwout);
    }
-   else
+   else if(exception == NULL)
    {
-      // if the length is greater than zero then the
-      // whole chunk wasn't read
+      // if the length is greater than zero then the whole chunk wasn't read
       exception = new IOException("Could not read entire HTTP chunk!");
    }
    
-   if(exception)
+   if(exception != NULL)
    {
       Thread::setException(exception);
    }
@@ -141,7 +123,11 @@ int HttpTransferChunkedInputStream::read(char* b, unsigned int length)
    return rval;
 }
 
-void HttpTransferChunkedInputStream::close()
+void HttpChunkedTransferInputStream::close()
 {
-   // does nothing, do not close underlying stream
+   // reset
+   mChunkBytesLeft = 0;
+   mLastChunk = false;
+   
+   // do not close underlying stream
 }

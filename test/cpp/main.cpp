@@ -2283,6 +2283,64 @@ void runServerDatagramTest()
    cout << endl << "Server Datagram test complete." << endl;
 }
 
+void runHttpServerTest()
+{
+   cout << "Starting Http Server test." << endl << endl;
+   
+   // openssl initialization code
+   SSL_library_init();
+   SSL_load_error_strings();
+   OpenSSL_add_all_algorithms();
+   
+   // create kernel
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create server
+   Server server(&k);
+   InternetAddress address("localhost", 19100);
+   
+//   // create SSL-only service
+//   TestConnectionServicer1 tcs1;
+//   SslContext context;
+//   SslSocketDataPresenter presenter(&context);
+//   server.addConnectionService(&address, &tcs1, &presenter);
+   
+   // create SSL/generic service
+   TestConnectionServicer1 tcs1;
+   SslContext context;
+   SslSocketDataPresenter presenter1(&context);
+   NullSocketDataPresenter presenter2;
+   SocketDataPresenterList list(false);
+   list.add(&presenter1);
+   list.add(&presenter2);
+   server.addConnectionService(&address, &tcs1, &list);
+   
+   if(server.start())
+   {
+      cout << "Server started." << endl;
+   }
+   else if(Thread::getException() != NULL)
+   {
+      cout << "Server started with errors=" <<
+         Thread::getException()->getMessage() << endl;
+   }
+   
+   // sleep
+   Thread::sleep(10000);
+   
+   server.stop();
+   cout << "Server stopped." << endl;
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   // clean up SSL
+   EVP_cleanup();
+   
+   cout << endl << "Http Server test complete." << endl;
+}
+
 class RunTests : public virtual Object, public Runnable
 {
 public:
@@ -2320,12 +2378,13 @@ public:
 //      runUrlEncodeTest();
 //      runUrlTest();
 //      runRegexTest();
-      runDateTest();
+//      runDateTest();
 //      runHttpHeaderTest();
 //      runConfigTest();
 //      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
+      runHttpServerTest();
       
       cout << endl << "Tests finished." << endl;
       

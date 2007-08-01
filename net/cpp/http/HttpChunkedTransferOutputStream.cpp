@@ -1,34 +1,39 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "HttpTransferChunkedOutputStream.h"
+#include "HttpChunkedTransferOutputStream.h"
 #include "Convert.h"
-
-#include <string>
+#include "Math.h"
 
 using namespace std;
 using namespace db::io;
 using namespace db::net::http;
 using namespace db::util;
 
-HttpTransferChunkedOutputStream::HttpTransferChunkedOutputStream(
+HttpChunkedTransferOutputStream::HttpChunkedTransferOutputStream(
    ConnectionOutputStream* os, HttpHeader* header) :
 FilterOutputStream(os, false)
 {
    // store http header
    mHeader = header;
+   
+   // no data sent yet
+   mDataSent = 0;
 }
 
-HttpTransferChunkedOutputStream::~HttpTransferChunkedOutputStream()
+HttpChunkedTransferOutputStream::~HttpChunkedTransferOutputStream()
 {
 }
 
-bool HttpTransferChunkedOutputStream::write(const char* b, unsigned int length)
+bool HttpChunkedTransferOutputStream::write(const char* b, unsigned int length)
 {
    bool rval = true;
    
    if(length > 0)
    {
+      // update data sent
+      mDataSent += length;
+      
       // get the chunk-size
       string chunkSize = Convert::intToHex(length);
       
@@ -41,10 +46,6 @@ bool HttpTransferChunkedOutputStream::write(const char* b, unsigned int length)
       // write chunk data
       rval &= mOutputStream->write(b, length);
       
-      // FIXME: increment content bytes written
-      // update http connection content bytes written
-      //hwc.setContentBytesWritten(hwc.getContentBytesWritten() + length);
-      
       // write CRLF
       rval &= mOutputStream->write(HttpHeader::CRLF, 2);
    }
@@ -52,7 +53,7 @@ bool HttpTransferChunkedOutputStream::write(const char* b, unsigned int length)
    return rval;
 }
 
-void HttpTransferChunkedOutputStream::close()
+void HttpChunkedTransferOutputStream::close()
 {
    // write chunk-size of "0"
    char c = '0';
@@ -63,6 +64,7 @@ void HttpTransferChunkedOutputStream::close()
    
    // send content-length header
    string value;
+   mHeader->setHeader("Content-Length", mDataSent);
    mHeader->getHeader("Content-Length", value);
    mOutputStream->write("Content-Length: ", 16);
    mOutputStream->write(value.c_str(), value.length());
@@ -70,6 +72,9 @@ void HttpTransferChunkedOutputStream::close()
    
    // write out last CRLF
    mOutputStream->write(HttpHeader::CRLF, 2);
+   
+   // reset data sent
+   mDataSent = 0;
    
    // do not close underlying stream
 }
