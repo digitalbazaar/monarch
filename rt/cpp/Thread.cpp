@@ -460,7 +460,7 @@ int Thread::select(bool read, unsigned int fd, long long timeout)
    int n = fd + 1;
    
    // keep selecting (polling) until timeout is reached
-   long long remaining = (timeout <= 0) ? 10LL : timeout;
+   long long remaining = (timeout <= 0) ? 20LL : timeout;
    
    struct timeval to;
    if(timeout < 0)
@@ -471,9 +471,9 @@ int Thread::select(bool read, unsigned int fd, long long timeout)
    }
    else
    {
-      // create 10 millisecond timeout (1 millisecond is 1000 microseconds)
+      // create 20 millisecond timeout (1 millisecond is 1000 microseconds)
       to.tv_sec = 0;
-      to.tv_usec = (remaining < 10LL ? remaining * 1000LL : 10000LL);
+      to.tv_usec = (remaining < 20LL ? remaining * 1000LL : 20000LL);
    }
    
    unsigned long long start = System::getCurrentMilliseconds();
@@ -513,7 +513,7 @@ int Thread::select(bool read, unsigned int fd, long long timeout)
          
          // reset timeout
          to.tv_sec = 0;
-         to.tv_usec = 10000LL;
+         to.tv_usec = 20000LL;
       }
       
       if(timeout != 0)
@@ -522,7 +522,7 @@ int Thread::select(bool read, unsigned int fd, long long timeout)
          end = System::getCurrentMilliseconds();
          remaining -= (end - start);
          start = end;
-         to.tv_usec = (remaining < 10LL ? remaining * 1000LL : 10000LL);
+         to.tv_usec = (remaining < 20LL ? remaining * 1000LL : 20000LL);
       }
    }
    

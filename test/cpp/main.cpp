@@ -2350,7 +2350,7 @@ void runHttpServerTest()
    }
    
    // sleep
-   Thread::sleep(10000);
+   Thread::sleep(60000);
    
    server.stop();
    cout << "Server stopped." << endl;
