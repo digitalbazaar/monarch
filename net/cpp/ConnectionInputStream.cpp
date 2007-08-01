@@ -166,37 +166,6 @@ bool ConnectionInputStream::readCrlf(string& line)
    }
    
    return rval;
-   
-//   // read one character at a time until a CRLF is found
-//   bool found = false;
-//   char c, p;
-//   while(!found && read(&c, 1))
-//   {
-//      // see if the character is a carriage return
-//      if(c == '\r')
-//      {
-//         // see if the next character is an eol -- and we've found a CRLF
-//         if(peek(&p, 1) != -1 && p == '\n')
-//         {
-//            // read the character in and discard it
-//            read(&p, 1);
-//            
-//            // CRLF found
-//            found = true;
-//         }
-//      }
-//      
-//      if(!found)
-//      {
-//         // append the character
-//         line.append(1, c);
-//         
-//         // a character was appended, so not end of stream
-//         rval = true;
-//      }
-//   }
-   
-   return rval;
 }
 
 int ConnectionInputStream::peek(char* b, unsigned int length, bool block)
