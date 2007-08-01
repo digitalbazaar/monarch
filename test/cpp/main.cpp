@@ -2301,11 +2301,10 @@ public:
    virtual void serviceRequest(
       HttpRequest* request, HttpResponse* response)
    {
-      cout << "Servicing HTTP Request!" << endl;
-      
-      // FIXME: do stuff
-      
-      cout << "Finished servicing HTTP Request." << endl;
+      // send 200 OK
+      response->getHeader()->setStatus(200, "OK");
+      response->getHeader()->setHeader("Content-Length", 0);
+      response->sendHeader();
    }
 };
 

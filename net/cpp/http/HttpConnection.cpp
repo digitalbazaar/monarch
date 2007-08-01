@@ -35,16 +35,13 @@ WebRequest* HttpConnection::createRequest()
    // create HttpRequest
    return new HttpRequest(this);
 }
-#include <iostream>
+
 IOException* HttpConnection::sendHeader(HttpHeader* header)
 {
    IOException* rval = NULL;
    
    string out;
    header->toString(out);
-   
-   cout << "sending header=" << endl << out << endl;
-   
    if(!getOutputStream()->write(out.c_str(), out.length()))
    {
       rval = (IOException*)Exception::getLast();

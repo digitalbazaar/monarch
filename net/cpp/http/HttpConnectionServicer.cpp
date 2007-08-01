@@ -106,6 +106,13 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          // set version according to request version
          response->getHeader()->setVersion(version);
          
+         // include host path if one was used
+         string host;
+         if(request->getHeader()->getHeader("Host", host))
+         {
+            response->getHeader()->setHeader("Host", host);
+         }
+         
          // get request path and normalize it
          string path = request->getHeader()->getPath();
          normalizePath(path);
