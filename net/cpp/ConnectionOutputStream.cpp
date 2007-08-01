@@ -3,7 +3,6 @@
  */
 #include "Connection.h"
 #include "Math.h"
-#include "Thread.h"
 
 using namespace db::io;
 using namespace db::net;
@@ -14,6 +13,7 @@ ConnectionOutputStream::ConnectionOutputStream(Connection* c)
 {
    mConnection = c;
    mBytesWritten = 0;
+   mThread = NULL;
 }
 
 ConnectionOutputStream::~ConnectionOutputStream()
@@ -24,11 +24,16 @@ inline bool ConnectionOutputStream::write(const char* b, unsigned int length)
 {
    bool rval = true;
    
+   // set current thread
+   if(mThread == NULL)
+   {
+      mThread = Thread::currentThread();
+   }
+   
    // set the data offset
    unsigned int offset = 0;
    unsigned numBytes = length;
-   Thread* t = Thread::currentThread();
-   while(rval && length > 0 && !t->isInterrupted())
+   while(rval && length > 0 && !mThread->isInterrupted())
    {
       // throttle the write as appropriate
       BandwidthThrottler* bt = mConnection->getBandwidthThrottler(false);
@@ -37,7 +42,7 @@ inline bool ConnectionOutputStream::write(const char* b, unsigned int length)
          bt->requestBytes(length, numBytes);
       }
       
-      if(!t->isInterrupted())
+      if(!mThread->isInterrupted())
       {
          // send data through the socket output stream
          if(rval = mConnection->getSocket()->getOutputStream()->write(
@@ -58,7 +63,7 @@ inline bool ConnectionOutputStream::write(const char* b, unsigned int length)
       }
    }
    
-   return rval && !t->isInterrupted();
+   return rval && !mThread->isInterrupted();
 }
 
 void ConnectionOutputStream::close()

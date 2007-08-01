@@ -83,8 +83,9 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
 
 void HttpConnectionServicer::serviceConnection(Connection* c)
 {
-   // wrap connection
+   // wrap connection, set default read timeout to 30 seconds
    HttpConnection hc(c, false);
+   hc.setReadTimeout(30000);
    
    // create request
    HttpRequest* request = (HttpRequest*)hc.createRequest();

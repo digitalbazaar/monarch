@@ -5,7 +5,7 @@
 #define db_net_ConnectionInputStream_H
 
 #include "InputStream.h"
-#include <string>
+#include "Thread.h"
 
 namespace db
 {
@@ -19,6 +19,9 @@ class Connection;
  * A ConnectionInputStream is used to read bytes from a Connection and store
  * the number of bytes read.
  * 
+ * A ConnectionOutputStream assumes all reads will occur on the same
+ * thread.
+ * 
  * @author Dave Longley
  */
 class ConnectionInputStream : public db::io::InputStream
@@ -28,6 +31,11 @@ protected:
     * The Connection to read from.
     */
    Connection* mConnection;
+   
+   /**
+    * The thread the first read took place on.
+    */
+   db::rt::Thread* mThread;
    
    /**
     * The total number of bytes read so far.
@@ -95,18 +103,22 @@ public:
     * reached, otherwise the number of bytes read in the peek will be returned.
     * 
     * A subsequent call to read() or peek() will first read any previously
-    * peeked-at bytes.
+    * peeked-at bytes. If desired, peek() can be called without blocking
+    * and will return the number of bytes read from the peek buffer, which
+    * may be zero.
     * 
     * Note: Any installed read BandwidthThrottler will not be used when
     * peeking.
     * 
     * @param b the array of bytes to fill.
     * @param length the maximum number of bytes to read into the buffer.
+    * @param block true to block, false to return only those bytes in
+    *              the peek buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
     *         stream has been reached or an IO exception occurred.
     */
-   virtual int peek(char* b, unsigned int length);
+   virtual int peek(char* b, unsigned int length, bool block = true);
    
    /**
     * Closes the stream.

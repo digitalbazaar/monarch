@@ -3,7 +3,6 @@
  */
 #include "Connection.h"
 #include "Math.h"
-#include "Thread.h"
 
 using namespace std;
 using namespace db::io;
@@ -15,6 +14,7 @@ ConnectionInputStream::ConnectionInputStream(Connection* c)
 {
    mConnection = c;
    mBytesRead = 0;
+   mThread = NULL;
 }
 
 ConnectionInputStream::~ConnectionInputStream()
@@ -25,19 +25,23 @@ int ConnectionInputStream::read(char* b, unsigned int length)
 {
    int rval = -1;
    
-   Thread* t = Thread::currentThread();
+   if(mThread == NULL)
+   {
+      // set current thread
+      mThread = Thread::currentThread();
+   }
    
    // throttle the read as appropriate
    BandwidthThrottler* bt = mConnection->getBandwidthThrottler(true);
    if(bt != NULL)
    {
-      if(!t->isInterrupted())
+      if(!mThread->isInterrupted())
       {
          bt->requestBytes(length, length);
       }
    }
    
-   if(!t->isInterrupted())
+   if(!mThread->isInterrupted())
    {
       // read from the socket input stream
       rval = mConnection->getSocket()->getInputStream()->read(b, length);
@@ -60,8 +64,9 @@ bool ConnectionInputStream::readLine(string& line)
 {
    bool rval = false;
    
-   // read one character at a time
    line.erase();
+   
+   // read one character at a time
    char c;
    while(read(&c, 1) && c != '\n')
    {
@@ -95,43 +100,109 @@ bool ConnectionInputStream::readCrlf(string& line)
 {
    bool rval = false;
    
-   // read one character at a time until a CRLF is found
    line.erase();
-   bool found = false;
-   char c, p;
-   while(!found && read(&c, 1))
+   
+   // peek ahead
+   char b[1024];
+   unsigned int numBytes;
+   bool block = false;
+   while(!rval && (numBytes = peek(b, 1023, block)) != -1)
    {
-      // see if the character is a carriage return
-      if(c == '\r')
+      if(numBytes <= 1)
       {
-         // see if the next character is an eol -- and we've found a CRLF
-         if(peek(&p, 1) != -1 && p == '\n')
-         {
-            // read the character in and discard it
-            read(&p, 1);
-            
-            // CRLF found
-            found = true;
-         }
+         // not enough peek bytes available, so activate blocking
+         block = true;
       }
-      
-      if(!found)
+      else
       {
-         // append the character
-         line.append(1, c);
+         // peek bytes available, so deactivate blocking
+         block = false;
          
-         // a character was appended, so not end of stream
-         rval = true;
+         // ensure peek buffer ends in NULL byte
+         memset(b + numBytes, 0, 1);
+         
+         // look for a CR
+         char* i = strchr(b, '\r');
+         if(i == NULL)
+         {
+            // CR not found, append all peeked bytes to string
+            line.append(b, numBytes);
+            
+            // read and discard
+            read(b, numBytes);
+         }
+         else
+         {
+            // null CR for copying
+            memset(i, 0, 1);
+            
+            // append peeked bytes up until found CR to string
+            line.append(b);
+            
+            // read and discard up until the CR
+            read(b, i - b);
+            
+            // if there's room to check for an LF, do it
+            if((i - b) < numBytes)
+            {
+               // see if the next character is a LF
+               if(i[1] == '\n')
+               {
+                  // CRLF found before end of stream
+                  rval = true;
+                  
+                  // read and discard CRLF (2 characters)
+                  read(b, 2);
+               }
+               else
+               {
+                  // append CR to line, discard character
+                  line.append(1, '\r');
+                  read(b, 1);
+               }
+            }
+         }
       }
    }
    
    return rval;
+   
+//   // read one character at a time until a CRLF is found
+//   bool found = false;
+//   char c, p;
+//   while(!found && read(&c, 1))
+//   {
+//      // see if the character is a carriage return
+//      if(c == '\r')
+//      {
+//         // see if the next character is an eol -- and we've found a CRLF
+//         if(peek(&p, 1) != -1 && p == '\n')
+//         {
+//            // read the character in and discard it
+//            read(&p, 1);
+//            
+//            // CRLF found
+//            found = true;
+//         }
+//      }
+//      
+//      if(!found)
+//      {
+//         // append the character
+//         line.append(1, c);
+//         
+//         // a character was appended, so not end of stream
+//         rval = true;
+//      }
+//   }
+   
+   return rval;
 }
 
-int ConnectionInputStream::peek(char* b, unsigned int length)
+int ConnectionInputStream::peek(char* b, unsigned int length, bool block)
 {
    // peek using socket input stream
-   return mConnection->getSocket()->getInputStream()->peek(b, length);
+   return mConnection->getSocket()->getInputStream()->peek(b, length, block);
 }
 
 void ConnectionInputStream::close()

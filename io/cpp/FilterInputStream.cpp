@@ -25,9 +25,9 @@ int FilterInputStream::read(char* b, unsigned int length)
    return mInputStream->read(b, length);
 }
 
-int FilterInputStream::peek(char* b, unsigned int length)
+int FilterInputStream::peek(char* b, unsigned int length, bool block)
 {
-   return mInputStream->peek(b, length);
+   return mInputStream->peek(b, length, block);
 }
 
 long FilterInputStream::skip(long count)

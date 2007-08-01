@@ -55,15 +55,19 @@ public:
     * reached, otherwise the number of bytes read in the peek will be returned.
     * 
     * A subsequent call to read() or peek() will first read any previously
-    * peeked-at bytes.
+    * peeked-at bytes. If desired, peek() can be called without blocking
+    * and will return the number of bytes read from the peek buffer, which
+    * may be zero.
     * 
     * @param b the array of bytes to fill.
     * @param length the maximum number of bytes to read into the buffer.
+    * @param block true to block, false to return only those bytes in
+    *              the peek buffer.
     * 
     * @return the number of bytes read from the stream or -1 if the end of the
     *         stream has been reached or an IO exception occurred.
     */
-   virtual int peek(char* b, unsigned int length);
+   virtual int peek(char* b, unsigned int length, bool block = true);
    
    /**
     * Skips some bytes in the stream. This method will block until the
@@ -84,7 +88,7 @@ public:
    virtual void close() {};
 };
 
-inline int InputStream::peek(char* b, unsigned int length)
+inline int InputStream::peek(char* b, unsigned int length, bool block)
 {
    // extending classes must implement this method if they want support
    db::rt::Exception::setLast(new IOException(

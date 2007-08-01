@@ -5,6 +5,7 @@
 #define db_net_ConnectionOutputStream_H
 
 #include "OutputStream.h"
+#include "Thread.h"
 
 namespace db
 {
@@ -18,6 +19,9 @@ class Connection;
  * A ConnectionOutputStream is used to write bytes to a Connection and store
  * the number of bytes written.
  * 
+ * A ConnectionOutputStream assumes all writes will occur on the same
+ * thread.
+ * 
  * @author Dave Longley
  */
 class ConnectionOutputStream : public db::io::OutputStream
@@ -27,6 +31,11 @@ protected:
     * The Connection to read from.
     */
    Connection* mConnection;
+   
+   /**
+    * The thread the first write took place on.
+    */
+   db::rt::Thread* mThread;
    
    /**
     * The total number of bytes written so far.

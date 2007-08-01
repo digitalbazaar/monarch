@@ -59,12 +59,12 @@ int PeekInputStream::read(char* b, unsigned int length)
    return rval;
 }
 
-int PeekInputStream::peek(char* b, unsigned int length)
+int PeekInputStream::peek(char* b, unsigned int length, bool block)
 {
    int rval = -1;
    
    // see if more data needs to be read
-   if(length > mPeekLength)
+   if(block && length > mPeekLength)
    {
       // resize the peek buffer size as necessary
       if(length > (mPeekSize - mPeekOffset))
@@ -101,6 +101,11 @@ int PeekInputStream::peek(char* b, unsigned int length)
       
       // update bytes read
       rval = count;
+   }
+   else if(!block)
+   {
+      // not-blocking, so return 0
+      rval = 0;
    }
    
    return rval;
