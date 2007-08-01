@@ -138,9 +138,10 @@ bool HttpHeader::parse(const string& str)
 
 string& HttpHeader::toString(string& str)
 {
+   str.erase();
+   
    // append the start line and CRLF
    getStartLine(str);
-   str.erase();
    str.append(CRLF);
    
    // append all headers

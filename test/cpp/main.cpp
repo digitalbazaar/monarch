@@ -2287,6 +2287,28 @@ void runServerDatagramTest()
    cout << endl << "Server Datagram test complete." << endl;
 }
 
+class TestHttpRequestServicer : public HttpRequestServicer
+{
+public:
+   TestHttpRequestServicer(const string& path) : HttpRequestServicer(path)
+   {
+   }
+   
+   virtual ~TestHttpRequestServicer()
+   {
+   }
+   
+   virtual void serviceRequest(
+      HttpRequest* request, HttpResponse* response)
+   {
+      cout << "Servicing HTTP Request!" << endl;
+      
+      // FIXME: do stuff
+      
+      cout << "Finished servicing HTTP Request." << endl;
+   }
+};
+
 void runHttpServerTest()
 {
    cout << "Starting Http Server test." << endl << endl;
@@ -2306,16 +2328,17 @@ void runHttpServerTest()
    
    // create SSL/generic http connection servicer
    HttpConnectionServicer hcs;
-   SslContext context;
-   SslSocketDataPresenter presenter1(&context);
-   NullSocketDataPresenter presenter2;
-   SocketDataPresenterList list(false);
-   list.add(&presenter1);
-   list.add(&presenter2);
-   server.addConnectionService(&address, &hcs, &list);
+//   SslContext context;
+//   SslSocketDataPresenter presenter1(&context);
+//   NullSocketDataPresenter presenter2;
+//   SocketDataPresenterList list(false);
+//   list.add(&presenter1);
+//   list.add(&presenter2);
+   server.addConnectionService(&address, &hcs);//, &list);
    
-   // FIXME: create http request servicer
-   // hcs.addRequestServicer()
+   // create test http request servicer
+   TestHttpRequestServicer test1("/");
+   hcs.addRequestServicer(&test1, false);
    
    if(server.start())
    {
