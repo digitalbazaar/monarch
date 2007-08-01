@@ -63,6 +63,11 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
             // try to find servicer at parent paths
             string::size_type index = path.rfind('/');
             path = path.substr(0, index);
+            if(path == "")
+            {
+               path = "/";
+            }
+            
             i = servicerMap.find(path);
             if(i != servicerMap.end())
             {
