@@ -101,6 +101,10 @@ bool HttpHeader::getHeader(const string& header, string& value)
 
 bool HttpHeader::parse(const string& str)
 {
+   // FIXME: super slow parsing needs to be fixed
+   // FIXME: parseStartLine = 500 conn/sec fewer
+   // FIXME: remaining parse code = 500 conn/sec fewer
+   
    // parse start line
    bool rval = parseStartLine(str);
    
