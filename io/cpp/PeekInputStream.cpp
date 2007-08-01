@@ -4,6 +4,8 @@
 #include "PeekInputStream.h"
 #include "Math.h"
 
+#include <string>
+
 using namespace db::io;
 using namespace db::util;
 

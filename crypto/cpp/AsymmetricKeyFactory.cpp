@@ -6,7 +6,6 @@
 #include "UnsupportedAlgorithmException.h"
 #include "Math.h"
 #include "System.h"
-#include "Thread.h"
 
 #include <openssl/err.h>
 #include <openssl/pem.h>
@@ -185,7 +184,7 @@ bool AsymmetricKeyFactory::createKeyPair(
       rval = false;
       char* msg = new char[15 + strlen(algorithm) + 19 + 1];
       sprintf(msg, "Key algorithm '%s' is not supported!", algorithm);
-      Thread::setException(new UnsupportedAlgorithmException(msg));
+      Exception::setLast(new UnsupportedAlgorithmException(msg));
       delete msg;
    }
    
@@ -216,7 +215,7 @@ PrivateKey* AsymmetricKeyFactory::loadPrivateKeyFromPem(
    }
    else
    {
-      Thread::setException(new IOException(
+      Exception::setLast(new IOException(
          "Could not load private key from PEM!",
          ERR_error_string(ERR_get_error(), NULL)));
    }
@@ -250,7 +249,7 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
    }
    else
    {
-      Thread::setException(new IOException(
+      Exception::setLast(new IOException(
          "Could not write private key to PEM!",
          ERR_error_string(ERR_get_error(), NULL)));
    }
@@ -280,7 +279,7 @@ PublicKey* AsymmetricKeyFactory::loadPublicKeyFromPem(const string& pem)
    }
    else
    {
-      Thread::setException(new IOException(
+      Exception::setLast(new IOException(
          "Could not load public key from PEM!",
          ERR_error_string(ERR_get_error(), NULL)));
    }
@@ -311,7 +310,7 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKey* key)
    }
    else
    {
-      Thread::setException(new IOException(
+      Exception::setLast(new IOException(
          "Could not write private key to PEM!",
          ERR_error_string(ERR_get_error(), NULL)));
    }

@@ -5,6 +5,7 @@
 #include "PeekInputStream.h"
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
+#include "Thread.h"
 
 #include <openssl/err.h>
 
@@ -54,8 +55,9 @@ int SslSocket::tcpRead()
    if(tcpWrite())
    {
       // determine how many bytes are required from the Socket BIO
+      Thread* t = Thread::currentThread();
       size_t length = BIO_ctrl_get_read_request(mSocketBio);
-      if(length > 0 && !Thread::interrupted(false))
+      if(length > 0 && !t->isInterrupted())
       {
          // read from the underlying socket
          InputStream* is = mSocket->getInputStream();
@@ -83,13 +85,14 @@ bool SslSocket::tcpWrite()
    bool rval = true;
    
    // determine how many bytes can be read from the Socket BIO
+   Thread* t = Thread::currentThread();
    size_t length = BIO_ctrl_pending(mSocketBio);
    if(length > 0)
    {
       // read from the Socket BIO
       char b[length];
       int numBytes = 0;
-      while(length > 0 && !Thread::interrupted(false) &&
+      while(length > 0 && !t->isInterrupted() &&
             (numBytes = BIO_read(mSocketBio, b, length)) != -1)
       {
          // write to underlying socket
@@ -101,7 +104,7 @@ bool SslSocket::tcpWrite()
       }
    }
    
-   return rval && !Thread::interrupted(false);
+   return rval && !t->isInterrupted();
 }
 
 bool SslSocket::performHandshake()
@@ -110,7 +113,8 @@ bool SslSocket::performHandshake()
    
    // do SSL_do_handshake()
    int ret = 0;
-   while(exception == NULL && !Thread::interrupted(false) &&
+   Thread* t = Thread::currentThread();
+   while(exception == NULL && !t->isInterrupted() &&
          (ret = SSL_do_handshake(mSSL)) <= 0)
    {
       // get the last error
@@ -133,7 +137,7 @@ bool SslSocket::performHandshake()
             // data must be flushed to the socket
             if(!tcpWrite())
             {
-               exception = Thread::getException();
+               exception = Exception::getLast();
             }
             break;
          default:
@@ -151,7 +155,7 @@ bool SslSocket::performHandshake()
    }
    else
    {
-      Thread::setException(exception);
+      Exception::setLast(exception);
    }
    
    return mSessionNegotiated;
@@ -184,14 +188,15 @@ bool SslSocket::send(const char* b, unsigned int length)
       {
          if(!performHandshake())
          {
-            exception = Thread::getException();
+            exception = Exception::getLast();
          }
       }
       
       // do SSL_write() (implicit handshake performed as necessary)
       int ret = 0;
       bool closed = false;
-      while(exception == NULL && !Thread::interrupted(false) &&
+      Thread* t = Thread::currentThread();
+      while(exception == NULL && !t->isInterrupted() &&
             !closed && (ret <= SSL_write(mSSL, b, length)) <= 0)
       {
          // get the last error
@@ -218,7 +223,7 @@ bool SslSocket::send(const char* b, unsigned int length)
                // data must be flushed to the socket
                if(!tcpWrite())
                {
-                  exception = Thread::getException();
+                  exception = Exception::getLast();
                }
                break;
             default:
@@ -234,14 +239,14 @@ bool SslSocket::send(const char* b, unsigned int length)
          // flush all data to the socket
          if(!tcpWrite())
          {
-            exception = Thread::getException();
+            exception = Exception::getLast();
          }
       }
    }
    
    if(exception != NULL)
    {
-      Thread::setException(exception);
+      Exception::setLast(exception);
    }
    
    return exception == NULL;
@@ -264,14 +269,15 @@ int SslSocket::receive(char* b, unsigned int length)
       {
          if(!performHandshake())
          {
-            exception = Thread::getException();
+            exception = Exception::getLast();
          }
       }
       
       // do SSL_read() (implicit handshake performed as necessary)
       int ret = 0;
       bool closed = false;
-      while(exception == NULL && !Thread::interrupted(false) && !closed &&
+      Thread* t = Thread::currentThread();
+      while(exception == NULL && !t->isInterrupted() && !closed &&
             (ret = SSL_read(mSSL, b, length)) <= 0)
       {
          // get the last error
@@ -294,7 +300,7 @@ int SslSocket::receive(char* b, unsigned int length)
                // data must be flushed to the socket
                if(!tcpWrite())
                {
-                  exception = Thread::getException();
+                  exception = Exception::getLast();
                }
                break;
             default:
@@ -314,7 +320,7 @@ int SslSocket::receive(char* b, unsigned int length)
    
    if(exception != NULL)
    {
-      Thread::setException(exception);
+      Exception::setLast(exception);
    }
    
    return rval;

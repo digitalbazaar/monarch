@@ -4,6 +4,7 @@
 #include "HttpChunkedTransferInputStream.h"
 #include "Convert.h"
 #include "Math.h"
+#include "Thread.h"
 
 using namespace std;
 using namespace db::io;
@@ -117,7 +118,7 @@ int HttpChunkedTransferInputStream::read(char* b, unsigned int length)
    
    if(exception != NULL)
    {
-      Thread::setException(exception);
+      Exception::setLast(exception);
    }
    
    return rval;

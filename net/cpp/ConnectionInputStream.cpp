@@ -3,6 +3,7 @@
  */
 #include "Connection.h"
 #include "Math.h"
+#include "Thread.h"
 
 using namespace std;
 using namespace db::io;

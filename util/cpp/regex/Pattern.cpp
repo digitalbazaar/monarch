@@ -3,7 +3,6 @@
  */
 #include "Pattern.h"
 #include "InvalidRegexException.h"
-#include "Thread.h"
 
 #include <string>
 
@@ -83,7 +82,7 @@ Pattern* Pattern::compile(const char* regex, bool matchCase, bool subMatches)
 //      delete p;
 //      p = NULL;
 //      
-//      Thread::setException(new InvalidRegexException(message));
+//      Exception::setLast(new InvalidRegexException(message));
 //   }
    
    return p;

@@ -62,6 +62,41 @@ public:
     * @return the code for this Exception.
     */
    const char* getCode();
+   
+   /**
+    * Sets the last Exception for the current thread. This will store the
+    * passed exception in thread-local memory and delete it when the current
+    * thread exits or when it is replaced by another call to setException()
+    * on the same thread.
+    * 
+    * It is safe to call Exception::setLast(Exception::getLast()), no
+    * memory will be mistakenly collected.
+    * 
+    * @param e the Exception to set for the current thread.
+    */
+   static void setLast(Exception* e);
+   
+   /**
+    * Gets the last Exception for the current thread. This will be the last
+    * Exception that was set on this thread. It is stored in thread-local
+    * memory and automatically cleaned up when the thread exits.
+    * 
+    * @return the last Exception for the current thread, which may be NULL.
+    */
+   static Exception* getLast();
+   
+   /**
+    * Returns true if the current thread has encountered an Exception that
+    * can be retrieved by calling Exception::getLast(), false if not.
+    * 
+    * @return true if the current thread an Exception, false if not.
+    */
+   static bool hasLast();
+   
+   /**
+    * Clears any Exception from the current thread.
+    */
+   static void clearLast();
 };
 
 } // end namespace rt

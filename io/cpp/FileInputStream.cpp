@@ -34,7 +34,7 @@ bool FileInputStream::ensureOpen()
       {
          rval = false;
          string msg = "Could not open file '" + mFile->getName() + "'!";
-         Thread::setException(new IOException(msg.c_str()));
+         Exception::setLast(new IOException(msg.c_str()));
       }
    }
    
@@ -54,7 +54,7 @@ int FileInputStream::read(char* b, unsigned int length)
       if(mStream.fail() && !mStream.eof())
       {
          string msg = "Could not read from file '" + mFile->getName() + "'!";
-         Thread::setException(new IOException(msg.c_str()));
+         Exception::setLast(new IOException(msg.c_str()));
       }
       else if(mStream.gcount() > 0)
       {

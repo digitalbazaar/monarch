@@ -4,7 +4,6 @@
 #include "MessageDigest.h"
 #include "UnsupportedAlgorithmException.h"
 #include "Convert.h"
-#include "Thread.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -25,7 +24,7 @@ MessageDigest::MessageDigest(const string& algorithm)
    {
       // unsupported algorithm
       string msg = "Unsupported hash algorithm '" + algorithm + "'";
-      Thread::setException(new UnsupportedAlgorithmException(msg.c_str()));
+      Exception::setLast(new UnsupportedAlgorithmException(msg.c_str()));
    }
 }
 

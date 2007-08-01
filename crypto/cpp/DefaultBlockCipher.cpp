@@ -4,7 +4,6 @@
 #include "DefaultBlockCipher.h"
 #include "SymmetricKeyFactory.h"
 #include "IOException.h"
-#include "Thread.h"
 
 #include <openssl/err.h>
 
@@ -58,7 +57,7 @@ bool DefaultBlockCipher::startEncrypting(SymmetricKey* symmetricKey)
       }
       else
       {
-         Thread::setException(new IOException(
+         Exception::setLast(new IOException(
             "Could not start encrypting!",
             ERR_error_string(ERR_get_error(), NULL)));
       }
@@ -94,7 +93,7 @@ bool DefaultBlockCipher::startDecrypting(SymmetricKey* symmetricKey)
       }
       else
       {
-         Thread::setException(new IOException(
+         Exception::setLast(new IOException(
             "Could not start decrypting!",
             ERR_error_string(ERR_get_error(), NULL)));
       }
@@ -122,7 +121,7 @@ bool DefaultBlockCipher::update(
          }
          else
          {
-            Thread::setException(new IOException(
+            Exception::setLast(new IOException(
                "Could not encrypt data!",
                ERR_error_string(ERR_get_error(), NULL)));
          }
@@ -138,7 +137,7 @@ bool DefaultBlockCipher::update(
          }
          else
          {
-            Thread::setException(new IOException(
+            Exception::setLast(new IOException(
                "Could not decrypt data!",
                ERR_error_string(ERR_get_error(), NULL)));
          }
@@ -146,7 +145,7 @@ bool DefaultBlockCipher::update(
    }
    else
    {
-      Thread::setException(new IOException(
+      Exception::setLast(new IOException(
          "Cannot update cipher; cipher not started!"));
    }
    
@@ -170,7 +169,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
          }
          else
          {
-            Thread::setException(new IOException(
+            Exception::setLast(new IOException(
                "Could not finish encrypting!",
                ERR_error_string(ERR_get_error(), NULL)));
          }
@@ -185,7 +184,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
          }
          else
          {
-            Thread::setException(new IOException(
+            Exception::setLast(new IOException(
                "Could not finish decrypting!",
                ERR_error_string(ERR_get_error(), NULL)));
          }
@@ -193,7 +192,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
    }
    else
    {
-      Thread::setException(new IOException(
+      Exception::setLast(new IOException(
          "Cannot finish cipher; cipher not started!"));
    }
    

@@ -3,7 +3,6 @@
  */
 #include "SymmetricKeyFactory.h"
 #include "System.h"
-#include "Thread.h"
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -45,7 +44,7 @@ bool SymmetricKeyFactory::createRandomKey(
       rval = false;
       char* msg = new char[15 + strlen(algorithm) + 19 + 1];
       sprintf(msg, "Key algorithm '%s' is not supported!", algorithm);
-      Thread::setException(new UnsupportedAlgorithmException(msg));
+      Exception::setLast(new UnsupportedAlgorithmException(msg));
       delete msg;
    }
    

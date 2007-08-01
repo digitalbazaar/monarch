@@ -44,7 +44,7 @@ IOException* HttpConnection::sendHeader(HttpHeader* header)
    header->toString(out);
    if(!getOutputStream()->write(out.c_str(), out.length()))
    {
-      rval = (IOException*)Thread::getException();
+      rval = (IOException*)Exception::getLast();
    }
    
    return rval;
@@ -67,15 +67,16 @@ IOException* HttpConnection::receiveHeader(HttpHeader* header)
    
    if(!read)
    {
-      rval = (IOException*)Thread::getException();
+      rval = (IOException*)Exception::getLast();
    }
    else
    {
       // parse header
       if(!header->parse(headerStr))
       {
-         rval = new IOException("Could not receive HTTP header!");
-         Thread::setException(rval);
+         rval = new IOException(
+            "Could not receive HTTP header!", "db.net.http.BadRequest");
+         Exception::setLast(rval);
       }
    }
    
@@ -182,7 +183,7 @@ IOException* HttpConnection::sendBody(HttpHeader* header, InputStream* is)
       // if content is remaining
       if(writeError)
       {
-         rval = (IOException*)Thread::getException();
+         rval = (IOException*)Exception::getLast();
       }
       else if(contentRemaining > 0)
       {
@@ -200,7 +201,7 @@ IOException* HttpConnection::sendBody(HttpHeader* header, InputStream* is)
                "Could not read HTTP content bytes to send!");
          }
          
-         Thread::setException(rval);
+         Exception::setLast(rval);
       }
    }
    
@@ -292,7 +293,7 @@ IOException* HttpConnection::receiveBody(HttpHeader* header, OutputStream* os)
       // if content is remaining
       if(writeError)
       {
-         rval = (IOException*)Thread::getException();
+         rval = (IOException*)Exception::getLast();
       }
       else if(contentRemaining > 0)
       {
@@ -310,7 +311,7 @@ IOException* HttpConnection::receiveBody(HttpHeader* header, OutputStream* os)
                "Could not receive all HTTP content bytes!");
          }
          
-         Thread::setException(rval);
+         Exception::setLast(rval);
       }
    }
    

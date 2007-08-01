@@ -5,7 +5,6 @@
 #include "PrivateKey.h"
 #include "PublicKey.h"
 #include "SymmetricKeyFactory.h"
-#include "Thread.h"
 #include "IOException.h"
 
 #include <openssl/err.h>
@@ -105,7 +104,7 @@ bool DigitalEnvelope::startSealing(
             delete [] iv;
          }
          
-         Thread::setException(new IOException(
+         Exception::setLast(new IOException(
             "Could not start opening envelope!",
             ERR_error_string(ERR_get_error(), NULL)));
       }
@@ -143,7 +142,7 @@ bool DigitalEnvelope::startOpening(
       }
       else
       {
-         Thread::setException(new IOException(
+         Exception::setLast(new IOException(
             "Could not start opening envelope!",
             ERR_error_string(ERR_get_error(), NULL)));
       }
@@ -170,7 +169,7 @@ bool DigitalEnvelope::update(char* in, int inLength, char* out, int& outLength)
          }
          else
          {
-            Thread::setException(new IOException(
+            Exception::setLast(new IOException(
                "Could not seal envelope data!",
                ERR_error_string(ERR_get_error(), NULL)));
          }
@@ -186,7 +185,7 @@ bool DigitalEnvelope::update(char* in, int inLength, char* out, int& outLength)
          }
          else
          {
-            Thread::setException(new IOException(
+            Exception::setLast(new IOException(
                "Could not open envelope data!",
                ERR_error_string(ERR_get_error(), NULL)));
          }
@@ -194,7 +193,7 @@ bool DigitalEnvelope::update(char* in, int inLength, char* out, int& outLength)
    }
    else
    {
-      Thread::setException(new IOException(
+      Exception::setLast(new IOException(
          "Cannot update envelope; envelope not started!"));
    }
    
@@ -217,7 +216,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
          }
          else
          {
-            Thread::setException(new IOException(
+            Exception::setLast(new IOException(
                "Could not finish sealing envelope!",
                ERR_error_string(ERR_get_error(), NULL)));
          }
@@ -231,7 +230,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
          }
          else
          {
-            Thread::setException(new IOException(
+            Exception::setLast(new IOException(
                "Could not finish opening envelope!",
                ERR_error_string(ERR_get_error(), NULL)));
          }
@@ -239,7 +238,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
    }
    else
    {
-      Thread::setException(new IOException(
+      Exception::setLast(new IOException(
          "Cannot finish envelope; envelope not started!"));
    }
    

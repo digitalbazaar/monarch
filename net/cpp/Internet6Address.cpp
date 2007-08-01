@@ -3,7 +3,6 @@
  */
 #include "Internet6Address.h"
 #include "SocketDefinitions.h"
-#include "Thread.h"
 
 using namespace std;
 using namespace db::net;
@@ -107,7 +106,7 @@ UnknownHostException* Internet6Address::setHost(const std::string& host)
       sprintf(msg, "Unknown host '%s'!", host.c_str());
       rval = new UnknownHostException(msg);
       delete msg;
-      Thread::setException(rval);
+      Exception::setLast(rval);
    }
    else
    {

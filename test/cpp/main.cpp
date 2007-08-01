@@ -33,12 +33,15 @@
 #include "http/HttpHeader.h"
 #include "http/HttpRequest.h"
 #include "http/HttpResponse.h"
+#include "http/HttpConnectionServicer.h"
+#include "http/HttpRequestServicer.h"
 #include "Kernel.h"
 #include "Server.h"
 #include "NullSocketDataPresenter.h"
 #include "SslSocketDataPresenter.h"
 #include "SocketDataPresenterList.h"
 #include "StringTokenizer.h"
+#include "FilterOutputStream.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -56,6 +59,7 @@ PeekInputStream g_junk1(NULL, false);
 OperationList g_junk2(false);
 NullSocketDataPresenter g_junk3;
 StringTokenizer g_junk4;
+FilterOutputStream g_junk5(NULL, false);
 
 void runBase64Test()
 {
@@ -1763,7 +1767,7 @@ public:
       
       if(Thread::hasException())
       {
-         Exception* e = Thread::getException();
+         Exception* e = Exception::getLast();
          cout << "Exception occurred!" << endl;
          cout << "message: " << e->getMessage() << endl;
          cout << "code: " << e->getCode() << endl;
@@ -2038,10 +2042,10 @@ void runServerConnectionTest()
    {
       cout << "Server started." << endl;
    }
-   else if(Thread::getException() != NULL)
+   else if(Exception::getLast() != NULL)
    {
       cout << "Server started with errors=" <<
-         Thread::getException()->getMessage() << endl;
+         Exception::getLast()->getMessage() << endl;
    }
    
 //   // create generic service (stomp on second service, dynamically stop/start)
@@ -2049,7 +2053,7 @@ void runServerConnectionTest()
 //   if(!server.addConnectionService(&address, &tcs3))
 //   {
 //      cout << "Could not start service 3!, exception=" <<
-//         Thread::getException()->getMessage() << endl;
+//         Exception::getLast()->getMessage() << endl;
 //   }
 //   
 //   Thread::sleep(5000);
@@ -2058,7 +2062,7 @@ void runServerConnectionTest()
 //   if(!server.addConnectionService(&address, &tcs2))
 //   {
 //      cout << "Could not start service 2!, exception=" <<
-//         Thread::getException()->getMessage() << endl;
+//         Exception::getLast()->getMessage() << endl;
 //   }
    
    Object lock;
@@ -2124,13 +2128,13 @@ public:
             else
             {
                cout << "Exception=" <<
-                  Thread::getException()->getMessage() << endl;
+                  Exception::getLast()->getMessage() << endl;
             }
          }
          else
          {
             cout << "Exception=" <<
-               Thread::getException()->getMessage() << endl;
+               Exception::getLast()->getMessage() << endl;
          }
          
          // close socket
@@ -2178,10 +2182,10 @@ void runServerSslConnectionTest()
    {
       cout << "Server started." << endl;
    }
-   else if(Thread::getException() != NULL)
+   else if(Exception::getLast() != NULL)
    {
       cout << "Server started with errors=" <<
-         Thread::getException()->getMessage() << endl;
+         Exception::getLast()->getMessage() << endl;
    }
    
    BlastConnections bc(&address);
@@ -2266,10 +2270,10 @@ void runServerDatagramTest()
    {
       cout << "Server started." << endl;
    }
-   else if(Thread::getException() != NULL)
+   else if(Exception::getLast() != NULL)
    {
       cout << "Server started with errors=" <<
-         Thread::getException()->getMessage() << endl;
+         Exception::getLast()->getMessage() << endl;
    }
    
    Thread::sleep(10000);
@@ -2300,30 +2304,27 @@ void runHttpServerTest()
    Server server(&k);
    InternetAddress address("localhost", 19100);
    
-//   // create SSL-only service
-//   TestConnectionServicer1 tcs1;
-//   SslContext context;
-//   SslSocketDataPresenter presenter(&context);
-//   server.addConnectionService(&address, &tcs1, &presenter);
-   
-   // create SSL/generic service
-   TestConnectionServicer1 tcs1;
+   // create SSL/generic http connection servicer
+   HttpConnectionServicer hcs;
    SslContext context;
    SslSocketDataPresenter presenter1(&context);
    NullSocketDataPresenter presenter2;
    SocketDataPresenterList list(false);
    list.add(&presenter1);
    list.add(&presenter2);
-   server.addConnectionService(&address, &tcs1, &list);
+   server.addConnectionService(&address, &hcs, &list);
+   
+   // FIXME: create http request servicer
+   // hcs.addRequestServicer()
    
    if(server.start())
    {
       cout << "Server started." << endl;
    }
-   else if(Thread::getException() != NULL)
+   else if(Exception::getLast() != NULL)
    {
       cout << "Server started with errors=" <<
-         Thread::getException()->getMessage() << endl;
+         Exception::getLast()->getMessage() << endl;
    }
    
    // sleep
@@ -2390,7 +2391,7 @@ public:
       
       if(Thread::hasException())
       {
-         Exception* e = Thread::getException();
+         Exception* e = Exception::getLast();
          cout << "Exception occurred!" << endl;
          cout << "message: " << e->getMessage() << endl;
          cout << "code: " << e->getCode() << endl;

@@ -3,7 +3,6 @@
  */
 #include "InternetAddress.h"
 #include "SocketDefinitions.h"
-#include "Thread.h"
 #include "Convert.h"
 
 using namespace std;
@@ -114,7 +113,7 @@ UnknownHostException* InternetAddress::setHost(const std::string& host)
       sprintf(msg, "Unknown host '%s'!", host.c_str());
       rval = new UnknownHostException(msg);
       delete msg;
-      Thread::setException(rval);
+      Exception::setLast(rval);
    }
    else
    {

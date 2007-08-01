@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Exception.h"
+#include "Thread.h"
 
 #include <string>
 
@@ -46,4 +47,24 @@ const char* Exception::getMessage()
 const char* Exception::getCode()
 {
    return mCode;
+}
+
+void Exception::setLast(Exception* e)
+{
+   Thread::setException(e);
+}
+
+Exception* Exception::getLast()
+{
+   return Thread::getException();
+}
+
+bool Exception::hasLast()
+{
+   return Thread::hasException();
+}
+
+void Exception::clearLast()
+{
+   Thread::clearException();
 }

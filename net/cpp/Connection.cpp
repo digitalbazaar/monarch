@@ -119,7 +119,7 @@ SocketException* Connection::getLocalAddress(SocketAddress* address)
    
    if(!getSocket()->getLocalAddress(address))
    {
-      rval = (SocketException*)Thread::getException();
+      rval = (SocketException*)Exception::getLast();
    }
    
    return rval;
@@ -131,7 +131,7 @@ SocketException* Connection::getRemoteAddress(SocketAddress* address)
    
    if(!getSocket()->getRemoteAddress(address))
    {
-      rval = (SocketException*)Thread::getException();
+      rval = (SocketException*)Exception::getLast();
    }
    
    return rval;

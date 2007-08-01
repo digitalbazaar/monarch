@@ -107,7 +107,7 @@ bool UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
    
    if(error < 0)
    {
-      Thread::setException(new SocketException(
+      Exception::setLast(new SocketException(
          "Could not join multicast group!", strerror(errno)));
    }
    
@@ -154,7 +154,7 @@ bool UdpSocket::leaveGroup(SocketAddress* group)
    
    if(error < 0)
    {
-      Thread::setException(new SocketException(
+      Exception::setLast(new SocketException(
          "Could not leave multicast group!", strerror(errno)));
    }
    
@@ -200,7 +200,7 @@ bool UdpSocket::sendDatagram(
          }
          else
          {
-            exception = Thread::getException();
+            exception = Exception::getLast();
          }
       }
    }
@@ -215,7 +215,7 @@ int UdpSocket::receiveDatagram(
    
    if(!isBound())
    {
-      Thread::setException(new SocketException(
+      Exception::setLast(new SocketException(
          "Cannot read from unbound Socket!"));
    }
    else if(select(true, getReceiveTimeout()))
@@ -229,7 +229,7 @@ int UdpSocket::receiveDatagram(
       if(rval < -1)
       {
          rval = -1;
-         Thread::setException(new SocketException(
+         Exception::setLast(new SocketException(
             "Could not read from Socket!", strerror(errno)));
       }
       else if(rval != 0 && address != NULL)
@@ -253,7 +253,7 @@ bool UdpSocket::setMulticastHops(unsigned char hops)
    
    if(error < 0)
    {
-      Thread::setException(new SocketException(
+      Exception::setLast(new SocketException(
          "Could not set multicast hops!", strerror(errno)));
    }
    
@@ -270,7 +270,7 @@ bool UdpSocket::setMulticastTimeToLive(unsigned char ttl)
    
    if(error < 0)
    {
-      Thread::setException(new SocketException(
+      Exception::setLast(new SocketException(
          "Could not set multicast TTL!", strerror(errno)));
    }
    
@@ -286,7 +286,7 @@ bool UdpSocket::setBroadcastEnabled(bool enable)
       (char *)&broadcast, sizeof(broadcast));
    if(error < 0)
    {
-      Thread::setException(new SocketException(
+      Exception::setLast(new SocketException(
          "Could not set broadcast flag!", strerror(errno)));
    }
    

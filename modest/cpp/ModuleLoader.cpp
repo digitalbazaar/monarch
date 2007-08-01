@@ -3,7 +3,6 @@
  */
 #include "ModuleLoader.h"
 #include "DynamicLibrary.h"
-#include "Thread.h"
 
 using namespace std;
 using namespace db::modest;
@@ -53,14 +52,14 @@ ModuleInfo* ModuleLoader::loadModule(std::string const& filename)
       {
          // could not load create or free functions
          string msg = "Could not load module '" + filename + "'";
-         Thread::setException(new Exception(msg.c_str()));
+         Exception::setLast(new Exception(msg.c_str()));
       }
    }
    else
    {
       // failed to open module
       string msg = "Could not load module '" + filename + "'";
-      Thread::setException(new Exception(msg.c_str()));
+      Exception::setLast(new Exception(msg.c_str()));
    }
    
    return rval;

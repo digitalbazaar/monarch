@@ -4,7 +4,6 @@
 #ifndef db_io_InputStream_H
 #define db_io_InputStream_H
 
-#include "Thread.h"
 #include "IOException.h"
 
 namespace db
@@ -88,7 +87,7 @@ public:
 inline int InputStream::peek(char* b, unsigned int length)
 {
    // extending classes must implement this method if they want support
-   db::rt::Thread::setException(new IOException(
+   db::rt::Exception::setLast(new IOException(
       "InputStream::peek() is not implemented!"));
    return -1;
 }

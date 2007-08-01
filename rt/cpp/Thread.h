@@ -389,9 +389,6 @@ public:
     * thread exits or when it is replaced by another call to setException()
     * on the same thread.
     * 
-    * If no current Thread object can be found, then the passed Exception
-    * will be deleted immediately.
-    * 
     * It is safe to call Thread::setException(Thread::getException()), no
     * memory will be mistakenly collected. 
     * 

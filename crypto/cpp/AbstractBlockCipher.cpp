@@ -3,7 +3,6 @@
  */
 #include "AbstractBlockCipher.h"
 #include "UnsupportedAlgorithmException.h"
-#include "Thread.h"
 
 using namespace db::crypto;
 using namespace db::rt;
@@ -46,7 +45,7 @@ const EVP_CIPHER* AbstractBlockCipher::getCipherFunction(const char* algorithm)
    {
       char* msg = new char[27 + strlen(algorithm) + 2 + 1];
       sprintf(msg, "Unsupported key algorithm '%s'!", algorithm);
-      Thread::setException(new UnsupportedAlgorithmException(msg));
+      Exception::setLast(new UnsupportedAlgorithmException(msg));
       delete msg;
    }
    

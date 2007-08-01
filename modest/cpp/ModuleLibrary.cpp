@@ -2,7 +2,6 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "ModuleLibrary.h"
-#include "Thread.h"
 
 using namespace std;
 using namespace db::modest;
@@ -64,7 +63,7 @@ bool ModuleLibrary::loadModule(const string& filename)
                "', module named '" + mi->module->getId().name +
                "' with version '" + mi->module->getId().version +
                "' already loaded.";
-            Thread::setException(new Exception(msg.c_str()));
+            Exception::setLast(new Exception(msg.c_str()));
             mLoader.unloadModule(mi);
          }
       }

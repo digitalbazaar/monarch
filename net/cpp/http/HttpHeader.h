@@ -33,7 +33,7 @@ class HttpHeader
 {
 protected:
    /**
-    * The map containing the headers.
+    * The map containing the header fields.
     */
    std::map<std::string, std::string> mHeaders;
    

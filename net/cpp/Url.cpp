@@ -3,7 +3,6 @@
  */
 #include "Url.h"
 #include "Convert.h"
-#include "Thread.h"
 
 using namespace std;
 using namespace db::net;
@@ -29,7 +28,7 @@ MalformedUrlException* Url::setUrl(const string& url)
    {
       // no colon found
       rval = new MalformedUrlException("Url is missing a colon!");
-      Thread::setException(rval);
+      Exception::setLast(rval);
    }
    else
    {
@@ -49,7 +48,7 @@ MalformedUrlException* Url::setUrl(const string& url)
          {
             rval = new MalformedUrlException(
                "Url scheme contains invalid characters!");
-            Thread::setException(rval);
+            Exception::setLast(rval);
             break;
          }
          
@@ -57,7 +56,7 @@ MalformedUrlException* Url::setUrl(const string& url)
          {
             rval = new MalformedUrlException(
                "Url scheme contains invalid characters!");
-            Thread::setException(rval);
+            Exception::setLast(rval);
             break;
          }
       }

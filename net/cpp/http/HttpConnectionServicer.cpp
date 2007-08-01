@@ -6,14 +6,79 @@
 #include "HttpResponse.h"
 
 using namespace std;
+using namespace db::io;
 using namespace db::net::http;
+using namespace db::rt;
 
-HttpConnectionServicer::HttpConnectionServicer()
+HttpConnectionServicer::HttpConnectionServicer(const string& serverName)
 {
+   mServerName = serverName;
 }
 
 HttpConnectionServicer::~HttpConnectionServicer()
 {
+}
+
+void HttpConnectionServicer::normalizePath(string& path)
+{
+   if(path.length() == 0)
+   {
+      path = "/";
+   }
+   else
+   {
+      // prepend slash as necessary
+      if(path[0] != '/')
+      {
+         path.insert(0, 1, '/');
+      }
+      
+      // append slash as necessary
+      if(path[path.length() - 1] != '/')
+      {
+         path.append(1, '/');
+      }
+   }
+}
+
+HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
+   string& path, map<string, HttpRequestServicer*>& servicerMap)
+{
+   HttpRequestServicer* rval = NULL;
+   
+   lock();
+   {
+      // try to find servicer at path
+      map<string, HttpRequestServicer*>::iterator i = servicerMap.find(path);
+      if(i != servicerMap.end())
+      {
+         rval = servicerMap[path];
+      }
+      else
+      {
+         // erase last slash
+         path.erase(path.length() - 1, 1);
+         while(rval == NULL && path != "")
+         {
+            // try to find servicer at parent paths
+            string::size_type index = path.rfind('/');
+            path = path.substr(0, index);
+            i = servicerMap.find(path);
+            if(i != servicerMap.end())
+            {
+               rval = servicerMap[path];
+            }
+            else
+            {
+               // erase last slash
+               path.erase(path.length() - 1, 1);
+            }
+         }
+      }
+   }
+   unlock();
+   
+   return rval;
 }
 
 void HttpConnectionServicer::serviceConnection(Connection* c)
@@ -24,11 +89,136 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    // create request
    HttpRequest* request = (HttpRequest*)hc.createRequest();
    
-   // FIXME: service request
+   // create response, set defaults
+   HttpResponse* response = (HttpResponse*)request->createResponse();
+   response->getHeader()->setVersion("HTTP/1.1");
+   response->getHeader()->setDate();
+   response->getHeader()->setHeader("Server", mServerName);
    
-   // clean up request
+   // receive request header
+   IOException* e = request->receiveHeader();
+   if(e == NULL)
+   {
+      // check version
+      string version = request->getHeader()->getVersion();
+      if(version == "HTTP/1.0" || version == "HTTP/1.1")
+      {
+         // set version according to request version
+         response->getHeader()->setVersion(version);
+         
+         // get request path and normalize it
+         string path = request->getHeader()->getPath();
+         normalizePath(path);
+         
+         // find appropriate request servicer for path
+         HttpRequestServicer* hrs = NULL;
+         
+         if(hc.isSecure())
+         {
+            // find secure servicer
+            hrs = findRequestServicer(path, mSecureServicers);
+         }
+         else
+         {
+            // find non-secure servicer
+            hrs = findRequestServicer(path, mNonSecureServicers);
+         }
+         
+         if(hrs != NULL)
+         {
+            // service request
+            hrs->serviceRequest(request, response);
+         }
+         else
+         {
+            // no servicer, so send 403 Forbidden
+            response->getHeader()->setStatus(403, "Forbidden");
+            response->getHeader()->setHeader("Content-Length", 0);
+            response->sendHeader();
+         }
+      }
+      else
+      {
+         // send 505 HTTP Version Not Supported
+         response->getHeader()->setStatus(505, "HTTP Version Not Supported");
+         response->getHeader()->setHeader("Content-Length", 0);
+         response->sendHeader();
+      }
+   }
+   else if(strcmp(e->getCode(), "db.net.http.BadRequest") == 1)
+   {
+      // send 400 Bad Request
+      response->getHeader()->setStatus(400, "Bad Request");
+      response->getHeader()->setHeader("Content-Length", 0);
+      response->sendHeader();
+   }
+   else
+   {
+      // if the exception was not an interruption or socket error then
+      // send an internal server error response
+      Exception* e = Exception::getLast();
+      if(e != NULL && dynamic_cast<InterruptedException*>(e) == NULL &&
+         dynamic_cast<SocketException*>(e))
+      {
+         // send 500 Internal Server Error
+         response->getHeader()->setStatus(500, "Internal Server Error");
+         response->getHeader()->setHeader("Content-Length", 0);
+         response->sendHeader();
+      }
+   }
+   
+   // clean up request and response
    delete request;
-   
-   
-   // FIXME: implement me
+   delete response;
+}
+
+void HttpConnectionServicer::addRequestServicer(
+   HttpRequestServicer* s, bool secure)
+{
+   lock();
+   {
+      if(secure)
+      {
+         mSecureServicers[s->getPath()] = s;
+      }
+      else
+      {
+         mNonSecureServicers[s->getPath()] = s;
+      }
+   }
+   unlock();
+}
+
+void HttpConnectionServicer::removeRequestServicer(
+   HttpRequestServicer* s, bool secure)
+{
+   lock();
+   {
+      if(secure)
+      {
+         mSecureServicers.erase(s->getPath());
+      }
+      else
+      {
+         mNonSecureServicers.erase(s->getPath());
+      }
+   }
+   unlock();
+}
+
+void HttpConnectionServicer::removeRequestServicer(
+   const std::string& path, bool secure)
+{
+   lock();
+   {
+      if(secure)
+      {
+         mSecureServicers.erase(path);
+      }
+      else
+      {
+         mNonSecureServicers.erase(path);
+      }
+   }
+   unlock();
 }

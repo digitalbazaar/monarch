@@ -59,7 +59,7 @@ bool AbstractSocket::create(int domain, int type, int protocol)
          // close socket
          close();
          
-         Thread::setException(new SocketException(
+         Exception::setLast(new SocketException(
             "Could not create Socket!", strerror(errno)));
       }
       else
@@ -70,7 +70,7 @@ bool AbstractSocket::create(int domain, int type, int protocol)
    }
    else
    {
-      Thread::setException(new SocketException(
+      Exception::setLast(new SocketException(
          "Could not create Socket!", strerror(errno)));
    }
    
@@ -134,7 +134,7 @@ bool AbstractSocket::select(bool read, long long timeout)
    
    if(exception != NULL)
    {
-      Thread::setException(exception);
+      Exception::setLast(exception);
    }
    
    return exception == NULL;
@@ -204,7 +204,7 @@ bool AbstractSocket::bind(SocketAddress* address)
          shutdownInput();
          shutdownOutput();
          
-         Thread::setException(new SocketException(
+         Exception::setLast(new SocketException(
             "Could not bind Socket!", strerror(errno)));
       }
       else
@@ -225,7 +225,7 @@ bool AbstractSocket::listen(unsigned int backlog)
 {
    if(!isBound())
    {
-      Thread::setException(new SocketException(
+      Exception::setLast(new SocketException(
          "Cannot listen on unbound Socket!")); 
    }
    else
@@ -237,7 +237,7 @@ bool AbstractSocket::listen(unsigned int backlog)
       int error = ::listen(mFileDescriptor, backlog);
       if(error < 0)
       {
-         Thread::setException(new SocketException(
+         Exception::setLast(new SocketException(
             "Could not listen on Socket!", strerror(errno)));
       }
       else
@@ -256,7 +256,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
    
    if(!isListening())
    {
-      Thread::setException(new SocketException(
+      Exception::setLast(new SocketException(
          "Cannot accept with a non-listening Socket!"));
    }
    else
@@ -268,7 +268,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
          int fd = ::accept(mFileDescriptor, NULL, NULL);
          if(fd < 0)
          {
-            Thread::setException(new SocketException(
+            Exception::setLast(new SocketException(
                "Could not accept connection!", strerror(errno)));
          }
          else
@@ -320,7 +320,7 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
                shutdownInput();
                shutdownOutput();
                
-               Thread::setException(new SocketException(
+               Exception::setLast(new SocketException(
                   "Could not connect Socket! Connection refused.",
                   strerror(lastError)));
             }
@@ -386,14 +386,14 @@ bool AbstractSocket::send(const char* b, unsigned int length)
          }
          else
          {
-            exception = Thread::getException();
+            exception = Exception::getLast();
          }
       }
    }
    
    if(exception != NULL)
    {
-      Thread::setException(exception);
+      Exception::setLast(exception);
    }
    
    return exception == NULL;
@@ -405,7 +405,7 @@ int AbstractSocket::receive(char* b, unsigned int length)
    
    if(!isBound())
    {
-      Thread::setException(new SocketException(
+      Exception::setLast(new SocketException(
          "Cannot read from unbound Socket!"));
    }
    else
@@ -418,7 +418,7 @@ int AbstractSocket::receive(char* b, unsigned int length)
          if(rval < -1)
          {
             rval = -1;
-            Thread::setException(new SocketException(
+            Exception::setLast(new SocketException(
                "Could not read from Socket!", strerror(errno)));
          }
          else if(rval == 0)
@@ -497,7 +497,7 @@ bool AbstractSocket::getLocalAddress(SocketAddress* address)
    
    if(exception != NULL)
    {
-      Thread::setException(exception);
+      Exception::setLast(exception);
    }
    
    return exception == NULL;
@@ -534,7 +534,7 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
    
    if(exception != NULL)
    {
-      Thread::setException(exception);
+      Exception::setLast(exception);
    }
    
    return exception == NULL;
