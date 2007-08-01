@@ -13,3 +13,8 @@ WebRequest::WebRequest(WebConnection* wc)
 WebRequest::~WebRequest()
 {
 }
+
+WebConnection* WebRequest::getWebConnection()
+{
+   return mConnection;
+}

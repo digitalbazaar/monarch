@@ -23,7 +23,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class Socket : public virtual db::rt::Object
+class Socket
 {
 public:
    /**

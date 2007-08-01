@@ -4,7 +4,7 @@
 #ifndef db_net_WebResponse_H
 #define db_net_WebResponse_H
 
-#include "Object.h"
+#include "WebConnection.h"
 
 namespace db
 {
@@ -20,7 +20,7 @@ class WebRequest;
  * 
  * @author Dave Longley
  */
-class WebResponse : public virtual db::rt::Object
+class WebResponse
 {
 protected:
    /**
@@ -40,6 +40,13 @@ public:
     * Destructs this WebResponse.
     */
    virtual ~WebResponse();
+   
+   /**
+    * Gets the WebConnection associated with this response.
+    * 
+    * @return the WebConnection associated with this response.
+    */
+   virtual WebConnection* getWebConnection();
 };
 
 } // end namespace net

@@ -9,8 +9,6 @@
 #include "OutputStream.h"
 #include "HttpHeader.h"
 
-#include <string>
-
 namespace db
 {
 namespace net
@@ -62,7 +60,7 @@ public:
    
    /**
     * Sends a message header. This method will block until the entire header
-    * has been sent or until the connection times out.
+    * has been sent, the connection times out, or the thread is interrupted.
     * 
     * @param header the header to send.
     * 
@@ -72,7 +70,8 @@ public:
    
    /**
     * Receives a message header. This method will block until the entire
-    * header has been received or until the connection times out.
+    * header has been received, the connection times out, or the thread
+    * is interrupted.
     * 
     * @param header the header to populate.
     * 
@@ -82,7 +81,8 @@ public:
    
    /**
     * Sends the message body for the given header. This method will block
-    * until the entire body has been sent or until the connection times out.
+    * until the entire body has been sent, the connection times out, or
+    * the thread is interrupted.
     * 
     * @param header the header to send the message body for.
     * @param is the InputStream to read the body from.
@@ -94,7 +94,8 @@ public:
    
    /**
     * Receives the message body for the given header. This method will block
-    * until the entire body has been received or until the connection times out.
+    * until the entire body has been received, the connection times out, or
+    * the thread is interrupted.
     * 
     * @param header the header to receive the message body for.
     * @param os the OutputStream to write the body to.

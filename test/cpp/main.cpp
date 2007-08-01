@@ -38,6 +38,7 @@
 #include "NullSocketDataPresenter.h"
 #include "SslSocketDataPresenter.h"
 #include "SocketDataPresenterList.h"
+#include "StringTokenizer.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -53,7 +54,8 @@ using namespace db::util::regex;
 #include "PeekInputStream.h"
 PeekInputStream g_junk1(NULL, false);
 OperationList g_junk2(false);
-NullSocketDataPresenter g_junk3; 
+NullSocketDataPresenter g_junk3;
+StringTokenizer g_junk4;
 
 void runBase64Test()
 {
@@ -330,7 +332,7 @@ void runJobDispatcherTest()
    
    // wait
    cout << "Waiting for jobs to complete..." << endl;
-   Thread::sleep(5000);
+   Thread::sleep(15000);
    cout << "Finished waiting for jobs to complete." << endl;
    
    // stop dispatching
@@ -1668,12 +1670,22 @@ void runDateTest()
    Date d;
    string str;
    //d.format(str);
-   //d.format(str, "E EEEE d dd M MMMM MM yy w ww yyyy a");
-   //d.format(str, "EEEE, MMMM dd yyyy hh:mm:ss a");
-   d.format(str, "EEE, MMMM dd yyyy hh:mm:ss a", &local);
-   //d.format(str, "EEE, d MMM yyyy HH:mm:ss", &gmt);
+   //d.format(str, "E EEEE d dd M MMMM MM yy w ww yyyy a", "java");
+   //d.format(str, "EEEE, MMMM dd yyyy hh:mm:ss a", "java");
+   //d.format(str, "EEE, MMMM dd yyyy hh:mm:ss a", "java", &local);
+   //d.format(str, "EEE, d MMM yyyy HH:mm:ss", "java", &gmt);
+   //d.format(str, "%a, %d %b %Y %H:%M:%S");
+   d.format(str, "%a, %d %b %Y %H:%M:%S", "c", &local);
    
    cout << "Current Date: " << str << endl;
+   
+   // parse date
+   Date d2;
+   d2.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &local);
+   string str2;
+   d2.format(str2, "%a, %d %b %Y %H:%M:%S", "c", &local);
+   
+   cout << "Parsed Date: " << str2 << endl;
    
    cout << endl << "Date test complete." << endl;
 }
@@ -1698,7 +1710,7 @@ void runHttpHeaderTest()
    header.setDate();
    header.setMethod("GET");
    header.setPath("/");
-   header.setVersion("1.1");
+   header.setVersion("HTTP/1.1");
    header.setHeader("host", "localhost:80");
    header.setHeader("Content-Type", "text/html");
    header.setHeader("Connection", "close");
@@ -1714,14 +1726,15 @@ void runHttpHeaderTest()
    cout << endl << "Parsed Request Header:" << endl;
    
    HttpRequestHeader header2;
-   header2.setDate();
-   header2.setMethod("GET");
-   header2.setPath("/");
-   header2.setVersion("1.1");
+//   header2.setDate();
+//   header2.setMethod("GET");
+//   header2.setPath("/");
+//   header2.setVersion("HTTP/1.1");
    header2.parse(str);
-   str.erase();
-   header2.toString(str);
-   cout << str;
+   
+   string str2;
+   header2.toString(str2);
+   cout << str2;
    
    cout << "End of Parsed Request Header." << endl;
    
@@ -2090,7 +2103,7 @@ public:
          // connect
          if(socket.connect(address))
          {
-            cout << "connected" << endl;
+            //cout << "connected" << endl;
             
             // send request
             if(socket.send(request.c_str(), request.length()))
@@ -2297,10 +2310,10 @@ public:
 //      runUrlEncodeTest();
 //      runUrlTest();
 //      runRegexTest();
-//      runDateTest();
+      runDateTest();
 //      runHttpHeaderTest();
 //      runConfigTest();
-      runServerConnectionTest();
+//      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
       

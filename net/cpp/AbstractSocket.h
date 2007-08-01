@@ -4,7 +4,6 @@
 #ifndef db_net_AbstractSocket_H
 #define db_net_AbstractSocket_H
 
-#include "Object.h"
 #include "Socket.h"
 #include "InputStream.h"
 #include "OutputStream.h"

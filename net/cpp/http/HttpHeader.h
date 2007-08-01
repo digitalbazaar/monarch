@@ -4,7 +4,6 @@
 #ifndef db_net_http_HttpHeader_H
 #define db_net_http_HttpHeader_H
 
-#include "Object.h"
 #include "Date.h"
 
 #include <map>
@@ -30,7 +29,7 @@ namespace http
  * 
  * @author Dave Longley
  */
-class HttpHeader : public virtual db::rt::Object
+class HttpHeader
 {
 protected:
    /**
@@ -53,6 +52,15 @@ public:
     * Destructs this HttpHeader.
     */
    virtual ~HttpHeader();
+   
+   /**
+    * Parses the start line for this HttpHeader from the passed string.
+    * 
+    * @param str the string to parse from.
+    * 
+    * @return true if the start line could be parsed, false if not.
+    */
+   virtual bool parseStartLine(const std::string& str) = 0;
    
    /**
     * Gets the start line for this HttpHeader.
@@ -104,8 +112,10 @@ public:
     * Parses this header from the passed string.
     * 
     * @param str the string to parse from.
+    * 
+    * @return true if the header could be parsed, false if not.
     */
-   virtual void parse(const std::string& str);
+   virtual bool parse(const std::string& str);
    
    /**
     * Writes this header to a string.

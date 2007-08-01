@@ -18,7 +18,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class Datagram : public virtual db::rt::Object
+class Datagram
 {
 protected:
    /**

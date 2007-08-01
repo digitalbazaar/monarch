@@ -80,8 +80,11 @@ bool HttpHeader::getHeader(const string& header, string& value)
    return rval;
 }
 
-void HttpHeader::parse(const string& str)
+bool HttpHeader::parse(const string& str)
 {
+   // parse start line
+   bool rval = parseStartLine(str);
+   
    // clear headers
    clearHeaders();
    
@@ -110,12 +113,15 @@ void HttpHeader::parse(const string& str)
          }
       }
    }
+   
+   return rval;
 }
 
 string& HttpHeader::toString(string& str)
 {
    // append the start line and CRLF
    getStartLine(str);
+   str.erase();
    str.append(CRLF);
    
    // append all headers
@@ -136,17 +142,17 @@ void HttpHeader::setDate(Date* date)
    // get GMT time zone
    TimeZone gmt = TimeZone::getTimeZone("GMT");
    string str;
-   string format = "EEE, d MMM yyyy HH:mm:ss GMT";
+   string format = "%a, %d %b %Y %H:%M:%S GMT";
    
    if(date == NULL)
    {
       // get current date
       Date now;
-      now.format(str, format, &gmt);
+      now.format(str, format, "c", &gmt);
    }
    else
    {
-      date->format(str, format, &gmt);
+      date->format(str, format, "c", &gmt);
    }
    
    // set date header
@@ -160,7 +166,9 @@ bool HttpHeader::getDate(Date& date)
    string str;
    if(getHeader("Date", str))
    {
-      rval = date.parse(str, "EEE, d MMM yyyy HH:mm:ss GMT");
+      // get GMT time zone
+      TimeZone gmt = TimeZone::getTimeZone("GMT");
+      rval = date.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
    }
    
    return rval;

@@ -4,6 +4,7 @@
 #include "HttpResponse.h"
 #include "HttpRequest.h"
 
+using namespace db::io;
 using namespace db::net;
 using namespace db::net::http;
 
@@ -15,7 +16,32 @@ HttpResponse::~HttpResponse()
 {
 }
 
+IOException* HttpResponse::sendHeader()
+{
+   return getConnection()->sendHeader(getHeader());
+}
+
+IOException* HttpResponse::receiveHeader()
+{
+   return getConnection()->receiveHeader(getHeader());
+}
+
+IOException* HttpResponse::sendBody(InputStream* is)
+{
+   return getConnection()->sendBody(getHeader(), is);
+}
+
+IOException* HttpResponse::receiveBody(OutputStream* os)
+{
+   return getConnection()->receiveBody(getHeader(), os);
+}
+
 HttpResponseHeader* HttpResponse::getHeader()
 {
    return &mHeader;
+}
+
+HttpConnection* HttpResponse::getConnection()
+{
+   return (HttpConnection*)getWebConnection();
 }

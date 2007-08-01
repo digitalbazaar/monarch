@@ -7,7 +7,6 @@
 #include <openssl/ssl.h>
 #include <string>
 
-#include "Object.h"
 #include "TcpSocket.h"
 
 namespace db
@@ -20,7 +19,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class SslContext : public virtual db::rt::Object
+class SslContext
 {
 protected:
    /**

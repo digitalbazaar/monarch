@@ -4,8 +4,6 @@
 #ifndef db_util_TimeZone_H
 #define db_util_TimeZone_H
 
-#include "Object.h"
-
 #include <string>
 
 namespace db
@@ -18,7 +16,7 @@ namespace util
  * 
  * @author Dave Longley
  */
-class TimeZone : public virtual db::rt::Object
+class TimeZone
 {
 protected:
    /**

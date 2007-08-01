@@ -60,9 +60,18 @@ public:
    virtual ~HttpRequestHeader();
    
    /**
+    * Parses the start line for this HttpHeader from the passed string.
+    * 
+    * @param str the string to parse from.
+    */
+   virtual bool parseStartLine(const std::string& str);
+   
+   /**
     * Gets the start line for this HttpHeader.
     * 
     * @param line the startLine to populate.
+    * 
+    * @return true if the start line could be parsed, false if not.
     */
    virtual void getStartLine(std::string& line);
    

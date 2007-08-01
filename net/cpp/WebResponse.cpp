@@ -14,3 +14,8 @@ WebResponse::WebResponse(WebRequest* request)
 WebResponse::~WebResponse()
 {
 }
+
+WebConnection* WebResponse::getWebConnection()
+{
+   return mRequest->getWebConnection();
+}

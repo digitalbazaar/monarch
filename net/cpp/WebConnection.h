@@ -21,7 +21,7 @@ class WebRequest;
  * 
  * @author Dave Longley
  */
-class WebConnection : public virtual db::rt::Object
+class WebConnection
 {
 protected:
    /**

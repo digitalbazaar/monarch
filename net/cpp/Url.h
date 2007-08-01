@@ -26,7 +26,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class Url : public virtual db::rt::Object
+class Url
 {
 protected:
    /**
