@@ -105,7 +105,7 @@ string& Date::format(
 
 bool Date::parse(
    const string& str, const string& format, const string& formatType,
-   TimeZone* tz)     
+   TimeZone* tz)
 {
    bool rval = false;
    
