@@ -22,40 +22,60 @@ bool HttpResponseHeader::parseStartLine(const std::string& str)
 {
    bool rval = false;
    
-   // tokenize on spaces
-   StringTokenizer st(str.c_str(), ' ');
-   if(st.getTokenCount() == 3)
+   // clean status message
+   mStatusMessage.erase();
+   
+   // copy string so it can be modified
+   char tokens[str.length() + 1];
+   strcpy(tokens, str.c_str());
+   
+   // find space-delimited tokens in the passed string
+   int count = 0;
+   char* start = tokens;
+   char* end;
+   while(start != NULL)
    {
-      setVersion(st.nextToken());
-      long long code;
-      if(Convert::stringToInteger(st.nextToken(), code))
+      // find the end of the token
+      end = strchr(start, ' ');
+      if(end != NULL)
       {
-         string msg;
-         while(st.hasNextToken())
+         // nullify delimiter
+         memset(end, 0, 1);
+      }
+      
+      if(count == 0)
+      {
+         setVersion(start);
+      }
+      else if(count == 1)
+      {
+         long long code;
+         if(Convert::stringToInteger(start, code))
          {
-            if(msg.length() == 0)
-            {
-               msg.append(st.nextToken());
-            }
-            else
-            {
-               msg.append(" ");
-               msg.append(st.nextToken());
-            }
+            mStatusCode = code;
+            rval = true;
          }
-         
-         setStatus(code, msg);
-         rval = true;
       }
       else
       {
-         setStatus(0, "");
+         if(mStatusMessage.length() > 0)
+         {
+            mStatusMessage.append(1, ' ');
+         }
+         
+         mStatusMessage.append(start);
       }
-   }
-   else
-   {
-      setVersion("");
-      setStatus(0, "");
+      
+      count++;
+      
+      if(end != NULL)
+      {
+         start = end + 1;
+      }
+      else
+      {
+         start = end;
+      }
    }
    
    return rval;
@@ -65,7 +85,11 @@ void HttpResponseHeader::getStartLine(string& line)
 {
    char code[10];
    sprintf(code, "%d", getStatusCode()); 
-   line.append(getVersion() + " " + code + " " + getStatusMessage());
+   line.append(getVersion());
+   line.append(1, ' ');
+   line.append(code);
+   line.append(1, ' ');
+   line.append(getStatusMessage());
 }
 
 void HttpResponseHeader::setVersion(const string& version)

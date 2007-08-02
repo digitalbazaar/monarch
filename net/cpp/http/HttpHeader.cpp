@@ -73,7 +73,7 @@ bool HttpHeader::getHeader(const string& header, long long& value)
    string str;
    if(getHeader(header, str))
    {
-      rval = Convert::stringToInteger(str, value);
+      rval = Convert::stringToInteger(str.c_str(), value);
    }
    
    return rval;
@@ -103,43 +103,39 @@ bool HttpHeader::parse(const string& str)
 {
    bool rval = false;
    
-   // FIXME: super slow parsing needs to be fixed
-   // FIXME: parseStartLine = 500 conn/sec fewer
-   // FIXME: remaining parse code = 500 conn/sec fewer
-   
    // clear headers
    clearHeaders();
    
-   // parse lines according to CRLF
-   string line;
-   string::size_type lineStart = str.find(CRLF);
-   if(lineStart != string::npos)
+   bool startLine = true;
+   const char* start = str.c_str();
+   char* cr;
+   char* colon;
+   while((cr = strchr(start, '\r')) != NULL)
    {
-      // parse start line
-      line = str.substr(0, lineStart);
-      rval = parseStartLine(line);
-      
-      string::size_type lineEnd = 0;
-      while(lineStart < str.length() - 2 &&
-            (lineEnd = str.find(CRLF, lineStart + 2)) != string::npos)
+      // look for CRLF
+      if(strchr(cr, '\n') == cr + 1)
       {
-         // get line
-         line = str.substr(lineStart + 2, lineEnd - lineStart - 2);
-         lineStart = lineEnd;
-         
-         // parse header
-         string::size_type colon = line.find(':');
-         if(colon != string::npos)
+         if(startLine)
          {
-            if(colon != line.length() - 1)
+            rval = parseStartLine(str.substr(0, cr - start));
+            startLine = false;
+         }
+         else
+         {
+            // found a CRLF, now find colon
+            if((colon = strchr(start, ':')) != NULL && colon < cr)
             {
-               setHeader(line.substr(0, colon), line.substr(colon + 1));
-            }
-            else
-            {
-               setHeader(line.substr(0, colon), "");
+               setHeader(
+                  str.substr(start - str.c_str(), colon - start),
+                  str.substr(colon + 1 - str.c_str(), cr - colon));
             }
          }
+         
+         start = cr + 2;
+      }
+      else
+      {
+         start = cr + 1;
       }
    }
    
@@ -158,7 +154,10 @@ string& HttpHeader::toString(string& str)
    for(map<string, string>::iterator i = mHeaders.begin();
       i != mHeaders.end(); i++)
    {
-      str.append(i->first + ": " + i->second + CRLF);
+      str.append(i->first);
+      str.append(": ");
+      str.append(i->second);
+      str.append(CRLF);
    }
    
    // add CRLF

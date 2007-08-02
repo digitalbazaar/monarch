@@ -1704,57 +1704,6 @@ void runDateTest()
    cout << endl << "Date test complete." << endl;
 }
 
-void runHttpHeaderTest()
-{
-   cout << "Starting HttpHeader test." << endl << endl;
-   
-   /*
-   // test bicapitalization of http headers
-   string test = "ThIs-a-BICaPitAlized-hEADer";
-   HttpHeader::biCapitalize(test);
-   
-   cout << "BiCapitalized Header=" << test << endl;
-   */
-   
-//   string t = "   d  f  ";
-//   StringTools::trim(t);
-//   cout << "t='" << t << "'" << endl;
-   
-   HttpRequestHeader header;
-   header.setDate();
-   header.setMethod("GET");
-   header.setPath("/");
-   header.setVersion("HTTP/1.1");
-   header.setHeader("host", "localhost:80");
-   header.setHeader("Content-Type", "text/html");
-   header.setHeader("Connection", "close");
-   
-   cout << endl << "Request Header:" << endl;
-   
-   string str;
-   header.toString(str);
-   cout << str;
-   
-   cout << "End of Request Header." << endl;
-   
-   cout << endl << "Parsed Request Header:" << endl;
-   
-   HttpRequestHeader header2;
-//   header2.setDate();
-//   header2.setMethod("GET");
-//   header2.setPath("/");
-//   header2.setVersion("HTTP/1.1");
-   header2.parse(str);
-   
-   string str2;
-   header2.toString(str2);
-   cout << str2;
-   
-   cout << "End of Parsed Request Header." << endl;
-   
-   cout << endl << "HttpHeader test complete." << endl;
-}
-
 class InterruptTest : public virtual Object, public Runnable
 {
 public:
@@ -2287,6 +2236,78 @@ void runServerDatagramTest()
    cout << endl << "Server Datagram test complete." << endl;
 }
 
+void runHttpHeaderTest()
+{
+   cout << "Starting HttpHeader test." << endl << endl;
+   
+   /*
+   // test bicapitalization of http headers
+   string test = "ThIs-a-BICaPitAlized-hEADer";
+   HttpHeader::biCapitalize(test);
+   
+   cout << "BiCapitalized Header=" << test << endl;
+   */
+   
+//   string t = "   d  f  ";
+//   StringTools::trim(t);
+//   cout << "t='" << t << "'" << endl;
+   
+   cout << endl << "Request Header:" << endl;
+   
+   HttpRequestHeader reqHeader;
+   reqHeader.setDate();
+   reqHeader.setMethod("GET");
+   reqHeader.setPath("/");
+   reqHeader.setVersion("HTTP/1.1");
+   reqHeader.setHeader("host", "localhost:80");
+   reqHeader.setHeader("Content-Type", "text/html");
+   reqHeader.setHeader("Connection", "close");
+   
+   string str;
+   reqHeader.toString(str);
+   cout << str;
+   
+   cout << "End of Request Header." << endl;
+   
+   cout << endl << "Parsed Request Header:" << endl;
+   
+   HttpRequestHeader reqHeader2;
+   reqHeader2.parse(str);
+   
+   string str2;
+   reqHeader2.toString(str2);
+   cout << str2;
+   
+   cout << "End of Parsed Request Header." << endl;
+   
+   cout << endl << "Response Header:" << endl;
+   
+   HttpResponseHeader resHeader;
+   resHeader.setDate();
+   resHeader.setVersion("HTTP/1.1");
+   resHeader.setStatus(404, "Not Found");
+   resHeader.setHeader("host", "localhost:80");
+   resHeader.setHeader("Content-Type", "text/html");
+   resHeader.setHeader("Connection", "close");
+   
+   resHeader.toString(str);
+   cout << str;
+   
+   cout << "End of Response Header." << endl;
+   
+   cout << endl << "Parsed Response Header:" << endl;
+   
+   HttpResponseHeader resHeader2;
+   resHeader2.parse(str);
+   
+   resHeader2.toString(str2);
+   cout << str2;
+   
+   cout << "End of Parsed Response Header." << endl;
+   
+   cout << endl << "HttpHeader test complete." << endl;
+}
+
 class TestHttpRequestServicer : public HttpRequestServicer
 {
 public:
@@ -2417,13 +2438,13 @@ public:
 //      runUrlTest();
 //      runRegexTest();
 //      runDateTest();
-//      runHttpHeaderTest();
 //      runConfigTest();
 //      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
-//      runHttpServerTest();
-      runStringTokenizerTest();
+//      runHttpHeaderTest();
+      runHttpServerTest();
+//      runStringTokenizerTest();
       
       cout << endl << "Tests finished." << endl;
       

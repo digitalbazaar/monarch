@@ -103,82 +103,88 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    
    // receive request header
    IOException* e = request->receiveHeader();
-   if(e == NULL)
-   {
-      // check version
-      string version = request->getHeader()->getVersion();
-      if(version == "HTTP/1.0" || version == "HTTP/1.1")
-      {
-         // set version according to request version
-         response->getHeader()->setVersion(version);
-         
-         // include host path if one was used
-         string host;
-         if(request->getHeader()->getHeader("Host", host))
-         {
-            response->getHeader()->setHeader("Host", host);
-         }
-         
-         // get request path and normalize it
-         string path = request->getHeader()->getPath();
-         normalizePath(path);
-         
-         // find appropriate request servicer for path
-         HttpRequestServicer* hrs = NULL;
-         
-         if(hc.isSecure())
-         {
-            // find secure servicer
-            hrs = findRequestServicer(path, mSecureServicers);
-         }
-         else
-         {
-            // find non-secure servicer
-            hrs = findRequestServicer(path, mNonSecureServicers);
-         }
-         
-         if(hrs != NULL)
-         {
-            // service request
-            hrs->serviceRequest(request, response);
-         }
-         else
-         {
-            // no servicer, so send 403 Forbidden
-            response->getHeader()->setStatus(403, "Forbidden");
+   
+   // TEMPCODE:
+            response->getHeader()->setStatus(200, "OK");
             response->getHeader()->setHeader("Content-Length", 0);
             response->sendHeader();
-         }
-      }
-      else
-      {
-         // send 505 HTTP Version Not Supported
-         response->getHeader()->setStatus(505, "HTTP Version Not Supported");
-         response->getHeader()->setHeader("Content-Length", 0);
-         response->sendHeader();
-      }
-   }
-   else if(strcmp(e->getCode(), "db.net.http.BadRequest") == 1)
-   {
-      // send 400 Bad Request
-      response->getHeader()->setStatus(400, "Bad Request");
-      response->getHeader()->setHeader("Content-Length", 0);
-      response->sendHeader();
-   }
-   else
-   {
-      // if the exception was not an interruption or socket error then
-      // send an internal server error response
-      Exception* e = Exception::getLast();
-      if(e != NULL && dynamic_cast<InterruptedException*>(e) == NULL &&
-         dynamic_cast<SocketException*>(e))
-      {
-         // send 500 Internal Server Error
-         response->getHeader()->setStatus(500, "Internal Server Error");
-         response->getHeader()->setHeader("Content-Length", 0);
-         response->sendHeader();
-      }
-   }
+   
+//   if(e == NULL)
+//   {
+//      // check version
+//      string version = request->getHeader()->getVersion();
+//      if(version == "HTTP/1.0" || version == "HTTP/1.1")
+//      {
+//         // set version according to request version
+//         response->getHeader()->setVersion(version);
+//         
+//         // include host path if one was used
+//         string host;
+//         if(request->getHeader()->getHeader("Host", host))
+//         {
+//            response->getHeader()->setHeader("Host", host);
+//         }
+//         
+//         // get request path and normalize it
+//         string path = request->getHeader()->getPath();
+//         normalizePath(path);
+//         
+//         // find appropriate request servicer for path
+//         HttpRequestServicer* hrs = NULL;
+//         
+//         if(hc.isSecure())
+//         {
+//            // find secure servicer
+//            hrs = findRequestServicer(path, mSecureServicers);
+//         }
+//         else
+//         {
+//            // find non-secure servicer
+//            hrs = findRequestServicer(path, mNonSecureServicers);
+//         }
+//         
+//         if(hrs != NULL)
+//         {
+//            // service request
+//            hrs->serviceRequest(request, response);
+//         }
+//         else
+//         {
+//            // no servicer, so send 403 Forbidden
+//            response->getHeader()->setStatus(403, "Forbidden");
+//            response->getHeader()->setHeader("Content-Length", 0);
+//            response->sendHeader();
+//         }
+//      }
+//      else
+//      {
+//         // send 505 HTTP Version Not Supported
+//         response->getHeader()->setStatus(505, "HTTP Version Not Supported");
+//         response->getHeader()->setHeader("Content-Length", 0);
+//         response->sendHeader();
+//      }
+//   }
+//   else if(strcmp(e->getCode(), "db.net.http.BadRequest") == 1)
+//   {
+//      // send 400 Bad Request
+//      response->getHeader()->setStatus(400, "Bad Request");
+//      response->getHeader()->setHeader("Content-Length", 0);
+//      response->sendHeader();
+//   }
+//   else
+//   {
+//      // if the exception was not an interruption or socket error then
+//      // send an internal server error response
+//      Exception* e = Exception::getLast();
+//      if(e != NULL && dynamic_cast<InterruptedException*>(e) == NULL &&
+//         dynamic_cast<SocketException*>(e))
+//      {
+//         // send 500 Internal Server Error
+//         response->getHeader()->setStatus(500, "Internal Server Error");
+//         response->getHeader()->setHeader("Content-Length", 0);
+//         response->sendHeader();
+//      }
+//   }
    
    // clean up request and response
    delete request;

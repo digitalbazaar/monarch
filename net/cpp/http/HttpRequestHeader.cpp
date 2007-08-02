@@ -2,9 +2,6 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "HttpRequestHeader.h"
-#include "StringTokenizer.h"
-
-#include <sstream>
 
 using namespace std;
 using namespace db::net;
@@ -21,31 +18,57 @@ HttpRequestHeader::~HttpRequestHeader()
 
 bool HttpRequestHeader::parseStartLine(const std::string& str)
 {
-   bool rval = false;
+   // copy string so it can be modified
+   char tokens[str.length() + 1];
+   strcpy(tokens, str.c_str());
    
-   // tokenize on spaces
-   StringTokenizer st(str.c_str(), ' ');
-   if(st.getTokenCount() == 3)
+   // find space-delimited tokens in the passed string
+   int count = 0;
+   char* start = tokens;
+   char* end;
+   while(start != NULL && count < 3)
    {
-      setMethod(st.nextToken());
-      setPath(st.nextToken());
-      setVersion(st.nextToken());
+      // find the end of the token
+      end = strchr(start, ' ');
+      if(end != NULL)
+      {
+         // nullify delimiter
+         memset(end, 0, 1);
+      }
       
-      rval = true;
-   }
-   else
-   {
-      setMethod("");
-      setPath("");
-      setVersion("");
+      switch(count++)
+      {
+         case 0:
+            setMethod(start);
+            break;
+         case 1:
+            setPath(start);
+            break;
+         case 2:
+            setVersion(start);
+            break;
+      }
+      
+      if(end != NULL)
+      {
+         start = end + 1;
+      }
+      else
+      {
+         start = end;
+      }
    }
    
-   return rval;
+   return count == 3;
 }
 
 void HttpRequestHeader::getStartLine(string& line)
 {
-   line.append(getMethod() + " " + getPath() + " " + getVersion());
+   line.append(getMethod());
+   line.append(1, ' ');
+   line.append(getPath());
+   line.append(1, ' ');
+   line.append(getVersion());
 }
 
 void HttpRequestHeader::setMethod(const string& method)

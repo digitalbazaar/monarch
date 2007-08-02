@@ -112,10 +112,11 @@ public:
     * 
     * @param s the string to convert.
     * @param n the integer to populate.
+    * @param base the base to use, defaulting to 10.
     * 
     * @return true if the string could be converted to an integer, false if not.
     */
-   static bool stringToInteger(const std::string& s, long long& n);
+   static bool stringToInteger(const char* s, long long& n, int base = 10);
 };
 
 } // end namespace util

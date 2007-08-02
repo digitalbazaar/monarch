@@ -213,15 +213,9 @@ string Convert::integerToString(long long n)
    return oss.str();
 }
 
-bool Convert::stringToInteger(const string& s, long long& n)
+bool Convert::stringToInteger(const char* s, long long& n, int base)
 {
-   bool rval = false;
-   
-   istringstream iss(s);
-   if(iss >> n)
-   {
-      rval = true;
-   }
-   
-   return rval;
+   char* endptr = NULL;
+   n = strtoll(s, &endptr, base);
+   return endptr != s && *endptr == '\0';
 }
