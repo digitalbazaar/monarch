@@ -2364,6 +2364,21 @@ void runHttpServerTest()
    cout << endl << "Http Server test complete." << endl;
 }
 
+void runStringTokenizerTest()
+{
+   cout << "Starting StringTokenizer test." << endl << endl;
+   
+   char* str = "This is a test of the StringTokenizer class.";
+   
+   StringTokenizer st(str, ' ');
+   while(st.hasNextToken())
+   {
+      cout << "token='" << st.nextToken() << "'" << endl;
+   }
+   
+   cout << endl << "StringTokenizer test complete." << endl;
+}
+
 class RunTests : public virtual Object, public Runnable
 {
 public:
@@ -2407,7 +2422,8 @@ public:
 //      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
-      runHttpServerTest();
+//      runHttpServerTest();
+      runStringTokenizerTest();
       
       cout << endl << "Tests finished." << endl;
       

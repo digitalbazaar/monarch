@@ -11,12 +11,10 @@ Thread Thread::MAIN_THREAD(NULL, "main");
 
 // initialize current thread key parameters
 pthread_once_t Thread::CURRENT_THREAD_KEY_INIT = PTHREAD_ONCE_INIT;
-bool Thread::CURRENT_THREAD_KEY_INITIALIZED = false;
 pthread_key_t Thread::CURRENT_THREAD_KEY;
 
 // initialize exception key parameters
 pthread_once_t Thread::EXCEPTION_KEY_INIT = PTHREAD_ONCE_INIT;
-bool Thread::EXCEPTION_KEY_INITIALIZED = false;
 pthread_key_t Thread::EXCEPTION_KEY;
 
 // Note: disabled due to a lack of support in windows
@@ -45,20 +43,38 @@ Thread::Thread(Runnable* runnable, const char* name)
    mName = NULL;
    assignName(name);
    
-   // thread is not alive yet
-   mAlive = false;
-   
-   // thread not detached yet
-   mDetached = false;
-   
-   // thread is not interrupted yet
+   // thread is not interrupted or joined yet
    mInterrupted = false;
-   
-   // thread has not joined yet
    mJoined = false;
    
-   // thread is not started yet
-   mStarted = false;
+   if(this == &MAIN_THREAD)
+   {
+      // create the current thread key
+      pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
+      
+      // create the exception key
+      pthread_once(&EXCEPTION_KEY_INIT, Thread::createExceptionKey);
+      
+      // Note: disabled due to a lack of support in windows
+      // if support becomes available in the future, make the main
+      // thread handle all signals
+      // install signal handler
+      //pthread_once(&SIGINT_HANDLER_INIT, Thread::installSigIntHandler);
+      
+      // on the main thread, so initialize main thread and set specific data
+      mThreadId = pthread_self();
+      mAlive = true;
+      mDetached = true;
+      mStarted = true;
+      pthread_setspecific(CURRENT_THREAD_KEY, this);
+   }
+   else
+   {
+      // thread is not alive, detached, or started yet
+      mAlive = false;
+      mDetached = false;
+      mStarted = false;
+   }
 }
 
 Thread::~Thread()
@@ -68,15 +84,17 @@ Thread::~Thread()
    
    if(this == &MAIN_THREAD)
    {
-      // ensure keys are initialized, clear any exceptions
-      currentThread();
-      setException(NULL);
+      // ensure exceptions are cleared
+      Thread::setException(NULL);
       
-      // delete thread keys
-      pthread_setspecific(CURRENT_THREAD_KEY, NULL);
-      pthread_setspecific(EXCEPTION_KEY, NULL);
-      pthread_key_delete(CURRENT_THREAD_KEY);
-      pthread_key_delete(EXCEPTION_KEY);
+      // Note: Not necessary to delete thread keys?
+      // delete current thread key
+      //pthread_setspecific(CURRENT_THREAD_KEY, NULL);
+      //pthread_key_delete(CURRENT_THREAD_KEY);
+      
+      // delete exception key
+      //pthread_setspecific(EXCEPTION_KEY, NULL);
+      //pthread_key_delete(EXCEPTION_KEY);
    }
    
    // delete name
@@ -128,19 +146,6 @@ void Thread::assignName(const char* name)
       memcpy(mName, name, length);
       memset(mName + length, 0, 1);
    }
-}
-
-InterruptedException* Thread::createInterruptedException()
-{
-   InterruptedException* rval = NULL;
-   
-   char* msg = new char[8 + strlen(getName()) + 13 + 1];
-   sprintf(msg, "Thread '%s' interrupted", getName());
-   
-   rval = new InterruptedException(msg);
-   delete msg;
-   
-   return rval;
 }
 
 void Thread::createCurrentThreadKey()
@@ -195,19 +200,8 @@ void* Thread::execute(void* thread)
    // get the Thread object
    Thread* t = (Thread*)thread;
    
-   if(!CURRENT_THREAD_KEY_INITIALIZED)
-   {
-      // create the current thread key
-      pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
-      CURRENT_THREAD_KEY_INITIALIZED = true;
-   }
-   
    // set thread specific data for current thread to the Thread
    pthread_setspecific(CURRENT_THREAD_KEY, t);
-   
-   // Note: disabled due to a lack of support in windows
-   // install signal handler
-   //pthread_once(&SIGINT_HANDLER_INIT, Thread::installSigIntHandler);
    
    // thread is alive
    t->mAlive = true;
@@ -219,10 +213,7 @@ void* Thread::execute(void* thread)
    t->mAlive = false;
    
    // clean up any exception
-   setException(NULL);   
-   
-   // detach thread
-   t->detach();
+   setException(NULL);
    
    // exit thread
    pthread_exit(NULL);
@@ -373,29 +364,23 @@ const char* Thread::getName()
    return rval;
 }
 
+InterruptedException* Thread::createInterruptedException()
+{
+   InterruptedException* rval = NULL;
+   
+   char* msg = new char[8 + strlen(getName()) + 13 + 1];
+   sprintf(msg, "Thread '%s' interrupted", getName());
+   
+   rval = new InterruptedException(msg);
+   delete msg;
+   
+   return rval;
+}
+
 Thread* Thread::currentThread()
 {
-   if(!CURRENT_THREAD_KEY_INITIALIZED)
-   {
-      // create the current thread key
-      pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
-      CURRENT_THREAD_KEY_INITIALIZED = true;
-   }
-   
    // get a pointer to the current thread
-   Thread* t = (Thread*)pthread_getspecific(CURRENT_THREAD_KEY);
-   if(t == NULL)
-   {
-      // on the main thread, so initialize main thread and set specific data
-      t = &Thread::MAIN_THREAD;
-      t->mThreadId = pthread_self();
-      t->mAlive = true;
-      t->mDetached = true;
-      t->mStarted = true;
-      pthread_setspecific(CURRENT_THREAD_KEY, t);
-   }
-   
-   return t;
+   return (Thread*)pthread_getspecific(CURRENT_THREAD_KEY);
 }
 
 bool Thread::interrupted(bool clear)
@@ -445,258 +430,6 @@ void Thread::yield()
    sched_yield();
 }
 
-int Thread::select(bool read, unsigned int fd, long long timeout)
-{
-   int rval = 0;
-   
-   // create a file descriptor set to select on
-   fd_set fds;
-   FD_ZERO(&fds);
-   
-   // add file descriptor to set
-   FD_SET(fd, &fds);
-   
-   // "n" parameter is the highest numbered descriptor plus 1
-   int n = fd + 1;
-   
-   // keep selecting (polling) until timeout is reached
-   long long remaining = (timeout <= 0) ? 20LL : timeout;
-   
-   struct timeval to;
-   if(timeout < 0)
-   {
-      // create instant timeout (polling)
-      to.tv_sec = 0;
-      to.tv_usec = 0;
-   }
-   else
-   {
-      // create 20 millisecond timeout (1 millisecond is 1000 microseconds)
-      to.tv_sec = 0;
-      to.tv_usec = (remaining < 20LL ? remaining * 1000LL : 20000LL);
-   }
-   
-   unsigned long long start = System::getCurrentMilliseconds();
-   unsigned long long end;
-   
-   Thread* t = Thread::currentThread();
-   while(remaining > 0 && rval == 0 && !t->isInterrupted())
-   {
-      // wait for file descriptors to be updated
-      if(read)
-      {
-         // wait for readability
-         rval = ::select(n, &fds, NULL, &fds, &to);
-      }
-      else
-      {
-         // wait for writability
-         rval = ::select(n, NULL, &fds, &fds, &to);
-      }
-      
-      if(rval < 0 && errno == 0)
-      {
-         // no error, just timed out
-         rval = 0;
-         
-         // NOTE: select() may EINTR here but it is up to
-         // the calling method to determine what to do about it
-      }
-      
-      // select() implementation may alter sets or timeout, so reset them
-      // if calling select() again (not interrupted and timeout >= 0)
-      if(rval == 0 && timeout >= 0)
-      {
-         // clear set and re-add file descriptor
-         FD_ZERO(&fds);
-         FD_SET(fd, &fds);
-         
-         // reset timeout
-         to.tv_sec = 0;
-         to.tv_usec = 20000LL;
-      }
-      
-      if(timeout != 0)
-      {
-         // decrement remaining time
-         end = System::getCurrentMilliseconds();
-         remaining -= (end - start);
-         start = end;
-         to.tv_usec = (remaining < 20LL ? remaining * 1000LL : 20000LL);
-      }
-   }
-   
-   if(t->isInterrupted())
-   {
-      rval = -1;
-      errno = EINTR;
-      
-      // set interrupted exception
-      setException(t->createInterruptedException());
-   }
-   
-   return rval;
-}
-
-int Thread::select(
-   int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds,
-   long long timeout, const sigset_t* sigmask)
-{
-   int rval = 0;
-   
-// Note: disabled due to a lack of support in windows
-//   // create timeout
-//   struct timeval* tv = NULL;
-//   struct timeval to;
-//   if(timeout > 0)
-//   {
-//      // set timeout (1 millisecond is 1000 microseconds) 
-//      to.tv_sec = timeout / 1000LL;
-//      to.tv_usec = (timeout % 1000LL) * 1000LL;
-//      tv = &to;
-//   }
-//   
-//   // FIXME: signals supposedly don't make select() return in windows
-//   // this needs to be tested and potentially remedied somehow
-//   
-//   // FIXME: furthermore, even if we block SIGINT (interruption signal) up
-//   // until we reach the select call -- and then unblock right before it
-//   // the signal could still sneak in right before select() is called and
-//   // control is transferred to the kernel, and therefore we'd handle the
-//   // SIGINT before the select() call and select() wouldn't get interrupted
-//   // (there is pselect() for doing that unblocking atomically, but
-//   // it's UNIX only) -- this may be solved by writing to another file
-//   // descriptor when we receive SIGINTs and checking that file descriptor
-//   // as well as the one we are waiting on -- but this might not be a
-//   // viable solution for windows
-//   
-//   // block SIGINTs
-//   blockSignal(SIGINT);
-//   
-//   Thread* t = Thread::currentThread();
-//   if(!t->isInterrupted())
-//   {
-//      // FIXME: pselect() required here to do atomic unblocking & selecting
-//      
-//      // wait for file descriptors to be updated
-//      unblockSignal(SIGINT);
-//      rval = ::select(nfds, readfds, writefds, exceptfds, timeout);
-//      if(rval < 0)
-//      {
-//         if(errno == EINTR)
-//         {
-//            // interrupt thread
-//            t->interrupt();
-//         }
-//      }
-//   }
-//   else
-//   {
-//      rval = -1;
-//      errno = EINTR;
-//   }
-   
-   // clone file descriptor sets
-   fd_set readfds2;
-   fd_set writefds2;
-   fd_set exceptfds2;
-   
-   if(readfds != NULL)
-   {
-      readfds2 = *readfds;
-   }
-   
-   if(writefds != NULL)
-   {
-      writefds2 = *writefds;
-   }
-   
-   if(exceptfds != NULL)
-   {
-      exceptfds2 = *exceptfds;
-   }
-   
-   // keep selecting (polling) until timeout is reached
-   long long remaining = (timeout <= 0) ? 1LL : timeout;
-   
-   struct timeval to;
-   if(timeout < 0)
-   {
-      // create instant timeout (polling)
-      to.tv_sec = 0;
-      to.tv_usec = 0;
-   }
-   else
-   {
-      // create 1 millisecond timeout (1 millisecond is 1000 microseconds)
-      to.tv_sec = 0;
-      to.tv_usec = 1000LL;
-   }
-   
-   unsigned long long start = System::getCurrentMilliseconds();
-   unsigned long long end;
-   
-   Thread* t = Thread::currentThread();
-   while(!t->isInterrupted() && remaining > 0 && rval == 0)
-   {
-      // wait for file descriptors to be updated
-      rval = ::select(nfds, readfds, writefds, exceptfds, &to);
-      
-      if(rval < 0 && errno == 0)
-      {
-         // no error, just timed out
-         rval = 0;
-         
-         // NOTE: select() may return EINTR but it is up to
-         // the calling method to determine what to do about it
-      }
-      
-      // select() implementation may alter sets or timeout, so reset them
-      // if calling select() again
-      if(rval == 0 && timeout >= 0)
-      {
-         // reset file descriptor sets
-         if(readfds != NULL)
-         {
-            *readfds = readfds2;
-         }
-         
-         if(writefds != NULL)
-         {
-            *writefds = writefds2;
-         }
-         
-         if(exceptfds != NULL)
-         {
-            *exceptfds = exceptfds2;
-         }
-         
-         // reset timeout
-         to.tv_sec = 0;
-         to.tv_usec = 1000LL;
-      }
-      
-      if(timeout != 0)
-      {
-         // decrement remaining time
-         end = System::getCurrentMilliseconds();
-         remaining -= (end - start);
-         start = end;
-      }
-   }
-   
-   if(t->isInterrupted())
-   {
-      rval = -1;
-      errno = EINTR;
-      
-      // set interrupted exception
-      setException(t->createInterruptedException());
-   }
-   
-   return rval;
-}
-
 void Thread::setException(Exception* e)
 {
    // get the existing exception for the current thread, if any
@@ -716,19 +449,8 @@ void Thread::setException(Exception* e)
 
 Exception* Thread::getException()
 {
-   Exception* rval = NULL;
-   
-   if(!EXCEPTION_KEY_INITIALIZED)
-   {
-      // create the exception key
-      pthread_once(&EXCEPTION_KEY_INIT, Thread::createExceptionKey);
-      EXCEPTION_KEY_INITIALIZED = true;
-   }
-   
    // get the exception for the current thread, if any
-   rval = (Exception*)pthread_getspecific(EXCEPTION_KEY);
-   
-   return rval;
+   return (Exception*)pthread_getspecific(EXCEPTION_KEY);
 }
 
 bool Thread::hasException()

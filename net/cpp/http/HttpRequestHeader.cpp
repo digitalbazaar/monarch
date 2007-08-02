@@ -23,29 +23,21 @@ bool HttpRequestHeader::parseStartLine(const std::string& str)
 {
    bool rval = false;
    
-   // start line ends with CRLF
-   string::size_type lineEnd = str.find(CRLF);
-   if(lineEnd != string::npos)
+   // tokenize on spaces
+   StringTokenizer st(str.c_str(), ' ');
+   if(st.getTokenCount() == 3)
    {
-      // get start line
-      string line = str.substr(0, lineEnd);
+      setMethod(st.nextToken());
+      setPath(st.nextToken());
+      setVersion(st.nextToken());
       
-      // tokenize on spaces
-      StringTokenizer st(line, ' ');
-      if(st.getTokenCount() == 3)
-      {
-         setMethod(st.getToken(0));
-         setPath(st.getToken(1));
-         setVersion(st.getToken(2));
-         
-         rval = true;
-      }
-      else
-      {
-         setMethod("");
-         setPath("");
-         setVersion("");
-      }
+      rval = true;
+   }
+   else
+   {
+      setMethod("");
+      setPath("");
+      setVersion("");
    }
    
    return rval;

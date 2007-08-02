@@ -22,47 +22,40 @@ bool HttpResponseHeader::parseStartLine(const std::string& str)
 {
    bool rval = false;
    
-   // start line ends with CRLF
-   string::size_type lineEnd = str.find(CRLF);
-   if(lineEnd != string::npos)
+   // tokenize on spaces
+   StringTokenizer st(str.c_str(), ' ');
+   if(st.getTokenCount() == 3)
    {
-      // get start line
-      string line = str.substr(0, lineEnd);
-      
-      // tokenize on spaces
-      StringTokenizer st(line, ' ');
-      if(st.getTokenCount() == 3)
+      setVersion(st.nextToken());
+      long long code;
+      if(Convert::stringToInteger(st.nextToken(), code))
       {
-         setVersion(st.nextToken());
-         long long code;
-         if(Convert::stringToInteger(st.nextToken(), code))
+         string msg;
+         while(st.hasNextToken())
          {
-            string msg;
-            while(st.hasNextToken())
+            if(msg.length() == 0)
             {
-               if(msg.length() == 0)
-               {
-                  msg.append(st.nextToken());
-               }
-               else
-               {
-                  msg.append(" " + st.nextToken());
-               }
+               msg.append(st.nextToken());
             }
-            
-            setStatus(code, msg);
-            rval = true;
+            else
+            {
+               msg.append(" ");
+               msg.append(st.nextToken());
+            }
          }
-         else
-         {
-            setStatus(0, "");
-         }
+         
+         setStatus(code, msg);
+         rval = true;
       }
       else
       {
-         setVersion("");
          setStatus(0, "");
       }
+   }
+   else
+   {
+      setVersion("");
+      setStatus(0, "");
    }
    
    return rval;

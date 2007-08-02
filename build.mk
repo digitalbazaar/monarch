@@ -12,7 +12,7 @@ INCLUDES = -Irt/cpp -Imodest/cpp -Iutil/cpp -Iio/cpp -Icrypto/cpp -Icrypto/pytho
 
 # Compiler flags:
 # -g	include debug information
-CFLAGS = -g -pg $(INCLUDES)
+CFLAGS = -g $(INCLUDES)
 PYTHON_INCLUDE = -I/usr/include/python2.4
 
 # Archive builder

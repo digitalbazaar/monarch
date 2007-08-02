@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "AbstractSocket.h"
+#include "SocketTools.h"
 #include "SocketDefinitions.h"
 #include "InterruptedException.h"
 #include "PeekInputStream.h"
@@ -82,7 +83,8 @@ bool AbstractSocket::select(bool read, long long timeout)
    Exception* exception = NULL;
    
    // wait for readability/writability
-   int error = Thread::select(read, (unsigned int)mFileDescriptor, timeout);
+   int error = SocketTools::select(
+      read, (unsigned int)mFileDescriptor, timeout);
    if(error < 0)
    {
       if(errno == EINTR)

@@ -101,38 +101,44 @@ bool HttpHeader::getHeader(const string& header, string& value)
 
 bool HttpHeader::parse(const string& str)
 {
+   bool rval = false;
+   
    // FIXME: super slow parsing needs to be fixed
    // FIXME: parseStartLine = 500 conn/sec fewer
    // FIXME: remaining parse code = 500 conn/sec fewer
    
-   // parse start line
-   bool rval = parseStartLine(str);
-   
    // clear headers
    clearHeaders();
    
-   // parse lines according to CRLF (and skip start-line)
+   // parse lines according to CRLF
    string line;
    string::size_type lineStart = str.find(CRLF);
-   string::size_type lineEnd = 0;
-   while(lineStart < str.length() - 2 &&
-         (lineEnd = str.find(CRLF, lineStart + 2)) != string::npos)
+   if(lineStart != string::npos)
    {
-      // get line
-      line = str.substr(lineStart + 2, lineEnd - lineStart - 2);
-      lineStart = lineEnd;
+      // parse start line
+      line = str.substr(0, lineStart);
+      rval = parseStartLine(line);
       
-      // parse header
-      string::size_type colon = line.find(':');
-      if(colon != string::npos)
+      string::size_type lineEnd = 0;
+      while(lineStart < str.length() - 2 &&
+            (lineEnd = str.find(CRLF, lineStart + 2)) != string::npos)
       {
-         if(colon != line.length() - 1)
+         // get line
+         line = str.substr(lineStart + 2, lineEnd - lineStart - 2);
+         lineStart = lineEnd;
+         
+         // parse header
+         string::size_type colon = line.find(':');
+         if(colon != string::npos)
          {
-            setHeader(line.substr(0, colon), line.substr(colon + 1));
-         }
-         else
-         {
-            setHeader(line.substr(0, colon), "");
+            if(colon != line.length() - 1)
+            {
+               setHeader(line.substr(0, colon), line.substr(colon + 1));
+            }
+            else
+            {
+               setHeader(line.substr(0, colon), "");
+            }
          }
       }
    }
