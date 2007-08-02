@@ -16,11 +16,12 @@ HttpRequestHeader::~HttpRequestHeader()
 {
 }
 
-bool HttpRequestHeader::parseStartLine(const std::string& str)
+bool HttpRequestHeader::parseStartLine(const char* str, unsigned int length)
 {
    // copy string so it can be modified
-   char tokens[str.length() + 1];
-   strcpy(tokens, str.c_str());
+   char tokens[length + 1];
+   strncpy(tokens, str, length);
+   memset(tokens + length, 0, 1);
    
    // find space-delimited tokens in the passed string
    int count = 0;

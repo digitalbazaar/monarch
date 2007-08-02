@@ -16,6 +16,10 @@ State::~State()
    for(map<const char*, StateVariable*, StringComparator>::iterator i =
        mVarTable.begin(); i != mVarTable.end(); i++)
    {
+      // delete name
+      delete [] i->first;
+      
+      // get variable
       StateVariable* var = i->second;
       
       // delete string if applicable
@@ -60,7 +64,9 @@ StateVariable* State::createVariable(const char* name, int type)
       }
       
       // store variable in table
-      mVarTable[name] = var;
+      char* str = new char[strlen(name) + 1];
+      strcpy(str, name);
+      mVarTable.insert(make_pair(str, var));
    }
    
    if(var->type != type)

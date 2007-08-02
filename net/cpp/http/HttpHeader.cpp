@@ -12,53 +12,107 @@ using namespace db::util;
 // define CRLF
 const char HttpHeader::CRLF[] = "\r\n";
 
+bool StringComparator::operator()(const char* s1, const char* s2) const
+{
+   bool rval = false;
+   
+   int count1 = 0;
+   int count2 = 0;
+   char ch1 = *s1;
+   char ch2 = *s2;
+   bool equal = true;
+   for(; equal && ch1 != 0 && ch2 != 0; count1++, count2++)
+   {
+      ch1 = *(s1 + count1);
+      ch2 = *(s2 + count2);
+      
+      if(ch1 != ch2)
+      {
+         // do case-insensitive compare, convert both chars to upper-case
+         // 97 = 'a', 122 = 'z'
+         // 65 = 'A', 90 = 'Z'
+         if(ch1 > 96 && ch1 < 123)
+         {
+            ch1 -= 32;
+         }
+         
+         if(ch2 > 96 && ch2 < 123)
+         {
+            ch2 -= 32;
+         }
+         
+         if(ch1 < ch2)
+         {
+            rval = true;
+            equal = false;
+         }
+         else if(ch1 > ch2)
+         {
+            equal = false;
+         }
+      }
+   }
+   
+   if(equal && count1 < count2)
+   {
+      // string one is shorter than string two, so it is less
+      rval = true;
+   }
+   
+   return rval;
+}
+
 HttpHeader::HttpHeader()
 {
 }
 
 HttpHeader::~HttpHeader()
 {
+   for(map<const char*, string, StringComparator>::iterator i =
+       mHeaders.begin(); i != mHeaders.end(); i++)
+   {
+      delete [] i->first;
+   }
 }
 
-void HttpHeader::setHeader(const string& header, long long value)
+void HttpHeader::setHeader(const char* header, long long value)
 {
    setHeader(header, Convert::integerToString(value));
 }
 
-void HttpHeader::setHeader(const string& header, const string& value)
+void HttpHeader::setHeader(const char* header, const std::string& value)
 {
-   // bicapitalize and trim header
-   string bic = header;
-   biCapitalize(StringTools::trim(bic));
+   // clear old header
+   map<const char*, std::string, StringComparator>::iterator i =
+      mHeaders.find(header);
+   if(i != mHeaders.end())
+   {
+      delete [] i->first;
+      mHeaders.erase(i);
+   }
    
-   // trim and set value
-   string v = value;
-   mHeaders[bic] = StringTools::trim(v);
+   // set new header
+   char* str = new char[strlen(header) + 1];
+   strcpy(str, header);
+   mHeaders.insert(make_pair(str, value));
 }
 
-void HttpHeader::addHeader(const string& header, const string& value)
+void HttpHeader::addHeader(const char* header, const std::string& value)
 {
-   // bicapitalize and trim header
-   string bic = header;
-   biCapitalize(StringTools::trim(bic));
-   
    // get existing value
-   string existing = "";
-   getHeader(bic, existing);
+   string existing;
+   getHeader(header, existing);
    
-   // trim and append new value
-   string v = value;
-   setHeader(bic, existing + ", " + StringTools::trim(v));
+   // append new value
+   existing.append(", ");
+   existing.append(value);
+   setHeader(header, existing);
 }
 
-void HttpHeader::removeHeader(const string& header)
+void HttpHeader::removeHeader(const char* header)
 {
-   // bicapitalize and trim header
-   string bic = header;
-   biCapitalize(StringTools::trim(bic));
-   
-   // erase it
-   mHeaders.erase(bic);
+   // erase header
+   mHeaders.erase(header);
 }
 
 void HttpHeader::clearHeaders()
@@ -66,7 +120,7 @@ void HttpHeader::clearHeaders()
    mHeaders.clear();
 }
 
-bool HttpHeader::getHeader(const string& header, long long& value)
+bool HttpHeader::getHeader(const char* header, long long& value)
 {
    bool rval = false;
    
@@ -79,16 +133,13 @@ bool HttpHeader::getHeader(const string& header, long long& value)
    return rval;
 }
 
-bool HttpHeader::getHeader(const string& header, string& value)
+bool HttpHeader::getHeader(const char* header, string& value)
 {
    bool rval = false;
    
-   // bicapitalize and trim header
-   string bic = header;
-   biCapitalize(StringTools::trim(bic));
-   
    // find header entry
-   map<string, string>::iterator i = mHeaders.find(bic);
+   map<const char*, string, StringComparator>::iterator i =
+      mHeaders.find(header);
    if(i != mHeaders.end())
    {
       // get value
@@ -117,7 +168,7 @@ bool HttpHeader::parse(const string& str)
       {
          if(startLine)
          {
-            rval = parseStartLine(str.substr(0, cr - start));
+            rval = parseStartLine(start, cr - start);
             startLine = false;
          }
          else
@@ -125,9 +176,31 @@ bool HttpHeader::parse(const string& str)
             // found a CRLF, now find colon
             if((colon = strchr(start, ':')) != NULL && colon < cr)
             {
-               setHeader(
-                  str.substr(start - str.c_str(), colon - start),
-                  str.substr(colon + 1 - str.c_str(), cr - colon));
+               // get field name
+               char* name = new char[colon - start + 1];
+               strncpy(name, start, colon - start);
+               memset(name + (colon - start), 0, 1);
+               
+               // skip whitespace
+               colon++;
+               for(; *colon == ' ' && colon < cr; colon++);
+               
+               // get field value
+               char value[cr - colon + 1];
+               strncpy(value, colon, cr - colon);
+               memset(value + (cr - colon), 0, 1);
+               
+               // clear old header
+               map<const char*, std::string, StringComparator>::iterator i =
+                  mHeaders.find(name);
+               if(i != mHeaders.end())
+               {
+                  delete [] i->first;
+                  mHeaders.erase(i);
+               }
+               
+               // set header
+               mHeaders.insert(make_pair(name, value));
             }
          }
          
@@ -151,10 +224,16 @@ string& HttpHeader::toString(string& str)
    str.append(CRLF);
    
    // append all headers
-   for(map<string, string>::iterator i = mHeaders.begin();
-      i != mHeaders.end(); i++)
+   for(map<const char*, string, StringComparator>::iterator i =
+       mHeaders.begin(); i != mHeaders.end(); i++)
    {
-      str.append(i->first);
+      // get field name and bicapitalize it
+      char name[strlen(i->first)];
+      strcpy(name, i->first);
+      biCapitalize(name);
+      
+      // append name and value
+      str.append(name);
       str.append(": ");
       str.append(i->second);
       str.append(CRLF);
@@ -203,21 +282,35 @@ bool HttpHeader::getDate(Date& date)
    return rval;
 }
 
-void HttpHeader::biCapitalize(string& field)
+void HttpHeader::biCapitalize(char* header)
 {
-   // capitalize the first letter
-   transform(field.begin(), field.begin() + 1, field.begin(), toupper);
-   
-   // decapitalize all other letters
-   transform(field.begin() + 1, field.end(), field.begin() + 1, tolower);
-   
-   // capitalize all other letters that occur after hyphens
-   for(string::iterator i = field.begin() + 1; i != field.end(); i++)
+   // 97 = 'a', 122 = 'z'
+   if(*header > 96 && *header < 123)
    {
-      if(*(i - 1) == '-')
+      // capitalize letter
+      *header -= 32;
+   }
+   
+   // capitalize letters after hyphens, decapitalize other letters
+   header++;
+   for(; *header != 0; header++)
+   {
+      if(*(header - 1) == '-')
       {
-         // capitalize the letter
-         transform(i, i + 1, i, toupper);
+         if(*header > 96 && *header < 123)
+         {
+            // capitalize
+            *header -= 32;
+         }
+      }
+      else
+      {
+         // 65 = 'A', 90 = 'Z'
+         if(*header > 64 && *header < 90)
+         {
+            // decapitalize
+            *header += 32;
+         }
       }
    }
 }

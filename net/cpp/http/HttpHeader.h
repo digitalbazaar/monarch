@@ -16,6 +16,20 @@ namespace net
 namespace http
 {
 
+typedef struct StringComparator
+{
+   /**
+    * Compares two null-terminated strings, returning true if the first is
+    * less than the second, false if not. The compare is case-insensitive.
+    * 
+    * @param s1 the first string.
+    * @param s2 the second string.
+    * 
+    * @return true if the s1 < s2, false if not.
+    */
+   bool operator()(const char* s1, const char* s2) const;
+};
+
 /**
  * An HttpHeader is the header for an HTTP Message. It contains a start-line,
  * and, optionally, a collection of HTTP header fields.
@@ -35,7 +49,7 @@ protected:
    /**
     * The map containing the header fields.
     */
-   std::map<std::string, std::string> mHeaders;
+   std::map<const char*, std::string, StringComparator> mHeaders;
    
 public:
    /**
@@ -57,10 +71,11 @@ public:
     * Parses the start line for this HttpHeader from the passed string.
     * 
     * @param str the string to parse from.
+    * @param length the length of the start line (no null character included).
     * 
     * @return true if the start line could be parsed, false if not.
     */
-   virtual bool parseStartLine(const std::string& str) = 0;
+   virtual bool parseStartLine(const char* str, unsigned int length) = 0;
    
    /**
     * Gets the start line for this HttpHeader.
@@ -75,7 +90,7 @@ public:
     * @param header the header field to set.
     * @param value the value for the header field.
     */
-   virtual void setHeader(const std::string& header, long long value);
+   virtual void setHeader(const char* header, long long value);
    
    /**
     * Sets a header field.
@@ -83,7 +98,7 @@ public:
     * @param header the header field to set.
     * @param value the value for the header field.
     */
-   virtual void setHeader(const std::string& header, const std::string& value);
+   virtual void setHeader(const char* header, const std::string& value);
    
    /**
     * Adds a value to an existing header field. If the header field does not
@@ -92,14 +107,14 @@ public:
     * @param header the header field to update.
     * @param value the value to add to the header field.
     */
-   virtual void addHeader(const std::string& header, const std::string& value);
+   virtual void addHeader(const char* header, const std::string& value);
    
    /**
     * Removes a header field.
     * 
     * @param header the header field to remove.
     */
-   virtual void removeHeader(const std::string& header);
+   virtual void removeHeader(const char* header);
    
    /**
     * Clears all header fields.
@@ -114,7 +129,7 @@ public:
     * 
     * @return true if the header field exists, false if not.
     */
-   virtual bool getHeader(const std::string& header, long long& value);
+   virtual bool getHeader(const char* header, long long& value);
    
    /**
     * Gets a header field value.
@@ -124,7 +139,7 @@ public:
     * 
     * @return true if the header field exists, false if not.
     */
-   virtual bool getHeader(const std::string& header, std::string& value);
+   virtual bool getHeader(const char* header, std::string& value);
    
    /**
     * Parses this header from the passed string.
@@ -168,7 +183,7 @@ public:
     * 
     * @param header the header to BiCapitalize.
     */
-   static void biCapitalize(std::string& header);
+   static void biCapitalize(char* header);
 };
 
 } // end namespace http

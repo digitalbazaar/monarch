@@ -2240,13 +2240,11 @@ void runHttpHeaderTest()
 {
    cout << "Starting HttpHeader test." << endl << endl;
    
-   /*
    // test bicapitalization of http headers
-   string test = "ThIs-a-BICaPitAlized-hEADer";
+   char test[] = "ThIs-a-BICaPitAlized-hEADer";
    HttpHeader::biCapitalize(test);
    
    cout << "BiCapitalized Header=" << test << endl;
-   */
    
 //   string t = "   d  f  ";
 //   StringTools::trim(t);
@@ -2348,13 +2346,13 @@ void runHttpServerTest()
    
    // create SSL/generic http connection servicer
    HttpConnectionServicer hcs;
-//   SslContext context;
-//   SslSocketDataPresenter presenter1(&context);
-//   NullSocketDataPresenter presenter2;
-//   SocketDataPresenterList list(false);
-//   list.add(&presenter1);
-//   list.add(&presenter2);
-   server.addConnectionService(&address, &hcs);//, &list);
+   SslContext context;
+   SslSocketDataPresenter presenter1(&context);
+   NullSocketDataPresenter presenter2;
+   SocketDataPresenterList list(false);
+   list.add(&presenter1);
+   list.add(&presenter2);
+   server.addConnectionService(&address, &hcs, &list);
    
    // create test http request servicer
    TestHttpRequestServicer test1("/");

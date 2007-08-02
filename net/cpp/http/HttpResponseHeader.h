@@ -64,10 +64,11 @@ public:
     * Parses the start line for this HttpHeader from the passed string.
     * 
     * @param str the string to parse from.
+    * @param length the length of the start line (no null character included).
     * 
     * @return true if the start line could be parsed, false if not.
     */
-   virtual bool parseStartLine(const std::string& str);
+   virtual bool parseStartLine(const char* str, unsigned int length);
    
    /**
     * Gets the start line for this HttpHeader.
