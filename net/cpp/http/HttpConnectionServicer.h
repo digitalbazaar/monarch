@@ -19,6 +19,23 @@ namespace net
 namespace http
 {
 
+typedef struct PathComparator
+{
+   /**
+    * Compares two null-terminated strings, returning true if the first is
+    * less than the second, false if not.
+    * 
+    * @param s1 the first string.
+    * @param s2 the second string.
+    * 
+    * @return true if the s1 < s2, false if not.
+    */
+   bool operator()(const char* s1, const char* s2) const
+   {
+      return strcmp(s1, s2) < 0;
+   }
+};
+
 /**
  * An HttpConnectionServicer services HttpConnections. It maintains a list
  * of HttpRequestServicers that service HttpRequests received over the
@@ -40,13 +57,15 @@ protected:
     * Non-secure HttpRequestServicers. This maps paths to HttpRequestServicers
     * that require non-secure connections.
     */
-   std::map<std::string, HttpRequestServicer*> mNonSecureServicers;
+   std::map<std::string, HttpRequestServicer*>
+      mNonSecureServicers;
    
    /**
     * Secure HttpRequestServicers. This maps paths to HttpRequestServicers
     * that require secure connections.
     */
-   std::map<std::string, HttpRequestServicer*> mSecureServicers;
+   std::map<std::string, HttpRequestServicer*>
+      mSecureServicers;
    
    /**
     * Ensures a path starts and ends with forward slashes.

@@ -13,7 +13,7 @@ State::State()
 State::~State()
 {
    // delete all state variables
-   for(map<const char*, StateVariable*, StringComparator>::iterator i =
+   for(map<const char*, StateVariable*, StateNameComparator>::iterator i =
        mVarTable.begin(); i != mVarTable.end(); i++)
    {
       // delete name
@@ -37,7 +37,7 @@ StateVariable* State::getVariable(const char* name)
 {
    StateVariable* rval = NULL;
    
-   map<const char*, StateVariable*, StringComparator>::iterator i =
+   map<const char*, StateVariable*, StateNameComparator>::iterator i =
       mVarTable.find(name);
    if(i != mVarTable.end())
    {

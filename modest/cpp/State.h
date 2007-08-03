@@ -14,7 +14,7 @@ namespace db
 namespace modest
 {
 
-typedef struct StringComparator
+typedef struct StateNameComparator
 {
    /**
     * Compares two null-terminated strings, returning true if the first is
@@ -64,7 +64,7 @@ protected:
    /**
     * The variable table.
     */
-   std::map<const char*, StateVariable*, StringComparator> mVarTable;
+   std::map<const char*, StateVariable*, StateNameComparator> mVarTable;
    
    /**
     * Gets an existing StateVariable by its name.

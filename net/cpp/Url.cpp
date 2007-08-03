@@ -97,7 +97,7 @@ MalformedUrlException* Url::setUrl(const string& url)
                   mAuthority = mSchemeSpecificPart.substr(2, qMark - 2);
                   
                   // use base path
-                  mPath = "/";
+                  mPath = '/';
                }
                
                // get query
@@ -165,27 +165,28 @@ unsigned int Url::getDefaultPort()
 {
    unsigned int rval = 0;
    
-   if(getScheme() == "http")
+   if(strcmp(getScheme().c_str(), "http") == 0)
    {
       rval = 80;
    }
-   else if(getScheme() == "https")
+   else if(strcmp(getScheme().c_str(), "https") == 0)
    {
       rval = 443;
    }
-   else if(getScheme() == "ftp")
+   else if(strcmp(getScheme().c_str(), "ftp") == 0)
    {
       rval = 21;
    }
-   else if(getScheme() == "sftp" || getScheme() == "ssh")
+   else if(strcmp(getScheme().c_str(),"sftp") == 0 ||
+           strcmp(getScheme().c_str(), "ssh") == 0)
    {
       rval = 22;
    }
-   else if(getScheme() == "telnet")
+   else if(strcmp(getScheme().c_str(), "telnet") == 0)
    {
       rval = 23;
    }
-   else if(getScheme() == "smtp")
+   else if(strcmp(getScheme().c_str(), "smtp") == 0)
    {
       rval = 25;
    }

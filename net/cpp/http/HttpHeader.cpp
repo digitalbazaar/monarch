@@ -12,7 +12,7 @@ using namespace db::util;
 // define CRLF
 const char HttpHeader::CRLF[] = "\r\n";
 
-bool StringComparator::operator()(const char* s1, const char* s2) const
+bool HeaderComparator::operator()(const char* s1, const char* s2) const
 {
    bool rval = false;
    
@@ -68,7 +68,7 @@ HttpHeader::HttpHeader()
 
 HttpHeader::~HttpHeader()
 {
-   for(map<const char*, string, StringComparator>::iterator i =
+   for(map<const char*, string, HeaderComparator>::iterator i =
        mHeaders.begin(); i != mHeaders.end(); i++)
    {
       delete [] i->first;
@@ -83,7 +83,7 @@ void HttpHeader::setHeader(const char* header, long long value)
 void HttpHeader::setHeader(const char* header, const std::string& value)
 {
    // clear old header
-   map<const char*, std::string, StringComparator>::iterator i =
+   map<const char*, std::string, HeaderComparator>::iterator i =
       mHeaders.find(header);
    if(i != mHeaders.end())
    {
@@ -138,7 +138,7 @@ bool HttpHeader::getHeader(const char* header, string& value)
    bool rval = false;
    
    // find header entry
-   map<const char*, string, StringComparator>::iterator i =
+   map<const char*, string, HeaderComparator>::iterator i =
       mHeaders.find(header);
    if(i != mHeaders.end())
    {
@@ -191,7 +191,7 @@ bool HttpHeader::parse(const string& str)
                memset(value + (cr - colon), 0, 1);
                
                // clear old header
-               map<const char*, std::string, StringComparator>::iterator i =
+               map<const char*, std::string, HeaderComparator>::iterator i =
                   mHeaders.find(name);
                if(i != mHeaders.end())
                {
@@ -224,7 +224,7 @@ string& HttpHeader::toString(string& str)
    str.append(CRLF);
    
    // append all headers
-   for(map<const char*, string, StringComparator>::iterator i =
+   for(map<const char*, string, HeaderComparator>::iterator i =
        mHeaders.begin(); i != mHeaders.end(); i++)
    {
       // get field name and bicapitalize it

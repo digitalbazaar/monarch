@@ -16,7 +16,7 @@ namespace net
 namespace http
 {
 
-typedef struct StringComparator
+typedef struct HeaderComparator
 {
    /**
     * Compares two null-terminated strings, returning true if the first is
@@ -49,7 +49,7 @@ protected:
    /**
     * The map containing the header fields.
     */
-   std::map<const char*, std::string, StringComparator> mHeaders;
+   std::map<const char*, std::string, HeaderComparator> mHeaders;
    
 public:
    /**
