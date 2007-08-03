@@ -24,7 +24,7 @@ void HttpConnectionServicer::normalizePath(string& path)
 {
    if(path.length() == 0)
    {
-      path = '/';
+      path.append(1, '/');
    }
    else
    {
@@ -43,14 +43,16 @@ void HttpConnectionServicer::normalizePath(string& path)
 }
 
 HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
-   string& path, map<string, HttpRequestServicer*>& servicerMap)
+   string& path,
+   map<const char*, HttpRequestServicer*, PathComparator>& servicerMap)
 {
    HttpRequestServicer* rval = NULL;
    
    lock();
    {
       // try to find servicer at path
-      map<string, HttpRequestServicer*>::iterator i = servicerMap.find(path);
+      map<const char*, HttpRequestServicer*, PathComparator>::iterator i =
+         servicerMap.find(path.c_str());
       if(i != servicerMap.end())
       {
          rval = i->second;
@@ -62,14 +64,14 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
          while(rval == NULL && path.length() > 0)
          {
             // try to find servicer at parent paths
-            string::size_type index = path.rfind('/');
+            string::size_type index = path.rfind("/");
             path = path.substr(0, index);
             if(path.length() == 0)
             {
-               path = '/';
+               path.append(1, '/');
             }
             
-            i = servicerMap.find(path);
+            i = servicerMap.find(path.c_str());
             if(i != servicerMap.end())
             {
                rval = i->second;
@@ -249,7 +251,7 @@ void HttpConnectionServicer::removeRequestServicer(
 }
 
 void HttpConnectionServicer::removeRequestServicer(
-   const std::string& path, bool secure)
+   const char* path, bool secure)
 {
    lock();
    {

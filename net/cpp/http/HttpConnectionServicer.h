@@ -57,14 +57,14 @@ protected:
     * Non-secure HttpRequestServicers. This maps paths to HttpRequestServicers
     * that require non-secure connections.
     */
-   std::map<std::string, HttpRequestServicer*>
+   std::map<const char*, HttpRequestServicer*, PathComparator>
       mNonSecureServicers;
    
    /**
     * Secure HttpRequestServicers. This maps paths to HttpRequestServicers
     * that require secure connections.
     */
-   std::map<std::string, HttpRequestServicer*>
+   std::map<const char*, HttpRequestServicer*, PathComparator>
       mSecureServicers;
    
    /**
@@ -84,7 +84,7 @@ protected:
     */
    virtual HttpRequestServicer* findRequestServicer(
       std::string& path,
-      std::map<std::string, HttpRequestServicer*>& servicerMap);
+      std::map<const char*, HttpRequestServicer*, PathComparator>& servicerMap);
    
 public:
    /**
@@ -152,7 +152,7 @@ public:
     * @param secure true to remove a secure servicer, false to remove a
     *               non-secure servicer.
     */
-   virtual void removeRequestServicer(const std::string& path, bool secure);
+   virtual void removeRequestServicer(const char* path, bool secure);
 };
 
 } // end namespace http
