@@ -2379,8 +2379,8 @@ void runHttpServerTest()
    server.addConnectionService(&address, &hcs, &list);
    
    // create test http request servicer
-   //TestHttpRequestServicer test1("/test");
-   //hcs.addRequestServicer(&test1, false);
+   TestHttpRequestServicer test1("/test");
+   hcs.addRequestServicer(&test1, false);
    
    if(server.start())
    {
@@ -2420,6 +2420,152 @@ void runStringTokenizerTest()
    }
    
    cout << endl << "StringTokenizer test complete." << endl;
+}
+
+void runStringEqualityTest()
+{
+   cout << "Starting string equality test." << endl << endl;
+   
+   // Note: string length doesn't appear to matter
+   string str = "blah";
+   unsigned long long start, end;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(str == "");
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String == \"\" time: " << (end - start) << " ms" << endl;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(str.length() == 0);
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String.length() == 0 time: " << (end - start) << " ms" << endl;
+   
+   // Note: test demonstrates that comparing to length is about 6 times faster
+   
+   cout << endl << "String equality test complete." << endl;
+}
+
+void runStringAppendCharTest()
+{
+   cout << "Starting string append char test." << endl << endl;
+   
+   // Note: string length doesn't appear to matter
+   string str = "blah";
+   unsigned long long start, end;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(str.length() == 1 && str[0] == '/');
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String.length() == 1 && str[0] == '/' time: " <<
+      (end - start) << " ms" << endl;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(str == "/");
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String == \"/\" time: " << (end - start) << " ms" << endl;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(strcmp(str.c_str(), "/") == 0);
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "strcmp(String.c_str(), \"/\") == 0 time: " <<
+      (end - start) << " ms" << endl;
+   
+   string version = "HTTP/1.0";
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(version == "HTTP/1.0");
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String == \"HTTP/1.0\" time: " << (end - start) << " ms" << endl;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(strcmp(version.c_str(), "HTTP/1.0") == 0);
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "strcmp(String.c_str(), \"HTTP/1.0\") == 0 time: " <<
+      (end - start) << " ms" << endl;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 10000; i++)
+   {
+      str.append(1, '/');
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String.append(1, '/') time: " << (end - start) << " ms" << endl;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 10000; i++)
+   {
+      str.append("/");
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String.append(\"/\") time: " << (end - start) << " ms" << endl;
+   
+   string space = " ";
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 10000; i++)
+   {
+      str.append("this" + space + "is a sentence");
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String inline append time: " << (end - start) << " ms" << endl;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 10000; i++)
+   {
+      str.append("this");
+      str.append(space);
+      str.append("is a sentence");
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String multiline append time: " << (end - start) << " ms" << endl;
+   
+   cout << endl << "String append char test complete." << endl;
+}
+
+void runStringCompareTest()
+{
+   cout << "Starting string compare test." << endl << endl;
+   
+   string str1 = "blah";
+   char str2[] = "blah";
+   unsigned long long start, end;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(str1 == "blah");
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "std::string compare time: " << (end - start) << " ms" << endl;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(strcmp(str2, "blah") == 0);
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "char* compare time: " << (end - start) << " ms" << endl;
+   
+   cout << endl << "String compare test complete." << endl;
 }
 
 class RunTests : public virtual Object, public Runnable
@@ -2468,6 +2614,9 @@ public:
 //      runHttpHeaderTest();
       runHttpServerTest();
 //      runStringTokenizerTest();
+//      runStringEqualityTest();
+//      runStringAppendCharTest();
+//      runStringCompareTest();
       
       cout << endl << "Tests finished." << endl;
       

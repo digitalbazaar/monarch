@@ -10,7 +10,7 @@ HttpRequestServicer::HttpRequestServicer(const string& path)
 {
    if(path.length() == 0)
    {
-      mPath = "/";
+      mPath = '/';
    }
    else
    {

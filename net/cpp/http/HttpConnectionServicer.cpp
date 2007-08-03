@@ -24,7 +24,7 @@ void HttpConnectionServicer::normalizePath(string& path)
 {
    if(path.length() == 0)
    {
-      path = "/";
+      path = '/';
    }
    else
    {
@@ -53,26 +53,26 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
       map<string, HttpRequestServicer*>::iterator i = servicerMap.find(path);
       if(i != servicerMap.end())
       {
-         rval = servicerMap[path];
+         rval = i->second;
       }
       else
       {
          // erase last slash
          path.erase(path.length() - 1, 1);
-         while(rval == NULL && path != "")
+         while(rval == NULL && path.length() > 0)
          {
             // try to find servicer at parent paths
             string::size_type index = path.rfind('/');
             path = path.substr(0, index);
-            if(path == "")
+            if(path.length() == 0)
             {
-               path = "/";
+               path = '/';
             }
             
             i = servicerMap.find(path);
             if(i != servicerMap.end())
             {
-               rval = servicerMap[path];
+               rval = i->second;
             }
             else
             {
@@ -107,11 +107,11 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    if(e == NULL)
    {
       // check version
-      string version = request->getHeader()->getVersion();
-      if(version == "HTTP/1.0" || version == "HTTP/1.1")
+      if(strcmp(request->getHeader()->getVersion().c_str(), "HTTP/1.0") == 0 ||
+         strcmp(request->getHeader()->getVersion().c_str(), "HTTP/1.1") == 0)
       {
          // set version according to request version
-         response->getHeader()->setVersion(version);
+         response->getHeader()->setVersion(request->getHeader()->getVersion());
          
          // include host path if one was used
          string host;
@@ -146,7 +146,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          else
          {
             // no servicer, so send 403 Forbidden
-            char html[] = "<html>403 Forbidden</html>";
+            char html[] = "<html><h2>403 Forbidden</h2></html>";
             response->getHeader()->setStatus(403, "Forbidden");
             response->getHeader()->setHeader("Content-Type", "text/html");
             response->getHeader()->setHeader("Content-Length", 26);
@@ -161,7 +161,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       else
       {
          // send 505 HTTP Version Not Supported
-         char html[] = "<html>505 HTTP Version Not Supported</html>";
+         char html[] = "<html><h2>505 HTTP Version Not Supported</h2></html>";
          response->getHeader()->setStatus(505, "HTTP Version Not Supported");
          response->getHeader()->setHeader("Content-Type", "text/html");
          response->getHeader()->setHeader("Content-Length", 43);
@@ -176,7 +176,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    else if(strcmp(e->getCode(), "db.net.http.BadRequest") == 1)
    {
       // send 400 Bad Request
-      char html[] = "<html>400 Bad Request</html>";
+      char html[] = "<html><h2>400 Bad Request</h2></html>";
       response->getHeader()->setStatus(400, "Bad Request");
       response->getHeader()->setHeader("Content-Type", "text/html");
       response->getHeader()->setHeader("Content-Length", 29);
@@ -196,7 +196,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          dynamic_cast<SocketException*>(e))
       {
          // send 500 Internal Server Error
-         char html[] = "<html>500 Internal Server Error</html>";
+         char html[] = "<html><h2>500 Internal Server Error</h2></html>";
          response->getHeader()->setStatus(500, "Internal Server Error");
          response->getHeader()->setHeader("Content-Type", "text/html");
          response->getHeader()->setHeader("Content-Length", 38);
