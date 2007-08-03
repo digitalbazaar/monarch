@@ -54,7 +54,7 @@ bool AbstractSocket::create(int domain, int type, int protocol)
       // are waiting to be cleaned up
       int reuse = 1;
       int error = setsockopt(
-         fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
+         fd, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse, sizeof(reuse));
       if(error < 0)
       {
          // close socket
@@ -131,6 +131,30 @@ bool AbstractSocket::select(bool read, long long timeout)
          // write timeout occurred
          exception = new SocketTimeoutException(
             "Socket write timed out!", strerror(errno));
+      }
+   }
+   else
+   {
+      // get the last error on the socket
+      int lastError;
+      socklen_t lastErrorLength = sizeof(lastError);
+      getsockopt(
+         mFileDescriptor, SOL_SOCKET, SO_ERROR,
+         (char*)&lastError, &lastErrorLength);
+      if(lastError != 0)
+      {
+         if(read)
+         {
+            // error occurred, get string message
+            exception = new SocketException(
+               "Could not read from Socket!", strerror(errno));
+         }
+         else
+         {
+            // error occurred, get string message
+            exception = new SocketException(
+               "Could not write to Socket!", strerror(errno));
+         }
       }
    }
    
@@ -304,28 +328,9 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
          // wait until the connection can be written to
          if(select(false, timeout * 1000LL))
          {
-            // get the last error on the socket
-            int lastError;
-            socklen_t lastErrorLength = sizeof(lastError);
-            getsockopt(
-               mFileDescriptor, SOL_SOCKET, SO_ERROR,
-               (char*)&lastError, &lastErrorLength);
-            if(lastError == 0)
-            {
-               // now connected and bound
-               mBound = true;
-               mConnected = true;
-            }
-            else
-            {
-               // shutdown input/output
-               shutdownInput();
-               shutdownOutput();
-               
-               Exception::setLast(new SocketException(
-                  "Could not connect Socket! Connection refused.",
-                  strerror(lastError)));
-            }
+            // now connected and bound
+            mBound = true;
+            mConnected = true;
          }
          else
          {

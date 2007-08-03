@@ -151,11 +151,11 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             char html[] = "<html><h2>403 Forbidden</h2></html>";
             response->getHeader()->setStatus(403, "Forbidden");
             response->getHeader()->setHeader("Content-Type", "text/html");
-            response->getHeader()->setHeader("Content-Length", 26);
+            response->getHeader()->setHeader("Content-Length", 35);
             response->getHeader()->setHeader("Connection", "close");
             if(response->sendHeader() == NULL)
             {
-               ByteArrayInputStream is(html, 26);
+               ByteArrayInputStream is(html, 35);
                response->sendBody(&is);
             }
          }
@@ -166,11 +166,11 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          char html[] = "<html><h2>505 HTTP Version Not Supported</h2></html>";
          response->getHeader()->setStatus(505, "HTTP Version Not Supported");
          response->getHeader()->setHeader("Content-Type", "text/html");
-         response->getHeader()->setHeader("Content-Length", 43);
+         response->getHeader()->setHeader("Content-Length", 52);
          response->getHeader()->setHeader("Connection", "close");
          if(response->sendHeader() == NULL)
          {
-            ByteArrayInputStream is(html, 43);
+            ByteArrayInputStream is(html, 52);
             response->sendBody(&is);
          }
       }
@@ -181,11 +181,11 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       char html[] = "<html><h2>400 Bad Request</h2></html>";
       response->getHeader()->setStatus(400, "Bad Request");
       response->getHeader()->setHeader("Content-Type", "text/html");
-      response->getHeader()->setHeader("Content-Length", 29);
+      response->getHeader()->setHeader("Content-Length", 38);
       response->getHeader()->setHeader("Connection", "close");
       if(response->sendHeader() == NULL)
       {
-         ByteArrayInputStream is(html, 29);
+         ByteArrayInputStream is(html, 38);
          response->sendBody(&is);
       }
    }
@@ -195,17 +195,17 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       // send an internal server error response
       Exception* e = Exception::getLast();
       if(e != NULL && dynamic_cast<InterruptedException*>(e) == NULL &&
-         dynamic_cast<SocketException*>(e))
+         dynamic_cast<SocketException*>(e) == NULL)
       {
          // send 500 Internal Server Error
          char html[] = "<html><h2>500 Internal Server Error</h2></html>";
          response->getHeader()->setStatus(500, "Internal Server Error");
          response->getHeader()->setHeader("Content-Type", "text/html");
-         response->getHeader()->setHeader("Content-Length", 38);
+         response->getHeader()->setHeader("Content-Length", 47);
          response->getHeader()->setHeader("Connection", "close");
          if(response->sendHeader() == NULL)
          {
-            ByteArrayInputStream is(html, 38);
+            ByteArrayInputStream is(html, 47);
             response->sendBody(&is);
          }
       }

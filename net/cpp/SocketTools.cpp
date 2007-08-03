@@ -13,12 +13,17 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
 {
    int rval = 0;
    
-   // create a file descriptor set to select on
-   fd_set fds;
-   FD_ZERO(&fds);
+   // create a file descriptor set to read/write on
+   fd_set rwfds;
+   FD_ZERO(&rwfds);
    
-   // add file descriptor to set
-   FD_SET(fd, &fds);
+   // create a file descriptor set to check for exceptions on
+   fd_set exfds;
+   FD_ZERO(&exfds);
+   
+   // add file descriptor to sets
+   FD_SET(fd, &rwfds);
+   FD_SET(fd, &exfds);
    
    // "n" parameter is the highest numbered descriptor plus 1
    int n = fd + 1;
@@ -50,12 +55,12 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
       if(read)
       {
          // wait for readability
-         rval = ::select(n, &fds, NULL, &fds, &to);
+         rval = ::select(n, &rwfds, NULL, &exfds, &to);
       }
       else
       {
          // wait for writability
-         rval = ::select(n, NULL, &fds, &fds, &to);
+         rval = ::select(n, NULL, &rwfds, &exfds, &to);
       }
       
       if(rval < 0 && errno == 0)
@@ -71,9 +76,11 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
       // if calling select() again (not interrupted and timeout >= 0)
       if(rval == 0 && timeout >= 0)
       {
-         // clear set and re-add file descriptor
-         FD_ZERO(&fds);
-         FD_SET(fd, &fds);
+         // clear sets and re-add file descriptor
+         FD_ZERO(&rwfds);
+         FD_ZERO(&exfds);
+         FD_SET(fd, &rwfds);
+         FD_SET(fd, &exfds);
          
          // reset timeout
          to.tv_sec = 0;
@@ -97,6 +104,12 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
       
       // set interrupted exception
       Exception::setLast(t->createInterruptedException());
+   }
+   else if(rval > 0 && FD_ISSET(fd, &exfds) != 0)
+   {
+      // an exception occurred with the file descriptor
+      rval = -1;
+      errno = EBADF;
    }
    
    return rval;

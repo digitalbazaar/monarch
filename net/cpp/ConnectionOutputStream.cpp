@@ -20,7 +20,7 @@ ConnectionOutputStream::~ConnectionOutputStream()
 {
 }
 
-inline bool ConnectionOutputStream::write(const char* b, unsigned int length)
+bool ConnectionOutputStream::write(const char* b, unsigned int length)
 {
    bool rval = true;
    

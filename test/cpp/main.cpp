@@ -2380,7 +2380,7 @@ void runHttpServerTest()
    server.addConnectionService(&address, &hcs, &list);
    
    // create test http request servicer
-   TestHttpRequestServicer test1("/");
+   TestHttpRequestServicer test1("/test");
    hcs.addRequestServicer(&test1, false);
    
    if(server.start())
