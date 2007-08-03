@@ -159,12 +159,13 @@ IOException* HttpConnection::sendBody(HttpHeader* header, InputStream* is)
       unsigned long long contentRemaining = contentLength;
       unsigned int readSize = Math::minimum(contentRemaining, length);
       while(!writeError && contentRemaining > 0 &&
-            (numBytes = is->read(b, readSize) != -1))
+            (numBytes = is->read(b, readSize)) != -1)
       {
          // write out to connection
          if(os->write(b, numBytes))
          {
             contentRemaining -= numBytes;
+            readSize = Math::minimum(contentRemaining, length);
             
             // update http connection content bytes written (reset as necessary)
             if(getContentBytesWritten() > Math::HALF_MAX_LONG_VALUE)
@@ -274,9 +275,10 @@ IOException* HttpConnection::receiveBody(HttpHeader* header, OutputStream* os)
       unsigned long long contentRemaining = contentLength;
       unsigned int readSize = Math::minimum(contentRemaining, length);
       while(!writeError && contentRemaining > 0 &&
-            (numBytes = is->read(b, readSize) != -1))
+            (numBytes = is->read(b, readSize)) != -1)
       {
          contentRemaining -= numBytes;
+         readSize = Math::minimum(contentRemaining, length);
          
          // update http connection content bytes read (reset as necessary)
          if(getContentBytesRead() > Math::HALF_MAX_LONG_VALUE)

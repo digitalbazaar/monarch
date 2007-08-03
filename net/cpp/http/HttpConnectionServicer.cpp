@@ -4,6 +4,7 @@
 #include "HttpConnectionServicer.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"
+#include "ByteArrayInputStream.h"
 
 using namespace std;
 using namespace db::io;
@@ -145,25 +146,46 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          else
          {
             // no servicer, so send 403 Forbidden
+            char html[] = "<html>403 Forbidden</html>";
             response->getHeader()->setStatus(403, "Forbidden");
-            response->getHeader()->setHeader("Content-Length", 0);
-            response->sendHeader();
+            response->getHeader()->setHeader("Content-Type", "text/html");
+            response->getHeader()->setHeader("Content-Length", 26);
+            response->getHeader()->setHeader("Connection", "close");
+            if(response->sendHeader() == NULL)
+            {
+               ByteArrayInputStream is(html, 26);
+               response->sendBody(&is);
+            }
          }
       }
       else
       {
          // send 505 HTTP Version Not Supported
+         char html[] = "<html>505 HTTP Version Not Supported</html>";
          response->getHeader()->setStatus(505, "HTTP Version Not Supported");
-         response->getHeader()->setHeader("Content-Length", 0);
-         response->sendHeader();
+         response->getHeader()->setHeader("Content-Type", "text/html");
+         response->getHeader()->setHeader("Content-Length", 43);
+         response->getHeader()->setHeader("Connection", "close");
+         if(response->sendHeader() == NULL)
+         {
+            ByteArrayInputStream is(html, 43);
+            response->sendBody(&is);
+         }
       }
    }
    else if(strcmp(e->getCode(), "db.net.http.BadRequest") == 1)
    {
       // send 400 Bad Request
+      char html[] = "<html>400 Bad Request</html>";
       response->getHeader()->setStatus(400, "Bad Request");
-      response->getHeader()->setHeader("Content-Length", 0);
-      response->sendHeader();
+      response->getHeader()->setHeader("Content-Type", "text/html");
+      response->getHeader()->setHeader("Content-Length", 29);
+      response->getHeader()->setHeader("Connection", "close");
+      if(response->sendHeader() == NULL)
+      {
+         ByteArrayInputStream is(html, 29);
+         response->sendBody(&is);
+      }
    }
    else
    {
@@ -174,9 +196,16 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          dynamic_cast<SocketException*>(e))
       {
          // send 500 Internal Server Error
+         char html[] = "<html>500 Internal Server Error</html>";
          response->getHeader()->setStatus(500, "Internal Server Error");
-         response->getHeader()->setHeader("Content-Length", 0);
-         response->sendHeader();
+         response->getHeader()->setHeader("Content-Type", "text/html");
+         response->getHeader()->setHeader("Content-Length", 38);
+         response->getHeader()->setHeader("Connection", "close");
+         if(response->sendHeader() == NULL)
+         {
+            ByteArrayInputStream is(html, 38);
+            response->sendBody(&is);
+         }
       }
    }
    

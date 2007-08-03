@@ -42,6 +42,7 @@
 #include "SocketDataPresenterList.h"
 #include "StringTokenizer.h"
 #include "FilterOutputStream.h"
+#include "ByteArrayInputStream.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -60,6 +61,7 @@ OperationList g_junk2(false);
 NullSocketDataPresenter g_junk3;
 StringTokenizer g_junk4;
 FilterOutputStream g_junk5(NULL, false);
+ByteArrayInputStream g_junk6(NULL, 0);
 
 void runBase64Test()
 {
@@ -2236,6 +2238,27 @@ void runServerDatagramTest()
    cout << endl << "Server Datagram test complete." << endl;
 }
 
+void runByteArrayInputStreamTest()
+{
+   cout << "Starting ByteArrayInputStream test." << endl << endl;
+   
+   char html[] = "<html>505 HTTP Version Not Supported</html>";
+   ByteArrayInputStream is(html, 43);
+   
+   char b[10];
+   int numBytes;
+   string str;
+   while((numBytes = is.read(b, 9)) != -1)
+   {
+      memset(b + numBytes, 0, 1);
+      str.append(b);
+   }
+   
+   cout << "read data='" << str << "'" << endl;
+   
+   cout << endl << "ByteArrayInputStream test complete." << endl;
+}
+
 void runHttpHeaderTest()
 {
    cout << "Starting HttpHeader test." << endl << endl;
@@ -2323,6 +2346,7 @@ public:
       // send 200 OK
       response->getHeader()->setStatus(200, "OK");
       response->getHeader()->setHeader("Content-Length", 0);
+      response->getHeader()->setHeader("Connection", "close");
       response->sendHeader();
    }
 };
@@ -2355,8 +2379,8 @@ void runHttpServerTest()
    server.addConnectionService(&address, &hcs, &list);
    
    // create test http request servicer
-   TestHttpRequestServicer test1("/");
-   hcs.addRequestServicer(&test1, false);
+   //TestHttpRequestServicer test1("/test");
+   //hcs.addRequestServicer(&test1, false);
    
    if(server.start())
    {
@@ -2440,6 +2464,7 @@ public:
 //      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
+//      runByteArrayInputStreamTest();
 //      runHttpHeaderTest();
       runHttpServerTest();
 //      runStringTokenizerTest();
