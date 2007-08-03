@@ -6,33 +6,52 @@
 using namespace std;
 using namespace db::net::http;
 
-HttpRequestServicer::HttpRequestServicer(const string& path)
+HttpRequestServicer::HttpRequestServicer(const char* path)
 {
-   if(path.length() == 0)
+   unsigned int length = strlen(path);
+   
+   if(length == 0)
    {
-      mPath = '/';
+      mPath = new char[2];
+      mPath[0] = '/';
+      mPath[1] = 0;
    }
    else
    {
-      // prepend slash as necessary
-      if(mPath[0] != '/')
+      // prepend/append slashes as necessary
+      if(path[0] != '/' && length > 1)
       {
-         mPath.insert(0, 1, '/');
+         if(path[length - 1] != '/')
+         {
+            mPath = new char[length + 3];
+            sprintf(mPath, "/%s/", path);
+         }
+         else
+         {
+            mPath = new char[length + 2];
+            sprintf(mPath, "/%s", path);
+         }
       }
-      
-      // append slash as necessary
-      if(mPath[mPath.length() - 1] != '/')
+      else if(path[length - 1] != '/')
       {
-         mPath.append(1, '/');
+         mPath = new char[length + 2];
+         sprintf(mPath, "%s/", path);
+      }
+      else
+      {
+         mPath = new char[length + 1];
+         strcpy(mPath, path);
       }
    }
 }
 
 HttpRequestServicer::~HttpRequestServicer()
 {
+   // delete path
+   delete [] mPath;
 }
 
-const string& HttpRequestServicer::getPath()
+const char* HttpRequestServicer::getPath()
 {
    return mPath;
 }

@@ -28,7 +28,7 @@ protected:
    /**
     * The path for this servicer.
     */
-   std::string mPath;
+   char* mPath;
    
 public:
    /**
@@ -38,7 +38,7 @@ public:
     * 
     * @param path the path this servicer handles requests for.
     */
-   HttpRequestServicer(const std::string& path);
+   HttpRequestServicer(const char* path);
    
    /**
     * Destructs this HttpRequestServicer.
@@ -62,7 +62,7 @@ public:
     * 
     * @return the path this servicer handles requests for.
     */
-   virtual const std::string& getPath();
+   virtual const char* getPath();
 };
 
 } // end namespace http
