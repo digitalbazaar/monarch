@@ -41,16 +41,6 @@ protected:
    pthread_t mThreadId;
    
    /**
-    * The attributes for the POSIX thread.
-    */
-   pthread_attr_t mThreadAttributes;
-   
-   /**
-    * The Monitor this Thread is waiting to enter.
-    */
-   Monitor* mWaitMonitor;
-   
-   /**
     * The Runnable associated with this Thread.
     */
    Runnable* mRunnable;
@@ -59,6 +49,11 @@ protected:
     * The name for this thread.
     */
    char* mName;
+   
+   /**
+    * The Monitor this Thread is waiting to enter.
+    */
+   Monitor* mWaitMonitor;
    
    /**
     * Stores whether or not this Thread is alive.

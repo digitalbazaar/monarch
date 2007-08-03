@@ -23,25 +23,15 @@ pthread_key_t Thread::EXCEPTION_KEY;
 
 Thread::Thread(Runnable* runnable, const char* name)
 {
-   // initialize POSIX thread attributes
-   pthread_attr_init(&mThreadAttributes);
-   
-   // make thread joinable
-   pthread_attr_setdetachstate(&mThreadAttributes, PTHREAD_CREATE_JOINABLE);
-   
-   // make thread cancelable upon joins/waits/etc
-   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-   pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
-   
-   // thread not waiting to enter a Monitor yet
-   mWaitMonitor = NULL;
-   
    // store runnable
    mRunnable = runnable;
    
    // set name
    mName = NULL;
-   assignName(name);
+   Thread::assignName(name);
+   
+   // thread not waiting to enter a Monitor yet
+   mWaitMonitor = NULL;
    
    // thread is not interrupted or joined yet
    mInterrupted = false;
@@ -61,12 +51,13 @@ Thread::Thread(Runnable* runnable, const char* name)
       // install signal handler
       //pthread_once(&SIGINT_HANDLER_INIT, Thread::installSigIntHandler);
       
-      // on the main thread, so initialize main thread and set specific data
+      // on the main thread, so initialize main thread data
       mThreadId = pthread_self();
       mAlive = true;
       mDetached = true;
       mStarted = true;
       pthread_setspecific(CURRENT_THREAD_KEY, this);
+      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    }
    else
    {
@@ -79,28 +70,16 @@ Thread::Thread(Runnable* runnable, const char* name)
 
 Thread::~Thread()
 {
-   // destroy the POSIX thread attributes
-   pthread_attr_destroy(&mThreadAttributes);
-   
-   if(this == &MAIN_THREAD)
-   {
-      // ensure exceptions are cleared
-      Thread::setException(NULL);
-      
-      // Note: Not necessary to delete thread keys?
-      // delete current thread key
-      //pthread_setspecific(CURRENT_THREAD_KEY, NULL);
-      //pthread_key_delete(CURRENT_THREAD_KEY);
-      
-      // delete exception key
-      //pthread_setspecific(EXCEPTION_KEY, NULL);
-      //pthread_key_delete(EXCEPTION_KEY);
-   }
-   
    // delete name
    if(mName != NULL)
    {
       delete [] mName;
+   }
+   
+   if(this == &MAIN_THREAD)
+   {
+      // exit main thread
+      pthread_exit(NULL);
    }
 }
 
@@ -152,7 +131,6 @@ void Thread::createCurrentThreadKey()
 {
    // create the thread key for obtaining the current thread
    pthread_key_create(&CURRENT_THREAD_KEY, &cleanupCurrentThreadKeyValue);
-   pthread_setspecific(CURRENT_THREAD_KEY, NULL);
 }
 
 void Thread::cleanupCurrentThreadKeyValue(void* thread)
@@ -164,7 +142,6 @@ void Thread::createExceptionKey()
 {
    // create the thread key for obtaining the last thread-local exception
    pthread_key_create(&EXCEPTION_KEY, &cleanupExceptionKeyValue);
-   pthread_setspecific(EXCEPTION_KEY, NULL);
 }
 
 void Thread::cleanupExceptionKeyValue(void* e)
@@ -203,6 +180,9 @@ void* Thread::execute(void* thread)
    // set thread specific data for current thread to the Thread
    pthread_setspecific(CURRENT_THREAD_KEY, t);
    
+   // disable thread cancelation
+   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+   
    // thread is alive
    t->mAlive = true;
    
@@ -211,9 +191,6 @@ void* Thread::execute(void* thread)
    
    // thread is no longer alive
    t->mAlive = false;
-   
-   // clean up any exception
-   setException(NULL);
    
    // exit thread
    pthread_exit(NULL);
@@ -226,10 +203,20 @@ bool Thread::start()
    
    if(!hasStarted())
    {
+      // initialize POSIX thread attributes
+      pthread_attr_t attributes;
+      pthread_attr_init(&attributes);
+      
+      // make thread joinable
+      pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_JOINABLE);
+      
       // create the POSIX thread
       int rc = pthread_create(
-         &mThreadId, &mThreadAttributes, execute, (void*)this);
-         
+         &mThreadId, &attributes, execute, (void*)this);
+      
+      // destroy POSIX thread attributes
+      pthread_attr_destroy(&attributes);
+      
       // if the thread was created successfully, return true
       if(rc == 0)
       {
