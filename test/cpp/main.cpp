@@ -2614,14 +2614,14 @@ public:
 //      runUrlEncodeTest();
 //      runUrlTest();
 //      runRegexTest();
-      runDateTest();
+//      runDateTest();
 //      runConfigTest();
 //      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
 //      runByteArrayInputStreamTest();
 //      runHttpHeaderTest();
-//      runHttpServerTest();
+      runHttpServerTest();
 //      runStringTokenizerTest();
 //      runStringEqualityTest();
 //      runStringAppendCharTest();

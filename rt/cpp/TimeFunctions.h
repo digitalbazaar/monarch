@@ -637,10 +637,6 @@ inline static time_t timegm(struct tm* tm)
    time_t rval = mktime(tm);
    if(rval != -1)
    {
-      // FIXME: this is wrong for EDT (it reports EST) (doesn't ever take
-      // into account daylight savings time, nor is there a method for
-      // determining when it applies unless hardcoded for each nation)
-      
       // subtract seconds west to get to GMT time
       rval -= gGetTimeZoneMinutesWest() * 60LL;
    }
