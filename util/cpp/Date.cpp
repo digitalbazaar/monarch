@@ -4,7 +4,6 @@
 #include "Date.h"
 #include "System.h"
 #include "StringTools.h"
-#include "StringTokenizer.h"
 
 using namespace std;
 using namespace db::util;
@@ -25,7 +24,7 @@ string& Date::format(
 {
    string f = format;
    
-   if(formatType == "java")
+   if(strcmp(formatType.c_str(), "java") == 0)
    {
       // FIXME: need to get negative lookbehind assertions working for regex
       
@@ -97,8 +96,7 @@ string& Date::format(
    char out[size];
    memset(out, '\0', size);
    strftime(out, size, f.c_str(), &time);
-   str.erase();
-   str.append(out);
+   str.assign(out);
    
    return str;
 }
@@ -109,7 +107,7 @@ bool Date::parse(
 {
    bool rval = false;
    
-   if(formatType == "c")
+   if(strcmp(formatType.c_str(), "c") == 0)
    {
       if(strptime(str.c_str(), format.c_str(), &mBrokenDownTime) != NULL)
       {
@@ -123,99 +121,6 @@ bool Date::parse(
       gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
    }
    
-//   // tokenize string and format
-//   long long integer;
-//   StringTokenizer strTokenizer(str, ' ');
-//   StringTokenizer formatTokenizer(str, ' ');
-//   
-//   if(strTokenizer.getTokenCount() == formatTokenizer.getTokenCount())
-//   {
-//      // Note: week day, week in year, and day in year are ignored by
-//      // mktime/timegm so they needn't be parsed
-//      
-//      // FIXME: could probably do this cleaner in the future with sscanf()
-//      if(formatType == "c")
-//      {
-//         
-//         
-//         string value;
-//         string type;
-//         bool pm = false;
-//         while(strTokenizer.hasMoreTokens())
-//         {
-//            value = formatTokenizer.nextToken();
-//            type = formatTokenizer.nextToken();
-//            if(type == "%p")
-//            {
-//               // AM/PM
-//               pm = (value == "PM");
-//            }
-//            else if(type == "%Y")
-//            {
-//               // year (4 digit)
-//               Convert::stringToInteger(value, integer);
-//               mBrokenDownTime.tm_year = integer;
-//            }
-//            else if(type == "%y")      
-//            {
-//               // year (2 digit)
-//               Convert::stringToInteger(value, integer);
-//               
-//               // an arbitrary algorithm for guessing if the 2 year date
-//               // should be in 20th or 21st century
-//               if(mBrokenDownTime.tm_year + 50 > integer)
-//               {
-//                  mBrokenDownTime.tm_year = integer + 1900;
-//               }
-//               else
-//               {
-//                  mBrokenDownTime.tm_year = integer + 2000;
-//               }
-//            }
-//            else if(type == "%B" || type == "%b")
-//            {
-//               // month in year (full)
-//               // FIXME: figure out month
-//               mBrokenDownTime.tm_mon
-//            }
-//            else if(type == "%b")
-//            {
-//               // month in year (abbreviated)
-//               // FIXME: figure out month
-//               mBrokenDownTime.tm_mon
-//            }
-//            else if(type == "%d")
-//            {
-//               // day in month
-//               mBrokenDownTime.tm_mday =
-//            }
-//            else if(type == "%H")
-//            {
-//               // hour in day (0-24)
-//               mBrokenDownTime.tm_hour =
-//            }
-//            else if(type == "%I")
-//            {
-//               // hour in day (1-12)
-//               // FIXME: handle AM/PM
-//               mBrokenDownTime.tm_hour = 
-//            }
-//            else if(type == "%M")
-//            {
-//               // minute in hour
-//               mBrokenDownTime.tm_min = 
-//            }
-//            else if(type == "%S")
-//            {
-//               // second in minute
-//               mBrokenDownTime.tm_sec = 
-//            }
-//         }
-//         
-//         rval = true;
-//      }
-//   }
-   
    if(tz == NULL)
    {
       // get local time
@@ -225,12 +130,6 @@ bool Date::parse(
    {
       // get gmt time (applies no timezone)
       mSecondsSinceEpoch = timegm(&mBrokenDownTime);
-      
-      if(tz->getMinutesWest() != 0)
-      {
-         // add minutes west to get to gmt time
-         mSecondsSinceEpoch += tz->getMinutesWest() * 60UL;
-      }
    }
    
    // ensure broken down time is accurate

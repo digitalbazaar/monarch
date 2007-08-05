@@ -1682,24 +1682,28 @@ void runDateTest()
    //d.format(str, "EEE, MMMM dd yyyy hh:mm:ss a", "java", &local);
    //d.format(str, "EEE, d MMM yyyy HH:mm:ss", "java", &gmt);
    //d.format(str, "%a, %d %b %Y %H:%M:%S");
-   d.format(str, "%a, %d %b %Y %H:%M:%S", "c", &local);
+   d.format(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
+   //d.format(str, "%a, %d %b %Y %H:%M:%S", "c", &local);
    
    cout << "Current Date: " << str << endl;
    
    // parse date
    Date d2;
-   d2.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &local);
+   d2.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
+   //d2.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &local);
    string str2;
-   d2.format(str2, "%a, %d %b %Y %H:%M:%S", "c", &local);
+   d2.format(str2, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
+   //d2.format(str2, "%a, %d %b %Y %H:%M:%S", "c", &local);
    
    cout << "Parsed Date 1: " << str2 << endl;
    
-   // FIXME: parser may have a problem with AM/PM
+//   // FIXME: parser may have a problem with AM/PM
    // parse date again
    Date d3;
    str = "Thu, 02 Aug 2007 10:30:00";
    d3.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
    string str3;
+   //d3.format(str3, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
    d3.format(str3, "%a, %d %b %Y %H:%M:%S", "c", &local);
    
    cout << "Parsed Date 2: " << str3 << endl;
@@ -2394,7 +2398,7 @@ void runHttpServerTest()
    }
    
    // sleep
-   Thread::sleep(60000);
+   Thread::sleep(30000);
    
    server.stop();
    cout << "Server stopped." << endl;
@@ -2610,14 +2614,14 @@ public:
 //      runUrlEncodeTest();
 //      runUrlTest();
 //      runRegexTest();
-//      runDateTest();
+      runDateTest();
 //      runConfigTest();
 //      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
 //      runByteArrayInputStreamTest();
 //      runHttpHeaderTest();
-      runHttpServerTest();
+//      runHttpServerTest();
 //      runStringTokenizerTest();
 //      runStringEqualityTest();
 //      runStringAppendCharTest();

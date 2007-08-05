@@ -4,8 +4,7 @@
 #ifndef db_rt_System_H
 #define db_rt_System_H
 
-// defines gettimeofday() as needed
-#include "GetTimeOfDay.h"
+#include "TimeFunctions.h"
 
 namespace db
 {

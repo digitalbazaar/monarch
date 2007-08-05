@@ -4,8 +4,8 @@
 #ifndef db_net_SocketTools_H
 #define db_net_SocketTools_H
 
+#include "SocketDefinitions.h"
 #include <sys/types.h>
-#include <stddef.h>
 
 namespace db
 {

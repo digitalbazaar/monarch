@@ -2,9 +2,8 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "Monitor.h"
-#include "GetTimeOfDay.h"
+#include "TimeFunctions.h"
 
-using namespace std;
 using namespace db::rt;
 
 Monitor::Monitor()

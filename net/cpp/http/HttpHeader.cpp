@@ -12,56 +12,6 @@ using namespace db::util;
 // define CRLF
 const char HttpHeader::CRLF[] = "\r\n";
 
-bool HeaderComparator::operator()(const char* s1, const char* s2) const
-{
-   bool rval = false;
-   
-   int count1 = 0;
-   int count2 = 0;
-   char ch1 = *s1;
-   char ch2 = *s2;
-   bool equal = true;
-   for(; equal && ch1 != 0 && ch2 != 0; count1++, count2++)
-   {
-      ch1 = *(s1 + count1);
-      ch2 = *(s2 + count2);
-      
-      if(ch1 != ch2)
-      {
-         // do case-insensitive compare, convert both chars to upper-case
-         // 97 = 'a', 122 = 'z'
-         // 65 = 'A', 90 = 'Z'
-         if(ch1 > 96 && ch1 < 123)
-         {
-            ch1 -= 32;
-         }
-         
-         if(ch2 > 96 && ch2 < 123)
-         {
-            ch2 -= 32;
-         }
-         
-         if(ch1 < ch2)
-         {
-            rval = true;
-            equal = false;
-         }
-         else if(ch1 > ch2)
-         {
-            equal = false;
-         }
-      }
-   }
-   
-   if(equal && count1 < count2)
-   {
-      // string one is shorter than string two, so it is less
-      rval = true;
-   }
-   
-   return rval;
-}
-
 HttpHeader::HttpHeader()
 {
 }

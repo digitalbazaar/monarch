@@ -26,38 +26,33 @@ TimeZone TimeZone::getTimeZone(const string& tz)
 {
    TimeZone rval;
    
-   if(tz == "GMT")
+   if(strcmp(tz.c_str(), "GMT") == 0)
    {
       rval.mMinutesWest = 0;
    }
-   else if(tz == "EDT")
+   else if(strcmp(tz.c_str(), "EDT") == 0)
    {
       // 4 hours west
       rval.mMinutesWest = 240;
    }
-   else if(tz == "EST")
+   else if(strcmp(tz.c_str(), "EST") == 0)
    {
       // 5 hours west
       rval.mMinutesWest = 300;
    }
-   else if(tz == "PDT")
+   else if(strcmp(tz.c_str(), "PDT") == 0)
    {
       // 7 hours west
       rval.mMinutesWest = 420;
    }
-   else if(tz == "PST")
+   else if(strcmp(tz.c_str(), "PST") == 0)
    {
       // 8 hours west
       rval.mMinutesWest = 480;
    }
    else
    {
-      // get local time zone
-      struct timezone tz;
-      gettimeofday(NULL, &tz);
-      
-      // FIXME: this is wrong for EDT (it reports EST)
-      rval.mMinutesWest = tz.tz_minuteswest;
+      rval.mMinutesWest = gGetTimeZoneMinutesWest();
    }
    
    return rval;
