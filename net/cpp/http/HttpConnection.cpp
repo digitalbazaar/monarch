@@ -95,7 +95,7 @@ IOException* HttpConnection::sendBody(HttpHeader* header, InputStream* is)
    string transferEncoding;
    if(header->getHeader("Transfer-Encoding", transferEncoding))
    {
-      if(transferEncoding.find("chunked") != string::npos)
+      if(strncasecmp(transferEncoding.c_str(), "chunked", 7) == 0)
       {
          os = chunkout = new HttpChunkedTransferOutputStream(
             getOutputStream(), header);
@@ -221,7 +221,7 @@ IOException* HttpConnection::receiveBody(HttpHeader* header, OutputStream* os)
    string transferEncoding;
    if(header->getHeader("Transfer-Encoding", transferEncoding))
    {
-      if(transferEncoding.find("chunked") != string::npos)
+      if(strncasecmp(transferEncoding.c_str(), "chunked", 7) == 0)
       {
          is = chunkin = new HttpChunkedTransferInputStream(
             getInputStream(), header);
