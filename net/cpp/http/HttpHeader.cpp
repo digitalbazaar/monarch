@@ -18,64 +18,64 @@ HttpHeader::HttpHeader()
 
 HttpHeader::~HttpHeader()
 {
-   for(map<const char*, string, HeaderComparator>::iterator i =
-       mHeaders.begin(); i != mHeaders.end(); i++)
+   for(map<const char*, string, FieldComparator>::iterator i =
+       mFields.begin(); i != mFields.end(); i++)
    {
       delete [] i->first;
    }
 }
 
-void HttpHeader::setHeader(const char* header, long long value)
+void HttpHeader::setField(const char* name, long long value)
 {
-   setHeader(header, Convert::integerToString(value));
+   setField(name, Convert::integerToString(value));
 }
 
-void HttpHeader::setHeader(const char* header, const std::string& value)
+void HttpHeader::setField(const char* name, const std::string& value)
 {
-   // clear old header
-   map<const char*, std::string, HeaderComparator>::iterator i =
-      mHeaders.find(header);
-   if(i != mHeaders.end())
+   // clear old field
+   map<const char*, std::string, FieldComparator>::iterator i =
+      mFields.find(name);
+   if(i != mFields.end())
    {
       delete [] i->first;
-      mHeaders.erase(i);
+      mFields.erase(i);
    }
    
-   // set new header
-   char* str = new char[strlen(header) + 1];
-   strcpy(str, header);
-   mHeaders.insert(make_pair(str, value));
+   // set new field
+   char* str = new char[strlen(name) + 1];
+   strcpy(str, name);
+   mFields.insert(make_pair(str, value));
 }
 
-void HttpHeader::addHeader(const char* header, const std::string& value)
+void HttpHeader::addField(const char* name, const std::string& value)
 {
    // get existing value
    string existing;
-   getHeader(header, existing);
+   getField(name, existing);
    
    // append new value
    existing.append(", ");
    existing.append(value);
-   setHeader(header, existing);
+   setField(name, existing);
 }
 
-void HttpHeader::removeHeader(const char* header)
+void HttpHeader::removeField(const char* name)
 {
-   // erase header
-   mHeaders.erase(header);
+   // erase field
+   mFields.erase(name);
 }
 
-void HttpHeader::clearHeaders()
+void HttpHeader::clearFields()
 {
-   mHeaders.clear();
+   mFields.clear();
 }
 
-bool HttpHeader::getHeader(const char* header, long long& value)
+bool HttpHeader::getField(const char* name, long long& value)
 {
    bool rval = false;
    
    string str;
-   if(getHeader(header, str))
+   if(getField(name, str))
    {
       rval = Convert::stringToInteger(str.c_str(), value);
    }
@@ -83,14 +83,14 @@ bool HttpHeader::getHeader(const char* header, long long& value)
    return rval;
 }
 
-bool HttpHeader::getHeader(const char* header, string& value)
+bool HttpHeader::getField(const char* name, string& value)
 {
    bool rval = false;
    
-   // find header entry
-   map<const char*, string, HeaderComparator>::iterator i =
-      mHeaders.find(header);
-   if(i != mHeaders.end())
+   // find field entry
+   map<const char*, string, FieldComparator>::iterator i =
+      mFields.find(name);
+   if(i != mFields.end())
    {
       // get value
       value = i->second;
@@ -104,8 +104,8 @@ bool HttpHeader::parse(const string& str)
 {
    bool rval = false;
    
-   // clear headers
-   clearHeaders();
+   // clear fields
+   clearFields();
    
    bool startLine = true;
    const char* start = str.c_str();
@@ -140,17 +140,17 @@ bool HttpHeader::parse(const string& str)
                strncpy(value, colon, cr - colon);
                memset(value + (cr - colon), 0, 1);
                
-               // clear old header
-               map<const char*, std::string, HeaderComparator>::iterator i =
-                  mHeaders.find(name);
-               if(i != mHeaders.end())
+               // clear old field
+               map<const char*, std::string, FieldComparator>::iterator i =
+                  mFields.find(name);
+               if(i != mFields.end())
                {
                   delete [] i->first;
-                  mHeaders.erase(i);
+                  mFields.erase(i);
                }
                
-               // set header
-               mHeaders.insert(make_pair(name, value));
+               // set field
+               mFields.insert(make_pair(name, value));
             }
          }
          
@@ -173,9 +173,9 @@ string& HttpHeader::toString(string& str)
    getStartLine(str);
    str.append(CRLF);
    
-   // append all headers
-   for(map<const char*, string, HeaderComparator>::iterator i =
-       mHeaders.begin(); i != mHeaders.end(); i++)
+   // append all fields
+   for(map<const char*, string, FieldComparator>::iterator i =
+       mFields.begin(); i != mFields.end(); i++)
    {
       // get field name and bicapitalize it
       char name[strlen(i->first)];
@@ -213,8 +213,8 @@ void HttpHeader::setDate(Date* date)
       date->format(str, format, "c", &gmt);
    }
    
-   // set date header
-   setHeader("Date", str);
+   // set date field
+   setField("Date", str);
 }
 
 bool HttpHeader::getDate(Date& date)
@@ -222,7 +222,7 @@ bool HttpHeader::getDate(Date& date)
    bool rval = false;
    
    string str;
-   if(getHeader("Date", str))
+   if(getField("Date", str))
    {
       // get GMT time zone
       TimeZone gmt = TimeZone::getTimeZone("GMT");
@@ -232,34 +232,34 @@ bool HttpHeader::getDate(Date& date)
    return rval;
 }
 
-void HttpHeader::biCapitalize(char* header)
+void HttpHeader::biCapitalize(char* name)
 {
    // 97 = 'a', 122 = 'z'
-   if(*header > 96 && *header < 123)
+   if(*name > 96 && *name < 123)
    {
       // capitalize letter
-      *header -= 32;
+      *name -= 32;
    }
    
    // capitalize letters after hyphens, decapitalize other letters
-   header++;
-   for(; *header != 0; header++)
+   name++;
+   for(; *name != 0; name++)
    {
-      if(*(header - 1) == '-')
+      if(*(name - 1) == '-')
       {
-         if(*header > 96 && *header < 123)
+         if(*name > 96 && *name < 123)
          {
             // capitalize
-            *header -= 32;
+            *name -= 32;
          }
       }
       else
       {
          // 65 = 'A', 90 = 'Z'
-         if(*header > 64 && *header < 90)
+         if(*name > 64 && *name < 90)
          {
             // decapitalize
-            *header += 32;
+            *name += 32;
          }
       }
    }

@@ -36,6 +36,7 @@
 #include "http/HttpResponse.h"
 #include "http/HttpConnectionServicer.h"
 #include "http/HttpRequestServicer.h"
+#include "http/HttpClient.h"
 #include "Kernel.h"
 #include "Server.h"
 #include "NullSocketDataPresenter.h"
@@ -2264,158 +2265,6 @@ void runByteArrayInputStreamTest()
    cout << endl << "ByteArrayInputStream test complete." << endl;
 }
 
-void runHttpHeaderTest()
-{
-   cout << "Starting HttpHeader test." << endl << endl;
-   
-   // test bicapitalization of http headers
-   char test[] = "ThIs-a-BICaPitAlized-hEADer";
-   HttpHeader::biCapitalize(test);
-   
-   cout << "BiCapitalized Header=" << test << endl;
-   
-//   string t = "   d  f  ";
-//   StringTools::trim(t);
-//   cout << "t='" << t << "'" << endl;
-   
-   cout << endl << "Request Header:" << endl;
-   
-   HttpRequestHeader reqHeader;
-   reqHeader.setDate();
-   reqHeader.setMethod("GET");
-   reqHeader.setPath("/");
-   reqHeader.setVersion("HTTP/1.1");
-   reqHeader.setHeader("host", "localhost:80");
-   reqHeader.setHeader("Content-Type", "text/html");
-   reqHeader.setHeader("Connection", "close");
-   
-   string str;
-   reqHeader.toString(str);
-   cout << str;
-   
-   cout << "End of Request Header." << endl;
-   
-   cout << endl << "Parsed Request Header:" << endl;
-   
-   HttpRequestHeader reqHeader2;
-   reqHeader2.parse(str);
-   
-   string str2;
-   reqHeader2.toString(str2);
-   cout << str2;
-   
-   cout << "End of Parsed Request Header." << endl;
-   
-   cout << endl << "Response Header:" << endl;
-   
-   HttpResponseHeader resHeader;
-   resHeader.setDate();
-   resHeader.setVersion("HTTP/1.1");
-   resHeader.setStatus(404, "Not Found");
-   resHeader.setHeader("host", "localhost:80");
-   resHeader.setHeader("Content-Type", "text/html");
-   resHeader.setHeader("Connection", "close");
-   
-   resHeader.toString(str);
-   cout << str;
-   
-   cout << "End of Response Header." << endl;
-   
-   cout << endl << "Parsed Response Header:" << endl;
-   
-   HttpResponseHeader resHeader2;
-   resHeader2.parse(str);
-   
-   resHeader2.toString(str2);
-   cout << str2;
-   
-   cout << "End of Parsed Response Header." << endl;
-   
-   cout << endl << "HttpHeader test complete." << endl;
-}
-
-class TestHttpRequestServicer : public HttpRequestServicer
-{
-public:
-   TestHttpRequestServicer(const char* path) : HttpRequestServicer(path)
-   {
-   }
-   
-   virtual ~TestHttpRequestServicer()
-   {
-   }
-   
-   virtual void serviceRequest(
-      HttpRequest* request, HttpResponse* response)
-   {
-      // send 200 OK
-      response->getHeader()->setStatus(200, "OK");
-      response->getHeader()->setHeader("Content-Length", 0);
-      response->getHeader()->setHeader("Connection", "close");
-      response->sendHeader();
-   }
-};
-
-void runHttpServerTest()
-{
-   cout << "Starting Http Server test." << endl << endl;
-   
-   // openssl initialization code
-   SSL_library_init();
-   SSL_load_error_strings();
-   OpenSSL_add_all_algorithms();
-   
-   // create kernel
-   Kernel k;
-   k.getEngine()->start();
-   
-   // create server
-   Server server(&k);
-   InternetAddress address("localhost", 19100);
-   
-   // create SSL/generic http connection servicer
-   HttpConnectionServicer hcs;
-   SslContext context;
-   SslSocketDataPresenter presenter1(&context);
-   NullSocketDataPresenter presenter2;
-   SocketDataPresenterList list(false);
-   list.add(&presenter1);
-   list.add(&presenter2);
-   server.addConnectionService(&address, &hcs, &list);
-   
-   // create test http request servicer
-   TestHttpRequestServicer test1("/test");
-   hcs.addRequestServicer(&test1, false);
-   
-   if(server.start())
-   {
-      cout << "Server started." << endl;
-   }
-   else if(Exception::getLast() != NULL)
-   {
-      cout << "Server started with errors=" <<
-         Exception::getLast()->getMessage() << endl;
-   }
-   
-   // sleep
-   Thread::sleep(30000);
-   
-   server.stop();
-   cout << "Server stopped." << endl;
-   
-   // stop kernel engine
-   k.getEngine()->stop();
-   
-   // clean up SSL
-   ERR_remove_state(0);
-   ENGINE_cleanup();
-   ERR_free_strings();
-   EVP_cleanup();
-   CRYPTO_cleanup_all_ex_data();
-   
-   cout << endl << "Http Server test complete." << endl;
-}
-
 void runStringTokenizerTest()
 {
    cout << "Starting StringTokenizer test." << endl << endl;
@@ -2577,6 +2426,193 @@ void runStringCompareTest()
    cout << endl << "String compare test complete." << endl;
 }
 
+void runHttpHeaderTest()
+{
+   cout << "Starting HttpHeader test." << endl << endl;
+   
+   // test bicapitalization of http headers
+   char test[] = "ThIs-a-BICaPitAlized-hEADer";
+   HttpHeader::biCapitalize(test);
+   
+   cout << "BiCapitalized Header=" << test << endl;
+   
+//   string t = "   d  f  ";
+//   StringTools::trim(t);
+//   cout << "t='" << t << "'" << endl;
+   
+   cout << endl << "Request Header:" << endl;
+   
+   HttpRequestHeader reqHeader;
+   reqHeader.setDate();
+   reqHeader.setMethod("GET");
+   reqHeader.setPath("/");
+   reqHeader.setVersion("HTTP/1.1");
+   reqHeader.setField("host", "localhost:80");
+   reqHeader.setField("Content-Type", "text/html");
+   reqHeader.setField("Connection", "close");
+   
+   string str;
+   reqHeader.toString(str);
+   cout << str;
+   
+   cout << "End of Request Header." << endl;
+   
+   cout << endl << "Parsed Request Header:" << endl;
+   
+   HttpRequestHeader reqHeader2;
+   reqHeader2.parse(str);
+   
+   string str2;
+   reqHeader2.toString(str2);
+   cout << str2;
+   
+   cout << "End of Parsed Request Header." << endl;
+   
+   cout << endl << "Response Header:" << endl;
+   
+   HttpResponseHeader resHeader;
+   resHeader.setDate();
+   resHeader.setVersion("HTTP/1.1");
+   resHeader.setStatus(404, "Not Found");
+   resHeader.setField("host", "localhost:80");
+   resHeader.setField("Content-Type", "text/html");
+   resHeader.setField("Connection", "close");
+   
+   resHeader.toString(str);
+   cout << str;
+   
+   cout << "End of Response Header." << endl;
+   
+   cout << endl << "Parsed Response Header:" << endl;
+   
+   HttpResponseHeader resHeader2;
+   resHeader2.parse(str);
+   
+   resHeader2.toString(str2);
+   cout << str2;
+   
+   cout << "End of Parsed Response Header." << endl;
+   
+   cout << endl << "HttpHeader test complete." << endl;
+}
+
+class TestHttpRequestServicer : public HttpRequestServicer
+{
+public:
+   TestHttpRequestServicer(const char* path) : HttpRequestServicer(path)
+   {
+   }
+   
+   virtual ~TestHttpRequestServicer()
+   {
+   }
+   
+   virtual void serviceRequest(
+      HttpRequest* request, HttpResponse* response)
+   {
+      // send 200 OK
+      response->getHeader()->setStatus(200, "OK");
+      response->getHeader()->setField("Content-Length", 0);
+      response->getHeader()->setField("Connection", "close");
+      response->sendHeader();
+   }
+};
+
+void runHttpServerTest()
+{
+   cout << "Starting Http Server test." << endl << endl;
+   
+   // openssl initialization code
+   SSL_library_init();
+   SSL_load_error_strings();
+   OpenSSL_add_all_algorithms();
+   
+   // create kernel
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create server
+   Server server(&k);
+   InternetAddress address("localhost", 19100);
+   
+   // create SSL/generic http connection servicer
+   HttpConnectionServicer hcs;
+   SslContext context;
+   SslSocketDataPresenter presenter1(&context);
+   NullSocketDataPresenter presenter2;
+   SocketDataPresenterList list(false);
+   list.add(&presenter1);
+   list.add(&presenter2);
+   server.addConnectionService(&address, &hcs, &list);
+   
+   // create test http request servicer
+   TestHttpRequestServicer test1("/test");
+   hcs.addRequestServicer(&test1, false);
+   
+   if(server.start())
+   {
+      cout << "Server started." << endl;
+   }
+   else if(Exception::getLast() != NULL)
+   {
+      cout << "Server started with errors=" <<
+         Exception::getLast()->getMessage() << endl;
+   }
+   
+   // sleep
+   Thread::sleep(30000);
+   
+   server.stop();
+   cout << "Server stopped." << endl;
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   // clean up SSL
+   ERR_remove_state(0);
+   ENGINE_cleanup();
+   ERR_free_strings();
+   EVP_cleanup();
+   CRYPTO_cleanup_all_ex_data();
+   
+   cout << endl << "Http Server test complete." << endl;
+}
+
+void runHttpClientTest()
+{
+   cout << "Starting Http Client test." << endl << endl;
+   
+   // create client
+   HttpClient client;
+   InternetAddress address("www.digitalbazaar.com", 80);
+   
+   HttpConnection* hc = client.connect(&address);
+   if(hc != NULL)
+   {
+      string addr;
+      cout << "Connected to: " << address.toString(addr) << endl;
+      
+//      HttpRequest* request = (HttpRequest*)hc->createRequest();
+//      request->getHeader()->set
+//      
+//      if(request->sendHeader() == NULL)
+//      {
+//         HttpResponse* response = (HttpResponse*)request->createResponse();
+//         
+//         
+//      }
+      
+      cout << "Disconnecting..." << endl;
+      
+      hc->close();
+      delete hc;
+      
+      cout << "Disconnected." << endl;
+   }
+   
+   cout << endl << "Http Client test complete." << endl;
+}
+
 class RunTests : public virtual Object, public Runnable
 {
 public:
@@ -2620,12 +2656,13 @@ public:
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
 //      runByteArrayInputStreamTest();
-//      runHttpHeaderTest();
-      runHttpServerTest();
 //      runStringTokenizerTest();
 //      runStringEqualityTest();
 //      runStringAppendCharTest();
 //      runStringCompareTest();
+//      runHttpHeaderTest();
+      runHttpServerTest();
+//      runHttpClientTest();
       
       cout << endl << "Tests finished." << endl;
       

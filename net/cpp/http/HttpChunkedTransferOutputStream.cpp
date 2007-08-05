@@ -64,8 +64,8 @@ void HttpChunkedTransferOutputStream::close()
    
    // send content-length header
    string value;
-   mHeader->setHeader("Content-Length", mDataSent);
-   mHeader->getHeader("Content-Length", value);
+   mHeader->setField("Content-Length", mDataSent);
+   mHeader->getField("Content-Length", value);
    mOutputStream->write("Content-Length: ", 16);
    mOutputStream->write(value.c_str(), value.length());
    mOutputStream->write(HttpHeader::CRLF, 2);

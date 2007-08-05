@@ -16,7 +16,7 @@ namespace net
 namespace http
 {
 
-typedef struct HeaderComparator
+typedef struct FieldComparator
 {
    /**
     * Compares two null-terminated strings, returning true if the first is
@@ -52,7 +52,7 @@ protected:
    /**
     * The map containing the header fields.
     */
-   std::map<const char*, std::string, HeaderComparator> mHeaders;
+   std::map<const char*, std::string, FieldComparator> mFields;
    
 public:
    /**
@@ -90,59 +90,59 @@ public:
    /**
     * Sets a header field.
     * 
-    * @param header the header field to set.
+    * @param name the name of the header field to set.
     * @param value the value for the header field.
     */
-   virtual void setHeader(const char* header, long long value);
+   virtual void setField(const char* name, long long value);
    
    /**
     * Sets a header field.
     * 
-    * @param header the header field to set.
+    * @param name the name of the header field to set.
     * @param value the value for the header field.
     */
-   virtual void setHeader(const char* header, const std::string& value);
+   virtual void setField(const char* name, const std::string& value);
    
    /**
     * Adds a value to an existing header field. If the header field does not
     * exist, it will be created.
     * 
-    * @param header the header field to update.
+    * @param name the name of the header field to update.
     * @param value the value to add to the header field.
     */
-   virtual void addHeader(const char* header, const std::string& value);
+   virtual void addField(const char* name, const std::string& value);
    
    /**
     * Removes a header field.
     * 
-    * @param header the header field to remove.
+    * @param name the name of the header field to remove.
     */
-   virtual void removeHeader(const char* header);
+   virtual void removeField(const char* name);
    
    /**
     * Clears all header fields.
     */
-   virtual void clearHeaders();
+   virtual void clearFields();
    
    /**
     * Gets a header field value.
     * 
-    * @param header the header field to get the value of.
+    * @param name the name of the header field to get the value of.
     * @param value the value to populate.
     * 
     * @return true if the header field exists, false if not.
     */
-   virtual bool getHeader(const char* header, long long& value);
+   virtual bool getField(const char* name, long long& value);
    
    /**
     * Gets a header field value.
     * 
-    * @param header the header field to get the value of.
+    * @param name the name of the header field to get the value of.
     * @param value the value to populate.
     * 
     * @return true if the header field exists, false if not.
     */
-   virtual bool getHeader(const char* header, std::string& value);
+   virtual bool getField(const char* name, std::string& value);
    
    /**
     * Parses this header from the passed string.
@@ -180,13 +180,14 @@ public:
    virtual bool getDate(db::util::Date& date);
    
    /**
-    * BiCapitalizes the passed header so that it is normalized as an
-    * HTTP header. HTTP headers do not *have* to be BiCapitalized, its
-    * just the standard practice -- and it makes headers more readable.
+    * BiCapitalizes a header field so that its name is normalized as an
+    * HTTP header field name. HTTP header field names do not *have* to be
+    * BiCapitalized, it's just the standard practice -- and it makes header
+    * field names more readable.
     * 
-    * @param header the header to BiCapitalize.
+    * @param name the name of the header field to BiCapitalize.
     */
-   static void biCapitalize(char* header);
+   static void biCapitalize(char* name);
 };
 
 } // end namespace http

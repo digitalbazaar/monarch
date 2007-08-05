@@ -93,7 +93,7 @@ IOException* HttpConnection::sendBody(HttpHeader* header, InputStream* is)
    // wrap output stream if using chunked transfer encoding
    HttpChunkedTransferOutputStream* chunkout = NULL;
    string transferEncoding;
-   if(header->getHeader("Transfer-Encoding", transferEncoding))
+   if(header->getField("Transfer-Encoding", transferEncoding))
    {
       if(strncasecmp(transferEncoding.c_str(), "chunked", 7) == 0)
       {
@@ -105,7 +105,7 @@ IOException* HttpConnection::sendBody(HttpHeader* header, InputStream* is)
    // determine how much content needs to be read
    long long contentLength = 0;
    bool lengthUnspecified = true;
-   if(header->getHeader("Content-Length", contentLength) && contentLength > 0)
+   if(header->getField("Content-Length", contentLength) && contentLength > 0)
    {
       lengthUnspecified = false;
    }
@@ -219,7 +219,7 @@ IOException* HttpConnection::receiveBody(HttpHeader* header, OutputStream* os)
    // wrap input stream if using chunked transfer encoding
    HttpChunkedTransferInputStream* chunkin = NULL;
    string transferEncoding;
-   if(header->getHeader("Transfer-Encoding", transferEncoding))
+   if(header->getField("Transfer-Encoding", transferEncoding))
    {
       if(strncasecmp(transferEncoding.c_str(), "chunked", 7) == 0)
       {
@@ -231,7 +231,7 @@ IOException* HttpConnection::receiveBody(HttpHeader* header, OutputStream* os)
    // determine how much content needs to be received
    long long contentLength = 0;
    bool lengthUnspecified = true;
-   if(header->getHeader("Content-Length", contentLength) && contentLength > 0)
+   if(header->getField("Content-Length", contentLength) && contentLength > 0)
    {
       lengthUnspecified = false;
    }
