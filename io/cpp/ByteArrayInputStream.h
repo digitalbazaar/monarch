@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_net_ByteArrayInputStream_H
-#define db_net_ByteArrayInputStream_H
+#ifndef db_io_ByteArrayInputStream_H
+#define db_io_ByteArrayInputStream_H
 
 #include "InputStream.h"
 

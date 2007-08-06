@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_net_HttpRequestServicer_H
-#define db_net_HttpRequestServicer_H
+#ifndef db_net_http_HttpRequestServicer_H
+#define db_net_http_HttpRequestServicer_H
 
 #include "HttpRequest.h"
 #include "HttpResponse.h"

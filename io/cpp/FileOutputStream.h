@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_net_FileOutputStream_H
-#define db_net_FileOutputStream_H
+#ifndef db_io_FileOutputStream_H
+#define db_io_FileOutputStream_H
 
 #include "File.h"
 #include "OutputStream.h"

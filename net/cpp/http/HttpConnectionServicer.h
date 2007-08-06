@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_net_HttpConnectionServicer_H
-#define db_net_HttpConnectionServicer_H
+#ifndef db_net_http_HttpConnectionServicer_H
+#define db_net_http_HttpConnectionServicer_H
 
 #include "Object.h"
 #include "ConnectionServicer.h"
