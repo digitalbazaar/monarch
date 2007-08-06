@@ -151,6 +151,13 @@ public:
     * @return true if the string exists, false if not.
     */
    virtual bool getString(const char* name, std::string& value);
+   
+   /**
+    * Removes a variable from this state by its name.
+    * 
+    * @param name the name of the variable to remove.
+    */
+   virtual void removeVariable(const char* name);
 };
 
 } // end namespace modest

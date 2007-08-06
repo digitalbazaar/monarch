@@ -147,3 +147,29 @@ bool State::getString(const char* name, string& value)
    
    return rval;
 }
+
+void State::removeVariable(const char* name)
+{
+   map<const char*, StateVariable*, StateNameComparator>::iterator i =
+      mVarTable.find(name);
+   if(i != mVarTable.end())
+   {
+      // delete name
+      delete [] i->first;
+      
+      // get variable
+      StateVariable* var = i->second;
+      
+      // delete string if applicable
+      if(var->type == 3)
+      {
+         delete var->s;
+      }
+      
+      // delete variable
+      delete var;
+      
+      // remove variable from table
+      mVarTable.erase(i);
+   }
+}
