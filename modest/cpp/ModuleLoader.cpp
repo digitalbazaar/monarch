@@ -25,24 +25,25 @@ ModuleInfo* ModuleLoader::loadModule(std::string const& filename)
    void* handle = dlopen(filename.c_str(), RTLD_NOW);
    if(handle != NULL)
    {
-      // clear error
-      char* error = dlerror();
       CreateModestModuleFn create;
       FreeModestModuleFn free;
+      
+      // clear error
+      char* error = dlerror();
       
       // try to get create module function
       create = (CreateModestModuleFn)dlsym(handle, "createModestModule");
       if((error = dlerror()) == NULL)
       {
          // clear error
-         char* error = dlerror();
+         error = dlerror();
          
          // try to get free module function
          free = (FreeModestModuleFn)dlsym(handle, "freeModestModule");
          error = dlerror();
       }
       
-      if(error != NULL)
+      if(error == NULL)
       {
          // create ModuleInfo
          rval = new ModuleInfo();
@@ -52,14 +53,18 @@ ModuleInfo* ModuleLoader::loadModule(std::string const& filename)
       else
       {
          // could not load create or free functions
-         string msg = "Could not load module '" + filename + "'";
+         string msg =
+            "Could not load module '" + filename + "', error=";
+         msg.append(error);
          Exception::setLast(new Exception(msg.c_str()));
       }
    }
    else
    {
       // failed to open module
-      string msg = "Could not load module '" + filename + "'";
+      string msg =
+         "Could not load module '" + filename + "'" +
+         ", could not open module file.";
       Exception::setLast(new Exception(msg.c_str()));
    }
    
