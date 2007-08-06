@@ -185,6 +185,8 @@ HttpConnection* HttpClient::createConnection(
 {
    HttpConnection* rval = NULL;
    
+   // FIXME: add SSL support later
+   
    // connect with given timeout
    TcpSocket* s = new TcpSocket();
    if(s->connect(address, timeout))
