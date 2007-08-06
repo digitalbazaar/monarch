@@ -2596,9 +2596,9 @@ void runHttpServerTest()
    cout << endl << "Http Server test complete." << endl;
 }
 
-void runHttpClientTest()
+void runHttpClientGetTest()
 {
-   cout << "Starting Http Client test." << endl << endl;
+   cout << "Starting Http Client GET test." << endl << endl;
    
    // create client
    HttpClient client;
@@ -2613,7 +2613,8 @@ void runHttpClientTest()
       cout << address.toString(str) << endl;
       
       // do get
-      HttpResponse* response = client.get(&url);
+      char* headers[] = {"Test-Header: bacon", NULL};
+      HttpResponse* response = client.get(&url, headers);
       if(response != NULL)
       {
          cout << "Response=" << endl <<
@@ -2645,7 +2646,67 @@ void runHttpClientTest()
       cout << "Disconnected." << endl;
    }
    
-   cout << endl << "Http Client test complete." << endl;
+   cout << endl << "Http Client GET test complete." << endl;
+}
+
+void runHttpClientPostTest()
+{
+   cout << "Starting Http Client POST test." << endl << endl;
+   
+   // create client
+   HttpClient client;
+   
+   // connect
+   Url url("http://www.bitmunk.com");
+   if(client.connect(&url))
+   {
+      string str;
+      cout << "Connected to: " << url.toString(str) << endl;
+      InternetAddress address(url.getHost(), url.getPort());
+      cout << address.toString(str) << endl;
+      
+      char someData[] = "Just some post data.";
+      ByteArrayInputStream baos(someData, strlen(someData));
+      
+      // do post
+      char* headers[] = {
+         "Content-Type: text/plain",
+         "Transfer-Encoding: chunked",
+         NULL};
+      
+      HttpResponse* response = client.post(&url, headers, &baos);
+      if(response != NULL)
+      {
+         cout << "Response=" << endl <<
+            response->getHeader()->toString(str) << endl;
+         if(response->getHeader()->getStatusCode() == 200)
+         {
+            // receive content
+            File file("/tmp/postresponse.txt");
+            FileOutputStream fos(&file);
+            IOException* e = client.receiveContent(&fos);
+            if(e == NULL)
+            {
+               cout << "Content downloaded to '" <<
+                  file.getName() << "'" << endl;
+            }
+            else
+            {
+               cout << "IOException!,message=" << e->getMessage() << endl;
+            }
+         }
+      }
+      else
+      {
+         cout << "There was no response!" << endl;
+      }
+      
+      cout << "Disconnecting..." << endl;
+      client.disconnect();
+      cout << "Disconnected." << endl;
+   }
+   
+   cout << endl << "Http Client POST test complete." << endl;
 }
 
 class RunTests : public virtual Object, public Runnable
@@ -2697,7 +2758,8 @@ public:
 //      runStringCompareTest();
 //      runHttpHeaderTest();
 //      runHttpServerTest();
-      runHttpClientTest();
+      runHttpClientGetTest();
+//      runHttpClientPostTest();
       
       cout << endl << "Tests finished." << endl;
       

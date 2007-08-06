@@ -29,16 +29,18 @@ void HttpClient::setHeaders(HttpHeader* h, char** headers)
    if(headers != NULL)
    {
       // go through headers until NULL is reached
+      char* field;
       char* colon;
       for(int i = 0; headers[i] != NULL; i++)
       {
          // find colon
-         if((colon = strchr(headers[i], ':')) != NULL)
+         field = headers[i];
+         if((colon = strchr(field, ':')) != NULL)
          {
             // get field name
-            char* name = new char[colon - headers[i] + 1];
-            strncpy(name, 0, colon - headers[i]);
-            memset(name + (colon - headers[i]), 0, 1);
+            char* name = new char[colon - field + 1];
+            strncpy(name, field, colon - field);
+            memset(name + (colon - field), 0, 1);
             
             // skip whitespace
             colon++;
@@ -101,9 +103,9 @@ HttpResponse* HttpClient::get(Url* url, char** headers)
    return rval;
 }
 
-bool HttpClient::post(Url* url, char** headers)
+HttpResponse* HttpClient::post(Url* url, char** headers, InputStream* is)
 {
-   bool rval = false;
+   HttpResponse* rval = NULL;
    
    // ensure connected
    if(connect(url))
@@ -120,25 +122,19 @@ bool HttpClient::post(Url* url, char** headers)
       setHeaders(mRequest->getHeader(), headers);
       
       // send request header
-      rval = (mRequest->sendHeader() == NULL);
-   }
-   
-   return rval;
-}
-
-IOException* HttpClient::sendContent(InputStream* is)
-{
-   IOException* rval = NULL;
-   
-   if(mConnection == NULL)
-   {
-      rval = new IOException("Could not send HTTP content, not connected!");
-      Exception::setLast(rval);
-   }
-   else
-   {
-      // send body
-      rval = mRequest->sendBody(is);
+      if(mRequest->sendHeader() == NULL)
+      {
+         // send body
+         if(mRequest->sendBody(is) == NULL)
+         {
+            // receive response header
+            if(mResponse->receiveHeader() == NULL)
+            {
+               // return response
+               rval = mResponse;
+            }
+         }
+      }
    }
    
    return rval;

@@ -82,6 +82,9 @@ public:
     * an array of null-terminated header field "name: value" pairs. The last
     * entry in the array must be NULL.
     * 
+    * Exception::getLast() may be checked if no response is received, but
+    * it should be cleared prior to this method with Exception::setLast(NULL);
+    * 
     * @param url the url of the content to request.
     * @param headers any special headers to include in the request.
     * 
@@ -90,29 +93,23 @@ public:
    virtual HttpResponse* get(db::net::Url* url, char** headers = NULL);
    
    /**
-    * Sends an HTTP POST request. This method will not send the post
-    * content.
+    * Sends an HTTP POST request and its content.
     * 
     * If the passed headers variable is not NULL, then it should contain
     * an array of null-terminated header field "name: value" pairs. The last
     * entry in the array must be NULL.
     * 
+    * Exception::getLast() may be checked if no response is received, but
+    * it should be cleared prior to this method with Exception::setLast(NULL).
+    * 
     * @param url the url to post to.
     * @param headers any special headers to include in the request.
+    * @param is the InputStream to read the content to send from.
     * 
-    * @return true if the request was sent, false if an IO exception occurred.
+    * @return the HTTP response if one was received, NULL if not.
     */
-   bool post(db::net::Url* url, char** headers = NULL);
-   
-   /**
-    * Sends the content associated with the last sent request header. The
-    * content is read from the passed input stream.
-    * 
-    * @param is the InputStream to read the content from.
-    * 
-    * @return an IO exception if one occurs, otherwise NULL.
-    */
-   virtual db::io::IOException* sendContent(db::io::InputStream* is);
+   virtual HttpResponse* post(
+      db::net::Url* url, char** headers, db::io::InputStream* is);
    
    /**
     * Receives the content previously requested by get() or post() and
