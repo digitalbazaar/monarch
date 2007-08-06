@@ -33,6 +33,11 @@ protected:
     */
    ModuleLibrary* mModuleLibrary;
    
+   /**
+    * The version of this Kernel (major.minor).
+    */
+   std::string mVersion;
+   
 public:
    /**
     * Creates a new Kernel.
@@ -55,6 +60,13 @@ public:
     * @return this Kernel's ModuleLibrary.
     */
    virtual ModuleLibrary* getModuleLibrary();
+   
+   /**
+    * Gets this Kernel's version (major.minor).
+    * 
+    * @return this Kernel's version.
+    */
+   virtual const std::string& getVersion();
 };
 
 } // end namespace modest

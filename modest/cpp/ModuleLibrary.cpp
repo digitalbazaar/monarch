@@ -51,9 +51,25 @@ bool ModuleLibrary::loadModule(const string& filename)
          // ensure the module isn't already loaded
          if(findModule(mi->module->getId().name) == NULL)
          {
-            // add Module to the map
-            mModules[mi->module->getId().name] = mi;
-            rval = true;
+            // initialize the module
+            Exception* e = mi->module->initialize(mKernel);
+            if(e == NULL)
+            {
+               // add Module to the map
+               mModules[mi->module->getId().name] = mi;
+               rval = true;
+            }
+            else
+            {
+               // could not initialize module, so unload it
+               string msg =
+                  "Could not initialize module '" + filename +
+                  "', module named '" + mi->module->getId().name +
+                  "', with version '" + mi->module->getId().version +
+                  ",exception=" + e->getMessage() + ":" + e->getCode();
+               Exception::setLast(new Exception(msg.c_str()));
+               mLoader.unloadModule(mi);
+            }
          }
          else
          {

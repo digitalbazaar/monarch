@@ -10,6 +10,7 @@ Kernel::Kernel()
    // create engine and module library
    mEngine = new Engine();
    mModuleLibrary = new ModuleLibrary(this);
+   mVersion = "1.0";
 }
 
 Kernel::~Kernel()
@@ -26,6 +27,11 @@ Engine* Kernel::getEngine()
 ModuleLibrary* Kernel::getModuleLibrary()
 {
    return mModuleLibrary;
+}
+
+const std::string& Kernel::getVersion()
+{
+   return mVersion;
 }
 
 inline Kernel* createModestKernel()

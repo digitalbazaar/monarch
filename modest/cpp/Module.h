@@ -57,15 +57,6 @@ public:
    virtual const ModuleId& getId() = 0;
    
    /**
-    * Gets the version (major.minor) of Modest that this Module is compatible
-    * with.
-    * 
-    * @return the version (major.minor) of Modest that this Module is
-    *         compatible with.
-    */
-   virtual std::string getCompatibleModestVersion() = 0;
-   
-   /**
     * Initializes this Module with the modest Kernel once it has been
     * loaded.
     * 
