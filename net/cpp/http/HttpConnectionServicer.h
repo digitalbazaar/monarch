@@ -94,7 +94,7 @@ public:
     * @param serverName the default server name for this servicer.
     */
    HttpConnectionServicer(
-      const std::string& serverName = "Modest Http Server/1.0");
+      const std::string& serverName = "Modest Http Server v1.0");
    
    /**
     * Destructs this HttpConnectionServicer.

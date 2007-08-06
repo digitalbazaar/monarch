@@ -2584,29 +2584,20 @@ void runHttpClientTest()
    
    // create client
    HttpClient client;
-   InternetAddress address("www.digitalbazaar.com", 80);
    
-   HttpConnection* hc = client.connect(&address);
-   if(hc != NULL)
+   // connect
+   Url url("http://www.digitalbazaar.com");
+   if(client.connect(&url))
    {
-      string addr;
-      cout << "Connected to: " << address.toString(addr) << endl;
+      string str;
+      cout << "Connected to: " << url.toString(str) << endl;
+      InternetAddress address(url.getHost(), url.getPort());
+      cout << address.toString(str) << endl;
       
-//      HttpRequest* request = (HttpRequest*)hc->createRequest();
-//      request->getHeader()->set
-//      
-//      if(request->sendHeader() == NULL)
-//      {
-//         HttpResponse* response = (HttpResponse*)request->createResponse();
-//         
-//         
-//      }
+      // FIXME: do stuff
       
       cout << "Disconnecting..." << endl;
-      
-      hc->close();
-      delete hc;
-      
+      client.disconnect();
       cout << "Disconnected." << endl;
    }
    
@@ -2661,8 +2652,8 @@ public:
 //      runStringAppendCharTest();
 //      runStringCompareTest();
 //      runHttpHeaderTest();
-      runHttpServerTest();
-//      runHttpClientTest();
+//      runHttpServerTest();
+      runHttpClientTest();
       
       cout << endl << "Tests finished." << endl;
       

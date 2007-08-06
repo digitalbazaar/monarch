@@ -125,6 +125,31 @@ MalformedUrlException* Url::setUrl(const string& url)
             }
          }
       }
+      
+      if(mAuthority.length() > 0)
+      {
+         const char* colon = strchr(mAuthority.c_str(), ':');
+         if(colon != NULL)
+         {
+            mHost = mAuthority.substr(0, colon - mAuthority.c_str());
+            mPort = strtoll(colon + 1, NULL, 10);
+         }
+         else
+         {
+            const char* slash = strchr(mAuthority.c_str(), '/');
+            if(slash == NULL)
+            {
+               mHost = mAuthority;
+            }
+            else
+            {
+               mHost = mAuthority.substr(0, slash - mAuthority.c_str());
+            }
+            
+            // try to get default port
+            mPort = getDefaultPort();
+         }
+      }
    }
    
    return rval;
@@ -155,10 +180,14 @@ const string& Url::getQuery()
    return mQuery;
 }
 
-string& Url::toString(string& str)
+const string& Url::getHost()
 {
-   str.append(mScheme + ":" + mSchemeSpecificPart);
-   return str;
+   return mHost;
+}
+
+unsigned int Url::getPort()
+{
+   return mPort;
 }
 
 unsigned int Url::getDefaultPort()
@@ -192,6 +221,14 @@ unsigned int Url::getDefaultPort()
    }
    
    return rval;
+}
+
+string& Url::toString(string& str)
+{
+   str.append(mScheme);
+   str.append(1, ':');
+   str.append(mSchemeSpecificPart);
+   return str;
 }
 
 string Url::encode(const char* str, unsigned int length)

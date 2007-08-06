@@ -54,6 +54,16 @@ protected:
     */
    std::string mQuery;
    
+   /**
+    * The host for this url, if one exists.
+    */
+   std::string mHost;
+   
+   /**
+    * The port for this url, if one exists.
+    */
+   unsigned int mPort;
+   
 public:
    /**
     * Creates a new Url from the passed string. An exception may be raised
@@ -111,6 +121,21 @@ public:
     * @return the query of this url or a blank string.
     */
    virtual const std::string& getQuery();
+   
+   /**
+    * Convenience method to get the host of this url (not including
+    * the port).
+    * 
+    * @return the host of this url.
+    */
+   virtual const std::string& getHost();
+   
+   /**
+    * Convenience method to get the port of this url.
+    * 
+    * @return the port of this url.
+    */
+   virtual unsigned int getPort();
    
    /**
     * Gets the default port for the scheme (protocol) of this url.
