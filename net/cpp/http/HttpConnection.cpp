@@ -60,7 +60,7 @@ IOException* HttpConnection::receiveHeader(HttpHeader* header)
    bool read;
    ConnectionInputStream* is = getInputStream();
    Exception::setLast(NULL);
-   while(is->readCrlf(line) && line != "")
+   while(is->readCrlf(line) && line.length() > 0)
    {
       headerStr.append(line);
       headerStr.append(HttpHeader::CRLF);

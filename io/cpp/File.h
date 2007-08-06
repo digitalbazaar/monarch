@@ -40,7 +40,7 @@ public:
     * 
     * @param name the name of the file.
     */
-   File(const std::string& name);
+   File(const char* name);
    
    /**
     * Destructs this File.

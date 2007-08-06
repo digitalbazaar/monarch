@@ -10,7 +10,7 @@ File::File()
 {
 }
 
-File::File(const string& name)
+File::File(const char* name)
 {
    mName = name;
 }

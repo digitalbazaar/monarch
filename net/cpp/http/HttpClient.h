@@ -40,11 +40,12 @@ protected:
    HttpResponse* mResponse;
    
    /**
-    * Sets the headers fields in the request.
+    * Sets the headers fields in the request header.
     * 
+    * @param h the HttpHeader to update.
     * @param headers the header fields to set.
     */
-   virtual void setHeaders(char** headers);
+   virtual void setHeaders(HttpHeader* h, char** headers);
    
 public:
    /**
@@ -86,7 +87,7 @@ public:
     * 
     * @return the HTTP response if one was received, NULL if not.
     */
-   virtual const HttpResponse* get(db::net::Url* url, char** headers);
+   virtual HttpResponse* get(db::net::Url* url, char** headers = NULL);
    
    /**
     * Sends an HTTP POST request. This method will not send the post
@@ -101,7 +102,7 @@ public:
     * 
     * @return true if the request was sent, false if an IO exception occurred.
     */
-   bool post(db::net::Url* url, char** headers);
+   bool post(db::net::Url* url, char** headers = NULL);
    
    /**
     * Sends the content associated with the last sent request header. The

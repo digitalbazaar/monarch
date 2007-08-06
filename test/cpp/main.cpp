@@ -25,6 +25,7 @@
 #include "Crc16.h"
 #include "AsymmetricKeyFactory.h"
 #include "FileInputStream.h"
+#include "FileOutputStream.h"
 #include "DigitalEnvelope.h"
 #include "DefaultBlockCipher.h"
 #include "Convert.h"
@@ -1573,6 +1574,23 @@ void runConvertTest()
    cout << "10 to upper-case hex=" << Convert::intToUpperHex(10) << endl;
    cout << "33 to upper-case hex=" << Convert::intToUpperHex(33) << endl;
    cout << "100 to upper-case hex=" << Convert::intToUpperHex(100) << endl;
+   cout << "8975 to lower-case hex=" << Convert::intToHex(8975) << endl;
+   cout << "8975 to upper-case hex=" << Convert::intToUpperHex(8975) << endl;
+   cout << "65537 to lower-case hex=" << Convert::intToHex(65537) << endl;
+   cout << "65537 to upper-case hex=" << Convert::intToUpperHex(65537) << endl;
+   
+   string hex = "230f";
+   cout << "0x230f to integer=" <<
+      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
+   hex = "230F";
+   cout << "0x230F to integer=" <<
+      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
+   hex = "230FABCD";
+   cout << "0x230FABCD to integer=" <<
+      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
+   hex = "0";
+   cout << "0x0 to integer=" <<
+      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
    
    cout << endl << "Convert test complete." << endl;
 }
@@ -2586,7 +2604,7 @@ void runHttpClientTest()
    HttpClient client;
    
    // connect
-   Url url("http://www.digitalbazaar.com");
+   Url url("http://www.bitmunk.com");
    if(client.connect(&url))
    {
       string str;
@@ -2594,7 +2612,33 @@ void runHttpClientTest()
       InternetAddress address(url.getHost(), url.getPort());
       cout << address.toString(str) << endl;
       
-      // FIXME: do stuff
+      // do get
+      HttpResponse* response = client.get(&url);
+      if(response != NULL)
+      {
+         cout << "Response=" << endl <<
+            response->getHeader()->toString(str) << endl;
+         if(response->getHeader()->getStatusCode() == 200)
+         {
+            // receive content
+            File file("/tmp/index.html");
+            FileOutputStream fos(&file);
+            IOException* e = client.receiveContent(&fos);
+            if(e == NULL)
+            {
+               cout << "Content downloaded to '" <<
+                  file.getName() << "'" << endl;
+            }
+            else
+            {
+               cout << "IOException!,message=" << e->getMessage() << endl;
+            }
+         }
+      }
+      else
+      {
+         cout << "There was no response!" << endl;
+      }
       
       cout << "Disconnecting..." << endl;
       client.disconnect();

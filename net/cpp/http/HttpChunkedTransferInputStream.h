@@ -7,6 +7,7 @@
 #include "PeekInputStream.h"
 #include "ConnectionInputStream.h"
 #include "HttpHeader.h"
+#include "Thread.h"
 
 namespace db
 {
@@ -94,6 +95,11 @@ protected:
     * Set to true if the last chunk is being processed.
     */
    bool mLastChunk;
+   
+   /**
+    * Stores the thread reading from this stream.
+    */
+   db::rt::Thread* mThread;
    
 public:
    /**

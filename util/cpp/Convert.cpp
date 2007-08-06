@@ -118,6 +118,12 @@ int Convert::hexToInt(const char* hex, unsigned int hexLength)
 {
    int rval = 0;
    
+   unsigned int base = 1;
+   if(hexLength > 1)
+   {
+      for(int i = 0; i < (hexLength - 2); i++, base *= 16);
+   }
+   
    unsigned char c1;
    unsigned char c2;
    for(unsigned int i = 0; i < hexLength; i += 2)
@@ -134,31 +140,34 @@ int Convert::hexToInt(const char* hex, unsigned int hexLength)
          // convert first hex digit
          if(c1 > 47 && c1 < 58)
          {
-            c1 = 16 * (c1 - 48);
+            rval += base * 16 * (c1 - 48);
          }
          else if(c1 > 64 && c1 < 91)
          {
-            c1 = 16 * (c1 - 55);
+            rval += base * 16 * (c1 - 55);
          }
          else if(c1 > 96 && c1 < 123)
          {
-            c1 = 16 * (c1 - 87);
+            rval += base * 16 * (c1 - 87);
          }
          
          // convert second hex digit and add
          if(c2 > 47 && c2 < 58)
          {
-            rval += c1 + c2 - 48;
+            rval += base * (c2 - 48);
          }
          else if(c2 > 64 && c2 < 91)
          {
-            rval += c1 + c2 - 55;
+            rval += base * (c2 - 55);
          }
          else if(c2 > 96 && c2 < 123)
          {
-            rval += c1 + c2 - 87;
+            rval += base * (c2 - 87);
          }
       }
+      
+      // decrease base
+      base /= 256;
    }
    
    return rval;
@@ -168,15 +177,17 @@ string Convert::intToHex(int n)
 {
    string rval;
    
+   char ch;
    for(int i = 2 * sizeof(int) - 1; i >= 0; i--)
    {
-      rval += HEX_CHARS[(n >> (i * 4)) & 0x0F];
+      ch = HEX_CHARS[(n >> (i * 4)) & 0x0F];
+      if(ch != '0' || rval.length() > 0)
+      {
+         rval.append(1, ch);
+      }
    }
    
-   // trim leading zeros
-   StringTools::trim(rval, "0");
-   
-   // append single leading zero as necessary
+   // insert single leading zero as necessary
    if(rval.length() % 2 != 0)
    {
       rval.insert(rval.begin(), '0');
@@ -189,15 +200,17 @@ string Convert::intToUpperHex(int n)
 {
    string rval;
    
+   char ch;
    for(int i = 2 * sizeof(int) - 1; i >= 0; i--)
    {
-      rval += UPPER_HEX_CHARS[(n >> (i * 4)) & 0x0F];
+      ch = UPPER_HEX_CHARS[(n >> (i * 4)) & 0x0F];
+      if(ch != '0' || rval.length() > 0)
+      {
+         rval.append(1, ch);
+      }
    }
    
-   // trim leading zeros
-   StringTools::trim(rval, "0");
-   
-   // append single leading zero as necessary
+   // insert single leading zero as necessary
    if(rval.length() % 2 != 0)
    {
       rval.insert(rval.begin(), '0');

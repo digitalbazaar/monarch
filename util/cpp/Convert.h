@@ -71,7 +71,8 @@ public:
       char* bytes, unsigned int& length);
    
    /**
-    * Converts a hexadecimal string to an integer.
+    * Converts a hexadecimal string to an integer. The string is parsed in
+    * big endian order.
     * 
     * @param hex the hexadecimal string to convert.
     * @param hexLength the number of hex characters.

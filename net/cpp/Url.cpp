@@ -120,8 +120,9 @@ MalformedUrlException* Url::setUrl(const string& url)
             {
                // no path or query, just authority
                
-               // get authority
+               // get authority, use base path
                mAuthority = mSchemeSpecificPart.substr(2);
+               mPath = '/';
             }
          }
       }

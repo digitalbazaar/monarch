@@ -4,7 +4,6 @@
 #include "HttpChunkedTransferInputStream.h"
 #include "Convert.h"
 #include "Math.h"
-#include "Thread.h"
 
 using namespace std;
 using namespace db::io;
@@ -25,6 +24,9 @@ PeekInputStream(is, false)
    
    // not last chunk yet
    mLastChunk = false;
+   
+   // store the thread reading from this stream
+   mThread = Thread::currentThread();
 }
 
 HttpChunkedTransferInputStream::~HttpChunkedTransferInputStream()
@@ -47,18 +49,19 @@ int HttpChunkedTransferInputStream::read(char* b, unsigned int length)
       if(is->readCrlf(chunkSize))
       {
          // ignore chunk-extension
-         string::size_type index = chunkSize.find_first_of(' ');
-         if(index != string::npos)
+         int sizeLength = chunkSize.length();
+         char* size = strchr(chunkSize.c_str(), ' ');
+         if(size != NULL)
          {
-            chunkSize = chunkSize.substr(0, index);
+            sizeLength = size - chunkSize.c_str();
          }
          
          // get size of chunk data
          mChunkBytesLeft = Convert::hexToInt(
-            chunkSize.c_str(), chunkSize.length());
+            chunkSize.c_str(), sizeLength);
          
          // this is the last chunk if length is 0
-         mLastChunk = (length == 0);
+         mLastChunk = (mChunkBytesLeft == 0);
       }
       else
       {
@@ -67,13 +70,14 @@ int HttpChunkedTransferInputStream::read(char* b, unsigned int length)
       }
    }
    
-   // read the chunk into the passed data buffer
-   Thread* t = Thread::currentThread();
+   // read some chunk bytes into the passed data buffer
    int numBytes = 0;
-   while(exception == NULL && !t->isInterrupted() &&
-         mChunkBytesLeft > 0 && numBytes != -1)
+   if(mChunkBytesLeft > 0 && exception == NULL && numBytes != -1 &&
+      !mThread->isInterrupted())
    {
-      numBytes = is->read(b, length);
+      unsigned int readSize = (length < mChunkBytesLeft) ?
+         length : mChunkBytesLeft;      
+      numBytes = is->read(b, readSize);
       if(numBytes != -1)
       {
          // decrement bytes left
@@ -95,7 +99,7 @@ int HttpChunkedTransferInputStream::read(char* b, unsigned int length)
       // build trailer headers
       string trailerHeaders;
       string line;
-      while(is->readCrlf(line) && line != "")
+      while(is->readCrlf(line) && line.length() > 0)
       {
          trailerHeaders.append(line);
          trailerHeaders.append(HttpHeader::CRLF);
@@ -110,7 +114,7 @@ int HttpChunkedTransferInputStream::read(char* b, unsigned int length)
       string throwout;
       is->readCrlf(throwout);
    }
-   else if(exception == NULL)
+   else if(exception == NULL && numBytes == -1)
    {
       // if the length is greater than zero then the whole chunk wasn't read
       exception = new IOException("Could not read entire HTTP chunk!");

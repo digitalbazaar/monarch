@@ -24,40 +24,31 @@ HttpClient::~HttpClient()
    HttpClient::disconnect();
 }
 
-void HttpClient::setHeaders(char** headers)
+void HttpClient::setHeaders(HttpHeader* h, char** headers)
 {
-   // FIXME:
-//   // found a CRLF, now find colon
-//   if((colon = strchr(start, ':')) != NULL && colon < cr)
-//   {
-//      // get field name
-//      char* name = new char[colon - start + 1];
-//      strncpy(name, start, colon - start);
-//      memset(name + (colon - start), 0, 1);
-//      
-//      // skip whitespace
-//      colon++;
-//      for(; *colon == ' ' && colon < cr; colon++);
-//      
-//      // get field value
-//      char value[cr - colon + 1];
-//      strncpy(value, colon, cr - colon);
-//      memset(value + (cr - colon), 0, 1);
-//      
-//      // clear old field
-//      map<const char*, std::string, FieldComparator>::iterator i =
-//         mFields.find(name);
-//      if(i != mFields.end())
-//      {
-//         delete [] i->first;
-//         mFields.erase(i);
-//      }
-//      
-//      // set field
-//      mFields.insert(make_pair(name, value));
-//   }
-//}
+   if(headers != NULL)
+   {
+      // go through headers until NULL is reached
+      char* colon;
+      for(int i = 0; headers[i] != NULL; i++)
+      {
+         // find colon
+         if((colon = strchr(headers[i], ':')) != NULL)
+         {
+            // get field name
+            char* name = new char[colon - headers[i] + 1];
+            strncpy(name, 0, colon - headers[i]);
+            memset(name + (colon - headers[i]), 0, 1);
             
+            // skip whitespace
+            colon++;
+            for(; *colon == ' ' && *colon != 0; colon++);
+            
+            // set field
+            h->setField(name, colon);
+         }
+      }
+   }
 }
 
 bool HttpClient::connect(Url* url)
@@ -77,7 +68,7 @@ bool HttpClient::connect(Url* url)
    return mConnection != NULL;
 }
 
-const HttpResponse* HttpClient::get(Url* url, char** headers)
+HttpResponse* HttpClient::get(Url* url, char** headers)
 {
    HttpResponse* rval = NULL;
    
@@ -93,13 +84,13 @@ const HttpResponse* HttpClient::get(Url* url, char** headers)
       mRequest->getHeader()->setField("User-Agent", "DB Http Client v2.0");
       
       // set user headers
-      setHeaders(headers);
+      setHeaders(mRequest->getHeader(), headers);
       
       // send request header
-      if(mRequest->sendHeader() != NULL)
+      if(mRequest->sendHeader() == NULL)
       {
          // receive response header
-         if(mResponse->receiveHeader() != NULL)
+         if(mResponse->receiveHeader() == NULL)
          {
             // return response
             rval = mResponse;
@@ -126,10 +117,10 @@ bool HttpClient::post(Url* url, char** headers)
       mRequest->getHeader()->setField("User-Agent", "DB Http Client v2.0");
       
       // set user headers
-      setHeaders(headers);
+      setHeaders(mRequest->getHeader(), headers);
       
       // send request header
-      rval = (mRequest->sendHeader() != NULL);
+      rval = (mRequest->sendHeader() == NULL);
    }
    
    return rval;
