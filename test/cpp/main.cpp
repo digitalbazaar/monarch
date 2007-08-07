@@ -2757,8 +2757,8 @@ public:
 //      runStringAppendCharTest();
 //      runStringCompareTest();
 //      runHttpHeaderTest();
-      runHttpServerTest();
-//      runHttpClientGetTest();
+//      runHttpServerTest();
+      runHttpClientGetTest();
 //      runHttpClientPostTest();
       
       cout << endl << "Tests finished." << endl;
