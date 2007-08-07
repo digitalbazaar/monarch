@@ -57,7 +57,6 @@ IOException* HttpConnection::receiveHeader(HttpHeader* header)
    // read until eof, error, or blank line w/CRLF
    string headerStr;
    string line;
-   bool read;
    ConnectionInputStream* is = getInputStream();
    Exception::setLast(NULL);
    while(is->readCrlf(line) && line.length() > 0)

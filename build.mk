@@ -23,7 +23,7 @@ INCLUDES = \
 
 # Compiler flags:
 # -g	include debug information
-CFLAGS = -g $(INCLUDES)
+CFLAGS = -g -Wall $(INCLUDES)
 PYTHON_INCLUDE = -I/usr/include/python2.4
 
 # Archive builder
