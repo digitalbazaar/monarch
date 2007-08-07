@@ -65,8 +65,8 @@ bool ModuleLibrary::loadModule(const string& filename)
                string msg =
                   "Could not initialize module '" + filename +
                   "', module named '" + mi->module->getId().name +
-                  "', with version '" + mi->module->getId().version +
-                  ",exception=" + e->getMessage() + ":" + e->getCode();
+                  "', version '" + mi->module->getId().version +
+                  "',exception=" + e->getMessage() + ":" + e->getCode();
                Exception::setLast(new Exception(msg.c_str()));
                mLoader.unloadModule(mi);
             }
@@ -76,9 +76,9 @@ bool ModuleLibrary::loadModule(const string& filename)
             // module is already loaded, set exception and unload it
             string msg =
                "Could not load module '" + filename +
-               "', module named '" + mi->module->getId().name +
+               "', another module named '" + mi->module->getId().name +
                "' with version '" + mi->module->getId().version +
-               "' already loaded.";
+               "' is already loaded.";
             Exception::setLast(new Exception(msg.c_str()));
             mLoader.unloadModule(mi);
          }
