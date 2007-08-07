@@ -21,7 +21,7 @@ AR = ar
 ARFLAGS = cr
 
 # Library path
-LIBS = -Lrt/cpp/dist -Lmodest/cpp/dist -Lutil/cpp/dist -Lio/cpp/dist -Lcrypto/cpp/dist -Lnet/cpp/dist -Lxml/cpp/dist
+LIBS = -Llibs
 
 # Linker flags:
 LDFLAGS = $(LIBS)
@@ -80,19 +80,12 @@ DBXML_OBJS = $(DBXML_CPP:xml/cpp/%.cpp=xml/cpp/build/%.o)
 # Individual DB libraries as make targets
 # This will need to be changed for a windows build
 DBRT_LIB = rt/cpp/dist/libdbrt.a
-DBRT_SHARED_LIB = rt/cpp/dist/libdbrt.so
 DBMODEST_LIB = modest/cpp/dist/libdbmodest.a
-DBMODEST_SHARED_LIB = modest/cpp/dist/libdbmodest.so
 DBUTIL_LIB = util/cpp/dist/libdbutil.a
-DBUTIL_SHARED_LIB = util/cpp/dist/libdbutil.so
 DBIO_LIB = io/cpp/dist/libdbio.a
-DBIO_SHARED_LIB = io/cpp/dist/libdbio.so
 DBCRYPTO_LIB = crypto/cpp/dist/libdbcrypto.a
-DBCRYPTO_SHARED_LIB = crypto/cpp/dist/libdbcrypto.so
 DBNET_LIB = net/cpp/dist/libdbnet.a
-DBNET_SHARED_LIB = net/cpp/dist/libdbnet.so
 DBXML_LIB = xml/cpp/dist/libdbxml.a
-DBXML_SHARED_LIB = xml/cpp/dist/libdbxml.so
 
 # DB executables
 TEST_EXE = test/cpp/dist/test.exe
@@ -103,35 +96,45 @@ all: test
 
 # Cleans all build and dist files
 clean:
-	@echo Cleaning all DB build and dist files...
-	rm -rf $(BUILD) $(DIST)
+	@echo Cleaning all DB object and library files...
+	rm -rf $(BUILD) $(DIST) libs
 	@echo Make clean finished.
 
 # Builds the DB runtime libraries
 libdbrt: $(DBRT_OBJS)
+	@mkdir -p libs
 	$(AR) $(ARFLAGS) rt/cpp/dist/$@.a $^
-	$(CC) -shared -o rt/cpp/dist/$@.so $^
+	$(CC) $(LIBS) -shared -o rt/cpp/dist/$@.so $^
+	@cp rt/cpp/dist/$@.so libs/
 
 # Builds the DB modest libraries
 libdbmodest: $(DBMODEST_OBJS)
+	@mkdir -p libs
 	$(AR) $(ARFLAGS) modest/cpp/dist/$@.a $^
-	$(CC) -shared -o modest/cpp/dist/$@.so $^ $(DBRT_SHARED_LIB)
+	$(CC) $(LIBS) -shared -o modest/cpp/dist/$@.so $^ -ldbrt
+	@cp modest/cpp/dist/$@.so libs/
 
 # Builds the DB utilities libraries
 libdbutil: $(DBUTIL_OBJS)
+	@mkdir -p libs
 	$(AR) $(ARFLAGS) util/cpp/dist/$@.a $^
-	$(CC) -shared -o util/cpp/dist/$@.so $^ $(DBRT_SHARED_LIB)
+	$(CC) $(LIBS) -shared -o util/cpp/dist/$@.so $^ -ldbrt
+	@cp util/cpp/dist/$@.so libs/
 
 # Builds the DB io libraries
 libdbio: $(DBIO_OBJS)
+	@mkdir -p libs
 	echo DBIO_CPP
 	$(AR) $(ARFLAGS) io/cpp/dist/$@.a $^
-	$(CC) -shared -o io/cpp/dist/$@.so $^ $(DBUTIL_SHARED_LIB)
+	$(CC) $(LIBS) -shared -o io/cpp/dist/$@.so $^ -ldbutil
+	@cp io/cpp/dist/$@.so libs/
 
 # Builds the DB crypto libraries and wrappers
 libdbcrypto: $(DBCRYPTO_OBJS)
+	@mkdir -p libs
 	$(AR) $(ARFLAGS) crypto/cpp/dist/$@.a $^
-	$(CC) -shared -o crypto/cpp/dist/$@.so $^ $(DBIO_SHARED_LIB)
+	$(CC) $(LIBS) -shared -o crypto/cpp/dist/$@.so $^ -ldbio
+	@cp crypto/cpp/dist/$@.so libs/
 
 # Builds the DB crypto libraries and wrappers
 #libdbcrypto: $(DBCRYPTO_OBJS) crypto/python/cppwrapper/dbcryptoWrapper.o crypto/python/cppwrapper/dbcrypto_wrapper.o
@@ -141,13 +144,17 @@ libdbcrypto: $(DBCRYPTO_OBJS)
 
 # Builds the DB net libraries
 libdbnet: $(DBNET_OBJS)
+	@mkdir -p libs
 	$(AR) $(ARFLAGS) net/cpp/dist/$@.a $^
-	$(CC) -shared -o net/cpp/dist/$@.so $^ $(DBMODEST_SHARED_LIB) $(DBCRYPTO_SHARED_LIB)
+	$(CC) $(LIBS) -shared -o net/cpp/dist/$@.so $^ -ldbmodest -ldbcrypto
+	@cp net/cpp/dist/$@.so libs/
 
 # Builds the DB xml libraries
 libdbxml: $(DBXML_OBJS)
+	@mkdir -p libs
 	$(AR) $(ARFLAGS) xml/cpp/dist/$@.a $^
-	$(CC) -shared -o xml/cpp/dist/$@.so $^
+	$(CC) $(LIBS) -shared -o xml/cpp/dist/$@.so $^
+	@cp xml/cpp/dist/$@.so libs/
 
 # Builds the DB test.exe binary
 test: libdbrt libdbmodest libdbutil libdbio libdbcrypto libdbnet test/cpp/build/main.o
