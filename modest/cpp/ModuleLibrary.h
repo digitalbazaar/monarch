@@ -9,6 +9,7 @@
 #include "ModuleLoader.h"
 
 #include <map>
+#include <list>
 
 namespace db
 {
@@ -52,6 +53,11 @@ protected:
     * The map of loaded Modules.
     */
    std::map<std::string, ModuleInfo*> mModules;
+   
+   /**
+    * A list that maintains the order in which Modules were loaded.
+    */
+   std::list<std::string> mLoadOrder;
    
    /**
     * Finds a loaded Module by its name.

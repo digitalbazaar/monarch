@@ -15,12 +15,17 @@ ModuleLibrary::ModuleLibrary(Kernel* k)
 ModuleLibrary::~ModuleLibrary()
 {
    // clean up and free every module
-   for(map<string, ModuleInfo*>::iterator i = mModules.begin();
-       i != mModules.end(); i++)
+   while(!mLoadOrder.empty())
    {
+      // find ModuleInfo and clean up Module
+      map<string, ModuleInfo*>::iterator i = mModules.find(mLoadOrder.back());
       ModuleInfo* mi = i->second;
       mi->module->cleanup(mKernel);
       mLoader.unloadModule(mi);
+      
+      // remove module from map and list
+      mModules.erase(i);
+      mLoadOrder.pop_back();
    }
 }
 
@@ -55,8 +60,9 @@ bool ModuleLibrary::loadModule(const string& filename)
             Exception* e = mi->module->initialize(mKernel);
             if(e == NULL)
             {
-               // add Module to the map
+               // add Module to the map and list
                mModules[mi->module->getId().name] = mi;
+               mLoadOrder.push_back(mi->module->getId().name);
                rval = true;
             }
             else
@@ -102,8 +108,11 @@ void ModuleLibrary::unloadModule(const string& name)
          mi->module->cleanup(mKernel);
          mLoader.unloadModule(mi);
          
-         // erase module from map
+         // erase module from map and list
          mModules.erase(i);
+         list<string>::iterator li =
+            find(mLoadOrder.begin(), mLoadOrder.end(), name);
+         mLoadOrder.erase(li);
       }
    }
    unlock();

@@ -84,5 +84,4 @@ void ModuleLoader::unloadModule(ModuleInfo* mi)
    
    // delete module info
    delete mi;
-   mi = NULL;
 }
