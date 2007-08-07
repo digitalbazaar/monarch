@@ -20,7 +20,7 @@ AsymmetricKey::~AsymmetricKey()
    
    if(mAlgorithm != NULL)
    {
-      delete mAlgorithm;
+      delete [] mAlgorithm;
    }
 }
 
@@ -36,13 +36,16 @@ const char* AsymmetricKey::getAlgorithm()
       switch(EVP_PKEY_type(getPKEY()->type))
       {
          case EVP_PKEY_DSA:
-            mAlgorithm = "DSA";
+            mAlgorithm = new char[4];
+            strcpy(mAlgorithm, "DSA");
             break;
          case EVP_PKEY_RSA:
-            mAlgorithm = "RSA";
+            mAlgorithm = new char[4];
+            strcpy(mAlgorithm, "RSA");
             break;
          default:
-            mAlgorithm = "NONE";
+            mAlgorithm = new char[5];
+            strcpy(mAlgorithm, "NONE");
       }
    }
    
