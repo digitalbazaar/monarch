@@ -152,7 +152,7 @@ libdbcrypto: $(DBCRYPTO_OBJS) $(BASE_DIR)/crypto/python/cppwrapper/dbcryptoWrapp
 	$(AR) $(ARFLAGS) $(BASE_DIR)/crypto/cpp/dist/$@.a $(DBCRYPTO_OBJS)
 	$(CC) $(LIBS) -shared -o $(BASE_DIR)/crypto/cpp/dist/$@.so $(DBCRYPTO_OBJS) -ldbio
 	@cp $(BASE_DIR)/crypto/cpp/dist/$@.so $(BASE_DIR)/libs/
-	$(CC) $(LIBS) -shared $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.o $(DBRT_LIB) $(DBIO_LIB) $(DBCRYPTO_LIB) $(DBUTIL_LIB) -lpthread -lcrypto -lssl -o $(BASE_DIR)/crypto/python/cppwrapper/_dbcrypto.so
+	$(CC) $(LIBS) -shared -o $(BASE_DIR)/crypto/python/cppwrapper/_dbcrypto.so $(BASE_DIR)/crypto/python/cppwrapper/dbcryptoWrapper.o $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.o $(DBCRYPTO_LIB) $(DBIO_LIB) $(DBRT_LIB) $(DBUTIL_LIB) -lpthread -lcrypto -lssl
 
 # Builds the DB net libraries
 libdbnet: $(DBNET_OBJS)

@@ -185,7 +185,7 @@ bool KeyFactory::createKeyPair(
    
    db::crypto::PrivateKey** priKey;
    db::crypto::PublicKey** pubKey;
-   if(f->createKeyPair(algorithm, priKey, pubKey))
+   if(f->createKeyPair(algorithm.c_str(), priKey, pubKey))
    {
       privateKey->_key = *priKey;
       publicKey->_key = *pubKey;
