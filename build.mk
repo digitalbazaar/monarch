@@ -24,14 +24,14 @@ INCLUDES = \
 # Compiler flags:
 # -g	include debug information
 CFLAGS = -g $(INCLUDES)
-#PYTHON_INCLUDE = -I/usr/include/python2.4
+PYTHON_INCLUDE = -I/usr/include/python2.4
 
 # Archive builder
 AR = ar
 ARFLAGS = cr
 
 # Library path
-LIBS = -Llibs
+LIBS = -L$(BASE_DIR)/libs
 
 # Linker flags:
 LDFLAGS = $(LIBS)
@@ -120,51 +120,53 @@ libdbrt: $(DBRT_OBJS)
 # Builds the DB modest libraries
 libdbmodest: $(DBMODEST_OBJS)
 	@mkdir -p $(BASE_DIR)/libs
-	$(AR) $(ARFLAGS) modest/cpp/dist/$@.a $^
-	$(CC) $(LIBS) -shared -o modest/cpp/dist/$@.so $^ -ldbrt
+	$(AR) $(ARFLAGS) $(BASE_DIR)/modest/cpp/dist/$@.a $^
+	$(CC) $(LIBS) -shared -o $(BASE_DIR)/modest/cpp/dist/$@.so $^ -ldbrt
 	@cp $(BASE_DIR)/modest/cpp/dist/$@.so $(BASE_DIR)/libs/
 
 # Builds the DB utilities libraries
 libdbutil: $(DBUTIL_OBJS)
 	@mkdir -p $(BASE_DIR)/libs
-	$(AR) $(ARFLAGS) util/cpp/dist/$@.a $^
-	$(CC) $(LIBS) -shared -o util/cpp/dist/$@.so $^ -ldbrt
-	@cp util/cpp/dist/$@.so libs/
+	$(AR) $(ARFLAGS) $(BASE_DIR)/util/cpp/dist/$@.a $^
+	$(CC) $(LIBS) -shared -o $(BASE_DIR)/util/cpp/dist/$@.so $^ -ldbrt
+	@cp $(BASE_DIR)/util/cpp/dist/$@.so $(BASE_DIR)/libs/
 
 # Builds the DB io libraries
 libdbio: $(DBIO_OBJS)
 	@mkdir -p $(BASE_DIR)/libs
 	echo DBIO_CPP
-	$(AR) $(ARFLAGS) io/cpp/dist/$@.a $^
-	$(CC) $(LIBS) -shared -o io/cpp/dist/$@.so $^ -ldbutil
-	@cp io/cpp/dist/$@.so libs/
+	$(AR) $(ARFLAGS) $(BASE_DIR)/io/cpp/dist/$@.a $^
+	$(CC) $(LIBS) -shared -o $(BASE_DIR)/io/cpp/dist/$@.so $^ -ldbutil
+	@cp $(BASE_DIR)/io/cpp/dist/$@.so $(BASE_DIR)/libs/
 
 # Builds the DB crypto libraries and wrappers
-libdbcrypto: $(DBCRYPTO_OBJS)
+#libdbcrypto: $(DBCRYPTO_OBJS)
+#	@mkdir -p $(BASE_DIR)/libs
+#	$(AR) $(ARFLAGS) $(BASE_DIR)/crypto/cpp/dist/$@.a $^
+#	$(CC) $(LIBS) -shared -o $(BASE_DIR)/crypto/cpp/dist/$@.so $^ -ldbio
+#	@cp $(BASE_DIR)/crypto/cpp/dist/$@.so $(BASE_DIR)/libs/
+
+# Builds the DB crypto libraries and wrappers
+libdbcrypto: $(DBCRYPTO_OBJS) $(BASE_DIR)/crypto/python/cppwrapper/dbcryptoWrapper.o $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.o
 	@mkdir -p $(BASE_DIR)/libs
-	$(AR) $(ARFLAGS) crypto/cpp/dist/$@.a $^
-	$(CC) $(LIBS) -shared -o crypto/cpp/dist/$@.so $^ -ldbio
-	@cp crypto/cpp/dist/$@.so libs/
-
-# Builds the DB crypto libraries and wrappers
-#libdbcrypto: $(DBCRYPTO_OBJS) crypto/python/cppwrapper/dbcryptoWrapper.o crypto/python/cppwrapper/dbcrypto_wrapper.o
-#	$(AR) $(ARFLAGS) crypto/cpp/dist/$@.a $^
-#	$(CC) -shared -o crypto/cpp/dist/$@.so $^
-#	$(CC) -shared crypto/python/cppwrapper/dbcrypto_wrapper.o $(DBRT_LIB) $(DBIO_LIB) $(DBCRYPTO_LIB) #$(DBUTIL_LIB) -lpthread -lcrypto -lssl -o crypto/python/cppwrapper/_dbcrypto.so
+	$(AR) $(ARFLAGS) $(BASE_DIR)/crypto/cpp/dist/$@.a $(DBCRYPTO_OBJS)
+	$(CC) $(LIBS) -shared -o $(BASE_DIR)/crypto/cpp/dist/$@.so $(DBCRYPTO_OBJS) -ldbio
+	@cp $(BASE_DIR)/crypto/cpp/dist/$@.so $(BASE_DIR)/libs/
+	$(CC) $(LIBS) -shared $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.o $(DBRT_LIB) $(DBIO_LIB) $(DBCRYPTO_LIB) $(DBUTIL_LIB) -lpthread -lcrypto -lssl -o $(BASE_DIR)/crypto/python/cppwrapper/_dbcrypto.so
 
 # Builds the DB net libraries
 libdbnet: $(DBNET_OBJS)
 	@mkdir -p $(BASE_DIR)/libs
-	$(AR) $(ARFLAGS) net/cpp/dist/$@.a $^
-	$(CC) $(LIBS) -shared -o net/cpp/dist/$@.so $^ -ldbmodest -ldbcrypto
-	@cp net/cpp/dist/$@.so libs/
+	$(AR) $(ARFLAGS) $(BASE_DIR)/net/cpp/dist/$@.a $^
+	$(CC) $(LIBS) -shared -o $(BASE_DIR)/net/cpp/dist/$@.so $^ -ldbmodest -ldbcrypto
+	@cp $(BASE_DIR)/net/cpp/dist/$@.so $(BASE_DIR)/libs/
 
 # Builds the DB xml libraries
 libdbxml: $(DBXML_OBJS)
 	@mkdir -p $(BASE_DIR)/libs
-	$(AR) $(ARFLAGS) xml/cpp/dist/$@.a $^
-	$(CC) $(LIBS) -shared -o xml/cpp/dist/$@.so $^
-	@cp xml/cpp/dist/$@.so libs/
+	$(AR) $(ARFLAGS) $(BASE_DIR)/xml/cpp/dist/$@.a $^
+	$(CC) $(LIBS) -shared -o $(BASE_DIR)/xml/cpp/dist/$@.so $^
+	@cp $(BASE_DIR)/xml/cpp/dist/$@.so $(BASE_DIR)/libs/
 
 # Builds the DB test.exe binary
 test: libdbrt libdbmodest libdbutil libdbio libdbcrypto libdbnet $(BASE_DIR)/test/cpp/build/main.o
@@ -203,13 +205,13 @@ $(BASE_DIR)/crypto/cpp/build/%.o: $(BASE_DIR)/crypto/cpp/%.cpp
 	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
 
 # Build DB cryptography wrapper for python
-#$(BASE_DIR)/crypto/python/cppwrapper/dbcryptoWrapper.o: $(BASE_DIR)/crypto/python/cppwrapper/dbcryptoWrapper.cpp
-#	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
+$(BASE_DIR)/crypto/python/cppwrapper/dbcryptoWrapper.o: $(BASE_DIR)/crypto/python/cppwrapper/dbcryptoWrapper.cpp
+	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
 
 # Build DB cryptography swig wrapper for python
-#$(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.o:
-#	swig -c++ -python -o $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.c $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto.i
-#	$(CC) $(CFLAGS) $(PYTHON_INCLUDE) -fPIC -o $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.o -c #$(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.c
+$(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.o:
+	swig -c++ -python -o $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.c $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto.i
+	$(CC) $(CFLAGS) $(PYTHON_INCLUDE) -fPIC -o $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.o -c $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.c
 
 # Builds DB net object files
 $(BASE_DIR)/net/cpp/build/%.o: $(BASE_DIR)/net/cpp/%.cpp
