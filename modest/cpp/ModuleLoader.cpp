@@ -47,6 +47,7 @@ ModuleInfo* ModuleLoader::loadModule(std::string const& filename)
       {
          // create ModuleInfo
          rval = new ModuleInfo();
+         rval->handle = handle;
          rval->module = create();
          rval->freeModule = free;
       }
@@ -62,9 +63,11 @@ ModuleInfo* ModuleLoader::loadModule(std::string const& filename)
    else
    {
       // failed to open module
+      char* error = dlerror();
       string msg =
          "Could not load module '" + filename + "'" +
-         ", could not open module file.";
+         ", could not open module file, error=";
+      msg.append(error);
       Exception::setLast(new Exception(msg.c_str()));
    }
    
@@ -75,6 +78,9 @@ void ModuleLoader::unloadModule(ModuleInfo* mi)
 {
    // free module
    mi->freeModule(mi->module);
+   
+   // close handle
+   dlclose(mi->handle);
    
    // delete module info
    delete mi;

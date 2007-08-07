@@ -14,6 +14,11 @@ namespace modest
 typedef struct ModuleInfo
 {
    /**
+    * The handle to the Module.
+    */
+   void* handle; 
+   
+   /**
     * The Module this info is about.
     */
    Module* module;

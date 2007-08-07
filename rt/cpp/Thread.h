@@ -30,15 +30,21 @@ class Thread : public virtual Object, protected Runnable
 {
 private:
    /**
-    * The main thread. This should not be accessed by any extending class.
+    * Used to ensure that shared thread information is initialized only once.
     */
-   static Thread MAIN_THREAD;
+   static pthread_once_t THREADS_INIT;
    
 protected:
    /**
     * The ID of the POSIX thread wrapped by this class.
     */
    pthread_t mThreadId;
+   
+   /**
+    * True if this thread should not be destroyed when the thread exits,
+    * false if it should be.
+    */
+   bool mPersistent;
    
    /**
     * The Runnable associated with this Thread.
@@ -94,35 +100,19 @@ protected:
    virtual void assignName(const char* name);
    
    /**
-    * Used to ensure that the current thread key is initialized only once.
-    */
-   static pthread_once_t CURRENT_THREAD_KEY_INIT;
-   
-   /**
     * A thread key for obtaining the current thread.
     */
    static pthread_key_t CURRENT_THREAD_KEY;
-   
-   /**
-    * Used to ensure that the exception key is initialized only once.
-    */
-   static pthread_once_t EXCEPTION_KEY_INIT;
    
    /**
     * A thread key for obtaining the last thread-local exception.
     */
    static pthread_key_t EXCEPTION_KEY;
    
-// Note: disabled due to a lack of support in windows
-//   /**
-//    * Used to ensure that the SIGINT handler is initialized only once.
-//    */
-//   static pthread_once_t SIGINT_HANDLER_INIT;
-   
    /**
-    * Creates the current thread key.
+    * Initializes any shared thread information.
     */
-   static void createCurrentThreadKey();
+   static void initializeThreads();
    
    /**
     * Clears the value of the current thread key.
@@ -130,11 +120,6 @@ protected:
     * @param thread the current Thread.
     */
    static void cleanupCurrentThreadKeyValue(void* thread);
-   
-   /**
-    * Creates the exception key.
-    */
-   static void createExceptionKey();
    
    /**
     * Clears the value of the exception key.
@@ -170,8 +155,10 @@ public:
     *
     * @param runnable the Runnable to use.
     * @param name a name for the Thread.
+    * @param persistent true if the Thread object should persist beyond the
+    *                   life of the thread, false if not.
     */
-   Thread(Runnable* runnable, const char* name = NULL);
+   Thread(Runnable* runnable, const char* name = NULL, bool persistent = true);
    
    /**
     * Destructs this Thread and deletes its Runnable.
@@ -311,6 +298,11 @@ public:
     */
    static InterruptedException* waitToEnter(
       Monitor* m, unsigned long timeout = 0);
+   
+   /**
+    * Exits the current thread.
+    */
+   static void exit();
    
    /**
     * Sets the Exception for the current thread. This will store the passed

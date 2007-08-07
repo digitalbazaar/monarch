@@ -2540,10 +2540,10 @@ void runHttpServerTest()
 {
    cout << "Starting Http Server test." << endl << endl;
    
-   // openssl initialization code
-   SSL_library_init();
-   SSL_load_error_strings();
-   OpenSSL_add_all_algorithms();
+//   // openssl initialization code
+//   SSL_library_init();
+//   SSL_load_error_strings();
+//   OpenSSL_add_all_algorithms();
    
    // create kernel
    Kernel k;
@@ -2555,13 +2555,13 @@ void runHttpServerTest()
    
    // create SSL/generic http connection servicer
    HttpConnectionServicer hcs;
-   SslContext context;
-   SslSocketDataPresenter presenter1(&context);
-   NullSocketDataPresenter presenter2;
-   SocketDataPresenterList list(false);
-   list.add(&presenter1);
-   list.add(&presenter2);
-   server.addConnectionService(&address, &hcs, &list);
+//   SslContext context;
+//   SslSocketDataPresenter presenter1(&context);
+//   NullSocketDataPresenter presenter2;
+//   SocketDataPresenterList list(false);
+//   list.add(&presenter1);
+//   list.add(&presenter2);
+   server.addConnectionService(&address, &hcs);//, &list);
    
    // create test http request servicer
    TestHttpRequestServicer test1("/test");
@@ -2586,12 +2586,12 @@ void runHttpServerTest()
    // stop kernel engine
    k.getEngine()->stop();
    
-   // clean up SSL
-   ERR_remove_state(0);
-   ENGINE_cleanup();
-   ERR_free_strings();
-   EVP_cleanup();
-   CRYPTO_cleanup_all_ex_data();
+//   // clean up SSL
+//   ERR_remove_state(0);
+//   ENGINE_cleanup();
+//   ERR_free_strings();
+//   EVP_cleanup();
+//   CRYPTO_cleanup_all_ex_data();
    
    cout << endl << "Http Server test complete." << endl;
 }
@@ -2757,8 +2757,8 @@ public:
 //      runStringAppendCharTest();
 //      runStringCompareTest();
 //      runHttpHeaderTest();
-//      runHttpServerTest();
-      runHttpClientGetTest();
+      runHttpServerTest();
+//      runHttpClientGetTest();
 //      runHttpClientPostTest();
       
       cout << endl << "Tests finished." << endl;
@@ -2796,5 +2796,6 @@ int main()
    
    Thread::setException(new Exception("Main thread exception leak test"));
    
+   Thread::exit();
    return 0;
 }

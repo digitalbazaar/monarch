@@ -6,23 +6,21 @@
 
 using namespace db::rt;
 
-// initialize main thread
-Thread Thread::MAIN_THREAD(NULL, "main");
+// create thread initializer
+pthread_once_t Thread::THREADS_INIT = PTHREAD_ONCE_INIT;
 
-// initialize current thread key parameters
-pthread_once_t Thread::CURRENT_THREAD_KEY_INIT = PTHREAD_ONCE_INIT;
+// create thread specific data keys
 pthread_key_t Thread::CURRENT_THREAD_KEY;
-
-// initialize exception key parameters
-pthread_once_t Thread::EXCEPTION_KEY_INIT = PTHREAD_ONCE_INIT;
 pthread_key_t Thread::EXCEPTION_KEY;
 
-// Note: disabled due to a lack of support in windows
-// initialize signal handler parameters
-//pthread_once_t Thread::SIGINT_HANDLER_INIT = PTHREAD_ONCE_INIT;
-
-Thread::Thread(Runnable* runnable, const char* name)
+Thread::Thread(Runnable* runnable, const char* name, bool persistent)
 {
+   // initialize threads
+   pthread_once(&THREADS_INIT, &initializeThreads);
+   
+   // store persistent setting
+   mPersistent = persistent;
+   
    // store runnable
    mRunnable = runnable;
    
@@ -37,55 +35,24 @@ Thread::Thread(Runnable* runnable, const char* name)
    mInterrupted = false;
    mJoined = false;
    
-   if(this == &MAIN_THREAD)
-   {
-      // create the current thread key
-      pthread_once(&CURRENT_THREAD_KEY_INIT, Thread::createCurrentThreadKey);
-      
-      // create the exception key
-      pthread_once(&EXCEPTION_KEY_INIT, Thread::createExceptionKey);
-      
-      // Note: disabled due to a lack of support in windows
-      // if support becomes available in the future, make the main
-      // thread handle all signals
-      // install signal handler
-      //pthread_once(&SIGINT_HANDLER_INIT, Thread::installSigIntHandler);
-      
-      // on the main thread, so initialize main thread data
-      mThreadId = pthread_self();
-      mAlive = true;
-      mDetached = true;
-      mStarted = true;
-      pthread_setspecific(CURRENT_THREAD_KEY, this);
-      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-   }
-   else
-   {
-      // thread is not alive, detached, or started yet
-      mAlive = false;
-      mDetached = false;
-      mStarted = false;
-   }
+   // thread is not alive, detached, or started yet
+   mAlive = false;
+   mDetached = false;
+   mStarted = false;
 }
 
 Thread::~Thread()
 {
-   // delete name
    if(mName != NULL)
    {
+      // delete name
       delete [] mName;
-   }
-   
-   if(this == &MAIN_THREAD)
-   {
-      // exit main thread
-      pthread_exit(NULL);
    }
 }
 
 void Thread::run()
 {
-   // if a Runnable if available, use it
+   // if a Runnable is available, use it
    if(mRunnable != NULL)
    {
       mRunnable->run();
@@ -94,54 +61,42 @@ void Thread::run()
 
 void Thread::assignName(const char* name)
 {
+   // delete old name
+   if(mName != NULL)
+   {
+      delete [] mName;
+   }
+   
    if(name == NULL)
    {
-      if(mName == NULL)
-      {
-         mName = new char[1];
-      }
-      else if(strlen(mName) > 0)
-      {
-         delete mName;
-         mName = new char[1];
-      }
-      
-      mName[0] = 0;
+      mName = NULL;
    }
    else
    {
-      if(mName == NULL)
-      {
-         mName = new char[100];
-      }
-      else if(strlen(mName) == 0)
-      {
-         delete mName;
-         mName = new char[100];
-      }
-      
-      unsigned int length = strlen(name);
-      length = (length > 99 ? 99 : length);
-      memcpy(mName, name, length);
-      memset(mName + length, 0, 1);
+      mName = new char[strlen(name)];
+      strcpy(mName, name);
    }
 }
 
-void Thread::createCurrentThreadKey()
+void Thread::initializeThreads()
 {
-   // create the thread key for obtaining the current thread
+   // create the thread specific data keys
    pthread_key_create(&CURRENT_THREAD_KEY, &cleanupCurrentThreadKeyValue);
+   pthread_key_create(&EXCEPTION_KEY, &cleanupExceptionKeyValue);
+   
+   // Note: disabled due to a lack of support in windows
+   // install signal handler
+   //installSigIntHandler();
 }
 
 void Thread::cleanupCurrentThreadKeyValue(void* thread)
 {
-   // no action is necessary, key is automatically set to NULL
-}
-
-void Thread::createExceptionKey()
-{
-   // create the thread key for obtaining the last thread-local exception
-   pthread_key_create(&EXCEPTION_KEY, &cleanupExceptionKeyValue);
+   // check for thread non-persistence
+   Thread* t = (Thread*)thread;
+   if(!t->mPersistent)
+   {
+      delete t;
+   }
 }
 
 void Thread::cleanupExceptionKeyValue(void* e)
@@ -249,7 +204,6 @@ bool Thread::isAlive()
 
 void Thread::interrupt()
 {
-   // synchronize
    lock();
    {
       // only interrupt if not already interrupted
@@ -286,7 +240,6 @@ void Thread::join()
 {
    bool join = false;
    
-   // synchronize
    lock();
    {
       // check for previous detachments/joins
@@ -310,7 +263,6 @@ void Thread::detach()
 {
    bool detach = false;
    
-   // synchronize
    lock();
    {
       // check for previous detachments/joins
@@ -355,8 +307,10 @@ InterruptedException* Thread::createInterruptedException()
 {
    InterruptedException* rval = NULL;
    
-   char* msg = new char[8 + strlen(getName()) + 13 + 1];
-   sprintf(msg, "Thread '%s' interrupted", getName());
+   unsigned int length = (getName() == NULL) ? 0 : strlen(getName());
+   char* msg = new char[8 + length + 13 + 1];
+   sprintf(msg, "Thread '%s' interrupted",
+      (getName() == NULL) ? "" : getName());
    
    rval = new InterruptedException(msg);
    delete msg;
@@ -366,8 +320,25 @@ InterruptedException* Thread::createInterruptedException()
 
 Thread* Thread::currentThread()
 {
+   // initialize threads
+   pthread_once(&THREADS_INIT, &initializeThreads);
+   
    // get a pointer to the current thread
-   return (Thread*)pthread_getspecific(CURRENT_THREAD_KEY);
+   Thread* rval = (Thread*)pthread_getspecific(CURRENT_THREAD_KEY);
+   if(rval == NULL)
+   {
+      // create non-persistent thread
+      rval = new Thread(NULL, NULL, false);
+      
+      // initialize thread data
+      rval->mThreadId = pthread_self();
+      rval->mAlive = true;
+      rval->mStarted = true;
+      pthread_setspecific(CURRENT_THREAD_KEY, rval);
+      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+   }
+   
+   return rval;
 }
 
 bool Thread::interrupted(bool clear)
@@ -377,7 +348,6 @@ bool Thread::interrupted(bool clear)
    // get the current thread's interrupted status
    Thread* t = Thread::currentThread();
    
-   // synchronize
    t->lock();
    {
       if(t->isInterrupted())
@@ -417,39 +387,6 @@ void Thread::yield()
    sched_yield();
 }
 
-void Thread::setException(Exception* e)
-{
-   // get the existing exception for the current thread, if any
-   Exception* existing = getException();
-   if(existing != e)
-   {
-      // replace the existing exception
-      pthread_setspecific(EXCEPTION_KEY, e);
-      
-      if(existing != NULL)
-      {
-         // delete the old exception
-         delete existing;
-      }
-   }
-}
-
-Exception* Thread::getException()
-{
-   // get the exception for the current thread, if any
-   return (Exception*)pthread_getspecific(EXCEPTION_KEY);
-}
-
-bool Thread::hasException()
-{
-   return getException() != NULL;
-}
-
-void Thread::clearException()
-{
-   setException(NULL);
-}
-
 InterruptedException* Thread::waitToEnter(Monitor* m, unsigned long timeout)
 {
    InterruptedException* rval = NULL;
@@ -484,6 +421,47 @@ InterruptedException* Thread::waitToEnter(Monitor* m, unsigned long timeout)
    }
    
    return rval;
+}
+
+void Thread::exit()
+{
+   pthread_exit(NULL);
+}
+
+void Thread::setException(Exception* e)
+{
+   // get the existing exception for the current thread, if any
+   Exception* existing = getException();
+   if(existing != e)
+   {
+      // replace the existing exception
+      pthread_setspecific(EXCEPTION_KEY, e);
+      
+      if(existing != NULL)
+      {
+         // delete the old exception
+         delete existing;
+      }
+   }
+}
+
+Exception* Thread::getException()
+{
+   // initialize threads
+   pthread_once(&THREADS_INIT, &initializeThreads);
+   
+   // get the exception for the current thread, if any
+   return (Exception*)pthread_getspecific(EXCEPTION_KEY);
+}
+
+bool Thread::hasException()
+{
+   return getException() != NULL;
+}
+
+void Thread::clearException()
+{
+   setException(NULL);
 }
 
 // Note: disabled due to a lack of support in windows

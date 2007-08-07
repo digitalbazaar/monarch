@@ -83,7 +83,7 @@ public:
     * entry in the array must be NULL.
     * 
     * Exception::getLast() may be checked if no response is received, but
-    * it should be cleared prior to this method with Exception::setLast(NULL);
+    * it should be cleared prior to this method with Exception::clearLast();
     * 
     * @param url the url of the content to request.
     * @param headers any special headers to include in the request.
@@ -100,7 +100,7 @@ public:
     * entry in the array must be NULL.
     * 
     * Exception::getLast() may be checked if no response is received, but
-    * it should be cleared prior to this method with Exception::setLast(NULL).
+    * it should be cleared prior to this method with Exception::clearLast().
     * 
     * @param url the url to post to.
     * @param headers any special headers to include in the request.

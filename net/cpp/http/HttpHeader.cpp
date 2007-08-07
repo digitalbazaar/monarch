@@ -67,6 +67,12 @@ void HttpHeader::removeField(const char* name)
 
 void HttpHeader::clearFields()
 {
+   for(map<const char*, string, FieldComparator>::iterator i =
+       mFields.begin(); i != mFields.end(); i++)
+   {
+      delete [] i->first;
+   }
+   
    mFields.clear();
 }
 

@@ -38,7 +38,7 @@ void HttpClient::setHeaders(HttpHeader* h, char** headers)
          if((colon = strchr(field, ':')) != NULL)
          {
             // get field name
-            char* name = new char[colon - field + 1];
+            char name[colon - field + 1];
             strncpy(name, field, colon - field);
             memset(name + (colon - field), 0, 1);
             
