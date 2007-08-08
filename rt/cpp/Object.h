@@ -19,7 +19,8 @@ class Exception;
 class InterruptedException;
 
 /**
- * An Object represents a single object in an object-oriented system.
+ * An Object represents a single synchronizable object in Digital Bazaar's
+ * multi-threaded object-oriented runtime system.
  *
  * @author Dave Longley
  */
