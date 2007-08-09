@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_data_xml_XmlParser_H
-#define db_data_xml_XmlParser_H
+#ifndef db_data_xml_XmlReader_H
+#define db_data_xml_XmlReader_H
 
 #include "DataBinding.h"
 #include "InputStream.h"
@@ -15,23 +15,23 @@ namespace xml
 {
 
 /**
- * An XmlParser provides an interface for deserializing objects from
+ * An XmlReader provides an interface for deserializing objects from
  * XML (eXtensible Markup Language).
  * 
  * @author Dave Longley
  */
-class XmlParser
+class XmlReader
 {
 public:
    /**
-    * Creates a new XmlParser.
+    * Creates a new XmlReader.
     */
-   XmlParser();
+   XmlReader();
    
    /**
-    * Destructs this XmlParser.
+    * Destructs this XmlReader.
     */
-   virtual ~XmlParser();
+   virtual ~XmlReader();
    
    /**
     * Deserializes an object from xml using the passed DataBinding.

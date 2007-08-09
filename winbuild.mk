@@ -21,7 +21,7 @@ INCLUDES = \
 	-I$(BASE_DIR)/io/cpp \
 	-I$(BASE_DIR)/crypto/cpp \
 	-I$(BASE_DIR)/net/cpp \
-	-I$(BASE_DIR)/xml/cpp
+	-I$(BASE_DIR)/data/cpp
 
 # Compiler flags:
 # -g	include debug information
@@ -52,7 +52,7 @@ BUILD = \
 	$(BASE_DIR)/io/cpp/build \
 	$(BASE_DIR)/crypto/cpp/build \
 	$(BASE_DIR)/net/cpp/build \
-	$(BASE_DIR)/xml/cpp/build
+	$(BASE_DIR)/data/cpp/build
 
 # The DB dist directories
 DIST = \
@@ -63,7 +63,7 @@ DIST = \
 	$(BASE_DIR)/io/cpp/dist \
 	$(BASE_DIR)/crypto/cpp/dist \
 	$(BASE_DIR)/net/cpp/dist \
-	$(BASE_DIR)/xml/cpp/dist
+	$(BASE_DIR)/data/cpp/dist
 
 # Library path
 LIBS = \
@@ -75,7 +75,7 @@ LIBS = \
 	-L$(BASE_DIR)/io/cpp/dist \
 	-L$(BASE_DIR)/crypto/cpp/dist \
 	-L$(BASE_DIR)/net/cpp/dist \
-	-L$(BASE_DIR)/xml/cpp/dist
+	-L$(BASE_DIR)/data/cpp/dist
 
 # H files
 FIND_H = $(wildcard $(dir)/*.h)
@@ -85,7 +85,7 @@ DBUTIL_H = $(foreach dir,$(BASE_DIR)/util/cpp,$(FIND_H)) $(foreach dir,$(BASE_DI
 DBIO_H = $(foreach dir,$(BASE_DIR)/io/cpp,$(FIND_H))
 DBCRYPTO_H = $(foreach dir,$(BASE_DIR)/crypto/cpp,$(FIND_H))
 DBNET_H = $(foreach dir,$(BASE_DIR)/net/cpp,$(FIND_H)) $(foreach dir,$(BASE_DIR)/net/cpp/http,$(FIND_H))
-DBXML_H = $(foreach dir,$(BASE_DIR)/xml/cpp,$(FIND_H))
+DBDATA_H = $(foreach dir,$(BASE_DIR)/data/cpp,$(FIND_H)) $(foreach dir,$(BASE_DIR)/data/cpp/xml,$(FIND_H))
 
 # CPP files
 FIND_CPP = $(wildcard $(dir)/*.cpp)
@@ -95,7 +95,7 @@ DBUTIL_CPP = $(foreach dir,$(BASE_DIR)/util/cpp,$(FIND_CPP)) $(foreach dir,$(BAS
 DBIO_CPP = $(foreach dir,$(BASE_DIR)/io/cpp,$(FIND_CPP))
 DBCRYPTO_CPP = $(foreach dir,$(BASE_DIR)/crypto/cpp,$(FIND_CPP))
 DBNET_CPP = $(foreach dir,$(BASE_DIR)/net/cpp,$(FIND_CPP)) $(foreach dir,$(BASE_DIR)/net/cpp/http,$(FIND_CPP))
-DBXML_CPP = $(foreach dir,$(BASE_DIR)/xml/cpp,$(FIND_CPP))
+DBDATA_CPP = $(foreach dir,$(BASE_DIR)/data/cpp,$(FIND_CPP)) $(foreach dir,$(BASE_DIR)/data/cpp/xml,$(FIND_CPP))
 
 # Object files
 DBRT_OBJS = $(DBRT_CPP:$(BASE_DIR)/rt/cpp/%.cpp=$(BASE_DIR)/rt/cpp/build/%.o)
@@ -104,7 +104,7 @@ DBUTIL_OBJS = $(DBUTIL_CPP:$(BASE_DIR)/util/cpp/%.cpp=$(BASE_DIR)/util/cpp/build
 DBIO_OBJS = $(DBIO_CPP:$(BASE_DIR)/io/cpp/%.cpp=$(BASE_DIR)/io/cpp/build/%.o)
 DBCRYPTO_OBJS = $(DBCRYPTO_CPP:$(BASE_DIR)/crypto/cpp/%.cpp=$(BASE_DIR)/crypto/cpp/build/%.o)
 DBNET_OBJS = $(DBNET_CPP:$(BASE_DIR)/net/cpp/%.cpp=$(BASE_DIR)/net/cpp/build/%.o)
-DBXML_OBJS = $(DBXML_CPP:$(BASE_DIR)/xml/cpp/%.cpp=$(BASE_DIR)/xml/cpp/build/%.o)
+DBDATA_OBJS = $(DBXML_CPP:$(BASE_DIR)/data/cpp/%.cpp=$(BASE_DIR)/data/cpp/build/%.o)
 
 # Individual DB libraries as make targets
 # This will need to be changed for a windows build
@@ -114,7 +114,7 @@ DBUTIL_LIB = $(BASE_DIR)/util/cpp/dist/libdbutil.a
 DBIO_LIB = $(BASE_DIR)/io/cpp/dist/libdbio.a
 DBCRYPTO_LIB = $(BASE_DIR)/crypto/cpp/dist/libdbcrypto.a E:/OpenSSL/lib/MinGW/ssleay32.a E:/OpenSSL/lib/MinGW/libeay32.a
 DBNET_LIB = $(BASE_DIR)/net/cpp/dist/libdbnet.a
-DBXML_LIB = $(BASE_DIR)/xml/cpp/dist/libdbxml.a
+DBDATA_LIB = $(BASE_DIR)/data/cpp/dist/libdbdata.a
 
 # DB executables
 TEST_EXE = $(BASE_DIR)/test/cpp/dist/test.exe
@@ -179,12 +179,12 @@ libdbnet: $(DBNET_OBJS)
 	$(CC) $(LIBS) -shared -o $(BASE_DIR)/net/cpp/dist/$@.so $^ -ldbrt -ldbmodest -ldbutil -ldbio -ldbcrypto $(WIN_LIBS)
 	@cp $(BASE_DIR)/net/cpp/dist/$@.so $(BASE_DIR)/libs/
 
-# Builds the DB xml libraries
-libdbxml: $(DBXML_OBJS)
+# Builds the DB data libraries
+libdbdata: $(DBDATA_OBJS)
 	@mkdir -p $(BASE_DIR)/libs
-	$(AR) $(ARFLAGS) $(BASE_DIR)/xml/cpp/dist/$@.a $^
-	$(CC) $(LIBS) -shared -o $(BASE_DIR)/xml/cpp/dist/$@.so $^
-	@cp $(BASE_DIR)/xml/cpp/dist/$@.so $(BASE_DIR)/libs/
+	$(AR) $(ARFLAGS) $(BASE_DIR)/data/cpp/dist/$@.a $^
+	$(CC) $(LIBS) -shared -o $(BASE_DIR)/data/cpp/dist/$@.so $^
+	@cp $(BASE_DIR)/data/cpp/dist/$@.so $(BASE_DIR)/libs/
 
 # Builds the DB test.exe binary
 test: libdbrt libdbmodest libdbutil libdbio libdbcrypto libdbnet $(BASE_DIR)/test/cpp/build/main.o
@@ -235,10 +235,10 @@ $(BASE_DIR)/net/cpp/build/%.o: $(BASE_DIR)/net/cpp/%.cpp
 	@mkdir -p $(BASE_DIR)/net/cpp/dist
 	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
 
-# Builds DB xml object files
-$(BASE_DIR)/xml/cpp/build/%.o: $(BASE_DIR)/xml/cpp/%.cpp
-	@mkdir -p $(BASE_DIR)/xml/cpp/build
-	@mkdir -p $(BASE_DIR)/xml/cpp/dist
+# Builds DB data object files
+$(BASE_DIR)/data/cpp/build/%.o: $(BASE_DIR)/data/cpp/%.cpp
+	@mkdir -p $(BASE_DIR)/data/cpp/build/xml
+	@mkdir -p $(BASE_DIR)/data/cpp/dist
 	$(CC) $(CFLAGS) -fPIC -o $@ -c $^
 
 # Builds Test object file

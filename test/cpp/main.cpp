@@ -46,6 +46,8 @@
 #include "StringTokenizer.h"
 #include "FilterOutputStream.h"
 #include "ByteArrayInputStream.h"
+#include "xml/XmlReader.h"
+#include "xml/XmlWriter.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -2713,11 +2715,27 @@ void runDelegateTest()
 {
    cout << "Starting Delegate test." << endl << endl;
    
-   
-   
    // FIXME:
    
    cout << endl << "Delegate test complete." << endl;
+}
+
+void runXmlReaderTest()
+{
+   cout << "Starting XmlReader test." << endl << endl;
+   
+   // FIXME:
+   
+   cout << endl << "XmlReader test complete." << endl;
+}
+
+void runXmlWriterTest()
+{
+   cout << "Starting XmlWriter test." << endl << endl;
+   
+   // FIXME:
+   
+   cout << endl << "XmlWriter test complete." << endl;
 }
 
 class RunTests : public virtual Object, public Runnable
@@ -2771,7 +2789,9 @@ public:
 //      runHttpServerTest();
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
-      runDelegateTest();
+//      runDelegateTest();
+      runXmlReaderTest();
+//      runXmlWriterTest();
       
       cout << endl << "Tests finished." << endl;
       

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_data_xml_XmlSerializer_H
-#define db_data_xml_XmlSerializer_H
+#ifndef db_data_xml_XmlWriter_H
+#define db_data_xml_XmlWriter_H
 
 #include "DataBinding.h"
 #include "OutputStream.h"
@@ -15,23 +15,23 @@ namespace xml
 {
 
 /**
- * An XmlSerializer provides an interface for serializing objects to
+ * An XmlWriter provides an interface for serializing objects to
  * XML (eXtensible Markup Language).
  * 
  * @author Dave Longley
  */
-class XmlSerializer
+class XmlWriter
 {
 public:
    /**
-    * Creates a new XmlSerializer.
+    * Creates a new XmlWriter.
     */
-   XmlSerializer();
+   XmlWriter();
    
    /**
-    * Destructs this XmlSerializer.
+    * Destructs this XmlWriter.
     */
-   virtual ~XmlSerializer();
+   virtual ~XmlWriter();
    
    /**
     * Serializes an object to xml using the passed DataBinding.

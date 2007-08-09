@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "xml/XmlParser.h"
+#include "xml/XmlReader.h"
 
 using namespace db::data;
 using namespace db::data::xml;
 using namespace db::io;
 
-XmlParser::XmlParser()
+XmlReader::XmlReader()
 {
 }
 
-XmlParser::~XmlParser()
+XmlReader::~XmlReader()
 {
 }
 
-bool XmlParser::read(DataBinding* db, InputStream* is)
+bool XmlReader::read(DataBinding* db, InputStream* is)
 {
    bool rval = false;
    

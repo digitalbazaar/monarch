@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "xml/XmlSerializer.h"
+#include "xml/XmlWriter.h"
 
 using namespace db::data;
 using namespace db::data::xml;
 using namespace db::io;
 
-XmlSerializer::XmlSerializer()
+XmlWriter::XmlWriter()
 {
 }
 
-XmlSerializer::~XmlSerializer()
+XmlWriter::~XmlWriter()
 {
 }
 
-bool XmlSerializer::write(DataBinding* db, OutputStream* os)
+bool XmlWriter::write(DataBinding* db, OutputStream* os)
 {
    bool rval = false;
    
