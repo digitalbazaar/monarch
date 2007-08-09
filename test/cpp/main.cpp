@@ -2709,6 +2709,17 @@ void runHttpClientPostTest()
    cout << endl << "Http Client POST test complete." << endl;
 }
 
+void runDelegateTest()
+{
+   cout << "Starting Delegate test." << endl << endl;
+   
+   
+   
+   // FIXME:
+   
+   cout << endl << "Delegate test complete." << endl;
+}
+
 class RunTests : public virtual Object, public Runnable
 {
 public:
@@ -2758,8 +2769,9 @@ public:
 //      runStringCompareTest();
 //      runHttpHeaderTest();
 //      runHttpServerTest();
-      runHttpClientGetTest();
+//      runHttpClientGetTest();
 //      runHttpClientPostTest();
+      runDelegateTest();
       
       cout << endl << "Tests finished." << endl;
       
