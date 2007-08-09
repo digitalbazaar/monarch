@@ -2796,6 +2796,8 @@ int main()
    
    Thread::setException(new Exception("Main thread exception leak test"));
    
-   Thread::exit();
+   // FIXME: calling Thread::exit() on windows causes a busy loop of
+   // some sort (perhaps a deadlock spin lock)
+   //Thread::exit();
    return 0;
 }
