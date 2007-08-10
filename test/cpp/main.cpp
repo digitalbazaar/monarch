@@ -2728,7 +2728,13 @@ void runXmlReaderTest()
    
    XmlReader reader;
    
-   // FIXME:
+   string xml;
+   xml.append("<Book><Chapter number=\"1\"><Title>Test Chapter 1</Title>");
+   xml.append("<Content>This is the first chapter of the book.</Content>");
+   xml.append("</Chapter><Chapter number=\"2\"/></Book>");
+   
+   ByteArrayInputStream bais(xml.c_str(), xml.length());
+   reader.read(NULL, &bais);
    
    cout << endl << "XmlReader test complete." << endl;
 }

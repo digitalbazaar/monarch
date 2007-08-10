@@ -30,6 +30,24 @@ protected:
     */
    XML_Parser mParser;
    
+   /**
+    * Handles start elements.
+    * 
+    * @param xr the XmlReader that read in the element.
+    * @param name the name of the element (namespace-uri|element-name).
+    * @param attrs the attributes of the element.
+    */
+   static void startElement(
+      void* xr, const XML_Char* name, const XML_Char** attrs);
+   
+   /**
+    * Handles end elements.
+    * 
+    * @param xr the XmlReader that read in the element.
+    * @param name the name of the element (namespace-uri|element-name). 
+    */
+   static void endElement(void* reader, const XML_Char* name);
+   
 public:
    /**
     * Creates a new XmlReader.
