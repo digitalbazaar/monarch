@@ -8,6 +8,7 @@
 #include "InputStream.h"
 
 #include <expat.h>
+#include <list>
 
 namespace db
 {
@@ -31,6 +32,41 @@ protected:
    XML_Parser mParser;
    
    /**
+    * A stack of DataBindings.
+    */
+   std::list<DataBinding*> mDataBindingsStack;
+   
+   /**
+    * Handles start elements for this reader.
+    * 
+    * @param name the name of the element (namespace-uri|element-name).
+    * @param attrs the attributes of the element.
+    */
+   void startElement(const XML_Char* name, const XML_Char** attrs);
+   
+   /**
+    * Handles end elements for this reader.
+    * 
+    * @param name the name of the element (namespace-uri|element-name). 
+    */
+   void endElement(const XML_Char* name);
+   
+   /**
+    * The read size in bytes.
+    */
+   static unsigned int READ_SIZE;
+   
+   /**
+    * Parses a namespace uri out of the given name and sets the passed
+    * name pointer to the start of the local name and the passed namespace
+    * pointer to the start of a null-terminated namespace string.
+    * 
+    * @param name the namespace|local-name string.
+    * @param ns the pointer to point at the namespace string. 
+    */
+   static void parseNamespace(const char** name, char** ns);
+   
+   /**
     * Handles start elements.
     * 
     * @param xr the XmlReader that read in the element.
@@ -46,7 +82,7 @@ protected:
     * @param xr the XmlReader that read in the element.
     * @param name the name of the element (namespace-uri|element-name). 
     */
-   static void endElement(void* reader, const XML_Char* name);
+   static void endElement(void* xr, const XML_Char* name);
    
 public:
    /**
