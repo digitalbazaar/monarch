@@ -100,7 +100,7 @@ void XmlReader::endElement(const XML_Char* name)
 void XmlReader::parseNamespace(const char** name, char** ns)
 {
    // parse namespace, if one exists
-   ns = NULL;
+   *ns = NULL;
    const char* sep = strchr(*name, '|');
    if(sep != NULL)
    {
