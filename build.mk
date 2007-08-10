@@ -164,13 +164,13 @@ libdbnet: $(DBNET_OBJS)
 # Builds the DB data libraries
 libdbdata: $(DBDATA_OBJS)
 	@mkdir -p $(BASE_DIR)/libs
-	$(AR) $(ARFLAGS) $(BASE_DIR)/data/cpp/dist/$@.a $^
-	$(CC) $(LIBS) -shared -o $(BASE_DIR)/data/cpp/dist/$@.so $^
+	$(AR) $(ARFLAGS) $(BASE_DIR)/data/cpp/dist/$@.a $^ /usr/lib/libexpat.a
+	$(CC) $(LIBS) -shared -o $(BASE_DIR)/data/cpp/dist/$@.so $^ -lexpat
 	@cp $(BASE_DIR)/data/cpp/dist/$@.so $(BASE_DIR)/libs/
 
 # Builds the DB test.exe binary
 test: libdbrt libdbmodest libdbutil libdbio libdbcrypto libdbnet libdbdata $(BASE_DIR)/test/cpp/build/main.o
-	$(CC) $(CFLAGS) -o $(TEST_EXE) $(BASE_DIR)/test/cpp/build/main.o $(DBRT_LIB) $(DBMODEST_LIB) $(DBUTIL_LIB) $(DBIO_LIB) $(DBCRYPTO_LIB) $(DBNET_LIB) $(DBDATA_LIB) -lpthread -lcrypto -lssl
+	$(CC) $(CFLAGS) -o $(TEST_EXE) $(BASE_DIR)/test/cpp/build/main.o $(DBRT_LIB) $(DBMODEST_LIB) $(DBUTIL_LIB) $(DBIO_LIB) $(DBCRYPTO_LIB) $(DBNET_LIB) $(DBDATA_LIB) -lpthread -lcrypto -lssl -lexpat
 
 #	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TEST_EXE) #test/cpp/build/main.o -ldbrt -ldbmodest -ldbutil -ldbio -ldbcrypto -ldbnet -ldbdata -lcrypto -lssl -lpthread
 

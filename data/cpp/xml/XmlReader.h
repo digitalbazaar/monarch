@@ -7,6 +7,8 @@
 #include "DataBinding.h"
 #include "InputStream.h"
 
+#include <expat.h>
+
 namespace db
 {
 namespace data
@@ -22,6 +24,12 @@ namespace xml
  */
 class XmlReader
 {
+protected:
+   /**
+    * The xml parser for this reader.
+    */
+   XML_Parser mParser;
+   
 public:
    /**
     * Creates a new XmlReader.
