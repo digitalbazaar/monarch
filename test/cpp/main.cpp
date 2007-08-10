@@ -2733,8 +2733,9 @@ void runXmlReaderTest()
    xml.append("<Content>This is the first chapter of the book.</Content>");
    xml.append("</Chapter><Chapter number=\"2\"/></Book>");
    
+   DataBinding db(NULL);
    ByteArrayInputStream bais(xml.c_str(), xml.length());
-   reader.read(NULL, &bais);
+   reader.read(&db, &bais);
    
    cout << endl << "XmlReader test complete." << endl;
 }

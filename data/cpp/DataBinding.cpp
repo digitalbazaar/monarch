@@ -17,10 +17,22 @@ DataBinding::DataBinding(void* obj)
 DataBinding::~DataBinding()
 {
 }
-
+#include <iostream>
+using namespace std;
 DataBinding* DataBinding::startData(
    const char* charEncoding, const char* ns, const char* name) 
 {
+   if(ns != NULL)
+   {
+      cout << "startData(" <<
+         charEncoding << ", " << ns << ", " << name << ")" << endl;
+   }
+   else
+   {
+      cout << "startData(" <<
+         charEncoding << ", NULL, " << name << ")" << endl;
+   }
+   
    // FIXME:
    return NULL;
 }
@@ -33,6 +45,15 @@ void DataBinding::appendData(
 
 void DataBinding::endData(DataBinding* db)
 {
+   if(db != NULL)
+   {
+      cout << "endData(" << db << ")" << endl;
+   }
+   else
+   {
+      cout << "endData(NULL)" << endl;
+   }
+   
    // FIXME:
 }
 
