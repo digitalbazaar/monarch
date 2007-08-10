@@ -167,7 +167,7 @@ bool Thread::start()
       
       // create the POSIX thread
       int rc = pthread_create(
-         &mThreadId, &attributes, execute, (void*)this);
+         &mThreadId, &attributes, &Thread::execute, (void*)this);
       
       // destroy POSIX thread attributes
       pthread_attr_destroy(&attributes);
