@@ -58,6 +58,8 @@ using namespace db::net::http;
 using namespace db::rt;
 using namespace db::util;
 using namespace db::util::regex;
+using namespace db::data;
+using namespace db::data::xml;
 
 // WTF? this is required to get static library building for unknown reason
 #include "PeekInputStream.h"
@@ -2723,6 +2725,8 @@ void runDelegateTest()
 void runXmlReaderTest()
 {
    cout << "Starting XmlReader test." << endl << endl;
+   
+   XmlReader reader;
    
    // FIXME:
    
