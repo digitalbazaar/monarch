@@ -52,6 +52,11 @@ protected:
    void endElement(const XML_Char* name);
    
    /**
+    * The character encoding.
+    */
+   static const char* CHAR_ENCODING;
+   
+   /**
     * The read size in bytes.
     */
    static unsigned int READ_SIZE;

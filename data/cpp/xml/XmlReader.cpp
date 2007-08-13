@@ -10,13 +10,16 @@ using namespace db::data::xml;
 using namespace db::io;
 using namespace db::rt;
 
+// initialize encoding
+const char* XmlReader::CHAR_ENCODING = "UTF-8";
+
 // initialize read size
 unsigned int XmlReader::READ_SIZE = 4096;
 
 XmlReader::XmlReader()
 {
    // create parser
-   mParser = XML_ParserCreateNS("UTF-8", '|');
+   mParser = XML_ParserCreateNS(CHAR_ENCODING, '|');
    
    // set user data to this reader
    XML_SetUserData(mParser, this);
@@ -36,17 +39,14 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
 {
    if(mDataBindingsStack.front() != NULL)
    {
-      // using UTF-8
-      char* utf8 = "UTF-8";
-      
       // parse element namespace
       char* ns;
       parseNamespace(&name, &ns);
       
       // start data with given encoding, namespace and name and push
       // data binding onto stack
-      DataBinding* db =
-         mDataBindingsStack.front()->startData(utf8, ns, (const char*)name);
+      DataBinding* db = mDataBindingsStack.front()->startData(
+         CHAR_ENCODING, ns, (const char*)name);
       mDataBindingsStack.push_front(db);
       if(db != NULL)
       {
@@ -60,7 +60,8 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
             
             // set attribute data
             db->setData(
-               utf8, attrns, attrs[i], attrs[i + 1], strlen(attrs[i + 1]));
+               CHAR_ENCODING, attrns, attrs[i],
+               attrs[i + 1], strlen(attrs[i + 1]));
             
             // clean up attribute namespace
             if(attrns != NULL)
@@ -89,8 +90,18 @@ void XmlReader::endElement(const XML_Char* name)
    DataBinding* db = mDataBindingsStack.front();
    if(db != NULL && mDataBindingsStack.front() != NULL)
    {
+      // parse element namespace
+      char* ns;
+      parseNamespace(&name, &ns);
+      
       // end data
-      mDataBindingsStack.front()->endData(db);
+      mDataBindingsStack.front()->endData(CHAR_ENCODING, ns, name, db);
+      
+      // clean up element namespace
+      if(ns != NULL)
+      {
+         delete [] ns;
+      }
    }
    
    // pop front data binding
@@ -158,10 +169,10 @@ bool XmlReader::read(DataBinding* db, InputStream* is)
       
       if(error)
       {
-         char msg[100];
-         sprintf(msg, "Xml parser error at line %d:\n%s\n",
-            XML_GetCurrentLineNumber(mParser),
-            XML_ErrorString(XML_GetErrorCode(mParser)));
+         int line = XML_GetCurrentLineNumber(mParser);
+         const char* errorString = XML_ErrorString(XML_GetErrorCode(mParser));
+         char msg[100 + strlen(errorString)];
+         sprintf(msg, "Xml parser error at line %d:\n%s\n", line, errorString);
          Exception::setLast(new IOException(msg));
       }
    }

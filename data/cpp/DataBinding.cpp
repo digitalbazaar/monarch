@@ -10,8 +10,6 @@ using namespace db::data;
 DataBinding::DataBinding(void* obj)
 {
    mObject = obj;
-   mDataNamespace = NULL;
-   mDataName = NULL;
 }
 
 DataBinding::~DataBinding()
@@ -25,7 +23,7 @@ DataBinding* DataBinding::startData(
    if(ns != NULL)
    {
       cout << "startData(" <<
-         charEncoding << ", " << ns << ", " << name << ")" << endl;
+         charEncoding << ", " << name << ")" << endl;
    }
    else
    {
@@ -34,7 +32,8 @@ DataBinding* DataBinding::startData(
    }
    
    // FIXME:
-   return NULL;
+   //return NULL;
+   return this;
 }
 
 void DataBinding::appendData(
@@ -43,15 +42,20 @@ void DataBinding::appendData(
    // FIXME:
 }
 
-void DataBinding::endData(DataBinding* db)
+void DataBinding::endData(
+   const char* charEncoding, const char* ns, const char* name, DataBinding* db)
 {
-   if(db != NULL)
+   if(db != NULL && ns != NULL)
    {
-      cout << "endData(" << db << ")" << endl;
+      cout << "endData(" << charEncoding << ", " << ns << ", " << name << ", " << db << ")" << endl;
+   }
+   else if(ns != NULL)
+   {
+      cout << "endData(" << charEncoding << ", " << ns << ", " << name << ", NULL)" << endl;
    }
    else
    {
-      cout << "endData(NULL)" << endl;
+      cout << "endData(" << charEncoding << ", NULL, " << name << ", NULL)" << endl;
    }
    
    // FIXME:
