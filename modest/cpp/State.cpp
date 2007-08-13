@@ -13,17 +13,17 @@ State::State()
 State::~State()
 {
    // delete all state variables
-   for(map<const char*, StateVariable*, StateNameComparator>::iterator i =
+   for(map<const char*, Variable*, VarNameComparator>::iterator i =
        mVarTable.begin(); i != mVarTable.end(); i++)
    {
       // delete name
       delete [] i->first;
       
       // get variable
-      StateVariable* var = i->second;
+      Variable* var = i->second;
       
       // delete string if applicable
-      if(var->type == 3)
+      if(var->type == Variable::String)
       {
          delete var->s;
       }
@@ -33,11 +33,11 @@ State::~State()
    }
 }
 
-StateVariable* State::getVariable(const char* name)
+State::Variable* State::getVariable(const char* name)
 {
-   StateVariable* rval = NULL;
+   Variable* rval = NULL;
    
-   map<const char*, StateVariable*, StateNameComparator>::iterator i =
+   map<const char*, Variable*, VarNameComparator>::iterator i =
       mVarTable.find(name);
    if(i != mVarTable.end())
    {
@@ -47,18 +47,18 @@ StateVariable* State::getVariable(const char* name)
    return rval;
 }
 
-StateVariable* State::createVariable(const char* name, int type)
+State::Variable* State::createVariable(const char* name, Variable::Type type)
 {
    // check for an existing variable
-   StateVariable* var = getVariable(name);
+   Variable* var = getVariable(name);
    if(var == NULL)
    {
       // create new variable
-      var = new StateVariable();
+      var = new Variable();
       var->type = type;
       
       // create string as appropriate
-      if(type == 3)
+      if(type == Variable::String)
       {
          var->s = new string();
       }
@@ -72,11 +72,11 @@ StateVariable* State::createVariable(const char* name, int type)
    if(var->type != type)
    {
       // allocate or delete string as appropriate
-      if(type == 3)
+      if(type == Variable::String)
       {
          var->s = new string();
       }
-      else if(var->type == 3)
+      else if(var->type == Variable::String)
       {
          delete var->s;
       }
@@ -88,7 +88,7 @@ StateVariable* State::createVariable(const char* name, int type)
 void State::setBoolean(const char* name, bool value)
 {
    // create the variable and set its value
-   StateVariable* var = createVariable(name, 1);
+   Variable* var = createVariable(name, Variable::Boolean);
    var->b = value;
 }
 
@@ -96,8 +96,8 @@ bool State::getBoolean(const char* name, bool& value)
 {
    bool rval = false;
    
-   StateVariable* var = getVariable(name);
-   if(var != NULL && var->type == 1)
+   Variable* var = getVariable(name);
+   if(var != NULL && var->type == Variable::Boolean)
    {
       value = var->b;
       rval = true;
@@ -109,7 +109,7 @@ bool State::getBoolean(const char* name, bool& value)
 void State::setInteger(const char* name, int value)
 {
    // create the variable and set its value
-   StateVariable* var = createVariable(name, 2);
+   Variable* var = createVariable(name, Variable::Integer);
    var->i = value;
 }
 
@@ -117,8 +117,8 @@ bool State::getInteger(const char* name, int& value)
 {
    bool rval = false;
    
-   StateVariable* var = getVariable(name);
-   if(var != NULL && var->type == 2)
+   Variable* var = getVariable(name);
+   if(var != NULL && var->type == Variable::Integer)
    {
       value = var->i;
       rval = true;
@@ -130,7 +130,7 @@ bool State::getInteger(const char* name, int& value)
 void State::setString(const char* name, const string& value)
 {
    // create the variable and set its value
-   StateVariable* var = createVariable(name, 3);
+   Variable* var = createVariable(name, Variable::String);
    var->s->assign(value);
 }
 
@@ -138,8 +138,8 @@ bool State::getString(const char* name, string& value)
 {
    bool rval = false;
    
-   StateVariable* var = getVariable(name);
-   if(var != NULL && var->type == 3)
+   Variable* var = getVariable(name);
+   if(var != NULL && var->type == Variable::String)
    {
       value = *(var->s);
       rval = true;
@@ -150,7 +150,7 @@ bool State::getString(const char* name, string& value)
 
 void State::removeVariable(const char* name)
 {
-   map<const char*, StateVariable*, StateNameComparator>::iterator i =
+   map<const char*, Variable*, VarNameComparator>::iterator i =
       mVarTable.find(name);
    if(i != mVarTable.end())
    {
@@ -158,10 +158,10 @@ void State::removeVariable(const char* name)
       delete [] i->first;
       
       // get variable
-      StateVariable* var = i->second;
+      Variable* var = i->second;
       
       // delete string if applicable
-      if(var->type == 3)
+      if(var->type == Variable::String)
       {
          delete var->s;
       }

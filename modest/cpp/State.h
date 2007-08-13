@@ -14,44 +14,6 @@ namespace db
 namespace modest
 {
 
-typedef struct StateNameComparator
-{
-   /**
-    * Compares two null-terminated strings, returning true if the first is
-    * less than the second, false if not.
-    * 
-    * @param s1 the first string.
-    * @param s2 the second string.
-    * 
-    * @return true if the s1 < s2, false if not.
-    */
-   bool operator()(const char* s1, const char* s2) const
-   {
-      return strcmp(s1, s2) < 0;
-   }
-};
-
-/**
- * A StateVariable is a boolean, 32-bit signed integer, or a string.
- */
-typedef struct StateVariable
-{
-   /**
-    * The type of variable this is, 1. bool, 2. int, 3. string.
-    */
-   int type;
-   
-   /**
-    * The actual value of this variable.
-    */
-   union
-   {
-      bool b;
-      int i;
-      std::string* s;
-   };
-};
-
 /**
  * A State maintains the current information about a Modest Engine. It can
  * be modified by an Operation.
@@ -62,29 +24,70 @@ class State : public virtual db::rt::Object, public ImmutableState
 {
 protected:
    /**
+    * A VarNameComparator compares two state Variable names.
+    */
+   typedef struct VarNameComparator
+   {
+      /**
+       * Compares two null-terminated strings, returning true if the first is
+       * less than the second, false if not.
+       * 
+       * @param s1 the first string.
+       * @param s2 the second string.
+       * 
+       * @return true if the s1 < s2, false if not.
+       */
+      bool operator()(const char* s1, const char* s2) const
+      {
+         return strcmp(s1, s2) < 0;
+      }
+   };
+   
+   /**
+    * A Variable is a boolean, 32-bit signed integer, or a string.
+    */
+   typedef struct Variable
+   {
+      /**
+       * The type of variable this is.
+       */
+      enum Type {Boolean, Integer, String} type;
+      
+      /**
+       * The actual value of this variable.
+       */
+      union
+      {
+         bool b;
+         int i;
+         std::string* s;
+      };
+   };
+   
+   /**
     * The variable table.
     */
-   std::map<const char*, StateVariable*, StateNameComparator> mVarTable;
+   std::map<const char*, Variable*, VarNameComparator> mVarTable;
    
    /**
-    * Gets an existing StateVariable by its name.
+    * Gets an existing Variable by its name.
     * 
-    * @param name the name of the StateVariable to retrieve.
+    * @param name the name of the Variable to retrieve.
     * 
-    * @return an existing StateVariable or NULL.
+    * @return an existing Variable or NULL.
     */
-   virtual StateVariable* getVariable(const char* name);
+   virtual Variable* getVariable(const char* name);
    
    /**
-    * Creates a new StateVariable with the given name if it does not
+    * Creates a new Variable with the given name if it does not
     * exist.
     * 
-    * @param name the name of the StateVariable to create.
-    * @param type the type of variable (1 = bool, 2 = int, 3 = string).
+    * @param name the name of the Variable to create.
+    * @param type the type of variable.
     * 
-    * @return the StateVariable.
+    * @return the Variable.
     */
-   virtual StateVariable* createVariable(const char* name, int type);
+   virtual Variable* createVariable(const char* name, Variable::Type type);
    
 public:
    /**
