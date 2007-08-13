@@ -48,6 +48,7 @@
 #include "ByteArrayInputStream.h"
 #include "xml/XmlReader.h"
 #include "xml/XmlWriter.h"
+#include "DataMappingFunctor.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -2722,18 +2723,58 @@ void runDelegateTest()
    cout << endl << "Delegate test complete." << endl;
 }
 
+class TestContent
+{
+protected:
+   char* mContent;
+   
+public:
+   TestContent()
+   {
+      mContent = new char[1];
+      memset(mContent, 0, 1);
+   }
+   
+   virtual ~TestContent()
+   {
+      delete mContent;
+   }
+   
+   void setContent(const char* str)
+   {
+      delete mContent;
+      mContent = new char[strlen(str) + 1];
+      strcpy(mContent, str);
+   }
+   
+   const char* getContent()
+   {
+      return mContent;
+   }
+};
+
 void runXmlReaderTest()
 {
    cout << "Starting XmlReader test." << endl << endl;
    
    XmlReader reader;
    
-   string xml;
-   xml.append("<Book><Chapter number=\"1\"><Title>Test Chapter 1</Title>");
-   xml.append("<Content>This is the first chapter of the book.</Content>");
-   xml.append("</Chapter><Chapter number=\"2\"/></Book>");
+//   string xml;
+//   xml.append("<Book><Chapter number=\"1\"><Title>Test Chapter 1</Title>");
+//   xml.append("<Content>This is the first chapter of the book.</Content>");
+//   xml.append("</Chapter><Chapter number=\"2\"/></Book>");
    
-   DataBinding db(NULL);
+   string xml;
+   xml.append("<TestContent>This is my content.</TestContent>");
+   
+   TestContent c;
+   
+   DataBinding db;
+   DataMappingFunctor<TestContent> dm(&c);
+   dm.setStringSetFunction(&TestContent::setContent);
+   dm.setStringGetFunction(&TestContent::getContent);
+   db.addDataMapping(NULL, "TestContent", &dm);
+   
    ByteArrayInputStream bais(xml.c_str(), xml.length());
    reader.read(&db, &bais);
    
@@ -2838,9 +2879,12 @@ int main()
    #endif
    
    Thread::setException(new Exception("Main thread exception leak test"));
-   
+
+   #ifndef WIN32
    // FIXME: calling Thread::exit() on windows causes a busy loop of
    // some sort (perhaps a deadlock spin lock)
-   //Thread::exit();
+   Thread::exit();
+   #endif
+   
    return 0;
 }

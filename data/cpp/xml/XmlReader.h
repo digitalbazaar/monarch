@@ -66,10 +66,10 @@ protected:
     * name pointer to the start of the local name and the passed namespace
     * pointer to the start of a null-terminated namespace string.
     * 
-    * @param name the namespace|local-name string.
+    * @param fullName the namespace|local-name string.
     * @param ns the pointer to point at the namespace string. 
     */
-   static void parseNamespace(const char** name, char** ns);
+   static void parseNamespace(const char** fullName, char** ns);
    
    /**
     * Handles start elements.

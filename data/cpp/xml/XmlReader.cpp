@@ -108,17 +108,17 @@ void XmlReader::endElement(const XML_Char* name)
    mDataBindingsStack.pop_front();
 }
 
-void XmlReader::parseNamespace(const char** name, char** ns)
+void XmlReader::parseNamespace(const char** fullName, char** ns)
 {
    // parse namespace, if one exists
    *ns = NULL;
-   const char* sep = strchr(*name, '|');
+   const char* sep = strchr(*fullName, '|');
    if(sep != NULL)
    {
-      *ns = new char[sep - *name];
-      strncpy(*ns, *name, sep - *name);
-      memset(ns + (sep - *name), 0, 1);
-      *name = sep + 1;
+      *ns = new char[sep - *fullName];
+      strncpy(*ns, *fullName, sep - *fullName);
+      memset(ns + (sep - *fullName), 0, 1);
+      *fullName = sep + 1;
    }
 }
 

@@ -4,33 +4,14 @@
 #ifndef db_data_DataBinding_H
 #define db_data_DataBinding_H
 
+#include "DataMapping.h"
+
+#include <map>
+
 namespace db
 {
 namespace data
 {
-
-/**
- * A DataMapping is a structure that maps a universal name (namespace + name)
- * to functions for binding the data to an object.
- * 
- * @author Dave Longley
- */
-struct DataMapping
-{
-   /**
-    * The namespace for the data.
-    */
-   const char* ns;
-   
-   /**
-    * The name for the data.
-    */
-   const char* name;
-   
-   // FIXME: some kind of pointers to functions here?
-   // use templates to allow for member function pointers?
-   // functors?
-};
 
 /**
  * A DataBinding provides a generic interface for converting formatted data
@@ -46,22 +27,101 @@ class DataBinding
 {
 protected:
    /**
-    * The object associated with this binding.
+    * A DataName is a universal name for data that includes a namespace
+    * and a local name.
     */
-   void* mObject;
+   typedef struct DataName
+   {
+      /**
+       * The namespace.
+       */
+      char* ns;
+      
+      /**
+       * The name.
+       */
+      char* name;
+   };
+   
+   /**
+    * A DataNameComparator compares two DataNames.
+    */
+   typedef struct DataNameComparator
+   {
+      /**
+       * Compares two DataNames, returning true if the first DataName's
+       * universal name is less than the second's, false if not.
+       * 
+       * @param dn1 the first DataName.
+       * @param dn2 the second DataName.
+       * 
+       * @return true if the dn1 < dn2, false if not.
+       */
+      bool operator()(DataName* dn1, DataName* dn2) const;
+   };
+   
+   /**
+    * A map of DataNames to DataMappings.
+    */
+   std::map<DataName*, DataMapping*, DataNameComparator> mDataMappings;
+   
+   /**
+    * A map of DataNames to DataBindings.
+    */
+   std::map<DataName*, DataBinding*, DataNameComparator> mDataBindings;
+   
+   /**
+    * The DataName for the current DataBinding.
+    */
+   DataName* mCurrentDataName;
+   
+   /**
+    * Creates a new DataName from a namespace and a name.
+    * 
+    * @param ns the namespace to use.
+    * @param name the name to use.
+    * 
+    * @return the created DataName.
+    */
+   DataName* createDataName(const char* ns, const char* name);
+   
+   /**
+    * Frees a DataName.
+    * 
+    * @param dn the DataName to free.
+    */
+   void freeDataName(DataName* dn);
    
 public:
    /**
-    * Creates a new DataBinding for the given object.
-    * 
-    * @param obj a pointer to the object.
+    * Creates a new DataBinding.
     */
-   DataBinding(void* obj);
+   DataBinding();
    
    /**
     * Destructs this DataBinding.
     */
    virtual ~DataBinding();
+   
+   /**
+    * Adds a data's DataMapping to this DataBinding.
+    * 
+    * @param ns the null-terminated namespace for the data.
+    * @param name the null-terminated name for the data.
+    * @param dm the DataMapping to add to this DataBinding.
+    */
+   virtual void addDataMapping(
+      const char* ns, const char* name, DataMapping* dm);
+   
+   /**
+    * Adds another DataBinding to this DataBinding.
+    * 
+    * @param ns the null-terminated namespace for the data.
+    * @param name the null-terminated name for the data.
+    * @param db the DataBinding to add to this DataBinding.
+    */
+   virtual void addDataBinding(
+      const char* ns, const char* name, DataBinding* db);
    
    /**
     * Starts setting data for the given name and provides the appropriate
@@ -114,11 +174,6 @@ public:
       const char* charEncoding,
       const char* ns, const char* name,
       const char* data, unsigned int length);
-   
-   /**
-    * Gets a pointer to the object associated with this binding.
-    */
-   virtual void* getObject();
 };
 
 } // end namespace data
