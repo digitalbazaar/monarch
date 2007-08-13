@@ -6,13 +6,29 @@
 using namespace std;
 using namespace db::data;
 
-DataBinding::DataBinding()
+DataBinding::DataBinding(void* obj)
 {
+   mObject = obj;
    mCurrentDataName = NULL;
 }
 
 DataBinding::~DataBinding()
 {
+   // clean up all data mappings
+   for(map<DataName*, DataMapping*, DataNameComparator>::iterator i =
+       mDataMappings.begin(); i != mDataMappings.end(); i++)
+   {
+      // free data name
+      freeDataName(i->first);
+   }
+   
+   // clean up all data bindings
+   for(map<DataName*, DataBinding*, DataNameComparator>::iterator i =
+       mDataBindings.begin(); i != mDataBindings.end(); i++)
+   {
+      // free data name
+      freeDataName(i->first);
+   }
 }
 
 bool DataBinding::DataNameComparator::operator()(
@@ -157,10 +173,38 @@ DataBinding* DataBinding::startData(
       mCurrentDataName = i->first;
       rval = i->second;
       
-      // clear old data
-      char data[1];
-      memset(data, 0, 1);
-      rval->setData(charEncoding, ns, name, data, 0);
+      cout << "Found data binding for start element=" << name << endl;
+      
+      if(rval == this)
+      {
+         // clear old data
+         char data[1];
+         memset(data, 0, 1);
+         rval->setData(charEncoding, ns, name, data, 0);
+         
+         // FIXME: remove printout
+         cout << "cleared old data for object" << endl;
+      }
+      else
+      {
+         cout << "USING OTHER DATABINDING" << endl;
+         
+         // get data mapping
+         map<DataName*, DataMapping*, DataNameComparator>::iterator j =
+            mDataMappings.find(&dn);
+         if(j != mDataMappings.end())
+         {
+            // create new object for the data binding
+            rval->mObject = j->second->createObject();
+           
+            // FIXME: remove printout
+            cout << "created new object for data binding" << endl;
+         }
+      }
+   }
+   else
+   {
+      cout << "No data binding found for start element=" << name << endl;
    }
    
    return rval;
@@ -169,6 +213,8 @@ DataBinding* DataBinding::startData(
 void DataBinding::appendData(
    const char* charEncoding, char* data, unsigned int length)
 {
+   cout << "APPENDING DATA" << endl;
+   
    if(mCurrentDataName != NULL)
    {
       // find data mapping
@@ -188,6 +234,7 @@ void DataBinding::appendData(
          strncpy(d, oldData, oldLength);
          strncpy(d + oldLength, data, length);
          memset(d + oldLength + length, 0, 1);
+         dm->setObject(mObject);
          dm->setData(d);
          
          // FIXME: remove printout
@@ -204,6 +251,10 @@ void DataBinding::endData(
    {
       cout << "endData(" << charEncoding << ", " << ns << ", " << name << ", " << db << ")" << endl;
    }
+   else if(db != NULL)
+   {
+      cout << "endData(" << charEncoding << ", NULL, " << name << ", " << db << ")" << endl;
+   }
    else if(ns != NULL)
    {
       cout << "endData(" << charEncoding << ", " << ns << ", " << name << ", NULL)" << endl;
@@ -213,9 +264,37 @@ void DataBinding::endData(
       cout << "endData(" << charEncoding << ", NULL, " << name << ", NULL)" << endl;
    }
    
-   // FIXME: add object in data binding
-   
-   // FIXME:
+   // add parsed object if appropriate
+   if(this != db)
+   {
+      cout << "looking for data mapping to add child object=" << name << endl;
+      
+      // find data mapping
+      map<DataName*, DataMapping*, DataNameComparator>::iterator i =
+         mDataMappings.find(mCurrentDataName);
+      if(i != mDataMappings.end())
+      {
+         cout << "found data mapping for adding child object=" << name << endl;
+         
+         // get data mapping
+         DataMapping* dm = i->second;
+         
+         // add object via mapping
+         dm->setObject(mObject);
+         dm->addObject(db->mObject);
+         
+         // FIXME: remove printout
+         cout << "added child object=" << name << endl;
+      }
+      else
+      {
+         cout << "found no data mapping to add child=" << name << endl;
+      }
+   }
+   else
+   {
+      cout << "USING SELF AS DATA BINDING FOR=" << name << endl;
+   }
 }
 
 void DataBinding::setData(
@@ -239,6 +318,7 @@ void DataBinding::setData(
       char d[length + 1];
       strncpy(d, data, length);
       memset(d + length, 0, 1);
+      dm->setObject(mObject);
       dm->setData(d);
       
       // FIXME: remove printout

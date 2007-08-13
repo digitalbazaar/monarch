@@ -61,6 +61,11 @@ protected:
    };
    
    /**
+    * The bound object.
+    */
+   void* mObject;
+   
+   /**
     * A map of DataNames to DataMappings.
     */
    std::map<DataName*, DataMapping*, DataNameComparator> mDataMappings;
@@ -94,9 +99,11 @@ protected:
    
 public:
    /**
-    * Creates a new DataBinding.
+    * Creates a new DataBinding for the given object.
+    * 
+    * @param obj the object this DataBinding is for.
     */
-   DataBinding();
+   DataBinding(void* obj = NULL);
    
    /**
     * Destructs this DataBinding.

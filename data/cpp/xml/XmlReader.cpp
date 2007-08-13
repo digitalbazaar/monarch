@@ -88,6 +88,10 @@ void XmlReader::endElement(const XML_Char* name)
 {
    // get front data binding
    DataBinding* db = mDataBindingsStack.front();
+   
+   // pop front data binding
+   mDataBindingsStack.pop_front();
+   
    if(db != NULL && mDataBindingsStack.front() != NULL)
    {
       // parse element namespace
@@ -103,9 +107,6 @@ void XmlReader::endElement(const XML_Char* name)
          delete [] ns;
       }
    }
-   
-   // pop front data binding
-   mDataBindingsStack.pop_front();
 }
 
 void XmlReader::parseNamespace(const char** fullName, char** ns)

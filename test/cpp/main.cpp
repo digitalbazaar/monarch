@@ -2753,6 +2753,58 @@ public:
    }
 };
 
+class TestChild : public TestContent
+{
+public:
+   TestChild()
+   {
+   }
+   
+   virtual ~TestChild()
+   {
+   }
+};
+
+class TestParent : public TestContent
+{
+protected:
+   TestChild* mChild;
+   
+public:
+   TestParent()
+   {
+      mChild = NULL;
+   }
+   
+   virtual ~TestParent()
+   {
+      if(mChild != NULL)
+      {
+         delete mChild;
+      }
+   }
+   
+   TestChild* createChild()
+   {
+      return new TestChild();
+   }
+   
+   void addChild(TestChild* child)
+   {
+      if(mChild != NULL)
+      {
+         delete mChild;
+      }
+      
+      mChild = child;
+   }
+   
+   TestChild* getChild()
+   {
+      return mChild;
+   }
+};
+
 void runXmlReaderTest()
 {
    cout << "Starting XmlReader test." << endl << endl;
@@ -2765,18 +2817,46 @@ void runXmlReaderTest()
 //   xml.append("</Chapter><Chapter number=\"2\"/></Book>");
    
    string xml;
-   xml.append("<TestContent>This is my content.</TestContent>");
+   xml.append("<TestContent>This is my content.");
+   xml.append("<TestChild>Blah</TestChild></TestContent>");
    
-   TestContent c;
+   // main object to populate
+   TestParent p;
    
-   DataBinding db;
-   DataMappingFunctor<TestContent> dm(&c);
-   dm.setStringSetFunction(&TestContent::setContent);
-   dm.setStringGetFunction(&TestContent::getContent);
-   db.addDataMapping(NULL, "TestContent", &dm);
+   // data binding for main object
+   DataBinding db1(&p);
+   
+   // data mapping for setting content for main object
+   DataMappingFunctor<TestParent> dm1(
+      &TestParent::setContent, &TestParent::getContent);
+   
+   // data mapping for creating child object for main object
+   DataMappingFunctor<TestParent, TestChild> dm2(
+      &TestParent::createChild, &TestParent::addChild);
+   
+   // add mappings
+   db1.addDataMapping(NULL, "TestParent", &dm1);
+   db1.addDataMapping(NULL, "TestChild", &dm2);
+   
+   // data binding for child object
+   DataBinding db2;
+   
+   // data binding for child content
+   DataMappingFunctor<TestChild> dm3(
+      &TestChild::setContent, &TestChild::getContent);
+   
+   // add mappings
+   db2.addDataMapping(NULL, "TestChild", &dm3);
+   
+   // add bindings
+   db1.addDataBinding(NULL, "TestContent", &db1);
+   db1.addDataBinding(NULL, "TestChild", &db2);
    
    ByteArrayInputStream bais(xml.c_str(), xml.length());
-   reader.read(&db, &bais);
+   reader.read(&db1, &bais);
+   
+   cout << "TestContent data='" << p.getContent() << "'" << endl;
+   cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
    
    cout << endl << "XmlReader test complete." << endl;
 }

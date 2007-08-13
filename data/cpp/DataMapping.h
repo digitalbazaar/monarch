@@ -29,14 +29,25 @@ public:
    virtual ~DataMapping() {};
    
    /**
-    * Clears some objects from a collection within the bound object.
+    * Sets the bound object.
+    * 
+    * @param obj the bound object to use with this mapping.
     */
-   virtual void clearCollection() = 0;
+   virtual void setObject(void* obj) = 0;
    
    /**
-    * Updates a collection of the bound object.
+    * Creates an object to add to the bound object.
+    * 
+    * @return a pointer to the object.
     */
-   virtual void updateCollection() = 0;
+   virtual void* createObject() = 0;
+   
+   /**
+    * Adds an object to the bound object.
+    * 
+    * @param obj the object to add to the bound object.
+    */
+   virtual void addObject(void* obj) = 0;
    
    /**
     * Sets the passed data in the bound object.

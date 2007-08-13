@@ -13,13 +13,41 @@ namespace data
 
 /**
  * A DataMappingFunctor allows a specific object to have its data binding
- * methods associated with a universal name (namespace + name).
+ * methods associated with a universal name (namespace + name). This class
+ * can be used to set data in a bound object or retrieve data from a bound
+ * object. It can also be used to create another object and add it to a
+ * bound object.
  * 
  * @author Dave Longley
  */
-template<class T> class DataMappingFunctor : public DataMapping
+template<class T, class TObject = void>
+class DataMappingFunctor : public DataMapping
 {
 protected:
+   /**
+    * Typedef for creating another object.
+    */
+   typedef TObject* (T::*CreateObjectFunction)(void);
+   
+   /**
+    * Typedef for adding another object.
+    */
+   typedef void (T::*AddObjectFunction)(TObject*);
+   
+   /**
+    * Typedefs for setting data in an object.
+    */
+   typedef void (T::*SetBooleanFunction)(bool); 
+   typedef void (T::*SetIntegerFunction)(int);
+   typedef void (T::*SetStringFunction)(const char*);
+   
+   /**
+    * Typedefs for getting data in an object.
+    */
+   typedef bool (T::*GetBooleanFunction)(void);
+   typedef int (T::*GetIntegerFunction)(void);
+   typedef const char* (T::*GetStringFunction)(void);
+   
    /**
     * A function for setting data in an object.
     */
@@ -35,9 +63,9 @@ protected:
        */
       union
       {
-         void (T::*bFunc)(bool);
-         void (T::*iFunc)(int);
-         void (T::*sFunc)(const char*);
+         SetBooleanFunction bFunc;
+         SetIntegerFunction iFunc;
+         SetStringFunction sFunc;
       };
    };
    
@@ -56,9 +84,9 @@ protected:
        */
       union
       {
-         bool (T::*bFunc)(void);
-         int (T::*iFunc)(void);
-         const char* (T::*sFunc)(void);
+         GetBooleanFunction bFunc;
+         GetIntegerFunction iFunc;
+         GetStringFunction sFunc;
       };
    };
    
@@ -66,6 +94,16 @@ protected:
     * The object associated with this mapping.
     */
    T* mObject;
+   
+   /**
+    * A function for creating another object.
+    */
+   CreateObjectFunction mCreateFunction;
+   
+   /**
+    * A function for adding another object.
+    */
+   AddObjectFunction mAddFunction;
    
    /**
     * The DataSetFunction for setting data in the object.
@@ -79,11 +117,40 @@ protected:
    
 public:
    /**
-    * Creates a new DataMappingFunctor for the given object.
+    * Creates a new DataMappingFunctor.
     * 
-    * @param obj a pointer to the object.
+    * @param cFunc a function for creating another object.
+    * @param aFunc a function for adding another object to the bound object.
     */
-   DataMappingFunctor(T* obj);
+   DataMappingFunctor(
+      CreateObjectFunction cFunc, AddObjectFunction aFunc);
+   
+   /**
+    * Creates a new DataMappingFunctor.
+    * 
+    * @param sbFunc a function for setting data in the bound object.
+    * @param gbFunc a function for getting data from the bound object.
+    */
+   DataMappingFunctor(
+      SetBooleanFunction sbFunc, GetBooleanFunction gbFunc);
+   
+   /**
+    * Creates a new DataMappingFunctor.
+    * 
+    * @param siFunc a function for setting data in the bound object.
+    * @param giFunc a function for getting data from the bound object.
+    */
+   DataMappingFunctor(
+      SetIntegerFunction siFunc, GetIntegerFunction giFunc);
+   
+   /**
+    * Creates a new DataMappingFunctor.
+    * 
+    * @param ssFunc a function for setting data in an object.
+    * @param gsFunc a function for getting data from an object.
+    */
+   DataMappingFunctor(
+      SetStringFunction ssFunc, GetStringFunction gsFunc);
    
    /**
     * Destructs this DataMappingFunctor.
@@ -91,56 +158,25 @@ public:
    virtual ~DataMappingFunctor();
    
    /**
-    * Sets the data set function for this functor to set a boolean.
+    * Sets the bound object.
     * 
-    * @param func the set function to use.
+    * @param obj the bound object to use with this mapping.
     */
-   virtual void setBooleanSetFunction(void (T::*func)(bool));
+   virtual void setObject(void* obj);
    
    /**
-    * Sets the data get function for this functor to get a boolean.
+    * Creates an object to add to the bound object.
     * 
-    * @param func the get function to use.
+    * @return a pointer to the object.
     */
-   virtual void setBooleanGetFunction(bool (T::*func)(void));
+   virtual void* createObject();
    
    /**
-    * Sets the data set function for this functor to set an integer.
+    * Adds an object to the bound object.
     * 
-    * @param func the set function to use.
+    * @param obj the object to add to the bound object.
     */
-   virtual void setIntegerSetFunction(void (T::*func)(int));
-   
-   /**
-    * Sets the data get function for this functor to get an integer.
-    * 
-    * @param func the get function to use.
-    */
-   virtual void setIntegerGetFunction(int (T::*func)(void));
-   
-   /**
-    * Sets the data set function for this functor to set a string.
-    * 
-    * @param func the set function to use.
-    */
-   virtual void setStringSetFunction(void (T::*func)(const char*));
-   
-   /**
-    * Sets the data get function for this functor to get a string.
-    * 
-    * @param func the get function to use.
-    */
-   virtual void setStringGetFunction(const char* (T::*func)(void));
-   
-   /**
-    * Clears some objects from a collection within the bound object.
-    */
-   virtual void clearCollection();
-   
-   /**
-    * Updates a collection of the bound object.
-    */
-   virtual void updateCollection();
+   virtual void addObject(void* obj);
    
    /**
     * Sets the passed data in the bound object.
@@ -157,84 +193,100 @@ public:
    virtual const char* getData();
 };
 
-template<class T>
-DataMappingFunctor<T>::DataMappingFunctor(T* obj)
+template<class T, class TObject>
+DataMappingFunctor<T, TObject>::DataMappingFunctor(
+   CreateObjectFunction cFunc, AddObjectFunction aFunc)
 {
-   // store object
-   mObject = obj;
+   // set create/add functions
+   mCreateFunction = cFunc;
+   mAddFunction = aFunc;
    
-   // no set or get functions yet
+   // no set/get functions
    mSetFunction.type = DataSetFunction::None;
    mGetFunction.type = DataGetFunction::None;
 }
 
-template<class T>
-DataMappingFunctor<T>::~DataMappingFunctor()
+template<class T, class TObject>
+DataMappingFunctor<T, TObject>::DataMappingFunctor(
+   SetBooleanFunction sbFunc, GetBooleanFunction gbFunc)
 {
-}
-
-template<class T>
-void DataMappingFunctor<T>::setBooleanSetFunction(void (T::*func)(bool))
-{
+   // no create/add functions
+   mCreateFunction = NULL;
+   mAddFunction = NULL;
+   
+   // set set/get functions
    mSetFunction.type = DataSetFunction::Boolean;
-   mSetFunction.bFunc = func;
-}
-
-template<class T>
-void DataMappingFunctor<T>::setBooleanGetFunction(bool (T::*func)(void))
-{
+   mSetFunction.bFunc = sbFunc;
    mGetFunction.type = DataGetFunction::Boolean;
-   mGetFunction.bFunc = func;
+   mGetFunction.bFunc = gbFunc;
 }
 
-template<class T>
-void DataMappingFunctor<T>::setIntegerSetFunction(void (T::*func)(int))
+template<class T, class TObject>
+DataMappingFunctor<T, TObject>::DataMappingFunctor(
+   SetIntegerFunction siFunc, GetIntegerFunction giFunc)
 {
+   // no create/add functions
+   mCreateFunction = NULL;
+   mAddFunction = NULL;
+   
+   // set set/get functions
    mSetFunction.type = DataSetFunction::Integer;
-   mSetFunction.iFunc = func;
-}
-
-template<class T>
-void DataMappingFunctor<T>::setIntegerGetFunction(int (T::*func)(void))
-{
+   mSetFunction.iFunc = siFunc;
    mGetFunction.type = DataGetFunction::Integer;
-   mGetFunction.iFunc = func;
+   mGetFunction.iFunc = giFunc;
 }
 
-template<class T>
-void DataMappingFunctor<T>::setStringSetFunction(void (T::*func)(const char*))
+template<class T, class TObject>
+DataMappingFunctor<T, TObject>::DataMappingFunctor(
+   SetStringFunction ssFunc, GetStringFunction gsFunc)
 {
+   // no create/add functions
+   mCreateFunction = NULL;
+   mAddFunction = NULL;
+   
+   // set set/get functions
    mSetFunction.type = DataSetFunction::String;
-   mSetFunction.sFunc = func;
-}
-
-template<class T>
-void DataMappingFunctor<T>::setStringGetFunction(const char* (T::*func)(void))
-{
+   mSetFunction.sFunc = ssFunc;
    mGetFunction.type = DataGetFunction::String;
-   mGetFunction.sFunc = func;
+   mGetFunction.sFunc = gsFunc;
 }
 
-template<class T>
-void DataMappingFunctor<T>::clearCollection()
+template<class T, class TObject>
+DataMappingFunctor<T, TObject>::~DataMappingFunctor()
 {
-//   if(mClearCollectionFunction != NULL)
-//   {
-//      (mObject->*mClearCollectionFunction)();
-//   }
 }
 
-template<class T>
-void DataMappingFunctor<T>::updateCollection()
+template<class T, class TObject>
+void DataMappingFunctor<T, TObject>::setObject(void* obj)
 {
-//   if(mUpdateCollectionFunction != NULL)
-//   {
-//      (mObject->*mUpdateCollectionFunction)();
-//   }
+   // store object
+   mObject = (T*)obj;
 }
 
-template<class T>
-void DataMappingFunctor<T>::setData(const char* data)
+template<class T, class TObject>
+void* DataMappingFunctor<T, TObject>::createObject()
+{
+   void* rval = NULL;
+   
+   if(mCreateFunction != NULL)
+   {
+      rval = (mObject->*mCreateFunction)();
+   }
+   
+   return rval;
+}
+
+template<class T, class TObject>
+void DataMappingFunctor<T, TObject>::addObject(void* obj)
+{
+   if(mAddFunction != NULL)
+   {
+      (mObject->*mAddFunction)((TObject*)obj);
+   }
+}
+
+template<class T, class TObject>
+void DataMappingFunctor<T, TObject>::setData(const char* data)
 {
    switch(mSetFunction.type)
    {
@@ -255,8 +307,8 @@ void DataMappingFunctor<T>::setData(const char* data)
    }
 }
 
-template<class T>
-const char* DataMappingFunctor<T>::getData()
+template<class T, class TObject>
+const char* DataMappingFunctor<T, TObject>::getData()
 {
    const char* rval = NULL;
    
