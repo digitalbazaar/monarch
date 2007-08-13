@@ -172,6 +172,7 @@ DataBinding* DataBinding::startData(
       // store current data name and return binding
       mCurrentDataName = i->first;
       rval = i->second;
+      rval->mCurrentDataName = i->first;
       
       cout << "Found data binding for start element=" << name << endl;
       
@@ -194,7 +195,10 @@ DataBinding* DataBinding::startData(
             mDataMappings.find(&dn);
          if(j != mDataMappings.end())
          {
+            cout << "creating new object..." << endl;
+            
             // create new object for the data binding
+            j->second->setObject(mObject);
             rval->mObject = j->second->createObject();
            
             // FIXME: remove printout
@@ -211,19 +215,22 @@ DataBinding* DataBinding::startData(
 }
 
 void DataBinding::appendData(
-   const char* charEncoding, char* data, unsigned int length)
+   const char* charEncoding, const char* data, unsigned int length)
 {
-   cout << "APPENDING DATA" << endl;
-   
    if(mCurrentDataName != NULL)
    {
+      cout << "APPENDING DATA" << endl;
+      
       // find data mapping
       map<DataName*, DataMapping*, DataNameComparator>::iterator i =
          mDataMappings.find(mCurrentDataName);
       if(i != mDataMappings.end())
       {
-         // get data mapping
+         // FIXME: change getData/setData/createObject/addObject to take
+         // the bound object as void* first parameter
+         // get and update data mapping
          DataMapping* dm = i->second;
+         dm->setObject(mObject);
          
          // get old data
          const char* oldData = dm->getData();
@@ -234,11 +241,14 @@ void DataBinding::appendData(
          strncpy(d, oldData, oldLength);
          strncpy(d + oldLength, data, length);
          memset(d + oldLength + length, 0, 1);
-         dm->setObject(mObject);
          dm->setData(d);
          
          // FIXME: remove printout
          cout << "appending data='" << d << "'" << endl;
+      }
+      else
+      {
+         cout << "COULD NOT FIND MAPPING TO APPEND DATA" << endl;
       }
    }
 }
@@ -276,11 +286,11 @@ void DataBinding::endData(
       {
          cout << "found data mapping for adding child object=" << name << endl;
          
-         // get data mapping
+         // get and update data mapping
          DataMapping* dm = i->second;
+         dm->setObject(mObject);
          
          // add object via mapping
-         dm->setObject(mObject);
          dm->addObject(db->mObject);
          
          // FIXME: remove printout
@@ -311,14 +321,14 @@ void DataBinding::setData(
       mDataMappings.find(&dn);
    if(i != mDataMappings.end())
    {
-      // get mapping
+      // get and update mapping
       DataMapping* dm = i->second;
+      dm->setObject(mObject);
       
       // set new data
       char d[length + 1];
       strncpy(d, data, length);
       memset(d + length, 0, 1);
-      dm->setObject(mObject);
       dm->setData(d);
       
       // FIXME: remove printout

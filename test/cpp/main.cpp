@@ -2740,15 +2740,19 @@ public:
       delete mContent;
    }
    
-   void setContent(const char* str)
+   virtual void setContent(const char* str)
    {
+      cout << "**** IN setContent()" << endl;
+      
       delete mContent;
       mContent = new char[strlen(str) + 1];
       strcpy(mContent, str);
    }
    
-   const char* getContent()
+   virtual const char* getContent()
    {
+      cout << "**** IN getContent()" << endl;
+      
       return mContent;
    }
 };
@@ -2784,12 +2788,12 @@ public:
       }
    }
    
-   TestChild* createChild()
+   virtual TestChild* createChild()
    {
       return new TestChild();
    }
    
-   void addChild(TestChild* child)
+   virtual void addChild(TestChild* child)
    {
       if(mChild != NULL)
       {
@@ -2799,7 +2803,7 @@ public:
       mChild = child;
    }
    
-   TestChild* getChild()
+   virtual TestChild* getChild()
    {
       return mChild;
    }
@@ -2835,7 +2839,7 @@ void runXmlReaderTest()
       &TestParent::createChild, &TestParent::addChild);
    
    // add mappings
-   db1.addDataMapping(NULL, "TestParent", &dm1);
+   db1.addDataMapping(NULL, "TestContent", &dm1);
    db1.addDataMapping(NULL, "TestChild", &dm2);
    
    // data binding for child object

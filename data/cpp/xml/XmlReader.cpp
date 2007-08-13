@@ -26,6 +26,7 @@ XmlReader::XmlReader()
    
    // set handlers
    XML_SetElementHandler(mParser, &startElement, &endElement);
+   XML_SetCharacterDataHandler(mParser, &appendData);
 }
 
 XmlReader::~XmlReader()
@@ -109,6 +110,17 @@ void XmlReader::endElement(const XML_Char* name)
    }
 }
 
+void XmlReader::appendData(const XML_Char* data, int length)
+{
+   // get front data binding
+   DataBinding* db = mDataBindingsStack.front();
+   if(db != NULL)
+   {
+      // append data
+      db->appendData(CHAR_ENCODING, data, length);
+   }
+}
+
 void XmlReader::parseNamespace(const char** fullName, char** ns)
 {
    // parse namespace, if one exists
@@ -140,6 +152,15 @@ void XmlReader::endElement(void* xr, const XML_Char* name)
    // get reader, end element
    XmlReader* reader = (XmlReader*)xr;
    reader->endElement(name);
+}
+
+void XmlReader::appendData(void* xr, const XML_Char* data, int length)
+{
+   cout << "read data" << endl;
+   
+   // get reader, append data
+   XmlReader* reader = (XmlReader*)xr;
+   reader->appendData(data, length);
 }
 
 bool XmlReader::read(DataBinding* db, InputStream* is)

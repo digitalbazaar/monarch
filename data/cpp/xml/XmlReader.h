@@ -42,14 +42,22 @@ protected:
     * @param name the name of the element (namespace-uri|element-name).
     * @param attrs the attributes of the element.
     */
-   void startElement(const XML_Char* name, const XML_Char** attrs);
+   virtual void startElement(const XML_Char* name, const XML_Char** attrs);
    
    /**
     * Handles end elements for this reader.
     * 
     * @param name the name of the element (namespace-uri|element-name). 
     */
-   void endElement(const XML_Char* name);
+   virtual void endElement(const XML_Char* name);
+   
+   /**
+    * Handles character data for this reader.
+    * 
+    * @param data the read data.
+    * @param length the length of the data.
+    */
+   virtual void appendData(const XML_Char* data, int length);
    
    /**
     * The character encoding.
@@ -88,6 +96,15 @@ protected:
     * @param name the name of the element (namespace-uri|element-name). 
     */
    static void endElement(void* xr, const XML_Char* name);
+   
+   /**
+    * Handles character data.
+    * 
+    * @param xr the XmlReader that read in the data.
+    * @param data the data that was read.
+    * @param length the length of the data.
+    */
+   static void appendData(void* xr, const XML_Char* data, int length);
    
 public:
    /**

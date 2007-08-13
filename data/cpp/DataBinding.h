@@ -154,7 +154,7 @@ public:
     * @param length the length of the data.
     */
    virtual void appendData(
-      const char* charEncoding, char* data, unsigned int length);
+      const char* charEncoding, const char* data, unsigned int length);
    
    /**
     * Ends setting data for the given DataBinding.

@@ -6,6 +6,9 @@
 
 #include "DataMapping.h"
 
+// FIXME: remove me
+#include <iostream>
+
 namespace db
 {
 namespace data
@@ -288,6 +291,8 @@ void DataMappingFunctor<T, TObject>::addObject(void* obj)
 template<class T, class TObject>
 void DataMappingFunctor<T, TObject>::setData(const char* data)
 {
+   std::cout << "+++++ in setData()" << std::endl;
+   
    switch(mSetFunction.type)
    {
       case DataSetFunction::None:
@@ -295,14 +300,14 @@ void DataMappingFunctor<T, TObject>::setData(const char* data)
          break;
       case DataSetFunction::Boolean:
          // FIXME: convert data to boolean
-         (mObject->*mSetFunction.bFunc)(data);
+         //(mObject->*mSetFunction.bFunc)(data);
          break;
       case DataSetFunction::Integer:
          // FIXME: convert data to integer
          //(mObject->*mSetFunction.iFunc)(data);
          break;
       case DataSetFunction::String:
-         //(mObject->*mSetFunction.sFunc)(data);
+         (mObject->*mSetFunction.sFunc)(data);
          break;
    }
 }
