@@ -19,23 +19,6 @@ namespace net
 namespace http
 {
 
-typedef struct PathComparator
-{
-   /**
-    * Compares two null-terminated strings, returning true if the first is
-    * less than the second, false if not.
-    * 
-    * @param s1 the first string.
-    * @param s2 the second string.
-    * 
-    * @return true if the s1 < s2, false if not.
-    */
-   bool operator()(const char* s1, const char* s2) const
-   {
-      return strcmp(s1, s2) < 0;
-   }
-};
-
 /**
  * An HttpConnectionServicer services HttpConnections. It maintains a list
  * of HttpRequestServicers that service HttpRequests received over the
@@ -48,6 +31,26 @@ class HttpConnectionServicer :
 public virtual db::rt::Object, public db::net::ConnectionServicer
 {
 protected:
+   /**
+    * A PathComparator compares two http paths.
+    */
+   typedef struct PathComparator
+   {
+      /**
+       * Compares two null-terminated strings, returning true if the first is
+       * less than the second, false if not.
+       * 
+       * @param s1 the first string.
+       * @param s2 the second string.
+       * 
+       * @return true if the s1 < s2, false if not.
+       */
+      bool operator()(const char* s1, const char* s2) const
+      {
+         return strcmp(s1, s2) < 0;
+      }
+   };
+   
    /**
     * The default server name for this servicer.
     */

@@ -16,23 +16,6 @@ namespace net
 namespace http
 {
 
-typedef struct FieldComparator
-{
-   /**
-    * Compares two null-terminated strings, returning true if the first is
-    * less than the second, false if not. The compare is case-insensitive.
-    * 
-    * @param s1 the first string.
-    * @param s2 the second string.
-    * 
-    * @return true if the s1 < s2, false if not.
-    */
-   bool operator()(const char* s1, const char* s2) const
-   {
-      return strcasecmp(s1, s2) < 0;
-   }
-};
-
 /**
  * An HttpHeader is the header for an HTTP Message. It contains a start-line,
  * and, optionally, a collection of HTTP header fields.
@@ -49,6 +32,26 @@ typedef struct FieldComparator
 class HttpHeader
 {
 protected:
+   /**
+    * A FieldComparator compares two header field names.
+    */
+   typedef struct FieldComparator
+   {
+      /**
+       * Compares two null-terminated strings, returning true if the first is
+       * less than the second, false if not. The compare is case-insensitive.
+       * 
+       * @param s1 the first string.
+       * @param s2 the second string.
+       * 
+       * @return true if the s1 < s2, false if not.
+       */
+      bool operator()(const char* s1, const char* s2) const
+      {
+         return strcasecmp(s1, s2) < 0;
+      }
+   };
+   
    /**
     * The map containing the header fields.
     */

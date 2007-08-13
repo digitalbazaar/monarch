@@ -11,6 +11,9 @@ namespace db
 namespace modest
 {
 
+/**
+ * Stores information about a Module.
+ */
 typedef struct ModuleInfo
 {
    /**
