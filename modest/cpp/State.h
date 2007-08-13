@@ -89,6 +89,13 @@ protected:
     */
    virtual Variable* createVariable(const char* name, Variable::Type type);
    
+   /**
+    * Frees an existing Variable.
+    * 
+    * @param var the Variable to free.
+    */
+   virtual void freeVariable(Variable* var);
+   
 public:
    /**
     * Creates a new State.

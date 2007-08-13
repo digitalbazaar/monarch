@@ -19,17 +19,8 @@ State::~State()
       // delete name
       delete [] i->first;
       
-      // get variable
-      Variable* var = i->second;
-      
-      // delete string if applicable
-      if(var->type == Variable::String)
-      {
-         delete var->s;
-      }
-      
-      // delete variable
-      delete var;
+      // free variable
+      freeVariable(i->second);
    }
 }
 
@@ -83,6 +74,18 @@ State::Variable* State::createVariable(const char* name, Variable::Type type)
    }
    
    return var;
+}
+
+void State::freeVariable(Variable* var)
+{
+   // delete string if applicable
+   if(var->type == Variable::String)
+   {
+      delete var->s;
+   }
+   
+   // delete variable
+   delete var;
 }
 
 void State::setBoolean(const char* name, bool value)
@@ -157,17 +160,8 @@ void State::removeVariable(const char* name)
       // delete name
       delete [] i->first;
       
-      // get variable
-      Variable* var = i->second;
-      
-      // delete string if applicable
-      if(var->type == Variable::String)
-      {
-         delete var->s;
-      }
-      
-      // delete variable
-      delete var;
+      // free variable
+      freeVariable(i->second);
       
       // remove variable from table
       mVarTable.erase(i);
