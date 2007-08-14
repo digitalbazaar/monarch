@@ -2742,8 +2742,6 @@ public:
    
    virtual void setContent(const char* str)
    {
-      cout << "**** IN setContent()" << endl;
-      
       delete mContent;
       mContent = new char[strlen(str) + 1];
       strcpy(mContent, str);
@@ -2751,21 +2749,33 @@ public:
    
    virtual const char* getContent()
    {
-      cout << "**** IN getContent()" << endl;
-      
       return mContent;
    }
 };
 
 class TestChild : public TestContent
 {
+protected:
+   int mId;
+   
 public:
    TestChild()
    {
+      mId = 0;
    }
    
    virtual ~TestChild()
    {
+   }
+   
+   virtual void setId(int id)
+   {
+      mId = id;
+   }
+   
+   virtual int getId()
+   {
+      return mId;
    }
 };
 
@@ -2822,7 +2832,7 @@ void runXmlReaderTest()
    
    string xml;
    xml.append("<TestContent>This is my content.");
-   xml.append("<TestChild>Blah</TestChild></TestContent>");
+   xml.append("<TestChild id=\"12\">Blah</TestChild></TestContent>");
    
    // main object to populate
    TestParent p;
@@ -2845,15 +2855,19 @@ void runXmlReaderTest()
    // data binding for child object
    DataBinding db2;
    
-   // data binding for child content
+   // data mapping for child content
    DataMappingFunctor<TestChild> dm3(
       &TestChild::setContent, &TestChild::getContent);
    
+   // data mapping for child id attribute
+   DataMappingFunctor<TestChild> dm4(
+      &TestChild::setId, &TestChild::getId);
+   
    // add mappings
    db2.addDataMapping(NULL, "TestChild", &dm3);
+   db2.addDataMapping(NULL, "id", &dm4);
    
-   // add bindings
-   db1.addDataBinding(NULL, "TestContent", &db1);
+   // add binding
    db1.addDataBinding(NULL, "TestChild", &db2);
    
    ByteArrayInputStream bais(xml.c_str(), xml.length());
@@ -2861,6 +2875,7 @@ void runXmlReaderTest()
    
    cout << "TestContent data='" << p.getContent() << "'" << endl;
    cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
+   cout << "TestChild id='" << p.getChild()->getId() << "'" << endl;
    
    cout << endl << "XmlReader test complete." << endl;
 }

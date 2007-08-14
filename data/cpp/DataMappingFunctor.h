@@ -6,9 +6,6 @@
 
 #include "DataMapping.h"
 
-// FIXME: remove me
-#include <iostream>
-
 namespace db
 {
 namespace data
@@ -23,33 +20,33 @@ namespace data
  * 
  * @author Dave Longley
  */
-template<class T, class TObject = void>
+template<class BoundType, class ChildType = void>
 class DataMappingFunctor : public DataMapping
 {
 protected:
    /**
-    * Typedef for creating another object.
+    * Typedef for creating a child object.
     */
-   typedef TObject* (T::*CreateObjectFunction)(void);
+   typedef ChildType* (BoundType::*CreateChildFunction)(void);
    
    /**
-    * Typedef for adding another object.
+    * Typedef for adding a child object.
     */
-   typedef void (T::*AddObjectFunction)(TObject*);
+   typedef void (BoundType::*AddChildFunction)(ChildType*);
    
    /**
     * Typedefs for setting data in an object.
     */
-   typedef void (T::*SetBooleanFunction)(bool); 
-   typedef void (T::*SetIntegerFunction)(int);
-   typedef void (T::*SetStringFunction)(const char*);
+   typedef void (BoundType::*SetBooleanFunction)(bool); 
+   typedef void (BoundType::*SetIntegerFunction)(int);
+   typedef void (BoundType::*SetStringFunction)(const char*);
    
    /**
     * Typedefs for getting data in an object.
     */
-   typedef bool (T::*GetBooleanFunction)(void);
-   typedef int (T::*GetIntegerFunction)(void);
-   typedef const char* (T::*GetStringFunction)(void);
+   typedef bool (BoundType::*GetBooleanFunction)(void);
+   typedef int (BoundType::*GetIntegerFunction)(void);
+   typedef const char* (BoundType::*GetStringFunction)(void);
    
    /**
     * A function for setting data in an object.
@@ -94,19 +91,14 @@ protected:
    };
    
    /**
-    * The object associated with this mapping.
+    * A function for creating a child object.
     */
-   T* mObject;
+   CreateChildFunction mCreateFunction;
    
    /**
-    * A function for creating another object.
+    * A function for adding a child object.
     */
-   CreateObjectFunction mCreateFunction;
-   
-   /**
-    * A function for adding another object.
-    */
-   AddObjectFunction mAddFunction;
+   AddChildFunction mAddFunction;
    
    /**
     * The DataSetFunction for setting data in the object.
@@ -122,11 +114,11 @@ public:
    /**
     * Creates a new DataMappingFunctor.
     * 
-    * @param cFunc a function for creating another object.
-    * @param aFunc a function for adding another object to the bound object.
+    * @param cFunc a function for creating a child object.
+    * @param aFunc a function for adding a child object to the bound object.
     */
    DataMappingFunctor(
-      CreateObjectFunction cFunc, AddObjectFunction aFunc);
+      CreateChildFunction cFunc, AddChildFunction aFunc);
    
    /**
     * Creates a new DataMappingFunctor.
@@ -161,44 +153,56 @@ public:
    virtual ~DataMappingFunctor();
    
    /**
-    * Sets the bound object.
+    * Creates a child object to add to the bound object.
     * 
-    * @param obj the bound object to use with this mapping.
+    * @param bObject the bound object.
+    * 
+    * @return a pointer to the child object.
     */
-   virtual void setObject(void* obj);
+   virtual void* createChild(void* bObject);
    
    /**
-    * Creates an object to add to the bound object.
+    * Adds a child object to the bound object.
     * 
-    * @return a pointer to the object.
+    * @param bObject the bound object.
+    * @param cObject the child object to add to the bound object.
     */
-   virtual void* createObject();
-   
-   /**
-    * Adds an object to the bound object.
-    * 
-    * @param obj the object to add to the bound object.
-    */
-   virtual void addObject(void* obj);
+   virtual void addChild(void* bObject, void* cObject);   
    
    /**
     * Sets the passed data in the bound object.
     * 
+    * @param bObject the bound object.
     * @param data the data to set in the object.
+    * @param length the length of the data.
     */
-   virtual void setData(const char* data);
+   virtual void setData(void* bObject, const char* data, int length);
+   
+   /**
+    * Appends the passed data to the bound object.
+    * 
+    * @param bObject the bound object.
+    * @param data the data to set in the object.
+    * @param length the length of the data.
+    */
+   virtual void appendData(void* bObject, const char* data, int length);
    
    /**
     * Gets data from the bound object.
     * 
-    * @return the data from the bound object.
+    * The caller of this method is responsible for freeing the returned
+    * data.
+    * 
+    * @param bObject the bound object.
+    * @param s a pointer to point at the data (null-terminated) from the bound
+    *          object.
     */
-   virtual const char* getData();
+   virtual void getData(void* bObject, char** s);
 };
 
-template<class T, class TObject>
-DataMappingFunctor<T, TObject>::DataMappingFunctor(
-   CreateObjectFunction cFunc, AddObjectFunction aFunc)
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
+   CreateChildFunction cFunc, AddChildFunction aFunc)
 {
    // set create/add functions
    mCreateFunction = cFunc;
@@ -209,8 +213,8 @@ DataMappingFunctor<T, TObject>::DataMappingFunctor(
    mGetFunction.type = DataGetFunction::None;
 }
 
-template<class T, class TObject>
-DataMappingFunctor<T, TObject>::DataMappingFunctor(
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
    SetBooleanFunction sbFunc, GetBooleanFunction gbFunc)
 {
    // no create/add functions
@@ -224,8 +228,8 @@ DataMappingFunctor<T, TObject>::DataMappingFunctor(
    mGetFunction.bFunc = gbFunc;
 }
 
-template<class T, class TObject>
-DataMappingFunctor<T, TObject>::DataMappingFunctor(
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
    SetIntegerFunction siFunc, GetIntegerFunction giFunc)
 {
    // no create/add functions
@@ -239,8 +243,8 @@ DataMappingFunctor<T, TObject>::DataMappingFunctor(
    mGetFunction.iFunc = giFunc;
 }
 
-template<class T, class TObject>
-DataMappingFunctor<T, TObject>::DataMappingFunctor(
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
    SetStringFunction ssFunc, GetStringFunction gsFunc)
 {
    // no create/add functions
@@ -254,44 +258,44 @@ DataMappingFunctor<T, TObject>::DataMappingFunctor(
    mGetFunction.sFunc = gsFunc;
 }
 
-template<class T, class TObject>
-DataMappingFunctor<T, TObject>::~DataMappingFunctor()
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::~DataMappingFunctor()
 {
 }
 
-template<class T, class TObject>
-void DataMappingFunctor<T, TObject>::setObject(void* obj)
-{
-   // store object
-   mObject = (T*)obj;
-}
-
-template<class T, class TObject>
-void* DataMappingFunctor<T, TObject>::createObject()
+template<class BoundType, class ChildType>
+void* DataMappingFunctor<BoundType, ChildType>::createChild(void* bObject)
 {
    void* rval = NULL;
    
    if(mCreateFunction != NULL)
    {
-      rval = (mObject->*mCreateFunction)();
+      rval = (((BoundType*)bObject)->*mCreateFunction)();
    }
    
    return rval;
 }
 
-template<class T, class TObject>
-void DataMappingFunctor<T, TObject>::addObject(void* obj)
+template<class BoundType, class ChildType>
+void DataMappingFunctor<BoundType, ChildType>::addChild(
+   void* bObject, void* cObject)
 {
    if(mAddFunction != NULL)
    {
-      (mObject->*mAddFunction)((TObject*)obj);
+      (((BoundType*)bObject)->*mAddFunction)((ChildType*)cObject);
    }
 }
 
-template<class T, class TObject>
-void DataMappingFunctor<T, TObject>::setData(const char* data)
+template<class BoundType, class ChildType>
+void DataMappingFunctor<BoundType, ChildType>::setData(
+   void* bObject, const char* data, int length)
 {
-   std::cout << "+++++ in setData()" << std::endl;
+   BoundType* bObj = (BoundType*)bObject;
+   
+   // add null-terminator to data
+   char d[length + 1];
+   strncpy(d, data, length);
+   memset(d + length, 0, 1);
    
    switch(mSetFunction.type)
    {
@@ -299,23 +303,56 @@ void DataMappingFunctor<T, TObject>::setData(const char* data)
          // no set function
          break;
       case DataSetFunction::Boolean:
-         // FIXME: convert data to boolean
-         //(mObject->*mSetFunction.bFunc)(data);
+         // convert data to boolean
+         if(strcasecmp(d, "true") == 0)
+         {
+            (bObj->*mSetFunction.bFunc)(true);
+         }
+         else if(strcasecmp(d, "false") == 0)
+         {
+            (bObj->*mSetFunction.bFunc)(false);
+         }
+         else
+         {
+            (bObj->*mSetFunction.bFunc)(strcasecmp(d, "1") == 0);
+         }
          break;
       case DataSetFunction::Integer:
-         // FIXME: convert data to integer
-         //(mObject->*mSetFunction.iFunc)(data);
+         // convert data to integer
+         (bObj->*mSetFunction.iFunc)(strtol(d, NULL, 10));
          break;
       case DataSetFunction::String:
-         (mObject->*mSetFunction.sFunc)(data);
+         (bObj->*mSetFunction.sFunc)(d);
          break;
    }
 }
 
-template<class T, class TObject>
-const char* DataMappingFunctor<T, TObject>::getData()
+template<class BoundType, class ChildType>
+void DataMappingFunctor<BoundType, ChildType>::appendData(
+   void* bObject, const char* data, int length)
 {
-   const char* rval = NULL;
+   // get existing data
+   char** oldData;
+   getData(bObject, oldData);
+   int oldLength = strlen(*oldData);
+   
+   // append new data
+   char d[oldLength + length];
+   strncpy(d, *oldData, oldLength);
+   strncpy(d + oldLength, data, length);
+   
+   // set data
+   setData(bObject, data, oldLength + length);
+   
+   // clean up old data
+   delete [] *oldData;
+}
+
+template<class BoundType, class ChildType>
+void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
+{
+   *s = NULL;
+   BoundType* bObj = (BoundType*)bObject;
    
    switch(mGetFunction.type)
    {
@@ -323,19 +360,37 @@ const char* DataMappingFunctor<T, TObject>::getData()
          // no get function
          break;
       case DataGetFunction::Boolean:
-         (mObject->*mGetFunction.bFunc)();
-         // FIXME: convert boolean to string
+         // convert boolean to string
+         if((bObj->*mGetFunction.bFunc)())
+         {
+            *s = new char[5];
+            strcpy(*s, "true");
+         }
+         else
+         {
+            *s = new char[6];
+            strcpy(*s, "false");
+         }
          break;
       case DataGetFunction::Integer:
-         (mObject->*mGetFunction.iFunc)();
-         // FIXME: convert integer to string
+         // convert integer to string
+         *s = new char[20];
+         sprintf(*s, "%d", (bObj->*mGetFunction.iFunc)());
          break;
       case DataGetFunction::String:
-         rval = (mObject->*mGetFunction.sFunc)();
+         const char* str = (bObj->*mGetFunction.sFunc)();
+         if(str != NULL)
+         {
+            *s = new char[strlen(str) + 1];
+            strcpy(*s, str);
+         }
+         else
+         {
+            *s = new char[1];
+            memset(*s, 0, 1);
+         }
          break;
    }
-   
-   return rval;
 }
 
 } // end namespace data

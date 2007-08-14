@@ -34,8 +34,7 @@ XmlReader::~XmlReader()
    // free parser
    XML_ParserFree(mParser);
 }
-// FIXME: remove iostream
-#include <iostream>
+
 void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
 {
    if(mDataBindingsStack.front() != NULL)
@@ -54,8 +53,6 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
          char* attrns;
          for(int i = 0; attrs[i] != NULL; i += 2)
          {
-            cout << "attribute: " << attrs[i] << "=" << attrs[i + 1] << endl;
-            
             // parse attribute namespace
             parseNamespace(&attrs[i], &attrns);
             
@@ -138,8 +135,6 @@ void XmlReader::parseNamespace(const char** fullName, char** ns)
 void XmlReader::startElement(
    void* xr, const XML_Char* name, const XML_Char** attrs)
 {
-   cout << "start element=" << name << endl;
-   
    // get reader, start element
    XmlReader* reader = (XmlReader*)xr;
    reader->startElement(name, attrs);
@@ -147,8 +142,6 @@ void XmlReader::startElement(
 
 void XmlReader::endElement(void* xr, const XML_Char* name)
 {
-   cout << "end element=" << name << endl;
-   
    // get reader, end element
    XmlReader* reader = (XmlReader*)xr;
    reader->endElement(name);
@@ -156,8 +149,6 @@ void XmlReader::endElement(void* xr, const XML_Char* name)
 
 void XmlReader::appendData(void* xr, const XML_Char* data, int length)
 {
-   cout << "read data" << endl;
-   
    // get reader, append data
    XmlReader* reader = (XmlReader*)xr;
    reader->appendData(data, length);
