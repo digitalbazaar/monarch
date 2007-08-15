@@ -70,15 +70,15 @@ DIST = \
 
 # Library path
 LIBS = \
-	-L$(BASE_DIR)/libs \
-	-L$(BASE_DIR)/test/cpp/dist \
-	-L$(BASE_DIR)/rt/cpp/dist \
-	-L$(BASE_DIR)/modest/cpp/dist \
-	-L$(BASE_DIR)/util/cpp/dist \
-	-L$(BASE_DIR)/io/cpp/dist \
-	-L$(BASE_DIR)/crypto/cpp/dist \
-	-L$(BASE_DIR)/net/cpp/dist \
-	-L$(BASE_DIR)/data/cpp/dist
+	-L$(BASE_DIR)/libs
+#	-L$(BASE_DIR)/test/cpp/dist \
+#	-L$(BASE_DIR)/rt/cpp/dist \
+#	-L$(BASE_DIR)/modest/cpp/dist \
+#	-L$(BASE_DIR)/util/cpp/dist \
+#	-L$(BASE_DIR)/io/cpp/dist \
+#	-L$(BASE_DIR)/crypto/cpp/dist \
+#	-L$(BASE_DIR)/net/cpp/dist \
+#	-L$(BASE_DIR)/data/cpp/dist
 
 # H files
 FIND_H = $(wildcard $(dir)/*.h)
@@ -137,21 +137,21 @@ libdbrt: $(DBRT_OBJS)
 	@mkdir -p $(BASE_DIR)/libs
 	$(AR) $(ARFLAGS) $(BASE_DIR)/rt/cpp/dist/$@.a $^ $(PTHREAD_LIB)
 	$(CC) $(LIBS) -shared -o $(BASE_DIR)/rt/cpp/dist/$@.so $^ $(PTHREAD_LIB)
-	@cp $(BASE_DIR)/rt/cpp/dist/$@.so $(BASE_DIR)/libs/
+	@cp $(BASE_DIR)/rt/cpp/dist/$@.a $(BASE_DIR)/libs/
 
 # Builds the DB modest libraries
 libdbmodest: $(DBMODEST_OBJS)
 	@mkdir -p $(BASE_DIR)/libs
 	$(AR) $(ARFLAGS) $(BASE_DIR)/modest/cpp/dist/$@.a $^
 	$(CC) $(LIBS) -shared -o $(BASE_DIR)/modest/cpp/dist/$@.so $^ -ldbrt $(PTHREAD_LIB)
-	@cp $(BASE_DIR)/modest/cpp/dist/$@.so $(BASE_DIR)/libs/
+	@cp $(BASE_DIR)/modest/cpp/dist/$@.a $(BASE_DIR)/libs/
 
 # Builds the DB utilities libraries
 libdbutil: $(DBUTIL_OBJS)
 	@mkdir -p $(BASE_DIR)/libs
 	$(AR) $(ARFLAGS) $(BASE_DIR)/util/cpp/dist/$@.a $^
 	$(CC) $(LIBS) -shared -o $(BASE_DIR)/util/cpp/dist/$@.so $^ -ldbrt $(PTHREAD_LIB)
-	@cp $(BASE_DIR)/util/cpp/dist/$@.so $(BASE_DIR)/libs/
+	@cp $(BASE_DIR)/util/cpp/dist/$@.a $(BASE_DIR)/libs/
 
 # Builds the DB io libraries
 libdbio: $(DBIO_OBJS)
@@ -159,7 +159,7 @@ libdbio: $(DBIO_OBJS)
 	echo DBIO_CPP
 	$(AR) $(ARFLAGS) $(BASE_DIR)/io/cpp/dist/$@.a $^
 	$(CC) $(LIBS) -shared -o $(BASE_DIR)/io/cpp/dist/$@.so $^ -ldbrt -ldbutil $(PTHREAD_LIB)
-	@cp $(BASE_DIR)/io/cpp/dist/$@.so $(BASE_DIR)/libs/
+	@cp $(BASE_DIR)/io/cpp/dist/$@.a $(BASE_DIR)/libs/
 
 # Builds the DB crypto libraries and wrappers
 #libdbcrypto: $(DBCRYPTO_OBJS)
@@ -173,21 +173,21 @@ libdbcrypto: $(DBCRYPTO_OBJS)
 	@mkdir -p $(BASE_DIR)/libs
 	$(AR) $(ARFLAGS) $(BASE_DIR)/crypto/cpp/dist/$@.a $(DBCRYPTO_OBJS)
 	$(CC) $(LIBS) -shared -o $(BASE_DIR)/crypto/cpp/dist/$@.so $(DBCRYPTO_OBJS) -ldbrt -ldbutil -ldbio $(WIN_LIBS)
-	@cp $(BASE_DIR)/crypto/cpp/dist/$@.so $(BASE_DIR)/libs/
+	@cp $(BASE_DIR)/crypto/cpp/dist/$@.a $(BASE_DIR)/libs/
 
 # Builds the DB net libraries
 libdbnet: $(DBNET_OBJS)
 	@mkdir -p $(BASE_DIR)/libs
 	$(AR) $(ARFLAGS) $(BASE_DIR)/net/cpp/dist/$@.a $^ $(CRYPTO_LIBS)
 	$(CC) $(LIBS) -shared -o $(BASE_DIR)/net/cpp/dist/$@.so $^ -ldbrt -ldbmodest -ldbutil -ldbio -ldbcrypto $(WIN_LIBS)
-	@cp $(BASE_DIR)/net/cpp/dist/$@.so $(BASE_DIR)/libs/
+	@cp $(BASE_DIR)/net/cpp/dist/$@.a $(BASE_DIR)/libs/
 
 # Builds the DB data libraries
 libdbdata: $(DBDATA_OBJS)
 	@mkdir -p $(BASE_DIR)/libs
 	$(AR) $(ARFLAGS) $(BASE_DIR)/data/cpp/dist/$@.a $^  $(XML_LIBS)
 	$(CC) $(LIBS) -shared -o $(BASE_DIR)/data/cpp/dist/$@.so $^ -ldbrt -ldbmodest -ldbutil -ldbio -ldbcrypto -ldbnet $(WIN_LIBS)
-	@cp $(BASE_DIR)/data/cpp/dist/$@.so $(BASE_DIR)/libs/
+	@cp $(BASE_DIR)/data/cpp/dist/$@.a $(BASE_DIR)/libs/
 
 # Builds the DB test.exe binary
 test: libdbrt libdbmodest libdbutil libdbio libdbcrypto libdbnet libdbdata $(BASE_DIR)/test/cpp/build/main.o
