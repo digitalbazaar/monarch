@@ -74,6 +74,15 @@ public:
     *          object.
     */
    virtual void getData(void* bObject, char** s) = 0;
+   
+   /**
+    * True if this DataMapping is a create/add mapping, false if it is a
+    * set/get mapping. 
+    * 
+    * @return true if this DataMapping is a create/add mapping, false if it is
+    *         a set/get mapping.
+    */
+   virtual bool isCreateMapping() = 0;
 };
 
 } // end namespace data

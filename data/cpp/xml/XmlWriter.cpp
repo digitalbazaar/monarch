@@ -3,6 +3,9 @@
  */
 #include "xml/XmlWriter.h"
 
+#include <list>
+
+using namespace std;
 using namespace db::data;
 using namespace db::data::xml;
 using namespace db::io;
@@ -15,25 +18,36 @@ XmlWriter::~XmlWriter()
 {
 }
 
-//void XmlWriter::parseNamespace(const char** name, char** ns)
-//{
-//   // parse namespace, if one exists
-//   *ns = NULL;
-//   const char* sep = strchr(*name, '|');
-//   if(sep != NULL)
-//   {
-//      *ns = new char[sep - *name];
-//      strncpy(*ns, *name, sep - *name);
-//      memset(ns + (sep - *name), 0, 1);
-//      *name = sep + 1;
-//   }
-//}
-
 bool XmlWriter::write(DataBinding* db, OutputStream* os)
 {
    bool rval = false;
    
-   // FIXME: implement me
+   // iterate through all data names
+   list<DataName*> dataNames = db->getDataNames();
+   for(list<DataName*>::iterator i = dataNames.begin();
+       i != dataNames.end(); i++)
+   {
+//      // get data mapping
+//      DataMapping* dm = db->getDataMapping(*i);
+//      if(dm->isCreateMapping())
+//      {
+//         // write out data binding
+//         write(db->getDataBinding(*(++i)), os);
+//      }
+//      else
+//      {
+//         // FIXME:
+//         // get object
+//         void* obj = NULL;
+//         
+//         // get data
+//         char* data;
+//         dm->getData(obj, data);
+//         
+//         // FIXME:
+//         // is it an element or an attribute?
+//      }
+   }
    
    return rval;
 }

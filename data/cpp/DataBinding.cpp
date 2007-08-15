@@ -66,8 +66,7 @@ bool DataBinding::DataNameComparator::operator()(
    return rval;
 }
 
-DataBinding::DataName* DataBinding::createDataName(
-   const char* ns, const char* name)
+DataName* DataBinding::createDataName(const char* ns, const char* name)
 {
    DataName* dn = new DataName();
    
@@ -108,72 +107,53 @@ void DataBinding::freeDataName(DataName* dn)
 void DataBinding::addDataMapping(
    const char* ns, const char* name, DataMapping* dm)
 {
-   // create DataName
+   // create data name
    DataName* dn = createDataName(ns, name);
-   
-   // find existing data mapping
-   map<DataName*, DataMapping*, DataNameComparator>::iterator i =
-      mDataMappings.find(dn);
-   if(i != mDataMappings.end())
-   {
-      // free new data name, use old data name
-      freeDataName(dn);
-      dn = i->first;
-   }
    
    // set data mapping
    mDataMappings[dn] = dm;
+   
+   // add data name to order
+   mDataNameOrder.push_back(dn);
 }
 
 void DataBinding::addDataBinding(
    const char* ns, const char* name, DataBinding* db)
 {
-   // create DataName
+   // create data name
    DataName* dn = createDataName(ns, name);
-   
-   // find existing data binding
-   map<DataName*, DataBinding*, DataNameComparator>::iterator i =
-      mDataBindings.find(dn);
-   if(i != mDataBindings.end())
-   {
-      // delete new data name, use old data name
-      delete dn;
-      dn = i->first;
-   }
    
    // set data binding
    mDataBindings[dn] = db;
+   
+   // add data name to order
+   mDataNameOrder.push_back(dn);
 }
 
 DataBinding* DataBinding::startData(
    const char* charEncoding, const char* ns, const char* name) 
 {
-   // default to self for binding
-   DataBinding* rval = this;
+   DataBinding* rval = NULL;
    
-   // create DataName
+   // create data name
    DataName* dn = createDataName(ns, name);
    
-   // find data binding
-   map<DataName*, DataBinding*, DataNameComparator>::iterator i =
-      mDataBindings.find(dn);
-   if(i != mDataBindings.end())
+   // get data binding
+   rval = getDataBinding(dn);
+   if(rval != NULL)
    {
-      // set return value to binding
-      rval = i->second;
-      
-      // create child object if not using self as binding
-      if(rval != this)
+      // get data mapping
+      DataMapping* dm = getDataMapping(dn);
+      if(dm != NULL)
       {
-         // get data mapping
-         map<DataName*, DataMapping*, DataNameComparator>::iterator j =
-            mDataMappings.find(dn);
-         if(j != mDataMappings.end())
-         {
-            // create new child object for the data binding
-            rval->mObject = j->second->createChild(mObject);
-         }
+         // create new child object for the data binding
+         rval->mObject = dm->createChild(mObject);
       }
+   }
+   else
+   {
+      // use self for binding, no child to create
+      rval = this;
    }
    
    // free old data name and set new one
@@ -186,13 +166,11 @@ DataBinding* DataBinding::startData(
 void DataBinding::appendData(
    const char* charEncoding, const char* data, unsigned int length)
 {
-   // find data mapping
-   map<DataName*, DataMapping*, DataNameComparator>::iterator i =
-      mDataMappings.find(mCurrentDataName);
-   if(i != mDataMappings.end())
+   // get data mapping
+   DataMapping* dm = getDataMapping(mCurrentDataName);
+   if(dm != NULL)
    {
-      // get data mapping and append data
-      DataMapping* dm = i->second;
+      // append data
       dm->appendData(mObject, data, length);
    }
 }
@@ -203,13 +181,11 @@ void DataBinding::endData(
    // add child object if not using self as binding
    if(this != db)
    {
-      // find data mapping
-      map<DataName*, DataMapping*, DataNameComparator>::iterator i =
-         mDataMappings.find(db->mCurrentDataName);
-      if(i != mDataMappings.end())
+      // get data mapping
+      DataMapping* dm = getDataMapping(db->mCurrentDataName);
+      if(dm != NULL)
       {
-         // get data mapping and add child object
-         DataMapping* dm = i->second;
+         // add child object
          dm->addChild(mObject, db->mObject);
       }
    }
@@ -219,18 +195,51 @@ void DataBinding::setData(
    const char* charEncoding, const char* ns, const char* name,
    const char* data, unsigned int length)
 {
-   // create DataName for look up
+   // create data name for look up
    DataName dn;
    dn.ns = (char*)ns;
    dn.name = (char*)name;
    
-   // find data mapping
-   map<DataName*, DataMapping*, DataNameComparator>::iterator i =
-      mDataMappings.find(&dn);
-   if(i != mDataMappings.end())
+   // get data mapping
+   DataMapping* dm = getDataMapping(&dn);
+   if(dm != NULL)
    {
-      // get data mapping and set data
-      DataMapping* dm = i->second;
+      // set data
       dm->setData(mObject, data, length);
    }
+}
+
+DataMapping* DataBinding::getDataMapping(DataName* dn)
+{
+   DataMapping* rval = NULL;
+   
+   // find data mapping
+   map<DataName*, DataMapping*, DataNameComparator>::iterator i =
+      mDataMappings.find(dn);
+   if(i != mDataMappings.end())
+   {
+      rval = i->second;
+   }
+   
+   return rval;
+}
+
+DataBinding* DataBinding::getDataBinding(DataName* dn)
+{
+   DataBinding* rval = NULL;
+   
+   // find data binding
+   map<DataName*, DataBinding*, DataNameComparator>::iterator i =
+      mDataBindings.find(dn);
+   if(i != mDataBindings.end())
+   {
+      rval = i->second;
+   }
+   
+   return rval;
+}
+
+list<DataName*>& DataBinding::getDataNames()
+{
+   return mDataNameOrder;
 }

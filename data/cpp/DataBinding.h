@@ -7,11 +7,29 @@
 #include "DataMapping.h"
 
 #include <map>
+#include <list>
 
 namespace db
 {
 namespace data
 {
+
+/**
+ * A DataName is a universal name for data that includes a namespace
+ * and a local name.
+ */
+typedef struct DataName
+{
+   /**
+    * The namespace.
+    */
+   char* ns;
+   
+   /**
+    * The name.
+    */
+   char* name;
+};
 
 /**
  * A DataBinding provides a generic interface for converting formatted data
@@ -25,24 +43,7 @@ namespace data
  */
 class DataBinding
 {
-protected:
-   /**
-    * A DataName is a universal name for data that includes a namespace
-    * and a local name.
-    */
-   typedef struct DataName
-   {
-      /**
-       * The namespace.
-       */
-      char* ns;
-      
-      /**
-       * The name.
-       */
-      char* name;
-   };
-   
+protected:  
    /**
     * A DataNameComparator compares two DataNames.
     */
@@ -76,6 +77,11 @@ protected:
    std::map<DataName*, DataBinding*, DataNameComparator> mDataBindings;
    
    /**
+    * A list that maintains the order in which DataNames were added.
+    */
+   std::list<DataName*> mDataNameOrder;
+   
+   /**
     * The DataName for the current DataBinding.
     */
    DataName* mCurrentDataName;
@@ -88,14 +94,14 @@ protected:
     * 
     * @return the created DataName.
     */
-   DataName* createDataName(const char* ns, const char* name);
+   virtual DataName* createDataName(const char* ns, const char* name);
    
    /**
     * Frees a DataName.
     * 
     * @param dn the DataName to free.
     */
-   void freeDataName(DataName* dn);
+   virtual void freeDataName(DataName* dn);
    
 public:
    /**
@@ -111,7 +117,13 @@ public:
    virtual ~DataBinding();
    
    /**
-    * Adds a data's DataMapping to this DataBinding.
+    * Adds a data's DataMapping to this DataBinding. DataMappings that have
+    * associated DataBindings must be added before their associated
+    * DataBindings.
+    * 
+    * Adding any DataMapping with the same namespace and name as one that
+    * has already been added will result in a memory leak and other
+    * undefined behavior.
     * 
     * @param ns the null-terminated namespace for the data.
     * @param name the null-terminated name for the data.
@@ -121,7 +133,12 @@ public:
       const char* ns, const char* name, DataMapping* dm);
    
    /**
-    * Adds another DataBinding to this DataBinding.
+    * Adds another DataBinding to this DataBinding. DataBindings must be added
+    * after their associated DataMappings.
+    * 
+    * Adding any DataBinding with the same namespace and name as one that
+    * has already been added will result in a memory leak and other undefined
+    * behavior.
     * 
     * @param ns the null-terminated namespace for the data.
     * @param name the null-terminated name for the data.
@@ -181,6 +198,33 @@ public:
       const char* charEncoding,
       const char* ns, const char* name,
       const char* data, unsigned int length);
+   
+   /**
+    * Gets a DataMapping from the given DataName.
+    * 
+    * @param dn the DataName for the DataMapping to retrieve.
+    * 
+    * @return a DataMapping from the given DataName.
+    */
+   virtual DataMapping* getDataMapping(DataName* dn);
+   
+   /**
+    * Gets a DataBinding from the given DataName.
+    * 
+    * @param dn the DataName for the DataBinding to retrieve.
+    * 
+    * @return a DataBinding from the given DataName.
+    */
+   virtual DataBinding* getDataBinding(DataName* dn);
+   
+   /**
+    * Gets the DataNames for this DataBinding, in order. For DataNames that
+    * have a DataMapping and a DataBinding, the DataName for the DataMapping
+    * will be first in the list, followed by the DataName for the DataBinding.
+    * 
+    * @return the DataNames for this DataBinding, in order.
+    */
+   virtual std::list<DataName*>& getDataNames();
 };
 
 } // end namespace data
