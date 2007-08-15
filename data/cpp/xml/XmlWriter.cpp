@@ -27,26 +27,48 @@ bool XmlWriter::write(DataBinding* db, OutputStream* os)
    for(list<DataName*>::iterator i = dataNames.begin();
        i != dataNames.end(); i++)
    {
-//      // get data mapping
-//      DataMapping* dm = db->getDataMapping(*i);
-//      if(dm->isCreateMapping())
-//      {
-//         // write out data binding
-//         write(db->getDataBinding(*(++i)), os);
-//      }
-//      else
-//      {
-//         // FIXME:
-//         // get object
-//         void* obj = NULL;
-//         
-//         // get data
-//         char* data;
-//         dm->getData(obj, data);
-//         
-//         // FIXME:
-//         // is it an element or an attribute?
-//      }
+      // get data mapping
+      DataMapping* dm = db->getDataMapping(*i);
+      if(dm->isCreateMapping())
+      {
+         // write out start element
+         
+         // increase indentation
+         
+         // write out data binding
+         write(db->getDataBinding(*(++i)), os);
+         
+         // decrease indentation
+         
+         // write out end element
+      }
+      else
+      {
+         // FIXME:
+         // get object
+         void* obj = NULL;
+         
+         // get data
+         char* data;
+         dm->getData(obj, &data);
+         
+         if((*i)->major)
+         {
+            // write out start element
+            
+            // write out data
+            
+            // write out end element
+         }
+         else
+         {
+            // write out attribute name and quote
+            
+            // write out data
+            
+            // close attribute quote
+         }
+      }
    }
    
    return rval;

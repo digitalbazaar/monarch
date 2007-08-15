@@ -66,9 +66,11 @@ bool DataBinding::DataNameComparator::operator()(
    return rval;
 }
 
-DataName* DataBinding::createDataName(const char* ns, const char* name)
+DataName* DataBinding::createDataName(
+   const char* ns, const char* name, bool major)
 {
    DataName* dn = new DataName();
+   dn->major = major;
    
    if(ns != NULL)
    {
@@ -105,10 +107,10 @@ void DataBinding::freeDataName(DataName* dn)
 }
 
 void DataBinding::addDataMapping(
-   const char* ns, const char* name, DataMapping* dm)
+   const char* ns, const char* name, bool major, DataMapping* dm)
 {
    // create data name
-   DataName* dn = createDataName(ns, name);
+   DataName* dn = createDataName(ns, name, major);
    
    // set data mapping
    mDataMappings[dn] = dm;
@@ -121,7 +123,7 @@ void DataBinding::addDataBinding(
    const char* ns, const char* name, DataBinding* db)
 {
    // create data name
-   DataName* dn = createDataName(ns, name);
+   DataName* dn = createDataName(ns, name, true);
    
    // set data binding
    mDataBindings[dn] = db;
@@ -136,7 +138,7 @@ DataBinding* DataBinding::startData(
    DataBinding* rval = NULL;
    
    // create data name
-   DataName* dn = createDataName(ns, name);
+   DataName* dn = createDataName(ns, name, true);
    
    // get data binding
    rval = getDataBinding(dn);

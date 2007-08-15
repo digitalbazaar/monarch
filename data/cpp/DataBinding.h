@@ -16,7 +16,8 @@ namespace data
 
 /**
  * A DataName is a universal name for data that includes a namespace
- * and a local name.
+ * and a local name. A flag can also be set to indicate whether the DataName
+ * refers to a major or minor piece of data.
  */
 typedef struct DataName
 {
@@ -29,6 +30,12 @@ typedef struct DataName
     * The name.
     */
    char* name;
+   
+   /**
+    * True if this is a major piece of data, false if it is a minor piece
+    * of data.
+    */
+   bool major;
 };
 
 /**
@@ -87,14 +94,18 @@ protected:
    DataName* mCurrentDataName;
    
    /**
-    * Creates a new DataName from a namespace and a name.
+    * Creates a new DataName from a namespace, a name, and whether or not
+    * it refers to a major or minor piece of data.
     * 
     * @param ns the namespace to use.
     * @param name the name to use.
+    * @param major true if the DataName refers to a major piece of data, false
+    *              if it refers to a minor piece of data.
     * 
     * @return the created DataName.
     */
-   virtual DataName* createDataName(const char* ns, const char* name);
+   virtual DataName* createDataName(
+      const char* ns, const char* name, bool major);
    
    /**
     * Frees a DataName.
@@ -127,10 +138,12 @@ public:
     * 
     * @param ns the null-terminated namespace for the data.
     * @param name the null-terminated name for the data.
+    * @param major true if the DataMapping is for a major piece of data,
+    *              false if it is for a minor piece of data.
     * @param dm the DataMapping to add to this DataBinding.
     */
    virtual void addDataMapping(
-      const char* ns, const char* name, DataMapping* dm);
+      const char* ns, const char* name, bool major, DataMapping* dm);
    
    /**
     * Adds another DataBinding to this DataBinding. DataBindings must be added

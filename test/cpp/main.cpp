@@ -2849,8 +2849,8 @@ void runXmlReaderTest()
       &TestParent::createChild, &TestParent::addChild);
    
    // add mappings
-   db1.addDataMapping(NULL, "TestContent", &dm1);
-   db1.addDataMapping(NULL, "TestChild", &dm2);
+   db1.addDataMapping(NULL, "TestContent", true, &dm1);
+   db1.addDataMapping(NULL, "TestChild", true, &dm2);
    
    // data binding for child object
    DataBinding db2;
@@ -2864,8 +2864,8 @@ void runXmlReaderTest()
       &TestChild::setId, &TestChild::getId);
    
    // add mappings
-   db2.addDataMapping(NULL, "TestChild", &dm3);
-   db2.addDataMapping(NULL, "id", &dm4);
+   db2.addDataMapping(NULL, "TestChild", true, &dm3);
+   db2.addDataMapping(NULL, "id", false, &dm4);
    
    // add binding
    db1.addDataBinding(NULL, "TestChild", &db2);
