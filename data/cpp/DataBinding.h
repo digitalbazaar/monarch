@@ -213,6 +213,29 @@ public:
       const char* data, unsigned int length);
    
    /**
+    * Sets the bound object to use with this binding.
+    * 
+    * @param obj the bound object to use with this binding.
+    */
+   virtual void setObject(void* obj);
+   
+   /**
+    * Gets the bound object used with this binding.
+    * 
+    * @return the bound object used with this binding.
+    */
+   virtual void* getObject();
+   
+   /**
+    * Populates a list of child objects for the given DataName. This method
+    * must be overloaded to populate child objects with data using this binding.
+    * 
+    * @param dn the DataName to get the child objects for.
+    * @param objLchildrenist the list to store child objects in.
+    */
+   virtual void getChildren(DataName* dn, std::list<void*>& children);
+   
+   /**
     * Gets a DataMapping from the given DataName.
     * 
     * @param dn the DataName for the DataMapping to retrieve.

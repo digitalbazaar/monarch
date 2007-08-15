@@ -211,6 +211,21 @@ void DataBinding::setData(
    }
 }
 
+void DataBinding::setObject(void* obj)
+{
+   mObject = obj;
+}
+
+void* DataBinding::getObject()
+{
+   return mObject;
+}
+
+void DataBinding::getChildren(DataName* dn, list<void*>& children)
+{
+   // base class has no children to populate
+}
+
 DataMapping* DataBinding::getDataMapping(DataName* dn)
 {
    DataMapping* rval = NULL;

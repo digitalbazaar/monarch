@@ -27,7 +27,7 @@ protected:
    /**
     * Typedef for creating a child object.
     */
-   typedef ChildType* (BoundType::*CreateChildFunction)(void);
+   typedef ChildType* (BoundType::*CreateChildFunction)();
    
    /**
     * Typedef for adding a child object.
@@ -44,9 +44,9 @@ protected:
    /**
     * Typedefs for getting data in an object.
     */
-   typedef bool (BoundType::*GetBooleanFunction)(void);
-   typedef int (BoundType::*GetIntegerFunction)(void);
-   typedef const char* (BoundType::*GetStringFunction)(void);
+   typedef bool (BoundType::*GetBooleanFunction)();
+   typedef int (BoundType::*GetIntegerFunction)();
+   typedef const char* (BoundType::*GetStringFunction)();
    
    /**
     * A function for setting data in an object.
@@ -200,13 +200,13 @@ public:
    virtual void getData(void* bObject, char** s);
    
    /**
-    * True if this DataMapping is a create/add mapping, false if it is a
+    * True if this DataMapping is a create/add child mapping, false if it is a
     * set/get mapping. 
     * 
-    * @return true if this DataMapping is a create/add mapping, false if it is
-    *         a set/get mapping.
+    * @return true if this DataMapping is a create/add child mapping, false if
+    *         it is a set/get mapping.
     */
-   virtual bool isCreateMapping();
+   virtual bool isChildMapping();
 };
 
 template<class BoundType, class ChildType>
@@ -403,7 +403,7 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
 }
 
 template<class BoundType, class ChildType>
-bool DataMappingFunctor<BoundType, ChildType>::isCreateMapping()
+bool DataMappingFunctor<BoundType, ChildType>::isChildMapping()
 {
    return mCreateFunction != NULL;
 }

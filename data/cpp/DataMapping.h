@@ -4,6 +4,8 @@
 #ifndef db_data_DataMapping_H
 #define db_data_DataMapping_H
 
+#include <list>
+
 namespace db
 {
 namespace data
@@ -76,13 +78,13 @@ public:
    virtual void getData(void* bObject, char** s) = 0;
    
    /**
-    * True if this DataMapping is a create/add mapping, false if it is a
+    * True if this DataMapping is a create/add child mapping, false if it is a
     * set/get mapping. 
     * 
-    * @return true if this DataMapping is a create/add mapping, false if it is
-    *         a set/get mapping.
+    * @return true if this DataMapping is a create/add child mapping, false if
+    *         it is a set/get mapping.
     */
-   virtual bool isCreateMapping() = 0;
+   virtual bool isChildMapping() = 0;
 };
 
 } // end namespace data
