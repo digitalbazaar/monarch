@@ -9,6 +9,7 @@ using namespace db::data;
 DataBinding::DataBinding(void* obj)
 {
    mObject = obj;
+   mRootDataName = NULL;
    mCurrentDataName = NULL;
 }
 
@@ -29,6 +30,9 @@ DataBinding::~DataBinding()
       // free data name
       freeDataName(i->first);
    }
+   
+   // free root data name
+   freeDataName(mRootDataName);
    
    // free current data name
    freeDataName(mCurrentDataName);
@@ -219,6 +223,17 @@ void DataBinding::setObject(void* obj)
 void* DataBinding::getObject()
 {
    return mObject;
+}
+
+void DataBinding::setDataName(const char* ns, const char* name)
+{
+   freeDataName(mRootDataName);
+   mRootDataName = createDataName(ns, name, true);
+}
+
+DataName* DataBinding::getDataName()
+{
+   return mRootDataName;
 }
 
 void DataBinding::getChildren(DataName* dn, list<void*>& children)

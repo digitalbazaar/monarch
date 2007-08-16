@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include <iostream>
+#include <sstream>
 #include <openssl/ssl.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -49,6 +50,7 @@
 #include "xml/XmlReader.h"
 #include "xml/XmlWriter.h"
 #include "DataMappingFunctor.h"
+#include "OStreamOutputStream.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -2819,6 +2821,78 @@ public:
    }
 };
 
+class TestChildDataBinding : public DataBinding
+{
+protected:
+   DataMapping* mChildContent;
+   DataMapping* mChildId;
+   
+public:
+   TestChildDataBinding(TestChild* c = NULL) : DataBinding(c)
+   {
+      // set root data name
+      setDataName(NULL, "TestChild");
+      
+      // data mapping for child content
+      mChildContent = new DataMappingFunctor<TestChild>(
+         &TestChild::setContent, &TestChild::getContent);
+      
+      // data mapping for child id attribute
+      mChildId = new DataMappingFunctor<TestChild>(
+         &TestChild::setId, &TestChild::getId);
+      
+      // add mappings
+      addDataMapping(NULL, "TestChild", true, mChildContent);
+      addDataMapping(NULL, "id", false, mChildId);
+   }
+   
+   virtual ~TestChildDataBinding()
+   {
+      delete mChildContent;
+      delete mChildId;
+   }
+};
+
+class TestParentDataBinding : public DataBinding
+{
+protected:
+   TestParent* mTestParent;
+   TestChildDataBinding mChildBinding;
+   DataMappingFunctor<TestParent> mTestContent;
+   DataMappingFunctor<TestParent, TestChild> mCreateChild;
+   
+public:
+   TestParentDataBinding(TestParent* p) :
+      DataBinding(p),
+      mTestContent(&TestParent::setContent, &TestParent::getContent),
+      mCreateChild(&TestParent::createChild, &TestParent::addChild)
+   {
+      mTestParent = p;
+      
+      // set root data name
+      setDataName(NULL, "TestContent");
+      
+      // add mappings
+      addDataMapping(NULL, "TestContent", true, &mTestContent);
+      addDataMapping(NULL, "TestChild", true, &mCreateChild);
+      
+      // add bindings
+      addDataBinding(NULL, "TestChild", &mChildBinding);
+   }
+   
+   virtual ~TestParentDataBinding()
+   {
+   }
+   
+   virtual void getChildren(DataName* dn, list<void*>& children)
+   {
+      if(mTestParent->getChild() != NULL)
+      {
+         children.push_back(mTestParent->getChild());
+      }
+   }
+};
+
 void runXmlReaderTest()
 {
    cout << "Starting XmlReader test." << endl << endl;
@@ -2837,45 +2911,22 @@ void runXmlReaderTest()
    // main object to populate
    TestParent p;
    
-   // data binding for main object
-   DataBinding db1(&p);
-   
-   // data mapping for setting content for main object
-   DataMappingFunctor<TestParent> dm1(
-      &TestParent::setContent, &TestParent::getContent);
-   
-   // data mapping for creating child object for main object
-   DataMappingFunctor<TestParent, TestChild> dm2(
-      &TestParent::createChild, &TestParent::addChild);
-   
-   // add mappings
-   db1.addDataMapping(NULL, "TestContent", true, &dm1);
-   db1.addDataMapping(NULL, "TestChild", true, &dm2);
-   
-   // data binding for child object
-   DataBinding db2;
-   
-   // data mapping for child content
-   DataMappingFunctor<TestChild> dm3(
-      &TestChild::setContent, &TestChild::getContent);
-   
-   // data mapping for child id attribute
-   DataMappingFunctor<TestChild> dm4(
-      &TestChild::setId, &TestChild::getId);
-   
-   // add mappings
-   db2.addDataMapping(NULL, "TestChild", true, &dm3);
-   db2.addDataMapping(NULL, "id", false, &dm4);
-   
-   // add binding
-   db1.addDataBinding(NULL, "TestChild", &db2);
+   // data binding for object
+   TestParentDataBinding db(&p);
    
    ByteArrayInputStream bais(xml.c_str(), xml.length());
-   reader.read(&db1, &bais);
+   reader.read(&db, &bais);
    
    cout << "TestContent data='" << p.getContent() << "'" << endl;
-   cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
-   cout << "TestChild id='" << p.getChild()->getId() << "'" << endl;
+   if(p.getChild() != NULL)
+   {
+      cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
+      cout << "TestChild id='" << p.getChild()->getId() << "'" << endl;
+   }
+   else
+   {
+      cout << "TestChild does not exist!" << endl;
+   }
    
    cout << endl << "XmlReader test complete." << endl;
 }
@@ -2887,6 +2938,52 @@ void runXmlWriterTest()
    // FIXME:
    
    cout << endl << "XmlWriter test complete." << endl;
+}
+
+void runXmlReadWriteTest()
+{
+   cout << "Starting XmlReadWrite test." << endl << endl;
+   
+   XmlReader reader;
+   
+   string xml;
+   xml.append("<TestContent>This is my content.");
+   xml.append("<TestChild id=\"12\">Blah</TestChild></TestContent>");
+   
+   // main object to populate
+   TestParent p;
+   
+   // data binding for object
+   TestParentDataBinding db(&p);
+   
+   ByteArrayInputStream bais(xml.c_str(), xml.length());
+   reader.read(&db, &bais);
+   
+   cout << "*****DOING XML READ*****" << endl;
+   
+   cout << "TestContent data='" << p.getContent() << "'" << endl;
+   if(p.getChild() != NULL)
+   {
+      cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
+      cout << "TestChild id='" << p.getChild()->getId() << "'" << endl;
+   }
+   else
+   {
+      cout << "TestChild does not exist!" << endl;
+   }
+   
+   cout << endl << "*****DOING XML WRITE*****" << endl;
+   
+   XmlWriter writer;
+   ostringstream oss;
+   OStreamOutputStream os(&oss);
+   
+   // write out xml
+   writer.write(&db, &os);
+   
+   cout << "XML=\n" << oss.str() << endl;
+   
+   cout << endl << "XmlReadWrite test complete." << endl;
 }
 
 class RunTests : public virtual Object, public Runnable
@@ -2941,8 +3038,9 @@ public:
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
 //      runDelegateTest();
-      runXmlReaderTest();
+//      runXmlReaderTest();
 //      runXmlWriterTest();
+      runXmlReadWriteTest();
       
       cout << endl << "Tests finished." << endl;
       

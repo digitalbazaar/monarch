@@ -345,15 +345,59 @@ void DataMappingFunctor<BoundType, ChildType>::appendData(
    getData(bObject, oldData);
    int oldLength = strlen(*oldData);
    
-   // append new data
-   char d[oldLength + length];
-   strncpy(d, *oldData, oldLength);
-   strncpy(d + oldLength, data, length);
+   char* d = NULL;
+   if(oldLength > 0)
+   {
+      // append new data and null-terminator
+      d = new char[oldLength + length + 1];
+      strncpy(d, *oldData, oldLength);
+      strncpy(d + oldLength, data, length);
+      memset(d, 0, 1);
+      length += oldLength;
+   }
+   else
+   {
+      // append null terminator
+      d = new char[length + 1];
+      strncpy(d, data, length);
+      memset(d + length, 0, 1);
+   }
    
-   // set data
-   setData(bObject, data, oldLength + length);
+   // FIXME: setData() cannot be called from here due to some strange
+   // linking error where its address is returned as NULL at runtime
+   BoundType* bObj = (BoundType*)bObject;
    
-   // clean up old data
+   switch(mSetFunction.type)
+   {
+      case DataSetFunction::None:
+         // no set function
+         break;
+      case DataSetFunction::Boolean:
+         // convert data to boolean
+         if(strcasecmp(d, "true") == 0)
+         {
+            (bObj->*mSetFunction.bFunc)(true);
+         }
+         else if(strcasecmp(d, "false") == 0)
+         {
+            (bObj->*mSetFunction.bFunc)(false);
+         }
+         else
+         {
+            (bObj->*mSetFunction.bFunc)(strcasecmp(d, "1") == 0);
+         }
+         break;
+      case DataSetFunction::Integer:
+         // convert data to integer
+         (bObj->*mSetFunction.iFunc)(strtol(d, NULL, 10));
+         break;
+      case DataSetFunction::String:
+         (bObj->*mSetFunction.sFunc)(d);
+         break;
+   }
+   
+   // clean up temp and old data
+   delete [] d;
    delete [] *oldData;
 }
 
@@ -367,6 +411,8 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
    {
       case DataGetFunction::None:
          // no get function
+         *s = new char[1];
+         memset(*s, 0, 1);
          break;
       case DataGetFunction::Boolean:
          // convert boolean to string

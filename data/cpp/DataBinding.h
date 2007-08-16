@@ -74,6 +74,11 @@ protected:
    void* mObject;
    
    /**
+    * The root data name, if any.
+    */
+   DataName* mRootDataName;
+   
+   /**
     * A map of DataNames to DataMappings.
     */
    std::map<DataName*, DataMapping*, DataNameComparator> mDataMappings;
@@ -225,6 +230,21 @@ public:
     * @return the bound object used with this binding.
     */
    virtual void* getObject();
+   
+   /**
+    * Sets the root data name.
+    * 
+    * @param ns the null-terminated namespace for the data.
+    * @param name the null-terminated name for the data.
+    */
+   virtual void setDataName(const char* ns, const char* name);
+   
+   /**
+    * Gets the root DataName, if one exists.
+    * 
+    * @return the root DataName or NULL if none exists.
+    */
+   virtual DataName* getDataName();
    
    /**
     * Populates a list of child objects for the given DataName. This method
