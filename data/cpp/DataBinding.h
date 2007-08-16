@@ -36,6 +36,14 @@ typedef struct DataName
     * of data.
     */
    bool major;
+   
+   /**
+    * Returns true if this DataName is equal to the passed DataName, false
+    * if not.
+    * 
+    * @param dn the DataName to compare to this one.
+    */
+   bool equals(DataName* dn);
 };
 
 /**

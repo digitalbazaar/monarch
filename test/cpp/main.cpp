@@ -2842,8 +2842,8 @@ public:
          &TestChild::setId, &TestChild::getId);
       
       // add mappings
-      addDataMapping(NULL, "TestChild", true, mChildContent);
       addDataMapping(NULL, "id", false, mChildId);
+      addDataMapping(NULL, "TestChild", true, mChildContent);
    }
    
    virtual ~TestChildDataBinding()
@@ -2935,7 +2935,33 @@ void runXmlWriterTest()
 {
    cout << "Starting XmlWriter test." << endl << endl;
    
-   // FIXME:
+   // main object to populate
+   TestParent p;
+   
+   // data binding for object
+   TestParentDataBinding db(&p);
+   
+   XmlWriter writer;
+   ostringstream oss;
+   OStreamOutputStream os(&oss);
+   
+   // write out xml
+   writer.write(&db, &os);
+   cout << "XML empty=\n" << oss.str() << endl;
+   
+   // clear string stream
+   oss.str("");
+   
+   // set some content
+   p.setContent("Moooooooo");
+   
+   // add child to TestContent
+   TestChild* c = new TestChild();
+   c->setId(514);
+   p.addChild(c);
+   
+   writer.write(&db, &os);
+   cout << "XML full=\n" << oss.str() << endl;
    
    cout << endl << "XmlWriter test complete." << endl;
 }
@@ -3038,8 +3064,8 @@ public:
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
 //      runDelegateTest();
-//      runXmlReaderTest();
-//      runXmlWriterTest();
+      runXmlReaderTest();
+      runXmlWriterTest();
       runXmlReadWriteTest();
       
       cout << endl << "Tests finished." << endl;

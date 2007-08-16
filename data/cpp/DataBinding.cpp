@@ -6,6 +6,28 @@
 using namespace std;
 using namespace db::data;
 
+bool DataName::equals(DataName* dn)
+{
+   bool rval = false;
+   
+   if(ns == NULL && dn->ns == NULL)
+   {
+      // compare names
+      rval = (strcmp(name, dn->name) == 0);
+   }
+   else if(ns != NULL && dn->ns != NULL)
+   {
+      // compare namespaces
+      if(strcmp(ns, dn->ns) == 0)
+      {
+         // compare names
+         rval = (strcmp(name, dn->name) == 0);
+      }
+   }
+   
+   return rval;
+}
+
 DataBinding::DataBinding(void* obj)
 {
    mObject = obj;
