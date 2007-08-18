@@ -2824,32 +2824,25 @@ public:
 class TestChildDataBinding : public DataBinding
 {
 protected:
-   DataMapping* mChildContent;
-   DataMapping* mChildId;
+   DataMappingFunctor<TestChild> mChildContent;
+   DataMappingFunctor<TestChild> mChildId;
    
 public:
-   TestChildDataBinding(TestChild* c = NULL) : DataBinding(c)
+   TestChildDataBinding(TestChild* c = NULL) :
+      DataBinding(c),
+      mChildContent(&TestChild::setContent, &TestChild::getContent),
+      mChildId(&TestChild::setId, &TestChild::getId)
    {
       // set root data name
       setDataName(NULL, "TestChild");
       
-      // data mapping for child content
-      mChildContent = new DataMappingFunctor<TestChild>(
-         &TestChild::setContent, &TestChild::getContent);
-      
-      // data mapping for child id attribute
-      mChildId = new DataMappingFunctor<TestChild>(
-         &TestChild::setId, &TestChild::getId);
-      
       // add mappings
-      addDataMapping(NULL, "id", false, mChildId);
-      addDataMapping(NULL, "TestChild", true, mChildContent);
+      addDataMapping(NULL, "id", false, &mChildId);
+      addDataMapping(NULL, "TestChild", true, &mChildContent);
    }
    
    virtual ~TestChildDataBinding()
    {
-      delete mChildContent;
-      delete mChildId;
    }
 };
 
@@ -3066,7 +3059,7 @@ public:
 //      runDelegateTest();
       runXmlReaderTest();
       runXmlWriterTest();
-      runXmlReadWriteTest();
+//      runXmlReadWriteTest();
       
       cout << endl << "Tests finished." << endl;
       
