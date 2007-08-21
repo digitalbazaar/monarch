@@ -3030,16 +3030,20 @@ void runBigDecimalTest()
    cout << "Starting BigDecimal test." << endl << endl;
    
    BigDecimal number1 = 2.0;
-   BigDecimal number2 = 123456789.5;
-   
+   //BigDecimal number2 = 123456789.5;
+   BigDecimal number2 = "123456789.5";
+   //BigDecimal number2 = 1.234;
+   //BigDecimal number2 = "1.23e-04";
+   //BigDecimal number2 = "1234";
+      
    cout << "number1=" << number1 << endl;
    cout << "number2=" << number2 << endl;
    cout << "number1 + number2=" << (number1 + number2) << endl;
    cout << "number1 - number2=" << (number1 - number2) << endl;
    cout << "number1 * number2=" << (number1 * number2) << endl;
    cout << "number2 / number1=" << (number2 / number1) << endl;
-   cout << "number2 % number1=" << (number2 % number1) << endl;
-   cout << "number2 ^ number1=" << (number2.pow(number1)) << endl;
+//   cout << "number2 % number1=" << (number2 % number1) << endl;
+//   cout << "number2 ^ number1=" << (number2.pow(number1)) << endl;
    
    cout << endl << "BigDecimal test complete." << endl;
 }

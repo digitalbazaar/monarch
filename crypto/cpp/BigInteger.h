@@ -44,11 +44,49 @@ protected:
    
 public:
    /**
+    * A BigInteger with a value of 0.
+    */
+   static BigInteger ZERO;
+   
+   /**
+    * A BigInteger with a value of 10.
+    */
+   static BigInteger TEN;
+   
+   /**
     * Creates a new BigInteger with the specified value.
     * 
     * @param value the value for this BigInteger.
     */
    BigInteger(long long value = 0);
+   
+   /**
+    * Creates a new BigInteger with the specified value.
+    * 
+    * @param value the value for this BigInteger.
+    */
+   BigInteger(unsigned long value);
+   
+   /**
+    * Creates a new BigInteger with the specified value.
+    * 
+    * @param value the value for this BigInteger.
+    */
+   BigInteger(int value);
+   
+   /**
+    * Creates a new BigInteger with the specified value.
+    * 
+    * @param value the value for this BigInteger.
+    */
+   BigInteger(unsigned int value);
+   
+   /**
+    * Creates a new BigInteger with the specified value.
+    * 
+    * @param value the value for this BigInteger.
+    */
+   BigInteger(const char* value);
    
    /**
     * Creates a new BigInteger with the specified value.
@@ -95,6 +133,33 @@ public:
     * @return this BigInteger.
     */
    BigInteger& operator=(unsigned long rhs);
+   
+   /**
+    * Sets this BigInteger's value to the passed value.
+    * 
+    * @param value the new value for this BigInteger.
+    * 
+    * @return this BigInteger.
+    */
+   BigInteger& operator=(int rhs);
+   
+   /**
+    * Sets this BigInteger's value to the passed value.
+    * 
+    * @param value the new value for this BigInteger.
+    * 
+    * @return this BigInteger.
+    */
+   BigInteger& operator=(unsigned int rhs);
+   
+   /**
+    * Sets this BigInteger's value to the passed value.
+    * 
+    * @param value the new value for this BigInteger.
+    * 
+    * @return this BigInteger.
+    */
+   BigInteger& operator=(const char* rhs);
    
    /**
     * Sets this BigInteger's value to the passed value.
@@ -310,6 +375,13 @@ public:
     * @return true if this BigInteger is zero, false if not.
     */
    bool isZero() const;
+   
+   /**
+    * Sets whether or not this BigInteger is negative.
+    * 
+    * @param negative true if this BigInteger should be negative, false if not.
+    */
+   void setNegative(bool negative);
    
    /**
     * Returns true if this BigInteger is negative, false if not.

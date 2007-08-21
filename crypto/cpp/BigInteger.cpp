@@ -9,6 +9,10 @@
 using namespace std;
 using namespace db::crypto;
 
+// initialize static BigIntegers
+BigInteger BigInteger::ZERO(0);
+BigInteger BigInteger::TEN(10);
+
 BigInteger::BigInteger(long long value)
 {
    mBigNum = BN_new();
@@ -18,6 +22,46 @@ BigInteger::BigInteger(long long value)
    {
       *this = value;
    }
+}
+
+BigInteger::BigInteger(unsigned long value)
+{
+   mBigNum = BN_new();
+   mBigNumContext = NULL;
+   
+   if(value != 0)
+   {
+      *this = value;
+   }
+}
+
+BigInteger::BigInteger(int value)
+{
+   mBigNum = BN_new();
+   mBigNumContext = NULL;
+   
+   if(value != 0)
+   {
+      *this = value;
+   }
+}
+
+BigInteger::BigInteger(unsigned int value)
+{
+   mBigNum = BN_new();
+   mBigNumContext = NULL;
+   
+   if(value != 0)
+   {
+      *this = value;
+   }
+}
+
+BigInteger::BigInteger(const char* value)
+{
+   mBigNum = BN_new();
+   mBigNumContext = NULL;
+   *this = value;
 }
 
 BigInteger::BigInteger(const string& value)
@@ -92,21 +136,39 @@ BigInteger& BigInteger::operator=(unsigned long rhs)
    return *this;
 }
 
-BigInteger& BigInteger::operator=(const string& rhs)
+BigInteger& BigInteger::operator=(int rhs)
 {
-   if(strcmp(rhs.c_str(), "0") == 0)
+   *this = (long long)rhs;
+   return *this;
+}
+
+BigInteger& BigInteger::operator=(unsigned int rhs)
+{
+   *this = (unsigned long)rhs;
+   return *this;
+}
+
+BigInteger& BigInteger::operator=(const char* rhs)
+{
+   if(strcmp(rhs, "0") == 0)
    {
       assert(BN_zero(mBigNum) == 1);
    }
    else
    {
-      if(BN_dec2bn(&mBigNum, rhs.c_str()) == 0)
+      if(BN_dec2bn(&mBigNum, rhs) == 0)
       {
          // string was an invalid number, so zero out BIGNUM
          assert(BN_zero(mBigNum) == 1);
       }
    }
    
+   return *this;
+}
+
+BigInteger& BigInteger::operator=(const string& rhs)
+{
+   *this = rhs.c_str();
    return *this;
 }
 
@@ -238,6 +300,11 @@ void BigInteger::divide(
 bool BigInteger::isZero() const
 {
    return BN_get_word(mBigNum) == 0;
+}
+
+void BigInteger::setNegative(bool negative)
+{
+   mBigNum->neg = (negative) ? 1 : 0;
 }
 
 bool BigInteger::isNegative() const

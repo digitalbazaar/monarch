@@ -69,6 +69,13 @@ public:
     * 
     * @param value the value for this BigDecimal.
     */
+   BigDecimal(const char* value);
+   
+   /**
+    * Creates a new BigDecimal with the specified value.
+    * 
+    * @param value the value for this BigDecimal.
+    */
    BigDecimal(const std::string& value);
    
    /**
@@ -100,6 +107,15 @@ public:
     * @return this BigDecimal.
     */
    BigDecimal& operator=(long double rhs);
+   
+   /**
+    * Sets this BigDecimal's value to the passed value.
+    * 
+    * @param value the new value for this BigDecimal.
+    * 
+    * @return this BigDecimal.
+    */
+   BigDecimal& operator=(const char* rhs);
    
    /**
     * Sets this BigDecimal's value to the passed value.
@@ -304,6 +320,13 @@ public:
     * @return true if this BigDecimal is zero, false if not.
     */
    bool isZero() const;
+   
+   /**
+    * Sets whether or not this BigDecimal is negative.
+    * 
+    * @param negative true if this BigDecimal should be negative, false if not.
+    */
+   void setNegative(bool negative);
    
    /**
     * Returns true if this BigDecimal is negative, false if not.
