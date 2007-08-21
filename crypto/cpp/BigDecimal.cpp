@@ -315,17 +315,6 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
    return rval;
 }
 
-BigDecimal BigDecimal::pow(const BigDecimal& rhs)
-{
-   BigDecimal rval = *this;
-   
-   // raise significand and multiply exponents
-   rval.mSignificand.powEquals(rhs.mSignificand);
-   rval.mExponent *= rhs.mExponent;
-   
-   return rval;
-}
-
 BigDecimal BigDecimal::operator%(const BigDecimal& rhs)
 {
    BigDecimal rval = *this;
@@ -356,12 +345,6 @@ BigDecimal& BigDecimal::operator*=(const BigDecimal& rhs)
 BigDecimal& BigDecimal::operator/=(const BigDecimal& rhs)
 {
    *this = *this / rhs;
-   return *this;
-}
-
-BigDecimal& BigDecimal::powEquals(const BigDecimal& rhs)
-{
-   *this = this->pow(rhs);
    return *this;
 }
 

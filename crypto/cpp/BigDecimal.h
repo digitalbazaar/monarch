@@ -278,16 +278,6 @@ public:
    BigDecimal operator/(const BigDecimal& rhs);
    
    /**
-    * Returns the result of this BigDecimal raised to the power of the passed
-    * one.
-    * 
-    * @param rhs the BigDecimal to raise this one by.
-    * 
-    * @return the result of this BigDecimal raised by the passed one.
-    */
-   BigDecimal pow(const BigDecimal& rhs);
-   
-   /**
     * Returns this BigDecimal modulo the passed one.
     * 
     * @param rhs the BigDecimal to mod this one by.
@@ -331,16 +321,6 @@ public:
     * @return the new value of this BigDecimal.
     */
    BigDecimal& operator/=(const BigDecimal& rhs);
-   
-   /**
-    * Raises this BigDecimal to the power of the passed one and returns the
-    * result.
-    * 
-    * @param rhs the BigDecimal to raise this one by.
-    * 
-    * @return the new value of this BigDecimal.
-    */
-   BigDecimal& powEquals(const BigDecimal& rhs);
    
    /**
     * Sets this BigDecimal to the modulus of the passed one.
