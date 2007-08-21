@@ -15,8 +15,7 @@ BigInteger BigInteger::TEN(10);
 
 BigInteger::BigInteger(long long value)
 {
-   mBigNum = BN_new();
-   mBigNumContext = NULL;
+   initialize();
    
    if(value != 0)
    {
@@ -26,8 +25,7 @@ BigInteger::BigInteger(long long value)
 
 BigInteger::BigInteger(unsigned long value)
 {
-   mBigNum = BN_new();
-   mBigNumContext = NULL;
+   initialize();
    
    if(value != 0)
    {
@@ -37,8 +35,7 @@ BigInteger::BigInteger(unsigned long value)
 
 BigInteger::BigInteger(int value)
 {
-   mBigNum = BN_new();
-   mBigNumContext = NULL;
+   initialize();
    
    if(value != 0)
    {
@@ -48,8 +45,7 @@ BigInteger::BigInteger(int value)
 
 BigInteger::BigInteger(unsigned int value)
 {
-   mBigNum = BN_new();
-   mBigNumContext = NULL;
+   initialize();
    
    if(value != 0)
    {
@@ -59,28 +55,31 @@ BigInteger::BigInteger(unsigned int value)
 
 BigInteger::BigInteger(const char* value)
 {
-   mBigNum = BN_new();
-   mBigNumContext = NULL;
+   initialize();
    *this = value;
 }
 
 BigInteger::BigInteger(const string& value)
 {
-   mBigNum = BN_new();
-   mBigNumContext = NULL;
+   initialize();
    *this = value;
 }
 
 BigInteger::BigInteger(const BigInteger& rhs)
 {
-   mBigNum = BN_new();
-   mBigNumContext = NULL;
+   initialize();
    assert(BN_copy(mBigNum, rhs.mBigNum) == mBigNum);
 }
 
 BigInteger::~BigInteger()
 {
    BN_free(mBigNum);
+}
+
+void BigInteger::initialize()
+{
+   mBigNum = BN_new();
+   mBigNumContext = NULL;
 }
 
 BN_CTX* BigInteger::getContext()
@@ -288,6 +287,11 @@ BigInteger& BigInteger::operator%=(const BigInteger& rhs)
 {
    assert(BN_mod(mBigNum, mBigNum, rhs.mBigNum, getContext()) == 1);
    return *this;
+}
+
+int BigInteger::absCompare(const BigInteger& rhs)
+{
+   return BN_ucmp(mBigNum, rhs.mBigNum);
 }
 
 void BigInteger::divide(

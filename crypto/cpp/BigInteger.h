@@ -36,6 +36,11 @@ protected:
    BN_CTX* mBigNumContext;
    
    /**
+    * Initializes this BigInteger.
+    */
+   void initialize();
+   
+   /**
     * Gets an initialized BN_CTX structure.
     * 
     * @return an initialized BN_CTX structure.
@@ -357,6 +362,18 @@ public:
     * @return the new value of this BigInteger.
     */
    BigInteger& operator%=(const BigInteger& rhs);
+   
+   /**
+    * Compares the absolute value of this BigInteger to the absolute value
+    * of another one.
+    * 
+    * @param rhs the BigInteger to compare this one to.
+    * 
+    * @return -1 if this BigInteger's absolute value is less than the passed
+    *         BigInteger's absolute value, 0 if they are the same, and 1 if
+    *         this BigInteger's absolute value is greater.
+    */
+   int absCompare(const BigInteger& rhs);
    
    /**
     * Divides this BigInteger by another and returns the whole number

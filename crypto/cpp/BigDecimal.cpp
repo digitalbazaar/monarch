@@ -10,6 +10,8 @@ using namespace db::crypto;
 
 BigDecimal::BigDecimal(long double value)
 {
+   initialize();
+   
    if(value != 0)
    {
       *this = value;
@@ -18,22 +20,38 @@ BigDecimal::BigDecimal(long double value)
 
 BigDecimal::BigDecimal(const char* value)
 {
+   initialize();
    *this = value;
 }
 
 BigDecimal::BigDecimal(const string& value)
 {
+   initialize();
    *this = value;
 }
 
 BigDecimal::BigDecimal(const BigDecimal& rhs)
 {
+   initialize();
    mSignificand = rhs.mSignificand;
    mExponent = rhs.mExponent;
 }
 
 BigDecimal::~BigDecimal()
 {
+}
+
+void BigDecimal::initialize()
+{
+   mPrecision = 10;
+   mRoundingMode = HALF_UP;
+}
+
+void BigDecimal::setExponent(int exponent)
+{
+   // multiply significand by power difference
+   mSignificand *= BigInteger::TEN.pow(exponent - mExponent);
+   mExponent = exponent;
 }
 
 void BigDecimal::synchronizeExponents(BigDecimal& bd1, BigDecimal& bd2)
@@ -44,15 +62,11 @@ void BigDecimal::synchronizeExponents(BigDecimal& bd1, BigDecimal& bd2)
       // use the larger exponent to retain precision
       if(bd1.mExponent > bd2.mExponent)
       {
-         // increase significand by power difference
-         bd2.mSignificand *= BigInteger::TEN.pow(bd1.mExponent - bd2.mExponent);
-         bd2.mExponent = bd1.mExponent;
+         bd2.setExponent(bd1.mExponent);
       }
       else
       {
-         // increase significand by power difference
-         bd1.mSignificand *= BigInteger::TEN.pow(bd2.mExponent - bd1.mExponent);
-         bd1.mExponent = bd2.mExponent;
+         bd1.setExponent(bd2.mExponent);
       }
    }
 }
@@ -124,15 +138,12 @@ BigDecimal& BigDecimal::operator=(const string& rhs)
    mSignificand = temp;
    
    // if exponent is negative, scale the significand so the exponent is zero
-   if(mExponent.isNegative())
+   if(mExponent < 0)
    {
-      mExponent.setNegative(false);
-      mSignificand *= (BigInteger::TEN.powEquals(mExponent));
+      mExponent = -mExponent;
+      mSignificand *= BigInteger::TEN.pow(mExponent);
       mExponent = 0;
    }
-   
-   cout << "str=" << rhs << ", significand=" << mSignificand
-      << ", exponent=" << mExponent << endl;
    
    return *this;
 }
@@ -240,11 +251,62 @@ BigDecimal BigDecimal::operator*(const BigDecimal& rhs)
 
 BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
 {
-   // FIXME: this one is more complicated
    BigDecimal rval = *this;
    BigDecimal temp = rhs;
-   synchronizeExponents(rval, temp);
-   rval.mSignificand /= temp.mSignificand;
+   
+   // add the divisor's exponent to the dividend so that when a division is
+   // performed, the exponents subtract to reproduce the original scale
+   rval.setExponent(rval.mExponent + temp.mExponent);
+   
+   // do division with remainder
+   BigDecimal remainder;
+   rval.mSignificand.divide(
+      temp.mSignificand, rval.mSignificand, remainder.mSignificand);
+   
+   // see if there is a remainder to add to the result
+   if(remainder.mSignificand != 0)
+   {
+      // determine if the remainder should be rounded up
+      bool roundUp = (mRoundingMode == UP) ? true : false;
+      if(mRoundingMode == HALF_UP)
+      {
+         // if twice the remainder is greater than or equal to the divisor,
+         // then it is at least half as large as the divisor
+         if((remainder.mSignificand + remainder.mSignificand).absCompare(
+            temp.mSignificand) >= 0)
+         {
+            roundUp = true;
+         }
+      }
+      
+      // raise remainder to digits of precision (taking into account the
+      // remainder has the same scale as the dividend rval)
+      unsigned int digits = 0;
+      if(mPrecision - rval.mExponent > 0)
+      {
+         digits = mPrecision - rval.mExponent;
+         remainder.mSignificand *= BigInteger::TEN.pow(digits);
+      }
+      
+      // perform division on significand
+      remainder.mSignificand /= temp.mSignificand;
+      
+      // set remainder exponent to digits of precision
+      remainder.mExponent = mPrecision;
+      
+      // round up if appropriate
+      if(roundUp)
+      {
+         BigDecimal bd;
+         bd.mSignificand = 1;
+         bd.mExponent = mPrecision;
+         rval += bd;
+      }
+      
+      // add remainder
+      rval += remainder;
+   }
+   
    return rval;
 }
 
@@ -268,50 +330,37 @@ BigDecimal BigDecimal::operator%(const BigDecimal& rhs)
 
 BigDecimal& BigDecimal::operator+=(const BigDecimal& rhs)
 {
-   BigDecimal temp = rhs;
-   synchronizeExponents(*this, temp);
-   this->mSignificand += temp.mSignificand;
+   *this = *this + rhs;
    return *this;
 }
 
 BigDecimal& BigDecimal::operator-=(const BigDecimal& rhs)
 {
-   BigDecimal temp = rhs;
-   synchronizeExponents(*this, temp);
-   this->mSignificand -= temp.mSignificand;
+   *this = *this - rhs;
    return *this;
 }
 
 BigDecimal& BigDecimal::operator*=(const BigDecimal& rhs)
 {
-   BigDecimal temp = rhs;
-   synchronizeExponents(*this, temp);
-   this->mSignificand *= temp.mSignificand;
+   *this = *this * rhs;
    return *this;
 }
 
 BigDecimal& BigDecimal::operator/=(const BigDecimal& rhs)
 {
-   // FIXME: this one is more complicated
-   BigDecimal temp = rhs;
-   synchronizeExponents(*this, temp);
-   this->mSignificand /= temp.mSignificand;
+   *this = *this / rhs;
    return *this;
 }
 
 BigDecimal& BigDecimal::powEquals(const BigDecimal& rhs)
 {
-   BigDecimal temp = rhs;
-   synchronizeExponents(*this, temp);
-   this->mSignificand.powEquals(temp.mSignificand);
+   *this = this->pow(rhs);
    return *this;
 }
 
 BigDecimal& BigDecimal::operator%=(const BigDecimal& rhs)
 {
-   BigDecimal temp = rhs;
-   synchronizeExponents(*this, temp);
-   this->mSignificand %= temp.mSignificand;
+   *this = *this % rhs;
    return *this;
 }
 
@@ -340,57 +389,56 @@ long double BigDecimal::getDouble() const
    return strtold(str.c_str(), NULL);
 }
 
+void BigDecimal::setPrecision(unsigned int precision, RoundingMode roundingMode)
+{
+   mPrecision = precision;
+   mRoundingMode = roundingMode;
+}
+
+unsigned int BigDecimal::getPrecision()
+{
+   return mPrecision;
+}
+
 string& BigDecimal::toString(string& str) const
 {
-   if(mExponent.isCompact())
+   // write out significand
+   mSignificand.toString(str);
+   
+   if(mExponent < 0)
    {
-      // write out significand
-      mSignificand.toString(str);
-      
-      int e = mExponent.getInt64();
-      if(e < 0)
+      // append zeros
+      int zeros = -mExponent - str.length();
+      if(zeros > 0)
       {
-         // append zeros
-         int zeros = -e - str.length();
-         if(zeros > 0)
-         {
-            str.append(0, zeros, '0');
-         }
-         else
-         {
-            // insert decimal point
-            str.insert(str.length() + e, 1, '.');
-         }
+         str.append(0, zeros, '0');
       }
-      else if(e > 0)
+      else
       {
-         // prepend zeros
-         int zeros = e - str.length();
-         if(zeros > 0)
-         {
-            str.insert(0, zeros, '0');
-         }
-         
-         if((unsigned int)e == str.length())
-         {
-            // prepend "0."
-            str.insert(0, 1, '.');
-            str.insert(0, 1, '0');
-         }
-         else
-         {
-            // insert decimal point
-            str.insert(str.length() - e, 1, '.');
-         }
+         // insert decimal point
+         str.insert(str.length() + mExponent, 1, '.');
       }
-      
-      // handle decimal point accuracy
-      // FIXME:
    }
-   else
+   else if(mExponent > 0)
    {
-      // FIXME: determine how to handle this
-      str = "0";
+      // prepend zeros
+      int zeros = mExponent - str.length();
+      if(zeros > 0)
+      {
+         str.insert(0, zeros, '0');
+      }
+      
+      if((unsigned int)mExponent == str.length())
+      {
+         // prepend "0."
+         str.insert(0, 1, '.');
+         str.insert(0, 1, '0');
+      }
+      else
+      {
+         // insert decimal point
+         str.insert(str.length() - mExponent, 1, '.');
+      }
    }
    
    return str;

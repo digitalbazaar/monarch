@@ -3029,9 +3029,9 @@ void runBigDecimalTest()
 {
    cout << "Starting BigDecimal test." << endl << endl;
    
-   BigDecimal number1 = 2.0;
+   BigDecimal number1 = 3.0;
    //BigDecimal number2 = 123456789.5;
-   BigDecimal number2 = "123456789.5";
+   BigDecimal number2 = "123456789.53";
    //BigDecimal number2 = 1.234;
    //BigDecimal number2 = "1.23e-04";
    //BigDecimal number2 = "1234";

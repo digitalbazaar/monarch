@@ -14,11 +14,22 @@ namespace crypto
 {
 
 /**
- * A BigDecimal is an arbitrary precision decimal number.
+ * A RoundingMode specifies a type of decimal rounding.
+ */
+typedef enum RoundingMode
+{
+   UP, HALF_UP, DOWN
+};
+
+/**
+ * A BigDecimal is a multi/arbitrary precision decimal number. If the number
+ * is used to perform arithmetic that may require rounding, like 1 / 3, then
+ * the number of digits of precision must be set via setPrecision(). The
+ * default precision is 10.
  * 
  * The value of a BigDecimal is stored with exponential notation using negative
  * powers of 10. A signed BigInteger "a" is used to store the significand (or
- * coefficient) and an unsigned BigInteger "b" is used to store the exponent.
+ * coefficient) and a signed 32-bit int "b" is used to store the exponent.
  * 
  * The value of a BigDecimal is:
  * 
@@ -45,7 +56,33 @@ protected:
    /**
     * The exponent for the value.
     */
-   BigInteger mExponent;
+   int mExponent;
+   
+   /**
+    * The precision (number of digits) for this BigDecimal, if arithmetic
+    * requires rounding.
+    */
+   unsigned int mPrecision;
+   
+   /**
+    * The rounding mode for this BigDecimal, if arithmetic requires rounding.
+    * 
+    * Defaults to HALF_UP.
+    */
+   RoundingMode mRoundingMode;
+   
+   /**
+    * Initializes this BigDecimal.
+    */
+   void initialize();
+   
+   /**
+    * Sets the exponent for this BigDecimal, altering the significand as
+    * necessary. If the exponent is decreased, precision may be lost.
+    * 
+    * @param exponent the new exponent to use.
+    */
+   void setExponent(int exponent);
    
    /**
     * Makes the exponents equal for the passed two BigDecimals. The larger
@@ -341,6 +378,23 @@ public:
     * @return the value of this BigDecimal as a double.
     */
    long double getDouble() const;
+   
+   /**
+    * Sets the number of digits of precision for this BigDecimal for
+    * arithmetic operations that require rounding.
+    * 
+    * @param precision the number of digits of precision to use.
+    * @param roundingMode the RoundingMode to use.
+    */
+   void setPrecision(unsigned int precision, RoundingMode roundingMode);
+   
+   /**
+    * Gets the number of digits of precision for this BigDecimal for
+    * arithmetic operations that require rounding.
+    * 
+    * @return the number of digits of precision to use.
+    */
+   unsigned int getPrecision();
    
    /**
     * Gets the value of this BigInteger as a string.
