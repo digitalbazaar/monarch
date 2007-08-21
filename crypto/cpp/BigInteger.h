@@ -5,6 +5,7 @@
 #define db_crypto_BigInteger_H
 
 #include <openssl/bn.h>
+#include <iostream>
 
 namespace db
 {
@@ -48,6 +49,13 @@ public:
    BigInteger(long long value = 0);
    
    /**
+    * Creates a new BigInteger with the specified value.
+    * 
+    * @param value the value for this BigInteger.
+    */
+   BigInteger(const std::string& value);
+   
+   /**
     * Creates a new BigInteger by copying another one.
     * 
     * @param bn the BigInteger to copy.
@@ -85,6 +93,15 @@ public:
     * @return this BigInteger.
     */
    BigInteger& operator=(unsigned long rhs);
+   
+   /**
+    * Sets this BigInteger's value to the passed value.
+    * 
+    * @param value the new value for this BigInteger.
+    * 
+    * @return this BigInteger.
+    */
+   BigInteger& operator=(const std::string& rhs);
    
    /**
     * Returns true if this BigInteger is equal to the passed one.
@@ -314,8 +331,38 @@ public:
     * @return the value of this BigInteger as a 64-bit integer.
     */
    long long getInt64();
+   
+   /**
+    * Gets the value of this BigInteger as a string.
+    * 
+    * @param str string to store the value of this BigInteger in.
+    * 
+    * @return a reference to the string.
+    */
+   std::string& toString(std::string& str) const;
 };
 
 } // end namespace crypto
 } // end namespace db
+
+/**
+ * Writes a BigInteger to an ostream.
+ * 
+ * @param os the ostream to write to.
+ * @param bi the BigInteger to write.
+ * 
+ * @return the ostream.
+ */
+std::ostream& operator<<(std::ostream& os, const db::crypto::BigInteger& bi);
+
+/**
+ * Reads a BigInteger from an istream.
+ * 
+ * @param is the istream to read from.
+ * @param bi the BigInteger to populate.
+ * 
+ * @return the istream.
+ */
+std::istream& operator>>(std::istream& is, db::crypto::BigInteger& bi);
+
 #endif

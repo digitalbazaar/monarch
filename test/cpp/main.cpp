@@ -51,6 +51,7 @@
 #include "xml/XmlWriter.h"
 #include "DataMappingFunctor.h"
 #include "OStreamOutputStream.h"
+#include "BigDecimal.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -3005,6 +3006,34 @@ void runXmlReadWriteTest()
    cout << endl << "XmlReadWrite test complete." << endl;
 }
 
+void runBigIntegerTest()
+{
+   cout << "Starting BigInteger test." << endl << endl;
+   
+   BigInteger number1 = 2;
+   BigInteger number2 = 123456789;
+   
+   cout << "number1=" << number1 << endl;
+   cout << "number2=" << number2 << endl;
+   cout << "number1 + number2=" << (number1 + number2) << endl;
+   cout << "number1 - number2=" << (number1 - number2) << endl;
+   cout << "number1 * number2=" << (number1 * number2) << endl;
+   cout << "number2 / number1=" << (number2 / number1) << endl;
+   cout << "number2 % number1=" << (number2 % number1) << endl;
+   cout << "number2 ^ number1=" << (number2.pow(number1)) << endl;
+   
+   cout << endl << "BigInteger test complete." << endl;
+}
+
+void runBigDecimalTest()
+{
+   cout << "Starting BigDecimal test." << endl << endl;
+   
+   // FIXME:
+   
+   cout << endl << "BigDecimal test complete." << endl;
+}
+
 class RunTests : public virtual Object, public Runnable
 {
 public:
@@ -3057,9 +3086,11 @@ public:
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
 //      runDelegateTest();
-      runXmlReaderTest();
-      runXmlWriterTest();
+//      runXmlReaderTest();
+//      runXmlWriterTest();
 //      runXmlReadWriteTest();
+      runBigIntegerTest();
+//      runBigDecimalTest();
       
       cout << endl << "Tests finished." << endl;
       
