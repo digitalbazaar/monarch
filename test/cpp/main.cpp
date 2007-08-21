@@ -3042,8 +3042,9 @@ void runBigDecimalTest()
    cout << "number1 - number2=" << (number1 - number2) << endl;
    cout << "number1 * number2=" << (number1 * number2) << endl;
    cout << "number2 / number1=" << (number2 / number1) << endl;
-//   cout << "number2 % number1=" << (number2 % number1) << endl;
-//   cout << "number2 ^ number1=" << (number2.pow(number1)) << endl;
+   cout << "number2 % number1=" << (number2 % number1) << endl;
+   cout << "number2 ^ number1=" << (number2.pow(number1)) << endl;
+   cout << "number2 ^ 2=" << (number2.pow(2)) << endl;
    
    cout << endl << "BigDecimal test complete." << endl;
 }

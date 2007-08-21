@@ -49,8 +49,12 @@ void BigDecimal::initialize()
 
 void BigDecimal::setExponent(int exponent)
 {
-   // multiply significand by power difference
-   mSignificand *= BigInteger::TEN.pow(exponent - mExponent);
+   if(exponent > mExponent)
+   {
+      // multiply significand by power difference
+      mSignificand *= BigInteger::TEN.pow(exponent - mExponent);
+   }
+   
    mExponent = exponent;
 }
 
@@ -243,25 +247,26 @@ BigDecimal BigDecimal::operator-(const BigDecimal& rhs)
 BigDecimal BigDecimal::operator*(const BigDecimal& rhs)
 {
    BigDecimal rval = *this;
-   BigDecimal temp = rhs;
-   synchronizeExponents(rval, temp);
-   rval.mSignificand *= temp.mSignificand;
+   
+   // perform multiplication and then add exponents
+   rval.mSignificand *= rhs.mSignificand;
+   rval.mExponent += rhs.mExponent;
+   
    return rval;
 }
 
 BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
 {
    BigDecimal rval = *this;
-   BigDecimal temp = rhs;
    
    // add the divisor's exponent to the dividend so that when a division is
    // performed, the exponents subtract to reproduce the original scale
-   rval.setExponent(rval.mExponent + temp.mExponent);
+   rval.setExponent(rval.mExponent + rhs.mExponent);
    
    // do division with remainder
    BigDecimal remainder;
    rval.mSignificand.divide(
-      temp.mSignificand, rval.mSignificand, remainder.mSignificand);
+      rhs.mSignificand, rval.mSignificand, remainder.mSignificand);
    
    // see if there is a remainder to add to the result
    if(remainder.mSignificand != 0)
@@ -273,7 +278,7 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
          // if twice the remainder is greater than or equal to the divisor,
          // then it is at least half as large as the divisor
          if((remainder.mSignificand + remainder.mSignificand).absCompare(
-            temp.mSignificand) >= 0)
+            rhs.mSignificand) >= 0)
          {
             roundUp = true;
          }
@@ -289,7 +294,7 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
       }
       
       // perform division on significand
-      remainder.mSignificand /= temp.mSignificand;
+      remainder.mSignificand /= rhs.mSignificand;
       
       // set remainder exponent to digits of precision
       remainder.mExponent = mPrecision;
@@ -313,9 +318,11 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
 BigDecimal BigDecimal::pow(const BigDecimal& rhs)
 {
    BigDecimal rval = *this;
-   BigDecimal temp = rhs;
-   synchronizeExponents(rval, temp);
-   rval.mSignificand.powEquals(temp.mSignificand);
+   
+   // raise significand and multiply exponents
+   rval.mSignificand.powEquals(rhs.mSignificand);
+   rval.mExponent *= rhs.mExponent;
+   
    return rval;
 }
 

@@ -77,8 +77,8 @@ protected:
    void initialize();
    
    /**
-    * Sets the exponent for this BigDecimal, altering the significand as
-    * necessary. If the exponent is decreased, precision may be lost.
+    * Sets the exponent for this BigDecimal, increasing the significand if
+    * necessary. This will not alter the value of this BigDecimal.
     * 
     * @param exponent the new exponent to use.
     */
