@@ -58,7 +58,7 @@ BigInteger& BigInteger::operator=(const BigInteger& rhs)
    assert(BN_copy(mBigNum, rhs.mBigNum) == mBigNum);
    return *this;
 }
-#include <openssl/err.h>
+
 BigInteger& BigInteger::operator=(long long rhs)
 {
    if(rhs > 0)
@@ -235,7 +235,7 @@ void BigInteger::divide(
       mBigNum, divisor.mBigNum, getContext()) == 1);
 }
 
-bool BigInteger::isZero()
+bool BigInteger::isZero() const
 {
    return BN_get_word(mBigNum) == 0;
 }
@@ -245,12 +245,12 @@ bool BigInteger::isNegative() const
    return mBigNum->neg == 1;
 }
 
-bool BigInteger::isCompact()
+bool BigInteger::isCompact() const
 {
    return BN_get_word(mBigNum) < 0xffffffffL;
 }
 
-long long BigInteger::getInt64()
+long long BigInteger::getInt64() const
 {
    long long rval = BN_get_word(mBigNum);
    if(isNegative())

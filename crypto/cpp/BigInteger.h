@@ -17,6 +17,8 @@ namespace crypto
  * 
  * This class relies on OpenSSL's crypto BN implementation.
  * 
+ * Note: Might need to change operators to friends for STL.
+ * 
  * @author Dave Longley
  */
 class BigInteger
@@ -307,7 +309,7 @@ public:
     * 
     * @return true if this BigInteger is zero, false if not.
     */
-   bool isZero();
+   bool isZero() const;
    
    /**
     * Returns true if this BigInteger is negative, false if not.
@@ -323,14 +325,14 @@ public:
     * @return true if this BigInteger can be stored in a 64-bit integer, false
     *         if not.
     */
-   bool isCompact();
+   bool isCompact() const;
    
    /**
     * Gets the value of this BigInteger as a 64-bit integer.
     * 
     * @return the value of this BigInteger as a 64-bit integer.
     */
-   long long getInt64();
+   long long getInt64() const;
    
    /**
     * Gets the value of this BigInteger as a string.

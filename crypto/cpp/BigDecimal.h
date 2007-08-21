@@ -30,6 +30,8 @@ namespace crypto
  * of the BigDecimal is 5.14. If b = 5 and a = 514, then the value of the
  * BigDecimal would be 0.00514.
  * 
+ * Note: Might need to change operators to friends for STL.
+ * 
  * @author Dave Longley
  */
 class BigDecimal
@@ -63,6 +65,13 @@ public:
    BigDecimal(long double value = 0);
    
    /**
+    * Creates a new BigDecimal with the specified value.
+    * 
+    * @param value the value for this BigDecimal.
+    */
+   BigDecimal(const std::string& value);
+   
+   /**
     * Creates a new BigDecimal by copying another one.
     * 
     * @param bn the BigDecimal to copy.
@@ -91,6 +100,15 @@ public:
     * @return this BigDecimal.
     */
    BigDecimal& operator=(long double rhs);
+   
+   /**
+    * Sets this BigDecimal's value to the passed value.
+    * 
+    * @param value the new value for this BigDecimal.
+    * 
+    * @return this BigDecimal.
+    */
+   BigDecimal& operator=(const std::string& rhs);
    
    /**
     * Returns true if this BigDecimal is equal to the passed one.
@@ -281,27 +299,57 @@ public:
    BigDecimal& operator%=(const BigDecimal& rhs);
    
    /**
-    * Returns true if this BigInteger is zero, false if not.
+    * Returns true if this BigDecimal is zero, false if not.
     * 
-    * @return true if this BigInteger is zero, false if not.
+    * @return true if this BigDecimal is zero, false if not.
     */
-   bool isZero();
+   bool isZero() const;
    
    /**
-    * Returns true if this BigInteger is negative, false if not.
+    * Returns true if this BigDecimal is negative, false if not.
     * 
-    * @return true if this BigInteger is negative, false if not.
+    * @return true if this BigDecimal is negative, false if not.
     */
    bool isNegative() const;
    
    /**
-    * Gets the value of this BigInteger as a double.
+    * Gets the value of this BigDecimal as a double.
     * 
-    * @return the value of this BigInteger as a double.
+    * @return the value of this BigDecimal as a double.
     */
-   long double getDouble();
+   long double getDouble() const;
+   
+   /**
+    * Gets the value of this BigInteger as a string.
+    * 
+    * @param str string to store the value of this BigInteger in.
+    * 
+    * @return a reference to the string.
+    */
+   std::string& toString(std::string& str) const;
 };
 
 } // end namespace crypto
 } // end namespace db
+
+/**
+ * Writes a BigDecimal to an ostream.
+ * 
+ * @param os the ostream to write to.
+ * @param bd the BigDecimal to write.
+ * 
+ * @return the ostream.
+ */
+std::ostream& operator<<(std::ostream& os, const db::crypto::BigDecimal& bd);
+
+/**
+ * Reads a BigDecimal from an istream.
+ * 
+ * @param is the istream to read from.
+ * @param bi the BigDecimal to populate.
+ * 
+ * @return the istream.
+ */
+std::istream& operator>>(std::istream& is, db::crypto::BigDecimal& bd);
+
 #endif

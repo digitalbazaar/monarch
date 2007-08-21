@@ -8,6 +8,14 @@ using namespace db::crypto;
 
 BigDecimal::BigDecimal(long double value)
 {
+   if(value != 0)
+   {
+      *this = value;
+   }
+}
+
+BigDecimal::BigDecimal(const string& value)
+{
    *this = value;
 }
 
@@ -50,6 +58,12 @@ BigDecimal& BigDecimal::operator=(const BigDecimal& rhs)
 }
 
 BigDecimal& BigDecimal::operator=(long double rhs)
+{
+   // FIXME:
+   return *this;
+}
+
+BigDecimal& BigDecimal::operator=(const string& rhs)
 {
    // FIXME:
    return *this;
@@ -233,7 +247,7 @@ BigDecimal& BigDecimal::operator%=(const BigDecimal& rhs)
    return *this;
 }
 
-bool BigDecimal::isZero()
+bool BigDecimal::isZero() const
 {
    return mSignificand.isZero();
 }
@@ -243,9 +257,10 @@ bool BigDecimal::isNegative() const
    return mSignificand.isNegative();
 }
 
-long double BigDecimal::getDouble()
+long double BigDecimal::getDouble() const
 {
    long double rval = mSignificand.getInt64();
+   // FIXME: get value
    //rval *= 10^-mExponent
    
    if(isNegative())
@@ -254,4 +269,41 @@ long double BigDecimal::getDouble()
    }
    
    return rval;
+}
+
+string& BigDecimal::toString(string& str) const
+{
+   if(mExponent.isCompact())
+   {
+      // write out significand
+      mSignificand.toString(str);
+      
+      // insert decimal point
+      str.insert(str.length() - mExponent.getInt64(), 1, '.');
+      
+      // handle decimal point accuracy
+      // FIXME:
+   }
+   else
+   {
+      // FIXME: determine how to handle this
+      str = "tiny";
+   }
+   
+   return str;
+}
+
+ostream& operator<<(ostream& os, const BigDecimal& bd)
+{
+   string str;
+   os << bd.toString(str);
+   return os;
+}
+
+istream& operator>>(istream& is, BigDecimal& bd)
+{
+   string str;
+   is >> str; 
+   bd = str;
+   return is;
 }
