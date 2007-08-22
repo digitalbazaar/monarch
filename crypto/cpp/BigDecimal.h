@@ -106,6 +106,34 @@ public:
     * 
     * @param value the value for this BigDecimal.
     */
+   BigDecimal(long long value);
+   
+   /**
+    * Creates a new BigDecimal with the specified value.
+    * 
+    * @param value the value for this BigDecimal.
+    */
+   BigDecimal(unsigned long long value);
+   
+   /**
+    * Creates a new BigDecimal with the specified value.
+    * 
+    * @param value the value for this BigDecimal.
+    */
+   BigDecimal(int value);
+   
+   /**
+    * Creates a new BigDecimal with the specified value.
+    * 
+    * @param value the value for this BigDecimal.
+    */
+   BigDecimal(unsigned int value);
+   
+   /**
+    * Creates a new BigDecimal with the specified value.
+    * 
+    * @param value the value for this BigDecimal.
+    */
    BigDecimal(const char* value);
    
    /**
@@ -144,6 +172,42 @@ public:
     * @return this BigDecimal.
     */
    BigDecimal& operator=(long double rhs);
+   
+   /**
+    * Sets this BigDecimal's value to the passed value.
+    * 
+    * @param value the new value for this BigDecimal.
+    * 
+    * @return this BigDecimal.
+    */
+   BigDecimal& operator=(long long rhs);
+   
+   /**
+    * Sets this BigDecimal's value to the passed value.
+    * 
+    * @param value the new value for this BigDecimal.
+    * 
+    * @return this BigDecimal.
+    */
+   BigDecimal& operator=(unsigned long long rhs);
+   
+   /**
+    * Sets this BigDecimal's value to the passed value.
+    * 
+    * @param value the new value for this BigDecimal.
+    * 
+    * @return this BigDecimal.
+    */
+   BigDecimal& operator=(int rhs);
+   
+   /**
+    * Sets this BigDecimal's value to the passed value.
+    * 
+    * @param value the new value for this BigDecimal.
+    * 
+    * @return this BigDecimal.
+    */
+   BigDecimal& operator=(unsigned int rhs);
    
    /**
     * Sets this BigDecimal's value to the passed value.

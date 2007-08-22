@@ -18,6 +18,46 @@ BigDecimal::BigDecimal(long double value)
    }
 }
 
+BigDecimal::BigDecimal(long long value)
+{
+   initialize();
+   
+   if(value != 0)
+   {
+      *this = value;
+   }
+}
+
+BigDecimal::BigDecimal(unsigned long long value)
+{
+   initialize();
+   
+   if(value != 0)
+   {
+      *this = value;
+   }
+}
+
+BigDecimal::BigDecimal(int value)
+{
+   initialize();
+   
+   if(value != 0)
+   {
+      *this = value;
+   }
+}
+
+BigDecimal::BigDecimal(unsigned int value)
+{
+   initialize();
+   
+   if(value != 0)
+   {
+      *this = value;
+   }
+}
+
 BigDecimal::BigDecimal(const char* value)
 {
    initialize();
@@ -85,6 +125,38 @@ BigDecimal& BigDecimal::operator=(const BigDecimal& rhs)
 BigDecimal& BigDecimal::operator=(long double rhs)
 {
    // convert double to string
+   ostringstream oss;
+   oss << rhs;
+   return *this = oss.str();
+}
+
+BigDecimal& BigDecimal::operator=(long long rhs)
+{
+   // convert long to string
+   ostringstream oss;
+   oss << rhs;
+   return *this = oss.str();
+}
+
+BigDecimal& BigDecimal::operator=(unsigned long long rhs)
+{
+   // convert long to string
+   ostringstream oss;
+   oss << rhs;
+   return *this = oss.str();
+}
+
+BigDecimal& BigDecimal::operator=(int rhs)
+{
+   // convert int to string
+   ostringstream oss;
+   oss << rhs;
+   return *this = oss.str();
+}
+
+BigDecimal& BigDecimal::operator=(unsigned int rhs)
+{
+   // convert int to string
    ostringstream oss;
    oss << rhs;
    return *this = oss.str();
