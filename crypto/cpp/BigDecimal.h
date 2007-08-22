@@ -377,6 +377,11 @@ public:
    unsigned int getPrecision();
    
    /**
+    * Rounds this BigDecimal according to its set precision.
+    */
+   void round();
+   
+   /**
     * Gets the value of this BigInteger as a string.
     * 
     * @param str string to store the value of this BigInteger in.

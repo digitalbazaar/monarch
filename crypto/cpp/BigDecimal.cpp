@@ -390,6 +390,51 @@ unsigned int BigDecimal::getPrecision()
    return mPrecision;
 }
 
+void BigDecimal::round()
+{
+   // write out to a string
+   string str;
+   toString(str);
+   
+   // find exponent
+   unsigned int dot = str.rfind('.');
+   if(dot != string::npos)
+   {
+      // determine if there are more digits than the precision allows
+      if(str.length() - (dot + 1) > mPrecision)
+      {
+         // get the extra digits
+         string extra = str.substr(dot + 1 + mPrecision);
+         
+         // set new exponent by subtracting extra length
+         mExponent -= extra.length();
+         
+         // truncate significand
+         mSignificand = (str.substr(0, dot) + str.substr(dot + 1, mExponent));
+         
+         // round significand according to rounding mode
+         if(mRoundingMode == UP)
+         {
+            // add 1 with the same exponent
+            BigDecimal bd = 1;
+            bd.mExponent = mExponent;
+            *this += bd;
+         }
+         else if(mRoundingMode == HALF_UP)
+         {
+            // (52 = '4', 57 = '9')
+            if(extra.at(0) > 52 && extra.at(0) <= 57)
+            {
+               // add 1 with the same exponent
+               BigDecimal bd = 1;
+               bd.mExponent = mExponent;
+               *this += bd;
+            }
+         }
+      }
+   }
+}
+
 string& BigDecimal::toString(string& str) const
 {
    // write out significand

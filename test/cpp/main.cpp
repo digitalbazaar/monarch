@@ -3044,6 +3044,41 @@ void runBigDecimalTest()
    cout << "number2 / number1=" << (number2 / number1) << endl;
    cout << "number2 % number1=" << (number2 % number1) << endl;
    
+   BigDecimal number3 = "129.54678";
+   cout << endl << "number3=" << number3 << endl;
+   
+   BigDecimal bd;
+   
+   cout << endl;
+   
+   for(int i = 7; i >= 0; i--)
+   {
+      bd = number3;
+      bd.setPrecision(i, UP);
+      bd.round();
+      cout << "round " << i << " places, up=" << bd << endl;
+   }
+   
+   cout << endl;
+   
+   for(int i = 7; i >= 0; i--)
+   {
+      bd = number3;
+      bd.setPrecision(i, HALF_UP);
+      bd.round();
+      cout << "round " << i << " places, half up=" << bd << endl;
+   }
+   
+   cout << endl;
+   
+   for(int i = 7; i >= 0; i--)
+   {
+      bd = number3;
+      bd.setPrecision(i, DOWN);
+      bd.round();
+      cout << "round " << i << " places, down=" << bd << endl;
+   }
+   
    cout << endl << "BigDecimal test complete." << endl;
 }
 
