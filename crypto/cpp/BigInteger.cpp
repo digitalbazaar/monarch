@@ -74,6 +74,11 @@ BigInteger::BigInteger(const BigInteger& copy)
 BigInteger::~BigInteger()
 {
    BN_free(mBigNum);
+   
+   if(mBigNumContext != NULL)
+   {
+      BN_CTX_free(mBigNumContext);
+   }
 }
 
 void BigInteger::initialize()
