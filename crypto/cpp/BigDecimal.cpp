@@ -93,6 +93,7 @@ BigDecimal::~BigDecimal()
 
 void BigDecimal::initialize()
 {
+   mExponent = 0;
    mPrecision = 10;
    mRoundingMode = HALF_UP;
 }
