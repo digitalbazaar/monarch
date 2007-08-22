@@ -106,6 +106,13 @@ public:
     * 
     * @param value the value for this BigDecimal.
     */
+   BigDecimal(double value);
+   
+   /**
+    * Creates a new BigDecimal with the specified value.
+    * 
+    * @param value the value for this BigDecimal.
+    */
    BigDecimal(long long value);
    
    /**
@@ -172,6 +179,15 @@ public:
     * @return this BigDecimal.
     */
    BigDecimal& operator=(long double rhs);
+   
+   /**
+    * Sets this BigDecimal's value to the passed value.
+    * 
+    * @param value the new value for this BigDecimal.
+    * 
+    * @return this BigDecimal.
+    */
+   BigDecimal& operator=(double rhs);
    
    /**
     * Sets this BigDecimal's value to the passed value.

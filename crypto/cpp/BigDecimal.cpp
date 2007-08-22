@@ -18,6 +18,16 @@ BigDecimal::BigDecimal(long double value)
    }
 }
 
+BigDecimal::BigDecimal(double value)
+{
+   initialize();
+   
+   if(value != 0)
+   {
+      *this = value;
+   }
+}
+
 BigDecimal::BigDecimal(long long value)
 {
    initialize();
@@ -123,6 +133,14 @@ BigDecimal& BigDecimal::operator=(const BigDecimal& rhs)
 }
 
 BigDecimal& BigDecimal::operator=(long double rhs)
+{
+   // convert double to string
+   ostringstream oss;
+   oss << rhs;
+   return *this = oss.str();
+}
+
+BigDecimal& BigDecimal::operator=(double rhs)
 {
    // convert double to string
    ostringstream oss;
