@@ -103,9 +103,9 @@ public:
    /**
     * Creates a new BigInteger by copying another one.
     * 
-    * @param bn the BigInteger to copy.
+    * @param copy the BigInteger to copy.
     */
-   BigInteger(const BigInteger& bn);
+   BigInteger(const BigInteger& copy);
    
    /**
     * Destructs this BigInteger.

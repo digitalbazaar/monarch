@@ -65,10 +65,10 @@ BigInteger::BigInteger(const string& value)
    *this = value;
 }
 
-BigInteger::BigInteger(const BigInteger& rhs)
+BigInteger::BigInteger(const BigInteger& copy)
 {
    initialize();
-   assert(BN_copy(mBigNum, rhs.mBigNum) == mBigNum);
+   assert(BN_copy(mBigNum, copy.mBigNum) == mBigNum);
 }
 
 BigInteger::~BigInteger()

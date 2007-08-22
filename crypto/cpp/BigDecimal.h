@@ -146,9 +146,9 @@ public:
    /**
     * Creates a new BigDecimal by copying another one.
     * 
-    * @param bn the BigDecimal to copy.
+    * @param copy the BigDecimal to copy.
     */
-   BigDecimal(const BigDecimal& bn);
+   BigDecimal(const BigDecimal& copy);
    
    /**
     * Destructs this BigDecimal.

@@ -70,11 +70,11 @@ BigDecimal::BigDecimal(const string& value)
    *this = value;
 }
 
-BigDecimal::BigDecimal(const BigDecimal& rhs)
+BigDecimal::BigDecimal(const BigDecimal& copy)
 {
    initialize();
-   mSignificand = rhs.mSignificand;
-   mExponent = rhs.mExponent;
+   mSignificand = copy.mSignificand;
+   mExponent = copy.mExponent;
 }
 
 BigDecimal::~BigDecimal()
