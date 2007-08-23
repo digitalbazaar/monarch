@@ -3054,7 +3054,7 @@ void runBigDecimalTest()
    for(int i = 7; i >= 0; i--)
    {
       bd = number3;
-      bd.setPrecision(i, UP);
+      bd.setPrecision(i, Up);
       bd.round();
       cout << "round " << i << " places, up=" << bd << endl;
    }
@@ -3064,7 +3064,7 @@ void runBigDecimalTest()
    for(int i = 7; i >= 0; i--)
    {
       bd = number3;
-      bd.setPrecision(i, HALF_UP);
+      bd.setPrecision(i, HalfUp);
       bd.round();
       cout << "round " << i << " places, half up=" << bd << endl;
    }
@@ -3074,7 +3074,7 @@ void runBigDecimalTest()
    for(int i = 7; i >= 0; i--)
    {
       bd = number3;
-      bd.setPrecision(i, DOWN);
+      bd.setPrecision(i, Down);
       bd.round();
       cout << "round " << i << " places, down=" << bd << endl;
    }
