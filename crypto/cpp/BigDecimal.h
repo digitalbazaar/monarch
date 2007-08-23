@@ -18,7 +18,7 @@ namespace crypto
  */
 typedef enum RoundingMode
 {
-   UP, HALF_UP, DOWN
+   Up, HalfUp, Down
 };
 
 /**
@@ -67,7 +67,7 @@ protected:
    /**
     * The rounding mode for this BigDecimal, if arithmetic requires rounding.
     * 
-    * Defaults to HALF_UP.
+    * Defaults to HalfUp.
     */
    RoundingMode mRoundingMode;
    

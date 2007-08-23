@@ -95,7 +95,7 @@ void BigDecimal::initialize()
 {
    mExponent = 0;
    mPrecision = 10;
-   mRoundingMode = HALF_UP;
+   mRoundingMode = HalfUp;
 }
 
 void BigDecimal::setExponent(int exponent)
@@ -363,8 +363,8 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
    if(remainder.mSignificand != 0)
    {
       // determine if the remainder should be rounded up
-      bool roundUp = (mRoundingMode == UP) ? true : false;
-      if(mRoundingMode == HALF_UP)
+      bool roundUp = (mRoundingMode == Up) ? true : false;
+      if(mRoundingMode == HalfUp)
       {
          // if twice the remainder is greater than or equal to the divisor,
          // then it is at least half as large as the divisor
@@ -504,14 +504,14 @@ void BigDecimal::round()
          mSignificand = (str.substr(0, dot) + str.substr(dot + 1, mExponent));
          
          // round significand according to rounding mode
-         if(mRoundingMode == UP)
+         if(mRoundingMode == Up)
          {
             // add 1 with the same exponent
             BigDecimal bd = 1;
             bd.mExponent = mExponent;
             *this += bd;
          }
-         else if(mRoundingMode == HALF_UP)
+         else if(mRoundingMode == HalfUp)
          {
             // (52 = '4', 57 = '9')
             if(extra.at(0) > 52 && extra.at(0) <= 57)
