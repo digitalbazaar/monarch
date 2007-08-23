@@ -34,7 +34,21 @@ protected:
     * A code associated with this Exception.
     */
    char* mCode;
-
+   
+   /**
+    * Sets the message for this Exception.
+    *
+    * @param message the message for this Exception.
+    */
+   virtual void setMessage(const char* message);
+   
+   /**
+    * Sets the code for this Exception.
+    *
+    * @param code the code for this Exception.
+    */
+   virtual void setCode(const char* code);
+   
 public:
    /**
     * Creates a new Exception. A message and code may be optionally specified.
@@ -54,14 +68,14 @@ public:
     *
     * @return the message for this Exception.
     */
-   const char* getMessage();
-
+   virtual const char* getMessage();
+   
    /**
     * Gets the code for this Exception.
     *
     * @return the code for this Exception.
     */
-   const char* getCode();
+   virtual const char* getCode();
    
    /**
     * Sets the last Exception for the current thread. This will store the

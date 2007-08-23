@@ -35,8 +35,40 @@ Exception::Exception(const char* message, const char* code)
 
 Exception::~Exception()
 {
-   delete mMessage;
-   delete mCode;
+   delete [] mMessage;
+   delete [] mCode;
+}
+
+void Exception::setMessage(const char* message)
+{
+   delete [] mMessage;
+   
+   if(message == NULL)
+   {
+      mMessage = new char[1];
+      mMessage[0] = 0;
+   }
+   else
+   {
+      mMessage = new char[strlen(message) + 1];
+      strcpy(mMessage, message);
+   }
+}
+
+void Exception::setCode(const char* code)
+{
+   delete [] mCode;
+   
+   if(code == NULL)
+   {
+      mCode = new char[1];
+      mCode[0] = 0;
+   }
+   else
+   {
+      mCode = new char[strlen(code) + 1];
+      strcpy(mCode, code);
+   }
 }
 
 const char* Exception::getMessage()
