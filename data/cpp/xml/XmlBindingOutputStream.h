@@ -57,6 +57,11 @@ public:
     *         occurred. 
     */
    virtual bool write(const char* b, unsigned int length);
+   
+   /**
+    * Closes the stream.
+    */
+   virtual void close();
 };
 
 } // end namespace xml

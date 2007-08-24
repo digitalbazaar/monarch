@@ -26,3 +26,9 @@ bool XmlBindingOutputStream::write(const char* b, unsigned int length)
    // use reader
    return mReader.read(&mInputStream) != NULL;
 }
+
+void XmlBindingOutputStream::close()
+{
+   // finish reader
+   mReader.finish();
+}
