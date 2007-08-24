@@ -49,6 +49,7 @@
 #include "ByteArrayInputStream.h"
 #include "xml/XmlReader.h"
 #include "xml/XmlWriter.h"
+#include "xml/XmlBindingOutputStream.h"
 #include "DataMappingFunctor.h"
 #include "OStreamOutputStream.h"
 #include "BigDecimal.h"
@@ -2909,7 +2910,9 @@ void runXmlReaderTest()
    TestParentDataBinding db(&p);
    
    ByteArrayInputStream bais(xml.c_str(), xml.length());
-   reader.read(&db, &bais);
+   reader.start(&db);
+   reader.read(&bais);
+   reader.finish();
    
    cout << "TestContent data='" << p.getContent() << "'" << endl;
    if(p.getChild() != NULL)
@@ -2977,7 +2980,9 @@ void runXmlReadWriteTest()
    TestParentDataBinding db(&p);
    
    ByteArrayInputStream bais(xml.c_str(), xml.length());
-   reader.read(&db, &bais);
+   reader.start(&db);
+   reader.read(&bais);
+   reader.finish();
    
    cout << "*****DOING XML READ*****" << endl;
    
@@ -3004,6 +3009,43 @@ void runXmlReadWriteTest()
    cout << "XML=\n" << oss.str() << endl;
    
    cout << endl << "XmlReadWrite test complete." << endl;
+}
+
+void runXmlBindingOutputStreamTest()
+{
+   cout << "Starting XmlBindingOutputStream test." << endl << endl;
+   
+   string xml1;
+   string xml2;
+   xml1.append("<TestContent>This is the first.");
+   xml2.append("<TestChild id=\"64\">Blah</TestChild> Second.</TestContent>");
+   
+   // main object to populate
+   TestParent p;
+   
+   // data binding for object
+   TestParentDataBinding db(&p);
+   
+   // create output stream for writing to binding
+   XmlBindingOutputStream xbos(&db);
+   
+   // write xml to output stream
+   xbos.write(xml1.c_str(), xml1.length());
+   xbos.write(xml2.c_str(), xml2.length());
+   //xbos.write((xml1 + xml2).c_str(), xml1.length() + xml2.length());
+   
+   cout << "TestContent data='" << p.getContent() << "'" << endl;
+   if(p.getChild() != NULL)
+   {
+      cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
+      cout << "TestChild id='" << p.getChild()->getId() << "'" << endl;
+   }
+   else
+   {
+      cout << "TestChild does not exist!" << endl;
+   }
+   
+   cout << endl << "XmlBindingOutputStream test complete." << endl;
 }
 
 void runBigIntegerTest()
@@ -3137,8 +3179,9 @@ public:
 //      runXmlReaderTest();
 //      runXmlWriterTest();
 //      runXmlReadWriteTest();
+      runXmlBindingOutputStreamTest();
 //      runBigIntegerTest();
-      runBigDecimalTest();
+//      runBigDecimalTest();
       
       cout << endl << "Tests finished." << endl;
       

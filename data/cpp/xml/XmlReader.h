@@ -141,12 +141,22 @@ public:
     * This method may be called multiple times if the input stream needs to
     * be populated in between calls or if multiple input streams are used.
     * 
+    * The finish() method must be called to complete the deserialization.
+    * 
     * @param db the DataBinding for the object to deserialize.
     * @param is the InputStream to read the xml from.
     * 
     * @return an IOException if one occurred, NULL if not.
     */
    virtual db::io::IOException* read(db::io::InputStream* is);
+   
+   /**
+    * Finishes deserializing an object from xml. This method must be called
+    * to complete deserialization.
+    * 
+    * @return an IOException is one occurred, NULL if not.
+    */
+   virtual db::io::IOException* finish();
 };
 
 } // end namespace xml

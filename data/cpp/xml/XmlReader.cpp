@@ -198,12 +198,6 @@ IOException* XmlReader::read(InputStream* is)
             error = (XML_ParseBuffer(mParser, numBytes, false) == 0);
          }
          
-         if(!error)
-         {
-            // parse last data
-            error = (XML_ParseBuffer(mParser, 0, true) == 0);
-         }
-         
          if(error)
          {
             int line = XML_GetCurrentLineNumber(mParser);
@@ -221,6 +215,33 @@ IOException* XmlReader::read(InputStream* is)
          Exception::setLast(rval);
       }
    }
+   
+   return rval;
+}
+
+IOException* XmlReader::finish()
+{
+   IOException* rval = NULL;
+   
+   if(mStarted)
+   {
+      // parse last data
+      if(XML_ParseBuffer(mParser, 0, true) == 0)
+      {
+         int line = XML_GetCurrentLineNumber(mParser);
+         const char* str = XML_ErrorString(XML_GetErrorCode(mParser));
+         char msg[100 + strlen(str)];
+         sprintf(msg, "Xml parser error at line %d:\n%s\n", line, str);
+         rval = new IOException(msg);
+         Exception::setLast(rval);
+      }
+      
+      // free parser
+      XML_ParserFree(mParser);
+   }
+   
+   // no longer started
+   mStarted = false;
    
    return rval;
 }
