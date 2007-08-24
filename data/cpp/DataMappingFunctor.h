@@ -352,7 +352,7 @@ void DataMappingFunctor<BoundType, ChildType>::appendData(
       d = new char[oldLength + length + 1];
       strncpy(d, oldData, oldLength);
       strncpy(d + oldLength, data, length);
-      memset(d, 0, 1);
+      memset(d + oldLength + length, 0, 1);
       length += oldLength;
    }
    else
