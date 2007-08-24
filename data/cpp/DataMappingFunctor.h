@@ -341,16 +341,16 @@ void DataMappingFunctor<BoundType, ChildType>::appendData(
    void* bObject, const char* data, int length)
 {
    // get existing data
-   char** oldData;
-   getData(bObject, oldData);
-   int oldLength = strlen(*oldData);
+   char* oldData;
+   getData(bObject, &oldData);
+   int oldLength = strlen(oldData);
    
    char* d = NULL;
    if(oldLength > 0)
    {
       // append new data and null-terminator
       d = new char[oldLength + length + 1];
-      strncpy(d, *oldData, oldLength);
+      strncpy(d, oldData, oldLength);
       strncpy(d + oldLength, data, length);
       memset(d, 0, 1);
       length += oldLength;
@@ -398,7 +398,7 @@ void DataMappingFunctor<BoundType, ChildType>::appendData(
    
    // clean up temp and old data
    delete [] d;
-   delete [] *oldData;
+   delete [] oldData;
 }
 
 template<class BoundType, class ChildType>
