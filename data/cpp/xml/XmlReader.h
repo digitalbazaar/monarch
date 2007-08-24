@@ -32,6 +32,11 @@ protected:
    XML_Parser mParser;
    
    /**
+    * True if this xml parser has started, false if not.
+    */
+   bool mStarted;
+   
+   /**
     * A stack of DataBindings.
     */
    std::list<DataBinding*> mDataBindingsStack;
@@ -118,15 +123,30 @@ public:
    virtual ~XmlReader();
    
    /**
-    * Deserializes an object from xml using the passed DataBinding.
+    * Starts deserializing an object from xml. This XmlReader can be re-used
+    * by calling start() with the same or a new data binding.
+    * 
+    * @param db the DataBinding for the object to deserialize.
+    */
+   virtual void start(db::data::DataBinding* db);
+   
+   /**
+    * This method reads xml from the passed InputStream until the end of
+    * the stream, blocking if necessary.
+    * 
+    * The start() method must be called at least once before calling read(). As
+    * the xml is read, the data binding provided in start() is used to
+    * deserialize an object.
+    * 
+    * This method may be called multiple times if the input stream needs to
+    * be populated in between calls or if multiple input streams are used.
     * 
     * @param db the DataBinding for the object to deserialize.
     * @param is the InputStream to read the xml from.
     * 
-    * @return true if successful, false if an exception occurred.
+    * @return an IOException if one occurred, NULL if not.
     */
-   virtual bool read(
-      db::data::DataBinding* db, db::io::InputStream* is);
+   virtual db::io::IOException* read(db::io::InputStream* is);
 };
 
 } // end namespace xml

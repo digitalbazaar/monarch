@@ -34,3 +34,9 @@ int ByteArrayInputStream::read(char* b, unsigned int length)
    
    return rval;
 }
+
+void ByteArrayInputStream::setByteArray(char* b, unsigned int length)
+{
+   mBytes = b;
+   mLength = length;
+}

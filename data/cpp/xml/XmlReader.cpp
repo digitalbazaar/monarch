@@ -2,7 +2,6 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "xml/XmlReader.h"
-#include "IOException.h"
 
 using namespace std;
 using namespace db::data;
@@ -18,21 +17,16 @@ unsigned int XmlReader::READ_SIZE = 4096;
 
 XmlReader::XmlReader()
 {
-   // create parser
-   mParser = XML_ParserCreateNS(CHAR_ENCODING, '|');
-   
-   // set user data to this reader
-   XML_SetUserData(mParser, this);
-   
-   // set handlers
-   XML_SetElementHandler(mParser, &startElement, &endElement);
-   XML_SetCharacterDataHandler(mParser, &appendData);
+   mStarted = false;
 }
 
 XmlReader::~XmlReader()
 {
-   // free parser
-   XML_ParserFree(mParser);
+   if(mStarted)
+   {
+      // free parser
+      XML_ParserFree(mParser);
+   }
 }
 
 void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
@@ -154,45 +148,78 @@ void XmlReader::appendData(void* xr, const XML_Char* data, int length)
    reader->appendData(data, length);
 }
 
-bool XmlReader::read(DataBinding* db, InputStream* is)
+void XmlReader::start(DataBinding* db)
 {
-   bool rval = false;
-   
    // clear data bindings stack
    mDataBindingsStack.clear();
    
    // push root data binding onto stack
    mDataBindingsStack.push_front(db);
    
-   char* b = (char*)XML_GetBuffer(mParser, READ_SIZE);
-   if(b != NULL)
+   if(mStarted)
    {
-      bool error = false;
-      int numBytes;
-      while(!error && (numBytes = is->read(b, READ_SIZE)) != -1)
-      {
-         error = (XML_ParseBuffer(mParser, numBytes, false) == 0);
-      }
-      
-      if(!error)
-      {
-         // parse last data
-         XML_ParseBuffer(mParser, 0, true);
-      }
-      
-      if(error)
-      {
-         int line = XML_GetCurrentLineNumber(mParser);
-         const char* errorString = XML_ErrorString(XML_GetErrorCode(mParser));
-         char msg[100 + strlen(errorString)];
-         sprintf(msg, "Xml parser error at line %d:\n%s\n", line, errorString);
-         Exception::setLast(new IOException(msg));
-      }
+      // free parser
+      XML_ParserFree(mParser);
+   }
+   
+   // create parser
+   mParser = XML_ParserCreateNS(CHAR_ENCODING, '|');
+   
+   // set user data to this reader
+   XML_SetUserData(mParser, this);
+   
+   // set handlers
+   XML_SetElementHandler(mParser, &startElement, &endElement);
+   XML_SetCharacterDataHandler(mParser, &appendData);
+   
+   // read started
+   mStarted = true;
+}
+
+IOException* XmlReader::read(InputStream* is)
+{
+   IOException* rval = NULL;
+   
+   if(!mStarted)
+   {
+      // reader not started
+      rval = new IOException("Cannot read yet, XmlReader not started!");
+      Exception::setLast(rval);
    }
    else
    {
-      // set memory exception
-      Exception::setLast(new IOException("Insufficient memory to parse xml!"));
+      char* b = (char*)XML_GetBuffer(mParser, READ_SIZE);
+      if(b != NULL)
+      {
+         bool error = false;
+         int numBytes;
+         while(!error && (numBytes = is->read(b, READ_SIZE)) != -1)
+         {
+            error = (XML_ParseBuffer(mParser, numBytes, false) == 0);
+         }
+         
+         if(!error)
+         {
+            // parse last data
+            error = (XML_ParseBuffer(mParser, 0, true) == 0);
+         }
+         
+         if(error)
+         {
+            int line = XML_GetCurrentLineNumber(mParser);
+            const char* str = XML_ErrorString(XML_GetErrorCode(mParser));
+            char msg[100 + strlen(str)];
+            sprintf(msg, "Xml parser error at line %d:\n%s\n", line, str);
+            rval = new IOException(msg);
+            Exception::setLast(rval);
+         }
+      }
+      else
+      {
+         // set memory exception
+         rval = new IOException("Insufficient memory to parse xml!");
+         Exception::setLast(rval);
+      }
    }
    
    return rval;

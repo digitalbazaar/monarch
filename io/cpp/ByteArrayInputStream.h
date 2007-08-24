@@ -56,6 +56,14 @@ public:
     *         stream has been reached.
     */
    virtual int read(char* b, unsigned int length);
+   
+   /**
+    * Sets the byte array to read from.
+    * 
+    * @param b the byte array to read from.
+    * @param length the length of the byte array.
+    */
+   virtual void setByteArray(char* b, unsigned int length); 
 };
 
 } // end namespace net
