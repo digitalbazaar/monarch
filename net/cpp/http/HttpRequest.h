@@ -6,6 +6,7 @@
 
 #include "WebRequest.h"
 #include "HttpRequestHeader.h"
+#include "HttpTrailer.h"
 
 namespace db
 {
@@ -76,12 +77,12 @@ public:
     * interrupted.
     * 
     * @param is the InputStream to read the body from.
-    * @param trailers header trailers to send.
+    * @param trailer header trailers to send.
     * 
     * @return an IOException if an IO error occurs, NULL if not.
     */
    virtual db::io::IOException* sendBody(
-      db::io::InputStream* is, HttpHeader* trailers = NULL);
+      db::io::InputStream* is, HttpTrailer* trailer = NULL);
    
    /**
     * Receives the body for this request. This method will block until the
@@ -89,12 +90,12 @@ public:
     * is interrupted.
     * 
     * @param os the OutputStream to write the body to.
-    * @param trailers used to store received header trailers.
+    * @param trailer used to store received header trailers.
     * 
     * @return an IOException if an IO error occurs, NULL if not.
     */
    virtual db::io::IOException* receiveBody(
-      db::io::OutputStream* os, HttpHeader* trailers = NULL);
+      db::io::OutputStream* os, HttpTrailer* trailer = NULL);
    
    /**
     * Gets the header for this request. This will not receive the header

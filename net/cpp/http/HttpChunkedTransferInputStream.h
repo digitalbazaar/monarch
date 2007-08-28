@@ -6,7 +6,7 @@
 
 #include "PeekInputStream.h"
 #include "ConnectionInputStream.h"
-#include "HttpHeader.h"
+#include "HttpTrailer.h"
 #include "Thread.h"
 
 namespace db
@@ -82,9 +82,9 @@ class HttpChunkedTransferInputStream : public db::io::PeekInputStream
 {
 protected:
    /**
-    * The HttpHeader to use for header trailers.
+    * The HttpTrailer to use for header trailers.
     */
-   HttpHeader* mTrailers;
+   HttpTrailer* mTrailer;
    
    /**
     * Stores the number of bytes left to read for the current chunk.
@@ -106,10 +106,10 @@ public:
     * Creates a new HttpChunkedTransferInputStream.
     * 
     * @param is the ConnectionInputStream to receive data over.
-    * @param header the HttpHeader to store the header trailers in.
+    * @param trailer the HttpTrailer to store the header trailers in.
     */
    HttpChunkedTransferInputStream(
-      ConnectionInputStream* is, HttpHeader* trailers);
+      ConnectionInputStream* is, HttpTrailer* trailer);
    
    /**
     * Destructs this HttpChunkedTransferInputStream.

@@ -6,7 +6,7 @@
 
 #include "FilterOutputStream.h"
 #include "ConnectionOutputStream.h"
-#include "HttpHeader.h"
+#include "HttpTrailer.h"
 
 namespace db
 {
@@ -82,9 +82,9 @@ public db::io::FilterOutputStream
 {
 protected:
    /**
-    * The HttpHeader to use for header trailers.
+    * The HttpTrailer to use for header trailers.
     */
-   HttpHeader* mTrailers;
+   HttpTrailer* mTrailer;
    
    /**
     * Stores the amount of data sent to include in the header trailers.
@@ -96,10 +96,10 @@ public:
     * Creates a new HttpChunkedTransferOutputStream.
     * 
     * @param os the ConnectionOutputStream to send data over.
-    * @param header the HttpHeader to use for header trailers.
+    * @param trailer the HttpTrailer to use for header trailers.
     */
    HttpChunkedTransferOutputStream(
-      ConnectionOutputStream* os, HttpHeader* trailers);
+      ConnectionOutputStream* os, HttpTrailer* trailer);
    
    /**
     * Destructs this HttpChunkedTransferOutputStream.

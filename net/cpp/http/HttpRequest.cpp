@@ -32,14 +32,14 @@ IOException* HttpRequest::receiveHeader()
    return getConnection()->receiveHeader(getHeader());
 }
 
-IOException* HttpRequest::sendBody(InputStream* is, HttpHeader* trailers)
+IOException* HttpRequest::sendBody(InputStream* is, HttpTrailer* trailer)
 {
-   return getConnection()->sendBody(getHeader(), is, trailers);
+   return getConnection()->sendBody(getHeader(), is, trailer);
 }
 
-IOException* HttpRequest::receiveBody(OutputStream* os, HttpHeader* trailers)
+IOException* HttpRequest::receiveBody(OutputStream* os, HttpTrailer* trailer)
 {
-   return getConnection()->receiveBody(getHeader(), os, trailers);
+   return getConnection()->receiveBody(getHeader(), os, trailer);
 }
 
 HttpRequestHeader* HttpRequest::getHeader()

@@ -7,7 +7,7 @@
 #include "WebConnection.h"
 #include "InputStream.h"
 #include "OutputStream.h"
-#include "HttpHeader.h"
+#include "HttpTrailer.h"
 
 namespace db
 {
@@ -86,13 +86,13 @@ public:
     * 
     * @param header the header to send the message body for.
     * @param is the InputStream to read the body from.
-    * @param trailers any trailer headers to send if appropriate.
+    * @param trailer any trailer headers to send if appropriate.
     * 
     * @return an IOException if an IO error occurs, NULL if not.
     */
    virtual db::io::IOException* sendBody(
       HttpHeader* header, db::io::InputStream* is,
-      HttpHeader* trailers = NULL);
+      HttpTrailer* trailer = NULL);
    
    /**
     * Receives the message body for the given header. This method will block
@@ -101,13 +101,13 @@ public:
     * 
     * @param header the header to receive the message body for.
     * @param os the OutputStream to write the body to.
-    * @param trailers used to store any received trailer headers.
+    * @param trailer used to store any received trailer headers.
     * 
     * @return an IOException if an IO error occurs, NULL if not.
     */
    virtual db::io::IOException* receiveBody(
       HttpHeader* header, db::io::OutputStream* os,
-      HttpHeader* trailers = NULL);
+      HttpTrailer* trailer = NULL);
    
    /**
     * Sets the total number of content bytes read from this HttpConnection so

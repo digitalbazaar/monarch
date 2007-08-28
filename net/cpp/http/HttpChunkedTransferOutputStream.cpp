@@ -11,11 +11,11 @@ using namespace db::net::http;
 using namespace db::util;
 
 HttpChunkedTransferOutputStream::HttpChunkedTransferOutputStream(
-   ConnectionOutputStream* os, HttpHeader* trailers) :
+   ConnectionOutputStream* os, HttpTrailer* trailer) :
 FilterOutputStream(os, false)
 {
-   // store http trailers header
-   mTrailers = trailers;
+   // store http trailer
+   mTrailer = trailer;
    
    // no data sent yet
    mDataSent = 0;
@@ -62,14 +62,14 @@ void HttpChunkedTransferOutputStream::close()
    // write CRLF
    mOutputStream->write(HttpHeader::CRLF, 2);
    
-   if(mTrailers != NULL)
+   if(mTrailer != NULL)
    {
-      // send content-length header to ensure it is accurate
-      mTrailers->setField("Content-Length", mDataSent);
+      // update the trailer
+      mTrailer->update(mDataSent);
       
-      // write out header
+      // write out trailer
       string str;
-      mTrailers->toString(str);
+      mTrailer->toString(str);
       mOutputStream->write(str.c_str(), str.length());
    }
    else

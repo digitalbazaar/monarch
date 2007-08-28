@@ -2649,9 +2649,9 @@ public:
       response->getHeader()->setField("Connection", "close");
       response->sendHeader();
       
-      HttpHeader trailers;
+      HttpTrailer trailer;
       ByteArrayInputStream bais(content, strlen(content));
-      response->sendBody(&bais, &trailers);
+      response->sendBody(&bais, &trailer);
    }
 };
 
@@ -2741,16 +2741,16 @@ void runHttpClientGetTest()
          if(response->getHeader()->getStatusCode() == 200)
          {
             // receive content
-            HttpHeader trailers;
+            HttpTrailer trailer;
             File file("/tmp/index.html");
             FileOutputStream fos(&file);
-            IOException* e = client.receiveContent(&fos, &trailers);
+            IOException* e = client.receiveContent(&fos, &trailer);
             if(e == NULL)
             {
                cout << "Content downloaded to '" <<
                   file.getName() << "'" << endl;
                
-               cout << "HTTP trailers=\n" << trailers.toString(str) << endl;
+               cout << "HTTP trailers=\n" << trailer.toString(str) << endl;
             }
             else
             {
@@ -2796,8 +2796,8 @@ void runHttpClientPostTest()
          "Transfer-Encoding: chunked",
          NULL};
       
-      HttpHeader trailers;
-      HttpResponse* response = client.post(&url, headers, &baos, &trailers);
+      HttpTrailer trailer;
+      HttpResponse* response = client.post(&url, headers, &baos, &trailer);
       if(response != NULL)
       {
          cout << "Response=" << endl <<
@@ -2805,16 +2805,16 @@ void runHttpClientPostTest()
          if(response->getHeader()->getStatusCode() == 200)
          {
             // receive content
-            trailers.clearFields();
+            trailer.clearFields();
             File file("/tmp/postresponse.txt");
             FileOutputStream fos(&file);
-            IOException* e = client.receiveContent(&fos, &trailers);
+            IOException* e = client.receiveContent(&fos, &trailer);
             if(e == NULL)
             {
                cout << "Content downloaded to '" <<
                   file.getName() << "'" << endl;
                
-               cout << "HTTP trailers=\n" << trailers.toString(str) << endl;
+               cout << "HTTP trailers=\n" << trailer.toString(str) << endl;
             }
             else
             {

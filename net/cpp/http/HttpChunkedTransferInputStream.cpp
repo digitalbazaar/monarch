@@ -13,11 +13,11 @@ using namespace db::rt;
 using namespace db::util;
 
 HttpChunkedTransferInputStream::HttpChunkedTransferInputStream(
-   ConnectionInputStream* is, HttpHeader* trailers) :
+   ConnectionInputStream* is, HttpTrailer* trailer) :
 PeekInputStream(is, false)
 {
-   // store trailers
-   mTrailers = trailers;
+   // store trailer
+   mTrailer = trailer;
    
    // no current chunk yet
    mChunkBytesLeft = 0;
@@ -105,9 +105,9 @@ int HttpChunkedTransferInputStream::read(char* b, unsigned int length)
       }
       
       // parse trailer headers, if appropriate
-      if(mTrailers != NULL)
+      if(mTrailer != NULL)
       {
-         mTrailers->parse(trailerHeaders);
+         mTrailer->parse(trailerHeaders);
       }
    }
    else if(exception == NULL && mChunkBytesLeft == 0)
