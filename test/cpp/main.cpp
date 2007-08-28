@@ -28,6 +28,7 @@
 #include "FileInputStream.h"
 #include "FileOutputStream.h"
 #include "DigitalEnvelope.h"
+#include "DigitalSignatureOutputStream.h"
 #include "DefaultBlockCipher.h"
 #include "Convert.h"
 #include "Url.h"
@@ -1336,6 +1337,108 @@ void runRsaAsymmetricKeyCreationTest()
    }
    
    cout << endl << "RSA Asymmetric Key Creation test complete." << endl;
+   
+   // clean up crypto strings
+   EVP_cleanup();
+}
+
+void runDigitalSignatureOutputStreamTest()
+{
+   cout << "Running DigitalSignatureOutputStream Test" << endl << endl;
+   
+   // include crypto error strings
+   ERR_load_crypto_strings();
+   
+   // add all algorithms
+   OpenSSL_add_all_algorithms();
+   
+   // seed PRNG
+   //RAND_load_file("/dev/urandom", 1024);
+   
+   // get an asymmetric key factory
+   AsymmetricKeyFactory factory;
+   
+   // create a new key pair
+   PrivateKey* privateKey;
+   PublicKey* publicKey;
+   factory.createKeyPair("RSA", &privateKey, &publicKey);
+   
+   if(privateKey != NULL)
+   {
+      cout << "RSA Private Key created!" << endl;
+   }
+   else
+   {
+      cout << "RSA Private Key creation FAILED!" << endl;
+   }
+   
+   if(publicKey != NULL)
+   {
+      cout << "RSA Public Key created!" << endl;
+   }
+   else
+   {
+      cout << "RSA Public Key creation FAILED!" << endl;
+   }
+   
+   if(privateKey != NULL && publicKey != NULL)
+   {
+      cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
+      cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
+      
+      // sign some data
+      char data[] = {1,2,3,4,5,6,7,8};
+      DigitalSignature* ds1 = privateKey->createSignature();
+      
+      ostringstream oss;
+      OStreamOutputStream osos(&oss);
+      DigitalSignatureOutputStream dsos1(ds1, &osos, false);
+      dsos1.write(data, 8);
+      
+      // get the signature
+      char sig[ds1->getValueLength()];
+      unsigned int length;
+      ds1->getValue(sig, length);
+      delete ds1;
+      
+      // verify the signature
+      DigitalSignature* ds2 = publicKey->createSignature();
+      DigitalSignatureOutputStream dsos2(ds2, &osos, false);
+      dsos2.write(data, 8);
+      bool verified = ds2->verify(sig, length);
+      delete ds2;
+      
+      if(verified)
+      {
+         cout << "Digital Signature Verified!" << endl;
+      }
+      else
+      {
+         cout << "Digital Signature NOT VERIFIED!" << endl;
+      }
+      
+      string outPrivatePem =
+         factory.writePrivateKeyToPem(privateKey, "password");
+      string outPublicPem =
+         factory.writePublicKeyToPem(publicKey);
+      
+      cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
+      cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
+   }
+   
+   // cleanup private key
+   if(privateKey != NULL)
+   {
+      delete privateKey;
+   }
+   
+   // cleanup public key
+   if(publicKey != NULL)
+   {
+      delete publicKey;
+   }
+   
+   cout << endl << "DigitalSignatureOutputStream test complete." << endl;
    
    // clean up crypto strings
    EVP_cleanup();
@@ -3154,6 +3257,7 @@ public:
 //      runAsymmetricKeyLoadingTest();
 //      runDsaAsymmetricKeyCreationTest();
 //      runRsaAsymmetricKeyCreationTest();
+//      runDigitalSignatureOutputStreamTest();
 //      runEnvelopeTest("DSA");
 //      runEnvelopeTest("RSA");
 //      runCipherTest("AES256");

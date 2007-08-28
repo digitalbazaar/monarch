@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_data_xml_XmlBindingStreamOutputStream_H
-#define db_data_xml_XmlBindingStreamOutputStream_H
+#ifndef db_data_xml_XmlBindingOutputStream_H
+#define db_data_xml_XmlBindingOutputStream_H
 
 #include "OutputStream.h"
 #include "ByteArrayInputStream.h"
