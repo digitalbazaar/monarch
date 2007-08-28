@@ -25,6 +25,18 @@ HttpHeader::~HttpHeader()
    }
 }
 
+bool HttpHeader::parseStartLine(const char* str, unsigned int length)
+{
+   // no start line
+   return true;
+}
+
+void HttpHeader::getStartLine(std::string& line)
+{
+   // no start line
+   line.erase();
+}
+
 void HttpHeader::setField(const char* name, long long value)
 {
    setField(name, Convert::integerToString(value));
@@ -175,9 +187,12 @@ string& HttpHeader::toString(string& str)
 {
    str.erase();
    
-   // append the start line and CRLF
+   // append the start line, if one exists, and CRLF
    getStartLine(str);
-   str.append(CRLF);
+   if(str.length() > 0)
+   {
+      str.append(CRLF);
+   }
    
    // append all fields
    for(map<const char*, string, FieldComparator>::iterator i =

@@ -84,7 +84,7 @@ protected:
    /**
     * The HttpHeader to use for header trailers.
     */
-   HttpHeader* mHeader;
+   HttpHeader* mTrailers;
    
    /**
     * Stores the amount of data sent to include in the header trailers.
@@ -99,7 +99,7 @@ public:
     * @param header the HttpHeader to use for header trailers.
     */
    HttpChunkedTransferOutputStream(
-      ConnectionOutputStream* os, HttpHeader* header);
+      ConnectionOutputStream* os, HttpHeader* trailers);
    
    /**
     * Destructs this HttpChunkedTransferOutputStream.

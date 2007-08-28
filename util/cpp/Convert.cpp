@@ -114,14 +114,14 @@ void Convert::hexToBytes(
    }
 }
 
-int Convert::hexToInt(const char* hex, unsigned int hexLength)
+unsigned int Convert::hexToInt(const char* hex, unsigned int hexLength)
 {
    int rval = 0;
    
    unsigned int base = 1;
    if(hexLength > 1)
    {
-      for(int i = 0; i < (hexLength - 2); i++, base *= 16);
+      for(unsigned int i = 0; i < (hexLength - 2); i++, base *= 16);
    }
    
    unsigned char c1;
@@ -173,7 +173,7 @@ int Convert::hexToInt(const char* hex, unsigned int hexLength)
    return rval;
 }
 
-string Convert::intToHex(int n)
+string Convert::intToHex(unsigned int n)
 {
    string rval;
    
@@ -196,7 +196,7 @@ string Convert::intToHex(int n)
    return rval;
 }
 
-string Convert::intToUpperHex(int n)
+string Convert::intToUpperHex(unsigned int n)
 {
    string rval;
    

@@ -13,11 +13,11 @@ using namespace db::rt;
 using namespace db::util;
 
 HttpChunkedTransferInputStream::HttpChunkedTransferInputStream(
-   ConnectionInputStream* is, HttpHeader* header) :
+   ConnectionInputStream* is, HttpHeader* trailers) :
 PeekInputStream(is, false)
 {
-   // store header
-   mHeader = header;
+   // store trailers
+   mTrailers = trailers;
    
    // no current chunk yet
    mChunkBytesLeft = 0;
@@ -57,8 +57,7 @@ int HttpChunkedTransferInputStream::read(char* b, unsigned int length)
          }
          
          // get size of chunk data
-         mChunkBytesLeft = Convert::hexToInt(
-            chunkSize.c_str(), sizeLength);
+         mChunkBytesLeft = Convert::hexToInt(chunkSize.c_str(), sizeLength);
          
          // this is the last chunk if length is 0
          mLastChunk = (mChunkBytesLeft == 0);
@@ -76,7 +75,7 @@ int HttpChunkedTransferInputStream::read(char* b, unsigned int length)
       !mThread->isInterrupted())
    {
       unsigned int readSize = (length < mChunkBytesLeft) ?
-         length : mChunkBytesLeft;      
+         length : mChunkBytesLeft;
       numBytes = is->read(b, readSize);
       if(numBytes != -1)
       {
@@ -105,8 +104,11 @@ int HttpChunkedTransferInputStream::read(char* b, unsigned int length)
          trailerHeaders.append(HttpHeader::CRLF);
       }
       
-      // parse trailer headers
-      mHeader->parse(trailerHeaders);
+      // parse trailer headers, if appropriate
+      if(mTrailers != NULL)
+      {
+         mTrailers->parse(trailerHeaders);
+      }
    }
    else if(exception == NULL && mChunkBytesLeft == 0)
    {

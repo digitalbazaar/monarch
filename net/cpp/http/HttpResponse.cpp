@@ -26,14 +26,14 @@ IOException* HttpResponse::receiveHeader()
    return getConnection()->receiveHeader(getHeader());
 }
 
-IOException* HttpResponse::sendBody(InputStream* is)
+IOException* HttpResponse::sendBody(InputStream* is, HttpHeader* trailers)
 {
-   return getConnection()->sendBody(getHeader(), is);
+   return getConnection()->sendBody(getHeader(), is, trailers);
 }
 
-IOException* HttpResponse::receiveBody(OutputStream* os)
+IOException* HttpResponse::receiveBody(OutputStream* os, HttpHeader* trailers)
 {
-   return getConnection()->receiveBody(getHeader(), os);
+   return getConnection()->receiveBody(getHeader(), os, trailers);
 }
 
 HttpResponseHeader* HttpResponse::getHeader()

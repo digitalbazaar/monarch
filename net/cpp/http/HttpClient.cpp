@@ -103,7 +103,8 @@ HttpResponse* HttpClient::get(Url* url, char** headers)
    return rval;
 }
 
-HttpResponse* HttpClient::post(Url* url, char** headers, InputStream* is)
+HttpResponse* HttpClient::post(
+   Url* url, char** headers, InputStream* is, HttpHeader* trailers)
 {
    HttpResponse* rval = NULL;
    
@@ -125,7 +126,7 @@ HttpResponse* HttpClient::post(Url* url, char** headers, InputStream* is)
       if(mRequest->sendHeader() == NULL)
       {
          // send body
-         if(mRequest->sendBody(is) == NULL)
+         if(mRequest->sendBody(is, trailers) == NULL)
          {
             // receive response header
             if(mResponse->receiveHeader() == NULL)
@@ -140,7 +141,7 @@ HttpResponse* HttpClient::post(Url* url, char** headers, InputStream* is)
    return rval;
 }
 
-IOException* HttpClient::receiveContent(OutputStream* os)
+IOException* HttpClient::receiveContent(OutputStream* os, HttpHeader* trailers)
 {
    IOException* rval = NULL;
    
@@ -152,7 +153,7 @@ IOException* HttpClient::receiveContent(OutputStream* os)
    else
    {
       // receive body
-      rval = mResponse->receiveBody(os);
+      rval = mResponse->receiveBody(os, trailers);
    }
    
    return rval;

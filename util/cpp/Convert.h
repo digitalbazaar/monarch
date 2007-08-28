@@ -79,7 +79,7 @@ public:
     * 
     * @return the integer.
     */
-   static int hexToInt(const char* hex, unsigned int hexLength);
+   static unsigned int hexToInt(const char* hex, unsigned int hexLength);
    
    /**
     * Converts an integer into a lower-case hexadecimal string.
@@ -88,7 +88,7 @@ public:
     * 
     * @return the lower-case hexadecimal string. 
     */
-   static std::string intToHex(int n);
+   static std::string intToHex(unsigned int n);
    
    /**
     * Converts an integer into an upper-case hexadecimal string.
@@ -97,7 +97,7 @@ public:
     * 
     * @return the upper-case hexadecimal string. 
     */
-   static std::string intToUpperHex(int n);
+   static std::string intToUpperHex(unsigned int n);
    
    /**
     * Converts an integer to a string.

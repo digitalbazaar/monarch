@@ -2640,11 +2640,18 @@ public:
    virtual void serviceRequest(
       HttpRequest* request, HttpResponse* response)
    {
+      char content[] = "Bob Loblaw's Law Blog";
+      
       // send 200 OK
       response->getHeader()->setStatus(200, "OK");
-      response->getHeader()->setField("Content-Length", 0);
+      //response->getHeader()->setField("Content-Length", 0);
+      response->getHeader()->setField("Transfer-Encoding", "chunked");
       response->getHeader()->setField("Connection", "close");
       response->sendHeader();
+      
+      HttpHeader trailers;
+      ByteArrayInputStream bais(content, strlen(content));
+      response->sendBody(&bais, &trailers);
    }
 };
 
@@ -2734,13 +2741,16 @@ void runHttpClientGetTest()
          if(response->getHeader()->getStatusCode() == 200)
          {
             // receive content
+            HttpHeader trailers;
             File file("/tmp/index.html");
             FileOutputStream fos(&file);
-            IOException* e = client.receiveContent(&fos);
+            IOException* e = client.receiveContent(&fos, &trailers);
             if(e == NULL)
             {
                cout << "Content downloaded to '" <<
                   file.getName() << "'" << endl;
+               
+               cout << "HTTP trailers=\n" << trailers.toString(str) << endl;
             }
             else
             {
@@ -2786,7 +2796,8 @@ void runHttpClientPostTest()
          "Transfer-Encoding: chunked",
          NULL};
       
-      HttpResponse* response = client.post(&url, headers, &baos);
+      HttpHeader trailers;
+      HttpResponse* response = client.post(&url, headers, &baos, &trailers);
       if(response != NULL)
       {
          cout << "Response=" << endl <<
@@ -2794,13 +2805,16 @@ void runHttpClientPostTest()
          if(response->getHeader()->getStatusCode() == 200)
          {
             // receive content
+            trailers.clearFields();
             File file("/tmp/postresponse.txt");
             FileOutputStream fos(&file);
-            IOException* e = client.receiveContent(&fos);
+            IOException* e = client.receiveContent(&fos, &trailers);
             if(e == NULL)
             {
                cout << "Content downloaded to '" <<
                   file.getName() << "'" << endl;
+               
+               cout << "HTTP trailers=\n" << trailers.toString(str) << endl;
             }
             else
             {

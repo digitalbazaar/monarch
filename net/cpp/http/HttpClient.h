@@ -105,21 +105,25 @@ public:
     * @param url the url to post to.
     * @param headers any special headers to include in the request.
     * @param is the InputStream to read the content to send from.
+    * @param trailers used to store any trailer headers to send.
     * 
     * @return the HTTP response if one was received, NULL if not.
     */
    virtual HttpResponse* post(
-      db::net::Url* url, char** headers, db::io::InputStream* is);
+      db::net::Url* url, char** headers, db::io::InputStream* is,
+      HttpHeader* trailers = NULL);
    
    /**
     * Receives the content previously requested by get() or post() and
     * writes it to the passed output stream.
     * 
     * @param os the OutputStream to write the content to.
+    * @param trailers used to store any trailer headers.
     * 
     * @return an IO exception if one occurs, otherwise NULL.
     */
-   virtual db::io::IOException* receiveContent(db::io::OutputStream* os);
+   virtual db::io::IOException* receiveContent(
+      db::io::OutputStream* os, HttpHeader* trailers = NULL);
    
    /**
     * Disconnects this client, if it is connected.

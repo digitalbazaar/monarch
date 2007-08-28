@@ -81,14 +81,14 @@ public:
     * 
     * @return true if the start line could be parsed, false if not.
     */
-   virtual bool parseStartLine(const char* str, unsigned int length) = 0;
+   virtual bool parseStartLine(const char* str, unsigned int length);
    
    /**
     * Gets the start line for this HttpHeader.
     * 
     * @param line the startLine to populate.
     */
-   virtual void getStartLine(std::string& line) = 0;
+   virtual void getStartLine(std::string& line);
    
    /**
     * Sets a header field.

@@ -83,7 +83,8 @@ IOException* HttpConnection::receiveHeader(HttpHeader* header)
    return rval;
 }
 
-IOException* HttpConnection::sendBody(HttpHeader* header, InputStream* is)
+IOException* HttpConnection::sendBody(
+   HttpHeader* header, InputStream* is, HttpHeader* trailers)
 {
    IOException* rval = NULL;
    
@@ -97,7 +98,7 @@ IOException* HttpConnection::sendBody(HttpHeader* header, InputStream* is)
       if(strncasecmp(transferEncoding.c_str(), "chunked", 7) == 0)
       {
          os = chunkout = new HttpChunkedTransferOutputStream(
-            getOutputStream(), header);
+            getOutputStream(), trailers);
       }
    }
    
@@ -209,7 +210,8 @@ IOException* HttpConnection::sendBody(HttpHeader* header, InputStream* is)
    return rval;
 }
 
-IOException* HttpConnection::receiveBody(HttpHeader* header, OutputStream* os)
+IOException* HttpConnection::receiveBody(
+   HttpHeader* header, OutputStream* os, HttpHeader* trailers)
 {
    IOException* rval = NULL;
    
@@ -223,7 +225,7 @@ IOException* HttpConnection::receiveBody(HttpHeader* header, OutputStream* os)
       if(strncasecmp(transferEncoding.c_str(), "chunked", 7) == 0)
       {
          is = chunkin = new HttpChunkedTransferInputStream(
-            getInputStream(), header);
+            getInputStream(), trailers);
       }
    }
    

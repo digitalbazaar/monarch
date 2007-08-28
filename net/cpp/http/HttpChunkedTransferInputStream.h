@@ -84,12 +84,12 @@ protected:
    /**
     * The HttpHeader to use for header trailers.
     */
-   HttpHeader* mHeader;
+   HttpHeader* mTrailers;
    
    /**
     * Stores the number of bytes left to read for the current chunk.
     */
-   int mChunkBytesLeft;
+   unsigned int mChunkBytesLeft;
    
    /**
     * Set to true if the last chunk is being processed.
@@ -109,7 +109,7 @@ public:
     * @param header the HttpHeader to store the header trailers in.
     */
    HttpChunkedTransferInputStream(
-      ConnectionInputStream* is, HttpHeader* header);
+      ConnectionInputStream* is, HttpHeader* trailers);
    
    /**
     * Destructs this HttpChunkedTransferInputStream.
