@@ -14,7 +14,7 @@ namespace crypto
 
 /**
  * A DigitalSignatureOutputStream is used to create or verify a digital
- * signature on data being written to an output stream.
+ * signature on data written to an output stream.
  * 
  * @author Dave Longley
  */
