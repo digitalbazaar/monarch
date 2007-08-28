@@ -3375,7 +3375,7 @@ public:
 //      runAsymmetricKeyLoadingTest();
 //      runDsaAsymmetricKeyCreationTest();
 //      runRsaAsymmetricKeyCreationTest();
-      runDigitalSignatureInputStreamTest();
+//      runDigitalSignatureInputStreamTest();
 //      runDigitalSignatureOutputStreamTest();
 //      runEnvelopeTest("DSA");
 //      runEnvelopeTest("RSA");
@@ -3402,7 +3402,7 @@ public:
 //      runXmlReaderTest();
 //      runXmlWriterTest();
 //      runXmlReadWriteTest();
-//      runXmlBindingOutputStreamTest();
+      runXmlBindingOutputStreamTest();
 //      runBigIntegerTest();
 //      runBigDecimalTest();
       
