@@ -114,7 +114,14 @@ public:
     * 
     * @return true if the signature was verified, false if not.
     */
-   virtual bool verify(const char* b, unsigned int length); 
+   virtual bool verify(const char* b, unsigned int length);
+   
+   /**
+    * Gets the asymmetric key associated with this DigitalSignature.
+    * 
+    * @return the asymmetric key associated with this DigitalSignature.
+    */
+   virtual AsymmetricKey* getKey();
 };
 
 } // end namespace crypto

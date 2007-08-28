@@ -134,3 +134,8 @@ bool DigitalSignature::verify(const char* b, unsigned int length)
    
    return rval;
 }
+
+AsymmetricKey* DigitalSignature::getKey()
+{
+   return mKey;
+}
