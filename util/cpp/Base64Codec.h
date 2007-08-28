@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_util_Base64Coder_H
-#define db_util_Base64Coder_H
+#ifndef db_util_Base64Codec_H
+#define db_util_Base64Codec_H
 
 #include <string>
 
@@ -83,7 +83,7 @@ namespace util
  * 
  * @author Dave Longley
  */
-class Base64Coder
+class Base64Codec
 {
 protected:
    /**

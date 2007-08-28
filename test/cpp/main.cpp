@@ -9,7 +9,7 @@
 #include <openssl/rand.h>
 #include <openssl/engine.h>
 
-#include "Base64Coder.h"
+#include "Base64Codec.h"
 #include "Object.h"
 #include "Runnable.h"
 #include "Thread.h"
@@ -81,12 +81,12 @@ void runBase64Test()
 	cout << "Running Base64 Test" << endl << endl;
 	
 	char data[] = {'a', 'b', 'c', 'd', 'e'};
-	string encoded = Base64Coder::encode(data + 1, 4);
+	string encoded = Base64Codec::encode(data + 1, 4);
 	cout << "encoded=" << encoded << endl;
 	
    char* decoded;
 	unsigned int length;
-   Base64Coder::decode(encoded, &decoded, length);
+   Base64Codec::decode(encoded, &decoded, length);
 	
 	cout << "decoded bytes=" << length << endl;
    for(unsigned int i = 0; i < length; i++)
@@ -94,7 +94,7 @@ void runBase64Test()
       cout << "decoded[" << i << "]=" << decoded[i] << endl;
    }
 	
-	string encoded2 = Base64Coder::encode(decoded, 4);
+	string encoded2 = Base64Codec::encode(decoded, 4);
 	cout << "encoded again=" << encoded2 << endl;
 	
    if(decoded != NULL)

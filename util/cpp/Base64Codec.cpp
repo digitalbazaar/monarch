@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "Base64Coder.h"
+#include "Base64Codec.h"
 #include "StringTools.h"
 
 using namespace std;
 using namespace db::util;
 
-const char Base64Coder::INDEX_TO_BASE64[] =
+const char Base64Codec::INDEX_TO_BASE64[] =
 {
    /*  0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12, */   
      'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
@@ -25,7 +25,7 @@ const char Base64Coder::INDEX_TO_BASE64[] =
      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
 };
 
-const int Base64Coder::BASE64_TO_INDEX[] =
+const int Base64Codec::BASE64_TO_INDEX[] =
 {
    /* 43 -43 = 0*/  
    /* '+',  1,  2,  3,'/' */  
@@ -56,7 +56,7 @@ const int Base64Coder::BASE64_TO_INDEX[] =
        39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
 };
 
-int Base64Coder::charToInt(const char& c)
+int Base64Codec::charToInt(const char& c)
 {
    int rval = -1;
    
@@ -66,7 +66,7 @@ int Base64Coder::charToInt(const char& c)
    return rval;
 }
 
-void Base64Coder::encodeGroup(
+void Base64Codec::encodeGroup(
    const char* data, unsigned int length, char* group)
 {
    unsigned int b0 = data[0] & 0xff;
@@ -79,7 +79,7 @@ void Base64Coder::encodeGroup(
    group[3] = (length > 2) ? INDEX_TO_BASE64[b2 & 0x3f] : '='; 
 }
 
-void Base64Coder::decodeGroup(
+void Base64Codec::decodeGroup(
    const char* str, char* bytes, unsigned int& length)
 {
    // get 6-bit integer values
@@ -117,7 +117,7 @@ void Base64Coder::decodeGroup(
    }
 }
 
-string Base64Coder::encode(const char* data, unsigned int length)
+string Base64Codec::encode(const char* data, unsigned int length)
 {
    string rval = "";
    
@@ -170,7 +170,7 @@ string Base64Coder::encode(const char* data, unsigned int length)
    return rval;
 }
 
-void Base64Coder::decode(const string& str, char** data, unsigned int& length)
+void Base64Codec::decode(const string& str, char** data, unsigned int& length)
 {
    // point data at NULL and set length to 0
    *data = NULL;
