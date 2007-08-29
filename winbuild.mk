@@ -21,7 +21,7 @@ INCLUDES = \
 	-I$(BASE_DIR)/io/cpp \
 	-I$(BASE_DIR)/crypto/cpp \
 	-I$(BASE_DIR)/net/cpp \
-	-I$(BASE_DIR)/data/cpp/xml/expat \
+	-I$(BASE_DIR)/data/cpp/db/data/xml/expat \
 	-I$(BASE_DIR)/data/cpp
 
 # Compiler flags:
@@ -36,7 +36,7 @@ ARFLAGS = cr
 # windows libs
 PTHREAD_LIB = $(BASE_DIR)/rt/cpp/pthread/libpthreadGCE2.a
 CRYPTO_LIBS = E:/OpenSSL/lib/MinGW/ssleay32.a E:/OpenSSL/lib/MinGW/libeay32.a
-XML_LIBS = $(BASE_DIR)/data/cpp/xml/expat/libexpat.a $(BASE_DIR)/data/cpp/xml/expat/libexpat.dll
+XML_LIBS = $(BASE_DIR)/data/cpp/db/data/xml/expat/libexpat.a $(BASE_DIR)/data/cpp/db/data/xml/expat/libexpat.dll
 WIN_LIBS = \
 	$(PTHREAD_LIB) \
 	$(CRYPTO_LIBS) \
@@ -82,32 +82,32 @@ LIBS = \
 
 # H files
 FIND_H = $(wildcard $(dir)/*.h)
-DBRT_H = $(foreach dir,$(BASE_DIR)/rt/cpp,$(FIND_H))
-DBMODEST_H = $(foreach dir,$(BASE_DIR)/modest/cpp,$(FIND_H))
-DBUTIL_H = $(foreach dir,$(BASE_DIR)/util/cpp,$(FIND_H)) $(foreach dir,$(BASE_DIR)/util/cpp/regex,$(FIND_H))
-DBIO_H = $(foreach dir,$(BASE_DIR)/io/cpp,$(FIND_H))
-DBCRYPTO_H = $(foreach dir,$(BASE_DIR)/crypto/cpp,$(FIND_H))
-DBNET_H = $(foreach dir,$(BASE_DIR)/net/cpp,$(FIND_H)) $(foreach dir,$(BASE_DIR)/net/cpp/http,$(FIND_H))
-DBDATA_H = $(foreach dir,$(BASE_DIR)/data/cpp,$(FIND_H)) $(foreach dir,$(BASE_DIR)/data/cpp/xml,$(FIND_H))
+DBRT_H = $(foreach dir,$(BASE_DIR)/rt/cpp/db/rt,$(FIND_H))
+DBMODEST_H = $(foreach dir,$(BASE_DIR)/modest/cpp/db/modest,$(FIND_H))
+DBUTIL_H = $(foreach dir,$(BASE_DIR)/util/cpp/db/util,$(FIND_H)) $(foreach dir,$(BASE_DIR)/util/cpp/db/util/regex,$(FIND_H))
+DBIO_H = $(foreach dir,$(BASE_DIR)/io/cpp/db/io,$(FIND_H))
+DBCRYPTO_H = $(foreach dir,$(BASE_DIR)/crypto/cpp/db/crypto,$(FIND_H))
+DBNET_H = $(foreach dir,$(BASE_DIR)/net/cpp/db/net,$(FIND_H)) $(foreach dir,$(BASE_DIR)/net/cpp/db/net/http,$(FIND_H))
+DBDATA_H = $(foreach dir,$(BASE_DIR)/data/cpp/db/data,$(FIND_H)) $(foreach dir,$(BASE_DIR)/data/cpp/db/data/xml,$(FIND_H))
 
 # CPP files
 FIND_CPP = $(wildcard $(dir)/*.cpp)
-DBRT_CPP = $(foreach dir,$(BASE_DIR)/rt/cpp,$(FIND_CPP))
-DBMODEST_CPP = $(foreach dir,$(BASE_DIR)/modest/cpp,$(FIND_CPP))
-DBUTIL_CPP = $(foreach dir,$(BASE_DIR)/util/cpp,$(FIND_CPP)) $(foreach dir,$(BASE_DIR)/util/cpp/regex,$(FIND_CPP))
-DBIO_CPP = $(foreach dir,$(BASE_DIR)/io/cpp,$(FIND_CPP))
-DBCRYPTO_CPP = $(foreach dir,$(BASE_DIR)/crypto/cpp,$(FIND_CPP))
-DBNET_CPP = $(foreach dir,$(BASE_DIR)/net/cpp,$(FIND_CPP)) $(foreach dir,$(BASE_DIR)/net/cpp/http,$(FIND_CPP))
-DBDATA_CPP = $(foreach dir,$(BASE_DIR)/data/cpp,$(FIND_CPP)) $(foreach dir,$(BASE_DIR)/data/cpp/xml,$(FIND_CPP))
+DBRT_CPP = $(foreach dir,$(BASE_DIR)/rt/cpp/db/rt,$(FIND_CPP))
+DBMODEST_CPP = $(foreach dir,$(BASE_DIR)/modest/cpp/db/modest,$(FIND_CPP))
+DBUTIL_CPP = $(foreach dir,$(BASE_DIR)/util/cpp/db/util,$(FIND_CPP)) $(foreach dir,$(BASE_DIR)/util/cpp/db/util/regex,$(FIND_CPP))
+DBIO_CPP = $(foreach dir,$(BASE_DIR)/io/cpp/db/io,$(FIND_CPP))
+DBCRYPTO_CPP = $(foreach dir,$(BASE_DIR)/crypto/cpp/db/crypto,$(FIND_CPP))
+DBNET_CPP = $(foreach dir,$(BASE_DIR)/net/cpp/db/net,$(FIND_CPP)) $(foreach dir,$(BASE_DIR)/net/cpp/db/net/http,$(FIND_CPP))
+DBDATA_CPP = $(foreach dir,$(BASE_DIR)/data/cpp/db/data,$(FIND_CPP)) $(foreach dir,$(BASE_DIR)/data/cpp/db/data/xml,$(FIND_CPP))
 
 # Object files
-DBRT_OBJS = $(DBRT_CPP:$(BASE_DIR)/rt/cpp/%.cpp=$(BASE_DIR)/rt/cpp/build/%.o)
-DBMODEST_OBJS = $(DBMODEST_CPP:$(BASE_DIR)/modest/cpp/%.cpp=$(BASE_DIR)/modest/cpp/build/%.o)
-DBUTIL_OBJS = $(DBUTIL_CPP:$(BASE_DIR)/util/cpp/%.cpp=$(BASE_DIR)/util/cpp/build/%.o)
-DBIO_OBJS = $(DBIO_CPP:$(BASE_DIR)/io/cpp/%.cpp=$(BASE_DIR)/io/cpp/build/%.o)
-DBCRYPTO_OBJS = $(DBCRYPTO_CPP:$(BASE_DIR)/crypto/cpp/%.cpp=$(BASE_DIR)/crypto/cpp/build/%.o)
-DBNET_OBJS = $(DBNET_CPP:$(BASE_DIR)/net/cpp/%.cpp=$(BASE_DIR)/net/cpp/build/%.o)
-DBDATA_OBJS = $(DBDATA_CPP:$(BASE_DIR)/data/cpp/%.cpp=$(BASE_DIR)/data/cpp/build/%.o)
+DBRT_OBJS = $(DBRT_CPP:$(BASE_DIR)/rt/cpp/db/rt/%.cpp=$(BASE_DIR)/rt/cpp/build/%.o)
+DBMODEST_OBJS = $(DBMODEST_CPP:$(BASE_DIR)/modest/cpp/db/modest/%.cpp=$(BASE_DIR)/modest/cpp/build/%.o)
+DBUTIL_OBJS = $(DBUTIL_CPP:$(BASE_DIR)/util/cpp/db/util/%.cpp=$(BASE_DIR)/util/cpp/build/%.o)
+DBIO_OBJS = $(DBIO_CPP:$(BASE_DIR)/io/cpp/db/io/%.cpp=$(BASE_DIR)/io/cpp/build/%.o)
+DBCRYPTO_OBJS = $(DBCRYPTO_CPP:$(BASE_DIR)/crypto/cpp/db/crypto/%.cpp=$(BASE_DIR)/crypto/cpp/build/%.o)
+DBNET_OBJS = $(DBNET_CPP:$(BASE_DIR)/net/cpp/db/net/%.cpp=$(BASE_DIR)/net/cpp/build/%.o)
+DBDATA_OBJS = $(DBDATA_CPP:$(BASE_DIR)/data/cpp/db/data/%.cpp=$(BASE_DIR)/data/cpp/build/%.o)
 
 # Individual DB libraries as make targets
 # This will need to be changed for a windows build
@@ -194,31 +194,31 @@ test: libdbrt libdbmodest libdbutil libdbio libdbcrypto libdbnet libdbdata $(BAS
 	$(CC) $(CFLAGS) -o $(TEST_EXE) $(BASE_DIR)/test/cpp/build/main.o $(DBRT_LIB) $(DBMODEST_LIB) $(DBUTIL_LIB) $(DBIO_LIB) $(DBCRYPTO_LIB) $(DBNET_LIB) $(DBDATA_LIB) $(WIN_LIBS)
 
 # Builds DB runtime object files
-$(BASE_DIR)/rt/cpp/build/%.o: $(BASE_DIR)/rt/cpp/%.cpp
+$(BASE_DIR)/rt/cpp/build/%.o: $(BASE_DIR)/rt/cpp/db/rt/%.cpp
 	@mkdir -p $(BASE_DIR)/rt/cpp/build
 	@mkdir -p $(BASE_DIR)/rt/cpp/dist
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 # Builds DB modest object files
-$(BASE_DIR)/modest/cpp/build/%.o: $(BASE_DIR)/modest/cpp/%.cpp
+$(BASE_DIR)/modest/cpp/build/%.o: $(BASE_DIR)/modest/cpp/db/modest/%.cpp
 	@mkdir -p $(BASE_DIR)/modest/cpp/build
 	@mkdir -p $(BASE_DIR)/modest/cpp/dist
 	$(CC) $(CFLAGS) -o $@ -c $^ -DMODEST_API_EXPORT
 
 # Builds DB utility object files
-$(BASE_DIR)/util/cpp/build/%.o: $(BASE_DIR)/util/cpp/%.cpp
+$(BASE_DIR)/util/cpp/build/%.o: $(BASE_DIR)/util/cpp/db/util/%.cpp
 	@mkdir -p $(BASE_DIR)/util/cpp/build/regex
 	@mkdir -p $(BASE_DIR)/util/cpp/dist
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 # Builds DB io object files
-$(BASE_DIR)/io/cpp/build/%.o: $(BASE_DIR)/io/cpp/%.cpp
+$(BASE_DIR)/io/cpp/build/%.o: $(BASE_DIR)/io/cpp/db/io/%.cpp
 	@mkdir -p $(BASE_DIR)/io/cpp/build
 	@mkdir -p $(BASE_DIR)/io/cpp/dist
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 # Builds DB cryptography object files
-$(BASE_DIR)/crypto/cpp/build/%.o: $(BASE_DIR)/crypto/cpp/%.cpp
+$(BASE_DIR)/crypto/cpp/build/%.o: $(BASE_DIR)/crypto/cpp/db/crypto/%.cpp
 	@mkdir -p $(BASE_DIR)/crypto/cpp/build
 	@mkdir -p $(BASE_DIR)/crypto/cpp/dist
 	$(CC) $(CFLAGS) -o $@ -c $^
@@ -233,13 +233,13 @@ $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.o:
 	$(CC) $(CFLAGS) $(PYTHON_INCLUDE) -o $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.o -c $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.c
 
 # Builds DB net object files
-$(BASE_DIR)/net/cpp/build/%.o: $(BASE_DIR)/net/cpp/%.cpp
+$(BASE_DIR)/net/cpp/build/%.o: $(BASE_DIR)/net/cpp/db/net/%.cpp
 	@mkdir -p $(BASE_DIR)/net/cpp/build/http
 	@mkdir -p $(BASE_DIR)/net/cpp/dist
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 # Builds DB data object files
-$(BASE_DIR)/data/cpp/build/%.o: $(BASE_DIR)/data/cpp/%.cpp
+$(BASE_DIR)/data/cpp/build/%.o: $(BASE_DIR)/data/cpp/db/data/%.cpp
 	@mkdir -p $(BASE_DIR)/data/cpp/build/xml
 	@mkdir -p $(BASE_DIR)/data/cpp/dist
 	$(CC) $(CFLAGS) -o $@ -c $^
