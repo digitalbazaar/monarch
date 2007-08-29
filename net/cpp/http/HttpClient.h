@@ -143,7 +143,7 @@ public:
     * @return the HttpConnection to the url or NULL if an exception
     *         occurred.
     */
-   HttpConnection* createConnection(Url* url, unsigned int timeout = 30);
+   static HttpConnection* createConnection(Url* url, unsigned int timeout = 30);
    
    /**
     * Creates a connection to the passed address.
