@@ -3,11 +3,11 @@
  */
 #include "dbcryptoWrapper.h"
 
-#include "MessageDigest.h"
-#include "PrivateKey.h"
-#include "PublicKey.h"
-#include "DigitalSignature.h"
-#include "AsymmetricKeyFactory.h"
+#include "db/crypto/MessageDigest.h"
+#include "db/crypto/PrivateKey.h"
+#include "db/crypto/PublicKey.h"
+#include "db/crypto/DigitalSignature.h"
+#include "db/crypto/AsymmetricKeyFactory.h"
 
 using namespace std;
 
