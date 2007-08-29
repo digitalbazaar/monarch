@@ -181,6 +181,15 @@ void HttpClient::disconnect()
    }
 }
 
+HttpConnection* HttpClient::createConnection(Url* url, unsigned int timeout)
+{
+   // FIXME: add SSL support later
+   
+   // create connection
+   InternetAddress address(url->getHost(), url->getPort());
+   return createConnection(&address);
+}
+
 HttpConnection* HttpClient::createConnection(
    InternetAddress* address, unsigned int timeout)
 {

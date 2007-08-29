@@ -131,6 +131,21 @@ public:
    virtual void disconnect();
    
    /**
+    * Creates a connection to the passed url.
+    * 
+    * The caller of this method is responsible for deleting the returned
+    * connection. If an exception occurs, it can be retrieved via
+    * Exception::getLast().
+    * 
+    * @param url the url to connect to.
+    * @param timeout the timeout in seconds (0 for indefinite).
+    * 
+    * @return the HttpConnection to the url or NULL if an exception
+    *         occurred.
+    */
+   HttpConnection* createConnection(Url* url, unsigned int timeout = 30);
+   
+   /**
     * Creates a connection to the passed address.
     * 
     * The caller of this method is responsible for deleting the returned
