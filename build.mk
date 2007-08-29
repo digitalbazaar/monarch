@@ -231,8 +231,8 @@ libdbdatabase: $(BASE_DIR)/database/cpp/dist/libdbdatabase.a $(BASE_DIR)/databas
 
 
 # Builds the DB test.exe binary
-test: libdbrt libdbmodest libdbutil libdbio libdbcrypto libdbnet libdbdata libdbdatabase $(BASE_DIR)/test/cpp/build/main.o
-	$(CC) $(CFLAGS) -o $(TEST_EXE) $(BASE_DIR)/test/cpp/build/main.o $(DBRT_LIB) $(DBMODEST_LIB) $(DBUTIL_LIB) $(DBIO_LIB) $(DBCRYPTO_LIB) $(DBNET_LIB) $(DBDATA_LIB) $(DBDATABASE_LIB) -lpthread -lcrypto -lssl -lexpat
+test: libdbrt libdbmodest libdbutil libdbio libdbcrypto libdbnet libdbdata $(BASE_DIR)/test/cpp/build/main.o
+	$(CC) $(CFLAGS) -o $(TEST_EXE) $(BASE_DIR)/test/cpp/build/main.o $(DBRT_LIB) $(DBMODEST_LIB) $(DBUTIL_LIB) $(DBIO_LIB) $(DBCRYPTO_LIB) $(DBNET_LIB) $(DBDATA_LIB) -lpthread -lcrypto -lssl -lexpat
 
 #	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TEST_EXE) #test/cpp/build/main.o -ldbrt -ldbmodest -ldbutil -ldbio -ldbcrypto -ldbnet -ldbdata -lcrypto -lssl -lpthread
 
