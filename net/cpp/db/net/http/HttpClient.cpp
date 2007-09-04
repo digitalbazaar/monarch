@@ -83,7 +83,7 @@ HttpResponse* HttpClient::get(Url* url, char** headers)
       mRequest->getHeader()->setVersion("HTTP/1.1");
       mRequest->getHeader()->clearFields();
       mRequest->getHeader()->setField("Host", url->getAuthority());
-      mRequest->getHeader()->setField("User-Agent", "DB Http Client v2.0");
+      mRequest->getHeader()->setField("User-Agent", "DB Http Client/2.0");
       
       // set user headers
       setHeaders(mRequest->getHeader(), headers);
@@ -117,7 +117,7 @@ HttpResponse* HttpClient::post(
       mRequest->getHeader()->setVersion("HTTP/1.1");
       mRequest->getHeader()->clearFields();
       mRequest->getHeader()->setField("Host", url->getAuthority());
-      mRequest->getHeader()->setField("User-Agent", "DB Http Client v2.0");
+      mRequest->getHeader()->setField("User-Agent", "DB Http Client/2.0");
       
       // set user headers
       setHeaders(mRequest->getHeader(), headers);
