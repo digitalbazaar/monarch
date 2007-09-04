@@ -59,27 +59,16 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
       }
       else
       {
-         // erase last slash
-         path.erase(path.length() - 1, 1);
-         while(rval == NULL && path.length() > 0)
+         while(rval == NULL && path.length() > 1)
          {
             // try to find servicer at parent paths
-            string::size_type index = path.rfind("/");
-            path = path.substr(0, index);
-            if(path.length() == 0)
-            {
-               path.append(1, '/');
-            }
+            string::size_type index = path.rfind('/', path.length() - 2);
+            path = path.substr(0, index + 1);
             
             i = servicerMap.find(path.c_str());
             if(i != servicerMap.end())
             {
                rval = i->second;
-            }
-            else
-            {
-               // erase last slash
-               path.erase(path.length() - 1, 1);
             }
          }
       }
