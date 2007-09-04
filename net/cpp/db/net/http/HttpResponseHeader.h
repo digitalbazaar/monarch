@@ -37,7 +37,7 @@ protected:
    /**
     * The version (major.minor) for the response.
     */
-   std::string mVersion;
+   char* mVersion;
    
    /**
     * The status code (i.e. "200", "404") for the response.
@@ -47,7 +47,7 @@ protected:
    /**
     * The status message (i.e. "OK", "Not Found") for the response.
     */
-   std::string mStatusMessage;
+   char* mStatusMessage;
    
 public:
    /**
@@ -82,14 +82,14 @@ public:
     * 
     * @param version the version for the response (i.e. "1.0", "1.1").
     */
-   virtual void setVersion(const std::string& version);
+   virtual void setVersion(const char* version);
    
    /**
     * Gets the HTTP version for the response (major.minor).
     * 
     * @return the version for the response (i.e. "1.0", "1.1").
     */
-   virtual const std::string& getVersion();
+   virtual const char* getVersion();
    
    /**
     * Sets the HTTP status for the response.
@@ -97,7 +97,7 @@ public:
     * @param code the status code (i.e. "200", "404").
     * @param message the status message (i.e. "OK", "Not Found").
     */
-   virtual void setStatus(unsigned int code, const std::string& message);
+   virtual void setStatus(unsigned int code, const char* message);
    
    /**
     * Gets the HTTP status code for the response.
@@ -111,7 +111,7 @@ public:
     * 
     * @return the status message for the response (i.e. "OK", "Not Found").
     */
-   virtual const std::string& getStatusMessage();
+   virtual const char* getStatusMessage();
 };
 
 } // end namespace http

@@ -11,19 +11,27 @@ using namespace db::util;
 
 HttpResponseHeader::HttpResponseHeader()
 {
+   mVersion = new char[1];
+   memset(mVersion, 0, 1);
+   
    mStatusCode = 0;
+   
+   mStatusMessage = new char[1];
+   memset(mStatusMessage, 0, 1);
 }
 
 HttpResponseHeader::~HttpResponseHeader()
 {
+   delete [] mVersion;
+   delete [] mStatusMessage;
 }
 
 bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
 {
    bool rval = false;
    
-   // clean status message
-   mStatusMessage.erase();
+   // create status message string
+   string msg;
    
    // copy string so it can be modified
    char tokens[length + 1];
@@ -59,12 +67,12 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
       }
       else
       {
-         if(mStatusMessage.length() > 0)
+         if(msg.length() > 0)
          {
-            mStatusMessage.append(1, ' ');
+            msg.append(1, ' ');
          }
          
-         mStatusMessage.append(start);
+         msg.append(start);
       }
       
       count++;
@@ -78,6 +86,11 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
          start = end;
       }
    }
+   
+   // set status message
+   delete [] mStatusMessage;
+   mStatusMessage = new char[msg.length() + 1];
+   strcpy(mStatusMessage, msg.c_str());
    
    return rval;
 }
@@ -93,20 +106,25 @@ void HttpResponseHeader::getStartLine(string& line)
    line.append(getStatusMessage());
 }
 
-void HttpResponseHeader::setVersion(const string& version)
+void HttpResponseHeader::setVersion(const char* version)
 {
-   mVersion = version;
+   delete [] mVersion;
+   mVersion = new char[strlen(version) + 1];
+   strcpy(mVersion, version);
 }
 
-const string& HttpResponseHeader::getVersion()
+const char* HttpResponseHeader::getVersion()
 {
    return mVersion;
 }
 
-void HttpResponseHeader::setStatus(unsigned int code, const string& message)
+void HttpResponseHeader::setStatus(unsigned int code, const char* message)
 {
    mStatusCode = code;
-   mStatusMessage = message;
+   
+   delete [] mStatusMessage;
+   mStatusMessage = new char[strlen(message) + 1];
+   strcpy(mStatusMessage, message);
 }
 
 unsigned int HttpResponseHeader::getStatusCode()
@@ -114,7 +132,7 @@ unsigned int HttpResponseHeader::getStatusCode()
    return mStatusCode;
 }
 
-const string& HttpResponseHeader::getStatusMessage()
+const char* HttpResponseHeader::getStatusMessage()
 {
    return mStatusMessage;
 }

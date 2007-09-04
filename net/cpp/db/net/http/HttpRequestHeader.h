@@ -36,17 +36,17 @@ protected:
    /**
     * The method (i.e. "GET", "POST") for the request.
     */
-   std::string mMethod;
+   char* mMethod;
    
    /**
     * The path for the request.
     */
-   std::string mPath;
+   char* mPath;
    
    /**
     * The version (major.minor) for the request.
     */
-   std::string mVersion;
+   char* mVersion;
    
 public:
    /**
@@ -83,42 +83,42 @@ public:
     * 
     * @param method the method for the request (i.e. "GET", "POST").
     */
-   virtual void setMethod(const std::string& method);
+   virtual void setMethod(const char* method);
    
    /**
     * Gets the HTTP method for the request.
     * 
     * @return the method for the request (i.e. "GET", "POST").
     */
-   virtual const std::string& getMethod();
+   virtual const char* getMethod();
    
    /**
     * Sets the HTTP version for the request (major.minor).
     * 
     * @param version the version for the request (i.e. "1.0", "1.1").
     */
-   virtual void setVersion(const std::string& version);
+   virtual void setVersion(const char* version);
    
    /**
     * Gets the HTTP version for the request (major.minor).
     * 
     * @return the version for the request (i.e. "1.0", "1.1").
     */
-   virtual const std::string& getVersion();
+   virtual const char* getVersion();
    
    /**
     * Sets the path for the request.
     * 
     * @param path the path for the request.
     */
-   virtual void setPath(const std::string& path);
+   virtual void setPath(const char* path);
    
    /**
     * Gets the path for the request.
     * 
     * @return the path for the request.
     */
-   virtual const std::string& getPath();
+   virtual const char* getPath();
 };
 
 } // end namespace http

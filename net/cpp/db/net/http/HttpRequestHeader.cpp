@@ -10,10 +10,21 @@ using namespace db::util;
 
 HttpRequestHeader::HttpRequestHeader()
 {
+   mMethod = new char[1];
+   memset(mMethod, 0, 1);
+   
+   mVersion = new char[1];
+   memset(mVersion, 0, 1);
+   
+   mPath = new char[1];
+   memset(mPath, 0, 1);
 }
 
 HttpRequestHeader::~HttpRequestHeader()
 {
+   delete [] mMethod;
+   delete [] mVersion;
+   delete [] mPath;
 }
 
 bool HttpRequestHeader::parseStartLine(const char* str, unsigned int length)
@@ -72,32 +83,38 @@ void HttpRequestHeader::getStartLine(string& line)
    line.append(getVersion());
 }
 
-void HttpRequestHeader::setMethod(const string& method)
+void HttpRequestHeader::setMethod(const char* method)
 {
-   mMethod = method;
+   delete [] mMethod;
+   mMethod = new char[strlen(method) + 1];
+   strcpy(mMethod, method);
 }
 
-const string& HttpRequestHeader::getMethod()
+const char* HttpRequestHeader::getMethod()
 {
    return mMethod;
 }
 
-void HttpRequestHeader::setVersion(const string& version)
+void HttpRequestHeader::setVersion(const char* version)
 {
-   mVersion = version;
+   delete [] mVersion;
+   mVersion = new char[strlen(version) + 1];
+   strcpy(mVersion, version);
 }
 
-const string& HttpRequestHeader::getVersion()
+const char* HttpRequestHeader::getVersion()
 {
    return mVersion;
 }
 
-void HttpRequestHeader::setPath(const string& path)
+void HttpRequestHeader::setPath(const char* path)
 {
-   mPath = path;
+   delete [] mPath;
+   mPath = new char[strlen(path) + 1];
+   strcpy(mPath, path);
 }
 
-const string& HttpRequestHeader::getPath()
+const char* HttpRequestHeader::getPath()
 {
    return mPath;
 }

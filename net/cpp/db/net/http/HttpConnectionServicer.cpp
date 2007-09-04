@@ -109,8 +109,8 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    if(e == NULL)
    {
       // check version
-      if(strcmp(request->getHeader()->getVersion().c_str(), "HTTP/1.0") == 0 ||
-         strcmp(request->getHeader()->getVersion().c_str(), "HTTP/1.1") == 0)
+      if(strcmp(request->getHeader()->getVersion(), "HTTP/1.0") == 0 ||
+         strcmp(request->getHeader()->getVersion(), "HTTP/1.1") == 0)
       {
          // set version according to request version
          response->getHeader()->setVersion(request->getHeader()->getVersion());
