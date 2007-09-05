@@ -184,14 +184,22 @@ public:
    virtual int get(OutputStream* os);
    
    /**
-    * Clears the specified amount of data out of this buffer. If more data is
-    * requested to be cleared than there is data, all data will be cleared.
+    * Clears the specified amount of data out of this buffer (from the
+    * beginning). If more data is requested to be cleared than there is data,
+    * all data will be cleared.
     * 
     * @param length the amount of data to clear from this buffer.
     * 
     * @return the actual amount of data cleared.
     */
-   virtual int clear(int length = 0);
+   virtual int clear(int length);
+   
+   /**
+    * Clears all data from this buffer.
+    * 
+    * @return the actual amount of data cleared.
+    */
+   virtual int clear();
    
    /**
     * Trims data from the end of this buffer without resizing it.

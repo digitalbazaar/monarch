@@ -191,6 +191,11 @@ int ByteBuffer::clear(int length)
    return rval;
 }
 
+int ByteBuffer::clear()
+{
+   return clear(mLength);
+}
+
 int ByteBuffer::trim(int length)
 {
    int rval = length;
