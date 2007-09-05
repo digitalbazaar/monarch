@@ -22,7 +22,17 @@ namespace xml
  */
 class XmlWriter
 {
-protected:
+public:
+   /**
+    * Creates a new XmlWriter.
+    */
+   XmlWriter();
+   
+   /**
+    * Destructs this XmlWriter.
+    */
+   virtual ~XmlWriter();
+   
    /**
     * Writes the beginning of a start element.
     * 
@@ -80,17 +90,6 @@ protected:
     */
    virtual bool writeAttribute(
       db::data::DataName* dn, const char* data, db::io::OutputStream* os);
-   
-public:
-   /**
-    * Creates a new XmlWriter.
-    */
-   XmlWriter();
-   
-   /**
-    * Destructs this XmlWriter.
-    */
-   virtual ~XmlWriter();
    
    /**
     * Serializes an object to xml using the passed DataBinding.

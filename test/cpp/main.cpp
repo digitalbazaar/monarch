@@ -3233,6 +3233,43 @@ void runXmlReadWriteTest()
    cout << endl << "XmlReadWrite test complete." << endl;
 }
 
+void runXmlBindingInputStreamTest()
+{
+   cout << "Starting XmlBindingInputStream test." << endl << endl;
+   
+//   string xml1;
+//   string xml2;
+//   xml1.append("<TestContent>This is the first.");
+//   xml2.append("<TestChild id=\"64\">Blah</TestChild> Second.</TestContent>");
+//   
+//   // main object to populate
+//   TestParent p;
+//   
+//   // data binding for object
+//   TestParentDataBinding db(&p);
+//   
+//   // create output stream for reading from binding
+//   XmlBindingInputStream xbos(&db);
+//   
+//   // write xml to output stream
+//   xbos.write(xml1.c_str(), xml1.length());
+//   xbos.write(xml2.c_str(), xml2.length());
+//   //xbos.write((xml1 + xml2).c_str(), xml1.length() + xml2.length());
+//   
+//   cout << "TestContent data='" << p.getContent() << "'" << endl;
+//   if(p.getChild() != NULL)
+//   {
+//      cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
+//      cout << "TestChild id='" << p.getChild()->getId() << "'" << endl;
+//   }
+//   else
+//   {
+//      cout << "TestChild does not exist!" << endl;
+//   }
+   
+   cout << endl << "XmlBindingInputStream test complete." << endl;
+}
+
 void runXmlBindingOutputStreamTest()
 {
    cout << "Starting XmlBindingOutputStream test." << endl << endl;
@@ -3468,12 +3505,12 @@ public:
 //      runXmlReaderTest();
 //      runXmlWriterTest();
 //      runXmlReadWriteTest();
-//      runXmlBindingInputStreamTest();
+      runXmlBindingInputStreamTest();
 //      runXmlBindingOutputStreamTest();
 //      runBigIntegerTest();
 //      runBigDecimalTest();
 //      runByteBufferTest();
-      runByteArrayOutputStreamTest();
+//      runByteArrayOutputStreamTest();
       
       cout << endl << "Tests finished." << endl;
       

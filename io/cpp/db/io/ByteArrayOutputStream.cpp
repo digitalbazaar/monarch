@@ -22,7 +22,7 @@ bool ByteArrayOutputStream::write(const char* b, unsigned int length)
    return true;
 }
 
-ByteBuffer* ByteArrayOutputStream::getBytes()
+ByteBuffer* ByteArrayOutputStream::getByteArray()
 {
    return mBuffer;
 }

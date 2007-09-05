@@ -54,7 +54,7 @@ public:
     * 
     * @return the ByteBuffer that this stream writes to.
     */
-   virtual ByteBuffer* getBytes();
+   virtual ByteBuffer* getByteArray();
 };
 
 } // end namespace io
