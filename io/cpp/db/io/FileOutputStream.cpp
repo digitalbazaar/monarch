@@ -47,7 +47,7 @@ bool FileOutputStream::ensureOpen()
    return rval;
 }
 
-bool FileOutputStream::write(const char* b, unsigned int length)
+bool FileOutputStream::write(const char* b, int length)
 {
    bool rval = false;
    

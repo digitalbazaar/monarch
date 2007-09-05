@@ -20,7 +20,7 @@ ConnectionOutputStream::~ConnectionOutputStream()
 {
 }
 
-bool ConnectionOutputStream::write(const char* b, unsigned int length)
+bool ConnectionOutputStream::write(const char* b, int length)
 {
    bool rval = true;
    
@@ -31,8 +31,8 @@ bool ConnectionOutputStream::write(const char* b, unsigned int length)
    }
    
    // set the data offset
-   unsigned int offset = 0;
-   unsigned numBytes = length;
+   int offset = 0;
+   int numBytes = length;
    while(rval && length > 0 && !mThread->isInterrupted())
    {
       // throttle the write as appropriate

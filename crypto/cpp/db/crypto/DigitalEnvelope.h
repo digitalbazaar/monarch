@@ -101,12 +101,13 @@ public:
     * @param algorithm the algorithm to use for the encryption.
     * @param publicKey the PublicKey to encrypt the symmetric key with.
     * @param symmetricKey to store the encrypted SymmetricKey.
+    * @param keys the number of keys.
     *
     * @return true if no exception occurred, false if not. 
     */
    virtual bool startSealing(
       const char* algorithm,
-      PublicKey** publicKeys, SymmetricKey** symmetricKeys, unsigned int keys);
+      PublicKey** publicKeys, SymmetricKey** symmetricKeys, int keys);
    
    /**
     * Starts opening this DigitalEnvelope by using the given private key to

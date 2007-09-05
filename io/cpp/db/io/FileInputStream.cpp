@@ -41,25 +41,31 @@ bool FileInputStream::ensureOpen()
    return rval;
 }
 
-int FileInputStream::read(char* b, unsigned int length)
+int FileInputStream::read(char* b, int length)
 {
    int rval = -1;
    
-   if(ensureOpen() && !mStream.eof())
+   if(ensureOpen())
    {
-      // do read
-      mStream.read(b, length);
+      rval = 0;
       
-      // see if a failure other than EOF occurred
-      if(mStream.fail() && !mStream.eof())
+      if(!mStream.eof())
       {
-         string msg = "Could not read from file '" + mFile->getName() + "'!";
-         Exception::setLast(new IOException(msg.c_str()));
-      }
-      else if(mStream.gcount() > 0)
-      {
-         // get the number of bytes read
-         rval = mStream.gcount();
+         // do read
+         mStream.read(b, length);
+         
+         // see if a failure other than EOF occurred
+         if(mStream.fail() && !mStream.eof())
+         {
+            rval = -1;
+            string msg = "Could not read from file '" + mFile->getName() + "'!";
+            Exception::setLast(new IOException(msg.c_str()));
+         }
+         else if(mStream.gcount() > 0)
+         {
+            // get the number of bytes read
+            rval = mStream.gcount();
+         }
       }
    }
    

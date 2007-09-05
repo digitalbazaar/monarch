@@ -21,9 +21,9 @@ ConnectionInputStream::~ConnectionInputStream()
 {
 }
 
-int ConnectionInputStream::read(char* b, unsigned int length)
+int ConnectionInputStream::read(char* b, int length)
 {
-   int rval = -1;
+   int rval = 0;
    
    if(mThread == NULL)
    {
@@ -56,6 +56,11 @@ int ConnectionInputStream::read(char* b, unsigned int length)
          mBytesRead += rval;
       }
    }
+   else
+   {
+      // interrupted thread
+      rval = -1;
+   }
    
    return rval;
 }
@@ -68,13 +73,13 @@ bool ConnectionInputStream::readLine(string& line)
    
    // read one character at a time
    char c;
-   while(read(&c, 1) && c != '\n')
+   while(read(&c, 1) > 0 && c != '\n')
    {
       // see if the character is a carriage return
       if(c == '\r')
       {
          // see if the next character is an eol -- and we've found a CRLF
-         if(peek(&c, 1) != -1 && c == '\n')
+         if(peek(&c, 1) > 0 && c == '\n')
          {
             // read the character in and discard it
             read(&c, 1);
@@ -104,9 +109,10 @@ bool ConnectionInputStream::readCrlf(string& line)
    
    // peek ahead
    char b[1024];
-   unsigned int numBytes;
+   int numBytes;
    bool block = false;
-   while(!rval && (numBytes = peek(b, 1023, block)) != -1)
+   while(!rval && (numBytes = peek(b, 1023, block)) != -1 &&
+         (numBytes > 0 || !block))
    {
       if(numBytes <= 1)
       {
@@ -168,7 +174,7 @@ bool ConnectionInputStream::readCrlf(string& line)
    return rval;
 }
 
-int ConnectionInputStream::peek(char* b, unsigned int length, bool block)
+int ConnectionInputStream::peek(char* b, int length, bool block)
 {
    // peek using socket input stream
    return mConnection->getSocket()->getInputStream()->peek(b, length, block);

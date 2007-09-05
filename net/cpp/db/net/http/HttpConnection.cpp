@@ -120,7 +120,7 @@ IOException* HttpConnection::sendBody(
    if(chunkout != NULL || lengthUnspecified)
    {
       // read in content, write out to connection
-      while(!writeError && (numBytes = is->read(b, length)) != -1)
+      while(!writeError && (numBytes = is->read(b, length)) > 0)
       {
          // write out to connection
          if(os->write(b, numBytes))
@@ -159,7 +159,7 @@ IOException* HttpConnection::sendBody(
       unsigned long long contentRemaining = contentLength;
       unsigned int readSize = Math::minimum(contentRemaining, length);
       while(!writeError && contentRemaining > 0 &&
-            (numBytes = is->read(b, readSize)) != -1)
+            (numBytes = is->read(b, readSize)) > 0)
       {
          // write out to connection
          if(os->write(b, numBytes))
@@ -247,7 +247,7 @@ IOException* HttpConnection::receiveBody(
    if(chunkin != NULL || lengthUnspecified)
    {
       // read in from connection, write out content
-      while(!writeError && (numBytes = is->read(b, length)) != -1)
+      while(!writeError && (numBytes = is->read(b, length)) > 0)
       {
          // update http connection content bytes read (reset as necessary)
          if(getContentBytesRead() > Math::HALF_MAX_LONG_VALUE)
@@ -276,7 +276,7 @@ IOException* HttpConnection::receiveBody(
       unsigned long long contentRemaining = contentLength;
       unsigned int readSize = Math::minimum(contentRemaining, length);
       while(!writeError && contentRemaining > 0 &&
-            (numBytes = is->read(b, readSize)) != -1)
+            (numBytes = is->read(b, readSize)) > 0)
       {
          contentRemaining -= numBytes;
          readSize = Math::minimum(contentRemaining, length);

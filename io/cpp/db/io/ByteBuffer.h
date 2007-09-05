@@ -211,6 +211,16 @@ public:
    virtual int trim(int length);
    
    /**
+    * Resets the offset for this ByteBuffer by the specified length. This will
+    * move the internal offset pointer backwards.
+    * 
+    * @param length the maximum number of bytes to move the offset back.
+    * 
+    * @return the actual number of bytes the offset was moved backwards.
+    */
+   virtual int reset(int length);
+   
+   /**
     * Gets the capacity of this buffer.
     * 
     * @return the capacity of this buffer.
@@ -274,7 +284,7 @@ public:
     * 
     * @return the amount of free space in this buffer, in bytes.
     */
-   virtual int available() const;
+   virtual int getFreeSpace() const;
    
    /**
     * Returns true if this buffer is full.

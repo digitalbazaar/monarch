@@ -137,7 +137,7 @@ InterruptedException* BandwidthThrottler::limitBandwidth()
 }
 
 InterruptedException* BandwidthThrottler::requestBytes(
-   unsigned int count, unsigned int& permitted)
+   int count, int& permitted)
 {
    InterruptedException* rval = NULL;
    

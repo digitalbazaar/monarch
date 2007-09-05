@@ -18,7 +18,7 @@ XmlBindingOutputStream::~XmlBindingOutputStream()
 {
 }
 
-bool XmlBindingOutputStream::write(const char* b, unsigned int length)
+bool XmlBindingOutputStream::write(const char* b, int length)
 {
    // set input stream byte array
    mInputStream.setByteArray(b, length);

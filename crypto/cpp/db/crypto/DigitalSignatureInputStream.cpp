@@ -17,7 +17,7 @@ DigitalSignatureInputStream::~DigitalSignatureInputStream()
 {
 }
 
-int DigitalSignatureInputStream::read(char* b, unsigned int length)
+int DigitalSignatureInputStream::read(char* b, int length)
 {
    // read from underlying stream
    int rval = FilterInputStream::read(b, length);

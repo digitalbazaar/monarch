@@ -15,7 +15,7 @@ SocketInputStream::~SocketInputStream()
 {
 }
 
-int SocketInputStream::read(char* b, unsigned int length)
+int SocketInputStream::read(char* b, int length)
 {
    // read from the socket
    return mSocket->receive(b, length);

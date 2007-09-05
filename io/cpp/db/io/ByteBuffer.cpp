@@ -40,9 +40,10 @@ ByteBuffer::~ByteBuffer()
 
 void ByteBuffer::cleanupBytes()
 {
-   if(mCleanup)
+   if(mCleanup && mBuffer != NULL)
    {
       delete [] mBuffer;
+      mBuffer = NULL;
    }
 }
 
@@ -51,7 +52,7 @@ void ByteBuffer::allocateSpace(int length, bool resize)
    if(resize)
    {
       // determine if the buffer needs to be resized
-      int overflow = length - available();
+      int overflow = length - getFreeSpace();
       if(overflow > 0)
       {
          // resize the buffer by the overflow amount
@@ -62,7 +63,7 @@ void ByteBuffer::allocateSpace(int length, bool resize)
    // determine if the data needs to be shifted
    if(mOffset > 0)
    {
-      int overflow = length - available() + mOffset;
+      int overflow = length - getFreeSpace() + mOffset;
       if(overflow > 0)
       {
          if(mLength > 0)
@@ -102,7 +103,7 @@ int ByteBuffer::put(const char* b, int length, bool resize)
    allocateSpace(length, resize);
    
    // copy data into the buffer
-   length = (length < available()) ? length : available();
+   length = (length < getFreeSpace()) ? length : getFreeSpace();
    memcpy(data() + mLength, b, length);
    mLength += length;
    
@@ -123,10 +124,10 @@ int ByteBuffer::put(InputStream* is)
    if(!isFull())
    {
       // allocate free space
-      allocateSpace(available(), false);
+      allocateSpace(getFreeSpace(), false);
       
       // read
-      rval = is->read(data() + mLength, available());
+      rval = is->read(data() + mLength, getFreeSpace());
       if(rval != -1)
       {
          // increment length
@@ -213,6 +214,25 @@ int ByteBuffer::trim(int length)
    return rval;
 }
 
+int ByteBuffer::reset(int length)
+{
+   int rval = length;
+   
+   if(length > mOffset)
+   {
+      rval = mOffset;
+      mOffset = 0;
+   }
+   else
+   {
+      mOffset -= length;
+   }
+   
+   mLength += rval;
+   
+   return rval;
+}
+
 int ByteBuffer::getCapacity() const
 {
    return mCapacity;
@@ -255,14 +275,14 @@ int ByteBuffer::length() const
    return mLength;
 }
 
-int ByteBuffer::available() const
+int ByteBuffer::getFreeSpace() const
 {
    return mCapacity - mLength;
 }
 
 bool ByteBuffer::isFull() const
 {
-   return available() == 0;
+   return getFreeSpace() == 0;
 }
 
 bool ByteBuffer::isEmpty() const

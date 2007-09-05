@@ -7,7 +7,7 @@
 
 using namespace db::io;
 
-ByteArrayInputStream::ByteArrayInputStream(const char* b, unsigned int length)
+ByteArrayInputStream::ByteArrayInputStream(const char* b, int length)
 {
    mBytes = b;
    mLength = length;
@@ -17,9 +17,9 @@ ByteArrayInputStream::~ByteArrayInputStream()
 {
 }
 
-int ByteArrayInputStream::read(char* b, unsigned int length)
+int ByteArrayInputStream::read(char* b, int length)
 {
-   int rval = -1;
+   int rval = 0;
    
    if(mLength > 0)
    {
@@ -35,7 +35,7 @@ int ByteArrayInputStream::read(char* b, unsigned int length)
    return rval;
 }
 
-void ByteArrayInputStream::setByteArray(const char* b, unsigned int length)
+void ByteArrayInputStream::setByteArray(const char* b, int length)
 {
    mBytes = b;
    mLength = length;

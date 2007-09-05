@@ -26,7 +26,7 @@ bool SslSocketDataPresenter::detectSsl(Socket* s)
    // peek 5 bytes
    unsigned int count = 5;
    while(count > 0 &&
-         (numBytes = s->getInputStream()->peek(b + (5 - count), count)) != -1)
+         (numBytes = s->getInputStream()->peek(b + (5 - count), count)) > 0)
    {
       count -= numBytes;
    }

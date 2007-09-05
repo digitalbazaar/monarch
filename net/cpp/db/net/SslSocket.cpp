@@ -63,7 +63,7 @@ int SslSocket::tcpRead()
          InputStream* is = mSocket->getInputStream();
          char b[length];
          int numBytes = 0;
-         while(length > 0 && (numBytes = is->read(b, length)) != -1)
+         while(length > 0 && (numBytes = is->read(b, length)) > 0)
          {
             // write to Socket BIO
             BIO_write(mSocketBio, b, numBytes);
@@ -93,7 +93,7 @@ bool SslSocket::tcpWrite()
       char b[length];
       int numBytes = 0;
       while(length > 0 && !t->isInterrupted() &&
-            (numBytes = BIO_read(mSocketBio, b, length)) != -1)
+            (numBytes = BIO_read(mSocketBio, b, length)) > 0)
       {
          // write to underlying socket
          if(rval = mSocket->getOutputStream()->write(b, numBytes))
@@ -127,7 +127,7 @@ bool SslSocket::performHandshake()
             break;
          case SSL_ERROR_WANT_READ:
             // more data is required from the socket
-            if(tcpRead() == -1)
+            if(tcpRead() <= 0)
             {
                exception = new SocketException(
                   "Could not perform SSL handshake! Socket closed.");
@@ -173,7 +173,7 @@ void SslSocket::close()
    getSocket()->close();
 }
 
-bool SslSocket::send(const char* b, unsigned int length)
+bool SslSocket::send(const char* b, int length)
 {
    Exception* exception = NULL;
    
@@ -211,7 +211,7 @@ bool SslSocket::send(const char* b, unsigned int length)
                break;
             case SSL_ERROR_WANT_READ:
                // more data is required from the socket
-               if(tcpRead() == -1)
+               if(tcpRead() <= 0)
                {
                   // the connection was shutdown
                   exception = new SocketException(
@@ -252,7 +252,7 @@ bool SslSocket::send(const char* b, unsigned int length)
    return exception == NULL;
 }
 
-int SslSocket::receive(char* b, unsigned int length)
+int SslSocket::receive(char* b, int length)
 {
    int rval = -1;
    
@@ -290,7 +290,7 @@ int SslSocket::receive(char* b, unsigned int length)
                break;
             case SSL_ERROR_WANT_READ:
                // more data is required from the socket
-               if(tcpRead() == -1)
+               if(tcpRead() == 0)
                {
                   // the connection was shutdown
                   closed = true;
@@ -312,9 +312,16 @@ int SslSocket::receive(char* b, unsigned int length)
       }
       
       // set number of bytes read
-      if(!closed && exception == NULL)
+      if(exception == NULL)
       {
-         rval = ret;
+         if(closed)
+         {
+            rval = 0;
+         }
+         else
+         {
+            rval = ret;
+         }
       }
    }
    

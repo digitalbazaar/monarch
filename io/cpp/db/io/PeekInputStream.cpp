@@ -2,53 +2,27 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/PeekInputStream.h"
-#include "db/util/Math.h"
-
-#include <string>
 
 using namespace db::io;
-using namespace db::util;
 
 PeekInputStream::PeekInputStream(InputStream* is, bool cleanup) :
-   FilterInputStream(is, cleanup)
+   FilterInputStream(is, cleanup),
+   mPeekBuffer(0)
 {
-   // no peek buffer yet
-   mPeekBuffer = NULL;
-   mPeekSize = 0;
-   mPeekOffset = 0;
-   mPeekLength = 0;
 }
 
 PeekInputStream::~PeekInputStream()
 {
-   // delete the peek buffer
-   if(mPeekBuffer != NULL)
-   {
-      delete [] mPeekBuffer;
-   }
 }
 
-int PeekInputStream::read(char* b, unsigned int length)
+int PeekInputStream::read(char* b, int length)
 {
-   int rval = -1;
+   int rval = 0;
    
-   if(mPeekLength > 0)
+   if(!mPeekBuffer.isEmpty())
    {
       // read from the peek buffer first
-      int count = Math::minimum(mPeekLength, length);
-      memcpy(b, mPeekBuffer + mPeekOffset, count);
-      
-      // update peek buffer
-      mPeekOffset += count;
-      mPeekLength -= count;
-      if(mPeekLength == 0)
-      {
-         // reset peek offset
-         mPeekOffset = 0;
-      }
-      
-      // update bytes read
-      rval = count;
+      rval = mPeekBuffer.get(b, length);
    }
    else
    {
@@ -59,48 +33,28 @@ int PeekInputStream::read(char* b, unsigned int length)
    return rval;
 }
 
-int PeekInputStream::peek(char* b, unsigned int length, bool block)
+int PeekInputStream::peek(char* b, int length, bool block)
 {
    int rval = -1;
    
    // see if more data needs to be read
-   if(block && length > mPeekLength)
+   if(block && length > mPeekBuffer.length())
    {
-      // resize the peek buffer size as necessary
-      if(length > (mPeekSize - mPeekOffset))
-      {
-         // fit the peek buffer to the requested length
-         char* oldBuffer = mPeekBuffer;
-         mPeekBuffer = new char[length];
-         memcpy(mPeekBuffer, oldBuffer + mPeekOffset, mPeekLength);
-         
-         if(oldBuffer != NULL)
-         {
-            delete [] oldBuffer;
-         }
-         
-         mPeekOffset = 0;
-         mPeekSize = length;
-      }
+      // allocate enough space in the peek buffer
+      mPeekBuffer.allocateSpace(length, true);
       
-      // read from the underlying stream until the peek buffer gets more data
-      size_t offset = mPeekOffset + mPeekLength;
-      int count = mInputStream->read(mPeekBuffer + offset, mPeekSize - offset);
-      if(count > 0)
-      {
-         // increase the peek bytes length
-         mPeekLength += count;
-      }
+      // read into the peek buffer from the underlying stream
+      mPeekBuffer.put(mInputStream);
    }
    
-   // read from the peek buffer
-   if(mPeekLength > 0)
+   // check for peeked bytes
+   if(!mPeekBuffer.isEmpty())
    {
-      int count = Math::minimum(mPeekLength, length);
-      memcpy(b, mPeekBuffer + mPeekOffset, count);
+      // read from the peek buffer
+      rval = mPeekBuffer.get(b, length);
       
-      // update bytes read
-      rval = count;
+      // reset peek buffer
+      mPeekBuffer.reset(rval);
    }
    else if(!block)
    {

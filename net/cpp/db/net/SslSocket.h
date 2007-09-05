@@ -70,8 +70,8 @@ protected:
     * SSL read BIO. This method will block until at least one byte can be
     * read or until the end of the stream is reached (the Socket has closed).
     * 
-    * @return the number of bytes read or -1 if the end of the stream has been
-    *         reached (the Socket has closed) or an exception occurred.
+    * @return the number of bytes read or 0 if the end of the stream has been
+    *         reached (the Socket has closed) or -1 if an exception occurred.
     */
    virtual int tcpRead();
    
@@ -133,12 +133,12 @@ public:
     * 
     * @return true if the data was sent, false if an exception occurred.
     */
-   virtual bool send(const char* b, unsigned int length);
+   virtual bool send(const char* b, int length);
    
    /**
     * Reads raw data from this Socket. This method will block until at least
     * one byte can be read or until the end of the stream is reached (the
-    * Socket has closed). A value of -1 will be returned if the end of the
+    * Socket has closed). A value of 0 will be returned if the end of the
     * stream has been reached, otherwise the number of bytes read will be
     * returned.
     * 
@@ -148,11 +148,11 @@ public:
     * @param b the array of bytes to fill.
     * @param length the maximum number of bytes to read into the buffer.
     * 
-    * @return the number of bytes read from the stream or -1 if the end of the
-    *         stream (the Socket has closed) has been reached or an error
+    * @return the number of bytes read from the stream or 0 if the end of the
+    *         stream (the Socket has closed) has been reached or -1 if an error
     *         occurred.
     */
-   virtual int receive(char* b, unsigned int length);   
+   virtual int receive(char* b, int length);   
    
    /**
     * Gets the InputStream for reading from this Socket.

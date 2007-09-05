@@ -20,7 +20,7 @@ FilterOutputStream::~FilterOutputStream()
    }
 }
 
-bool FilterOutputStream::write(const char* b, unsigned int length)
+bool FilterOutputStream::write(const char* b, int length)
 {
    return mOutputStream->write(b, length);
 }

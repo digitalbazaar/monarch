@@ -56,7 +56,7 @@ public:
     * @return true if the write was successful, false if an IO exception
     *         occurred. 
     */
-   virtual bool write(const char* b, unsigned int length);
+   virtual bool write(const char* b, int length);
    
    /**
     * Closes the stream.

@@ -34,7 +34,7 @@ protected:
    /**
     * The length of the data in this Datagram.
     */
-   unsigned int mLength;
+   int mLength;
    
    /**
     * True to clean up the internal data buffer, false not to.
@@ -58,7 +58,7 @@ public:
     * @param address the InternetAddress to associate with this Datagram.
     * @param length the length, in bytes, of this Datagram.
     */
-   Datagram(InternetAddress* address, unsigned int length = 0);
+   Datagram(InternetAddress* address, int length = 0);
    
    /**
     * Destructs this Datagram.
@@ -91,7 +91,7 @@ public:
     * @param cleanup true to cleanup the data when the Datagram is destructed,
     *                false not to.
     */ 
-   virtual void setData(char* data, unsigned int length, bool cleanup);
+   virtual void setData(char* data, int length, bool cleanup);
    
    /**
     * Assigns the data for this Datagram. This method will copy the passed
@@ -101,7 +101,7 @@ public:
     * @param data the data to use.
     * @param length the length of the data.
     */ 
-   virtual void assignData(const char* data, unsigned int length);
+   virtual void assignData(const char* data, int length);
    
    /**
     * Sets the length of the data for this Datagram. The length cannot be
@@ -109,7 +109,7 @@ public:
     * 
     * @param length the length of the data for this Datagram.
     */
-   virtual void setLength(unsigned int length);
+   virtual void setLength(int length);
    
    /**
     * Gets this Datagram's data.
@@ -118,7 +118,7 @@ public:
     * 
     * @return this Datagram's data.
     */
-   virtual char* getData(unsigned int& length);
+   virtual char* getData(int& length);
       
    /**
     * Assigns the data for this Datagram to the passed string. This method will

@@ -33,9 +33,9 @@ HttpChunkedTransferInputStream::~HttpChunkedTransferInputStream()
 {
 }
 
-int HttpChunkedTransferInputStream::read(char* b, unsigned int length)
+int HttpChunkedTransferInputStream::read(char* b, int length)
 {
-   int rval = -1;
+   int rval = 0;
    
    Exception* exception = NULL;
    
@@ -70,20 +70,19 @@ int HttpChunkedTransferInputStream::read(char* b, unsigned int length)
    }
    
    // read some chunk bytes into the passed data buffer
-   int numBytes = 0;
-   if(mChunkBytesLeft > 0 && exception == NULL && numBytes != -1 &&
+   int numBytes = 1;
+   if(mChunkBytesLeft > 0 && exception == NULL && numBytes > 0 &&
       !mThread->isInterrupted())
    {
-      unsigned int readSize = (length < mChunkBytesLeft) ?
-         length : mChunkBytesLeft;
+      int readSize = (length < mChunkBytesLeft) ? length : mChunkBytesLeft;
       numBytes = is->read(b, readSize);
-      if(numBytes != -1)
+      if(numBytes > 0)
       {
          // decrement bytes left
          mChunkBytesLeft -= numBytes;
          
          // increment bytes read
-         rval = (rval == -1) ? numBytes : rval + numBytes;
+         rval += numBytes;
       }
       else
       {
@@ -116,7 +115,7 @@ int HttpChunkedTransferInputStream::read(char* b, unsigned int length)
       string throwout;
       is->readCrlf(throwout);
    }
-   else if(exception == NULL && numBytes == -1)
+   else if(exception == NULL && numBytes <= 0)
    {
       // if the length is greater than zero then the whole chunk wasn't read
       exception = new IOException("Could not read entire HTTP chunk!");

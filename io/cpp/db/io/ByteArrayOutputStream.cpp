@@ -15,7 +15,7 @@ ByteArrayOutputStream::~ByteArrayOutputStream()
 {
 }
 
-bool ByteArrayOutputStream::write(const char* b, unsigned int length)
+bool ByteArrayOutputStream::write(const char* b, int length)
 {
    // put bytes in byte buffer
    mBuffer->put(b, length, true);

@@ -51,12 +51,12 @@ bool SocketWrapper::connect(SocketAddress* address, unsigned int timeout)
    return getSocket()->connect(address, timeout);
 }
 
-bool SocketWrapper::send(const char* b, unsigned int length)
+bool SocketWrapper::send(const char* b, int length)
 {
    return getSocket()->send(b, length);
 }
 
-int SocketWrapper::receive(char* b, unsigned int length)
+int SocketWrapper::receive(char* b, int length)
 {
    return getSocket()->receive(b, length);
 }

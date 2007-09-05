@@ -17,7 +17,7 @@ OStreamOutputStream::~OStreamOutputStream()
 {
 }
 
-bool OStreamOutputStream::write(const char* b, unsigned int length)
+bool OStreamOutputStream::write(const char* b, int length)
 {
    bool rval = false;
    

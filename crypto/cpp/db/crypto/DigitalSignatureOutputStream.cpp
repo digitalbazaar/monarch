@@ -17,7 +17,7 @@ DigitalSignatureOutputStream::~DigitalSignatureOutputStream()
 {
 }
 
-bool DigitalSignatureOutputStream::write(const char* b, unsigned int length)
+bool DigitalSignatureOutputStream::write(const char* b, int length)
 {
    // update digital signature
    mSignature->update(b, length);

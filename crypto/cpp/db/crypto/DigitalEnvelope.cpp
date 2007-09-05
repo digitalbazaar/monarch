@@ -31,7 +31,7 @@ bool DigitalEnvelope::startSealing(
 
 bool DigitalEnvelope::startSealing(
    const char* algorithm, PublicKey** publicKeys,
-   SymmetricKey** symmetricKeys, unsigned int keys)
+   SymmetricKey** symmetricKeys, int keys)
 {
    bool rval = false;
    
@@ -46,7 +46,7 @@ bool DigitalEnvelope::startSealing(
       EVP_PKEY* pKeys[keys];
       char* eKeys[keys];
       int eKeyLengths[keys];
-      for(unsigned int i = 0; i < keys; i++)
+      for(int i = 0; i < keys; i++)
       {
          pKeys[i] = publicKeys[i]->getPKEY();
          eKeys[i] = new char[publicKeys[i]->getOutputSize()];

@@ -193,7 +193,7 @@ IOException* XmlReader::read(InputStream* is)
       {
          bool error = false;
          int numBytes;
-         while(!error && (numBytes = is->read(b, READ_SIZE)) != -1)
+         while(!error && (numBytes = is->read(b, READ_SIZE)) > 0)
          {
             error = (XML_ParseBuffer(mParser, numBytes, false) == 0);
          }

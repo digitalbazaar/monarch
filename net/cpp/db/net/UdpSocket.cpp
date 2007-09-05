@@ -161,8 +161,7 @@ bool UdpSocket::leaveGroup(SocketAddress* group)
    return error == 0;
 }
 
-bool UdpSocket::sendDatagram(
-   const char* b, unsigned int length, SocketAddress* address)
+bool UdpSocket::sendDatagram(const char* b, int length, SocketAddress* address)
 {
    Exception* exception = NULL;
    
@@ -208,8 +207,7 @@ bool UdpSocket::sendDatagram(
    return exception == NULL;
 }
 
-int UdpSocket::receiveDatagram(
-   char* b, unsigned int length, SocketAddress* address)
+int UdpSocket::receiveDatagram(char* b, int length, SocketAddress* address)
 {
    int rval = -1;
    

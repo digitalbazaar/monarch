@@ -83,7 +83,7 @@ public:
     * @return true if the send was successful, false if an exception occurred.
     */
    virtual bool sendDatagram(
-      const char* b, unsigned int length, SocketAddress* address);
+      const char* b, int length, SocketAddress* address);
    
    /**
     * Receives a datagram. This method will block until at least one datagram
@@ -97,7 +97,7 @@ public:
     * @return the number of bytes read or -1 if an exception occurred.
     */
    virtual int receiveDatagram(
-      char* b, unsigned int length, SocketAddress* address = NULL);
+      char* b, int length, SocketAddress* address = NULL);
    
    /**
     * Sets the IPv6 multicast hops. This is the number of hops a datagram

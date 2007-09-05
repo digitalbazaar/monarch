@@ -15,7 +15,7 @@ SocketOutputStream::~SocketOutputStream()
 {
 }
 
-inline bool SocketOutputStream::write(const char* b, unsigned int length)
+inline bool SocketOutputStream::write(const char* b, int length)
 {
    // send data through the socket
    return mSocket->send(b, length);

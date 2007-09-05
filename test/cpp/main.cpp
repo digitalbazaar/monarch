@@ -352,8 +352,8 @@ void runJobDispatcherTest()
    jd.startDispatching();
    
    // wait
-   cout << "Waiting for jobs to complete..." << endl;
-   Thread::sleep(15000);
+   cout << "Waiting 10 seconds for jobs to complete..." << endl;
+   Thread::sleep(10000);
    cout << "Finished waiting for jobs to complete." << endl;
    
    // stop dispatching
@@ -457,7 +457,7 @@ void runSocketTest()
       cout << endl << "DOING A PEEK!" << endl;
       
       numBytes = socket.getInputStream()->peek(response, 2048);
-      if(numBytes != -1)
+      if(numBytes > 0)
       {
          cout << "Peeked " << numBytes << " bytes." << endl;
          string peek = "";
@@ -467,7 +467,7 @@ void runSocketTest()
       
       cout << endl << "DOING ACTUAL READ NOW!" << endl;
       
-      while((numBytes = socket.getInputStream()->read(response, 2048)) != -1)
+      while((numBytes = socket.getInputStream()->read(response, 2048)) > 0)
       {
          cout << "numBytes received: " << numBytes << endl;
          str.append(response, numBytes);
@@ -476,7 +476,7 @@ void runSocketTest()
    //   char response[2048];
    //   int numBytes = 0;
    //   string str = "";
-   //   while((numBytes = socket.receive(response, 0, 2048)) != -1)
+   //   while((numBytes = socket.receive(response, 0, 2048)) > 0)
    //   {
    //      cout << "numBytes received: " << numBytes << endl;
    //      str.append(response, numBytes);
@@ -543,7 +543,7 @@ void runSslSocketTest()
       cout << endl << "DOING A PEEK!" << endl;
       
       numBytes = sslSocket.getInputStream()->peek(response, 2048);
-      if(numBytes != -1)
+      if(numBytes > 0)
       {
          cout << "Peeked " << numBytes << " bytes." << endl;
          string peek = "";
@@ -553,7 +553,7 @@ void runSslSocketTest()
       
       cout << endl << "DOING ACTUAL READ NOW!" << endl;
       
-      while((numBytes = sslSocket.getInputStream()->read(response, 2048)) != -1)
+      while((numBytes = sslSocket.getInputStream()->read(response, 2048)) > 0)
       {
          cout << "numBytes received: " << numBytes << endl;
          str.append(response, numBytes);
@@ -605,7 +605,7 @@ void runServerSocketTest()
       }
       
       string str = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\n\r\n";
-      while(true)
+      while(!Thread::interrupted(false))
       {
          // accept a connection
          Socket* worker = socket.accept(1);
@@ -690,7 +690,7 @@ void runSslServerSocketTest()
          cout << endl << "DOING A PEEK!" << endl;
          
          numBytes = worker->getInputStream()->peek(request, 2048);
-         if(numBytes != -1)
+         if(numBytes > 0)
          {
             cout << "Peeked " << numBytes << " bytes." << endl;
             string peek = "";
@@ -700,7 +700,7 @@ void runSslServerSocketTest()
          
          cout << endl << "DOING ACTUAL READ NOW!" << endl;
          
-         while((numBytes = sslSocket.getInputStream()->read(request, 2048)) != -1)
+         while((numBytes = sslSocket.getInputStream()->read(request, 2048)) > 0)
          {
             cout << "numBytes received: " << numBytes << endl;
             str.append(request, numBytes);
@@ -1064,7 +1064,7 @@ void runAsymmetricKeyLoadingTest()
    
    char b[2048];
    int numBytes;
-   while((numBytes = fis1.read(b, 2048)) != -1)
+   while((numBytes = fis1.read(b, 2048)) > 0)
    {
       privatePem.append(b, numBytes);
    }
@@ -1080,7 +1080,7 @@ void runAsymmetricKeyLoadingTest()
    
    string publicPem = "";
    
-   while((numBytes = fis2.read(b, 2048)) != -1)
+   while((numBytes = fis2.read(b, 2048)) > 0)
    {
       publicPem.append(b, numBytes);
    }
@@ -2174,7 +2174,7 @@ public:
       
       InputStream* is = c->getInputStream();
       numBytes = is->peek(b, 100);
-      if(numBytes != -1)
+      if(numBytes > 0)
       {
 //         cout << "Read " << numBytes << " bytes." << endl;
 //         string str = "";
@@ -2489,7 +2489,7 @@ void runByteArrayInputStreamTest()
    char b[10];
    int numBytes;
    string str;
-   while((numBytes = is.read(b, 9)) != -1)
+   while((numBytes = is.read(b, 9)) > 0)
    {
       memset(b + numBytes, 0, 1);
       str.append(b);
@@ -3492,7 +3492,9 @@ public:
 //      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
+//      runByteBufferTest();
 //      runByteArrayInputStreamTest();
+//      runByteArrayOutputStreamTest();
 //      runStringTokenizerTest();
 //      runStringEqualityTest();
 //      runStringAppendCharTest();
@@ -3501,16 +3503,13 @@ public:
 //      runHttpServerTest();
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
-//      runDelegateTest();
 //      runXmlReaderTest();
 //      runXmlWriterTest();
 //      runXmlReadWriteTest();
-      runXmlBindingInputStreamTest();
-//      runXmlBindingOutputStreamTest();
+//      runXmlBindingInputStreamTest();
+      runXmlBindingOutputStreamTest();
 //      runBigIntegerTest();
 //      runBigDecimalTest();
-//      runByteBufferTest();
-//      runByteArrayOutputStreamTest();
       
       cout << endl << "Tests finished." << endl;
       

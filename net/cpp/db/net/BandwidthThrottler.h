@@ -134,8 +134,7 @@ public:
     * @return an InterruptedException if the thread this throttler is waiting
     *         on gets interrupted, NULL otherwise.
     */
-   db::rt::InterruptedException* requestBytes(
-      unsigned int count, unsigned int& permitted);
+   db::rt::InterruptedException* requestBytes(int count, int& permitted);
    
    /**
     * Sets the rate limit in bytes/second. A value of 0 indicates no rate limit.

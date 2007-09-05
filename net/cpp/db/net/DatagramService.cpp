@@ -10,6 +10,7 @@ DatagramService::DatagramService(
    Server* server, InternetAddress* address, DatagramServicer* servicer) :
    PortService(server, address)
 {
+   mServicer = servicer;
    mSocket = NULL;
 }
 

@@ -360,7 +360,7 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
    return mConnected;
 }
 
-bool AbstractSocket::send(const char* b, unsigned int length)
+bool AbstractSocket::send(const char* b, int length)
 {
    Exception* exception = NULL;
    
@@ -406,7 +406,7 @@ bool AbstractSocket::send(const char* b, unsigned int length)
    return exception == NULL;
 }
 
-int AbstractSocket::receive(char* b, unsigned int length)
+int AbstractSocket::receive(char* b, int length)
 {
    int rval = -1;
    
@@ -427,11 +427,6 @@ int AbstractSocket::receive(char* b, unsigned int length)
             rval = -1;
             Exception::setLast(new SocketException(
                "Could not read from Socket!", strerror(errno)));
-         }
-         else if(rval == 0)
-         {
-            // socket is closed now
-            rval = -1;
          }
       }
    }

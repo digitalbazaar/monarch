@@ -6,7 +6,7 @@
 using namespace std;
 using namespace db::net;
 
-Datagram::Datagram(InternetAddress* address, unsigned int length)
+Datagram::Datagram(InternetAddress* address, int length)
 {
    // set address
    mAddress = address;
@@ -54,7 +54,7 @@ InternetAddress* Datagram::getAddress()
    return mAddress;
 }
 
-void Datagram::setData(char* data, unsigned int length, bool cleanup)
+void Datagram::setData(char* data, int length, bool cleanup)
 {
    // free existing data
    freeData();
@@ -65,10 +65,10 @@ void Datagram::setData(char* data, unsigned int length, bool cleanup)
    mCleanup = cleanup;
 }
 
-void Datagram::assignData(const char* data, unsigned int length)
+void Datagram::assignData(const char* data, int length)
 {
    // overwrite existing data if possible
-   if(mCleanup && mData != NULL && sizeof(data) >= length)
+   if(mCleanup && mData != NULL && mLength >= length)
    {
       // copy data
       memcpy(mData, data, length);
@@ -88,13 +88,13 @@ void Datagram::assignData(const char* data, unsigned int length)
    mCleanup = true;
 }
 
-void Datagram::setLength(unsigned int length)
+void Datagram::setLength(int length)
 {
    // cannot set larger than existing length
    mLength = (length > mLength) ? mLength : length;
 }
 
-char* Datagram::getData(unsigned int& length)
+char* Datagram::getData(int& length)
 {
    // set length
    length = mLength;

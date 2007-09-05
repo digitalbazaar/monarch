@@ -25,7 +25,7 @@ HttpChunkedTransferOutputStream::~HttpChunkedTransferOutputStream()
 {
 }
 
-bool HttpChunkedTransferOutputStream::write(const char* b, unsigned int length)
+bool HttpChunkedTransferOutputStream::write(const char* b, int length)
 {
    bool rval = true;
    
