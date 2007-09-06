@@ -21,13 +21,17 @@ bool ByteArrayOutputStream::write(const char* b, int length)
    bool rval = true;
    
    // put bytes in byte buffer
-   if(mBuffer->put(b, length, getResize()) != length)
+   int written = mBuffer->put(b, length, getResize());
+   if(written != length)
    {
       // FIXME: probably want to add something to IO exception for
       // storing bytes that couldn't be read/written, etc
       rval = false;
-      Exception::setLast(new IOException(
-         "Could not write all data, ByteBuffer is full!"));
+      IOException* e = new IOException(
+         "Could not write all data, ByteBuffer is full!");
+      e->setUsedBytes(written);
+      e->setUnusedBytes(length - written);
+      Exception::setLast(e);
    }
    
    return rval;

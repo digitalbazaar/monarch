@@ -9,8 +9,30 @@ using namespace db::rt;
 IOException::IOException(const char* message, const char* code) :
    Exception(message, code)
 {
+   mUsedBytes = 0;
+   mUnusedBytes = 0;
 }
 
 IOException::~IOException()
 {
+}
+
+void IOException::setUsedBytes(int used)
+{
+   mUsedBytes = used;
+}
+
+int IOException::getUsedBytes()
+{
+   return mUsedBytes;
+}
+
+void IOException::setUnusedBytes(int unused)
+{
+   mUnusedBytes = unused;
+}
+
+int IOException::getUnusedBytes()
+{
+   return mUnusedBytes;
 }

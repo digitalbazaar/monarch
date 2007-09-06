@@ -2548,8 +2548,26 @@ void runByteArrayOutputStreamTest()
    // trim null-terminator
    b.trim(1);
    
-   ByteArrayOutputStream baos2(&b);
-   baos2.write(sentence, strlen(sentence) + 1);
+   // false = turn off resizing buffer
+   int length = strlen(sentence) + 1;
+   ByteArrayOutputStream baos2(&b, false);
+   if(!baos2.write(sentence, length))
+   {
+      IOException* e = (IOException*)Exception::getLast();
+      cout << "Exception Caught=" << e->getMessage() << endl;
+      cout << "Written bytes=" << e->getUsedBytes() << endl;
+      cout << "Unwritten bytes=" << e->getUnusedBytes() << endl;
+      cout << "Turning on resize and finishing write..." << endl;
+      
+      // turn on resize
+      baos2.setResize(true);
+      
+      // write remaining bytes
+      baos2.write(sentence + e->getUsedBytes(), e->getUnusedBytes());
+      
+      // clear exception
+      Exception::clearLast();
+   }
    
    cout << "Data2=" << b.data() << endl;
    
