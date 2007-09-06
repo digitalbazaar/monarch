@@ -3494,7 +3494,7 @@ public:
 //      runServerDatagramTest();
 //      runByteBufferTest();
 //      runByteArrayInputStreamTest();
-//      runByteArrayOutputStreamTest();
+      runByteArrayOutputStreamTest();
 //      runStringTokenizerTest();
 //      runStringEqualityTest();
 //      runStringAppendCharTest();
@@ -3507,7 +3507,7 @@ public:
 //      runXmlWriterTest();
 //      runXmlReadWriteTest();
 //      runXmlBindingInputStreamTest();
-      runXmlBindingOutputStreamTest();
+//      runXmlBindingOutputStreamTest();
 //      runBigIntegerTest();
 //      runBigDecimalTest();
       

@@ -25,13 +25,21 @@ protected:
     */
    ByteBuffer* mBuffer;
    
+   /**
+    * True if this stream should resize the underlying buffer as necessary,
+    * false if not.
+    */
+   bool mResize;
+   
 public:
    /**
     * Creates a new ByteArrayOutputStream that writes to the passed ByteBuffer.
     * 
     * @param b the ByteBuffer to write to.
+    * @param resize true to resize the underlying ByteBuffer as necessary,
+    *               false not to.
     */
-   ByteArrayOutputStream(ByteBuffer* b);
+   ByteArrayOutputStream(ByteBuffer* b, bool resize = true);
    
    /**
     * Destructs this ByteArrayOutputStream.
@@ -55,6 +63,24 @@ public:
     * @return the ByteBuffer that this stream writes to.
     */
    virtual ByteBuffer* getByteArray();
+   
+   /**
+    * Sets whether or not this stream should resize the underlying ByteBuffer
+    * as necessary.
+    * 
+    * @param resize true to resize the underlying ByteBuffer as necessary,
+    *               false to never resize.
+    */
+   virtual void setResize(bool resize);
+   
+   /**
+    * Gets whether or not this stream will resize the underlying ByteBuffer
+    * as necessary.
+    * 
+    * @return true if this stream will resize the underlying ByteBuffer as
+    *         necessary, false if it will not.
+    */
+   virtual bool getResize();
 };
 
 } // end namespace io
