@@ -2500,6 +2500,62 @@ void runByteArrayInputStreamTest()
    cout << endl << "ByteArrayInputStream test complete." << endl;
 }
 
+void runByteBufferTest()
+{
+   cout << "Starting ByteBuffer test." << endl << endl;
+   
+   ByteBuffer b;
+   
+   char* chicken = "chicken";
+   char* t = "T ";
+   char* hate = "hate ";
+   b.clear();
+   b.put(t, strlen(t), true);
+   b.put(hate, strlen(hate), true);
+   b.put(chicken, strlen(chicken), true);
+   b.put("", 1, true);
+   
+   // FIXME: this test should be more comprehensive
+   
+   cout << "Data=" << b.data() << endl;
+   
+   cout << endl << "ByteBuffer test complete." << endl;
+}
+
+void runByteArrayOutputStreamTest()
+{
+   cout << "Starting ByteArrayOutputStream test." << endl << endl;
+   
+   ByteBuffer b;
+   
+   ByteArrayOutputStream baos1(&b);
+   char* sentence = "This is a sentence.";
+   baos1.write(sentence, strlen(sentence) + 1);
+   
+   cout << "Data1=" << b.data() << endl;
+   
+   char* chicken = "chicken";
+   char* t = "T ";
+   char* hate = "hate ";
+   b.clear();
+   b.put(t, strlen(t), true);
+   b.put(hate, strlen(hate), true);
+   b.put(chicken, strlen(chicken), true);
+   b.put("", 1, true);
+   
+   cout << "Prior Data2=" << b.data() << endl;
+   
+   // trim null-terminator
+   b.trim(1);
+   
+   ByteArrayOutputStream baos2(&b);
+   baos2.write(sentence, strlen(sentence) + 1);
+   
+   cout << "Data2=" << b.data() << endl;
+   
+   cout << endl << "ByteArrayOutputStream test complete." << endl;
+}
+
 void runStringTokenizerTest()
 {
    cout << "Starting StringTokenizer test." << endl << endl;
@@ -3381,62 +3437,6 @@ void runBigDecimalTest()
    }
    
    cout << endl << "BigDecimal test complete." << endl;
-}
-
-void runByteBufferTest()
-{
-   cout << "Starting ByteBuffer test." << endl << endl;
-   
-   ByteBuffer b;
-   
-   char* chicken = "chicken";
-   char* t = "T ";
-   char* hate = "hate ";
-   b.clear();
-   b.put(t, strlen(t), true);
-   b.put(hate, strlen(hate), true);
-   b.put(chicken, strlen(chicken), true);
-   b.put("", 1, true);
-   
-   // FIXME: this test should be more comprehensive
-   
-   cout << "Data=" << b.data() << endl;
-   
-   cout << endl << "ByteBuffer test complete." << endl;
-}
-
-void runByteArrayOutputStreamTest()
-{
-   cout << "Starting ByteArrayOutputStream test." << endl << endl;
-   
-   ByteBuffer b;
-   
-   ByteArrayOutputStream baos1(&b);
-   char* sentence = "This is a sentence.";
-   baos1.write(sentence, strlen(sentence) + 1);
-   
-   cout << "Data1=" << b.data() << endl;
-   
-   char* chicken = "chicken";
-   char* t = "T ";
-   char* hate = "hate ";
-   b.clear();
-   b.put(t, strlen(t), true);
-   b.put(hate, strlen(hate), true);
-   b.put(chicken, strlen(chicken), true);
-   b.put("", 1, true);
-   
-   cout << "Prior Data2=" << b.data() << endl;
-   
-   // trim null-terminator
-   b.trim(1);
-   
-   ByteArrayOutputStream baos2(&b);
-   baos2.write(sentence, strlen(sentence) + 1);
-   
-   cout << "Data2=" << b.data() << endl;
-   
-   cout << endl << "ByteArrayOutputStream test complete." << endl;
 }
 
 void runOtherTest()
