@@ -4,6 +4,7 @@
 #include "db/io/IgnoreOutputStream.h"
 
 using namespace db::io;
+using namespace db::rt;
 
 IgnoreOutputStream::IgnoreOutputStream(OutputStream* os, bool cleanup) :
    FilterOutputStream(os, cleanup)
@@ -35,6 +36,15 @@ bool IgnoreOutputStream::write(const char* b, int length)
    if(length > 0)
    {
       rval = mOutputStream->write(b + ignored, length);
+      if(!rval)
+      {
+         IOException* e = dynamic_cast<IOException*>(Exception::getLast());
+         if(e != NULL)
+         {
+            // update used bytes to include ignored bytes
+            e->setUsedBytes(ignored + e->getUsedBytes());
+         }
+      }
    }
    
    return rval;

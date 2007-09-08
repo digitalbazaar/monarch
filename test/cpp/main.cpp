@@ -51,6 +51,7 @@
 #include "db/io/ByteArrayInputStream.h"
 #include "db/data/xml/XmlReader.h"
 #include "db/data/xml/XmlWriter.h"
+#include "db/data/xml/XmlBindingInputStream.h"
 #include "db/data/xml/XmlBindingOutputStream.h"
 #include "db/data/DataMappingFunctor.h"
 #include "db/io/OStreamOutputStream.h"
@@ -77,6 +78,7 @@ NullSocketDataPresenter g_junk3;
 StringTokenizer g_junk4;
 FilterOutputStream g_junk5(NULL, false);
 ByteArrayInputStream g_junk6(NULL, 0);
+IgnoreOutputStream g_junk7(NULL);
 
 void runBase64Test()
 {
@@ -3037,7 +3039,7 @@ public:
    
    virtual ~TestContent()
    {
-      delete mContent;
+      delete [] mContent;
    }
    
    virtual void setContent(const char* str)
@@ -3228,7 +3230,7 @@ void runXmlWriterTest()
 {
    cout << "Starting XmlWriter test." << endl << endl;
    
-   // main object to populate
+   // main object to write out
    TestParent p;
    
    // data binding for object
@@ -3242,8 +3244,9 @@ void runXmlWriterTest()
    writer.write(&db, &os);
    cout << "XML empty=\n" << oss.str() << endl;
    
-   // clear string stream
+   // clear string stream, reset writer
    oss.str("");
+   writer.reset();
    
    // set some content
    p.setContent("Moooooooo");
@@ -3311,35 +3314,34 @@ void runXmlBindingInputStreamTest()
 {
    cout << "Starting XmlBindingInputStream test." << endl << endl;
    
-//   string xml1;
-//   string xml2;
-//   xml1.append("<TestContent>This is the first.");
-//   xml2.append("<TestChild id=\"64\">Blah</TestChild> Second.</TestContent>");
-//   
-//   // main object to populate
-//   TestParent p;
-//   
-//   // data binding for object
-//   TestParentDataBinding db(&p);
-//   
-//   // create output stream for reading from binding
-//   XmlBindingInputStream xbos(&db);
-//   
-//   // write xml to output stream
-//   xbos.write(xml1.c_str(), xml1.length());
-//   xbos.write(xml2.c_str(), xml2.length());
-//   //xbos.write((xml1 + xml2).c_str(), xml1.length() + xml2.length());
-//   
-//   cout << "TestContent data='" << p.getContent() << "'" << endl;
-//   if(p.getChild() != NULL)
-//   {
-//      cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
-//      cout << "TestChild id='" << p.getChild()->getId() << "'" << endl;
-//   }
-//   else
-//   {
-//      cout << "TestChild does not exist!" << endl;
-//   }
+   // main object to read xml from
+   TestParent p;
+   
+   // set some content
+   p.setContent("This is a sufficiently long section of element data.");
+   
+   // add child to TestContent
+   TestChild* c = new TestChild();
+   c->setId(514);
+   p.addChild(c);
+   
+   // data binding for object
+   TestParentDataBinding db(&p);
+   
+   // create input stream
+   XmlBindingInputStream xbis(&db, 20);
+   
+   ostringstream oss;
+   OStreamOutputStream os(&oss);
+   
+   char b[10];
+   int numBytes;
+   while((numBytes = xbis.read(b, 10)) > 0)
+   {
+      os.write(b, numBytes);
+   }
+   
+   cout << "XML=\n" << oss.str() << endl;
    
    cout << endl << "XmlBindingInputStream test complete." << endl;
 }

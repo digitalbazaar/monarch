@@ -200,6 +200,23 @@ public:
    virtual void getData(void* bObject, char** s);
    
    /**
+    * Writes the data for the passed bound object to the given output stream.
+    * 
+    * @param bObject the bound object.
+    * @param os the OutputStream to write to.
+    */
+   virtual bool writeData(void* bObject, db::io::OutputStream* os);
+   
+   /**
+    * Returns true if the passed bound object has data, false if not.
+    * 
+    * @param bObject the bound object to check for data.
+    * 
+    * @return true if the passed bound object has data, false if not.
+    */
+   virtual bool hasData(void* bObject);
+   
+   /**
     * True if this DataMapping is a create/add child mapping, false if it is a
     * set/get mapping. 
     * 
@@ -446,6 +463,86 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
          }
          break;
    }
+}
+
+template<class BoundType, class ChildType>
+bool DataMappingFunctor<BoundType, ChildType>::writeData(
+   void* bObject, db::io::OutputStream* os)
+{
+   bool rval = false;
+   
+   BoundType* bObj = (BoundType*)bObject;
+   
+   char s[20];
+   switch(mGetFunction.type)
+   {
+      case DataGetFunction::None:
+         // no data to write
+         rval = true;
+         break;
+      case DataGetFunction::Boolean:
+         // convert boolean to string
+         if((bObj->*mGetFunction.bFunc)())
+         {
+            // write "true" to output stream
+            rval = os->write("true", 4);
+         }
+         else
+         {
+            // write "false" to output stream
+            rval = os->write("false", 4);
+         }
+         break;
+      case DataGetFunction::Integer:
+         // convert integer to string and write to output stream
+         sprintf(s, "%d", (bObj->*mGetFunction.iFunc)());
+         rval = os->write(s, strlen(s));
+         break;
+      case DataGetFunction::String:
+         const char* str = (bObj->*mGetFunction.sFunc)();
+         if(str != NULL)
+         {
+            // write string to output stream
+            rval = os->write(str, strlen(str));
+         }
+         else
+         {
+            // no data to write
+            rval = true;
+         }
+         break;
+   }
+   
+   return rval;
+}
+
+template<class BoundType, class ChildType>
+bool DataMappingFunctor<BoundType, ChildType>::hasData(void* bObject)
+{
+   bool rval = false;
+   
+   BoundType* bObj = (BoundType*)bObject;
+   
+   switch(mGetFunction.type)
+   {
+      case DataGetFunction::None:
+         // no data
+         break;
+      case DataGetFunction::Boolean:
+         // has data
+         rval = true;
+         break;
+      case DataGetFunction::Integer:
+         // has data
+         rval = true;
+         break;
+      case DataGetFunction::String:
+         const char* str = (bObj->*mGetFunction.sFunc)();
+         rval = (str != NULL && strlen(str) > 0);
+         break;
+   }
+   
+   return rval;
 }
 
 template<class BoundType, class ChildType>

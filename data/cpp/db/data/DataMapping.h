@@ -4,6 +4,8 @@
 #ifndef db_data_DataMapping_H
 #define db_data_DataMapping_H
 
+#include "db/io/OutputStream.h"
+
 #include <list>
 
 namespace db
@@ -76,6 +78,23 @@ public:
     *          object.
     */
    virtual void getData(void* bObject, char** s) = 0;
+   
+   /**
+    * Writes the data for the passed bound object to the given output stream.
+    * 
+    * @param bObject the bound object with data to write out.
+    * @param os the OutputStream to write to.
+    */
+   virtual bool writeData(void* bObject, db::io::OutputStream* os) = 0;
+   
+   /**
+    * Returns true if the passed bound object has data, false if not.
+    * 
+    * @param bObject the bound object to check for data.
+    * 
+    * @return true if the passed bound object has data, false if not.
+    */
+   virtual bool hasData(void* bObject) = 0;
    
    /**
     * True if this DataMapping is a create/add child mapping, false if it is a

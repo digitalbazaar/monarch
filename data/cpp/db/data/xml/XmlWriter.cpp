@@ -3,8 +3,6 @@
  */
 #include "db/data/xml/XmlWriter.h"
 
-#include <list>
-
 using namespace std;
 using namespace db::data;
 using namespace db::data::xml;
@@ -19,25 +17,44 @@ XmlWriter::~XmlWriter()
 {
 }
 
-bool XmlWriter::openStartElement(DataName* dn, OutputStream* os)
+void XmlWriter::reset()
+{
+   // clear element stack
+   mElementStack.clear();
+}
+
+bool XmlWriter::writeStartElement(DataName* dn, OutputStream* os)
 {
    bool rval = false;
+   
+   // create element state
+   ElementState es;
+   es.dn = dn;
+   es.open = true;
+   
+   // add state to element stack
+   mElementStack.push_front(es);
    
    // FIXME: need a namespace/prefix table/interface
    // FIXME: need to write out namespace prefix as well
    if(os->write("<", 1))
    {
-      rval = os->write(dn->name, strlen(dn->name));
+      rval = os->write(es.dn->name, strlen(es.dn->name));
    }
    
    return rval;
 }
 
-bool XmlWriter::closeStartElement(bool empty, OutputStream* os)
+bool XmlWriter::writeEndElement(OutputStream* os)
 {
    bool rval = false;
    
-   if(empty)
+   // get current element state, pop it off stack
+   ElementState* es = &mElementStack.front();
+   mElementStack.pop_front();
+   
+   // write closing element
+   if(es->open)
    {
       rval = os->write("/>", 2);
       
@@ -45,55 +62,15 @@ bool XmlWriter::closeStartElement(bool empty, OutputStream* os)
    }
    else
    {
-      rval = os->write(">", 1);
-      
-      // FIXME: handle indentation
-   }
-   
-   return rval;
-}
-
-bool XmlWriter::writeEndElement(DataName* dn, OutputStream* os)
-{
-   bool rval = false;
-   
-   // FIXME: need a namespace/prefix table/interface
-   // FIXME: need to write out namespace prefix as well
-   if(os->write("<", 1))
-   {
-      if(os->write(dn->name, strlen(dn->name)))
+      // FIXME: need a namespace/prefix table/interface
+      // FIXME: need to write out namespace prefix as well
+      if(os->write("</", 2))
       {
-         rval = os->write(">", 1);
-         
-         // handle indentation      
-      }
-   }
-   
-   return rval;
-}
-
-bool XmlWriter::writeElement(
-   DataName* dn, const char* data, OutputStream* os)
-{
-   bool rval = false;
-   
-   // write out start element
-   if(openStartElement(dn, os))
-   {
-      // check for empty element
-      unsigned int length = strlen(data);
-      if(length == 0)
-      {
-         // close empty start element
-         rval = closeStartElement(true, os);
-      }
-      else
-      {
-         // write out data
-         if(os->write(data, length))
+         if(os->write(es->dn->name, strlen(es->dn->name)))
          {
-            // write out end element
-            rval = writeEndElement(dn, os);
+            rval = os->write(">", 1);
+            
+            // handle indentation
          }
       }
    }
@@ -102,7 +79,7 @@ bool XmlWriter::writeElement(
 }
 
 bool XmlWriter::writeAttribute(
-   DataName* dn, const char* data, OutputStream* os)
+   DataName* dn, const char* data, int length, OutputStream* os)
 {
    bool rval = false;
    
@@ -119,13 +96,90 @@ bool XmlWriter::writeAttribute(
          if(os->write("=\"", 2))
          {
             // write out data
-            if(os->write(data, strlen(data)))
+            if(os->write(data, length))
             {
                // close attribute quote
                rval = os->write("\"", 1);
             }
          }
       }
+   }
+   
+   return rval;
+}
+
+bool XmlWriter::writeAttribute(
+   DataName* dn, DataMapping* dm, void* obj, OutputStream* os)
+{
+   bool rval = false;
+   
+   // FIXME: need a namespace/prefix table/interface
+   // FIXME: need to write out namespace prefix as well
+   
+   // write out space
+   if(os->write(" ", 1))
+   {
+      // write out attribute name
+      if(os->write(dn->name, strlen(dn->name)))
+      {
+         // write out equals and quote
+         if(os->write("=\"", 2))
+         {
+            // write out data
+            if(dm->writeData(obj, os))
+            {
+               // close attribute quote
+               rval = os->write("\"", 1);
+            }
+         }
+      }
+   }
+   
+   return rval;
+}
+
+bool XmlWriter::writeElementData(const char* data, int length, OutputStream* os)
+{
+   bool rval = true;
+   
+   // get current element state
+   ElementState* es = &mElementStack.front();
+   
+   // close start element as appropriate
+   if(es->open && length > 0)
+   {
+      rval = os->write(">", 1);
+      es->open = false;
+   }
+   
+   if(rval)
+   {
+      // write out data
+      rval = os->write(data, length);
+   }
+   
+   return rval;
+}
+
+bool XmlWriter::writeElementData(
+   DataMapping* dm, void* obj, OutputStream* os)
+{
+   bool rval = true;
+   
+   // get current element state
+   ElementState* es = &mElementStack.front();
+   
+   // close start element as appropriate
+   if(es->open && dm->hasData(obj))
+   {
+      rval = os->write(">", 1);
+      es->open = false;
+   }
+   
+   if(rval)
+   {
+      // write out data
+      rval = dm->writeData(obj, os);
    }
    
    return rval;
@@ -144,11 +198,8 @@ bool XmlWriter::write(DataBinding* db, OutputStream* os)
    }
    else
    {
-      // open start element
-      openStartElement(root, os);
-      
-      // set to false once the start element has been closed
-      bool startElementOpen = true;
+      // write start element
+      writeStartElement(root, os);
       
       // a list for storing child objects
       list<void*> children;
@@ -168,13 +219,6 @@ bool XmlWriter::write(DataBinding* db, OutputStream* os)
             children.clear();
             db->getChildren(*i, children);
             
-            // close start element if open and children are present (lol)
-            if(startElementOpen && !children.empty())
-            {
-               rval = closeStartElement(false, os);
-               startElementOpen = false;
-            }
-            
             // get data binding
             DataBinding* binding = db->getDataBinding(*(++i));
             
@@ -189,71 +233,35 @@ bool XmlWriter::write(DataBinding* db, OutputStream* os)
          }
          else
          {
-            // get data
-            char* data;
-            dm->getData(db->getObject(), &data);
-            
             // only write content for root element
             if(root->equals(*i))
             {
-               unsigned int length = strlen(data);
-               if(length > 0)
-               {
-                  // close start element if open
-                  if(startElementOpen)
-                  {
-                     rval = closeStartElement(false, os);
-                     startElementOpen = false;
-                  }
-                  
-                  if(rval)
-                  {
-                     rval = os->write(data, strlen(data));
-                  }
-               }
+               rval = writeElementData(dm, db->getObject(), os);
             }
             else
             {
                // write entire element or attribute
                if((*i)->major)
                {
-                  // close start element if open
-                  if(startElementOpen)
-                  {
-                     rval = closeStartElement(false, os);
-                     startElementOpen = false;
-                  }
-                  
-                  if(rval)
-                  {
-                     // write element
-                     rval = writeElement(*i, data, os);
-                  }
+                  // write start element, data, end element
+                  rval = 
+                     writeStartElement(*i, os) &&
+                     writeElementData(dm, db->getObject(), os) &&
+                     writeEndElement(os);
                }
                else
                {
                   // write attribute
-                  rval = writeAttribute(*i, data, os);
+                  rval = writeAttribute(*i, dm, db->getObject(), os);
                }
             }
-            
-            // clean up data
-            delete [] data;
          }
       }
       
       if(rval)
       {
-         // close start element as appropriate
-         if(startElementOpen)
-         {
-            rval = closeStartElement(true, os);
-         }
-         else
-         {
-            // write end element
-            rval = writeEndElement(root, os);
-         }
+         // write end element
+         rval = writeEndElement(os);
       }
    }
    
