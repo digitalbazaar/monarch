@@ -24,12 +24,12 @@ HttpClient::~HttpClient()
    HttpClient::disconnect();
 }
 
-void HttpClient::setHeaders(HttpHeader* h, char** headers)
+void HttpClient::setHeaders(HttpHeader* h, const char** headers)
 {
    if(headers != NULL)
    {
       // go through headers until NULL is reached
-      char* field;
+      const char* field;
       char* colon;
       for(int i = 0; headers[i] != NULL; i++)
       {
@@ -70,7 +70,7 @@ bool HttpClient::connect(Url* url)
    return mConnection != NULL;
 }
 
-HttpResponse* HttpClient::get(Url* url, char** headers)
+HttpResponse* HttpClient::get(Url* url, const char** headers)
 {
    HttpResponse* rval = NULL;
    
@@ -104,7 +104,7 @@ HttpResponse* HttpClient::get(Url* url, char** headers)
 }
 
 HttpResponse* HttpClient::post(
-   Url* url, char** headers, InputStream* is, HttpTrailer* trailer)
+   Url* url, const char** headers, InputStream* is, HttpTrailer* trailer)
 {
    HttpResponse* rval = NULL;
    

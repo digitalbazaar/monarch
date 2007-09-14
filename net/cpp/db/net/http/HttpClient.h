@@ -45,7 +45,7 @@ protected:
     * @param h the HttpHeader to update.
     * @param headers the header fields to set.
     */
-   virtual void setHeaders(HttpHeader* h, char** headers);
+   virtual void setHeaders(HttpHeader* h, const char** headers);
    
 public:
    /**
@@ -90,7 +90,7 @@ public:
     * 
     * @return the HTTP response if one was received, NULL if not.
     */
-   virtual HttpResponse* get(db::net::Url* url, char** headers = NULL);
+   virtual HttpResponse* get(db::net::Url* url, const char** headers = NULL);
    
    /**
     * Sends an HTTP POST request and its content.
@@ -110,7 +110,7 @@ public:
     * @return the HTTP response if one was received, NULL if not.
     */
    virtual HttpResponse* post(
-      db::net::Url* url, char** headers, db::io::InputStream* is,
+      db::net::Url* url, const char** headers, db::io::InputStream* is,
       HttpTrailer* trailer = NULL);
    
    /**
