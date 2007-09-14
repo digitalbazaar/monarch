@@ -53,6 +53,13 @@ public:
     * @return the name of this File.
     */
    virtual const std::string& getName();
+
+   /**
+    * Check if this file exists.
+    * 
+    * @return true if this file exists.
+    */
+   virtual bool exists();
 };
 
 } // end namespace io
