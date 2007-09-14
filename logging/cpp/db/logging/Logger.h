@@ -10,9 +10,6 @@
 #include "db/io/File.h"
 #include "db/io/OutputStream.h"
 
-using namespace std;
-using namespace db::io;
-
 namespace db
 {
 namespace logging
@@ -27,6 +24,9 @@ namespace logging
 class Logger : public virtual db::rt::Object
 {
 public:
+   /**
+    * The logging level.
+    */
    typedef enum Level {
       /**
        * The no level setting. Nothing will be logged.
@@ -41,108 +41,71 @@ public:
        */
       Warning,
       /**
-       * The message level setting. Errors, warnings, and messages will be
+       * The info level setting. Errors, warnings, and info will be
        * logged.
        */
-      Message,
+      Info,
       /**
-       * The debug level setting. Errors, warnings, messages, and debug
+       * The debug level setting. Errors, warnings, info, and debug
        * information will be logged.
        * 
        * Debug log output should include stack traces, etc.
        */
       Debug,
       /**
-       * The debug data level setting. Errors, warnings, messages, debug,
+       * The debug data level setting. Errors, warnings, info, debug,
        * and debug data will be logged.
        * 
        * Debug data log output includes any data associated with debug log output.
        */
       DebugData,
       /**
-       * The detail level setting. Errors, warnings, messages, debug,
-       * and debug data information will be logged.
+       * The detail level setting. Errors, warnings, info, debug,
+       * debug data, and debug fine detail will be logged.
        * 
        * Detail log output includes very fine detailed informational messages.
        */
-      Detail,
+      DebugDetail,
       /**
        * The maximum level setting. Everything will be logged.
        */
       Max
    };
 
+   static const char* levelToString(Level level);
+
 protected:
+   /**
+    * multimap from categories to loggers.
+    */
+   static std::multimap<const char*, Logger*> sLoggers;
+
    /**
     * The name of this logger.
     */
    const char* mName;
    
    /**
-    * The current level setting for the log file.
+    * The current level setting.
     */
-   Level mFileLevel;
-   
-   /**
-    * The current level setting for the console.
-    */
-   Level mConsoleLevel;
+   Level mLevel;
    
    /**
     * The date format.
     */
    const char* mDateFormat;
    
-   /**
-    * The file for the log file.
-    */
-   File* mFile;
-
-   /**
-    * The file output stream to write logging information to.
-    */
-   OutputStream* mStream;
-   
-   /**
-    * The maximum file size for the log file.
-    */
-   off_t mMaxFileSize;
-   
-   /**
-    * The id of the next log file to rotate out.
-    */
-   long mRotateId;
-   
-   /**
-    * The number of rotating files. This is the number of files, other
-    * than the main log file that can be rotated in/out in case a write
-    * to a log file would exceed the maximum log size.
-    */
-   long mNumRotatingFiles;
-   
-   /**
-    * A map of all of the logging print streams to their levels. 
-    */
-   map<OutputStream*, Level> mStreamToLevel;
-   
 public:
-   /**
-    * The default number of log files to rotate.
-    */
-   static int DEFAULT_NUM_ROTATING_FILES;
-   
    /**
     * Creates a new logger with specified level.
     *
     * @param name the name of the logger.
-    * @param fileLevel the max level to display in the log file.
-    * @param consoleLevel the max level to display in the console.
+    * @param level the max level to display.
     */
-   Logger(const char* name, Level fileLevel = Debug, Level consoleLevel = None);
+   Logger(const char* name, Level level = None);
    
    /**
-    * Overloaded to ensure that the stream gets closed when garbage
-    * collected.
+    * Destructs the Logger.
     */
    virtual ~Logger();
    
@@ -154,24 +117,6 @@ public:
    virtual const char* getDate();
    
    /**
-    * Gets the id of the next log file to rotate out. Auto-increments for
-    * the next call.
-    * 
-    * @return the id of the next log file to rotate out. 
-    */
-   virtual long getRotateId();
-   
-   /**
-    * Rotates the log file as necessary. If the next append to a log file
-    * would exceed its maximum size, then the log file is rotated out.
-    * This method will only make changes to the log file if there has been
-    * a maximum log file size set.
-    * 
-    * @param logText the log text to be appended to the log file.
-    */
-   virtual void rotateLogFile(const char* logText);
-   
-   /**
     * Gets the name of this logger.
     * 
     * @return the name of this logger.
@@ -179,43 +124,19 @@ public:
    virtual const char* getName();
 
    /**
-    * Sets the file level for this logger. If the level
-    * passed is not in the accepted range, this method will
-    * fail to set the level and return false. Otherwise
-    * it will set the level and return true.
+    * Sets the level for this logger.
     *
-    * @param fileLevel the level to set.
-    * 
-    * @return true if level valid and set, false if not.
+    * @param level the level to set.
     */
-   virtual bool setFileLevel(Level fileLevel);
+   virtual void setLevel(Level level);
 
    /**
-    * Gets the file level set for this logger.
+    * Gets the level set for this logger.
     *
-    * @return the file level set for this logger.
+    * @return the level set for this logger.
     */
-   virtual Level getFileLevel();
+   virtual Level getLevel();
    
-   /**
-    * Sets the console level for this logger. If the level
-    * passed is not in the accepted range, this method will
-    * fail to set the level and return false. Otherwise
-    * it will set the level and return true.
-    *
-    * @param consoleLevel the level to set.
-    * 
-    * @return true if level valid and set, false if not.
-    */
-   virtual bool setConsoleLevel(Level consoleLevel);
-
-   /**
-    * Gets the console level set for this logger.
-    *
-    * @return the console level set for this logger.
-    */
-   virtual Level getConsoleLevel();
-
    /**
     * Sets the date format. If the date format given is not
     * a valid format, the method does nothing but return false.
@@ -227,120 +148,57 @@ public:
    virtual bool setDateFormat(const char* dateFormat);
    
    /**
-    * Opens a new log file with the specified file name. Setting append to
-    * true will append the file if it exists. Setting it to false will
-    * overwrite it.
+    * Log a message.  The implementation of this method should lock the logger,
+    * check the the log level, create a formatted message, and call the simple
+    * log(message) method as needed to perform message output.
     *
-    * @param filename the name of the file to log to.
-    * @param append specifies whether or not to append to an existing
-    *             file or to overwrite.
-    *             
-    * @return true if succesfully opened the file for writing, false if not.
-    */
-   virtual bool setFile(const char* filename, bool append = true);
-   
-   /**
-    * Closes the output stream if it is open.
-    */
-   virtual void closeStream();
-   
-   /**
-    * Sets the maximum log file size (in bytes). Setting the maximum log file
-    * size to 0 means that there is no maximum.
-    * 
-    * @param fileSize the maximum log file size (in bytes) or 0 for no maximum.
-    */
-   virtual void setMaxFileSize(off_t fileSize);
-   
-   /**
-    * Gets the maximum log file size (in bytes).
-    * 
-    * @return the max log file size (in bytes) or 0 for no maximum.
-    */
-   virtual off_t getMaxFileSize();
-   
-   /**
-    * Sets the number of rotating log files. This is the number of files
-    * other than the main log file that may be rotated in when the
-    * maximum log file size would otherwise be exceeded. No fewer than
-    * 1 file may be set. If a value of less than zero is passed, then
-    * there will be no limit on the number of rotating files.
-    *
-    * @param numRotatingFiles the number of rotating log files.
-    * 
-    * @return true if successfully set, false if not.
-    */
-   virtual bool setNumRotatingFiles(long numRotatingFiles);
-
-   /**
-    * Gets the number of rotating log files. This is the number of files
-    * other than the main log file that may be rotated in when the
-    * maximum log file size would otherwise be exceeded.
-    *
-    * @return the number of rotating log files.
-    */
-   virtual long getNumRotatingFiles();
-   
-   /**
-    * Gets the filename set for this logger.
-    * 
-    * @return the filename set for this logger.
-    */
-   virtual File* getFile();
-   
-   /**
-    * Gets the print stream for this logger.
-    * 
-    * @return the print stream for this logger.
-    */
-   virtual OutputStream* getOutputStream();
-   
-   /**
-    * Gets a print writer for this logger.
-    * 
-    * @return a print writer for this logger.
-    */
-   //PrintWriter* getPrintWriter();
-   
-   /**
-    * Adds a print stream to the logger.
-    * 
-    * @param os the print stream to add.
-    * @param level the level for the print stream.
-    */
-   virtual void addOutputStream(OutputStream* os, Level level);
-   
-   /**
-    * Removes a print stream from the logger.
-    * 
-    * @param os the print stream to remove.
-    */
-   virtual void removeOutputStream(OutputStream* os);
-   
-   /**
-    * Sets a print stream's level.
-    * 
-    * @param os the print stream to modify.
-    * @param level the level for the print stream.
-    */
-   virtual void setOutputStreamLevel(OutputStream* os, Level level);
-   
-   /**
-    * Writes the passed string to the console/log file, if it is open.
-    *
-    * @param text the text to write to the log file.
-    * @param c the class to write to this logger for.
-    * @param level the level level that must be reached in
-    *                  order for the text to be written to the log.
+    * @param cat the message category (or NULL)
+    * @param level the message level
+    * @param file the location of this log call (or NULL)
+    * @param function the function of this log call (or NULL)
+    * @param line the line of this log call (or -1)
+    * @param object the object being debugged (or NULL)
+    * @param message the log message
     * @param header true to use the logger's header, false not to.
-    * @param useCustomStreams true to print to custom streams, false to only
-    *                         print to console/log file.
     * 
     * @return true if the text was written, false if not.
     */
-   virtual bool log(
-      const char* text, const char* c = NULL, Level level = Error,
-      bool header = true, bool useCustomStreams = true);
+   bool log(
+      const char* cat,
+      Level level,
+      const char* file,
+      const char* function,
+      int line,
+      const void* object,
+      const char* message);
+   
+   /**
+    * Log a message to all loggers registered for this category.
+    *
+    * @param cat the message category (or NULL)
+    * @param level the message level
+    * @param file the location of this log call (or NULL)
+    * @param function the function of this log call (or NULL)
+    * @param line the line of this log call (or -1)
+    * @param object the object being debugged (or NULL)
+    * @param message the log message
+    * @param header true to use the logger's header, false not to.
+    */
+   static void catLevelLog(
+      const char* cat,
+      Level level,
+      const char* file,
+      const char* function,
+      int line,
+      const void* object,
+      const char* message);
+   
+   /**
+    * Logs a pre-formatted message from the default full log() method.
+    *
+    * @param message the log message.
+    */
+   virtual void log(const char* message) = 0;
    
    /**
     * Gets the stack trace from a throwable object.
@@ -349,74 +207,27 @@ public:
     * 
     * @return the stack trace as a string.
     */
-   //virtual static const char* getStackTrace(Throwable t);
-   
-   /**
-    * Writes the passed string to this logger for the given class.
-    * Level is set to error level.
-    *
-    * @param text the text to write to the logger.
-    * @param c the class to write to the logger for.
-    * 
-    * @return true if the text was written, false if not.
-    */
-   virtual bool error(const char* text, const char* c = NULL);
-   
-   /**
-    * Writes the passed string to this logger for the given class.
-    * Level is set to warning level.
-    *
-    * @param text the text to write to this logger.
-    * @param c the class to write for.
-    * 
-    * @return true if the text was written, false if not.
-    */
-   virtual bool warning(const char* text, const char* c = NULL);
+   //static const char* getStackTrace(Throwable t);
+   //
 
-   /**
-    * Writes the passed string to this logger for the given class.
-    * Level is set to message level.
-    *
-    * @param text the text to write to this logger.
-    * @param c the class to write to this logger for.
-    * 
-    * @return true if the text was written, false if not.
-    */
-   virtual bool msg(const char* text, const char* c = NULL);
-   
-   /**
-    * Writes the passed string to this logger for the given class.
-    * Level is set to debug level.
-    *
-    * @param text the text to write to this logger.
-    * @param c the class to write to this logger for.
-    * 
-    * @return true if the text was written, false if not.
-    */
-   virtual bool debug(const char* text, const char* c = NULL);
-   
-   /**
-    * Writes the passed string to this logger for the given class.
-    * Level is set to debug data level.
-    *
-    * @param text the text to write to this logger.
-    * @param c the class to write to this logger for.
-    * 
-    * @return true if the text was written, false if not.
-    */
-   virtual bool debugData(const char* text, const char* c = NULL);
-   
-   /**
-    * Writes the passed string to this logger for the given class.
-    * Level is set to detail level.
-    *
-    * @param text the text to write to the log file.
-    * @param c the class to write to this logger for.
-    * 
-    * @return true if the text was written, false if not.
-    */
-   virtual bool detail(const char* text, const char* c = NULL);
+   static void addLogger(Logger* logger, const char* category = NULL);
+   static void removeLogger(Logger* logger, const char* category = NULL);
+   //getLoggers(...)
 };
+
+#define DB_STMT_BEGIN do {
+#define DB_STMT_END } while(0);
+
+#define DB_CAT_LEVEL_LOG(cat, level, object, message) \
+   DB_STMT_BEGIN \
+   db::logging::Logger::catLevelLog(cat, level, __FILE__, __func__, __LINE__, object, message); \
+   DB_STMT_END
+#define DB_CAT_OBJECT_ERROR(cat, object, message) DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Error, object, message)
+#define DB_CAT_ERROR(cat, message) DB_CAT_OBJECT_ERROR(cat, NULL, message)
+#define DB_ERROR(message) DB_CAT_ERROR(NULL, message)
+
+//#undef DB_STMT_BEGIN
+//#undef DB_STMT_END
 
 } // end namespace logging
 } // end namespace db
