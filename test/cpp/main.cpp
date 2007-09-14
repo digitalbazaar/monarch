@@ -3598,21 +3598,17 @@ void runLoggerTest()
 {
    cout << "Starting Logger test." << endl << endl;
 
-   db::logging::Logger* clog = new OutputStreamLogger("stdout", Logger::Max,
-      OStreamOutputStream::getStdoutStream());
-   Logger::addLogger(clog);
+   db::logging::OutputStreamLogger clog(
+      "stdout", Logger::Max, OStreamOutputStream::getStdoutStream());
+   Logger::addLogger(&clog);
    
-   db::logging::Logger* flog =
-      new FileLogger("flog", Logger::Max, new File("test.log"), true);
-   Logger::addLogger(flog);
+   db::logging::FileLogger flog(
+      "flog", Logger::Max, new File("test.log"), true);
+   Logger::addLogger(&flog);
 
    DB_ERROR("error test");
    DB_CAT_ERROR("cat 1", "cat 1 error test");
-   DB_CAT_OBJECT_ERROR("cat 1 obj", clog, "cat 1 obj error test");
-   
-   // clean up loggers
-   delete flog;
-   delete clog;
+   DB_CAT_OBJECT_ERROR("cat 1 obj", &clog, "cat 1 obj error test");
    
    cout << endl << "Logger test complete." << endl;
 }
