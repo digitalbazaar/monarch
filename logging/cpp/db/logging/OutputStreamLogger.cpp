@@ -11,7 +11,7 @@ OutputStreamLogger::OutputStreamLogger(const char* name, Level level,
    OutputStream* stream, bool cleanup) :
    Logger(name, level)
 {
-   setOutputStream(stream, cleanup);
+   setOutputStream(stream, cleanup, false);
 }
 
 OutputStreamLogger::~OutputStreamLogger()
@@ -38,11 +38,15 @@ OutputStream* OutputStreamLogger::getOutputStream()
    return mStream;
 }
 
-void OutputStreamLogger::setOutputStream(OutputStream* os, bool cleanup)
+void OutputStreamLogger::setOutputStream(OutputStream* os,
+   bool cleanup, bool closeCurrent)
 {
    lock();
    {
-      close();
+      if(closeCurrent)
+      {
+         close();
+      }
       mStream = os;
       mCleanup = cleanup;
    }

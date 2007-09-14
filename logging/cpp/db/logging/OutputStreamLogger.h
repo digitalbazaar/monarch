@@ -69,8 +69,10 @@ public:
     * 
     * @param os the output stream to use.
     * @param cleanup if the logger handles cleanup of this stream.
+    * @param closeCurrent if the logger should close current stream.
     */
-   virtual void setOutputStream(db::io::OutputStream* os, bool cleanup = false);
+   virtual void setOutputStream(db::io::OutputStream* os, bool cleanup = false,
+      bool closeCurrent = true);
    
    /**
     * Writes the message to the output stream.
