@@ -18,6 +18,13 @@ Url::~Url()
 {
 }
 
+Url& Url::operator=(const Url& rhs)
+{
+   string s;
+   setUrl(rhs.toString(s));
+   return *this;
+}
+
 MalformedUrlException* Url::setUrl(const string& url)
 {
    MalformedUrlException* rval = NULL;
@@ -224,7 +231,7 @@ unsigned int Url::getDefaultPort()
    return rval;
 }
 
-string& Url::toString(string& str)
+string& Url::toString(string& str) const
 {
    str.append(mScheme);
    str.append(1, ':');
@@ -244,26 +251,26 @@ string Url::encode(const char* str, unsigned int length)
       // see if the character is "safe" (0-9, A-Z, or a-z)
       if((unsigned int)(c - '0') < 10u)
       {
-         rval += c;
+         rval.append(1, c);
       }
       else if((unsigned int)(c - 'A') < 26u)
       {
-         rval += c;
+         rval.append(1, c);
       }
       else if((unsigned int)(c - 'a') < 26u)
       {
-         rval += c;
+         rval.append(1, c);
       }
       else if(c == ' ')
       {
          // substitute pluses for spaces
-         rval += '+';
+         rval.append(1, '+');
       }
       else
       {
          // character is unsafe, so add a '%' and convert to hex
-         rval += '%';
-         rval += Convert::bytesToUpperHex(&c, 1);
+         rval.append(1, '%');
+         rval.append(Convert::bytesToUpperHex(&c, 1));
       }
    }
    
@@ -283,20 +290,20 @@ string Url::decode(const char* str, unsigned int length)
       // see if the character is "safe" (0-9, A-Z, or a-z)
       if((unsigned int)(c - '0') < 10u)
       {
-         rval += c;
+         rval.append(1, c);
       }
       else if((unsigned int)(c - 'A') < 26u)
       {
-         rval += c;
+         rval.append(1, c);
       }
       else if((unsigned int)(c - 'a') < 26u)
       {
-         rval += c;
+         rval.append(1, c);
       }
       else if(c == '+')
       {
          // substitute spaces for pluses
-         rval += ' ';
+         rval.append(1, ' ');
       }
       else if(c == '%')
       {
@@ -304,7 +311,7 @@ string Url::decode(const char* str, unsigned int length)
          if(i + 2 < length)
          {
             Convert::hexToBytes(str + i + 1, 2, &c, cLength);
-            rval += c;
+            rval.append(1, c);
          }
          
          // skip two characters

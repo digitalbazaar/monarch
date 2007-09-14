@@ -79,6 +79,13 @@ public:
    virtual ~Url();
    
    /**
+    * Sets this Url equal to another one.
+    * 
+    * @param rhs the Url to set this one equal to.
+    */
+   virtual Url& operator=(const Url& rhs);
+   
+   /**
     * Sets this Url to the passed string.
     * 
     * @param url the string to create this Url from.
@@ -151,7 +158,7 @@ public:
     * 
     * @return the string representation for this url.
     */
-   virtual std::string& toString(std::string& str);
+   virtual std::string& toString(std::string& str) const;
    
    /**
     * URL-encodes the passed string.
