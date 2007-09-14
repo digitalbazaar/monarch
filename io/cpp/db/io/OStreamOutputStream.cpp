@@ -10,7 +10,7 @@ using namespace std;
 using namespace db::io;
 using namespace db::rt;
 
-OStreamOutputStream* OStreamOutputStream::mStdoutStream =
+OStreamOutputStream* OStreamOutputStream::sStdoutStream =
    new OStreamOutputStream(&cout);
 
 OStreamOutputStream::OStreamOutputStream(ostream* stream)
