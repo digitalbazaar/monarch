@@ -24,11 +24,6 @@ class FileLogger : public db::logging::OutputStreamLogger
 {
 protected:
    /**
-    * The name of this logger.
-    */
-   const char* mName;
-   
-   /**
     * The file for the log file.
     */
    db::io::File* mFile;

@@ -71,19 +71,39 @@ public:
        */
       Max
    };
-
+   
    static const char* levelToString(Level level);
-
+   
 protected:
+   /**
+    * A NameComparator compares two logger names.
+    */
+   typedef struct NameComparator
+   {
+      /**
+       * Compares two null-terminated strings, returning true if the first is
+       * less than the second, false if not.
+       * 
+       * @param s1 the first string.
+       * @param s2 the second string.
+       * 
+       * @return true if the s1 < s2, false if not.
+       */
+      bool operator()(const char* s1, const char* s2) const
+      {
+         return strcmp(s1, s2) < 0;
+      }
+   };
+   
    /**
     * multimap from categories to loggers.
     */
    static std::multimap<const char*, Logger*> sLoggers;
-
+   
    /**
     * The name of this logger.
     */
-   const char* mName;
+   char* mName;
    
    /**
     * The current level setting.
@@ -93,7 +113,7 @@ protected:
    /**
     * The date format.
     */
-   const char* mDateFormat;
+   char* mDateFormat;
    
 public:
    /**
@@ -108,13 +128,6 @@ public:
     * Destructs the Logger.
     */
    virtual ~Logger();
-   
-   /**
-    * Gets the current date in the appropriate format.
-    * 
-    * @return the current date in the appropriate format.
-    */
-   virtual const char* getDate();
    
    /**
     * Gets the name of this logger.
@@ -136,6 +149,14 @@ public:
     * @return the level set for this logger.
     */
    virtual Level getLevel();
+   
+   /**
+    * Gets the current date in the appropriate format.
+    * 
+    * @param date the date string to populate with the current date in
+    *             the appropriate format.
+    */
+   virtual void getDate(std::string& date);
    
    /**
     * Sets the date format. If the date format given is not

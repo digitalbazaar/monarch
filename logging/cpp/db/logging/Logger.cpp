@@ -17,6 +17,12 @@ std::multimap<const char*, Logger*> Logger::sLoggers;
 
 const char* Logger::levelToString(Level level)
 {
+   // FIXME: return an std::string, pass in a buffer that
+   // has to get filled, or heap-allocate and require the user
+   // to delete the return value from this method -- as it stands
+   // this stuff will get stack allocated and then wiped out when
+   // the function returns, resulting in the return value of this
+   // method pointing somewhere unsafe 
    const char* rval;
 
    switch(level)
@@ -62,33 +68,23 @@ void Logger::removeLogger(Logger* logger, const char* category)
 
 Logger::Logger(const char* name, Level level)
 {
-   mName = name;
+   mName = new char[strlen(name) + 1];
+   strcpy(mName, name);
+   
    setLevel(level);
+   
+   mDateFormat = NULL;
    setDateFormat("%Y-%m-%d %H:%M:%S");
 }
 
 Logger::~Logger()
 {
-}
-
-const char* Logger::getDate()
-{
-   string date = "";
-
-   if(strcmp(mDateFormat, "") == 0)
+   delete [] mName;
+   
+   if(mDateFormat != NULL)
    {
-      // shortcut - do nothing
+      delete [] mDateFormat;
    }
-   else
-   {
-      // handle other date formats here
-      Date* now = new Date();
-      
-      date = now->format(date, mDateFormat, "c");
-      delete now;
-   }
-
-   return date.c_str();
 }
 
 const char* Logger::getName()
@@ -106,10 +102,34 @@ Logger::Level Logger::getLevel()
    return mLevel;
 }
 
+void Logger::getDate(string& date)
+{
+   date.erase();
+   
+   if(strcmp(mDateFormat, "") == 0)
+   {
+      // shortcut - do nothing
+   }
+   else
+   {
+      // handle other date formats here
+      Date now;
+      date = now.format(date, mDateFormat, "c");
+   }
+}
+
 bool Logger::setDateFormat(const char* dateFormat)
 {
    lock();
-   mDateFormat = dateFormat;
+   {
+      if(mDateFormat != NULL)
+      {
+         delete [] mDateFormat;
+      }
+      
+      mDateFormat = new char[strlen(dateFormat) + 1];
+      strcpy(mDateFormat, dateFormat);
+   }
    unlock();
 
    return true;
@@ -132,15 +152,16 @@ bool Logger::log(
 
       // Output as:
       // [date: ][level: ][cat: ][file:][function:][line: ][object: ]message
-      string logText = "";
-
-      const char* date = getDate();
-      if(strcmp(date, "") != 0)
+      string logText;
+      
+      string date;
+      getDate(date);
+      if(strcmp(date.c_str(), "") != 0)
       {
          logText.append(date);
          logText.append(": ");
       }
-
+      
       logText.append(levelToString(level));
       logText.append(": ");
 
@@ -165,11 +186,11 @@ bool Logger::log(
          //FIXME
          //logText.append(line);
          logText.append("<line>");
-         logText.append(":");
+         logText.append(1, ':');
       }
       if(file || function || line)
       {
-         logText.append(" ");
+         logText.append(1, ' ');
       }
 
       if(object)
@@ -177,7 +198,7 @@ bool Logger::log(
          // FIXME
          //logText.append(object);
          logText.append("<obj>");
-         logText.append(":");
+         logText.append(1, ':');
       }
 
       logText.append(message);

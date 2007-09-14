@@ -21,10 +21,15 @@ OutputStreamLogger::~OutputStreamLogger()
 
 void OutputStreamLogger::close()
 {
-   if(mCleanup && mStream != NULL)
+   if(mStream != NULL)
    {
       mStream->close();
-      delete mStream;
+      
+      if(mCleanup)
+      {
+         delete mStream;
+         mStream = NULL;
+      }
    }
 }
 
@@ -36,9 +41,11 @@ OutputStream* OutputStreamLogger::getOutputStream()
 void OutputStreamLogger::setOutputStream(OutputStream* os, bool cleanup)
 {
    lock();
-   close();
-   mStream = os;
-   mCleanup = cleanup;
+   {
+      close();
+      mStream = os;
+      mCleanup = cleanup;
+   }
    unlock();
 }
 
