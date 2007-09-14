@@ -7,15 +7,20 @@ using namespace std;
 using namespace db::io;
 using namespace db::rt;
 
-FileOutputStream::FileOutputStream(File* file, bool append)
+FileOutputStream::FileOutputStream(File* file, bool append, bool cleanup)
 {
    // store file and append mode
    mFile = file;
    mAppend = append;
+   mCleanupFile = cleanup;
 }
 
 FileOutputStream::~FileOutputStream()
 {
+   if(mCleanupFile && mFile != NULL)
+   {
+      delete mFile;
+   }
 }
 
 bool FileOutputStream::ensureOpen()

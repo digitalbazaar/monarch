@@ -33,6 +33,12 @@ protected:
    bool mAppend;
    
    /**
+    * True to cleanup the underlying File when destructing,
+    * false not to.
+    */
+   bool mCleanupFile;
+
+   /**
     * The ofstream to write with.
     */
    std::ofstream mStream;
@@ -51,8 +57,10 @@ public:
     * 
     * @param file the File to write to.
     * @param append true to append to the File if it exists, false to overwrite.
+    * @param cleanup true to clean up the passed File when destructing,
+    *                false not to.
     */
-   FileOutputStream(File* file, bool append = false);
+   FileOutputStream(File* file, bool append = false, bool cleanup = false);
    
    /**
     * Destructs this FileOutputStream.
