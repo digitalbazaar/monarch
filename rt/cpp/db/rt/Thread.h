@@ -32,7 +32,7 @@ private:
    /**
     * Used to ensure that shared thread information is initialized only once.
     */
-   static pthread_once_t THREADS_INIT;
+   static pthread_once_t sThreadsInit;
    
 protected:
    /**
@@ -102,12 +102,12 @@ protected:
    /**
     * A thread key for obtaining the current thread.
     */
-   static pthread_key_t CURRENT_THREAD_KEY;
+   static pthread_key_t sCurrentThreadKey;
    
    /**
     * A thread key for obtaining the last thread-local exception.
     */
-   static pthread_key_t EXCEPTION_KEY;
+   static pthread_key_t sExceptionKey;
    
    /**
     * Initializes any shared thread information.

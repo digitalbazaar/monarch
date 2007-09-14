@@ -7,16 +7,16 @@
 using namespace db::rt;
 
 // create thread initializer
-pthread_once_t Thread::THREADS_INIT = PTHREAD_ONCE_INIT;
+pthread_once_t Thread::sThreadsInit = PTHREAD_ONCE_INIT;
 
 // create thread specific data keys
-pthread_key_t Thread::CURRENT_THREAD_KEY;
-pthread_key_t Thread::EXCEPTION_KEY;
+pthread_key_t Thread::sCurrentThreadKey;
+pthread_key_t Thread::sExceptionKey;
 
 Thread::Thread(Runnable* runnable, const char* name, bool persistent)
 {
    // initialize threads
-   pthread_once(&THREADS_INIT, &initializeThreads);
+   pthread_once(&sThreadsInit, &initializeThreads);
    
    // store persistent setting
    mPersistent = persistent;
@@ -81,8 +81,8 @@ void Thread::assignName(const char* name)
 void Thread::initializeThreads()
 {
    // create the thread specific data keys
-   pthread_key_create(&CURRENT_THREAD_KEY, &cleanupCurrentThreadKeyValue);
-   pthread_key_create(&EXCEPTION_KEY, &cleanupExceptionKeyValue);
+   pthread_key_create(&sCurrentThreadKey, &cleanupCurrentThreadKeyValue);
+   pthread_key_create(&sExceptionKey, &cleanupExceptionKeyValue);
    
    // Note: disabled due to a lack of support in windows
    // install signal handler
@@ -133,7 +133,7 @@ void* Thread::execute(void* thread)
    Thread* t = (Thread*)thread;
    
    // set thread specific data for current thread to the Thread
-   pthread_setspecific(CURRENT_THREAD_KEY, t);
+   pthread_setspecific(sCurrentThreadKey, t);
    
    // disable thread cancelation
    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
@@ -321,10 +321,10 @@ InterruptedException* Thread::createInterruptedException()
 Thread* Thread::currentThread()
 {
    // initialize threads
-   pthread_once(&THREADS_INIT, &initializeThreads);
+   pthread_once(&sThreadsInit, &initializeThreads);
    
    // get a pointer to the current thread
-   Thread* rval = (Thread*)pthread_getspecific(CURRENT_THREAD_KEY);
+   Thread* rval = (Thread*)pthread_getspecific(sCurrentThreadKey);
    if(rval == NULL)
    {
       // create non-persistent thread
@@ -334,7 +334,7 @@ Thread* Thread::currentThread()
       rval->mThreadId = pthread_self();
       rval->mAlive = true;
       rval->mStarted = true;
-      pthread_setspecific(CURRENT_THREAD_KEY, rval);
+      pthread_setspecific(sCurrentThreadKey, rval);
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    }
    
@@ -435,7 +435,7 @@ void Thread::setException(Exception* e)
    if(existing != e)
    {
       // replace the existing exception
-      pthread_setspecific(EXCEPTION_KEY, e);
+      pthread_setspecific(sExceptionKey, e);
       
       if(existing != NULL)
       {
@@ -448,10 +448,10 @@ void Thread::setException(Exception* e)
 Exception* Thread::getException()
 {
    // initialize threads
-   pthread_once(&THREADS_INIT, &initializeThreads);
+   pthread_once(&sThreadsInit, &initializeThreads);
    
    // get the exception for the current thread, if any
-   return (Exception*)pthread_getspecific(EXCEPTION_KEY);
+   return (Exception*)pthread_getspecific(sExceptionKey);
 }
 
 bool Thread::hasException()
