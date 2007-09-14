@@ -1,17 +1,16 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
+#include "db/io/OStreamOutputStream.h"
 
 #include <iostream>
-
-#include "db/io/OStreamOutputStream.h"
 
 using namespace std;
 using namespace db::io;
 using namespace db::rt;
 
-OStreamOutputStream* OStreamOutputStream::sStdoutStream =
-   new OStreamOutputStream(&cout);
+// initialize standard output stream
+OStreamOutputStream OStreamOutputStream::sStdoutStream(&cout);
 
 OStreamOutputStream::OStreamOutputStream(ostream* stream)
 {
@@ -45,5 +44,5 @@ bool OStreamOutputStream::write(const char* b, int length)
 
 OStreamOutputStream* OStreamOutputStream::getStdoutStream()
 {
-   return sStdoutStream;
+   return &sStdoutStream;
 }

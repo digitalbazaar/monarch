@@ -26,7 +26,10 @@ protected:
     */
    std::ostream* mStream;
    
-   static OStreamOutputStream* sStdoutStream;
+   /**
+    * An output stream for standard out.
+    */
+   static OStreamOutputStream sStdoutStream;
    
 public:
    /**
