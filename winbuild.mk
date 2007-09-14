@@ -22,7 +22,8 @@ INCLUDES = \
 	-I$(BASE_DIR)/crypto/cpp \
 	-I$(BASE_DIR)/net/cpp \
 	-I$(BASE_DIR)/data/cpp/db/data/xml/expat \
-	-I$(BASE_DIR)/data/cpp
+	-I$(BASE_DIR)/data/cpp \
+	-I$(BASE_DIR)/logging/cpp
 
 # Compiler flags:
 # -g	include debug information
@@ -55,7 +56,8 @@ BUILD = \
 	$(BASE_DIR)/io/cpp/build \
 	$(BASE_DIR)/crypto/cpp/build \
 	$(BASE_DIR)/net/cpp/build \
-	$(BASE_DIR)/data/cpp/build
+	$(BASE_DIR)/data/cpp/build \
+	$(BASE_DIR)/logging/cpp/build
 
 # The DB dist directories
 DIST = \
@@ -66,7 +68,8 @@ DIST = \
 	$(BASE_DIR)/io/cpp/dist \
 	$(BASE_DIR)/crypto/cpp/dist \
 	$(BASE_DIR)/net/cpp/dist \
-	$(BASE_DIR)/data/cpp/dist
+	$(BASE_DIR)/data/cpp/dist \
+	$(BASE_DIR)/logging/cpp/dist
 
 # Library path
 LIBS = \
@@ -89,6 +92,7 @@ DBIO_H = $(foreach dir,$(BASE_DIR)/io/cpp/db/io,$(FIND_H))
 DBCRYPTO_H = $(foreach dir,$(BASE_DIR)/crypto/cpp/db/crypto,$(FIND_H))
 DBNET_H = $(foreach dir,$(BASE_DIR)/net/cpp/db/net,$(FIND_H)) $(foreach dir,$(BASE_DIR)/net/cpp/db/net/http,$(FIND_H))
 DBDATA_H = $(foreach dir,$(BASE_DIR)/data/cpp/db/data,$(FIND_H)) $(foreach dir,$(BASE_DIR)/data/cpp/db/data/xml,$(FIND_H))
+DBLOGGING_H = $(foreach dir,$(BASE_DIR)/logging/cpp/db/logging,$(FIND_H))
 
 # CPP files
 FIND_CPP = $(wildcard $(dir)/*.cpp)
@@ -99,6 +103,7 @@ DBIO_CPP = $(foreach dir,$(BASE_DIR)/io/cpp/db/io,$(FIND_CPP))
 DBCRYPTO_CPP = $(foreach dir,$(BASE_DIR)/crypto/cpp/db/crypto,$(FIND_CPP))
 DBNET_CPP = $(foreach dir,$(BASE_DIR)/net/cpp/db/net,$(FIND_CPP)) $(foreach dir,$(BASE_DIR)/net/cpp/db/net/http,$(FIND_CPP))
 DBDATA_CPP = $(foreach dir,$(BASE_DIR)/data/cpp/db/data,$(FIND_CPP)) $(foreach dir,$(BASE_DIR)/data/cpp/db/data/xml,$(FIND_CPP))
+DBLOGGING_CPP = $(foreach dir,$(BASE_DIR)/logging/cpp/db/logging,$(FIND_CPP))
 
 # Object files
 DBRT_OBJS = $(DBRT_CPP:$(BASE_DIR)/rt/cpp/db/rt/%.cpp=$(BASE_DIR)/rt/cpp/build/%.o)
@@ -108,6 +113,7 @@ DBIO_OBJS = $(DBIO_CPP:$(BASE_DIR)/io/cpp/db/io/%.cpp=$(BASE_DIR)/io/cpp/build/%
 DBCRYPTO_OBJS = $(DBCRYPTO_CPP:$(BASE_DIR)/crypto/cpp/db/crypto/%.cpp=$(BASE_DIR)/crypto/cpp/build/%.o)
 DBNET_OBJS = $(DBNET_CPP:$(BASE_DIR)/net/cpp/db/net/%.cpp=$(BASE_DIR)/net/cpp/build/%.o)
 DBDATA_OBJS = $(DBDATA_CPP:$(BASE_DIR)/data/cpp/db/data/%.cpp=$(BASE_DIR)/data/cpp/build/%.o)
+DBLOGGING_OBJS = $(DBLOGGING_CPP:$(BASE_DIR)/logging/cpp/db/logging/%.cpp=$(BASE_DIR)/logging/cpp/build/%.o)
 
 # Individual DB libraries as make targets
 # This will need to be changed for a windows build
@@ -117,7 +123,8 @@ DBUTIL_LIB = $(BASE_DIR)/util/cpp/dist/libdbutil.a
 DBIO_LIB = $(BASE_DIR)/io/cpp/dist/libdbio.a
 DBCRYPTO_LIB = $(BASE_DIR)/crypto/cpp/dist/libdbcrypto.a
 DBNET_LIB = $(BASE_DIR)/net/cpp/dist/libdbnet.a
-DBDATA_LIB = $(BASE_DIR)/data/cpp/dist/libdbdata.a 
+DBDATA_LIB = $(BASE_DIR)/data/cpp/dist/libdbdata.a
+DBLOGGING_LIB = $(BASE_DIR)/logging/cpp/dist/libdblogging.a 
 
 # DB executables
 TEST_EXE = $(BASE_DIR)/test/cpp/dist/test.exe
@@ -189,9 +196,16 @@ libdbdata: $(DBDATA_OBJS)
 	#$(CC) $(LIBS) -shared -o $(BASE_DIR)/data/cpp/dist/$@.so $^ -ldbrt -ldbmodest -ldbutil -ldbio -ldbcrypto -ldbnet $(WIN_LIBS)
 	@cp $(BASE_DIR)/data/cpp/dist/$@.a $(BASE_DIR)/libs/
 
+# Builds the DB logging libraries
+libdblogging: $(DBLOGGING_OBJS)
+	@mkdir -p $(BASE_DIR)/libs
+	$(AR) $(ARFLAGS) $(BASE_DIR)/logging/cpp/dist/$@.a $^
+	#$(CC) $(LIBS) -shared -o $(BASE_DIR)/logging/cpp/dist/$@.so $^ -ldbrt $(PTHREAD_LIB)
+	@cp $(BASE_DIR)/logging/cpp/dist/$@.a $(BASE_DIR)/libs/
+
 # Builds the DB test.exe binary
-test: libdbrt libdbmodest libdbutil libdbio libdbcrypto libdbnet libdbdata $(BASE_DIR)/test/cpp/build/main.o
-	$(CC) $(CFLAGS) -o $(TEST_EXE) $(BASE_DIR)/test/cpp/build/main.o $(DBRT_LIB) $(DBMODEST_LIB) $(DBUTIL_LIB) $(DBIO_LIB) $(DBCRYPTO_LIB) $(DBNET_LIB) $(DBDATA_LIB) $(WIN_LIBS)
+test: libdbrt libdbmodest libdbutil libdbio libdbcrypto libdbnet libdbdata libdblogging $(BASE_DIR)/test/cpp/build/main.o
+	$(CC) $(CFLAGS) -o $(TEST_EXE) $(BASE_DIR)/test/cpp/build/main.o $(DBRT_LIB) $(DBMODEST_LIB) $(DBUTIL_LIB) $(DBIO_LIB) $(DBCRYPTO_LIB) $(DBNET_LIB) $(DBDATA_LIB) $(DBLOGGING_LIB) $(WIN_LIBS)
 
 # Builds DB runtime object files
 $(BASE_DIR)/rt/cpp/build/%.o: $(BASE_DIR)/rt/cpp/db/rt/%.cpp
@@ -242,6 +256,12 @@ $(BASE_DIR)/net/cpp/build/%.o: $(BASE_DIR)/net/cpp/db/net/%.cpp
 $(BASE_DIR)/data/cpp/build/%.o: $(BASE_DIR)/data/cpp/db/data/%.cpp
 	@mkdir -p $(BASE_DIR)/data/cpp/build/xml
 	@mkdir -p $(BASE_DIR)/data/cpp/dist
+	$(CC) $(CFLAGS) -o $@ -c $^
+
+# Builds DB logging object files
+$(BASE_DIR)/logging/cpp/build/%.o: $(BASE_DIR)/logging/cpp/db/logging/%.cpp
+	@mkdir -p $(BASE_DIR)/logging/cpp/build
+	@mkdir -p $(BASE_DIR)/logging/cpp/dist
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 # Builds Test object file
