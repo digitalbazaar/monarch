@@ -57,6 +57,11 @@
 #include "db/io/OStreamOutputStream.h"
 #include "db/crypto/BigDecimal.h"
 #include "db/io/ByteArrayOutputStream.h"
+#include "db/database/sqlite3/Sqlite3Connection.h"
+#include "db/database/sqlite3/Sqlite3Statement.h"
+#include "db/logging/Logger.h"
+#include "db/logging/OutputStreamLogger.h"
+#include "db/logging/FileLogger.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -69,6 +74,8 @@ using namespace db::util;
 using namespace db::util::regex;
 using namespace db::data;
 using namespace db::data::xml;
+using namespace db::database::sqlite3;
+using namespace db::logging;
 
 // WTF? this is required to get static library building for unknown reason
 #include "db/io/PeekInputStream.h"
@@ -1840,24 +1847,84 @@ void runUrlEncodeTest()
    cout << endl << "Url Encode/Decode test complete." << endl;
 }
 
-void runUrlTest()
+void dumpUrl(Url url)
 {
-   cout << "Starting Url test." << endl << endl;
-   
-   Url url("http://www.bitmunk.com/mypath?variable1=test");
-   
-   // ensure URL was valid
-   if(!Thread::hasException())
+   if(Thread::hasException())
+   {
+      cout << "url=[exception]" << endl;
+   }
+   else
    {
       string str;
       url.toString(str);
       
       cout << "url=" << str << endl;
-      cout << "scheme=" << url.getScheme() << endl;
-      cout << "scheme specific part=" << url.getSchemeSpecificPart() << endl;
-      cout << "authority=" << url.getAuthority() << endl;
-      cout << "path=" << url.getPath() << endl;
-      cout << "query=" << url.getQuery() << endl;
+      cout << " scheme=" << url.getScheme() << endl;
+      cout << " scheme specific part=" << url.getSchemeSpecificPart() << endl;
+      cout << " userinfo=" << url.getUserInfo() << endl;
+      cout << " user=" << url.getUser() << endl;
+      cout << " password=" << url.getPassword() << endl;
+      cout << " authority=" << url.getAuthority() << endl;
+      cout << " host=" << url.getHost() << endl;
+      cout << " port=" << url.getPort() << endl;
+      cout << " path=" << url.getPath() << endl;
+      cout << " query=" << url.getQuery() << endl;
+   }
+}
+
+void runUrlTest()
+{
+   cout << "Starting Url test." << endl << endl;
+
+   {
+      Url url("http://www.bitmunk.com/mypath?variable1=test");
+      
+      dumpUrl(url);
+      assert(url.getScheme() == "http");
+      assert(url.getUserInfo() == "");
+      assert(url.getUser() == "");
+      assert(url.getPassword() == "");
+      assert(url.getHost() == "www.bitmunk.com");
+      assert(url.getPort() == 80);
+      assert(url.getPath() == "/mypath");
+      assert(url.getQuery() == "variable1=test");
+   }
+
+   {
+      Url url("http://example.com:8080/path");
+      //dumpUrl(url);
+      assert(!Thread::hasException());
+      assert(url.getScheme() == "http");
+      assert(url.getUserInfo() == "");
+      assert(url.getUser() == "");
+      assert(url.getPassword() == "");
+      assert(url.getHost() == "example.com");
+      assert(url.getPort() == 8080);
+      assert(url.getPath() == "/path");
+      assert(url.getQuery() == "");
+   }
+   
+   {   
+      Url url("scheme:schemespecific");
+      //dumpUrl(url);
+      assert(!Thread::hasException());
+      assert(url.getScheme() == "scheme");
+      assert(url.getSchemeSpecificPart() == "schemespecific");
+   }
+   
+   {
+      Url url("scheme://user:password@host:1234/path?key1=value1&key2=value2");
+      //dumpUrl(url);
+      assert(!Thread::hasException());
+      assert(url.getScheme() == "scheme");
+      assert(url.getUserInfo() == "user:password");
+      assert(url.getUser() == "user");
+      assert(url.getPassword() == "password");
+      assert(url.getHost() == "host");
+      assert(url.getPort() == 1234);
+      assert(url.getPath() == "/path");
+      assert(url.getQuery() == "key1=value1&key2=value2");
+      // FIXME add query part checks
    }
    
    cout << endl << "Url test complete." << endl;
@@ -2508,9 +2575,9 @@ void runByteBufferTest()
    
    ByteBuffer b;
    
-   char* chicken = "chicken";
-   char* t = "T ";
-   char* hate = "hate ";
+   const char* chicken = "chicken";
+   const char* t = "T ";
+   const char* hate = "hate ";
    b.clear();
    b.put(t, strlen(t), true);
    b.put(hate, strlen(hate), true);
@@ -2531,14 +2598,14 @@ void runByteArrayOutputStreamTest()
    ByteBuffer b;
    
    ByteArrayOutputStream baos1(&b);
-   char* sentence = "This is a sentence.";
+   const char* sentence = "This is a sentence.";
    baos1.write(sentence, strlen(sentence) + 1);
    
    cout << "Data1=" << b.data() << endl;
    
-   char* chicken = "chicken";
-   char* t = "T ";
-   char* hate = "hate ";
+   const char* chicken = "chicken";
+   const char* t = "T ";
+   const char* hate = "hate ";
    b.clear();
    b.put(t, strlen(t), true);
    b.put(hate, strlen(hate), true);
@@ -2580,7 +2647,7 @@ void runStringTokenizerTest()
 {
    cout << "Starting StringTokenizer test." << endl << endl;
    
-   char* str = "This is a test of the StringTokenizer class.";
+   const char* str = "This is a test of the StringTokenizer class.";
    
    StringTokenizer st(str, ' ');
    while(st.hasNextToken())
@@ -2913,7 +2980,7 @@ void runHttpClientGetTest()
       cout << address.toString(str) << endl;
       
       // do get
-      char* headers[] = {"Test-Header: bacon", NULL};
+      const char* headers[] = {"Test-Header: bacon", NULL};
       HttpResponse* response = client.get(&url, headers);
       if(response != NULL)
       {
@@ -2972,7 +3039,7 @@ void runHttpClientPostTest()
       ByteArrayInputStream baos(someData, strlen(someData));
       
       // do post
-      char* headers[] = {
+      const char* headers[] = {
          "Content-Type: text/plain",
          "Transfer-Encoding: chunked",
          NULL};
@@ -3459,6 +3526,95 @@ void runBigDecimalTest()
    cout << endl << "BigDecimal test complete." << endl;
 }
 
+void runSqlite3Test()
+{
+   db::database::Connection* c;
+   db::database::Statement* s;
+   int cnt;
+
+   cout << "Starting Sqlite3 test." << endl << endl;
+   
+   c = new Sqlite3Connection("sqlite3:test.db");
+
+   s = c->createStatement("drop table if exists test");
+   assert(s->step() == DB_DATABASE_DONE);
+   delete s;
+
+   s = c->createStatement("create table if not exists test (t text, i int)");
+   assert(s->step() == DB_DATABASE_DONE);
+   delete s;
+
+   s = c->createStatement("insert into test (t,i) values ('test!', 1234)");
+   assert(s->step() == DB_DATABASE_DONE);
+   assert(s->getChangeCount() == 1);
+   delete s;
+
+   s = c->createStatement("insert into test (t,i) values ('!tset', 4321)");
+   assert(s->step() == DB_DATABASE_DONE);
+   assert(s->getChangeCount() == 1);
+   delete s;
+
+   s = c->createStatement("insert into test (t,i) values (?, ?)");
+   s->bindText(1, "bound");
+   s->bindInt(2, 2222);
+   assert(s->step() == DB_DATABASE_DONE);
+   assert(s->getChangeCount() == 1);
+   delete s;
+
+   s = c->createStatement("select * from test");
+   cnt = 0;
+   while(s->step() == DB_DATABASE_ROW)
+   {
+      //cout << "ROW: " << s->getRowText(0) << " " << s->getRowInt(1) << endl;
+      cnt++;
+   }
+   assert(cnt == 3);
+   delete s;
+
+   s = c->createStatement("select * from test order by i");
+   cnt = 0;
+   assert(s->step() == DB_DATABASE_ROW);
+   assert(strcmp(s->getRowText(0), "test!") == 0);
+   assert(s->getRowInt(1) == 1234);
+
+   assert(s->step() == DB_DATABASE_ROW);
+   assert(strcmp(s->getRowText(0), "bound") == 0);
+   assert(s->getRowInt(1) == 2222);
+
+   assert(s->step() == DB_DATABASE_ROW);
+   assert(strcmp(s->getRowText(0), "!tset") == 0);
+   assert(s->getRowInt(1) == 4321);
+
+   assert(s->step() == DB_DATABASE_DONE);
+   delete s;
+
+   c->close();
+   delete c;
+   
+   cout << endl << "Sqlite3 test complete." << endl;
+}
+
+void runLoggerTest()
+{
+   db::logging::Logger* clog;
+   db::logging::Logger* flog;
+   
+   cout << "Starting Logger test." << endl << endl;
+
+   clog = new OutputStreamLogger("stdout", Logger::Max,
+      OStreamOutputStream::getStdoutStream());
+   Logger::addLogger(clog);
+   
+   flog = new FileLogger("flog", Logger::Max, new File("test.log"), true);
+   Logger::addLogger(flog);
+
+   DB_ERROR("error test");
+   DB_CAT_ERROR("cat 1", "cat 1 error test");
+   DB_CAT_OBJECT_ERROR("cat 1 obj", clog, "cat 1 obj error test");
+   
+   cout << endl << "Logger test complete." << endl;
+}
+
 void runOtherTest()
 {
    cout << "Starting Other test." << endl << endl;
@@ -3526,10 +3682,12 @@ public:
 //      runXmlReaderTest();
 //      runXmlWriterTest();
 //      runXmlReadWriteTest();
-      runXmlBindingInputStreamTest();
+//      runXmlBindingInputStreamTest();
 //      runXmlBindingOutputStreamTest();
 //      runBigIntegerTest();
 //      runBigDecimalTest();
+//      runSqlite3Test();
+      runLoggerTest();
       
       cout << endl << "Tests finished." << endl;
       
