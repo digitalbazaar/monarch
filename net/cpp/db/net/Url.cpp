@@ -46,28 +46,33 @@ MalformedUrlException* Url::setUrl(const string& url)
       transform(mScheme.begin(), mScheme.end(), mScheme.begin(), tolower);
       
       // check scheme for validity
+      // FIXME scheme should be case-insensitive
       char c;
-      for(string::iterator i = mScheme.begin(); i != mScheme.end(); i++)
+      c = mScheme.c_str()[0];
+      if((c < 'a') || (c > 'z'))
       {
-         // character must be 'a'-'z', '+', '.', or '-'
-         c = *i;
-         if(c > 'z')
+         rval = new MalformedUrlException(
+            "Url scheme contains invalid start character!");
+         Exception::setLast(rval);
+      }
+      else
+      {
+         for(string::iterator i = mScheme.begin(); i != mScheme.end(); i++)
          {
-            rval = new MalformedUrlException(
-               "Url scheme contains invalid characters!");
-            Exception::setLast(rval);
-            break;
-         }
-         
-         if(c < 'a' && (c != '+' || c != '.' || c != '-'))
-         {
-            rval = new MalformedUrlException(
-               "Url scheme contains invalid characters!");
-            Exception::setLast(rval);
-            break;
+            // non-start characters must be in [a-z0-9+.-]
+            c = *i;
+            if(!(((c > 'a') && (c < 'z')) ||
+               ((c > '0') && (c < '9')) ||
+               (c == '+') || (c == '.') || (c != '-')))
+            {
+               rval = new MalformedUrlException(
+                  "Url scheme contains invalid characters!");
+               Exception::setLast(rval);
+               break;
+            }
          }
       }
-      
+
       if(rval == NULL && index != url.length() - 1)
       {
          // get scheme specific part
@@ -136,26 +141,49 @@ MalformedUrlException* Url::setUrl(const string& url)
       
       if(mAuthority.length() > 0)
       {
-         const char* colon = strchr(mAuthority.c_str(), ':');
+         string hostAndPort;
+
+         const char* at = strchr(mAuthority.c_str(), '@');
+         if(at != NULL)
+         {
+            mUserInfo = mAuthority.substr(0, at - mAuthority.c_str());
+            hostAndPort = mAuthority.substr(at - mAuthority.c_str() + 1);
+         }
+         else
+         {
+            hostAndPort = mAuthority;
+         }
+
+         const char* colon = strchr(hostAndPort.c_str(), ':');
          if(colon != NULL)
          {
-            mHost = mAuthority.substr(0, colon - mAuthority.c_str());
+            mHost = hostAndPort.substr(0, colon - hostAndPort.c_str());
             mPort = strtoll(colon + 1, NULL, 10);
          }
          else
          {
-            const char* slash = strchr(mAuthority.c_str(), '/');
+            const char* slash = strchr(hostAndPort.c_str(), '/');
             if(slash == NULL)
             {
-               mHost = mAuthority;
+               mHost = hostAndPort;
             }
             else
             {
-               mHost = mAuthority.substr(0, slash - mAuthority.c_str());
+               mHost = hostAndPort.substr(0, slash - hostAndPort.c_str());
             }
             
             // try to get default port
             mPort = getDefaultPort();
+         }
+      }
+
+      if(mUserInfo.length() > 0)
+      {
+         const char* colon = strchr(mUserInfo.c_str(), ':');
+         if(colon != NULL)
+         {
+            mUser = mUserInfo.substr(0, colon - mUserInfo.c_str());
+            mPassword = mUserInfo.substr(colon - mUserInfo.c_str() + 1);
          }
       }
    }
@@ -178,6 +206,21 @@ const string& Url::getAuthority()
    return mAuthority;
 }
 
+const string& Url::getUserInfo()
+{
+   return mUserInfo;
+}
+   
+const string& Url::getUser()
+{
+   return mUser;
+}
+   
+const string& Url::getPassword()
+{
+   return mPassword;
+}
+   
 const string& Url::getPath()
 {
    return mPath;

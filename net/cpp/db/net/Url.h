@@ -22,7 +22,11 @@ namespace net
  * 
  * A common, but not required, syntax for urls is as follows:
  * 
- * <scheme>://<authority><path>?<query>
+ * url = <scheme>://<authority><path>?<query>
+ * authority = [ userinfo "@" ] host [ ":" port ]
+ * userinfo = user ":" password 
+ *
+ * See also: RFC 3986
  * 
  * @author Dave Longley
  */
@@ -43,6 +47,21 @@ protected:
     * The authority part of this url, if one exists.
     */
    std::string mAuthority;
+   
+   /**
+    * The userinfo of this url, if one exists.
+    */
+   std::string mUserInfo;
+   
+   /**
+    * The user of this url, if one exists.
+    */
+   std::string mUser;
+   
+   /**
+    * The password of this url, if one exists.
+    */
+   std::string mPassword;
    
    /**
     * The path of this url, if one exists.
@@ -114,6 +133,27 @@ public:
     * @return the authority of this url or a blank string.
     */
    virtual const std::string& getAuthority();
+   
+   /**
+    * Gets the userinfo this url, if it exists.
+    * 
+    * @return the userinfo of this url or a blank string.
+    */
+   virtual const std::string& getUserInfo();
+   
+   /**
+    * Gets the user of this url, if one exists.
+    * 
+    * @return the user of this url or a blank string.
+    */
+   virtual const std::string& getUser();
+   
+   /**
+    * Gets the password of this url, if one exists.
+    * 
+    * @return the password of this url or a blank string.
+    */
+   virtual const std::string& getPassword();
    
    /**
     * Gets the path of this url, if one exists.
