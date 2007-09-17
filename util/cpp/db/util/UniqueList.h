@@ -47,6 +47,15 @@ public:
    virtual bool add(const T& obj);
    
    /**
+    * Removes an object from this list, if it is in the list.
+    * 
+    * @param obj the object to remove.
+    * 
+    * @return true if the object was removed, false if it not.
+    */
+   virtual bool remove(const T& obj);
+   
+   /**
     * Gets the Iterator for this list. It must be deleted after use.
     * 
     * @return the Iterator for the list.
@@ -68,6 +77,24 @@ bool UniqueList<T>::add(const T& obj)
    if(rval)
    {
       mList.push_back(obj);
+   }
+   
+   return rval;
+}
+
+template<typename T>
+bool UniqueList<T>::remove(const T& obj)
+{
+   bool rval = false;
+   
+   Iterator<T>* i = getIterator();
+   while(!rval && i->hasNext())
+   {
+      if(i->next() == obj)
+      {
+         i->remove();
+         rval = true;
+      }
    }
    
    return rval;

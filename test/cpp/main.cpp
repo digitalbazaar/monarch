@@ -3632,7 +3632,16 @@ void runUniqueListTest()
    {
       cout << "element=" << i->next() << endl;
    }
+   delete i;
    
+   cout << "Removing '5'..." << endl;   
+   list.remove(5);
+   
+   i = list.getIterator();
+   while(i->hasNext())
+   {
+      cout << "element=" << i->next() << endl;
+   }
    delete i;
    
    cout << endl << "UniqueList test complete." << endl;

@@ -22,9 +22,14 @@ class ListIterator : public Iterator<T>
 {
 protected:
    /**
-    * The stl iterator for the list.
+    * An iterator that points to the current object in the list. 
     */
-   std::_List_iterator<T> mIterator;
+   std::_List_iterator<T> mCurrent;
+   
+   /**
+    * The stl iterator that points to the next object in the list.
+    */
+   std::_List_iterator<T> mNext;
    
    /**
     * A reference to the list.
@@ -68,27 +73,30 @@ template<class T>
 ListIterator<T>::ListIterator(std::list<T>& l)
 {
    mList = &l;
-   mIterator = l.begin();
+   mNext = mCurrent = mList->begin();
+   mNext++;
 }
 
 template<class T>
 T& ListIterator<T>::next()
 {
-   T* rval = &(*mIterator);
-   mIterator++;
+   mCurrent = mNext;
+   T* rval = &(*mCurrent);
+   mNext++;
    return *rval;
 }
 
 template<class T>
 bool ListIterator<T>::hasNext()
 {
-   return mIterator != mList->end();
+   return mNext != mList->end();
 }
 
 template<class T>
 void ListIterator<T>::remove()
 {
-   mIterator = mList->erase(mIterator);
+   mNext = mCurrent = mList->erase(mCurrent);
+   mNext++;
 }
 
 } // end namespace util
