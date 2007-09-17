@@ -16,6 +16,8 @@ FileLogger::FileLogger(
    const char* name, Level level, File* file, bool cleanup) :
    OutputStreamLogger(name, level)
 {
+   mFile = NULL;
+   mCleanupFile = false;
    mMaxFileSize = 0;
    mRotateId = 0;
    mNumRotatingFiles = DEFAULT_NUM_ROTATING_FILES;
