@@ -3602,14 +3602,15 @@ void runLoggerTest()
    db::logging::OutputStreamLogger clog(
       "stdout", Logger::Max, OStreamOutputStream::getStdoutStream());
    Logger::addLogger(&clog);
+   Logger::addLogger(&clog, "[C1]");
    
    db::logging::FileLogger flog(
       "flog", Logger::Max, new File("test.log"), true);
-   Logger::addLogger(&flog);
+   //Logger::addLogger(&flog);
 
-   DB_ERROR("error test");
-   DB_CAT_ERROR("cat 1", "cat 1 error test");
-   DB_CAT_OBJECT_ERROR("cat 1 obj", &clog, "cat 1 obj error test");
+   DB_ERROR("[M1] error test");
+   DB_CAT_ERROR("[C1]", "[M2] cat 1 error test");
+   DB_CAT_OBJECT_ERROR("[C1]", &clog, "[M3] cat 1 obj error test");
    
    cout << endl << "Logger test complete." << endl;
 }

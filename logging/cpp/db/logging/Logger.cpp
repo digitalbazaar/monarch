@@ -13,7 +13,9 @@ using namespace db::io;
 using namespace db::util;
 using namespace db::logging;
 
-std::multimap<const char*, Logger*> Logger::sLoggers;
+std::multimap<const char*, Logger*, Logger::NameComparator> Logger::sLoggers;
+
+const char* Logger::defaultCategory = "__DEFAULT__";
 
 const char* Logger::levelToString(Level level)
 {
@@ -165,7 +167,7 @@ bool Logger::log(
       logText.append(levelToString(level));
       logText.append(": ");
 
-      if(cat != NULL)
+      if(cat != NULL && strcmp(cat, defaultCategory) != 0)
       {
          logText.append(cat);
          logText.append(": ");
@@ -174,18 +176,18 @@ bool Logger::log(
       if(file)
       {
          logText.append(file);
-         logText.append(":");
+         logText.append(1, ':');
       }
       if(function)
       {
          logText.append(function);
-         logText.append(":");
+         logText.append(1, ':');
       }
       if(line != -1)
       {
-         //FIXME
-         //logText.append(line);
-         logText.append("<line>");
+         char tmp[21];
+         snprintf(tmp, 21, "%d", line);
+         logText.append(tmp);
          logText.append(1, ':');
       }
       if(file || function || line)
@@ -195,13 +197,14 @@ bool Logger::log(
 
       if(object)
       {
-         // FIXME
-         //logText.append(object);
-         logText.append("<obj>");
-         logText.append(1, ':');
+         char tmp[23];
+         snprintf(tmp, 21, "<%p>", object);
+         logText.append(tmp);
+         logText.append(": ");
       }
 
       logText.append(message);
+      logText.append(1, '\n');
       
       log(logText.c_str());
       rval = true;
@@ -221,7 +224,7 @@ void Logger::catLevelLog(
    const void* object,
    const char* message)
 {
-   multimap<const char*, Logger*>::iterator i = sLoggers.find(cat);
+   multimap<const char*, Logger*, NameComparator>::iterator i = sLoggers.find(cat);
    while(i != sLoggers.end())
    {
       Logger* lg = i->second;

@@ -163,81 +163,74 @@ File* FileLogger::getFile()
    return mFile;
 }
 
+#if 0
 void FileLogger::log(const char* message)
 {
-   lock();
-   if(mStream != NULL)
+   string logText = "";
+   string logFileText = logText;
+   
+   // if entire log text cannot be entered, break it up
+   string remainder = "";
+   if(getMaxFileSize() > 0 &&
+      ((off_t)logText.length() + 1) > getMaxFileSize())
    {
-      mStream->write(message, strlen(message));
+      remainder = logText.substr(getMaxFileSize());
+      logFileText = logText.substr(0, (getMaxFileSize()) - 1);
    }
-#if 0
-      // FIXME optimize
-      string logText = "";
-      string logFileText = logText;
-      
-      // if entire log text cannot be entered, break it up
-      string remainder = "";
-      if(getMaxFileSize() > 0 &&
-         ((off_t)logText.length() + 1) > getMaxFileSize())
+   
+   // lock on the loggermanager
+   LoggerManager::getInstance()->lock();
+   {
+      // ensure a file is set if appropriate
+      if(getMaxFileSize() != 0 &&
+         mFile != NULL && mFile.getName() != "")
       {
-         remainder = logText.substr(getMaxFileSize());
-         logFileText = logText.substr(0, (getMaxFileSize()) - 1);
+         // if the file no longer exists, start a new file
+         if(!mFile.exists())
+         {
+            LoggerManager::resetLoggerFiles(mFilename);
+         }
       }
       
-      // lock on the loggermanager
-      LoggerManager::getInstance()->lock();
+      // rotate the log file if necessary
+      rotateLogFile(logFileText.c_str());
+      
+      // print to all appropriate streams
+      map<OutputStream*, Level>::iterator i;
+      for(i = mStreamToLevel.begin(); i != mStreamToLevel.end(); i++)
       {
-         // ensure a file is set if appropriate
-         if(getMaxFileSize() != 0 &&
-            mFile != NULL && mFile.getName() != "")
+         // get the next stream and its level
+         OutputStream* os = i->first;
+         Level sv = i->second;
+         
+         if(sv >= level)
          {
-            // if the file no longer exists, start a new file
-            if(!mFile.exists())
+            if(os == getOutputStream())
             {
-               LoggerManager::resetLoggerFiles(mFilename);
+               os->write(logFileText.c_str(), logFileText.length());
             }
-         }
-         
-         // rotate the log file if necessary
-         rotateLogFile(logFileText.c_str());
-         
-         // print to all appropriate streams
-         map<OutputStream*, Level>::iterator i;
-         for(i = mStreamToLevel.begin(); i != mStreamToLevel.end(); i++)
-         {
-            // get the next stream and its level
-            OutputStream* os = i->first;
-            Level sv = i->second;
-            
-            if(sv >= level)
+            else
             {
-               if(os == getOutputStream())
+               if(os == OStreamOutputStream::getStdoutStream() ||
+                  useCustomStreams)
                {
-                  os->write(logFileText.c_str(), logFileText.length());
+                  os->write(logText.c_str(), logText.length());
                }
-               else
-               {
-                  if(os == OStreamOutputStream::getStdoutStream() ||
-                     useCustomStreams)
-                  {
-                     os->write(logText.c_str(), logText.length());
-                  }
-               }
+            }
 
-               // FIXME
-               //os->flush();
-            }
+            // FIXME
+            //os->flush();
          }
-         
-         // if there is any remainder, log it without a logger header
-         if(strcmp(remainder.c_str(), "") != 0)
-         {
-            log(c, remainder.c_str(), level, false, false);
-         }
-         
-         rval = true;
       }
-      LoggerManager::getInstance()->unlock();
-#endif
-   unlock();
+      
+      // if there is any remainder, log it without a logger header
+      if(strcmp(remainder.c_str(), "") != 0)
+      {
+         log(c, remainder.c_str(), level, false, false);
+      }
+      
+      rval = true;
+   }
+   LoggerManager::getInstance()->unlock();
 }
+#endif

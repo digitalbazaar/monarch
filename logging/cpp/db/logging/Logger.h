@@ -72,7 +72,19 @@ public:
       Max
    };
    
+   /**
+    * Return a string representation of a level.
+    * 
+    * @param level the Level.
+    * 
+    * @return string representation of the level.
+    */
    static const char* levelToString(Level level);
+   
+   /**
+    * The default category.
+    */
+   static const char* defaultCategory;
    
 protected:
    /**
@@ -98,7 +110,7 @@ protected:
    /**
     * multimap from categories to loggers.
     */
-   static std::multimap<const char*, Logger*> sLoggers;
+   static std::multimap<const char*, Logger*, NameComparator> sLoggers;
    
    /**
     * The name of this logger.
@@ -231,8 +243,8 @@ public:
    //static const char* getStackTrace(Throwable t);
    //
 
-   static void addLogger(Logger* logger, const char* category = NULL);
-   static void removeLogger(Logger* logger, const char* category = NULL);
+   static void addLogger(Logger* logger, const char* category = db::logging::Logger::defaultCategory);
+   static void removeLogger(Logger* logger, const char* category = db::logging::Logger::defaultCategory);
    //getLoggers(...)
 };
 
@@ -245,7 +257,7 @@ public:
    DB_STMT_END
 #define DB_CAT_OBJECT_ERROR(cat, object, message) DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Error, object, message)
 #define DB_CAT_ERROR(cat, message) DB_CAT_OBJECT_ERROR(cat, NULL, message)
-#define DB_ERROR(message) DB_CAT_ERROR(NULL, message)
+#define DB_ERROR(message) DB_CAT_ERROR(db::logging::Logger::defaultCategory, message)
 
 //#undef DB_STMT_BEGIN
 //#undef DB_STMT_END
