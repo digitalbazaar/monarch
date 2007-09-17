@@ -62,6 +62,7 @@
 #include "db/logging/Logger.h"
 #include "db/logging/OutputStreamLogger.h"
 #include "db/logging/FileLogger.h"
+#include "db/util/UniqueList.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -3613,6 +3614,29 @@ void runLoggerTest()
    cout << endl << "Logger test complete." << endl;
 }
 
+
+void runUniqueListTest()
+{
+   cout << "Starting UniqueList test." << endl << endl;
+   
+   UniqueList<int> list;
+   
+   list.add(5);
+   list.add(6);
+   list.add(7);
+   list.add(5);
+   
+   Iterator<int>* i = list.getIterator();
+   while(i->hasNext())
+   {
+      cout << "element=" << i->next() << endl;
+   }
+   
+   delete i;
+   
+   cout << endl << "UniqueList test complete." << endl;
+}
+
 void runOtherTest()
 {
    cout << "Starting Other test." << endl << endl;
@@ -3685,7 +3709,8 @@ public:
 //      runBigIntegerTest();
 //      runBigDecimalTest();
 //      runSqlite3Test();
-      runLoggerTest();
+//      runLoggerTest();
+      runUniqueListTest();
       
       cout << endl << "Tests finished." << endl;
       
