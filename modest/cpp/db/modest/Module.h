@@ -34,7 +34,7 @@ typedef struct ModuleId
     * @param name the name for the ModuleId.
     * @param version the version (major.minor) for the ModuleId.
     */
-   ModuleId(const char* name, const char* version)
+   ModuleId(const char* name = "", const char* version = "")
    {
       name = name;
       version = version;
