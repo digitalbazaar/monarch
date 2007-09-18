@@ -27,6 +27,18 @@ typedef struct ModuleId
     * The version (major.minor) of this Module.
     */
    std::string version;
+   
+   /**
+    * Creates a ModuleId with the specified name and version.
+    * 
+    * @param name the name for the ModuleId.
+    * @param version the version (major.minor) for the ModuleId.
+    */
+   ModuleId(const char* name, const char* version)
+   {
+      name = name;
+      version = version;
+   }
 };
 
 /**
