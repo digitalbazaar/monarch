@@ -81,9 +81,8 @@ template<class T>
 T& ListIterator<T>::next()
 {
    mCurrent = mNext;
-   T* rval = &(*mCurrent);
    mNext++;
-   return *rval;
+   return *mCurrent;
 }
 
 template<class T>
