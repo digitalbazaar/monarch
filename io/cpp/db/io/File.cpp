@@ -29,6 +29,7 @@ const string& File::getName()
 
 bool File::exists()
 {
+   // FIXME error handling
    bool rval = false;
    struct stat s;
    int srval;
@@ -41,4 +42,15 @@ bool File::exists()
    }
    
    return rval;
+}
+
+off_t File::getLength()
+{
+   // FIXME error handling
+   struct stat s;
+   int srval;
+   
+   srval = stat(mName.c_str(), &s);
+   
+   return s.st_size;
 }

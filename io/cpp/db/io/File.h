@@ -60,6 +60,13 @@ public:
     * @return true if this file exists.
     */
    virtual bool exists();
+
+   /**
+    * Gets the length of this File.
+    * 
+    * @return the length of this File.
+    */
+   virtual off_t getLength();
 };
 
 } // end namespace io
