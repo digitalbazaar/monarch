@@ -165,7 +165,7 @@ public:
     *
     * @param message the message to write to the log file.
     */
-   //virtual void log(const char* message);
+   virtual void log(const char* message);
 };
 
 } // end namespace logging

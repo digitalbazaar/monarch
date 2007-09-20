@@ -253,14 +253,37 @@ public:
 
 #define DB_CAT_LEVEL_LOG(cat, level, object, message) \
    DB_STMT_BEGIN \
-   db::logging::Logger::catLevelLog(cat, level, __FILE__, __func__, __LINE__, object, message); \
+   db::logging::Logger::catLevelLog( \
+      cat, level, __FILE__, __func__, __LINE__, object, message); \
    DB_STMT_END
-#define DB_CAT_OBJECT_ERROR(cat, object, message) DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Error, object, message)
-#define DB_CAT_ERROR(cat, message) DB_CAT_OBJECT_ERROR(cat, NULL, message)
-#define DB_ERROR(message) DB_CAT_ERROR(db::logging::Logger::defaultCategory, message)
 
-//#undef DB_STMT_BEGIN
-//#undef DB_STMT_END
+#define DB_CAT_OBJECT_ERROR(cat, object, message) \
+   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Error, object, message)
+#define DB_CAT_ERROR(cat, message) \
+   DB_CAT_OBJECT_ERROR(cat, NULL, message)
+#define DB_ERROR(message) \
+   DB_CAT_ERROR(db::logging::Logger::defaultCategory, message)
+
+#define DB_CAT_OBJECT_WARNING(cat, object, message) \
+   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Warning, object, message)
+#define DB_CAT_WARNING(cat, message) \
+   DB_CAT_OBJECT_WARNING(cat, NULL, message)
+#define DB_WARNING(message) \
+   DB_CAT_WARNING(db::logging::Logger::defaultCategory, message)
+
+#define DB_CAT_OBJECT_INFO(cat, object, message) \
+   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Info, object, message)
+#define DB_CAT_INFO(cat, message) \
+   DB_CAT_OBJECT_INFO(cat, NULL, message)
+#define DB_INFO(message) \
+   DB_CAT_INFO(db::logging::Logger::defaultCategory, message)
+
+#define DB_CAT_OBJECT_DEBUG(cat, object, message) \
+   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Debug, object, message)
+#define DB_CAT_DEBUG(cat, message) \
+   DB_CAT_OBJECT_DEBUG(cat, NULL, message)
+#define DB_DEBUG(message) \
+   DB_CAT_DEBUG(db::logging::Logger::defaultCategory, message)
 
 } // end namespace logging
 } // end namespace db

@@ -224,7 +224,8 @@ void Logger::catLevelLog(
    const void* object,
    const char* message)
 {
-   multimap<const char*, Logger*, NameComparator>::iterator i = sLoggers.find(cat);
+   multimap<const char*, Logger*, NameComparator>::iterator i =
+      sLoggers.find(cat);
    if(i != sLoggers.end())
    {
       multimap<const char*, Logger*, NameComparator>::iterator end =

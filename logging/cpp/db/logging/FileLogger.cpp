@@ -21,7 +21,10 @@ FileLogger::FileLogger(
    mMaxFileSize = 0;
    mRotateId = 0;
    mNumRotatingFiles = DEFAULT_NUM_ROTATING_FILES;
-   setFile(file, cleanup);
+   if(file != NULL)
+   {
+      setFile(file, false, cleanup);
+   }
 }
 
 FileLogger::~FileLogger()
@@ -165,9 +168,10 @@ File* FileLogger::getFile()
    return mFile;
 }
 
-#if 0
 void FileLogger::log(const char* message)
 {
+   OutputStreamLogger::log(message);
+#if 0
    string logText = "";
    string logFileText = logText;
    
@@ -234,5 +238,5 @@ void FileLogger::log(const char* message)
       rval = true;
    }
    LoggerManager::getInstance()->unlock();
-}
 #endif
+}
