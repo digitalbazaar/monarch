@@ -57,8 +57,10 @@
 #include "db/io/OStreamOutputStream.h"
 #include "db/crypto/BigDecimal.h"
 #include "db/io/ByteArrayOutputStream.h"
-//#include "db/database/sqlite3/Sqlite3Connection.h"
-//#include "db/database/sqlite3/Sqlite3Statement.h"
+#include "db/database/sqlite3/Sqlite3Connection.h"
+#include "db/database/Statement.h"
+#include "db/database/Row.h"
+#include "db/database/RowIterator.h"
 #include "db/logging/Logger.h"
 #include "db/logging/OutputStreamLogger.h"
 #include "db/logging/FileLogger.h"
@@ -75,7 +77,7 @@ using namespace db::util;
 using namespace db::util::regex;
 using namespace db::data;
 using namespace db::data::xml;
-//using namespace db::database::sqlite3;
+using namespace db::database::sqlite3;
 using namespace db::logging;
 
 // WTF? this is required to get static library building for unknown reason
@@ -3529,70 +3531,81 @@ void runBigDecimalTest()
 
 void runSqlite3Test()
 {
-//   db::database::Connection* c;
-//   db::database::Statement* s;
-//   int cnt;
-//
-//   cout << "Starting Sqlite3 test." << endl << endl;
-//   
-//   c = new Sqlite3Connection("sqlite3:test.db");
-//
-//   s = c->createStatement("drop table if exists test");
-//   assert(s->step() == DB_DATABASE_DONE);
-//   delete s;
-//
-//   s = c->createStatement("create table if not exists test (t text, i int)");
-//   assert(s->step() == DB_DATABASE_DONE);
-//   delete s;
-//
-//   s = c->createStatement("insert into test (t,i) values ('test!', 1234)");
-//   assert(s->step() == DB_DATABASE_DONE);
-//   assert(s->getChangeCount() == 1);
-//   delete s;
-//
-//   s = c->createStatement("insert into test (t,i) values ('!tset', 4321)");
-//   assert(s->step() == DB_DATABASE_DONE);
-//   assert(s->getChangeCount() == 1);
-//   delete s;
-//
-//   s = c->createStatement("insert into test (t,i) values (?, ?)");
-//   s->bindText(1, "bound");
-//   s->bindInt(2, 2222);
-//   assert(s->step() == DB_DATABASE_DONE);
-//   assert(s->getChangeCount() == 1);
-//   delete s;
-//
-//   s = c->createStatement("select * from test");
-//   cnt = 0;
-//   while(s->step() == DB_DATABASE_ROW)
-//   {
-//      //cout << "ROW: " << s->getRowText(0) << " " << s->getRowInt(1) << endl;
-//      cnt++;
-//   }
-//   assert(cnt == 3);
-//   delete s;
-//
-//   s = c->createStatement("select * from test order by i");
-//   cnt = 0;
-//   assert(s->step() == DB_DATABASE_ROW);
-//   assert(strcmp(s->getRowText(0), "test!") == 0);
-//   assert(s->getRowInt(1) == 1234);
-//
-//   assert(s->step() == DB_DATABASE_ROW);
-//   assert(strcmp(s->getRowText(0), "bound") == 0);
-//   assert(s->getRowInt(1) == 2222);
-//
-//   assert(s->step() == DB_DATABASE_ROW);
-//   assert(strcmp(s->getRowText(0), "!tset") == 0);
-//   assert(s->getRowInt(1) == 4321);
-//
-//   assert(s->step() == DB_DATABASE_DONE);
-//   delete s;
-//
-//   c->close();
-//   delete c;
-//   
-//   cout << endl << "Sqlite3 test complete." << endl;
+   db::database::Connection* c;
+   db::database::Statement* s;
+   db::database::Row* r;
+   db::database::RowIterator* ri;
+   int cnt;
+   int iret;
+
+   cout << "Starting Sqlite3 test." << endl << endl;
+   
+   c = new Sqlite3Connection("sqlite3:test.db");
+
+   s = c->createStatement("drop table if exists test");
+   iret = s->executeUpdate();
+   assert(iret != DB_DATABASE_UPDATE_ERROR);
+   delete s;
+
+   s = c->createStatement("create table if not exists test (t text, i int)");
+   iret = s->executeUpdate();
+   assert(iret != DB_DATABASE_UPDATE_ERROR);
+   delete s;
+
+   s = c->createStatement("insert into test (t,i) values ('test!', 1234)");
+   iret = s->executeUpdate();
+   assert(iret == 1);
+   delete s;
+
+   s = c->createStatement("insert into test (t,i) values ('!tset', 4321)");
+   iret = s->executeUpdate();
+   assert(iret == 1);
+   delete s;
+
+   s = c->createStatement("insert into test (t,i) values (?, ?)");
+   s->setText(1, "bound");
+   s->setInt(2, 2222);
+   iret = s->executeUpdate();
+   assert(iret == 1);
+   delete s;
+
+   s = c->createStatement("select * from test");
+   ri = s->executeQuery();
+   assert(ri != NULL);
+   cnt = 0;
+   while(ri->hasNext())
+   {
+      cnt++;
+   }
+   assert(cnt == 3);
+   delete s;
+
+   s = c->createStatement("select * from test order by i");
+   ri = s->executeQuery();
+   assert(ri != NULL);
+
+   assert(ri->hasNext());
+   r = &ri->next();
+   assert(strcmp(r->getText(0), "test!") == 0);
+   assert(r->getInt(1) == 1234);
+
+   assert(ri->hasNext());
+   r = &ri->next();
+   assert(strcmp(r->getText(0), "bound") == 0);
+   assert(r->getInt(1) == 2222);
+
+   assert(ri->hasNext());
+   r = &ri->next();
+   assert(strcmp(r->getText(0), "!tset") == 0);
+   assert(r->getInt(1) == 4321);
+
+   assert(!ri->hasNext());
+   delete s;
+
+   c->close();
+   delete c;
+   
+   cout << endl << "Sqlite3 test complete." << endl;
 }
 
 void runLoggerTest()
@@ -3606,9 +3619,12 @@ void runLoggerTest()
    
    db::logging::FileLogger flog(
       "flog", Logger::Max, new File("test.log"), true);
-   //Logger::addLogger(&flog);
+   Logger::addLogger(&flog);
 
    DB_ERROR("[M1] error test");
+   DB_WARNING("[M1] warning test");
+   DB_INFO("[M1] info test");
+   DB_DEBUG("[M1] debug test");
    DB_CAT_ERROR("[C1]", "[M2] cat 1 error test");
    DB_CAT_OBJECT_ERROR("[C1]", &clog, "[M3] cat 1 obj error test");
    
@@ -3718,9 +3734,9 @@ public:
 //      runXmlBindingOutputStreamTest();
 //      runBigIntegerTest();
 //      runBigDecimalTest();
-//      runSqlite3Test();
+      runSqlite3Test();
 //      runLoggerTest();
-      runUniqueListTest();
+//      runUniqueListTest();
       
       cout << endl << "Tests finished." << endl;
       
