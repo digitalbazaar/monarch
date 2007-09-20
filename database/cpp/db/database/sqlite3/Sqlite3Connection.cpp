@@ -43,6 +43,7 @@ void Sqlite3Connection::close()
    if(mHandle != NULL)
    {
       sqlite3_close(mHandle);
+      mHandle = NULL;
    }
 }
 
