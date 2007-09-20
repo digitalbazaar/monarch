@@ -3529,6 +3529,15 @@ void runBigDecimalTest()
    cout << endl << "BigDecimal test complete." << endl;
 }
 
+void runSqlite3ConnectionTest()
+{
+   cout << "Starting Sqlite3Connection test." << endl << endl;
+   
+   Sqlite3Connection c("sqlite3:test.db");
+   
+   cout << endl << "Sqlite3Connection test complete." << endl;
+}
+
 void runSqlite3Test()
 {
    db::database::Connection* c;
@@ -3734,7 +3743,8 @@ public:
 //      runXmlBindingOutputStreamTest();
 //      runBigIntegerTest();
 //      runBigDecimalTest();
-      runSqlite3Test();
+      runSqlite3ConnectionTest();
+//      runSqlite3Test();
 //      runLoggerTest();
 //      runUniqueListTest();
       
