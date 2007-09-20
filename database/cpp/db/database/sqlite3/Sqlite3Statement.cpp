@@ -13,7 +13,8 @@ Sqlite3Statement::Sqlite3Statement(Sqlite3Connection *c, const char* sql) :
       Statement(c, sql)
 {
    const char* tail;
-   sqlite3_prepare_v2(c->mHandle, sql, -1, &mSqlite3Statement, &tail);
+   // FIXME: switch to sqlite3_prepare_v2 when appropriate
+   sqlite3_prepare(c->mHandle, sql, -1, &mSqlite3Statement, &tail);
    mRowIterator = new Sqlite3RowIterator(this);
 }
 
