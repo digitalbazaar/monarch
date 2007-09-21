@@ -6,8 +6,8 @@
 using namespace db::util;
 
 // initialize the registers table
-short Crc16::REGISTER_TABLE[256];
-bool Crc16::REGISTER_TABLE_INITIALIZED = Crc16::initializeTable(0x8005);
+short Crc16::sRegisterTable[256];
+bool Crc16::sRegisterTableInitialized = Crc16::initializeTable(0x8005);
 
 Crc16::Crc16()
 {
@@ -46,7 +46,7 @@ bool Crc16::initializeTable(const unsigned int& key)
       reg &= 0xffff;
       
       // insert the register into the table
-      REGISTER_TABLE[i] = (short)reg;
+      sRegisterTable[i] = (short)reg;
    }
    
    return true;
@@ -71,7 +71,7 @@ void Crc16::update(const unsigned char& b)
    
    // shift the old top out of the register and XOR with the register value
    // from the table with the register to get the new crc value
-   mCrcValue = (mCrcValue << 8) ^ REGISTER_TABLE[top];
+   mCrcValue = (mCrcValue << 8) ^ sRegisterTable[top];
    
    // cut crc to 16-bits (2 bytes)
    mCrcValue &= 0xffff;

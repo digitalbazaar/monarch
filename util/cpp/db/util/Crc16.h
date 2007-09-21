@@ -394,12 +394,12 @@ protected:
    /**
     * Set to true once the register table has been initialized.
     */
-   static bool REGISTER_TABLE_INITIALIZED;
+   static bool sRegisterTableInitialized;
    
    /**
     * A table of pre-XOR'd registers. One value for each possible byte value.
     */
-   static short REGISTER_TABLE[256];
+   static short sRegisterTable[256];
    
    /**
     * Initializes the table of registers for a given polynomial, one register

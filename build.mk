@@ -59,7 +59,7 @@ net_SUBDIRS = http
 
 util_SUBDIRS = regex
 
-data_SUBDIRS = xml
+data_SUBDIRS = xml mpeg
 data_LIBS = expat
 
 database_SUBDIRS = sqlite3 mysql
