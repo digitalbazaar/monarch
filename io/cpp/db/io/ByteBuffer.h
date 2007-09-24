@@ -124,7 +124,7 @@ public:
     *         less than the number of bytes requested if this buffer is full
     *         or if the passed ByteBuffer does not have enough bytes.
     */
-   virtual int put(ByteBuffer& b, int length, bool resize);
+   virtual int put(ByteBuffer* b, int length, bool resize);
    
    /**
     * Reads data from the passed input stream and puts it into this buffer.
@@ -138,7 +138,8 @@ public:
     * @param is the input stream to read from.
     * 
     * @return the number of bytes read from the input stream and put into
-    *         this buffer, or -1 if the end of the input stream was reached.
+    *         this buffer, 0 if the end of the input stream was reached,
+    *         and -1 if an exception occurred.
     */
    virtual int put(InputStream* is);
    
@@ -167,7 +168,7 @@ public:
     * @return the actual number of bytes retrieved, which may be 0 if this
     *         buffer is empty or if the passed buffer is full.
     */
-   virtual int get(ByteBuffer& b, int length, bool resize);
+   virtual int get(ByteBuffer* b, int length, bool resize);
    
    /**
     * Gets data out of this buffer and writes it to the passed output stream.
@@ -235,7 +236,7 @@ public:
     * @param cleanup true if the passed buffer should be cleaned up by
     *                this object, false if not.
     */
-   virtual void setBytes(ByteBuffer& b, bool cleanup);
+   virtual void setBytes(ByteBuffer* b, bool cleanup);
    
    /**
     * Sets the internal buffer.

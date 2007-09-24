@@ -110,10 +110,10 @@ int ByteBuffer::put(const char* b, int length, bool resize)
    return length;
 }
 
-int ByteBuffer::put(ByteBuffer& b, int length, bool resize)
+int ByteBuffer::put(ByteBuffer* b, int length, bool resize)
 {
-   length = (length < b.length()) ? length : b.length();
-   return put(b.bytes() + b.offset(), length, resize);
+   length = (length < b->length()) ? length : b->length();
+   return put(b->bytes() + b->offset(), length, resize);
 }
 
 int ByteBuffer::put(InputStream* is)
@@ -150,11 +150,11 @@ int ByteBuffer::get(char* b, int length)
    return length;
 }
 
-int ByteBuffer::get(ByteBuffer& b, int length, bool resize)
+int ByteBuffer::get(ByteBuffer* b, int length, bool resize)
 {
    // put data into passed buffer
    length = (length < mLength) ? length : mLength;
-   int rval = b.put(data(), length, resize);
+   int rval = b->put(data(), length, resize);
    
    // move internal pointer and change length
    mOffset += rval;
@@ -238,10 +238,10 @@ int ByteBuffer::getCapacity() const
    return mCapacity;
 }
 
-void ByteBuffer::setBytes(ByteBuffer& b, bool cleanup)
+void ByteBuffer::setBytes(ByteBuffer* b, bool cleanup)
 {
    // set the byte buffer
-   setBytes(b.bytes(), b.offset(), b.length(), cleanup);
+   setBytes(b->bytes(), b->offset(), b->length(), cleanup);
 }
 
 void ByteBuffer::setBytes(char* b, int offset, int length, bool cleanup)

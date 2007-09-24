@@ -66,7 +66,7 @@ bool DigitalEnvelope::startSealing(
          rval = true;
          
          // set the encrypted symmetric key data
-         for(unsigned int i = 0; i < keys; i++)
+         for(int i = 0; i < keys; i++)
          {
             // copy iv
             char* ivCopy = NULL;
@@ -92,7 +92,7 @@ bool DigitalEnvelope::startSealing(
       else
       {
          // delete all allocated key data
-         for(unsigned int i = 0; i < keys; i++)
+         for(int i = 0; i < keys; i++)
          {
             delete [] eKeys[i];
          }
