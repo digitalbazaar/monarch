@@ -29,11 +29,16 @@ protected:
     * A message for this Exception.
     */
    char* mMessage;
-
+   
+   /**
+    * A type for this Exception.
+    */
+   char* mType;
+   
    /**
     * A code associated with this Exception.
     */
-   char* mCode;
+   int mCode;
    
    /**
     * A cause associated with this Exception.
@@ -54,20 +59,29 @@ protected:
    virtual void setMessage(const char* message);
    
    /**
+    * Sets the type for this Exception.
+    *
+    * @param type the type for this Exception.
+    */
+   virtual void setType(const char* type);
+   
+   /**
     * Sets the code for this Exception.
     *
     * @param code the code for this Exception.
     */
-   virtual void setCode(const char* code);
+   virtual void setCode(int code);
    
 public:
    /**
-    * Creates a new Exception. A message and code may be optionally specified.
+    * Creates a new Exception. A message, type, and code may be optionally
+    * specified.
     *
     * @param message the message for this Exception.
+    * @param type the type for this Exception.
     * @param code the code for this Exception.
     */
-   Exception(const char* message = NULL, const char* code = NULL);
+   Exception(const char* message = "", const char* type = "", int code = 0);
    
    /**
     * Destructs this Exception.
@@ -82,11 +96,18 @@ public:
    virtual const char* getMessage();
    
    /**
+    * Gets the type for this Exception.
+    *
+    * @return the type for this Exception.
+    */
+   virtual const char* getType();
+   
+   /**
     * Gets the code for this Exception.
     *
     * @return the code for this Exception.
     */
-   virtual const char* getCode();
+   virtual int getCode();
    
    /**
     * Sets the cause for this Exception.

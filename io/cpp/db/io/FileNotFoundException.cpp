@@ -7,7 +7,8 @@ using namespace std;
 using namespace db::io;
 
 FileNotFoundException::FileNotFoundException(
-   const char* message, const char* code) : IOException(message, code)
+   const char* message, const char* type, int code) :
+   IOException(message, type, code)
 {
 }
 

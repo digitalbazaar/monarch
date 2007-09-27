@@ -8,8 +8,9 @@
 using namespace db::database;
 using namespace db::rt;
 
-DatabaseException::DatabaseException(const char* message, const char* code) :
-   Exception(message, code)
+DatabaseException::DatabaseException(
+   const char* message, const char* type, int code) :
+   Exception(message, type, code)
 {
    mSqlState = new char[1];
    memset(mSqlState, 0, 1);

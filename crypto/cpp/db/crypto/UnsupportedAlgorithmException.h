@@ -23,13 +23,14 @@ public:
    /**
     * Creates a new UnsupportedAlgorithmException.
     *
-    * A message and code may be optionally specified.
+    * A message, type, and code may be optionally specified.
     *
     * @param message the message for this Exception.
+    * @param type the type for this Exception.
     * @param code the code for this Exception.
     */
    UnsupportedAlgorithmException(
-      const char* message = NULL, const char* code = NULL);
+      const char* message = "", const char* type = "", int code = 0);
    
    /**
     * Destructs this UnsupportedAlgorithmException.

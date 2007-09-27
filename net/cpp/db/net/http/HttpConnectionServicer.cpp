@@ -164,7 +164,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          }
       }
    }
-   else if(strcmp(e->getCode(), "db.net.http.BadRequest") == 1)
+   else if(strcmp(e->getType(), "db.net.http.BadRequest") == 1)
    {
       // send 400 Bad Request
       char html[] = "<html><h2>400 Bad Request</h2></html>";

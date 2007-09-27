@@ -6,7 +6,8 @@
 using namespace db::net;
 
 SocketTimeoutException::SocketTimeoutException(
-   const char* message, const char* code) : SocketException(message, code)
+   const char* message, const char* type, int code) :
+   SocketException(message, type, code)
 {
 }
 

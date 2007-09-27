@@ -8,29 +8,17 @@
 
 using namespace db::rt;
 
-Exception::Exception(const char* message, const char* code)
+Exception::Exception(const char* message, const char* type, int code)
 {
-   if(message == NULL)
-   {
-      mMessage = new char[1];
-      mMessage[0] = 0;
-   }
-   else
-   {
-      mMessage = new char[strlen(message) + 1];
-      strcpy(mMessage, message);
-   }
+   const char* str = (message == NULL) ? "" : message;
+   mMessage = new char[strlen(message) + 1];
+   strcpy(mMessage, message);
    
-   if(code == NULL)
-   {
-      mCode = new char[1];
-      mCode[0] = 0;
-   }
-   else
-   {
-      mCode = new char[strlen(code) + 1];
-      strcpy(mCode, code);
-   }
+   str = (type == NULL) ? "" : type;
+   mType = new char[strlen(type) + 1];
+   strcpy(mType, type);
+   
+   mCode = code;
    
    mCause = NULL;
    mCleanupCause = false;
@@ -39,7 +27,7 @@ Exception::Exception(const char* message, const char* code)
 Exception::~Exception()
 {
    delete [] mMessage;
-   delete [] mCode;
+   delete [] mType;
    
    if(mCause != NULL && mCleanupCause)
    {
@@ -49,34 +37,23 @@ Exception::~Exception()
 
 void Exception::setMessage(const char* message)
 {
+   const char* str = (message == NULL) ? "" : message;
    delete [] mMessage;
-   
-   if(message == NULL)
-   {
-      mMessage = new char[1];
-      mMessage[0] = 0;
-   }
-   else
-   {
-      mMessage = new char[strlen(message) + 1];
-      strcpy(mMessage, message);
-   }
+   mMessage = new char[strlen(str) + 1];
+   strcpy(mMessage, str);
 }
 
-void Exception::setCode(const char* code)
+void Exception::setType(const char* type)
 {
-   delete [] mCode;
-   
-   if(code == NULL)
-   {
-      mCode = new char[1];
-      mCode[0] = 0;
-   }
-   else
-   {
-      mCode = new char[strlen(code) + 1];
-      strcpy(mCode, code);
-   }
+   const char* str = (type == NULL) ? "" : type;
+   delete [] mType;
+   mType = new char[strlen(str) + 1];
+   strcpy(mType, str);
+}
+
+void Exception::setCode(int code)
+{
+   mCode = code;
 }
 
 const char* Exception::getMessage()
@@ -84,7 +61,12 @@ const char* Exception::getMessage()
    return mMessage;
 }
 
-const char* Exception::getCode()
+const char* Exception::getType()
+{
+   return mType;
+}
+
+int Exception::getCode()
 {
    return mCode;
 }

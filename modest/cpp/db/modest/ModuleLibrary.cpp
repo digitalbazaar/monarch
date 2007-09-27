@@ -68,11 +68,21 @@ bool ModuleLibrary::loadModule(const string& filename)
             else
             {
                // could not initialize module, so unload it
-               string msg =
-                  "Could not initialize module '" + filename +
-                  "', module named '" + mi->module->getId().name +
-                  "', version '" + mi->module->getId().version +
-                  "',exception=" + e->getMessage() + ":" + e->getCode();
+               string msg;
+               msg.append("Could not initialize module '");
+               msg.append(filename);
+               msg.append("', module named '");
+               msg.append(mi->module->getId().name);
+               msg.append("', version '");
+               msg.append(mi->module->getId().version);
+               msg.append("',exception=");
+               msg.append(e->getMessage());
+               msg.append(1, ':');
+               msg.append(e->getType());
+               msg.append(1, ':');
+               char temp[20];
+               sprintf(temp, "%i", e->getCode());
+               msg.append(temp);
                Exception::setLast(new Exception(msg.c_str()));
                mLoader.unloadModule(mi);
             }
@@ -80,11 +90,14 @@ bool ModuleLibrary::loadModule(const string& filename)
          else
          {
             // module is already loaded, set exception and unload it
-            string msg =
-               "Could not load module '" + filename +
-               "', another module named '" + mi->module->getId().name +
-               "' with version '" + mi->module->getId().version +
-               "' is already loaded.";
+            string msg;
+            msg.append("Could not load module '");
+            msg.append(filename);
+            msg.append("', another module named '");
+            msg.append(mi->module->getId().name);
+            msg.append("' with version '");
+            msg.append(mi->module->getId().version);
+            msg.append("' is already loaded.");
             Exception::setLast(new Exception(msg.c_str()));
             mLoader.unloadModule(mi);
          }

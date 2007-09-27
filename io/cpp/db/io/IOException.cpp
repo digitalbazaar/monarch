@@ -6,8 +6,9 @@
 using namespace db::io;
 using namespace db::rt;
 
-IOException::IOException(const char* message, const char* code) :
-   Exception(message, code)
+IOException::IOException(
+   const char* message, const char* type, int code) :
+   Exception(message, type, code)
 {
    mUsedBytes = 0;
    mUnusedBytes = 0;

@@ -6,7 +6,8 @@
 using namespace db::rt;
 
 InterruptedException::InterruptedException(
-   const char* message, const char* code) : Exception(message, code)
+   const char* message, const char* type, int code) :
+   Exception(message, type, code)
 {
 }
 

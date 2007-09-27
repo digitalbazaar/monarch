@@ -5,8 +5,9 @@
 
 using namespace db::net;
 
-SocketException::SocketException(const char* message, const char* code) :
-   IOException(message, code)
+SocketException::SocketException(
+   const char* message, const char* type, int code) :
+   IOException(message, type, code)
 {
 }
 
