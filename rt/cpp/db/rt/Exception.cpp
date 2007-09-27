@@ -100,9 +100,10 @@ Exception* Exception::getCause()
    return mCause;
 }
 
-void Exception::setLast(Exception* e)
+Exception* Exception::setLast(Exception* e)
 {
    Thread::setException(e);
+   return e;
 }
 
 Exception* Exception::getLast()

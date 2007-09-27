@@ -4,6 +4,7 @@
 #include "db/database/Connection.h"
 
 using namespace db::database;
+using namespace db::rt;
 
 Connection::Connection(const char *params)
 {
@@ -13,4 +14,16 @@ Connection::Connection(const char *params)
 Connection::~Connection()
 {
    delete mDatabaseParams;
+}
+
+DatabaseException* Connection::commit()
+{
+   return (DatabaseException*)Exception::setLast(
+      new DatabaseException("Connection::commit() not supported!"));
+}
+
+DatabaseException* Connection::rollback()
+{
+   return (DatabaseException*)Exception::setLast(
+      new DatabaseException("Connection::rollback() not supported!"));
 }

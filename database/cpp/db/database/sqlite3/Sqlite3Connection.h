@@ -48,9 +48,10 @@ public:
     * 
     * @param sql the standard query language text of the Statement.
     * 
-    * @return the new Statement to be freed by caller.
+    * @return the new Statement to be freed by caller, NULL if an
+    *         exception occurred.
     */
-   virtual Statement* prepareStatement(const char* sql);
+   virtual Statement* prepare(const char* sql);
    
    /**
     * Closes this connection.
@@ -59,13 +60,17 @@ public:
    
    /**
     * Commits the current transaction.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual void commit();
+   virtual DatabaseException* commit();
    
    /**
     * Rolls back the current transaction.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual void rollback();
+   virtual DatabaseException* rollback();
 };
 
 } // end namespace sqlite3

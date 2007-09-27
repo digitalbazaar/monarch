@@ -114,8 +114,10 @@ public:
     * memory will be mistakenly collected.
     * 
     * @param e the Exception to set for the current thread.
+    * 
+    * @return the Exception set for the current thread (same as passed).
     */
-   static void setLast(Exception* e);
+   static Exception* setLast(Exception* e);
    
    /**
     * Gets the last Exception for the current thread. This will be the last

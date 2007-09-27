@@ -37,7 +37,7 @@ Sqlite3Connection::~Sqlite3Connection()
    Sqlite3Connection::close();
 }
 
-Statement* Sqlite3Connection::prepareStatement(const char* sql)
+Statement* Sqlite3Connection::prepare(const char* sql)
 {
    return new Sqlite3Statement(this, sql);
 }
@@ -51,14 +51,16 @@ void Sqlite3Connection::close()
    }
 }
 
-void Sqlite3Connection::commit()
+DatabaseException* Sqlite3Connection::commit()
 {
    // FIXME:
    cout << "FIXME: commit" << endl;
+   return NULL;
 }
 
-void Sqlite3Connection::rollback()
+DatabaseException* Sqlite3Connection::rollback()
 {
    // FIXME:
    cout << "FIXME: rollback" << endl;
+   return NULL;
 }

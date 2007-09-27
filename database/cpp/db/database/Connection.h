@@ -5,6 +5,7 @@
 #define db_database_Connection_H
 
 #include "db/net/Url.h"
+#include "db/database/DatabaseException.h"
 
 namespace db
 {
@@ -55,9 +56,10 @@ public:
     * 
     * @param sql the standard query language text of the Statement.
     * 
-    * @return the new Statement to be freed by caller.
+    * @return the new Statement to be freed by caller, NULL if an
+    *         exception occurred.
     */
-   virtual Statement* prepareStatement(const char* sql) = 0;
+   virtual Statement* prepare(const char* sql) = 0;
    
    /**
     * Closes this connection.
@@ -66,13 +68,17 @@ public:
    
    /**
     * Commits the current transaction.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual void commit() {};
+   virtual DatabaseException* commit();
    
    /**
     * Rolls back the current transaction.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual void rollback() {};
+   virtual DatabaseException* rollback();
 };
 
 } // end namespace database
