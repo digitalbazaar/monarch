@@ -31,12 +31,20 @@ Exception::Exception(const char* message, const char* code)
       mCode = new char[strlen(code) + 1];
       strcpy(mCode, code);
    }
+   
+   mCause = NULL;
+   mCleanupCause = false;
 }
 
 Exception::~Exception()
 {
    delete [] mMessage;
    delete [] mCode;
+   
+   if(mCause != NULL && mCleanupCause)
+   {
+      delete mCause;
+   }
 }
 
 void Exception::setMessage(const char* message)
@@ -79,6 +87,17 @@ const char* Exception::getMessage()
 const char* Exception::getCode()
 {
    return mCode;
+}
+
+void Exception::setCause(Exception* cause, bool cleanup)
+{
+   mCause = cause;
+   mCleanupCause = cleanup;
+}
+
+Exception* Exception::getCause()
+{
+   return mCause;
 }
 
 void Exception::setLast(Exception* e)

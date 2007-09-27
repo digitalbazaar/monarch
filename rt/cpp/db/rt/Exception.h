@@ -36,6 +36,17 @@ protected:
    char* mCode;
    
    /**
+    * A cause associated with this Exception.
+    */
+   Exception* mCause;
+   
+   /**
+    * True if the cause exception should be cleaned up on destruction, false
+    * if not.
+    */
+   bool mCleanupCause;
+   
+   /**
     * Sets the message for this Exception.
     *
     * @param message the message for this Exception.
@@ -76,6 +87,22 @@ public:
     * @return the code for this Exception.
     */
    virtual const char* getCode();
+   
+   /**
+    * Sets the cause for this Exception.
+    * 
+    * @param cause the cause for this Exception.
+    * @param cleanup true if this Exception should manage the memory for
+    *                the passed cause, false if not.
+    */
+   virtual void setCause(Exception* cause, bool cleanup);
+   
+   /**
+    * Gets the cause for this Exception.
+    * 
+    * @return the cause for this Exception (may be NULL).
+    */
+   virtual Exception* getCause();
    
    /**
     * Sets the last Exception for the current thread. This will store the
