@@ -5,6 +5,7 @@
 #define db_database_Row_h
 
 #include "db/database/Statement.h"
+#include "db/database/DatabaseException.h"
 
 #define DB_DATABASE_NULL 0
 #define DB_DATABASE_INT 1
@@ -49,28 +50,31 @@ public:
     * Gets a column's data type.
     *
     * @param column the column's index.
-    *
-    * @return the type ID for the column.
+    * @param type the type ID for the column.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual int getType(int column) = 0;
+   virtual DatabaseException* getType(int column, int& type) = 0;
    
    /**
     * Gets an integer from a column.
     * 
     * @param column the column's index.
+    * @param i the integer to store the integer in.
     * 
-    * @return the integer from the specified column.
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual int getInteger(int column) = 0;
+   virtual DatabaseException* getInteger(int column, int& i) = 0;
    
    /**
     * Gets a text string from a column.
     * 
     * @param column the column's index.
+    * @param str the string to store the text in.
     * 
-    * @return the text string from the specified column.
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual const char* getText(int column) = 0;
+   virtual DatabaseException* getText(int column, std::string& str) = 0;
 };
 
 } // end namespace database

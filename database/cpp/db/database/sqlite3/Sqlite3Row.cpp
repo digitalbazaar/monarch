@@ -6,6 +6,7 @@
 #include "db/database/sqlite3/Sqlite3Statement.h"
 #include "db/database/sqlite3/Sqlite3Connection.h"
 
+using namespace std;
 using namespace db::database;
 using namespace db::database::sqlite3;
 
@@ -23,17 +24,23 @@ sqlite3_stmt* Sqlite3Row::getSqlite3Statement()
    return ((Sqlite3Statement*)mStatement)->mSqlite3Statement;
 }
 
-int Sqlite3Row::getType(int col)
+DatabaseException* Sqlite3Row::getType(int column, int& type)
 {
-   return sqlite3_column_type(getSqlite3Statement(), col);
+   // FIXME: check exceptions, etc
+   type = sqlite3_column_type(getSqlite3Statement(), column);
+   return NULL;
 }
 
-int Sqlite3Row::getInteger(int col)
+DatabaseException* Sqlite3Row::getInteger(int column, int& i)
 {
-   return sqlite3_column_int(getSqlite3Statement(), col);
+   // FIXME: check exceptions, etc
+   i = sqlite3_column_int(getSqlite3Statement(), column);
+   return NULL;
 }
 
-const char* Sqlite3Row::getText(int col)
+DatabaseException* Sqlite3Row::getText(int column, string& str)
 {
-   return (const char *)sqlite3_column_text(getSqlite3Statement(), col);
+   // FIXME: check exceptions, etc
+   str.assign((const char*)sqlite3_column_text(getSqlite3Statement(), column));
+   return NULL;
 }

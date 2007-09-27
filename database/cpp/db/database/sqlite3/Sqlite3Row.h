@@ -51,28 +51,31 @@ public:
     * Gets a column's data type.
     *
     * @param column the column's index.
-    *
-    * @return the type ID for the column.
+    * @param type the type ID for the column.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual int getType(int column);
+   virtual DatabaseException* getType(int column, int& type);
    
    /**
     * Gets an integer from a column.
     * 
     * @param column the column's index.
+    * @param i the integer to store the integer in.
     * 
-    * @return the integer from the specified column.
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual int getInteger(int column);
+   virtual DatabaseException* getInteger(int column, int& i);
    
    /**
     * Gets a text string from a column.
     * 
     * @param column the column's index.
+    * @param str the string to store the text in.
     * 
-    * @return the text string from the specified column.
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual const char* getText(int column);
+   virtual DatabaseException* getText(int column, std::string& str);
 };
 
 } // end namespace sqlite3
