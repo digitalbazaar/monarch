@@ -35,6 +35,18 @@ protected:
     */
    char* mSql;
    
+   /**
+    * The number of rows modified by this Statement.
+    */
+   int mRowsChanged;
+   
+   /**
+    * Sets the number of rows modified by this Statement.
+    * 
+    * @param count the number of rows modified by this Statement.
+    */
+   virtual void setRowsChanged(int count);
+   
 public:
    /**
     * Creates a new Statement.
@@ -66,19 +78,24 @@ public:
     *
     * @param pos parameter position.
     * @param value parameter value.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
     */
    virtual void setText(int pos, const char* value) = 0;
    
    /**
     * Executes this Statement.
     * 
-    * @return the number of rows modified (0 for a SELECT).
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual int execute() = 0;
+   virtual DatabaseException* execute() = 0;
    
-   // FIXME:
-   virtual int getErrorCode() = 0;
-   virtual const char* getErrorMessage() = 0;
+   /**
+    * Gets the number of rows modified by this Statement.
+    * 
+    * @return the number of rows modified by this Statement.
+    */
+   virtual int getRowsChanged();
 };
 
 } // end namespace database

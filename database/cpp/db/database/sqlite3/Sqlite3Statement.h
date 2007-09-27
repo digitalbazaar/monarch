@@ -69,13 +69,9 @@ public:
    /**
     * Executes this Statement.
     * 
-    * @return the number of rows modified (0 for a SELECT).
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual int execute();
-   
-   // FIXME:
-   virtual int getErrorCode();
-   virtual const char* getErrorMessage();
+   virtual DatabaseException* execute();
 };
 
 } // end namespace sqlite3

@@ -35,10 +35,10 @@ void Sqlite3Statement::setText(int pos, const char* value)
    // FIXME STATIC vs ...
 }
 
-int Sqlite3Statement::execute()
+DatabaseException* Sqlite3Statement::execute()
 {
    // FIXME:
-   return 0;
+   return NULL;
 }
 
 //RowIterator* Sqlite3Statement::executeQuery()
@@ -62,12 +62,12 @@ int Sqlite3Statement::execute()
 //   return rval;
 //}
 
-int Sqlite3Statement::getErrorCode()
-{
-   return sqlite3_errcode(((Sqlite3Connection*)mConnection)->mHandle);
-}
-
-const char* Sqlite3Statement::getErrorMessage()
-{
-   return sqlite3_errmsg(((Sqlite3Connection*)mConnection)->mHandle);
-}
+//int Sqlite3Statement::getErrorCode()
+//{
+//   return sqlite3_errcode(((Sqlite3Connection*)mConnection)->mHandle);
+//}
+//
+//const char* Sqlite3Statement::getErrorMessage()
+//{
+//   return sqlite3_errmsg(((Sqlite3Connection*)mConnection)->mHandle);
+//}
