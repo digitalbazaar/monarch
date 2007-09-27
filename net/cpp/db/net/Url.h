@@ -93,6 +93,14 @@ public:
    Url(const std::string& url);
    
    /**
+    * Creates a new Url from the passed string. An exception may be raised
+    * if the url is malformed.
+    *
+    * @param url the string to create this Url from.
+    */
+   Url(const char* url);
+   
+   /**
     * Destructs this Url.
     */
    virtual ~Url();

@@ -24,7 +24,7 @@ Sqlite3Statement::~Sqlite3Statement()
    delete mRowIterator;
 }
 
-void Sqlite3Statement::setInt(int pos, int value)
+void Sqlite3Statement::setInteger(int pos, int value)
 {
    sqlite3_bind_int(mSqlite3Statement, pos, value);
 }
@@ -35,26 +35,32 @@ void Sqlite3Statement::setText(int pos, const char* value)
    // FIXME STATIC vs ...
 }
 
-RowIterator* Sqlite3Statement::executeQuery()
+int Sqlite3Statement::execute()
 {
-   return mRowIterator;
+   // FIXME:
+   return 0;
 }
 
-int Sqlite3Statement::executeUpdate()
-{
-   int ret;
-   int rval;
-
-   ret = sqlite3_step(mSqlite3Statement);
-
-   if(ret == SQLITE_DONE)
-   {
-      rval = sqlite3_changes(((Sqlite3Connection*)mConnection)->mHandle);
-   }
-   // FIXME else handle error
-
-   return rval;
-}
+//RowIterator* Sqlite3Statement::executeQuery()
+//{
+//   return mRowIterator;
+//}
+//
+//int Sqlite3Statement::executeUpdate()
+//{
+//   int ret;
+//   int rval;
+//
+//   ret = sqlite3_step(mSqlite3Statement);
+//
+//   if(ret == SQLITE_DONE)
+//   {
+//      rval = sqlite3_changes(((Sqlite3Connection*)mConnection)->mHandle);
+//   }
+//   // FIXME else handle error
+//
+//   return rval;
+//}
 
 int Sqlite3Statement::getErrorCode()
 {

@@ -49,37 +49,31 @@ public:
     * Destructs this Statement.
     */
    virtual ~Sqlite3Statement();
-
+   
    /**
     * Set an integer for a positional parameter.
     *
-    * @param pos parameter position
-    * @param value parameter value
+    * @param pos parameter position.
+    * @param value parameter value.
     */
-   virtual void setInt(int pos, int value);
-
+   virtual void setInteger(int pos, int value);
+   
    /**
     * Set a text string for a positional parameter.
     *
-    * @param pos parameter position
-    * @param value parameter value
+    * @param pos parameter position.
+    * @param value parameter value.
     */
    virtual void setText(int pos, const char* value);
    
    /**
-    * Execute a SELECT statement.
-    *
-    * @return result set for the query, NULL on error.
+    * Executes this Statement.
+    * 
+    * @return the number of rows modified (0 for a SELECT).
     */
-   virtual RowIterator* executeQuery();
-
-   /**
-    * Execute a UPDATE, INSERT, or DELETE statement.
-    *
-    * @return number of updated rows, -1 on error.
-    */
-   virtual int executeUpdate();
-
+   virtual int execute();
+   
+   // FIXME:
    virtual int getErrorCode();
    virtual const char* getErrorMessage();
 };

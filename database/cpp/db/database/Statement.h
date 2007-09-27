@@ -16,9 +16,11 @@ namespace database
 class RowIterator;
 
 /**
- * A database statement.
+ * A Statement is an abstract base class for SQL database statements. Extending
+ * classes will provide the appropriate implementation details.
  * 
  * @author David I. Lehn
+ * @author Dave Longley
  */
 class Statement
 {
@@ -27,12 +29,12 @@ protected:
     * The connection associated with this statement.
     */
    Connection* mConnection;
-
+   
    /**
     * The SQL for this statement.
     */
-   const char* mSql;
-
+   char* mSql;
+   
 public:
    /**
     * Creates a new Statement.
@@ -45,42 +47,36 @@ public:
    virtual ~Statement();
    
    /**
-    * Retreive the statements connection.
+    * Gets the Connection that prepared this Statement.
     *
-    * @return the Connection
+    * @return the Connection that prepared this Statement.
     */
    virtual Connection* getConnection();
    
    /**
     * Set an integer for a positional parameter.
     *
-    * @param pos parameter position
-    * @param value parameter value
+    * @param pos parameter position.
+    * @param value parameter value.
     */
-   virtual void setInt(int pos, int value) = 0;
-
+   virtual void setInteger(int pos, int value) = 0;
+   
    /**
     * Set a text string for a positional parameter.
     *
-    * @param pos parameter position
-    * @param value parameter value
+    * @param pos parameter position.
+    * @param value parameter value.
     */
    virtual void setText(int pos, const char* value) = 0;
    
    /**
-    * Execute a SELECT statement.
-    *
-    * @return result set for the query, NULL on error.
+    * Executes this Statement.
+    * 
+    * @return the number of rows modified (0 for a SELECT).
     */
-   virtual RowIterator* executeQuery() = 0;
-
-   /**
-    * Execute a UPDATE, INSERT, or DELETE statement.
-    *
-    * @return number of updated rows, DB_DATABASE_UPDATE_ERROR on error.
-    */
-   virtual int executeUpdate() = 0;
-
+   virtual int execute() = 0;
+   
+   // FIXME:
    virtual int getErrorCode() = 0;
    virtual const char* getErrorMessage() = 0;
 };

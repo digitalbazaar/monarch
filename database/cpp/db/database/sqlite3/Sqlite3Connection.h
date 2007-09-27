@@ -42,10 +42,30 @@ public:
     */
    virtual ~Sqlite3Connection();
    
+   /**
+    * Prepares a Statement for execution. The Statement is heap-allocated and
+    * must be freed by the caller of this method.
+    * 
+    * @param sql the standard query language text of the Statement.
+    * 
+    * @return the new Statement to be freed by caller.
+    */
+   virtual Statement* prepareStatement(const char* sql);
+   
+   /**
+    * Closes this connection.
+    */
    virtual void close();
+   
+   /**
+    * Commits the current transaction.
+    */
    virtual void commit();
+   
+   /**
+    * Rolls back the current transaction.
+    */
    virtual void rollback();
-   virtual Statement* createStatement(const char* sql);
 };
 
 } // end namespace sqlite3

@@ -14,6 +14,11 @@ Url::Url(const string& url)
    setUrl(url);
 }
 
+Url::Url(const char* url)
+{
+   setUrl(url);
+}
+
 Url::~Url()
 {
 }
