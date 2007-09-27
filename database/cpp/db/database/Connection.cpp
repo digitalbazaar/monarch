@@ -6,14 +6,13 @@
 using namespace db::database;
 using namespace db::rt;
 
-Connection::Connection(const char *params)
+Connection::Connection(const char *url) :
+   mUrl(url)
 {
-   mDatabaseParams = new db::net::Url(params);
 }
 
 Connection::~Connection()
 {
-   delete mDatabaseParams;
 }
 
 DatabaseException* Connection::commit()

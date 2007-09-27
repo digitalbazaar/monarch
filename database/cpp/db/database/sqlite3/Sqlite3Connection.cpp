@@ -10,19 +10,18 @@ using namespace std;
 using namespace db::database;
 using namespace db::database::sqlite3;
 
-Sqlite3Connection::Sqlite3Connection(const char* params) :
-   Connection(params)
+Sqlite3Connection::Sqlite3Connection(const char* url) : Connection(url)
 {
    int ret;
    mHandle = NULL;
-
-   if(mDatabaseParams->getScheme() != "sqlite3")
+   
+   if(mUrl.getScheme() != "sqlite3")
    {
       // FIXME error handling
    }
    else
    {
-      string dbFile = mDatabaseParams->getSchemeSpecificPart();
+      string dbFile = mUrl.getSchemeSpecificPart();
       ret = sqlite3_open(dbFile.c_str(), &mHandle);
       if(ret != SQLITE_OK)
       {

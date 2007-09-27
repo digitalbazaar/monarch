@@ -8,7 +8,6 @@
 
 #include "db/database/Connection.h"
 
-
 namespace db
 {
 namespace database
@@ -20,22 +19,33 @@ namespace sqlite3
 class Sqlite3Statement;
 
 /**
+ * An Sqlite3Connection is a Connection to an sqlite3 database.
  * 
  * @author David I. Lehn
+ * @author Dave Longley
  */
 class Sqlite3Connection : public db::database::Connection
 {
 protected:
+   /**
+    * The handle to the sqlite3 database.
+    */
    ::sqlite3* mHandle;
+   
+   /**
+    * Sqlite3Statement is a friend to this class so it can access the
+    * C handle to the database.
+    */
    friend class Sqlite3Statement;
+   
 public:
    /**
     * Creates a new Connection.
-    *
-    * @param params Sqlite3 parameters in URI form:
+    * 
+    * @param url Sqlite3 parameters in URL form:
     *        "sqlite:/path/to/example.db" A SQLite3 database called example.db
     */
-   Sqlite3Connection(const char* params);
+   Sqlite3Connection(const char* url);
    
    /**
     * Destructs this Connection.

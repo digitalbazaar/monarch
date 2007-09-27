@@ -11,8 +11,6 @@ Statement::Statement(Connection* c, const char* sql)
    
    mSql = new char[strlen(sql) + 1];
    strcpy(mSql, sql);
-   
-   mRowsChanged = 0;
 }
 
 Statement::~Statement()
@@ -20,17 +18,7 @@ Statement::~Statement()
    delete [] mSql;
 }
 
-void Statement::setRowsChanged(int count)
-{
-   mRowsChanged = count;
-}
-
 Connection* Statement::getConnection()
 {
    return mConnection;
-}
-
-int Statement::getRowsChanged()
-{
-   return mRowsChanged;
 }

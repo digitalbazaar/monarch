@@ -30,15 +30,23 @@ protected:
     * sqlite3 statement
     */
    sqlite3_stmt* mSqlite3Statement;
-
+   
    /**
     * RowIterator for statement results;
     */
    RowIterator* mRowIterator;
-
+   
+   /**
+    * Sqlite3Row is a friend to allow access to C struct "sqlite3_stmt".
+    */
    friend class Sqlite3Row;
+   
+   /**
+    * Sqlite3RowIterators is a friend to allow access to C struct
+    * "sqlite3_stmt".
+    */
    friend class Sqlite3RowIterator;
-
+   
 public:
    /**
     * Creates a new Statement.
@@ -72,6 +80,15 @@ public:
     * @return a DatabaseException if one occurred, NULL if not.
     */
    virtual DatabaseException* execute();
+   
+   /**
+    * Gets the number of rows modified by this Statement.
+    * 
+    * @param rows to store the number of rows modified by this Statement.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
+    */
+   virtual DatabaseException* getRowsChanged(int& rows);
 };
 
 } // end namespace sqlite3

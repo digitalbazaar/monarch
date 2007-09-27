@@ -35,18 +35,6 @@ protected:
     */
    char* mSql;
    
-   /**
-    * The number of rows modified by this Statement.
-    */
-   int mRowsChanged;
-   
-   /**
-    * Sets the number of rows modified by this Statement.
-    * 
-    * @param count the number of rows modified by this Statement.
-    */
-   virtual void setRowsChanged(int count);
-   
 public:
    /**
     * Creates a new Statement.
@@ -93,9 +81,11 @@ public:
    /**
     * Gets the number of rows modified by this Statement.
     * 
-    * @return the number of rows modified by this Statement.
+    * @param rows to store the number of rows modified by this Statement.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual int getRowsChanged();
+   virtual DatabaseException* getRowsChanged(int& rows) = 0;
 };
 
 } // end namespace database

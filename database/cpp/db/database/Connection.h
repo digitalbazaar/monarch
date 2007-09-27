@@ -28,9 +28,9 @@ class Connection
 {
 protected:
    /**
-    * The database driver parameters for this connection.
+    * The database driver parameters in URL form for this connection.
     */
-   db::net::Url* mDatabaseParams;
+   db::net::Url mUrl;
    
    /**
     * True if this connection is open, false if not.
@@ -41,9 +41,10 @@ public:
    /**
     * Creates a new Connection.
     * 
-    * @param params database driver specific parameters.
+    * @param url the url for the database to connect to, including driver
+    *            specific parameters;
     */
-   Connection(const char* params);
+   Connection(const char* url);
    
    /**
     * Destructs this Connection.
