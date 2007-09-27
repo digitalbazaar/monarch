@@ -15,14 +15,13 @@ Sqlite3Connection::Sqlite3Connection(const char* url) : Connection(url)
    int ret;
    mHandle = NULL;
    
-   if(mUrl.getScheme() != "sqlite3")
+   if(strcmp(mUrl.getScheme().c_str(), "sqlite3") == 0)
    {
       // FIXME error handling
    }
    else
    {
-      string dbFile = mUrl.getSchemeSpecificPart();
-      ret = sqlite3_open(dbFile.c_str(), &mHandle);
+      ret = sqlite3_open(mUrl.getSchemeSpecificPart().c_str(), &mHandle);
       if(ret != SQLITE_OK)
       {
          Sqlite3Connection::close();
