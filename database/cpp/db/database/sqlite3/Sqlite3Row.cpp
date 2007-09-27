@@ -28,7 +28,7 @@ int Sqlite3Row::getType(int col)
    return sqlite3_column_type(getSqlite3Statement(), col);
 }
 
-int Sqlite3Row::getInt(int col)
+int Sqlite3Row::getInteger(int col)
 {
    return sqlite3_column_int(getSqlite3Statement(), col);
 }

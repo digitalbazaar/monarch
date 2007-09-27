@@ -16,18 +16,22 @@ namespace database
 {
 
 /**
- * A database statement result row.
+ * A Row is a single result row from an executed database statement.
  * 
  * @author David I. Lehn
+ * @author Dave Longley
  */
 class Row
 {
 protected:
+   /**
+    * The associated Statement.
+    */
    Statement* mStatement;
-
+   
 public:
    /**
-    * Creates a new Row.
+    * Creates a new Row from a Statement.
     */
    Row(Statement* s);
    
@@ -37,36 +41,36 @@ public:
    virtual ~Row();
    
    /**
-    * Return the statement for this result set.
+    * Returns the statement associated with this row.
     */
    virtual Statement* getStatement();
    
    /**
-    * Get column type.
+    * Gets a column's data type.
     *
-    * @param col column index
+    * @param column the column's index.
     *
-    * @return column type id
+    * @return the type ID for the column.
     */
-   virtual int getType(int col) = 0;
-
+   virtual int getType(int column) = 0;
+   
    /**
-    * Get int from column.
-    *
-    * @param col column index
-    *
-    * @return int from column
+    * Gets an integer from a column.
+    * 
+    * @param column the column's index.
+    * 
+    * @return the integer from the specified column.
     */
-   virtual int getInt(int col) = 0;
-
+   virtual int getInteger(int column) = 0;
+   
    /**
-    * Get text string from column.
-    *
-    * @param col column index
-    *
-    * @return text string from column
+    * Gets a text string from a column.
+    * 
+    * @param column the column's index.
+    * 
+    * @return the text string from the specified column.
     */
-   virtual const char* getText(int col) = 0;
+   virtual const char* getText(int column) = 0;
 };
 
 } // end namespace database

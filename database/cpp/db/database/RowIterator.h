@@ -13,23 +13,24 @@ namespace database
 {
 
 /**
- * A RowIterator is an Iterator for Statement Rows.
+ * A RowIterator is an Iterator for Statement result Rows.
  * 
  * @author David I. Lehn
+ * @author Dave Longley
  */
 class RowIterator : public db::util::Iterator<Row>
 {
 protected:
    /**
-    * The statement.
+    * The associated statement.
     */
    Statement* mStatement;
    
 public:
    /**
-    * Creates a new RowIterator for the given stl list.
+    * Creates a new RowIterator for the given Statement.
     * 
-    * @param l the list to iterate over.
+    * @param s the Statement with result rows to iterate over.
     */
    RowIterator(Statement* s);
    
@@ -39,23 +40,23 @@ public:
    virtual ~RowIterator();
    
    /**
-    * Gets the next object and advances the RowIterator.
+    * Gets the next Row and advances the RowIterator.
     * 
-    * @return the next object.
+    * @return the next Row.
     */
    virtual Row& next() = 0;
    
    /**
-    * Returns true if this RowIterator has more objects.
+    * Returns true if this RowIterator has more Rows.
     * 
-    * @return true if this RowIterator has more objects, false if not.
+    * @return true if this RowIterator has more Rows, false if not.
     */
    virtual bool hasNext() = 0;
    
    /**
-    * Removes the current object and advances the RowIterator.
+    * Has no effect, as Rows cannot be removed.
     */
-   virtual void remove() = 0;
+   virtual void remove() {};
 };
 
 } // end namespace database

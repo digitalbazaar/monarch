@@ -16,30 +16,29 @@ namespace database
 namespace sqlite3
 {
 
-/**
- * Forward declaration.
- */
+// forward declarations
 class Sqlite3Connection;
 class Sqlite3Statement;
 
 /**
- * A sqlite3 database statement.
+ * An Sqlite3Row is a Statement result Row for an sqlite3 database.
  * 
  * @author David I. Lehn
+ * @author Dave Longley
  */
 class Sqlite3Row : public db::database::Row
 {
 protected:
    /**
-    * Get parent statements sqlite3_stmt.
+    * Gets parent statements sqlite3_stmt.
     *
     * @return sqlite3_stmt for this Row
     */
    virtual sqlite3_stmt* getSqlite3Statement();
-
+   
 public:
    /**
-    * Creates a new Row.
+    * Creates a new Row from the given Statement.
     */
    Sqlite3Row(Sqlite3Statement* s);
    
@@ -47,33 +46,33 @@ public:
     * Destructs this Row.
     */
    virtual ~Sqlite3Row();
-
+   
    /**
-    * Get column type.
+    * Gets a column's data type.
     *
-    * @param col column index
+    * @param column the column's index.
     *
-    * @return column type id
+    * @return the type ID for the column.
     */
-   virtual int getType(int col);
-
+   virtual int getType(int column);
+   
    /**
-    * Get int from column.
-    *
-    * @param col column index
-    *
-    * @return int from column
+    * Gets an integer from a column.
+    * 
+    * @param column the column's index.
+    * 
+    * @return the integer from the specified column.
     */
-   virtual int getInt(int col);
-
+   virtual int getInteger(int column);
+   
    /**
-    * Get text string from column.
-    *
-    * @param col column index
-    *
-    * @return text string from column
+    * Gets a text string from a column.
+    * 
+    * @param column the column's index.
+    * 
+    * @return the text string from the specified column.
     */
-   virtual const char* getText(int col);
+   virtual const char* getText(int column);
 };
 
 } // end namespace sqlite3
