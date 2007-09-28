@@ -1852,7 +1852,7 @@ void runUrlEncodeTest()
 
 void dumpUrl(Url url)
 {
-   if(Thread::hasException())
+   if(Exception::hasLast())
    {
       cout << "url=[exception]" << endl;
    }
@@ -1864,10 +1864,10 @@ void dumpUrl(Url url)
       cout << "url=" << str << endl;
       cout << " scheme=" << url.getScheme() << endl;
       cout << " scheme specific part=" << url.getSchemeSpecificPart() << endl;
+      cout << " authority=" << url.getAuthority() << endl;
       cout << " userinfo=" << url.getUserInfo() << endl;
       cout << " user=" << url.getUser() << endl;
       cout << " password=" << url.getPassword() << endl;
-      cout << " authority=" << url.getAuthority() << endl;
       cout << " host=" << url.getHost() << endl;
       cout << " port=" << url.getPort() << endl;
       cout << " path=" << url.getPath() << endl;
@@ -1879,6 +1879,32 @@ void runUrlTest()
 {
    cout << "Starting Url test." << endl << endl;
 
+   {
+      Url url("http:");
+      
+      dumpUrl(url);
+      assert(url.getScheme() == "http");
+      assert(url.getSchemeSpecificPart() == "");
+   }
+   
+   {
+      Url url("http://");
+      
+      dumpUrl(url);
+      assert(url.getScheme() == "http");
+      assert(url.getSchemeSpecificPart() == "//");
+   }
+   
+   {
+      Url url("http://www.bitmunk.com");
+      
+      dumpUrl(url);
+      assert(url.getScheme() == "http");
+      assert(url.getSchemeSpecificPart() == "//www.bitmunk.com");
+      assert(url.getHost() == "www.bitmunk.com");
+      assert(url.getPath() == "/");
+   }
+   
    {
       Url url("http://www.bitmunk.com/mypath?variable1=test");
       
@@ -1892,7 +1918,7 @@ void runUrlTest()
       assert(url.getPath() == "/mypath");
       assert(url.getQuery() == "variable1=test");
    }
-
+   
    {
       Url url("http://example.com:8080/path");
       //dumpUrl(url);
@@ -1909,16 +1935,16 @@ void runUrlTest()
    
    {   
       Url url("scheme:schemespecific");
-      //dumpUrl(url);
-      assert(!Thread::hasException());
+      dumpUrl(url);
+      assert(!Exception::hasLast());
       assert(url.getScheme() == "scheme");
       assert(url.getSchemeSpecificPart() == "schemespecific");
    }
    
    {
       Url url("scheme://user:password@host:1234/path?key1=value1&key2=value2");
-      //dumpUrl(url);
-      assert(!Thread::hasException());
+      dumpUrl(url);
+      assert(!Exception::hasLast());
       assert(url.getScheme() == "scheme");
       assert(url.getUserInfo() == "user:password");
       assert(url.getUser() == "user");
@@ -3533,7 +3559,7 @@ void runSqlite3ConnectionTest()
 {
    cout << "Starting Sqlite3Connection test." << endl << endl;
    
-   Sqlite3Connection c("sqlite3:test.db");
+   Sqlite3Connection c("sqlite3::memory:");
    
    cout << endl << "Sqlite3Connection test complete." << endl;
 }
@@ -3549,7 +3575,7 @@ void runSqlite3Test()
 
    cout << "Starting Sqlite3 test." << endl << endl;
    
-   c = new Sqlite3Connection("sqlite3:test.db");
+   c = new Sqlite3Connection("sqlite3::memory:");
 
 //   s = c->createStatement("drop table if exists test");
 //   iret = s->executeUpdate();
@@ -3718,7 +3744,7 @@ public:
 //      runCipherTest("AES256");
 //      runConvertTest();
 //      runUrlEncodeTest();
-//      runUrlTest();
+      runUrlTest();
 //      runRegexTest();
 //      runDateTest();
 //      runConfigTest();
@@ -3743,7 +3769,7 @@ public:
 //      runXmlBindingOutputStreamTest();
 //      runBigIntegerTest();
 //      runBigDecimalTest();
-      runSqlite3ConnectionTest();
+//      runSqlite3ConnectionTest();
 //      runSqlite3Test();
 //      runLoggerTest();
 //      runUniqueListTest();

@@ -9,22 +9,35 @@
 using namespace std;
 using namespace db::database;
 using namespace db::database::sqlite3;
+using namespace db::rt;
 
 Sqlite3Connection::Sqlite3Connection(const char* url) : Connection(url)
 {
-   int ret;
+   // initialize handle
    mHandle = NULL;
    
    if(strcmp(mUrl.getScheme().c_str(), "sqlite3") == 0)
    {
-      // FIXME error handling
+      string msg;
+      string urlStr;
+      msg.append("Could not connect to sqlite3 database, ");
+      msg.append("url scheme not 'sqlite3', url='");
+      msg.append(mUrl.toString(urlStr));
+      msg.append(1, '\''); 
+      
+      Exception::setLast(new DatabaseException(msg.c_str()));
    }
    else
    {
-      ret = sqlite3_open(mUrl.getSchemeSpecificPart().c_str(), &mHandle);
+      // FIXME: we want to add read/write/create params to the URL
+      // so connections can be read-only/write/etc
+      int ret = sqlite3_open(mUrl.getSchemeSpecificPart().c_str(), &mHandle);
       if(ret != SQLITE_OK)
       {
          Sqlite3Connection::close();
+         
+         
+         
          // FIXME error handling
       }
    }

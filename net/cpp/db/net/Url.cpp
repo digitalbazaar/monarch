@@ -44,6 +44,17 @@ MalformedUrlException* Url::setUrl(const string& url)
    }
    else
    {
+      // find double slashes
+      index = url.find("//", index);
+      if(index == string::npos)
+      {
+         index = url.rfind(':');
+      }
+      else
+      {
+         index--;
+      }
+      
       // split string into the scheme and scheme-specific-part
       mScheme = url.substr(0, index);
       
@@ -54,7 +65,7 @@ MalformedUrlException* Url::setUrl(const string& url)
       // FIXME scheme should be case-insensitive
       char c;
       c = mScheme.c_str()[0];
-      if((c < 'a') || (c > 'z'))
+      if(c < 'a' || c > 'z')
       {
          rval = new MalformedUrlException(
             "Url scheme contains invalid start character!");
@@ -66,9 +77,8 @@ MalformedUrlException* Url::setUrl(const string& url)
          {
             // non-start characters must be in [a-z0-9+.-]
             c = *i;
-            if(!(((c > 'a') && (c < 'z')) ||
-               ((c > '0') && (c < '9')) ||
-               (c == '+') || (c == '.') || (c != '-')))
+            if(!((c > 'a' && c < 'z') || (c > '0' && c < '9') ||
+               c == '+' || c == '.' || c != '-'))
             {
                rval = new MalformedUrlException(
                   "Url scheme contains invalid characters!");
@@ -77,19 +87,18 @@ MalformedUrlException* Url::setUrl(const string& url)
             }
          }
       }
-
-      if(rval == NULL && index != url.length() - 1)
+      
+      if(rval == NULL && index < url.length() - 1)
       {
          // get scheme specific part
          mSchemeSpecificPart = url.substr(index + 1);
          
          // get authority, path, and query:
          
-         // authority is preceeded by double slash "//" and
+         // authority is preceeded by double slash "//" (current index + 1) and
          // is terminated by single slash "/", a question mark "?", or
          // the end of the url
-         index = mSchemeSpecificPart.find("//");
-         if(index == 0 && mSchemeSpecificPart.length() > 2)
+         if(mSchemeSpecificPart.length() > 2)
          {
             string::size_type slash = mSchemeSpecificPart.find('/', 2);
             string::size_type qMark = mSchemeSpecificPart.find('?', 2);
@@ -99,21 +108,15 @@ MalformedUrlException* Url::setUrl(const string& url)
             {
                // a query exists
                
-               // get the path
+               // get authority & path
                if(slash != string::npos && slash < qMark)
                {
-                  // get authority
                   mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
-                  
-                  // get path
                   mPath = mSchemeSpecificPart.substr(slash, qMark - slash);
                }
                else
                {
-                  // get authority
                   mAuthority = mSchemeSpecificPart.substr(2, qMark - 2);
-                  
-                  // use base path
                   mPath = '/';
                }
                
@@ -136,10 +139,18 @@ MalformedUrlException* Url::setUrl(const string& url)
             else
             {
                // no path or query, just authority
-               
-               // get authority, use base path
-               mAuthority = mSchemeSpecificPart.substr(2);
                mPath = '/';
+               
+               if(mSchemeSpecificPart[1] == '/')
+               {
+                  // get authority after slash
+                  mAuthority = mSchemeSpecificPart.substr(2);
+               }
+               else
+               {
+                  // set authority equal to scheme specific part
+                  mAuthority = mSchemeSpecificPart;
+               }
             }
          }
       }

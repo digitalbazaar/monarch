@@ -23,8 +23,8 @@ namespace net
  * A common, but not required, syntax for urls is as follows:
  * 
  * url = <scheme>://<authority><path>?<query>
- * authority = [ userinfo "@" ] host [ ":" port ]
- * userinfo = user ":" password 
+ * authority = <userinfo>@<host>:<port>
+ * userinfo = <user>:<password> 
  *
  * See also: RFC 3986
  * 
