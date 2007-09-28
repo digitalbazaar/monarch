@@ -10,29 +10,27 @@ using namespace db::database;
 using namespace db::database::sqlite3;
 
 Sqlite3Statement::Sqlite3Statement(Sqlite3Connection *c, const char* sql) :
-   Statement(c, sql)
+   Statement(c, sql),
+   mRowIterator(this)
 {
-   const char* tail;
-   
    // FIXME: switch to sqlite3_prepare_v2 when appropriate
-   sqlite3_prepare(c->mHandle, sql, -1, &mSqlite3Statement, &tail);
-   mRowIterator = new Sqlite3RowIterator(this);
+   const char* tail;
+   sqlite3_prepare(c->mHandle, sql, -1, &mHandle, &tail);
 }
 
 Sqlite3Statement::~Sqlite3Statement()
 {
-   sqlite3_finalize(mSqlite3Statement);
-   delete mRowIterator;
+   sqlite3_finalize(mHandle);
 }
 
 void Sqlite3Statement::setInteger(int pos, int value)
 {
-   sqlite3_bind_int(mSqlite3Statement, pos, value);
+   sqlite3_bind_int(mHandle, pos, value);
 }
 
 void Sqlite3Statement::setText(int pos, const char* value)
 {
-   sqlite3_bind_text(mSqlite3Statement, pos, value, -1, SQLITE_STATIC);
+   sqlite3_bind_text(mHandle, pos, value, -1, SQLITE_STATIC);
    // FIXME STATIC vs ...
 }
 

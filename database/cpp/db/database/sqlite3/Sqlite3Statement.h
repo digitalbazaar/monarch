@@ -7,7 +7,7 @@
 #include <sqlite3.h>
 
 #include "db/database/Statement.h"
-#include "db/database/RowIterator.h"
+#include "db/database/sqlite3/Sqlite3RowIterator.h"
 
 namespace db
 {
@@ -19,31 +19,31 @@ namespace sqlite3
 class Sqlite3Connection;
 
 /**
- * A sqlite3 database statement.
+ * An sqlite3 database statement.
  * 
  * @author David I. Lehn
+ * @author Dave Longley
  */
 class Sqlite3Statement : public db::database::Statement
 {
 protected:
    /**
-    * sqlite3 statement
+    * The C sqlite3 statement structure.
     */
-   sqlite3_stmt* mSqlite3Statement;
+   sqlite3_stmt* mHandle;
    
    /**
     * RowIterator for statement results;
     */
-   RowIterator* mRowIterator;
+   Sqlite3RowIterator mRowIterator;
    
    /**
-    * Sqlite3Row is a friend to allow access to C struct "sqlite3_stmt".
+    * Sqlite3Row is a friend to allow access to the C handle.
     */
    friend class Sqlite3Row;
    
    /**
-    * Sqlite3RowIterators is a friend to allow access to C struct
-    * "sqlite3_stmt".
+    * Sqlite3RowIterators is a friend to allow access to the C handle.
     */
    friend class Sqlite3RowIterator;
    
@@ -61,16 +61,16 @@ public:
    /**
     * Set an integer for a positional parameter.
     *
-    * @param pos parameter position.
-    * @param value parameter value.
+    * @param pos the parameter position.
+    * @param value the parameter value.
     */
    virtual void setInteger(int pos, int value);
    
    /**
     * Set a text string for a positional parameter.
     *
-    * @param pos parameter position.
-    * @param value parameter value.
+    * @param pos the parameter position.
+    * @param value the parameter value.
     */
    virtual void setText(int pos, const char* value);
    

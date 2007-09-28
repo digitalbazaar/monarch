@@ -7,6 +7,7 @@
 #include <sqlite3.h>
 
 #include "db/database/Connection.h"
+#include "db/database/sqlite3/Sqlite3Exception.h"
 
 namespace db
 {
@@ -33,10 +34,11 @@ protected:
    ::sqlite3* mHandle;
    
    /**
-    * Sqlite3Statement is a friend to this class so it can access the
-    * C handle to the database.
+    * These classes are friends so they can access the C handle to
+    * the database.
     */
    friend class Sqlite3Statement;
+   friend class Sqlite3Exception;
    
 public:
    /**

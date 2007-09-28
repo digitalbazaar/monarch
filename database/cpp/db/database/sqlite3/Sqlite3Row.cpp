@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-
 #include "db/database/sqlite3/Sqlite3Row.h"
 #include "db/database/sqlite3/Sqlite3Statement.h"
 #include "db/database/sqlite3/Sqlite3Connection.h"
@@ -10,8 +9,7 @@ using namespace std;
 using namespace db::database;
 using namespace db::database::sqlite3;
 
-Sqlite3Row::Sqlite3Row(Sqlite3Statement *s) :
-   Row(s)
+Sqlite3Row::Sqlite3Row(Sqlite3Statement* s) : Row(s)
 {
 }
 
@@ -21,7 +19,7 @@ Sqlite3Row::~Sqlite3Row()
 
 sqlite3_stmt* Sqlite3Row::getSqlite3Statement()
 {
-   return ((Sqlite3Statement*)mStatement)->mSqlite3Statement;
+   return ((Sqlite3Statement*)mStatement)->mHandle;
 }
 
 DatabaseException* Sqlite3Row::getType(int column, int& type)

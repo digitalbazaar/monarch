@@ -7,7 +7,6 @@
 #include <sqlite3.h>
 
 #include "db/database/Row.h"
-#include "db/database/sqlite3/Sqlite3Statement.h"
 
 namespace db
 {
@@ -38,7 +37,9 @@ protected:
    
 public:
    /**
-    * Creates a new Row from the given Statement.
+    * Creates a new Sqlite3Row from the given Sqlite3Statement.
+    * 
+    * @param s the Sqlite3Statement to create the Sqlite3Row from.
     */
    Sqlite3Row(Sqlite3Statement* s);
    

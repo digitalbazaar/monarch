@@ -1,29 +1,34 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-
-#include <sqlite3.h>
-
 #include "db/database/sqlite3/Sqlite3RowIterator.h"
-#include "db/database/sqlite3/Sqlite3Row.h"
+#include "db/database/sqlite3/Sqlite3Statement.h"
 
 using namespace db::database;
 using namespace db::database::sqlite3;
 
 Sqlite3RowIterator::Sqlite3RowIterator(Sqlite3Statement* s) :
-   RowIterator(s)
+   RowIterator(s),
+   mRow(s)
 {
-   mRow = new Sqlite3Row(s);
 }
 
 Sqlite3RowIterator::~Sqlite3RowIterator()
 {
-   delete mRow;
 }
 
 Row& Sqlite3RowIterator::next()
 {
-   return *mRow;
+//   ret = sqlite3_step(((Sqlite3Statement*)mStatement)->mSqlite3Statement);
+//
+//   if(ret == SQLITE_ROW)
+//   {
+//      rval = true;
+//   }
+   
+   
+   
+   return mRow;
 }
 
 bool Sqlite3RowIterator::hasNext()
@@ -31,7 +36,7 @@ bool Sqlite3RowIterator::hasNext()
    int ret;
    int rval = false;
 
-   ret = sqlite3_step(((Sqlite3Statement*)mStatement)->mSqlite3Statement);
+   ret = sqlite3_step(((Sqlite3Statement*)mStatement)->mHandle);
 
    if(ret == SQLITE_ROW)
    {
@@ -40,9 +45,4 @@ bool Sqlite3RowIterator::hasNext()
    // FIXME else handle error
 
    return rval;
-}
-
-void Sqlite3RowIterator::remove()
-{
-   // FIXME throw unimplemented error
 }

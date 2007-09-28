@@ -4,9 +4,8 @@
 #ifndef db_database_sqlite3_Sqlite3RowIterator_h
 #define db_database_sqlite3_Sqlite3RowIterator_h
 
-#include "db/database/Row.h"
 #include "db/database/RowIterator.h"
-#include "db/database/sqlite3/Sqlite3Statement.h"
+#include "db/database/sqlite3/Sqlite3Row.h"
 
 namespace db
 {
@@ -15,20 +14,22 @@ namespace database
 namespace sqlite3
 {
 
+// forward declare sqlite3 statement
 class Sqlite3Statement;
 
 /**
  * A RowIterator is an Iterator for Statement Rows.
  * 
  * @author David I. Lehn
+ * @author Dave Longley
  */
 class Sqlite3RowIterator : public db::database::RowIterator
 {
 protected:
    /**
-    * Current row.
+    * The current row.
     */
-   Row* mRow;
+   Sqlite3Row mRow;
 
 public:
    /**
@@ -56,11 +57,6 @@ public:
     * @return true if this RowIterator has more objects, false if not.
     */
    virtual bool hasNext();
-   
-   /**
-    * Removes the current object and advances the RowIterator.
-    */
-   virtual void remove();
 };
 
 } // end namespace sqlite3

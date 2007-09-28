@@ -1,0 +1,21 @@
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
+#include "db/database/sqlite3/Sqlite3Exception.h"
+#include "db/database/sqlite3/Sqlite3Connection.h"
+
+#include <sqlite3.h>
+
+using namespace db::database;
+using namespace db::database::sqlite3;
+
+Sqlite3Exception::Sqlite3Exception(Sqlite3Connection* c) :
+   DatabaseException("", "db.database.sqlite3.Sqlite3Exception")
+{
+   setCode(sqlite3_errcode(c->mHandle));
+   setMessage(sqlite3_errmsg(c->mHandle));
+}
+
+Sqlite3Exception::~Sqlite3Exception()
+{
+}

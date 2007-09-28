@@ -57,6 +57,6 @@ public:
    virtual const char* getSqlState();
 };
 
-} // end namespace io
+} // end namespace database
 } // end namespace db
 #endif

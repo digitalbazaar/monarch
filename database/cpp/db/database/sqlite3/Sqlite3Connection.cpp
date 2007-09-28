@@ -30,21 +30,20 @@ Sqlite3Connection::Sqlite3Connection(const char* url) : Connection(url)
    else
    {
       // FIXME: we want to add read/write/create params to the URL
-      // so connections can be read-only/write/etc
-      int ret = sqlite3_open(mUrl.getSchemeSpecificPart().c_str(), &mHandle);
-      if(ret != SQLITE_OK)
+      // so connections can be read-only/write/etc (use query in URL)
+      int ec = sqlite3_open(mUrl.getSchemeSpecificPart().c_str(), &mHandle);
+      if(ec != SQLITE_OK)
       {
+         // create exception, close connection
+         Exception::setLast(new Sqlite3Exception(this));
          Sqlite3Connection::close();
-         
-         
-         
-         // FIXME error handling
       }
    }
 }
 
 Sqlite3Connection::~Sqlite3Connection()
 {
+   // ensure connection is closed
    Sqlite3Connection::close();
 }
 

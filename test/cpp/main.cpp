@@ -3744,7 +3744,7 @@ public:
 //      runCipherTest("AES256");
 //      runConvertTest();
 //      runUrlEncodeTest();
-      runUrlTest();
+//      runUrlTest();
 //      runRegexTest();
 //      runDateTest();
 //      runConfigTest();
@@ -3770,7 +3770,7 @@ public:
 //      runBigIntegerTest();
 //      runBigDecimalTest();
 //      runSqlite3ConnectionTest();
-//      runSqlite3Test();
+      runSqlite3Test();
 //      runLoggerTest();
 //      runUniqueListTest();
       
