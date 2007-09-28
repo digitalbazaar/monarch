@@ -23,7 +23,7 @@ Sqlite3Connection::Sqlite3Connection(const char* url) : Connection(url)
       msg.append("Could not connect to sqlite3 database, ");
       msg.append("url scheme not 'sqlite3', url='");
       msg.append(mUrl.toString(urlStr));
-      msg.append(1, '\''); 
+      msg.append(1, '\'');
       
       Exception::setLast(new DatabaseException(msg.c_str()));
    }
