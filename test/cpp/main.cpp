@@ -3643,15 +3643,17 @@ void runSqlite3StatementTest()
    int i;
    while((row = s->fetch()) != NULL)
    {
-      cout << "Row result:" << endl;
+      cout << endl << "Row result:" << endl;
       row->getText(0, t);
       assertNoException();
       row->getInt32(1, i);
       assertNoException();
       
       cout << "t=" << t << endl;
-      cout << "i=" << i << endl << endl;
+      cout << "i=" << i << endl;
    }
+   
+   cout << endl << "Result Rows complete." << endl;
    delete s;
    cout << "select test passed!" << endl;
    

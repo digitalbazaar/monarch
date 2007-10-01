@@ -182,7 +182,7 @@ Row* Sqlite3Statement::fetch()
 {
    Row* rval = NULL;
    
-   if(mState != SQLITE_DONE)
+   if(mState == SQLITE_ROW)
    {
       mState = sqlite3_step(mHandle);
       switch(mState)
@@ -204,6 +204,18 @@ Row* Sqlite3Statement::fetch()
                new Sqlite3Exception((Sqlite3Connection*)mConnection));
             break;
       }
+   }
+   else if(mState == SQLITE_OK)
+   {
+      if(mRow == NULL)
+      {
+         // create row as necessary
+         mRow = new Sqlite3Row(this);
+      }
+      
+      // return row and update state for next row
+      rval = mRow;
+      mState = SQLITE_ROW;
    }
    
    return rval;
