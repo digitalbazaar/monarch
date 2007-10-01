@@ -7,7 +7,7 @@
 #include <sqlite3.h>
 
 #include "db/database/Statement.h"
-#include "db/database/sqlite3/Sqlite3RowIterator.h"
+#include "db/database/sqlite3/Sqlite3Row.h"
 
 namespace db
 {
@@ -21,8 +21,8 @@ class Sqlite3Connection;
 /**
  * An sqlite3 database statement.
  * 
- * @author David I. Lehn
  * @author Dave Longley
+ * @author David I. Lehn
  */
 class Sqlite3Statement : public db::database::Statement
 {
@@ -33,19 +33,20 @@ protected:
    sqlite3_stmt* mHandle;
    
    /**
-    * RowIterator for statement results;
+    * The current state for this statement, i.e. whether or not it
+    * has been executed/whether or not a result Row is ready.
     */
-   Sqlite3RowIterator mRowIterator;
+   int mState;
+   
+   /**
+    * The current row, if any.
+    */
+   Sqlite3Row* mRow;
    
    /**
     * Sqlite3Row is a friend to allow access to the C handle.
     */
    friend class Sqlite3Row;
-   
-   /**
-    * Sqlite3RowIterators is a friend to allow access to the C handle.
-    */
-   friend class Sqlite3RowIterator;
    
 public:
    /**
@@ -59,20 +60,34 @@ public:
    virtual ~Sqlite3Statement();
    
    /**
-    * Set an integer for a positional parameter.
-    *
-    * @param pos the parameter position.
-    * @param value the parameter value.
+    * Sets the value of a 32-bit integer for a named parameter (:mynamehere).
+    * 
+    * @param name the parameter name.
+    * @param value parameter value.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual void setInteger(int pos, int value);
+   virtual DatabaseException* setInt32(const char* name, int value);
    
    /**
-    * Set a text string for a positional parameter.
-    *
-    * @param pos the parameter position.
-    * @param value the parameter value.
+    * Sets the value of a 64-bit integer for a named parameter (:mynamehere).
+    * 
+    * @param name the parameter name.
+    * @param value parameter value.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual void setText(int pos, const char* value);
+   virtual DatabaseException* setInt64(const char* name, long long value);
+   
+   /**
+    * Sets the value of a text string for a named parameter (:mynamehere).
+    * 
+    * @param name the parameter name.
+    * @param value parameter value.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
+    */
+   virtual DatabaseException* setText(const char* name, const char* value);
    
    /**
     * Executes this Statement.
@@ -80,6 +95,14 @@ public:
     * @return a DatabaseException if one occurred, NULL if not.
     */
    virtual DatabaseException* execute();
+   
+   /**
+    * Fetches the next result Row once this Statement has been executed.
+    * 
+    * @return the next result Row once this Statement has been executed,
+    *         NULL if there is no next Row.
+    */
+   virtual Row* fetch();
    
    /**
     * Gets the number of rows modified by this Statement.

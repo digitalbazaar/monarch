@@ -10,7 +10,7 @@ using namespace db::database;
 using namespace db::database::sqlite3;
 
 Sqlite3Exception::Sqlite3Exception(Sqlite3Connection* c) :
-   DatabaseException("", "db.database.sqlite3.Sqlite3Exception")
+   DatabaseException("", "db.database.sqlite3.Sqlite3")
 {
    setCode(sqlite3_errcode(c->mHandle));
    setMessage(sqlite3_errmsg(c->mHandle));

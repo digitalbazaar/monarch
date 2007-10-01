@@ -7,10 +7,6 @@
 #include "db/database/Statement.h"
 #include "db/database/DatabaseException.h"
 
-#define DB_DATABASE_NULL 0
-#define DB_DATABASE_INT 1
-#define DB_DATABASE_TEXT 2
-
 namespace db
 {
 namespace database
@@ -19,8 +15,8 @@ namespace database
 /**
  * A Row is a single result row from an executed database statement.
  * 
- * @author David I. Lehn
  * @author Dave Longley
+ * @author David I. Lehn
  */
 class Row
 {

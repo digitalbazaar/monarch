@@ -40,7 +40,9 @@ public:
     * @param type the type for this Exception.
     * @param code the code for this Exception.
     */
-   IOException(const char* message = "", const char* type = "", int code = 0);
+   IOException(
+      const char* message = "",
+      const char* type = "db.io.IO", int code = 0);
    
    /**
     * Destructs this IOException.

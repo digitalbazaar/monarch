@@ -23,12 +23,15 @@ public:
    /**
     * Creates a new UnknownHostException.
     *
-    * A message and code may be optionally specified.
+    * A message, type, and code may be optionally specified.
     *
     * @param message the message for this Exception.
+    * @param type the type for this Exception.
     * @param code the code for this Exception.
     */
-   UnknownHostException(const char* message = NULL, const char* code = NULL);
+   UnknownHostException(
+      const char* message = "",
+      const char* type = "db.net.UnknownHost", int code = 0);
    
    /**
     * Destructs this UnknownHostException.

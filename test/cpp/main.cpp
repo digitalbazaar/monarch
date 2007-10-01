@@ -60,7 +60,6 @@
 #include "db/database/sqlite3/Sqlite3Connection.h"
 #include "db/database/Statement.h"
 #include "db/database/Row.h"
-#include "db/database/RowIterator.h"
 #include "db/logging/Logger.h"
 #include "db/logging/OutputStreamLogger.h"
 #include "db/logging/FileLogger.h"
@@ -3564,24 +3563,30 @@ void runSqlite3ConnectionTest()
    cout << endl << "Sqlite3Connection test complete." << endl;
 }
 
-void runSqlite3Test()
+void runSqlite3StatementTest()
 {
-   db::database::Connection* c;
-   db::database::Statement* s;
-   db::database::Row* r;
-   db::database::RowIterator* ri;
-   int cnt;
-   int iret;
-
    cout << "Starting Sqlite3 test." << endl << endl;
    
-   c = new Sqlite3Connection("sqlite3::memory:");
-
-//   s = c->createStatement("drop table if exists test");
-//   iret = s->executeUpdate();
-//   assert(iret != DB_DATABASE_UPDATE_ERROR);
-//   delete s;
-//
+   // clear any exceptions
+   Exception::clearLast();
+   
+   Sqlite3Connection c("sqlite3::memory:");
+   
+   // drop table test
+   db::database::Statement* s = c.prepare("DROP TABLE IF EXISTS test");
+   assert(s != NULL);
+   db::database::DatabaseException* e = s->execute();
+   delete s;
+   
+   if(Exception::hasLast())
+   {
+      Exception* e = Exception::getLast();
+      cout << "Database Exception occurred!" << endl;
+      cout << "message: " << e->getMessage() << endl;
+      cout << "type: " << e->getType() << endl;
+      cout << "code: " << e->getCode() << endl;
+   }
+   
 //   s = c->createStatement("create table if not exists test (t text, i int)");
 //   iret = s->executeUpdate();
 //   assert(iret != DB_DATABASE_UPDATE_ERROR);
@@ -3637,10 +3642,18 @@ void runSqlite3Test()
 //   assert(!ri->hasNext());
 //   delete s;
 
-   c->close();
-   delete c;
+   c.close();
    
    cout << endl << "Sqlite3 test complete." << endl;
+}
+
+void runDatabaseManagerTest()
+{
+   cout << "Starting DatabaseManager test." << endl << endl;
+   
+   // FIXME:
+   
+   cout << endl << "DatabaseManager test complete." << endl;
 }
 
 void runLoggerTest()
@@ -3770,17 +3783,19 @@ public:
 //      runBigIntegerTest();
 //      runBigDecimalTest();
 //      runSqlite3ConnectionTest();
-      runSqlite3Test();
+      runSqlite3StatementTest();
+//      runDatabaseManagerTest();
 //      runLoggerTest();
 //      runUniqueListTest();
       
       cout << endl << "Tests finished." << endl;
       
-      if(Thread::hasException())
+      if(Exception::hasLast())
       {
          Exception* e = Exception::getLast();
          cout << "Exception occurred!" << endl;
          cout << "message: " << e->getMessage() << endl;
+         cout << "type: " << e->getType() << endl;
          cout << "code: " << e->getCode() << endl;
       }
    }
@@ -3807,7 +3822,7 @@ int main()
       WSACleanup();
    #endif
    
-   Thread::setException(new Exception("Main thread exception leak test"));
+   Exception::setLast(new Exception("Main thread exception leak test"));
 
    #ifndef WIN32
    // FIXME: calling Thread::exit() on windows causes a busy loop of

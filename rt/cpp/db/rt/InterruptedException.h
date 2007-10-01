@@ -29,7 +29,8 @@ public:
     * @param code the code for this Exception.
     */
    InterruptedException(
-      const char* message = "", const char* code = "", int code = 0);
+      const char* message = "",
+      const char* code = "db.rt.Interrupted", int code = 0);
    
    /**
     * Destructs this InterruptedException.

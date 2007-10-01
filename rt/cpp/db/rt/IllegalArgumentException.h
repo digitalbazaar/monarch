@@ -30,7 +30,8 @@ public:
     * @param code the code for this Exception.
     */
    IllegalArgumentException(
-      const char* message = "", const char* type = "", int code = 0);
+      const char* message = "",
+      const char* type = "db.rt.IllegalArgument", int code = 0);
    
    /**
     * Destructs this IllegalArgumentException.

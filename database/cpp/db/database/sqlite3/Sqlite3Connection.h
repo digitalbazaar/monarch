@@ -22,8 +22,8 @@ class Sqlite3Statement;
 /**
  * An Sqlite3Connection is a Connection to an sqlite3 database.
  * 
- * @author David I. Lehn
  * @author Dave Longley
+ * @author David I. Lehn
  */
 class Sqlite3Connection : public db::database::Connection
 {

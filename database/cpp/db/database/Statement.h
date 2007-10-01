@@ -6,21 +6,20 @@
 
 #include "db/database/Connection.h"
 
-#define DB_DATABASE_UPDATE_ERROR -1 // executeUpdate error code
-
 namespace db
 {
 namespace database
 {
 
-class RowIterator;
+// forward declare row
+class Row;
 
 /**
  * A Statement is an abstract base class for SQL database statements. Extending
  * classes will provide the appropriate implementation details.
  * 
- * @author David I. Lehn
  * @author Dave Longley
+ * @author David I. Lehn
  */
 class Statement
 {
@@ -54,22 +53,34 @@ public:
    virtual Connection* getConnection();
    
    /**
-    * Set an integer for a positional parameter.
-    *
-    * @param pos parameter position.
-    * @param value parameter value.
-    */
-   virtual void setInteger(int pos, int value) = 0;
-   
-   /**
-    * Set a text string for a positional parameter.
-    *
-    * @param pos parameter position.
+    * Sets the value of a 32-bit integer for a named parameter (:mynamehere).
+    * 
+    * @param name the parameter name.
     * @param value parameter value.
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual void setText(int pos, const char* value) = 0;
+   virtual DatabaseException* setInt32(const char* name, int value) = 0;
+   
+   /**
+    * Sets the value of a 64-bit integer for a named parameter (:mynamehere).
+    * 
+    * @param name the parameter name.
+    * @param value parameter value.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
+    */
+   virtual DatabaseException* setInt64(const char* name, long long value) = 0;
+   
+   /**
+    * Sets the value of a text string for a named parameter (:mynamehere).
+    * 
+    * @param name the parameter name.
+    * @param value parameter value.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
+    */
+   virtual DatabaseException* setText(const char* name, const char* value) = 0;
    
    /**
     * Executes this Statement.
@@ -77,6 +88,14 @@ public:
     * @return a DatabaseException if one occurred, NULL if not.
     */
    virtual DatabaseException* execute() = 0;
+   
+   /**
+    * Fetches the next result Row once this Statement has been executed.
+    * 
+    * @return the next result Row once this Statement has been executed,
+    *         NULL if there is no next Row.
+    */
+   virtual Row* fetch() = 0;
    
    /**
     * Gets the number of rows modified by this Statement.

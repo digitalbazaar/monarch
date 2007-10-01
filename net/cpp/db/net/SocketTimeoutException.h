@@ -29,7 +29,8 @@ public:
     * @param code the code for this Exception.
     */
    SocketTimeoutException(
-      const char* message = "", const char* type = "", int code = 0);
+      const char* message = "",
+      const char* type = "db.net.SocketTimeout", int code = 0);
    
    /**
     * Destructs this SocketTimeoutException.

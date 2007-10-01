@@ -32,7 +32,8 @@ public:
     * @param code the code for this Exception.
     */
    InvalidRegexException(
-      const char* message = "", const char* type = "", int code = 0);
+      const char* message = "",
+      const char* type = "db.util.InvalidRegex", int code = 0);
    
    /**
     * Destructs this InvalidRegexException.

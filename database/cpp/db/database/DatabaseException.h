@@ -35,7 +35,8 @@ public:
     * @param code the code for this Exception.
     */
    DatabaseException(
-      const char* message = "", const char* type = "", int code = 0);
+      const char* message = "",
+      const char* type = "db.database.Database", int code = 0);
    
    /**
     * Destructs this DatabaseException.

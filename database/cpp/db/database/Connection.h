@@ -21,8 +21,8 @@ class Statement;
  * type of database. Extending classes will provide appropriate implementation
  * details.
  * 
- * @author David I. Lehn
  * @author Dave Longley
+ * @author David I. Lehn
  */
 class Connection
 {

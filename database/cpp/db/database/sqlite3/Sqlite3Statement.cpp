@@ -4,77 +4,170 @@
 
 #include "db/database/sqlite3/Sqlite3Statement.h"
 #include "db/database/sqlite3/Sqlite3Connection.h"
-#include "db/database/sqlite3/Sqlite3RowIterator.h"
+#include "db/database/sqlite3/Sqlite3Row.h"
 
 using namespace db::database;
 using namespace db::database::sqlite3;
+using namespace db::rt;
 
 Sqlite3Statement::Sqlite3Statement(Sqlite3Connection *c, const char* sql) :
-   Statement(c, sql),
-   mRowIterator(this)
+   Statement(c, sql)
 {
    // FIXME: switch to sqlite3_prepare_v2 when appropriate
    const char* tail;
-   sqlite3_prepare(c->mHandle, sql, -1, &mHandle, &tail);
+   mState = sqlite3_prepare(c->mHandle, sql, -1, &mHandle, &tail);
+   if(mState != SQLITE_OK)
+   {
+      // exception
+      Exception::setLast(new Sqlite3Exception((Sqlite3Connection*)mConnection));
+   }
+   
+   // no current row yet
+   mRow = NULL;
 }
 
 Sqlite3Statement::~Sqlite3Statement()
 {
+   // clean up row, if any
+   if(mRow != NULL)
+   {
+      delete mRow;
+   }
+   
+   // clean up C statement
    sqlite3_finalize(mHandle);
 }
 
-void Sqlite3Statement::setInteger(int pos, int value)
+DatabaseException* Sqlite3Statement::setInt32(
+   const char* name, int value)
 {
-   sqlite3_bind_int(mHandle, pos, value);
+   DatabaseException* rval = NULL;
+   
+   int index = sqlite3_bind_parameter_index(mHandle, name);
+   if(index == 0)
+   {
+      // exception, no parameter with given name found
+      rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      Exception::setLast(rval);
+   }
+   else
+   {
+      mState = sqlite3_bind_int(mHandle, index, value);
+      if(mState != SQLITE_OK)
+      {
+         // exception, could not bind parameter
+         rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+         Exception::setLast(rval);
+      }
+   }
+   
+   return rval;
 }
 
-void Sqlite3Statement::setText(int pos, const char* value)
+DatabaseException* Sqlite3Statement::setInt64(
+   const char* name, long long value)
 {
-   sqlite3_bind_text(mHandle, pos, value, -1, SQLITE_STATIC);
-   // FIXME STATIC vs ...
+   DatabaseException* rval = NULL;
+   
+   int index = sqlite3_bind_parameter_index(mHandle, name);
+   if(index == 0)
+   {
+      // exception, no parameter with given name found
+      rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      Exception::setLast(rval);
+   }
+   else
+   {
+      mState = sqlite3_bind_int64(mHandle, index, value);
+      if(mState != SQLITE_OK)
+      {
+         // exception, could not bind parameter
+         rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+         Exception::setLast(rval);
+      }
+   }
+   
+   return rval;
+}
+
+DatabaseException* Sqlite3Statement::setText(
+   const char* name, const char* value)
+{
+   DatabaseException* rval = NULL;
+   
+   int index = sqlite3_bind_parameter_index(mHandle, name);
+   if(index == 0)
+   {
+      // exception, no parameter with given name found
+      rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      Exception::setLast(rval);
+   }
+   else
+   {
+      mState = sqlite3_bind_text(mHandle, index, value, -1, SQLITE_STATIC);
+      if(mState != SQLITE_OK)
+      {
+         // exception, could not bind parameter
+         rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+         Exception::setLast(rval);
+      }
+   }
+   
+   return rval;
 }
 
 DatabaseException* Sqlite3Statement::execute()
 {
-   // FIXME:
-   return NULL;
+   DatabaseException* rval = NULL;
+   
+   if(mState == SQLITE_OK)
+   {
+      // step to execute statement
+      mState = sqlite3_step(mHandle);
+   }
+   else
+   {
+      rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      Exception::setLast(rval);
+   }
+   
+   return rval;
+}
+
+Row* Sqlite3Statement::fetch()
+{
+   Row* rval = NULL;
+   
+   if(mState != SQLITE_DONE)
+   {
+      mState = sqlite3_step(mHandle);
+      switch(mState)
+      {
+         case SQLITE_ROW:
+            if(mRow == NULL)
+            {
+               // create row as necessary
+               mRow = new Sqlite3Row(this);
+            }
+            rval = mRow;
+            break;
+         case SQLITE_DONE:
+            // no more rows
+            break;
+         default:
+            // set exception
+            Exception::setLast(
+               new Sqlite3Exception((Sqlite3Connection*)mConnection));
+            break;
+      }
+   }
+   
+   return rval;
 }
 
 DatabaseException* Sqlite3Statement::getRowsChanged(int& rows)
 {
-   // FIXME:
-   // if(mState == SQLITE_DONE)
+   // FIXME: handle exceptions
    rows = sqlite3_changes(((Sqlite3Connection*)mConnection)->mHandle);
    return NULL;
 }
-
-//RowIterator* Sqlite3Statement::executeQuery()
-//{
-//   return mRowIterator;
-//}
-//
-//int Sqlite3Statement::executeUpdate()
-//{
-//   int ret;
-//   int rval;
-//
-//   ret = sqlite3_step(mSqlite3Statement);
-//
-//   if(ret == SQLITE_DONE)
-//   {
-//      rval = sqlite3_changes(((Sqlite3Connection*)mConnection)->mHandle);
-//   }
-//   // FIXME else handle error
-//
-//   return rval;
-//}
-
-//int Sqlite3Statement::getErrorCode()
-//{
-//   return sqlite3_errcode(((Sqlite3Connection*)mConnection)->mHandle);
-//}
-//
-//const char* Sqlite3Statement::getErrorMessage()
-//{
-//   return sqlite3_errmsg(((Sqlite3Connection*)mConnection)->mHandle);
-//}

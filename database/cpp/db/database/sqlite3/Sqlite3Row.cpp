@@ -17,7 +17,7 @@ Sqlite3Row::~Sqlite3Row()
 {
 }
 
-sqlite3_stmt* Sqlite3Row::getSqlite3Statement()
+sqlite3_stmt* Sqlite3Row::getStatementHandle()
 {
    return ((Sqlite3Statement*)mStatement)->mHandle;
 }
@@ -25,20 +25,20 @@ sqlite3_stmt* Sqlite3Row::getSqlite3Statement()
 DatabaseException* Sqlite3Row::getType(int column, int& type)
 {
    // FIXME: check exceptions, etc
-   type = sqlite3_column_type(getSqlite3Statement(), column);
+   type = sqlite3_column_type(getStatementHandle(), column);
    return NULL;
 }
 
 DatabaseException* Sqlite3Row::getInteger(int column, int& i)
 {
    // FIXME: check exceptions, etc
-   i = sqlite3_column_int(getSqlite3Statement(), column);
+   i = sqlite3_column_int(getStatementHandle(), column);
    return NULL;
 }
 
 DatabaseException* Sqlite3Row::getText(int column, string& str)
 {
    // FIXME: check exceptions, etc
-   str.assign((const char*)sqlite3_column_text(getSqlite3Statement(), column));
+   str.assign((const char*)sqlite3_column_text(getStatementHandle(), column));
    return NULL;
 }

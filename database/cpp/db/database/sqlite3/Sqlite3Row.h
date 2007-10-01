@@ -22,18 +22,18 @@ class Sqlite3Statement;
 /**
  * An Sqlite3Row is a Statement result Row for an sqlite3 database.
  * 
- * @author David I. Lehn
  * @author Dave Longley
+ * @author David I. Lehn
  */
 class Sqlite3Row : public db::database::Row
 {
 protected:
    /**
-    * Gets parent statements sqlite3_stmt.
-    *
-    * @return sqlite3_stmt for this Row
+    * Gets the C handle for the Sqlite3Statement.
+    * 
+    * @return the C handle for the Sqlite3Statement.
     */
-   virtual sqlite3_stmt* getSqlite3Statement();
+   virtual sqlite3_stmt* getStatementHandle();
    
 public:
    /**
@@ -50,7 +50,7 @@ public:
    
    /**
     * Gets a column's data type.
-    *
+    * 
     * @param column the column's index.
     * @param type the type ID for the column.
     * 
