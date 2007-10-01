@@ -29,10 +29,17 @@ DatabaseException* Sqlite3Row::getType(int column, int& type)
    return NULL;
 }
 
-DatabaseException* Sqlite3Row::getInteger(int column, int& i)
+DatabaseException* Sqlite3Row::getInt32(int column, int& i)
 {
    // FIXME: check exceptions, etc
    i = sqlite3_column_int(getStatementHandle(), column);
+   return NULL;
+}
+
+DatabaseException* Sqlite3Row::getInt64(int column, long long& i)
+{
+   // FIXME: check exceptions, etc
+   i = sqlite3_column_int64(getStatementHandle(), column);
    return NULL;
 }
 

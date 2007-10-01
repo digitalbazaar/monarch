@@ -53,6 +53,36 @@ public:
    virtual Connection* getConnection();
    
    /**
+    * Sets the value of a 32-bit integer for a positional parameter.
+    * 
+    * @param param the parameter number (1 being the first param).
+    * @param value parameter value.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
+    */
+   virtual DatabaseException* setInt32(int param, int value) = 0;
+   
+   /**
+    * Sets the value of a 64-bit integer for a positional parameter.
+    * 
+    * @param param the parameter number (1 being the first param).
+    * @param value parameter value.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
+    */
+   virtual DatabaseException* setInt64(int param, long long value) = 0;
+   
+   /**
+    * Sets the value of a text string for a positional parameter.
+    * 
+    * @param param the parameter number (1 being the first param).
+    * @param value parameter value.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
+    */
+   virtual DatabaseException* setText(int param, const char* value) = 0;
+   
+   /**
     * Sets the value of a 32-bit integer for a named parameter (:mynamehere).
     * 
     * @param name the parameter name.

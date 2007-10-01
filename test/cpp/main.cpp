@@ -3563,6 +3563,19 @@ void runSqlite3ConnectionTest()
    cout << endl << "Sqlite3Connection test complete." << endl;
 }
 
+void assertNoException()
+{
+   if(Exception::hasLast())
+   {
+      Exception* e = Exception::getLast();
+      cout << "Exception occurred!" << endl;
+      cout << "message: " << e->getMessage() << endl;
+      cout << "type: " << e->getType() << endl;
+      cout << "code: " << e->getCode() << endl;
+      assert(!Exception::hasLast());
+   }
+}
+
 void runSqlite3StatementTest()
 {
    cout << "Starting Sqlite3 test." << endl << endl;
@@ -3571,78 +3584,79 @@ void runSqlite3StatementTest()
    Exception::clearLast();
    
    Sqlite3Connection c("sqlite3::memory:");
+   db::database::Statement* s;
    
    // drop table test
-   db::database::Statement* s = c.prepare("DROP TABLE IF EXISTS test");
+   s = c.prepare("DROP TABLE IF EXISTS test");
    assert(s != NULL);
-   db::database::DatabaseException* e = s->execute();
+   s->execute();
    delete s;
+   assertNoException();
+   cout << "drop table test passed!" << endl;
    
-   if(Exception::hasLast())
+   // create table test
+   s = c.prepare("CREATE TABLE IF NOT EXISTS test (t text, i int)");
+   s->execute();
+   delete s;
+   assertNoException();
+   cout << "create table test passed!" << endl;
+   
+   // insert test 1
+   s = c.prepare("INSERT INTO test (t, i) VALUES ('test!', 1234)");
+   s->execute();
+   delete s;
+   assertNoException();
+   cout << "insert test 1 passed!" << endl;
+   
+   // insert test 2
+   s = c.prepare("INSERT INTO test (t, i) VALUES ('!tset', 4321)");
+   s->execute();
+   delete s;
+   assertNoException();
+   cout << "insert test 2 passed!" << endl;
+   
+   // insert positional parameters test
+   s = c.prepare("INSERT INTO test (t, i) VALUES (?, ?)");
+   s->setText(1, "boundpositional");
+   s->setInt32(2, 2222);
+   s->execute();
+   delete s;
+   assertNoException();
+   cout << "insert positional parameters test passed!" << endl;
+   
+   // insert named parameters test
+   s = c.prepare("INSERT INTO test (t, i) VALUES (:first, :second)");
+   s->setText(":first", "boundnamed");
+   s->setInt32(":second", 2223);
+   s->execute();
+   delete s;
+   assertNoException();
+   cout << "insert named parameters test passed!" << endl;
+   
+   // select test
+   s = c.prepare("SELECT * FROM test");
+   s->execute();
+   
+   // fetch rows
+   db::database::Row* row;
+   string t;
+   int i;
+   while((row = s->fetch()) != NULL)
    {
-      Exception* e = Exception::getLast();
-      cout << "Database Exception occurred!" << endl;
-      cout << "message: " << e->getMessage() << endl;
-      cout << "type: " << e->getType() << endl;
-      cout << "code: " << e->getCode() << endl;
+      cout << "Row result:" << endl;
+      row->getText(0, t);
+      assertNoException();
+      row->getInt32(1, i);
+      assertNoException();
+      
+      cout << "t=" << t << endl;
+      cout << "i=" << i << endl << endl;
    }
+   delete s;
+   cout << "select test passed!" << endl;
    
-//   s = c->createStatement("create table if not exists test (t text, i int)");
-//   iret = s->executeUpdate();
-//   assert(iret != DB_DATABASE_UPDATE_ERROR);
-//   delete s;
-//
-//   s = c->createStatement("insert into test (t,i) values ('test!', 1234)");
-//   iret = s->executeUpdate();
-//   assert(iret == 1);
-//   delete s;
-//
-//   s = c->createStatement("insert into test (t,i) values ('!tset', 4321)");
-//   iret = s->executeUpdate();
-//   assert(iret == 1);
-//   delete s;
-//
-//   s = c->createStatement("insert into test (t,i) values (?, ?)");
-//   s->setText(1, "bound");
-//   s->setInt(2, 2222);
-//   iret = s->executeUpdate();
-//   assert(iret == 1);
-//   delete s;
-//
-//   s = c->createStatement("select * from test");
-//   ri = s->executeQuery();
-//   assert(ri != NULL);
-//   cnt = 0;
-//   while(ri->hasNext())
-//   {
-//      cnt++;
-//   }
-//   assert(cnt == 3);
-//   delete s;
-//
-//   s = c->createStatement("select * from test order by i");
-//   ri = s->executeQuery();
-//   assert(ri != NULL);
-//
-//   assert(ri->hasNext());
-//   r = &ri->next();
-//   assert(strcmp(r->getText(0), "test!") == 0);
-//   assert(r->getInt(1) == 1234);
-//
-//   assert(ri->hasNext());
-//   r = &ri->next();
-//   assert(strcmp(r->getText(0), "bound") == 0);
-//   assert(r->getInt(1) == 2222);
-//
-//   assert(ri->hasNext());
-//   r = &ri->next();
-//   assert(strcmp(r->getText(0), "!tset") == 0);
-//   assert(r->getInt(1) == 4321);
-//
-//   assert(!ri->hasNext());
-//   delete s;
-
    c.close();
+   assertNoException();
    
    cout << endl << "Sqlite3 test complete." << endl;
 }

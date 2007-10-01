@@ -53,14 +53,24 @@ public:
    virtual DatabaseException* getType(int column, int& type) = 0;
    
    /**
-    * Gets an integer from a column.
+    * Gets a 32-bit integer from a column.
     * 
     * @param column the column's index.
     * @param i the integer to store the integer in.
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* getInteger(int column, int& i) = 0;
+   virtual DatabaseException* getInt32(int column, int& i) = 0;
+   
+   /**
+    * Gets a 64-bit integer from a column.
+    * 
+    * @param column the column's index.
+    * @param i the integer to store the integer in.
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
+    */
+   virtual DatabaseException* getInt64(int column, long long& i) = 0;
    
    /**
     * Gets a text string from a column.
