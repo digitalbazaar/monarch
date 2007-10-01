@@ -227,3 +227,12 @@ DatabaseException* Sqlite3Statement::getRowsChanged(int& rows)
    rows = sqlite3_changes(((Sqlite3Connection*)mConnection)->mHandle);
    return NULL;
 }
+
+long long Sqlite3Statement::getLastInsertRowId()
+{
+   long long rval = 0;
+   
+   rval = sqlite3_last_insert_rowid(((Sqlite3Connection*)mConnection)->mHandle);
+   
+   return rval;
+}

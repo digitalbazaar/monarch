@@ -135,6 +135,14 @@ public:
     * @return a DatabaseException if one occurred, NULL if not.
     */
    virtual DatabaseException* getRowsChanged(int& rows) = 0;
+   
+   /**
+    * Gets the ID of the last row that was inserted. This is done per
+    * connection and is useful for auto-incrementing rows.
+    * 
+    * @return the ID of the last row that was inserted.
+    */
+   virtual long long getLastInsertRowId() = 0;
 };
 
 } // end namespace database

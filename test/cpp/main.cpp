@@ -3604,6 +3604,7 @@ void runSqlite3StatementTest()
    // insert test 1
    s = c.prepare("INSERT INTO test (t, i) VALUES ('test!', 1234)");
    s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;
    assertNoException();
    cout << "insert test 1 passed!" << endl;
@@ -3611,6 +3612,7 @@ void runSqlite3StatementTest()
    // insert test 2
    s = c.prepare("INSERT INTO test (t, i) VALUES ('!tset', 4321)");
    s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;
    assertNoException();
    cout << "insert test 2 passed!" << endl;
@@ -3620,6 +3622,7 @@ void runSqlite3StatementTest()
    s->setText(1, "boundpositional");
    s->setInt32(2, 2222);
    s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;
    assertNoException();
    cout << "insert positional parameters test passed!" << endl;
@@ -3629,6 +3632,7 @@ void runSqlite3StatementTest()
    s->setText(":first", "boundnamed");
    s->setInt32(":second", 2223);
    s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;
    assertNoException();
    cout << "insert named parameters test passed!" << endl;
