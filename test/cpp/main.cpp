@@ -95,10 +95,25 @@ void assertNoException()
    if(Exception::hasLast())
    {
       Exception* e = Exception::getLast();
-      cout << "Exception occurred!" << endl;
-      cout << "message: " << e->getMessage() << endl;
-      cout << "type: " << e->getType() << endl;
-      cout << "code: " << e->getCode() << endl;
+      if(dynamic_cast<db::database::DatabaseException*>(e) != NULL)
+      {
+         db::database::DatabaseException* dbe =
+            (db::database::DatabaseException*)e;
+         
+         cout << "DatabaseException occurred!" << endl;
+         cout << "message: " << dbe->getMessage() << endl;
+         cout << "type: " << dbe->getType() << endl;
+         cout << "code: " << dbe->getCode() << endl;
+         cout << "sqlstate: " << dbe->getSqlState() << endl;
+      }
+      else
+      {
+         cout << "Exception occurred!" << endl;
+         cout << "message: " << e->getMessage() << endl;
+         cout << "type: " << e->getType() << endl;
+         cout << "code: " << e->getCode() << endl;
+      }
+      
       assert(!Exception::hasLast());
    }
 }
@@ -1933,7 +1948,7 @@ void runUrlTest()
    }
    
    {
-      Url url("mysql://username:password@host:3066/mydatabase");
+      Url url("mysql://username:password@host:3306/mydatabase");
       
       dumpUrl(url);
       assert(url.getScheme() == "mysql");
@@ -3612,7 +3627,7 @@ void runSqlite3StatementTest()
    cout << "drop table test passed!" << endl;
    
    // create table test
-   s = c.prepare("CREATE TABLE IF NOT EXISTS test (t text, i int)");
+   s = c.prepare("CREATE TABLE IF NOT EXISTS test (t TEXT, i INT)");
    s->execute();
    delete s;
    assertNoException();
@@ -3689,7 +3704,7 @@ void runMySqlConnectionTest()
    cout << "Starting MySqlConnection test." << endl << endl;
    
    MySqlConnection c;
-   c.connect("mysql://mojo");
+   c.connect("mysql://dbreadclient:k288m2s8f6gk39a@mojo/test");
    assertNoException();
    
    cout << endl << "MySqlConnection test complete." << endl;
@@ -3703,12 +3718,12 @@ void runMySqlStatementTest()
    Exception::clearLast();
    
    MySqlConnection c;
-   c.connect("mysql::memory:");
+   c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@mojo/test");
    
    db::database::Statement* s;
    
    // drop table test
-   s = c.prepare("DROP TABLE IF EXISTS test");
+   s = c.prepare("DROP TABLE IF EXISTS dbmysqltest");
    assert(s != NULL);
    s->execute();
    delete s;
@@ -3716,14 +3731,18 @@ void runMySqlStatementTest()
    cout << "drop table test passed!" << endl;
    
    // create table test
-   s = c.prepare("CREATE TABLE IF NOT EXISTS test (t text, i int)");
+   string sql;
+   sql.append("CREATE TABLE IF NOT EXISTS dbmysqltest ");
+   sql.append("(id BIGINT AUTO_INCREMENT, t TEXT, i BIGINT, ");
+   sql.append("PRIMARY KEY (id))");
+   s = c.prepare(sql.c_str());
    s->execute();
    delete s;
    assertNoException();
    cout << "create table test passed!" << endl;
    
    // insert test 1
-   s = c.prepare("INSERT INTO test (t, i) VALUES ('test!', 1234)");
+   s = c.prepare("INSERT INTO dbmysqltest (t, i) VALUES ('test!', 1234)");
    s->execute();
    cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;
@@ -3731,7 +3750,7 @@ void runMySqlStatementTest()
    cout << "insert test 1 passed!" << endl;
    
    // insert test 2
-   s = c.prepare("INSERT INTO test (t, i) VALUES ('!tset', 4321)");
+   s = c.prepare("INSERT INTO dbmysqltest (t, i) VALUES ('!tset', 4321)");
    s->execute();
    cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;
@@ -3739,7 +3758,7 @@ void runMySqlStatementTest()
    cout << "insert test 2 passed!" << endl;
    
    // insert positional parameters test
-   s = c.prepare("INSERT INTO test (t, i) VALUES (?, ?)");
+   s = c.prepare("INSERT INTO dbmysqltest (t, i) VALUES (?, ?)");
    s->setText(1, "boundpositional");
    s->setInt32(2, 2222);
    s->execute();
@@ -3748,18 +3767,18 @@ void runMySqlStatementTest()
    assertNoException();
    cout << "insert positional parameters test passed!" << endl;
    
-   // insert named parameters test
-   s = c.prepare("INSERT INTO test (t, i) VALUES (:first, :second)");
-   s->setText(":first", "boundnamed");
-   s->setInt32(":second", 2223);
-   s->execute();
-   cout << "Row #: " << s->getLastInsertRowId() << endl;
-   delete s;
-   assertNoException();
-   cout << "insert named parameters test passed!" << endl;
+//   // insert named parameters test
+//   s = c.prepare("INSERT INTO dbmysqltest (t, i) VALUES (:first, :second)");
+//   s->setText(":first", "boundnamed");
+//   s->setInt32(":second", 2223);
+//   s->execute();
+//   cout << "Row #: " << s->getLastInsertRowId() << endl;
+//   delete s;
+//   assertNoException();
+//   cout << "insert named parameters test passed!" << endl;
    
    // select test
-   s = c.prepare("SELECT * FROM test");
+   s = c.prepare("SELECT * FROM dbmysqltest");
    s->execute();
    
    // fetch rows
@@ -3769,9 +3788,9 @@ void runMySqlStatementTest()
    while((row = s->fetch()) != NULL)
    {
       cout << endl << "Row result:" << endl;
-      row->getText(0, t);
+      //row->getText(1, t);
       assertNoException();
-      row->getInt32(1, i);
+      row->getInt32(2, i);
       assertNoException();
       
       cout << "t=" << t << endl;
@@ -3924,9 +3943,9 @@ public:
 //      runBigIntegerTest();
 //      runBigDecimalTest();
 //      runSqlite3ConnectionTest();
-      runSqlite3StatementTest();
+//      runSqlite3StatementTest();
 //      runMySqlConnectionTest();
-//      runMySqlStatementTest();
+      runMySqlStatementTest();
 //      runDatabaseManagerTest();
 //      runLoggerTest();
 //      runUniqueListTest();

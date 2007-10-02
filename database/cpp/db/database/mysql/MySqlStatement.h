@@ -37,14 +37,24 @@ protected:
    MYSQL_RES* mResult;
    
    /**
-    * Stores the number of parameters in this statement.
+    * The number of parameters in this statement.
     */
-   unsigned long mParamCount;
+   unsigned int mParamCount;
    
    /**
     * The parameter bindings for this statement.
     */
    MYSQL_BIND* mParamBindings;
+   
+   /**
+    * The number of result fields for this statement.
+    */
+   unsigned int mFieldCount;
+   
+   /**
+    * The result bindings for this statement.
+    */
+   MYSQL_BIND* mResultBindings;
    
    /**
     * The current row, if any.

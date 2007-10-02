@@ -28,24 +28,19 @@ class MySqlRow : public db::database::Row
 {
 protected:
    /**
-    * The current mysql row data.
-    */
-   MYSQL_ROW mData;
-   
-   /**
-    * The number of columns.
-    */
-   unsigned int mColumnCount;
-   
-   /**
-    * The lengths for each data field.
-    */
-   unsigned long* mLengths;
-   
-   /**
     * The fields for this row.
     */
    MYSQL_FIELD* mFields;
+   
+   /**
+    * The number of fields.
+    */
+   unsigned int mFieldCount;
+   
+   /**
+    * The bindings for this row.
+    */
+   MYSQL_BIND* mBindings;
    
    /**
     * Gets the C handle for the MySqlStatement.
@@ -53,15 +48,6 @@ protected:
     * @return the C handle for the MySqlStatement.
     */
    virtual MYSQL_STMT* getStatementHandle();
-   
-   /**
-    * Gets the column index for the given column name.
-    * 
-    * @param name the column name.
-    * 
-    * @return the column index for the given column name.
-    */
-   unsigned int getColumn(const char* name);
    
 public:
    /**
@@ -77,16 +63,14 @@ public:
    virtual ~MySqlRow();
    
    /**
-    * Sets the data for this row.
+    * Sets the fields for this row.
     * 
-    * @param data the MYSQL_ROW for this row.
-    * @param columns the number of columns for this row.
-    * @param lengths the lengths for the data in each field.
-    * @param field the field information.
+    * @param fields the fields for this row.
+    * @param bindings the result bindings for this row.
+    * @param count the number of fields.
     */
-   virtual void setData(
-      MYSQL_ROW& row, unsigned int columns, unsigned long* lengths,
-      MYSQL_FIELD* fields);
+   virtual void setFields(
+      MYSQL_FIELD* fields, unsigned int count, MYSQL_BIND* bindings);
    
    /**
     * Gets a column's data type.

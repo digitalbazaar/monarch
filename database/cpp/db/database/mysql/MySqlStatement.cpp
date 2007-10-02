@@ -14,7 +14,7 @@ MySqlStatement::MySqlStatement(MySqlConnection *c, const char* sql) :
    Statement(c, sql)
 {
    // initialize handle
-   mHandle = mysql_stmt_init(NULL);
+   mHandle = mysql_stmt_init(c->mHandle);
    if(mHandle == NULL)
    {
       // connection exception
@@ -30,9 +30,6 @@ MySqlStatement::MySqlStatement(MySqlConnection *c, const char* sql) :
       }
       else
       {
-         // get result meta-data
-         mResult = mysql_stmt_result_metadata(mHandle);
-         
          // determine number of parameters, initialize bindings
          mParamCount = mysql_stmt_param_count(mHandle);
          if(mParamCount > 0)
@@ -46,6 +43,10 @@ MySqlStatement::MySqlStatement(MySqlConnection *c, const char* sql) :
       }
    }
    
+   // no result bindings yet
+   mFieldCount = 0;
+   mResultBindings = NULL;
+   
    // no current row yet
    mRow = NULL;
 }
@@ -58,7 +59,7 @@ MySqlStatement::~MySqlStatement()
       mysql_free_result(mResult);
    }
    
-   // clean up bindings
+   // clean up param bindings
    if(mParamBindings != NULL)
    {
       MYSQL_BIND* bind = mParamBindings;
@@ -76,7 +77,7 @@ MySqlStatement::~MySqlStatement()
                delete (long long*)bind[i].buffer;
                break;
             case MYSQL_TYPE_BLOB:
-               delete (unsigned long*)bind[i].length;
+               delete (unsigned int*)bind[i].length;
                break;
             default:
                // nothing to clean up
@@ -86,6 +87,12 @@ MySqlStatement::~MySqlStatement()
       
       // clean up all bindings
       delete [] mParamBindings;
+   }
+   
+   // clean up result bindings
+   if(mResultBindings != NULL)
+   {
+      delete [] mResultBindings;
    }
    
    // clean up row, if any
@@ -187,7 +194,8 @@ DatabaseException* MySqlStatement::setText(
 
 DatabaseException* MySqlStatement::setInt32(const char* name, int value)
 {
-   DatabaseException* rval = NULL;
+   DatabaseException* rval = 
+     new DatabaseException("MySql named parameter support not implemented!");
    
 //   // FIXME: might strip support for parameter names
 //   int index = mysql_bind_parameter_index(mHandle, name);
@@ -211,7 +219,8 @@ DatabaseException* MySqlStatement::setInt32(const char* name, int value)
 
 DatabaseException* MySqlStatement::setInt64(const char* name, long long value)
 {
-   DatabaseException* rval = NULL;
+   DatabaseException* rval = 
+     new DatabaseException("MySql named parameter support not implemented!");
    
 //   int index = mysql_bind_parameter_index(mHandle, name);
 //   if(index == 0)
@@ -234,7 +243,8 @@ DatabaseException* MySqlStatement::setInt64(const char* name, long long value)
 
 DatabaseException* MySqlStatement::setText(const char* name, const char* value)
 {
-   DatabaseException* rval = NULL;
+   DatabaseException* rval = 
+     new DatabaseException("MySql named parameter support not implemented!");
    
 //   int index = mysql_bind_parameter_index(mHandle, name);
 //   if(index == 0)
@@ -254,16 +264,63 @@ DatabaseException* MySqlStatement::setText(const char* name, const char* value)
    
    return rval;
 }
-
+// FIXME: remove iostream include
+#include <iostream>
 DatabaseException* MySqlStatement::execute()
 {
    DatabaseException* rval = NULL;
    
-   if(mysql_stmt_execute(mHandle) != 0)
+   // bind parameters
+   if(mysql_stmt_bind_param(mHandle, mParamBindings) != 0)
    {
       // statement exception
       rval = new MySqlException(this);
       Exception::setLast(rval);
+   }
+   else if(mysql_stmt_execute(mHandle) != 0)
+   {
+      // statement exception
+      rval = new MySqlException(this);
+      Exception::setLast(rval);
+   }
+   else
+   {
+      // get result meta-data
+      mResult = mysql_stmt_result_metadata(mHandle);
+      if(mResult != NULL)
+      {
+         // FIXME: remove printout
+         std::cout << "setting up bindings for result set" << std::endl;
+         
+         // get field count
+         mFieldCount = mysql_stmt_field_count(mHandle);
+         
+         std::cout << "field count=" << mFieldCount << std::endl;
+         
+         // setup result bindings
+         mResultBindings = new MYSQL_BIND[mFieldCount];
+         memset(mResultBindings, 0, sizeof(MYSQL_BIND) * mFieldCount);
+         for(unsigned int i = 0; i < mFieldCount; i++)
+         {
+            mResultBindings[i].length = &mResultBindings[i].buffer_length;
+         }
+         
+         // set result bindings
+         if(mysql_stmt_bind_result(mHandle, mResultBindings) != 0)
+         {
+            // statement exception
+            rval = new MySqlException(this);
+            Exception::setLast(rval);
+         }
+         // FIXME: remove else entirely
+         else
+         {
+            for(unsigned int i = 0; i < mFieldCount; i++)
+            {
+               std::cout << "length: " << i << "=" << *mResultBindings[i].length << std::endl;
+            }
+         }
+      }
    }
    
    return rval;
@@ -276,26 +333,36 @@ Row* MySqlStatement::fetch()
    if(mResult != NULL)
    {
       // fetch the next row
-      MYSQL_ROW row = mysql_fetch_row(mResult);
-      if(row != NULL)
+      int rc = mysql_stmt_fetch(mHandle);
+      if(rc == 1)
       {
+         // exception occurred
+         Exception::setLast(new MySqlException(this));
+      }
+      else if(rc != MYSQL_NO_DATA)
+      {
+         std::cout << "after fetch()..." << std::endl;
+         
+         if(rc == MYSQL_DATA_TRUNCATED)
+         {
+            std::cout << "data truncated as expected" << std::endl;
+         }
+         
+         for(unsigned int i = 0; i < mFieldCount; i++)
+         {
+            std::cout << "length: " << i << "=" << *mResultBindings[i].length << std::endl;
+         }
+         
          if(mRow == NULL)
          {
             // create row as necessary
             mRow = new MySqlRow(this);
             rval = mRow;
+            
+            // set fields for row
+            mRow->setFields(
+               mysql_fetch_fields(mResult), mFieldCount, mResultBindings);
          }
-         
-         // set row data
-         mRow->setData(
-            row, mysql_num_fields(mResult), mysql_fetch_lengths(mResult),
-            mysql_fetch_fields(mResult));
-      }
-      else if(mysql_errno(((MySqlConnection*)mConnection)->mHandle) != 0)
-      {
-         // set exception
-         Exception::setLast(
-            new MySqlException((MySqlConnection*)mConnection));
       }
    }
    

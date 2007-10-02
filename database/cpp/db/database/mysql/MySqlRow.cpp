@@ -11,8 +11,9 @@ using namespace db::database::mysql;
 
 MySqlRow::MySqlRow(MySqlStatement* s) : Row(s)
 {
-   mColumnCount = 0;
-   mLengths = NULL;
+   mFields = NULL;
+   mFieldCount = 0;
+   mBindings = NULL;
 }
 
 MySqlRow::~MySqlRow()
@@ -24,30 +25,12 @@ MYSQL_STMT* MySqlRow::getStatementHandle()
    return ((MySqlStatement*)mStatement)->mHandle;
 }
 
-unsigned int MySqlRow::getColumn(const char* name)
+void MySqlRow::setFields(
+   MYSQL_FIELD* fields, unsigned int count, MYSQL_BIND* bindings)
 {
-   unsigned int rval = 0;
-   
-   for(unsigned int i = 0; i < mColumnCount; i++)
-   {
-      if(strcmp(mFields[i].name, name) == 0)
-      {
-         rval = i;
-         break;
-      }
-   }
-   
-   return rval;
-}
-
-void MySqlRow::setData(
-   MYSQL_ROW& row, unsigned int columns, unsigned long* lengths,
-   MYSQL_FIELD* fields)
-{
-   mData = row;
-   mColumnCount = columns;
-   mLengths = lengths;
    mFields = fields;
+   mFieldCount = count;
+   mBindings = bindings;
 }
 
 DatabaseException* MySqlRow::getType(int column, int& type)
@@ -59,11 +42,11 @@ DatabaseException* MySqlRow::getType(int column, int& type)
 
 DatabaseException* MySqlRow::getInt32(int column, int& i)
 {
-   MYSQL_BIND bind[1];
-   bind[0].buffer = (char*)&i;
-   bind[0].buffer_length = 4;
-   bind[0].length = NULL;
-   mysql_stmt_fetch_column(getStatementHandle(), bind, column, 0);
+   mBindings[column].buffer_type = MYSQL_TYPE_LONG;
+   mBindings[column].buffer = (char*)&i;
+   mBindings[column].buffer_length = 4;
+   mBindings[column].length = &mBindings[column].buffer_length;
+   mysql_stmt_fetch_column(getStatementHandle(), mBindings, column, 0);
    
    // FIXME: check exceptions, etc
    return NULL;
@@ -71,29 +54,39 @@ DatabaseException* MySqlRow::getInt32(int column, int& i)
 
 DatabaseException* MySqlRow::getInt64(int column, long long& i)
 {
-   MYSQL_BIND bind[1];
-   bind[0].buffer = (char*)&i;
-   bind[0].buffer_length = 4;
-   bind[0].length = NULL;
-   mysql_stmt_fetch_column(getStatementHandle(), bind, column, 0);
+   mBindings[column].buffer_type = MYSQL_TYPE_LONGLONG;
+   mBindings[column].buffer = (char*)&i;
+   mBindings[column].buffer_length = 8;
+   mBindings[column].length = &mBindings[column].buffer_length;
+   mysql_stmt_fetch_column(getStatementHandle(), mBindings, column, 0);
    
    // FIXME: check exceptions, etc
    return NULL;
 }
-
+#include <iostream>
 DatabaseException* MySqlRow::getText(int column, string& str)
 {
-   char temp[mLengths[column] + 1];
+   std::cout << "field count=" << mFieldCount << std::endl;
+   std::cout << "line0" << std::endl;
+   mBindings[column].buffer_type = MYSQL_TYPE_BLOB;
+   std::cout << "line1" << std::endl;
+   unsigned long length = mBindings[column].buffer_length;// + 1;
+   std::cout << "now length: " << column << "=" << length << std::endl;
+   std::cout << "line2" << std::endl;
+   char temp[length + 1];
+   std::cout << "line3" << std::endl;
    
-   unsigned long length;
+   mBindings[column].buffer = temp;
+   std::cout << "line4" << std::endl;
+   mBindings[column].buffer_length = length;
+   std::cout << "line5" << std::endl;
+   mBindings[column].length = &length;
+   std::cout << "line7" << std::endl;
+   mysql_stmt_fetch_column(getStatementHandle(), mBindings, column, 0);
    
-   MYSQL_BIND bind[1];
-   bind[0].buffer = temp;
-   bind[0].buffer_length = mLengths[column] + 1;
-   bind[0].length = &length;
-   mysql_stmt_fetch_column(getStatementHandle(), bind, column, 0);
-   
-   memset(temp + mLengths[column], 0, 1);
+   std::cout << "line8" << std::endl;
+   memset(temp + length, 0, 1);
+   std::cout << "line9" << std::endl;
    str.assign(temp);
    
    // FIXME: check exceptions, etc
