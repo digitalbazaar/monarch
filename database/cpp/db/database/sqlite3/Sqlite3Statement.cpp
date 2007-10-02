@@ -38,7 +38,7 @@ Sqlite3Statement::~Sqlite3Statement()
    sqlite3_finalize(mHandle);
 }
 
-DatabaseException* Sqlite3Statement::setInt32(int param, int value)
+DatabaseException* Sqlite3Statement::setInt32(unsigned int param, int value)
 {
    DatabaseException* rval = NULL;
    
@@ -53,7 +53,8 @@ DatabaseException* Sqlite3Statement::setInt32(int param, int value)
    return rval;
 }
 
-DatabaseException* Sqlite3Statement::setInt64(int param, long long value)
+DatabaseException* Sqlite3Statement::setInt64(
+   unsigned int param, long long value)
 {
    DatabaseException* rval = NULL;
    
@@ -68,7 +69,8 @@ DatabaseException* Sqlite3Statement::setInt64(int param, long long value)
    return rval;
 }
 
-DatabaseException* Sqlite3Statement::setText(int param, const char* value)
+DatabaseException* Sqlite3Statement::setText(
+   unsigned int param, const char* value)
 {
    DatabaseException* rval = NULL;
    
@@ -221,16 +223,16 @@ Row* Sqlite3Statement::fetch()
    return rval;
 }
 
-DatabaseException* Sqlite3Statement::getRowsChanged(int& rows)
+DatabaseException* Sqlite3Statement::getRowsChanged(unsigned long long& rows)
 {
    // FIXME: handle exceptions
    rows = sqlite3_changes(((Sqlite3Connection*)mConnection)->mHandle);
    return NULL;
 }
 
-long long Sqlite3Statement::getLastInsertRowId()
+unsigned long long Sqlite3Statement::getLastInsertRowId()
 {
-   long long rval = 0;
+   unsigned long long rval = 0;
    
    rval = sqlite3_last_insert_rowid(((Sqlite3Connection*)mConnection)->mHandle);
    

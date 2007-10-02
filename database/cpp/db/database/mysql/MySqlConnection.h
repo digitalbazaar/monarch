@@ -1,62 +1,64 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_database_Connection_H
-#define db_database_Connection_H
+#ifndef db_database_mysql_MySqlConnection_H
+#define db_database_mysql_MySqlConnection_H
 
-#include "db/net/Url.h"
-#include "db/database/DatabaseException.h"
+#include <mysql/mysql.h>
+
+#include "db/database/Connection.h"
+#include "db/database/mysql/MySqlException.h"
 
 namespace db
 {
 namespace database
 {
+namespace mysql
+{
 
-// forward declare Statement
-class Statement;
+// forward declaration
+class MySqlStatement;
 
 /**
- * 
- * A Connection is an abstract base class for a connection to a specific
- * type of database. Extending classes will provide appropriate implementation
- * details.
+ * An MySqlConnection is a Connection to an mysql database.
  * 
  * @author Dave Longley
- * @author David I. Lehn
  */
-class Connection
+class MySqlConnection : public db::database::Connection
 {
 protected:
    /**
-    * The database driver parameters in URL form for this connection.
+    * The handle to the mysql database.
     */
-   db::net::Url* mUrl;
+   ::MYSQL* mHandle;
    
    /**
-    * True if this connection is open, false if not.
+    * These classes are friends so they can access the C handle to
+    * the database.
     */
-   bool mOpen;
+   friend class MySqlStatement;
+   friend class MySqlException;
    
 public:
    /**
     * Creates a new Connection.
     */
-   Connection();
+   MySqlConnection();
    
    /**
     * Destructs this Connection.
     */
-   virtual ~Connection();
+   virtual ~MySqlConnection();
    
    /**
-    * Connects to the database specified by the given url.
+    * Connects to the specified database.
     * 
-    * @param url the url for the database to connect to, including driver
-    *            specific parameters.
+    * @param url MySql parameters in URL form:
+    *            "mysql://user:password@host:port/databasename"
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* connect(const char* url) = 0;
+   virtual DatabaseException* connect(const char* url);
    
    /**
     * Prepares a Statement for execution. The Statement is heap-allocated and
@@ -67,12 +69,12 @@ public:
     * @return the new Statement to be freed by caller, NULL if an
     *         exception occurred.
     */
-   virtual Statement* prepare(const char* sql) = 0;
+   virtual Statement* prepare(const char* sql);
    
    /**
     * Closes this connection.
     */
-   virtual void close() = 0;
+   virtual void close();
    
    /**
     * Commits the current transaction.
@@ -87,8 +89,16 @@ public:
     * @return a DatabaseException if one occurred, NULL if not.
     */
    virtual DatabaseException* rollback();
+   
+   /**
+    * Sets the character set for this connection.
+    * 
+    * @param cset the character set to use for this connection.
+    */
+   virtual DatabaseException* setCharacterSet(const char* cset);
 };
 
+} // end namespace mysql
 } // end namespace database
 } // end namespace db
 #endif

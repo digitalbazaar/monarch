@@ -9,20 +9,33 @@
 using namespace std;
 using namespace db::database;
 using namespace db::database::sqlite3;
+using namespace db::net;
 using namespace db::rt;
 
-Sqlite3Connection::Sqlite3Connection(const char* url) : Connection(url)
+Sqlite3Connection::Sqlite3Connection()
 {
-   // initialize handle
+   // initialize handle to NULL
    mHandle = NULL;
+}
+
+Sqlite3Connection::~Sqlite3Connection()
+{
+   // ensure connection is closed
+   Sqlite3Connection::close();
+}
+
+DatabaseException* Sqlite3Connection::connect(const char* url)
+{
+   DatabaseException* rval = NULL;
    
-   if(strcmp(mUrl.getScheme().c_str(), "sqlite3") == 0)
+   mUrl = new Url(url);
+   if(strncmp(mUrl->getScheme().c_str(), "sqlite3", 7) != 0)
    {
       string msg;
       string urlStr;
       msg.append("Could not connect to sqlite3 database, ");
-      msg.append("url scheme not 'sqlite3', url='");
-      msg.append(mUrl.toString(urlStr));
+      msg.append("url scheme doesn't start with 'sqlite3', url='");
+      msg.append(mUrl->toString(urlStr));
       msg.append(1, '\'');
       
       Exception::setLast(new DatabaseException(msg.c_str()));
@@ -31,20 +44,18 @@ Sqlite3Connection::Sqlite3Connection(const char* url) : Connection(url)
    {
       // FIXME: we want to add read/write/create params to the URL
       // so connections can be read-only/write/etc (use query in URL)
-      int ec = sqlite3_open(mUrl.getSchemeSpecificPart().c_str(), &mHandle);
+      // handle username/password
+      int ec = sqlite3_open(mUrl->getSchemeSpecificPart().c_str(), &mHandle);
       if(ec != SQLITE_OK)
       {
          // create exception, close connection
-         Exception::setLast(new Sqlite3Exception(this));
+         rval = new Sqlite3Exception(this);
+         Exception::setLast(rval);
          Sqlite3Connection::close();
       }
    }
-}
-
-Sqlite3Connection::~Sqlite3Connection()
-{
-   // ensure connection is closed
-   Sqlite3Connection::close();
+   
+   return rval;
 }
 
 Statement* Sqlite3Connection::prepare(const char* sql)

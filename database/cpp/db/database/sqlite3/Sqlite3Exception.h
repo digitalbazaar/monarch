@@ -18,7 +18,7 @@ class Sqlite3Connection;
 
 /**
  * A Sqlite3Exception is raised when some kind of sqlite3 database error
- * occurs. The sqlite3 error code must be passed to the constructor.
+ * occurs. The sqlite3 connection must be passed to the constructor.
  * 
  * @author Dave Longley
  */

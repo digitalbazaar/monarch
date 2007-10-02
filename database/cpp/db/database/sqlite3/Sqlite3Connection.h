@@ -43,16 +43,24 @@ protected:
 public:
    /**
     * Creates a new Connection.
-    * 
-    * @param url Sqlite3 parameters in URL form:
-    *        "sqlite:/path/to/example.db" A SQLite3 database called example.db
     */
-   Sqlite3Connection(const char* url);
+   Sqlite3Connection();
    
    /**
     * Destructs this Connection.
     */
    virtual ~Sqlite3Connection();
+   
+   /**
+    * Connects to the database specified by the given url.
+    * 
+    * @param url Sqlite3 parameters in URL form:
+    *        "sqlite://user:password@/path/to/example.db"
+    *        A SQLite3 database called example.db
+    * 
+    * @return a DatabaseException if one occurred, NULL if not.
+    */
+   virtual DatabaseException* connect(const char* url);
    
    /**
     * Prepares a Statement for execution. The Statement is heap-allocated and

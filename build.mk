@@ -69,7 +69,7 @@ database_LIBS = sqlite3
 # test.exe binary rules
 test_MODLIBS = rt modest util io crypto net data database logging
 test_SOURCES = main
-test_LIBS = pthread crypto ssl expat sqlite3
+test_LIBS = pthread crypto ssl expat sqlite3 mysqlclient
 
 
 

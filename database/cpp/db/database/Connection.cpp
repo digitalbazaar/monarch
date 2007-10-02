@@ -6,13 +6,17 @@
 using namespace db::database;
 using namespace db::rt;
 
-Connection::Connection(const char *url) :
-   mUrl(url)
+Connection::Connection()
 {
+   mUrl = NULL;
 }
 
 Connection::~Connection()
 {
+   if(mUrl != NULL)
+   {
+      delete mUrl;
+   }
 }
 
 DatabaseException* Connection::commit()

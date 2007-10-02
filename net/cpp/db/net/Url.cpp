@@ -286,6 +286,10 @@ unsigned int Url::getDefaultPort()
    {
       rval = 25;
    }
+   else if(strcmp(getScheme().c_str(), "mysql") == 0)
+   {
+      rval = 3306;
+   }
    
    return rval;
 }

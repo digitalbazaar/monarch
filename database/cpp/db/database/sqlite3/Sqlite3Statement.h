@@ -67,7 +67,7 @@ public:
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt32(int param, int value);
+   virtual DatabaseException* setInt32(unsigned int param, int value);
    
    /**
     * Sets the value of a 64-bit integer for a positional parameter.
@@ -77,7 +77,7 @@ public:
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt64(int param, long long value);
+   virtual DatabaseException* setInt64(unsigned int param, long long value);
    
    /**
     * Sets the value of a text string for a positional parameter.
@@ -87,7 +87,7 @@ public:
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setText(int param, const char* value);
+   virtual DatabaseException* setText(unsigned int param, const char* value);
    
    /**
     * Sets the value of a 32-bit integer for a named parameter (:mynamehere).
@@ -141,7 +141,7 @@ public:
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* getRowsChanged(int& rows);
+   virtual DatabaseException* getRowsChanged(unsigned long long& rows);
    
    /**
     * Gets the ID of the last row that was inserted. This is done per
@@ -149,7 +149,7 @@ public:
     * 
     * @return the ID of the last row that was inserted.
     */
-   virtual long long getLastInsertRowId();
+   virtual unsigned long long getLastInsertRowId();
 };
 
 } // end namespace sqlite3

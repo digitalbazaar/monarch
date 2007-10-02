@@ -57,9 +57,9 @@
 #include "db/io/OStreamOutputStream.h"
 #include "db/crypto/BigDecimal.h"
 #include "db/io/ByteArrayOutputStream.h"
-#include "db/database/sqlite3/Sqlite3Connection.h"
-#include "db/database/Statement.h"
 #include "db/database/Row.h"
+#include "db/database/sqlite3/Sqlite3Connection.h"
+#include "db/database/mysql/MySqlConnection.h"
 #include "db/logging/Logger.h"
 #include "db/logging/OutputStreamLogger.h"
 #include "db/logging/FileLogger.h"
@@ -77,6 +77,7 @@ using namespace db::util::regex;
 using namespace db::data;
 using namespace db::data::xml;
 using namespace db::database::sqlite3;
+using namespace db::database::mysql;
 using namespace db::logging;
 
 // WTF? this is required to get static library building for unknown reason
@@ -88,6 +89,19 @@ StringTokenizer g_junk4;
 FilterOutputStream g_junk5(NULL, false);
 ByteArrayInputStream g_junk6(NULL, 0);
 IgnoreOutputStream g_junk7(NULL);
+
+void assertNoException()
+{
+   if(Exception::hasLast())
+   {
+      Exception* e = Exception::getLast();
+      cout << "Exception occurred!" << endl;
+      cout << "message: " << e->getMessage() << endl;
+      cout << "type: " << e->getType() << endl;
+      cout << "code: " << e->getCode() << endl;
+      assert(!Exception::hasLast());
+   }
+}
 
 void runBase64Test()
 {
@@ -1919,6 +1933,18 @@ void runUrlTest()
    }
    
    {
+      Url url("mysql://username:password@host:3066/mydatabase");
+      
+      dumpUrl(url);
+      assert(url.getScheme() == "mysql");
+      assert(url.getUser() == "username");
+      assert(url.getPassword() == "password");
+      assert(url.getHost() == "host");
+      assert(url.getPort() == 3066);
+      assert(url.getPath() == "/mydatabase");
+   }
+   
+   {
       Url url("http://example.com:8080/path");
       //dumpUrl(url);
       assert(!Thread::hasException());
@@ -3558,22 +3584,11 @@ void runSqlite3ConnectionTest()
 {
    cout << "Starting Sqlite3Connection test." << endl << endl;
    
-   Sqlite3Connection c("sqlite3::memory:");
+   Sqlite3Connection c;
+   c.connect("sqlite3::memory:");
+   assertNoException();
    
    cout << endl << "Sqlite3Connection test complete." << endl;
-}
-
-void assertNoException()
-{
-   if(Exception::hasLast())
-   {
-      Exception* e = Exception::getLast();
-      cout << "Exception occurred!" << endl;
-      cout << "message: " << e->getMessage() << endl;
-      cout << "type: " << e->getType() << endl;
-      cout << "code: " << e->getCode() << endl;
-      assert(!Exception::hasLast());
-   }
 }
 
 void runSqlite3StatementTest()
@@ -3583,7 +3598,9 @@ void runSqlite3StatementTest()
    // clear any exceptions
    Exception::clearLast();
    
-   Sqlite3Connection c("sqlite3::memory:");
+   Sqlite3Connection c;
+   c.connect("sqlite3::memory:");
+   
    db::database::Statement* s;
    
    // drop table test
@@ -3665,6 +3682,110 @@ void runSqlite3StatementTest()
    assertNoException();
    
    cout << endl << "Sqlite3 test complete." << endl;
+}
+
+void runMySqlConnectionTest()
+{
+   cout << "Starting MySqlConnection test." << endl << endl;
+   
+   MySqlConnection c;
+   c.connect("mysql://mojo");
+   assertNoException();
+   
+   cout << endl << "MySqlConnection test complete." << endl;
+}
+
+void runMySqlStatementTest()
+{
+   cout << "Starting MySql test." << endl << endl;
+   
+   // clear any exceptions
+   Exception::clearLast();
+   
+   MySqlConnection c;
+   c.connect("mysql::memory:");
+   
+   db::database::Statement* s;
+   
+   // drop table test
+   s = c.prepare("DROP TABLE IF EXISTS test");
+   assert(s != NULL);
+   s->execute();
+   delete s;
+   assertNoException();
+   cout << "drop table test passed!" << endl;
+   
+   // create table test
+   s = c.prepare("CREATE TABLE IF NOT EXISTS test (t text, i int)");
+   s->execute();
+   delete s;
+   assertNoException();
+   cout << "create table test passed!" << endl;
+   
+   // insert test 1
+   s = c.prepare("INSERT INTO test (t, i) VALUES ('test!', 1234)");
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "insert test 1 passed!" << endl;
+   
+   // insert test 2
+   s = c.prepare("INSERT INTO test (t, i) VALUES ('!tset', 4321)");
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "insert test 2 passed!" << endl;
+   
+   // insert positional parameters test
+   s = c.prepare("INSERT INTO test (t, i) VALUES (?, ?)");
+   s->setText(1, "boundpositional");
+   s->setInt32(2, 2222);
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "insert positional parameters test passed!" << endl;
+   
+   // insert named parameters test
+   s = c.prepare("INSERT INTO test (t, i) VALUES (:first, :second)");
+   s->setText(":first", "boundnamed");
+   s->setInt32(":second", 2223);
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "insert named parameters test passed!" << endl;
+   
+   // select test
+   s = c.prepare("SELECT * FROM test");
+   s->execute();
+   
+   // fetch rows
+   db::database::Row* row;
+   string t;
+   int i;
+   while((row = s->fetch()) != NULL)
+   {
+      cout << endl << "Row result:" << endl;
+      row->getText(0, t);
+      assertNoException();
+      row->getInt32(1, i);
+      assertNoException();
+      
+      cout << "t=" << t << endl;
+      cout << "i=" << i << endl;
+   }
+   
+   cout << endl << "Result Rows complete." << endl;
+   delete s;
+   cout << "select test passed!" << endl;
+   
+   c.close();
+   assertNoException();
+   
+   cout << endl << "MySql test complete." << endl;
 }
 
 void runDatabaseManagerTest()
@@ -3804,6 +3925,8 @@ public:
 //      runBigDecimalTest();
 //      runSqlite3ConnectionTest();
       runSqlite3StatementTest();
+//      runMySqlConnectionTest();
+//      runMySqlStatementTest();
 //      runDatabaseManagerTest();
 //      runLoggerTest();
 //      runUniqueListTest();

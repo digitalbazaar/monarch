@@ -1,56 +1,76 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_database_Statement_H
-#define db_database_Statement_H
+#ifndef db_database_mysql_Statement_H
+#define db_database_mysql_Statement_H
 
-#include "db/database/Connection.h"
+#include <mysql/mysql.h>
+
+#include "db/database/Statement.h"
+#include "db/database/mysql/MySqlRow.h"
 
 namespace db
 {
 namespace database
 {
+namespace mysql
+{
 
-// forward declare row
-class Row;
+class MySqlConnection;
 
 /**
- * A Statement is an abstract base class for SQL database statements. Extending
- * classes will provide the appropriate implementation details.
+ * An mysql database statement.
  * 
  * @author Dave Longley
- * @author David I. Lehn
  */
-class Statement
+class MySqlStatement : public db::database::Statement
 {
 protected:
    /**
-    * The connection associated with this statement.
+    * The C mysql statement structure.
     */
-   Connection* mConnection;
+   MYSQL_STMT* mHandle;
    
    /**
-    * The SQL for this statement.
+    * The result meta-data for this statement, if any.
     */
-   char* mSql;
+   MYSQL_RES* mResult;
+   
+   /**
+    * Stores the number of parameters in this statement.
+    */
+   unsigned long mParamCount;
+   
+   /**
+    * The parameter bindings for this statement.
+    */
+   MYSQL_BIND* mParamBindings;
+   
+   /**
+    * The current row, if any.
+    */
+   MySqlRow* mRow;
+   
+   /**
+    * MySqlRow is a friend to allow access to the C handle.
+    */
+   friend class MySqlRow;
+   
+   /**
+    * MySqlException is a friend to allow access to the C handle.
+    */
+   friend class MySqlException;
    
 public:
    /**
     * Creates a new Statement.
     */
-   Statement(Connection* c, const char* sql);
+   MySqlStatement(MySqlConnection* c, const char* sql);
    
    /**
     * Destructs this Statement.
     */
-   virtual ~Statement();
-   
-   /**
-    * Gets the Connection that prepared this Statement.
-    *
-    * @return the Connection that prepared this Statement.
-    */
-   virtual Connection* getConnection();
+   virtual ~MySqlStatement();
    
    /**
     * Sets the value of a 32-bit integer for a positional parameter.
@@ -60,7 +80,7 @@ public:
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt32(unsigned int param, int value) = 0;
+   virtual DatabaseException* setInt32(unsigned int param, int value);
    
    /**
     * Sets the value of a 64-bit integer for a positional parameter.
@@ -70,7 +90,7 @@ public:
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt64(unsigned int param, long long value) = 0;
+   virtual DatabaseException* setInt64(unsigned int param, long long value);
    
    /**
     * Sets the value of a text string for a positional parameter.
@@ -80,8 +100,7 @@ public:
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setText(
-      unsigned int param, const char* value) = 0;
+   virtual DatabaseException* setText(unsigned int param, const char* value);
    
    /**
     * Sets the value of a 32-bit integer for a named parameter (:mynamehere).
@@ -91,7 +110,7 @@ public:
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt32(const char* name, int value) = 0;
+   virtual DatabaseException* setInt32(const char* name, int value);
    
    /**
     * Sets the value of a 64-bit integer for a named parameter (:mynamehere).
@@ -101,7 +120,7 @@ public:
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt64(const char* name, long long value) = 0;
+   virtual DatabaseException* setInt64(const char* name, long long value);
    
    /**
     * Sets the value of a text string for a named parameter (:mynamehere).
@@ -111,14 +130,14 @@ public:
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setText(const char* name, const char* value) = 0;
+   virtual DatabaseException* setText(const char* name, const char* value);
    
    /**
     * Executes this Statement.
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* execute() = 0;
+   virtual DatabaseException* execute();
    
    /**
     * Fetches the next result Row once this Statement has been executed.
@@ -126,7 +145,7 @@ public:
     * @return the next result Row once this Statement has been executed,
     *         NULL if there is no next Row.
     */
-   virtual Row* fetch() = 0;
+   virtual Row* fetch();
    
    /**
     * Gets the number of rows modified by this Statement.
@@ -135,7 +154,7 @@ public:
     * 
     * @return a DatabaseException if one occurred, NULL if not.
     */
-   virtual DatabaseException* getRowsChanged(unsigned long long& rows) = 0;
+   virtual DatabaseException* getRowsChanged(unsigned long long& rows);
    
    /**
     * Gets the ID of the last row that was inserted. This is done per
@@ -143,9 +162,10 @@ public:
     * 
     * @return the ID of the last row that was inserted.
     */
-   virtual unsigned long long getLastInsertRowId() = 0;
+   virtual unsigned long long getLastInsertRowId();
 };
 
+} // end namespace mysql
 } // end namespace database
 } // end namespace db
 #endif
