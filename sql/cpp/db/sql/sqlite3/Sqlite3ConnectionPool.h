@@ -33,10 +33,12 @@ public:
     * Creates a new Sqlite3ConnectionPool with the specified number of
     * database connections available.
     * 
+    * @param url the url for the database connections, including driver
+    *            specific parameters.
     * @param poolSize the size of the pool (number of database connections),
     *                 0 specifies an unlimited number of threads.
     */
-   Sqlite3ConnectionPool(unsigned int poolSize = 10);
+   Sqlite3ConnectionPool(const char* url, unsigned int poolSize = 10);
    
    /**
     * Destructs this Sqlite3ConnectionPool.

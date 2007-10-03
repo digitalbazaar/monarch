@@ -6,8 +6,9 @@
 using namespace db::sql;
 using namespace db::sql::mysql;
 
-MySqlConnectionPool::MySqlConnectionPool(unsigned int poolSize) :
-   AbstractConnectionPool(poolSize)
+MySqlConnectionPool::MySqlConnectionPool(
+   const char* url, unsigned int poolSize) :
+   AbstractConnectionPool(url, poolSize)
 {
 }
 
@@ -17,5 +18,5 @@ MySqlConnectionPool::~MySqlConnectionPool()
 
 PooledConnection* MySqlConnectionPool::createConnection()
 {
-   return new PooledConnection(new MySqlConnection());
+   return new PooledConnection(new MySqlConnection(&mUrl));
 }

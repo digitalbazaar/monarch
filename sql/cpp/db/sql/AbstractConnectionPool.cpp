@@ -7,8 +7,9 @@ using namespace std;
 using namespace db::rt;
 using namespace db::sql;
 
-AbstractConnectionPool::AbstractConnectionPool(unsigned int poolSize) :
-   mConnectionSemaphore(poolSize, true)
+AbstractConnectionPool::AbstractConnectionPool(
+   const char* url, unsigned int poolSize) :
+   mUrl(url), mConnectionSemaphore(poolSize, true)
 {
    // default JobThread expire time to 0 (no expiration)
    mConnectionExpireTime = 0;
@@ -198,7 +199,8 @@ unsigned int AbstractConnectionPool::getPoolSize()
    return mConnectionSemaphore.getMaxPermitCount();
 }
 
-void AbstractConnectionPool::setConnectionExpireTime(unsigned long long expireTime)
+void AbstractConnectionPool::setConnectionExpireTime(
+   unsigned long long expireTime)
 {
    lock();
    {

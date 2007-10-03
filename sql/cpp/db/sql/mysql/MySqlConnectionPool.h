@@ -33,10 +33,12 @@ public:
     * Creates a new MySqlConnectionPool with the specified number of
     * database connections available.
     * 
+    * @param url the url for the database connections, including driver
+    *            specific parameters.
     * @param poolSize the size of the pool (number of database connections),
     *                 0 specifies an unlimited number of threads.
     */
-   MySqlConnectionPool(unsigned int poolSize = 10);
+   MySqlConnectionPool(const char* url, unsigned int poolSize = 10);
    
    /**
     * Destructs this MySqlConnectionPool.

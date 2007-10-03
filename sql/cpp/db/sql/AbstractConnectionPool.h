@@ -4,11 +4,12 @@
 #ifndef db_database_AbstractConnectionPool_H
 #define db_database_AbstractConnectionPool_H
 
-#include "db/sql/ConnectionPool.h"
-#include "db/sql/PooledConnection.h"
+#include "db/net/Url.h"
 #include "db/rt/Object.h"
 #include "db/rt/Semaphore.h"
 #include "db/rt/System.h"
+#include "db/sql/ConnectionPool.h"
+#include "db/sql/PooledConnection.h"
 
 #include <list>
 
@@ -47,6 +48,12 @@ protected:
    db::rt::Object mListLock;
    
    /**
+    * The database driver parameters in URL form for creating database
+    * connections.
+    */
+   db::net::Url mUrl;
+   
+   /**
     * The expire time for Connections (in milliseconds).
     */
    unsigned long long mConnectionExpireTime;
@@ -78,10 +85,12 @@ public:
     * Creates a new AbstractConnectionPool with the specified number of
     * database connections available.
     * 
+    * @param url the url for the database connections, including driver
+    *            specific parameters.
     * @param poolSize the size of the pool (number of database connections),
     *                 0 specifies an unlimited number of connections.
     */
-   AbstractConnectionPool(unsigned int poolSize = 10);
+   AbstractConnectionPool(const char* url, unsigned int poolSize = 10);
    
    /**
     * Destructs this AbstractConnectionPool.
