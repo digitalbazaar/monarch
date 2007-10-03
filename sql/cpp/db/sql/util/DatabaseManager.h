@@ -50,7 +50,7 @@ public:
     * @return the heap-allocated DatabaseClient or NULL if an exception
     *         occurred.
     */
-   static DatabaseClient* createDatabaseClient(const char* url);
+   static DatabaseClient* createClient(const char* url);
 };
 
 } // end namespace util

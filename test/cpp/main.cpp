@@ -60,6 +60,7 @@
 #include "db/sql/Row.h"
 #include "db/sql/sqlite3/Sqlite3Connection.h"
 #include "db/sql/mysql/MySqlConnection.h"
+#include "db/sql/util/DatabaseManager.h"
 #include "db/logging/Logger.h"
 #include "db/logging/OutputStreamLogger.h"
 #include "db/logging/FileLogger.h"
@@ -78,6 +79,7 @@ using namespace db::data;
 using namespace db::data::xml;
 using namespace db::sql::sqlite3;
 using namespace db::sql::mysql;
+using namespace db::sql::util;
 using namespace db::logging;
 
 // WTF? this is required to get static library building for unknown reason
@@ -3811,7 +3813,188 @@ void runDatabaseManagerTest()
 {
    cout << "Starting DatabaseManager test." << endl << endl;
    
-   // FIXME:
+   // clear any exceptions
+   Exception::clearLast();
+   
+   // get a sqlite3 database client
+   DatabaseClient* dc = DatabaseManager::createClient("sqlite3::memory:");
+   assertNoException();
+   
+   // get a connection
+   db::sql::Connection* c = dc->getConnection();
+   assertNoException();
+   
+   // drop table test
+   db::sql::Statement* s = c->prepare("DROP TABLE IF EXISTS test");
+   assert(s != NULL);
+   s->execute();
+   delete s;
+   assertNoException();
+   cout << "drop table test passed!" << endl;
+   
+   // create table test
+   s = c->prepare("CREATE TABLE IF NOT EXISTS test (t TEXT, i INT)");
+   s->execute();
+   delete s;
+   assertNoException();
+   cout << "sqlite3 create table test passed!" << endl;
+   
+   // insert test 1
+   s = c->prepare("INSERT INTO test (t, i) VALUES ('test!', 1234)");
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "sqlite3 insert test 1 passed!" << endl;
+   
+   // insert test 2
+   s = c->prepare("INSERT INTO test (t, i) VALUES ('!tset', 4321)");
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "sqlite3 insert test 2 passed!" << endl;
+   
+   // insert positional parameters test
+   s = c->prepare("INSERT INTO test (t, i) VALUES (?, ?)");
+   s->setText(1, "boundpositional");
+   s->setInt32(2, 2222);
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "sqlite3 insert positional parameters test passed!" << endl;
+   
+   // insert named parameters test
+   s = c->prepare("INSERT INTO test (t, i) VALUES (:first, :second)");
+   s->setText(":first", "boundnamed");
+   s->setInt32(":second", 2223);
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "sqlite3 insert named parameters test passed!" << endl;
+   
+   // select test
+   s = c->prepare("SELECT * FROM test");
+   s->execute();
+   
+   // fetch rows
+   db::sql::Row* row;
+   string t;
+   int i;
+   while((row = s->fetch()) != NULL)
+   {
+      cout << endl << "Row result:" << endl;
+      row->getText(0, t);
+      assertNoException();
+      row->getInt32(1, i);
+      assertNoException();
+      
+      cout << "t=" << t << endl;
+      cout << "i=" << i << endl;
+   }
+   
+   cout << endl << "Result Rows complete." << endl;
+   delete s;
+   cout << "sqlite3 select test passed!" << endl;
+   
+   c->close();
+   assertNoException();
+   
+   // clean up database client
+   delete dc;
+   
+   // get a mysql database client
+   dc = DatabaseManager::createClient(
+      "mysql://dbwriteclient:k288m2s8f6gk39a@mojo/test");
+   assertNoException();
+   
+   // get a connection
+   c = dc->getConnection();
+   assertNoException();
+   
+   // drop table test
+   s = c->prepare("DROP TABLE IF EXISTS dbmysqltest");
+   assert(s != NULL);
+   s->execute();
+   delete s;
+   assertNoException();
+   cout << "mysql drop table test passed!" << endl;
+   
+   // create table test
+   string sql;
+   sql.append("CREATE TABLE IF NOT EXISTS dbmysqltest ");
+   sql.append("(id BIGINT AUTO_INCREMENT, t TEXT, i BIGINT, ");
+   sql.append("PRIMARY KEY (id))");
+   s = c->prepare(sql.c_str());
+   s->execute();
+   delete s;
+   assertNoException();
+   cout << "mysql create table test passed!" << endl;
+   
+   // insert test 1
+   s = c->prepare("INSERT INTO dbmysqltest (t, i) VALUES ('test!', 1234)");
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "mysql insert test 1 passed!" << endl;
+   
+   // insert test 2
+   s = c->prepare("INSERT INTO dbmysqltest (t, i) VALUES ('!tset', 4321)");
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "mysql insert test 2 passed!" << endl;
+   
+   // insert positional parameters test
+   s = c->prepare("INSERT INTO dbmysqltest (t, i) VALUES (?, ?)");
+   s->setText(1, "boundpositional");
+   s->setInt32(2, 2222);
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "mysql insert positional parameters test passed!" << endl;
+   
+//   // insert named parameters test
+//   s = c->prepare("INSERT INTO dbmysqltest (t, i) VALUES (:first, :second)");
+//   s->setText(":first", "boundnamed");
+//   s->setInt32(":second", 2223);
+//   s->execute();
+//   cout << "Row #: " << s->getLastInsertRowId() << endl;
+//   delete s;
+//   assertNoException();
+//   cout << "mysql insert named parameters test passed!" << endl;
+   
+   // select test
+   s = c->prepare("SELECT * FROM dbmysqltest");
+   s->execute();
+   
+   // fetch rows
+   while((row = s->fetch()) != NULL)
+   {
+      cout << endl << "Row result:" << endl;
+      row->getText(1, t);
+      assertNoException();
+      row->getInt32(2, i);
+      assertNoException();
+      
+      cout << "t=" << t << endl;
+      cout << "i=" << i << endl;
+   }
+   
+   cout << endl << "Result Rows complete." << endl;
+   delete s;
+   cout << "mysql select test passed!" << endl;
+   
+   c->close();
+   assertNoException();
+   
+   // clean up database client
+   delete dc;
    
    cout << endl << "DatabaseManager test complete." << endl;
 }
@@ -3945,8 +4128,8 @@ public:
 //      runSqlite3ConnectionTest();
 //      runSqlite3StatementTest();
 //      runMySqlConnectionTest();
-      runMySqlStatementTest();
-//      runDatabaseManagerTest();
+//      runMySqlStatementTest();
+      runDatabaseManagerTest();
 //      runLoggerTest();
 //      runUniqueListTest();
       

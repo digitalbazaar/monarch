@@ -23,7 +23,7 @@ DatabaseManager::~DatabaseManager()
 {
 }
 
-DatabaseClient* DatabaseManager::createDatabaseClient(const char* url)
+DatabaseClient* DatabaseManager::createClient(const char* url)
 {
    DatabaseClient* rval = NULL;
    

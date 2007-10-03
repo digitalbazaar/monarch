@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_database_AbstractConnectionPool_H
-#define db_database_AbstractConnectionPool_H
+#ifndef db_sql_AbstractConnectionPool_H
+#define db_sql_AbstractConnectionPool_H
 
 #include "db/net/Url.h"
 #include "db/rt/Object.h"

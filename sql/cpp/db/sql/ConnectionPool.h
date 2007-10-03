@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_database_ConnectionPool_H
-#define db_database_ConnectionPool_H
+#ifndef db_sql_ConnectionPool_H
+#define db_sql_ConnectionPool_H
 
 #include "db/sql/PooledConnection.h"
 
@@ -40,7 +40,7 @@ public:
     * @return a Connection from this connection pool, or NULL if an exception
     *         occurred.
     */
-   virtual Connection* getConnection();
+   virtual Connection* getConnection() = 0;
    
    /**
     * Closes all connections.
@@ -111,7 +111,7 @@ public:
     */
    virtual unsigned int getExpiredConnectionCount() = 0;
 };
-  
+
 } // end namespace sql
 } // end namespace db
 #endif
