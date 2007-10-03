@@ -15,6 +15,7 @@ JobThread::JobThread(unsigned long long expireTime) : Thread(this)
    
    // sets the expire time for this thread
    setExpireTime(expireTime);
+   mExpired = false;
 }
 
 JobThread::~JobThread()
@@ -41,6 +42,7 @@ void JobThread::goIdle()
                if(now - startTime >= getExpireTime())
                {
                   // thread must expire
+                  mExpired = true;
                   interrupt();
                }
             }
@@ -111,4 +113,17 @@ void JobThread::setExpireTime(unsigned long long expireTime)
 unsigned long long JobThread::getExpireTime()
 {
    return mExpireTime;
+}
+
+bool JobThread::isExpired()
+{
+   bool rval = false;
+   
+   lock();
+   {
+      rval = mExpired;
+   }
+   unlock();
+   
+   return rval;
 }

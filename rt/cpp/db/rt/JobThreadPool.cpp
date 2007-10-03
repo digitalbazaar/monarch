@@ -25,13 +25,32 @@ JobThread* JobThreadPool::getIdleThread()
    
    mListLock.lock();
    {
-      if(!mIdleThreads.empty())
+      list<JobThread*> expired;
+      while(rval == NULL && !mIdleThreads.empty())
       {
-         // grab the first idle thread
          rval = mIdleThreads.front();
          mIdleThreads.pop_front();
+         
+         if(rval->isExpired())
+         {
+            // collect thread for clean up
+            expired.push_front(rval);
+            rval = NULL;
+         }
       }
-      else
+      
+      // join and clean up expired threads
+      if(!expired.empty())
+      {
+         for(list<JobThread*>::iterator i = expired.begin();
+             i != expired.end(); i++)
+         {
+            (*i)->join();
+            delete (*i);
+         }
+      }
+      
+      if(rval == NULL)
       {
          // create new job thread and add to thread list
          rval = new JobThread(getJobThreadExpireTime());

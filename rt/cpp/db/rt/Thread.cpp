@@ -441,7 +441,7 @@ void Thread::setException(Exception* e, bool cleanup)
       if(existing != NULL && cleanup)
       {
          // ensure cause is not deleted
-         if(e != NULL && existing != e->getCause())
+         if(e == NULL || existing != e->getCause())
          {
             // delete the old exception
             delete existing;

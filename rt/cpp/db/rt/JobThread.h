@@ -42,6 +42,11 @@ protected:
    unsigned long long mExpireTime;
    
    /**
+    * True if this thread has expired, false if not.
+    */
+   bool mExpired;
+   
+   /**
     * Makes this thread idle.
     */
    virtual void goIdle();
@@ -99,6 +104,13 @@ public:
     * @return the expire time for this job thread.
     */
    virtual unsigned long long getExpireTime();
+   
+   /**
+    * Returns true if this job thread is expired, false if not.
+    * 
+    * @return true if this job thread is expired, false if not.
+    */
+   virtual bool isExpired();
 };
 
 } // end namespace rt

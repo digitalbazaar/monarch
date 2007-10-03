@@ -3819,6 +3819,9 @@ void runConnectionPoolTest()
    Sqlite3ConnectionPool cp("sqlite3::memory:");
    assertNoException();
    
+   db::sql::Connection* c = cp.getConnection();
+   c->close();
+   
    // FIXME: test some stuff
    
    cout << endl << "ConnectionPool test complete." << endl;
@@ -4130,7 +4133,7 @@ public:
 //      runStringAppendCharTest();
 //      runStringCompareTest();
 //      runHttpHeaderTest();
-//      runHttpServerTest();
+      runHttpServerTest();
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
 //      runXmlReaderTest();
@@ -4144,7 +4147,7 @@ public:
 //      runSqlite3StatementTest();
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
-      runConnectionPoolTest();
+//      runConnectionPoolTest();
 //      runDatabaseManagerTest();
 //      runLoggerTest();
 //      runUniqueListTest();
