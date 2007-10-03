@@ -18,5 +18,5 @@ Sqlite3ConnectionPool::~Sqlite3ConnectionPool()
 
 PooledConnection* Sqlite3ConnectionPool::createConnection()
 {
-   return new PooledConnection(new Sqlite3Connection(&mUrl));
+   return new PooledConnection(new Sqlite3Connection());
 }

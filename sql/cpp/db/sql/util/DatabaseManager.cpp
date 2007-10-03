@@ -35,13 +35,13 @@ DatabaseClient* DatabaseManager::createDatabaseClient(const char* url)
       if(strncmp(dbUrl.getScheme().c_str(), "mysql", 5) == 0)
       {
          // create mysql connection pool for database client
-         ConnectionPool* cp = new MySqlConnectionPool();
+         ConnectionPool* cp = new MySqlConnectionPool(url);
          rval = new DatabaseClient(cp, true);
       }
       else if(strncmp(dbUrl.getScheme().c_str(), "sqlite3", 7) == 0)
       {
          // create sqlite3 connection pool for database client
-         ConnectionPool* cp = new Sqlite3ConnectionPool();
+         ConnectionPool* cp = new Sqlite3ConnectionPool(url);
          rval = new DatabaseClient(cp, true);
       }
       else
