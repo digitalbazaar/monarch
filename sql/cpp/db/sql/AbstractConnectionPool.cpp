@@ -79,7 +79,10 @@ Connection* AbstractConnectionPool::getIdleConnection()
             {
                // no idle or expired connections, create a connection to use
                rval = createConnection();
-               mConnections.push_back((PooledConnection*)rval);
+               if(rval != NULL)
+               {
+                  mConnections.push_back((PooledConnection*)rval);
+               }
             }
          }
       }
@@ -87,7 +90,10 @@ Connection* AbstractConnectionPool::getIdleConnection()
       {
          // create new connection and add to connection list
          rval = createConnection();
-         mConnections.push_back((PooledConnection*)rval);
+         if(rval != NULL)
+         {
+            mConnections.push_back((PooledConnection*)rval);
+         }
       }
    }
    mListLock.unlock();
