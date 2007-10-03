@@ -18,5 +18,10 @@ MySqlConnectionPool::~MySqlConnectionPool()
 
 PooledConnection* MySqlConnectionPool::createConnection()
 {
-   return new PooledConnection(new MySqlConnection());
+   // create and connect connection
+   Connection* c = new MySqlConnection();
+   c->connect(&mUrl);
+   
+   // wrap in a pooled connection
+   return new PooledConnection(c);
 }
