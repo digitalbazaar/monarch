@@ -59,7 +59,9 @@
 #include "db/io/ByteArrayOutputStream.h"
 #include "db/sql/Row.h"
 #include "db/sql/sqlite3/Sqlite3Connection.h"
+#include "db/sql/sqlite3/Sqlite3ConnectionPool.h"
 #include "db/sql/mysql/MySqlConnection.h"
+#include "db/sql/mysql/MySqlConnectionPool.h"
 #include "db/sql/util/DatabaseManager.h"
 #include "db/logging/Logger.h"
 #include "db/logging/OutputStreamLogger.h"
@@ -3809,6 +3811,19 @@ void runMySqlStatementTest()
    cout << endl << "MySql test complete." << endl;
 }
 
+void runConnectionPoolTest()
+{
+   cout << "Starting ConnectionPool test." << endl << endl;
+   
+   // create sqlite3 connection pool
+   Sqlite3ConnectionPool cp("sqlite3::memory:");
+   assertNoException();
+   
+   // FIXME: test some stuff
+   
+   cout << endl << "ConnectionPool test complete." << endl;
+}
+
 void runDatabaseManagerTest()
 {
    cout << "Starting DatabaseManager test." << endl << endl;
@@ -4129,7 +4144,8 @@ public:
 //      runSqlite3StatementTest();
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
-      runDatabaseManagerTest();
+      runConnectionPoolTest();
+//      runDatabaseManagerTest();
 //      runLoggerTest();
 //      runUniqueListTest();
       
