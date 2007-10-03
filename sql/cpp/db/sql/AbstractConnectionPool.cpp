@@ -9,7 +9,7 @@ using namespace db::sql;
 
 AbstractConnectionPool::AbstractConnectionPool(
    const char* url, unsigned int poolSize) :
-   mUrl(url), mConnectionSemaphore(poolSize, true)
+   mConnectionSemaphore(poolSize, true), mUrl(url) 
 {
    // default JobThread expire time to 0 (no expiration)
    mConnectionExpireTime = 0;

@@ -24,7 +24,10 @@ class Sqlite3ConnectionPool : public AbstractConnectionPool
 {
 protected:
    /**
-    * Creates a new Sqlite3 database connection in a PooledConnection.
+    * Creates a new sqlite3 database connection, connects it, and wraps it
+    * with a PooledConnection.
+    * 
+    * @return the PooledConnection or NULL if an exception occurred.
     */
    virtual PooledConnection* createConnection();
    

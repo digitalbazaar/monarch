@@ -60,7 +60,10 @@ protected:
    unsigned long long mConnectionExpireTime;
    
    /**
-    * Creates a new database connection in a PooledConnection.
+    * Creates a new database connection, connects it, and wraps it with a
+    * PooledConnection.
+    * 
+    * @return the PooledConnection or NULL if an exception occurred.
     */
    virtual PooledConnection* createConnection() = 0;
    

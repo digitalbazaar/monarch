@@ -24,10 +24,13 @@ class MySqlConnectionPool : public AbstractConnectionPool
 {
 protected:
    /**
-    * Creates a new MySql database connection in a PooledConnection.
+    * Creates a new mysql database connection, connects it, and wraps it with a
+    * PooledConnection.
+    * 
+    * @return the PooledConnection or NULL if an exception occurred.
     */
    virtual PooledConnection* createConnection();
-
+   
 public:
    /**
     * Creates a new MySqlConnectionPool with the specified number of
