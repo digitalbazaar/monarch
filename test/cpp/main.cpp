@@ -3788,7 +3788,7 @@ void runMySqlStatementTest()
    while((row = s->fetch()) != NULL)
    {
       cout << endl << "Row result:" << endl;
-      //row->getText(1, t);
+      row->getText(1, t);
       assertNoException();
       row->getInt32(2, i);
       assertNoException();

@@ -264,8 +264,7 @@ DatabaseException* MySqlStatement::setText(const char* name, const char* value)
    
    return rval;
 }
-// FIXME: remove iostream include
-#include <iostream>
+
 DatabaseException* MySqlStatement::execute()
 {
    DatabaseException* rval = NULL;
@@ -289,13 +288,8 @@ DatabaseException* MySqlStatement::execute()
       mResult = mysql_stmt_result_metadata(mHandle);
       if(mResult != NULL)
       {
-         // FIXME: remove printout
-         std::cout << "setting up bindings for result set" << std::endl;
-         
          // get field count
          mFieldCount = mysql_stmt_field_count(mHandle);
-         
-         std::cout << "field count=" << mFieldCount << std::endl;
          
          // setup result bindings
          mResultBindings = new MYSQL_BIND[mFieldCount];
@@ -311,14 +305,6 @@ DatabaseException* MySqlStatement::execute()
             // statement exception
             rval = new MySqlException(this);
             Exception::setLast(rval);
-         }
-         // FIXME: remove else entirely
-         else
-         {
-            for(unsigned int i = 0; i < mFieldCount; i++)
-            {
-               std::cout << "length: " << i << "=" << *mResultBindings[i].length << std::endl;
-            }
          }
       }
    }
@@ -341,28 +327,17 @@ Row* MySqlStatement::fetch()
       }
       else if(rc != MYSQL_NO_DATA)
       {
-         std::cout << "after fetch()..." << std::endl;
-         
-         if(rc == MYSQL_DATA_TRUNCATED)
-         {
-            std::cout << "data truncated as expected" << std::endl;
-         }
-         
-         for(unsigned int i = 0; i < mFieldCount; i++)
-         {
-            std::cout << "length: " << i << "=" << *mResultBindings[i].length << std::endl;
-         }
-         
          if(mRow == NULL)
          {
             // create row as necessary
             mRow = new MySqlRow(this);
-            rval = mRow;
             
             // set fields for row
             mRow->setFields(
                mysql_fetch_fields(mResult), mFieldCount, mResultBindings);
          }
+         
+         rval = mRow;
       }
    }
    

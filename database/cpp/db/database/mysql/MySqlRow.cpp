@@ -46,7 +46,7 @@ DatabaseException* MySqlRow::getInt32(int column, int& i)
    mBindings[column].buffer = (char*)&i;
    mBindings[column].buffer_length = 4;
    mBindings[column].length = &mBindings[column].buffer_length;
-   mysql_stmt_fetch_column(getStatementHandle(), mBindings, column, 0);
+   mysql_stmt_fetch_column(getStatementHandle(), &mBindings[column], column, 0);
    
    // FIXME: check exceptions, etc
    return NULL;
@@ -58,35 +58,21 @@ DatabaseException* MySqlRow::getInt64(int column, long long& i)
    mBindings[column].buffer = (char*)&i;
    mBindings[column].buffer_length = 8;
    mBindings[column].length = &mBindings[column].buffer_length;
-   mysql_stmt_fetch_column(getStatementHandle(), mBindings, column, 0);
+   mysql_stmt_fetch_column(getStatementHandle(), &mBindings[column], column, 0);
    
    // FIXME: check exceptions, etc
    return NULL;
 }
-#include <iostream>
+
 DatabaseException* MySqlRow::getText(int column, string& str)
 {
-   std::cout << "field count=" << mFieldCount << std::endl;
-   std::cout << "line0" << std::endl;
    mBindings[column].buffer_type = MYSQL_TYPE_BLOB;
-   std::cout << "line1" << std::endl;
-   unsigned long length = mBindings[column].buffer_length;// + 1;
-   std::cout << "now length: " << column << "=" << length << std::endl;
-   std::cout << "line2" << std::endl;
-   char temp[length + 1];
-   std::cout << "line3" << std::endl;
-   
+   char temp[mBindings[column].buffer_length + 1];
    mBindings[column].buffer = temp;
-   std::cout << "line4" << std::endl;
-   mBindings[column].buffer_length = length;
-   std::cout << "line5" << std::endl;
-   mBindings[column].length = &length;
-   std::cout << "line7" << std::endl;
-   mysql_stmt_fetch_column(getStatementHandle(), mBindings, column, 0);
+   mBindings[column].length = &mBindings[column].buffer_length;
+   mysql_stmt_fetch_column(getStatementHandle(), &mBindings[column], column, 0);
    
-   std::cout << "line8" << std::endl;
-   memset(temp + length, 0, 1);
-   std::cout << "line9" << std::endl;
+   memset(temp + mBindings[column].buffer_length, 0, 1);
    str.assign(temp);
    
    // FIXME: check exceptions, etc
