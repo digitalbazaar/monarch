@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_database_sqlite3_Sqlite3Exception_H
-#define db_database_sqlite3_Sqlite3Exception_H
+#ifndef db_sql_sqlite3_Sqlite3Exception_H
+#define db_sql_sqlite3_Sqlite3Exception_H
 
-#include "db/database/DatabaseException.h"
+#include "db/sql/SqlException.h"
 
 namespace db
 {
-namespace database
+namespace sql
 {
 namespace sqlite3
 {
@@ -22,7 +22,7 @@ class Sqlite3Connection;
  * 
  * @author Dave Longley
  */
-class Sqlite3Exception : public db::database::DatabaseException
+class Sqlite3Exception : public db::sql::SqlException
 {
 public:
    /**
@@ -39,6 +39,6 @@ public:
 };
 
 } // end namespace sqlite3
-} // end namespace database
+} // end namespace sql
 } // end namespace db
 #endif

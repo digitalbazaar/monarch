@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/database/Row.h"
+#include "db/sql/Row.h"
 
-using namespace db::database;
+using namespace db::sql;
 
 Row::Row(Statement* s)
 {

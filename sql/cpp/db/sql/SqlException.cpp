@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/database/DatabaseException.h"
+#include "db/sql/SqlException.h"
 
 #include <string>
 
-using namespace db::database;
+using namespace db::sql;
 using namespace db::rt;
 
-DatabaseException::DatabaseException(
+SqlException::SqlException(
    const char* message, const char* type, int code) :
    Exception(message, type, code)
 {
@@ -16,19 +16,19 @@ DatabaseException::DatabaseException(
    memset(mSqlState, 0, 1);
 }
 
-DatabaseException::~DatabaseException()
+SqlException::~SqlException()
 {
    delete [] mSqlState;
 }
 
-void DatabaseException::setSqlState(const char* state)
+void SqlException::setSqlState(const char* state)
 {
    delete [] mSqlState;
    mSqlState = new char[strlen(state) + 1];
    strcpy(mSqlState, state);
 }
 
-const char* DatabaseException::getSqlState()
+const char* SqlException::getSqlState()
 {
    return mSqlState;
 }

@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/database/Statement.h"
+#include "db/sql/Statement.h"
 
-using namespace db::database;
+using namespace db::sql;
 
 Statement::Statement(Connection* c, const char* sql)
 {

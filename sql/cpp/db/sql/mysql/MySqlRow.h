@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_database_mysql_MySqlRow_h
-#define db_database_mysql_MySqlRow_h
+#ifndef db_sql_mysql_MySqlRow_h
+#define db_sql_mysql_MySqlRow_h
 
 #include <mysql/mysql.h>
 
-#include "db/database/Row.h"
+#include "db/sql/Row.h"
 
 namespace db
 {
-namespace database
+namespace sql
 {
 namespace mysql
 {
@@ -24,7 +24,7 @@ class MySqlStatement;
  * 
  * @author Dave Longley
  */
-class MySqlRow : public db::database::Row
+class MySqlRow : public db::sql::Row
 {
 protected:
    /**
@@ -78,9 +78,9 @@ public:
     * @param column the column's index.
     * @param type the type ID for the column.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* getType(int column, int& type);
+   virtual SqlException* getType(int column, int& type);
    
    /**
     * Gets a 32-bit integer from a column.
@@ -88,9 +88,9 @@ public:
     * @param column the column's index.
     * @param i the integer to store the integer in.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* getInt32(int column, int& i);
+   virtual SqlException* getInt32(int column, int& i);
    
    /**
     * Gets a 64-bit integer from a column.
@@ -98,9 +98,9 @@ public:
     * @param column the column's index.
     * @param i the integer to store the integer in.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* getInt64(int column, long long& i);
+   virtual SqlException* getInt64(int column, long long& i);
    
    /**
     * Gets a text string from a column.
@@ -108,12 +108,12 @@ public:
     * @param column the column's index.
     * @param str the string to store the text in.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* getText(int column, std::string& str);
+   virtual SqlException* getText(int column, std::string& str);
 };
 
 } // end namespace mysql
-} // end namespace database
+} // end namespace sql
 } // end namespace db
 #endif

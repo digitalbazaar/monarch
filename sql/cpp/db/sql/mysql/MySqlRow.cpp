@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/database/mysql/MySqlRow.h"
-#include "db/database/mysql/MySqlStatement.h"
-#include "db/database/mysql/MySqlConnection.h"
+#include "db/sql/mysql/MySqlRow.h"
+#include "db/sql/mysql/MySqlStatement.h"
+#include "db/sql/mysql/MySqlConnection.h"
 
 using namespace std;
-using namespace db::database;
-using namespace db::database::mysql;
+using namespace db::sql;
+using namespace db::sql::mysql;
 
 MySqlRow::MySqlRow(MySqlStatement* s) : Row(s)
 {
@@ -33,14 +33,14 @@ void MySqlRow::setFields(
    mBindings = bindings;
 }
 
-DatabaseException* MySqlRow::getType(int column, int& type)
+SqlException* MySqlRow::getType(int column, int& type)
 {
    // FIXME: check exceptions, etc
    type = mFields[column].type;
    return NULL;
 }
 
-DatabaseException* MySqlRow::getInt32(int column, int& i)
+SqlException* MySqlRow::getInt32(int column, int& i)
 {
    mBindings[column].buffer_type = MYSQL_TYPE_LONG;
    mBindings[column].buffer = (char*)&i;
@@ -52,7 +52,7 @@ DatabaseException* MySqlRow::getInt32(int column, int& i)
    return NULL;
 }
 
-DatabaseException* MySqlRow::getInt64(int column, long long& i)
+SqlException* MySqlRow::getInt64(int column, long long& i)
 {
    mBindings[column].buffer_type = MYSQL_TYPE_LONGLONG;
    mBindings[column].buffer = (char*)&i;
@@ -64,7 +64,7 @@ DatabaseException* MySqlRow::getInt64(int column, long long& i)
    return NULL;
 }
 
-DatabaseException* MySqlRow::getText(int column, string& str)
+SqlException* MySqlRow::getText(int column, string& str)
 {
    mBindings[column].buffer_type = MYSQL_TYPE_BLOB;
    char temp[mBindings[column].buffer_length + 1];

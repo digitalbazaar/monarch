@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_database_Connection_H
-#define db_database_Connection_H
+#ifndef db_sql_Connection_H
+#define db_sql_Connection_H
 
 #include "db/net/Url.h"
-#include "db/database/DatabaseException.h"
+#include "db/sql/SqlException.h"
 
 namespace db
 {
-namespace database
+namespace sql
 {
 
 // forward declare Statement
@@ -54,9 +54,9 @@ public:
     * @param url the url for the database to connect to, including driver
     *            specific parameters.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* connect(const char* url) = 0;
+   virtual SqlException* connect(const char* url) = 0;
    
    /**
     * Prepares a Statement for execution. The Statement is heap-allocated and
@@ -77,18 +77,18 @@ public:
    /**
     * Commits the current transaction.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* commit();
+   virtual SqlException* commit();
    
    /**
     * Rolls back the current transaction.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* rollback();
+   virtual SqlException* rollback();
 };
 
-} // end namespace database
+} // end namespace sql
 } // end namespace db
 #endif

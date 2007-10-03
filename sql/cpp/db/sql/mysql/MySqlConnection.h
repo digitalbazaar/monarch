@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_database_mysql_MySqlConnection_H
-#define db_database_mysql_MySqlConnection_H
+#ifndef db_sql_mysql_MySqlConnection_H
+#define db_sql_mysql_MySqlConnection_H
 
 #include <mysql/mysql.h>
 
-#include "db/database/Connection.h"
-#include "db/database/mysql/MySqlException.h"
+#include "db/sql/Connection.h"
+#include "db/sql/mysql/MySqlException.h"
 
 namespace db
 {
-namespace database
+namespace sql
 {
 namespace mysql
 {
@@ -24,7 +24,7 @@ class MySqlStatement;
  * 
  * @author Dave Longley
  */
-class MySqlConnection : public db::database::Connection
+class MySqlConnection : public db::sql::Connection
 {
 protected:
    /**
@@ -56,9 +56,9 @@ public:
     * @param url MySql parameters in URL form:
     *            "mysql://user:password@host:port/databasename"
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* connect(const char* url);
+   virtual SqlException* connect(const char* url);
    
    /**
     * Prepares a Statement for execution. The Statement is heap-allocated and
@@ -79,26 +79,26 @@ public:
    /**
     * Commits the current transaction.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* commit();
+   virtual SqlException* commit();
    
    /**
     * Rolls back the current transaction.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* rollback();
+   virtual SqlException* rollback();
    
    /**
     * Sets the character set for this connection.
     * 
     * @param cset the character set to use for this connection.
     */
-   virtual DatabaseException* setCharacterSet(const char* cset);
+   virtual SqlException* setCharacterSet(const char* cset);
 };
 
 } // end namespace mysql
-} // end namespace database
+} // end namespace sql
 } // end namespace db
 #endif

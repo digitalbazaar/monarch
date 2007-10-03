@@ -57,9 +57,9 @@
 #include "db/io/OStreamOutputStream.h"
 #include "db/crypto/BigDecimal.h"
 #include "db/io/ByteArrayOutputStream.h"
-#include "db/database/Row.h"
-#include "db/database/sqlite3/Sqlite3Connection.h"
-#include "db/database/mysql/MySqlConnection.h"
+#include "db/sql/Row.h"
+#include "db/sql/sqlite3/Sqlite3Connection.h"
+#include "db/sql/mysql/MySqlConnection.h"
 #include "db/logging/Logger.h"
 #include "db/logging/OutputStreamLogger.h"
 #include "db/logging/FileLogger.h"
@@ -76,8 +76,8 @@ using namespace db::util;
 using namespace db::util::regex;
 using namespace db::data;
 using namespace db::data::xml;
-using namespace db::database::sqlite3;
-using namespace db::database::mysql;
+using namespace db::sql::sqlite3;
+using namespace db::sql::mysql;
 using namespace db::logging;
 
 // WTF? this is required to get static library building for unknown reason
@@ -95,12 +95,12 @@ void assertNoException()
    if(Exception::hasLast())
    {
       Exception* e = Exception::getLast();
-      if(dynamic_cast<db::database::DatabaseException*>(e) != NULL)
+      if(dynamic_cast<db::sql::SqlException*>(e) != NULL)
       {
-         db::database::DatabaseException* dbe =
-            (db::database::DatabaseException*)e;
+         db::sql::SqlException* dbe =
+            (db::sql::SqlException*)e;
          
-         cout << "DatabaseException occurred!" << endl;
+         cout << "SqlException occurred!" << endl;
          cout << "message: " << dbe->getMessage() << endl;
          cout << "type: " << dbe->getType() << endl;
          cout << "code: " << dbe->getCode() << endl;
@@ -3616,7 +3616,7 @@ void runSqlite3StatementTest()
    Sqlite3Connection c;
    c.connect("sqlite3::memory:");
    
-   db::database::Statement* s;
+   db::sql::Statement* s;
    
    // drop table test
    s = c.prepare("DROP TABLE IF EXISTS test");
@@ -3674,7 +3674,7 @@ void runSqlite3StatementTest()
    s->execute();
    
    // fetch rows
-   db::database::Row* row;
+   db::sql::Row* row;
    string t;
    int i;
    while((row = s->fetch()) != NULL)
@@ -3720,7 +3720,7 @@ void runMySqlStatementTest()
    MySqlConnection c;
    c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@mojo/test");
    
-   db::database::Statement* s;
+   db::sql::Statement* s;
    
    // drop table test
    s = c.prepare("DROP TABLE IF EXISTS dbmysqltest");
@@ -3782,7 +3782,7 @@ void runMySqlStatementTest()
    s->execute();
    
    // fetch rows
-   db::database::Row* row;
+   db::sql::Row* row;
    string t;
    int i;
    while((row = s->fetch()) != NULL)

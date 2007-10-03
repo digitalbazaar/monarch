@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/database/sqlite3/Sqlite3Connection.h"
-#include "db/database/sqlite3/Sqlite3Statement.h"
+#include "db/sql/sqlite3/Sqlite3Connection.h"
+#include "db/sql/sqlite3/Sqlite3Statement.h"
 
 #include <iostream>
 
 using namespace std;
-using namespace db::database;
-using namespace db::database::sqlite3;
+using namespace db::sql;
+using namespace db::sql::sqlite3;
 using namespace db::net;
 using namespace db::rt;
 
@@ -24,9 +24,9 @@ Sqlite3Connection::~Sqlite3Connection()
    Sqlite3Connection::close();
 }
 
-DatabaseException* Sqlite3Connection::connect(const char* url)
+SqlException* Sqlite3Connection::connect(const char* url)
 {
-   DatabaseException* rval = NULL;
+   SqlException* rval = NULL;
    
    mUrl = new Url(url);
    if(strncmp(mUrl->getScheme().c_str(), "sqlite3", 7) != 0)
@@ -38,7 +38,7 @@ DatabaseException* Sqlite3Connection::connect(const char* url)
       msg.append(mUrl->toString(urlStr));
       msg.append(1, '\'');
       
-      Exception::setLast(new DatabaseException(msg.c_str()));
+      Exception::setLast(new SqlException(msg.c_str()));
    }
    else
    {
@@ -72,14 +72,14 @@ void Sqlite3Connection::close()
    }
 }
 
-DatabaseException* Sqlite3Connection::commit()
+SqlException* Sqlite3Connection::commit()
 {
    // FIXME:
    cout << "FIXME: commit" << endl;
    return NULL;
 }
 
-DatabaseException* Sqlite3Connection::rollback()
+SqlException* Sqlite3Connection::rollback()
 {
    // FIXME:
    cout << "FIXME: rollback" << endl;

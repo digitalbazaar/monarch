@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/database/sqlite3/Sqlite3Row.h"
-#include "db/database/sqlite3/Sqlite3Statement.h"
-#include "db/database/sqlite3/Sqlite3Connection.h"
+#include "db/sql/sqlite3/Sqlite3Row.h"
+#include "db/sql/sqlite3/Sqlite3Statement.h"
+#include "db/sql/sqlite3/Sqlite3Connection.h"
 
 using namespace std;
-using namespace db::database;
-using namespace db::database::sqlite3;
+using namespace db::sql;
+using namespace db::sql::sqlite3;
 
 Sqlite3Row::Sqlite3Row(Sqlite3Statement* s) : Row(s)
 {
@@ -22,28 +22,28 @@ sqlite3_stmt* Sqlite3Row::getStatementHandle()
    return ((Sqlite3Statement*)mStatement)->mHandle;
 }
 
-DatabaseException* Sqlite3Row::getType(int column, int& type)
+SqlException* Sqlite3Row::getType(int column, int& type)
 {
    // FIXME: check exceptions, etc
    type = sqlite3_column_type(getStatementHandle(), column);
    return NULL;
 }
 
-DatabaseException* Sqlite3Row::getInt32(int column, int& i)
+SqlException* Sqlite3Row::getInt32(int column, int& i)
 {
    // FIXME: check exceptions, etc
    i = sqlite3_column_int(getStatementHandle(), column);
    return NULL;
 }
 
-DatabaseException* Sqlite3Row::getInt64(int column, long long& i)
+SqlException* Sqlite3Row::getInt64(int column, long long& i)
 {
    // FIXME: check exceptions, etc
    i = sqlite3_column_int64(getStatementHandle(), column);
    return NULL;
 }
 
-DatabaseException* Sqlite3Row::getText(int column, string& str)
+SqlException* Sqlite3Row::getText(int column, string& str)
 {
    // FIXME: check exceptions, etc
    str.assign((const char*)sqlite3_column_text(getStatementHandle(), column));

@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_database_Statement_H
-#define db_database_Statement_H
+#ifndef db_sql_Statement_H
+#define db_sql_Statement_H
 
-#include "db/database/Connection.h"
+#include "db/sql/Connection.h"
 
 namespace db
 {
-namespace database
+namespace sql
 {
 
 // forward declare row
@@ -58,9 +58,9 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return a SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt32(unsigned int param, int value) = 0;
+   virtual SqlException* setInt32(unsigned int param, int value) = 0;
    
    /**
     * Sets the value of a 64-bit integer for a positional parameter.
@@ -68,9 +68,9 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return a SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt64(unsigned int param, long long value) = 0;
+   virtual SqlException* setInt64(unsigned int param, long long value) = 0;
    
    /**
     * Sets the value of a text string for a positional parameter.
@@ -78,9 +78,9 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return a SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setText(
+   virtual SqlException* setText(
       unsigned int param, const char* value) = 0;
    
    /**
@@ -89,9 +89,9 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return a SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt32(const char* name, int value) = 0;
+   virtual SqlException* setInt32(const char* name, int value) = 0;
    
    /**
     * Sets the value of a 64-bit integer for a named parameter (:mynamehere).
@@ -99,9 +99,9 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return a SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt64(const char* name, long long value) = 0;
+   virtual SqlException* setInt64(const char* name, long long value) = 0;
    
    /**
     * Sets the value of a text string for a named parameter (:mynamehere).
@@ -109,16 +109,16 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return a SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setText(const char* name, const char* value) = 0;
+   virtual SqlException* setText(const char* name, const char* value) = 0;
    
    /**
     * Executes this Statement.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return a SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* execute() = 0;
+   virtual SqlException* execute() = 0;
    
    /**
     * Fetches the next result Row once this Statement has been executed.
@@ -133,9 +133,9 @@ public:
     * 
     * @param rows to store the number of rows modified by this Statement.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return a SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* getRowsChanged(unsigned long long& rows) = 0;
+   virtual SqlException* getRowsChanged(unsigned long long& rows) = 0;
    
    /**
     * Gets the ID of the last row that was inserted. This is done per
@@ -146,6 +146,6 @@ public:
    virtual unsigned long long getLastInsertRowId() = 0;
 };
 
-} // end namespace database
+} // end namespace sql
 } // end namespace db
 #endif

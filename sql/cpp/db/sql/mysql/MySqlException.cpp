@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/database/mysql/MySqlException.h"
-#include "db/database/mysql/MySqlConnection.h"
-#include "db/database/mysql/MySqlStatement.h"
+#include "db/sql/mysql/MySqlException.h"
+#include "db/sql/mysql/MySqlConnection.h"
+#include "db/sql/mysql/MySqlStatement.h"
 
 #include <mysql/mysql.h>
 
-using namespace db::database;
-using namespace db::database::mysql;
+using namespace db::sql;
+using namespace db::sql::mysql;
 
 MySqlException::MySqlException(MySqlConnection* c) :
-   DatabaseException("", "db.database.mysql.MySql")
+   SqlException("", "db.database.mysql.MySql")
 {
    setCode(mysql_errno(c->mHandle));
    setMessage(mysql_error(c->mHandle));

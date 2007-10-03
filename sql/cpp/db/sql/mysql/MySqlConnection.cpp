@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/database/mysql/MySqlConnection.h"
-#include "db/database/mysql/MySqlStatement.h"
+#include "db/sql/mysql/MySqlConnection.h"
+#include "db/sql/mysql/MySqlStatement.h"
 
 #include <iostream>
 
 using namespace std;
-using namespace db::database;
-using namespace db::database::mysql;
+using namespace db::sql;
+using namespace db::sql::mysql;
 using namespace db::net;
 using namespace db::rt;
 
@@ -27,9 +27,9 @@ MySqlConnection::~MySqlConnection()
    MySqlConnection::close();
 }
 
-DatabaseException* MySqlConnection::connect(const char* url)
+SqlException* MySqlConnection::connect(const char* url)
 {
-   DatabaseException* rval = NULL;
+   SqlException* rval = NULL;
    
    mUrl = new Url(url);
    if(strcmp(mUrl->getScheme().c_str(), "mysql") != 0)
@@ -41,7 +41,7 @@ DatabaseException* MySqlConnection::connect(const char* url)
       msg.append(mUrl->toString(urlStr));
       msg.append(1, '\'');
       
-      Exception::setLast(new DatabaseException(msg.c_str()));
+      Exception::setLast(new SqlException(msg.c_str()));
    }
    else
    {
@@ -78,9 +78,9 @@ void MySqlConnection::close()
    }
 }
 
-DatabaseException* MySqlConnection::commit()
+SqlException* MySqlConnection::commit()
 {
-   DatabaseException* rval = NULL;
+   SqlException* rval = NULL;
    
    if(!mysql_commit(mHandle))
    {
@@ -91,9 +91,9 @@ DatabaseException* MySqlConnection::commit()
    return rval;
 }
 
-DatabaseException* MySqlConnection::rollback()
+SqlException* MySqlConnection::rollback()
 {
-   DatabaseException* rval = NULL;
+   SqlException* rval = NULL;
    
    if(!mysql_rollback(mHandle))
    {
@@ -104,7 +104,7 @@ DatabaseException* MySqlConnection::rollback()
    return rval;
 }
 
-DatabaseException* MySqlConnection::setCharacterSet(const char* cset)
+SqlException* MySqlConnection::setCharacterSet(const char* cset)
 {
    // FIXME: handle exceptions
    mysql_options(mHandle, MYSQL_SET_CHARSET_NAME, cset);

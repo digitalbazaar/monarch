@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/database/Connection.h"
+#include "db/sql/Connection.h"
 
-using namespace db::database;
+using namespace db::sql;
 using namespace db::rt;
 
 Connection::Connection()
@@ -19,14 +19,14 @@ Connection::~Connection()
    }
 }
 
-DatabaseException* Connection::commit()
+SqlException* Connection::commit()
 {
-   return (DatabaseException*)Exception::setLast(
-      new DatabaseException("Connection::commit() not supported!"));
+   return (SqlException*)Exception::setLast(
+      new SqlException("Connection::commit() not supported!"));
 }
 
-DatabaseException* Connection::rollback()
+SqlException* Connection::rollback()
 {
-   return (DatabaseException*)Exception::setLast(
-      new DatabaseException("Connection::rollback() not supported!"));
+   return (SqlException*)Exception::setLast(
+      new SqlException("Connection::rollback() not supported!"));
 }

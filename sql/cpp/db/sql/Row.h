@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_database_Row_h
-#define db_database_Row_h
+#ifndef db_sql_Row_h
+#define db_sql_Row_h
 
-#include "db/database/Statement.h"
-#include "db/database/DatabaseException.h"
+#include "db/sql/Statement.h"
+#include "db/sql/SqlException.h"
 
 namespace db
 {
-namespace database
+namespace sql
 {
 
 /**
@@ -48,9 +48,9 @@ public:
     * @param column the column's index.
     * @param type the type ID for the column.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* getType(int column, int& type) = 0;
+   virtual SqlException* getType(int column, int& type) = 0;
    
    /**
     * Gets a 32-bit integer from a column.
@@ -58,9 +58,9 @@ public:
     * @param column the column's index.
     * @param i the integer to store the integer in.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* getInt32(int column, int& i) = 0;
+   virtual SqlException* getInt32(int column, int& i) = 0;
    
    /**
     * Gets a 64-bit integer from a column.
@@ -68,9 +68,9 @@ public:
     * @param column the column's index.
     * @param i the integer to store the integer in.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* getInt64(int column, long long& i) = 0;
+   virtual SqlException* getInt64(int column, long long& i) = 0;
    
    /**
     * Gets a text string from a column.
@@ -78,11 +78,11 @@ public:
     * @param column the column's index.
     * @param str the string to store the text in.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* getText(int column, std::string& str) = 0;
+   virtual SqlException* getText(int column, std::string& str) = 0;
 };
 
-} // end namespace database
+} // end namespace sql
 } // end namespace db
 #endif

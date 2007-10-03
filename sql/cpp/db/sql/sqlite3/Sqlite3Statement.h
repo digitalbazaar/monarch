@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_database_sqlite3_Statement_H
-#define db_database_sqlite3_Statement_H
+#ifndef db_sql_sqlite3_Statement_H
+#define db_sql_sqlite3_Statement_H
 
 #include <sqlite3.h>
 
-#include "db/database/Statement.h"
-#include "db/database/sqlite3/Sqlite3Row.h"
+#include "db/sql/Statement.h"
+#include "db/sql/sqlite3/Sqlite3Row.h"
 
 namespace db
 {
-namespace database
+namespace sql
 {
 namespace sqlite3
 {
@@ -24,7 +24,7 @@ class Sqlite3Connection;
  * @author Dave Longley
  * @author David I. Lehn
  */
-class Sqlite3Statement : public db::database::Statement
+class Sqlite3Statement : public db::sql::Statement
 {
 protected:
    /**
@@ -65,9 +65,9 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt32(unsigned int param, int value);
+   virtual SqlException* setInt32(unsigned int param, int value);
    
    /**
     * Sets the value of a 64-bit integer for a positional parameter.
@@ -75,9 +75,9 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt64(unsigned int param, long long value);
+   virtual SqlException* setInt64(unsigned int param, long long value);
    
    /**
     * Sets the value of a text string for a positional parameter.
@@ -85,9 +85,9 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setText(unsigned int param, const char* value);
+   virtual SqlException* setText(unsigned int param, const char* value);
    
    /**
     * Sets the value of a 32-bit integer for a named parameter (:mynamehere).
@@ -95,9 +95,9 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt32(const char* name, int value);
+   virtual SqlException* setInt32(const char* name, int value);
    
    /**
     * Sets the value of a 64-bit integer for a named parameter (:mynamehere).
@@ -105,9 +105,9 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setInt64(const char* name, long long value);
+   virtual SqlException* setInt64(const char* name, long long value);
    
    /**
     * Sets the value of a text string for a named parameter (:mynamehere).
@@ -115,16 +115,16 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* setText(const char* name, const char* value);
+   virtual SqlException* setText(const char* name, const char* value);
    
    /**
     * Executes this Statement.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* execute();
+   virtual SqlException* execute();
    
    /**
     * Fetches the next result Row once this Statement has been executed.
@@ -139,9 +139,9 @@ public:
     * 
     * @param rows to store the number of rows modified by this Statement.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* getRowsChanged(unsigned long long& rows);
+   virtual SqlException* getRowsChanged(unsigned long long& rows);
    
    /**
     * Gets the ID of the last row that was inserted. This is done per
@@ -153,6 +153,6 @@ public:
 };
 
 } // end namespace sqlite3
-} // end namespace database
+} // end namespace sql
 } // end namespace db
 #endif

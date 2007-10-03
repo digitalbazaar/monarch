@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_database_mysql_MySqlException_H
-#define db_database_mysql_MySqlException_H
+#ifndef db_sql_mysql_MySqlException_H
+#define db_sql_mysql_MySqlException_H
 
-#include "db/database/DatabaseException.h"
+#include "db/sql/SqlException.h"
 
 namespace db
 {
-namespace database
+namespace sql
 {
 namespace mysql
 {
@@ -23,7 +23,7 @@ class MySqlStatement;
  * 
  * @author Dave Longley
  */
-class MySqlException : public db::database::DatabaseException
+class MySqlException : public db::sql::SqlException
 {
 public:
    /**
@@ -47,6 +47,6 @@ public:
 };
 
 } // end namespace mysql
-} // end namespace database
+} // end namespace sql
 } // end namespace db
 #endif

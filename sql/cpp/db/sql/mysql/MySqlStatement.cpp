@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/database/mysql/MySqlStatement.h"
-#include "db/database/mysql/MySqlConnection.h"
-#include "db/database/mysql/MySqlRow.h"
+#include "db/sql/mysql/MySqlStatement.h"
+#include "db/sql/mysql/MySqlConnection.h"
+#include "db/sql/mysql/MySqlRow.h"
 
 using namespace std;
-using namespace db::database;
-using namespace db::database::mysql;
+using namespace db::sql;
+using namespace db::sql::mysql;
 using namespace db::rt;
 
 MySqlStatement::MySqlStatement(MySqlConnection *c, const char* sql) :
@@ -105,16 +105,16 @@ MySqlStatement::~MySqlStatement()
    mysql_stmt_close(mHandle);
 }
 
-DatabaseException* MySqlStatement::setInt32(unsigned int param, int value)
+SqlException* MySqlStatement::setInt32(unsigned int param, int value)
 {
-   DatabaseException* rval = NULL;
+   SqlException* rval = NULL;
    
    if(param > mParamCount)
    {
       // exception, no parameter with given index
       char temp[100];
       sprintf(temp, "Invalid parameter index!,index='%i'", param);
-      rval = new DatabaseException(temp);
+      rval = new SqlException(temp);
       Exception::setLast(rval);
    }
    else
@@ -134,16 +134,16 @@ DatabaseException* MySqlStatement::setInt32(unsigned int param, int value)
    return rval;
 }
 
-DatabaseException* MySqlStatement::setInt64(unsigned int param, long long value)
+SqlException* MySqlStatement::setInt64(unsigned int param, long long value)
 {
-   DatabaseException* rval = NULL;
+   SqlException* rval = NULL;
    
    if(param > mParamCount)
    {
       // exception, no parameter with given index
       char temp[100];
       sprintf(temp, "Invalid parameter index!,index='%i'", param);
-      rval = new DatabaseException(temp);
+      rval = new SqlException(temp);
       Exception::setLast(rval);
    }
    else
@@ -163,17 +163,17 @@ DatabaseException* MySqlStatement::setInt64(unsigned int param, long long value)
    return rval;
 }
 
-DatabaseException* MySqlStatement::setText(
+SqlException* MySqlStatement::setText(
    unsigned int param, const char* value)
 {
-   DatabaseException* rval = NULL;
+   SqlException* rval = NULL;
    
    if(param > mParamCount)
    {
       // exception, no parameter with given index
       char temp[100];
       sprintf(temp, "Invalid parameter index!,index='%i'", param);
-      rval = new DatabaseException(temp);
+      rval = new SqlException(temp);
       Exception::setLast(rval);
    }
    else
@@ -192,10 +192,10 @@ DatabaseException* MySqlStatement::setText(
    return rval;
 }
 
-DatabaseException* MySqlStatement::setInt32(const char* name, int value)
+SqlException* MySqlStatement::setInt32(const char* name, int value)
 {
-   DatabaseException* rval = 
-     new DatabaseException("MySql named parameter support not implemented!");
+   SqlException* rval = 
+     new SqlException("MySql named parameter support not implemented!");
    
 //   // FIXME: might strip support for parameter names
 //   int index = mysql_bind_parameter_index(mHandle, name);
@@ -206,7 +206,7 @@ DatabaseException* MySqlStatement::setInt32(const char* name, int value)
 //      msg.append("Invalid parameter name!,name='");
 //      msg.append(name);
 //      msg.append(1, '\'');
-//      rval = new DatabaseException(msg.c_str());
+//      rval = new SqlException(msg.c_str());
 //      Exception::setLast(rval);
 //   }
 //   else
@@ -217,10 +217,10 @@ DatabaseException* MySqlStatement::setInt32(const char* name, int value)
    return rval;
 }
 
-DatabaseException* MySqlStatement::setInt64(const char* name, long long value)
+SqlException* MySqlStatement::setInt64(const char* name, long long value)
 {
-   DatabaseException* rval = 
-     new DatabaseException("MySql named parameter support not implemented!");
+   SqlException* rval = 
+     new SqlException("MySql named parameter support not implemented!");
    
 //   int index = mysql_bind_parameter_index(mHandle, name);
 //   if(index == 0)
@@ -230,7 +230,7 @@ DatabaseException* MySqlStatement::setInt64(const char* name, long long value)
 //      msg.append("Invalid parameter name!,name='");
 //      msg.append(name);
 //      msg.append(1, '\'');
-//      rval = new DatabaseException(msg.c_str());
+//      rval = new SqlException(msg.c_str());
 //      Exception::setLast(rval);
 //   }
 //   else
@@ -241,10 +241,10 @@ DatabaseException* MySqlStatement::setInt64(const char* name, long long value)
    return rval;
 }
 
-DatabaseException* MySqlStatement::setText(const char* name, const char* value)
+SqlException* MySqlStatement::setText(const char* name, const char* value)
 {
-   DatabaseException* rval = 
-     new DatabaseException("MySql named parameter support not implemented!");
+   SqlException* rval = 
+     new SqlException("MySql named parameter support not implemented!");
    
 //   int index = mysql_bind_parameter_index(mHandle, name);
 //   if(index == 0)
@@ -254,7 +254,7 @@ DatabaseException* MySqlStatement::setText(const char* name, const char* value)
 //      msg.append("Invalid parameter name!,name='");
 //      msg.append(name);
 //      msg.append(1, '\'');
-//      rval = new DatabaseException(msg.c_str());
+//      rval = new SqlException(msg.c_str());
 //      Exception::setLast(rval);
 //   }
 //   else
@@ -265,9 +265,9 @@ DatabaseException* MySqlStatement::setText(const char* name, const char* value)
    return rval;
 }
 
-DatabaseException* MySqlStatement::execute()
+SqlException* MySqlStatement::execute()
 {
-   DatabaseException* rval = NULL;
+   SqlException* rval = NULL;
    
    // bind parameters
    if(mysql_stmt_bind_param(mHandle, mParamBindings) != 0)
@@ -344,7 +344,7 @@ Row* MySqlStatement::fetch()
    return rval;
 }
 
-DatabaseException* MySqlStatement::getRowsChanged(unsigned long long& rows)
+SqlException* MySqlStatement::getRowsChanged(unsigned long long& rows)
 {
    // FIXME: handle exceptions
    rows = mysql_stmt_affected_rows(mHandle);

@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_database_sqlite3_Sqlite3Connection_H
-#define db_database_sqlite3_Sqlite3Connection_H
+#ifndef db_sql_sqlite3_Sqlite3Connection_H
+#define db_sql_sqlite3_Sqlite3Connection_H
 
 #include <sqlite3.h>
 
-#include "db/database/Connection.h"
-#include "db/database/sqlite3/Sqlite3Exception.h"
+#include "db/sql/Connection.h"
+#include "db/sql/sqlite3/Sqlite3Exception.h"
 
 namespace db
 {
-namespace database
+namespace sql
 {
 namespace sqlite3
 {
@@ -25,7 +25,7 @@ class Sqlite3Statement;
  * @author Dave Longley
  * @author David I. Lehn
  */
-class Sqlite3Connection : public db::database::Connection
+class Sqlite3Connection : public db::sql::Connection
 {
 protected:
    /**
@@ -58,9 +58,9 @@ public:
     *        "sqlite://user:password@/path/to/example.db"
     *        A SQLite3 database called example.db
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* connect(const char* url);
+   virtual SqlException* connect(const char* url);
    
    /**
     * Prepares a Statement for execution. The Statement is heap-allocated and
@@ -81,19 +81,19 @@ public:
    /**
     * Commits the current transaction.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* commit();
+   virtual SqlException* commit();
    
    /**
     * Rolls back the current transaction.
     * 
-    * @return a DatabaseException if one occurred, NULL if not.
+    * @return an SqlException if one occurred, NULL if not.
     */
-   virtual DatabaseException* rollback();
+   virtual SqlException* rollback();
 };
 
 } // end namespace sqlite3
-} // end namespace database
+} // end namespace sql
 } // end namespace db
 #endif
