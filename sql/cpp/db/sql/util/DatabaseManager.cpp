@@ -3,11 +3,15 @@
  */
 #include "db/sql/util/DatabaseManager.h"
 #include "db/sql/SqlException.h"
+#include "db/sql/mysql/MySqlConnectionPool.h"
+#include "db/sql/sqlite3/Sqlite3ConnectionPool.h"
 #include "db/net/Url.h"
 
 using namespace std;
 using namespace db::net;
 using namespace db::sql;
+using namespace db::sql::sqlite3;
+using namespace db::sql::mysql;
 using namespace db::sql::util;
 using namespace db::rt;
 
@@ -31,12 +35,14 @@ DatabaseClient* DatabaseManager::createDatabaseClient(const char* url)
       if(strncmp(dbUrl.getScheme().c_str(), "mysql", 5) == 0)
       {
          // create mysql connection pool for database client
-         // FIXME:
+         ConnectionPool* cp = new MySqlConnectionPool();
+         rval = new DatabaseClient(cp, true);
       }
       else if(strncmp(dbUrl.getScheme().c_str(), "sqlite3", 7) == 0)
       {
          // create sqlite3 connection pool for database client
-         // FIXME:
+         ConnectionPool* cp = new Sqlite3ConnectionPool();
+         rval = new DatabaseClient(cp, true);
       }
       else
       {

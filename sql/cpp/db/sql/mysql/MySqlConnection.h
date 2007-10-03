@@ -51,7 +51,7 @@ public:
    virtual ~MySqlConnection();
    
    /**
-    * Connects to the specified database.
+    * Connects to the database specified by the given url.
     * 
     * @param url MySql parameters in URL form:
     *            "mysql://user:password@host:port/databasename"
@@ -59,6 +59,16 @@ public:
     * @return an SqlException if one occurred, NULL if not.
     */
    virtual SqlException* connect(const char* url);
+   
+   /**
+    * Connects to the specified database.
+    * 
+    * @param url MySql parameters in URL form:
+    *            "mysql://user:password@host:port/databasename"
+    * 
+    * @return an SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* connect(db::net::Url* url);
    
    /**
     * Prepares a Statement for execution. The Statement is heap-allocated and

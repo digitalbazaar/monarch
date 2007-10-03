@@ -28,7 +28,8 @@ namespace sql
  * 
  * @author Mike Johnson
  */
-class AbstractConnectionPool :public virtual db::rt::Object, ConnectionPool
+class AbstractConnectionPool :
+public virtual db::rt::Object, public ConnectionPool
 {
 protected:
    /**

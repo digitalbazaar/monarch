@@ -428,7 +428,7 @@ void Thread::exit()
    pthread_exit(NULL);
 }
 
-void Thread::setException(Exception* e)
+void Thread::setException(Exception* e, bool cleanup)
 {
    // get the existing exception for the current thread, if any
    Exception* existing = getException();
@@ -437,10 +437,15 @@ void Thread::setException(Exception* e)
       // replace the existing exception
       pthread_setspecific(sExceptionKey, e);
       
-      if(existing != NULL)
+      // clean up existing exception as appropriate
+      if(existing != NULL && cleanup)
       {
-         // delete the old exception
-         delete existing;
+         // ensure cause is not deleted
+         if(e != NULL && existing != e->getCause())
+         {
+            // delete the old exception
+            delete existing;
+         }
       }
    }
 }
@@ -459,9 +464,9 @@ bool Thread::hasException()
    return getException() != NULL;
 }
 
-void Thread::clearException()
+void Thread::clearException(bool cleanup)
 {
-   setException(NULL);
+   setException(NULL, cleanup);
 }
 
 // Note: disabled due to a lack of support in windows

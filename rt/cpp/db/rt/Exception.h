@@ -129,16 +129,21 @@ public:
     * Sets the last Exception for the current thread. This will store the
     * passed exception in thread-local memory and delete it when the current
     * thread exits or when it is replaced by another call to setException()
-    * on the same thread.
+    * on the same thread, unless otherwise specified.
     * 
     * It is safe to call Exception::setLast(Exception::getLast()), no
     * memory will be mistakenly collected.
     * 
+    * If the current exception is the cause of the passed exception, its
+    * memory will not be mistakenly collected.
+    * 
     * @param e the Exception to set for the current thread.
+    * @param cleanup true to reclaim the memory for an existing exception,
+    *                false to leave it alone.
     * 
     * @return the Exception set for the current thread (same as passed).
     */
-   static Exception* setLast(Exception* e);
+   static Exception* setLast(Exception* e, bool cleanup = true);
    
    /**
     * Gets the last Exception for the current thread. This will be the last
@@ -158,9 +163,13 @@ public:
    static bool hasLast();
    
    /**
-    * Clears any Exception from the current thread.
+    * Clears any Exception from the current thread, cleaning up the memory
+    * if requested (this is done by default).
+    * 
+    * @param cleanup true if the Exception's memory should be reclaimed, false
+    *                if not.
     */
-   static void clearLast();
+   static void clearLast(bool cleanup = true);
 };
 
 } // end namespace rt

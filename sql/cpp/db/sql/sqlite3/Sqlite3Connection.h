@@ -63,6 +63,17 @@ public:
    virtual SqlException* connect(const char* url);
    
    /**
+    * Connects to the database specified by the given url.
+    * 
+    * @param url Sqlite3 parameters in URL form:
+    *        "sqlite://user:password@/path/to/example.db"
+    *        A SQLite3 database called example.db
+    * 
+    * @return an SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* connect(db::net::Url* url);
+   
+   /**
     * Prepares a Statement for execution. The Statement is heap-allocated and
     * must be freed by the caller of this method.
     * 

@@ -3,6 +3,7 @@
  */
 #include "db/sql/PooledConnection.h"
 
+using namespace db::net;
 using namespace db::rt;
 using namespace db::sql;
 
@@ -41,7 +42,7 @@ unsigned long long PooledConnection::getIdleTime()
    return mIdleTime;
 }
 
-SqlException* PooledConnection::connect(const char* url)
+SqlException* PooledConnection::connect(Url* url)
 {
    return mConnection->connect(url);
 }

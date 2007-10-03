@@ -13,6 +13,9 @@ namespace sql
 namespace util
 {
 
+// forward declare DatabaseClient
+class DatabaseClient;
+
 /**
  * A DatabaseManager is used to provide a DatabaseClient for a particular
  * kind of database.

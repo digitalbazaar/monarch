@@ -29,13 +29,20 @@ protected:
     */
    db::sql::ConnectionPool* mConnectionPool;
    
+   /**
+    * True if this client should clean up its connection pool, false if not.
+    */
+   bool mCleanupPool;
+   
 public:
    /**
     * Creates a new DatabaseClient with the specified ConnectionPool.
     * 
     * @param cp the ConnectionPool to use.
+    * @param cleanup true if the ConnectionPool should be cleaned up upon
+    *                destruction of this DatabastClient, false if not.
     */
-   DatabaseClient(db::sql::ConnectionPool* cp);
+   DatabaseClient(db::sql::ConnectionPool* cp, bool cleanup);
    
    /**
     * Destructs this DatabaseClient.
@@ -48,6 +55,12 @@ public:
     * @return a Connection from the ConnectionPool.
     */
    virtual db::sql::Connection* getConnection();
+   
+   /**
+    * Provides access to this DatabastClient's ConnectionPool if changes to
+    * it are desired.
+    */
+   virtual ConnectionPool* getConnectionPool();
 };
 
 } // end namespace util

@@ -29,16 +29,20 @@ MySqlConnection::~MySqlConnection()
 
 SqlException* MySqlConnection::connect(const char* url)
 {
+   return Connection::connect(url);
+}
+
+SqlException* MySqlConnection::connect(Url* url)
+{
    SqlException* rval = NULL;
    
-   mUrl = new Url(url);
-   if(strcmp(mUrl->getScheme().c_str(), "mysql") != 0)
+   if(strcmp(url->getScheme().c_str(), "mysql") != 0)
    {
       string msg;
       string urlStr;
       msg.append("Could not connect to mysql database, ");
       msg.append("url scheme not 'mysql', url='");
-      msg.append(mUrl->toString(urlStr));
+      msg.append(url->toString(urlStr));
       msg.append(1, '\'');
       
       Exception::setLast(new SqlException(msg.c_str()));
@@ -49,10 +53,10 @@ SqlException* MySqlConnection::connect(const char* url)
       // so connections can be read-only/write/etc (use query in URL)
       if(mysql_real_connect(
          mHandle,
-         mUrl->getHost().c_str(),
-         mUrl->getUser().c_str(), mUrl->getPassword().c_str(),
-         mUrl->getPath().c_str() + 1,
-         mUrl->getPort(), NULL, 0) == NULL)
+         url->getHost().c_str(),
+         url->getUser().c_str(), url->getPassword().c_str(),
+         url->getPath().c_str() + 1,
+         url->getPort(), NULL, 0) == NULL)
       {
          // create exception, close connection
          rval = new MySqlException(this);

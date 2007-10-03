@@ -19,7 +19,8 @@ namespace data
  * 
  * @author Dave Longley
  */
-class AbstractDataFormatInspector : public DataFormatInspector, DataInspector
+class AbstractDataFormatInspector :
+public DataFormatInspector, public DataInspector
 {
 protected:
    /**

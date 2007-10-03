@@ -82,9 +82,9 @@ Exception* Exception::getCause()
    return mCause;
 }
 
-Exception* Exception::setLast(Exception* e)
+Exception* Exception::setLast(Exception* e, bool cleanup)
 {
-   Thread::setException(e);
+   Thread::setException(e, cleanup);
    return e;
 }
 
@@ -98,7 +98,7 @@ bool Exception::hasLast()
    return Thread::hasException();
 }
 
-void Exception::clearLast()
+void Exception::clearLast(bool cleanup)
 {
-   Thread::clearException();
+   Thread::clearException(cleanup);
 }

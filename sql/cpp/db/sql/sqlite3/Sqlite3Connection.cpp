@@ -26,16 +26,20 @@ Sqlite3Connection::~Sqlite3Connection()
 
 SqlException* Sqlite3Connection::connect(const char* url)
 {
+   return Connection::connect(url);
+}
+
+SqlException* Sqlite3Connection::connect(Url* url)
+{
    SqlException* rval = NULL;
    
-   mUrl = new Url(url);
-   if(strncmp(mUrl->getScheme().c_str(), "sqlite3", 7) != 0)
+   if(strncmp(url->getScheme().c_str(), "sqlite3", 7) != 0)
    {
       string msg;
       string urlStr;
       msg.append("Could not connect to sqlite3 database, ");
       msg.append("url scheme doesn't start with 'sqlite3', url='");
-      msg.append(mUrl->toString(urlStr));
+      msg.append(url->toString(urlStr));
       msg.append(1, '\'');
       
       Exception::setLast(new SqlException(msg.c_str()));
@@ -45,7 +49,7 @@ SqlException* Sqlite3Connection::connect(const char* url)
       // FIXME: we want to add read/write/create params to the URL
       // so connections can be read-only/write/etc (use query in URL)
       // handle username/password
-      int ec = sqlite3_open(mUrl->getSchemeSpecificPart().c_str(), &mHandle);
+      int ec = sqlite3_open(url->getSchemeSpecificPart().c_str(), &mHandle);
       if(ec != SQLITE_OK)
       {
          // create exception, close connection

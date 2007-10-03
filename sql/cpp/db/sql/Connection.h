@@ -50,7 +50,17 @@ public:
     * 
     * @return an SqlException if one occurred, NULL if not.
     */
-   virtual SqlException* connect(const char* url) = 0;
+   virtual SqlException* connect(const char* url);
+   
+   /**
+    * Connects to the database specified by the given url.
+    * 
+    * @param url the url for the database to connect to, including driver
+    *            specific parameters.
+    * 
+    * @return an SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* connect(db::net::Url* url) = 0;
    
    /**
     * Prepares a Statement for execution. The Statement is heap-allocated and

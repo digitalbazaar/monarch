@@ -88,7 +88,7 @@ public:
     * 
     * @return an SqlException if one occurred, NULL if not.
     */
-   virtual SqlException* connect(const char* url);
+   virtual SqlException* connect(db::net::Url* url);
    
    /**
     * Prepares a Statement for execution. The Statement is heap-allocated and
