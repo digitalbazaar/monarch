@@ -9,10 +9,6 @@
 using namespace std;
 using namespace db::crypto;
 
-// initialize static BigIntegers
-BigInteger BigInteger::ZERO(0);
-BigInteger BigInteger::TEN(10);
-
 BigInteger::BigInteger(long long value)
 {
    initialize();
@@ -68,7 +64,8 @@ BigInteger::BigInteger(const string& value)
 BigInteger::BigInteger(const BigInteger& copy)
 {
    initialize();
-   assert(BN_copy(mBigNum, copy.mBigNum) == mBigNum);
+   bool success = BN_copy(mBigNum, copy.mBigNum) == mBigNum;
+   assert(success);
 }
 
 BigInteger::~BigInteger()
@@ -103,7 +100,8 @@ BN_CTX* BigInteger::getContext()
 
 BigInteger& BigInteger::operator=(const BigInteger& rhs)
 {
-   assert(BN_copy(mBigNum, rhs.mBigNum) == mBigNum);
+   bool success = BN_copy(mBigNum, rhs.mBigNum) == mBigNum;
+   assert(success);
    return *this;
 }
 
@@ -111,15 +109,18 @@ BigInteger& BigInteger::operator=(long long rhs)
 {
    if(rhs > 0)
    {
-      assert(BN_set_word(mBigNum, (unsigned long)rhs) == 1);
+      int rc = BN_set_word(mBigNum, (unsigned long)rhs);
+      assert(rc == 1);
    }
    else if(rhs == 0)
    {
-      assert(BN_zero(mBigNum) == 1);
+      int rc = BN_zero(mBigNum);
+      assert(rc == 1);
    }
    else
    {
-      assert(BN_set_word(mBigNum, (unsigned long)-rhs) == 1);
+      int rc = BN_set_word(mBigNum, (unsigned long)-rhs);
+      assert(rc == 1);
       mBigNum->neg = 1;
    }
    
@@ -128,14 +129,18 @@ BigInteger& BigInteger::operator=(long long rhs)
 
 BigInteger& BigInteger::operator=(unsigned long rhs)
 {
+   int rc;
+   
    if(rhs == 0)
    {
-      assert(BN_zero(mBigNum) == 1);
+      rc = BN_zero(mBigNum);
    }
    else
    {
-      assert(BN_set_word(mBigNum, rhs) == 1);
+      rc = BN_set_word(mBigNum, rhs);
    }
+   
+   assert(rc == 1);
    
    return *this;
 }
@@ -156,14 +161,16 @@ BigInteger& BigInteger::operator=(const char* rhs)
 {
    if(strcmp(rhs, "0") == 0)
    {
-      assert(BN_zero(mBigNum) == 1);
+      int rc = BN_zero(mBigNum);
+      assert(rc == 1);
    }
    else
    {
       if(BN_dec2bn(&mBigNum, rhs) == 0)
       {
          // string was an invalid number, so zero out BIGNUM
-         assert(BN_zero(mBigNum) == 1);
+         int rc = BN_zero(mBigNum);
+         assert(rc == 1);
       }
    }
    
@@ -219,78 +226,90 @@ bool BigInteger::operator>=(const BigInteger& rhs)
 BigInteger BigInteger::operator+(const BigInteger& rhs)
 {
    BigInteger rval;
-   assert(BN_add(rval.mBigNum, mBigNum, rhs.mBigNum) == 1);
+   int rc = BN_add(rval.mBigNum, mBigNum, rhs.mBigNum);
+   assert(rc == 1);
    return rval;
 }
 
 BigInteger BigInteger::operator-(const BigInteger& rhs)
 {
    BigInteger rval;
-   assert(BN_sub(rval.mBigNum, mBigNum, rhs.mBigNum) == 1);
+   int rc = BN_sub(rval.mBigNum, mBigNum, rhs.mBigNum);
+   assert(rc == 1);
    return rval;
 }
 
 BigInteger BigInteger::operator*(const BigInteger& rhs)
 {
    BigInteger rval;
-   assert(BN_mul(rval.mBigNum, mBigNum, rhs.mBigNum, getContext()) == 1);
+   int rc = BN_mul(rval.mBigNum, mBigNum, rhs.mBigNum, getContext());
+   assert(rc == 1);
    return rval;
 }
 
 BigInteger BigInteger::operator/(const BigInteger& rhs)
 {
    BigInteger rval;
-   assert(BN_div(rval.mBigNum, NULL, mBigNum, rhs.mBigNum, getContext()) == 1);
+   int rc = BN_div(rval.mBigNum, NULL, mBigNum, rhs.mBigNum, getContext());
+   assert(rc == 1);
    return rval;
 }
 
 BigInteger BigInteger::pow(const BigInteger& rhs)
 {
    BigInteger rval;
-   assert(BN_exp(rval.mBigNum, mBigNum, rhs.mBigNum, getContext()) == 1);
+   int rc = BN_exp(rval.mBigNum, mBigNum, rhs.mBigNum, getContext());
+   assert(rc == 1);
    return rval;
 }
 
 BigInteger BigInteger::operator%(const BigInteger& rhs)
 {
    BigInteger rval;
-   assert(BN_mod(rval.mBigNum, mBigNum, rhs.mBigNum, getContext()) == 1);
+   int rc = BN_mod(rval.mBigNum, mBigNum, rhs.mBigNum, getContext());
+   assert(rc == 1);
    return rval;
 }
 
 BigInteger& BigInteger::operator+=(const BigInteger& rhs)
 {
-   assert(BN_add(mBigNum, mBigNum, rhs.mBigNum) == 1);
+   int rc = BN_add(mBigNum, mBigNum, rhs.mBigNum);
+   assert(rc == 1);
    return *this;
 }
 
 BigInteger& BigInteger::operator-=(const BigInteger& rhs)
 {
-   assert(BN_sub(mBigNum, mBigNum, rhs.mBigNum) == 1);
+   int rc = BN_sub(mBigNum, mBigNum, rhs.mBigNum);
+   assert(rc == 1);
    return *this;
 }
 
 BigInteger& BigInteger::operator*=(const BigInteger& rhs)
 {
-   assert(BN_mul(mBigNum, mBigNum, rhs.mBigNum, getContext()) == 1);
+   int rc = BN_mul(mBigNum, mBigNum, rhs.mBigNum, getContext());
+   assert(rc == 1);
    return *this;
 }
 
 BigInteger& BigInteger::operator/=(const BigInteger& rhs)
 {
-   assert(BN_div(mBigNum, NULL, mBigNum, rhs.mBigNum, getContext()) == 1);
+   int rc = BN_div(mBigNum, NULL, mBigNum, rhs.mBigNum, getContext());
+   assert(rc == 1);
    return *this;
 }
 
 BigInteger& BigInteger::powEquals(const BigInteger& rhs)
 {
-   assert(BN_exp(mBigNum, mBigNum, rhs.mBigNum, getContext()) == 1);
+   int rc = BN_exp(mBigNum, mBigNum, rhs.mBigNum, getContext());
+   assert(rc == 1);
    return *this;
 }
 
 BigInteger& BigInteger::operator%=(const BigInteger& rhs)
 {
-   assert(BN_mod(mBigNum, mBigNum, rhs.mBigNum, getContext()) == 1);
+   int rc = BN_mod(mBigNum, mBigNum, rhs.mBigNum, getContext());
+   assert(rc == 1);
    return *this;
 }
 
@@ -302,8 +321,9 @@ int BigInteger::absCompare(const BigInteger& rhs)
 void BigInteger::divide(
    const BigInteger divisor, BigInteger& quotient, BigInteger& remainder)
 {
-   assert(BN_div(quotient.mBigNum, remainder.mBigNum,
-      mBigNum, divisor.mBigNum, getContext()) == 1);
+   int rc = BN_div(quotient.mBigNum, remainder.mBigNum,
+      mBigNum, divisor.mBigNum, getContext());
+   assert(rc == 1);
 }
 
 bool BigInteger::isZero() const

@@ -49,16 +49,6 @@ protected:
    
 public:
    /**
-    * A BigInteger with a value of 0.
-    */
-   static BigInteger ZERO;
-   
-   /**
-    * A BigInteger with a value of 10.
-    */
-   static BigInteger TEN;
-   
-   /**
     * Creates a new BigInteger with the specified value.
     * 
     * @param value the value for this BigInteger.

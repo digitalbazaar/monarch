@@ -103,7 +103,8 @@ void BigDecimal::setExponent(int exponent)
    if(exponent > mExponent)
    {
       // multiply significand by power difference
-      mSignificand *= BigInteger::TEN.pow(exponent - mExponent);
+      BigInteger ten(10);
+      mSignificand *= ten.pow(exponent - mExponent);
    }
    
    mExponent = exponent;
@@ -236,7 +237,8 @@ BigDecimal& BigDecimal::operator=(const string& rhs)
    if(mExponent < 0)
    {
       mExponent = -mExponent;
-      mSignificand *= BigInteger::TEN.pow(mExponent);
+      BigInteger ten(10);
+      mSignificand *= ten.pow(mExponent);
       mExponent = 0;
    }
    
@@ -381,7 +383,8 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
       if(mPrecision - rval.mExponent > 0)
       {
          digits = mPrecision - rval.mExponent;
-         remainder.mSignificand *= BigInteger::TEN.pow(digits);
+         BigInteger ten(10);
+         remainder.mSignificand *= ten.pow(digits);
       }
       
       // perform division on significand
