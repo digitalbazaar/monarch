@@ -25,7 +25,6 @@ JobThread* JobThreadPool::getIdleThread()
    
    mListLock.lock();
    {
-      list<JobThread*> expired;
       while(rval == NULL && !mIdleThreads.empty())
       {
          rval = mIdleThreads.front();
@@ -34,24 +33,17 @@ JobThread* JobThreadPool::getIdleThread()
          if(rval->isExpired())
          {
             // collect thread for clean up
-            expired.push_front(rval);
+            mThreads.remove(rval);
+            mExpiredThreads.push_front(rval);
             rval = NULL;
-         }
-      }
-      
-      // join and clean up expired threads
-      if(!expired.empty())
-      {
-         for(list<JobThread*>::iterator i = expired.begin();
-             i != expired.end(); i++)
-         {
-            (*i)->join();
-            delete (*i);
          }
       }
       
       if(rval == NULL)
       {
+         // clean up expired threads
+         cleanupExpiredThreads();
+         
          // create new job thread and add to thread list
          rval = new JobThread(getJobThreadExpireTime());
          mThreads.push_back(rval);
@@ -80,8 +72,6 @@ void JobThreadPool::removeIdleThreads(unsigned int count)
 {
    if(!mIdleThreads.empty())
    {
-      list<JobThread*> temp;
-      
       mListLock.lock();
       {
          for(list<JobThread*>::iterator i = mIdleThreads.begin();
@@ -92,17 +82,31 @@ void JobThreadPool::removeIdleThreads(unsigned int count)
             t->interrupt();
             i = mIdleThreads.erase(i);
             mThreads.remove(t);
-            temp.push_back(t);
+            mExpiredThreads.push_back(t);
          }
+         
+         // clean up expired threads
+         cleanupExpiredThreads();
       }
       mListLock.unlock();
-      
+   }
+}
+
+void JobThreadPool::cleanupExpiredThreads()
+{
+   if(!mExpiredThreads.empty())
+   {
+      // assume list lock is engaged
       // join and clean up threads
-      for(list<JobThread*>::iterator i = temp.begin(); i != temp.end(); i++)
+      for(list<JobThread*>::iterator i = mExpiredThreads.begin();
+          i != mExpiredThreads.end(); i++)
       {
          (*i)->join();
          delete (*i);
       }
+      
+      // clear expired list
+      mExpiredThreads.clear();
    }
 }
 

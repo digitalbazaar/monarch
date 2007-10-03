@@ -44,6 +44,11 @@ protected:
    std::list<JobThread*> mIdleThreads;
    
    /**
+    * The list of expired threads in this pool.
+    */
+   std::list<JobThread*> mExpiredThreads;
+   
+   /**
     * A lock for modifying the thread lists.
     */
    Object mListLock;
@@ -72,6 +77,11 @@ protected:
     * @param count the maximum number of idle threads to remove.
     */
    virtual void removeIdleThreads(unsigned int count);
+   
+   /**
+    * Cleans up any expired threads.
+    */
+   virtual void cleanupExpiredThreads();
    
    /**
     * Runs the passed Runnable job on an idle JobThread.

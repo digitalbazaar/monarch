@@ -4097,7 +4097,7 @@ public:
 //      runInterruptTest();
 //      runJobThreadPoolTest();
 //      runJobDispatcherTest();
-//      runModestTest();
+      runModestTest();
 //      runAddressResolveTest();
 //      runSocketTest();
 //      runSslSocketTest();
