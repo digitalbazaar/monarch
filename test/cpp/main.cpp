@@ -3905,96 +3905,96 @@ void runDatabaseManagerTest()
    // clean up database client
    delete dc;
    
-   // get a mysql database client
-   dc = DatabaseManager::createClient(
-      "mysql://dbwriteclient:k288m2s8f6gk39a@mojo/test");
-   assertNoException();
-   
-   // get a connection
-   c = dc->getConnection();
-   assertNoException();
-   
-   // drop table test
-   s = c->prepare("DROP TABLE IF EXISTS dbmysqltest");
-   assert(s != NULL);
-   s->execute();
-   delete s;
-   assertNoException();
-   cout << "mysql drop table test passed!" << endl;
-   
-   // create table test
-   string sql;
-   sql.append("CREATE TABLE IF NOT EXISTS dbmysqltest ");
-   sql.append("(id BIGINT AUTO_INCREMENT, t TEXT, i BIGINT, ");
-   sql.append("PRIMARY KEY (id))");
-   s = c->prepare(sql.c_str());
-   s->execute();
-   delete s;
-   assertNoException();
-   cout << "mysql create table test passed!" << endl;
-   
-   // insert test 1
-   s = c->prepare("INSERT INTO dbmysqltest (t, i) VALUES ('test!', 1234)");
-   s->execute();
-   cout << "Row #: " << s->getLastInsertRowId() << endl;
-   delete s;
-   assertNoException();
-   cout << "mysql insert test 1 passed!" << endl;
-   
-   // insert test 2
-   s = c->prepare("INSERT INTO dbmysqltest (t, i) VALUES ('!tset', 4321)");
-   s->execute();
-   cout << "Row #: " << s->getLastInsertRowId() << endl;
-   delete s;
-   assertNoException();
-   cout << "mysql insert test 2 passed!" << endl;
-   
-   // insert positional parameters test
-   s = c->prepare("INSERT INTO dbmysqltest (t, i) VALUES (?, ?)");
-   s->setText(1, "boundpositional");
-   s->setInt32(2, 2222);
-   s->execute();
-   cout << "Row #: " << s->getLastInsertRowId() << endl;
-   delete s;
-   assertNoException();
-   cout << "mysql insert positional parameters test passed!" << endl;
-   
-//   // insert named parameters test
-//   s = c->prepare("INSERT INTO dbmysqltest (t, i) VALUES (:first, :second)");
-//   s->setText(":first", "boundnamed");
-//   s->setInt32(":second", 2223);
+//   // get a mysql database client
+//   dc = DatabaseManager::createClient(
+//      "mysql://dbwriteclient:k288m2s8f6gk39a@mojo/test");
+//   assertNoException();
+//   
+//   // get a connection
+//   c = dc->getConnection();
+//   assertNoException();
+//   
+//   // drop table test
+//   s = c->prepare("DROP TABLE IF EXISTS dbmysqltest");
+//   assert(s != NULL);
+//   s->execute();
+//   delete s;
+//   assertNoException();
+//   cout << "mysql drop table test passed!" << endl;
+//   
+//   // create table test
+//   string sql;
+//   sql.append("CREATE TABLE IF NOT EXISTS dbmysqltest ");
+//   sql.append("(id BIGINT AUTO_INCREMENT, t TEXT, i BIGINT, ");
+//   sql.append("PRIMARY KEY (id))");
+//   s = c->prepare(sql.c_str());
+//   s->execute();
+//   delete s;
+//   assertNoException();
+//   cout << "mysql create table test passed!" << endl;
+//   
+//   // insert test 1
+//   s = c->prepare("INSERT INTO dbmysqltest (t, i) VALUES ('test!', 1234)");
 //   s->execute();
 //   cout << "Row #: " << s->getLastInsertRowId() << endl;
 //   delete s;
 //   assertNoException();
-//   cout << "mysql insert named parameters test passed!" << endl;
-   
-   // select test
-   s = c->prepare("SELECT * FROM dbmysqltest");
-   s->execute();
-   
-   // fetch rows
-   while((row = s->fetch()) != NULL)
-   {
-      cout << endl << "Row result:" << endl;
-      row->getText(1, t);
-      assertNoException();
-      row->getInt32(2, i);
-      assertNoException();
-      
-      cout << "t=" << t << endl;
-      cout << "i=" << i << endl;
-   }
-   
-   cout << endl << "Result Rows complete." << endl;
-   delete s;
-   cout << "mysql select test passed!" << endl;
-   
-   c->close();
-   assertNoException();
-   
-   // clean up database client
-   delete dc;
+//   cout << "mysql insert test 1 passed!" << endl;
+//   
+//   // insert test 2
+//   s = c->prepare("INSERT INTO dbmysqltest (t, i) VALUES ('!tset', 4321)");
+//   s->execute();
+//   cout << "Row #: " << s->getLastInsertRowId() << endl;
+//   delete s;
+//   assertNoException();
+//   cout << "mysql insert test 2 passed!" << endl;
+//   
+//   // insert positional parameters test
+//   s = c->prepare("INSERT INTO dbmysqltest (t, i) VALUES (?, ?)");
+//   s->setText(1, "boundpositional");
+//   s->setInt32(2, 2222);
+//   s->execute();
+//   cout << "Row #: " << s->getLastInsertRowId() << endl;
+//   delete s;
+//   assertNoException();
+//   cout << "mysql insert positional parameters test passed!" << endl;
+//   
+////   // insert named parameters test
+////   s = c->prepare("INSERT INTO dbmysqltest (t, i) VALUES (:first, :second)");
+////   s->setText(":first", "boundnamed");
+////   s->setInt32(":second", 2223);
+////   s->execute();
+////   cout << "Row #: " << s->getLastInsertRowId() << endl;
+////   delete s;
+////   assertNoException();
+////   cout << "mysql insert named parameters test passed!" << endl;
+//   
+//   // select test
+//   s = c->prepare("SELECT * FROM dbmysqltest");
+//   s->execute();
+//   
+//   // fetch rows
+//   while((row = s->fetch()) != NULL)
+//   {
+//      cout << endl << "Row result:" << endl;
+//      row->getText(1, t);
+//      assertNoException();
+//      row->getInt32(2, i);
+//      assertNoException();
+//      
+//      cout << "t=" << t << endl;
+//      cout << "i=" << i << endl;
+//   }
+//   
+//   cout << endl << "Result Rows complete." << endl;
+//   delete s;
+//   cout << "mysql select test passed!" << endl;
+//   
+//   c->close();
+//   assertNoException();
+//   
+//   // clean up database client
+//   delete dc;
    
    cout << endl << "DatabaseManager test complete." << endl;
 }
