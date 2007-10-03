@@ -16,7 +16,6 @@ namespace sql
 class Statement;
 
 /**
- * 
  * A Connection is an abstract base class for a connection to a specific
  * type of database. Extending classes will provide appropriate implementation
  * details.
