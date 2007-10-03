@@ -141,6 +141,15 @@ void AbstractConnectionPool::closeExpiredConnections()
    } 
 }
 
+Connection* AbstractConnectionPool::getConnection()
+{
+   Connection* rval = NULL;
+   
+   // FIXME: implement me
+   
+   return rval;
+}
+
 void AbstractConnectionPool::closeAllConnections()
 {
    // lock list to close all connections

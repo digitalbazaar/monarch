@@ -31,11 +31,6 @@ protected:
     */
    db::net::Url* mUrl;
    
-   /**
-    * True if this connection is open, false if not.
-    */
-   bool mOpen;
-   
 public:
    /**
     * Creates a new Connection.

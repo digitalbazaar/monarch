@@ -4,6 +4,7 @@
 #ifndef db_database_AbstractConnectionPool_H
 #define db_database_AbstractConnectionPool_H
 
+#include "db/sql/ConnectionPool.h"
 #include "db/sql/PooledConnection.h"
 #include "db/rt/Object.h"
 #include "db/rt/Semaphore.h"
@@ -26,7 +27,7 @@ namespace sql
  * 
  * @author Mike Johnson
  */
-class AbstractConnectionPool : public virtual db::rt::Object
+class AbstractConnectionPool :public virtual db::rt::Object, ConnectionPool
 {
 protected:
    /**
@@ -78,7 +79,7 @@ public:
     * database connections available.
     * 
     * @param poolSize the size of the pool (number of database connections),
-    *                 0 specifies an unlimited number of threads.
+    *                 0 specifies an unlimited number of connections.
     */
    AbstractConnectionPool(unsigned int poolSize = 10);
    
@@ -88,26 +89,37 @@ public:
    virtual ~AbstractConnectionPool();
    
    /**
+    * Gets a Connection from this connection pool to use to execute
+    * statements. The Connection should be closed when it is no longer
+    * needed. Closing the Connection will return control over it back to
+    * this connection pool.
+    * 
+    * @return a Connection from this connection pool, or NULL if an exception
+    *         occurred.
+    */
+   virtual Connection* getConnection();
+   
+   /**
     * Closes all connections.
     */
    virtual void closeAllConnections();
    
    /**
-    * Sets the number of threads in this connection pool. If a size of
+    * Sets the number of connections in this connection pool. If a size of
     * 0 is specified, than there will be no limit to the number of
     * connections in this pool.
     * 
-    * @param size the number of connections in this thread pool. A size
+    * @param size the number of connections in this connection pool. A size
     *             of 0 specifies an unlimited number of connections.
     */
    virtual void setPoolSize(unsigned int size);
    
    /**
-    * Gets the number of connections in this thread pool. If a size of
+    * Gets the number of connections in this connection pool. If a size of
     * 0 is returned, than there is no limit to the number of connections
     * in this pool.
     * 
-    * @return the number of connections in this thread pool. A size
+    * @return the number of connections in this connection pool. A size
     *         of 0 specifies an unlimited number of connections.
     */
    virtual unsigned int getPoolSize();

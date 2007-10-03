@@ -62,7 +62,7 @@ util_SUBDIRS = regex
 data_SUBDIRS = xml mpeg id3v2
 data_LIBS = expat
 
-sql_SUBDIRS = sqlite3 mysql
+sql_SUBDIRS = sqlite3 mysql util
 sql_LIBS = sqlite3
 
 
