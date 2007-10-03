@@ -12,7 +12,7 @@ namespace sql
 {
 
 /**
- * A SqlException is raised when some kind of database error occurs.
+ * A SqlException is raised when some kind of sql database error occurs.
  * 
  * @author Dave Longley
  */
