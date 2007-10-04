@@ -2,13 +2,16 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/PooledConnection.h"
+#include "db/sql/AbstractConnectionPool.h"
 
 using namespace db::net;
 using namespace db::rt;
 using namespace db::sql;
 
-PooledConnection::PooledConnection(Connection* connection)
+PooledConnection::PooledConnection(
+   AbstractConnectionPool* pool, Connection* connection)
 {
+   mPool = pool;
    mConnection = connection;
 }
 
@@ -54,8 +57,9 @@ Statement* PooledConnection::prepare(const char* sql)
 
 void PooledConnection::close()
 {
-   // set the idle time instead of closing connection
-   setIdleTime(System::getCurrentMilliseconds());
+   // don't close the connection, instead notify the pool that this
+   // connection is now idle
+   mPool->connectionClosed(this);
 }
 
 SqlException* PooledConnection::commit()

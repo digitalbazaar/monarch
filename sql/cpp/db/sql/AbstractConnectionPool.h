@@ -33,18 +33,29 @@ public virtual db::rt::Object, public ConnectionPool
 {
 protected:
    /**
+    * Friend of PooledConnection to allow access to protected close
+    * connection.
+    */
+   friend class PooledConnection;
+   
+   /**
     * This semaphore is used to regulate the number of connections that
     * are available in this pool.
     */
    db::rt::Semaphore mConnectionSemaphore;
    
    /**
-    * The list of all connections in this pool.
+    * The list of active connections in this pool.
     */
-   std::list<PooledConnection*> mConnections;
+   std::list<PooledConnection*> mActiveConnections;
    
    /**
-    * A lock for modifying the connection list.
+    * The list of idle connections in this pool.
+    */
+   std::list<PooledConnection*> mIdleConnections;
+   
+   /**
+    * A lock for modifying the connection lists.
     */
    db::rt::Object mListLock;
    
@@ -66,6 +77,14 @@ protected:
     * @return the PooledConnection or NULL if an exception occurred.
     */
    virtual PooledConnection* createConnection() = 0;
+   
+   /**
+    * Notifies the pool that a specific connection has been closed and is
+    * now idle.
+    * 
+    * @param connection the PooledConnection that has been closed.
+    */
+   virtual void connectionClosed(PooledConnection* connection);
    
    /**
     * Gets an idle connection. If an idle connection is not found, it will be

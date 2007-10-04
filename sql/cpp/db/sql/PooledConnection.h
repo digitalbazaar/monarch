@@ -4,7 +4,6 @@
 #ifndef db_database_PooledConnection_H
 #define db_database_PooledConnection_H
 
-#include "db/rt/System.h"
 #include "db/sql/Connection.h"
 #include "db/sql/SqlException.h"
 
@@ -12,6 +11,9 @@ namespace db
 {
 namespace sql
 {
+
+// forward declare abstract connection pool
+class AbstractConnectionPool;
 
 /**
  * A PooledConnection wraps an existing Connection and adds an idle
@@ -23,10 +25,15 @@ class PooledConnection : public Connection
 {
 protected:
    /**
-    * Friend of abstract connection pool to allow access to protected close
+    * Friend of AbstractConnectionPool to allow access to protected close
     * connection.
     */
    friend class AbstractConnectionPool;
+   
+   /**
+    * The abstract connection pool that owns this pooled connection.
+    */
+   AbstractConnectionPool* mPool;
    
    /**
     * The wrapped connection.
@@ -47,9 +54,10 @@ public:
    /**
     * Creates a new PooledConnection around the passed Connection.
     * 
+    * @param pool the connection pool this connection belongs to.
     * @param connection the wrapped connection.
     */
-   PooledConnection(Connection* connection);
+   PooledConnection(AbstractConnectionPool* pool, Connection* connection);
    
    /**
     * Destructs this PooledConnection.
