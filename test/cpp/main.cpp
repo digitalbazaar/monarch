@@ -3684,9 +3684,9 @@ void runSqlite3StatementTest()
    while((row = s->fetch()) != NULL)
    {
       cout << endl << "Row result:" << endl;
-      row->getText((unsigned int)0, t);
+      row->getText("t", t);
       assertNoException();
-      row->getInt32(1, i);
+      row->getInt32("i", i);
       assertNoException();
       
       cout << "t=" << t << endl;
@@ -4144,9 +4144,9 @@ public:
 //      runBigIntegerTest();
 //      runBigDecimalTest();
 //      runSqlite3ConnectionTest();
-//      runSqlite3StatementTest();
+      runSqlite3StatementTest();
 //      runMySqlConnectionTest();
-      runMySqlStatementTest();
+//      runMySqlStatementTest();
 //      runConnectionPoolTest();
 //      runDatabaseManagerTest();
 //      runLoggerTest();

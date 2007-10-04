@@ -12,6 +12,7 @@ using namespace db::sql::sqlite3;
 
 Sqlite3Row::Sqlite3Row(Sqlite3Statement* s) : Row(s)
 {
+   mColumnCount = -1;
 }
 
 Sqlite3Row::~Sqlite3Row()
@@ -21,6 +22,38 @@ Sqlite3Row::~Sqlite3Row()
 sqlite3_stmt* Sqlite3Row::getStatementHandle()
 {
    return ((Sqlite3Statement*)mStatement)->mHandle;
+}
+
+int Sqlite3Row::getColumnIndex(const char* name)
+{
+   int rval = -1;
+   
+   // get column count as appropriate
+   if(mColumnCount == -1)
+   {
+      mColumnCount = sqlite3_column_count(getStatementHandle());
+   }
+   
+   for(int i = 0; i < mColumnCount; i++)
+   {
+      if(strcmp(name, sqlite3_column_name(getStatementHandle(), i)) == 0)
+      {
+         rval = i;
+         break;
+      }
+   }
+   
+   if(rval == -1)
+   {
+      // set exception
+      string msg;
+      msg.append("Could not get column value, invalid column name!, name='");
+      msg.append(name);
+      msg.append(1, '\'');
+      Exception::setLast(new SqlException(msg.c_str())); 
+   }
+   
+   return rval;
 }
 
 SqlException* Sqlite3Row::getType(unsigned int column, int& type)
@@ -61,44 +94,72 @@ SqlException* Sqlite3Row::getText(unsigned int column, string& str)
 
 SqlException* Sqlite3Row::getType(const char* column, int& type)
 {
-   SqlException* rval = 
-     new SqlException("Sqlite3 named column support not implemented!");
-   Exception::setLast(rval);
+   SqlException* rval = NULL;
    
-   // FIXME: implement me
+   // get column index for name
+   int index = getColumnIndex(column);
+   if(index != -1)
+   {
+      rval = getType(index, type);
+   }
+   else
+   {
+      rval = (SqlException*)Exception::getLast();
+   }
    
    return rval;
 }
 
 SqlException* Sqlite3Row::getInt32(const char* column, int& i)
 {
-   SqlException* rval = 
-     new SqlException("Sqlite3 named column support not implemented!");
-   Exception::setLast(rval);
+   SqlException* rval = NULL;
    
-   // FIXME: implement me
+   // get column index for name
+   int index = getColumnIndex(column);
+   if(index != -1)
+   {
+      rval = getInt32(index, i);
+   }
+   else
+   {
+      rval = (SqlException*)Exception::getLast();
+   }
    
    return rval;
 }
 
 SqlException* Sqlite3Row::getInt64(const char* column, long long& i)
 {
-   SqlException* rval = 
-     new SqlException("Sqlite3 named column support not implemented!");
-   Exception::setLast(rval);
+   SqlException* rval = NULL;
    
-   // FIXME: implement me
+   // get column index for name
+   int index = getColumnIndex(column);
+   if(index != -1)
+   {
+      rval = getInt64(index, i);
+   }
+   else
+   {
+      rval = (SqlException*)Exception::getLast();
+   }
    
    return rval;
 }
 
 SqlException* Sqlite3Row::getText(const char* column, std::string& str)
 {
-   SqlException* rval = 
-     new SqlException("Sqlite3 named column support not implemented!");
-   Exception::setLast(rval);
+   SqlException* rval = NULL;
    
-   // FIXME: implement me
+   // get column index for name
+   int index = getColumnIndex(column);
+   if(index != -1)
+   {
+      rval = getText(index, str);
+   }
+   else
+   {
+      rval = (SqlException*)Exception::getLast();
+   }
    
    return rval;
 }

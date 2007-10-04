@@ -29,11 +29,26 @@ class Sqlite3Row : public db::sql::Row
 {
 protected:
    /**
+    * The number of columns.
+    */
+   int mColumnCount;
+   
+   /**
     * Gets the C handle for the Sqlite3Statement.
     * 
     * @return the C handle for the Sqlite3Statement.
     */
    virtual sqlite3_stmt* getStatementHandle();
+   
+   /**
+    * Gets the column index for the given column name.
+    * 
+    * @param name the name of the column.
+    * 
+    * @return the column index for the given column name of -1 if the name
+    *         is invalid and an exception has been set.
+    */
+   int getColumnIndex(const char* name);
    
 public:
    /**
