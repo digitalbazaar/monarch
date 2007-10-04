@@ -6,6 +6,7 @@
 #include "db/sql/sqlite3/Sqlite3Connection.h"
 
 using namespace std;
+using namespace db::rt;
 using namespace db::sql;
 using namespace db::sql::sqlite3;
 
@@ -22,30 +23,82 @@ sqlite3_stmt* Sqlite3Row::getStatementHandle()
    return ((Sqlite3Statement*)mStatement)->mHandle;
 }
 
-SqlException* Sqlite3Row::getType(int column, int& type)
+SqlException* Sqlite3Row::getType(unsigned int column, int& type)
 {
+   SqlException* rval = NULL;
+   
    // FIXME: check exceptions, etc
    type = sqlite3_column_type(getStatementHandle(), column);
-   return NULL;
+   return rval;
 }
 
-SqlException* Sqlite3Row::getInt32(int column, int& i)
+SqlException* Sqlite3Row::getInt32(unsigned int column, int& i)
 {
+   SqlException* rval = NULL;
+   
    // FIXME: check exceptions, etc
    i = sqlite3_column_int(getStatementHandle(), column);
-   return NULL;
+   return rval;
 }
 
-SqlException* Sqlite3Row::getInt64(int column, long long& i)
+SqlException* Sqlite3Row::getInt64(unsigned int column, long long& i)
 {
+   SqlException* rval = NULL;
+   
    // FIXME: check exceptions, etc
    i = sqlite3_column_int64(getStatementHandle(), column);
-   return NULL;
+   return rval;
 }
 
-SqlException* Sqlite3Row::getText(int column, string& str)
+SqlException* Sqlite3Row::getText(unsigned int column, string& str)
 {
+   SqlException* rval = NULL;
+   
    // FIXME: check exceptions, etc
    str.assign((const char*)sqlite3_column_text(getStatementHandle(), column));
-   return NULL;
+   return rval;
+}
+
+SqlException* Sqlite3Row::getType(const char* column, int& type)
+{
+   SqlException* rval = 
+     new SqlException("Sqlite3 named column support not implemented!");
+   Exception::setLast(rval);
+   
+   // FIXME: implement me
+   
+   return rval;
+}
+
+SqlException* Sqlite3Row::getInt32(const char* column, int& i)
+{
+   SqlException* rval = 
+     new SqlException("Sqlite3 named column support not implemented!");
+   Exception::setLast(rval);
+   
+   // FIXME: implement me
+   
+   return rval;
+}
+
+SqlException* Sqlite3Row::getInt64(const char* column, long long& i)
+{
+   SqlException* rval = 
+     new SqlException("Sqlite3 named column support not implemented!");
+   Exception::setLast(rval);
+   
+   // FIXME: implement me
+   
+   return rval;
+}
+
+SqlException* Sqlite3Row::getText(const char* column, std::string& str)
+{
+   SqlException* rval = 
+     new SqlException("Sqlite3 named column support not implemented!");
+   Exception::setLast(rval);
+   
+   // FIXME: implement me
+   
+   return rval;
 }

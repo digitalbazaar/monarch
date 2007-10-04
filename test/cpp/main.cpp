@@ -3684,7 +3684,7 @@ void runSqlite3StatementTest()
    while((row = s->fetch()) != NULL)
    {
       cout << endl << "Row result:" << endl;
-      row->getText(0, t);
+      row->getText((unsigned int)0, t);
       assertNoException();
       row->getInt32(1, i);
       assertNoException();
@@ -3782,7 +3782,7 @@ void runMySqlStatementTest()
 //   cout << "insert named parameters test passed!" << endl;
    
    // select test
-   s = c.prepare("SELECT * FROM dbmysqltest");
+   s = c.prepare("SELECT t, i FROM dbmysqltest");
    s->execute();
    
    // fetch rows
@@ -3792,9 +3792,9 @@ void runMySqlStatementTest()
    while((row = s->fetch()) != NULL)
    {
       cout << endl << "Row result:" << endl;
-      row->getText(1, t);
+      row->getText("t", t);
       assertNoException();
-      row->getInt32(2, i);
+      row->getInt32("i", i);
       assertNoException();
       
       cout << "t=" << t << endl;
@@ -3904,7 +3904,7 @@ void runDatabaseManagerTest()
    while((row = s->fetch()) != NULL)
    {
       cout << endl << "Row result:" << endl;
-      row->getText(0, t);
+      row->getText((unsigned int)0, t);
       assertNoException();
       row->getInt32(1, i);
       assertNoException();
@@ -3995,9 +3995,9 @@ void runDatabaseManagerTest()
 //   while((row = s->fetch()) != NULL)
 //   {
 //      cout << endl << "Row result:" << endl;
-//      row->getText(1, t);
+//      row->getText("t", t);
 //      assertNoException();
-//      row->getInt32(2, i);
+//      row->getInt32("i", i);
 //      assertNoException();
 //      
 //      cout << "t=" << t << endl;
@@ -4146,8 +4146,8 @@ public:
 //      runSqlite3ConnectionTest();
 //      runSqlite3StatementTest();
 //      runMySqlConnectionTest();
-//      runMySqlStatementTest();
-      runConnectionPoolTest();
+      runMySqlStatementTest();
+//      runConnectionPoolTest();
 //      runDatabaseManagerTest();
 //      runLoggerTest();
 //      runUniqueListTest();

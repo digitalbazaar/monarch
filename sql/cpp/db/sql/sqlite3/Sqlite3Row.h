@@ -56,7 +56,7 @@ public:
     * 
     * @return an SqlException if one occurred, NULL if not.
     */
-   virtual SqlException* getType(int column, int& type);
+   virtual SqlException* getType(unsigned int column, int& type);
    
    /**
     * Gets a 32-bit integer from a column.
@@ -66,7 +66,7 @@ public:
     * 
     * @return an SqlException if one occurred, NULL if not.
     */
-   virtual SqlException* getInt32(int column, int& i);
+   virtual SqlException* getInt32(unsigned int column, int& i);
    
    /**
     * Gets a 64-bit integer from a column.
@@ -76,7 +76,7 @@ public:
     * 
     * @return an SqlException if one occurred, NULL if not.
     */
-   virtual SqlException* getInt64(int column, long long& i);
+   virtual SqlException* getInt64(unsigned int column, long long& i);
    
    /**
     * Gets a text string from a column.
@@ -86,7 +86,47 @@ public:
     * 
     * @return an SqlException if one occurred, NULL if not.
     */
-   virtual SqlException* getText(int column, std::string& str);
+   virtual SqlException* getText(unsigned int column, std::string& str);
+   
+   /**
+    * Gets a column's data type.
+    *
+    * @param column the column's name.
+    * @param type the type ID for the column.
+    * 
+    * @return an SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* getType(const char* column, int& type);
+   
+   /**
+    * Gets a 32-bit integer from a column.
+    * 
+    * @param column the column's name.
+    * @param i the integer to store the integer in.
+    * 
+    * @return an SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* getInt32(const char* column, int& i);
+   
+   /**
+    * Gets a 64-bit integer from a column.
+    * 
+    * @param column the column's name.
+    * @param i the integer to store the integer in.
+    * 
+    * @return an SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* getInt64(const char* column, long long& i);
+   
+   /**
+    * Gets a text string from a column.
+    * 
+    * @param column the column's name.
+    * @param str the string to store the text in.
+    * 
+    * @return an SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* getText(const char* column, std::string& str);
 };
 
 } // end namespace sqlite3

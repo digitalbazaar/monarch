@@ -196,6 +196,7 @@ SqlException* MySqlStatement::setInt32(const char* name, int value)
 {
    SqlException* rval = 
      new SqlException("MySql named parameter support not implemented!");
+   Exception::setLast(rval);
    
 //   // FIXME: might strip support for parameter names
 //   int index = mysql_bind_parameter_index(mHandle, name);
@@ -221,6 +222,7 @@ SqlException* MySqlStatement::setInt64(const char* name, long long value)
 {
    SqlException* rval = 
      new SqlException("MySql named parameter support not implemented!");
+   Exception::setLast(rval);
    
 //   int index = mysql_bind_parameter_index(mHandle, name);
 //   if(index == 0)
@@ -245,6 +247,7 @@ SqlException* MySqlStatement::setText(const char* name, const char* value)
 {
    SqlException* rval = 
      new SqlException("MySql named parameter support not implemented!");
+   Exception::setLast(rval);
    
 //   int index = mysql_bind_parameter_index(mHandle, name);
 //   if(index == 0)
