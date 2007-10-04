@@ -31,10 +31,10 @@ protected:
    DatagramSocket* mSocket;
    
    /**
-    * Initializes this service and creates the Operation for running it. If
-    * the service could not be initialized, an exception should be set on the
-    * current thread indicating the reason why the service could not be
-    * initialized.
+    * Initializes this service and creates the Operation for running it,
+    * typically through the Server's OperationRunner. If the service could
+    * not be initialized, an exception should be set on the current thread
+    * indicating the reason why the service could not be initialized.
     * 
     * @return the Operation for running this service, or NULL if the
     *         service could not be initialized.
