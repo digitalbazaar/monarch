@@ -5,7 +5,6 @@
 #define db_net_Server_H
 
 #include "db/rt/Semaphore.h"
-#include "db/rt/Runnable.h"
 #include "db/modest/OperationRunner.h"
 #include "db/modest/OperationList.h"
 #include "db/net/InternetAddress.h"
