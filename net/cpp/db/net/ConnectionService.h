@@ -4,6 +4,7 @@
 #ifndef db_net_ConnectionService_H
 #define db_net_ConnectionService_H
 
+#include "db/rt/Semaphore.h"
 #include "db/net/PortService.h"
 #include "db/net/Server.h"
 #include "db/modest/OperationGuard.h"

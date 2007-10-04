@@ -44,7 +44,7 @@ Operation* ConnectionService::initialize()
    if(mSocket->bind(getAddress()) && mSocket->listen())
    {
       // create Operation for running service
-      rval = new Operation(this, this, NULL);
+      rval = mServer->getOperationRunner()->createOperation(this, this, NULL);
    }
    
    return rval;
@@ -160,13 +160,14 @@ void ConnectionService::createConnection(Socket* s)
       
       // create ConnectionWorker and Operation to run it
       ConnectionWorker* worker = new ConnectionWorker(this, c);
-      Operation* op = new Operation(worker, NULL, NULL);
+      Operation* op = mServer->getOperationRunner()->createOperation(
+         worker, NULL, NULL);
       worker->setOperation(op);
       mRunningServicers.add(op);
       mWorkers.push_back(worker);
       
-      // queue operation for execution
-      mServer->getKernel()->getEngine()->queue(op);
+      // run operation
+      mServer->getOperationRunner()->runOperation(op);
    }
    else
    {

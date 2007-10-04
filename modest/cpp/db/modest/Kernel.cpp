@@ -4,6 +4,7 @@
 #include "db/modest/Kernel.h"
 
 using namespace db::modest;
+using namespace db::rt;
 
 Kernel::Kernel()
 {
@@ -17,6 +18,19 @@ Kernel::~Kernel()
 {
    delete mEngine;
    delete mModuleLibrary;
+}
+
+Operation* Kernel::createOperation(
+   Runnable* r, OperationGuard* g, StateMutator* m)
+{
+   // create normal operation
+   return new Operation(r, g, m);
+}
+
+void Kernel::runOperation(Operation* op)
+{
+   // queue operation with engine
+   getEngine()->queue(op);
 }
 
 Engine* Kernel::getEngine()

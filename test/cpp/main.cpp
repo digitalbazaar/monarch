@@ -4133,7 +4133,7 @@ public:
 //      runStringAppendCharTest();
 //      runStringCompareTest();
 //      runHttpHeaderTest();
-//      runHttpServerTest();
+      runHttpServerTest();
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
 //      runXmlReaderTest();
@@ -4144,7 +4144,7 @@ public:
 //      runBigIntegerTest();
 //      runBigDecimalTest();
 //      runSqlite3ConnectionTest();
-      runSqlite3StatementTest();
+//      runSqlite3StatementTest();
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
 //      runConnectionPoolTest();

@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/DatagramService.h"
+#include "db/net/Server.h"
 
 using namespace db::modest;
 using namespace db::net;
@@ -31,7 +32,7 @@ Operation* DatagramService::initialize()
    if(mSocket->bind(getAddress()))
    {
       // create Operation for running service
-      rval = new Operation(this, NULL, NULL);
+      rval = mServer->getOperationRunner()->createOperation(this, NULL, NULL);
    }
    
    return rval;

@@ -4,10 +4,11 @@
 #ifndef db_net_Server_H
 #define db_net_Server_H
 
-#include "db/modest/Kernel.h"
+#include "db/rt/Semaphore.h"
+#include "db/rt/Runnable.h"
+#include "db/modest/OperationRunner.h"
 #include "db/modest/OperationList.h"
 #include "db/net/InternetAddress.h"
-#include "db/rt/Runnable.h"
 #include "db/net/PortService.h"
 #include "db/net/ConnectionServicer.h"
 #include "db/net/SocketDataPresenter.h"
@@ -34,9 +35,9 @@ class Server : public virtual db::rt::Object
 {
 protected:
    /**
-    * The modest Kernel used to run this server.
+    * The modest OperationRunner used to run this server.
     */
-   db::modest::Kernel* mKernel;
+   db::modest::OperationRunner* mOperationRunner;
    
    /**
     * A map of ports to PortServices.
@@ -85,11 +86,11 @@ protected:
    
 public:
    /**
-    * Creates a new Server that runs using the passed modest Kernel.
+    * Creates a new Server that runs using the passed modest OperationRunner.
     * 
-    * @param k the modest Kernel used to run this Server.
+    * @param opRunner the OperationRunner used to run this Server.
     */
-   Server(db::modest::Kernel* k);
+   Server(db::modest::OperationRunner* opRunner);
    
    /**
     * Destructs this Server.
@@ -144,9 +145,11 @@ public:
    virtual bool isRunning();
    
    /**
-    * Gets the Kernel used to run Operations for this server.
+    * Gets the OperationRunner used to run Operations for this server.
+    * 
+    * @return the OperationRunner used to run Operations for this server.
     */
-   virtual db::modest::Kernel* getKernel();
+   virtual db::modest::OperationRunner* getOperationRunner();
    
    /**
     * Sets the maximum number of concurrent connections this server should

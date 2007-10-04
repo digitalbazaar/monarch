@@ -31,7 +31,7 @@ bool PortService::start()
    if(mOperation != NULL)
    {
       // run service
-      mServer->getKernel()->getEngine()->queue(mOperation);
+      mServer->getOperationRunner()->runOperation(mOperation);
    }
    else
    {

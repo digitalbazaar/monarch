@@ -9,9 +9,9 @@ using namespace std;
 using namespace db::modest;
 using namespace db::net;
 
-Server::Server(Kernel* k) : mConnectionSemaphore(10000, true)
+Server::Server(OperationRunner* opRunner) : mConnectionSemaphore(10000, true)
 {
-   mKernel = k;
+   mOperationRunner = opRunner;
    mRunning = false;
    mConnectionCount = 0;
 }
@@ -158,9 +158,9 @@ bool Server::isRunning()
    return mRunning;
 }
 
-Kernel* Server::getKernel()
+OperationRunner* Server::getOperationRunner()
 {
-   return mKernel;
+   return mOperationRunner;
 }
 
 void Server::setMaxConnectionCount(unsigned int count)
