@@ -3735,11 +3735,10 @@ void runMySqlStatementTest()
    cout << "drop table test passed!" << endl;
    
    // create table test
-   string sql;
-   sql.append("CREATE TABLE IF NOT EXISTS dbmysqltest ");
-   sql.append("(id BIGINT AUTO_INCREMENT, t TEXT, i BIGINT, ");
-   sql.append("PRIMARY KEY (id))");
-   s = c.prepare(sql.c_str());
+   s = c.prepare(
+      "CREATE TABLE IF NOT EXISTS dbmysqltest "
+      "(id BIGINT AUTO_INCREMENT, t TEXT, i BIGINT, "
+      "PRIMARY KEY (id))");
    s->execute();
    delete s;
    assertNoException();

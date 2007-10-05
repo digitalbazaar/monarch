@@ -46,11 +46,11 @@ int Sqlite3Row::getColumnIndex(const char* name)
    if(rval == -1)
    {
       // set exception
-      string msg;
-      msg.append("Could not get column value, invalid column name!, name='");
-      msg.append(name);
-      msg.append(1, '\'');
-      Exception::setLast(new SqlException(msg.c_str())); 
+      char temp[strlen(name) + 60];
+      sprintf(
+         temp, "Could not get column value, invalid column name!, name='%s'",
+         name);
+      Exception::setLast(new SqlException(temp)); 
    }
    
    return rval;

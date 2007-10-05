@@ -112,7 +112,7 @@ SqlException* MySqlStatement::setInt32(unsigned int param, int value)
    if(param > mParamCount)
    {
       // exception, no parameter with given index
-      char temp[100];
+      char temp[70];
       sprintf(temp, "Invalid parameter index!,index='%i'", param);
       rval = new SqlException(temp);
       Exception::setLast(rval);
@@ -141,7 +141,7 @@ SqlException* MySqlStatement::setInt64(unsigned int param, long long value)
    if(param > mParamCount)
    {
       // exception, no parameter with given index
-      char temp[100];
+      char temp[70];
       sprintf(temp, "Invalid parameter index!,index='%i'", param);
       rval = new SqlException(temp);
       Exception::setLast(rval);
@@ -171,7 +171,7 @@ SqlException* MySqlStatement::setText(
    if(param > mParamCount)
    {
       // exception, no parameter with given index
-      char temp[100];
+      char temp[70];
       sprintf(temp, "Invalid parameter index!,index='%i'", param);
       rval = new SqlException(temp);
       Exception::setLast(rval);
@@ -203,11 +203,9 @@ SqlException* MySqlStatement::setInt32(const char* name, int value)
 //   if(index == 0)
 //   {
 //      // exception, no parameter with given name found
-//      string msg;
-//      msg.append("Invalid parameter name!,name='");
-//      msg.append(name);
-//      msg.append(1, '\'');
-//      rval = new SqlException(msg.c_str());
+//      char temp[strlen(name) + 40];
+//      sprintf(temp, "Invalid parameter name!,name='%s'", name);
+//      rval = new SqlException(temp);
 //      Exception::setLast(rval);
 //   }
 //   else
@@ -228,11 +226,9 @@ SqlException* MySqlStatement::setInt64(const char* name, long long value)
 //   if(index == 0)
 //   {
 //      // exception, no parameter with given name found
-//      string msg;
-//      msg.append("Invalid parameter name!,name='");
-//      msg.append(name);
-//      msg.append(1, '\'');
-//      rval = new SqlException(msg.c_str());
+//      char temp[strlen(name) + 40];
+//      sprintf(temp, "Invalid parameter name!,name='%s'", name);
+//      rval = new SqlException(temp);
 //      Exception::setLast(rval);
 //   }
 //   else
@@ -253,11 +249,9 @@ SqlException* MySqlStatement::setText(const char* name, const char* value)
 //   if(index == 0)
 //   {
 //      // exception, no parameter with given name found
-//      string msg;
-//      msg.append("Invalid parameter name!,name='");
-//      msg.append(name);
-//      msg.append(1, '\'');
-//      rval = new SqlException(msg.c_str());
+//      char temp[strlen(name) + 40];
+//      sprintf(temp, "Invalid parameter name!,name='%s'", name);
+//      rval = new SqlException(temp);
 //      Exception::setLast(rval);
 //   }
 //   else

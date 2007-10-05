@@ -94,11 +94,9 @@ SqlException* Sqlite3Statement::setInt32(const char* name, int value)
    if(index == 0)
    {
       // exception, no parameter with given name found
-      string msg;
-      msg.append("Invalid parameter name!,name='");
-      msg.append(name);
-      msg.append(1, '\'');
-      rval = new SqlException(msg.c_str());
+      char temp[strlen(name) + 40];
+      sprintf(temp, "Invalid parameter name!,name='%s'", name);
+      rval = new SqlException(temp);
       Exception::setLast(rval);
    }
    else
@@ -117,11 +115,9 @@ SqlException* Sqlite3Statement::setInt64(const char* name, long long value)
    if(index == 0)
    {
       // exception, no parameter with given name found
-      string msg;
-      msg.append("Invalid parameter name!,name='");
-      msg.append(name);
-      msg.append(1, '\'');
-      rval = new SqlException(msg.c_str());
+      char temp[strlen(name) + 40];
+      sprintf(temp, "Invalid parameter name!,name='%s'", name);
+      rval = new SqlException(temp);
       Exception::setLast(rval);
    }
    else
@@ -141,11 +137,9 @@ SqlException* Sqlite3Statement::setText(
    if(index == 0)
    {
       // exception, no parameter with given name found
-      string msg;
-      msg.append("Invalid parameter name!,name='");
-      msg.append(name);
-      msg.append(1, '\'');
-      rval = new SqlException(msg.c_str());
+      char temp[strlen(name) + 40];
+      sprintf(temp, "Invalid parameter name!,name='%s'", name);
+      rval = new SqlException(temp);
       Exception::setLast(rval);
    }
    else

@@ -38,14 +38,14 @@ SqlException* MySqlConnection::connect(Url* url)
    
    if(strcmp(url->getScheme().c_str(), "mysql") != 0)
    {
-      string msg;
       string urlStr;
-      msg.append("Could not connect to mysql database, ");
-      msg.append("url scheme not 'mysql', url='");
-      msg.append(url->toString(urlStr));
-      msg.append(1, '\'');
+      url->toString(urlStr);
       
-      Exception::setLast(new SqlException(msg.c_str()));
+      char temp[100 + urlStr.length()];
+      sprintf(
+         temp, "Could not connect to mysql database, url scheme not "
+         "'mysql', url='%s'", urlStr.c_str());
+      Exception::setLast(new SqlException(temp));
    }
    else
    {

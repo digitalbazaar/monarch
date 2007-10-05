@@ -531,8 +531,7 @@ string& AudioFrameHeader::toString(string& str)
    // for converting numbers to strings
    char temp[30];
    
-   str.append("[MpegAudioFrameHeader]");
-   str.append(1, '\n');
+   str.append("[MpegAudioFrameHeader]\n");
    str.append(v.name);
    str.append(1, '\n');
    str.append(l.name);
@@ -540,8 +539,7 @@ string& AudioFrameHeader::toString(string& str)
    int bitrate = getBitrate();
    if(bitrate > 0)
    {
-      str.append(1, '\n');
-      str.append("Bitrate: ");
+      str.append("\nBitrate: ");
       sprintf(temp, "%i bps", bitrate);
       str.append(temp);
    }

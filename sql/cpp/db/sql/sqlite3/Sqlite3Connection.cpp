@@ -37,8 +37,9 @@ SqlException* Sqlite3Connection::connect(Url* url)
    {
       string msg;
       string urlStr;
-      msg.append("Could not connect to sqlite3 database, ");
-      msg.append("url scheme doesn't start with 'sqlite3', url='");
+      msg.append(
+         "Could not connect to sqlite3 database, "
+         "url scheme doesn't start with 'sqlite3', url='");
       msg.append(url->toString(urlStr));
       msg.append(1, '\'');
       

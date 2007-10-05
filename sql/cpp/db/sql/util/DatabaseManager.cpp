@@ -46,12 +46,11 @@ DatabaseClient* DatabaseManager::createClient(const char* url)
       }
       else
       {
-         string msg;
-         msg.append("Cannot create DatabaseClient, ");
-         msg.append("url scheme is not recognized!,scheme='");
-         msg.append(dbUrl.getScheme());
-         msg.append(1, '\'');
-         Exception::setLast(new SqlException(msg.c_str()));
+         char temp[dbUrl.getScheme().length() + 100];
+         sprintf(
+            temp, "Cannot create DatabaseClient, url scheme is "
+            "not recognized!,scheme='%s'", dbUrl.getScheme().c_str());
+         Exception::setLast(new SqlException(temp));
       }
    }
    
