@@ -251,7 +251,7 @@ void Thread::join()
    }
    unlock();
    
-   if(join)
+   if(join && hasStarted())
    {
       // join thread, wait for it to detach/terminate indefinitely
       int status;
@@ -274,7 +274,7 @@ void Thread::detach()
    }
    unlock();
    
-   if(detach)
+   if(detach && hasStarted())
    {
       // detach thread
       pthread_detach(mThreadId);
