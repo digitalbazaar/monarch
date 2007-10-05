@@ -3810,16 +3810,8 @@ void runMySqlStatementTest()
    cout << endl << "MySql test complete." << endl;
 }
 
-void runConnectionPoolTest()
+void executeStatements(db::sql::Connection* c)
 {
-   cout << "Starting ConnectionPool test." << endl << endl;
-   
-   // create sqlite3 connection pool
-   Sqlite3ConnectionPool cp("sqlite3::memory:");
-   assertNoException();
-   
-   db::sql::Connection* c = cp.getConnection();
-   
    db::sql::Statement* s;
    
    // drop table test
@@ -3828,50 +3820,50 @@ void runConnectionPoolTest()
    s->execute();
    delete s;
    assertNoException();
-   cout << "drop table test passed!" << endl;
+   //cout << "drop table test passed!" << endl;
    
    // create table test
    s = c->prepare("CREATE TABLE IF NOT EXISTS test (t TEXT, i INT)");
    s->execute();
    delete s;
    assertNoException();
-   cout << "create table test passed!" << endl;
+   //cout << "create table test passed!" << endl;
    
    // insert test 1
    s = c->prepare("INSERT INTO test (t, i) VALUES ('test!', 1234)");
    s->execute();
-   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   //cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;
    assertNoException();
-   cout << "insert test 1 passed!" << endl;
+   //cout << "insert test 1 passed!" << endl;
    
    // insert test 2
    s = c->prepare("INSERT INTO test (t, i) VALUES ('!tset', 4321)");
    s->execute();
-   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   //cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;
    assertNoException();
-   cout << "insert test 2 passed!" << endl;
+   //cout << "insert test 2 passed!" << endl;
    
    // insert positional parameters test
    s = c->prepare("INSERT INTO test (t, i) VALUES (?, ?)");
    s->setText(1, "boundpositional");
    s->setInt32(2, 2222);
    s->execute();
-   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   //cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;
    assertNoException();
-   cout << "insert positional parameters test passed!" << endl;
+   //cout << "insert positional parameters test passed!" << endl;
    
    // insert named parameters test
    s = c->prepare("INSERT INTO test (t, i) VALUES (:first, :second)");
    s->setText(":first", "boundnamed");
    s->setInt32(":second", 2223);
    s->execute();
-   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   //cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;
    assertNoException();
-   cout << "insert named parameters test passed!" << endl;
+   //cout << "insert named parameters test passed!" << endl;
    
    // select test
    s = c->prepare("SELECT * FROM test");
@@ -3883,22 +3875,83 @@ void runConnectionPoolTest()
    int i;
    while((row = s->fetch()) != NULL)
    {
-      cout << endl << "Row result:" << endl;
+      //cout << endl << "Row result:" << endl;
       row->getText("t", t);
       assertNoException();
       row->getInt32("i", i);
       assertNoException();
       
-      cout << "t=" << t << endl;
-      cout << "i=" << i << endl;
+      //cout << "t=" << t << endl;
+      //cout << "i=" << i << endl;
    }
    
-   cout << endl << "Result Rows complete." << endl;
+   //cout << endl << "Result Rows complete." << endl;
    delete s;
-   cout << "select test passed!" << endl;
+   //cout << "select test passed!" << endl;
    
    c->close();
+   
+   //cout << "Statements finished executing." << endl;
+}
+
+class SqlConnectionTest : public Runnable
+{
+public:
+   Sqlite3ConnectionPool* pool;
+   
+   virtual void run()
+   {
+      db::sql::Connection* c = pool->getConnection();
+      executeStatements(c);
+   }
+};
+
+void runConnectionPoolTest()
+{
+   cout << "Starting ConnectionPool test." << endl << endl;
+   
+   int size = 50;
+   
+   // create sqlite3 connection pool
+   Sqlite3ConnectionPool cp("sqlite3::memory:", 1);
    assertNoException();
+   
+   // create connection test threads
+   SqlConnectionTest tests[size];
+   Thread* threads[size];
+   
+   // create threads, set pool for tests
+   for(int i = 0; i < size; i++)
+   {
+      tests[i].pool = &cp;
+      threads[i] = new Thread(&tests[i]);
+   }
+   
+   unsigned long long start = System::getCurrentMilliseconds();
+   
+   // run connection threads
+   int count = 1;
+   for(int i = 0; i < size; i++, count++)
+   {
+      //cout << "RUNNING CONNECTION #" << count << endl;
+      threads[i]->start();
+   }
+   
+   // clean up threads
+   for(int i = 0; i < size; i++)
+   {
+      threads[i]->join();
+      delete threads[i];
+   }
+   
+   unsigned long long end = System::getCurrentMilliseconds();
+   
+   cout << endl;
+   cout << "Number of independent connection uses: " << size << endl;
+   cout << "Number of pooled connections created: " << cp.getConnectionCount()
+      << endl;
+   
+   cout << "Total time: " << (end - start) << "ms" << endl;
    
    cout << endl << "ConnectionPool test complete." << endl;
 }

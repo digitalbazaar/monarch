@@ -50,28 +50,28 @@ Connection* AbstractConnectionPool::getIdleConnection()
 {
    PooledConnection* rval = NULL;
    
-   mListLock.lock();
+   // obtain connection permit
+   bool acquired = true;
+   if(mConnectionSemaphore.getMaxPermitCount() != 0)
    {
-      if(!mIdleConnections.empty())
-      {
-         // get first idle connection
-         rval = mIdleConnections.front();
-         mIdleConnections.pop_front();
-         mActiveConnections.push_back(rval);
-      }
+      acquired = (mConnectionSemaphore.acquire() == NULL);
    }
-   mListLock.unlock();
    
-   if(rval == NULL)
+   if(acquired)
    {
-      // obtain connection permit
-      bool acquired = true;
-      if(mConnectionSemaphore.getMaxPermitCount() != 0)
+      mListLock.lock();
       {
-         acquired = (mConnectionSemaphore.acquire() == NULL);
+         if(!mIdleConnections.empty())
+         {
+            // get first idle connection
+            rval = mIdleConnections.front();
+            mIdleConnections.pop_front();
+            mActiveConnections.push_back(rval);
+         }
       }
+      mListLock.unlock();
       
-      if(acquired)
+      if(rval == NULL)
       {
          // create new connection & add to active connections
          rval = createConnection();
