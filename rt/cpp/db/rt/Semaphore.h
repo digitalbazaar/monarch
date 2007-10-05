@@ -164,7 +164,8 @@ public:
    bool tryAcquire(int permits);
    
    /**
-    * Releases a permit.
+    * Releases a permit if it does not exceed the number
+    * of used permits.
     */
    void release();
    
