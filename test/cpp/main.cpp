@@ -3819,9 +3819,86 @@ void runConnectionPoolTest()
    assertNoException();
    
    db::sql::Connection* c = cp.getConnection();
-   c->close();
    
-   // FIXME: test some stuff
+   db::sql::Statement* s;
+   
+   // drop table test
+   s = c->prepare("DROP TABLE IF EXISTS test");
+   assert(s != NULL);
+   s->execute();
+   delete s;
+   assertNoException();
+   cout << "drop table test passed!" << endl;
+   
+   // create table test
+   s = c->prepare("CREATE TABLE IF NOT EXISTS test (t TEXT, i INT)");
+   s->execute();
+   delete s;
+   assertNoException();
+   cout << "create table test passed!" << endl;
+   
+   // insert test 1
+   s = c->prepare("INSERT INTO test (t, i) VALUES ('test!', 1234)");
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "insert test 1 passed!" << endl;
+   
+   // insert test 2
+   s = c->prepare("INSERT INTO test (t, i) VALUES ('!tset', 4321)");
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "insert test 2 passed!" << endl;
+   
+   // insert positional parameters test
+   s = c->prepare("INSERT INTO test (t, i) VALUES (?, ?)");
+   s->setText(1, "boundpositional");
+   s->setInt32(2, 2222);
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "insert positional parameters test passed!" << endl;
+   
+   // insert named parameters test
+   s = c->prepare("INSERT INTO test (t, i) VALUES (:first, :second)");
+   s->setText(":first", "boundnamed");
+   s->setInt32(":second", 2223);
+   s->execute();
+   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   delete s;
+   assertNoException();
+   cout << "insert named parameters test passed!" << endl;
+   
+   // select test
+   s = c->prepare("SELECT * FROM test");
+   s->execute();
+   
+   // fetch rows
+   db::sql::Row* row;
+   string t;
+   int i;
+   while((row = s->fetch()) != NULL)
+   {
+      cout << endl << "Row result:" << endl;
+      row->getText("t", t);
+      assertNoException();
+      row->getInt32("i", i);
+      assertNoException();
+      
+      cout << "t=" << t << endl;
+      cout << "i=" << i << endl;
+   }
+   
+   cout << endl << "Result Rows complete." << endl;
+   delete s;
+   cout << "select test passed!" << endl;
+   
+   c->close();
+   assertNoException();
    
    cout << endl << "ConnectionPool test complete." << endl;
 }
