@@ -36,8 +36,8 @@ void AbstractConnectionPool::connectionClosed(PooledConnection* connection)
          // set the connection idle time
          connection->setIdleTime(System::getCurrentMilliseconds());
          
-         // put at end of idle connections
-         mIdleConnections.push_back(connection);
+         // put at front of idle connections
+         mIdleConnections.push_front(connection);
          
          // release connection permit
          mConnectionSemaphore.release();
@@ -63,9 +63,9 @@ Connection* AbstractConnectionPool::getIdleConnection()
       {
          if(!mIdleConnections.empty())
          {
-            // get first idle connection
-            rval = mIdleConnections.front();
-            mIdleConnections.pop_front();
+            // get last idle connection
+            rval = mIdleConnections.back();
+            mIdleConnections.pop_back();
             mActiveConnections.push_back(rval);
          }
       }
