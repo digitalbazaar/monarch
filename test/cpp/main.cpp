@@ -3889,6 +3889,8 @@ void executeStatements(db::sql::Connection* c)
    delete s;
    //cout << "select test passed!" << endl;
    
+   Thread::sleep(100);
+   
    c->close();
    
    //cout << "Statements finished executing." << endl;
@@ -3910,10 +3912,10 @@ void runConnectionPoolTest()
 {
    cout << "Starting ConnectionPool test." << endl << endl;
    
-   int size = 50;
+   int size = 300;
    
    // create sqlite3 connection pool
-   Sqlite3ConnectionPool cp("sqlite3::memory:", 1);
+   Sqlite3ConnectionPool cp("sqlite3::memory:", 100);
    assertNoException();
    
    // create connection test threads
@@ -3934,17 +3936,25 @@ void runConnectionPoolTest()
    for(int i = 0; i < size; i++, count++)
    {
       //cout << "RUNNING CONNECTION #" << count << endl;
-      threads[i]->start();
+      while(!threads[i]->start())
+      {
+         threads[i - 1]->join();
+      }
    }
+   
+   // join threads
+   for(int i = 0; i < size; i++)
+   {
+      threads[i]->join();
+   }
+   
+   unsigned long long end = System::getCurrentMilliseconds();
    
    // clean up threads
    for(int i = 0; i < size; i++)
    {
-      threads[i]->join();
       delete threads[i];
    }
-   
-   unsigned long long end = System::getCurrentMilliseconds();
    
    cout << endl;
    cout << "Number of independent connection uses: " << size << endl;

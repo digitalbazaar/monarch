@@ -99,6 +99,12 @@ void AbstractConnectionPool::closeExpiredConnections()
    {
       mListLock.lock();
       {
+         // FIXME: we might want to use a different algorithm here that
+         // is quicker but doesn't necessarily clean up all expired
+         // connections at once -- so that each time a request is made
+         // to get a connection, not all other connections must be checked
+         // in the worst case
+         
          // find the first expired connection, all that follow are expired
          bool found = false;
          list<PooledConnection*>::iterator i = mIdleConnections.begin();
