@@ -121,9 +121,13 @@ void JobThreadPool::runJobOnIdleThread(Runnable* job)
       t->setJob(job, this);
       
       // if the thread hasn't started yet, start it
-      if(!t->hasStarted())
+      while(!t->hasStarted())
       {
-         t->start();
+         if(!t->start())
+         {
+            // yield, try to start again later
+            Thread::yield();
+         }
       }
    }
    unlock();
