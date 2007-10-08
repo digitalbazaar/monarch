@@ -1,0 +1,5 @@
+Name: DBCORE
+Description: Digital Bazaar Core Libraries
+Version: 0.0.0
+Cflags: @@CFLAGS@@
+Libs: @@LIBS@@ -lpthread -lcrypto -lssl -lexpat -lsqlite3

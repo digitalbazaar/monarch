@@ -187,8 +187,16 @@ CLEANFILES += \
 	$(BASE_DIR)/crypto/python/cppwrapper/_dbcrypto.so \
 	$(BASE_DIR)/crypto/python/cppwrapper/dbcrypto.py
 
+$(BASE_DIR)/dbcore.pc: $(BASE_DIR)/dbcore.pc.in
+	cat $< | \
+		sed -e 's/@@CFLAGS@@/$(subst /,\/,$(INCLUDES))/' | \
+		sed -e 's/@@LIBS@@/$(subst /,\/,$(addprefix -L,$(DIST)))/' > $@
+
+CLEANFILES += \
+	$(BASE_DIR)/dbcore.pc
+
 TAGS: $(ALL_H) $(ALL_CPP)
 	etags $^
 
-all2: $(MODULES:%=lib$(MODGROUP)%) $(EXES:%=%_exe)
+all2: $(MODULES:%=lib$(MODGROUP)%) $(EXES:%=%_exe) $(BASE_DIR)/dbcore.pc
 	@echo Make all finished.
