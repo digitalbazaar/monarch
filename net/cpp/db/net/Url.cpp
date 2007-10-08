@@ -19,6 +19,11 @@ Url::Url(const char* url)
    setUrl(url);
 }
 
+Url::Url(const Url& copy)
+{
+   *this = copy;
+}
+
 Url::~Url()
 {
 }

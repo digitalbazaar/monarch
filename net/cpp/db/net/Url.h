@@ -101,6 +101,13 @@ public:
    Url(const char* url);
    
    /**
+    * Copies the passed url.
+    * 
+    * @param copy the url to copy.
+    */
+   Url(const Url& copy);
+   
+   /**
     * Destructs this Url.
     */
    virtual ~Url();
