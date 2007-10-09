@@ -89,8 +89,7 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
    
    // set status message
    delete [] mStatusMessage;
-   mStatusMessage = new char[msg.length() + 1];
-   strcpy(mStatusMessage, msg.c_str());
+   mStatusMessage = strdup(msg.c_str());
    
    return rval;
 }
@@ -109,8 +108,7 @@ void HttpResponseHeader::getStartLine(string& line)
 void HttpResponseHeader::setVersion(const char* version)
 {
    delete [] mVersion;
-   mVersion = new char[strlen(version) + 1];
-   strcpy(mVersion, version);
+   mVersion = strdup(version);
 }
 
 const char* HttpResponseHeader::getVersion()
@@ -123,8 +121,7 @@ void HttpResponseHeader::setStatus(unsigned int code, const char* message)
    mStatusCode = code;
    
    delete [] mStatusMessage;
-   mStatusMessage = new char[strlen(message) + 1];
-   strcpy(mStatusMessage, message);
+   mStatusMessage = strdup(message);
 }
 
 unsigned int HttpResponseHeader::getStatusCode()

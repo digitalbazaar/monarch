@@ -100,16 +100,14 @@ DataName* DataBinding::createDataName(
    
    if(ns != NULL)
    {
-      dn->ns = new char[strlen(ns) + 1];
-      strcpy(dn->ns, ns);
+      dn->ns = strdup(ns);
    }
    else
    {
       dn->ns = NULL;
    }
    
-   dn->name = new char[strlen(name) + 1];
-   strcpy(dn->name, name);
+   dn->name = strdup(name);
    
    return dn;
 }

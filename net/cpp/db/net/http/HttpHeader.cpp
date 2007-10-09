@@ -54,9 +54,7 @@ void HttpHeader::setField(const char* name, const std::string& value)
    }
    
    // set new field
-   char* str = new char[strlen(name) + 1];
-   strcpy(str, name);
-   mFields.insert(make_pair(str, value));
+   mFields.insert(make_pair(strdup(name), value));
 }
 
 void HttpHeader::addField(const char* name, const std::string& value)
@@ -199,7 +197,7 @@ string& HttpHeader::toString(string& str)
        mFields.begin(); i != mFields.end(); i++)
    {
       // get field name and bicapitalize it
-      char name[strlen(i->first)];
+      char name[strlen(i->first) + 1];
       strcpy(name, i->first);
       biCapitalize(name);
       

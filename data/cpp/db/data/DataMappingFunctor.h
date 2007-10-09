@@ -435,13 +435,11 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
          // convert boolean to string
          if((bObj->*mGetFunction.bFunc)())
          {
-            *s = new char[5];
-            strcpy(*s, "true");
+            *s = strdup("true");
          }
          else
          {
-            *s = new char[6];
-            strcpy(*s, "false");
+            *s = strdup("false");
          }
          break;
       case DataGetFunction::Integer:
@@ -453,13 +451,11 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
          const char* str = (bObj->*mGetFunction.sFunc)();
          if(str != NULL)
          {
-            *s = new char[strlen(str) + 1];
-            strcpy(*s, str);
+            *s = strdup(str);
          }
          else
          {
-            *s = new char[1];
-            memset(*s, 0, 1);
+            *s = strdup("");
          }
          break;
    }

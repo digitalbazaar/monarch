@@ -70,8 +70,7 @@ void Logger::removeLogger(Logger* logger, const char* category)
 
 Logger::Logger(const char* name, Level level)
 {
-   mName = new char[strlen(name) + 1];
-   strcpy(mName, name);
+   mName = strdup(name);
    
    setLevel(level);
    
@@ -129,8 +128,7 @@ bool Logger::setDateFormat(const char* dateFormat)
          delete [] mDateFormat;
       }
       
-      mDateFormat = new char[strlen(dateFormat) + 1];
-      strcpy(mDateFormat, dateFormat);
+      mDateFormat = strdup(dateFormat);
    }
    unlock();
 

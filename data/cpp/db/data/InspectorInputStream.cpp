@@ -158,9 +158,7 @@ bool InspectorInputStream::addInspector(
       metaData.cleanupInspector = cleanup;
       
       // store meta-data in map
-      char* str = new char[strlen(name) + 1];
-      strcpy(str, name);
-      mInspectors[str] = metaData;
+      mInspectors[strdup(name)] = metaData;
       
       rval = true;
    }

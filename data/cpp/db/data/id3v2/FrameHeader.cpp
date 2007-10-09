@@ -139,8 +139,7 @@ const char* FrameHeader::getId()
 void FrameHeader::setDescription(const char* description)
 {
    delete [] mDescription;
-   mDescription = new char[strlen(description) + 1];
-   strcpy(mDescription, description);
+   mDescription = strdup(description);
 }
 
 const char* FrameHeader::getDescription()

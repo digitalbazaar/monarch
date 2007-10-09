@@ -10,14 +10,8 @@ using namespace db::rt;
 
 Exception::Exception(const char* message, const char* type, int code)
 {
-   const char* str = (message == NULL) ? "" : message;
-   mMessage = new char[strlen(message) + 1];
-   strcpy(mMessage, message);
-   
-   str = (type == NULL) ? "" : type;
-   mType = new char[strlen(type) + 1];
-   strcpy(mType, type);
-   
+   mMessage = strdup((message == NULL) ? "" : message);
+   mType = strdup((type == NULL) ? "" : type);
    mCode = code;
    
    mCause = NULL;
@@ -37,18 +31,14 @@ Exception::~Exception()
 
 void Exception::setMessage(const char* message)
 {
-   const char* str = (message == NULL) ? "" : message;
    delete [] mMessage;
-   mMessage = new char[strlen(str) + 1];
-   strcpy(mMessage, str);
+   mMessage = strdup((message == NULL) ? "" : message);
 }
 
 void Exception::setType(const char* type)
 {
-   const char* str = (type == NULL) ? "" : type;
    delete [] mType;
-   mType = new char[strlen(str) + 1];
-   strcpy(mType, str);
+   mType = strdup((type == NULL) ? "" : type);
 }
 
 void Exception::setCode(int code)

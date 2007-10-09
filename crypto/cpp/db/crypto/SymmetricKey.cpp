@@ -16,8 +16,7 @@ SymmetricKey::SymmetricKey(const char* algorithm)
    mIvLength = 0;
    
    // set algorithm
-   mAlgorithm = new char[strlen(algorithm) + 1];
-   strcpy(mAlgorithm, algorithm);
+   mAlgorithm = strdup(algorithm);
    
    // default to unencrypted
    mEncrypted = false;

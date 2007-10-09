@@ -55,9 +55,7 @@ State::Variable* State::createVariable(const char* name, Variable::Type type)
       }
       
       // store variable in table
-      char* str = new char[strlen(name) + 1];
-      strcpy(str, name);
-      mVarTable.insert(make_pair(str, var));
+      mVarTable.insert(make_pair(strdup(name), var));
    }
    
    if(var->type != type)

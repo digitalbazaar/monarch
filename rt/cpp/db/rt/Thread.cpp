@@ -73,8 +73,7 @@ void Thread::assignName(const char* name)
    }
    else
    {
-      mName = new char[strlen(name)];
-      strcpy(mName, name);
+      mName = strdup(name);
    }
 }
 

@@ -36,16 +36,13 @@ const char* AsymmetricKey::getAlgorithm()
       switch(EVP_PKEY_type(getPKEY()->type))
       {
          case EVP_PKEY_DSA:
-            mAlgorithm = new char[4];
-            strcpy(mAlgorithm, "DSA");
+            mAlgorithm = strdup("DSA");
             break;
          case EVP_PKEY_RSA:
-            mAlgorithm = new char[4];
-            strcpy(mAlgorithm, "RSA");
+            mAlgorithm = strdup("RSA");
             break;
          default:
-            mAlgorithm = new char[5];
-            strcpy(mAlgorithm, "NONE");
+            mAlgorithm = strdup("NONE");
       }
    }
    
