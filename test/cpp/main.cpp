@@ -2950,8 +2950,11 @@ void runHttpHeaderTest()
 class TestHttpRequestServicer : public HttpRequestServicer
 {
 public:
+   const char* content;
+   
    TestHttpRequestServicer(const char* path) : HttpRequestServicer(path)
    {
+      content = "Bob Loblaw's Law Blog";
    }
    
    virtual ~TestHttpRequestServicer()
@@ -2961,8 +2964,6 @@ public:
    virtual void serviceRequest(
       HttpRequest* request, HttpResponse* response)
    {
-      char content[] = "Bob Loblaw's Law Blog";
-      
       // send 200 OK
       response->getHeader()->setStatus(200, "OK");
       //response->getHeader()->setField("Content-Length", 0);
@@ -3154,6 +3155,160 @@ void runHttpClientPostTest()
    }
    
    cout << endl << "Http Client POST test complete." << endl;
+}
+
+class PingHttpRequestServicer : public HttpRequestServicer
+{
+public:
+   const char* content;
+   
+   PingHttpRequestServicer(const char* path) : HttpRequestServicer(path)
+   {
+      content = "Bob Loblaw's Law Blog";
+   }
+   
+   virtual ~PingHttpRequestServicer()
+   {
+   }
+   
+   virtual void serviceRequest(
+      HttpRequest* request, HttpResponse* response)
+   {
+      // send 200 OK
+      response->getHeader()->setStatus(200, "OK");
+      //response->getHeader()->setField("Content-Length", 0);
+      response->getHeader()->setField("Transfer-Encoding", "chunked");
+      response->getHeader()->setField("Connection", "close");
+      response->sendHeader();
+      
+      HttpTrailer trailer;
+      ByteArrayInputStream bais(content, strlen(content));
+      response->sendBody(&bais, &trailer);
+   }
+};
+
+class PingConnectionServicer : public ConnectionServicer
+{
+public:
+   unsigned long long start;
+   unsigned long long end;
+   unsigned int serviced;
+   
+   PingConnectionServicer()
+   {
+      serviced = 0;
+      start = 0;
+      end = 0;
+   }
+   
+   virtual ~PingConnectionServicer() {}
+   
+   void serviceConnection(Connection* c)
+   {
+      if(start == 0)
+      {
+         start = System::getCurrentMilliseconds();
+      }
+      
+      serviced++;
+      end = System::getCurrentMilliseconds();
+   }
+};
+
+void runPingTest()
+{
+   cout << "Starting Ping test." << endl << endl;
+   
+//   // openssl initialization code
+//   SSL_library_init();
+//   SSL_load_error_strings();
+//   OpenSSL_add_all_algorithms();
+   
+   // create kernel
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create server
+   Server server(&k);
+   InternetAddress address("localhost", 19100);
+   
+//   // create SSL/generic ping connection servicer
+//   PingConnectionServicer pcs;
+////   SslContext context;
+////   SslSocketDataPresenter presenter1(&context);
+////   NullSocketDataPresenter presenter2;
+////   SocketDataPresenterList list(false);
+////   list.add(&presenter1);
+////   list.add(&presenter2);
+//   server.addConnectionService(&address, &pcs);//, &list);
+
+   // create SSL/generic http connection servicer
+   HttpConnectionServicer hcs;
+//   SslContext context;
+//   SslSocketDataPresenter presenter1(&context);
+//   NullSocketDataPresenter presenter2;
+//   SocketDataPresenterList list(false);
+//   list.add(&presenter1);
+//   list.add(&presenter2);
+   server.addConnectionService(&address, &hcs);//, &list);
+   
+   // create test http request servicer
+   PingHttpRequestServicer test1("/test");
+   hcs.addRequestServicer(&test1, false);
+   
+   if(server.start())
+   {
+      cout << "Server started." << endl;
+   }
+   else if(Exception::getLast() != NULL)
+   {
+      cout << "Server started with errors=" <<
+         Exception::getLast()->getMessage() << endl;
+   }
+   
+   // connect
+   Url url("http://localhost:19100");
+   HttpTrailer trailer;
+   File file("/tmp/index.html");
+   FileOutputStream fos(&file);
+   HttpClient client;
+   
+   unsigned long long start = System::getCurrentMilliseconds();
+   
+   client.connect(&url);
+   client.get(&url, NULL);
+   client.receiveContent(&fos, &trailer);
+   
+   unsigned long long end = System::getCurrentMilliseconds();
+   
+   client.disconnect();
+   
+   // sleep
+   //Thread::sleep(10000);
+   
+   server.stop();
+   cout << "Server stopped." << endl;
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   unsigned long long millis = end - start;
+   cout << "Connection Time: " << millis << endl;
+   
+//   unsigned long long millis = test1.end - test1.start;
+//   long double cps = ((long double)pcs.serviced) / millis * 1000.0;
+//   cout << "Connections serviced: " << pcs.serviced << endl;
+//   cout << "Time: " << millis << endl;
+//   cout << "Connections/Second: " << cps << endl;
+   
+//   // clean up SSL
+//   ERR_remove_state(0);
+//   ENGINE_cleanup();
+//   ERR_free_strings();
+//   EVP_cleanup();
+//   CRYPTO_cleanup_all_ex_data();
+   
+   cout << endl << "Ping test complete." << endl;
 }
 
 void runDelegateTest()
@@ -4275,6 +4430,7 @@ public:
 //      runHttpServerTest();
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
+//      runPingTest();
 //      runXmlReaderTest();
 //      runXmlWriterTest();
 //      runXmlReadWriteTest();

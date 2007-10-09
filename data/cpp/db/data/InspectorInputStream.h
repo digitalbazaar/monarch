@@ -156,7 +156,7 @@ public:
     * 
     * @param name the name of the DataInspector to get.
     * 
-    * @return the DataInspector with the given name or null if none exists.
+    * @return the DataInspector with the given name or NULL if none exists.
     */
    virtual DataInspector* getInspector(const char* name);
    
