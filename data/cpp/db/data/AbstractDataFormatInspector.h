@@ -161,11 +161,9 @@ public:
    /**
     * Gets a string identifier for the format that was detected.
     * 
-    * @param str the string to populate.
-    * 
     * @return a string identifier for the format that was detected.
     */
-   virtual std::string& getFormat(std::string& str) = 0;
+   virtual const char* getFormat() = 0;
    
    /**
     * Gets a custom readable report on the data inspection.
