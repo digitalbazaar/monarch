@@ -80,7 +80,7 @@ bool AbstractDataFormatInspector::keepInspecting()
    return mInspectAfterSatisfied;
 }
 
-long AbstractDataFormatInspector::getBytesInspected()
+unsigned long long AbstractDataFormatInspector::getBytesInspected()
 {
    return mBytesInspected;
 }

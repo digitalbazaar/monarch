@@ -136,7 +136,7 @@ public:
     * 
     * @return the number of bytes inspected so far.
     */
-   virtual long getBytesInspected();
+   virtual unsigned long long getBytesInspected();
    
    /**
     * Inspects the data in the passed buffer and tries to detect its

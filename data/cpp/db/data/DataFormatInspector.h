@@ -71,7 +71,7 @@ public:
     * 
     * @return the number of bytes inspected so far.
     */
-   virtual long getBytesInspected() = 0;
+   virtual unsigned long long getBytesInspected() = 0;
    
    /**
     * Gets a string identifier for the format that was detected.
