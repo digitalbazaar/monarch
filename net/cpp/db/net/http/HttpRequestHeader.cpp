@@ -10,14 +10,9 @@ using namespace db::util;
 
 HttpRequestHeader::HttpRequestHeader()
 {
-   mMethod = new char[1];
-   memset(mMethod, 0, 1);
-   
-   mVersion = new char[1];
-   memset(mVersion, 0, 1);
-   
-   mPath = new char[1];
-   memset(mPath, 0, 1);
+   mMethod = strdup("");
+   mVersion = strdup("");
+   mPath = strdup("");
 }
 
 HttpRequestHeader::~HttpRequestHeader()
@@ -86,8 +81,7 @@ void HttpRequestHeader::getStartLine(string& line)
 void HttpRequestHeader::setMethod(const char* method)
 {
    delete [] mMethod;
-   mMethod = new char[strlen(method) + 1];
-   strcpy(mMethod, method);
+   mMethod = strdup(method);
 }
 
 const char* HttpRequestHeader::getMethod()
@@ -98,8 +92,7 @@ const char* HttpRequestHeader::getMethod()
 void HttpRequestHeader::setVersion(const char* version)
 {
    delete [] mVersion;
-   mVersion = new char[strlen(version) + 1];
-   strcpy(mVersion, version);
+   mVersion = strdup(version);
 }
 
 const char* HttpRequestHeader::getVersion()
@@ -110,8 +103,7 @@ const char* HttpRequestHeader::getVersion()
 void HttpRequestHeader::setPath(const char* path)
 {
    delete [] mPath;
-   mPath = new char[strlen(path) + 1];
-   strcpy(mPath, path);
+   mPath = strdup(path);
 }
 
 const char* HttpRequestHeader::getPath()

@@ -8,9 +8,7 @@ using namespace db::sql;
 Statement::Statement(Connection* c, const char* sql)
 {
    mConnection = c;
-   
-   mSql = new char[strlen(sql) + 1];
-   strcpy(mSql, sql);
+   mSql = strdup(sql);
 }
 
 Statement::~Statement()

@@ -19,8 +19,7 @@ namespace data
  * 
  * @author Dave Longley
  */
-class AbstractDataFormatInspector :
-public DataFormatInspector, public DataInspector
+class AbstractDataFormatInspector : public DataFormatInspector
 {
 protected:
    /**
@@ -161,9 +160,11 @@ public:
    /**
     * Gets a string identifier for the format that was detected.
     * 
+    * @param str the string to populate with the format that was detected.
+    * 
     * @return a string identifier for the format that was detected.
     */
-   virtual const char* getFormat() = 0;
+   virtual std::string& getFormat(std::string& str) = 0;
    
    /**
     * Gets a custom readable report on the data inspection.

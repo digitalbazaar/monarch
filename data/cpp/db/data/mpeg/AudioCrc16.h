@@ -79,7 +79,6 @@ public:
     * The given AudioFrameHeader data will be used in the CRC calculation.
     * 
     * @param header the AudioFrameHeader to use.
-    * @param audioData the buffer with audio data.
     * @param offset the offset at which the audio data begins.
     * 
     * @return the calculated CRC.

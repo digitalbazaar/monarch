@@ -11,13 +11,9 @@ using namespace db::util;
 
 HttpResponseHeader::HttpResponseHeader()
 {
-   mVersion = new char[1];
-   memset(mVersion, 0, 1);
-   
+   mVersion = strdup("");
    mStatusCode = 0;
-   
-   mStatusMessage = new char[1];
-   memset(mStatusMessage, 0, 1);
+   mStatusMessage = strdup("");
 }
 
 HttpResponseHeader::~HttpResponseHeader()
