@@ -1,56 +1,75 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
+#include "db/io/File.h"
 
 #include <sys/stat.h>
 
-#include "db/io/File.h"
-
-using namespace std;
 using namespace db::io;
 
 File::File()
 {
+   mName = strdup("");
 }
 
 File::File(const char* name)
 {
-   mName = name;
+   mName = strdup(name);
 }
 
 File::~File()
 {
-}
-
-const string& File::getName()
-{
-   return mName;
+   delete [] mName;
 }
 
 bool File::exists()
 {
-   // FIXME error handling
    bool rval = false;
+   
    struct stat s;
-   int srval;
-   
-   srval = stat(mName.c_str(), &s);
-   
-   if(srval == 0)
+   int rc = stat(mName, &s);
+   if(rc == 0)
    {
       rval = true;
+   }
+   else
+   {
+      // FIXME: add error handling
    }
    
    return rval;
 }
 
+bool File::remove()
+{
+   bool rval = false;
+   
+   int rc = ::remove(mName);
+   if(rc == 0)
+   {
+      rval = true;
+   }
+   else
+   {
+      // FIXME: add error handling
+   }
+   
+   return rval;
+}
+
+const char* File::getName()
+{
+   return mName;
+}
+
 off_t File::getLength()
 {
-   // FIXME error handling
    struct stat s;
-   int srval;
-   
-   srval = stat(mName.c_str(), &s);
+   int rc = stat(mName, &s);
+   if(rc != 0)
+   {
+      // FIXME: add error handling
+   }
    
    return s.st_size;
 }

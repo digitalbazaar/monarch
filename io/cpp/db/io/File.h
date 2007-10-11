@@ -27,8 +27,8 @@ protected:
    /**
     * Stores the name of this file.
     */
-   std::string mName;
-
+   char* mName;
+   
 public:
    /**
     * Creates a new File.
@@ -48,19 +48,26 @@ public:
    virtual ~File();
    
    /**
+    * Determines whether or not this file physically exists.
+    * 
+    * @return true if this file exists, false if not.
+    */
+   virtual bool exists();
+   
+   /**
+    * Deletes this file, if it exists.
+    * 
+    * @return true if this file was deleted, false if not.
+    */
+   virtual bool remove();
+   
+   /**
     * Gets the name of this File.
     * 
     * @return the name of this File.
     */
-   virtual const std::string& getName();
-
-   /**
-    * Check if this file exists.
-    * 
-    * @return true if this file exists.
-    */
-   virtual bool exists();
-
+   virtual const char* getName();
+   
    /**
     * Gets the length of this File.
     * 

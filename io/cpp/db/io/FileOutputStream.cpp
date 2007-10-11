@@ -32,20 +32,19 @@ bool FileOutputStream::ensureOpen()
    {
       if(mAppend)
       {
-         mStream.open(mFile->getName().c_str(),
-            ios::out | ios::app | ios::binary);
+         mStream.open(mFile->getName(), ios::out | ios::app | ios::binary);
       }
       else
       {
-         mStream.open(mFile->getName().c_str(),
-            ios::out | ios::trunc | ios::binary);
+         mStream.open(mFile->getName(), ios::out | ios::trunc | ios::binary);
       }
       
       if(!mStream.is_open())
       {
          rval = false;
-         string msg = "Could not open file '" + mFile->getName() + "'!";
-         Exception::setLast(new IOException(msg.c_str()));
+         char temp[strlen(mFile->getName()) + 30];
+         sprintf(temp, "Could not open file '%s'!", mFile->getName());
+         Exception::setLast(new IOException(temp));
       }
    }
    
@@ -64,8 +63,9 @@ bool FileOutputStream::write(const char* b, int length)
       // see if a failure has occurred
       if(mStream.fail())
       {
-         string msg = "Could not write to file '" + mFile->getName() + "'!";
-         Exception::setLast(new IOException(msg.c_str()));
+         char temp[strlen(mFile->getName()) + 40];
+         sprintf(temp, "Could not write to file '%s'!", mFile->getName());
+         Exception::setLast(new IOException(temp));
       }
       else
       {

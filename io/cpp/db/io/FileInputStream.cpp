@@ -29,12 +29,13 @@ bool FileInputStream::ensureOpen()
    // try to open the file
    if(!mStream.is_open())
    {
-      mStream.open(mFile->getName().c_str(), ios::in | ios::binary);
+      mStream.open(mFile->getName(), ios::in | ios::binary);
       if(!mStream.is_open())
       {
          rval = false;
-         string msg = "Could not open file '" + mFile->getName() + "'!";
-         Exception::setLast(new IOException(msg.c_str()));
+         char temp[strlen(mFile->getName()) + 30];
+         sprintf(temp, "Could not open file '%s'!", mFile->getName());
+         Exception::setLast(new IOException(temp));
       }
    }
    
@@ -58,8 +59,9 @@ int FileInputStream::read(char* b, int length)
          if(mStream.fail() && !mStream.eof())
          {
             rval = -1;
-            string msg = "Could not read from file '" + mFile->getName() + "'!";
-            Exception::setLast(new IOException(msg.c_str()));
+            char temp[strlen(mFile->getName()) + 40];
+            sprintf(temp, "Could not read from file '%s'!", mFile->getName());
+            Exception::setLast(new IOException(temp));
          }
          else if(mStream.gcount() > 0)
          {
