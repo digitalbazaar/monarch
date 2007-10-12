@@ -53,8 +53,40 @@ SqlException* Sqlite3Statement::setInt32(unsigned int param, int value)
    return rval;
 }
 
+SqlException* Sqlite3Statement::setUInt32(
+   unsigned int param, unsigned int value)
+{
+   SqlException* rval = NULL;
+   
+   mState = sqlite3_bind_int(mHandle, param, value);
+   if(mState != SQLITE_OK)
+   {
+      // exception, could not bind parameter
+      rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      Exception::setLast(rval);
+   }
+   
+   return rval;
+}
+
 SqlException* Sqlite3Statement::setInt64(
    unsigned int param, long long value)
+{
+   SqlException* rval = NULL;
+   
+   mState = sqlite3_bind_int64(mHandle, param, value);
+   if(mState != SQLITE_OK)
+   {
+      // exception, could not bind parameter
+      rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      Exception::setLast(rval);
+   }
+   
+   return rval;
+}
+
+SqlException* Sqlite3Statement::setUInt64(
+   unsigned int param, unsigned long long value)
 {
    SqlException* rval = NULL;
    
@@ -107,6 +139,27 @@ SqlException* Sqlite3Statement::setInt32(const char* name, int value)
    return rval;
 }
 
+SqlException* Sqlite3Statement::setUInt32(const char* name, unsigned int value)
+{
+   SqlException* rval = NULL;
+   
+   int index = sqlite3_bind_parameter_index(mHandle, name);
+   if(index == 0)
+   {
+      // exception, no parameter with given name found
+      char temp[strlen(name) + 40];
+      sprintf(temp, "Invalid parameter name!,name='%s'", name);
+      rval = new SqlException(temp);
+      Exception::setLast(rval);
+   }
+   else
+   {
+      rval = setUInt32(index, value);
+   }
+   
+   return rval;
+}
+
 SqlException* Sqlite3Statement::setInt64(const char* name, long long value)
 {
    SqlException* rval = NULL;
@@ -123,6 +176,28 @@ SqlException* Sqlite3Statement::setInt64(const char* name, long long value)
    else
    {
       rval = setInt64(index, value);
+   }
+   
+   return rval;
+}
+
+SqlException* Sqlite3Statement::setUInt64(
+   const char* name, unsigned long long value)
+{
+   SqlException* rval = NULL;
+   
+   int index = sqlite3_bind_parameter_index(mHandle, name);
+   if(index == 0)
+   {
+      // exception, no parameter with given name found
+      char temp[strlen(name) + 40];
+      sprintf(temp, "Invalid parameter name!,name='%s'", name);
+      rval = new SqlException(temp);
+      Exception::setLast(rval);
+   }
+   else
+   {
+      rval = setUInt64(index, value);
    }
    
    return rval;

@@ -103,6 +103,16 @@ public:
    virtual SqlException* getInt32(unsigned int column, int& i);
    
    /**
+    * Gets a 32-bit unsigned integer from a column.
+    * 
+    * @param column the column's index.
+    * @param i the integer to store the integer in.
+    * 
+    * @return an SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* getUInt32(unsigned int column, unsigned int& i);
+   
+   /**
     * Gets a 64-bit integer from a column.
     * 
     * @param column the column's index.
@@ -111,6 +121,16 @@ public:
     * @return an SqlException if one occurred, NULL if not.
     */
    virtual SqlException* getInt64(unsigned int column, long long& i);
+   
+   /**
+    * Gets a 64-bit unsigned integer from a column.
+    * 
+    * @param column the column's index.
+    * @param i the integer to store the integer in.
+    * 
+    * @return an SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* getUInt64(unsigned int column, unsigned long long& i);
    
    /**
     * Gets a text string from a column.
@@ -143,6 +163,16 @@ public:
    virtual SqlException* getInt32(const char* column, int& i);
    
    /**
+    * Gets a 32-bit unsigned integer from a column.
+    * 
+    * @param column the column's name.
+    * @param i the integer to store the integer in.
+    * 
+    * @return an SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* getUInt32(const char* column, unsigned int& i);
+   
+   /**
     * Gets a 64-bit integer from a column.
     * 
     * @param column the column's name.
@@ -151,6 +181,16 @@ public:
     * @return an SqlException if one occurred, NULL if not.
     */
    virtual SqlException* getInt64(const char* column, long long& i);
+   
+   /**
+    * Gets a 64-bit unsigned integer from a column.
+    * 
+    * @param column the column's name.
+    * @param i the integer to store the integer in.
+    * 
+    * @return an SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* getUInt64(const char* column, unsigned long long& i);
    
    /**
     * Gets a text string from a column.

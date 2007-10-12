@@ -4170,7 +4170,7 @@ void runDatabaseManagerTest()
    // insert positional parameters test
    s = c->prepare("INSERT INTO test (t, i) VALUES (?, ?)");
    s->setText(1, "boundpositional");
-   s->setInt32(2, 2222);
+   s->setUInt32(2, 2222);
    s->execute();
    cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;
@@ -4264,7 +4264,7 @@ void runDatabaseManagerTest()
    // insert positional parameters test
    s = c->prepare("INSERT INTO dbmysqltest (t, i) VALUES (?, ?)");
    s->setText(1, "boundpositional");
-   s->setInt32(2, 2222);
+   s->setUInt32(2, 2222);
    s->execute();
    cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;

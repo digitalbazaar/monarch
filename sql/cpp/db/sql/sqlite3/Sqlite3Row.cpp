@@ -74,7 +74,25 @@ SqlException* Sqlite3Row::getInt32(unsigned int column, int& i)
    return rval;
 }
 
+SqlException* Sqlite3Row::getUInt32(unsigned int column, unsigned int& i)
+{
+   SqlException* rval = NULL;
+   
+   // FIXME: check exceptions, etc
+   i = sqlite3_column_int(getStatementHandle(), column);
+   return rval;
+}
+
 SqlException* Sqlite3Row::getInt64(unsigned int column, long long& i)
+{
+   SqlException* rval = NULL;
+   
+   // FIXME: check exceptions, etc
+   i = sqlite3_column_int64(getStatementHandle(), column);
+   return rval;
+}
+
+SqlException* Sqlite3Row::getUInt64(unsigned int column, unsigned long long& i)
 {
    SqlException* rval = NULL;
    
@@ -128,6 +146,24 @@ SqlException* Sqlite3Row::getInt32(const char* column, int& i)
    return rval;
 }
 
+SqlException* Sqlite3Row::getUInt32(const char* column, unsigned int& i)
+{
+   SqlException* rval = NULL;
+   
+   // get column index for name
+   int index = getColumnIndex(column);
+   if(index != -1)
+   {
+      rval = getUInt32(index, i);
+   }
+   else
+   {
+      rval = (SqlException*)Exception::getLast();
+   }
+   
+   return rval;
+}
+
 SqlException* Sqlite3Row::getInt64(const char* column, long long& i)
 {
    SqlException* rval = NULL;
@@ -137,6 +173,24 @@ SqlException* Sqlite3Row::getInt64(const char* column, long long& i)
    if(index != -1)
    {
       rval = getInt64(index, i);
+   }
+   else
+   {
+      rval = (SqlException*)Exception::getLast();
+   }
+   
+   return rval;
+}
+
+SqlException* Sqlite3Row::getUInt64(const char* column, unsigned long long& i)
+{
+   SqlException* rval = NULL;
+   
+   // get column index for name
+   int index = getColumnIndex(column);
+   if(index != -1)
+   {
+      rval = getUInt64(index, i);
    }
    else
    {

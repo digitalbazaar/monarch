@@ -134,6 +134,35 @@ SqlException* MySqlStatement::setInt32(unsigned int param, int value)
    return rval;
 }
 
+SqlException* MySqlStatement::setUInt32(unsigned int param, unsigned int value)
+{
+   SqlException* rval = NULL;
+   
+   if(param > mParamCount)
+   {
+      // exception, no parameter with given index
+      char temp[70];
+      sprintf(temp, "Invalid parameter index!,index='%i'", param);
+      rval = new SqlException(temp);
+      Exception::setLast(rval);
+   }
+   else
+   {
+      // param is 1 higher than bind index
+      param--;
+      
+      // MYSQL_TYPE_LONG should be a 32-bit int INTEGER field,
+      // length = 0 for ints
+      // since the integer is stack-allocated, we must heap-allocate it here
+      mParamBindings[param].buffer_type = MYSQL_TYPE_LONG;
+      mParamBindings[param].buffer = (char*)new unsigned int(value);
+      mParamBindings[param].is_null = 0;
+      mParamBindings[param].length = 0;
+   }
+   
+   return rval;
+}
+
 SqlException* MySqlStatement::setInt64(unsigned int param, long long value)
 {
    SqlException* rval = NULL;
@@ -156,6 +185,36 @@ SqlException* MySqlStatement::setInt64(unsigned int param, long long value)
       // since the integer is stack-allocated, we must heap-allocate it here
       mParamBindings[param].buffer_type = MYSQL_TYPE_LONGLONG;
       mParamBindings[param].buffer = (char*)new long long(value);
+      mParamBindings[param].is_null = 0;
+      mParamBindings[param].length = 0;   
+   }
+   
+   return rval;
+}
+
+SqlException* MySqlStatement::setUInt64(
+   unsigned int param, unsigned long long value)
+{
+   SqlException* rval = NULL;
+   
+   if(param > mParamCount)
+   {
+      // exception, no parameter with given index
+      char temp[70];
+      sprintf(temp, "Invalid parameter index!,index='%i'", param);
+      rval = new SqlException(temp);
+      Exception::setLast(rval);
+   }
+   else
+   {
+      // param is 1 higher than bind index
+      param--;
+      
+      // MYSQL_TYPE_LONGLONG should be a 64-bit int BIGINT field,
+      // length = 0 for ints
+      // since the integer is stack-allocated, we must heap-allocate it here
+      mParamBindings[param].buffer_type = MYSQL_TYPE_LONGLONG;
+      mParamBindings[param].buffer = (char*)new unsigned long long(value);
       mParamBindings[param].is_null = 0;
       mParamBindings[param].length = 0;   
    }
@@ -216,6 +275,30 @@ SqlException* MySqlStatement::setInt32(const char* name, int value)
    return rval;
 }
 
+SqlException* MySqlStatement::setUInt32(const char* name, unsigned int value)
+{
+   SqlException* rval = 
+     new SqlException("MySql named parameter support not implemented!");
+   Exception::setLast(rval);
+   
+//   // FIXME: might strip support for parameter names
+//   int index = mysql_bind_parameter_index(mHandle, name);
+//   if(index == 0)
+//   {
+//      // exception, no parameter with given name found
+//      char temp[strlen(name) + 40];
+//      sprintf(temp, "Invalid parameter name!,name='%s'", name);
+//      rval = new SqlException(temp);
+//      Exception::setLast(rval);
+//   }
+//   else
+//   {
+//      rval = setUInt32(index, value);
+//   }
+   
+   return rval;
+}
+
 SqlException* MySqlStatement::setInt64(const char* name, long long value)
 {
    SqlException* rval = 
@@ -234,6 +317,30 @@ SqlException* MySqlStatement::setInt64(const char* name, long long value)
 //   else
 //   {
 //      rval = setInt64(index, value);
+//   }
+   
+   return rval;
+}
+
+SqlException* MySqlStatement::setUInt64(
+   const char* name, unsigned long long value)
+{
+   SqlException* rval = 
+     new SqlException("MySql named parameter support not implemented!");
+   Exception::setLast(rval);
+   
+//   int index = mysql_bind_parameter_index(mHandle, name);
+//   if(index == 0)
+//   {
+//      // exception, no parameter with given name found
+//      char temp[strlen(name) + 40];
+//      sprintf(temp, "Invalid parameter name!,name='%s'", name);
+//      rval = new SqlException(temp);
+//      Exception::setLast(rval);
+//   }
+//   else
+//   {
+//      rval = setUInt64(index, value);
 //   }
    
    return rval;

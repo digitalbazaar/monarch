@@ -63,6 +63,16 @@ public:
    virtual SqlException* setInt32(unsigned int param, int value) = 0;
    
    /**
+    * Sets the value of a 32-bit unsigned integer for a positional parameter.
+    * 
+    * @param param the parameter number (1 being the first param).
+    * @param value parameter value.
+    * 
+    * @return a SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* setUInt32(unsigned int param, unsigned int value) = 0;
+   
+   /**
     * Sets the value of a 64-bit integer for a positional parameter.
     * 
     * @param param the parameter number (1 being the first param).
@@ -71,6 +81,17 @@ public:
     * @return a SqlException if one occurred, NULL if not.
     */
    virtual SqlException* setInt64(unsigned int param, long long value) = 0;
+   
+   /**
+    * Sets the value of a 64-bit unsigned integer for a positional parameter.
+    * 
+    * @param param the parameter number (1 being the first param).
+    * @param value parameter value.
+    * 
+    * @return a SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* setUInt64(
+      unsigned int param, unsigned long long value) = 0;
    
    /**
     * Sets the value of a text string for a positional parameter.
@@ -94,6 +115,17 @@ public:
    virtual SqlException* setInt32(const char* name, int value) = 0;
    
    /**
+    * Sets the value of a 32-bit unsigned integer for a named parameter
+    * (:mynamehere).
+    * 
+    * @param name the parameter name.
+    * @param value parameter value.
+    * 
+    * @return a SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* setUInt32(const char* name, unsigned int value) = 0;
+   
+   /**
     * Sets the value of a 64-bit integer for a named parameter (:mynamehere).
     * 
     * @param name the parameter name.
@@ -102,6 +134,18 @@ public:
     * @return a SqlException if one occurred, NULL if not.
     */
    virtual SqlException* setInt64(const char* name, long long value) = 0;
+   
+   /**
+    * Sets the value of a 64-bit unsigned integer for a named parameter
+    * (:mynamehere).
+    * 
+    * @param name the parameter name.
+    * @param value parameter value.
+    * 
+    * @return a SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* setUInt64(
+      const char* name, unsigned long long value) = 0;
    
    /**
     * Sets the value of a text string for a named parameter (:mynamehere).

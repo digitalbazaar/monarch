@@ -96,7 +96,35 @@ SqlException* MySqlRow::getInt32(unsigned int column, int& i)
    return rval;
 }
 
+SqlException* MySqlRow::getUInt32(unsigned int column, unsigned int& i)
+{
+   SqlException* rval = NULL;
+   
+   mBindings[column].buffer_type = MYSQL_TYPE_LONG;
+   mBindings[column].buffer = (char*)&i;
+   mBindings[column].buffer_length = 4;
+   mBindings[column].length = &mBindings[column].buffer_length;
+   mysql_stmt_fetch_column(getStatementHandle(), &mBindings[column], column, 0);
+   
+   // FIXME: check exceptions, etc
+   return rval;
+}
+
 SqlException* MySqlRow::getInt64(unsigned int column, long long& i)
+{
+   SqlException* rval = NULL;
+   
+   mBindings[column].buffer_type = MYSQL_TYPE_LONGLONG;
+   mBindings[column].buffer = (char*)&i;
+   mBindings[column].buffer_length = 8;
+   mBindings[column].length = &mBindings[column].buffer_length;
+   mysql_stmt_fetch_column(getStatementHandle(), &mBindings[column], column, 0);
+   
+   // FIXME: check exceptions, etc
+   return rval;
+}
+
+SqlException* MySqlRow::getUInt64(unsigned int column, unsigned long long& i)
 {
    SqlException* rval = NULL;
    
@@ -163,6 +191,24 @@ SqlException* MySqlRow::getInt32(const char* column, int& i)
    return rval;
 }
 
+SqlException* MySqlRow::getUInt32(const char* column, unsigned int& i)
+{
+   SqlException* rval = NULL;
+   
+   // get column index for name
+   long long index = getColumnIndex(column);
+   if(index != -1)
+   {
+      rval = getUInt32(index, i);
+   }
+   else
+   {
+      rval = (SqlException*)Exception::getLast();
+   }
+   
+   return rval;
+}
+
 SqlException* MySqlRow::getInt64(const char* column, long long& i)
 {
    SqlException* rval = NULL;
@@ -172,6 +218,24 @@ SqlException* MySqlRow::getInt64(const char* column, long long& i)
    if(index != -1)
    {
       rval = getInt64(index, i);
+   }
+   else
+   {
+      rval = (SqlException*)Exception::getLast();
+   }
+   
+   return rval;
+}
+
+SqlException* MySqlRow::getUInt64(const char* column, unsigned long long& i)
+{
+   SqlException* rval = NULL;
+   
+   // get column index for name
+   long long index = getColumnIndex(column);
+   if(index != -1)
+   {
+      rval = getUInt64(index, i);
    }
    else
    {
