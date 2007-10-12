@@ -2661,6 +2661,21 @@ void runByteBufferTest()
    
    cout << "Data=" << b.data() << endl;
    
+   // this should result in printing out "T hate chicken" still
+   b.allocateSpace(10, true);
+   sprintf(b.data() + b.length(), " always");
+   char temp[100];
+   strncpy(temp, b.data(), b.length());
+   memset(temp + b.length(), 0, 1);
+   cout << "Data2=" << temp << endl;
+   
+   // this should now result in printing out "T hate chicken always"
+   sprintf(b.data() + b.length() - 1, " always");
+   b.extend(7);
+   strncpy(temp, b.data(), b.length());
+   memset(temp + b.length(), 0, 1);
+   cout << "Data3=" << temp << endl;
+   
    cout << endl << "ByteBuffer test complete." << endl;
 }
 

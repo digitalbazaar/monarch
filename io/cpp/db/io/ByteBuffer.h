@@ -83,7 +83,10 @@ public:
    
    /**
     * Allocates enough space in the current buffer for the passed number of
-    * bytes.
+    * bytes. Keep in mind that if resize is called, the underlying memory will
+    * automatically become managed by this ByteBuffer and the previously
+    * pointed to underlying byte array will not be cleaned up unless it was
+    * specified so previously.
     * 
     * @param length the number of bytes that need to be written to this buffer.
     * @param resize true to resize the buffer as is necessary, false not to. 
@@ -92,7 +95,10 @@ public:
    
    /**
     * Resizes the ByteBuffer to the given capacity. Any existing data that
-    * cannot fit in the new capacity will be truncated.
+    * cannot fit in the new capacity will be truncated. Keep in mind that, the
+    * underlying memory will automatically become managed by this ByteBuffer
+    * and the previously pointed to underlying byte array will not be cleaned
+    * up unless it was specified so previously.
     * 
     * @param capacity the new capacity, in bytes, for this buffer.
     */
@@ -189,7 +195,8 @@ public:
     * beginning). If more data is requested to be cleared than there is data,
     * all data will be cleared.
     * 
-    * @param length the amount of data to clear from this buffer.
+    * @param length the amount of data to clear from this buffer, a negative
+    *               number will have no effect.
     * 
     * @return the actual amount of data cleared.
     */
@@ -203,23 +210,47 @@ public:
    virtual int clear();
    
    /**
-    * Trims data from the end of this buffer without resizing it.
+    * Resets the offset for this ByteBuffer by the specified length. This will
+    * move the internal offset pointer backwards.
     * 
-    * @param length the number of bytes to trim off the end of this buffer.
+    * @param length the maximum number of bytes to move the offset back, a
+    *               negative number will have no effect.
+    * 
+    * @return the actual number of bytes the offset was moved backwards.
+    */
+   virtual int reset(int length);
+   
+   /**
+    * Trims data from the end of this ByteBuffer without resizing it. This will
+    * decrease the length of this ByteBuffer.
+    * 
+    * @param length the number of bytes to trim off the end of this buffer, a
+    *               negative number will have no effect.
     * 
     * @return the actual number of bytes trimmed.
     */
    virtual int trim(int length);
    
    /**
-    * Resets the offset for this ByteBuffer by the specified length. This will
-    * move the internal offset pointer backwards.
+    * Extends the length of this ByteBuffer without resizing its capacity. This
+    * will increase the length of this ByteBuffer.
     * 
-    * @param length the maximum number of bytes to move the offset back.
+    * If this method is to be called because an external method is going to
+    * first add valid bytes to this ByteBuffer by writing directly to its
+    * underlying byte array, then allocateSpace() should be called before
+    * that external method is called. That will ensure that there is enough
+    * memory allocated in the underlying buffer to store what will be written.
     * 
-    * @return the actual number of bytes the offset was moved backwards.
+    * The extend() method will not allocate any space or shift any bytes around
+    * to make room for the requested length.
+    * 
+    * @param length the number of bytes to increase the length of this buffer
+    *               by, up to its free space minus its current offset -- a
+    *               negative number will have no effect.
+    * 
+    * @return the actual number of bytes the length was increased by.
     */
-   virtual int reset(int length);
+   virtual int extend(int length);
    
    /**
     * Gets the capacity of this buffer.
@@ -300,6 +331,15 @@ public:
     * @return true if this buffer is empty, false if it is not.
     */
    virtual bool isEmpty() const;
+   
+   /**
+    * Returns true if the underlying byte array is managed by this
+    * ByteBuffer (meaning it is heap-allocated and will be deleted upon
+    * the destruction of this ByteBuffer).
+    * 
+    * @return true if the underlying byte array is managed by this ByteBuffer.
+    */
+   virtual bool isManaged() const;
 };
 
 } // end namespace io

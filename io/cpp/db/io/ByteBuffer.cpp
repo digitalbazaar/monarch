@@ -93,7 +93,9 @@ void ByteBuffer::resize(int capacity)
       // clean up old buffer
       cleanupBytes();
       
+      // memory management now on regardless of previous setting
       mBuffer = newBuffer;
+      mCleanup = true;
    }
 }
 
@@ -176,7 +178,7 @@ int ByteBuffer::get(OutputStream* os)
 int ByteBuffer::clear(int length)
 {
    // ensure that the maximum cleared is existing length
-   int rval = (mLength < length) ? mLength : length;
+   int rval = (length > 0) ? ((mLength < length) ? mLength : length) : 0;
    
    // set new length and offset
    mLength -= rval;
@@ -190,24 +192,36 @@ int ByteBuffer::clear()
    return clear(mLength);
 }
 
-int ByteBuffer::trim(int length)
+int ByteBuffer::reset(int length)
 {
-   // ensure that the maximum trimmed is existing length
-   int rval = (mLength < length) ? mLength : length;
+   // ensure that the most the offset is moved back is the existing offset
+   int rval = (length > 0) ? ((mOffset < length) ? mOffset : length) : 0;
    
-   // set new length
-   mLength = mLength - rval;
+   // set new offset and length
+   mOffset -= rval;
+   mLength += rval;
    
    return rval;
 }
 
-int ByteBuffer::reset(int length)
+int ByteBuffer::trim(int length)
 {
-   // ensure that the most the offset is moved is the existing offset
-   int rval = (mOffset < length) ? mOffset : length;
+   // ensure that the maximum trimmed is existing length
+   int rval = (length > 0) ? ((mLength < length) ? mLength : length) : 0;
    
-   // set new offset and length
-   mOffset -= rval;
+   // set new length
+   mLength -= rval;
+   
+   return rval;
+}
+
+int ByteBuffer::extend(int length)
+{
+   // ensure that the maximum extended is (free space - offset)
+   int max = getFreeSpace() - mOffset;
+   int rval = (length > 0) ? ((max < length) ? max : length) : 0;
+   
+   // set new length
    mLength += rval;
    
    return rval;
@@ -268,4 +282,9 @@ bool ByteBuffer::isFull() const
 bool ByteBuffer::isEmpty() const
 {
    return mLength == 0;
+}
+
+bool ByteBuffer::isManaged() const
+{
+   return mCleanup;
 }
