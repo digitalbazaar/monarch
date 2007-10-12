@@ -175,19 +175,12 @@ int ByteBuffer::get(OutputStream* os)
 
 int ByteBuffer::clear(int length)
 {
-   int rval = mLength;
+   // ensure that the maximum cleared is existing length
+   int rval = (mLength < length) ? mLength : length;
    
-   mLength = (mLength - length > 0) ? mLength - length : 0;
-   
-   if(mLength == 0)
-   {
-      mOffset = 0;
-   }
-   else
-   {
-      mOffset += length;
-      rval = length;
-   }
+   // set new length and offset
+   mLength -= rval;
+   mOffset = (mLength == 0) ? 0 : mOffset + rval;
    
    return rval;
 }
@@ -199,35 +192,22 @@ int ByteBuffer::clear()
 
 int ByteBuffer::trim(int length)
 {
-   int rval = length;
+   // ensure that the maximum trimmed is existing length
+   int rval = (mLength < length) ? mLength : length;
    
-   if(mLength < length)
-   {
-      rval = mLength;
-      mLength = 0;
-   }
-   else
-   {
-      mLength -= length;
-   }
+   // set new length
+   mLength = mLength - rval;
    
    return rval;
 }
 
 int ByteBuffer::reset(int length)
 {
-   int rval = length;
+   // ensure that the most the offset is moved is the existing offset
+   int rval = (mOffset < length) ? mOffset : length;
    
-   if(length > mOffset)
-   {
-      rval = mOffset;
-      mOffset = 0;
-   }
-   else
-   {
-      mOffset -= length;
-   }
-   
+   // set new offset and length
+   mOffset -= rval;
    mLength += rval;
    
    return rval;
