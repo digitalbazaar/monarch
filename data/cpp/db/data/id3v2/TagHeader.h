@@ -82,37 +82,37 @@ public:
    /**
     * Supported version.
     */
-   static const unsigned char SUPPORTED_VERSION;
+   static const unsigned char sSupportedVersion;
    
    /**
     * Supported revision.
     */
-   static const unsigned char SUPPORTED_REVISION;
+   static const unsigned char sSupportedRevision;
    
    /**
     * The size of an ID3v2 header in bytes.
     */
-   static const int HEADER_SIZE;
+   static const int sHeaderSize;
    
    /**
     * The maximum tag size in bytes.
     */
-   static const int MAX_TAG_SIZE;
+   static const int sMaxTagSize;
    
    /**
     * Unsynchronized flag (bit 7).
     */
-   static const unsigned char UNSYNCHRONIZED_BIT;
+   static const unsigned char sUnsynchronizedBit;
    
    /**
     * Extended header flag (bit 6).
     */
-   static const unsigned char EXTENDEDHEADER_BIT;
+   static const unsigned char sExtendedHeaderBit;
    
    /**
     * Experimental flag (bit 5).
     */
-   static const unsigned char EXPERIMENTAL_BIT;
+   static const unsigned char sExperimentalBit;
    
    /**
     * Creates a new TagHeader.

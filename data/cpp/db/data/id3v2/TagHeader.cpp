@@ -8,18 +8,18 @@
 using namespace db::data::id3v2;
 
 // initialize static variables
-const unsigned char TagHeader::SUPPORTED_VERSION = 3;
-const unsigned char TagHeader::SUPPORTED_REVISION = 0;
-const int TagHeader::HEADER_SIZE = 10;
-const int TagHeader::MAX_TAG_SIZE = 268435456;
-const unsigned char TagHeader::UNSYNCHRONIZED_BIT = 0x80;
-const unsigned char TagHeader::EXTENDEDHEADER_BIT = 0x40;
-const unsigned char TagHeader::EXPERIMENTAL_BIT = 0x20;
+const unsigned char TagHeader::sSupportedVersion = 3;
+const unsigned char TagHeader::sSupportedRevision = 0;
+const int TagHeader::sHeaderSize = 10;
+const int TagHeader::sMaxTagSize = 268435456;
+const unsigned char TagHeader::sUnsynchronizedBit = 0x80;
+const unsigned char TagHeader::sExtendedHeaderBit = 0x40;
+const unsigned char TagHeader::sExperimentalBit = 0x20;
 
 TagHeader::TagHeader()
 {
-   mVersion = SUPPORTED_VERSION;
-   mRevision = SUPPORTED_REVISION;
+   mVersion = sSupportedVersion;
+   mRevision = sSupportedRevision;
    mUnsynchronizedFlag = false;
    mExtendedHeaderFlag = false;
    mExperimentalFlag = false;
@@ -36,17 +36,17 @@ unsigned char TagHeader::getFlagByte()
    
    if(mUnsynchronizedFlag)
    {
-      b |= UNSYNCHRONIZED_BIT;
+      b |= sUnsynchronizedBit;
    }
    
    if(mExtendedHeaderFlag)
    {
-      b |= EXTENDEDHEADER_BIT;
+      b |= sExtendedHeaderBit;
    }
    
    if(mExperimentalFlag)
    {
-      b |= EXPERIMENTAL_BIT;
+      b |= sExperimentalBit;
    }
    
    return b;
@@ -70,8 +70,8 @@ bool TagHeader::convertFromBytes(const char* b)
    // check for "ID3"
    if(memcmp(b, "ID3", 3) == 0)
    {
-      unsigned char version = SUPPORTED_VERSION;
-      unsigned char revision = SUPPORTED_REVISION;
+      unsigned char version = sSupportedVersion;
+      unsigned char revision = sSupportedRevision;
       
       // check version and revision
       if(b[3] <= version && b[4] <= revision)
@@ -109,9 +109,9 @@ unsigned char TagHeader::getRevision()
 
 void TagHeader::setFlags(unsigned char b)
 {
-   mUnsynchronizedFlag = (b & UNSYNCHRONIZED_BIT) != 0;
-   mExtendedHeaderFlag = (b & EXTENDEDHEADER_BIT) != 0;
-   mExperimentalFlag = (b & EXPERIMENTAL_BIT) != 0;
+   mUnsynchronizedFlag = (b & sUnsynchronizedBit) != 0;
+   mExtendedHeaderFlag = (b & sExtendedHeaderBit) != 0;
+   mExperimentalFlag = (b & sExperimentalBit) != 0;
 }
 
 void TagHeader::setUnsynchronizedFlag(bool flag)
