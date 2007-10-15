@@ -47,6 +47,13 @@ public:
    PublicKey(EVP_PKEY* pkey);
    
    /**
+    * Creates a new PublicKey by copying another one.
+    * 
+    * @param copy the PublicKey to copy.
+    */
+   PublicKey(const PublicKey& copy);
+   
+   /**
     * Destructs this PublicKey.
     */
    virtual ~PublicKey();

@@ -1233,45 +1233,11 @@ void runDsaAsymmetricKeyCreationTest()
       cout << "DSA Public Key creation FAILED!" << endl;
    }
    
-   if(privateKey != NULL && publicKey != NULL)
-   {
-      cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
-      cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
-      
-      // sign some data
-      char data[] = {1,2,3,4,5,6,7,8};
-      DigitalSignature* ds1 = privateKey->createSignature();
-      ds1->update(data, 8);
-      
-      // get the signature
-      char sig[ds1->getValueLength()];
-      unsigned int length;
-      ds1->getValue(sig, length);
-      delete ds1;
-      
-      // verify the signature
-      DigitalSignature* ds2 = publicKey->createSignature();
-      ds2->update(data, 8);
-      bool verified = ds2->verify(sig, length);
-      delete ds2;
-      
-      if(verified)
-      {
-         cout << "Digital Signature Verified!" << endl;
-      }
-      else
-      {
-         cout << "Digital Signature NOT VERIFIED!" << endl;
-      }
-      
-      string outPrivatePem =
-         factory.writePrivateKeyToPem(privateKey, "password");
-      string outPublicPem =
-         factory.writePublicKeyToPem(publicKey);
-      
-      cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-      cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
-   }
+   assert(privateKey != NULL && publicKey != NULL);
+   
+   // test copy constructors
+   PrivateKey prvKey(*privateKey);
+   PublicKey pubKey(*publicKey);
    
    // cleanup private key
    if(privateKey != NULL)
@@ -1284,6 +1250,46 @@ void runDsaAsymmetricKeyCreationTest()
    {
       delete publicKey;
    }
+   
+   privateKey = &prvKey;
+   publicKey = &pubKey;
+   
+   cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
+   cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
+   
+   // sign some data
+   char data[] = {1,2,3,4,5,6,7,8};
+   DigitalSignature* ds1 = privateKey->createSignature();
+   ds1->update(data, 8);
+   
+   // get the signature
+   char sig[ds1->getValueLength()];
+   unsigned int length;
+   ds1->getValue(sig, length);
+   delete ds1;
+   
+   // verify the signature
+   DigitalSignature* ds2 = publicKey->createSignature();
+   ds2->update(data, 8);
+   bool verified = ds2->verify(sig, length);
+   delete ds2;
+   
+   if(verified)
+   {
+      cout << "Digital Signature Verified!" << endl;
+   }
+   else
+   {
+      cout << "Digital Signature NOT VERIFIED!" << endl;
+   }
+   
+   string outPrivatePem =
+      factory.writePrivateKeyToPem(privateKey, "password");
+   string outPublicPem =
+      factory.writePublicKeyToPem(publicKey);
+   
+   cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
+   cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
    
    cout << endl << "DSA Asymmetric Key Creation test complete." << endl;
    
@@ -1330,45 +1336,11 @@ void runRsaAsymmetricKeyCreationTest()
       cout << "RSA Public Key creation FAILED!" << endl;
    }
    
-   if(privateKey != NULL && publicKey != NULL)
-   {
-      cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
-      cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
-      
-      // sign some data
-      char data[] = {1,2,3,4,5,6,7,8};
-      DigitalSignature* ds1 = privateKey->createSignature();
-      ds1->update(data, 8);
-      
-      // get the signature
-      char sig[ds1->getValueLength()];
-      unsigned int length;
-      ds1->getValue(sig, length);
-      delete ds1;
-      
-      // verify the signature
-      DigitalSignature* ds2 = publicKey->createSignature();
-      ds2->update(data, 8);
-      bool verified = ds2->verify(sig, length);
-      delete ds2;
-      
-      if(verified)
-      {
-         cout << "Digital Signature Verified!" << endl;
-      }
-      else
-      {
-         cout << "Digital Signature NOT VERIFIED!" << endl;
-      }
-      
-      string outPrivatePem =
-         factory.writePrivateKeyToPem(privateKey, "password");
-      string outPublicPem =
-         factory.writePublicKeyToPem(publicKey);
-      
-      cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-      cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
-   }
+   assert(privateKey != NULL && publicKey != NULL);
+   
+   // test copy constructors
+   PrivateKey prvKey(*privateKey);
+   PublicKey pubKey(*publicKey);
    
    // cleanup private key
    if(privateKey != NULL)
@@ -1381,6 +1353,46 @@ void runRsaAsymmetricKeyCreationTest()
    {
       delete publicKey;
    }
+   
+   privateKey = &prvKey;
+   publicKey = &pubKey;
+   
+   cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
+   cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
+   
+   // sign some data
+   char data[] = {1,2,3,4,5,6,7,8};
+   DigitalSignature* ds1 = privateKey->createSignature();
+   ds1->update(data, 8);
+   
+   // get the signature
+   char sig[ds1->getValueLength()];
+   unsigned int length;
+   ds1->getValue(sig, length);
+   delete ds1;
+   
+   // verify the signature
+   DigitalSignature* ds2 = publicKey->createSignature();
+   ds2->update(data, 8);
+   bool verified = ds2->verify(sig, length);
+   delete ds2;
+   
+   if(verified)
+   {
+      cout << "Digital Signature Verified!" << endl;
+   }
+   else
+   {
+      cout << "Digital Signature NOT VERIFIED!" << endl;
+   }
+   
+   string outPrivatePem =
+      factory.writePrivateKeyToPem(privateKey, "password");
+   string outPublicPem =
+      factory.writePublicKeyToPem(publicKey);
+   
+   cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
+   cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
    
    cout << endl << "RSA Asymmetric Key Creation test complete." << endl;
    
