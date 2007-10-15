@@ -14,27 +14,16 @@ ModuleLibrary::ModuleLibrary(Kernel* k)
 
 ModuleLibrary::~ModuleLibrary()
 {
-   // clean up and free every module
-   while(!mLoadOrder.empty())
-   {
-      // find ModuleInfo and clean up Module
-      map<string, ModuleInfo*>::iterator i = mModules.find(mLoadOrder.back());
-      ModuleInfo* mi = i->second;
-      mi->module->cleanup(mKernel);
-      mLoader.unloadModule(mi);
-      
-      // remove module from map and list
-      mModules.erase(i);
-      mLoadOrder.pop_back();
-   }
+   // unload all modules
+   ModuleLibrary::unloadAllModules();
 }
 
-Module* ModuleLibrary::findModule(const string& name)
+Module* ModuleLibrary::findModule(const char* name)
 {
    Module* rval = NULL;
    
    // find module
-   map<string, ModuleInfo*>::iterator i = mModules.find(name);
+   ModuleMap::iterator i = mModules.find(name);
    if(i != mModules.end())
    {
       rval = i->second->module;
@@ -43,7 +32,7 @@ Module* ModuleLibrary::findModule(const string& name)
    return rval;
 }
 
-bool ModuleLibrary::loadModule(const string& filename)
+bool ModuleLibrary::loadModule(const char* filename)
 {
    bool rval = false;
    
@@ -108,12 +97,12 @@ bool ModuleLibrary::loadModule(const string& filename)
    return rval;
 }
 
-void ModuleLibrary::unloadModule(const string& name)
+void ModuleLibrary::unloadModule(const char* name)
 {
    lock();
    {
       // find module
-      map<string, ModuleInfo*>::iterator i = mModules.find(name);
+      ModuleMap::iterator i = mModules.find(name);
       if(i != mModules.end())
       {
          // clean up and unload module
@@ -123,7 +112,7 @@ void ModuleLibrary::unloadModule(const string& name)
          
          // erase module from map and list
          mModules.erase(i);
-         list<string>::iterator li =
+         list<const char*>::iterator li =
             find(mLoadOrder.begin(), mLoadOrder.end(), name);
          mLoadOrder.erase(li);
       }
@@ -131,7 +120,24 @@ void ModuleLibrary::unloadModule(const string& name)
    unlock();
 }
 
-const ModuleId* ModuleLibrary::getModuleId(const std::string& name)
+void ModuleLibrary::unloadAllModules()
+{
+   // clean up and free every module
+   while(!mLoadOrder.empty())
+   {
+      // find ModuleInfo and clean up Module
+      ModuleMap::iterator i = mModules.find(mLoadOrder.back());
+      ModuleInfo* mi = i->second;
+      mi->module->cleanup(mKernel);
+      mLoader.unloadModule(mi);
+      
+      // remove module from map and list
+      mModules.erase(i);
+      mLoadOrder.pop_back();
+   }
+}
+
+const ModuleId* ModuleLibrary::getModuleId(const char* name)
 {
    const ModuleId* rval = NULL;
    
@@ -149,7 +155,7 @@ const ModuleId* ModuleLibrary::getModuleId(const std::string& name)
    return rval;
 }
 
-ModuleInterface* ModuleLibrary::getModuleInterface(const string& name)
+ModuleInterface* ModuleLibrary::getModuleInterface(const char* name)
 {
    ModuleInterface* rval = NULL;
    

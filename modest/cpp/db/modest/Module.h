@@ -21,12 +21,12 @@ typedef struct ModuleId
    /**
     * The unique name of this Module.
     */
-   std::string name;
+   char* name;
    
    /**
     * The version (major.minor) of this Module.
     */
-   std::string version;
+   char* version;
    
    /**
     * Creates a ModuleId with the specified name and version.
@@ -36,8 +36,17 @@ typedef struct ModuleId
     */
    ModuleId(const char* name = "", const char* version = "")
    {
-      name = name;
-      version = version;
+      name = strdup(name);
+      version = strdup(version);
+   }
+   
+   /**
+    * Destructs this ModuleId.
+    */
+   ~ModuleId()
+   {
+      delete [] name;
+      delete [] version;
    }
 };
 

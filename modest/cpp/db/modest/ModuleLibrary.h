@@ -40,6 +40,26 @@ class ModuleLibrary : public virtual db::rt::Object
 {
 protected:
    /**
+    * A NameComparator compares two module names.
+    */
+   typedef struct NameComparator
+   {
+      /**
+       * Compares two null-terminated strings, returning true if the first is
+       * less than the second, false if not.
+       * 
+       * @param s1 the first string.
+       * @param s2 the second string.
+       * 
+       * @return true if the s1 < s2, false if not.
+       */
+      bool operator()(const char* s1, const char* s2) const
+      {
+         return strcmp(s1, s2) < 0;
+      }
+   };
+   
+   /**
     * The Kernel this library is for.
     */
    Kernel* mKernel;
@@ -52,17 +72,18 @@ protected:
    /**
     * The map of loaded Modules.
     */
-   std::map<std::string, ModuleInfo*> mModules;
+   typedef std::map<const char*, ModuleInfo*, NameComparator> ModuleMap;
+   ModuleMap mModules;
    
    /**
     * A list that maintains the order in which Modules were loaded.
     */
-   std::list<std::string> mLoadOrder;
+   std::list<const char*> mLoadOrder;
    
    /**
     * Finds a loaded Module by its name.
     */
-   Module* findModule(const std::string& name);
+   Module* findModule(const char* name);
    
 public:
    /**
@@ -84,14 +105,20 @@ public:
     * 
     * @return true if the Module was loaded, false if not.
     */
-   virtual bool loadModule(const std::string& filename);
+   virtual bool loadModule(const char* filename);
    
    /**
     * Unloads a Module from this ModuleLibrary, if it is loaded.
     * 
     * @param name the name of the Module to unload.
     */
-   virtual void unloadModule(const std::string& name);
+   virtual void unloadModule(const char* name);
+   
+   /**
+    * Unloads all Modules from this ModuleLibrary, in the reverse order
+    * that they were loaded.
+    */
+   virtual void unloadAllModules();
    
    /**
     * Gets the ModuleId for the Module with the given name.
@@ -99,7 +126,7 @@ public:
     * @return the ModuleId for the Module with the given name or NULL if one
     *         does not exist.
     */
-   virtual const ModuleId* getModuleId(const std::string& name);
+   virtual const ModuleId* getModuleId(const char* name);
    
    /**
     * Gets the interface to the Module with the given name.
@@ -109,7 +136,7 @@ public:
     * @return the Module's interface, or NULL if the Module does not exist
     *         or it has no interface.
     */
-   virtual ModuleInterface* getModuleInterface(const std::string& name);
+   virtual ModuleInterface* getModuleInterface(const char* name);
 };
 
 } // end namespace modest
