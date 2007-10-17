@@ -7,6 +7,26 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
+#ifdef WIN32
+
+// define file type for symbolic link
+#define S_IFLNK   0xA000
+
+/**
+ * In windows, there are no symbolic links so lstat does the same
+ * thing as stat(), namely, it gets information about a particular file.
+ * 
+ * @param path the path to the file to stat.
+ * @param buf the stat structure to populate.
+ * 
+ * @return 0 if the stat was successful, -1 if not, with errno set.
+ */
+inline static int lstat(const char* path, struct stat* buf)
+{
+   return stat(path, buf);
+}
+#endif
+
 using namespace db::io;
 
 File::File()
