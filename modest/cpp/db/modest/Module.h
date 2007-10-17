@@ -16,17 +16,23 @@ namespace modest
 // forward declare Kernel
 class Kernel;
 
+/**
+ * A ModuleId contains a name and version for a Module. The name and version
+ * are stored as const char*'s and are assumed to point to static memory.
+ * 
+ * @author Dave Longley
+ */
 typedef struct ModuleId
 {
    /**
     * The unique name of this Module.
     */
-   char* name;
+   const char* name;
    
    /**
     * The version (major.minor) of this Module.
     */
-   char* version;
+   const char* version;
    
    /**
     * Creates a ModuleId with the specified name and version.
@@ -36,17 +42,8 @@ typedef struct ModuleId
     */
    ModuleId(const char* name = "", const char* version = "")
    {
-      name = strdup(name);
-      version = strdup(version);
-   }
-   
-   /**
-    * Destructs this ModuleId.
-    */
-   ~ModuleId()
-   {
-      delete [] name;
-      delete [] version;
+      name = name;
+      version = version;
    }
 };
 
