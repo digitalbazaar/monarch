@@ -27,6 +27,7 @@
 #include "db/crypto/AsymmetricKeyFactory.h"
 #include "db/io/FileInputStream.h"
 #include "db/io/FileOutputStream.h"
+#include "db/io/FileList.h"
 #include "db/crypto/DigitalEnvelope.h"
 #include "db/crypto/DigitalSignatureInputStream.h"
 #include "db/crypto/DigitalSignatureOutputStream.h"
@@ -4393,6 +4394,47 @@ void runUniqueListTest()
    cout << endl << "UniqueList test complete." << endl;
 }
 
+void runFileTest()
+{
+   cout << "Starting File test." << endl << endl;
+   
+   const char* name = "/work";
+   
+   File dir(name);
+   FileList files(true);
+   dir.listFiles(&files);
+   
+   cout << "Files in " << dir.getName() << ":" << endl;
+   
+   Iterator<File*>* i = files.getIterator();
+   while(i->hasNext())
+   {
+      File* file = i->next();
+      const char* type;
+      if(file->isFile())
+      {
+         type = "Regular File";
+      }
+      else if(file->isDirectory())
+      {
+         type = "Directory";
+      }
+      else if(file->isSymbolicLink())
+      {
+         type = "Symbolic Link";
+      }
+      else
+      {
+         type = "Unknown";
+      }
+      
+      cout << "Name: '" << file->getName() << "', Type: " << type << endl;
+   }
+   delete i;
+   
+   cout << endl << "File test complete." << endl;
+}
+
 void runOtherTest()
 {
    cout << "Starting Other test." << endl << endl;
@@ -4470,9 +4512,10 @@ public:
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
 //      runConnectionPoolTest();
-      runDatabaseManagerTest();
+//      runDatabaseManagerTest();
 //      runLoggerTest();
 //      runUniqueListTest();
+      runFileTest();
       
       cout << endl << "Tests finished." << endl;
       

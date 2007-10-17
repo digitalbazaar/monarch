@@ -74,7 +74,6 @@ ListIterator<T>::ListIterator(std::list<T>& l)
 {
    mList = &l;
    mNext = mCurrent = mList->begin();
-   mNext++;
 }
 
 template<class T>

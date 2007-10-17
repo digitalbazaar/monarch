@@ -73,6 +73,7 @@ bool UniqueList<T>::add(const T& obj)
    {
       rval = !(i->next() == obj);
    }
+   delete i;
    
    if(rval)
    {
@@ -96,6 +97,7 @@ bool UniqueList<T>::remove(const T& obj)
          rval = true;
       }
    }
+   delete i;
    
    return rval;
 }
