@@ -32,9 +32,9 @@ Module* ModuleLibrary::findModule(const char* name)
    return rval;
 }
 
-bool ModuleLibrary::loadModule(const char* filename)
+Module* ModuleLibrary::loadModule(const char* filename)
 {
-   bool rval = false;
+   Module* rval = NULL;
    
    lock();
    {
@@ -52,7 +52,7 @@ bool ModuleLibrary::loadModule(const char* filename)
                // add Module to the map and list
                mModules[mi->module->getId().name] = mi;
                mLoadOrder.push_back(mi->module->getId().name);
-               rval = true;
+               rval = mi->module;
             }
             else
             {
@@ -135,6 +135,20 @@ void ModuleLibrary::unloadAllModules()
       mModules.erase(i);
       mLoadOrder.pop_back();
    }
+}
+
+Module* ModuleLibrary::getModule(const char* name)
+{
+   Module* rval = NULL;
+   
+   lock();
+   {
+      // find Module
+      rval = findModule(name);
+   }
+   unlock();
+   
+   return rval;
 }
 
 const ModuleId* ModuleLibrary::getModuleId(const char* name)

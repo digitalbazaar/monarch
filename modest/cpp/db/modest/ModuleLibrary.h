@@ -82,6 +82,10 @@ protected:
    
    /**
     * Finds a loaded Module by its name.
+    * 
+    * @param name the name of the Module.
+    * 
+    * @return the Module or NULL if none exists by the given name.
     */
    Module* findModule(const char* name);
    
@@ -103,9 +107,9 @@ public:
     * 
     * @param filename the name of the file where the Module resides.
     * 
-    * @return true if the Module was loaded, false if not.
+    * @return the Module, if it was loaded, NULL if not.
     */
-   virtual bool loadModule(const char* filename);
+   virtual Module* loadModule(const char* filename);
    
    /**
     * Unloads a Module from this ModuleLibrary, if it is loaded.
@@ -121,7 +125,18 @@ public:
    virtual void unloadAllModules();
    
    /**
+    * Gets a Module by its name.
+    * 
+    * @param name the name of the Module.
+    * 
+    * @return the Module or NULL if it does not exist.
+    */
+   virtual Module* getModule(const char* name);
+   
+   /**
     * Gets the ModuleId for the Module with the given name.
+    * 
+    * @param name the name of the Module to get the ID for.
     * 
     * @return the ModuleId for the Module with the given name or NULL if one
     *         does not exist.
