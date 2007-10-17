@@ -4362,7 +4362,6 @@ void runLoggerTest()
    cout << endl << "Logger test complete." << endl;
 }
 
-
 void runUniqueListTest()
 {
    cout << "Starting UniqueList test." << endl << endl;
@@ -4411,21 +4410,20 @@ void runFileTest()
    {
       File* file = i->next();
       const char* type;
-      if(file->isFile())
+      switch(file->getType())
       {
-         type = "Regular File";
-      }
-      else if(file->isDirectory())
-      {
-         type = "Directory";
-      }
-      else if(file->isSymbolicLink())
-      {
-         type = "Symbolic Link";
-      }
-      else
-      {
-         type = "Unknown";
+         case File::RegularFile:
+            type = "Regular File";
+            break;
+         case File::Directory:
+            type = "Directory";
+            break;
+         case File::SymbolicLink:
+            type = "Symbolic Link";
+            break;
+         default:
+            type = "Unknown";
+            break;
       }
       
       cout << "Name: '" << file->getName() << "', Type: " << type << endl;

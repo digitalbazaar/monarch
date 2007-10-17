@@ -53,12 +53,7 @@ bool File::operator==(const File& rhs)
    // compare names and types for equality
    if(strcmp(mName, file->getName()) == 0)
    {
-      if(isFile() == file->isFile() &&
-         isDirectory() == file->isDirectory() &&
-         isSymbolicLink() == file->isSymbolicLink())
-      {
-         rval = true;
-      }
+      rval = (getType() == file->getType());
    }
    
    return rval;
@@ -76,6 +71,7 @@ bool File::exists()
    }
    else
    {
+      // FIXME: ENOENT (2) is errno for file not found
       // FIXME: add error handling
    }
    
@@ -116,64 +112,50 @@ off_t File::getLength()
    return s.st_size;
 }
 
-bool File::isFile()
+File::Type File::getType()
 {
-   bool rval = false;
+   Type rval = Unknown;
    
    // use lstat so symbolic links aren't followed
    struct stat s;
-   int rc = lstat(mName, &s);
+   int rc = stat(mName, &s);
    if(rc != 0)
    {
-      // FIXME: add error handling
    }
    else
    {
-      // check for regular file
-      rval = ((s.st_mode & S_IFMT) == S_IFREG);
+      switch(s.st_mode & S_IFMT)
+      {
+         case S_IFREG:
+            rval = RegularFile;
+            break;
+         case S_IFDIR:
+            rval = Directory;
+            break;
+         case S_IFLNK:
+            rval = SymbolicLink;
+            break;
+         default:
+            break;
+      }
    }
    
    return rval;
+}
+
+bool File::isFile()
+{
+   return getType() == RegularFile;
 }
 
 bool File::isDirectory()
 {
-   bool rval = false;
-   
-   // use lstat so symbolic links aren't followed
-   struct stat s;
-   int rc = lstat(mName, &s);
-   if(rc != 0)
-   {
-      // FIXME: add error handling
-   }
-   else
-   {
-      // check for directory
-      rval = ((s.st_mode & S_IFMT) == S_IFDIR);
-   }
-   
-   return rval;
+   return getType() == Directory;
 }
 
 bool File::isSymbolicLink()
 {
-   bool rval = false;
-   
-   // use lstat so symbolic links aren't followed
-   struct stat s;
-   int rc = lstat(mName, &s);
-   if(rc != 0)
-   {
-      // FIXME: add error handling
-   }
-   else
-   {
-      // check for symbolic link
-      rval = ((s.st_mode & S_IFMT) == S_IFLNK);
-   }
-   
-   return rval;
+   return getType() == SymbolicLink;
 }
 
 void File::listFiles(FileList* files)
@@ -190,10 +172,28 @@ void File::listFiles(FileList* files)
       {
          // read each directory entry
          struct dirent* entry;
+         unsigned int len1 = strlen(mName);
+         bool separator = mName[len1 - 1] != '/';
          while((entry = readdir(dir)) != NULL)
          {
-            // d_name is null-terminated name for file, add new File to list
-            File* file = new File(entry->d_name);
+            // d_name is null-terminated name for file, without path name
+            // so copy file name before d_name to get full path
+            unsigned int len2 = strlen(entry->d_name);
+            char path[len1 + len2 + 2];
+            memcpy(path, mName, len1);
+            if(separator)
+            {
+               // add path separator as appropriate
+               memset(path + len1, '/', 1);
+               memcpy(path + len1 + 1, entry->d_name, len2 + 1);
+            }
+            else
+            {
+               memcpy(path + len1, entry->d_name, len2 + 1);
+            }
+            
+            // add new File to list
+            File* file = new File(path);
             files->add(file);
          }
          

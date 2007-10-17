@@ -26,6 +26,15 @@ class FileList;
  */
 class File : public virtual db::rt::Object
 {
+public:
+   /**
+    * The types of files.
+    */
+   typedef enum Type
+   {
+      RegularFile, Directory, SymbolicLink, Socket, Unknown
+   };
+   
 protected:
    /**
     * Stores the name of this file.
@@ -89,6 +98,13 @@ public:
     * @return the length of this File.
     */
    virtual off_t getLength();
+   
+   /**
+    * Gets the Type of File.
+    * 
+    * @return the Type of File this File is.
+    */
+   virtual Type getType();
    
    /**
     * Returns true if this File is a regular file, false if it is not. If it
