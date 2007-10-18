@@ -130,6 +130,18 @@ void DataBinding::freeDataName(DataName* dn)
    }
 }
 
+void* DataBinding::getCreateAddObject(DataName* dn)
+{
+   // return mObject by default
+   return mObject;
+}
+
+void* DataBinding::getSetGetObject(DataName* dn)
+{
+   // return mObject by default
+   return mObject;
+}
+
 void DataBinding::addDataMapping(
    const char* ns, const char* name, bool major, DataMapping* dm)
 {
@@ -173,7 +185,7 @@ DataBinding* DataBinding::startData(
       if(dm != NULL)
       {
          // create new child object for the data binding
-         rval->mObject = dm->createChild(mObject);
+         rval->mObject = dm->createChild(getCreateAddObject(dn));
       }
    }
    else
@@ -197,7 +209,7 @@ void DataBinding::appendData(
    if(dm != NULL)
    {
       // append data
-      dm->appendData(mObject, data, length);
+      dm->appendData(getSetGetObject(mCurrentDataName), data, length);
    }
 }
 
@@ -212,7 +224,7 @@ void DataBinding::endData(
       if(dm != NULL)
       {
          // add child object
-         dm->addChild(mObject, db->mObject);
+         dm->addChild(getCreateAddObject(db->mCurrentDataName), db->mObject);
       }
    }
 }
@@ -231,7 +243,7 @@ void DataBinding::setData(
    if(dm != NULL)
    {
       // set data
-      dm->setData(mObject, data, length);
+      dm->setData(getSetGetObject(&dn), data, length);
    }
 }
 

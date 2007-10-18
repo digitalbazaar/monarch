@@ -127,6 +127,34 @@ protected:
     */
    virtual void freeDataName(DataName* dn);
    
+   /**
+    * Returns the object to use with a create/add DataMapping. The default
+    * implementation returns the bound object.
+    * 
+    * This can be overloaded if a special data translation is to be used
+    * by a DataBinding for a given bound object. In other words, if the
+    * bound object doesn't have the methods necessary to create/add a child,
+    * another object (like the extended DataBinding) can provide the
+    * create/add methods to update the bound object.
+    * 
+    * @return the object to use with a create/add DataMapping.
+    */
+   virtual void* getCreateAddObject(DataName* dn);
+   
+   /**
+    * Returns the object to use with a set/get DataMapping. The default
+    * implementation returns the bound object.
+    * 
+    * This can be overloaded if a special data translation is to be used
+    * by a DataBinding for a given bound object. In other words, if the
+    * bound object doesn't have the methods necessary to set/get data,
+    * another object (like the extended DataBinding) can provide the
+    * set/get methods to update the bound object.
+    * 
+    * @return the object to use with a set/get DataMapping.
+    */
+   virtual void* getSetGetObject(DataName* dn);
+   
 public:
    /**
     * Creates a new DataBinding for the given object.

@@ -37,16 +37,28 @@ protected:
    /**
     * Typedefs for setting data in an object.
     */
-   typedef void (BoundType::*SetBooleanFunction)(bool); 
-   typedef void (BoundType::*SetIntegerFunction)(int);
+   typedef void (BoundType::*SetBooleanFunction)(bool);
+   typedef void (BoundType::*SetInt32Function)(int);
+   typedef void (BoundType::*SetUInt32Function)(unsigned int);
+   typedef void (BoundType::*SetInt64Function)(long long);
+   typedef void (BoundType::*SetUInt64Function)(unsigned long long);
    typedef void (BoundType::*SetStringFunction)(const char*);
    
    /**
     * Typedefs for getting data in an object.
     */
    typedef bool (BoundType::*GetBooleanFunction)();
-   typedef int (BoundType::*GetIntegerFunction)();
+   typedef int (BoundType::*GetInt32Function)();
+   typedef unsigned int (BoundType::*GetUInt32Function)();
+   typedef long long (BoundType::*GetInt64Function)();
+   typedef unsigned long long (BoundType::*GetUInt64Function)();
    typedef const char* (BoundType::*GetStringFunction)();
+   typedef bool (BoundType::*GetBooleanConstFunction)() const;
+   typedef int (BoundType::*GetInt32ConstFunction)() const;
+   typedef unsigned int (BoundType::*GetUInt32ConstFunction)() const;
+   typedef long long (BoundType::*GetInt64ConstFunction)() const;
+   typedef unsigned long long (BoundType::*GetUInt64ConstFunction)() const;
+   typedef const char* (BoundType::*GetStringConstFunction)() const;
    
    /**
     * A function for setting data in an object.
@@ -56,7 +68,10 @@ protected:
       /**
        * The type of data the function sets.
        */
-      enum Type {None, Boolean, Integer, String} type;
+      enum Type
+      {
+         None, Boolean, Int32, UInt32, Int64, UInt64, String
+      } type;
       
       /**
        * The pointer to the set function.
@@ -64,7 +79,10 @@ protected:
       union
       {
          SetBooleanFunction bFunc;
-         SetIntegerFunction iFunc;
+         SetInt32Function i32Func;
+         SetUInt32Function ui32Func;
+         SetInt64Function i64Func;
+         SetUInt64Function ui64Func;
          SetStringFunction sFunc;
       };
    };
@@ -77,16 +95,33 @@ protected:
       /**
        * The type of data the function gets.
        */
-      enum Type {None, Boolean, Integer, String} type;
+      enum Type
+      {
+         None, Boolean, Int32, UInt32, Int64, UInt64, String,
+         BooleanConst, Int32Const, UInt32Const, Int64Const, UInt64Const,
+         StringConst
+      } type;
       
       /**
        * The pointer to the get function.
        */
       union
       {
+         // non-const functions
          GetBooleanFunction bFunc;
-         GetIntegerFunction iFunc;
+         GetInt32Function i32Func;
+         GetUInt32Function ui32Func;
+         GetInt64Function i64Func;
+         GetUInt64Function ui64Func;
          GetStringFunction sFunc;
+         
+         // const functions
+         GetBooleanConstFunction bcFunc;
+         GetInt32ConstFunction i32cFunc;
+         GetUInt32ConstFunction ui32cFunc;
+         GetInt64ConstFunction i64cFunc;
+         GetUInt64ConstFunction ui64cFunc;
+         GetStringConstFunction scFunc;
       };
    };
    
@@ -136,7 +171,34 @@ public:
     * @param giFunc a function for getting data from the bound object.
     */
    DataMappingFunctor(
-      SetIntegerFunction siFunc, GetIntegerFunction giFunc);
+      SetInt32Function siFunc, GetInt32Function giFunc);
+   
+   /**
+    * Creates a new DataMappingFunctor.
+    * 
+    * @param siFunc a function for setting data in the bound object.
+    * @param giFunc a function for getting data from the bound object.
+    */
+   DataMappingFunctor(
+      SetUInt32Function siFunc, GetUInt32Function giFunc);
+   
+   /**
+    * Creates a new DataMappingFunctor.
+    * 
+    * @param siFunc a function for setting data in the bound object.
+    * @param giFunc a function for getting data from the bound object.
+    */
+   DataMappingFunctor(
+      SetInt64Function siFunc, GetInt64Function giFunc);
+   
+   /**
+    * Creates a new DataMappingFunctor.
+    * 
+    * @param siFunc a function for setting data in the bound object.
+    * @param giFunc a function for getting data from the bound object.
+    */
+   DataMappingFunctor(
+      SetUInt64Function siFunc, GetUInt64Function giFunc);
    
    /**
     * Creates a new DataMappingFunctor.
@@ -146,6 +208,60 @@ public:
     */
    DataMappingFunctor(
       SetStringFunction ssFunc, GetStringFunction gsFunc);
+   
+   /**
+    * Creates a new DataMappingFunctor.
+    * 
+    * @param sbFunc a function for setting data in the bound object.
+    * @param gbFunc a function for getting data from the bound object.
+    */
+   DataMappingFunctor(
+      SetBooleanFunction sbFunc, GetBooleanConstFunction gbFunc);
+   
+   /**
+    * Creates a new DataMappingFunctor.
+    * 
+    * @param siFunc a function for setting data in the bound object.
+    * @param giFunc a function for getting data from the bound object.
+    */
+   DataMappingFunctor(
+      SetInt32Function siFunc, GetInt32ConstFunction giFunc);
+   
+   /**
+    * Creates a new DataMappingFunctor.
+    * 
+    * @param siFunc a function for setting data in the bound object.
+    * @param giFunc a function for getting data from the bound object.
+    */
+   DataMappingFunctor(
+      SetUInt32Function siFunc, GetUInt32ConstFunction giFunc);
+   
+   /**
+    * Creates a new DataMappingFunctor.
+    * 
+    * @param siFunc a function for setting data in the bound object.
+    * @param giFunc a function for getting data from the bound object.
+    */
+   DataMappingFunctor(
+      SetInt64Function siFunc, GetInt64ConstFunction giFunc);
+   
+   /**
+    * Creates a new DataMappingFunctor.
+    * 
+    * @param siFunc a function for setting data in the bound object.
+    * @param giFunc a function for getting data from the bound object.
+    */
+   DataMappingFunctor(
+      SetUInt64Function siFunc, GetUInt64ConstFunction giFunc);
+   
+   /**
+    * Creates a new DataMappingFunctor.
+    * 
+    * @param ssFunc a function for setting data in an object.
+    * @param gsFunc a function for getting data from an object.
+    */
+   DataMappingFunctor(
+      SetStringFunction ssFunc, GetStringConstFunction gsFunc);
    
    /**
     * Destructs this DataMappingFunctor.
@@ -256,17 +372,62 @@ DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
 
 template<class BoundType, class ChildType>
 DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
-   SetIntegerFunction siFunc, GetIntegerFunction giFunc)
+   SetInt32Function siFunc, GetInt32Function giFunc)
 {
    // no create/add functions
    mCreateFunction = NULL;
    mAddFunction = NULL;
    
    // set set/get functions
-   mSetFunction.type = DataSetFunction::Integer;
-   mSetFunction.iFunc = siFunc;
-   mGetFunction.type = DataGetFunction::Integer;
-   mGetFunction.iFunc = giFunc;
+   mSetFunction.type = DataSetFunction::Int32;
+   mSetFunction.i32Func = siFunc;
+   mGetFunction.type = DataGetFunction::Int32;
+   mGetFunction.i32Func = giFunc;
+}
+
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
+   SetUInt32Function siFunc, GetUInt32Function giFunc)
+{
+   // no create/add functions
+   mCreateFunction = NULL;
+   mAddFunction = NULL;
+   
+   // set set/get functions
+   mSetFunction.type = DataSetFunction::UInt32;
+   mSetFunction.ui32Func = siFunc;
+   mGetFunction.type = DataGetFunction::UInt32;
+   mGetFunction.ui32Func = giFunc;
+}
+
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
+   SetInt64Function siFunc, GetInt64Function giFunc)
+{
+   // no create/add functions
+   mCreateFunction = NULL;
+   mAddFunction = NULL;
+   
+   // set set/get functions
+   mSetFunction.type = DataSetFunction::Int64;
+   mSetFunction.i64Func = siFunc;
+   mGetFunction.type = DataGetFunction::Int64;
+   mGetFunction.i64Func = giFunc;
+}
+
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
+   SetUInt64Function siFunc, GetUInt64Function giFunc)
+{
+   // no create/add functions
+   mCreateFunction = NULL;
+   mAddFunction = NULL;
+   
+   // set set/get functions
+   mSetFunction.type = DataSetFunction::UInt64;
+   mSetFunction.ui64Func = siFunc;
+   mGetFunction.type = DataGetFunction::UInt64;
+   mGetFunction.ui64Func = giFunc;
 }
 
 template<class BoundType, class ChildType>
@@ -282,6 +443,96 @@ DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
    mSetFunction.sFunc = ssFunc;
    mGetFunction.type = DataGetFunction::String;
    mGetFunction.sFunc = gsFunc;
+}
+
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
+   SetBooleanFunction sbFunc, GetBooleanConstFunction gbFunc)
+{
+   // no create/add functions
+   mCreateFunction = NULL;
+   mAddFunction = NULL;
+   
+   // set set/get functions
+   mSetFunction.type = DataSetFunction::Boolean;
+   mSetFunction.bFunc = sbFunc;
+   mGetFunction.type = DataGetFunction::BooleanConst;
+   mGetFunction.bcFunc = gbFunc;
+}
+
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
+   SetInt32Function siFunc, GetInt32ConstFunction giFunc)
+{
+   // no create/add functions
+   mCreateFunction = NULL;
+   mAddFunction = NULL;
+   
+   // set set/get functions
+   mSetFunction.type = DataSetFunction::Int32;
+   mSetFunction.i32Func = siFunc;
+   mGetFunction.type = DataGetFunction::Int32Const;
+   mGetFunction.i32cFunc = giFunc;
+}
+
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
+   SetUInt32Function siFunc, GetUInt32ConstFunction giFunc)
+{
+   // no create/add functions
+   mCreateFunction = NULL;
+   mAddFunction = NULL;
+   
+   // set set/get functions
+   mSetFunction.type = DataSetFunction::UInt32;
+   mSetFunction.ui32Func = siFunc;
+   mGetFunction.type = DataGetFunction::UInt32Const;
+   mGetFunction.ui32cFunc = giFunc;
+}
+
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
+   SetInt64Function siFunc, GetInt64ConstFunction giFunc)
+{
+   // no create/add functions
+   mCreateFunction = NULL;
+   mAddFunction = NULL;
+   
+   // set set/get functions
+   mSetFunction.type = DataSetFunction::Int64;
+   mSetFunction.i64Func = siFunc;
+   mGetFunction.type = DataGetFunction::Int64Const;
+   mGetFunction.i64cFunc = giFunc;
+}
+
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
+   SetUInt64Function siFunc, GetUInt64ConstFunction giFunc)
+{
+   // no create/add functions
+   mCreateFunction = NULL;
+   mAddFunction = NULL;
+   
+   // set set/get functions
+   mSetFunction.type = DataSetFunction::UInt64;
+   mSetFunction.ui64Func = siFunc;
+   mGetFunction.type = DataGetFunction::UInt64Const;
+   mGetFunction.ui64cFunc = giFunc;
+}
+
+template<class BoundType, class ChildType>
+DataMappingFunctor<BoundType, ChildType>::DataMappingFunctor(
+   SetStringFunction ssFunc, GetStringConstFunction gsFunc)
+{
+   // no create/add functions
+   mCreateFunction = NULL;
+   mAddFunction = NULL;
+   
+   // set set/get functions
+   mSetFunction.type = DataSetFunction::String;
+   mSetFunction.sFunc = ssFunc;
+   mGetFunction.type = DataGetFunction::StringConst;
+   mGetFunction.scFunc = gsFunc;
 }
 
 template<class BoundType, class ChildType>
@@ -343,9 +594,21 @@ void DataMappingFunctor<BoundType, ChildType>::setData(
             (bObj->*mSetFunction.bFunc)(strcasecmp(d, "1") == 0);
          }
          break;
-      case DataSetFunction::Integer:
+      case DataSetFunction::Int32:
          // convert data to integer
-         (bObj->*mSetFunction.iFunc)(strtol(d, NULL, 10));
+         (bObj->*mSetFunction.i32Func)(strtol(d, NULL, 10));
+         break;
+      case DataSetFunction::UInt32:
+         // convert data to integer
+         (bObj->*mSetFunction.ui32Func)(strtoul(d, NULL, 10));
+         break;
+      case DataSetFunction::Int64:
+         // convert data to integer
+         (bObj->*mSetFunction.i64Func)(strtoll(d, NULL, 10));
+         break;
+      case DataSetFunction::UInt64:
+         // convert data to integer
+         (bObj->*mSetFunction.ui64Func)(strtoull(d, NULL, 10));
          break;
       case DataSetFunction::String:
          (bObj->*mSetFunction.sFunc)(d);
@@ -404,9 +667,21 @@ void DataMappingFunctor<BoundType, ChildType>::appendData(
             (bObj->*mSetFunction.bFunc)(strcasecmp(d, "1") == 0);
          }
          break;
-      case DataSetFunction::Integer:
+      case DataSetFunction::Int32:
          // convert data to integer
-         (bObj->*mSetFunction.iFunc)(strtol(d, NULL, 10));
+         (bObj->*mSetFunction.i32Func)(strtol(d, NULL, 10));
+         break;
+      case DataSetFunction::UInt32:
+         // convert data to integer
+         (bObj->*mSetFunction.ui32Func)(strtoul(d, NULL, 10));
+         break;
+      case DataSetFunction::Int64:
+         // convert data to integer
+         (bObj->*mSetFunction.i64Func)(strtoll(d, NULL, 10));
+         break;
+      case DataSetFunction::UInt64:
+         // convert data to integer
+         (bObj->*mSetFunction.ui64Func)(strtoull(d, NULL, 10));
          break;
       case DataSetFunction::String:
          (bObj->*mSetFunction.sFunc)(d);
@@ -422,6 +697,7 @@ template<class BoundType, class ChildType>
 void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
 {
    *s = NULL;
+   const char* str = NULL;
    BoundType* bObj = (BoundType*)bObject;
    
    switch(mGetFunction.type)
@@ -442,13 +718,70 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
             *s = strdup("false");
          }
          break;
-      case DataGetFunction::Integer:
+      case DataGetFunction::Int32:
          // convert integer to string
          *s = new char[20];
-         sprintf(*s, "%d", (bObj->*mGetFunction.iFunc)());
+         sprintf(*s, "%d", (bObj->*mGetFunction.i32Func)());
+         break;
+      case DataGetFunction::UInt32:
+         // convert integer to string
+         *s = new char[20];
+         sprintf(*s, "%du", (bObj->*mGetFunction.ui32Func)());
+         break;
+      case DataGetFunction::Int64:
+         // convert integer to string
+         *s = new char[20];
+         sprintf(*s, "%lld", (bObj->*mGetFunction.i64Func)());
+         break;
+      case DataGetFunction::UInt64:
+         // convert integer to string
+         *s = new char[20];
+         sprintf(*s, "%llu", (bObj->*mGetFunction.ui64Func)());
          break;
       case DataGetFunction::String:
-         const char* str = (bObj->*mGetFunction.sFunc)();
+         str = (bObj->*mGetFunction.sFunc)();
+         if(str != NULL)
+         {
+            *s = strdup(str);
+         }
+         else
+         {
+            *s = strdup("");
+         }
+         break;
+      case DataGetFunction::BooleanConst:
+         // convert boolean to string
+         if((bObj->*mGetFunction.bcFunc)())
+         {
+            *s = strdup("true");
+         }
+         else
+         {
+            *s = strdup("false");
+         }
+         break;
+      case DataGetFunction::Int32Const:
+         // convert integer to string
+         *s = new char[20];
+         sprintf(*s, "%d", (bObj->*mGetFunction.i32cFunc)());
+         break;
+      case DataGetFunction::UInt32Const:
+         // convert integer to string
+         *s = new char[20];
+         sprintf(*s, "%du", (bObj->*mGetFunction.ui32cFunc)());
+         break;
+      case DataGetFunction::Int64Const:
+         // convert integer to string
+         *s = new char[20];
+         sprintf(*s, "%lld", (bObj->*mGetFunction.i64cFunc)());
+         break;
+      case DataGetFunction::UInt64Const:
+         // convert integer to string
+         *s = new char[20];
+         sprintf(*s, "%llu", (bObj->*mGetFunction.ui64cFunc)());
+         break;
+      case DataGetFunction::StringConst:
+         str = (bObj->*mGetFunction.scFunc)();
          if(str != NULL)
          {
             *s = strdup(str);
@@ -467,6 +800,7 @@ bool DataMappingFunctor<BoundType, ChildType>::writeData(
 {
    bool rval = false;
    
+   const char* str = NULL;
    BoundType* bObj = (BoundType*)bObject;
    
    char s[20];
@@ -489,13 +823,74 @@ bool DataMappingFunctor<BoundType, ChildType>::writeData(
             rval = os->write("false", 4);
          }
          break;
-      case DataGetFunction::Integer:
+      case DataGetFunction::Int32:
          // convert integer to string and write to output stream
-         sprintf(s, "%d", (bObj->*mGetFunction.iFunc)());
+         sprintf(s, "%d", (bObj->*mGetFunction.i32Func)());
+         rval = os->write(s, strlen(s));
+         break;
+      case DataGetFunction::UInt32:
+         // convert integer to string and write to output stream
+         sprintf(s, "%du", (bObj->*mGetFunction.ui32Func)());
+         rval = os->write(s, strlen(s));
+         break;
+      case DataGetFunction::Int64:
+         // convert integer to string and write to output stream
+         sprintf(s, "%lld", (bObj->*mGetFunction.i64Func)());
+         rval = os->write(s, strlen(s));
+         break;
+      case DataGetFunction::UInt64:
+         // convert integer to string and write to output stream
+         sprintf(s, "%llu", (bObj->*mGetFunction.ui64Func)());
          rval = os->write(s, strlen(s));
          break;
       case DataGetFunction::String:
-         const char* str = (bObj->*mGetFunction.sFunc)();
+         str = (bObj->*mGetFunction.sFunc)();
+         if(str != NULL)
+         {
+            // write string to output stream
+            rval = os->write(str, strlen(str));
+         }
+         else
+         {
+            // no data to write
+            rval = true;
+         }
+         break;
+      case DataGetFunction::BooleanConst:
+         // convert boolean to string
+         if((bObj->*mGetFunction.bcFunc)())
+         {
+            // write "true" to output stream
+            rval = os->write("true", 4);
+         }
+         else
+         {
+            // write "false" to output stream
+            rval = os->write("false", 4);
+         }
+         break;
+      case DataGetFunction::Int32Const:
+         // convert integer to string and write to output stream
+         sprintf(s, "%d", (bObj->*mGetFunction.i32cFunc)());
+         rval = os->write(s, strlen(s));
+         break;
+      case DataGetFunction::UInt32Const:
+         // convert integer to string and write to output stream
+         sprintf(s, "%du", (bObj->*mGetFunction.ui32cFunc)());
+         rval = os->write(s, strlen(s));
+         break;
+      case DataGetFunction::Int64Const:
+         // convert integer to string and write to output stream
+         sprintf(s, "%lld", (bObj->*mGetFunction.i64cFunc)());
+         rval = os->write(s, strlen(s));
+         break;
+      case DataGetFunction::UInt64Const:
+         // convert integer to string and write to output stream
+         sprintf(s, "%llu", (bObj->*mGetFunction.ui64cFunc)());
+         rval = os->write(s, strlen(s));
+         break;
+      case DataGetFunction::StringConst:
+         str = (bObj->*mGetFunction.scFunc)();
          if(str != NULL)
          {
             // write string to output stream
@@ -517,6 +912,7 @@ bool DataMappingFunctor<BoundType, ChildType>::hasData(void* bObject)
 {
    bool rval = false;
    
+   const char* str = NULL;
    BoundType* bObj = (BoundType*)bObject;
    
    switch(mGetFunction.type)
@@ -525,15 +921,24 @@ bool DataMappingFunctor<BoundType, ChildType>::hasData(void* bObject)
          // no data
          break;
       case DataGetFunction::Boolean:
-         // has data
-         rval = true;
-         break;
-      case DataGetFunction::Integer:
+      case DataGetFunction::Int32:
+      case DataGetFunction::UInt32:
+      case DataGetFunction::Int64:
+      case DataGetFunction::UInt64:
+      case DataGetFunction::BooleanConst:
+      case DataGetFunction::Int32Const:
+      case DataGetFunction::UInt32Const:
+      case DataGetFunction::Int64Const:
+      case DataGetFunction::UInt64Const:
          // has data
          rval = true;
          break;
       case DataGetFunction::String:
-         const char* str = (bObj->*mGetFunction.sFunc)();
+         str = (bObj->*mGetFunction.sFunc)();
+         rval = (str != NULL && strlen(str) > 0);
+         break;
+      case DataGetFunction::StringConst:
+         str = (bObj->*mGetFunction.scFunc)();
          rval = (str != NULL && strlen(str) > 0);
          break;
    }
