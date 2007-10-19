@@ -11,6 +11,8 @@ using namespace db::rt;
 
 XmlWriter::XmlWriter()
 {
+   mIndentLevel = 0;
+   mIndentSpaces = 0;
 }
 
 XmlWriter::~XmlWriter()
@@ -23,9 +25,29 @@ void XmlWriter::reset()
    mElementStack.clear();
 }
 
+bool XmlWriter::writeIndentation(OutputStream* os, bool endElement)
+{
+   bool rval = true;
+   
+   // write out indentation, if any
+   int indent = mIndentLevel + (mElementStack.size() - 1) * mIndentSpaces;
+   
+   // ensure to indent end elements on indent level
+   if(indent > 0 ||
+      (endElement && indent == mIndentLevel && mIndentSpaces > 0))
+   {
+      char temp[indent + 1];
+      memset(temp, '\n', 1);
+      memset(temp + 1, ' ', indent);
+      rval = os->write(temp, indent + 1);
+   }
+   
+   return rval;
+}
+
 bool XmlWriter::writeStartElement(DataName* dn, OutputStream* os)
 {
-   bool rval = false;
+   bool rval = true;
    
    if(!mElementStack.empty())
    {
@@ -43,14 +65,18 @@ bool XmlWriter::writeStartElement(DataName* dn, OutputStream* os)
    // create element state
    ElementState es;
    es.dn = dn;
+   es.hasData = false;
    es.open = true;
    
    // add state to element stack
    mElementStack.push_front(es);
    
+   // write out indentation
+   rval = writeIndentation(os, false);
+   
    // FIXME: need a namespace/prefix table/interface
    // FIXME: need to write out namespace prefix as well
-   if(os->write("<", 1))
+   if(rval && (rval = os->write("<", 1)))
    {
       rval = os->write(es.dn->name, strlen(es.dn->name));
    }
@@ -64,31 +90,37 @@ bool XmlWriter::writeEndElement(OutputStream* os)
    
    if(!mElementStack.empty())
    {
-      // get current element state, pop it off stack
+      // get current element state
       ElementState& es = mElementStack.front();
-      mElementStack.pop_front();
       
       // write closing element
       if(es.open)
       {
          rval = os->write("/>", 2);
-         
-         // FIXME: handle indentation
       }
       else
       {
+         rval = true;
+         
+         // write indentation as appropriate
+         if(!es.hasData)
+         {
+            rval = writeIndentation(os, true);
+         }
+         
          // FIXME: need a namespace/prefix table/interface
          // FIXME: need to write out namespace prefix as well
-         if(os->write("</", 2))
+         if(rval && (rval = os->write("</", 2)))
          {
-            if(os->write(es.dn->name, strlen(es.dn->name)))
+            if((rval = os->write(es.dn->name, strlen(es.dn->name))))
             {
                rval = os->write(">", 1);
-               
-               // handle indentation
             }
          }
       }
+      
+      // pop element state off stack
+      mElementStack.pop_front();
    }
    
    return rval;
@@ -161,8 +193,11 @@ bool XmlWriter::writeElementData(const char* data, int length, OutputStream* os)
    // get current element state
    ElementState& es = mElementStack.front();
    
+   // set whether or not element has data
+   es.hasData = (length > 0);
+   
    // close start element as appropriate
-   if(es.open && length > 0)
+   if(es.open && es.hasData)
    {
       rval = os->write(">", 1);
       es.open = false;
@@ -185,8 +220,11 @@ bool XmlWriter::writeElementData(
    // get current element state
    ElementState& es = mElementStack.front();
    
+   // set whether or not element has data
+   es.hasData = dm->hasData(obj);
+   
    // close start element as appropriate
-   if(es.open && dm->hasData(obj))
+   if(es.open && es.hasData)
    {
       rval = os->write(">", 1);
       es.open = false;
@@ -282,4 +320,10 @@ bool XmlWriter::write(DataBinding* db, OutputStream* os)
    }
    
    return rval;
+}
+
+void XmlWriter::setIndentation(int level, int spaces)
+{
+   mIndentLevel = level;
+   mIndentSpaces = spaces;
 }

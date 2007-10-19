@@ -38,6 +38,11 @@ protected:
       DataName* dn;
       
       /**
+       * Whether or not the element has data.
+       */
+      bool hasData;
+      
+      /**
        * Whether or not the start element is still open.
        */
       bool open;
@@ -47,6 +52,26 @@ protected:
     * A stack of the current element states.
     */
    std::list<ElementState> mElementStack;
+   
+   /**
+    * The starting indentation level. 
+    */
+   int mIndentLevel;
+   
+   /**
+    * The number of spaces per indentation level.
+    */
+   int mIndentSpaces;
+   
+   /**
+    * Writes out indentation.
+    * 
+    * @param os the OutputStream to write to.
+    * @param endElement true if indentation is for an end element, false if not.
+    * 
+    * @return true if successful, false if an exception occurred. 
+    */
+   virtual bool writeIndentation(db::io::OutputStream* os, bool endElement);
    
 public:
    /**
@@ -69,6 +94,8 @@ public:
     * 
     * @param dn the DataName to use.
     * @param os the OutputStream to write to.
+    * 
+    * @return true if successful, false if an exception occurred.
     */
    virtual bool writeStartElement(
       db::data::DataName* dn, db::io::OutputStream* os);
@@ -77,6 +104,8 @@ public:
     * Writes an end element.
     * 
     * @param os the OutputStream to write to.
+    * 
+    * @return true if successful, false if an exception occurred.
     */
    virtual bool writeEndElement(db::io::OutputStream* os);
    
@@ -87,6 +116,8 @@ public:
     * @param data the data for the attribute.
     * @param length the length of the data for the attribute.
     * @param os the OutputStream to write to.
+    * 
+    * @return true if successful, false if an exception occurred.
     */
    virtual bool writeAttribute(
       db::data::DataName* dn, const char* data, int length,
@@ -99,6 +130,8 @@ public:
     * @param dm the DataMapping to use.
     * @param obj the object with the data.
     * @param os the OutputStream to write to.
+    * 
+    * @return true if successful, false if an exception occurred.
     */
    virtual bool writeAttribute(
       db::data::DataName* dn, db::data::DataMapping* dm, void* obj,
@@ -110,6 +143,8 @@ public:
     * @param data the data to write.
     * @param length the length of the data.
     * @param os the OutputStream to write to.
+    * 
+    * @return true if successful, false if an exception occurred.
     */
    virtual bool writeElementData(
       const char* data, int length, db::io::OutputStream* os);
@@ -120,6 +155,8 @@ public:
     * @param dm the DataMapping to use.
     * @param obj the object with the data.
     * @param os the OutputStream to write to.
+    * 
+    * @return true if successful, false if an exception occurred.
     */
    virtual bool writeElementData(
       db::data::DataMapping* dm, void* obj, db::io::OutputStream* os);
@@ -134,6 +171,15 @@ public:
     */
    virtual bool write(
       db::data::DataBinding* db, db::io::OutputStream* os);
+   
+   /**
+    * Sets the starting indentation level and the number of spaces
+    * per indentation level.
+    * 
+    * @param level the starting indentation level.
+    * @param spaces the number of spaces per indentation level.
+    */
+   virtual void setIndentation(int level, int spaces);
 };
 
 } // end namespace xml

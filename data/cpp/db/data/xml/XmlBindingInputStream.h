@@ -140,6 +140,15 @@ public:
     *         stream has been reached or -1 if an IO exception occurred.
     */
    virtual int read(char* b, int length);
+   
+   /**
+    * Sets the starting indentation level and the number of spaces
+    * per indentation level.
+    * 
+    * @param level the starting indentation level.
+    * @param spaces the number of spaces per indentation level.
+    */
+   virtual void setIndentation(int level, int spaces);
 };
 
 } // end namespace

@@ -239,3 +239,8 @@ int XmlBindingInputStream::read(char* b, int length)
    
    return rval;
 }
+
+void XmlBindingInputStream::setIndentation(int level, int spaces)
+{
+   mXmlWriter.setIndentation(level, spaces);
+}

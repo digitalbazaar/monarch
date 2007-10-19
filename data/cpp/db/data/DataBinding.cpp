@@ -65,28 +65,31 @@ bool DataBinding::DataNameComparator::operator()(
 {
    bool rval = false;
    
-   if(dn1->ns == NULL && dn2->ns != NULL)
+   if(dn1 != NULL && dn2 != NULL)
    {
-      rval = true;
-   }
-   else if(dn1->ns != NULL && dn2->ns != NULL)
-   {
-      // compare namespaces
-      int i = strcmp(dn1->ns, dn2->ns);
-      if(i > 0)
+      if(dn1->ns == NULL && dn2->ns != NULL)
       {
          rval = true;
       }
-      else if(i == 0)
+      else if(dn1->ns != NULL && dn2->ns != NULL)
+      {
+         // compare namespaces
+         int i = strcmp(dn1->ns, dn2->ns);
+         if(i > 0)
+         {
+            rval = true;
+         }
+         else if(i == 0)
+         {
+            // compare names
+            rval = strcmp(dn1->name, dn2->name) < 0;
+         }
+      }
+      else if(dn1->ns == NULL && dn2->ns == NULL)
       {
          // compare names
          rval = strcmp(dn1->name, dn2->name) < 0;
       }
-   }
-   else if(dn1->ns == NULL && dn2->ns == NULL)
-   {
-      // compare names
-      rval = strcmp(dn1->name, dn2->name) < 0;
    }
    
    return rval;
@@ -227,6 +230,10 @@ void DataBinding::endData(
          dm->addChild(getCreateAddObject(db->getDataName()), db->mObject);
       }
    }
+   
+   // clean up current data name
+   freeDataName(db->mCurrentDataName);
+   db->mCurrentDataName = NULL;
 }
 
 void DataBinding::setData(
