@@ -43,16 +43,14 @@ void HttpConnectionServicer::normalizePath(string& path)
 }
 
 HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
-   string& path,
-   map<const char*, HttpRequestServicer*, PathComparator>& servicerMap)
+   string& path, ServicerMap& servicerMap)
 {
    HttpRequestServicer* rval = NULL;
    
    lock();
    {
       // try to find servicer at path
-      map<const char*, HttpRequestServicer*, PathComparator>::iterator i =
-         servicerMap.find(path.c_str());
+      ServicerMap::iterator i = servicerMap.find(path.c_str());
       if(i != servicerMap.end())
       {
          rval = i->second;
@@ -239,19 +237,33 @@ void HttpConnectionServicer::removeRequestServicer(
    unlock();
 }
 
-void HttpConnectionServicer::removeRequestServicer(
+HttpRequestServicer* HttpConnectionServicer::removeRequestServicer(
    const char* path, bool secure)
 {
+   HttpRequestServicer* rval = NULL;
+   
    lock();
    {
       if(secure)
       {
-         mSecureServicers.erase(path);
+         ServicerMap::iterator i = mSecureServicers.find(path);
+         if(i != mSecureServicers.end())
+         {
+            rval = i->second;
+            mSecureServicers.erase(path);
+         }
       }
       else
       {
-         mNonSecureServicers.erase(path);
+         ServicerMap::iterator i = mNonSecureServicers.find(path);
+         if(i != mNonSecureServicers.end())
+         {
+            rval = i->second;
+            mNonSecureServicers.erase(path);
+         }
       }
    }
    unlock();
+   
+   return rval;
 }
