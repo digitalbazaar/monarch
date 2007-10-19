@@ -61,7 +61,7 @@ public:
    /**
     * The standard line break for HTTP, carriage return + line feed.
     */
-   static const char CRLF[];
+   static const char* CRLF;
    
    /**
     * Creates a new HttpHeader.

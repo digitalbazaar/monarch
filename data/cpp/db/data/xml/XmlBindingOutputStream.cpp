@@ -24,7 +24,7 @@ bool XmlBindingOutputStream::write(const char* b, int length)
    mInputStream.setByteArray(b, length);
    
    // use reader
-   return mReader.read(&mInputStream) != NULL;
+   return mReader.read(&mInputStream) == NULL;
 }
 
 void XmlBindingOutputStream::close()

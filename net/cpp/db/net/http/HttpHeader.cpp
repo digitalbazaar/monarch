@@ -10,7 +10,7 @@ using namespace db::net::http;
 using namespace db::util;
 
 // define CRLF
-const char HttpHeader::CRLF[] = "\r\n";
+const char* HttpHeader::CRLF = "\r\n";
 
 HttpHeader::HttpHeader()
 {
