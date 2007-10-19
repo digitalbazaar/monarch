@@ -220,11 +220,11 @@ void DataBinding::endData(
    if(this != db)
    {
       // get data mapping
-      DataMapping* dm = getDataMapping(db->mCurrentDataName);
+      DataMapping* dm = getDataMapping(db->getDataName());
       if(dm != NULL)
       {
          // add child object
-         dm->addChild(getCreateAddObject(db->mCurrentDataName), db->mObject);
+         dm->addChild(getCreateAddObject(db->getDataName()), db->mObject);
       }
    }
 }

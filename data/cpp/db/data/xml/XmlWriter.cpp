@@ -62,28 +62,31 @@ bool XmlWriter::writeEndElement(OutputStream* os)
 {
    bool rval = false;
    
-   // get current element state, pop it off stack
-   ElementState& es = mElementStack.front();
-   mElementStack.pop_front();
-   
-   // write closing element
-   if(es.open)
+   if(!mElementStack.empty())
    {
-      rval = os->write("/>", 2);
+      // get current element state, pop it off stack
+      ElementState& es = mElementStack.front();
+      mElementStack.pop_front();
       
-      // FIXME: handle indentation
-   }
-   else
-   {
-      // FIXME: need a namespace/prefix table/interface
-      // FIXME: need to write out namespace prefix as well
-      if(os->write("</", 2))
+      // write closing element
+      if(es.open)
       {
-         if(os->write(es.dn->name, strlen(es.dn->name)))
+         rval = os->write("/>", 2);
+         
+         // FIXME: handle indentation
+      }
+      else
+      {
+         // FIXME: need a namespace/prefix table/interface
+         // FIXME: need to write out namespace prefix as well
+         if(os->write("</", 2))
          {
-            rval = os->write(">", 1);
-            
-            // handle indentation
+            if(os->write(es.dn->name, strlen(es.dn->name)))
+            {
+               rval = os->write(">", 1);
+               
+               // handle indentation
+            }
          }
       }
    }
