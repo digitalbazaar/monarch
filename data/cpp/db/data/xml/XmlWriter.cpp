@@ -27,6 +27,19 @@ bool XmlWriter::writeStartElement(DataName* dn, OutputStream* os)
 {
    bool rval = false;
    
+   if(!mElementStack.empty())
+   {
+      // get current element state
+      ElementState& es = mElementStack.front();
+      
+      // close start element as appropriate
+      if(es.open)
+      {
+         rval = os->write(">", 1);
+         es.open = false;
+      }
+   }
+   
    // create element state
    ElementState es;
    es.dn = dn;
@@ -50,11 +63,11 @@ bool XmlWriter::writeEndElement(OutputStream* os)
    bool rval = false;
    
    // get current element state, pop it off stack
-   ElementState* es = &mElementStack.front();
+   ElementState& es = mElementStack.front();
    mElementStack.pop_front();
    
    // write closing element
-   if(es->open)
+   if(es.open)
    {
       rval = os->write("/>", 2);
       
@@ -66,7 +79,7 @@ bool XmlWriter::writeEndElement(OutputStream* os)
       // FIXME: need to write out namespace prefix as well
       if(os->write("</", 2))
       {
-         if(os->write(es->dn->name, strlen(es->dn->name)))
+         if(os->write(es.dn->name, strlen(es.dn->name)))
          {
             rval = os->write(">", 1);
             
@@ -143,13 +156,13 @@ bool XmlWriter::writeElementData(const char* data, int length, OutputStream* os)
    bool rval = true;
    
    // get current element state
-   ElementState* es = &mElementStack.front();
+   ElementState& es = mElementStack.front();
    
    // close start element as appropriate
-   if(es->open && length > 0)
+   if(es.open && length > 0)
    {
       rval = os->write(">", 1);
-      es->open = false;
+      es.open = false;
    }
    
    if(rval)
@@ -167,13 +180,13 @@ bool XmlWriter::writeElementData(
    bool rval = true;
    
    // get current element state
-   ElementState* es = &mElementStack.front();
+   ElementState& es = mElementStack.front();
    
    // close start element as appropriate
-   if(es->open && dm->hasData(obj))
+   if(es.open && dm->hasData(obj))
    {
       rval = os->write(">", 1);
-      es->open = false;
+      es.open = false;
    }
    
    if(rval)

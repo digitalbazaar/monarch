@@ -59,9 +59,17 @@ void XmlBindingInputStream::writeElementData(ReadState& rs)
    if(mXmlWriter.writeElementData(
       rs.db->getDataMapping(*rs.dn), rs.db->getObject(), &mIgnoreStream))
    {
+      // write out end element if dealing with non-root
+      if(!rs.db->getDataName()->equals(*rs.dn))
+      {
+         mXmlWriter.writeEndElement(&mIgnoreStream);
+      }
+      
+      // element data no longer pending
+      mElementDataPending = false;
+      
       // increment data name
       rs.dn++;
-      mElementDataPending = false;
    }
    else
    {
