@@ -89,12 +89,14 @@ protected:
    /**
     * A map of DataNames to DataMappings.
     */
-   std::map<DataName*, DataMapping*, DataNameComparator> mDataMappings;
+   typedef std::map<DataName*, DataMapping*, DataNameComparator> DataMappingMap;
+   DataMappingMap mDataMappings;
    
    /**
     * A map of DataNames to DataBindings.
     */
-   std::map<DataName*, DataBinding*, DataNameComparator> mDataBindings;
+   typedef std::map<DataName*, DataBinding*, DataNameComparator> DataBindingMap;
+   DataBindingMap mDataBindings;
    
    /**
     * A list that maintains the order in which DataNames were added.

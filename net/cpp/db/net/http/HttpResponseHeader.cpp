@@ -3,7 +3,6 @@
  */
 #include "db/net/http/HttpResponseHeader.h"
 #include "db/util/StringTokenizer.h"
-#include "db/util/Convert.h"
 
 using namespace std;
 using namespace db::net::http;
@@ -54,12 +53,8 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
       }
       else if(count == 1)
       {
-         long long code;
-         if(Convert::stringToInteger(start, code))
-         {
-            mStatusCode = code;
-            rval = true;
-         }
+         mStatusCode = strtoul(start, NULL, 10);
+         rval = true;
       }
       else
       {
@@ -92,8 +87,8 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
 
 void HttpResponseHeader::getStartLine(string& line)
 {
-   char code[10];
-   sprintf(code, "%d", getStatusCode()); 
+   char code[11];
+   sprintf(code, "%du", getStatusCode());
    line.append(getVersion());
    line.append(1, ' ');
    line.append(code);

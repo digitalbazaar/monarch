@@ -38,16 +38,16 @@ DataBinding::DataBinding(void* obj)
 DataBinding::~DataBinding()
 {
    // clean up all data mappings
-   for(map<DataName*, DataMapping*, DataNameComparator>::iterator i =
-       mDataMappings.begin(); i != mDataMappings.end(); i++)
+   for(DataMappingMap::iterator i = mDataMappings.begin();
+       i != mDataMappings.end(); i++)
    {
       // free data name
       freeDataName(i->first);
    }
    
    // clean up all data bindings
-   for(map<DataName*, DataBinding*, DataNameComparator>::iterator i =
-       mDataBindings.begin(); i != mDataBindings.end(); i++)
+   for(DataBindingMap::iterator i = mDataBindings.begin();
+       i != mDataBindings.end(); i++)
    {
       // free data name
       freeDataName(i->first);
@@ -245,7 +245,6 @@ void DataBinding::setData(
    dn.ns = (char*)ns;
    dn.name = (char*)name;
    
-   // get data mapping
    DataMapping* dm = getDataMapping(&dn);
    if(dm != NULL)
    {
@@ -285,8 +284,7 @@ DataMapping* DataBinding::getDataMapping(DataName* dn)
    DataMapping* rval = NULL;
    
    // find data mapping
-   map<DataName*, DataMapping*, DataNameComparator>::iterator i =
-      mDataMappings.find(dn);
+   DataMappingMap::iterator i = mDataMappings.find(dn);
    if(i != mDataMappings.end())
    {
       rval = i->second;
@@ -300,8 +298,7 @@ DataBinding* DataBinding::getDataBinding(DataName* dn)
    DataBinding* rval = NULL;
    
    // find data binding
-   map<DataName*, DataBinding*, DataNameComparator>::iterator i =
-      mDataBindings.find(dn);
+   DataBindingMap::iterator i = mDataBindings.find(dn);
    if(i != mDataBindings.end())
    {
       rval = i->second;
