@@ -112,8 +112,16 @@ void OperationDispatcher::cleanupExpiredExecutors()
 
 void OperationDispatcher::queueOperation(OperationExecutor* e)
 {
-   mDispatch = true;
-   JobDispatcher::queueJob(e);
+   lock();
+   {
+      // ensure to enable dispatching, then add executor to queue
+      mDispatch = true;
+      mJobQueue.push_back(e);
+   }
+   unlock();
+   
+   // wake up dispatcher
+   wakeup();
 }
 
 void OperationDispatcher::startDispatching()

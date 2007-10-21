@@ -45,27 +45,6 @@ JobDispatcher::~JobDispatcher()
    }
 }
 
-bool JobDispatcher::pushJob(Runnable* job)
-{
-   bool rval = false;
-   
-   if(job != NULL)
-   {
-      lock();
-      {
-         // add the job to the queue
-         mJobQueue.push_back(job);
-         rval = true;
-      }
-      unlock();
-      
-      // wake up dispatcher
-      wakeup();
-   }
-   
-   return rval;
-}
-
 Runnable* JobDispatcher::popJob() 
 {
    Runnable* rval = NULL;
@@ -111,13 +90,25 @@ Thread* JobDispatcher::getDispatcherThread()
    
 void JobDispatcher::queueJob(Runnable* job)
 {
-   pushJob(job);
+   if(job != NULL)
+   {
+      lock();
+      {
+         // add the job to the queue
+         mJobQueue.push_back(job);
+      }
+      unlock();
+      
+      // wake up dispatcher
+      wakeup();
+   }
 }
 
 void JobDispatcher::dequeueJob(Runnable* job)
 {
    lock();
    {
+      // remove the job from the queue
       mJobQueue.remove(job);
    }
    unlock();

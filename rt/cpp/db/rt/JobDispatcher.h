@@ -50,15 +50,6 @@ protected:
    Object mWaitLock;
    
    /**
-    * Adds a Runnable job to the queue.
-    * 
-    * @param job the Runnable job to add to the queue.
-    * 
-    * @return true if added or already in the queue, false if not.
-    */
-   virtual bool pushJob(Runnable* job);
-   
-   /**
     * Pops the next Runnable job off of the queue.
     * 
     * @return job the popped Runnable job.
