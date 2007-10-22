@@ -47,13 +47,27 @@ public:
    virtual bool add(const T& obj);
    
    /**
-    * Removes an object from this list, if it is in the list.
+    * Removes an object from this list, if it is in the list. If the object
+    * was heap-allocated, then cleanup can be set to true to free the
+    * object's memory if it is removed.
     * 
     * @param obj the object to remove.
+    * @param cleanup true to delete the object (free its heap-allocated
+    *                memory) in the list, false not to.
     * 
     * @return true if the object was removed, false if it not.
     */
-   virtual bool remove(const T& obj);
+   virtual bool remove(const T& obj, bool cleanup = false);
+   
+   /**
+    * Clears this list. If the objects in the list were heap-allocated,
+    * then cleanup can be set to true to delete them when the list is
+    * cleared.
+    * 
+    * @param cleanup true to delete the objects (free their heap-allocated
+    *                memory) in the list, false to leave them alone.
+    */
+   virtual void clear(bool cleanup = false);
    
    /**
     * Gets the Iterator for this list. It must be deleted after use.
@@ -84,15 +98,22 @@ bool UniqueList<T>::add(const T& obj)
 }
 
 template<typename T>
-bool UniqueList<T>::remove(const T& obj)
+bool UniqueList<T>::remove(const T& obj, bool cleanup)
 {
    bool rval = false;
    
    Iterator<T>* i = getIterator();
    while(!rval && i->hasNext())
    {
-      if(i->next() == obj)
+      T& t = i->next();
+      if(t == obj)
       {
+         // clean up object as appropriate
+         if(cleanup)
+         {
+            free((void*)t);
+         }
+         
          i->remove();
          rval = true;
       }
@@ -100,6 +121,25 @@ bool UniqueList<T>::remove(const T& obj)
    delete i;
    
    return rval;
+}
+
+template<typename T>
+void UniqueList<T>::clear(bool cleanup)
+{
+   if(cleanup)
+   {
+      // delete each element in list
+      Iterator<T>* i = getIterator();
+      while(i->hasNext())
+      {
+         T& t = i->next();
+         free((void*)t);
+      }
+      delete i;
+   }
+   
+   // clear list
+   mList.clear();
 }
 
 template<typename T>
