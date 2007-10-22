@@ -164,19 +164,28 @@ int XmlBindingInputStream::read(char* b, int length)
                }
                else
                {
-                  if((*rs->dn)->major)
+                  // only write element if it is verbose or has data
+                  if((*rs->dn)->verbose || dm->hasData(rs->db->getObject()))
                   {
-                     // write start element, indicate data is pending
-                     mXmlWriter.writeStartElement(*rs->dn, &mIgnoreStream);
-                     mElementDataPending = true;
+                     if((*rs->dn)->major)
+                     {
+                        // write start element, indicate data is pending
+                        mXmlWriter.writeStartElement(*rs->dn, &mIgnoreStream);
+                        mElementDataPending = true;
+                     }
+                     else
+                     {
+                        // write attribute
+                        mXmlWriter.writeAttribute(
+                           *rs->dn, dm, rs->db->getObject(), &mIgnoreStream);
+                        
+                        // increment data name
+                        rs->dn++;
+                     }
                   }
                   else
                   {
-                     // write attribute
-                     mXmlWriter.writeAttribute(
-                        *rs->dn, dm, rs->db->getObject(), &mIgnoreStream);
-                     
-                     // increment data name
+                     // skip data name, it has no data and isn't verbose
                      rs->dn++;
                   }
                }

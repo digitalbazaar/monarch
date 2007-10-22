@@ -38,6 +38,12 @@ typedef struct DataName
    bool major;
    
    /**
+    * True if this DataName should always be included in a serialization
+    * process, false if it should be hidden when no data associated with it.
+    */
+   bool verbose;
+   
+   /**
     * Returns true if this DataName is equal to the passed DataName, false
     * if not.
     * 
@@ -116,11 +122,14 @@ protected:
     * @param name the name to use.
     * @param major true if the DataName refers to a major piece of data, false
     *              if it refers to a minor piece of data.
+    * @param verbose true if the data name should be included in a
+    *                serialization process even if there is no data for it,
+    *                false if it should be omitted.
     * 
     * @return the created DataName.
     */
    virtual DataName* createDataName(
-      const char* ns, const char* name, bool major);
+      const char* ns, const char* name, bool major, bool verbose);
    
    /**
     * Frees a DataName.
@@ -183,21 +192,22 @@ public:
     * @param name the null-terminated name for the data.
     * @param major true if the DataMapping is for a major piece of data,
     *              false if it is for a minor piece of data.
+    * @param verbose true if the data name should be included in a
+    *                serialization process even if there is no data for it,
+    *                false if it should be omitted. 
     * @param dm the DataMapping to add to this DataBinding.
     */
    virtual void addDataMapping(
-      const char* ns, const char* name, bool major, DataMapping* dm);
+      const char* ns, const char* name, bool major, bool verbose,
+      DataMapping* dm);
    
    /**
     * Removes a data's DataMapping from this DataBinding.
     * 
     * @param ns the null-terminated namespace for the data.
     * @param name the null-terminated name for the data.
-    * @param major true if the DataMapping is for a major piece of data,
-    *              false if it is for a minor piece of data.
     */
-   virtual void removeDataMapping(
-      const char* ns, const char* name, bool major);
+   virtual void removeDataMapping(const char* ns, const char* name);
    
    /**
     * Adds another DataBinding to this DataBinding. DataBindings must be added

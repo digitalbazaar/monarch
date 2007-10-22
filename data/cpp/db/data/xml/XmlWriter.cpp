@@ -290,12 +290,14 @@ bool XmlWriter::write(DataBinding* db, OutputStream* os)
          }
          else
          {
-            // only write content for root element
+            // write only content for root element,
+            // if not root, only write element/attribute if it is
+            // verbose or has data
             if(root->equals(*i))
             {
                rval = writeElementData(dm, db->getObject(), os);
             }
-            else
+            else if((*i)->verbose || dm->hasData(db->getObject()))
             {
                // write entire element or attribute
                if((*i)->major)

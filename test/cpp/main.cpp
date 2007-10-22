@@ -3460,8 +3460,8 @@ public:
       setDataName(NULL, "TestChild");
       
       // add mappings
-      addDataMapping(NULL, "id", false, &mChildId);
-      addDataMapping(NULL, "TestChild", true, &mChildContent);
+      addDataMapping(NULL, "id", false, true, &mChildId);
+      addDataMapping(NULL, "TestChild", true, false, &mChildContent);
    }
    
    virtual ~TestChildDataBinding()
@@ -3489,8 +3489,8 @@ public:
       setDataName(NULL, "TestContent");
       
       // add mappings
-      addDataMapping(NULL, "TestContent", true, &mTestContent);
-      addDataMapping(NULL, "TestChild", true, &mCreateChild);
+      addDataMapping(NULL, "TestContent", true, false, &mTestContent);
+      addDataMapping(NULL, "TestChild", true, true, &mCreateChild);
       
       // add bindings
       addDataBinding(NULL, "TestChild", &mChildBinding);

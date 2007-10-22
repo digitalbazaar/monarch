@@ -96,10 +96,11 @@ bool DataBinding::DataNameComparator::operator()(
 }
 
 DataName* DataBinding::createDataName(
-   const char* ns, const char* name, bool major)
+   const char* ns, const char* name, bool major, bool verbose)
 {
    DataName* dn = new DataName();
    dn->major = major;
+   dn->verbose = verbose;
    
    if(ns != NULL)
    {
@@ -146,10 +147,10 @@ void* DataBinding::getSetGetObject(DataName* dn)
 }
 
 void DataBinding::addDataMapping(
-   const char* ns, const char* name, bool major, DataMapping* dm)
+   const char* ns, const char* name, bool major, bool verbose, DataMapping* dm)
 {
    // create data name
-   DataName* dn = createDataName(ns, name, major);
+   DataName* dn = createDataName(ns, name, major, verbose);
    
    // set data mapping
    mDataMappings[dn] = dm;
@@ -158,11 +159,10 @@ void DataBinding::addDataMapping(
    mDataNameOrder.push_back(dn);
 }
 
-void DataBinding::removeDataMapping(
-   const char* ns, const char* name, bool major)
+void DataBinding::removeDataMapping(const char* ns, const char* name)
 {
    // create data name
-   DataName* dn = createDataName(ns, name, major);
+   DataName* dn = createDataName(ns, name, true, true);
    
    // remove data mapping
    mDataMappings.erase(dn);
@@ -176,7 +176,7 @@ void DataBinding::addDataBinding(
    const char* ns, const char* name, DataBinding* db)
 {
    // create data name
-   DataName* dn = createDataName(ns, name, true);
+   DataName* dn = createDataName(ns, name, true, true);
    
    // set data binding
    mDataBindings[dn] = db;
@@ -188,7 +188,7 @@ void DataBinding::addDataBinding(
 void DataBinding::removeDataBinding(const char* ns, const char* name)
 {
    // create data name
-   DataName* dn = createDataName(ns, name, true);
+   DataName* dn = createDataName(ns, name, true, true);
    
    // remove data binding
    mDataBindings.erase(dn);
@@ -204,7 +204,7 @@ DataBinding* DataBinding::startData(
    DataBinding* rval = NULL;
    
    // create data name
-   DataName* dn = createDataName(ns, name, true);
+   DataName* dn = createDataName(ns, name, true, true);
    
    // get data binding
    rval = getDataBinding(dn);
@@ -303,7 +303,7 @@ void DataBinding::deserializationStarted()
 void DataBinding::setDataName(const char* ns, const char* name)
 {
    freeDataName(mRootDataName);
-   mRootDataName = createDataName(ns, name, true);
+   mRootDataName = createDataName(ns, name, true, true);
 }
 
 DataName* DataBinding::getDataName()
