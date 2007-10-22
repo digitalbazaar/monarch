@@ -243,6 +243,9 @@ bool XmlWriter::write(DataBinding* db, OutputStream* os)
 {
    bool rval = true;
    
+   // notify binding of serialization process
+   db->serializationStarted();
+   
    // get root data name
    DataName* root = db->getDataName();
    if(root == NULL)

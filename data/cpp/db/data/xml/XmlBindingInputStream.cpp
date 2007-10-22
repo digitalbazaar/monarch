@@ -37,6 +37,9 @@ void XmlBindingInputStream::populateReadState(ReadState& rs, DataBinding* db)
    rs.db = db;
    rs.started = false;
    
+   // notify binding of serialization start
+   db->serializationStarted();
+      
    // get initial data name
    rs.dn = db->getDataNames().begin();
    

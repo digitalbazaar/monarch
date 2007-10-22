@@ -158,6 +158,20 @@ void DataBinding::addDataMapping(
    mDataNameOrder.push_back(dn);
 }
 
+void DataBinding::removeDataMapping(
+   const char* ns, const char* name, bool major)
+{
+   // create data name
+   DataName* dn = createDataName(ns, name, major);
+   
+   // remove data mapping
+   mDataMappings.erase(dn);
+   mDataNameOrder.remove(dn);
+   
+   // clean up data name
+   freeDataName(dn);
+}
+
 void DataBinding::addDataBinding(
    const char* ns, const char* name, DataBinding* db)
 {
@@ -169,6 +183,19 @@ void DataBinding::addDataBinding(
    
    // add data name to order
    mDataNameOrder.push_back(dn);
+}
+
+void DataBinding::removeDataBinding(const char* ns, const char* name)
+{
+   // create data name
+   DataName* dn = createDataName(ns, name, true);
+   
+   // remove data binding
+   mDataBindings.erase(dn);
+   mDataNameOrder.remove(dn);
+   
+   // clean up data name
+   freeDataName(dn);
 }
 
 DataBinding* DataBinding::startData(
@@ -261,6 +288,16 @@ void DataBinding::setObject(void* obj)
 void* DataBinding::getObject()
 {
    return mObject;
+}
+
+void DataBinding::serializationStarted()
+{
+   // no default implementation
+}
+
+void DataBinding::deserializationStarted()
+{
+   // no default implementation
 }
 
 void DataBinding::setDataName(const char* ns, const char* name)

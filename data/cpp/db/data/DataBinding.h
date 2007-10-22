@@ -189,6 +189,17 @@ public:
       const char* ns, const char* name, bool major, DataMapping* dm);
    
    /**
+    * Removes a data's DataMapping from this DataBinding.
+    * 
+    * @param ns the null-terminated namespace for the data.
+    * @param name the null-terminated name for the data.
+    * @param major true if the DataMapping is for a major piece of data,
+    *              false if it is for a minor piece of data.
+    */
+   virtual void removeDataMapping(
+      const char* ns, const char* name, bool major);
+   
+   /**
     * Adds another DataBinding to this DataBinding. DataBindings must be added
     * after their associated DataMappings.
     * 
@@ -202,6 +213,14 @@ public:
     */
    virtual void addDataBinding(
       const char* ns, const char* name, DataBinding* db);
+   
+   /**
+    * Removes another DataBinding from this DataBinding.
+    * 
+    * @param ns the null-terminated namespace for the data.
+    * @param name the null-terminated name for the data.
+    */
+   virtual void removeDataBinding(const char* ns, const char* name);
    
    /**
     * Starts setting data for the given name and provides the appropriate
@@ -268,6 +287,22 @@ public:
     * @return the bound object used with this binding.
     */
    virtual void* getObject();
+   
+   /**
+    * Called to indicate that this binding is now being used in a
+    * serialization process.
+    * 
+    * This callback is useful to dynamically altering mappings/bindings.
+    */
+   virtual void serializationStarted();
+   
+   /**
+    * Called to indicate that this binding is now being used in a
+    * deserialization process.
+    * 
+    * This callback is useful to dynamically altering mappings/bindings.
+    */
+   virtual void deserializationStarted();
    
    /**
     * Sets the root data name.

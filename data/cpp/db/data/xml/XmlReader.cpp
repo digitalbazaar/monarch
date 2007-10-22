@@ -150,6 +150,9 @@ void XmlReader::appendData(void* xr, const XML_Char* data, int length)
 
 void XmlReader::start(DataBinding* db)
 {
+   // notify binding of deserialization start
+   db->deserializationStarted();
+   
    // clear data bindings stack
    mDataBindingsStack.clear();
    
