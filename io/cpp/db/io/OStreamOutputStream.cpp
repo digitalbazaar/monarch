@@ -3,14 +3,9 @@
  */
 #include "db/io/OStreamOutputStream.h"
 
-#include <iostream>
-
 using namespace std;
 using namespace db::io;
 using namespace db::rt;
-
-// initialize standard output stream
-OStreamOutputStream OStreamOutputStream::sStdoutStream(&cout);
 
 OStreamOutputStream::OStreamOutputStream(ostream* stream)
 {
@@ -40,9 +35,4 @@ bool OStreamOutputStream::write(const char* b, int length)
    }
    
    return rval;
-}
-
-OStreamOutputStream* OStreamOutputStream::getStdoutStream()
-{
-   return &sStdoutStream;
 }

@@ -26,11 +26,6 @@ protected:
     */
    std::ostream* mStream;
    
-   /**
-    * An output stream for standard out.
-    */
-   static OStreamOutputStream sStdoutStream;
-   
 public:
    /**
     * Creates a new OStreamOutputStream that writes with the passed ostream.
@@ -54,13 +49,6 @@ public:
     *         occurred. 
     */
    virtual bool write(const char* b, int length);
-
-   /**
-    * Get the standard output stream.
-    * 
-    * @return stream for standard output.
-    */
-   static OStreamOutputStream* getStdoutStream();
 };
 
 } // end namespace io

@@ -36,7 +36,7 @@ FIND_CPP = $(wildcard $(dir)/*.cpp)
 MODGROUP = db
 
 # All modules
-MODULES = rt modest util io crypto net data sql logging
+MODULES = rt modest util io crypto net data sql #logging
 
 # All executables
 EXES = test
@@ -67,7 +67,7 @@ sql_LIBS = sqlite3
 
 
 # test.exe binary rules
-test_MODLIBS = rt modest util io crypto net data sql logging
+test_MODLIBS = rt modest util io crypto net data sql #logging
 test_SOURCES = main
 test_LIBS = pthread crypto ssl expat sqlite3 mysqlclient
 

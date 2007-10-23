@@ -64,9 +64,9 @@
 #include "db/sql/mysql/MySqlConnection.h"
 #include "db/sql/mysql/MySqlConnectionPool.h"
 #include "db/sql/util/DatabaseClient.h"
-#include "db/logging/Logger.h"
-#include "db/logging/OutputStreamLogger.h"
-#include "db/logging/FileLogger.h"
+//#include "db/logging/Logger.h"
+//#include "db/logging/OutputStreamLogger.h"
+//#include "db/logging/FileLogger.h"
 #include "db/util/UniqueList.h"
 
 using namespace std;
@@ -83,7 +83,7 @@ using namespace db::data::xml;
 using namespace db::sql::sqlite3;
 using namespace db::sql::mysql;
 using namespace db::sql::util;
-using namespace db::logging;
+//using namespace db::logging;
 
 // WTF? this is required to get static library building for unknown reason
 #include "db/io/PeekInputStream.h"
@@ -4342,22 +4342,22 @@ void runDatabaseClientTest()
 void runLoggerTest()
 {
    cout << "Starting Logger test." << endl << endl;
-
-   db::logging::OutputStreamLogger clog(
-      "stdout", Logger::Max, OStreamOutputStream::getStdoutStream());
-   Logger::addLogger(&clog);
-   Logger::addLogger(&clog, "[C1]");
    
-   db::logging::FileLogger flog(
-      "flog", Logger::Max, new File("test.log"), true);
-   Logger::addLogger(&flog);
-
-   DB_ERROR("[M1] error test");
-   DB_WARNING("[M1] warning test");
-   DB_INFO("[M1] info test");
-   DB_DEBUG("[M1] debug test");
-   DB_CAT_ERROR("[C1]", "[M2] cat 1 error test");
-   DB_CAT_OBJECT_ERROR("[C1]", &clog, "[M3] cat 1 obj error test");
+//   db::logging::OutputStreamLogger clog(
+//      "stdout", Logger::Max, OStreamOutputStream::getStdoutStream());
+//   Logger::addLogger(&clog);
+//   Logger::addLogger(&clog, "[C1]");
+//   
+//   db::logging::FileLogger flog(
+//      "flog", Logger::Max, new File("test.log"), true);
+//   Logger::addLogger(&flog);
+//
+//   DB_ERROR("[M1] error test");
+//   DB_WARNING("[M1] warning test");
+//   DB_INFO("[M1] info test");
+//   DB_DEBUG("[M1] debug test");
+//   DB_CAT_ERROR("[C1]", "[M2] cat 1 error test");
+//   DB_CAT_OBJECT_ERROR("[C1]", &clog, "[M3] cat 1 obj error test");
    
    cout << endl << "Logger test complete." << endl;
 }
