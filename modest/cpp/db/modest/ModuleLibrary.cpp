@@ -122,19 +122,23 @@ void ModuleLibrary::unloadModule(const char* name)
 
 void ModuleLibrary::unloadAllModules()
 {
-   // clean up and free every module
-   while(!mLoadOrder.empty())
+   lock();
    {
-      // find ModuleInfo and clean up Module
-      ModuleMap::iterator i = mModules.find(mLoadOrder.back());
-      ModuleInfo* mi = i->second;
-      mi->module->cleanup(mKernel);
-      mLoader.unloadModule(mi);
-      
-      // remove module from map and list
-      mModules.erase(i);
-      mLoadOrder.pop_back();
+      // clean up and free every module
+      while(!mLoadOrder.empty())
+      {
+         // find ModuleInfo and clean up Module
+         ModuleMap::iterator i = mModules.find(mLoadOrder.back());
+         ModuleInfo* mi = i->second;
+         mi->module->cleanup(mKernel);
+         mLoader.unloadModule(mi);
+         
+         // remove module from map and list
+         mModules.erase(i);
+         mLoadOrder.pop_back();
+      }
    }
+   unlock();
 }
 
 Module* ModuleLibrary::getModule(const char* name)
