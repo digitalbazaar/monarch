@@ -170,7 +170,8 @@ public:
    virtual SqlException* execute();
    
    /**
-    * Fetches the next result Row once this Statement has been executed.
+    * Fetches the next result Row once this Statement has been executed. The
+    * Row is heap-allocated and must be freed by the caller of this method.
     * 
     * @return the next result Row once this Statement has been executed,
     *         NULL if there is no next Row.

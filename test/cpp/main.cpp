@@ -4546,6 +4546,7 @@ public:
 //      runDatabaseManagerTest();
 //      runLoggerTest();
 //      runUniqueListTest();
+//      runOtherTest();
       runFileTest();
       
       cout << endl << "Tests finished." << endl;
