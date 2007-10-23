@@ -4366,8 +4366,6 @@ void runUniqueListTest()
 {
    cout << "Starting UniqueList test." << endl << endl;
    
-   cout << "Testing list with stack-allocated elements..." << endl;
-   
    UniqueList<int> list;
    
    list.add(5);
@@ -4393,35 +4391,6 @@ void runUniqueListTest()
    delete i;
    
    list.clear();
-   
-   cout << endl << "Testing list with heap-allocated elements..." << endl;
-   
-   // test putting heap-allocated objects in a list
-   UniqueList<int*> list2;
-   list2.add(new int(5));
-   list2.add(new int(6));
-   list2.add(new int(7));
-   
-   Iterator<int*>* i2 = list2.getIterator();
-   while(i2->hasNext())
-   {
-      cout << "element=" << *i2->next() << endl;
-   }
-   delete i2;
-   
-   cout << "Removing '5'..." << endl;
-   int five = 5;
-   list2.remove(&five, true);
-   
-   i2 = list2.getIterator();
-   while(i2->hasNext())
-   {
-      cout << "element=" << i2->next() << endl;
-   }
-   delete i2;
-   
-   // clear list
-   list2.clear(true);
    
    cout << endl << "UniqueList test complete." << endl;
 }
