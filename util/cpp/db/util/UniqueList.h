@@ -111,7 +111,8 @@ bool UniqueList<T>::remove(const T& obj, bool cleanup)
          // clean up object as appropriate
          if(cleanup)
          {
-            //free((void*)t);
+            // reinterpret type as a pointer to heap-allocated memory
+            free(reinterpret_cast<void*>(t));
          }
          
          i->remove();
@@ -132,8 +133,9 @@ void UniqueList<T>::clear(bool cleanup)
       Iterator<T>* i = getIterator();
       while(i->hasNext())
       {
+         // reinterpret type as a pointer to heap-allocated memory
          T& t = i->next();
-         //free((void*)t);
+         free(reinterpret_cast<void*>(t));
       }
       delete i;
    }
