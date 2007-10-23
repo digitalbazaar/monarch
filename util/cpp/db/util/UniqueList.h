@@ -111,7 +111,7 @@ bool UniqueList<T>::remove(const T& obj, bool cleanup)
          // clean up object as appropriate
          if(cleanup)
          {
-            free((void*)t);
+            //free((void*)t);
          }
          
          i->remove();
@@ -133,7 +133,7 @@ void UniqueList<T>::clear(bool cleanup)
       while(i->hasNext())
       {
          T& t = i->next();
-         free((void*)t);
+         //free((void*)t);
       }
       delete i;
    }
