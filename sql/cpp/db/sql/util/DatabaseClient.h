@@ -61,6 +61,22 @@ public:
     * it are desired.
     */
    virtual ConnectionPool* getConnectionPool();
+   
+   /**
+    * Creates a DatabaseClient for the given url, where the url specifies
+    * the database to connect to (and its protocol) as well as the appropriate
+    * user permissions for connecting.
+    * 
+    * The returned DatabaseClient must be cleaned up by the caller of this
+    * method.
+    * 
+    * @param url the url for the database to connect to, including its
+    *            driver specific parameters.
+    * 
+    * @return the heap-allocated DatabaseClient or NULL if an exception
+    *         occurred.
+    */
+   static DatabaseClient* create(const char* url);
 };
 
 } // end namespace util

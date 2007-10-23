@@ -63,7 +63,7 @@
 #include "db/sql/sqlite3/Sqlite3ConnectionPool.h"
 #include "db/sql/mysql/MySqlConnection.h"
 #include "db/sql/mysql/MySqlConnectionPool.h"
-#include "db/sql/util/DatabaseManager.h"
+#include "db/sql/util/DatabaseClient.h"
 #include "db/logging/Logger.h"
 #include "db/logging/OutputStreamLogger.h"
 #include "db/logging/FileLogger.h"
@@ -4149,15 +4149,15 @@ void runConnectionPoolTest()
    cout << endl << "ConnectionPool test complete." << endl;
 }
 
-void runDatabaseManagerTest()
+void runDatabaseClientTest()
 {
-   cout << "Starting DatabaseManager test." << endl << endl;
+   cout << "Starting DatabaseClient test." << endl << endl;
    
    // clear any exceptions
    Exception::clearLast();
    
    // get a sqlite3 database client
-   DatabaseClient* dc = DatabaseManager::createClient("sqlite3::memory:");
+   DatabaseClient* dc = DatabaseClient::create("sqlite3::memory:");
    assertNoException();
    
    // get a connection
@@ -4246,7 +4246,7 @@ void runDatabaseManagerTest()
    delete dc;
    
    // get a mysql database client
-   dc = DatabaseManager::createClient(
+   dc = DatabaseClient::create(
       "mysql://dbwriteclient:k288m2s8f6gk39a@mojo/test");
    assertNoException();
    
@@ -4336,7 +4336,7 @@ void runDatabaseManagerTest()
    // clean up database client
    delete dc;
    
-   cout << endl << "DatabaseManager test complete." << endl;
+   cout << endl << "DatabaseClient test complete." << endl;
 }
 
 void runLoggerTest()
@@ -4512,11 +4512,11 @@ public:
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
 //      runConnectionPoolTest();
-//      runDatabaseManagerTest();
+      runDatabaseClientTest();
 //      runLoggerTest();
 //      runUniqueListTest();
 //      runOtherTest();
-      runFileTest();
+//      runFileTest();
       
       cout << endl << "Tests finished." << endl;
       
