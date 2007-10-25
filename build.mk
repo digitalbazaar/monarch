@@ -36,10 +36,11 @@ FIND_CPP = $(wildcard $(dir)/*.cpp)
 MODGROUP = db
 
 # All modules
-MODULES = rt modest util io crypto net data sql #logging
+MODULES = rt modest util io crypto net data sql test #logging
 
 # All executables
-EXES = test
+EXES = maintest
+
 
 # Module specific build rules
 
@@ -65,12 +66,16 @@ data_LIBS = expat
 sql_SUBDIRS = sqlite3 mysql util
 sql_LIBS = sqlite3
 
+test_MODLIBS = rt sql
 
-# test.exe binary rules
-test_MODLIBS = rt modest util io crypto net data sql #logging
-test_SOURCES = main
-test_LIBS = pthread crypto ssl expat sqlite3 mysqlclient
 
+# exe rules
+
+maintest_DIR = test
+maintest_EXE = test.exe
+maintest_MODLIBS = rt modest util io crypto net data sql test #logging
+maintest_SOURCES = main
+maintest_LIBS = pthread crypto ssl expat sqlite3 mysqlclient
 
 
 #
@@ -141,29 +146,35 @@ $(foreach mod,$(MODULES),$(eval $(call MODULE_template,$(mod))))
 
 define EXE_template
 # The DB build directories
-BUILD += $$(BASE_DIR)/$(1)/cpp/build
+BUILD += $$(BASE_DIR)/$$($(1)_DIR)/cpp/build
 
 # The DB dist directories
-DIST += $$(BASE_DIR)/$(1)/cpp/dist
+DIST += $$(BASE_DIR)/$$($(1)_DIR)/cpp/dist
 
 # CPP files
-ALL_CPP += $$($(1)_SOURCES:%=$$(BASE_DIR)/$(1)/cpp/%.cpp)
+ALL_CPP += $$($(1)_SOURCES:%=$$(BASE_DIR)/$$($(1)_DIR)/cpp/%.cpp)
 
-$(1)_exe: $$(BASE_DIR)/$(1)/cpp/dist/$(1).exe
+$(1)_exe: $$(BASE_DIR)/$$($(1)_DIR)/cpp/dist/$$($(1)_EXE)
+
+CHECK_EXES += $$(BASE_DIR)/$$($(1)_DIR)/cpp/dist/$$($(1)_EXE)
 
 # Builds the binary
-$$(BASE_DIR)/$(1)/cpp/dist/$(1).exe: $$($(1)_SOURCES:%=$$(BASE_DIR)/$(1)/cpp/build/%.o) $$($(1)_MODLIBS:%=lib$$(MODGROUP)%) $$($(1)_OBJS)
+$$(BASE_DIR)/$$($(1)_DIR)/cpp/dist/$$($(1)_EXE): $$($(1)_SOURCES:%=$$(BASE_DIR)/$$($(1)_DIR)/cpp/build/%.o) $$($(1)_MODLIBS:%=lib$$(MODGROUP)%) $$($(1)_OBJS)
 	$$(CC) $$(CFLAGS) -o $$@ $$< $$(foreach mod,$$($(1)_MODLIBS),$$($$(MODGROUP)_$$(mod)_LIB)) $$($(1)_LIBS:%=-l%)
 
 # Builds object files
-$$(BASE_DIR)/$(1)/cpp/build/%.o: $$(BASE_DIR)/$(1)/cpp/%.cpp $$(ALL_H)
-	@mkdir -p $$(BASE_DIR)/$(1)/cpp/build \
-		$$(BASE_DIR)/$(1)/cpp/dist
+$$(BASE_DIR)/$$($(1)_DIR)/cpp/build/%.o: $$(BASE_DIR)/$$($(1)_DIR)/cpp/%.cpp $$(ALL_H)
+	@mkdir -p $$(BASE_DIR)/$$($(1)_DIR)/cpp/build \
+		$$(BASE_DIR)/$$($(1)_DIR)/cpp/dist
 	$$(CC) $$(CFLAGS) -o $$@ -c $$< $$($(1)_CFLAGS)
 endef
 
 $(foreach exe,$(EXES),$(eval $(call EXE_template,$(exe))))
 
+check: all2
+	@for exe in $(CHECK_EXES); do \
+		$$exe; \
+	done
 
 #
 # Extra build rules

@@ -9,6 +9,8 @@
 #include <openssl/rand.h>
 #include <openssl/engine.h>
 
+#include "db/test/Test.h"
+#include "db/test/TestRunner.h"
 #include "db/util/Base64Codec.h"
 #include "db/rt/Object.h"
 #include "db/rt/Runnable.h"
@@ -70,6 +72,7 @@
 #include "db/util/UniqueList.h"
 
 using namespace std;
+using namespace db::test;
 using namespace db::crypto;
 using namespace db::io;
 using namespace db::modest;
@@ -95,61 +98,35 @@ FilterOutputStream g_junk5(NULL, false);
 ByteArrayInputStream g_junk6(NULL, 0);
 IgnoreOutputStream g_junk7(NULL);
 
-void assertNoException()
+void runBase64Test(TestRunner &tr)
 {
-   if(Exception::hasLast())
-   {
-      Exception* e = Exception::getLast();
-      if(dynamic_cast<db::sql::SqlException*>(e) != NULL)
-      {
-         db::sql::SqlException* dbe =
-            (db::sql::SqlException*)e;
-         
-         cout << "SqlException occurred!" << endl;
-         cout << "message: " << dbe->getMessage() << endl;
-         cout << "type: " << dbe->getType() << endl;
-         cout << "code: " << dbe->getCode() << endl;
-         cout << "sqlstate: " << dbe->getSqlState() << endl;
-      }
-      else
-      {
-         cout << "Exception occurred!" << endl;
-         cout << "message: " << e->getMessage() << endl;
-         cout << "type: " << e->getType() << endl;
-         cout << "code: " << e->getCode() << endl;
-      }
-      
-      assert(!Exception::hasLast());
-   }
-}
+   const char* expected = "YmNkZQ==";
 
-void runBase64Test()
-{
-	cout << "Running Base64 Test" << endl << endl;
-	
-	char data[] = {'a', 'b', 'c', 'd', 'e'};
-	string encoded = Base64Codec::encode(data + 1, 4);
-	cout << "encoded=" << encoded << endl;
-	
+   tr.test("Base64");
+   
+   char data[] = {'a', 'b', 'c', 'd', 'e'};
+   string encoded = Base64Codec::encode(data + 1, 4);
+   assert(encoded == expected);
+   
    char* decoded;
-	unsigned int length;
+   unsigned int length;
    Base64Codec::decode(encoded, &decoded, length);
-	
-	cout << "decoded bytes=" << length << endl;
+   
+   assert(length == 4);
    for(unsigned int i = 0; i < length; i++)
    {
-      cout << "decoded[" << i << "]=" << decoded[i] << endl;
-   }
-	
-	string encoded2 = Base64Codec::encode(decoded, 4);
-	cout << "encoded again=" << encoded2 << endl;
-	
-   if(decoded != NULL)
-   {
-	   delete [] decoded;
+      assert(decoded[i] == data[i + 1]);
    }
    
-   cout << endl << "Base64 Test complete." << endl;
+   string encoded2 = Base64Codec::encode(decoded, 4);
+   assert(encoded2 == expected);
+   
+   if(decoded != NULL)
+   {
+      delete [] decoded;
+   }
+   
+   tr.pass();
 }
 
 void runTimeTest()
@@ -1057,9 +1034,9 @@ void runMessageDigestTest()
    cout << endl << "MessageDigest test complete." << endl;
 }
 
-void runCrcTest()
+void runCrcTest(TestRunner &tr)
 {
-   cout << "Running CRC Test" << endl << endl;
+   tr.test("CRC");
    
    unsigned int correctValue = 6013;
    
@@ -1075,17 +1052,10 @@ void runCrcTest()
 //   crc16.update(80);
    crc16.update(b, 8);
    
-   cout << "CRC-16=" << crc16.getChecksum() << endl;
-   if(crc16.getChecksum() == correctValue)
-   {
-      cout << "CRC-16 is correct!" << endl;
-   }
-   else
-   {
-      cout << "CRC-16 is incorrect!" << endl;
-   }
+   //cout << "CRC-16=" << crc16.getChecksum() << endl;
+   assert(crc16.getChecksum() == correctValue);
    
-   cout << endl << "CRC test complete." << endl;
+   tr.pass();
 }
 
 void runAsymmetricKeyLoadingTest()
@@ -1869,30 +1839,23 @@ void runConvertTest()
    cout << endl << "Convert test complete." << endl;
 }
 
-void runUrlEncodeTest()
+void runUrlEncodeTest(TestRunner &tr)
 {
-   cout << "Starting Url Encode/Decode test." << endl << endl;
+   tr.test("Url Encode/Decode");
    
    string str = "billy bob & \"jane\" +^%2{13.";
    
    string encoded = Url::encode(str.c_str(), str.length());
    string decoded = Url::decode(encoded.c_str(), encoded.length());
    
-   cout << "test data=" << str << endl;
+   //cout << "test data=" << str << endl;
    
-   cout << "url encoded=" << encoded << endl;
-   cout << "url decoded=" << decoded << endl;
+   //cout << "url encoded=" << encoded << endl;
+   //cout << "url decoded=" << decoded << endl;
    
-   if(decoded == str)
-   {
-      cout << "Test successful!" << endl;
-   }
-   else
-   {
-      cout << "Test FAILED! Strings do not match!" << endl;
-   }
+   assert(decoded == str);
    
-   cout << endl << "Url Encode/Decode test complete." << endl;
+   tr.pass();
 }
 
 void dumpUrl(Url url)
@@ -1920,14 +1883,14 @@ void dumpUrl(Url url)
    }
 }
 
-void runUrlTest()
+void runUrlTest(TestRunner &tr)
 {
-   cout << "Starting Url test." << endl << endl;
+   tr.test("Url");
 
    {
       Url url("http:");
       
-      dumpUrl(url);
+      //dumpUrl(url);
       assert(url.getScheme() == "http");
       assert(url.getSchemeSpecificPart() == "");
    }
@@ -1935,7 +1898,7 @@ void runUrlTest()
    {
       Url url("http://");
       
-      dumpUrl(url);
+      //dumpUrl(url);
       assert(url.getScheme() == "http");
       assert(url.getSchemeSpecificPart() == "//");
    }
@@ -1943,7 +1906,7 @@ void runUrlTest()
    {
       Url url("http://www.bitmunk.com");
       
-      dumpUrl(url);
+      //dumpUrl(url);
       assert(url.getScheme() == "http");
       assert(url.getSchemeSpecificPart() == "//www.bitmunk.com");
       assert(url.getHost() == "www.bitmunk.com");
@@ -1953,7 +1916,7 @@ void runUrlTest()
    {
       Url url("http://www.bitmunk.com/mypath?variable1=test");
       
-      dumpUrl(url);
+      //dumpUrl(url);
       assert(url.getScheme() == "http");
       assert(url.getUserInfo() == "");
       assert(url.getUser() == "");
@@ -1967,17 +1930,18 @@ void runUrlTest()
    {
       Url url("mysql://username:password@host:3306/mydatabase");
       
-      dumpUrl(url);
+      //dumpUrl(url);
       assert(url.getScheme() == "mysql");
       assert(url.getUser() == "username");
       assert(url.getPassword() == "password");
       assert(url.getHost() == "host");
-      assert(url.getPort() == 3066);
+      assert(url.getPort() == 3306);
       assert(url.getPath() == "/mydatabase");
    }
    
    {
       Url url("http://example.com:8080/path");
+
       //dumpUrl(url);
       assert(!Thread::hasException());
       assert(url.getScheme() == "http");
@@ -1992,7 +1956,8 @@ void runUrlTest()
    
    {   
       Url url("scheme:schemespecific");
-      dumpUrl(url);
+
+      //dumpUrl(url);
       assert(!Exception::hasLast());
       assert(url.getScheme() == "scheme");
       assert(url.getSchemeSpecificPart() == "schemespecific");
@@ -2000,7 +1965,8 @@ void runUrlTest()
    
    {
       Url url("scheme://user:password@host:1234/path?key1=value1&key2=value2");
-      dumpUrl(url);
+
+      //dumpUrl(url);
       assert(!Exception::hasLast());
       assert(url.getScheme() == "scheme");
       assert(url.getUserInfo() == "user:password");
@@ -2013,7 +1979,7 @@ void runUrlTest()
       // FIXME add query part checks
    }
    
-   cout << endl << "Url test complete." << endl;
+   tr.pass();
 }
 
 void runRegexTest()
@@ -3782,20 +3748,20 @@ void runBigDecimalTest()
    cout << endl << "BigDecimal test complete." << endl;
 }
 
-void runSqlite3ConnectionTest()
+void runSqlite3ConnectionTest(TestRunner &tr)
 {
-   cout << "Starting Sqlite3Connection test." << endl << endl;
+   tr.test("Sqlite3 Connection");
    
    Sqlite3Connection c;
    c.connect("sqlite3::memory:");
    assertNoException();
    
-   cout << endl << "Sqlite3Connection test complete." << endl;
+   tr.pass();
 }
 
-void runSqlite3StatementTest()
+void runSqlite3StatementTest(TestRunner &tr)
 {
-   cout << "Starting Sqlite3 test." << endl << endl;
+   tr.group("Sqlite3 Statement");
    
    // clear any exceptions
    Exception::clearLast();
@@ -3805,85 +3771,111 @@ void runSqlite3StatementTest()
    
    db::sql::Statement* s;
    
-   // drop table test
+   tr.test("drop table");
    s = c.prepare("DROP TABLE IF EXISTS test");
    assert(s != NULL);
    s->execute();
    delete s;
-   assertNoException();
-   cout << "drop table test passed!" << endl;
+   tr.passIfNoException();
    
-   // create table test
+   tr.test("create table");
    s = c.prepare("CREATE TABLE IF NOT EXISTS test (t TEXT, i INT)");
    s->execute();
    delete s;
-   assertNoException();
-   cout << "create table test passed!" << endl;
+   tr.passIfNoException();
    
-   // insert test 1
+   tr.test("insert test 1");
    s = c.prepare("INSERT INTO test (t, i) VALUES ('test!', 1234)");
    s->execute();
-   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   assert(s->getLastInsertRowId() == 1);
    delete s;
-   assertNoException();
-   cout << "insert test 1 passed!" << endl;
+   tr.passIfNoException();
    
-   // insert test 2
+   tr.test("insert test 2");
    s = c.prepare("INSERT INTO test (t, i) VALUES ('!tset', 4321)");
    s->execute();
-   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   assert(s->getLastInsertRowId() == 2);
    delete s;
-   assertNoException();
-   cout << "insert test 2 passed!" << endl;
+   tr.passIfNoException();
    
-   // insert positional parameters test
+   tr.test("insert positional parameters");
    s = c.prepare("INSERT INTO test (t, i) VALUES (?, ?)");
    s->setText(1, "boundpositional");
    s->setInt32(2, 2222);
    s->execute();
-   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   assert(s->getLastInsertRowId() == 3);
    delete s;
-   assertNoException();
-   cout << "insert positional parameters test passed!" << endl;
+   tr.passIfNoException();
    
    // insert named parameters test
+   tr.test("insert named parameters");
    s = c.prepare("INSERT INTO test (t, i) VALUES (:first, :second)");
    s->setText(":first", "boundnamed");
    s->setInt32(":second", 2223);
    s->execute();
-   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   assert(s->getLastInsertRowId() == 4);
    delete s;
-   assertNoException();
-   cout << "insert named parameters test passed!" << endl;
+   tr.passIfNoException();
    
    // select test
    s = c.prepare("SELECT * FROM test");
    s->execute();
    
    // fetch rows
+   tr.test("fetch rows");
    db::sql::Row* row;
    string t;
    int i;
-   while((row = s->fetch()) != NULL)
-   {
-      cout << endl << "Row result:" << endl;
-      row->getText("t", t);
-      assertNoException();
-      row->getInt32("i", i);
-      assertNoException();
-      
-      cout << "t=" << t << endl;
-      cout << "i=" << i << endl;
-   }
-   
-   cout << endl << "Result Rows complete." << endl;
-   delete s;
-   cout << "select test passed!" << endl;
-   
-   c.close();
+
+   row = s->fetch();
+   assert(row != NULL);
+   row->getText("t", t);
    assertNoException();
+   row->getInt32("i", i);
+   assertNoException();
+   assert(t == "test!");
+   assert(i == 1234);
+
+   row = s->fetch();
+   assert(row != NULL);
+   row->getText("t", t);
+   assertNoException();
+   row->getInt32("i", i);
+   assertNoException();
+   assert(t == "!tset");
+   assert(i == 4321);
+
+   row = s->fetch();
+   assert(row != NULL);
+   row->getText("t", t);
+   assertNoException();
+   row->getInt32("i", i);
+   assertNoException();
+   assert(t == "boundpositional");
+   assert(i == 2222);
+
+   row = s->fetch();
+   assert(row != NULL);
+   row->getText("t", t);
+   assertNoException();
+   row->getInt32("i", i);
+   assertNoException();
+   assert(t == "boundnamed");
+   assert(i == 2223);
+
+   // done so next should be NULL
+   row = s->fetch();
+   assert(row == NULL);
    
-   cout << endl << "Sqlite3 test complete." << endl;
+   delete s;
+
+   tr.pass();
+   
+   tr.test("connection close");
+   c.close();
+   tr.passIfNoException();
+   
+   tr.ungroup();
 }
 
 void runMySqlConnectionTest()
@@ -4448,13 +4440,34 @@ class RunTests : public virtual Object, public Runnable
 {
 public:
    /**
-    * Runs the unit tests.
+    * Run automatic unit tests.
     */
-   virtual void run()
+   virtual void runAutomaticUnitTests(TestRunner &tr)
    {
-      cout << "Tests starting..." << endl << endl;
+      cout << "Automatic unit tests starting..." << endl << endl;
       
-//      runBase64Test();
+      runBase64Test(tr);
+      runCrcTest(tr);
+      runUrlEncodeTest(tr);
+      runUrlTest(tr);
+      runSqlite3ConnectionTest(tr);
+      runSqlite3StatementTest(tr);
+      
+      cout << endl << "Automatic unit tests finished." << endl;
+      
+      if(Exception::hasLast())
+      {
+         dumpException(Exception::getLast());
+      }
+   }
+
+   /**
+    * Runs interactive unit tests.
+    */
+   virtual void runInteractiveUnitTests(TestRunner &tr)
+   {
+      cout << "Interactive unit tests starting..." << endl << endl;
+      
 //      runTimeTest();
 //      runThreadTest();
 //      runInterruptTest();
@@ -4470,7 +4483,6 @@ public:
 //      runUdpClientServerTest();
 //      runDatagramTest();
 //      runMessageDigestTest();
-//      runCrcTest();
 //      runAsymmetricKeyLoadingTest();
 //      runDsaAsymmetricKeyCreationTest();
 //      runRsaAsymmetricKeyCreationTest();
@@ -4480,8 +4492,6 @@ public:
 //      runEnvelopeTest("RSA");
 //      runCipherTest("AES256");
 //      runConvertTest();
-//      runUrlEncodeTest();
-//      runUrlTest();
 //      runRegexTest();
 //      runDateTest();
 //      runConfigTest();
@@ -4507,27 +4517,43 @@ public:
 //      runXmlBindingOutputStreamTest();
 //      runBigIntegerTest();
 //      runBigDecimalTest();
-//      runSqlite3ConnectionTest();
-//      runSqlite3StatementTest();
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
 //      runConnectionPoolTest();
-      runDatabaseClientTest();
+//      runDatabaseClientTest();
 //      runLoggerTest();
 //      runUniqueListTest();
 //      runOtherTest();
 //      runFileTest();
       
+      cout << endl << "Interactive unit tests finished." << endl;
+      
+      if(Exception::hasLast())
+      {
+         dumpException(Exception::getLast());
+      }
+   }
+
+   /**
+    * Runs the unit tests.
+    */
+   virtual void run()
+   {
+      TestRunner tr(true, TestRunner::Names);
+
+      cout << "Tests starting..." << endl << endl;
+      
+      runInteractiveUnitTests(tr);
+      runAutomaticUnitTests(tr);
+      
       cout << endl << "Tests finished." << endl;
       
       if(Exception::hasLast())
       {
-         Exception* e = Exception::getLast();
-         cout << "Exception occurred!" << endl;
-         cout << "message: " << e->getMessage() << endl;
-         cout << "type: " << e->getType() << endl;
-         cout << "code: " << e->getCode() << endl;
+         dumpException(Exception::getLast());
       }
+
+      tr.done();
    }
 };
 
