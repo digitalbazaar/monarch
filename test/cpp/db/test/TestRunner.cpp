@@ -143,7 +143,7 @@ void TestRunner::done()
          cout << " Total:" << mTotal;
          cout << " Passed:" << mPassed;
          cout << " Failed:" << mFailed;
-         cout << " Unkonwn:" << unknown;
+         cout << " Unknown:" << unknown;
          cout << "." << endl;
          break;
       default:
