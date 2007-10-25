@@ -4,8 +4,6 @@
 #ifndef db_io_File_H
 #define db_io_File_H
 
-#include "db/rt/Object.h"
-
 #include <string>
 
 namespace db
@@ -24,7 +22,7 @@ class FileList;
  * 
  * @author Dave Longley
  */
-class File : public virtual db::rt::Object
+class File
 {
 public:
    /**
