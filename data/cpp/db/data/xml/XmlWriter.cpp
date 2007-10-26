@@ -295,9 +295,9 @@ bool XmlWriter::write(DataBinding* db, OutputStream* os)
             // verbose or has data
             if(root->equals(*i))
             {
-               rval = writeElementData(dm, db->getObject(), os);
+               rval = writeElementData(dm, db->getSetGetObject(*i), os);
             }
-            else if((*i)->verbose || dm->hasData(db->getObject()))
+            else if((*i)->verbose || dm->hasData(db->getSetGetObject(*i)))
             {
                // write entire element or attribute
                if((*i)->major)
@@ -305,13 +305,13 @@ bool XmlWriter::write(DataBinding* db, OutputStream* os)
                   // write start element, data, end element
                   rval = 
                      writeStartElement(*i, os) &&
-                     writeElementData(dm, db->getObject(), os) &&
+                     writeElementData(dm, db->getSetGetObject(*i), os) &&
                      writeEndElement(os);
                }
                else
                {
                   // write attribute
-                  rval = writeAttribute(*i, dm, db->getObject(), os);
+                  rval = writeAttribute(*i, dm, db->getSetGetObject(*i), os);
                }
             }
          }

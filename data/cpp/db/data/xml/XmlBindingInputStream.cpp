@@ -60,7 +60,8 @@ void XmlBindingInputStream::writeElementData(ReadState& rs)
 {
    // write out remaining data to read buffer
    if(mXmlWriter.writeElementData(
-      rs.db->getDataMapping(*rs.dn), rs.db->getObject(), &mIgnoreStream))
+      rs.db->getDataMapping(*rs.dn), rs.db->getSetGetObject(*rs.dn),
+      &mIgnoreStream))
    {
       // write out end element if dealing with non-root
       if(!rs.db->getDataName()->equals(*rs.dn))
@@ -165,7 +166,8 @@ int XmlBindingInputStream::read(char* b, int length)
                else
                {
                   // only write element if it is verbose or has data
-                  if((*rs->dn)->verbose || dm->hasData(rs->db->getObject()))
+                  if((*rs->dn)->verbose ||
+                     dm->hasData(rs->db->getSetGetObject(*rs->dn)))
                   {
                      if((*rs->dn)->major)
                      {
@@ -177,7 +179,8 @@ int XmlBindingInputStream::read(char* b, int length)
                      {
                         // write attribute
                         mXmlWriter.writeAttribute(
-                           *rs->dn, dm, rs->db->getObject(), &mIgnoreStream);
+                           *rs->dn, dm, rs->db->getSetGetObject(*rs->dn),
+                           &mIgnoreStream);
                         
                         // increment data name
                         rs->dn++;
