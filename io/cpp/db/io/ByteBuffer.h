@@ -82,6 +82,13 @@ public:
    virtual ~ByteBuffer();
    
    /**
+    * Frees all memory, that is marked as freeable (via "cleanup"), associated
+    * with this ByteBuffer. This ByteBuffer's capacity, offset, and length
+    * will all be set to zero. 
+    */
+   virtual void free();
+   
+   /**
     * Allocates enough space in the current buffer for the passed number of
     * bytes. Keep in mind that if resize is called, the underlying memory will
     * automatically become managed by this ByteBuffer and the previously

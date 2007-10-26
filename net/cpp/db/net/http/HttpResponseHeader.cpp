@@ -88,7 +88,7 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
 void HttpResponseHeader::getStartLine(string& line)
 {
    char code[11];
-   sprintf(code, "%du", getStatusCode());
+   sprintf(code, "%d", getStatusCode());
    line.append(getVersion());
    line.append(1, ' ');
    line.append(code);

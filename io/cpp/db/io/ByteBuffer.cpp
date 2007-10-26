@@ -9,7 +9,7 @@ ByteBuffer::ByteBuffer(int capacity)
 {
    // create the byte buffer
    mCapacity = capacity;
-   mBuffer = new char[mCapacity];
+   mBuffer = (capacity > 0) ? new char[mCapacity] : NULL;
    mOffset = 0;
    mLength = 0;
    mCleanup = true;
@@ -25,7 +25,7 @@ ByteBuffer::ByteBuffer(const ByteBuffer& copy)
 {
    // copy bytes
    mCapacity = copy.getCapacity();
-   mBuffer = new char[mCapacity];
+   mBuffer = (mCapacity > 0) ? new char[mCapacity] : NULL;
    memcpy(mBuffer, copy.bytes(), copy.getCapacity());
    mOffset = copy.offset();
    mLength = copy.length();
@@ -45,6 +45,16 @@ void ByteBuffer::cleanupBytes()
       delete [] mBuffer;
       mBuffer = NULL;
    }
+}
+
+void ByteBuffer::free()
+{
+   cleanupBytes();
+   mBuffer = NULL;
+   mCapacity = 0;
+   mOffset = 0;
+   mLength = 0;
+   mCleanup = true;
 }
 
 void ByteBuffer::allocateSpace(int length, bool resize)
