@@ -4510,11 +4510,11 @@ public:
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
 //      runPingTest();
-      runXmlReaderTest();
-      runXmlWriterTest();
-      runXmlReadWriteTest();
-      runXmlBindingInputStreamTest();
-      runXmlBindingOutputStreamTest();
+//      runXmlReaderTest();
+//      runXmlWriterTest();
+//      runXmlReadWriteTest();
+//      runXmlBindingInputStreamTest();
+//      runXmlBindingOutputStreamTest();
 //      runBigIntegerTest();
 //      runBigDecimalTest();
 //      runMySqlConnectionTest();
