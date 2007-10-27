@@ -4442,7 +4442,7 @@ public:
    /**
     * Run automatic unit tests.
     */
-   virtual void runAutomaticUnitTests(TestRunner &tr)
+   virtual void runAutomaticUnitTests(TestRunner& tr)
    {
       cout << "Automatic unit tests starting..." << endl << endl;
       
@@ -4464,7 +4464,7 @@ public:
    /**
     * Runs interactive unit tests.
     */
-   virtual void runInteractiveUnitTests(TestRunner &tr)
+   virtual void runInteractiveUnitTests(TestRunner& tr)
    {
       cout << "Interactive unit tests starting..." << endl << endl;
       
