@@ -98,7 +98,7 @@ FilterOutputStream g_junk5(NULL, false);
 ByteArrayInputStream g_junk6(NULL, 0);
 IgnoreOutputStream g_junk7(NULL);
 
-void runBase64Test(TestRunner &tr)
+void runBase64Test(TestRunner& tr)
 {
    const char* expected = "YmNkZQ==";
 
@@ -1034,7 +1034,7 @@ void runMessageDigestTest()
    cout << endl << "MessageDigest test complete." << endl;
 }
 
-void runCrcTest(TestRunner &tr)
+void runCrcTest(TestRunner& tr)
 {
    tr.test("CRC");
    
@@ -1839,7 +1839,7 @@ void runConvertTest()
    cout << endl << "Convert test complete." << endl;
 }
 
-void runUrlEncodeTest(TestRunner &tr)
+void runUrlEncodeTest(TestRunner& tr)
 {
    tr.test("Url Encode/Decode");
    
@@ -1883,7 +1883,7 @@ void dumpUrl(Url url)
    }
 }
 
-void runUrlTest(TestRunner &tr)
+void runUrlTest(TestRunner& tr)
 {
    tr.test("Url");
 
