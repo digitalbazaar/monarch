@@ -61,6 +61,7 @@ void TestRunner::test(const char* name)
       case Names:
       case Times:
          cout << getTestName() << "... ";
+         cout.flush();
          break;
       default:
          break;
