@@ -993,9 +993,9 @@ void runDatagramTest()
    cout << endl << "Datagram test complete." << endl;
 }
 
-void runMessageDigestTest()
+void runMessageDigestTest(TestRunner& tr)
 {
-   cout << "Running MessageDigest Test" << endl << endl;
+   tr.test("MessageDigest");
    
    // correct values
    string correctMd5 = "78eebfd9d42958e3f31244f116ab7bbe";
@@ -1007,31 +1007,17 @@ void runMessageDigestTest()
    testMd5.update(" MESSAGE");
    string digestMd5 = testMd5.getDigest();
    
-   cout << "MD5 Digest=" << digestMd5 << endl;
-   if(digestMd5 == correctMd5)
-   {
-      cout << "MD5 is correct!" << endl;
-   }
-   else
-   {
-      cout << "MD5 is incorrect!" << endl;
-   }
+   //cout << "MD5 Digest=" << digestMd5 << endl;
+   assert(digestMd5 == correctMd5);
    
    MessageDigest testSha1("SHA1");
    testSha1.update("THIS IS A MESSAGE");
    string digestSha1 = testSha1.getDigest();
    
-   cout << "SHA-1 Digest=" << digestSha1 << endl;
-   if(digestSha1 == correctSha1)
-   {
-      cout << "SHA-1 is correct!" << endl;
-   }
-   else
-   {
-      cout << "SHA-1 is incorrect!" << endl;
-   }
+   //cout << "SHA-1 Digest=" << digestSha1 << endl;
+   assert(digestSha1 == correctSha1);
    
-   cout << endl << "MessageDigest test complete." << endl;
+   tr.pass();
 }
 
 void runCrcTest(TestRunner& tr)
@@ -4447,6 +4433,7 @@ public:
       cout << "Automatic unit tests starting..." << endl << endl;
       
       runBase64Test(tr);
+      runMessageDigestTest(tr);
       runCrcTest(tr);
       runUrlEncodeTest(tr);
       runUrlTest(tr);
@@ -4482,7 +4469,6 @@ public:
 //      runTcpClientServerTest();
 //      runUdpClientServerTest();
 //      runDatagramTest();
-//      runMessageDigestTest();
 //      runAsymmetricKeyLoadingTest();
 //      runDsaAsymmetricKeyCreationTest();
 //      runRsaAsymmetricKeyCreationTest();
