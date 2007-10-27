@@ -68,6 +68,14 @@ public:
    virtual void appendData(void* bObject, const char* data, int length) = 0;
    
    /**
+    * Ends data being set to the bound object. This method should flush any
+    * cached data (via appendData()) to the bound object.
+    * 
+    * @param bObject the bound object.
+    */
+   virtual void endData(void* bObject) = 0;
+   
+   /**
     * Gets data from the bound object.
     * 
     * The caller of this method is responsible for freeing the returned

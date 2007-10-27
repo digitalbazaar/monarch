@@ -5,6 +5,7 @@
 #define db_data_DataMappingFunctor_H
 
 #include "db/data/DataMapping.h"
+#include "db/io/ByteBuffer.h"
 
 namespace db
 {
@@ -144,6 +145,11 @@ protected:
     * The DataGetFunction for getting data from the object.
     */
    DataGetFunction mGetFunction;
+   
+   /**
+    * A ByteBuffer for storing temporary data.
+    */
+   db::io::ByteBuffer mDataCache;
    
 public:
    /**
@@ -302,6 +308,14 @@ public:
     * @param length the length of the data.
     */
    virtual void appendData(void* bObject, const char* data, int length);
+   
+   /**
+    * Ends data being set to the bound object. This method should flush any
+    * cached data (via setData() or appendData()) to the bound object.
+    * 
+    * @param bObject the bound object.
+    */
+   virtual void endData(void* bObject);
    
    /**
     * Gets data from the bound object.
@@ -620,77 +634,66 @@ template<class BoundType, class ChildType>
 void DataMappingFunctor<BoundType, ChildType>::appendData(
    void* bObject, const char* data, int length)
 {
-   // get existing data
-   char* oldData;
-   getData(bObject, &oldData);
-   int oldLength = strlen(oldData);
+   // append data to cache
+   mDataCache.put(data, length, true);
+}
+
+template<class BoundType, class ChildType>
+void DataMappingFunctor<BoundType, ChildType>::endData(void* bObject)
+{
+   setData(bObject, mDataCache.data(), mDataCache.length());
    
-   char* d = NULL;
-   if(oldLength > 0)
-   {
-      // append new data and null-terminator
-      d = new char[oldLength + length + 1];
-      strncpy(d, oldData, oldLength);
-      strncpy(d + oldLength, data, length);
-      memset(d + oldLength + length, 0, 1);
-      length += oldLength;
-   }
-   else
-   {
-      // append null terminator
-      d = new char[length + 1];
-      strncpy(d, data, length);
-      memset(d + length, 0, 1);
-   }
+//   // add null-terminator to data
+//   mDataCache.put("", 1, true);
+//   char* d = mDataCache.data();
+//   
+//   // FIXME: setData() cannot be called from here due to some strange
+//   // linking error where its address is returned as NULL at runtime
+//   BoundType* bObj = (BoundType*)bObject;
+//   
+//   switch(mSetFunction.type)
+//   {
+//      case DataSetFunction::None:
+//         // no set function
+//         break;
+//      case DataSetFunction::Boolean:
+//         // convert data to boolean
+//         if(strcasecmp(d, "true") == 0)
+//         {
+//            (bObj->*mSetFunction.bFunc)(true);
+//         }
+//         else if(strcasecmp(d, "false") == 0)
+//         {
+//            (bObj->*mSetFunction.bFunc)(false);
+//         }
+//         else
+//         {
+//            (bObj->*mSetFunction.bFunc)(strcasecmp(d, "1") == 0);
+//         }
+//         break;
+//      case DataSetFunction::Int32:
+//         // convert data to integer
+//         (bObj->*mSetFunction.i32Func)(strtol(d, NULL, 10));
+//         break;
+//      case DataSetFunction::UInt32:
+//         // convert data to integer
+//         (bObj->*mSetFunction.ui32Func)(strtoul(d, NULL, 10));
+//         break;
+//      case DataSetFunction::Int64:
+//         // convert data to integer
+//         (bObj->*mSetFunction.i64Func)(strtoll(d, NULL, 10));
+//         break;
+//      case DataSetFunction::UInt64:
+//         // convert data to integer
+//         (bObj->*mSetFunction.ui64Func)(strtoull(d, NULL, 10));
+//         break;
+//      case DataSetFunction::String:
+//         (bObj->*mSetFunction.sFunc)(d);
+//         break;
+//   }
    
-   // FIXME: setData() cannot be called from here due to some strange
-   // linking error where its address is returned as NULL at runtime
-   BoundType* bObj = (BoundType*)bObject;
-   
-   switch(mSetFunction.type)
-   {
-      case DataSetFunction::None:
-         // no set function
-         break;
-      case DataSetFunction::Boolean:
-         // convert data to boolean
-         if(strcasecmp(d, "true") == 0)
-         {
-            (bObj->*mSetFunction.bFunc)(true);
-         }
-         else if(strcasecmp(d, "false") == 0)
-         {
-            (bObj->*mSetFunction.bFunc)(false);
-         }
-         else
-         {
-            (bObj->*mSetFunction.bFunc)(strcasecmp(d, "1") == 0);
-         }
-         break;
-      case DataSetFunction::Int32:
-         // convert data to integer
-         (bObj->*mSetFunction.i32Func)(strtol(d, NULL, 10));
-         break;
-      case DataSetFunction::UInt32:
-         // convert data to integer
-         (bObj->*mSetFunction.ui32Func)(strtoul(d, NULL, 10));
-         break;
-      case DataSetFunction::Int64:
-         // convert data to integer
-         (bObj->*mSetFunction.i64Func)(strtoll(d, NULL, 10));
-         break;
-      case DataSetFunction::UInt64:
-         // convert data to integer
-         (bObj->*mSetFunction.ui64Func)(strtoull(d, NULL, 10));
-         break;
-      case DataSetFunction::String:
-         (bObj->*mSetFunction.sFunc)(d);
-         break;
-   }
-   
-   // clean up temp and old data
-   delete [] d;
-   delete [] oldData;
+   // free data cache
+   mDataCache.free();
 }
 
 template<class BoundType, class ChildType>

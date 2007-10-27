@@ -107,12 +107,13 @@ protected:
    /**
     * A list that maintains the order in which DataNames were added.
     */
-   std::list<DataName*> mDataNameOrder;
+   typedef std::list<DataName*> DataNameList;
+   DataNameList mDataNameOrder;
    
    /**
-    * The DataName for the current DataBinding.
+    * A stack that maintains the DataName for the current DataBinding.
     */
-   DataName* mCurrentDataName;
+   DataNameList mDataNameStack;
    
    /**
     * Creates a new DataName from a namespace, a name, and whether or not

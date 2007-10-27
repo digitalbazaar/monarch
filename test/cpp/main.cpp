@@ -2630,7 +2630,7 @@ void runByteBufferTest()
    const char* chicken = "chicken";
    const char* t = "T ";
    const char* hate = "hate ";
-   b.clear();
+   b.free();
    b.put(t, strlen(t), true);
    b.put(hate, strlen(hate), true);
    b.put(chicken, strlen(chicken), true);
@@ -4510,11 +4510,11 @@ public:
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
 //      runPingTest();
-//      runXmlReaderTest();
-//      runXmlWriterTest();
-//      runXmlReadWriteTest();
-//      runXmlBindingInputStreamTest();
-//      runXmlBindingOutputStreamTest();
+      runXmlReaderTest();
+      runXmlWriterTest();
+      runXmlReadWriteTest();
+      runXmlBindingInputStreamTest();
+      runXmlBindingOutputStreamTest();
 //      runBigIntegerTest();
 //      runBigDecimalTest();
 //      runMySqlConnectionTest();

@@ -32,7 +32,6 @@ DataBinding::DataBinding(void* obj)
 {
    mObject = obj;
    mRootDataName = NULL;
-   mCurrentDataName = NULL;
 }
 
 DataBinding::~DataBinding()
@@ -56,8 +55,12 @@ DataBinding::~DataBinding()
    // free root data name
    freeDataName(mRootDataName);
    
-   // free current data name
-   freeDataName(mCurrentDataName);
+   // free current data name stack
+   for(DataNameList::iterator i = mDataNameStack.begin();
+       i != mDataNameStack.end(); i++)
+   {
+      freeDataName(*i);
+   }
 }
 
 bool DataBinding::DataNameComparator::operator()(
@@ -210,9 +213,9 @@ DataBinding* DataBinding::startData(
    rval = getDataBinding(dn);
    if(rval != NULL)
    {
-      // get data mapping
+      // get data mapping, create child if appropriate
       DataMapping* dm = getDataMapping(dn);
-      if(dm != NULL)
+      if(dm != NULL && dm->isChildMapping())
       {
          // create new child object for the data binding
          rval->mObject = dm->createChild(getCreateAddObject(dn));
@@ -224,9 +227,8 @@ DataBinding* DataBinding::startData(
       rval = this;
    }
    
-   // free old data name and set new one
-   freeDataName(rval->mCurrentDataName);
-   rval->mCurrentDataName = dn;
+   // add new data name to stack
+   rval->mDataNameStack.push_front(dn);
    
    return rval;
 }
@@ -234,33 +236,45 @@ DataBinding* DataBinding::startData(
 void DataBinding::appendData(
    const char* charEncoding, const char* data, unsigned int length)
 {
+   // get current data name
+   DataName* dn = (mDataNameStack.empty()) ? NULL : mDataNameStack.front();
+   
    // get data mapping
-   DataMapping* dm = getDataMapping(mCurrentDataName);
+   DataMapping* dm = getDataMapping(dn);
    if(dm != NULL)
    {
       // append data
-      dm->appendData(getSetGetObject(mCurrentDataName), data, length);
+      dm->appendData(getSetGetObject(dn), data, length);
    }
 }
 
 void DataBinding::endData(
    const char* charEncoding, const char* ns, const char* name, DataBinding* db)
 {
-   // add child object if not using self as binding
-   if(this != db)
+   // get data binding's current data name
+   DataName* dn =
+      (db->mDataNameStack.empty()) ? NULL : db->mDataNameStack.front();
+   DataMapping* dm = db->getDataMapping(dn);
+   if(dm != NULL && !dm->isChildMapping())
    {
-      // get data mapping
-      DataMapping* dm = getDataMapping(db->getDataName());
-      if(dm != NULL)
-      {
-         // add child object
-         dm->addChild(getCreateAddObject(db->getDataName()), db->mObject);
-      }
+      // end data
+      dm->endData(db->getSetGetObject(dn));
    }
    
-   // clean up current data name
-   freeDataName(db->mCurrentDataName);
-   db->mCurrentDataName = NULL;
+   // get data binding's data mapping, add child if appropriate
+   dm = getDataMapping(db->getDataName());
+   if(dm != NULL && dm->isChildMapping())
+   {
+      // add child object
+      dm->addChild(getCreateAddObject(db->getDataName()), db->mObject);
+   }
+   
+   // clean up current data name on stack, if any
+   if(!db->mDataNameStack.empty())
+   {
+      freeDataName(db->mDataNameStack.front());
+      db->mDataNameStack.pop_front();
+   }
 }
 
 void DataBinding::setData(
