@@ -103,10 +103,13 @@ public:
     * 
     * @param c the Connection to the database.
     * @param table the name of the table to update.
+    * @param whereColumn the column for the WHERE comparison clause, where the
+    *                    data in the bound object will be used for the column.
     * 
     * @return an SqlException if one occurred, NULL if not.
     */
-   virtual SqlException* update(Connection* c, const char* table);
+   virtual SqlException* update(
+      Connection* c, const char* table, const char* whereColumn);
    
    /**
     * Fetches a row from a table and uses the internal DataBinding to
@@ -114,10 +117,13 @@ public:
     * 
     * @param c the Connection to the database.
     * @param table the name of the table the data is in.
+    * @param whereColumn the column for the WHERE comparison clause, where the
+    *                    data in the bound object will be used for the column.
     * 
     * @return an SqlException if one occurred, NULL if not.
     */
-   virtual SqlException* fetch(Connection* c, const char* table);
+   virtual SqlException* fetch(
+      Connection* c, const char* table, const char* whereColumn = NULL);
 };
 
 } // end namespace sql

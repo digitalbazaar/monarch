@@ -61,6 +61,7 @@
 #include "db/crypto/BigDecimal.h"
 #include "db/io/ByteArrayOutputStream.h"
 #include "db/sql/Row.h"
+#include "db/sql/RowObject.h"
 #include "db/sql/sqlite3/Sqlite3Connection.h"
 #include "db/sql/sqlite3/Sqlite3ConnectionPool.h"
 #include "db/sql/mysql/MySqlConnection.h"
@@ -3864,6 +3865,195 @@ void runSqlite3StatementTest(TestRunner &tr)
    tr.ungroup();
 }
 
+class TestRowObject
+{
+protected:
+   char* mText;
+   bool mBoolean;
+   int mInt32;
+   unsigned int mUInt32;
+   
+public:
+   TestRowObject()
+   {
+      mText = strdup("");
+      mBoolean = false;
+      mInt32 = 1;
+      mUInt32 = 2;
+   }
+   
+   virtual ~TestRowObject()
+   {
+   }
+   
+   virtual void setText(const char* t)
+   {
+      delete [] mText;
+      mText = strdup(t);
+   }
+   
+   virtual const char* getText()
+   {
+      return mText;
+   }
+   
+   virtual void setBoolean(bool b)
+   {
+      mBoolean = b;
+   }
+   
+   virtual bool getBoolean()
+   {
+      return mBoolean;
+   }
+   
+   virtual void setInt32(int i)
+   {
+      mInt32 = i;
+   }
+   
+   virtual int getInt32()
+   {
+      return mInt32;
+   }
+   
+   virtual void setUInt32(unsigned int i)
+   {
+      mUInt32 = i;
+   }
+   
+   virtual unsigned int getUInt32() const
+   {
+      return mUInt32;
+   }
+};
+
+class TestRowObjectBinding : public DataBinding
+{
+protected:
+   DataMappingFunctor<TestRowObject> mTextMapping;
+   DataMappingFunctor<TestRowObject> mBooleanMapping;
+   DataMappingFunctor<TestRowObject> mInt32Mapping;
+   DataMappingFunctor<TestRowObject> mUInt32Mapping;
+   
+public:
+   TestRowObjectBinding(TestRowObject* ro) :
+      mTextMapping(&TestRowObject::setText, &TestRowObject::getText),
+      mBooleanMapping(&TestRowObject::setBoolean, &TestRowObject::getBoolean),
+      mInt32Mapping(&TestRowObject::setInt32, &TestRowObject::getInt32),
+      mUInt32Mapping(&TestRowObject::setUInt32, &TestRowObject::getUInt32)
+   {
+      setObject(ro);
+      
+      addDataMapping(NULL, "t", true, true, &mTextMapping);
+      addDataMapping(NULL, "b", true, true, &mBooleanMapping);
+      addDataMapping(NULL, "i32", true, true, &mInt32Mapping);
+      addDataMapping(NULL, "ui32", true, true, &mUInt32Mapping);
+   }
+   
+   virtual ~TestRowObjectBinding()
+   {
+   }
+};
+
+void runSqlite3RowObjectTest(TestRunner& tr)
+{
+   tr.group("Sqlite3 RowObject");
+   
+   // clear any exceptions
+   Exception::clearLast();
+   
+   Sqlite3Connection c;
+   c.connect("sqlite3::memory:");
+   
+   db::sql::Statement* s;
+   
+   // drop existing table
+   tr.test("drop table");
+   s = c.prepare("DROP TABLE IF EXISTS test");
+   assert(s != NULL);
+   s->execute();
+   delete s;
+   tr.passIfNoException();
+   
+   // create table
+   tr.test("create table");
+   s = c.prepare(
+      "CREATE TABLE IF NOT EXISTS test "
+      "(t TEXT, b INT, i32 INT, ui32 INT)");
+   s->execute();
+   delete s;
+   tr.passIfNoException();
+   
+   // insert a row object
+   TestRowObject tro1;
+   tro1.setText("This is some text.");
+   tro1.setBoolean(false);
+   tro1.setInt32(5);
+   tro1.setUInt32(14);
+   TestRowObjectBinding binding1(&tro1);
+   db::sql::RowObject ro1(&binding1);
+   
+   tr.test("insert row object 1");
+   ro1.insert(&c, "test");
+   
+   // insert another row object
+   TestRowObject tro2;
+   tro2.setText("The second row object.");
+   tro2.setBoolean(false);
+   tro2.setInt32(-1);
+   tro2.setUInt32(17);
+   TestRowObjectBinding binding2(&tro2);
+   db::sql::RowObject ro2(&binding2);
+   
+   tr.test("insert row object 2");
+   ro2.insert(&c, "test");
+   
+   // update row object 1
+   TestRowObject tro3;
+   tro3.setText("The first row object.");
+   tro3.setBoolean(true);
+   tro3.setInt32(5);
+   tro3.setUInt32(14);
+   TestRowObjectBinding binding3(&tro3);
+   db::sql::RowObject ro3(&binding3);
+   
+   tr.test("update row object 1");
+   ro3.update(&c, "test", "i32");
+   
+   // select row object 1 using binding 2
+   db::sql::RowObject ro4(&binding2);
+   tr.test("select row object 1");
+   tro2.setBoolean(true);
+   ro4.fetch(&c, "test", "b");
+   
+   // assert contents
+   assert(strcmp(tro2.getText(), "The first row object.") == 0);
+   assert(tro2.getBoolean());
+   assert(tro2.getInt32() == 5);
+   assert(tro2.getUInt32() == 14);
+   
+   // select row object 2 using binding 3
+   db::sql::RowObject ro5(&binding3);
+   tro3.setBoolean(false);
+   tr.test("select row object 2");
+   ro5.fetch(&c, "test", "b");
+   
+   // assert contents
+   assert(strcmp(tro3.getText(), "The second row object.") == 0);
+   assert(!tro3.getBoolean());
+   assert(tro3.getInt32() == -1);
+   assert(tro3.getUInt32() == 17);
+   
+   tr.pass();
+   
+   tr.test("connection close");
+   c.close();
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 void runMySqlConnectionTest()
 {
    cout << "Starting MySqlConnection test." << endl << endl;
@@ -3969,6 +4159,104 @@ void runMySqlStatementTest()
    assertNoException();
    
    cout << endl << "MySql test complete." << endl;
+}
+
+void runMysqlRowObjectTest(TestRunner& tr)
+{
+   tr.group("MySql RowObject");
+   
+   // clear any exceptions
+   Exception::clearLast();
+   
+   MySqlConnection c;
+   c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@mojo/test");
+   
+   db::sql::Statement* s;
+   
+   // drop existing table
+   tr.test("drop table");
+   s = c.prepare("DROP TABLE IF EXISTS test");
+   assert(s != NULL);
+   s->execute();
+   delete s;
+   tr.passIfNoException();
+   
+   // create table
+   tr.test("create table");
+   s = c.prepare(
+      "CREATE TABLE IF NOT EXISTS test "
+      "(t TEXT, b INT, i32 INT, ui32 INT)");
+   s->execute();
+   delete s;
+   tr.passIfNoException();
+   
+   // insert a row object
+   TestRowObject tro1;
+   tro1.setText("This is some text.");
+   tro1.setBoolean(false);
+   tro1.setInt32(5);
+   tro1.setUInt32(14);
+   TestRowObjectBinding binding1(&tro1);
+   db::sql::RowObject ro1(&binding1);
+   
+   tr.test("insert row object 1");
+   ro1.insert(&c, "test");
+   
+   // insert another row object
+   TestRowObject tro2;
+   tro2.setText("The second row object.");
+   tro2.setBoolean(false);
+   tro2.setInt32(-1);
+   tro2.setUInt32(17);
+   TestRowObjectBinding binding2(&tro2);
+   db::sql::RowObject ro2(&binding2);
+   
+   tr.test("insert row object 2");
+   ro2.insert(&c, "test");
+   
+   // update row object 1
+   TestRowObject tro3;
+   tro3.setText("The first row object.");
+   tro3.setBoolean(true);
+   tro3.setInt32(5);
+   tro3.setUInt32(14);
+   TestRowObjectBinding binding3(&tro3);
+   db::sql::RowObject ro3(&binding3);
+   
+   tr.test("update row object 1");
+   ro3.update(&c, "test", "i32");
+   
+   // select row object 1 using binding 2
+   db::sql::RowObject ro4(&binding2);
+   tr.test("select row object 1");
+   tro2.setBoolean(true);
+   ro4.fetch(&c, "test", "b");
+   
+   // assert contents
+   assert(strcmp(tro2.getText(), "The first row object.") == 0);
+   assert(tro2.getBoolean());
+   assert(tro2.getInt32() == 5);
+   assert(tro2.getUInt32() == 14);
+   
+   // select row object 2 using binding 3
+   db::sql::RowObject ro5(&binding3);
+   tro3.setBoolean(false);
+   tr.test("select row object 2");
+   ro5.fetch(&c, "test", "b");
+   
+   // assert contents
+   assert(strcmp(tro3.getText(), "The second row object.") == 0);
+   assert(!tro3.getBoolean());
+   assert(tro3.getInt32() == -1);
+   assert(tro3.getUInt32() == 17);
+   
+   tr.pass();
+   
+   tr.test("connection close");
+   c.close();
+   tr.passIfNoException();
+   
+   tr.ungroup();
 }
 
 void executeStatements(db::sql::Connection* c)
@@ -4439,6 +4727,8 @@ public:
       runUrlTest(tr);
       runSqlite3ConnectionTest(tr);
       runSqlite3StatementTest(tr);
+      runSqlite3RowObjectTest(tr);
+      runMysqlRowObjectTest(tr);
       
       cout << endl << "Automatic unit tests finished." << endl;
       

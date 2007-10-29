@@ -129,6 +129,7 @@ SqlException* MySqlStatement::setInt32(unsigned int param, int value)
       mParamBindings[param].buffer = (char*)new int(value);
       mParamBindings[param].is_null = 0;
       mParamBindings[param].length = 0;
+      mParamBindings[param].is_unsigned = 0;
    }
    
    return rval;
@@ -158,6 +159,7 @@ SqlException* MySqlStatement::setUInt32(unsigned int param, unsigned int value)
       mParamBindings[param].buffer = (char*)new unsigned int(value);
       mParamBindings[param].is_null = 0;
       mParamBindings[param].length = 0;
+      mParamBindings[param].is_unsigned = 1;
    }
    
    return rval;
@@ -186,7 +188,8 @@ SqlException* MySqlStatement::setInt64(unsigned int param, long long value)
       mParamBindings[param].buffer_type = MYSQL_TYPE_LONGLONG;
       mParamBindings[param].buffer = (char*)new long long(value);
       mParamBindings[param].is_null = 0;
-      mParamBindings[param].length = 0;   
+      mParamBindings[param].length = 0; 
+      mParamBindings[param].is_unsigned = 0;  
    }
    
    return rval;
@@ -216,7 +219,8 @@ SqlException* MySqlStatement::setUInt64(
       mParamBindings[param].buffer_type = MYSQL_TYPE_LONGLONG;
       mParamBindings[param].buffer = (char*)new unsigned long long(value);
       mParamBindings[param].is_null = 0;
-      mParamBindings[param].length = 0;   
+      mParamBindings[param].length = 0;
+      mParamBindings[param].is_unsigned = 1;
    }
    
    return rval;

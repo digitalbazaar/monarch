@@ -243,7 +243,8 @@ SqlException* RowObject::insert(Connection* c, const char* table)
    return rval;
 }
 
-SqlException* RowObject::update(Connection* c, const char* table)
+SqlException* RowObject::update(
+   Connection* c, const char* table, const char* whereColumn)
 {
    SqlException* rval = NULL;
    
@@ -263,8 +264,25 @@ SqlException* RowObject::update(Connection* c, const char* table)
    query.insert(0, table);
    query.insert(0, "UPDATE ");
    
+   // add where clause if appropriate
+   if(whereColumn != NULL)
+   {
+      query.append(" WHERE ");
+      query.append(whereColumn);
+      query.append("=?");
+   }
+   
    // prepare statement
    Statement* stmt = c->prepare(query.c_str());
+   
+   // add where clause column mapping if appropriate
+   if(whereColumn != NULL)
+   {
+      DataName dn;
+      dn.ns = NULL;
+      dn.name = (char*)whereColumn;
+      mappings.push_back(mBinding->getDataMapping(&dn));
+   }
    
    // bind parameters
    list<char*> datas;
@@ -293,7 +311,8 @@ SqlException* RowObject::update(Connection* c, const char* table)
    return rval;
 }
 
-SqlException* RowObject::fetch(Connection* c, const char* table)
+SqlException* RowObject::fetch(
+   Connection* c, const char* table, const char* whereColumn)
 {
    SqlException* rval = NULL;
    
@@ -313,8 +332,28 @@ SqlException* RowObject::fetch(Connection* c, const char* table)
    query.append(" FROM ");
    query.append(table);
    
+   // add where clause if appropriate
+   if(whereColumn != NULL)
+   {
+      query.append(" WHERE ");
+      query.append(whereColumn);
+      query.append("=?");
+   }
+   
    // prepare statement
    Statement* stmt = c->prepare(query.c_str());
+   
+   // bind parameters if appropriate
+   list<char*> datas;
+   if(whereColumn != NULL)
+   {
+      list<DataMapping*> whereMapping;
+      DataName dn;
+      dn.ns = NULL;
+      dn.name = (char*)whereColumn;
+      whereMapping.push_back(mBinding->getDataMapping(&dn));
+      bindParameters(stmt, whereMapping, datas);
+   }
    
    // check for an exception
    if(Exception::hasLast())
@@ -327,6 +366,8 @@ SqlException* RowObject::fetch(Connection* c, const char* table)
    // execute statement
    if((rval = stmt->execute()) == NULL)
    {
+      // FIXME: we may end up adding a list as another parameter to
+      // this method to allow fetching collections of things
       // fetch row
       Row* row;
       if((row = stmt->fetch()) != NULL)
@@ -346,6 +387,12 @@ SqlException* RowObject::fetch(Connection* c, const char* table)
    
    // clean up statement
    delete stmt;
+   
+   // clean up datas
+   for(list<char*>::iterator i = datas.begin(); i != datas.end(); i++)
+   {
+      delete *i;
+   }
    
    return rval;
 }
