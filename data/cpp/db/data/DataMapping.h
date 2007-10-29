@@ -23,6 +23,14 @@ class DataMapping
 {
 public:
    /**
+    * Possible data types.
+    */
+   typedef enum DataType
+   {
+      Boolean, Int32, UInt32, Int64, UInt64, String
+   };
+   
+   /**
     * Creates a new DataMapping.
     */
    DataMapping() {};
@@ -59,6 +67,18 @@ public:
    virtual void setData(void* bObject, const char* data, int length) = 0;
    
    /**
+    * Sets the passed data in the bound object by interpreting the passed
+    * pointer as a pointer to the raw memory for the data. For instance,
+    * if the data type is a 32-bit integer, the data pointer will point at
+    * 4 bytes.
+    * 
+    * @param bObject the bound object.
+    * @param data the data to set in the object.
+    * @param length the length of the data.
+    */
+   virtual void setRawData(void* bObject, char* data, int length) = 0;
+   
+   /**
     * Appends the passed data to the bound object.
     * 
     * @param bObject the bound object.
@@ -88,6 +108,19 @@ public:
    virtual void getData(void* bObject, char** s) = 0;
    
    /**
+    * Gets raw data from the bound object. No conversion will be performed
+    * on the data. For instance, if the data is an 32-bit integer, then a
+    * buffer of 4 bytes will be allocated and "s" will be pointed at it.
+    * 
+    * The caller of this method is responsible for freeing the returned
+    * data.
+    * 
+    * @param bObject the bound object.
+    * @param s a pointer to point at the data from the bound object.
+    */
+   virtual void getRawData(void* bObject, char** s) = 0;
+   
+   /**
     * Writes the data for the passed bound object to the given output stream.
     * 
     * @param bObject the bound object with data to write out.
@@ -103,6 +136,13 @@ public:
     * @return true if the passed bound object has data, false if not.
     */
    virtual bool hasData(void* bObject) = 0;
+   
+   /**
+    * Returns the type of data for this mapping.
+    * 
+    * @return the type of data for this mapping.
+    */
+   virtual DataType getDataType() = 0;
    
    /**
     * True if this DataMapping is a create/add child mapping, false if it is a

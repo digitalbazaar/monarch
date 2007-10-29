@@ -301,6 +301,18 @@ public:
    virtual void setData(void* bObject, const char* data, int length);
    
    /**
+    * Sets the passed data in the bound object by interpreting the passed
+    * pointer as a pointer to the raw memory for the data. For instance,
+    * if the data type is a 32-bit integer, the data pointer will point at
+    * 4 bytes.
+    * 
+    * @param bObject the bound object.
+    * @param data the data to set in the object.
+    * @param length the length of the data.
+    */
+   virtual void setRawData(void* bObject, char* data, int length);
+   
+   /**
     * Appends the passed data to the bound object.
     * 
     * @param bObject the bound object.
@@ -330,6 +342,19 @@ public:
    virtual void getData(void* bObject, char** s);
    
    /**
+    * Gets raw data from the bound object. No conversion will be performed
+    * on the data. For instance, if the data is an 32-bit integer, then a
+    * buffer of 4 bytes will be allocated and "s" will be pointed at it.
+    * 
+    * The caller of this method is responsible for freeing the returned
+    * data.
+    * 
+    * @param bObject the bound object.
+    * @param s a pointer to point at the data from the bound object.
+    */
+   virtual void getRawData(void* bObject, char** s);
+   
+   /**
     * Writes the data for the passed bound object to the given output stream.
     * 
     * @param bObject the bound object.
@@ -345,6 +370,13 @@ public:
     * @return true if the passed bound object has data, false if not.
     */
    virtual bool hasData(void* bObject);
+   
+   /**
+    * Returns the type of data for this mapping.
+    * 
+    * @return the type of data for this mapping.
+    */
+   virtual DataType getDataType();
    
    /**
     * True if this DataMapping is a create/add child mapping, false if it is a
@@ -631,6 +663,44 @@ void DataMappingFunctor<BoundType, ChildType>::setData(
 }
 
 template<class BoundType, class ChildType>
+void DataMappingFunctor<BoundType, ChildType>::setRawData(
+   void* bObject, char* data, int length)
+{
+   BoundType* bObj = (BoundType*)bObject;
+   
+   // add null-terminator to data
+   char d[length + 1];
+   strncpy(d, data, length);
+   memset(d + length, 0, 1);
+   
+   switch(mSetFunction.type)
+   {
+      case DataSetFunction::None:
+         // no set function
+         break;
+      case DataSetFunction::Boolean:
+         (bObj->*mSetFunction.bFunc)(*((bool*)data));
+         break;
+      case DataSetFunction::Int32:
+         (bObj->*mSetFunction.i32Func)(*((int*)data));
+         break;
+      case DataSetFunction::UInt32:
+         (bObj->*mSetFunction.ui32Func)(*((unsigned int*)data));
+         break;
+      case DataSetFunction::Int64:
+         (bObj->*mSetFunction.i64Func)(*((long long*)data));
+         break;
+      case DataSetFunction::UInt64:
+         // convert data to integer
+         (bObj->*mSetFunction.ui64Func)(*((unsigned long long*)data));
+         break;
+      case DataSetFunction::String:
+         (bObj->*mSetFunction.sFunc)(d);
+         break;
+   }
+}
+
+template<class BoundType, class ChildType>
 void DataMappingFunctor<BoundType, ChildType>::appendData(
    void* bObject, const char* data, int length)
 {
@@ -641,56 +711,8 @@ void DataMappingFunctor<BoundType, ChildType>::appendData(
 template<class BoundType, class ChildType>
 void DataMappingFunctor<BoundType, ChildType>::endData(void* bObject)
 {
+   // set data
    setData(bObject, mDataCache.data(), mDataCache.length());
-   
-//   // add null-terminator to data
-//   mDataCache.put("", 1, true);
-//   char* d = mDataCache.data();
-//   
-//   // FIXME: setData() cannot be called from here due to some strange
-//   // linking error where its address is returned as NULL at runtime
-//   BoundType* bObj = (BoundType*)bObject;
-//   
-//   switch(mSetFunction.type)
-//   {
-//      case DataSetFunction::None:
-//         // no set function
-//         break;
-//      case DataSetFunction::Boolean:
-//         // convert data to boolean
-//         if(strcasecmp(d, "true") == 0)
-//         {
-//            (bObj->*mSetFunction.bFunc)(true);
-//         }
-//         else if(strcasecmp(d, "false") == 0)
-//         {
-//            (bObj->*mSetFunction.bFunc)(false);
-//         }
-//         else
-//         {
-//            (bObj->*mSetFunction.bFunc)(strcasecmp(d, "1") == 0);
-//         }
-//         break;
-//      case DataSetFunction::Int32:
-//         // convert data to integer
-//         (bObj->*mSetFunction.i32Func)(strtol(d, NULL, 10));
-//         break;
-//      case DataSetFunction::UInt32:
-//         // convert data to integer
-//         (bObj->*mSetFunction.ui32Func)(strtoul(d, NULL, 10));
-//         break;
-//      case DataSetFunction::Int64:
-//         // convert data to integer
-//         (bObj->*mSetFunction.i64Func)(strtoll(d, NULL, 10));
-//         break;
-//      case DataSetFunction::UInt64:
-//         // convert data to integer
-//         (bObj->*mSetFunction.ui64Func)(strtoull(d, NULL, 10));
-//         break;
-//      case DataSetFunction::String:
-//         (bObj->*mSetFunction.sFunc)(d);
-//         break;
-//   }
    
    // free data cache
    mDataCache.free();
@@ -712,14 +734,8 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
          break;
       case DataGetFunction::Boolean:
          // convert boolean to string
-         if((bObj->*mGetFunction.bFunc)())
-         {
-            *s = strdup("true");
-         }
-         else
-         {
-            *s = strdup("false");
-         }
+         *s = ((bObj->*mGetFunction.bFunc)()) ? 
+            strdup("true") : strdup("false");
          break;
       case DataGetFunction::Int32:
          // convert integer to string
@@ -743,25 +759,12 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
          break;
       case DataGetFunction::String:
          str = (bObj->*mGetFunction.sFunc)();
-         if(str != NULL)
-         {
-            *s = strdup(str);
-         }
-         else
-         {
-            *s = strdup("");
-         }
+         *s = (str != NULL) ? strdup(str) : strdup("");
          break;
       case DataGetFunction::BooleanConst:
          // convert boolean to string
-         if((bObj->*mGetFunction.bcFunc)())
-         {
-            *s = strdup("true");
-         }
-         else
-         {
-            *s = strdup("false");
-         }
+         *s = ((bObj->*mGetFunction.bcFunc)()) ?
+            strdup("true") : strdup("false");
          break;
       case DataGetFunction::Int32Const:
          // convert integer to string
@@ -785,14 +788,61 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
          break;
       case DataGetFunction::StringConst:
          str = (bObj->*mGetFunction.scFunc)();
-         if(str != NULL)
-         {
-            *s = strdup(str);
-         }
-         else
-         {
-            *s = strdup("");
-         }
+         *s = (str != NULL) ? strdup(str) : strdup("");
+         break;
+   }
+}
+
+template<class BoundType, class ChildType>
+void DataMappingFunctor<BoundType, ChildType>::getRawData(
+   void* bObject, char** s)
+{
+   *s = NULL;
+   const char* str = NULL;
+   BoundType* bObj = (BoundType*)bObject;
+   
+   switch(mGetFunction.type)
+   {
+      case DataGetFunction::None:
+         // no get function
+         break;
+      case DataGetFunction::Boolean:
+         *s = (char*)new bool((bObj->*mGetFunction.bFunc)());
+         break;
+      case DataGetFunction::Int32:
+         *s = (char*)new int((bObj->*mGetFunction.i32Func)());
+         break;
+      case DataGetFunction::UInt32:
+         *s = (char*)new unsigned int((bObj->*mGetFunction.ui32Func)());
+         break;
+      case DataGetFunction::Int64:
+         *s = (char*)new long long((bObj->*mGetFunction.i64Func)());
+         break;
+      case DataGetFunction::UInt64:
+         *s = (char*)new unsigned long long((bObj->*mGetFunction.i64Func)());
+         break;
+      case DataGetFunction::String:
+         str = (bObj->*mGetFunction.sFunc)();
+         *s = (str != NULL) ? strdup(str) : strdup("");
+         break;
+      case DataGetFunction::BooleanConst:
+         *s = (char*)new bool((bObj->*mGetFunction.bcFunc)());
+         break;
+      case DataGetFunction::Int32Const:
+         *s = (char*)new int((bObj->*mGetFunction.i32cFunc)());
+         break;
+      case DataGetFunction::UInt32Const:
+         *s = (char*)new unsigned int((bObj->*mGetFunction.ui32cFunc)());
+         break;
+      case DataGetFunction::Int64Const:
+         *s = (char*)new long long((bObj->*mGetFunction.i64cFunc)());
+         break;
+      case DataGetFunction::UInt64Const:
+         *s = (char*)new unsigned long long((bObj->*mGetFunction.i64cFunc)());
+         break;
+      case DataGetFunction::StringConst:
+         str = (bObj->*mGetFunction.scFunc)();
+         *s = (str != NULL) ? strdup(str) : strdup("");
          break;
    }
 }
@@ -943,6 +993,43 @@ bool DataMappingFunctor<BoundType, ChildType>::hasData(void* bObject)
       case DataGetFunction::StringConst:
          str = (bObj->*mGetFunction.scFunc)();
          rval = (str != NULL && strlen(str) > 0);
+         break;
+   }
+   
+   return rval;
+}
+
+template<class BoundType, class ChildType>
+DataMapping::DataType DataMappingFunctor<BoundType, ChildType>::getDataType()
+{
+   DataType rval;
+   
+   switch(mGetFunction.type)
+   {
+      case DataGetFunction::None:
+      case DataGetFunction::String:
+      case DataGetFunction::StringConst:
+         rval = String;
+         break;
+      case DataGetFunction::Boolean:
+      case DataGetFunction::BooleanConst:
+         rval = Boolean;
+         break;
+      case DataGetFunction::Int32:
+      case DataGetFunction::Int32Const:
+         rval = Int32;
+         break;
+      case DataGetFunction::UInt32:
+      case DataGetFunction::UInt32Const:
+         rval = UInt32;
+         break;
+      case DataGetFunction::Int64:
+      case DataGetFunction::Int64Const:
+         rval = Int64;
+         break;
+      case DataGetFunction::UInt64:
+      case DataGetFunction::UInt64Const:
+         rval = UInt64;
          break;
    }
    

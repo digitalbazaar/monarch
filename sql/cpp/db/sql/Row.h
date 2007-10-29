@@ -5,7 +5,6 @@
 #define db_sql_Row_h
 
 #include "db/sql/Statement.h"
-#include "db/sql/SqlException.h"
 
 namespace db
 {
@@ -29,6 +28,8 @@ protected:
 public:
    /**
     * Creates a new Row from a Statement.
+    * 
+    * @param s the Statement for the Row.
     */
    Row(Statement* s);
    
