@@ -3996,6 +3996,7 @@ void runSqlite3RowObjectTest(TestRunner& tr)
    
    tr.test("insert row object 1");
    ro1.insert(&c, "test");
+   tr.passIfNoException();
    
    // insert another row object
    TestRowObject tro2;
@@ -4008,6 +4009,7 @@ void runSqlite3RowObjectTest(TestRunner& tr)
    
    tr.test("insert row object 2");
    ro2.insert(&c, "test");
+   tr.passIfNoException();
    
    // update row object 1
    TestRowObject tro3;
@@ -4020,6 +4022,7 @@ void runSqlite3RowObjectTest(TestRunner& tr)
    
    tr.test("update row object 1");
    ro3.update(&c, "test", "i32");
+   tr.passIfNoException();
    
    // select row object 1 using binding 2
    db::sql::RowObject ro4(&binding2);
@@ -4032,6 +4035,7 @@ void runSqlite3RowObjectTest(TestRunner& tr)
    assert(tro2.getBoolean());
    assert(tro2.getInt32() == 5);
    assert(tro2.getUInt32() == 14);
+   tr.passIfNoException();
    
    // select row object 2 using binding 3
    db::sql::RowObject ro5(&binding3);
@@ -4044,8 +4048,7 @@ void runSqlite3RowObjectTest(TestRunner& tr)
    assert(!tro3.getBoolean());
    assert(tro3.getInt32() == -1);
    assert(tro3.getUInt32() == 17);
-   
-   tr.pass();
+   tr.passIfNoException();
    
    tr.test("connection close");
    c.close();
@@ -4201,6 +4204,7 @@ void runMysqlRowObjectTest(TestRunner& tr)
    
    tr.test("insert row object 1");
    ro1.insert(&c, "test");
+   tr.passIfNoException();
    
    // insert another row object
    TestRowObject tro2;
@@ -4213,6 +4217,7 @@ void runMysqlRowObjectTest(TestRunner& tr)
    
    tr.test("insert row object 2");
    ro2.insert(&c, "test");
+   tr.passIfNoException();
    
    // update row object 1
    TestRowObject tro3;
@@ -4225,6 +4230,7 @@ void runMysqlRowObjectTest(TestRunner& tr)
    
    tr.test("update row object 1");
    ro3.update(&c, "test", "i32");
+   tr.passIfNoException();
    
    // select row object 1 using binding 2
    db::sql::RowObject ro4(&binding2);
@@ -4237,6 +4243,7 @@ void runMysqlRowObjectTest(TestRunner& tr)
    assert(tro2.getBoolean());
    assert(tro2.getInt32() == 5);
    assert(tro2.getUInt32() == 14);
+   tr.passIfNoException();
    
    // select row object 2 using binding 3
    db::sql::RowObject ro5(&binding3);
@@ -4249,8 +4256,7 @@ void runMysqlRowObjectTest(TestRunner& tr)
    assert(!tro3.getBoolean());
    assert(tro3.getInt32() == -1);
    assert(tro3.getUInt32() == 17);
-   
-   tr.pass();
+   tr.passIfNoException();
    
    tr.test("connection close");
    c.close();
