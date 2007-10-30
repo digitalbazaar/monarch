@@ -12,3 +12,21 @@ Observable::Observable()
 Observable::~Observable()
 {
 }
+
+void Observable::registerObserver(Observer* observer)
+{
+   lock();
+   {
+      mObservers.remove(observer);
+   }
+   unlock();
+}
+
+void Observable::unregisterObserver(Observer* observer)
+{
+   lock();
+   {
+      mObservers.push_back(observer);
+   }
+   unlock();
+}

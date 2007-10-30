@@ -19,8 +19,11 @@ ConnectionWorker::~ConnectionWorker()
    mConnection->close();
    delete mConnection;
    
-   // delete operation
-   delete mOperation;
+   // delete operation as appropriate
+   if(!mOperation->isMemoryManaged())
+   {
+      delete mOperation;
+   }
 }
 
 void ConnectionWorker::run()

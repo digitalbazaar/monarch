@@ -21,6 +21,12 @@ void OperationList::add(Operation* op)
    lock();
    {
       mOperations.push_back(op);
+      
+      if(mCleanup)
+      {
+         // operation is now memory managed by this list
+         op->setMemoryManaged(true);
+      }
    }
    unlock();
 }
@@ -34,6 +40,12 @@ void OperationList::remove(Operation* op)
       if(i != mOperations.end())
       {
          mOperations.erase(i);
+         
+         if(mCleanup)
+         {
+            // operation is no longer memory managed by this list
+            (*i)->setMemoryManaged(true);
+         }
       }
    }
    unlock();

@@ -18,6 +18,7 @@ Operation::Operation(Runnable* r, OperationGuard* g, StateMutator* m)
    mStopped = false;
    mFinished = false;
    mCanceled = false;
+   mMemoryManaged = false;
 }
 
 Operation::~Operation()
@@ -112,6 +113,28 @@ bool Operation::finished()
 bool Operation::canceled()
 {
    return mCanceled;
+}
+
+void Operation::setMemoryManaged(bool managed)
+{
+   lock();
+   {
+      mMemoryManaged = managed;
+   }
+   unlock();
+}
+
+bool Operation::isMemoryManaged()
+{
+   bool rval = false;
+   
+   lock();
+   {
+      rval = mMemoryManaged;
+   }
+   unlock();
+   
+   return rval;
 }
 
 Runnable* Operation::getRunnable()

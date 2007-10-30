@@ -39,11 +39,15 @@ public:
     * The passed Runnable, OperationGuard, and/or StateMutator may be
     * wrapped by other classes to provide additional logic.
     * 
-    * Typically, the returned Operation object must be freed by the caller
-    * of this method after it has stopped. Alternatively, the OperationRunner
-    * may maintain an OperationList (or use some other method) to manage
-    * the memory for the created Operations. IOW, memory management is up
-    * to the specific implementation for a OperationRunner.
+    * The returned Operation object must either be freed by the caller
+    * of this method after it has stopped, or the OperationRunner must use
+    * an OperationList (or use some other entity) to manage the memory for
+    * created Operations. IOW, memory management is up to the specific
+    * implementation of the OperationRunner.
+    * 
+    * If the created Operation is memory-managed, it should be set as such by
+    * calling Operation::setMemoryManaged(true) so that callers know not to
+    * delete the Operation.
     * 
     * @param r the Runnable with code to execute during the operation.
     * @param g the OperationGuard to use.

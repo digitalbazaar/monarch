@@ -4,6 +4,8 @@
 #ifndef db_event_Observer_H
 #define db_event_Observer_H
 
+#include "db/event/Event.h"
+
 namespace db
 {
 namespace event

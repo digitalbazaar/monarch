@@ -29,6 +29,11 @@ class OperationExecutor;
  * the flow of their code such that it only executes in the specific manner
  * desired.
  * 
+ * Note: Before freeing a heap-allocated Operation outside of an OperationList,
+ * "isMemoryManaged()" should be checked for "false". If it returns true, the
+ * Operation should not be freed as it will be automatically freed by an
+ * OperationList. 
+ * 
  * @author Dave Longley
  */
 class Operation : public virtual db::rt::Object
@@ -78,6 +83,12 @@ protected:
     * Set to true if this Operation was canceled, false otherwise.
     */
    bool mCanceled;
+   
+   /**
+    * Set to true if this Operation's memory is being managed by
+    * an OperationList, false if not.
+    */
+   bool mMemoryManaged;
    
    /**
     * OperationExecutor is a friend so that it can manipulate Operations
@@ -173,6 +184,26 @@ public:
     *         false otherwise.
     */
    virtual bool canceled();
+   
+   /**
+    * Sets whether or not this Operation belongs to an OperationList or
+    * other entity that will manage its heap-allocated memory automatically.
+    * 
+    * @param managed true if this Operation belongs to an OperationList that
+    *                will manage its memory, false if not.
+    */
+   virtual void setMemoryManaged(bool managed);
+   
+   /**
+    * Returns true if this Operation belongs to an OperationList or other
+    * entity that will manage its heap-allocated memory. If so, its memory
+    * should not be freed manually by a process that is waiting for its
+    * completion.
+    * 
+    * @return true if this Operation belongs to an OperationList that will
+    *         manage its memory automatically, false if not.
+    */
+   virtual bool isMemoryManaged();
    
    /**
     * Gets the Runnable for this Operation.
