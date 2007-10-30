@@ -601,651 +601,432 @@ void runCrcTest(TestRunner& tr)
    tr.pass();
 }
 
-void runAddressResolveTest(TestRunner& tr)
+void runConvertTest()
 {
-   tr.test("Address Resolution");
+   cout << "Starting Convert test." << endl << endl;
    
-   //cout << "Running Address Resolve Test" << endl << endl;
+   // convert to hex
+   char data[] = "abcdefghiABCDEFGZXYW0123987{;}*%6,./.12`~";
+   string original(data, strlen(data));
    
-   Exception::clearLast();
+   cout << "test data=" << original << endl;
    
-   // create IPv4 address
-   InternetAddress ip4;
+   string lowerHex = Convert::bytesToHex(data, strlen(data));
+   string upperHex = Convert::bytesToHex(data, strlen(data));
    
-   //cout << "Testing IPv4..." << endl << endl;
+   cout << "lower-case hex=" << lowerHex << endl;
+   cout << "lower-case hex length=" << lowerHex.length() << endl;
+   cout << "upper-case hex=" << upperHex << endl;
+   cout << "upper-case hex length=" << upperHex.length() << endl;
    
-   ip4.setHost("www.bitmunk.com");
-   ip4.getAddress();
-   assertNoException();
-   //cout << "www.bitmunk.com = " << ip4.getAddress() << endl;
+   char decoded1[lowerHex.length() / 2];
+   char decoded2[upperHex.length() / 2];
    
-   ip4.setHost("www.google.com");
-   ip4.getAddress();
-   assertNoException();
-   //cout << "www.google.com = " << ip4.getAddress() << endl;
+   unsigned int length1;
+   unsigned int length2;
+   Convert::hexToBytes(lowerHex.c_str(), lowerHex.length(), decoded1, length1);
+   Convert::hexToBytes(upperHex.c_str(), upperHex.length(), decoded2, length2);
    
-   ip4.setHost("www.yahoo.com");
-   ip4.getAddress();
-   assertNoException();
-   //cout << "www.yahoo.com = " << ip4.getAddress() << endl;
+   string ascii1(decoded1, length1);
    
-   ip4.setHost("www.microsoft.com");
-   ip4.getAddress();
-   assertNoException();
-   //cout << "www.microsoft.com = " << ip4.getAddress() << endl;
+   string ascii2(decoded2, length2);
    
-   //cout << endl;
+   cout << "lower-case hex to ascii=" << ascii1 << endl;
+   cout << "lower-case hex length=" << length1 << endl;
+   cout << "upper-case hex to ascii=" << ascii2 << endl;
+   cout << "upper-case hex length=" << length2 << endl;
    
-   ip4.setAddress("192.168.0.1");
-   ip4.getAddress();
-   ip4.getHost();
-   assertNoException();
-   //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   if(ascii1 == ascii2 && ascii1 == original)
+   {
+      cout << "Test successful!" << endl;
+   }
+   else
+   {
+      cout << "Test FAILED! Strings do not match!" << endl;
+   }
    
-   ip4.setAddress("192.168.0.8");
-   ip4.getAddress();
-   ip4.getHost();
-   assertNoException();
-   //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   cout << "10 to lower-case hex=" << Convert::intToHex(10) << endl;
+   cout << "33 to lower-case hex=" << Convert::intToHex(33) << endl;
+   cout << "100 to lower-case hex=" << Convert::intToHex(100) << endl;
+   cout << "10 to upper-case hex=" << Convert::intToUpperHex(10) << endl;
+   cout << "33 to upper-case hex=" << Convert::intToUpperHex(33) << endl;
+   cout << "100 to upper-case hex=" << Convert::intToUpperHex(100) << endl;
+   cout << "8975 to lower-case hex=" << Convert::intToHex(8975) << endl;
+   cout << "8975 to upper-case hex=" << Convert::intToUpperHex(8975) << endl;
+   cout << "65537 to lower-case hex=" << Convert::intToHex(65537) << endl;
+   cout << "65537 to upper-case hex=" << Convert::intToUpperHex(65537) << endl;
    
-   ip4.setAddress("216.239.51.99");
-   ip4.getAddress();
-   ip4.getHost();
-   assertNoException();
-   //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   string hex = "230f";
+   cout << "0x230f to integer=" <<
+      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
+   hex = "230F";
+   cout << "0x230F to integer=" <<
+      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
+   hex = "230FABCD";
+   cout << "0x230FABCD to integer=" <<
+      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
+   hex = "0";
+   cout << "0x0 to integer=" <<
+      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
    
-   // create IPv6 address
-   //Internet6Address ip6;
-   
-   //cout << endl << "Testing IPv6..." << endl << endl;
-   
-   //ip6.setHost("ip6-localhost");
-   //cout << "ip6-localhost = " << ip6.getAddress() << endl;
-   
-   //ip6.setHost("yuna.digitalbazaar.com");
-   //cout << "yuna.digitalbazaar.com = " << ip6.getAddress() << endl;
-   
-   /*
-   ip6.setHost("www.google.com");
-   cout << "www.google.com = " << ip6.getAddress() << endl;
-   
-   ip6.setHost("www.yahoo.com");
-   cout << "www.yahoo.com = " << ip6.getAddress() << endl;
-   
-   ip6.setHost("www.microsoft.com");
-   cout << "www.microsoft.com = " << ip6.getAddress() << endl;
-   */
-   
-   //cout << endl;
-   
-   //ip6.setAddress("fc00:840:db:bb:d::8");
-   //cout << ip6.getAddress() << " = " << ip6.getHost() << endl;
-   
-   tr.passIfNoException();
-   
-   //cout << endl << "Address Resolve Test complete." << endl << endl;
+   cout << endl << "Convert test complete." << endl;
 }
 
-void runSocketTest(TestRunner& tr)
+void runRegexTest()
 {
-   tr.test("Socket");
+   cout << "Starting Regex test." << endl << endl;
    
-   //cout << "Running Socket Test" << endl << endl;
-   Exception::clearLast();
+   string regex = "[a-z]{3}";
+   string str = "abc";
    
-   // create address
-   //InternetAddress address("127.0.0.1", 80);
-   InternetAddress address("www.google.com", 80);
+   if(Pattern::match(regex.c_str(), str.c_str()))
+   {
+      cout << "Simple pattern matches!" << endl;
+   }
+   else
+   {
+      cout << "Simple pattern DOES NOT MATCH!" << endl;
+   }
    
-   // ensure host was known
-   assertNoException();
+   cout << endl << "Doing sub-match test..." << endl << endl;
    
-   address.getAddress();
-   assertNoException();
-   //cout << "Connecting to: " << address.getAddress() << endl;
+   string submatches = "Look for green globs of green matter in green goo.";
+   Pattern* p = Pattern::compile("green");
    
-   // create tcp socket
-   TcpSocket socket;
+   unsigned int start, end;
+   unsigned int index = 0;
+   while(p->match(submatches.c_str(), index, start, end))
+   {
+      cout << "Found match at (" << start << ", " << end << ")" << endl;
+      cout << "Match=" << submatches.substr(start, end - start) << endl;
+      index = end;
+   }
    
-   // connect
-   socket.connect(&address);
-   assertNoException();
+   delete p;
    
-   char request[] =
-      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-   socket.send(request, sizeof(request));
-   assertNoException();
+   cout << endl << "Doing replace all test..." << endl << endl;
    
-   // set receive timeout (10 seconds = 10000 milliseconds)
-   socket.setReceiveTimeout(10000);
-   assertNoException();
+   cout << "change 'green' to 'blue'" << endl;
+   cout << submatches << endl;
+   StringTools::regexReplaceAll(submatches, "green", "blue");
+   cout << submatches << endl;
    
-   char response[2048];
-   int numBytes = 0;
+   cout << endl << "Regex test complete." << endl;
+}
+
+void runDateTest()
+{
+   cout << "Starting Date test." << endl << endl;
+   
+   TimeZone gmt = TimeZone::getTimeZone("GMT");
+   TimeZone local = TimeZone::getTimeZone();
+   
+   Date d;
    string str;
+   //d.format(str);
+   //d.format(str, "E EEEE d dd M MMMM MM yy w ww yyyy a", "java");
+   //d.format(str, "EEEE, MMMM dd yyyy hh:mm:ss a", "java");
+   //d.format(str, "EEE, MMMM dd yyyy hh:mm:ss a", "java", &local);
+   //d.format(str, "EEE, d MMM yyyy HH:mm:ss", "java", &gmt);
+   //d.format(str, "%a, %d %b %Y %H:%M:%S");
+   d.format(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
+   //d.format(str, "%a, %d %b %Y %H:%M:%S", "c", &local);
    
-   //cout << endl << "DOING A PEEK!" << endl;
+   cout << "Current Date: " << str << endl;
    
-   string peek;
-   numBytes = socket.getInputStream()->peek(response, 2048);
-   if(numBytes > 0)
-   {
-      //cout << "Peeked " << numBytes << " bytes." << endl;
-      peek.append(response, numBytes);
-      //cout << "Peek bytes=" << peek << endl;
-   }
-   assertNoException();
+   // parse date
+   Date d2;
+   d2.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
+   //d2.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &local);
+   string str2;
+   d2.format(str2, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
+   //d2.format(str2, "%a, %d %b %Y %H:%M:%S", "c", &local);
    
-   //cout << endl << "DOING ACTUAL READ NOW!" << endl;
-   int peekBytes = numBytes;
-   while((numBytes = socket.getInputStream()->read(response, 2048)) > 0)
-   {
-      //cout << "numBytes received: " << numBytes << endl;
-      str.append(response, numBytes);
-   }
+   cout << "Parsed Date 1: " << str2 << endl;
    
-   // confirm peek bytes check out
-   assert(strncmp(peek.c_str(), str.c_str(), peekBytes) == 0);
+//   // FIXME: parser may have a problem with AM/PM
+   // parse date again
+   Date d3;
+   str = "Thu, 02 Aug 2007 10:30:00";
+   d3.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
+   string str3;
+   //d3.format(str3, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
+   d3.format(str3, "%a, %d %b %Y %H:%M:%S", "c", &local);
    
-//   char response[2048];
-//   int numBytes = 0;
-//   string str = "";
-//   while((numBytes = socket.receive(response, 0, 2048)) > 0)
-//   {
-//      cout << "numBytes received: " << numBytes << endl;
-//      str.append(response, numBytes);
-//   }
+   cout << "Parsed Date 2: " << str3 << endl;
    
-   //cout << "Response:" << endl << str << endl;
-   
-   // close
-   socket.close();
-   
-   tr.passIfNoException();
-   
-   //cout << "Socket connection closed." << endl;
-   
-   //cout << endl << "Socket test complete." << endl;
+   cout << endl << "Date test complete." << endl;
 }
 
-void runSslSocketTest()
+void runStringTokenizerTest()
 {
-   cout << "Running SSL Socket Test" << endl << endl;
+   cout << "Starting StringTokenizer test." << endl << endl;
    
-   // openssl initialization code
-   SSL_library_init();
-   SSL_load_error_strings();
-   OpenSSL_add_all_algorithms();
+   const char* str = "This is a test of the StringTokenizer class.";
    
-   // FIXME:
-   // seed PRNG
-   
-   // create address
-   InternetAddress address("127.0.0.1", 443);
-   //InternetAddress address("127.0.0.1", 19020);
-   //InternetAddress address("www.google.com", 80);
-   cout << address.getAddress() << endl;
-   
-   // ensure host was known
-   if(!Thread::hasException())
+   StringTokenizer st(str, ' ');
+   while(st.hasNextToken())
    {
-      // create tcp socket
-      TcpSocket socket;
-      
-      // connect
-      socket.connect(&address);
-      
-      // create an SSL context
-      SslContext context;
-      
-      // create an SSL socket
-      SslSocket sslSocket(&context, &socket, true, false);
-      
-      // set receive timeout (10 seconds = 10000 milliseconds)
-      sslSocket.setReceiveTimeout(10000);
-      
-      // perform handshake (automatically happens, this call isn't necessary)
-      //sslSocket.performHandshake();
-      
-      char request[] =
-         "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-      sslSocket.send(request, sizeof(request));
-      
-      char response[2048];
-      int numBytes = 0;
-      string str = "";
-      
-      cout << endl << "DOING A PEEK!" << endl;
-      
-      numBytes = sslSocket.getInputStream()->peek(response, 2048);
-      if(numBytes > 0)
-      {
-         cout << "Peeked " << numBytes << " bytes." << endl;
-         string peek = "";
-         peek.append(response, numBytes);
-         cout << "Peek bytes=" << peek << endl;
-      }
-      
-      cout << endl << "DOING ACTUAL READ NOW!" << endl;
-      
-      while((numBytes = sslSocket.getInputStream()->read(response, 2048)) > 0)
-      {
-         cout << "numBytes received: " << numBytes << endl;
-         str.append(response, numBytes);
-      }
-      
-      cout << "Response:" << endl << str << endl;
-      
-      // close
-      sslSocket.close();
-      
-      cout << "SSL Socket connection closed." << endl;
+      cout << "token='" << st.nextToken() << "'" << endl;
    }
    
-   cout << endl << "SSL Socket test complete." << endl;
-   
-   // clean up SSL
-   EVP_cleanup();
+   cout << endl << "StringTokenizer test complete." << endl;
 }
 
-void runServerSocketTest()
+void runStringEqualityTest()
 {
-   //cout << "Running Server Socket Test" << endl << endl;
+   cout << "Starting string equality test." << endl << endl;
    
-   Exception::clearLast();
+   // Note: string length doesn't appear to matter
+   string str = "blah";
+   unsigned long long start, end;
    
-   // bind and listen
-   InternetAddress address("127.0.0.1", 19100);
-   
-   // ensure host was known
-   if(!Exception::hasLast())
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
    {
-      // create tcp socket
-      TcpSocket socket;
-      
-      if(socket.bind(&address))
-      {
-         cout << "Server socket bound..." << endl;
-      }
-      else
-      {
-         cout << "Could not bind server socket!" << endl;
-      }
-      
-      if(socket.listen())
-      {
-         cout << "Listening for a connection..." << endl;
-      }
-      else
-      {
-         cout << "Could not listen with server socket!" << endl;
-      }
-      
-      string str = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\n\r\n";
-      while(!Thread::interrupted(false))
-      {
-         // accept a connection
-         Socket* worker = socket.accept(1);
-         if(worker != NULL)
-         {
-            char request[100];
-            int numBytes = 0;
-            
-            numBytes = worker->getInputStream()->peek(request, 100);
-            worker->getOutputStream()->write(str.c_str(), str.length());
-            
-            // close worker socket
-            worker->close();
-            delete worker;
-         }
-      }
-      
-      // close server socket
-      socket.close();
-      
-      cout << "Server Socket connection closed." << endl;
+      if(str == "");
    }
+   end = System::getCurrentMilliseconds();
+   cout << "String == \"\" time: " << (end - start) << " ms" << endl;
    
-   cout << endl << "Server Socket test complete." << endl;
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(str.length() == 0);
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String.length() == 0 time: " << (end - start) << " ms" << endl;
+   
+   // Note: test demonstrates that comparing to length is about 6 times faster
+   
+   cout << endl << "String equality test complete." << endl;
 }
 
-void runSslServerSocketTest()
+void runStringAppendCharTest()
 {
-   cout << "Running SSL Server Socket Test" << endl << endl;
+   cout << "Starting string append char test." << endl << endl;
    
-   // openssl initialization code
-   SSL_library_init();
-   SSL_load_error_strings();
-   OpenSSL_add_all_algorithms();   
+   // Note: string length doesn't appear to matter
+   string str = "blah";
+   unsigned long long start, end;
    
-   // bind and listen
-   InternetAddress address("127.0.0.1", 1024);
-   
-   // ensure host was known
-   if(!Thread::hasException())
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
    {
-      // create tcp socket
-      TcpSocket socket;
-      
-      if(socket.bind(&address))
-      {
-         cout << "Server socket bound..." << endl;
-      }
-      else
-      {
-         cout << "Could not bind server socket!" << endl;
-      }
-      
-      if(socket.listen())
-      {
-         cout << "Listening for a connection..." << endl;
-      }
-      else
-      {
-         cout << "Could not listen with server socket!" << endl;
-      }
-      
-      // accept a connection
-      TcpSocket* worker = (TcpSocket*)socket.accept(10);
-      if(worker != NULL)
-      {
-         cout << "Accepted a connection!" << endl;
-         
-         // create an SSL context
-         SslContext context;
-         
-         // create an SSL socket
-         SslSocket sslSocket(&context, worker, false, false);
-         
-         // set receive timeout (10 seconds = 10000 milliseconds)
-         sslSocket.setReceiveTimeout(10000);
-         
-         char request[2048];
-         int numBytes = 0;
-         string str = "";
-         
-         cout << endl << "DOING A PEEK!" << endl;
-         
-         numBytes = worker->getInputStream()->peek(request, 2048);
-         if(numBytes > 0)
-         {
-            cout << "Peeked " << numBytes << " bytes." << endl;
-            string peek = "";
-            peek.append(request, numBytes);
-            cout << "Peek bytes=" << peek << endl;
-         }
-         
-         cout << endl << "DOING ACTUAL READ NOW!" << endl;
-         
-         while((numBytes = sslSocket.getInputStream()->read(request, 2048)) > 0)
-         {
-            cout << "numBytes received: " << numBytes << endl;
-            str.append(request, numBytes);
-         }
-         
-         cout << "Request:" << endl << str << endl;
-         
-         // close ssl socket socket
-         sslSocket.close();
-         delete worker;
-      }
-      else
-      {
-         cout << "Could not accept a connection!" << endl;
-      }
-      
-      // close server socket
-      socket.close();
-      
-      cout << "SSL Server Socket connection closed." << endl;
+      if(str.length() == 1 && str[0] == '/');
    }
+   end = System::getCurrentMilliseconds();
+   cout << "String.length() == 1 && str[0] == '/' time: " <<
+      (end - start) << " ms" << endl;
    
-   cout << endl << "SSL Server Socket test complete." << endl;
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(str == "/");
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String == \"/\" time: " << (end - start) << " ms" << endl;
    
-   // clean up SSL
-   EVP_cleanup();
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(strcmp(str.c_str(), "/") == 0);
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "strcmp(String.c_str(), \"/\") == 0 time: " <<
+      (end - start) << " ms" << endl;
+   
+   string version = "HTTP/1.0";
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(version == "HTTP/1.0");
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String == \"HTTP/1.0\" time: " << (end - start) << " ms" << endl;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(strcmp(version.c_str(), "HTTP/1.0") == 0);
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "strcmp(String.c_str(), \"HTTP/1.0\") == 0 time: " <<
+      (end - start) << " ms" << endl;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 10000; i++)
+   {
+      str.append(1, '/');
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String.append(1, '/') time: " << (end - start) << " ms" << endl;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 10000; i++)
+   {
+      str.append("/");
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String.append(\"/\") time: " << (end - start) << " ms" << endl;
+   
+   string space = " ";
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 10000; i++)
+   {
+      str.append("this" + space + "is a sentence");
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String inline append time: " << (end - start) << " ms" << endl;
+   
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 10000; i++)
+   {
+      str.append("this");
+      str.append(space);
+      str.append("is a sentence");
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "String multiline append time: " << (end - start) << " ms" << endl;
+   
+   cout << endl << "String append char test complete." << endl;
 }
 
-void runTcpClientServerTest()
+void runStringCompareTest()
 {
-   cout << "Running TCP Client/Server Test" << endl << endl;
+   cout << "Starting string compare test." << endl << endl;
    
-   InternetAddress* address;
-   InternetAddress ia("127.0.0.1", 9999);
-   //Internet6Address ia("::0", 9999);
-   address = &ia;
+   string str1 = "blah";
+   char str2[] = "blah";
+   unsigned long long start, end;
    
-   // ensure host was known
-   if(!Thread::hasException())
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
    {
-      // create tcp server and client sockets
-      TcpSocket server;
-      TcpSocket client;
-      
-      // set receive timeouts to 10 seconds
-      server.setReceiveTimeout(10000);
-      client.setReceiveTimeout(10000);
-      
-      // bind and listen with server
-      server.bind(address);
-      server.listen();
-      
-      cout << "Server listening at host: " << address->getHost() << endl;
-      cout << "Server listening at address: " << address->getAddress() << endl;
-      cout << "Server listening on port: " << address->getPort() << endl;
-      
-      // connect with client
-      client.connect(address);
-      
-      cout << "Client connected." << endl;
-      
-      // accept a connection
-      TcpSocket* worker = (TcpSocket*)server.accept(10);
-      
-      cout << "Client connection accepted by Server." << endl;
-      
-      // send some data with client
-      string clientData = "Hello there, Server.";
-      client.getOutputStream()->write(clientData.c_str(), clientData.length());
-      
-      cout << "Client sent: " << clientData << endl;
-      
-      // receive the client data
-      char read[2048];
-      int numBytes = worker->getInputStream()->read(read, 2048);
-      string serverReceived(read, numBytes);
-      
-      cout << "Server received: " << serverReceived << endl;
-      
-      // send some data with server
-      string serverData = "G'day, Client.";
-      worker->getOutputStream()->write(serverData.c_str(), serverData.length());
-      
-      cout << "Server sent: " << serverData << endl;
-      
-      // receive the server data
-      numBytes = client.getInputStream()->read(read, 2048);
-      string clientReceived(read, numBytes);
-      
-      cout << "Client received: " << clientReceived << endl;
-      
-      // close sockets
-      client.close();
-      server.close();
-      
-      // delete worker
-      if(worker != NULL)
-      {
-         worker->close();
-         delete worker;
-      }
-      
-      cout << "Sockets closed." << endl;
+      if(str1 == "blah");
    }
+   end = System::getCurrentMilliseconds();
+   cout << "std::string compare time: " << (end - start) << " ms" << endl;
    
-   cout << endl << "TCP Client/Server test complete." << endl;
+   start = System::getCurrentMilliseconds();
+   for(int i = 0; i < 1000000; i++)
+   {
+      if(strcmp(str2, "blah") == 0);
+   }
+   end = System::getCurrentMilliseconds();
+   cout << "char* compare time: " << (end - start) << " ms" << endl;
+   
+   cout << endl << "String compare test complete." << endl;
 }
 
-void runUdpClientServerTest()
+void runByteArrayInputStreamTest()
 {
-   cout << "Running UDP Client/Server Test" << endl << endl;
+   cout << "Starting ByteArrayInputStream test." << endl << endl;
    
-   InternetAddress* sa;
-   InternetAddress* ca;
-   InternetAddress serverAddress("127.0.0.1", 9999);
-   InternetAddress clientAddress("127.0.0.1", 0);
-   //Internet6Address serverAddress("::1", 9999);
-   //Internet6Address clientAddress("::1", 0);
-   sa = &serverAddress;
-   ca = &clientAddress;
+   char html[] = "<html>505 HTTP Version Not Supported</html>";
+   ByteArrayInputStream is(html, 43);
    
-   // ensure host was known
-   if(!Thread::hasException())
+   char b[10];
+   int numBytes;
+   string str;
+   while((numBytes = is.read(b, 9)) > 0)
    {
-      // create udp server and client sockets
-      UdpSocket server;
-      UdpSocket client;
-      
-      // set receive timeouts to 10 seconds
-      server.setReceiveTimeout(10000);
-      client.setReceiveTimeout(10000);
-      
-      // bind with server
-      server.bind(sa);
-      
-      cout << "Server bound at host: " << sa->getHost() << endl;
-      cout << "Server bound at address: " << sa->getAddress() << endl;
-      cout << "Server bound on port: " << sa->getPort() << endl;
-      
-      // bind with client
-      client.bind(ca);
-      client.getLocalAddress(ca);
-      
-      cout << "Client bound at host: " << ca->getHost() << endl;
-      cout << "Client bound at address: " << ca->getAddress() << endl;
-      cout << "Client bound on port: " << ca->getPort() << endl;
-      
-      // send some data with client
-      string clientData = "Hello there, Server.";
-      client.sendDatagram(clientData.c_str(), clientData.length(), sa);
-      
-      cout << "Client sent: " << clientData << endl;
-      
-      // receive the client data
-      char read[2048];
-      int numBytes = server.receiveDatagram(read, 2048, ca);
-      string serverReceived(read, numBytes);
-      
-      cout << "Server received: " << serverReceived << endl;
-      cout << "Data from: " << ca->getAddress();
-      cout << ":" << ca->getPort() << endl;
-      
-      // send some data with server
-      string serverData = "G'day, Client.";
-      server.sendDatagram(serverData.c_str(), serverData.length(), ca);
-      
-      cout << "Server sent: " << serverData << endl;
-      
-      // receive the server data
-      numBytes = client.receiveDatagram(read, 2048, sa);
-      string clientReceived(read, numBytes);
-      
-      cout << "Client received: " << clientReceived << endl;
-      cout << "Data from: " << sa->getAddress();
-      cout << ":" << sa->getPort() << endl;
-      
-      // close sockets
-      client.close();
-      server.close();
-      
-      cout << "Sockets closed." << endl;
+      memset(b + numBytes, 0, 1);
+      str.append(b);
    }
    
-   cout << endl << "UDP Client/Server test complete." << endl;
+   cout << "read data='" << str << "'" << endl;
+   
+   cout << endl << "ByteArrayInputStream test complete." << endl;
 }
 
-void runDatagramTest()
+void runByteBufferTest()
 {
-   cout << "Running Datagram Test" << endl << endl;
+   cout << "Starting ByteBuffer test." << endl << endl;
    
-   InternetAddress* sa;
-   InternetAddress* ca;
-   InternetAddress serverAddress("127.0.0.1", 9999);
-   InternetAddress clientAddress("127.0.0.1", 0);
-   //Internet6Address serverAddress("::1", 9999);
-   //Internet6Address clientAddress("::1", 0);
-   sa = &serverAddress;
-   ca = &clientAddress;
+   ByteBuffer b;
    
-   // ensure host was known
-   if(!Thread::hasException())
+   const char* chicken = "chicken";
+   const char* t = "T ";
+   const char* hate = "hate ";
+   b.free();
+   b.put(t, strlen(t), true);
+   b.put(hate, strlen(hate), true);
+   b.put(chicken, strlen(chicken), true);
+   b.put("", 1, true);
+   
+   // FIXME: this test should be more comprehensive
+   
+   cout << "Data=" << b.data() << endl;
+   
+   // this should result in printing out "T hate chicken" still
+   b.allocateSpace(10, true);
+   sprintf(b.data() + b.length(), " always");
+   char temp[100];
+   strncpy(temp, b.data(), b.length());
+   memset(temp + b.length(), 0, 1);
+   cout << "Data2=" << temp << endl;
+   
+   // this should now result in printing out "T hate chicken always"
+   sprintf(b.data() + b.length() - 1, " always");
+   b.extend(7);
+   strncpy(temp, b.data(), b.length());
+   memset(temp + b.length(), 0, 1);
+   cout << "Data3=" << temp << endl;
+   
+   cout << endl << "ByteBuffer test complete." << endl;
+}
+
+void runByteArrayOutputStreamTest()
+{
+   cout << "Starting ByteArrayOutputStream test." << endl << endl;
+   
+   ByteBuffer b;
+   
+   ByteArrayOutputStream baos1(&b);
+   const char* sentence = "This is a sentence.";
+   baos1.write(sentence, strlen(sentence) + 1);
+   
+   cout << "Data1=" << b.data() << endl;
+   
+   const char* chicken = "chicken";
+   const char* t = "T ";
+   const char* hate = "hate ";
+   b.clear();
+   b.put(t, strlen(t), true);
+   b.put(hate, strlen(hate), true);
+   b.put(chicken, strlen(chicken), true);
+   b.put("", 1, true);
+   
+   cout << "Prior Data2=" << b.data() << endl;
+   
+   // trim null-terminator
+   b.trim(1);
+   
+   // false = turn off resizing buffer
+   int length = strlen(sentence) + 1;
+   ByteArrayOutputStream baos2(&b, false);
+   if(!baos2.write(sentence, length))
    {
-      // create datagram server and client sockets
-      DatagramSocket server;
-      DatagramSocket client;
+      IOException* e = (IOException*)Exception::getLast();
+      cout << "Exception Caught=" << e->getMessage() << endl;
+      cout << "Written bytes=" << e->getUsedBytes() << endl;
+      cout << "Unwritten bytes=" << e->getUnusedBytes() << endl;
+      cout << "Turning on resize and finishing write..." << endl;
       
-      // set receive timeouts to 10 seconds
-      server.setReceiveTimeout(10000);
-      client.setReceiveTimeout(10000);
+      // turn on resize
+      baos2.setResize(true);
       
-      // bind with server
-      server.bind(sa);
+      // write remaining bytes
+      baos2.write(sentence + e->getUsedBytes(), e->getUnusedBytes());
       
-      cout << "Server bound at host: " << sa->getHost() << endl;
-      cout << "Server bound at address: " << sa->getAddress() << endl;
-      cout << "Server bound on port: " << sa->getPort() << endl;
-      
-      // bind with client
-      client.bind(ca);
-      client.getLocalAddress(ca);
-      
-      cout << "Client bound at host: " << ca->getHost() << endl;
-      cout << "Client bound at address: " << ca->getAddress() << endl;
-      cout << "Client bound on port: " << ca->getPort() << endl;
-      
-      // create a datagram
-      Datagram d1(sa);
-      d1.assignString("Hello there, Server.");
-      
-      // send the datagram with the client
-      client.send(&d1);
-      
-      cout << "Client sent: " << d1.getString() << endl;
-      
-      // create a datagram
-      char externalData[2048];
-      Datagram d2(ca);
-      d2.setData(externalData, 2048, false);
-      
-      // receive a datagram
-      server.receive(&d2);
-      
-      cout << "Server received: " << d2.getString() << endl;
-      cout << "Data from: " << d2.getAddress()->getAddress();
-      cout << ":" << d2.getAddress()->getPort() << endl;
-      
-      // send a datagram with the server
-      d2.assignString("G'day, Client.");
-      server.send(&d2);
-      
-      cout << "Server sent: " << d2.getString() << endl;
-      
-      // receive the server datagram
-      Datagram d3(sa, 2048);
-      client.receive(&d3);
-      
-      cout << "Client received: " << d3.getString() << endl;
-      cout << "Data from: " << d3.getAddress()->getAddress();
-      cout << ":" << d3.getAddress()->getPort() << endl;
-      
-      // close sockets
-      client.close();
-      server.close();
-      
-      cout << "Sockets closed." << endl;
+      // clear exception
+      Exception::clearLast();
    }
    
-   cout << endl << "Datagram test complete." << endl;
+   cout << "Data2=" << b.data() << endl;
+   
+   cout << endl << "ByteArrayOutputStream test complete." << endl;
 }
 
 void runMessageDigestTest(TestRunner& tr)
@@ -1985,75 +1766,651 @@ void runCipherTest(const string& algorithm)
    EVP_cleanup();
 }
 
-void runConvertTest()
+void runAddressResolveTest(TestRunner& tr)
 {
-   cout << "Starting Convert test." << endl << endl;
+   tr.test("Address Resolution");
    
-   // convert to hex
-   char data[] = "abcdefghiABCDEFGZXYW0123987{;}*%6,./.12`~";
-   string original(data, strlen(data));
+   //cout << "Running Address Resolve Test" << endl << endl;
    
-   cout << "test data=" << original << endl;
+   Exception::clearLast();
    
-   string lowerHex = Convert::bytesToHex(data, strlen(data));
-   string upperHex = Convert::bytesToHex(data, strlen(data));
+   // create IPv4 address
+   InternetAddress ip4;
    
-   cout << "lower-case hex=" << lowerHex << endl;
-   cout << "lower-case hex length=" << lowerHex.length() << endl;
-   cout << "upper-case hex=" << upperHex << endl;
-   cout << "upper-case hex length=" << upperHex.length() << endl;
+   //cout << "Testing IPv4..." << endl << endl;
    
-   char decoded1[lowerHex.length() / 2];
-   char decoded2[upperHex.length() / 2];
+   ip4.setHost("www.bitmunk.com");
+   ip4.getAddress();
+   assertNoException();
+   //cout << "www.bitmunk.com = " << ip4.getAddress() << endl;
    
-   unsigned int length1;
-   unsigned int length2;
-   Convert::hexToBytes(lowerHex.c_str(), lowerHex.length(), decoded1, length1);
-   Convert::hexToBytes(upperHex.c_str(), upperHex.length(), decoded2, length2);
+   ip4.setHost("www.google.com");
+   ip4.getAddress();
+   assertNoException();
+   //cout << "www.google.com = " << ip4.getAddress() << endl;
    
-   string ascii1(decoded1, length1);
+   ip4.setHost("www.yahoo.com");
+   ip4.getAddress();
+   assertNoException();
+   //cout << "www.yahoo.com = " << ip4.getAddress() << endl;
    
-   string ascii2(decoded2, length2);
+   ip4.setHost("www.microsoft.com");
+   ip4.getAddress();
+   assertNoException();
+   //cout << "www.microsoft.com = " << ip4.getAddress() << endl;
    
-   cout << "lower-case hex to ascii=" << ascii1 << endl;
-   cout << "lower-case hex length=" << length1 << endl;
-   cout << "upper-case hex to ascii=" << ascii2 << endl;
-   cout << "upper-case hex length=" << length2 << endl;
+   //cout << endl;
    
-   if(ascii1 == ascii2 && ascii1 == original)
+   ip4.setAddress("192.168.0.1");
+   ip4.getAddress();
+   ip4.getHost();
+   assertNoException();
+   //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   
+   ip4.setAddress("192.168.0.8");
+   ip4.getAddress();
+   ip4.getHost();
+   assertNoException();
+   //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   
+   ip4.setAddress("216.239.51.99");
+   ip4.getAddress();
+   ip4.getHost();
+   assertNoException();
+   //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   
+   // create IPv6 address
+   //Internet6Address ip6;
+   
+   //cout << endl << "Testing IPv6..." << endl << endl;
+   
+   //ip6.setHost("ip6-localhost");
+   //cout << "ip6-localhost = " << ip6.getAddress() << endl;
+   
+   //ip6.setHost("yuna.digitalbazaar.com");
+   //cout << "yuna.digitalbazaar.com = " << ip6.getAddress() << endl;
+   
+   /*
+   ip6.setHost("www.google.com");
+   cout << "www.google.com = " << ip6.getAddress() << endl;
+   
+   ip6.setHost("www.yahoo.com");
+   cout << "www.yahoo.com = " << ip6.getAddress() << endl;
+   
+   ip6.setHost("www.microsoft.com");
+   cout << "www.microsoft.com = " << ip6.getAddress() << endl;
+   */
+   
+   //cout << endl;
+   
+   //ip6.setAddress("fc00:840:db:bb:d::8");
+   //cout << ip6.getAddress() << " = " << ip6.getHost() << endl;
+   
+   tr.passIfNoException();
+   
+   //cout << endl << "Address Resolve Test complete." << endl << endl;
+}
+
+void runSocketTest(TestRunner& tr)
+{
+   tr.test("Socket");
+   
+   //cout << "Running Socket Test" << endl << endl;
+   Exception::clearLast();
+   
+   // create address
+   //InternetAddress address("127.0.0.1", 80);
+   InternetAddress address("www.google.com", 80);
+   
+   // ensure host was known
+   assertNoException();
+   
+   address.getAddress();
+   assertNoException();
+   //cout << "Connecting to: " << address.getAddress() << endl;
+   
+   // create tcp socket
+   TcpSocket socket;
+   
+   // connect
+   socket.connect(&address);
+   assertNoException();
+   
+   char request[] =
+      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+   socket.send(request, sizeof(request));
+   assertNoException();
+   
+   // set receive timeout (10 seconds = 10000 milliseconds)
+   socket.setReceiveTimeout(10000);
+   assertNoException();
+   
+   char response[2048];
+   int numBytes = 0;
+   string str;
+   
+   //cout << endl << "DOING A PEEK!" << endl;
+   
+   string peek;
+   numBytes = socket.getInputStream()->peek(response, 2048);
+   if(numBytes > 0)
    {
-      cout << "Test successful!" << endl;
+      //cout << "Peeked " << numBytes << " bytes." << endl;
+      peek.append(response, numBytes);
+      //cout << "Peek bytes=" << peek << endl;
    }
-   else
+   assertNoException();
+   
+   //cout << endl << "DOING ACTUAL READ NOW!" << endl;
+   int peekBytes = numBytes;
+   while((numBytes = socket.getInputStream()->read(response, 2048)) > 0)
    {
-      cout << "Test FAILED! Strings do not match!" << endl;
+      //cout << "numBytes received: " << numBytes << endl;
+      str.append(response, numBytes);
    }
    
-   cout << "10 to lower-case hex=" << Convert::intToHex(10) << endl;
-   cout << "33 to lower-case hex=" << Convert::intToHex(33) << endl;
-   cout << "100 to lower-case hex=" << Convert::intToHex(100) << endl;
-   cout << "10 to upper-case hex=" << Convert::intToUpperHex(10) << endl;
-   cout << "33 to upper-case hex=" << Convert::intToUpperHex(33) << endl;
-   cout << "100 to upper-case hex=" << Convert::intToUpperHex(100) << endl;
-   cout << "8975 to lower-case hex=" << Convert::intToHex(8975) << endl;
-   cout << "8975 to upper-case hex=" << Convert::intToUpperHex(8975) << endl;
-   cout << "65537 to lower-case hex=" << Convert::intToHex(65537) << endl;
-   cout << "65537 to upper-case hex=" << Convert::intToUpperHex(65537) << endl;
+   // confirm peek bytes check out
+   assert(strncmp(peek.c_str(), str.c_str(), peekBytes) == 0);
    
-   string hex = "230f";
-   cout << "0x230f to integer=" <<
-      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
-   hex = "230F";
-   cout << "0x230F to integer=" <<
-      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
-   hex = "230FABCD";
-   cout << "0x230FABCD to integer=" <<
-      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
-   hex = "0";
-   cout << "0x0 to integer=" <<
-      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
+//   char response[2048];
+//   int numBytes = 0;
+//   string str = "";
+//   while((numBytes = socket.receive(response, 0, 2048)) > 0)
+//   {
+//      cout << "numBytes received: " << numBytes << endl;
+//      str.append(response, numBytes);
+//   }
    
-   cout << endl << "Convert test complete." << endl;
+   //cout << "Response:" << endl << str << endl;
+   
+   // close
+   socket.close();
+   
+   tr.passIfNoException();
+   
+   //cout << "Socket connection closed." << endl;
+   
+   //cout << endl << "Socket test complete." << endl;
+}
+
+void runSslSocketTest()
+{
+   cout << "Running SSL Socket Test" << endl << endl;
+   
+   // openssl initialization code
+   SSL_library_init();
+   SSL_load_error_strings();
+   OpenSSL_add_all_algorithms();
+   
+   // FIXME:
+   // seed PRNG
+   
+   // create address
+   InternetAddress address("127.0.0.1", 443);
+   //InternetAddress address("127.0.0.1", 19020);
+   //InternetAddress address("www.google.com", 80);
+   cout << address.getAddress() << endl;
+   
+   // ensure host was known
+   if(!Exception::hasLast())
+   {
+      // create tcp socket
+      TcpSocket socket;
+      
+      // connect
+      socket.connect(&address);
+      
+      // create an SSL context
+      SslContext context;
+      
+      // create an SSL socket
+      SslSocket sslSocket(&context, &socket, true, false);
+      
+      // set receive timeout (10 seconds = 10000 milliseconds)
+      sslSocket.setReceiveTimeout(10000);
+      
+      // perform handshake (automatically happens, this call isn't necessary)
+      //sslSocket.performHandshake();
+      
+      char request[] =
+         "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+      sslSocket.send(request, sizeof(request));
+      
+      char response[2048];
+      int numBytes = 0;
+      string str = "";
+      
+      cout << endl << "DOING A PEEK!" << endl;
+      
+      numBytes = sslSocket.getInputStream()->peek(response, 2048);
+      if(numBytes > 0)
+      {
+         cout << "Peeked " << numBytes << " bytes." << endl;
+         string peek = "";
+         peek.append(response, numBytes);
+         cout << "Peek bytes=" << peek << endl;
+      }
+      
+      cout << endl << "DOING ACTUAL READ NOW!" << endl;
+      
+      while((numBytes = sslSocket.getInputStream()->read(response, 2048)) > 0)
+      {
+         cout << "numBytes received: " << numBytes << endl;
+         str.append(response, numBytes);
+      }
+      
+      cout << "Response:" << endl << str << endl;
+      
+      // close
+      sslSocket.close();
+      
+      cout << "SSL Socket connection closed." << endl;
+   }
+   
+   cout << endl << "SSL Socket test complete." << endl;
+   
+   // clean up SSL
+   EVP_cleanup();
+}
+
+void runServerSocketTest()
+{
+   //cout << "Running Server Socket Test" << endl << endl;
+   
+   Exception::clearLast();
+   
+   // bind and listen
+   InternetAddress address("127.0.0.1", 19100);
+   
+   // ensure host was known
+   if(!Exception::hasLast())
+   {
+      // create tcp socket
+      TcpSocket socket;
+      
+      if(socket.bind(&address))
+      {
+         cout << "Server socket bound..." << endl;
+      }
+      else
+      {
+         cout << "Could not bind server socket!" << endl;
+      }
+      
+      if(socket.listen())
+      {
+         cout << "Listening for a connection..." << endl;
+      }
+      else
+      {
+         cout << "Could not listen with server socket!" << endl;
+      }
+      
+      string str = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\n\r\n";
+      while(!Thread::interrupted(false))
+      {
+         // accept a connection
+         Socket* worker = socket.accept(1);
+         if(worker != NULL)
+         {
+            char request[100];
+            int numBytes = 0;
+            
+            numBytes = worker->getInputStream()->peek(request, 100);
+            worker->getOutputStream()->write(str.c_str(), str.length());
+            
+            // close worker socket
+            worker->close();
+            delete worker;
+         }
+      }
+      
+      // close server socket
+      socket.close();
+      
+      cout << "Server Socket connection closed." << endl;
+   }
+   
+   cout << endl << "Server Socket test complete." << endl;
+}
+
+void runSslServerSocketTest()
+{
+   cout << "Running SSL Server Socket Test" << endl << endl;
+   
+   // openssl initialization code
+   SSL_library_init();
+   SSL_load_error_strings();
+   OpenSSL_add_all_algorithms();   
+   
+   // bind and listen
+   InternetAddress address("127.0.0.1", 1024);
+   
+   // ensure host was known
+   if(!Exception::hasLast())
+   {
+      // create tcp socket
+      TcpSocket socket;
+      
+      if(socket.bind(&address))
+      {
+         cout << "Server socket bound..." << endl;
+      }
+      else
+      {
+         cout << "Could not bind server socket!" << endl;
+      }
+      
+      if(socket.listen())
+      {
+         cout << "Listening for a connection..." << endl;
+      }
+      else
+      {
+         cout << "Could not listen with server socket!" << endl;
+      }
+      
+      // accept a connection
+      TcpSocket* worker = (TcpSocket*)socket.accept(10);
+      if(worker != NULL)
+      {
+         cout << "Accepted a connection!" << endl;
+         
+         // create an SSL context
+         SslContext context;
+         
+         // create an SSL socket
+         SslSocket sslSocket(&context, worker, false, false);
+         
+         // set receive timeout (10 seconds = 10000 milliseconds)
+         sslSocket.setReceiveTimeout(10000);
+         
+         char request[2048];
+         int numBytes = 0;
+         string str = "";
+         
+         cout << endl << "DOING A PEEK!" << endl;
+         
+         numBytes = worker->getInputStream()->peek(request, 2048);
+         if(numBytes > 0)
+         {
+            cout << "Peeked " << numBytes << " bytes." << endl;
+            string peek = "";
+            peek.append(request, numBytes);
+            cout << "Peek bytes=" << peek << endl;
+         }
+         
+         cout << endl << "DOING ACTUAL READ NOW!" << endl;
+         
+         while((numBytes = sslSocket.getInputStream()->read(request, 2048)) > 0)
+         {
+            cout << "numBytes received: " << numBytes << endl;
+            str.append(request, numBytes);
+         }
+         
+         cout << "Request:" << endl << str << endl;
+         
+         // close ssl socket socket
+         sslSocket.close();
+         delete worker;
+      }
+      else
+      {
+         cout << "Could not accept a connection!" << endl;
+      }
+      
+      // close server socket
+      socket.close();
+      
+      cout << "SSL Server Socket connection closed." << endl;
+   }
+   
+   cout << endl << "SSL Server Socket test complete." << endl;
+   
+   // clean up SSL
+   EVP_cleanup();
+}
+
+void runTcpClientServerTest()
+{
+   cout << "Running TCP Client/Server Test" << endl << endl;
+   
+   InternetAddress* address;
+   InternetAddress ia("127.0.0.1", 9999);
+   //Internet6Address ia("::0", 9999);
+   address = &ia;
+   
+   // ensure host was known
+   if(!Exception::hasLast())
+   {
+      // create tcp server and client sockets
+      TcpSocket server;
+      TcpSocket client;
+      
+      // set receive timeouts to 10 seconds
+      server.setReceiveTimeout(10000);
+      client.setReceiveTimeout(10000);
+      
+      // bind and listen with server
+      server.bind(address);
+      server.listen();
+      
+      cout << "Server listening at host: " << address->getHost() << endl;
+      cout << "Server listening at address: " << address->getAddress() << endl;
+      cout << "Server listening on port: " << address->getPort() << endl;
+      
+      // connect with client
+      client.connect(address);
+      
+      cout << "Client connected." << endl;
+      
+      // accept a connection
+      TcpSocket* worker = (TcpSocket*)server.accept(10);
+      
+      cout << "Client connection accepted by Server." << endl;
+      
+      // send some data with client
+      string clientData = "Hello there, Server.";
+      client.getOutputStream()->write(clientData.c_str(), clientData.length());
+      
+      cout << "Client sent: " << clientData << endl;
+      
+      // receive the client data
+      char read[2048];
+      int numBytes = worker->getInputStream()->read(read, 2048);
+      string serverReceived(read, numBytes);
+      
+      cout << "Server received: " << serverReceived << endl;
+      
+      // send some data with server
+      string serverData = "G'day, Client.";
+      worker->getOutputStream()->write(serverData.c_str(), serverData.length());
+      
+      cout << "Server sent: " << serverData << endl;
+      
+      // receive the server data
+      numBytes = client.getInputStream()->read(read, 2048);
+      string clientReceived(read, numBytes);
+      
+      cout << "Client received: " << clientReceived << endl;
+      
+      // close sockets
+      client.close();
+      server.close();
+      
+      // delete worker
+      if(worker != NULL)
+      {
+         worker->close();
+         delete worker;
+      }
+      
+      cout << "Sockets closed." << endl;
+   }
+   
+   cout << endl << "TCP Client/Server test complete." << endl;
+}
+
+void runUdpClientServerTest()
+{
+   cout << "Running UDP Client/Server Test" << endl << endl;
+   
+   InternetAddress* sa;
+   InternetAddress* ca;
+   InternetAddress serverAddress("127.0.0.1", 9999);
+   InternetAddress clientAddress("127.0.0.1", 0);
+   //Internet6Address serverAddress("::1", 9999);
+   //Internet6Address clientAddress("::1", 0);
+   sa = &serverAddress;
+   ca = &clientAddress;
+   
+   // ensure host was known
+   if(!Exception::hasLast())
+   {
+      // create udp server and client sockets
+      UdpSocket server;
+      UdpSocket client;
+      
+      // set receive timeouts to 10 seconds
+      server.setReceiveTimeout(10000);
+      client.setReceiveTimeout(10000);
+      
+      // bind with server
+      server.bind(sa);
+      
+      cout << "Server bound at host: " << sa->getHost() << endl;
+      cout << "Server bound at address: " << sa->getAddress() << endl;
+      cout << "Server bound on port: " << sa->getPort() << endl;
+      
+      // bind with client
+      client.bind(ca);
+      client.getLocalAddress(ca);
+      
+      cout << "Client bound at host: " << ca->getHost() << endl;
+      cout << "Client bound at address: " << ca->getAddress() << endl;
+      cout << "Client bound on port: " << ca->getPort() << endl;
+      
+      // send some data with client
+      string clientData = "Hello there, Server.";
+      client.sendDatagram(clientData.c_str(), clientData.length(), sa);
+      
+      cout << "Client sent: " << clientData << endl;
+      
+      // receive the client data
+      char read[2048];
+      int numBytes = server.receiveDatagram(read, 2048, ca);
+      string serverReceived(read, numBytes);
+      
+      cout << "Server received: " << serverReceived << endl;
+      cout << "Data from: " << ca->getAddress();
+      cout << ":" << ca->getPort() << endl;
+      
+      // send some data with server
+      string serverData = "G'day, Client.";
+      server.sendDatagram(serverData.c_str(), serverData.length(), ca);
+      
+      cout << "Server sent: " << serverData << endl;
+      
+      // receive the server data
+      numBytes = client.receiveDatagram(read, 2048, sa);
+      string clientReceived(read, numBytes);
+      
+      cout << "Client received: " << clientReceived << endl;
+      cout << "Data from: " << sa->getAddress();
+      cout << ":" << sa->getPort() << endl;
+      
+      // close sockets
+      client.close();
+      server.close();
+      
+      cout << "Sockets closed." << endl;
+   }
+   
+   cout << endl << "UDP Client/Server test complete." << endl;
+}
+
+void runDatagramTest()
+{
+   cout << "Running Datagram Test" << endl << endl;
+   
+   InternetAddress* sa;
+   InternetAddress* ca;
+   InternetAddress serverAddress("127.0.0.1", 9999);
+   InternetAddress clientAddress("127.0.0.1", 0);
+   //Internet6Address serverAddress("::1", 9999);
+   //Internet6Address clientAddress("::1", 0);
+   sa = &serverAddress;
+   ca = &clientAddress;
+   
+   // ensure host was known
+   if(!Exception::hasLast())
+   {
+      // create datagram server and client sockets
+      DatagramSocket server;
+      DatagramSocket client;
+      
+      // set receive timeouts to 10 seconds
+      server.setReceiveTimeout(10000);
+      client.setReceiveTimeout(10000);
+      
+      // bind with server
+      server.bind(sa);
+      
+      cout << "Server bound at host: " << sa->getHost() << endl;
+      cout << "Server bound at address: " << sa->getAddress() << endl;
+      cout << "Server bound on port: " << sa->getPort() << endl;
+      
+      // bind with client
+      client.bind(ca);
+      client.getLocalAddress(ca);
+      
+      cout << "Client bound at host: " << ca->getHost() << endl;
+      cout << "Client bound at address: " << ca->getAddress() << endl;
+      cout << "Client bound on port: " << ca->getPort() << endl;
+      
+      // create a datagram
+      Datagram d1(sa);
+      d1.assignString("Hello there, Server.");
+      
+      // send the datagram with the client
+      client.send(&d1);
+      
+      cout << "Client sent: " << d1.getString() << endl;
+      
+      // create a datagram
+      char externalData[2048];
+      Datagram d2(ca);
+      d2.setData(externalData, 2048, false);
+      
+      // receive a datagram
+      server.receive(&d2);
+      
+      cout << "Server received: " << d2.getString() << endl;
+      cout << "Data from: " << d2.getAddress()->getAddress();
+      cout << ":" << d2.getAddress()->getPort() << endl;
+      
+      // send a datagram with the server
+      d2.assignString("G'day, Client.");
+      server.send(&d2);
+      
+      cout << "Server sent: " << d2.getString() << endl;
+      
+      // receive the server datagram
+      Datagram d3(sa, 2048);
+      client.receive(&d3);
+      
+      cout << "Client received: " << d3.getString() << endl;
+      cout << "Data from: " << d3.getAddress()->getAddress();
+      cout << ":" << d3.getAddress()->getPort() << endl;
+      
+      // close sockets
+      client.close();
+      server.close();
+      
+      cout << "Sockets closed." << endl;
+   }
+   
+   cout << endl << "Datagram test complete." << endl;
 }
 
 void runUrlEncodeTest(TestRunner& tr)
@@ -2160,7 +2517,7 @@ void runUrlTest(TestRunner& tr)
       Url url("http://example.com:8080/path");
 
       //dumpUrl(url);
-      assert(!Thread::hasException());
+      assert(!Exception::hasLast());
       assert(url.getScheme() == "http");
       assert(url.getUserInfo() == "");
       assert(url.getUser() == "");
@@ -2197,92 +2554,6 @@ void runUrlTest(TestRunner& tr)
    }
    
    tr.pass();
-}
-
-void runRegexTest()
-{
-   cout << "Starting Regex test." << endl << endl;
-   
-   string regex = "[a-z]{3}";
-   string str = "abc";
-   
-   if(Pattern::match(regex.c_str(), str.c_str()))
-   {
-      cout << "Simple pattern matches!" << endl;
-   }
-   else
-   {
-      cout << "Simple pattern DOES NOT MATCH!" << endl;
-   }
-   
-   cout << endl << "Doing sub-match test..." << endl << endl;
-   
-   string submatches = "Look for green globs of green matter in green goo.";
-   Pattern* p = Pattern::compile("green");
-   
-   unsigned int start, end;
-   unsigned int index = 0;
-   while(p->match(submatches.c_str(), index, start, end))
-   {
-      cout << "Found match at (" << start << ", " << end << ")" << endl;
-      cout << "Match=" << submatches.substr(start, end - start) << endl;
-      index = end;
-   }
-   
-   delete p;
-   
-   cout << endl << "Doing replace all test..." << endl << endl;
-   
-   cout << "change 'green' to 'blue'" << endl;
-   cout << submatches << endl;
-   StringTools::regexReplaceAll(submatches, "green", "blue");
-   cout << submatches << endl;
-   
-   cout << endl << "Regex test complete." << endl;
-}
-
-void runDateTest()
-{
-   cout << "Starting Date test." << endl << endl;
-   
-   TimeZone gmt = TimeZone::getTimeZone("GMT");
-   TimeZone local = TimeZone::getTimeZone();
-   
-   Date d;
-   string str;
-   //d.format(str);
-   //d.format(str, "E EEEE d dd M MMMM MM yy w ww yyyy a", "java");
-   //d.format(str, "EEEE, MMMM dd yyyy hh:mm:ss a", "java");
-   //d.format(str, "EEE, MMMM dd yyyy hh:mm:ss a", "java", &local);
-   //d.format(str, "EEE, d MMM yyyy HH:mm:ss", "java", &gmt);
-   //d.format(str, "%a, %d %b %Y %H:%M:%S");
-   d.format(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
-   //d.format(str, "%a, %d %b %Y %H:%M:%S", "c", &local);
-   
-   cout << "Current Date: " << str << endl;
-   
-   // parse date
-   Date d2;
-   d2.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
-   //d2.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &local);
-   string str2;
-   d2.format(str2, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
-   //d2.format(str2, "%a, %d %b %Y %H:%M:%S", "c", &local);
-   
-   cout << "Parsed Date 1: " << str2 << endl;
-   
-//   // FIXME: parser may have a problem with AM/PM
-   // parse date again
-   Date d3;
-   str = "Thu, 02 Aug 2007 10:30:00";
-   d3.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
-   string str3;
-   //d3.format(str3, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
-   d3.format(str3, "%a, %d %b %Y %H:%M:%S", "c", &local);
-   
-   cout << "Parsed Date 2: " << str3 << endl;
-   
-   cout << endl << "Date test complete." << endl;
 }
 
 class InterruptServerSocketTest : public virtual Object, public Runnable
@@ -2656,277 +2927,6 @@ void runServerDatagramTest()
    k.getEngine()->stop();
    
    cout << endl << "Server Datagram test complete." << endl;
-}
-
-void runByteArrayInputStreamTest()
-{
-   cout << "Starting ByteArrayInputStream test." << endl << endl;
-   
-   char html[] = "<html>505 HTTP Version Not Supported</html>";
-   ByteArrayInputStream is(html, 43);
-   
-   char b[10];
-   int numBytes;
-   string str;
-   while((numBytes = is.read(b, 9)) > 0)
-   {
-      memset(b + numBytes, 0, 1);
-      str.append(b);
-   }
-   
-   cout << "read data='" << str << "'" << endl;
-   
-   cout << endl << "ByteArrayInputStream test complete." << endl;
-}
-
-void runByteBufferTest()
-{
-   cout << "Starting ByteBuffer test." << endl << endl;
-   
-   ByteBuffer b;
-   
-   const char* chicken = "chicken";
-   const char* t = "T ";
-   const char* hate = "hate ";
-   b.free();
-   b.put(t, strlen(t), true);
-   b.put(hate, strlen(hate), true);
-   b.put(chicken, strlen(chicken), true);
-   b.put("", 1, true);
-   
-   // FIXME: this test should be more comprehensive
-   
-   cout << "Data=" << b.data() << endl;
-   
-   // this should result in printing out "T hate chicken" still
-   b.allocateSpace(10, true);
-   sprintf(b.data() + b.length(), " always");
-   char temp[100];
-   strncpy(temp, b.data(), b.length());
-   memset(temp + b.length(), 0, 1);
-   cout << "Data2=" << temp << endl;
-   
-   // this should now result in printing out "T hate chicken always"
-   sprintf(b.data() + b.length() - 1, " always");
-   b.extend(7);
-   strncpy(temp, b.data(), b.length());
-   memset(temp + b.length(), 0, 1);
-   cout << "Data3=" << temp << endl;
-   
-   cout << endl << "ByteBuffer test complete." << endl;
-}
-
-void runByteArrayOutputStreamTest()
-{
-   cout << "Starting ByteArrayOutputStream test." << endl << endl;
-   
-   ByteBuffer b;
-   
-   ByteArrayOutputStream baos1(&b);
-   const char* sentence = "This is a sentence.";
-   baos1.write(sentence, strlen(sentence) + 1);
-   
-   cout << "Data1=" << b.data() << endl;
-   
-   const char* chicken = "chicken";
-   const char* t = "T ";
-   const char* hate = "hate ";
-   b.clear();
-   b.put(t, strlen(t), true);
-   b.put(hate, strlen(hate), true);
-   b.put(chicken, strlen(chicken), true);
-   b.put("", 1, true);
-   
-   cout << "Prior Data2=" << b.data() << endl;
-   
-   // trim null-terminator
-   b.trim(1);
-   
-   // false = turn off resizing buffer
-   int length = strlen(sentence) + 1;
-   ByteArrayOutputStream baos2(&b, false);
-   if(!baos2.write(sentence, length))
-   {
-      IOException* e = (IOException*)Exception::getLast();
-      cout << "Exception Caught=" << e->getMessage() << endl;
-      cout << "Written bytes=" << e->getUsedBytes() << endl;
-      cout << "Unwritten bytes=" << e->getUnusedBytes() << endl;
-      cout << "Turning on resize and finishing write..." << endl;
-      
-      // turn on resize
-      baos2.setResize(true);
-      
-      // write remaining bytes
-      baos2.write(sentence + e->getUsedBytes(), e->getUnusedBytes());
-      
-      // clear exception
-      Exception::clearLast();
-   }
-   
-   cout << "Data2=" << b.data() << endl;
-   
-   cout << endl << "ByteArrayOutputStream test complete." << endl;
-}
-
-void runStringTokenizerTest()
-{
-   cout << "Starting StringTokenizer test." << endl << endl;
-   
-   const char* str = "This is a test of the StringTokenizer class.";
-   
-   StringTokenizer st(str, ' ');
-   while(st.hasNextToken())
-   {
-      cout << "token='" << st.nextToken() << "'" << endl;
-   }
-   
-   cout << endl << "StringTokenizer test complete." << endl;
-}
-
-void runStringEqualityTest()
-{
-   cout << "Starting string equality test." << endl << endl;
-   
-   // Note: string length doesn't appear to matter
-   string str = "blah";
-   unsigned long long start, end;
-   
-   start = System::getCurrentMilliseconds();
-   for(int i = 0; i < 1000000; i++)
-   {
-      if(str == "");
-   }
-   end = System::getCurrentMilliseconds();
-   cout << "String == \"\" time: " << (end - start) << " ms" << endl;
-   
-   start = System::getCurrentMilliseconds();
-   for(int i = 0; i < 1000000; i++)
-   {
-      if(str.length() == 0);
-   }
-   end = System::getCurrentMilliseconds();
-   cout << "String.length() == 0 time: " << (end - start) << " ms" << endl;
-   
-   // Note: test demonstrates that comparing to length is about 6 times faster
-   
-   cout << endl << "String equality test complete." << endl;
-}
-
-void runStringAppendCharTest()
-{
-   cout << "Starting string append char test." << endl << endl;
-   
-   // Note: string length doesn't appear to matter
-   string str = "blah";
-   unsigned long long start, end;
-   
-   start = System::getCurrentMilliseconds();
-   for(int i = 0; i < 1000000; i++)
-   {
-      if(str.length() == 1 && str[0] == '/');
-   }
-   end = System::getCurrentMilliseconds();
-   cout << "String.length() == 1 && str[0] == '/' time: " <<
-      (end - start) << " ms" << endl;
-   
-   start = System::getCurrentMilliseconds();
-   for(int i = 0; i < 1000000; i++)
-   {
-      if(str == "/");
-   }
-   end = System::getCurrentMilliseconds();
-   cout << "String == \"/\" time: " << (end - start) << " ms" << endl;
-   
-   start = System::getCurrentMilliseconds();
-   for(int i = 0; i < 1000000; i++)
-   {
-      if(strcmp(str.c_str(), "/") == 0);
-   }
-   end = System::getCurrentMilliseconds();
-   cout << "strcmp(String.c_str(), \"/\") == 0 time: " <<
-      (end - start) << " ms" << endl;
-   
-   string version = "HTTP/1.0";
-   start = System::getCurrentMilliseconds();
-   for(int i = 0; i < 1000000; i++)
-   {
-      if(version == "HTTP/1.0");
-   }
-   end = System::getCurrentMilliseconds();
-   cout << "String == \"HTTP/1.0\" time: " << (end - start) << " ms" << endl;
-   
-   start = System::getCurrentMilliseconds();
-   for(int i = 0; i < 1000000; i++)
-   {
-      if(strcmp(version.c_str(), "HTTP/1.0") == 0);
-   }
-   end = System::getCurrentMilliseconds();
-   cout << "strcmp(String.c_str(), \"HTTP/1.0\") == 0 time: " <<
-      (end - start) << " ms" << endl;
-   
-   start = System::getCurrentMilliseconds();
-   for(int i = 0; i < 10000; i++)
-   {
-      str.append(1, '/');
-   }
-   end = System::getCurrentMilliseconds();
-   cout << "String.append(1, '/') time: " << (end - start) << " ms" << endl;
-   
-   start = System::getCurrentMilliseconds();
-   for(int i = 0; i < 10000; i++)
-   {
-      str.append("/");
-   }
-   end = System::getCurrentMilliseconds();
-   cout << "String.append(\"/\") time: " << (end - start) << " ms" << endl;
-   
-   string space = " ";
-   start = System::getCurrentMilliseconds();
-   for(int i = 0; i < 10000; i++)
-   {
-      str.append("this" + space + "is a sentence");
-   }
-   end = System::getCurrentMilliseconds();
-   cout << "String inline append time: " << (end - start) << " ms" << endl;
-   
-   start = System::getCurrentMilliseconds();
-   for(int i = 0; i < 10000; i++)
-   {
-      str.append("this");
-      str.append(space);
-      str.append("is a sentence");
-   }
-   end = System::getCurrentMilliseconds();
-   cout << "String multiline append time: " << (end - start) << " ms" << endl;
-   
-   cout << endl << "String append char test complete." << endl;
-}
-
-void runStringCompareTest()
-{
-   cout << "Starting string compare test." << endl << endl;
-   
-   string str1 = "blah";
-   char str2[] = "blah";
-   unsigned long long start, end;
-   
-   start = System::getCurrentMilliseconds();
-   for(int i = 0; i < 1000000; i++)
-   {
-      if(str1 == "blah");
-   }
-   end = System::getCurrentMilliseconds();
-   cout << "std::string compare time: " << (end - start) << " ms" << endl;
-   
-   start = System::getCurrentMilliseconds();
-   for(int i = 0; i < 1000000; i++)
-   {
-      if(strcmp(str2, "blah") == 0);
-   }
-   end = System::getCurrentMilliseconds();
-   cout << "char* compare time: " << (end - start) << " ms" << endl;
-   
-   cout << endl << "String compare test complete." << endl;
 }
 
 void runHttpHeaderTest()
@@ -4809,15 +4809,15 @@ public:
       runBase64Test(tr);
       runCrcTest(tr);
       
+      // db::crypto tests
+      runMessageDigestTest(tr);
+      
       // db::net tests
       runAddressResolveTest(tr);
       runSocketTest(tr);
       runUrlEncodeTest(tr);
       runUrlTest(tr);
       //runInterruptServerSocketTest(tr);
-      
-      // db::crypto tests
-      runMessageDigestTest(tr);
       
       // db::sql tests
       runSqlite3ConnectionTest(tr);
@@ -4841,12 +4841,16 @@ public:
       cout << "Interactive unit tests starting..." << endl << endl;
       
 //      runTimeTest();
-//      runSslSocketTest();
-//      runServerSocketTest();
-//      runSslServerSocketTest();
-//      runTcpClientServerTest();
-//      runUdpClientServerTest();
-//      runDatagramTest();
+//      runConvertTest();
+//      runRegexTest();
+//      runDateTest();
+//      runStringTokenizerTest();
+//      runStringEqualityTest();
+//      runStringAppendCharTest();
+//      runStringCompareTest();
+//      runByteBufferTest();
+//      runByteArrayInputStreamTest();
+//      runByteArrayOutputStreamTest();
 //      runAsymmetricKeyLoadingTest();
 //      runDsaAsymmetricKeyCreationTest();
 //      runRsaAsymmetricKeyCreationTest();
@@ -4855,20 +4859,17 @@ public:
 //      runEnvelopeTest("DSA");
 //      runEnvelopeTest("RSA");
 //      runCipherTest("AES256");
-//      runConvertTest();
-//      runRegexTest();
-//      runDateTest();
-//      runConfigTest();
+//      runBigIntegerTest();
+//      runBigDecimalTest();
+//      runSslSocketTest();
+//      runServerSocketTest();
+//      runSslServerSocketTest();
+//      runTcpClientServerTest();
+//      runUdpClientServerTest();
+//      runDatagramTest();
 //      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
-//      runByteBufferTest();
-//      runByteArrayInputStreamTest();
-//      runByteArrayOutputStreamTest();
-//      runStringTokenizerTest();
-//      runStringEqualityTest();
-//      runStringAppendCharTest();
-//      runStringCompareTest();
 //      runHttpHeaderTest();
 //      runHttpServerTest();
 //      runHttpClientGetTest();
@@ -4879,8 +4880,6 @@ public:
 //      runXmlReadWriteTest();
 //      runXmlBindingInputStreamTest();
 //      runXmlBindingOutputStreamTest();
-//      runBigIntegerTest();
-//      runBigDecimalTest();
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
 //      runConnectionPoolTest();
