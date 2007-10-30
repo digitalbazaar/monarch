@@ -194,7 +194,7 @@ public:
    
    /**
     * Fetches the next result Row once this Statement has been executed. The
-    * Row is heap-allocated and must be freed by the caller of this method.
+    * Row is managed by the Statement and must not be freed by the caller.
     * 
     * @return the next result Row once this Statement has been executed,
     *         NULL if there is no next Row.
