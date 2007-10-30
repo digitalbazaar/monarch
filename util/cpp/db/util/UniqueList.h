@@ -61,6 +61,13 @@ public:
    virtual void clear();
    
    /**
+    * The number of items in this list.
+    * 
+    * @return the number of items in this list.
+    */
+   virtual unsigned int count();
+   
+   /**
     * Gets the Iterator for this list. It must be deleted after use.
     * 
     * @return the Iterator for the list.
@@ -113,6 +120,13 @@ void UniqueList<T>::clear()
 {
    // clear list
    mList.clear();
+}
+
+template<typename T>
+unsigned int UniqueList<T>::count()
+{
+   // return size of list
+   return mList.size();
 }
 
 template<typename T>
