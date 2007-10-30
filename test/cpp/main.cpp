@@ -579,26 +579,32 @@ void runBase64Test(TestRunner& tr)
 
 void runCrcTest(TestRunner& tr)
 {
-   tr.test("CRC");
+   tr.group("CRC");
    
    unsigned int correctValue = 6013;
    
-   Crc16 crc16;
-   char b[] = {10, 20, 30, 40, 50, 60, 70, 80};
-//   crc16.update(10);
-//   crc16.update(20);
-//   crc16.update(30);
-//   crc16.update(40);
-//   crc16.update(50);
-//   crc16.update(60);
-//   crc16.update(70);
-//   crc16.update(80);
-   crc16.update(b, 8);
-   
-   //cout << "CRC-16=" << crc16.getChecksum() << endl;
-   assert(crc16.getChecksum() == correctValue);
-   
+   tr.test("single value update");   
+   Crc16 crc16s;
+   crc16s.update(10);
+   crc16s.update(20);
+   crc16s.update(30);
+   crc16s.update(40);
+   crc16s.update(50);
+   crc16s.update(60);
+   crc16s.update(70);
+   crc16s.update(80);
+   assert(crc16s.getChecksum() == correctValue);
    tr.pass();
+   
+   tr.test("array update");   
+   Crc16 crc16a;
+   char b[] = {10, 20, 30, 40, 50, 60, 70, 80};
+   crc16a.update(b, 8);
+   //cout << "CRC-16=" << crc16.getChecksum() << endl;
+   assert(crc16a.getChecksum() == correctValue);
+   tr.pass();
+
+   tr.ungroup();
 }
 
 void runConvertTest()
