@@ -99,37 +99,6 @@ FilterOutputStream g_junk5(NULL, false);
 ByteArrayInputStream g_junk6(NULL, 0);
 IgnoreOutputStream g_junk7(NULL);
 
-void runBase64Test(TestRunner& tr)
-{
-   const char* expected = "YmNkZQ==";
-
-   tr.test("Base64");
-   
-   char data[] = {'a', 'b', 'c', 'd', 'e'};
-   string encoded = Base64Codec::encode(data + 1, 4);
-   assert(encoded == expected);
-   
-   char* decoded;
-   unsigned int length;
-   Base64Codec::decode(encoded, &decoded, length);
-   
-   assert(length == 4);
-   for(unsigned int i = 0; i < length; i++)
-   {
-      assert(decoded[i] == data[i + 1]);
-   }
-   
-   string encoded2 = Base64Codec::encode(decoded, 4);
-   assert(encoded2 == expected);
-   
-   if(decoded != NULL)
-   {
-      delete [] decoded;
-   }
-   
-   tr.pass();
-}
-
 void runTimeTest()
 {
    cout << "Running Time Test" << endl << endl;
@@ -163,11 +132,11 @@ public:
    {
       Thread* t = Thread::currentThread();
       string name = t->getName();
-      cout << name << ": This is a TestRunnable thread,addr=" << t << endl;
+      //cout << name << ": This is a TestRunnable thread,addr=" << t << endl;
       
       if(name == "Thread 1")
       {
-         cout << "Thread 1 Waiting for interruption..." << endl;
+         //cout << "Thread 1 Waiting for interruption..." << endl;
          InterruptedException* e = NULL;
          
          lock();
@@ -176,82 +145,92 @@ public:
             lock();
             lock();
             e = wait();
+            // thread 1 should be interrupted
+            assert(e != NULL);
             unlock();
             unlock();
             unlock();
          }
          unlock();
          
-         if(Thread::interrupted())
-         {
-            cout << "Thread 1 Interrupted. Exception message="
-                 << e->getMessage() << endl;
-         }
-         else
-         {
-            cout << "Thread 1 Finished." << endl;
-         }
+//         if(Thread::interrupted())
+//         {
+//            cout << "Thread 1 Interrupted. Exception message="
+//                 << e->getMessage() << endl;
+//         }
+//         else
+//         {
+//            cout << "Thread 1 Finished." << endl;
+//         }
       }
       else if(name == "Thread 2")
       {
-         cout << "Thread 2 Finished." << endl;
+         //cout << "Thread 2 Finished." << endl;
       }
       else if(name == "Thread 3")
       {
-         cout << "Thread 3 Waiting for Thread 5..." << endl;
+         //cout << "Thread 3 Waiting for Thread 5..." << endl;
          
          lock();
          lock();
          lock();
          {
-            cout << "Thread 3 starting wait..." << endl;
-            while(mustWait && wait(5000) != NULL);
-            cout << "Thread 3 Awake!" << endl;
+            //cout << "Thread 3 starting wait..." << endl;
+            while(mustWait)
+            {
+               // thread 3 should be notified, not interrupted
+               assert(wait(5000) == NULL);
+            }
+            //cout << "Thread 3 Awake!" << endl;
          }
          unlock();
          unlock();
          unlock();
          
-         if(Thread::interrupted())
-         {
-            cout << "Thread 3 Interrupted." << endl;
-         }
-         else
-         {
-            cout << "Thread 3 Finished." << endl;
-         }         
+//         if(Thread::interrupted())
+//         {
+//            cout << "Thread 3 Interrupted." << endl;
+//         }
+//         else
+//         {
+//            cout << "Thread 3 Finished." << endl;
+//         }         
       }
       else if(name == "Thread 4")
       {
-         cout << "Thread 4 Finished." << endl;
+         //cout << "Thread 4 Finished." << endl;
       }
       else if(name == "Thread 5")
       {
-         cout << "Thread 5 waking up a thread..." << endl;
+         //cout << "Thread 5 waking up a thread..." << endl;
          
          lock();
          lock();
          lock();
          lock();
          {
+            // wait for a moment
+            Thread::sleep(100);
             mustWait = false;
-            cout << "Thread 5 notifying a thread..." << endl;
-            notify();
-            cout << "Thread 5 notified another thread." << endl;
+            //cout << "Thread 5 notifying a thread..." << endl;
+            notifyAll();
+            //cout << "Thread 5 notified another thread." << endl;
          }
          unlock();
          unlock();
          unlock();
          unlock();
          
-         cout << "Thread 5 Finished." << endl;
+         //cout << "Thread 5 Finished." << endl;
       }
    }
 };
 
-void runThreadTest()
+void runThreadTest(TestRunner& tr)
 {
-   cout << "Running Thread Test" << endl << endl;
+   tr.test("Thread");
+   
+   //cout << "Running Thread Test" << endl << endl;
    
    TestRunnable r1;
    Thread t1(&r1, "Thread 1");
@@ -260,7 +239,7 @@ void runThreadTest()
    Thread t4(&r1, "Thread 4");
    Thread t5(&r1, "Thread 5");
    
-   cout << "Threads starting..." << endl;
+   //cout << "Threads starting..." << endl;
    
    t1.start();
    t2.start();
@@ -276,7 +255,9 @@ void runThreadTest()
    t4.join();
    t5.join();
    
-   cout << endl << "Thread Test complete." << endl;
+   tr.pass();
+   
+   //cout << endl << "Thread Test complete." << endl;
 }
 
 class TestJob : public Runnable
@@ -295,28 +276,32 @@ public:
    
    virtual void run()
    {
-      cout << endl << "TestJob: Running a job,name=" << mName << endl;
+      //cout << endl << "TestJob: Running a job,name=" << mName << endl;
       
       if(mName == "1")
       {
-         Thread::sleep(3000);
+         Thread::sleep(375);
       }
       else if(mName == "2")
       {
-         Thread::sleep(1000);
+         Thread::sleep(125);
       }
       else
       {
-         Thread::sleep(1000);
+         Thread::sleep(125);
       }
       
-      cout << endl << "TestJob: Finished a job,name=" << mName << endl;
+      //cout << endl << "TestJob: Finished a job,name=" << mName << endl;
    }
 };
 
-void runJobThreadPoolTest()
+void runJobThreadPoolTest(TestRunner& tr)
 {
-   cout << "Running JobThreadPool Test" << endl << endl;
+   tr.test("JobThreadPool");
+   
+   Exception::clearLast();
+   
+   //cout << "Running JobThreadPool Test" << endl << endl;
    
    // create a job thread pool
    JobThreadPool pool(3);
@@ -336,19 +321,25 @@ void runJobThreadPoolTest()
    pool.runJob(&job5);
    
    // wait
-   cout << "Waiting for jobs to complete..." << endl;
-   Thread::sleep(10000);
-   cout << "Finished waiting for jobs to complete." << endl;
+   //cout << "Waiting for jobs to complete..." << endl;
+   Thread::sleep(1250);
+   //cout << "Finished waiting for jobs to complete." << endl;
    
    // terminate all jobs
    pool.terminateAllThreads();
    
-   cout << endl << "JobThreadPool Test complete." << endl << endl;
+   tr.passIfNoException();
+   
+   //cout << endl << "JobThreadPool Test complete." << endl << endl;
 }
 
-void runJobDispatcherTest()
+void runJobDispatcherTest(TestRunner& tr)
 {
-   cout << "Running JobDispatcher Test" << endl << endl;
+   tr.test("JobDispatcher");
+   
+   Exception::clearLast();
+   
+   //cout << "Running JobDispatcher Test" << endl << endl;
    
    // create a job dispatcher
    //JobDispatcher jd;
@@ -375,52 +366,298 @@ void runJobDispatcherTest()
    jd.startDispatching();
    
    // wait
-   cout << "Waiting 10 seconds for jobs to complete..." << endl;
-   Thread::sleep(10000);
-   cout << "Finished waiting for jobs to complete." << endl;
+   //cout << "Waiting 10 seconds for jobs to complete..." << endl;
+   Thread::sleep(1250);
+   //cout << "Finished waiting for jobs to complete." << endl;
    
    // stop dispatching
    jd.stopDispatching();      
    
-   cout << endl << "JobDispatcher Test complete." << endl << endl;
+   tr.passIfNoException();
+   
+   //cout << endl << "JobDispatcher Test complete." << endl << endl;
 }
 
-void runAddressResolveTest()
+class TestGuard : public OperationGuard
 {
-   cout << "Running Address Resolve Test" << endl << endl;
+public:
+   virtual bool canExecuteOperation(ImmutableState* s)
+   {
+      bool rval = false;
+      
+      int ops = 0;
+      s->getInteger("number.of.ops", ops);
+      
+      bool loggingOut = false;
+      s->getBoolean("logging.out", loggingOut);
+      
+      rval = !loggingOut && ops < 3;
+      if(!rval)
+      {
+         //cout << "Operation must wait or cancel." << endl;
+      }
+      else
+      {
+         //cout << "Operation can run." << endl;
+      }
+      
+      return rval;
+   }
+   
+   virtual bool mustCancelOperation(ImmutableState* s)
+   {
+      bool loggedOut = false;
+      s->getBoolean("logged.out", loggedOut);
+      
+      if(loggedOut)
+      {
+         //cout << "Operation must cancel, user logged out." << endl;
+      }
+      else
+      {
+         //cout << "Operation can wait, user is not logged out yet." << endl;
+      }
+      
+      return loggedOut;
+   }
+};
+
+class TestStateMutator : public StateMutator
+{
+protected:
+   bool mLogout;
+public:
+   TestStateMutator(bool logout)
+   {
+      mLogout = logout;
+   }
+   
+   virtual void mutatePreExecutionState(State* s, Operation* op)
+   {
+      int ops = 0;
+      s->getInteger("number.of.ops", ops);
+      s->setInteger("number.of.ops", ++ops);
+      
+      if(mLogout)
+      {
+         s->setBoolean("logging.out", true);
+         //cout << "Logging out..." << endl;
+      }
+   }
+   
+   virtual void mutatePostExecutionState(State* s, Operation* op)
+   {
+      int ops = 0;
+      s->getInteger("number.of.ops", ops);
+      s->setInteger("number.of.ops", --ops);
+      
+      if(mLogout)
+      {
+         s->setBoolean("logged.out", true);
+         //cout << "Logged out." << endl;
+      }
+   }
+};
+
+class RunOp : public virtual Object, public Runnable
+{
+protected:
+   string mName;
+   unsigned long mTime;
+   
+public:
+   RunOp(string name, unsigned long time)
+   {
+      mName = name;
+      mTime = time;
+   }
+   
+   virtual void run()
+   {
+      //cout << "Operation running: " << mName << endl;
+      
+      lock();
+      {
+         wait(mTime);
+      }
+      unlock();
+      
+      //cout << "Operation finished: " << mName << endl;
+   }
+   
+   virtual string& toString(string& str)
+   {
+      str = mName;
+      return mName;
+   }
+};
+
+void runModestTest(TestRunner& tr)
+{
+   tr.test("Modest Engine");
+   
+   //cout << "Starting Modest test." << endl << endl;
+   Exception::clearLast();
+   
+   Kernel k;
+   
+   //cout << "Modest engine started." << endl;
+   k.getEngine()->start();
+   
+   RunOp r1("Number 1", 500);
+   RunOp r2("Number 2", 500);
+   RunOp r3("Number 3", 500);
+   RunOp r4("Number 4", 500);
+   RunOp r5("Number 5", 500);
+   RunOp rLogout("Logout", 250);
+   
+   TestStateMutator sm(false);
+   TestStateMutator smLogout(true);
+   TestGuard g;
+   
+   Operation op1(&r1, &g, &sm);
+   Operation op2(&r2, &g, &sm);
+   Operation op3(&r3, &g, &sm);
+   Operation op4(&r4, &g, &sm);
+   Operation op5(&r5, &g, &sm);
+   Operation opLogout(&rLogout, &g, &smLogout);
+   
+   k.getEngine()->queue(&op1);
+   k.getEngine()->queue(&op2);
+   k.getEngine()->queue(&op3);
+   k.getEngine()->queue(&op4);
+   k.getEngine()->queue(&opLogout);
+   k.getEngine()->queue(&op5);
+   
+   op1.waitFor();
+   op2.waitFor();
+   op3.waitFor();
+   op4.waitFor();
+   op5.waitFor();
+   opLogout.waitFor();
+   
+   //cout << "Operations complete." << endl;
+   
+   k.getEngine()->stop();
+   //cout << "Modest engine stopped." << endl;
+   
+   tr.passIfNoException();
+   
+   //cout << endl << "Modest test complete." << endl;
+}
+
+void runBase64Test(TestRunner& tr)
+{
+   const char* expected = "YmNkZQ==";
+
+   tr.test("Base64");
+   
+   char data[] = {'a', 'b', 'c', 'd', 'e'};
+   string encoded = Base64Codec::encode(data + 1, 4);
+   assert(encoded == expected);
+   
+   char* decoded;
+   unsigned int length;
+   Base64Codec::decode(encoded, &decoded, length);
+   
+   assert(length == 4);
+   for(unsigned int i = 0; i < length; i++)
+   {
+      assert(decoded[i] == data[i + 1]);
+   }
+   
+   string encoded2 = Base64Codec::encode(decoded, 4);
+   assert(encoded2 == expected);
+   
+   if(decoded != NULL)
+   {
+      delete [] decoded;
+   }
+   
+   tr.pass();
+}
+
+void runCrcTest(TestRunner& tr)
+{
+   tr.test("CRC");
+   
+   unsigned int correctValue = 6013;
+   
+   Crc16 crc16;
+   char b[] = {10, 20, 30, 40, 50, 60, 70, 80};
+//   crc16.update(10);
+//   crc16.update(20);
+//   crc16.update(30);
+//   crc16.update(40);
+//   crc16.update(50);
+//   crc16.update(60);
+//   crc16.update(70);
+//   crc16.update(80);
+   crc16.update(b, 8);
+   
+   //cout << "CRC-16=" << crc16.getChecksum() << endl;
+   assert(crc16.getChecksum() == correctValue);
+   
+   tr.pass();
+}
+
+void runAddressResolveTest(TestRunner& tr)
+{
+   tr.test("Address Resolution");
+   
+   //cout << "Running Address Resolve Test" << endl << endl;
+   
+   Exception::clearLast();
    
    // create IPv4 address
    InternetAddress ip4;
    
-   cout << "Testing IPv4..." << endl << endl;
+   //cout << "Testing IPv4..." << endl << endl;
    
    ip4.setHost("www.bitmunk.com");
-   cout << "www.bitmunk.com = " << ip4.getAddress() << endl;
+   ip4.getAddress();
+   assertNoException();
+   //cout << "www.bitmunk.com = " << ip4.getAddress() << endl;
    
    ip4.setHost("www.google.com");
-   cout << "www.google.com = " << ip4.getAddress() << endl;
+   ip4.getAddress();
+   assertNoException();
+   //cout << "www.google.com = " << ip4.getAddress() << endl;
    
    ip4.setHost("www.yahoo.com");
-   cout << "www.yahoo.com = " << ip4.getAddress() << endl;
+   ip4.getAddress();
+   assertNoException();
+   //cout << "www.yahoo.com = " << ip4.getAddress() << endl;
    
    ip4.setHost("www.microsoft.com");
-   cout << "www.microsoft.com = " << ip4.getAddress() << endl;
+   ip4.getAddress();
+   assertNoException();
+   //cout << "www.microsoft.com = " << ip4.getAddress() << endl;
    
-   cout << endl;
+   //cout << endl;
    
    ip4.setAddress("192.168.0.1");
-   cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   ip4.getAddress();
+   ip4.getHost();
+   assertNoException();
+   //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
    
    ip4.setAddress("192.168.0.8");
-   cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   ip4.getAddress();
+   ip4.getHost();
+   assertNoException();
+   //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
    
    ip4.setAddress("216.239.51.99");
-   cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   ip4.getAddress();
+   ip4.getHost();
+   assertNoException();
+   //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
    
    // create IPv6 address
-   Internet6Address ip6;
+   //Internet6Address ip6;
    
-   cout << endl << "Testing IPv6..." << endl << endl;
+   //cout << endl << "Testing IPv6..." << endl << endl;
    
    //ip6.setHost("ip6-localhost");
    //cout << "ip6-localhost = " << ip6.getAddress() << endl;
@@ -439,81 +676,96 @@ void runAddressResolveTest()
    cout << "www.microsoft.com = " << ip6.getAddress() << endl;
    */
    
-   cout << endl;
+   //cout << endl;
    
-   ip6.setAddress("fc00:840:db:bb:d::8");
-   cout << ip6.getAddress() << " = " << ip6.getHost() << endl;
+   //ip6.setAddress("fc00:840:db:bb:d::8");
+   //cout << ip6.getAddress() << " = " << ip6.getHost() << endl;
    
-   cout << endl << "Address Resolve Test complete." << endl << endl;
+   tr.passIfNoException();
+   
+   //cout << endl << "Address Resolve Test complete." << endl << endl;
 }
 
-void runSocketTest()
+void runSocketTest(TestRunner& tr)
 {
-   cout << "Running Socket Test" << endl << endl;
+   tr.test("Socket");
+   
+   //cout << "Running Socket Test" << endl << endl;
+   Exception::clearLast();
    
    // create address
    //InternetAddress address("127.0.0.1", 80);
    InternetAddress address("www.google.com", 80);
    
    // ensure host was known
-   if(!Thread::hasException())
+   assertNoException();
+   
+   address.getAddress();
+   assertNoException();
+   //cout << "Connecting to: " << address.getAddress() << endl;
+   
+   // create tcp socket
+   TcpSocket socket;
+   
+   // connect
+   socket.connect(&address);
+   assertNoException();
+   
+   char request[] =
+      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+   socket.send(request, sizeof(request));
+   assertNoException();
+   
+   // set receive timeout (10 seconds = 10000 milliseconds)
+   socket.setReceiveTimeout(10000);
+   assertNoException();
+   
+   char response[2048];
+   int numBytes = 0;
+   string str;
+   
+   //cout << endl << "DOING A PEEK!" << endl;
+   
+   string peek;
+   numBytes = socket.getInputStream()->peek(response, 2048);
+   if(numBytes > 0)
    {
-      cout << "Connecting to: " << address.getAddress() << endl;
-      
-      // create tcp socket
-      TcpSocket socket;
-      
-      // connect
-      socket.connect(&address);
-      
-      char request[] =
-         "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-      socket.send(request, sizeof(request));
-      
-      // set receive timeout (10 seconds = 10000 milliseconds)
-      socket.setReceiveTimeout(10000);
-      
-      char response[2048];
-      int numBytes = 0;
-      string str = "";
-      
-      cout << endl << "DOING A PEEK!" << endl;
-      
-      numBytes = socket.getInputStream()->peek(response, 2048);
-      if(numBytes > 0)
-      {
-         cout << "Peeked " << numBytes << " bytes." << endl;
-         string peek = "";
-         peek.append(response, numBytes);
-         cout << "Peek bytes=" << peek << endl;
-      }
-      
-      cout << endl << "DOING ACTUAL READ NOW!" << endl;
-      
-      while((numBytes = socket.getInputStream()->read(response, 2048)) > 0)
-      {
-         cout << "numBytes received: " << numBytes << endl;
-         str.append(response, numBytes);
-      }
-      
-   //   char response[2048];
-   //   int numBytes = 0;
-   //   string str = "";
-   //   while((numBytes = socket.receive(response, 0, 2048)) > 0)
-   //   {
-   //      cout << "numBytes received: " << numBytes << endl;
-   //      str.append(response, numBytes);
-   //   }
-      
-      cout << "Response:" << endl << str << endl;
-      
-      // close
-      socket.close();
-      
-      cout << "Socket connection closed." << endl;
+      //cout << "Peeked " << numBytes << " bytes." << endl;
+      peek.append(response, numBytes);
+      //cout << "Peek bytes=" << peek << endl;
+   }
+   assertNoException();
+   
+   //cout << endl << "DOING ACTUAL READ NOW!" << endl;
+   int peekBytes = numBytes;
+   while((numBytes = socket.getInputStream()->read(response, 2048)) > 0)
+   {
+      //cout << "numBytes received: " << numBytes << endl;
+      str.append(response, numBytes);
    }
    
-   cout << endl << "Socket test complete." << endl;
+   // confirm peek bytes check out
+   assert(strncmp(peek.c_str(), str.c_str(), peekBytes) == 0);
+   
+//   char response[2048];
+//   int numBytes = 0;
+//   string str = "";
+//   while((numBytes = socket.receive(response, 0, 2048)) > 0)
+//   {
+//      cout << "numBytes received: " << numBytes << endl;
+//      str.append(response, numBytes);
+//   }
+   
+   //cout << "Response:" << endl << str << endl;
+   
+   // close
+   socket.close();
+   
+   tr.passIfNoException();
+   
+   //cout << "Socket connection closed." << endl;
+   
+   //cout << endl << "Socket test complete." << endl;
 }
 
 void runSslSocketTest()
@@ -598,13 +850,15 @@ void runSslSocketTest()
 
 void runServerSocketTest()
 {
-   cout << "Running Server Socket Test" << endl << endl;
+   //cout << "Running Server Socket Test" << endl << endl;
+   
+   Exception::clearLast();
    
    // bind and listen
    InternetAddress address("127.0.0.1", 19100);
    
    // ensure host was known
-   if(!Thread::hasException())
+   if(!Exception::hasLast())
    {
       // create tcp socket
       TcpSocket socket;
@@ -1017,30 +1271,6 @@ void runMessageDigestTest(TestRunner& tr)
    
    //cout << "SHA-1 Digest=" << digestSha1 << endl;
    assert(digestSha1 == correctSha1);
-   
-   tr.pass();
-}
-
-void runCrcTest(TestRunner& tr)
-{
-   tr.test("CRC");
-   
-   unsigned int correctValue = 6013;
-   
-   Crc16 crc16;
-   char b[] = {10, 20, 30, 40, 50, 60, 70, 80};
-//   crc16.update(10);
-//   crc16.update(20);
-//   crc16.update(30);
-//   crc16.update(40);
-//   crc16.update(50);
-//   crc16.update(60);
-//   crc16.update(70);
-//   crc16.update(80);
-   crc16.update(b, 8);
-   
-   //cout << "CRC-16=" << crc16.getChecksum() << endl;
-   assert(crc16.getChecksum() == correctValue);
    
    tr.pass();
 }
@@ -2055,7 +2285,7 @@ void runDateTest()
    cout << endl << "Date test complete." << endl;
 }
 
-class InterruptTest : public virtual Object, public Runnable
+class InterruptServerSocketTest : public virtual Object, public Runnable
 {
 public:
    /**
@@ -2065,7 +2295,7 @@ public:
    {
       runServerSocketTest();
       
-      if(Thread::hasException())
+      if(Exception::hasLast())
       {
          Exception* e = Exception::getLast();
          cout << "Exception occurred!" << endl;
@@ -2075,185 +2305,26 @@ public:
    }
 };
 
-void runInterruptTest()
+void runInterruptServerSocketTest(TestRunner& tr)
 {
-   InterruptTest runnable;
+   tr.test("Thread Interrupt");
+   
+   InterruptServerSocketTest runnable;
    Thread t(&runnable);
    t.start();
    
-   cout << "Waiting for thread..." << endl;
+   //cout << "Waiting for thread..." << endl;
    Thread::sleep(2000);
-   cout << "Finished waiting for thread." << endl;
+   //cout << "Finished waiting for thread." << endl;
    
-   cout << "Interrupting thread..." << endl;
+   //cout << "Interrupting thread..." << endl;
    t.interrupt();
    
-   cout << "Joining thread..." << endl;
+   //cout << "Joining thread..." << endl;
    t.join();
-   cout << "Thread joined." << endl;
-}
-
-class TestGuard : public OperationGuard
-{
-public:
-   virtual bool canExecuteOperation(ImmutableState* s)
-   {
-      bool rval = false;
-      
-      int ops = 0;
-      s->getInteger("number.of.ops", ops);
-      
-      bool loggingOut = false;
-      s->getBoolean("logging.out", loggingOut);
-      
-      rval = !loggingOut && ops < 3;
-      if(!rval)
-      {
-         cout << "Operation must wait or cancel." << endl;
-      }
-      else
-      {
-         cout << "Operation can run." << endl;
-      }
-      
-      return rval;
-   }
+   //cout << "Thread joined." << endl;
    
-   virtual bool mustCancelOperation(ImmutableState* s)
-   {
-      bool loggedOut = false;
-      s->getBoolean("logged.out", loggedOut);
-      
-      if(loggedOut)
-      {
-         cout << "Operation must cancel, user logged out." << endl;
-      }
-      else
-      {
-         cout << "Operation can wait, user is not logged out yet." << endl;
-      }
-      
-      return loggedOut;
-   }
-};
-
-class TestStateMutator : public StateMutator
-{
-protected:
-   bool mLogout;
-public:
-   TestStateMutator(bool logout)
-   {
-      mLogout = logout;
-   }
-   
-   virtual void mutatePreExecutionState(State* s, Operation* op)
-   {
-      int ops = 0;
-      s->getInteger("number.of.ops", ops);
-      s->setInteger("number.of.ops", ++ops);
-      
-      if(mLogout)
-      {
-         s->setBoolean("logging.out", true);
-         cout << "Logging out..." << endl;
-      }
-   }
-   
-   virtual void mutatePostExecutionState(State* s, Operation* op)
-   {
-      int ops = 0;
-      s->getInteger("number.of.ops", ops);
-      s->setInteger("number.of.ops", --ops);
-      
-      if(mLogout)
-      {
-         s->setBoolean("logged.out", true);
-         cout << "Logged out." << endl;
-      }
-   }
-};
-
-class RunOp : public virtual Object, public Runnable
-{
-protected:
-   string mName;
-   unsigned long mTime;
-   
-public:
-   RunOp(string name, unsigned long time)
-   {
-      mName = name;
-      mTime = time;
-   }
-   
-   virtual void run()
-   {
-      cout << "Operation running: " << mName << endl;
-      
-      lock();
-      {
-         wait(mTime);
-      }
-      unlock();
-      
-      cout << "Operation finished: " << mName << endl;
-   }
-   
-   virtual string& toString(string& str)
-   {
-      str = mName;
-      return mName;
-   }
-};
-
-void runModestTest()
-{
-   cout << "Starting Modest test." << endl << endl;
-   
-   Kernel k;
-   
-   cout << "Modest engine started." << endl;
-   k.getEngine()->start();
-   
-   RunOp r1("Number 1", 2000);
-   RunOp r2("Number 2", 2000);
-   RunOp r3("Number 3", 2000);
-   RunOp r4("Number 4", 2000);
-   RunOp r5("Number 5", 2000);
-   RunOp rLogout("Logout", 1000);
-   
-   TestStateMutator sm(false);
-   TestStateMutator smLogout(true);
-   TestGuard g;
-   
-   Operation op1(&r1, &g, &sm);
-   Operation op2(&r2, &g, &sm);
-   Operation op3(&r3, &g, &sm);
-   Operation op4(&r4, &g, &sm);
-   Operation op5(&r5, &g, &sm);
-   Operation opLogout(&rLogout, &g, &smLogout);
-   
-   k.getEngine()->queue(&op1);
-   k.getEngine()->queue(&op2);
-   k.getEngine()->queue(&op3);
-   k.getEngine()->queue(&op4);
-   k.getEngine()->queue(&opLogout);
-   k.getEngine()->queue(&op5);
-   
-   op1.waitFor();
-   op2.waitFor();
-   op3.waitFor();
-   op4.waitFor();
-   op5.waitFor();
-   opLogout.waitFor();
-   
-   cout << "Operations complete." << endl;
-   
-   k.getEngine()->stop();
-   cout << "Modest engine stopped." << endl;
-   
-   cout << endl << "Modest test complete." << endl;
+   tr.pass();
 }
 
 class TestConnectionServicer1 : public ConnectionServicer
@@ -4726,11 +4797,29 @@ public:
    {
       cout << "Automatic unit tests starting..." << endl << endl;
       
+      // db::rt tests
+      runThreadTest(tr);
+      runJobThreadPoolTest(tr);
+      runJobDispatcherTest(tr);
+      
+      // db::modest tests
+      runModestTest(tr);
+      
+      // db::util tests
       runBase64Test(tr);
-      runMessageDigestTest(tr);
       runCrcTest(tr);
+      
+      // db::net tests
+      runAddressResolveTest(tr);
+      runSocketTest(tr);
       runUrlEncodeTest(tr);
       runUrlTest(tr);
+      //runInterruptServerSocketTest(tr);
+      
+      // db::crypto tests
+      runMessageDigestTest(tr);
+      
+      // db::sql tests
       runSqlite3ConnectionTest(tr);
       runSqlite3StatementTest(tr);
       runSqlite3RowObjectTest(tr);
@@ -4752,13 +4841,6 @@ public:
       cout << "Interactive unit tests starting..." << endl << endl;
       
 //      runTimeTest();
-//      runThreadTest();
-//      runInterruptTest();
-//      runJobThreadPoolTest();
-//      runJobDispatcherTest();
-//      runModestTest();
-//      runAddressResolveTest();
-//      runSocketTest();
 //      runSslSocketTest();
 //      runServerSocketTest();
 //      runSslServerSocketTest();
