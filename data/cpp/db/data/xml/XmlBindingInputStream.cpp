@@ -95,7 +95,8 @@ int XmlBindingInputStream::read(char* b, int length)
    int rval = 0;
    
    // clear last exception
-   Exception::clearLast();
+   Exception* last = Exception::getLast();
+   Exception::clearLast(false);
    
    // read from buffer as much as possible
    if(!mReadBuffer.isEmpty())
@@ -250,6 +251,17 @@ int XmlBindingInputStream::read(char* b, int length)
             rval = read(b, length);
          }
       }
+   }
+   
+   // restore old exception
+   if(!Exception::hasLast())
+   {
+      Exception::setLast(last);
+   }
+   else if(last != NULL)
+   {
+      // clean up old exception
+      delete last;
    }
    
    return rval;
