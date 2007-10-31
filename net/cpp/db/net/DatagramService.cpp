@@ -21,9 +21,9 @@ DatagramService::~DatagramService()
    DatagramService::stop();
 }
 
-Operation* DatagramService::initialize()
+Operation DatagramService::initialize()
 {
-   Operation* rval = NULL;
+   Operation rval = NULL;
    
    // create datagram socket
    mSocket = new DatagramSocket();

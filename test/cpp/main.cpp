@@ -92,7 +92,7 @@ using namespace db::sql::util;
 // WTF? this is required to get static library building for unknown reason
 #include "db/io/PeekInputStream.h"
 PeekInputStream g_junk1(NULL, false);
-OperationList g_junk2(false);
+OperationList g_junk2;
 NullSocketDataPresenter g_junk3;
 StringTokenizer g_junk4;
 FilterOutputStream g_junk5(NULL, false);
@@ -432,7 +432,7 @@ public:
       mLogout = logout;
    }
    
-   virtual void mutatePreExecutionState(State* s, Operation* op)
+   virtual void mutatePreExecutionState(State* s, Operation op)
    {
       int ops = 0;
       s->getInteger("number.of.ops", ops);
@@ -445,7 +445,7 @@ public:
       }
    }
    
-   virtual void mutatePostExecutionState(State* s, Operation* op)
+   virtual void mutatePostExecutionState(State* s, Operation op)
    {
       int ops = 0;
       s->getInteger("number.of.ops", ops);
@@ -515,26 +515,26 @@ void runModestTest(TestRunner& tr)
    TestStateMutator smLogout(true);
    TestGuard g;
    
-   Operation op1(&r1, &g, &sm);
-   Operation op2(&r2, &g, &sm);
-   Operation op3(&r3, &g, &sm);
-   Operation op4(&r4, &g, &sm);
-   Operation op5(&r5, &g, &sm);
-   Operation opLogout(&rLogout, &g, &smLogout);
+   Operation op1 = k.createOperation(&r1, &g, &sm);
+   Operation op2 = k.createOperation(&r2, &g, &sm);
+   Operation op3 = k.createOperation(&r3, &g, &sm);
+   Operation op4 = k.createOperation(&r4, &g, &sm);
+   Operation op5 = k.createOperation(&r5, &g, &sm);
+   Operation opLogout = k.createOperation(&rLogout, &g, &smLogout);
    
-   k.getEngine()->queue(&op1);
-   k.getEngine()->queue(&op2);
-   k.getEngine()->queue(&op3);
-   k.getEngine()->queue(&op4);
-   k.getEngine()->queue(&opLogout);
-   k.getEngine()->queue(&op5);
+   k.getEngine()->queue(op1);
+   k.getEngine()->queue(op2);
+   k.getEngine()->queue(op3);
+   k.getEngine()->queue(op4);
+   k.getEngine()->queue(opLogout);
+   k.getEngine()->queue(op5);
    
-   op1.waitFor();
-   op2.waitFor();
-   op3.waitFor();
-   op4.waitFor();
-   op5.waitFor();
-   opLogout.waitFor();
+   op1->waitFor();
+   op2->waitFor();
+   op3->waitFor();
+   op4->waitFor();
+   op5->waitFor();
+   opLogout->waitFor();
    
    //cout << "Operations complete." << endl;
    
@@ -4877,7 +4877,7 @@ public:
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
 //      runHttpHeaderTest();
-//      runHttpServerTest();
+      runHttpServerTest();
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
 //      runPingTest();

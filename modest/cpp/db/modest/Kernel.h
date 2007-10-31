@@ -54,9 +54,6 @@ public:
     * Creates an Operation from the given Runnable, OperationGuard,
     * and StateMutator that is to be run by this Kernel.
     * 
-    * The returned Operation object must be freed by the caller of this method
-    * after it has stopped.
-    * 
     * The passed Runnable, OperationGuard, and/or StateMutator may be
     * wrapped by other classes to provide additional logic.
     * 
@@ -67,7 +64,7 @@ public:
     * @return the Operation object to use to monitor the status of the
     *         Operation.
     */
-   virtual Operation* createOperation(
+   virtual Operation createOperation(
       db::rt::Runnable* r, OperationGuard* g, StateMutator* m);
    
    /**
@@ -75,7 +72,7 @@ public:
     * 
     * @param op the Operation to queue with this Kernel's modest Engine.
     */
-   virtual void runOperation(Operation* op);
+   virtual void runOperation(Operation op);
    
    /**
     * Gets this Kernel's Engine.

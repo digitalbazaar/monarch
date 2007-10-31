@@ -4,13 +4,16 @@
 #ifndef db_modest_Engine_H
 #define db_modest_Engine_H
 
+#include "db/modest/State.h"
 #include "db/modest/Operation.h"
-#include "db/modest/OperationDispatcher.h"
 
 namespace db
 {
 namespace modest
 {
+
+// forward declare OperationDispatcher
+class OperationDispatcher;
 
 /**
  * A Modest Engine (MODular Extensible State Engine) is a lightweight
@@ -65,7 +68,7 @@ public:
     * 
     * @param op the Operation to execute.
     */
-   virtual void queue(Operation* op);
+   virtual void queue(Operation op);
    
    /**
     * Starts this Engine. This will begin executing queued Operations.

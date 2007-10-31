@@ -77,7 +77,7 @@ protected:
     * @return the Operation for running this service, or NULL if the
     *         service could not be initialized.
     */
-   virtual db::modest::Operation* initialize();
+   virtual db::modest::Operation initialize();
    
    /**
     * Called to clean up resources for this service that were created or

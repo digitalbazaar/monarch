@@ -3,6 +3,7 @@
  */
 #include "db/modest/Engine.h"
 #include "db/modest/OperationExecutor.h"
+#include "db/modest/OperationDispatcher.h"
 
 using namespace db::modest;
 
@@ -24,7 +25,7 @@ Engine::~Engine()
    delete mState;
 }
 
-void Engine::queue(Operation* op)
+void Engine::queue(Operation op)
 {
    lock();
    {

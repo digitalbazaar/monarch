@@ -5,14 +5,12 @@
 #define db_modest_StateMutator_H
 
 #include "db/modest/State.h"
+#include "db/modest/Operation.h"
 
 namespace db
 {
 namespace modest
 {
-
-// forward declare Operation
-class Operation;
 
 /**
  * A StateMutator can be used by an Operation to alter the State of an Engine
@@ -39,7 +37,7 @@ public:
     * @param s the State to alter.
     * @param op the Operation to be executed.
     */
-   virtual void mutatePreExecutionState(State* s, Operation* op) {};
+   virtual void mutatePreExecutionState(State* s, Operation op) {};
    
    /**
     * Alters the passed State directly after an Operation finishes or
@@ -51,7 +49,7 @@ public:
     * @param s the State to alter.
     * @param op the Operation that finished or was canceled.
     */
-   virtual void mutatePostExecutionState(State* s, Operation* op) {};
+   virtual void mutatePostExecutionState(State* s, Operation op) {};
 };
 
 } // end namespace modest

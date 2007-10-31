@@ -4,10 +4,9 @@
 #ifndef db_modest_State_H
 #define db_modest_State_H
 
-#include <map>
-
-#include "db/rt/Object.h"
 #include "db/modest/ImmutableState.h"
+
+#include <map>
 
 namespace db
 {

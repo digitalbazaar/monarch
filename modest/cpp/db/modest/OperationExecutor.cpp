@@ -3,13 +3,14 @@
  */
 #include "db/modest/OperationExecutor.h"
 #include "db/modest/OperationDispatcher.h"
-#include "db/rt/Thread.h"
+#include "db/modest/OperationGuard.h"
+#include "db/modest/StateMutator.h"
 
 using namespace db::modest;
 using namespace db::rt;
 
 OperationExecutor::OperationExecutor(
-   State* s, Operation* op, OperationDispatcher* od)
+   State* s, Operation op, OperationDispatcher* od)
 {
    mState = s;
    mOperation = op;

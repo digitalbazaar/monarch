@@ -58,14 +58,6 @@ void PortService::stop()
       // stop service
       mOperation->interrupt();
       mOperation->waitFor(false);
-      
-      // delete operation as appropriate
-      if(!mOperation->isMemoryManaged())
-      {
-         delete mOperation;
-      }
-      
-      // operation no longer in use
       mOperation = NULL;
    }
    

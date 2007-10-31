@@ -22,7 +22,7 @@ class OperationDispatcher;
  * 
  * @author Dave Longley
  */
-class OperationExecutor : public virtual db::rt::Object, public db::rt::Runnable
+class OperationExecutor : public db::rt::Runnable
 {
 protected:
    /**
@@ -33,7 +33,7 @@ protected:
    /**
     * The Operation to execute.
     */
-   Operation* mOperation;
+   Operation mOperation;
    
    /**
     * The OperationDispatcher to use to obtain a thread to execute the
@@ -51,7 +51,7 @@ public:
     * @param od the OperationDispatcher to use to obtain a thread to execute
     *           the Operation on and to notify when this executor has expired.
     */
-   OperationExecutor(State* s, Operation* op, OperationDispatcher* od);
+   OperationExecutor(State* s, Operation op, OperationDispatcher* od);
    
    /**
     * Destructs this OperationExecutor.

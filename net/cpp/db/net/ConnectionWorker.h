@@ -38,7 +38,7 @@ protected:
    /**
     * The Operation used to run this worker.
     */
-   db::modest::Operation* mOperation;
+   db::modest::Operation mOperation;
    
 public:
    /**
@@ -65,14 +65,14 @@ public:
     * 
     * @param op the Operation used to run this worker.
     */
-   virtual void setOperation(db::modest::Operation* op);
+   virtual void setOperation(db::modest::Operation op);
    
    /**
     * Gets the Operation used to run this worker.
     * 
     * @return the Operation used to run this worker.
     */
-   virtual db::modest::Operation* getOperation();
+   virtual db::modest::Operation getOperation();
 };
 
 } // end namespace net

@@ -27,28 +27,17 @@ protected:
    /**
     * The Operations in this list.
     */
-   std::list<Operation*> mOperations;
-   
-   /**
-    * True if this OperationList should free the memory associated with
-    * the expired Operations in this list, false if not.
-    */
-   bool mCleanup;
+   std::list<Operation> mOperations;
    
 public:
    /**
-    * Creates a new OperationList. It may be set to either free the memory
-    * associated with any expired Operations in this list or it can be
-    * set to leave them alone.
-    * 
-    * @param cleanup true if this list should assume responsibility for
-    *                cleaning up its Operations.
+    * Creates a new OperationList.
     */
-   OperationList(bool cleanup);
+   OperationList();
    
    /**
     * Destructs this OperationList. All Operations in this list will be
-    * interrupted and pruned.
+    * terminated (interrupted, waited for, and pruned).
     */
    virtual ~OperationList();
    
@@ -57,14 +46,14 @@ public:
     * 
     * @param op the Operation to add.
     */
-   virtual void add(Operation* op);
+   virtual void add(Operation op);
    
    /**
-    * Removes the passed Operation from this list without cleaning it up.
+    * Removes the passed Operation from this list.
     * 
     * @param op the Operation to remove.
     */
-   virtual void remove(Operation* op);
+   virtual void remove(Operation op);
    
    /**
     * Interrupts all Operations in this list.
@@ -90,9 +79,7 @@ public:
    virtual void waitFor(bool interruptible = true);
    
    /**
-    * Checks for expired Operations and removes them from this list. If this
-    * list was set to clean up Operations, the memory associated with any
-    * expired Operations will be freed before they are removed from this list.
+    * Checks for expired Operations and removes them from this list.
     */
    virtual void prune();
    

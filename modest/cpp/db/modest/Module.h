@@ -6,6 +6,7 @@
 
 #include "db/modest/ModuleInterface.h"
 #include "db/rt/Exception.h"
+
 #include <string>
 
 namespace db

@@ -18,12 +18,6 @@ ConnectionWorker::~ConnectionWorker()
    // ensure the connection is closed and delete it
    mConnection->close();
    delete mConnection;
-   
-   // delete operation as appropriate
-   if(!mOperation->isMemoryManaged())
-   {
-      delete mOperation;
-   }
 }
 
 void ConnectionWorker::run()
@@ -32,12 +26,12 @@ void ConnectionWorker::run()
    mService->serviceConnection(mConnection);
 }
 
-void ConnectionWorker::setOperation(Operation* op)
+void ConnectionWorker::setOperation(Operation op)
 {
    mOperation = op;
 }
 
-Operation* ConnectionWorker::getOperation()
+Operation ConnectionWorker::getOperation()
 {
    return mOperation;
 }

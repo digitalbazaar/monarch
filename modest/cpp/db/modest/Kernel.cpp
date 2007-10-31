@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/Kernel.h"
+#include "db/modest/OperationImpl.h"
 
 using namespace db::modest;
 using namespace db::rt;
@@ -20,14 +21,14 @@ Kernel::~Kernel()
    delete mModuleLibrary;
 }
 
-Operation* Kernel::createOperation(
+Operation Kernel::createOperation(
    Runnable* r, OperationGuard* g, StateMutator* m)
 {
    // create normal operation
-   return new Operation(r, g, m);
+   return Operation(new OperationImpl(r, g, m));
 }
 
-void Kernel::runOperation(Operation* op)
+void Kernel::runOperation(Operation op)
 {
    // queue operation with engine
    getEngine()->queue(op);

@@ -4,155 +4,96 @@
 #include "db/modest/Operation.h"
 
 using namespace db::modest;
-using namespace db::rt;
 
-Operation::Operation(Runnable* r, OperationGuard* g, StateMutator* m)
+Operation::Operation(OperationImpl* impl)
 {
-   mRunnable = r;
-   mGuard = g;
-   mStateMutator = m;
-   mThread = NULL;
-   
-   mStarted = false;
-   mInterrupted = false;
-   mStopped = false;
-   mFinished = false;
-   mCanceled = false;
-   mMemoryManaged = false;
+   if(impl != NULL)
+   {
+      // create reference to implementation
+      mReference = new ImplReference;
+      mReference->impl = impl;
+      mReference->count = 1;
+   }
+   else
+   {
+      // no reference
+      mReference = NULL;
+   }
+}
+
+Operation::Operation(const Operation& copy)
+{
+   // acquire copy's reference
+   acquire(copy.mReference);
 }
 
 Operation::~Operation()
 {
+   // release reference
+   release();
 }
 
-bool Operation::waitFor(bool interruptible)
+void Operation::acquire(ImplReference* ref)
+{
+   // set reference and increase count
+   mReference = ref;
+   if(mReference != NULL)
+   {
+      mReference->count++;
+   }
+}
+
+void Operation::release()
+{
+   // decrement reference count
+   if(mReference != NULL && --mReference->count == 0)
+   {
+      // delete implementation and reference
+      delete mReference->impl;
+      delete mReference;
+      mReference = NULL;
+   }
+}
+
+Operation& Operation::operator=(const Operation& rhs)
+{
+   if(this != &rhs)
+   {
+      // release old reference and acquire new one
+      release();
+      acquire(rhs.mReference);
+   }
+   
+   return *this;
+}
+
+bool Operation::operator==(const Operation& rhs)
 {
    bool rval = false;
    
-   lock();
+   if(this == &rhs)
    {
-      // wait until Operation is stopped
-      while(!stopped())
-      {
-         if(wait() != NULL)
-         {
-            // thread was interrupted
-            rval = true;
-            
-            if(interruptible)
-            {
-               break;
-            }
-            else
-            {
-               // clear thread interruption
-               Thread::interrupted(true);
-            }
-         }
-      }
+      rval = true;
    }
-   unlock();
-   
-   // ensure thread remains interrupted
-   if(rval)
+   else if(this->mReference == rhs.mReference)
    {
-      Thread::currentThread()->interrupt();
+      rval = true;
    }
    
    return rval;
 }
 
-bool Operation::started()
+bool Operation::operator!=(const Operation& rhs)
 {
-   return mStarted;
+   return !(*this == rhs);
 }
 
-void Operation::interrupt()
+OperationImpl& Operation::operator*()
 {
-   lock();
-   {
-      if(!mInterrupted)
-      {
-         mInterrupted = true;
-         if(mThread != NULL)
-         {
-            mThread->interrupt();
-         }
-      }
-   }
-   unlock();
+   return *mReference->impl;
 }
 
-bool Operation::isInterrupted()
+OperationImpl* Operation::operator->()
 {
-   if(!mInterrupted)
-   {
-      lock();
-      {
-         if(mThread != NULL)
-         {
-            mInterrupted = mThread->isInterrupted();
-         }
-      }
-      unlock();
-   }
-   
-   return mInterrupted;
-}
-
-bool Operation::stopped()
-{
-   return mStopped;
-}
-
-bool Operation::finished()
-{
-   return mFinished;
-}
-
-bool Operation::canceled()
-{
-   return mCanceled;
-}
-
-void Operation::setMemoryManaged(bool managed)
-{
-   lock();
-   {
-      mMemoryManaged = managed;
-   }
-   unlock();
-}
-
-bool Operation::isMemoryManaged()
-{
-   bool rval = false;
-   
-   lock();
-   {
-      rval = mMemoryManaged;
-   }
-   unlock();
-   
-   return rval;
-}
-
-Runnable* Operation::getRunnable()
-{
-   return mRunnable;
-}
-
-OperationGuard* Operation::getGuard()
-{
-   return mGuard;
-}
-
-StateMutator* Operation::getStateMutator()
-{
-   return mStateMutator;
-}
-
-bool Operation::interrupted()
-{
-   return Thread::interrupted(false);
+   return mReference->impl;
 }

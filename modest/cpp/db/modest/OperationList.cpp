@@ -6,9 +6,8 @@
 using namespace std;
 using namespace db::modest;
 
-OperationList::OperationList(bool cleanup)
+OperationList::OperationList()
 {
-   mCleanup = cleanup;
 }
 
 OperationList::~OperationList()
@@ -16,36 +15,24 @@ OperationList::~OperationList()
    terminate();
 }
 
-void OperationList::add(Operation* op)
+void OperationList::add(Operation op)
 {
    lock();
    {
       mOperations.push_back(op);
-      
-      if(mCleanup)
-      {
-         // operation is now memory managed by this list
-         op->setMemoryManaged(true);
-      }
    }
    unlock();
 }
 
-void OperationList::remove(Operation* op)
+void OperationList::remove(Operation op)
 {
    lock();
    {
-      list<Operation*>::iterator i =
+      list<Operation>::iterator i =
          find(mOperations.begin(), mOperations.end(), op);
       if(i != mOperations.end())
       {
          mOperations.erase(i);
-         
-         if(mCleanup)
-         {
-            // operation is no longer memory managed by this list
-            (*i)->setMemoryManaged(true);
-         }
       }
    }
    unlock();
@@ -55,7 +42,7 @@ void OperationList::interrupt()
 {
    lock();
    {
-      for(list<Operation*>::iterator i = mOperations.begin();
+      for(list<Operation>::iterator i = mOperations.begin();
           i != mOperations.end(); i++)
       {
          (*i)->interrupt();
@@ -68,7 +55,7 @@ void OperationList::waitFor(bool interruptible)
 {
    lock();
    {
-      for(list<Operation*>::iterator i = mOperations.begin();
+      for(list<Operation>::iterator i = mOperations.begin();
           i != mOperations.end(); i++)
       {
          (*i)->waitFor(interruptible);
@@ -81,17 +68,11 @@ void OperationList::prune()
 {
    lock();
    {
-      for(list<Operation*>::iterator i = mOperations.begin();
+      for(list<Operation>::iterator i = mOperations.begin();
           i != mOperations.end();)
       {
          if((*i)->stopped())
          {
-            if(mCleanup)
-            {
-               // reclaim memory if clean up flag is set
-               delete *i;
-            }
-            
             // remove operation from list
             i = mOperations.erase(i);
          }

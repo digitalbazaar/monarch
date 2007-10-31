@@ -16,7 +16,7 @@ ConnectionService::ConnectionService(
    ConnectionServicer* servicer,
    SocketDataPresenter* presenter) :
    PortService(server, address),
-   mConnectionSemaphore(10000, true), mRunningServicers(false)
+   mConnectionSemaphore(10000, true)
 {
    mServicer = servicer;
    mDataPresenter = presenter;
@@ -30,9 +30,9 @@ ConnectionService::~ConnectionService()
    ConnectionService::stop();
 }
 
-Operation* ConnectionService::initialize()
+Operation ConnectionService::initialize()
 {
-   Operation* rval = NULL;
+   Operation rval = NULL;
    
    // no connections yet
    mConnectionCount = 0;
@@ -160,7 +160,7 @@ void ConnectionService::createConnection(Socket* s)
       
       // create ConnectionWorker and Operation to run it
       ConnectionWorker* worker = new ConnectionWorker(this, c);
-      Operation* op = mServer->getOperationRunner()->createOperation(
+      Operation op = mServer->getOperationRunner()->createOperation(
          worker, NULL, NULL);
       worker->setOperation(op);
       mRunningServicers.add(op);

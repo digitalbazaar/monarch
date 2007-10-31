@@ -6,6 +6,7 @@
 
 #include "db/rt/JobDispatcher.h"
 #include "db/modest/Operation.h"
+#include "db/modest/Engine.h"
 
 namespace db
 {

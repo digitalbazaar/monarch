@@ -4,7 +4,10 @@
 #ifndef db_modest_OperationRunner_H
 #define db_modest_OperationRunner_H
 
+#include "db/rt/Runnable.h"
 #include "db/modest/Operation.h"
+#include "db/modest/OperationGuard.h"
+#include "db/modest/StateMutator.h"
 
 namespace db
 {
@@ -39,16 +42,6 @@ public:
     * The passed Runnable, OperationGuard, and/or StateMutator may be
     * wrapped by other classes to provide additional logic.
     * 
-    * The returned Operation object must either be freed by the caller
-    * of this method after it has stopped, or the OperationRunner must use
-    * an OperationList (or use some other entity) to manage the memory for
-    * created Operations. IOW, memory management is up to the specific
-    * implementation of the OperationRunner.
-    * 
-    * If the created Operation is memory-managed, it should be set as such by
-    * calling Operation::setMemoryManaged(true) so that callers know not to
-    * delete the Operation.
-    * 
     * @param r the Runnable with code to execute during the operation.
     * @param g the OperationGuard to use.
     * @param m the StateMutator to use.
@@ -56,7 +49,7 @@ public:
     * @return the Operation object to use to monitor the status of the
     *         Operation.
     */
-   virtual Operation* createOperation(
+   virtual Operation createOperation(
       db::rt::Runnable* r, OperationGuard* g, StateMutator* m) = 0;
    
    /**
@@ -65,7 +58,7 @@ public:
     * 
     * @param op the Operation to queue with a modest engine for execution.
     */
-   virtual void runOperation(Operation* op) = 0;
+   virtual void runOperation(Operation op) = 0;
 };
 
 } // end namespace modest
