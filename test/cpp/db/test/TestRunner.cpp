@@ -105,6 +105,20 @@ void TestRunner::passIfNoException()
    }
 }
 
+void TestRunner::passIfException()
+{
+   if(Exception::hasLast())
+   {
+      Exception::clearLast();
+      pass();
+   }
+   else
+   {
+      // FIXME throw failure with expected exception
+      fail();
+   }
+}
+
 void TestRunner::fail(const char* reason)
 {
    mFailed++;

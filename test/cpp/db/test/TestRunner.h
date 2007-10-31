@@ -125,9 +125,14 @@ public:
    virtual void pass();
 
    /**
-    * Pass or fail most recent test based on exception state.
+    * Pass most recent test if no exception.
     */
    virtual void passIfNoException();
+
+   /**
+    * Pass most recent test if exception set.
+    */
+   virtual void passIfException();
 
    /**
     * Marks most recent test as failed.
