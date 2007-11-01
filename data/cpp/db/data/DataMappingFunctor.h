@@ -739,22 +739,22 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
          break;
       case DataGetFunction::Int32:
          // convert integer to string
-         *s = new char[20];
+         *s = new char[22];
          sprintf(*s, "%d", (bObj->*mGetFunction.i32Func)());
          break;
       case DataGetFunction::UInt32:
          // convert integer to string
-         *s = new char[20];
+         *s = new char[22];
          sprintf(*s, "%du", (bObj->*mGetFunction.ui32Func)());
          break;
       case DataGetFunction::Int64:
          // convert integer to string
-         *s = new char[20];
+         *s = new char[22];
          sprintf(*s, "%lld", (bObj->*mGetFunction.i64Func)());
          break;
       case DataGetFunction::UInt64:
          // convert integer to string
-         *s = new char[20];
+         *s = new char[22];
          sprintf(*s, "%llu", (bObj->*mGetFunction.ui64Func)());
          break;
       case DataGetFunction::String:
@@ -768,22 +768,22 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
          break;
       case DataGetFunction::Int32Const:
          // convert integer to string
-         *s = new char[20];
+         *s = new char[22];
          sprintf(*s, "%d", (bObj->*mGetFunction.i32cFunc)());
          break;
       case DataGetFunction::UInt32Const:
          // convert integer to string
-         *s = new char[20];
+         *s = new char[22];
          sprintf(*s, "%du", (bObj->*mGetFunction.ui32cFunc)());
          break;
       case DataGetFunction::Int64Const:
          // convert integer to string
-         *s = new char[20];
+         *s = new char[22];
          sprintf(*s, "%lld", (bObj->*mGetFunction.i64cFunc)());
          break;
       case DataGetFunction::UInt64Const:
          // convert integer to string
-         *s = new char[20];
+         *s = new char[22];
          sprintf(*s, "%llu", (bObj->*mGetFunction.ui64cFunc)());
          break;
       case DataGetFunction::StringConst:
@@ -856,7 +856,7 @@ bool DataMappingFunctor<BoundType, ChildType>::writeData(
    const char* str = NULL;
    BoundType* bObj = (BoundType*)bObject;
    
-   char s[20];
+   char s[22];
    switch(mGetFunction.type)
    {
       case DataGetFunction::None:
