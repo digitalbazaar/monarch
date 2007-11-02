@@ -943,23 +943,25 @@ void runDynamicObjectTest(TestRunner& tr)
    
    dyno1["address"] = dyno2;
    
-   assert(dyno1->getInt32("id") == 2);
-   assert(strcmp(dyno1->getString("username"), "testuser1000") == 0);
+   assert(dyno1["id"]->getInt32() == 2);
+   assert(strcmp(dyno1["username"]->getString(), "testuser1000") == 0);
    
-   assert(strcmp(dyno1["somearray"][0].str, "item1") == 0);
-   assert(strcmp(dyno1["somearray"][1].str, "item2") == 0);
-   assert(strcmp(dyno1["somearray"][2].str, "item3") == 0);
+   assert(strcmp(dyno1["somearray"][0]->getString(), "item1") == 0);
+   assert(strcmp(dyno1["somearray"][1]->getString(), "item2") == 0);
+   assert(strcmp(dyno1["somearray"][2]->getString(), "item3") == 0);
    
-   DynamicObject dyno3 = dyno1->getObject("address");
-   assert(strcmp(dyno3->getString("street"), "1700 Kraft Dr.") == 0);
-   assert(strcmp(dyno3->getString("zip"), "24060") == 0);
+   DynamicObject dyno3 = dyno1["address"];
+   assert(strcmp(dyno3["street"]->getString(), "1700 Kraft Dr.") == 0);
+   assert(strcmp(dyno3["zip"]->getString(), "24060") == 0);
    
    DynamicObject dyno4;
    dyno4["whatever"] = "test";
+   dyno4["someboolean"] = true;
+   assert(dyno4["someboolean"]->getBoolean());
    dyno1["somearray"][3] = dyno4;
    
    dyno1["something"]["strange"] = "tinypayload";
-   assert(strcmp(dyno1["something"]["strange"].str, "tinypayload") == 0);
+   assert(strcmp(dyno1["something"]["strange"]->getString(), "tinypayload") == 0);
    
    tr.pass();
 }
