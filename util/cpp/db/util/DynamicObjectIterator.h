@@ -39,6 +39,12 @@ protected:
    DynamicObjectImpl::ObjectMap::iterator mMapNext;
    DynamicObjectImpl::ObjectArray::iterator mArrayNext;
    
+   /**
+    * Set to true for non-map/non-array objects once the object has
+    * been returned.
+    */
+   bool mFinished;
+   
 public:
    /**
     * Creates a new DynamicObjectIteratorImpl for the given DynamicObject.

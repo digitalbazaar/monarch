@@ -19,6 +19,10 @@ DynamicObjectIteratorImpl::DynamicObjectIteratorImpl(DynamicObject dyno)
    {
       mArrayNext = mArrayCurrent = mObject->mArray->begin();
    }
+   else
+   {
+      mFinished = false;
+   }
 }
 
 DynamicObjectIteratorImpl::~DynamicObjectIteratorImpl()
@@ -41,6 +45,12 @@ DynamicObject& DynamicObjectIteratorImpl::next()
       mArrayNext++;
       rval = &(*mArrayCurrent);
    }
+   else if(!mFinished)
+   {
+      // return this object
+      rval = &mObject;
+      mFinished = true;
+   }
    
    return *rval;
 }
@@ -56,6 +66,10 @@ bool DynamicObjectIteratorImpl::hasNext()
    else if(mObject->getType() == DynamicObjectImpl::Array)
    {
       rval = mArrayNext != mObject->mArray->end();
+   }
+   else
+   {
+      rval = !mFinished;
    }
    
    return rval;
