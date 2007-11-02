@@ -10,11 +10,15 @@ DynamicObjectImpl::DynamicObjectImpl()
 {
    mType = String;
    mString = NULL;
+   mName = strdup("");
 }
 
 DynamicObjectImpl::~DynamicObjectImpl()
 {
    DynamicObjectImpl::freeData();
+   
+   // clean up name
+   delete [] mName;
 }
 
 void DynamicObjectImpl::freeData()
@@ -119,6 +123,8 @@ DynamicObject& DynamicObjectImpl::operator[](const std::string& name)
    {
       // create new map entry
       DynamicObject dyno;
+      delete [] dyno->mName;
+      dyno->mName = strdup(name.c_str());
       mMap->insert(std::make_pair(strdup(name.c_str()), dyno));
       rval = &(*mMap)[name.c_str()];
    }
@@ -157,6 +163,11 @@ DynamicObject& DynamicObjectImpl::operator[](unsigned int index)
 DynamicObjectImpl::Type DynamicObjectImpl::getType()
 {
    return mType;
+}
+
+const char* DynamicObjectImpl::getName()
+{
+   return mName;
 }
 
 const char* DynamicObjectImpl::getString()

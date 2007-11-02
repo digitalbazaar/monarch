@@ -18,15 +18,16 @@
 #include "db/rt/Semaphore.h"
 #include "db/rt/System.h"
 #include "db/rt/JobDispatcher.h"
+#include "db/util/Crc16.h"
 #include "db/util/StringTools.h"
 #include "db/util/DynamicObject.h"
+#include "db/util/DynamicObjectIterator.h"
 #include "db/net/TcpSocket.h"
 #include "db/net/UdpSocket.h"
 #include "db/net/DatagramSocket.h"
 #include "db/net/Internet6Address.h"
 #include "db/net/SslSocket.h"
 #include "db/crypto/MessageDigest.h"
-#include "db/util/Crc16.h"
 #include "db/crypto/AsymmetricKeyFactory.h"
 #include "db/io/FileInputStream.h"
 #include "db/io/FileOutputStream.h"
@@ -961,7 +962,45 @@ void runDynamicObjectTest(TestRunner& tr)
    dyno1["somearray"][3] = dyno4;
    
    dyno1["something"]["strange"] = "tinypayload";
-   assert(strcmp(dyno1["something"]["strange"]->getString(), "tinypayload") == 0);
+   assert(
+      strcmp(dyno1["something"]["strange"]->getString(), "tinypayload") == 0);
+   
+   DynamicObject dyno5;
+   dyno5[0] = "mustard";
+   dyno5[1] = "ketchup";
+   dyno5[2] = "pickles";
+   
+   int count = 0;
+   DynamicObjectIterator i = dyno5.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject next = i->next();
+      
+      if(count == 0)
+      {
+         assert(strcmp(next->getString(), "mustard") == 0);
+      }
+      else if(count == 1)
+      {
+         assert(strcmp(next->getString(), "ketchup") == 0);
+      }
+      else if(count == 2)
+      {
+         assert(strcmp(next->getString(), "pickles") == 0);
+      }
+      
+      count++;
+   }
+   
+   DynamicObject dyno6;
+   dyno6["eggs"] = "bacon";
+   i = dyno6.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject next = i->next();
+      assert(strcmp(next->getName(), "eggs") == 0);
+      assert(strcmp(next->getString(), "bacon") == 0);
+   }
    
    tr.pass();
 }

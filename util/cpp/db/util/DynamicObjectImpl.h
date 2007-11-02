@@ -12,8 +12,9 @@ namespace db
 namespace util
 {
 
-// forward declare DynamicObject
+// forward declare DynamicObject, DynamicObjectIteratorImpl
 class DynamicObject;
+class DynamicObjectIteratorImpl;
 
 /**
  * A DynamicObjectImpl is an implementation for a DynamicObject.
@@ -31,7 +32,6 @@ public:
       String, Boolean, Int32, UInt32, Int64, UInt64, Map, Array
    };
    
-protected:
    /**
     * A MemberComparator compares two member names.
     */
@@ -58,10 +58,16 @@ protected:
    typedef std::map<const char*, DynamicObject, MemberComparator> ObjectMap;
    typedef std::vector<DynamicObject> ObjectArray;
    
+protected:
    /**
     * The type for this object.
     */
    Type mType;
+   
+   /**
+    * The name for this object, if any.
+    */
+   char* mName;
    
    /**
     * The value for this object.
@@ -77,6 +83,12 @@ protected:
       ObjectMap* mMap;
       ObjectArray* mArray;
    };
+   
+   /**
+    * Make DynamicObjectIteratorImpl a friend so it can iterate over
+    * a map or an array.
+    */
+   friend class DynamicObjectIteratorImpl;
    
    /**
     * Frees the data associated with this DynamicObjectImpl.
@@ -167,6 +179,13 @@ public:
     * @return the type of this object.
     */
    virtual Type getType();
+   
+   /**
+    * Gets this object's name.
+    * 
+    * @return the name for this object.
+    */
+   virtual const char* getName();
    
    /**
     * Gets this object's value as a string.

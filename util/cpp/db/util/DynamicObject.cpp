@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/util/DynamicObject.h"
+#include "db/util/DynamicObjectIterator.h"
 
 using namespace db::rt;
 using namespace db::util;
@@ -58,4 +59,9 @@ DynamicObject& DynamicObject::operator[](const std::string& name)
 DynamicObject& DynamicObject::operator[](unsigned int index)
 {
    return (*mReference->ptr)[index];
+}
+
+DynamicObjectIterator DynamicObject::getIterator()
+{
+   return DynamicObjectIterator(new DynamicObjectIteratorImpl(*this));
 }

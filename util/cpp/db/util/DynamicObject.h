@@ -12,6 +12,9 @@ namespace db
 namespace util
 {
 
+// forward declare DynamicObjectIterator
+class DynamicObjectIterator;
+
 /**
  * A DynamicObject is a reference counted object with a collection of
  * unordered name/value member pairs. Members can be dynamically added to
@@ -99,6 +102,14 @@ public:
     * @return the DynamicObject.
     */
    virtual DynamicObject& operator[](unsigned int index);
+   
+   /**
+    * Gets a reference-counted DynamicObjectIterator for iterating over
+    * the members of this object or its array elements.
+    * 
+    * @return a DynamicObjectIterator.
+    */
+   virtual DynamicObjectIterator getIterator();
 };
 
 } // end namespace util
