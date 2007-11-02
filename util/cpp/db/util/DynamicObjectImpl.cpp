@@ -19,14 +19,25 @@ void DynamicObjectImpl::MemberValue::freeData()
    {
       case Object:
          delete obj;
+         obj = NULL;
          break;
       case Array:
+         // free every element in array
+         for(std::vector<MemberValue>::iterator i = array->begin();
+             i != array->end(); i++)
+         {
+            i->freeData();
+         }
+         
+         // free array
          delete array;
+         array = NULL;
          break;
       default:
          if(str != NULL)
          {
             delete [] str;
+            str = NULL;
          }
          break;
    }
@@ -84,6 +95,20 @@ void DynamicObjectImpl::MemberValue::operator=(DynamicObject rhs)
    freeData();
    type = Object;
    obj = new DynamicObject(rhs);
+}
+
+DynamicObjectImpl::MemberValue& DynamicObjectImpl::MemberValue::operator[](
+   const std::string& name)
+{
+   // create object if necessary
+   if(type != Object)
+   {
+      freeData();
+      type = Object;
+      obj = new DynamicObject();
+   }
+   
+   return (*obj)[name.c_str()];
 }
 
 DynamicObjectImpl::MemberValue& DynamicObjectImpl::MemberValue::operator[](

@@ -954,6 +954,13 @@ void runDynamicObjectTest(TestRunner& tr)
    assert(strcmp(dyno3->getString("street"), "1700 Kraft Dr.") == 0);
    assert(strcmp(dyno3->getString("zip"), "24060") == 0);
    
+   DynamicObject dyno4;
+   dyno4["whatever"] = "test";
+   dyno1["somearray"][3] = dyno4;
+   
+   dyno1["something"]["strange"] = "tinypayload";
+   assert(strcmp(dyno1["something"]["strange"].str, "tinypayload") == 0);
+   
    tr.pass();
 }
 
@@ -4887,7 +4894,7 @@ public:
 //      runStringEqualityTest();
 //      runStringAppendCharTest();
 //      runStringCompareTest();
-//      runDynamicObjectTest(tr);
+      runDynamicObjectTest(tr);
 //      runByteBufferTest();
 //      runByteArrayInputStreamTest();
 //      runByteArrayOutputStreamTest();
@@ -4947,7 +4954,7 @@ public:
       cout << "Tests starting..." << endl << endl;
       
       runInteractiveUnitTests(tr);
-      runAutomaticUnitTests(tr);
+      //runAutomaticUnitTests(tr);
       
       cout << endl << "Tests finished." << endl;
       

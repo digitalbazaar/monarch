@@ -77,6 +77,7 @@ public:
       void operator=(DynamicObject rhs);
       
       // operators for array access
+      MemberValue& operator[](const std::string& name);
       MemberValue& operator[](unsigned int index);
    };
    
