@@ -19,6 +19,7 @@
 #include "db/rt/System.h"
 #include "db/rt/JobDispatcher.h"
 #include "db/util/StringTools.h"
+#include "db/util/DynamicObject.h"
 #include "db/net/TcpSocket.h"
 #include "db/net/UdpSocket.h"
 #include "db/net/DatagramSocket.h"
@@ -923,6 +924,30 @@ void runStringCompareTest()
    cout << "char* compare time: " << (end - start) << " ms" << endl;
    
    cout << endl << "String compare test complete." << endl;
+}
+
+void runDynamicObjectTest(TestRunner& tr)
+{
+   tr.test("DynamicObject");
+   
+   DynamicObject dyno1;
+   dyno1["id"] = 2;
+   dyno1["username"] = "testuser1000";
+   
+   DynamicObject dyno2;
+   dyno2["street"] = "1700 Kraft Dr.";
+   dyno2["zip"] = "24060";
+   
+   dyno1["address"] = dyno2;
+   
+   assert(dyno1->getInt32("id") == 2);
+   assert(strcmp(dyno1->getString("username"), "testuser1000") == 0);
+   
+   DynamicObject dyno3 = dyno1->getObject("address");
+   assert(strcmp(dyno3->getString("street"), "1700 Kraft Dr.") == 0);
+   assert(strcmp(dyno3->getString("zip"), "24060") == 0);
+   
+   tr.pass();
 }
 
 void runByteArrayInputStreamTest()
@@ -4814,6 +4839,7 @@ public:
       // db::util tests
       runBase64Test(tr);
       runCrcTest(tr);
+      runDynamicObjectTest(tr);
       
       // db::crypto tests
       runMessageDigestTest(tr);
@@ -4854,6 +4880,7 @@ public:
 //      runStringEqualityTest();
 //      runStringAppendCharTest();
 //      runStringCompareTest();
+//      runDynamicObjectTest(tr);
 //      runByteBufferTest();
 //      runByteArrayInputStreamTest();
 //      runByteArrayOutputStreamTest();
