@@ -5,7 +5,7 @@
 #define db_util_DynamicObjectImpl_H
 
 #include <map>
-#include <list>
+#include <vector>
 
 namespace db
 {
@@ -28,12 +28,12 @@ public:
     */
    typedef enum MemberValueType
    {
-      String, Boolean, Int32, UInt32, Int64, UInt64, Object, List
+      String, Boolean, Int32, UInt32, Int64, UInt64, Object, Array
    };
    
    /**
     * A MemberValue. A MemberValue may consist of a string, a DynamicObjectImpl,
-    * or a list of other MemberValues.
+    * or an array of other MemberValues.
     */
    typedef struct MemberValue
    {
@@ -52,8 +52,13 @@ public:
          // internally in the future
          char* str;
          DynamicObject* obj;
-         std::list<MemberValue>* list;
+         std::vector<MemberValue>* array;
       };
+      
+      /**
+       * Creates an initialized MemberValue.
+       */
+      MemberValue();
       
       /**
        * Frees the data for a MemberValue.
@@ -70,6 +75,9 @@ public:
       void operator=(long long rhs);
       void operator=(unsigned long long rhs);
       void operator=(DynamicObject rhs);
+      
+      // operators for array access
+      MemberValue& operator[](unsigned int index);
    };
    
    /**
@@ -168,7 +176,7 @@ public:
    virtual void setMember(const char* name, unsigned long long value);
    
    /**
-    * Sets a DynamicObjectImpl member in this DynamicObjectImpl.
+    * Sets a DynamicObject member in this DynamicObjectImpl.
     * 
     * @param name the name of the member.
     * @param value the value of the member.
@@ -237,6 +245,15 @@ public:
     * @return value the value of the member.
     */
    virtual DynamicObject getObject(const char* name);
+   
+   /**
+    * Gets an array member from this DynamicObjectImpl.
+    * 
+    * @param name the name of the member.
+    * 
+    * @return the value of the member.
+    */
+   std::vector<DynamicObjectImpl::MemberValue>& getArray(const char* name);
 };
 
 } // end namespace util

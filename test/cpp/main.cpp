@@ -933,6 +933,9 @@ void runDynamicObjectTest(TestRunner& tr)
    DynamicObject dyno1;
    dyno1["id"] = 2;
    dyno1["username"] = "testuser1000";
+   dyno1["somearray"][0] = "item1";
+   dyno1["somearray"][1] = "item2";
+   dyno1["somearray"][2] = "item3";
    
    DynamicObject dyno2;
    dyno2["street"] = "1700 Kraft Dr.";
@@ -942,6 +945,10 @@ void runDynamicObjectTest(TestRunner& tr)
    
    assert(dyno1->getInt32("id") == 2);
    assert(strcmp(dyno1->getString("username"), "testuser1000") == 0);
+   
+   assert(strcmp(dyno1["somearray"][0].str, "item1") == 0);
+   assert(strcmp(dyno1["somearray"][1].str, "item2") == 0);
+   assert(strcmp(dyno1["somearray"][2].str, "item3") == 0);
    
    DynamicObject dyno3 = dyno1->getObject("address");
    assert(strcmp(dyno3->getString("street"), "1700 Kraft Dr.") == 0);

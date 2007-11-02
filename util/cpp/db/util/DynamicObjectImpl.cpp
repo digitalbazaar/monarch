@@ -6,6 +6,12 @@
 
 using namespace db::util;
 
+DynamicObjectImpl::MemberValue::MemberValue()
+{
+   type = String;
+   str = NULL;
+}
+
 void DynamicObjectImpl::MemberValue::freeData()
 {
    // clean up data based on type
@@ -14,11 +20,14 @@ void DynamicObjectImpl::MemberValue::freeData()
       case Object:
          delete obj;
          break;
-      case List:
-         delete list;
+      case Array:
+         delete array;
          break;
       default:
-         delete [] str;
+         if(str != NULL)
+         {
+            delete [] str;
+         }
          break;
    }
 }
@@ -77,6 +86,30 @@ void DynamicObjectImpl::MemberValue::operator=(DynamicObject rhs)
    obj = new DynamicObject(rhs);
 }
 
+DynamicObjectImpl::MemberValue& DynamicObjectImpl::MemberValue::operator[](
+   unsigned int index)
+{
+   // create array if necessary
+   if(type != Array)
+   {
+      freeData();
+      type = Array;
+      array = new std::vector<MemberValue>();
+   }
+   
+   // create MemberValues for every value up to the given index
+   if(index >= array->size())
+   {
+      for(unsigned int i = 0; i <= index; i++)
+      {
+         MemberValue mvnew;
+         array->push_back(mvnew);
+      }
+   }
+   
+   return (*array)[index];
+}
+
 DynamicObjectImpl::DynamicObjectImpl()
 {
 }
@@ -107,8 +140,6 @@ DynamicObjectImpl::MemberValue& DynamicObjectImpl::operator[](const char* name)
    {
       // create new member value
       MemberValue mvnew;
-      mvnew.type = String;
-      mvnew.str = strdup("");
       mMembers[strdup(name)] = mvnew;
       rval = &mMembers[name];
    }
@@ -153,7 +184,14 @@ void DynamicObjectImpl::setMember(const char* name, DynamicObject value)
 
 const char* DynamicObjectImpl::getString(const char* name)
 {
-   return (*this)[name].str;
+   // create string if necessary
+   MemberValue* mv = &(*this)[name];
+   if(mv->type == Object || mv->type == Array)
+   {
+      setMember(name, "");
+   }
+   
+   return mv->str;
 }
 
 bool DynamicObjectImpl::getBoolean(const char* name)
@@ -183,5 +221,28 @@ unsigned long long DynamicObjectImpl::getUInt64(const char* name)
 
 DynamicObject DynamicObjectImpl::getObject(const char* name)
 {
-   return *(*this)[name].obj;
+   // create object if necessary
+   MemberValue* mv = &(*this)[name];
+   if(mv->type != Object)
+   {
+      DynamicObject value;
+      setMember(name, value);
+   }
+   
+   return *mv->obj;
+}
+
+std::vector<DynamicObjectImpl::MemberValue>&
+   DynamicObjectImpl::getArray(const char* name)
+{
+   // create array if necessary
+   MemberValue* mv = &(*this)[name];
+   if(mv->type != Array)
+   {
+      mv->freeData();
+      mv->type = Array;
+      mv->array = new std::vector<MemberValue>();
+   }
+   
+   return *(*this)[name].array;
 }
