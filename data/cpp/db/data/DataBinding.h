@@ -331,11 +331,18 @@ public:
    virtual DataName* getDataName();
    
    /**
+    * Gets the current DataName, if one exists.
+    * 
+    * @return the current DataName or NULL if none exists.
+    */
+   virtual DataName* getCurrentDataName();
+   
+   /**
     * Populates a list of child objects for the given DataName. This method
     * must be overloaded to populate child objects with data using this binding.
     * 
     * @param dn the DataName to get the child objects for.
-    * @param objLchildrenist the list to store child objects in.
+    * @param children the list to store child objects in.
     */
    virtual void getChildren(DataName* dn, std::list<void*>& children);
    

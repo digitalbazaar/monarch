@@ -154,6 +154,11 @@ DynamicObject& DynamicObjectImpl::operator[](unsigned int index)
    return (*mArray)[index];
 }
 
+DynamicObjectImpl::Type DynamicObjectImpl::getType()
+{
+   return mType;
+}
+
 const char* DynamicObjectImpl::getString()
 {
    if(mType != String)
@@ -234,6 +239,10 @@ int DynamicObjectImpl::getInt32()
       {
          *this = (int)strtol(mString, NULL, 10);
       }
+      else if(mType == Int64)
+      {
+         *this = (int)mInt64;
+      }
       else
       {
          *this = (int)0;
@@ -251,6 +260,10 @@ int DynamicObjectImpl::getUInt32()
       if(mType == String && mString != NULL)
       {
          *this = (unsigned int)strtoul(mString, NULL, 10);
+      }
+      else if(mType == UInt64)
+      {
+         *this = (unsigned int)mUInt64;
       }
       else
       {
@@ -295,4 +308,38 @@ int DynamicObjectImpl::getUInt64()
    }
    
    return mUInt64;
+}
+
+unsigned int DynamicObjectImpl::length()
+{
+   unsigned int rval = 0;
+   
+   switch(mType)
+   {
+      case String:
+         if(mString != NULL)
+         {
+            rval = strlen(getString());
+         }
+         break;
+      case Boolean:
+         rval = 1;
+         break;
+      case Int32:
+      case UInt32:
+         rval = 4;
+         break;
+      case Int64:
+      case UInt64:
+         rval = 8;
+         break;
+      case Map:
+         rval = mMap->size();
+         break;
+      case Array:
+         rval = mArray->size();
+         break;
+   }
+   
+   return rval;
 }

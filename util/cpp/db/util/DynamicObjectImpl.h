@@ -22,7 +22,7 @@ class DynamicObject;
  */
 class DynamicObjectImpl
 {
-protected:
+public:
    /**
     * The possible types for this object.
     */
@@ -31,6 +31,7 @@ protected:
       String, Boolean, Int32, UInt32, Int64, UInt64, Map, Array
    };
    
+protected:
    /**
     * A MemberComparator compares two member names.
     */
@@ -161,6 +162,13 @@ public:
    virtual DynamicObject& operator[](unsigned int index);
    
    /**
+    * Gets this object's type.
+    * 
+    * @return the type of this object.
+    */
+   virtual Type getType();
+   
+   /**
     * Gets this object's value as a string.
     * 
     * @return the value of this object.
@@ -201,6 +209,17 @@ public:
     * @return the value of this object.
     */
    virtual int getUInt64();
+   
+   /**
+    * Gets the length of this object based on its type.
+    * 
+    * String length = number of characters in the string.
+    * Number length = size of integer type.
+    * Boolean length = 1
+    * Map length = number of entries in the map.
+    * Array length = number of elements in the array.
+    */
+   virtual unsigned int length();
 };
 
 } // end namespace util

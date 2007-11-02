@@ -237,7 +237,7 @@ void DataBinding::appendData(
    const char* charEncoding, const char* data, unsigned int length)
 {
    // get current data name
-   DataName* dn = (mDataNameStack.empty()) ? NULL : mDataNameStack.front();
+   DataName* dn = getCurrentDataName();
    
    // get data mapping
    DataMapping* dm = getDataMapping(dn);
@@ -252,8 +252,7 @@ void DataBinding::endData(
    const char* charEncoding, const char* ns, const char* name, DataBinding* db)
 {
    // get data binding's current data name
-   DataName* dn =
-      (db->mDataNameStack.empty()) ? NULL : db->mDataNameStack.front();
+   DataName* dn = db->getCurrentDataName();
    DataMapping* dm = db->getDataMapping(dn);
    if(dm != NULL && !dm->isChildMapping())
    {
@@ -323,6 +322,11 @@ void DataBinding::setDataName(const char* ns, const char* name)
 DataName* DataBinding::getDataName()
 {
    return mRootDataName;
+}
+
+DataName* DataBinding::getCurrentDataName()
+{
+   return (mDataNameStack.empty()) ? NULL : mDataNameStack.front();
 }
 
 void DataBinding::getChildren(DataName* dn, list<void*>& children)
