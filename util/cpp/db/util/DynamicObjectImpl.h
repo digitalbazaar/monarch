@@ -211,6 +211,16 @@ public:
    virtual int getUInt64();
    
    /**
+    * Returns true if this object has the specified member, false if not.
+    * 
+    * @param name the name of the member.
+    * 
+    * @return true if this object has a member with the specified name,
+    *         false if not.
+    */
+   virtual bool hasMember(const char* name);
+   
+   /**
     * Gets the length of this object based on its type.
     * 
     * String length = number of characters in the string.

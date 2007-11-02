@@ -310,6 +310,19 @@ int DynamicObjectImpl::getUInt64()
    return mUInt64;
 }
 
+bool DynamicObjectImpl::hasMember(const char* name)
+{
+   bool rval = false;
+   
+   if(mType == Map)
+   {
+      ObjectMap::iterator i = mMap->find(name);
+      rval = (i != mMap->end());
+   }
+   
+   return rval;
+}
+
 unsigned int DynamicObjectImpl::length()
 {
    unsigned int rval = 0;
