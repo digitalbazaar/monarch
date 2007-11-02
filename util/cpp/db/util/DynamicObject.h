@@ -28,11 +28,12 @@ public:
    DynamicObject();
    
    /**
-    * Creates a DynamicObject.
+    * Creates a DynamicObject. This constructor is explicit so that an
+    * integer is not confused for a pointer to a DynamicObjectImpl.
     * 
     * @param impl a pointer to a DynamicObjectImpl.
     */
-   DynamicObject(DynamicObjectImpl* impl);
+   explicit DynamicObject(DynamicObjectImpl* impl);
    
    /**
     * Creates a new DynamicObject by copying another one.
@@ -47,13 +48,57 @@ public:
    virtual ~DynamicObject();
    
    /**
-    * Gets a MemberValue from a DynamicObjectImpl based on its member name.
+    * Sets this object's value to a string.
+    * 
+    * @param value the value for this object.
+    */
+   virtual void operator=(const std::string& value);
+   
+   /**
+    * Sets this object's value to a 32-bit integer.
+    * 
+    * @param value the value for this object.
+    */
+   virtual void operator=(int value);
+   
+   /**
+    * Sets this object's value to a 32-bit unsigned integer.
+    * 
+    * @param value the value for this object.
+    */
+   virtual void operator=(unsigned int value);
+   
+   /**
+    * Sets this object's value to a 64-bit integer.
+    * 
+    * @param value the value for this object.
+    */
+   virtual void operator=(long long value);
+   
+   /**
+    * Sets this object's value to a 64-bit unsigned integer.
+    * 
+    * @param value the value for this object.
+    */
+   virtual void operator=(unsigned long long value);
+   
+   /**
+    * Gets a DynamicObject from a DynamicObjectImpl based on its member name.
     * 
     * @param name the name of the member.
     * 
-    * @return the MemberValue.
+    * @return the DynamicObject.
     */
-   virtual DynamicObjectImpl::MemberValue& operator[](const char* name);
+   virtual DynamicObject& operator[](const std::string& name);
+   
+   /**
+    * Gets a DynamicObject from a DynamicObjectImpl based on its index.
+    * 
+    * @param index the index of the member.
+    * 
+    * @return the DynamicObject.
+    */
+   virtual DynamicObject& operator[](unsigned int index);
 };
 
 } // end namespace util

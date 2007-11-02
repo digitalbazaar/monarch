@@ -22,63 +22,13 @@ class DynamicObject;
  */
 class DynamicObjectImpl
 {
-public:
+protected:
    /**
-    * Types for a MemberValue.
+    * The possible types for this object.
     */
-   typedef enum MemberValueType
+   typedef enum Type
    {
-      String, Boolean, Int32, UInt32, Int64, UInt64, Object, Array
-   };
-   
-   /**
-    * A MemberValue. A MemberValue may consist of a string, a DynamicObjectImpl,
-    * or an array of other MemberValues.
-    */
-   typedef struct MemberValue
-   {
-      /**
-       * The type for this value. 
-       */
-      MemberValueType type;
-      
-      /**
-       * The data for this value.
-       */
-      union
-      {
-         // Note: numbers and boolean values are internally converted to
-         // strings, but since this is not space efficient, it may change
-         // internally in the future
-         char* str;
-         DynamicObject* obj;
-         std::vector<MemberValue>* array;
-      };
-      
-      /**
-       * Creates an initialized MemberValue.
-       */
-      MemberValue();
-      
-      /**
-       * Frees the data for a MemberValue.
-       * 
-       * @param mv the MemberValue to update.
-       */
-      void freeData();
-      
-      // operators for setting member value data
-      void operator=(const char* rhs);
-      void operator=(bool rhs);
-      void operator=(int rhs);
-      void operator=(unsigned int rhs);
-      void operator=(long long rhs);
-      void operator=(unsigned long long rhs);
-      void operator=(DynamicObject rhs);
-      
-      // operators for array access
-      MemberValue& operator[](const std::string& name);
-      MemberValue& operator[](unsigned int index);
+      String, Boolean, Int32, UInt32, Int64, UInt64, Map, Array
    };
    
    /**
@@ -101,12 +51,43 @@ public:
       }
    };
    
-protected:
    /**
-    * This DynamicObjectImpl's members.
+    * The definition for a DynamicObject map and array.
     */
-   typedef std::map<const char*, MemberValue, MemberComparator> MemberMap;
-   MemberMap mMembers;
+   typedef std::map<const char*, DynamicObject, MemberComparator> ObjectMap;
+   typedef std::vector<DynamicObject> ObjectArray;
+   
+   /**
+    * The type for this object.
+    */
+   Type mType;
+   
+   /**
+    * The value for this object.
+    */
+   union
+   {
+      char* mString;
+      bool mBoolean;
+      int mInt32;
+      unsigned int mUInt32;
+      long long mInt64;
+      unsigned long long mUInt64;
+      ObjectMap* mMap;
+      ObjectArray* mArray;
+   };
+   
+   /**
+    * Frees the data associated with this DynamicObjectImpl.
+    */
+   virtual void freeData();
+   
+   /**
+    * A helper function that sets this object's value to the passed string.
+    * 
+    * @param value the string value for this object.
+    */
+   virtual void setString(const char* value);
    
 public:
    /**
@@ -120,141 +101,106 @@ public:
    virtual ~DynamicObjectImpl();
    
    /**
-    * Gets a MemberValue based on its member name.
+    * Sets this object's value to a string.
     * 
-    * @param name the name of the member.
-    * 
-    * @return the MemberValue.
+    * @param value the value for this object.
     */
-   virtual MemberValue& operator[](const char* name);
+   virtual void operator=(const std::string& value);
    
    /**
-    * Sets a string member in this DynamicObjectImpl.
+    * Sets this object's value to a boolean.
     * 
-    * @param name the name of the member.
-    * @param value the value of the member.
+    * @param value the value for this object.
     */
-   virtual void setMember(const char* name, const char* value);
+   virtual void operator=(bool value);
    
    /**
-    * Sets a boolean member in this DynamicObjectImpl.
+    * Sets this object's value to a 32-bit integer.
     * 
-    * @param name the name of the member.
-    * @param value the value of the member.
+    * @param value the value for this object.
     */
-   virtual void setMember(const char* name, bool value);
+   virtual void operator=(int value);
    
    /**
-    * Sets a 32-bit integer member in this DynamicObjectImpl.
+    * Sets this object's value to a 32-bit unsigned integer.
     * 
-    * @param name the name of the member.
-    * @param value the value of the member.
+    * @param value the value for this object.
     */
-   virtual void setMember(const char* name, int value);
+   virtual void operator=(unsigned int value);
    
    /**
-    * Sets a 32-bit unsigned integer member in this DynamicObjectImpl.
+    * Sets this object's value to a 64-bit integer.
     * 
-    * @param name the name of the member.
-    * @param value the value of the member.
+    * @param value the value for this object.
     */
-   virtual void setMember(const char* name, unsigned int value);
+   virtual void operator=(long long value);
    
    /**
-    * Sets a 64-bit integer member in this DynamicObjectImpl.
+    * Sets this object's value to a 64-bit unsigned integer.
     * 
-    * @param name the name of the member.
-    * @param value the value of the member.
+    * @param value the value for this object.
     */
-   virtual void setMember(const char* name, long long value);
+   virtual void operator=(unsigned long long value);
    
    /**
-    * Sets a 64-bit unsigned integer member in this DynamicObjectImpl.
+    * Gets a DynamicObject based on its member name.
     * 
     * @param name the name of the member.
-    * @param value the value of the member.
+    * 
+    * @return the DynamicObject.
     */
-   virtual void setMember(const char* name, unsigned long long value);
+   virtual DynamicObject& operator[](const std::string& name);
    
    /**
-    * Sets a DynamicObject member in this DynamicObjectImpl.
+    * Gets a DynamicObject based on its index.
     * 
-    * @param name the name of the member.
-    * @param value the value of the member.
+    * @param index the index of the member.
+    * 
+    * @return the DynamicObject.
     */
-   virtual void setMember(const char* name, DynamicObject value);
+   virtual DynamicObject& operator[](unsigned int index);
    
    /**
-    * Gets a string member from this DynamicObjectImpl.
+    * Gets this object's value as a string.
     * 
-    * @param name the name of the member.
-    * 
-    * @return the value of the member.
+    * @return the value of this object.
     */
-   virtual const char* getString(const char* name);
+   virtual const char* getString();
    
    /**
-    * Gets a boolean member from this DynamicObjectImpl.
+    * Gets this object's value as a boolean.
     * 
-    * @param name the name of the member.
-    * 
-    * @return the value of the member.
+    * @return the value of this object.
     */
-   virtual bool getBoolean(const char* name);
+   virtual bool getBoolean();
    
    /**
-    * Gets a 32-bit integer member from this DynamicObjectImpl.
+    * Gets this object's value as a 32-bit integer.
     * 
-    * @param name the name of the member.
-    * 
-    * @return the value of the member.
+    * @return the value of this object.
     */
-   virtual int getInt32(const char* name);
+   virtual int getInt32();
    
    /**
-    * Gets a 32-bit unsigned integer member from this DynamicObjectImpl.
+    * Gets this object's value as a 32-bit unsigned integer.
     * 
-    * @param name the name of the member.
-    * 
-    * @return the value of the member.
+    * @return the value of this object.
     */
-   virtual unsigned int getUInt32(const char* name);
+   virtual int getUInt32();
    
    /**
-    * Gets a 64-bit integer member from this DynamicObjectImpl.
+    * Gets this object's value as a 64-bit integer.
     * 
-    * @param name the name of the member.
-    * 
-    * @return the value of the member.
+    * @return the value of this object.
     */
-   virtual long long getInt64(const char* name);
+   virtual int getInt64();
    
    /**
-    * Gets a 64-bit unsigned integer member from this DynamicObjectImpl.
+    * Gets this object's value as a 64-bit unsigned integer.
     * 
-    * @param name the name of the member.
-    * 
-    * @return value the value of the member.
+    * @return the value of this object.
     */
-   virtual unsigned long long getUInt64(const char* name);
-   
-   /**
-    * Gets a DynamicObject member from this DynamicObjectImpl.
-    * 
-    * @param name the name of the member.
-    * 
-    * @return value the value of the member.
-    */
-   virtual DynamicObject getObject(const char* name);
-   
-   /**
-    * Gets an array member from this DynamicObjectImpl.
-    * 
-    * @param name the name of the member.
-    * 
-    * @return the value of the member.
-    */
-   std::vector<DynamicObjectImpl::MemberValue>& getArray(const char* name);
+   virtual int getUInt64();
 };
 
 } // end namespace util

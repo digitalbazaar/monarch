@@ -25,7 +25,37 @@ DynamicObject::~DynamicObject()
 {
 }
 
-DynamicObjectImpl::MemberValue& DynamicObject::operator[](const char* name)
+void DynamicObject::operator=(const std::string& value)
+{
+   *mReference->ptr = value;
+}
+
+void DynamicObject::operator=(int value)
+{
+   *mReference->ptr = value;
+}
+
+void DynamicObject::operator=(unsigned int value)
+{
+   *mReference->ptr = value;
+}
+
+void DynamicObject::operator=(long long value)
+{
+   *mReference->ptr = value;
+}
+
+void DynamicObject::operator=(unsigned long long value)
+{
+   *mReference->ptr = value;
+}
+
+DynamicObject& DynamicObject::operator[](const std::string& name)
 {
    return (*mReference->ptr)[name];
+}
+
+DynamicObject& DynamicObject::operator[](unsigned int index)
+{
+   return (*mReference->ptr)[index];
 }

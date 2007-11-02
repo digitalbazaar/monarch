@@ -6,268 +6,293 @@
 
 using namespace db::util;
 
-DynamicObjectImpl::MemberValue::MemberValue()
-{
-   type = String;
-   str = NULL;
-}
-
-void DynamicObjectImpl::MemberValue::freeData()
-{
-   // clean up data based on type
-   switch(type)
-   {
-      case Object:
-         delete obj;
-         obj = NULL;
-         break;
-      case Array:
-         // free every element in array
-         for(std::vector<MemberValue>::iterator i = array->begin();
-             i != array->end(); i++)
-         {
-            i->freeData();
-         }
-         
-         // free array
-         delete array;
-         array = NULL;
-         break;
-      default:
-         if(str != NULL)
-         {
-            delete [] str;
-            str = NULL;
-         }
-         break;
-   }
-}
-
-void DynamicObjectImpl::MemberValue::operator=(const char* rhs)
-{
-   freeData();
-   type = String;
-   str = strdup(rhs);
-}
-
-void DynamicObjectImpl::MemberValue::operator=(bool rhs)
-{
-   freeData();
-   type = Boolean;
-   str = new char[6];
-   strcpy(str, rhs ? "true" : "false");
-}
-
-void DynamicObjectImpl::MemberValue::operator=(int rhs)
-{
-   freeData();
-   type = Int32;
-   str = new char[22];
-   sprintf(str, "%i", rhs);
-}
-
-void DynamicObjectImpl::MemberValue::operator=(unsigned int rhs)
-{
-   freeData();
-   type = UInt32;
-   str = new char[22];
-   sprintf(str, "%u", rhs);
-}
-
-void DynamicObjectImpl::MemberValue::operator=(long long rhs)
-{
-   freeData();
-   type = Int64;
-   str = new char[22];
-   sprintf(str, "%lli", rhs);
-}
-
-void DynamicObjectImpl::MemberValue::operator=(unsigned long long rhs)
-{
-   freeData();
-   type = UInt64;
-   str = new char[22];
-   sprintf(str, "%llu", rhs);
-}
-
-void DynamicObjectImpl::MemberValue::operator=(DynamicObject rhs)
-{
-   freeData();
-   type = Object;
-   obj = new DynamicObject(rhs);
-}
-
-DynamicObjectImpl::MemberValue& DynamicObjectImpl::MemberValue::operator[](
-   const std::string& name)
-{
-   // create object if necessary
-   if(type != Object)
-   {
-      freeData();
-      type = Object;
-      obj = new DynamicObject();
-   }
-   
-   return (*obj)[name.c_str()];
-}
-
-DynamicObjectImpl::MemberValue& DynamicObjectImpl::MemberValue::operator[](
-   unsigned int index)
-{
-   // create array if necessary
-   if(type != Array)
-   {
-      freeData();
-      type = Array;
-      array = new std::vector<MemberValue>();
-   }
-   
-   // create MemberValues for every value up to the given index
-   if(index >= array->size())
-   {
-      for(unsigned int i = 0; i <= index; i++)
-      {
-         MemberValue mvnew;
-         array->push_back(mvnew);
-      }
-   }
-   
-   return (*array)[index];
-}
-
 DynamicObjectImpl::DynamicObjectImpl()
 {
+   mType = String;
+   mString = NULL;
 }
 
 DynamicObjectImpl::~DynamicObjectImpl()
 {
-   // clean up members
-   for(MemberMap::iterator i = mMembers.begin(); i != mMembers.end(); i++)
+   DynamicObjectImpl::freeData();
+}
+
+void DynamicObjectImpl::freeData()
+{
+   // clean up data based on type
+   switch(mType)
    {
-      // clean up member name
-      delete [] i->first;
-      
-      // clean up member value data
-      i->second.freeData();
+      case String:
+         if(mString != NULL)
+         {
+            delete [] mString;
+            mString = NULL;
+         }
+         break;
+      case Map:
+         if(mMap != NULL)
+         {
+            // clean up member names
+            for(ObjectMap::iterator i = mMap->begin(); i != mMap->end(); i++)
+            {
+               delete [] i->first;
+            }
+            
+            delete mMap;
+            mMap = NULL;
+         }
+         break;
+      case Array:
+         if(mArray != NULL)
+         {
+            delete mArray;
+            mArray = NULL;
+         }
+         break;
+      default:
+         // nothing to cleanup
+         break;
    }
 }
 
-DynamicObjectImpl::MemberValue& DynamicObjectImpl::operator[](const char* name)
+void DynamicObjectImpl::setString(const char* value)
 {
-   MemberValue* rval = NULL;
+   freeData();
+   mType = String;
+   mString = strdup(value);
+}
+
+void DynamicObjectImpl::operator=(const std::string& value)
+{
+   setString(value.c_str());
+}
+
+void DynamicObjectImpl::operator=(bool value)
+{
+   freeData();
+   mType = Boolean;
+   mBoolean = value;
+}
+
+void DynamicObjectImpl::operator=(int value)
+{
+   freeData();
+   mType = Int32;
+   mInt32 = value;
+}
+
+void DynamicObjectImpl::operator=(unsigned int value)
+{
+   freeData();
+   mType = UInt32;
+   mUInt32 = value;
+}
+
+void DynamicObjectImpl::operator=(long long value)
+{
+   freeData();
+   mType = Int64;
+   mInt64 = value;
+}
+
+void DynamicObjectImpl::operator=(unsigned long long value)
+{
+   freeData();
+   mType = UInt64;
+   mUInt64 = value;
+}
+
+DynamicObject& DynamicObjectImpl::operator[](const std::string& name)
+{
+   DynamicObject* rval = NULL;
    
-   MemberMap::iterator i = mMembers.find(name);
-   if(i != mMembers.end())
+   // change to map type if necessary
+   if(mType != Map)
    {
-      rval = &i->second;
+      freeData();
+      mType = Map;
+      mMap = new ObjectMap();
+   }
+   
+   ObjectMap::iterator i = mMap->find(name.c_str());
+   if(i == mMap->end())
+   {
+      // create new map entry
+      DynamicObject dyno;
+      mMap->insert(std::make_pair(strdup(name.c_str()), dyno));
+      rval = &(*mMap)[name.c_str()];
    }
    else
    {
-      // create new member value
-      MemberValue mvnew;
-      mMembers[strdup(name)] = mvnew;
-      rval = &mMembers[name];
+      // get existing map entry
+      rval = &i->second;
    }
    
    return *rval;
 }
 
-void DynamicObjectImpl::setMember(const char* name, const char* value)
+DynamicObject& DynamicObjectImpl::operator[](unsigned int index)
 {
-   (*this)[name] = value;
-}
-
-void DynamicObjectImpl::setMember(const char* name, bool value)
-{
-   (*this)[name] = value;
-}
-
-void DynamicObjectImpl::setMember(const char* name, int value)
-{
-   (*this)[name] = value;
-}
-
-void DynamicObjectImpl::setMember(const char* name, unsigned int value)
-{
-   (*this)[name] = value;
-}
-
-void DynamicObjectImpl::setMember(const char* name, long long value)
-{
-   (*this)[name] = value;
-}
-
-void DynamicObjectImpl::setMember(const char* name, unsigned long long value)
-{
-   (*this)[name] = value;
-}
-
-void DynamicObjectImpl::setMember(const char* name, DynamicObject value)
-{
-   (*this)[name] = value;
-}
-
-const char* DynamicObjectImpl::getString(const char* name)
-{
-   // create string if necessary
-   MemberValue* mv = &(*this)[name];
-   if(mv->type == Object || mv->type == Array)
+   // change to array type if necessary
+   if(mType != Array)
    {
-      setMember(name, "");
+      freeData();
+      mType = Array;
+      mArray = new ObjectArray();
    }
    
-   return mv->str;
-}
-
-bool DynamicObjectImpl::getBoolean(const char* name)
-{
-   return (strcmp(getString(name), "true") == 0) ? true : false;
-}
-
-int DynamicObjectImpl::getInt32(const char* name)
-{
-   return strtol(getString(name), NULL, 10);
-}
-
-unsigned int DynamicObjectImpl::getUInt32(const char* name)
-{
-   return strtoul(getString(name), NULL, 10);
-}
-
-long long DynamicObjectImpl::getInt64(const char* name)
-{
-   return strtoll(getString(name), NULL, 10);
-}
-
-unsigned long long DynamicObjectImpl::getUInt64(const char* name)
-{
-   return strtoull(getString(name), NULL, 10);
-}
-
-DynamicObject DynamicObjectImpl::getObject(const char* name)
-{
-   // create object if necessary
-   MemberValue* mv = &(*this)[name];
-   if(mv->type != Object)
+   // fill the object array as necessary
+   if(index >= mArray->size())
    {
-      DynamicObject value;
-      setMember(name, value);
+      for(unsigned int i = 0; i <= index; i++)
+      {
+         DynamicObject dyno;
+         mArray->push_back(dyno);
+      }
    }
    
-   return *mv->obj;
+   return (*mArray)[index];
 }
 
-std::vector<DynamicObjectImpl::MemberValue>&
-   DynamicObjectImpl::getArray(const char* name)
+const char* DynamicObjectImpl::getString()
 {
-   // create array if necessary
-   MemberValue* mv = &(*this)[name];
-   if(mv->type != Array)
+   if(mType != String)
    {
-      mv->freeData();
-      mv->type = Array;
-      mv->array = new std::vector<MemberValue>();
+      // convert type as appropriate
+      char temp[22];
+      switch(mType)
+      {
+         case Boolean:
+            setString(mBoolean ? "true" : "false");
+            break;
+         case Int32:
+            sprintf(temp, "%i", mInt32);
+            setString(temp);
+            break;
+         case UInt32:
+            sprintf(temp, "%u", mUInt32);
+            setString(temp);
+            break;
+         case Int64:
+            sprintf(temp, "%lli", mInt64);
+            setString(temp);
+            break;
+         case UInt64:
+            sprintf(temp, "%llu", mUInt64);
+            setString(temp);
+            break;
+         default:
+            setString("");
+            break;
+      }
    }
    
-   return *(*this)[name].array;
+   return mString;
+}
+
+bool DynamicObjectImpl::getBoolean()
+{
+   if(mType != Boolean)
+   {
+      // convert type as appropriate
+      if(mType == String && mString != NULL)
+      {
+         *this = (strcmp(mString, "true") == 0);
+      }
+      else
+      {
+         switch(mType)
+         {
+            case Int32:
+               *this = (mInt32 == 1);
+               break;
+            case UInt32:
+               *this = (mUInt32 == 1);
+               break;
+            case Int64:
+               *this = (mInt64 == 1);
+               break;
+            case UInt64:
+               *this = (mUInt64 == 1);
+               break;
+            default:
+               *this = false;
+               break;
+         }
+      }
+   }
+   
+   return mBoolean;
+}
+
+int DynamicObjectImpl::getInt32()
+{
+   if(mType != Int32)
+   {
+      // convert type as appropriate
+      if(mType == String && mString != NULL)
+      {
+         *this = (int)strtol(mString, NULL, 10);
+      }
+      else
+      {
+         *this = (int)0;
+      }
+   }
+   
+   return mInt32;
+}
+
+int DynamicObjectImpl::getUInt32()
+{
+   if(mType != UInt32)
+   {
+      // convert type as appropriate
+      if(mType == String && mString != NULL)
+      {
+         *this = (unsigned int)strtoul(mString, NULL, 10);
+      }
+      else
+      {
+         *this = (unsigned int)0;
+      }
+   }
+   
+   return mUInt32;
+}
+
+int DynamicObjectImpl::getInt64()
+{
+   if(mType != Int64)
+   {
+      // convert type as appropriate
+      if(mType == String && mString != NULL)
+      {
+         *this = (long long)strtoll(mString, NULL, 10);
+      }
+      else
+      {
+         *this = (long long)0;
+      }
+   }
+   
+   return mInt64;
+}
+
+int DynamicObjectImpl::getUInt64()
+{
+   if(mType != UInt64)
+   {
+      // convert type as appropriate
+      if(mType == String && mString != NULL)
+      {
+         *this = (unsigned long long)strtoull(mString, NULL, 10);
+      }
+      else
+      {
+         *this = (unsigned long long)0;
+      }
+   }
+   
+   return mUInt64;
 }
