@@ -4896,7 +4896,7 @@ public:
 //      runStringEqualityTest();
 //      runStringAppendCharTest();
 //      runStringCompareTest();
-      runDynamicObjectTest(tr);
+//      runDynamicObjectTest(tr);
 //      runByteBufferTest();
 //      runByteArrayInputStreamTest();
 //      runByteArrayOutputStreamTest();
@@ -4956,7 +4956,7 @@ public:
       cout << "Tests starting..." << endl << endl;
       
       runInteractiveUnitTests(tr);
-      //runAutomaticUnitTests(tr);
+      runAutomaticUnitTests(tr);
       
       cout << endl << "Tests finished." << endl;
       
