@@ -86,6 +86,13 @@ public:
    virtual void operator=(unsigned long long value);
    
    /**
+    * Sets this object's value to a double.
+    * 
+    * @param value the value for this object.
+    */
+   virtual void operator=(double value);
+   
+   /**
     * Gets a DynamicObject from a DynamicObjectImpl based on its member name.
     * 
     * @param name the name of the member.

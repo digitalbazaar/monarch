@@ -51,6 +51,11 @@ void DynamicObject::operator=(unsigned long long value)
    *mReference->ptr = value;
 }
 
+void DynamicObject::operator=(double value)
+{
+   *mReference->ptr = value;
+}
+
 DynamicObject& DynamicObject::operator[](const std::string& name)
 {
    return (*mReference->ptr)[name];

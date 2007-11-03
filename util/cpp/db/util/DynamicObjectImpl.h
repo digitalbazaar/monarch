@@ -29,7 +29,7 @@ public:
     */
    typedef enum Type
    {
-      String, Boolean, Int32, UInt32, Int64, UInt64, Map, Array
+      String, Boolean, Int32, UInt32, Int64, UInt64, Double, Map, Array
    };
    
    /**
@@ -80,6 +80,7 @@ protected:
       unsigned int mUInt32;
       long long mInt64;
       unsigned long long mUInt64;
+      double mDouble;
       ObjectMap* mMap;
       ObjectArray* mArray;
    };
@@ -156,6 +157,13 @@ public:
    virtual void operator=(unsigned long long value);
    
    /**
+    * Sets this object's value to a double.
+    * 
+    * @param value the value for this object.
+    */
+   virtual void operator=(double value);
+   
+   /**
     * Gets a DynamicObject based on its member name.
     * 
     * @param name the name of the member.
@@ -213,21 +221,28 @@ public:
     * 
     * @return the value of this object.
     */
-   virtual int getUInt32();
+   virtual unsigned int getUInt32();
    
    /**
     * Gets this object's value as a 64-bit integer.
     * 
     * @return the value of this object.
     */
-   virtual int getInt64();
+   virtual long long getInt64();
    
    /**
     * Gets this object's value as a 64-bit unsigned integer.
     * 
     * @return the value of this object.
     */
-   virtual int getUInt64();
+   virtual unsigned long long getUInt64();
+   
+   /**
+    * Gets this object's value as a double.
+    * 
+    * @return the value of this object.
+    */
+   virtual double getDouble();
    
    /**
     * Returns true if this object has the specified member, false if not.

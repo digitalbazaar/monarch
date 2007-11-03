@@ -106,6 +106,13 @@ void DynamicObjectImpl::operator=(unsigned long long value)
    mUInt64 = value;
 }
 
+void DynamicObjectImpl::operator=(double value)
+{
+   freeData();
+   mType = Double;
+   mDouble = value;
+}
+
 DynamicObject& DynamicObjectImpl::operator[](const std::string& name)
 {
    DynamicObject* rval = NULL;
@@ -197,6 +204,9 @@ const char* DynamicObjectImpl::getString()
             sprintf(temp, "%llu", mUInt64);
             setString(temp);
             break;
+         case Double:
+            sprintf(temp, "%e", mDouble);
+            setString(temp);
          default:
             setString("");
             break;
@@ -231,6 +241,9 @@ bool DynamicObjectImpl::getBoolean()
             case UInt64:
                *this = (mUInt64 == 1);
                break;
+            case Double:
+               *this = (mDouble == 1);
+               break;
             default:
                *this = false;
                break;
@@ -254,6 +267,10 @@ int DynamicObjectImpl::getInt32()
       {
          *this = (int)mInt64;
       }
+      else if(mType == Double)
+      {
+         *this = (int)mDouble;
+      }
       else
       {
          *this = (int)0;
@@ -263,7 +280,7 @@ int DynamicObjectImpl::getInt32()
    return mInt32;
 }
 
-int DynamicObjectImpl::getUInt32()
+unsigned int DynamicObjectImpl::getUInt32()
 {
    if(mType != UInt32)
    {
@@ -285,7 +302,7 @@ int DynamicObjectImpl::getUInt32()
    return mUInt32;
 }
 
-int DynamicObjectImpl::getInt64()
+long long DynamicObjectImpl::getInt64()
 {
    if(mType != Int64)
    {
@@ -293,6 +310,10 @@ int DynamicObjectImpl::getInt64()
       if(mType == String && mString != NULL)
       {
          *this = (long long)strtoll(mString, NULL, 10);
+      }
+      else if(mType == Double)
+      {
+         *this = (long long)mDouble;
       }
       else
       {
@@ -303,7 +324,7 @@ int DynamicObjectImpl::getInt64()
    return mInt64;
 }
 
-int DynamicObjectImpl::getUInt64()
+unsigned long long DynamicObjectImpl::getUInt64()
 {
    if(mType != UInt64)
    {
@@ -319,6 +340,40 @@ int DynamicObjectImpl::getUInt64()
    }
    
    return mUInt64;
+}
+
+double DynamicObjectImpl::getDouble()
+{
+   if(mType != Double)
+   {
+      // convert type as appropriate
+      if(mType == String && mString != NULL)
+      {
+         *this = (double)strtod(mString, NULL);
+      }
+      else if(mType == Int32)
+      {
+         *this = (double)mInt32;
+      }
+      else if(mType == UInt32)
+      {
+         *this = (double)mUInt32;
+      }
+      else if(mType == Int64)
+      {
+         *this = (double)mInt64;
+      }
+      else if(mType == UInt64)
+      {
+         *this = (double)mUInt64;
+      }
+      else
+      {
+         *this = (double)0;
+      }
+   }
+   
+   return mDouble;
 }
 
 bool DynamicObjectImpl::hasMember(const char* name)
@@ -351,11 +406,14 @@ unsigned int DynamicObjectImpl::length()
          break;
       case Int32:
       case UInt32:
-         rval = 4;
+         rval = sizeof(unsigned int);
          break;
       case Int64:
       case UInt64:
-         rval = 8;
+         rval = sizeof(unsigned long long);
+         break;
+      case Double:
+         rval = sizeof(double);
          break;
       case Map:
          rval = mMap->size();
