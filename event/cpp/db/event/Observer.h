@@ -23,12 +23,20 @@ public:
    /**
     * Creates a new Observer.
     */
-   Observer();
+   Observer() {};
    
    /**
     * Destructs this Observer.
     */
-   virtual ~Observer();
+   virtual ~Observer() {};
+   
+   /**
+    * Called when an Event occurs on an Observable that this Observer is
+    * registered with.
+    * 
+    * @param e the Event that occurred.
+    */
+   virtual void eventOccurred(Event e) = 0;
 };
 
 } // end namespace event

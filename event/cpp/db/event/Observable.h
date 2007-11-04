@@ -4,7 +4,7 @@
 #ifndef db_event_Observable_H
 #define db_event_Observable_H
 
-#include "db/rt/Object.h"
+#include "db/modest/OperationRunner.h"
 #include "db/event/Observer.h"
 
 #include <list>
@@ -26,13 +26,32 @@ namespace event
  * 
  * @author Dave Longley
  */
-class Observable : public virtual db::rt::Object
+class Observable : public virtual db::rt::Object, public db::rt::Runnable
 {
 protected:
    /**
+    * A simple helper class for dispatching events on an Operation.
+    */
+   class EventDispatcher : public Runnable
+   {
+   public:
+      Observer* observer;
+      Event event;
+      
+      EventDispatcher() {}
+      virtual ~EventDispatcher() {}
+      
+      virtual void run()
+      {
+         // notify observer of event
+         observer->eventOccurred(event);
+      }
+   };
+   
+   /**
     * The queue of undispatched events.
     */
-   typedef std::list<Event*> EventQueue;
+   typedef std::list<Event> EventQueue;
    EventQueue mEventQueue;
    
    /**
@@ -40,6 +59,32 @@ protected:
     */
    typedef std::list<Observer*> ObserverList;
    ObserverList mObservers;
+   
+   /**
+    * The OperationRunner for running operations.
+    */
+   db::modest::OperationRunner* mOpRunner;
+   
+   /**
+    * The Operation used to run this Observable.
+    */
+   db::modest::Operation mOperation;
+   
+   /**
+    * The dispatch condition. Set to true when events can be dispatched,
+    * false when not.
+    */
+   bool mDispatch;
+   
+   /**
+    * The dispatch lock used to check or set the dispatch condition.
+    */
+   db::rt::Object mDispatchLock;
+   
+   /**
+    * Dispatches the events in the event queue to all registered Observers.
+    */
+   virtual void dispatchEvents();
    
 public:
    /**
@@ -70,7 +115,32 @@ public:
     */
    virtual void unregisterObserver(Observer* observer);
    
-   // FIXME: run observer on 
+   /**
+    * Schedules an Event for dispatch.
+    * 
+    * @param e the Event to schedule.
+    */
+   virtual void schedule(Event e);
+   
+   /**
+    * Starts this Observable. This causes this Observable to start dispatching
+    * events to its registered Observers.
+    * 
+    * @param opRunner the OperationRunner to use to start this Observable.
+    */
+   virtual void start(db::modest::OperationRunner* opRunner);
+   
+   /**
+    * Stops this Observable. This causes this Observable to stop dispatching
+    * events to its registered Observers.
+    */
+   virtual void stop();
+   
+   /**
+    * Runs this Observable by dispatching its events to its registered
+    * Observers.
+    */
+   virtual void run();
 };
 
 } // end namespace event

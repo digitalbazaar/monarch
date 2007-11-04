@@ -4,6 +4,8 @@
 #ifndef db_event_Event_H
 #define db_event_Event_H
 
+#include "db/util/DynamicObject.h"
+
 namespace db
 {
 namespace event
@@ -16,19 +18,7 @@ namespace event
  * 
  * @author Dave Longley
  */
-class Event
-{
-public:
-   /**
-    * Creates a new Event.
-    */
-   Event();
-   
-   /**
-    * Destructs this Event.
-    */
-   virtual ~Event();
-};
+typedef db::util::DynamicObject Event;
 
 } // end namespace event
 } // end namespace db
