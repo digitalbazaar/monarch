@@ -102,13 +102,15 @@ public:
    virtual DynamicObject& operator[](const std::string& name);
    
    /**
-    * Gets a DynamicObject from a DynamicObjectImpl based on its index.
+    * Gets a DynamicObject from a DynamicObjectImpl based on its index. A
+    * negative index will index in reverse, with -1 referring to the last
+    * element.
     * 
     * @param index the index of the member.
     * 
     * @return the DynamicObject.
     */
-   virtual DynamicObject& operator[](unsigned int index);
+   virtual DynamicObject& operator[](int index);
    
    /**
     * Gets a reference-counted DynamicObjectIterator for iterating over

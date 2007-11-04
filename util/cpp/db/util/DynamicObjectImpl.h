@@ -173,13 +173,14 @@ public:
    virtual DynamicObject& operator[](const std::string& name);
    
    /**
-    * Gets a DynamicObject based on its index.
+    * Gets a DynamicObject based on its index. A negative index will
+    * index in reverse, with -1 referring to the last element.
     * 
     * @param index the index of the member.
     * 
     * @return the DynamicObject.
     */
-   virtual DynamicObject& operator[](unsigned int index);
+   virtual DynamicObject& operator[](int index);
    
    /**
     * Gets this object's type.
@@ -263,7 +264,7 @@ public:
     * Map length = number of entries in the map.
     * Array length = number of elements in the array.
     */
-   virtual unsigned int length();
+   virtual int length();
 };
 
 } // end namespace util

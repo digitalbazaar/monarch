@@ -61,7 +61,7 @@ DynamicObject& DynamicObject::operator[](const std::string& name)
    return (*mReference->ptr)[name];
 }
 
-DynamicObject& DynamicObject::operator[](unsigned int index)
+DynamicObject& DynamicObject::operator[](int index)
 {
    return (*mReference->ptr)[index];
 }

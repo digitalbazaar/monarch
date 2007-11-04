@@ -144,7 +144,7 @@ DynamicObject& DynamicObjectImpl::operator[](const std::string& name)
    return *rval;
 }
 
-DynamicObject& DynamicObjectImpl::operator[](unsigned int index)
+DynamicObject& DynamicObjectImpl::operator[](int index)
 {
    // change to array type if necessary
    if(mType != Array)
@@ -154,10 +154,15 @@ DynamicObject& DynamicObjectImpl::operator[](unsigned int index)
       mArray = new ObjectArray();
    }
    
-   // fill the object array as necessary
-   if(index >= mArray->size())
+   if(index < 0)
    {
-      for(unsigned int i = 0; i <= index; i++)
+      index = mArray->size() + index;
+   }
+   
+   // fill the object array as necessary
+   if(index >= (int)mArray->size())
+   {
+      for(int i = 0; i <= index; i++)
       {
          DynamicObject dyno;
          mArray->push_back(dyno);
@@ -389,9 +394,9 @@ bool DynamicObjectImpl::hasMember(const char* name)
    return rval;
 }
 
-unsigned int DynamicObjectImpl::length()
+int DynamicObjectImpl::length()
 {
-   unsigned int rval = 0;
+   int rval = 0;
    
    switch(mType)
    {
