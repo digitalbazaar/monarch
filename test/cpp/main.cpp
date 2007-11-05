@@ -70,6 +70,7 @@
 #include "db/sql/mysql/MySqlConnectionPool.h"
 #include "db/sql/util/DatabaseClient.h"
 #include "db/event/Observable.h"
+#include "db/event/ObserverDelegate.h"
 //#include "db/logging/Logger.h"
 //#include "db/logging/OutputStreamLogger.h"
 //#include "db/logging/FileLogger.h"
@@ -4774,10 +4775,23 @@ class TestObserver : public Observer
 {
 public:
    int events;
+   int event1;
+   int event2;
+   int event3;
    
-   TestObserver()
+   ObserverDelegate<TestObserver> delegate1;
+   ObserverDelegate<TestObserver> delegate2;
+   ObserverDelegate<TestObserver> delegate3;
+   
+   TestObserver() :
+      delegate1(this, &TestObserver::handleEvent1),
+      delegate2(this, &TestObserver::handleEvent2),
+      delegate3(this, &TestObserver::handleEvent3)
    {
       events = 0;
+      event1 = 0;
+      event2 = 0;
+      event3 = 0;
    }
    
    virtual ~TestObserver()
@@ -4787,6 +4801,21 @@ public:
    virtual void eventOccurred(Event e)
    {
       events++;
+   }
+   
+   virtual void handleEvent1(Event e)
+   {
+      event1++;
+   }
+   
+   virtual void handleEvent2(Event e)
+   {
+      event2++;
+   }
+   
+   virtual void handleEvent3(Event e)
+   {
+      event3++;
    }
 };
 
@@ -4824,6 +4853,57 @@ void runEventTest(TestRunner& tr)
    
    // stop observable
    observable.stop();
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   tr.pass();
+}
+
+void runObserverDelegateTest(TestRunner& tr)
+{
+   tr.test("ObserverDelegate");
+   
+   // create kernel and start engine
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create observables and observer
+   Observable observable1;
+   Observable observable2;
+   Observable observable3;
+   TestObserver observer;
+   
+   // register observer and start observables
+   observable1.registerObserver(&observer.delegate1);
+   observable2.registerObserver(&observer.delegate2);
+   observable3.registerObserver(&observer.delegate3);
+   observable1.start(&k);
+   observable2.start(&k);
+   observable3.start(&k);
+   
+   // create and schedule events
+   Event e1;
+   Event e2;
+   Event e3;
+   e1["name"] = "Event1";
+   e2["name"] = "Event2";
+   e3["name"] = "Event3";
+   observable1.schedule(e1);
+   observable2.schedule(e2);
+   observable3.schedule(e3);
+   
+   // wait for a second
+   Thread::sleep(1000);
+   
+   assert(observer.event1 == 1);
+   assert(observer.event2 == 1);
+   assert(observer.event3 == 1);
+   
+   // stop observables
+   observable1.stop();
+   observable2.stop();
+   observable3.stop();
    
    // stop kernel engine
    k.getEngine()->stop();
@@ -4977,6 +5057,7 @@ public:
       
       // db::event tests
       runEventTest(tr);
+      runObserverDelegateTest(tr);
       
       cout << endl << "Automatic unit tests finished." << endl;
       
@@ -5039,6 +5120,7 @@ public:
 //      runConnectionPoolTest();
 //      runDatabaseClientTest();
 //      runEventTest(tr);
+//      runObserverDelegateTest(tr);
 //      runLoggerTest();
 //      runUniqueListTest();
 //      runOtherTest();
