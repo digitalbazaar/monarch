@@ -1062,10 +1062,10 @@ void runDynamicObjectTest(TestRunner& tr)
    }
    
    // test print out code
-   cout << endl;
    dyno1["dyno5"] = dyno5;
    dyno1["dyno6"] = dyno6;
-   dumpDynamicObject(dyno1);
+   //cout << endl;
+   //dumpDynamicObject(dyno1);
    
    tr.pass();
 }
@@ -3907,8 +3907,8 @@ void runDynamicObjectWriterTest(TestRunner& tr)
    DynamicObject dyno = writer.write(&db);
    
    // test print out code
-   cout << endl;
-   dumpDynamicObject(dyno);
+   //cout << endl;
+   //dumpDynamicObject(dyno);
    
    tr.pass();
 }
@@ -5212,7 +5212,7 @@ public:
 //      runXmlReadWriteTest();
 //      runXmlBindingInputStreamTest();
 //      runXmlBindingOutputStreamTest();
-      runDynamicObjectWriterTest(tr);
+//      runDynamicObjectWriterTest(tr);
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
 //      runConnectionPoolTest();
@@ -5242,7 +5242,7 @@ public:
       cout << "Tests starting..." << endl << endl;
       
       runInteractiveUnitTests(tr);
-      //runAutomaticUnitTests(tr);
+      runAutomaticUnitTests(tr);
       
       cout << endl << "Tests finished." << endl;
       
