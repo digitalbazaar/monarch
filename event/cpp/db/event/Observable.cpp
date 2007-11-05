@@ -11,12 +11,17 @@ using namespace db::rt;
 
 Observable::Observable()
 {
+   // no dispatch operation yet
+   mOperation = NULL;
+   
    // no events to dispatch yet
    mDispatch = false;
 }
 
 Observable::~Observable()
 {
+   // ensure event dispatching is stopped
+   stop();
 }
 
 void Observable::dispatchEvents()
@@ -62,7 +67,7 @@ void Observable::registerObserver(Observer* observer)
 {
    lock();
    {
-      mObservers.remove(observer);
+      mObservers.push_back(observer);
    }
    unlock();
 }
@@ -71,7 +76,7 @@ void Observable::unregisterObserver(Observer* observer)
 {
    lock();
    {
-      mObservers.push_back(observer);
+      mObservers.remove(observer);
    }
    unlock();
 }
@@ -88,7 +93,7 @@ void Observable::schedule(Event e)
       mEventQueue.push_back(e);
       
       // notify on dispatch lock and release
-      mDispatchLock.notify();
+      mDispatchLock.notifyAll();
       mDispatchLock.unlock();
    }
    unlock();
@@ -98,10 +103,13 @@ void Observable::start(OperationRunner* opRunner)
 {
    lock();
    {
-      // store operation runner
-      mOpRunner = mOpRunner;
-      mOperation = opRunner->createOperation(this, NULL, NULL);
-      opRunner->runOperation(mOperation);
+      if(mOperation == NULL)
+      {
+         // store operation runner
+         mOpRunner = opRunner;
+         mOperation = opRunner->createOperation(this, NULL, NULL);
+         opRunner->runOperation(mOperation);
+      }
    }
    unlock();
 }
@@ -110,8 +118,12 @@ void Observable::stop()
 {
    lock();
    {
-      mOperation->interrupt();
-      mOperation->waitFor();
+      if(mOperation != NULL)
+      {
+         mOperation->interrupt();
+         mOperation->waitFor();
+         mOperation = NULL;
+      }
    }
    unlock();
 }

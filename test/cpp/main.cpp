@@ -69,6 +69,7 @@
 #include "db/sql/mysql/MySqlConnection.h"
 #include "db/sql/mysql/MySqlConnectionPool.h"
 #include "db/sql/util/DatabaseClient.h"
+#include "db/event/Observable.h"
 //#include "db/logging/Logger.h"
 //#include "db/logging/OutputStreamLogger.h"
 //#include "db/logging/FileLogger.h"
@@ -77,6 +78,7 @@
 using namespace std;
 using namespace db::test;
 using namespace db::crypto;
+using namespace db::event;
 using namespace db::io;
 using namespace db::modest;
 using namespace db::net;
@@ -4768,6 +4770,67 @@ void runDatabaseClientTest()
    cout << endl << "DatabaseClient test complete." << endl;
 }
 
+class TestObserver : public Observer
+{
+public:
+   int events;
+   
+   TestObserver()
+   {
+      events = 0;
+   }
+   
+   virtual ~TestObserver()
+   {
+   }
+   
+   virtual void eventOccurred(Event e)
+   {
+      events++;
+   }
+};
+
+void runEventTest(TestRunner& tr)
+{
+   tr.test("Event");
+   
+   // create kernel and start engine
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create observable and observer
+   Observable observable;
+   TestObserver observer;
+   
+   // register observer and start observable
+   observable.registerObserver(&observer);
+   observable.start(&k);
+   
+   // create and schedule events
+   Event e1;
+   Event e2;
+   Event e3;
+   e1["name"] = "Event1";
+   e2["name"] = "Event2";
+   e3["name"] = "Event3";
+   observable.schedule(e1);
+   observable.schedule(e2);
+   observable.schedule(e3);
+   
+   // wait for a second
+   Thread::sleep(1000);
+   
+   assert(observer.events == 3);
+   
+   // stop observable
+   observable.stop();
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   tr.pass();
+}
+
 void runLoggerTest()
 {
    cout << "Starting Logger test." << endl << endl;
@@ -4912,6 +4975,9 @@ public:
       runSqlite3RowObjectTest(tr);
       runMysqlRowObjectTest(tr);
       
+      // db::event tests
+      runEventTest(tr);
+      
       cout << endl << "Automatic unit tests finished." << endl;
       
       if(Exception::hasLast())
@@ -4972,6 +5038,7 @@ public:
 //      runMySqlStatementTest();
 //      runConnectionPoolTest();
 //      runDatabaseClientTest();
+//      runEventTest(tr);
 //      runLoggerTest();
 //      runUniqueListTest();
 //      runOtherTest();
