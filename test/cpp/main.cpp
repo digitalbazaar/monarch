@@ -59,6 +59,7 @@
 #include "db/data/xml/XmlBindingInputStream.h"
 #include "db/data/xml/XmlBindingOutputStream.h"
 #include "db/data/DataMappingFunctor.h"
+#include "db/data/DynamicObjectWriter.h"
 #include "db/io/OStreamOutputStream.h"
 #include "db/crypto/BigDecimal.h"
 #include "db/io/ByteArrayOutputStream.h"
@@ -930,6 +931,55 @@ void runStringCompareTest()
    cout << endl << "String compare test complete." << endl;
 }
 
+void dumpDynamicObject(DynamicObject dyno, int indent = 0)
+{
+   for(int i = 0; i < indent; i++)
+   {
+      cout << ' ';
+   }
+   
+   switch(dyno->getType())
+   {
+      case String:
+         cout << "Name=" << dyno->getName() << ",Value=" << dyno->getString();
+         cout << endl;
+         break;
+      case Boolean:
+         cout << "Name=" << dyno->getName() << ",Value=" << dyno->getBoolean();
+         cout << endl;
+         break;
+      case Int32:
+         cout << "Name=" << dyno->getName() << ",Value=" << dyno->getInt32();
+         cout << endl;
+         break;
+      case UInt32:
+         cout << "Name=" << dyno->getName() << ",Value=" << dyno->getUInt32();
+         cout << endl;
+         break;
+      case Int64:
+         cout << "Name=" << dyno->getName() << ",Value=" << dyno->getInt64();
+         cout << endl;
+         break;
+      case UInt64:
+         cout << "Name=" << dyno->getName() << ",Value=" << dyno->getUInt64();
+         cout << endl;
+         break;
+      case Double:
+         cout << "Name=" << dyno->getName() << ",Value=" << dyno->getDouble();
+         cout << endl;
+         break;
+      case Map:
+      case Array:
+         cout << "Name=" << dyno->getName() << endl;
+         DynamicObjectIterator i = dyno.getIterator();
+         while(i->hasNext())
+         {
+            dumpDynamicObject(i->next(), indent + 1);
+         }
+         break;
+   }
+}
+
 void runDynamicObjectTest(TestRunner& tr)
 {
    tr.test("DynamicObject");
@@ -1004,6 +1054,12 @@ void runDynamicObjectTest(TestRunner& tr)
       assert(strcmp(next->getName(), "eggs") == 0);
       assert(strcmp(next->getString(), "bacon") == 0);
    }
+   
+   // test print out code
+   cout << endl;
+   dyno1["dyno5"] = dyno5;
+   dyno1["dyno6"] = dyno6;
+   dumpDynamicObject(dyno1);
    
    tr.pass();
 }
@@ -3819,6 +3875,37 @@ void runXmlBindingOutputStreamTest()
    cout << endl << "XmlBindingOutputStream test complete." << endl;
 }
 
+void runDynamicObjectWriterTest(TestRunner& tr)
+{
+   tr.test("DynamicObjectWriter");
+   
+   // main object to write to DynamicObject
+   TestParent p;
+   
+   // set some content
+   p.setContent("This is a sufficiently long section of data.");
+   
+   // add child to TestContent
+   TestChild* c = new TestChild();
+   c->setId(514);
+   p.addChild(c);
+   
+   // data binding for object
+   TestParentDataBinding db(&p);
+   
+   // create DynamicObjectWriter
+   DynamicObjectWriter writer;
+   
+   // write out to dynamic object
+   DynamicObject dyno = writer.write(&db);
+   
+   // test print out code
+   cout << endl;
+   dumpDynamicObject(dyno);
+   
+   tr.pass();
+}
+
 void runBigIntegerTest()
 {
    cout << "Starting BigInteger test." << endl << endl;
@@ -5049,6 +5136,9 @@ public:
       runUrlTest(tr);
       //runInterruptServerSocketTest(tr);
       
+      // db::data tests
+      runDynamicObjectWriterTest(tr);
+      
       // db::sql tests
       runSqlite3ConnectionTest(tr);
       runSqlite3StatementTest(tr);
@@ -5082,7 +5172,7 @@ public:
 //      runStringEqualityTest();
 //      runStringAppendCharTest();
 //      runStringCompareTest();
-//      runDynamicObjectTest(tr);
+      runDynamicObjectTest(tr);
 //      runByteBufferTest();
 //      runByteArrayInputStreamTest();
 //      runByteArrayOutputStreamTest();
@@ -5115,6 +5205,7 @@ public:
 //      runXmlReadWriteTest();
 //      runXmlBindingInputStreamTest();
 //      runXmlBindingOutputStreamTest();
+//      runDynamicObjectWriterTest(tr);
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
 //      runConnectionPoolTest();
@@ -5144,7 +5235,7 @@ public:
       cout << "Tests starting..." << endl << endl;
       
       runInteractiveUnitTests(tr);
-      runAutomaticUnitTests(tr);
+      //runAutomaticUnitTests(tr);
       
       cout << endl << "Tests finished." << endl;
       

@@ -9,7 +9,7 @@ using namespace db::util;
 DynamicObjectImpl::DynamicObjectImpl()
 {
    mType = String;
-   mString = NULL;
+   mString = strdup("");
    mName = strdup("");
 }
 
@@ -27,11 +27,8 @@ void DynamicObjectImpl::freeData()
    switch(mType)
    {
       case String:
-         if(mString != NULL)
-         {
-            delete [] mString;
-            mString = NULL;
-         }
+         delete [] mString;
+         mString = NULL;
          break;
       case Map:
          if(mMap != NULL)
@@ -139,6 +136,13 @@ DynamicObject& DynamicObjectImpl::operator[](const std::string& name)
    {
       // get existing map entry
       rval = &i->second;
+      
+      // update name as appropriate
+      if(strcmp((*rval)->getName(), name.c_str()) != 0)
+      {
+         delete [] (*rval)->mName;
+         (*rval)->mName = strdup(name.c_str());
+      }
    }
    
    return *rval;
@@ -172,7 +176,7 @@ DynamicObject& DynamicObjectImpl::operator[](int index)
    return (*mArray)[index];
 }
 
-DynamicObjectImpl::Type DynamicObjectImpl::getType()
+DynamicObjectType DynamicObjectImpl::getType()
 {
    return mType;
 }

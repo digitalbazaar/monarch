@@ -17,6 +17,14 @@ class DynamicObject;
 class DynamicObjectIteratorImpl;
 
 /**
+ * The possible types for a DynamicObject.
+ */
+typedef enum DynamicObjectType
+{
+   String, Boolean, Int32, UInt32, Int64, UInt64, Double, Map, Array
+};
+
+/**
  * A DynamicObjectImpl is an implementation for a DynamicObject.
  * 
  * @author Dave Longley
@@ -24,14 +32,6 @@ class DynamicObjectIteratorImpl;
 class DynamicObjectImpl
 {
 public:
-   /**
-    * The possible types for this object.
-    */
-   typedef enum Type
-   {
-      String, Boolean, Int32, UInt32, Int64, UInt64, Double, Map, Array
-   };
-   
    /**
     * A MemberComparator compares two member names.
     */
@@ -62,7 +62,7 @@ protected:
    /**
     * The type for this object.
     */
-   Type mType;
+   DynamicObjectType mType;
    
    /**
     * The name for this object, if any.
@@ -187,7 +187,7 @@ public:
     * 
     * @return the type of this object.
     */
-   virtual Type getType();
+   virtual DynamicObjectType getType();
    
    /**
     * Gets this object's name.

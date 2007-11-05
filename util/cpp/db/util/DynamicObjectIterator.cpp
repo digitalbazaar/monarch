@@ -11,11 +11,11 @@ DynamicObjectIteratorImpl::DynamicObjectIteratorImpl(DynamicObject dyno)
 {
    mObject = dyno;
    
-   if(mObject->getType() == DynamicObjectImpl::Map)
+   if(mObject->getType() == Map)
    {
       mMapNext = mMapCurrent = mObject->mMap->begin();
    }
-   else if(mObject->getType() == DynamicObjectImpl::Array)
+   else if(mObject->getType() == Array)
    {
       mArrayNext = mArrayCurrent = mObject->mArray->begin();
    }
@@ -33,13 +33,20 @@ DynamicObject& DynamicObjectIteratorImpl::next()
 {
    DynamicObject* rval = NULL;
    
-   if(mObject->getType() == DynamicObjectImpl::Map)
+   if(mObject->getType() == Map)
    {
       mMapCurrent = mMapNext;
       mMapNext++;
       rval = &mMapCurrent->second;
+      
+      // update name as appropriate
+      if(strcmp((*rval)->getName(), mMapCurrent->first) != 0)
+      {
+         delete [] (*rval)->mName;
+         (*rval)->mName = strdup(mMapCurrent->first);
+      }
    }
-   else if(mObject->getType() == DynamicObjectImpl::Array)
+   else if(mObject->getType() == Array)
    {
       mArrayCurrent = mArrayNext;
       mArrayNext++;
@@ -59,13 +66,13 @@ bool DynamicObjectIteratorImpl::hasNext()
 {
    bool rval = false;
    
-   if(mObject->getType() == DynamicObjectImpl::Map)
+   if(mObject->getType() == Map)
    {
-      rval = mMapNext != mObject->mMap->end();
+      rval = (mMapNext != mObject->mMap->end());
    }
-   else if(mObject->getType() == DynamicObjectImpl::Array)
+   else if(mObject->getType() == Array)
    {
-      rval = mArrayNext != mObject->mArray->end();
+      rval = (mArrayNext != mObject->mArray->end());
    }
    else
    {
