@@ -166,7 +166,8 @@ DynamicObject& DynamicObjectImpl::operator[](int index)
    // fill the object array as necessary
    if(index >= (int)mArray->size())
    {
-      for(int i = 0; i <= index; i++)
+      int i = (mArray->empty()) ? 0 : (int)mArray->size() - 1;
+      for(; i <= index; i++)
       {
          DynamicObject dyno;
          mArray->push_back(dyno);
