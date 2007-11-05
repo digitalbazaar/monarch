@@ -13,6 +13,13 @@ using namespace db::rt;
 MySqlStatement::MySqlStatement(MySqlConnection *c, const char* sql) :
    Statement(c, sql)
 {
+   // clear object
+   mFieldCount = 0;
+   mResultBindings = NULL;
+   mResult = NULL;
+   mRow = NULL;
+   mParamBindings = NULL;
+
    // initialize handle
    mHandle = mysql_stmt_init(c->mHandle);
    if(mHandle == NULL)
@@ -36,19 +43,8 @@ MySqlStatement::MySqlStatement(MySqlConnection *c, const char* sql) :
          {
             mParamBindings = new MYSQL_BIND[mParamCount];
          }
-         else
-         {
-            mParamBindings = NULL;
-         }
       }
    }
-   
-   // no result bindings yet
-   mFieldCount = 0;
-   mResultBindings = NULL;
-   
-   // no current row yet
-   mRow = NULL;
 }
 
 MySqlStatement::~MySqlStatement()
