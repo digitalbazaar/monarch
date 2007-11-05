@@ -3889,7 +3889,7 @@ void runDynamicObjectWriterTest(TestRunner& tr)
    TestParent p;
    
    // set some content
-   p.setContent("This is a sufficiently long section of data.");
+   p.setContent("This is test content.");
    
    // add child to TestContent
    TestChild* c = new TestChild();
@@ -3905,6 +3905,14 @@ void runDynamicObjectWriterTest(TestRunner& tr)
    
    // write out to dynamic object
    DynamicObject dyno = writer.write(&db);
+   
+   assert(
+      strcmp(dyno["TestContent"]->getString(), "This is test content.") == 0);
+   assert(
+      strcmp(dyno["TestChild"]["TestContent"]->getString(),
+      "This is child content.") == 0);
+   assert(dyno["TestChild"]["id"]->getInt32() == 514);
+   assert(dyno->length() == 2);
    
    // test print out code
    //cout << endl;
