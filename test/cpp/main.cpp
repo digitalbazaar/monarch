@@ -3636,7 +3636,7 @@ public:
       
       // add mappings
       addDataMapping(NULL, "id", false, true, &mChildId);
-      addDataMapping(NULL, "TestChild", true, false, &mChildContent);
+      addDataMapping(NULL, "TestContent", true, false, &mChildContent);
    }
    
    virtual ~TestChildDataBinding()
@@ -3894,6 +3894,7 @@ void runDynamicObjectWriterTest(TestRunner& tr)
    // add child to TestContent
    TestChild* c = new TestChild();
    c->setId(514);
+   c->setContent("This is child content.");
    p.addChild(c);
    
    // data binding for object
@@ -5178,7 +5179,7 @@ public:
 //      runStringEqualityTest();
 //      runStringAppendCharTest();
 //      runStringCompareTest();
-      runDynamicObjectTest(tr);
+//      runDynamicObjectTest(tr);
 //      runByteBufferTest();
 //      runByteArrayInputStreamTest();
 //      runByteArrayOutputStreamTest();
@@ -5211,7 +5212,7 @@ public:
 //      runXmlReadWriteTest();
 //      runXmlBindingInputStreamTest();
 //      runXmlBindingOutputStreamTest();
-//      runDynamicObjectWriterTest(tr);
+      runDynamicObjectWriterTest(tr);
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
 //      runConnectionPoolTest();
