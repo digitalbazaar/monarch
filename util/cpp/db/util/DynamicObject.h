@@ -26,6 +26,11 @@ class DynamicObject : public db::rt::Collectable<DynamicObjectImpl>
 {
 public:
    /**
+    * The possible types for this object.
+    */
+   typedef DynamicObjectImpl::Type Type;
+   
+   /**
     * Creates a new DynamicObject with a new, empty DynamicObjectImpl.
     */
    DynamicObject();
