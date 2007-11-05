@@ -111,12 +111,7 @@ DynamicObject& DynamicObjectImpl::operator[](const std::string& name)
    DynamicObject* rval = NULL;
    
    // change to map type if necessary
-   if(mType != Map)
-   {
-      freeData();
-      mType = Map;
-      mMap = new ObjectMap();
-   }
+   setType(Map);
    
    ObjectMap::iterator i = mMap->find(name.c_str());
    if(i == mMap->end())
@@ -138,12 +133,7 @@ DynamicObject& DynamicObjectImpl::operator[](const std::string& name)
 DynamicObject& DynamicObjectImpl::operator[](int index)
 {
    // change to array type if necessary
-   if(mType != Array)
-   {
-      freeData();
-      mType = Array;
-      mArray = new ObjectArray();
-   }
+   setType(Array);
    
    if(index < 0)
    {
@@ -162,6 +152,53 @@ DynamicObject& DynamicObjectImpl::operator[](int index)
    }
    
    return (*mArray)[index];
+}
+
+void DynamicObjectImpl::setType(DynamicObjectType type)
+{
+   if(getType() != type)
+   {
+      switch(type)
+      {
+         case String:
+            getString();
+            break;
+         case Boolean:
+            getBoolean();
+            break;
+         case Int32:
+            getInt32();
+            break;
+         case UInt32:
+            getUInt32();
+            break;
+         case Int64:
+            getInt64();
+            break;
+         case UInt64:
+            getUInt64();
+            break;
+         case Double:
+            getDouble();
+         case Map:
+            if(mType != Map)
+            {
+               freeData();
+               mType = Map;
+               mMap = new ObjectMap();
+            }
+            break;
+         case Array:
+            // change to array type
+            if(mType != Array)
+            {
+               freeData();
+               mType = Array;
+               mArray = new ObjectArray();
+            }         
+            break;
+      }
+   }
 }
 
 DynamicObjectType DynamicObjectImpl::getType()

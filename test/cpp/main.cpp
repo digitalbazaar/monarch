@@ -60,6 +60,7 @@
 #include "db/data/xml/XmlBindingOutputStream.h"
 #include "db/data/DataMappingFunctor.h"
 #include "db/data/DynamicObjectWriter.h"
+#include "db/data/DynamicObjectReader.h"
 #include "db/io/OStreamOutputStream.h"
 #include "db/crypto/BigDecimal.h"
 #include "db/io/ByteArrayOutputStream.h"
@@ -3917,6 +3918,35 @@ void runDynamicObjectWriterTest(TestRunner& tr)
    // test print out code
    //cout << endl;
    //dumpDynamicObject(dyno);
+   
+   tr.pass();
+}
+
+void runDynamicObjectReaderTest(TestRunner& tr)
+{
+   tr.test("DynamicObjectReader");
+   
+   // dynamic object to read from
+   DynamicObject dyno;
+   dyno["TestContent"] = "This is test content.";
+   dyno["TestChild"]["id"] = 514;
+   dyno["TestChild"]["TestContent"] = "This is child content.";
+   
+   // main object to populate
+   TestParent p;
+   
+   // data binding for object
+   TestParentDataBinding db(&p);
+   
+   // create DynamicObjectReader
+   DynamicObjectReader reader;
+      
+   // read in from dynamic object
+   reader.read(dyno, &db);
+   
+   assert(strcmp(p.getContent(), "This is test content.") == 0);
+   assert(strcmp(p.getChild()->getContent(), "This is child content.") == 0);
+   assert(p.getChild()->getId() == 514);
    
    tr.pass();
 }

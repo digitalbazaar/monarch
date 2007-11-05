@@ -178,6 +178,14 @@ public:
    virtual DynamicObject& operator[](int index);
    
    /**
+    * Sets this object's type. Its existing value will be converted if
+    * possible.
+    * 
+    * @param type the type to set this object to.
+    */
+   virtual void setType(DynamicObjectType type);
+   
+   /**
     * Gets this object's type.
     * 
     * @return the type of this object.
