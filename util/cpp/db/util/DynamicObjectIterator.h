@@ -76,6 +76,13 @@ public:
     * Removes the current object and advances the DynamicObjectIterator.
     */
    virtual void remove();
+   
+   /**
+    * Gets the name of the last DynamicObject returned by next().
+    * 
+    * @return the name of the last DynamicObject returned by next().
+    */
+   const char* getName();
 };
 
 /**

@@ -38,13 +38,6 @@ DynamicObject& DynamicObjectIteratorImpl::next()
       mMapCurrent = mMapNext;
       mMapNext++;
       rval = &mMapCurrent->second;
-      
-      // update name as appropriate
-      if(strcmp((*rval)->getName(), mMapCurrent->first) != 0)
-      {
-         delete [] (*rval)->mName;
-         (*rval)->mName = strdup(mMapCurrent->first);
-      }
    }
    else if(mObject->getType() == Array)
    {
@@ -87,6 +80,22 @@ void DynamicObjectIteratorImpl::remove()
    // not supported
    Exception::setLast(
       new Exception("DynamicObjectIterator::remove() not supported!"));
+}
+
+const char* DynamicObjectIteratorImpl::getName()
+{
+   const char* rval;
+   
+   if(mObject->getType() == Map)
+   {
+      rval = mMapCurrent->first;
+   }
+   else
+   {
+      rval = "";
+   }
+   
+   return rval;
 }
 
 DynamicObjectIterator::DynamicObjectIterator(DynamicObjectIteratorImpl* impl) :

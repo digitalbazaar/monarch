@@ -65,11 +65,6 @@ protected:
    DynamicObjectType mType;
    
    /**
-    * The name for this object, if any.
-    */
-   char* mName;
-   
-   /**
     * The value for this object.
     */
    union
@@ -188,13 +183,6 @@ public:
     * @return the type of this object.
     */
    virtual DynamicObjectType getType();
-   
-   /**
-    * Gets this object's name.
-    * 
-    * @return the name for this object.
-    */
-   virtual const char* getName();
    
    /**
     * Gets this object's value as a string.
