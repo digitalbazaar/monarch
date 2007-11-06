@@ -65,7 +65,18 @@ SqlException* Sqlite3Connection::connect(Url* url)
 
 Statement* Sqlite3Connection::prepare(const char* sql)
 {
-   return new Sqlite3Statement(this, sql);
+   Exception* e = Exception::getLast();
+   
+   // create statement
+   Statement* rval = new Sqlite3Statement(this, sql);
+   if(Exception::getLast() != e)
+   {
+      // delete statement if exception was thrown while creating statement
+      delete rval;
+      rval = NULL;
+   }
+   
+   return rval;
 }
 
 void Sqlite3Connection::close()
