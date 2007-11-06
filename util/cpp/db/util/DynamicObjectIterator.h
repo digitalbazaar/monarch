@@ -105,7 +105,7 @@ public:
     * 
     * @param impl the DynamicObjectIteratorImpl to point at.
     */
-   DynamicObjectIterator(DynamicObjectIteratorImpl* impl);
+   DynamicObjectIterator(DynamicObjectIteratorImpl* impl = NULL);
    
    /**
     * Destructs this DynamicObjectIterator.
