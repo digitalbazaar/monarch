@@ -64,6 +64,7 @@
 #include "db/io/OStreamOutputStream.h"
 #include "db/crypto/BigDecimal.h"
 #include "db/io/ByteArrayOutputStream.h"
+#include "db/io/ByteBuffer.h"
 #include "db/sql/Row.h"
 #include "db/sql/RowObject.h"
 #include "db/sql/sqlite3/Sqlite3Connection.h"
@@ -77,6 +78,7 @@
 //#include "db/logging/OutputStreamLogger.h"
 //#include "db/logging/FileLogger.h"
 #include "db/util/UniqueList.h"
+#include "db/data/json/JsonWriter.h"
 
 using namespace std;
 using namespace db::test;
@@ -91,6 +93,7 @@ using namespace db::util;
 using namespace db::util::regex;
 using namespace db::data;
 using namespace db::data::xml;
+using namespace db::data::json;
 using namespace db::sql::sqlite3;
 using namespace db::sql::mysql;
 using namespace db::sql::util;
@@ -1069,6 +1072,49 @@ void runDynamicObjectTest(TestRunner& tr)
    //dumpDynamicObject(dyno1);
    
    tr.pass();
+}
+
+void runJsonTest(TestRunner& tr)
+{
+   tr.test("JSON");
+   
+   DynamicObject dyno0;
+   dyno0["email"] = "example@example.com";
+   dyno0["AIM"] = "example";
+
+   DynamicObject dyno1;
+   dyno1["id"] = 2;
+   dyno1["-id"] = -2;
+   dyno1["floats"][0] = 0.0;
+   dyno1["floats"][1] = -0.0;
+   dyno1["floats"][2] = 1.0;
+   dyno1["floats"][3] = -1.0;
+   dyno1["floats"][4] = 1.23456789;
+   dyno1["floats"][5] = -1.23456789;
+   dyno1["username"] = "testuser1000";
+   dyno1["l33t"] = true;
+   dyno1["luser"] = false;
+   dyno1["somearray"][0] = "item1";
+   dyno1["somearray"][1] = "item2";
+   dyno1["somearray"][2] = "item3";
+   dyno1["somearray"][3] = dyno0;
+   dyno1["contact"] = dyno0;
+   
+   JsonWriter jw;
+//   OStreamOutputStream os(&cout);
+   ByteBuffer b;   
+   ByteArrayOutputStream bbos(&b);
+
+   jw.setCompact(true);
+//   jw.write(dyno1, &os);
+   jw.write(dyno1, &bbos);
+
+   jw.setCompact(false);
+   jw.setIndentation(0, 3);
+//   jw.write(dyno1, &os);
+   jw.write(dyno1, &bbos);
+   
+   tr.passIfNoException();
 }
 
 void runByteArrayInputStreamTest()
@@ -5336,6 +5382,9 @@ public:
       runBase64Test(tr);
       runCrcTest(tr);
       runDynamicObjectTest(tr);
+      
+      // db::data tests
+      runJsonTest(tr);
       
       // db::crypto tests
       runMessageDigestTest(tr);
