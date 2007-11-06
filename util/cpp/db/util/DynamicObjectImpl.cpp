@@ -292,6 +292,10 @@ int DynamicObjectImpl::getInt32()
       {
          *this = (int)strtol(mString, NULL, 10);
       }
+      else if(mType == Boolean)
+      {
+         *this = mBoolean ? (int)1 : (int)0;
+      }
       else if(mType == Int64)
       {
          *this = (int)mInt64;
@@ -318,6 +322,10 @@ unsigned int DynamicObjectImpl::getUInt32()
       {
          *this = (unsigned int)strtoul(mString, NULL, 10);
       }
+      else if(mType == Boolean)
+      {
+         *this = mBoolean ? (unsigned int)1 : (unsigned int)0;
+      }
       else if(mType == UInt64)
       {
          *this = (unsigned int)mUInt64;
@@ -339,6 +347,18 @@ long long DynamicObjectImpl::getInt64()
       if(mType == String && mString != NULL)
       {
          *this = (long long)strtoll(mString, NULL, 10);
+      }
+      else if(mType == Boolean)
+      {
+         *this = mBoolean ? (long long)1 : (long long)0;
+      }
+      else if(mType == Int32 && mInt32 > 0)
+      {
+         *this = (long long)mInt32;
+      }
+      else if(mType == UInt32)
+      {
+         *this = (long long)mUInt32;
       }
       else if(mType == Double)
       {
@@ -362,6 +382,22 @@ unsigned long long DynamicObjectImpl::getUInt64()
       {
          *this = (unsigned long long)strtoull(mString, NULL, 10);
       }
+      else if(mType == Boolean)
+      {
+         *this = mBoolean ? (unsigned long long)1 : (unsigned long long)0;
+      }
+      else if(mType == Int32 && mInt32 > 0)
+      {
+         *this = (unsigned long long)mInt32;
+      }
+      else if(mType == UInt32)
+      {
+         *this = (unsigned long long)mUInt32;
+      }
+      else if(mType == Int64 && mInt64 > 0)
+      {
+         *this = (unsigned long long)mInt64;
+      }
       else
       {
          *this = (unsigned long long)0;
@@ -379,6 +415,10 @@ double DynamicObjectImpl::getDouble()
       if(mType == String && mString != NULL)
       {
          *this = (double)strtod(mString, NULL);
+      }
+      else if(mType == Boolean)
+      {
+         *this = mBoolean ? (double)1 : (double)0;
       }
       else if(mType == Int32)
       {

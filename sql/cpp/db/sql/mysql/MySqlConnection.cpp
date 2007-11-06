@@ -70,7 +70,18 @@ SqlException* MySqlConnection::connect(Url* url)
 
 Statement* MySqlConnection::prepare(const char* sql)
 {
-   return new MySqlStatement(this, sql);
+   Exception* e = Exception::getLast();
+   
+   // create statement
+   Statement* rval = new MySqlStatement(this, sql);
+   if(Exception::getLast() != e)
+   {
+      // delete statement if exception was thrown while creating statement
+      delete rval;
+      rval = NULL;
+   }
+   
+   return rval;
 }
 
 void MySqlConnection::close()
