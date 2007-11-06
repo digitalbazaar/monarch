@@ -20,8 +20,6 @@ namespace data
  */
 class DynamicObjectWriter
 {
-protected:
-   
 public:
    /**
     * Creates a new DynamicObjectWriter.

@@ -431,7 +431,7 @@ int DynamicObjectImpl::length()
          }
          break;
       case Boolean:
-         rval = 1;
+         rval = sizeof(bool);
          break;
       case Int32:
       case UInt32:

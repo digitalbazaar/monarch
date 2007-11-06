@@ -3940,7 +3940,7 @@ void runDynamicObjectReaderTest(TestRunner& tr)
    
    // create DynamicObjectReader
    DynamicObjectReader reader;
-      
+   
    // read in from dynamic object
    reader.read(dyno, &db);
    
@@ -5183,6 +5183,7 @@ public:
       
       // db::data tests
       runDynamicObjectWriterTest(tr);
+      runDynamicObjectReaderTest(tr);
       
       // db::sql tests
       runSqlite3ConnectionTest(tr);
@@ -5250,6 +5251,7 @@ public:
 //      runXmlReadWriteTest();
 //      runXmlBindingInputStreamTest();
 //      runXmlBindingOutputStreamTest();
+//      runDynamicObjectReaderTest(tr);
 //      runDynamicObjectWriterTest(tr);
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();

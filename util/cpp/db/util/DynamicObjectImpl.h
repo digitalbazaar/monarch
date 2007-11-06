@@ -255,8 +255,8 @@ public:
     * Gets the length of this object based on its type.
     * 
     * String length = number of characters in the string.
-    * Number length = size of integer type.
-    * Boolean length = 1
+    * Number length = size of number type.
+    * Boolean length = size of bool type.
     * Map length = number of entries in the map.
     * Array length = number of elements in the array.
     */

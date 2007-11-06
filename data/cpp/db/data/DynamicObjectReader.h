@@ -20,8 +20,6 @@ namespace data
  */
 class DynamicObjectReader
 {
-protected:
-   
 public:
    /**
     * Creates a new DynamicObjectReader.
