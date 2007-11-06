@@ -59,9 +59,9 @@ void DynamicObjectImpl::setString(const char* value)
    mString = strdup(value);
 }
 
-void DynamicObjectImpl::operator=(const std::string& value)
+void DynamicObjectImpl::operator=(const char* value)
 {
-   setString(value.c_str());
+   setString(value);
 }
 
 void DynamicObjectImpl::operator=(bool value)
@@ -471,7 +471,7 @@ int DynamicObjectImpl::length()
          }
          break;
       case Boolean:
-         rval = sizeof(bool);
+         rval = 1;
          break;
       case Int32:
       case UInt32:

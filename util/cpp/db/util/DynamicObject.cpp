@@ -26,7 +26,12 @@ DynamicObject::~DynamicObject()
 {
 }
 
-void DynamicObject::operator=(const std::string& value)
+void DynamicObject::operator=(const char* value)
+{
+   *mReference->ptr = value;
+}
+
+void DynamicObject::operator=(bool value)
 {
    *mReference->ptr = value;
 }

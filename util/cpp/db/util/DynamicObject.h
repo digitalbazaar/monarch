@@ -55,7 +55,14 @@ public:
     * 
     * @param value the value for this object.
     */
-   virtual void operator=(const std::string& value);
+   virtual void operator=(const char* value);
+   
+   /**
+    * Sets this object's value to a boolean.
+    * 
+    * @param value the value for this object.
+    */
+   virtual void operator=(bool value);
    
    /**
     * Sets this object's value to a 32-bit integer.
