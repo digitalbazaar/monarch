@@ -31,6 +31,11 @@ IOException* HttpResponse::sendBody(InputStream* is, HttpTrailer* trailer)
    return getConnection()->sendBody(getHeader(), is, trailer);
 }
 
+OutputStream* HttpResponse::getBodyOutputStream(HttpTrailer* trailer)
+{
+   return getConnection()->getBodyOutputStream(getHeader(), trailer);
+}
+
 IOException* HttpResponse::receiveBody(OutputStream* os, HttpTrailer* trailer)
 {
    return getConnection()->receiveBody(getHeader(), os, trailer);

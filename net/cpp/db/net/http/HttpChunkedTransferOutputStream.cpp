@@ -3,7 +3,6 @@
  */
 #include "db/net/http/HttpChunkedTransferOutputStream.h"
 #include "db/util/Convert.h"
-#include "db/util/Math.h"
 
 using namespace std;
 using namespace db::io;

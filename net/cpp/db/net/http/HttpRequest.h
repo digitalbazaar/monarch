@@ -85,6 +85,24 @@ public:
       db::io::InputStream* is, HttpTrailer* trailer = NULL);
    
    /**
+    * Gets a heap-allocated OutputStream for sending a message body. The
+    * stream must be closed and deleted when it is finished being used. Closing
+    * the stream will not shut down output or close the connection. The stream
+    * will automatically handle transfer-encoding (i.e. "chunked") based on
+    * the passed header. The stream will also automatically update the number
+    * of content bytes sent by this connection. The stream will not ensure that
+    * the number of content-bytes sent matches the Content-Length (if one
+    * was specified).
+    * 
+    * @param header the header to send the message body for.
+    * @param trailer any trailer headers to send if appropriate.
+    * 
+    * @return an IOException if an IO error occurs, NULL if not.
+    */
+   virtual db::io::OutputStream* getBodyOutputStream(
+      HttpTrailer* trailer = NULL);
+   
+   /**
     * Receives the body for this request. This method will block until the
     * entire body has been received, the connection times out, or the thread
     * is interrupted.

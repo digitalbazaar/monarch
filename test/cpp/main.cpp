@@ -3697,6 +3697,7 @@ void runXmlReaderTest()
 //   xml.append("</Chapter><Chapter number=\"2\"/></Book>");
    
    string xml;
+   //xml = "<TestContent>client request<TestChild id=\"1\"/></TestContent>";
    xml.append("<TestContent>This is my content.");
    xml.append("<TestChild id=\"12\">Blah</TestChild></TestContent>");
    
@@ -3880,6 +3881,171 @@ void runXmlBindingOutputStreamTest()
    }
    
    cout << endl << "XmlBindingOutputStream test complete." << endl;
+}
+
+class XmlHttpRequestServicer : public HttpRequestServicer
+{
+public:
+   XmlHttpRequestServicer(const char* path) : HttpRequestServicer(path)
+   {
+   }
+   
+   virtual ~XmlHttpRequestServicer()
+   {
+   }
+   
+   virtual void serviceRequest(
+      HttpRequest* request, HttpResponse* response)
+   {
+      // receive body
+      ostringstream oss;
+      OStreamOutputStream os(&oss);
+      request->receiveBody(&os);
+      string xml = oss.str();
+      
+      // xml object to populate
+      TestParent p2;
+      TestParentDataBinding db2(&p2);
+      
+      // read object from xml
+      ByteArrayInputStream bais(xml.c_str(), xml.length());
+      XmlReader reader;
+      reader.start(&db2);
+      reader.read(&bais);
+      reader.finish();
+      
+      assert(strcmp(p2.getContent(), "client request") == 0);
+      assert(p2.getChild()->getId() == 1);
+      
+      // send 200 OK
+      response->getHeader()->setStatus(200, "OK");
+      response->getHeader()->setField("Content-Type", "text/xml");
+      response->getHeader()->setField("Transfer-Encoding", "chunked");
+      response->getHeader()->setField("Connection", "close");
+      response->sendHeader();
+      
+      OutputStream* bos = response->getBodyOutputStream();
+      
+      // create xml object to write out
+      TestParent p;
+      p.setContent("server response");
+      TestChild* c = new TestChild();
+      c->setId(2);
+      p.addChild(c);
+      
+      // data binding for object
+      TestParentDataBinding db(&p);
+      
+      // write out xml
+      XmlWriter writer;
+      writer.write(&db, bos);
+      
+      // close and clean up output stream
+      bos->close();
+      delete bos;
+   }
+};
+
+void runXmlHttpServerTest(TestRunner& tr)
+{
+   tr.test("XmlHttpServer");
+   
+   // create kernel
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create server
+   Server server(&k);
+   InternetAddress address("localhost", 19100);
+   
+   // create SSL/generic http connection servicer
+   HttpConnectionServicer hcs;
+   server.addConnectionService(&address, &hcs);
+   
+   // create xml http request servicer
+   XmlHttpRequestServicer test1("/test");
+   hcs.addRequestServicer(&test1, false);
+   
+   server.start();
+   assertNoException();
+   
+   // connect
+   Url url("http://localhost:19100");
+   HttpConnection* hc = HttpClient::createConnection(&url);
+   assert(hc != NULL);
+   
+   // send request header
+   HttpRequest* request = (HttpRequest*)hc->createRequest();
+   request->getHeader()->setMethod("POST");
+   request->getHeader()->setPath("/test");
+   request->getHeader()->setVersion("HTTP/1.1");
+   request->getHeader()->setField("Host", "localhost:19100");
+   request->getHeader()->setField("Content-Type", "text/xml");
+   request->getHeader()->setField("Transfer-Encoding", "chunked");
+   request->sendHeader();
+   assertNoException();
+   
+   // send request body
+   OutputStream* bos = request->getBodyOutputStream();
+   
+   // create xml object to write out
+   TestParent p;
+   p.setContent("client request");
+   TestChild* c = new TestChild();
+   c->setId(1);
+   p.addChild(c);
+   
+   // data binding for object
+   TestParentDataBinding db(&p);
+   
+   // write out xml
+   XmlWriter writer;
+   writer.write(&db, bos);
+   
+   // close and clean up output stream
+   bos->close();
+   delete bos;
+   
+   // receive response header
+   HttpResponse* response = (HttpResponse*)request->createResponse();
+   response->receiveHeader();
+   assertNoException();
+   
+   // receive response body
+   ostringstream oss;
+   OStreamOutputStream os(&oss);
+   response->receiveBody(&os);
+   string xml = oss.str();
+   
+   // xml object to populate
+   TestParent p2;
+   TestParentDataBinding db2(&p2);
+   
+   // read object from xml
+   ByteArrayInputStream bais(xml.c_str(), xml.length());
+   XmlReader reader;
+   reader.start(&db2);
+   reader.read(&bais);
+   reader.finish();
+   
+   assert(strcmp(p2.getContent(), "server response") == 0);
+   assert(p2.getChild()->getId() == 2);
+   
+   // clean up request and response
+   delete request;
+   delete response;
+   
+   // close and clean up connection
+   hc->close();
+   delete hc;
+   
+   // stop server
+   server.stop();
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   tr.pass();
 }
 
 void runDynamicObjectWriterTest(TestRunner& tr)
@@ -5182,6 +5348,7 @@ public:
       //runInterruptServerSocketTest(tr);
       
       // db::data tests
+      runXmlHttpServerTest(tr);
       runDynamicObjectWriterTest(tr);
       runDynamicObjectReaderTest(tr);
       
@@ -5251,6 +5418,7 @@ public:
 //      runXmlReadWriteTest();
 //      runXmlBindingInputStreamTest();
 //      runXmlBindingOutputStreamTest();
+//      runXmlHttpServerTest(tr);
 //      runDynamicObjectReaderTest(tr);
 //      runDynamicObjectWriterTest(tr);
 //      runMySqlConnectionTest();

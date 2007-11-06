@@ -4,6 +4,7 @@
 #include "db/net/http/HttpConnection.h"
 #include "db/net/http/HttpRequest.h"
 #include "db/net/http/HttpResponse.h"
+#include "db/net/http/HttpBodyOutputStream.h"
 #include "db/net/http/HttpChunkedTransferInputStream.h"
 #include "db/net/http/HttpChunkedTransferOutputStream.h"
 #include "db/util/Math.h"
@@ -88,19 +89,8 @@ IOException* HttpConnection::sendBody(
 {
    IOException* rval = NULL;
    
-   OutputStream* os = getOutputStream();
-   
-   // wrap output stream if using chunked transfer encoding
-   HttpChunkedTransferOutputStream* chunkout = NULL;
-   string transferEncoding;
-   if(header->getField("Transfer-Encoding", transferEncoding))
-   {
-      if(strncasecmp(transferEncoding.c_str(), "chunked", 7) == 0)
-      {
-         os = chunkout = new HttpChunkedTransferOutputStream(
-            getOutputStream(), trailer);
-      }
-   }
+   // create HttpBodyOutputStream
+   HttpBodyOutputStream os(this, header, trailer);
    
    // determine how much content needs to be read
    long long contentLength = 0;
@@ -116,39 +106,20 @@ IOException* HttpConnection::sendBody(
    char b[length];
    int numBytes = 0;
    
-   // do chunked or unspecified length transfer
-   if(chunkout != NULL || lengthUnspecified)
+   // do unspecified length transfer
+   if(lengthUnspecified)
    {
       // read in content, write out to connection
       while(!writeError && (numBytes = is->read(b, length)) > 0)
       {
          // write out to connection
-         if(os->write(b, numBytes))
-         {
-            // update http connection content bytes written (reset as necessary)
-            if(getContentBytesWritten() > Math::HALF_MAX_LONG_VALUE)
-            {
-               setContentBytesWritten(0);
-            }
-            
-            setContentBytesWritten(getContentBytesWritten() + numBytes);
-         }
-         else
-         {
-            writeError = true;
-         }
+         writeError = !os.write(b, numBytes);
       }
       
-      if(chunkout != NULL)
+      if(!writeError)
       {
-         if(!writeError)
-         {
-            // close chunkout
-            chunkout->close();
-         }
-         
-         // clean up chunkout
-         delete chunkout;
+         // close stream
+         os.close();
       }
    }
    else
@@ -162,18 +133,10 @@ IOException* HttpConnection::sendBody(
             (numBytes = is->read(b, readSize)) > 0)
       {
          // write out to connection
-         if(os->write(b, numBytes))
+         if(os.write(b, numBytes))
          {
             contentRemaining -= numBytes;
-            readSize = Math::minimum(contentRemaining, length);
-            
-            // update http connection content bytes written (reset as necessary)
-            if(getContentBytesWritten() > Math::HALF_MAX_LONG_VALUE)
-            {
-               setContentBytesWritten(0);
-            }
-            
-            setContentBytesWritten(getContentBytesWritten() + numBytes);
+            readSize = (contentRemaining < length) ? contentRemaining : length;
          }
          else
          {
@@ -187,27 +150,41 @@ IOException* HttpConnection::sendBody(
       {
          rval = (IOException*)Exception::getLast();
       }
-      else if(contentRemaining > 0)
+      else
       {
-         Thread* t = Thread::currentThread();
-         if(t->isInterrupted())
+         if(contentRemaining > 0)
          {
-            // we will probably want this to be more robust in the
-            // future so this kind of exception can be recovered from
-            rval = new IOException(
-               "Sending HTTP content body interrupted!");
+            Thread* t = Thread::currentThread();
+            if(t->isInterrupted())
+            {
+               // we will probably want this to be more robust in the
+               // future so this kind of exception can be recovered from
+               rval = new IOException(
+                  "Sending HTTP content body interrupted!");
+            }
+            else
+            {
+               rval = new IOException(
+                  "Could not read HTTP content bytes to send!");
+            }
+            
+            Exception::setLast(rval);
          }
          else
          {
-            rval = new IOException(
-               "Could not read HTTP content bytes to send!");
+            // close stream
+            os.close();
          }
-         
-         Exception::setLast(rval);
       }
    }
    
    return rval;
+}
+
+OutputStream* HttpConnection::getBodyOutputStream(
+   HttpHeader* header, HttpTrailer* trailer)
+{
+   return new HttpBodyOutputStream(this, header, trailer);
 }
 
 IOException* HttpConnection::receiveBody(
