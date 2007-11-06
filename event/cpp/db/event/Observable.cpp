@@ -52,9 +52,11 @@ void Observable::dispatchEvents()
             opList.add(op);
          }
          
-         // wait for dispatch operations to complete
+         // wait for dispatch operations to complete (unlock/relock as well)
+         unlock();
          opList.waitFor();
          opList.prune();
+         lock();
       }
       
       // turn off dispatching
