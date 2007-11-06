@@ -6,6 +6,7 @@
 
 #include <map>
 #include <vector>
+#include <string>
 
 namespace db
 {
@@ -261,6 +262,14 @@ public:
     * Array length = number of elements in the array.
     */
    virtual int length();
+
+   /**
+    * Get a string representation of this object for basic types.  Maps and
+    * Arrays are returned as empty string ("").
+    * 
+    * @return the string to assign.
+    */
+   virtual std::string& toString(std::string& str) const;
 };
 
 } // end namespace util

@@ -4,6 +4,7 @@
 #include "db/util/DynamicObjectImpl.h"
 #include "db/util/DynamicObject.h"
 
+using namespace std;
 using namespace db::util;
 
 DynamicObjectImpl::DynamicObjectImpl()
@@ -210,36 +211,9 @@ const char* DynamicObjectImpl::getString()
 {
    if(mType != String)
    {
-      // convert type as appropriate
-      char temp[22];
-      switch(mType)
-      {
-         case Boolean:
-            setString(mBoolean ? "true" : "false");
-            break;
-         case Int32:
-            sprintf(temp, "%i", mInt32);
-            setString(temp);
-            break;
-         case UInt32:
-            sprintf(temp, "%u", mUInt32);
-            setString(temp);
-            break;
-         case Int64:
-            sprintf(temp, "%lli", mInt64);
-            setString(temp);
-            break;
-         case UInt64:
-            sprintf(temp, "%llu", mUInt64);
-            setString(temp);
-            break;
-         case Double:
-            sprintf(temp, "%e", mDouble);
-            setString(temp);
-         default:
-            setString("");
-            break;
-      }
+      string str;
+      toString(str);
+      setString(str.c_str());
    }
    
    return mString;
@@ -493,4 +467,40 @@ int DynamicObjectImpl::length()
    }
    
    return rval;
+}
+
+string& DynamicObjectImpl::toString(string& str) const
+{
+   if(mType != String)
+   {
+      // convert type as appropriate
+      char temp[22];
+      switch(mType)
+      {
+         case Boolean:
+            sprintf(temp, "%s", (mBoolean ? "true" : "false"));
+            break;
+         case Int32:
+            sprintf(temp, "%i", mInt32);
+            break;
+         case UInt32:
+            sprintf(temp, "%u", mUInt32);
+            break;
+         case Int64:
+            sprintf(temp, "%lli", mInt64);
+            break;
+         case UInt64:
+            sprintf(temp, "%llu", mUInt64);
+            break;
+         case Double:
+            sprintf(temp, "%e", mDouble);
+            break;
+         default: /* Map, Array, ... */
+            sprintf(temp, "");
+            break;
+      }
+      str.assign(temp);
+   }
+   
+   return str;
 }
