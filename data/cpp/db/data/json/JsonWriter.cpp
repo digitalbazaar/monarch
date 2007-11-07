@@ -4,8 +4,6 @@
 #include "db/data/json/JsonWriter.h"
 #include "db/util/DynamicObjectIterator.h"
 
-#include <iostream>
-
 using namespace std;
 using namespace db::data;
 using namespace db::data::json;
@@ -37,15 +35,6 @@ bool JsonWriter::writeIndentation(OutputStream* os, int level)
       temp[indent] = '\0';
       rval = os->write(temp, indent + 1);
    }
-   
-   return rval;
-}
-
-bool JsonWriter::write(DataBinding* db, OutputStream* os)
-{
-   bool rval = true;
-   
-   // FIXME: implement
    
    return rval;
 }

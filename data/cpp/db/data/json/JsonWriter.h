@@ -19,11 +19,11 @@ namespace json
  * An JsonWriter provides an interface for serializing objects to
  * JSON (JavaScript Object Notation) (RFC 4627).
  * 
- * An JsonWriter maintains element state information as it is writing out
- * xml. If it has been used to write a chunk of xml, it should be reset() to
- * write another chunk of xml that is part of a different document.   
+ * An JsonWriter writes out a whole object at once and can be used again.
+ * The compact setting should be used to minimize extra whitespace when not
+ * needed.
  * 
- * @author Dave Longley
+ * @author David I. Lehn
  */
 class JsonWriter
 {
@@ -65,21 +65,10 @@ public:
    virtual ~JsonWriter();
    
    /**
-    * Serializes an object to xml using the passed DataBinding.
+    * Serializes an object to JSON using the passed DynamicObject.
     * 
-    * @param db the DataBinding for the object to serialize.
-    * @param os the OutputStream to write the xml to.
-    * 
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool write(
-      db::data::DataBinding* db, db::io::OutputStream* os);
-   
-   /**
-    * Serializes an object to xml using the passed DataBinding.
-    * 
-    * @param db the DataBinding for the object to serialize.
-    * @param os the OutputStream to write the xml to.
+    * @param dyno the DynamicObject to serialize.
+    * @param os the OutputStream to write the JSON to.
     * @param level current level of indentation (-1 to initialize with default).
     * 
     * @return true if successful, false if an exception occurred.
