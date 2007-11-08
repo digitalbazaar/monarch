@@ -252,6 +252,8 @@ DynamicObjectMapBinding::DynamicObjectMapBinding(DynamicObject* dyno) :
    // add data mappings and bindings
    addDataMapping(ns, "member", true, true, &mMemberMapping);
    addDataBinding(ns, "member", &mMemberBinding);
+   
+   mCurrentName = NULL;
 }
 
 DynamicObjectMapBinding::~DynamicObjectMapBinding()
