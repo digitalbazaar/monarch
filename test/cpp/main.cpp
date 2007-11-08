@@ -4190,21 +4190,48 @@ void runDynamicObjectBasicBindingTest(TestRunner& tr)
    ostringstream oss;
    OStreamOutputStream os(&oss);
    
+   string xml[4];
    writer.write(&db1, &os);
-   cout << "XML=" << endl << oss.str() << endl;
+   xml[0] = oss.str();
    oss.str("");
    
    writer.write(&db2, &os);
-   cout << "XML=" << endl << oss.str() << endl;
+   xml[1] = oss.str();
    oss.str("");
    
    writer.write(&db3, &os);
-   cout << "XML=" << endl << oss.str() << endl;
+   xml[2] = oss.str();
    oss.str("");
    
    writer.write(&db4, &os);
-   cout << "XML=" << endl << oss.str() << endl;
+   xml[3] = oss.str();
    oss.str("");
+   
+//   for(int i = 0; i < 4; i++)
+//   {
+//      cout << "XML " << i << "=" << endl << xml[i] << endl;
+//   }
+   
+   string outxml[4];
+   for(int i = 0; i < 4; i++)
+   {
+      // now try to read dynamic object back in
+      DynamicObject dyno5;
+      DynamicObjectBasicBinding inBinding(&dyno5);
+      XmlReader reader;
+      ByteArrayInputStream bais(xml[i].c_str(), xml[i].length());
+      reader.start(&inBinding);
+      reader.read(&bais);
+      reader.finish();
+      
+      // now send dynamic object back out
+      DynamicObjectBasicBinding outBinding(&dyno5);
+      writer.write(&outBinding, &os);
+      outxml[i] = oss.str();
+      oss.str("");
+      assert(strcmp(xml[i].c_str(), outxml[i].c_str()) == 0);
+      //cout << "OUT XML " << i << "=" << endl << outxml[i] << endl;
+   }
    
    tr.pass();
 }
@@ -4238,7 +4265,26 @@ void runDynamicObjectArrayBindingTest(TestRunner& tr)
    OStreamOutputStream os(&oss);
    
    writer.write(&db, &os);
-   cout << "XML=" << endl << oss.str() << endl;
+   string xml = oss.str();
+   oss.str("");
+   
+   // now try to read dynamic object back in
+   DynamicObject dyno5;
+   DynamicObjectArrayBinding inBinding(&dyno5);
+   XmlReader reader;
+   ByteArrayInputStream bais(xml.c_str(), xml.length());
+   reader.start(&inBinding);
+   reader.read(&bais);
+   reader.finish();
+   
+   // now send dynamic object back out
+   DynamicObjectArrayBinding outBinding(&dyno5);
+   writer.write(&outBinding, &os);
+   string outxml = oss.str();
+   
+   //cout << "XML=" << endl << xml << endl;
+   //cout << "OUT XML=" << endl << outxml << endl;
+   assert(strcmp(xml.c_str(), outxml.c_str()) == 0);
    
    tr.pass();
 }
@@ -4266,29 +4312,32 @@ void runDynamicObjectMapBindingTest(TestRunner& tr)
    
    dyno["anobject"] = dyno2;
    
-   DynamicObject dyno3;
-   dyno[0] = "This is test content.";
-   dyno[1] = true;
-   dyno[2] = 1234;
-   dyno[3] = 123.456789;
-   
-   DynamicObject dyno4;
-   dyno4[0] = "Another string.";
-   dyno4[1] = false;
-   dyno4[2] = 4321;
-   dyno4[3] = 987.654321;
-   
-   dyno3[4] = dyno4;
-   
-   dyno["dyno3"] = dyno3;
-   
    DynamicObjectMapBinding db(&dyno);
    
    ostringstream oss;
    OStreamOutputStream os(&oss);
    
    writer.write(&db, &os);
-   cout << "XML=" << endl << oss.str() << endl;
+   string xml = oss.str();
+   oss.str("");
+   
+   // now try to read dynamic object back in
+   DynamicObject dyno5;
+   DynamicObjectMapBinding inBinding(&dyno5);
+   XmlReader reader;
+   ByteArrayInputStream bais(xml.c_str(), xml.length());
+   reader.start(&inBinding);
+   reader.read(&bais);
+   reader.finish();
+   
+   // now send dynamic object back out
+   DynamicObjectMapBinding outBinding(&dyno5);
+   writer.write(&outBinding, &os);
+   string outxml = oss.str();
+   
+   //cout << "XML=" << endl << xml << endl;
+   //cout << "OUT XML=" << endl << outxml << endl;
+   assert(strcmp(xml.c_str(), outxml.c_str()) == 0);
    
    tr.pass();
 }
@@ -4316,12 +4365,114 @@ void runDynamicObjectBindingTest(TestRunner& tr)
    
    dyno["anobject"] = dyno2;
    
+   DynamicObject dyno3;
+   dyno3[0] = "This is test content.";
+   dyno3[1] = true;
+   dyno3[2] = 1234;
+   dyno3[3] = 123.456789;
+   
+   DynamicObject dyno4;
+   dyno4[0] = "Another string.";
+   dyno4[1] = false;
+   dyno4[2] = 4321;
+   dyno4[3] = 987.654321;
+   
+   dyno3[4] = dyno4;
+   
+   dyno["dyno3"] = dyno3;
+   
    DynamicObjectBinding db(&dyno);
    
    ostringstream oss;
    OStreamOutputStream os(&oss);
    
    writer.write(&db, &os);
+   string xml = oss.str();
+   oss.str("");
+   
+   // now try to read dynamic object back in
+   DynamicObject dyno5;
+   DynamicObjectBinding inBinding(&dyno5);
+   XmlReader reader;
+   ByteArrayInputStream bais(xml.c_str(), xml.length());
+   reader.start(&inBinding);
+   reader.read(&bais);
+   reader.finish();
+   
+   // now send dynamic object back out
+   DynamicObjectBinding outBinding(&dyno5);
+   writer.write(&outBinding, &os);
+   string outxml = oss.str();
+   
+   //cout << "XML=" << endl << xml << endl;
+   //cout << "OUT XML=" << endl << outxml << endl;
+   assert(strcmp(xml.c_str(), outxml.c_str()) == 0);
+   
+   tr.pass();
+}
+
+void runDynamicObjectXmlTest(TestRunner& tr)
+{
+   tr.test("runDynamicObjectXmlTest");
+   
+   // create xml writer
+   XmlWriter writer;
+   writer.setIndentation(0, 1);
+   
+   // dynamic object to read from
+   DynamicObject dyno;
+   dyno["astring"] = "This is test content.";
+   dyno["aboolean"] = true;
+   dyno["aninteger"] = 1234;
+   dyno["afloat"] = 123.456789;
+   
+   DynamicObject dyno2;
+   dyno2["astring"] = "Another string.";
+   dyno2["aboolean"] = false;
+   dyno2["aninteger"] = 4321;
+   dyno2["afloat"] = 987.654321;
+   
+   dyno["anobject"] = dyno2;
+   
+   DynamicObject dyno3;
+   dyno3[0] = "This is test content.";
+   dyno3[1] = true;
+   dyno3[2] = 1234;
+   dyno3[3] = 123.456789;
+   
+   DynamicObject dyno4;
+   dyno4[0] = "Another string.";
+   dyno4[1] = false;
+   dyno4[2] = 4321;
+   dyno4[3] = 987.654321;
+   
+   dyno3[4] = dyno4;
+   
+   dyno["dyno3"] = dyno3;
+   
+   DynamicObjectBinding db(&dyno);
+   
+   ostringstream oss;
+   OStreamOutputStream os(&oss);
+   
+   // write out xml
+   writer.write(&db, &os);
+   string xml = oss.str();
+   
+   // now try to read dynamic object back in
+   DynamicObject dyno5;
+   DynamicObjectBinding inBinding(&dyno5);
+   XmlReader reader;
+   ByteArrayInputStream bais(xml.c_str(), xml.length());
+   reader.start(&inBinding);
+   reader.read(&bais);
+   reader.finish();
+   
+   // now send dynamic object back out
+   DynamicObjectBinding outBinding(&dyno5);
+   oss.str("");
+   writer.write(&outBinding, &os);
+   
    cout << "XML=" << endl << oss.str() << endl;
    
    tr.pass();
@@ -5564,10 +5715,10 @@ public:
       runXmlHttpServerTest(tr);
       runDynamicObjectWriterTest(tr);
       runDynamicObjectReaderTest(tr);
-      //runDynamicObjectBasicBindingTest(tr);
-      //runDynamicObjectArrayBindingTest(tr);
-      //runDynamicObjectMapBindingTest(tr);
-      //runDynamicObjectBindingTest(tr);
+      runDynamicObjectBasicBindingTest(tr);
+      runDynamicObjectArrayBindingTest(tr);
+      runDynamicObjectMapBindingTest(tr);
+      runDynamicObjectBindingTest(tr);
       
       // db::sql tests
       runSqlite3ConnectionTest(tr);
@@ -5641,7 +5792,7 @@ public:
 //      runDynamicObjectBasicBindingTest(tr);
 //      runDynamicObjectArrayBindingTest(tr);
 //      runDynamicObjectMapBindingTest(tr);
-      runDynamicObjectBindingTest(tr);
+//      runDynamicObjectBindingTest(tr);
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
 //      runConnectionPoolTest();
@@ -5670,7 +5821,7 @@ public:
 
       cout << "Tests starting..." << endl << endl;
       
-      //runInteractiveUnitTests(tr);
+      runInteractiveUnitTests(tr);
       runAutomaticUnitTests(tr);
       
       cout << endl << "Tests finished." << endl;

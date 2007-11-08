@@ -236,6 +236,12 @@ DataBinding* DataBinding::startData(
          // create new child object for the data binding
          rval->mObject = dm->createChild(getCreateAddObject(dn));
       }
+      
+      if(rval != this)
+      {
+         // signal start of deserialization for new binding
+         rval->deserializationStarted();
+      }
    }
    else
    {
