@@ -496,10 +496,21 @@ string& DynamicObjectImpl::toString(string& str) const
             sprintf(temp, "%e", mDouble);
             break;
          default: /* Map, Array, ... */
-            sprintf(temp, "");
+            temp[0] = 0;
             break;
       }
       str.assign(temp);
+   }
+   else
+   {
+      if(mString == NULL)
+      {
+         str.assign("");
+      }
+      else
+      {
+         str.assign(mString);
+      }
    }
    
    return str;

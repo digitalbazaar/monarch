@@ -61,6 +61,7 @@
 #include "db/data/DataMappingFunctor.h"
 #include "db/data/DynamicObjectWriter.h"
 #include "db/data/DynamicObjectReader.h"
+#include "db/data/DynamicObjectBinding.h"
 #include "db/io/OStreamOutputStream.h"
 #include "db/crypto/BigDecimal.h"
 #include "db/io/ByteArrayOutputStream.h"
@@ -4163,6 +4164,169 @@ void runDynamicObjectReaderTest(TestRunner& tr)
    tr.pass();
 }
 
+void runDynamicObjectBasicBindingTest(TestRunner& tr)
+{
+   tr.test("DynamicObjectBasicBinding");
+   
+   // create xml writer
+   XmlWriter writer;
+   writer.setIndentation(0, 1);
+   
+   // dynamic object to read from
+   DynamicObject dyno1;
+   DynamicObject dyno2;
+   DynamicObject dyno3;
+   DynamicObject dyno4;
+   dyno1 = "This is test content.";
+   dyno2 = true;
+   dyno3 = 1234;
+   dyno4 = 123.456789;
+   
+   DynamicObjectBasicBinding db1(&dyno1);
+   DynamicObjectBasicBinding db2(&dyno2);
+   DynamicObjectBasicBinding db3(&dyno3);
+   DynamicObjectBasicBinding db4(&dyno4);
+   
+   ostringstream oss;
+   OStreamOutputStream os(&oss);
+   
+   writer.write(&db1, &os);
+   cout << "XML=" << endl << oss.str() << endl;
+   oss.str("");
+   
+   writer.write(&db2, &os);
+   cout << "XML=" << endl << oss.str() << endl;
+   oss.str("");
+   
+   writer.write(&db3, &os);
+   cout << "XML=" << endl << oss.str() << endl;
+   oss.str("");
+   
+   writer.write(&db4, &os);
+   cout << "XML=" << endl << oss.str() << endl;
+   oss.str("");
+   
+   tr.pass();
+}
+
+void runDynamicObjectArrayBindingTest(TestRunner& tr)
+{
+   tr.test("DynamicObjectArrayBinding");
+   
+   // create xml writer
+   XmlWriter writer;
+   writer.setIndentation(0, 1);
+   
+   // dynamic object to read from
+   DynamicObject dyno;
+   dyno[0] = "This is test content.";
+   dyno[1] = true;
+   dyno[2] = 1234;
+   dyno[3] = 123.456789;
+   
+   DynamicObject dyno2;
+   dyno2[0] = "Another string.";
+   dyno2[1] = false;
+   dyno2[2] = 4321;
+   dyno2[3] = 987.654321;
+   
+   dyno[4] = dyno2;
+   
+   DynamicObjectArrayBinding db(&dyno);
+   
+   ostringstream oss;
+   OStreamOutputStream os(&oss);
+   
+   writer.write(&db, &os);
+   cout << "XML=" << endl << oss.str() << endl;
+   
+   tr.pass();
+}
+
+void runDynamicObjectMapBindingTest(TestRunner& tr)
+{
+   tr.test("DynamicObjectMapBinding");
+   
+   // create xml writer
+   XmlWriter writer;
+   writer.setIndentation(0, 1);
+   
+   // dynamic object to read from
+   DynamicObject dyno;
+   dyno["astring"] = "This is test content.";
+   dyno["aboolean"] = true;
+   dyno["aninteger"] = 1234;
+   dyno["afloat"] = 123.456789;
+   
+   DynamicObject dyno2;
+   dyno2["astring"] = "Another string.";
+   dyno2["aboolean"] = false;
+   dyno2["aninteger"] = 4321;
+   dyno2["afloat"] = 987.654321;
+   
+   dyno["anobject"] = dyno2;
+   
+   DynamicObject dyno3;
+   dyno[0] = "This is test content.";
+   dyno[1] = true;
+   dyno[2] = 1234;
+   dyno[3] = 123.456789;
+   
+   DynamicObject dyno4;
+   dyno4[0] = "Another string.";
+   dyno4[1] = false;
+   dyno4[2] = 4321;
+   dyno4[3] = 987.654321;
+   
+   dyno3[4] = dyno4;
+   
+   dyno["dyno3"] = dyno3;
+   
+   DynamicObjectMapBinding db(&dyno);
+   
+   ostringstream oss;
+   OStreamOutputStream os(&oss);
+   
+   writer.write(&db, &os);
+   cout << "XML=" << endl << oss.str() << endl;
+   
+   tr.pass();
+}
+
+void runDynamicObjectBindingTest(TestRunner& tr)
+{
+   tr.test("DynamicObjectBinding");
+   
+   // create xml writer
+   XmlWriter writer;
+   writer.setIndentation(0, 1);
+   
+   // dynamic object to read from
+   DynamicObject dyno;
+   dyno["astring"] = "This is test content.";
+   dyno["aboolean"] = true;
+   dyno["aninteger"] = 1234;
+   dyno["afloat"] = 123.456789;
+   
+   DynamicObject dyno2;
+   dyno2["astring"] = "Another string.";
+   dyno2["aboolean"] = false;
+   dyno2["aninteger"] = 4321;
+   dyno2["afloat"] = 987.654321;
+   
+   dyno["anobject"] = dyno2;
+   
+   DynamicObjectBinding db(&dyno);
+   
+   ostringstream oss;
+   OStreamOutputStream os(&oss);
+   
+   writer.write(&db, &os);
+   cout << "XML=" << endl << oss.str() << endl;
+   
+   tr.pass();
+}
+
 void runBigIntegerTest()
 {
    cout << "Starting BigInteger test." << endl << endl;
@@ -5400,6 +5564,10 @@ public:
       runXmlHttpServerTest(tr);
       runDynamicObjectWriterTest(tr);
       runDynamicObjectReaderTest(tr);
+      //runDynamicObjectBasicBindingTest(tr);
+      //runDynamicObjectArrayBindingTest(tr);
+      //runDynamicObjectMapBindingTest(tr);
+      //runDynamicObjectBindingTest(tr);
       
       // db::sql tests
       runSqlite3ConnectionTest(tr);
@@ -5468,8 +5636,12 @@ public:
 //      runXmlBindingInputStreamTest();
 //      runXmlBindingOutputStreamTest();
 //      runXmlHttpServerTest(tr);
-//      runDynamicObjectReaderTest(tr);
 //      runDynamicObjectWriterTest(tr);
+//      runDynamicObjectReaderTest(tr);
+//      runDynamicObjectBasicBindingTest(tr);
+//      runDynamicObjectArrayBindingTest(tr);
+//      runDynamicObjectMapBindingTest(tr);
+      runDynamicObjectBindingTest(tr);
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
 //      runConnectionPoolTest();
@@ -5498,7 +5670,7 @@ public:
 
       cout << "Tests starting..." << endl << endl;
       
-      runInteractiveUnitTests(tr);
+      //runInteractiveUnitTests(tr);
       runAutomaticUnitTests(tr);
       
       cout << endl << "Tests finished." << endl;

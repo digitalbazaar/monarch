@@ -169,7 +169,15 @@ void DataBinding::removeDataMapping(const char* ns, const char* name)
    
    // remove data mapping
    mDataMappings.erase(dn);
-   mDataNameOrder.remove(dn);
+   for(DataNameList::iterator i = mDataNameOrder.begin();
+       i != mDataNameOrder.end(); i++)
+   {
+      if((*i)->equals(dn))
+      {
+         mDataNameOrder.erase(i);
+         break;
+      }
+   }
    
    // clean up data name
    freeDataName(dn);
@@ -195,7 +203,15 @@ void DataBinding::removeDataBinding(const char* ns, const char* name)
    
    // remove data binding
    mDataBindings.erase(dn);
-   mDataNameOrder.remove(dn);
+   for(DataNameList::iterator i = mDataNameOrder.begin();
+       i != mDataNameOrder.end(); i++)
+   {
+      if((*i)->equals(dn))
+      {
+         mDataNameOrder.erase(i);
+         break;
+      }
+   }
    
    // clean up data name
    freeDataName(dn);
