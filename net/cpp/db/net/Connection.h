@@ -181,11 +181,41 @@ public:
    virtual SocketException* getRemoteAddress(SocketAddress* address);
    
    /**
+    * Sets the Socket used by this Connection. This method is generally used
+    * to wrap a Connection's existing Socket with a SocketWrapper that uses
+    * a different data presentation (i.e. TLS/SSL). The procedure for doing
+    * this is:
+    * 
+    * // given a Connection "c"
+    * Connection c;
+    * SocketWrapper* wrapper = new SocketWrapper(
+    *    c.getSocket(), c.mustCleanupSocket());
+    * c.setSocket(wrapper, true);
+    * 
+    * // then, optionally, set connection to secure or non-secure
+    * c.setSecure(true);
+    * 
+    * @param s the Socket to use.
+    * @param cleanup true to clean up the passed socket when this Connection
+    *                is destructed, false not to.
+    */
+   virtual void setSocket(Socket* socket, bool cleanup);
+   
+   /**
     * Gets the Socket used by this Connection.
     * 
     * @return the Socket used by this Connection.
     */
    virtual Socket* getSocket();
+   
+   /**
+    * Returns true if this Connection must clean up its socket's memory when
+    * it is destructed, false if not.
+    * 
+    * @return true if this Connection, upon destruction, must free its socket's
+    *         memory when it is destructed, false if not.
+    */
+   virtual bool mustCleanupSocket();
 };
 
 } // end namespace net

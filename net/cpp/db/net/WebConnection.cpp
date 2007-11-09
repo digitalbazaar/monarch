@@ -85,7 +85,17 @@ SocketException* WebConnection::getRemoteAddress(InternetAddress* address)
    return mConnection->getRemoteAddress(address);
 }
 
+void WebConnection::setSocket(Socket* s, bool cleanup)
+{
+   mConnection->setSocket(s, cleanup);
+}
+
 Socket* WebConnection::getSocket()
 {
    return mConnection->getSocket();
+}
+
+bool WebConnection::mustCleanupSocket()
+{
+   return mConnection->mustCleanupSocket();
 }

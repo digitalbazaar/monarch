@@ -137,7 +137,18 @@ SocketException* Connection::getRemoteAddress(SocketAddress* address)
    return rval;
 }
 
+void Connection::setSocket(Socket* s, bool cleanup)
+{
+   mSocket = s;
+   mCleanupSocket = cleanup;
+}
+
 Socket* Connection::getSocket()
 {
    return mSocket;
+}
+
+bool Connection::mustCleanupSocket()
+{
+   return mCleanupSocket;
 }

@@ -160,14 +160,44 @@ public:
     * @return a SocketException if the address could not be obtained, NULL
     *         otherwise.
     */
-   virtual SocketException* getRemoteAddress(InternetAddress* address);   
+   virtual SocketException* getRemoteAddress(InternetAddress* address);
+   
+   /**
+    * Sets the Socket used by this WebConnection. This method is generally used
+    * to wrap a WebConnection's existing Socket with a SocketWrapper that uses
+    * a different data presentation (i.e. TLS/SSL). The procedure for doing
+    * this is:
+    * 
+    * // given a WebConnection "wc"
+    * WebConnection wc;
+    * SocketWrapper* wrapper = new SocketWrapper(
+    *    wc.getSocket(), wc.mustCleanupSocket());
+    * wc.setSocket(wrapper, true);
+    * 
+    * // then, optionally, set connection to secure or non-secure
+    * wc.setSecure(true);
+    * 
+    * @param s the Socket to use.
+    * @param cleanup true to clean up the passed socket when this Connection
+    *                is destructed, false not to.
+    */
+   virtual void setSocket(Socket* socket, bool cleanup);
    
    /**
     * Gets the Socket used by this WebConnection.
     * 
     * @return the Socket used by this WebConnection.
     */
-   virtual Socket* getSocket();   
+   virtual Socket* getSocket();
+   
+   /**
+    * Returns true if this WebConnection must clean up its socket's memory when
+    * it is destructed, false if not.
+    * 
+    * @return true if this WebConnection, upon destruction, must free its
+    *         socket's memory when it is destructed, false if not.
+    */
+   virtual bool mustCleanupSocket();
 };
 
 } // end namespace net
