@@ -7,17 +7,32 @@ using namespace db::net;
 
 ConnectionWrapper::ConnectionWrapper(Connection* c, bool cleanup)
 {
-   mConnection = c;
-   mCleanupConnection = cleanup;
+   setConnection(c, cleanup);
 }
 
 ConnectionWrapper::~ConnectionWrapper()
 {
-   // handle connection cleanup
+   // cleanup wrapped connection as appropriate
    if(mConnection != NULL && mCleanupConnection)
    {
       delete mConnection;
    }
+}
+
+void ConnectionWrapper::setConnection(Connection* c, bool cleanup)
+{
+   mConnection = c;
+   mCleanupConnection = cleanup;
+}
+
+Connection* ConnectionWrapper::getConnection()
+{
+   return mConnection;
+}
+
+bool ConnectionWrapper::mustCleanupConnection()
+{
+   return mCleanupConnection;
 }
 
 void ConnectionWrapper::setBandwidthThrottler(BandwidthThrottler* bt, bool read)

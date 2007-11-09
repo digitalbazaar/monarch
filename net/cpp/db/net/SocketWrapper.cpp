@@ -14,9 +14,9 @@ SocketWrapper::SocketWrapper(Socket* socket, bool cleanup)
 SocketWrapper::~SocketWrapper()
 {
    // cleanup wrapped socket as appropriate
-   if(mCleanupSocket && getSocket() != NULL)
+   if(mCleanupSocket && mSocket != NULL)
    {
-      delete getSocket();
+      delete mSocket;
    }
 }
 
@@ -29,6 +29,11 @@ void SocketWrapper::setSocket(Socket* socket, bool cleanup)
 Socket* SocketWrapper::getSocket()
 {
    return mSocket;
+}
+
+bool SocketWrapper::mustCleanupSocket()
+{
+   return mCleanupSocket;
 }
 
 bool SocketWrapper::bind(SocketAddress* address)

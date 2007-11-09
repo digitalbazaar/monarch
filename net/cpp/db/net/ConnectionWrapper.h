@@ -47,6 +47,31 @@ public:
    virtual ~ConnectionWrapper();
    
    /**
+    * Sets the wrapped Connection.
+    *
+    * @param c the Connection to wrap.
+    * @param cleanup true to reclaim the memory used for the wrapped Connection
+    *                upon destruction, false to do nothing.
+    */
+   virtual void setConnection(Connection* c, bool cleanup = false);
+   
+   /**
+    * Gets the wrapped Connection.
+    * 
+    * @return the wrapped Connection.
+    */
+   virtual Connection* getConnection();
+   
+   /**
+    * Returns true if the wrapped Connection must be cleaned up by this
+    * wrapper when this wrapper is destructed, false if not.
+    * 
+    * @return true if the wrapped Connection must be cleaned up by this
+    *         wrapper when this wrapper is destructed, false if not.
+    */
+   virtual bool mustCleanupConnection();
+   
+   /**
     * Sets a BandwidthThrottler.
     * 
     * @param bt the BandwidthThrottler to use.

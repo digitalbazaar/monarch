@@ -63,6 +63,15 @@ public:
    virtual Socket* getSocket();
    
    /**
+    * Returns true if the wrapped Socket must be cleaned up by this
+    * wrapper when this wrapper is destructed, false if not.
+    * 
+    * @return true if the wrapped Socket must be cleaned up by this
+    *         wrapper when this wrapper is destructed, false if not.
+    */
+   virtual bool mustCleanupSocket();
+   
+   /**
     * Binds this Socket to a SocketAddress.
     * 
     * @param address the address to bind to.
