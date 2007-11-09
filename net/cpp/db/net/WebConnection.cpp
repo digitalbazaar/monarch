@@ -40,12 +40,12 @@ BandwidthThrottler* WebConnection::getBandwidthThrottler(bool read)
    return mConnection->getBandwidthThrottler(read);
 }
 
-const unsigned long long WebConnection::getBytesRead()
+unsigned long long WebConnection::getBytesRead()
 {
    return mConnection->getBytesRead();
 }
 
-const unsigned long long WebConnection::getBytesWritten()
+unsigned long long WebConnection::getBytesWritten()
 {
    return mConnection->getBytesWritten();
 }

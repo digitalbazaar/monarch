@@ -55,12 +55,12 @@ ConnectionOutputStream* ConnectionWrapper::getOutputStream()
    return mConnection->getOutputStream();
 }
 
-const unsigned long long ConnectionWrapper::getBytesRead()
+unsigned long long ConnectionWrapper::getBytesRead()
 {
    return mConnection->getBytesRead();
 }
 
-const unsigned long long ConnectionWrapper::getBytesWritten()
+unsigned long long ConnectionWrapper::getBytesWritten()
 {
    return mConnection->getBytesWritten();
 }

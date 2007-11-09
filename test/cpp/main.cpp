@@ -80,6 +80,7 @@
 //#include "db/logging/FileLogger.h"
 #include "db/util/UniqueList.h"
 #include "db/data/json/JsonWriter.h"
+#include "db/mail/SmtpClient.h"
 
 using namespace std;
 using namespace db::test;
@@ -5599,6 +5600,26 @@ void runFileTest()
    cout << endl << "File test complete." << endl;
 }
 
+void runSmtpClientTest(TestRunner& tr)
+{
+   tr.test("SmtpClient");
+   
+   // set url of mail server
+   Url url("smtp://localhost:25");
+   
+   // set mail
+   db::mail::Mail mail;
+   mail.setSender("testuser@bitmunk.com");
+   mail.addTo("testuser100@bitmunk.com");
+   mail.setSubject("This is a test email.");
+   mail.setBody("This is the test body.");
+   
+   db::mail::SmtpClient c;
+   c.sendMail(&url, &mail);
+   
+   tr.passIfNoException();
+}
+
 void runOtherTest()
 {
    cout << "Starting Other test." << endl << endl;
@@ -5662,6 +5683,9 @@ public:
       // db::event tests
       runEventTest(tr);
       runObserverDelegateTest(tr);
+      
+      // db::mail tests
+      runSmtpClientTest(tr);
       
       cout << endl << "Automatic unit tests finished." << endl;
       
@@ -5734,8 +5758,9 @@ public:
 //      runObserverDelegateTest(tr);
 //      runLoggerTest();
 //      runUniqueListTest();
-//      runOtherTest();
 //      runFileTest();
+      runSmtpClientTest(tr);
+//      runOtherTest();
       
       cout << endl << "Interactive unit tests finished." << endl;
       
@@ -5755,7 +5780,7 @@ public:
       cout << "Tests starting..." << endl << endl;
       
       runInteractiveUnitTests(tr);
-      runAutomaticUnitTests(tr);
+      //runAutomaticUnitTests(tr);
       
       cout << endl << "Tests finished." << endl;
       
