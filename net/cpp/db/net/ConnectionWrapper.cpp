@@ -1,0 +1,101 @@
+/*
+ * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ */
+#include "db/net/ConnectionWrapper.h"
+
+using namespace db::net;
+
+ConnectionWrapper::ConnectionWrapper(Connection* c, bool cleanup)
+{
+   mConnection = c;
+   mCleanupConnection = cleanup;
+}
+
+ConnectionWrapper::~ConnectionWrapper()
+{
+   // handle connection cleanup
+   if(mConnection != NULL && mCleanupConnection)
+   {
+      delete mConnection;
+   }
+}
+
+void ConnectionWrapper::setBandwidthThrottler(BandwidthThrottler* bt, bool read)
+{
+   mConnection->setBandwidthThrottler(bt, read);
+}
+
+BandwidthThrottler* ConnectionWrapper::getBandwidthThrottler(bool read)
+{
+   return mConnection->getBandwidthThrottler(read);
+}
+
+ConnectionInputStream* ConnectionWrapper::getInputStream()
+{
+   return mConnection->getInputStream();
+}
+
+ConnectionOutputStream* ConnectionWrapper::getOutputStream()
+{
+   return mConnection->getOutputStream();
+}
+
+const unsigned long long ConnectionWrapper::getBytesRead()
+{
+   return mConnection->getBytesRead();
+}
+
+const unsigned long long ConnectionWrapper::getBytesWritten()
+{
+   return mConnection->getBytesWritten();
+}
+
+void ConnectionWrapper::setReadTimeout(unsigned long timeout)
+{
+   mConnection->setReadTimeout(timeout);
+}
+
+void ConnectionWrapper::setSecure(bool secure)
+{
+   mConnection->setSecure(secure);
+}
+
+bool ConnectionWrapper::isSecure()
+{
+   return mConnection->isSecure();
+}
+
+bool ConnectionWrapper::isClosed()
+{
+   return mConnection->isClosed();
+}
+
+void ConnectionWrapper::close()
+{
+   mConnection->close();
+}
+
+SocketException* ConnectionWrapper::getLocalAddress(InternetAddress* address)
+{
+   return mConnection->getLocalAddress(address);
+}
+
+SocketException* ConnectionWrapper::getRemoteAddress(InternetAddress* address)
+{
+   return mConnection->getRemoteAddress(address);
+}
+
+void ConnectionWrapper::setSocket(Socket* s, bool cleanup)
+{
+   mConnection->setSocket(s, cleanup);
+}
+
+Socket* ConnectionWrapper::getSocket()
+{
+   return mConnection->getSocket();
+}
+
+bool ConnectionWrapper::mustCleanupSocket()
+{
+   return mConnection->mustCleanupSocket();
+}
