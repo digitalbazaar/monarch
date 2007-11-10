@@ -51,56 +51,45 @@ int SmtpClient::getResponseCode(Connection* c)
    return rval;
 }
 
+bool SmtpClient::sendCrlf(Connection* c)
+{
+   return c->getOutputStream()->write("\r\n", 2);
+}
+
 bool SmtpClient::helo(Connection* c, const char* domain)
 {
-   bool rval = false;
-   
-   // send "HELO" verb
-   if(c->getOutputStream()->write("HELO", 4))
-   {
-      // send space
-      if(c->getOutputStream()->write(" ", 1))
-      {
-         // send domain
-         rval = c->getOutputStream()->write(domain, strlen(domain));
-      }
-   }
-   
-   return rval;
+   // send "HELO" verb, space, and domain
+   return
+      c->getOutputStream()->write("HELO", 4) &&
+      c->getOutputStream()->write(" ", 1) &&
+      c->getOutputStream()->write(domain, strlen(domain)) &&
+      sendCrlf(c);
 }
 
 bool SmtpClient::mailFrom(Connection* c, const char* address)
 {
-   bool rval = false;
-   
-   // send "MAIL FROM:" verb
-   if(c->getOutputStream()->write("MAIL FROM:", 10))
-   {
-      // send SMTP-encoded address
-      rval = c->getOutputStream()->write(address, strlen(address));
-   }
-   
-   return rval;
+   // send "MAIL FROM:" verb and SMTP-encoded address
+   return
+      c->getOutputStream()->write("MAIL FROM:", 10) &&
+      c->getOutputStream()->write(address, strlen(address)) &&
+      sendCrlf(c);
 }
 
 bool SmtpClient::rcptTo(Connection* c, const char* address)
 {
-   bool rval = false;
-   
-   // send "RCPT TO:" verb
-   if(c->getOutputStream()->write("RCTP TO:", 8))
-   {
-      // send SMTP-encoded address
-      rval = c->getOutputStream()->write(address, strlen(address));
-   }
-   
-   return rval;
+   // send "RCPT TO:" verb and SMTP-encoded address
+   return
+      c->getOutputStream()->write("RCPT TO:", 8) &&
+      c->getOutputStream()->write(address, strlen(address)) &&
+      sendCrlf(c);
 }
 
 bool SmtpClient::startData(Connection* c)
 {
    // send "DATA" verb
-   return c->getOutputStream()->write("DATA", 4);
+   return
+      c->getOutputStream()->write("DATA", 4) &&
+      sendCrlf(c);
 }
 
 bool SmtpClient::sendMessage(Connection* c, Message msg)
@@ -148,6 +137,12 @@ bool SmtpClient::sendMessage(Connection* c, Message msg)
                header->getString(), header->length());
          }
       }
+      
+      // send CRLF
+      if(rval)
+      {
+         rval = sendCrlf(c);
+      }
    }
    
    if(rval)
@@ -163,13 +158,15 @@ bool SmtpClient::sendMessage(Connection* c, Message msg)
 bool SmtpClient::endData(Connection* c)
 {
    // end with .CRLF
-   return c->getOutputStream()->write("./r/n", 3);
+   return c->getOutputStream()->write("\r\n.\r\n", 5);
 }
 
 bool SmtpClient::quit(Connection* c)
 {
    // send "QUIT" verb
-   return c->getOutputStream()->write("QUIT", 4);
+   return
+      c->getOutputStream()->write("QUIT", 4) &&
+      sendCrlf(c);
 }
 
 bool SmtpClient::sendMail(Connection* c, Mail* mail)
@@ -187,37 +184,38 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
    if((code = getResponseCode(c)) != 220)
    {
       rval = false;
-      Exception::setLast(
-         new IOException("Bad SMTP server response code!"));
+      if(code != -1)
+      {
+         Exception::setLast(
+            new IOException("Bad SMTP server response code!"));
+      }
    }
    
-   // do helo
-   if(rval)
+   // say helo from sender's domain
+   if(rval && (rval = helo(c, mail->getSender()["domain"]->getString())))
    {
-      // say helo from sender's domain
-      if(rval = helo(c, mail->getSender()["domain"]->getString()))
+      // receive response
+      if((code = getResponseCode(c)) != 250)
       {
-         // receive response
-         if((code = getResponseCode(c)) != 250)
+         rval = false;
+         if(code != -1)
          {
-            rval = false;
             Exception::setLast(
                new IOException("Bad SMTP server response code!"));
          }
       }
    }
    
-   // do mail from
-   if(rval)
+   // send sender's address
+   if(rval && (rval = mailFrom(
+         c, mail->getSender()["smtpEncoding"]->getString())))
    {
-      // send sender's address
-      if(rval = mailFrom(
-         c, mail->getSender()["smtpEncoding"]->getString()))
+      // receive response
+      if((code = getResponseCode(c)) != 250)
       {
-         // receive response
-         if((code = getResponseCode(c)) != 250)
+         rval = false;
+         if(code != -1)
          {
-            rval = false;
             Exception::setLast(
                new IOException("Bad SMTP server response code!"));
          }
@@ -235,22 +233,24 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
          if((code = getResponseCode(c)) != 250)
          {
             rval = false;
-            Exception::setLast(
-               new IOException("Bad SMTP server response code!"));
+            if(code != -1)
+            {
+               Exception::setLast(
+                  new IOException("Bad SMTP server response code!"));
+            }
          }
       }
    }
    
    // start data
-   if(rval)
+   if(rval && (rval = startData(c)))
    {
-      // send DATA verb
-      if(rval = startData(c))
+      // receive response
+      if((code = getResponseCode(c)) != 354)
       {
-         // receive response
-         if((code = getResponseCode(c)) != 354)
+         rval = false;
+         if(code != -1)
          {
-            rval = false;
             Exception::setLast(
                new IOException("Bad SMTP server response code!"));
          }
@@ -258,22 +258,17 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
    }
    
    // send data
-   if(rval)
-   {
-      // send message
-      rval = sendMessage(c, mail->getMessage());
-   }
+   if(rval && (rval = sendMessage(c, mail->getMessage())));
    
    // end data
-   if(rval)
+   if(rval && (rval = endData(c)))
    {
-      // end data
-      if(rval = endData(c))
+      // receive response
+      if((code = getResponseCode(c)) != 250)
       {
-         // receive response
-         if((code = getResponseCode(c)) != 250)
+         rval = false;
+         if(code != -1)
          {
-            rval = false;
             Exception::setLast(
                new IOException("Bad SMTP server response code!"));
          }
@@ -281,15 +276,14 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
    }
    
    // quit
-   if(rval)
+   if(rval && (rval = quit(c)))
    {
-      // send QUIT verb
-      if(rval = quit(c))
+      // receive response
+      if((code = getResponseCode(c)) != 221)
       {
-         // receive response
-         if((code = getResponseCode(c)) != 221)
+         rval = false;
+         if(code != -1)
          {
-            rval = false;
             Exception::setLast(
                new IOException("Bad SMTP server response code!"));
          }
@@ -303,8 +297,9 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
 {
    bool rval = false;
    
-   // connect with 30 second timeout
+   // connect, use 30 second timeouts
    TcpSocket s;
+   s.setReceiveTimeout(30000);
    InternetAddress address(url->getHost(), url->getPort());
    if(s.connect(&address, 30))
    {

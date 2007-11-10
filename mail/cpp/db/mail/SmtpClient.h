@@ -48,6 +48,13 @@ protected:
    virtual int getResponseCode(db::net::Connection* c);
    
    /**
+    * Sends a CRLF to end a sent verb.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool sendCrlf(db::net::Connection* c);
+   
+   /**
     * Sends the "HELO" verb to the server.
     * 
     * @param c the smtp connection.

@@ -20,7 +20,8 @@ Mail::~Mail()
 
 string& Mail::smtpMessageEncode(string& str)
 {
-   return StringTools::replaceAll(str, "\r\n.\r\n", "\r\n..\r\n");
+   // insert second dot for any line that starts with a dot
+   return StringTools::replaceAll(str, "\r\n.", "\r\n..");
 }
 
 bool Mail::setAddress(Address& a, const char* address)
@@ -43,6 +44,8 @@ bool Mail::setAddress(Address& a, const char* address)
       char temp[strlen(address) + 3];
       sprintf(temp, "<%s>", address);
       a["smtpEncoding"] = temp;
+      
+      rval = true;
    }
    
    return rval;
