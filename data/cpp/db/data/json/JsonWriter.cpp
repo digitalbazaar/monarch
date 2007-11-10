@@ -30,10 +30,9 @@ bool JsonWriter::writeIndentation(OutputStream* os, int level)
    // write out indentation
    if(indent > 0)
    {
-      char temp[indent + 1];
+      char temp[indent];
       memset(temp, ' ', indent);
-      temp[indent] = '\0';
-      rval = os->write(temp, indent + 1);
+      rval = os->write(temp, indent);
    }
    
    return rval;
@@ -56,6 +55,7 @@ bool JsonWriter::write(DynamicObject dyno, OutputStream* os, int level)
          if(rval)
          {
             const char* temp = dyno->getString();
+            // FIXME - proper encoding
             rval = os->write(temp, strlen(temp));
             if(rval)
             {
