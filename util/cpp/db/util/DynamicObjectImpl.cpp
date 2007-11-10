@@ -181,6 +181,7 @@ void DynamicObjectImpl::setType(DynamicObjectType type)
             break;
          case Double:
             getDouble();
+            break;
          case Map:
             if(mType != Map)
             {
