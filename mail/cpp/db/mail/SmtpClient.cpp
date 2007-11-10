@@ -109,15 +109,11 @@ bool SmtpClient::sendMessage(Connection* c, Message msg)
          
          if(rval && !comma)
          {
-            // send header name
-            rval = c->getOutputStream()->write(
-               i->getName(), strlen(i->getName()));
-         }
-         
-         if(rval)
-         {
-            // send colon
-            rval = c->getOutputStream()->write(": ", 2);
+            // send header name and colon
+            rval =
+               c->getOutputStream()->write(
+                  i->getName(), strlen(i->getName())) &&
+               c->getOutputStream()->write(": ", 2);
          }
          
          if(rval && comma)
