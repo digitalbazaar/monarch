@@ -80,6 +80,7 @@
 //#include "db/logging/FileLogger.h"
 #include "db/util/UniqueList.h"
 #include "db/data/json/JsonWriter.h"
+#include "db/data/json/JsonReader.h"
 #include "db/mail/SmtpClient.h"
 
 using namespace std;
@@ -1076,6 +1077,41 @@ void runDynamicObjectTest(TestRunner& tr)
    tr.pass();
 }
 
+void runDynoConversionTest(TestRunner& tr)
+{
+   tr.test("DynamicObject conversion");
+   
+   DynamicObject d;
+   d["int"] = 2;
+   d["-int"] = -2;
+   d["str"] = "hello";
+   d["true"] = "true";
+   d["false"] = "false";
+   
+   string s;
+   s.clear();
+   d["int"]->toString(s);
+   assert(strcmp(s.c_str(), "2") == 0);
+
+   s.clear();
+   d["-int"]->toString(s);
+   assert(strcmp(s.c_str(), "-2") == 0);
+
+   s.clear();
+   d["str"]->toString(s);
+   assert(strcmp(s.c_str(), "hello") == 0);
+
+   s.clear();
+   d["true"]->toString(s);
+   assert(strcmp(s.c_str(), "true") == 0);
+
+   s.clear();
+   d["false"]->toString(s);
+   assert(strcmp(s.c_str(), "false") == 0);
+   
+   tr.pass();
+}
+
 void runJsonTest(TestRunner& tr)
 {
    tr.test("JSON");
@@ -1103,20 +1139,104 @@ void runJsonTest(TestRunner& tr)
    dyno1["contact"] = dyno0;
    
    JsonWriter jw;
-//   OStreamOutputStream os(&cout);
-   ByteBuffer b;   
-   ByteArrayOutputStream bbos(&b);
-
-   jw.setCompact(true);
-//   jw.write(dyno1, &os);
-   jw.write(dyno1, &bbos);
-
-   jw.setCompact(false);
-   jw.setIndentation(0, 3);
-//   jw.write(dyno1, &os);
-   jw.write(dyno1, &bbos);
+   JsonReader jr;
+   OStreamOutputStream os(&cout);
    
-   tr.passIfNoException();
+   const char* tests[] = {
+      "{}",
+      "[]",
+      " []",
+      "[] ",
+      " [] ",
+      " [ ] ",
+      "[true]",
+      "[false]",
+      "[ true]",
+      "[true ]",
+      "[ true ]",
+      "[true, true]",
+      "[true , true]",
+      "[ true , true ]",
+      "[0]",
+      "[-0]",
+      "[0.0]",
+      "[-0.0]",
+      "[0.0e0]",
+      "[0.0e+0]",
+      "[0.0e-0]",
+      "[1.0]",
+      "[-1.0]",
+      "[1.1]",
+      "[-1.1]",
+      "[0,true]",
+      "[[]]",
+      "[[{}]]",
+      "[[],[]]",
+      "[[0]]",
+      "[\"\"]",
+      "[\"s\"]",
+      "{\"k\":\"v\"}",
+      "{\"k1\":1, \"k2\":2}",
+      "{\"k\":[]}",
+      "{\"k\":{}}",
+      "[\"\\t\"]",
+      // FIXME add: all escapes, unicode escapes, raw unicode
+      // FIXME add: failure tests
+      NULL
+   };
+   for(int i = 0; tests[i] != NULL; i++)
+   //for(int i = 0; i!=0;)
+   {
+      DynamicObject d;
+      const char* s = tests[i];
+      //cout << s << endl;
+      ByteArrayInputStream is(s, strlen(s));
+      jr.start(d);
+      assertNoException();
+      jr.read(&is);
+      assertNoException();
+      //jw.write(d, &os);
+      assertNoException();
+      //cout << endl;
+   }
+
+   DynamicObject* dynos[] = {
+      &dyno0,
+      &dyno1,
+      NULL
+   };
+   for(int i = 0; dynos[i] != NULL; i++)
+   //for(int i = 0; i!=0;)
+   {
+      DynamicObject d = *dynos[i];
+
+      ByteBuffer b;
+      ByteArrayOutputStream bbos(&b);
+      
+      jw.setCompact(true);
+      //jw.write(dyno1, &os);
+      jw.write(d, &bbos);
+      assertNoException();
+      b.clear();
+      assertNoException();
+      
+      jw.setCompact(false);
+      jw.setIndentation(0, 3);
+      //jw.write(d, &os);
+      jw.write(d, &bbos);
+      ByteArrayInputStream is(b.data(), b.length());
+      DynamicObject dr;
+      jr.start(dr);
+      assertNoException();
+      jr.read(&is);
+      assertNoException();
+      //jw.write(dr, &os);
+      assertNoException();
+      b.clear();
+      assertNoException();
+   }
+   
+   tr.pass();
 }
 
 void runByteArrayInputStreamTest()
@@ -5653,6 +5773,7 @@ public:
       runBase64Test(tr);
       runCrcTest(tr);
       runDynamicObjectTest(tr);
+      runDynoConversionTest(tr);
       
       // db::data tests
       runJsonTest(tr);
