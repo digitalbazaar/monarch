@@ -79,7 +79,7 @@ void ByteBuffer::allocateSpace(int length, bool resize)
          if(mLength > 0)
          {
             // shift the data in the buffer
-            memcpy(mBuffer, data(), mLength);
+            memmove(mBuffer, data(), mLength);
          }
          
          mOffset = 0;
