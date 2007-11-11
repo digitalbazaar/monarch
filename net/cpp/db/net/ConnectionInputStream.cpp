@@ -125,7 +125,7 @@ bool ConnectionInputStream::readCrlf(string& line)
          block = false;
          
          // ensure peek buffer ends in NULL byte
-         memset(b + numBytes, 0, 1);
+         b[numBytes] = 0;
          
          // look for a CR
          char* i = strchr(b, '\r');
@@ -140,7 +140,7 @@ bool ConnectionInputStream::readCrlf(string& line)
          else
          {
             // null CR for copying
-            memset(i, 0, 1);
+            i[0] = 0;
             
             // append peeked bytes up until found CR to string
             line.append(b);
