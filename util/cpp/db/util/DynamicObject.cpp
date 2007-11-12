@@ -26,6 +26,87 @@ DynamicObject::~DynamicObject()
 {
 }
 
+bool DynamicObject::operator==(const DynamicObject& rhs)
+{
+   bool rval = false;
+   
+   DynamicObject* left = (DynamicObject*)this;
+   DynamicObject* right = (DynamicObject*)&rhs;
+   
+   if(this == &rhs)
+   {
+      rval = true;
+   }
+   else if(this->mReference == rhs.mReference)
+   {
+      rval = true;
+   }
+   else if((*left)->getType() == (*right)->getType())
+   {
+      int index = 0;
+      DynamicObjectIterator i;
+      switch((*left)->getType())
+      {
+         case String:
+            rval = (strcmp((*left)->getString(), (*right)->getString()) == 0);
+            break;
+         case Boolean:
+            rval = (*left)->getBoolean() == (*right)->getBoolean();
+            break;
+         case Int32:
+            rval = (*left)->getInt32() == (*right)->getInt32();
+            break;
+         case UInt32:
+            rval = (*left)->getUInt32() == (*right)->getUInt32();
+            break;
+         case Int64:
+            rval = (*left)->getInt64() == (*right)->getInt64();
+            break;
+         case UInt64:
+            rval = (*left)->getUInt64() == (*right)->getUInt64();
+            break;
+         case Double:
+            rval = (*left)->getDouble() == (*right)->getDouble();
+            break;
+         case Map:
+            // ensure maps are the same length and contain the same entries
+            if((*left)->length() == (*right)->length())
+            {
+               rval = true;
+               i = left->getIterator();
+               while(rval && i->hasNext())
+               {
+                  DynamicObject dyno = i->next();
+                  if((*right)->hasMember(i->getName()))
+                  {
+                     rval = ((*right)[i->getName()] == dyno);
+                  }
+                  else
+                  {
+                     rval = false;
+                  }
+               }
+            }
+            break;
+         case Array:
+            // ensure arrays are the same length and contain the same elements
+            // in the same order
+            if((*left)->length() == (*right)->length())
+            {
+               rval = true;
+               i = left->getIterator();
+               while(rval && i->hasNext())
+               {
+                  rval = ((*right)[index++] == i->next());
+               }
+            }
+            break;
+      }
+   }
+   
+   return rval;
+}
+
 void DynamicObject::operator=(const char* value)
 {
    *mReference->ptr = value;

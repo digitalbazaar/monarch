@@ -1072,6 +1072,8 @@ void runDynamicObjectTest(TestRunner& tr)
    dyno1["dyno5"] = dyno5;
    dyno1["dyno6"] = dyno6;
    dyno1["clone"] = dyno1.clone();
+   
+   assert(dyno1 == dyno1.clone());
    //cout << endl;
    //dumpDynamicObject(dyno1);
    
@@ -5868,6 +5870,7 @@ public:
 //      runXmlBindingInputStreamTest();
 //      runXmlBindingOutputStreamTest();
 //      runXmlHttpServerTest(tr);
+//      runDynamicObjectTest(tr);
 //      runDynamicObjectWriterTest(tr);
 //      runDynamicObjectReaderTest(tr);
 //      runDynamicObjectBasicBindingTest(tr);

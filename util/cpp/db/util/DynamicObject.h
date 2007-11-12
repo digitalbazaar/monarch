@@ -51,6 +51,18 @@ public:
    virtual ~DynamicObject();
    
    /**
+    * Compares this DynamicObject to another one for equality. If the
+    * DynamicObjects are the same type, and have the same value or contain
+    * all the same values (for Maps/Arrays), then they are equal.
+    * 
+    * @param rhs the DynamicObject to compare to this one.
+    * 
+    * @return true if the passed DynamicObject is equal to this one, false
+    *         if not.
+    */ 
+   virtual bool operator==(const DynamicObject& rhs);
+   
+   /**
     * Sets this object's value to a string.
     * 
     * @param value the value for this object.
