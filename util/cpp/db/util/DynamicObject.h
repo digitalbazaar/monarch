@@ -126,6 +126,13 @@ public:
     * @return a DynamicObjectIterator.
     */
    virtual DynamicObjectIterator getIterator();
+   
+   /**
+    * Clones this DynamicObject and returns it.
+    * 
+    * @return a clone of this DynamicObject.
+    */
+   virtual DynamicObject clone();
 };
 
 } // end namespace util

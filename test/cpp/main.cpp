@@ -1071,8 +1071,9 @@ void runDynamicObjectTest(TestRunner& tr)
    // test print out code
    dyno1["dyno5"] = dyno5;
    dyno1["dyno6"] = dyno6;
-   //cout << endl;
-   //dumpDynamicObject(dyno1);
+   dyno1["clone"] = dyno1.clone();
+   cout << endl;
+   dumpDynamicObject(dyno1);
    
    tr.pass();
 }
