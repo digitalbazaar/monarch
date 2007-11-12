@@ -239,6 +239,9 @@ public:
     * 
     * The object is built incrementally and on error will be partially built.
     * 
+    * finish() should be called after the read is complete in order to check
+    * that a top level object is complete.
+    * 
     * @param dyno the DynamicObject for the object to deserialize.
     * @param is the InputStream to read the JSON from.
     * 
