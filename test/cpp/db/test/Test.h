@@ -21,6 +21,11 @@ void dumpException(db::rt::Exception* e);
  */
 void assertNoException();
 
+/**
+ * Check exception is set.
+ */
+void assertException();
+
 } // end namespace test
 } // end namespace db
 

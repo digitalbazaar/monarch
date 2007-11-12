@@ -52,4 +52,12 @@ void db::test::assertNoException()
    }
 }
 
-
+void db::test::assertException()
+{
+   if(!Exception::hasLast())
+   {
+      Exception* e = new Exception("Expected exception");
+      dumpException(e);
+      assert(Exception::hasLast());
+   }
+}
