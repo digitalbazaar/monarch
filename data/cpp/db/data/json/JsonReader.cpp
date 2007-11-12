@@ -47,10 +47,10 @@ JsonState JsonReader::sStateTable[S_COUNT][C_COUNT] = {
 /* O_ */ {_W,_W,__,_O,__,__,__,__,S_,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,OK,__},
 /* O2 */ {_W,_W,__,__,__,__,__,__,S_,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,OK,__},
 /* OK */ {_W,_W,__,__,__,__,OC,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
-/* OC */ {_W,_W,O_,__,A_,__,__,__,S_,__,__,ZE,IN,__,__,MI,__,__,__,__,__,F_,__,N_,__,__,T_,__,__,__,__,OV,__},
+/* OC */ {_W,_W,O_,__,A_,__,__,__,S_,__,__,Z_,I_,__,__,MI,__,__,__,__,__,F_,__,N_,__,__,T_,__,__,__,__,OV,__},
 /* OV */ {_W,_W,__,_O,__,__,__,O2,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
-/* A_ */ {_W,_W,O_,__,A_,_A,__,__,S_,__,__,ZE,IN,__,__,MI,__,__,__,__,__,F_,__,N_,__,__,T_,__,__,__,__,AV,__},
-/* A2 */ {_W,_W,O_,__,A_,__,__,__,S_,__,__,ZE,IN,__,__,MI,__,__,__,__,__,F_,__,N_,__,__,T_,__,__,__,__,AV,__},
+/* A_ */ {_W,_W,O_,__,A_,_A,__,__,S_,__,__,Z_,I_,__,__,MI,__,__,__,__,__,F_,__,N_,__,__,T_,__,__,__,__,AV,__},
+/* A2 */ {_W,_W,O_,__,A_,__,__,__,S_,__,__,Z_,I_,__,__,MI,__,__,__,__,__,F_,__,N_,__,__,T_,__,__,__,__,AV,__},
 /* AV */ {_W,_W,__,__,__,_A,__,A2,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /* S_ */ {__,SC,SC,SC,SC,SC,SC,SC,_S,E_,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,__,__},
 /* SC */ {__,SC,SC,SC,SC,SC,SC,SC,_S,E_,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,__,__},
@@ -70,10 +70,10 @@ JsonState JsonReader::sStateTable[S_COUNT][C_COUNT] = {
 /* NU */ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,NL,__,__,__,__,__,__,__,__,__,__},
 /* NL */ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,_N,__,__,__,__,__,__,__,__,__,__},
 /* MI */ {__,__,__,__,__,__,__,__,__,__,__,Z2,I2,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
-/* ZE */ {_I,_I,__,_I,__,_I,__,_I,__,__,__,__,__,FR,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
+/* Z_ */ {_I,_I,__,_I,__,_I,__,_I,__,__,__,__,__,FR,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /* Z2 */ {_I,_I,__,_I,__,_I,__,_I,__,__,__,__,__,FR,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
-/* IN */ {_I,_I,__,_I,__,_I,__,_I,__,__,__,IN,IN,FR,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
-/* I2 */ {_I,_I,__,_I,__,_I,__,_I,__,__,__,IN,IN,FR,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
+/* I_ */ {_I,_I,__,_I,__,_I,__,_I,__,__,__,I_,I_,FR,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
+/* I2 */ {_I,_I,__,_I,__,_I,__,_I,__,__,__,I_,I_,FR,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /* FR */ {__,__,__,__,__,__,__,__,__,__,__,F2,F2,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /* F2 */ {_D,_D,__,_D,__,_D,__,_D,__,__,__,F2,F2,__,__,__,__,__,__,__,EE,__,__,__,__,__,__,__,__,EE,__,__,__},
 /* EE */ {__,__,__,__,__,__,__,__,__,__,__,EV,EV,__,ES,ES,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
@@ -108,6 +108,8 @@ void JsonReader::start(DynamicObject dyno)
    
    // read started
    mStarted = true;
+
+   mValid = false;
 }
 
 IOException* JsonReader::processNext(JsonInputClass ic, char c)
@@ -179,11 +181,6 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
             mState = next;
          }
          break;
-      case S_: /* start string */
-         mStateStack.push_back(mState);
-         mString.clear();
-         mState = next;
-         break;
       case _O: /* Object done */
       case _A: /* Array done */
          mState = mStateStack.back();
@@ -194,6 +191,7 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
          {
             // we're done with top-level object
             mState = _J;
+            mValid = true;
          }
          else
          {
@@ -234,9 +232,34 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
          // go back to string character reading
          mState = SC;
          break;
+
+      case U_: /* unicode */
+         // Save current string
+         obj = mString.c_str();
+         mDynoStack.push_back(obj);
+         
+         // Start new string
+         mString.clear();
+         mString.push_back(c);
+         mState = next;
+         break;
       case _U: /* Unicode done */
          // parse string for unicode val push to current string
          // FIXME
+         // parse unicode escape
+         // ...
+         mString = mDynoStack.back()->getString();
+         mDynoStack.pop_back();
+         //mString.push(...)
+         mState = SC;
+         rval = new IOException(
+            "Unimplemented: valid JSON unicode escape parsing"); 
+         break;
+
+      case S_: /* start string */
+         mStateStack.push_back(mState);
+         mString.clear();
+         mState = next;
          break;
       case _S: /* String done */
          // Push string on stack
@@ -297,27 +320,11 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
             rval = processNext(ic, c);
          }
          break;
-      case __: /* Error */
-         rval = new IOException("Invalid input");
-         break;
-
-      /* New string state */
-      case U_: /* unicode */
-         // Save previous state
-         mStateStack.push_back(mState);
-         obj = mString.c_str();
-         mDynoStack.push_back(obj);
-         
-         // Start new state
-         mString.clear();
-         mString.push_back(c);
-         mState = next;
-         break;
 
       /* Start numbers */
       case MI: /* minus */
-      case ZE: /* zero */
-      case IN: /* integer */
+      case Z_: /* zero */
+      case I_: /* integer */
          mStateStack.push_back(mState);
          mString.clear();
          // fall through to string building
@@ -364,6 +371,10 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
          
       /* Stay in same state */
       case _W: /* Whitespace done */
+         break;
+
+      case __: /* Error */
+         rval = new IOException("Invalid input");
          break;
 
       default:
@@ -418,6 +429,23 @@ IOException* JsonReader::read(InputStream* is)
          Exception::setLast(rval);
       }
    }
+   
+   return rval;
+}
+
+IOException* JsonReader::finish()
+{
+   IOException* rval = NULL;
+   
+   if(!mValid)
+   {
+      rval = new IOException("No JSON top-level Object or Array found");
+      Exception::setLast(rval);
+   }
+   
+   // no longer started or valid
+   mStarted = false;
+   mValid = false;
    
    return rval;
 }

@@ -1115,31 +1115,9 @@ void runDynoConversionTest(TestRunner& tr)
    tr.pass();
 }
 
-void runJsonTest(TestRunner& tr)
+void runJsonValidTest(TestRunner& tr)
 {
-   tr.test("JSON");
-   
-   DynamicObject dyno0;
-   dyno0["email"] = "example@example.com";
-   dyno0["AIM"] = "example";
-
-   DynamicObject dyno1;
-   dyno1["id"] = 2;
-   dyno1["-id"] = -2;
-   dyno1["floats"][0] = 0.0;
-   dyno1["floats"][1] = -0.0;
-   dyno1["floats"][2] = 1.0;
-   dyno1["floats"][3] = -1.0;
-   dyno1["floats"][4] = 1.23456789;
-   dyno1["floats"][5] = -1.23456789;
-   dyno1["username"] = "testuser1000";
-   dyno1["l33t"] = true;
-   dyno1["luser"] = false;
-   dyno1["somearray"][0] = "item1";
-   dyno1["somearray"][1] = "item2";
-   dyno1["somearray"][2] = "item3";
-   dyno1["somearray"][3] = dyno0;
-   dyno1["contact"] = dyno0;
+   tr.group("JSON (Valid)");
    
    JsonWriter jw;
    JsonReader jr;
@@ -1182,14 +1160,17 @@ void runJsonTest(TestRunner& tr)
       "{\"k1\":1, \"k2\":2}",
       "{\"k\":[]}",
       "{\"k\":{}}",
-      "[\"\\t\"]",
-      // FIXME add: all escapes, unicode escapes, raw unicode
-      // FIXME add: failure tests
+      "[\" \\\" \\\\ \\/ \\b \\f \\n \\r \\t\"]",
+      // FIXME add: unicode escapes, raw unicode
       NULL
    };
+
    for(int i = 0; tests[i] != NULL; i++)
-   //for(int i = 0; i!=0;)
    {
+      char msg[50];
+      snprintf(msg, 50, "Parse #%d", i);
+      tr.test(msg);
+      
       DynamicObject d;
       const char* s = tests[i];
       //cout << s << endl;
@@ -1198,19 +1179,123 @@ void runJsonTest(TestRunner& tr)
       assertNoException();
       jr.read(&is);
       assertNoException();
-      //jw.write(d, &os);
+      jr.finish();
       assertNoException();
+      //jw.write(d, &os);
       //cout << endl;
+      
+      tr.passIfNoException();
    }
+   
+   tr.ungroup();
+}
 
+void runJsonInvalidTest(TestRunner& tr)
+{
+   tr.group("JSON (Invalid)");
+   
+   JsonWriter jw;
+   JsonReader jr;
+   OStreamOutputStream os(&cout);
+   
+   const char* tests[] = {
+      "",
+      " ",
+      "{",
+      "}",
+      "[",
+      "]",
+      "{}{",
+      "[][",
+      "[tru]",
+      "[junk]",
+      "[true,]",
+      "[true, ]",
+      "[,true]",
+      "[ ,true]",
+      "[0.]",
+      "[0.0e]",
+      "[0.0e+]",
+      "[0.0e-]",
+      "[\"\0\"]",
+      "[\"\\z\"]",
+      "[\"\0\"]",
+      "{\"k\":}",
+      "{:\"v\"}",
+      "{\"k\":1,}",
+      "{,\"k\":1}",
+      "[\"\n\"]",
+      "[\"\\u0020\"]", // move to valid
+      NULL
+   };
+
+   for(int i = 0; tests[i] != NULL; i++)
+   {
+      char msg[50];
+      snprintf(msg, 50, "Parse #%d", i);
+      tr.test(msg);
+
+      DynamicObject d;
+      const char* s = tests[i];
+      //cout << s << endl;
+      ByteArrayInputStream is(s, strlen(s));
+      jr.start(d);
+      assertNoException();
+      jr.read(&is);
+      jr.finish();
+      assertException();
+      Exception::clearLast();
+      //jw.write(d, &os);
+      //cout << endl;
+      
+      tr.passIfNoException();
+   }
+   
+   tr.ungroup();
+}
+
+void runJsonDJDTest(TestRunner& tr)
+{
+   tr.group("JSON (Dyno->JSON->Dyno)");
+   
+   DynamicObject dyno0;
+   dyno0["email"] = "example@example.com";
+   dyno0["AIM"] = "example";
+
+   DynamicObject dyno1;
+   dyno1["id"] = 2;
+   dyno1["-id"] = -2;
+   dyno1["floats"][0] = 0.0;
+   dyno1["floats"][1] = -0.0;
+   dyno1["floats"][2] = 1.0;
+   dyno1["floats"][3] = -1.0;
+   dyno1["floats"][4] = 1.23456789;
+   dyno1["floats"][5] = -1.23456789;
+   dyno1["username"] = "testuser1000";
+   dyno1["l33t"] = true;
+   dyno1["luser"] = false;
+   dyno1["somearray"][0] = "item1";
+   dyno1["somearray"][1] = "item2";
+   dyno1["somearray"][2] = "item3";
+   dyno1["somearray"][3] = dyno0;
+   dyno1["contact"] = dyno0;
+   
+   JsonWriter jw;
+   JsonReader jr;
+   OStreamOutputStream os(&cout);
+   
    DynamicObject* dynos[] = {
       &dyno0,
       &dyno1,
       NULL
    };
+   
    for(int i = 0; dynos[i] != NULL; i++)
-   //for(int i = 0; i!=0;)
    {
+      char msg[50];
+      snprintf(msg, 50, "Dyno->JSON->Dyno #%d", i);
+      tr.test(msg);
+
       DynamicObject d = *dynos[i];
 
       ByteBuffer b;
@@ -1233,13 +1318,92 @@ void runJsonTest(TestRunner& tr)
       assertNoException();
       jr.read(&is);
       assertNoException();
+      jr.finish();
+      assertNoException();
       //jw.write(dr, &os);
       assertNoException();
       b.clear();
-      assertNoException();
+
+      tr.passIfNoException();
    }
    
-   tr.pass();
+   tr.ungroup();
+}
+
+void runJsonVerifyDJDTest(TestRunner& tr)
+{
+   tr.group("JSON (Verify Dyno->JSON->Dyno)");
+   
+   JsonWriter jw;
+   JsonReader jr;
+   OStreamOutputStream os(&cout);
+   
+   const int tdcount = 7;
+   DynamicObject td[tdcount];
+   td[0]->setType(Map);
+   td[1]->setType(Array);
+   td[2][0] = true;
+   td[3]["k"] = "v";
+   td[4][0] = 0;
+   td[5][0] = "\n";
+   td[6][0] = td[0];
+   const char* tds[] = {
+      /* 0 */ "{}",
+      /* 1 */ "[]",
+      /* 2 */ "[true]",
+      /* 3 */ "{\"k\":\"v\"}",
+      /* 4 */ "[0]",
+      /* 5 */ "[\"\\n\"]",
+      /* 6 */ "[{}]",
+      NULL
+   };
+
+   for(int i = 0; i < tdcount; i++)
+   {
+      char msg[50];
+      snprintf(msg, 50, "Verify #%d", i);
+      tr.test(msg);
+      
+      DynamicObject d = td[i];
+
+      ByteBuffer b;
+      ByteArrayOutputStream bbos(&b);
+      
+      jw.setCompact(true);
+      //jw.write(d, &os);
+      assertNoException();
+      jw.write(d, &bbos);
+      assertNoException();
+      
+      // Verify written string
+      assert(strlen(tds[i]) == b.length());
+      assert(strncmp(tds[i], b.data(), b.length()) == 0);
+      
+      ByteArrayInputStream is(b.data(), b.length());
+      DynamicObject dr;
+      jr.start(dr);
+      assertNoException();
+      jr.read(&is);
+      assertNoException();
+      jr.finish();
+      assertNoException();
+      //jw.write(dr, &os);
+      assertNoException();
+      b.clear();
+      
+      //cout << endl;
+      //dumpDynamicObject(d);
+      //cout << endl;
+      //dumpDynamicObject(dr);
+      //cout << endl;
+      //cout << "moo" << endl;
+      //cout.flush();
+      //assert(d == dr);
+      
+      tr.passIfNoException();
+   }
+   
+   tr.ungroup();
 }
 
 void runByteArrayInputStreamTest()
@@ -5779,7 +5943,10 @@ public:
       runDynoConversionTest(tr);
       
       // db::data tests
-      runJsonTest(tr);
+      runJsonValidTest(tr);
+      runJsonInvalidTest(tr);
+      runJsonDJDTest(tr);
+      runJsonVerifyDJDTest(tr);
       
       // db::crypto tests
       runMessageDigestTest(tr);

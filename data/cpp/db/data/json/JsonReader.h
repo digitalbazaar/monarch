@@ -92,9 +92,9 @@ typedef enum JsonState {
    NU, /* 'nu', ['l']  */
    NL, /* 'nul', ['l'] */
    MI, /* '-' start - zero/int/frac */
-   ZE, /* '0' start zero/frac */
+   Z_, /* '0' start zero/frac */
    Z2, /* '0' cont zero/frac */
-   IN, /* '1-9' start int */
+   I_, /* '1-9' start int */
    I2, /* '0-9' cont int */
    FR, /* fraction */
    F2, /* cont fraction */
@@ -179,7 +179,27 @@ protected:
     */
    int mLineNumber;
 
+   /**
+    * Flag if root Object or Array was found.
+    */
+   bool mValid;
+   
+   /**
+    * Process a buffer of characters
+    * 
+    * @param c string buffer
+    * @param count size of c
+    */
    db::io::IOException* process(const char* c, int count);
+   
+   /**
+    * Process one input object.  For most classes the parameter c is used
+    * to pass the character object.  For C_DO the DynamicObjects to
+    * process are at the back of mDynoStack.
+    * 
+    * @param ic the type of input to process
+    * @param c the character to process (if needed)
+    */
    db::io::IOException* processNext(JsonInputClass ic, char c = '\0');
    
 public:
@@ -225,6 +245,14 @@ public:
     * @return an IOException if one occurred, NULL if not.
     */
    virtual db::io::IOException* read(db::io::InputStream* is);
+
+   /**
+    * Finishes deserializing an object from JSON. This method shoudl be called
+    * to complete deserialization and verify valid JSON was found.
+    * 
+    * @return an IOException is one occurred, NULL if not.
+    */
+   virtual db::io::IOException* finish();
 };
 
 } // end namespace json
