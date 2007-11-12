@@ -4,6 +4,8 @@
 #ifndef db_util_Iterator_H
 #define db_util_Iterator_H
 
+#include "db/rt/Collectable.h"
+
 namespace db
 {
 namespace util
@@ -47,6 +49,16 @@ public:
     * Removes the current object and advances the Iterator.
     */
    virtual void remove() = 0;
+};
+
+// create collectable iterator type
+template<class T>
+class CIterator : public db::rt::Collectable< Iterator<T> >
+{
+public:
+   CIterator(Iterator<T>* ptr = NULL) :
+      db::rt::Collectable< Iterator<T> >(ptr) {};
+   virtual ~CIterator() {};
 };
 
 } // end namespace util
