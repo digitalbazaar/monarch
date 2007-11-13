@@ -427,10 +427,8 @@ IOException* JsonReader::read(InputStream* is)
       
       if(e)
       {
-         // NOTE: we might not want to include the content being
-         // parsed in the exception for security purposes -- either
-         // that or we must make sure not to send this information
-         // when we shouldn't
+         // include line, position, and part of string that was parsed
+         // in the parse exception
          char temp[position + 1];
          strncpy(temp, mBuffer, position);
          temp[position] = 0;
