@@ -3,6 +3,7 @@
  */
 #include "db/data/json/JsonWriter.h"
 #include "db/util/DynamicObjectIterator.h"
+#include "db/io/BufferedOutputStream.h"
 
 using namespace std;
 using namespace db::data;
@@ -215,6 +216,17 @@ bool JsonWriter::write(DynamicObject dyno, OutputStream* os, int level)
          }
          break;
    }
+   
+   return rval;
+}
+
+bool JsonWriter::write(DynamicObject dyno, OutputStream* os)
+{
+   bool rval;
+   
+   ByteBuffer b(1024);
+   BufferedOutputStream bos(&b, os);
+   rval = write(dyno, &bos, mIndentLevel) && bos.flush();
    
    return rval;
 }

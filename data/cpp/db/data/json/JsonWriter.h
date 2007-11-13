@@ -53,6 +53,18 @@ protected:
     */
    virtual bool writeIndentation(db::io::OutputStream* os, int level);
    
+   /**
+    * Recursively serializes an object to JSON using the passed DynamicObject.
+    * 
+    * @param dyno the DynamicObject to serialize.
+    * @param os the OutputStream to write the JSON to.
+    * @param level current level of indentation (-1 to initialize with default).
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool write(
+      db::util::DynamicObject dyno, db::io::OutputStream* os, int level);
+   
 public:
    /**
     * Creates a new JsonWriter.
@@ -69,12 +81,11 @@ public:
     * 
     * @param dyno the DynamicObject to serialize.
     * @param os the OutputStream to write the JSON to.
-    * @param level current level of indentation (-1 to initialize with default).
     * 
     * @return true if successful, false if an exception occurred.
     */
    virtual bool write(
-      db::util::DynamicObject dyno, db::io::OutputStream* os, int level = -1);
+      db::util::DynamicObject dyno, db::io::OutputStream* os);
    
    /**
     * Sets the starting indentation level and the number of spaces
