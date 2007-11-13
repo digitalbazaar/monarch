@@ -403,7 +403,7 @@ IOException* JsonReader::process(const char* buffer, int count, int& position)
    
    return rval;
 }
-
+#include <iostream>
 IOException* JsonReader::read(InputStream* is)
 {
    IOException* rval = NULL;
@@ -416,20 +416,29 @@ IOException* JsonReader::read(InputStream* is)
    }
    else
    {
-      int numBytes;
+      int numBytes = 1;
       int position = 0;
       IOException* e = NULL;
       while(e == NULL && (numBytes = is->read(mBuffer, READ_SIZE)) > 0)
       {
+         std::cout.write(mBuffer, numBytes);
          e = process(mBuffer, numBytes, position);
       }
       
       if(e)
       {
-         char msg[47];
-         sprintf(msg, "JSON parser error at line %d, position %d\n",
-            mLineNumber, position);
-         rval = new IOException(msg);
+         // NOTE: we might not want to include the content being
+         // parsed in the exception for security purposes -- either
+         // that or we must make sure not to send this information
+         // when we shouldn't
+         char temp[position + 1];
+         strncpy(temp, mBuffer, position);
+         temp[position] = 0;
+         char msg[100 + position];
+         sprintf(msg,
+            "JSON parser error at line %d, position %d, near \"%s\"\n",
+            mLineNumber, position, temp);
+         rval = new IOException(msg, "db.data.json.ParseError");
          rval->setCause(e, true);
          Exception::setLast(rval);
       }
