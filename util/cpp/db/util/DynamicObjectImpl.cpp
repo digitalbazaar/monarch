@@ -301,6 +301,10 @@ unsigned int DynamicObjectImpl::getUInt32()
       {
          *this = mBoolean ? (unsigned int)1 : (unsigned int)0;
       }
+      else if(mType == Int32 && mInt32 > 0)
+      {
+         *this = (unsigned int)mInt32;
+      }
       else if(mType == UInt64)
       {
          *this = (unsigned int)mUInt64;
