@@ -41,6 +41,10 @@ bool DynamicObject::operator==(const DynamicObject& rhs)
    {
       rval = true;
    }
+   else if(this->mReference == NULL || rhs.mReference == NULL)
+   {
+      // one is NULL, other is not, so not equal
+   }
    else if((*left)->getType() == (*right)->getType())
    {
       int index = 0;
