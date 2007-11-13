@@ -940,61 +940,6 @@ void runStringCompareTest()
    cout << endl << "String compare test complete." << endl;
 }
 
-void dumpDynamicObject(
-   DynamicObject dyno, DynamicObjectIterator doi = NULL, int indent = 0)
-{
-   for(int i = 0; i < indent; i++)
-   {
-      cout << ' ';
-   }
-   
-   if(doi == NULL)
-   {
-      doi = dyno.getIterator();
-   }
-   
-   switch(dyno->getType())
-   {
-      case String:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getString();
-         cout << endl;
-         break;
-      case Boolean:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getBoolean();
-         cout << endl;
-         break;
-      case Int32:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getInt32();
-         cout << endl;
-         break;
-      case UInt32:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getUInt32();
-         cout << endl;
-         break;
-      case Int64:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getInt64();
-         cout << endl;
-         break;
-      case UInt64:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getUInt64();
-         cout << endl;
-         break;
-      case Double:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getDouble();
-         cout << endl;
-         break;
-      case Map:
-      case Array:
-         cout << "Name=" << doi->getName() << endl;
-         DynamicObjectIterator i = dyno.getIterator();
-         while(i->hasNext())
-         {
-            dumpDynamicObject(i->next(), i, indent + 1);
-         }
-         break;
-   }
-}
-
 void runDynamicObjectTest(TestRunner& tr)
 {
    tr.test("DynamicObject");
@@ -1170,6 +1115,12 @@ void runJsonValidTest(TestRunner& tr)
       "{\"k\":[]}",
       "{\"k\":{}}",
       "[\" \\\" \\\\ \\/ \\b \\f \\n \\r \\t\"]",
+      "{\"k\":true}",
+      "{\"k\":0}",
+      "{\"k\":10}",
+      "{\"k\":-10}",
+      "{\"k\":0.0e+0}",
+      "{\"k\":\"v\",\"k2\":true,\"k3\":1000,\"k4\":\"v\"}",
       // FIXME add: unicode escapes, raw unicode
       NULL
    };
@@ -1190,8 +1141,8 @@ void runJsonValidTest(TestRunner& tr)
       assertNoException();
       jr.finish();
       assertNoException();
-      //jw.write(d, &os);
-      //cout << endl;
+      //cout << s << endl;
+      //dumpDynamicObject(d);
       
       tr.passIfNoException();
    }
