@@ -56,6 +56,14 @@ public:
     *         occurred. 
     */
    virtual bool write(const char* b, int length);
+   
+   /**
+    * Forces this stream to flush its output, if any of it was buffered.
+    * 
+    * @return true if the write was successful, false if an IO exception
+    *         occurred. 
+    */
+   virtual bool flush();
 };
 
 } // end namespace io

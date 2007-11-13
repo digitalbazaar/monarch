@@ -28,10 +28,16 @@ bool BufferedOutputStream::write(const char* b, int length)
       // flush buffer if full
       if(mBuffer->isFull())
       {
-         rval = mOutputStream->write(mBuffer->data(), mBuffer->length());
-         mBuffer->clear();
+         rval = flush();
       }
    }
    
+   return rval;
+}
+
+bool BufferedOutputStream::flush()
+{
+   bool rval = mOutputStream->write(mBuffer->data(), mBuffer->length());
+   mBuffer->clear();
    return rval;
 }

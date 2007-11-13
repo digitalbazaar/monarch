@@ -253,6 +253,15 @@ public:
    virtual bool hasMember(const char* name);
    
    /**
+    * Removes a member from this object, if it has it.
+    * 
+    * @param name the member to remove from this object.
+    * 
+    * @return the removed object, if one was removed, otherwise NULL.
+    */
+   virtual DynamicObject removeMember(const char* name);
+   
+   /**
     * Gets the length of this object based on its type.
     * 
     * String length = number of characters in the string.

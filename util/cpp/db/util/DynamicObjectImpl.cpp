@@ -433,6 +433,25 @@ bool DynamicObjectImpl::hasMember(const char* name)
    return rval;
 }
 
+DynamicObject DynamicObjectImpl::removeMember(const char* name)
+{
+   DynamicObject rval(NULL);
+   
+   if(mType == Map)
+   {
+      ObjectMap::iterator i = mMap->find(name);
+      if(i != mMap->end())
+      {
+         // remove key and entry
+         delete [] i->first;
+         rval = i->second;
+         mMap->erase(i);
+      }
+   }
+   
+   return rval;
+}
+
 int DynamicObjectImpl::length()
 {
    int rval = 0;

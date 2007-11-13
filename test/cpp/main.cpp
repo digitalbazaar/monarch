@@ -1060,13 +1060,19 @@ void runDynamicObjectTest(TestRunner& tr)
    
    DynamicObject dyno6;
    dyno6["eggs"] = "bacon";
+   dyno6["milk"] = "yum";
+   assert(strcmp(dyno6->removeMember("milk")->getString(), "yum") == 0);
+   count = 0;
    i = dyno6.getIterator();
    while(i->hasNext())
    {
       DynamicObject next = i->next();
       assert(strcmp(i->getName(), "eggs") == 0);
       assert(strcmp(next->getString(), "bacon") == 0);
+      count++;
    }
+   
+   assert(count == 1);
    
    // test print out code
    dyno1["dyno5"] = dyno5;

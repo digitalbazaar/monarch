@@ -25,6 +25,11 @@ bool FilterOutputStream::write(const char* b, int length)
    return mOutputStream->write(b, length);
 }
 
+bool FilterOutputStream::flush()
+{
+   return mOutputStream->flush();
+}
+
 void FilterOutputStream::close()
 {
    mOutputStream->close();
