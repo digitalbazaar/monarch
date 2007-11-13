@@ -31,12 +31,12 @@ public:
    DynamicObject();
    
    /**
-    * Creates a DynamicObject. This constructor is explicit so that an
-    * integer is not confused for a pointer to a DynamicObjectImpl.
+    * Creates a DynamicObject that will reference count and then destroy
+    * the passed DynamicObjectImpl.
     * 
     * @param impl a pointer to a DynamicObjectImpl.
     */
-   explicit DynamicObject(DynamicObjectImpl* impl);
+   DynamicObject(DynamicObjectImpl* impl);
    
    /**
     * Creates a new DynamicObject by copying another one.

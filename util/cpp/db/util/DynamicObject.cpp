@@ -103,6 +103,38 @@ bool DynamicObject::operator==(const DynamicObject& rhs)
             break;
       }
    }
+   else
+   {
+      // compare based on string values
+      std::string lstr, rstr;
+      switch((*left)->getType())
+      {
+         case String:
+         case Int32:
+         case Int64:
+         case UInt32:
+         case UInt64:
+         case Double:
+            switch((*right)->getType())
+            {
+               case String:
+               case Int32:
+               case UInt32:
+               case Int64:
+               case UInt64:
+               case Double:
+                  (*left)->toString(lstr);
+                  (*right)->toString(rstr);
+                  rval = (strcmp(lstr.c_str(), rstr.c_str()) == 0);
+                  break;
+               default:
+                  break;
+            }
+            break;
+         default:
+            break;
+      }
+   }
    
    return rval;
 }
