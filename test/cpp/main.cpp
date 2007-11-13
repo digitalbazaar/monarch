@@ -1225,6 +1225,7 @@ void runJsonInvalidTest(TestRunner& tr)
       "{\"k\":1,}",
       "{,\"k\":1}",
       "[\"\n\"]",
+      "[\"\t\"]",
       "[\"\\u0020\"]", // move to valid
       NULL
    };
