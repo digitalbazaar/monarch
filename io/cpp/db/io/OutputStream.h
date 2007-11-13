@@ -51,7 +51,7 @@ public:
     * @return true if the write was successful, false if an IO exception
     *         occurred. 
     */
-   virtual bool flush() {};
+   virtual bool flush() { return true; };
    
    /**
     * Closes the stream.
