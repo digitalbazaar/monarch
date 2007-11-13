@@ -285,7 +285,11 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
          rval = processNext(C_DO);
          break;
       case _N: /* null done */
-         rval = new IOException("\"null\" handling unimplemented");
+         obj = DynamicObject(NULL);
+         mDynoStack.push_back(obj);
+         mState = mStateStack.back();
+         mStateStack.pop_back();
+         rval = processNext(C_DO);
          break;
       case _I: /* Integer done */
          obj = mString.c_str();

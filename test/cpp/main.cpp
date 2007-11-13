@@ -1140,6 +1140,7 @@ void runJsonValidTest(TestRunner& tr)
       " [ ] ",
       "[true]",
       "[false]",
+      "[null]",
       "[ true]",
       "[true ]",
       "[ true ]",
@@ -1232,9 +1233,10 @@ void runJsonInvalidTest(TestRunner& tr)
       "{:\"v\"}",
       "{\"k\":1,}",
       "{,\"k\":1}",
+      "{null:0}",
       "[\"\n\"]",
       "[\"\t\"]",
-      "[\"\\u0020\"]", // move to valid
+      "[\"\\u0020\"]", // FIXME support and move to valid
       NULL
    };
 
@@ -1302,7 +1304,7 @@ void runJsonDJDTest(TestRunner& tr)
    for(int i = 0; dynos[i] != NULL; i++)
    {
       char msg[50];
-      snprintf(msg, 50, "Dyno->JSON->Dyno #%d", i);
+      snprintf(msg, 50, "Verify #%d", i);
       tr.test(msg);
 
       DynamicObject d = *dynos[i];
@@ -1347,7 +1349,7 @@ void runJsonVerifyDJDTest(TestRunner& tr)
    JsonReader jr;
    OStreamOutputStream os(&cout);
    
-   const int tdcount = 7;
+   const int tdcount = 9;
    DynamicObject td[tdcount];
    td[0]->setType(Map);
    td[1]->setType(Array);
@@ -1356,6 +1358,8 @@ void runJsonVerifyDJDTest(TestRunner& tr)
    td[4][0] = 0;
    td[5][0] = "\n";
    td[6][0] = td[0];
+   td[7][0] = -1;
+   td[8][0] = DynamicObject(NULL);
    const char* tds[] = {
       /* 0 */ "{}",
       /* 1 */ "[]",
@@ -1364,6 +1368,8 @@ void runJsonVerifyDJDTest(TestRunner& tr)
       /* 4 */ "[0]",
       /* 5 */ "[\"\\n\"]",
       /* 6 */ "[{}]",
+      /* 7 */ "[-1]",
+      /* 8 */ "[null]",
       NULL
    };
 
@@ -1400,14 +1406,7 @@ void runJsonVerifyDJDTest(TestRunner& tr)
       assertNoException();
       b.clear();
       
-      //cout << endl;
-      //dumpDynamicObject(d);
-      //cout << endl;
-      //dumpDynamicObject(dr);
-      //cout << endl;
-      //cout << "moo" << endl;
-      //cout.flush();
-      //assert(d == dr);
+      assert(d == dr);
       
       tr.passIfNoException();
    }
