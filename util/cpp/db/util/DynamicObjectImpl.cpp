@@ -271,9 +271,17 @@ int DynamicObjectImpl::getInt32()
       {
          *this = mBoolean ? (int)1 : (int)0;
       }
+      else if(mType == UInt32)
+      {
+         *this = (int)mUInt64;
+      }
       else if(mType == Int64)
       {
          *this = (int)mInt64;
+      }
+      else if(mType == UInt64)
+      {
+         *this = (int)mUInt64;
       }
       else if(mType == Double)
       {
@@ -305,9 +313,17 @@ unsigned int DynamicObjectImpl::getUInt32()
       {
          *this = (unsigned int)mInt32;
       }
+      else if(mType == Int64 && mInt64 > 0)
+      {
+         *this = (unsigned int)mInt64;
+      }
       else if(mType == UInt64)
       {
          *this = (unsigned int)mUInt64;
+      }
+      else if(mType == Double && mDouble > 0)
+      {
+         *this = (unsigned int)mDouble;
       }
       else
       {
@@ -331,13 +347,17 @@ long long DynamicObjectImpl::getInt64()
       {
          *this = mBoolean ? (long long)1 : (long long)0;
       }
-      else if(mType == Int32 && mInt32 > 0)
+      else if(mType == Int32)
       {
          *this = (long long)mInt32;
       }
       else if(mType == UInt32)
       {
          *this = (long long)mUInt32;
+      }
+      else if(mType == UInt64)
+      {
+         *this = (long long)mUInt64;
       }
       else if(mType == Double)
       {
@@ -376,6 +396,10 @@ unsigned long long DynamicObjectImpl::getUInt64()
       else if(mType == Int64 && mInt64 > 0)
       {
          *this = (unsigned long long)mInt64;
+      }
+      else if(mType == Double && mDouble > 0)
+      {
+         *this = (unsigned long long)mDouble;
       }
       else
       {
