@@ -403,7 +403,7 @@ IOException* JsonReader::process(const char* buffer, int count, int& position)
    
    return rval;
 }
-#include <iostream>
+
 IOException* JsonReader::read(InputStream* is)
 {
    IOException* rval = NULL;
@@ -421,7 +421,6 @@ IOException* JsonReader::read(InputStream* is)
       IOException* e = NULL;
       while(e == NULL && (numBytes = is->read(mBuffer, READ_SIZE)) > 0)
       {
-         std::cout.write(mBuffer, numBytes);
          e = process(mBuffer, numBytes, position);
       }
       
