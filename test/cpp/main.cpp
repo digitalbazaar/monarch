@@ -66,6 +66,7 @@
 #include "db/crypto/BigDecimal.h"
 #include "db/io/ByteArrayOutputStream.h"
 #include "db/io/ByteBuffer.h"
+#include "db/io/BufferedOutputStream.h"
 #include "db/sql/Row.h"
 #include "db/sql/RowObject.h"
 #include "db/sql/sqlite3/Sqlite3Connection.h"
@@ -111,6 +112,7 @@ StringTokenizer g_junk4;
 FilterOutputStream g_junk5(NULL, false);
 ByteArrayInputStream g_junk6(NULL, 0);
 IgnoreOutputStream g_junk7(NULL);
+BufferedOutputStream g_junk8(NULL, NULL, false);
 
 void runTimeTest()
 {
@@ -1409,6 +1411,31 @@ void runJsonVerifyDJDTest(TestRunner& tr)
       
       tr.passIfNoException();
    }
+   
+   tr.ungroup();
+}
+
+void runJSONIOStreamTest(TestRunner& tr)
+{
+   tr.group("JSON I/O");
+   
+   tr.test("Input");
+   /*
+   DynamicObject di;
+   di["title"] = "My Stuff";
+   di["public"] = true;
+   di["stuff"][0] = "item 1";
+   di["stuff"][1] = "item 2";
+   JsonInputStream jis(di);
+   jis.setCompact(true);
+   ostreamstring oss;
+   OStreamOutputStream os(&oss);
+   jis.read(oss);
+   */
+   tr.passIfNoException();
+   
+   tr.test("Output");
+   tr.passIfNoException();
    
    tr.ungroup();
 }
@@ -5954,6 +5981,7 @@ public:
       runJsonInvalidTest(tr);
       runJsonDJDTest(tr);
       runJsonVerifyDJDTest(tr);
+      runJSONIOStreamTest(tr);
       
       // db::crypto tests
       runMessageDigestTest(tr);
