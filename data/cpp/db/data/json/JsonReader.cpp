@@ -388,15 +388,14 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
    return rval;
 }
 
-IOException* JsonReader::process(const char* buffer, int count)
+IOException* JsonReader::process(const char* buffer, int count, int& position)
 {
    IOException* rval = NULL;
-   int i;
    
-   for(i = 0; rval == NULL && i < count; i++)
+   for(position = 0; rval == NULL && position < count; position++)
    {
       // FIXME proper unicode handling
-      char c = buffer[i];
+      char c = buffer[position];
       int ci = (int)c;
       JsonInputClass ic = (ci >= 0 && ci < 128) ? sAsciiToClass[ci] : C_CH;
       rval = processNext(ic, c);
@@ -418,16 +417,18 @@ IOException* JsonReader::read(InputStream* is)
    else
    {
       int numBytes;
+      int position = 0;
       IOException* e = NULL;
       while(e == NULL && (numBytes = is->read(mBuffer, READ_SIZE)) > 0)
       {
-         e = process(mBuffer, numBytes);
+         e = process(mBuffer, numBytes, position);
       }
       
       if(e)
       {
          char msg[47];
-         sprintf(msg, "JSON parser error at line %d\n", mLineNumber);
+         sprintf(msg, "JSON parser error at line %d, position %d\n",
+            mLineNumber, position);
          rval = new IOException(msg);
          rval->setCause(e, true);
          Exception::setLast(rval);

@@ -185,12 +185,14 @@ protected:
    bool mValid;
    
    /**
-    * Process a buffer of characters
+    * Process a buffer of characters.
     * 
-    * @param c string buffer
-    * @param count size of c
+    * @param c string buffer.
+    * @param count size of c.
+    * @param position an integer set to the position of the last character
+    *                 that was parsed.
     */
-   db::io::IOException* process(const char* c, int count);
+   db::io::IOException* process(const char* c, int count, int& position);
    
    /**
     * Process one input object.  For most classes the parameter c is used
