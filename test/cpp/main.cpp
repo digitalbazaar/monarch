@@ -1300,29 +1300,32 @@ void runJsonVerifyDJDTest(TestRunner& tr)
    JsonReader jr;
    OStreamOutputStream os(&cout);
    
-   const int tdcount = 9;
-   DynamicObject td[tdcount];
-   td[0]->setType(Map);
-   td[1]->setType(Array);
-   td[2][0] = true;
-   td[3]["k"] = "v";
-   td[4][0] = 0;
-   td[5][0] = "\n";
-   td[6][0] = td[0];
-   td[7][0] = -1;
-   td[8][0] = DynamicObject(NULL);
-   const char* tds[] = {
-      /* 0 */ "{}",
-      /* 1 */ "[]",
-      /* 2 */ "[true]",
-      /* 3 */ "{\"k\":\"v\"}",
-      /* 4 */ "[0]",
-      /* 5 */ "[\"\\n\"]",
-      /* 6 */ "[{}]",
-      /* 7 */ "[-1]",
-      /* 8 */ "[null]",
-      NULL
-   };
+   int tdcount = 0;
+   DynamicObject td;
+   td[tdcount  ]["dyno"]->setType(Map);
+   td[tdcount++]["JSON"] = "{}";
+   td[tdcount  ]["dyno"]->setType(Array);
+   td[tdcount++]["JSON"] = "[]";
+   td[tdcount  ]["dyno"][0] = true;
+   td[tdcount++]["JSON"] = "[true]";
+   td[tdcount  ]["dyno"]["k"] = "v";
+   td[tdcount++]["JSON"] = "{\"k\":\"v\"}";
+   td[tdcount  ]["dyno"][0] = 0;
+   td[tdcount++]["JSON"] = "[0]";
+   td[tdcount  ]["dyno"][0] = "\n";
+   td[tdcount++]["JSON"] = "[\"\\n\"]";
+   td[tdcount  ]["dyno"][0] = td[0]["dyno"];
+   td[tdcount++]["JSON"] = "[{}]";
+   td[tdcount  ]["dyno"][0] = -1;
+   td[tdcount++]["JSON"] = "[-1]";
+   td[tdcount  ]["dyno"][0] = DynamicObject(NULL);
+   td[tdcount++]["JSON"] = "[null]";
+   td[tdcount  ]["dyno"]["k"] = 0;
+   td[tdcount++]["JSON"] = "{\"k\":0}";
+   td[tdcount  ]["dyno"]["k"] = 10;
+   td[tdcount++]["JSON"] = "{\"k\":10}";
+   td[tdcount  ]["dyno"]["k"] = -10;
+   td[tdcount++]["JSON"] = "{\"k\":-10}";
 
    for(int i = 0; i < tdcount; i++)
    {
@@ -1330,7 +1333,8 @@ void runJsonVerifyDJDTest(TestRunner& tr)
       snprintf(msg, 50, "Verify #%d", i);
       tr.test(msg);
       
-      DynamicObject d = td[i];
+      DynamicObject d = td[i]["dyno"];
+      const char* s = td[i]["JSON"]->getString();
 
       ByteBuffer b;
       ByteArrayOutputStream bbos(&b);
@@ -1342,8 +1346,8 @@ void runJsonVerifyDJDTest(TestRunner& tr)
       assertNoException();
       
       // Verify written string
-      assert(strlen(tds[i]) == b.length());
-      assert(strncmp(tds[i], b.data(), b.length()) == 0);
+      assert(strlen(s) == b.length());
+      assert(strncmp(s, b.data(), b.length()) == 0);
       
       ByteArrayInputStream is(b.data(), b.length());
       DynamicObject dr;
