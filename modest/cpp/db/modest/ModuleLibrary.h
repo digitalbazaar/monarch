@@ -30,9 +30,9 @@ class Kernel;
  * available Operations.
  * 
  * This class provides no dependency checking -- it is left up to the Modules
- * to check for their own dependencies and up to the application to ensure
- * that Modules get unloaded in a safe order, if they are unloaded while
- * the Modest Engine is running. 
+ * to check for their own dependencies (or another layer to be added to do
+ * so) and up to the application to ensure that Modules get unloaded in a
+ * safe order, if they are unloaded while the Modest Engine is running.
  * 
  * @author Dave Longley
  */
