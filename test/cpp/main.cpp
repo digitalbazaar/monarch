@@ -1121,9 +1121,11 @@ void runJsonValidTest(TestRunner& tr)
       "{\"k\":-10}",
       "{\"k\":0.0e+0}",
       "{\"k\":\"v\",\"k2\":true,\"k3\":1000,\"k4\":\"v\"}",
-      // FIXME add: unicode escapes, raw unicode
       NULL
    };
+
+   // FIXME add: unicode escapes, raw unicode
+   tr.warning("Add JSON tests for: unicode escapes, raw unicode");
 
    for(int i = 0; tests[i] != NULL; i++)
    {

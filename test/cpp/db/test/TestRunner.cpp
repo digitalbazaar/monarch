@@ -19,6 +19,7 @@ TestRunner::TestRunner(bool doneOnException, OutputLevel outputLevel)
    mOutputLevel = outputLevel;
    mTotal = 0;
    mPassed = 0;
+   mWarnings = 0;
    mFailed = 0;
    mDoneOnException = doneOnException;
 }
@@ -140,6 +141,31 @@ void TestRunner::fail(const char* reason)
    }
 }
 
+void TestRunner::warning(const char* reason)
+{
+   mWarnings++;
+   switch(mOutputLevel)
+   {
+      case Progress:
+         cout << "W";
+         break;
+      case Names:
+      case Times:
+         cout << "WARNING: ";
+         if(reason != NULL)
+         {
+            cout << reason << endl;
+         }
+         else
+         {
+            cout << "(no reason given)" << endl;
+         }
+         break;
+      default:
+         break;
+   }
+}
+
 void TestRunner::done()
 {
    int unknown = mTotal - mPassed - mFailed;
@@ -158,6 +184,7 @@ void TestRunner::done()
          cout << " Total:" << mTotal;
          cout << " Passed:" << mPassed;
          cout << " Failed:" << mFailed;
+         cout << " Warnings:" << mWarnings;
          cout << " Unknown:" << unknown;
          cout << "." << endl;
          break;

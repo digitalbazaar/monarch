@@ -63,6 +63,11 @@ protected:
    unsigned int mFailed;
 
    /**
+    * Total number of warnings.
+    */
+   unsigned int mWarnings;
+
+   /**
     * Total number of passing tests.
     */
    OutputLevel mOutputLevel;
@@ -140,6 +145,15 @@ public:
     * @param reason description of the test failure
     */
    virtual void fail(const char* reason = NULL);
+
+   /**
+    * Notes a warning.  Not paired with a test() call or included in totals.
+    * Can be used to note test that need to be written.  Best if used outside
+    * a test so output is not mixed in between a test name and result. 
+    * 
+    * @param reason description of the warning
+    */
+   virtual void warning(const char* reason = NULL);
 
    /**
     * Print out final report.
