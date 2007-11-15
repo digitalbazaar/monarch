@@ -1348,7 +1348,7 @@ void runJsonVerifyDJDTest(TestRunner& tr)
       assertNoException();
       
       // Verify written string
-      assert(strlen(s) == b.length());
+      assert(strlen(s) == (unsigned int)b.length());
       assert(strncmp(s, b.data(), b.length()) == 0);
       
       ByteArrayInputStream is(b.data(), b.length());
