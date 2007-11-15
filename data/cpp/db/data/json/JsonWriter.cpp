@@ -57,12 +57,13 @@ bool JsonWriter::write(DynamicObject dyno, OutputStream* os, int level)
       switch(dyno->getType())
       {
          case String:
-            rval = os->write("\"", 1);
-            if(rval)
+            // start string serialization
+            if(rval = os->write("\"", 1))
             {
                string encoded;
                const char* temp = dyno->getString();
-               for(size_t i=0; i<strlen(temp); i++)
+               size_t length = strlen(temp);
+               for(size_t i = 0; i < length; i++)
                {
                   char c = temp[i];
                   if((c >= 0x5d /* && c <= 0x10FFFF */) ||
@@ -112,11 +113,10 @@ bool JsonWriter::write(DynamicObject dyno, OutputStream* os, int level)
                      encoded.append(csub);
                   }
                }
+               
+               // write encoded string and end string serialization
+               encoded.push_back('"');
                rval = os->write(encoded.c_str(), encoded.length());
-               if(rval)
-               {
-                  rval = os->write("\"", 1);
-               }
             }
             break;
          case Boolean:
@@ -127,101 +127,79 @@ bool JsonWriter::write(DynamicObject dyno, OutputStream* os, int level)
          case Double:
             {
                string temp;
-               const char* ctemp;
                dyno->toString(temp);
-               ctemp = temp.c_str();
-               rval = os->write(ctemp, strlen(ctemp));
+               rval = os->write(temp.c_str(), temp.length());
             }
             break;
          case Map:
             {
+               // start map serialization
+               rval = (mCompact) ? os->write("{", 1) : os->write("{\n", 2);
+               
+               // serialize each map member
                DynamicObjectIterator i = dyno.getIterator();
-               if(mCompact)
-               {
-                  rval = os->write("{", 1);
-               }
-               else
-               {
-                  rval = os->write("{\n", 2);
-               }
                while(rval && i->hasNext())
                {
-                  rval = writeIndentation(os, level + 1);
-                  if(rval)
+                  DynamicObject next = i->next();
+                  
+                  // serialize indentation and start serializing member name
+                  if(rval =
+                     writeIndentation(os, level + 1) &&
+                     os->write("\"", 1) &&
+                     os->write(i->getName(), strlen(i->getName())))
                   {
-                     DynamicObject next = i->next();
-                     rval = os->write("\"", 1);
-                     if(rval)
+                     // end serializing member name, serialize member value
+                     rval = ((mCompact) ?
+                        os->write("\":", 2) : os->write("\" : ", 4)) &&
+                        write(next, os, level + 1);
+                     
+                     // serialize delimiter if appropriate
+                     if(rval && i->hasNext())
                      {
-                        rval = os->write(i->getName(), strlen(i->getName()));
-                        if(rval)
-                        {
-                           if(mCompact)
-                           {
-                              rval = os->write("\":", 2);
-                           }
-                           else
-                           {
-                              rval = os->write("\" : ", 4);
-                           }
-                           if(rval)
-                           {
-                              rval = write(next, os, level + 1);
-                              if(rval && i->hasNext())
-                              {
-                                 rval = os->write(",", 1);
-                              }
-                              if(rval && !mCompact)
-                              {
-                                 rval = os->write("\n", 1);
-                              }
-                           }
-                        }
+                        rval = os->write(",", 1);
+                     }
+                     
+                     // add formatting if appropriate
+                     if(rval && !mCompact)
+                     {
+                        rval = os->write("\n", 1);
                      }
                   }
                }
-               rval = writeIndentation(os, level);
-               if(rval)
-               {
-                  rval = os->write("}", 1);
-               }
+               
+               // end map serialization
+               rval = writeIndentation(os, level) && os->write("}", 1);
             }
             break;
          case Array:
             {
+               // start array serialization
+               rval = (mCompact) ? os->write("[", 1) : os->write("[\n", 2);
+               
+               // serialize each array element
                DynamicObjectIterator i = dyno.getIterator();
-               if(mCompact)
-               {
-                  rval = os->write("[", 1);
-               }
-               else
-               {
-                  rval = os->write("[\n", 2);
-               }
                while(rval && i->hasNext())
                {
-                  rval = writeIndentation(os, level + 1);
-                  if(rval)
+                  // serialize indentation and array value
+                  rval =
+                     writeIndentation(os, level + 1) &&
+                     write(i->next(), os, level + 1);
+                  
+                  // serialize delimiter if appropriate
+                  if(rval && i->hasNext())
                   {
-                     rval = write(i->next(), os, level + 1);
-                     if(rval)
-                     {
-                        if(rval && i->hasNext())
-                        {
-                           rval = os->write(",", 1);
-                        }
-                        if(rval && !mCompact)
-                        {
-                           rval = os->write("\n", 1);
-                        }
-                     }
+                     rval = os->write(",", 1);
+                  }
+                  
+                  // add formatting if appropriate
+                  if(rval && !mCompact)
+                  {
+                     rval = os->write("\n", 1);
                   }
                }
-               rval = writeIndentation(os, level);
-               if(rval)
-               {
-                  rval = os->write("]", 1);
-               }
+               
+               // end array serialization
+               rval = writeIndentation(os, level) && os->write("]", 1);
             }
             break;
       }
