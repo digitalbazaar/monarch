@@ -167,8 +167,15 @@ public:
    /**
     * Adds an EventId tap for the given EventId. This means that when events
     * are dispatched to Observers registered with the passed "id" they will
-    * also be dispatched to Observers with the passed "tap". Taps can be
-    * shared amongst multiple EventIds.
+    * also be dispatched to Observers with the passed "tap".
+    * 
+    * Multiple EventIds can be "tapped" by the same tap. For example, EventId
+    * 1 and EventId 2 can have EventId 3 added as a tap to each of them using
+    * addTap(1, 3) and addTap(2, 3). Given this scenario, if an event is
+    * scheduled with EventId 1, it will be sent to the Observers of EventIds
+    * 1 and 3. If an event is scheduled with EventId 2, it will be sent to
+    * the Observers of EventIds 2 and 3. If an event is scheduled with EventId
+    * 3, it will only be scheduled with the Observers of EventId 3.
     * 
     * @param id the EventId to add a tap to.
     * @param tap the EventId tap to add to the passed EventId.
