@@ -42,7 +42,6 @@ bool JsonWriter::writeIndentation(OutputStream* os, int level)
 bool JsonWriter::write(DynamicObject dyno, OutputStream* os, int level)
 {
    bool rval = true;
-   DynamicObjectIterator i;
 
    if(level < 0)
    {
@@ -105,7 +104,7 @@ bool JsonWriter::write(DynamicObject dyno, OutputStream* os, int level)
                            csub = "\\t";
                            break;
                         default:
-                           snprintf(ucsub, 6, "\\u%4x", c);
+                           snprintf(ucsub, 6, "\\u%04x", c);
                            csub = ucsub;
                            // FIXME other utf-8/16/32, surrugate pairs, etc
                            break;
@@ -135,90 +134,94 @@ bool JsonWriter::write(DynamicObject dyno, OutputStream* os, int level)
             }
             break;
          case Map:
-            i = dyno.getIterator();
-            if(mCompact)
             {
-               rval = os->write("{", 1);
-            }
-            else
-            {
-               rval = os->write("{\n", 2);
-            }
-            while(rval && i->hasNext())
-            {
-               rval = writeIndentation(os, level + 1);
-               if(rval)
+               DynamicObjectIterator i = dyno.getIterator();
+               if(mCompact)
                {
-                  DynamicObject next = i->next();
-                  rval = os->write("\"", 1);
+                  rval = os->write("{", 1);
+               }
+               else
+               {
+                  rval = os->write("{\n", 2);
+               }
+               while(rval && i->hasNext())
+               {
+                  rval = writeIndentation(os, level + 1);
                   if(rval)
                   {
-                     rval = os->write(i->getName(), strlen(i->getName()));
+                     DynamicObject next = i->next();
+                     rval = os->write("\"", 1);
                      if(rval)
                      {
-                        if(mCompact)
-                        {
-                           rval = os->write("\":", 2);
-                        }
-                        else
-                        {
-                           rval = os->write("\" : ", 4);
-                        }
+                        rval = os->write(i->getName(), strlen(i->getName()));
                         if(rval)
                         {
-                           rval = write(next, os, level + 1);
-                           if(rval && i->hasNext())
+                           if(mCompact)
                            {
-                              rval = os->write(",", 1);
+                              rval = os->write("\":", 2);
                            }
-                           if(rval && !mCompact)
+                           else
                            {
-                              rval = os->write("\n", 1);
+                              rval = os->write("\" : ", 4);
+                           }
+                           if(rval)
+                           {
+                              rval = write(next, os, level + 1);
+                              if(rval && i->hasNext())
+                              {
+                                 rval = os->write(",", 1);
+                              }
+                              if(rval && !mCompact)
+                              {
+                                 rval = os->write("\n", 1);
+                              }
                            }
                         }
                      }
                   }
                }
-            }
-            rval = writeIndentation(os, level);
-            if(rval)
-            {
-               rval = os->write("}", 1);
+               rval = writeIndentation(os, level);
+               if(rval)
+               {
+                  rval = os->write("}", 1);
+               }
             }
             break;
          case Array:
-            i = dyno.getIterator();
-            if(mCompact)
             {
-               rval = os->write("[", 1);
-            }
-            else
-            {
-               rval = os->write("[\n", 2);
-            }
-            while(rval && i->hasNext())
-            {
-               rval = writeIndentation(os, level + 1);
-               if(rval)
+               DynamicObjectIterator i = dyno.getIterator();
+               if(mCompact)
                {
-                  rval = write(i->next(), os, level + 1);
+                  rval = os->write("[", 1);
+               }
+               else
+               {
+                  rval = os->write("[\n", 2);
+               }
+               while(rval && i->hasNext())
+               {
+                  rval = writeIndentation(os, level + 1);
                   if(rval)
                   {
-                     if(rval && i->hasNext())
+                     rval = write(i->next(), os, level + 1);
+                     if(rval)
                      {
-                        rval = os->write(",", 1);
-                     }
-                     if(rval && !mCompact)
-                     {
-                        rval = os->write("\n", 1);
+                        if(rval && i->hasNext())
+                        {
+                           rval = os->write(",", 1);
+                        }
+                        if(rval && !mCompact)
+                        {
+                           rval = os->write("\n", 1);
+                        }
                      }
                   }
                }
-            }
-            rval = writeIndentation(os, level);
-            if(rval)
-            {
-               rval = os->write("]", 1);
+               rval = writeIndentation(os, level);
+               if(rval)
+               {
+                  rval = os->write("]", 1);
+               }
             }
             break;
       }
