@@ -24,39 +24,62 @@ Observable::~Observable()
    stop();
 }
 
+void Observable::dispatchEvent(Event e)
+{
+   // go through the list of EventId taps
+   EventId id = e["id"]->getUInt64(); 
+   EventIdMap::iterator ti = mTaps.find(id);
+   if(ti != mTaps.end())
+   {
+      // create an operation list and vector for storing event dispatchers
+      OperationList opList;
+      EventDispatcherList edList;
+      
+      EventIdMap::iterator end = mTaps.upper_bound(id);
+      for(; ti != end; ti++)
+      {
+         // go through the list of observers for the EventId tap
+         ObserverMap::iterator oi = mObservers.find(ti->second);
+         if(oi != mObservers.end())
+         {
+            ObserverMap::iterator oend = mObservers.upper_bound(ti->second);
+            for(; oi != oend; oi++)
+            {
+               // create and run event dispatcher for each observable
+               EventDispatcher* ed = new EventDispatcher(oi->second, &e);
+               Operation op = mOpRunner->createOperation(ed, NULL, NULL);
+               mOpRunner->runOperation(op);
+               opList.add(op);
+               edList.push_back(ed);
+            }
+         }
+      }
+      
+      // unlock, wait for dispatch operations to complete, relock
+      unlock();
+      opList.waitFor();
+      opList.prune();
+      lock();
+      
+      // clean up event dispatchers
+      for(EventDispatcherList::iterator i = edList.begin();
+          i != edList.end(); i++)
+      {
+         delete *i;
+      }
+   }
+}
+
 void Observable::dispatchEvents()
 {
    lock();
    {
-      // create an OperationList
-      OperationList opList;
-      
-      // create array of event dispatchers
-      EventDispatcher eds[mObservers.size()];
-      
-      while(mEventQueue.size() > 0)
+      while(!mEventQueue.empty())
       {
-         // get the next event
+         // dispatch the next event
          Event e = mEventQueue.front();
          mEventQueue.pop_front();
-         
-         // create and run operations for each observable
-         int count = 0;
-         for(ObserverList::iterator i = mObservers.begin();
-             i != mObservers.end(); i++, count++)
-         {
-            eds[count].observer = *i;
-            eds[count].event = e;
-            Operation op = mOpRunner->createOperation(&eds[count], NULL, NULL);
-            mOpRunner->runOperation(op);
-            opList.add(op);
-         }
-         
-         // wait for dispatch operations to complete (unlock/relock as well)
-         unlock();
-         opList.waitFor();
-         opList.prune();
-         lock();
+         dispatchEvent(e);
       }
       
       // turn off dispatching
@@ -65,38 +88,117 @@ void Observable::dispatchEvents()
    unlock();
 }
 
-void Observable::registerObserver(Observer* observer)
+void Observable::registerObserver(Observer* observer, EventId id)
 {
    lock();
    {
-      mObservers.push_back(observer);
+      // add tap to self if EventId doesn't exist yet
+      EventIdMap::iterator i = mTaps.find(id);
+      if(i == mTaps.end())
+      {
+         mTaps.insert(make_pair(id, id));
+      }
+      
+      // add observer
+      mObservers.insert(make_pair(id, observer));
    }
    unlock();
 }
 
-void Observable::unregisterObserver(Observer* observer)
+void Observable::unregisterObserver(Observer* observer, EventId id)
 {
    lock();
    {
-      mObservers.remove(observer);
+      ObserverMap::iterator i = mObservers.find(id);
+      if(i != mObservers.end())
+      {
+         ObserverMap::iterator end = mObservers.upper_bound(id);
+         for(; i != end; i++)
+         {
+            if(i->second == observer)
+            {
+               // remove observer and break
+               mObservers.erase(i);
+               break;
+            }
+         }
+      }
    }
    unlock();
 }
 
-void Observable::schedule(Event e)
+void Observable::addTap(EventId id, EventId tap)
 {
    lock();
    {
-      // lock to set dispatch condition
-      mDispatchLock.lock();
-      mDispatch = true;
+      // add tap to id-self if EventId doesn't exist yet
+      EventIdMap::iterator i = mTaps.find(id);
+      if(i == mTaps.end())
+      {
+         mTaps.insert(make_pair(id, id));
+      }
       
-      // add event to event queue
-      mEventQueue.push_back(e);
+      // insert tap for id
+      mTaps.insert(make_pair(id, tap));
       
-      // notify on dispatch lock and release
-      mDispatchLock.notifyAll();
-      mDispatchLock.unlock();
+      // add tap to tap-self if EventId doesn't exist yet
+      i = mTaps.find(tap);
+      if(i == mTaps.end())
+      {
+         mTaps.insert(make_pair(tap, tap));
+      }
+   }
+   unlock();
+}
+
+void Observable::removeTap(EventId id, EventId tap)
+{
+   lock();
+   {
+      // look for tap in the range of taps
+      EventIdMap::iterator i = mTaps.find(id);
+      if(i != mTaps.end())
+      {
+         EventIdMap::iterator end = mTaps.upper_bound(id);
+         for(; i != end; i++)
+         {
+            if(i->second == tap)
+            {
+               // remove tap and break
+               mTaps.erase(i);
+               break;
+            }
+         }
+      }
+   }
+   unlock();
+}
+
+void Observable::schedule(Event e, EventId id, bool async)
+{
+   lock();
+   {
+      // set the event's ID
+      e["id"] = id;
+      
+      if(async)
+      {
+         // lock to set dispatch condition
+         mDispatchLock.lock();
+         mDispatch = true;
+         
+         // add event to event queue
+         mEventQueue.push_back(e);
+         
+         // notify on dispatch lock and release
+         mDispatchLock.notifyAll();
+         mDispatchLock.unlock();
+      }
+      else
+      {
+         // dispatch the event immediately
+         dispatchEvent(e);
+      }
    }
    unlock();
 }

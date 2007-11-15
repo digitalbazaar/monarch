@@ -8,6 +8,7 @@
 #include "db/event/Observer.h"
 
 #include <list>
+#include <map>
 
 namespace db
 {
@@ -21,8 +22,26 @@ namespace event
  * 
  * Observers will receive events in the same order that they were generated.
  * The events are also dispatched "semi-simultaneously," meaning that multiple
- * threads are used to dispatch the events to the Observers in the order that
- * the Observers were registered with the Observable.
+ * threads are used to dispatch the events to the Observers.
+ * 
+ * Events and Observers are associated with EventIds such that when an Event
+ * is sent out, it will be sent out to all Observers that are registered with
+ * the EventId it was sent out along with. EventIds can also be associated
+ * with one another by creating "taps" such that, when an Event is scheduled
+ * with one EventId, the Observers of another EventId will "tap" into its
+ * distribution and receive it as well.
+ * 
+ * For instance, two Observers could register for Events. The first could
+ * register for Events with EventId 1 and the second could register for
+ * Events with EventId 2. Then EventId 2 could be added as a "tap" for
+ * EventId 1 such that when Events with EventId 1 are sent, they are also sent
+ * to the Observers of EventId 2. Then the first Observer will only get
+ * Events sent with EventId 1, but the second will receive events sent with
+ * EventId 1 or EventId 2.
+ * 
+ * Multiple taps may be added for any EventId. No checking is made to ensure
+ * that Observers do not receive "double" events due to a poorly created
+ * system of taps or due to registration under both a tap and its tapee.
  * 
  * @author Dave Longley
  */
@@ -36,15 +55,20 @@ protected:
    {
    public:
       Observer* observer;
-      Event event;
+      Event* event;
       
-      EventDispatcher() {}
+      EventDispatcher(Observer* o, Event* e)
+      {
+         observer = o;
+         event = e;
+      }
+      
       virtual ~EventDispatcher() {}
       
       virtual void run()
       {
          // notify observer of event
-         observer->eventOccurred(event);
+         observer->eventOccurred(*event);
       }
    };
    
@@ -55,10 +79,22 @@ protected:
    EventQueue mEventQueue;
    
    /**
-    * The list of registered Observers.
+    * A multimap of EventIds to their taps. EventIds are always taps to
+    * themselves.
     */
-   typedef std::list<Observer*> ObserverList;
-   ObserverList mObservers;
+   typedef std::multimap<EventId, EventId> EventIdMap;
+   EventIdMap mTaps;
+   
+   /**
+    * The map of EventIds to registered Observers.
+    */
+   typedef std::multimap<EventId, Observer*> ObserverMap;
+   ObserverMap mObservers;
+   
+   /**
+    * The typedef for a list that stores EventDispatchers.
+    */
+   typedef std::vector<EventDispatcher*> EventDispatcherList;
    
    /**
     * The OperationRunner for running operations.
@@ -82,6 +118,15 @@ protected:
    db::rt::Object mDispatchLock;
    
    /**
+    * Dispatches a single event to all associated Observers and waits
+    * for them to finish processing the event. This method assumes that
+    * a lock on this Observable as been acquired before it has been called.
+    * 
+    * @param e the Event to dispatch.
+    */
+   virtual void dispatchEvent(Event e);
+   
+   /**
     * Dispatches the events in the event queue to all registered Observers.
     */
    virtual void dispatchEvents();
@@ -98,29 +143,59 @@ public:
    virtual ~Observable();
    
    /**
-    * Registers an Observer with this Observable. The Observer will immediately
-    * begin to receive to events from this Observable.
+    * Registers an Observer with this Observable for the given EventId. The
+    * Observer will immediately begin to receive to events from this
+    * Observable that are sent out using the given EventId.
     * 
     * @param observer the Observer to register.
+    * @param id the EventId for the events to receive.
     */
-   virtual void registerObserver(Observer* observer);
+   virtual void registerObserver(Observer* observer, EventId id);
    
    /**
-    * Unregisters an Observer from this Observable. The Observer will no
-    * longer receive events from this Observable. There may be some residual
-    * events that the Observer receives because they were enroute, but no
-    * new events will be dispatched to the Observer.
+    * Unregisters an Observer from this Observable for the given EventId. The
+    * Observer will no longer receive events from this Observable that are
+    * sent out using the given EventId. There may be some residual events that
+    * the Observer receives because they were enroute, but no new events
+    * with the passed EventId will be dispatched to the Observer.
     * 
     * @param observer the Observer to unregister.
+    * @param id the EventId for the events to unregister from.
     */
-   virtual void unregisterObserver(Observer* observer);
+   virtual void unregisterObserver(Observer* observer, EventId id);
    
    /**
-    * Schedules an Event for dispatch.
+    * Adds an EventId tap for the given EventId. This means that when events
+    * are dispatched to Observers registered with the passed "id" they will
+    * also be dispatched to Observers with the passed "tap". Taps can be
+    * shared amongst multiple EventIds.
+    * 
+    * @param id the EventId to add a tap to.
+    * @param tap the EventId tap to add to the passed EventId.
+    */
+   virtual void addTap(EventId id, EventId tap);
+   
+   /**
+    * Removes an EventId tap for the given EventId.
+    * 
+    * @param id the EventId to remove a tap from.
+    * @param tap the EventId tap to remove from the passed EventId.
+    */
+   virtual void removeTap(EventId id, EventId tap);
+   
+   /**
+    * Schedules an Event for dispatch. The Event can be dispatched
+    * asynchronously, or synchronously. If it is sent synchronously then
+    * it will be dispatched immediately, blocking the current thread until
+    * it is has been processed by all associated Observers.
+    * 
+    * By default, events will be scheduled for asynchronous dispatch.
     * 
     * @param e the Event to schedule.
+    * @param id the EventId for the Event.
+    * @param async true for asynchronous dispatch, false for synchronous.
     */
-   virtual void schedule(Event e);
+   virtual void schedule(Event e, EventId id, bool async = true);
    
    /**
     * Starts this Observable. This causes this Observable to start dispatching

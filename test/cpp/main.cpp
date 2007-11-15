@@ -5648,20 +5648,24 @@ public:
    int event1;
    int event2;
    int event3;
+   int event4;
    
    ObserverDelegate<TestObserver> delegate1;
    ObserverDelegate<TestObserver> delegate2;
    ObserverDelegate<TestObserver> delegate3;
+   ObserverDelegate<TestObserver> delegate4;
    
    TestObserver() :
       delegate1(this, &TestObserver::handleEvent1),
       delegate2(this, &TestObserver::handleEvent2),
-      delegate3(this, &TestObserver::handleEvent3)
+      delegate3(this, &TestObserver::handleEvent3),
+      delegate4(this, &TestObserver::handleEvent4)
    {
       events = 0;
       event1 = 0;
       event2 = 0;
       event3 = 0;
+      event4 = 0;
    }
    
    virtual ~TestObserver()
@@ -5687,6 +5691,18 @@ public:
    {
       event3++;
    }
+   
+   virtual void handleEvent4(Event e)
+   {
+      if(e["id"]->getUInt64() == 3)
+      {
+         event3++;
+      }
+      else if(e["id"]->getUInt64() == 4)
+      {
+         event4++;
+      }
+   }
 };
 
 void runEventTest(TestRunner& tr)
@@ -5702,7 +5718,7 @@ void runEventTest(TestRunner& tr)
    TestObserver observer;
    
    // register observer and start observable
-   observable.registerObserver(&observer);
+   observable.registerObserver(&observer, 1);
    observable.start(&k);
    
    // create and schedule events
@@ -5712,9 +5728,9 @@ void runEventTest(TestRunner& tr)
    e1["name"] = "Event1";
    e2["name"] = "Event2";
    e3["name"] = "Event3";
-   observable.schedule(e1);
-   observable.schedule(e2);
-   observable.schedule(e3);
+   observable.schedule(e1, 1);
+   observable.schedule(e2, 1);
+   observable.schedule(e3, 1);
    
    // wait for a second
    Thread::sleep(1000);
@@ -5738,42 +5754,42 @@ void runObserverDelegateTest(TestRunner& tr)
    Kernel k;
    k.getEngine()->start();
    
-   // create observables and observer
-   Observable observable1;
-   Observable observable2;
-   Observable observable3;
+   // create observable and observers
+   Observable observable;
    TestObserver observer;
    
-   // register observer and start observables
-   observable1.registerObserver(&observer.delegate1);
-   observable2.registerObserver(&observer.delegate2);
-   observable3.registerObserver(&observer.delegate3);
-   observable1.start(&k);
-   observable2.start(&k);
-   observable3.start(&k);
+   // register observers and start observable
+   observable.registerObserver(&observer.delegate1, 1);
+   observable.registerObserver(&observer.delegate2, 2);
+   observable.registerObserver(&observer.delegate3, 3);
+   observable.registerObserver(&observer.delegate4, 4);
+   observable.addTap(3, 4);
+   observable.start(&k);
    
    // create and schedule events
    Event e1;
    Event e2;
    Event e3;
+   Event e4;
    e1["name"] = "Event1";
    e2["name"] = "Event2";
    e3["name"] = "Event3";
-   observable1.schedule(e1);
-   observable2.schedule(e2);
-   observable3.schedule(e3);
+   e4["name"] = "Event4";
+   observable.schedule(e1, 1);
+   observable.schedule(e2, 2);
+   observable.schedule(e3, 3);
+   observable.schedule(e4, 4);
    
    // wait for a second
    Thread::sleep(1000);
    
    assert(observer.event1 == 1);
    assert(observer.event2 == 1);
-   assert(observer.event3 == 1);
+   assert(observer.event3 == 2);
+   assert(observer.event4 == 1);
    
-   // stop observables
-   observable1.stop();
-   observable2.stop();
-   observable3.stop();
+   // stop observable
+   observable.stop();
    
    // stop kernel engine
    k.getEngine()->stop();

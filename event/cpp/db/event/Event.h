@@ -16,9 +16,12 @@ namespace event
  * significant occurs. An Event may be dispatched to the Observable's
  * registered Observers so they can take whatever action they deem appropriate.
  * 
+ * Event["id"] is reserved and will refer to an EventId for the Event.
+ * 
  * @author Dave Longley
  */
 typedef db::util::DynamicObject Event;
+typedef unsigned long long EventId;
 
 } // end namespace event
 } // end namespace db
