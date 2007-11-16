@@ -480,6 +480,40 @@ DynamicObject DynamicObjectImpl::removeMember(const char* name)
    return rval;
 }
 
+void DynamicObjectImpl::clear()
+{
+   switch(mType)
+   {
+      case String:
+         *this = "";
+         break;
+      case Boolean:
+         *this = false;
+         break;
+      case Int32:
+         *this = (int)0;;
+         break;
+      case UInt32:
+         *this = (unsigned int)0;
+         break;
+      case Int64:
+         *this = (long long)0;
+         break;
+      case UInt64:
+         *this = (unsigned long long)0;
+         break;
+      case Double:
+         *this = (double)0.0;
+         break;
+      case Map:
+         mMap->clear();
+         break;
+      case Array:
+         mArray->clear();
+         break;
+   }
+}
+
 int DynamicObjectImpl::length()
 {
    int rval = 0;

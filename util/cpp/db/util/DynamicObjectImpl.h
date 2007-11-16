@@ -262,6 +262,14 @@ public:
    virtual DynamicObject removeMember(const char* name);
    
    /**
+    * Clear associated data.
+    * Maps and Arrays: remove all items.
+    * Strings: set to "".
+    * Numbers: set to 0.
+    */
+   virtual void clear();
+   
+   /**
     * Gets the length of this object based on its type.
     * 
     * String length = number of characters in the string.
