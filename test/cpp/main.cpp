@@ -6199,6 +6199,24 @@ void runConfigManagerTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("bigger array changes");
+   {
+      ConfigManager cm;
+      DynamicObject a;
+      a[0] = 10;
+      a[1] = 11;
+      cm.addConfig(a);
+      cm.getConfig()[2] = 22;
+      DynamicObject expect;
+      expect[0] = "__default__";
+      expect[1] = "__default__";
+      expect[2] = 22;
+      DynamicObject changes;
+      cm.getChanges(changes);
+      assert(changes == expect);
+   }
+   tr.passIfNoException();
+
    tr.test("default value");
    {
       ConfigManager cm;
