@@ -470,7 +470,7 @@ DynamicObject DynamicObjectImpl::removeMember(const char* name)
       ObjectMap::iterator i = mMap->find(name);
       if(i != mMap->end())
       {
-         // remove key and entry
+         // clean up key and remove map entry
          delete [] i->first;
          rval = i->second;
          mMap->erase(i);
@@ -491,7 +491,7 @@ void DynamicObjectImpl::clear()
          *this = false;
          break;
       case Int32:
-         *this = (int)0;;
+         *this = (int)0;
          break;
       case UInt32:
          *this = (unsigned int)0;
