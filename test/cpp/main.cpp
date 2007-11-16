@@ -5733,7 +5733,6 @@ public:
    
    virtual void eventOccurred(Event e)
    {
-      cout << e["type"]->getString() << "-" << e["id"]->getUInt64() << endl;
       events++;
    }
    
@@ -5882,9 +5881,6 @@ void runEventControllerTest(TestRunner& tr)
    ec.registerObserver(&observer.delegate4, types);
    
    types[0] = "event1";
-   /*types[1] = "event2";
-   types[2] = "event3";
-   types[3] = "event4";*/
    ec.registerObserver(&observer, types);
    
    // add parent events
@@ -5913,7 +5909,6 @@ void runEventControllerTest(TestRunner& tr)
    Thread::sleep(1000);
    
    // check messages
-   cout << observer.events << endl;
    assert(observer.events == 4);
    assert(observer.event1 == 4);
    assert(observer.event2 == 1);
@@ -6405,7 +6400,7 @@ public:
       // db::event tests
       runEventTest(tr);
       runObserverDelegateTest(tr);
-      //runEventControllerTest(tr);
+      runEventControllerTest(tr);
       
       // db::mail tests
       //runSmtpClientTest(tr);
