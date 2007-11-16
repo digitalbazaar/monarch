@@ -143,6 +143,11 @@ bool DynamicObject::operator==(const DynamicObject& rhs)
    return rval;
 }
 
+bool DynamicObject::operator!=(const DynamicObject& rhs)
+{
+   return !(*this == rhs);
+}
+
 void DynamicObject::operator=(const char* value)
 {
    *mReference->ptr = value;
