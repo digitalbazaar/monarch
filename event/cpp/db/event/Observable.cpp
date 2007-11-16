@@ -2,7 +2,6 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/event/Observable.h"
-#include "db/modest/OperationList.h"
 
 using namespace std;
 using namespace db::event;
@@ -24,37 +23,56 @@ Observable::~Observable()
    stop();
 }
 
-void Observable::dispatchEvent(Event e)
+void Observable::dispatchEvent(
+   Event& e, EventId id, OperationList& opList, EventDispatcherList& edList)
 {
    // go through the list of EventId taps
-   EventId id = e["id"]->getUInt64(); 
    EventIdMap::iterator ti = mTaps.find(id);
    if(ti != mTaps.end())
    {
-      // create an operation list and vector for storing event dispatchers
-      OperationList opList;
-      EventDispatcherList edList;
-      
       EventIdMap::iterator end = mTaps.upper_bound(id);
       for(; ti != end; ti++)
       {
-         // go through the list of observers for the EventId tap
-         ObserverMap::iterator oi = mObservers.find(ti->second);
-         if(oi != mObservers.end())
+         // dispatch event if the tap is the EventId itself
+         if(ti->second == id)
          {
-            ObserverMap::iterator oend = mObservers.upper_bound(ti->second);
-            for(; oi != oend; oi++)
+            // go through the list of observers for the EventId tap
+            ObserverMap::iterator oi = mObservers.find(id);
+            if(oi != mObservers.end())
             {
-               // create and run event dispatcher for each observable
-               EventDispatcher* ed = new EventDispatcher(oi->second, &e);
-               Operation op = mOpRunner->createOperation(ed, NULL, NULL);
-               mOpRunner->runOperation(op);
-               opList.add(op);
-               edList.push_back(ed);
+               ObserverMap::iterator oend = mObservers.upper_bound(id);
+               for(; oi != oend; oi++)
+               {
+                  // create and run event dispatcher for each observable
+                  EventDispatcher* ed = new EventDispatcher(oi->second, &e);
+                  Operation op = mOpRunner->createOperation(ed, NULL, NULL);
+                  mOpRunner->runOperation(op);
+                  opList.add(op);
+                  edList.push_back(ed);
+               }
             }
          }
+         else
+         {
+            // dispatch event to tap
+            dispatchEvent(e, ti->second, opList, edList);
+         }
       }
-      
+   }
+}
+
+void Observable::dispatchEvent(Event& e)
+{
+   // create an operation list and vector for storing event dispatchers
+   OperationList opList;
+   EventDispatcherList edList;
+   
+   // get the EventId for the event and dispatch it
+   EventId id = e["id"]->getUInt64();
+   dispatchEvent(e, id, opList, edList);
+   
+   if(!edList.empty())
+   {
       // unlock, wait for dispatch operations to complete, relock
       unlock();
       opList.waitFor();

@@ -4,6 +4,7 @@
 #ifndef db_event_Observable_H
 #define db_event_Observable_H
 
+#include "db/modest/OperationList.h"
 #include "db/modest/OperationRunner.h"
 #include "db/event/Observer.h"
 
@@ -118,13 +119,26 @@ protected:
    db::rt::Object mDispatchLock;
    
    /**
+    * A recursive helper function for dispatching a single event to all
+    * associated Observers.
+    * 
+    * @param e the Event to dispatch.
+    * @param id the EventId to dispatch it under.
+    * @param opList the OperationList to store the event-handling Operation.
+    * @param edList the EventDispatcherList to store any EventDispatchers.
+    */
+   virtual void dispatchEvent(
+      Event& e, EventId id,
+      db::modest::OperationList& opList, EventDispatcherList& edList);
+   
+   /**
     * Dispatches a single event to all associated Observers and waits
     * for them to finish processing the event. This method assumes that
     * a lock on this Observable as been acquired before it has been called.
     * 
     * @param e the Event to dispatch.
     */
-   virtual void dispatchEvent(Event e);
+   virtual void dispatchEvent(Event& e);
    
    /**
     * Dispatches the events in the event queue to all registered Observers.
