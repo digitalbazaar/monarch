@@ -36,7 +36,7 @@ FIND_CPP = $(wildcard $(dir)/*.cpp)
 MODGROUP = db
 
 # All modules
-MODULES = rt modest util io crypto net data sql event mail test #logging
+MODULES = rt modest util io crypto net data sql event mail test config #logging
 
 # All executables
 EXES = maintest
@@ -77,7 +77,8 @@ test_MODLIBS = rt sql
 
 maintest_DIR = test
 maintest_EXE = test.exe
-maintest_MODLIBS = rt modest util io crypto net data sql event mail test #logging
+maintest_MODLIBS = rt modest util io crypto net data sql event mail test \
+	config #logging
 maintest_SOURCES = main
 maintest_LIBS = pthread crypto ssl expat sqlite3 mysqlclient
 
