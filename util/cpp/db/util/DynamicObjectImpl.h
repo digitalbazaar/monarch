@@ -262,8 +262,8 @@ public:
    virtual DynamicObject removeMember(const char* name);
    
    /**
-    * Clear associated data.
-    * Maps and Arrays: remove all items.
+    * Clears associated data.
+    * Maps and Arrays: removes all items.
     * Strings: set to "".
     * Numbers: set to 0.
     */
