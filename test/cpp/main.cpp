@@ -76,6 +76,7 @@
 #include "db/sql/util/DatabaseClient.h"
 #include "db/event/Observable.h"
 #include "db/event/ObserverDelegate.h"
+#include "db/event/EventController.h"
 //#include "db/logging/Logger.h"
 //#include "db/logging/OutputStreamLogger.h"
 //#include "db/logging/FileLogger.h"
@@ -5732,6 +5733,7 @@ public:
    
    virtual void eventOccurred(Event e)
    {
+      cout << e["type"]->getString() << "-" << e["id"]->getUInt64() << endl;
       events++;
    }
    
@@ -5848,6 +5850,78 @@ void runObserverDelegateTest(TestRunner& tr)
    
    // stop observable
    observable.stop();
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   tr.pass();
+}
+
+void runEventControllerTest(TestRunner& tr)
+{
+   tr.test("EventController");
+   
+   // create kernel and start engine
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create event controller
+   EventController ec;
+   
+   // create observers
+   TestObserver observer;
+   
+   DynamicObject types;
+   types[0] = "event1";
+   ec.registerObserver(&observer.delegate1, types);
+   types[0] = "event2";
+   ec.registerObserver(&observer.delegate2, types);
+   types[0] = "event3";
+   ec.registerObserver(&observer.delegate3, types);
+   types[0] = "event4";
+   ec.registerObserver(&observer.delegate4, types);
+   
+   types[0] = "event1";
+   /*types[1] = "event2";
+   types[2] = "event3";
+   types[3] = "event4";*/
+   ec.registerObserver(&observer, types);
+   
+   // add parent events
+   ec.addParent("event2", "event1");
+   ec.addParent("event3", "event1");
+   ec.addParent("event4", "event3");
+   
+   // start event controller
+   ec.start(&k);
+   
+   // create and schedule events
+   Event e1;
+   Event e2;
+   Event e3;
+   Event e4;
+   e1["type"] = "event1";
+   e2["type"] = "event2";
+   e3["type"] = "event3";
+   e4["type"] = "event4";
+   ec.schedule(e1);
+   ec.schedule(e2);
+   ec.schedule(e3);
+   ec.schedule(e4);
+   
+   // wait for a second
+   Thread::sleep(1000);
+   
+   // check messages
+   cout << observer.events << endl;
+   assert(observer.events == 4);
+   assert(observer.event1 == 4);
+   assert(observer.event2 == 1);
+   assert(observer.event3 == 2);
+   assert(observer.event4 == 1);
+   
+   // stop event controller
+   ec.stop();
    
    // stop kernel engine
    k.getEngine()->stop();
@@ -6331,6 +6405,7 @@ public:
       // db::event tests
       runEventTest(tr);
       runObserverDelegateTest(tr);
+      //runEventControllerTest(tr);
       
       // db::mail tests
       //runSmtpClientTest(tr);
@@ -6405,6 +6480,7 @@ public:
 //      runDatabaseClientTest();
 //      runEventTest(tr);
 //      runObserverDelegateTest(tr);
+//      runEventControllerTest(tr);
 //      runLoggerTest();
 //      runUniqueListTest();
 //      runFileTest();

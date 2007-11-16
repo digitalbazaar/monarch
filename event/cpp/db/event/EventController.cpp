@@ -21,7 +21,7 @@ EventController::~EventController()
 
 void EventController::assignEventId(const char* eventType)
 {
-   if(mTypeMap->hasMember(eventType))
+   if(!mTypeMap->hasMember(eventType))
    {
       // event type not assigned an event id, create one & increment
       mTypeMap[eventType] = mNextEventId++;
@@ -39,7 +39,7 @@ void EventController::registerObserver(
       assignEventId(type->getString());
       
       // register the observer
-      mObservable.registerObserver(
+      Observable::registerObserver(
          observer, mTypeMap[type->getString()]->getUInt64());
    }
 }
@@ -51,7 +51,7 @@ void EventController::unregisterObserver(
    while(index->hasNext())
    {
       DynamicObject type = index->next();
-      mObservable.unregisterObserver(
+      Observable::unregisterObserver(
          observer, mTypeMap[type->getString()]->getUInt64());
    }
 }
@@ -61,7 +61,7 @@ void EventController::addParent(
 {
    if(mTypeMap->hasMember(parent) && mTypeMap->hasMember(child))
    {
-      mObservable.addTap(
+      Observable::addTap(
          mTypeMap[child]->getUInt64(), mTypeMap[parent]->getUInt64());
    }
 }
@@ -71,7 +71,7 @@ void EventController::removeParent(
 {
    if(mTypeMap->hasMember(parent) && mTypeMap->hasMember(child))
    {
-      mObservable.removeTap(
+      Observable::removeTap(
          mTypeMap[child]->getUInt64(), mTypeMap[parent]->getUInt64());
    }
 }
@@ -80,7 +80,7 @@ void EventController::schedule(Event& event)
 {
    if(mTypeMap->hasMember(event["type"]->getString()))
    {
-      mObservable.schedule(
+      Observable::schedule(
          event, mTypeMap[event["type"]->getString()]->getUInt64());
    }
 }

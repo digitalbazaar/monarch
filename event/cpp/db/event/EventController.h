@@ -17,18 +17,13 @@ namespace event
  * 
  * @author Mike Johnson
  */
-class EventController
+class EventController : protected Observable
 {
 protected:
    /**
     * The map of types to event id.
     */
    db::util::DynamicObject mTypeMap;
-   
-   /**
-    * The Observable which will dispatch the events.
-    */
-   Observable mObservable;
    
    /**
     * The next event id to be assigned.
@@ -101,6 +96,20 @@ public:
     * @param event the event to schedule for dispatching to observers.
     */
    virtual void schedule(Event& event);
+   
+   /**
+    * Starts this Observable. This causes this Observable to start dispatching
+    * events to its registered Observers.
+    * 
+    * @param opRunner the OperationRunner to use to start this Observable.
+    */
+   using Observable::start;
+   
+   /**
+    * Stops this Observable. This causes this Observable to stop dispatching
+    * events to its registered Observers.
+    */
+   using Observable::stop;
 };
 
 } // end namespace event
