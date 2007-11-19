@@ -147,7 +147,9 @@ public:
    
    /**
     * Base64 decodes data. The passed base64-encoded string is transformed
-    * into a byte array of data.
+    * into a heap-allocated byte array of data.
+    * 
+    * The caller of this method must free the allocated data.
     *  
     * @param str the Base64-encoded string.
     * @param data a pointer to a byte array that will be set by this method.
