@@ -7,7 +7,7 @@
 using namespace std;
 using namespace db::util;
 
-const char Base64Codec::INDEX_TO_BASE64[] =
+const char Base64Codec::sIndexToBase64[] =
 {
    /*  0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12, */   
      'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
@@ -25,7 +25,7 @@ const char Base64Codec::INDEX_TO_BASE64[] =
      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
 };
 
-const int Base64Codec::BASE64_TO_INDEX[] =
+const short Base64Codec::sBase64ToIndex[] =
 {
    /* 43 -43 = 0*/  
    /* '+',  1,  2,  3,'/' */  
@@ -56,37 +56,32 @@ const int Base64Codec::BASE64_TO_INDEX[] =
        39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
 };
 
-int Base64Codec::charToInt(const char& c)
+short Base64Codec::charToShort(char c)
 {
-   int rval = -1;
-   
-   int index = c - 43;
-   rval = BASE64_TO_INDEX[index];
-   
-   return rval;
+   return sBase64ToIndex[c - 43];
 }
 
 void Base64Codec::encodeGroup(
    const char* data, unsigned int length, char* group)
 {
-   unsigned int b0 = data[0] & 0xff;
-   unsigned int b1 = (length > 1) ? data[1] & 0xff : 0;
-   unsigned int b2 = (length > 2) ? data[2] & 0xff : 0;
+   unsigned short b0 = data[0] & 0xff;
+   unsigned short b1 = (length > 1) ? data[1] & 0xff : 0;
+   unsigned short b2 = (length > 2) ? data[2] & 0xff : 0;
    
-   group[0] = INDEX_TO_BASE64[b0 >> 2];
-   group[1] = INDEX_TO_BASE64[(b0 << 4 | b1 >> 4) & 0x3f];
-   group[2] = (length > 1) ? INDEX_TO_BASE64[(b1 << 2 | b2 >> 6) & 0x3f] : '=';
-   group[3] = (length > 2) ? INDEX_TO_BASE64[b2 & 0x3f] : '='; 
+   group[0] = sIndexToBase64[b0 >> 2];
+   group[1] = sIndexToBase64[(b0 << 4 | b1 >> 4) & 0x3f];
+   group[2] = (length > 1) ? sIndexToBase64[(b1 << 2 | b2 >> 6) & 0x3f] : '=';
+   group[3] = (length > 2) ? sIndexToBase64[b2 & 0x3f] : '='; 
 }
 
 void Base64Codec::decodeGroup(
    const char* str, char* bytes, unsigned int& length)
 {
    // get 6-bit integer values
-   int index[4];
-   for(int i = 0; i < 4; i++)
+   short index[4];
+   for(short i = 0; i < 4; i++)
    {
-   	index[i] = charToInt(str[i]);
+   	index[i] = charToShort(str[i]);
    }
    
    // this byte will definitely be used, padding or not
@@ -119,7 +114,7 @@ void Base64Codec::decodeGroup(
 
 string Base64Codec::encode(const char* data, unsigned int length)
 {
-   string rval = "";
+   string rval;
    
    if(data != NULL && length > 0)
    {
@@ -155,7 +150,8 @@ string Base64Codec::encode(const char* data, unsigned int length)
          // if the line length is greater 76, then insert a line break
          if(lineLength + 4 > 76)
          {
-            rval.append("\r\n");
+            rval.push_back('\r');
+            rval.push_back('\n');
             lineLength = 0;
          }
          

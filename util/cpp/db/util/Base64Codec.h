@@ -90,7 +90,7 @@ protected:
     * Base64 encoding maps 6-bit (0-63) indices to alphanumeric characters.
     * This is the Base64 map.
     */
-   static const char INDEX_TO_BASE64[];
+   static const char sIndexToBase64[];
    
    /**
     * This is the reverse map that maps alphanumeric characters to
@@ -102,18 +102,18 @@ protected:
     * 
     * -1 is an invalid entry, -2 is the padding entry for '='.
     */
-   static const int BASE64_TO_INDEX[];
+   static const short sBase64ToIndex[];
 
 public:
    /**
-    * Converts a character into an integer (according to the
+    * Converts a character into a 16-bit integer (according to the
     * decoder map).
     * 
     * @param c the character to convert.
     * 
-    * @return the integer.
+    * @return the 16-bit integer.
     */
-   static int charToInt(const char& c);
+   static short charToShort(char c);
    
    /**
     * Encodes 3 bytes into 4 characters.

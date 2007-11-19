@@ -585,7 +585,7 @@ void runBase64Test(TestRunner& tr)
    }
    
    string encoded2 = Base64Codec::encode(decoded, 4);
-   assert(encoded2 == expected);
+   assert(strcmp(encoded2.c_str(), expected) == 0);
    
    if(decoded != NULL)
    {
