@@ -21,8 +21,12 @@ namespace config
  * merged config.  Configs are exposed as DynamicObjects.
  *
  * As you add configs they overlay previously added configs:
- * [config0, config1, config2, ...]
+ * [sys0, sys1, sys2, user0, sys3, ...]
  * <-- low priority -- high priority -->
+ *
+ * getChanges() will retrieve the difference between the system configs and
+ * the current config.  This allows for a preferences system to make it easy
+ * to save user changes.
  * 
  * @author David I. Lehn
  */
@@ -30,9 +34,14 @@ class ConfigManager : public virtual db::rt::Object
 {
 protected:
    /**
-    * Source configs.
+    * Pair to hold config and system flag.
     */
-   std::vector<db::util::DynamicObject> mConfigs;
+   typedef std::pair<db::util::DynamicObject, bool> ConfigPair;
+
+   /**
+    * Source configs and system/user flag.
+    */
+   std::vector<ConfigPair> mConfigs;
    
    /**
     * Merged configuration after update().  Read/Write access.
@@ -52,8 +61,10 @@ protected:
     * Merge all configs into target.
     * 
     * @param target destination to merge into.
+    * @param systemOnly only use system configs, not user configs
     */
-   void makeMergedConfig(db::util::DynamicObject& target);
+   void makeMergedConfig(db::util::DynamicObject& target,
+      bool systemOnly = true);
 
    /**
     * Compute the difference from dyno1 to dyno2 and store in diff.  Only
@@ -71,7 +82,7 @@ protected:
 
 public:
    /**
-    * Storage type for config ids
+    * Storage type for config ids.
     */
    typedef std::string::size_type ConfigId;
    
@@ -80,6 +91,18 @@ public:
     * Useful for arrays.
     */
    static const char* DEFAULT_VALUE;
+
+   /**
+    * Check if a configuration has all values and types from a template
+    * schema.
+    * 
+    * @param config configuration to check against the schema
+    * @param schema template values and types to verify
+    * 
+    * @return true on success, false on failure with exception set
+    */
+   static bool isValidConfig(
+      db::util::DynamicObject& config, db::util::DynamicObject& schema); 
    
    /**
     * Creates a new ConfigManager.
@@ -107,11 +130,13 @@ public:
     * Adds a DynamicObject configuration.
     * 
     * @param dyno a config
+    * @param system true if system config, false for user config
     * @param id location to store id of new config or NULL
     * 
     * @return true on success, false on failure and exception will be set.
     */
-   virtual bool addConfig(db::util::DynamicObject dyno, ConfigId* id = NULL);
+   virtual bool addConfig(db::util::DynamicObject& dyno,
+      bool system = true, ConfigId* id = NULL);
 
    /**
     * Remove a configuration.
@@ -140,7 +165,7 @@ public:
     * 
     * @return true on success, false on failure and exception will be set.
     */
-   virtual bool setConfig(ConfigId id, db::util::DynamicObject dyno);
+   virtual bool setConfig(ConfigId id, db::util::DynamicObject& dyno);
 
    /**
     * Update config from all current configs.  Update is called after
@@ -154,8 +179,10 @@ public:
     * read-write config.  Only records new or updated elements.
     *
     * @param target object to store changes to
+    * @param systemOnly only get changes between current and system configs
     */
-   virtual void getChanges(db::util::DynamicObject& target);
+   virtual void getChanges(db::util::DynamicObject& target,
+      bool systemOnly = true);
 };
 
 } // end namespace data

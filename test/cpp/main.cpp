@@ -6151,7 +6151,7 @@ void runConfigManagerTest(TestRunner& tr)
       c["c"] = 2;
       ConfigManager::ConfigId id;
       cm.addConfig(a);
-      cm.addConfig(b, &id);
+      cm.addConfig(b, true, &id);
       cm.addConfig(c);
       assert(cm.getConfig() == expect);
       DynamicObject expect2;
@@ -6188,7 +6188,7 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject a;
       a["a"] = 0;
       ConfigManager::ConfigId id;
-      cm.addConfig(a, &id);
+      cm.addConfig(a, true, &id);
       assert(cm.getConfig() == expect);
       DynamicObject expect2;
       expect2["b"] = 0;
@@ -6207,7 +6207,7 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject a;
       a["a"] = 0;
       ConfigManager::ConfigId id;
-      cm.addConfig(a, &id);
+      cm.addConfig(a, true, &id);
       assert(cm.getConfig() == expect);
       DynamicObject b;
       assert(cm.getConfig(id, b));
@@ -6286,6 +6286,47 @@ void runConfigManagerTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("system vs user changes");
+   {
+      ConfigManager cm;
+
+      // system
+      DynamicObject a;
+      a[0] = 10;
+      a[1] = 11;
+      cm.addConfig(a, true);
+
+      // user
+      DynamicObject b;
+      b[0] = 20;
+      b[1] = 21;
+      cm.addConfig(b, false);
+      
+      // custom
+      cm.getConfig()[1] = 31;
+
+      {
+         // Changes from system configs
+         DynamicObject expect;
+         expect[0] = 20;
+         expect[1] = 31;
+         DynamicObject changes;
+         cm.getChanges(changes);
+         assert(changes == expect);
+      }
+      
+      {
+         // Changes from system+user configs
+         DynamicObject expect;
+         expect[0] = "__default__";
+         expect[1] = 31;
+         DynamicObject changes;
+         cm.getChanges(changes, false);
+         assert(changes == expect);
+      }
+   }
+   tr.passIfNoException();
+
    tr.test("default value");
    {
       ConfigManager cm;
@@ -6322,6 +6363,47 @@ void runConfigManagerTest(TestRunner& tr)
       expect[2]["0"] = 120;
       expect[2]["1"] = 221;
       assert(cm.getConfig() == expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("schema check");
+   {
+      DynamicObject schema;
+      DynamicObject config;
+      assert(ConfigManager::isValidConfig(config, schema));
+      schema->setType(Map);
+      config->setType(Map);
+      assert(ConfigManager::isValidConfig(config, schema));
+      schema["s"] = "";
+      schema["i"] = 0;
+      config["s"] = "string";
+      config["i"] = 1;
+      assert(ConfigManager::isValidConfig(config, schema));
+      schema["m"]["s"] = "";
+      schema["m"]["s2"] = "";
+      schema["a"][0] = 0;
+      schema["a"][1] = 1;
+      config["m"]["s"] = "s";
+      config["m"]["s2"] = "s2";
+      config["a"][0] = 0;
+      config["a"][1] = 1;
+   }
+   tr.passIfNoException();
+
+   tr.test("schema check bad");
+   {
+      DynamicObject schema;
+      DynamicObject config;
+      assert(ConfigManager::isValidConfig(config, schema));
+      schema->setType(Map);
+      config->setType(Array);
+      assert(!ConfigManager::isValidConfig(config, schema));
+      config->setType(Map);
+      schema["s"] = "";
+      schema["i"] = 0;
+      config["s"] = 1;
+      config["i"] = "string";
+      assert(!ConfigManager::isValidConfig(config, schema));
    }
    tr.passIfNoException();
 

@@ -40,13 +40,13 @@ void ConfigManager::clear()
    unlock();
 }
 
-bool ConfigManager::addConfig(DynamicObject dyno, ConfigId *id)
+bool ConfigManager::addConfig(DynamicObject& dyno, bool system, ConfigId *id)
 {
    bool rval = true;
 
    lock();
    {
-      mConfigs.push_back(dyno);
+      mConfigs.push_back(ConfigPair(dyno, system));
       if(id != NULL)
       {
          *id = mConfigs.size() - 1;
@@ -64,9 +64,9 @@ bool ConfigManager::removeConfig(ConfigId id)
    
    lock();
    {
-      if(id > 0 && id < mConfigs.size())
+      if(id >= 0 && id < mConfigs.size())
       {
-         mConfigs[id] = DynamicObject(NULL);
+         mConfigs[id] = ConfigPair(DynamicObject(NULL), true);
          update();
          rval = true;
       }
@@ -88,7 +88,7 @@ bool ConfigManager::getConfig(ConfigId id, DynamicObject& dyno)
    if(id >= 0 && id < mConfigs.size())
    {
       rval = true;
-      dyno = mConfigs[id];
+      dyno = mConfigs[id].first;
    }
    else
    {
@@ -99,14 +99,14 @@ bool ConfigManager::getConfig(ConfigId id, DynamicObject& dyno)
    return rval;
 }
 
-bool ConfigManager::setConfig(ConfigId id, DynamicObject dyno)
+bool ConfigManager::setConfig(ConfigId id, DynamicObject& dyno)
 {
    bool rval = false;
    
    if(id >= 0 && id < mConfigs.size())
    {
       rval = true;
-      mConfigs[id] = dyno;
+      mConfigs[id].first = dyno;
       update();
    }
    else
@@ -161,17 +161,20 @@ void ConfigManager::merge(DynamicObject& target, DynamicObject& source)
    }
 }
 
-void ConfigManager::makeMergedConfig(DynamicObject& target)
+void ConfigManager::makeMergedConfig(DynamicObject& target, bool systemOnly)
 {
    lock();
    {
-      for(vector<DynamicObject>::iterator i = mConfigs.begin();
+      for(vector<ConfigPair>::iterator i = mConfigs.begin();
          i != mConfigs.end();
          i++)
       {
-         if(*i != NULL)
+         if((*i).first != NULL)
          {
-            merge(target, *i);
+            if(!systemOnly || (systemOnly && (*i).second))
+            {
+               merge(target, (*i).first);
+            }
          }
       }
    }
@@ -183,7 +186,7 @@ void ConfigManager::update()
    lock();
    {
       mConfig->clear();
-      makeMergedConfig(mConfig);
+      makeMergedConfig(mConfig, false);
    }
    unlock();
 }
@@ -223,7 +226,7 @@ bool ConfigManager::diff(DynamicObject& target,
          case UInt64:
          case Double:
             // compare simple types directly
-            if(!(dyno1 == dyno2))
+            if(dyno1 != dyno2)
             {
                // changed: diff=dyno2
                rval = true;
@@ -288,9 +291,90 @@ bool ConfigManager::diff(DynamicObject& target,
    return rval;
 }
 
-void ConfigManager::getChanges(DynamicObject& target)
+void ConfigManager::getChanges(DynamicObject& target, bool systemOnly)
 {
    DynamicObject original;
-   makeMergedConfig(original);
+   makeMergedConfig(original, systemOnly);
    diff(target, original, mConfig);
+}
+
+bool ConfigManager::isValidConfig(
+   db::util::DynamicObject& config, db::util::DynamicObject& schema)
+{
+   bool rval = false;
+   
+   if(schema == NULL)
+   {
+      // schema not specified, any config value is ok
+      rval = true;
+   }
+   else if(config != NULL && schema->getType() == config->getType())
+   {
+      // schema not null and types match, do deep compare
+      switch(schema->getType())
+      {
+         case String:
+         case Boolean:
+         case Int32:
+         case UInt32:
+         case Int64:
+         case UInt64:
+         case Double:
+            // simple types match
+            rval = true;
+            break;
+         case Map:
+            {
+               // Compare all schema keys
+               DynamicObjectIterator i = schema.getIterator();
+               // assume true and verify
+               rval = true;
+               while(rval && i->hasNext())
+               {
+                  DynamicObject next = i->next();
+                  const char* name = i->getName();
+                  if(!config->hasMember(name))
+                  {
+                     // key not in config, fail
+                     rval = false;
+                  }
+                  else
+                  {
+                     // check values
+                     DynamicObject d;
+                     rval = isValidConfig(config[name], next);
+                  }
+               }
+            }
+            break;
+         case Array:
+            {
+               if(schema->length() == 0)
+               {
+                  // allow any array values
+                  rval = true;
+               }
+               else if(schema->length() == 1)
+               {
+                  // all config elements must match template 
+                  DynamicObjectIterator i = config.getIterator();
+                  rval = true;
+                  while(rval && i->hasNext())
+                  {
+                     rval = isValidConfig(i->next(), schema[0]); 
+                  }
+               }
+               else
+               {
+                  // multiple schema elements not allowed
+                  Exception* e =
+                     new Exception("Multiple Array schema values not allowed");
+                  Exception::setLast(e);
+               }
+            }
+            break;
+      }
+   }
+   
+   return rval;
 }
