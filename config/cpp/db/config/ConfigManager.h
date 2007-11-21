@@ -32,11 +32,38 @@ namespace config
  */
 class ConfigManager : public virtual db::rt::Object
 {
+public:
+   /**
+    * The type of a configuration.
+    */
+   typedef enum ConfigType {
+      /**
+       * No type.
+       */
+      None,
+      
+      /**
+       * Default configs.  Used for system defaults and those provided by
+       * components.
+       */
+      Default,
+      
+      /**
+       * User configs.  Provided by users of the system.
+       */
+      User,
+      
+      /**
+       * Both Default and User configs
+       */
+      All
+   };
+   
 protected:
    /**
     * Pair to hold config and system flag.
     */
-   typedef std::pair<db::util::DynamicObject, bool> ConfigPair;
+   typedef std::pair<db::util::DynamicObject, ConfigType> ConfigPair;
 
    /**
     * Source configs and system/user flag.
@@ -61,10 +88,10 @@ protected:
     * Merge all configs into target.
     * 
     * @param target destination to merge into.
-    * @param systemOnly only use system configs, not user configs
+    * @param types type of configs to merge.
     */
    void makeMergedConfig(db::util::DynamicObject& target,
-      bool systemOnly = true);
+      ConfigType types = Default);
 
    /**
     * Compute the difference from dyno1 to dyno2 and store in diff.  Only
@@ -119,7 +146,7 @@ public:
     * 
     * @return DynamicObject representation of all overlayed configurations
     */
-   virtual db::util::DynamicObject getConfig();
+   virtual db::util::DynamicObject& getConfig();
    
    /**
     * Clear all configurations.  Invalidates previous addConfig() ids.
@@ -130,13 +157,13 @@ public:
     * Adds a DynamicObject configuration.
     * 
     * @param dyno a config
-    * @param system true if system config, false for user config
+    * @param type type of the config
     * @param id location to store id of new config or NULL
     * 
     * @return true on success, false on failure and exception will be set.
     */
    virtual bool addConfig(db::util::DynamicObject& dyno,
-      bool system = true, ConfigId* id = NULL);
+      ConfigType type = Default, ConfigId* id = NULL);
 
    /**
     * Remove a configuration.
@@ -179,10 +206,11 @@ public:
     * read-write config.  Only records new or updated elements.
     *
     * @param target object to store changes to
-    * @param systemOnly only get changes between current and system configs
+    * @param baseType the type to compare against.  Useful values are Default,
+    *        User, and All.
     */
    virtual void getChanges(db::util::DynamicObject& target,
-      bool systemOnly = true);
+      ConfigType baseType = Default);
 };
 
 } // end namespace data

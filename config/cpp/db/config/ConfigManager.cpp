@@ -25,7 +25,7 @@ ConfigManager::~ConfigManager()
 {
 }
 
-DynamicObject ConfigManager::getConfig()
+DynamicObject& ConfigManager::getConfig()
 {
    return mConfig;
 }
@@ -40,13 +40,14 @@ void ConfigManager::clear()
    unlock();
 }
 
-bool ConfigManager::addConfig(DynamicObject& dyno, bool system, ConfigId *id)
+bool ConfigManager::addConfig(DynamicObject& dyno, ConfigType type,
+   ConfigId *id)
 {
    bool rval = true;
 
    lock();
    {
-      mConfigs.push_back(ConfigPair(dyno, system));
+      mConfigs.push_back(ConfigPair(dyno, type));
       if(id != NULL)
       {
          *id = mConfigs.size() - 1;
@@ -66,7 +67,7 @@ bool ConfigManager::removeConfig(ConfigId id)
    {
       if(id >= 0 && id < mConfigs.size())
       {
-         mConfigs[id] = ConfigPair(DynamicObject(NULL), true);
+         mConfigs[id] = ConfigPair(DynamicObject(NULL), None);
          update();
          rval = true;
       }
@@ -161,7 +162,7 @@ void ConfigManager::merge(DynamicObject& target, DynamicObject& source)
    }
 }
 
-void ConfigManager::makeMergedConfig(DynamicObject& target, bool systemOnly)
+void ConfigManager::makeMergedConfig(DynamicObject& target, ConfigType types)
 {
    lock();
    {
@@ -171,7 +172,7 @@ void ConfigManager::makeMergedConfig(DynamicObject& target, bool systemOnly)
       {
          if((*i).first != NULL)
          {
-            if(!systemOnly || (systemOnly && (*i).second))
+            if((types == All) || (types == (*i).second))
             {
                merge(target, (*i).first);
             }
@@ -186,7 +187,7 @@ void ConfigManager::update()
    lock();
    {
       mConfig->clear();
-      makeMergedConfig(mConfig, false);
+      makeMergedConfig(mConfig, All);
    }
    unlock();
 }
@@ -291,10 +292,10 @@ bool ConfigManager::diff(DynamicObject& target,
    return rval;
 }
 
-void ConfigManager::getChanges(DynamicObject& target, bool systemOnly)
+void ConfigManager::getChanges(DynamicObject& target, ConfigType baseType)
 {
    DynamicObject original;
-   makeMergedConfig(original, systemOnly);
+   makeMergedConfig(original, baseType);
    diff(target, original, mConfig);
 }
 

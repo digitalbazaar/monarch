@@ -6151,7 +6151,7 @@ void runConfigManagerTest(TestRunner& tr)
       c["c"] = 2;
       ConfigManager::ConfigId id;
       cm.addConfig(a);
-      cm.addConfig(b, true, &id);
+      cm.addConfig(b, ConfigManager::Default, &id);
       cm.addConfig(c);
       assert(cm.getConfig() == expect);
       DynamicObject expect2;
@@ -6188,7 +6188,7 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject a;
       a["a"] = 0;
       ConfigManager::ConfigId id;
-      cm.addConfig(a, true, &id);
+      cm.addConfig(a, ConfigManager::Default, &id);
       assert(cm.getConfig() == expect);
       DynamicObject expect2;
       expect2["b"] = 0;
@@ -6207,7 +6207,7 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject a;
       a["a"] = 0;
       ConfigManager::ConfigId id;
-      cm.addConfig(a, true, &id);
+      cm.addConfig(a, ConfigManager::Default, &id);
       assert(cm.getConfig() == expect);
       DynamicObject b;
       assert(cm.getConfig(id, b));
@@ -6294,13 +6294,13 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject a;
       a[0] = 10;
       a[1] = 11;
-      cm.addConfig(a, true);
+      cm.addConfig(a, ConfigManager::Default);
 
       // user
       DynamicObject b;
       b[0] = 20;
       b[1] = 21;
-      cm.addConfig(b, false);
+      cm.addConfig(b, ConfigManager::User);
       
       // custom
       cm.getConfig()[1] = 31;
@@ -6321,7 +6321,7 @@ void runConfigManagerTest(TestRunner& tr)
          expect[0] = "__default__";
          expect[1] = 31;
          DynamicObject changes;
-         cm.getChanges(changes, false);
+         cm.getChanges(changes, ConfigManager::All);
          assert(changes == expect);
       }
    }
@@ -6407,6 +6407,45 @@ void runConfigManagerTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("user preferences");
+   {
+      ConfigManager cm;
+
+      // node
+      // built in or loaded defaults
+      DynamicObject nodec;
+      nodec["node"]["host"] = "localhost";
+      nodec["node"]["port"] = 19100;
+      nodec["node"]["modulePath"] = "/usr/lib/bitmunk/modules";
+      nodec["node"]["userModulePath"] = "~/.bitmunk/modules";
+      cm.addConfig(nodec);
+
+      // user
+      // loaded defaults
+      DynamicObject userc;
+      userc["node"]["port"] = 19100;
+      userc["node"]["comment"] = "My precious...";
+      cm.addConfig(userc, ConfigManager::User);
+      
+      // user makes changes during runtime
+      DynamicObject c = cm.getConfig();
+      c["node"]["port"] = 19200;
+      c["node"]["userModulePath"] = "~/.bitmunk/modules:~/.bitmunk/modules-dev";
+
+      // get the changes from defaults to current config
+      // serialize this to disk as needed
+      DynamicObject changes;
+      cm.getChanges(changes);
+
+      // check it's correct
+      DynamicObject expect;
+      expect["node"]["port"] = 19200;
+      expect["node"]["comment"] = "My precious...";
+      expect["node"]["userModulePath"] = "~/.bitmunk/modules:~/.bitmunk/modules-dev";
+      assert(changes == expect);
+   }
+   tr.passIfNoException();
+   
    tr.ungroup();
 }
 
