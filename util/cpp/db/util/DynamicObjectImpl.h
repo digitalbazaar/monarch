@@ -88,6 +88,11 @@ protected:
    friend class DynamicObjectIteratorImpl;
    
    /**
+    * Frees the key data associated with a Map.
+    */
+   virtual void freeMapKeys();
+   
+   /**
     * Frees the data associated with this DynamicObjectImpl.
     */
    virtual void freeData();

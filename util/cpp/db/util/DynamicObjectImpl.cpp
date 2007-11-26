@@ -18,6 +18,15 @@ DynamicObjectImpl::~DynamicObjectImpl()
    DynamicObjectImpl::freeData();
 }
 
+void DynamicObjectImpl::freeMapKeys()
+{
+   // clean up member names
+   for(ObjectMap::iterator i = mMap->begin(); i != mMap->end(); i++)
+   {
+      delete [] i->first;
+   }
+}
+
 void DynamicObjectImpl::freeData()
 {
    // clean up data based on type
@@ -30,12 +39,7 @@ void DynamicObjectImpl::freeData()
       case Map:
          if(mMap != NULL)
          {
-            // clean up member names
-            for(ObjectMap::iterator i = mMap->begin(); i != mMap->end(); i++)
-            {
-               delete [] i->first;
-            }
-            
+            freeMapKeys();
             delete mMap;
             mMap = NULL;
          }
@@ -506,6 +510,7 @@ void DynamicObjectImpl::clear()
          *this = (double)0.0;
          break;
       case Map:
+         freeMapKeys();
          mMap->clear();
          break;
       case Array:
