@@ -12,6 +12,7 @@ Mail::Mail()
 {
    mRecipients->setType(Array);
    mMessage["headers"]["To"]->setType(Array);
+   mMessage["body"]->setType(String);
 }
 
 Mail::~Mail()
@@ -100,12 +101,12 @@ bool Mail::addTo(const char* address)
    return addRecipient("To", address);
 }
 
-bool Mail::addCC(const char* address)
+bool Mail::addCc(const char* address)
 {
    return addRecipient("CC", address);
 }
 
-bool Mail::addBCC(const char* address)
+bool Mail::addBcc(const char* address)
 {
    return addRecipient(NULL, address);
 }
@@ -117,9 +118,32 @@ AddressList Mail::getRecipients()
 
 void Mail::setHeader(const char* header, const char* value)
 {
-   string str = value;
-   smtpMessageEncode(str);
-   mMessage["headers"][header] = str.c_str();
+   if(strcasecmp(header, "from") == 0)
+   {
+      setSender(value);
+   }
+   else if(strcasecmp(header, "to") == 0)
+   {
+      addTo(value);
+   }
+   else if(strcasecmp(header, "cc") == 0)
+   {
+      addCc(value);
+   }
+   else if(strcasecmp(header, "bcc") == 0)
+   {
+      addBcc(value);
+   }
+   else if(strcasecmp(header, "subject") == 0)
+   {
+      setSubject(value);
+   }
+   else
+   {
+      string str = value;
+      smtpMessageEncode(str);
+      mMessage["headers"][header] = str.c_str();
+   }
 }
 
 void Mail::setSubject(const char* subject)
@@ -132,6 +156,16 @@ void Mail::setSubject(const char* subject)
 void Mail::setBody(const char* body)
 {
    string str = body;
+   smtpMessageEncode(str);
+   mMessage["body"] = str.c_str();
+}
+
+void Mail::appendBodyLine(const char* line)
+{
+   string str = mMessage["body"]->getString();
+   str.append(line);
+   str.push_back('\r');
+   str.push_back('\n');
    smtpMessageEncode(str);
    mMessage["body"] = str.c_str();
 }

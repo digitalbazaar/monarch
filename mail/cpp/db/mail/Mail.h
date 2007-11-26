@@ -114,7 +114,7 @@ public:
     * 
     * @return true if the email address was valid, false if not.
     */
-   virtual bool addCC(const char* address);
+   virtual bool addCc(const char* address);
    
    /**
     * Adds a recipient of this Mail using no header.
@@ -123,7 +123,7 @@ public:
     * 
     * @return true if the email address was valid, false if not.
     */
-   virtual bool addBCC(const char* address);
+   virtual bool addBcc(const char* address);
    
    /**
     * Gets a list of the recipients of this Mail.
@@ -153,6 +153,13 @@ public:
     * @param body the body of this Mail's message.
     */
    virtual void setBody(const char* body);
+   
+   /**
+    * Appends the passed line to the body of this Mail's message.
+    * 
+    * @param line the line to append to this Mail's message.
+    */
+   virtual void appendBodyLine(const char* line);
    
    /**
     * Gets the Message of this Mail.
