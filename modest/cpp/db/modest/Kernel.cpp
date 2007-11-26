@@ -28,6 +28,13 @@ Operation Kernel::createOperation(
    return Operation(new OperationImpl(r, g, m));
 }
 
+Operation Kernel::createOperation(
+   CollectableRunnable& r, OperationGuard* g, StateMutator* m)
+{
+   // create normal operation
+   return Operation(new OperationImpl(r, g, m));
+}
+
 void Kernel::runOperation(Operation op)
 {
    // queue operation with engine

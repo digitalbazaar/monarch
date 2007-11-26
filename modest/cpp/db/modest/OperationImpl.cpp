@@ -22,8 +22,26 @@ OperationImpl::OperationImpl(Runnable* r, OperationGuard* g, StateMutator* m)
    mCanceled = false;
 }
 
+OperationImpl::OperationImpl(
+   CollectableRunnable& r, OperationGuard* g, StateMutator* m)
+{
+   mRunnable = &(*r);
+   mCollectableRunnable = r;
+   mGuard = g;
+   mStateMutator = m;
+   mThread = NULL;
+   
+   mStarted = false;
+   mInterrupted = false;
+   mStopped = false;
+   mFinished = false;
+   mCanceled = false;
+}
+
 OperationImpl::~OperationImpl()
 {
+   // clear collectable runnable
+   mCollectableRunnable = NULL;
 }
 
 bool OperationImpl::waitFor(bool interruptible)

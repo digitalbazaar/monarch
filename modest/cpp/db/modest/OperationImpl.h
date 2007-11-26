@@ -37,9 +37,11 @@ class OperationImpl : public virtual db::rt::Object
 {
 protected:
    /**
-    * The Runnable for this Operation.
+    * The Runnable for this Operation. A regular runnable or a
+    * CollectableRunnable may be used.
     */
    db::rt::Runnable* mRunnable;
+   db::rt::CollectableRunnable mCollectableRunnable;
    
    /**
     * The guard that decides when this Operation can execute.
@@ -98,6 +100,22 @@ public:
     */
    OperationImpl(
       db::rt::Runnable* r, OperationGuard* g = NULL, StateMutator* m = NULL);
+   
+   /**
+    * Creates a new OperationImpl that can execute the given Runnable in the
+    * given guard. The passed Runnable must be fully interruptible.
+    * 
+    * A CollectableRunnable may be passed such that the Runnable will be
+    * cleaned up when this Operation is destructed, if this Operation
+    * contains the only reference to the Runnable.
+    * 
+    * @param r the CollectableRunnable to execute.
+    * @param g the OperationGuard underwhich this Operation can execute.
+    * @param m the StateMutator for this Operation.
+    */
+   OperationImpl(
+      db::rt::CollectableRunnable& r,
+      OperationGuard* g = NULL, StateMutator* m = NULL);
    
    /**
     * Destructs this OperationImpl.

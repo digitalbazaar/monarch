@@ -4,6 +4,8 @@
 #ifndef db_rt_Runnable_H
 #define db_rt_Runnable_H
 
+#include "db/rt/Collectable.h"
+
 namespace db
 {
 namespace rt
@@ -32,6 +34,9 @@ public:
     */
    virtual void run() = 0;
 };
+
+// define a collectable Runnable
+typedef Collectable<Runnable> CollectableRunnable;
 
 } // end namespace rt
 } // end namespace db

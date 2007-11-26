@@ -93,11 +93,6 @@ protected:
    ObserverMap mObservers;
    
    /**
-    * The typedef for a list that stores EventDispatchers.
-    */
-   typedef std::vector<EventDispatcher*> EventDispatcherList;
-   
-   /**
     * The OperationRunner for running operations.
     */
    db::modest::OperationRunner* mOpRunner;
@@ -125,11 +120,9 @@ protected:
     * @param e the Event to dispatch.
     * @param id the EventId to dispatch it under.
     * @param opList the OperationList to store the event-handling Operation.
-    * @param edList the EventDispatcherList to store any EventDispatchers.
     */
    virtual void dispatchEvent(
-      Event& e, EventId id,
-      db::modest::OperationList& opList, EventDispatcherList& edList);
+      Event& e, EventId id, db::modest::OperationList& opList);
    
    /**
     * Dispatches a single event to all associated Observers and waits

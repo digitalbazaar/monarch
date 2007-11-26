@@ -68,6 +68,23 @@ public:
       db::rt::Runnable* r, OperationGuard* g, StateMutator* m);
    
    /**
+    * Creates an Operation from the given Runnable, OperationGuard,
+    * and StateMutator that is to be run by this Kernel.
+    * 
+    * The passed Runnable, OperationGuard, and/or StateMutator may be
+    * wrapped by other classes to provide additional logic.
+    * 
+    * @param r the Runnable with code to execute during the operation.
+    * @param g the OperationGuard to use.
+    * @param m the StateMutator to use.
+    * 
+    * @return the Operation object to use to monitor the status of the
+    *         Operation.
+    */
+   virtual Operation createOperation(
+      db::rt::CollectableRunnable& r, OperationGuard* g, StateMutator* m);
+   
+   /**
     * Queues the passed Operation with this Kernel's modest Engine.
     * 
     * @param op the Operation to queue with this Kernel's modest Engine.

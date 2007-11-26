@@ -53,12 +53,12 @@ public:
 
 // create collectable iterator type
 template<class T>
-class CIterator : public db::rt::Collectable< Iterator<T> >
+class CollectableIterator : public db::rt::Collectable< Iterator<T> >
 {
 public:
-   CIterator(Iterator<T>* ptr = NULL) :
+   CollectableIterator(Iterator<T>* ptr = NULL) :
       db::rt::Collectable< Iterator<T> >(ptr) {};
-   virtual ~CIterator() {};
+   virtual ~CollectableIterator() {};
 };
 
 } // end namespace util

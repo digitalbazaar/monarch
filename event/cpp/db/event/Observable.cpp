@@ -24,7 +24,7 @@ Observable::~Observable()
 }
 
 void Observable::dispatchEvent(
-   Event& e, EventId id, OperationList& opList, EventDispatcherList& edList)
+   Event& e, EventId id, OperationList& opList)
 {
    // go through the list of EventId taps
    EventIdMap::iterator ti = mTaps.find(id);
@@ -44,18 +44,17 @@ void Observable::dispatchEvent(
                for(; oi != oend; oi++)
                {
                   // create and run event dispatcher for each observable
-                  EventDispatcher* ed = new EventDispatcher(oi->second, &e);
+                  CollectableRunnable ed = new EventDispatcher(oi->second, &e);
                   Operation op = mOpRunner->createOperation(ed, NULL, NULL);
                   mOpRunner->runOperation(op);
                   opList.add(op);
-                  edList.push_back(ed);
                }
             }
          }
          else
          {
             // dispatch event to tap
-            dispatchEvent(e, ti->second, opList, edList);
+            dispatchEvent(e, ti->second, opList);
          }
       }
    }
@@ -63,28 +62,20 @@ void Observable::dispatchEvent(
 
 void Observable::dispatchEvent(Event& e)
 {
-   // create an operation list and vector for storing event dispatchers
+   // create an operation list
    OperationList opList;
-   EventDispatcherList edList;
    
    // get the EventId for the event and dispatch it
    EventId id = e["id"]->getUInt64();
-   dispatchEvent(e, id, opList, edList);
+   dispatchEvent(e, id, opList);
    
-   if(!edList.empty())
+   if(!opList.isEmpty())
    {
       // unlock, wait for dispatch operations to complete, relock
       unlock();
       opList.waitFor();
       opList.prune();
       lock();
-      
-      // clean up event dispatchers
-      for(EventDispatcherList::iterator i = edList.begin();
-          i != edList.end(); i++)
-      {
-         delete *i;
-      }
    }
 }
 

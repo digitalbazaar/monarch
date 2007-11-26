@@ -89,6 +89,14 @@ public:
     * even if the current thread is interrupted.
     */
    virtual void terminate();
+   
+   /**
+    * Returns true if there are no Operations in this list, false if there
+    * are.
+    * 
+    * @return true if this OperationList is empty, false if not.
+    */
+   virtual bool isEmpty();
 };
 
 } // end namespace modest

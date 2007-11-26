@@ -53,6 +53,23 @@ public:
       db::rt::Runnable* r, OperationGuard* g, StateMutator* m) = 0;
    
    /**
+    * Creates an Operation from the given Runnable, OperationGuard,
+    * and StateMutator that is to be run by this OperationRunner.
+    * 
+    * The passed Runnable, OperationGuard, and/or StateMutator may be
+    * wrapped by other classes to provide additional logic.
+    * 
+    * @param r the Runnable with code to execute during the operation.
+    * @param g the OperationGuard to use.
+    * @param m the StateMutator to use.
+    * 
+    * @return the Operation object to use to monitor the status of the
+    *         Operation.
+    */
+   virtual Operation createOperation(
+      db::rt::CollectableRunnable& r, OperationGuard* g, StateMutator* m) = 0;
+   
+   /**
     * Queues the passed Operation with an appropriate modest engine for
     * execution.
     * 

@@ -95,3 +95,16 @@ void OperationList::terminate()
    }
    unlock();
 }
+
+bool OperationList::isEmpty()
+{
+   bool rval = false;
+   
+   lock();
+   {
+      rval = mOperations.empty();
+   }
+   unlock();
+   
+   return rval;
+}
