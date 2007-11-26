@@ -37,7 +37,7 @@ bool XmlWriter::writeIndentation(OutputStream* os, bool endElement)
       (endElement && indent == mIndentLevel && mIndentSpaces > 0))
    {
       char temp[indent + 1];
-      memset(temp, '\n', 1);
+      temp[0] = '\n';
       memset(temp + 1, ' ', indent);
       rval = os->write(temp, indent + 1);
    }

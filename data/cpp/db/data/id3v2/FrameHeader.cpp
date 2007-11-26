@@ -18,11 +18,10 @@ const unsigned char FrameHeader::GROUPING_BIT = 0x20;
 FrameHeader::FrameHeader(const char* id)
 {
    mId = new char[5];
-   memset(mId + 4, 0, 1);
    strncpy(mId, id, 4);
+   mId[4] = 0;
    
-   mDescription = new char[1];
-   memset(mDescription, 0, 1);
+   mDescription = strdup("");
    
    mFrameSize = 0;
    mTagAlteredDiscardFrame = false;
@@ -102,7 +101,7 @@ void FrameHeader::convertFromBytes(const char* b, int length)
    // convert ID
    char id[5];
    strncpy(id, b, 4);
-   memset(id + 4, 0, 1);
+   id[4] = 0;
    setId(id);
    
    // convert frame size
@@ -228,7 +227,7 @@ string& FrameHeader::toString(string& str)
    
    char temp[20];
    sprintf(temp, "%i", getFrameSize());
-   str.append(1, '\n');
+   str.push_back('\n');
    
    return str;
 }

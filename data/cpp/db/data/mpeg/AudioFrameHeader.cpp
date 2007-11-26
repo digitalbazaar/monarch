@@ -506,7 +506,8 @@ ByteBuffer* AudioFrameHeader::getBytes()
       mData->bytes()[1] = 0xf0;
       
       // clear other bytes
-      memset(mData + 2, 0, 2);
+      mData[2] = 0;
+      mData[3] = 0;
    }
    
    return mData;
@@ -533,7 +534,7 @@ string& AudioFrameHeader::toString(string& str)
    
    str.append("[MpegAudioFrameHeader]\n");
    str.append(v.name);
-   str.append(1, '\n');
+   str.push_back('\n');
    str.append(l.name);
    
    int bitrate = getBitrate();

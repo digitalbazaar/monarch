@@ -302,7 +302,7 @@ unsigned int Url::getDefaultPort()
 string& Url::toString(string& str) const
 {
    str.append(mScheme);
-   str.append(1, ':');
+   str.push_back(':');
    str.append(mSchemeSpecificPart);
    return str;
 }
@@ -319,25 +319,25 @@ string Url::encode(const char* str, unsigned int length)
       // see if the character is "safe" (0-9, A-Z, or a-z)
       if((unsigned int)(c - '0') < 10u)
       {
-         rval.append(1, c);
+         rval.push_back(c);
       }
       else if((unsigned int)(c - 'A') < 26u)
       {
-         rval.append(1, c);
+         rval.push_back(c);
       }
       else if((unsigned int)(c - 'a') < 26u)
       {
-         rval.append(1, c);
+         rval.push_back(c);
       }
       else if(c == ' ')
       {
          // substitute pluses for spaces
-         rval.append(1, '+');
+         rval.push_back('+');
       }
       else
       {
          // character is unsafe, so add a '%' and convert to hex
-         rval.append(1, '%');
+         rval.push_back('%');
          rval.append(Convert::bytesToUpperHex(&c, 1));
       }
    }
@@ -358,20 +358,20 @@ string Url::decode(const char* str, unsigned int length)
       // see if the character is "safe" (0-9, A-Z, or a-z)
       if((unsigned int)(c - '0') < 10u)
       {
-         rval.append(1, c);
+         rval.push_back(c);
       }
       else if((unsigned int)(c - 'A') < 26u)
       {
-         rval.append(1, c);
+         rval.push_back(c);
       }
       else if((unsigned int)(c - 'a') < 26u)
       {
-         rval.append(1, c);
+         rval.push_back(c);
       }
       else if(c == '+')
       {
          // substitute spaces for pluses
-         rval.append(1, ' ');
+         rval.push_back(' ');
       }
       else if(c == '%')
       {
@@ -379,7 +379,7 @@ string Url::decode(const char* str, unsigned int length)
          if(i + 2 < length)
          {
             Convert::hexToBytes(str + i + 1, 2, &c, cLength);
-            rval.append(1, c);
+            rval.push_back(c);
          }
          
          // skip two characters

@@ -183,7 +183,7 @@ string Convert::intToHex(unsigned int n)
       ch = HEX_CHARS[(n >> (i * 4)) & 0x0F];
       if(ch != '0' || rval.length() > 0)
       {
-         rval.append(1, ch);
+         rval.push_back(ch);
       }
    }
    
@@ -206,7 +206,7 @@ string Convert::intToUpperHex(unsigned int n)
       ch = UPPER_HEX_CHARS[(n >> (i * 4)) & 0x0F];
       if(ch != '0' || rval.length() > 0)
       {
-         rval.append(1, ch);
+         rval.push_back(ch);
       }
    }
    

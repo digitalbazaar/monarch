@@ -24,7 +24,7 @@ void HttpConnectionServicer::normalizePath(string& path)
 {
    if(path.length() == 0)
    {
-      path.append(1, '/');
+      path.push_back('/');
    }
    else
    {
@@ -37,7 +37,7 @@ void HttpConnectionServicer::normalizePath(string& path)
       // append slash as necessary
       if(path[path.length() - 1] != '/')
       {
-         path.append(1, '/');
+         path.push_back('/');
       }
    }
 }

@@ -184,7 +184,7 @@ void File::listFiles(FileList* files)
             if(separator)
             {
                // add path separator as appropriate
-               memset(path + len1, '/', 1);
+               path[len1] = '/';
                memcpy(path + len1 + 1, entry->d_name, len2 + 1);
             }
             else

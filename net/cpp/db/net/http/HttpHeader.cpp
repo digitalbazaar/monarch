@@ -145,7 +145,7 @@ bool HttpHeader::parse(const string& str)
                // get field name
                char* name = new char[colon - start + 1];
                strncpy(name, start, colon - start);
-               memset(name + (colon - start), 0, 1);
+               name[(colon - start)] = 0;
                
                // skip whitespace
                colon++;
@@ -154,7 +154,7 @@ bool HttpHeader::parse(const string& str)
                // get field value
                char value[cr - colon + 1];
                strncpy(value, colon, cr - colon);
-               memset(value + (cr - colon), 0, 1);
+               value[(cr - colon)] = 0;
                
                // clear old field
                map<const char*, std::string, FieldComparator>::iterator i =

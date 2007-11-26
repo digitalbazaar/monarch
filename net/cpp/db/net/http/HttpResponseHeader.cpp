@@ -31,7 +31,7 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
    // copy string so it can be modified
    char tokens[length + 1];
    strncpy(tokens, str, length);
-   memset(tokens + length, 0, 1);
+   tokens[length] = 0;
    
    // find space-delimited tokens in the passed string
    int count = 0;
@@ -44,7 +44,7 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
       if(end != NULL)
       {
          // nullify delimiter
-         memset(end, 0, 1);
+         end[0] = 0;
       }
       
       if(count == 0)
@@ -60,7 +60,7 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
       {
          if(msg.length() > 0)
          {
-            msg.append(1, ' ');
+            msg.push_back(' ');
          }
          
          msg.append(start);
@@ -90,9 +90,9 @@ void HttpResponseHeader::getStartLine(string& line)
    char code[11];
    sprintf(code, "%d", getStatusCode());
    line.append(getVersion());
-   line.append(1, ' ');
+   line.push_back(' ');
    line.append(code);
-   line.append(1, ' ');
+   line.push_back(' ');
    line.append(getStatusMessage());
 }
 

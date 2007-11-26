@@ -40,7 +40,7 @@ void HttpClient::setHeaders(HttpHeader* h, const char** headers)
             // get field name
             char name[colon - field + 1];
             strncpy(name, field, colon - field);
-            memset(name + (colon - field), 0, 1);
+            name[(colon - field)] = 0;
             
             // skip whitespace
             colon++;

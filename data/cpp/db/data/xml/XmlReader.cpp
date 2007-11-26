@@ -121,7 +121,7 @@ void XmlReader::parseNamespace(const char** fullName, char** ns)
    {
       *ns = new char[sep - *fullName];
       strncpy(*ns, *fullName, sep - *fullName);
-      memset(ns + (sep - *fullName), 0, 1);
+      ns[(sep - *fullName)] = 0;
       *fullName = sep + 1;
    }
 }

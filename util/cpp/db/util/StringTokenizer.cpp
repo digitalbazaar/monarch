@@ -115,7 +115,7 @@ void StringTokenizer::tokenize(const char* str, char delimiter)
          // copy data into token
          token->data = new char[end - start + 1];
          strncpy(token->data, start, end - start);
-         memset(token->data + (end - start), 0, 1);
+         token->data[(end - start)] = 0;
          
          // move start pointer
          start = end + 1;
@@ -126,7 +126,7 @@ void StringTokenizer::tokenize(const char* str, char delimiter)
          size_t length = strlen(start);
          token->data = new char[length + 1];
          strncpy(token->data, start, length);
-         memset(token->data + length, 0, 1);
+         token->data[length] = 0;
          
          // move start pointer
          start = end;

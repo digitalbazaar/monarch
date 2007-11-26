@@ -66,9 +66,9 @@ Module* ModuleLibrary::loadModule(const char* filename)
                msg.append(mi->module->getId().version);
                msg.append("',exception=");
                msg.append(e->getMessage());
-               msg.append(1, ':');
+               msg.push_back(':');
                msg.append(e->getType());
-               msg.append(1, ':');
+               msg.push_back(':');
                char temp[20];
                sprintf(temp, "%i", e->getCode());
                msg.append(temp);

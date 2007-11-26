@@ -91,7 +91,7 @@ bool ConnectionInputStream::readLine(string& line)
       else
       {
          // append the character
-         line.append(1, c);
+         line.push_back(c);
          
          // a character was appended, so not end of stream
          rval = true;
@@ -163,7 +163,7 @@ bool ConnectionInputStream::readCrlf(string& line)
                else
                {
                   // append CR to line, discard character
-                  line.append(1, '\r');
+                  line.push_back('\r');
                   read(b, 1);
                }
             }
