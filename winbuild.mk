@@ -53,7 +53,7 @@ FIND_CPP = $(wildcard $(dir)/*.cpp)
 MODGROUP = db
 
 # All modules
-MODULES = rt modest util io crypto net data event test #sql logging
+MODULES = rt modest util io crypto net data event config mail test #sql logging
 
 # All executables
 EXES = maintest
@@ -74,7 +74,7 @@ net_SUBDIRS = http
 
 #util_SUBDIRS = regex
 
-data_SUBDIRS = xml mpeg id3v2
+data_SUBDIRS = xml mpeg id3v2 json
 data_MODLIBS = io util rt
 
 #sql_SUBDIRS = sqlite3 mysql util
@@ -82,13 +82,17 @@ data_MODLIBS = io util rt
 
 event_MODLIBS = modest
 
+config_MODLIBS = util
+
+mail_MODLIBS = net util
+
 test_MODLIBS = rt #sql
 
 # exe rules
 
 maintest_DIR = test
 maintest_EXE = test.exe
-maintest_MODLIBS = rt modest util io crypto net data event test
+maintest_MODLIBS = rt modest util io crypto net data event config mail test
 maintest_SOURCES = main
 #maintest_LIBS = pthread crypto ssl expat
 
