@@ -256,18 +256,18 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
          {
             mString.push_back(uc);
          }
-         else if (c < 0x800)
+         else if (uc < 0x800)
          {
             mString.push_back(0xC0 | uc>>6);
             mString.push_back(0x80 | uc & 0x3F);
          }
-         else if (c < 0x10000)
+         else if (uc < 0x10000)
          {
             mString.push_back(0xE0 | uc>>12);
             mString.push_back(0x80 | uc>>6 & 0x3F);
             mString.push_back(0x80 | uc & 0x3F);
          }
-         else if (c < 0x200000)
+         else if (uc < 0x200000)
          {
             mString.push_back(0xF0 | uc>>18);
             mString.push_back(0x80 | uc>>12 & 0x3F);
