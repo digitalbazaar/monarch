@@ -4979,6 +4979,7 @@ public:
    
    virtual ~TestRowObject()
    {
+      delete [] mText;
    }
    
    virtual void setText(const char* t)
