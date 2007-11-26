@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/json/JsonReader.h"
+#include "db/util/Convert.h"
 
 using namespace std;
 using namespace db::data;
@@ -240,20 +241,41 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
          
          // Start new string
          mString.clear();
-         mString.push_back(c);
          mState = next;
          break;
       case _U: /* Unicode done */
-         // parse string for unicode val push to current string
-         // FIXME
-         // parse unicode escape
-         // ...
+         int uc;
+         mString.push_back(c);
+         // convert unicode hex to wide char
+         uc = Convert::hexToInt(mString.c_str(), 4);
+         // bring back previous string
          mString = mDynoStack.back()->getString();
          mDynoStack.pop_back();
-         //mString.push(...)
+         // covert UTF-16 to UTF-8 and push to current string
+         if (uc < 0x80)
+         {
+            mString.push_back(uc);
+         }
+         else if (c < 0x800)
+         {
+            mString.push_back(0xC0 | uc>>6);
+            mString.push_back(0x80 | uc & 0x3F);
+         }
+         else if (c < 0x10000)
+         {
+            mString.push_back(0xE0 | uc>>12);
+            mString.push_back(0x80 | uc>>6 & 0x3F);
+            mString.push_back(0x80 | uc & 0x3F);
+         }
+         else if (c < 0x200000)
+         {
+            mString.push_back(0xF0 | uc>>18);
+            mString.push_back(0x80 | uc>>12 & 0x3F);
+            mString.push_back(0x80 | uc>>6 & 0x3F);
+            mString.push_back(0x80 | uc & 0x3F);
+         }
+         // back to character reading state
          mState = SC;
-         rval = new IOException(
-            "Unimplemented: valid JSON unicode escape parsing"); 
          break;
 
       case S_: /* start string */
@@ -351,26 +373,26 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
          break;
 
       /* Start of tokens */
-      case T_:
-      case F_:
-      case N_:
+      case T_: /* true start */
+      case F_: /* false start */
+      case N_: /* null start */
          mStateStack.push_back(mState);
          mState = next;
          break;
 
       /* Simple state transition */
-      case E_:
-      case O2:
+      case E_: /* escape start */
+      case O2: /* object continuation */
       case OK: /* got key (on stack) */
       case OC: /* got key: */
-      case A2:
-      case TR:
-      case TU:
-      case FA:
-      case FL:
-      case FS:
-      case NU:
-      case NL:
+      case A2: /* array continuation */
+      case TR: /* true tr */
+      case TU: /* true tru */
+      case FA: /* false fa */
+      case FL: /* false fal */
+      case FS: /* false fals */
+      case NU: /* null nu */
+      case NL: /* null nul */
          mState = next;
          break;
          

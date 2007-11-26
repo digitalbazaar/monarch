@@ -39,7 +39,7 @@ bool JsonWriter::writeIndentation(OutputStream* os, int level)
    return rval;
 }
 
-bool JsonWriter::write(DynamicObject dyno, OutputStream* os, int level)
+bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
 {
    bool rval = true;
 
@@ -57,20 +57,20 @@ bool JsonWriter::write(DynamicObject dyno, OutputStream* os, int level)
       switch(dyno->getType())
       {
          case String:
-            // start string serialization
-            if(rval = os->write("\"", 1))
             {
                string encoded;
+               encoded.push_back('"');
                const char* temp = dyno->getString();
                size_t length = strlen(temp);
                for(size_t i = 0; i < length; i++)
                {
-                  char c = temp[i];
+                  unsigned char c = temp[i];
                   if((c >= 0x5d /* && c <= 0x10FFFF */) ||
                      (c >= 0x23 && c <= 0x5B) ||
                      (c == 0x21) ||
                      (c == 0x20))
                   {
+                     // TODO: check this handles UTF-* properly
                      encoded.push_back(c);
                   }
                   else
@@ -105,9 +105,8 @@ bool JsonWriter::write(DynamicObject dyno, OutputStream* os, int level)
                            csub = "\\t";
                            break;
                         default:
-                           snprintf(ucsub, 6, "\\u%04x", c);
+                           snprintf(ucsub, 7, "\\u%04x", c);
                            csub = ucsub;
-                           // FIXME other utf-8/16/32, surrugate pairs, etc
                            break;
                      }
                      encoded.append(csub);
@@ -208,7 +207,7 @@ bool JsonWriter::write(DynamicObject dyno, OutputStream* os, int level)
    return rval;
 }
 
-bool JsonWriter::write(DynamicObject dyno, OutputStream* os)
+bool JsonWriter::write(DynamicObject& dyno, OutputStream* os)
 {
    bool rval;
    

@@ -122,6 +122,25 @@ typedef enum JsonState {
  * A JsonReader provides an interface for deserializing objects from
  * JSON (JavaScript Object Notation) (RFC 4627).
  * 
+ * The JSON parser works by examining a character at a time.  It first uses a
+ * character to class mapping table (sAsciiToClass) to convert a character
+ * into a smaller set of classes.  Then a state transition table (sStateTable)
+ * is used to determine the next state of the parser.  When starting to parse
+ * new objects ("*_" states) the previous state is pushed onto a stack
+ * (mStateStack).  As new objects, keys, and values are created the are often
+ * pushed onto a DynamicObject stack.  When an object is complete (many of the
+ * "_*" states) the stack can be used to update the result object as needed.
+ * An input class "C_DO" is used as a marker to signal this should occur.
+ * processNext() can perform actions when a state transition occurs.  This is
+ * used to do all of the state and stack manipulation.  This can be called
+ * recusively for C_DO for instance.
+ * 
+ * Objects that have known end states can be created directly.  This includes
+ * strings, true, false, null, objects, and arrays.  Objects such as numbers
+ * can be any length and the parser doesn't know a number is done until it
+ * parses and non-number input class.  At this point it will process the number
+ * and then re-call processNext with the next non-number input.   
+ * 
  * @author David I. Lehn
  */
 class JsonReader

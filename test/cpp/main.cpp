@@ -1178,6 +1178,8 @@ void runJsonValidTest(TestRunner& tr)
       "{\"k\":-10}",
       "{\"k\":0.0e+0}",
       "{\"k\":\"v\",\"k2\":true,\"k3\":1000,\"k4\":\"v\"}",
+      "[\"\\u0020\"]",
+      "[\"\xc3\x84 \xc3\xa4 \xc3\x96 \xc3\xb6 \xc3\x9c \xc3\xbc \xc3\x9f\"]",
       NULL
    };
 
@@ -1246,7 +1248,6 @@ void runJsonInvalidTest(TestRunner& tr)
       "{null:0}",
       "[\"\n\"]",
       "[\"\t\"]",
-      "[\"\\u0020\"]", // FIXME support and move to valid
       NULL
    };
 
@@ -1385,10 +1386,14 @@ void runJsonVerifyDJDTest(TestRunner& tr)
    td[tdcount++]["JSON"] = "{\"k\":10}";
    td[tdcount  ]["dyno"]["k"] = -10;
    td[tdcount++]["JSON"] = "{\"k\":-10}";
-   //td[tdcount  ]["dyno"][0] = "\x01";
-   //td[tdcount++]["JSON"] = "[\\u0001]";
+   td[tdcount  ]["dyno"][0] = "\x01";
+   td[tdcount++]["JSON"] = "[\"\\u0001\"]";
+   // test if UTF-16 C escapes translate into a UTF-8 JSON string
+   td[tdcount  ]["dyno"][0] =
+      "\u040e \u045e \u0404 \u0454 \u0490 \u0491";
+   td[tdcount++]["JSON"] =
+      "[\"\xd0\x8e \xd1\x9e \xd0\x84 \xd1\x94 \xd2\x90 \xd2\x91\"]";
    
-
    for(int i = 0; i < tdcount; i++)
    {
       char msg[50];
