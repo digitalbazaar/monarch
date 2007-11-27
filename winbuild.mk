@@ -11,7 +11,9 @@ BASE_DIR = e:/work/dbcpp/dbcore/trunk
 INCLUDES = \
 	-IE:/OpenSSL/include \
 	-I$(BASE_DIR)/rt/cpp/pthread \
-	-I$(BASE_DIR)/data/cpp/db/data/xml/expat
+	-I$(BASE_DIR)/data/cpp/db/data/xml/expat \
+	-I$(BASE_DIR)/sql/cpp/sqlite3 \
+	-I$(BASE_DIR)/sql/cpp/mysql
 
 # windows libs
 WIN_LIBS = \
@@ -20,9 +22,10 @@ WIN_LIBS = \
 	E:/OpenSSL/lib/MinGW/libeay32.a \
 	-lws2_32 \
 	$(BASE_DIR)/data/cpp/db/data/xml/expat/libexpat.a \
-	$(BASE_DIR)/data/cpp/db/data/xml/expat/libexpat.dll
-	#$(BASE_DIR)/sql/cpp/sqlite/sqlite3.dll \
-	
+	$(BASE_DIR)/data/cpp/db/data/xml/expat/libexpat.dll \
+	$(BASE_DIR)/sql/cpp/sqlite3/sqlite3.dll \
+	$(BASE_DIR)/sql/cpp/mysql/lib/libmysql.a \
+      $(BASE_DIR)/sql/cpp/mysql/lib/libmysql.dll
 
 # Compiler
 CC = g++
@@ -53,7 +56,7 @@ FIND_CPP = $(wildcard $(dir)/*.cpp)
 MODGROUP = db
 
 # All modules
-MODULES = rt modest util io crypto net data event config mail test #sql logging
+MODULES = rt modest util io crypto net data sql event config mail test #logging
 
 # All executables
 EXES = maintest
@@ -65,9 +68,9 @@ modules_MODLIBS = rt
 
 util_MODLIBS = rt
 
-io_MODLIBS = util rt
+io_MODLIBS = util
 
-crypto_MODLIBS = io util rt
+crypto_MODLIBS = io
 
 net_MODLIBS = crypto io util modest rt
 net_SUBDIRS = http
@@ -77,8 +80,8 @@ net_SUBDIRS = http
 data_SUBDIRS = xml mpeg id3v2 json
 data_MODLIBS = io util rt
 
-#sql_SUBDIRS = sqlite3 mysql util
-#sql_MODLIBS = rt
+sql_SUBDIRS = sqlite3 mysql util
+sql_MODLIBS = rt
 
 event_MODLIBS = modest
 
@@ -92,7 +95,7 @@ test_MODLIBS = rt #sql
 
 maintest_DIR = test
 maintest_EXE = test.exe
-maintest_MODLIBS = rt modest util io crypto net data event config mail test
+maintest_MODLIBS = rt modest util io crypto net data sql event config mail test
 maintest_SOURCES = main
 #maintest_LIBS = pthread crypto ssl expat
 

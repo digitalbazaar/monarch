@@ -38,7 +38,7 @@
 #include "db/crypto/DefaultBlockCipher.h"
 #include "db/util/Convert.h"
 #include "db/net/Url.h"
-#include "db/util/regex/Pattern.h"
+//#include "db/util/regex/Pattern.h"
 #include "db/util/Date.h"
 #include "db/net/http/HttpHeader.h"
 #include "db/net/http/HttpRequest.h"
@@ -701,40 +701,40 @@ void runRegexTest()
 {
    cout << "Starting Regex test." << endl << endl;
    
-   string regex = "[a-z]{3}";
-   string str = "abc";
-   
-   if(Pattern::match(regex.c_str(), str.c_str()))
-   {
-      cout << "Simple pattern matches!" << endl;
-   }
-   else
-   {
-      cout << "Simple pattern DOES NOT MATCH!" << endl;
-   }
-   
-   cout << endl << "Doing sub-match test..." << endl << endl;
-   
-   string submatches = "Look for green globs of green matter in green goo.";
-   Pattern* p = Pattern::compile("green");
-   
-   unsigned int start, end;
-   unsigned int index = 0;
-   while(p->match(submatches.c_str(), index, start, end))
-   {
-      cout << "Found match at (" << start << ", " << end << ")" << endl;
-      cout << "Match=" << submatches.substr(start, end - start) << endl;
-      index = end;
-   }
-   
-   delete p;
-   
-   cout << endl << "Doing replace all test..." << endl << endl;
-   
-   cout << "change 'green' to 'blue'" << endl;
-   cout << submatches << endl;
-   StringTools::regexReplaceAll(submatches, "green", "blue");
-   cout << submatches << endl;
+//   string regex = "[a-z]{3}";
+//   string str = "abc";
+//   
+//   if(Pattern::match(regex.c_str(), str.c_str()))
+//   {
+//      cout << "Simple pattern matches!" << endl;
+//   }
+//   else
+//   {
+//      cout << "Simple pattern DOES NOT MATCH!" << endl;
+//   }
+//   
+//   cout << endl << "Doing sub-match test..." << endl << endl;
+//   
+//   string submatches = "Look for green globs of green matter in green goo.";
+//   Pattern* p = Pattern::compile("green");
+//   
+//   unsigned int start, end;
+//   unsigned int index = 0;
+//   while(p->match(submatches.c_str(), index, start, end))
+//   {
+//      cout << "Found match at (" << start << ", " << end << ")" << endl;
+//      cout << "Match=" << submatches.substr(start, end - start) << endl;
+//      index = end;
+//   }
+//   
+//   delete p;
+//   
+//   cout << endl << "Doing replace all test..." << endl << endl;
+//   
+//   cout << "change 'green' to 'blue'" << endl;
+//   cout << submatches << endl;
+//   StringTools::regexReplaceAll(submatches, "green", "blue");
+//   cout << submatches << endl;
    
    cout << endl << "Regex test complete." << endl;
 }

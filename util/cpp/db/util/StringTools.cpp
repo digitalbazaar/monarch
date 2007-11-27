@@ -2,11 +2,13 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/util/StringTools.h"
-#include "db/util/regex/Pattern.h"
+// FIXME:
+//#include "db/util/regex/Pattern.h"
 
 using namespace std;
 using namespace db::util;
-using namespace db::util::regex;
+// FIXME:
+//using namespace db::util::regex;
 
 string& StringTools::trim(string& str, const string& trimChars)
 {
@@ -40,22 +42,22 @@ string& StringTools::replaceAll(
 string& StringTools::regexReplaceAll(
    string& str, const string& regex, const string& replace)
 {
-   // compile regex pattern
-   Pattern* p = Pattern::compile(regex.c_str());
-   if(p != NULL)
-   {
-      // replace all matches
-      unsigned int start, end;
-      unsigned int index = 0;
-      while(p->match(str.c_str(), index, start, end))
-      {
-         str.replace(start, end - start, replace);
-         index = start + replace.length();
-      }
-      
-      // free regex pattern
-      delete p;
-   }
+//   // compile regex pattern
+//   Pattern* p = Pattern::compile(regex.c_str());
+//   if(p != NULL)
+//   {
+//      // replace all matches
+//      unsigned int start, end;
+//      unsigned int index = 0;
+//      while(p->match(str.c_str(), index, start, end))
+//      {
+//         str.replace(start, end - start, replace);
+//         index = start + replace.length();
+//      }
+//      
+//      // free regex pattern
+//      delete p;
+//   }
    
    return str;
 }

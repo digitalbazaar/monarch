@@ -1,0 +1,6 @@
+To convert the windows libmysql.lib file to a mingw .a library
+do the following:
+
+echo EXPORTS > libmysql.def
+nm libmysql.lib | grep ' T _' | sed 's/.* T _//' >> libmysql.def
+dlltool -k -d libmysql.def -l libmysql.a
