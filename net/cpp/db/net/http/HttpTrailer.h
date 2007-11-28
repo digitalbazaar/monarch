@@ -23,6 +23,13 @@ namespace http
  * A multipart http message will use a MIME boundary as the start-line for
  * its HttpHeader.
  * 
+ * According to the HTTP/1.1 RFC trailers MUST NOT include the following
+ * http header fields:
+ * 
+ * Transfer-Encoding
+ * Content-Length
+ * Trailer
+ * 
  * @author Dave Longley
  */
 class HttpTrailer : public HttpHeader
@@ -40,8 +47,7 @@ public:
    
    /**
     * Updates this trailer according to some proprietary implementation. This
-    * method will be called before a trailer is sent out. The default
-    * implementation sets the Content-Length field in the trailer.
+    * method will be called before a trailer is sent out.
     * 
     * @param contentLength the length of the content that was sent.
     */
