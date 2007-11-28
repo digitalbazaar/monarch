@@ -4,8 +4,47 @@
 # make sure it always runs when typing "make clean"
 .PHONY: clean
 
-# base path
-BASE_DIR = /work/src/dbcpp/dbcore/trunk
+# Platform detection
+ifneq ($(findstring Linux,$(shell uname)),)
+UNIX = true
+endif
+ifneq ($(findstring CYGWIN,$(shell uname)),)
+WIN32 = true
+endif
+
+# platform specific variables
+ifdef UNIX
+BASE_DIR ?= /work/src/dbcpp/dbcore/trunk
+PICFLAGS = -fPIC
+SOEXT = so
+LDPATH = 
+else ifdef WIN32
+BASE_DIR ?= c:/work/src/dbcpp/dbcore/trunk
+OPENSSL_DIR ?= c:/work/OpenSSL
+PICFLAGS =
+SOEXT = a
+LDPATH = $(OPENSSL_DIR)/lib/MinGW:$(BASE_DIR)/data/cpp/db/data/xml/expat:$(BASE_DIR)/sql/cpp/sqlite3:$(BASE_DIR)/sql/cpp/mysql/lib
+
+# windows include path
+INCLUDES = \
+	-I$(OPENSSL_DIR)/include \
+	-I$(BASE_DIR)/rt/cpp/pthread \
+	-I$(BASE_DIR)/data/cpp/db/data/xml/expat \
+	-I$(BASE_DIR)/sql/cpp/sqlite3 \
+	-I$(BASE_DIR)/sql/cpp/mysql
+
+# windows libs
+WIN_LIBS = \
+	$(BASE_DIR)/rt/cpp/pthread/libpthreadGCE2.a \
+	$(OPENSSL_DIR)/lib/MinGW/ssleay32.a \
+	$(OPENSSL_DIR)/lib/MinGW/libeay32.a \
+	-lws2_32 \
+	$(BASE_DIR)/data/cpp/db/data/xml/expat/libexpat.a \
+	$(BASE_DIR)/data/cpp/db/data/xml/expat/libexpat.dll \
+	$(BASE_DIR)/sql/cpp/sqlite3/sqlite3.dll \
+	$(BASE_DIR)/sql/cpp/mysql/lib/libmysql.a \
+	$(BASE_DIR)/sql/cpp/mysql/lib/libmysql.dll
+endif
 
 # Compiler
 CC = g++
@@ -36,7 +75,20 @@ FIND_CPP = $(wildcard $(dir)/*.cpp)
 MODGROUP = db
 
 # All modules
-MODULES = rt modest util io crypto net data sql event mail test config #logging
+MODULES = \
+	config \
+	crypto \
+	data \
+	event \
+	io \
+	mail \
+	modest \
+	net \
+	rt \
+	sql \
+	test \
+	util
+	#logging
 
 # All executables
 EXES = maintest
@@ -46,27 +98,40 @@ EXES = maintest
 
 modules_MODLIBS = rt
 
+ifdef UNIX
 modest_CFLAGS = -DMODEST_API_EXPORT
+endif
 
 util_MODLIBS = rt
 
 io_MODLIBS = util
 
 crypto_MODLIBS = io
+ifndef WIN32
 crypto_EXTRADEPS = $(BASE_DIR)/crypto/python/cppwrapper/_dbcrypto.so
+endif
 
 net_MODLIBS = modest crypto
 net_SUBDIRS = http
 
+ifndef WIN32
 util_SUBDIRS = regex
+endif
 
 data_SUBDIRS = xml mpeg id3v2 json
+ifndef WIN32
 data_LIBS = expat
+endif
+data_MODLIBS = io util rt
 
 sql_SUBDIRS = sqlite3 mysql util
-sql_LIBS = sqlite3
+ifndef WIN32
+sql_LIBS = sqlite3 mysqlclient
+endif
 
 event_MODLIBS = modest
+
+config_MODLIBS = rt util io
 
 mail_MODLIBS = net util
 
@@ -80,7 +145,9 @@ maintest_EXE = test.exe
 maintest_MODLIBS = rt modest util io crypto net data sql event mail test \
 	config #logging
 maintest_SOURCES = main
+ifndef WIN32
 maintest_LIBS = pthread crypto ssl expat sqlite3 mysqlclient
+endif
 
 
 #
@@ -121,21 +188,29 @@ ALL_CPP += $$($$(MODGROUP)_$(1)_CPP)
 
 # Object files
 $$(MODGROUP)_$(1)_OBJS = $$($$(MODGROUP)_$(1)_CPP:$$(BASE_DIR)/$(1)/cpp/$$(MODGROUP)/$(1)/%.cpp=$$(BASE_DIR)/$(1)/cpp/build/%.o)
+ifdef UNIX
+$$(MODGROUP)_$(1)_LIBS = $$($(1)_LIBS:%=/usr/lib/lib%.a)
+endif
 
 $$(BASE_DIR)/$(1)/cpp/dist/lib$$(MODGROUP)$(1).a: $$($$(MODGROUP)_$(1)_OBJS)
-	$$(AR) $$(ARFLAGS) $$@ $$^ $$($(1)_LIBS:%=/usr/lib/lib%.a)
+	$$(AR) $$(ARFLAGS) $$@ $$^ $$($$(MODGROUP)_$(1)_LIBS)
 
+ifndef WIN32
 $$(BASE_DIR)/$(1)/cpp/dist/lib$$(MODGROUP)$(1).so: $$($$(MODGROUP)_$(1)_OBJS)
 	$$(CC) $$(LIBS) -shared -o $$@ $$^ $$($(1)_MODLIBS:%=-l$$(MODGROUP)%) $$($(1)_LIBS:%=-l%)
+endif
 
-$$(LIBS_DIR)/lib$$(MODGROUP)$(1).so: $$(BASE_DIR)/$(1)/cpp/dist/lib$$(MODGROUP)$(1).so
+$$(LIBS_DIR)/lib$$(MODGROUP)$(1).$$(SOEXT): $$(BASE_DIR)/$(1)/cpp/dist/lib$$(MODGROUP)$(1).$$(SOEXT)
 	@mkdir -p $$(LIBS_DIR)
 	@cp $$< $$@
 
+ifdef UNIX
+SODEP = $$(BASE_DIR)/$(1)/cpp/dist/lib$$(MODGROUP)$(1).$$(SOEXT)
+endif
 lib$$(MODGROUP)$(1): $$($(1)_MODLIBS:%=lib$$(MODGROUP)%) \
 	$$(BASE_DIR)/$(1)/cpp/dist/lib$$(MODGROUP)$(1).a \
-	$$(BASE_DIR)/$(1)/cpp/dist/lib$$(MODGROUP)$(1).so \
-	$$(LIBS_DIR)/lib$$(MODGROUP)$(1).so \
+	$$(SODEP) \
+	$$(LIBS_DIR)/lib$$(MODGROUP)$(1).$$(SOEXT) \
 	$$($(1)_EXTRADEPS)
 
 # Builds object files
@@ -143,7 +218,7 @@ $$(BASE_DIR)/$(1)/cpp/build/%.o: $$(BASE_DIR)/$(1)/cpp/$$(MODGROUP)/$(1)/%.cpp $
 	@mkdir -p $$(BASE_DIR)/$(1)/cpp/build \
 		$$($(1)_SUBDIRS:%=$$(BASE_DIR)/$(1)/cpp/build/%) \
 		$$(BASE_DIR)/$(1)/cpp/dist
-	$$(CC) $$(CFLAGS) -fPIC -o $$@ -c $$< $$($(1)_CFLAGS)
+	$$(CC) $$(CFLAGS) $(PICFLAGS) -o $$@ -c $$< $$($(1)_CFLAGS)
 endef
 
 $(foreach mod,$(MODULES),$(eval $(call MODULE_template,$(mod))))
@@ -164,8 +239,13 @@ $(1)_exe: $$(BASE_DIR)/$$($(1)_DIR)/cpp/dist/$$($(1)_EXE)
 CHECK_EXES += $$(BASE_DIR)/$$($(1)_DIR)/cpp/dist/$$($(1)_EXE)
 
 # Builds the binary
+ifdef WIN32
+BINLIBS=$(WIN_LIBS)
+else
+BINLIBS=$$($(1)_LIBS:%=-l%)
+endif
 $$(BASE_DIR)/$$($(1)_DIR)/cpp/dist/$$($(1)_EXE): $$($(1)_SOURCES:%=$$(BASE_DIR)/$$($(1)_DIR)/cpp/build/%.o) $$($(1)_MODLIBS:%=lib$$(MODGROUP)%) $$($(1)_OBJS)
-	$$(CC) $$(CFLAGS) -o $$@ $$< $$(foreach mod,$$($(1)_MODLIBS),$$($$(MODGROUP)_$$(mod)_LIB)) $$($(1)_LIBS:%=-l%)
+	$$(CC) $$(CFLAGS) -o $$@ $$< $$(foreach mod,$$($(1)_MODLIBS),$$($$(MODGROUP)_$$(mod)_LIB)) $$(BINLIBS)
 
 # Builds object files
 $$(BASE_DIR)/$$($(1)_DIR)/cpp/build/%.o: $$(BASE_DIR)/$$($(1)_DIR)/cpp/%.cpp $$(ALL_H)
@@ -176,14 +256,23 @@ endef
 
 $(foreach exe,$(EXES),$(eval $(call EXE_template,$(exe))))
 
+
+ifdef WIN32
+check: all2
+	@for exe in $(CHECK_EXES); do \
+		PATH=$(LDPATH) $$exe; \
+	done
+else
 check: all2
 	@for exe in $(CHECK_EXES); do \
 		$$exe; \
 	done
+endif
 
 #
 # Extra build rules
 
+ifndef WIN32
 # Build DB cryptography wrapper for python
 $(BASE_DIR)/crypto/python/cppwrapper/_dbcrypto.so: $(BASE_DIR)/crypto/python/cppwrapper/dbcryptoWrapper.o $(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.o $(db_crypto_LIB) $(db_io_LIB) $(db_rt_LIB) $(db_util_LIB)
 	$(CC) $(LIBS) -shared -o $@ $^ -lpthread -lcrypto -lssl
@@ -203,16 +292,19 @@ CLEANFILES += \
 	$(BASE_DIR)/crypto/python/cppwrapper/_dbcrypto.so \
 	$(BASE_DIR)/crypto/python/cppwrapper/dbcrypto.py
 
-$(BASE_DIR)/dbcore.pc: $(BASE_DIR)/dbcore.pc.in
+PCFILES = $(BASE_DIR)/dbcore.pc
+
+$(PCFILES): $(BASE_DIR)/dbcore.pc.in
 	cat $< | \
 		sed -e 's/@@CFLAGS@@/$(subst /,\/,$(INCLUDES))/' | \
 		sed -e 's/@@LIBS@@/$(subst /,\/,$(addprefix -L,$(DIST)))/' > $@
+endif
 
 CLEANFILES += \
-	$(BASE_DIR)/dbcore.pc
+	$(PCFILES)
 
 TAGS: $(ALL_H) $(ALL_CPP)
 	etags $^
 
-all2: $(MODULES:%=lib$(MODGROUP)%) $(EXES:%=%_exe) $(BASE_DIR)/dbcore.pc
+all2: $(MODULES:%=lib$(MODGROUP)%) $(EXES:%=%_exe) $(PCFILES)
 	@echo Make all finished.
