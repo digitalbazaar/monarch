@@ -19,11 +19,13 @@ PICFLAGS = -fPIC
 SOEXT = so
 LDPATH = 
 else ifdef WIN32
-BASE_DIR ?= c:/work/src/dbcpp/dbcore/trunk
-OPENSSL_DIR ?= c:/work/OpenSSL
+WINDRIVE ?= c
+CYGDRIVE ?= /cygdrive/$(WINDRIVE)
+BASE_DIR ?= $(WINDRIVE):/work/src/dbcpp/dbcore/trunk
+OPENSSL_DIR ?= $(WINDRIVE):/work/OpenSSL
 PICFLAGS =
 SOEXT = a
-LDPATH = $(OPENSSL_DIR)/lib/MinGW:$(BASE_DIR)/data/cpp/db/data/xml/expat:$(BASE_DIR)/sql/cpp/sqlite3:$(BASE_DIR)/sql/cpp/mysql/lib
+LDPATH = $(OPENSSL_DIR:$(WINDRIVE):%=$(CYGDRIVE)%)/lib/MinGW:$(BASE_DIR:$(WINDRIVE):%=$(CYGDRIVE)%)/data/cpp/db/data/xml/expat:$(BASE_DIR:$(WINDRIVE):%=$(CYGDRIVE)%)/sql/cpp/sqlite3:$(BASE_DIR:$(WINDRIVE):%=$(CYGDRIVE)%)/sql/cpp/mysql/lib
 
 # windows include path
 INCLUDES = \
@@ -291,20 +293,19 @@ CLEANFILES += \
 	$(BASE_DIR)/crypto/python/cppwrapper/dbcrypto_wrapper.c \
 	$(BASE_DIR)/crypto/python/cppwrapper/_dbcrypto.so \
 	$(BASE_DIR)/crypto/python/cppwrapper/dbcrypto.py
+endif
 
-PCFILES = $(BASE_DIR)/dbcore.pc
-
-$(PCFILES): $(BASE_DIR)/dbcore.pc.in
+$(BASE_DIR)/dbcore.pc: $(BASE_DIR)/dbcore.pc.in
 	cat $< | \
 		sed -e 's/@@CFLAGS@@/$(subst /,\/,$(INCLUDES))/' | \
 		sed -e 's/@@LIBS@@/$(subst /,\/,$(addprefix -L,$(DIST)))/' > $@
-endif
-
-CLEANFILES += \
-	$(PCFILES)
 
 TAGS: $(ALL_H) $(ALL_CPP)
 	etags $^
 
-all2: $(MODULES:%=lib$(MODGROUP)%) $(EXES:%=%_exe) $(PCFILES)
+CLEANFILES += \
+	$(BASE_DIR)/dbcore.pc \
+	TAGS
+
+all2: $(MODULES:%=lib$(MODGROUP)%) $(EXES:%=%_exe) $(BASE_DIR)/dbcore.pc
 	@echo Make all finished.
