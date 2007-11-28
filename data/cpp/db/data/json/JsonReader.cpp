@@ -94,7 +94,7 @@ JsonReader::~JsonReader()
    free(mBuffer);
 }
 
-void JsonReader::start(DynamicObject dyno)
+void JsonReader::start(DynamicObject& dyno)
 {
    // set current object and clear stack
    mDynoStack.clear();

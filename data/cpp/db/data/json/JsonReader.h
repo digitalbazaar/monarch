@@ -245,7 +245,7 @@ public:
     * 
     * @param dyno the DynamicObject for the object to deserialize.
     */
-   virtual void start(db::util::DynamicObject dyno);
+   virtual void start(db::util::DynamicObject& dyno);
    
    /**
     * This method reads JSON from the passed InputStream until the end of
