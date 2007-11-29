@@ -5168,6 +5168,9 @@ void runMySqlConnectionTest()
    c.connect("mysql://dbreadclient:k288m2s8f6gk39a@mojo/test");
    assertNoException();
    
+   // clean up mysql
+   mysql_library_end();
+   
    cout << endl << "MySqlConnection test complete." << endl;
 }
 
@@ -5263,6 +5266,9 @@ void runMySqlStatementTest()
    
    c.close();
    assertNoException();
+   
+   // clean up mysql
+   mysql_library_end();
    
    cout << endl << "MySql test complete." << endl;
 }
@@ -5364,6 +5370,9 @@ void runMysqlRowObjectTest(TestRunner& tr)
    tr.test("connection close");
    c.close();
    tr.passIfNoException();
+   
+   // clean up mysql
+   mysql_library_end();
    
    tr.ungroup();
 }
@@ -5710,6 +5719,9 @@ void runDatabaseClientTest()
    
    // clean up database client
    delete dc;
+   
+   // clean up mysql
+   mysql_library_end();
    
    cout << endl << "DatabaseClient test complete." << endl;
 }
