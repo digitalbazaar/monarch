@@ -174,6 +174,7 @@ void DataBinding::removeDataMapping(const char* ns, const char* name)
    {
       if((*i)->equals(dn))
       {
+         freeDataName(*i);
          mDataNameOrder.erase(i);
          break;
       }
@@ -208,6 +209,7 @@ void DataBinding::removeDataBinding(const char* ns, const char* name)
    {
       if((*i)->equals(dn))
       {
+         freeDataName(*i);
          mDataNameOrder.erase(i);
          break;
       }
