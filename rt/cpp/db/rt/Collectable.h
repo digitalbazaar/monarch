@@ -121,6 +121,13 @@ public:
     * @return a pointer to this Collectable's HeapObject.
     */
    virtual HeapObject* operator->();
+   
+   /**
+    * Returns true if this Collectable's HeapObject is NULL, false if not.
+    * 
+    * @return true if this Collectable's HeapObject is NULL, false if not.
+    */
+   virtual bool isNull();
 };
 
 template<typename HeapObject>
@@ -225,6 +232,12 @@ template<typename HeapObject>
 HeapObject* Collectable<HeapObject>::operator->()
 {
    return mReference->ptr;
+}
+
+template<typename HeapObject>
+bool Collectable<HeapObject>::isNull()
+{
+   return mReference == NULL;
 }
 
 } // end namespace rt

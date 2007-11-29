@@ -4,9 +4,10 @@
 #ifndef db_util_DynamicObjectImpl_H
 #define db_util_DynamicObjectImpl_H
 
+#include "db/rt/Object.h"
+
 #include <map>
 #include <vector>
-#include <string>
 
 namespace db
 {
@@ -30,7 +31,7 @@ typedef enum DynamicObjectType
  * 
  * @author Dave Longley
  */
-class DynamicObjectImpl
+class DynamicObjectImpl : public virtual db::rt::Object
 {
 public:
    /**
