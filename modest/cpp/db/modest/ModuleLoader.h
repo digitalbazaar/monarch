@@ -58,7 +58,7 @@ public:
     * 
     * @return the loaded Module's info or NULL if an Exception occurred.
     */
-   virtual ModuleInfo* loadModule(std::string const& filename);
+   virtual ModuleInfo* loadModule(const char* filename);
    
    /**
     * Unloads the passed Module.

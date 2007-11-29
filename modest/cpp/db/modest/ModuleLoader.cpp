@@ -17,12 +17,12 @@ ModuleLoader::~ModuleLoader()
 {
 }
 
-ModuleInfo* ModuleLoader::loadModule(std::string const& filename)
+ModuleInfo* ModuleLoader::loadModule(const char* filename)
 {
    ModuleInfo* rval = NULL;
    
    // open library
-   void* handle = dlopen(filename.c_str(), RTLD_NOW);
+   void* handle = dlopen(filename, RTLD_NOW);
    if(handle != NULL)
    {
       CreateModestModuleFn create;
@@ -54,8 +54,9 @@ ModuleInfo* ModuleLoader::loadModule(std::string const& filename)
       else
       {
          // could not load create or free functions
-         string msg =
-            "Could not load module '" + filename + "', error=";
+         string msg = "Could not load module '";
+         msg.append(filename);
+         msg.append("', error=");
          msg.append(error);
          Exception::setLast(new Exception(msg.c_str()));
       }
@@ -64,9 +65,9 @@ ModuleInfo* ModuleLoader::loadModule(std::string const& filename)
    {
       // failed to open module
       char* error = dlerror();
-      string msg =
-         "Could not load module '" + filename + "'" +
-         ", could not open module file, error=";
+      string msg = "Could not load module '";
+      msg.append(filename);
+      msg.append("', could not open module file, error=");
       msg.append(error);
       Exception::setLast(new Exception(msg.c_str()));
    }
