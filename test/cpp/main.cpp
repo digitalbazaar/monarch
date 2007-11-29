@@ -1025,12 +1025,19 @@ void runDynamicObjectTest(TestRunner& tr)
    
    assert(count == 1);
    
-   // test print out code
+   // test clone
    dyno1["dyno5"] = dyno5;
    dyno1["dyno6"] = dyno6;
    dyno1["clone"] = dyno1.clone();
    
-   assert(dyno1 == dyno1.clone());
+   DynamicObject clone = dyno1.clone();
+   assert(dyno1 == clone);
+   
+   // test subset
+   clone["mrmessy"] = "weirdguy";
+   assert(dyno1.isSubset(clone));
+   
+   // test print out code
    //cout << endl;
    //dumpDynamicObject(dyno1);
    

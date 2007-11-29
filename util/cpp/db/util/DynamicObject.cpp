@@ -241,3 +241,55 @@ DynamicObject DynamicObject::clone()
    
    return rval;
 }
+
+bool DynamicObject::isSubset(const DynamicObject& rhs)
+{
+   bool rval = false;
+   
+   DynamicObject* left = (DynamicObject*)this;
+   DynamicObject* right = (DynamicObject*)&rhs;
+   
+   if(this == &rhs)
+   {
+      rval = true;
+   }
+   else if(this->mReference == rhs.mReference)
+   {
+      rval = true;
+   }
+   else if(this->mReference == NULL || rhs.mReference == NULL)
+   {
+      // one is NULL, other is not, so not a subset
+   }
+   else if((*left)->getType() == Map && (*right)->getType() == Map)
+   {
+      // ensure right map has same or greater length
+      if((*left)->length() <= (*right)->length())
+      {
+         rval = true;
+         DynamicObjectIterator i = left->getIterator();
+         while(rval && i->hasNext())
+         {
+            DynamicObject leftDyno = i->next();
+            if((*right)->hasMember(i->getName()))
+            {
+               DynamicObject rightDyno = (*right)[i->getName()];
+               if(leftDyno->getType() == Map && rightDyno->getType() == Map)
+               {
+                  rval = leftDyno.isSubset(rightDyno);
+               }
+               else
+               {
+                  rval = (leftDyno == rightDyno);
+               }
+            }
+            else
+            {
+               rval = false;
+            }
+         }
+      }
+   }
+   
+   return rval;
+}

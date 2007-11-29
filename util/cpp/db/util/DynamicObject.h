@@ -158,6 +158,22 @@ public:
     * @return a clone of this DynamicObject.
     */
    virtual DynamicObject clone();
+   
+   /**
+    * Determines if this DynamicObject is a subset of another. If this
+    * DynamicObject does not reference the exact same DynamicObject as the
+    * passed one, then a check will be made to determine if this DynamicObject
+    * this is a subset of the passed one.
+    * 
+    * This DynamicObject is only a subset of the passed one if both are
+    * Maps and the passed DynamicObject contains at least all of the members
+    * and values of this DynamicObject.
+    * 
+    * @param rhs the DynamicObject to check as a superset.
+    * 
+    * @return true if this DynamicObject is a subset of the passed one.
+    */
+   virtual bool isSubset(const DynamicObject& rhs);
 };
 
 } // end namespace util
