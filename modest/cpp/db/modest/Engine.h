@@ -87,6 +87,13 @@ public:
     * @return the State of this Engine in an immutable form.
     */
    virtual ImmutableState* getState();
+   
+   /**
+    * Gets this Engine's OperationDispatcher.
+    * 
+    * @return this Engine's OperationDispatcher.
+    */
+   virtual OperationDispatcher* getOperationDispatcher();
 };
 
 } // end namespace modest

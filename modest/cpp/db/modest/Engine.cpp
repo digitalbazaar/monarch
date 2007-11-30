@@ -59,3 +59,8 @@ ImmutableState* Engine::getState()
 {
    return (ImmutableState*)mState;
 }
+
+OperationDispatcher* Engine::getOperationDispatcher()
+{
+   return mOpDispatcher;
+}
