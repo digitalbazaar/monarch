@@ -21,7 +21,7 @@ echo -e "\n--------- Digital Bazaar Common Build Configuration -----------"
 echo "Javadoc binary       : $JAVADOC"
 
 # Generating files
-AC_OUTPUT(Makefile \
+AC_OUTPUT(Makefile.java \
           setup/build.properties \
           )
 
