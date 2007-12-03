@@ -30,5 +30,16 @@ echo "C++ Compiler   : $CXX"
 
 # Generating files
 AC_OUTPUT(Makefile \
-          setup/Makefile.base
-          rt/cpp/Makefile)
+          setup/Makefile.base \
+          config/cpp/Makefile \
+          crypto/cpp/Makefile \
+          data/cpp/Makefile \
+          event/cpp/Makefile \
+          io/cpp/Makefile \
+          mail/cpp/Makefile \
+          modest/cpp/Makefile \
+          net/cpp/Makefile \
+          rt/cpp/Makefile \
+          sql/cpp/Makefile \
+          test/cpp/Makefile \
+          util/cpp/Makefile)

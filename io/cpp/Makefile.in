@@ -1,0 +1,8 @@
+# Makefile to compile the module in this directory
+
+SOURCES = $(wildcard db/io/*.cpp)
+LIBRARIES = dbio
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
+

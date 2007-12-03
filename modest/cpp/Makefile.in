@@ -1,0 +1,8 @@
+# Makefile to compile the module in this directory
+
+SOURCES = $(wildcard db/modest/*.cpp)
+LIBRARIES = dbmodest
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
+

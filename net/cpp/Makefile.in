@@ -1,0 +1,9 @@
+# Makefile to compile the module in this directory
+
+SOURCES = $(wildcard db/net/*.cpp) \
+          $(wildcard db/http/*.cpp)
+LIBRARIES = dbnet
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
+

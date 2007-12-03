@@ -1,8 +1,24 @@
 # The top-level Makefile that is used to build 
 
-SUBDIRS := rt/cpp
+SUBDIRS := config/cpp \
+           crypto/cpp \
+           data/cpp \
+           event/cpp \
+           io/cpp \
+           mail/cpp \
+           modest/cpp \
+           net/cpp \
+           rt/cpp \
+           sql/cpp \
+           test/cpp \
+           util/cpp
+
+MAKE_DIR = $(MAKE) -C $(dir)
 
 .PHONY: all
 
 all:
-	make -C rt/cpp all
+	$(foreach dir,$(SUBDIRS),$(MAKE_DIR) all;)
+
+clean:
+	$(foreach dir,$(SUBDIRS),$(MAKE_DIR) clean;)

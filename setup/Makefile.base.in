@@ -2,8 +2,10 @@
 # instructions for all binaries and packages.
 
 AR_FLAGS = cr
+CXX_FLAGS = -g -Wall -fPIC
+INCLUDES = -I@DBCOREDIR@/config/cpp -I@DBCOREDIR@/crypto/cpp -I@DBCOREDIR@/data/cpp -I@DBCOREDIR@/event/cpp -I@DBCOREDIR@/io/cpp -I@DBCOREDIR@/mail/cpp -I@DBCOREDIR@/modest/cpp -I@DBCOREDIR@/net/cpp -I@DBCOREDIR@/rt/cpp -I@DBCOREDIR@/sql/cpp -I@DBCOREDIR@/test/cpp -I@DBCOREDIR@/util/cpp
 
-MODULE_BASE_DIR := $(PWD)
+MODULE_BASE_DIR = $(shell pwd)
 
 .PHONY: all build-directories build-objects build-libraries clean clean-objects clean-libraries
 
@@ -27,7 +29,7 @@ LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
 
 %.o: %.cpp
 	@echo "Building $@..."
-	@$(CXX) -c -MD -o $@ -I. -Idb/rt $<
+	@$(CXX) $(CXX_FLAGS) -c -MD -o $@ $(INCLUDES) -I. $<
 	@cp $*.d $*.P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
 		rm -f $*.d
@@ -41,7 +43,7 @@ LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
 	@$(AR) $(AR_FLAGS) $@ $(LINUX_OBJECTS)
 
 %.P: %.cpp
-	@$(CXX) -E -MD -o $@ -I. -Idb/rt $<
+	@$(CXX) -E -MD -o $@ $(INCLUDES) -I. $<
 	@cp $*.d $*.P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
 		rm -f $*.d

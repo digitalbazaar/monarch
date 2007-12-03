@@ -1,0 +1,8 @@
+# Makefile to compile the module in this directory
+
+SOURCES = $(wildcard db/crypto/*.cpp)
+LIBRARIES = dbcrypto
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
+

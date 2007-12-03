@@ -1,0 +1,10 @@
+# Makefile to compile the module in this directory
+
+SOURCES = $(wildcard db/sql/*.cpp) \
+          $(wildcard db/sql/sqlite3/*.cpp) \
+          $(wildcard db/sql/mysql/*.cpp) \
+          $(wildcard db/sql/util/*.cpp)
+LIBRARIES = dbsql
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
