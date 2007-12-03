@@ -1,16 +1,16 @@
 # The top-level Makefile that is used to build 
 
-SUBDIRS := config/cpp \
-           crypto/cpp \
-           data/cpp \
+SUBDIRS := rt/cpp \
+           util/cpp \
+           modest/cpp \
            event/cpp \
            io/cpp \
-           mail/cpp \
-           modest/cpp \
+           config/cpp \
+           crypto/cpp \
+           data/cpp \
            net/cpp \
-           rt/cpp \
+           mail/cpp \
            sql/cpp \
-           util/cpp \
            test/cpp
 
 MAKE_DIR = $(MAKE) -j -l 10.0 -C $(dir)
@@ -23,3 +23,4 @@ all:
 
 clean:
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) clean;)
+	@rm -rf libs/*

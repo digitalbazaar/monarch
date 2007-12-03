@@ -2,6 +2,7 @@
 
 SOURCES = $(wildcard db/event/*.cpp)
 LIBRARIES = dbevent
+DYNAMIC_LINK_LIBRARIES = dbmodest
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base

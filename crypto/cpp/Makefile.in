@@ -2,6 +2,7 @@
 
 SOURCES = $(wildcard db/crypto/*.cpp)
 LIBRARIES = dbcrypto
+DYNAMIC_LINK_LIBRARIES = dbio
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base

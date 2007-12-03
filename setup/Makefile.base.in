@@ -5,6 +5,7 @@ AR_FLAGS = cr
 CXX_FLAGS = -g -Wall -fPIC
 DBCORE = @DBCOREDIR@
 INCLUDES = -I$(DBCORE)/config/cpp -I$(DBCORE)/crypto/cpp -I$(DBCORE)/data/cpp -I$(DBCORE)/event/cpp -I$(DBCORE)/io/cpp -I$(DBCORE)/mail/cpp -I$(DBCORE)/modest/cpp -I$(DBCORE)/net/cpp -I$(DBCORE)/rt/cpp -I$(DBCORE)/sql/cpp -I$(DBCORE)/test/cpp -I$(DBCORE)/util/cpp
+LIBS = $(DBCORE)/libs
 
 MODULE_BASE_DIR = $(shell pwd)
 
@@ -40,8 +41,8 @@ LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
 
 %.so: $(LINUX_OBJECTS)
 	@echo "Building $@..."
-	@$(CXX) -shared -o $@ $(LINUX_OBJECTS)
-	@mkdir -p $(DBCORE)/libs/linux
+	$(CXX) -L$(LIBS)/linux -shared -o $@ $(LINUX_OBJECTS) $(DYNAMIC_LINK_LIBRARIES:%=-l%) 
+	@mkdir -p $(LIBS)/linux
 	@ln -sf $(MODULE_BASE_DIR)/$@ $(DBCORE)/libs/linux/$(@F)
 
 %.a: $(LINUX_OBJECTS)

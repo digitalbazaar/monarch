@@ -3,6 +3,7 @@
 SOURCES = $(wildcard db/net/*.cpp) \
           $(wildcard db/net/http/*.cpp)
 LIBRARIES = dbnet
+DYNAMIC_LINK_LIBRARIES = dbmodest dbcrypto
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base
