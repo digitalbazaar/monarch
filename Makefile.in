@@ -10,15 +10,16 @@ SUBDIRS := config/cpp \
            net/cpp \
            rt/cpp \
            sql/cpp \
-           test/cpp \
-           util/cpp
+           util/cpp \
+           test/cpp
 
-MAKE_DIR = $(MAKE) -j 5 -l 2.0 -C $(dir)
+MAKE_DIR = $(MAKE) -j -l 10.0 -C $(dir)
 
 .PHONY: all
 
 all:
-	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) all;)
+	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-directories build-objects build-libraries;)
+	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-executables;)
 
 clean:
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) clean;)

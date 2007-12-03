@@ -7,7 +7,7 @@ INCLUDES = -I@DBCOREDIR@/config/cpp -I@DBCOREDIR@/crypto/cpp -I@DBCOREDIR@/data/
 
 MODULE_BASE_DIR = $(shell pwd)
 
-.PHONY: all build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries
+.PHONY: all build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries $(LINUX_EXECUTABLES)
 
 all: build-directories build-objects build-libraries build-executables
    @echo "SOURCES: $(SOURCES)"
@@ -52,9 +52,9 @@ LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
 		rm -f $*.d
 
 ifdef EXECUTABLES
-$(LINUX_EXECUTABLES): 
-	@echo "$(LINUX_BUILD_DIR)/$(@F).o"
-	$(CXX) $(CXX_FLAGS) -o $@ $(LINUX_BUILD_DIR)/$(@F).o $(STATIC_LINK_LIBRARIES) $(DYNAMIC_LINK_LIBRARIES:%=-l%)
+$(LINUX_EXECUTABLES): $(LINUX_EXECUTABLES:%=%.cpp)
+	@echo "Building $@..."
+	@$(CXX) $(CXX_FLAGS) -o $@ $(LINUX_BUILD_DIR)/$(@F).o $(STATIC_LINK_LIBRARIES) $(DYNAMIC_LINK_LIBRARIES:%=-l%)
 endif
 
 build-directories:
@@ -62,13 +62,10 @@ build-directories:
 	@mkdir -p $(LINUX_DIST_DIR)
 
 build-objects: $(LINUX_SOURCES) $(LINUX_OBJECTS)
-	@echo "Completed building objects..."
 
 build-libraries: $(LINUX_LIBRARIES)
-	@echo "Completed building libraries..."
 
 build-executables: $(LINUX_EXECUTABLES)
-	@echo "Completed building executables..."
 
 clean: clean-libraries clean-objects
 
@@ -77,5 +74,5 @@ clean-objects:
 	@rm -rf $(LINUX_BUILD_DIR)
 
 clean-libraries:
-	@echo "Removing all libraries..."
+	@echo "Removing all libraries and executables..."
 	@rm -rf $(LINUX_DIST_DIR)
