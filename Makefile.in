@@ -1,0 +1,8 @@
+# The top-level Makefile that is used to build 
+
+SUBDIRS := rt/cpp
+
+.PHONY: all
+
+all:
+	make -C rt/cpp all

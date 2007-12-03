@@ -1,0 +1,67 @@
+# This file contains basic Makefile includes that contain all building
+# instructions for all binaries and packages.
+
+AR_FLAGS = cr
+
+MODULE_BASE_DIR := $(PWD)
+
+.PHONY: all build-directories build-objects build-libraries clean clean-objects clean-libraries
+
+all: build-directories build-objects build-libraries
+   @echo "SOURCES: $(SOURCES)"
+
+LINUX_BUILD_DIR = build/linux
+LINUX_DIST_DIR = dist/linux
+LINUX_SOURCES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.cpp, $(SOURCES))
+LINUX_OBJECTS := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.o, $(SOURCES))
+LINUX_DEPENDENCIES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.P, $(SOURCES))
+
+LINUX_LIBRARIES := $(patsubst %,$(LINUX_DIST_DIR)/lib%.so, $(LIBRARIES)) 
+LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
+
+-include $(LINUX_DEPENDENCIES)
+
+%.cpp:
+	@mkdir -p $(dir $@)
+	@ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+
+%.o: %.cpp
+	@echo "Building $@..."
+	@$(CXX) -c -MD -o $@ -I. -Idb/rt $<
+	@cp $*.d $*.P; \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
+		rm -f $*.d
+
+%.so: $(LINUX_OBJECTS)
+	@echo "Building $@..."
+	@$(CXX) -shared -o $@ $(LINUX_OBJECTS)
+
+%.a: $(LINUX_OBJECTS)
+	@echo "Building $@..."
+	@$(AR) $(AR_FLAGS) $@ $(LINUX_OBJECTS)
+
+%.P: %.cpp
+	@$(CXX) -E -MD -o $@ -I. -Idb/rt $<
+	@cp $*.d $*.P; \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
+		rm -f $*.d
+
+build-directories:
+	@mkdir -p $(LINUX_BUILD_DIR)
+	@mkdir -p $(LINUX_DIST_DIR)
+
+build-objects: $(LINUX_SOURCES) $(LINUX_OBJECTS) 
+	@echo "Completed building objects..."
+
+build-libraries: $(LINUX_LIBRARIES)
+	@echo "Completed building libraries..."
+
+clean: clean-libraries clean-objects
+
+clean-objects:
+	@echo "Removing all objects..."
+	@rm -rf $(LINUX_BUILD_DIR)
+
+clean-libraries:
+	@echo "Removing all libraries..."
+	@rm -rf $(LINUX_DIST_DIR)

@@ -1,0 +1,8 @@
+# Makefile to compile the module in this directory
+
+SOURCES = $(wildcard db/rt/*.cpp)
+LIBRARIES = dbrt
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
+
