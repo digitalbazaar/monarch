@@ -143,10 +143,10 @@ test_MODLIBS = rt sql
 # exe rules
 
 maintest_DIR = test
-maintest_EXE = test.exe
+maintest_EXE = run-unit-tests.exe
 maintest_MODLIBS = rt modest util io crypto net data sql event mail test \
 	config #logging
-maintest_SOURCES = main
+maintest_SOURCES = run-unit-tests
 ifndef WIN32
 maintest_LIBS = pthread crypto ssl expat sqlite3 mysqlclient
 endif
