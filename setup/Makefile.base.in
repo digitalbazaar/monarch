@@ -3,7 +3,8 @@
 
 AR_FLAGS = cr
 CXX_FLAGS = -g -Wall -fPIC
-INCLUDES = -I@DBCOREDIR@/config/cpp -I@DBCOREDIR@/crypto/cpp -I@DBCOREDIR@/data/cpp -I@DBCOREDIR@/event/cpp -I@DBCOREDIR@/io/cpp -I@DBCOREDIR@/mail/cpp -I@DBCOREDIR@/modest/cpp -I@DBCOREDIR@/net/cpp -I@DBCOREDIR@/rt/cpp -I@DBCOREDIR@/sql/cpp -I@DBCOREDIR@/test/cpp -I@DBCOREDIR@/util/cpp
+DBCORE = @DBCOREDIR@
+INCLUDES = -I$(DBCORE)/config/cpp -I$(DBCORE)/crypto/cpp -I$(DBCORE)/data/cpp -I$(DBCORE)/event/cpp -I$(DBCORE)/io/cpp -I$(DBCORE)/mail/cpp -I$(DBCORE)/modest/cpp -I$(DBCORE)/net/cpp -I$(DBCORE)/rt/cpp -I$(DBCORE)/sql/cpp -I$(DBCORE)/test/cpp -I$(DBCORE)/util/cpp
 
 MODULE_BASE_DIR = $(shell pwd)
 
@@ -40,10 +41,14 @@ LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
 %.so: $(LINUX_OBJECTS)
 	@echo "Building $@..."
 	@$(CXX) -shared -o $@ $(LINUX_OBJECTS)
+	@mkdir -p $(DBCORE)/libs/linux
+	@ln -sf $(MODULE_BASE_DIR)/$@ $(DBCORE)/libs/linux/$(@F)
 
 %.a: $(LINUX_OBJECTS)
 	@echo "Building $@..."
 	@$(AR) $(AR_FLAGS) $@ $(LINUX_OBJECTS)
+	@mkdir -p $(DBCORE)/libs/linux
+	@ln -sf $(MODULE_BASE_DIR)/$@ $(DBCORE)/libs/linux/$(@F)
 
 %.P: %.cpp
 	@$(CXX) -E -MD -o $@ $(INCLUDES) -I. $<
