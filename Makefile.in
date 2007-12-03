@@ -13,12 +13,12 @@ SUBDIRS := config/cpp \
            test/cpp \
            util/cpp
 
-MAKE_DIR = $(MAKE) -C $(dir)
+MAKE_DIR = $(MAKE) -j 5 -l 2.0 -C $(dir)
 
 .PHONY: all
 
 all:
-	$(foreach dir,$(SUBDIRS),$(MAKE_DIR) all;)
+	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) all;)
 
 clean:
-	$(foreach dir,$(SUBDIRS),$(MAKE_DIR) clean;)
+	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) clean;)

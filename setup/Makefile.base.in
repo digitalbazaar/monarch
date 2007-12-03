@@ -7,18 +7,21 @@ INCLUDES = -I@DBCOREDIR@/config/cpp -I@DBCOREDIR@/crypto/cpp -I@DBCOREDIR@/data/
 
 MODULE_BASE_DIR = $(shell pwd)
 
-.PHONY: all build-directories build-objects build-libraries clean clean-objects clean-libraries
+.PHONY: all build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries
 
-all: build-directories build-objects build-libraries
+all: build-directories build-objects build-libraries build-executables
    @echo "SOURCES: $(SOURCES)"
 
 LINUX_BUILD_DIR = build/linux
 LINUX_DIST_DIR = dist/linux
 LINUX_SOURCES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.cpp, $(SOURCES))
+LINUX_SOURCES += $(patsubst %,$(LINUX_BUILD_DIR)/%.cpp, $(EXECUTABLES))
 LINUX_OBJECTS := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.o, $(SOURCES))
+LINUX_OBJECTS += $(patsubst %,$(LINUX_BUILD_DIR)/%.o, $(EXECUTABLES))
+LINUX_EXECUTABLES := $(patsubst %,$(LINUX_DIST_DIR)/%, $(EXECUTABLES))
 LINUX_DEPENDENCIES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.P, $(SOURCES))
 
-LINUX_LIBRARIES := $(patsubst %,$(LINUX_DIST_DIR)/lib%.so, $(LIBRARIES)) 
+LINUX_LIBRARIES := $(patsubst %,$(LINUX_DIST_DIR)/lib%.so, $(LIBRARIES))
 LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
 
 -include $(LINUX_DEPENDENCIES)
@@ -48,15 +51,24 @@ LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
 		rm -f $*.d
 
+ifdef EXECUTABLES
+$(LINUX_EXECUTABLES): 
+	@echo "$(LINUX_BUILD_DIR)/$(@F).o"
+	$(CXX) $(CXX_FLAGS) -o $@ $(LINUX_BUILD_DIR)/$(@F).o $(STATIC_LINK_LIBRARIES) $(DYNAMIC_LINK_LIBRARIES:%=-l%)
+endif
+
 build-directories:
 	@mkdir -p $(LINUX_BUILD_DIR)
 	@mkdir -p $(LINUX_DIST_DIR)
 
-build-objects: $(LINUX_SOURCES) $(LINUX_OBJECTS) 
+build-objects: $(LINUX_SOURCES) $(LINUX_OBJECTS)
 	@echo "Completed building objects..."
 
 build-libraries: $(LINUX_LIBRARIES)
 	@echo "Completed building libraries..."
+
+build-executables: $(LINUX_EXECUTABLES)
+	@echo "Completed building executables..."
 
 clean: clean-libraries clean-objects
 

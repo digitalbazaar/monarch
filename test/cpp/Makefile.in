@@ -1,6 +1,10 @@
 # Makefile to compile the module in this directory
 
 SOURCES = $(wildcard db/test/*.cpp)
+EXECUTABLES = run-unit-tests
+STATIC_LINK_LIBRARIES = @DBCOREDIR@/rt/cpp/dist/linux/libdbrt.a @DBCOREDIR@/modest/cpp/dist/linux/libdbmodest.a @DBCOREDIR@/util/cpp/dist/linux/libdbutil.a @DBCOREDIR@/io/cpp/dist/linux/libdbio.a @DBCOREDIR@/crypto/cpp/dist/linux/libdbcrypto.a @DBCOREDIR@/net/cpp/dist/linux/libdbnet.a @DBCOREDIR@/data/cpp/dist/linux/libdbdata.a @DBCOREDIR@/sql/cpp/dist/linux/libdbsql.a @DBCOREDIR@/event/cpp/dist/linux/libdbevent.a @DBCOREDIR@/mail/cpp/dist/linux/libdbmail.a @DBCOREDIR@/test/cpp/dist/linux/libdbtest.a @DBCOREDIR@/config/cpp/dist/linux/libdbconfig.a
+DYNAMIC_LINK_LIBRARIES = pthread crypto ssl expat sqlite3 mysqlclient
+
 LIBRARIES = dbtest
 
 # ----------- Standard Makefile
