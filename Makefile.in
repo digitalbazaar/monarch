@@ -24,3 +24,6 @@ all:
 clean:
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) clean &&) true
 	@rm -rf libs/*
+
+test: all
+	test/cpp/dist/linux/run-unit-tests
