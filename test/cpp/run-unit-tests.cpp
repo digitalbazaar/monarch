@@ -451,7 +451,7 @@ public:
       mLogout = logout;
    }
    
-   virtual void mutatePreExecutionState(State* s, Operation op)
+   virtual void mutatePreExecutionState(State* s, Operation& op)
    {
       int ops = 0;
       s->getInteger("number.of.ops", ops);
@@ -464,7 +464,7 @@ public:
       }
    }
    
-   virtual void mutatePostExecutionState(State* s, Operation op)
+   virtual void mutatePostExecutionState(State* s, Operation& op)
    {
       int ops = 0;
       s->getInteger("number.of.ops", ops);
@@ -530,16 +530,30 @@ void runModestTest(TestRunner& tr)
    RunOp r5("Number 5", 500);
    RunOp rLogout("Logout", 250);
    
-   TestStateMutator sm(false);
-   TestStateMutator smLogout(true);
+   TestStateMutator m(false);
+   TestStateMutator mLogout(true);
    TestGuard g;
    
-   Operation op1 = k.createOperation(&r1, &g, &sm);
-   Operation op2 = k.createOperation(&r2, &g, &sm);
-   Operation op3 = k.createOperation(&r3, &g, &sm);
-   Operation op4 = k.createOperation(&r4, &g, &sm);
-   Operation op5 = k.createOperation(&r5, &g, &sm);
-   Operation opLogout = k.createOperation(&rLogout, &g, &smLogout);
+   Operation op1(r1);
+   Operation op2(r2);
+   Operation op3(r3);
+   Operation op4(r4);
+   Operation op5(r5);
+   Operation opLogout(rLogout);
+   
+   op1->addGuard(&g);
+   op2->addGuard(&g);
+   op3->addGuard(&g);
+   op4->addGuard(&g);
+   op5->addGuard(&g);
+   opLogout->addGuard(&g);
+   
+   op1->addStateMutator(&m);
+   op2->addStateMutator(&m);
+   op3->addStateMutator(&m);
+   op4->addStateMutator(&m);
+   op5->addStateMutator(&m);
+   opLogout->addStateMutator(&mLogout);
    
    k.getEngine()->queue(op1);
    k.getEngine()->queue(op2);

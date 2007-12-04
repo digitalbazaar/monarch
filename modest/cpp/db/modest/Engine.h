@@ -68,7 +68,7 @@ public:
     * 
     * @param op the Operation to execute.
     */
-   virtual void queue(Operation op);
+   virtual void queue(Operation& op);
    
    /**
     * Starts this Engine. This will begin executing queued Operations.

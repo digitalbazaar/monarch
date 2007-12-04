@@ -15,10 +15,10 @@ namespace modest
 {
 
 /**
- * An OperationRunner is an interface that provides methods for creating
- * and running Operations with a given Runnable, OperationGuard, and
- * StateMutator. The passed Runnable, OperationGuard, and/or StateMutator
- * may be wrapped by other classes to provide additional logic.
+ * An OperationRunner is an interface that provides a method for running
+ * Operations. Any passed Operation may have OperationGuards or StateMutators
+ * added to it in order to provide additional logic that is specific to
+ * the OperationRunner's implementation.
  * 
  * @author Dave Longley
  */
@@ -36,46 +36,13 @@ public:
    virtual ~OperationRunner() {};
    
    /**
-    * Creates an Operation from the given Runnable, OperationGuard,
-    * and StateMutator that is to be run by this OperationRunner.
-    * 
-    * The passed Runnable, OperationGuard, and/or StateMutator may be
-    * wrapped by other classes to provide additional logic.
-    * 
-    * @param r the Runnable with code to execute during the operation.
-    * @param g the OperationGuard to use.
-    * @param m the StateMutator to use.
-    * 
-    * @return the Operation object to use to monitor the status of the
-    *         Operation.
-    */
-   virtual Operation createOperation(
-      db::rt::Runnable* r, OperationGuard* g, StateMutator* m) = 0;
-   
-   /**
-    * Creates an Operation from the given Runnable, OperationGuard,
-    * and StateMutator that is to be run by this OperationRunner.
-    * 
-    * The passed Runnable, OperationGuard, and/or StateMutator may be
-    * wrapped by other classes to provide additional logic.
-    * 
-    * @param r the Runnable with code to execute during the operation.
-    * @param g the OperationGuard to use.
-    * @param m the StateMutator to use.
-    * 
-    * @return the Operation object to use to monitor the status of the
-    *         Operation.
-    */
-   virtual Operation createOperation(
-      db::rt::CollectableRunnable& r, OperationGuard* g, StateMutator* m) = 0;
-   
-   /**
     * Queues the passed Operation with an appropriate modest engine for
-    * execution.
+    * execution. OperationGuards and/or StateMutators may be added to the
+    * Operation.
     * 
     * @param op the Operation to queue with a modest engine for execution.
     */
-   virtual void runOperation(Operation op) = 0;
+   virtual void runOperation(Operation& op) = 0;
 };
 
 } // end namespace modest

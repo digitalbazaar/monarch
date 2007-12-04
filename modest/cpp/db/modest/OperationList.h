@@ -46,14 +46,14 @@ public:
     * 
     * @param op the Operation to add.
     */
-   virtual void add(Operation op);
+   virtual void add(Operation& op);
    
    /**
     * Removes the passed Operation from this list.
     * 
     * @param op the Operation to remove.
     */
-   virtual void remove(Operation op);
+   virtual void remove(Operation& op);
    
    /**
     * Interrupts all Operations in this list.

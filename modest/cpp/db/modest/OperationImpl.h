@@ -5,6 +5,8 @@
 #define db_modest_OperationImpl_H
 
 #include "db/rt/Thread.h"
+#include "db/modest/OperationGuardChain.h"
+#include "db/modest/StateMutatorChain.h"
 
 namespace db
 {
@@ -14,8 +16,6 @@ namespace modest
 // forward declare Engine, OperationExecutor, OperationGuard, StateMutator
 class Engine;
 class OperationExecutor;
-class OperationGuard;
-class StateMutator;
 
 /**
  * An OperationImpl is the basic implementation for an Operation.
@@ -41,17 +41,17 @@ protected:
     * CollectableRunnable may be used.
     */
    db::rt::Runnable* mRunnable;
-   db::rt::CollectableRunnable mCollectableRunnable;
+   db::rt::CollectableRunnable mRunnableReference;
    
    /**
     * The guard that decides when this Operation can execute.
     */
-   OperationGuard* mGuard;
+   CollectableOperationGuard mGuard;
    
    /**
     * The StateMutator for this Operation.
     */
-   StateMutator* mStateMutator;
+   CollectableStateMutator mMutator;
    
    /**
     * The Thread this Operation is executing on.
@@ -91,31 +91,13 @@ protected:
    
 public:
    /**
-    * Creates a new OperationImpl that can execute the given Runnable in the
-    * given guard. The passed Runnable must be fully interruptible.
+    * Creates a new OperationImpl that can execute the given Runnable. The
+    * passed Runnable must handle interruptions gracefully.
     * 
     * @param r the Runnable to execute.
-    * @param g the OperationGuard underwhich this Operation can execute.
-    * @param m the StateMutator for this Operation.
     */
-   OperationImpl(
-      db::rt::Runnable* r, OperationGuard* g = NULL, StateMutator* m = NULL);
-   
-   /**
-    * Creates a new OperationImpl that can execute the given Runnable in the
-    * given guard. The passed Runnable must be fully interruptible.
-    * 
-    * A CollectableRunnable may be passed such that the Runnable will be
-    * cleaned up when this Operation is destructed, if this Operation
-    * contains the only reference to the Runnable.
-    * 
-    * @param r the CollectableRunnable to execute.
-    * @param g the OperationGuard underwhich this Operation can execute.
-    * @param m the StateMutator for this Operation.
-    */
-   OperationImpl(
-      db::rt::CollectableRunnable& r,
-      OperationGuard* g = NULL, StateMutator* m = NULL);
+   OperationImpl(db::rt::Runnable& r);
+   OperationImpl(db::rt::CollectableRunnable& r);
    
    /**
     * Destructs this OperationImpl.
@@ -197,16 +179,38 @@ public:
    virtual db::rt::Runnable* getRunnable();
    
    /**
-    * Gets this Operation's guard.
+    * Adds an OperationGuard to this Operation. This method must only be called
+    * prior to running this Operation or undefined behavior will result.
     * 
-    * @return this Operation's guard, which may be NULL.
+    * @param g the OperationGuard to add.
+    * @param front true to add this OperationGuard in front of any existing
+    *              ones (the default behavior), false to add it to the back.
+    */
+   virtual void addGuard(OperationGuard* g, bool front = true);
+   virtual void addGuard(CollectableOperationGuard& g, bool front = true);
+   
+   /**
+    * Gets this Operation's first guard.
+    * 
+    * @return this Operation's first guard, which may be NULL.
     */
    virtual OperationGuard* getGuard();
    
    /**
-    * Gets this Operation's StateMutator.
+    * Adds a StateMutator to this Operation. This method must only be called
+    * prior to running this Operation or undefined behavior will result.
     * 
-    * @return this Operation's StateMutator, which may be NULL.
+    * @param m the StateMutator to add.
+    * @param front true to add this StateMutator in front of any existing
+    *              ones (the default behavior), false to add it to the back.
+    */
+   virtual void addStateMutator(StateMutator* m, bool front = true);
+   virtual void addStateMutator(CollectableStateMutator& m, bool front = true);
+   
+   /**
+    * Gets this Operation's first StateMutator.
+    * 
+    * @return this Operation's first StateMutator, which may be NULL.
     */
    virtual StateMutator* getStateMutator();
    

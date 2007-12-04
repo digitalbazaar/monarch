@@ -30,7 +30,29 @@ namespace modest
  * 
  * @author Dave Longley
  */
-typedef db::rt::Collectable<OperationImpl> Operation;
+class Operation : public db::rt::Collectable<OperationImpl>
+{
+public:
+   /**
+    * Creates a new Operation with the given Runnable.
+    * 
+    * @param r the Runnable to use.
+    */
+   Operation(db::rt::Runnable& r);
+   Operation(db::rt::CollectableRunnable& r);
+   
+   /**
+    * Creates a new Operation reference to the passed OperationImpl.
+    * 
+    * @param impl the OperationImpl to reference.
+    */
+   Operation(OperationImpl* impl = NULL);
+   
+   /**
+    * Destructs this Operation.
+    */
+   virtual ~Operation();
+};
 
 } // end namespace modest
 } // end namespace db

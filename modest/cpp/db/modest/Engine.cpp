@@ -25,7 +25,7 @@ Engine::~Engine()
    delete mState;
 }
 
-void Engine::queue(Operation op)
+void Engine::queue(Operation& op)
 {
    lock();
    {

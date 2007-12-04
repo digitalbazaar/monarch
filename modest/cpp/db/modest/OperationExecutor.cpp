@@ -10,7 +10,7 @@ using namespace db::modest;
 using namespace db::rt;
 
 OperationExecutor::OperationExecutor(
-   State* s, Operation op, OperationDispatcher* od)
+   State* s, Operation& op, OperationDispatcher* od)
 {
    mState = s;
    mOperation = op;

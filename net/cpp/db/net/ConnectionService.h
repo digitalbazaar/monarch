@@ -59,11 +59,6 @@ protected:
    db::modest::OperationList mRunningServicers;
    
    /**
-    * A list of ConnectionWorkers.
-    */
-   std::list<ConnectionWorker*> mWorkers;
-   
-   /**
     * The current number of connections being handled.
     */
    unsigned int mConnectionCount;
@@ -85,11 +80,6 @@ protected:
     * clean up, then this method should have no effect.
     */
    virtual void cleanup();
-   
-   /**
-    * Cleans up any expired ConnectionWorkers.
-    */
-   virtual void cleanupWorkers();
    
 public:
    /**

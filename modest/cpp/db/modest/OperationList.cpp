@@ -15,7 +15,7 @@ OperationList::~OperationList()
    terminate();
 }
 
-void OperationList::add(Operation op)
+void OperationList::add(Operation& op)
 {
    lock();
    {
@@ -24,7 +24,7 @@ void OperationList::add(Operation op)
    unlock();
 }
 
-void OperationList::remove(Operation op)
+void OperationList::remove(Operation& op)
 {
    lock();
    {

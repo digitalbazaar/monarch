@@ -21,21 +21,7 @@ Kernel::~Kernel()
    delete mModuleLibrary;
 }
 
-Operation Kernel::createOperation(
-   Runnable* r, OperationGuard* g, StateMutator* m)
-{
-   // create normal operation
-   return Operation(new OperationImpl(r, g, m));
-}
-
-Operation Kernel::createOperation(
-   CollectableRunnable& r, OperationGuard* g, StateMutator* m)
-{
-   // create normal operation
-   return Operation(new OperationImpl(r, g, m));
-}
-
-void Kernel::runOperation(Operation op)
+void Kernel::runOperation(Operation& op)
 {
    // queue operation with engine
    getEngine()->queue(op);

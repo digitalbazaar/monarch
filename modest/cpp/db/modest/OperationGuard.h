@@ -4,6 +4,7 @@
 #ifndef db_modest_OperationGuard_H
 #define db_modest_OperationGuard_H
 
+#include "db/rt/Collectable.h"
 #include "db/modest/ImmutableState.h"
 
 namespace db
@@ -58,6 +59,9 @@ public:
     */
    virtual bool mustCancelOperation(ImmutableState* s) = 0;
 };
+
+// define a collectable OperationGuard
+typedef db::rt::Collectable<OperationGuard> CollectableOperationGuard;
 
 } // end namespace modest
 } // end namespace db

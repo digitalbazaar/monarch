@@ -6,7 +6,6 @@
 
 #include "db/rt/Runnable.h"
 #include "db/net/Connection.h"
-#include "db/modest/Operation.h"
 
 namespace db
 {
@@ -35,11 +34,6 @@ protected:
     */
    Connection* mConnection;
    
-   /**
-    * The Operation used to run this worker.
-    */
-   db::modest::Operation mOperation;
-   
 public:
    /**
     * Creates a new ConnectionWorker that works for the passed ConnectionService
@@ -59,20 +53,6 @@ public:
     * Gets the Connection serviced.
     */
    virtual void run();
-   
-   /**
-    * Sets the Operation used to run this worker.
-    * 
-    * @param op the Operation used to run this worker.
-    */
-   virtual void setOperation(db::modest::Operation op);
-   
-   /**
-    * Gets the Operation used to run this worker.
-    * 
-    * @return the Operation used to run this worker.
-    */
-   virtual db::modest::Operation getOperation();
 };
 
 } // end namespace net

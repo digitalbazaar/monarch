@@ -25,13 +25,3 @@ void ConnectionWorker::run()
    // service the connection
    mService->serviceConnection(mConnection);
 }
-
-void ConnectionWorker::setOperation(Operation op)
-{
-   mOperation = op;
-}
-
-Operation ConnectionWorker::getOperation()
-{
-   return mOperation;
-}

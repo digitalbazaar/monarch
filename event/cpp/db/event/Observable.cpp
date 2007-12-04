@@ -10,9 +10,6 @@ using namespace db::rt;
 
 Observable::Observable()
 {
-   // no dispatch operation yet
-   mOperation = NULL;
-   
    // no events to dispatch yet
    mDispatch = false;
 }
@@ -45,7 +42,7 @@ void Observable::dispatchEvent(
                {
                   // create and run event dispatcher for each observable
                   CollectableRunnable ed = new EventDispatcher(oi->second, &e);
-                  Operation op = mOpRunner->createOperation(ed, NULL, NULL);
+                  Operation op(ed);
                   mOpRunner->runOperation(op);
                   opList.add(op);
                }
@@ -216,11 +213,11 @@ void Observable::start(OperationRunner* opRunner)
 {
    lock();
    {
-      if(mOperation == NULL)
+      if(mOperation.isNull())
       {
-         // store operation runner
+         // store operation runner, create and run operation
          mOpRunner = opRunner;
-         mOperation = opRunner->createOperation(this, NULL, NULL);
+         mOperation = *this;
          opRunner->runOperation(mOperation);
       }
    }
@@ -231,8 +228,9 @@ void Observable::stop()
 {
    lock();
    {
-      if(mOperation != NULL)
+      if(!mOperation.isNull())
       {
+         // interrupt and clean up operation
          mOperation->interrupt();
          mOperation->waitFor();
          mOperation = NULL;

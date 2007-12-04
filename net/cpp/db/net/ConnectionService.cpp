@@ -32,7 +32,7 @@ ConnectionService::~ConnectionService()
 
 Operation ConnectionService::initialize()
 {
-   Operation rval = NULL;
+   Operation rval(NULL);
    
    // no connections yet
    mConnectionCount = 0;
@@ -44,7 +44,8 @@ Operation ConnectionService::initialize()
    if(mSocket->bind(getAddress()) && mSocket->listen())
    {
       // create Operation for running service
-      rval = mServer->getOperationRunner()->createOperation(this, this, NULL);
+      rval = *this;
+      rval->addGuard(this);
    }
    
    return rval;
@@ -57,28 +58,6 @@ void ConnectionService::cleanup()
       // clean up socket
       delete mSocket;
       mSocket = NULL;
-   }
-}
-
-void ConnectionService::cleanupWorkers()
-{
-   for(list<ConnectionWorker*>::iterator i = mWorkers.begin();
-       i != mWorkers.end();)
-   {
-      ConnectionWorker* cw = *i;
-      if(cw->getOperation()->stopped())
-      {
-         // remove the operation from the running servicers list
-         mRunningServicers.remove(cw->getOperation());
-         
-         // delete the worker
-         delete cw;
-         i = mWorkers.erase(i);
-      }
-      else
-      {
-         i++;
-      }
    }
 }
 
@@ -98,9 +77,8 @@ void ConnectionService::run()
 {
    while(!mOperation->isInterrupted())
    {
-      // prune running servicers, clean up workers
+      // prune running servicers
       mRunningServicers.prune();
-      cleanupWorkers();
       
       // acquire service connection permit
       if(mConnectionSemaphore.acquire() == NULL)
@@ -133,9 +111,8 @@ void ConnectionService::run()
    // close socket
    mSocket->close();
    
-   // terminate running servicers, clean up workers
+   // terminate running servicers
    mRunningServicers.terminate();
-   cleanupWorkers();
 }
 
 void ConnectionService::createConnection(Socket* s)
@@ -160,11 +137,9 @@ void ConnectionService::createConnection(Socket* s)
       
       // create ConnectionWorker and Operation to run it
       ConnectionWorker* worker = new ConnectionWorker(this, c);
-      Operation op = mServer->getOperationRunner()->createOperation(
-         worker, NULL, NULL);
-      worker->setOperation(op);
+      CollectableRunnable cr = worker;
+      Operation op(cr);
       mRunningServicers.add(op);
-      mWorkers.push_back(worker);
       
       // run operation
       mServer->getOperationRunner()->runOperation(op);

@@ -51,7 +51,7 @@ public:
     * @param od the OperationDispatcher to use to obtain a thread to execute
     *           the Operation on and to notify when this executor has expired.
     */
-   OperationExecutor(State* s, Operation op, OperationDispatcher* od);
+   OperationExecutor(State* s, Operation& op, OperationDispatcher* od);
    
    /**
     * Destructs this OperationExecutor.
