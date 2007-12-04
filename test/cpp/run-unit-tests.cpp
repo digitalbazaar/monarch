@@ -6570,15 +6570,6 @@ void runConfigManagerTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runOtherTest()
-{
-   cout << "Starting Other test." << endl << endl;
-   
-   // FIXME:
-   
-   cout << endl << "Other test complete." << endl;
-}
-
 class RunTests : public virtual Object, public Runnable
 {
 public:
@@ -6587,8 +6578,6 @@ public:
     */
    virtual void runAutomaticUnitTests(TestRunner& tr)
    {
-      cout << "Automatic unit tests starting..." << endl << endl;
-      
       // db::rt tests
       runThreadTest(tr);
       runJobThreadPoolTest(tr);
@@ -6648,12 +6637,7 @@ public:
       //runSmtpClientTest(tr);
       runMailTemplateParser(tr);
       
-      cout << endl << "Automatic unit tests finished." << endl;
-      
-      if(Exception::hasLast())
-      {
-         dumpException(Exception::getLast());
-      }
+      assertNoException();
    }
 
    /**
@@ -6661,8 +6645,6 @@ public:
     */
    virtual void runInteractiveUnitTests(TestRunner& tr)
    {
-      cout << "Interactive unit tests starting..." << endl << endl;
-      
 //      runTimeTest();
 //      runConvertTest();
 //      runRegexTest();
@@ -6724,14 +6706,8 @@ public:
 //      runFileTest();
 //      runSmtpClientTest(tr);
 //      runMailTemplateParser(tr);
-//      runOtherTest();
       
-      cout << endl << "Interactive unit tests finished." << endl;
-      
-      if(Exception::hasLast())
-      {
-         dumpException(Exception::getLast());
-      }
+      assertNoException();
    }
 
    /**
@@ -6740,19 +6716,13 @@ public:
    virtual void run()
    {
       TestRunner tr(true, TestRunner::Names);
-
-      cout << "Tests starting..." << endl << endl;
       
+      tr.group(""); // root group
       runInteractiveUnitTests(tr);
       runAutomaticUnitTests(tr);
+      tr.ungroup();
       
-      cout << endl << "Tests finished." << endl;
-      
-      if(Exception::hasLast())
-      {
-         dumpException(Exception::getLast());
-      }
-
+      assertNoException();
       tr.done();
    }
 };
