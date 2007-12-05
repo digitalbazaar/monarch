@@ -3,6 +3,9 @@
 # Author: Manu Sporny
 
 AC_INIT(dbcore, 3.0, support@digitalbazaar.com)
+AC_CONFIG_AUX_DIR(setup)
+AC_PROG_INSTALL
+AC_CANONICAL_BUILD
 
 # Setup standard build environment variables
 DBCOREDIR=`pwd`
@@ -26,7 +29,9 @@ AC_SUBST(DBCOREDIR)
 AC_SUBST(JAVADOC)
 
 echo -e "\n--------- DB Core Build Environment -----------"
-echo "C++ Compiler   : $CXX"
+echo "System      : $PACKAGE_STRING"
+echo "Build system: $build_cpu $build_vendor $build_os"
+echo "C++ Compiler: $CXX"
 
 # Generating files
 AC_OUTPUT(Makefile \
