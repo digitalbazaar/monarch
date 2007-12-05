@@ -2,7 +2,6 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/Engine.h"
-#include "db/modest/OperationExecutor.h"
 #include "db/modest/OperationDispatcher.h"
 
 using namespace db::modest;
@@ -29,9 +28,8 @@ void Engine::queue(Operation& op)
 {
    lock();
    {
-      // create an OperationExecutor
-      OperationExecutor* e = new OperationExecutor(mState, op, mOpDispatcher);
-      mOpDispatcher->queueOperation(e);
+      // queue the operation with the dispatcher
+      mOpDispatcher->queueOperation(op);
    }
    unlock();
 }

@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/OperationImpl.h"
+#include "db/modest/OperationDispatcher.h"
 
 using namespace db::modest;
 using namespace db::rt;
@@ -31,6 +32,57 @@ OperationImpl::OperationImpl(CollectableRunnable& r)
 
 OperationImpl::~OperationImpl()
 {
+}
+
+void OperationImpl::run()
+{
+   lock();
+   {
+      // operation started on the current thread
+      mThread = Thread::currentThread();
+      mStarted = true;
+   }
+   unlock();
+   
+   // run the operation's runnable
+   if(!isInterrupted())
+   {
+      mRunnable->run();
+   }
+   
+   lock();
+   {
+      // determine if the operation was finished or canceled
+      if(isInterrupted())
+      {
+         mCanceled = true;
+      }
+      else
+      {
+         mFinished = true;
+      }
+      
+      // clear thread from Operation
+      mThread = NULL;
+   }
+   unlock();
+}
+
+void OperationImpl::stop()
+{
+   lock();
+   {
+      // if operation did not finish, then it was canceled
+      if(!finished())
+      {
+         mCanceled = true;
+      }
+      
+      // mark operation stopped and wake up all waiting threads
+      mStopped = true;
+      notifyAll();
+   }
+   unlock();
 }
 
 bool OperationImpl::waitFor(bool interruptible)

@@ -13,9 +13,6 @@ namespace db
 namespace modest
 {
 
-// forward declare OperationExecutor
-class OperationExecutor;
-
 /**
  * An OperationDispatcher is used to dispatch Operations for execution. Before
  * any Operation can be dispatched for execution, the associated Engine's
@@ -23,7 +20,9 @@ class OperationExecutor;
  * 
  * @author Dave Longley
  */
-class OperationDispatcher : protected db::rt::JobDispatcher
+class OperationDispatcher :
+protected db::rt::JobThreadPool,
+protected db::rt::JobDispatcher
 {
 protected:
    /**
@@ -32,21 +31,17 @@ protected:
    Engine* mEngine;
    
    /**
+    * A map of OperationImpl's to Operation references.
+    */
+   typedef std::map<OperationImpl*, Operation> OperationMap;
+   OperationMap mOpMap;
+   
+   /**
     * The set to true when a dispatch should occur. This is true to begin with
     * and is set to true when a new operation is queued or executed, or when
     * one expires.
     */
    bool mDispatch;
-   
-   /**
-    * A list of expired OperationExecutors to clean up.
-    */
-   std::list<OperationExecutor*> mExpiredExecutors;
-   
-   /**
-    * A lock for modifying the expired executors list.
-    */
-   Object mExpiredExecutorsLock;
    
    /**
     * Returns true if this dispatcher has a job it can dispatch.
@@ -59,11 +54,6 @@ protected:
     * Dispatches the Operations that can be dispatched.
     */
    virtual void dispatchJobs();
-   
-   /**
-    * Cleans up any expired executors.
-    */
-   virtual void cleanupExpiredExecutors();
    
 public:
    /**
@@ -81,25 +71,20 @@ public:
    /**
     * Queues an Operation for execution.
     * 
-    * @param e the OperationExecutor to queue to execute an Operation.
+    * @param op the Operation to queue.
     */
-   virtual void queueOperation(OperationExecutor* e);
+   virtual void queueOperation(Operation& op);
    
    /**
     * Starts dispatching Operations.
     */
-   virtual void startDispatching();
+   using JobDispatcher::startDispatching;
    
    /**
     * Stops dispatching Operations. This does not terminate the Operations
     * that are already running.
     */
-   virtual void stopDispatching();
-   
-   /**
-    * Called by startDispatching() to dispatch Operations.
-    */
-   virtual void run();
+   using JobDispatcher::stopDispatching;
    
    /**
     * Clears all queued Operations.
@@ -113,12 +98,11 @@ public:
    virtual void terminateRunningOperations();
    
    /**
-    * Adds an expired OperationExecutor to the list of expired executors for
-    * clean up.
+    * Called by a JobThread when it completes its job.
     * 
-    * @param e the OperationExecutor to add.
+    * @param t the JobThread that completed its job.
     */
-   virtual void addExpiredExecutor(OperationExecutor* e);
+   virtual void jobCompleted(db::rt::JobThread* t);
    
    /**
     * Gets the thread pool for running Operations.

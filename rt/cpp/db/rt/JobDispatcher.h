@@ -6,7 +6,7 @@
 
 #include "db/rt/JobThreadPool.h"
 
-#include <list>
+#include <map>
 
 namespace db
 {
@@ -37,7 +37,14 @@ protected:
     * The internal queue that holds the Runnable jobs that are
     * waiting to be dispatched.
     */
-   std::list<Runnable*> mJobQueue;
+   typedef std::list<Runnable*> RunnableList;
+   RunnableList mJobQueue;
+   
+   /**
+    * A map of Runnables to CollectableRunnables.
+    */
+   typedef std::map<Runnable*, CollectableRunnable> ReferenceMap;
+   ReferenceMap mJobReferenceMap;
    
    /**
     * The thread used to dispatch the Runnable jobs.
@@ -48,13 +55,6 @@ protected:
     * The wait lock for this dispatcher.
     */
    Object mWaitLock;
-   
-   /**
-    * Pops the next Runnable job off of the queue.
-    * 
-    * @return job the popped Runnable job.
-    */
-   virtual Runnable* popJob();
    
    /**
     * Wakes up this dispatcher if it has gone to sleep waiting for
@@ -68,13 +68,6 @@ protected:
     * @return true if this dispatcher has a job it can dispatch.
     */
    virtual bool canDispatch();
-   
-   /**
-    * Gets an iterator over the jobs in the queue (in FIFO order).
-    *
-    * @return an iterator over the jobs in the queue.
-    */
-   virtual std::list<Runnable*>::iterator getJobIterator();
    
    /**
     * Gets the dispatcher thread.
@@ -110,7 +103,8 @@ public:
     * 
     * @param job the Runnable job to queue.
     */
-   virtual void queueJob(Runnable* job);
+   virtual void queueJob(Runnable& job);
+   virtual void queueJob(CollectableRunnable& job);
    
    /**
     * Dequeues a Runnable job so that it will no longer be executed if it
@@ -119,7 +113,8 @@ public:
     * 
     * @param job the Runnable job to dequeue.
     */
-   virtual void dequeueJob(Runnable* job);
+   virtual void dequeueJob(Runnable& job);
+   virtual void dequeueJob(CollectableRunnable& job);
    
    /**
     * Dispatches the Runnable jobs in the queue that can be dispatched.
@@ -135,7 +130,8 @@ public:
     * @return true if the passed Runnable job is in the queue to
     *         be dispatched, false if not.
     */
-   virtual bool isQueued(Runnable* job);
+   virtual bool isQueued(Runnable& job);
+   virtual bool isQueued(CollectableRunnable& job);
    
    /**
     * Starts dispatching Runnable jobs.

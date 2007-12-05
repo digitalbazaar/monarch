@@ -13,10 +13,6 @@ namespace db
 namespace modest
 {
 
-// forward declare Engine, OperationExecutor, OperationGuard, StateMutator
-class Engine;
-class OperationExecutor;
-
 /**
  * An OperationImpl is the basic implementation for an Operation.
  * 
@@ -33,7 +29,7 @@ class OperationExecutor;
  * 
  * @author Dave Longley
  */
-class OperationImpl : public virtual db::rt::Object
+class OperationImpl : public virtual db::rt::Object, protected db::rt::Runnable
 {
 protected:
    /**
@@ -84,10 +80,21 @@ protected:
    bool mCanceled;
    
    /**
-    * OperationExecutor is a friend so that it can manipulate Operations
-    * without publically exposing protected Operation information.
+    * OperationDispatcher is a friend to allow it run this Operation and
+    * mark it as canceled if necessary.
     */
-   friend class OperationExecutor;
+   friend class OperationDispatcher;
+   
+   /**
+    * Stops this Operation.
+    */
+   virtual void stop();
+   
+   /**
+    * Executes the Operation's Runnable on the current Thread. This method
+    * should only be called by an Engine's OperationDispatcher.
+    */
+   virtual void run();
    
 public:
    /**

@@ -4,7 +4,6 @@
 #ifndef db_rt_JobThreadPool_H
 #define db_rt_JobThreadPool_H
 
-#include "db/rt/Object.h"
 #include "db/rt/Semaphore.h"
 #include "db/rt/JobThread.h"
 
@@ -36,17 +35,18 @@ protected:
    /**
     * The list of all threads in this pool.
     */
-   std::list<JobThread*> mThreads;
+   typedef std::list<JobThread*> ThreadList;
+   ThreadList mThreads;
    
    /**
     * The list of idle threads in this pool.
     */
-   std::list<JobThread*> mIdleThreads;
+   ThreadList mIdleThreads;
    
    /**
     * The list of expired threads in this pool.
     */
-   std::list<JobThread*> mExpiredThreads;
+   ThreadList mExpiredThreads;
    
    /**
     * A lock for modifying the thread lists.
@@ -88,7 +88,8 @@ protected:
     * 
     * @param job the Runnable job to run.
     */
-   virtual void runJobOnIdleThread(Runnable* job);
+   virtual void runJobOnIdleThread(Runnable& job);
+   virtual void runJobOnIdleThread(CollectableRunnable& job);
    
 public:
    /**
@@ -114,7 +115,8 @@ public:
     * 
     * @return true if the job could run, false if not.
     */
-   virtual bool tryRunJob(Runnable* job);
+   virtual bool tryRunJob(Runnable& job);
+   virtual bool tryRunJob(CollectableRunnable& job);
    
    /**
     * Runs the passed Runnable job on an available JobThread.
@@ -124,7 +126,8 @@ public:
     * 
     * @param job the Runnable job to run.
     */
-   virtual void runJob(Runnable* job);
+   virtual void runJob(Runnable& job);
+   virtual void runJob(CollectableRunnable& job);
    
    /**
     * Called by a JobThread when it completes its job.

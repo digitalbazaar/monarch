@@ -45,24 +45,6 @@ JobDispatcher::~JobDispatcher()
    }
 }
 
-Runnable* JobDispatcher::popJob() 
-{
-   Runnable* rval = NULL;
-   
-   lock();
-   {
-      if(!mJobQueue.empty())
-      {
-         // remove the top Runnable job
-         rval = mJobQueue.front();
-         mJobQueue.pop_front();
-      }
-   }
-   unlock();
-   
-   return rval;
-}
-
 void JobDispatcher::wakeup()
 {
    mWaitLock.lock();
@@ -78,43 +60,59 @@ bool JobDispatcher::canDispatch()
    return !mJobQueue.empty();
 }
 
-list<Runnable*>::iterator JobDispatcher::getJobIterator()
-{
-   return mJobQueue.begin();
-}
-
 Thread* JobDispatcher::getDispatcherThread()
 {
    return mDispatcherThread;
 }
    
-void JobDispatcher::queueJob(Runnable* job)
-{
-   if(job != NULL)
-   {
-      lock();
-      {
-         // add the job to the queue
-         mJobQueue.push_back(job);
-      }
-      unlock();
-      
-      // wake up dispatcher
-      wakeup();
-   }
-}
-
-void JobDispatcher::dequeueJob(Runnable* job)
+void JobDispatcher::queueJob(Runnable& job)
 {
    lock();
    {
-      // remove the job from the queue
-      mJobQueue.remove(job);
+      // add the job to the queue
+      mJobQueue.push_back(&job);
    }
    unlock();
    
    // wake up dispatcher
    wakeup();
+}
+
+void JobDispatcher::queueJob(CollectableRunnable& job)
+{
+   lock();
+   {
+      // add the job to the queue
+      mJobQueue.push_back(&(*job));
+      
+      // add job to the reference map
+      mJobReferenceMap.insert(make_pair(&(*job), job));
+   }
+   unlock();
+   
+   // wake up dispatcher
+   wakeup();
+}
+
+void JobDispatcher::dequeueJob(Runnable& job)
+{
+   lock();
+   {
+      // remove the job from the queue
+      mJobQueue.remove(&job);
+      
+      // remove job from the reference map
+      mJobReferenceMap.erase(&job);
+   }
+   unlock();
+   
+   // wake up dispatcher
+   wakeup();
+}
+
+void JobDispatcher::dequeueJob(CollectableRunnable& job)
+{
+   dequeueJob(*job);
 }
 
 void JobDispatcher::dispatchJobs()
@@ -123,11 +121,13 @@ void JobDispatcher::dispatchJobs()
    {
       // try to run all jobs in the queue
       bool run = true;
-      for(list<Runnable*>::iterator i = mJobQueue.begin();
+      for(RunnableList::iterator i = mJobQueue.begin();
           run && i != mJobQueue.end();)
       {
-         if(getThreadPool()->tryRunJob(*i))
+         if(getThreadPool()->tryRunJob(*(*i)))
          {
+            // remove entry from map and queue
+            mJobReferenceMap.erase(*i);
             i = mJobQueue.erase(i);
          }
          else
@@ -139,19 +139,24 @@ void JobDispatcher::dispatchJobs()
    unlock();
 }
 
-bool JobDispatcher::isQueued(Runnable* job)
+bool JobDispatcher::isQueued(Runnable& job)
 {
    bool rval = false;
    
    lock();
    {
-      list<Runnable*>::iterator i =
-         find(mJobQueue.begin(), mJobQueue.end(), job);
+      RunnableList::iterator i =
+         find(mJobQueue.begin(), mJobQueue.end(), &job);
       rval = (i != mJobQueue.end());
    }
    unlock();
    
    return rval;
+}
+
+bool JobDispatcher::isQueued(CollectableRunnable& job)
+{
+   return isQueued(*job);
 }
 
 void JobDispatcher::startDispatching()
@@ -234,9 +239,14 @@ void JobDispatcher::clearQueuedJobs()
 {
    lock();
    {
+      // clear queue and map
       mJobQueue.clear();
+      mJobReferenceMap.clear();
    }
    unlock();
+   
+   // wake up dispatcher
+   wakeup();
 }
 
 void JobDispatcher::interruptAllRunningJobs()

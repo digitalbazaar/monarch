@@ -333,11 +333,11 @@ void runJobThreadPoolTest(TestRunner& tr)
    TestJob job5("5");
    
    // run jobs
-   pool.runJob(&job1);
-   pool.runJob(&job2);
-   pool.runJob(&job3);
-   pool.runJob(&job4);
-   pool.runJob(&job5);
+   pool.runJob(job1);
+   pool.runJob(job2);
+   pool.runJob(job3);
+   pool.runJob(job4);
+   pool.runJob(job5);
    
    // wait
    //cout << "Waiting for jobs to complete..." << endl;
@@ -374,12 +374,12 @@ void runJobDispatcherTest(TestRunner& tr)
    TestJob job6("6");
    
    // queue jobs
-   jd.queueJob(&job1);
-   jd.queueJob(&job2);
-   jd.queueJob(&job3);
-   jd.queueJob(&job4);
-   jd.queueJob(&job5);
-   jd.queueJob(&job6);
+   jd.queueJob(job1);
+   jd.queueJob(job2);
+   jd.queueJob(job3);
+   jd.queueJob(job4);
+   jd.queueJob(job5);
+   jd.queueJob(job6);
    
    // start dispatching
    jd.startDispatching();
@@ -6645,6 +6645,7 @@ public:
     */
    virtual void runInteractiveUnitTests(TestRunner& tr)
    {
+//      runModestTest(tr);
 //      runTimeTest();
 //      runConvertTest();
 //      runRegexTest();

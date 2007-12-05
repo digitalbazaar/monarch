@@ -123,6 +123,11 @@ public:
    virtual HeapObject* operator->();
    
    /**
+    * Sets this Collectable's HeapObject to NULL.
+    */
+   virtual void setNull();
+   
+   /**
     * Returns true if this Collectable's HeapObject is NULL, false if not.
     * 
     * @return true if this Collectable's HeapObject is NULL, false if not.
@@ -232,6 +237,14 @@ template<typename HeapObject>
 HeapObject* Collectable<HeapObject>::operator->()
 {
    return mReference->ptr;
+}
+
+template<typename HeapObject>
+void Collectable<HeapObject>::setNull()
+{
+   // release old reference and acquire NULL one
+   release();
+   acquire(NULL);
 }
 
 template<typename HeapObject>

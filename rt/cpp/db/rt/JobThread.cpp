@@ -65,8 +65,33 @@ void JobThread::setJob(Runnable* job, JobThreadPool* pool)
          // notify thread to stop waiting
          notifyAll();
       }
+      else
+      {
+         // clear job reference
+         mJobReference.setNull();
+      }
    }
    unlock();
+}
+
+void JobThread::setJob(CollectableRunnable& job, JobThreadPool* pool)
+{
+   lock();
+   {
+      // set job, reference, and pool
+      mJob = &(*job);
+      mJobReference = job;
+      mThreadPool = pool;
+      
+      // notify thread to stop waiting
+      notifyAll();
+   }
+   unlock();
+}
+
+Runnable* JobThread::getJob()
+{
+   return mJob;
 }
 
 void JobThread::run()
