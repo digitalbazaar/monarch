@@ -3,6 +3,8 @@
 SOURCES = $(wildcard db/rt/*.cpp)
 LIBRARIES = dbrt
 
+STATIC_WINDOWS_LIBRARIES = @DBCOREDIR@/rt/cpp/pthread/libpthreadGCE2.a
+
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base
 

@@ -1,84 +1,193 @@
 # This file contains basic Makefile includes that contain all building
 # instructions for all binaries and packages.
 
+BUILD_FOR_LINUX=@BUILD_FOR_LINUX@
+BUILD_FOR_WINDOWS=@BUILD_FOR_WINDOWS@
+
 AR_FLAGS = cr
-CXX_FLAGS = -g -Wall -fPIC
 DBCORE = @DBCOREDIR@
 INCLUDES = -I$(DBCORE)/config/cpp -I$(DBCORE)/crypto/cpp -I$(DBCORE)/data/cpp -I$(DBCORE)/event/cpp -I$(DBCORE)/io/cpp -I$(DBCORE)/mail/cpp -I$(DBCORE)/modest/cpp -I$(DBCORE)/net/cpp -I$(DBCORE)/rt/cpp -I$(DBCORE)/sql/cpp -I$(DBCORE)/test/cpp -I$(DBCORE)/util/cpp
-LIBS = $(DBCORE)/libs
 
 MODULE_BASE_DIR = $(shell pwd)
 
-.PHONY: all build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries $(LINUX_EXECUTABLES)
+.PHONY: all build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries $(ALL_EXECUTABLES)
 
 all: build-directories build-objects build-libraries build-executables
    @echo "SOURCES: $(SOURCES)"
 
+# Linux-specific variables
+LINUX_CXX = @LINUX_CXX@
+LINUX_CXX_FLAGS = -g -Wall -fPIC
+LINUX_INCLUDES = $(INCLUDES)
+LINUX_LIB_DIR = $(DBCORE)/libs/linux
+LINUX_LIBS = -L$(LINUX_LIB_DIR)
+LINUX_AR = @LINUX_AR@
 LINUX_BUILD_DIR = build/linux
 LINUX_DIST_DIR = dist/linux
 LINUX_SOURCES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.cpp, $(SOURCES))
 LINUX_SOURCES += $(patsubst %,$(LINUX_BUILD_DIR)/%.cpp, $(EXECUTABLES))
-LINUX_OBJECTS := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.o, $(SOURCES))
-LINUX_OBJECTS += $(patsubst %,$(LINUX_BUILD_DIR)/%.o, $(EXECUTABLES))
+LINUX_OBJECTS := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%-linux.o, $(SOURCES))
+LINUX_OBJECTS += $(patsubst %,$(LINUX_BUILD_DIR)/%-linux.o, $(EXECUTABLES))
 LINUX_EXECUTABLES := $(patsubst %,$(LINUX_DIST_DIR)/%, $(EXECUTABLES))
 LINUX_DEPENDENCIES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.P, $(SOURCES))
 
 LINUX_LIBRARIES := $(patsubst %,$(LINUX_DIST_DIR)/lib%.so, $(LIBRARIES))
 LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
 
--include $(LINUX_DEPENDENCIES)
+# Windows-specific variables
+WINDOWS_CXX = @WINDOWS_CXX@
+WINDOWS_CXX_FLAGS += -g -Wall 
+WINDOWS_INCLUDES = $(INCLUDES) -I$(DBCORE)/rt/cpp/pthread
+WINDOWS_LIB_DIR = $(DBCORE)/libs/windows
+WINDOWS_LIBS = -L$(WINDOWS_LIB_DIR)
+WINDOWS_AR = @WINDOWS_AR@
+WINDOWS_BUILD_DIR = build/windows
+WINDOWS_DIST_DIR = dist/windows
+WINDOWS_SOURCES := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%.cpp, $(SOURCES))
+WINDOWS_SOURCES += $(patsubst %,$(WINDOWS_BUILD_DIR)/%.cpp, $(EXECUTABLES))
+WINDOWS_OBJECTS := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%-windows.o, $(SOURCES))
+WINDOWS_OBJECTS += $(patsubst %,$(WINDOWS_BUILD_DIR)/%-windows.o, $(EXECUTABLES))
+WINDOWS_EXECUTABLES := $(patsubst %,$(WINDOWS_DIST_DIR)/%, $(EXECUTABLES))
+WINDOWS_DEPENDENCIES := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%.P, $(SOURCES))
 
-%.cpp:
+WINDOWS_LIBRARIES := $(patsubst %,$(WINDOWS_DIST_DIR)/%.dll, $(LIBRARIES))
+WINDOWS_LIBRARIES += $(patsubst %,$(WINDOWS_DIST_DIR)/%.lib, $(LIBRARIES))
+
+ifeq ($(BUILD_FOR_LINUX),yes)
+ALL_SOURCES += $(LINUX_SOURCES)
+ALL_OBJECTS += $(LINUX_OBJECTS)
+ALL_LIBRARIES += $(LINUX_LIBRARIES)
+ALL_EXECUTABLES += $(LINUX_EXECUTABLES)
+-include $(LINUX_DEPENDENCIES)
+endif
+ifeq ($(BUILD_FOR_WINDOWS),yes)
+ALL_SOURCES += $(WINDOWS_SOURCES)
+ALL_OBJECTS += $(WINDOWS_OBJECTS)
+ALL_LIBRARIES += $(WINDOWS_LIBRARIES)
+ALL_EXECUTABLES += $(WINDOWS_EXECUTABLES)
+-include $(WINDOWS_DEPENDENCIES)
+endif
+
+ifeq ($(BUILD_FOR_LINUX),yes)
+$(LINUX_SOURCES):
 	@mkdir -p $(dir $@)
 	@ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+endif
 
-%.o: %.cpp
-	@echo "Building $@..."
-	@$(CXX) $(CXX_FLAGS) -c -MD -o $@ $(INCLUDES) -I. $<
-	@cp $*.d $*.P; \
-		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
-		rm -f $*.d
+ifeq ($(BUILD_FOR_WINDOWS),yes)
+$(WINDOWS_SOURCES):
+	@mkdir -p $(dir $@)
+	@ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+endif
+
+ifeq ($(BUILD_FOR_LINUX),yes)
+%-linux.o: %.cpp
+	@echo "Building $(@F)..."
+	@$(LINUX_CXX) $(LINUX_CXX_FLAGS) -c -MD -o $@ $(LINUX_INCLUDES) -I. $<
+	@cp $(@:.o=.d) $(@:-linux.o=.P); \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(@:.o=.d) >> $(@:-linux.o=.P); \
+		rm -f $(@:.o=.d)
+endif
+
+ifeq ($(BUILD_FOR_WINDOWS),yes)
+%-windows.o: %.cpp
+	@echo "Building $(@F)..."
+	@$(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -c -MD -o $@ $(WINDOWS_INCLUDES) -I. $<
+	@cp $(@:.o=.d) $(@:-windows.o=.P); \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(@:.o=.d) >> $(@:-windows.o=.P); \
+		rm -f $(@:.o=.d)
+endif
 
 %.so: $(LINUX_OBJECTS)
 	@echo "Building $@..."
-	@$(CXX) -L$(LIBS)/linux -shared -o $@ $(LINUX_OBJECTS) $(DYNAMIC_LINK_LIBRARIES:%=-l%) 
-	@mkdir -p $(LIBS)/linux
-	@ln -sf $(MODULE_BASE_DIR)/$@ $(DBCORE)/libs/linux/$(@F)
+	@$(LINUX_CXX) $(LINUX_LIBS) -shared -o $@ $(LINUX_OBJECTS) $(DYNAMIC_LINK_LIBRARIES:%=-l%)
+	@mkdir -p $(LINUX_LIB_DIR)
+	@ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
 
+%.dll: $(WINDOWS_OBJECTS)
+	@echo "Building $@..."
+	@$(WINDOWS_CXX) $(WINDOWS_LIBS) -shared -o $@ $(WINDOWS_OBJECTS) $(STATIC_WINDOWS_LIBRARIES)
+	@mkdir -p $(WINDOWS_LIB_DIR)
+	@ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
+
+ifeq ($(BUILD_FOR_LINUX),yes)
 %.a: $(LINUX_OBJECTS)
 	@echo "Building $@..."
-	@$(AR) $(AR_FLAGS) $@ $(LINUX_OBJECTS)
-	@mkdir -p $(DBCORE)/libs/linux
-	@ln -sf $(MODULE_BASE_DIR)/$@ $(DBCORE)/libs/linux/$(@F)
+	@$(LINUX_AR) $(AR_FLAGS) $@ $(LINUX_OBJECTS)
+	@mkdir -p $(LINUX_LIB_DIR)
+	@ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
+endif
 
-%.P: %.cpp
-	@$(CXX) -E -MD -o $@ $(INCLUDES) -I. $<
-	@cp $*.d $*.P; \
-		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
-		rm -f $*.d
+ifeq ($(BUILD_FOR_WINDOWS),yes)
+%.lib: $(WINDOWS_OBJECTS)
+	@echo "Building $@..."
+	@$(WINDOWS_AR) $(AR_FLAGS) $@ $(WINDOWS_OBJECTS)
+	@mkdir -p $(WINDOWS_LIB_DIR)
+	@ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
+endif
+
+ifeq ($(BUILD_FOR_LINUX),yes)
+$(LINUX_DEPENDENCIES): $(LINUX_SOURCES)
+	@$(LINUX_CXX) -E -MD -o $@ $(LINUX_INCLUDES) -I. $(@:.P=.cpp)
+	@cp $(@:.P=.d) $@; \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(@:.P=.d) >> $@; \
+		rm -f $(@:.P=.d)
+endif
+
+ifeq ($(BUILD_FOR_WINDOWS),yes)
+$(WINDOWS_DEPENDENCIES): $(WINDOWS_SOURCES)
+	@$(WINDOWS_CXX) -E -MD -o $@ $(WINDOWS_INCLUDES) -I. $(@:.P=.cpp)
+	@cp $(@:.P=.d) $@; \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(@:.P=.d) >> $@; \
+		rm -f $(@:.P=.d)
+endif
 
 ifdef EXECUTABLES
-$(LINUX_EXECUTABLES): $(LINUX_EXECUTABLES:%=%.cpp)
-	@echo "Building $@..."
-	@$(CXX) $(CXX_FLAGS) -o $@ $(LINUX_BUILD_DIR)/$(@F).o $(STATIC_LINK_LIBRARIES) $(DYNAMIC_LINK_LIBRARIES:%=-l%)
+ifeq ($(BUILD_FOR_LINUX),yes)
+$(LINUX_EXECUTABLES): $(LINUX_SOURCES)
+	@echo "Building $(@F)..."
+	@$(LINUX_CXX) $(LINUX_CXX_FLAGS) -o $@ $(LINUX_BUILD_DIR)/$(@F)-linux.o $(STATIC_LINK_LIBRARIES) $(DYNAMIC_LINK_LIBRARIES:%=-l%)
+endif
+
+ifeq ($BUILD_FOR_WINDOWS,yes)
+$(WINDOWS_EXECUTABLES): $(WINDOWS_SOURCES)
+	@echo "Building $(@F)..."
+	$(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -o $@ $(WINDOWS_BUILD_DIR)/$(@F).o $(STATIC_LINK_LIBRARIES) $(DYNAMIC_LINK_LIBRARIES:%=-l%)
+endif
 endif
 
 build-directories:
+ifeq ($(BUILD_FOR_LINUX),yes)
 	@mkdir -p $(LINUX_BUILD_DIR)
 	@mkdir -p $(LINUX_DIST_DIR)
+endif
+ifeq ($(BUILD_FOR_WINDOWS),yes)
+	@mkdir -p $(WINDOWS_BUILD_DIR)
+	@mkdir -p $(WINDOWS_DIST_DIR)
+endif
 
-build-objects: $(LINUX_SOURCES) $(LINUX_OBJECTS)
+build-objects: $(ALL_SOURCES) $(ALL_OBJECTS)
 
-build-libraries: $(LINUX_LIBRARIES)
+build-libraries: $(ALL_LIBRARIES)
 
-build-executables: $(LINUX_EXECUTABLES)
+build-executables: $(ALL_EXECUTABLES)
 
 clean: clean-libraries clean-objects
 
 clean-objects:
 	@echo "Removing all objects..."
+ifeq ($(BUILD_FOR_LINUX),yes)
 	@rm -rf $(LINUX_BUILD_DIR)
+endif
+ifeq ($(BUILD_FOR_WINDOWS),yes)
+	@rm -rf $(WINDOWS_BUILD_DIR)
+endif
 
 clean-libraries:
-	@echo "Removing all libraries and executables..."
+	@echo "Removing all objects..."
+ifeq ($(BUILD_FOR_LINUX),yes)
 	@rm -rf $(LINUX_DIST_DIR)
+endif
+ifeq ($(BUILD_FOR_WINDOWS),yes)
+	@rm -rf $(WINDOWS_DIST_DIR)
+endif
