@@ -62,10 +62,11 @@ void OperationDispatcher::dispatchJobs()
             guardCheck = 0;
             if(impl->getGuard() != NULL)
             {
-               if(!impl->getGuard()->canExecuteOperation(state))
+               Operation& op = mOpMap[impl];
+               if(!impl->getGuard()->canExecuteOperation(state, op))
                {
                   if(!impl->isInterrupted() &&
-                     !impl->getGuard()->mustCancelOperation(state))
+                     !impl->getGuard()->mustCancelOperation(state, op))
                   {
                      // operation can wait
                      guardCheck = 1;

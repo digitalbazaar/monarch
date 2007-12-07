@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/OperationGuardChain.h"
+#include "db/modest/Operation.h"
 
 using namespace db::modest;
 
@@ -40,16 +41,16 @@ OperationGuardChain::~OperationGuardChain()
 {
 }
 
-bool OperationGuardChain::canExecuteOperation(ImmutableState* s)
+bool OperationGuardChain::canExecuteOperation(ImmutableState* s, Operation &op)
 {
    return
-      mGuard1->canExecuteOperation(s) &&
-      (mGuard2 == NULL || mGuard2->canExecuteOperation(s));
+      mGuard1->canExecuteOperation(s, op) &&
+      (mGuard2 == NULL || mGuard2->canExecuteOperation(s, op));
 }
 
-bool OperationGuardChain::mustCancelOperation(ImmutableState* s)
+bool OperationGuardChain::mustCancelOperation(ImmutableState* s, Operation &op)
 {
    return
-      mGuard1->mustCancelOperation(s) ||
-      (mGuard2 != NULL && mGuard2->canExecuteOperation(s));
+      mGuard1->mustCancelOperation(s, op) ||
+      (mGuard2 != NULL && mGuard2->canExecuteOperation(s, op));
 }

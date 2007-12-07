@@ -400,7 +400,7 @@ void runJobDispatcherTest(TestRunner& tr)
 class TestGuard : public OperationGuard
 {
 public:
-   virtual bool canExecuteOperation(ImmutableState* s)
+   virtual bool canExecuteOperation(ImmutableState* s, Operation& op)
    {
       bool rval = false;
       
@@ -423,7 +423,7 @@ public:
       return rval;
    }
    
-   virtual bool mustCancelOperation(ImmutableState* s)
+   virtual bool mustCancelOperation(ImmutableState* s, Operation& op)
    {
       bool loggedOut = false;
       s->getBoolean("logged.out", loggedOut);

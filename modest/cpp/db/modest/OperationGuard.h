@@ -12,6 +12,9 @@ namespace db
 namespace modest
 {
 
+// forward declare Operation
+class Operation;
+
 /**
  * An OperationGuard defines a set of conditions that a State must meet
  * in order for its Engine to be able to execute an Operation.
@@ -37,11 +40,12 @@ public:
     * immediately by an Engine with the given State.
     * 
     * @param s the ImmutableState to inspect.
+    * @param op the Operation this guard is for.
     * 
     * @return true if an Engine with the given State could immediately execute
     *         an Operation with this guard.
     */
-   virtual bool canExecuteOperation(ImmutableState* s) = 0;
+   virtual bool canExecuteOperation(ImmutableState* s, Operation& op) = 0;
    
    /**
     * Returns true if the passed State cannot meet the conditions of this
@@ -53,11 +57,12 @@ public:
     * can be checked again later for execution or cancelation.
     * 
     * @param s the ImmutableState to inspect.
+    * @param op the Operation this guard is for.
     * 
     * @return true if an Engine with the given State must cancel an Operation
     *         with this guard, false if not.
     */
-   virtual bool mustCancelOperation(ImmutableState* s) = 0;
+   virtual bool mustCancelOperation(ImmutableState* s, Operation &op) = 0;
 };
 
 // define a collectable OperationGuard

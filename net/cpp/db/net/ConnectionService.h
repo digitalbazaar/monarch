@@ -107,11 +107,13 @@ public:
     * immediately by an Engine with the given State.
     * 
     * @param s the ImmutableState to inspect.
+    * @param op the Operation this guard is for.
     * 
     * @return true if an Engine with the given State could immediately execute
     *         an Operation with this guard.
     */
-   virtual bool canExecuteOperation(db::modest::ImmutableState* s);
+   virtual bool canExecuteOperation(
+      db::modest::ImmutableState* s, db::modest::Operation& op);
    
    /**
     * Returns true if the passed State cannot meet the conditions of this
@@ -123,11 +125,13 @@ public:
     * can be checked again later for execution or cancelation.
     * 
     * @param s the ImmutableState to inspect.
+    * @param op the Operation this guard is for.
     * 
     * @return true if an Engine with the given State must cancel an Operation
     *         with this guard, false if not.
     */
-   virtual bool mustCancelOperation(db::modest::ImmutableState* s);
+   virtual bool mustCancelOperation(
+      db::modest::ImmutableState* s, db::modest::Operation& op);
    
    /**
     * Runs this ConnectionService.

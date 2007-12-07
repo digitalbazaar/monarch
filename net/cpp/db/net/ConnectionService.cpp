@@ -61,13 +61,13 @@ void ConnectionService::cleanup()
    }
 }
 
-bool ConnectionService::canExecuteOperation(ImmutableState* s)
+bool ConnectionService::canExecuteOperation(ImmutableState* s, Operation& op)
 {
    // can execute if server is running
    return mServer->isRunning();
 }
 
-bool ConnectionService::mustCancelOperation(ImmutableState* s)
+bool ConnectionService::mustCancelOperation(ImmutableState* s, Operation& op)
 {
    // must cancel if server is no longer running
    return !mServer->isRunning();
