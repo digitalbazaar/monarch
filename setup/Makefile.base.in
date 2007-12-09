@@ -37,7 +37,7 @@ LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
 # Windows-specific variables
 WINDOWS_CXX = @WINDOWS_CXX@
 WINDOWS_CXX_FLAGS += -g -Wall 
-WINDOWS_INCLUDES = $(INCLUDES) -I$(DBCORE)/rt/cpp/pthread
+WINDOWS_INCLUDES = $(INCLUDES) -I$(DBCORE)/3rdparty/cpp/pthread
 WINDOWS_LIB_DIR = $(DBCORE)/libs/windows
 WINDOWS_LIBS = -L$(WINDOWS_LIB_DIR)
 WINDOWS_AR = @WINDOWS_AR@
