@@ -1,0 +1,10 @@
+# Makefile to compile the module in this directory
+
+include @DBCOREDIR@/setup/Makefile.base
+
+ifeq ($(BUILD_FOR_WINDOWS),yes)
+build-libraries:
+	@mkdir -p $(WINDOWS_LIB_DIR)
+	@ln -sf $(MODULE_BASE_DIR)/pthread/libpthreadGCE2.a $(WINDOWS_LIB_DIR)/libpthreadGCE2.a
+	@ln -sf $(MODULE_BASE_DIR)/pthread/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/pthreadGCE2.dll
+endif

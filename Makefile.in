@@ -1,6 +1,7 @@
 # The top-level Makefile that is used to build 
 
-SUBDIRS := rt/cpp \
+SUBDIRS := 3rdparty/cpp \
+           rt/cpp \
            util/cpp \
            modest/cpp \
            event/cpp \

@@ -62,7 +62,6 @@ fi
 #AC_CHECK_LIB(crypto, main, [], AC_MSG_ERROR(could not find crypto library))
 #AC_CHECK_LIB(ssl, main, [], AC_MSG_ERROR(could not find ssl library))
 
-
 echo -e "\n--------- DB Core Build Environment -----------"
 echo "System            : $PACKAGE_STRING"
 echo "Build system      : $build_cpu-$build_vendor-$build_os"
@@ -95,6 +94,7 @@ AC_SUBST(JAVADOC)
 
 # Generating files
 AC_OUTPUT(Makefile \
+          3rdparty/cpp/Makefile \
           setup/Makefile.base \
           config/cpp/Makefile \
           crypto/cpp/Makefile \
