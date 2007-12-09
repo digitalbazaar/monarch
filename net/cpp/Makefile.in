@@ -3,7 +3,10 @@
 SOURCES = $(wildcard db/net/*.cpp) \
           $(wildcard db/net/http/*.cpp)
 LIBRARIES = dbnet
-DYNAMIC_LINK_LIBRARIES = dbmodest dbcrypto
+DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbmodest dbio dbcrypto 
+DYNAMIC_WINDOWS_LIBRARIES = libeay32 ssleay32 ws2_32
+
+
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base
