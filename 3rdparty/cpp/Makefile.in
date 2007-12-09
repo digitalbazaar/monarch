@@ -5,6 +5,10 @@ include @DBCOREDIR@/setup/Makefile.base
 ifeq ($(BUILD_FOR_WINDOWS),yes)
 build-libraries:
 	@mkdir -p $(WINDOWS_LIB_DIR)
-	@ln -sf $(MODULE_BASE_DIR)/pthread/libpthreadGCE2.a $(WINDOWS_LIB_DIR)/libpthreadGCE2.a
+	@ln -sf $(MODULE_BASE_DIR)/pthread/libpthreadGCE2.a $(WINDOWS_LIB_DIR)/libpthreadGCE2.lib
 	@ln -sf $(MODULE_BASE_DIR)/pthread/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/pthreadGCE2.dll
+	@ln -sf $(MODULE_BASE_DIR)/openssl/libeay32.a $(WINDOWS_LIB_DIR)/libeay32.lib
+	@ln -sf $(MODULE_BASE_DIR)/openssl/ssleay32.a $(WINDOWS_LIB_DIR)/ssleay32.lib
+	@ln -sf $(MODULE_BASE_DIR)/openssl/libeay32.dll $(WINDOWS_LIB_DIR)/libeay32.dll
+	@ln -sf $(MODULE_BASE_DIR)/openssl/ssleay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll
 endif
