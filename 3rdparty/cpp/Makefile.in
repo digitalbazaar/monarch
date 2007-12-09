@@ -11,6 +11,13 @@ build-libraries:
 	@ln -sf $(MODULE_BASE_DIR)/openssl/ssleay32.a $(WINDOWS_LIB_DIR)/ssleay32.lib
 	@ln -sf $(MODULE_BASE_DIR)/openssl/libeay32.dll $(WINDOWS_LIB_DIR)/libeay32.dll
 	@ln -sf $(MODULE_BASE_DIR)/openssl/ssleay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll
-	@ln -sf $(MODULE_BASE_DIR)/expat/libexpat.a $(WINDOWS_LIB_DIR)/libexpat.a
+	@ln -sf $(MODULE_BASE_DIR)/expat/libexpat.a $(WINDOWS_LIB_DIR)/libexpat.lib
 	@ln -sf $(MODULE_BASE_DIR)/expat/libexpat.dll $(WINDOWS_LIB_DIR)/libexpat.dll
+	@ln -sf $(MODULE_BASE_DIR)/mysql/libmysql.lib $(WINDOWS_LIB_DIR)/libmysql.lib
+	@ln -sf $(MODULE_BASE_DIR)/mysql/mysys.lib $(WINDOWS_LIB_DIR)/mysys.lib
+	@ln -sf $(MODULE_BASE_DIR)/mysql/regex.lib $(WINDOWS_LIB_DIR)/regex.lib
+	@ln -sf $(MODULE_BASE_DIR)/mysql/strings.lib $(WINDOWS_LIB_DIR)/strings.lib
+	@ln -sf $(MODULE_BASE_DIR)/mysql/zlib.lib $(WINDOWS_LIB_DIR)/zlib.lib
+	@ln -sf $(MODULE_BASE_DIR)/mysql/libmysql.dll $(WINDOWS_LIB_DIR)/libmysql.dll
+	@ln -sf $(MODULE_BASE_DIR)/sqlite3/sqlite3.dll $(WINDOWS_LIB_DIR)/sqlite3.dll
 endif
