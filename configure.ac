@@ -41,7 +41,10 @@ if test "$ac_enable_windows_build" = "yes" ; then
                  i586-mingw32msvc-g++, not found)
    AC_CHECK_PROG(WINDOWS_AR, i586-mingw32msvc-ar, 
                  i586-mingw32msvc-ar, not found)
-
+   AC_CHECK_PROG(WINDOWS_DLLWRAP, i586-mingw32msvc-dllwrap,
+                 i586-mingw32msvc-dllwrap, not found)
+   AC_CHECK_PROG(WINDOWS_AS, i586-mingw32msvc-as,
+                 i586-mingw32msvc-as, not found)
    # If the mingw32 compiler wasn't found, use the system default
    if test "$WINDOWS_CXX" = "not found" ; then
       AC_PROG_CXX()
@@ -70,6 +73,8 @@ fi
 if test "$BUILD_FOR_WINDOWS" = "yes"; then
    echo "Win32 C++ compiler: $WINDOWS_CXX"
    echo "Win32 C++ archiver: $WINDOWS_AR"
+   echo "Win32 assembler   : $WINDOWS_AS"
+   echo "Win32 DLL wrapper : $WINDOWS_DLLWRAP"
 fi
 
 # Make all the proper substitutions
@@ -82,9 +87,11 @@ AC_SUBST(WINDOWS_CXX)
 AC_SUBST(LINUX_AR)
 AC_SUBST(WINDOWS_AR)
 
+AC_SUBST(WINDOWS_AS)
+AC_SUBST(WINDOWS_DLLWRAP)
+
 AC_SUBST(DBCOREDIR)
 AC_SUBST(JAVADOC)
-
 
 # Generating files
 AC_OUTPUT(Makefile \
