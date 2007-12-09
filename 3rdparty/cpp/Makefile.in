@@ -11,4 +11,6 @@ build-libraries:
 	@ln -sf $(MODULE_BASE_DIR)/openssl/ssleay32.a $(WINDOWS_LIB_DIR)/ssleay32.lib
 	@ln -sf $(MODULE_BASE_DIR)/openssl/libeay32.dll $(WINDOWS_LIB_DIR)/libeay32.dll
 	@ln -sf $(MODULE_BASE_DIR)/openssl/ssleay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll
+	@ln -sf $(MODULE_BASE_DIR)/expat/libexpat.a $(WINDOWS_LIB_DIR)/libexpat.a
+	@ln -sf $(MODULE_BASE_DIR)/expat/libexpat.dll $(WINDOWS_LIB_DIR)/libexpat.dll
 endif

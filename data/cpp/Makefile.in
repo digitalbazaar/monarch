@@ -6,11 +6,11 @@ SOURCES = $(wildcard db/data/*.cpp) \
           $(wildcard db/data/id3v2/*.cpp) \
           $(wildcard db/data/mpeg/*.cpp) \
           $(wildcard db/data/xml/*.cpp) \
-          $(wildcard db/data/xml/expat/*.cpp) \
           $(wildcard db/data/pdf/*.cpp)
 
 LIBRARIES = dbdata
 DYNAMIC_LINK_LIBRARIES = dbio dbutil dbrt
+DYNAMIC_WINDOWS_LIBRARIES = expat
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base
