@@ -2,7 +2,7 @@
 
 SOURCES = $(wildcard db/mail/*.cpp)
 LIBRARIES = dbmail
-DYNAMIC_LINK_LIBRARIES = dbrt dbio dbnet dbzutils
+DYNAMIC_LINK_LIBRARIES = dbrt dbio dbnet dbutil
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base

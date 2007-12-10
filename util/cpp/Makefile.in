@@ -2,7 +2,7 @@
 
 SOURCES = $(wildcard db/util/*.cpp) \
           $(wildcard db/util/regex/*.cpp)
-LIBRARIES = dbzutils
+LIBRARIES = dbutil
 DYNAMIC_LINK_LIBRARIES = dbrt
 
 # ----------- Standard Makefile

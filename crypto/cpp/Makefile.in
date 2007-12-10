@@ -2,7 +2,7 @@
 
 SOURCES = $(wildcard db/crypto/*.cpp)
 LIBRARIES = dbcrypto
-DYNAMIC_LINK_LIBRARIES = dbrt dbzutils dbio 
+DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbio 
 DYNAMIC_WINDOWS_LIBRARIES = libeay32
 
 # ----------- Standard Makefile

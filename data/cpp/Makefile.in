@@ -9,7 +9,7 @@ SOURCES = $(wildcard db/data/*.cpp) \
           $(wildcard db/data/pdf/*.cpp)
 
 LIBRARIES = dbdata
-DYNAMIC_LINK_LIBRARIES = dbio dbzutils dbrt
+DYNAMIC_LINK_LIBRARIES = dbio dbutil dbrt
 DYNAMIC_WINDOWS_LIBRARIES = expat
 
 # ----------- Standard Makefile
