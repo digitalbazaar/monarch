@@ -61,6 +61,9 @@ fi
 #AC_CHECK_LIB(pthread, main, [], AC_MSG_ERROR(could not find pthread library))
 #AC_CHECK_LIB(crypto, main, [], AC_MSG_ERROR(could not find crypto library))
 #AC_CHECK_LIB(ssl, main, [], AC_MSG_ERROR(could not find ssl library))
+#AC_CHECK_LIB(expat, main, [], AC_MSG_ERROR(could not find expat library))
+#AC_CHECK_LIB(sqlite3, main, [], AC_MSG_ERROR(could not find sqlite3 library))
+#AC_CHECK_LIB(mysqlclient, main, [], AC_MSG_ERROR(could not find mysqlclient library))
 
 echo -e "\n--------- DB Core Build Environment -----------"
 echo "System            : $PACKAGE_STRING"

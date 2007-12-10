@@ -2,7 +2,7 @@
 
 SOURCES = $(wildcard db/io/*.cpp)
 LIBRARIES = dbio
-DYNAMIC_LINK_LIBRARIES = dbrt dbutil
+DYNAMIC_LINK_LIBRARIES = dbrt dbzutils
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base
