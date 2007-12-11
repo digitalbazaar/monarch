@@ -707,7 +707,7 @@ public class Logger
             String date = getDate();
             if(!date.equals(""))
             {
-               logText = getDate() + " ";
+               logText = date + " ";
             }
             
             logText += getName() + " ";
