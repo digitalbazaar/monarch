@@ -160,17 +160,19 @@ public:
    virtual DynamicObject clone();
    
    /**
-    * Merges the passed DynamicObject into this one. If the passed
-    * DynamicObject is something other than a map or an array, then this
-    * DynamicObject will simply be set to the clone of the passed
-    * DynamicObject. If the passed DynamicObject is a map, then all of
-    * its key-value pairs will be merged into this DynamicObject,
-    * overwriting any overlapping pairs. If it is an array, then its
-    * elements will be appended to this DynamicObject. 
+    * Merges the passed DynamicObject into this one.
+    * 
+    * If the passed DynamicObject is something other than a map or an array,
+    * then this DynamicObject will simply be set to the clone of the passed
+    * DynamicObject. If the passed DynamicObject is a map, then all of its
+    * key-value pairs will be merged into this DynamicObject, overwriting
+    * any overlapping pairs. If it is an array, then its elements can either
+    * overwrite the elements in this DynamicObject or be appended to it. 
     * 
     * @param rhs the DynamicObject to merge into this one.
+    * @param append true to append arrays, false to overwrite them.
     */
-   virtual void merge(DynamicObject& rhs);
+   virtual void merge(DynamicObject& rhs, bool append);
    
    /**
     * Determines if this DynamicObject is a subset of another. If this

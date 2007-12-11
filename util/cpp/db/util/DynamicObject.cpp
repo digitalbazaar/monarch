@@ -242,7 +242,7 @@ DynamicObject DynamicObject::clone()
    return rval;
 }
 
-void DynamicObject::merge(DynamicObject& rhs)
+void DynamicObject::merge(DynamicObject& rhs, bool append)
 {
    switch(rhs->getType())
    {
@@ -262,18 +262,27 @@ void DynamicObject::merge(DynamicObject& rhs)
             while(i->hasNext())
             {
                DynamicObject next = i->next();
-               (*this)[i->getName()].merge(next);
+               (*this)[i->getName()].merge(next, append);
             }
          }
          break;
       case Array:
+         if(append)
          {
             (*this)->setType(Array);
             DynamicObjectIterator i = rhs.getIterator();
             int length = (*this)->length();
             for(int ii = 0; i->hasNext(); ii++)
             {
-               (*this)[length + ii].merge(i->next());
+               (*this)[length + ii].merge(i->next(), append);
+            }
+         }
+         else
+         {
+            DynamicObjectIterator i = rhs.getIterator();
+            for(int ii = 0; i->hasNext(); ii++)
+            {
+               (*this)[ii].merge(i->next(), append);
             }
          }
          break;
