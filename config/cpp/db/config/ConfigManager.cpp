@@ -128,37 +128,7 @@ void ConfigManager::merge(DynamicObject& target, DynamicObject& source)
    else if(!(source->getType() == String &&
       strcmp(source->getString(), DEFAULT_VALUE) == 0))
    {
-      switch(source->getType())
-      {
-         case String:
-         case Boolean:
-         case Int32:
-         case UInt32:
-         case Int64:
-         case UInt64:
-         case Double:
-            target = source.clone();
-            break;
-         case Map:
-         	{
-               DynamicObjectIterator i = source.getIterator();
-               while(i->hasNext())
-               {
-                  DynamicObject next = i->next();
-                  merge(target[i->getName()], next);
-               }
-            }
-            break;
-         case Array:
-            {
-               DynamicObjectIterator i = source.getIterator();
-               for(int ii = 0; i->hasNext(); ii++)
-               {
-                  merge(target[ii], i->next());
-               }
-            }
-            break;
-      }
+      target.merge(source);
    }
 }
 
