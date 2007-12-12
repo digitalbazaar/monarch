@@ -17,9 +17,9 @@ HttpRequestHeader::HttpRequestHeader()
 
 HttpRequestHeader::~HttpRequestHeader()
 {
-   delete [] mMethod;
-   delete [] mVersion;
-   delete [] mPath;
+   free(mMethod);
+   free(mVersion);
+   free(mPath);
 }
 
 bool HttpRequestHeader::parseStartLine(const char* str, unsigned int length)
@@ -74,7 +74,7 @@ void HttpRequestHeader::getStartLine(string& line)
 
 void HttpRequestHeader::setMethod(const char* method)
 {
-   delete [] mMethod;
+   free(mMethod);
    mMethod = strdup(method);
 }
 
@@ -85,7 +85,7 @@ const char* HttpRequestHeader::getMethod()
 
 void HttpRequestHeader::setVersion(const char* version)
 {
-   delete [] mVersion;
+   free(mVersion);
    mVersion = strdup(version);
 }
 
@@ -96,7 +96,7 @@ const char* HttpRequestHeader::getVersion()
 
 void HttpRequestHeader::setPath(const char* path)
 {
-   delete [] mPath;
+   free(mPath);
    mPath = strdup(path);
 }
 

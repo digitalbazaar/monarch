@@ -17,8 +17,8 @@ HttpResponseHeader::HttpResponseHeader()
 
 HttpResponseHeader::~HttpResponseHeader()
 {
-   delete [] mVersion;
-   delete [] mStatusMessage;
+   free(mVersion);
+   free(mStatusMessage);
 }
 
 bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
@@ -26,7 +26,9 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
    bool rval = false;
    
    // create status message string
-   string msg;
+   unsigned int msgLength = 0;
+   char msg[length];
+   msg[0] = 0;
    
    // copy string so it can be modified
    char tokens[length + 1];
@@ -58,12 +60,13 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
       }
       else
       {
-         if(msg.length() > 0)
+         if(msgLength > 0)
          {
-            msg.push_back(' ');
+            msg[msgLength++] = ' ';
          }
          
-         msg.append(start);
+         strcpy(msg + msgLength, start);
+         msgLength += (end - start);
       }
       
       count++;
@@ -79,8 +82,8 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
    }
    
    // set status message
-   delete [] mStatusMessage;
-   mStatusMessage = strdup(msg.c_str());
+   free(mStatusMessage);
+   mStatusMessage = strdup(msg);
    
    return rval;
 }
@@ -98,7 +101,7 @@ void HttpResponseHeader::getStartLine(string& line)
 
 void HttpResponseHeader::setVersion(const char* version)
 {
-   delete [] mVersion;
+   free(mVersion);
    mVersion = strdup(version);
 }
 
@@ -111,7 +114,7 @@ void HttpResponseHeader::setStatus(unsigned int code, const char* message)
 {
    mStatusCode = code;
    
-   delete [] mStatusMessage;
+   free(mStatusMessage);
    mStatusMessage = strdup(message);
 }
 

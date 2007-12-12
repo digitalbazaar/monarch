@@ -13,7 +13,7 @@ Datagram::Datagram(InternetAddress* address, int length)
    
    if(length > 0)
    {
-      mData = new char[length];
+      mData = (char*)malloc(length);
       mLength = length;
    }
    else
@@ -37,7 +37,7 @@ void Datagram::freeData()
 {
    if(mCleanup && mData != NULL)
    {
-      delete [] mData;
+      free(mData);
    }
    
    mData = NULL;
@@ -79,7 +79,7 @@ void Datagram::assignData(const char* data, int length)
       freeData();
       
       // copy data into a new buffer
-      mData = new char[length];
+      mData = (char*)malloc(length);
       memcpy(mData, data, length);
    }
    

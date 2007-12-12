@@ -12,7 +12,7 @@ HttpRequestServicer::HttpRequestServicer(const char* path)
    
    if(length == 0)
    {
-      mPath = new char[2];
+      mPath = (char*)malloc(2);
       mPath[0] = '/';
       mPath[1] = 0;
    }
@@ -23,23 +23,23 @@ HttpRequestServicer::HttpRequestServicer(const char* path)
       {
          if(path[length - 1] != '/')
          {
-            mPath = new char[length + 3];
+            mPath = (char*)malloc(length + 3);
             sprintf(mPath, "/%s/", path);
          }
          else
          {
-            mPath = new char[length + 2];
+            mPath = (char*)malloc(length + 2);
             sprintf(mPath, "/%s", path);
          }
       }
       else if(path[length - 1] != '/')
       {
-         mPath = new char[length + 2];
+         mPath = (char*)malloc(length + 2);
          sprintf(mPath, "%s/", path);
       }
       else
       {
-         mPath = new char[length + 1];
+         mPath = (char*)malloc(length + 1);
          strcpy(mPath, path);
       }
    }
@@ -47,8 +47,8 @@ HttpRequestServicer::HttpRequestServicer(const char* path)
 
 HttpRequestServicer::~HttpRequestServicer()
 {
-   // delete path
-   delete [] mPath;
+   // free path
+   free(mPath);
 }
 
 const char* HttpRequestServicer::getPath()

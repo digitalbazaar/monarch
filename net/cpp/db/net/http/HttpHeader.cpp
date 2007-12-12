@@ -21,7 +21,7 @@ HttpHeader::~HttpHeader()
    for(map<const char*, string, FieldComparator>::iterator i =
        mFields.begin(); i != mFields.end(); i++)
    {
-      delete [] i->first;
+      free((char*)i->first);
    }
 }
 
@@ -49,7 +49,7 @@ void HttpHeader::setField(const char* name, const std::string& value)
       mFields.find(name);
    if(i != mFields.end())
    {
-      delete [] i->first;
+      free((char*)i->first);
       mFields.erase(i);
    }
    
@@ -80,7 +80,7 @@ void HttpHeader::clearFields()
    for(map<const char*, string, FieldComparator>::iterator i =
        mFields.begin(); i != mFields.end(); i++)
    {
-      delete [] i->first;
+      free((char*)i->first);
    }
    
    mFields.clear();
@@ -161,7 +161,7 @@ bool HttpHeader::parse(const string& str)
                   mFields.find(name);
                if(i != mFields.end())
                {
-                  delete [] i->first;
+                  free((char*)i->first);
                   mFields.erase(i);
                }
                
