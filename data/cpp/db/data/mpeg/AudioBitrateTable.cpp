@@ -116,7 +116,7 @@ AudioBitrateTable::~AudioBitrateTable()
    // clean up keys in table
    for(BitrateMap::iterator i = mMap.begin(); i != mMap.end(); i++)
    {
-      delete [] i->first;
+      free((char*)i->first);
    }
    
    // clear map
@@ -128,7 +128,8 @@ void AudioBitrateTable::addBitrate(
    const AudioLayer& layer, int bitrate)
 {
    // build key from index, version, and layer
-   char* key = new char[3];
+   char* key = (char*)malloc(3);
+   
    key[0] = index;
    key[1] = version.bitValues;
    key[2] = layer.bitValues;
@@ -137,7 +138,7 @@ void AudioBitrateTable::addBitrate(
    BitrateMap::iterator i = mMap.find(key);
    if(i != mMap.end())
    {
-      delete [] key;
+      free(key);
       i->second = bitrate;
    }
    else

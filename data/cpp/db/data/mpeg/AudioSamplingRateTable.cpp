@@ -34,7 +34,7 @@ AudioSamplingRateTable::~AudioSamplingRateTable()
    // clean up keys in table
    for(SamplingRateMap::iterator i = mMap.begin(); i != mMap.end(); i++)
    {
-      delete [] i->first;
+      free((char*)i->first);
    }
    
    // clear map
@@ -53,7 +53,7 @@ void AudioSamplingRateTable::addSamplingRate(
    SamplingRateMap::iterator i = mMap.find(key);
    if(i != mMap.end())
    {
-      delete [] key;
+      free(key);
       i->second = samplingRate;
    }
    else

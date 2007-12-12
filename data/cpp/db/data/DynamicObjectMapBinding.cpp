@@ -260,7 +260,7 @@ DynamicObjectMapBinding::~DynamicObjectMapBinding()
 {
    if(mCurrentName != NULL)
    {
-      delete [] mCurrentName;
+      free(mCurrentName);
    }
 }
 
@@ -301,7 +301,7 @@ void DynamicObjectMapBinding::setName(const char* name)
 {
    if(mCurrentName != NULL)
    {
-      delete [] mCurrentName;
+      free(mCurrentName);
    }
    
    mCurrentName = strdup(name);
@@ -319,7 +319,7 @@ const char* DynamicObjectMapBinding::getNextName()
    mIterator->next();
    if(mCurrentName != NULL)
    {
-      delete [] mCurrentName;
+      free(mCurrentName);
    }
    mCurrentName = strdup(mIterator->getName());
    return mCurrentName;

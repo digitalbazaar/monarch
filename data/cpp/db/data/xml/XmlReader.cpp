@@ -58,7 +58,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
             // clean up attribute namespace
             if(attrns != NULL)
             {
-               delete [] attrns;
+               free(attrns);
             }
          }
       }
@@ -66,7 +66,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
       // clean up element namespace
       if(ns != NULL)
       {
-         delete [] ns;
+         free(ns);
       }
    }
    else
@@ -96,7 +96,7 @@ void XmlReader::endElement(const XML_Char* name)
       // clean up element namespace
       if(ns != NULL)
       {
-         delete [] ns;
+         free(ns);
       }
    }
 }
@@ -119,7 +119,7 @@ void XmlReader::parseNamespace(const char** fullName, char** ns)
    const char* sep = strchr(*fullName, '|');
    if(sep != NULL)
    {
-      *ns = new char[sep - *fullName];
+      *ns = (char*)malloc(sep - *fullName);
       strncpy(*ns, *fullName, sep - *fullName);
       ns[(sep - *fullName)] = 0;
       *fullName = sep + 1;

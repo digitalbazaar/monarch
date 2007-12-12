@@ -22,7 +22,7 @@ InspectorInputStream::~InspectorInputStream()
        i != mInspectors.end(); i++)
    {
       // clean up name
-      delete [] i->first;
+      free((char*)i->first);
       
       // clean up inspector if appropriate
       if(i->second.cleanupInspector)

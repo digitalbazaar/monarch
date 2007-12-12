@@ -17,7 +17,7 @@ const unsigned char FrameHeader::GROUPING_BIT = 0x20;
 
 FrameHeader::FrameHeader(const char* id)
 {
-   mId = new char[5];
+   mId = (char*)malloc(5);
    strncpy(mId, id, 4);
    mId[4] = 0;
    
@@ -34,8 +34,8 @@ FrameHeader::FrameHeader(const char* id)
 
 FrameHeader::~FrameHeader()
 {
-   delete [] mId;
-   delete [] mDescription;
+   free(mId);
+   free(mDescription);
 }
 
 void FrameHeader::setFlags1(unsigned char b)
@@ -137,7 +137,7 @@ const char* FrameHeader::getId()
 
 void FrameHeader::setDescription(const char* description)
 {
-   delete [] mDescription;
+   free(mDescription);
    mDescription = strdup(description);
 }
 

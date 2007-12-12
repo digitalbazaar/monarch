@@ -176,7 +176,7 @@ protected:
    /**
     * The current member name.
     */
-   const char* mCurrentName;
+   char* mCurrentName;
    
 public:
    /**

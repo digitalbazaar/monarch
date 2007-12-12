@@ -126,11 +126,11 @@ void DataBinding::freeDataName(DataName* dn)
       // delete name space if exists
       if(dn->ns != NULL)
       {
-         delete [] dn->ns;
+         free(dn->ns);
       }
       
       // delete name
-      delete [] dn->name;
+      free(dn->name);
       
       // delete data name
       delete dn;

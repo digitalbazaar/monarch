@@ -17,12 +17,12 @@ SqlException::SqlException(
 
 SqlException::~SqlException()
 {
-   delete [] mSqlState;
+   free(mSqlState);
 }
 
 void SqlException::setSqlState(const char* state)
 {
-   delete [] mSqlState;
+   free(mSqlState);
    mSqlState = strdup(state);
 }
 

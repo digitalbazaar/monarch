@@ -13,7 +13,7 @@ Statement::Statement(Connection* c, const char* sql)
 
 Statement::~Statement()
 {
-   delete [] mSql;
+   free(mSql);
 }
 
 Connection* Statement::getConnection()
