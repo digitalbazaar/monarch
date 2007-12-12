@@ -96,7 +96,7 @@ public:
     * 
     * @return the address of the sender.
     */
-   virtual Address getSender();
+   virtual Address& getSender();
    
    /**
     * Adds a recipient of this Mail using the "To" header.
@@ -130,7 +130,7 @@ public:
     * 
     * @return a list of recipients of this Mail.
     */
-   virtual AddressList getRecipients();
+   virtual AddressList& getRecipients();
    
    /**
     * Sets a header in this Mail.
@@ -166,7 +166,7 @@ public:
     * 
     * @return the Message of this Mail.
     */
-   virtual Message getMessage();
+   virtual Message& getMessage();
 };
 
 } // end namespace mail
