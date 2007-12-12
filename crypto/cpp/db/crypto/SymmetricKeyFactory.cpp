@@ -42,10 +42,9 @@ bool SymmetricKeyFactory::createRandomKey(
    {
       // unknown algorithm
       rval = false;
-      char* msg = new char[15 + strlen(algorithm) + 19 + 1];
+      char msg[15 + strlen(algorithm) + 19 + 1];
       sprintf(msg, "Key algorithm '%s' is not supported!", algorithm);
       Exception::setLast(new UnsupportedAlgorithmException(msg));
-      delete msg;
    }
    
    if(rval)

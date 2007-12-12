@@ -80,11 +80,11 @@ Logger::Logger(const char* name, Level level)
 
 Logger::~Logger()
 {
-   delete [] mName;
+   free(mName);
    
    if(mDateFormat != NULL)
    {
-      delete [] mDateFormat;
+      free(mDateFormat);
    }
 }
 
@@ -125,7 +125,7 @@ bool Logger::setDateFormat(const char* dateFormat)
    {
       if(mDateFormat != NULL)
       {
-         delete [] mDateFormat;
+         free(mDateFormat);
       }
       
       mDateFormat = strdup(dateFormat);

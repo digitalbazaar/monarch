@@ -1,10 +1,9 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-
+#include "db/logging/FileLogger.h"
 #include "db/io/FileOutputStream.h"
 #include "db/util/Math.h"
-#include "db/logging/FileLogger.h"
 
 using namespace db::io;
 using namespace db::util;

@@ -43,10 +43,9 @@ const EVP_CIPHER* AbstractBlockCipher::getCipherFunction(const char* algorithm)
    }
    else
    {
-      char* msg = new char[27 + strlen(algorithm) + 2 + 1];
+      char msg[27 + strlen(algorithm) + 2 + 1];
       sprintf(msg, "Unsupported key algorithm '%s'!", algorithm);
       Exception::setLast(new UnsupportedAlgorithmException(msg));
-      delete msg;
    }
    
    return rval;

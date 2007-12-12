@@ -41,7 +41,7 @@ File::File(const char* name)
 
 File::~File()
 {
-   delete [] mName;
+   free(mName);
 }
 
 bool File::operator==(const File& rhs)

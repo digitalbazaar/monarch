@@ -9,7 +9,7 @@ ByteBuffer::ByteBuffer(int capacity)
 {
    // create the byte buffer
    mCapacity = capacity;
-   mBuffer = (capacity > 0) ? new char[mCapacity] : NULL;
+   mBuffer = (capacity > 0) ? (char*)malloc(mCapacity) : NULL;
    mOffset = 0;
    mLength = 0;
    mCleanup = true;
@@ -25,7 +25,7 @@ ByteBuffer::ByteBuffer(const ByteBuffer& copy)
 {
    // copy bytes
    mCapacity = copy.getCapacity();
-   mBuffer = (mCapacity > 0) ? new char[mCapacity] : NULL;
+   mBuffer = (mCapacity > 0) ? (char*)malloc(mCapacity) : NULL;
    memcpy(mBuffer, copy.bytes(), copy.getCapacity());
    mOffset = copy.offset();
    mLength = copy.length();
@@ -42,7 +42,7 @@ void ByteBuffer::cleanupBytes()
 {
    if(mCleanup && mBuffer != NULL)
    {
-      delete [] mBuffer;
+      ::free(mBuffer);
       mBuffer = NULL;
    }
 }
@@ -92,7 +92,7 @@ void ByteBuffer::resize(int capacity)
    if(capacity != mCapacity)
    {
       // create a new buffer
-      char* newBuffer = new char[capacity];
+      char* newBuffer = (char*)malloc(capacity);
       
       // copy the data into the new buffer, truncate old count as necessary
       mCapacity = capacity;

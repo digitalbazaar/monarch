@@ -20,7 +20,7 @@ AsymmetricKey::~AsymmetricKey()
    
    if(mAlgorithm != NULL)
    {
-      delete [] mAlgorithm;
+      free(mAlgorithm);
    }
 }
 

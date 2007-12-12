@@ -27,7 +27,7 @@ SymmetricKey::~SymmetricKey()
    // clean up
    freeData();
    freeIv();
-   delete mAlgorithm;
+   free(mAlgorithm);
 }
 
 void SymmetricKey::freeData()
@@ -35,7 +35,7 @@ void SymmetricKey::freeData()
    // free key data
    if(mData != NULL)
    {
-      delete [] mData;
+      free(mData);
    }
    
    mData = NULL;
@@ -47,7 +47,7 @@ void SymmetricKey::freeIv()
    // free IV
    if(mIv != NULL)
    {
-      delete [] mIv;
+      free(mIv);
    }
    
    mIv = NULL;
@@ -91,13 +91,13 @@ void SymmetricKey::setData(
    // allocate data as necessary
    if(mData == NULL)
    {
-      mData = new char[length];
+      mData = (char*)malloc(length);
    }
    
    // allocate IV as necessary
    if(mIv == NULL && iv != NULL)
    {
-      mIv = new char[ivLength];
+      mIv = (char*)malloc(ivLength);
    }
    
    // copy data
