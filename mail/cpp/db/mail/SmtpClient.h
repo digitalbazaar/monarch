@@ -127,9 +127,10 @@ protected:
     * @param c the smtp connection.
     * @param mail the mail to send.
     * 
-    * @return true if successful, false if an exception occurred.
+    * @return an Exception if one occurred, false if the mail was sent
+    *         successfully.
     */
-   virtual bool sendMail(db::net::Connection* c, Mail* mail);
+   virtual db::rt::Exception* sendMail(db::net::Connection* c, Mail* mail);
    
 public:
    /**
@@ -148,9 +149,10 @@ public:
     * @param url the url to send the mail to.
     * @param mail the mail to send.
     * 
-    * @return true if successful, false if an exception occurred.
+    * @return an Exception if one occurred, false if the mail was sent
+    *         successfully.
     */
-   virtual bool sendMail(db::net::Url* url, Mail* mail);
+   virtual db::rt::Exception* sendMail(db::net::Url* url, Mail* mail);
 };
 
 } // end namespace mail

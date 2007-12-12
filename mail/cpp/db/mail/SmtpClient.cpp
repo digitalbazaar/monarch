@@ -165,9 +165,9 @@ bool SmtpClient::quit(Connection* c)
       sendCrlf(c);
 }
 
-bool SmtpClient::sendMail(Connection* c, Mail* mail)
+Exception* SmtpClient::sendMail(Connection* c, Mail* mail)
 {
-   bool rval = true;
+   Exception* rval = NULL;
    
    // FIXME: this is the simplest implementation to get this thing to
    // send mail to our server, it will have to be filled out later if
@@ -177,121 +177,82 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
    int code;
    
    // receive response from server
-   if((code = getResponseCode(c)) != 220)
-   {
-      rval = false;
-      if(code != -1)
-      {
-         Exception::setLast(
-            new IOException("Bad SMTP server response code!"));
-      }
-   }
+   bool pass = ((code = getResponseCode(c)) == 220);
    
    // say helo from sender's domain
-   if(rval && (rval = helo(c, mail->getSender()["domain"]->getString())))
+   if(pass && (pass = helo(c, mail->getSender()["domain"]->getString())))
    {
       // receive response
-      if((code = getResponseCode(c)) != 250)
-      {
-         rval = false;
-         if(code != -1)
-         {
-            Exception::setLast(
-               new IOException("Bad SMTP server response code!"));
-         }
-      }
+      pass = ((code = getResponseCode(c)) == 250);
    }
    
    // send sender's address
-   if(rval && (rval = mailFrom(
+   if(pass && (pass = mailFrom(
          c, mail->getSender()["smtpEncoding"]->getString())))
    {
       // receive response
-      if((code = getResponseCode(c)) != 250)
-      {
-         rval = false;
-         if(code != -1)
-         {
-            Exception::setLast(
-               new IOException("Bad SMTP server response code!"));
-         }
-      }
+      pass = ((code = getResponseCode(c)) == 250);
    }
    
    // do rcpt to
    AddressIterator i = mail->getRecipients().getIterator();
-   while(rval && i->hasNext())
+   while(pass && i->hasNext())
    {
       // send recipient's address
-      if(rval = rcptTo(c, i->next()["smtpEncoding"]->getString()))
+      if(pass = rcptTo(c, i->next()["smtpEncoding"]->getString()))
       {
          // receive response
-         if((code = getResponseCode(c)) != 250)
-         {
-            rval = false;
-            if(code != -1)
-            {
-               Exception::setLast(
-                  new IOException("Bad SMTP server response code!"));
-            }
-         }
+         pass = ((code = getResponseCode(c)) == 250);
       }
    }
    
    // start data
-   if(rval && (rval = startData(c)))
+   if(pass && (pass = startData(c)))
    {
       // receive response
-      if((code = getResponseCode(c)) != 354)
-      {
-         rval = false;
-         if(code != -1)
-         {
-            Exception::setLast(
-               new IOException("Bad SMTP server response code!"));
-         }
-      }
+      pass = ((code = getResponseCode(c)) == 354);
    }
    
    // send data
-   if(rval && (rval = sendMessage(c, mail->getMessage())));
+   if(pass && (pass = sendMessage(c, mail->getMessage())));
    
    // end data
-   if(rval && (rval = endData(c)))
+   if(pass && (pass = endData(c)))
    {
       // receive response
-      if((code = getResponseCode(c)) != 250)
-      {
-         rval = false;
-         if(code != -1)
-         {
-            Exception::setLast(
-               new IOException("Bad SMTP server response code!"));
-         }
-      }
+      pass = ((code = getResponseCode(c)) == 250);
    }
    
    // quit
-   if(rval && (rval = quit(c)))
+   if(pass && (pass = quit(c)))
    {
       // receive response
-      if((code = getResponseCode(c)) != 221)
+      pass = ((code = getResponseCode(c)) == 221);
+   }
+   
+   if(!pass)
+   {
+      if(code != -1)
       {
-         rval = false;
-         if(code != -1)
-         {
-            Exception::setLast(
-               new IOException("Bad SMTP server response code!"));
-         }
+         // code was not the expected one
+         char temp[120];
+         sprintf(temp, "Unexpected SMTP server response code!,code=%i", code);
+         rval = new IOException(temp, "db.mail.UnexpectedSmtpCode");
+         Exception::setLast(rval);
+      }
+      else
+      {
+         // IO error, use set exception
+         rval = Exception::getLast();
       }
    }
    
    return rval;
 }
 
-bool SmtpClient::sendMail(Url* url, Mail* mail)
+Exception* SmtpClient::sendMail(Url* url, Mail* mail)
 {
-   bool rval = false;
+   Exception* rval = NULL;
    
    // connect, use 30 second timeouts
    TcpSocket s;
