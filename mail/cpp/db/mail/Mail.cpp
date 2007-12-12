@@ -91,7 +91,7 @@ bool Mail::setSender(const char* address)
    return rval;
 }
 
-Address Mail::getSender()
+Address& Mail::getSender()
 {
    return mSender;
 }
@@ -111,7 +111,7 @@ bool Mail::addBcc(const char* address)
    return addRecipient(NULL, address);
 }
 
-AddressList Mail::getRecipients()
+AddressList& Mail::getRecipients()
 {
    return mRecipients;
 }
@@ -170,7 +170,7 @@ void Mail::appendBodyLine(const char* line)
    mMessage["body"] = str.c_str();
 }
 
-Message Mail::getMessage()
+Message& Mail::getMessage()
 {
    return mMessage;
 }
