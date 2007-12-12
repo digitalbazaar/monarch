@@ -47,7 +47,7 @@ void StringTokenizer::cleanupStringTokens(StringToken* first)
    while(first != NULL)
    {
       next = first->next;
-      delete [] first->data;
+      free(first->data);
       delete first;
       first = next;
    }
@@ -98,8 +98,8 @@ void StringTokenizer::tokenize(const char* str, char delimiter)
          mFirstFreeToken = mFirstFreeToken->next;
          mFreeTokenCount--;
          
-         // delete data in token
-         delete [] token->data;
+         // free data in token
+         free(token->data);
       }
       else
       {

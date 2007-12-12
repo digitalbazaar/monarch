@@ -46,7 +46,7 @@ Thread::~Thread()
    if(mName != NULL)
    {
       // delete name
-      delete [] mName;
+      free(mName);
    }
 }
 
@@ -64,7 +64,7 @@ void Thread::assignName(const char* name)
    // delete old name
    if(mName != NULL)
    {
-      delete [] mName;
+      free(mName);
    }
    
    if(name == NULL)
@@ -307,12 +307,10 @@ InterruptedException* Thread::createInterruptedException()
    InterruptedException* rval = NULL;
    
    unsigned int length = (getName() == NULL) ? 0 : strlen(getName());
-   char* msg = new char[8 + length + 13 + 1];
+   char msg[8 + length + 13 + 1];
    sprintf(msg, "Thread '%s' interrupted",
       (getName() == NULL) ? "" : getName());
-   
    rval = new InterruptedException(msg);
-   delete msg;
    
    return rval;
 }

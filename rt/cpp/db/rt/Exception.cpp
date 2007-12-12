@@ -20,8 +20,8 @@ Exception::Exception(const char* message, const char* type, int code)
 
 Exception::~Exception()
 {
-   delete [] mMessage;
-   delete [] mType;
+   free(mMessage);
+   free(mType);
    
    if(mCause != NULL && mCleanupCause)
    {
@@ -31,13 +31,13 @@ Exception::~Exception()
 
 void Exception::setMessage(const char* message)
 {
-   delete [] mMessage;
+   free(mMessage);
    mMessage = strdup((message == NULL) ? "" : message);
 }
 
 void Exception::setType(const char* type)
 {
-   delete [] mType;
+   free(mType);
    mType = strdup((type == NULL) ? "" : type);
 }
 

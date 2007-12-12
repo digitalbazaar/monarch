@@ -23,7 +23,7 @@ void DynamicObjectImpl::freeMapKeys()
    // clean up member names
    for(ObjectMap::iterator i = mMap->begin(); i != mMap->end(); i++)
    {
-      delete [] i->first;
+      free((char*)i->first);
    }
 }
 
@@ -33,7 +33,7 @@ void DynamicObjectImpl::freeData()
    switch(mType)
    {
       case String:
-         delete [] mString;
+         free(mString);
          mString = NULL;
          break;
       case Map:
@@ -475,7 +475,7 @@ DynamicObject DynamicObjectImpl::removeMember(const char* name)
       if(i != mMap->end())
       {
          // clean up key and remove map entry
-         delete [] i->first;
+         free((char*)i->first);
          rval = i->second;
          mMap->erase(i);
       }

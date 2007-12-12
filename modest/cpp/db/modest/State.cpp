@@ -16,8 +16,8 @@ State::~State()
    for(map<const char*, Variable*, VarNameComparator>::iterator i =
        mVarTable.begin(); i != mVarTable.end(); i++)
    {
-      // delete name
-      delete [] i->first;
+      // free name
+      free((char*)i->first);
       
       // free variable
       freeVariable(i->second);
@@ -155,8 +155,8 @@ void State::removeVariable(const char* name)
       mVarTable.find(name);
    if(i != mVarTable.end())
    {
-      // delete name
-      delete [] i->first;
+      // free name
+      free((char*)i->first);
       
       // free variable
       freeVariable(i->second);
