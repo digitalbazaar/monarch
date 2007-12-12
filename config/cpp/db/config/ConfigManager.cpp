@@ -140,7 +140,7 @@ void ConfigManager::merge(DynamicObject& target, DynamicObject& source)
             target = source.clone();
             break;
          case Map:
-         	{
+            {
                DynamicObjectIterator i = source.getIterator();
                while(i->hasNext())
                {

@@ -17,7 +17,7 @@ all: build-directories build-objects build-libraries build-executables
 
 # Linux-specific variables
 LINUX_CXX = @LINUX_CXX@
-LINUX_CXX_FLAGS = -g -Wall -fPIC 
+LINUX_CXX_FLAGS = -g -Wall -fPIC
 LINUX_INCLUDES = $(INCLUDES)
 LINUX_LIB_DIR = $(DBCORE)/libs/linux
 LINUX_LIBS = -L$(LINUX_LIB_DIR)

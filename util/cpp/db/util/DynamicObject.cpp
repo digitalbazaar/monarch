@@ -242,6 +242,53 @@ DynamicObject DynamicObject::clone()
    return rval;
 }
 
+void DynamicObject::merge(DynamicObject& rhs, bool append)
+{
+   switch(rhs->getType())
+   {
+      case String:
+      case Boolean:
+      case Int32:
+      case UInt32:
+      case Int64:
+      case UInt64:
+      case Double:
+         *this = rhs.clone();
+         break;
+      case Map:
+         {
+            (*this)->setType(Map);
+            DynamicObjectIterator i = rhs.getIterator();
+            while(i->hasNext())
+            {
+               DynamicObject next = i->next();
+               (*this)[i->getName()].merge(next, append);
+            }
+         }
+         break;
+      case Array:
+         if(append)
+         {
+            (*this)->setType(Array);
+            DynamicObjectIterator i = rhs.getIterator();
+            int length = (*this)->length();
+            for(int ii = 0; i->hasNext(); ii++)
+            {
+               (*this)[length + ii].merge(i->next(), append);
+            }
+         }
+         else
+         {
+            DynamicObjectIterator i = rhs.getIterator();
+            for(int ii = 0; i->hasNext(); ii++)
+            {
+               (*this)[ii].merge(i->next(), append);
+            }
+         }
+         break;
+   }
+}
+
 bool DynamicObject::isSubset(const DynamicObject& rhs)
 {
    bool rval = false;
