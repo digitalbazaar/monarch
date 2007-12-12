@@ -146,12 +146,16 @@ endif
 
 ifdef EXECUTABLES
 ifeq ($(BUILD_FOR_LINUX),yes)
+$(STATIC_LINUX_LIBRARIES):
+	# This is a fake target to override the default .a build
 $(LINUX_EXECUTABLES): $(LINUX_SOURCES) $(STATIC_LINUX_LIBRARIES)
 	@echo "Building $(@F)..."
 	@$(LINUX_CXX) $(LINUX_CXX_FLAGS) -o $@ $(LINUX_BUILD_DIR)/$(@F)-linux.o $(STATIC_LINUX_LIBRARIES) $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
 endif
 
 ifeq ($(BUILD_FOR_WINDOWS),yes)
+$(STATIC_WINDOWS_LIBRARIES):
+	# This is a fake target to override the default .lib build
 $(WINDOWS_EXECUTABLES): $(WINDOWS_SOURCES) $(STATIC_WINDOWS_LIBRARIES)
 	@echo "Building $(@F)..."
 	@$(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -o $@ $(WINDOWS_BUILD_DIR)/$(@F)-windows.o $(STATIC_WINDOWS_LIBRARIES) $(EXTRA_WINDOWS_LIBRARIES)
