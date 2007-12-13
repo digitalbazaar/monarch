@@ -28,20 +28,32 @@ void EventController::assignEventId(const char* eventType)
    }
 }
 
+void EventController::registerObserver(Observer* observer, const char* type)
+{
+   // assign an id, if necessary
+   assignEventId(type);
+      
+   // register the observer
+   Observable::registerObserver(
+      observer, mTypeMap[type]->getUInt64());
+}
+
 void EventController::registerObserver(
    Observer* observer, DynamicObject& eventTypes)
 {
    DynamicObjectIterator index = eventTypes.getIterator();
    while(index->hasNext())
    {
-      // assign an id, if necessary
+      // register all types
       DynamicObject type = index->next();
-      assignEventId(type->getString());
-      
-      // register the observer
-      Observable::registerObserver(
-         observer, mTypeMap[type->getString()]->getUInt64());
+      registerObserver(observer, type->getString());
    }
+}
+
+void EventController::unregisterObserver(Observer* observer, const char* type)
+{
+   Observable::unregisterObserver(
+         observer, mTypeMap[type]->getUInt64());
 }
 
 void EventController::unregisterObserver(
@@ -51,8 +63,7 @@ void EventController::unregisterObserver(
    while(index->hasNext())
    {
       DynamicObject type = index->next();
-      Observable::unregisterObserver(
-         observer, mTypeMap[type->getString()]->getUInt64());
+      unregisterObserver(observer, type->getString());
    }
 }
 

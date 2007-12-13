@@ -83,6 +83,8 @@
 #include "db/util/UniqueList.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/data/json/JsonReader.h"
+#include "db/data/json/JsonInputStream.h"
+#include "db/data/json/JsonOutputStream.h"
 #include "db/mail/SmtpClient.h"
 #include "db/mail/MailTemplateParser.h"
 #include "db/config/ConfigManager.h"
@@ -1496,6 +1498,8 @@ void runJsonIOStreamTest(TestRunner& tr)
    
    tr.test("Output");
    tr.passIfNoException();
+
+   tr.warning("Fix JSON IO Stream test");
    
    tr.ungroup();
 }
@@ -5911,8 +5915,9 @@ void runEventControllerTest(TestRunner& tr)
    TestObserver observer;
    
    DynamicObject types;
-   types[0] = "event1";
-   ec.registerObserver(&observer.delegate1, types);
+   // string type
+   ec.registerObserver(&observer.delegate1, "event1");
+   // DynamicObject array of string types
    types[0] = "event2";
    ec.registerObserver(&observer.delegate2, types);
    types[0] = "event3";

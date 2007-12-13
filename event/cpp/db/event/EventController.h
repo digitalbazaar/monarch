@@ -54,10 +54,28 @@ public:
     * be ignored.
     *  
     * @param observer the new observer to register for events.
+    * @param types the event type to register the observer for.
+    */
+   virtual void registerObserver(Observer* observer, const char* type);
+   
+   /**
+    * Registers an observer for certain event types. Any empty event types will
+    * be ignored.
+    *  
+    * @param observer the new observer to register for events.
     * @param eventTypes the event types to register the observer for.
     */
    virtual void registerObserver(
       Observer* observer, db::util::DynamicObject& eventTypes);
+   
+   /**
+    * Unregisters an observer for certain events, determined by the event types.
+    * If an event type does not exist or is not set, it will be ignored.
+    * 
+    * @param observer the observer to unregister for events.
+    * @param types the event type to unregister the observer for.
+    */
+   virtual void unregisterObserver(Observer* observer, const char* type);
    
    /**
     * Unregisters an observer for certain events, determined by the event types.
