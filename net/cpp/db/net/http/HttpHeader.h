@@ -148,6 +148,15 @@ public:
    virtual bool getField(const char* name, std::string& value);
    
    /**
+    * Returns true if this header has the passed field, false if not.
+    * 
+    * @param name the name of the header field to check for.
+    * 
+    * @return true if this header has the passed field, false if not.
+    */
+   virtual bool hasField(const char* name);
+   
+   /**
     * Parses this header from the passed string.
     * 
     * @param str the string to parse from.

@@ -116,6 +116,21 @@ bool HttpHeader::getField(const char* name, string& value)
    return rval;
 }
 
+bool HttpHeader::hasField(const char* name)
+{
+   bool rval = false;
+   
+   // find field entry
+   map<const char*, string, FieldComparator>::iterator i =
+      mFields.find(name);
+   if(i != mFields.end())
+   {
+      rval = true;
+   }
+   
+   return rval;
+}
+
 bool HttpHeader::parse(const string& str)
 {
    bool rval = false;
