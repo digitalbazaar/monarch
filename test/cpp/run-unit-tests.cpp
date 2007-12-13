@@ -797,19 +797,37 @@ void runDateTest()
    cout << endl << "Date test complete." << endl;
 }
 
-void runStringTokenizerTest()
+void runStringTokenizerTest(TestRunner& tr)
 {
-   cout << "Starting StringTokenizer test." << endl << endl;
+   tr.test("StringTokenizer");
    
    const char* str = "This is a test of the StringTokenizer class.";
    
-   StringTokenizer st(str, ' ');
-   while(st.hasNextToken())
+   /*
+   StringTokenizer st0(str, ' ');
+   while(st0.hasNextToken())
    {
-      cout << "token='" << st.nextToken() << "'" << endl;
+      cout << "token='" << st0.nextToken() << "'" << endl;
    }
+   */
+   StringTokenizer st(str, ' ');
+   #define NT(str) \
+      do { \
+         assert(st.hasNextToken()); \
+         assert(strcmp(st.nextToken(), str) == 0); \
+      } while(0)
+   NT("This");
+   NT("is");
+   NT("a");
+   NT("test");
+   NT("of");
+   NT("the");
+   NT("StringTokenizer");
+   NT("class.");
+   assert(!st.hasNextToken());
+   #undef NT
    
-   cout << endl << "StringTokenizer test complete." << endl;
+   tr.passIfNoException();
 }
 
 void runStringEqualityTest()
@@ -1482,30 +1500,9 @@ void runJsonIOStreamTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runByteArrayInputStreamTest()
+void runByteBufferTest(TestRunner& tr)
 {
-   cout << "Starting ByteArrayInputStream test." << endl << endl;
-   
-   char html[] = "<html>505 HTTP Version Not Supported</html>";
-   ByteArrayInputStream is(html, 43);
-   
-   char b[10];
-   int numBytes;
-   string str;
-   while((numBytes = is.read(b, 9)) > 0)
-   {
-      memset(b + numBytes, 0, 1);
-      str.append(b);
-   }
-   
-   cout << "read data='" << str << "'" << endl;
-   
-   cout << endl << "ByteArrayInputStream test complete." << endl;
-}
-
-void runByteBufferTest()
-{
-   cout << "Starting ByteBuffer test." << endl << endl;
+   tr.test("ByteBuffer");
    
    ByteBuffer b;
    
@@ -1520,7 +1517,7 @@ void runByteBufferTest()
    
    // FIXME: this test should be more comprehensive
    
-   cout << "Data=" << b.data() << endl;
+   assert(strcmp(b.data(), "T hate chicken") == 0);
    
    // this should result in printing out "T hate chicken" still
    b.allocateSpace(10, true);
@@ -1528,21 +1525,42 @@ void runByteBufferTest()
    char temp[100];
    strncpy(temp, b.data(), b.length());
    memset(temp + b.length(), 0, 1);
-   cout << "Data2=" << temp << endl;
+   assert(strcmp(temp, "T hate chicken") == 0);
    
    // this should now result in printing out "T hate chicken always"
    sprintf(b.data() + b.length() - 1, " always");
    b.extend(7);
    strncpy(temp, b.data(), b.length());
    memset(temp + b.length(), 0, 1);
-   cout << "Data3=" << temp << endl;
+   assert(strcmp(temp, "T hate chicken always") == 0);
    
-   cout << endl << "ByteBuffer test complete." << endl;
+   tr.passIfNoException();
 }
 
-void runByteArrayOutputStreamTest()
+void runByteArrayInputStreamTest(TestRunner& tr)
 {
-   cout << "Starting ByteArrayOutputStream test." << endl << endl;
+   tr.test("ByteArrayInputStream");
+   
+   char html[] = "<html>505 HTTP Version Not Supported</html>";
+   ByteArrayInputStream is(html, 43);
+   
+   char b[10];
+   int numBytes;
+   string str;
+   while((numBytes = is.read(b, 9)) > 0)
+   {
+      memset(b + numBytes, 0, 1);
+      str.append(b);
+   }
+   
+   assert(strcmp(str.c_str(), html) == 0);
+   
+   tr.passIfNoException();
+}
+
+void runByteArrayOutputStreamTest(TestRunner& tr)
+{
+   tr.test("ByteArrayOutputStream");
    
    ByteBuffer b;
    
@@ -1550,18 +1568,18 @@ void runByteArrayOutputStreamTest()
    const char* sentence = "This is a sentence.";
    baos1.write(sentence, strlen(sentence) + 1);
    
-   cout << "Data1=" << b.data() << endl;
+   assert(strcmp(b.data(), sentence) == 0);
    
-   const char* chicken = "chicken";
    const char* t = "T ";
    const char* hate = "hate ";
+   const char* chicken = "chicken";
    b.clear();
    b.put(t, strlen(t), true);
    b.put(hate, strlen(hate), true);
    b.put(chicken, strlen(chicken), true);
    b.put("", 1, true);
    
-   cout << "Prior Data2=" << b.data() << endl;
+   assert(strcmp(b.data(), "T hate chicken") == 0);
    
    // trim null-terminator
    b.trim(1);
@@ -1569,13 +1587,14 @@ void runByteArrayOutputStreamTest()
    // false = turn off resizing buffer
    int length = strlen(sentence) + 1;
    ByteArrayOutputStream baos2(&b, false);
+   tr.warning("Add BAOS exception check");
    if(!baos2.write(sentence, length))
    {
       IOException* e = (IOException*)Exception::getLast();
-      cout << "Exception Caught=" << e->getMessage() << endl;
-      cout << "Written bytes=" << e->getUsedBytes() << endl;
-      cout << "Unwritten bytes=" << e->getUnusedBytes() << endl;
-      cout << "Turning on resize and finishing write..." << endl;
+      //cout << "Exception Caught=" << e->getMessage() << endl;
+      //cout << "Written bytes=" << e->getUsedBytes() << endl;
+      //cout << "Unwritten bytes=" << e->getUnusedBytes() << endl;
+      //cout << "Turning on resize and finishing write..." << endl;
       
       // turn on resize
       baos2.setResize(true);
@@ -1587,9 +1606,9 @@ void runByteArrayOutputStreamTest()
       Exception::clearLast();
    }
    
-   cout << "Data2=" << b.data() << endl;
+   assert(strcmp(b.data(), "T hate chickenThis is a sentence.") == 0);
    
-   cout << endl << "ByteArrayOutputStream test complete." << endl;
+   tr.passIfNoException();
 }
 
 void runMessageDigestTest(TestRunner& tr)
@@ -1619,9 +1638,9 @@ void runMessageDigestTest(TestRunner& tr)
    tr.pass();
 }
 
-void runAsymmetricKeyLoadingTest()
+void runAsymmetricKeyLoadingTest(TestRunner& tr)
 {
-   cout << "Running Asymmetric Key Loading Test" << endl << endl;
+   tr.test("Asymmetric Key Loading");
    
    // include crypto error strings
    ERR_load_crypto_strings();
@@ -1720,15 +1739,15 @@ void runAsymmetricKeyLoadingTest()
    // delete the public key
    delete publicKey;
    
-   cout << endl << "Asymmetric Key Loading test complete." << endl;
-   
    // clean up crypto strings
    EVP_cleanup();
+
+   tr.passIfNoException();
 }
 
-void runDsaAsymmetricKeyCreationTest()
+void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
 {
-   cout << "Running DSA Asymmetric Key Creation Test" << endl << endl;
+   tr.test("DSA Asymmetric Key Creation");
    
    // include crypto error strings
    ERR_load_crypto_strings();
@@ -1747,25 +1766,8 @@ void runDsaAsymmetricKeyCreationTest()
    PublicKey* publicKey;
    factory.createKeyPair("DSA", &privateKey, &publicKey);
    
-   if(privateKey != NULL)
-   {
-      cout << "DSA Private Key created!" << endl;
-   }
-   else
-   {
-      cout << "DSA Private Key creation FAILED!" << endl;
-   }
-   
-   if(publicKey != NULL)
-   {
-      cout << "DSA Public Key created!" << endl;
-   }
-   else
-   {
-      cout << "DSA Public Key creation FAILED!" << endl;
-   }
-   
-   assert(privateKey != NULL && publicKey != NULL);
+   assert(privateKey != NULL);
+   assert(publicKey != NULL);
    
    // test copy constructors
    PrivateKey prvKey(*privateKey);
@@ -1786,8 +1788,8 @@ void runDsaAsymmetricKeyCreationTest()
    privateKey = &prvKey;
    publicKey = &pubKey;
    
-   cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
-   cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
+   assert(strcmp(privateKey->getAlgorithm(), "DSA") == 0);
+   assert(strcmp(publicKey->getAlgorithm(), "DSA") == 0);
    
    // sign some data
    char data[] = {1,2,3,4,5,6,7,8};
@@ -1806,32 +1808,26 @@ void runDsaAsymmetricKeyCreationTest()
    bool verified = ds2->verify(sig, length);
    delete ds2;
    
+   assert(verified);
    if(verified)
-   {
-      cout << "Digital Signature Verified!" << endl;
-   }
-   else
-   {
-      cout << "Digital Signature NOT VERIFIED!" << endl;
-   }
    
    string outPrivatePem =
       factory.writePrivateKeyToPem(privateKey, "password");
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
    
-   cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-   cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
-   
-   cout << endl << "DSA Asymmetric Key Creation test complete." << endl;
+   //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
+   //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
    
    // clean up crypto strings
    EVP_cleanup();
+
+   tr.passIfNoException();
 }
 
-void runRsaAsymmetricKeyCreationTest()
+void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
 {
-   cout << "Running RSA Asymmetric Key Creation Test" << endl << endl;
+   tr.test("RSA Asymmetric Key Creation");
    
    // include crypto error strings
    ERR_load_crypto_strings();
@@ -1850,25 +1846,8 @@ void runRsaAsymmetricKeyCreationTest()
    PublicKey* publicKey;
    factory.createKeyPair("RSA", &privateKey, &publicKey);
    
-   if(privateKey != NULL)
-   {
-      cout << "RSA Private Key created!" << endl;
-   }
-   else
-   {
-      cout << "RSA Private Key creation FAILED!" << endl;
-   }
-   
-   if(publicKey != NULL)
-   {
-      cout << "RSA Public Key created!" << endl;
-   }
-   else
-   {
-      cout << "RSA Public Key creation FAILED!" << endl;
-   }
-   
-   assert(privateKey != NULL && publicKey != NULL);
+   assert(privateKey != NULL);
+   assert(publicKey != NULL);
    
    // test copy constructors
    PrivateKey prvKey(*privateKey);
@@ -1889,8 +1868,8 @@ void runRsaAsymmetricKeyCreationTest()
    privateKey = &prvKey;
    publicKey = &pubKey;
    
-   cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
-   cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
+   assert(strcmp(privateKey->getAlgorithm(), "RSA") == 0);
+   assert(strcmp(publicKey->getAlgorithm(), "RSA") == 0);
    
    // sign some data
    char data[] = {1,2,3,4,5,6,7,8};
@@ -1909,32 +1888,25 @@ void runRsaAsymmetricKeyCreationTest()
    bool verified = ds2->verify(sig, length);
    delete ds2;
    
-   if(verified)
-   {
-      cout << "Digital Signature Verified!" << endl;
-   }
-   else
-   {
-      cout << "Digital Signature NOT VERIFIED!" << endl;
-   }
+   assert(verified);
    
    string outPrivatePem =
       factory.writePrivateKeyToPem(privateKey, "password");
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
    
-   cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-   cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
-   
-   cout << endl << "RSA Asymmetric Key Creation test complete." << endl;
+   //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
+   //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
    
    // clean up crypto strings
    EVP_cleanup();
+
+   tr.passIfNoException();
 }
 
-void runDigitalSignatureInputStreamTest()
+void runDigitalSignatureInputStreamTest(TestRunner& tr)
 {
-   cout << "Running DigitalSignatureInputStream Test" << endl << endl;
+   tr.test("DigitalSignatureInputStream");
    
    // include crypto error strings
    ERR_load_crypto_strings();
@@ -1953,28 +1925,13 @@ void runDigitalSignatureInputStreamTest()
    PublicKey* publicKey;
    factory.createKeyPair("RSA", &privateKey, &publicKey);
    
-   if(privateKey != NULL)
-   {
-      cout << "RSA Private Key created!" << endl;
-   }
-   else
-   {
-      cout << "RSA Private Key creation FAILED!" << endl;
-   }
-   
-   if(publicKey != NULL)
-   {
-      cout << "RSA Public Key created!" << endl;
-   }
-   else
-   {
-      cout << "RSA Public Key creation FAILED!" << endl;
-   }
+   assert(privateKey != NULL);
+   assert(publicKey != NULL);
    
    if(privateKey != NULL && publicKey != NULL)
    {
-      cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
-      cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
+      assert(strcmp(privateKey->getAlgorithm(), "RSA") == 0);
+      assert(strcmp(publicKey->getAlgorithm(), "RSA") == 0);
       
       // sign some data
       char data[] = {1,2,3,4,5,6,7,8};
@@ -1999,22 +1956,15 @@ void runDigitalSignatureInputStreamTest()
       bool verified = ds2->verify(sig, length);
       delete ds2;
       
-      if(verified)
-      {
-         cout << "Digital Signature Verified!" << endl;
-      }
-      else
-      {
-         cout << "Digital Signature NOT VERIFIED!" << endl;
-      }
+      assert(verified);
       
       string outPrivatePem =
          factory.writePrivateKeyToPem(privateKey, "password");
       string outPublicPem =
          factory.writePublicKeyToPem(publicKey);
       
-      cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-      cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
+      //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
+      //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
    }
    
    // cleanup private key
@@ -2029,15 +1979,15 @@ void runDigitalSignatureInputStreamTest()
       delete publicKey;
    }
    
-   cout << endl << "DigitalSignatureInputStream test complete." << endl;
-   
    // clean up crypto strings
    EVP_cleanup();
+
+   tr.passIfNoException();
 }
 
-void runDigitalSignatureOutputStreamTest()
+void runDigitalSignatureOutputStreamTest(TestRunner& tr)
 {
-   cout << "Running DigitalSignatureOutputStream Test" << endl << endl;
+   tr.test("DigitalSignatureOutputStream");
    
    // include crypto error strings
    ERR_load_crypto_strings();
@@ -2056,28 +2006,13 @@ void runDigitalSignatureOutputStreamTest()
    PublicKey* publicKey;
    factory.createKeyPair("RSA", &privateKey, &publicKey);
    
-   if(privateKey != NULL)
-   {
-      cout << "RSA Private Key created!" << endl;
-   }
-   else
-   {
-      cout << "RSA Private Key creation FAILED!" << endl;
-   }
-   
-   if(publicKey != NULL)
-   {
-      cout << "RSA Public Key created!" << endl;
-   }
-   else
-   {
-      cout << "RSA Public Key creation FAILED!" << endl;
-   }
+   assert(privateKey != NULL);
+   assert(publicKey != NULL);
    
    if(privateKey != NULL && publicKey != NULL)
    {
-      cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
-      cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
+      assert(strcmp(privateKey->getAlgorithm(), "RSA") == 0);
+      assert(strcmp(publicKey->getAlgorithm(), "RSA") == 0);
       
       // sign some data
       char data[] = {1,2,3,4,5,6,7,8};
@@ -2101,22 +2036,15 @@ void runDigitalSignatureOutputStreamTest()
       bool verified = ds2->verify(sig, length);
       delete ds2;
       
-      if(verified)
-      {
-         cout << "Digital Signature Verified!" << endl;
-      }
-      else
-      {
-         cout << "Digital Signature NOT VERIFIED!" << endl;
-      }
+      assert(verified);
       
       string outPrivatePem =
          factory.writePrivateKeyToPem(privateKey, "password");
       string outPublicPem =
          factory.writePublicKeyToPem(publicKey);
       
-      cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-      cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
+      //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
+      //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
    }
    
    // cleanup private key
@@ -2131,15 +2059,17 @@ void runDigitalSignatureOutputStreamTest()
       delete publicKey;
    }
    
-   cout << endl << "DigitalSignatureOutputStream test complete." << endl;
-   
    // clean up crypto strings
    EVP_cleanup();
+
+   tr.passIfNoException();
 }
 
-void runEnvelopeTest(const std::string& algorithm)
+void runEnvelopeTest(TestRunner& tr, const char* algorithm)
 {
-   cout << "Running " << algorithm << " Envelope Test" << endl << endl;
+   tr.group("envelope");
+
+   tr.test(algorithm);
    
    // include crypto error strings
    ERR_load_crypto_strings();
@@ -2156,7 +2086,10 @@ void runEnvelopeTest(const std::string& algorithm)
    // create a new key pair
    PrivateKey* privateKey;
    PublicKey* publicKey;
-   factory.createKeyPair("RSA", &privateKey, &publicKey);
+   factory.createKeyPair(algorithm, &privateKey, &publicKey);
+
+   assert(privateKey != NULL);
+   assert(publicKey != NULL);
    
    if(privateKey != NULL && publicKey != NULL)
    {
@@ -2217,6 +2150,8 @@ void runEnvelopeTest(const std::string& algorithm)
       display2.append(input, totalIn);
       
       cout << "Received message '" << display2 << "'" << endl;
+
+      assert(display1 == display2);
       
       // delete envelopes and key
       delete secretKey;
@@ -2240,12 +2175,18 @@ void runEnvelopeTest(const std::string& algorithm)
    
    // clean up crypto strings
    EVP_cleanup();
+
+   tr.passIfNoException();
+
+   tr.ungroup();
 }
 
-void runCipherTest(const string& algorithm)
+void runCipherTest(TestRunner& tr, const char* algorithm)
 {
-   cout << "Running " << algorithm << " Cipher Test" << endl << endl;
-   
+   tr.group("cipher");
+
+   tr.test(algorithm);
+
    // include crypto error strings
    ERR_load_crypto_strings();
    
@@ -2261,17 +2202,19 @@ void runCipherTest(const string& algorithm)
    
    string display1 = "";
    display1.append(message, length);
-   cout << "Encrypting message '" << display1 << "'" << endl;
-   cout << "Message Length=" << length << endl;
+   //cout << "Encrypting message '" << display1 << "'" << endl;
+   //cout << "Message Length=" << length << endl;
    
    // get a default block cipher
    DefaultBlockCipher cipher;
    
-   cout << "Starting encryption..." << endl;
+   //cout << "Starting encryption..." << endl;
    
    // generate a new key for the encryption
    SymmetricKey* key = NULL;
-   cipher.startEncrypting(algorithm.c_str(), &key);
+   cipher.startEncrypting(algorithm, &key);
+
+   assert(key != NULL);
    
    if(key != NULL)
    {
@@ -2280,18 +2223,18 @@ void runCipherTest(const string& algorithm)
       int outLength;
       int totalOut = 0;
       cipher.update(message, length, output, outLength);
-      cout << "Updated encryption..." << endl;
+      //cout << "Updated encryption..." << endl;
       totalOut += outLength;
       
       // finish the envelope
-      cout << "Output Length=" << outLength << endl;
+      //cout << "Output Length=" << outLength << endl;
       cipher.finish(output + outLength, outLength);
-      cout << "Finished encryption..." << endl;
+      //cout << "Finished encryption..." << endl;
       totalOut += outLength;
       
-      cout << "Total Output Length=" << totalOut << endl;
+      //cout << "Total Output Length=" << totalOut << endl;
       
-      cout << "Starting decryption..." << endl;
+      //cout << "Starting decryption..." << endl;
       cipher.startDecrypting(key);
       
       // update the decryption
@@ -2299,22 +2242,23 @@ void runCipherTest(const string& algorithm)
       int inLength;
       int totalIn = 0;
       cipher.update(output, totalOut, input, inLength);
-      cout << "Updated decryption..." << endl;
+      //cout << "Updated decryption..." << endl;
       totalIn += inLength;
       
       // finish the decryption
-      cout << "Input Length=" << inLength << endl;
+      //cout << "Input Length=" << inLength << endl;
       cipher.finish(input + inLength, inLength);
-      cout << "Finished decrypting..." << endl;
+      //cout << "Finished decrypting..." << endl;
       totalIn += inLength;
       
-      cout << "Total Input Length=" << totalIn << endl;
+      //cout << "Total Input Length=" << totalIn << endl;
       
       // create a string to display the received message
       string display2 = "";
       display2.append(input, totalIn);
       
-      cout << "Decrypted message '" << display2 << "'" << endl;
+      //cout << "Decrypted message '" << display2 << "'" << endl;
+      assert(display1 == display2);
    }
    
    // cleanup key
@@ -2323,10 +2267,12 @@ void runCipherTest(const string& algorithm)
       delete key;
    }
    
-   cout << endl << algorithm << " Cipher test complete." << endl;
-   
    // clean up crypto strings
    EVP_cleanup();
+
+   tr.passIfNoException();
+
+   tr.ungroup();
 }
 
 void runAddressResolveTest(TestRunner& tr)
@@ -3492,15 +3438,16 @@ void runServerDatagramTest()
    cout << endl << "Server Datagram test complete." << endl;
 }
 
-void runHttpHeaderTest()
+void runHttpHeaderTest(TestRunner& tr)
 {
-   cout << "Starting HttpHeader test." << endl << endl;
+   tr.test("HttpHeader");
    
    // test bicapitalization of http headers
    char test[] = "ThIs-a-BICaPitAlized-hEADer";
    HttpHeader::biCapitalize(test);
    
-   cout << "BiCapitalized Header=" << test << endl;
+   //cout << "BiCapitalized Header=" << test << endl;
+   assert(strcmp(test, "This-A-Bicapitalized-Header") == 0);
    
 //   string t = "   d  f  ";
 //   StringTools::trim(t);
@@ -3533,7 +3480,7 @@ void runHttpHeaderTest()
    cout << str2;
    
    cout << "End of Parsed Request Header." << endl;
-   
+
    cout << endl << "Response Header:" << endl;
    
    HttpResponseHeader resHeader;
@@ -3559,7 +3506,7 @@ void runHttpHeaderTest()
    
    cout << "End of Parsed Response Header." << endl;
    
-   cout << endl << "HttpHeader test complete." << endl;
+   tr.passIfNoException();
 }
 
 class TestHttpRequestServicer : public HttpRequestServicer
@@ -4773,29 +4720,50 @@ void runDynamicObjectBindingTest(TestRunner& tr)
    tr.pass();
 }
 
-void runBigIntegerTest()
+void runBigIntegerTest(TestRunner& tr)
 {
-   cout << "Starting BigInteger test." << endl << endl;
-   
+   tr.test("BigInteger");
+
+   #define NSI(op, expectstr) \
+   do { \
+      BigInteger result = op; \
+      string str; \
+      result.toString(str); \
+      assert(strcmp(str.c_str(), expectstr) == 0); \
+   } while(0)
+
    BigInteger number1 = 2;
    BigInteger number2 = 123456789;
    
-   cout << "number1=" << number1 << endl;
-   cout << "number2=" << number2 << endl;
-   cout << "number1 + number2=" << (number1 + number2) << endl;
-   cout << "number1 - number2=" << (number1 - number2) << endl;
-   cout << "number1 * number2=" << (number1 * number2) << endl;
-   cout << "number2 / number1=" << (number2 / number1) << endl;
-   cout << "number2 % number1=" << (number2 % number1) << endl;
-   cout << "number2 ^ number1=" << (number2.pow(number1)) << endl;
-   
-   cout << endl << "BigInteger test complete." << endl;
+   assert(number1 == 2);
+   assert(number2 == 123456789);
+
+   NSI(number1, "2");
+   NSI(number2, "123456789");
+   NSI(number1 + number2, "123456791");
+   NSI(number1 - number2, "-123456787");
+   NSI(number1 * number2, "246913578");
+   NSI(number2 / number1, "61728394");
+   NSI(number2 % number1, "1");
+   NSI(number2.pow(number1), "15241578750190521");
+
+   #undef NSI
+
+   tr.passIfNoException();
 }
 
-void runBigDecimalTest()
+void runBigDecimalTest(TestRunner& tr)
 {
-   cout << "Starting BigDecimal test." << endl << endl;
+   tr.test("BigDecimal");
    
+   #define NSD(op, expectstr) \
+   do { \
+      BigDecimal result = op; \
+      string str; \
+      result.toString(str); \
+      assert(strcmp(str.c_str(), expectstr) == 0); \
+   } while(0)
+
    BigDecimal number1 = 3.0;
    //BigDecimal number2 = 123456789.5;
    BigDecimal number2 = "123456789.53";
@@ -4803,20 +4771,54 @@ void runBigDecimalTest()
    //BigDecimal number2 = "1.23e-04";
    //BigDecimal number2 = "1234";
       
-   cout << "number1=" << number1 << endl;
-   cout << "number2=" << number2 << endl;
-   cout << "number1 + number2=" << (number1 + number2) << endl;
-   cout << "number1 - number2=" << (number1 - number2) << endl;
-   cout << "number1 * number2=" << (number1 * number2) << endl;
-   cout << "number2 / number1=" << (number2 / number1) << endl;
-   cout << "number2 % number1=" << (number2 % number1) << endl;
+   NSD(number1, "3");
+   NSD(number2, "123456789.53");
+   NSD(number1 + number2, "123456792.53");
+   NSD(number1 - number2, "-123456786.53");
+   NSD(number1 * number2, "370370368.59");
+   NSD(number2 / number1, "41152263.1766666667");
+   NSD(number2 % number1, "0.53");
+
+   #define NSDR(n, i, d, expectstr) \
+   do { \
+      BigDecimal nr = n; \
+      nr.setPrecision(i, d); \
+      nr.round(); \
+      NSD(nr, expectstr); \
+   } while(0)
    
    BigDecimal number3 = "129.54678";
-   cout << endl << "number3=" << number3 << endl;
+   NSD(number3, "129.54678");
    
+   NSDR(number3, 7, Up, "129.54678");
+   NSDR(number3, 6, Up, "129.54678");
+   NSDR(number3, 5, Up, "129.54678");
+   NSDR(number3, 4, Up, "129.5468");
+   NSDR(number3, 3, Up, "129.547");
+   NSDR(number3, 2, Up, "129.55");
+   NSDR(number3, 1, Up, "129.6");
+   NSDR(number3, 0, Up, "130");
+
+   NSDR(number3, 7, HalfUp, "129.54678");
+   NSDR(number3, 6, HalfUp, "129.54678");
+   NSDR(number3, 5, HalfUp, "129.54678");
+   NSDR(number3, 4, HalfUp, "129.5468");
+   NSDR(number3, 3, HalfUp, "129.547");
+   NSDR(number3, 2, HalfUp, "129.55");
+   NSDR(number3, 1, HalfUp, "129.5");
+   NSDR(number3, 0, HalfUp, "130");
+
+   NSDR(number3, 7, Down, "129.54678");
+   NSDR(number3, 6, Down, "129.54678");
+   NSDR(number3, 5, Down, "129.54678");
+   NSDR(number3, 4, Down, "129.5467");
+   NSDR(number3, 3, Down, "129.546");
+   NSDR(number3, 2, Down, "129.54");
+   NSDR(number3, 1, Down, "129.5");
+   NSDR(number3, 0, Down, "129");
+
+   /*
    BigDecimal bd;
-   
-   cout << endl;
    
    for(int i = 7; i >= 0; i--)
    {
@@ -4826,8 +4828,6 @@ void runBigDecimalTest()
       cout << "round " << i << " places, up=" << bd << endl;
    }
    
-   cout << endl;
-   
    for(int i = 7; i >= 0; i--)
    {
       bd = number3;
@@ -4836,8 +4836,6 @@ void runBigDecimalTest()
       cout << "round " << i << " places, half up=" << bd << endl;
    }
    
-   cout << endl;
-   
    for(int i = 7; i >= 0; i--)
    {
       bd = number3;
@@ -4845,8 +4843,12 @@ void runBigDecimalTest()
       bd.round();
       cout << "round " << i << " places, down=" << bd << endl;
    }
+   */
+
+   #undef NSD
+   #undef NSDR
    
-   cout << endl << "BigDecimal test complete." << endl;
+   tr.passIfNoException();
 }
 
 void runSqlite3ConnectionTest(TestRunner &tr)
@@ -5985,9 +5987,9 @@ void runLoggerTest()
    cout << endl << "Logger test complete." << endl;
 }
 
-void runUniqueListTest()
+void runUniqueListTest(TestRunner& tr)
 {
-   cout << "Starting UniqueList test." << endl << endl;
+   tr.test("UniqueList");
    
    UniqueList<int> list;
    
@@ -5997,25 +5999,43 @@ void runUniqueListTest()
    list.add(5);
    
    Iterator<int>* i = list.getIterator();
+   /*
    while(i->hasNext())
    {
       cout << "element=" << i->next() << endl;
    }
+   */
+   assert(i->hasNext());
+   assert(i->next() == 5);
+   assert(i->hasNext());
+   assert(i->next() == 6);
+   assert(i->hasNext());
+   assert(i->next() == 7);
+   assert(!i->hasNext());
    delete i;
    
-   cout << "Removing '5'..." << endl;   
    list.remove(5);
    
    i = list.getIterator();
+   /*
    while(i->hasNext())
    {
       cout << "element=" << i->next() << endl;
    }
+   */
+   assert(i->hasNext());
+   assert(i->next() == 6);
+   assert(i->hasNext());
+   assert(i->next() == 7);
+   assert(!i->hasNext());
    delete i;
    
    list.clear();
    
-   cout << endl << "UniqueList test complete." << endl;
+   i = list.getIterator();
+   assert(!i->hasNext());
+
+   tr.passIfNoException();
 }
 
 void runFileTest()
@@ -6593,6 +6613,8 @@ public:
       runDynamicObjectTest(tr);
       runDynoClearTest(tr);
       runDynoConversionTest(tr);
+      runUniqueListTest(tr);
+      runStringTokenizerTest(tr);
       
       // db::data tests
       runJsonValidTest(tr);
@@ -6603,6 +6625,13 @@ public:
       
       // db::crypto tests
       runMessageDigestTest(tr);
+      runCipherTest(tr, "AES256");
+      runBigIntegerTest(tr);
+      runBigDecimalTest(tr);
+      runDsaAsymmetricKeyCreationTest(tr);
+      runRsaAsymmetricKeyCreationTest(tr);
+      runDigitalSignatureInputStreamTest(tr);
+      runDigitalSignatureOutputStreamTest(tr);
       
       // db::net tests
       runAddressResolveTest(tr);
@@ -6635,6 +6664,11 @@ public:
       //runSmtpClientTest(tr);
       runMailTemplateParser(tr);
       
+      // db::io tests
+      runByteBufferTest(tr);
+      runByteArrayInputStreamTest(tr);
+      runByteArrayOutputStreamTest(tr);
+
       assertNoException();
    }
 
@@ -6648,24 +6682,12 @@ public:
 //      runConvertTest();
 //      runRegexTest();
 //      runDateTest();
-//      runStringTokenizerTest();
 //      runStringEqualityTest();
 //      runStringAppendCharTest();
 //      runStringCompareTest();
-//      runDynamicObjectTest(tr);
-//      runByteBufferTest();
-//      runByteArrayInputStreamTest();
-//      runByteArrayOutputStreamTest();
-//      runAsymmetricKeyLoadingTest();
-//      runDsaAsymmetricKeyCreationTest();
-//      runRsaAsymmetricKeyCreationTest();
-//      runDigitalSignatureInputStreamTest();
-//      runDigitalSignatureOutputStreamTest();
-//      runEnvelopeTest("DSA");
-//      runEnvelopeTest("RSA");
-//      runCipherTest("AES256");
-//      runBigIntegerTest();
-//      runBigDecimalTest();
+//      runAsymmetricKeyLoadingTest(tr);
+//      runEnvelopeTest(tr, "DSA");
+//      runEnvelopeTest(tr, "RSA");
 //      runSslSocketTest();
 //      runServerSocketTest();
 //      runSslServerSocketTest();
@@ -6675,7 +6697,7 @@ public:
 //      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
-//      runHttpHeaderTest();
+//      runHttpHeaderTest(tr);
 //      runHttpServerTest();
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
@@ -6685,23 +6707,11 @@ public:
 //      runXmlReadWriteTest();
 //      runXmlBindingInputStreamTest();
 //      runXmlBindingOutputStreamTest();
-//      runXmlHttpServerTest(tr);
-//      runDynamicObjectTest(tr);
-//      runDynamicObjectWriterTest(tr);
-//      runDynamicObjectReaderTest(tr);
-//      runDynamicObjectBasicBindingTest(tr);
-//      runDynamicObjectArrayBindingTest(tr);
-//      runDynamicObjectMapBindingTest(tr);
-//      runDynamicObjectBindingTest(tr);
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
 //      runConnectionPoolTest();
 //      runDatabaseClientTest();
-//      runEventTest(tr);
-//      runObserverDelegateTest(tr);
-//      runEventControllerTest(tr);
 //      runLoggerTest();
-//      runUniqueListTest();
 //      runFileTest();
 //      runSmtpClientTest(tr);
 //      runMailTemplateParser(tr);
