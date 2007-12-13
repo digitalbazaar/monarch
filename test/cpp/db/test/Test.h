@@ -61,6 +61,11 @@ void assertNoException();
  */
 void assertException();
 
+/**
+ * Assert strings are equal.
+ */
+#define assertStrCmp(a, b) assert(strcmp(a, b) == 0)
+
 } // end namespace test
 } // end namespace db
 
