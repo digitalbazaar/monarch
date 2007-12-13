@@ -729,8 +729,7 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
    {
       case DataGetFunction::None:
          // no get function
-         *s = new char[1];
-         memset(*s, 0, 1);
+         *s = strdup("");
          break;
       case DataGetFunction::Boolean:
          // convert boolean to string
@@ -739,22 +738,22 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
          break;
       case DataGetFunction::Int32:
          // convert integer to string
-         *s = new char[22];
+         *s = (char*)malloc(22);
          sprintf(*s, "%d", (bObj->*mGetFunction.i32Func)());
          break;
       case DataGetFunction::UInt32:
          // convert integer to string
-         *s = new char[22];
+         *s = (char*)malloc(22);
          sprintf(*s, "%du", (bObj->*mGetFunction.ui32Func)());
          break;
       case DataGetFunction::Int64:
          // convert integer to string
-         *s = new char[22];
+         *s = (char*)malloc(22);
          sprintf(*s, "%lld", (bObj->*mGetFunction.i64Func)());
          break;
       case DataGetFunction::UInt64:
          // convert integer to string
-         *s = new char[22];
+         *s = (char*)malloc(22);
          sprintf(*s, "%llu", (bObj->*mGetFunction.ui64Func)());
          break;
       case DataGetFunction::String:
@@ -768,22 +767,22 @@ void DataMappingFunctor<BoundType, ChildType>::getData(void* bObject, char** s)
          break;
       case DataGetFunction::Int32Const:
          // convert integer to string
-         *s = new char[22];
+         *s = (char*)malloc(22);
          sprintf(*s, "%d", (bObj->*mGetFunction.i32cFunc)());
          break;
       case DataGetFunction::UInt32Const:
          // convert integer to string
-         *s = new char[22];
+         *s = (char*)malloc(22);
          sprintf(*s, "%du", (bObj->*mGetFunction.ui32cFunc)());
          break;
       case DataGetFunction::Int64Const:
          // convert integer to string
-         *s = new char[22];
+         *s = (char*)malloc(22);
          sprintf(*s, "%lld", (bObj->*mGetFunction.i64cFunc)());
          break;
       case DataGetFunction::UInt64Const:
          // convert integer to string
-         *s = new char[22];
+         *s = (char*)malloc(22);
          sprintf(*s, "%llu", (bObj->*mGetFunction.ui64cFunc)());
          break;
       case DataGetFunction::StringConst:
@@ -807,38 +806,78 @@ void DataMappingFunctor<BoundType, ChildType>::getRawData(
          // no get function
          break;
       case DataGetFunction::Boolean:
-         *s = (char*)new bool((bObj->*mGetFunction.bFunc)());
+         {
+            bool b = (bObj->*mGetFunction.bFunc)();
+            *s = (char*)malloc(sizeof(b));
+            memcpy(*s, (char*)&b, sizeof(b));
+         }
          break;
       case DataGetFunction::Int32:
-         *s = (char*)new int((bObj->*mGetFunction.i32Func)());
+         {
+            int i = (bObj->*mGetFunction.i32Func)();
+            *s = (char*)malloc(sizeof(i));
+            memcpy(*s, (char*)&i, sizeof(i));
+         }
          break;
       case DataGetFunction::UInt32:
-         *s = (char*)new unsigned int((bObj->*mGetFunction.ui32Func)());
+         {
+            unsigned int i = (bObj->*mGetFunction.ui32Func)();
+            *s = (char*)malloc(sizeof(i));
+            memcpy(*s, (char*)&i, sizeof(i));
+         }
          break;
       case DataGetFunction::Int64:
-         *s = (char*)new long long((bObj->*mGetFunction.i64Func)());
+         {
+            long long i = (bObj->*mGetFunction.i64Func)();
+            *s = (char*)malloc(sizeof(i));
+            memcpy(*s, (char*)&i, sizeof(i));
+         }
          break;
       case DataGetFunction::UInt64:
-         *s = (char*)new unsigned long long((bObj->*mGetFunction.i64Func)());
+         {
+            unsigned long long i = (bObj->*mGetFunction.ui64Func)();
+            *s = (char*)malloc(sizeof(i));
+            memcpy(*s, (char*)&i, sizeof(i));
+         }
          break;
       case DataGetFunction::String:
          str = (bObj->*mGetFunction.sFunc)();
          *s = (str != NULL) ? strdup(str) : strdup("");
          break;
       case DataGetFunction::BooleanConst:
-         *s = (char*)new bool((bObj->*mGetFunction.bcFunc)());
+         {
+            bool b = (bObj->*mGetFunction.bcFunc)();
+            *s = (char*)malloc(sizeof(b));
+            memcpy(*s, (char*)&b, sizeof(b));
+         }
          break;
       case DataGetFunction::Int32Const:
-         *s = (char*)new int((bObj->*mGetFunction.i32cFunc)());
+         {
+            int i = (bObj->*mGetFunction.i32cFunc)();
+            *s = (char*)malloc(sizeof(i));
+            memcpy(*s, (char*)&i, sizeof(i));
+         }
          break;
       case DataGetFunction::UInt32Const:
-         *s = (char*)new unsigned int((bObj->*mGetFunction.ui32cFunc)());
+         {
+            unsigned int i = (bObj->*mGetFunction.ui32cFunc)();
+            *s = (char*)malloc(sizeof(i));
+            memcpy(*s, (char*)&i, sizeof(i));
+         }
          break;
       case DataGetFunction::Int64Const:
-         *s = (char*)new long long((bObj->*mGetFunction.i64cFunc)());
+         {
+            long long i = (bObj->*mGetFunction.i64cFunc)();
+            *s = (char*)malloc(sizeof(i));
+            memcpy(*s, (char*)&i, sizeof(i));
+         }
          break;
       case DataGetFunction::UInt64Const:
-         *s = (char*)new unsigned long long((bObj->*mGetFunction.i64cFunc)());
+         {
+            unsigned long long i = (bObj->*mGetFunction.ui64cFunc)();
+            *s = (char*)malloc(sizeof(i));
+            memcpy(*s, (char*)&i, sizeof(i));
+         }
          break;
       case DataGetFunction::StringConst:
          str = (bObj->*mGetFunction.scFunc)();

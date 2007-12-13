@@ -237,7 +237,7 @@ SqlException* RowObject::insert(Connection* c, const char* table)
    // clean up datas
    for(list<char*>::iterator i = datas.begin(); i != datas.end(); i++)
    {
-      delete *i;
+      free(*i);
    }
    
    return rval;
@@ -305,7 +305,7 @@ SqlException* RowObject::update(
    // clean up datas
    for(list<char*>::iterator i = datas.begin(); i != datas.end(); i++)
    {
-      delete *i;
+      free(*i);
    }
    
    return rval;
@@ -391,7 +391,7 @@ SqlException* RowObject::fetch(
    // clean up datas
    for(list<char*>::iterator i = datas.begin(); i != datas.end(); i++)
    {
-      delete *i;
+      free(*i);
    }
    
    return rval;

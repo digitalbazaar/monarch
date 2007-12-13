@@ -95,8 +95,8 @@ DynamicObject DynamicObjectWriter::write(DataBinding* db)
                break;
          }
          
-         // delete allocated data
-         delete data;
+         // free allocated data
+         free(data);
       }
    }
    

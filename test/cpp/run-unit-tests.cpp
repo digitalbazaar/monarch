@@ -3943,20 +3943,18 @@ protected:
 public:
    TestContent()
    {
-      mContent = new char[1];
-      memset(mContent, 0, 1);
+      mContent = strdup("");
    }
    
    virtual ~TestContent()
    {
-      delete [] mContent;
+      free(mContent);
    }
    
    virtual void setContent(const char* str)
    {
-      delete mContent;
-      mContent = new char[strlen(str) + 1];
-      strcpy(mContent, str);
+      free(mContent);
+      mContent = strdup(str);
    }
    
    virtual const char* getContent()
@@ -5000,12 +4998,12 @@ public:
    
    virtual ~TestRowObject()
    {
-      delete [] mText;
+      free(mText);
    }
    
    virtual void setText(const char* t)
    {
-      delete [] mText;
+      free(mText);
       mText = strdup(t);
    }
    
