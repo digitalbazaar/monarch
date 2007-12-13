@@ -38,7 +38,7 @@
 #include "db/crypto/DefaultBlockCipher.h"
 #include "db/util/Convert.h"
 #include "db/net/Url.h"
-//#include "db/util/regex/Pattern.h"
+#include "db/util/regex/Pattern.h"
 #include "db/util/Date.h"
 #include "db/net/http/HttpHeader.h"
 #include "db/net/http/HttpRequest.h"
@@ -602,7 +602,7 @@ void runBase64Test(TestRunner& tr)
    }
    
    string encoded2 = Base64Codec::encode(decoded, 4);
-   assert(strcmp(encoded2.c_str(), expected) == 0);
+   assertStrCmp(encoded2.c_str(), expected);
    
    if(decoded != NULL)
    {
@@ -642,23 +642,23 @@ void runCrcTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runConvertTest()
+void runConvertTest(TestRunner& tr)
 {
-   cout << "Starting Convert test." << endl << endl;
+   tr.test("Convert");
    
    // convert to hex
    char data[] = "abcdefghiABCDEFGZXYW0123987{;}*%6,./.12`~";
    string original(data, strlen(data));
    
-   cout << "test data=" << original << endl;
+   //cout << "test data=" << original << endl;
    
    string lowerHex = Convert::bytesToHex(data, strlen(data));
-   string upperHex = Convert::bytesToHex(data, strlen(data));
+   string upperHex = Convert::bytesToUpperHex(data, strlen(data));
    
-   cout << "lower-case hex=" << lowerHex << endl;
-   cout << "lower-case hex length=" << lowerHex.length() << endl;
-   cout << "upper-case hex=" << upperHex << endl;
-   cout << "upper-case hex length=" << upperHex.length() << endl;
+   assertStrCmp(lowerHex.c_str(),"616263646566676869414243444546475a585957303132333938377b3b7d2a25362c2e2f2e3132607e");
+   assert(lowerHex.length() == 82);
+   assertStrCmp(upperHex.c_str(),"616263646566676869414243444546475A585957303132333938377B3B7D2A25362C2E2F2E3132607E");
+   assert(upperHex.length() == 82);
    
    char decoded1[lowerHex.length() / 2];
    char decoded2[upperHex.length() / 2];
@@ -669,90 +669,72 @@ void runConvertTest()
    Convert::hexToBytes(upperHex.c_str(), upperHex.length(), decoded2, length2);
    
    string ascii1(decoded1, length1);
-   
    string ascii2(decoded2, length2);
    
-   cout << "lower-case hex to ascii=" << ascii1 << endl;
-   cout << "lower-case hex length=" << length1 << endl;
-   cout << "upper-case hex to ascii=" << ascii2 << endl;
-   cout << "upper-case hex length=" << length2 << endl;
+   assertStrCmp(ascii1.c_str(), data);
+   assert(length1 == strlen(data));
+   assertStrCmp(ascii2.c_str(), data);
+   assert(length2 == strlen(data));
    
-   if(ascii1 == ascii2 && ascii1 == original)
-   {
-      cout << "Test successful!" << endl;
-   }
-   else
-   {
-      cout << "Test FAILED! Strings do not match!" << endl;
-   }
+   assert(ascii1 == ascii2);
+   assert(ascii1 == original);
    
-   cout << "10 to lower-case hex=" << Convert::intToHex(10) << endl;
-   cout << "33 to lower-case hex=" << Convert::intToHex(33) << endl;
-   cout << "100 to lower-case hex=" << Convert::intToHex(100) << endl;
-   cout << "10 to upper-case hex=" << Convert::intToUpperHex(10) << endl;
-   cout << "33 to upper-case hex=" << Convert::intToUpperHex(33) << endl;
-   cout << "100 to upper-case hex=" << Convert::intToUpperHex(100) << endl;
-   cout << "8975 to lower-case hex=" << Convert::intToHex(8975) << endl;
-   cout << "8975 to upper-case hex=" << Convert::intToUpperHex(8975) << endl;
-   cout << "65537 to lower-case hex=" << Convert::intToHex(65537) << endl;
-   cout << "65537 to upper-case hex=" << Convert::intToUpperHex(65537) << endl;
+   assertStrCmp(Convert::intToHex(10).c_str(), "0a");
+   assertStrCmp(Convert::intToHex(33).c_str(), "21");
+   assertStrCmp(Convert::intToHex(100).c_str(), "64");
+   assertStrCmp(Convert::intToUpperHex(10).c_str(), "0A");
+   assertStrCmp(Convert::intToUpperHex(33).c_str(), "21");
+   assertStrCmp(Convert::intToUpperHex(100).c_str(), "64");
+   assertStrCmp(Convert::intToHex(8975).c_str(), "230f");
+   assertStrCmp(Convert::intToUpperHex(8975).c_str(), "230F");
+   assertStrCmp(Convert::intToHex(65537).c_str(), "010001");
+   assertStrCmp(Convert::intToUpperHex(65537).c_str(), "010001");
    
    string hex = "230f";
-   cout << "0x230f to integer=" <<
-      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
+   assert(Convert::hexToInt(hex.c_str(), hex.length()) == 8975);
    hex = "230F";
-   cout << "0x230F to integer=" <<
-      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
+   assert(Convert::hexToInt(hex.c_str(), hex.length()) == 8975);
    hex = "230FABCD";
-   cout << "0x230FABCD to integer=" <<
-      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
+   assert(Convert::hexToInt(hex.c_str(), hex.length()) == 588229581);
    hex = "0";
-   cout << "0x0 to integer=" <<
-      Convert::hexToInt(hex.c_str(), hex.length()) << endl;
+   assert(Convert::hexToInt(hex.c_str(), hex.length()) == 0);
    
-   cout << endl << "Convert test complete." << endl;
+   tr.passIfNoException();
 }
 
-void runRegexTest()
+void runRegexTest(TestRunner& tr)
 {
-   cout << "Starting Regex test." << endl << endl;
+   tr.test("Regex");
    
-//   string regex = "[a-z]{3}";
-//   string str = "abc";
-//   
-//   if(Pattern::match(regex.c_str(), str.c_str()))
-//   {
-//      cout << "Simple pattern matches!" << endl;
-//   }
-//   else
-//   {
-//      cout << "Simple pattern DOES NOT MATCH!" << endl;
-//   }
-//   
-//   cout << endl << "Doing sub-match test..." << endl << endl;
-//   
-//   string submatches = "Look for green globs of green matter in green goo.";
-//   Pattern* p = Pattern::compile("green");
-//   
-//   unsigned int start, end;
-//   unsigned int index = 0;
-//   while(p->match(submatches.c_str(), index, start, end))
-//   {
-//      cout << "Found match at (" << start << ", " << end << ")" << endl;
-//      cout << "Match=" << submatches.substr(start, end - start) << endl;
-//      index = end;
-//   }
-//   
-//   delete p;
-//   
-//   cout << endl << "Doing replace all test..." << endl << endl;
-//   
-//   cout << "change 'green' to 'blue'" << endl;
-//   cout << submatches << endl;
-//   StringTools::regexReplaceAll(submatches, "green", "blue");
-//   cout << submatches << endl;
+   string regex = "[a-z]{3}";
+   string str = "abc";
    
-   cout << endl << "Regex test complete." << endl;
+   assert(Pattern::match(regex.c_str(), str.c_str()));
+   
+   cout << endl << "Doing sub-match test..." << endl << endl;
+   
+   string submatches = "Look for green globs of green matter in green goo.";
+   Pattern* p = Pattern::compile("green");
+   
+   unsigned int start, end;
+   unsigned int index = 0;
+   while(p->match(submatches.c_str(), index, start, end))
+   {
+      cout << "Found match at (" << start << ", " << end << ")" << endl;
+      cout << "Match=" << submatches.substr(start, end - start) << endl;
+      index = end;
+   }
+   
+   delete p;
+   
+   cout << endl << "Doing replace all test..." << endl << endl;
+   
+   cout << "change 'green' to 'blue'" << endl;
+   cout << submatches << endl;
+   StringTools::regexReplaceAll(submatches, "green", "blue");
+   cout << submatches << endl;
+   
+   tr.passIfNoException();
 }
 
 void runDateTest()
@@ -816,7 +798,7 @@ void runStringTokenizerTest(TestRunner& tr)
    #define NT(str) \
       do { \
          assert(st.hasNextToken()); \
-         assert(strcmp(st.nextToken(), str) == 0); \
+         assertStrCmp(st.nextToken(), str); \
       } while(0)
    NT("This");
    NT("is");
@@ -996,15 +978,15 @@ void runDynamicObjectTest(TestRunner& tr)
    dyno1["address"] = dyno2;
    
    assert(dyno1["id"]->getInt32() == 2);
-   assert(strcmp(dyno1["username"]->getString(), "testuser1000") == 0);
+   assertStrCmp(dyno1["username"]->getString(), "testuser1000");
    
-   assert(strcmp(dyno1["somearray"][0]->getString(), "item1") == 0);
-   assert(strcmp(dyno1["somearray"][1]->getString(), "item2") == 0);
-   assert(strcmp(dyno1["somearray"][2]->getString(), "item3") == 0);
+   assertStrCmp(dyno1["somearray"][0]->getString(), "item1");
+   assertStrCmp(dyno1["somearray"][1]->getString(), "item2");
+   assertStrCmp(dyno1["somearray"][2]->getString(), "item3");
    
    DynamicObject dyno3 = dyno1["address"];
-   assert(strcmp(dyno3["street"]->getString(), "1700 Kraft Dr.") == 0);
-   assert(strcmp(dyno3["zip"]->getString(), "24060") == 0);
+   assertStrCmp(dyno3["street"]->getString(), "1700 Kraft Dr.");
+   assertStrCmp(dyno3["zip"]->getString(), "24060");
    
    DynamicObject dyno4;
    dyno4["whatever"] = "test";
@@ -1013,8 +995,7 @@ void runDynamicObjectTest(TestRunner& tr)
    dyno1["somearray"][3] = dyno4;
    
    dyno1["something"]["strange"] = "tinypayload";
-   assert(
-      strcmp(dyno1["something"]["strange"]->getString(), "tinypayload") == 0);
+   assertStrCmp(dyno1["something"]["strange"]->getString(), "tinypayload");
    
    DynamicObject dyno5;
    dyno5[0] = "mustard";
@@ -1029,15 +1010,15 @@ void runDynamicObjectTest(TestRunner& tr)
       
       if(count == 0)
       {
-         assert(strcmp(next->getString(), "mustard") == 0);
+         assertStrCmp(next->getString(), "mustard");
       }
       else if(count == 1)
       {
-         assert(strcmp(next->getString(), "ketchup") == 0);
+         assertStrCmp(next->getString(), "ketchup");
       }
       else if(count == 2)
       {
-         assert(strcmp(next->getString(), "pickles") == 0);
+         assertStrCmp(next->getString(), "pickles");
       }
       
       count++;
@@ -1046,14 +1027,14 @@ void runDynamicObjectTest(TestRunner& tr)
    DynamicObject dyno6;
    dyno6["eggs"] = "bacon";
    dyno6["milk"] = "yum";
-   assert(strcmp(dyno6->removeMember("milk")->getString(), "yum") == 0);
+   assertStrCmp(dyno6->removeMember("milk")->getString(), "yum");
    count = 0;
    i = dyno6.getIterator();
    while(i->hasNext())
    {
       DynamicObject next = i->next();
-      assert(strcmp(i->getName(), "eggs") == 0);
-      assert(strcmp(next->getString(), "bacon") == 0);
+      assertStrCmp(i->getName(), "eggs");
+      assertStrCmp(next->getString(), "bacon");
       count++;
    }
    
@@ -1088,7 +1069,7 @@ void runDynoClearTest(TestRunner& tr)
    assert(d->getType() == String);
    d->clear();
    assert(d->getType() == String);
-   assert(strcmp(d->getString(), "") == 0);
+   assertStrCmp(d->getString(), "");
    
    d = (int)1;
    assert(d->getType() == Int32);
@@ -1145,23 +1126,23 @@ void runDynoConversionTest(TestRunner& tr)
    string s;
    s.clear();
    d["int"]->toString(s);
-   assert(strcmp(s.c_str(), "2") == 0);
+   assertStrCmp(s.c_str(), "2");
 
    s.clear();
    d["-int"]->toString(s);
-   assert(strcmp(s.c_str(), "-2") == 0);
+   assertStrCmp(s.c_str(), "-2");
 
    s.clear();
    d["str"]->toString(s);
-   assert(strcmp(s.c_str(), "hello") == 0);
+   assertStrCmp(s.c_str(), "hello");
 
    s.clear();
    d["true"]->toString(s);
-   assert(strcmp(s.c_str(), "true") == 0);
+   assertStrCmp(s.c_str(), "true");
 
    s.clear();
    d["false"]->toString(s);
-   assert(strcmp(s.c_str(), "false") == 0);
+   assertStrCmp(s.c_str(), "false");
    
    tr.pass();
 }
@@ -1520,8 +1501,8 @@ void runByteBufferTest(TestRunner& tr)
    b.put("", 1, true);
    
    // FIXME: this test should be more comprehensive
-   
-   assert(strcmp(b.data(), "T hate chicken") == 0);
+  
+   assertStrCmp(b.data(), "T hate chicken");
    
    // this should result in printing out "T hate chicken" still
    b.allocateSpace(10, true);
@@ -1529,14 +1510,14 @@ void runByteBufferTest(TestRunner& tr)
    char temp[100];
    strncpy(temp, b.data(), b.length());
    memset(temp + b.length(), 0, 1);
-   assert(strcmp(temp, "T hate chicken") == 0);
+   assertStrCmp(temp, "T hate chicken");
    
    // this should now result in printing out "T hate chicken always"
    sprintf(b.data() + b.length() - 1, " always");
    b.extend(7);
    strncpy(temp, b.data(), b.length());
    memset(temp + b.length(), 0, 1);
-   assert(strcmp(temp, "T hate chicken always") == 0);
+   assertStrCmp(temp, "T hate chicken always");
    
    tr.passIfNoException();
 }
@@ -1557,7 +1538,7 @@ void runByteArrayInputStreamTest(TestRunner& tr)
       str.append(b);
    }
    
-   assert(strcmp(str.c_str(), html) == 0);
+   assertStrCmp(str.c_str(), html);
    
    tr.passIfNoException();
 }
@@ -1572,7 +1553,7 @@ void runByteArrayOutputStreamTest(TestRunner& tr)
    const char* sentence = "This is a sentence.";
    baos1.write(sentence, strlen(sentence) + 1);
    
-   assert(strcmp(b.data(), sentence) == 0);
+   assertStrCmp(b.data(), sentence);
    
    const char* t = "T ";
    const char* hate = "hate ";
@@ -1583,7 +1564,7 @@ void runByteArrayOutputStreamTest(TestRunner& tr)
    b.put(chicken, strlen(chicken), true);
    b.put("", 1, true);
    
-   assert(strcmp(b.data(), "T hate chicken") == 0);
+   assertStrCmp(b.data(), "T hate chicken");
    
    // trim null-terminator
    b.trim(1);
@@ -1610,7 +1591,7 @@ void runByteArrayOutputStreamTest(TestRunner& tr)
       Exception::clearLast();
    }
    
-   assert(strcmp(b.data(), "T hate chickenThis is a sentence.") == 0);
+   assertStrCmp(b.data(), "T hate chickenThis is a sentence.");
    
    tr.passIfNoException();
 }
@@ -1720,14 +1701,7 @@ void runAsymmetricKeyLoadingTest(TestRunner& tr)
    bool verified = ds2->verify(sig, length);
    delete ds2;
    
-   if(verified)
-   {
-      cout << "Digital Signature Verified!" << endl;
-   }
-   else
-   {
-      cout << "Digital Signature NOT VERIFIED!" << endl;
-   }
+   assert(verified);
    
    string outPrivatePem =
       factory.writePrivateKeyToPem(privateKey, "password");
@@ -1792,8 +1766,8 @@ void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
    privateKey = &prvKey;
    publicKey = &pubKey;
    
-   assert(strcmp(privateKey->getAlgorithm(), "DSA") == 0);
-   assert(strcmp(publicKey->getAlgorithm(), "DSA") == 0);
+   assertStrCmp(privateKey->getAlgorithm(), "DSA");
+   assertStrCmp(publicKey->getAlgorithm(), "DSA");
    
    // sign some data
    char data[] = {1,2,3,4,5,6,7,8};
@@ -1872,8 +1846,8 @@ void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
    privateKey = &prvKey;
    publicKey = &pubKey;
    
-   assert(strcmp(privateKey->getAlgorithm(), "RSA") == 0);
-   assert(strcmp(publicKey->getAlgorithm(), "RSA") == 0);
+   assertStrCmp(privateKey->getAlgorithm(), "RSA");
+   assertStrCmp(publicKey->getAlgorithm(), "RSA");
    
    // sign some data
    char data[] = {1,2,3,4,5,6,7,8};
@@ -1934,8 +1908,8 @@ void runDigitalSignatureInputStreamTest(TestRunner& tr)
    
    if(privateKey != NULL && publicKey != NULL)
    {
-      assert(strcmp(privateKey->getAlgorithm(), "RSA") == 0);
-      assert(strcmp(publicKey->getAlgorithm(), "RSA") == 0);
+      assertStrCmp(privateKey->getAlgorithm(), "RSA");
+      assertStrCmp(publicKey->getAlgorithm(), "RSA");
       
       // sign some data
       char data[] = {1,2,3,4,5,6,7,8};
@@ -2015,8 +1989,8 @@ void runDigitalSignatureOutputStreamTest(TestRunner& tr)
    
    if(privateKey != NULL && publicKey != NULL)
    {
-      assert(strcmp(privateKey->getAlgorithm(), "RSA") == 0);
-      assert(strcmp(publicKey->getAlgorithm(), "RSA") == 0);
+      assertStrCmp(privateKey->getAlgorithm(), "RSA");
+      assertStrCmp(publicKey->getAlgorithm(), "RSA");
       
       // sign some data
       char data[] = {1,2,3,4,5,6,7,8};
@@ -2069,12 +2043,10 @@ void runDigitalSignatureOutputStreamTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runEnvelopeTest(TestRunner& tr, const char* algorithm)
+void runEnvelopeTest(TestRunner& tr)
 {
-   tr.group("envelope");
+   tr.test("Envelope");
 
-   tr.test(algorithm);
-   
    // include crypto error strings
    ERR_load_crypto_strings();
    
@@ -2090,7 +2062,7 @@ void runEnvelopeTest(TestRunner& tr, const char* algorithm)
    // create a new key pair
    PrivateKey* privateKey;
    PublicKey* publicKey;
-   factory.createKeyPair(algorithm, &privateKey, &publicKey);
+   factory.createKeyPair("RSA", &privateKey, &publicKey);
 
    assert(privateKey != NULL);
    assert(publicKey != NULL);
@@ -2104,56 +2076,60 @@ void runEnvelopeTest(TestRunner& tr, const char* algorithm)
       
       string display1 = "";
       display1.append(message, length);
-      cout << "Sending message '" << display1 << "'" << endl;
-      cout << "Message Length=" << length << endl;
+      //cout << "Sending message '" << display1 << "'" << endl;
+      //cout << "Message Length=" << length << endl;
       
       // create an outgoing envelope
       SymmetricKey* secretKey;
       DigitalEnvelope* outEnv = publicKey->createEnvelope(
          "AES256", &secretKey);
-      cout << "Created outgoing envelope..." << endl;
+      assertNoException();
+      assert(outEnv != NULL);
+      //cout << "Created outgoing envelope..." << endl;
       
       // update the envelope
       char output[2048];
       int outLength;
       int totalOut = 0;
       outEnv->update(message, length, output, outLength);
-      cout << "Updated outgoing envelope..." << endl;
+      //cout << "Updated outgoing envelope..." << endl;
       totalOut += outLength;
       
       // finish the envelope
-      cout << "Output Length=" << outLength << endl;
+      ///cout << "Output Length=" << outLength << endl;
       outEnv->finish(output + outLength, outLength);
-      cout << "Finished sealing outgoing envelope..." << endl;
+      //cout << "Finished sealing outgoing envelope..." << endl;
       totalOut += outLength;
       
-      cout << "Total Output Length=" << totalOut << endl;
+      //cout << "Total Output Length=" << totalOut << endl;
       
       // create an incoming envelope
       DigitalEnvelope* inEnv = privateKey->createEnvelope(secretKey);
-      cout << "Created incoming envelope..." << endl;
+      assertNoException();
+      assert(inEnv != NULL);
+      //cout << "Created incoming envelope..." << endl;
       
       // update the envelope
       char input[2048];
       int inLength;
       int totalIn = 0;
       inEnv->update(output, totalOut, input, inLength);
-      cout << "Updated incoming envelope..." << endl;
+      //cout << "Updated incoming envelope..." << endl;
       totalIn += inLength;
       
       // finish the envelope
-      cout << "Input Length=" << inLength << endl;
+      //cout << "Input Length=" << inLength << endl;
       inEnv->finish(input + inLength, inLength);
-      cout << "Finished opening incoming envelope..." << endl;
+      //cout << "Finished opening incoming envelope..." << endl;
       totalIn += inLength;
       
-      cout << "Total Input Length=" << totalIn << endl;
+      //cout << "Total Input Length=" << totalIn << endl;
       
       // create a string to display the received message
       string display2 = "";
       display2.append(input, totalIn);
       
-      cout << "Received message '" << display2 << "'" << endl;
+      //cout << "Received message '" << display2 << "'" << endl;
 
       assert(display1 == display2);
       
@@ -2175,19 +2151,15 @@ void runEnvelopeTest(TestRunner& tr, const char* algorithm)
       delete publicKey;
    }
    
-   cout << endl << algorithm << " Envelope test complete." << endl;
-   
    // clean up crypto strings
    EVP_cleanup();
 
    tr.passIfNoException();
-
-   tr.ungroup();
 }
 
 void runCipherTest(TestRunner& tr, const char* algorithm)
 {
-   tr.group("cipher");
+   tr.group("Cipher");
 
    tr.test(algorithm);
 
@@ -3451,7 +3423,7 @@ void runHttpHeaderTest(TestRunner& tr)
    HttpHeader::biCapitalize(test);
    
    //cout << "BiCapitalized Header=" << test << endl;
-   assert(strcmp(test, "This-A-Bicapitalized-Header") == 0);
+   assertStrCmp(test, "This-A-Bicapitalized-Header");
    
 //   string t = "   d  f  ";
 //   StringTools::trim(t);
@@ -4045,9 +4017,9 @@ public:
    }
 };
 
-void runXmlReaderTest()
+void runXmlReaderTest(TestRunner& tr)
 {
-   cout << "Starting XmlReader test." << endl << endl;
+   tr.test("XmlReader");
    
    XmlReader reader;
    
@@ -4072,23 +4044,22 @@ void runXmlReaderTest()
    reader.read(&bais);
    reader.finish();
    
-   cout << "TestContent data='" << p.getContent() << "'" << endl;
-   if(p.getChild() != NULL)
-   {
-      cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
-      cout << "TestChild id='" << p.getChild()->getId() << "'" << endl;
-   }
-   else
-   {
-      cout << "TestChild does not exist!" << endl;
-   }
+   //cout << "TestContent data='" << p.getContent() << "'" << endl;
+   assertStrCmp(p.getContent(), "This is my content.");
+   assert(p.getChild() != NULL);
+   //cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
+   //assertStrCmp(p.getChild()->getContent(), "Blah");
+   tr.warning("fix child content test");
+   //cout << "TestChild id='" << p.getChild()->getId() << "'" << endl;
+   //assert(p.getChild()->getId() == 12);
    
-   cout << endl << "XmlReader test complete." << endl;
+   //tr.passIfNoException();
+   tr.fail();
 }
 
-void runXmlWriterTest()
+void runXmlWriterTest(TestRunner& tr)
 {
-   cout << "Starting XmlWriter test." << endl << endl;
+   tr.test("XmlWriter");
    
    // main object to write out
    TestParent p;
@@ -4102,7 +4073,8 @@ void runXmlWriterTest()
    
    // write out xml
    writer.write(&db, &os);
-   cout << "XML empty=\n" << oss.str() << endl;
+   //cout << "XML empty='" << oss.str() << "'" << endl;
+   assertStrCmp(oss.str().c_str(), "<TestContent/>");
    
    // clear string stream, reset writer
    oss.str("");
@@ -4117,14 +4089,16 @@ void runXmlWriterTest()
    p.addChild(c);
    
    writer.write(&db, &os);
-   cout << "XML full=\n" << oss.str() << endl;
+   //cout << "XML full=\n" << oss.str() << endl;
+   assertStrCmp(oss.str().c_str(),
+      "<TestContent>Moooooooo<TestChild id=\"514\"/></TestContent>");
    
-   cout << endl << "XmlWriter test complete." << endl;
+   tr.passIfNoException();
 }
 
-void runXmlReadWriteTest()
+void runXmlReadWriteTest(TestRunner& tr)
 {
-   cout << "Starting XmlReadWrite test." << endl << endl;
+   tr.test("XmlReadWrite");
    
    XmlReader reader;
    
@@ -4143,20 +4117,18 @@ void runXmlReadWriteTest()
    reader.read(&bais);
    reader.finish();
    
-   cout << "*****DOING XML READ*****" << endl;
+   //cout << "*****DOING XML READ*****" << endl;
    
-   cout << "TestContent data='" << p.getContent() << "'" << endl;
-   if(p.getChild() != NULL)
-   {
-      cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
-      cout << "TestChild id='" << p.getChild()->getId() << "'" << endl;
-   }
-   else
-   {
-      cout << "TestChild does not exist!" << endl;
-   }
+   //cout << "TestContent data='" << p.getContent() << "'" << endl;
+   assertStrCmp(p.getContent(), "This is my content.");
+   assert(p.getChild() != NULL);
+   //cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
+   //assertStrCmp(p.getChild()->getContent(), "Blah");
+   tr.warning("fix child content test");
+   //cout << "TestChild id='" << p.getChild()->getId() << "'" << endl;
+   assert(p.getChild()->getId() == 12);
    
-   cout << endl << "*****DOING XML WRITE*****" << endl;
+   //cout << endl << "*****DOING XML WRITE*****" << endl;
    
    XmlWriter writer;
    ostringstream oss;
@@ -4165,20 +4137,24 @@ void runXmlReadWriteTest()
    // write out xml
    writer.write(&db, &os);
    
-   cout << "XML=\n" << oss.str() << endl;
+   //cout << "XML=\n" << oss.str() << endl;
+   //assertStrCmp(oss.str().c_str(), xml.c_str());
+   tr.warning("fix child content test");
    
-   cout << endl << "XmlReadWrite test complete." << endl;
+   //tr.passIfNoException();
+   tr.fail();
 }
 
-void runXmlBindingInputStreamTest()
+void runXmlBindingInputStreamTest(TestRunner& tr)
 {
-   cout << "Starting XmlBindingInputStream test." << endl << endl;
+   tr.test("XmlBindingInputStream");
    
    // main object to read xml from
    TestParent p;
    
    // set some content
-   p.setContent("This is a sufficiently long section of element data.");
+   #define STR "This is a sufficiently long section of element data."
+   p.setContent(STR);
    
    // add child to TestContent
    TestChild* c = new TestChild();
@@ -4201,14 +4177,21 @@ void runXmlBindingInputStreamTest()
       os.write(b, numBytes);
    }
    
-   cout << "XML=\n" << oss.str() << endl;
+   //cout << "XML=\n" << oss.str() << endl;
+   assertStrCmp(oss.str().c_str(),
+      "<TestContent>"
+      STR
+      "<TestChild id=\"514\"/>"
+      "</TestContent>");
+
+   #undef STR
    
-   cout << endl << "XmlBindingInputStream test complete." << endl;
+   tr.passIfNoException();
 }
 
-void runXmlBindingOutputStreamTest()
+void runXmlBindingOutputStreamTest(TestRunner& tr)
 {
-   cout << "Starting XmlBindingOutputStream test." << endl << endl;
+   tr.test("XmlBindingOutputStream");
    
    string xml1;
    string xml2;
@@ -4229,18 +4212,18 @@ void runXmlBindingOutputStreamTest()
    xbos.write(xml2.c_str(), xml2.length());
    //xbos.write((xml1 + xml2).c_str(), xml1.length() + xml2.length());
    
-   cout << "TestContent data='" << p.getContent() << "'" << endl;
-   if(p.getChild() != NULL)
-   {
-      cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
-      cout << "TestChild id='" << p.getChild()->getId() << "'" << endl;
-   }
-   else
-   {
-      cout << "TestChild does not exist!" << endl;
-   }
+   //cout << "TestContent data='" << p.getContent() << "'" << endl;
+   assertStrCmp(p.getContent(), "This is the first. Second.");
+   tr.warning("check child in content result");
+   assert(p.getChild() != NULL);
+   //cout << "TestChild data='" << p.getChild()->getContent() << "'" << endl;
+   //assertStrCmp(p.getChild()->getContent(), "Blah");
+   tr.warning("fix child content test");
+   //cout << "TestChild id='" << p.getChild()->getId() << "'" << endl;
+   assert(p.getChild()->getId() == 64);
    
-   cout << endl << "XmlBindingOutputStream test complete." << endl;
+   //tr.passIfNoException();
+   tr.fail();
 }
 
 class XmlHttpRequestServicer : public HttpRequestServicer
@@ -4274,7 +4257,7 @@ public:
       reader.read(&bais);
       reader.finish();
       
-      assert(strcmp(p2.getContent(), "client request") == 0);
+      assertStrCmp(p2.getContent(), "client request");
       assert(p2.getChild()->getId() == 1);
       
       // send 200 OK
@@ -4388,7 +4371,7 @@ void runXmlHttpServerTest(TestRunner& tr)
    reader.read(&bais);
    reader.finish();
    
-   assert(strcmp(p2.getContent(), "server response") == 0);
+   assertStrCmp(p2.getContent(), "server response");
    assert(p2.getChild()->getId() == 2);
    
    // clean up request and response
@@ -4433,11 +4416,9 @@ void runDynamicObjectWriterTest(TestRunner& tr)
    // write out to dynamic object
    DynamicObject dyno = writer.write(&db);
    
-   assert(
-      strcmp(dyno["TestContent"]->getString(), "This is test content.") == 0);
-   assert(
-      strcmp(dyno["TestChild"]["TestContent"]->getString(),
-      "This is child content.") == 0);
+   assertStrCmp(dyno["TestContent"]->getString(), "This is test content.");
+   assertStrCmp(dyno["TestChild"]["TestContent"]->getString(),
+      "This is child content.");
    assert(dyno["TestChild"]["id"]->getInt32() == 514);
    assert(dyno->length() == 2);
    
@@ -4470,8 +4451,8 @@ void runDynamicObjectReaderTest(TestRunner& tr)
    // read in from dynamic object
    reader.read(dyno, &db);
    
-   assert(strcmp(p.getContent(), "This is test content.") == 0);
-   assert(strcmp(p.getChild()->getContent(), "This is child content.") == 0);
+   assertStrCmp(p.getContent(), "This is test content.");
+   assertStrCmp(p.getChild()->getContent(), "This is child content.");
    assert(p.getChild()->getId() == 514);
    
    tr.pass();
@@ -4542,7 +4523,7 @@ void runDynamicObjectBasicBindingTest(TestRunner& tr)
       writer.write(&outBinding, &os);
       outxml[i] = oss.str();
       oss.str("");
-      assert(strcmp(xml[i].c_str(), outxml[i].c_str()) == 0);
+      assertStrCmp(xml[i].c_str(), outxml[i].c_str());
       //cout << "OUT XML " << i << "=" << endl << outxml[i] << endl;
    }
    
@@ -4597,7 +4578,7 @@ void runDynamicObjectArrayBindingTest(TestRunner& tr)
    
    //cout << "XML=" << endl << xml << endl;
    //cout << "OUT XML=" << endl << outxml << endl;
-   assert(strcmp(xml.c_str(), outxml.c_str()) == 0);
+   assertStrCmp(xml.c_str(), outxml.c_str());
    
    tr.pass();
 }
@@ -4650,7 +4631,7 @@ void runDynamicObjectMapBindingTest(TestRunner& tr)
    
    //cout << "XML=" << endl << xml << endl;
    //cout << "OUT XML=" << endl << outxml << endl;
-   assert(strcmp(xml.c_str(), outxml.c_str()) == 0);
+   assertStrCmp(xml.c_str(), outxml.c_str());
    
    tr.pass();
 }
@@ -4719,7 +4700,7 @@ void runDynamicObjectBindingTest(TestRunner& tr)
    
    //cout << "XML=" << endl << xml << endl;
    //cout << "OUT XML=" << endl << outxml << endl;
-   assert(strcmp(xml.c_str(), outxml.c_str()) == 0);
+   assertStrCmp(xml.c_str(), outxml.c_str());
    
    tr.pass();
 }
@@ -4733,7 +4714,7 @@ void runBigIntegerTest(TestRunner& tr)
       BigInteger result = op; \
       string str; \
       result.toString(str); \
-      assert(strcmp(str.c_str(), expectstr) == 0); \
+      assertStrCmp(str.c_str(), expectstr); \
    } while(0)
 
    BigInteger number1 = 2;
@@ -4765,7 +4746,7 @@ void runBigDecimalTest(TestRunner& tr)
       BigDecimal result = op; \
       string str; \
       result.toString(str); \
-      assert(strcmp(str.c_str(), expectstr) == 0); \
+      assertStrCmp(str.c_str(), expectstr); \
    } while(0)
 
    BigDecimal number1 = 3.0;
@@ -5152,7 +5133,7 @@ void runSqlite3RowObjectTest(TestRunner& tr)
    ro4.fetch(&c, "test", "b");
    
    // assert contents
-   assert(strcmp(tro2.getText(), "The first row object.") == 0);
+   assertStrCmp(tro2.getText(), "The first row object.");
    assert(tro2.getBoolean());
    assert(tro2.getInt32() == 5);
    assert(tro2.getUInt32() == 14);
@@ -5165,7 +5146,7 @@ void runSqlite3RowObjectTest(TestRunner& tr)
    ro5.fetch(&c, "test", "b");
    
    // assert contents
-   assert(strcmp(tro3.getText(), "The second row object.") == 0);
+   assertStrCmp(tro3.getText(), "The second row object.");
    assert(!tro3.getBoolean());
    assert(tro3.getInt32() == -1);
    assert(tro3.getUInt32() == 17);
@@ -5366,7 +5347,7 @@ void runMysqlRowObjectTest(TestRunner& tr)
    ro4.fetch(&c, "test", "b");
    
    // assert contents
-   assert(strcmp(tro2.getText(), "The first row object.") == 0);
+   assertStrCmp(tro2.getText(), "The first row object.");
    assert(tro2.getBoolean());
    assert(tro2.getInt32() == 5);
    assert(tro2.getUInt32() == 14);
@@ -5379,7 +5360,7 @@ void runMysqlRowObjectTest(TestRunner& tr)
    ro5.fetch(&c, "test", "b");
    
    // assert contents
-   assert(strcmp(tro3.getText(), "The second row object.") == 0);
+   assertStrCmp(tro3.getText(), "The second row object.");
    assert(!tro3.getBoolean());
    assert(tro3.getInt32() == -1);
    assert(tro3.getUInt32() == 17);
@@ -6158,7 +6139,7 @@ void runMailTemplateParser(TestRunner& tr)
    
    // assert body parsed properly
    const char* body = msg["body"]->getString();
-   assert(strcmp(body, expect) == 0);
+   assertStrCmp(body, expect);
    
 //   // print out mail message
 //   cout << "\nHeaders=\n";
@@ -6620,8 +6601,14 @@ public:
       runDynoConversionTest(tr);
       runUniqueListTest(tr);
       runStringTokenizerTest(tr);
+      runConvertTest(tr);
       
       // db::data tests
+      runXmlReaderTest(tr);
+      runXmlWriterTest(tr);
+      runXmlReadWriteTest(tr);
+      runXmlBindingInputStreamTest(tr);
+      runXmlBindingOutputStreamTest(tr);
       runJsonValidTest(tr);
       runJsonInvalidTest(tr);
       runJsonDJDTest(tr);
@@ -6637,6 +6624,7 @@ public:
       runRsaAsymmetricKeyCreationTest(tr);
       runDigitalSignatureInputStreamTest(tr);
       runDigitalSignatureOutputStreamTest(tr);
+      runEnvelopeTest(tr);
       
       // db::net tests
       runAddressResolveTest(tr);
@@ -6684,15 +6672,12 @@ public:
    {
 //      runModestTest(tr);
 //      runTimeTest();
-//      runConvertTest();
-//      runRegexTest();
+//      runRegexTest(tr);
 //      runDateTest();
 //      runStringEqualityTest();
 //      runStringAppendCharTest();
 //      runStringCompareTest();
 //      runAsymmetricKeyLoadingTest(tr);
-//      runEnvelopeTest(tr, "DSA");
-//      runEnvelopeTest(tr, "RSA");
 //      runSslSocketTest();
 //      runServerSocketTest();
 //      runSslServerSocketTest();
@@ -6707,11 +6692,6 @@ public:
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
 //      runPingTest();
-//      runXmlReaderTest();
-//      runXmlWriterTest();
-//      runXmlReadWriteTest();
-//      runXmlBindingInputStreamTest();
-//      runXmlBindingOutputStreamTest();
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
 //      runConnectionPoolTest();
@@ -6719,7 +6699,6 @@ public:
 //      runLoggerTest();
 //      runFileTest();
 //      runSmtpClientTest(tr);
-//      runMailTemplateParser(tr);
       
       assertNoException();
    }
