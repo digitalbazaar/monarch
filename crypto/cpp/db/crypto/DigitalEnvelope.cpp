@@ -49,12 +49,12 @@ bool DigitalEnvelope::startSealing(
       for(int i = 0; i < keys; i++)
       {
          pKeys[i] = publicKeys[i]->getPKEY();
-         eKeys[i] = new char[publicKeys[i]->getOutputSize()];
+         eKeys[i] = (char*)malloc(publicKeys[i]->getOutputSize());
       }
       
       // create iv buffer
       unsigned int ivLength = EVP_CIPHER_iv_length(mCipherFunction);
-      char* iv = (ivLength == 0) ? NULL : new char[ivLength];
+      char* iv = (ivLength == 0) ? NULL : (char*)malloc(ivLength);
       
       // initialize sealing the envelope
       if(EVP_SealInit(
@@ -72,7 +72,7 @@ bool DigitalEnvelope::startSealing(
             char* ivCopy = NULL;
             if(ivLength > 0)
             {
-               ivCopy = new char[ivLength];
+               ivCopy = (char*)malloc(ivLength);
                memcpy(ivCopy, iv, ivLength);
             }
             
@@ -86,7 +86,7 @@ bool DigitalEnvelope::startSealing(
          {
             // delete iv buffer (freeing the other buffers is up
             // to the SymmetricKeys)
-            delete [] iv;
+            free(iv);
          }
       }
       else
@@ -94,14 +94,14 @@ bool DigitalEnvelope::startSealing(
          // delete all allocated key data
          for(int i = 0; i < keys; i++)
          {
-            delete [] eKeys[i];
+            free(eKeys[i]);
          }
          
          if(iv != NULL)
          {
             // delete iv buffer (freeing the other buffers is up to the
             // SymmetricKeys)
-            delete [] iv;
+            free(iv);
          }
          
          Exception::setLast(new IOException(

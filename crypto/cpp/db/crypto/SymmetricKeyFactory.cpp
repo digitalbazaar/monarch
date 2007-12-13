@@ -51,7 +51,7 @@ bool SymmetricKeyFactory::createRandomKey(
    {
       // get random bytes for data
       unsigned int keyLength = EVP_CIPHER_key_length(cipherType);
-      char *data = new char[keyLength];
+      char *data = (char*)malloc(keyLength);
       RAND_bytes((unsigned char*)data, keyLength);
       
       // get random bytes for IV
@@ -59,7 +59,7 @@ bool SymmetricKeyFactory::createRandomKey(
       unsigned int ivLength = EVP_CIPHER_iv_length(cipherType);
       if(ivLength > 0)
       {
-         iv = new char[ivLength];
+         iv = (char*)malloc(ivLength);
          RAND_bytes((unsigned char*)iv, ivLength);
       }
       

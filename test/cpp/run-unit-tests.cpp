@@ -543,10 +543,18 @@ void runModestTest(TestRunner& tr)
    Operation op5(r5);
    Operation opLogout(rLogout);
    
+   // the same guard is only added multiple times to
+   // test guard chaining
    op1->addGuard(&g);
+   op1->addGuard(&g);
+   op1->addGuard(&g);
+   op1->addGuard(&g);
+   op2->addGuard(&g);
+   op2->addGuard(&g);
    op2->addGuard(&g);
    op3->addGuard(&g);
    op4->addGuard(&g);
+   op5->addGuard(&g);
    op5->addGuard(&g);
    opLogout->addGuard(&g);
    
@@ -606,7 +614,7 @@ void runBase64Test(TestRunner& tr)
    
    if(decoded != NULL)
    {
-      delete [] decoded;
+      free(decoded);
    }
    
    tr.pass();
@@ -6020,6 +6028,7 @@ void runUniqueListTest(TestRunner& tr)
    
    i = list.getIterator();
    assert(!i->hasNext());
+   delete i;
 
    tr.passIfNoException();
 }

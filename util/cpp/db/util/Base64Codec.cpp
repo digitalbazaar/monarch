@@ -203,7 +203,7 @@ void Base64Codec::decode(const string& str, char** data, unsigned int& length)
          length = groups * 3 - padChars;
          
          // allocate space for the byte array
-         *data = new char[length];
+         *data = (char*)malloc(length);
          
          // decode all the groups
          char bytes[3];
