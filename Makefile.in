@@ -28,3 +28,8 @@ clean:
 
 test: all
 	test/cpp/dist/linux/run-unit-tests
+
+internal-docs:
+	rm -rf docs/cpp-api
+	mkdir -p docs/cpp-api
+	doxygen setup/docs.doxygen
