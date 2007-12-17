@@ -5764,27 +5764,27 @@ public:
    {
    }
    
-   virtual void eventOccurred(Event e)
+   virtual void eventOccurred(Event& e)
    {
       events++;
    }
    
-   virtual void handleEvent1(Event e)
+   virtual void handleEvent1(Event& e)
    {
       event1++;
    }
    
-   virtual void handleEvent2(Event e)
+   virtual void handleEvent2(Event& e)
    {
       event2++;
    }
    
-   virtual void handleEvent3(Event e)
+   virtual void handleEvent3(Event& e)
    {
       event3++;
    }
    
-   virtual void handleEvent4(Event e)
+   virtual void handleEvent4(Event& e)
    {
       if(e["id"]->getUInt64() == 3)
       {

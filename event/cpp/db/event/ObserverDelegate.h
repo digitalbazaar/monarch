@@ -24,7 +24,7 @@ protected:
    /**
     * Typedef for handler's event function.
     */
-   typedef void (HandlerType::*EventFunction)(Event e);
+   typedef void (HandlerType::*EventFunction)(Event& e);
    
    /**
     * The actual handler object.
@@ -56,7 +56,7 @@ public:
     * 
     * @param e the Event to handle.
     */
-   virtual void eventOccurred(Event e);
+   virtual void eventOccurred(Event& e);
 };
 
 template<class HandlerType>
@@ -72,7 +72,7 @@ ObserverDelegate<HandlerType>::~ObserverDelegate()
 }
 
 template<class HandlerType>
-void ObserverDelegate<HandlerType>::eventOccurred(Event e)
+void ObserverDelegate<HandlerType>::eventOccurred(Event& e)
 {
    // call handle event function on handler
    (mHandler->*mFunction)(e);

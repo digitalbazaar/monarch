@@ -36,7 +36,7 @@ public:
     * 
     * @param e the Event that occurred.
     */
-   virtual void eventOccurred(Event e) = 0;
+   virtual void eventOccurred(Event& e) = 0;
 };
 
 } // end namespace event
