@@ -34,7 +34,9 @@ public:
    /**
     * Creates a new HttpRequestServicer that handles requests for the
     * given path or children of that path. If the given path doesn't
-    * begin and end with forward slashes, they will be prepended/appended.
+    * begin with a forward slash and not end with one, then it will
+    * be normalized such that it does. A path "servicer/path/" will
+    * be transformed into: "/servicer/path".
     * 
     * @param path the path this servicer handles requests for.
     */
@@ -63,6 +65,16 @@ public:
     * @return the path this servicer handles requests for.
     */
    virtual const char* getPath();
+   
+   /**
+    * Normalizes "inPath" to "outPath" by prepending a forward slash if
+    * necessary and by ending the path does not end in a forward slash.
+    *  
+    * @param inPath the path to normalize.
+    * @param outPath the string to store the normalized path in, which must
+    *                be at least [strlen(inPath) + 2] in size.
+    */
+   static void normalizePath(const char* inPath, char* outPath);
 };
 
 } // end namespace http

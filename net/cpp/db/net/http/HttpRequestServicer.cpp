@@ -3,46 +3,12 @@
  */
 #include "db/net/http/HttpRequestServicer.h"
 
-using namespace std;
 using namespace db::net::http;
 
 HttpRequestServicer::HttpRequestServicer(const char* path)
 {
-   unsigned int length = strlen(path);
-   
-   if(length == 0)
-   {
-      mPath = (char*)malloc(2);
-      mPath[0] = '/';
-      mPath[1] = 0;
-   }
-   else
-   {
-      // prepend/append slashes as necessary
-      if(path[0] != '/' && length > 1)
-      {
-         if(path[length - 1] != '/')
-         {
-            mPath = (char*)malloc(length + 3);
-            sprintf(mPath, "/%s/", path);
-         }
-         else
-         {
-            mPath = (char*)malloc(length + 2);
-            sprintf(mPath, "/%s", path);
-         }
-      }
-      else if(path[length - 1] != '/')
-      {
-         mPath = (char*)malloc(length + 2);
-         sprintf(mPath, "%s/", path);
-      }
-      else
-      {
-         mPath = (char*)malloc(length + 1);
-         strcpy(mPath, path);
-      }
-   }
+   mPath = (char*)malloc(strlen(path) + 1);
+   normalizePath(path, mPath);
 }
 
 HttpRequestServicer::~HttpRequestServicer()
@@ -54,4 +20,39 @@ HttpRequestServicer::~HttpRequestServicer()
 const char* HttpRequestServicer::getPath()
 {
    return mPath;
+}
+
+void HttpRequestServicer::normalizePath(const char* inPath, char* outPath)
+{
+   unsigned int length = strlen(inPath);
+   
+   if(length == 0)
+   {
+      outPath[0] = '/';
+      outPath[1] = 0;
+   }
+   else
+   {
+      // prepend slash as necessary
+      if(inPath[0] != '/')
+      {
+         outPath[0] = '/';
+         strcpy(outPath + 1, inPath);
+      }
+      else
+      {
+         strcpy(outPath, inPath);
+      }
+      
+      // ensure path doesn't end in slash
+      int i = strcspn(outPath, "?&") - 1;
+      if(i > 0 && outPath[i] == '/')
+      {
+         // shift left to remove slash
+         for(; outPath[i] != 0; i++)
+         {
+            outPath[i] = outPath[i + 1];
+         }
+      }
+   }
 }

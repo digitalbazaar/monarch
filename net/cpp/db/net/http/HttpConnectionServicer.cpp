@@ -11,63 +11,50 @@ using namespace db::io;
 using namespace db::net::http;
 using namespace db::rt;
 
-HttpConnectionServicer::HttpConnectionServicer(const string& serverName)
+HttpConnectionServicer::HttpConnectionServicer(const char* serverName)
 {
-   mServerName = serverName;
+   mServerName = strdup(serverName);
 }
 
 HttpConnectionServicer::~HttpConnectionServicer()
 {
-}
-
-void HttpConnectionServicer::normalizePath(string& path)
-{
-   if(path.length() == 0)
-   {
-      path.push_back('/');
-   }
-   else
-   {
-      // prepend slash as necessary
-      if(path[0] != '/')
-      {
-         path.insert(0, 1, '/');
-      }
-      
-      // append slash as necessary
-      if(path[path.length() - 1] != '/')
-      {
-         path.push_back('/');
-      }
-   }
+   free(mServerName);
 }
 
 HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
-   string& path, ServicerMap& servicerMap)
+   char* path, ServicerMap& servicerMap)
 {
    HttpRequestServicer* rval = NULL;
    
    lock();
    {
-      // try to find servicer at path
-      ServicerMap::iterator i = servicerMap.find(path.c_str());
-      if(i != servicerMap.end())
+      // try to find servicer for path
+      ServicerMap::iterator i;
+      while(rval == NULL && path != NULL)
       {
-         rval = i->second;
-      }
-      else
-      {
-         while(rval == NULL && path.length() > 1)
+         i = servicerMap.find(path);
+         if(i != servicerMap.end())
          {
-            // try to find servicer at parent paths
-            string::size_type index = path.rfind('/', path.length() - 2);
-            path = path.substr(0, index + 1);
-            
-            i = servicerMap.find(path.c_str());
-            if(i != servicerMap.end())
+            rval = i->second;
+         }
+         else if(strlen(path) > 1)
+         {
+            // try to find servicer at parent path
+            char* end = strrchr(path, '/');
+            if(end != NULL)
             {
-               rval = i->second;
+               end[0] = 0;
             }
+            else
+            {
+               // no path left to search
+               path = NULL;
+            }
+         }
+         else
+         {
+            // no path left to search
+            path = NULL;
          }
       }
    }
@@ -110,8 +97,9 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          }
          
          // get request path and normalize it
-         string path = request->getHeader()->getPath();
-         normalizePath(path);
+         const char* inPath = request->getHeader()->getPath();
+         char outPath[strlen(inPath) + 2];
+         HttpRequestServicer::normalizePath(inPath, outPath);
          
          // find appropriate request servicer for path
          HttpRequestServicer* hrs = NULL;
@@ -119,12 +107,12 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          if(hc.isSecure())
          {
             // find secure servicer
-            hrs = findRequestServicer(path, mSecureServicers);
+            hrs = findRequestServicer(outPath, mSecureServicers);
          }
          else
          {
             // find non-secure servicer
-            hrs = findRequestServicer(path, mNonSecureServicers);
+            hrs = findRequestServicer(outPath, mNonSecureServicers);
          }
          
          if(hrs != NULL)

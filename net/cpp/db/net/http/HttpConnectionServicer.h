@@ -54,7 +54,7 @@ protected:
    /**
     * The default server name for this servicer.
     */
-   std::string mServerName;
+   char* mServerName;
    
    /**
     * Non-secure HttpRequestServicers. This maps paths to HttpRequestServicers
@@ -71,13 +71,6 @@ protected:
    ServicerMap mSecureServicers;
    
    /**
-    * Ensures a path starts and ends with forward slashes.
-    * 
-    * @param path the path to normalize.
-    */
-   virtual void normalizePath(std::string& path);
-   
-   /**
     * Finds an HttpRequestServicer for the given path in the given map.
     * 
     * @param path the path to search along.
@@ -86,7 +79,7 @@ protected:
     * @return the HttpRequestServicers for the given path.
     */
    virtual HttpRequestServicer* findRequestServicer(
-      std::string& path, ServicerMap& servicerMap);
+      char* path, ServicerMap& servicerMap);
    
 public:
    /**
@@ -96,7 +89,7 @@ public:
     * @param serverName the default server name for this servicer.
     */
    HttpConnectionServicer(
-      const std::string& serverName = "Modest Http Server v1.0");
+      const char* serverName = "Modest Http Server v1.0");
    
    /**
     * Destructs this HttpConnectionServicer.
