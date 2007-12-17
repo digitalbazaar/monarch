@@ -99,6 +99,7 @@ AC_SUBST(JAVADOC)
 AC_OUTPUT(Makefile \
           3rdparty/cpp/Makefile \
           setup/Makefile.base \
+          setup/docs.doxygen \
           config/cpp/Makefile \
           crypto/cpp/Makefile \
           data/cpp/Makefile \
