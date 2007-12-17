@@ -3,6 +3,7 @@
  */
 #include "db/net/Url.h"
 #include "db/util/Convert.h"
+#include "db/util/StringTokenizer.h"
 
 using namespace std;
 using namespace db::net;
@@ -35,13 +36,18 @@ Url& Url::operator=(const Url& rhs)
    return *this;
 }
 
-MalformedUrlException* Url::setUrl(const string& url)
+MalformedUrlException* Url::setUrl(const string& url, bool relative)
 {
    MalformedUrlException* rval = NULL;
    
-   // find the first colon
-   string::size_type index = url.find(':');
-   if(index == string::npos)
+   // find the first colon, if not relative
+   string::size_type index = 0;
+   if(!relative)
+   {
+      index = url.find(':');
+   }
+   
+   if(!relative && index == string::npos)
    {
       // no colon found
       rval = new MalformedUrlException("Url is missing a colon!");
@@ -49,46 +55,50 @@ MalformedUrlException* Url::setUrl(const string& url)
    }
    else
    {
-      // find double slashes
-      index = url.find("//", index);
-      if(index == string::npos)
+      // handle scheme for absolute urls only
+      if(!relative)
       {
-         index = url.rfind(':');
-      }
-      else
-      {
-         index--;
-      }
-      
-      // split string into the scheme and scheme-specific-part
-      mScheme = url.substr(0, index);
-      
-      // make scheme lower case
-      transform(mScheme.begin(), mScheme.end(), mScheme.begin(), tolower);
-      
-      // check scheme for validity
-      // FIXME scheme should be case-insensitive
-      char c;
-      c = mScheme.c_str()[0];
-      if(c < 'a' || c > 'z')
-      {
-         rval = new MalformedUrlException(
-            "Url scheme contains invalid start character!");
-         Exception::setLast(rval);
-      }
-      else
-      {
-         for(string::iterator i = mScheme.begin(); i != mScheme.end(); i++)
+         // find double slashes
+         index = url.find("//", index);
+         if(index == string::npos)
          {
-            // non-start characters must be in [a-z0-9+.-]
-            c = *i;
-            if(!((c > 'a' && c < 'z') || (c > '0' && c < '9') ||
-               c == '+' || c == '.' || c != '-'))
+            index = url.rfind(':');
+         }
+         else
+         {
+            index--;
+         }
+         
+         // split string into the scheme and scheme-specific-part
+         mScheme = url.substr(0, index);
+         
+         // make scheme lower case
+         transform(mScheme.begin(), mScheme.end(), mScheme.begin(), tolower);
+         
+         // check scheme for validity
+         // FIXME scheme should be case-insensitive
+         char c;
+         c = mScheme.c_str()[0];
+         if(c < 'a' || c > 'z')
+         {
+            rval = new MalformedUrlException(
+               "Url scheme contains invalid start character!");
+            Exception::setLast(rval);
+         }
+         else
+         {
+            for(string::iterator i = mScheme.begin(); i != mScheme.end(); i++)
             {
-               rval = new MalformedUrlException(
-                  "Url scheme contains invalid characters!");
-               Exception::setLast(rval);
-               break;
+               // non-start characters must be in [a-z0-9+.-]
+               c = *i;
+               if(!((c > 'a' && c < 'z') || (c > '0' && c < '9') ||
+                  c == '+' || c == '.' || c != '-'))
+               {
+                  rval = new MalformedUrlException(
+                     "Url scheme contains invalid characters!");
+                  Exception::setLast(rval);
+                  break;
+               }
             }
          }
       }
@@ -96,7 +106,15 @@ MalformedUrlException* Url::setUrl(const string& url)
       if(rval == NULL && index < url.length() - 1)
       {
          // get scheme specific part
-         mSchemeSpecificPart = url.substr(index + 1);
+         if(relative)
+         {
+            mSchemeSpecificPart = "//";
+            mSchemeSpecificPart.append(url);
+         }
+         else
+         {
+            mSchemeSpecificPart = url.substr(index + 1);
+         }
          
          // get authority, path, and query:
          
@@ -250,6 +268,40 @@ const string& Url::getPath()
 const string& Url::getQuery()
 {
    return mQuery;
+}
+
+bool Url::getQueryVariables(DynamicObject& vars)
+{
+   bool rval = false;
+   
+   if(mQuery.length() > 0)
+   {
+      rval = true;
+      
+      // split query up by ampersands
+      const char* tok;
+      const char* eq;
+      StringTokenizer st(mQuery.c_str(), '&');
+      while(st.hasNextToken())
+      {
+         tok = st.nextToken();
+         
+         // split on equals
+         eq = strchr(tok, '=');
+         if(eq != NULL)
+         {
+            // get variable name and set value
+            char name[eq - tok];
+            memcpy(name, tok, eq - tok);
+            
+            // url-decode name and value
+            vars[decode(name, eq - tok).c_str()] =
+               decode(eq + 1, strlen(eq + 1)).c_str();
+         }
+      }
+   }
+   
+   return rval;
 }
 
 const string& Url::getHost()

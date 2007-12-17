@@ -6,7 +6,7 @@
 
 #include "db/rt/Object.h"
 #include "db/net/MalformedUrlException.h"
-#include <string>
+#include "db/util/DynamicObject.h"
 
 namespace db
 {
@@ -123,10 +123,12 @@ public:
     * Sets this Url to the passed string.
     * 
     * @param url the string to create this Url from.
+    * @param relative true if the url is relative, false if not.
     * 
     * @return a MalformedUrlException if the URL is malformed, NULL if not.
     */
-   virtual MalformedUrlException* setUrl(const std::string& url);
+   virtual MalformedUrlException* setUrl(
+      const std::string& url, bool relative = false);
    
    /**
     * Gets the scheme for this url.
@@ -183,6 +185,16 @@ public:
     * @return the query of this url or a blank string.
     */
    virtual const std::string& getQuery();
+   
+   /**
+    * Gets the variables from the query of this url.
+    * 
+    * @param vars the DynamicObject to populate with the variables from
+    *             the query.
+    * 
+    * @return true if variables were present, false if not.
+    */
+   virtual bool getQueryVariables(db::util::DynamicObject& vars);
    
    /**
     * Convenience method to get the host of this url (not including

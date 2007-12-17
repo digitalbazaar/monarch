@@ -3031,7 +3031,9 @@ void runUrlTest(TestRunner& tr)
    }
    
    {
-      Url url("scheme://user:password@host:1234/path?key1=value1&key2=value2");
+      Url url(
+         "scheme://user:password@host:1234/path?key1=value1&key2=value2"
+         "&key3=two%20words%3D2");
 
       //dumpUrl(url);
       assert(!Exception::hasLast());
@@ -3042,8 +3044,13 @@ void runUrlTest(TestRunner& tr)
       assert(url.getHost() == "host");
       assert(url.getPort() == 1234);
       assert(url.getPath() == "/path");
-      assert(url.getQuery() == "key1=value1&key2=value2");
-      // FIXME add query part checks
+      assert(url.getQuery() == "key1=value1&key2=value2&key3=two%20words%3D2");
+      
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(strcmp(vars["key1"]->getString(), "value1") == 0);
+      assert(strcmp(vars["key2"]->getString(), "value2") == 0);
+      assert(strcmp(vars["key3"]->getString(), "two words=2") == 0);
    }
    
    tr.pass();
