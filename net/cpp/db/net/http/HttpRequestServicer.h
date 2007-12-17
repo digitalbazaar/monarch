@@ -68,7 +68,7 @@ public:
    
    /**
     * Normalizes "inPath" to "outPath" by prepending a forward slash if
-    * necessary and by ending the path does not end in a forward slash.
+    * necessary and by ensuring the path does not end in a forward slash.
     *  
     * @param inPath the path to normalize.
     * @param outPath the string to store the normalized path in, which must
