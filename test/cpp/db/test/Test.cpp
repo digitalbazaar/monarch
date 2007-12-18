@@ -144,3 +144,12 @@ void db::test::assertException()
       assert(Exception::hasLast());
    }
 }
+
+void db::test::assertStrcmp(const char* a, const char* b)
+{
+   if(strcmp(a, b) != 0)
+   {
+      cout << "string a='" << a << "',string b='" << b << "'" << endl;
+      assert(strcmp(a, b) == 0);
+   }
+}

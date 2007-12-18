@@ -3053,6 +3053,28 @@ void runUrlTest(TestRunner& tr)
       assert(strcmp(vars["key3"]->getString(), "two words=2") == 0);
    }
    
+   {
+      Url url(
+         "/path/param1/10001?key1=value1&key2=value2&key3=two%20words%3D2",
+         true);
+      
+      //dumpUrl(url);
+      assert(!Exception::hasLast());
+      assert(url.getPath() == "/path/param1/10001");
+      assert(url.getQuery() == "key1=value1&key2=value2&key3=two%20words%3D2");
+      
+      DynamicObject tokens;
+      assert(url.getTokenizedPath(tokens, "/path/"));
+      assert(strcmp(tokens[0]->getString(), "param1") == 0);
+      assert(tokens[1]->getInt32() == 10001);
+      
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(strcmp(vars["key1"]->getString(), "value1") == 0);
+      assert(strcmp(vars["key2"]->getString(), "value2") == 0);
+      assert(strcmp(vars["key3"]->getString(), "two words=2") == 0);
+   }
+   
    tr.pass();
 }
 
@@ -3444,7 +3466,7 @@ void runHttpHeaderTest(TestRunner& tr)
 //   StringTools::trim(t);
 //   cout << "t='" << t << "'" << endl;
    
-   cout << endl << "Request Header:" << endl;
+   //cout << endl << "Request Header:" << endl;
    
    HttpRequestHeader reqHeader;
    reqHeader.setDate();
@@ -3455,24 +3477,35 @@ void runHttpHeaderTest(TestRunner& tr)
    reqHeader.setField("Content-Type", "text/html");
    reqHeader.setField("Connection", "close");
    
+   const char* expect =
+      "GET / HTTP/1.1\r\n"
+      "Connection: close\r\n"
+      "Content-Type: text/html\r\n"
+      "Host: localhost:80\r\n"
+      "\r\n";
+   
    string str;
    reqHeader.toString(str);
-   cout << str;
+   //assertStrCmp(str.c_str(), expect);
+   //cout << str;
+   tr.warning("fix http request parse test");
    
-   cout << "End of Request Header." << endl;
+   //cout << "End of Request Header." << endl;
    
-   cout << endl << "Parsed Request Header:" << endl;
+   //cout << endl << "Parsed Request Header:" << endl;
    
    HttpRequestHeader reqHeader2;
    reqHeader2.parse(str);
    
    string str2;
    reqHeader2.toString(str2);
-   cout << str2;
+   //assertStrCmp(str2.c_str(), expect);
+   tr.warning("fix http request parse test");
+   //cout << str2;
    
-   cout << "End of Parsed Request Header." << endl;
+   //cout << "End of Parsed Request Header." << endl;
 
-   cout << endl << "Response Header:" << endl;
+   //cout << endl << "Response Header:" << endl;
    
    HttpResponseHeader resHeader;
    resHeader.setDate();
@@ -3483,19 +3516,22 @@ void runHttpHeaderTest(TestRunner& tr)
    resHeader.setField("Connection", "close");
    
    resHeader.toString(str);
-   cout << str;
+   tr.warning("fix http response parse test");
+   //cout << str;
    
-   cout << "End of Response Header." << endl;
+   //cout << "End of Response Header." << endl;
    
-   cout << endl << "Parsed Response Header:" << endl;
+   //cout << endl << "Parsed Response Header:" << endl;
    
    HttpResponseHeader resHeader2;
    resHeader2.parse(str);
+   tr.warning("fix http response parse test");
    
    resHeader2.toString(str2);
-   cout << str2;
+   tr.warning("fix http response parse test");
+   //cout << str2;
    
-   cout << "End of Parsed Response Header." << endl;
+   //cout << "End of Parsed Response Header." << endl;
    
    tr.passIfNoException();
 }
@@ -6648,6 +6684,7 @@ public:
       runUrlEncodeTest(tr);
       runUrlTest(tr);
       //runInterruptServerSocketTest(tr);
+      runHttpHeaderTest(tr);
       
       // db::data tests
       runXmlHttpServerTest(tr);
@@ -6703,7 +6740,6 @@ public:
 //      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
-//      runHttpHeaderTest(tr);
 //      runHttpServerTest();
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();

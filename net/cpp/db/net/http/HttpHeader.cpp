@@ -158,7 +158,9 @@ bool HttpHeader::parse(const string& str)
             if((colon = strchr(start, ':')) != NULL && colon < cr)
             {
                // get field name
-               char* name = strndup(start, (colon - start));
+               char* name = (char*)malloc((colon - start) + 1);
+               memcpy(name, start, colon - start);
+               name[colon - start] = 0;
                
                // skip whitespace
                colon++;

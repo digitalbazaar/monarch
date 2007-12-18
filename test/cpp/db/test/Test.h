@@ -64,7 +64,8 @@ void assertException();
 /**
  * Assert strings are equal.
  */
-#define assertStrCmp(a, b) assert(strcmp(a, b) == 0)
+void assertStrcmp(const char* a, const char* b);
+#define assertStrCmp(a, b) assertStrcmp(a, b)
 
 } // end namespace test
 } // end namespace db

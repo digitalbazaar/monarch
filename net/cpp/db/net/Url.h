@@ -34,6 +34,11 @@ class Url
 {
 protected:
    /**
+    * True if this url is relative, false if it is absolute.
+    */
+   bool mRelative;
+   
+   /**
     * The scheme for this url.
     */
    std::string mScheme;
@@ -89,16 +94,18 @@ public:
     * if the url is malformed.
     *
     * @param url the string to create this Url from.
+    * @param relative true if the url is relative, false if not.
     */
-   Url(const std::string& url);
+   Url(const std::string& url, bool relative = false);
    
    /**
     * Creates a new Url from the passed string. An exception may be raised
     * if the url is malformed.
     *
     * @param url the string to create this Url from.
+    * @param relative true if the url is relative, false if not.
     */
-   Url(const char* url);
+   Url(const char* url, bool relative = false);
    
    /**
     * Copies the passed url.
@@ -129,6 +136,13 @@ public:
     */
    virtual MalformedUrlException* setUrl(
       const std::string& url, bool relative = false);
+   
+   /**
+    * Returns true if this url is relative, false if it is absolute.
+    * 
+    * @return true if this url is relative, false if it is absolute.
+    */
+   virtual bool isRelative() const;
    
    /**
     * Gets the scheme for this url.
@@ -178,6 +192,19 @@ public:
     * @return the path of this url or a blank string.
     */
    virtual const std::string& getPath();
+   
+   /**
+    * Gets the path of this url in tokenized form, starting after the
+    * optionally passed base path.
+    * 
+    * @param result the DynamicObject to store the tokens in.
+    * @param basePath the base path to start tokenizing after.
+    * 
+    * @return true if the tokenization worked, false if the base path did
+    *         not exist on the path.
+    */
+   virtual bool getTokenizedPath(
+      db::util::DynamicObject& result, const char* basePath = "");
    
    /**
     * Gets the query of this url, if one exists.

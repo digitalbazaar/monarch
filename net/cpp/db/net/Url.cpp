@@ -10,14 +10,14 @@ using namespace db::net;
 using namespace db::rt;
 using namespace db::util;
 
-Url::Url(const string& url)
+Url::Url(const string& url, bool relative)
 {
-   setUrl(url);
+   setUrl(url, relative);
 }
 
-Url::Url(const char* url)
+Url::Url(const char* url, bool relative)
 {
-   setUrl(url);
+   setUrl(url, relative);
 }
 
 Url::Url(const Url& copy)
@@ -32,13 +32,15 @@ Url::~Url()
 Url& Url::operator=(const Url& rhs)
 {
    string s;
-   setUrl(rhs.toString(s));
+   setUrl(rhs.toString(s), rhs.mRelative);
    return *this;
 }
 
 MalformedUrlException* Url::setUrl(const string& url, bool relative)
 {
    MalformedUrlException* rval = NULL;
+   
+   mRelative = relative;
    
    // find the first colon, if not relative
    string::size_type index = 0;
@@ -230,6 +232,11 @@ MalformedUrlException* Url::setUrl(const string& url, bool relative)
    return rval;
 }
 
+bool Url::isRelative() const
+{
+   return mRelative;
+}
+
 const string& Url::getScheme()
 {
    return mScheme;
@@ -263,6 +270,28 @@ const string& Url::getPassword()
 const string& Url::getPath()
 {
    return mPath;
+}
+
+bool Url::getTokenizedPath(DynamicObject& result, const char* basePath)
+{
+   bool rval = false;
+   
+   const char* start = strstr(mPath.c_str(), basePath);
+   if(start != NULL)
+   {
+      rval = true;
+      
+      // split path up by forward slashes
+      const char* tok;
+      StringTokenizer st(start + strlen(basePath), '/');
+      for(int i = 0; st.hasNextToken(); i++)
+      {
+         tok = st.nextToken();
+         result[i] = tok;
+      }
+   }
+   
+   return rval;
 }
 
 const string& Url::getQuery()
@@ -353,9 +382,17 @@ unsigned int Url::getDefaultPort()
 
 string& Url::toString(string& str) const
 {
-   str.append(mScheme);
-   str.push_back(':');
-   str.append(mSchemeSpecificPart);
+   if(!isRelative())
+   {
+      str.append(mScheme);
+      str.push_back(':');
+      str.append(mSchemeSpecificPart);
+   }
+   else
+   {
+      str.append(mSchemeSpecificPart.substr(2));
+   }
+   
    return str;
 }
 
