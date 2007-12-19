@@ -10,7 +10,7 @@ INCLUDES = -I$(DBCORE)/config/cpp -I$(DBCORE)/crypto/cpp -I$(DBCORE)/data/cpp -I
 
 MODULE_BASE_DIR = $(shell pwd)
 
-.PHONY: clean all 
+.PHONY: clean clean-objects clean-libraries all build-directories build-objects build-libraries build-executables $(ALL_EXECUTABLES)
 
 # Linux-specific variables
 LINUX_CXX = @LINUX_CXX@
