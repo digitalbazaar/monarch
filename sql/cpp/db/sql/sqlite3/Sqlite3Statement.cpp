@@ -229,21 +229,34 @@ SqlException* Sqlite3Statement::execute()
 {
    SqlException* rval = NULL;
    
-   if(mState == SQLITE_OK)
+   switch(mState)
    {
-      // step to execute statement
-      mState = sqlite3_step(mHandle);
-      
-      // ensure state is set to SQLITE_OK for first row
-      if(mState == SQLITE_ROW)
-      {
-         mState = SQLITE_OK;
-      }
-   }
-   else
-   {
-      rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(rval);
+      case SQLITE_OK:
+         // step to execute statement
+         mState = sqlite3_step(mHandle);
+         
+         // ensure state is set to SQLITE_OK for first row
+         if(mState == SQLITE_ROW)
+         {
+            mState = SQLITE_OK;
+         }
+         else if(mState != SQLITE_DONE)
+         {
+            // error stepping statement
+            rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+            Exception::setLast(rval);
+         }
+         break;
+      case SQLITE_DONE:
+         // reset statement and execute again
+         mState = sqlite3_reset(mHandle);
+         Sqlite3Statement::execute();
+         break;
+      default:
+         // statement in bad state
+         rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+         Exception::setLast(rval);
+         break;
    }
    
    return rval;
