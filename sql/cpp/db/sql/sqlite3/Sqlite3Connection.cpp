@@ -47,10 +47,21 @@ SqlException* Sqlite3Connection::connect(Url* url)
    }
    else
    {
+      // get database name
+      const char* db;
+      if(strcmp(url->getScheme().c_str(), "sqlite3::memory:") == 0)
+      {
+         db = url->getScheme().c_str();
+      }
+      else
+      {
+         db = url->getPath().c_str();
+      }
+      
       // FIXME: we want to add read/write/create params to the URL
       // so connections can be read-only/write/etc (use query in URL)
       // handle username/password
-      int ec = sqlite3_open(url->getSchemeSpecificPart().c_str(), &mHandle);
+      int ec = sqlite3_open(db, &mHandle);
       if(ec != SQLITE_OK)
       {
          // create exception, close connection
