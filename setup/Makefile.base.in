@@ -10,7 +10,10 @@ INCLUDES = -I$(DBCORE)/config/cpp -I$(DBCORE)/crypto/cpp -I$(DBCORE)/data/cpp -I
 
 MODULE_BASE_DIR = $(shell pwd)
 
-.PHONY: clean clean-objects clean-libraries all build-directories build-objects build-libraries build-executables $(ALL_EXECUTABLES)
+.PHONY: all build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries $(ALL_EXECUTABLES)
+
+all: build-directories build-objects build-libraries build-executables
+   @echo "SOURCES: $(SOURCES)"
 
 # Linux-specific variables
 LINUX_CXX = @LINUX_CXX@
@@ -101,9 +104,6 @@ endif
 ifeq ($(BUILD_FOR_WINDOWS),yes)
 	@rm -rf $(WINDOWS_DIST_DIR)
 endif
-
-all: build-directories build-objects build-libraries build-executables
-   @echo "SOURCES: $(SOURCES)"
 
 ifeq ($(BUILD_FOR_WINDOWS),yes)
 $(WINDOWS_LIBRARY_SOURCES):
