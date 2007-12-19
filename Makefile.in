@@ -16,8 +16,6 @@ SUBDIRS := 3rdparty/cpp \
 
 MAKE_DIR = $(MAKE) -j -l 10.0 -C $(dir)
 
-.PHONY: all
-
 all:
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-directories build-objects build-libraries &&) true
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-executables &&) true
