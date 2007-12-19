@@ -97,7 +97,7 @@ ifeq ($(BUILD_FOR_WINDOWS),yes)
 endif
 
 clean-libraries:
-	@echo "Removing all objects..."
+	@echo "Removing all libraries..."
 ifeq ($(BUILD_FOR_LINUX),yes)
 	@rm -rf $(LINUX_DIST_DIR)
 endif
