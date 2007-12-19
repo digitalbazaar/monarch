@@ -88,20 +88,6 @@ public:
     * Closes this connection.
     */
    virtual void close();
-   
-   /**
-    * Commits the current transaction.
-    * 
-    * @return an SqlException if one occurred, NULL if not.
-    */
-   virtual SqlException* commit();
-   
-   /**
-    * Rolls back the current transaction.
-    * 
-    * @return an SqlException if one occurred, NULL if not.
-    */
-   virtual SqlException* rollback();
 };
 
 } // end namespace sqlite3

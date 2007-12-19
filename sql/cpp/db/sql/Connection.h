@@ -31,6 +31,21 @@ protected:
     */
    db::net::Url* mUrl;
    
+   /**
+    * The begin statement.
+    */
+   Statement* mBeginStmt;
+   
+   /**
+    * The commit statement.
+    */
+   Statement* mCommitStmt;
+   
+   /**
+    * The rollback statement.
+    */
+   Statement* mRollbackStmt;
+   
 public:
    /**
     * Creates a new Connection.
@@ -77,6 +92,13 @@ public:
     * Closes this connection.
     */
    virtual void close() = 0;
+   
+   /**
+    * Begins a new transaction.
+    * 
+    * @return an SqlException if one occurred, NULL if not.
+    */
+   virtual SqlException* begin();
    
    /**
     * Commits the current transaction.

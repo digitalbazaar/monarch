@@ -93,32 +93,6 @@ void MySqlConnection::close()
    }
 }
 
-SqlException* MySqlConnection::commit()
-{
-   SqlException* rval = NULL;
-   
-   if(!mysql_commit(mHandle))
-   {
-      rval = new MySqlException(this);
-      Exception::setLast(rval);
-   }
-   
-   return rval;
-}
-
-SqlException* MySqlConnection::rollback()
-{
-   SqlException* rval = NULL;
-   
-   if(!mysql_rollback(mHandle))
-   {
-      rval = new MySqlException(this);
-      Exception::setLast(rval);
-   }
-   
-   return rval;
-}
-
 SqlException* MySqlConnection::setCharacterSet(const char* cset)
 {
    // FIXME: handle exceptions

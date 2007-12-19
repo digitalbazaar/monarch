@@ -87,20 +87,6 @@ public:
    virtual void close();
    
    /**
-    * Commits the current transaction.
-    * 
-    * @return an SqlException if one occurred, NULL if not.
-    */
-   virtual SqlException* commit();
-   
-   /**
-    * Rolls back the current transaction.
-    * 
-    * @return an SqlException if one occurred, NULL if not.
-    */
-   virtual SqlException* rollback();
-   
-   /**
     * Sets the character set for this connection.
     * 
     * @param cset the character set to use for this connection.

@@ -98,17 +98,3 @@ void Sqlite3Connection::close()
       mHandle = NULL;
    }
 }
-
-SqlException* Sqlite3Connection::commit()
-{
-   // FIXME:
-   cout << "FIXME: commit" << endl;
-   return NULL;
-}
-
-SqlException* Sqlite3Connection::rollback()
-{
-   // FIXME:
-   cout << "FIXME: rollback" << endl;
-   return NULL;
-}

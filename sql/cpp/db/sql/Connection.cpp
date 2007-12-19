@@ -2,6 +2,7 @@
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/Connection.h"
+#include "db/sql/Statement.h"
 
 using namespace std;
 using namespace db::net;
@@ -11,6 +12,9 @@ using namespace db::rt;
 Connection::Connection()
 {
    mUrl = NULL;
+   mBeginStmt = NULL;
+   mCommitStmt = NULL;
+   mRollbackStmt = NULL;
 }
 
 Connection::~Connection()
@@ -18,6 +22,21 @@ Connection::~Connection()
    if(mUrl != NULL)
    {
       delete mUrl;
+   }
+   
+   if(mBeginStmt != NULL)
+   {
+      delete mBeginStmt;
+   }
+   
+   if(mCommitStmt != NULL)
+   {
+      delete mCommitStmt;
+   }
+   
+   if(mRollbackStmt != NULL)
+   {
+      delete mRollbackStmt;
    }
 }
 
@@ -46,14 +65,32 @@ SqlException* Connection::connect(const char* url)
    return rval;
 }
 
+SqlException* Connection::begin()
+{
+   if(mBeginStmt == NULL)
+   {
+      mBeginStmt = prepare("BEGIN");
+   }
+   
+   return mBeginStmt->execute();
+}
+
 SqlException* Connection::commit()
 {
-   return (SqlException*)Exception::setLast(
-      new SqlException("Connection::commit() not supported!"));
+   if(mCommitStmt == NULL)
+   {
+      mCommitStmt = prepare("COMMIT");
+   }
+   
+   return mCommitStmt->execute();
 }
 
 SqlException* Connection::rollback()
 {
-   return (SqlException*)Exception::setLast(
-      new SqlException("Connection::rollback() not supported!"));
+   if(mRollbackStmt == NULL)
+   {
+      mRollbackStmt = prepare("ROLLBACK");
+   }
+   
+   return mRollbackStmt->execute();   
 }
