@@ -42,3 +42,10 @@ bool BufferedOutputStream::flush()
    mBuffer->clear();
    return rval;
 }
+
+void BufferedOutputStream::close()
+{
+   // make sure to flush ;)
+   flush();
+   mOutputStream->close();
+}

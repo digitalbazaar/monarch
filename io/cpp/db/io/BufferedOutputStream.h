@@ -64,6 +64,11 @@ public:
     *         occurred. 
     */
    virtual bool flush();
+   
+   /**
+    * Closes the stream.
+    */
+   virtual void close();
 };
 
 } // end namespace io
