@@ -10,7 +10,6 @@
 #include "db/net/ConnectionServicer.h"
 #include "db/net/SocketDataPresenter.h"
 #include "db/modest/OperationList.h"
-#include "db/net/ConnectionWorker.h"
 
 namespace db
 {
@@ -164,8 +163,7 @@ public:
    virtual void run();
    
    /**
-    * Creates a Connection from the given connected Socket and creates
-    * a ConnectionWorker for it.
+    * Creates a Connection from the given connected Socket and services it.
     * 
     * @param s the connected Socket.
     */
@@ -176,7 +174,7 @@ public:
     * 
     * @param c the Connection to service.
     */
-   virtual void serviceConnection(Connection* c);
+   virtual void serviceConnection(void* c);
    
    /**
     * Sets the maximum number of concurrent connections this service should

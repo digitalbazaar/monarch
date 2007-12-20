@@ -4,6 +4,7 @@
 #include "db/net/ConnectionService.h"
 #include "db/net/Server.h"
 #include "db/net/TcpSocket.h"
+#include "db/rt/RunnableDelegate.h"
 
 using namespace std;
 using namespace db::modest;
@@ -135,9 +136,10 @@ void ConnectionService::createConnection(Socket* s)
       mServer->mConnectionCount++;
       mConnectionCount++;
       
-      // create ConnectionWorker and Operation to run it
-      ConnectionWorker* worker = new ConnectionWorker(this, c);
-      CollectableRunnable cr = worker;
+      // create RunnableDelegate to service connection and run as an Operation
+      CollectableRunnable cr =
+         new RunnableDelegate<ConnectionService>(
+            this, &ConnectionService::serviceConnection, c);
       Operation op(cr);
       mRunningServicers.add(op);
       
@@ -156,13 +158,16 @@ void ConnectionService::createConnection(Socket* s)
    }
 }
 
-void ConnectionService::serviceConnection(Connection* c)
+void ConnectionService::serviceConnection(void* c)
 {
+   // cast parameter to Connection
+   Connection* conn = (Connection*)c;
+   
    // service the connection
-   mServicer->serviceConnection(c);
+   mServicer->serviceConnection(conn);
    
    // ensure connection is closed
-   c->close();
+   conn->close();
    
    // decrease connection count
    mServer->mConnectionCount--;
@@ -171,6 +176,9 @@ void ConnectionService::serviceConnection(Connection* c)
    // release connection permits
    mServer->mConnectionSemaphore.release();
    mConnectionSemaphore.release();
+   
+   // clean up connection
+   delete conn;
 }
 
 void ConnectionService::setMaxConnectionCount(unsigned int count)
