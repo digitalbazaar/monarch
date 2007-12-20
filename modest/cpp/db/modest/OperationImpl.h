@@ -126,10 +126,10 @@ public:
     *                      and return from this call, false if the Operation
     *                      must complete before this call will return.
     * 
-    * @return true if the current thread was interrupted while waiting, false
-    *         if not.
+    * @return an InterruptedException if the current thread was interrupted
+    *         while waiting, NULL if it was not interrupted.
     */
-   virtual bool waitFor(bool interruptible = true);
+   virtual db::rt::InterruptedException* waitFor(bool interruptible = true);
    
    /**
     * Returns true if this Operation has started, false if not.

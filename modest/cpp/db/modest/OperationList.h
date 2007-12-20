@@ -75,8 +75,11 @@ public:
     *                      and return from this call, false if all the
     *                      Operations must complete before this call will
     *                      return.
+    * 
+    * @return an InterruptedException if the current thread was interrupted
+    *         while waiting, NULL if it was not interrupted.
     */
-   virtual void waitFor(bool interruptible = true);
+   virtual db::rt::InterruptedException* waitFor(bool interruptible = true);
    
    /**
     * Checks for expired Operations and removes them from this list.

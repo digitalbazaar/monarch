@@ -5,6 +5,7 @@
 
 using namespace std;
 using namespace db::modest;
+using namespace db::rt;
 
 OperationList::OperationList()
 {
@@ -51,17 +52,27 @@ void OperationList::interrupt()
    unlock();
 }
 
-void OperationList::waitFor(bool interruptible)
+InterruptedException* OperationList::waitFor(bool interruptible)
 {
+   InterruptedException* rval = NULL;
+   
    lock();
    {
       for(list<Operation>::iterator i = mOperations.begin();
           i != mOperations.end(); i++)
       {
-         (*i)->waitFor(interruptible);
+         rval = (*i)->waitFor(interruptible);
+         
+         // break out if interruptible and interrupted
+         if(interruptible && rval != NULL)
+         {
+            break;
+         }
       }
    }
    unlock();
+   
+   return rval;
 }
 
 void OperationList::prune()
