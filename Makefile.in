@@ -14,15 +14,22 @@ SUBDIRS := 3rdparty/cpp \
            sql/cpp \
            test/cpp
 
+ifdef PRINT_DIRECTORIES
 MAKE_DIR = $(MAKE) -j -l 10.0 -C $(dir)
+else
+MAKE_DIR = $(MAKE) -j -l 10.0 --no-print-directory -s -C $(dir)
+endif
+
+.PHONY: all verbose clean test internal-docs
 
 all:
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-directories build-objects build-libraries &&) true
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-executables &&) true
 
 clean:
-	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) clean &&) true
+	@$(foreach dir,$(SUBDIRS),MAKE_CLEAN_ACTIVE=true $(MAKE_DIR) clean &&) true
 	@rm -rf libs/*
+	@echo "Cleaned all objects and libraries."
 
 test: all
 	test/cpp/dist/linux/run-unit-tests
@@ -31,3 +38,6 @@ internal-docs:
 	rm -rf docs/cpp-api
 	mkdir -p docs/cpp-api
 	doxygen setup/docs.doxygen
+
+verbose:
+	PRINT_DIRECTORIES=true $(MAKE) all
