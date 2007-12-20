@@ -242,7 +242,8 @@ SqlException* Sqlite3Statement::execute()
          }
          else if(mState != SQLITE_DONE)
          {
-            // error stepping statement
+            // (version 1 requires reset) error stepping statement
+            sqlite3_reset(mHandle);
             rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
             Exception::setLast(rval);
          }
