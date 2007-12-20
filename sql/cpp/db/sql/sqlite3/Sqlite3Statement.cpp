@@ -234,18 +234,12 @@ SqlException* Sqlite3Statement::execute()
       case SQLITE_OK:
          // step to execute statement
          mState = sqlite3_step(mHandle);
-         
-         // ensure state is set to SQLITE_OK for first row
-         if(mState == SQLITE_ROW)
-         {
-            mState = SQLITE_OK;
-         }
-         else if(mState == SQLITE_DONE)
+         if(mState == SQLITE_DONE)
          {
             // reset statement for future use
             mState = sqlite3_reset(mHandle);
          }
-         else if(mState != SQLITE_DONE)
+         else if(mState != SQLITE_ROW)
          {
             // error stepping statement (version 1 of api requires reset)
             sqlite3_reset(mHandle);
@@ -254,6 +248,14 @@ SqlException* Sqlite3Statement::execute()
          }
          break;
       case SQLITE_DONE:
+      case SQLITE_ROW:
+         // clean up existing row object
+         if(mRow != NULL)
+         {
+            delete mRow;
+            mRow = NULL;
+         }
+         
          // reset statement and execute again
          mState = sqlite3_reset(mHandle);
          Sqlite3Statement::execute();
@@ -272,23 +274,26 @@ Row* Sqlite3Statement::fetch()
 {
    Row* rval = NULL;
    
-   if(mState == SQLITE_ROW)
+   if(mRow != NULL)
    {
+      // get next row
       mState = sqlite3_step(mHandle);
       switch(mState)
       {
          case SQLITE_ROW:
-            if(mRow == NULL)
-            {
-               // create row as necessary
-               mRow = new Sqlite3Row(this);
-            }
+            // return next row
             rval = mRow;
             break;
          case SQLITE_DONE:
-            // no more rows
+            // no more rows, clean up row object
+            delete mRow;
+            mRow = NULL;
             break;
          default:
+            // clean up row object
+            delete mRow;
+            mRow = NULL;
+            
             // error stepping statement (version 1 of api requires reset)
             sqlite3_reset(mHandle);
             Exception::setLast(
@@ -296,17 +301,10 @@ Row* Sqlite3Statement::fetch()
             break;
       }
    }
-   else if(mState == SQLITE_OK)
+   else if(mState == SQLITE_ROW)
    {
-      if(mRow == NULL)
-      {
-         // create row as necessary
-         mRow = new Sqlite3Row(this);
-      }
-      
-      // return row and update state for next row
-      rval = mRow;
-      mState = SQLITE_ROW;
+      // create and return first row
+      rval = mRow = new Sqlite3Row(this);
    }
    
    return rval;
