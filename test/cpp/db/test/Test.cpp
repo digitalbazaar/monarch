@@ -139,8 +139,8 @@ void db::test::assertException()
 {
    if(!Exception::hasLast())
    {
-      Exception* e = new Exception("Expected exception");
-      dumpException(e);
+      Exception e("Test expected an Exception but there wasn't one!");
+      dumpException(&e);
       assert(Exception::hasLast());
    }
 }
