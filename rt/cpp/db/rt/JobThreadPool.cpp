@@ -30,11 +30,14 @@ JobThread* JobThreadPool::getIdleThread()
          rval = mIdleThreads.front();
          mIdleThreads.pop_front();
          
-         if(rval->isExpired())
+         // lock job thread until it is issued a job or marked expired
+         rval->lock();
+         if(rval->isExpired() || rval->isInterrupted())
          {
             // collect thread for clean up
             mThreads.remove(rval);
             mExpiredThreads.push_front(rval);
+            rval->unlock();
             rval = NULL;
          }
       }
@@ -44,9 +47,10 @@ JobThread* JobThreadPool::getIdleThread()
          // clean up expired threads
          cleanupExpiredThreads();
          
-         // create new job thread and add to thread list
+         // create new job thread and add to thread list, lock job thread
          rval = new JobThread(getJobThreadExpireTime());
          mThreads.push_back(rval);
+         rval->lock();
       }
    }
    mListLock.unlock();
@@ -120,6 +124,9 @@ void JobThreadPool::runJobOnIdleThread(Runnable& job)
       // set job
       t->setJob(&job, this);
       
+      // unlock job thread now that job is assigned
+      t->unlock();
+      
       // if the thread hasn't started yet, start it
       while(!t->hasStarted())
       {
@@ -145,6 +152,9 @@ void JobThreadPool::runJobOnIdleThread(CollectableRunnable& job)
       
       // set job
       t->setJob(job, this);
+      
+      // unlock job thread now that job is assigned
+      t->unlock();
       
       // if the thread hasn't started yet, start it
       while(!t->hasStarted())
