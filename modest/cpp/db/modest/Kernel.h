@@ -37,7 +37,7 @@ protected:
    /**
     * The version of this Kernel (major.minor).
     */
-   std::string mVersion;
+   char* mVersion;
    
 public:
    /**
@@ -76,7 +76,7 @@ public:
     * 
     * @return this Kernel's version.
     */
-   virtual const std::string& getVersion();
+   virtual const char* getVersion();
 };
 
 } // end namespace modest

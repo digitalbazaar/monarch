@@ -37,7 +37,7 @@ ModuleLibrary* Kernel::getModuleLibrary()
    return mModuleLibrary;
 }
 
-const std::string& Kernel::getVersion()
+const char* Kernel::getVersion()
 {
    return mVersion;
 }
