@@ -37,7 +37,7 @@ protected:
    /**
     * The version of this Kernel (major.minor).
     */
-   char* mVersion;
+   const char* mVersion;
    
 public:
    /**
