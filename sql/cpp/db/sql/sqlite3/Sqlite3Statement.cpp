@@ -240,6 +240,11 @@ SqlException* Sqlite3Statement::execute()
          {
             mState = SQLITE_OK;
          }
+         else if(mState == SQLITE_DONE)
+         {
+            // reset statement for future use
+            mState = sqlite3_reset(mHandle);
+         }
          else if(mState != SQLITE_DONE)
          {
             // error stepping statement (version 1 of api requires reset)
