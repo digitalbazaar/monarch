@@ -242,7 +242,7 @@ SqlException* Sqlite3Statement::execute()
          }
          else if(mState != SQLITE_DONE)
          {
-            // (version 1 requires reset) error stepping statement
+            // error stepping statement (version 1 of api requires reset)
             sqlite3_reset(mHandle);
             rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
             Exception::setLast(rval);
@@ -284,7 +284,8 @@ Row* Sqlite3Statement::fetch()
             // no more rows
             break;
          default:
-            // set exception
+            // error stepping statement (version 1 of api requires reset)
+            sqlite3_reset(mHandle);
             Exception::setLast(
                new Sqlite3Exception((Sqlite3Connection*)mConnection));
             break;
