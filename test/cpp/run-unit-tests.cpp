@@ -6740,7 +6740,7 @@ public:
 //      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
-      runHttpServerTest();
+//      runHttpServerTest();
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
 //      runPingTest();
@@ -6764,7 +6764,7 @@ public:
       
       tr.group(""); // root group
       runInteractiveUnitTests(tr);
-      //runAutomaticUnitTests(tr);
+      runAutomaticUnitTests(tr);
       tr.ungroup();
       
       assertNoException();
