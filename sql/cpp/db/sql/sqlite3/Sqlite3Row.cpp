@@ -105,8 +105,10 @@ SqlException* Sqlite3Row::getText(unsigned int column, string& str)
 {
    SqlException* rval = NULL;
    
-   // FIXME: check exceptions, etc
-   str.assign((const char*)sqlite3_column_text(getStatementHandle(), column));
+   const char* text = (const char*)sqlite3_column_text(
+      getStatementHandle(), column);
+   int bytes = sqlite3_column_bytes(getStatementHandle(), column);
+   str.assign(text, bytes);
    return rval;
 }
 
