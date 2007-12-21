@@ -23,7 +23,7 @@ endif
 .PHONY: all verbose clean test internal-docs
 
 all:
-	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-directories build-objects build-libraries &&) true
+	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-objects build-libraries &&) true
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-executables &&) true
 
 clean:
