@@ -98,7 +98,7 @@ InterruptedException* OperationImpl::waitFor(bool interruptible)
          if((e = wait()) != NULL)
          {
             // thread was interrupted
-            e = rval;
+            rval = e;
             
             if(interruptible)
             {
