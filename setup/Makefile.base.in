@@ -10,11 +10,6 @@ INCLUDES = -I$(DBCORE)/config/cpp -I$(DBCORE)/crypto/cpp -I$(DBCORE)/data/cpp -I
 
 MODULE_BASE_DIR = $(shell pwd)
 
-.PHONY: all build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries $(ALL_EXECUTABLES)
-
-all: build-directories build-objects build-libraries build-executables
-   @echo "SOURCES: $(SOURCES)"
-
 # Linux-specific variables
 LINUX_CXX = @LINUX_CXX@
 LINUX_CXX_FLAGS = -g -Wall -fPIC
@@ -64,7 +59,7 @@ ALL_SOURCES += $(LINUX_LIBRARY_SOURCES) $(LINUX_EXECUTABLE_SOURCES)
 ALL_OBJECTS += $(LINUX_LIBRARY_OBJECTS) $(LINUX_EXECUTABLE_OBJECTS)
 ALL_LIBRARIES += $(LINUX_LIBRARIES)
 ALL_EXECUTABLES += $(LINUX_EXECUTABLES)
-ALL_DIRECTORIES = $(LINUX_BUILD_DIR) $(LINUX_DIST_DIR)
+ALL_DIRECTORIES += $(LINUX_BUILD_DIR) $(LINUX_DIST_DIR)
 ifndef MAKE_CLEAN_ACTIVE
 -include $(LINUX_DEPENDENCIES)
 endif
@@ -74,11 +69,15 @@ ALL_SOURCES += $(WINDOWS_LIBRARY_SOURCES) $(WINDOWS_EXECUTABLE_SOURCES)
 ALL_OBJECTS += $(WINDOWS_LIBRARY_OBJECTS) $(WINDOWS_EXECUTABLE_OBJECTS) 
 ALL_LIBRARIES += $(WINDOWS_LIBRARIES)
 ALL_EXECUTABLES += $(WINDOWS_EXECUTABLES)
-ALL_DIRECTORIES = $(WINDOWS_BUILD_DIR) $(WINDOWS_DIST_DIR)
+ALL_DIRECTORIES += $(WINDOWS_BUILD_DIR) $(WINDOWS_DIST_DIR)
 ifndef MAKE_CLEAN_ACTIVE
 -include $(WINDOWS_DEPENDENCIES)
 endif
 endif
+
+.PHONY: all build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries $(ALL_EXECUTABLES)
+
+all: build-objects build-libraries build-executables
 
 $(ALL_DIRECTORIES):
 	mkdir -p $@
@@ -167,22 +166,6 @@ endif
 	@mkdir -p $(WINDOWS_LIB_DIR)
 	@ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
 
-#ifeq ($(BUILD_FOR_LINUX),yes)
-#$(LINUX_DEPENDENCIES): $(LINUX_LIBRARY_SOURCES) $(LINUX_EXECUTABLE_SOURCES)
-#	@$(LINUX_CXX) -E -MD -o $@ $(LINUX_INCLUDES) -I. $(@:.P=.cpp)
-#	@cp $(@:.P=.d) $@; \
-#		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(@:.P=.d) >> $@; \
-#		rm -f $(@:.P=.d)
-#endif
-
-#ifeq ($(BUILD_FOR_WINDOWS),yes)
-#$(WINDOWS_DEPENDENCIES): $(WINDOWS_LIBRARY_SOURCES) $(WINDOWS_EXECUTABLE_SOURCES)
-#	@$(WINDOWS_CXX) -E -MD -o $@ $(WINDOWS_INCLUDES) -I. $(@:.P=.cpp)
-#	@cp $(@:.P=.d) $@; \
-#		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(@:.P=.d) >> $@; \
-#		rm -f $(@:.P=.d)
-#endif
-
 ifdef EXECUTABLES
 ifeq ($(BUILD_FOR_LINUX),yes)
 $(STATIC_LINUX_LIBRARIES):
@@ -201,21 +184,11 @@ $(WINDOWS_EXECUTABLES): $(WINDOWS_LIBRARY_SOURCES) $(WINDOWS_EXECUTABLE_SOURCES)
 endif
 endif
 
-build-directories:
-ifeq ($(BUILD_FOR_LINUX),yes)
-	@mkdir -p $(LINUX_BUILD_DIR)
-	@mkdir -p $(LINUX_DIST_DIR)
-endif
-ifeq ($(BUILD_FOR_WINDOWS),yes)
-	@mkdir -p $(WINDOWS_BUILD_DIR)
-	@mkdir -p $(WINDOWS_DIST_DIR)
-endif
+build-objects: $(ALL_DIRECTORIES) $(ALL_SOURCES) $(ALL_OBJECTS)
 
-build-objects: $(ALL_SOURCES) $(ALL_OBJECTS)
+build-libraries: $(ALL_DIRECTORIES) $(ALL_LIBRARIES)
 
-build-libraries: $(ALL_LIBRARIES)
-
-build-executables: $(ALL_EXECUTABLES)
+build-executables: $(ALL_DIRECTORIES) $(ALL_EXECUTABLES)
 
 dump-variables:
 	@echo BUILD_FOR_LINUX=$(BUILD_FOR_LINUX)
