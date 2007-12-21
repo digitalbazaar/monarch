@@ -70,17 +70,24 @@ void Observable::dispatchEvent(Event& e)
    {
       // unlock, wait for dispatch operations to complete, relock
       unlock();
-      opList.waitFor();
-      opList.prune();
+      if(!opList.waitFor())
+      {
+         // dispatch thread interrupted, so interrupt all
+         // event dispatches and wait for them to complete
+         opList.interrupt();
+         opList.waitFor(false);
+      }
       lock();
    }
 }
 
 void Observable::dispatchEvents()
 {
+   // lock while dispatching
    lock();
    {
-      while(!mEventQueue.empty())
+      // dispatch
+      while(!mEventQueue.empty() && !mOperation->isInterrupted())
       {
          // dispatch the next event
          Event e = mEventQueue.front();
@@ -215,8 +222,10 @@ void Observable::start(OperationRunner* opRunner)
    {
       if(mOperation.isNull())
       {
-         // store operation runner, create and run operation
+         // store operation runner, activate dispatching,
+         // create and run operation
          mOpRunner = opRunner;
+         mDispatch = true;
          mOperation = *this;
          opRunner->runOperation(mOperation);
       }
@@ -230,10 +239,29 @@ void Observable::stop()
    {
       if(!mOperation.isNull())
       {
-         // interrupt and clean up operation
+         // interrupt dispatch operation
          mOperation->interrupt();
+         
+         // Note: We only care about locking in this method to prevent
+         // start() from running while we are shutting down -- we don't
+         // care if more events are scheduled because that won't cause
+         // any conflicts. Since this is the case, and start() will
+         // check mOperation.isNull() before starting anything, then
+         // we don't need to worry about it starting here since mOperation
+         // can't be NULL until we relock and clear it below.
+         // 
+         // We need to unlock() while we wait for the dispatch operation
+         // to complete because it needs to lock after dispatching each
+         // event and won't finish if we are holding the lock here waiting
+         // for it to finish.
+         
+         // unlock, wait for dispatch operation to finish, relock
+         unlock();
          mOperation->waitFor();
-         mOperation = NULL;
+         lock();
+         
+         // clean up operation
+         mOperation.setNull();
       }
    }
    unlock();
