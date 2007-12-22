@@ -5215,7 +5215,7 @@ void runMySqlConnectionTest()
    cout << "Starting MySqlConnection test." << endl << endl;
    
    MySqlConnection c;
-   c.connect("mysql://dbreadclient:k288m2s8f6gk39a@mojo/test");
+   c.connect("mysql://dbreadclient:k288m2s8f6gk39a@mojo.bitmunk.com/test");
    assertNoException();
    
    // clean up mysql
@@ -5224,7 +5224,7 @@ void runMySqlConnectionTest()
    cout << endl << "MySqlConnection test complete." << endl;
 }
 
-void runMySqlStatementTest()
+void runMySqlStatementTest(TestRunner& tr)
 {
    cout << "Starting MySql test." << endl << endl;
    
@@ -5232,7 +5232,8 @@ void runMySqlStatementTest()
    Exception::clearLast();
    
    MySqlConnection c;
-   c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@mojo/test");
+   c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@mojo.bitmunk.com/test");
+   assertNoException();
    
    db::sql::Statement* s;
    
@@ -5323,7 +5324,7 @@ void runMySqlStatementTest()
    cout << endl << "MySql test complete." << endl;
 }
 
-void runMysqlRowObjectTest(TestRunner& tr)
+void runMySqlRowObjectTest(TestRunner& tr)
 {
    tr.group("MySql RowObject");
    
@@ -5331,7 +5332,8 @@ void runMysqlRowObjectTest(TestRunner& tr)
    Exception::clearLast();
    
    MySqlConnection c;
-   c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@mojo/test");
+   c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@mojo.bitmunk.com/test");
+   assertNoException();
    
    db::sql::Statement* s;
    
@@ -5681,7 +5683,7 @@ void runDatabaseClientTest()
    
    // get a mysql database client
    dc = DatabaseClient::create(
-      "mysql://dbwriteclient:k288m2s8f6gk39a@mojo/test");
+      "mysql://dbwriteclient:k288m2s8f6gk39a@mojo.bitmunk.com/test");
    assertNoException();
    
    // get a connection
@@ -6699,7 +6701,7 @@ public:
       runSqlite3ConnectionTest(tr);
       runSqlite3StatementTest(tr);
       runSqlite3RowObjectTest(tr);
-      runMysqlRowObjectTest(tr);
+      runMySqlRowObjectTest(tr);
       
       // db::event tests
       runEventTest(tr);
@@ -6746,6 +6748,7 @@ public:
 //      runPingTest();
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
+//      runMySqlRowObjectTest(tr);
 //      runConnectionPoolTest();
 //      runDatabaseClientTest();
 //      runLoggerTest();

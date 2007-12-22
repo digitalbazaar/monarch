@@ -4,8 +4,6 @@
 #include "db/sql/mysql/MySqlConnection.h"
 #include "db/sql/mysql/MySqlStatement.h"
 
-#include <iostream>
-
 using namespace std;
 using namespace db::sql;
 using namespace db::sql::mysql;
@@ -14,11 +12,8 @@ using namespace db::rt;
 
 MySqlConnection::MySqlConnection()
 {
-   // initialize handle
-   mHandle = mysql_init(NULL);
-   
-   // default character set to UTF-8
-   mysql_options(mHandle, MYSQL_SET_CHARSET_NAME, "utf8");
+   // no handle yet
+   mHandle = NULL;
 }
 
 MySqlConnection::~MySqlConnection()
@@ -49,6 +44,12 @@ SqlException* MySqlConnection::connect(Url* url)
    }
    else
    {
+      // initialize handle
+      mHandle = mysql_init(NULL);
+      
+      // default character set to UTF-8
+      mysql_options(mHandle, MYSQL_SET_CHARSET_NAME, "utf8");
+      
       // FIXME: we want to add read/write/create params to the URL
       // so connections can be read-only/write/etc (use query in URL)
       if(mysql_real_connect(
