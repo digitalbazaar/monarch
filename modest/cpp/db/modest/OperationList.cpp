@@ -16,6 +16,22 @@ OperationList::~OperationList()
    terminate();
 }
 
+Operation& OperationList::operator[](int index)
+{
+   Operation* op = NULL;
+   
+   lock();
+   {
+      // assumes index is not invalid
+      list<Operation>::iterator i = mOperations.begin();
+      for(int count = 0; count < index; i++, count++);
+      op = &(*i);
+   }
+   unlock();
+   
+   return *op;
+}
+
 void OperationList::add(Operation& op)
 {
    lock();
@@ -34,6 +50,19 @@ void OperationList::remove(Operation& op)
       if(i != mOperations.end())
       {
          mOperations.erase(i);
+      }
+   }
+   unlock();
+}
+
+void OperationList::queue(OperationRunner* opRunner)
+{
+   lock();
+   {
+      for(list<Operation>::iterator i = mOperations.begin();
+          i != mOperations.end(); i++)
+      {
+         opRunner->runOperation(*i);
       }
    }
    unlock();
@@ -118,4 +147,14 @@ bool OperationList::isEmpty()
    unlock();
    
    return rval;
+}
+
+void OperationList::clear()
+{
+   mOperations.clear();
+}
+
+bool OperationList::length()
+{
+   return mOperations.size();
 }

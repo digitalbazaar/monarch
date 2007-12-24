@@ -4,7 +4,7 @@
 #ifndef db_modest_OperationList_H
 #define db_modest_OperationList_H
 
-#include "db/modest/Operation.h"
+#include "db/modest/OperationRunner.h"
 
 #include <list>
 
@@ -15,9 +15,9 @@ namespace modest
 
 /**
  * An OperationList is used to keep track of multiple Operations. It can
- * be used to interrupt all Operations in the list at once. When this list is
- * destructed, all of its Operations will be automatically interrupted, waited
- * for, and pruned.
+ * be used to perform an action on all Operations in the list at once, such
+ * as queuing or interrupting. When this list is destructed, all of its
+ * Operations will be automatically interrupted, waited for, and pruned.
  * 
  * @author Dave Longley
  */
@@ -42,6 +42,16 @@ public:
    virtual ~OperationList();
    
    /**
+    * Returns an Operation in the list based on its index. The index
+    * is assumed to be within the range of the list.
+    * 
+    * @param index the index of the Operation.
+    * 
+    * @return the Operation.
+    */
+   virtual Operation& operator[](int index);
+   
+   /**
     * Adds the passed Operation to this list.
     * 
     * @param op the Operation to add.
@@ -54,6 +64,13 @@ public:
     * @param op the Operation to remove.
     */
    virtual void remove(Operation& op);
+   
+   /**
+    * Queues all of the Operations in this list with the given OperationRunner.
+    * 
+    * @param opRunner the OperationRunner to queue the Operations with.
+    */
+   virtual void queue(OperationRunner* opRunner);
    
    /**
     * Interrupts all Operations in this list.
@@ -100,6 +117,18 @@ public:
     * @return true if this OperationList is empty, false if not.
     */
    virtual bool isEmpty();
+   
+   /**
+    * Clears this list of all of its Operations.
+    */
+   virtual void clear();
+   
+   /**
+    * Returns the number of Operations in this list.
+    * 
+    * @return the number of Operations in this list.
+    */
+   virtual bool length();
 };
 
 } // end namespace modest
