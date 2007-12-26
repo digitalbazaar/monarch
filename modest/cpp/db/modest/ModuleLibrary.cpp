@@ -18,18 +18,25 @@ ModuleLibrary::~ModuleLibrary()
    ModuleLibrary::unloadAllModules();
 }
 
-Module* ModuleLibrary::findModule(const char* name)
+Module* ModuleLibrary::findModule(const ModuleId* id)
 {
    Module* rval = NULL;
    
    // find module
-   ModuleMap::iterator i = mModules.find(name);
+   ModuleMap::iterator i = mModules.find(id);
    if(i != mModules.end())
    {
       rval = i->second->module;
    }
    
    return rval;
+}
+
+Module* ModuleLibrary::findModule(const char* name)
+{
+   // find module
+   ModuleId id(name);
+   return findModule(&id);
 }
 
 Module* ModuleLibrary::loadModule(const char* filename)
@@ -43,51 +50,57 @@ Module* ModuleLibrary::loadModule(const char* filename)
       if(mi != NULL)
       {
          // ensure the module isn't already loaded
-         if(findModule(mi->module->getId().name) == NULL)
+         if(findModule(&mi->module->getId()) == NULL)
          {
             // initialize the module
             Exception* e = mi->module->initialize(mKernel);
             if(e == NULL)
             {
                // add Module to the map and list
-               mModules[mi->module->getId().name] = mi;
-               mLoadOrder.push_back(mi->module->getId().name);
+               mModules[&mi->module->getId()] = mi;
+               mLoadOrder.push_back(&mi->module->getId());
                rval = mi->module;
             }
             else
             {
                // could not initialize module, so unload it
-               string msg;
-               msg.append("Could not initialize module '");
-               msg.append(filename);
-               msg.append("', module named '");
-               msg.append(mi->module->getId().name);
-               msg.append("', version '");
-               msg.append(mi->module->getId().version);
-               msg.append("',exception=");
-               msg.append(e->getMessage());
-               msg.push_back(':');
-               msg.append(e->getType());
-               msg.push_back(':');
-               char temp[20];
-               sprintf(temp, "%i", e->getCode());
-               msg.append(temp);
-               Exception::setLast(new Exception(msg.c_str()));
+               char temp[120 +
+                  strlen(filename) + 
+                  strlen(mi->module->getId().name) +
+                  strlen(mi->module->getId().version) +
+                  strlen(e->getMessage()) +
+                  strlen(e->getType())];
+               sprintf(temp,
+                  "Could not initialize module '%s' "
+                  "named '%s', version '%s',cause=%s:%s:%i",
+                  filename,
+                  mi->module->getId().name,
+                  mi->module->getId().version,
+                  e->getMessage(),
+                  e->getType(),
+                  e->getCode());
+               Exception* ex = new Exception(
+                  temp, "db.modest.ModuleInitializationError");
+               ex->setCause(e, true);
+               Exception::setLast(ex);
                mLoader.unloadModule(mi);
             }
          }
          else
          {
             // module is already loaded, set exception and unload it
-            string msg;
-            msg.append("Could not load module '");
-            msg.append(filename);
-            msg.append("', another module named '");
-            msg.append(mi->module->getId().name);
-            msg.append("' with version '");
-            msg.append(mi->module->getId().version);
-            msg.append("' is already loaded.");
-            Exception::setLast(new Exception(msg.c_str()));
+            char temp[100 +
+               strlen(filename) + 
+               strlen(mi->module->getId().name) +
+               strlen(mi->module->getId().version)];
+            sprintf(temp,
+               "Could not load module '%s'. Module "
+               "named '%s' with version '%s' is already loaded.",
+               filename,
+               mi->module->getId().name,
+               mi->module->getId().version);
+            Exception::setLast(
+               new Exception(temp), "db.modest.DuplicateModule");
             mLoader.unloadModule(mi);
          }
       }
@@ -97,12 +110,12 @@ Module* ModuleLibrary::loadModule(const char* filename)
    return rval;
 }
 
-void ModuleLibrary::unloadModule(const char* name)
+void ModuleLibrary::unloadModule(const ModuleId* id)
 {
    lock();
    {
       // find module
-      ModuleMap::iterator i = mModules.find(name);
+      ModuleMap::iterator i = mModules.find(id);
       if(i != mModules.end())
       {
          // get module
@@ -110,10 +123,10 @@ void ModuleLibrary::unloadModule(const char* name)
          
          // erase module from map and list
          mModules.erase(i);
-         for(list<const char*>::iterator li = mLoadOrder.begin();
+         for(ModuleList::iterator li = mLoadOrder.begin();
              li != mLoadOrder.end(); li++)
          {
-            if(strcmp(*li, name) == 0)
+            if(**li == *id)
             {
                mLoadOrder.erase(li);
                break;
@@ -151,14 +164,14 @@ void ModuleLibrary::unloadAllModules()
    unlock();
 }
 
-Module* ModuleLibrary::getModule(const char* name)
+Module* ModuleLibrary::getModule(const ModuleId* id)
 {
    Module* rval = NULL;
    
    lock();
    {
       // find Module
-      rval = findModule(name);
+      rval = findModule(id);
    }
    unlock();
    
@@ -183,14 +196,14 @@ const ModuleId* ModuleLibrary::getModuleId(const char* name)
    return rval;
 }
 
-ModuleInterface* ModuleLibrary::getModuleInterface(const char* name)
+ModuleInterface* ModuleLibrary::getModuleInterface(const ModuleId* id)
 {
    ModuleInterface* rval = NULL;
    
    lock();
    {
       // find Module
-      Module* m = findModule(name);
+      Module* m = findModule(id);
       if(m != NULL)
       {
          rval = m->getInterface();

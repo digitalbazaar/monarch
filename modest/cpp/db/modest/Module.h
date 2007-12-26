@@ -43,8 +43,26 @@ typedef struct ModuleId
     */
    ModuleId(const char* name = "", const char* version = "")
    {
-      name = name;
-      version = version;
+      this->name = name;
+      this->version = version;
+   }
+   
+   /**
+    * Compares two ModuleIds for equality.
+    * 
+    * Two ModuleIds are equal if the names are the same and the
+    * versions are the same or at least one of the versions is NULL.
+    * 
+    * @param id the ModuleId to compare to.
+    * 
+    * @return true if the id1 == id2, false if not.
+    */
+   bool operator==(const ModuleId& id) const
+   {
+      return
+         strcmp(name, id.name) == 0 &&
+         ((version == NULL || id.version == NULL) ||
+          strcmp(version, id.version) == 0);
    }
 };
 

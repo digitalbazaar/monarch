@@ -40,22 +40,38 @@ class ModuleLibrary : public virtual db::rt::Object
 {
 protected:
    /**
-    * A NameComparator compares two module names.
+    * An IdComparator compares two module IDs.
     */
-   typedef struct NameComparator
+   typedef struct ModuleIdComparator
    {
       /**
-       * Compares two null-terminated strings, returning true if the first is
-       * less than the second, false if not.
+       * Compares two ModuleIds, returning true if the first is less than
+       * the second, false if not. A ModuleId is less than another if it
+       * its name is less or if the names are equal but the version is less.
        * 
-       * @param s1 the first string.
-       * @param s2 the second string.
+       * @param id1 the first ModuleId.
+       * @param id2 the second ModuleId.
        * 
-       * @return true if the s1 < s2, false if not.
+       * @return true if the id1 < id2, false if not.
        */
-      bool operator()(const char* s1, const char* s2) const
+      bool operator()(const ModuleId* id1, const ModuleId* id2) const
       {
-         return strcmp(s1, s2) < 0;
+         bool rval = false;
+         
+         if(id1 != id2)
+         {
+            int i = strcmp(id1->name, id2->name);
+            if(i < 0)
+            {
+               rval = true;
+            }
+            else if(i == 0 && id1->version != NULL && id2->version != NULL) 
+            {
+               rval = (strcmp(id1->version, id2->version) < 0);
+            }
+         }
+         
+         return rval;
       }
    };
    
@@ -72,13 +88,23 @@ protected:
    /**
     * The map of loaded Modules.
     */
-   typedef std::map<const char*, ModuleInfo*, NameComparator> ModuleMap;
+   typedef std::map<const ModuleId*, ModuleInfo*, ModuleIdComparator> ModuleMap;
    ModuleMap mModules;
    
    /**
     * A list that maintains the order in which Modules were loaded.
     */
-   std::list<const char*> mLoadOrder;
+   typedef std::list<const ModuleId*> ModuleList;
+   ModuleList mLoadOrder;
+   
+   /**
+    * Finds a loaded Module by its ID.
+    * 
+    * @param id the ModuleId.
+    * 
+    * @return the Module or NULL if none exists by the given ID.
+    */
+   Module* findModule(const ModuleId* id);
    
    /**
     * Finds a loaded Module by its name.
@@ -114,9 +140,9 @@ public:
    /**
     * Unloads a Module from this ModuleLibrary, if it is loaded.
     * 
-    * @param name the name of the Module to unload.
+    * @param id the ModuleId of the Module to unload.
     */
-   virtual void unloadModule(const char* name);
+   virtual void unloadModule(const ModuleId* id);
    
    /**
     * Unloads all Modules from this ModuleLibrary, in the reverse order
@@ -125,16 +151,17 @@ public:
    virtual void unloadAllModules();
    
    /**
-    * Gets a Module by its name.
+    * Gets a Module by its ID. The specified ModuleId can use a version of NULL
+    * to retrieve any module with the ID's given name.
     * 
-    * @param name the name of the Module.
+    * @param id the ModuleId of the Module.
     * 
     * @return the Module or NULL if it does not exist.
     */
-   virtual Module* getModule(const char* name);
+   virtual Module* getModule(const ModuleId* id);
    
    /**
-    * Gets the ModuleId for the Module with the given name.
+    * Gets the first ModuleId for the Module with the given name.
     * 
     * @param name the name of the Module to get the ID for.
     * 
@@ -144,14 +171,16 @@ public:
    virtual const ModuleId* getModuleId(const char* name);
    
    /**
-    * Gets the interface to the Module with the given name.
+    * Gets the interface to the Module with the given ModuleId. The specified
+    * ModuleId can use a version of NULL to retrieve any module with the ID's
+    * given name.
     * 
-    * @param name the name of the Module to get the interface for.
+    * @param id the ModuleId of the Module to get the interface for.
     * 
     * @return the Module's interface, or NULL if the Module does not exist
     *         or it has no interface.
     */
-   virtual ModuleInterface* getModuleInterface(const char* name);
+   virtual ModuleInterface* getModuleInterface(const ModuleId* id);
 };
 
 } // end namespace modest
