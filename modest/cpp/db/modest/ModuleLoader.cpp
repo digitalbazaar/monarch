@@ -5,7 +5,6 @@
 #include "db/modest/ModuleApi.h"
 #include "db/rt/DynamicLibrary.h"
 
-using namespace std;
 using namespace db::modest;
 using namespace db::rt;
 
@@ -54,22 +53,20 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
       else
       {
          // could not load create or free functions
-         string msg = "Could not load module '";
-         msg.append(filename);
-         msg.append("', error=");
-         msg.append(error);
-         Exception::setLast(new Exception(msg.c_str()));
+         char temp[100 + strlen(filename) + strlen(error)];
+         sprintf(temp, "Could not load module '%s',error=%s", filename, error);
+         Exception::setLast(new Exception(temp));
       }
    }
    else
    {
       // failed to open module
       char* error = dlerror();
-      string msg = "Could not load module '";
-      msg.append(filename);
-      msg.append("', could not open module file, error=");
-      msg.append(error);
-      Exception::setLast(new Exception(msg.c_str()));
+      char temp[100 + strlen(filename) + strlen(error)];
+      sprintf(temp,
+         "Could not load module '%s', could not open module file,error=%s",
+         filename, error);
+      Exception::setLast(new Exception(temp));
    }
    
    return rval;
