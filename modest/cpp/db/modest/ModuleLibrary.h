@@ -133,7 +133,7 @@ public:
     * 
     * @param filename the name of the file where the Module resides.
     * 
-    * @return the Module, if it was loaded, NULL if not.
+    * @return the Module, if it was loaded, NULL if not (an Exception occurred).
     */
    virtual Module* loadModule(const char* filename);
    
