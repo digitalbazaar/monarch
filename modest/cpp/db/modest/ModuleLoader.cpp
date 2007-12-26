@@ -54,8 +54,8 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
       {
          // could not load create or free functions
          char temp[100 + strlen(filename) + strlen(error)];
-         sprintf(temp, "Could not load module '%s',error=%s", filename, error);
-         Exception::setLast(new Exception(temp));
+         sprintf(temp, "Could not load module '%s', error=%s", filename, error);
+         Exception::setLast(new Exception(temp, "db.modest.BadModule"));
       }
    }
    else
@@ -64,9 +64,9 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
       char* error = dlerror();
       char temp[100 + strlen(filename) + strlen(error)];
       sprintf(temp,
-         "Could not load module '%s', could not open module file,error=%s",
+         "Could not load module '%s', could not open module file, error=%s",
          filename, error);
-      Exception::setLast(new Exception(temp));
+      Exception::setLast(new Exception(temp, "db.modest.BadModuleFile"));
    }
    
    return rval;
