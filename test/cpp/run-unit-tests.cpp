@@ -2243,11 +2243,9 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       cipher.startEncrypting(algorithm, &key);
       assert(key != NULL);
       
-      // update encryption
+      // update and finish encryption
       ByteBuffer output;
       cipher.update(message, length, &output, true);
-      
-      // finish encryption
       cipher.finish(&output, true);
       
       // do decryption
