@@ -74,6 +74,10 @@ public:
     * @return true if encryption mode is enabled, false if decryption mode is.
     */
    virtual bool isEncryptEnabled();
+   
+   // use update/finish from BlockCipher
+   using BlockCipher::update;
+   using BlockCipher::finish;
 };
 
 } // end namespace crypto

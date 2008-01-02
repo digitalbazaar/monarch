@@ -152,6 +152,10 @@ public:
     * @return true if no exception occurred, false if not.
     */
    virtual bool finish(char* out, int& length);
+   
+   // use update/finish from AbstractBlockCipher
+   using AbstractBlockCipher::update;
+   using AbstractBlockCipher::finish;
 };
 
 } // end namespace crypto

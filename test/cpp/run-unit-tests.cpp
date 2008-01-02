@@ -2168,9 +2168,7 @@ void runEnvelopeTest(TestRunner& tr)
 void runCipherTest(TestRunner& tr, const char* algorithm)
 {
    tr.group("Cipher");
-
-   tr.test(algorithm);
-
+   
    // include crypto error strings
    ERR_load_crypto_strings();
    
@@ -2180,82 +2178,96 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
    
-   // create a secret message
-   char message[] = "I'll never teelllll!";
-   int length = strlen(message);
-   
-   string display1 = "";
-   display1.append(message, length);
-   //cout << "Encrypting message '" << display1 << "'" << endl;
-   //cout << "Message Length=" << length << endl;
-   
-   // get a default block cipher
-   DefaultBlockCipher cipher;
-   
-   //cout << "Starting encryption..." << endl;
-   
-   // generate a new key for the encryption
-   SymmetricKey* key = NULL;
-   cipher.startEncrypting(algorithm, &key);
-
-   assert(key != NULL);
-   
-   if(key != NULL)
+   tr.test(algorithm);
    {
+      // create a secret message
+      char message[] = "I'll never teelllll!";
+      int length = strlen(message);
+      
+      // get a default block cipher
+      DefaultBlockCipher cipher;
+      
+      // generate a new key and start encryption
+      SymmetricKey* key = NULL;
+      cipher.startEncrypting(algorithm, &key);
+      assert(key != NULL);
+      
       // update encryption
       char output[2048];
       int outLength;
       int totalOut = 0;
       cipher.update(message, length, output, outLength);
-      //cout << "Updated encryption..." << endl;
       totalOut += outLength;
       
-      // finish the envelope
-      //cout << "Output Length=" << outLength << endl;
+      // finish encryption
       cipher.finish(output + outLength, outLength);
-      //cout << "Finished encryption..." << endl;
       totalOut += outLength;
       
-      //cout << "Total Output Length=" << totalOut << endl;
-      
-      //cout << "Starting decryption..." << endl;
+      // start decryption
       cipher.startDecrypting(key);
       
-      // update the decryption
+      // update decryption
       char input[2048];
       int inLength;
       int totalIn = 0;
       cipher.update(output, totalOut, input, inLength);
-      //cout << "Updated decryption..." << endl;
       totalIn += inLength;
       
-      // finish the decryption
-      //cout << "Input Length=" << inLength << endl;
+      // finish decryption
       cipher.finish(input + inLength, inLength);
-      //cout << "Finished decrypting..." << endl;
       totalIn += inLength;
       
-      //cout << "Total Input Length=" << totalIn << endl;
-      
-      // create a string to display the received message
-      string display2 = "";
-      display2.append(input, totalIn);
-      
-      //cout << "Decrypted message '" << display2 << "'" << endl;
-      assert(display1 == display2);
-   }
-   
-   // cleanup key
-   if(key != NULL)
-   {
+      // cleanup key
       delete key;
+      
+      // check the decrypted message
+      string result(input, totalIn);
+      assert(strcmp(message, result.c_str()) == 0);
    }
+   tr.passIfNoException();
+   
+   // do byte buffer test
+   string alg = algorithm;
+   alg.append("+ByteBuffer");
+   tr.test(alg.c_str());
+   {
+      // create a secret message
+      char message[] = "I'll never teelllll!";
+      int length = strlen(message);
+      
+      // get a default block cipher
+      DefaultBlockCipher cipher;
+      
+      // generate a new key and start encryption
+      SymmetricKey* key = NULL;
+      cipher.startEncrypting(algorithm, &key);
+      assert(key != NULL);
+      
+      // update encryption
+      ByteBuffer output;
+      cipher.update(message, length, &output, true);
+      
+      // finish encryption
+      cipher.finish(&output, true);
+      
+      // do decryption
+      ByteBuffer input;
+      cipher.startDecrypting(key);
+      cipher.update(output.data(), output.length(), &input, true);
+      cipher.finish(&input, true);
+      
+      // cleanup key
+      delete key;
+      
+      // check the decrypted message
+      string result(input.data(), input.length());
+      assert(strcmp(message, result.c_str()) == 0);
+   }
+   tr.passIfNoException();
    
    // clean up crypto strings
    EVP_cleanup();
-
-   tr.passIfNoException();
-
+   
    tr.ungroup();
 }
 
@@ -6732,6 +6744,7 @@ public:
 //      runStringEqualityTest();
 //      runStringAppendCharTest();
 //      runStringCompareTest();
+//      runCipherTest(tr, "AES256");
 //      runAsymmetricKeyLoadingTest(tr);
 //      runSslSocketTest();
 //      runServerSocketTest();

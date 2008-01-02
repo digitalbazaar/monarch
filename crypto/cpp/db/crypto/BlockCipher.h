@@ -1,8 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_BlockCipher_H
 #define db_crypto_BlockCipher_H
+
+#include "db/io/ByteBuffer.h"
 
 namespace db
 {
@@ -25,12 +27,12 @@ public:
    /**
     * Creates a new BlockCipher.
     */
-   BlockCipher() {};
+   BlockCipher();
    
    /**
     * Destructs this BlockCipher.
     */
-   virtual ~BlockCipher() {};
+   virtual ~BlockCipher();
    
    /**
     * Updates the data that is being encrypted or decrypted. This method can
@@ -60,6 +62,40 @@ public:
     * @return true if no exception occurred, false if not.
     */
    virtual bool finish(char* out, int& length) = 0;
+   
+   /**
+    * Updates the data that is being encrypted or decrypted. This method can
+    * be called repeatedly with chunks of the data that is to be encrypted or
+    * decrypted.
+    * 
+    * The out buffer must be at least inLength + getBlockSize() or it will
+    * be resized if permitted. The out buffer's length will be extended to
+    * accommodate any bytes written to it.
+    * 
+    * @param in a buffer with data to encrypt/decrypt.
+    * @param inLength the length of the data.
+    * @param out a buffer to fill with encrypted/decrypted data.
+    * @param resize true to allow resizing of the buffer, false not to.
+    * 
+    * @return true if no exception occurred, false if not.
+    */
+   virtual bool update(
+      char* in, int inLength, db::io::ByteBuffer* out, bool resize);
+   
+   /**
+    * Puts the final chunk of encrypted or decrypted data into a ByteBuffer,
+    * resizing if necessary, if permitted.
+    * 
+    * The out buffer must be at least getBlockSize() bytes long or it will
+    * be resized if permitted. The out buffer's length will be extended to
+    * accommodate any bytes written to it.
+    * 
+    * @param out a buffer to fill with the data.
+    * @param resize true to allow resizing of the buffer, false not to.
+    * 
+    * @return true if no exception occurred, false if not.
+    */
+   virtual bool finish(db::io::ByteBuffer* out, bool resize);
    
    /**
     * Gets the cipher block size.
