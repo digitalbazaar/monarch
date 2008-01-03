@@ -15,9 +15,9 @@ SUBDIRS := 3rdparty/cpp \
            test/cpp
 
 ifdef PRINT_DIRECTORIES
-MAKE_DIR = $(MAKE) -j -l 10.0 -C $(dir)
+MAKE_DIR = $(MAKE) -j -l 5.0 -C $(dir)
 else
-MAKE_DIR = $(MAKE) -j -l 10.0 --no-print-directory -s -C $(dir)
+MAKE_DIR = $(MAKE) -j -l 5.0 --no-print-directory -s -C $(dir)
 endif
 
 .PHONY: all verbose clean test internal-docs

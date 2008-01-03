@@ -264,7 +264,7 @@ public:
     * 
     * @return the capacity of this buffer.
     */
-   virtual int getCapacity() const;
+   virtual int capacity() const;
    
    /**
     * Sets the internal buffer to the same buffer used by the passed
@@ -323,7 +323,7 @@ public:
     * 
     * @return the amount of free space in this buffer, in bytes.
     */
-   virtual int getFreeSpace() const;
+   virtual int freeSpace() const;
    
    /**
     * Returns true if this buffer is full.

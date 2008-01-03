@@ -24,9 +24,9 @@ ByteBuffer::ByteBuffer(char* b, int offset, int length, bool cleanup)
 ByteBuffer::ByteBuffer(const ByteBuffer& copy)
 {
    // copy bytes
-   mCapacity = copy.getCapacity();
+   mCapacity = copy.capacity();
    mBuffer = (mCapacity > 0) ? (char*)malloc(mCapacity) : NULL;
-   memcpy(mBuffer, copy.bytes(), copy.getCapacity());
+   memcpy(mBuffer, copy.bytes(), copy.capacity());
    mOffset = copy.offset();
    mLength = copy.length();
    mCleanup = true;
@@ -62,7 +62,7 @@ void ByteBuffer::allocateSpace(int length, bool resize)
    if(resize)
    {
       // determine if the buffer needs to be resized
-      int overflow = length - getFreeSpace();
+      int overflow = length - freeSpace();
       if(overflow > 0)
       {
          // resize the buffer by the overflow amount
@@ -73,7 +73,7 @@ void ByteBuffer::allocateSpace(int length, bool resize)
    // determine if the data needs to be shifted
    if(mOffset > 0)
    {
-      int overflow = length - getFreeSpace() + mOffset;
+      int overflow = length - freeSpace() + mOffset;
       if(overflow > 0)
       {
          if(mLength > 0)
@@ -115,7 +115,7 @@ int ByteBuffer::put(const char* b, int length, bool resize)
    allocateSpace(length, resize);
    
    // copy data into the buffer
-   length = (length < getFreeSpace()) ? length : getFreeSpace();
+   length = (length < freeSpace()) ? length : freeSpace();
    memcpy(data() + mLength, b, length);
    mLength += length;
    
@@ -136,10 +136,10 @@ int ByteBuffer::put(InputStream* is)
    if(!isFull())
    {
       // allocate free space
-      allocateSpace(getFreeSpace(), false);
+      allocateSpace(freeSpace(), false);
       
       // read
-      rval = is->read(data() + mLength, getFreeSpace());
+      rval = is->read(data() + mLength, freeSpace());
       if(rval != -1)
       {
          // increment length
@@ -228,7 +228,7 @@ int ByteBuffer::trim(int length)
 int ByteBuffer::extend(int length)
 {
    // ensure that the maximum extended is (free space - offset)
-   int max = getFreeSpace() - mOffset;
+   int max = freeSpace() - mOffset;
    int rval = (length > 0) ? ((max < length) ? max : length) : 0;
    
    // set new length
@@ -237,7 +237,7 @@ int ByteBuffer::extend(int length)
    return rval;
 }
 
-int ByteBuffer::getCapacity() const
+int ByteBuffer::capacity() const
 {
    return mCapacity;
 }
@@ -279,14 +279,14 @@ int ByteBuffer::length() const
    return mLength;
 }
 
-int ByteBuffer::getFreeSpace() const
+int ByteBuffer::freeSpace() const
 {
    return mCapacity - mLength;
 }
 
 bool ByteBuffer::isFull() const
 {
-   return getFreeSpace() == 0;
+   return freeSpace() == 0;
 }
 
 bool ByteBuffer::isEmpty() const
