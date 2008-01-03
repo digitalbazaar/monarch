@@ -7,10 +7,11 @@ using namespace std;
 using namespace db::io;
 using namespace db::rt;
 
-FileInputStream::FileInputStream(File* file)
+FileInputStream::FileInputStream(File* file, bool cleanup)
 {
-   // store file
+   // store file, clean up setting
    mFile = file;
+   mCleanupFile = cleanup;
 }
 
 FileInputStream::~FileInputStream()
@@ -19,6 +20,12 @@ FileInputStream::~FileInputStream()
    if(mStream.is_open())
    {
       mStream.close();
+   }
+   
+   // clean up file
+   if(mCleanupFile)
+   {
+      delete mFile;
    }
 }
 

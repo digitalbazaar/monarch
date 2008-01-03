@@ -17,7 +17,7 @@ FileOutputStream::FileOutputStream(File* file, bool append, bool cleanup)
 
 FileOutputStream::~FileOutputStream()
 {
-   if(mCleanupFile && mFile != NULL)
+   if(mCleanupFile)
    {
       delete mFile;
    }

@@ -28,6 +28,12 @@ protected:
    File* mFile;
    
    /**
+    * True to cleanup the underlying File when destructing,
+    * false not to.
+    */
+   bool mCleanupFile;
+   
+   /**
     * The ifstream to read with.
     */
    std::ifstream mStream;
@@ -45,8 +51,10 @@ public:
     * Creates a new FileInputStream that opens the passed File for reading.
     * 
     * @param file the File to read from.
+    * @param cleanup true to clean up the passed File when destructing,
+    *                false not to.
     */
-   FileInputStream(File* file);
+   FileInputStream(File* file, bool cleanup = false);
    
    /**
     * Destructs this FileInputStream.
