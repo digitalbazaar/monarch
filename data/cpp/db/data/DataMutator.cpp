@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/DataMutator.h"
 
@@ -76,12 +76,12 @@ int DataMutator::mutate(InputStream* is)
    return rval;
 }
 
-long DataMutator::skipMutatedBytes(InputStream* is, long count)
+long long DataMutator::skipMutatedBytes(InputStream* is, long long count)
 {
-   long rval = 0;
+   long long rval = 0;
    
    // mutate and skip data
-   long remaining = count;
+   long long remaining = count;
    while(remaining > 0 && mutate(is))
    {
       // clear bytes

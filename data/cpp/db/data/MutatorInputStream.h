@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_MutatorInputStream_H
 #define db_data_MutatorInputStream_H
@@ -83,7 +83,7 @@ public:
     * @return the actual number of bytes skipped, or -1 if the end of the
     *         stream is reached or -1 if an IO exception occurred.
     */
-   virtual long skip(long count);
+   virtual long long skip(long long count);
 };
 
 } // end namespace data

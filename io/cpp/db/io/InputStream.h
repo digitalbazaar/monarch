@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_io_InputStream_H
 #define db_io_InputStream_H
@@ -83,7 +83,7 @@ public:
     * @return the actual number of bytes skipped, or -1 if the end of the
     *         stream is reached or -1 if an IO exception occurred.
     */
-   virtual long skip(long count);
+   virtual long long skip(long long count);
    
    /**
     * Closes the stream.
@@ -99,9 +99,9 @@ inline int InputStream::peek(char* b, int length, bool block)
    return -1;
 }
 
-inline long InputStream::skip(long count)
+inline long long InputStream::skip(long long count)
 {
-   long skipped = 0;
+   long long skipped = 0;
    
    if(count > 0)
    {

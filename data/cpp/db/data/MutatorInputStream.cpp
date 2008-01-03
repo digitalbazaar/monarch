@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/MutatorInputStream.h"
 
@@ -35,7 +35,7 @@ int MutatorInputStream::read(char* b, int length)
    return rval;
 }
 
-long MutatorInputStream::skip(long count)
+long long MutatorInputStream::skip(long long count)
 {
    return mMutator.skipMutatedBytes(mInputStream, count);
 }

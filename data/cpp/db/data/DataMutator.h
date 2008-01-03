@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_DataMutator_H
 #define db_data_DataMutator_H
@@ -112,7 +112,7 @@ public:
     * 
     * @return the number of skipped mutated bytes.
     */
-   virtual long skipMutatedBytes(db::io::InputStream* is, long count);
+   virtual long long skipMutatedBytes(db::io::InputStream* is, long long count);
    
    /**
     * Gets data out of this mutator and puts it into the passed buffer. The

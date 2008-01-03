@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/FilterInputStream.h"
 
@@ -30,7 +30,7 @@ int FilterInputStream::peek(char* b, int length, bool block)
    return mInputStream->peek(b, length, block);
 }
 
-long FilterInputStream::skip(long count)
+long long FilterInputStream::skip(long long count)
 {
    return mInputStream->skip(count);
 }
