@@ -1631,6 +1631,111 @@ void runMessageDigestTest(TestRunner& tr)
    tr.pass();
 }
 
+
+void runCipherTest(TestRunner& tr, const char* algorithm)
+{
+   tr.group("Cipher");
+   
+   // include crypto error strings
+   ERR_load_crypto_strings();
+   
+   // add all algorithms
+   OpenSSL_add_all_algorithms();
+   
+   // seed PRNG
+   //RAND_load_file("/dev/urandom", 1024);
+   
+   tr.test(algorithm);
+   {
+      // create a secret message
+      char message[] = "I'll never teelllll!";
+      int length = strlen(message);
+      
+      // get a default block cipher
+      DefaultBlockCipher cipher;
+      
+      // generate a new key and start encryption
+      SymmetricKey* key = NULL;
+      cipher.startEncrypting(algorithm, &key);
+      assert(key != NULL);
+      
+      // update encryption
+      char output[2048];
+      int outLength;
+      int totalOut = 0;
+      cipher.update(message, length, output, outLength);
+      totalOut += outLength;
+      
+      // finish encryption
+      cipher.finish(output + outLength, outLength);
+      totalOut += outLength;
+      
+      // start decryption
+      cipher.startDecrypting(key);
+      
+      // update decryption
+      char input[2048];
+      int inLength;
+      int totalIn = 0;
+      cipher.update(output, totalOut, input, inLength);
+      totalIn += inLength;
+      
+      // finish decryption
+      cipher.finish(input + inLength, inLength);
+      totalIn += inLength;
+      
+      // cleanup key
+      delete key;
+      
+      // check the decrypted message
+      string result(input, totalIn);
+      assert(strcmp(message, result.c_str()) == 0);
+   }
+   tr.passIfNoException();
+   
+   // do byte buffer test
+   string alg = algorithm;
+   alg.append("+ByteBuffer");
+   tr.test(alg.c_str());
+   {
+      // create a secret message
+      char message[] = "I'll never teelllll!";
+      int length = strlen(message);
+      
+      // get a default block cipher
+      DefaultBlockCipher cipher;
+      
+      // generate a new key and start encryption
+      SymmetricKey* key = NULL;
+      cipher.startEncrypting(algorithm, &key);
+      assert(key != NULL);
+      
+      // update and finish encryption
+      ByteBuffer output;
+      cipher.update(message, length, &output, true);
+      cipher.finish(&output, true);
+      
+      // do decryption
+      ByteBuffer input;
+      cipher.startDecrypting(key);
+      cipher.update(output.data(), output.length(), &input, true);
+      cipher.finish(&input, true);
+      
+      // cleanup key
+      delete key;
+      
+      // check the decrypted message
+      string result(input.data(), input.length());
+      assert(strcmp(message, result.c_str()) == 0);
+   }
+   tr.passIfNoException();
+   
+   // clean up crypto strings
+   EVP_cleanup();
+   
+   tr.ungroup();
+}
+
 void runAsymmetricKeyLoadingTest(TestRunner& tr)
 {
    tr.test("Asymmetric Key Loading");
@@ -1644,54 +1749,37 @@ void runAsymmetricKeyLoadingTest(TestRunner& tr)
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
    
-   // read in PEM private key
-   File file1("/work/src/dbcpp/dbcore/trunk/Debug/private.pem");
-   FileInputStream fis1(&file1);
-   
-   string privatePem;
-   
-   char b[2048];
-   int numBytes;
-   while((numBytes = fis1.read(b, 2048)) > 0)
-   {
-      privatePem.append(b, numBytes);
-   }
-   
-   // close stream
-   fis1.close();
-   
-   cout << "Private Key PEM=" << endl << privatePem << endl;
-   
-   // read in PEM public key
-   File file2("/work/src/dbcpp/dbcore/trunk/Debug/public.pem");
-   FileInputStream fis2(&file2);
-   
-   string publicPem;
-   
-   while((numBytes = fis2.read(b, 2048)) > 0)
-   {
-      publicPem.append(b, numBytes);
-   }
-   
-   // close stream
-   fis2.close();
-   
-   cout << "Public Key PEM=" << endl << publicPem << endl;
-        
    // get an asymmetric key factory
    AsymmetricKeyFactory factory;
    
-   // load the private key
-   PrivateKey* privateKey = factory.loadPrivateKeyFromPem(
+   // create a new key pair
+   PrivateKey* privateKey;
+   PublicKey* publicKey;
+   factory.createKeyPair("RSA", &privateKey, &publicKey);
+   
+   assert(privateKey != NULL);
+   assert(publicKey != NULL);
+   
+   // write keys to PEMs
+   string privatePem = factory.writePrivateKeyToPem(privateKey, "password");
+   string publicPem = factory.writePublicKeyToPem(publicKey);   
+   
+   // cleanup keys
+   delete privateKey;
+   delete publicKey;
+   privateKey = NULL;
+   publicKey = NULL;
+   
+   // load the private key from PEM
+   privateKey = factory.loadPrivateKeyFromPem(
       privatePem.c_str(), privatePem.length(), "password");
    
-   cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
-   
-   // load the public key
-   PublicKey* publicKey = factory.loadPublicKeyFromPem(
+   // load the public key from PEM
+   publicKey = factory.loadPublicKeyFromPem(
       publicPem.c_str(), publicPem.length());
    
-   cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
+   assert(privateKey != NULL);
+   assert(publicKey != NULL);
    
    // sign some data
    char data[] = {1,2,3,4,5,6,7,8};
@@ -1712,18 +1800,8 @@ void runAsymmetricKeyLoadingTest(TestRunner& tr)
    
    assert(verified);
    
-   string outPrivatePem =
-      factory.writePrivateKeyToPem(privateKey, "password");
-   string outPublicPem =
-      factory.writePublicKeyToPem(publicKey);
-   
-   cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-   cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
-   
-   // delete the private key
+   // cleanup keys
    delete privateKey;
-   
-   // delete the public key
    delete publicKey;
    
    // clean up crypto strings
@@ -2166,108 +2244,135 @@ void runEnvelopeTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runCipherTest(TestRunner& tr, const char* algorithm)
+void runBigIntegerTest(TestRunner& tr)
 {
-   tr.group("Cipher");
+   tr.test("BigInteger");
+
+   #define NSI(op, expectstr) \
+   do { \
+      BigInteger result = op; \
+      string str; \
+      result.toString(str); \
+      assertStrCmp(str.c_str(), expectstr); \
+   } while(0)
+
+   BigInteger number1 = 2;
+   BigInteger number2 = 123456789;
    
-   // include crypto error strings
-   ERR_load_crypto_strings();
-   
-   // add all algorithms
-   OpenSSL_add_all_algorithms();
-   
-   // seed PRNG
-   //RAND_load_file("/dev/urandom", 1024);
-   
-   tr.test(algorithm);
-   {
-      // create a secret message
-      char message[] = "I'll never teelllll!";
-      int length = strlen(message);
-      
-      // get a default block cipher
-      DefaultBlockCipher cipher;
-      
-      // generate a new key and start encryption
-      SymmetricKey* key = NULL;
-      cipher.startEncrypting(algorithm, &key);
-      assert(key != NULL);
-      
-      // update encryption
-      char output[2048];
-      int outLength;
-      int totalOut = 0;
-      cipher.update(message, length, output, outLength);
-      totalOut += outLength;
-      
-      // finish encryption
-      cipher.finish(output + outLength, outLength);
-      totalOut += outLength;
-      
-      // start decryption
-      cipher.startDecrypting(key);
-      
-      // update decryption
-      char input[2048];
-      int inLength;
-      int totalIn = 0;
-      cipher.update(output, totalOut, input, inLength);
-      totalIn += inLength;
-      
-      // finish decryption
-      cipher.finish(input + inLength, inLength);
-      totalIn += inLength;
-      
-      // cleanup key
-      delete key;
-      
-      // check the decrypted message
-      string result(input, totalIn);
-      assert(strcmp(message, result.c_str()) == 0);
-   }
+   assert(number1 == 2);
+   assert(number2 == 123456789);
+
+   NSI(number1, "2");
+   NSI(number2, "123456789");
+   NSI(number1 + number2, "123456791");
+   NSI(number1 - number2, "-123456787");
+   NSI(number1 * number2, "246913578");
+   NSI(number2 / number1, "61728394");
+   NSI(number2 % number1, "1");
+   NSI(number2.pow(number1), "15241578750190521");
+
+   #undef NSI
+
    tr.passIfNoException();
+}
+
+void runBigDecimalTest(TestRunner& tr)
+{
+   tr.test("BigDecimal");
    
-   // do byte buffer test
-   string alg = algorithm;
-   alg.append("+ByteBuffer");
-   tr.test(alg.c_str());
+   #define NSD(op, expectstr) \
+   do { \
+      BigDecimal result = op; \
+      string str; \
+      result.toString(str); \
+      assertStrCmp(str.c_str(), expectstr); \
+   } while(0)
+
+   BigDecimal number1 = 3.0;
+   //BigDecimal number2 = 123456789.5;
+   BigDecimal number2 = "123456789.53";
+   //BigDecimal number2 = 1.234;
+   //BigDecimal number2 = "1.23e-04";
+   //BigDecimal number2 = "1234";
+      
+   NSD(number1, "3");
+   NSD(number2, "123456789.53");
+   NSD(number1 + number2, "123456792.53");
+   NSD(number1 - number2, "-123456786.53");
+   NSD(number1 * number2, "370370368.59");
+   NSD(number2 / number1, "41152263.1766666667");
+   NSD(number2 % number1, "0.53");
+
+   #define NSDR(n, i, d, expectstr) \
+   do { \
+      BigDecimal nr = n; \
+      nr.setPrecision(i, d); \
+      nr.round(); \
+      NSD(nr, expectstr); \
+   } while(0)
+   
+   BigDecimal number3 = "129.54678";
+   NSD(number3, "129.54678");
+   
+   NSDR(number3, 7, Up, "129.54678");
+   NSDR(number3, 6, Up, "129.54678");
+   NSDR(number3, 5, Up, "129.54678");
+   NSDR(number3, 4, Up, "129.5468");
+   NSDR(number3, 3, Up, "129.547");
+   NSDR(number3, 2, Up, "129.55");
+   NSDR(number3, 1, Up, "129.6");
+   NSDR(number3, 0, Up, "130");
+
+   NSDR(number3, 7, HalfUp, "129.54678");
+   NSDR(number3, 6, HalfUp, "129.54678");
+   NSDR(number3, 5, HalfUp, "129.54678");
+   NSDR(number3, 4, HalfUp, "129.5468");
+   NSDR(number3, 3, HalfUp, "129.547");
+   NSDR(number3, 2, HalfUp, "129.55");
+   NSDR(number3, 1, HalfUp, "129.5");
+   NSDR(number3, 0, HalfUp, "130");
+
+   NSDR(number3, 7, Down, "129.54678");
+   NSDR(number3, 6, Down, "129.54678");
+   NSDR(number3, 5, Down, "129.54678");
+   NSDR(number3, 4, Down, "129.5467");
+   NSDR(number3, 3, Down, "129.546");
+   NSDR(number3, 2, Down, "129.54");
+   NSDR(number3, 1, Down, "129.5");
+   NSDR(number3, 0, Down, "129");
+
+   /*
+   BigDecimal bd;
+   
+   for(int i = 7; i >= 0; i--)
    {
-      // create a secret message
-      char message[] = "I'll never teelllll!";
-      int length = strlen(message);
-      
-      // get a default block cipher
-      DefaultBlockCipher cipher;
-      
-      // generate a new key and start encryption
-      SymmetricKey* key = NULL;
-      cipher.startEncrypting(algorithm, &key);
-      assert(key != NULL);
-      
-      // update and finish encryption
-      ByteBuffer output;
-      cipher.update(message, length, &output, true);
-      cipher.finish(&output, true);
-      
-      // do decryption
-      ByteBuffer input;
-      cipher.startDecrypting(key);
-      cipher.update(output.data(), output.length(), &input, true);
-      cipher.finish(&input, true);
-      
-      // cleanup key
-      delete key;
-      
-      // check the decrypted message
-      string result(input.data(), input.length());
-      assert(strcmp(message, result.c_str()) == 0);
+      bd = number3;
+      bd.setPrecision(i, Up);
+      bd.round();
+      cout << "round " << i << " places, up=" << bd << endl;
    }
+   
+   for(int i = 7; i >= 0; i--)
+   {
+      bd = number3;
+      bd.setPrecision(i, HalfUp);
+      bd.round();
+      cout << "round " << i << " places, half up=" << bd << endl;
+   }
+   
+   for(int i = 7; i >= 0; i--)
+   {
+      bd = number3;
+      bd.setPrecision(i, Down);
+      bd.round();
+      cout << "round " << i << " places, down=" << bd << endl;
+   }
+   */
+
+   #undef NSD
+   #undef NSDR
+   
    tr.passIfNoException();
-   
-   // clean up crypto strings
-   EVP_cleanup();
-   
-   tr.ungroup();
 }
 
 void runAddressResolveTest(TestRunner& tr)
@@ -4767,137 +4872,6 @@ void runDynamicObjectBindingTest(TestRunner& tr)
    tr.pass();
 }
 
-void runBigIntegerTest(TestRunner& tr)
-{
-   tr.test("BigInteger");
-
-   #define NSI(op, expectstr) \
-   do { \
-      BigInteger result = op; \
-      string str; \
-      result.toString(str); \
-      assertStrCmp(str.c_str(), expectstr); \
-   } while(0)
-
-   BigInteger number1 = 2;
-   BigInteger number2 = 123456789;
-   
-   assert(number1 == 2);
-   assert(number2 == 123456789);
-
-   NSI(number1, "2");
-   NSI(number2, "123456789");
-   NSI(number1 + number2, "123456791");
-   NSI(number1 - number2, "-123456787");
-   NSI(number1 * number2, "246913578");
-   NSI(number2 / number1, "61728394");
-   NSI(number2 % number1, "1");
-   NSI(number2.pow(number1), "15241578750190521");
-
-   #undef NSI
-
-   tr.passIfNoException();
-}
-
-void runBigDecimalTest(TestRunner& tr)
-{
-   tr.test("BigDecimal");
-   
-   #define NSD(op, expectstr) \
-   do { \
-      BigDecimal result = op; \
-      string str; \
-      result.toString(str); \
-      assertStrCmp(str.c_str(), expectstr); \
-   } while(0)
-
-   BigDecimal number1 = 3.0;
-   //BigDecimal number2 = 123456789.5;
-   BigDecimal number2 = "123456789.53";
-   //BigDecimal number2 = 1.234;
-   //BigDecimal number2 = "1.23e-04";
-   //BigDecimal number2 = "1234";
-      
-   NSD(number1, "3");
-   NSD(number2, "123456789.53");
-   NSD(number1 + number2, "123456792.53");
-   NSD(number1 - number2, "-123456786.53");
-   NSD(number1 * number2, "370370368.59");
-   NSD(number2 / number1, "41152263.1766666667");
-   NSD(number2 % number1, "0.53");
-
-   #define NSDR(n, i, d, expectstr) \
-   do { \
-      BigDecimal nr = n; \
-      nr.setPrecision(i, d); \
-      nr.round(); \
-      NSD(nr, expectstr); \
-   } while(0)
-   
-   BigDecimal number3 = "129.54678";
-   NSD(number3, "129.54678");
-   
-   NSDR(number3, 7, Up, "129.54678");
-   NSDR(number3, 6, Up, "129.54678");
-   NSDR(number3, 5, Up, "129.54678");
-   NSDR(number3, 4, Up, "129.5468");
-   NSDR(number3, 3, Up, "129.547");
-   NSDR(number3, 2, Up, "129.55");
-   NSDR(number3, 1, Up, "129.6");
-   NSDR(number3, 0, Up, "130");
-
-   NSDR(number3, 7, HalfUp, "129.54678");
-   NSDR(number3, 6, HalfUp, "129.54678");
-   NSDR(number3, 5, HalfUp, "129.54678");
-   NSDR(number3, 4, HalfUp, "129.5468");
-   NSDR(number3, 3, HalfUp, "129.547");
-   NSDR(number3, 2, HalfUp, "129.55");
-   NSDR(number3, 1, HalfUp, "129.5");
-   NSDR(number3, 0, HalfUp, "130");
-
-   NSDR(number3, 7, Down, "129.54678");
-   NSDR(number3, 6, Down, "129.54678");
-   NSDR(number3, 5, Down, "129.54678");
-   NSDR(number3, 4, Down, "129.5467");
-   NSDR(number3, 3, Down, "129.546");
-   NSDR(number3, 2, Down, "129.54");
-   NSDR(number3, 1, Down, "129.5");
-   NSDR(number3, 0, Down, "129");
-
-   /*
-   BigDecimal bd;
-   
-   for(int i = 7; i >= 0; i--)
-   {
-      bd = number3;
-      bd.setPrecision(i, Up);
-      bd.round();
-      cout << "round " << i << " places, up=" << bd << endl;
-   }
-   
-   for(int i = 7; i >= 0; i--)
-   {
-      bd = number3;
-      bd.setPrecision(i, HalfUp);
-      bd.round();
-      cout << "round " << i << " places, half up=" << bd << endl;
-   }
-   
-   for(int i = 7; i >= 0; i--)
-   {
-      bd = number3;
-      bd.setPrecision(i, Down);
-      bd.round();
-      cout << "round " << i << " places, down=" << bd << endl;
-   }
-   */
-
-   #undef NSD
-   #undef NSDR
-   
-   tr.passIfNoException();
-}
-
 void runSqlite3ConnectionTest(TestRunner &tr)
 {
    tr.test("Sqlite3 Connection");
@@ -6683,13 +6657,14 @@ public:
       // db::crypto tests
       runMessageDigestTest(tr);
       runCipherTest(tr, "AES256");
-      runBigIntegerTest(tr);
-      runBigDecimalTest(tr);
+      runAsymmetricKeyLoadingTest(tr);
       runDsaAsymmetricKeyCreationTest(tr);
       runRsaAsymmetricKeyCreationTest(tr);
       runDigitalSignatureInputStreamTest(tr);
       runDigitalSignatureOutputStreamTest(tr);
       runEnvelopeTest(tr);
+      runBigIntegerTest(tr);
+      runBigDecimalTest(tr);
       
       // db::net tests
       runAddressResolveTest(tr);

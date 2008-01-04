@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/AsymmetricKeyFactory.h"
 #include "db/io/IOException.h"
@@ -28,16 +28,17 @@ AsymmetricKeyFactory::~AsymmetricKeyFactory()
 int AsymmetricKeyFactory::passwordCallback(
    char* b, int length, int flag, void* userData)
 {
-   // interpret user data as a string
-   string* password = (string*)userData;
+   // interpret user data as a const char*
+   const char* password = (const char*)userData;
    if(password != NULL)
    {
       // truncate the password length as necessary (leave room in the
       // passed buffer for a NULL terminator)
-      length = Math::minimum(password->length(), length - 1);
+      int len = strlen(password);
+      length = (len < length - 1) ? len : length - 1;
       
       // copy the password into the given buffer
-      memcpy(b, password->c_str(), length);
+      memcpy(b, password, length);
    }
    else
    {
@@ -226,7 +227,7 @@ PrivateKey* AsymmetricKeyFactory::loadPrivateKeyFromPem(
 string AsymmetricKeyFactory::writePrivateKeyToPem(
    PrivateKey* key, const char* password)
 {
-   string rval = "";
+   string rval;
    
    // create a memory BIO
    BIO* bio = BIO_new(BIO_s_mem());
