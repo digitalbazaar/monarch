@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_AsymmetricKeyFactory_H
 #define db_crypto_AsymmetricKeyFactory_H
@@ -82,12 +82,13 @@ public:
     * structure that has a header and footer.
     * 
     * @param pem the PEM string to load the key from.
+    * @param length the length of the PEM string.
     * @param password the password to use to load the key.
     * 
     * @return the loaded PrivateKey or NULL if an exception occurred.
     */
    virtual PrivateKey* loadPrivateKeyFromPem(
-      const std::string& pem, const std::string& password);
+      const char* pem, int length, const char* password);
    
    /**
     * Writes a private key to a PEM formatted string. A PEM formatted
@@ -100,7 +101,7 @@ public:
     * @return the PEM string or a blank string of an exception occurred.
     */
    std::string writePrivateKeyToPem(
-      PrivateKey* key, const std::string& password);
+      PrivateKey* key, const char* password);
    
    /**
     * Loads a public key from a PEM formatted string. A PEM formatted
@@ -108,11 +109,12 @@ public:
     * structure that has a header and footer.
     * 
     * @param pem the PEM string to load the key from.
+    * @param length the length of the PEM string.
     * @param password the password to use to load the key.
     * 
     * @return the loaded PublicKey or NULL if an exception occurred.
     */
-   virtual PublicKey* loadPublicKeyFromPem(const std::string& pem);
+   virtual PublicKey* loadPublicKeyFromPem(const char* pem, int length);
    
    /**
     * Writes a public key to a PEM formatted string. A PEM formatted
