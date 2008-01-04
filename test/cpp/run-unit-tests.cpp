@@ -1648,7 +1648,7 @@ void runAsymmetricKeyLoadingTest(TestRunner& tr)
    File file1("/work/src/dbcpp/dbcore/trunk/Debug/private.pem");
    FileInputStream fis1(&file1);
    
-   string privatePem = "";
+   string privatePem;
    
    char b[2048];
    int numBytes;
@@ -1666,7 +1666,7 @@ void runAsymmetricKeyLoadingTest(TestRunner& tr)
    File file2("/work/src/dbcpp/dbcore/trunk/Debug/public.pem");
    FileInputStream fis2(&file2);
    
-   string publicPem = "";
+   string publicPem;
    
    while((numBytes = fis2.read(b, 2048)) > 0)
    {
@@ -1683,12 +1683,13 @@ void runAsymmetricKeyLoadingTest(TestRunner& tr)
    
    // load the private key
    PrivateKey* privateKey = factory.loadPrivateKeyFromPem(
-      privatePem, "password");
+      privatePem.c_str(), privatePem.length(), "password");
    
    cout << "Private Key Algorithm=" << privateKey->getAlgorithm() << endl;
    
    // load the public key
-   PublicKey* publicKey = factory.loadPublicKeyFromPem(publicPem);
+   PublicKey* publicKey = factory.loadPublicKeyFromPem(
+      publicPem.c_str(), publicPem.length());
    
    cout << "Public Key Algorithm=" << publicKey->getAlgorithm() << endl;
    

@@ -192,18 +192,18 @@ bool AsymmetricKeyFactory::createKeyPair(
 }
 
 PrivateKey* AsymmetricKeyFactory::loadPrivateKeyFromPem(
-   const string& pem, const string& password)
+   const char* pem, int length, const char* password)
 {
    PrivateKey* key = NULL;
    
    // create a read-only memory bio
-   BIO* bio = BIO_new_mem_buf((void*)pem.c_str(), pem.length());
+   BIO* bio = BIO_new_mem_buf((void*)pem, length);
    BIO_set_close(bio, BIO_NOCLOSE);
    
    // try to load private key from bio
    EVP_PKEY* pkey = NULL;
    pkey = PEM_read_bio_PrivateKey(
-      bio, &pkey, passwordCallback, (void*)&password);
+      bio, &pkey, passwordCallback, (void*)password);
    
    // free the bio
    BIO_free(bio);
@@ -224,7 +224,7 @@ PrivateKey* AsymmetricKeyFactory::loadPrivateKeyFromPem(
 }
 
 string AsymmetricKeyFactory::writePrivateKeyToPem(
-   PrivateKey* key, const string& password)
+   PrivateKey* key, const char* password)
 {
    string rval = "";
    
@@ -233,8 +233,7 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
    
    // write the key to the bio
    int error = PEM_write_bio_PKCS8PrivateKey(
-      bio, key->getPKEY(), EVP_des_ede3_cbc(), NULL, 0, NULL,
-      (void*)password.c_str());
+      bio, key->getPKEY(), EVP_des_ede3_cbc(), NULL, 0, NULL, (void*)password);
    if(error != 0)
    {
       // get the memory buffer from the bio
@@ -257,12 +256,13 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
    return rval;
 }
 
-PublicKey* AsymmetricKeyFactory::loadPublicKeyFromPem(const string& pem)
+PublicKey* AsymmetricKeyFactory::loadPublicKeyFromPem(
+   const char* pem, int length)
 {
    PublicKey* key = NULL;
    
    // create a read-only memory bio
-   BIO* bio = BIO_new_mem_buf((void*)pem.c_str(), pem.length());
+   BIO* bio = BIO_new_mem_buf((void*)pem, length);
    BIO_set_close(bio, BIO_NOCLOSE);
    
    // try to load public key from bio
@@ -289,7 +289,7 @@ PublicKey* AsymmetricKeyFactory::loadPublicKeyFromPem(const string& pem)
 
 string AsymmetricKeyFactory::writePublicKeyToPem(PublicKey* key)
 {
-   string rval = "";
+   string rval;
    
    // create a memory BIO
    BIO* bio = BIO_new(BIO_s_mem());
