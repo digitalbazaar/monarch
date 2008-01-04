@@ -25,7 +25,7 @@ protected:
    /**
     * The algorithm for this MessageDigest.
     */
-   std::string mAlgorithm;
+   const char* mAlgorithm;
    
    /**
     * Gets the hash function for this algorithm.
@@ -42,7 +42,7 @@ public:
     * 
     * @param algorithm the hash algorithm to use.
     */
-   MessageDigest(const std::string& algorithm);
+   MessageDigest(const char* algorithm);
    
    /**
     * Destructs this MessageDigest.
@@ -55,12 +55,13 @@ public:
    virtual void reset();
    
    /**
-    * Updates the message to digest with a string. This method can be called
-    * repeatedly with chunks of the message that is to be digested.
+    * Updates the message to digest with a null-terminated string. This method
+    * can be called repeatedly with chunks of the message that is to be
+    * digested.
     * 
     * @param str the string to digest.
     */
-   virtual void update(const std::string& str);
+   virtual void update(const char* str);
    
    /**
     * Updates the data to hash. This method can be called repeatedly with

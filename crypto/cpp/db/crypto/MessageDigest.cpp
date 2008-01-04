@@ -10,21 +10,22 @@ using namespace db::crypto;
 using namespace db::rt;
 using namespace db::util;
 
-MessageDigest::MessageDigest(const string& algorithm)
+MessageDigest::MessageDigest(const char* algorithm)
 {
-   if(algorithm == "SHA1")
+   if(strcmp(algorithm, "SHA1") == 0)
    {
       mAlgorithm = algorithm;
    }
-   else if(algorithm == "MD5")
+   else if(strcmp(algorithm, "MD5") == 0)
    {
       mAlgorithm = algorithm;
    }
    else
    {
       // unsupported algorithm
-      string msg = "Unsupported hash algorithm '" + algorithm + "'";
-      Exception::setLast(new UnsupportedAlgorithmException(msg.c_str()));
+      char temp[50 + strlen(algorithm)];
+      sprintf(temp, "Unsupported hash algorithm '%s'", algorithm);
+      Exception::setLast(new UnsupportedAlgorithmException(temp));
    }
 }
 
@@ -36,11 +37,11 @@ const EVP_MD* MessageDigest::getHashFunction()
 {
    const EVP_MD* rval = NULL;
    
-   if(mAlgorithm == "SHA1")
+   if(strcmp(mAlgorithm, "SHA1") == 0)
    {
       rval = EVP_sha1();
    }
-   else if(mAlgorithm == "MD5")
+   else if(strcmp(mAlgorithm, "MD5") == 0)
    {
       rval = EVP_md5();
    }
@@ -57,9 +58,9 @@ void MessageDigest::reset()
    EVP_DigestInit_ex(&mMessageDigestContext, mHashFunction, NULL);
 }
 
-void MessageDigest::update(const std::string& str)
+void MessageDigest::update(const char* str)
 {
-   update(str.c_str(), str.length());
+   update(str, strlen(str));
 }
 
 void MessageDigest::update(const char* b, unsigned int length)
