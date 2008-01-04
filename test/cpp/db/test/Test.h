@@ -7,6 +7,7 @@
 #include "db/rt/Exception.h"
 #include "db/util/DynamicObject.h"
 #include "db/util/DynamicObjectIterator.h"
+#include <iostream>
 
 namespace db
 {
@@ -54,18 +55,42 @@ void dumpDynamicObject(db::util::DynamicObject dyno);
 /**
  * Check and dump exception condition.
  */
-void assertNoException();
+#define assertNoException() \
+   do { \
+      if(db::rt::Exception::hasLast()) \
+      { \
+         db::rt::Exception* e = db::rt::Exception::getLast(); \
+         db::test::dumpException(e); \
+         assert(!db::rt::Exception::hasLast()); \
+      } \
+   } while(0)
 
 /**
  * Check exception is set.
  */
-void assertException();
+#define assertException() \
+   do { \
+      if(!db::rt::Exception::hasLast()) \
+      { \
+         db::rt::Exception e("Test expected an Exception but there wasn't one!"); \
+         db::test::dumpException(&e); \
+         assert(db::rt::Exception::hasLast()); \
+      } \
+   } while(0)
 
 /**
  * Assert strings are equal.
  */
-void assertStrcmp(const char* a, const char* b);
-#define assertStrCmp(a, b) assertStrcmp(a, b)
+#define assertStrCmp(a, b) \
+   do { \
+      if(strcmp(a, b) != 0) \
+      { \
+         std::cout << \
+            "string a='" << a << \
+            "',string b='" << b << "'" << std::endl; \
+         assert(std::strcmp(a, b) == 0); \
+      } \
+   } while(0)
 
 } // end namespace test
 } // end namespace db

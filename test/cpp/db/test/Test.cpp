@@ -124,32 +124,3 @@ void db::test::dumpDynamicObject(DynamicObject dyno)
 {
    dumpDynamicObject_(dyno, false);
 }
-
-void db::test::assertNoException()
-{
-   if(Exception::hasLast())
-   {
-      Exception* e = Exception::getLast();
-      dumpException(e);
-      assert(!Exception::hasLast());
-   }
-}
-
-void db::test::assertException()
-{
-   if(!Exception::hasLast())
-   {
-      Exception e("Test expected an Exception but there wasn't one!");
-      dumpException(&e);
-      assert(Exception::hasLast());
-   }
-}
-
-void db::test::assertStrcmp(const char* a, const char* b)
-{
-   if(strcmp(a, b) != 0)
-   {
-      cout << "string a='" << a << "',string b='" << b << "'" << endl;
-      assert(strcmp(a, b) == 0);
-   }
-}
