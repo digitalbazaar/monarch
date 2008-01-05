@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_mpeg_FrameHeader_H
 #define db_data_mpeg_FrameHeader_H
@@ -238,6 +238,11 @@ protected:
     * The header data as a byte array.
     */
    db::io::ByteBuffer* mData;
+   
+   /**
+    * A helper function for interpreting the header data as unsigned chars.
+    */
+   virtual unsigned char* getDataBytes();
    
    /**
     * A static bitrate table used for all frame headers.

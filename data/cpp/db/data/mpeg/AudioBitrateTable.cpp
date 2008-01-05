@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/mpeg/AudioBitrateTable.h"
 
@@ -16,7 +16,7 @@ AudioBitrateTable::AudioBitrateTable()
    AudioLayer layer3(AudioLayer::Layer3);
    
    // add bitrates for Version 1 Layer I
-   for(char index = 0x00; index < 0x0f; index++)
+   for(unsigned char index = 0x00; index < 0x0f; index++)
    {
       addBitrate(index, mpeg1, layer1, index * 32);
    }
@@ -116,7 +116,7 @@ AudioBitrateTable::~AudioBitrateTable()
    // clean up keys in table
    for(BitrateMap::iterator i = mMap.begin(); i != mMap.end(); i++)
    {
-      free((char*)i->first);
+      free((unsigned char*)i->first);
    }
    
    // clear map
@@ -124,11 +124,11 @@ AudioBitrateTable::~AudioBitrateTable()
 }
 
 void AudioBitrateTable::addBitrate(
-   char index, const AudioVersion& version,
+   unsigned char index, const AudioVersion& version,
    const AudioLayer& layer, int bitrate)
 {
    // build key from index, version, and layer
-   char* key = (char*)malloc(3);
+   unsigned char* key = (unsigned char*)malloc(3);
    
    key[0] = index;
    key[1] = version.bitValues;
@@ -148,7 +148,8 @@ void AudioBitrateTable::addBitrate(
 }
 
 int AudioBitrateTable::getBitrate(
-   char index, const AudioVersion& version, const AudioLayer& layer) const
+   unsigned char index,
+   const AudioVersion& version, const AudioLayer& layer) const
 {
    int rval = -1;
    
@@ -160,7 +161,7 @@ int AudioBitrateTable::getBitrate(
    }
    
    // find bitrate
-   char key[3];
+   unsigned char key[3];
    key[0] = index;
    key[1] = v.bitValues;
    key[2] = layer.bitValues;

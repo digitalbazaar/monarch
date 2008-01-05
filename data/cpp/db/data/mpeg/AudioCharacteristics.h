@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_mpeg_Characteristics_H
 #define db_data_mpeg_Characteristics_H
@@ -37,7 +37,7 @@ struct AudioVersion
     * The bit values for this AudioVersion. These values are used in an
     * mpeg AudioFrameHeader.
     */
-   char bitValues;
+   unsigned char bitValues;
    
    /**
     * Creates a new AudioVersion of the specified Type.
@@ -54,7 +54,7 @@ struct AudioVersion
     * 
     * @param bitValues the bitValues.
     */
-   AudioVersion(char bitValues)
+   AudioVersion(unsigned char bitValues)
    {
       setBitValues(bitValues);
    }
@@ -93,7 +93,7 @@ struct AudioVersion
     * 
     * @param bitValues the bit values for the AudioVersion as a byte.
     */
-   void setBitValues(char bitValues)
+   void setBitValues(unsigned char bitValues)
    {
       switch(bitValues)
       {
@@ -140,7 +140,7 @@ struct AudioLayer
     * The bit values for this AudioLayer. These values are used in an
     * mpeg AudioFrameHeader.
     */
-   char bitValues;
+   unsigned char bitValues;
    
    /**
     * Creates a new AudioLayer with the specified type.
@@ -157,7 +157,7 @@ struct AudioLayer
     * 
     * @param bitValues the bitValues.
     */
-   AudioLayer(char bitValues)
+   AudioLayer(unsigned char bitValues)
    {
       setBitValues(bitValues);
    }
@@ -196,7 +196,7 @@ struct AudioLayer
     * 
     * @param bitValues the bit values for the AudioLayer as a byte.
     */
-   void setBitValues(char bitValues)
+   void setBitValues(unsigned char bitValues)
    {
       switch(bitValues)
       {
@@ -243,7 +243,7 @@ struct AudioChannelMode
     * The bit values for this channel mode. These values are using in an
     * MpegAudioFrameHeader.
     */
-   char bitValues;
+   unsigned char bitValues;
    
    /**
     * The number of channels used by this mode.
@@ -265,7 +265,7 @@ struct AudioChannelMode
     * 
     * @param bitValues the bitValues.
     */
-   AudioChannelMode(char bitValues)
+   AudioChannelMode(unsigned char bitValues)
    {
       setBitValues(bitValues);
    }
@@ -308,7 +308,7 @@ struct AudioChannelMode
     * 
     * @param bitValues the bit values for the AudioChannelMode as a byte.
     */
-   void setBitValues(char bitValues)
+   void setBitValues(unsigned char bitValues)
    {
       switch(bitValues)
       {
@@ -425,7 +425,7 @@ struct AudioChannelModeExtension
     * The bit values for this channel mode. These values are using in an
     * MpegAudioFrameHeader.
     */
-   char bitValues;
+   unsigned char bitValues;
    
    /**
     * The upper band bound for this extension. This is only valid for
@@ -449,7 +449,7 @@ struct AudioChannelModeExtension
     * @param AudioLayer the AudioLayer to use.
     * @param bitValues the bitValues.
     */
-   AudioChannelModeExtension(const AudioLayer& layer, char bitValues)
+   AudioChannelModeExtension(const AudioLayer& layer, unsigned char bitValues)
    {
       setBitValues(layer, bitValues);
    }
@@ -512,7 +512,7 @@ struct AudioChannelModeExtension
     * @param AudioLayer the AudioLayer to use.
     * @param bitValues the bit values for the AudioChannelMode as a byte.
     */
-   void setBitValues(const AudioLayer& layer, char bitValues)
+   void setBitValues(const AudioLayer& layer, unsigned char bitValues)
    {
       if(layer.type != AudioLayer::Layer3)
       {
@@ -581,7 +581,7 @@ struct AudioEmphasis
     * The bit values for this AudioEmphasis. These values are using in an
     * MpegAudioFrameHeader.
     */
-   char bitValues;
+   unsigned char bitValues;
    
    /**
     * Creates a new AudioEmphasis with the specified type.
@@ -598,7 +598,7 @@ struct AudioEmphasis
     * 
     * @param bitValues the bitValues.
     */
-   AudioEmphasis(char bitValues)
+   AudioEmphasis(unsigned char bitValues)
    {
       setBitValues(bitValues);
    }
@@ -638,7 +638,7 @@ struct AudioEmphasis
     * 
     * @param bitValues the bit values for the AudioEmphasis as a byte.
     */
-   void setBitValues(char bitValues)   
+   void setBitValues(unsigned char bitValues)   
    {
       switch(bitValues)
       {

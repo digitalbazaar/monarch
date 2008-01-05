@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_mpeg_AudioBitrateTable_H
 #define db_data_mpeg_AudioBitrateTable_H
@@ -67,16 +67,16 @@ protected:
        * 
        * @return true if the k1 < k2, false if not.
        */
-      bool operator()(const char* k1, const char* k2) const
+      bool operator()(const unsigned char* k1, const unsigned char* k2) const
       {
-         return strncmp(k1, k2, 4) < 0;
+         return memcmp(k1, k2, 3) < 0;
       }
    };
    
    /**
     * The underlying map used to map indices, versions, and layers to bitrates.
     */
-   typedef std::map<const char*, int, KeyComparator> BitrateMap;
+   typedef std::map<const unsigned char*, int, KeyComparator> BitrateMap;
    BitrateMap mMap;
    
    /**
@@ -88,7 +88,7 @@ protected:
     * @param bitrate the bitrate with 0 indicating a free format bitrate.
     */
    virtual void addBitrate(
-      char index, const AudioVersion& version,
+      unsigned char index, const AudioVersion& version,
       const AudioLayer& layer, int bitrate);
    
 public:
@@ -114,7 +114,8 @@ public:
     *         bitrate and -1 indicating an invalid bitrate index.
     */
    virtual int getBitrate(
-      char index, const AudioVersion& version, const AudioLayer& layer) const;
+      unsigned char index,
+      const AudioVersion& version, const AudioLayer& layer) const;
    
    /**
     * Gets the minimum non-free-format bitrate for the given version and

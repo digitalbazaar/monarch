@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/mpeg/AudioFrameHeader.h"
 #include "db/rt/IllegalArgumentException.h"
@@ -26,6 +26,11 @@ AudioFrameHeader::~AudioFrameHeader()
    {
       delete mData;
    }
+}
+
+unsigned char* AudioFrameHeader::getDataBytes()
+{
+   return (unsigned char*)getBytes()->bytes();
 }
 
 bool AudioFrameHeader::convertFromBytes(const char* bytes, int length)
@@ -81,8 +86,7 @@ bool AudioFrameHeader::hasFrameSync()
    // 1111111 = 255
    // 111xxxx = at least 224 (greater than 223)
    // 255 = 0xff, 224 = 0xe0, 223 = 0xdf
-   unsigned char* data = (unsigned char*)getBytes()->bytes();
-   if(data[0] == 0xff && data[1] > 0xdf)
+   if(getDataBytes()[0] == 0xff && getDataBytes()[1] > 0xdf)
    {
       rval = true;
    }
@@ -95,13 +99,13 @@ void AudioFrameHeader::getVersion(AudioVersion& version)
    // the version is located in bits 4 and 3 for byte 1, so shift
    // to the right 3 and then AND with 3
    // with 00011000 >> 3 = 00000011 & 0x03 = 11
-   version.setBitValues((getBytes()->bytes()[1] >> 3) & 0x03);
+   version.setBitValues((getDataBytes()[1] >> 3) & 0x03);
 }
 
 bool AudioFrameHeader::isVersionValid()
 {
    // any version other than reserved (0x01) is valid
-   return ((getBytes()->bytes()[1] >> 3) & 0x03) != 0x01;
+   return ((getDataBytes()[1] >> 3) & 0x03) != 0x01;
 }
 
 void AudioFrameHeader::getLayer(AudioLayer& layer)
@@ -109,13 +113,13 @@ void AudioFrameHeader::getLayer(AudioLayer& layer)
    // the layer is located in bits 2 and 1 for byte 1, so shift
    // to the right 1 and then AND with 1
    // with 00000110 >> 1 = 00000011 & 0x03 = 11
-   layer.setBitValues((getBytes()->bytes()[1] >> 1) & 0x03);
+   layer.setBitValues((getDataBytes()[1] >> 1) & 0x03);
 }
 
 bool AudioFrameHeader::isLayerValid()
 {
    // any layer other than reserved (0x00) is valid
-   return ((getBytes()->bytes()[1] >> 1) & 0x03) != 0x00;
+   return ((getDataBytes()[1] >> 1) & 0x03) != 0x00;
 }
 
 void AudioFrameHeader::setCrcEnabled(bool enabled)
@@ -125,11 +129,11 @@ void AudioFrameHeader::setCrcEnabled(bool enabled)
    // if disabling, then SET bit 0 by ORing with 0x01
    if(enabled)
    {
-      getBytes()->bytes()[1] &= 0xfe;
+      getDataBytes()[1] &= 0xfe;
    }
    else
    {
-      getBytes()->bytes()[1] |= 0x01;
+      getDataBytes()[1] |= 0x01;
    }
 }
 
@@ -138,7 +142,7 @@ bool AudioFrameHeader::isCrcEnabled()
    // the crc protection bit is located in bit 0 for byte 1, so
    // AND against 1
    // protection is enabled if the bit is NOT set (it IS cleared)
-   return (getBytes()->bytes()[1] & 0x01) == 0;
+   return (getDataBytes()[1] & 0x01) == 0;
 }
 
 int AudioFrameHeader::getBitrate()
@@ -146,7 +150,7 @@ int AudioFrameHeader::getBitrate()
    // the bitrate index is located in bits 7-4 for byte 2, so shift
    // to the right 4 and then AND with 0x0F
    // with 11110000 >> 4 = 00001111 & 0x0F = 1111
-   char bitrateIndex = ((getBytes()->bytes()[2] >> 4) & 0x0f);
+   unsigned char bitrateIndex = ((getDataBytes()[2] >> 4) & 0x0f);
    
    // get the bitrate from the bitrate table
    AudioVersion v;
@@ -167,7 +171,7 @@ int AudioFrameHeader::getSamplingRate()
    // the sampling rate index is located in bits 3-2 for byte 2, so shift
    // to the right 2 and then AND with 0x03
    // with 00001100 >> 2 = 00000011 & 0x03 = 11
-   char samplingRateIndex = ((getBytes()->bytes()[2] >> 2) & 0x03);
+   unsigned char samplingRateIndex = ((getDataBytes()[2] >> 2) & 0x03);
    
    // get the sampling rate from the sampling rate table
    AudioVersion v;
@@ -188,11 +192,11 @@ void AudioFrameHeader::setPadded(bool padded)
    // if disabling, then CLEAR bit 1 by ANDing with 0xFD 
    if(padded)
    {
-      getBytes()->bytes()[2] |= 0x02;
+      getDataBytes()[2] |= 0x02;
    }
    else
    {
-      getBytes()->bytes()[2] &= 0xfd;
+      getDataBytes()[2] &= 0xfd;
    }
 }
 
@@ -201,7 +205,7 @@ bool AudioFrameHeader::isPadded()
    // the padding bit is located in bit 1 for byte 2, so
    // AND against 2
    // padding is enabled if the bit is NOT cleared
-   return (getBytes()->bytes()[2] & 0x02) != 0;
+   return (getDataBytes()[2] & 0x02) != 0;
 }
 
 void AudioFrameHeader::setPrivateBit(bool set)
@@ -211,11 +215,11 @@ void AudioFrameHeader::setPrivateBit(bool set)
    // if disabling, then CLEAR bit 1 by ANDing with 0xFE 
    if(set)
    {
-      getBytes()->bytes()[2] |= 0x01;
+      getDataBytes()[2] |= 0x01;
    }
    else
    {
-      getBytes()->bytes()[2] &= 0xfe;
+      getDataBytes()[2] &= 0xfe;
    }
 }
 
@@ -224,7 +228,7 @@ bool AudioFrameHeader::isPrivateBitSet()
    // the private bit is located in bit 0 for byte 2, so
    // AND against 1
    // privateBit is enabled if the bit is NOT cleared
-   return (getBytes()->bytes()[2] & 0x01) != 0;
+   return (getDataBytes()[2] & 0x01) != 0;
 }   
 
 void AudioFrameHeader::getChannelMode(AudioChannelMode& cm)
@@ -232,7 +236,7 @@ void AudioFrameHeader::getChannelMode(AudioChannelMode& cm)
    // the channel mode is located in bits 7 and 6 for byte 3, so shift
    // to the right 6 and then AND with 0x03
    // with 11000000 >> 6 = 00000011 & 0x03 = 11
-   cm.setBitValues((getBytes()->bytes()[3] >> 6) & 0x03);
+   cm.setBitValues((getDataBytes()[3] >> 6) & 0x03);
 }
 
 int AudioFrameHeader::getChannelCount()
@@ -307,7 +311,7 @@ void AudioFrameHeader::getChannelModeExtension(AudioChannelModeExtension& cme)
    // with 00110000 >> 4 = 00000011 & 0x03 = 11
    AudioLayer layer;
    getLayer(layer);
-   cme.setBitValues(layer, (getBytes()->bytes()[3] >> 4) & 0x03);
+   cme.setBitValues(layer, (getDataBytes()[3] >> 4) & 0x03);
 }
 
 int AudioFrameHeader::getJointStereoBound()
@@ -327,11 +331,11 @@ void AudioFrameHeader::setCopyrighted(bool copyrighted)
    // if disabling, then CLEAR bit 3 by ANDing with 0xF7
    if(copyrighted)
    {
-      getBytes()->bytes()[3] |= 0x08;
+      getDataBytes()[3] |= 0x08;
    }
    else
    {
-      getBytes()->bytes()[3] &= 0xf7;
+      getDataBytes()[3] &= 0xf7;
    }
 }
 
@@ -340,7 +344,7 @@ bool AudioFrameHeader::isCopyrighted()
    // the copyright bit is located in bit 3 for byte 3, so
    // AND against 8
    // is copyrighted if the bit is NOT cleared
-   return (getBytes()->bytes()[3] & 0x08) != 0;
+   return (getDataBytes()[3] & 0x08) != 0;
 }
 
 void AudioFrameHeader::setOriginal(bool original)
@@ -350,11 +354,11 @@ void AudioFrameHeader::setOriginal(bool original)
    // if disabling, then CLEAR bit 2 by ANDing with 0xFB
    if(original)
    {
-      getBytes()->bytes()[3] |= 0x04;
+      getDataBytes()[3] |= 0x04;
    }
    else
    {
-      getBytes()->bytes()[3] &= 0xfb;
+      getDataBytes()[3] &= 0xfb;
    }
 }
 
@@ -363,7 +367,7 @@ bool AudioFrameHeader::isOriginal()
    // the original bit is located in bit 2 for byte 3, so
    // AND against 4
    // is original if the bit is NOT cleared
-   return (getBytes()->bytes()[3] & 0x04) != 0;
+   return (getDataBytes()[3] & 0x04) != 0;
 }
 
 void AudioFrameHeader::getEmphasis(AudioEmphasis& emphasis)
@@ -371,7 +375,7 @@ void AudioFrameHeader::getEmphasis(AudioEmphasis& emphasis)
    // the emphasis is located in bits 1 and 0 for byte 3, so shift
    // AND with 0x03
    // with 00000011 & 0x03 = 11
-   emphasis.setBitValues(getBytes()->bytes()[3] & 0x03);
+   emphasis.setBitValues(getDataBytes()[3] & 0x03);
 }
 
 int AudioFrameHeader::getSideInformationLength()
@@ -502,8 +506,8 @@ ByteBuffer* AudioFrameHeader::getBytes()
       mData = new ByteBuffer(4);
       
       // set the first and second bytes to frame sync values
-      mData->bytes()[0] = 0xff;
-      mData->bytes()[1] = 0xf0;
+      ((unsigned char*)mData->bytes())[0] = 0xff;
+      ((unsigned char*)mData->bytes())[1] = 0xf0;
       
       // clear other bytes
       mData[2] = 0;
