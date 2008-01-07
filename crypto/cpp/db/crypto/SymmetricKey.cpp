@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/SymmetricKey.h"
 
@@ -143,6 +143,12 @@ const char* SymmetricKey::iv()
 unsigned int SymmetricKey::ivLength()
 {
    return mIvLength;
+}
+
+void SymmetricKey::setAlgorithm(const char* algorithm)
+{
+   free(mAlgorithm);
+   mAlgorithm = strdup(algorithm);
 }
 
 const char* SymmetricKey::getAlgorithm()

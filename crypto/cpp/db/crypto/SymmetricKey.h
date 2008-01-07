@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_SymmetricKey_H
 #define db_crypto_SymmetricKey_H
@@ -67,7 +67,7 @@ public:
     * 
     * @param algorithm the algorithm to use.
     */
-   SymmetricKey(const char* algorithm);
+   SymmetricKey(const char* algorithm = "");
    
    /**
     * Destructs this SymmetricKey.
@@ -147,6 +147,13 @@ public:
     * @return the IV data length for this key.
     */
    virtual unsigned int ivLength();
+   
+   /**
+    * Sets the algorithm for this key.
+    * 
+    * @param algorithm the algorithm for this key.
+    */
+   virtual void setAlgorithm(const char* algorithm);
    
    /**
     * Gets the algorithm for this key.
