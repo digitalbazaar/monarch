@@ -15,7 +15,7 @@ BlockCipher::~BlockCipher()
 }
 
 bool BlockCipher::update(
-   char* in, int inLength, ByteBuffer* out, bool resize)
+   const char* in, int inLength, ByteBuffer* out, bool resize)
 {
    bool rval = false;
    

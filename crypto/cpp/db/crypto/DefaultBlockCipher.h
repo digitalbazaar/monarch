@@ -79,7 +79,7 @@ public:
     * 
     * @return true if no exception occurred, false if not.
     */
-   virtual bool update(char* in, int inLength, char* out, int& outLength);
+   virtual bool update(const char* in, int inLength, char* out, int& outLength);
    
    /**
     * Puts the final chunk of encrypted or decrypted data into an array of

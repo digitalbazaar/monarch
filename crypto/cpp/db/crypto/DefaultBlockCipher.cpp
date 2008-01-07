@@ -103,7 +103,7 @@ bool DefaultBlockCipher::startDecrypting(SymmetricKey* symmetricKey)
 }
 
 bool DefaultBlockCipher::update(
-   char* in, int inLength, char* out, int& outLength)
+   const char* in, int inLength, char* out, int& outLength)
 {
    bool rval = false;
    

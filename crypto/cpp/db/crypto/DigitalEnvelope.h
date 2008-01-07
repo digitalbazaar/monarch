@@ -139,7 +139,7 @@ public:
     * 
     * @return true if no exception occurred, false if not.
     */
-   virtual bool update(char* in, int inLength, char* out, int& outLength);
+   virtual bool update(const char* in, int inLength, char* out, int& outLength);
    
    /**
     * Puts the final chunk of sealed or opened data into an array of bytes.

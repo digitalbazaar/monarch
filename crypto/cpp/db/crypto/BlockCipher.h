@@ -48,7 +48,8 @@ public:
     * 
     * @return true if no exception occurred, false if not.
     */
-   virtual bool update(char* in, int inLength, char* out, int& outLength) = 0;
+   virtual bool update(
+      const char* in, int inLength, char* out, int& outLength) = 0;
    
    /**
     * Puts the final chunk of encrypted or decrypted data into an array of
@@ -80,7 +81,7 @@ public:
     * @return true if no exception occurred, false if not.
     */
    virtual bool update(
-      char* in, int inLength, db::io::ByteBuffer* out, bool resize);
+      const char* in, int inLength, db::io::ByteBuffer* out, bool resize);
    
    /**
     * Puts the final chunk of encrypted or decrypted data into a ByteBuffer,

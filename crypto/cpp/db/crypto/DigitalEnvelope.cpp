@@ -151,7 +151,8 @@ bool DigitalEnvelope::startOpening(
    return rval;
 }
 
-bool DigitalEnvelope::update(char* in, int inLength, char* out, int& outLength)
+bool DigitalEnvelope::update(
+   const char* in, int inLength, char* out, int& outLength)
 {
    bool rval = false;
    
