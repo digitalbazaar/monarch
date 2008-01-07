@@ -135,6 +135,20 @@ public:
    virtual unsigned int length();
    
    /**
+    * Gets the IV data for this key.
+    * 
+    * @return the IV data for this key.
+    */
+   virtual const char* iv();
+   
+   /**
+    * Gets the IV data length for this key.
+    * 
+    * @return the IV data length for this key.
+    */
+   virtual unsigned int ivLength();
+   
+   /**
     * Gets the algorithm for this key.
     * 
     * @return the algorithm for this key.
