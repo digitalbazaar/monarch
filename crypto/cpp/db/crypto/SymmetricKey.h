@@ -121,6 +121,20 @@ public:
       char** iv, unsigned int& ivLength);
    
    /**
+    * Gets the data for this key.
+    * 
+    * @return the data for this key.
+    */
+   virtual const char* data();
+   
+   /**
+    * Gets the length of the data for this key.
+    * 
+    * @return the length of the data for this key.
+    */
+   virtual unsigned int length();
+   
+   /**
     * Gets the algorithm for this key.
     * 
     * @return the algorithm for this key.

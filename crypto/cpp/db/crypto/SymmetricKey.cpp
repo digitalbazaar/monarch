@@ -125,6 +125,16 @@ void SymmetricKey::getData(
    ivLength = mIvLength;
 }
 
+const char* SymmetricKey::data()
+{
+   return mData;
+}
+
+unsigned int SymmetricKey::length()
+{
+   return mDataLength;
+}
+
 const char* SymmetricKey::getAlgorithm()
 {
    return mAlgorithm;
