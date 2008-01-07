@@ -165,13 +165,15 @@ bool AudioFrameHeader::isBitrateValid()
    // bitrate is valid if it is not -1
    return getBitrate() != -1;
 }
-
+#include <iostream>
 int AudioFrameHeader::getSamplingRate()
 {
    // the sampling rate index is located in bits 3-2 for byte 2, so shift
    // to the right 2 and then AND with 0x03
    // with 00001100 >> 2 = 00000011 & 0x03 = 11
    unsigned char samplingRateIndex = ((getDataBytes()[2] >> 2) & 0x03);
+   
+   std::cout << "SR index=" << samplingRateIndex << std::endl;
    
    // get the sampling rate from the sampling rate table
    AudioVersion v;
@@ -596,7 +598,7 @@ string& AudioFrameHeader::toString(string& str)
    
    return str;
 }
-#include <iostream>
+
 int AudioFrameHeader::calculateFrameLength(
    const AudioVersion& version, const AudioLayer& layer,
    double bitrate, double samplingRate, bool paddingEnabled)

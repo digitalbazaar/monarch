@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_mpeg_SamplingRateTable_H
 #define db_data_mpeg_SamplingRateTable_H
@@ -52,9 +52,9 @@ protected:
        * 
        * @return true if the k1 < k2, false if not.
        */
-      bool operator()(const char* k1, const char* k2) const
+      bool operator()(const unsigned char* k1, const unsigned char* k2) const
       {
-         return strncmp(k1, k2, 2) < 0;
+         return memcmp(k1, k2, 2) < 0;
       }
    };
    
@@ -62,7 +62,7 @@ protected:
     * The underlying hash map used to map indices and versions to sampling
     * rates.
     */
-   typedef std::map<const char*, int, KeyComparator> SamplingRateMap;
+   typedef std::map<const unsigned char*, int, KeyComparator> SamplingRateMap;
    SamplingRateMap mMap;
    
    /**
@@ -73,7 +73,7 @@ protected:
     * @param samplingRate the sampling rate (in Hz).
     */
    virtual void addSamplingRate(
-      char index, const AudioVersion& version, int samplingRate);
+      unsigned char index, const AudioVersion& version, int samplingRate);
    
 public:
    /**
@@ -96,7 +96,8 @@ public:
     * @return the sampling rate (in samples/second) with -1 indicating an
     *         invalid sampling rate index.
     */
-   virtual int getSamplingRate(char index, const AudioVersion& version) const;
+   virtual int getSamplingRate(
+      unsigned char index, const AudioVersion& version) const;
    
    /**
     * Gets the minimum sampling rate for the given version.

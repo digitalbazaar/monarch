@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/mpeg/AudioSamplingRateTable.h"
 
@@ -42,10 +42,10 @@ AudioSamplingRateTable::~AudioSamplingRateTable()
 }
 
 void AudioSamplingRateTable::addSamplingRate(
-   char index, const AudioVersion& version, int samplingRate)
+   unsigned char index, const AudioVersion& version, int samplingRate)
 {
    // build key from index and version
-   char* key = new char[2];
+   unsigned char* key = (unsigned char*)malloc(2);
    key[0] = index;
    key[1] = version.bitValues;
    
@@ -63,11 +63,11 @@ void AudioSamplingRateTable::addSamplingRate(
 }
 
 int AudioSamplingRateTable::getSamplingRate(
-   char index, const AudioVersion& version) const
+   unsigned char index, const AudioVersion& version) const
 {
    int rval = -1;
    
-   char key[2];
+   unsigned char key[2];
    key[0] = index;
    key[1] = version.bitValues;
    
