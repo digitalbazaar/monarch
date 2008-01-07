@@ -1,9 +1,8 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpHeader.h"
 #include "db/util/StringTools.h"
-#include "db/util/Convert.h"
 
 using namespace std;
 using namespace db::net::http;
@@ -39,7 +38,9 @@ void HttpHeader::getStartLine(std::string& line)
 
 void HttpHeader::setField(const char* name, long long value)
 {
-   setField(name, Convert::integerToString(value));
+   char temp[25];
+   sprintf(temp, "%lli", value);
+   setField(name, temp);
 }
 
 void HttpHeader::setField(const char* name, const std::string& value)
@@ -93,7 +94,9 @@ bool HttpHeader::getField(const char* name, long long& value)
    string str;
    if(getField(name, str))
    {
-      rval = Convert::stringToInteger(str.c_str(), value);
+      char* endptr = NULL;
+      value = strtoll(str.c_str(), &endptr, 10);
+      rval = endptr != str.c_str() && *endptr == '\0';      
    }
    
    return rval;

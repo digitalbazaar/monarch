@@ -1,35 +1,28 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/InternetAddress.h"
 #include "db/net/SocketDefinitions.h"
-#include "db/util/Convert.h"
 
 using namespace std;
 using namespace db::net;
 using namespace db::rt;
-using namespace db::util;
 
-InternetAddress::InternetAddress()
+InternetAddress::InternetAddress(const char* host, unsigned short port) :
+   SocketAddress("IPv4", "0.0.0.0", port)
 {
-   // set protocol
-   setProtocol("IPv4");
-}
-
-InternetAddress::InternetAddress(const string& host, unsigned short port)
-{
-   // set protocol
-   setProtocol("IPv4");
+   mHost = strdup("");
    
-   // resolve host
-   setHost(host);
-   
-   // set port
-   setPort(port);
+   if(strcmp(host, "") != 0)
+   {
+      // resolve host
+      InternetAddress::setHost(host);
+   }
 }
 
 InternetAddress::~InternetAddress()
 {
+   free(mHost);
 }
 
 bool InternetAddress::toSockAddr(sockaddr* addr, unsigned int& size)
@@ -51,7 +44,7 @@ bool InternetAddress::toSockAddr(sockaddr* addr, unsigned int& size)
       sa->sin_port = htons(getPort());
       
       // converts an address to network byte order
-      rval = (inet_pton(AF_INET, getAddress().c_str(), &sa->sin_addr) == 1);
+      rval = (inet_pton(AF_INET, getAddress(), &sa->sin_addr) == 1);
    }
    
    return rval;
@@ -85,16 +78,17 @@ bool InternetAddress::fromSockAddr(const sockaddr* addr, unsigned int size)
    return rval;
 }
 
-void InternetAddress::setAddress(const string& address)
+void InternetAddress::setAddress(const char* address)
 {
    // set the address
-   mAddress = address;
+   SocketAddress::setAddress(address);
    
    // clear the host
-   mHost = "";
+   free(mHost);
+   mHost = strdup("");
 }
 
-UnknownHostException* InternetAddress::setHost(const std::string& host)
+UnknownHostException* InternetAddress::setHost(const char* host)
 {
    UnknownHostException* rval = NULL;
    
@@ -107,12 +101,11 @@ UnknownHostException* InternetAddress::setHost(const std::string& host)
    struct addrinfo* res = NULL;
    
    // get address information
-   if(getaddrinfo(host.c_str(), NULL, &hints, &res) != 0)
+   if(getaddrinfo(host, NULL, &hints, &res) != 0)
    {
-      char* msg = new char[17 + host.length()];
-      sprintf(msg, "Unknown host '%s'!", host.c_str());
+      char msg[17 + strlen(host)];
+      sprintf(msg, "Unknown host '%s'!", host);
       rval = new UnknownHostException(msg);
-      delete msg;
       Exception::setLast(rval);
    }
    else
@@ -125,7 +118,8 @@ UnknownHostException* InternetAddress::setHost(const std::string& host)
       char dst[INET_ADDRSTRLEN];
       memset(&dst, '\0', INET_ADDRSTRLEN);
       inet_ntop(AF_INET, &addr.sin_addr, dst, INET_ADDRSTRLEN);
-      mAddress = dst;
+      free(mAddress);
+      mAddress = strdup(dst);
    }
    
    if(res != NULL)
@@ -137,9 +131,9 @@ UnknownHostException* InternetAddress::setHost(const std::string& host)
    return rval;
 }
 
-const string& InternetAddress::getHost()
+const char* InternetAddress::getHost()
 {
-   if(mHost == "" && getAddress() != "")
+   if(strcmp(mHost, "") == 0 && strcmp(getAddress(), "") != 0)
    {
       // get a IPv4 address structure
       struct sockaddr_in sa;
@@ -153,12 +147,14 @@ const string& InternetAddress::getHost()
       if(getnameinfo((sockaddr*)&sa, size, dst, 100, NULL, 0, 0) == 0)
       {
          // set host name
-         mHost = dst;
+         free(mHost);
+         mHost = strdup(dst);
       }
       else
       {
          // use address
-         mHost = getAddress();
+         free(mHost);
+         mHost = strdup(getAddress());
       }
    }
    
@@ -185,8 +181,9 @@ bool InternetAddress::isMulticast()
 
 string& InternetAddress::toString(string& str)
 {
-   string port = Convert::integerToString(getPort());
-   str = "InternetAddress [" + getHost() + ":" + port + "," +
-      getAddress() + ":" + port + "]";
+   char temp[100 + strlen(getHost()) + strlen(getAddress())];
+   sprintf(temp, "InternetAddress [%s:%u,%s:%u]",
+      getHost(), getPort(), getAddress(), getPort());
+   str.assign(temp);
    return str;
 }

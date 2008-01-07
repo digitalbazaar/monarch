@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_Internet6Address_H
 #define db_net_Internet6Address_H
@@ -26,18 +26,13 @@ class Internet6Address : public InternetAddress
 {
 public:
    /**
-    * Creates a new Internet6Address.
-    */
-   Internet6Address();
-   
-   /**
     * Creates a new Internet6Address with the specified host and port. An
     * exception may be raised if the host is unknown.
     *
     * @param host the host.
     * @param port the socket port.
     */
-   Internet6Address(const std::string& host, unsigned short port);
+   Internet6Address(const char* host = "", unsigned short port = 0);
    
    /**
     * Destructs this Internet6Address.
@@ -75,14 +70,14 @@ public:
     * 
     * @return an UnknownHostException if the host is not known, NULL otherwise.
     */
-   virtual UnknownHostException* setHost(const std::string& host);
+   virtual UnknownHostException* setHost(const char* host);
    
    /**
     * Gets the hostname for this address.
     * 
     * @return the hostname for this address.
     */
-   virtual const std::string& getHost();
+   virtual const char* getHost();
    
    /**
     * Returns true if this address is a multicast address, false if not.

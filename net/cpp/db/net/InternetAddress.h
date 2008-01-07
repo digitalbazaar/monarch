@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_InternetAddress_H
 #define db_net_InternetAddress_H
@@ -28,14 +28,9 @@ protected:
    /**
     * The hostname.
     */
-   std::string mHost;
+   char* mHost;
    
 public:
-   /**
-    * Creates a new InternetAddress.
-    */
-   InternetAddress();
-   
    /**
     * Creates a new InternetAddress with the specified host and port. An
     * exception may be raised if the host is unknown.
@@ -43,7 +38,7 @@ public:
     * @param host the host.
     * @param port the socket port.
     */
-   InternetAddress(const std::string& host, unsigned short port);
+   InternetAddress(const char* host = "", unsigned short port = 0);
    
    /**
     * Destructs this InternetAddress.
@@ -79,7 +74,7 @@ public:
     * 
     * @param address the address to use.
     */
-   virtual void setAddress(const std::string& address);
+   virtual void setAddress(const char* address);
    
    /**
     * Sets the hostname for this address.
@@ -88,14 +83,14 @@ public:
     * 
     * @return an UnknownHostException if the host is not known, NULL otherwise.
     */
-   virtual UnknownHostException* setHost(const std::string& host);
+   virtual UnknownHostException* setHost(const char* host);
    
    /**
     * Gets the hostname for this address.
     * 
     * @return the hostname for this address.
     */
-   virtual const std::string& getHost();
+   virtual const char* getHost();
    
    /**
     * Returns true if this address is a multicast address, false if not.

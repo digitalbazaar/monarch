@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/id3v2/FrameHeader.h"
 
@@ -108,8 +108,9 @@ void FrameHeader::convertFromBytes(const char* b, int length)
    setFrameSize(convertBytesToInt(b + 4));
    
    // convert flags
-   setFlags1(b[8]);
-   setFlags2(b[9]);
+   unsigned char* ub = (unsigned char*)b;
+   setFlags1(ub[8]);
+   setFlags2(ub[9]);
 }
 
 void FrameHeader::convertToBytes(char* b)
@@ -121,8 +122,9 @@ void FrameHeader::convertToBytes(char* b)
    convertIntToBytes(getFrameSize(), b + 4);
    
    // set flags
-   b[8] = getFlagByte1();
-   b[9] = getFlagByte2();
+   unsigned char* ub = (unsigned char*)b;
+   ub[8] = getFlagByte1();
+   ub[9] = getFlagByte2();
 }
 
 void FrameHeader::setId(const char* id)
@@ -234,9 +236,11 @@ string& FrameHeader::toString(string& str)
 
 void FrameHeader::convertIntToBytes(int integer, char* b)
 {
+   unsigned char* ub = (unsigned char*)b;
+   
    for(int i = 0; i < 4; i++)
    {
-      b[i] = ((integer >> ((3 - i) * 8)) & 0xFF);
+      ub[i] = ((integer >> ((3 - i) * 8)) & 0xFF);
    }
 }
 
@@ -244,10 +248,12 @@ int FrameHeader::convertBytesToInt(const char* b)
 {
    int rval = 0;
    
+   unsigned char* ub = (unsigned char*)b;
+   
    // most significant byte first
    for(int i = 0; i < 4; i++)
    {
-      rval |= ((((unsigned char)b[i]) & 0xFF) << ((3 - i) * 8));
+      rval |= ((ub[i] & 0xFF) << ((3 - i) * 8));
    }
    
    return rval;

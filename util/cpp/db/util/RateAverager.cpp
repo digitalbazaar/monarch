@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/util/RateAverager.h"
 #include "db/rt/System.h"
-#include "db/util/Math.h"
+
+#include <math.h>
 
 using namespace db::rt;
 using namespace db::util;
@@ -62,7 +63,7 @@ void RateAverager::setWindowStartTimes(unsigned long long time)
 
 unsigned long long RateAverager::getHalfWindowLength()
 {
-   return (unsigned long long)Math::round(getWindowLength() / 2.0);
+   return (unsigned long long)roundl(getWindowLength() / 2.0);
 }
 
 void RateAverager::updateWindowLengths(unsigned long long length)
@@ -186,7 +187,7 @@ void RateAverager::addRate(
    lock();
    {
       // increase the time passed
-      mTimePassed = Math::maximum(0, mTimePassed + interval);
+      mTimePassed += interval;
       
       // get the remaining time in the current window
       unsigned long long remaining = mCurrentWindow.getRemainingTime();
@@ -205,7 +206,7 @@ void RateAverager::addRate(
             // get the portion of the item count in the overlap
             double rate = TimeWindow::getItemsPerMillisecond(count, interval);
             unsigned long long portion =
-               (unsigned long long)Math::round(rate * overlap);
+               (unsigned long long)roundl(rate * overlap);
             
             // increase the next window count and time
             mNextWindow.increaseItemCount(portion, overlap);
@@ -235,7 +236,7 @@ void RateAverager::addRate(
             // get the portion of the item count in the overflow
             double rate = TimeWindow::getItemsPerMillisecond(count, interval);
             unsigned long long portion =
-               (unsigned long long)Math::round(rate * overflow);
+               (unsigned long long)roundl(rate * overflow);
             
             // increase the next window count and time
             mNextWindow.increaseItemCount(portion, overflow);
@@ -262,13 +263,13 @@ void RateAverager::addRate(
             // add the portion of the item count to the current window
             double rate = TimeWindow::getItemsPerMillisecond(count, interval);
             unsigned long long portion =
-               (unsigned long long)Math::round(rate * remainder);
+               (unsigned long long)roundl(rate * remainder);
             mCurrentWindow.increaseItemCount(portion, remainder);
          }
       }
       
       // add items to the total item count
-      mTotalItemCount = Math::maximum(0, mTotalItemCount + count);
+      mTotalItemCount += count;
       
       // update the last rate add time
       mLastAddTime = System::getCurrentMilliseconds();
@@ -367,7 +368,7 @@ void RateAverager::setWindowLength(unsigned long long length)
       // the window length must be at least two because two windows that
       // are 1/2 of the window length apart are always stored -- and
       // this RateAverager is only accurate to 1 whole millisecond
-      length = Math::maximum(2, length);
+      length = (2 > length) ? 2 : length;
       
       // update window lengths
       updateWindowLengths(length);
@@ -389,7 +390,7 @@ unsigned long long RateAverager::getETA(unsigned long long count)
       if(count > 0)
       {
          // multiply the current rate by the count
-         rval = (unsigned long long)Math::round(count / getCurrentRate());
+         rval = (unsigned long long)roundl(count / getCurrentRate());
       }
    }
    unlock();

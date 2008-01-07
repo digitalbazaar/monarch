@@ -28,7 +28,7 @@ AudioFrameHeader::~AudioFrameHeader()
    }
 }
 
-unsigned char* AudioFrameHeader::getDataBytes()
+inline unsigned char* AudioFrameHeader::getDataBytes()
 {
    return (unsigned char*)getBytes()->bytes();
 }
@@ -596,7 +596,7 @@ string& AudioFrameHeader::toString(string& str)
    
    return str;
 }
-
+#include <iostream>
 int AudioFrameHeader::calculateFrameLength(
    const AudioVersion& version, const AudioLayer& layer,
    double bitrate, double samplingRate, bool paddingEnabled)

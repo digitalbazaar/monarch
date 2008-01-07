@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/id3v2/TagHeader.h"
 
@@ -54,10 +54,12 @@ unsigned char TagHeader::getFlagByte()
 
 void TagHeader::convertToBytes(char* b)
 {
-   memcpy(b, "ID3", 3);
-   b[3] = mVersion;
-   b[4] = mRevision;
-   b[5] = getFlagByte();
+   unsigned char* ub = (unsigned char*)b;
+   
+   memcpy(ub, "ID3", 3);
+   ub[3] = mVersion;
+   ub[4] = mRevision;
+   ub[5] = getFlagByte();
    
    // get size
    convertIntToSynchsafeBytes(mTagSize, b + 6);
@@ -67,18 +69,20 @@ bool TagHeader::convertFromBytes(const char* b)
 {
    bool rval = false;
    
+   unsigned char* ub = (unsigned char*)b;
+   
    // check for "ID3"
-   if(memcmp(b, "ID3", 3) == 0)
+   if(memcmp(ub, "ID3", 3) == 0)
    {
       unsigned char version = sSupportedVersion;
       unsigned char revision = sSupportedRevision;
       
       // check version and revision
-      if(b[3] <= version && b[4] <= revision)
+      if(ub[3] <= version && ub[4] <= revision)
       {
          mVersion = version;
          mRevision = revision;
-         setFlags(b[5]);
+         setFlags(ub[5]);
          mTagSize = convertSynchsafeBytesToInt(b + 6);
          rval = true;
       }
@@ -156,11 +160,13 @@ int TagHeader::getTagSize()
 
 void TagHeader::convertIntToSynchsafeBytes(int integer, char* b)
 {
+   unsigned char* ub = (unsigned char*)b;
+   
    // we may want to ensure the int is 32-bit
    // only 28 significant bits in the integer
    for(int i = 0; i < 4; i++)
    {
-      b[i] = ((integer >> (28 - ((i + 1) * 7))) & 0x7F);
+      ub[i] = ((integer >> (28 - ((i + 1) * 7))) & 0x7F);
    }
 }
 
@@ -168,11 +174,13 @@ int TagHeader::convertSynchsafeBytesToInt(const char* b)
 {
    int rval = 0;
    
+   unsigned char* ub = (unsigned char*)b;
+   
    // we may want to ensure the int is 32-bit
    // most significant byte first
    for(int i = 0; i < 4; i++)
    {
-      rval |= ((((unsigned char)b[i]) & 0x7F) << ((3 - i) * 7));
+      rval |= ((ub[i] & 0x7F) << ((3 - i) * 7));
    }
    
    return rval;

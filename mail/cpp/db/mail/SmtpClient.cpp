@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/mail/SmtpClient.h"
 #include "db/net/InternetAddress.h"
@@ -257,7 +257,7 @@ Exception* SmtpClient::sendMail(Url* url, Mail* mail)
    // connect, use 30 second timeouts
    TcpSocket s;
    s.setReceiveTimeout(30000);
-   InternetAddress address(url->getHost(), url->getPort());
+   InternetAddress address(url->getHost().c_str(), url->getPort());
    if(s.connect(&address, 30))
    {
       // create smtp connection

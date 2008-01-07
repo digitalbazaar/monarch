@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/util/TimeWindow.h"
 #include "db/rt/System.h"
-#include "db/util/Math.h"
+
+#include <math.h>
 
 using namespace db::rt;
 using namespace db::util;
@@ -26,7 +27,7 @@ void TimeWindow::adjustItemCount(unsigned long long timeChange)
       // multiply the current rate by the time change and
       // increase the item count accordingly
       increaseItemCount((unsigned long long)
-         Math::round(getIncreaseRate() * timeChange));
+         roundl(getIncreaseRate() * timeChange));
    }
    unlock();
 }
@@ -95,8 +96,6 @@ void TimeWindow::setLength(unsigned long long length, bool adjust)
 {
    lock();
    {
-      length = Math::maximum(0, length);
-
       // if adjusting the item count
       if(adjust)
       {
@@ -127,8 +126,6 @@ void TimeWindow::setStartTime(unsigned long long time, bool adjust)
 {
    lock();
    {
-      time = Math::maximum(0, time);
-      
       // if adjusting the item count
       if(adjust)
       {
@@ -214,7 +211,7 @@ void TimeWindow::increaseItemCount(unsigned long long increase)
 {
    lock();
    {
-      mItemCount = Math::maximum(0, mItemCount + increase);
+      mItemCount += increase;
    }
    unlock();
 }
@@ -234,13 +231,13 @@ void TimeWindow::increaseTimePassed(unsigned long long time)
 {
    lock();
    {
-      mTimePassed = Math::maximum(0, mTimePassed + time);
-
+      mTimePassed += time;
+      
       // see if this window has a maximum length
       if(getLength() != 0)
       {
          // cap time passed at the length of the window
-         mTimePassed = Math::minimum(mTimePassed, getLength());
+         mTimePassed = (mTimePassed < getLength()) ? mTimePassed : getLength();
       }
       
       // update last time that time was added

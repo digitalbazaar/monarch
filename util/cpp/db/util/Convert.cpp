@@ -219,16 +219,18 @@ string Convert::intToUpperHex(unsigned int n)
    return rval;
 }
 
-string Convert::integerToString(long long n)
-{
-   ostringstream oss;
-   oss << n;
-   return oss.str();
-}
-
-bool Convert::stringToInteger(const char* s, long long& n, int base)
-{
-   char* endptr = NULL;
-   n = strtoll(s, &endptr, base);
-   return endptr != s && *endptr == '\0';
-}
+// Note: Commented out because the C functions are simple enough --
+// just use them and they are faster.
+//string Convert::integerToString(long long n)
+//{
+//   ostringstream oss;
+//   oss << n;
+//   return oss.str();
+//}
+//
+//bool Convert::stringToInteger(const char* s, long long& n, int base)
+//{
+//   char* endptr = NULL;
+//   n = strtoll(s, &endptr, base);
+//   return endptr != s && *endptr == '\0';
+//}

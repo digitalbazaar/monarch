@@ -2428,32 +2428,30 @@ void runAddressResolveTest(TestRunner& tr)
    assertNoException();
    //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
    
-   // create IPv6 address
-   //Internet6Address ip6;
-   
-   //cout << endl << "Testing IPv6..." << endl << endl;
-   
-   //ip6.setHost("ip6-localhost");
-   //cout << "ip6-localhost = " << ip6.getAddress() << endl;
-   
-   //ip6.setHost("yuna.digitalbazaar.com");
-   //cout << "yuna.digitalbazaar.com = " << ip6.getAddress() << endl;
-   
-   /*
-   ip6.setHost("www.google.com");
-   cout << "www.google.com = " << ip6.getAddress() << endl;
-   
-   ip6.setHost("www.yahoo.com");
-   cout << "www.yahoo.com = " << ip6.getAddress() << endl;
-   
-   ip6.setHost("www.microsoft.com");
-   cout << "www.microsoft.com = " << ip6.getAddress() << endl;
-   */
-   
-   //cout << endl;
-   
-   //ip6.setAddress("fc00:840:db:bb:d::8");
-   //cout << ip6.getAddress() << " = " << ip6.getHost() << endl;
+//   // create IPv6 address
+//   Internet6Address ip6;
+//   
+//   cout << endl << "Testing IPv6..." << endl << endl;
+//   
+//   ip6.setHost("ip6-localhost");
+//   cout << "ip6-localhost = " << ip6.getAddress() << endl;
+//   
+//   ip6.setHost("yuna.digitalbazaar.com");
+//   cout << "yuna.digitalbazaar.com = " << ip6.getAddress() << endl;
+//   
+//   ip6.setHost("www.google.com");
+//   cout << "www.google.com = " << ip6.getAddress() << endl;
+//   
+//   ip6.setHost("www.yahoo.com");
+//   cout << "www.yahoo.com = " << ip6.getAddress() << endl;
+//   
+//   ip6.setHost("www.microsoft.com");
+//   cout << "www.microsoft.com = " << ip6.getAddress() << endl;
+//   
+//   cout << endl;
+//   
+//   ip6.setAddress("fc00:840:db:bb:d::8");
+//   cout << ip6.getAddress() << " = " << ip6.getHost() << endl;
    
    tr.passIfNoException();
    
@@ -3755,7 +3753,7 @@ void runHttpClientGetTest()
    {
       string str;
       cout << "Connected to: " << url.toString(str) << endl;
-      InternetAddress address(url.getHost(), url.getPort());
+      InternetAddress address(url.getHost().c_str(), url.getPort());
       cout << address.toString(str) << endl;
       
       // do get
@@ -3811,7 +3809,7 @@ void runHttpClientPostTest()
    {
       string str;
       cout << "Connected to: " << url.toString(str) << endl;
-      InternetAddress address(url.getHost(), url.getPort());
+      InternetAddress address(url.getHost().c_str(), url.getPort());
       cout << address.toString(str) << endl;
       
       char someData[] = "Just some post data.";
@@ -6720,6 +6718,7 @@ public:
 //      runStringCompareTest();
 //      runCipherTest(tr, "AES256");
 //      runAsymmetricKeyLoadingTest(tr);
+//      runAddressResolveTest(tr);
 //      runSslSocketTest();
 //      runServerSocketTest();
 //      runSslServerSocketTest();
@@ -6733,6 +6732,7 @@ public:
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
 //      runPingTest();
+//      runXmlHttpServerTest(tr);
 //      runMySqlConnectionTest();
 //      runMySqlStatementTest();
 //      runMySqlRowObjectTest(tr);

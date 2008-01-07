@@ -1,33 +1,23 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/Internet6Address.h"
 #include "db/net/SocketDefinitions.h"
 
-using namespace std;
 using namespace db::net;
 using namespace db::rt;
 
-Internet6Address::Internet6Address()
+Internet6Address::Internet6Address(const char* host, unsigned short port) :
+   InternetAddress("", port)
 {
    // set protocol
-   setProtocol("IPv6");
+   Internet6Address::setProtocol("IPv6");
    
-   // set default address and port
-   mAddress = "::0";
-   mPort = 0;
-}
-
-Internet6Address::Internet6Address(const string& host, unsigned short port)
-{
-   // set protocol
-   setProtocol("IPv6");
-   
-   // resolve host
-   setHost(host);
-   
-   // set port
-   setPort(port);
+   if(strcmp(host, "") != 0)
+   {
+      // resolve host
+      Internet6Address::setHost(host);
+   }
 }
 
 Internet6Address::~Internet6Address()
@@ -53,7 +43,7 @@ bool Internet6Address::toSockAddr(sockaddr* addr, unsigned int& size)
       sa->sin6_port = htons(getPort());
       
       // converts an address to network byte order
-      rval = (inet_pton(AF_INET6, getAddress().c_str(), &sa->sin6_addr) == 1);
+      rval = (inet_pton(AF_INET6, getAddress(), &sa->sin6_addr) == 1);
    }
    
    return rval;
@@ -87,7 +77,7 @@ bool Internet6Address::fromSockAddr(const sockaddr* addr, unsigned int size)
    return rval;
 }
 
-UnknownHostException* Internet6Address::setHost(const std::string& host)
+UnknownHostException* Internet6Address::setHost(const char* host)
 {
    UnknownHostException* rval = NULL;
    
@@ -100,12 +90,11 @@ UnknownHostException* Internet6Address::setHost(const std::string& host)
    struct addrinfo* res = NULL;
    
    // get address information
-   if(getaddrinfo(host.c_str(), NULL, &hints, &res) != 0)
+   if(getaddrinfo(host, NULL, &hints, &res) != 0)
    {
-      char* msg = new char[17 + host.length()];
-      sprintf(msg, "Unknown host '%s'!", host.c_str());
+      char msg[17 + strlen(host)];
+      sprintf(msg, "Unknown host '%s'!", host);
       rval = new UnknownHostException(msg);
-      delete msg;
       Exception::setLast(rval);
    }
    else
@@ -118,7 +107,8 @@ UnknownHostException* Internet6Address::setHost(const std::string& host)
       char dst[INET6_ADDRSTRLEN];
       memset(&dst, '\0', INET6_ADDRSTRLEN);
       inet_ntop(AF_INET6, &addr.sin6_addr, dst, INET6_ADDRSTRLEN);
-      mAddress = dst;
+      free(mAddress);
+      mAddress = strdup(dst);
       
       // free result
       freeaddrinfo(res);
@@ -127,9 +117,9 @@ UnknownHostException* Internet6Address::setHost(const std::string& host)
    return rval;
 }
 
-const string& Internet6Address::getHost()
+const char* Internet6Address::getHost()
 {
-   if(mHost == "" && getAddress() != "")
+   if(strcmp(mHost, "") == 0 && strcmp(getAddress(), "") != 0)
    {
       // get a IPv6 address structure
       struct sockaddr_in6 sa;
@@ -143,12 +133,14 @@ const string& Internet6Address::getHost()
       if(getnameinfo((sockaddr*)&sa, size, dst, 100, NULL, 0, 0) == 0)
       {
          // set host name
-         mHost = dst;
+         free(mHost);
+         mHost = strdup(dst);
       }
       else
       {
          // use address
-         mHost = getAddress();
+         free(mHost);
+         mHost = strdup(getAddress());
       }
    }
    

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/UdpSocket.h"
 #include "db/net/SocketDefinitions.h"
@@ -62,14 +62,13 @@ bool UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
 {
    int error = 0;
    
-   if(group->getProtocol() == "IPv6")
+   if(strcmp(group->getProtocol(), "IPv6") == 0)
    {
       // create IPv6 multicast request
       struct ipv6_mreq request;
       
       // set multicast address
-      inet_pton(
-         AF_INET6, group->getAddress().c_str(), &request.ipv6mr_multiaddr);
+      inet_pton(AF_INET6, group->getAddress(), &request.ipv6mr_multiaddr);
       
       // use any address for local interface
       request.ipv6mr_interface = 0;
@@ -85,7 +84,7 @@ bool UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
       struct ip_mreq request;
       
       // set multicast address
-      inet_pton(AF_INET, group->getAddress().c_str(), &request.imr_multiaddr);
+      inet_pton(AF_INET, group->getAddress(), &request.imr_multiaddr);
       
       // set local interface
       if(localAddress == NULL)
@@ -95,8 +94,7 @@ bool UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
       }
       else
       {
-         inet_pton(AF_INET, localAddress->getAddress().c_str(),
-            &request.imr_interface);
+         inet_pton(AF_INET, localAddress->getAddress(), &request.imr_interface);
       }
       
       // join group
@@ -118,14 +116,13 @@ bool UdpSocket::leaveGroup(SocketAddress* group)
 {
    int error = 0;
    
-   if(group->getProtocol() == "IPv6")
+   if(strcmp(group->getProtocol(), "IPv6") == 0)
    {
       // create IPv6 multicast request
       struct ipv6_mreq request;
       
       // set multicast address
-      inet_pton(
-         AF_INET6, group->getAddress().c_str(), &request.ipv6mr_multiaddr);
+      inet_pton(AF_INET6, group->getAddress(), &request.ipv6mr_multiaddr);
       
       // use any address for local interface
       request.ipv6mr_interface = 0;
@@ -141,7 +138,7 @@ bool UdpSocket::leaveGroup(SocketAddress* group)
       struct ip_mreq request;
       
       // set multicast address
-      inet_pton(AF_INET, group->getAddress().c_str(), &request.imr_multiaddr);
+      inet_pton(AF_INET, group->getAddress(), &request.imr_multiaddr);
       
       // use any address for local interface
       request.imr_interface.s_addr = INADDR_ANY;

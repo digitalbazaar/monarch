@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/BandwidthThrottler.h"
-#include "db/util/Math.h"
 #include "db/rt/System.h"
 #include "db/rt/Thread.h"
 
+#include <math.h>
+
 using namespace db::net;
 using namespace db::rt;
-using namespace db::util;
 
 BandwidthThrottler::BandwidthThrottler(unsigned long long rateLimit)
 {
@@ -40,11 +40,11 @@ void BandwidthThrottler::updateWindowTime()
    // get the current time
    unsigned long long now = System::getCurrentMilliseconds();
    
-   // Cap the number of bytes granted per window at Integer.MAX_VALUE
-   // so that there isn't any overflow. This should also be a
-   // sufficiently large enough number such that rate calculations
-   // aren't affected very often at all.
-   if(mBytesGranted > Math::MAX_UINT_VALUE)
+   // Cap the number of bytes granted per window at maximum uint value
+   // so that there isn't any overflow. This should also be a sufficiently
+   // large enough number such that rate calculations aren't affected
+   // very often at all.
+   if(mBytesGranted > 0xffffffff)
    {
       resetWindowTime();
    }
@@ -83,8 +83,8 @@ void BandwidthThrottler::updateAvailableByteTime()
 {
    // the amount of time until a byte is available is 1000 milliseconds
    // divided by the rate in bytes/second, with a minimum of 1 millisecond
-   mAvailableByteTime = (unsigned long long)Math::round(1000. / getRateLimit());
-   mAvailableByteTime = Math::maximum(1, mAvailableByteTime);
+   mAvailableByteTime = (unsigned long long)roundl(1000. / getRateLimit());
+   mAvailableByteTime = (1 > mAvailableByteTime) ? 1 : mAvailableByteTime;
 }
 
 unsigned long long BandwidthThrottler::getAvailableByteTime()
@@ -99,12 +99,12 @@ void BandwidthThrottler::updateAvailableBytes()
    
    // determine how many bytes are available given the passed time --
    // use the floor so as not to go over the rate limit
-   mAvailableBytes = (unsigned long long)Math::floor(
+   mAvailableBytes = (unsigned long long)floorl(
       passedTime / 1000. * getRateLimit());
    
    // subtract the number of bytes already granted in this window
-   mAvailableBytes -= mBytesGranted;
-   mAvailableBytes = Math::maximum(0, mAvailableBytes);
+   mAvailableBytes = (mBytesGranted > mAvailableBytes) ?
+      0 : mAvailableBytes - mBytesGranted;
 }
 
 unsigned long long BandwidthThrottler::getAvailableBytes()
@@ -137,7 +137,7 @@ InterruptedException* BandwidthThrottler::limitBandwidth()
 }
 
 InterruptedException* BandwidthThrottler::requestBytes(
-   int count, int& permitted)
+   unsigned int count, int& permitted)
 {
    InterruptedException* rval = NULL;
    
@@ -152,7 +152,8 @@ InterruptedException* BandwidthThrottler::requestBytes(
          rval = limitBandwidth();
          
          // get the available bytes
-         permitted = Math::minimum(getAvailableBytes(), count);
+         permitted = (getAvailableBytes() < count) ?
+            getAvailableBytes() : count;
          
          // increment the bytes granted
          mBytesGranted += permitted;
@@ -176,8 +177,7 @@ void BandwidthThrottler::setRateLimit(unsigned long long rateLimit)
    lock();
    {
       // set new rate limit
-      mRateLimit = Math::maximum(0, rateLimit);
-      
+      mRateLimit = rateLimit;
       if(mRateLimit > 0)
       {
          // reset the window time

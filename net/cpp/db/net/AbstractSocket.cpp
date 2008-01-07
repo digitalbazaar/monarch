@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/AbstractSocket.h"
 #include "db/net/SocketTools.h"
@@ -215,7 +215,7 @@ bool AbstractSocket::shutdownOutput()
 bool AbstractSocket::bind(SocketAddress* address)
 {
    // acquire file descriptor
-   if(acquireFileDescriptor(address->getProtocol().c_str()))
+   if(acquireFileDescriptor(address->getProtocol()))
    {
       // populate address structure
       unsigned int size = 130;
@@ -311,7 +311,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
 bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
 {
    // acquire file descriptor
-   if(acquireFileDescriptor(address->getProtocol().c_str()))
+   if(acquireFileDescriptor(address->getProtocol()))
    {
       // populate address structure
       unsigned int size = 130;

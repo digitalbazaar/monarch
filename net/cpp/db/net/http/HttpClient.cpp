@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpClient.h"
 #include "db/net/TcpSocket.h"
@@ -58,7 +58,7 @@ bool HttpClient::connect(Url* url)
    if(mConnection == NULL)
    {
       // create connection as necessary
-      InternetAddress address(url->getHost(), url->getPort());
+      InternetAddress address(url->getHost().c_str(), url->getPort());
       if((mConnection = createConnection(&address)) != NULL)
       {
          // create request and response
@@ -183,11 +183,14 @@ void HttpClient::disconnect()
 
 HttpConnection* HttpClient::createConnection(Url* url, unsigned int timeout)
 {
+   HttpConnection* rval = NULL;
+   
    // FIXME: add SSL support later
    
    // create connection
-   InternetAddress address(url->getHost(), url->getPort());
-   return createConnection(&address);
+   InternetAddress address(url->getHost().c_str(), url->getPort());
+   rval = createConnection(&address);
+   return rval;
 }
 
 HttpConnection* HttpClient::createConnection(

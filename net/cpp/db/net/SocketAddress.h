@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_SocketAddress_H
 #define db_net_SocketAddress_H
@@ -26,12 +26,12 @@ protected:
    /**
     * The protocol associated with this socket address.
     */
-   std::string mProtocol;
+   char* mProtocol;
    
    /**
     * The address part of the socket address.
     */
-   std::string mAddress;
+   char* mAddress;
    
    /**
     * The port part of the socket address.
@@ -40,11 +40,6 @@ protected:
    
 public:
    /**
-    * Creates a new SocketAddress.
-    */
-   SocketAddress();
-   
-   /**
     * Creates a new SocketAddress with the specified address and port.
     * 
     * @param protocol the protocol.
@@ -52,8 +47,9 @@ public:
     * @param port the socket port.
     */
    SocketAddress(
-      const std::string& protocol,
-      const std::string& address, unsigned short port);
+      const char* protocol = "IPv4",
+      const char* address = "0.0.0.0",
+      unsigned short port = 0);
    
    /**
     * Destructs this SocketAddress.
@@ -89,28 +85,28 @@ public:
     * 
     * @param protocol the protocol to use.
     */
-   virtual void setProtocol(const std::string& protocol);
+   virtual void setProtocol(const char* protocol);
    
    /**
     * Gets the protocol for the socket address. 
     * 
     * @return the protocol.
     */
-   virtual const std::string& getProtocol();
+   virtual const char* getProtocol();
    
    /**
     * Sets the address part of the socket address. 
     * 
     * @param address the address to use.
     */
-   virtual void setAddress(const std::string& address);
+   virtual void setAddress(const char* address);
    
    /**
     * Gets the address part of the socket address. 
     * 
     * @return the address.
     */
-   virtual const std::string& getAddress();
+   virtual const char* getAddress();
    
    /**
     * Sets the port part of the socket address.

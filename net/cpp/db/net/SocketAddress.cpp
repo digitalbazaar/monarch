@@ -1,49 +1,44 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/SocketAddress.h"
 #include "db/net/SocketDefinitions.h"
-#include "db/util/Convert.h"
 
 using namespace std;
 using namespace db::net;
-using namespace db::util;
-
-SocketAddress::SocketAddress()
-{
-   mProtocol = "IPv4";
-   mAddress = "0.0.0.0";
-   mPort = 0;
-}
 
 SocketAddress::SocketAddress(
-   const string& protocol, const string& address, unsigned short port) 
+   const char* protocol, const char* address, unsigned short port) 
 {
-   mProtocol = protocol;
-   mAddress = address;
+   mProtocol = strdup(protocol);
+   mAddress = strdup(address);
    mPort = port;
 }
 
 SocketAddress::~SocketAddress()
 {
+   free(mProtocol);
+   free(mAddress);
 }
 
-void SocketAddress::setProtocol(const string& protocol)
+void SocketAddress::setProtocol(const char* protocol)
 {
-   mProtocol = protocol;
+   free(mProtocol);
+   mProtocol = strdup(protocol);
 }
 
-const string& SocketAddress::getProtocol()
+const char* SocketAddress::getProtocol()
 {
    return mProtocol;
 }
 
-void SocketAddress::setAddress(const string& address)
+void SocketAddress::setAddress(const char* address)
 {
-   mAddress = address;
+   free(mAddress);
+   mAddress = strdup(address);
 }
 
-const string& SocketAddress::getAddress()
+const char* SocketAddress::getAddress()
 {
    return mAddress;
 }
@@ -60,7 +55,8 @@ unsigned short SocketAddress::getPort()
 
 string& SocketAddress::toString(string& str)
 {
-   string port = Convert::integerToString(getPort());
-   str = "SocketAddress [" + getAddress() + ":" + port + "]";
+   char temp[50 + strlen(getAddress())];
+   sprintf(temp, "SocketAddress [%s:%u]", getAddress(), getPort());
+   str.assign(temp);
    return str;
 }

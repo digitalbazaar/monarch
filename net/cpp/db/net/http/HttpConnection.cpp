@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpConnection.h"
 #include "db/net/http/HttpRequest.h"
@@ -7,7 +7,6 @@
 #include "db/net/http/HttpBodyOutputStream.h"
 #include "db/net/http/HttpChunkedTransferInputStream.h"
 #include "db/net/http/HttpChunkedTransferOutputStream.h"
-#include "db/util/Math.h"
 #include "db/rt/Thread.h"
 
 using namespace std;
@@ -15,7 +14,10 @@ using namespace db::io;
 using namespace db::net;
 using namespace db::net::http;
 using namespace db::rt;
-using namespace db::util;
+
+const unsigned long long MAX_ULONG_VALUE = 0xffffffffffffffffLL;
+const unsigned long HALF_MAX_LONG_VALUE =
+   (unsigned long)(MAX_ULONG_VALUE / 2);
 
 HttpConnection::HttpConnection(Connection* c, bool cleanup) :
    WebConnection(c, cleanup)
@@ -128,7 +130,8 @@ IOException* HttpConnection::sendBody(
       
       // read in content, write out to connection
       unsigned long long contentRemaining = contentLength;
-      unsigned int readSize = Math::minimum(contentRemaining, length);
+      unsigned int readSize = (contentRemaining < length) ?
+         contentRemaining : length;
       while(!writeError && contentRemaining > 0 &&
             (numBytes = is->read(b, readSize)) > 0)
       {
@@ -227,7 +230,7 @@ IOException* HttpConnection::receiveBody(
       while(!writeError && (numBytes = is->read(b, length)) > 0)
       {
          // update http connection content bytes read (reset as necessary)
-         if(getContentBytesRead() > Math::HALF_MAX_LONG_VALUE)
+         if(getContentBytesRead() > HALF_MAX_LONG_VALUE)
          {
             setContentBytesRead(0);
          }
@@ -251,15 +254,16 @@ IOException* HttpConnection::receiveBody(
       
       // read in from connection, write out content
       unsigned long long contentRemaining = contentLength;
-      unsigned int readSize = Math::minimum(contentRemaining, length);
+      unsigned int readSize = (contentRemaining < length) ?
+         contentRemaining : length;
       while(!writeError && contentRemaining > 0 &&
             (numBytes = is->read(b, readSize)) > 0)
       {
          contentRemaining -= numBytes;
-         readSize = Math::minimum(contentRemaining, length);
+         readSize = (contentRemaining < length) ? contentRemaining : length;
          
          // update http connection content bytes read (reset as necessary)
-         if(getContentBytesRead() > Math::HALF_MAX_LONG_VALUE)
+         if(getContentBytesRead() > HALF_MAX_LONG_VALUE)
          {
             setContentBytesRead(0);
          }
