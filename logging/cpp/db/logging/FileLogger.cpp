@@ -133,7 +133,7 @@ void FileLogger::setMaxFileSize(off_t fileSize)
 {
    lock();
    // 0 is means no maximum log file size
-   mMaxFileSize = Math::maximum(0, fileSize);
+   mMaxFileSize = fileSize;
    unlock();
 }
 
@@ -147,11 +147,8 @@ bool FileLogger::setNumRotatingFiles(unsigned int numRotatingFiles)
    bool rval = false;
    
    lock();
-   if(numRotatingFiles != 0)
-   {
-      mNumRotatingFiles = Math::maximum(-1, numRotatingFiles);
-      rval = true;
-   }
+   mNumRotatingFiles = numRotatingFiles;
+   rval = true;
    unlock();
    
    return rval;

@@ -12,6 +12,7 @@ SUBDIRS := 3rdparty/cpp \
            net/cpp \
            mail/cpp \
            sql/cpp \
+           logging/cpp \
            test/cpp
 
 ifdef PRINT_DIRECTORIES

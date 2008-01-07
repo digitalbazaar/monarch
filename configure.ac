@@ -110,5 +110,6 @@ AC_OUTPUT(Makefile \
           net/cpp/Makefile \
           rt/cpp/Makefile \
           sql/cpp/Makefile \
+          logging/cpp/Makefile \
           test/cpp/Makefile \
           util/cpp/Makefile)
