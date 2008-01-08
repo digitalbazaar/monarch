@@ -6011,7 +6011,7 @@ void runLoggerTest(TestRunner& tr)
    OStreamOutputStream stdoutOS(&cout);
 
    // add logging for all log messages
-   db::logging::OutputStreamLogger stdoutLogger(Logger::Max, &stdoutOS);
+   OutputStreamLogger stdoutLogger(Logger::Max, &stdoutOS);
       
    // add default logger
    Logger::addLogger(&stdoutLogger);
@@ -6019,7 +6019,7 @@ void runLoggerTest(TestRunner& tr)
    Logger::addLogger(&stdoutLogger, "[C1]");
 
    // create file logger   
-   db::logging::FileLogger flog(Logger::Max, new File("test.log"), true);
+   FileLogger flog(Logger::Max, new File("test.log"), true);
    // log default category to the file
    Logger::addLogger(&flog);
 
@@ -6061,6 +6061,32 @@ void runLoggerTest(TestRunner& tr)
 
    tr.passIfNoException();
    
+
+   tr.test("clear");
+
+   // create a string output stream
+   ostringstream oss;
+   OStreamOutputStream sos(&oss);
+
+   // add logging for all log messages
+   OutputStreamLogger sLogger(Logger::Max, &sos);
+      
+   // add default logger
+   Logger::addLogger(&sLogger);
+   
+   // clear ot
+   Logger::clearLoggers();
+
+   // Try to output
+   DB_DEBUG("Error if I am logged.");
+   
+   assert(oss.str().length() == 0);
+
+   Logger::clearLoggers();
+
+   tr.passIfNoException();
+
+
    tr.ungroup();
 }
 

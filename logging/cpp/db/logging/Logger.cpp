@@ -84,6 +84,11 @@ void Logger::removeLogger(Logger* logger, const char* category)
    }
 }
 
+void Logger::clearLoggers()
+{
+   sLoggers.clear();
+}
+
 Logger::Logger(Level level)
 {
    setLevel(level);

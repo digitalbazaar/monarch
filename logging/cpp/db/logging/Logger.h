@@ -246,10 +246,37 @@ public:
     * @return the stack trace as a string.
     */
    //static const char* getStackTrace(Throwable t);
-   //
 
-   static void addLogger(Logger* logger, const char* category = db::logging::Logger::defaultCategory);
-   static void removeLogger(Logger* logger, const char* category = db::logging::Logger::defaultCategory);
+   /**
+    * Add a logger for a category.  Any number of loggers can be added for a
+    * single category.
+    * 
+    * @param logger the logger to register
+    * @param category the category to use.  Defaults to a generic category.
+    */
+   static void addLogger(Logger* logger,
+      const char* category = db::logging::Logger::defaultCategory);
+
+   /**
+    * Remove a logger for a category.  This will remove the first match if
+    * duplicates are found.
+    * 
+    * @param logger the logger to register
+    * @param category the category to use.  Defaults to a generic category.
+    */
+   static void removeLogger(Logger* logger,
+      const char* category = db::logging::Logger::defaultCategory);
+
+   /**
+    * Clear all loggers.
+    */
+   static void clearLoggers();
+
+   /**
+    * Gets the loggers.
+    * 
+    * @return the loggers
+    */
    //getLoggers(...)
 };
 
