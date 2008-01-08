@@ -10,10 +10,10 @@ DYNAMIC_WINDOWS_LIBRARIES = sqlite3 mysql
 LINUX_LIB_DIR = @DBCOREDIR@/libs/linux
 WINDOWS_LIB_DIR = @DBCOREDIR@/libs/windows
 
-STATIC_LINUX_LIBRARIES = $(LINUX_LIB_DIR)/libdbrt.a $(LINUX_LIB_DIR)/libdbmodest.a $(LINUX_LIB_DIR)/libdbutil.a $(LINUX_LIB_DIR)/libdbio.a $(LINUX_LIB_DIR)/libdbcrypto.a $(LINUX_LIB_DIR)/libdbnet.a $(LINUX_LIB_DIR)/libdbdata.a $(LINUX_LIB_DIR)/libdbsql.a $(LINUX_LIB_DIR)/libdbevent.a $(LINUX_LIB_DIR)/libdbmail.a $(LINUX_LIB_DIR)/libdbtest.a $(LINUX_LIB_DIR)/libdbconfig.a
+STATIC_LINUX_LIBRARIES = $(LINUX_LIB_DIR)/libdbrt.a $(LINUX_LIB_DIR)/libdblogging.a $(LINUX_LIB_DIR)/libdbmodest.a $(LINUX_LIB_DIR)/libdbutil.a $(LINUX_LIB_DIR)/libdbio.a $(LINUX_LIB_DIR)/libdbcrypto.a $(LINUX_LIB_DIR)/libdbnet.a $(LINUX_LIB_DIR)/libdbdata.a $(LINUX_LIB_DIR)/libdbsql.a $(LINUX_LIB_DIR)/libdbevent.a $(LINUX_LIB_DIR)/libdbmail.a $(LINUX_LIB_DIR)/libdbtest.a $(LINUX_LIB_DIR)/libdbconfig.a
 DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3 mysqlclient
 
-STATIC_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/dbrt.lib $(WINDOWS_LIB_DIR)/dbutil.dll $(WINDOWS_LIB_DIR)/dbmodest.lib $(WINDOWS_LIB_DIR)/dbio.lib $(WINDOWS_LIB_DIR)/dbcrypto.lib $(WINDOWS_LIB_DIR)/dbnet.lib $(WINDOWS_LIB_DIR)/dbdata.lib $(WINDOWS_LIB_DIR)/dbsql.lib $(WINDOWS_LIB_DIR)/dbevent.lib $(WINDOWS_LIB_DIR)/dbmail.lib $(WINDOWS_LIB_DIR)/dbtest.lib $(WINDOWS_LIB_DIR)/dbconfig.lib
+STATIC_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/dbrt.lib $(WINDOWS_LIB_DIR)/dblogging.lib $(WINDOWS_LIB_DIR)/dbutil.dll $(WINDOWS_LIB_DIR)/dbmodest.lib $(WINDOWS_LIB_DIR)/dbio.lib $(WINDOWS_LIB_DIR)/dbcrypto.lib $(WINDOWS_LIB_DIR)/dbnet.lib $(WINDOWS_LIB_DIR)/dbdata.lib $(WINDOWS_LIB_DIR)/dbsql.lib $(WINDOWS_LIB_DIR)/dbevent.lib $(WINDOWS_LIB_DIR)/dbmail.lib $(WINDOWS_LIB_DIR)/dbtest.lib $(WINDOWS_LIB_DIR)/dbconfig.lib
 EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/expat.dll $(WINDOWS_LIB_DIR)/sqlite3.dll $(WINDOWS_LIB_DIR)/mysql.dll -lwsock32
 
 # ----------- Standard Makefile

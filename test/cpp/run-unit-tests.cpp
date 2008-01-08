@@ -77,9 +77,9 @@
 #include "db/event/Observable.h"
 #include "db/event/ObserverDelegate.h"
 #include "db/event/EventController.h"
-//#include "db/logging/Logger.h"
-//#include "db/logging/OutputStreamLogger.h"
-//#include "db/logging/FileLogger.h"
+#include "db/logging/Logger.h"
+#include "db/logging/OutputStreamLogger.h"
+#include "db/logging/FileLogger.h"
 #include "db/util/UniqueList.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/data/json/JsonReader.h"
@@ -107,7 +107,7 @@ using namespace db::data::json;
 using namespace db::sql::sqlite3;
 using namespace db::sql::mysql;
 using namespace db::sql::util;
-//using namespace db::logging;
+using namespace db::logging;
 
 // WTF? this is required to get static library building for unknown reason
 #include "db/io/PeekInputStream.h"
@@ -5990,21 +5990,23 @@ void runLoggerTest()
 {
    cout << "Starting Logger test." << endl << endl;
    
-//   db::logging::OutputStreamLogger clog(
-//      "stdout", Logger::Max, OStreamOutputStream::getStdoutStream());
-//   Logger::addLogger(&clog);
-//   Logger::addLogger(&clog, "[C1]");
-//   
-//   db::logging::FileLogger flog(
-//      "flog", Logger::Max, new File("test.log"), true);
-//   Logger::addLogger(&flog);
-//
-//   DB_ERROR("[M1] error test");
-//   DB_WARNING("[M1] warning test");
-//   DB_INFO("[M1] info test");
-//   DB_DEBUG("[M1] debug test");
-//   DB_CAT_ERROR("[C1]", "[M2] cat 1 error test");
-//   DB_CAT_OBJECT_ERROR("[C1]", &clog, "[M3] cat 1 obj error test");
+   OStreamOutputStream stdout = OStreamOutputStream(&cout);
+   db::logging::OutputStreamLogger clog(
+      "stdout", Logger::Max, &stdout);
+   Logger::addLogger(&clog);
+   //Logger::addLogger(&clog, "[C1]");
+   
+   //db::logging::FileLogger flog(
+   //   "flog", Logger::Max, new File("test.log"), true);
+   //Logger::addLogger(&flog);
+
+   //DB_ERROR("[M1] error test");
+   //DB_WARNING("[M1] warning test");
+   //DB_INFO("[M1] info test");
+   //DB_DEBUG("[M1] debug test");
+   //DB_CAT_ERROR("[C1]", "[M2] cat 1 error test");
+   //DB_CAT_OBJECT_ERROR("[C1]", &clog, "[M3] cat 1 obj error test");
+   DB_CAT_INFO("stdout", "info test");
    
    cout << endl << "Logger test complete." << endl;
 }
