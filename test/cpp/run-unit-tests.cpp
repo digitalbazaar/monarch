@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include <iostream>
 #include <sstream>
@@ -602,6 +602,7 @@ void runBase64Test(TestRunner& tr)
    char* decoded;
    unsigned int length;
    Base64Codec::decode(encoded, &decoded, length);
+   assert(decoded != NULL);
    
    assert(length == 4);
    for(unsigned int i = 0; i < length; i++)
@@ -611,11 +612,25 @@ void runBase64Test(TestRunner& tr)
    
    string encoded2 = Base64Codec::encode(decoded, 4);
    assertStrCmp(encoded2.c_str(), expected);
+   free(decoded);
    
-   if(decoded != NULL)
-   {
-      free(decoded);
-   }
+   unsigned int size = 144;
+   string large;
+   large.append(size, 0x01);
+   encoded = Base64Codec::encode(large.c_str(), size);
+   Base64Codec::decode(encoded, &decoded, length);
+   assert(memcmp(decoded, large.c_str(), size) == 0);
+   assert(length == size);
+   free(decoded);
+   
+   size = 145;
+   large.erase();
+   large.append(size, 0x01);
+   encoded = Base64Codec::encode(large.c_str(), size);
+   Base64Codec::decode(encoded, &decoded, length);
+   assert(memcmp(decoded, large.c_str(), size) == 0);
+   assert(length == size);
+   free(decoded);
    
    tr.pass();
 }

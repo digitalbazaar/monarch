@@ -129,14 +129,6 @@ string Base64Codec::encode(const char* data, unsigned int length)
          groups++;
       }
       
-      // the string buffer for string the encoded data
-      // Base64 encoding turns 3 bytes into 4 characters, so the
-      // length of the encoded data will be:
-      unsigned int encodedLength = groups * 4;
-      
-      // add end of line characters padding
-      encodedLength += (encodedLength / 76);
-      
       // encode all the groups
       char group[4];
       unsigned int offset = 0;
@@ -173,15 +165,20 @@ void Base64Codec::decode(const string& str, char** data, unsigned int& length)
    length = 0;
    
    // remove all white space
-   string input = str;
-   StringTools::replaceAll(input, " ", "");
-   StringTools::replaceAll(input, "\n", "");
-   StringTools::replaceAll(input, "\r", "");
-   StringTools::replaceAll(input, "\t", "");
+   char temp[str.length()];
+   unsigned int len = 0;
+   for(unsigned int i = 0; i < str.length(); i++) 
+   {
+      if(str[i] != ' ' && str[i] != '\t' &&
+         str[i] != '\r' && str[i] != '\n')
+      {
+         temp[len++] = str[i];
+      }
+   }
+   temp[len] = 0;
    
-   // make sure the string has length
-   unsigned int len = input.length();
-   if(len != 0)
+   // make sure the string is at least 4 characters
+   if(len > 3)
    {
       // get and check the number of groups, must be a multiple of 4
       unsigned int groups = len / 4;
@@ -189,11 +186,11 @@ void Base64Codec::decode(const string& str, char** data, unsigned int& length)
       {
          // get the number of pad characters
          unsigned int padChars = 0;
-         if(input[len - 2] == '=')
+         if(temp[len - 2] == '=')
          {
             padChars = 2;
          }
-         else if(input[len - 1] == '=')
+         else if(temp[len - 1] == '=')
          {
             padChars = 1;
          }
@@ -212,7 +209,7 @@ void Base64Codec::decode(const string& str, char** data, unsigned int& length)
          for(unsigned int i = 0; i < groups; i++, strIndex += 4)
          {
             // copy the decoded bytes into the decoded buffer
-            decodeGroup(input.c_str() + strIndex, bytes, len);
+            decodeGroup(temp + strIndex, bytes, len);
             memcpy((*data) + dataIndex, bytes, len);
             dataIndex += len;
          }
