@@ -73,6 +73,20 @@ public:
    };
    
    /**
+    * The object type.
+    */
+   typedef enum ObjectType {
+      /**
+       * A generic pointer.  Log address.
+       */
+      Pointer = 0,
+      /**
+       * A DynamicObject.  Log address and contents.
+       */
+      DynamicObject
+   };
+   
+   /**
     * Return a string representation of a level.
     * 
     * @param level the Level.
@@ -103,7 +117,7 @@ protected:
        */
       bool operator()(const char* s1, const char* s2) const
       {
-         return strcmp(s1, s2) == 0;
+         return strcmp(s1, s2) < 0;
       }
    };
    
@@ -190,6 +204,7 @@ public:
     * @param file the location of this log call (or NULL)
     * @param function the function of this log call (or NULL)
     * @param line the line of this log call (or -1)
+    * @param objectType the type of the object pointer
     * @param object the object being debugged (or NULL)
     * @param message the log message
     * @param header true to use the logger's header, false not to.
@@ -202,6 +217,7 @@ public:
       const char* file,
       const char* function,
       int line,
+      ObjectType objectType,
       const void* object,
       const char* message);
    
@@ -213,16 +229,18 @@ public:
     * @param file the location of this log call (or NULL)
     * @param function the function of this log call (or NULL)
     * @param line the line of this log call (or -1)
+    * @param objectType the type of the object pointer
     * @param object the object being debugged (or NULL)
     * @param message the log message
     * @param header true to use the logger's header, false not to.
     */
-   static void catLevelLog(
+   static void fullLog(
       const char* cat,
       Level level,
       const char* file,
       const char* function,
       int line,
+      ObjectType objectType,
       const void* object,
       const char* message);
    
@@ -251,11 +269,16 @@ public:
 #define DB_STMT_BEGIN do {
 #define DB_STMT_END } while(0);
 
-#define DB_CAT_LEVEL_LOG(cat, level, object, message) \
+#define DB_FULL_LOG(cat, level, type, object, message) \
    DB_STMT_BEGIN \
-   db::logging::Logger::catLevelLog( \
-      cat, level, __FILE__, __func__, __LINE__, object, message); \
+   db::logging::Logger::fullLog( \
+      cat, level, __FILE__, __func__, __LINE__, \
+      type, object, \
+      message); \
    DB_STMT_END
+
+#define DB_CAT_LEVEL_LOG(cat, level, object, message) \
+   DB_FULL_LOG(cat, level, db::logging::Logger::Pointer, object, message)
 
 #define DB_CAT_OBJECT_ERROR(cat, object, message) \
    DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Error, object, message)
@@ -284,6 +307,15 @@ public:
    DB_CAT_OBJECT_DEBUG(cat, NULL, message)
 #define DB_DEBUG(message) \
    DB_CAT_DEBUG(db::logging::Logger::defaultCategory, message)
+
+/**
+ * Special basic support for debugging DynamicObjects
+ */
+#define DB_DEBUG_DYNO(dyno, message) \
+   DB_FULL_LOG(db::logging::Logger::defaultCategory, \
+      db::logging::Logger::Debug, \
+      db::logging::Logger::DynamicObject, \
+      dyno, message)
 
 } // end namespace logging
 } // end namespace db

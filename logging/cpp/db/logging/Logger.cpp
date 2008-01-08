@@ -3,12 +3,15 @@
  */
 
 #include <map>
+#include <sstream>
 
-#include "db/util/Math.h"
-#include "db/util/Date.h"
+#include "db/data/json/JsonWriter.h"
 #include "db/logging/Logger.h"
+#include "db/io/OStreamOutputStream.h"
+#include "db/util/Date.h"
 
 using namespace std;
+using namespace db::data::json;
 using namespace db::io;
 using namespace db::util;
 using namespace db::logging;
@@ -64,8 +67,21 @@ void Logger::addLogger(Logger* logger, const char* category)
 
 void Logger::removeLogger(Logger* logger, const char* category)
 {
-   // FIXME
-   assert(false);
+   multimap<const char*, Logger*, NameComparator>::iterator i =
+      sLoggers.find(category);
+   if(i != sLoggers.end())
+   {
+      multimap<const char*, Logger*, NameComparator>::iterator end =
+         sLoggers.upper_bound(category);
+      for(; i != end; i++)
+      {
+         if(logger == i->second)
+         {
+            sLoggers.erase(i);
+            break;
+         }
+      }
+   }
 }
 
 Logger::Logger(const char* name, Level level)
@@ -141,6 +157,7 @@ bool Logger::log(
    const char* file,
    const char* function,
    int line,
+   ObjectType objectType,
    const void* object,
    const char* message)
 {
@@ -152,6 +169,8 @@ bool Logger::log(
 
       // Output as:
       // [date: ][level: ][cat: ][file:][function:][line: ][object: ]message
+      // [optional object data]
+
       string logText;
       
       string date;
@@ -204,6 +223,19 @@ bool Logger::log(
       logText.append(message);
       logText.append(1, '\n');
       
+      if(object && objectType == DynamicObject)
+      {
+         // pretty-print DynamicObject in JSON
+         JsonWriter jwriter;
+         jwriter.setCompact(false);
+         ostringstream oss;
+         OStreamOutputStream osos(&oss);
+         db::util::DynamicObject dyno = *((db::util::DynamicObject*)object);
+         jwriter.write(dyno, &osos);
+         logText.append(oss.str());
+         logText.append(1, '\n');
+      }
+
       log(logText.c_str());
       rval = true;
 
@@ -213,12 +245,13 @@ bool Logger::log(
    return rval;
 }
 
-void Logger::catLevelLog(
+void Logger::fullLog(
    const char* cat,
    Level level,
    const char* file,
    const char* function,
    int line,
+   ObjectType type,
    const void* object,
    const char* message)
 {
@@ -231,7 +264,7 @@ void Logger::catLevelLog(
       for(; i != end; i++)
       {
          Logger* lg = i->second;
-         lg->log(cat, level, file, function, line, object, message);
+         lg->log(cat, level, file, function, line, type, object, message);
       }
    }
 }
