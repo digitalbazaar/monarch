@@ -1,8 +1,7 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/util/Base64Codec.h"
-#include "db/util/StringTools.h"
 
 using namespace std;
 using namespace db::util;
