@@ -67,8 +67,21 @@ void Logger::addLogger(Logger* logger, const char* category)
 
 void Logger::removeLogger(Logger* logger, const char* category)
 {
-   // FIXME
-   assert(false);
+   multimap<const char*, Logger*, NameComparator>::iterator i =
+      sLoggers.find(category);
+   if(i != sLoggers.end())
+   {
+      multimap<const char*, Logger*, NameComparator>::iterator end =
+         sLoggers.upper_bound(category);
+      for(; i != end; i++)
+      {
+         if(logger == i->second)
+         {
+            sLoggers.erase(i);
+            break;
+         }
+      }
+   }
 }
 
 Logger::Logger(const char* name, Level level)
@@ -156,6 +169,8 @@ bool Logger::log(
 
       // Output as:
       // [date: ][level: ][cat: ][file:][function:][line: ][object: ]message
+      // [optional object data]
+
       string logText;
       
       string date;

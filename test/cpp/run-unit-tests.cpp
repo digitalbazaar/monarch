@@ -5992,24 +5992,48 @@ void runLoggerTest(TestRunner& tr)
 
    tr.test("basic");
    
-   OStreamOutputStream stdoutos(&cout);
-   db::logging::OutputStreamLogger clog(
-      "stdout", Logger::Max, &stdoutos);
-   Logger::addLogger(&clog);
-   Logger::addLogger(&clog, "[C1]");
-   
+   // create the stdout output stream
+   OStreamOutputStream stdoutOS(&cout);
+
+   // add logging for all log messages
+   db::logging::OutputStreamLogger stdoutLogger(
+      "stdout", Logger::Max, &stdoutOS);
+      
+   // add default logger
+   Logger::addLogger(&stdoutLogger);
+   // add logger for specific category
+   Logger::addLogger(&stdoutLogger, "[C1]");
+
+   // create file logger   
    db::logging::FileLogger flog(
       "flog", Logger::Max, new File("test.log"), true);
+   // log default category to the file
    Logger::addLogger(&flog);
 
+   // basic tests of levels
    DB_ERROR("[M1] error test");
    DB_WARNING("[M1] warning test");
    DB_INFO("[M1] info test");
    DB_DEBUG("[M1] debug test");
-   DB_CAT_ERROR("[C1]", "[M2] cat 1 error test");
-   DB_CAT_OBJECT_ERROR("[C1]", &clog, "[M3] cat 1 obj error test");
-   DB_CAT_INFO("stdout", "info test");
    
+   // C1 category test
+   DB_CAT_ERROR("[C1]", "[M2] cat 1 error test");
+   
+   // C1 cat error with object address
+   DB_CAT_OBJECT_ERROR("[C1]", &clog, "[M3] cat 1 obj error test");
+   
+   tr.passIfNoException();
+
+
+   tr.test("double log");
+
+   // re-add default logger 
+   Logger::addLogger(&stdoutLogger);
+   // check if message is logged twice
+   DB_DEBUG("double test");
+   // remove it
+   Logger::removeLogger(&stdoutLogger);
+
    tr.passIfNoException();
 
 
@@ -6017,10 +6041,10 @@ void runLoggerTest(TestRunner& tr)
 
    DynamicObject dyno;
    dyno["logging"] = "is fun";
-   DB_DEBUG_DYNO(&dyno, "test dyno");
+   DB_DEBUG_DYNO(&dyno, "dyno smart pointer 1");
 
    DynamicObject dyno2 = dyno;
-   DB_DEBUG_DYNO(&dyno2, "test dyno2");
+   DB_DEBUG_DYNO(&dyno2, "dyno smart pointer 2");
 
    tr.passIfNoException();
    
