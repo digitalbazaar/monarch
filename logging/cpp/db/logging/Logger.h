@@ -127,11 +127,6 @@ protected:
    static std::multimap<const char*, Logger*, NameComparator> sLoggers;
    
    /**
-    * The name of this logger.
-    */
-   char* mName;
-   
-   /**
     * The current level setting.
     */
    Level mLevel;
@@ -145,23 +140,15 @@ public:
    /**
     * Creates a new logger with specified level.
     *
-    * @param name the name of the logger.
     * @param level the max level to display.
     */
-   Logger(const char* name, Level level = None);
+   Logger(Level level = None);
    
    /**
     * Destructs the Logger.
     */
    virtual ~Logger();
    
-   /**
-    * Gets the name of this logger.
-    * 
-    * @return the name of this logger.
-    */
-   virtual const char* getName();
-
    /**
     * Sets the level for this logger.
     *

@@ -84,10 +84,8 @@ void Logger::removeLogger(Logger* logger, const char* category)
    }
 }
 
-Logger::Logger(const char* name, Level level)
+Logger::Logger(Level level)
 {
-   mName = strdup(name);
-   
    setLevel(level);
    
    mDateFormat = NULL;
@@ -96,17 +94,10 @@ Logger::Logger(const char* name, Level level)
 
 Logger::~Logger()
 {
-   free(mName);
-   
    if(mDateFormat != NULL)
    {
       free(mDateFormat);
    }
-}
-
-const char* Logger::getName()
-{
-   return mName;
 }
 
 void Logger::setLevel(Level level)

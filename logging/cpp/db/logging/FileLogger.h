@@ -68,8 +68,8 @@ public:
     * @param level the max level to output.
     * @param cleanup if the file object should be managed by the logger.
     */
-   FileLogger(const char* name, Level level = None,
-         db::io::File* file = NULL, bool cleanup = false);
+   FileLogger(Level level = None,
+      db::io::File* file = NULL, bool cleanup = false);
    
    /**
     * Overloaded to ensure that the stream gets closed when garbage
