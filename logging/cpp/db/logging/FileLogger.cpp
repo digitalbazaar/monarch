@@ -109,7 +109,7 @@ bool FileLogger::setFile(File* file, bool append, bool cleanup)
    }
    
    OutputStream* s = new FileOutputStream(file, false);
-   setOutputStream(s, true);
+   setOutputStream(s, true, false);
    rval = true;
 
    unlock();
