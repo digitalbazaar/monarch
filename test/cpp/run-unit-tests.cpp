@@ -77,9 +77,9 @@
 #include "db/event/Observable.h"
 #include "db/event/ObserverDelegate.h"
 #include "db/event/EventController.h"
-//#include "db/logging/Logger.h"
-//#include "db/logging/OutputStreamLogger.h"
-//#include "db/logging/FileLogger.h"
+#include "db/logging/Logger.h"
+#include "db/logging/OutputStreamLogger.h"
+#include "db/logging/FileLogger.h"
 #include "db/util/UniqueList.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/data/json/JsonReader.h"
@@ -107,7 +107,7 @@ using namespace db::data::json;
 using namespace db::sql::sqlite3;
 using namespace db::sql::mysql;
 using namespace db::sql::util;
-//using namespace db::logging;
+using namespace db::logging;
 
 // WTF? this is required to get static library building for unknown reason
 #include "db/io/PeekInputStream.h"
@@ -5986,27 +5986,44 @@ void runEventControllerTest(TestRunner& tr)
    tr.pass();
 }
 
-void runLoggerTest()
+void runLoggerTest(TestRunner& tr)
 {
-   cout << "Starting Logger test." << endl << endl;
+   tr.group("Logger");
+
+   tr.test("basic");
    
-//   db::logging::OutputStreamLogger clog(
-//      "stdout", Logger::Max, OStreamOutputStream::getStdoutStream());
-//   Logger::addLogger(&clog);
-//   Logger::addLogger(&clog, "[C1]");
-//   
-//   db::logging::FileLogger flog(
-//      "flog", Logger::Max, new File("test.log"), true);
-//   Logger::addLogger(&flog);
-//
-//   DB_ERROR("[M1] error test");
-//   DB_WARNING("[M1] warning test");
-//   DB_INFO("[M1] info test");
-//   DB_DEBUG("[M1] debug test");
-//   DB_CAT_ERROR("[C1]", "[M2] cat 1 error test");
-//   DB_CAT_OBJECT_ERROR("[C1]", &clog, "[M3] cat 1 obj error test");
+   OStreamOutputStream stdoutos(&cout);
+   db::logging::OutputStreamLogger clog(
+      "stdout", Logger::Max, &stdoutos);
+   Logger::addLogger(&clog);
+   Logger::addLogger(&clog, "[C1]");
    
-   cout << endl << "Logger test complete." << endl;
+   db::logging::FileLogger flog(
+      "flog", Logger::Max, new File("test.log"), true);
+   Logger::addLogger(&flog);
+
+   DB_ERROR("[M1] error test");
+   DB_WARNING("[M1] warning test");
+   DB_INFO("[M1] info test");
+   DB_DEBUG("[M1] debug test");
+   DB_CAT_ERROR("[C1]", "[M2] cat 1 error test");
+   DB_CAT_OBJECT_ERROR("[C1]", &clog, "[M3] cat 1 obj error test");
+   
+   tr.passIfNoException();
+
+
+   tr.test("dyno");
+
+   DynamicObject dyno;
+   dyno["logging"] = "is fun";
+   DB_DEBUG_DYNO(&dyno, "test dyno");
+
+   DynamicObject dyno2 = dyno;
+   DB_DEBUG_DYNO(&dyno2, "test dyno2");
+
+   tr.passIfNoException();
+   
+   tr.ungroup();
 }
 
 void runUniqueListTest(TestRunner& tr)
@@ -6738,7 +6755,7 @@ public:
 //      runMySqlRowObjectTest(tr);
 //      runConnectionPoolTest();
 //      runDatabaseClientTest();
-//      runLoggerTest();
+//      runLoggerTest(tr);
 //      runFileTest();
 //      runSmtpClientTest(tr);
       

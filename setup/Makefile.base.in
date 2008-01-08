@@ -6,7 +6,7 @@ BUILD_FOR_WINDOWS=@BUILD_FOR_WINDOWS@
 
 AR_FLAGS = cr
 DBCORE = @DBCOREDIR@
-INCLUDES = -I$(DBCORE)/config/cpp -I$(DBCORE)/crypto/cpp -I$(DBCORE)/data/cpp -I$(DBCORE)/event/cpp -I$(DBCORE)/io/cpp -I$(DBCORE)/mail/cpp -I$(DBCORE)/modest/cpp -I$(DBCORE)/net/cpp -I$(DBCORE)/rt/cpp -I$(DBCORE)/sql/cpp -I$(DBCORE)/test/cpp -I$(DBCORE)/util/cpp
+INCLUDES = -I$(DBCORE)/config/cpp -I$(DBCORE)/crypto/cpp -I$(DBCORE)/data/cpp -I$(DBCORE)/event/cpp -I$(DBCORE)/io/cpp -I$(DBCORE)/mail/cpp -I$(DBCORE)/modest/cpp -I$(DBCORE)/net/cpp -I$(DBCORE)/rt/cpp -I$(DBCORE)/sql/cpp -I$(DBCORE)/test/cpp -I$(DBCORE)/util/cpp -I$(DBCORE)/logging/cpp
 
 MODULE_BASE_DIR = $(shell pwd)
 

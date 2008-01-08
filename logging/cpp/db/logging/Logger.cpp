@@ -3,12 +3,15 @@
  */
 
 #include <map>
+#include <sstream>
 
-#include "db/util/Math.h"
-#include "db/util/Date.h"
+#include "db/data/json/JsonWriter.h"
 #include "db/logging/Logger.h"
+#include "db/io/OStreamOutputStream.h"
+#include "db/util/Date.h"
 
 using namespace std;
+using namespace db::data::json;
 using namespace db::io;
 using namespace db::util;
 using namespace db::logging;
@@ -141,6 +144,7 @@ bool Logger::log(
    const char* file,
    const char* function,
    int line,
+   ObjectType objectType,
    const void* object,
    const char* message)
 {
@@ -204,6 +208,19 @@ bool Logger::log(
       logText.append(message);
       logText.append(1, '\n');
       
+      if(object && objectType == DynamicObject)
+      {
+         // pretty-print DynamicObject in JSON
+         JsonWriter jwriter;
+         jwriter.setCompact(false);
+         ostringstream oss;
+         OStreamOutputStream osos(&oss);
+         db::util::DynamicObject dyno = *((db::util::DynamicObject*)object);
+         jwriter.write(dyno, &osos);
+         logText.append(oss.str());
+         logText.append(1, '\n');
+      }
+
       log(logText.c_str());
       rval = true;
 
@@ -213,12 +230,13 @@ bool Logger::log(
    return rval;
 }
 
-void Logger::catLevelLog(
+void Logger::fullLog(
    const char* cat,
    Level level,
    const char* file,
    const char* function,
    int line,
+   ObjectType type,
    const void* object,
    const char* message)
 {
@@ -231,7 +249,7 @@ void Logger::catLevelLog(
       for(; i != end; i++)
       {
          Logger* lg = i->second;
-         lg->log(cat, level, file, function, line, object, message);
+         lg->log(cat, level, file, function, line, type, object, message);
       }
    }
 }
