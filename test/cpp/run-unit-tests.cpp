@@ -6008,6 +6008,7 @@ void runLoggerTest(TestRunner& tr)
    DB_DEBUG("[M1] debug test");
    DB_CAT_ERROR("[C1]", "[M2] cat 1 error test");
    DB_CAT_OBJECT_ERROR("[C1]", &clog, "[M3] cat 1 obj error test");
+   DB_CAT_INFO("stdout", "info test");
    
    tr.passIfNoException();
 
