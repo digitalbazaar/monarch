@@ -52,8 +52,8 @@ WINDOWS_EXECUTABLES := $(patsubst %,$(WINDOWS_DIST_DIR)/%, $(EXECUTABLES))
 WINDOWS_DEPENDENCIES := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/-windows%.P, $(SOURCES))
 WINDOWS_DEPENDENCIES += $(patsubst %.cpp,-windows%.P, $(WINDOWS_EXECUTABLE_SOURCES))
 
-#WINDOWS_LIBRARIES := $(patsubst %,$(WINDOWS_DIST_DIR)/%.lib, $(LIBRARIES))
-WINDOWS_LIBRARIES := $(patsubst %,$(WINDOWS_DIST_DIR)/%.dll, $(LIBRARIES))
+WINDOWS_LIBRARIES := $(patsubst %,$(WINDOWS_DIST_DIR)/%.lib, $(LIBRARIES))
+WINDOWS_LIBRARIES += $(patsubst %,$(WINDOWS_DIST_DIR)/%.dll, $(LIBRARIES))
 
 ifeq ($(BUILD_FOR_LINUX),yes)
 ALL_SOURCES += $(LINUX_LIBRARY_SOURCES) $(LINUX_EXECUTABLE_SOURCES)
@@ -161,11 +161,11 @@ endif
 #	@ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
 #endif
 
-#%.lib: $(WINDOWS_LIBRARY_OBJECTS)
-#	@echo "Building $@..."
-#	@$(WINDOWS_AR) $(AR_FLAGS) $@ $(WINDOWS_LIBRARY_OBJECTS)
-#	@mkdir -p $(WINDOWS_LIB_DIR)
-#	@ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
+%.lib: $(WINDOWS_LIBRARY_OBJECTS)
+	@echo "Building $@..."
+	@$(WINDOWS_AR) $(AR_FLAGS) $@ $(WINDOWS_LIBRARY_OBJECTS)
+	@mkdir -p $(WINDOWS_LIB_DIR)
+	@ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
 
 ifdef EXECUTABLES
 ifeq ($(BUILD_FOR_LINUX),yes)
