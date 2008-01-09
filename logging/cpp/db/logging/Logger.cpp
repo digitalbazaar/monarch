@@ -16,11 +16,7 @@ using namespace db::io;
 using namespace db::util;
 using namespace db::logging;
 
-extern "C" {void* gDbLoggingLoggers;}
-//std::multimap<const unsigned int, Logger*, std::less<unsigned int> > Logger::sLoggers;
-
-#define GLOGGERS ((std::multimap<const unsigned int, Logger*, \
-   std::less<unsigned int> >*)gDbLoggingLoggers)
+Logger::LoggerMap* Logger::sLoggers;
 
 unsigned int Logger::defaultCategory = 0;
 
@@ -66,7 +62,7 @@ const char* Logger::levelToString(Level level)
 
 void Logger::addLogger(Logger* logger, const unsigned int category)
 {
-   GLOGGERS->insert(
+   sLoggers->insert(
       pair<const unsigned int, Logger*>(category, logger));
 }
 
@@ -74,16 +70,16 @@ void Logger::removeLogger(Logger* logger, const unsigned int category)
 {
    // FIX ME: We need to iterate through, we can't do a find()
    multimap< const unsigned int, Logger*, less<unsigned int> >::iterator i =
-      GLOGGERS->find(category);
-   if(i != GLOGGERS->end())
+      sLoggers->find(category);
+   if(i != sLoggers->end())
    {
       multimap< const unsigned int, Logger*, less<unsigned int> >::iterator 
-         end = GLOGGERS->upper_bound(category);
+         end = sLoggers->upper_bound(category);
       for(; i != end; i++)
       {
          if(logger == i->second)
          {
-            GLOGGERS->erase(i);
+            sLoggers->erase(i);
             break;
          }
       }
@@ -92,13 +88,11 @@ void Logger::removeLogger(Logger* logger, const unsigned int category)
 
 void Logger::clearLoggers()
 {
-   GLOGGERS->clear();
+   sLoggers->clear();
 }
 
 Logger::Logger(const char* name, Level level)
 {
-   cout << "Logger::Logger(" << name << "," << level << ")" << std::endl;
-
    mName = name;
    setLevel(level);
    
@@ -106,17 +100,14 @@ Logger::Logger(const char* name, Level level)
    setDateFormat("%Y-%m-%d %H:%M:%S");
    
    // Create the global map of loggers if it doesn't already exist.
-   if(GLOGGERS == NULL)
+   if(sLoggers == NULL)
    {
-      gDbLoggingLoggers =
-         new std::multimap<const unsigned int, Logger*, 
-            std::less<unsigned int> >;
+      sLoggers = new LoggerMap;
    }
 }
 
 Logger::~Logger()
 {
-   cout << "Logger::~Logger(" << mName << "," << mLevel << ")" << std::endl;
    if(mDateFormat != NULL)
    {
       free(mDateFormat);
@@ -177,7 +168,7 @@ bool Logger::log(
 {
    bool rval = false;
    
-   if((GLOGGERS != NULL)  && (mLevel >= level))
+   if((sLoggers != NULL)  && (mLevel >= level))
    {
       lock();
 
@@ -212,23 +203,23 @@ bool Logger::log(
       if(file)
       {
          logText.append(file);
-         logText.append(1, ':');
+         logText.push_back(':');
       }
       if(function)
       {
          logText.append(function);
-         logText.append(1, ':');
+         logText.push_back(':');
       }
       if(line != -1)
       {
          char tmp[21];
          snprintf(tmp, 21, "%d", line);
          logText.append(tmp);
-         logText.append(1, ':');
+         logText.push_back(':');
       }
       if(file || function || line)
       {
-         logText.append(1, ' ');
+         logText.push_back(' ');
       }
 
       if(object)
@@ -242,7 +233,7 @@ bool Logger::log(
 #endif
 
       logText.append(message);
-      logText.append(1, '\n');
+      logText.push_back('\n');
       
       if(object && objectType == DynamicObject)
       {
@@ -254,7 +245,7 @@ bool Logger::log(
          db::util::DynamicObject dyno = *((db::util::DynamicObject*)object);
          jwriter.write(dyno, &osos);
          logText.append(oss.str());
-         logText.append(1, '\n');
+         logText.push_back('\n');
       }
 
       log(logText.c_str());
@@ -276,14 +267,14 @@ void Logger::fullLog(
    const void* object,
    const char* message)
 {
-   if(GLOGGERS != NULL)
+   if(sLoggers != NULL)
    {
       multimap< const unsigned int, Logger*, less<unsigned int> >::iterator i =
-         GLOGGERS->find(cat);
-      if(i != GLOGGERS->end())
+         sLoggers->find(cat);
+      if(i != sLoggers->end())
       {
          multimap< unsigned int, Logger*, less<unsigned int> >::iterator end =
-            GLOGGERS->upper_bound(cat);
+            sLoggers->upper_bound(cat);
          for(; i != end; i++)
          {
             Logger* lg = i->second;

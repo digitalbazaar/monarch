@@ -110,12 +110,7 @@ protected:
     * source of the message.
     */
    const char* mName;
-   
-   /**
-    * multimap from categories to loggers.
-    */
-   //static std::multimap< const unsigned int, Logger*, std::less<unsigned int> > sLoggers;
-   
+      
    /**
     * The current level setting.
     */
@@ -125,6 +120,12 @@ protected:
     * The date format.
     */
    char* mDateFormat;
+
+   typedef std::multimap< const unsigned int, Logger*> LoggerMap;
+   /**
+    * multimap from categories to loggers.
+    */
+   static LoggerMap* sLoggers;
    
 public:
    /**
