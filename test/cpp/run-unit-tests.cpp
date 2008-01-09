@@ -6010,16 +6010,21 @@ void runLoggerTest(TestRunner& tr)
    // create the stdout output stream
    OStreamOutputStream stdoutOS(&cout);
 
-   // add logging for all log messages
-   OutputStreamLogger stdoutLogger(Logger::Max, &stdoutOS);
+   // Create the default logger
+   OutputStreamLogger defaultLogger("default", Logger::Max, &stdoutOS);
+
+   // Create the C1 Logger
+   OutputStreamLogger c1Logger("C1", Logger::Max, &stdoutOS);
+
+#define C1_LOG 1000
       
    // add default logger
-   Logger::addLogger(&stdoutLogger);
+   Logger::addLogger(&defaultLogger);
    // add logger for specific category
-   Logger::addLogger(&stdoutLogger, "[C1]");
+   Logger::addLogger(&c1Logger);
 
-   // create file logger   
-   FileLogger flog(Logger::Max, new File("test.log"), true);
+   // create file logger
+   FileLogger flog("F1", Logger::Max, new File("test.log"), true);
    // log default category to the file
    Logger::addLogger(&flog);
 
@@ -6030,25 +6035,23 @@ void runLoggerTest(TestRunner& tr)
    DB_DEBUG("[M1] debug test");
    
    // C1 category test
-   DB_CAT_ERROR("[C1]", "[M2] cat 1 error test");
+   DB_CAT_ERROR(C1_LOG, "[M2] cat 1 error test");
    
    // C1 cat error with object address
-   DB_CAT_OBJECT_ERROR("[C1]", &clog, "[M3] cat 1 obj error test");
+   DB_CAT_OBJECT_ERROR(C1_LOG, &clog, "[M3] cat 1 obj error test");
    
    tr.passIfNoException();
-
 
    tr.test("double log");
 
    // re-add default logger 
-   Logger::addLogger(&stdoutLogger);
+   Logger::addLogger(&defaultLogger);
    // check if message is logged twice
    DB_DEBUG("double test");
    // remove it
-   Logger::removeLogger(&stdoutLogger);
+   Logger::removeLogger(&defaultLogger);
 
    tr.passIfNoException();
-
 
    tr.test("dyno");
 
@@ -6060,7 +6063,6 @@ void runLoggerTest(TestRunner& tr)
    DB_DEBUG_DYNO(&dyno2, "dyno smart pointer 2");
 
    tr.passIfNoException();
-   
 
    tr.test("clear");
 
@@ -6069,7 +6071,7 @@ void runLoggerTest(TestRunner& tr)
    OStreamOutputStream sos(&oss);
 
    // add logging for all log messages
-   OutputStreamLogger sLogger(Logger::Max, &sos);
+   OutputStreamLogger sLogger("default", Logger::Max, &sos);
       
    // add default logger
    Logger::addLogger(&sLogger);
@@ -6085,7 +6087,6 @@ void runLoggerTest(TestRunner& tr)
    Logger::clearLoggers();
 
    tr.passIfNoException();
-
 
    tr.ungroup();
 }

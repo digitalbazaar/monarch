@@ -19,6 +19,7 @@ namespace logging
  *  
  * @author Dave Longley
  * @author David I. Lehn
+ * @author Manu Sporny
  */
 class OutputStreamLogger : public db::logging::Logger
 {
@@ -37,13 +38,14 @@ public:
    /**
     * Creates a new logger with specified level.
     *
+    * @param name the name of the logger, which is used when printing log
+    *             messages.
     * @param level the max level to log.
     * @param stream the stream to use.
     * @param cleanup if the stream should be cleaned up.
     */
-   OutputStreamLogger(Level level = None,
-         db::io::OutputStream* stream = NULL,
-         bool cleanup = false);
+   OutputStreamLogger(const char* name, Level level = None,
+      db::io::OutputStream* stream = NULL, bool cleanup = false);
    
    /**
     * Overloaded to ensure that the stream gets closed when garbage

@@ -4,7 +4,9 @@
 #ifndef db_logging_Logger_H
 #define db_logging_Logger_H
 
+#include <functional>
 #include <map>
+#include <utility>
 
 #include "db/rt/Object.h"
 #include "db/io/File.h"
@@ -20,6 +22,7 @@ namespace logging
  *  
  * @author Dave Longley
  * @author David I. Lehn
+ * @author Manu Sporny
  */
 class Logger : public virtual db::rt::Object
 {
@@ -98,33 +101,20 @@ public:
    /**
     * The default category.
     */
-   static const char* defaultCategory;
+   static unsigned int defaultCategory;
    
 protected:
+   
    /**
-    * A NameComparator compares two logger names.
+    * The name of the logger, which is used in debug messages to identify the
+    * source of the message.
     */
-   typedef struct NameComparator
-   {
-      /**
-       * Compares two null-terminated strings, returning true if the first is
-       * less than the second, false if not.
-       * 
-       * @param s1 the first string.
-       * @param s2 the second string.
-       * 
-       * @return true if the s1 < s2, false if not.
-       */
-      bool operator()(const char* s1, const char* s2) const
-      {
-         return strcmp(s1, s2) < 0;
-      }
-   };
+   const char* mName;
    
    /**
     * multimap from categories to loggers.
     */
-   static std::multimap<const char*, Logger*, NameComparator> sLoggers;
+   //static std::multimap< const unsigned int, Logger*, std::less<unsigned int> > sLoggers;
    
    /**
     * The current level setting.
@@ -140,9 +130,11 @@ public:
    /**
     * Creates a new logger with specified level.
     *
+    * @param name the name of the logger, used in the debug message to identify 
+    *             which logger generated the message.
     * @param level the max level to display.
     */
-   Logger(Level level = None);
+   Logger(const char* name, Level level = None);
    
    /**
     * Destructs the Logger.
@@ -186,7 +178,7 @@ public:
     * check the the log level, create a formatted message, and call the simple
     * log(message) method as needed to perform message output.
     *
-    * @param cat the message category (or NULL)
+    * @param cat the message category (or 0)
     * @param level the message level
     * @param file the location of this log call (or NULL)
     * @param function the function of this log call (or NULL)
@@ -199,7 +191,7 @@ public:
     * @return true if the text was written, false if not.
     */
    bool log(
-      const char* cat,
+      const unsigned int cat,
       Level level,
       const char* file,
       const char* function,
@@ -211,7 +203,7 @@ public:
    /**
     * Log a message to all loggers registered for this category.
     *
-    * @param cat the message category (or NULL)
+    * @param cat the message category (or 0)
     * @param level the message level
     * @param file the location of this log call (or NULL)
     * @param function the function of this log call (or NULL)
@@ -222,7 +214,7 @@ public:
     * @param header true to use the logger's header, false not to.
     */
    static void fullLog(
-      const char* cat,
+      const unsigned int cat,
       Level level,
       const char* file,
       const char* function,
@@ -255,7 +247,7 @@ public:
     * @param category the category to use.  Defaults to a generic category.
     */
    static void addLogger(Logger* logger,
-      const char* category = db::logging::Logger::defaultCategory);
+      const unsigned int category = db::logging::Logger::defaultCategory);
 
    /**
     * Remove a logger for a category.  This will remove the first match if
@@ -265,7 +257,7 @@ public:
     * @param category the category to use.  Defaults to a generic category.
     */
    static void removeLogger(Logger* logger,
-      const char* category = db::logging::Logger::defaultCategory);
+      const unsigned int category = db::logging::Logger::defaultCategory);
 
    /**
     * Clear all loggers.

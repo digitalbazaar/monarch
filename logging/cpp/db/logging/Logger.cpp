@@ -2,7 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 
-#include <map>
+#include <iostream>
 #include <sstream>
 
 #include "db/data/json/JsonWriter.h"
@@ -16,9 +16,13 @@ using namespace db::io;
 using namespace db::util;
 using namespace db::logging;
 
-std::multimap<const char*, Logger*, Logger::NameComparator> Logger::sLoggers;
+extern "C" {void* gDbLoggingLoggers;}
+//std::multimap<const unsigned int, Logger*, std::less<unsigned int> > Logger::sLoggers;
 
-const char* Logger::defaultCategory = "__DEFAULT__";
+#define GLOGGERS ((std::multimap<const unsigned int, Logger*, \
+   std::less<unsigned int> >*)gDbLoggingLoggers)
+
+unsigned int Logger::defaultCategory = 0;
 
 const char* Logger::levelToString(Level level)
 {
@@ -60,24 +64,26 @@ const char* Logger::levelToString(Level level)
    return rval;
 }
 
-void Logger::addLogger(Logger* logger, const char* category)
+void Logger::addLogger(Logger* logger, const unsigned int category)
 {
-   sLoggers.insert(pair<const char*, Logger*>(category, logger));
+   GLOGGERS->insert(
+      pair<const unsigned int, Logger*>(category, logger));
 }
 
-void Logger::removeLogger(Logger* logger, const char* category)
+void Logger::removeLogger(Logger* logger, const unsigned int category)
 {
-   multimap<const char*, Logger*, NameComparator>::iterator i =
-      sLoggers.find(category);
-   if(i != sLoggers.end())
+   // FIX ME: We need to iterate through, we can't do a find()
+   multimap< const unsigned int, Logger*, less<unsigned int> >::iterator i =
+      GLOGGERS->find(category);
+   if(i != GLOGGERS->end())
    {
-      multimap<const char*, Logger*, NameComparator>::iterator end =
-         sLoggers.upper_bound(category);
+      multimap< const unsigned int, Logger*, less<unsigned int> >::iterator 
+         end = GLOGGERS->upper_bound(category);
       for(; i != end; i++)
       {
          if(logger == i->second)
          {
-            sLoggers.erase(i);
+            GLOGGERS->erase(i);
             break;
          }
       }
@@ -86,19 +92,31 @@ void Logger::removeLogger(Logger* logger, const char* category)
 
 void Logger::clearLoggers()
 {
-   sLoggers.clear();
+   GLOGGERS->clear();
 }
 
-Logger::Logger(Level level)
+Logger::Logger(const char* name, Level level)
 {
+   cout << "Logger::Logger(" << name << "," << level << ")" << std::endl;
+
+   mName = name;
    setLevel(level);
    
    mDateFormat = NULL;
    setDateFormat("%Y-%m-%d %H:%M:%S");
+   
+   // Create the global map of loggers if it doesn't already exist.
+   if(GLOGGERS == NULL)
+   {
+      gDbLoggingLoggers =
+         new std::multimap<const unsigned int, Logger*, 
+            std::less<unsigned int> >;
+   }
 }
 
 Logger::~Logger()
 {
+   cout << "Logger::~Logger(" << mName << "," << mLevel << ")" << std::endl;
    if(mDateFormat != NULL)
    {
       free(mDateFormat);
@@ -148,7 +166,7 @@ bool Logger::setDateFormat(const char* dateFormat)
 }
 
 bool Logger::log(
-   const char* cat,
+   const unsigned int cat,
    Level level,
    const char* file,
    const char* function,
@@ -159,7 +177,7 @@ bool Logger::log(
 {
    bool rval = false;
    
-   if(mLevel >= level)
+   if((GLOGGERS != NULL)  && (mLevel >= level))
    {
       lock();
 
@@ -176,9 +194,14 @@ bool Logger::log(
          logText.append(date);
          logText.append(": ");
       }
-      
+
+      logText.append(mName);
+      logText.append("-");
+            
       logText.append(levelToString(level));
       logText.append(": ");
+
+#ifdef ENABLE_VERBOSE_LOGGING
 
       if(cat != NULL && strcmp(cat, defaultCategory) != 0)
       {
@@ -216,6 +239,8 @@ bool Logger::log(
          logText.append(": ");
       }
 
+#endif
+
       logText.append(message);
       logText.append(1, '\n');
       
@@ -242,7 +267,7 @@ bool Logger::log(
 }
 
 void Logger::fullLog(
-   const char* cat,
+   const unsigned int cat,
    Level level,
    const char* file,
    const char* function,
@@ -251,16 +276,19 @@ void Logger::fullLog(
    const void* object,
    const char* message)
 {
-   multimap<const char*, Logger*, NameComparator>::iterator i =
-      sLoggers.find(cat);
-   if(i != sLoggers.end())
+   if(GLOGGERS != NULL)
    {
-      multimap<const char*, Logger*, NameComparator>::iterator end =
-         sLoggers.upper_bound(cat);
-      for(; i != end; i++)
+      multimap< const unsigned int, Logger*, less<unsigned int> >::iterator i =
+         GLOGGERS->find(cat);
+      if(i != GLOGGERS->end())
       {
-         Logger* lg = i->second;
-         lg->log(cat, level, file, function, line, type, object, message);
+         multimap< unsigned int, Logger*, less<unsigned int> >::iterator end =
+            GLOGGERS->upper_bound(cat);
+         for(; i != end; i++)
+         {
+            Logger* lg = i->second;
+            lg->log(cat, level, file, function, line, type, object, message);
+         }
       }
    }
 }

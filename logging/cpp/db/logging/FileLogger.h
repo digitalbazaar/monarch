@@ -19,6 +19,7 @@ namespace logging
  *  
  * @author Dave Longley
  * @author David I. Lehn
+ * @author Manu Sporny
  */
 class FileLogger : public db::logging::OutputStreamLogger
 {
@@ -64,11 +65,13 @@ public:
    /**
     * Creates a new logger with specified level.
     *
+    * @param name the name of the logger, which is used when printing logging
+    *             messages.
     * @param file the File for the logger.
     * @param level the max level to output.
     * @param cleanup if the file object should be managed by the logger.
     */
-   FileLogger(Level level = None,
+   FileLogger(const char* name, Level level = None,
       db::io::File* file = NULL, bool cleanup = false);
    
    /**
