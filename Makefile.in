@@ -33,7 +33,7 @@ clean:
 	@echo "Cleaned all objects and libraries."
 
 test: all
-	LD_LIBRARY_PATH=`pwd`/libs/linux test/cpp/dist/linux/run-unit-tests
+	LD_LIBRARY_PATH=@DBCOREDIR@/libs/linux test/cpp/dist/linux/run-unit-tests
 
 internal-docs:
 	rm -rf docs/cpp-api
