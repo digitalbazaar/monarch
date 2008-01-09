@@ -16,9 +16,39 @@ using namespace db::io;
 using namespace db::util;
 using namespace db::logging;
 
+// DO NOT INITIALIZE THIS VARIABLE! Logger::sLoggers is not not initialized on 
+// purpose due to compiler initialization code issues.
 Logger::LoggerMap* Logger::sLoggers;
 
 unsigned int Logger::defaultCategory = 0;
+
+Logger::Logger(const char* name, Level level)
+{
+   mName = name;
+   setLevel(level);
+   
+   mDateFormat = NULL;
+   setDateFormat("%Y-%m-%d %H:%M:%S");
+}
+
+Logger::~Logger()
+{
+   if(mDateFormat != NULL)
+   {
+      free(mDateFormat);
+   }
+}
+
+void Logger::initialize()
+{
+   // Create the global map of loggers
+   sLoggers = new LoggerMap;
+}
+
+void Logger::cleanup()
+{
+   delete sLoggers;
+}
 
 const char* Logger::levelToString(Level level)
 {
@@ -89,29 +119,6 @@ void Logger::removeLogger(Logger* logger, const unsigned int category)
 void Logger::clearLoggers()
 {
    sLoggers->clear();
-}
-
-Logger::Logger(const char* name, Level level)
-{
-   mName = name;
-   setLevel(level);
-   
-   mDateFormat = NULL;
-   setDateFormat("%Y-%m-%d %H:%M:%S");
-   
-   // Create the global map of loggers if it doesn't already exist.
-   if(sLoggers == NULL)
-   {
-      sLoggers = new LoggerMap;
-   }
-}
-
-Logger::~Logger()
-{
-   if(mDateFormat != NULL)
-   {
-      free(mDateFormat);
-   }
 }
 
 void Logger::setLevel(Level level)

@@ -23,12 +23,13 @@ LINUX_LIBRARY_SOURCES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.cpp, $(SOURCES))
 LINUX_EXECUTABLE_SOURCES := $(patsubst %,$(LINUX_BUILD_DIR)/%.cpp, $(EXECUTABLES))
 LINUX_LIBRARY_OBJECTS := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%-linux.o, $(SOURCES))
 LINUX_EXECUTABLE_OBJECTS := $(patsubst %,$(LINUX_BUILD_DIR)/%-linux.o, $(EXECUTABLES))
+DYNAMIC_LINUX_LIBRARIES := $(DYNAMIC_LINK_LIBRARIES) $(DYNAMIC_LINUX_LIBRARIES)
 LINUX_EXECUTABLES := $(patsubst %,$(LINUX_DIST_DIR)/%, $(EXECUTABLES))
 LINUX_DEPENDENCIES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%-linux.P, $(SOURCES))
 LINUX_DEPENDENCIES += $(patsubst %.cpp,%-linux.P, $(LINUX_EXECUTABLE_SOURCES))
 
 LINUX_LIBRARIES := $(patsubst %,$(LINUX_DIST_DIR)/lib%.so, $(LIBRARIES))
-LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
+#LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
 
 # Windows-specific variables
 WINDOWS_CXX = @WINDOWS_CXX@
@@ -152,27 +153,27 @@ endif
 	@mkdir -p $(WINDOWS_LIB_DIR)
 	@ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
 
-ifeq ($(BUILD_FOR_LINUX),yes)
-%.a: $(LINUX_LIBRARY_OBJECTS)
-	@echo "Building $@..."
-	@$(LINUX_AR) $(AR_FLAGS) $@ $(LINUX_LIBRARY_OBJECTS)
-	@mkdir -p $(LINUX_LIB_DIR)
-	@ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
-endif
+#ifeq ($(BUILD_FOR_LINUX),yes)
+#%.a: $(LINUX_LIBRARY_OBJECTS)
+#	@echo "Building $@..."
+#	@$(LINUX_AR) $(AR_FLAGS) $@ $(LINUX_LIBRARY_OBJECTS)
+#	@mkdir -p $(LINUX_LIB_DIR)
+#	@ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
+#endif
 
-%.lib: $(WINDOWS_LIBRARY_OBJECTS)
-	@echo "Building $@..."
-	@$(WINDOWS_AR) $(AR_FLAGS) $@ $(WINDOWS_LIBRARY_OBJECTS)
-	@mkdir -p $(WINDOWS_LIB_DIR)
-	@ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
+#%.lib: $(WINDOWS_LIBRARY_OBJECTS)
+#	@echo "Building $@..."
+#	@$(WINDOWS_AR) $(AR_FLAGS) $@ $(WINDOWS_LIBRARY_OBJECTS)
+#	@mkdir -p $(WINDOWS_LIB_DIR)
+#	@ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
 
 ifdef EXECUTABLES
 ifeq ($(BUILD_FOR_LINUX),yes)
-$(STATIC_LINUX_LIBRARIES):
-	# This is a fake target to override the default .a build
+#$(STATIC_LINUX_LIBRARIES):
+#	# This is a fake target to override the default .a build
 $(LINUX_EXECUTABLES): $(LINUX_LIBRARY_SOURCES) $(LINUX_EXECUTABLE_SOURCES) $(LINUX_EXECUTABLE_OBJECTS) $(STATIC_LINUX_LIBRARIES)
 	@echo "Building $(@F)..."
-	@$(LINUX_CXX) $(LINUX_CXX_FLAGS) -o $@ $(LINUX_BUILD_DIR)/$(@F)-linux.o $(STATIC_LINUX_LIBRARIES) $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
+	@$(LINUX_CXX) $(LINUX_CXX_FLAGS) -L$(LINUX_LIB_DIR) -o $@ $(LINUX_BUILD_DIR)/$(@F)-linux.o $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
 endif
 
 ifeq ($(BUILD_FOR_WINDOWS),yes)
@@ -206,6 +207,7 @@ dump-variables:
 	@echo LINUX_AR=$(LINUX_AR)
 	@echo LINUX_BUILD_DIR=$(LINUX_BUILD_DIR)
 	@echo LINUX_DIST_DIR=$(LINUX_DIST_DIR)
+	@echo DYNAMIC_LINUX_LIBRARIES=$(DYNAMIC_LINUX_LIBRARIES)
 	@echo LINUX_LIBRARY_SOURCES=$(LINUX_LIBRARY_SOURCES)
 	@echo LINUX_EXECUTABLE_SOURCES=$(LINUX_EXECUTABLE_SOURCES)
 	@echo LINUX_LIBRARY_OBJECTS=$(LINUX_LIBRARY_OBJECTS)

@@ -143,6 +143,20 @@ public:
    virtual ~Logger();
    
    /**
+    * Initializes the logger framework. This static method MUST be called
+    * during application start-up before any threads are active in order to
+    * use the logging framework.
+    */
+    static void initialize();
+
+   /**
+    * Frees all memory used by the logger framework. This static method MUST
+    * be called during application tear-down, after all threads have been
+    * terminated.
+    */
+    static void cleanup();
+   
+   /**
     * Sets the level for this logger.
     *
     * @param level the level to set.
