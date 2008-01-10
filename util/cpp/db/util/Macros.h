@@ -19,7 +19,8 @@
 /**
  * Convert argument to a string
  */
-#define DB_STRINGIFY(arg) #arg
+#define DB_STRINGIFY_ARG(arg) #arg
+#define DB_STRINGIFY(arg) DB_STRINGIFY_ARG(arg)
 
 /**
  * String representing the current code location.
