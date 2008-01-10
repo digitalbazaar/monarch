@@ -174,6 +174,15 @@ bool InspectorInputStream::removeInspector(const char* name)
    InspectorMap::iterator i = mInspectors.find(name);
    if(i != mInspectors.end())
    {
+      // clean up name
+      free((char*)i->first);
+      
+      // clean up inspector if appropriate
+      if(i->second.cleanupInspector)
+      {
+         delete i->second.inspector;
+      }
+      
       mInspectors.erase(i);
       rval = true;
    }

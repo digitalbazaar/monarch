@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_util_Base64Codec_H
 #define db_util_Base64Codec_H
@@ -155,8 +155,7 @@ public:
     * @param data a pointer to a byte array that will be set by this method.
     * @param length to store the number of decoded bytes.
     */
-   static void decode(
-      const std::string& str, char** data, unsigned int& length);
+   static void decode(const char* str, char** data, unsigned int& length);
 };
 
 } // end namespace util

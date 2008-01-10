@@ -601,7 +601,7 @@ void runBase64Test(TestRunner& tr)
    
    char* decoded;
    unsigned int length;
-   Base64Codec::decode(encoded, &decoded, length);
+   Base64Codec::decode(encoded.c_str(), &decoded, length);
    assert(decoded != NULL);
    
    assert(length == 4);
@@ -618,7 +618,7 @@ void runBase64Test(TestRunner& tr)
    string large;
    large.append(size, 0x01);
    encoded = Base64Codec::encode(large.c_str(), size);
-   Base64Codec::decode(encoded, &decoded, length);
+   Base64Codec::decode(encoded.c_str(), &decoded, length);
    assert(memcmp(decoded, large.c_str(), size) == 0);
    assert(length == size);
    free(decoded);
@@ -627,7 +627,7 @@ void runBase64Test(TestRunner& tr)
    large.erase();
    large.append(size, 0x01);
    encoded = Base64Codec::encode(large.c_str(), size);
-   Base64Codec::decode(encoded, &decoded, length);
+   Base64Codec::decode(encoded.c_str(), &decoded, length);
    assert(memcmp(decoded, large.c_str(), size) == 0);
    assert(length == size);
    free(decoded);
@@ -1532,15 +1532,23 @@ void runByteBufferTest(TestRunner& tr)
    sprintf(b.data() + b.length(), " always");
    char temp[100];
    strncpy(temp, b.data(), b.length());
-   memset(temp + b.length(), 0, 1);
    assertStrCmp(temp, "T hate chicken");
    
    // this should now result in printing out "T hate chicken always"
    sprintf(b.data() + b.length() - 1, " always");
-   b.extend(7);
+   b.extend(6);
+   b.put(' ', true);
+   b.put('t', true);
+   b.put('r', true);
+   b.put('u', true);
+   b.put('e', true);
+   b.put(0x00, true);
    strncpy(temp, b.data(), b.length());
-   memset(temp + b.length(), 0, 1);
-   assertStrCmp(temp, "T hate chicken always");
+   assertStrCmp(temp, "T hate chicken always true");
+   
+   unsigned char aByte;
+   b.get(aByte);
+   assert(aByte == 'T');
    
    tr.passIfNoException();
 }

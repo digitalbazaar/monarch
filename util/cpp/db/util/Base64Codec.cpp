@@ -157,16 +157,17 @@ string Base64Codec::encode(const char* data, unsigned int length)
    return rval;
 }
 
-void Base64Codec::decode(const string& str, char** data, unsigned int& length)
+void Base64Codec::decode(const char* str, char** data, unsigned int& length)
 {
    // point data at NULL and set length to 0
    *data = NULL;
    length = 0;
    
    // remove all white space
-   char temp[str.length()];
+   unsigned int oldLength = strlen(str);
+   char temp[oldLength];
    unsigned int len = 0;
-   for(unsigned int i = 0; i < str.length(); i++) 
+   for(unsigned int i = 0; i < oldLength; i++) 
    {
       if(str[i] != ' ' && str[i] != '\t' &&
          str[i] != '\r' && str[i] != '\n')

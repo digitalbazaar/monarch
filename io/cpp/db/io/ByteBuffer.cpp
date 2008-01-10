@@ -109,6 +109,23 @@ void ByteBuffer::resize(int capacity)
    }
 }
 
+int ByteBuffer::put(unsigned char b, bool resize)
+{
+   int rval = 0;
+   
+   // allocate space for the data
+   allocateSpace(1, resize);
+   
+   if(freeSpace() > 0)
+   {
+      // put byte into the buffer
+      ((unsigned char*)data())[mLength++] = b;
+      rval++;
+   }
+   
+   return rval;
+}
+
 int ByteBuffer::put(const char* b, int length, bool resize)
 {
    // allocate space for the data
@@ -145,6 +162,24 @@ int ByteBuffer::put(InputStream* is)
          // increment length
          mLength += rval;
       }
+   }
+   
+   return rval;
+}
+
+int ByteBuffer::get(unsigned char& b)
+{
+   int rval = 0;
+   
+   if(mLength > 0)
+   {
+      // get byte
+      b = ((unsigned char*)data())[0];
+      
+      // move internal pointer
+      mOffset++;
+      mLength--;
+      rval++;
    }
    
    return rval;

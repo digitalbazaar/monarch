@@ -112,6 +112,18 @@ public:
    virtual void resize(int capacity);
    
    /**
+    * Puts a byte into this buffer.
+    * 
+    * @param b the byte to put into this buffer.
+    * @param resize true to automatically resize this buffer if the passed
+    *               byte will not otherwise fit.
+    * 
+    * @return 1 if the byte fit in this buffer, 0 if the buffer was full
+    *         and could not be resized.
+    */
+   virtual int put(unsigned char b, bool resize);
+   
+   /**
     * Puts data from the passed buffer into this buffer.
     * 
     * @param b the buffer with data to put into this buffer.
@@ -155,6 +167,16 @@ public:
     *         and -1 if an exception occurred.
     */
    virtual int put(InputStream* is);
+   
+   /**
+    * Gets a single byte out of this buffer. This method will increment the
+    * internal pointer of this buffer if a byte was available.
+    * 
+    * @param b the byte to fill with the next one from the buffer.
+    * 
+    * @return 1 if a byte was retrieved, 0 if not because the buffer was empty.
+    */
+   virtual int get(unsigned char& b);
    
    /**
     * Gets data out of this buffer and puts it into the passed buffer. This
