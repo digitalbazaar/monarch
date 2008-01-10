@@ -71,7 +71,7 @@ public:
     * @param level the max level to output.
     * @param cleanup if the file object should be managed by the logger.
     */
-   FileLogger(const char* name, Level level = None,
+   FileLogger(const char* name, LogLevel level = None,
       db::io::File* file = NULL, bool cleanup = false);
    
    /**

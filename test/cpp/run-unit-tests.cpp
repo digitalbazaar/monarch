@@ -6070,6 +6070,12 @@ void runLoggerTest(TestRunner& tr)
 {
    tr.group("Logger");
 
+   tr.test("init");
+   // Do a cleanup and re-init.  This could invalidate other unit test setup.
+   Logger::cleanup();
+   Logger::initialize();
+   tr.passIfNoException();
+
    tr.test("basic");
    
    // create the stdout output stream
@@ -6081,12 +6087,12 @@ void runLoggerTest(TestRunner& tr)
    // Create the C1 Logger
    OutputStreamLogger c1Logger("C1", Logger::Max, &stdoutOS);
 
-#define C1_LOG 1000
+   Category C1_CAT("C1", "db:test:c1", NULL);
       
    // add default logger
    Logger::addLogger(&defaultLogger);
    // add logger for specific category
-   Logger::addLogger(&c1Logger);
+   Logger::addLogger(&c1Logger, &C1_CAT);
 
    // create file logger
    FileLogger flog("F1", Logger::Max, new File("test.log"), true);
@@ -6100,10 +6106,10 @@ void runLoggerTest(TestRunner& tr)
    DB_DEBUG("[M1] debug test");
    
    // C1 category test
-   DB_CAT_ERROR(C1_LOG, "[M2] cat 1 error test");
+   DB_CAT_ERROR(&C1_CAT, "[M2] cat 1 error test");
    
    // C1 cat error with object address
-   DB_CAT_OBJECT_ERROR(C1_LOG, &clog, "[M3] cat 1 obj error test");
+   DB_CAT_OBJECT_ERROR(&C1_CAT, &clog, "[M3] cat 1 obj error test");
    
    tr.passIfNoException();
 
@@ -6122,10 +6128,10 @@ void runLoggerTest(TestRunner& tr)
 
    DynamicObject dyno;
    dyno["logging"] = "is fun";
-   DB_DEBUG_DYNO(&dyno, "dyno smart pointer 1");
+   DB_DYNO_DEBUG(&dyno, "dyno smart pointer 1");
 
    DynamicObject dyno2 = dyno;
-   DB_DEBUG_DYNO(&dyno2, "dyno smart pointer 2");
+   DB_DYNO_DEBUG(&dyno2, "dyno smart pointer 2");
 
    tr.passIfNoException();
 
@@ -6151,6 +6157,12 @@ void runLoggerTest(TestRunner& tr)
 
    Logger::clearLoggers();
 
+   tr.passIfNoException();
+
+   tr.test("re-init");
+   // Do a cleanup and re-init for other unit tests.
+   Logger::cleanup();
+   Logger::initialize();
    tr.passIfNoException();
 
    tr.ungroup();

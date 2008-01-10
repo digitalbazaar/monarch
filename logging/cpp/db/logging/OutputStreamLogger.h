@@ -44,7 +44,7 @@ public:
     * @param stream the stream to use.
     * @param cleanup if the stream should be cleaned up.
     */
-   OutputStreamLogger(const char* name, Level level = None,
+   OutputStreamLogger(const char* name, LogLevel level = None,
       db::io::OutputStream* stream = NULL, bool cleanup = false);
    
    /**

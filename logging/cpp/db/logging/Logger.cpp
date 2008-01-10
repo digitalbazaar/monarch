@@ -20,15 +20,15 @@ using namespace db::logging;
 // purpose due to compiler initialization code issues.
 Logger::LoggerMap* Logger::sLoggers;
 
-unsigned int Logger::defaultCategory = 0;
-
-Logger::Logger(const char* name, Level level)
+Logger::Logger(const char* name, LogLevel level)
 {
    mName = name;
    setLevel(level);
    
    mDateFormat = NULL;
    setDateFormat("%Y-%m-%d %H:%M:%S");
+   
+   mFields = AllFields;
 }
 
 Logger::~Logger()
@@ -41,16 +41,19 @@ Logger::~Logger()
 
 void Logger::initialize()
 {
+   Category::initialize();
    // Create the global map of loggers
-   sLoggers = new LoggerMap;
+   sLoggers = new LoggerMap();
 }
 
 void Logger::cleanup()
 {
    delete sLoggers;
+   sLoggers = NULL;
+   Category::cleanup();
 }
 
-const char* Logger::levelToString(Level level)
+const char* Logger::levelToString(LogLevel level)
 {
    // FIXME: return an std::string, pass in a buffer that
    // has to get filled, or heap-allocate and require the user
@@ -90,21 +93,18 @@ const char* Logger::levelToString(Level level)
    return rval;
 }
 
-void Logger::addLogger(Logger* logger, const unsigned int category)
+void Logger::addLogger(Logger* logger, Category* category)
 {
-   sLoggers->insert(
-      pair<const unsigned int, Logger*>(category, logger));
+   sLoggers->insert(pair<Category*, Logger*>(category, logger));
 }
 
-void Logger::removeLogger(Logger* logger, const unsigned int category)
+void Logger::removeLogger(Logger* logger, Category* category)
 {
    // FIX ME: We need to iterate through, we can't do a find()
-   multimap< const unsigned int, Logger*, less<unsigned int> >::iterator i =
-      sLoggers->find(category);
+   LoggerMap::iterator i = sLoggers->find(category);
    if(i != sLoggers->end())
    {
-      multimap< const unsigned int, Logger*, less<unsigned int> >::iterator 
-         end = sLoggers->upper_bound(category);
+      LoggerMap::iterator end = sLoggers->upper_bound(category);
       for(; i != end; i++)
       {
          if(logger == i->second)
@@ -121,12 +121,12 @@ void Logger::clearLoggers()
    sLoggers->clear();
 }
 
-void Logger::setLevel(Level level)
+void Logger::setLevel(LogLevel level)
 {
    mLevel = level;
 }
 
-Logger::Level Logger::getLevel()
+Logger::LogLevel Logger::getLevel()
 {
    return mLevel;
 }
@@ -163,12 +163,19 @@ bool Logger::setDateFormat(const char* dateFormat)
    return true;
 }
 
+void Logger::setLogFields(unsigned int fields)
+{
+   lock();
+   {
+      mFields = fields;
+   }
+   unlock();
+}
+   
 bool Logger::log(
-   const unsigned int cat,
-   Level level,
-   const char* file,
-   const char* function,
-   int line,
+   Category* cat,
+   LogLevel level,
+   const char* location,
    ObjectType objectType,
    const void* object,
    const char* message)
@@ -180,56 +187,54 @@ bool Logger::log(
       lock();
 
       // Output as:
-      // [date: ][level: ][cat: ][file:][function:][line: ][object: ]message
-      // [optional object data]
+      // [date: ][level: ][cat: ][location: ][object: ]message
+      // [object data]
 
       string logText;
       
-      string date;
-      getDate(date);
-      if(strcmp(date.c_str(), "") != 0)
+      if(mFields & DateField)
       {
-         logText.append(date);
-         logText.append(": ");
+         string date;
+         getDate(date);
+         if(strcmp(date.c_str(), "") != 0)
+         {
+            logText.append(date);
+            logText.append(": ");
+         }
       }
 
-      logText.append(mName);
-      logText.append("-");
+      if((mFields & NameField) && mName)
+      {
+         logText.append(mName);
+         logText.push_back('-');
+      }
             
-      logText.append(levelToString(level));
-      logText.append(": ");
-
-#ifdef ENABLE_VERBOSE_LOGGING
-
-      if(cat != NULL && strcmp(cat, defaultCategory) != 0)
+      if(mFields & LevelField)
       {
-         logText.append(cat);
+         logText.append(levelToString(level));
          logText.append(": ");
       }
-      
-      if(file)
+
+      if((mFields & CategoryField) && cat)
       {
-         logText.append(file);
-         logText.push_back(':');
-      }
-      if(function)
-      {
-         logText.append(function);
-         logText.push_back(':');
-      }
-      if(line != -1)
-      {
-         char tmp[21];
-         snprintf(tmp, 21, "%d", line);
-         logText.append(tmp);
-         logText.push_back(':');
-      }
-      if(file || function || line)
-      {
-         logText.push_back(' ');
+         // FIXME: add new var or new field type to select name type
+         // Try shortname if set, else try regular name.
+         const char* name = cat->getShortName();
+         name = name ? name : cat->getName();
+         if(name)
+         {
+            logText.append(name);
+            logText.append(": ");
+         }
       }
 
-      if(object)
+      if((mFields & LocationField) && location)
+      {
+         logText.append(location);
+         logText.append(": ");
+      }
+
+      if((mFields & ObjectField) && object)
       {
          char tmp[23];
          snprintf(tmp, 21, "<%p>", object);
@@ -237,12 +242,11 @@ bool Logger::log(
          logText.append(": ");
       }
 
-#endif
-
       logText.append(message);
       logText.push_back('\n');
       
-      if(object && objectType == DynamicObject)
+      if((mFields & ObjectField) &&
+         object && objectType == DynamicObject)
       {
          // pretty-print DynamicObject in JSON
          JsonWriter jwriter;
@@ -264,48 +268,28 @@ bool Logger::log(
    return rval;
 }
 
-void Logger::fullLog(
-   const unsigned int cat,
-   Level level,
-   const char* file,
-   const char* function,
-   int line,
+void Logger::logToLoggers(
+   Category* cat,
+   LogLevel level,
+   const char* location,
    ObjectType type,
    const void* object,
    const char* message)
 {
    if(sLoggers != NULL)
    {
-      multimap< const unsigned int, Logger*, less<unsigned int> >::iterator i =
-         sLoggers->find(cat);
+      // Find this category
+      LoggerMap::iterator i = sLoggers->find(cat);
       if(i != sLoggers->end())
       {
-         multimap< unsigned int, Logger*, less<unsigned int> >::iterator end =
-            sLoggers->upper_bound(cat);
+         // Find the last logger in this category
+         LoggerMap::iterator end = sLoggers->upper_bound(cat);
          for(; i != end; i++)
          {
-            Logger* lg = i->second;
-            lg->log(cat, level, file, function, line, type, object, message);
+            // Log the message
+            Logger* logger = i->second;
+            logger->log(cat, level, location, type, object, message);
          }
       }
    }
 }
-
-#if 0
-const char* Logger::getStackTrace(Throwable t)
-{
-   String rval = "null";
-   
-   if(t != null)
-   {
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-      t.printStackTrace(pw);
-      pw.close();
-      
-      rval = sw.toString();
-   }
-   
-   return rval;
-}   
-#endif
