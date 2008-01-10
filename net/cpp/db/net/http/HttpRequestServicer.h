@@ -35,7 +35,8 @@ public:
     * Creates a new HttpRequestServicer that handles requests for the
     * given path or children of that path. If the given path doesn't
     * begin with a forward slash and not end with one, then it will
-    * be normalized such that it does. A path "servicer/path/" will
+    * be normalized such that it does. Consecutive slashes will be
+    * normalized to a single slash. A path "servicer//path/" will
     * be transformed into: "/servicer/path".
     * 
     * @param path the path this servicer handles requests for.

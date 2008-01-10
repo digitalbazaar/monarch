@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpRequestServicer.h"
 
@@ -33,25 +33,31 @@ void HttpRequestServicer::normalizePath(const char* inPath, char* outPath)
    }
    else
    {
-      // prepend slash as necessary
+      // prepend slash if as necessary
+      int i = 0;
       if(inPath[0] != '/')
       {
-         outPath[0] = '/';
-         strcpy(outPath + 1, inPath);
-      }
-      else
-      {
-         strcpy(outPath, inPath);
+         outPath[i++] = '/';
       }
       
+      // copy strings, removing duplicate slashes
+      for(int n = 1; inPath[n - 1] != 0; n++)
+      {
+         if(inPath[n] != '/' || inPath[n - 1] != '/')
+         {
+            outPath[i++] = inPath[n - 1];
+         }
+      }
+      outPath[i] = 0;
+      
       // ensure path doesn't end in slash
-      int i = strcspn(outPath, "?&") - 1;
-      if(i > 0 && outPath[i] == '/')
+      int slash = strcspn(outPath, "?&") - 1;
+      if(slash > 0 && outPath[slash] == '/')
       {
          // shift left to remove slash
-         for(; outPath[i] != 0; i++)
+         for(; outPath[slash] != 0; slash++)
          {
-            outPath[i] = outPath[i + 1];
+            outPath[slash] = outPath[slash + 1];
          }
       }
    }

@@ -3665,6 +3665,63 @@ void runHttpHeaderTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+void runHttpNormalizePath(TestRunner& tr)
+{
+   tr.test("Http normalize path");
+   
+   char temp[100];
+   
+   // no starting slash
+   {
+      HttpRequestServicer::normalizePath("a/b/c", temp);
+      assertStrCmp(temp, "/a/b/c");
+   }
+   
+   // extra ending slash
+   {
+      HttpRequestServicer::normalizePath("/a/b/c/", temp);
+      assertStrCmp(temp, "/a/b/c");
+   }
+   
+   // no starting slash, extra ending slash
+   {
+      HttpRequestServicer::normalizePath("a/b/c/", temp);
+      assertStrCmp(temp, "/a/b/c");
+   }
+   
+   // extra middle slashes
+   {
+      HttpRequestServicer::normalizePath("/a//b//c/", temp);
+      assertStrCmp(temp, "/a/b/c");
+   }
+   
+   // crazy
+   {
+      HttpRequestServicer::normalizePath("a///b///////c////", temp);
+      assertStrCmp(temp, "/a/b/c");
+   }
+   
+   // crazy
+   {
+      HttpRequestServicer::normalizePath("////a///b///////c////", temp);
+      assertStrCmp(temp, "/a/b/c");
+   }
+   
+   // crazy
+   {
+      HttpRequestServicer::normalizePath("/a///b///////c////", temp);
+      assertStrCmp(temp, "/a/b/c");
+   }
+   
+   // crazy
+   {
+      HttpRequestServicer::normalizePath("woof///moo///////meow////", temp);
+      assertStrCmp(temp, "/woof/moo/meow");
+   }
+   
+   tr.pass();
+}
+
 class TestHttpRequestServicer : public HttpRequestServicer
 {
 public:
@@ -6753,6 +6810,7 @@ public:
       runUrlTest(tr);
       //runInterruptServerSocketTest(tr);
       runHttpHeaderTest(tr);
+      runHttpNormalizePath(tr);
       
       // db::data tests
       runXmlHttpServerTest(tr);
@@ -6810,6 +6868,7 @@ public:
 //      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
+//      runHttpNormalizePath(tr);
 //      runHttpServerTest();
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
