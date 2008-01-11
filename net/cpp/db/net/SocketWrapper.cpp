@@ -130,3 +130,8 @@ unsigned int SocketWrapper::getBacklog()
 {
    return getSocket()->getBacklog();
 }
+
+int SocketWrapper::getFileDescriptor()
+{
+   return getSocket()->getFileDescriptor();
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/SocketTools.h"
 #include "db/net/SocketDefinitions.h"
@@ -28,8 +28,12 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
    // "n" parameter is the highest numbered descriptor plus 1
    int n = fd + 1;
    
+   // set 20 millisecond interrupt check timeout (necessary because
+   // windows lacks SIGNAL support to do interruptions properly)
+   long long intck = 20LL;
+   
    // keep selecting (polling) until timeout is reached
-   long long remaining = (timeout <= 0) ? 20LL : timeout;
+   long long remaining = (timeout <= 0) ? intck : timeout;
    
    struct timeval to;
    if(timeout < 0)
@@ -40,9 +44,9 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
    }
    else
    {
-      // create 20 millisecond timeout (1 millisecond is 1000 microseconds)
+      // create intck millisecond timeout (1 millisecond is 1000 microseconds)
       to.tv_sec = 0;
-      to.tv_usec = (remaining < 20LL ? remaining * 1000LL : 20000LL);
+      to.tv_usec = (remaining < intck ? remaining : intck) * 1000LL;
    }
    
    unsigned long long start = System::getCurrentMilliseconds();
@@ -84,7 +88,7 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
          
          // reset timeout
          to.tv_sec = 0;
-         to.tv_usec = 20000LL;
+         to.tv_usec = intck * 1000LL;
       }
       
       if(timeout != 0)
@@ -93,7 +97,7 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
          end = System::getCurrentMilliseconds();
          remaining -= (end - start);
          start = end;
-         to.tv_usec = (remaining < 20LL ? remaining * 1000LL : 20000LL);
+         to.tv_usec = (remaining < intck ? remaining : intck) * 1000LL;
       }
    }
    
@@ -193,8 +197,12 @@ int SocketTools::select(
       exceptfds2 = *exceptfds;
    }
    
+   // set 20 millisecond interrupt check timeout (necessary because
+   // windows lacks SIGNAL support to do interruptions properly)
+   long long intck = 20LL;
+   
    // keep selecting (polling) until timeout is reached
-   long long remaining = (timeout <= 0) ? 1LL : timeout;
+   long long remaining = (timeout <= 0) ? intck : timeout;
    
    struct timeval to;
    if(timeout < 0)
@@ -205,16 +213,16 @@ int SocketTools::select(
    }
    else
    {
-      // create 1 millisecond timeout (1 millisecond is 1000 microseconds)
+      // create 20 millisecond timeout (1 millisecond is 1000 microseconds)
       to.tv_sec = 0;
-      to.tv_usec = 1000LL;
+      to.tv_usec = (remaining < intck ? remaining : intck) * 1000LL;
    }
    
    unsigned long long start = System::getCurrentMilliseconds();
    unsigned long long end;
    
    Thread* t = Thread::currentThread();
-   while(!t->isInterrupted() && remaining > 0 && rval == 0)
+   while(remaining > 0 && rval == 0 && !t->isInterrupted())
    {
       // wait for file descriptors to be updated
       rval = ::select(nfds, readfds, writefds, exceptfds, &to);
@@ -224,12 +232,12 @@ int SocketTools::select(
          // no error, just timed out
          rval = 0;
          
-         // NOTE: select() may return EINTR but it is up to
+         // NOTE: select() may EINTR here but it is up to
          // the calling method to determine what to do about it
       }
       
       // select() implementation may alter sets or timeout, so reset them
-      // if calling select() again
+      // if calling select() again (not interrupted and timeout >= 0)
       if(rval == 0 && timeout >= 0)
       {
          // reset file descriptor sets
@@ -250,7 +258,7 @@ int SocketTools::select(
          
          // reset timeout
          to.tv_sec = 0;
-         to.tv_usec = 1000LL;
+         to.tv_usec = intck * 1000LL;
       }
       
       if(timeout != 0)
@@ -259,6 +267,7 @@ int SocketTools::select(
          end = System::getCurrentMilliseconds();
          remaining -= (end - start);
          start = end;
+         to.tv_usec = (remaining < intck ? remaining : intck) * 1000LL;
       }
    }
    

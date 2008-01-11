@@ -210,6 +210,13 @@ public:
     *         while listening.
     */
    virtual unsigned int getBacklog() = 0;
+   
+   /**
+    * Gets the file descriptor for this Socket.
+    * 
+    * @return the file descriptor for this Socket.
+    */
+   virtual int getFileDescriptor() = 0;
 };
 
 } // end namespace net
