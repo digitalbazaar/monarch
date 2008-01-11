@@ -3776,7 +3776,7 @@ void runHttpServerTest()
    
    // optional for testing --
    // limit threads to 2: one for accepting, 1 for handling
-   k.getEngine()->getOperationDispatcher()->getThreadPool()->setPoolSize(2);
+   //k.getEngine()->getOperationDispatcher()->getThreadPool()->setPoolSize(2);
    
    // create server
    Server server(&k);
