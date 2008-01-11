@@ -50,7 +50,7 @@ int InspectorInputStream::read(char* b, int length)
       for(InspectorMap::iterator i = mInspectors.begin();
           i != mInspectors.end(); i++)
       {
-         if(mReadBuffer.length() > metaData->inspectedBytes)
+         if(mReadBuffer.length() > i->second.inspectedBytes)
          {
             // add meta-data to list
             mWaiting.push_back(&i->second);
