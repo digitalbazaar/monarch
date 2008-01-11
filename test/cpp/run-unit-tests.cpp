@@ -18,6 +18,7 @@
 #include "db/rt/Semaphore.h"
 #include "db/rt/System.h"
 #include "db/rt/JobDispatcher.h"
+#include "db/modest/OperationDispatcher.h"
 #include "db/util/Crc16.h"
 #include "db/util/StringTools.h"
 #include "db/util/DynamicObject.h"
@@ -3772,6 +3773,10 @@ void runHttpServerTest()
    // create kernel
    Kernel k;
    k.getEngine()->start();
+   
+   // optional for testing --
+   // limit threads to 2: one for accepting, 1 for handling
+   k.getEngine()->getOperationDispatcher()->getThreadPool()->setPoolSize(2);
    
    // create server
    Server server(&k);
