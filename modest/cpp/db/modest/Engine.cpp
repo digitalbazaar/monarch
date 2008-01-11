@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/Engine.h"
 #include "db/modest/OperationDispatcher.h"
 
+using namespace db::rt;
 using namespace db::modest;
 
 Engine::Engine()
@@ -56,6 +57,11 @@ void Engine::stop()
 ImmutableState* Engine::getState()
 {
    return (ImmutableState*)mState;
+}
+
+ThreadPool* Engine::getThreadPool()
+{
+   return mOpDispatcher->getThreadPool();
 }
 
 OperationDispatcher* Engine::getOperationDispatcher()

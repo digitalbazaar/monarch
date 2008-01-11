@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/rt/JobThread.h"
-#include "db/rt/JobThreadPool.h"
+#include "db/rt/PooledThread.h"
+#include "db/rt/ThreadPool.h"
 #include "db/rt/System.h"
 
 using namespace db::rt;
 
-JobThread::JobThread(unsigned long long expireTime) : Thread(this)
+PooledThread::PooledThread(unsigned long long expireTime) : Thread(this)
 {
    // no job to run yet
    mJob = NULL;
@@ -18,11 +18,11 @@ JobThread::JobThread(unsigned long long expireTime) : Thread(this)
    mExpired = false;
 }
 
-JobThread::~JobThread()
+PooledThread::~PooledThread()
 {
 }
 
-void JobThread::goIdle()
+void PooledThread::goIdle()
 {
    lock();
    {
@@ -52,7 +52,7 @@ void JobThread::goIdle()
    unlock();
 }
 
-void JobThread::setJob(Runnable* job, JobThreadPool* pool)
+void PooledThread::setJob(Runnable* job, ThreadPool* pool)
 {
    lock();
    {
@@ -74,7 +74,7 @@ void JobThread::setJob(Runnable* job, JobThreadPool* pool)
    unlock();
 }
 
-void JobThread::setJob(CollectableRunnable& job, JobThreadPool* pool)
+void PooledThread::setJob(CollectableRunnable& job, ThreadPool* pool)
 {
    lock();
    {
@@ -89,12 +89,12 @@ void JobThread::setJob(CollectableRunnable& job, JobThreadPool* pool)
    unlock();
 }
 
-Runnable* JobThread::getJob()
+Runnable* PooledThread::getJob()
 {
    return mJob;
 }
 
-void JobThread::run()
+void PooledThread::run()
 {
    while(!isInterrupted())
    {
@@ -117,7 +117,7 @@ void JobThread::run()
    }
 }
 
-bool JobThread::hasJob()
+bool PooledThread::hasJob()
 {
    bool rval = false;
    
@@ -130,17 +130,17 @@ bool JobThread::hasJob()
    return rval;
 }
 
-void JobThread::setExpireTime(unsigned long long expireTime)
+void PooledThread::setExpireTime(unsigned long long expireTime)
 {
    mExpireTime = expireTime;
 }
 
-unsigned long long JobThread::getExpireTime()
+unsigned long long PooledThread::getExpireTime()
 {
    return mExpireTime;
 }
 
-bool JobThread::isExpired()
+bool PooledThread::isExpired()
 {
    bool rval = false;
    

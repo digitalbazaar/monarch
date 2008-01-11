@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/rt/Thread.h"
 #include "db/rt/System.h"
@@ -151,7 +151,7 @@ void* Thread::execute(void* thread)
    return NULL;
 }
 
-bool Thread::start()
+bool Thread::start(size_t stackSize)
 {
    bool rval = false;
    
@@ -160,6 +160,12 @@ bool Thread::start()
       // initialize POSIX thread attributes
       pthread_attr_t attributes;
       pthread_attr_init(&attributes);
+      
+      if(stackSize > 0)
+      {
+         // set thread stack size
+         pthread_attr_setstacksize(&attributes, stackSize);
+      }
       
       // make thread joinable
       pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_JOINABLE);

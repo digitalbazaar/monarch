@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_rt_Thread_H
 #define db_rt_Thread_H
@@ -168,10 +168,13 @@ public:
    /**
     * Starts this Thread. A POSIX thread will be created and this Thread's
     * run() method will be executed. This thread can only be started once.
-    *
+    * 
+    * @param stackSize the minimum stack size, in bytes, for the thread -- 0
+    *                  will use the system default size.
+    * 
     * @return true if the Thread started successfully, false if not.
     */
-   virtual bool start();
+   virtual bool start(size_t stackSize = 0);
 
 // Note: disabled due to a lack of support in windows   
 //   /**

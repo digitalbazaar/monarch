@@ -34,6 +34,11 @@ protected:
    typedef void (RunnableType::*RunWithParamFunction)(void*);
    
    /**
+    * Typedef for freeing the parameter.
+    */
+   typedef void (RunnableType::*FreeParamFunction)(void*);
+   
+   /**
     * The object with the run function.
     */
    RunnableType* mObject;
@@ -47,6 +52,11 @@ protected:
     * The object's run w/param function.
     */
    RunWithParamFunction mParamFunction;
+   
+   /**
+    * The object's free param function.
+    */
+   FreeParamFunction mFreeParamFunction;
    
    /**
     * The parameter for the run w/param function.
@@ -70,8 +80,11 @@ public:
     * @param obj the object with the run function.
     * @param f the object's run w/param function.
     * @param param the parameter for the run w/param function.
+    * @param fp the object's function to free the parameter (can be NULL).
     */
-   RunnableDelegate(RunnableType* obj, RunWithParamFunction f, void* param);
+   RunnableDelegate(
+      RunnableType* obj, RunWithParamFunction f,
+      void* param, FreeParamFunction fp = NULL);
    
    /**
     * Destructs this RunnableDelegate.
@@ -96,17 +109,22 @@ RunnableDelegate<RunnableType>::RunnableDelegate(
 
 template<typename RunnableType>
 RunnableDelegate<RunnableType>::RunnableDelegate(
-   RunnableType* obj, RunWithParamFunction f, void* param)
+   RunnableType* obj, RunWithParamFunction f, void* param, FreeParamFunction fp)
 {
    mObject = obj;
    mFunction = NULL;
    mParamFunction = f;
    mParam = param;
+   mFreeParamFunction = fp;
 }
 
 template<typename RunnableType>
 RunnableDelegate<RunnableType>::~RunnableDelegate()
 {
+   if(mParam != NULL && mFreeParamFunction != NULL)
+   {
+      (mObject->*mFreeParamFunction)(mParam);
+   }
 }
 
 template<typename RunnableType>
@@ -121,6 +139,13 @@ void RunnableDelegate<RunnableType>::run()
    {
       // call object's run w/param function
       (mObject->*mParamFunction)(mParam);
+      
+      // free param if necessary
+      if(mParam != NULL && mFreeParamFunction != NULL)
+      {
+         (mObject->*mFreeParamFunction)(mParam);
+         mParam = NULL;
+      }
    }
 }
 

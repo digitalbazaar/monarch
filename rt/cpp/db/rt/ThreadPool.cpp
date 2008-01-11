@@ -1,27 +1,30 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/rt/JobThreadPool.h"
+#include "db/rt/ThreadPool.h"
 
 using namespace std;
 using namespace db::rt;
 
-JobThreadPool::JobThreadPool(unsigned int poolSize) :
+ThreadPool::ThreadPool(unsigned int poolSize, size_t stackSize) :
    mThreadSemaphore(poolSize, true)
 {
-   // default JobThread expire time to 0 (no expiration)
-   mJobThreadExpireTime = 0;
+   // set stack size
+   mThreadStackSize = stackSize;
+   
+   // default thread expire time to 0 (no expiration)
+   mThreadExpireTime = 0;
 }
 
-JobThreadPool::~JobThreadPool()
+ThreadPool::~ThreadPool()
 {
    // terminate all threads
    terminateAllThreads();
 }
 
-JobThread* JobThreadPool::getIdleThread()
+PooledThread* ThreadPool::getIdleThread()
 {
-   JobThread* rval = NULL;
+   PooledThread* rval = NULL;
    
    mListLock.lock();
    {
@@ -30,7 +33,7 @@ JobThread* JobThreadPool::getIdleThread()
          rval = mIdleThreads.front();
          mIdleThreads.pop_front();
          
-         // lock job thread until it is issued a job or marked expired
+         // lock thread until it is issued a job or marked expired
          rval->lock();
          if(rval->isExpired() || rval->isInterrupted())
          {
@@ -47,8 +50,8 @@ JobThread* JobThreadPool::getIdleThread()
          // clean up expired threads
          cleanupExpiredThreads();
          
-         // create new job thread and add to thread list, lock job thread
-         rval = new JobThread(getJobThreadExpireTime());
+         // create new thread and add to thread list, lock thread
+         rval = new PooledThread(getThreadExpireTime());
          mThreads.push_back(rval);
          rval->lock();
       }
@@ -72,7 +75,7 @@ JobThread* JobThreadPool::getIdleThread()
    return rval;
 }
 
-void JobThreadPool::removeIdleThreads(unsigned int count)
+void ThreadPool::removeIdleThreads(unsigned int count)
 {
    if(!mIdleThreads.empty())
    {
@@ -82,7 +85,7 @@ void JobThreadPool::removeIdleThreads(unsigned int count)
              count > 0 && i != mIdleThreads.end(); count--)
          {
             // interrupt and erase threads
-            JobThread* t = *i;
+            PooledThread* t = *i;
             t->interrupt();
             i = mIdleThreads.erase(i);
             mThreads.remove(t);
@@ -96,7 +99,7 @@ void JobThreadPool::removeIdleThreads(unsigned int count)
    }
 }
 
-void JobThreadPool::cleanupExpiredThreads()
+void ThreadPool::cleanupExpiredThreads()
 {
    if(!mExpiredThreads.empty())
    {
@@ -114,23 +117,23 @@ void JobThreadPool::cleanupExpiredThreads()
    }
 }
 
-void JobThreadPool::runJobOnIdleThread(Runnable& job)
+void ThreadPool::runJobOnIdleThread(Runnable& job)
 {
    lock();
    {
       // get an idle thread
-      JobThread* t = getIdleThread();
+      PooledThread* t = getIdleThread();
       
       // set job
       t->setJob(&job, this);
       
-      // unlock job thread now that job is assigned
+      // unlock thread now that job is assigned
       t->unlock();
       
       // if the thread hasn't started yet, start it
       while(!t->hasStarted())
       {
-         if(!t->start())
+         if(!t->start(mThreadStackSize))
          {
             // FIXME: thread might not start if maximum threads
             // has been exceeded -- we need a better solution than this:
@@ -143,23 +146,23 @@ void JobThreadPool::runJobOnIdleThread(Runnable& job)
    unlock();
 }
 
-void JobThreadPool::runJobOnIdleThread(CollectableRunnable& job)
+void ThreadPool::runJobOnIdleThread(CollectableRunnable& job)
 {
    lock();
    {
       // get an idle thread
-      JobThread* t = getIdleThread();
+      PooledThread* t = getIdleThread();
       
       // set job
       t->setJob(job, this);
       
-      // unlock job thread now that job is assigned
+      // unlock thread now that job is assigned
       t->unlock();
       
       // if the thread hasn't started yet, start it
       while(!t->hasStarted())
       {
-         if(!t->start())
+         if(!t->start(mThreadStackSize))
          {
             // FIXME: thread might not start if maximum threads
             // has been exceeded -- we need a better solution than this:
@@ -172,7 +175,7 @@ void JobThreadPool::runJobOnIdleThread(CollectableRunnable& job)
    unlock();
 }
 
-bool JobThreadPool::tryRunJob(Runnable& job)
+bool ThreadPool::tryRunJob(Runnable& job)
 {
    bool rval = true;
    
@@ -191,7 +194,7 @@ bool JobThreadPool::tryRunJob(Runnable& job)
    return rval;
 }
 
-bool JobThreadPool::tryRunJob(CollectableRunnable& job)
+bool ThreadPool::tryRunJob(CollectableRunnable& job)
 {
    bool rval = true;
    
@@ -210,7 +213,7 @@ bool JobThreadPool::tryRunJob(CollectableRunnable& job)
    return rval;
 }
 
-void JobThreadPool::runJob(Runnable& job)
+void ThreadPool::runJob(Runnable& job)
 {
    // only acquire a permit if infinite threads is not enabled
    bool permitAcquired = true;
@@ -226,7 +229,7 @@ void JobThreadPool::runJob(Runnable& job)
    }
 }
 
-void JobThreadPool::runJob(CollectableRunnable& job)
+void ThreadPool::runJob(CollectableRunnable& job)
 {
    // only acquire a permit if infinite threads is not enabled
    bool permitAcquired = true;
@@ -242,7 +245,7 @@ void JobThreadPool::runJob(CollectableRunnable& job)
    }
 }
 
-void JobThreadPool::jobCompleted(JobThread* t)
+void ThreadPool::jobCompleted(PooledThread* t)
 {
    // clear the thread's job
    t->setJob(NULL, NULL);
@@ -259,7 +262,7 @@ void JobThreadPool::jobCompleted(JobThread* t)
    mThreadSemaphore.release();
 }
 
-void JobThreadPool::interruptAllThreads()
+void ThreadPool::interruptAllThreads()
 {
    lock();
    {
@@ -277,7 +280,7 @@ void JobThreadPool::interruptAllThreads()
    unlock();
 }
 
-void JobThreadPool::terminateAllThreads()
+void ThreadPool::terminateAllThreads()
 {
    lock();
    {
@@ -288,7 +291,7 @@ void JobThreadPool::terminateAllThreads()
       for(ThreadList::iterator i = mThreads.begin();
           i != mThreads.end();)
       {
-         JobThread* t = *i;
+         PooledThread* t = *i;
          i = mThreads.erase(i);
          t->join();
          delete t;
@@ -301,7 +304,7 @@ void JobThreadPool::terminateAllThreads()
    unlock();
 }
 
-void JobThreadPool::setPoolSize(unsigned int size)
+void ThreadPool::setPoolSize(unsigned int size)
 {
    lock();
    {
@@ -323,20 +326,34 @@ void JobThreadPool::setPoolSize(unsigned int size)
    unlock();
 }
 
-unsigned int JobThreadPool::getPoolSize()
+unsigned int ThreadPool::getPoolSize()
 {
    return mThreadSemaphore.getMaxPermitCount();
 }
 
-void JobThreadPool::setJobThreadExpireTime(unsigned long long expireTime)
+void ThreadPool::setThreadStackSize(size_t stackSize)
 {
    lock();
    {
-      mJobThreadExpireTime = expireTime;
+      mThreadStackSize = stackSize;
+   }
+   unlock();
+}
+
+size_t ThreadPool::getThreadStackSize()
+{
+   return mThreadStackSize;
+}
+
+void ThreadPool::setThreadExpireTime(unsigned long long expireTime)
+{
+   lock();
+   {
+      mThreadExpireTime = expireTime;
       
       mListLock.lock();
       {
-         // update all existing job threads
+         // update all existing threads
          for(ThreadList::iterator i = mThreads.begin();
              i != mThreads.end(); i++)
          {
@@ -348,17 +365,17 @@ void JobThreadPool::setJobThreadExpireTime(unsigned long long expireTime)
    unlock();
 }
 
-unsigned long long JobThreadPool::getJobThreadExpireTime()
+unsigned long long ThreadPool::getThreadExpireTime()
 {
-   return mJobThreadExpireTime;
+   return mThreadExpireTime;
 }
 
-unsigned int JobThreadPool::getJobThreadCount()
+unsigned int ThreadPool::getThreadCount()
 {
    return mThreads.size();
 }
 
-unsigned int JobThreadPool::getRunningJobThreadCount()
+unsigned int ThreadPool::getRunningThreadCount()
 {
    unsigned int rval = 0;
    
@@ -372,7 +389,7 @@ unsigned int JobThreadPool::getRunningJobThreadCount()
    return rval;
 }
 
-unsigned int JobThreadPool::getIdleJobThreadCount()
+unsigned int ThreadPool::getIdleThreadCount()
 {
    return mIdleThreads.size();
 }

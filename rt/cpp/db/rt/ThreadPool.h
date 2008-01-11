@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_rt_JobThreadPool_H
-#define db_rt_JobThreadPool_H
+#ifndef db_rt_ThreadPool_H
+#define db_rt_ThreadPool_H
 
 #include "db/rt/Semaphore.h"
-#include "db/rt/JobThread.h"
+#include "db/rt/PooledThread.h"
 
 #include <list>
 #include <vector>
@@ -16,14 +16,12 @@ namespace rt
 {
 
 /**
- * This class is a JobThread pool.
- * 
- * This pool maintains a set of N JobThreads that can be used to run jobs
+ * A ThreadPool maintains a set of N PooledThreads that can be used to run jobs
  * without having to tear down the threads and create new ones.
  * 
  * @author Dave Longley
  */
-class JobThreadPool : public virtual Object
+class ThreadPool : public virtual Object
 {
 protected:
    /**
@@ -35,7 +33,7 @@ protected:
    /**
     * The list of all threads in this pool.
     */
-   typedef std::list<JobThread*> ThreadList;
+   typedef std::list<PooledThread*> ThreadList;
    ThreadList mThreads;
    
    /**
@@ -54,9 +52,14 @@ protected:
    Object mListLock;
    
    /**
-    * The expire time for JobThreads (in milliseconds).
+    * The stack size for threads (in bytes).
     */
-   unsigned long long mJobThreadExpireTime;
+   size_t mThreadStackSize;
+   
+   /**
+    * The expire time for threads in milliseconds).
+    */
+   unsigned long long mThreadExpireTime;
    
    /**
     * Gets an idle thread. This method will also clean up any extra
@@ -69,7 +72,7 @@ protected:
     * 
     * @return an idle thread.
     */
-   virtual JobThread* getIdleThread();
+   virtual PooledThread* getIdleThread();
    
    /**
     * Removes up to the passed number of idle threads.
@@ -84,7 +87,7 @@ protected:
    virtual void cleanupExpiredThreads();
    
    /**
-    * Runs the passed Runnable job on an idle JobThread.
+    * Runs the passed Runnable job on an idle thread.
     * 
     * @param job the Runnable job to run.
     */
@@ -93,21 +96,23 @@ protected:
    
 public:
    /**
-    * Creates a new JobThreadPool with the specified number of threads
+    * Creates a new ThreadPool with the specified number of threads
     * available for running jobs.
     * 
     * @param poolSize the size of the pool (number of threads), 0 specifies
     *                 an unlimited number of threads.
+    * @param stackSize the minimum size for each thread's stack, in bytes, 0
+    *                  for the system default.
     */
-   JobThreadPool(unsigned int poolSize = 10);
+   ThreadPool(unsigned int poolSize = 10, size_t stackSize = 0);
    
    /**
-    * Destructs this JobThreadPool.
+    * Destructs this ThreadPool.
     */
-   virtual ~JobThreadPool();
+   virtual ~ThreadPool();
    
    /**
-    * Tries to run the passed Runnable job on an available JobThread. If a
+    * Tries to run the passed Runnable job on an available thread. If a
     * thread is available, this method will return true. If not, this method
     * will not block, but will instead return false.
     * 
@@ -119,7 +124,7 @@ public:
    virtual bool tryRunJob(CollectableRunnable& job);
    
    /**
-    * Runs the passed Runnable job on an available JobThread.
+    * Runs the passed Runnable job on an available thread.
     * 
     * This method will lock until an available thread is acquired or
     * the current thread is interrupted.
@@ -130,11 +135,11 @@ public:
    virtual void runJob(CollectableRunnable& job);
    
    /**
-    * Called by a JobThread when it completes its job.
+    * Called by a thread when it completes its job.
     * 
-    * @param t the JobThread that completed its job.
+    * @param t the thread that completed its job.
     */
-   virtual void jobCompleted(JobThread* t);
+   virtual void jobCompleted(PooledThread* t);
    
    /**
     * Interrupts all threads in this pool.
@@ -167,43 +172,57 @@ public:
    virtual unsigned int getPoolSize();
    
    /**
-    * Sets the expire time for all JobThreads.
+    * Sets the stack size for all new threads.
     * 
-    * @param expireTime the amount of time that must pass while JobThreads
+    * @param stackSize the stack size for new threads, in bytes.
+    */
+   virtual void setThreadStackSize(size_t stackSize);
+   
+   /**
+    * Gets the stack size for all new threads.
+    * 
+    * @return the stack size for all new threads.
+    */
+   virtual size_t getThreadStackSize();
+   
+   /**
+    * Sets the expire time for all threads.
+    * 
+    * @param expireTime the amount of time that must pass while threads
     *                   are idle in order for them to expire -- if 0 is passed
-    *                   then JobThreads will never expire.
+    *                   then threads will never expire.
     */
-   virtual void setJobThreadExpireTime(unsigned long long expireTime);
+   virtual void setThreadExpireTime(unsigned long long expireTime);
    
    /**
-    * Gets the expire time for all JobThreads.
+    * Gets the expire time for all threads.
     * 
-    * @return the expire time for all JobThreads.
+    * @return the expire time for all threads.
     */
-   virtual unsigned long long getJobThreadExpireTime();
+   virtual unsigned long long getThreadExpireTime();
    
    /**
-    * Gets the current number of JobThreads in the pool.
+    * Gets the current number of threads in the pool.
     * 
-    * @return the current number of JobThreads in the pool.
+    * @return the current number of threads in the pool.
     */
-   virtual unsigned int getJobThreadCount();
+   virtual unsigned int getThreadCount();
    
    /**
-    * Gets the current number of running JobThreads.
+    * Gets the current number of running threads.
     * 
-    * Returns getJobThreadCount() - getIdleJobThreadCount().
+    * Returns getThreadCount() - getIdleThreadCount().
     * 
-    * @return the current number of running JobThreads.
+    * @return the current number of running threads.
     */
-   virtual unsigned int getRunningJobThreadCount();
+   virtual unsigned int getRunningThreadCount();
    
    /**
-    * Gets the current number of idle JobThreads.
+    * Gets the current number of idle threads.
     * 
-    * @return the current number of idle JobThreads.
+    * @return the current number of idle threads.
     */
-   virtual unsigned int getIdleJobThreadCount();
+   virtual unsigned int getIdleThreadCount();
 };
 
 } // end namespace rt
