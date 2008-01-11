@@ -177,6 +177,13 @@ public:
    virtual void serviceConnection(void* c);
    
    /**
+    * Cleans up the passed Connection's memory.
+    * 
+    * @param c the Connection to clean up.
+    */
+   virtual void cleanupConnection(void* c);
+   
+   /**
     * Sets the maximum number of concurrent connections this service should
     * allow.
     * 

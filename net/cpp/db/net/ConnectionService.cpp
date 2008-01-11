@@ -139,7 +139,8 @@ void ConnectionService::createConnection(Socket* s)
       // create RunnableDelegate to service connection and run as an Operation
       CollectableRunnable cr =
          new RunnableDelegate<ConnectionService>(
-            this, &ConnectionService::serviceConnection, c);
+            this, &ConnectionService::serviceConnection, c,
+            &ConnectionService::cleanupConnection);
       Operation op(cr);
       mRunningServicers.add(op);
       
@@ -176,9 +177,12 @@ void ConnectionService::serviceConnection(void* c)
    // release connection permits
    mServer->mConnectionSemaphore.release();
    mConnectionSemaphore.release();
-   
+}
+
+void ConnectionService::cleanupConnection(void* c)
+{
    // clean up connection
-   delete conn;
+   delete (Connection*)c;
 }
 
 void ConnectionService::setMaxConnectionCount(unsigned int count)
