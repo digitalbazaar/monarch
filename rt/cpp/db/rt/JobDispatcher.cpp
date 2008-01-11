@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/rt/JobDispatcher.h"
 
@@ -8,19 +8,18 @@ using namespace db::rt;
 
 JobDispatcher::JobDispatcher()
 {
-   // create the job thread pool with an infinite number of
-   // threads by default
-   mThreadPool = new JobThreadPool(0);
+   // create the thread pool with an infinite number of threads by default
+   mThreadPool = new ThreadPool(0);
    mCleanupThreadPool = true;
    
    // no dispatcher thread yet
    mDispatcherThread = NULL;
    
    // set thread expire time to 2 minutes (120000 milliseconds) by default
-   getThreadPool()->setJobThreadExpireTime(120000);
+   getThreadPool()->setThreadExpireTime(120000);
 }
 
-JobDispatcher::JobDispatcher(JobThreadPool* pool, bool cleanupPool)
+JobDispatcher::JobDispatcher(ThreadPool* pool, bool cleanupPool)
 {
    // store the thread pool
    mThreadPool = pool;
@@ -168,8 +167,8 @@ void JobDispatcher::startDispatching()
          // create new dispatcher thread
          mDispatcherThread = new Thread(this);
          
-         // start dispatcher thread
-         mDispatcherThread->start();
+         // start dispatcher thread (128k stack)
+         mDispatcherThread->start(131072);
       }
    }
    unlock();
@@ -267,7 +266,7 @@ void JobDispatcher::terminateAllRunningJobs()
    unlock();
 }
 
-JobThreadPool* JobDispatcher::getThreadPool()
+ThreadPool* JobDispatcher::getThreadPool()
 {
    return mThreadPool;
 }
@@ -291,7 +290,7 @@ unsigned int JobDispatcher::getTotalJobCount()
    
    lock();
    {
-      rval = getQueuedJobCount() + getThreadPool()->getIdleJobThreadCount();
+      rval = getQueuedJobCount() + getThreadPool()->getIdleThreadCount();
    }
    unlock();
    

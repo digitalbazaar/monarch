@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/OperationDispatcher.h"
 #include "db/modest/Engine.h"
@@ -9,14 +9,14 @@ using namespace db::modest;
 using namespace db::rt;
 
 OperationDispatcher::OperationDispatcher(Engine* e) :
-   JobThreadPool(1000),
+   ThreadPool(1000),
    JobDispatcher(this, false)
 {
    mEngine = e;
    mDispatch = false;
    
    // set thread expire time to 2 minutes (120000 milliseconds) by default
-   getThreadPool()->setJobThreadExpireTime(120000);
+   getThreadPool()->setThreadExpireTime(120000);
 }
 
 OperationDispatcher::~OperationDispatcher()
@@ -170,11 +170,11 @@ void OperationDispatcher::terminateRunningOperations()
    wakeup();
 }
 
-void OperationDispatcher::jobCompleted(JobThread* t)
+void OperationDispatcher::jobCompleted(PooledThread* t)
 {
    lock();
    {
-      // Note: this method is executed by a JobThread, external to an
+      // Note: this method is executed by a PooledThread, external to an
       // Operation, so that the Operation can be safely garbage-collected
       // here if the map happens to hold the last reference to it 
       
@@ -206,10 +206,10 @@ void OperationDispatcher::jobCompleted(JobThread* t)
    unlock();
    
    // call parent method to release thread back into pool
-   JobThreadPool::jobCompleted(t);
+   ThreadPool::jobCompleted(t);
 }
 
-JobThreadPool* OperationDispatcher::getThreadPool()
+ThreadPool* OperationDispatcher::getThreadPool()
 {
    return JobDispatcher::getThreadPool();
 }

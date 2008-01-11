@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_rt_JobDispatcher_H
 #define db_rt_JobDispatcher_H
 
-#include "db/rt/JobThreadPool.h"
+#include "db/rt/ThreadPool.h"
 
 #include <map>
 
@@ -15,7 +15,7 @@ namespace rt
 
 /**
  * A JobDispatcher is a class that maintains a queue of Runnable jobs
- * that are dispatched on a separate thread in a JobThreadPool.
+ * that are dispatched on a separate thread in a ThreadPool.
  * 
  * @author Dave Longley
  */
@@ -26,7 +26,7 @@ protected:
     * A thread pool for running jobs. This thread pool maintains
     * a set of threads that are available for running jobs.
     */
-   JobThreadPool* mThreadPool;
+   ThreadPool* mThreadPool;
    
    /**
     * True to free the internal thread pool when destructing, false not to.
@@ -84,13 +84,13 @@ public:
    JobDispatcher();
    
    /**
-    * Creates a new JobDispatcher with the given JobThreadPool.
+    * Creates a new JobDispatcher with the given ThreadPool.
     * 
-    * @param pool the JobThreadPool to dispatch jobs to.
-    * @param cleanupPool true to free the passed JobThreadPool upon destruction,
+    * @param pool the ThreadPool to dispatch jobs to.
+    * @param cleanupPool true to free the passed ThreadPool upon destruction,
     *                    false not to.
     */
-   JobDispatcher(JobThreadPool* pool, bool cleanupPool);
+   JobDispatcher(ThreadPool* pool, bool cleanupPool);
    
    /**
     * Destructs this JobDispatcher.
@@ -173,11 +173,11 @@ public:
    virtual void terminateAllRunningJobs();
    
    /**
-    * Gets the JobThreadPool.
+    * Gets the ThreadPool.
     * 
     * @return the thread pool for running jobs.
     */
-   virtual JobThreadPool* getThreadPool();
+   virtual ThreadPool* getThreadPool();
    
    /**
     * Gets the number of Runnable jobs that are in the queue.

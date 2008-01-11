@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_modest_OperationDispatcher_H
 #define db_modest_OperationDispatcher_H
@@ -21,7 +21,7 @@ namespace modest
  * @author Dave Longley
  */
 class OperationDispatcher :
-protected db::rt::JobThreadPool,
+protected db::rt::ThreadPool,
 protected db::rt::JobDispatcher
 {
 protected:
@@ -98,18 +98,18 @@ public:
    virtual void terminateRunningOperations();
    
    /**
-    * Called by a JobThread when it completes its job.
+    * Called by a thread when it completes its job.
     * 
-    * @param t the JobThread that completed its job.
+    * @param t the thread that completed its job.
     */
-   virtual void jobCompleted(db::rt::JobThread* t);
+   virtual void jobCompleted(db::rt::PooledThread* t);
    
    /**
     * Gets the thread pool for running Operations.
     * 
     * @return the therad pool for running Operations.
     */
-   virtual db::rt::JobThreadPool* getThreadPool();
+   virtual db::rt::ThreadPool* getThreadPool();
    
    /**
     * Gets the number of Operations that are in the queue to be executed.

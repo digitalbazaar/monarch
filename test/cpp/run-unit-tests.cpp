@@ -18,7 +18,6 @@
 #include "db/rt/Semaphore.h"
 #include "db/rt/System.h"
 #include "db/rt/JobDispatcher.h"
-#include "db/modest/OperationDispatcher.h"
 #include "db/util/Crc16.h"
 #include "db/util/StringTools.h"
 #include "db/util/DynamicObject.h"
@@ -263,11 +262,12 @@ void runThreadTest(TestRunner& tr)
    
    //cout << "Threads starting..." << endl;
    
-   t1.start();
-   t2.start();
-   t3.start();
-   t4.start();
-   t5.start();
+   size_t stackSize = 131072;
+   t1.start(stackSize);
+   t2.start(stackSize);
+   t3.start(stackSize);
+   t4.start(stackSize);
+   t5.start(stackSize);
    
    t1.interrupt();
    
@@ -317,16 +317,14 @@ public:
    }
 };
 
-void runJobThreadPoolTest(TestRunner& tr)
+void runThreadPoolTest(TestRunner& tr)
 {
-   tr.test("JobThreadPool");
+   tr.test("ThreadPool");
    
    Exception::clearLast();
    
-   //cout << "Running JobThreadPool Test" << endl << endl;
-   
-   // create a job thread pool
-   JobThreadPool pool(3);
+   // create a thread pool
+   ThreadPool pool(3);
    
    // create jobs
    TestJob job1("1");
@@ -343,16 +341,12 @@ void runJobThreadPoolTest(TestRunner& tr)
    pool.runJob(job5);
    
    // wait
-   //cout << "Waiting for jobs to complete..." << endl;
    Thread::sleep(1250);
-   //cout << "Finished waiting for jobs to complete." << endl;
    
-   // terminate all jobs
+   // terminate all threads
    pool.terminateAllThreads();
    
    tr.passIfNoException();
-   
-   //cout << endl << "JobThreadPool Test complete." << endl << endl;
 }
 
 void runJobDispatcherTest(TestRunner& tr)
@@ -361,11 +355,9 @@ void runJobDispatcherTest(TestRunner& tr)
    
    Exception::clearLast();
    
-   //cout << "Running JobDispatcher Test" << endl << endl;
-   
    // create a job dispatcher
    //JobDispatcher jd;
-   JobThreadPool pool(3);
+   ThreadPool pool(3);
    JobDispatcher jd(&pool, false);
    
    // create jobs
@@ -388,16 +380,12 @@ void runJobDispatcherTest(TestRunner& tr)
    jd.startDispatching();
    
    // wait
-   //cout << "Waiting 10 seconds for jobs to complete..." << endl;
    Thread::sleep(1250);
-   //cout << "Finished waiting for jobs to complete." << endl;
    
    // stop dispatching
    jd.stopDispatching();      
    
    tr.passIfNoException();
-   
-   //cout << endl << "JobDispatcher Test complete." << endl << endl;
 }
 
 class TestGuard : public OperationGuard
@@ -3242,7 +3230,7 @@ void runInterruptServerSocketTest(TestRunner& tr)
    
    InterruptServerSocketTest runnable;
    Thread t(&runnable);
-   t.start();
+   t.start(131072);
    
    //cout << "Waiting for thread..." << endl;
    Thread::sleep(2000);
@@ -3502,14 +3490,15 @@ void runServerSslConnectionTest()
    
    unsigned long long start = System::getCurrentMilliseconds();
    
-   t1.start();
-   t2.start();
-//   t3.start();
-//   t4.start();
-//   t5.start();
-//   t6.start();
-//   t7.start();
-//   t8.start();
+   size_t stackSize = 131072;
+   t1.start(stackSize);
+   t2.start(stackSize);
+//   t3.start(stackSize);
+//   t4.start(stackSize);
+//   t5.start(stackSize);
+//   t6.start(stackSize);
+//   t7.start(stackSize);
+//   t8.start(stackSize);
    
    t1.join();
    t2.join();
@@ -3772,11 +3761,16 @@ void runHttpServerTest()
    
    // create kernel
    Kernel k;
-   k.getEngine()->start();
+   
+   // set thread stack size in engine (128k)
+   //k.getEngine()->getThreadPool()->setThreadStackSize(131072);
    
    // optional for testing --
    // limit threads to 2: one for accepting, 1 for handling
-   //k.getEngine()->getOperationDispatcher()->getThreadPool()->setPoolSize(2);
+   //k.getEngine()->getThreadPool()->setPoolSize(2);
+   
+   // start engine
+   k.getEngine()->start();
    
    // create server
    Server server(&k);
@@ -3807,7 +3801,7 @@ void runHttpServerTest()
    }
    
    // sleep
-   Thread::sleep(30000);
+   Thread::sleep(0);//30000);
    
    server.stop();
    cout << "Server stopped." << endl;
@@ -5623,7 +5617,7 @@ void runConnectionPoolTest()
    for(int i = 0; i < size; i++, count++)
    {
       //cout << "RUNNING CONNECTION #" << count << endl;
-      while(!threads[i]->start())
+      while(!threads[i]->start(131072))
       {
          threads[i - 1]->join();
       }
@@ -6773,7 +6767,7 @@ public:
    {
       // db::rt tests
       runThreadTest(tr);
-      runJobThreadPoolTest(tr);
+      runThreadPoolTest(tr);
       runJobDispatcherTest(tr);
       
       // db::config tests
@@ -6929,7 +6923,7 @@ int main()
    
    RunTests runnable;
    Thread t(&runnable);
-   t.start();
+   t.start(131072);
    t.join();
    
    // cleanup winsock

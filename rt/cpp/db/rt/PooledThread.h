@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_rt_JobThread_H
-#define db_rt_JobThread_H
+#ifndef db_rt_PooledThread_H
+#define db_rt_PooledThread_H
 
 #include "db/rt/Thread.h"
 #include "db/rt/Semaphore.h"
@@ -12,17 +12,16 @@ namespace db
 namespace rt
 {
 
-// forward declare JobThreadPool
-class JobThreadPool;
+// forward declare ThreadPool
+class ThreadPool;
 
 /**
- * A JobThread is a thread that runs Runnable jobs and sleeps while it is
- * not running a job. This thread can be used in conjunction with a
- * JobThreadPool.
+ * A PooledThread is a thread that is a member of ThreadPool. It runs Runnable
+ * jobs and goes idle while it is not running a job.
  * 
  * @author Dave Longley
  */
-class JobThread : public Thread
+class PooledThread : public Thread
 {
 protected:
    /**
@@ -32,13 +31,13 @@ protected:
    CollectableRunnable mJobReference;
    
    /**
-    * The JobThreadPool to notify when a job completes.
+    * The ThreadPool to notify when a job completes.
     */
-   JobThreadPool* mThreadPool;
+   ThreadPool* mThreadPool;
    
    /**
     * The amount of idle time (in milliseconds) that must pass before this
-    * JobThread automatically expires.
+    * thread automatically expires.
     */
    unsigned long long mExpireTime;
    
@@ -54,30 +53,30 @@ protected:
    
 public:
    /**
-    * Creates a new JobThread that expires if it sits idle (never processes
+    * Creates a new PooledThread that expires if it sits idle (never processes
     * a single job) for the passed time interval. If an expire time of 0
-    * is passed then this JobThread will never expire.
+    * is passed then this thread will never expire.
     * 
     * @param expireTime the amount of time (in milliseconds) that must pass
-    *                   while the JobThread is idle in order for it to expire
-    *                   -- if 0 is passed then the JobThread will never expire.
+    *                   while this thread is idle in order for it to expire --
+    *                   if 0 is passed then the thread will never expire.
     */
-   JobThread(unsigned long long expireTime = 0);
+   PooledThread(unsigned long long expireTime = 0);
    
    /**
-    * Destructs this JobThread.
+    * Destructs this PooledThread.
     */
-   virtual ~JobThread();
+   virtual ~PooledThread();
    
    /**
     * Sets the Runnable job for this thread. If null is passed then this
     * thread will be considered idle (with no job).
     * 
     * @param job the job for this thread or null if this thread has no job.
-    * @param pool the JobThreadPool to notify when the job completes.
+    * @param pool the ThreadPool to notify when the job completes.
     */
-   virtual void setJob(Runnable* job, JobThreadPool* pool);
-   virtual void setJob(CollectableRunnable& job, JobThreadPool* pool);
+   virtual void setJob(Runnable* job, ThreadPool* pool);
+   virtual void setJob(CollectableRunnable& job, ThreadPool* pool);
    
    /**
     * Gets the Runnable job for this thread.
@@ -97,25 +96,25 @@ public:
    virtual bool hasJob();
    
    /**
-    * Sets the expire time for this job thread.
+    * Sets the expire time for this thread.
     * 
-    * @param expireTime the amount of time that must pass while this JobThread
+    * @param expireTime the amount of time that must pass while this thread
     *                   is idle in order for it to expire -- if 0 is passed
-    *                   then this JobThread will never expire.
+    *                   then this thread will never expire.
     */
    virtual void setExpireTime(unsigned long long expireTime);
    
    /**
-    * Gets the expire time for this job thread.
+    * Gets the expire time for this thread.
     * 
-    * @return the expire time for this job thread.
+    * @return the expire time for this thread.
     */
    virtual unsigned long long getExpireTime();
    
    /**
-    * Returns true if this job thread is expired, false if not.
+    * Returns true if this thread is expired, false if not.
     * 
-    * @return true if this job thread is expired, false if not.
+    * @return true if this thread is expired, false if not.
     */
    virtual bool isExpired();
 };

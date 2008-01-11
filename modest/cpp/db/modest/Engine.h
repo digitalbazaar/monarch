@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_modest_Engine_H
 #define db_modest_Engine_H
 
 #include "db/modest/State.h"
 #include "db/modest/Operation.h"
+#include "db/rt/ThreadPool.h"
 
 namespace db
 {
@@ -87,6 +88,13 @@ public:
     * @return the State of this Engine in an immutable form.
     */
    virtual ImmutableState* getState();
+   
+   /**
+    * Gets this Engine's ThreadPool.
+    * 
+    * @return this Engine's ThreadPool.
+    */
+   virtual db::rt::ThreadPool* getThreadPool();
    
    /**
     * Gets this Engine's OperationDispatcher.
