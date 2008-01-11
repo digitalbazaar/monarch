@@ -7,7 +7,7 @@ using namespace db::net::http;
 
 HttpRequestServicer::HttpRequestServicer(const char* path)
 {
-   mPath = (char*)malloc(strlen(path) + 1);
+   mPath = (char*)malloc(strlen(path) + 2);
    normalizePath(path, mPath);
 }
 
