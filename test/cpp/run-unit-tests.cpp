@@ -3763,7 +3763,7 @@ void runHttpServerTest()
    Kernel k;
    
    // set thread stack size in engine (128k)
-   //k.getEngine()->getThreadPool()->setThreadStackSize(131072);
+   k.getEngine()->getThreadPool()->setThreadStackSize(131072);
    
    // optional for testing --
    // limit threads to 2: one for accepting, 1 for handling

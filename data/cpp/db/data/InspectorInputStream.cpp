@@ -45,13 +45,17 @@ int InspectorInputStream::read(char* b, int length)
    // if no bytes are available, run inspectors to release inspected bytes
    if(mAvailableBytes == 0)
    {
-      // add all inspector meta-data to the waiting list
+      // add all inspector meta-datas to the waiting list that have
+      // inspected bytes that fall within the read buffer's range
       for(InspectorMap::iterator i = mInspectors.begin();
           i != mInspectors.end(); i++)
       {
-         // add meta-data to list
-         mWaiting.push_back(&i->second);
-      }      
+         if(mReadBuffer.length() > i->second.inspectedBytes)
+         {
+            // add meta-data to list
+            mWaiting.push_back(&i->second);
+         }
+      }
       
       // keep inspecting while inspectors are waiting and not end of stream
       bool eos = false;
@@ -81,6 +85,7 @@ int InspectorInputStream::read(char* b, int length)
                }
                else
                {
+                  // data could not be inspected, more is required
                   i++;
                }
             }
@@ -108,14 +113,13 @@ int InspectorInputStream::read(char* b, int length)
       }
    }
    
-   // reset the number of available bytes to the maximum
+   // set the number of available bytes to the minimum inspected
    mAvailableBytes = mReadBuffer.length();
    for(InspectorMap::iterator i = mInspectors.begin();
        i != mInspectors.end(); i++)
    {
       if(i->second.inspectedBytes > 0)
       {
-         // update the amount of available bytes
          mAvailableBytes = (mAvailableBytes < i->second.inspectedBytes) ?
             mAvailableBytes : i->second.inspectedBytes;
       }
@@ -134,6 +138,8 @@ int InspectorInputStream::read(char* b, int length)
       for(InspectorMap::iterator i = mInspectors.begin();
           i != mInspectors.end(); i++)
       {
+         // (rval could be larger than inspected bytes if an inspector
+         // could not inspect any of the bytes in the read buffer)
          count = i->second.inspectedBytes - rval;
          i->second.inspectedBytes = (count < 0) ? 0 : count;
       }

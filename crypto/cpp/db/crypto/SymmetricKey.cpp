@@ -36,10 +36,9 @@ void SymmetricKey::freeData()
    if(mData != NULL)
    {
       free(mData);
+      mData = NULL;
+      mDataLength = 0;
    }
-   
-   mData = NULL;
-   mDataLength = 0;
 }
 
 void SymmetricKey::freeIv()
@@ -48,10 +47,9 @@ void SymmetricKey::freeIv()
    if(mIv != NULL)
    {
       free(mIv);
+      mIv = NULL;
+      mIvLength = 0;
    }
-   
-   mIv = NULL;
-   mIvLength = 0;
 }
 
 void SymmetricKey::assignData(
@@ -76,37 +74,24 @@ void SymmetricKey::setData(
    const char* data, unsigned int length,
    const char* iv, unsigned int ivLength, bool encrypted)
 {
-   // free existing data as necessary
-   if(mData != NULL && mDataLength <= length)
-   {
-      freeData();
-   }
-   
-   // free existing IV as necessary
-   if(iv == NULL || (mIv != NULL && mIvLength <= ivLength))
-   {
-      freeIv();
-   }
+   // free existing data and IV
+   freeData();
+   freeIv();
    
    // allocate data as necessary
-   if(mData == NULL)
+   if(data != NULL)
    {
+      // copy data
       mData = (char*)malloc(length);
+      memcpy(mData, data, length);
+      mDataLength = length;
    }
    
    // allocate IV as necessary
-   if(mIv == NULL && iv != NULL)
-   {
-      mIv = (char*)malloc(ivLength);
-   }
-   
-   // copy data
-   memcpy(mData, data, length);
-   mDataLength = length;
-   
-   // copy iv
    if(iv != NULL)
    {
+      // copy IV
+      mIv = (char*)malloc(ivLength);
       memcpy(mIv, iv, ivLength);
       mIvLength = ivLength;
    }
