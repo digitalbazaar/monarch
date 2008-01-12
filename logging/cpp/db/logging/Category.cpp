@@ -34,7 +34,7 @@ void Category::initialize()
 {
    DB_DEFAULT_CAT = new Category(
       "Default",
-      NULL,
+      "DB_DEFAULT",
       "Default category for general use");
    DB_ALL_CAT = new Category(
       NULL,
@@ -66,7 +66,7 @@ void Category::setName(const char* name)
 
 const char* Category::getName()
 {
-   return mName;
+   return mName ? mName : "<?>";
 }
 
 void Category::setShortName(const char* shortName)

@@ -9,26 +9,27 @@
 #include "db/logging/Logger.h"
 #include "db/io/OStreamOutputStream.h"
 #include "db/util/Date.h"
+#include "db/rt/Thread.h"
 
 using namespace std;
 using namespace db::data::json;
 using namespace db::io;
 using namespace db::util;
 using namespace db::logging;
+using namespace db::rt;
 
 // DO NOT INITIALIZE THIS VARIABLE! Logger::sLoggers is not not initialized on 
 // purpose due to compiler initialization code issues.
 Logger::LoggerMap* Logger::sLoggers;
 
-Logger::Logger(const char* name, LogLevel level)
+Logger::Logger(const char* name, Level level, LoggerFlags flags) :
+   mDateFormat(NULL)
 {
    mName = name;
    setLevel(level);
    
-   mDateFormat = NULL;
    setDateFormat("%Y-%m-%d %H:%M:%S");
-   
-   mFields = AllFields;
+   setFlags(flags);
 }
 
 Logger::~Logger()
@@ -53,7 +54,7 @@ void Logger::cleanup()
    Category::cleanup();
 }
 
-const char* Logger::levelToString(LogLevel level)
+const char* Logger::levelToString(Level level)
 {
    // FIXME: return an std::string, pass in a buffer that
    // has to get filled, or heap-allocate and require the user
@@ -121,12 +122,12 @@ void Logger::clearLoggers()
    sLoggers->clear();
 }
 
-void Logger::setLevel(LogLevel level)
+void Logger::setLevel(Level level)
 {
    mLevel = level;
 }
 
-Logger::LogLevel Logger::getLevel()
+Logger::Level Logger::getLevel()
 {
    return mLevel;
 }
@@ -147,8 +148,9 @@ void Logger::getDate(string& date)
    }
 }
 
-bool Logger::setDateFormat(const char* dateFormat)
+bool Logger::setDateFormat(const char* format)
 {
+   // lock so flags are not changed while in use in log()
    lock();
    {
       if(mDateFormat != NULL)
@@ -156,66 +158,98 @@ bool Logger::setDateFormat(const char* dateFormat)
          free(mDateFormat);
       }
       
-      mDateFormat = strdup(dateFormat);
+      mDateFormat = strdup(format);
    }
    unlock();
 
    return true;
 }
 
-void Logger::setLogFields(unsigned int fields)
+void Logger::setFlags(LoggerFlags flags)
 {
+   // lock so flags are not changed while in use in log()
    lock();
    {
-      mFields = fields;
+      mFlags = flags;
    }
    unlock();
 }
-   
+
+Logger::LoggerFlags Logger::getFlags()
+{
+   return mFlags;
+}
+
 bool Logger::log(
    Category* cat,
-   LogLevel level,
+   Level level,
    const char* location,
-   ObjectType objectType,
    const void* object,
+   LogFlags flags,
    const char* message)
 {
    bool rval = false;
    
-   if((sLoggers != NULL)  && (mLevel >= level))
+   if(mLevel >= level)
    {
       lock();
 
-      // Output as:
-      // [date: ][level: ][cat: ][location: ][object: ]message
-      // [object data]
+      // Output fields depending on flags as:
+      // [date: ][thread ][object ][level ][cat ][location ]message
 
       string logText;
       
-      if(mFields & DateField)
+      if(mFlags & LogDate)
       {
          string date;
          getDate(date);
          if(strcmp(date.c_str(), "") != 0)
          {
             logText.append(date);
-            logText.append(": ");
+            logText.push_back(' ');
          }
       }
 
-      if((mFields & NameField) && mName)
+      if(mFlags & LogThread)
       {
-         logText.append(mName);
-         logText.push_back('-');
-      }
-            
-      if(mFields & LevelField)
-      {
-         logText.append(levelToString(level));
-         logText.append(": ");
+         Thread* thread = Thread::currentThread();
+         const char* name = thread->getName();
+         if(name)
+         {
+            logText.append(name);
+         }
+         else
+         {
+            char address[23];
+            snprintf(address, 23, "%p", thread);
+            logText.append(address);
+         }
+         logText.push_back(' ');
       }
 
-      if((mFields & CategoryField) && cat)
+      if((mFlags & LogObject) && (flags & LogObjectValid))
+      {
+         char address[23];
+         if(object)
+         {
+            snprintf(address, 23, "%p", object);
+            logText.append(address);
+         }
+         else
+         {
+            // force 0x0 rather than "(nil)" from %p format string
+            logText.append("0x0");
+         }
+         logText.push_back(' ');
+      }
+
+      if(mFlags & LogLevel)
+      {
+         logText.append(levelToString(level));
+         logText.push_back(' ');
+      }
+
+      if((mFlags & LogCategory) && cat)
       {
          // FIXME: add new var or new field type to select name type
          // Try shortname if set, else try regular name.
@@ -224,29 +258,20 @@ bool Logger::log(
          if(name)
          {
             logText.append(name);
-            logText.append(": ");
+            logText.push_back(' ');
          }
       }
 
-      if((mFields & LocationField) && location)
+      if((mFlags & LogLocation) && location)
       {
          logText.append(location);
-         logText.append(": ");
-      }
-
-      if((mFields & ObjectField) && object)
-      {
-         char tmp[23];
-         snprintf(tmp, 21, "<%p>", object);
-         logText.append(tmp);
-         logText.append(": ");
+         logText.push_back(' ');
       }
 
       logText.append(message);
       logText.push_back('\n');
       
-      if((mFields & ObjectField) &&
-         object && objectType == DynamicObject)
+      /*
       {
          // pretty-print DynamicObject in JSON
          JsonWriter jwriter;
@@ -258,6 +283,7 @@ bool Logger::log(
          logText.append(oss.str());
          logText.push_back('\n');
       }
+      */
 
       log(logText.c_str());
       rval = true;
@@ -269,27 +295,42 @@ bool Logger::log(
 }
 
 void Logger::logToLoggers(
-   Category* cat,
-   LogLevel level,
+   Category* registeredCat,
+   Category* messageCat,
+   Level level,
    const char* location,
-   ObjectType type,
    const void* object,
+   LogFlags flags,
    const char* message)
 {
    if(sLoggers != NULL)
    {
       // Find this category
-      LoggerMap::iterator i = sLoggers->find(cat);
+      LoggerMap::iterator i = sLoggers->find(registeredCat);
       if(i != sLoggers->end())
       {
          // Find the last logger in this category
-         LoggerMap::iterator end = sLoggers->upper_bound(cat);
+         LoggerMap::iterator end = sLoggers->upper_bound(registeredCat);
          for(; i != end; i++)
          {
             // Log the message
             Logger* logger = i->second;
-            logger->log(cat, level, location, type, object, message);
+            logger->log(messageCat, level, location, object, flags, message);
          }
       }
    }
+}
+
+void Logger::logToLoggers(
+   Category* cat,
+   Level level,
+   const char* location,
+   const void* object,
+   LogFlags flags,
+   const char* message)
+{
+   // Log to loggers registered for this category
+   logToLoggers(cat, cat, level, location, object, flags, message);
+   // Log to loggers registered for all categories
+   logToLoggers(DB_ALL_CAT, cat, level, location, object, flags, message);
 }

@@ -12,7 +12,7 @@ using namespace db::logging;
 int FileLogger::DEFAULT_NUM_ROTATING_FILES = 3;
 
 FileLogger::FileLogger(
-   const char* name, LogLevel level, File* file, bool cleanup) :
+   const char* name, Level level, File* file, bool cleanup) :
    OutputStreamLogger(name, level)
 {
    mFile = NULL;

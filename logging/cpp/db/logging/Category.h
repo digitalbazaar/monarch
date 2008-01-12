@@ -186,7 +186,7 @@ public:
    /**
     * Gets the category name.
     *
-    * @return the category name.
+    * @return the category name or "<?>" if not set.
     */
    virtual const char* getName();
    
@@ -200,7 +200,7 @@ public:
    /**
     * Gets the category short name.
     *
-    * @return the category short name.
+    * @return the category short name or NULL if not set.
     */
    virtual const char* getShortName();
    
@@ -214,7 +214,7 @@ public:
    /**
     * Gets the category description.
     *
-    * @return the category description.
+    * @return the category description or NULL if not set.
     */
    virtual const char* getDescription();
 };

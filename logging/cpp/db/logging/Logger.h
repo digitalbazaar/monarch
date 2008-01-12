@@ -9,9 +9,7 @@
 #include <list>
 
 #include "db/rt/Object.h"
-#include "db/util/Macros.h"
 #include "db/logging/Category.h"
-#include "db/logging/LoggingCategories.h"
 
 namespace db
 {
@@ -31,7 +29,7 @@ public:
    /**
     * The logging level.
     */
-   typedef enum LogLevel {
+   typedef enum Level {
       /**
        * The no level setting. Nothing will be logged.
        */
@@ -77,39 +75,59 @@ public:
    };
    
    /**
-    * The logging fields.
+    * Logger control flags.
     */
-   typedef enum LogField {
+   typedef enum LoggerFlag {
       /**
-       * Date field.
+       * Log date.
        */
-      DateField = 1,
-      NameField = (1 << 1),
-      LevelField = (1 << 2),
-      CategoryField = (1 << 3),
-      LocationField = (1 << 4),
-      ObjectField = (1 << 5),
-      AllFields = (DateField | NameField | LevelField | CategoryField |
-         LocationField | ObjectField)
+      LogDate = 1,
+      /**
+       * Log thread name.
+       */
+      LogThread = (1 << 1),
+      /**
+       * Log object address.
+       */
+      LogObject = (1 << 2),
+      /**
+       * Log message level.
+       */
+      LogLevel = (1 << 3),
+      /**
+       * Log message category.
+       */
+      LogCategory = (1 << 4),
+      /**
+       * Log message origin location.
+       */
+      LogLocation = (1 << 5),
+      /**
+       * Log all fields.
+       */
+      LogAll =
+         LogDate | LogThread | LogObject | LogLevel | LogCategory | LogLocation
    };
    
    /**
-    * The object type.
+    * Logger control flags.
     */
-   typedef enum ObjectType {
+   typedef unsigned int LoggerFlags;
+   
+   /**
+    * Log message flags.
+    */
+   typedef enum LogFlag {
       /**
-       * Object pointer is invalid.  Log nothing.
+       * Log object parameter is set. 
        */
-      NoObject = 0,
-      /**
-       * A generic pointer.  Log address.
-       */
-      Pointer,
-      /**
-       * A DynamicObject.  Log address and contents.
-       */
-      DynamicObject
+      LogObjectValid = 1
    };
+   
+   /**
+    * Log message flags.
+    */
+   typedef unsigned int LogFlags;
    
    /**
     * Return a string representation of a level.
@@ -118,7 +136,7 @@ public:
     * 
     * @return string representation of the level.
     */
-   static const char* levelToString(LogLevel level);
+   static const char* levelToString(Level level);
    
 protected:
    
@@ -131,7 +149,7 @@ protected:
    /**
     * The current level setting.
     */
-   LogLevel mLevel;
+   Level mLevel;
    
    /**
     * The date format.
@@ -139,14 +157,9 @@ protected:
    char* mDateFormat;
 
    /**
-    * Type to store log fields mask.
+    * Logger flags.
     */
-   typedef unsigned int LogFields;
-
-   /**
-    * Log fields mask.
-    */
-   LogFields mFields;
+   LoggerFlags mFlags;
 
    /**
     * A multimap of log categories to many loggers.
@@ -165,8 +178,9 @@ public:
     * @param name the name of the logger, used in the debug message to identify 
     *             which logger generated the message.
     * @param level the max level to display.
+    * @param flags a bit field of LoggerFlags.  Default to all.
     */
-   Logger(const char* name, LogLevel level = None);
+   Logger(const char* name, Level level = None, LoggerFlags flags = LogAll);
    
    /**
     * Destructs the Logger.
@@ -192,14 +206,14 @@ public:
     *
     * @param level the level to set.
     */
-   virtual void setLevel(LogLevel level);
+   virtual void setLevel(Level level);
 
    /**
     * Gets the level set for this logger.
     *
     * @return the level set for this logger.
     */
-   virtual LogLevel getLevel();
+   virtual Level getLevel();
    
    /**
     * Gets the current date in the appropriate format.
@@ -217,15 +231,21 @@ public:
     * 
     * @return true if the date format is set, false if not.
     */
-   virtual bool setDateFormat(const char* dateFormat);
+   virtual bool setDateFormat(const char* format);
    
    /**
-    * Sets the log fields. If the date format given is not
-    * a valid format, the method does nothing but return false.
+    * Sets the logger flags.
     *
-    * @param fields a bit mask of fields to print out.
+    * @param flags a bit field of LoggerFlags.
     */
-   virtual void setLogFields(unsigned int fields);
+   virtual void setFlags(LoggerFlags flags);
+   
+   /**
+    * Gets the logger flags.
+    *
+    * @return the logger flags.
+    */
+   virtual LoggerFlags getFlags();
    
    /**
     * Log a message.  The implementation of this method should lock the logger,
@@ -234,39 +254,58 @@ public:
     *
     * @param cat the message category name or NULL
     * @param level the message level
-    * @param location the location of this log call (or NULL) (see DB_STRLOC)
-    * @param objectType the type of the object pointer
-    * @param object the object being debugged (or NULL)
+    * @param location the location of this log call or NULL (see DB_STRLOC)
+    * @param object a source object or NULL
+    * @param flags flags for this message
     * @param message the log message
-    * @param header true to use the logger's header, false not to.
     * 
     * @return true if the text was written, false if not.
     */
    bool log(
       db::logging::Category* cat, 
-      LogLevel level,
+      Level level,
       const char* location,
-      ObjectType objectType,
       const void* object,
+      LogFlags flags,
       const char* message);
    
    /**
-    * Log a message to all loggers registered for this category.
+    * Log a message to all loggers registered for a category.
     *
-    * @param cat the message category id
+    * @param registeredCat send to loggers registered with this category
+    * @param messageCat the message category
     * @param level the message level
     * @param location the location of this log call (or NULL) (see DB_STRLOC)
-    * @param objectType the type of the object pointer
-    * @param object the object being debugged (or NULL)
+    * @param object a source object or NULL
+    * @param flags flags for this message
     * @param message the log message
-    * @param header true to use the logger's header, false not to.
+    */
+   static void logToLoggers(
+      db::logging::Category* registeredCat,
+      db::logging::Category* messageCat,
+      Level level,
+      const char* location,
+      const void* object,
+      LogFlags flags,
+      const char* message);
+   
+   /**
+    * Log a message to all loggers registered for a category and to loggers
+    * registered for all categories.
+    *
+    * @param cat the message category
+    * @param level the message level
+    * @param location the location of this log call (or NULL) (see DB_STRLOC)
+    * @param object a source object or NULL
+    * @param flags flags for this message
+    * @param message the log message
     */
    static void logToLoggers(
       db::logging::Category* cat,
-      LogLevel level,
+      Level level,
       const char* location,
-      ObjectType objectType,
       const void* object,
+      LogFlags flags,
       const char* message);
    
    /**
@@ -308,63 +347,6 @@ public:
     */
    //getLoggers(...)
 };
-
-#define DB_LOG(cat, level, type, object, message) \
-   DB_STMT_START { \
-   db::logging::Logger::logToLoggers( \
-      cat, level, DB_STRLOC, \
-      type, object, \
-      message); \
-   } DB_STMT_END
-
-#define DB_CAT_LEVEL_OBJECT_LOG(cat, level, object, message) \
-   DB_LOG(cat, level, db::logging::Logger::Pointer, object, message)
-#define DB_CAT_LEVEL_DYNO_LOG(cat, level, dyno, message) \
-   DB_LOG(cat, level, db::logging::Logger::DynamicObject, dyno, message)
-
-#define DB_CAT_OBJECT_ERROR(cat, object, message) \
-   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::Error, object, message)
-#define DB_CAT_DYNO_ERROR(cat, dyno, message) \
-   DB_CAT_LEVEL_DYNO_LOG(cat, db::logging::Logger::Error, dyno, message)
-#define DB_CAT_ERROR(cat, message) \
-   DB_CAT_OBJECT_ERROR(cat, NULL, message)
-#define DB_ERROR(message) \
-   DB_CAT_ERROR(DB_DEFAULT_CAT, message)
-#define DB_DYNO_ERROR(dyno, message) \
-   DB_CAT_DYNO_ERROR(DB_DEFAULT_CAT, dyno, message)
-
-#define DB_CAT_OBJECT_WARNING(cat, object, message) \
-   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::Warning, object, message)
-#define DB_CAT_DYNO_WARNING(cat, dyno, message) \
-   DB_CAT_LEVEL_DYNO_LOG(cat, db::logging::Logger::Warning, dyno, message)
-#define DB_CAT_WARNING(cat, message) \
-   DB_CAT_OBJECT_WARNING(cat, NULL, message)
-#define DB_WARNING(message) \
-   DB_CAT_WARNING(DB_DEFAULT_CAT, message)
-#define DB_DYNO_WARNING(dyno, message) \
-   DB_CAT_DYNO_WARNING(DB_DEFAULT_CAT, dyno, message)
-
-#define DB_CAT_OBJECT_INFO(cat, object, message) \
-   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::Info, object, message)
-#define DB_CAT_DYNO_INFO(cat, dyno, message) \
-   DB_CAT_LEVEL_DYNO_LOG(cat, db::logging::Logger::Info, dyno, message)
-#define DB_CAT_INFO(cat, message) \
-   DB_CAT_OBJECT_INFO(cat, NULL, message)
-#define DB_INFO(message) \
-   DB_CAT_INFO(DB_DEFAULT_CAT, message)
-#define DB_DYNO_INFO(dyno, message) \
-   DB_CAT_DYNO_INFO(DB_DEFAULT_CAT, dyno, message)
-
-#define DB_CAT_OBJECT_DEBUG(cat, object, message) \
-   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::Debug, object, message)
-#define DB_CAT_DYNO_DEBUG(cat, dyno, message) \
-   DB_CAT_LEVEL_DYNO_LOG(cat, db::logging::Logger::Debug, dyno, message)
-#define DB_CAT_DEBUG(cat, message) \
-   DB_CAT_OBJECT_DEBUG(cat, NULL, message)
-#define DB_DEBUG(message) \
-   DB_CAT_DEBUG(DB_DEFAULT_CAT, message)
-#define DB_DYNO_DEBUG(dyno, message) \
-   DB_CAT_DYNO_DEBUG(DB_DEFAULT_CAT, dyno, message)
 
 } // end namespace logging
 } // end namespace db

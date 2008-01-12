@@ -77,6 +77,7 @@
 #include "db/event/Observable.h"
 #include "db/event/ObserverDelegate.h"
 #include "db/event/EventController.h"
+#include "db/logging/Logging.h"
 #include "db/logging/Logger.h"
 #include "db/logging/OutputStreamLogger.h"
 #include "db/logging/FileLogger.h"
@@ -6067,13 +6068,18 @@ void runEventControllerTest(TestRunner& tr)
 
 void runLoggerTest(TestRunner& tr)
 {
+   int obj;
    tr.group("Logger");
+
+   /////////////////
 
    tr.test("init");
    // Do a cleanup and re-init.  This could invalidate other unit test setup.
    Logger::cleanup();
    Logger::initialize();
    tr.passIfNoException();
+
+   /////////////////
 
    tr.test("basic");
    
@@ -6083,15 +6089,14 @@ void runLoggerTest(TestRunner& tr)
    // Create the default logger
    OutputStreamLogger defaultLogger("default", Logger::Max, &stdoutOS);
 
-   // Create the C1 Logger
-   OutputStreamLogger c1Logger("C1", Logger::Max, &stdoutOS);
-
-   Category C1_CAT("C1", "db:test:c1", NULL);
-      
+   // Create a test Logger and category
+   OutputStreamLogger testLogger("Test", Logger::Max, &stdoutOS);
+   Category TEST_CAT("DB Test Suite", "DB_TEST", NULL);
+   
    // add default logger
    Logger::addLogger(&defaultLogger);
    // add logger for specific category
-   Logger::addLogger(&c1Logger, &C1_CAT);
+   Logger::addLogger(&testLogger, &TEST_CAT);
 
    // create file logger
    FileLogger flog("F1", Logger::Max, new File("test.log"), true);
@@ -6105,12 +6110,72 @@ void runLoggerTest(TestRunner& tr)
    DB_DEBUG("[M1] debug test");
    
    // C1 category test
-   DB_CAT_ERROR(&C1_CAT, "[M2] cat 1 error test");
+   DB_CAT_ERROR(&TEST_CAT, "[M2] cat 1 error test");
    
    // C1 cat error with object address
-   DB_CAT_OBJECT_ERROR(&C1_CAT, &clog, "[M3] cat 1 obj error test");
+   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "[M3] cat 1 obj error test");
    
    tr.passIfNoException();
+
+   /////////////////
+
+   tr.test("DB_ALL_CAT");
+   
+   OutputStreamLogger allLogger("All", Logger::Max, &stdoutOS);
+   Logger::addLogger(&allLogger, DB_ALL_CAT);
+   DB_DEBUG("ALL from DB_DEFAULT_CAT");
+   DB_CAT_DEBUG(&TEST_CAT, "ALL from TEST_CAT");
+   Logger::removeLogger(&allLogger, DB_ALL_CAT);
+   
+   tr.passIfNoException();
+   
+   /////////////////
+
+   tr.test("flags");
+   
+   Logger::LoggerFlags old = testLogger.getFlags();
+
+   testLogger.setFlags(0);
+   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "none");
+
+   testLogger.setFlags(Logger::LogDate);
+   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Date");
+
+   testLogger.setFlags(Logger::LogThread);
+   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Thread");
+
+   testLogger.setFlags(Logger::LogObject);
+   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Object");
+
+   testLogger.setFlags(Logger::LogLevel);
+   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Level");
+
+   testLogger.setFlags(Logger::LogCategory);
+   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Category");
+
+   testLogger.setFlags(Logger::LogLocation);
+   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Location");
+
+   testLogger.setFlags(Logger::LogDate | Logger::LogThread |
+      Logger::LogObject | Logger::LogLevel |
+      Logger::LogCategory | Logger::LogLocation);
+   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "all");
+
+   testLogger.setFlags(old);
+
+   tr.passIfNoException();
+
+   /////////////////
+
+   tr.test("object");
+
+   DB_CAT_OBJECT_DEBUG(&TEST_CAT, &obj, "object");
+   DB_CAT_OBJECT_DEBUG(&TEST_CAT, (void*)1, "object @ 0x1");
+   DB_CAT_OBJECT_DEBUG(&TEST_CAT, NULL, "NULL object");
+
+   tr.passIfNoException();
+
+   /////////////////
 
    tr.test("double log");
 
@@ -6123,16 +6188,20 @@ void runLoggerTest(TestRunner& tr)
 
    tr.passIfNoException();
 
+   /////////////////
+
    tr.test("dyno");
 
    DynamicObject dyno;
    dyno["logging"] = "is fun";
-   DB_DYNO_DEBUG(&dyno, "dyno smart pointer 1");
+   //DB_DYNO_DEBUG(&dyno, "dyno smart pointer 1");
 
    DynamicObject dyno2 = dyno;
-   DB_DYNO_DEBUG(&dyno2, "dyno smart pointer 2");
+   //DB_DYNO_DEBUG(&dyno2, "dyno smart pointer 2");
 
    tr.passIfNoException();
+
+   /////////////////
 
    tr.test("clear");
 
@@ -6158,11 +6227,15 @@ void runLoggerTest(TestRunner& tr)
 
    tr.passIfNoException();
 
+   /////////////////
+
    tr.test("re-init");
    // Do a cleanup and re-init for other unit tests.
    Logger::cleanup();
    Logger::initialize();
    tr.passIfNoException();
+
+   /////////////////
 
    tr.ungroup();
 }
@@ -6898,7 +6971,7 @@ public:
 //      runMySqlRowObjectTest(tr);
 //      runConnectionPoolTest();
 //      runDatabaseClientTest();
-//      runLoggerTest(tr);
+      runLoggerTest(tr);
 //      runFileTest();
 //      runSmtpClientTest(tr);
       
@@ -6914,7 +6987,7 @@ public:
       
       tr.group(""); // root group
       runInteractiveUnitTests(tr);
-      runAutomaticUnitTests(tr);
+//      runAutomaticUnitTests(tr);
       tr.ungroup();
       
       assertNoException();

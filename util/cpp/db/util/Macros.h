@@ -17,6 +17,11 @@
 #define DB_STMT_END while (0)
 
 /**
+ * Macro to do nothing, useful to disable debug macros.
+ */
+#define DB_STMT_EMPTY DB_STMT_START {} DB_STMT_END;
+
+/**
  * Convert argument to a string
  */
 #define DB_STRINGIFY_ARG(arg) #arg
