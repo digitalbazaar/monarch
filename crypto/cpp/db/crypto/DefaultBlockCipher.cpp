@@ -41,17 +41,11 @@ bool DefaultBlockCipher::startEncrypting(SymmetricKey* symmetricKey)
    mCipherFunction = getCipherFunction(symmetricKey->getAlgorithm());
    if(mCipherFunction != NULL)
    {
-      // get pointers to key and iv
-      char* key;
-      unsigned int length;
-      char* iv;
-      unsigned int ivLength;
-      symmetricKey->getData(&key, length, &iv, ivLength);
-      
       // initialize encryption
       if(EVP_EncryptInit_ex(
          &mCipherContext, mCipherFunction, NULL,
-         (unsigned char*)key, (unsigned char*)iv) == 1)
+         (unsigned char*)symmetricKey->data(),
+         (unsigned char*)symmetricKey->iv()) == 1)
       {
          rval = true;
       }
@@ -77,17 +71,11 @@ bool DefaultBlockCipher::startDecrypting(SymmetricKey* symmetricKey)
    mCipherFunction = getCipherFunction(symmetricKey->getAlgorithm());
    if(mCipherFunction != NULL)
    {
-      // get pointers to key and iv
-      char* key;
-      unsigned int length;
-      char* iv;
-      unsigned int ivLength;
-      symmetricKey->getData(&key, length, &iv, ivLength);
-      
       // initialize decryption
       if(EVP_DecryptInit_ex(
          &mCipherContext, mCipherFunction, NULL,
-         (unsigned char*)key, (unsigned char*)iv) == 1)
+         (unsigned char*)symmetricKey->data(),
+         (unsigned char*)symmetricKey->iv()) == 1)
       {
          rval = true;
       }
