@@ -6087,10 +6087,10 @@ void runLoggerTest(TestRunner& tr)
    OStreamOutputStream stdoutOS(&cout);
 
    // Create the default logger
-   OutputStreamLogger defaultLogger("default", Logger::Max, &stdoutOS);
+   OutputStreamLogger defaultLogger(Logger::Max, &stdoutOS);
 
    // Create a test Logger and category
-   OutputStreamLogger testLogger("Test", Logger::Max, &stdoutOS);
+   OutputStreamLogger testLogger(Logger::Max, &stdoutOS);
    Category TEST_CAT("DB Test Suite", "DB_TEST", NULL);
    
    // add default logger
@@ -6099,7 +6099,7 @@ void runLoggerTest(TestRunner& tr)
    Logger::addLogger(&testLogger, &TEST_CAT);
 
    // create file logger
-   FileLogger flog("F1", Logger::Max, new File("test.log"), true);
+   FileLogger flog(Logger::Max, new File("test.log"), true);
    // log default category to the file
    Logger::addLogger(&flog);
 
@@ -6121,7 +6121,7 @@ void runLoggerTest(TestRunner& tr)
 
    tr.test("DB_ALL_CAT");
    
-   OutputStreamLogger allLogger("All", Logger::Max, &stdoutOS);
+   OutputStreamLogger allLogger(Logger::Max, &stdoutOS);
    Logger::addLogger(&allLogger, DB_ALL_CAT);
    DB_DEBUG("ALL from DB_DEFAULT_CAT");
    DB_CAT_DEBUG(&TEST_CAT, "ALL from TEST_CAT");
@@ -6210,7 +6210,7 @@ void runLoggerTest(TestRunner& tr)
    OStreamOutputStream sos(&oss);
 
    // add logging for all log messages
-   OutputStreamLogger sLogger("default", Logger::Max, &sos);
+   OutputStreamLogger sLogger(Logger::Max, &sos);
       
    // add default logger
    Logger::addLogger(&sLogger);
@@ -6971,7 +6971,7 @@ public:
 //      runMySqlRowObjectTest(tr);
 //      runConnectionPoolTest();
 //      runDatabaseClientTest();
-      runLoggerTest(tr);
+//      runLoggerTest(tr);
 //      runFileTest();
 //      runSmtpClientTest(tr);
       
@@ -6987,7 +6987,7 @@ public:
       
       tr.group(""); // root group
       runInteractiveUnitTests(tr);
-//      runAutomaticUnitTests(tr);
+      runAutomaticUnitTests(tr);
       tr.ungroup();
       
       assertNoException();

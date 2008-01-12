@@ -65,13 +65,11 @@ public:
    /**
     * Creates a new logger with specified level.
     *
-    * @param name the name of the logger, which is used when printing logging
-    *             messages.
     * @param file the File for the logger.
     * @param level the max level to output.
     * @param cleanup if the file object should be managed by the logger.
     */
-   FileLogger(const char* name, Level level = None,
+   FileLogger(Level level = None,
       db::io::File* file = NULL, bool cleanup = false);
    
    /**

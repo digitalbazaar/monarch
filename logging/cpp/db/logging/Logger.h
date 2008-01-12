@@ -139,13 +139,6 @@ public:
    static const char* levelToString(Level level);
    
 protected:
-   
-   /**
-    * The name of the logger, which is used in debug messages to identify the
-    * source of the message.
-    */
-   const char* mName;
-      
    /**
     * The current level setting.
     */
@@ -175,12 +168,10 @@ public:
    /**
     * Creates a new logger with specified level.
     *
-    * @param name the name of the logger, used in the debug message to identify 
-    *             which logger generated the message.
     * @param level the max level to display.
     * @param flags a bit field of LoggerFlags.  Default to all.
     */
-   Logger(const char* name, Level level = None, LoggerFlags flags = LogAll);
+   Logger(Level level = None, LoggerFlags flags = LogAll);
    
    /**
     * Destructs the Logger.
