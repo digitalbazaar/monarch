@@ -105,12 +105,16 @@ public:
    virtual Type getType();
    
    /**
-    * Returns true if this File is a regular file, false if it is not. If it
-    * is not, then it may be a directory or a symbolic link. 
+    * Returns true if this File is a is contained in the given file path. Both
+    * file paths are fully normalized before the comparison is made. All ".."s
+    * are removed, drive letters are applied (if applicable), and superfluous
+    * directory/file separators are cleaned from the file path. 
     * 
-    * @return true if this File is a regular file, false if not.
+    * @param path the path to check against the current file.
+    * @return true if this File is a contained in the given file path, false 
+    *         if not.
     */
-   virtual bool isFile();
+   virtual bool isContainedIn(const char* path);
    
    /**
     * Returns true if this File is a directory, false if it is not. If it
@@ -119,6 +123,24 @@ public:
     * @return true if this File is a directory, false if not.
     */
    virtual bool isDirectory();
+   
+   /**
+    * Returns true if this File is a regular file, false if it is not. If it
+    * is not, then it may be a directory or a symbolic link. 
+    * 
+    * @return true if this File is a regular file, false if not.
+    */
+   virtual bool isFile();
+
+   /**
+    * Returns true if this File is readable, false otherwise. Readability
+    * depends on several things, including file permissions, file system
+    * permissions, and access control lists among other file security 
+    * mechanisms. 
+    * 
+    * @return true if this File is accessible, false if not.
+    */
+   virtual bool isReadable();
    
    /**
     * Returns true if this File is a symbolic link, false if it is not. If it
@@ -136,6 +158,14 @@ public:
     * @param files the FileList to populate.
     */
    virtual void listFiles(FileList* files);
+
+   /**
+    * Normalizes the file system path passed into the method.
+    * 
+    * @param the path to normalize.
+    * @return the normalized path.
+    */
+   static std::string normalizePath(const char* path);
 };
 
 } // end namespace io

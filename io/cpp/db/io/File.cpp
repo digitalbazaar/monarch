@@ -1,31 +1,12 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
+#include "db/io/FileFunctions.h"
 #include "db/io/File.h"
 #include "db/io/FileList.h"
 
 #include <sys/stat.h>
 #include <dirent.h>
-
-#ifdef WIN32
-
-// define file type for symbolic link
-#define S_IFLNK   0xA000
-
-/**
- * In windows, there are no symbolic links so lstat does the same
- * thing as stat(), namely, it gets information about a particular file.
- * 
- * @param path the path to the file to stat.
- * @param buf the stat structure to populate.
- * 
- * @return 0 if the stat was successful, -1 if not, with errno set.
- */
-inline static int lstat(const char* path, struct stat* buf)
-{
-   return stat(path, buf);
-}
-#endif
 
 using namespace db::io;
 
@@ -148,9 +129,28 @@ bool File::isFile()
    return getType() == RegularFile;
 }
 
+bool File::isContainedIn(const char* path)
+{
+   //TODO: implementation
+   return true;
+}
+
 bool File::isDirectory()
 {
    return getType() == Directory;
+}
+
+bool File::isReadable()
+{
+   //TODO: implementation
+   bool rval = false;
+
+   if(exists())
+   {
+      rval = true;
+   }
+
+   return rval;
 }
 
 bool File::isSymbolicLink()
