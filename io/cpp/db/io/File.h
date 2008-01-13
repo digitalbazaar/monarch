@@ -115,6 +115,18 @@ public:
     *         if not.
     */
    virtual bool isContainedIn(const char* path);
+
+   /**
+    * Returns true if this File is a is contained in the given file path. Both
+    * file paths are fully normalized before the comparison is made. All ".."s
+    * are removed, drive letters are applied (if applicable), and superfluous
+    * directory/file separators are cleaned from the file path. 
+    * 
+    * @param path the path to check against the current file.
+    * @return true if this File is a contained in the given file path, false 
+    *         if not.
+    */
+   virtual bool isContainedIn(File* path);
    
    /**
     * Returns true if this File is a directory, false if it is not. If it
@@ -162,10 +174,18 @@ public:
    /**
     * Normalizes the file system path passed into the method.
     * 
-    * @param the path to normalize.
+    * @param path the path to normalize as a regular constant string.
     * @return the normalized path.
     */
    static std::string normalizePath(const char* path);
+
+   /**
+    * Normalizes the file system path passed into the method.
+    * 
+    * @param path the path to normalize specified by the given file.
+    * @return the normalized path.
+    */
+   static std::string normalizePath(File* path);
 };
 
 } // end namespace io

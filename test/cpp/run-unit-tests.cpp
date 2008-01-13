@@ -29,6 +29,7 @@
 #include "db/net/SslSocket.h"
 #include "db/crypto/MessageDigest.h"
 #include "db/crypto/AsymmetricKeyFactory.h"
+#include "db/io/File.h"
 #include "db/io/FileInputStream.h"
 #include "db/io/FileOutputStream.h"
 #include "db/io/FileList.h"
@@ -3604,12 +3605,12 @@ void runHttpHeaderTest(TestRunner& tr)
    reqHeader.setField("Content-Type", "text/html");
    reqHeader.setField("Connection", "close");
    
-   const char* expect =
-      "GET / HTTP/1.1\r\n"
-      "Connection: close\r\n"
-      "Content-Type: text/html\r\n"
-      "Host: localhost:80\r\n"
-      "\r\n";
+   //const char* expect =
+   //   "GET / HTTP/1.1\r\n"
+   //   "Connection: close\r\n"
+   //   "Content-Type: text/html\r\n"
+   //   "Host: localhost:80\r\n"
+   //   "\r\n";
    
    string str;
    reqHeader.toString(str);
@@ -6207,17 +6208,36 @@ void runUniqueListTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runFileTest()
+void runFileTest(TestRunner& tr)
 {
-   cout << "Starting File test." << endl << endl;
+   const char* name = "/tmp";
+
+   File tmp("/tmp");   
+   File a("/tmp/a.txt");
+   File b("../../foo/../b.txt");
+
+   tr.test("File/normalization");
    
-   const char* name = "/work";
+   cout << File::normalizePath(&b) << "... ";
+
+   tr.passIfNoException();
+   tr.test("File/directory containment");
+   
+   assert(a.isContainedIn(&tmp));   
+   
+   tr.passIfNoException();
+   tr.test("File/directory list");
    
    File dir(name);
    FileList files(true);
    dir.listFiles(&files);
    
-   cout << "Files in " << dir.getName() << ":" << endl;
+   cout << "/tmp contains " << files.count() << " files...";
+   
+   assert(files.count() > 0);
+   
+   tr.passIfNoException();
+   tr.test("File/get type");
    
    Iterator<File*>* i = files.getIterator();
    while(i->hasNext())
@@ -6239,12 +6259,11 @@ void runFileTest()
             type = "Unknown";
             break;
       }
-      
-      cout << "Name: '" << file->getName() << "', Type: " << type << endl;
+      //cout << "Name: '" << file->getName() << "', Type: " << type << endl;
    }
    delete i;
    
-   cout << endl << "File test complete." << endl;
+   tr.passIfNoException();
 }
 
 void runSmtpClientTest(TestRunner& tr)
@@ -6770,6 +6789,12 @@ public:
       runThreadPoolTest(tr);
       runJobDispatcherTest(tr);
       
+      // db::io tests
+      runByteBufferTest(tr);
+      runByteArrayInputStreamTest(tr);
+      runByteArrayOutputStreamTest(tr);
+      runFileTest(tr);
+      
       // db::config tests
       runConfigManagerTest(tr);
       
@@ -6843,11 +6868,6 @@ public:
       //runSmtpClientTest(tr);
       runMailTemplateParser(tr);
       
-      // db::io tests
-      runByteBufferTest(tr);
-      runByteArrayInputStreamTest(tr);
-      runByteArrayOutputStreamTest(tr);
-
       assertNoException();
    }
 

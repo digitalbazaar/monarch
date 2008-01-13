@@ -4,6 +4,8 @@
 #ifndef db_io_FileFunctions_H
 #define db_io_FileFunctions_H
 
+#include <unistd.h>
+
 /**
  * This header provides some cross-platform definitions for file and 
  * directory querying/manipulation functions.
@@ -14,6 +16,35 @@
  * @author Manu Sporny
  * @author Dave Longley
  */
+#include <string>
+#include <unistd.h>
+
+using namespace std;
+
+#define MAX_PATH 1024
+
+/**
+ * Gets the current working directory. 
+ *
+ * @param cwd The string that will be updated with the current working
+ *            directory upon success.
+ * @returns a string containing the current working directory.
+ */
+bool getCurrentWorkingDirectory(string& cwd)
+{
+   bool rval = false;
+   
+   char* buffer = (char*)malloc(MAX_PATH);
+   if(getcwd(buffer, MAX_PATH) != NULL)
+   {
+      cwd = buffer;
+      
+      free(buffer);
+      rval = true;
+   }
+
+   return rval;
+}
 
 #ifdef WIN32
 
