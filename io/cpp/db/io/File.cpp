@@ -160,20 +160,17 @@ bool File::isDirectory()
 
 bool File::isReadable()
 {
-   //TODO: implementation
-   bool rval = false;
-
-   if(exists())
-   {
-      rval = true;
-   }
-
-   return rval;
+   return isPathReadable(File::normalizePath(getName()).c_str());
 }
 
 bool File::isSymbolicLink()
 {
    return getType() == SymbolicLink;
+}
+
+bool File::isWritable()
+{
+   return isPathWritable(File::normalizePath(getName()).c_str());
 }
 
 void File::listFiles(FileList* files)
@@ -261,6 +258,10 @@ std::string File::normalizePath(const char* path)
          if(strcmp(token, "..") == 0)
          {
             skipNum++;
+         }
+         else if(strcmp(token, ".") == 0)
+         {
+            
          }
          else
          {

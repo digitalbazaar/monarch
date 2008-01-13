@@ -21,6 +21,7 @@ class FileList;
  * retrieving methods
  * 
  * @author Dave Longley
+ * @author Manu Sporny
  */
 class File
 {
@@ -48,7 +49,11 @@ public:
    /**
     * Creates a new File with the specified name.
     * 
-    * @param name the name of the file.
+    * @param name the name of the file. Using a blank string specifies an 
+    *             invalid file and should never be done. If you want to mention
+    *             the current directory, use "." as the name. All file metadata 
+    *             operations will normalize the path to an absolute file path
+    *             before performing any operations on the file.
     */
    File(const char* name);
    
@@ -150,7 +155,7 @@ public:
     * permissions, and access control lists among other file security 
     * mechanisms. 
     * 
-    * @return true if this File is accessible, false if not.
+    * @return true if this File is readable, false if not.
     */
    virtual bool isReadable();
    
@@ -161,6 +166,16 @@ public:
     * @return true if this File is a symbolic link, false if not.
     */
    virtual bool isSymbolicLink();
+
+   /**
+    * Returns true if this File is writable, false otherwise. Readability
+    * depends on several things, including file permissions, file system
+    * permissions, and access control lists among other file security 
+    * mechanisms. 
+    * 
+    * @return true if this File is writable, false if not.
+    */
+   virtual bool isWritable();
    
    /**
     * Populates a list with all of the Files in this File, if this File is

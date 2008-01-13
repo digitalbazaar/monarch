@@ -30,7 +30,7 @@ using namespace std;
  *            directory upon success.
  * @returns a string containing the current working directory.
  */
-bool getCurrentWorkingDirectory(string& cwd)
+inline static bool getCurrentWorkingDirectory(string& cwd)
 {
    bool rval = false;
    
@@ -66,6 +66,19 @@ bool getCurrentWorkingDirectory(string& cwd)
 inline static int lstat(const char* path, struct stat* buf)
 {
    return stat(path, buf);
+}
+#else
+#include <iostream>
+
+// these should work for any OS other than Windows
+inline static bool isPathReadable(const char* path)
+{
+   return (access(path, R_OK) == 0);
+}
+
+inline static bool isPathWritable(const char* path)
+{
+   return (access(path, W_OK) == 0);
 }
 
 #endif // end of defined WIN32
