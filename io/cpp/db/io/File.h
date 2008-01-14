@@ -21,6 +21,7 @@ class FileList;
  * retrieving methods
  * 
  * @author Dave Longley
+ * @author Manu Sporny
  */
 class File
 {
@@ -48,7 +49,11 @@ public:
    /**
     * Creates a new File with the specified name.
     * 
-    * @param name the name of the file.
+    * @param name the name of the file. Using a blank string specifies an 
+    *             invalid file and should never be done. If you want to mention
+    *             the current directory, use "." as the name. All file metadata 
+    *             operations will normalize the path to an absolute file path
+    *             before performing any operations on the file.
     */
    File(const char* name);
    
@@ -105,12 +110,28 @@ public:
    virtual Type getType();
    
    /**
-    * Returns true if this File is a regular file, false if it is not. If it
-    * is not, then it may be a directory or a symbolic link. 
+    * Returns true if this File is a is contained in the given file path. Both
+    * file paths are fully normalized before the comparison is made. All ".."s
+    * are removed, drive letters are applied (if applicable), and superfluous
+    * directory/file separators are cleaned from the file path. 
     * 
-    * @return true if this File is a regular file, false if not.
+    * @param path the path to check against the current file.
+    * @return true if this File is a contained in the given file path, false 
+    *         if not.
     */
-   virtual bool isFile();
+   virtual bool isContainedIn(const char* path);
+
+   /**
+    * Returns true if this File is a is contained in the given file path. Both
+    * file paths are fully normalized before the comparison is made. All ".."s
+    * are removed, drive letters are applied (if applicable), and superfluous
+    * directory/file separators are cleaned from the file path. 
+    * 
+    * @param path the path to check against the current file.
+    * @return true if this File is a contained in the given file path, false 
+    *         if not.
+    */
+   virtual bool isContainedIn(File* path);
    
    /**
     * Returns true if this File is a directory, false if it is not. If it
@@ -121,12 +142,40 @@ public:
    virtual bool isDirectory();
    
    /**
+    * Returns true if this File is a regular file, false if it is not. If it
+    * is not, then it may be a directory or a symbolic link. 
+    * 
+    * @return true if this File is a regular file, false if not.
+    */
+   virtual bool isFile();
+
+   /**
+    * Returns true if this File is readable, false otherwise. Readability
+    * depends on several things, including file permissions, file system
+    * permissions, and access control lists among other file security 
+    * mechanisms. 
+    * 
+    * @return true if this File is readable, false if not.
+    */
+   virtual bool isReadable();
+   
+   /**
     * Returns true if this File is a symbolic link, false if it is not. If it
     * is not, then it may be a regular file or a directory. 
     * 
     * @return true if this File is a symbolic link, false if not.
     */
    virtual bool isSymbolicLink();
+
+   /**
+    * Returns true if this File is writable, false otherwise. Readability
+    * depends on several things, including file permissions, file system
+    * permissions, and access control lists among other file security 
+    * mechanisms. 
+    * 
+    * @return true if this File is writable, false if not.
+    */
+   virtual bool isWritable();
    
    /**
     * Populates a list with all of the Files in this File, if this File is
@@ -136,6 +185,22 @@ public:
     * @param files the FileList to populate.
     */
    virtual void listFiles(FileList* files);
+
+   /**
+    * Normalizes the file system path passed into the method.
+    * 
+    * @param path the path to normalize as a regular constant string.
+    * @return the normalized path.
+    */
+   static std::string normalizePath(const char* path);
+
+   /**
+    * Normalizes the file system path passed into the method.
+    * 
+    * @param path the path to normalize specified by the given file.
+    * @return the normalized path.
+    */
+   static std::string normalizePath(File* path);
 };
 
 } // end namespace io

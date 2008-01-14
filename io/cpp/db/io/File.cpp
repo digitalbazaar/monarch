@@ -1,33 +1,17 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
+#include "db/io/FileFunctions.h"
 #include "db/io/File.h"
 #include "db/io/FileList.h"
+#include "db/logging/LoggingCategories.h"
+#include "db/util/StringTokenizer.h"
 
 #include <sys/stat.h>
 #include <dirent.h>
 
-#ifdef WIN32
-
-// define file type for symbolic link
-#define S_IFLNK   0xA000
-
-/**
- * In windows, there are no symbolic links so lstat does the same
- * thing as stat(), namely, it gets information about a particular file.
- * 
- * @param path the path to the file to stat.
- * @param buf the stat structure to populate.
- * 
- * @return 0 if the stat was successful, -1 if not, with errno set.
- */
-inline static int lstat(const char* path, struct stat* buf)
-{
-   return stat(path, buf);
-}
-#endif
-
 using namespace db::io;
+using namespace db::util;
 
 File::File()
 {
@@ -147,15 +131,46 @@ bool File::isFile()
 {
    return getType() == RegularFile;
 }
+#include <iostream>
+using namespace std;
+bool File::isContainedIn(const char* path)
+{
+   bool rval = false;
+
+   string normalizedFile(File::normalizePath(getName())); 
+   string normalizedContainer(File::normalizePath(path));
+
+   if(normalizedFile.find(normalizedContainer, 0) == 0)
+   {
+      rval = true;
+   }
+
+   return rval;
+}
+
+bool File::isContainedIn(File* path)
+{
+   return File::isContainedIn(path->getName());
+}
 
 bool File::isDirectory()
 {
    return getType() == Directory;
 }
 
+bool File::isReadable()
+{
+   return isPathReadable(File::normalizePath(getName()).c_str());
+}
+
 bool File::isSymbolicLink()
 {
    return getType() == SymbolicLink;
+}
+
+bool File::isWritable()
+{
+   return isPathWritable(File::normalizePath(getName()).c_str());
 }
 
 void File::listFiles(FileList* files)
@@ -201,4 +216,72 @@ void File::listFiles(FileList* files)
          closedir(dir);
       }
    }
+}
+
+std::string File::normalizePath(const char* path)
+{
+   string normalizedPath("");
+   if(strlen(path) > 0)
+   {
+      // if the path isn't absolute, pre-pend the current working directory
+      // to the path.
+      if(path[0] != '/')
+      {
+         string cwd("");
+         if(!getCurrentWorkingDirectory(cwd))
+         {
+            DB_CAT_ERROR(DBIO_LOG, 
+                         "failed to get current working directory!");
+         }
+         
+         normalizedPath = cwd;
+         normalizedPath += '/';
+         normalizedPath += path;
+      }
+      else
+      {
+         normalizedPath = path;
+      }
+      
+      // clean up the relative directory references
+      // TODO: This is a somewhat slow process because the string tokenizer
+      //       isn't setup to be run in reverse, which is the most efficient
+      //       way to build a directory path. This could become an issue if
+      //       the application is doing a ton of path normalizations. -- manu
+      StringTokenizer st(normalizedPath.c_str(), '/');
+      int nTokens = st.getTokenCount();
+      int skipNum = 0;
+      normalizedPath = "";
+      for(int i = nTokens - 1; i > 0; i--)
+      {
+         const char* token = st.getToken(i);
+         if(strcmp(token, "..") == 0)
+         {
+            skipNum++;
+         }
+         else if(strcmp(token, ".") == 0)
+         {
+            
+         }
+         else
+         {
+            if(skipNum == 0)
+            {
+               normalizedPath.insert(0, token);
+               normalizedPath.insert(0, "/");
+            }
+            else
+            {
+               skipNum--;
+            }
+         }
+      }
+   }
+   
+   return normalizedPath;
+}
+
+std::string File::normalizePath(File* path)
+{
+   return File::normalizePath(path->getName());
 }
