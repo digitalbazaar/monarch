@@ -6090,14 +6090,8 @@ void runLoggerTest(TestRunner& tr)
    // Create the default logger
    OutputStreamLogger defaultLogger(Logger::Max, &stdoutOS);
 
-   // Create a test Logger and category
-   OutputStreamLogger testLogger(Logger::Max, &stdoutOS);
-   Category TEST_CAT("DB Test Suite", "DB_TEST", NULL);
-   
-   // add default logger
+   // add a default logger for all categories
    Logger::addLogger(&defaultLogger);
-   // add logger for specific category
-   Logger::addLogger(&testLogger, &TEST_CAT);
 
    // create file logger
    FileLogger flog(Logger::Max, new File("test.log"), true);
@@ -6105,28 +6099,42 @@ void runLoggerTest(TestRunner& tr)
    Logger::addLogger(&flog);
 
    // basic tests of levels
-   DB_ERROR("[M1] error test");
-   DB_WARNING("[M1] warning test");
-   DB_INFO("[M1] info test");
-   DB_DEBUG("[M1] debug test");
-   
-   // C1 category test
-   DB_CAT_ERROR(&TEST_CAT, "[M2] cat 1 error test");
-   
-   // C1 cat error with object address
-   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "[M3] cat 1 obj error test");
+   DB_ERROR("[error message]");
+   DB_WARNING("[warning message]");
+   DB_INFO("[info message]");
+   DB_DEBUG("[debug message]");
    
    tr.passIfNoException();
 
    /////////////////
 
+   tr.test("TEST_CAT");
+
+   // Create a test Logger and category
+   OutputStreamLogger testLogger(Logger::Max, &stdoutOS);
+   Category TEST_CAT("DB Test Suite", "DB_TEST", NULL);
+   
+   // add logger for specific category
+   Logger::addLogger(&testLogger, &TEST_CAT);
+
+   // category test
+   DB_CAT_ERROR(&TEST_CAT, "[(TEST_CAT,DB_ALL_CAT) error message]");
+   
+   // cat error with object address
+   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "[(TEST,ALL) error w/ object]");
+
+   // check for cat logger removal
+   Logger::removeLogger(&testLogger, &TEST_CAT);
+   DB_CAT_ERROR(&TEST_CAT, "[(!TEST,ALL) error message]");
+
+   tr.passIfNoException();
+   
+   /////////////////
+
    tr.test("DB_ALL_CAT");
    
-   OutputStreamLogger allLogger(Logger::Max, &stdoutOS);
-   Logger::addLogger(&allLogger, DB_ALL_CAT);
    DB_DEBUG("ALL from DB_DEFAULT_CAT");
    DB_CAT_DEBUG(&TEST_CAT, "ALL from TEST_CAT");
-   Logger::removeLogger(&allLogger, DB_ALL_CAT);
    
    tr.passIfNoException();
    
@@ -6134,35 +6142,35 @@ void runLoggerTest(TestRunner& tr)
 
    tr.test("flags");
    
-   Logger::LoggerFlags old = testLogger.getFlags();
+   Logger::LoggerFlags old = defaultLogger.getFlags();
 
-   testLogger.setFlags(0);
+   defaultLogger.setFlags(0);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "none");
 
-   testLogger.setFlags(Logger::LogDate);
+   defaultLogger.setFlags(Logger::LogDate);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Date");
 
-   testLogger.setFlags(Logger::LogThread);
+   defaultLogger.setFlags(Logger::LogThread);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Thread");
 
-   testLogger.setFlags(Logger::LogObject);
+   defaultLogger.setFlags(Logger::LogObject);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Object");
 
-   testLogger.setFlags(Logger::LogLevel);
+   defaultLogger.setFlags(Logger::LogLevel);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Level");
 
-   testLogger.setFlags(Logger::LogCategory);
+   defaultLogger.setFlags(Logger::LogCategory);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Category");
 
-   testLogger.setFlags(Logger::LogLocation);
+   defaultLogger.setFlags(Logger::LogLocation);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Location");
 
-   testLogger.setFlags(Logger::LogDate | Logger::LogThread |
+   defaultLogger.setFlags(Logger::LogDate | Logger::LogThread |
       Logger::LogObject | Logger::LogLevel |
       Logger::LogCategory | Logger::LogLocation);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "all");
 
-   testLogger.setFlags(old);
+   defaultLogger.setFlags(old);
 
    tr.passIfNoException();
 
@@ -6170,9 +6178,9 @@ void runLoggerTest(TestRunner& tr)
 
    tr.test("object");
 
-   DB_CAT_OBJECT_DEBUG(&TEST_CAT, &obj, "object");
-   DB_CAT_OBJECT_DEBUG(&TEST_CAT, (void*)1, "object @ 0x1");
-   DB_CAT_OBJECT_DEBUG(&TEST_CAT, NULL, "NULL object");
+   DB_CAT_OBJECT_DEBUG(DB_DEFAULT_CAT, &obj, "object");
+   DB_CAT_OBJECT_DEBUG(DB_DEFAULT_CAT, (void*)1, "object @ 0x1");
+   DB_CAT_OBJECT_DEBUG(DB_DEFAULT_CAT, NULL, "NULL object");
 
    tr.passIfNoException();
 
