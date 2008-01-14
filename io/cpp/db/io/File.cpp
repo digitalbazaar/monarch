@@ -220,27 +220,26 @@ void File::listFiles(FileList* files)
 
 std::string File::normalizePath(const char* path)
 {
-   string normalizedPath("");
+   string normalizedPath;
+   
    if(strlen(path) > 0)
    {
       // if the path isn't absolute, pre-pend the current working directory
       // to the path.
       if(path[0] != '/')
       {
-         string cwd("");
-         if(!getCurrentWorkingDirectory(cwd))
+         if(!getCurrentWorkingDirectory(normalizedPath))
          {
-            DB_CAT_ERROR(DBIO_LOG, 
-                         "failed to get current working directory!");
+            DB_CAT_ERROR(
+               DBIO_LOG, "failed to get current working directory!");
          }
          
-         normalizedPath = cwd;
-         normalizedPath += '/';
-         normalizedPath += path;
+         normalizedPath.push_back('/');
+         normalizedPath.append(path);
       }
       else
       {
-         normalizedPath = path;
+         normalizedPath.append(path);
       }
       
       // clean up the relative directory references
@@ -251,7 +250,7 @@ std::string File::normalizePath(const char* path)
       StringTokenizer st(normalizedPath.c_str(), '/');
       int nTokens = st.getTokenCount();
       int skipNum = 0;
-      normalizedPath = "";
+      normalizedPath.erase();
       for(int i = nTokens - 1; i > 0; i--)
       {
          const char* token = st.getToken(i);
@@ -268,7 +267,7 @@ std::string File::normalizePath(const char* path)
             if(skipNum == 0)
             {
                normalizedPath.insert(0, token);
-               normalizedPath.insert(0, "/");
+               normalizedPath.insert(0, 1, '/');
             }
             else
             {
