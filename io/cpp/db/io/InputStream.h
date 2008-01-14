@@ -103,23 +103,20 @@ inline long long InputStream::skip(long long count)
 {
    long long skipped = 0;
    
-   if(count > 0)
+   // read and discard bytes
+   char b[2048];
+   int numBytes = 0;
+   int length = (count < 2048) ? count : 2048;
+   while(count > 0 && (numBytes = read(b, length)) > 0)
    {
-      // read and dump bytes
-      char b[2048];
-      int numBytes = 0;
-      int length = (count < 2048) ? count : 2048;
-      while((numBytes = read(b, length)) > 0 && count > 0)
-      {
-         skipped += numBytes;
-         count -= numBytes;
-         length = (count < 2048) ? count : 2048;
-      }
-      
-      if(skipped == 0 && numBytes == -1)
-      {
-         skipped = -1;
-      }
+      skipped += numBytes;
+      count -= numBytes;
+      length = (count < 2048) ? count : 2048;
+   }
+   
+   if(skipped == 0 && numBytes == -1)
+   {
+      skipped = -1;
    }
    
    return skipped;
