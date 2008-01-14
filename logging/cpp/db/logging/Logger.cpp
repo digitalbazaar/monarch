@@ -22,12 +22,12 @@ using namespace db::rt;
 // purpose due to compiler initialization code issues.
 Logger::LoggerMap* Logger::sLoggers;
 
-Logger::Logger(Level level, LoggerFlags flags) :
+Logger::Logger() :
    mDateFormat(NULL)
 {
-   setLevel(level);
+   setLevel(Max);
    setDateFormat("%Y-%m-%d %H:%M:%S");
-   setFlags(flags);
+   setFlags(LogDefaultFlags);
 }
 
 Logger::~Logger()

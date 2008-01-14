@@ -6088,13 +6088,13 @@ void runLoggerTest(TestRunner& tr)
    OStreamOutputStream stdoutOS(&cout);
 
    // Create the default logger
-   OutputStreamLogger defaultLogger(Logger::Max, &stdoutOS);
+   OutputStreamLogger defaultLogger(&stdoutOS);
 
    // add a default logger for all categories
    Logger::addLogger(&defaultLogger);
 
    // create file logger
-   FileLogger flog(Logger::Max, new File("test.log"), true);
+   FileLogger flog(new File("test.log"), true);
    // log default category to the file
    Logger::addLogger(&flog);
 
@@ -6111,7 +6111,7 @@ void runLoggerTest(TestRunner& tr)
    tr.test("TEST_CAT");
 
    // Create a test Logger and category
-   OutputStreamLogger testLogger(Logger::Max, &stdoutOS);
+   OutputStreamLogger testLogger(&stdoutOS);
    Category TEST_CAT("DB Test Suite", "DB_TEST", NULL);
    
    // add logger for specific category
@@ -6146,6 +6146,12 @@ void runLoggerTest(TestRunner& tr)
 
    defaultLogger.setFlags(0);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "none");
+
+   defaultLogger.setFlags(Logger::LogDefaultFlags);
+   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "default");
+
+   defaultLogger.setFlags(Logger::LogVerboseFlags);
+   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "verbose");
 
    defaultLogger.setFlags(Logger::LogDate);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Date");
@@ -6219,7 +6225,7 @@ void runLoggerTest(TestRunner& tr)
    OStreamOutputStream sos(&oss);
 
    // add logging for all log messages
-   OutputStreamLogger sLogger(Logger::Max, &sos);
+   OutputStreamLogger sLogger(&sos);
       
    // add default logger
    Logger::addLogger(&sLogger);

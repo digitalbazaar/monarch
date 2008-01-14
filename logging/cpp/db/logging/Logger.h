@@ -170,12 +170,9 @@ protected:
    
 public:
    /**
-    * Creates a new logger with specified level.
-    *
-    * @param level the max level to display.
-    * @param flags a bit field of LoggerFlags.  Default to all.
+    * Creates a new logger with Max level and LogDefaultFlags flags.
     */
-   Logger(Level level = Max, LoggerFlags flags = LogDefaultFlags);
+   Logger();
    
    /**
     * Destructs the Logger.

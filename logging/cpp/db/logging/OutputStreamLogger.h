@@ -38,11 +38,10 @@ public:
    /**
     * Creates a new logger with specified level.
     *
-    * @param level the max level to log.
     * @param stream the stream to use.
     * @param cleanup if the stream should be cleaned up.
     */
-   OutputStreamLogger(Level level = None,
+   OutputStreamLogger(
       db::io::OutputStream* stream = NULL, bool cleanup = false);
    
    /**
