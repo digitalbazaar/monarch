@@ -111,7 +111,7 @@ inline long long InputStream::skip(long long count)
       int length = (count < 2048) ? count : 2048;
       while((numBytes = read(b, length)) > 0 && count > 0)
       {
-         skipped = numBytes;
+         skipped += numBytes;
          count -= numBytes;
          length = (count < 2048) ? count : 2048;
       }
