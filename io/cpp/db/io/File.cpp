@@ -4,7 +4,7 @@
 #include "db/io/FileFunctions.h"
 #include "db/io/File.h"
 #include "db/io/FileList.h"
-#include "db/logging/LoggingCategories.h"
+#include "db/logging/Logging.h"
 #include "db/util/StringTokenizer.h"
 
 #include <sys/stat.h>
@@ -230,7 +230,7 @@ std::string File::normalizePath(const char* path)
          string cwd("");
          if(!getCurrentWorkingDirectory(cwd))
          {
-            DB_CAT_ERROR(DBIO_LOG, 
+            DB_CAT_ERROR(DB_IO_CAT, 
                          "failed to get current working directory!");
          }
          
