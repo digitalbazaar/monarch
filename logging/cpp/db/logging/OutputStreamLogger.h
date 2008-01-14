@@ -38,13 +38,11 @@ public:
    /**
     * Creates a new logger with specified level.
     *
-    * @param name the name of the logger, which is used when printing log
-    *             messages.
     * @param level the max level to log.
     * @param stream the stream to use.
     * @param cleanup if the stream should be cleaned up.
     */
-   OutputStreamLogger(const char* name, Level level = None,
+   OutputStreamLogger(Level level = None,
       db::io::OutputStream* stream = NULL, bool cleanup = false);
    
    /**

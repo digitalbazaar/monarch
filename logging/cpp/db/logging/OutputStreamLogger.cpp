@@ -7,9 +7,9 @@
 using namespace db::io;
 using namespace db::logging;
 
-OutputStreamLogger::OutputStreamLogger(const char* name, Level level,
-   OutputStream* stream, bool cleanup) :
-   Logger(name, level)
+OutputStreamLogger::OutputStreamLogger(
+   Level level, OutputStream* stream, bool cleanup) :
+   Logger(level)
 {
    setOutputStream(stream, cleanup, false);
 }
