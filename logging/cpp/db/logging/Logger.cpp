@@ -26,7 +26,6 @@ Logger::Logger(Level level, LoggerFlags flags) :
    mDateFormat(NULL)
 {
    setLevel(level);
-   
    setDateFormat("%Y-%m-%d %H:%M:%S");
    setFlags(flags);
 }
