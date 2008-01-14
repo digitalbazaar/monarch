@@ -1,8 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_io_File_H
 #define db_io_File_H
+
+#include "db/rt/Exception.h"
 
 #include <string>
 
@@ -190,6 +192,7 @@ public:
     * Normalizes the file system path passed into the method.
     * 
     * @param path the path to normalize as a regular constant string.
+    * 
     * @return the normalized path.
     */
    static std::string normalizePath(const char* path);
@@ -198,9 +201,39 @@ public:
     * Normalizes the file system path passed into the method.
     * 
     * @param path the path to normalize specified by the given file.
+    * 
     * @return the normalized path.
     */
    static std::string normalizePath(File* path);
+   
+   /**
+    * Gets the current working directory. 
+    *
+    * @param cwd the string that will be updated with the current working
+    *            directory upon success.
+    * 
+    * @return an Exception if the current working directory could not be
+    *         retrieved, NULL upon success.
+    */
+   static db::rt::Exception* getCurrentWorkingDirectory(std::string& cwd);
+   
+   /**
+    * Determines if the passed path is readable or not.
+    * 
+    * @param path the path to check for readability.
+    * 
+    * @return true if the passed path is readable, false if not.
+    */
+   static bool isPathReadable(const char* path);
+   
+   /**
+    * Determines if the passed path is writable or not.
+    * 
+    * @param path the path to check for writability.
+    * 
+    * @return true if the passed path is writable, false if not.
+    */
+   static bool isPathWritable(const char* path);
 };
 
 } // end namespace io

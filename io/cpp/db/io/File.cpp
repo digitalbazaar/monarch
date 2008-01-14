@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/FileFunctions.h"
 #include "db/io/File.h"
@@ -10,7 +10,9 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
+using namespace std;
 using namespace db::io;
+using namespace db::rt;
 using namespace db::util;
 
 File::File()
@@ -131,15 +133,14 @@ bool File::isFile()
 {
    return getType() == RegularFile;
 }
-#include <iostream>
-using namespace std;
+
 bool File::isContainedIn(const char* path)
 {
    bool rval = false;
 
-   string normalizedFile(File::normalizePath(getName())); 
-   string normalizedContainer(File::normalizePath(path));
-
+   string normalizedFile = normalizePath(getName()); 
+   string normalizedContainer = normalizePath(path);
+   
    if(normalizedFile.find(normalizedContainer, 0) == 0)
    {
       rval = true;
@@ -150,7 +151,7 @@ bool File::isContainedIn(const char* path)
 
 bool File::isContainedIn(File* path)
 {
-   return File::isContainedIn(path->getName());
+   return isContainedIn(path->getName());
 }
 
 bool File::isDirectory()
@@ -160,7 +161,7 @@ bool File::isDirectory()
 
 bool File::isReadable()
 {
-   return isPathReadable(File::normalizePath(getName()).c_str());
+   return isPathReadable(normalizePath(getName()).c_str());
 }
 
 bool File::isSymbolicLink()
@@ -170,7 +171,7 @@ bool File::isSymbolicLink()
 
 bool File::isWritable()
 {
-   return isPathWritable(File::normalizePath(getName()).c_str());
+   return isPathWritable(normalizePath(getName()).c_str());
 }
 
 void File::listFiles(FileList* files)
@@ -220,27 +221,26 @@ void File::listFiles(FileList* files)
 
 std::string File::normalizePath(const char* path)
 {
-   string normalizedPath("");
+   string normalizedPath;
+   
    if(strlen(path) > 0)
    {
       // if the path isn't absolute, pre-pend the current working directory
       // to the path.
       if(path[0] != '/')
       {
-         string cwd("");
-         if(!getCurrentWorkingDirectory(cwd))
+         if(!getCurrentWorkingDirectory(normalizedPath))
          {
-            DB_CAT_ERROR(DB_IO_CAT, 
-                         "failed to get current working directory!");
+            DB_CAT_ERROR(
+               DB_IO_CAT, "failed to get current working directory!");
          }
          
-         normalizedPath = cwd;
-         normalizedPath += '/';
-         normalizedPath += path;
+         normalizedPath.push_back('/');
+         normalizedPath.append(path);
       }
       else
       {
-         normalizedPath = path;
+         normalizedPath.append(path);
       }
       
       // clean up the relative directory references
@@ -251,7 +251,7 @@ std::string File::normalizePath(const char* path)
       StringTokenizer st(normalizedPath.c_str(), '/');
       int nTokens = st.getTokenCount();
       int skipNum = 0;
-      normalizedPath = "";
+      normalizedPath.erase();
       for(int i = nTokens - 1; i > 0; i--)
       {
          const char* token = st.getToken(i);
@@ -268,7 +268,7 @@ std::string File::normalizePath(const char* path)
             if(skipNum == 0)
             {
                normalizedPath.insert(0, token);
-               normalizedPath.insert(0, "/");
+               normalizedPath.insert(0, 1, '/');
             }
             else
             {
@@ -281,7 +281,38 @@ std::string File::normalizePath(const char* path)
    return normalizedPath;
 }
 
-std::string File::normalizePath(File* path)
+string File::normalizePath(File* path)
 {
-   return File::normalizePath(path->getName());
+   return normalizePath(path->getName());
+}
+
+Exception* File::getCurrentWorkingDirectory(string& cwd)
+{
+   Exception* rval = NULL;
+   
+   char* b = (char*)malloc(PATH_MAX);
+   if(getcwd(b, PATH_MAX) != NULL)
+   {
+      cwd.assign(b);
+   }
+   else
+   {
+      // path was too large for getcwd
+      rval = new Exception(
+         "Could not get current working directory, path too long!");
+      Exception::setLast(rval);
+   }
+   free(b);
+   
+   return rval;
+}
+
+bool File::isPathReadable(const char* path)
+{
+   return (access(path, R_OK) == 0);
+}
+
+bool File::isPathWritable(const char* path)
+{
+   return (access(path, W_OK) == 0);
 }
