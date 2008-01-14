@@ -95,22 +95,28 @@ const char* Logger::levelToString(Level level)
 
 void Logger::addLogger(Logger* logger, Category* category)
 {
-   sLoggers->insert(pair<Category*, Logger*>(category, logger));
+   if(sLoggers != NULL)
+   {
+      sLoggers->insert(pair<Category*, Logger*>(category, logger));
+   }
 }
 
 void Logger::removeLogger(Logger* logger, Category* category)
 {
-   // FIX ME: We need to iterate through, we can't do a find()
-   LoggerMap::iterator i = sLoggers->find(category);
-   if(i != sLoggers->end())
+   if(sLoggers != NULL)
    {
-      LoggerMap::iterator end = sLoggers->upper_bound(category);
-      for(; i != end; i++)
+      // FIX ME: We need to iterate through, we can't do a find()
+      LoggerMap::iterator i = sLoggers->find(category);
+      if(i != sLoggers->end())
       {
-         if(logger == i->second)
+         LoggerMap::iterator end = sLoggers->upper_bound(category);
+         for(; i != end; i++)
          {
-            sLoggers->erase(i);
-            break;
+            if(logger == i->second)
+            {
+               sLoggers->erase(i);
+               break;
+            }
          }
       }
    }
@@ -118,7 +124,10 @@ void Logger::removeLogger(Logger* logger, Category* category)
 
 void Logger::clearLoggers()
 {
-   sLoggers->clear();
+   if(sLoggers != NULL)
+   {
+      sLoggers->clear();
+   }
 }
 
 void Logger::setLevel(Level level)
