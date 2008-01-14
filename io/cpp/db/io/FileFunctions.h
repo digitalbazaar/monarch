@@ -7,46 +7,17 @@
 #include <unistd.h>
 
 /**
- * This header provides some cross-platform definitions for file and 
- * directory querying/manipulation functions.
- * 
- * Primarily, this header defines functionality for missing POSIX file
- * functions in Windows.
+ * This header provides implementations for POSIX C functions that do not
+ * already have implementations on certain platforms (i.e. Windows). The
+ * functions are for file and directory querying/manipulation.
  * 
  * @author Manu Sporny
  * @author Dave Longley
  */
-#include <string>
-#include <unistd.h>
-
-using namespace std;
-
-#define MAX_PATH 1024
-
-/**
- * Gets the current working directory. 
- *
- * @param cwd The string that will be updated with the current working
- *            directory upon success.
- * @returns a string containing the current working directory.
- */
-inline static bool getCurrentWorkingDirectory(string& cwd)
-{
-   bool rval = false;
-   
-   char* buffer = (char*)malloc(MAX_PATH);
-   if(getcwd(buffer, MAX_PATH) != NULL)
-   {
-      cwd = buffer;
-      
-      free(buffer);
-      rval = true;
-   }
-
-   return rval;
-}
-
 #ifdef WIN32
+
+// FIXME: see what the windows equivalent is (PATH_MAX is unix standard)
+#define PATH_MAX 1024
 
 // include windows headers for obtaining time
 #include <windows.h>
@@ -70,16 +41,7 @@ inline static int lstat(const char* path, struct stat* buf)
 #else
 #include <iostream>
 
-// these should work for any OS other than Windows
-inline static bool isPathReadable(const char* path)
-{
-   return (access(path, R_OK) == 0);
-}
-
-inline static bool isPathWritable(const char* path)
-{
-   return (access(path, W_OK) == 0);
-}
+// FIXME: access() needs to be defined for windows
 
 #endif // end of defined WIN32
 
