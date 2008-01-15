@@ -2,6 +2,7 @@
 
 SOURCES = $(wildcard db/logging/*.cpp)
 LIBRARIES = dblogging
+DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbio
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base

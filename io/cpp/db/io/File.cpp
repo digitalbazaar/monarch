@@ -4,7 +4,6 @@
 #include "db/io/FileFunctions.h"
 #include "db/io/File.h"
 #include "db/io/FileList.h"
-#include "db/logging/Logging.h"
 #include "db/util/StringTokenizer.h"
 
 #include <sys/stat.h>
@@ -134,14 +133,15 @@ bool File::isFile()
    return getType() == RegularFile;
 }
 
-bool File::isContainedIn(const char* path)
+bool File::contains(const char* path)
 {
    bool rval = false;
-
-   string normalizedFile = normalizePath(getName()); 
-   string normalizedContainer = normalizePath(path);
+   string normalizedContainer;
+   string normalizedFile;
    
-   if(normalizedFile.find(normalizedContainer, 0) == 0)
+   if((normalizePath(getName(), normalizedContainer) != NULL) && 
+      (normalizePath(path, normalizedFile) != NULL) &&
+      (normalizedFile.find(normalizedContainer, 0) == 0))
    {
       rval = true;
    }
@@ -149,9 +149,9 @@ bool File::isContainedIn(const char* path)
    return rval;
 }
 
-bool File::isContainedIn(File* path)
+bool File::contains(File* path)
 {
-   return isContainedIn(path->getName());
+   return contains(path->getName());
 }
 
 bool File::isDirectory()
@@ -161,7 +161,15 @@ bool File::isDirectory()
 
 bool File::isReadable()
 {
-   return isPathReadable(normalizePath(getName()).c_str());
+   bool rval = false;
+   string npath;
+   
+   if(normalizePath(getName(), npath) != NULL)
+   {
+      rval = isPathReadable(npath.c_str());
+   }
+   
+   return rval; 
 }
 
 bool File::isSymbolicLink()
@@ -171,7 +179,15 @@ bool File::isSymbolicLink()
 
 bool File::isWritable()
 {
-   return isPathWritable(normalizePath(getName()).c_str());
+   bool rval = false;
+   string npath;
+   
+   if(normalizePath(getName(), npath) != NULL)
+   {
+      rval = isPathWritable(npath.c_str());
+   }
+   
+   return rval; 
 }
 
 void File::listFiles(FileList* files)
@@ -219,9 +235,10 @@ void File::listFiles(FileList* files)
    }
 }
 
-std::string File::normalizePath(const char* path)
+Exception* File::normalizePath(const char* path, string& normalizedPath)
 {
-   string normalizedPath;
+   Exception* rval = NULL;
+   string tempPath;
    
    if(strlen(path) > 0)
    {
@@ -229,18 +246,14 @@ std::string File::normalizePath(const char* path)
       // to the path.
       if(path[0] != '/')
       {
-         if(!getCurrentWorkingDirectory(normalizedPath))
-         {
-            DB_CAT_ERROR(
-               DB_IO_CAT, "failed to get current working directory!");
-         }
+         rval = getCurrentWorkingDirectory(tempPath);
          
-         normalizedPath.push_back('/');
-         normalizedPath.append(path);
+         tempPath.push_back('/');
+         tempPath.append(path);
       }
       else
       {
-         normalizedPath.append(path);
+         tempPath.append(path);
       }
       
       // clean up the relative directory references
@@ -248,10 +261,10 @@ std::string File::normalizePath(const char* path)
       //       isn't setup to be run in reverse, which is the most efficient
       //       way to build a directory path. This could become an issue if
       //       the application is doing a ton of path normalizations. -- manu
-      StringTokenizer st(normalizedPath.c_str(), '/');
+      StringTokenizer st(tempPath.c_str(), '/');
       int nTokens = st.getTokenCount();
       int skipNum = 0;
-      normalizedPath.erase();
+      tempPath.erase();
       for(int i = nTokens - 1; i > 0; i--)
       {
          const char* token = st.getToken(i);
@@ -267,8 +280,8 @@ std::string File::normalizePath(const char* path)
          {
             if(skipNum == 0)
             {
-               normalizedPath.insert(0, token);
-               normalizedPath.insert(0, 1, '/');
+               tempPath.insert(0, token);
+               tempPath.insert(0, 1, '/');
             }
             else
             {
@@ -278,12 +291,14 @@ std::string File::normalizePath(const char* path)
       }
    }
    
-   return normalizedPath;
+   normalizedPath.assign(tempPath); 
+   
+   return rval;
 }
 
-string File::normalizePath(File* path)
+Exception* File::normalizePath(File* path, string& normalizedPath)
 {
-   return normalizePath(path->getName());
+   return normalizePath(path->getName(), normalizedPath);
 }
 
 Exception* File::getCurrentWorkingDirectory(string& cwd)

@@ -20,6 +20,7 @@
 #define PATH_MAX 1024
 
 // include windows headers for obtaining time
+#include <sys/stat.h>
 #include <windows.h>
 
 // define file type for symbolic link
