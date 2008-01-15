@@ -6067,17 +6067,17 @@ void runEventControllerTest(TestRunner& tr)
    tr.pass();
 }
 
-void runLoggerTest(TestRunner& tr)
+void runLoggingTest(TestRunner& tr)
 {
    int obj;
-   tr.group("Logger");
+   tr.group("Logging");
 
    /////////////////
 
    tr.test("init");
    // Do a cleanup and re-init.  This could invalidate other unit test setup.
-   Logger::cleanup();
-   Logger::initialize();
+   Logging::cleanup();
+   Logging::initialize();
    tr.passIfNoException();
 
    /////////////////
@@ -6246,8 +6246,8 @@ void runLoggerTest(TestRunner& tr)
 
    tr.test("re-init");
    // Do a cleanup and re-init for other unit tests.
-   Logger::cleanup();
-   Logger::initialize();
+   Logging::cleanup();
+   Logging::initialize();
    tr.passIfNoException();
 
    /////////////////
@@ -7028,7 +7028,7 @@ public:
 //      runMySqlRowObjectTest(tr);
 //      runConnectionPoolTest();
 //      runDatabaseClientTest();
-//      runLoggerTest(tr);
+//      runLoggingTest(tr);
 //      runFileTest();
 //      runSmtpClientTest(tr);
       

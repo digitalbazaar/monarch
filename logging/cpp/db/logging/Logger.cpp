@@ -40,7 +40,6 @@ Logger::~Logger()
 
 void Logger::initialize()
 {
-   Category::initialize();
    // Create the global map of loggers
    sLoggers = new LoggerMap();
 }
@@ -49,7 +48,6 @@ void Logger::cleanup()
 {
    delete sLoggers;
    sLoggers = NULL;
-   Category::cleanup();
 }
 
 const char* Logger::levelToString(Level level)

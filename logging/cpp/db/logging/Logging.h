@@ -5,19 +5,40 @@
 #define db_logging_Logging_H
 
 #include "db/util/Macros.h"
+#include "db/logging/Category.h"
 #include "db/logging/Logger.h"
-// Include default categories.
+// Include DB categories for convienience:
 #include "db/logging/LoggingCategories.h"
 
 namespace db
 {
 namespace logging
 {
+   
+/**
+ * Pseudo-class to initialize and cleanup the logging framework.
+ * 
+ * @author David I. Lehn
+ */
+class Logging
+{
+public:
+   /**
+    * Initializes the category system, static categories, and the static Logger.
+    * This MUST be called during application start-up.
+    */
+   static void initialize();
+
+   /**
+    * Cleans up the static Logger, static categories, and category system.
+    * This MUST be called during application tear-down.
+    */
+   static void cleanup();
+};
+
 
 /**
  * Macros to ease logging.
- *  
- * @author David I. Lehn
  */
 
 /**
