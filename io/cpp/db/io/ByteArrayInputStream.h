@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_io_ByteArrayInputStream_H
 #define db_io_ByteArrayInputStream_H
 
 #include "db/io/InputStream.h"
+#include "db/io/ByteBuffer.h"
 
 namespace db
 {
@@ -12,7 +13,8 @@ namespace io
 {
 
 /**
- * A ByteArrayInputStream is used to read bytes from a byte array.
+ * A ByteArrayInputStream is used to read bytes from a byte array or,
+ * alternatively, from a ByteBuffer.
  * 
  * @author Dave Longley
  */
@@ -28,7 +30,12 @@ protected:
     * The number of bytes remaining in the byte array.
     */
    int mLength;
-
+   
+   /**
+    * The ByteBuffer to read from.
+    */
+   ByteBuffer* mBuffer;
+   
 public:
    /**
     * Creates a new ByteArrayInputStream.
@@ -37,6 +44,13 @@ public:
     * @param length the length of the byte array.
     */
    ByteArrayInputStream(const char* b, int length);
+   
+   /**
+    * Creates a new ByteArrayInputStream that reads from a ByteBuffer.
+    * 
+    * @param b the ByteBuffer to read from.
+    */
+   ByteArrayInputStream(ByteBuffer* b);
    
    /**
     * Destructs this ByteArrayInputStream.
@@ -64,7 +78,14 @@ public:
     * @param b the byte array to read from.
     * @param length the length of the byte array.
     */
-   virtual void setByteArray(const char* b, int length); 
+   virtual void setByteArray(const char* b, int length);
+   
+   /**
+    * Sets the ByteBuffer to read from.
+    * 
+    * @param b the ByteBuffer to read from.
+    */
+   virtual void setByteBuffer(ByteBuffer* b);
 };
 
 } // end namespace io
