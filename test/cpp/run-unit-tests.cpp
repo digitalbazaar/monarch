@@ -6315,37 +6315,44 @@ void runFileTest(TestRunner& tr)
    File tmp("/tmp");   
    File a("/tmp/a.txt");
    File b("../../foo/../junk238jflk38sjf.txt");
+   string np;
 
    tr.test("File/normalization");
    
-   cout << File::normalizePath(&b) << "... ";
+   File::normalizePath(&b, np);
+   cout << np << "... ";
 
    tr.passIfNoException();
 
    tr.test("File/readable #1");
    
-   cout << File::normalizePath(&cdir) << " should be readable...";
+   File::normalizePath(&cdir, np);
+   
+   cout << np << " should be readable...";
    
    assert(cdir.isReadable());
    tr.passIfNoException();
 
    tr.test("File/readable #2");
 
-   cout << File::normalizePath(&b) << " should not be readable...";
+   File::normalizePath(&b, np);
+   cout << np << " should not be readable...";
    
    assert(b.isReadable() == false);
    tr.passIfNoException();
 
    tr.test("File/writable");
 
-   cout << File::normalizePath(&cdir) << " should be writable...";
+   File::normalizePath(&cdir, np);
+   cout << np << " should be writable...";
    
    assert(cdir.isWritable());
    tr.passIfNoException();
 
    tr.test("File/directory containment");
    
-   assert(a.isContainedIn(&tmp));   
+   assert(tmp.contains(&a));
+   assert(a.contains(&tmp) == false);
    
    tr.passIfNoException();
    tr.test("File/directory list");

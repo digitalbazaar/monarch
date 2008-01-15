@@ -112,28 +112,28 @@ public:
    virtual Type getType();
    
    /**
-    * Returns true if this File is a is contained in the given file path. Both
+    * Returns true if this File contains the given file path. Both
     * file paths are fully normalized before the comparison is made. All ".."s
     * are removed, drive letters are applied (if applicable), and superfluous
     * directory/file separators are cleaned from the file path. 
     * 
     * @param path the path to check against the current file.
-    * @return true if this File is a contained in the given file path, false 
-    *         if not.
+    * @return true if this File is an ancestor directory to the given path,
+    *         false otherwise.
     */
-   virtual bool isContainedIn(const char* path);
+   virtual bool contains(const char* path);
 
    /**
-    * Returns true if this File is a is contained in the given file path. Both
+    * Returns true if this File contains the given file path. Both
     * file paths are fully normalized before the comparison is made. All ".."s
     * are removed, drive letters are applied (if applicable), and superfluous
     * directory/file separators are cleaned from the file path. 
     * 
     * @param path the path to check against the current file.
-    * @return true if this File is a contained in the given file path, false 
-    *         if not.
+    * @return true if this File is an ancestor directory to the given path,
+    *         false otherwise.
     */
-   virtual bool isContainedIn(File* path);
+   virtual bool contains(File* path);
    
    /**
     * Returns true if this File is a directory, false if it is not. If it
@@ -192,19 +192,27 @@ public:
     * Normalizes the file system path passed into the method.
     * 
     * @param path the path to normalize as a regular constant string.
+    * @param normalizedPath the normalized path will be placed into this 
+    *                       variable.
     * 
-    * @return the normalized path.
+    * @return NULL if the normalization was successful, an Exception object
+    *         if the normalization failed for any reason.
     */
-   static std::string normalizePath(const char* path);
+   static db::rt::Exception* normalizePath(
+      const char* path, std::string& normalizedPath);
 
    /**
     * Normalizes the file system path passed into the method.
     * 
     * @param path the path to normalize specified by the given file.
+    * @param normalizedPath the normalized path will be placed into this 
+    *                       variable.
     * 
-    * @return the normalized path.
+    * @return NULL if the normalization was successful, an Exception object
+    *         if the normalization failed for any reason.
     */
-   static std::string normalizePath(File* path);
+   static db::rt::Exception* normalizePath(
+      File* path, std::string& normalizedPath);
    
    /**
     * Gets the current working directory. 
