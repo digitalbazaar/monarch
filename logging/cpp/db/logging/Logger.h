@@ -103,10 +103,14 @@ public:
        */
       LogLocation = (1 << 5),
       /**
-       * Log all fields.
+       * Default logging flag (Log date, object, level, and category).
        */
-      LogAll =
-         LogDate | LogThread | LogObject | LogLevel | LogCategory | LogLocation
+      LogDefaultFlags =
+         LogDate | LogObject | LogLevel | LogCategory,
+      /**
+       * Verbose logging flags (LogDefaultFlags plus thread and location).
+       */
+      LogVerboseFlags = LogDefaultFlags | LogThread | LogLocation
    };
    
    /**
@@ -166,12 +170,9 @@ protected:
    
 public:
    /**
-    * Creates a new logger with specified level.
-    *
-    * @param level the max level to display.
-    * @param flags a bit field of LoggerFlags.  Default to all.
+    * Creates a new logger with Max level and LogDefaultFlags flags.
     */
-   Logger(Level level = None, LoggerFlags flags = LogAll);
+   Logger();
    
    /**
     * Destructs the Logger.
@@ -314,7 +315,7 @@ public:
     * @param category the category to use.  Defaults to the default category.
     */
    static void addLogger(Logger* logger,
-      db::logging::Category* category = DB_DEFAULT_CAT);
+      db::logging::Category* category = DB_ALL_CAT);
 
    /**
     * Remove a logger for a category.  This will remove the first match if
@@ -324,7 +325,7 @@ public:
     * @param category the category to use.  Defaults to a generic category.
     */
    static void removeLogger(Logger* logger,
-      db::logging::Category* category = DB_DEFAULT_CAT);
+      db::logging::Category* category = DB_ALL_CAT);
 
    /**
     * Clear all loggers.

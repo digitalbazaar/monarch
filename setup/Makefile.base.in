@@ -12,7 +12,7 @@ MODULE_BASE_DIR = $(shell pwd)
 
 # Linux-specific variables
 LINUX_CXX = @LINUX_CXX@
-LINUX_CXX_FLAGS = -g -Wall -fPIC
+LINUX_CXX_FLAGS = -g -Wall -fPIC $(MODULE_LINUX_CXX_FLAGS)
 LINUX_INCLUDES = $(INCLUDES)
 LINUX_LIB_DIR = $(DBCORE)/libs/linux
 LINUX_LIBS = -L$(LINUX_LIB_DIR)
@@ -33,7 +33,7 @@ LINUX_LIBRARIES := $(patsubst %,$(LINUX_DIST_DIR)/lib%.so, $(LIBRARIES))
 
 # Windows-specific variables
 WINDOWS_CXX = @WINDOWS_CXX@
-WINDOWS_CXX_FLAGS += -g -Wall -D_WIN32_WINNT=0x0501 -DMODEST_API_EXPORT
+WINDOWS_CXX_FLAGS += -g -Wall -D_WIN32_WINNT=0x0501 -DMODEST_API_EXPORT $(MODULE_WINDOWS_CXX_FLAGS)
 WINDOWS_INCLUDES = $(INCLUDES) -I$(DBCORE)/3rdparty/cpp/pthread/include -I$(DBCORE)/3rdparty/cpp/openssl/include -I$(DBCORE)/3rdparty/cpp/expat/include -I$(DBCORE)/3rdparty/cpp/mysql/include -I$(DBCORE)/3rdparty/cpp/sqlite3/include
 WINDOWS_LIB_DIR = $(DBCORE)/libs/windows
 WINDOWS_LIBS = -L$(WINDOWS_LIB_DIR)
@@ -181,7 +181,7 @@ $(STATIC_WINDOWS_LIBRARIES):
 	# This is a fake target to override the default .lib build
 $(WINDOWS_EXECUTABLES): $(WINDOWS_LIBRARY_SOURCES) $(WINDOWS_EXECUTABLE_SOURCES) $(WINDOWS_EXECUTABLE_OBJECTS) $(STATIC_WINDOWS_LIBRARIES)
 	@echo "Building $(@F)..."
-	@$(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -o $@ $(WINDOWS_BUILD_DIR)/$(@F)-windows.o $(STATIC_WINDOWS_LIBRARIES) $(EXTRA_WINDOWS_LIBRARIES)
+	$(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -L$(WINDOWS_LIB_DIR) -o $@ $(WINDOWS_BUILD_DIR)/$(@F)-windows.o $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
 endif
 endif
 

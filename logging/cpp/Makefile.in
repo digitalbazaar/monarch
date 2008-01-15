@@ -2,6 +2,8 @@
 
 SOURCES = $(wildcard db/logging/*.cpp)
 LIBRARIES = dblogging
+DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbio
+MODULE_WINDOWS_CXX_FLAGS = -DBUILD_LOGGING_DLL
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base

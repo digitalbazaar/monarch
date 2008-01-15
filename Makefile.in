@@ -3,16 +3,16 @@
 SUBDIRS := 3rdparty/cpp \
            rt/cpp \
            util/cpp \
+           io/cpp \
+           logging/cpp \
            modest/cpp \
            event/cpp \
-           io/cpp \
            config/cpp \
            crypto/cpp \
            data/cpp \
            net/cpp \
            mail/cpp \
            sql/cpp \
-           logging/cpp \
            test/cpp
 
 ifdef PRINT_DIRECTORIES

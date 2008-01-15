@@ -25,56 +25,56 @@ Category* DB_UTIL_CAT;
 void LoggingCategories::initialize()
 {
    DB_CONFIG_CAT = new Category(
-      "DB Config",
       "DB_CONFIG",
+      "DB Config",
       NULL);
    DB_CRYPTO_CAT = new Category(
-      "DB Cryptography",
       "DB_CRYPTO",
+      "DB Cryptography",
       NULL);
    DB_DATA_CAT = new Category(
-      "DB Data",
       "DB_DATA",
+      "DB Data",
       NULL);
    DB_EVENT_CAT = new Category(
-      "DB Event",
       "DB_EVENT",
+      "DB Event",
       NULL);
    DB_GUI_CAT = new Category(
-      "DB Graphical User Interface",
       "DB_GUI",
+      "DB Graphical User Interface",
       NULL);
    DB_IO_CAT = new Category(
-      "DB Input/Output",
       "DB_IO",
+      "DB Input/Output",
       NULL);
    DB_LOGGING_CAT = new Category(
-      "DB Logging",
       "DB_LOGGING",
+      "DB Logging",
       NULL);
    DB_MAIL_CAT = new Category(
-      "DB Mail",
       "DB_MAIL",
+      "DB Mail",
       NULL);
    DB_MODEST_CAT = new Category(
-      "DB Modest Engine",
       "DB_MODEST",
+      "DB Modest Engine",
       NULL);
    DB_NET_CAT = new Category(
-      "DB Networking",
       "DB_NET",
+      "DB Networking",
       NULL);
    DB_RT_CAT = new Category(
-      "DB Runtime",
       "DB_RT",
+      "DB Runtime",
       NULL);
    DB_SQL_CAT = new Category(
-      "DB SQL",
       "DB_SQL",
+      "DB SQL",
       NULL);
    DB_UTIL_CAT = new Category(
-      "DB Utilities",
       "DB_UTIL",
+      "DB Utilities",
       NULL);
 }
 
