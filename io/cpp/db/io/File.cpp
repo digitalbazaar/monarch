@@ -175,13 +175,13 @@ bool File::isSymbolicLink()
 {
    return getType() == SymbolicLink;
 }
-
+#include <iostream>
 bool File::isWritable()
 {
    bool rval = false;
    string npath;
    
-   if(normalizePath(getName(), npath))
+   if(normalizePath(getName(), npath) == NULL)
    {
       rval = isPathWritable(npath.c_str());
    }

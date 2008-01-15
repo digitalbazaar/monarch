@@ -6345,7 +6345,6 @@ void runFileTest(TestRunner& tr)
 
    File::normalizePath(&cdir, np);
    cout << np << " should be writable...";
-   
    assert(cdir.isWritable());
    tr.passIfNoException();
 
