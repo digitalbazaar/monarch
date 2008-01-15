@@ -139,11 +139,10 @@ bool File::contains(const char* path)
    string normalizedContainer;
    string normalizedFile;
    
-   if((normalizePath(getName(), normalizedContainer) != NULL) && 
-      (normalizePath(path, normalizedFile) != NULL) &&
-      (normalizedFile.find(normalizedContainer, 0) == 0))
+   if((normalizePath(getName(), normalizedContainer) == NULL) && 
+      (normalizePath(path, normalizedFile) == NULL))
    {
-      rval = true;
+      rval = (normalizedFile.find(normalizedContainer, 0) == 0);
    }
 
    return rval;
@@ -164,7 +163,7 @@ bool File::isReadable()
    bool rval = false;
    string npath;
    
-   if(normalizePath(getName(), npath) != NULL)
+   if(normalizePath(getName(), npath) == NULL)
    {
       rval = isPathReadable(npath.c_str());
    }
@@ -182,7 +181,7 @@ bool File::isWritable()
    bool rval = false;
    string npath;
    
-   if(normalizePath(getName(), npath) != NULL)
+   if(normalizePath(getName(), npath))
    {
       rval = isPathWritable(npath.c_str());
    }
