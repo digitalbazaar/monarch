@@ -7,7 +7,8 @@
 #include "db/rt/Exception.h"
 #include "db/util/DynamicObject.h"
 #include "db/util/DynamicObjectIterator.h"
-#include <iostream>
+#include <ostream>
+#include <string>
 
 namespace db
 {
@@ -20,37 +21,52 @@ namespace test
 void dumpException(db::rt::Exception* e);
 
 /**
- * Non-JSON DynamicObject output
+ * Non-JSON DynamicObject output.
+ * Note: Not using defaults on main function due to C++isms.
  *
  * @param dyno DynamicObject to dump.
  * @param doi DynamicObject iterator
  * @param indent indent level
  */
 void dumpDynamicObjectText_(
-   db::util::DynamicObject dyno, db::util::DynamicObjectIterator doi = NULL,
+   db::util::DynamicObject& dyno, db::util::DynamicObjectIterator doi = NULL,
    int indent = 0);
 
 /**
- * Non-JSON DynamicObject output
+ * Non-JSON DynamicObject output.
  *
  * @param dyno DynamicObject to dump.
  */
-void dumpDynamicObjectText(db::util::DynamicObject dyno);
+void dumpDynamicObjectText(db::util::DynamicObject& dyno);
 
 /**
+ * Write DynamicObject JSON to an ostream.
+ *
+ * @param dyno DynamicObject to dump.
+ * @param stream stream to write to.
+ * @param compact Use compact syntax
+ */
+void dynamicObjectToStream(
+   db::util::DynamicObject& dyno, std::ostream& stream, bool compact = false);
+
+/**
+ * Write DynamicObject JSON to a string.
  * Dump DynamicObject details as JSON.
+ *
+ * @param dyno DynamicObject to dump.
+ * @param dyno DynamicObject to dump.
+ * @param compact Use compact syntax
+ */
+void dynamicObjectToString(
+   db::util::DynamicObject& dyno, std::string& str, bool compact = false);
+
+/**
+ * Dump DynamicObject details as JSON to cout.
  * 
  * @param dyno DynamicObject to dump.
  * @param compact Use compact syntax
  */
-void dumpDynamicObject_(db::util::DynamicObject dyno, bool compact);
-
-/**
- * Dump DynamicObject details as JSON.
- *
- * @param dyno DynamicObject to dump.
- */
-void dumpDynamicObject(db::util::DynamicObject dyno);
+void dumpDynamicObject(db::util::DynamicObject& dyno, bool compact = false);
 
 /**
  * Check and dump exception condition.

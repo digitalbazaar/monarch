@@ -4,6 +4,7 @@
 
 #include <assert.h>
 #include <iostream>
+#include <sstream>
 
 #include "db/test/Test.h"
 #include "db/rt/Exception.h"
@@ -48,7 +49,7 @@ void db::test::dumpException(Exception* e)
 }
 
 void db::test::dumpDynamicObjectText_(
-   DynamicObject dyno, DynamicObjectIterator doi, int indent)
+   DynamicObject& dyno, DynamicObjectIterator doi, int indent)
 {
    for(int i = 0; i < indent; i++)
    {
@@ -102,14 +103,15 @@ void db::test::dumpDynamicObjectText_(
    }
 }
 
-void db::test::dumpDynamicObjectText(DynamicObject dyno)
+void db::test::dumpDynamicObjectText(DynamicObject& dyno)
 {
    dumpDynamicObjectText_(dyno, NULL, 0);
 }
 
-void db::test::dumpDynamicObject_(DynamicObject dyno, bool compact)
+void db::test::dynamicObjectToStream(
+   DynamicObject& dyno, ostream& stream, bool compact)
 {
-   OStreamOutputStream os(&cout);
+   OStreamOutputStream os(&stream);
    JsonWriter jw;
    jw.setCompact(compact);
    if(!compact)
@@ -117,10 +119,20 @@ void db::test::dumpDynamicObject_(DynamicObject dyno, bool compact)
       jw.setIndentation(0, 3);
    }
    jw.write(dyno, &os);
-   cout.flush();
 }
 
-void db::test::dumpDynamicObject(DynamicObject dyno)
+void db::test::dynamicObjectToString(
+   DynamicObject& dyno, string& str, bool compact)
 {
-   dumpDynamicObject_(dyno, false);
+   ostringstream oss;
+   dynamicObjectToStream(dyno, oss, compact);
+   str = oss.str();
+}
+
+void db::test::dumpDynamicObject(DynamicObject& dyno, bool compact)
+{
+   string str;
+   dynamicObjectToString(dyno, str, compact);
+   cout << str << endl;
+   cout.flush();
 }
