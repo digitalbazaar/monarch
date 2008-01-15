@@ -11,8 +11,8 @@ using namespace db::logging;
 
 int FileLogger::DEFAULT_NUM_ROTATING_FILES = 3;
 
-FileLogger::FileLogger(Level level, File* file, bool cleanup) :
-   OutputStreamLogger(level)
+FileLogger::FileLogger(File* file, bool cleanup) :
+   OutputStreamLogger()
 {
    mFile = NULL;
    mCleanupFile = false;

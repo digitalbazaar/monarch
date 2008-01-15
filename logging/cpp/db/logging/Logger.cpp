@@ -22,13 +22,12 @@ using namespace db::rt;
 // purpose due to compiler initialization code issues.
 Logger::LoggerMap* Logger::sLoggers;
 
-Logger::Logger(Level level, LoggerFlags flags) :
+Logger::Logger() :
    mDateFormat(NULL)
 {
-   setLevel(level);
-   
+   setLevel(Max);
    setDateFormat("%Y-%m-%d %H:%M:%S");
-   setFlags(flags);
+   setFlags(LogDefaultFlags);
 }
 
 Logger::~Logger()
@@ -41,7 +40,6 @@ Logger::~Logger()
 
 void Logger::initialize()
 {
-   Category::initialize();
    // Create the global map of loggers
    sLoggers = new LoggerMap();
 }
@@ -50,7 +48,6 @@ void Logger::cleanup()
 {
    delete sLoggers;
    sLoggers = NULL;
-   Category::cleanup();
 }
 
 const char* Logger::levelToString(Level level)
@@ -95,22 +92,28 @@ const char* Logger::levelToString(Level level)
 
 void Logger::addLogger(Logger* logger, Category* category)
 {
-   sLoggers->insert(pair<Category*, Logger*>(category, logger));
+   if(sLoggers != NULL)
+   {
+      sLoggers->insert(pair<Category*, Logger*>(category, logger));
+   }
 }
 
 void Logger::removeLogger(Logger* logger, Category* category)
 {
-   // FIX ME: We need to iterate through, we can't do a find()
-   LoggerMap::iterator i = sLoggers->find(category);
-   if(i != sLoggers->end())
+   if(sLoggers != NULL)
    {
-      LoggerMap::iterator end = sLoggers->upper_bound(category);
-      for(; i != end; i++)
+      // FIX ME: We need to iterate through, we can't do a find()
+      LoggerMap::iterator i = sLoggers->find(category);
+      if(i != sLoggers->end())
       {
-         if(logger == i->second)
+         LoggerMap::iterator end = sLoggers->upper_bound(category);
+         for(; i != end; i++)
          {
-            sLoggers->erase(i);
-            break;
+            if(logger == i->second)
+            {
+               sLoggers->erase(i);
+               break;
+            }
          }
       }
    }
@@ -118,7 +121,10 @@ void Logger::removeLogger(Logger* logger, Category* category)
 
 void Logger::clearLoggers()
 {
-   sLoggers->clear();
+   if(sLoggers != NULL)
+   {
+      sLoggers->clear();
+   }
 }
 
 void Logger::setLevel(Level level)
@@ -250,9 +256,9 @@ bool Logger::log(
 
       if((mFlags & LogCategory) && cat)
       {
-         // FIXME: add new var or new field type to select name type
-         // Try shortname if set, else try regular name.
-         const char* name = cat->getShortName();
+         // FIXME: add flag to select name type
+         // Try id if set, else try name.
+         const char* name = cat->getId();
          name = name ? name : cat->getName();
          if(name)
          {

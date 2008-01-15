@@ -12,29 +12,28 @@ using namespace db::logging;
 Category* DB_DEFAULT_CAT;
 Category* DB_ALL_CAT;
 
-Category::Category(const char* name, const char* shortName,
-   const char* description) :
+Category::Category(const char* id, const char* name, const char* description) :
+   mId(NULL),
    mName(NULL),
-   mShortName(NULL),
    mDescription(NULL)
 {
+   setId(id);
    setName(name);
-   setShortName(shortName);
    setDescription(description);
 }
    
 Category::~Category()
 {
+   setId(NULL);
    setName(NULL);
-   setShortName(NULL);
    setDescription(NULL);
 }
 
 void Category::initialize()
 {
    DB_DEFAULT_CAT = new Category(
-      "Default",
       "DB_DEFAULT",
+      "Default",
       "Default category for general use");
    DB_ALL_CAT = new Category(
       NULL,
@@ -55,6 +54,20 @@ void Category::cleanup()
    DB_ALL_CAT = NULL;
 }
    
+void Category::setId(const char* id)
+{
+   if(mId)
+   {
+      free(mId);
+   }
+   mId = id ? strdup(id) : NULL;
+}
+
+const char* Category::getId()
+{
+   return mId;
+}
+
 void Category::setName(const char* name)
 {
    if(mName)
@@ -67,20 +80,6 @@ void Category::setName(const char* name)
 const char* Category::getName()
 {
    return mName ? mName : "<?>";
-}
-
-void Category::setShortName(const char* shortName)
-{
-   if(mShortName)
-   {
-      free(mShortName);
-   }
-   mShortName = shortName ? strdup(shortName) : NULL;
-}
-
-const char* Category::getShortName()
-{
-   return mShortName;
 }
 
 void Category::setDescription(const char* description)
