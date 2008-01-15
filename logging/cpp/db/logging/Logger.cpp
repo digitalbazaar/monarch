@@ -256,9 +256,9 @@ bool Logger::log(
 
       if((mFlags & LogCategory) && cat)
       {
-         // FIXME: add new var or new field type to select name type
-         // Try shortname if set, else try regular name.
-         const char* name = cat->getShortName();
+         // FIXME: add flag to select name type
+         // Try id if set, else try name.
+         const char* name = cat->getId();
          name = name ? name : cat->getName();
          if(name)
          {

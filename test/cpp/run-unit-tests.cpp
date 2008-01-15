@@ -6112,7 +6112,7 @@ void runLoggingTest(TestRunner& tr)
 
    // Create a test Logger and category
    OutputStreamLogger testLogger(&stdoutOS);
-   Category TEST_CAT("DB Test Suite", "DB_TEST", NULL);
+   Category TEST_CAT("DB_TEST", "DB Test Suite", NULL);
    
    // add logger for specific category
    Logger::addLogger(&testLogger, &TEST_CAT);
