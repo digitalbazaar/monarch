@@ -11,6 +11,7 @@
 #include "db/rt/Object.h"
 #include "db/util/Macros.h"
 
+// Forward declaration
 namespace db
 {
    namespace logging
@@ -18,8 +19,24 @@ namespace db
       class Category;
    }
 }
-extern db::logging::Category* DB_DEFAULT_CAT;
-extern db::logging::Category* DB_ALL_CAT;
+
+#ifndef __GNUC__
+# define __DLL_IMPORT __declspec(dllimport)
+#else
+# define __DLL_IMPORT __attribute__((dllimport)) extern
+#endif
+
+#if defined (BUILD_LOGGING_DLL) || !defined (__WIN32__)
+# define DLL_IMPORT extern
+#else
+# define DLL_IMPORT __DLL_IMPORT
+#endif
+
+DLL_IMPORT db::logging::Category* DB_DEFAULT_CAT;
+DLL_IMPORT db::logging::Category* DB_ALL_CAT;
+#undef DLL_IMPORT
+#undef __DLL_IMPORT
+
 
 namespace db
 {
