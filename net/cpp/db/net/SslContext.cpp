@@ -136,3 +136,23 @@ void SslContext::setPeerAuthentication(bool on)
    SSL_CTX_set_verify(
       mContext, (on) ? SSL_VERIFY_PEER : SSL_VERIFY_NONE, NULL);
 }
+
+Exception* SslContext::setVerifyCAs(File* caFile, File* caDir)
+{
+   Exception* rval = NULL;
+   
+   // load verify locations
+   if(SSL_CTX_load_verify_locations(
+      mContext,
+      (caFile != NULL) ? caFile->getName() : NULL,
+      (caDir != NULL) ? caDir->getName() : NULL) != 1)
+   {
+      // an error occurred
+      rval = new Exception(
+         "Could not set verify Certificate Authorities!",
+         ERR_error_string(ERR_get_error(), NULL));
+      Exception::setLast(rval);
+   }
+   
+   return rval;
+}

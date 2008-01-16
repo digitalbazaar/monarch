@@ -3417,6 +3417,9 @@ public:
       
       // create ssl context
       SslContext context("TLS", true);
+      //File certFile("/we/need/to/add/this/here.ca");
+      //context.setVerifyCAs(&certFile, NULL);
+      assertNoException();
       
       // for storing SSL session
       SslSession session;

@@ -86,6 +86,24 @@ public:
     * @param on true to require peer authentication, false not to.
     */
    virtual void setPeerAuthentication(bool on);
+   
+   /**
+    * Sets the main verification CA (Vertificate Authority) file and backup
+    * CA directory. The main CA file should contain a list of PEM-formatted
+    * CA certificates that are trusted and used to verify certificates received
+    * from peers. The backup CA directory contains N CA certificates (one
+    * per file) that are also trusted.
+    * 
+    * When verifying a peer's certificate, the main CA file will be checked
+    * first, followed by the backup CA directory.
+    * 
+    * @param caFile the main CA file (can be NULL if caDir is not).
+    * @param caDir the backup CA directory (can be NULL is caFile is not).
+    * 
+    * @return an Exception if one occurred, NULL if not.
+    */
+   virtual db::rt::Exception* setVerifyCAs(
+      db::io::File* caFile, db::io::File* caDir);
 };
 
 } // end namespace net
