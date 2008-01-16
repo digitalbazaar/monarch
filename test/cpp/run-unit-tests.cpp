@@ -6266,6 +6266,14 @@ void runLoggingTest(TestRunner& tr)
 
    /////////////////
 
+   tr.test("varargs");
+
+   DB_ERROR("10=%d \"foo\"=\"%s\"", 10, "foo");
+
+   tr.passIfNoException();
+
+   /////////////////
+
    tr.test("dyno");
 
    DynamicObject dyno;

@@ -50,70 +50,92 @@ public:
 #define DB_LOG_STRLOC NULL
 #endif
 
+/* FIXME: implement these vararg compiler type checks, add to a installed
+ *        config file and implement everything below.  Just using GNUC for now.
+ */
+/*
+#ifdef DB_HAVE_ISO_VARARGS
+#define DB_X(a, b, loc, ...) DB_Y(a, b, loc, __VA_ARGS__)
+...
+#elif defined(DB_HAVE_GNUC_VARARGS)
+#define DB_X(a, b, loc, args...) DB_Y(a, b, loc, ##args)
+#else // no macro vararg support, inline
+static inline void DB_X(db::a a, db::b b, const char* loc,
+   const char* format, ...)
+{
+   va_list varargs;
+   va_start(varargs, format);
+   DB_Y(a, b, NULL, format, varargs);
+   va_end(varargs);
+}
+#endif
+*/
+
 /**
  * Root logging macro.
  */
-#define DB_LOG(cat, level, object, flags, message) \
+#define DB_LOG(cat, level, object, flags, args...) \
    DB_STMT_START { \
       db::logging::Logger::logToLoggers( \
-         cat, level, DB_LOG_STRLOC, object, flags, message); \
+         cat, level, DB_LOG_STRLOC, object, flags, ##args); \
    } DB_STMT_END
 
 /**
  * Log with a valid object (may be NULL).
  */
-#define DB_CAT_LEVEL_OBJECT_LOG(cat, level, object, message) \
-   DB_LOG(cat, level, object, db::logging::Logger::LogObjectValid, message)
+#define DB_CAT_LEVEL_OBJECT_LOG(cat, level, object, args...) \
+   DB_LOG(cat, level, object, db::logging::Logger::LogObjectValid, ##args)
 /**
  * Log with no object.
  */ 
-#define DB_CAT_LEVEL_LOG(cat, level, message) \
-   DB_LOG(cat, level, NULL, 0, message)
+#define DB_CAT_LEVEL_LOG(cat, level, args...) \
+   DB_LOG(cat, level, NULL, 0, ##args)
 
 /**
  * Log an error message.
  */
-#define DB_CAT_OBJECT_ERROR(cat, object, message) \
-   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::Error, object, message)
-#define DB_CAT_ERROR(cat, message) \
-   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Error, message)
-#define DB_ERROR(message) \
-   DB_CAT_ERROR(DB_DEFAULT_CAT, message)
+#define DB_CAT_OBJECT_ERROR(cat, object, args...) \
+   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::Error, object, ##args)
+#define DB_CAT_ERROR(cat, args...) \
+   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Error, ##args)
+#define DB_ERROR(args...) \
+   DB_CAT_ERROR(DB_DEFAULT_CAT, ##args)
 
 /**
  * Log a warning message.
  */
-#define DB_CAT_OBJECT_WARNING(cat, object, message) \
-   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::Warning, object, message)
-#define DB_CAT_WARNING(cat, message) \
-   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Warning, message)
-#define DB_WARNING(message) \
-   DB_CAT_WARNING(DB_DEFAULT_CAT, message)
+#define DB_CAT_OBJECT_WARNING(cat, object, args...) \
+   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::Warning, object, ##args)
+#define DB_CAT_WARNING(cat, args...) \
+   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Warning, ##args)
+#define DB_WARNING(args...) \
+   DB_CAT_WARNING(DB_DEFAULT_CAT, ##args)
 
 /**
  * Log an info message.
  */
-#define DB_CAT_OBJECT_INFO(cat, object, message) \
-   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::Info, object, message)
-#define DB_CAT_INFO(cat, message) \
-   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Info, message)
-#define DB_INFO(message) \
-   DB_CAT_INFO(DB_DEFAULT_CAT, message)
+#define DB_CAT_OBJECT_INFO(cat, object, args...) \
+   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::Info, object, ##args)
+#define DB_CAT_INFO(cat, args...) \
+   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Info, ##args)
+#define DB_INFO(args...) \
+   DB_CAT_INFO(DB_DEFAULT_CAT, ##args)
 
 /**
  * Log a debug message.  May be compiled out.
  */
 #ifndef DB_NDEBUG
-#define DB_CAT_OBJECT_DEBUG(cat, object, message) \
-   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::Debug, object, message)
-#define DB_CAT_DEBUG(cat, message) \
-   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Debug, message)
-#define DB_DEBUG(message) \
-   DB_CAT_DEBUG(DB_DEFAULT_CAT, message)
+#define DB_CAT_OBJECT_DEBUG(cat, object, args...) \
+   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::Debug, object, ##args)
+#define DB_CAT_DEBUG(cat, args...) \
+   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::Debug, ##args)
+#define DB_DEBUG(args...) \
+   DB_CAT_DEBUG(DB_DEFAULT_CAT, ##args)
 #else
-#define DB_CAT_OBJECT_DEBUG(cat, object, message) DB_STMT_EMPTY
-#define DB_CAT_DEBUG(cat, message)  DB_STMT_EMPTY
-#define DB_DEBUG(message)  DB_STMT_EMPTY
+#define DB_CAT_OBJECT_DEBUG(cat, object, args...) DB_STMT_EMPTY
+#define DB_CAT_DEBUG(cat, args...) DB_STMT_EMPTY
+#define DB_OBJ_DEBUG(args...) DB_STMT_EMPTY
+#define DB_DEBUG(args...) DB_STMT_EMPTY
 #endif
 
 } // end namespace logging
