@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_SslSocket_H
 #define db_net_SslSocket_H
@@ -7,6 +7,7 @@
 #include "db/net/TcpSocket.h"
 #include "db/net/SocketWrapper.h"
 #include "db/net/SslContext.h"
+#include "db/net/SslSession.h"
 
 #include <openssl/ssl.h>
 
@@ -107,7 +108,25 @@ public:
     * Closes this Socket. This will be done automatically when the Socket is
     * destructed.
     */
-   virtual void close();   
+   virtual void close();
+   
+   /**
+    * Sets the SslSession for this socket. This should be a session previously
+    * acquired via getSession() on another socket that was connected to the
+    * same server this socket is connected to.
+    * 
+    * @return the SslSession for this socket.
+    */
+   virtual void setSession(SslSession* session);
+   
+   /**
+    * Gets the SslSession for this socket. This session can be reused after
+    * this socket has been disconnected and another one is going to be created
+    * to connect to the same server.
+    * 
+    * @return the SslSession for this socket.
+    */
+   virtual SslSession getSession();
    
    /**
     * Explicitly performs an SSL handshake to initiate communications. A

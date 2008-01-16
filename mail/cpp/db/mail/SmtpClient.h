@@ -33,10 +33,8 @@ protected:
     * connection's socket with an SSL Socket.
     * 
     * @param c the smtp connection.
-    * 
-    * @param client true for client mode SSL, false for server mode SSL.
     */
-   virtual void activateSsl(db::net::Connection* c, bool client);
+   virtual void activateSsl(db::net::Connection* c);
    
    /**
     * Receives the smtp server's response code for the last send verb.

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_SslContext_H
 #define db_net_SslContext_H
 
 #include <openssl/ssl.h>
-#include <string>
 
+#include "db/io/File.h"
 #include "db/net/TcpSocket.h"
 
 namespace db
@@ -29,11 +29,14 @@ protected:
    
 public:
    /**
-    * Creates a new SslContext.
+    * Creates a new SslContext. Peer authentication will default to
+    * setPeerAuthentication(client).
     * 
-    * @param protocol the protocol to be used for this context.
+    * @param protocol the protocol to be used for this context (NULL for
+    *                 default).
+    * @param client true for a client context, false for a server context.
     */
-   SslContext(const char* protocol = "SSLv2/SSLv3/TLS");
+   SslContext(const char* protocol, bool client);
    
    /**
     * Destructs this SslContext.
@@ -50,6 +53,39 @@ public:
     * @return the created SSL object.
     */
    virtual SSL* createSSL(TcpSocket* socket, bool client);
+   
+   /**
+    * Sets the PEM-formatted certificate for this SSL context to use.
+    * 
+    * @param certFile the file with the PEM-formatted certificate to use.
+    * 
+    * @return an Exception if the certificate could not be loaded, else NULL.
+    */
+   virtual db::rt::Exception* setCertificate(db::io::File* certFile);
+   
+   /**
+    * Sets the PEM-formatted private key for this SSL context to use.
+    * 
+    * @param pkeyFile the file with the PEM-formatted private key to use.
+    * 
+    * @return an Exception if the private key could not be loaded, else NULL.
+    */
+   virtual db::rt::Exception* setPrivateKey(db::io::File* pkeyFile);
+   
+   /**
+    * Sets the peer authentication mode for this SSL context. If peer
+    * authentication is turned on, then any server connections created
+    * by this context will request a client certificate and any client
+    * connections created by this context will check a server certificate.
+    * 
+    * The default is to turn this on for clients, but not for servers. This
+    * means that servers will need to be authenticated by clients but clients
+    * will not need to be authenticated by servers (this is the most common
+    * usage of SSL).
+    * 
+    * @param on true to require peer authentication, false not to.
+    */
+   virtual void setPeerAuthentication(bool on);
 };
 
 } // end namespace net

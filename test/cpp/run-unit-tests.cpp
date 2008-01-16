@@ -2582,7 +2582,7 @@ void runSslSocketTest()
       socket.connect(&address);
       
       // create an SSL context
-      SslContext context;
+      SslContext context(NULL, false);
       
       // create an SSL socket
       SslSocket sslSocket(&context, &socket, true, false);
@@ -2738,7 +2738,7 @@ void runSslServerSocketTest()
          cout << "Accepted a connection!" << endl;
          
          // create an SSL context
-         SslContext context;
+         SslContext context(NULL, false);
          
          // create an SSL socket
          SslSocket sslSocket(&context, worker, false, false);
@@ -3257,7 +3257,12 @@ public:
    TestConnectionServicer1()
    {
       serviced = 0;
-      reply = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\n\r\n";
+      reply =
+         "HTTP/1.0 200 OK\r\n"
+         "Content-Length: 5\r\n"
+         "Content-Type: text/plain\r\n"
+         "\r\n"
+         "Hello";
       //reply = "HTTP/1.0 404 Not Found\r\n";
    }
    
@@ -3276,19 +3281,34 @@ public:
       numBytes = is->peek(b, 100);
       if(numBytes > 0)
       {
-//         cout << "Read " << numBytes << " bytes." << endl;
-//         string str = "";
+//         cout << "Server read " << numBytes << " bytes." << endl;
+//         string str;
 //         str.append(b, numBytes);
-//         cout << "HTTP=" << endl << str << endl;
+//         cout << "DATA=" << endl << str << endl;
+      }
+      else if(numBytes == -1)
+      {
+         cout << "Server Exception=" <<
+            Exception::getLast()->getMessage() << endl <<
+            Exception::getLast()->getType() << endl;
       }
       
       OutputStream* os = c->getOutputStream();
-      os->write(reply.c_str(), reply.length());
+      if(os->write(reply.c_str(), reply.length()))
+      {
+//         cout << "Server sent=" << endl << reply << endl;
+      }
+      else
+      {
+         cout << "Server Exception=" <<
+            Exception::getLast()->getMessage() << endl <<
+            Exception::getLast()->getType() << endl;
+      }
       
-      //cout << "1: Finished servicing connection." << endl;
+//      cout << "1: Finished servicing connection." << endl;
       
       serviced++;
-      //cout << "Connections serviced=" << serviced << endl;
+//      cout << "Connections serviced=" << serviced << endl;
    }
 };
 
@@ -3374,16 +3394,17 @@ void runServerConnectionTest()
    
    cout << endl << "Server Connection test complete." << endl;
 }
-unsigned int gConnections = 0;
 
 class BlastConnections : public Runnable
 {
 public:
    InternetAddress* address;
+   bool ssl;
    
-   BlastConnections(InternetAddress* a)
+   BlastConnections(InternetAddress* a, bool ssl)
    {
-      address = a;
+      this->address = a;
+      this->ssl = ssl;
    }
    
    virtual ~BlastConnections()
@@ -3394,46 +3415,76 @@ public:
    {
       //Thread::sleep(20000);
       
-      TcpSocket socket;
-      socket.setReceiveTimeout(1000);
+      // create ssl context
+      SslContext context("TLS", true);
       
-      //InternetAddress address2("mojo.bitmunk.com", 9120);
+      // for storing SSL session
+      SslSession session;
       
       // blast connections
       int connections = 50;
       char b[1024];
       string request =
-         "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+         "GET / HTTP/1.0\r\n"
+         "Content-Length: 0\r\n"
+         "Connection: close\r\n"
+         "\r\n";
       for(int i = 0; i < connections; i++)
       {
+         // create socket
+         Socket* socket = new TcpSocket();
+         socket->setReceiveTimeout(1000);
+         
          // connect
-         if(socket.connect(address))
+         if(socket->connect(address))
          {
             //cout << "connected" << endl;
             
+            // do ssl if appropriate
+            if(ssl)
+            {
+               // reuse session
+               socket = new SslSocket(&context, (TcpSocket*)socket, true, true);
+               ((SslSocket*)socket)->setSession(&session);
+               
+               // start session
+               ((SslSocket*)socket)->performHandshake();
+               
+               // store session
+               session = ((SslSocket*)socket)->getSession();
+            }
+            
             // send request
-            if(socket.send(request.c_str(), request.length()))
+            if(socket->send(request.c_str(), request.length()))
             {
                // receive response
-               socket.receive(b, 1024);
+               socket->receive(b, 1024);
+//               int numBytes = socket->receive(b, 1024);
+//               cout << "Client read " << numBytes << "bytes." << endl;
+//               cout << "DATA=";
+//               cout.write(b, numBytes);
+//               cout << endl;
             }
             else
             {
-               cout << "Exception=" <<
-                  Exception::getLast()->getMessage() << endl;
+               cout << "Client Exception=" <<
+                  Exception::getLast()->getMessage() << endl <<
+                  Exception::getLast()->getType() << endl;
             }
          }
          else
          {
-            cout << "Exception=" <<
-               Exception::getLast()->getMessage() << endl;
+            cout << "Client Exception=" <<
+               Exception::getLast()->getMessage() << endl <<
+               Exception::getLast()->getType() << endl;
          }
          
          // close socket
-         socket.close();
+         socket->close();
          
-         gConnections++;
-      }      
+         // clean up socket
+         delete socket;
+      }
    }
 };
 
@@ -3454,21 +3505,26 @@ void runServerSslConnectionTest()
    Server server(&k);
    InternetAddress address("localhost", 19100);
    
-//   // create SSL-only service
-//   TestConnectionServicer1 tcs1;
-//   SslContext context;
-//   SslSocketDataPresenter presenter(&context);
-//   server.addConnectionService(&address, &tcs1, &presenter);
+   // set up SSL context
+   SslContext context("TLS", false);
+   File certFile("/etc/apache2/ssl/www.bitmunk.com.crt");
+   File pkeyFile("/etc/apache2/ssl/www.bitmunk.com.key");
+   context.setCertificate(&certFile);
+   context.setPrivateKey(&pkeyFile);
    
-   // create SSL/generic service
+   // create SSL-only service
    TestConnectionServicer1 tcs1;
-   SslContext context;
-   SslSocketDataPresenter presenter1(&context);
-   NullSocketDataPresenter presenter2;
-   SocketDataPresenterList list(false);
-   list.add(&presenter1);
-   list.add(&presenter2);
-   server.addConnectionService(&address, &tcs1, &list);
+   SslSocketDataPresenter presenter(&context);
+   server.addConnectionService(&address, &tcs1, &presenter);
+   
+//   // create SSL/generic service
+//   TestConnectionServicer1 tcs1;
+//   SslSocketDataPresenter presenter1(&context);
+//   NullSocketDataPresenter presenter2;
+//   SocketDataPresenterList list(false);
+//   list.add(&presenter1);
+//   list.add(&presenter2);
+//   server.addConnectionService(&address, &tcs1, &list);
    
    if(server.start())
    {
@@ -3480,7 +3536,7 @@ void runServerSslConnectionTest()
          Exception::getLast()->getMessage() << endl;
    }
    
-   BlastConnections bc(&address);
+   BlastConnections bc(&address, true);
    Thread t1(&bc);
    Thread t2(&bc);
    Thread t3(&bc);
@@ -3494,7 +3550,7 @@ void runServerSslConnectionTest()
    
    size_t stackSize = 131072;
    t1.start(stackSize);
-   t2.start(stackSize);
+   //t2.start(stackSize);
 //   t3.start(stackSize);
 //   t4.start(stackSize);
 //   t5.start(stackSize);
@@ -3503,30 +3559,32 @@ void runServerSslConnectionTest()
 //   t8.start(stackSize);
    
    t1.join();
-   t2.join();
+   //t2.join();
 //   t3.join();
 //   t4.join();
 //   t5.join();
 //   t6.join();
 //   t7.join();
 //   t8.join();
-   cout << "all client threads joined." << endl;
+//   cout << "all client threads joined." << endl;
    
    unsigned long long end = System::getCurrentMilliseconds();
-   long double time = end - start;
-   long double secs = time / 1000.0;
-   unsigned int connections = gConnections;//tcs1.serviced
-   double rate = (double)connections / secs;
    
-   cout << "Connections=" << tcs1.serviced << endl;
-   cout << "Time=" << time << " ms = " << secs << " secs" << endl;
-   cout << "Connections/second=" << rate << endl;
-   
+   // stop server
    server.stop();
    cout << "Server stopped." << endl;
    
    // stop kernel engine
    k.getEngine()->stop();
+   
+   long double time = end - start;
+   long double secs = time / 1000.0;
+   double rate = (double)tcs1.serviced / secs;
+   
+   cout << "Connections=" << tcs1.serviced << endl;
+   cout << "Time=" << time << " ms = " << secs << " secs" << endl;
+   cout << "Time/Connection=" << (double)time / tcs1.serviced << " ms" << endl;
+   cout << "Connections/second=" << rate << endl;
    
    // clean up SSL
    EVP_cleanup();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/SslSocket.h"
 #include "db/io/PeekInputStream.h"
@@ -49,7 +49,7 @@ SslSocket::~SslSocket()
 
 int SslSocket::tcpRead()
 {
-   int rval = -1;
+   int rval = 0;
    
    // flush the Socket BIO
    if(tcpWrite())
@@ -76,6 +76,11 @@ int SslSocket::tcpRead()
          }
       }
    }
+   else
+   {
+      // exception during tcpWrite()
+      rval = -1;
+   }
    
    return rval;
 }
@@ -92,19 +97,32 @@ bool SslSocket::tcpWrite()
       // read from the Socket BIO
       char b[length];
       int numBytes = 0;
-      while(length > 0 && !t->isInterrupted() &&
+      while(rval && length > 0 && !t->isInterrupted() &&
             (numBytes = BIO_read(mSocketBio, b, length)) > 0)
       {
-         // write to underlying socket
-         if(rval = mSocket->getOutputStream()->write(b, numBytes))
-         {
-            // decrement remaining bytes to write
-            length -= numBytes;
-         }
+         // write to underlying socket, decrement length left to read
+         rval = mSocket->getOutputStream()->write(b, numBytes);
+         length -= numBytes;
       }
    }
    
    return rval && !t->isInterrupted();
+}
+
+void SslSocket::setSession(SslSession* session)
+{
+   if(session != NULL && (*session) != NULL && (*session)->session != NULL)
+   {
+      SSL_set_session(mSSL, (*session)->session);
+   }
+}
+
+SslSession SslSocket::getSession()
+{
+   // get SSL_SESSION and increment reference count
+   SSL_SESSION* s = SSL_get1_session(mSSL);
+   SslSession rval(new SslSessionImpl(s));
+   return rval;
 }
 
 bool SslSocket::performHandshake()
@@ -126,11 +144,19 @@ bool SslSocket::performHandshake()
                "Could not perform SSL handshake! Socket closed.");
             break;
          case SSL_ERROR_WANT_READ:
-            // more data is required from the socket
-            if(tcpRead() <= 0)
             {
-               exception = new SocketException(
-                  "Could not perform SSL handshake! Socket closed.");
+               // more data is required from the socket
+               ret = tcpRead();
+               if(ret <= 0)
+               {
+                  exception = new SocketException(
+                     "Could not perform SSL handshake! Socket closed.");
+                  if(ret < 0)
+                  {
+                     // store cause
+                     exception->setCause(Exception::getLast(), true);
+                  }
+               }
             }
             break;
          case SSL_ERROR_WANT_WRITE:
@@ -179,7 +205,7 @@ bool SslSocket::send(const char* b, int length)
    
    if(!isConnected())
    {
-      exception = new SocketException("Cannot write to unconnected Socket!");
+      exception = new SocketException("Cannot write to unconnected socket!");
    }
    else
    {
@@ -206,17 +232,23 @@ bool SslSocket::send(const char* b, int length)
             case SSL_ERROR_ZERO_RETURN:
                // the connection was shutdown
                exception = new SocketException(
-                  "Could not write to Socket! Socket closed.",
+                  "Could not write to socket! Socket closed.",
                   ERR_error_string(ERR_get_error(), NULL));
                break;
             case SSL_ERROR_WANT_READ:
                // more data is required from the socket
-               if(tcpRead() <= 0)
+               ret = tcpRead();
+               if(ret <= 0)
                {
                   // the connection was shutdown
                   exception = new SocketException(
-                     "Could not write to Socket! Socket closed.",
+                     "Could not write to socket! Socket closed.",
                      strerror(errno));
+                  if(ret < 0)
+                  {
+                     // store cause
+                     exception->setCause(Exception::getLast(), true);
+                  }
                }
                break;
             case SSL_ERROR_WANT_WRITE:
@@ -229,12 +261,12 @@ bool SslSocket::send(const char* b, int length)
             default:
                // an error occurred
                exception = new SocketException(
-                  "Could not write to Socket!",
+                  "Could not write to socket!",
                   ERR_error_string(ERR_get_error(), NULL));
          }
       }
       
-      if(exception != NULL)
+      if(exception == NULL)
       {
          // flush all data to the socket
          if(!tcpWrite())
@@ -260,7 +292,7 @@ int SslSocket::receive(char* b, int length)
    
    if(!isConnected())
    {
-      exception = new SocketException("Cannot read from unconnected Socket!");
+      exception = new SocketException("Cannot read from unconnected socket!");
    }
    else
    {
@@ -290,10 +322,18 @@ int SslSocket::receive(char* b, int length)
                break;
             case SSL_ERROR_WANT_READ:
                // more data is required from the socket
-               if(tcpRead() == 0)
+               ret = tcpRead();
+               if(ret == 0)
                {
-                  // the connection was shutdown
+                  // the connection was shutdown properly
                   closed = true;
+               }
+               else if(ret == -1)
+               {
+                  // error in writing to socket
+                  exception = new SocketException(
+                     "Could not read from socket!");
+                  exception->setCause(Exception::getLast(), true);
                }
                break;
             case SSL_ERROR_WANT_WRITE:
@@ -306,7 +346,7 @@ int SslSocket::receive(char* b, int length)
             default:
                // an error occurred
                exception = new SocketException(
-                  "Could not read from Socket!",
+                  "Could not read from socket!",
                   ERR_error_string(ERR_get_error(), NULL));
          }
       }
@@ -314,14 +354,7 @@ int SslSocket::receive(char* b, int length)
       // set number of bytes read
       if(exception == NULL)
       {
-         if(closed)
-         {
-            rval = 0;
-         }
-         else
-         {
-            rval = ret;
-         }
+         rval = (closed) ? 0 : ret;
       }
    }
    

@@ -24,14 +24,13 @@ SmtpClient::~SmtpClient()
    }
 }
 
-void SmtpClient::activateSsl(Connection* c, bool client)
+void SmtpClient::activateSsl(Connection* c)
 {
-   mSslContext = new SslContext();
+   mSslContext = new SslContext(NULL, true);
    
    // switch underlying socket with an SSL socket
    Socket* s = new SslSocket(
-      mSslContext, (TcpSocket*)c->getSocket(), client,
-      c->mustCleanupSocket());
+      mSslContext, (TcpSocket*)c->getSocket(), true, c->mustCleanupSocket());
    c->setSocket(s, true);
    c->setSecure(true);
 }

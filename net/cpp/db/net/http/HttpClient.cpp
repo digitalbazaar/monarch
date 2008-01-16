@@ -3,6 +3,7 @@
  */
 #include "db/net/http/HttpClient.h"
 #include "db/net/TcpSocket.h"
+#include "db/net/SslSocket.h"
 #include "db/io/InputStream.h"
 #include "db/io/OutputStream.h"
 
@@ -16,6 +17,7 @@ HttpClient::HttpClient()
    mConnection = NULL;
    mRequest = NULL;
    mResponse = NULL;
+   mSslContext = NULL;
 }
 
 HttpClient::~HttpClient()
@@ -59,8 +61,28 @@ bool HttpClient::connect(Url* url)
    {
       // create connection as necessary
       InternetAddress address(url->getHost().c_str(), url->getPort());
-      if((mConnection = createConnection(&address)) != NULL)
+      
+      SslContext* ssl = NULL;
+      if(strcmp(url->getScheme().c_str(), "https") == 0)
       {
+         // create ssl context if necessary
+         if(mSslContext == NULL)
+         {
+            mSslContext = new SslContext(NULL, true);
+         }
+         
+         ssl = mSslContext;
+      }
+      
+      if((mConnection = createConnection(
+         &address, 30, ssl, &mSslSession)) != NULL)
+      {
+         // store ssl session if appropriate
+         if(ssl != NULL)
+         {
+            mSslSession = ((SslSocket*)mConnection->getSocket())->getSession();
+         }
+         
          // create request and response
          mRequest = (HttpRequest*)mConnection->createRequest();
          mResponse = (HttpResponse*)mRequest->createResponse();
@@ -181,29 +203,35 @@ void HttpClient::disconnect()
    }
 }
 
-HttpConnection* HttpClient::createConnection(Url* url, unsigned int timeout)
+HttpConnection* HttpClient::createConnection(
+   Url* url, unsigned int timeout, SslContext* context, SslSession* session)
 {
-   HttpConnection* rval = NULL;
-   
-   // FIXME: add SSL support later
-   
    // create connection
    InternetAddress address(url->getHost().c_str(), url->getPort());
-   rval = createConnection(&address);
-   return rval;
+   return createConnection(&address, timeout, context, session);
 }
 
 HttpConnection* HttpClient::createConnection(
-   InternetAddress* address, unsigned int timeout)
+   InternetAddress* address, unsigned int timeout,
+   SslContext* context, SslSession* session)
 {
    HttpConnection* rval = NULL;
    
-   // FIXME: add SSL support later
-   
    // connect with given timeout
-   TcpSocket* s = new TcpSocket();
+   Socket* s = new TcpSocket();
    if(s->connect(address, timeout))
    {
+      // do SSL if appropriate
+      if(context != NULL)
+      {
+         // create ssl socket, reuse passed session
+         s = new SslSocket(context, (TcpSocket*)s, true, true);
+         ((SslSocket*)s)->setSession(session);
+         
+         // start ssl session
+         ((SslSocket*)s)->performHandshake();
+      }
+      
       rval = new HttpConnection(new Connection(s, true), true);
    }
    else

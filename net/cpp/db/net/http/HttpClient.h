@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_http_HttpClient_H
 #define db_net_http_HttpClient_H
@@ -7,6 +7,8 @@
 #include "db/net/http/HttpConnection.h"
 #include "db/net/http/HttpRequest.h"
 #include "db/net/http/HttpResponse.h"
+#include "db/net/SslContext.h"
+#include "db/net/SslSession.h"
 #include "db/net/Url.h"
 
 namespace db
@@ -38,6 +40,16 @@ protected:
     * The current response for this client.
     */
    HttpResponse* mResponse;
+   
+   /**
+    * An SSL context for handling SSL connections.
+    */
+   db::net::SslContext* mSslContext;
+   
+   /**
+    * Store the previous SSL session.
+    */
+   SslSession mSslSession;
    
    /**
     * Sets the headers fields in the request header.
@@ -139,11 +151,16 @@ public:
     * 
     * @param url the url to connect to.
     * @param timeout the timeout in seconds (0 for indefinite).
+    * @param context an SslContext to use ssl, NULL not to.
+    * @param session an SSL session to reuse, if any.
     * 
     * @return the HttpConnection to the url or NULL if an exception
     *         occurred.
     */
-   static HttpConnection* createConnection(Url* url, unsigned int timeout = 30);
+   static HttpConnection* createConnection(
+      Url* url, unsigned int timeout = 30,
+      db::net::SslContext* sslContext = NULL,
+      db::net::SslSession* session = NULL);
    
    /**
     * Creates a connection to the passed address.
@@ -154,12 +171,16 @@ public:
     * 
     * @param address the address to connect to.
     * @param timeout the timeout in seconds (0 for indefinite).
+    * @param context an SslContext to use ssl, NULL not to.
+    * @param session an SSL session to reuse, if any.
     * 
     * @return the HttpConnection to the address or NULL if an exception
     *         occurred.
     */
    static HttpConnection* createConnection(
-      db::net::InternetAddress* address, unsigned int timeout = 30);
+      db::net::InternetAddress* address, unsigned int timeout = 30,
+      db::net::SslContext* sslContext = NULL,
+      db::net::SslSession* session = NULL);
 };
 
 } // end namespace http
