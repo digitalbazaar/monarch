@@ -90,6 +90,9 @@
 #include "db/mail/SmtpClient.h"
 #include "db/mail/MailTemplateParser.h"
 #include "db/config/ConfigManager.h"
+#include "db/data/riff/RiffChunkHeader.h"
+#include "db/data/riff/RiffListHeader.h"
+#include "db/data/riff/RiffFormHeader.h"
 
 using namespace std;
 using namespace db::test;
@@ -104,8 +107,11 @@ using namespace db::rt;
 using namespace db::util;
 using namespace db::util::regex;
 using namespace db::data;
-using namespace db::data::xml;
+//using namespace db::data::avi;
 using namespace db::data::json;
+//using namespace db::data::mpeg;
+using namespace db::data::riff;
+using namespace db::data::xml;
 using namespace db::sql::sqlite3;
 using namespace db::sql::mysql;
 using namespace db::sql::util;
@@ -6973,6 +6979,63 @@ void runConfigManagerTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runRiffTest(TestRunner& tr)
+{
+   tr.group("RIFF");
+   
+   tr.test("fourcc");
+   {
+      fourcc_t fc = DB_FOURCC_FROM_CHARS('T','E','S','T');
+      fourcc_t fs = DB_FOURCC_FROM_STR("TEST");
+      assert(fc == fs);
+      
+      char b[4];
+      DB_FOURCC_TO_STR(fs, b);
+      assert(strncmp(b, "TEST", 4) == 0);
+
+      char sb[13];
+      snprintf(sb, 13, "fourcc[%" DB_FOURCC_FORMAT "]", DB_FOURCC_ARGS(fs));
+      assertStrCmp(sb, "fourcc[TEST]");
+   }
+   tr.passIfNoException();
+   
+   tr.test("chunk");
+   {
+      fourcc_t fourcc = DB_FOURCC_FROM_STR("TEST");
+      uint32_t size = 0x01020304;
+      RiffChunkHeader chunk(fourcc, size);
+      assert(chunk.getIdentifier() == fourcc);
+      assert(chunk.getChunkSize() == size);
+      
+      char expect[8] = {'T', 'E', 'S', 'T', 0x04, 0x03, 0x02, 0x01};
+      char offsetexpect[9] = {0, 'T', 'E', 'S', 'T', 0x04, 0x03, 0x02, 0x01};
+      char to[8];
+      memset(to, 0xFE, 8);
+      chunk.convertToBytes(to);
+      assert(memcmp(expect, to, 8) == 0);
+      
+      // short
+      assert(!chunk.convertFromBytes(expect, 0, 7));
+
+      // @ 0
+      assert(chunk.convertFromBytes(expect, 0, 8));
+      assert(chunk.getIdentifier() == fourcc);
+      assert(chunk.getChunkSize() == size);
+      memset(to, 0xFE, 8);
+      chunk.convertToBytes(to);
+      assert(memcmp(expect, to, 8) == 0);
+
+      // offset @ 1
+      assert(chunk.convertFromBytes(offsetexpect, 1, 8));
+      assert(chunk.getIdentifier() == fourcc);
+      assert(chunk.getChunkSize() == size);
+      memset(to, 0xFE, 8);
+      chunk.convertToBytes(to);
+      assert(memcmp(expect, to, 8) == 0);
+   }
+   tr.passIfNoException();
+}
+
 class RunTests : public virtual Object, public Runnable
 {
 public:
@@ -7019,6 +7082,7 @@ public:
       runJsonDJDTest(tr);
       runJsonVerifyDJDTest(tr);
       runJsonIOStreamTest(tr);
+      runRiffTest(tr);
       
       // db::crypto tests
       runMessageDigestTest(tr);
@@ -7106,6 +7170,7 @@ public:
 //      runLoggingTest(tr);
 //      runFileTest();
 //      runSmtpClientTest(tr);
+//      runRiffTest(tr);
       
       assertNoException();
    }
