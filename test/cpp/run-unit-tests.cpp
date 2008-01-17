@@ -7035,6 +7035,18 @@ void runRiffTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
+   tr.test("list");
+   {
+      // FIXME
+   }
+   tr.passIfNoException();
+   
+   tr.test("form");
+   {
+      // FIXME
+   }
+   tr.passIfNoException();
+   
    tr.ungroup();
 }
 
