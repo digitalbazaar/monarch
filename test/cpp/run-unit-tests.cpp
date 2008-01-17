@@ -7034,6 +7034,8 @@ void runRiffTest(TestRunner& tr)
       assert(memcmp(expect, to, 8) == 0);
    }
    tr.passIfNoException();
+   
+   tr.ungroup();
 }
 
 class RunTests : public virtual Object, public Runnable
