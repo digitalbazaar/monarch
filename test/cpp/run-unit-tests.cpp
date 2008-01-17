@@ -7050,6 +7050,19 @@ void runRiffTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runAviTest(TestRunner& tr)
+{
+   tr.group("AVI");
+   
+   tr.test("...");
+      // FIXME
+   {
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class RunTests : public virtual Object, public Runnable
 {
 public:
@@ -7097,6 +7110,7 @@ public:
       runJsonVerifyDJDTest(tr);
       runJsonIOStreamTest(tr);
       runRiffTest(tr);
+      runAviTest(tr);
       
       // db::crypto tests
       runMessageDigestTest(tr);
@@ -7185,6 +7199,7 @@ public:
 //      runFileTest();
 //      runSmtpClientTest(tr);
 //      runRiffTest(tr);
+//      runAviTest(tr);
       
       assertNoException();
    }
