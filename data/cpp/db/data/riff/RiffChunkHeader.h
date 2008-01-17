@@ -37,7 +37,7 @@ public:
    /**
     * The header size for a RIFF chunk.
     */
-   static const int sSize = 8;
+   static const int HEADER_SIZE = 8;
    
 protected:
    /**

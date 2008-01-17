@@ -10,7 +10,7 @@ using namespace db::data::riff;
 RiffFormHeader::RiffFormHeader(fourcc_t form, uint32_t fileSize) :
    RiffListHeader(form, fileSize)
 {
-   mChunkHeader.setIdentifier(sChunkId);
+   mChunkHeader.setIdentifier(CHUNK_ID);
 }
 
 RiffFormHeader::~RiffFormHeader()
@@ -21,14 +21,14 @@ bool RiffFormHeader::convertFromBytes(const char* b, int offset, int length)
 {
    bool rval = false;
    
-   if(b != NULL && length >= sSize)
+   if(b != NULL && length >= HEADER_SIZE)
    {
       if(mChunkHeader.convertFromBytes(b, offset, length))
       {
          // make sure chunk identifier is LIST
-         if(mChunkHeader.getIdentifier() == sChunkId)
+         if(mChunkHeader.getIdentifier() == CHUNK_ID)
          {
-            mId = DB_FOURCC_FROM_STR(b + offset + RiffChunkHeader::sSize);
+            mId = DB_FOURCC_FROM_STR(b + offset + RiffChunkHeader::HEADER_SIZE);
             rval = true;
          }
       }
@@ -51,5 +51,5 @@ uint32_t RiffFormHeader::getFileSize()
 
 uint32_t RiffFormHeader::getHeaderSize()
 {
-   return RiffListHeader::sSize;
+   return RiffListHeader::HEADER_SIZE;
 }

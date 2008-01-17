@@ -34,12 +34,12 @@ public:
    /**
     * The header size for a list chunk.
     */
-   static const int sSize = 12;
+   static const int HEADER_SIZE = 12;
    
    /**
     * The chunk header id for a list chunk.
     */
-   static const fourcc_t sChunkId = DB_FOURCC_FROM_CHARS('L','I','S','T');
+   static const fourcc_t CHUNK_ID = DB_FOURCC_FROM_CHARS('L','I','S','T');
    
 protected:
    /**
@@ -59,7 +59,7 @@ public:
     * @param id the identifier of the list.
     * @param size the size of the list.
     */
-   RiffListHeader(fourcc_t id = sChunkId, uint32_t size = 0);
+   RiffListHeader(fourcc_t id = CHUNK_ID, uint32_t size = 0);
    
    /**
     * Destructs a Riff List Header.

@@ -9,7 +9,7 @@ using namespace db::data::riff;
 using namespace db::io;
 
 RiffListHeader::RiffListHeader(fourcc_t id, uint32_t size) :
-   mChunkHeader(sChunkId, size + 4)
+   mChunkHeader(CHUNK_ID, size + 4)
 {
    mId = id;
 }
@@ -22,7 +22,7 @@ bool RiffListHeader::writeTo(OutputStream& os)
 {
    bool rval;
    
-   const int size = RiffChunkHeader::sSize + sSize; 
+   const int size = RiffChunkHeader::HEADER_SIZE + HEADER_SIZE; 
    char buf[size];
    convertToBytes(buf);
    rval = os.write(buf, size);
@@ -33,7 +33,7 @@ bool RiffListHeader::writeTo(OutputStream& os)
 void RiffListHeader::convertToBytes(char* b)
 {
    mChunkHeader.convertToBytes(b);
-   DB_FOURCC_TO_STR(mId, b + RiffChunkHeader::sSize);
+   DB_FOURCC_TO_STR(mId, b + RiffChunkHeader::HEADER_SIZE);
 }
 
 bool RiffListHeader::convertFromBytes(const char* b, int offset, int length)
@@ -45,9 +45,9 @@ bool RiffListHeader::convertFromBytes(const char* b, int offset, int length)
       if(mChunkHeader.convertFromBytes(b, offset, length))
       {
          // make sure chunk identifier is LIST
-         if(mChunkHeader.getIdentifier() == sChunkId)
+         if(mChunkHeader.getIdentifier() == CHUNK_ID)
          {
-            mId = DB_FOURCC_FROM_STR(b + offset + RiffChunkHeader::sSize);
+            mId = DB_FOURCC_FROM_STR(b + offset + RiffChunkHeader::HEADER_SIZE);
             rval = true;
          }
       }
@@ -80,12 +80,12 @@ uint32_t RiffListHeader::getChunkSize()
 
 void RiffListHeader::setListSize(uint32_t size)
 {
-   mChunkHeader.setChunkSize(size + sSize);
+   mChunkHeader.setChunkSize(size + HEADER_SIZE);
 }
 
 uint32_t RiffListHeader::getListSize()
 {
-   return mChunkHeader.getChunkSize() - sSize;
+   return mChunkHeader.getChunkSize() - HEADER_SIZE;
 }
 
 bool RiffListHeader::isValid()

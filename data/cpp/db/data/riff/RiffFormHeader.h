@@ -50,12 +50,12 @@ public:
    /**
     * The header size for a form chunk.
     */
-   static const int sSize = RiffListHeader::sSize;
+   static const int HEADER_SIZE = RiffListHeader::HEADER_SIZE;
    
    /**
     * The chunk header id for a RIFFs chunk.
     */
-   static const fourcc_t sChunkId = DB_FOURCC_FROM_CHARS('R','I','F','F');
+   static const fourcc_t CHUNK_ID = DB_FOURCC_FROM_CHARS('R','I','F','F');
    
    /**
     * Constructs a Riff Form header with the passed parameters.
@@ -63,7 +63,7 @@ public:
     * @param form the form of RIFF.
     * @param fileSize the file size of the file the header is for.
     */
-   RiffFormHeader(fourcc_t form = sChunkId, uint32_t fileSize = 0);
+   RiffFormHeader(fourcc_t form = CHUNK_ID, uint32_t fileSize = 0);
    
    /**
     * Desctructs a Riff Form header.
