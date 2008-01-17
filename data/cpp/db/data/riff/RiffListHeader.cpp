@@ -40,7 +40,7 @@ bool RiffListHeader::convertFromBytes(const char* b, int offset, int length)
 {
    bool rval = false;
    
-   if(b != NULL && length >= sSize)
+   if(b != NULL && length >= HEADER_SIZE)
    {
       if(mChunkHeader.convertFromBytes(b, offset, length))
       {
