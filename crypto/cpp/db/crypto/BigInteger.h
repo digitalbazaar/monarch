@@ -1,8 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_BigInteger_H
 #define db_crypto_BigInteger_H
+
+#include "db/io/ByteBuffer.h"
 
 #include <openssl/bn.h>
 #include <iostream>
@@ -374,7 +376,7 @@ public:
     * @param remainder the BigInteger to store the remainder in.
     */
    void divide(
-      const BigInteger divisor, BigInteger& quotient, BigInteger& remainder);
+      const BigInteger& divisor, BigInteger& quotient, BigInteger& remainder);
    
    /**
     * Returns true if this BigInteger is zero, false if not.
@@ -412,6 +414,21 @@ public:
     * @return the value of this BigInteger as a 64-bit integer.
     */
    long long getInt64() const;
+   
+   /**
+    * Converts an array of bytes into a BigInteger.
+    * 
+    * @param data the binary data.
+    * @param length the number of bytes.
+    */ 
+   void fromBytes(const char* data, int length);
+   
+   /**
+    * Writes this BigInteger to a ByteBuffer, resizing it if necessary.
+    * 
+    * @param b the ByteBuffer to write to.
+    */
+   void toBytes(db::io::ByteBuffer* b);
    
    /**
     * Gets the value of this BigInteger as a string.

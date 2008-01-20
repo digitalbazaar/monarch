@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/BigInteger.h"
 
@@ -8,6 +8,7 @@
 
 using namespace std;
 using namespace db::crypto;
+using namespace db::io;
 
 BigInteger::BigInteger(long long value)
 {
@@ -319,7 +320,7 @@ int BigInteger::absCompare(const BigInteger& rhs)
 }
 
 void BigInteger::divide(
-   const BigInteger divisor, BigInteger& quotient, BigInteger& remainder)
+   const BigInteger& divisor, BigInteger& quotient, BigInteger& remainder)
 {
    int rc = BN_div(quotient.mBigNum, remainder.mBigNum,
       mBigNum, divisor.mBigNum, getContext());
@@ -355,6 +356,23 @@ long long BigInteger::getInt64() const
    }
    
    return rval;
+}
+
+void BigInteger::fromBytes(const char* data, int length)
+{
+   // read the number in
+   BN_bin2bn((const unsigned char *)data, length, mBigNum);
+}
+
+void BigInteger::toBytes(ByteBuffer* b)
+{
+   // make enough room for the number
+   int size = BN_num_bytes(mBigNum);
+   b->allocateSpace(size, true);
+   
+   // write the number out
+   BN_bn2bin(mBigNum, (unsigned char*)b->data());
+   b->extend(size);
 }
 
 string& BigInteger::toString(string& str) const
