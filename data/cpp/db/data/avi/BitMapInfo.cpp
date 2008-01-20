@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-
 #include "db/data/avi/BitMapInfo.h"
 
 using namespace db::data;
@@ -28,12 +27,12 @@ bool BitMapInfo::writeTo(OutputStream& os)
    return rval;
 }
 
-bool BitMapInfo::convertFromBytes(const char* b, int offset, int length)
+bool BitMapInfo::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
    
    // convert header
-   if(mHeader.convertFromBytes(b, offset, length))
+   if(mHeader.convertFromBytes(b, length))
    {
       // make sure length has enough data
       if(length >= mHeader.getBitMapInfoSize())

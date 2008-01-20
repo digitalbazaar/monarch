@@ -7015,10 +7015,10 @@ void runRiffTest(TestRunner& tr)
       assert(memcmp(expect, to, 8) == 0);
       
       // short
-      assert(!chunk.convertFromBytes(expect, 0, 7));
+      assert(!chunk.convertFromBytes(expect, 7));
 
       // @ 0
-      assert(chunk.convertFromBytes(expect, 0, 8));
+      assert(chunk.convertFromBytes(expect, 8));
       assert(chunk.getIdentifier() == fourcc);
       assert(chunk.getChunkSize() == size);
       memset(to, 0xFE, 8);
@@ -7026,7 +7026,7 @@ void runRiffTest(TestRunner& tr)
       assert(memcmp(expect, to, 8) == 0);
 
       // offset @ 1
-      assert(chunk.convertFromBytes(offsetexpect, 1, 8));
+      assert(chunk.convertFromBytes(offsetexpect + 1, 8));
       assert(chunk.getIdentifier() == fourcc);
       assert(chunk.getChunkSize() == size);
       memset(to, 0xFE, 8);

@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-
 #include "db/data/avi/BitMapInfoHeader.h"
 #include "db/data/Data.h"
 
@@ -38,14 +37,14 @@ bool BitMapInfoHeader::writeTo(OutputStream& os)
    return rval;
 }
 
-bool BitMapInfoHeader::convertFromBytes(const char* b, int offset, int length)
+bool BitMapInfoHeader::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
    
    // make sure length has enough data
    if(length >= HEADER_SIZE)
    {
-      memcpy(mData, b + offset, getSize());
+      memcpy(mData, b, getSize());
       
       // converted successfully
       rval = true;

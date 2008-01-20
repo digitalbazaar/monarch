@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-
 #include "db/data/avi/AviStreamData.h"
 
 using namespace db::data;
@@ -36,12 +35,12 @@ bool AviStreamData::writeTo(OutputStream& os)
    return rval;
 }
 
-bool AviStreamData::convertFromBytes(const char* b, int offset, int length)
+bool AviStreamData::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
    
    // convert the RIFF header
-   if(mRiffHeader.convertFromBytes(b, offset, length) && isValid())
+   if(mRiffHeader.convertFromBytes(b, length) && isValid())
    {
       // make sure length has enough data for the chunk
       if(length >= getSize())

@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-
 #include "db/data/avi/AviHeader.h"
 
 using namespace db::data;
@@ -46,18 +45,18 @@ bool AviHeader::writeTo(OutputStream& os)
    return rval;
 }
 
-bool AviHeader::convertFromBytes(const char* b, int offset, int length)
+bool AviHeader::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
    
    // convert the RIFF header
-   if(mRiffHeader.convertFromBytes(b, offset, length) &&
+   if(mRiffHeader.convertFromBytes(b, length) &&
       mRiffHeader.getIdentifier() == CHUNK_ID)
    {
       // make sure length has enough data for the chunk
       if(length >= getSize())
       {
-         memcpy(mData, b + offset + RiffChunkHeader::HEADER_SIZE, HEADER_SIZE);
+         memcpy(mData, b + RiffChunkHeader::HEADER_SIZE, HEADER_SIZE);
          
          // converted successfully
          rval = true;

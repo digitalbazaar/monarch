@@ -86,13 +86,11 @@ public:
     * Converts the header from a byte array with at least 12 bytes.
     * 
     * @param b the byte array to convert from.
-    * @param offset the offset to start converting from.
-    * @param length the number of valid bytes in the buffer following the
-    *               offset.
+    * @param length the number of valid bytes in the buffer.
     * 
     * @return true if successful, false if not.
     */
-   virtual bool convertFromBytes(const char* b, int offset, int length);
+   virtual bool convertFromBytes(const char* b, int length);
    
    /**
     * Sets the 4 byte identifier for this list if the passed string is

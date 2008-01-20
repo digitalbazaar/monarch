@@ -90,13 +90,11 @@ public:
     * Converts this AviStreamFormat from a byte array.
     * 
     * @param b the byte array to convert from.
-    * @param offset the offset to start converting from.
-    * @param length the number of valid bytes in the buffer following the
-    *               offset.
+    * @param length the number of valid bytes in the buffer.
     * 
     * @return true if successful, false if not.
     */
-   virtual bool convertFromBytes(const char* b, int offset, int length);
+   virtual bool convertFromBytes(const char* b, int length);
    
    /**
     * Returns whether or not this AviStreamFormat is valid.

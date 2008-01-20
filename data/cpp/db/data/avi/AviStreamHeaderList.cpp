@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-
 #include "db/data/avi/AviStreamHeaderList.h"
 
 using namespace db::data;
@@ -23,19 +22,12 @@ bool AviStreamHeaderList::writeTo(OutputStream& os)
    bool rval;
    
    // write RIFF header
-   rval = mRiffHeader.writeTo(os);
-   
-   if(rval)
-   {
-      // write stream header
-      rval = mStreamHeader.writeTo(os);
-   }
-   
-   if(rval)
-   {
-      // write stream format
-      rval = mStreamFormat.writeTo(os);
-   }
+   // write stream header
+   // write stream format
+   rval =
+      mRiffHeader.writeTo(os) &&
+      mStreamHeader.writeTo(os) &&
+      mStreamFormat.writeTo(os);
    
    if(rval)
    {
@@ -49,45 +41,45 @@ bool AviStreamHeaderList::writeTo(OutputStream& os)
    return rval;
 }
 
-bool AviStreamHeaderList::convertFromBytes(const char* b, int offset, int length)
+bool AviStreamHeaderList::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
    
    // convert the RIFF header
-   if(mRiffHeader.convertFromBytes(b, offset, length) &&
+   if(mRiffHeader.convertFromBytes(b, length) &&
       mRiffHeader.getIdentifier() == CHUNK_ID)
    {
       // make sure there is enough data to convert the header
       if(length >= getSize())
       {
          // step forward past RIFF header
-         offset += RiffListHeader::HEADER_SIZE;
+         b += RiffListHeader::HEADER_SIZE;
          
          // set length to list size
          length = (int)mRiffHeader.getListSize();
          
          // convert header
-         if(mStreamHeader.convertFromBytes(b, offset, length))
+         if(mStreamHeader.convertFromBytes(b, length))
          {
             // step forward past header
-            offset += mStreamHeader.getSize();
+            b += mStreamHeader.getSize();
             length -= mStreamHeader.getSize();
             
             // convert format
-            if(mStreamFormat.convertFromBytes(b, offset, length))
+            if(mStreamFormat.convertFromBytes(b, length))
             {
                // header list converted, 'strd' is not used
                rval = true;
                
                // step forward past format
-               offset += mStreamFormat.getSize();
+               b += mStreamFormat.getSize();
                length -= mStreamFormat.getSize();
                
                // look for stream data anyway
                if(length > 0)
                {
                   // convert stream data
-                  mStreamData.convertFromBytes(b, offset, length);
+                  mStreamData.convertFromBytes(b, length);
                }
             }
          }

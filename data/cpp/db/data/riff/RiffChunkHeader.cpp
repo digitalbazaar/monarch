@@ -1,7 +1,6 @@
 /*
- * Copyright (c) 2005-2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-
 #include "db/data/riff/RiffChunkHeader.h"
 
 using namespace db::data;
@@ -36,14 +35,14 @@ void RiffChunkHeader::convertToBytes(char* b)
    *(uint32_t*)(b + 4) = DB_UINT32_TO_LE(mChunkSize);
 }
 
-bool RiffChunkHeader::convertFromBytes(const char* b, int offset, int length)
+bool RiffChunkHeader::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
    
    if(b != NULL && length >= HEADER_SIZE)
    {
-      mId = DB_FOURCC_FROM_STR(b + offset);
-      mChunkSize = DB_UINT32_FROM_LE(*((uint32_t*)(b + offset + 4)));
+      mId = DB_FOURCC_FROM_STR(b);
+      mChunkSize = DB_UINT32_FROM_LE(*((uint32_t*)(b + 4)));
       rval = true;
    }
    

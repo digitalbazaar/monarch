@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-
 #include "db/data/avi/AviHeaderList.h"
 
 using namespace std;
@@ -43,12 +42,13 @@ bool AviHeaderList::writeTo(OutputStream& os)
    return rval;
 }
 
-bool AviHeaderList::convertFromBytes(const char* b, int offset, int length)
+bool AviHeaderList::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
    
    // convert the header
-   if(mRiffHeader.convertFromBytes(b, offset, length) &&
+   int offset = 0;
+   if(mRiffHeader.convertFromBytes(b + offset, length) &&
       mRiffHeader.getIdentifier() ==  CHUNK_ID)
    {
       // step forward past RIFF header
@@ -56,13 +56,13 @@ bool AviHeaderList::convertFromBytes(const char* b, int offset, int length)
       length -= RiffListHeader::HEADER_SIZE;
       
       // convert main header
-      if(mMainHeader.convertFromBytes(b, offset, length))
+      if(mMainHeader.convertFromBytes(b + offset, length))
       {
          // main header converted
          rval = true;
          
          // ensure there is enough data remaining to convert the header list
-         if(length >= mRiffHeader.getListSize())
+         if(length >= (int)mRiffHeader.getListSize())
          {
             // set length to size of list
             length = (int)mRiffHeader.getListSize();
@@ -75,7 +75,7 @@ bool AviHeaderList::convertFromBytes(const char* b, int offset, int length)
             while(length > 0)
             {
                AviStreamHeaderList list;
-               if(list.convertFromBytes(b, offset, length))
+               if(list.convertFromBytes(b + offset, length))
                {
                   mStreamHeaderLists.push_back(list);
                   
