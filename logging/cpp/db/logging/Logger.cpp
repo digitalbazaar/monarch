@@ -185,13 +185,51 @@ Logger::LoggerFlags Logger::getFlags()
    return mFlags;
 }
 
+/**
+ * Adapted from glibc sprintf docs.
+ */
+char* Logger::makeMessage(const char *format, va_list varargs)
+{
+   /* Guess we need no more than 128 bytes. */
+   int n, size = 128;
+   char *p, *np;
+
+   if ((p = (char*)malloc(size)) == NULL)
+   {
+      return NULL;
+   }
+
+   while (1)
+   {
+      /* Try to print in the allocated space. */
+      n = vsnprintf(p, size, format, varargs);
+      /* If that worked, return the string. */
+      if (n > -1 && n < size)
+      {
+         return p;
+      }
+      /* Else try again with more space. */
+      if (n > -1)    /* glibc 2.1 */
+         size = n+1; /* precisely what is needed */
+      else           /* glibc 2.0 */
+         size *= 2;  /* twice the old size */
+      if ((np = (char*)realloc (p, size)) == NULL) {
+         free(p);
+         return NULL;
+      } else {
+         p = np;
+      }
+   }
+}
+
 bool Logger::log(
    Category* cat,
    Level level,
    const char* location,
    const void* object,
    LogFlags flags,
-   const char* message)
+   const char* format,
+   va_list varargs)
 {
    bool rval = false;
    
@@ -234,9 +272,9 @@ bool Logger::log(
 
       if((mFlags & LogObject) && (flags & LogObjectValid))
       {
-         char address[23];
          if(object)
          {
+            char address[23];
             snprintf(address, 23, "%p", object);
             logText.append(address);
          }
@@ -273,23 +311,14 @@ bool Logger::log(
          logText.push_back(' ');
       }
 
-      logText.append(message);
+      char* message = makeMessage(format, varargs);
+      if(message)
+      {
+         logText.append(message);
+         free(message);
+      }
       logText.push_back('\n');
       
-      /*
-      {
-         // pretty-print DynamicObject in JSON
-         JsonWriter jwriter;
-         jwriter.setCompact(false);
-         ostringstream oss;
-         OStreamOutputStream osos(&oss);
-         db::util::DynamicObject dyno = *((db::util::DynamicObject*)object);
-         jwriter.write(dyno, &osos);
-         logText.append(oss.str());
-         logText.push_back('\n');
-      }
-      */
-
       log(logText.c_str());
       rval = true;
 
@@ -299,6 +328,26 @@ bool Logger::log(
    return rval;
 }
 
+bool Logger::log(
+   Category* cat,
+   Level level,
+   const char* location,
+   const void* object,
+   LogFlags flags,
+   const char* format,
+   ...)
+{
+   bool rval;
+   
+   va_list varargs;
+   va_start(varargs, format);
+   rval = log(cat, level, location, object, flags, format, varargs);
+   va_end(varargs);
+   
+   return rval;
+}
+
+
 void Logger::logToLoggers(
    Category* registeredCat,
    Category* messageCat,
@@ -306,7 +355,8 @@ void Logger::logToLoggers(
    const char* location,
    const void* object,
    LogFlags flags,
-   const char* message)
+   const char* format,
+   va_list varargs)
 {
    if(sLoggers != NULL)
    {
@@ -320,10 +370,28 @@ void Logger::logToLoggers(
          {
             // Log the message
             Logger* logger = i->second;
-            logger->log(messageCat, level, location, object, flags, message);
+            logger->log(
+               messageCat, level, location, object, flags, format, varargs);
          }
       }
    }
+}
+
+void Logger::logToLoggers(
+   Category* registeredCat,
+   Category* messageCat,
+   Level level,
+   const char* location,
+   const void* object,
+   LogFlags flags,
+   const char* format,
+   ...)
+{
+   va_list varargs;
+   va_start(varargs, format);
+   logToLoggers(registeredCat, messageCat,
+      level, location, object, flags, format, varargs);
+   va_end(varargs);
 }
 
 void Logger::logToLoggers(
@@ -332,10 +400,27 @@ void Logger::logToLoggers(
    const char* location,
    const void* object,
    LogFlags flags,
-   const char* message)
+   const char* format,
+   va_list varargs)
 {
    // Log to loggers registered for this category
-   logToLoggers(cat, cat, level, location, object, flags, message);
+   logToLoggers(cat, cat, level, location, object, flags, format, varargs);
    // Log to loggers registered for all categories
-   logToLoggers(DB_ALL_CAT, cat, level, location, object, flags, message);
+   logToLoggers(
+      DB_ALL_CAT, cat, level, location, object, flags, format, varargs);
+}
+
+void Logger::logToLoggers(
+   Category* cat,
+   Level level,
+   const char* location,
+   const void* object,
+   LogFlags flags,
+   const char* format,
+   ...)
+{
+   va_list varargs;
+   va_start(varargs, format);
+   logToLoggers(cat, level, location, object, flags, format, varargs);
+   va_end(varargs);
 }

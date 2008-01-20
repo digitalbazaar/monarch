@@ -4,6 +4,7 @@
 #ifndef db_logging_Logger_H
 #define db_logging_Logger_H
 
+#include <stdarg.h>
 #include <map>
 #include <utility>
 #include <list>
@@ -168,6 +169,16 @@ protected:
     */
    static LoggerMap* sLoggers;
    
+   /**
+    * Convert a varargs list into a string.  Adapted from glibc sprintf docs.
+    * 
+    * @param format printf style format for a string
+    * @param varargs va_list of arguments for the format string.
+    * 
+    * @returns NULL on error or string. Caller must free memory;
+    */
+   static char* makeMessage(const char *format, va_list varargs);
+   
 public:
    /**
     * Creates a new logger with Max level and LogDefaultFlags flags.
@@ -249,7 +260,8 @@ public:
     * @param location the location of this log call or NULL (see DB_STRLOC)
     * @param object a source object or NULL
     * @param flags flags for this message
-    * @param message the log message
+    * @param format the log message format (printf style)
+    * @param va_list the log message args
     * 
     * @return true if the text was written, false if not.
     */
@@ -259,7 +271,32 @@ public:
       const char* location,
       const void* object,
       LogFlags flags,
-      const char* message);
+      const char* format,
+      va_list varargs);
+   
+   /**
+    * Log a message.  The implementation of this method should lock the logger,
+    * check the the log level, create a formatted message, and call the simple
+    * log(message) method as needed to perform message output.
+    *
+    * @param cat the message category name or NULL
+    * @param level the message level
+    * @param location the location of this log call or NULL (see DB_STRLOC)
+    * @param object a source object or NULL
+    * @param flags flags for this message
+    * @param format the log message format (printf style)
+    * @param ... the log message args
+    * 
+    * @return true if the text was written, false if not.
+    */
+   bool log(
+      db::logging::Category* cat, 
+      Level level,
+      const char* location,
+      const void* object,
+      LogFlags flags,
+      const char* format,
+      ...);
    
    /**
     * Log a message to all loggers registered for a category.
@@ -270,7 +307,8 @@ public:
     * @param location the location of this log call (or NULL) (see DB_STRLOC)
     * @param object a source object or NULL
     * @param flags flags for this message
-    * @param message the log message
+    * @param format the log message format (printf style)
+    * @param va_list the log message args
     */
    static void logToLoggers(
       db::logging::Category* registeredCat,
@@ -279,7 +317,30 @@ public:
       const char* location,
       const void* object,
       LogFlags flags,
-      const char* message);
+      const char* format,
+      va_list varargs);
+   
+   /**
+    * Log a message to all loggers registered for a category.
+    *
+    * @param registeredCat send to loggers registered with this category
+    * @param messageCat the message category
+    * @param level the message level
+    * @param location the location of this log call (or NULL) (see DB_STRLOC)
+    * @param object a source object or NULL
+    * @param flags flags for this message
+    * @param format the log message format (printf style)
+    * @param ... the log message args
+    */
+   static void logToLoggers(
+      db::logging::Category* registeredCat,
+      db::logging::Category* messageCat,
+      Level level,
+      const char* location,
+      const void* object,
+      LogFlags flags,
+      const char* format,
+      ...);
    
    /**
     * Log a message to all loggers registered for a category and to loggers
@@ -290,7 +351,8 @@ public:
     * @param location the location of this log call (or NULL) (see DB_STRLOC)
     * @param object a source object or NULL
     * @param flags flags for this message
-    * @param message the log message
+    * @param format the log message format (printf style)
+    * @param va_list the log message args
     */
    static void logToLoggers(
       db::logging::Category* cat,
@@ -298,8 +360,30 @@ public:
       const char* location,
       const void* object,
       LogFlags flags,
-      const char* message);
+      const char* format,
+      va_list varargs);
    
+   /**
+    * Log a message to all loggers registered for a category and to loggers
+    * registered for all categories.
+    *
+    * @param cat the message category
+    * @param level the message level
+    * @param location the location of this log call (or NULL) (see DB_STRLOC)
+    * @param object a source object or NULL
+    * @param flags flags for this message
+    * @param format the log message format (printf style)
+    * @param ... the log message args
+    */
+   static void logToLoggers(
+      db::logging::Category* cat,
+      Level level,
+      const char* location,
+      const void* object,
+      LogFlags flags,
+      const char* format,
+      ...);
+
    /**
     * Logs a pre-formatted message from the default full log() method.
     *
