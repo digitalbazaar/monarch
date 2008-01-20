@@ -8,7 +8,7 @@
 
 namespace db
 {
-namespace util
+namespace io
 {
 
 /**
@@ -145,6 +145,6 @@ public:
    virtual std::string& toString(std::string& str);
 };
 
-} // end namespace util
+} // end namespace io
 } // end namespace db
 #endif

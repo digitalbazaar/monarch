@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/util/BitStream.h"
+#include "db/io/BitStream.h"
 
-using namespace db::util;
+using namespace db::io;
 
 BitStream::BitStream()
 {
@@ -101,7 +101,7 @@ unsigned char BitStream::get(int bitOffset)
    
    return rval;
 }
-#include <iostream>
+
 void BitStream::get(int bitOffset, unsigned char* b, int count)
 {
    if(bitOffset < mLength && bitOffset % 8 == 0)
@@ -111,8 +111,6 @@ void BitStream::get(int bitOffset, unsigned char* b, int count)
    }
    else
    {
-      std::cout << "THIS IS THE PROBLEM" << std::endl;
-      
       // do unoptimized OR'ing of bits
       for(int i = 0; i < count && bitOffset < length(); i++)
       {
@@ -122,27 +120,6 @@ void BitStream::get(int bitOffset, unsigned char* b, int count)
             b[i] |= (*this)[bitOffset] ? (0x80 >> (n % 8)) : 0;
          }
       }
-      
-      std::cout << "bit stream first byte=";
-      for(int i = 0; i < 8; i++)
-      {
-         std::cout << ((*this)[bitOffset + i] ? '1' : '0'); 
-      }
-      std::cout << std::endl;
-      
-      std::cout << "result first byte=";
-      for(int i = 0; i < 8; i++)
-      {
-         std::cout << (((b[0] & (0x80 >> i)) != 0) ? '1' : '0');
-      }
-      std::cout << std::endl;
-      
-      std::cout << "underlying first byte=";
-      for(int i = 0; i < 8; i++)
-      {
-         std::cout << (((mBitSet[0] & (0x80 >> i)) != 0) ? '1' : '0');
-      }
-      std::cout << std::endl;
    }
 }
 
