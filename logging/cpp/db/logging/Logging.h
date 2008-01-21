@@ -138,6 +138,40 @@ static inline void DB_X(db::a a, db::b b, const char* loc,
 #define DB_DEBUG(args...) DB_STMT_EMPTY
 #endif
 
+/**
+ * Log a debug-data message.  May be compiled out.
+ */
+#ifndef DB_NDEBUG
+#define DB_CAT_OBJECT_DEBUG_DATA(cat, object, args...) \
+   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::DebugData, object, ##args)
+#define DB_CAT_DEBUG_DATA(cat, args...) \
+   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::DebugData, ##args)
+#define DB_DEBUG_DATA(args...) \
+   DB_CAT_DEBUG_DATA(DB_DEFAULT_CAT, ##args)
+#else
+#define DB_CAT_OBJECT_DEBUG_DATA(cat, object, args...) DB_STMT_EMPTY
+#define DB_CAT_DEBUG_DATA(cat, args...) DB_STMT_EMPTY
+#define DB_OBJ_DEBUG_DATA(args...) DB_STMT_EMPTY
+#define DB_DEBUG_DATA(args...) DB_STMT_EMPTY
+#endif
+
+/**
+ * Log a debug-detail message.  May be compiled out.
+ */
+#ifndef DB_NDEBUG
+#define DB_CAT_OBJECT_DEBUG_DETAIL(cat, object, args...) \
+   DB_CAT_LEVEL_OBJECT_LOG(cat, db::logging::Logger::DebugDetail, object, ##args)
+#define DB_CAT_DEBUG_DETAIL(cat, args...) \
+   DB_CAT_LEVEL_LOG(cat, db::logging::Logger::DebugDetail, ##args)
+#define DB_DEBUG_DETAIL(args...) \
+   DB_CAT_DEBUG_DETAIL(DB_DEFAULT_CAT, ##args)
+#else
+#define DB_CAT_OBJECT_DEBUG_DETAIL(cat, object, args...) DB_STMT_EMPTY
+#define DB_CAT_DEBUG_DETAIL(cat, args...) DB_STMT_EMPTY
+#define DB_OBJ_DEBUG_DETAIL(args...) DB_STMT_EMPTY
+#define DB_DEBUG_DETAIL(args...) DB_STMT_EMPTY
+#endif
+
 } // end namespace logging
 } // end namespace db
 #endif
