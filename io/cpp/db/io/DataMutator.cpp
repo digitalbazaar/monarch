@@ -66,8 +66,9 @@ int DataMutator::mutate(InputStream* is)
       if(rval != -1)
       {
          // try to mutate data
-         read = mAlgorithm->mutateData(
-            mSource, mDestination, mAlgorithmFinished) > 0;
+         rval = mAlgorithm->mutateData(
+            mSource, mDestination, mAlgorithmFinished);
+         read = (rval == 0);
       }
    }
    
