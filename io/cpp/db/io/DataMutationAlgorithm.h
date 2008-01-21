@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_data_DataMutationAlgorithm_H
-#define db_data_DataMutationAlgorithm_H
+#ifndef db_io_DataMutationAlgorithm_H
+#define db_io_DataMutationAlgorithm_H
 
 #include "db/io/ByteBuffer.h"
 
 namespace db
 {
-namespace data
+namespace io
 {
 
 /**
@@ -43,14 +43,13 @@ public:
     * @param dest the destination ByteBuffer to write the mutated bytes to.
     * @param finish true to finish the mutation algorithm, false not to.
     * 
-    * @return true if there was enough data in the source buffer to run the
+    * @return 1 if there was enough data in the source buffer to run the
     *         mutation algorithm (which may or may not produce mutated bytes),
-    *         false if more data is required.
+    *         0 if more data is required, or -1 if an exception occurred.
     */
-   virtual bool mutateData(
-      db::io::ByteBuffer* src, db::io::ByteBuffer* dest, bool finish) = 0;
+   virtual int mutateData(ByteBuffer* src, ByteBuffer* dest, bool finish) = 0;
 };
 
-} // end namespace data
+} // end namespace io
 } // end namespace db
 #endif

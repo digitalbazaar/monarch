@@ -1,10 +1,9 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/data/MutatorInputStream.h"
+#include "db/io/MutatorInputStream.h"
 
 using namespace db::io;
-using namespace db::data;
 
 MutatorInputStream::MutatorInputStream(
    InputStream* is, DataMutationAlgorithm* algorithm, bool cleanup) :
@@ -26,7 +25,7 @@ int MutatorInputStream::read(char* b, int length)
    int rval = 0;
    
    // mutate data
-   if(mMutator.mutate(mInputStream))
+   if(mMutator.mutate(mInputStream) > 0)
    {
       // get data from the mutator
       rval = mMutator.get(b, length);

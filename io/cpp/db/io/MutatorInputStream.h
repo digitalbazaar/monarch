@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_data_MutatorInputStream_H
-#define db_data_MutatorInputStream_H
+#ifndef db_io_MutatorInputStream_H
+#define db_io_MutatorInputStream_H
 
 #include "db/io/FilterInputStream.h"
 #include "db/io/ByteBuffer.h"
-#include "db/data/DataMutator.h"
+#include "db/io/DataMutator.h"
 
 namespace db
 {
-namespace data
+namespace io
 {
 
 /**
@@ -19,18 +19,18 @@ namespace data
  * 
  * @author Dave Longley
  */
-class MutatorInputStream : public db::io::FilterInputStream
+class MutatorInputStream : public FilterInputStream
 {
 protected:
    /**
     * An internal buffer for storing data read from the underlying stream.
     */
-   db::io::ByteBuffer mReadBuffer;
+   ByteBuffer mReadBuffer;
    
    /**
     * An internal buffer for storing mutated data.
     */
-   db::io::ByteBuffer mMutatedData;
+   ByteBuffer mMutatedData;
    
    /**
     * The DataMutator for this stream.
@@ -48,7 +48,7 @@ public:
     *                false not to.
     */
    MutatorInputStream(
-      db::io::InputStream* is,
+      InputStream* is,
       DataMutationAlgorithm* algorithm, bool cleanup = false);
    
    /**
@@ -86,6 +86,6 @@ public:
    virtual long long skip(long long count);
 };
 
-} // end namespace data
+} // end namespace io
 } // end namespace db
 #endif

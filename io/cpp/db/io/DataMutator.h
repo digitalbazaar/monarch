@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_data_DataMutator_H
-#define db_data_DataMutator_H
+#ifndef db_io_DataMutator_H
+#define db_io_DataMutator_H
 
 #include "db/io/ByteBuffer.h"
-#include "db/data/DataMutationAlgorithm.h"
+#include "db/io/DataMutationAlgorithm.h"
 
 namespace db
 {
-namespace data
+namespace io
 {
 
 /**
@@ -24,12 +24,12 @@ protected:
    /**
     * The source ByteBuffer with unmutated data.
     */
-   db::io::ByteBuffer* mSource;
+   ByteBuffer* mSource;
    
    /**
     * The destination ByteBuffer with mutated data.
     */
-   db::io::ByteBuffer* mDestination;
+   ByteBuffer* mDestination;
    
    /**
     * The algorithm used to mutate data.
@@ -41,6 +41,12 @@ protected:
     * flag set, false if not.
     */
    bool mAlgorithmFinished;
+   
+   /**
+    * A ByteBuffer used as a wrapper for source bytes to improve performance
+    * when input data doesn't need to be cached.
+    */
+   ByteBuffer mInputWrapper;
    
    /**
     * Gets data out of the source ByteBuffer, mutates it in some implementation
@@ -55,11 +61,12 @@ protected:
     * @param dest the destination ByteBuffer to write the mutated bytes to.
     * @param finish true to finish the mutation algorithm, false not to.
     * 
-    * @return true if there was enough data in the source buffer to run the
+    * @return 1 if there was enough data in the source buffer to run the
+    *         mutation algorithm (which may or may not produce mutated bytes),
+    *         0 if more data is required, or -1 if an exception occurred.
     *         mutation algorithm (which may or may not produce mutated bytes).
     */
-   virtual bool mutateData(
-      db::io::ByteBuffer* src, db::io::ByteBuffer* dest, bool finish);
+   virtual int mutateData(ByteBuffer* src, ByteBuffer* dest, bool finish);
    
 public:
    /**
@@ -68,7 +75,7 @@ public:
     * @param src the source ByteBuffer to read from.
     * @param dest the destination ByteBuffer to write to.
     */
-   DataMutator(db::io::ByteBuffer* src, db::io::ByteBuffer* dest);
+   DataMutator(ByteBuffer* src, ByteBuffer* dest);
    
    /**
     * Destructs this DataMutator.
@@ -92,11 +99,29 @@ public:
     * 
     * @param is the input stream to read from.
     * 
-    * @return 1 if mutated data is available, 0 if the end of the
-    *         stream has been reached and no more mutated data is available,
-    *         -1 if an IO exception occurred when reading from the stream.
+    * @return the number of mutated bytes, or 0 if the end of the stream has
+    *         been reached and no more mutated data is available, or -1 if an
+    *         exception occurred.
     */
-   virtual int mutate(db::io::InputStream* is);
+   virtual int mutate(InputStream* is);
+   
+   /**
+    * Runs a mutation algorithm on the passed data and returns the number of
+    * mutated bytes. If the data cannot be mutated, it will be stored in an
+    * internal buffer which will be appended to with the next mutate() call.
+    * 
+    * Keep in mind that that buffer will be expanded to accommodate any number
+    * of bytes that cannot be mutated.
+    * 
+    * This method is non-blocking.
+    * 
+    * @param b the bytes to mutate.
+    * @param length the number of bytes to mutate (0 to end the mutation).
+    * 
+    * @return the number of mutated bytes, which may be 0, or -1 if an
+    *         exception occurred.
+    */
+   virtual int mutate(const char* b, int length);
    
    /**
     * Runs a mutation algorithm on data read from the passed input stream
@@ -112,7 +137,7 @@ public:
     * 
     * @return the number of skipped mutated bytes.
     */
-   virtual long long skipMutatedBytes(db::io::InputStream* is, long long count);
+   virtual long long skipMutatedBytes(InputStream* is, long long count);
    
    /**
     * Gets data out of this mutator and puts it into the passed buffer. The
@@ -135,8 +160,36 @@ public:
     *         not.
     */
    virtual bool hasData();
+   
+   /**
+    * Sets the source ByteBuffer for this DataMutator.
+    * 
+    * @param src the source ByteBuffer to read from.
+    */
+   virtual void setSource(ByteBuffer* src);
+   
+   /**
+    * Gets direct access to the source ByteBuffer for this DataMutator.
+    * 
+    * @return this DataMutator's source ByteBuffer.
+    */
+   virtual ByteBuffer* getSource();
+   
+   /**
+    * Sets the destination ByteBuffer for this DataMutator.
+    * 
+    * @param src the source ByteBuffer to read from.
+    */
+   virtual void setDestination(ByteBuffer* dest);
+   
+   /**
+    * Gets direct access to the destination ByteBuffer for this DataMutator.
+    * 
+    * @return this DataMutator's destination ByteBuffer.
+    */
+   virtual ByteBuffer* getDestination();
 };
 
-} // end namespace data
+} // end namespace io
 } // end namespace db
 #endif
