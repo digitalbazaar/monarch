@@ -1,0 +1,10 @@
+# Makefile to compile the module in this directory
+
+SOURCES = $(wildcard db/compress/*.cpp) \
+          $(wildcard db/compress/gzip/*.cpp)
+
+LIBRARIES = dbcompress
+DYNAMIC_LINK_LIBRARIES = dbio dbutil dbrt
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base

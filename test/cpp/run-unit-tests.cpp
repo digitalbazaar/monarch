@@ -7063,6 +7063,19 @@ void runAviTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runGzipTest(TestRunner& tr)
+{
+   tr.group("Gzip");
+   
+   tr.test("...");
+   {
+      // FIXME
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class RunTests : public virtual Object, public Runnable
 {
 public:
@@ -7200,6 +7213,7 @@ public:
 //      runSmtpClientTest(tr);
 //      runRiffTest(tr);
 //      runAviTest(tr);
+//      runGzipTest(tr);
       
       assertNoException();
    }

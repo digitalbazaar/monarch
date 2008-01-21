@@ -102,6 +102,7 @@ AC_OUTPUT(Makefile \
           setup/docs.doxygen \
           config/cpp/Makefile \
           crypto/cpp/Makefile \
+          compress/cpp/Makefile \
           data/cpp/Makefile \
           event/cpp/Makefile \
           io/cpp/Makefile \
