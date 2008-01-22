@@ -6,6 +6,8 @@
 
 #include "db/io/DataMutationAlgorithm.h"
 
+#include <zlib.h>
+
 namespace db
 {
 namespace compress
@@ -25,6 +27,12 @@ namespace deflate
  */
 class Inflater : public db::io::DataMutationAlgorithm
 {
+protected:
+   /**
+    * The zip stream for decompressing data.
+    */
+   
+   
 public:
    /**
     * Creates a new Inflater.
@@ -53,7 +61,8 @@ public:
     *         mutation algorithm (which may or may not produce mutated bytes),
     *         0 if more data is required, or -1 if an exception occurred.
     */
-   virtual int mutateData(ByteBuffer* src, ByteBuffer* dest, bool finish);
+   virtual int mutateData(
+      db::io::ByteBuffer* src, db::io::ByteBuffer* dest, bool finish);
 };
 
 } // end namespace deflate
