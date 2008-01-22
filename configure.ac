@@ -2,7 +2,7 @@
 # Usage: Run ./configure once 
 # Author: Manu Sporny
 
-AC_INIT(dbcore, 3.0, support@digitalbazaar.com)
+AC_INIT([dbcore],[3.0],[support@digitalbazaar.com])
 AC_CONFIG_AUX_DIR(setup)
 
 # Setup standard build environment variables
@@ -10,12 +10,12 @@ DBCOREDIR=`pwd`
 
 # Check for particular build options
 AC_ARG_ENABLE([linux],
-               AC_HELP_STRING([--enable-linux],
+               AS_HELP_STRING([--enable-linux],
                               [compile for linux (default is YES)]),
               [ac_enable_linux_build=yes], [ac_enable_linux_build=yes])
 
 AC_ARG_ENABLE([windows],
-               AC_HELP_STRING([--enable-windows],
+               AS_HELP_STRING([--enable-windows],
                               [compile for windows (default is NO)]),
               [ac_enable_windows_build=yes], [ac_enable_windows_build=no])
 
@@ -96,7 +96,7 @@ AC_SUBST(DBCOREDIR)
 AC_SUBST(JAVADOC)
 
 # Generating files
-AC_OUTPUT(Makefile \
+AC_CONFIG_FILES([Makefile \
           3rdparty/cpp/Makefile \
           setup/Makefile.base \
           setup/docs.doxygen \
@@ -113,4 +113,5 @@ AC_OUTPUT(Makefile \
           sql/cpp/Makefile \
           logging/cpp/Makefile \
           test/cpp/Makefile \
-          util/cpp/Makefile)
+          util/cpp/Makefile])
+AC_OUTPUT
