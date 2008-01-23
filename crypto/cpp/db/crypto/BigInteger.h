@@ -55,14 +55,14 @@ public:
     * 
     * @param value the value for this BigInteger.
     */
-   BigInteger(long long value = 0);
+   BigInteger(unsigned long long value);
    
    /**
     * Creates a new BigInteger with the specified value.
     * 
     * @param value the value for this BigInteger.
     */
-   BigInteger(unsigned long value);
+   BigInteger(long long value);
    
    /**
     * Creates a new BigInteger with the specified value.
@@ -76,7 +76,7 @@ public:
     * 
     * @param value the value for this BigInteger.
     */
-   BigInteger(unsigned int value);
+   BigInteger(unsigned int value = 0);
    
    /**
     * Creates a new BigInteger with the specified value.
@@ -120,6 +120,15 @@ public:
     * 
     * @return this BigInteger.
     */
+   BigInteger& operator=(unsigned long long rhs);
+   
+   /**
+    * Sets this BigInteger's value to the passed value.
+    * 
+    * @param value the new value for this BigInteger.
+    * 
+    * @return this BigInteger.
+    */
    BigInteger& operator=(long long rhs);
    
    /**
@@ -129,7 +138,7 @@ public:
     * 
     * @return this BigInteger.
     */
-   BigInteger& operator=(unsigned long rhs);
+   BigInteger& operator=(unsigned int rhs);
    
    /**
     * Sets this BigInteger's value to the passed value.
@@ -139,15 +148,6 @@ public:
     * @return this BigInteger.
     */
    BigInteger& operator=(int rhs);
-   
-   /**
-    * Sets this BigInteger's value to the passed value.
-    * 
-    * @param value the new value for this BigInteger.
-    * 
-    * @return this BigInteger.
-    */
-   BigInteger& operator=(unsigned int rhs);
    
    /**
     * Sets this BigInteger's value to the passed value.
@@ -407,6 +407,13 @@ public:
     *         if not.
     */
    bool isCompact() const;
+   
+   /**
+    * Gets the value of this BigInteger as a 32-bit unsigned integer.
+    * 
+    * @return the value of this BigInteger as a 32-bit unsigned integer.
+    */
+   unsigned int getUInt32() const;
    
    /**
     * Gets the value of this BigInteger as a 64-bit integer.
