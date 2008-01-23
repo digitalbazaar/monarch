@@ -10,6 +10,16 @@ using namespace std;
 using namespace db::crypto;
 using namespace db::io;
 
+BigInteger::BigInteger(unsigned long long value)
+{
+   initialize();
+   
+   if(value != 0)
+   {
+      *this = value;
+   }
+}
+
 BigInteger::BigInteger(long long value)
 {
    initialize();
@@ -20,7 +30,7 @@ BigInteger::BigInteger(long long value)
    }
 }
 
-BigInteger::BigInteger(unsigned long value)
+BigInteger::BigInteger(unsigned int value)
 {
    initialize();
    
@@ -31,16 +41,6 @@ BigInteger::BigInteger(unsigned long value)
 }
 
 BigInteger::BigInteger(int value)
-{
-   initialize();
-   
-   if(value != 0)
-   {
-      *this = value;
-   }
-}
-
-BigInteger::BigInteger(unsigned int value)
 {
    initialize();
    
@@ -106,29 +106,25 @@ BigInteger& BigInteger::operator=(const BigInteger& rhs)
    return *this;
 }
 
-BigInteger& BigInteger::operator=(long long rhs)
+BigInteger& BigInteger::operator=(unsigned long long rhs)
 {
-   if(rhs > 0)
-   {
-      int rc = BN_set_word(mBigNum, (unsigned long)rhs);
-      assert(rc == 1);
-   }
-   else if(rhs == 0)
-   {
-      int rc = BN_zero(mBigNum);
-      assert(rc == 1);
-   }
-   else
-   {
-      int rc = BN_set_word(mBigNum, (unsigned long)-rhs);
-      assert(rc == 1);
-      mBigNum->neg = 1;
-   }
+   char temp[22];
+   sprintf(temp, "%llu", rhs);
+   *this = temp;
    
    return *this;
 }
 
-BigInteger& BigInteger::operator=(unsigned long rhs)
+BigInteger& BigInteger::operator=(long long rhs)
+{
+   char temp[22];
+   sprintf(temp, "%llu", rhs);
+   *this = temp;
+   
+   return *this;
+}
+
+BigInteger& BigInteger::operator=(unsigned int rhs)
 {
    int rc;
    
@@ -149,12 +145,6 @@ BigInteger& BigInteger::operator=(unsigned long rhs)
 BigInteger& BigInteger::operator=(int rhs)
 {
    *this = (long long)rhs;
-   return *this;
-}
-
-BigInteger& BigInteger::operator=(unsigned int rhs)
-{
-   *this = (unsigned long)rhs;
    return *this;
 }
 
@@ -345,6 +335,11 @@ bool BigInteger::isNegative() const
 bool BigInteger::isCompact() const
 {
    return BN_get_word(mBigNum) < 0xffffffffL;
+}
+
+unsigned int BigInteger::getUInt32() const
+{
+   return BN_get_word(mBigNum);
 }
 
 long long BigInteger::getInt64() const
