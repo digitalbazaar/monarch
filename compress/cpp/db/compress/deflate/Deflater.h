@@ -4,7 +4,7 @@
 #ifndef db_compress_deflate_Deflater_H
 #define db_compress_deflate_Deflater_H
 
-#include "db/io/DataMutationAlgorithm.h"
+#include "db/io/MutationAlgorithm.h"
 
 #include <zlib.h>
 
@@ -25,7 +25,7 @@ namespace deflate
  * 
  * @author Dave Longley
  */
-class Deflater : public db::io::DataMutationAlgorithm
+class Deflater : public db::io::MutationAlgorithm
 {
 protected:
    /**
@@ -149,23 +149,40 @@ public:
    
    /**
     * Gets data out of the source ByteBuffer, mutates it in some implementation
-    * specific fashion, and then puts it in the destination ByteBuffer. The
-    * actual number of mutated bytes is returned, which may be zero if there
-    * are not enough bytes in the source buffer to produce mutated bytes.
+    * specific fashion, and then puts it in the destination ByteBuffer.
     * 
-    * Note: The destination buffer will be resized to accommodate any mutated
-    * bytes.
+    * The return value of this method should be:
+    * 
+    * NeedsData: If this algorithm requires more data in the source buffer to
+    * execute its next step.
+    * 
+    * Stepped: If this algorithm had enough data to execute its next step,
+    * regardless of whether or not it wrote data to the destination buffer.
+    * 
+    * CompleteAppend: If this algorithm completed and any remaining source data
+    * should be appended to the data it wrote to the destination buffer.
+    * 
+    * CompleteTruncate: If this algorithm completed and any remaining source
+    * data must be cleared (it *must not* be appended to the data written to
+    * the destination buffer).
+    * 
+    * Error: If an exception occurred.
+    * 
+    * Once one a CompleteX result is returned, this method will no longer
+    * be called for the same data stream.
+    * 
+    * Note: The source and/or destination buffer may be resized by this
+    * algorithm to accommodate its data needs.
     * 
     * @param src the source ByteBuffer with bytes to mutate.
-    * @param dest the destination ByteBuffer to write the mutated bytes to.
-    * @param finish true to finish the mutation algorithm, false not to.
+    * @param dst the destination ByteBuffer to write the mutated bytes to.
+    * @param finish true if there will be no more source data and the mutation
+    *               algorithm should finish, false if there is more data.
     * 
-    * @return 1 if there was enough data in the source buffer to run the
-    *         mutation algorithm (which may or may not produce mutated bytes),
-    *         0 if more data is required, or -1 if an exception occurred.
+    * @return the MutationAlgorithm::Result.
     */
-   virtual int mutateData(
-      db::io::ByteBuffer* src, db::io::ByteBuffer* dest, bool finish);
+   virtual MutationAlgorithm::Result mutateData(
+      db::io::ByteBuffer* src, db::io::ByteBuffer* dst, bool finish);
    
    /**
     * Gets the total number of input bytes, so far, for the current

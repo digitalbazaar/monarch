@@ -5,8 +5,7 @@
 #define db_io_MutatorInputStream_H
 
 #include "db/io/FilterInputStream.h"
-#include "db/io/ByteBuffer.h"
-#include "db/io/DataMutator.h"
+#include "db/io/MutationAlgorithm.h"
 
 namespace db
 {
@@ -14,8 +13,8 @@ namespace io
 {
 
 /**
- * A MutatorInputStream uses a DataMutator with a specific
- * DataMutationAlgorithm to mutate data as it is read.
+ * A MutatorInputStream uses a MutationAlgorithm to mutate data as it is
+ * read from an underlying InputStream.
  * 
  * @author Dave Longley
  */
@@ -25,31 +24,40 @@ protected:
    /**
     * An internal buffer for storing data read from the underlying stream.
     */
-   ByteBuffer mReadBuffer;
+   ByteBuffer mSource;
    
    /**
     * An internal buffer for storing mutated data.
     */
-   ByteBuffer mMutatedData;
+   ByteBuffer mDestination;
    
    /**
-    * The DataMutator for this stream.
+    * The algorithm used to mutate data.
     */
-   DataMutator mMutator;
+   MutationAlgorithm* mAlgorithm;
+   
+   /**
+    * Stores the last mutation result.
+    */
+   MutationAlgorithm::Result mResult;
+   
+   /**
+    * Set to true once the underlying input stream has run out of data to read.
+    */
+   bool mSourceEmpty;
    
 public:
    /**
     * Creates a new MutatorInputStream that mutates data with the passed
-    * DataMutationAlgorithm.
+    * MutationAlgorithm.
     * 
     * @param is the underlying InputStream to read from.
-    * @param algorithm the DataMutationAlgorithm to use.
+    * @param algorithm the MutationAlgorithm to use.
     * @param cleanup true to clean up the passed InputStream when destructing,
     *                false not to.
     */
    MutatorInputStream(
-      InputStream* is,
-      DataMutationAlgorithm* algorithm, bool cleanup = false);
+      InputStream* is, MutationAlgorithm* algorithm, bool cleanup = false);
    
    /**
     * Destructs this MutatorInputStream.
@@ -70,20 +78,6 @@ public:
     *         stream has been reached or -1 if an IO exception occurred.
     */
    virtual int read(char* b, int length);
-   
-   /**
-    * Skips some bytes in the stream. This method will block until the
-    * some number of bytes up to specified number of bytes have been skipped
-    * or the end of the stream is reached. This method will return the
-    * number of bytes skipped or 0 if the end of the stream was reached or
-    * -1 if an IO exception occurred.
-    * 
-    * @param count the number of bytes to skip.
-    * 
-    * @return the actual number of bytes skipped, or -1 if the end of the
-    *         stream is reached or -1 if an IO exception occurred.
-    */
-   virtual long long skip(long long count);
 };
 
 } // end namespace io

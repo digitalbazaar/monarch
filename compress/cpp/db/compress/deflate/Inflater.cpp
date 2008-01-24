@@ -17,13 +17,8 @@ Inflater::~Inflater()
 {
 }
 
-int Inflater::mutateData(ByteBuffer* src, ByteBuffer* dest, bool finish)
+MutationAlgorithm::Result Inflater::mutateData(
+   ByteBuffer* src, ByteBuffer* dst, bool finish)
 {
-   int rval = 0;
-   
-   
-   
    // FIXME:
-   
-   return rval;
 }

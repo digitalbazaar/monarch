@@ -4,16 +4,18 @@
 #include "db/io/MutatorInputStream.h"
 
 using namespace db::io;
+using namespace db::rt;
 
 MutatorInputStream::MutatorInputStream(
-   InputStream* is, DataMutationAlgorithm* algorithm, bool cleanup) :
+   InputStream* is, MutationAlgorithm* algorithm, bool cleanup) :
    FilterInputStream(is, cleanup),
-   mReadBuffer(2048),
-   mMutatedData(4096),
-   mMutator(&mReadBuffer, &mMutatedData)
+   mSource(2048),
+   mDestination(4096)
 {
-   // set mutation algorithm
-   mMutator.setAlgorithm(algorithm);
+   // store mutation algorithm
+   mAlgorithm = algorithm;
+   mResult = MutationAlgorithm::NeedsData;
+   mSourceEmpty = false;
 }
 
 MutatorInputStream::~MutatorInputStream()
@@ -24,17 +26,63 @@ int MutatorInputStream::read(char* b, int length)
 {
    int rval = 0;
    
-   // mutate data
-   if(mMutator.mutate(mInputStream) > 0)
+   // mutate while no data is available and algorithm not complete
+   while(rval == 0 && mResult < MutationAlgorithm::CompleteAppend)
    {
-      // get data from the mutator
-      rval = mMutator.get(b, length);
+      // try to mutate data
+      mResult = mAlgorithm->mutateData(&mSource, &mDestination, mSourceEmpty);
+      switch(mResult)
+      {
+         case MutationAlgorithm::NeedsData:
+            if(mSource.isFull())
+            {
+               // no more data available for algorithm
+               Exception* e = new Exception(
+                  "Insufficient data for mutation algorithm!",
+                  "db.io.MutationException");
+               Exception::setLast(e);
+               rval = -1;
+            }
+            else
+            {
+               // read more data from underlying stream
+               mSourceEmpty = (mSource.put(mInputStream) == 0);
+            }
+            break;
+         default:
+            // set rval to available data
+            rval = mDestination.length();
+            break;
+      }
+   }
+   
+   // if the algorithm has completed, handle any excess source data
+   if(mResult >= MutationAlgorithm::CompleteAppend)
+   {
+      if(mResult == MutationAlgorithm::CompleteAppend)
+      {
+         // empty source into destination
+         mSource.get(&mDestination, mSource.length(), true);
+         
+         // get bytes from destination
+         rval = mDestination.get(b, length);
+         
+         if(rval == 0 && !mSourceEmpty)
+         {
+            // read bytes directly into passed buffer
+            rval = mInputStream->read(b, length);
+         }
+      }
+      else if(mDestination.isEmpty() && !mSourceEmpty)
+      {
+         // clear remaining bytes in underlying input stream
+         mSource.clear();
+         while(mSource.put(mInputStream) > 0)
+         {
+            mSource.clear();
+         }
+      }
    }
    
    return rval;
-}
-
-long long MutatorInputStream::skip(long long count)
-{
-   return mMutator.skipMutatedBytes(mInputStream, count);
 }

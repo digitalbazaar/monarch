@@ -68,6 +68,7 @@
 #include "db/io/ByteArrayOutputStream.h"
 #include "db/io/ByteBuffer.h"
 #include "db/io/BufferedOutputStream.h"
+#include "db/io/MutatorInputStream.h"
 #include "db/sql/Row.h"
 #include "db/sql/RowObject.h"
 #include "db/sql/sqlite3/Sqlite3Connection.h"
@@ -93,9 +94,12 @@
 #include "db/data/riff/RiffChunkHeader.h"
 #include "db/data/riff/RiffListHeader.h"
 #include "db/data/riff/RiffFormHeader.h"
+#include "db/compress/deflate/Deflater.h"
 
 using namespace std;
 using namespace db::test;
+using namespace db::compress;
+using namespace db::compress::deflate;
 using namespace db::config;
 using namespace db::crypto;
 using namespace db::event;
@@ -7063,6 +7067,73 @@ void runAviTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runDeflateTest(TestRunner& tr)
+{
+   tr.group("Deflate");
+   
+   // create test file
+   tr.test("create test file");
+   {
+      File testFile("/tmp/brump.txt");
+      FileOutputStream fos(&testFile);
+      string content = "brump brump brump 1234 brump brumper";
+      for(int i = 0; i < 1000; i++)
+      {
+         fos.write(content.c_str(), content.length());
+      }
+      fos.close();
+   }
+   tr.passIfNoException();
+   
+   tr.test("raw deflating file");
+   {
+      Deflater def;
+      def.startDeflating(-1, true);
+      
+      File in("/tmp/brump.txt");
+      FileInputStream fis(&in);
+      File out("/tmp/brump.zip");
+      FileOutputStream fos(&out);
+      
+      MutatorInputStream mis(&fis, &def, false);
+      char b[512];
+      int numBytes;
+      while((numBytes = mis.read(b, 512)) > 0)
+      {
+         fos.write(b, numBytes);
+      }
+      
+      fis.close();
+      fos.close();
+   }
+   tr.passIfNoException();
+   
+   tr.test("raw inflating file");
+   {
+      Deflater def;
+      def.startInflating(true);
+      
+      File in("/tmp/brump.zip");
+      FileInputStream fis(&in);
+      File out("/tmp/brump2.txt");
+      FileOutputStream fos(&out);
+      
+      MutatorInputStream mis(&fis, &def, false);
+      char b[512];
+      int numBytes;
+      while((numBytes = mis.read(b, 512)) > 0)
+      {
+         fos.write(b, numBytes);
+      }
+      
+      fis.close();
+      fos.close();
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 void runGzipTest(TestRunner& tr)
 {
    tr.group("Gzip");
@@ -7213,6 +7284,7 @@ public:
 //      runSmtpClientTest(tr);
 //      runRiffTest(tr);
 //      runAviTest(tr);
+//      runDeflateTest(tr);
 //      runGzipTest(tr);
       
       assertNoException();

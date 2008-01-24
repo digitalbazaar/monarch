@@ -32,7 +32,7 @@ int FilterInputStream::peek(char* b, int length, bool block)
 
 long long FilterInputStream::skip(long long count)
 {
-   return mInputStream->skip(count);
+   return InputStream::skip(count);
 }
 
 void FilterInputStream::close()

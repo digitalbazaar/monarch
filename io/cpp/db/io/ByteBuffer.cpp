@@ -214,8 +214,10 @@ int ByteBuffer::get(OutputStream* os)
 {
    int rval = mLength;
    
-   os->write(data(), mLength);
-   mOffset = mLength = 0;
+   if(os->write(data(), mLength))
+   {
+      mOffset = mLength = 0;
+   }
    
    return rval;
 }

@@ -4,7 +4,7 @@
 #ifndef db_compress_deflate_Inflater_H
 #define db_compress_deflate_Inflater_H
 
-#include "db/io/DataMutationAlgorithm.h"
+#include "db/io/MutationAlgorithm.h"
 
 #include <zlib.h>
 
@@ -25,7 +25,7 @@ namespace deflate
  * 
  * @author Dave Longley
  */
-class Inflater : public db::io::DataMutationAlgorithm
+class Inflater : public db::io::MutationAlgorithm
 {
 protected:
    /**
@@ -44,25 +44,8 @@ public:
     */
    virtual ~Inflater();
    
-   /**
-    * Gets data out of the source ByteBuffer, mutates it in some implementation
-    * specific fashion, and then puts it in the destination ByteBuffer. The
-    * actual number of mutated bytes is returned, which may be zero if there
-    * are not enough bytes in the source buffer to produce mutated bytes.
-    * 
-    * Note: The destination buffer will be resized to accommodate any mutated
-    * bytes.
-    * 
-    * @param src the source ByteBuffer with bytes to mutate.
-    * @param dest the destination ByteBuffer to write the mutated bytes to.
-    * @param finish true to finish the mutation algorithm, false not to.
-    * 
-    * @return 1 if there was enough data in the source buffer to run the
-    *         mutation algorithm (which may or may not produce mutated bytes),
-    *         0 if more data is required, or -1 if an exception occurred.
-    */
-   virtual int mutateData(
-      db::io::ByteBuffer* src, db::io::ByteBuffer* dest, bool finish);
+   virtual MutationAlgorithm::Result mutateData(
+      db::io::ByteBuffer* src, db::io::ByteBuffer* dst, bool finish);
 };
 
 } // end namespace deflate
