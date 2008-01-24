@@ -34,7 +34,7 @@ int MutatorInputStream::read(char* b, int length)
       switch(mResult)
       {
          case MutationAlgorithm::NeedsData:
-            if(mSource.isFull())
+            if(mSource.isFull() || mSourceEmpty)
             {
                // no more data available for algorithm
                Exception* e = new Exception(
@@ -82,6 +82,11 @@ int MutatorInputStream::read(char* b, int length)
             mSource.clear();
          }
       }
+   }
+   else
+   {
+      // get data from destination buffer
+      rval = mDestination.get(b, length);
    }
    
    return rval;
