@@ -69,6 +69,7 @@
 #include "db/io/ByteBuffer.h"
 #include "db/io/BufferedOutputStream.h"
 #include "db/io/MutatorInputStream.h"
+#include "db/io/MutatorOutputStream.h"
 #include "db/sql/Row.h"
 #include "db/sql/RowObject.h"
 #include "db/sql/sqlite3/Sqlite3Connection.h"
@@ -7085,7 +7086,7 @@ void runDeflateTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
-   tr.test("raw deflating file");
+   tr.test("raw deflating file via input stream");
    {
       Deflater def;
       def.startDeflating(-1, true);
@@ -7108,7 +7109,7 @@ void runDeflateTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
-   tr.test("raw inflating file");
+   tr.test("raw inflating file via input stream");
    {
       Deflater def;
       def.startInflating(true);
@@ -7128,6 +7129,58 @@ void runDeflateTest(TestRunner& tr)
       
       fis.close();
       fos.close();
+      
+      File testFile("/tmp/brump.txt");
+      assert(testFile.getLength() == out.getLength());
+   }
+   tr.passIfNoException();
+   
+   tr.test("raw deflating file via output stream");
+   {
+      Deflater def;
+      def.startDeflating(-1, true);
+      
+      File in("/tmp/brump.txt");
+      FileInputStream fis(&in);
+      File out("/tmp/brump.zip");
+      FileOutputStream fos(&out);
+      
+      MutatorOutputStream mos(&fos, &def, false);
+      char b[512];
+      int numBytes;
+      while((numBytes = fis.read(b, 512)) > 0)
+      {
+         mos.write(b, numBytes);
+      }
+      
+      fis.close();
+      mos.close();
+   }
+   tr.passIfNoException();
+   
+   tr.test("raw inflating file via output stream");
+   {
+      Deflater def;
+      def.startInflating(true);
+      
+      File in("/tmp/brump.zip");
+      FileInputStream fis(&in);
+      File out("/tmp/brump2.txt");
+      FileOutputStream fos(&out);
+      
+      MutatorOutputStream mos(&fos, &def, false);
+      char b[512];
+      int numBytes;
+      while((numBytes = fis.read(b, 512)) > 0)
+      {
+         mos.write(b, numBytes);
+      }
+      
+      fis.close();
+      mos.close();
+      
+      File testFile("/tmp/brump.txt");
+      assert(testFile.getLength() == out.getLength());
    }
    tr.passIfNoException();
    

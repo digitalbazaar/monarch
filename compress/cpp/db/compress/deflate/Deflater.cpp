@@ -189,6 +189,7 @@ int Deflater::process(ByteBuffer* dst, bool resize)
          
          // set output buffer, store old free space
          int freeSpace = dst->freeSpace();
+         dst->allocateSpace(freeSpace, false);
          mZipStream.next_out = (unsigned char*)dst->data();
          mZipStream.avail_out = freeSpace;
          
@@ -226,41 +227,55 @@ int Deflater::process(ByteBuffer* dst, bool resize)
 MutationAlgorithm::Result Deflater::mutateData(
    ByteBuffer* src, ByteBuffer* dst, bool finish)
 {
-   MutationAlgorithm::Result rval = MutationAlgorithm::CompleteAppend;
+   MutationAlgorithm::Result rval = MutationAlgorithm::Stepped;
    
    if(!mFinished)
    {
       if(mZipStream.avail_in == 0)
       {
-         // set more input
-         setInput(src->data(), src->length(), finish);
          if(src->isEmpty() && !finish)
          {
             // more data required
             rval = MutationAlgorithm::NeedsData;
          }
-      }
-      
-      // keep processing while not finished, no error, no output data,
-      // and while source data is not empty or while not finishing
-      int ret = 0;
-      while(!mFinished && ret != -1 &&
-            dst->isEmpty() && (!src->isEmpty() || mShouldFinish))
-      {
-         // try to process existing input
-         ret = process(dst, false);
-         if(ret == 0)
+         else
          {
-            // clear source and request more data
-            src->clear();
-            rval = MutationAlgorithm::NeedsData;
+            // set input
+            setInput(src->data(), src->length(), finish);
          }
       }
       
-      if(ret == -1)
+      // keep processing while no output data and algorithm stepped
+      while(dst->isEmpty() && rval == MutationAlgorithm::Stepped)
       {
-         rval = MutationAlgorithm::Error;
+         // try to process existing input
+         int ret = process(dst, false);
+         if(ret == 0)
+         {
+            // clear source
+            src->clear();
+            
+            // either request more data or algorithm is complete
+            rval = (!mFinished) ?
+               MutationAlgorithm::NeedsData :
+               MutationAlgorithm::CompleteAppend;
+         }
+         else if(ret == -1)
+         {
+            // exception occurred
+            rval = MutationAlgorithm::Error;
+         }
+         else if(mFinished)
+         {
+            // clear source
+            src->clear();
+         }
       }
+   }
+   else
+   {
+      // algorithm completed
+      rval = MutationAlgorithm::CompleteAppend;
    }
    
    return rval;
