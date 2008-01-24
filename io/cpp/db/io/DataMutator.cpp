@@ -13,7 +13,7 @@ DataMutator::DataMutator(ByteBuffer* src, ByteBuffer* dest)
    
    // no algorithm yet, use default
    mAlgorithm = this;
-   mAlgorithmFinished = false;
+   mAlgorithmExitCode = 0;
 }
 
 DataMutator::~DataMutator()
@@ -32,6 +32,12 @@ int DataMutator::mutateData(ByteBuffer* src, ByteBuffer* dest, bool finish)
          src->get(dest, src->length(), true);
          rval = 1;
       }
+      
+      if(finish)
+      {
+         // algorithm finished
+         mAlgorithmExitCode = rval = 2;
+      }
    }
    else
    {
@@ -45,7 +51,7 @@ int DataMutator::mutateData(ByteBuffer* src, ByteBuffer* dest, bool finish)
 void DataMutator::setAlgorithm(DataMutationAlgorithm* algorithm)
 {
    mAlgorithm = algorithm;
-   mAlgorithmFinished = false;
+   mAlgorithmExitCode = 0;
 }
 
 int DataMutator::mutate(InputStream* is)
@@ -53,34 +59,60 @@ int DataMutator::mutate(InputStream* is)
    int rval = 0;
    
    // mutate while no data is available and not finished
-   bool read = mSource->isEmpty();
-   while(rval != -1 && !hasData() && !mAlgorithmFinished)
+   bool finish = false;
+   bool read = false;
+   while(rval != -1 && !hasData() && mAlgorithmExitCode == 0)
    {
       // read as necessary
       if(read)
       {
          rval = mSource->put(is);
-         mAlgorithmFinished = (rval == 0);
+         finish = (rval == 0);
       }
       
       if(rval != -1)
       {
          // try to mutate data
-         rval = mAlgorithm->mutateData(
-            mSource, mDestination, mAlgorithmFinished);
-         read = (rval == 0);
+         rval = mAlgorithm->mutateData(mSource, mDestination, finish);
+         
+         if(rval > 1)
+         {
+            // algorithm completed
+            mAlgorithmExitCode = rval;
+         }
+         else
+         {
+            // read if mutation algorithm needs more data
+            read = (rval == 0);
+         }
       }
    }
    
-   if(hasData() && rval != -1)
+   // handle remaining source data if algorithm has completed
+   if(rval != -1 && mAlgorithmExitCode > 0)
    {
-      // mutation succeeded, data available
-      rval = mDestination->length();
+      if(mAlgorithmExitCode == 2)
+      {
+         // copy any source data to destination buffer
+         mSource->get(mDestination, mSource->length(), true);
+         
+         // fill destination buffer directly
+         rval = mDestination->put(is);
+      }
+      else if(mAlgorithmExitCode == 3)
+      {
+         // truncate remaining data
+         mSource->clear();
+         while((rval = mSource->put(is)) > 0)
+         {
+            mSource->clear();
+         }
+      }
    }
-   else if(rval > 0)
+   
+   if(rval > 0)
    {
-      // mutation succeeded, but no more data
-      rval = 0;
+      rval = mDestination->length();
    }
    
    return rval;
@@ -90,10 +122,10 @@ int DataMutator::mutate(const char* b, int length)
 {
    int rval = 0;
    
-   if(!mAlgorithmFinished)
+   if(mAlgorithmExitCode == 0)
    {
-      // set algorithm to finished if length is zero
-      mAlgorithmFinished = (length == 0);
+      // try to finish algorithm if length is zero
+      bool finish = (length == 0);
       
       // determine if there is any cached source data
       if(!mSource->isEmpty())
@@ -102,15 +134,13 @@ int DataMutator::mutate(const char* b, int length)
          mSource->put(b, length, true);
          
          // try to mutate data
-         rval = mAlgorithm->mutateData(
-            mSource, mDestination, mAlgorithmFinished);
+         rval = mAlgorithm->mutateData(mSource, mDestination, finish);
       }
       else
       {
          // try to mutate passed data without caching it
          mInputWrapper.setBytes((char*)b, 0, length, false);
-         rval = mAlgorithm->mutateData(
-            &mInputWrapper, mDestination, mAlgorithmFinished);
+         rval = mAlgorithm->mutateData(&mInputWrapper, mDestination, finish);
          
          // copy excess bytes into source buffer
          if(!mInputWrapper.isEmpty())
@@ -118,17 +148,27 @@ int DataMutator::mutate(const char* b, int length)
             mSource->put(&mInputWrapper, mInputWrapper.length(), true);
          }
       }
-      
-      if(hasData() && rval > 0)
+   }
+   
+   if(rval != -1)
+   {
+      if(mAlgorithmExitCode == 2)
       {
-         // mutation succeeded, data available
-         rval = mDestination->length();
+         // copy data to destination
+         mSource->get(mDestination, mSource->length(), true);
+         mDestination->put(b, length, true);
       }
-      else if(rval > 0)
+      else if(mAlgorithmExitCode == 3)
       {
-         // mutation succeeded, but no more data
-         rval = 0;
+         // truncate data
+         mSource->clear();
+         mDestination->clear();
       }
+   }
+   
+   if(rval > 0)
+   {
+      rval = mDestination->length();
    }
    
    return rval;
