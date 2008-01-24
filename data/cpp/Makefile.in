@@ -11,7 +11,7 @@ SOURCES = $(wildcard db/data/*.cpp) \
 
 
 LIBRARIES = dbdata
-DYNAMIC_LINK_LIBRARIES = dbio dbutil dbrt
+DYNAMIC_LINK_LIBRARIES = dbio dbutil dbrt dblogging
 DYNAMIC_WINDOWS_LIBRARIES = expat
 
 # ----------- Standard Makefile
