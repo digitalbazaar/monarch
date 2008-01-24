@@ -39,7 +39,12 @@ protected:
    bool mDeflating;
    
    /**
-    * True when the current deflating/inflation has finished.
+    * True when the current deflation/inflation should finish.
+    */
+   bool mShouldFinish;
+   
+   /**
+    * True when the current deflation/inflation has finished.
     */
    bool mFinished;
    
@@ -116,36 +121,28 @@ public:
    virtual bool startInflating(bool raw);
    
    /**
-    * Updates the current deflation/inflation with more data and then
-    * writes the result to the passed ByteBuffer, resizing it if appropriate
-    * and if permitted.
+    * Sets the input data for the current deflation/inflation. This method
+    * should be called before the initial call to update() and whenever
+    * update() returns zero, if there is more input to process.
     * 
     * @param b the bytes to deflate/inflate.
     * @param length the number of bytes to deflate/inflate.
-    * @param dest the ByteBuffer to write the output to.
-    * @param resize true to permit resizing the ByteBuffer, false not to.
-    * 
-    * @return true if no exception occurred, false if not.
+    * @param finish true if the passed data is the last data to process.
     */
-   virtual bool update(
-      const char* b, int length, db::io::ByteBuffer* dest, bool resize);
+   virtual void setInput(const char* b, int length, bool finish);
    
    /**
-    * Finishes the current deflation/inflation and writes any extra output
-    * to the passed ByteBuffer, resizing it if appropriate and if permitted.
+    * Processes the current input (which was set via setInput()) and writes
+    * the resulting output to the passed ByteBuffer, resizing it if appropriate
+    * and if permitted.
     * 
-    * Note: If resize is false and an exception of type
-    * "db.compress.deflate.InsufficientBufferSpace" with a code of 0 is
-    * returned, then it is not fatal. It just means that finish should be
-    * called again after emptying the buffer until all of the data can be
-    * retrieved.
-    * 
-    * @param dest the ByteBuffer to write the output to.
+    * @param dst the ByteBuffer to write the output to.
     * @param resize true to permit resizing the ByteBuffer, false not to.
     * 
-    * @return true if no exception occurred, false if not.
+    * @return return the number of bytes written out, 0 if the buffer is
+    *         empty or if there is no input, -1 if an exception occurred.
     */
-   virtual bool finish(db::io::ByteBuffer* dest, bool resize);
+   virtual int process(db::io::ByteBuffer* dst, bool resize);
    
    /**
     * Gets data out of the source ByteBuffer, mutates it in some implementation

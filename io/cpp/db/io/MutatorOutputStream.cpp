@@ -67,6 +67,10 @@ bool MutatorOutputStream::write(const char* b, int length)
                write = false;
             }
             break;
+         case MutationAlgorithm::Error:
+            // exception
+            write = false;
+            break;
          default:
             if(!mDestination.isEmpty())
             {

@@ -7241,6 +7241,9 @@ public:
       //runSmtpClientTest(tr);
       runMailTemplateParser(tr);
       
+      // db::compress tests
+      runDeflateTest(tr);
+      
       assertNoException();
    }
 

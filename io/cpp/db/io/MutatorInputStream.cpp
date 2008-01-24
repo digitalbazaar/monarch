@@ -49,6 +49,9 @@ int MutatorInputStream::read(char* b, int length)
                mSourceEmpty = (mSource.put(mInputStream) == 0);
             }
             break;
+         case MutationAlgorithm::Error:
+            rval = -1;
+            break;
          default:
             // set rval to available data
             rval = mDestination.length();
@@ -83,7 +86,7 @@ int MutatorInputStream::read(char* b, int length)
          }
       }
    }
-   else
+   else if(mResult != MutationAlgorithm::Error)
    {
       // get data from destination buffer
       rval = mDestination.get(b, length);

@@ -12,6 +12,7 @@ using namespace db::rt;
 
 Deflater::Deflater()
 {
+   mShouldFinish = false;
    mFinished = false;
 }
 
@@ -51,14 +52,9 @@ Exception* Deflater::createException(int ret)
    {
       case Z_OK:
       case Z_STREAM_END:
-         // success, no exception
-         break;
       case Z_BUF_ERROR:
-         // not enough space in the buffers
-         rval = new Exception(
-            "Not enough buffer space!",
-            "db.compress.deflate.InsufficientBufferSpace", 0);
-         Exception::setLast(rval);
+         // success or not enough buffer space (not fatal), so no exception
+         break;
       case Z_MEM_ERROR:
          // not enough memory
          rval = new Exception(
@@ -78,6 +74,13 @@ Exception* Deflater::createException(int ret)
          rval = new Exception(
             "Invalid zip stream parameters! Null pointer?",
             "db.compress.deflate.InvalidZipStreamParams", 3);
+         Exception::setLast(rval);
+         break;
+      default:
+         // something else went wrong
+         rval = new Exception(
+            "Could not inflate/deflate!",
+            "db.compress.deflate.Error", 4);
          Exception::setLast(rval);
          break;
    }
@@ -120,6 +123,7 @@ bool Deflater::startDeflating(int level, bool raw)
    }
    
    mDeflating = true;
+   mShouldFinish = false;
    mFinished = false;
    
    return (createException(ret) == NULL);
@@ -144,116 +148,77 @@ bool Deflater::startInflating(bool raw)
    }
    
    mDeflating = false;
+   mShouldFinish = false;
    mFinished = false;
    
    return (createException(ret) == NULL);
 }
-#include <iostream>
-bool Deflater::update(const char* b, int length, ByteBuffer* dest, bool resize)
+
+void Deflater::setInput(const char* b, int length, bool finish)
 {
-   bool rval = true;
-   
-   unsigned int in = length + mZipStream.avail_in;
-   while(rval && in > 0 && (resize || !dest->isFull()))
-   {
-      if(resize && dest->isFull())
-      {
-         // allocate space for output
-         dest->allocateSpace(length * 2, resize);
-      }
-      
-      // set output buffer, store old free space
-      unsigned int freeSpace = dest->freeSpace();
-      mZipStream.next_out = (unsigned char*)dest->data();
-      mZipStream.avail_out = freeSpace;
-      
-      // update input buffer if it is empty
-      if(mZipStream.avail_in == 0)
-      {
-         mZipStream.next_in = (unsigned char*)b;
-         mZipStream.avail_in = length;
-      }
-      
-      // store available in
-      unsigned int store = mZipStream.avail_in;
-      
-      // when deflating, let zlib determine flushing to maximize compression
-      // when inflating, dump output whenever possible
-      int ret = (mDeflating) ?
-         ::deflate(&mZipStream, Z_NO_FLUSH) :
-         ::inflate(&mZipStream, Z_SYNC_FLUSH);
-      
-      // extend destination buffer by data written to it
-      dest->extend(freeSpace - mZipStream.avail_out);
-      
-      // decrement in
-      in -= (store - mZipStream.avail_in);
-      
-      // handle potential exception
-      rval = (createException(ret) == NULL);
-      
-      if(rval && !mDeflating && !dest->isEmpty() && in < mZipStream.avail_in)
-      {
-         // break out if inflating
-         break;
-      }
-   }
-   
-   std::cout << "dest capacity=" << dest->capacity() << std::endl;
-   
-   return rval;
+   // set zip stream input buffer
+   mZipStream.next_in = (unsigned char*)b;
+   mZipStream.avail_in = length;
+   mShouldFinish = finish;
 }
 
-bool Deflater::finish(ByteBuffer* dest, bool resize)
+int Deflater::process(ByteBuffer* dst, bool resize)
 {
-   bool rval = true;
-   
-   std::cout << "DOING FINISH" << std::endl;
+   int rval = 0;
    
    if(!mFinished)
    {
-      // do update to empty input buffer
-      rval = update(NULL, 0, dest, resize);
+      // when deflating, let zlib determine flushing to maximize compression
+      // when inflating, flush output whenever possible
+      int flush = (mShouldFinish) ?
+         Z_FINISH : ((mDeflating) ? Z_NO_FLUSH : Z_SYNC_FLUSH);
       
-      // do finish
-      while(rval && !mFinished && (resize || !dest->isFull()))
+      // keep processing while no error, no output data, while there is
+      // input data or processing should finish, and while there is room
+      // to store the output data or if the destination buffer can be
+      // resized
+      while(rval == 0 &&
+            (mZipStream.avail_in > 0 || mShouldFinish) &&
+            (resize || !dst->isFull()))
       {
-         // allocate space for trailer information
-         dest->allocateSpace(mZipStream.avail_in + 256, resize);
+         if(resize && dst->isFull())
+         {
+            // allocate space for output
+            dst->allocateSpace(1024, resize);
+         }
          
          // set output buffer, store old free space
-         unsigned int freeSpace = dest->freeSpace();
-         mZipStream.next_out = (unsigned char*)dest->data();
+         int freeSpace = dst->freeSpace();
+         mZipStream.next_out = (unsigned char*)dst->data();
          mZipStream.avail_out = freeSpace;
          
-         // finish deflating/inflating
+         // perform deflation/inflation
          int ret = (mDeflating) ?
-            ::deflate(&mZipStream, Z_FINISH) :
-            ::inflate(&mZipStream, Z_FINISH);
+            ::deflate(&mZipStream, flush) :
+            ::inflate(&mZipStream, flush);
          
          // extend destination buffer by data written to it
-         dest->extend(freeSpace - mZipStream.avail_out);
+         int length = freeSpace - mZipStream.avail_out;
+         dst->extend(length);
          
-         if(ret == Z_OK)
+         // handle potential exception
+         if(createException(ret) != NULL)
          {
-            if(!resize)
-            {
-               // not enough space in the buffer
-               ret = Z_BUF_ERROR;
-            }
+            rval = -1;
          }
          else
          {
-            // now finished
-            mFinished = true;
+            // return number of output bytes
+            rval = length;
          }
          
-         // handle potential exception
-         rval = (createException(ret) == NULL);
+         if(ret == Z_STREAM_END)
+         {
+            // finished
+            mFinished = true;
+         }
       }
    }
-   
-   std::cout << "dest capacity=" << dest->capacity() << std::endl;
    
    return rval;
 }
@@ -261,31 +226,44 @@ bool Deflater::finish(ByteBuffer* dest, bool resize)
 MutationAlgorithm::Result Deflater::mutateData(
    ByteBuffer* src, ByteBuffer* dst, bool finish)
 {
-//   int rval = 1;
-//   
-//   if(!mFinished)
-//   {
-//      if(src->isEmpty() && !finish)
-//      {
-//         // not enough data
-//         rval = 0;
-//      }
-//      else if(!src->isEmpty())
-//      {
-//         // update deflation/inflation
-//         rval = (update(src->data(), src->length(), dest, true) ? 1 : -1);
-//         src->clear();
-//      }
-//      
-//      // only finish if destination is empty
-//      if(finish && dest->isEmpty())
-//      {
-//         // finish deflation/inflation
-//         rval = (this->finish(dest, true) ? 1 : -1);
-//      }
-//   }
-//   
-//   return rval;
+   MutationAlgorithm::Result rval = MutationAlgorithm::CompleteAppend;
+   
+   if(!mFinished)
+   {
+      if(mZipStream.avail_in == 0)
+      {
+         // set more input
+         setInput(src->data(), src->length(), finish);
+         if(src->isEmpty() && !finish)
+         {
+            // more data required
+            rval = MutationAlgorithm::NeedsData;
+         }
+      }
+      
+      // keep processing while not finished, no error, no output data,
+      // and while source data is not empty or while not finishing
+      int ret = 0;
+      while(!mFinished && ret != -1 &&
+            dst->isEmpty() && (!src->isEmpty() || mShouldFinish))
+      {
+         // try to process existing input
+         ret = process(dst, false);
+         if(ret == 0)
+         {
+            // clear source and request more data
+            src->clear();
+            rval = MutationAlgorithm::NeedsData;
+         }
+      }
+      
+      if(ret == -1)
+      {
+         rval = MutationAlgorithm::Error;
+      }
+   }
+   
+   return rval;
 }
 
 unsigned long long Deflater::getTotalInputBytes()
