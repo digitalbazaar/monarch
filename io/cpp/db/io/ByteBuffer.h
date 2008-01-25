@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_io_ByteBuffer_H
 #define db_io_ByteBuffer_H
@@ -282,6 +282,14 @@ public:
    virtual int extend(int length);
    
    /**
+    * Gets the first byte in this ByteBuffer and increments the internal
+    * pointer. Do not call this method if this ByteBuffer is empty.
+    * 
+    * @return the first byte in this ByteBuffer.
+    */
+   virtual unsigned char next();
+   
+   /**
     * Gets the capacity of this buffer.
     * 
     * @return the capacity of this buffer.
@@ -325,6 +333,14 @@ public:
     * @return the bytes in this buffer starting at the valid offset.
     */
    virtual char* data() const;
+   
+   /**
+    * Gets the bytes in this buffer as unsigned bytes starting at the valid
+    * offset for this buffer.
+    * 
+    * @return the unsigned bytes in this buffer starting at the valid offset.
+    */
+   virtual unsigned char* udata() const;
    
    /**
     * Gets the offset at which the bytes start in this buffer.

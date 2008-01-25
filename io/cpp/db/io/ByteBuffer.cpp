@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/ByteBuffer.h"
 
@@ -119,7 +119,7 @@ int ByteBuffer::put(unsigned char b, bool resize)
    if(freeSpace() > 0)
    {
       // put byte into the buffer
-      ((unsigned char*)data())[mLength++] = b;
+      udata()[mLength++] = b;
       rval++;
    }
    
@@ -174,7 +174,7 @@ int ByteBuffer::get(unsigned char& b)
    if(mLength > 0)
    {
       // get byte
-      b = ((unsigned char*)data())[0];
+      b = udata()[0];
       
       // move internal pointer
       mOffset++;
@@ -274,6 +274,12 @@ int ByteBuffer::extend(int length)
    return rval;
 }
 
+unsigned char ByteBuffer::next()
+{
+   mLength--;
+   return udata()[mOffset++];
+}
+
 int ByteBuffer::capacity() const
 {
    return mCapacity;
@@ -304,6 +310,11 @@ char* ByteBuffer::bytes() const
 char* ByteBuffer::data() const
 {
    return mBuffer + mOffset;
+}
+
+unsigned char* ByteBuffer::udata() const
+{
+   return (unsigned char*)(mBuffer + mOffset);
 }
 
 int ByteBuffer::offset() const
