@@ -4,6 +4,7 @@
 #include "db/compress/gzip/Header.h"
 
 #include "db/rt/System.h"
+#include <zlib.h>
 
 using namespace std;
 using namespace db::compress::gzip;

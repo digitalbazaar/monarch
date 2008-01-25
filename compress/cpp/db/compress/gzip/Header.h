@@ -6,8 +6,6 @@
 
 #include "db/io/ByteBuffer.h"
 
-#include <zlib.h>
-
 namespace db
 {
 namespace compress

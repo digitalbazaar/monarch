@@ -4,6 +4,8 @@
 #ifndef db_compress_gzip_Trailer_H
 #define db_compress_gzip_Trailer_H
 
+#include "db/io/ByteBuffer.h"
+
 namespace db
 {
 namespace compress
@@ -30,6 +32,17 @@ namespace gzip
  */
 class Trailer
 {
+protected:
+   /**
+    * The CRC-32 value for this trailer.
+    */
+   unsigned int mCrc32;
+   
+   /**
+    * The input size of the original data.
+    */
+   unsigned int mInputSize;
+   
 public:
    /**
     * Creates a new Trailer.
@@ -40,6 +53,53 @@ public:
     * Destructs this Trailer.
     */
    virtual ~Trailer();
+   
+   /**
+    * Tries to convert this header from an array of bytes.
+    * 
+    * @param b the array of bytes to convert from.
+    * @param length the number of bytes in the array to convert from.
+    * 
+    * @return the number of extra bytes required to convert this header from
+    *         the passed array of bytes, 0 if no more bytes are required,
+    *         and -1 if an exception occurred.
+    */
+   virtual int convertFromBytes(char* b, int length);
+   
+   /**
+    * Writes this header to the passed ByteBuffer, resizing it if necessary.
+    * 
+    * @param b the ByteBuffer to write to.
+    */
+   virtual void convertToBytes(db::io::ByteBuffer* b);
+   
+   /**
+    * Sets the CRC-32 value for this trailer.
+    * 
+    * @param crc the CRC-32 value for this trailer.
+    */
+   virtual void setCrc32(unsigned int crc);
+   
+   /**
+    * Gets the CRC-32 value of this trailer.
+    * 
+    * @return the CRC-32 value of this trailer.
+    */
+   virtual unsigned int getCrc32();
+   
+   /**
+    * Sets the input size (ISIZE) for this trailer.
+    * 
+    * @param iSize the ISIZE for this trailer.
+    */
+   virtual void setInputSize(unsigned int iSize);
+   
+   /**
+    * Gets the ISIZE of this trailer.
+    *
+    * @return the ISIZE of this trailer.
+    */
+   virtual unsigned int getInputSize();
 };
 
 } // end namespace gzip
