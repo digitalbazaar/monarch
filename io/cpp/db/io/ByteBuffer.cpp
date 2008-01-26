@@ -18,7 +18,8 @@ ByteBuffer::ByteBuffer(int capacity)
 ByteBuffer::ByteBuffer(char* b, int offset, int length, bool cleanup)
 {
    // set the byte buffer
-   setBytes(b, offset, length, cleanup);
+   mCleanup = false;
+   ByteBuffer::setBytes(b, offset, length, cleanup);
 }
 
 ByteBuffer::ByteBuffer(const ByteBuffer& copy)
