@@ -7404,6 +7404,7 @@ public:
       
       // db::compress tests
       runDeflateTest(tr);
+      runGzipTest(tr);
       
       assertNoException();
    }
@@ -7449,7 +7450,7 @@ public:
 //      runRiffTest(tr);
 //      runAviTest(tr);
 //      runDeflateTest(tr);
-      runGzipTest(tr);
+//      runGzipTest(tr);
       
       assertNoException();
    }
@@ -7463,7 +7464,7 @@ public:
       
       tr.group(""); // root group
       runInteractiveUnitTests(tr);
-      //runAutomaticUnitTests(tr);
+      runAutomaticUnitTests(tr);
       tr.ungroup();
       
       assertNoException();

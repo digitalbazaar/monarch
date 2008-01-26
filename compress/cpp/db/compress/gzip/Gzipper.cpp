@@ -169,9 +169,13 @@ int Gzipper::process(ByteBuffer* dst, bool resize)
          if(mDeflating)
          {
             // do calculation on incoming data
-            mCrc32 = crc32(mCrc32, in, inLength - mZipStream.avail_in);
+            inLength = inLength - mZipStream.avail_in;
+            if(inLength > 0)
+            {
+               mCrc32 = crc32(mCrc32, in, inLength - mZipStream.avail_in);
+            }
          }
-         else
+         else if(rval > 0)
          {
             // do calculation on outgoing data
             mCrc32 = crc32(mCrc32, dst->udata() + dst->length() - rval, rval); 
