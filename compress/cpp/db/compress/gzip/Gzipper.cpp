@@ -70,7 +70,7 @@ Trailer* Gzipper::getTrailer()
    return mTrailer;
 }
 
-bool Gzipper::startCompressing(int level)
+Exception* Gzipper::startCompressing(int level)
 {
    // header/trailer not processed yet
    mHeaderProcessed = false;
@@ -87,7 +87,7 @@ bool Gzipper::startCompressing(int level)
    return startDeflating(level, true);
 }
 
-bool Gzipper::startDecompressing()
+Exception* Gzipper::startDecompressing()
 {
    // header/trailer not processed yet
    mHeaderProcessed = false;

@@ -98,9 +98,9 @@ public:
     * @param raw true to output a raw DEFLATE stream, false to include a zlib
     *            header and trailer.
     * 
-    * @return true if no exception occurred, false if not.
+    * @return an exception if one occurred, NULL if not.
     */
-   virtual bool startDeflating(
+   virtual db::rt::Exception* startDeflating(
       int level = Z_DEFAULT_COMPRESSION,
       bool raw = true);
    
@@ -119,9 +119,9 @@ public:
     * @param raw true to input a raw DEFLATE stream, false to check for a zlib
     *            header and trailer.
     * 
-    * @return true if no exception occurred, false if not.
+    * @return an exception if one occurred, NULL if not.
     */
-   virtual bool startInflating(bool raw);
+   virtual db::rt::Exception* startInflating(bool raw);
    
    /**
     * Sets the input data for the current deflation/inflation. This method

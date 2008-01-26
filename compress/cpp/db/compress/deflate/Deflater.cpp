@@ -97,7 +97,7 @@ Exception* Deflater::createException(int ret)
    return rval;
 }
 
-bool Deflater::startDeflating(int level, bool raw)
+Exception* Deflater::startDeflating(int level, bool raw)
 {
    // clean up previous stream
    cleanupStream();
@@ -123,10 +123,10 @@ bool Deflater::startDeflating(int level, bool raw)
    mShouldFinish = false;
    mFinished = false;
    
-   return (createException(ret) == NULL);
+   return createException(ret);
 }
 
-bool Deflater::startInflating(bool raw)
+Exception* Deflater::startInflating(bool raw)
 {
    // clean up previous stream
    cleanupStream();
@@ -148,7 +148,7 @@ bool Deflater::startInflating(bool raw)
    mShouldFinish = false;
    mFinished = false;
    
-   return (createException(ret) == NULL);
+   return createException(ret);
 }
 
 void Deflater::setInput(const char* b, int length, bool finish)

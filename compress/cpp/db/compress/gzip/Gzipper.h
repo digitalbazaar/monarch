@@ -141,9 +141,10 @@ public:
     * 
     * @param level the level of compression.
     * 
-    * @return true if no exception occurred, false if not.
+    * @return an exception if one occurred, NULL if not.
     */
-   virtual bool startCompressing(int level = Z_DEFAULT_COMPRESSION);
+   virtual db::rt::Exception* startCompressing(
+      int level = Z_DEFAULT_COMPRESSION);
    
    /**
     * Prepares this Gzipper to decompress some data that was previously
@@ -153,9 +154,9 @@ public:
     * same time, though once the current compression or decompression has
     * completed, it may be reused to do either operation.
     * 
-    * @return true if no exception occurred, false if not.
+    * @return an exception if one occurred, NULL if not.
     */
-   virtual bool startDecompressing();
+   virtual db::rt::Exception* startDecompressing();
    
    /**
     * Sets the input data for the current deflation/inflation. This method
