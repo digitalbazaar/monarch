@@ -2,7 +2,8 @@
 
 SOURCES = $(wildcard db/compress/*.cpp) \
           $(wildcard db/compress/deflate/*.cpp) \
-          $(wildcard db/compress/gzip/*.cpp)
+          $(wildcard db/compress/gzip/*.cpp) \
+          $(wildcard db/compress/zip/*.cpp)
 
 LIBRARIES = dbcompress
 DYNAMIC_LINK_LIBRARIES = dbio dbutil dbrt
