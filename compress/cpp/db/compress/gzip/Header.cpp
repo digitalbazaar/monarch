@@ -78,6 +78,7 @@ int Header::convertFromBytes(char* b, int length)
             "Data is not in gzip format!",
             "db.compress.gzip.InvalidHeader");
          Exception::setLast(e);
+         rval = -1;
       }
       else
       {
@@ -88,6 +89,7 @@ int Header::convertFromBytes(char* b, int length)
                "Data is not compressed using DEFLATE!",
                "db.compress.gzip.InvalidCompressionMethod");
             Exception::setLast(e);
+            rval = -1;
          }
          else
          {
@@ -199,12 +201,13 @@ int Header::convertFromBytes(char* b, int length)
                         "Bad CRC in gzip header!",
                         "db.compress.gzip.BadHeaderCrc");
                      Exception::setLast(e);
+                     rval = -1;
                   }
                }
             }
             
             // set the required number of bytes
-            if(length < headerSize)
+            if(rval != -1 && length < headerSize)
             {
                rval = headerSize - length;
             }

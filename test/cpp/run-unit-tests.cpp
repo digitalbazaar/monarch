@@ -7232,18 +7232,15 @@ void runGzipTest(TestRunner& tr)
    
    tr.test("decompressing file via input stream");
    {
-//      Gzipper gzipper;
-//      gzipper.startDecompressing();
-      Deflater def;
-      def.startInflating(false);
+      Gzipper gzipper;
+      gzipper.startDecompressing();
       
       File in("/tmp/brump.gz");
       FileInputStream fis(&in);
       File out("/tmp/brump2.txt");
       FileOutputStream fos(&out);
       
-//      MutatorInputStream mis(&fis, &gzipper, false);
-      MutatorInputStream mis(&fis, &def, false);
+      MutatorInputStream mis(&fis, &gzipper, false);
       char b[512];
       int numBytes;
       while((numBytes = mis.read(b, 512)) > 0)
@@ -7260,7 +7257,6 @@ void runGzipTest(TestRunner& tr)
    tr.passIfNoException();
    
    tr.test("compressing file via output stream");
-   if(false)
    {
       Gzipper gzipper;
       gzipper.startCompressing();
@@ -7284,7 +7280,6 @@ void runGzipTest(TestRunner& tr)
    tr.passIfNoException();
    
    tr.test("decompressing file via output stream");
-   if(false)
    {
       Gzipper gzipper;
       gzipper.startDecompressing();
@@ -7454,7 +7449,7 @@ public:
 //      runRiffTest(tr);
 //      runAviTest(tr);
 //      runDeflateTest(tr);
-//      runGzipTest(tr);
+      runGzipTest(tr);
       
       assertNoException();
    }
@@ -7468,7 +7463,7 @@ public:
       
       tr.group(""); // root group
       runInteractiveUnitTests(tr);
-      runAutomaticUnitTests(tr);
+      //runAutomaticUnitTests(tr);
       tr.ungroup();
       
       assertNoException();
