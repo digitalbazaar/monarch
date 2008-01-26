@@ -37,6 +37,7 @@ int MutatorInputStream::read(char* b, int length)
             if(mSource.isFull() || mSourceEmpty)
             {
                // no more data available for algorithm
+               mResult = MutationAlgorithm::Error;
                Exception* e = new Exception(
                   "Insufficient data for mutation algorithm!",
                   "db.io.MutationException");
@@ -76,13 +77,19 @@ int MutatorInputStream::read(char* b, int length)
             rval = mInputStream->read(b, length);
          }
       }
-      else if(mDestination.isEmpty() && !mSourceEmpty)
+      else
       {
-         // clear remaining bytes in underlying input stream
-         mSource.clear();
-         while(mSource.put(mInputStream) > 0)
+         // get remaining data from destination
+         rval = mDestination.get(b, length);
+         
+         if(mDestination.isEmpty() && !mSourceEmpty)
          {
+            // clear remaining bytes in underlying input stream
             mSource.clear();
+            while(mSource.put(mInputStream) > 0)
+            {
+               mSource.clear();
+            }
          }
       }
    }

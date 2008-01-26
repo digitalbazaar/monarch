@@ -55,6 +55,7 @@ bool MutatorOutputStream::write(const char* b, int length)
             if(finish)
             {
                // no more data available for algorithm
+               mResult = MutationAlgorithm::Error;
                Exception* e = new Exception(
                   "Insufficient data for mutation algorithm!",
                   "db.io.MutationException");
