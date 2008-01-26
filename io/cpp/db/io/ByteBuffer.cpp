@@ -278,7 +278,8 @@ int ByteBuffer::extend(int length)
 unsigned char ByteBuffer::next()
 {
    mLength--;
-   return udata()[mOffset++];
+   mOffset++;
+   return (udata() - 1)[0];
 }
 
 int ByteBuffer::capacity() const
