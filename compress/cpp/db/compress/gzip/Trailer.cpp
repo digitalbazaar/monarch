@@ -29,6 +29,8 @@ int Trailer::convertFromBytes(char* b, int length)
    }
    else
    {
+      // FIXME: format is little-endian, add macros
+      
       // wrap input in a ByteBuffer
       ByteBuffer bb(b, 0, length, false);
       
@@ -44,6 +46,8 @@ int Trailer::convertFromBytes(char* b, int length)
 
 void Trailer::convertToBytes(ByteBuffer* b)
 {
+   // FIXME: format is little-endian, add macros 
+   
    // write crc-32 and input size
    b->put((char*)&mCrc32, 4, true);
    b->put((char*)&mInputSize, 4, true);

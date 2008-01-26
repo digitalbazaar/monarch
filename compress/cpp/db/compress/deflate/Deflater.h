@@ -25,7 +25,7 @@ namespace deflate
  * 
  * @author Dave Longley
  */
-class Deflater : public db::io::MutationAlgorithm
+class Deflater : public virtual db::io::MutationAlgorithm
 {
 protected:
    /**
@@ -116,14 +116,17 @@ public:
     * time, though once the current deflation or inflation has completed, it
     * may be reused to do either operation.
     * 
+    * @param raw true to input a raw DEFLATE stream, false to check for a zlib
+    *            header and trailer.
+    * 
     * @return true if no exception occurred, false if not.
     */
    virtual bool startInflating(bool raw);
    
    /**
     * Sets the input data for the current deflation/inflation. This method
-    * should be called before the initial call to update() and whenever
-    * update() returns zero, if there is more input to process.
+    * should be called before the initial call to process() and whenever
+    * process() returns zero, if there is more input to process.
     * 
     * @param b the bytes to deflate/inflate.
     * @param length the number of bytes to deflate/inflate.
@@ -180,6 +183,20 @@ public:
     */
    virtual MutationAlgorithm::Result mutateData(
       db::io::ByteBuffer* src, db::io::ByteBuffer* dst, bool finish);
+   
+   /**
+    * Returns the amount of input data available.
+    * 
+    * @return the amount of input data available.
+    */
+   virtual bool inputAvailable();
+   
+   /**
+    * Returns whether or not this Deflater has finished deflating/inflating.
+    * 
+    * @return true if this Deflater is finished.
+    */
+   virtual bool isFinished();
    
    /**
     * Gets the total number of input bytes, so far, for the current

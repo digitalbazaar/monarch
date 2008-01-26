@@ -7,9 +7,6 @@ using namespace db::compress::deflate;
 using namespace db::io;
 using namespace db::rt;
 
-// Note: chunk sizes of 128K or 256K are recommended by zlib (if possible)
-#define CHUNK_SIZE 16384
-
 Deflater::Deflater()
 {
    mShouldFinish = false;
@@ -229,9 +226,9 @@ MutationAlgorithm::Result Deflater::mutateData(
 {
    MutationAlgorithm::Result rval = MutationAlgorithm::Stepped;
    
-   if(!mFinished)
+   if(!isFinished())
    {
-      if(mZipStream.avail_in == 0)
+      if(inputAvailable() == 0)
       {
          if(src->isEmpty() && !finish)
          {
@@ -252,33 +249,43 @@ MutationAlgorithm::Result Deflater::mutateData(
          int ret = process(dst, false);
          if(ret == 0)
          {
-            // clear source
-            src->clear();
-            
             // either request more data or algorithm is complete
-            rval = (!mFinished) ?
+            rval = (!isFinished()) ?
                MutationAlgorithm::NeedsData :
-               MutationAlgorithm::CompleteAppend;
+               MutationAlgorithm::CompleteTruncate;
          }
          else if(ret == -1)
          {
             // exception occurred
             rval = MutationAlgorithm::Error;
          }
-         else if(mFinished)
+         else if(isFinished())
          {
-            // clear source
-            src->clear();
+            // algorithm complete
+            rval = MutationAlgorithm::CompleteTruncate;
          }
+         
+         // clear source buffer of data that has been consumed
+         src->clear(src->length() - inputAvailable());
       }
    }
    else
    {
       // algorithm completed
-      rval = MutationAlgorithm::CompleteAppend;
+      rval = MutationAlgorithm::CompleteTruncate;
    }
    
    return rval;
+}
+
+bool Deflater::inputAvailable()
+{
+   return mZipStream.avail_in;
+}
+
+bool Deflater::isFinished()
+{
+   return mFinished;
 }
 
 unsigned long long Deflater::getTotalInputBytes()

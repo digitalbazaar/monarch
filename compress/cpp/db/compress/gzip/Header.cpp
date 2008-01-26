@@ -20,6 +20,9 @@ Header::Header()
    mFileComment = NULL;
    mHasCrc = false;
    mCrc = 0;
+   
+   // default to unknown file system
+   mFileSystemFlag = 0xff;
 }
 
 Header::~Header()
@@ -38,6 +41,21 @@ Header::~Header()
 int Header::convertFromBytes(char* b, int length)
 {
    int rval = 0;
+   
+   // FIXME: format is little-endian, add macros
+   
+   // clear extra field, filename, and file comment
+   mExtraField.clear();
+   if(mFilename != NULL)
+   {
+      free(mFilename);
+      mFilename = NULL;
+   }
+   if(mFileComment != NULL)
+   {
+      free(mFileComment);
+      mFileComment = NULL;
+   }
    
    // make sure there are at least 10 bytes available -- this is
    // the minimum header size
@@ -120,10 +138,6 @@ int Header::convertFromBytes(char* b, int length)
                   if(c == 0)
                   {
                      // filename read successfully
-                     if(mFilename != NULL)
-                     {
-                        free(mFilename);
-                     }
                      mFilename = strdup(filename.c_str());
                   }
                   else
@@ -153,10 +167,6 @@ int Header::convertFromBytes(char* b, int length)
                   if(c == 0)
                   {
                      // file comment read successfully
-                     if(mFileComment != NULL)
-                     {
-                        free(mFileComment);
-                     }
                      mFileComment = strdup(comment.c_str());
                   }
                   else
@@ -207,6 +217,8 @@ int Header::convertFromBytes(char* b, int length)
 
 void Header::convertToBytes(ByteBuffer* b)
 {
+   // FIXME: format is little-endian, add macros
+   
    // get the size of the header
    int headerSize = 10;
    if(mHasCrc)
@@ -237,7 +249,7 @@ void Header::convertToBytes(ByteBuffer* b)
    unsigned int time = System::getCurrentMilliseconds() / 1000;
    
    // write the MTIME (modification time)
-   b->put((char*)time, 4, true);
+   b->put((char*)&time, 4, true);
    
    // write the XFL (extra flags), no extra flags
    b->put(0x00, true);
@@ -264,7 +276,49 @@ void Header::setHasCrc(bool flag)
    mHasCrc = flag;
 }
 
+void Header::resetCrc()
+{
+   mCrc = 0;
+}
+
 void Header::setFileSystemFlag(unsigned char flag)
 {
    mFileSystemFlag = flag;
+}
+
+const char* Header::getFilename()
+{
+   return (mFilename == NULL) ? "" : mFilename;
+}
+
+const char* Header::getFileComment()
+{
+   return (mFileComment == NULL) ? "" : mFileComment;
+}
+
+int Header::getSize()
+{
+   int rval = 10;
+   
+   if(mExtraField.length() > 0)
+   {
+      rval += mExtraField.length() + 2;
+   }
+   
+   if(mFilename != NULL)
+   {
+      rval += strlen(mFilename);
+   }
+   
+   if(mFileComment != NULL)
+   {
+      rval += strlen(mFileComment);
+   }
+   
+   if(mHasCrc)
+   {
+      rval += 2;
+   }
+   
+   return rval;
 }

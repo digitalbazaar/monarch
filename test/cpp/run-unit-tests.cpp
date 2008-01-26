@@ -96,11 +96,13 @@
 #include "db/data/riff/RiffListHeader.h"
 #include "db/data/riff/RiffFormHeader.h"
 #include "db/compress/deflate/Deflater.h"
+#include "db/compress/gzip/Gzipper.h"
 
 using namespace std;
 using namespace db::test;
 using namespace db::compress;
 using namespace db::compress::deflate;
+using namespace db::compress::gzip;
 using namespace db::config;
 using namespace db::crypto;
 using namespace db::event;
@@ -7191,117 +7193,122 @@ void runGzipTest(TestRunner& tr)
 {
    tr.group("Gzip");
    
-//   // create test file
-//   tr.test("create test file");
-//   {
-//      File testFile("/tmp/brump.txt");
-//      FileOutputStream fos(&testFile);
-//      string content = "brump brump brump 1234 brump brumper";
-//      for(int i = 0; i < 1000; i++)
-//      {
-//         fos.write(content.c_str(), content.length());
-//      }
-//      fos.close();
-//   }
-//   tr.passIfNoException();
-//   
-//   tr.test("compressing file via input stream");
-//   {
-//      Deflater def;
-//      def.startDeflating(-1, true);
-//      
-//      File in("/tmp/brump.txt");
-//      FileInputStream fis(&in);
-//      File out("/tmp/brump.zip");
-//      FileOutputStream fos(&out);
-//      
-//      MutatorInputStream mis(&fis, &def, false);
-//      char b[512];
-//      int numBytes;
-//      while((numBytes = mis.read(b, 512)) > 0)
-//      {
-//         fos.write(b, numBytes);
-//      }
-//      
-//      fis.close();
-//      fos.close();
-//   }
-//   tr.passIfNoException();
-//   
-//   tr.test("decompressing file via input stream");
-//   {
-//      Deflater def;
-//      def.startInflating(true);
-//      
-//      File in("/tmp/brump.zip");
-//      FileInputStream fis(&in);
-//      File out("/tmp/brump2.txt");
-//      FileOutputStream fos(&out);
-//      
-//      MutatorInputStream mis(&fis, &def, false);
-//      char b[512];
-//      int numBytes;
-//      while((numBytes = mis.read(b, 512)) > 0)
-//      {
-//         fos.write(b, numBytes);
-//      }
-//      
-//      fis.close();
-//      fos.close();
-//      
-//      File testFile("/tmp/brump.txt");
-//      assert(testFile.getLength() == out.getLength());
-//   }
-//   tr.passIfNoException();
-//   
-//   tr.test("compressing file via output stream");
-//   {
-//      Deflater def;
-//      def.startDeflating(-1, true);
-//      
-//      File in("/tmp/brump.txt");
-//      FileInputStream fis(&in);
-//      File out("/tmp/brump.zip");
-//      FileOutputStream fos(&out);
-//      
-//      MutatorOutputStream mos(&fos, &def, false);
-//      char b[512];
-//      int numBytes;
-//      while((numBytes = fis.read(b, 512)) > 0)
-//      {
-//         mos.write(b, numBytes);
-//      }
-//      
-//      fis.close();
-//      mos.close();
-//   }
-//   tr.passIfNoException();
-//   
-//   tr.test("decompressing file via output stream");
-//   {
-//      Deflater def;
-//      def.startInflating(true);
-//      
-//      File in("/tmp/brump.zip");
-//      FileInputStream fis(&in);
-//      File out("/tmp/brump2.txt");
-//      FileOutputStream fos(&out);
-//      
-//      MutatorOutputStream mos(&fos, &def, false);
-//      char b[512];
-//      int numBytes;
-//      while((numBytes = fis.read(b, 512)) > 0)
-//      {
-//         mos.write(b, numBytes);
-//      }
-//      
-//      fis.close();
-//      mos.close();
-//      
-//      File testFile("/tmp/brump.txt");
-//      assert(testFile.getLength() == out.getLength());
-//   }
-//   tr.passIfNoException();
+   // create test file
+   tr.test("create test file");
+   {
+      File testFile("/tmp/brump.txt");
+      FileOutputStream fos(&testFile);
+      string content = "brump brump brump 1234 brump brumper";
+      for(int i = 0; i < 1000; i++)
+      {
+         fos.write(content.c_str(), content.length());
+      }
+      fos.close();
+   }
+   tr.passIfNoException();
+   
+   tr.test("compressing file via input stream");
+   {
+      Gzipper gzipper;
+      gzipper.startCompressing();
+      
+      File in("/tmp/brump.txt");
+      FileInputStream fis(&in);
+      File out("/tmp/brump.gz");
+      FileOutputStream fos(&out);
+      
+      MutatorInputStream mis(&fis, &gzipper, false);
+      char b[512];
+      int numBytes;
+      while((numBytes = mis.read(b, 512)) > 0)
+      {
+         fos.write(b, numBytes);
+      }
+      
+      fis.close();
+      fos.close();
+   }
+   tr.passIfNoException();
+   
+   tr.test("decompressing file via input stream");
+   {
+//      Gzipper gzipper;
+//      gzipper.startDecompressing();
+      Deflater def;
+      def.startInflating(false);
+      
+      File in("/tmp/brump.gz");
+      FileInputStream fis(&in);
+      File out("/tmp/brump2.txt");
+      FileOutputStream fos(&out);
+      
+//      MutatorInputStream mis(&fis, &gzipper, false);
+      MutatorInputStream mis(&fis, &def, false);
+      char b[512];
+      int numBytes;
+      while((numBytes = mis.read(b, 512)) > 0)
+      {
+         fos.write(b, numBytes);
+      }
+      
+      fis.close();
+      fos.close();
+      
+      File testFile("/tmp/brump.txt");
+      assert(testFile.getLength() == out.getLength());
+   }
+   tr.passIfNoException();
+   
+   tr.test("compressing file via output stream");
+   if(false)
+   {
+      Gzipper gzipper;
+      gzipper.startCompressing();
+      
+      File in("/tmp/brump.txt");
+      FileInputStream fis(&in);
+      File out("/tmp/brump.gz");
+      FileOutputStream fos(&out);
+      
+      MutatorOutputStream mos(&fos, &gzipper, false);
+      char b[512];
+      int numBytes;
+      while((numBytes = fis.read(b, 512)) > 0)
+      {
+         mos.write(b, numBytes);
+      }
+      
+      fis.close();
+      mos.close();
+   }
+   tr.passIfNoException();
+   
+   tr.test("decompressing file via output stream");
+   if(false)
+   {
+      Gzipper gzipper;
+      gzipper.startDecompressing();
+      
+      File in("/tmp/brump.gz");
+      FileInputStream fis(&in);
+      File out("/tmp/brump2.txt");
+      FileOutputStream fos(&out);
+      
+      MutatorOutputStream mos(&fos, &gzipper, false);
+      char b[512];
+      int numBytes;
+      while((numBytes = fis.read(b, 512)) > 0)
+      {
+         mos.write(b, numBytes);
+      }
+      
+      fis.close();
+      mos.close();
+      
+      File testFile("/tmp/brump.txt");
+      assert(testFile.getLength() == out.getLength());
+   }
+   tr.passIfNoException();
    
    tr.ungroup();
 }

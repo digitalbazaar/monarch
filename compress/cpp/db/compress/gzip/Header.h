@@ -76,7 +76,10 @@ namespace gzip
  * the two least significant bytes of the CRC32 for all the bytes in the gzip
  * header up to but not including the CRC16.
  *  
- * Gzip format information from: http://www.gzip.org/zlib/rfc-gzip.html 
+ * Gzip format information from: http://www.gzip.org/zlib/rfc-gzip.html
+ * 
+ * FIXME: The current implementation has no support for storing a file name
+ * or file comment to write out. It can, however, read that information in.
  * 
  * @author Dave Longley
  */
@@ -200,11 +203,37 @@ public:
    virtual void setHasCrc(bool flag);
    
    /**
+    * Resets the header's CRC.
+    */
+   virtual void resetCrc();
+   
+   /**
     * Sets the file system flag.
     * 
     * @param flag the file system flag to use.
     */
    virtual void setFileSystemFlag(unsigned char flag);
+   
+   /**
+    * Gets the filename, if any.
+    * 
+    * @return the filename, if any.
+    */
+   virtual const char* getFilename();
+   
+   /**
+    * Gets the file comment, if any.
+    * 
+    * @return the file comment, if any.
+    */
+   virtual const char* getFileComment();
+   
+   /**
+    * Gets the size of this header in bytes.
+    * 
+    * @return the size of this header in bytes.
+    */
+   virtual int getSize();
 };
 
 } // end namespace gzip
