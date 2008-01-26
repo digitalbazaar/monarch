@@ -224,7 +224,7 @@ public:
     * beginning). If more data is requested to be cleared than there is data,
     * all data will be cleared.
     * 
-    * Note: The underlying buffer will not be altered by this call, only
+    * Note: The underlying bytes will not be altered by this call, only
     * the internal pointer will be reset according to the length specified.
     * 
     * @param length the amount of data to clear from this buffer, a negative
@@ -237,7 +237,7 @@ public:
    /**
     * Clears all data from this buffer.
     * 
-    * Note: The underlying buffer will not be altered by this call, only
+    * Note: The underlying bytes will not be altered by this call, only
     * the internal pointer will be reset to 0.
     * 
     * @return the actual amount of data cleared.
