@@ -49,7 +49,7 @@ bool AviHeaderList::convertFromBytes(const char* b, int length)
    // convert the header
    int offset = 0;
    if(mRiffHeader.convertFromBytes(b + offset, length) &&
-      mRiffHeader.getIdentifier() ==  CHUNK_ID)
+      mRiffHeader.getIdentifier() == CHUNK_ID)
    {
       // step forward past RIFF header
       offset += RiffListHeader::HEADER_SIZE;
