@@ -160,24 +160,6 @@ public:
     * @return the number of bytes that were inspected in the passed buffer.
     */
    virtual int detectFormat(const char* b, int length) = 0;
-   
-   /**
-    * Gets a string identifier for the format that was detected.
-    * 
-    * @param str the string to populate with the format that was detected.
-    * 
-    * @return a string identifier for the format that was detected.
-    */
-   virtual std::string& getFormat(std::string& str) = 0;
-   
-   /**
-    * Gets a custom readable report on the data inspection.
-    * 
-    * @param str the string to populate.
-    * 
-    * @return a custom readable report on the data inspection.
-    */
-   virtual std::string& getInspectionReport(std::string& str) = 0;
 };
 
 } // end namespace data
