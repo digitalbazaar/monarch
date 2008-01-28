@@ -97,28 +97,28 @@ public:
    /**
     * Indicates whether or not the AVI has an Index Chunk.
     */
-   static const int AVIF_HASINDEX = 0x00000010;
+   static const uint32_t AVIF_HASINDEX = 0x00000010;
    
    /**
     * Indicates whether or not the index should determine the order of
     * the data.
     */
-   static const int AVIF_MUSTUSEINDEX = 0x00000020;
+   static const uint32_t AVIF_MUSTUSEINDEX = 0x00000020;
    
    /**
     * Indicates whether or not the file is interleaved.
     */
-   static const int AVIF_ISINTERLEAVED = 0x00000100;
+   static const uint32_t AVIF_ISINTERLEAVED = 0x00000100;
    
    /**
     * Indicates whether or not the file is used for capturing real-time video.
     */
-   static const int AVIF_WASCAPTUREFILE = 0x00010000;
+   static const uint32_t AVIF_WASCAPTUREFILE = 0x00010000;
    
    /**
     * Indicates whether or not the file contains copyrighted data.
     */
-   static const int AVIF_COPYRIGHTED = 0x00020000;
+   static const uint32_t AVIF_COPYRIGHTED = 0x00020000;
    
 protected:
    /**
@@ -196,14 +196,14 @@ public:
     * 
     * @return the number of microseconds per frame.
     */
-   virtual long getMicrosecondsPerFrame();
+   virtual uint32_t getMicrosecondsPerFrame();
    
    /**
     * Gets the maximum number of bytes per second.
     * 
     * @return the maximum number of bytes per second.
     */
-   virtual long getMaxBytesPerSecond();
+   virtual uint32_t getMaxBytesPerSecond();
    
    /**
     * Gets the padding granularity (typically 2048). Data should be padded
@@ -211,7 +211,7 @@ public:
     * 
     * @return the padding granularity (typically 2048).
     */
-   virtual long getPaddingGranularity();
+   virtual uint32_t getPaddingGranularity();
    
    /**
     * Returns true if the AVIF_HASINDEX flag is on.
@@ -253,56 +253,56 @@ public:
     * 
     * @return the total frames.
     */
-   virtual long getTotalFrames();
+   virtual uint32_t getTotalFrames();
    
    /**
     * Gets the initial frames.
     * 
     * @return the initial frames.
     */
-   virtual long getInitialFrames();
+   virtual uint32_t getInitialFrames();
    
    /**
     * Gets the number of streams.
     * 
     * @return the number of streams.
     */
-   virtual long getStreamCount();
+   virtual uint32_t getStreamCount();
    
    /**
     * Gets the suggested playback buffer size in bytes.
     * 
     * @return the suggested playback buffer size in bytes.
     */
-   virtual long getSuggestedBufferSize();
+   virtual uint32_t getSuggestedBufferSize();
    
    /**
     * Gets the width in pixels.
     * 
     * @return the width in pixels.
     */
-   virtual long getWidth();
+   virtual uint32_t getWidth();
       
    /**
     * Gets the height in pixels.
     * 
     * @return the height in pixels.
     */
-   virtual long getHeight();
+   virtual uint32_t getHeight();
    
    /**
     * Gets the time scale (typically 30).
     * 
     * @return the time scale (typically 30).
     */
-   virtual long getTimeScale();
+   virtual uint32_t getTimeScale();
    
    /**
     * Gets the data rate.
     * 
     * @return the data rate.
     */
-   virtual long getDataRate();
+   virtual uint32_t getDataRate();
    
    /**
     * Gets the frame rate (data rate / time scale).
@@ -316,21 +316,21 @@ public:
     * 
     * @return the starting time in time scale units (typically 0).
     */
-   virtual long getStartingTime();
+   virtual uint32_t getStartingTime();
    
    /**
     * Gets the video length in time scale units.
     * 
     * @return the video length in time scale units.
     */
-   virtual long getVideoLength();
+   virtual uint32_t getVideoLength();
    
    /**
     * Gets the time as calculated from microseconds/frame * total frames.
     * 
     * @return the time as calculated from microseconds/frame * total frames.
     */
-   virtual long getTotalTime();
+   virtual uint32_t getTotalTime();
    
    /**
     * Gets the time, in seconds, as calculated from microseconds/frame * total

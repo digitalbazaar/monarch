@@ -82,17 +82,17 @@ int AviHeader::getSize()
    return getChunkSize() + RiffChunkHeader::HEADER_SIZE;
 }
 
-long AviHeader::getMicrosecondsPerFrame()
+uint32_t AviHeader::getMicrosecondsPerFrame()
 {
    return readDWord(0);
 }
 
-long AviHeader::getMaxBytesPerSecond()
+uint32_t AviHeader::getMaxBytesPerSecond()
 {
    return readDWord(4);
 }
 
-long AviHeader::getPaddingGranularity()
+uint32_t AviHeader::getPaddingGranularity()
 {
    return readDWord(8);
 }
@@ -122,42 +122,42 @@ bool AviHeader::isAviCopyrighted()
    return readDWord(12) & AVIF_COPYRIGHTED;
 }
 
-long AviHeader::getTotalFrames()
+uint32_t AviHeader::getTotalFrames()
 {
    return readDWord(16);
 }
 
-long AviHeader::getInitialFrames()
+uint32_t AviHeader::getInitialFrames()
 {
    return readDWord(20);
 }
 
-long AviHeader::getStreamCount()
+uint32_t AviHeader::getStreamCount()
 {
    return readDWord(24);
 }
 
-long AviHeader::getSuggestedBufferSize()
+uint32_t AviHeader::getSuggestedBufferSize()
 {
    return readDWord(28);
 }
 
-long AviHeader::getWidth()
+uint32_t AviHeader::getWidth()
 {
    return readDWord(32);
 }
 
-long AviHeader::getHeight()
+uint32_t AviHeader::getHeight()
 {
    return readDWord(36);
 }
 
-long AviHeader::getTimeScale()
+uint32_t AviHeader::getTimeScale()
 {
    return readDWord(40);
 }
 
-long AviHeader::getDataRate()
+uint32_t AviHeader::getDataRate()
 {
    return readDWord(44);
 }
@@ -175,17 +175,17 @@ double AviHeader::getFrameRate()
    return rval;
 }
 
-long AviHeader::getStartingTime()
+uint32_t AviHeader::getStartingTime()
 {
    return readDWord(48);
 }
 
-long AviHeader::getVideoLength()
+uint32_t AviHeader::getVideoLength()
 {
    return readDWord(52);
 }
 
-long AviHeader::getTotalTime()
+uint32_t AviHeader::getTotalTime()
 {
    return getMicrosecondsPerFrame() * getTotalFrames();
 }
