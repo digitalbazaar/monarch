@@ -5,10 +5,10 @@
 
 using namespace db::compress::zip;
 
-ZipEntry::ZipEntry()
+ZipEntryImpl::ZipEntryImpl()
 {
 }
 
-ZipEntry::~ZipEntry()
+ZipEntryImpl::~ZipEntryImpl()
 {
 }

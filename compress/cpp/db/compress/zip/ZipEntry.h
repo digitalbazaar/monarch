@@ -4,6 +4,8 @@
 #ifndef db_compress_zip_ZipEntry_H
 #define db_compress_zip_ZipEntry_H
 
+#include "db/rt/Collectable.h"
+
 namespace db
 {
 namespace compress
@@ -12,26 +14,33 @@ namespace zip
 {
 
 /**
- * A ZipEntry contains information about a single file in a ZIP archive.
+ * A ZipEntryImpl provides the implementation for a reference-counted ZipEntry.
+ * 
+ * A ZipEntry is typedef'ed below.
  * 
  * @author Dave Longley
  */
-class ZipEntry
+class ZipEntryImpl
 {
 protected:
    // FIXME:
    
 public:
    /**
-    * Creates a new ZipEntry.
+    * Creates a new ZipEntryImpl.
     */
-   ZipEntry();
+   ZipEntryImpl();
    
    /**
-    * Destructs this ZipEntry.
+    * Destructs this ZipEntryImpl.
     */
-   virtual ~ZipEntry();
+   virtual ~ZipEntryImpl();
 };
+
+/**
+ * A ZipEntry contains information about a single file in a ZIP archive.
+ */
+typedef db::rt::Collectable<ZipEntryImpl> ZipEntry;
 
 } // end namespace zip
 } // end namespace compress

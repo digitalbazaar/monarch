@@ -7092,6 +7092,7 @@ void runDeflateTest(TestRunner& tr)
    {
       Deflater def;
       def.startDeflating(-1, true);
+      assertNoException();
       
       File in("/tmp/brump.txt");
       FileInputStream fis(&in);
@@ -7115,6 +7116,7 @@ void runDeflateTest(TestRunner& tr)
    {
       Deflater def;
       def.startInflating(true);
+      assertNoException();
       
       File in("/tmp/brump.zip");
       FileInputStream fis(&in);
@@ -7141,6 +7143,7 @@ void runDeflateTest(TestRunner& tr)
    {
       Deflater def;
       def.startDeflating(-1, true);
+      assertNoException();
       
       File in("/tmp/brump.txt");
       FileInputStream fis(&in);
@@ -7164,6 +7167,7 @@ void runDeflateTest(TestRunner& tr)
    {
       Deflater def;
       def.startInflating(true);
+      assertNoException();
       
       File in("/tmp/brump.zip");
       FileInputStream fis(&in);
@@ -7211,6 +7215,7 @@ void runGzipTest(TestRunner& tr)
    {
       Gzipper gzipper;
       gzipper.startCompressing();
+      assertNoException();
       
       File in("/tmp/brump.txt");
       FileInputStream fis(&in);
@@ -7234,6 +7239,7 @@ void runGzipTest(TestRunner& tr)
    {
       Gzipper gzipper;
       gzipper.startDecompressing();
+      assertNoException();
       
       File in("/tmp/brump.gz");
       FileInputStream fis(&in);
@@ -7260,6 +7266,7 @@ void runGzipTest(TestRunner& tr)
    {
       Gzipper gzipper;
       gzipper.startCompressing();
+      assertNoException();
       
       File in("/tmp/brump.txt");
       FileInputStream fis(&in);
@@ -7283,6 +7290,7 @@ void runGzipTest(TestRunner& tr)
    {
       Gzipper gzipper;
       gzipper.startDecompressing();
+      assertNoException();
       
       File in("/tmp/brump.gz");
       FileInputStream fis(&in);
