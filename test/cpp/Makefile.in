@@ -1,7 +1,23 @@
 # Makefile to compile the module in this directory
 
 SOURCES = $(wildcard db/test/*.cpp)
-EXECUTABLES = run-unit-tests
+EXECUTABLES = \
+	test-compress \
+	run-unit-tests \
+
+#	test-rt \
+#	test-io \
+#	test-config \
+#	test-modest \
+#	test-util \
+#	test-data \
+#	test-crypto \
+#	test-net \
+#	test-data \
+#	test-sql \
+#	test-event \
+#	test-mail \
+
 
 LIBRARIES = dbtest
 DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbio dblogging dbcrypto dbnet dbdata dbsql dbevent dbmail dbconfig dbcompress
