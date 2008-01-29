@@ -97,12 +97,14 @@
 #include "db/data/riff/RiffFormHeader.h"
 #include "db/compress/deflate/Deflater.h"
 #include "db/compress/gzip/Gzipper.h"
+#include "db/compress/zip/Zipper.h"
 
 using namespace std;
 using namespace db::test;
 using namespace db::compress;
 using namespace db::compress::deflate;
 using namespace db::compress::gzip;
+using namespace db::compress::zip;
 using namespace db::config;
 using namespace db::crypto;
 using namespace db::event;
@@ -7316,6 +7318,69 @@ void runGzipTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runZipTest(TestRunner& tr)
+{
+   tr.group("Zip");
+   
+   // create test files
+   tr.test("create test files");
+   {
+      {
+         File testFile("/tmp/brump-a.txt");
+         FileOutputStream fos(&testFile);
+         string content = "brump brump brump 1234 brump brumper";
+         for(int i = 0; i < 500; i++)
+         {
+            fos.write(content.c_str(), content.length());
+         }
+         fos.close();
+      }
+      
+      {
+         File testFile("/tmp/brump-b.txt");
+         FileOutputStream fos(&testFile);
+         string content = "brump brump brump 1234 brump brumper";
+         for(int i = 0; i < 1000; i++)
+         {
+            fos.write(content.c_str(), content.length());
+         }
+         fos.close();
+      }
+      
+      {
+         File testFile("/tmp/brump-c.txt");
+         FileOutputStream fos(&testFile);
+         string content = "brump brump brump 1234 brump brumper";
+         for(int i = 0; i < 1500; i++)
+         {
+            fos.write(content.c_str(), content.length());
+         }
+         fos.close();
+      }
+   }
+   tr.passIfNoException();
+   
+   tr.test("zip files");
+   {
+      File f1("/tmp/brump-a.txt");
+      File f2("/tmp/brump-b.txt");
+      File f3("/tmp/brump-c.txt");
+      
+      FileList fl(false);
+      fl.add(&f1);
+      fl.add(&f2);
+      fl.add(&f3);
+      
+      File out("/tmp/brump-zipped.zip");
+      
+      Zipper zipper;
+      zipper.zip(&fl, &out);
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class RunTests : public virtual Object, public Runnable
 {
 public:
@@ -7413,6 +7478,7 @@ public:
       // db::compress tests
       runDeflateTest(tr);
       runGzipTest(tr);
+      runZipTest(tr);
       
       assertNoException();
    }
@@ -7459,6 +7525,7 @@ public:
 //      runAviTest(tr);
 //      runDeflateTest(tr);
 //      runGzipTest(tr);
+//      runZipTest(tr);
       
       assertNoException();
    }

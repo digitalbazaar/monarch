@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_util_Date_H
 #define db_util_Date_H
@@ -42,6 +42,64 @@ public:
     * Destructs this Date.
     */
    virtual ~Date();
+   
+   /**
+    * Gets the second for this date (0-59).
+    * 
+    * @return the second for this date.
+    */
+   virtual int second();
+   
+   /**
+    * Gets the minute for this date (0-59).
+    * 
+    * @return the minute for this date.
+    */
+   virtual int minute();
+   
+   /**
+    * Gets the hour for this date (0-23).
+    * 
+    * @return the hour for this date.
+    */
+   virtual int hour();
+   
+   /**
+    * Gets the day of the month for this date (1-31).
+    * 
+    * @return the day of the month for this date.
+    */
+   virtual int day();
+   
+   /**
+    * Gets the month for this date (0-11).
+    * 
+    * @return the month for this date.
+    */
+   virtual int month();
+   
+   /**
+    * Gets the year for this date (since 1900).
+    * 
+    * @return the year for this date.
+    */
+   virtual int year();
+   
+   /**
+    * Sets this date according to an MS-DOS date & time.
+    * 
+    * @param dosTime the MS-DOS date & time.
+    */
+   virtual void setDosTime(unsigned int dosTime);
+   
+   /**
+    * Gets this date in MS-DOS format.
+    * 
+    * @param local true to use the local time, false not to.
+    * 
+    * @return this date in MS-DOS format.
+    */
+   virtual unsigned int dosTime(bool local = true);
    
    /**
     * Writes this Date to a string according to the passed format.
