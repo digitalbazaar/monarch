@@ -6,6 +6,7 @@
 
 #include "db/compress/deflate/Deflater.h"
 #include "db/compress/zip/ZipEntry.h"
+#include "db/io/FileList.h"
 
 #include <list>
 
@@ -19,11 +20,140 @@ namespace zip
 /**
  * A Zipper is used to compress or decompress ZIP-formatted data.
  * 
- * It can be used in conjunction with a mutator input/output stream.
+ * Short excerpt from APPNOTE.TXT - .ZIP File Format Specification
+ * Version: 6.3.2
+ * (PKWARE, Inc.)
+ * 
+ * Overall .ZIP file format:
+ *
+ *  [local file header 1]
+ *  [file data 1]
+ *  [data descriptor 1]
+ *  . 
+ *  .
+ *  .
+ *  [local file header n]
+ *  [file data n]
+ *  [data descriptor n]
+ *  [archive decryption header] 
+ *  [archive extra data record] 
+ *  [central directory]
+ *  [zip64 end of central directory record]
+ *  [zip64 end of central directory locator] 
+ *  [end of central directory record]
+ * 
+ * A. Local file header:
+ *  
+ *  LOCSIG = 'P'|('K'<<8)|(3<<16)|(4<<24)
+ *  local file header signature     4 bytes  (0x04034b50)
+ *  version needed to extract       2 bytes
+ *  general purpose bit flag        2 bytes
+ *  compression method              2 bytes
+ *  last mod file time              2 bytes
+ *  last mod file date              2 bytes
+ *  crc-32                          4 bytes
+ *  compressed size                 4 bytes
+ *  uncompressed size               4 bytes
+ *  file name length                2 bytes
+ *  extra field length              2 bytes
+ *  
+ *  file name (variable size)
+ *  extra field (variable size)
+ * 
+ * B. File data
+ *  
+ *  The compressed/stored data for the file itself.
+ * 
+ * C. Data descriptor (only present if bit 3 of general purpose flag is set):
+ * 
+ *  EXTSIG = 'P'|('K'<<8)|(7<<16)|(8<<24)
+ *  data descriptor signature       4 bytes (not always present)
+ *  crc-32                          4 bytes
+ *  compressed size                 4 bytes
+ *  uncompressed size               4 bytes
+ * 
+ *  Note: ZIP64 is used to handle values > 0xFFFFFFFF but
+ *  this implementation doesn't support ZIP64. Therefore,
+ *  only files of sizes <= 4GB are supported.
+ * 
+ *  The signature (0x08074b50) should be used, but isn't
+ *  always present, so a parser can't assume it is.
+ * 
+ * D. Archive decryption header:
+ *  
+ *  Not supported in this implementation.
+ * 
+ * E. Archive extra data record:
+ * 
+ *  Not supported in this implementation.
+ * 
+ * F. Central directory structure:
+ *  
+ *  [file header 1]
+ *  .
+ *  .
+ *  .
+ *  [file header n]
+ *  [digital signature]
+ *  
+ *  File header:
+ *  
+ *  CENSIG = 'P'|('K'<<8)|(1<<16)|(2<<24)
+ *  central file header signature   4 bytes  (0x02014b50)
+ *  version made by                 2 bytes
+ *  version needed to extract       2 bytes
+ *  general purpose bit flag        2 bytes
+ *  compression method              2 bytes
+ *  last mod file time              2 bytes
+ *  last mod file date              2 bytes
+ *  crc-32                          4 bytes
+ *  compressed size                 4 bytes
+ *  uncompressed size               4 bytes
+ *  file name length                2 bytes
+ *  extra field length              2 bytes
+ *  file comment length             2 bytes
+ *  disk number start               2 bytes
+ *  internal file attributes        2 bytes
+ *  external file attributes        4 bytes
+ *  relative offset of local header 4 bytes
+ *  
+ *  file name (variable size)
+ *  extra field (variable size)
+ *  file comment (variable size)
+ *  
+ *  Digital signature:
+ *  
+ *  Not supported in this implementation.
+ * 
+ * G. Zip64 end of central directory record
+ * 
+ *  Not supported in this implementation.
+ * 
+ * H. Zip64 end of central directory locator
+ * 
+ *  Not supported in this implementation.
+ * 
+ * I. End of central directory record
+ * 
+ *  ENDSIG = 'P'|('K'<<8)|(5<<16)|(6<<24)
+ *  end of central dir signature    4 bytes  (0x06054b50)
+ *  number of this disk             2 bytes
+ *  number of the disk with the
+ *  start of the central directory  2 bytes
+ *  total number of entries in the
+ *  central directory on this disk  2 bytes
+ *  total number of entries in
+ *  the central directory           2 bytes
+ *  size of the central directory   4 bytes
+ *  offset of start of central
+ *  directory with respect to
+ *  the starting disk number        4 bytes
+ *  .ZIP file comment length        2 bytes
+ *  .ZIP file comment       (variable size)
  * 
  * @author Dave Longley
  */
-class Zipper : public virtual db::io::MutationAlgorithm
+class Zipper
 {
 protected:
    /**
@@ -32,10 +162,92 @@ protected:
    db::compress::deflate::Deflater mDeflater;
    
    /**
+    * A ByteBuffer for processing data.
+    */
+   db::io::ByteBuffer mBuffer;
+   
+   /**
     * A list of the zip entries written out so far. This list is used to
     * build the central directory of the zip file.
     */
-   std::list<ZipEntry> mEntries;
+   typedef std::list<ZipEntry> EntryList;
+   EntryList mEntries;
+   
+   /**
+    * Stores the offset to the central directory from the beginning
+    * of the zip archive.
+    */
+   unsigned int mCentralDirectoryOffset;
+   
+   /**
+    * The general purpose bit flag (this implementation always uses the
+    * same one).
+    */
+   unsigned short mGpBitFlag;
+   
+   /**
+    * The zip version, compression type, and record signatures for the ZIP
+    * archive.
+    */
+   static const unsigned short ZIP_VERSION;
+   static const unsigned short COMPRESSION_METHOD;
+   static const unsigned int LFH_SIGNATURE;
+   static const unsigned int DAD_SIGNATURE;
+   static const unsigned int CDS_SIGNATURE;
+   static const unsigned int CDE_SIGNATURE;
+   
+   /**
+    * Writes out the local file header for an entry.
+    * 
+    * @param ze the ZipEntry.
+    * @param os the OutputStream to write to.
+    * 
+    * @return an exception if one occurred, NULL if not.
+    */
+   virtual db::rt::Exception* writeLocalFileHeader(
+      ZipEntry& ze, db::io::OutputStream* os);
+   
+   /**
+    * Reads an entry from a local file header.
+    * 
+    * @param ze the ZipEntry.
+    * @param is the InputStream to read from.
+    * 
+    * @return an exception if one occurred, NULL if not.
+    */
+   virtual db::rt::Exception* readLocalFileHeader(
+      ZipEntry& ze, db::io::InputStream* is);
+   
+   /**
+    * Writes out the file header for an entry for the central directory.
+    * 
+    * @param ze the ZipEntry.
+    * @param os the OutputStream to write to.
+    * 
+    * @return an exception if one occurred, NULL if not.
+    */
+   virtual db::rt::Exception* writeFileHeader(
+      ZipEntry& ze, db::io::OutputStream* os);
+   
+   /**
+    * Reads an entry from a file header from the central directory.
+    * 
+    * @param ze the ZipEntry.
+    * @param is the InputStream to read from.
+    * 
+    * @return an exception if one occurred, NULL if not.
+    */
+   virtual db::rt::Exception* readFileHeader(
+      ZipEntry& ze, db::io::InputStream* is);
+   
+   /**
+    * Finishes writing the current entry.
+    * 
+    * @param os the OutputStream to write to.
+    * 
+    * @return an exception if one occurred, NULL if not.
+    */
+   virtual db::rt::Exception* finishCurrentEntry(db::io::OutputStream* os);
    
 public:
    /**
@@ -48,95 +260,80 @@ public:
     */
    virtual ~Zipper();
    
-   // FIXME: interface is going to be different from deflater/gzipper
-   
-   // method for parsing a FileList into ZipEntries
-   // then use mutator input stream
-   
-   // alternatively, use interface to start zip entry
-   // and then write compressed data to an outputstream
-   
-   // then finish() to write out central directory
-   
-   // FIXME: for reading, need to be able to iterate over entries
-   // so read from an input stream until the next entry is read
-   // this will orient the passed stream at the next entry
+   /**
+    * Sets the FileList to use to produce a zip file. ZipEntries will be
+    * automatically created for each file in the list and their content
+    * will be compressed and written out to the passed file name.
+    * 
+    * @param fl the FileList with files to put in the zip archive.
+    * @param out the File to write the zip archive to.
+    * 
+    * @return an exception if one occurred, NULL if not.
+    */
+   virtual db::rt::Exception* zip(db::io::FileList* fl, db::io::File* out);
    
    /**
-    * Starts a new ZipEntry.
-    * 
-    * If reading a zip file, then the passed ZipEntry will be populated with
-    * the next local file header.
+    * Writes a new ZipEntry.
     * 
     * This will write out the local file header and store the ZipEntry
     * internally. The data for the entry must then be written via write().
     * 
-    * @param ze the ZipEntry to start.
+    * @param ze the ZipEntry to write out.
+    * @param os the OutputStream to write to.
     * 
     * @return an exception if one occurred, NULL if not.
     */
-   //virtual db::rt::Exception* startEntry(ZipEntry& ze);
+   virtual db::rt::Exception* writeEntry(
+      ZipEntry& ze, db::io::OutputStream* os);
    
    /**
-    * Sets the input data for the current ZipEntry. This method should be
-    * called before the initial call to process() and whenever process()
-    * returns zero, if there is more input to process.
+    * Reads the next ZipEntry from the given InputStream and then orients
+    * the stream for reading the entry's data.
     * 
-    * @param b the bytes to deflate/inflate.
-    * @param length the number of bytes to deflate/inflate.
-    * @param finish true if the passed data is the last data to process.
+    * @param ze the ZipEntry to populate.
+    * @param is the InputStream to read from.
+    * 
+    * @return 1 if an entry was read, 0 if there are no more entries, or -1 if
+    *         an exception occurred.
     */
-   //virtual void setInput(const char* b, int length, bool finish);
+   virtual int readEntry(ZipEntry& ze, db::io::InputStream* is);
    
    /**
-    * Processes the current ZipEntry and its data (which was set via
-    * startEntry() and setInput()) and writes the resulting output to the
-    * passed ByteBuffer, resizing it if appropriate and if permitted.
+    * Writes the passed data, for the current ZipEntry, to the passed
+    * OutputStream, compressing it as it is written.
     * 
-    * @param dst the ByteBuffer to write the output to.
-    * @param resize true to permit resizing the ByteBuffer, false not to.
-    * 
-    * @return return the number of bytes written out, 0 if the buffer is
-    *         empty or if there is no input, -1 if an exception occurred.
+    * @param b the bytes to write.
+    * @param length the number of bytes in the passed buffer.
+    * @param os the OutputStream to write to.
+    *
+    * @return an exception if one occurred, NULL if not.
     */
-   //virtual int process(db::io::ByteBuffer* dst, bool resize);
+   virtual db::rt::Exception* write(
+      char* b, int length, db::io::OutputStream* os);
    
    /**
-    * Gets data out of the source ByteBuffer, mutates it in some implementation
-    * specific fashion, and then puts it in the destination ByteBuffer.
+    * Reads some data from the current ZipEntry into the passed array of
+    * bytes.
     * 
-    * The return value of this method should be:
-    * 
-    * NeedsData: If this algorithm requires more data in the source buffer to
-    * execute its next step.
-    * 
-    * Stepped: If this algorithm had enough data to execute its next step,
-    * regardless of whether or not it wrote data to the destination buffer.
-    * 
-    * CompleteAppend: If this algorithm completed and any remaining source data
-    * should be appended to the data it wrote to the destination buffer.
-    * 
-    * CompleteTruncate: If this algorithm completed and any remaining source
-    * data must be cleared (it *must not* be appended to the data written to
-    * the destination buffer).
-    * 
-    * Error: If an exception occurred.
-    * 
-    * Once one a CompleteX result is returned, this method will no longer
-    * be called for the same data stream.
-    * 
-    * Note: The source and/or destination buffer may be resized by this
-    * algorithm to accommodate its data needs.
-    * 
-    * @param src the source ByteBuffer with bytes to mutate.
-    * @param dst the destination ByteBuffer to write the mutated bytes to.
-    * @param finish true if there will be no more source data and the mutation
-    *               algorithm should finish, false if there is more data.
-    * 
-    * @return the MutationAlgorithm::Result.
+    * @param b the byte array to populate.
+    * @param length the length of the passed buffer.
+    *
+    * @return the number of bytes written, 0 if there are no more bytes
+    *         to read for the entry, and -1 if an exception occurred.
     */
-   virtual MutationAlgorithm::Result mutateData(
-      db::io::ByteBuffer* src, db::io::ByteBuffer* dst, bool finish);
+   virtual int read(char* b, int length);
+   
+   /**
+    * Finishes writing out a zip archive after all of its ZipEntries and
+    * their data has been written out.
+    * 
+    * This method will write out the zip archive's central directory.
+    * 
+    * @param os the OutputStream to write to.
+    * 
+    * @return an exception if one occurred, NULL if not.
+    */
+   virtual db::rt::Exception* finish(db::io::OutputStream* os);
 };
 
 } // end namespace zip

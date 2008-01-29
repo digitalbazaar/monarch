@@ -288,12 +288,12 @@ bool Deflater::isFinished()
    return mFinished;
 }
 
-unsigned long long Deflater::getTotalInputBytes()
+unsigned int Deflater::getTotalInputBytes()
 {
    return mZipStream.total_in;
 }
 
-unsigned long long Deflater::getTotalOutputBytes()
+unsigned int Deflater::getTotalOutputBytes()
 {
    return mZipStream.total_out;
 }

@@ -62,10 +62,12 @@ void HttpHeader::addField(const char* name, const std::string& value)
 {
    // get existing value
    string existing;
-   getField(name, existing);
+   if(getField(name, existing))
+   {
+      // append to existing value
+      existing.append(", ");
+   }
    
-   // append new value
-   existing.append(", ");
    existing.append(value);
    setField(name, existing);
 }

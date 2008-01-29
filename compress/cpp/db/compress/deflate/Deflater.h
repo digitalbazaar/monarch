@@ -205,7 +205,7 @@ public:
     * @return the total number of input bytes, so far, for the current
     *         deflation/inflation.
     */
-   virtual unsigned long long getTotalInputBytes();
+   virtual unsigned int getTotalInputBytes();
    
    /**
     * Gets the total number of output bytes, so far, for the current
@@ -214,7 +214,7 @@ public:
     * @return the total number of output bytes, so far, for the current
     *         deflation/inflation.
     */
-   virtual unsigned long long getTotalOutputBytes();
+   virtual unsigned int getTotalOutputBytes();
 };
 
 } // end namespace deflate
