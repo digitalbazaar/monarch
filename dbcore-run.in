@@ -1,0 +1,4 @@
+#!/bin/sh
+# Basic script to setup proper environment for running a DB Core app
+
+LD_LIBRARY_PATH=@DBCOREDIR@/libs/linux $@

@@ -96,22 +96,26 @@ AC_SUBST(DBCOREDIR)
 AC_SUBST(JAVADOC)
 
 # Generating files
-AC_CONFIG_FILES([Makefile \
-          3rdparty/cpp/Makefile \
-          setup/Makefile.base \
-          setup/docs.doxygen \
-          config/cpp/Makefile \
-          crypto/cpp/Makefile \
-          compress/cpp/Makefile \
-          data/cpp/Makefile \
-          event/cpp/Makefile \
-          io/cpp/Makefile \
-          mail/cpp/Makefile \
-          modest/cpp/Makefile \
-          net/cpp/Makefile \
-          rt/cpp/Makefile \
-          sql/cpp/Makefile \
-          logging/cpp/Makefile \
-          test/cpp/Makefile \
-          util/cpp/Makefile])
+AC_CONFIG_FILES([
+          Makefile
+          3rdparty/cpp/Makefile
+          setup/Makefile.base
+          setup/docs.doxygen
+          config/cpp/Makefile
+          crypto/cpp/Makefile
+          compress/cpp/Makefile
+          data/cpp/Makefile
+          event/cpp/Makefile
+          io/cpp/Makefile
+          mail/cpp/Makefile
+          modest/cpp/Makefile
+          net/cpp/Makefile
+          rt/cpp/Makefile
+          sql/cpp/Makefile
+          logging/cpp/Makefile
+          test/cpp/Makefile
+          util/cpp/Makefile
+])
+# Generated scripts
+AC_CONFIG_FILES([dbcore-run], [chmod +x dbcore-run])
 AC_OUTPUT
