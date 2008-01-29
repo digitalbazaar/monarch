@@ -124,17 +124,6 @@ using namespace db::sql::mysql;
 using namespace db::sql::util;
 using namespace db::logging;
 
-// WTF? this is required to get static library building for unknown reason
-#include "db/io/PeekInputStream.h"
-PeekInputStream g_junk1(NULL, false);
-OperationList g_junk2;
-NullSocketDataPresenter g_junk3;
-StringTokenizer g_junk4;
-FilterOutputStream g_junk5(NULL, false);
-ByteArrayInputStream g_junk6(NULL, 0);
-IgnoreOutputStream g_junk7(NULL);
-BufferedOutputStream g_junk8(NULL, NULL, false);
-
 void runTimeTest()
 {
    cout << "Running Time Test" << endl << endl;
