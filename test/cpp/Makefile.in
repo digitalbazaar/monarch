@@ -3,21 +3,19 @@
 SOURCES = $(wildcard db/test/*.cpp)
 EXECUTABLES = \
 	test-compress \
-	run-unit-tests \
-
-#	test-rt \
-#	test-io \
-#	test-config \
-#	test-modest \
-#	test-util \
-#	test-data \
-#	test-crypto \
-#	test-net \
-#	test-data \
-#	test-sql \
-#	test-event \
-#	test-mail \
-
+	test-config \
+	test-crypto \
+	test-data \
+	test-event \
+	test-io \
+	test-logging \
+	test-mail \
+	test-modest \
+	test-net \
+	test-rt \
+	test-sql \
+	test-util \
+	run-unit-tests
 
 LIBRARIES = dbtest
 DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbio dblogging dbcrypto dbnet dbdata dbsql dbevent dbmail dbconfig dbcompress

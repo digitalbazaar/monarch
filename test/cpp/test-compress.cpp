@@ -338,6 +338,11 @@ void runZipTest(TestRunner& tr)
 class DbCompressTester : public db::test::Tester
 {
 public:
+   DbCompressTester()
+   {
+      setName("Compress");
+   }
+   
    /**
     * Run automatic unit tests.
     */
@@ -347,7 +352,6 @@ public:
       runDeflateTest(tr);
       runGzipTest(tr);
       runZipTest(tr);
-      
       return 0;
    }
 
@@ -360,4 +364,6 @@ public:
    }
 };
 
+#ifndef DB_TEST_NO_MAIN
 DB_TEST_MAIN(DbCompressTester)
+#endif
