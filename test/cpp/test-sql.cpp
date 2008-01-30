@@ -923,7 +923,7 @@ class DbSqlTester : public db::test::Tester
 public:
    DbSqlTester()
    {
-      setName("SQL");
+      setName("sql");
    }
 
    /**

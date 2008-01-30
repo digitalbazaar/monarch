@@ -383,7 +383,7 @@ class DbIoTester : public db::test::Tester
 public:
    DbIoTester()
    {
-      setName("IO");
+      setName("io");
    }
 
    /**

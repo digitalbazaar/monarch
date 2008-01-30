@@ -428,7 +428,7 @@ class DbConfigTester : public db::test::Tester
 public:
    DbConfigTester()
    {
-      setName("Config");
+      setName("config");
    }
 
    /**

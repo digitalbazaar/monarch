@@ -340,7 +340,7 @@ class DbCompressTester : public db::test::Tester
 public:
    DbCompressTester()
    {
-      setName("Compress");
+      setName("compress");
    }
    
    /**

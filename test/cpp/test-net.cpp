@@ -1887,7 +1887,7 @@ class DbNetTester : public db::test::Tester
 public:
    DbNetTester()
    {
-      setName("Net");
+      setName("net");
    }
 
    /**

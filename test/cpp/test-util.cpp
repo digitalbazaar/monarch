@@ -515,7 +515,7 @@ class DbUtilTester : public db::test::Tester
 public:
    DbUtilTester()
    {
-      setName("Util");
+      setName("util");
    }
 
    /**

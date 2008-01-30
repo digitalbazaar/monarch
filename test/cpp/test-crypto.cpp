@@ -810,7 +810,7 @@ class DbCryptoTester : public db::test::Tester
 public:
    DbCryptoTester()
    {
-      setName("Crypto");
+      setName("crypto");
    }
 
    /**

@@ -290,7 +290,7 @@ class DbRtTester : public db::test::Tester
 public:
    DbRtTester()
    {
-      setName("RT");
+      setName("rt");
    }
 
    /**

@@ -251,7 +251,7 @@ class DbEventTester : public db::test::Tester
 public:
    DbEventTester()
    {
-      setName("Event");
+      setName("event");
    }
 
    /**

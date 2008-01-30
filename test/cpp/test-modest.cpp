@@ -209,7 +209,7 @@ class DbModestTester : public Tester
 public:
    DbModestTester()
    {
-      setName("Modest");
+      setName("modest");
    }
 
    /**

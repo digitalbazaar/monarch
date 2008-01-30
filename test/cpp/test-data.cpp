@@ -1324,7 +1324,7 @@ class DbDataTester : public db::test::Tester
 public:
    DbDataTester()
    {
-      setName("Data");
+      setName("data");
    }
 
    /**

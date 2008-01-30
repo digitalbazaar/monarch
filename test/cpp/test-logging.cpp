@@ -219,7 +219,7 @@ class DbLoggingTester : public db::test::Tester
 public:
    DbLoggingTester()
    {
-      setName("Logging");
+      setName("logging");
    }
 
    /**

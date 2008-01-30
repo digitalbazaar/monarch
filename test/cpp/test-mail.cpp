@@ -127,7 +127,7 @@ class DbMailTester : public db::test::Tester
 public:
    DbMailTester()
    {
-      setName("Mail");
+      setName("mail");
    }
 
    /**
