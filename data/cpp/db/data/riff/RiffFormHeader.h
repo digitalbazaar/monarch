@@ -63,7 +63,7 @@ public:
     * @param form the form of RIFF.
     * @param fileSize the file size of the file the header is for.
     */
-   RiffFormHeader(fourcc_t form = CHUNK_ID, uint32_t fileSize = 0);
+   RiffFormHeader(fourcc_t form = 0, uint32_t fileSize = 0);
    
    /**
     * Desctructs a Riff Form header.
