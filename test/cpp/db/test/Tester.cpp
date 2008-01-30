@@ -19,10 +19,27 @@ using namespace db::util;
 Tester::Tester()
 {
    mExitStatus = 0;
+   mName = NULL;
+   setName("");
 }
 
 Tester::~Tester()
 {
+   setName(NULL);
+}
+
+void Tester::setName(const char* name)
+{
+   if(mName)
+   {
+      free(mName);
+   }
+   mName = name ? strdup(name) : NULL;
+}
+
+const char* Tester::getName()
+{
+   return mName;
 }
 
 void Tester::setup(TestRunner& tr)
@@ -43,22 +60,30 @@ int Tester::runInteractiveTests(TestRunner& tr)
    return 0;
 }
 
+int Tester::runTests(TestRunner& tr)
+{
+   int rval;
+   rval = runInteractiveTests(tr);
+   assertNoException();
+   if(rval == 0)
+   {
+      rval = runAutomaticTests(tr);
+      assertNoException();
+   }
+   
+   return rval;
+}
+
 void Tester::run()
 {
    TestRunner tr(true, TestRunner::Names);
    
    // root group
-   tr.group("");
-   mExitStatus = runInteractiveTests(tr);
+   tr.group(mName);
+   mExitStatus = runTests(tr);
    assertNoException();
-   if(mExitStatus == 0)
-   {
-      mExitStatus = runAutomaticTests(tr);
-      assertNoException();
-   }
    tr.ungroup();
    
-   assertNoException();
    tr.done();
 }
 

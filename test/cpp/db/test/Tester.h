@@ -40,6 +40,11 @@ class Tester : public virtual db::rt::Object, public db::rt::Runnable
 {
 protected:
    /**
+    * Name for this Tester
+    */
+   char* mName;
+   
+   /**
     * Flags controlling testing
     */
    unsigned int flags;
@@ -71,6 +76,20 @@ public:
    virtual ~Tester();
    
    /**
+    * Set the tester name.
+    * 
+    * @param name the name.
+    */
+   virtual void setName(const char* name);
+
+   /**
+    * Get the tester name.
+    * 
+    * @return the tester name.
+    */
+   virtual const char* getName();
+
+   /**
     * Setup before running tests.
     */
    virtual void setup(db::test::TestRunner& tr);
@@ -95,7 +114,14 @@ public:
    virtual int runInteractiveTests(db::test::TestRunner& tr);
 
    /**
-    * Runs the unit tests.
+    * Call runAutomaticTests() and runInteractiveTests().
+    * 
+    * @return exit status. 0 for success.
+    */
+   virtual int runTests(db::test::TestRunner& tr);
+   
+   /**
+    * Run all tests and set mExitStatus.
     */
    virtual void run();
    
@@ -110,16 +136,18 @@ public:
    virtual int main(int argc, const char* argv[]);
 };
 
-#ifdef DB_TEST_NO_MAIN
-#define DB_TEST_MAIN(testClassName)
-#else
+/**
+ * Macro to ease defining and calling Tester::main().
+ * NOTE: Surround this macro with #ifndef DB_TEST_NO_MAIN ... #endif.
+ */
 #define DB_TEST_MAIN(testClassName)    \
 int main(int argc, const char* argv[]) \
 {                                      \
+   int rval;                           \
    testClassName tester;               \
-   tester.main(argc, argv);            \
+   rval = tester.main(argc, argv);     \
+   return rval;                        \
 }
-#endif
 
 } // end namespace test
 } // end namespace db
