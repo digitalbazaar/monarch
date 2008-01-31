@@ -6,7 +6,21 @@ BUILD_FOR_WINDOWS=@BUILD_FOR_WINDOWS@
 
 AR_FLAGS = cr
 DBCORE = @DBCOREDIR@
-INCLUDES = -I$(DBCORE)/config/cpp -I$(DBCORE)/compress/cpp -I$(DBCORE)/crypto/cpp -I$(DBCORE)/data/cpp -I$(DBCORE)/event/cpp -I$(DBCORE)/io/cpp -I$(DBCORE)/logging/cpp -I$(DBCORE)/mail/cpp -I$(DBCORE)/modest/cpp -I$(DBCORE)/net/cpp -I$(DBCORE)/rt/cpp -I$(DBCORE)/sql/cpp -I$(DBCORE)/test/cpp -I$(DBCORE)/util/cpp
+INCLUDES = \
+	-I$(DBCORE)/compress/cpp \
+	-I$(DBCORE)/config/cpp \
+	-I$(DBCORE)/crypto/cpp \
+	-I$(DBCORE)/data/cpp \
+	-I$(DBCORE)/event/cpp \
+	-I$(DBCORE)/io/cpp \
+	-I$(DBCORE)/logging/cpp \
+	-I$(DBCORE)/mail/cpp \
+	-I$(DBCORE)/modest/cpp \
+	-I$(DBCORE)/net/cpp \
+	-I$(DBCORE)/rt/cpp \
+	-I$(DBCORE)/sql/cpp \
+	-I$(DBCORE)/test/cpp \
+	-I$(DBCORE)/util/cpp
 
 MODULE_BASE_DIR = $(shell pwd)
 
@@ -181,7 +195,7 @@ $(STATIC_WINDOWS_LIBRARIES):
 	# This is a fake target to override the default .lib build
 $(WINDOWS_EXECUTABLES): $(WINDOWS_LIBRARY_SOURCES) $(WINDOWS_EXECUTABLE_SOURCES) $(WINDOWS_EXECUTABLE_OBJECTS) $(STATIC_WINDOWS_LIBRARIES)
 	@echo "Building $(@F)..."
-	$(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -L$(WINDOWS_LIB_DIR) -o $@ $(WINDOWS_BUILD_DIR)/$(@F)-windows.o $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
+	@$(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -L$(WINDOWS_LIB_DIR) -o $@ $(WINDOWS_BUILD_DIR)/$(@F)-windows.o $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
 endif
 endif
 
