@@ -26,6 +26,12 @@ Tester::Tester()
 Tester::~Tester()
 {
    setName(NULL);
+   for(list<Tester*>::iterator i = mTesters.begin();
+      i != mTesters.end();
+      i++)
+   {
+      delete *i;
+   }
 }
 
 void Tester::setName(const char* name)
@@ -50,6 +56,11 @@ void Tester::teardown(TestRunner& tr)
 {
 }
 
+void Tester::addTester(Tester* tester)
+{
+   mTesters.push_back(tester);
+}
+
 int Tester::runAutomaticTests(TestRunner& tr)
 {
    return 0;
@@ -62,14 +73,37 @@ int Tester::runInteractiveTests(TestRunner& tr)
 
 int Tester::runTests(TestRunner& tr)
 {
-   int rval;
-   rval = runInteractiveTests(tr);
+   int rval = 0;
+
+   tr.group(mName);
+
+   setup(tr);
    assertNoException();
+
+   // run all sub-tester tests
+   for(list<Tester*>::iterator i = mTesters.begin();
+      rval == 0 && i != mTesters.end();
+      i++)
+   {
+      rval = (*i)->runTests(tr);
+   }
+
+   if(rval == 0)
+   {
+      rval = runInteractiveTests(tr);
+      assertNoException();
+   }
+
    if(rval == 0)
    {
       rval = runAutomaticTests(tr);
       assertNoException();
    }
+   
+   teardown(tr);
+   assertNoException();
+
+   tr.ungroup();
    
    return rval;
 }
@@ -78,13 +112,18 @@ void Tester::run()
 {
    TestRunner tr(true, TestRunner::Names);
    
-   // root group
-   tr.group(mName);
    mExitStatus = runTests(tr);
    assertNoException();
-   tr.ungroup();
    
    tr.done();
+}
+
+void Tester::loggingInitialize()
+{
+}
+
+void Tester::loggingCleanup()
+{
 }
 
 int Tester::main(int argc, const char* argv[])
@@ -98,9 +137,13 @@ int Tester::main(int argc, const char* argv[])
       }
    #endif
    
+   loggingInitialize();
+   
    Thread t(this);
    t.start(131072);
    t.join();
+   
+   loggingCleanup();
    
    // cleanup winsock
    #ifdef WIN32

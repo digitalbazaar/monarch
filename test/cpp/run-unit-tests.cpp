@@ -3,7 +3,6 @@
  */
 #include <iostream>
 #include <sstream>
-#include <list>
 
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
@@ -41,59 +40,25 @@ using namespace db::logging;
 
 class DbAllTester : public db::test::Tester
 {
-protected:
-   list<Tester*> mTesters;
-   
 public:
    DbAllTester()
    {
-      mTesters.push_back(new DbCompressTester());
-      mTesters.push_back(new DbConfigTester());
-      mTesters.push_back(new DbCryptoTester());
-      mTesters.push_back(new DbDataTester());
-      mTesters.push_back(new DbEventTester());
-      mTesters.push_back(new DbIoTester());
-      mTesters.push_back(new DbLoggingTester());
-      mTesters.push_back(new DbMailTester());
-      mTesters.push_back(new DbModestTester());
-      mTesters.push_back(new DbNetTester());
-      mTesters.push_back(new DbRtTester());
-      mTesters.push_back(new DbSqlTester());
-      mTesters.push_back(new DbUtilTester());
+      addTester(new DbCompressTester());
+      addTester(new DbConfigTester());
+      addTester(new DbCryptoTester());
+      addTester(new DbDataTester());
+      addTester(new DbEventTester());
+      addTester(new DbIoTester());
+      addTester(new DbLoggingTester());
+      addTester(new DbMailTester());
+      addTester(new DbModestTester());
+      addTester(new DbNetTester());
+      addTester(new DbRtTester());
+      addTester(new DbSqlTester());
+      addTester(new DbUtilTester());
    }
 
-   ~DbAllTester()
-   {
-      for(list<Tester*>::iterator i = mTesters.begin();
-         i != mTesters.end();
-         i++)
-      {
-         delete *i;
-      }
-   }
-   
-   /**
-    * Run tests.
-    */
-   virtual int runTests(TestRunner& tr)
-   {
-      int rval = 0;
-      
-      for(list<Tester*>::iterator i = mTesters.begin();
-         rval == 0 && i != mTesters.end();
-         i++)
-      {
-         tr.group((*i)->getName());
-         rval = (*i)->runAutomaticTests(tr);
-         if(rval == 0)
-         {
-            rval = (*i)->runInteractiveTests(tr);
-         }
-         tr.ungroup();
-      }
-      
-      return rval;
-   }
+   ~DbAllTester() {}
 };
 
 DB_TEST_MAIN(DbAllTester)

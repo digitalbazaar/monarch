@@ -4,6 +4,8 @@
 #ifndef db_test_Tester_H
 #define db_test_Tester_H
 
+#include <list>
+
 #include "db/rt/Exception.h"
 #include "db/rt/Object.h"
 #include "db/rt/Runnable.h"
@@ -64,6 +66,11 @@ protected:
     */  
    int mExitStatus;
 
+   /**
+    * Sub-Testers to run.
+    */
+   std::list<Tester*> mTesters;
+   
 public:
    /**
     * Create a Tester.
@@ -100,6 +107,11 @@ public:
    virtual void teardown(db::test::TestRunner& tr);
 
    /**
+    * Add a tester.
+    */
+   virtual void addTester(db::test::Tester* tester);
+
+   /**
     * Run automatic unit tests.
     * 
     * @return exit status. 0 for success.
@@ -114,7 +126,7 @@ public:
    virtual int runInteractiveTests(db::test::TestRunner& tr);
 
    /**
-    * Call runAutomaticTests() and runInteractiveTests().
+    * Run testers and call runAutomaticTests() and runInteractiveTests().
     * 
     * @return exit status. 0 for success.
     */
@@ -124,6 +136,16 @@ public:
     * Run all tests and set mExitStatus.
     */
    virtual void run();
+   
+   /**
+    * Initialize logging.
+    */
+   virtual void loggingInitialize();
+   
+   /**
+    * Cleanup logging.
+    */
+   virtual void loggingCleanup();
    
    /**
     * Run all tests.
