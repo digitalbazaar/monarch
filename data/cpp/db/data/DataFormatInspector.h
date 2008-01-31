@@ -5,6 +5,7 @@
 #define db_data_DataFormatInspector_H
 
 #include "db/data/DataInspector.h"
+#include "db/util/DynamicObject.h"
 
 #include <string>
 
@@ -74,22 +75,20 @@ public:
    virtual unsigned long long getBytesInspected() = 0;
    
    /**
-    * Gets a string identifier for the format that was detected.
+    * Gets a string identifier for the format that was detected.  Use
+    * getInspectionReport() for format and stream details.  Use MIME types
+    * if possible.
     * 
-    * @param str the string to populate with the format that was detected.
-    * 
-    * @return a string identifier for the format that was detected.
+    * @return a string identifier for the format that was detected or NULL.
     */
-   virtual std::string& getFormat(std::string& str) = 0;
+   virtual const char* getFormat() = 0;
    
    /**
-    * Gets a custom readable report on the data inspection.
+    * Gets a custom report on the data inspection.
     * 
-    * @param str the string to populate.
-    * 
-    * @return a custom readable report on the data inspection.
+    * @return a custom report on the data inspection.
     */
-   virtual std::string& getInspectionReport(std::string& str) = 0;
+   virtual db::util::DynamicObject getInspectionReport() = 0;
 };
 
 } // end namespace data
