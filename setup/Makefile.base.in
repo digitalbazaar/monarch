@@ -1,6 +1,10 @@
 # This file contains basic Makefile includes that contain all building
 # instructions for all binaries and packages.
 
+.PHONY: all build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries
+
+all: build-objects build-libraries build-executables
+
 BUILD_FOR_LINUX=@BUILD_FOR_LINUX@
 BUILD_FOR_WINDOWS=@BUILD_FOR_WINDOWS@
 
@@ -89,10 +93,6 @@ ifndef MAKE_CLEAN_ACTIVE
 -include $(WINDOWS_DEPENDENCIES)
 endif
 endif
-
-.PHONY: all build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries $(ALL_EXECUTABLES)
-
-all: build-objects build-libraries build-executables
 
 $(ALL_DIRECTORIES):
 	mkdir -p $@
