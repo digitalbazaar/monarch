@@ -3,7 +3,6 @@
  */
 
 #include "db/logging/Category.h"
-#include "db/logging/LoggingCategories.h"
 
 using namespace db::logging;
  
@@ -39,14 +38,10 @@ void Category::initialize()
       NULL,
       NULL,
       "Pseudo-category that matches ALL other categories");
-   
-   LoggingCategories::initialize();
 }
 
 void Category::cleanup()
 {
-   LoggingCategories::cleanup();
-
    delete DB_DEFAULT_CAT;
    DB_DEFAULT_CAT = NULL;
    
