@@ -234,7 +234,8 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
    
    // write the key to the bio
    int error = PEM_write_bio_PKCS8PrivateKey(
-      bio, key->getPKEY(), EVP_des_ede3_cbc(), NULL, 0, NULL, (void*)password);
+      bio, key->getPKEY(), EVP_des_ede3_cbc(),
+      NULL, 0, passwordCallback, (void*)password);
    if(error != 0)
    {
       // get the memory buffer from the bio
