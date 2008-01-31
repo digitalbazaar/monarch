@@ -55,7 +55,7 @@ void runDeflateTest(TestRunner& tr)
       File out("/tmp/brump.zip");
       FileOutputStream fos(&out);
       
-      MutatorInputStream mis(&fis, &def, false);
+      MutatorInputStream mis(&fis, false, &def, false);
       char b[512];
       int numBytes;
       while((numBytes = mis.read(b, 512)) > 0)
@@ -79,7 +79,7 @@ void runDeflateTest(TestRunner& tr)
       File out("/tmp/brump2.txt");
       FileOutputStream fos(&out);
       
-      MutatorInputStream mis(&fis, &def, false);
+      MutatorInputStream mis(&fis, false, &def, false);
       char b[512];
       int numBytes;
       while((numBytes = mis.read(b, 512)) > 0)
@@ -106,7 +106,7 @@ void runDeflateTest(TestRunner& tr)
       File out("/tmp/brump.zip");
       FileOutputStream fos(&out);
       
-      MutatorOutputStream mos(&fos, &def, false);
+      MutatorOutputStream mos(&fos, false, &def, false);
       char b[512];
       int numBytes;
       while((numBytes = fis.read(b, 512)) > 0)
@@ -130,7 +130,7 @@ void runDeflateTest(TestRunner& tr)
       File out("/tmp/brump2.txt");
       FileOutputStream fos(&out);
       
-      MutatorOutputStream mos(&fos, &def, false);
+      MutatorOutputStream mos(&fos, false, &def, false);
       char b[512];
       int numBytes;
       while((numBytes = fis.read(b, 512)) > 0)
@@ -178,7 +178,7 @@ void runGzipTest(TestRunner& tr)
       File out("/tmp/brump.gz");
       FileOutputStream fos(&out);
       
-      MutatorInputStream mis(&fis, &gzipper, false);
+      MutatorInputStream mis(&fis, false, &gzipper, false);
       char b[512];
       int numBytes;
       while((numBytes = mis.read(b, 512)) > 0)
@@ -202,7 +202,7 @@ void runGzipTest(TestRunner& tr)
       File out("/tmp/brump2.txt");
       FileOutputStream fos(&out);
       
-      MutatorInputStream mis(&fis, &gzipper, false);
+      MutatorInputStream mis(&fis, false, &gzipper, false);
       char b[512];
       int numBytes;
       while((numBytes = mis.read(b, 512)) > 0)
@@ -229,7 +229,7 @@ void runGzipTest(TestRunner& tr)
       File out("/tmp/brump.gz");
       FileOutputStream fos(&out);
       
-      MutatorOutputStream mos(&fos, &gzipper, false);
+      MutatorOutputStream mos(&fos, false, &gzipper, false);
       char b[512];
       int numBytes;
       while((numBytes = fis.read(b, 512)) > 0)
@@ -253,7 +253,7 @@ void runGzipTest(TestRunner& tr)
       File out("/tmp/brump2.txt");
       FileOutputStream fos(&out);
       
-      MutatorOutputStream mos(&fos, &gzipper, false);
+      MutatorOutputStream mos(&fos, false, &gzipper, false);
       char b[512];
       int numBytes;
       while((numBytes = fis.read(b, 512)) > 0)

@@ -7,19 +7,25 @@ using namespace db::io;
 using namespace db::rt;
 
 MutatorInputStream::MutatorInputStream(
-   InputStream* is, MutationAlgorithm* algorithm, bool cleanup) :
-   FilterInputStream(is, cleanup),
+   InputStream* is, bool cleanupStream,
+   MutationAlgorithm* algorithm, bool cleanupAlgorithm) :
+   FilterInputStream(is, cleanupStream),
    mSource(2048),
    mDestination(4096)
 {
    // store mutation algorithm
    mAlgorithm = algorithm;
+   mCleanupAlgorithm = cleanupAlgorithm;
    mResult = MutationAlgorithm::NeedsData;
    mSourceEmpty = false;
 }
 
 MutatorInputStream::~MutatorInputStream()
 {
+   if(mCleanupAlgorithm && mAlgorithm != NULL)
+   {
+      delete mAlgorithm;
+   }
 }
 
 int MutatorInputStream::read(char* b, int length)

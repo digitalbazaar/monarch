@@ -37,6 +37,11 @@ protected:
    MutationAlgorithm* mAlgorithm;
    
    /**
+    * True to clean up the algorithm when destructing, false not to.
+    */
+   bool mCleanupAlgorithm;
+   
+   /**
     * Stores the last mutation result.
     */
    MutationAlgorithm::Result mResult;
@@ -52,12 +57,15 @@ public:
     * MutationAlgorithm.
     * 
     * @param is the underlying InputStream to read from.
+    * @param cleanupStream true to clean up the passed InputStream when
+    *                      destructing, false not to.
     * @param algorithm the MutationAlgorithm to use.
-    * @param cleanup true to clean up the passed InputStream when destructing,
-    *                false not to.
+    * @param cleanupAlgorithm true to clean up the passed MutationAlgorithm
+    *                         when destructing, false not to.
     */
    MutatorInputStream(
-      InputStream* is, MutationAlgorithm* algorithm, bool cleanup = false);
+      InputStream* is, bool cleanupStream,
+      MutationAlgorithm* algorithm, bool cleanupAlgorithm);
    
    /**
     * Destructs this MutatorInputStream.

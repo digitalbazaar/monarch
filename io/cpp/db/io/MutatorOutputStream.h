@@ -44,6 +44,11 @@ protected:
    MutationAlgorithm* mAlgorithm;
    
    /**
+    * True to clean up the algorithm when destructing, false not to.
+    */
+   bool mCleanupAlgorithm;
+   
+   /**
     * Stores the last mutation result.
     */
    MutationAlgorithm::Result mResult;
@@ -51,15 +56,18 @@ protected:
 public:
    /**
     * Creates a new MutatorOutputStream that mutates data with the passed
-    * DataMutationAlgorithm.
+    * MutationAlgorithm.
     * 
     * @param os the OutputStream to mutated data to.
-    * @param algorithm the DataMutationAlgorithm to use.
-    * @param cleanup true to clean up the passed OutputStream when destructing,
-    *                false not to.
+    * @param cleanupStream true to clean up the passed OutputStream when
+    *                      destructing, false not to.
+    * @param algorithm the MutationAlgorithm to use.
+    * @param cleanupAlgorithm true to clean up the passed MutationAlgorithm
+    *                         when destructing, false not to.
     */
    MutatorOutputStream(
-      OutputStream* is, MutationAlgorithm* algorithm, bool cleanup = false);
+      OutputStream* is, bool cleanupStream,
+      MutationAlgorithm* algorithm, bool cleanupAlgorithm);
    
    /**
     * Destructs this MutatorOutputStream.
