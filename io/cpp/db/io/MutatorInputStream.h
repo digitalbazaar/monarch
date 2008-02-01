@@ -86,6 +86,22 @@ public:
     *         stream has been reached or -1 if an IO exception occurred.
     */
    virtual int read(char* b, int length);
+   
+   /**
+    * Sets the MutationAlgorithm associated with this stream.
+    * 
+    * @param ma the MutationAlgorithm to associate with this stream.
+    * @param cleanup true to clean up the algorithm when destructing, 
+    *                false not to.
+    */
+   virtual void setAlgorithm(MutationAlgorithm* ma, bool cleanup);
+   
+   /**
+    * Gets the MutationAlgorithm associated with this stream.
+    * 
+    * @return the MutationAlgorithm associated with this stream.
+    */
+   virtual MutationAlgorithm* getAlgorithm();
 };
 
 } // end namespace io

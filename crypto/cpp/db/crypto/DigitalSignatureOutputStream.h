@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_DigitalSignatureOutputStream_H
 #define db_crypto_DigitalSignatureOutputStream_H
@@ -26,6 +26,11 @@ protected:
     */
    DigitalSignature* mSignature;
    
+   /**
+    * True to clean up the DigitalSignature when destructing, false not to.
+    */
+   bool mCleanupSignature;
+   
 public:
    /**
     * Creates a new DigitalSignatureOutputStream that creates or verifies
@@ -33,12 +38,15 @@ public:
     * stream.
     * 
     * @param ds the DigitalSignature to use.
-    * @param os the underlying OutputStream to write to.
-    * @param cleanup true to clean up the passed OutputStream when destructing,
-    *                false not to.
+    * @param cleanupSignature true to clean up the signature when destructing, 
+    *                         false not to.
+    * @param os the underlying OutputStream to read from.
+    * @param cleanupStream true to clean up the passed OutputStream when
+    *                      destructing, false not to.
     */
    DigitalSignatureOutputStream(
-      DigitalSignature* ds, db::io::OutputStream* os, bool cleanup = false);
+      DigitalSignature* ds, bool cleanupSignature,
+      db::io::OutputStream* os, bool cleanupStream);
    
    /**
     * Destructs this DigitalSignatureOutputStream.
@@ -57,11 +65,20 @@ public:
    virtual bool write(const char* b, int length);
    
    /**
+    * Sets the DigitalSignature associated with this stream.
+    * 
+    * @param ds the DigitalSignature to associate with this stream.
+    * @param cleanup true to clean up the signature when destructing, 
+    *                false not to.
+    */
+   virtual void setSignature(DigitalSignature* ds, bool cleanup);
+   
+   /**
     * Gets the DigitalSignature associated with this stream.
     * 
     * @return the DigitalSignature associated with this stream.
     */
-   virtual DigitalSignature* getDigitalSignature();
+   virtual DigitalSignature* getSignature();
 };
 
 } // end namespace crypto

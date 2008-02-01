@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_http_HttpTrailer_H
 #define db_net_http_HttpTrailer_H
 
 #include "db/net/http/HttpHeader.h"
+#include "db/rt/Collectable.h"
 
 namespace db
 {
@@ -53,6 +54,9 @@ public:
     */
    virtual void update(unsigned long long contentLength);
 };
+
+// typedef for a counted reference to an HttpTrailer
+typedef db::rt::Collectable<HttpTrailer> HttpTrailerRef;
 
 } // end namespace http
 } // end namespace net

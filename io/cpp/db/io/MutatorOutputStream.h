@@ -92,6 +92,22 @@ public:
     * Closes the stream and ensures the mutation algorithm finished.
     */
    virtual void close();
+   
+   /**
+    * Sets the MutationAlgorithm associated with this stream.
+    * 
+    * @param ma the MutationAlgorithm to associate with this stream.
+    * @param cleanup true to clean up the algorithm when destructing, 
+    *                false not to.
+    */
+   virtual void setAlgorithm(MutationAlgorithm* ma, bool cleanup);
+   
+   /**
+    * Gets the MutationAlgorithm associated with this stream.
+    * 
+    * @return the MutationAlgorithm associated with this stream.
+    */
+   virtual MutationAlgorithm* getAlgorithm();
 };
 
 } // end namespace io
