@@ -38,13 +38,12 @@ void db::test::dumpException(Exception* e)
       cout << "message: " << e->getMessage() << endl;
       cout << "type: " << e->getType() << endl;
       cout << "code: " << e->getCode() << endl;
-      if(e->getCause() != NULL)
-      {
-         cout << "CAUSE:" << endl;
-         cout << "message: " << e->getCause()->getMessage() << endl;
-         cout << "type: " << e->getCause()->getType() << endl;
-         cout << "code: " << e->getCause()->getCode() << endl;
-      }
+   }
+   
+   if(e->getCause() != NULL)
+   {
+      cout << "CAUSE:" << endl;
+      dumpException(e->getCause());         
    }
 }
 
