@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_json_JsonReader_H
 #define db_data_json_JsonReader_H
 
-#include "db/util/DynamicObject.h"
-#include "db/io/InputStream.h"
+#include "db/data/DynamicObjectReader.h"
 
 #include <vector>
 
@@ -143,7 +142,7 @@ typedef enum JsonState {
  * 
  * @author David I. Lehn
  */
-class JsonReader
+class JsonReader : public DynamicObjectReader
 {
 protected:
    /**
@@ -263,7 +262,6 @@ public:
     * finish() should be called after the read is complete in order to check
     * that a top level object is complete.
     * 
-    * @param dyno the DynamicObject for the object to deserialize.
     * @param is the InputStream to read the JSON from.
     * 
     * @return an IOException if one occurred, NULL if not.
@@ -271,7 +269,7 @@ public:
    virtual db::io::IOException* read(db::io::InputStream* is);
 
    /**
-    * Finishes deserializing an object from JSON. This method shoudl be called
+    * Finishes deserializing an object from JSON. This method should be called
     * to complete deserialization and verify valid JSON was found.
     * 
     * @return an IOException is one occurred, NULL if not.

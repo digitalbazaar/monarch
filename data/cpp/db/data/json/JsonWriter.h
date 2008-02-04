@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_json_JsonWriter_H
 #define db_data_json_JsonWriter_H
 
-#include "db/data/DataBinding.h"
-#include "db/io/OutputStream.h"
-#include "db/util/DynamicObject.h"
+#include "db/data/DynamicObjectWriter.h"
 
 namespace db
 {
@@ -25,7 +23,7 @@ namespace json
  * 
  * @author David I. Lehn
  */
-class JsonWriter
+class JsonWriter : public DynamicObjectWriter
 {
 protected:
    /**
@@ -97,9 +95,9 @@ public:
    virtual void setIndentation(int level, int spaces);
 
    /**
-    * Sets option to minimize whitespace.
+    * Sets the writer to use compact mode and not output unneeded whitespace.
     * 
-    * @param compact minimize whitespace.
+    * @param compact true to minimize whitespace, false not to.
     */
    virtual void setCompact(bool compact);
 };

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_DynamicObjectWriter_H
 #define db_data_DynamicObjectWriter_H
 
-#include "db/data/DataBinding.h"
+#include "db/io/OutputStream.h"
 #include "db/util/DynamicObject.h"
 
 namespace db
@@ -13,8 +13,8 @@ namespace data
 {
 
 /**
- * A DynamicObjectWriter uses a DataBinding to convert a regular object into
- * a DynamicObject.
+ * A DynamicObjectWriter writes a DynamicObject to an OutputStream in a
+ * particular data format.
  * 
  * @author Dave Longley
  */
@@ -24,20 +24,39 @@ public:
    /**
     * Creates a new DynamicObjectWriter.
     */
-   DynamicObjectWriter();
+   DynamicObjectWriter() {};
    
    /**
     * Destructs this DynamicObjectWriter.
     */
-   virtual ~DynamicObjectWriter();
+   virtual ~DynamicObjectWriter() {};
    
    /**
-    * Writes a regular object out as a DynamicObject using the passed
-    * DataBinding.
-    *  
-    * @param db the DataBinding for the object to write out as a DynamicObject.
+    * Serializes the passed DynamicObject.
+    * 
+    * @param dyno the DynamicObject to serialize.
+    * @param os the OutputStream to write the serialized data to.
+    * 
+    * @return true if successful, false if an exception occurred.
     */
-   db::util::DynamicObject write(DataBinding* db);
+   virtual bool write(
+      db::util::DynamicObject& dyno, db::io::OutputStream* os) = 0;
+   
+   /**
+    * Sets the starting indentation level and the number of spaces
+    * per indentation level.
+    * 
+    * @param level the starting indentation level.
+    * @param spaces the number of spaces per indentation level.
+    */
+   virtual void setIndentation(int level, int spaces) = 0;
+   
+   /**
+    * Sets option to minimize whitespace.
+    * 
+    * @param compact minimize whitespace.
+    */
+   virtual void setCompact(bool compact) = 0;
 };
 
 } // end namespace data

@@ -83,7 +83,7 @@ bool XmlWriter::write(DynamicObject& dyno, OutputStream* os, int level)
    
    if(dyno.isNull())
    {
-      rval = writeIndentation(os, level + 1) && os->write("<null/>", 9);
+      rval = writeIndentation(os, level + 1) && os->write("<null/>", 7);
    }
    else
    {

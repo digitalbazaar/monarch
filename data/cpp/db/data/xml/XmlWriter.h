@@ -4,8 +4,7 @@
 #ifndef db_data_xml_XmlWriter_H
 #define db_data_xml_XmlWriter_H
 
-#include "db/io/OutputStream.h"
-#include "db/util/DynamicObject.h"
+#include "db/data/DynamicObjectWriter.h"
 
 namespace db
 {
@@ -24,7 +23,7 @@ namespace xml
  * 
  * @author Dave Longley
  */
-class XmlWriter
+class XmlWriter : public DynamicObjectWriter
 {
 protected:
    /**
@@ -105,9 +104,9 @@ public:
    virtual void setIndentation(int level, int spaces);
    
    /**
-    * Sets option to minimize whitespace.
+    * Sets the writer to use compact mode and not output unneeded whitespace.
     * 
-    * @param compact minimize whitespace.
+    * @param compact true to minimize whitespace, false not to.
     */
    virtual void setCompact(bool compact);
 };
