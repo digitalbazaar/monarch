@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/util/DynamicObject.h"
 #include "db/util/DynamicObjectIterator.h"
@@ -110,7 +110,6 @@ bool DynamicObject::operator==(const DynamicObject& rhs)
    else
    {
       // compare based on string values
-      std::string lstr, rstr;
       switch((*left)->getType())
       {
          case String:
@@ -127,9 +126,9 @@ bool DynamicObject::operator==(const DynamicObject& rhs)
                case Int64:
                case UInt64:
                case Double:
-                  (*left)->toString(lstr);
-                  (*right)->toString(rstr);
-                  rval = (strcmp(lstr.c_str(), rstr.c_str()) == 0);
+                  rval = (strcmp(
+                     (*left)->getString(),
+                     (*right)->getString()) == 0);
                   break;
                default:
                   break;

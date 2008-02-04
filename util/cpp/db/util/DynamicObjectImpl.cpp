@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/util/DynamicObjectImpl.h"
 #include "db/util/DynamicObject.h"
@@ -10,12 +10,19 @@ using namespace db::util;
 DynamicObjectImpl::DynamicObjectImpl()
 {
    mType = String;
-   mString = strdup("");
+   mString = NULL;
+   mStringValue = NULL;
 }
 
 DynamicObjectImpl::~DynamicObjectImpl()
 {
    DynamicObjectImpl::freeData();
+   
+   // free cached string value
+   if(mStringValue != NULL)
+   {
+      free(mStringValue);
+   }
 }
 
 void DynamicObjectImpl::freeMapKeys()
@@ -33,8 +40,13 @@ void DynamicObjectImpl::freeData()
    switch(mType)
    {
       case String:
-         free(mString);
-         mString = NULL;
+         {
+            if(mString != NULL)
+            {
+               free(mString);
+            }
+            mString = NULL;
+         }
          break;
       case Map:
          if(mMap != NULL)
@@ -166,33 +178,32 @@ DynamicObject& DynamicObjectImpl::append()
 
 void DynamicObjectImpl::setType(DynamicObjectType type)
 {
-   if(getType() != type)
+   if(mType != type)
    {
       switch(type)
       {
          case String:
-            getString();
+            *this = getString();
             break;
          case Boolean:
-            getBoolean();
+            *this = getBoolean();
             break;
          case Int32:
-            getInt32();
+            *this = getInt32();
             break;
          case UInt32:
-            getUInt32();
+            *this = getUInt32();
             break;
          case Int64:
-            getInt64();
+            *this = getInt64();
             break;
          case UInt64:
-            getUInt64();
+            *this = getUInt64();
             break;
          case Double:
-            getDouble();
+            *this = getDouble();
             break;
          case Map:
-            if(mType != Map)
             {
                freeData();
                mType = Map;
@@ -200,13 +211,11 @@ void DynamicObjectImpl::setType(DynamicObjectType type)
             }
             break;
          case Array:
-            // change to array type
-            if(mType != Array)
             {
                freeData();
                mType = Array;
                mArray = new ObjectArray();
-            }         
+            }
             break;
       }
    }
@@ -219,242 +228,283 @@ DynamicObjectType DynamicObjectImpl::getType()
 
 const char* DynamicObjectImpl::getString()
 {
-   if(mType != String)
+   const char* rval;
+   
+   if(mType == String)
    {
-      string str;
-      toString(str);
-      setString(str.c_str());
+      if(mString != NULL)
+      {
+         // use existing string
+         rval = mString;
+      }
+      else
+      {
+         // only duplicate blank string upon request
+         rval = mString = strdup("");
+      }
+   }
+   else
+   {
+      // convert type as appropriate
+      switch(mType)
+      {
+         case Boolean:
+            mStringValue = (char*)realloc(mStringValue, 6);
+            snprintf(mStringValue, 6, "%s", (mBoolean ? "true" : "false"));
+            break;
+         case Int32:
+            mStringValue = (char*)realloc(mStringValue, 12);
+            snprintf(mStringValue, 12, "%i", mInt32);
+            break;
+         case UInt32:
+            mStringValue = (char*)realloc(mStringValue, 11);
+            snprintf(mStringValue, 11, "%u", mUInt32);
+            break;
+         case Int64:
+            mStringValue = (char*)realloc(mStringValue, 22);
+            snprintf(mStringValue, 22, "%lli", mInt64);
+            break;
+         case UInt64:
+            mStringValue = (char*)realloc(mStringValue, 21);
+            snprintf(mStringValue, 21, "%llu", mUInt64);
+            break;
+         case Double:
+            // use default precision of 6
+            // X.000000e+00 = 11 places to right of decimal
+            mStringValue = (char*)realloc(mStringValue, 50);
+            snprintf(mStringValue, 50, "%e", mDouble);
+            break;
+         default: /* Map, Array, ... */
+            {
+               if(mStringValue == NULL)
+               {
+                  // duplicate blank string
+                  mStringValue = strdup("");
+               }
+               else
+               {
+                  // set null-terminator to first character
+                  mStringValue[0] = 0; 
+               }
+            }
+            break;
+      }
+      
+      // return generated value
+      rval = mStringValue;
    }
    
-   return mString;
+   return rval;
 }
 
 bool DynamicObjectImpl::getBoolean()
 {
-   if(mType != Boolean)
+   bool rval;
+   
+   switch(mType)
    {
-      // convert type as appropriate
-      if(mType == String && mString != NULL)
-      {
-         *this = (strcmp(mString, "true") == 0);
-      }
-      else
-      {
-         switch(mType)
-         {
-            case Int32:
-               *this = (mInt32 == 1);
-               break;
-            case UInt32:
-               *this = (mUInt32 == 1);
-               break;
-            case Int64:
-               *this = (mInt64 == 1);
-               break;
-            case UInt64:
-               *this = (mUInt64 == 1);
-               break;
-            case Double:
-               *this = (mDouble == 1);
-               break;
-            default:
-               *this = false;
-               break;
-         }
-      }
+      case Boolean:
+         rval = mBoolean;
+         break;
+      case String:
+         rval = (strcmp(mString, "true") == 0);
+         break;
+      case Int32:
+         rval = (mInt32 == 1);
+         break;
+      case UInt32:
+         rval = (mUInt32 == 1);
+         break;
+      case Int64:
+         rval = (mInt64 == 1);
+         break;
+      case UInt64:
+         rval = (mUInt64 == 1);
+         break;
+      case Double:
+         rval = (mDouble == 1);
+         break;
+      default:
+         rval = false;
+         break;
    }
    
-   return mBoolean;
+   return rval;
 }
 
 int DynamicObjectImpl::getInt32()
 {
-   if(mType != Int32)
+   int rval;
+   
+   switch(mType)
    {
-      // convert type as appropriate
-      if(mType == String && mString != NULL)
-      {
-         *this = (int)strtol(mString, NULL, 10);
-      }
-      else if(mType == Boolean)
-      {
-         *this = mBoolean ? (int)1 : (int)0;
-      }
-      else if(mType == UInt32)
-      {
-         *this = (int)mUInt64;
-      }
-      else if(mType == Int64)
-      {
-         *this = (int)mInt64;
-      }
-      else if(mType == UInt64)
-      {
-         *this = (int)mUInt64;
-      }
-      else if(mType == Double)
-      {
-         *this = (int)mDouble;
-      }
-      else
-      {
-         *this = (int)0;
-      }
+      case Int32:
+         rval = mInt32;
+         break;
+      case String:
+         rval = strtol(mString, NULL, 10);
+         break;
+      case Boolean:
+         rval = mBoolean ? 1 : 0;
+         break;
+      case UInt32:
+         rval = (int)mUInt32;
+         break;
+      case Int64:
+         rval = (int)mInt64;
+         break;
+      case UInt64:
+         rval = (int)mUInt64;
+         break;
+      case Double:
+         rval = (int)mDouble;
+         break;
+      default:
+         rval = 0;
+         break;
    }
    
-   return mInt32;
+   return rval;
 }
 
 unsigned int DynamicObjectImpl::getUInt32()
 {
-   if(mType != UInt32)
+   unsigned int rval;
+   
+   switch(mType)
    {
-      // convert type as appropriate
-      if(mType == String && mString != NULL)
-      {
-         *this = (unsigned int)strtoul(mString, NULL, 10);
-      }
-      else if(mType == Boolean)
-      {
-         *this = mBoolean ? (unsigned int)1 : (unsigned int)0;
-      }
-      else if(mType == Int32 && mInt32 > 0)
-      {
-         *this = (unsigned int)mInt32;
-      }
-      else if(mType == Int64 && mInt64 > 0)
-      {
-         *this = (unsigned int)mInt64;
-      }
-      else if(mType == UInt64)
-      {
-         *this = (unsigned int)mUInt64;
-      }
-      else if(mType == Double && mDouble > 0)
-      {
-         *this = (unsigned int)mDouble;
-      }
-      else
-      {
-         *this = (unsigned int)0;
-      }
+      case UInt32:
+         rval = mUInt32;
+         break;
+      case String:
+         rval = (unsigned int)strtoul(mString, NULL, 10);
+         break;
+      case Boolean:
+         rval = mBoolean ? 1 : 0;
+         break;
+      case Int32:
+         rval = (mInt32 < 0) ? 0 : mInt32;
+         break;
+      case Int64:
+         rval = (mInt64 < 0) ? 0 : (unsigned int)mInt64;
+         break;
+      case UInt64:
+         rval = (unsigned int)mUInt64;
+         break;
+      case Double:
+         rval = (unsigned int)mDouble;
+         break;
+      default:
+         rval = 0;
+         break;
    }
    
-   return mUInt32;
+   return rval;
 }
 
 long long DynamicObjectImpl::getInt64()
 {
-   if(mType != Int64)
+   long long rval;
+   
+   switch(mType)
    {
-      // convert type as appropriate
-      if(mType == String && mString != NULL)
-      {
-         *this = (long long)strtoll(mString, NULL, 10);
-      }
-      else if(mType == Boolean)
-      {
-         *this = mBoolean ? (long long)1 : (long long)0;
-      }
-      else if(mType == Int32)
-      {
-         *this = (long long)mInt32;
-      }
-      else if(mType == UInt32)
-      {
-         *this = (long long)mUInt32;
-      }
-      else if(mType == UInt64)
-      {
-         *this = (long long)mUInt64;
-      }
-      else if(mType == Double)
-      {
-         *this = (long long)mDouble;
-      }
-      else
-      {
-         *this = (long long)0;
-      }
+      case Int64:
+         rval = mInt64;
+         break;
+      case String:
+         rval = strtoll(mString, NULL, 10);
+         break;
+      case Boolean:
+         rval = mBoolean ? 1 : 0;
+         break;
+      case Int32:
+         rval = mInt32;
+         break;
+      case UInt32:
+         rval = mUInt32;
+         break;
+      case UInt64:
+         rval = (long long)mUInt64;
+         break;
+      case Double:
+         rval = (long long)mDouble;
+         break;
+      default:
+         rval = 0;
+         break;
    }
    
-   return mInt64;
+   return rval;
 }
 
 unsigned long long DynamicObjectImpl::getUInt64()
 {
-   if(mType != UInt64)
+   unsigned long long rval;
+   
+   switch(mType)
    {
-      // convert type as appropriate
-      if(mType == String && mString != NULL)
-      {
-         *this = (unsigned long long)strtoull(mString, NULL, 10);
-      }
-      else if(mType == Boolean)
-      {
-         *this = mBoolean ? (unsigned long long)1 : (unsigned long long)0;
-      }
-      else if(mType == Int32 && mInt32 > 0)
-      {
-         *this = (unsigned long long)mInt32;
-      }
-      else if(mType == UInt32)
-      {
-         *this = (unsigned long long)mUInt32;
-      }
-      else if(mType == Int64 && mInt64 > 0)
-      {
-         *this = (unsigned long long)mInt64;
-      }
-      else if(mType == Double && mDouble > 0)
-      {
-         *this = (unsigned long long)mDouble;
-      }
-      else
-      {
-         *this = (unsigned long long)0;
-      }
+      case UInt64:
+         rval = mUInt64;
+         break;
+      case String:
+         rval = strtoull(mString, NULL, 10);
+         break;
+      case Boolean:
+         rval = mBoolean ? 1 : 0;
+         break;
+      case Int32:
+         rval = (mInt32 < 0) ? 0 : mInt32;
+         break;
+      case UInt32:
+         rval = mUInt32;
+         break;
+      case Int64:
+         rval = (mInt64 < 0) ? 0 : mInt64;
+         break;
+      case Double:
+         rval = mDouble;
+         break;
+      default:
+         rval = 0;
+         break;
    }
    
-   return mUInt64;
+   return rval;
 }
 
 double DynamicObjectImpl::getDouble()
 {
-   if(mType != Double)
+   double rval;
+   
+   switch(mType)
    {
-      // convert type as appropriate
-      if(mType == String && mString != NULL)
-      {
-         *this = (double)strtod(mString, NULL);
-      }
-      else if(mType == Boolean)
-      {
-         *this = mBoolean ? (double)1 : (double)0;
-      }
-      else if(mType == Int32)
-      {
-         *this = (double)mInt32;
-      }
-      else if(mType == UInt32)
-      {
-         *this = (double)mUInt32;
-      }
-      else if(mType == Int64)
-      {
-         *this = (double)mInt64;
-      }
-      else if(mType == UInt64)
-      {
-         *this = (double)mUInt64;
-      }
-      else
-      {
-         *this = (double)0;
-      }
+      case Double:
+         rval = mDouble;
+         break;
+      case String:
+         rval = strtod(mString, NULL);
+         break;
+      case Boolean:
+         rval = mBoolean ? 1 : 0;
+         break;
+      case Int32:
+         rval = mInt32;
+         break;
+      case UInt32:
+         rval = mUInt32;
+         break;
+      case Int64:
+         rval = mInt64;
+         break;
+      case UInt64:
+         rval = mUInt64;
+         break;
+      default:
+         rval = 0;
+         break;
    }
    
-   return mDouble;
+   return rval;
 }
 
 bool DynamicObjectImpl::hasMember(const char* name)
@@ -559,51 +609,4 @@ int DynamicObjectImpl::length()
    }
    
    return rval;
-}
-
-string& DynamicObjectImpl::toString(string& str) const
-{
-   if(mType != String)
-   {
-      // convert type as appropriate
-      char temp[22];
-      switch(mType)
-      {
-         case Boolean:
-            sprintf(temp, "%s", (mBoolean ? "true" : "false"));
-            break;
-         case Int32:
-            sprintf(temp, "%i", mInt32);
-            break;
-         case UInt32:
-            sprintf(temp, "%u", mUInt32);
-            break;
-         case Int64:
-            sprintf(temp, "%lli", mInt64);
-            break;
-         case UInt64:
-            sprintf(temp, "%llu", mUInt64);
-            break;
-         case Double:
-            sprintf(temp, "%e", mDouble);
-            break;
-         default: /* Map, Array, ... */
-            temp[0] = 0;
-            break;
-      }
-      str.assign(temp);
-   }
-   else
-   {
-      if(mString == NULL)
-      {
-         str.assign("");
-      }
-      else
-      {
-         str.assign(mString);
-      }
-   }
-   
-   return str;
 }

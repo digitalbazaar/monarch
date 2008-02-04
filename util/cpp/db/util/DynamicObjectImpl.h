@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_util_DynamicObjectImpl_H
 #define db_util_DynamicObjectImpl_H
@@ -81,6 +81,12 @@ protected:
       ObjectMap* mMap;
       ObjectArray* mArray;
    };
+   
+   /**
+    * The value for this object as a string. This is used when the string
+    * version of this object is requested when its type is not a string. 
+    */
+   char* mStringValue;
    
    /**
     * Make DynamicObjectIteratorImpl a friend so it can iterate over
@@ -208,7 +214,9 @@ public:
    virtual DynamicObjectType getType();
    
    /**
-    * Gets this object's value as a string.
+    * Gets this object's value as a string. If the type of this object
+    * is not a string, then the returned pointer may be invalidated by
+    * the next call to getString().
     * 
     * @return the value of this object.
     */
@@ -293,14 +301,6 @@ public:
     * Array length = number of elements in the array.
     */
    virtual int length();
-
-   /**
-    * Get a string representation of this object for basic types.  Maps and
-    * Arrays are returned as empty string ("").
-    * 
-    * @return the string to assign.
-    */
-   virtual std::string& toString(std::string& str) const;
 };
 
 } // end namespace util

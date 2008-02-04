@@ -125,9 +125,8 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
          case UInt64:
          case Double:
             {
-               string temp;
-               dyno->toString(temp);
-               rval = os->write(temp.c_str(), temp.length());
+               const char* temp = dyno->getString();
+               rval = os->write(temp, strlen(temp));
             }
             break;
          case Map:
