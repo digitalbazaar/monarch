@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_DigitalSignatureInputStream_H
 #define db_crypto_DigitalSignatureInputStream_H
@@ -26,6 +26,11 @@ protected:
     */
    DigitalSignature* mSignature;
    
+   /**
+    * True to clean up the DigitalSignature when destructing, false not to.
+    */
+   bool mCleanupSignature;
+   
 public:
    /**
     * Creates a new DigitalSignatureInputStream that creates or verifies
@@ -33,12 +38,15 @@ public:
     * stream.
     * 
     * @param ds the DigitalSignature to use.
+    * @param cleanupSignature true to clean up the signature when destructing, 
+    *                         false not to.
     * @param is the underlying InputStream to read from.
-    * @param cleanup true to clean up the passed InputStream when destructing,
-    *                false not to.
+    * @param cleanupStream true to clean up the passed InputStream when
+    *                      destructing, false not to.
     */
    DigitalSignatureInputStream(
-      DigitalSignature* ds, db::io::InputStream* os, bool cleanup = false);
+      DigitalSignature* ds, bool cleanupSignature,
+      db::io::InputStream* os, bool cleanupStream);
    
    /**
     * Destructs this DigitalSignatureInputStream.
@@ -61,11 +69,20 @@ public:
    virtual int read(char* b, int length);
    
    /**
+    * Sets the DigitalSignature associated with this stream.
+    * 
+    * @param ds the DigitalSignature to associate with this stream.
+    * @param cleanup true to clean up the signature when destructing, 
+    *                false not to.
+    */
+   virtual void setSignature(DigitalSignature* ds, bool cleanup);
+   
+   /**
     * Gets the DigitalSignature associated with this stream.
     * 
     * @return the DigitalSignature associated with this stream.
     */
-   virtual DigitalSignature* getDigitalSignature();
+   virtual DigitalSignature* getSignature();
 };
 
 } // end namespace crypto

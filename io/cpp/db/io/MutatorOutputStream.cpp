@@ -122,3 +122,20 @@ void MutatorOutputStream::close()
    // close underlying stream
    mOutputStream->close();
 }
+
+void MutatorOutputStream::setAlgorithm(MutationAlgorithm* ma, bool cleanup)
+{
+   if(mCleanupAlgorithm && mAlgorithm != NULL)
+   {
+      delete mAlgorithm;
+   }
+   
+   mAlgorithm = ma;
+   mCleanupAlgorithm = cleanup;
+   mResult = MutationAlgorithm::NeedsData;
+}
+
+MutationAlgorithm* MutatorOutputStream::getAlgorithm()
+{
+   return mAlgorithm;
+}

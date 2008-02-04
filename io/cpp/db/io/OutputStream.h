@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_io_OutputStream_H
 #define db_io_OutputStream_H
 
 #include "db/rt/Object.h"
+#include "db/rt/Collectable.h"
 #include "db/io/IOException.h"
 
 namespace db
@@ -58,6 +59,9 @@ public:
     */
    virtual void close() {};
 };
+
+// typedef for a counted reference to an OutputStream
+typedef db::rt::Collectable<OutputStream> OutputStreamRef;
 
 } // end namespace io
 } // end namespace db

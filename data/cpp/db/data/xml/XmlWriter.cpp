@@ -1,330 +1,233 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/xml/XmlWriter.h"
+
+#include "db/util/DynamicObjectIterator.h"
+#include "db/io/BufferedOutputStream.h"
 
 using namespace std;
 using namespace db::data;
 using namespace db::data::xml;
 using namespace db::io;
 using namespace db::rt;
+using namespace db::util;
 
 XmlWriter::XmlWriter()
 {
-   mIndentLevel = 0;
-   mIndentSpaces = 0;
+   // Initialize to compact representation
+   setCompact(true);
+   setIndentation(0, 3);
 }
 
 XmlWriter::~XmlWriter()
 {
 }
 
-void XmlWriter::reset()
+string XmlWriter::encode(const char* data)
 {
-   // clear element stack
-   mElementStack.clear();
-}
-
-bool XmlWriter::writeIndentation(OutputStream* os, bool endElement)
-{
-   bool rval = true;
+   string rval;
    
-   // write out indentation, if any
-   int indent = mIndentLevel + (mElementStack.size() - 1) * mIndentSpaces;
-   
-   // ensure to indent end elements on indent level
-   if(indent > 0 ||
-      (endElement && indent == mIndentLevel && mIndentSpaces > 0))
+   for(int i = 0; data[i] != 0; i++)
    {
-      char temp[indent + 1];
-      temp[0] = '\n';
-      memset(temp + 1, ' ', indent);
-      rval = os->write(temp, indent + 1);
+      switch(data[i])
+      {
+         case '<':
+            rval.append("&lt;");
+            break;
+         case '>':
+            rval.append("&gt;");
+            break;
+         case '&':
+            rval.append("&amp;");
+            break;
+         case '\'':
+            rval.append("&apos;");
+            break;
+         case '"':
+            rval.append("&quot;");
+            break;
+         default:
+            rval.push_back(data[i]);
+            break;
+      }
    }
    
    return rval;
 }
 
-bool XmlWriter::writeStartElement(DataName* dn, OutputStream* os)
+bool XmlWriter::writeIndentation(OutputStream* os, int level)
 {
    bool rval = true;
-   
-   if(!mElementStack.empty())
-   {
-      // get current element state
-      ElementState& es = mElementStack.front();
-      
-      // close start element as appropriate
-      if(es.open)
-      {
-         rval = os->write(">", 1);
-         es.open = false;
-      }
-   }
-   
-   // create element state
-   ElementState es;
-   es.dn = dn;
-   es.hasData = false;
-   es.open = true;
-   
-   // add state to element stack
-   mElementStack.push_front(es);
    
    // write out indentation
-   rval = writeIndentation(os, false);
-   
-   // FIXME: need a namespace/prefix table/interface
-   // FIXME: need to write out namespace prefix as well
-   if(rval && (rval = os->write("<", 1)))
+   int indent = mCompact ? 0 : (level * mIndentSpaces);
+   if(indent > 0)
    {
-      rval = os->write(es.dn->name, strlen(es.dn->name));
+      char temp[indent];
+      memset(temp, ' ', indent);
+      rval = os->write(temp, indent);
    }
    
    return rval;
 }
 
-bool XmlWriter::writeEndElement(OutputStream* os)
-{
-   bool rval = false;
-   
-   if(!mElementStack.empty())
-   {
-      // get current element state
-      ElementState& es = mElementStack.front();
-      
-      // write closing element
-      if(es.open)
-      {
-         rval = os->write("/>", 2);
-      }
-      else
-      {
-         rval = true;
-         
-         // write indentation as appropriate
-         if(!es.hasData)
-         {
-            rval = writeIndentation(os, true);
-         }
-         
-         // FIXME: need a namespace/prefix table/interface
-         // FIXME: need to write out namespace prefix as well
-         if(rval && (rval = os->write("</", 2)))
-         {
-            if((rval = os->write(es.dn->name, strlen(es.dn->name))))
-            {
-               rval = os->write(">", 1);
-            }
-         }
-      }
-      
-      // pop element state off stack
-      mElementStack.pop_front();
-   }
-   
-   return rval;
-}
-
-bool XmlWriter::writeAttribute(
-   DataName* dn, const char* data, int length, OutputStream* os)
-{
-   bool rval = false;
-   
-   // FIXME: need a namespace/prefix table/interface
-   // FIXME: need to write out namespace prefix as well
-   
-   // write out space
-   if(os->write(" ", 1))
-   {
-      // write out attribute name
-      if(os->write(dn->name, strlen(dn->name)))
-      {
-         // write out equals and quote
-         if(os->write("=\"", 2))
-         {
-            // write out data
-            if(os->write(data, length))
-            {
-               // close attribute quote
-               rval = os->write("\"", 1);
-            }
-         }
-      }
-   }
-   
-   return rval;
-}
-
-bool XmlWriter::writeAttribute(
-   DataName* dn, DataMapping* dm, void* obj, OutputStream* os)
-{
-   bool rval = false;
-   
-   // FIXME: need a namespace/prefix table/interface
-   // FIXME: need to write out namespace prefix as well
-   
-   // write out space
-   if(os->write(" ", 1))
-   {
-      // write out attribute name
-      if(os->write(dn->name, strlen(dn->name)))
-      {
-         // write out equals and quote
-         if(os->write("=\"", 2))
-         {
-            // write out data
-            if(dm->writeData(obj, os))
-            {
-               // close attribute quote
-               rval = os->write("\"", 1);
-            }
-         }
-      }
-   }
-   
-   return rval;
-}
-
-bool XmlWriter::writeElementData(const char* data, int length, OutputStream* os)
+bool XmlWriter::write(DynamicObject& dyno, OutputStream* os, int level)
 {
    bool rval = true;
    
-   // get current element state
-   ElementState& es = mElementStack.front();
-   
-   // set whether or not element has data
-   es.hasData = (length > 0);
-   
-   // close start element as appropriate
-   if(es.open && es.hasData)
+   if(level < 0)
    {
-      rval = os->write(">", 1);
-      es.open = false;
+      level = mIndentLevel;
    }
    
-   if(rval)
+   if(dyno.isNull())
    {
-      // write out data
-      rval = os->write(data, length);
-   }
-   
-   return rval;
-}
-
-bool XmlWriter::writeElementData(
-   DataMapping* dm, void* obj, OutputStream* os)
-{
-   bool rval = true;
-   
-   // get current element state
-   ElementState& es = mElementStack.front();
-   
-   // set whether or not element has data
-   es.hasData = dm->hasData(obj);
-   
-   // close start element as appropriate
-   if(es.open && es.hasData)
-   {
-      rval = os->write(">", 1);
-      es.open = false;
-   }
-   
-   if(rval)
-   {
-      // write out data
-      rval = dm->writeData(obj, os);
-   }
-   
-   return rval;
-}
-
-bool XmlWriter::write(DataBinding* db, OutputStream* os)
-{
-   bool rval = true;
-   
-   // notify binding of serialization process
-   db->serializationStarted();
-   
-   // get root data name
-   DataName* root = db->getDataName();
-   if(root == NULL)
-   {
-      Exception::setLast(new IOException("No root element for DataBinding!"));
-      rval = false;
+      rval = writeIndentation(os, level + 1) && os->write("<null/>", 7);
    }
    else
    {
-      // write start element
-      writeStartElement(root, os);
-      
-      // a list for storing child objects
-      list<void*> children;
-      
-      // iterate through all data names
-      list<DataName*> dataNames = db->getDataNames();
-      for(list<DataName*>::iterator i = dataNames.begin();
-          rval && i != dataNames.end(); i++)
+      // get element tag name
+      const char* tagName;
+      switch(dyno->getType())
       {
-         // get data mapping
-         DataMapping* dm = db->getDataMapping(*i);
-         
-         // see if the mapping is for child objects
-         if(dm->isChildMapping())
-         {
-            // get list of child objects
-            children.clear();
-            db->getChildren(*i, children);
-            
-            // get data binding
-            DataBinding* binding = db->getDataBinding(*(++i));
-            
-            // use binding for each child
-            for(list<void*>::iterator child = children.begin();
-                rval && child != children.end(); child++)
-            {
-               // set child, write out data
-               binding->setObject(*child);
-               rval = write(binding, os);
-            }
-         }
-         else
-         {
-            // write only content for root element,
-            // if not root, only write element/attribute if it is
-            // verbose or has data
-            if(root->equals(*i))
-            {
-               rval = writeElementData(dm, db->getSetGetObject(*i), os);
-            }
-            else if((*i)->verbose || dm->hasData(db->getSetGetObject(*i)))
-            {
-               // write entire element or attribute
-               if((*i)->major)
-               {
-                  // write start element, data, end element
-                  rval = 
-                     writeStartElement(*i, os) &&
-                     writeElementData(dm, db->getSetGetObject(*i), os) &&
-                     writeEndElement(os);
-               }
-               else
-               {
-                  // write attribute
-                  rval = writeAttribute(*i, dm, db->getSetGetObject(*i), os);
-               }
-            }
-         }
+         case String:
+            tagName = "string";
+            break;
+         case Boolean:
+            tagName = "boolean";
+            break;
+         case Int32:
+         case UInt32:
+         case Int64:
+         case UInt64:
+         case Double:
+            tagName = "number";
+            break;
+         case Map:
+            tagName = "object";
+            break;
+         case Array:
+            tagName = "array";
+            break;
       }
       
-      if(rval)
+      // write opening tag, if element is empty, use compact element
+      int tagLength = strlen(tagName);
+      rval =
+         ((mCompact || level == 0) ? true : os->write("\n", 1)) &&
+         writeIndentation(os, level) &&
+         os->write("<", 1) &&
+         os->write(tagName, tagLength) &&
+         ((dyno->length() == 0) ? os->write("/>", 2) : os->write(">", 1));
+      
+      // write element data/contents
+      if(rval && dyno->length() > 0)
       {
+         switch(dyno->getType())
+         {
+            case String:
+               {
+                  // xml-encode string
+                  string encoded = encode(dyno->getString());
+                  rval = os->write(encoded.c_str(), encoded.length());
+               }
+               break;
+            case Boolean:
+            case Int32:
+            case UInt32:
+            case Int64:
+            case UInt64:
+            case Double:
+               {
+                  // serialize number to string
+                  string temp;
+                  dyno->toString(temp);
+                  rval = os->write(temp.c_str(), temp.length());
+               }
+               break;
+            case Map:
+               {
+                  // serialize each map member
+                  DynamicObjectIterator i = dyno.getIterator();
+                  while(rval && i->hasNext())
+                  {
+                     DynamicObject next = i->next();
+                     
+                     // serialize member name and value
+                     rval =
+                        (mCompact ? true : os->write("\n", 1)) &&
+                        writeIndentation(os, level + 1) &&
+                        os->write("<member name=\"", 14) &&
+                        os->write(i->getName(), strlen(i->getName())) &&
+                        os->write("\">", 2) &&
+                        write(next, os, level + 2) &&
+                        (mCompact ? true : os->write("\n", 1)) &&
+                        writeIndentation(os, level + 1) &&
+                        os->write("</member>", 9);
+                  }
+               }
+               break;
+            case Array:
+               {
+                  // serialize each array element
+                  char temp[22];
+                  DynamicObjectIterator i = dyno.getIterator();
+                  while(rval && i->hasNext())
+                  {
+                     DynamicObject next = i->next();
+                     
+                     // serialize element index and value
+                     sprintf(temp, "%i", i->getIndex()); 
+                     rval =
+                        (mCompact ? true : os->write("\n", 1)) &&
+                        writeIndentation(os, level + 1) &&
+                        os->write("<element index=\"", 16) &&
+                        os->write(temp, strlen(temp)) &&
+                        os->write("\">", 2) &&
+                        write(next, os, level + 2) &&
+                        (mCompact ? true : os->write("\n", 1)) &&
+                        writeIndentation(os, level + 1) &&
+                        os->write("</element>", 10);
+                  }
+               }
+               break;
+         }
+         
          // write end element
-         rval = writeEndElement(os);
+         // (only write indentation for map or array)
+         if(dyno->getType() == Map || dyno->getType() == Array)
+         {
+            rval = rval &&
+               (mCompact ? true : os->write("\n", 1)) &&
+               writeIndentation(os, level);
+         }
+         
+         rval =
+            rval &&
+            os->write("</", 2) &&
+            os->write(tagName, tagLength) &&
+            os->write(">", 1);
       }
    }
    
    return rval;
+}
+
+bool XmlWriter::write(DynamicObject& dyno, OutputStream* os)
+{
+   bool rval;
+   
+   ByteBuffer b(1024);
+   BufferedOutputStream bos(&b, os);
+   rval = write(dyno, &bos, mIndentLevel) && bos.flush();
+   
+   return rval;
+}
+
+void XmlWriter::setCompact(bool compact)
+{
+   mCompact = compact;
 }
 
 void XmlWriter::setIndentation(int level, int spaces)

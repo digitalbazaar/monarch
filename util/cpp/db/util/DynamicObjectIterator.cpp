@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/util/DynamicObjectIterator.h"
 #include "db/rt/Exception.h"
@@ -10,6 +10,7 @@ using namespace db::util;
 DynamicObjectIteratorImpl::DynamicObjectIteratorImpl(DynamicObject dyno)
 {
    mObject = dyno;
+   mIndex = -1;
    
    if(mObject->getType() == Map)
    {
@@ -32,6 +33,7 @@ DynamicObjectIteratorImpl::~DynamicObjectIteratorImpl()
 DynamicObject& DynamicObjectIteratorImpl::next()
 {
    DynamicObject* rval = NULL;
+   mIndex++;
    
    if(mObject->getType() == Map)
    {
@@ -96,6 +98,11 @@ const char* DynamicObjectIteratorImpl::getName()
    }
    
    return rval;
+}
+
+int DynamicObjectIteratorImpl::getIndex()
+{
+   return mIndex;
 }
 
 DynamicObjectIterator::DynamicObjectIterator(DynamicObjectIteratorImpl* impl) :

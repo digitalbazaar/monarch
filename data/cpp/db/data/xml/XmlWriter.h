@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_xml_XmlWriter_H
 #define db_data_xml_XmlWriter_H
 
-#include "db/data/DataBinding.h"
-#include "db/io/OutputStream.h"
+#include "db/data/DynamicObjectWriter.h"
 
 namespace db
 {
@@ -18,40 +17,19 @@ namespace xml
  * An XmlWriter provides an interface for serializing objects to
  * XML (eXtensible Markup Language).
  * 
- * An XmlWriter maintains element state information as it is writing out
- * xml. If it has been used to write a chunk of xml, it should be reset() to
- * write another chunk of xml that is part of a different document.   
+ * A XmlWriter writes out a whole object at once and can be used again.
+ * The compact setting should be used to minimize extra whitespace when not
+ * needed.
  * 
  * @author Dave Longley
  */
-class XmlWriter
+class XmlWriter : public DynamicObjectWriter
 {
 protected:
    /**
-    * Stores information about an xml element that is being written out.
+    * Compact mode to minimize whitespace.
     */
-   typedef struct ElementState
-   {
-      /**
-       * The data name for the element.
-       */
-      DataName* dn;
-      
-      /**
-       * Whether or not the element has data.
-       */
-      bool hasData;
-      
-      /**
-       * Whether or not the start element is still open.
-       */
-      bool open;
-   };
-   
-   /**
-    * A stack of the current element states.
-    */
-   std::list<ElementState> mElementStack;
+   bool mCompact;
    
    /**
     * The starting indentation level. 
@@ -64,14 +42,35 @@ protected:
    int mIndentSpaces;
    
    /**
-    * Writes out indentation.
+    * Xml-encodes the special characters in the passed data.
+    * 
+    * @param data the data to xml-encode.
+    * 
+    * @return the xml-encoded data.
+    */
+   virtual std::string encode(const char* data);
+   
+   /**
+    * Writes out indentation. None if in compact mode.
     * 
     * @param os the OutputStream to write to.
-    * @param endElement true if indentation is for an end element, false if not.
+    * @param level indentation level.
     * 
     * @return true if successful, false if an exception occurred. 
     */
-   virtual bool writeIndentation(db::io::OutputStream* os, bool endElement);
+   virtual bool writeIndentation(db::io::OutputStream* os, int level);
+   
+   /**
+    * Recursively serializes the passed DynamicObject to XML.
+    * 
+    * @param dyno the DynamicObject to serialize.
+    * @param os the OutputStream to write the XML to.
+    * @param level current level of indentation (-1 to initialize with default).
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool write(
+      db::util::DynamicObject& dyno, db::io::OutputStream* os, int level);
    
 public:
    /**
@@ -85,92 +84,15 @@ public:
    virtual ~XmlWriter();
    
    /**
-    * Resets this XmlWriter for another use.
-    */
-   virtual void reset();
-   
-   /**
-    * Writes a start element.
+    * Serializes the passed DynamicObject to XML.
     * 
-    * @param dn the DataName to use.
-    * @param os the OutputStream to write to.
-    * 
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool writeStartElement(
-      db::data::DataName* dn, db::io::OutputStream* os);
-   
-   /**
-    * Writes an end element.
-    * 
-    * @param os the OutputStream to write to.
-    * 
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool writeEndElement(db::io::OutputStream* os);
-   
-   /**
-    * Writes an attribute.
-    * 
-    * @param dn the DataName to use.
-    * @param data the data for the attribute.
-    * @param length the length of the data for the attribute.
-    * @param os the OutputStream to write to.
-    * 
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool writeAttribute(
-      db::data::DataName* dn, const char* data, int length,
-      db::io::OutputStream* os);
-   
-   /**
-    * Writes an attribute.
-    * 
-    * @param dn the DataName to use.
-    * @param dm the DataMapping to use.
-    * @param obj the object with the data.
-    * @param os the OutputStream to write to.
-    * 
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool writeAttribute(
-      db::data::DataName* dn, db::data::DataMapping* dm, void* obj,
-      db::io::OutputStream* os);
-   
-   /**
-    * Writes element data.
-    * 
-    * @param data the data to write.
-    * @param length the length of the data.
-    * @param os the OutputStream to write to.
-    * 
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool writeElementData(
-      const char* data, int length, db::io::OutputStream* os);
-   
-   /**
-    * Writes element data using the passed DataMapping with the given object.
-    * 
-    * @param dm the DataMapping to use.
-    * @param obj the object with the data.
-    * @param os the OutputStream to write to.
-    * 
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool writeElementData(
-      db::data::DataMapping* dm, void* obj, db::io::OutputStream* os);
-   
-   /**
-    * Serializes an object to xml using the passed DataBinding.
-    * 
-    * @param db the DataBinding for the object to serialize.
-    * @param os the OutputStream to write the xml to.
+    * @param dyno the DynamicObject to serialize.
+    * @param os the OutputStream to write the XML to.
     * 
     * @return true if successful, false if an exception occurred.
     */
    virtual bool write(
-      db::data::DataBinding* db, db::io::OutputStream* os);
+      db::util::DynamicObject& dyno, db::io::OutputStream* os);
    
    /**
     * Sets the starting indentation level and the number of spaces
@@ -180,6 +102,13 @@ public:
     * @param spaces the number of spaces per indentation level.
     */
    virtual void setIndentation(int level, int spaces);
+   
+   /**
+    * Sets the writer to use compact mode and not output unneeded whitespace.
+    * 
+    * @param compact true to minimize whitespace, false not to.
+    */
+   virtual void setCompact(bool compact);
 };
 
 } // end namespace xml

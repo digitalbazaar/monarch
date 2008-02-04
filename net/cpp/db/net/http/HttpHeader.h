@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_http_HttpHeader_H
 #define db_net_http_HttpHeader_H
 
 #include "db/util/Date.h"
+#include "db/rt/Collectable.h"
 
 #include <map>
 #include <string>
@@ -201,6 +202,9 @@ public:
     */
    static void biCapitalize(char* name);
 };
+
+// typedef for a counted reference to an HttpHeader
+typedef db::rt::Collectable<HttpHeader> HttpHeaderRef;
 
 } // end namespace http
 } // end namespace net

@@ -5,6 +5,7 @@
 #define db_io_InputStream_H
 
 #include "db/io/IOException.h"
+#include "db/rt/Collectable.h"
 
 namespace db
 {
@@ -121,6 +122,9 @@ inline long long InputStream::skip(long long count)
    
    return skipped;
 }
+
+// typedef for a counted reference to an InputStream
+typedef db::rt::Collectable<InputStream> InputStreamRef;
 
 } // end namespace io
 } // end namespace db

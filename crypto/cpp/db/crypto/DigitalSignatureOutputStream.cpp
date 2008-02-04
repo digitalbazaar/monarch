@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/DigitalSignatureOutputStream.h"
 
@@ -7,26 +7,47 @@ using namespace db::crypto;
 using namespace db::io;
 
 DigitalSignatureOutputStream::DigitalSignatureOutputStream(
-   DigitalSignature* ds, OutputStream* os, bool cleanup) :
-   FilterOutputStream(os, cleanup)
+   DigitalSignature* ds, bool cleanupSignature,
+   OutputStream* os, bool cleanupStream) :
+   FilterOutputStream(os, cleanupStream)
 {
    mSignature = ds;
+   mCleanupSignature = cleanupSignature;
 }
 
 DigitalSignatureOutputStream::~DigitalSignatureOutputStream()
 {
+   if(mCleanupSignature && mSignature != NULL)
+   {
+      delete mSignature;
+   }
 }
 
 bool DigitalSignatureOutputStream::write(const char* b, int length)
 {
-   // update digital signature
-   mSignature->update(b, length);
+   if(mSignature != NULL)
+   {
+      // update digital signature
+      mSignature->update(b, length);
+   }
    
    // write to underlying stream
    return FilterOutputStream::write(b, length);
 }
 
-DigitalSignature* DigitalSignatureOutputStream::getDigitalSignature()
+void DigitalSignatureOutputStream::setSignature(
+   DigitalSignature* ds, bool cleanup)
+{
+   if(mCleanupSignature && mSignature != NULL)
+   {
+      delete mSignature;
+   }
+   
+   mSignature = ds;
+   mCleanupSignature = cleanup;
+}
+
+DigitalSignature* DigitalSignatureOutputStream::getSignature()
 {
    return mSignature;
 }

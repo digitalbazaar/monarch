@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_DigitalSignature_H
 #define db_crypto_DigitalSignature_H
 
 #include "db/crypto/CryptoHashAlgorithm.h"
 #include "db/crypto/AsymmetricKey.h"
+#include "db/rt/Collectable.h"
 
 namespace db
 {
@@ -123,6 +124,9 @@ public:
     */
    virtual AsymmetricKey* getKey();
 };
+
+// typedef for a counted reference to a DigitalSignature
+typedef db::rt::Collectable<DigitalSignature> DigitalSignatureRef;
 
 } // end namespace crypto
 } // end namespace db

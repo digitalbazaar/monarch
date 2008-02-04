@@ -107,3 +107,21 @@ int MutatorInputStream::read(char* b, int length)
    
    return rval;
 }
+
+void MutatorInputStream::setAlgorithm(MutationAlgorithm* ma, bool cleanup)
+{
+   if(mCleanupAlgorithm && mAlgorithm != NULL)
+   {
+      delete mAlgorithm;
+   }
+   
+   mAlgorithm = ma;
+   mCleanupAlgorithm = cleanup;
+   mResult = MutationAlgorithm::NeedsData;
+   mSourceEmpty = false;
+}
+
+MutationAlgorithm* MutatorInputStream::getAlgorithm()
+{
+   return mAlgorithm;
+}

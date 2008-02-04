@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/DigitalSignatureInputStream.h"
 
@@ -7,14 +7,20 @@ using namespace db::crypto;
 using namespace db::io;
 
 DigitalSignatureInputStream::DigitalSignatureInputStream(
-   DigitalSignature* ds, InputStream* os, bool cleanup) :
-   FilterInputStream(os, cleanup)
+   DigitalSignature* ds, bool cleanupSignature,
+   InputStream* os, bool cleanupStream) :
+   FilterInputStream(os, cleanupStream)
 {
    mSignature = ds;
+   mCleanupSignature = cleanupSignature;
 }
 
 DigitalSignatureInputStream::~DigitalSignatureInputStream()
 {
+   if(mCleanupSignature && mSignature != NULL)
+   {
+      delete mSignature;
+   }
 }
 
 int DigitalSignatureInputStream::read(char* b, int length)
@@ -22,7 +28,7 @@ int DigitalSignatureInputStream::read(char* b, int length)
    // read from underlying stream
    int rval = FilterInputStream::read(b, length);
    
-   if(rval > 0)
+   if(rval > 0 && mSignature != NULL)
    {
       // update digital signature
       mSignature->update(b, rval);
@@ -31,7 +37,19 @@ int DigitalSignatureInputStream::read(char* b, int length)
    return rval;
 }
 
-DigitalSignature* DigitalSignatureInputStream::getDigitalSignature()
+void DigitalSignatureInputStream::setSignature(
+   DigitalSignature* ds, bool cleanup)
+{
+   if(mCleanupSignature && mSignature != NULL)
+   {
+      delete mSignature;
+   }
+   
+   mSignature = ds;
+   mCleanupSignature = cleanup;
+}
+
+DigitalSignature* DigitalSignatureInputStream::getSignature()
 {
    return mSignature;
 }

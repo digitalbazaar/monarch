@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_xml_XmlReader_H
 #define db_data_xml_XmlReader_H
 
-#include "db/data/DataBinding.h"
-#include "db/io/InputStream.h"
+#include "db/data/DynamicObjectReader.h"
 
 #include <expat.h>
 #include <list>
@@ -23,7 +22,7 @@ namespace xml
  * 
  * @author Dave Longley
  */
-class XmlReader
+class XmlReader : public DynamicObjectReader
 {
 protected:
    /**
@@ -37,9 +36,19 @@ protected:
    bool mStarted;
    
    /**
-    * A stack of DataBindings.
+    * An exception, if one occurred during parsing.
     */
-   std::list<DataBinding*> mDataBindingsStack;
+   db::io::IOException* mException;
+   
+   /**
+    * A stack of DynamicObjects.
+    */
+   std::list<db::util::DynamicObject*> mDynoStack;
+   
+   /**
+    * A stack of DynamicObjectTypes.
+    */
+   std::list<db::util::DynamicObjectType> mTypeStack;
    
    /**
     * Handles start elements for this reader.
@@ -73,6 +82,24 @@ protected:
     * The read size in bytes.
     */
    static unsigned int READ_SIZE;
+   
+   /**
+    * Gets a DynamicObjectType from the passed element tag name.
+    * 
+    * @param tagName the element tag name.
+    * 
+    * @return the associated DynamicObjectType.
+    */
+   static db::util::DynamicObjectType tagNameToType(const char* name);
+   
+   /**
+    * Parses the local name from the passed fully qualified name. The passed
+    * pointer will be incremented until it points at the start of the local
+    * name.
+    * 
+    * @param fullName the fully qualified name to change to the local name.
+    */
+   static void parseLocalName(const char** fullName);
    
    /**
     * Parses a namespace uri out of the given name and sets the passed
@@ -124,26 +151,32 @@ public:
    
    /**
     * Starts deserializing an object from xml. This XmlReader can be re-used
-    * by calling start() with the same or a new data binding.
+    * by calling start() with the same or a new object. Calling start() before
+    * a previous deserialization has finished will abort the previous state.
     * 
-    * @param db the DataBinding for the object to deserialize.
+    * Using a non-empty object can be used to merge in new values. This is
+    * only defined for similar object types (i.e., merging an array into
+    * a map will overwrite the map).
+    * 
+    * @param dyno the DynamicObject for the object to deserialize.
     */
-   virtual void start(db::data::DataBinding* db);
+   virtual void start(db::util::DynamicObject& dyno);
    
    /**
     * This method reads xml from the passed InputStream until the end of
     * the stream, blocking if necessary.
     * 
     * The start() method must be called at least once before calling read(). As
-    * the xml is read, the data binding provided in start() is used to
+    * the xml is read, the DynamicObject provided in start() is used to
     * deserialize an object.
     * 
     * This method may be called multiple times if the input stream needs to
     * be populated in between calls or if multiple input streams are used.
     * 
+    * The object is built incrementally and on error will be partially built.
+    * 
     * The finish() method must be called to complete the deserialization.
     * 
-    * @param db the DataBinding for the object to deserialize.
     * @param is the InputStream to read the xml from.
     * 
     * @return an IOException if one occurred, NULL if not.

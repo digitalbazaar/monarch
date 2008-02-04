@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/xml/XmlReader.h"
 
@@ -8,6 +8,7 @@ using namespace db::data;
 using namespace db::data::xml;
 using namespace db::io;
 using namespace db::rt;
+using namespace db::util;
 
 // initialize encoding
 const char* XmlReader::CHAR_ENCODING = "UTF-8";
@@ -18,6 +19,7 @@ unsigned int XmlReader::READ_SIZE = 4096;
 XmlReader::XmlReader()
 {
    mStarted = false;
+   mException = NULL;
 }
 
 XmlReader::~XmlReader()
@@ -31,84 +33,182 @@ XmlReader::~XmlReader()
 
 void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
 {
-   if(mDataBindingsStack.front() != NULL)
+   if(mException == NULL &&
+      !mDynoStack.empty() && !mDynoStack.front()->isNull())
    {
-      // parse element namespace
-      char* ns;
-      parseNamespace(&name, &ns);
+      // parse element's local name
+      parseLocalName(&name);
       
-      // start data with given encoding, namespace and name and push
-      // data binding onto stack
-      DataBinding* db = mDataBindingsStack.front()->startData(
-         CHAR_ENCODING, ns, (const char*)name);
-      mDataBindingsStack.push_front(db);
-      if(db != NULL)
+      if(strcmp(name, "member") == 0)
       {
-         char* attrns;
-         for(int i = 0; attrs[i] != NULL; i += 2)
+         // create child object based on name
+         bool set = false;
+         for(int i = 0; !set && attrs[i] != NULL; i += 2)
          {
-            // parse attribute namespace
-            parseNamespace(&attrs[i], &attrns);
+            // parse attribute's local name
+            parseLocalName(&attrs[i]);
             
-            // set attribute data
-            db->setData(
-               CHAR_ENCODING, attrns, attrs[i],
-               attrs[i + 1], strlen(attrs[i + 1]));
-            
-            // clean up attribute namespace
-            if(attrns != NULL)
+            // get object name
+            if(strcmp(attrs[i], "name") == 0)
             {
-               free(attrns);
+               DynamicObject child;
+               (*mDynoStack.front())[attrs[i + 1]] = child;
+               mDynoStack.push_front(&(*mDynoStack.front())[attrs[i + 1]]);
+               set = true;
             }
          }
+         
+         if(!set)
+         {
+            // no "name" for "member"
+            mException = new IOException(
+               "Xml parsing error! No 'name' attribute for 'member' element!");
+            Exception::setLast(mException);
+         }
       }
-      
-      // clean up element namespace
-      if(ns != NULL)
+      else if(strcmp(name, "element") == 0)
       {
-         free(ns);
+         // create child object base on index
+         bool set = false;
+         for(int i = 0; !set && attrs[i] != NULL; i += 2)
+         {
+            // parse attribute's local name
+            parseLocalName(&attrs[i]);
+            
+            // get object index
+            if(strcmp(attrs[i], "index") == 0)
+            {
+               DynamicObject child;
+               int index = strtoul(attrs[i + 1], NULL, 10);
+               (*mDynoStack.front())[index] = child;
+               mDynoStack.push_front(&(*mDynoStack.front())[index]);
+               set = true;
+            }
+         }
+         
+         if(!set)
+         {
+            // no "name" for "member"
+            mException = new IOException(
+               "Xml parsing error! No 'index' attribute for 'element' "
+               "element!");
+            Exception::setLast(mException);
+         }
       }
-   }
-   else
-   {
-      // no available data binding
-      mDataBindingsStack.push_front(NULL);
+      else
+      {
+         // determine determine object type from element name
+         DynamicObjectType dot = tagNameToType(name);
+         mTypeStack.push_front(dot);
+         
+         if(strcmp(name, "null") == 0)
+         {
+            // set dyno to null
+            mDynoStack.front()->setNull();
+         }
+      }
    }
 }
 
 void XmlReader::endElement(const XML_Char* name)
 {
-   // get front data binding
-   DataBinding* db = mDataBindingsStack.front();
-   
-   // pop front data binding
-   mDataBindingsStack.pop_front();
-   
-   if(db != NULL && mDataBindingsStack.front() != NULL)
+   if(mException == NULL && !mDynoStack.empty())
    {
-      // parse element namespace
-      char* ns;
-      parseNamespace(&name, &ns);
+      // parse element's local name
+      parseLocalName(&name);
       
-      // end data
-      mDataBindingsStack.front()->endData(CHAR_ENCODING, ns, name, db);
-      
-      // clean up element namespace
-      if(ns != NULL)
+      if(mDynoStack.front()->isNull())
       {
-         free(ns);
+         if(strcmp(name, "null") == 0)
+         {
+            // pop stacks
+            mDynoStack.pop_front();
+            mTypeStack.pop_front();
+         }
+      }
+      else
+      {
+         // ensure name matches current dyno type
+         DynamicObjectType dot = tagNameToType(name);
+         if(dot == mTypeStack.front() &&
+            (dot != String || strcmp(name, "string") == 0))
+         {
+            // parse number to appropriate type
+            if(dot == UInt64)
+            {
+               const char* num = (*mDynoStack.front())->getString();
+               if(strchr(num, '.') != NULL)
+               {
+                  // number has a decimal point
+                  dot = Double;
+               }
+               else if(num[0] == '-')
+               {
+                  // number is signed
+                  dot = Int64;
+               }
+            }
+            
+            // set object type
+            (*mDynoStack.front())->setType(dot);
+            
+            // pop stacks
+            mDynoStack.pop_front();
+            mTypeStack.pop_front();
+         }
       }
    }
 }
 
 void XmlReader::appendData(const XML_Char* data, int length)
 {
-   // get front data binding
-   DataBinding* db = mDataBindingsStack.front();
-   if(db != NULL)
+   if(mException == NULL &&
+      !mDynoStack.empty() && !mDynoStack.front()->isNull())
    {
-      // append data
-      db->appendData(CHAR_ENCODING, data, length);
+      // append data to dyno
+      const char* d = (*mDynoStack.front())->getString();
+      int len = strlen(d);
+      char temp[len + length + 1];
+      memcpy(temp, d, len);
+      memcpy(temp + len, data, length);
+      temp[len + length] = 0;
+      *mDynoStack.front() = temp;
+   }
+}
+
+db::util::DynamicObjectType XmlReader::tagNameToType(const char* name)
+{
+   DynamicObjectType rval = String;
+   
+   // determine determine object type from name
+   if(strcmp(name, "boolean") == 0)
+   {
+      rval = Boolean;
+   }
+   else if(strcmp(name, "number") == 0)
+   {
+      // default to largest integer type
+      rval = UInt64;
+   }
+   else if(strcmp(name, "object") == 0)
+   {
+      rval = Map;
+   }
+   else if(strcmp(name, "array") == 0)
+   {
+      rval = Array;
+   }
+   
+   return rval;
+}
+
+void XmlReader::parseLocalName(const char** fullName)
+{
+   // move pointer past namespace, if one exists
+   const char* sep = strchr(*fullName, '|');
+   if(sep != NULL)
+   {
+      *fullName = sep + 1;
    }
 }
 
@@ -148,21 +248,18 @@ void XmlReader::appendData(void* xr, const XML_Char* data, int length)
    reader->appendData(data, length);
 }
 
-void XmlReader::start(DataBinding* db)
+void XmlReader::start(DynamicObject& dyno)
 {
-   // notify binding of deserialization start
-   db->deserializationStarted();
-   
-   // clear data bindings stack
-   mDataBindingsStack.clear();
-   
-   // push root data binding onto stack
-   mDataBindingsStack.push_front(db);
+   // clear stacks and push root object
+   mDynoStack.clear();
+   mTypeStack.clear();
+   mDynoStack.push_front(&dyno);
    
    if(mStarted)
    {
       // free parser
       XML_ParserFree(mParser);
+      mException = NULL;
    }
    
    // create parser
@@ -196,9 +293,11 @@ IOException* XmlReader::read(InputStream* is)
       {
          bool error = false;
          int numBytes;
-         while(!error && (numBytes = is->read(b, READ_SIZE)) > 0)
+         while(rval == NULL && !error &&
+               (numBytes = is->read(b, READ_SIZE)) > 0)
          {
             error = (XML_ParseBuffer(mParser, numBytes, false) == 0);
+            rval = mException;
          }
          
          if(error)

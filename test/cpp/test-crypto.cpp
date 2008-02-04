@@ -434,22 +434,20 @@ void runDigitalSignatureInputStreamTest(TestRunner& tr)
       
       char dummy[8];
       ByteArrayInputStream bais(data, 8);
-      DigitalSignatureInputStream dsos1(ds1, &bais, false);
+      DigitalSignatureInputStream dsos1(ds1, true, &bais, false);
       dsos1.read(dummy, 8);
       
       // get the signature
       char sig[ds1->getValueLength()];
       unsigned int length;
       ds1->getValue(sig, length);
-      delete ds1;
       
       // verify the signature
       DigitalSignature* ds2 = publicKey->createSignature();
       bais.setByteArray(data, 8);
-      DigitalSignatureInputStream dsos2(ds2, &bais, false);
+      DigitalSignatureInputStream dsos2(ds2, true, &bais, false);
       dsos2.read(dummy, 8);
       bool verified = ds2->verify(sig, length);
-      delete ds2;
       
       assert(verified);
       
@@ -515,21 +513,19 @@ void runDigitalSignatureOutputStreamTest(TestRunner& tr)
       
       ostringstream oss;
       OStreamOutputStream osos(&oss);
-      DigitalSignatureOutputStream dsos1(ds1, &osos, false);
+      DigitalSignatureOutputStream dsos1(ds1, true, &osos, false);
       dsos1.write(data, 8);
       
       // get the signature
       char sig[ds1->getValueLength()];
       unsigned int length;
       ds1->getValue(sig, length);
-      delete ds1;
       
       // verify the signature
       DigitalSignature* ds2 = publicKey->createSignature();
-      DigitalSignatureOutputStream dsos2(ds2, &osos, false);
+      DigitalSignatureOutputStream dsos2(ds2, true, &osos, false);
       dsos2.write(data, 8);
       bool verified = ds2->verify(sig, length);
-      delete ds2;
       
       assert(verified);
       

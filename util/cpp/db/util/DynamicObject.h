@@ -131,7 +131,7 @@ public:
     * 
     * @return the DynamicObject.
     */
-   virtual DynamicObject& operator[](const std::string& name);
+   virtual DynamicObject& operator[](const char* name);
    
    /**
     * Gets a DynamicObject from a DynamicObjectImpl based on its index. A

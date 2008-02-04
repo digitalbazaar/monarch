@@ -7,14 +7,7 @@
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
-#include "db/util/Base64Codec.h"
-#include "db/rt/Object.h"
-#include "db/rt/Runnable.h"
-#include "db/rt/Thread.h"
-#include "db/rt/Semaphore.h"
 #include "db/rt/System.h"
-#include "db/rt/JobDispatcher.h"
-#include "db/util/Crc16.h"
 #include "db/util/StringTools.h"
 #include "db/util/DynamicObject.h"
 #include "db/util/DynamicObjectIterator.h"
@@ -23,19 +16,11 @@
 #include "db/net/DatagramSocket.h"
 #include "db/net/Internet6Address.h"
 #include "db/net/SslSocket.h"
-#include "db/crypto/MessageDigest.h"
-#include "db/crypto/AsymmetricKeyFactory.h"
 #include "db/io/File.h"
 #include "db/io/FileInputStream.h"
 #include "db/io/FileOutputStream.h"
 #include "db/io/FileList.h"
-#include "db/crypto/DigitalEnvelope.h"
-#include "db/crypto/DigitalSignatureInputStream.h"
-#include "db/crypto/DigitalSignatureOutputStream.h"
-#include "db/crypto/DefaultBlockCipher.h"
-#include "db/util/Convert.h"
 #include "db/net/Url.h"
-#include "db/util/regex/Pattern.h"
 #include "db/util/Date.h"
 #include "db/net/http/HttpHeader.h"
 #include "db/net/http/HttpRequest.h"
@@ -48,72 +33,16 @@
 #include "db/net/NullSocketDataPresenter.h"
 #include "db/net/SslSocketDataPresenter.h"
 #include "db/net/SocketDataPresenterList.h"
-#include "db/util/StringTokenizer.h"
-#include "db/io/FilterOutputStream.h"
 #include "db/io/ByteArrayInputStream.h"
-#include "db/data/xml/XmlReader.h"
-#include "db/data/xml/XmlWriter.h"
-#include "db/data/xml/XmlBindingInputStream.h"
-#include "db/data/xml/XmlBindingOutputStream.h"
-#include "db/data/DataMappingFunctor.h"
-#include "db/data/DynamicObjectWriter.h"
-#include "db/data/DynamicObjectReader.h"
-#include "db/data/DynamicObjectBinding.h"
-#include "db/io/OStreamOutputStream.h"
-#include "db/crypto/BigDecimal.h"
-#include "db/io/ByteArrayOutputStream.h"
-#include "db/io/ByteBuffer.h"
-#include "db/io/BufferedOutputStream.h"
-#include "db/io/MutatorInputStream.h"
-#include "db/io/MutatorOutputStream.h"
-#include "db/sql/Row.h"
-#include "db/sql/RowObject.h"
-#include "db/sql/sqlite3/Sqlite3Connection.h"
-#include "db/sql/sqlite3/Sqlite3ConnectionPool.h"
-#include "db/sql/mysql/MySqlConnection.h"
-#include "db/sql/mysql/MySqlConnectionPool.h"
-#include "db/sql/util/DatabaseClient.h"
-#include "db/event/Observable.h"
-#include "db/event/ObserverDelegate.h"
-#include "db/event/EventController.h"
-#include "db/logging/Logging.h"
-#include "db/logging/Logger.h"
-#include "db/logging/OutputStreamLogger.h"
-#include "db/logging/FileLogger.h"
-#include "db/util/UniqueList.h"
-#include "db/data/json/JsonWriter.h"
-#include "db/data/json/JsonReader.h"
-#include "db/data/json/JsonInputStream.h"
-#include "db/data/json/JsonOutputStream.h"
-#include "db/mail/SmtpClient.h"
-#include "db/mail/MailTemplateParser.h"
-#include "db/config/ConfigManager.h"
-#include "db/data/riff/RiffChunkHeader.h"
-#include "db/data/riff/RiffListHeader.h"
-#include "db/data/riff/RiffFormHeader.h"
 
 using namespace std;
 using namespace db::test;
-using namespace db::config;
-using namespace db::crypto;
-using namespace db::event;
 using namespace db::io;
 using namespace db::modest;
 using namespace db::net;
 using namespace db::net::http;
 using namespace db::rt;
 using namespace db::util;
-using namespace db::util::regex;
-using namespace db::data;
-//using namespace db::data::avi;
-using namespace db::data::json;
-//using namespace db::data::mpeg;
-using namespace db::data::riff;
-using namespace db::data::xml;
-using namespace db::sql::sqlite3;
-using namespace db::sql::mysql;
-using namespace db::sql::util;
-using namespace db::logging;
 
 void runAddressResolveTest(TestRunner& tr)
 {

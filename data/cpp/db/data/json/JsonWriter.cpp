@@ -48,7 +48,7 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
       level = mIndentLevel;
    }
 
-   if(dyno == NULL)
+   if(dyno.isNull())
    {
       rval = os->write("null", 4);
    }

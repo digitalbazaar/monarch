@@ -111,20 +111,20 @@ void DynamicObjectImpl::operator=(double value)
    mDouble = value;
 }
 
-DynamicObject& DynamicObjectImpl::operator[](const std::string& name)
+DynamicObject& DynamicObjectImpl::operator[](const char* name)
 {
    DynamicObject* rval = NULL;
    
    // change to map type if necessary
    setType(Map);
    
-   ObjectMap::iterator i = mMap->find(name.c_str());
+   ObjectMap::iterator i = mMap->find(name);
    if(i == mMap->end())
    {
       // create new map entry
       DynamicObject dyno;
-      mMap->insert(std::make_pair(strdup(name.c_str()), dyno));
-      rval = &(*mMap)[name.c_str()];
+      mMap->insert(std::make_pair(strdup(name), dyno));
+      rval = &(*mMap)[name];
    }
    else
    {
@@ -157,6 +157,11 @@ DynamicObject& DynamicObjectImpl::operator[](int index)
    }
    
    return (*mArray)[index];
+}
+
+DynamicObject& DynamicObjectImpl::append()
+{
+   return (*this)[length()];
 }
 
 void DynamicObjectImpl::setType(DynamicObjectType type)
