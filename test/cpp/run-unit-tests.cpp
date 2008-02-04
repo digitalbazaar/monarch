@@ -23,19 +23,19 @@ using namespace db::util;
 using namespace db::logging;
 
 #define DB_TEST_NO_MAIN
+#include "test-rt.cpp"
+#include "test-modest.cpp"
+#include "test-util.cpp"
+#include "test-io.cpp"
+#include "test-crypto.cpp"
+#include "test-net.cpp"
+#include "test-event.cpp"
+#include "test-mail.cpp"
+#include "test-sql.cpp"
+#include "test-data.cpp"
 #include "test-compress.cpp"
 #include "test-config.cpp"
-#include "test-crypto.cpp"
-#include "test-data.cpp"
-#include "test-event.cpp"
-#include "test-io.cpp"
 #include "test-logging.cpp"
-#include "test-mail.cpp"
-#include "test-modest.cpp"
-#include "test-net.cpp"
-#include "test-rt.cpp"
-#include "test-sql.cpp"
-#include "test-util.cpp"
 #undef DB_TEST_NO_MAIN
 
 class DbAllTester : public db::test::Tester
@@ -43,19 +43,19 @@ class DbAllTester : public db::test::Tester
 public:
    DbAllTester()
    {
+      addTester(new DbRtTester());
+      addTester(new DbModestTester());
+      addTester(new DbUtilTester());
+      addTester(new DbIoTester());
+      addTester(new DbCryptoTester());
+      addTester(new DbNetTester());
+      addTester(new DbEventTester());
+      addTester(new DbMailTester());
+      addTester(new DbSqlTester());
+      addTester(new DbDataTester());
       addTester(new DbCompressTester());
       addTester(new DbConfigTester());
-      addTester(new DbCryptoTester());
-      addTester(new DbDataTester());
-      addTester(new DbEventTester());
-      addTester(new DbIoTester());
       addTester(new DbLoggingTester());
-      addTester(new DbMailTester());
-      addTester(new DbModestTester());
-      addTester(new DbNetTester());
-      addTester(new DbRtTester());
-      addTester(new DbSqlTester());
-      addTester(new DbUtilTester());
    }
 
    ~DbAllTester() {}
