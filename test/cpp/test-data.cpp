@@ -1467,12 +1467,12 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-//      runJsonValidTest(tr);
-//      runJsonInvalidTest(tr);
-//      runJsonDJDTest(tr);
-//      runJsonVerifyDJDTest(tr);
-//      runJsonIOStreamTest(tr);
-//
+      runJsonValidTest(tr);
+      runJsonInvalidTest(tr);
+      runJsonDJDTest(tr);
+      runJsonVerifyDJDTest(tr);
+      runJsonIOStreamTest(tr);
+
 //      runXmlReaderTest(tr);
       runXmlWriterTest(tr);
 //      runXmlReadWriteTest(tr);
@@ -1487,9 +1487,9 @@ public:
 //      runDynamicObjectArrayBindingTest(tr);
 //      runDynamicObjectMapBindingTest(tr);
 //      runDynamicObjectBindingTest(tr);
-//
-//      runRiffTest(tr);
-//      runAviTest(tr);
+
+      runRiffTest(tr);
+      runAviTest(tr);
 
       return 0;
    }
