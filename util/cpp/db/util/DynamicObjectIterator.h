@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_util_DynamicObjectIterator_H
 #define db_util_DynamicObjectIterator_H
@@ -26,6 +26,11 @@ protected:
     * The DynamicObject being iterated over.
     */
    DynamicObject mObject;
+   
+   /**
+    * The index of the current object.
+    */
+   int mIndex;
    
    /**
     * An iterator to the current object in the DynamicObject.
@@ -83,6 +88,13 @@ public:
     * @return the name of the last DynamicObject returned by next().
     */
    const char* getName();
+   
+   /**
+    * Gets the index of the last DynamicObject returned by next().
+    * 
+    * @return the index of the last DynamicObject returned by next().
+    */
+   int getIndex();
 };
 
 /**

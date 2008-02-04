@@ -16,10 +16,10 @@ namespace json
 {
 
 /**
- * An JsonWriter provides an interface for serializing objects to
+ * A JsonWriter provides an interface for serializing objects to
  * JSON (JavaScript Object Notation) (RFC 4627).
  * 
- * An JsonWriter writes out a whole object at once and can be used again.
+ * A JsonWriter writes out a whole object at once and can be used again.
  * The compact setting should be used to minimize extra whitespace when not
  * needed.
  * 

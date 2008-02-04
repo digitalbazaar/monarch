@@ -172,7 +172,7 @@ public:
     * 
     * @return the DynamicObject.
     */
-   virtual DynamicObject& operator[](const std::string& name);
+   virtual DynamicObject& operator[](const char* name);
    
    /**
     * Gets a DynamicObject based on its index. A negative index will
@@ -183,6 +183,14 @@ public:
     * @return the DynamicObject.
     */
    virtual DynamicObject& operator[](int index);
+   
+   /**
+    * Appends a DynamicObject to this one and returns a reference to it for
+    * it to be set to a value.
+    * 
+    * @return the DynamicObject to be set.
+    */
+   virtual DynamicObject& append();
    
    /**
     * Sets this object's type. Its existing value will be converted if

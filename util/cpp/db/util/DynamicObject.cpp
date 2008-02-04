@@ -183,7 +183,7 @@ void DynamicObject::operator=(double value)
    *mReference->ptr = value;
 }
 
-DynamicObject& DynamicObject::operator[](const std::string& name)
+DynamicObject& DynamicObject::operator[](const char* name)
 {
    return (*mReference->ptr)[name];
 }

@@ -102,8 +102,9 @@ void dumpDynamicObject(db::util::DynamicObject& dyno, bool compact = false);
       if(strcmp(a, b) != 0) \
       { \
          std::cout << \
-            "string a='" << a << \
-            "',string b='" << b << "'" << std::endl; \
+            std::endl << "string a=" << std::endl << "'" << a << \
+            "'" << std::endl << "string b=" << std::endl << "'" << \
+            b << "'" << std::endl; \
          assert(std::strcmp(a, b) == 0); \
       } \
    } while(0)
