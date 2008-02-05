@@ -434,26 +434,21 @@ void runDynoConversionTest(TestRunner& tr)
    d["true"] = "true";
    d["false"] = "false";
    
-   string s;
-   s.clear();
-   d["int"]->toString(s);
-   assertStrCmp(s.c_str(), "2");
+   const char* s;
+   s = d["int"]->getString();
+   assertStrCmp(s, "2");
 
-   s.clear();
-   d["-int"]->toString(s);
-   assertStrCmp(s.c_str(), "-2");
+   s = d["-int"]->getString();
+   assertStrCmp(s, "-2");
 
-   s.clear();
-   d["str"]->toString(s);
-   assertStrCmp(s.c_str(), "hello");
+   s = d["str"]->getString();
+   assertStrCmp(s, "hello");
 
-   s.clear();
-   d["true"]->toString(s);
-   assertStrCmp(s.c_str(), "true");
+   s = d["true"]->getString();
+   assertStrCmp(s, "true");
 
-   s.clear();
-   d["false"]->toString(s);
-   assertStrCmp(s.c_str(), "false");
+   s = d["false"]->getString();
+   assertStrCmp(s, "false");
    
    tr.pass();
 }
