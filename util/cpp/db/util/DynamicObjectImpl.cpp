@@ -307,7 +307,7 @@ bool DynamicObjectImpl::getBoolean()
          rval = mBoolean;
          break;
       case String:
-         rval = (strcmp(mString, "true") == 0);
+         rval = (mString == NULL) ? false : (strcmp(mString, "true") == 0);
          break;
       case Int32:
          rval = (mInt32 == 1);
@@ -342,7 +342,7 @@ int DynamicObjectImpl::getInt32()
          rval = mInt32;
          break;
       case String:
-         rval = strtol(mString, NULL, 10);
+         rval = (mString == NULL) ? 0 : strtol(mString, NULL, 10);
          break;
       case Boolean:
          rval = mBoolean ? 1 : 0;
@@ -377,7 +377,7 @@ unsigned int DynamicObjectImpl::getUInt32()
          rval = mUInt32;
          break;
       case String:
-         rval = (unsigned int)strtoul(mString, NULL, 10);
+         rval = (mString == NULL) ? 0 : strtoul(mString, NULL, 10);
          break;
       case Boolean:
          rval = mBoolean ? 1 : 0;
@@ -412,7 +412,7 @@ long long DynamicObjectImpl::getInt64()
          rval = mInt64;
          break;
       case String:
-         rval = strtoll(mString, NULL, 10);
+         rval = (mString == NULL) ? 0 : strtoll(mString, NULL, 10);
          break;
       case Boolean:
          rval = mBoolean ? 1 : 0;
@@ -447,7 +447,7 @@ unsigned long long DynamicObjectImpl::getUInt64()
          rval = mUInt64;
          break;
       case String:
-         rval = strtoull(mString, NULL, 10);
+         rval = (mString == NULL) ? 0 : strtoull(mString, NULL, 10);
          break;
       case Boolean:
          rval = mBoolean ? 1 : 0;
@@ -482,7 +482,7 @@ double DynamicObjectImpl::getDouble()
          rval = mDouble;
          break;
       case String:
-         rval = strtod(mString, NULL);
+         rval = (mString == NULL) ? 0 : strtod(mString, NULL);
          break;
       case Boolean:
          rval = mBoolean ? 1 : 0;
