@@ -339,3 +339,35 @@ bool DynamicObject::isSubset(const DynamicObject& rhs)
    
    return rval;
 }
+
+DynamicObject DynamicObject::convertToDynamicObject(Exception* e)
+{
+   DynamicObject dyno;
+   
+   dyno["message"] = e->getMessage();
+   dyno["type"] = e->getType();
+   dyno["code"] = e->getCode();
+   
+   if(e->getCause() != NULL)
+   {
+      dyno["cause"] = convertToDynamicObject(e->getCause());
+   }
+   
+   return dyno;
+}
+
+Exception* DynamicObject::convertToException(DynamicObject& dyno)
+{
+   Exception* e = new Exception();
+   
+   e->setMessage(dyno["message"]->getString());
+   e->setType(dyno["type"]->getString());
+   e->setCode(dyno["code"]->getInt32());
+   
+   if(dyno->hasMember("cause"))
+   {
+      e->setCause(convertToException(dyno["cause"]), true);
+   }
+   
+   return e;
+}

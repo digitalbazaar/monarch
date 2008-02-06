@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_rt_Runnable_H
 #define db_rt_Runnable_H
@@ -35,8 +35,8 @@ public:
    virtual void run() = 0;
 };
 
-// define a collectable Runnable
-typedef Collectable<Runnable> CollectableRunnable;
+// define a counted reference Runnable type
+typedef Collectable<Runnable> RunnableRef;
 
 } // end namespace rt
 } // end namespace db

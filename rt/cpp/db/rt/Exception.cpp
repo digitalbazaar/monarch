@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/rt/Exception.h"
 #include "db/rt/Thread.h"
@@ -35,20 +35,15 @@ void Exception::setMessage(const char* message)
    mMessage = strdup((message == NULL) ? "" : message);
 }
 
+const char* Exception::getMessage()
+{
+   return mMessage;
+}
+
 void Exception::setType(const char* type)
 {
    free(mType);
    mType = strdup((type == NULL) ? "" : type);
-}
-
-void Exception::setCode(int code)
-{
-   mCode = code;
-}
-
-const char* Exception::getMessage()
-{
-   return mMessage;
 }
 
 const char* Exception::getType()
@@ -56,6 +51,10 @@ const char* Exception::getType()
    return mType;
 }
 
+void Exception::setCode(int code)
+{
+   mCode = code;
+}
 int Exception::getCode()
 {
    return mCode;

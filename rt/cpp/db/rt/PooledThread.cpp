@@ -74,7 +74,7 @@ void PooledThread::setJob(Runnable* job, ThreadPool* pool)
    unlock();
 }
 
-void PooledThread::setJob(CollectableRunnable& job, ThreadPool* pool)
+void PooledThread::setJob(RunnableRef& job, ThreadPool* pool)
 {
    lock();
    {

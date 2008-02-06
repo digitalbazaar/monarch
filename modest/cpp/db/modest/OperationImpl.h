@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_modest_OperationImpl_H
 #define db_modest_OperationImpl_H
@@ -34,10 +34,10 @@ class OperationImpl : public virtual db::rt::Object, protected db::rt::Runnable
 protected:
    /**
     * The Runnable for this Operation. A regular runnable or a
-    * CollectableRunnable may be used.
+    * RunnableRef may be used.
     */
    db::rt::Runnable* mRunnable;
-   db::rt::CollectableRunnable mRunnableReference;
+   db::rt::RunnableRef mRunnableReference;
    
    /**
     * The guard that decides when this Operation can execute.
@@ -104,7 +104,7 @@ public:
     * @param r the Runnable to execute.
     */
    OperationImpl(db::rt::Runnable& r);
-   OperationImpl(db::rt::CollectableRunnable& r);
+   OperationImpl(db::rt::RunnableRef& r);
    
    /**
     * Destructs this OperationImpl.

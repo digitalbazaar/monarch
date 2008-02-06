@@ -41,9 +41,9 @@ protected:
    RunnableList mJobQueue;
    
    /**
-    * A map of Runnables to CollectableRunnables.
+    * A map of Runnables to RunnableRefs.
     */
-   typedef std::map<Runnable*, CollectableRunnable> ReferenceMap;
+   typedef std::map<Runnable*, RunnableRef> ReferenceMap;
    ReferenceMap mJobReferenceMap;
    
    /**
@@ -104,7 +104,7 @@ public:
     * @param job the Runnable job to queue.
     */
    virtual void queueJob(Runnable& job);
-   virtual void queueJob(CollectableRunnable& job);
+   virtual void queueJob(RunnableRef& job);
    
    /**
     * Dequeues a Runnable job so that it will no longer be executed if it
@@ -114,7 +114,7 @@ public:
     * @param job the Runnable job to dequeue.
     */
    virtual void dequeueJob(Runnable& job);
-   virtual void dequeueJob(CollectableRunnable& job);
+   virtual void dequeueJob(RunnableRef& job);
    
    /**
     * Dispatches the Runnable jobs in the queue that can be dispatched.
@@ -131,7 +131,7 @@ public:
     *         be dispatched, false if not.
     */
    virtual bool isQueued(Runnable& job);
-   virtual bool isQueued(CollectableRunnable& job);
+   virtual bool isQueued(RunnableRef& job);
    
    /**
     * Starts dispatching Runnable jobs.

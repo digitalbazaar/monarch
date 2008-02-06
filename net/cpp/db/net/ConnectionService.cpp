@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/ConnectionService.h"
 #include "db/net/Server.h"
@@ -137,7 +137,7 @@ void ConnectionService::createConnection(Socket* s)
       mConnectionCount++;
       
       // create RunnableDelegate to service connection and run as an Operation
-      CollectableRunnable cr =
+      RunnableRef cr =
          new RunnableDelegate<ConnectionService>(
             this, &ConnectionService::serviceConnection, c,
             &ConnectionService::cleanupConnection);

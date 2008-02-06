@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/event/Observable.h"
 
@@ -41,7 +41,7 @@ void Observable::dispatchEvent(
                for(; oi != oend; oi++)
                {
                   // create and run event dispatcher for each observable
-                  CollectableRunnable ed = new EventDispatcher(oi->second, &e);
+                  RunnableRef ed = new EventDispatcher(oi->second, &e);
                   Operation op(ed);
                   mOpRunner->runOperation(op);
                   opList.add(op);

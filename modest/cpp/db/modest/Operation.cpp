@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/Operation.h"
 
@@ -11,7 +11,7 @@ Operation::Operation(Runnable& r) :
 {
 }
 
-Operation::Operation(CollectableRunnable& r) :
+Operation::Operation(RunnableRef& r) :
    Collectable<OperationImpl>(new OperationImpl(r))
 {
 }

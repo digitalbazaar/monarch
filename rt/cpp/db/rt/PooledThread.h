@@ -28,7 +28,7 @@ protected:
     * The Runnable job to run.
     */
    Runnable* mJob;
-   CollectableRunnable mJobReference;
+   RunnableRef mJobReference;
    
    /**
     * The ThreadPool to notify when a job completes.
@@ -76,7 +76,7 @@ public:
     * @param pool the ThreadPool to notify when the job completes.
     */
    virtual void setJob(Runnable* job, ThreadPool* pool);
-   virtual void setJob(CollectableRunnable& job, ThreadPool* pool);
+   virtual void setJob(RunnableRef& job, ThreadPool* pool);
    
    /**
     * Gets the Runnable job for this thread.

@@ -146,7 +146,7 @@ void ThreadPool::runJobOnIdleThread(Runnable& job)
    unlock();
 }
 
-void ThreadPool::runJobOnIdleThread(CollectableRunnable& job)
+void ThreadPool::runJobOnIdleThread(RunnableRef& job)
 {
    lock();
    {
@@ -194,7 +194,7 @@ bool ThreadPool::tryRunJob(Runnable& job)
    return rval;
 }
 
-bool ThreadPool::tryRunJob(CollectableRunnable& job)
+bool ThreadPool::tryRunJob(RunnableRef& job)
 {
    bool rval = true;
    
@@ -229,7 +229,7 @@ void ThreadPool::runJob(Runnable& job)
    }
 }
 
-void ThreadPool::runJob(CollectableRunnable& job)
+void ThreadPool::runJob(RunnableRef& job)
 {
    // only acquire a permit if infinite threads is not enabled
    bool permitAcquired = true;

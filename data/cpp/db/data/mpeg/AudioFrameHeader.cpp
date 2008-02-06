@@ -2,7 +2,6 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/mpeg/AudioFrameHeader.h"
-#include "db/rt/IllegalArgumentException.h"
 
 #include <math.h>
 
@@ -39,7 +38,7 @@ bool AudioFrameHeader::convertFromBytes(const char* bytes, int length)
    
    if(length < 4)
    {
-      Exception::setLast(new IllegalArgumentException(
+      Exception::setLast(new Exception(
          "AudioFrameHeader::convertFromBytes() length must be >= 4"));
    }
    else

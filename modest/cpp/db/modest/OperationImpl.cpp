@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/OperationImpl.h"
 #include "db/modest/OperationDispatcher.h"
@@ -18,7 +18,7 @@ OperationImpl::OperationImpl(Runnable& r)
    mCanceled = false;
 }
 
-OperationImpl::OperationImpl(CollectableRunnable& r)
+OperationImpl::OperationImpl(RunnableRef& r)
 {
    mRunnable = &(*r);
    mRunnableReference = r;
