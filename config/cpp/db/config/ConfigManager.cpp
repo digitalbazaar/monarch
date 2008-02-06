@@ -4,7 +4,7 @@
 #include "db/config/ConfigManager.h"
 #include "db/io/BufferedOutputStream.h"
 #include "db/data/json/JsonWriter.h"
-#include "db/util/DynamicObjectIterator.h"
+#include "db/rt/DynamicObjectIterator.h"
 
 using namespace std;
 using namespace db::config;
@@ -12,7 +12,6 @@ using namespace db::data;
 using namespace db::data::json;
 using namespace db::io;
 using namespace db::rt;
-using namespace db::util;
 
 const char* ConfigManager::DEFAULT_VALUE = "__default__";
 
@@ -299,8 +298,7 @@ void ConfigManager::getChanges(DynamicObject& target, ConfigType baseType)
    diff(target, original, mConfig);
 }
 
-bool ConfigManager::isValidConfig(
-   db::util::DynamicObject& config, db::util::DynamicObject& schema)
+bool ConfigManager::isValidConfig(DynamicObject& config, DynamicObject& schema)
 {
    bool rval = false;
    

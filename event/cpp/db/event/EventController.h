@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_event_EventController_H
 #define db_event_EventController_H
 
 #include "db/event/Observable.h"
-#include "db/util/DynamicObject.h"
+#include "db/rt/DynamicObject.h"
 
 namespace db
 {
@@ -23,7 +23,7 @@ protected:
    /**
     * The map of types to event id.
     */
-   db::util::DynamicObject mTypeMap;
+   db::rt::DynamicObject mTypeMap;
    
    /**
     * The next event id to be assigned.
@@ -66,7 +66,7 @@ public:
     * @param eventTypes the event types to register the observer for.
     */
    virtual void registerObserver(
-      Observer* observer, db::util::DynamicObject& eventTypes);
+      Observer* observer, db::rt::DynamicObject& eventTypes);
    
    /**
     * Unregisters an observer for certain events, determined by the event types.
@@ -85,7 +85,7 @@ public:
     * @param eventTypes the event types to unregister the observer for.
     */
    virtual void unregisterObserver(
-      Observer* observer, db::util::DynamicObject& eventTypes);
+      Observer* observer, db::rt::DynamicObject& eventTypes);
    
    /**
     * Creates an association between two event types. Observers of the

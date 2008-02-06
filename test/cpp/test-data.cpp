@@ -7,8 +7,8 @@
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
-#include "db/util/DynamicObject.h"
-#include "db/util/DynamicObjectIterator.h"
+#include "db/rt/DynamicObject.h"
+#include "db/rt/DynamicObjectIterator.h"
 #include "db/io/ByteArrayOutputStream.h"
 #include "db/io/File.h"
 #include "db/io/FileInputStream.h"
@@ -43,7 +43,6 @@ using namespace db::modest;
 using namespace db::net;
 using namespace db::net::http;
 using namespace db::rt;
-using namespace db::util;
 
 void runJsonValidTest(TestRunner& tr)
 {

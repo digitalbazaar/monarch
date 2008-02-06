@@ -52,7 +52,7 @@ public:
     *                to leave it alone.
     */
    DynamicObjectOutputStream(
-      db::util::DynamicObject& dyno, DynamicObjectReader* reader, bool cleanup);
+      db::rt::DynamicObject& dyno, DynamicObjectReader* reader, bool cleanup);
    
    /**
     * Destructs this DynamicObjectOutputStream.

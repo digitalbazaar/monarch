@@ -7,7 +7,6 @@
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
-#include "db/rt/Object.h"
 #include "db/rt/Runnable.h"
 #include "db/rt/Thread.h"
 #include "db/logging/Logging.h"
@@ -19,7 +18,6 @@ using namespace std;
 using namespace db::test;
 using namespace db::io;
 using namespace db::rt;
-using namespace db::util;
 using namespace db::logging;
 
 #define DB_TEST_NO_MAIN

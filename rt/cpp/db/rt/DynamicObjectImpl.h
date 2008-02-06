@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_util_DynamicObjectImpl_H
-#define db_util_DynamicObjectImpl_H
+#ifndef db_rt_DynamicObjectImpl_H
+#define db_rt_DynamicObjectImpl_H
 
 #include "db/rt/Object.h"
 
@@ -11,7 +11,7 @@
 
 namespace db
 {
-namespace util
+namespace rt
 {
 
 // forward declare DynamicObject, DynamicObjectIteratorImpl
@@ -31,7 +31,7 @@ typedef enum DynamicObjectType
  * 
  * @author Dave Longley
  */
-class DynamicObjectImpl : public virtual db::rt::Object
+class DynamicObjectImpl : public virtual Object
 {
 public:
    /**
@@ -303,6 +303,6 @@ public:
    virtual int length();
 };
 
-} // end namespace util
+} // end namespace rt
 } // end namespace db
 #endif

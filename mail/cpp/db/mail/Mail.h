@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_mail_Mail_H
 #define db_mail_Mail_H
 
-#include "db/util/DynamicObject.h"
-#include "db/util/DynamicObjectIterator.h"
+#include "db/rt/DynamicObject.h"
+#include "db/rt/DynamicObjectIterator.h"
 
 namespace db
 {
@@ -13,10 +13,10 @@ namespace mail
 {
 
 // typedefs for Address and AddressList
-typedef db::util::DynamicObject Address;
-typedef db::util::DynamicObject AddressList;
-typedef db::util::DynamicObjectIterator AddressIterator;
-typedef db::util::DynamicObject Message;
+typedef db::rt::DynamicObject Address;
+typedef db::rt::DynamicObject AddressList;
+typedef db::rt::DynamicObjectIterator AddressIterator;
+typedef db::rt::DynamicObject Message;
 
 /**
  * A Mail is a class that represents an email message.

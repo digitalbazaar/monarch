@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/json/JsonWriter.h"
-#include "db/util/DynamicObjectIterator.h"
+#include "db/rt/DynamicObjectIterator.h"
 #include "db/io/BufferedOutputStream.h"
 
 using namespace std;
@@ -10,7 +10,6 @@ using namespace db::data;
 using namespace db::data::json;
 using namespace db::io;
 using namespace db::rt;
-using namespace db::util;
 
 JsonWriter::JsonWriter()
 {

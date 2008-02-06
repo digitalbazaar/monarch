@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
+#include "db/test/Test.h"
 
 #include <assert.h>
 #include <iostream>
 #include <sstream>
 
-#include "db/test/Test.h"
 #include "db/rt/Exception.h"
 #include "db/sql/SqlException.h"
 #include "db/data/json/JsonWriter.h"
@@ -17,7 +17,6 @@ using namespace db::data::json;
 using namespace db::io;
 using namespace db::rt;
 using namespace db::test;
-using namespace db::util;
 
 void db::test::dumpException(Exception* e)
 {

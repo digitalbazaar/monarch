@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_mail_MailTemplateParser_H
 #define db_mail_MailTemplateParser_H
@@ -65,7 +65,7 @@ protected:
     * @return an Exception if one occurred, NULL if not.
     */
    virtual db::rt::Exception* parseLine(
-      Mail* mail, db::util::DynamicObject& vars,
+      Mail* mail, db::rt::DynamicObject& vars,
       const char* line, bool& headers);
    
 public:
@@ -93,7 +93,7 @@ public:
     * @return an Exception if one occurred, NULL if not.
     */
    virtual db::rt::Exception* parse(
-      Mail* mail, db::util::DynamicObject& vars, db::io::InputStream* is);
+      Mail* mail, db::rt::DynamicObject& vars, db::io::InputStream* is);
 };
 
 } // end namespace mail

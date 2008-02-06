@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/util/DynamicObject.h"
-#include "db/util/DynamicObjectIterator.h"
+#include "db/rt/DynamicObject.h"
+
+#include "db/rt/DynamicObjectIterator.h"
 
 using namespace db::rt;
-using namespace db::util;
 
 DynamicObject::DynamicObject() :
    Collectable<DynamicObjectImpl>(new DynamicObjectImpl())

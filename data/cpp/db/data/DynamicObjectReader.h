@@ -4,7 +4,7 @@
 #ifndef db_data_DynamicObjectReader_H
 #define db_data_DynamicObjectReader_H
 
-#include "db/util/DynamicObject.h"
+#include "db/rt/DynamicObject.h"
 #include "db/io/InputStream.h"
 
 namespace db
@@ -41,7 +41,7 @@ public:
     * 
     * @param dyno the DynamicObject for the object to deserialize.
     */
-   virtual void start(db::util::DynamicObject& dyno) = 0;
+   virtual void start(db::rt::DynamicObject& dyno) = 0;
    
    /**
     * This method reads from the passed InputStream until the end of the

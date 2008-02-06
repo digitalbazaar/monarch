@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_util_Iterator_H
-#define db_util_Iterator_H
+#ifndef db_rt_Iterator_H
+#define db_rt_Iterator_H
 
 #include "db/rt/Collectable.h"
 
 namespace db
 {
-namespace util
+namespace rt
 {
 
 /**
@@ -53,14 +53,14 @@ public:
 
 // define counted reference Iterator type
 template<class T>
-class IteratorRef : public db::rt::Collectable< Iterator<T> >
+class IteratorRef : public Collectable< Iterator<T> >
 {
 public:
    IteratorRef(Iterator<T>* ptr = NULL) :
-      db::rt::Collectable< Iterator<T> >(ptr) {};
+      Collectable< Iterator<T> >(ptr) {};
    virtual ~IteratorRef() {};
 };
 
-} // end namespace util
+} // end namespace rt
 } // end namespace db
 #endif

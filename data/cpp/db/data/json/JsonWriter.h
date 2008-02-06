@@ -61,7 +61,7 @@ protected:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool write(
-      db::util::DynamicObject& dyno, db::io::OutputStream* os, int level);
+      db::rt::DynamicObject& dyno, db::io::OutputStream* os, int level);
    
 public:
    /**
@@ -83,7 +83,7 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool write(
-      db::util::DynamicObject& dyno, db::io::OutputStream* os);
+      db::rt::DynamicObject& dyno, db::io::OutputStream* os);
    
    /**
     * Sets the starting indentation level and the number of spaces

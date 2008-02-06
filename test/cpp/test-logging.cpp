@@ -16,7 +16,7 @@ using namespace std;
 using namespace db::test;
 using namespace db::io;
 using namespace db::logging;
-using namespace db::util;
+using namespace db::rt;
 
 void runLoggingTest(TestRunner& tr)
 {

@@ -31,7 +31,7 @@ protected:
    /**
     * The DynamicObject to read from.
     */
-   db::util::DynamicObject mDyno;
+   db::rt::DynamicObject mDyno;
    
    /**
     * The DynamicObjectWriter for writing out data.
@@ -63,7 +63,7 @@ public:
     *                leave it alone.
     */
    DynamicObjectInputStream(
-      db::util::DynamicObject& dyno, DynamicObjectWriter* writer, bool cleanup);
+      db::rt::DynamicObject& dyno, DynamicObjectWriter* writer, bool cleanup);
    
    /**
     * Destructs this DynamicObject.

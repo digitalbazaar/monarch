@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_Url_H
 #define db_net_Url_H
 
 #include "db/rt/Object.h"
 #include "db/net/MalformedUrlException.h"
-#include "db/util/DynamicObject.h"
+#include "db/rt/DynamicObject.h"
 
 namespace db
 {
@@ -204,7 +204,7 @@ public:
     *         not exist on the path.
     */
    virtual bool getTokenizedPath(
-      db::util::DynamicObject& result, const char* basePath = "");
+      db::rt::DynamicObject& result, const char* basePath = "");
    
    /**
     * Gets the query of this url, if one exists.
@@ -221,7 +221,7 @@ public:
     * 
     * @return true if variables were present, false if not.
     */
-   virtual bool getQueryVariables(db::util::DynamicObject& vars);
+   virtual bool getQueryVariables(db::rt::DynamicObject& vars);
    
    /**
     * Convenience method to get the host of this url (not including

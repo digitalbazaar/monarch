@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/util/DynamicObjectIterator.h"
+#include "db/rt/DynamicObjectIterator.h"
+
 #include "db/rt/Exception.h"
 
 using namespace db::rt;
-using namespace db::util;
 
 DynamicObjectIteratorImpl::DynamicObjectIteratorImpl(DynamicObject dyno)
 {

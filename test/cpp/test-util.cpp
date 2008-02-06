@@ -9,8 +9,6 @@
 #include "db/util/Base64Codec.h"
 #include "db/util/Crc16.h"
 #include "db/util/StringTools.h"
-#include "db/util/DynamicObject.h"
-#include "db/util/DynamicObjectIterator.h"
 #include "db/util/Convert.h"
 #include "db/util/regex/Pattern.h"
 #include "db/util/Date.h"
@@ -271,188 +269,6 @@ void runStringTokenizerTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runDynamicObjectTest(TestRunner& tr)
-{
-   tr.test("DynamicObject");
-   
-   DynamicObject dyno1;
-   dyno1["id"] = 2;
-   dyno1["username"] = "testuser1000";
-   dyno1["somearray"][0] = "item1";
-   dyno1["somearray"][1] = "item2";
-   dyno1["somearray"][2] = "item3";
-   
-   DynamicObject dyno2;
-   dyno2["street"] = "1700 Kraft Dr.";
-   dyno2["zip"] = "24060";
-   
-   dyno1["address"] = dyno2;
-   
-   assert(dyno1["id"]->getInt32() == 2);
-   assertStrCmp(dyno1["username"]->getString(), "testuser1000");
-   
-   assertStrCmp(dyno1["somearray"][0]->getString(), "item1");
-   assertStrCmp(dyno1["somearray"][1]->getString(), "item2");
-   assertStrCmp(dyno1["somearray"][2]->getString(), "item3");
-   
-   DynamicObject dyno3 = dyno1["address"];
-   assertStrCmp(dyno3["street"]->getString(), "1700 Kraft Dr.");
-   assertStrCmp(dyno3["zip"]->getString(), "24060");
-   
-   DynamicObject dyno4;
-   dyno4["whatever"] = "test";
-   dyno4["someboolean"] = true;
-   assert(dyno4["someboolean"]->getBoolean());
-   dyno1["somearray"][3] = dyno4;
-   
-   dyno1["something"]["strange"] = "tinypayload";
-   assertStrCmp(dyno1["something"]["strange"]->getString(), "tinypayload");
-   
-   DynamicObject dyno5;
-   dyno5[0] = "mustard";
-   dyno5[1] = "ketchup";
-   dyno5[2] = "pickles";
-   
-   int count = 0;
-   DynamicObjectIterator i = dyno5.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject next = i->next();
-      
-      if(count == 0)
-      {
-         assertStrCmp(next->getString(), "mustard");
-      }
-      else if(count == 1)
-      {
-         assertStrCmp(next->getString(), "ketchup");
-      }
-      else if(count == 2)
-      {
-         assertStrCmp(next->getString(), "pickles");
-      }
-      
-      count++;
-   }
-   
-   DynamicObject dyno6;
-   dyno6["eggs"] = "bacon";
-   dyno6["milk"] = "yum";
-   assertStrCmp(dyno6->removeMember("milk")->getString(), "yum");
-   count = 0;
-   i = dyno6.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject next = i->next();
-      assertStrCmp(i->getName(), "eggs");
-      assertStrCmp(next->getString(), "bacon");
-      count++;
-   }
-   
-   assert(count == 1);
-   
-   // test clone
-   dyno1["dyno5"] = dyno5;
-   dyno1["dyno6"] = dyno6;
-   dyno1["clone"] = dyno1.clone();
-   
-   DynamicObject clone = dyno1.clone();
-   assert(dyno1 == clone);
-   
-   // test subset
-   clone["mrmessy"] = "weirdguy";
-   assert(dyno1.isSubset(clone));
-   
-   // test print out code
-   //cout << endl;
-   //dumpDynamicObject(dyno1);
-   
-   tr.pass();
-}
-
-void runDynoClearTest(TestRunner& tr)
-{
-   tr.test("DynamicObject clear");
-   
-   DynamicObject d;
-   
-   d = "x";
-   assert(d->getType() == String);
-   d->clear();
-   assert(d->getType() == String);
-   assertStrCmp(d->getString(), "");
-   
-   d = (int)1;
-   assert(d->getType() == Int32);
-   d->clear();
-   assert(d->getType() == Int32);
-   assert(d->getInt32() == 0);
-   
-   d = (unsigned int)1;
-   assert(d->getType() == UInt32);
-   d->clear();
-   assert(d->getType() == UInt32);
-   assert(d->getBoolean() == false);
-   
-   d = (long long)1;
-   assert(d->getType() == Int64);
-   d->clear();
-   assert(d->getType() == Int64);
-   assert(d->getInt64() == 0);
-   
-   d = (unsigned long long)1;
-   d->clear();
-   assert(d->getType() == UInt64);
-   assert(d->getUInt64() == 0);
-   
-   d = (double)1.0;
-   d->clear();
-   assert(d->getType() == Double);
-   assert(d->getDouble() == 0.0);
-   
-   d["x"] = 0;
-   d->clear();
-   assert(d->getType() == Map);
-   assert(d->length() == 0);
-   
-   d[0] = 0;
-   d->clear();
-   assert(d->getType() == Array);
-   assert(d->length() == 0);
-   
-   tr.passIfNoException();
-}
-
-void runDynoConversionTest(TestRunner& tr)
-{
-   tr.test("DynamicObject conversion");
-   
-   DynamicObject d;
-   d["int"] = 2;
-   d["-int"] = -2;
-   d["str"] = "hello";
-   d["true"] = "true";
-   d["false"] = "false";
-   
-   const char* s;
-   s = d["int"]->getString();
-   assertStrCmp(s, "2");
-
-   s = d["-int"]->getString();
-   assertStrCmp(s, "-2");
-
-   s = d["str"]->getString();
-   assertStrCmp(s, "hello");
-
-   s = d["true"]->getString();
-   assertStrCmp(s, "true");
-
-   s = d["false"]->getString();
-   assertStrCmp(s, "false");
-   
-   tr.pass();
-}
-
 void runUniqueListTest(TestRunner& tr)
 {
    tr.test("UniqueList");
@@ -522,9 +338,6 @@ public:
       runCrcTest(tr);
       runConvertTest(tr);
       runStringTokenizerTest(tr);
-      runDynamicObjectTest(tr);
-      runDynoClearTest(tr);
-      runDynoConversionTest(tr);
       runUniqueListTest(tr);
       return 0;
    }

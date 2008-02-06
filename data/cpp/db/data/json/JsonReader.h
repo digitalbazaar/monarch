@@ -180,7 +180,7 @@ protected:
    /**
     * A stack of DynamicObjects.
     */
-   std::vector<db::util::DynamicObject> mDynoStack;
+   std::vector<db::rt::DynamicObject> mDynoStack;
    
    /**
     * The read size in bytes.
@@ -244,7 +244,7 @@ public:
     * 
     * @param dyno the DynamicObject for the object to deserialize.
     */
-   virtual void start(db::util::DynamicObject& dyno);
+   virtual void start(db::rt::DynamicObject& dyno);
    
    /**
     * This method reads JSON from the passed InputStream until the end of

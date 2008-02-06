@@ -3,7 +3,7 @@
  */
 #include "db/data/xml/XmlWriter.h"
 
-#include "db/util/DynamicObjectIterator.h"
+#include "db/rt/DynamicObjectIterator.h"
 #include "db/io/BufferedOutputStream.h"
 
 using namespace std;
@@ -11,7 +11,6 @@ using namespace db::data;
 using namespace db::data::xml;
 using namespace db::io;
 using namespace db::rt;
-using namespace db::util;
 
 XmlWriter::XmlWriter()
 {
