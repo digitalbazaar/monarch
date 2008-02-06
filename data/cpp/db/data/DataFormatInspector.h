@@ -24,6 +24,28 @@ class DataFormatInspector : public DataInspector
 {
 public:
    /**
+    * The type of data formats.
+    */
+   typedef enum DataFormatType
+   {
+      // type not yet determined
+      Unknown = 0,
+      // zip, tar, ...
+      Archive,
+      // pdf, doc, ...
+      Document,
+      // png, jpg, gif, ...
+      Image,
+      // mpeg, ogg vorbis, wma, ..
+      Audio,
+      // mpeg, avi, asf, mov, ...
+      Video,
+      // ID3, etc
+      Metadata
+   };
+   
+public:
+   /**
     * Creates a new DataFormatInspector.
     */
    DataFormatInspector() {};
@@ -75,20 +97,23 @@ public:
    virtual unsigned long long getBytesInspected() = 0;
    
    /**
-    * Gets a string identifier for the format that was detected.  Use
-    * getInspectionReport() for format and stream details.  Use MIME types
-    * if possible.
+    * Gets the type specific details of this stream.
     * 
-    * @return a string identifier for the format that was detected or NULL.
-    */
-   virtual const char* getFormat() = 0;
-   
-   /**
-    * Gets a custom report on the data inspection.
+    * While isFormatRecognized() is false the only valid keys in this object
+    * are:
+    * "type" (db::data::DataFormatInspector::DataFormatType) => false
+    * "mime-type" (string) => "application/octet-stream"
     * 
-    * @return a custom report on the data inspection.
+    * Once isFormatRecognized() returns true then "type" and "mime-type" should
+    * be set to something more appropraite.  Further keys are set depending on
+    * the type, mime-type, and contents of the stream.
+    * 
+    * Depending on the stream the format details may be updated when more data
+    * is inspected.
+    * 
+    * @return the type specific details of this stream.
     */
-   virtual db::util::DynamicObject getInspectionReport() = 0;
+   virtual db::util::DynamicObject getFormatDetails() = 0;
 };
 
 } // end namespace data

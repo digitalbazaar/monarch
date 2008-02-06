@@ -79,12 +79,12 @@ uint32_t RiffListHeader::getChunkSize()
 
 void RiffListHeader::setListSize(uint32_t size)
 {
-   mChunkHeader.setChunkSize(size + HEADER_SIZE);
+   mChunkHeader.setChunkSize(size + 4);
 }
 
 uint32_t RiffListHeader::getListSize()
 {
-   return mChunkHeader.getChunkSize() - HEADER_SIZE;
+   return mChunkHeader.getChunkSize() - 4;
 }
 
 bool RiffListHeader::isValid()
