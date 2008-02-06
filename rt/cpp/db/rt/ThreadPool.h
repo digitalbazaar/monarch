@@ -92,7 +92,7 @@ protected:
     * @param job the Runnable job to run.
     */
    virtual void runJobOnIdleThread(Runnable& job);
-   virtual void runJobOnIdleThread(CollectableRunnable& job);
+   virtual void runJobOnIdleThread(RunnableRef& job);
    
 public:
    /**
@@ -121,7 +121,7 @@ public:
     * @return true if the job could run, false if not.
     */
    virtual bool tryRunJob(Runnable& job);
-   virtual bool tryRunJob(CollectableRunnable& job);
+   virtual bool tryRunJob(RunnableRef& job);
    
    /**
     * Runs the passed Runnable job on an available thread.
@@ -132,7 +132,7 @@ public:
     * @param job the Runnable job to run.
     */
    virtual void runJob(Runnable& job);
-   virtual void runJob(CollectableRunnable& job);
+   virtual void runJob(RunnableRef& job);
    
    /**
     * Called by a thread when it completes its job.

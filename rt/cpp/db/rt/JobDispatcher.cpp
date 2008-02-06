@@ -77,7 +77,7 @@ void JobDispatcher::queueJob(Runnable& job)
    wakeup();
 }
 
-void JobDispatcher::queueJob(CollectableRunnable& job)
+void JobDispatcher::queueJob(RunnableRef& job)
 {
    lock();
    {
@@ -109,7 +109,7 @@ void JobDispatcher::dequeueJob(Runnable& job)
    wakeup();
 }
 
-void JobDispatcher::dequeueJob(CollectableRunnable& job)
+void JobDispatcher::dequeueJob(RunnableRef& job)
 {
    dequeueJob(*job);
 }
@@ -153,7 +153,7 @@ bool JobDispatcher::isQueued(Runnable& job)
    return rval;
 }
 
-bool JobDispatcher::isQueued(CollectableRunnable& job)
+bool JobDispatcher::isQueued(RunnableRef& job)
 {
    return isQueued(*job);
 }

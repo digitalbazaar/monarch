@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_modest_Operation_H
 #define db_modest_Operation_H
@@ -39,7 +39,7 @@ public:
     * @param r the Runnable to use.
     */
    Operation(db::rt::Runnable& r);
-   Operation(db::rt::CollectableRunnable& r);
+   Operation(db::rt::RunnableRef& r);
    
    /**
     * Creates a new Operation reference to the passed OperationImpl.

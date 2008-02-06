@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_util_Iterator_H
 #define db_util_Iterator_H
@@ -51,14 +51,14 @@ public:
    virtual void remove() = 0;
 };
 
-// create collectable iterator type
+// define counted reference Iterator type
 template<class T>
-class CollectableIterator : public db::rt::Collectable< Iterator<T> >
+class IteratorRef : public db::rt::Collectable< Iterator<T> >
 {
 public:
-   CollectableIterator(Iterator<T>* ptr = NULL) :
+   IteratorRef(Iterator<T>* ptr = NULL) :
       db::rt::Collectable< Iterator<T> >(ptr) {};
-   virtual ~CollectableIterator() {};
+   virtual ~IteratorRef() {};
 };
 
 } // end namespace util

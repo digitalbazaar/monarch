@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_rt_Exception_H
 #define db_rt_Exception_H
@@ -51,27 +51,6 @@ protected:
     */
    bool mCleanupCause;
    
-   /**
-    * Sets the message for this Exception.
-    *
-    * @param message the message for this Exception.
-    */
-   virtual void setMessage(const char* message);
-   
-   /**
-    * Sets the type for this Exception.
-    *
-    * @param type the type for this Exception.
-    */
-   virtual void setType(const char* type);
-   
-   /**
-    * Sets the code for this Exception.
-    *
-    * @param code the code for this Exception.
-    */
-   virtual void setCode(int code);
-   
 public:
    /**
     * Creates a new Exception. A message, type, and code may be optionally
@@ -89,6 +68,13 @@ public:
    virtual ~Exception();
    
    /**
+    * Sets the message for this Exception.
+    *
+    * @param message the message for this Exception.
+    */
+   virtual void setMessage(const char* message);
+   
+   /**
     * Gets the message for this Exception.
     *
     * @return the message for this Exception.
@@ -96,11 +82,25 @@ public:
    virtual const char* getMessage();
    
    /**
+    * Sets the type for this Exception.
+    *
+    * @param type the type for this Exception.
+    */
+   virtual void setType(const char* type);
+   
+   /**
     * Gets the type for this Exception.
     *
     * @return the type for this Exception.
     */
    virtual const char* getType();
+   
+   /**
+    * Sets the code for this Exception.
+    *
+    * @param code the code for this Exception.
+    */
+   virtual void setCode(int code);
    
    /**
     * Gets the code for this Exception.
