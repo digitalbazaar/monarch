@@ -11,6 +11,9 @@ namespace db
 namespace rt
 {
 
+// forward declare DynamicObject
+class DynamicObject;
+
 /**
  * An Exception is raised when some kind of unhandled behavior occurs.
  * 
@@ -170,6 +173,27 @@ public:
     *                if not.
     */
    static void clearLast(bool cleanup = true);
+   
+   /**
+    * Converts the passed Exception to a DynamicObject.
+    * 
+    * @param e the Exception to convert to a DynamicObject.
+    * 
+    * @return the passed Exception as a DynamicObject.
+    */
+   static DynamicObject convertToDynamicObject(Exception* e);
+   
+   /**
+    * Converts the passed DynamicObject to an Exception. The returned
+    * Exception will have its chain of causes set (with cleanup = true), if
+    * any. It must be deleted by the caller or set as the last exception of
+    * the current thread via Exception::setLast().
+    * 
+    * @param dyno the DynamicObject to convert to an Exception.
+    * 
+    * @return a dynamically-allocated Exception.
+    */
+   static Exception* convertToException(DynamicObject& dyno);
 };
 
 } // end namespace rt
