@@ -43,12 +43,12 @@ protected:
    /**
     * A stack of DynamicObjects.
     */
-   std::list<db::util::DynamicObject*> mDynoStack;
+   std::list<db::rt::DynamicObject*> mDynoStack;
    
    /**
     * A stack of DynamicObjectTypes.
     */
-   std::list<db::util::DynamicObjectType> mTypeStack;
+   std::list<db::rt::DynamicObjectType> mTypeStack;
    
    /**
     * Handles start elements for this reader.
@@ -90,7 +90,7 @@ protected:
     * 
     * @return the associated DynamicObjectType.
     */
-   static db::util::DynamicObjectType tagNameToType(const char* name);
+   static db::rt::DynamicObjectType tagNameToType(const char* name);
    
    /**
     * Parses the local name from the passed fully qualified name. The passed
@@ -160,7 +160,7 @@ public:
     * 
     * @param dyno the DynamicObject for the object to deserialize.
     */
-   virtual void start(db::util::DynamicObject& dyno);
+   virtual void start(db::rt::DynamicObject& dyno);
    
    /**
     * This method reads xml from the passed InputStream until the end of

@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_util_DynamicObject_H
-#define db_util_DynamicObject_H
+#ifndef db_rt_DynamicObject_H
+#define db_rt_DynamicObject_H
 
 #include "db/rt/Collectable.h"
 #include "db/rt/Exception.h"
-#include "db/util/DynamicObjectImpl.h"
+#include "db/rt/DynamicObjectImpl.h"
 
 namespace db
 {
-namespace util
+namespace rt
 {
 
 // forward declare DynamicObjectIterator
@@ -23,7 +23,7 @@ class DynamicObjectIterator;
  * 
  * @author Dave Longley
  */
-class DynamicObject : public db::rt::Collectable<DynamicObjectImpl>
+class DynamicObject : public Collectable<DynamicObjectImpl>
 {
 public:
    /**
@@ -198,7 +198,7 @@ public:
     * 
     * @return the passed Exception as a DynamicObject.
     */
-   static DynamicObject convertToDynamicObject(db::rt::Exception* e);
+   static DynamicObject convertToDynamicObject(Exception* e);
    
    /**
     * Converts the passed DynamicObject to an Exception. The returned
@@ -210,9 +210,9 @@ public:
     * 
     * @return a dynamically-allocated Exception.
     */
-   static db::rt::Exception* convertToException(DynamicObject& dyno);
+   static Exception* convertToException(DynamicObject& dyno);
 };
 
-} // end namespace util
+} // end namespace rt
 } // end namespace db
 #endif

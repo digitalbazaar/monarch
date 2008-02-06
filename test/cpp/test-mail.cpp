@@ -17,7 +17,6 @@ using namespace db::io;
 using namespace db::net;
 using namespace db::test;
 using namespace db::rt;
-using namespace db::util;
 
 void runSmtpClientTest(TestRunner& tr)
 {

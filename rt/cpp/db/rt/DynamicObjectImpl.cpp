@@ -1,11 +1,12 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/util/DynamicObjectImpl.h"
-#include "db/util/DynamicObject.h"
+#include "db/rt/DynamicObjectImpl.h"
+
+#include "db/rt/DynamicObject.h"
 
 using namespace std;
-using namespace db::util;
+using namespace db::rt;
 
 DynamicObjectImpl::DynamicObjectImpl()
 {

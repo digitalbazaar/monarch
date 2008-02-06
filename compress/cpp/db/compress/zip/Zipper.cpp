@@ -5,7 +5,7 @@
 
 #include "db/io/FileInputStream.h"
 #include "db/io/FileOutputStream.h"
-#include "db/util/Iterator.h"
+#include "db/rt/Iterator.h"
 
 using namespace db::compress::zip;
 using namespace db::io;
@@ -66,7 +66,7 @@ Exception* Zipper::zip(FileList* fl, File* out)
    // create zip entries and write them out
    char b[2048];
    int numBytes;
-   Iterator<File*>* i = fl->getIterator();
+   IteratorRef<File*> i = fl->getIterator();
    while(rval == NULL && i->hasNext())
    {
       File* file = i->next();
@@ -88,7 +88,6 @@ Exception* Zipper::zip(FileList* fl, File* out)
          fis.close();
       }
    }
-   delete i;
    
    // finish zip archive
    finish(&fos);

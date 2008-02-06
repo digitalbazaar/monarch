@@ -8,7 +8,6 @@ using namespace db::data;
 using namespace db::data::xml;
 using namespace db::io;
 using namespace db::rt;
-using namespace db::util;
 
 // initialize encoding
 const char* XmlReader::CHAR_ENCODING = "UTF-8";
@@ -176,7 +175,7 @@ void XmlReader::appendData(const XML_Char* data, int length)
    }
 }
 
-db::util::DynamicObjectType XmlReader::tagNameToType(const char* name)
+DynamicObjectType XmlReader::tagNameToType(const char* name)
 {
    DynamicObjectType rval = String;
    

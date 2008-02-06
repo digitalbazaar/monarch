@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_config_ConfigManager_H
 #define db_config_ConfigManager_H
 
 #include "db/rt/Object.h"
-#include "db/util/DynamicObject.h"
+#include "db/rt/DynamicObject.h"
 
 #include <vector>
 
@@ -63,7 +63,7 @@ protected:
    /**
     * Pair to hold config and system flag.
     */
-   typedef std::pair<db::util::DynamicObject, ConfigType> ConfigPair;
+   typedef std::pair<db::rt::DynamicObject, ConfigType> ConfigPair;
 
    /**
     * Source configs and system/user flag.
@@ -73,7 +73,7 @@ protected:
    /**
     * Merged configuration after update().  Read/Write access.
     */
-   db::util::DynamicObject mConfig;
+   db::rt::DynamicObject mConfig;
    
    /**
     * Merge source over data in target.  Simple values are cloned.  Arrays
@@ -82,7 +82,7 @@ protected:
     * @param target destination to merge into.
     * @param source source to merge from. 
     */
-   void merge(db::util::DynamicObject& target, db::util::DynamicObject& source);
+   void merge(db::rt::DynamicObject& target, db::rt::DynamicObject& source);
 
    /**
     * Merge all configs into target.
@@ -90,7 +90,7 @@ protected:
     * @param target destination to merge into.
     * @param types type of configs to merge.
     */
-   void makeMergedConfig(db::util::DynamicObject& target,
+   void makeMergedConfig(db::rt::DynamicObject& target,
       ConfigType types = Default);
 
    /**
@@ -104,8 +104,8 @@ protected:
     * 
     * @return true if diff found, else false
     */
-   bool diff(db::util::DynamicObject& diff,
-      db::util::DynamicObject& dyno1, db::util::DynamicObject& dyno2);
+   bool diff(db::rt::DynamicObject& diff,
+      db::rt::DynamicObject& dyno1, db::rt::DynamicObject& dyno2);
 
 public:
    /**
@@ -129,7 +129,7 @@ public:
     * @return true on success, false on failure with exception set
     */
    static bool isValidConfig(
-      db::util::DynamicObject& config, db::util::DynamicObject& schema); 
+      db::rt::DynamicObject& config, db::rt::DynamicObject& schema); 
    
    /**
     * Creates a new ConfigManager.
@@ -146,7 +146,7 @@ public:
     * 
     * @return DynamicObject representation of all overlayed configurations
     */
-   virtual db::util::DynamicObject& getConfig();
+   virtual db::rt::DynamicObject& getConfig();
    
    /**
     * Clear all configurations.  Invalidates previous addConfig() ids.
@@ -162,7 +162,7 @@ public:
     * 
     * @return true on success, false on failure and exception will be set.
     */
-   virtual bool addConfig(db::util::DynamicObject& dyno,
+   virtual bool addConfig(db::rt::DynamicObject& dyno,
       ConfigType type = Default, ConfigId* id = NULL);
 
    /**
@@ -182,7 +182,7 @@ public:
     * 
     * @return true on success, false on failure and exception will be set.
     */
-   virtual bool getConfig(ConfigId id, db::util::DynamicObject& dyno);
+   virtual bool getConfig(ConfigId id, db::rt::DynamicObject& dyno);
 
    /**
     * Sets a specific config.
@@ -192,7 +192,7 @@ public:
     * 
     * @return true on success, false on failure and exception will be set.
     */
-   virtual bool setConfig(ConfigId id, db::util::DynamicObject& dyno);
+   virtual bool setConfig(ConfigId id, db::rt::DynamicObject& dyno);
 
    /**
     * Update config from all current configs.  Update is called after
@@ -209,7 +209,7 @@ public:
     * @param baseType the type to compare against.  Useful values are Default,
     *        User, and All.
     */
-   virtual void getChanges(db::util::DynamicObject& target,
+   virtual void getChanges(db::rt::DynamicObject& target,
       ConfigType baseType = Default);
 };
 

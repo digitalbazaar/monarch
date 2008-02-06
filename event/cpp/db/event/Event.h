@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_event_Event_H
 #define db_event_Event_H
 
-#include "db/util/DynamicObject.h"
+#include "db/rt/DynamicObject.h"
 
 namespace db
 {
@@ -20,7 +20,7 @@ namespace event
  * 
  * @author Dave Longley
  */
-typedef db::util::DynamicObject Event;
+typedef db::rt::DynamicObject Event;
 typedef unsigned long long EventId;
 
 } // end namespace event

@@ -9,7 +9,6 @@ using namespace db::io;
 using namespace db::mail;
 using namespace db::net;
 using namespace db::rt;
-using namespace db::util;
 
 SmtpClient::SmtpClient()
 {

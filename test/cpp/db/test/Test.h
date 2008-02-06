@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_test_Test_H
 #define db_test_Test_H
 
 #include "db/rt/Exception.h"
-#include "db/util/DynamicObject.h"
-#include "db/util/DynamicObjectIterator.h"
+#include "db/rt/DynamicObject.h"
+#include "db/rt/DynamicObjectIterator.h"
 #include <ostream>
 #include <string>
 
@@ -29,7 +29,7 @@ void dumpException(db::rt::Exception* e);
  * @param indent indent level
  */
 void dumpDynamicObjectText_(
-   db::util::DynamicObject& dyno, db::util::DynamicObjectIterator doi = NULL,
+   db::rt::DynamicObject& dyno, db::rt::DynamicObjectIterator doi = NULL,
    int indent = 0);
 
 /**
@@ -37,7 +37,7 @@ void dumpDynamicObjectText_(
  *
  * @param dyno DynamicObject to dump.
  */
-void dumpDynamicObjectText(db::util::DynamicObject& dyno);
+void dumpDynamicObjectText(db::rt::DynamicObject& dyno);
 
 /**
  * Write DynamicObject JSON to an ostream.
@@ -47,7 +47,7 @@ void dumpDynamicObjectText(db::util::DynamicObject& dyno);
  * @param compact Use compact syntax
  */
 void dynamicObjectToStream(
-   db::util::DynamicObject& dyno, std::ostream& stream, bool compact = false);
+   db::rt::DynamicObject& dyno, std::ostream& stream, bool compact = false);
 
 /**
  * Write DynamicObject JSON to a string.
@@ -58,7 +58,7 @@ void dynamicObjectToStream(
  * @param compact Use compact syntax
  */
 void dynamicObjectToString(
-   db::util::DynamicObject& dyno, std::string& str, bool compact = false);
+   db::rt::DynamicObject& dyno, std::string& str, bool compact = false);
 
 /**
  * Dump DynamicObject details as JSON to cout.
@@ -66,7 +66,7 @@ void dynamicObjectToString(
  * @param dyno DynamicObject to dump.
  * @param compact Use compact syntax
  */
-void dumpDynamicObject(db::util::DynamicObject& dyno, bool compact = false);
+void dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
 
 /**
  * Check and dump exception condition.

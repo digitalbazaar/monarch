@@ -1,17 +1,15 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_test_Tester_H
 #define db_test_Tester_H
 
 #include <list>
 
-#include "db/rt/Exception.h"
-#include "db/rt/Object.h"
 #include "db/rt/Runnable.h"
 #include "db/test/TestRunner.h"
-#include "db/util/DynamicObject.h"
-#include "db/util/DynamicObjectIterator.h"
+#include "db/rt/DynamicObject.h"
+#include "db/rt/DynamicObjectIterator.h"
 
 namespace db
 {

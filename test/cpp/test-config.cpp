@@ -14,7 +14,6 @@ using namespace std;
 using namespace db::rt;
 using namespace db::test;
 using namespace db::config;
-using namespace db::util;
 
 void runConfigManagerTest(TestRunner& tr)
 {

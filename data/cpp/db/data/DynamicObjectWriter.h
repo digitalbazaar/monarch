@@ -5,7 +5,7 @@
 #define db_data_DynamicObjectWriter_H
 
 #include "db/io/OutputStream.h"
-#include "db/util/DynamicObject.h"
+#include "db/rt/DynamicObject.h"
 
 namespace db
 {
@@ -40,7 +40,7 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool write(
-      db::util::DynamicObject& dyno, db::io::OutputStream* os) = 0;
+      db::rt::DynamicObject& dyno, db::io::OutputStream* os) = 0;
    
    /**
     * Sets the starting indentation level and the number of spaces

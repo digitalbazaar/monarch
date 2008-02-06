@@ -17,7 +17,6 @@
 using namespace std;
 using namespace db::test;
 using namespace db::rt;
-using namespace db::util;
 using namespace db::sql::sqlite3;
 using namespace db::sql::mysql;
 using namespace db::sql::util;

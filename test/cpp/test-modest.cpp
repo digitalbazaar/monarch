@@ -12,7 +12,6 @@ using namespace std;
 using namespace db::test;
 using namespace db::modest;
 using namespace db::rt;
-using namespace db::util;
 
 class TestGuard : public OperationGuard
 {

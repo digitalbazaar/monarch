@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_DataFormatInspector_H
 #define db_data_DataFormatInspector_H
 
 #include "db/data/DataInspector.h"
-#include "db/util/DynamicObject.h"
+#include "db/rt/DynamicObject.h"
 
 #include <string>
 
@@ -19,6 +19,7 @@ namespace data
  * recognized or not.
  * 
  * @author Dave Longley
+ * @author David I. Lehn
  */
 class DataFormatInspector : public DataInspector
 {
@@ -113,7 +114,7 @@ public:
     * 
     * @return the type specific details of this stream.
     */
-   virtual db::util::DynamicObject getFormatDetails() = 0;
+   virtual db::rt::DynamicObject getFormatDetails() = 0;
 };
 
 } // end namespace data

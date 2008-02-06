@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_util_UniqueList_H
 #define db_util_UniqueList_H
@@ -72,7 +72,7 @@ public:
     * 
     * @return the Iterator for the list.
     */
-   virtual Iterator<T>* getIterator();
+   virtual db::rt::Iterator<T>* getIterator();
 };
 
 template<typename T>
@@ -80,7 +80,7 @@ bool UniqueList<T>::add(const T& obj)
 {
    bool rval = true;
    
-   Iterator<T>* i = getIterator();
+   db::rt::Iterator<T>* i = getIterator();
    while(rval && i->hasNext())
    {
       rval = !(i->next() == obj);
@@ -100,7 +100,7 @@ bool UniqueList<T>::remove(const T& obj)
 {
    bool rval = false;
    
-   Iterator<T>* i = getIterator();
+   db::rt::Iterator<T>* i = getIterator();
    while(!rval && i->hasNext())
    {
       T& t = i->next();
@@ -130,7 +130,7 @@ unsigned int UniqueList<T>::count()
 }
 
 template<typename T>
-Iterator<T>* UniqueList<T>::getIterator()
+db::rt::Iterator<T>* UniqueList<T>::getIterator()
 {
    return new ListIterator<T>(mList);
 }

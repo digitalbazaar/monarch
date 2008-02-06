@@ -8,7 +8,6 @@
 using namespace db::data;
 using namespace db::io;
 using namespace db::rt;
-using namespace db::util;
 
 DynamicObjectInputStream::DynamicObjectInputStream(
    DynamicObject& dyno, DynamicObjectWriter* writer, bool cleanup) :

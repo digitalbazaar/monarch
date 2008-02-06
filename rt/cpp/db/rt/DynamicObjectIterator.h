@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_util_DynamicObjectIterator_H
-#define db_util_DynamicObjectIterator_H
+#ifndef db_rt_DynamicObjectIterator_H
+#define db_rt_DynamicObjectIterator_H
 
-#include "db/util/Iterator.h"
-#include "db/util/DynamicObject.h"
+#include "db/rt/Iterator.h"
+#include "db/rt/DynamicObject.h"
 
 namespace db
 {
-namespace util
+namespace rt
 {
 
 /**
@@ -108,7 +108,7 @@ public:
  * @author Dave Longley
  */
 class DynamicObjectIterator :
-public db::rt::Collectable<DynamicObjectIteratorImpl>
+public Collectable<DynamicObjectIteratorImpl>
 {
 public:
    /**
@@ -125,6 +125,6 @@ public:
    virtual ~DynamicObjectIterator();
 };
 
-} // end namespace util
+} // end namespace rt
 } // end namespace db
 #endif

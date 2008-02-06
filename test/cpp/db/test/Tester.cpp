@@ -1,20 +1,19 @@
 /*
  * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
  */
+#include "db/test/Tester.h"
 
 #include <assert.h>
 #include <iostream>
 #include <sstream>
 
 #include "db/test/Test.h"
-#include "db/test/Tester.h"
 #include "db/rt/Exception.h"
 #include "db/rt/Thread.h"
 
 using namespace std;
 using namespace db::rt;
 using namespace db::test;
-using namespace db::util;
 
 Tester::Tester()
 {

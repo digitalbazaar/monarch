@@ -5,7 +5,7 @@
 
 using namespace db::data;
 using namespace db::io;
-using namespace db::util;
+using namespace db::rt;
 
 DynamicObjectOutputStream::DynamicObjectOutputStream(
    DynamicObject& dyno, DynamicObjectReader* reader, bool cleanup) :

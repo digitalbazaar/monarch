@@ -7,8 +7,8 @@
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
-#include "db/util/DynamicObject.h"
-#include "db/util/DynamicObjectIterator.h"
+#include "db/rt/DynamicObject.h"
+#include "db/rt/DynamicObjectIterator.h"
 #include "db/modest/Kernel.h"
 #include "db/event/Observable.h"
 #include "db/event/ObserverDelegate.h"
@@ -19,7 +19,6 @@ using namespace db::test;
 using namespace db::event;
 using namespace db::modest;
 using namespace db::rt;
-using namespace db::util;
 
 class TestObserver : public Observer
 {
