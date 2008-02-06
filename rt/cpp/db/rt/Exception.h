@@ -4,6 +4,7 @@
 #ifndef db_rt_Exception_H
 #define db_rt_Exception_H
 
+#include "db/rt/Collectable.h"
 #include <stddef.h>
 
 namespace db
@@ -195,6 +196,9 @@ public:
     */
    static Exception* convertToException(DynamicObject& dyno);
 };
+
+// define a reference counted Exception type
+typedef Collectable<Exception> ExceptionRef;
 
 } // end namespace rt
 } // end namespace db
