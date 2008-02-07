@@ -270,7 +270,7 @@ void runByteArrayOutputStreamTest(TestRunner& tr)
    tr.warning("Add BAOS exception check");
    if(!baos2.write(sentence, length))
    {
-      IOException* e = (IOException*)Exception::getLast();
+      IOException* e = (IOException*)&(*Exception::getLast());
       //cout << "Exception Caught=" << e->getMessage() << endl;
       //cout << "Written bytes=" << e->getUsedBytes() << endl;
       //cout << "Unwritten bytes=" << e->getUnusedBytes() << endl;

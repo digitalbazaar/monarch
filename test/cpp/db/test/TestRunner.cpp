@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
+#include "db/test/TestRunner.h"
 
 #include <assert.h>
 #include <iostream>
 
-#include "db/test/TestRunner.h"
 #include "db/test/Test.h"
 #include "db/rt/Exception.h"
 #include "db/sql/SqlException.h"
@@ -92,7 +92,7 @@ void TestRunner::passIfNoException()
    if(Exception::hasLast())
    {
       fail();
-      Exception* e = Exception::getLast();
+      ExceptionRef e = Exception::getLast();
       dumpException(e);
       if(mDoneOnException)
       {

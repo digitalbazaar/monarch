@@ -7,7 +7,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "db/rt/Exception.h"
 #include "db/sql/SqlException.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/io/OStreamOutputStream.h"
@@ -18,18 +17,21 @@ using namespace db::io;
 using namespace db::rt;
 using namespace db::test;
 
-void db::test::dumpException(Exception* e)
+void db::test::dumpException(ExceptionRef& e)
 {
-   if(dynamic_cast<db::sql::SqlException*>(e) != NULL)
+   db::sql::SqlException* sqlEx = NULL;
+   if(!e.isNull())
    {
-      db::sql::SqlException* dbe =
-         (db::sql::SqlException*)e;
-      
+      sqlEx = dynamic_cast<db::sql::SqlException*>(&(*e));
+   }
+   
+   if(sqlEx != NULL)
+   {
       cout << "SqlException occurred!" << endl;
-      cout << "message: " << dbe->getMessage() << endl;
-      cout << "type: " << dbe->getType() << endl;
-      cout << "code: " << dbe->getCode() << endl;
-      cout << "sqlstate: " << dbe->getSqlState() << endl;
+      cout << "message: " << sqlEx->getMessage() << endl;
+      cout << "type: " << sqlEx->getType() << endl;
+      cout << "code: " << sqlEx->getCode() << endl;
+      cout << "sqlstate: " << sqlEx->getSqlState() << endl;
    }
    else
    {
@@ -37,7 +39,7 @@ void db::test::dumpException(Exception* e)
       cout << "message: " << e->getMessage() << endl;
       cout << "type: " << e->getType() << endl;
       cout << "code: " << e->getCode() << endl;
-      if(e->getCause() != NULL)
+      if(!e->getCause().isNull())
       {
          cout << "CAUSE:" << endl;
          cout << "message: " << e->getCause()->getMessage() << endl;
