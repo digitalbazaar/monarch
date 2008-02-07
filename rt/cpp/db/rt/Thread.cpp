@@ -441,7 +441,8 @@ void Thread::setException(ExceptionRef& e)
    if(ref == NULL)
    {
       // create the exception reference
-      ref = new ExceptionRef(e.isNull() ? NULL : &(*e));
+      ref = new ExceptionRef(NULL);
+      *ref = e;
       pthread_setspecific(sExceptionKey, ref);
    }
    else
