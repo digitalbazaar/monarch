@@ -163,9 +163,9 @@ bool SmtpClient::quit(Connection* c)
       sendCrlf(c);
 }
 
-Exception* SmtpClient::sendMail(Connection* c, Mail* mail)
+bool SmtpClient::sendMail(Connection* c, Mail* mail)
 {
-   Exception* rval = NULL;
+   bool rval = true;
    
    // FIXME: this is the simplest implementation to get this thing to
    // send mail to our server, it will have to be filled out later if
@@ -175,82 +175,77 @@ Exception* SmtpClient::sendMail(Connection* c, Mail* mail)
    int code;
    
    // receive response from server
-   bool pass = ((code = getResponseCode(c)) == 220);
+   rval = ((code = getResponseCode(c)) == 220);
    
    // say helo from sender's domain
-   if(pass && (pass = helo(c, mail->getSender()["domain"]->getString())))
+   if(rval && (rval = helo(c, mail->getSender()["domain"]->getString())))
    {
       // receive response
-      pass = ((code = getResponseCode(c)) == 250);
+      rval = ((code = getResponseCode(c)) == 250);
    }
    
    // send sender's address
-   if(pass && (pass = mailFrom(
+   if(rval && (rval = mailFrom(
          c, mail->getSender()["smtpEncoding"]->getString())))
    {
       // receive response
-      pass = ((code = getResponseCode(c)) == 250);
+      rval = ((code = getResponseCode(c)) == 250);
    }
    
    // do rcpt to
    AddressIterator i = mail->getRecipients().getIterator();
-   while(pass && i->hasNext())
+   while(rval && i->hasNext())
    {
       // send recipient's address
-      if(pass = rcptTo(c, i->next()["smtpEncoding"]->getString()))
+      if(rval = rcptTo(c, i->next()["smtpEncoding"]->getString()))
       {
          // receive response
-         pass = ((code = getResponseCode(c)) == 250);
+         rval = ((code = getResponseCode(c)) == 250);
       }
    }
    
    // start data
-   if(pass && (pass = startData(c)))
+   if(rval && (rval = startData(c)))
    {
       // receive response
-      pass = ((code = getResponseCode(c)) == 354);
+      rval = ((code = getResponseCode(c)) == 354);
    }
    
    // send data
-   if(pass && (pass = sendMessage(c, mail->getMessage())));
+   if(rval && (rval = sendMessage(c, mail->getMessage())));
    
    // end data
-   if(pass && (pass = endData(c)))
+   if(rval && (rval = endData(c)))
    {
       // receive response
-      pass = ((code = getResponseCode(c)) == 250);
+      rval = ((code = getResponseCode(c)) == 250);
    }
    
    // quit
-   if(pass && (pass = quit(c)))
+   if(rval && (rval = quit(c)))
    {
       // receive response
-      pass = ((code = getResponseCode(c)) == 221);
+      rval = ((code = getResponseCode(c)) == 221);
    }
    
-   if(!pass)
+   if(!rval)
    {
       if(code != -1)
       {
          // code was not the expected one
          char temp[120];
          sprintf(temp, "Unexpected SMTP server response code!,code=%i", code);
-         rval = new IOException(temp, "db.mail.UnexpectedSmtpCode");
-         Exception::setLast(rval);
-      }
-      else
-      {
-         // IO error, use set exception
-         rval = Exception::getLast();
+         ExceptionRef e = new IOException(temp, "db.mail.UnexpectedSmtpCode");
+         Exception::setLast(e);
       }
    }
    
    return rval;
 }
 
-Exception* SmtpClient::sendMail(Url* url, Mail* mail)
+bool SmtpClient::sendMail(Url* url, Mail* mail)
 {
-   Exception* rval = NULL;
+   bool rval = false;
    
    // connect, use 30 second timeouts
    TcpSocket s;
