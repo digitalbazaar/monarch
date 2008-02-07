@@ -7,6 +7,7 @@
 #include "db/rt/Exception.h"
 #include "db/rt/DynamicObject.h"
 #include "db/rt/DynamicObjectIterator.h"
+#include <iostream>
 #include <ostream>
 #include <string>
 
