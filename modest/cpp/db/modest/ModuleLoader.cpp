@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/ModuleLoader.h"
 #include "db/modest/ModuleApi.h"
@@ -55,7 +55,8 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
          // could not load create or free functions
          char temp[100 + strlen(filename) + strlen(error)];
          sprintf(temp, "Could not load module '%s', error=%s", filename, error);
-         Exception::setLast(new Exception(temp, "db.modest.BadModule"));
+         ExceptionRef e = new Exception(temp, "db.modest.BadModule");
+         Exception::setLast(e);
       }
    }
    else
@@ -66,7 +67,8 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
       sprintf(temp,
          "Could not load module '%s', could not open module file, error=%s",
          filename, error);
-      Exception::setLast(new Exception(temp, "db.modest.BadModuleFile"));
+      ExceptionRef e = new Exception(temp, "db.modest.BadModuleFile");
+      Exception::setLast(e);
    }
    
    return rval;

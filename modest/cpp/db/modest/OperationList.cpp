@@ -81,9 +81,9 @@ void OperationList::interrupt()
    unlock();
 }
 
-InterruptedException* OperationList::waitFor(bool interruptible)
+bool OperationList::waitFor(bool interruptible)
 {
-   InterruptedException* rval = NULL;
+   bool rval = true;
    
    lock();
    {
@@ -93,7 +93,7 @@ InterruptedException* OperationList::waitFor(bool interruptible)
          rval = (*i)->waitFor(interruptible);
          
          // break out if interruptible and interrupted
-         if(interruptible && rval != NULL)
+         if(interruptible && !rval)
          {
             break;
          }

@@ -85,20 +85,20 @@ void OperationImpl::stop()
    unlock();
 }
 
-InterruptedException* OperationImpl::waitFor(bool interruptible)
+bool OperationImpl::waitFor(bool interruptible)
 {
-   InterruptedException* rval = NULL;
+   bool rval = true;
    
    lock();
    {
       // wait until Operation is stopped
-      InterruptedException* e = NULL;
+      bool interrupted = false;
       while(!stopped())
       {
-         if((e = wait()) != NULL)
+         if((interrupted = !wait()))
          {
             // thread was interrupted
-            rval = e;
+            rval = false;
             
             if(interruptible)
             {
@@ -116,7 +116,7 @@ InterruptedException* OperationImpl::waitFor(bool interruptible)
    unlock();
    
    // ensure thread remains interrupted
-   if(rval != NULL)
+   if(!rval)
    {
       Thread::currentThread()->interrupt();
    }
