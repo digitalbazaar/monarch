@@ -44,7 +44,8 @@ bool FileOutputStream::ensureOpen()
          rval = false;
          char temp[strlen(mFile->getName()) + 30];
          sprintf(temp, "Could not open file '%s'!", mFile->getName());
-         Exception::setLast(new IOException(temp));
+         ExceptionRef e = new IOException(temp);
+         Exception::setLast(e);
       }
    }
    
@@ -65,7 +66,8 @@ bool FileOutputStream::write(const char* b, int length)
       {
          char temp[strlen(mFile->getName()) + 40];
          sprintf(temp, "Could not write to file '%s'!", mFile->getName());
-         Exception::setLast(new IOException(temp));
+         ExceptionRef e = new IOException(temp);
+         Exception::setLast(e);
       }
       else
       {

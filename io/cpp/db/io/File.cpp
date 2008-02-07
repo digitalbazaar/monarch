@@ -139,8 +139,8 @@ bool File::contains(const char* path)
    string normalizedContainer;
    string normalizedFile;
    
-   if((normalizePath(getName(), normalizedContainer) == NULL) && 
-      (normalizePath(path, normalizedFile) == NULL))
+   if(normalizePath(getName(), normalizedContainer) && 
+      normalizePath(path, normalizedFile))
    {
       rval = (normalizedFile.find(normalizedContainer, 0) == 0);
    }
@@ -163,7 +163,7 @@ bool File::isReadable()
    bool rval = false;
    string npath;
    
-   if(normalizePath(getName(), npath) == NULL)
+   if(normalizePath(getName(), npath))
    {
       rval = isPathReadable(npath.c_str());
    }
@@ -175,13 +175,13 @@ bool File::isSymbolicLink()
 {
    return getType() == SymbolicLink;
 }
-#include <iostream>
+
 bool File::isWritable()
 {
    bool rval = false;
    string npath;
    
-   if(normalizePath(getName(), npath) == NULL)
+   if(normalizePath(getName(), npath))
    {
       rval = isPathWritable(npath.c_str());
    }
@@ -234,9 +234,9 @@ void File::listFiles(FileList* files)
    }
 }
 
-Exception* File::normalizePath(const char* path, string& normalizedPath)
+bool File::normalizePath(const char* path, string& normalizedPath)
 {
-   Exception* rval = NULL;
+   bool rval = true;
    string tempPath;
    
    if(strlen(path) > 0)
@@ -295,14 +295,14 @@ Exception* File::normalizePath(const char* path, string& normalizedPath)
    return rval;
 }
 
-Exception* File::normalizePath(File* path, string& normalizedPath)
+bool File::normalizePath(File* path, string& normalizedPath)
 {
    return normalizePath(path->getName(), normalizedPath);
 }
 
-Exception* File::getCurrentWorkingDirectory(string& cwd)
+bool File::getCurrentWorkingDirectory(string& cwd)
 {
-   Exception* rval = NULL;
+   bool rval = true;
    
    char* b = (char*)malloc(PATH_MAX);
    if(getcwd(b, PATH_MAX) != NULL)
@@ -312,9 +312,10 @@ Exception* File::getCurrentWorkingDirectory(string& cwd)
    else
    {
       // path was too large for getcwd
-      rval = new Exception(
+      ExceptionRef e = new Exception(
          "Could not get current working directory, path too long!");
-      Exception::setLast(rval);
+      Exception::setLast(e);
+      rval = false;
    }
    free(b);
    

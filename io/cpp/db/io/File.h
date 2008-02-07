@@ -195,11 +195,10 @@ public:
     * @param normalizedPath the normalized path will be placed into this 
     *                       variable.
     * 
-    * @return NULL if the normalization was successful, an Exception object
-    *         if the normalization failed for any reason.
+    * @return true if the normalization was successful, false if an Exception
+    *         occurred.
     */
-   static db::rt::Exception* normalizePath(
-      const char* path, std::string& normalizedPath);
+   static bool normalizePath(const char* path, std::string& normalizedPath);
 
    /**
     * Normalizes the file system path passed into the method.
@@ -208,11 +207,10 @@ public:
     * @param normalizedPath the normalized path will be placed into this 
     *                       variable.
     * 
-    * @return NULL if the normalization was successful, an Exception object
-    *         if the normalization failed for any reason.
+    * @return true if the normalization was successful, false if an Exception
+    *         occurred.
     */
-   static db::rt::Exception* normalizePath(
-      File* path, std::string& normalizedPath);
+   static bool normalizePath(File* path, std::string& normalizedPath);
    
    /**
     * Gets the current working directory. 
@@ -220,10 +218,10 @@ public:
     * @param cwd the string that will be updated with the current working
     *            directory upon success.
     * 
-    * @return an Exception if the current working directory could not be
-    *         retrieved, NULL upon success.
+    * @return false if the current working directory could not be
+    *         retrieved (with an Exception set), true upon success.
     */
-   static db::rt::Exception* getCurrentWorkingDirectory(std::string& cwd);
+   static bool getCurrentWorkingDirectory(std::string& cwd);
    
    /**
     * Determines if the passed path is readable or not.

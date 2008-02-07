@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/FileInputStream.h"
 
@@ -42,7 +42,8 @@ bool FileInputStream::ensureOpen()
          rval = false;
          char temp[strlen(mFile->getName()) + 30];
          sprintf(temp, "Could not open file '%s'!", mFile->getName());
-         Exception::setLast(new IOException(temp));
+         ExceptionRef e = new IOException(temp);
+         Exception::setLast(e);
       }
    }
    
@@ -68,7 +69,8 @@ int FileInputStream::read(char* b, int length)
             rval = -1;
             char temp[strlen(mFile->getName()) + 40];
             sprintf(temp, "Could not read from file '%s'!", mFile->getName());
-            Exception::setLast(new IOException(temp));
+            ExceptionRef e = new IOException(temp);
+            Exception::setLast(e);
          }
          else if(mStream.gcount() > 0)
          {
