@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_MessageDigest_H
 #define db_crypto_MessageDigest_H
@@ -37,7 +37,7 @@ protected:
 public:
    /**
     * Creates a new MessageDigest that uses the passed hash algorithm. An
-    * UnsupportedAlgorithmException may be raised if the given algorithm
+    * UnsupportedAlgorithm exception may be set if the given algorithm
     * is not supported.
     * 
     * @param algorithm the hash algorithm to use.

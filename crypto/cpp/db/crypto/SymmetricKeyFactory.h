@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_SymmetricKeyFactory_H
 #define db_crypto_SymmetricKeyFactory_H
 
 #include "db/crypto/SymmetricKey.h"
-#include "db/crypto/UnsupportedAlgorithmException.h"
 
 namespace db
 {

@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/MessageDigest.h"
-#include "db/crypto/UnsupportedAlgorithmException.h"
 #include "db/util/Convert.h"
+#include "db/rt/Exception.h"
 
 using namespace std;
 using namespace db::crypto;
@@ -23,9 +23,11 @@ MessageDigest::MessageDigest(const char* algorithm)
    else
    {
       // unsupported algorithm
-      char temp[50 + strlen(algorithm)];
-      sprintf(temp, "Unsupported hash algorithm '%s'", algorithm);
-      Exception::setLast(new UnsupportedAlgorithmException(temp));
+      int length = 50 + strlen(algorithm);
+      char msg[length];
+      snprintf(msg, length, "Unsupported hash algorithm '%s'", algorithm);
+      ExceptionRef e = new Exception(msg, "db.crypto.UnsupportedAlgorithm");
+      Exception::setLast(e);
    }
 }
 
