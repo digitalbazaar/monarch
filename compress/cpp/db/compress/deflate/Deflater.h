@@ -59,9 +59,9 @@ protected:
     * 
     * @param ret the zlib return value.
     * 
-    * @return the exception created from the zlib return value or NULL.
+    * @return true if an exception was created, false if not.
     */
-   virtual db::rt::Exception* createException(int ret);
+   virtual bool createException(int ret);
    
 public:
    /**
@@ -98,11 +98,10 @@ public:
     * @param raw true to output a raw DEFLATE stream, false to include a zlib
     *            header and trailer.
     * 
-    * @return an exception if one occurred, NULL if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual db::rt::Exception* startDeflating(
-      int level = Z_DEFAULT_COMPRESSION,
-      bool raw = true);
+   virtual bool startDeflating(
+      int level = Z_DEFAULT_COMPRESSION, bool raw = true);
    
    /**
     * Prepares this Deflater to inflate some data that was previously deflated.
@@ -119,9 +118,9 @@ public:
     * @param raw true to input a raw DEFLATE stream, false to check for a zlib
     *            header and trailer.
     * 
-    * @return an exception if one occurred, NULL if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual db::rt::Exception* startInflating(bool raw);
+   virtual bool startInflating(bool raw);
    
    /**
     * Sets the input data for the current deflation/inflation. This method

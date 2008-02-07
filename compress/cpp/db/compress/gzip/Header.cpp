@@ -74,7 +74,7 @@ int Header::convertFromBytes(char* b, int length)
       // ensure ID1 and ID2 are valid
       if(bb.next() != GZIP_ID1 || bb.next() != GZIP_ID2)
       {
-         Exception* e = new Exception(
+         ExceptionRef e = new Exception(
             "Data is not in gzip format!",
             "db.compress.gzip.InvalidHeader");
          Exception::setLast(e);
@@ -85,7 +85,7 @@ int Header::convertFromBytes(char* b, int length)
          // ensure compression method is DEFLATE (CM = 8)
          if(bb.next() != 0x08)
          {
-            Exception* e = new Exception(
+            ExceptionRef e = new Exception(
                "Data is not compressed using DEFLATE!",
                "db.compress.gzip.InvalidCompressionMethod");
             Exception::setLast(e);
@@ -197,7 +197,7 @@ int Header::convertFromBytes(char* b, int length)
                   
                   if(mCrc != crc)
                   {
-                     Exception* e = new Exception(
+                     ExceptionRef e = new Exception(
                         "Bad CRC in gzip header!",
                         "db.compress.gzip.BadHeaderCrc");
                      Exception::setLast(e);

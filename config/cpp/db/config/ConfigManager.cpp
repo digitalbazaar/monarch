@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/config/ConfigManager.h"
 #include "db/io/BufferedOutputStream.h"
@@ -72,7 +72,7 @@ bool ConfigManager::removeConfig(ConfigId id)
       }
       else
       {
-         Exception* e = new Exception("Invalid ConfigId");
+         ExceptionRef e = new Exception("Invalid ConfigId");
          Exception::setLast(e);
       }
    }
@@ -92,7 +92,7 @@ bool ConfigManager::getConfig(ConfigId id, DynamicObject& dyno)
    }
    else
    {
-      Exception* e = new Exception("Invalid ConfigId");
+      ExceptionRef e = new Exception("Invalid ConfigId");
       Exception::setLast(e);
    }
   
@@ -111,7 +111,7 @@ bool ConfigManager::setConfig(ConfigId id, DynamicObject& dyno)
    }
    else
    {
-      Exception* e = new Exception("Invalid ConfigId");
+      ExceptionRef e = new Exception("Invalid ConfigId");
       Exception::setLast(e);
    }
   
@@ -366,7 +366,7 @@ bool ConfigManager::isValidConfig(DynamicObject& config, DynamicObject& schema)
                else
                {
                   // multiple schema elements not allowed
-                  Exception* e =
+                  ExceptionRef e =
                      new Exception("Multiple Array schema values not allowed");
                   Exception::setLast(e);
                }

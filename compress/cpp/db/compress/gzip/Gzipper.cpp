@@ -70,7 +70,7 @@ Trailer* Gzipper::getTrailer()
    return mTrailer;
 }
 
-Exception* Gzipper::startCompressing(int level)
+bool Gzipper::startCompressing(int level)
 {
    // header/trailer not processed yet
    mHeaderProcessed = false;
@@ -87,7 +87,7 @@ Exception* Gzipper::startCompressing(int level)
    return startDeflating(level, true);
 }
 
-Exception* Gzipper::startDecompressing()
+bool Gzipper::startDecompressing()
 {
    // header/trailer not processed yet
    mHeaderProcessed = false;
@@ -221,7 +221,7 @@ int Gzipper::process(ByteBuffer* dst, bool resize)
             // do crc check
             if(mCrc32 != mTrailer->getCrc32())
             {
-               Exception* e = new Exception(
+               ExceptionRef e = new Exception(
                   "Bad gzip CRC!", "db.compress.gzip.BadCrc");
                Exception::setLast(e);
                rval = -1;
