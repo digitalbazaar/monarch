@@ -60,17 +60,17 @@ public:
     * 
     * @param is the InputStream to read the data from.
     * 
-    * @return an IOException if one occurred, NULL if not.
+    * @return true if the read succeeded, false if an IOException occurred.
     */
-   virtual db::io::IOException* read(db::io::InputStream* is) = 0;
+   virtual bool read(db::io::InputStream* is) = 0;
    
    /**
     * Finishes deserializing an object. This method must be called to
     * complete deserialization.
     * 
-    * @return an IOException is one occurred, NULL if not.
+    * @return true if the finish succeeded, false if an IOException occurred.
     */
-   virtual db::io::IOException* finish() = 0;
+   virtual bool finish() = 0;
 };
 
 } // end namespace data

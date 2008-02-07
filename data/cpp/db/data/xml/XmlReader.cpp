@@ -15,10 +15,10 @@ const char* XmlReader::CHAR_ENCODING = "UTF-8";
 // initialize read size
 unsigned int XmlReader::READ_SIZE = 4096;
 
-XmlReader::XmlReader()
+XmlReader::XmlReader() :
+   mException(NULL)
 {
    mStarted = false;
-   mException = NULL;
 }
 
 XmlReader::~XmlReader()
@@ -32,7 +32,7 @@ XmlReader::~XmlReader()
 
 void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
 {
-   if(mException == NULL &&
+   if(mException.isNull() &&
       !mDynoStack.empty() && !mDynoStack.front()->isNull())
    {
       // parse element's local name
@@ -111,7 +111,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
 
 void XmlReader::endElement(const XML_Char* name)
 {
-   if(mException == NULL && !mDynoStack.empty())
+   if(mException.isNull() && !mDynoStack.empty())
    {
       // parse element's local name
       parseLocalName(&name);
@@ -161,7 +161,7 @@ void XmlReader::endElement(const XML_Char* name)
 
 void XmlReader::appendData(const XML_Char* data, int length)
 {
-   if(mException == NULL &&
+   if(mException.isNull() &&
       !mDynoStack.empty() && !mDynoStack.front()->isNull())
    {
       // append data to dyno
@@ -258,7 +258,7 @@ void XmlReader::start(DynamicObject& dyno)
    {
       // free parser
       XML_ParserFree(mParser);
-      mException = NULL;
+      mException.setNull();
    }
    
    // create parser
@@ -275,54 +275,59 @@ void XmlReader::start(DynamicObject& dyno)
    mStarted = true;
 }
 
-IOException* XmlReader::read(InputStream* is)
+bool XmlReader::read(InputStream* is)
 {
-   IOException* rval = NULL;
+   bool rval = true;
    
    if(!mStarted)
    {
       // reader not started
-      rval = new IOException("Cannot read yet, XmlReader not started!");
-      Exception::setLast(rval);
+      ExceptionRef e = new IOException(
+         "Cannot read yet, XmlReader not started!");
+      Exception::setLast(e);
+      rval = false;
    }
    else
    {
       char* b = (char*)XML_GetBuffer(mParser, READ_SIZE);
       if(b != NULL)
       {
-         bool error = false;
          int numBytes;
-         while(rval == NULL && !error &&
-               (numBytes = is->read(b, READ_SIZE)) > 0)
+         while(rval && (numBytes = is->read(b, READ_SIZE)) > 0)
          {
-            error = (XML_ParseBuffer(mParser, numBytes, false) == 0);
-            rval = mException;
+            rval = (XML_ParseBuffer(mParser, numBytes, false) != 0);
          }
          
-         if(error)
+         if(!rval)
          {
             int line = XML_GetCurrentLineNumber(mParser);
             const char* str = XML_ErrorString(XML_GetErrorCode(mParser));
             char msg[100 + strlen(str)];
             sprintf(msg, "Xml parser error at line %d:\n%s\n", line, str);
-            rval = new IOException(msg);
-            Exception::setLast(rval);
+            ExceptionRef e = new IOException(msg);
+            Exception::setLast(e);
+         }
+         else if(numBytes == -1)
+         {
+            // input stream read error
+            rval = false;
          }
       }
       else
       {
          // set memory exception
-         rval = new IOException("Insufficient memory to parse xml!");
-         Exception::setLast(rval);
+         ExceptionRef e = new IOException("Insufficient memory to parse xml!");
+         Exception::setLast(e);
+         rval = false;
       }
    }
    
    return rval;
 }
 
-IOException* XmlReader::finish()
+bool XmlReader::finish()
 {
-   IOException* rval = NULL;
+   bool rval = true;
    
    if(mStarted)
    {
@@ -333,8 +338,9 @@ IOException* XmlReader::finish()
          const char* str = XML_ErrorString(XML_GetErrorCode(mParser));
          char msg[100 + strlen(str)];
          sprintf(msg, "Xml parser error at line %d:\n%s\n", line, str);
-         rval = new IOException(msg);
-         Exception::setLast(rval);
+         ExceptionRef e = new IOException(msg);
+         Exception::setLast(e);
+         rval = false;
       }
       
       // free parser
