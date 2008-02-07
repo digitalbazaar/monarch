@@ -219,7 +219,7 @@ void ThreadPool::runJob(Runnable& job)
    bool permitAcquired = true;
    if(mThreadSemaphore.getMaxPermitCount() != 0)
    {
-      permitAcquired = (mThreadSemaphore.acquire() == NULL);
+      permitAcquired = mThreadSemaphore.acquire();
    }
    
    if(permitAcquired)
@@ -235,7 +235,7 @@ void ThreadPool::runJob(RunnableRef& job)
    bool permitAcquired = true;
    if(mThreadSemaphore.getMaxPermitCount() != 0)
    {
-      permitAcquired = (mThreadSemaphore.acquire() == NULL);
+      permitAcquired = mThreadSemaphore.acquire();
    }
    
    if(permitAcquired)

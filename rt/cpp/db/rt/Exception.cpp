@@ -64,14 +64,13 @@ ExceptionRef& Exception::getCause()
    return *mCause;
 }
 
-// FIXME:
-Exception* Exception::setLast(Exception* e)
+ExceptionRef& Exception::setLast(ExceptionRef& e)
 {
    Thread::setException(e);
    return e;
 }
 
-Exception* Exception::getLast()
+ExceptionRef Exception::getLast()
 {
    return Thread::getException();
 }
@@ -81,9 +80,9 @@ bool Exception::hasLast()
    return Thread::hasException();
 }
 
-void Exception::clearLast(bool cleanup)
+void Exception::clearLast()
 {
-   Thread::clearException(cleanup);
+   Thread::clearException();
 }
 
 DynamicObject Exception::convertToDynamicObject(ExceptionRef& e)
@@ -111,7 +110,8 @@ ExceptionRef Exception::convertToException(DynamicObject& dyno)
    
    if(dyno->hasMember("cause"))
    {
-      e->setCause(convertToException(dyno["cause"]));
+      ExceptionRef cause = convertToException(dyno["cause"]);
+      e->setCause(cause);
    }
    
    return e;

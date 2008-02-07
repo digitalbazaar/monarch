@@ -130,8 +130,10 @@ public:
     * replaced by another call to setException() on the same thread.
     * 
     * @param e the reference to the Exception to set for the current thread.
+    * 
+    * @return the reference to the Exception.
     */
-   static void setLast(Collectable<Exception>& e);
+   static Collectable<Exception>& setLast(Collectable<Exception>& e);
    
    /**
     * Gets a reference to the Exception for the current thread. This will be
