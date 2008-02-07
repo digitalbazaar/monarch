@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/util/DatabaseClient.h"
 #include "db/net/Url.h"
@@ -60,11 +60,13 @@ DatabaseClient* DatabaseClient::create(const char* url)
       }
       else
       {
-         char temp[dbUrl.getScheme().length() + 100];
-         sprintf(
-            temp, "Cannot create DatabaseClient, url scheme is "
+         int length = dbUrl.getScheme().length() + 100;
+         char temp[length];
+         snprintf(temp, length,
+            "Cannot create DatabaseClient, url scheme is "
             "not recognized!,scheme='%s'", dbUrl.getScheme().c_str());
-         Exception::setLast(new SqlException(temp));
+         ExceptionRef e = new SqlException(temp);
+         Exception::setLast(e);
       }
    }
    

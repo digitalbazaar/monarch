@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_sql_mysql_MySqlConnection_H
 #define db_sql_mysql_MySqlConnection_H
@@ -51,24 +51,15 @@ public:
    virtual ~MySqlConnection();
    
    /**
-    * Connects to the database specified by the given url.
-    * 
-    * @param url MySql parameters in URL form:
-    *            "mysql://user:password@host:port/databasename"
-    * 
-    * @return an SqlException if one occurred, NULL if not.
-    */
-   virtual SqlException* connect(const char* url);
-   
-   /**
     * Connects to the specified database.
     * 
     * @param url MySql parameters in URL form:
     *            "mysql://user:password@host:port/databasename"
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* connect(db::net::Url* url);
+   virtual bool connect(db::net::Url* url);
+   using db::sql::Connection::connect;
    
    /**
     * Prepares a Statement for execution. The Statement is heap-allocated and
@@ -90,8 +81,10 @@ public:
     * Sets the character set for this connection.
     * 
     * @param cset the character set to use for this connection.
+    * 
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* setCharacterSet(const char* cset);
+   virtual bool setCharacterSet(const char* cset);
 };
 
 } // end namespace mysql

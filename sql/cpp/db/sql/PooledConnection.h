@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_database_PooledConnection_H
 #define db_database_PooledConnection_H
@@ -94,9 +94,9 @@ public:
     * @param url the url for the database to connect to, including driver
     *            specific parameters.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* connect(db::net::Url* url);
+   virtual bool connect(db::net::Url* url);
    
    /**
     * Prepares a Statement for execution. The Statement is heap-allocated and
@@ -118,16 +118,16 @@ public:
    /**
     * Commits the current transaction.
     * 
-    * @return a SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* commit();
+   virtual bool commit();
    
    /**
     * Rolls back the current transaction.
     * 
-    * @return a SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* rollback();
+   virtual bool rollback();
 };
 
 } // end namespace sql

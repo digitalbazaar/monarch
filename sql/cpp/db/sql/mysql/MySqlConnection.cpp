@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/mysql/MySqlConnection.h"
 #include "db/sql/mysql/MySqlStatement.h"
@@ -22,25 +22,21 @@ MySqlConnection::~MySqlConnection()
    MySqlConnection::close();
 }
 
-SqlException* MySqlConnection::connect(const char* url)
+bool MySqlConnection::connect(Url* url)
 {
-   return Connection::connect(url);
-}
-
-SqlException* MySqlConnection::connect(Url* url)
-{
-   SqlException* rval = NULL;
+   bool rval = false;
    
    if(strcmp(url->getScheme().c_str(), "mysql") != 0)
    {
       string urlStr;
       url->toString(urlStr);
-      
-      char temp[100 + urlStr.length()];
-      sprintf(
-         temp, "Could not connect to mysql database, url scheme not "
-         "'mysql', url='%s'", urlStr.c_str());
-      Exception::setLast(new SqlException(temp));
+      int length = 120 + urlStr.length();
+      char msg[length];
+      snprintf(msg, length,
+         "Could not connect to sqlite3 database, "
+         "url scheme doesn't start with 'sqlite3', url='%s'", urlStr.c_str());
+      ExceptionRef e = new SqlException(msg);
+      Exception::setLast(e);
    }
    else
    {
@@ -60,9 +56,14 @@ SqlException* MySqlConnection::connect(Url* url)
          url->getPort(), NULL, 0) == NULL)
       {
          // create exception, close connection
-         rval = new MySqlException(this);
-         Exception::setLast(rval);
+         ExceptionRef e = new MySqlException(this);
+         Exception::setLast(e);
          MySqlConnection::close();
+      }
+      else
+      {
+         // connected
+         rval = true;
       }
    }
    
@@ -71,11 +72,10 @@ SqlException* MySqlConnection::connect(Url* url)
 
 Statement* MySqlConnection::prepare(const char* sql)
 {
-   Exception* e = Exception::getLast();
-   
    // create statement
+   Exception::clearLast();
    Statement* rval = new MySqlStatement(this, sql);
-   if(Exception::getLast() != e)
+   if(Exception::hasLast())
    {
       // delete statement if exception was thrown while creating statement
       delete rval;
@@ -94,9 +94,9 @@ void MySqlConnection::close()
    }
 }
 
-SqlException* MySqlConnection::setCharacterSet(const char* cset)
+bool MySqlConnection::setCharacterSet(const char* cset)
 {
    // FIXME: handle exceptions
    mysql_options(mHandle, MYSQL_SET_CHARSET_NAME, cset);
-   return NULL;
+   return true;
 }

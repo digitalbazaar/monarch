@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_sql_sqlite3_Sqlite3Connection_H
 #define db_sql_sqlite3_Sqlite3Connection_H
@@ -58,20 +58,10 @@ public:
     *        "sqlite://user:password@/path/to/example.db"
     *        A SQLite3 database called example.db
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* connect(const char* url);
-   
-   /**
-    * Connects to the database specified by the given url.
-    * 
-    * @param url Sqlite3 parameters in URL form:
-    *        "sqlite://user:password@/path/to/example.db"
-    *        A SQLite3 database called example.db
-    * 
-    * @return an SqlException if one occurred, NULL if not.
-    */
-   virtual SqlException* connect(db::net::Url* url);
+   virtual bool connect(db::net::Url* url);
+   using db::sql::Connection::connect;
    
    /**
     * Prepares a Statement for execution. The Statement is heap-allocated and

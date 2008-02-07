@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/mysql/MySqlConnectionPool.h"
 
@@ -22,7 +22,7 @@ PooledConnection* MySqlConnectionPool::createConnection()
    
    // create and connect connection
    Connection* c = new MySqlConnection();
-   if(c->connect(&mUrl) == NULL)
+   if(c->connect(&mUrl))
    {
       // wrap in a pooled connection
       rval = new PooledConnection(this, c);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/AbstractConnectionPool.h"
 
@@ -54,7 +54,7 @@ Connection* AbstractConnectionPool::getIdleConnection()
    bool acquired = true;
    if(mConnectionSemaphore.getMaxPermitCount() != 0)
    {
-      acquired = (mConnectionSemaphore.acquire() == NULL);
+      acquired = mConnectionSemaphore.acquire();
    }
    
    if(acquired)

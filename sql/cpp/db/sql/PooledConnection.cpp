@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/PooledConnection.h"
 #include "db/sql/AbstractConnectionPool.h"
@@ -45,7 +45,7 @@ unsigned long long PooledConnection::getIdleTime()
    return mIdleTime;
 }
 
-SqlException* PooledConnection::connect(Url* url)
+bool PooledConnection::connect(Url* url)
 {
    return mConnection->connect(url);
 }
@@ -62,12 +62,12 @@ void PooledConnection::close()
    mPool->connectionClosed(this);
 }
 
-SqlException* PooledConnection::commit()
+bool PooledConnection::commit()
 {
    return mConnection->commit();
 }
 
-SqlException* PooledConnection::rollback()
+bool PooledConnection::rollback()
 {
    return mConnection->rollback();
 }

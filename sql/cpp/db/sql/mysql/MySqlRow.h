@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_sql_mysql_MySqlRow_h
 #define db_sql_mysql_MySqlRow_h
@@ -88,9 +88,9 @@ public:
     * @param column the column's index.
     * @param type the type ID for the column.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* getType(unsigned int column, int& type);
+   virtual bool getType(unsigned int column, int& type);
    
    /**
     * Gets a 32-bit integer from a column.
@@ -98,9 +98,9 @@ public:
     * @param column the column's index.
     * @param i the integer to store the integer in.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* getInt32(unsigned int column, int& i);
+   virtual bool getInt32(unsigned int column, int& i);
    
    /**
     * Gets a 32-bit unsigned integer from a column.
@@ -108,9 +108,9 @@ public:
     * @param column the column's index.
     * @param i the integer to store the integer in.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* getUInt32(unsigned int column, unsigned int& i);
+   virtual bool getUInt32(unsigned int column, unsigned int& i);
    
    /**
     * Gets a 64-bit integer from a column.
@@ -118,9 +118,9 @@ public:
     * @param column the column's index.
     * @param i the integer to store the integer in.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* getInt64(unsigned int column, long long& i);
+   virtual bool getInt64(unsigned int column, long long& i);
    
    /**
     * Gets a 64-bit unsigned integer from a column.
@@ -128,9 +128,9 @@ public:
     * @param column the column's index.
     * @param i the integer to store the integer in.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* getUInt64(unsigned int column, unsigned long long& i);
+   virtual bool getUInt64(unsigned int column, unsigned long long& i);
    
    /**
     * Gets a text string from a column.
@@ -138,9 +138,9 @@ public:
     * @param column the column's index.
     * @param str the string to store the text in.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* getText(unsigned int column, std::string& str);
+   virtual bool getText(unsigned int column, std::string& str);
    
    /**
     * Gets a column's data type.
@@ -148,9 +148,9 @@ public:
     * @param column the column's name.
     * @param type the type ID for the column.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* getType(const char* column, int& type);
+   virtual bool getType(const char* column, int& type);
    
    /**
     * Gets a 32-bit integer from a column.
@@ -158,9 +158,9 @@ public:
     * @param column the column's name.
     * @param i the integer to store the integer in.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* getInt32(const char* column, int& i);
+   virtual bool getInt32(const char* column, int& i);
    
    /**
     * Gets a 32-bit unsigned integer from a column.
@@ -168,9 +168,9 @@ public:
     * @param column the column's name.
     * @param i the integer to store the integer in.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* getUInt32(const char* column, unsigned int& i);
+   virtual bool getUInt32(const char* column, unsigned int& i);
    
    /**
     * Gets a 64-bit integer from a column.
@@ -178,9 +178,9 @@ public:
     * @param column the column's name.
     * @param i the integer to store the integer in.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* getInt64(const char* column, long long& i);
+   virtual bool getInt64(const char* column, long long& i);
    
    /**
     * Gets a 64-bit unsigned integer from a column.
@@ -188,9 +188,9 @@ public:
     * @param column the column's name.
     * @param i the integer to store the integer in.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* getUInt64(const char* column, unsigned long long& i);
+   virtual bool getUInt64(const char* column, unsigned long long& i);
    
    /**
     * Gets a text string from a column.
@@ -198,9 +198,9 @@ public:
     * @param column the column's name.
     * @param str the string to store the text in.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* getText(const char* column, std::string& str);
+   virtual bool getText(const char* column, std::string& str);
 };
 
 } // end namespace mysql

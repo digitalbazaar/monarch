@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_sql_sqlite3_Statement_H
 #define db_sql_sqlite3_Statement_H
@@ -48,6 +48,15 @@ protected:
     */
    friend class Sqlite3Row;
    
+   /**
+    * Gets the parameter index for the given name.
+    * 
+    * @param name the name to get the parameter index for.
+    * 
+    * @return the index >= 1 or 0 if an SqlException occurred.
+    */
+   virtual int getParameterIndex(const char* name);
+   
 public:
    /**
     * Creates a new Statement.
@@ -65,9 +74,9 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* setInt32(unsigned int param, int value);
+   virtual bool setInt32(unsigned int param, int value);
    
    /**
     * Sets the value of a 32-bit unsigned integer for a positional parameter.
@@ -75,9 +84,9 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     * 
-    * @return a SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* setUInt32(unsigned int param, unsigned int value);
+   virtual bool setUInt32(unsigned int param, unsigned int value);
    
    /**
     * Sets the value of a 64-bit integer for a positional parameter.
@@ -85,9 +94,9 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     * 
-    * @return a SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* setInt64(unsigned int param, long long value);
+   virtual bool setInt64(unsigned int param, long long value);
    
    /**
     * Sets the value of a 64-bit unsigned integer for a positional parameter.
@@ -95,10 +104,9 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     * 
-    * @return a SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* setUInt64(
-      unsigned int param, unsigned long long value);
+   virtual bool setUInt64(unsigned int param, unsigned long long value);
    
    /**
     * Sets the value of a text string for a positional parameter.
@@ -106,9 +114,9 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* setText(unsigned int param, const char* value);
+   virtual bool setText(unsigned int param, const char* value);
    
    /**
     * Sets the value of a 32-bit integer for a named parameter (:mynamehere).
@@ -116,9 +124,9 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     * 
-    * @return a SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* setInt32(const char* name, int value);
+   virtual bool setInt32(const char* name, int value);
    
    /**
     * Sets the value of a 32-bit unsigned integer for a named parameter
@@ -127,9 +135,9 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     * 
-    * @return a SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* setUInt32(const char* name, unsigned int value);
+   virtual bool setUInt32(const char* name, unsigned int value);
    
    /**
     * Sets the value of a 64-bit integer for a named parameter (:mynamehere).
@@ -137,9 +145,9 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     * 
-    * @return a SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* setInt64(const char* name, long long value);
+   virtual bool setInt64(const char* name, long long value);
    
    /**
     * Sets the value of a 64-bit unsigned integer for a named parameter
@@ -148,9 +156,9 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     * 
-    * @return a SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* setUInt64(const char* name, unsigned long long value);
+   virtual bool setUInt64(const char* name, unsigned long long value);
    
    /**
     * Sets the value of a text string for a named parameter (:mynamehere).
@@ -158,16 +166,16 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* setText(const char* name, const char* value);
+   virtual bool setText(const char* name, const char* value);
    
    /**
     * Executes this Statement.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* execute();
+   virtual bool execute();
    
    /**
     * Fetches the next result Row once this Statement has been executed. The
@@ -183,9 +191,9 @@ public:
     * 
     * @param rows to store the number of rows modified by this Statement.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* getRowsChanged(unsigned long long& rows);
+   virtual bool getRowsChanged(unsigned long long& rows);
    
    /**
     * Gets the ID of the last row that was inserted. This is done per

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/sqlite3/Sqlite3Statement.h"
 #include "db/sql/sqlite3/Sqlite3Connection.h"
@@ -19,7 +19,8 @@ Sqlite3Statement::Sqlite3Statement(Sqlite3Connection *c, const char* sql) :
    if(mState != SQLITE_OK)
    {
       // exception
-      Exception::setLast(new Sqlite3Exception((Sqlite3Connection*)mConnection));
+      ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      Exception::setLast(e);
    }
    
    // no current row yet
@@ -38,100 +39,114 @@ Sqlite3Statement::~Sqlite3Statement()
    sqlite3_finalize(mHandle);
 }
 
-SqlException* Sqlite3Statement::setInt32(unsigned int param, int value)
+int Sqlite3Statement::getParameterIndex(const char* name)
 {
-   SqlException* rval = NULL;
+   int index = sqlite3_bind_parameter_index(mHandle, name);
+   
+   if(index == 0)
+   {
+      // exception, no parameter with given name found
+      int length = strlen(name) + 40;
+      char temp[length];
+      snprintf(temp, length, "Invalid parameter name!,name='%s'", name);
+      ExceptionRef e = new SqlException(temp);
+      Exception::setLast(e);
+   }
+   
+   return index;
+}
+
+bool Sqlite3Statement::setInt32(unsigned int param, int value)
+{
+   bool rval = true;
    
    mState = sqlite3_bind_int(mHandle, param, value);
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(rval);
+      ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      Exception::setLast(e);
+      rval = false;
    }
    
    return rval;
 }
 
-SqlException* Sqlite3Statement::setUInt32(
+bool Sqlite3Statement::setUInt32(
    unsigned int param, unsigned int value)
 {
-   SqlException* rval = NULL;
+   bool rval = true;
    
    mState = sqlite3_bind_int(mHandle, param, value);
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(rval);
+      ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      Exception::setLast(e);
+      rval = false;
    }
    
    return rval;
 }
 
-SqlException* Sqlite3Statement::setInt64(
+bool Sqlite3Statement::setInt64(
    unsigned int param, long long value)
 {
-   SqlException* rval = NULL;
+   bool rval = true;
    
    mState = sqlite3_bind_int64(mHandle, param, value);
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(rval);
+      ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      Exception::setLast(e);
+      rval = false;
    }
    
    return rval;
 }
 
-SqlException* Sqlite3Statement::setUInt64(
+bool Sqlite3Statement::setUInt64(
    unsigned int param, unsigned long long value)
 {
-   SqlException* rval = NULL;
+   bool rval = true;
    
    mState = sqlite3_bind_int64(mHandle, param, value);
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(rval);
+      ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      Exception::setLast(e);
+      rval = false;
    }
    
    return rval;
 }
 
-SqlException* Sqlite3Statement::setText(
+bool Sqlite3Statement::setText(
    unsigned int param, const char* value)
 {
-   SqlException* rval = NULL;
+   bool rval = true;
    
    // use SQLITE_STATIC to ensure the memory is not cleaned up by sqlite
    mState = sqlite3_bind_text(mHandle, param, value, -1, SQLITE_STATIC);
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(rval);
+      ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      Exception::setLast(e);
+      rval = false;
    }
    
    return rval;
 }
 
-SqlException* Sqlite3Statement::setInt32(const char* name, int value)
+bool Sqlite3Statement::setInt32(const char* name, int value)
 {
-   SqlException* rval = NULL;
+   bool rval = true;
    
-   int index = sqlite3_bind_parameter_index(mHandle, name);
-   if(index == 0)
-   {
-      // exception, no parameter with given name found
-      char temp[strlen(name) + 40];
-      sprintf(temp, "Invalid parameter name!,name='%s'", name);
-      rval = new SqlException(temp);
-      Exception::setLast(rval);
-   }
-   else
+   int index = getParameterIndex(name);
+   if(index > 0)
    {
       rval = setInt32(index, value);
    }
@@ -139,20 +154,12 @@ SqlException* Sqlite3Statement::setInt32(const char* name, int value)
    return rval;
 }
 
-SqlException* Sqlite3Statement::setUInt32(const char* name, unsigned int value)
+bool Sqlite3Statement::setUInt32(const char* name, unsigned int value)
 {
-   SqlException* rval = NULL;
+   bool rval = true;
    
-   int index = sqlite3_bind_parameter_index(mHandle, name);
-   if(index == 0)
-   {
-      // exception, no parameter with given name found
-      char temp[strlen(name) + 40];
-      sprintf(temp, "Invalid parameter name!,name='%s'", name);
-      rval = new SqlException(temp);
-      Exception::setLast(rval);
-   }
-   else
+   int index = getParameterIndex(name);
+   if(index > 0)
    {
       rval = setUInt32(index, value);
    }
@@ -160,20 +167,12 @@ SqlException* Sqlite3Statement::setUInt32(const char* name, unsigned int value)
    return rval;
 }
 
-SqlException* Sqlite3Statement::setInt64(const char* name, long long value)
+bool Sqlite3Statement::setInt64(const char* name, long long value)
 {
-   SqlException* rval = NULL;
+   bool rval = true;
    
-   int index = sqlite3_bind_parameter_index(mHandle, name);
-   if(index == 0)
-   {
-      // exception, no parameter with given name found
-      char temp[strlen(name) + 40];
-      sprintf(temp, "Invalid parameter name!,name='%s'", name);
-      rval = new SqlException(temp);
-      Exception::setLast(rval);
-   }
-   else
+   int index = getParameterIndex(name);
+   if(index > 0)
    {
       rval = setInt64(index, value);
    }
@@ -181,21 +180,13 @@ SqlException* Sqlite3Statement::setInt64(const char* name, long long value)
    return rval;
 }
 
-SqlException* Sqlite3Statement::setUInt64(
+bool Sqlite3Statement::setUInt64(
    const char* name, unsigned long long value)
 {
-   SqlException* rval = NULL;
+   bool rval = true;
    
-   int index = sqlite3_bind_parameter_index(mHandle, name);
-   if(index == 0)
-   {
-      // exception, no parameter with given name found
-      char temp[strlen(name) + 40];
-      sprintf(temp, "Invalid parameter name!,name='%s'", name);
-      rval = new SqlException(temp);
-      Exception::setLast(rval);
-   }
-   else
+   int index = getParameterIndex(name);
+   if(index > 0)
    {
       rval = setUInt64(index, value);
    }
@@ -203,21 +194,13 @@ SqlException* Sqlite3Statement::setUInt64(
    return rval;
 }
 
-SqlException* Sqlite3Statement::setText(
+bool Sqlite3Statement::setText(
    const char* name, const char* value)
 {
-   SqlException* rval = NULL;
+   bool rval = true;
    
-   int index = sqlite3_bind_parameter_index(mHandle, name);
-   if(index == 0)
-   {
-      // exception, no parameter with given name found
-      char temp[strlen(name) + 40];
-      sprintf(temp, "Invalid parameter name!,name='%s'", name);
-      rval = new SqlException(temp);
-      Exception::setLast(rval);
-   }
-   else
+   int index = getParameterIndex(name);
+   if(index > 0)
    {
       rval = setText(index, value);
    }
@@ -225,9 +208,9 @@ SqlException* Sqlite3Statement::setText(
    return rval;
 }
 
-SqlException* Sqlite3Statement::execute()
+bool Sqlite3Statement::execute()
 {
-   SqlException* rval = NULL;
+   bool rval = true;
    
    switch(mState)
    {
@@ -243,8 +226,10 @@ SqlException* Sqlite3Statement::execute()
          {
             // error stepping statement (version 1 of api requires reset)
             sqlite3_reset(mHandle);
-            rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-            Exception::setLast(rval);
+            ExceptionRef e =
+               new Sqlite3Exception((Sqlite3Connection*)mConnection);
+            Exception::setLast(e);
+            rval = false;
          }
          break;
       case SQLITE_DONE:
@@ -261,9 +246,13 @@ SqlException* Sqlite3Statement::execute()
          Sqlite3Statement::execute();
          break;
       default:
-         // statement in bad state
-         rval = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-         Exception::setLast(rval);
+         {
+            // statement in bad state
+            ExceptionRef e =
+               new Sqlite3Exception((Sqlite3Connection*)mConnection);
+            Exception::setLast(e);
+            rval = false;
+         }
          break;
    }
    
@@ -290,14 +279,17 @@ Row* Sqlite3Statement::fetch()
             mRow = NULL;
             break;
          default:
-            // clean up row object
-            delete mRow;
-            mRow = NULL;
-            
-            // error stepping statement (version 1 of api requires reset)
-            sqlite3_reset(mHandle);
-            Exception::setLast(
-               new Sqlite3Exception((Sqlite3Connection*)mConnection));
+            {
+               // clean up row object
+               delete mRow;
+               mRow = NULL;
+               
+               // error stepping statement (version 1 of api requires reset)
+               sqlite3_reset(mHandle);
+               ExceptionRef e =
+                  new Sqlite3Exception((Sqlite3Connection*)mConnection);
+               Exception::setLast(e);
+            }
             break;
       }
    }
@@ -310,18 +302,15 @@ Row* Sqlite3Statement::fetch()
    return rval;
 }
 
-SqlException* Sqlite3Statement::getRowsChanged(unsigned long long& rows)
+bool Sqlite3Statement::getRowsChanged(unsigned long long& rows)
 {
    // FIXME: handle exceptions
    rows = sqlite3_changes(((Sqlite3Connection*)mConnection)->mHandle);
-   return NULL;
+   return true;
 }
 
 unsigned long long Sqlite3Statement::getLastInsertRowId()
 {
-   unsigned long long rval = 0;
-   
-   rval = sqlite3_last_insert_rowid(((Sqlite3Connection*)mConnection)->mHandle);
-   
-   return rval;
+   return sqlite3_last_insert_rowid(
+      ((Sqlite3Connection*)mConnection)->mHandle);
 }
