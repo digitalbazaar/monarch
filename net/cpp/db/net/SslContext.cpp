@@ -95,37 +95,39 @@ SSL* SslContext::createSSL(TcpSocket* socket, bool client)
    return ssl;
 }
 
-Exception* SslContext::setCertificate(File* certFile)
+bool SslContext::setCertificate(File* certFile)
 {
-   Exception* rval = NULL;
+   bool rval = true;
    
    // set certificate file
    if(SSL_CTX_use_certificate_file(
       mContext, certFile->getName(), SSL_FILETYPE_PEM) != 1)
    {
       // an error occurred
-      rval = new Exception(
+      ExceptionRef e = new Exception(
          "Could not set SSL certificate!",
          ERR_error_string(ERR_get_error(), NULL));
-      Exception::setLast(rval);
+      Exception::setLast(e);
+      rval = false;
    }
    
    return rval;
 }
 
-Exception* SslContext::setPrivateKey(File* pkeyFile)
+bool SslContext::setPrivateKey(File* pkeyFile)
 {
-   Exception* rval = NULL;
+   bool rval = true;
    
    // set private key file
    if(SSL_CTX_use_PrivateKey_file(
       mContext, pkeyFile->getName(), SSL_FILETYPE_PEM) != 1)
    {
       // an error occurred
-      rval = new Exception(
+      ExceptionRef e = new Exception(
          "Could not set SSL private key!",
          ERR_error_string(ERR_get_error(), NULL));
-      Exception::setLast(rval);
+      Exception::setLast(e);
+      rval = false;
    }
    
    return rval;
@@ -137,9 +139,9 @@ void SslContext::setPeerAuthentication(bool on)
       mContext, (on) ? SSL_VERIFY_PEER : SSL_VERIFY_NONE, NULL);
 }
 
-Exception* SslContext::setVerifyCAs(File* caFile, File* caDir)
+bool SslContext::setVerifyCAs(File* caFile, File* caDir)
 {
-   Exception* rval = NULL;
+   bool rval = true;
    
    // load verify locations
    if(SSL_CTX_load_verify_locations(
@@ -148,10 +150,11 @@ Exception* SslContext::setVerifyCAs(File* caFile, File* caDir)
       (caDir != NULL) ? caDir->getName() : NULL) != 1)
    {
       // an error occurred
-      rval = new Exception(
+      ExceptionRef e = new Exception(
          "Could not set verify Certificate Authorities!",
          ERR_error_string(ERR_get_error(), NULL));
-      Exception::setLast(rval);
+      Exception::setLast(e);
+      rval = false;
    }
    
    return rval;

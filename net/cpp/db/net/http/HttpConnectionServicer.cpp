@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpConnectionServicer.h"
 #include "db/net/http/HttpRequest.h"
@@ -79,8 +79,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    response->getHeader()->setField("Server", mServerName);
    
    // receive request header
-   IOException* e = request->receiveHeader();
-   if(e == NULL)
+   if(request->receiveHeader())
    {
       // check version
       if(strcmp(request->getHeader()->getVersion(), "HTTP/1.0") == 0 ||
@@ -104,16 +103,10 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          // find appropriate request servicer for path
          HttpRequestServicer* hrs = NULL;
          
-         if(hc.isSecure())
-         {
-            // find secure servicer
-            hrs = findRequestServicer(outPath, mSecureServicers);
-         }
-         else
-         {
-            // find non-secure servicer
-            hrs = findRequestServicer(outPath, mNonSecureServicers);
-         }
+         // find secure/non-secure servicer
+         hrs = hc.isSecure() ?
+            findRequestServicer(outPath, mSecureServicers) :
+            findRequestServicer(outPath, mNonSecureServicers);
          
          if(hrs != NULL)
          {
@@ -128,7 +121,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             response->getHeader()->setField("Content-Type", "text/html");
             response->getHeader()->setField("Content-Length", 35);
             response->getHeader()->setField("Connection", "close");
-            if(response->sendHeader() == NULL)
+            if(response->sendHeader())
             {
                ByteArrayInputStream is(html, 35);
                response->sendBody(&is);
@@ -143,45 +136,50 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          response->getHeader()->setField("Content-Type", "text/html");
          response->getHeader()->setField("Content-Length", 52);
          response->getHeader()->setField("Connection", "close");
-         if(response->sendHeader() == NULL)
+         if(response->sendHeader())
          {
             ByteArrayInputStream is(html, 52);
             response->sendBody(&is);
          }
       }
    }
-   else if(strcmp(e->getType(), "db.net.http.BadRequest") == 1)
-   {
-      // send 400 Bad Request
-      char html[] = "<html><h2>400 Bad Request</h2></html>";
-      response->getHeader()->setStatus(400, "Bad Request");
-      response->getHeader()->setField("Content-Type", "text/html");
-      response->getHeader()->setField("Content-Length", 38);
-      response->getHeader()->setField("Connection", "close");
-      if(response->sendHeader() == NULL)
-      {
-         ByteArrayInputStream is(html, 38);
-         response->sendBody(&is);
-      }
-   }
    else
    {
-      // if the exception was not an interruption or socket error then
-      // send an internal server error response
-      Exception* e = Exception::getLast();
-      if(e != NULL && dynamic_cast<InterruptedException*>(e) == NULL &&
-         dynamic_cast<SocketException*>(e) == NULL)
+      // exception occurred while receiving header
+      ExceptionRef e = Exception::getLast();
+      if(!e.isNull() && strcmp(e->getType(), "db.net.http.BadRequest") == 1)
       {
-         // send 500 Internal Server Error
-         char html[] = "<html><h2>500 Internal Server Error</h2></html>";
-         response->getHeader()->setStatus(500, "Internal Server Error");
+         // send 400 Bad Request
+         char html[] = "<html><h2>400 Bad Request</h2></html>";
+         response->getHeader()->setStatus(400, "Bad Request");
          response->getHeader()->setField("Content-Type", "text/html");
-         response->getHeader()->setField("Content-Length", 47);
+         response->getHeader()->setField("Content-Length", 38);
          response->getHeader()->setField("Connection", "close");
-         if(response->sendHeader() == NULL)
+         if(response->sendHeader())
          {
-            ByteArrayInputStream is(html, 47);
+            ByteArrayInputStream is(html, 38);
             response->sendBody(&is);
+         }
+      }
+      else
+      {
+         // if the exception was not an interruption or socket error then
+         // send an internal server error response
+         if(!e.isNull() &&
+            dynamic_cast<InterruptedException*>(&(*e)) == NULL &&
+            dynamic_cast<SocketException*>(&(*e)) == NULL)
+         {
+            // send 500 Internal Server Error
+            char html[] = "<html><h2>500 Internal Server Error</h2></html>";
+            response->getHeader()->setStatus(500, "Internal Server Error");
+            response->getHeader()->setField("Content-Type", "text/html");
+            response->getHeader()->setField("Content-Length", 47);
+            response->getHeader()->setField("Connection", "close");
+            if(response->sendHeader())
+            {
+               ByteArrayInputStream is(html, 47);
+               response->sendBody(&is);
+            }
          }
       }
    }

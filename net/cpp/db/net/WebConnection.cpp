@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/WebConnection.h"
 
@@ -75,12 +75,12 @@ void WebConnection::close()
    mConnection->close();
 }
 
-SocketException* WebConnection::getLocalAddress(InternetAddress* address)
+bool WebConnection::getLocalAddress(InternetAddress* address)
 {
    return mConnection->getLocalAddress(address);
 }
 
-SocketException* WebConnection::getRemoteAddress(InternetAddress* address)
+bool WebConnection::getRemoteAddress(InternetAddress* address)
 {
    return mConnection->getRemoteAddress(address);
 }

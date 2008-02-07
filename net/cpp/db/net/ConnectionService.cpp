@@ -82,10 +82,10 @@ void ConnectionService::run()
       mRunningServicers.prune();
       
       // acquire service connection permit
-      if(mConnectionSemaphore.acquire() == NULL)
+      if(mConnectionSemaphore.acquire())
       {
          // acquire server connection permit
-         if(mServer->mConnectionSemaphore.acquire() == NULL)
+         if(mServer->mConnectionSemaphore.acquire())
          {
             // wait for 5 seconds for a connection
             Socket* s = mSocket->accept(5);

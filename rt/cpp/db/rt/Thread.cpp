@@ -51,20 +51,6 @@ Thread::~Thread()
    }
 }
 
-InterruptedException* Thread::createInterruptedException()
-{
-   InterruptedException* rval = NULL;
-   
-   unsigned int length = (getName() == NULL) ? 0 : strlen(getName());
-   length = 8 + length + 13 + 1;
-   char msg[length];
-   snprintf(msg, length, "Thread '%s' interrupted",
-      (getName() == NULL) ? "" : getName());
-   rval = new InterruptedException(msg);
-   
-   return rval;
-}
-
 void Thread::run()
 {
    // if a Runnable is available, use it
@@ -220,6 +206,20 @@ bool Thread::start(size_t stackSize)
 bool Thread::isAlive()
 {
    return mAlive;
+}
+
+InterruptedException* Thread::createInterruptedException()
+{
+   InterruptedException* rval = NULL;
+   
+   unsigned int length = (getName() == NULL) ? 0 : strlen(getName());
+   length = 8 + length + 13 + 1;
+   char msg[length];
+   snprintf(msg, length, "Thread '%s' interrupted",
+      (getName() == NULL) ? "" : getName());
+   rval = new InterruptedException(msg);
+   
+   return rval;
 }
 
 void Thread::interrupt()

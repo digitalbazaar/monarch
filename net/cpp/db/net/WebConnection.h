@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_WebConnection_H
 #define db_net_WebConnection_H
@@ -147,20 +147,20 @@ public:
     * 
     * @param address the InternetAddress to populate.
     * 
-    * @return a SocketException if the address could not be obtained, NULL
-    *         otherwise.
+    * @return true if the address could be obtained, false if a SocketException
+    *         occurred.
     */
-   virtual SocketException* getLocalAddress(InternetAddress* address);
+   virtual bool getLocalAddress(InternetAddress* address);
    
    /**
     * Gets the remote InternetAddress for this WebConnection.
     * 
     * @param address the InternetAddress to populate.
     * 
-    * @return a SocketException if the address could not be obtained, NULL
-    *         otherwise.
+    * @return true if the address could be obtained, false if a SocketException
+    *         occurred.
     */
-   virtual SocketException* getRemoteAddress(InternetAddress* address);
+   virtual bool getRemoteAddress(InternetAddress* address);
    
    /**
     * Sets the Socket used by this WebConnection. This method is generally used

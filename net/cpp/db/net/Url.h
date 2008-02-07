@@ -5,7 +5,6 @@
 #define db_net_Url_H
 
 #include "db/rt/Object.h"
-#include "db/net/MalformedUrlException.h"
 #include "db/rt/DynamicObject.h"
 
 namespace db
@@ -132,10 +131,9 @@ public:
     * @param url the string to create this Url from.
     * @param relative true if the url is relative, false if not.
     * 
-    * @return a MalformedUrlException if the URL is malformed, NULL if not.
+    * @return false if the URL is malformed, true if not.
     */
-   virtual MalformedUrlException* setUrl(
-      const std::string& url, bool relative = false);
+   virtual bool setUrl(const std::string& url, bool relative = false);
    
    /**
     * Returns true if this url is relative, false if it is absolute.

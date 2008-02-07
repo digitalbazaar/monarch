@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_http_HttpConnection_H
 #define db_net_http_HttpConnection_H
@@ -70,9 +70,9 @@ public:
     * 
     * @param header the header to send.
     * 
-    * @return an IOException if an IO error occurs, NULL if not.
+    * @return true if the header was sent, false if an IOException occurred.
     */
-   virtual db::io::IOException* sendHeader(HttpHeader* header);
+   virtual bool sendHeader(HttpHeader* header);
    
    /**
     * Receives a message header. This method will block until the entire
@@ -81,9 +81,9 @@ public:
     * 
     * @param header the header to populate.
     * 
-    * @return an IOException if an IO error occurs, NULL if not.
+    * @return true if the header was received, false if an IOException occurred.
     */
-   virtual db::io::IOException* receiveHeader(HttpHeader* header);
+   virtual bool receiveHeader(HttpHeader* header);
    
    /**
     * Sends the message body for the given header. This method will block
@@ -94,9 +94,9 @@ public:
     * @param is the InputStream to read the body from.
     * @param trailer any trailer headers to send if appropriate.
     * 
-    * @return an IOException if an IO error occurs, NULL if not.
+    * @return true if the body was sent, false if an IOException occurred.
     */
-   virtual db::io::IOException* sendBody(
+   virtual bool sendBody(
       HttpHeader* header, db::io::InputStream* is,
       HttpTrailer* trailer = NULL);
    
@@ -113,7 +113,7 @@ public:
     * @param header the header to send the message body for.
     * @param trailer any trailer headers to send if appropriate.
     * 
-    * @return an IOException if an IO error occurs, NULL if not.
+    * @return the heap-allocated OutputStream for sending a message body.
     */
    virtual db::io::OutputStream* getBodyOutputStream(
       HttpHeader* header, HttpTrailer* trailer = NULL);
@@ -127,9 +127,9 @@ public:
     * @param os the OutputStream to write the body to.
     * @param trailer used to store any received trailer headers.
     * 
-    * @return an IOException if an IO error occurs, NULL if not.
+    * @return true if the body was received, false if an IOException occurred.
     */
-   virtual db::io::IOException* receiveBody(
+   virtual bool receiveBody(
       HttpHeader* header, db::io::OutputStream* os,
       HttpTrailer* trailer = NULL);
    

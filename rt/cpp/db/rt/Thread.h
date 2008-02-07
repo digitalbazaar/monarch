@@ -87,13 +87,6 @@ protected:
    bool mStarted;
    
    /**
-    * Creates an InterruptedException for this thread.
-    * 
-    * @return the allocated InterruptedException.
-    */
-   virtual InterruptedException* createInterruptedException();
-   
-   /**
     * This method is called when a new POSIX thread is created (on that
     * POSIX thread). It runs the Runnable associated with this Thread.
     */
@@ -212,6 +205,13 @@ public:
     * @return true if this Thread is still alive, false if not.
     */
    virtual bool isAlive();
+   
+   /**
+    * Creates an InterruptedException for this thread.
+    * 
+    * @return the allocated InterruptedException.
+    */
+   virtual InterruptedException* createInterruptedException();
    
    /**
     * Interrupts this Thread.

@@ -3,6 +3,7 @@
  */
 #include "db/net/Internet6Address.h"
 #include "db/net/SocketDefinitions.h"
+#include "db/rt/Exception.h"
 
 using namespace db::net;
 using namespace db::rt;
@@ -77,9 +78,9 @@ bool Internet6Address::fromSockAddr(const sockaddr* addr, unsigned int size)
    return rval;
 }
 
-UnknownHostException* Internet6Address::setHost(const char* host)
+bool Internet6Address::setHost(const char* host)
 {
-   UnknownHostException* rval = NULL;
+   bool rval = false;
    
    // create hints address structure
    struct addrinfo hints;
@@ -92,10 +93,11 @@ UnknownHostException* Internet6Address::setHost(const char* host)
    // get address information
    if(getaddrinfo(host, NULL, &hints, &res) != 0)
    {
-      char msg[17 + strlen(host)];
-      sprintf(msg, "Unknown host '%s'!", host);
-      rval = new UnknownHostException(msg);
-      Exception::setLast(rval);
+      int length = 17 + strlen(host);
+      char msg[length];
+      snprintf(msg, length, "Unknown host '%s'!", host);
+      ExceptionRef e = new Exception(msg, "db.net.UnknownHost");
+      Exception::setLast(e);
    }
    else
    {
@@ -109,8 +111,12 @@ UnknownHostException* Internet6Address::setHost(const char* host)
       inet_ntop(AF_INET6, &addr.sin6_addr, dst, INET6_ADDRSTRLEN);
       free(mAddress);
       mAddress = strdup(dst);
-      
-      // free result
+      rval = true;
+   }
+   
+   if(res != NULL)
+   {
+      // free res if it got allocated
       freeaddrinfo(res);
    }
    
