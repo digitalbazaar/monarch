@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_modest_StateMutatorChain_H
 #define db_modest_StateMutatorChain_H
@@ -23,13 +23,13 @@ protected:
     * The StateMutator to run first.
     */
    StateMutator* mMutator1;
-   CollectableStateMutator mMutatorReference1;
+   StateMutatorRef mMutatorReference1;
    
    /**
     * The StateMutator to run second.
     */
    StateMutator* mMutator2;
-   CollectableStateMutator mMutatorReference2;
+   StateMutatorRef mMutatorReference2;
    
 public:
    /**
@@ -40,10 +40,9 @@ public:
     * @param g2 the second StateMutator.
     */
    StateMutatorChain(StateMutator* g1, StateMutator* g2);
-   StateMutatorChain(CollectableStateMutator& g1, StateMutator* g2);
-   StateMutatorChain(StateMutator* g1, CollectableStateMutator& g2);
-   StateMutatorChain(
-      CollectableStateMutator& g1, CollectableStateMutator& g2);
+   StateMutatorChain(StateMutatorRef& g1, StateMutator* g2);
+   StateMutatorChain(StateMutator* g1, StateMutatorRef& g2);
+   StateMutatorChain(StateMutatorRef& g1, StateMutatorRef& g2);
    
    /**
     * Destructs this StateMutatorChain.

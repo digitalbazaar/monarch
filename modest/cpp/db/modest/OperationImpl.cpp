@@ -199,7 +199,7 @@ void OperationImpl::addGuard(OperationGuard* g, bool front)
    }
 }
 
-void OperationImpl::addGuard(CollectableOperationGuard& g, bool front)
+void OperationImpl::addGuard(OperationGuardRef& g, bool front)
 {
    // create new OperationGuardChain and add guard in order
    if(mGuard == NULL)
@@ -238,7 +238,7 @@ void OperationImpl::addStateMutator(StateMutator* m, bool front)
    }
 }
 
-void OperationImpl::addStateMutator(CollectableStateMutator& m, bool front)
+void OperationImpl::addStateMutator(StateMutatorRef& m, bool front)
 {
    // create new StateMutatorChain and add mutator in order
    if(mMutator == NULL)

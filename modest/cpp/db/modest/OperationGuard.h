@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_modest_OperationGuard_H
 #define db_modest_OperationGuard_H
@@ -90,8 +90,8 @@ public:
    virtual bool mustCancelOperation(ImmutableState* s, Operation &op) = 0;
 };
 
-// define a collectable OperationGuard
-typedef db::rt::Collectable<OperationGuard> CollectableOperationGuard;
+// define a reference counted OperationGuard type
+typedef db::rt::Collectable<OperationGuard> OperationGuardRef;
 
 } // end namespace modest
 } // end namespace db
