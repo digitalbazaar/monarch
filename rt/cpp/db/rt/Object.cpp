@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/rt/Object.h"
+
 #include "db/rt/Thread.h"
 
 using namespace db::rt;
@@ -47,7 +48,7 @@ inline void Object::notifyAll()
    mMonitor.notify();
 }
 
-inline InterruptedException* Object::wait(unsigned long timeout)
+inline bool Object::wait(unsigned long timeout)
 {
    // instruct the current thread to wait to enter this Object's monitor
    return Thread::waitToEnter(&mMonitor, timeout);

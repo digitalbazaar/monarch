@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_rt_Semaphore_H
 #define db_rt_Semaphore_H
@@ -68,9 +68,10 @@ protected:
     * 
     * @param t the current thread.
     * 
-    * @return an InterruptedException if the thread is interrupted, NULL if not.
+    * @return false if the thread is interrupted (with an InterruptedException
+    *         set), true if not.
     */
-   InterruptedException* waitThread(Thread* t);
+   bool waitThread(Thread* t);
    
    /**
     * Notifies thread(s) to wake up.
@@ -133,9 +134,10 @@ public:
    /**
     * Acquires a permit, or blocks until one is available or until interrupted.
     *
-    * @return an InterruptedException if the thread is interrupted, NULL if not.
+    * @return true if a permit was acquired, false if the thread was
+    *         interrupted (with an InterruptedException set).
     */
-   InterruptedException* acquire();
+   bool acquire();
    
    /**
     * Acquires the given number of permits or blocks until one
@@ -143,9 +145,10 @@ public:
     * 
     * @param permits the number of permits to acquire.
     * 
-    * @return an InterruptedException if the thread is interrupted, NULL if not.
+    * @return true if the permits were acquired, false if the thread was
+    *         interrupted (with an InterruptedException set).
     */
-   InterruptedException* acquire(int permits);
+   bool acquire(int permits);
    
    /**
     * Acquires a permit if one is available.

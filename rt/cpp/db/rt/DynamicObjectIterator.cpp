@@ -80,8 +80,9 @@ bool DynamicObjectIteratorImpl::hasNext()
 void DynamicObjectIteratorImpl::remove()
 {
    // not supported
-   Exception::setLast(
-      new Exception("DynamicObjectIterator::remove() not supported!"));
+   ExceptionRef e = new Exception(
+      "DynamicObjectIterator::remove() not supported!");
+   Exception::setLast(e);
 }
 
 const char* DynamicObjectIteratorImpl::getName()

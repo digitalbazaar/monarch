@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/rt/Semaphore.h"
+
 #include "db/rt/Thread.h"
 
 #include <cstdlib>
@@ -39,17 +40,17 @@ void Semaphore::decreasePermitsLeft(int decrease)
    mPermitsLeft -= decrease;
 }
 
-InterruptedException* Semaphore::waitThread(Thread* t)
+bool Semaphore::waitThread(Thread* t)
 {
-   InterruptedException* rval = NULL;
+   bool rval = true;
    
    // add waiting thread
    addWaitingThread(t);
    
    // wait while not interrupted and in the list of waiting threads
-   while(rval == NULL && mustWait(t))
+   while(rval && mustWait(t))
    {
-      if((rval = wait()) != NULL)
+      if(!(rval = wait()))
       {
          // thread has been interrupted, so notify other waiting
          // threads and remove this thread from the wait list
@@ -134,26 +135,26 @@ bool Semaphore::mustWait(Thread* thread)
    return rval;
 }
 
-InterruptedException* Semaphore::acquire()
+bool Semaphore::acquire()
 {
    return acquire(1);
 }
 
-InterruptedException* Semaphore::acquire(int permits)
+bool Semaphore::acquire(int permits)
 {
-   InterruptedException* rval = NULL;
+   bool rval = true;
    
    lock();
    {
       // see if enough permits are available
       Thread* t = Thread::currentThread();
-      while(rval == NULL && availablePermits() - permits < 0)
+      while(rval && availablePermits() - permits < 0)
       {
          // must wait for permits
          rval = waitThread(t);
       }
       
-      if(rval == NULL)
+      if(rval)
       {
          // permits have been granted, decrease permits left
          decreasePermitsLeft(permits);
