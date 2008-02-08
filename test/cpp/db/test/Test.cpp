@@ -39,8 +39,9 @@ void db::test::dumpException(ExceptionRef& e)
       cout << "message: " << e->getMessage() << endl;
       cout << "type: " << e->getType() << endl;
       cout << "code: " << e->getCode() << endl;
-      if(!e->getCause().isNull())
+   }
    
+   if(!e.isNull() && !e->getCause().isNull())
    {
       cout << "CAUSE:" << endl;
       dumpException(e->getCause());         
