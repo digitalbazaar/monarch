@@ -190,27 +190,6 @@ public:
     * @return true if this DynamicObject is a subset of the passed one.
     */
    virtual bool isSubset(const DynamicObject& rhs);
-   
-   /**
-    * Converts the passed Exception to a DynamicObject.
-    * 
-    * @param e the Exception to convert to a DynamicObject.
-    * 
-    * @return the passed Exception as a DynamicObject.
-    */
-   static DynamicObject convertToDynamicObject(Exception* e);
-   
-   /**
-    * Converts the passed DynamicObject to an Exception. The returned
-    * Exception will have its chain of causes set (with cleanup = true), if
-    * any. It must be deleted by the caller or set as the last exception of
-    * the current thread via Exception::setLast().
-    * 
-    * @param dyno the DynamicObject to convert to an Exception.
-    * 
-    * @return a dynamically-allocated Exception.
-    */
-   static Exception* convertToException(DynamicObject& dyno);
 };
 
 } // end namespace rt

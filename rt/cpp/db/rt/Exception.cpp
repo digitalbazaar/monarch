@@ -2,9 +2,9 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/rt/Exception.h"
-#include "db/rt/Thread.h"
 
-#include <string>
+#include "db/rt/Thread.h"
+#include "db/rt/DynamicObject.h"
 
 using namespace db::rt;
 
@@ -90,4 +90,36 @@ bool Exception::hasLast()
 void Exception::clearLast(bool cleanup)
 {
    Thread::clearException(cleanup);
+}
+
+DynamicObject Exception::convertToDynamicObject(Exception* e)
+{
+   DynamicObject dyno;
+   
+   dyno["message"] = e->getMessage();
+   dyno["type"] = e->getType();
+   dyno["code"] = e->getCode();
+   
+   if(e->getCause() != NULL)
+   {
+      dyno["cause"] = convertToDynamicObject(e->getCause());
+   }
+   
+   return dyno;
+}
+
+Exception* Exception::convertToException(DynamicObject& dyno)
+{
+   Exception* e = new Exception();
+   
+   e->setMessage(dyno["message"]->getString());
+   e->setType(dyno["type"]->getString());
+   e->setCode(dyno["code"]->getInt32());
+   
+   if(dyno->hasMember("cause"))
+   {
+      e->setCause(convertToException(dyno["cause"]), true);
+   }
+   
+   return e;
 }
