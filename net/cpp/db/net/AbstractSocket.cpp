@@ -60,8 +60,9 @@ bool AbstractSocket::create(int domain, int type, int protocol)
          // close socket
          close();
          
-         Exception::setLast(new SocketException(
-            "Could not create Socket!", strerror(errno)));
+         ExceptionRef e = new SocketException(
+            "Could not create Socket!", strerror(errno));
+         Exception::setLast(e);
       }
       else
       {
@@ -71,8 +72,9 @@ bool AbstractSocket::create(int domain, int type, int protocol)
    }
    else
    {
-      Exception::setLast(new SocketException(
-         "Could not create Socket!", strerror(errno)));
+      ExceptionRef e = new SocketException(
+         "Could not create Socket!", strerror(errno));
+      Exception::setLast(e);
    }
    
    return rval;
@@ -80,7 +82,7 @@ bool AbstractSocket::create(int domain, int type, int protocol)
 
 bool AbstractSocket::select(bool read, long long timeout)
 {
-   Exception* exception = NULL;
+   Exception* e = NULL;
    
    // wait for readability/writability
    int error = SocketTools::select(
@@ -92,13 +94,13 @@ bool AbstractSocket::select(bool read, long long timeout)
          if(read)
          {
             // interrupted exception
-            exception = new InterruptedException(
+            e = new InterruptedException(
                "Socket read interrupted!", strerror(errno));
          }
          else
          {
             // interrupted exception
-            exception = new InterruptedException(
+            e = new InterruptedException(
                "Socket write interrupted!", strerror(errno));
          }
       }
@@ -107,13 +109,13 @@ bool AbstractSocket::select(bool read, long long timeout)
          if(read)
          {
             // error occurred, get string message
-            exception = new SocketException(
+            e = new SocketException(
                "Could not read from Socket!", strerror(errno));
          }
          else
          {
             // error occurred, get string message
-            exception = new SocketException(
+            e = new SocketException(
                "Could not write to Socket!", strerror(errno));
          }
       }
@@ -123,13 +125,13 @@ bool AbstractSocket::select(bool read, long long timeout)
       if(read)
       {
          // read timeout occurred
-         exception = new SocketTimeoutException(
+         e = new SocketTimeoutException(
             "Socket read timed out!", strerror(errno));
       }
       else
       {
          // write timeout occurred
-         exception = new SocketTimeoutException(
+         e = new SocketTimeoutException(
             "Socket write timed out!", strerror(errno));
       }
    }
@@ -146,24 +148,25 @@ bool AbstractSocket::select(bool read, long long timeout)
          if(read)
          {
             // error occurred, get string message
-            exception = new SocketException(
+            e = new SocketException(
                "Could not read from Socket!", strerror(errno));
          }
          else
          {
             // error occurred, get string message
-            exception = new SocketException(
+            e = new SocketException(
                "Could not write to Socket!", strerror(errno));
          }
       }
    }
    
-   if(exception != NULL)
+   if(e != NULL)
    {
-      Exception::setLast(exception);
+      ExceptionRef ref = e;
+      Exception::setLast(ref);
    }
    
-   return exception == NULL;
+   return e == NULL;
 }
 
 bool AbstractSocket::initializeInput()
@@ -230,8 +233,9 @@ bool AbstractSocket::bind(SocketAddress* address)
          shutdownInput();
          shutdownOutput();
          
-         Exception::setLast(new SocketException(
-            "Could not bind Socket!", strerror(errno)));
+         ExceptionRef e = new SocketException(
+            "Could not bind Socket!", strerror(errno));
+         Exception::setLast(e);
       }
       else
       {
@@ -251,8 +255,9 @@ bool AbstractSocket::listen(unsigned int backlog)
 {
    if(!isBound())
    {
-      Exception::setLast(new SocketException(
-         "Cannot listen on unbound Socket!")); 
+      ExceptionRef e = new SocketException(
+         "Cannot listen on unbound Socket!");
+      Exception::setLast(e);
    }
    else
    {
@@ -263,8 +268,9 @@ bool AbstractSocket::listen(unsigned int backlog)
       int error = ::listen(mFileDescriptor, backlog);
       if(error < 0)
       {
-         Exception::setLast(new SocketException(
-            "Could not listen on Socket!", strerror(errno)));
+         ExceptionRef e = new SocketException(
+            "Could not listen on Socket!", strerror(errno));
+         Exception::setLast(e);
       }
       else
       {
@@ -282,8 +288,9 @@ Socket* AbstractSocket::accept(unsigned int timeout)
    
    if(!isListening())
    {
-      Exception::setLast(new SocketException(
-         "Cannot accept with a non-listening Socket!"));
+      ExceptionRef e = new SocketException(
+         "Cannot accept with a non-listening Socket!");
+      Exception::setLast(e);
    }
    else
    {
@@ -294,8 +301,9 @@ Socket* AbstractSocket::accept(unsigned int timeout)
          int fd = ::accept(mFileDescriptor, NULL, NULL);
          if(fd < 0)
          {
-            Exception::setLast(new SocketException(
-               "Could not accept connection!", strerror(errno)));
+            ExceptionRef e = new SocketException(
+               "Could not accept connection!", strerror(errno));
+            Exception::setLast(e);
          }
          else
          {
@@ -362,28 +370,31 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
 
 bool AbstractSocket::send(const char* b, int length)
 {
-   Exception* exception = NULL;
+   bool rval = true;
    
    if(!isBound())
    {
-      exception = new SocketException("Cannot write to unbound Socket!");
+      ExceptionRef e = new SocketException("Cannot write to unbound Socket!");
+      Exception::setLast(e);
    }
    else
    {
       // send all data (send can fail to send all bytes in one go because the
       // socket send buffer was full)
       unsigned int offset = 0;
-      while(exception == NULL && length > 0)
+      while(rval && length > 0)
       {
          // wait for socket to become writable
-         if(select(false, getSendTimeout()))
+         if((rval = select(false, getSendTimeout())))
          {
             // send some data
             int bytes = ::send(mFileDescriptor, b + offset, length, 0);
             if(bytes < 0)
             {
-               exception = new SocketException(
+               ExceptionRef e = new SocketException(
                   "Could not write to Socket!", strerror(errno));
+               Exception::setLast(e);
+               rval = false;
             }
             else if(bytes > 0)
             {
@@ -391,19 +402,10 @@ bool AbstractSocket::send(const char* b, int length)
                length -= bytes;
             }
          }
-         else
-         {
-            exception = Exception::getLast();
-         }
       }
    }
    
-   if(exception != NULL)
-   {
-      Exception::setLast(exception);
-   }
-   
-   return exception == NULL;
+   return rval;
 }
 
 int AbstractSocket::receive(char* b, int length)
@@ -412,8 +414,8 @@ int AbstractSocket::receive(char* b, int length)
    
    if(!isBound())
    {
-      Exception::setLast(new SocketException(
-         "Cannot read from unbound Socket!"));
+      ExceptionRef e = new SocketException("Cannot read from unbound Socket!");
+      Exception::setLast(e);
    }
    else
    {
@@ -425,8 +427,9 @@ int AbstractSocket::receive(char* b, int length)
          if(rval < -1)
          {
             rval = -1;
-            Exception::setLast(new SocketException(
-               "Could not read from Socket!", strerror(errno)));
+            ExceptionRef e = new SocketException(
+               "Could not read from Socket!", strerror(errno));
+            Exception::setLast(e);
          }
       }
    }
@@ -472,12 +475,13 @@ bool AbstractSocket::isConnected()
 
 bool AbstractSocket::getLocalAddress(SocketAddress* address)
 {
-   Exception* exception = NULL;
+   bool rval = false;
    
    if(!isBound())
    {
-      exception = new SocketException(
+      ExceptionRef e = new SocketException(
          "Cannot get local address for an unbound Socket!");
+      Exception::setLast(e);
    }
    else
    {
@@ -489,30 +493,30 @@ bool AbstractSocket::getLocalAddress(SocketAddress* address)
       int error = getsockname(mFileDescriptor, (sockaddr*)&addr, &size);
       if(error < 0)
       {
-         exception = new SocketException(
+         ExceptionRef e = new SocketException(
             "Could not get Socket local address!", strerror(errno));
+         Exception::setLast(e);
       }
-      
-      // convert socket address
-      address->fromSockAddr((sockaddr*)&addr, size);
+      else
+      {
+         // convert socket address
+         address->fromSockAddr((sockaddr*)&addr, size);
+         rval = true;
+      }
    }
    
-   if(exception != NULL)
-   {
-      Exception::setLast(exception);
-   }
-   
-   return exception == NULL;
+   return rval;
 }
 
 bool AbstractSocket::getRemoteAddress(SocketAddress* address)
 {
-   Exception* exception = NULL;
+   bool rval = false;
    
    if(!isConnected())
    {
-      exception = new SocketException(
+      ExceptionRef e = new SocketException(
          "Cannot get local address for an unconnected Socket!");
+      Exception::setLast(e);
    }
    else
    {
@@ -524,22 +528,19 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
       int error = getpeername(mFileDescriptor, (sockaddr*)&addr, &size);
       if(error < 0)
       {
-         exception = new SocketException(
+         ExceptionRef e = new SocketException(
             "Could not get Socket remote address!", strerror(errno));
+         Exception::setLast(e);
       }
       else
       {
          // convert socket address
          address->fromSockAddr((sockaddr*)&addr, size);
+         rval = true;
       }
    }
    
-   if(exception != NULL)
-   {
-      Exception::setLast(exception);
-   }
-   
-   return exception == NULL;
+   return rval;
 }
 
 InputStream* AbstractSocket::getInputStream()

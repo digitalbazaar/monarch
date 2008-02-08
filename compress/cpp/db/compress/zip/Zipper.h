@@ -202,10 +202,9 @@ protected:
     * @param ze the ZipEntry.
     * @param os the OutputStream to write to.
     * 
-    * @return an exception if one occurred, NULL if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual db::rt::Exception* writeLocalFileHeader(
-      ZipEntry& ze, db::io::OutputStream* os);
+   virtual bool writeLocalFileHeader(ZipEntry& ze, db::io::OutputStream* os);
    
    /**
     * Reads an entry from a local file header.
@@ -213,10 +212,9 @@ protected:
     * @param ze the ZipEntry.
     * @param is the InputStream to read from.
     * 
-    * @return an exception if one occurred, NULL if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual db::rt::Exception* readLocalFileHeader(
-      ZipEntry& ze, db::io::InputStream* is);
+   virtual bool readLocalFileHeader(ZipEntry& ze, db::io::InputStream* is);
    
    /**
     * Writes out the file header for an entry for the central directory.
@@ -224,10 +222,9 @@ protected:
     * @param ze the ZipEntry.
     * @param os the OutputStream to write to.
     * 
-    * @return an exception if one occurred, NULL if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual db::rt::Exception* writeFileHeader(
-      ZipEntry& ze, db::io::OutputStream* os);
+   virtual bool writeFileHeader(ZipEntry& ze, db::io::OutputStream* os);
    
    /**
     * Reads an entry from a file header from the central directory.
@@ -235,19 +232,18 @@ protected:
     * @param ze the ZipEntry.
     * @param is the InputStream to read from.
     * 
-    * @return an exception if one occurred, NULL if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual db::rt::Exception* readFileHeader(
-      ZipEntry& ze, db::io::InputStream* is);
+   virtual bool readFileHeader(ZipEntry& ze, db::io::InputStream* is);
    
    /**
     * Finishes writing the current entry.
     * 
     * @param os the OutputStream to write to.
     * 
-    * @return an exception if one occurred, NULL if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual db::rt::Exception* finishCurrentEntry(db::io::OutputStream* os);
+   virtual bool finishCurrentEntry(db::io::OutputStream* os);
    
 public:
    /**
@@ -268,9 +264,9 @@ public:
     * @param fl the FileList with files to put in the zip archive.
     * @param out the File to write the zip archive to.
     * 
-    * @return an exception if one occurred, NULL if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual db::rt::Exception* zip(db::io::FileList* fl, db::io::File* out);
+   virtual bool zip(db::io::FileList* fl, db::io::File* out);
    
    /**
     * Writes a new ZipEntry.
@@ -281,10 +277,9 @@ public:
     * @param ze the ZipEntry to write out.
     * @param os the OutputStream to write to.
     * 
-    * @return an exception if one occurred, NULL if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual db::rt::Exception* writeEntry(
-      ZipEntry& ze, db::io::OutputStream* os);
+   virtual bool writeEntry(ZipEntry& ze, db::io::OutputStream* os);
    
    /**
     * Reads the next ZipEntry from the given InputStream and then orients
@@ -306,10 +301,9 @@ public:
     * @param length the number of bytes in the passed buffer.
     * @param os the OutputStream to write to.
     *
-    * @return an exception if one occurred, NULL if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual db::rt::Exception* write(
-      char* b, int length, db::io::OutputStream* os);
+   virtual bool write(char* b, int length, db::io::OutputStream* os);
    
    /**
     * Reads some data from the current ZipEntry into the passed array of
@@ -331,9 +325,9 @@ public:
     * 
     * @param os the OutputStream to write to.
     * 
-    * @return an exception if one occurred, NULL if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual db::rt::Exception* finish(db::io::OutputStream* os);
+   virtual bool finish(db::io::OutputStream* os);
 };
 
 } // end namespace zip

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_mail_SmtpClient_H
 #define db_mail_SmtpClient_H
@@ -125,10 +125,10 @@ protected:
     * @param c the smtp connection.
     * @param mail the mail to send.
     * 
-    * @return an Exception if one occurred, false if the mail was sent
-    *         successfully.
+    * @return true if the mail was sent successfully, false if an exception
+    *         occurred.
     */
-   virtual db::rt::Exception* sendMail(db::net::Connection* c, Mail* mail);
+   virtual bool sendMail(db::net::Connection* c, Mail* mail);
    
 public:
    /**
@@ -147,10 +147,10 @@ public:
     * @param url the url to send the mail to.
     * @param mail the mail to send.
     * 
-    * @return an Exception if one occurred, false if the mail was sent
-    *         successfully.
+    * @return true if the mail was sent successfully, false if an exception
+    *         occurred.
     */
-   virtual db::rt::Exception* sendMail(db::net::Url* url, Mail* mail);
+   virtual bool sendMail(db::net::Url* url, Mail* mail);
 };
 
 } // end namespace mail

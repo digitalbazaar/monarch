@@ -209,8 +209,10 @@ protected:
     * @param count size of c.
     * @param position an integer set to the position of the last character
     *                 that was parsed.
+    * 
+    * @return true if successful, false if an IOException occurred.
     */
-   db::io::IOException* process(const char* c, int count, int& position);
+   bool process(const char* c, int count, int& position);
    
    /**
     * Process one input object.  For most classes the parameter c is used
@@ -219,8 +221,10 @@ protected:
     * 
     * @param ic the type of input to process
     * @param c the character to process (if needed)
+    * 
+    * @return true if successful, false if an IOException occurred.
     */
-   db::io::IOException* processNext(JsonInputClass ic, char c = '\0');
+   bool processNext(JsonInputClass ic, char c = '\0');
    
 public:
    /**
@@ -264,17 +268,17 @@ public:
     * 
     * @param is the InputStream to read the JSON from.
     * 
-    * @return an IOException if one occurred, NULL if not.
+    * @return true if the read succeeded, false if an IOException occurred.
     */
-   virtual db::io::IOException* read(db::io::InputStream* is);
+   virtual bool read(db::io::InputStream* is);
 
    /**
     * Finishes deserializing an object from JSON. This method should be called
     * to complete deserialization and verify valid JSON was found.
     * 
-    * @return an IOException is one occurred, NULL if not.
+    * @return true if the finish succeeded, false if an IOException occurred.
     */
-   virtual db::io::IOException* finish();
+   virtual bool finish();
 };
 
 } // end namespace json

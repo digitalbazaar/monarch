@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/ConnectionWrapper.h"
 
@@ -90,12 +90,12 @@ void ConnectionWrapper::close()
    mConnection->close();
 }
 
-SocketException* ConnectionWrapper::getLocalAddress(InternetAddress* address)
+bool ConnectionWrapper::getLocalAddress(InternetAddress* address)
 {
    return mConnection->getLocalAddress(address);
 }
 
-SocketException* ConnectionWrapper::getRemoteAddress(InternetAddress* address)
+bool ConnectionWrapper::getRemoteAddress(InternetAddress* address)
 {
    return mConnection->getRemoteAddress(address);
 }

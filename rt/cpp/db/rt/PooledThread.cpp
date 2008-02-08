@@ -31,7 +31,7 @@ void PooledThread::goIdle()
          unsigned long long startTime = System::getCurrentMilliseconds();
          
          // wait until expire time
-         if(wait(getExpireTime()) == NULL)
+         if(wait(getExpireTime()))
          {
             // if this thread has an expire time set and this thread still has
             // no job see if the time has expired

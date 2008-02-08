@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_modest_OperationGuardChain_H
 #define db_modest_OperationGuardChain_H
@@ -26,13 +26,13 @@ protected:
     * The OperationGuard to run first.
     */
    OperationGuard* mGuard1;
-   CollectableOperationGuard mGuardReference1;
+   OperationGuardRef mGuardReference1;
    
    /**
     * The OperationGuard to run second.
     */
    OperationGuard* mGuard2;
-   CollectableOperationGuard mGuardReference2;
+   OperationGuardRef mGuardReference2;
    
 public:
    /**
@@ -43,10 +43,9 @@ public:
     * @param g2 the second OperationGuard.
     */
    OperationGuardChain(OperationGuard* g1, OperationGuard* g2);
-   OperationGuardChain(CollectableOperationGuard& g1, OperationGuard* g2);
-   OperationGuardChain(OperationGuard* g1, CollectableOperationGuard& g2);
-   OperationGuardChain(
-      CollectableOperationGuard& g1, CollectableOperationGuard& g2);
+   OperationGuardChain(OperationGuardRef& g1, OperationGuard* g2);
+   OperationGuardChain(OperationGuard* g1, OperationGuardRef& g2);
+   OperationGuardChain(OperationGuardRef& g1, OperationGuardRef& g2);
    
    /**
     * Destructs this OperationGuardChain.

@@ -873,9 +873,10 @@ public:
       
       if(Exception::hasLast())
       {
-         Exception* e = Exception::getLast();
+         ExceptionRef e = Exception::getLast();
          cout << "Exception occurred!" << endl;
          cout << "message: " << e->getMessage() << endl;
+         cout << "type: " << e->getType() << endl;
          cout << "code: " << e->getCode() << endl;
       }      
    }
@@ -1519,7 +1520,7 @@ void runHttpServerTest()
    }
    
    // sleep
-   Thread::sleep(0);//30000);
+   Thread::sleep(30000);
    
    server.stop();
    cout << "Server stopped." << endl;
@@ -1566,18 +1567,14 @@ void runHttpClientGetTest()
             HttpTrailer trailer;
             File file("/tmp/index.html");
             FileOutputStream fos(&file);
-            IOException* e = client.receiveContent(&fos, &trailer);
-            if(e == NULL)
+            if(client.receiveContent(&fos, &trailer))
             {
                cout << "Content downloaded to '" <<
                   file.getName() << "'" << endl;
                
                cout << "HTTP trailers=\n" << trailer.toString(str) << endl;
             }
-            else
-            {
-               cout << "IOException!,message=" << e->getMessage() << endl;
-            }
+            assertNoException();
          }
       }
       else
@@ -1630,18 +1627,14 @@ void runHttpClientPostTest()
             trailer.clearFields();
             File file("/tmp/postresponse.txt");
             FileOutputStream fos(&file);
-            IOException* e = client.receiveContent(&fos, &trailer);
-            if(e == NULL)
+            if(client.receiveContent(&fos, &trailer))
             {
                cout << "Content downloaded to '" <<
                   file.getName() << "'" << endl;
                
                cout << "HTTP trailers=\n" << trailer.toString(str) << endl;
             }
-            else
-            {
-               cout << "IOException!,message=" << e->getMessage() << endl;
-            }
+            assertNoException();
          }
       }
       else

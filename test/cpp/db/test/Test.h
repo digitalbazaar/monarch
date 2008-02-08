@@ -19,7 +19,7 @@ namespace test
 /**
  * Dump exception details.
  */
-void dumpException(db::rt::Exception* e);
+void dumpException(db::rt::ExceptionRef& e);
 
 /**
  * Non-JSON DynamicObject output.
@@ -76,7 +76,7 @@ void dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
    do { \
       if(db::rt::Exception::hasLast()) \
       { \
-         db::rt::Exception* e = db::rt::Exception::getLast(); \
+         db::rt::ExceptionRef e = db::rt::Exception::getLast(); \
          db::test::dumpException(e); \
          assert(!db::rt::Exception::hasLast()); \
       } \
@@ -89,8 +89,10 @@ void dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
    do { \
       if(!db::rt::Exception::hasLast()) \
       { \
-         db::rt::Exception e("Test expected an Exception but there wasn't one!"); \
-         db::test::dumpException(&e); \
+         db::rt::ExceptionRef e = \
+            new db::rt::Exception( \
+               "Test expected an Exception but there wasn't one!"); \
+         db::test::dumpException(e); \
          assert(db::rt::Exception::hasLast()); \
       } \
    } while(0)

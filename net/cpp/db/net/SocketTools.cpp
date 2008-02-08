@@ -107,7 +107,8 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
       errno = EINTR;
       
       // set interrupted exception
-      Exception::setLast(t->createInterruptedException());
+      ExceptionRef e = t->createInterruptedException();
+      Exception::setLast(e);
    }
    else if(rval > 0 && FD_ISSET(fd, &exfds) != 0)
    {
@@ -277,7 +278,8 @@ int SocketTools::select(
       errno = EINTR;
       
       // set interrupted exception
-      Exception::setLast(t->createInterruptedException());
+      ExceptionRef e = t->createInterruptedException();
+      Exception::setLast(e);
    }
    
    return rval;

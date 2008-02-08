@@ -62,9 +62,9 @@ protected:
     * @param line the line to parse.
     * @param headers the flag to clear once the headers have been parsed.
     * 
-    * @return an Exception if one occurred, NULL if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual db::rt::Exception* parseLine(
+   virtual bool parseLine(
       Mail* mail, db::rt::DynamicObject& vars,
       const char* line, bool& headers);
    
@@ -90,9 +90,9 @@ public:
     * @param vars the key-value variables in the template.
     * @param is the InputStream with template content.
     * 
-    * @return an Exception if one occurred, NULL if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual db::rt::Exception* parse(
+   virtual bool parse(
       Mail* mail, db::rt::DynamicObject& vars, db::io::InputStream* is);
 };
 

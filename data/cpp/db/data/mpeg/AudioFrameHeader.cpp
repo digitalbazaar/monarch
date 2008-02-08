@@ -38,8 +38,9 @@ bool AudioFrameHeader::convertFromBytes(const char* bytes, int length)
    
    if(length < 4)
    {
-      Exception::setLast(new Exception(
-         "AudioFrameHeader::convertFromBytes() length must be >= 4"));
+      ExceptionRef e = new Exception(
+         "AudioFrameHeader::convertFromBytes() length must be >= 4");
+      Exception::setLast(e);
    }
    else
    {

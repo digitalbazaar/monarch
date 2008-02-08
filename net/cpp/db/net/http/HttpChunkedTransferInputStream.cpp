@@ -1,9 +1,8 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpChunkedTransferInputStream.h"
 #include "db/util/Convert.h"
-#include "db/util/Math.h"
 
 using namespace std;
 using namespace db::io;
@@ -37,8 +36,6 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
 {
    int rval = 0;
    
-   Exception* exception = NULL;
-   
    // get underlying connection input stream
    ConnectionInputStream* is = (ConnectionInputStream*)mInputStream;
    
@@ -46,7 +43,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
    {
       // read chunk-size
       string chunkSize;
-      if(is->readCrlf(chunkSize))
+      if(is->readCrlf(chunkSize) == 1)
       {
          // ignore chunk-extension
          int sizeLength = chunkSize.length();
@@ -65,13 +62,15 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
       else
       {
          // the chunk size could not be read!
-         exception = new IOException("Could not read HTTP chunk size!");
+         ExceptionRef e = new IOException("Could not read HTTP chunk size!");
+         Exception::setLast(e);
+         rval = -1;
       }
    }
    
    // read some chunk bytes into the passed data buffer
    int numBytes = 1;
-   if(mChunkBytesLeft > 0 && exception == NULL && numBytes > 0 &&
+   if(mChunkBytesLeft > 0 && rval != -1 && numBytes > 0 &&
       !mThread->isInterrupted())
    {
       int readSize = (length < mChunkBytesLeft) ? length : mChunkBytesLeft;
@@ -86,44 +85,47 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
       }
       else
       {
-         exception = new IOException("Could not read HTTP chunk!");
+         ExceptionRef e = new IOException("Could not read HTTP chunk!");
+         Exception::setLast(e);
+         rval = -1;
       }
    }
    
-   // if this is the last chunk, then read in the
-   // chunk trailer and last CRLF
-   if(exception == NULL && mLastChunk)
+   if(rval != -1)
    {
-      // build trailer headers
-      string trailerHeaders;
-      string line;
-      while(is->readCrlf(line) && line.length() > 0)
+      // if this is the last chunk, then read in the
+      // chunk trailer and last CRLF
+      if(mLastChunk)
       {
-         trailerHeaders.append(line);
-         trailerHeaders.append(HttpHeader::CRLF);
+         // build trailer headers
+         string trailerHeaders;
+         string line;
+         while(is->readCrlf(line) > 0 && line.length() > 0)
+         {
+            trailerHeaders.append(line);
+            trailerHeaders.append(HttpHeader::CRLF);
+         }
+         
+         // parse trailer headers, if appropriate
+         if(mTrailer != NULL)
+         {
+            mTrailer->parse(trailerHeaders);
+         }
       }
-      
-      // parse trailer headers, if appropriate
-      if(mTrailer != NULL)
+      else if(mChunkBytesLeft == 0)
       {
-         mTrailer->parse(trailerHeaders);
+         // read chunk-data CRLF
+         string throwout;
+         is->readCrlf(throwout);
       }
-   }
-   else if(exception == NULL && mChunkBytesLeft == 0)
-   {
-      // read chunk-data CRLF
-      string throwout;
-      is->readCrlf(throwout);
-   }
-   else if(exception == NULL && numBytes <= 0)
-   {
-      // if the length is greater than zero then the whole chunk wasn't read
-      exception = new IOException("Could not read entire HTTP chunk!");
-   }
-   
-   if(exception != NULL)
-   {
-      Exception::setLast(exception);
+      else if(numBytes == 0)
+      {
+         // if the chunk bytes left is greater than zero and end of stream
+         // was read, then whole chunk wasn't read
+         ExceptionRef e = new IOException("Could not read entire HTTP chunk!");
+         Exception::setLast(e);
+         rval = -1;
+      }
    }
    
    return rval;

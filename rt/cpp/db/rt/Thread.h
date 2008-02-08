@@ -124,9 +124,9 @@ protected:
    /**
     * Clears the value of the exception key.
     * 
-    * @param e the exception on the current Thread.
+    * @param er the ExceptionRef on the current Thread.
     */
-   static void cleanupExceptionKeyValue(void* e);
+   static void cleanupExceptionKeyValue(void* er);
    
 // Note: disabled due to a lack of support in windows
 //   /**
@@ -207,6 +207,13 @@ public:
    virtual bool isAlive();
    
    /**
+    * Creates an InterruptedException for this thread.
+    * 
+    * @return the allocated InterruptedException.
+    */
+   virtual InterruptedException* createInterruptedException();
+   
+   /**
     * Interrupts this Thread.
     */
    virtual void interrupt();
@@ -241,13 +248,6 @@ public:
    virtual const char* getName();
    
    /**
-    * Creates an InterruptedException for this thread.
-    * 
-    * @return the allocated InterruptedException.
-    */
-   virtual InterruptedException* createInterruptedException();
-   
-   /**
     * Returns the currently executing Thread.
     *
     * @return the currently executing Thread or NULL if the main process
@@ -274,10 +274,10 @@ public:
     *
     * @param time the number of milliseconds to sleep for.
     * 
-    * @return an InterruptedException if this Thread is interrupted while
-    *         sleeping, NULL if not.
+    * @return false if the current thread is interrupted while sleeping (with
+    *         an InterruptedException set), true if not.
     */
-   static InterruptedException* sleep(unsigned long time);
+   static bool sleep(unsigned int time);
    
    /**
     * Causes the current thread to yield for a moment. Yielding causes the
@@ -296,11 +296,10 @@ public:
     * @param timeout the number of milliseconds to wait before timing out, 
     *                0 to wait indefinitely.
     * 
-    * @return an InterruptedException if this Thread is interrupted while
-    *         sleeping, NULL if not.
+    * @return false if the current Thread is interrupted while sleeping (with
+    *         an InterruptedException set), true if not.
     */
-   static InterruptedException* waitToEnter(
-      Monitor* m, unsigned long timeout = 0);
+   static bool waitToEnter(Monitor* m, unsigned int timeout = 0);
    
    /**
     * Exits the current thread.
@@ -308,31 +307,27 @@ public:
    static void exit();
    
    /**
-    * Sets the Exception for the current thread. This will store the passed
-    * exception in thread-local memory and delete it when the current
-    * thread exits or when it is replaced by another call to setException()
-    * on the same thread, unless otherwise specified.
+    * Sets the exception for the current thread.
     * 
-    * It is safe to call Thread::setException(Thread::getException()), no
-    * memory will be mistakenly collected.
+    * This will store the passed reference in thread-local memory, incrementing
+    * its count. The thread-local reference will be cleared, decrementing the
+    * count, when the current thread exits or when the exception reference is
+    * replaced by another call to setException() on the same thread.
     * 
-    * If the current exception is the cause of the passed exception, its
-    * memory will not be mistakenly collected.
-    * 
-    * @param e the Exception to set for the current thread.
-    * @param cleanup true to reclaim the memory for an existing exception,
-    *                false to leave it alone.
+    * @param e the reference to the Exception to set for the current thread.
     */
-   static void setException(Exception* e, bool cleanup = true);
+   static void setException(ExceptionRef& e);
    
    /**
-    * Gets the Exception for the current thread. This will be the last
-    * Exception that was set on this thread. It is stored in thread-local
-    * memory and automatically cleaned up when the thread exits.
+    * Gets a reference to the Exception for the current thread. This will be
+    * the last Exception that was set on this thread. It is stored in
+    * thread-local memory the reference to it will be automatically cleared,
+    * and thus decremented, when the thread exits.
     * 
-    * @return the last Exception for the current thread, which may be NULL.
+    * @return a reference to the last Exception for the current thread, which
+    *         may reference NULL.
     */
-   static Exception* getException();
+   static ExceptionRef getException();
    
    /**
     * Returns true if the current thread has encountered an Exception that
@@ -343,14 +338,12 @@ public:
    static bool hasException();
    
    /**
-    * Clears any Exception from the current thread, cleaning up the memory
-    * if requested (this is done by default).
-    * 
-    * @param cleanup true if the Exception's memory should be reclaimed, false
-    *                if not.
+    * Clears any Exception from the current thread. This clears the
+    * thread-local reference to the exception's memory (thus decrementing
+    * its count).
     */
-   static void clearException(bool cleanup = true);
-
+   static void clearException();
+   
 // Note: disabled due to a lack of support in windows
 //   /**
 //    * Sets the signal mask for the current thread.

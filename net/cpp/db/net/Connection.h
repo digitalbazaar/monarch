@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_Connection_H
 #define db_net_Connection_H
@@ -165,20 +165,20 @@ public:
     * 
     * @param address the SocketAddress to populate.
     * 
-    * @return a SocketException if the address could not be obtained, NULL
-    *         otherwise.
+    * @return true if the address could be obtained, false if a SocketException
+    *         occurred.
     */
-   virtual SocketException* getLocalAddress(SocketAddress* address);
+   virtual bool getLocalAddress(SocketAddress* address);
    
    /**
     * Gets the remote SocketAddress for this Connection.
     * 
     * @param address the SocketAddress to populate.
     * 
-    * @return a SocketException if the address could not be obtained, NULL
-    *         otherwise.
+    * @return true if the address could be obtained, false if a SocketException
+    *         occurred.
     */
-   virtual SocketException* getRemoteAddress(SocketAddress* address);
+   virtual bool getRemoteAddress(SocketAddress* address);
    
    /**
     * Sets the Socket used by this Connection. This method is generally used

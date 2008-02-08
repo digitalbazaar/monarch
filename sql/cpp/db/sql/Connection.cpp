@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/Connection.h"
 #include "db/sql/Statement.h"
@@ -40,9 +40,15 @@ Connection::~Connection()
    }
 }
 
-SqlException* Connection::connect(const char* url)
+bool Connection::connect(const char* url)
 {
-   SqlException* rval = NULL;
+   bool rval = false;
+   
+   // clean up old url
+   if(mUrl != NULL)
+   {
+      delete mUrl;
+   }
    
    // ensure URL isn't malformed
    Exception::clearLast();
@@ -52,9 +58,10 @@ SqlException* Connection::connect(const char* url)
       string msg;
       msg.append("Invalid database url!,url=");
       msg.append(url);
-      rval = new SqlException(msg.c_str());
-      rval->setCause(Exception::getLast(), true);
-      Exception::setLast(rval);
+      ExceptionRef e = new SqlException(msg.c_str());
+      ExceptionRef cause = Exception::getLast();
+      e->setCause(cause);
+      Exception::setLast(e);
    }
    else
    {
@@ -65,7 +72,7 @@ SqlException* Connection::connect(const char* url)
    return rval;
 }
 
-SqlException* Connection::begin()
+bool Connection::begin()
 {
    if(mBeginStmt == NULL)
    {
@@ -75,7 +82,7 @@ SqlException* Connection::begin()
    return mBeginStmt->execute();
 }
 
-SqlException* Connection::commit()
+bool Connection::commit()
 {
    if(mCommitStmt == NULL)
    {
@@ -85,7 +92,7 @@ SqlException* Connection::commit()
    return mCommitStmt->execute();
 }
 
-SqlException* Connection::rollback()
+bool Connection::rollback()
 {
    if(mRollbackStmt == NULL)
    {

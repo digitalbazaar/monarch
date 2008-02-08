@@ -13,20 +13,14 @@ Exception::Exception(const char* message, const char* type, int code)
    mMessage = strdup((message == NULL) ? "" : message);
    mType = strdup((type == NULL) ? "" : type);
    mCode = code;
-   
-   mCause = NULL;
-   mCleanupCause = false;
+   mCause = new ExceptionRef(NULL);
 }
 
 Exception::~Exception()
 {
    free(mMessage);
    free(mType);
-   
-   if(mCause != NULL && mCleanupCause)
-   {
-      delete mCause;
-   }
+   delete mCause;
 }
 
 void Exception::setMessage(const char* message)
@@ -60,24 +54,23 @@ int Exception::getCode()
    return mCode;
 }
 
-void Exception::setCause(Exception* cause, bool cleanup)
+void Exception::setCause(ExceptionRef& cause)
 {
-   mCause = cause;
-   mCleanupCause = cleanup;
+   *mCause = cause;
 }
 
-Exception* Exception::getCause()
+ExceptionRef& Exception::getCause()
 {
-   return mCause;
+   return *mCause;
 }
 
-Exception* Exception::setLast(Exception* e, bool cleanup)
+ExceptionRef& Exception::setLast(ExceptionRef& e)
 {
-   Thread::setException(e, cleanup);
+   Thread::setException(e);
    return e;
 }
 
-Exception* Exception::getLast()
+ExceptionRef Exception::getLast()
 {
    return Thread::getException();
 }
@@ -87,12 +80,12 @@ bool Exception::hasLast()
    return Thread::hasException();
 }
 
-void Exception::clearLast(bool cleanup)
+void Exception::clearLast()
 {
-   Thread::clearException(cleanup);
+   Thread::clearException();
 }
 
-DynamicObject Exception::convertToDynamicObject(Exception* e)
+DynamicObject Exception::convertToDynamicObject(ExceptionRef& e)
 {
    DynamicObject dyno;
    
@@ -100,7 +93,7 @@ DynamicObject Exception::convertToDynamicObject(Exception* e)
    dyno["type"] = e->getType();
    dyno["code"] = e->getCode();
    
-   if(e->getCause() != NULL)
+   if(!e->getCause().isNull())
    {
       dyno["cause"] = convertToDynamicObject(e->getCause());
    }
@@ -108,17 +101,17 @@ DynamicObject Exception::convertToDynamicObject(Exception* e)
    return dyno;
 }
 
-Exception* Exception::convertToException(DynamicObject& dyno)
+ExceptionRef Exception::convertToException(DynamicObject& dyno)
 {
-   Exception* e = new Exception();
-   
-   e->setMessage(dyno["message"]->getString());
-   e->setType(dyno["type"]->getString());
-   e->setCode(dyno["code"]->getInt32());
+   ExceptionRef e = new Exception(
+      dyno["message"]->getString(),
+      dyno["type"]->getString(),
+      dyno["code"]->getInt32());
    
    if(dyno->hasMember("cause"))
    {
-      e->setCause(convertToException(dyno["cause"]), true);
+      ExceptionRef cause = convertToException(dyno["cause"]);
+      e->setCause(cause);
    }
    
    return e;

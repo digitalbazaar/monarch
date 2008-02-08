@@ -39,57 +39,51 @@ WebRequest* HttpConnection::createRequest()
    return new HttpRequest(this);
 }
 
-IOException* HttpConnection::sendHeader(HttpHeader* header)
+bool HttpConnection::sendHeader(HttpHeader* header)
 {
-   IOException* rval = NULL;
-   
    string out;
    header->toString(out);
-   if(!getOutputStream()->write(out.c_str(), out.length()))
-   {
-      rval = (IOException*)Exception::getLast();
-   }
-   
-   return rval;
+   return getOutputStream()->write(out.c_str(), out.length());
 }
 
-IOException* HttpConnection::receiveHeader(HttpHeader* header)
+bool HttpConnection::receiveHeader(HttpHeader* header)
 {
-   IOException* rval = NULL;
+   bool rval = true;
    
    // read until eof, error, or blank line w/CRLF
    string headerStr;
    string line;
    ConnectionInputStream* is = getInputStream();
-   Exception::setLast(NULL);
-   while(is->readCrlf(line) && line.length() > 0)
+   int read;
+   while((read = is->readCrlf(line)) > 0 && line.length() > 0)
    {
       headerStr.append(line);
       headerStr.append(HttpHeader::CRLF);
    }
    
-   if(Exception::getLast() != NULL)
+   if(read == -1)
    {
-      rval = (IOException*)Exception::getLast();
+      // read failed
+      rval = false;
    }
    else
    {
       // parse header
       if(!header->parse(headerStr))
       {
-         rval = new IOException(
+         ExceptionRef e = new IOException(
             "Could not receive HTTP header!", "db.net.http.BadRequest");
-         Exception::setLast(rval);
+         Exception::setLast(e);
       }
    }
    
    return rval;
 }
 
-IOException* HttpConnection::sendBody(
+bool HttpConnection::sendBody(
    HttpHeader* header, InputStream* is, HttpTrailer* trailer)
 {
-   IOException* rval = NULL;
+   bool rval = true;
    
    // create HttpBodyOutputStream
    HttpBodyOutputStream os(this, header, trailer);
@@ -103,7 +97,6 @@ IOException* HttpConnection::sendBody(
    }
    
    // vars for read/write
-   bool writeError = false;
    unsigned int length = 2048;
    char b[length];
    int numBytes = 0;
@@ -112,13 +105,13 @@ IOException* HttpConnection::sendBody(
    if(lengthUnspecified)
    {
       // read in content, write out to connection
-      while(!writeError && (numBytes = is->read(b, length)) > 0)
+      while(rval && (numBytes = is->read(b, length)) > 0)
       {
          // write out to connection
-         writeError = !os.write(b, numBytes);
+         rval = os.write(b, numBytes);
       }
       
-      if(!writeError)
+      if(rval)
       {
          // close stream
          os.close();
@@ -132,46 +125,39 @@ IOException* HttpConnection::sendBody(
       unsigned long long contentRemaining = contentLength;
       unsigned int readSize = (contentRemaining < length) ?
          contentRemaining : length;
-      while(!writeError && contentRemaining > 0 &&
+      while(rval && contentRemaining > 0 &&
             (numBytes = is->read(b, readSize)) > 0)
       {
          // write out to connection
-         if(os.write(b, numBytes))
+         if((rval = os.write(b, numBytes)))
          {
             contentRemaining -= numBytes;
             readSize = (contentRemaining < length) ? contentRemaining : length;
          }
-         else
-         {
-            writeError = true;
-         }
       }
       
-      // check to see if an error occurred: if a write error occurred or
-      // if content is remaining
-      if(writeError)
-      {
-         rval = (IOException*)Exception::getLast();
-      }
-      else
+      // check to see if content is remaining
+      if(rval)
       {
          if(contentRemaining > 0)
          {
+            rval = false;
             Thread* t = Thread::currentThread();
             if(t->isInterrupted())
             {
+               // FIXME:
                // we will probably want this to be more robust in the
                // future so this kind of exception can be recovered from
-               rval = new IOException(
+               ExceptionRef e = new IOException(
                   "Sending HTTP content body interrupted!");
+               Exception::setLast(e);
             }
             else
             {
-               rval = new IOException(
+               ExceptionRef e = new IOException(
                   "Could not read HTTP content bytes to send!");
+               Exception::setLast(e);
             }
-            
-            Exception::setLast(rval);
          }
          else
          {
@@ -180,6 +166,9 @@ IOException* HttpConnection::sendBody(
          }
       }
    }
+   
+   // check read error
+   rval = (numBytes != -1);
    
    return rval;
 }
@@ -190,10 +179,10 @@ OutputStream* HttpConnection::getBodyOutputStream(
    return new HttpBodyOutputStream(this, header, trailer);
 }
 
-IOException* HttpConnection::receiveBody(
+bool HttpConnection::receiveBody(
    HttpHeader* header, OutputStream* os, HttpTrailer* trailer)
 {
-   IOException* rval = NULL;
+   bool rval = true;
    
    InputStream* is = getInputStream();
    
@@ -218,7 +207,6 @@ IOException* HttpConnection::receiveBody(
    }
    
    // vars for read/write
-   bool writeError = false;
    unsigned int length = 2048;
    char b[length];
    int numBytes = 0;
@@ -227,7 +215,7 @@ IOException* HttpConnection::receiveBody(
    if(chunkin != NULL || lengthUnspecified)
    {
       // read in from connection, write out content
-      while(!writeError && (numBytes = is->read(b, length)) > 0)
+      while(rval && (numBytes = is->read(b, length)) > 0)
       {
          // update http connection content bytes read (reset as necessary)
          if(getContentBytesRead() > HALF_MAX_LONG_VALUE)
@@ -238,7 +226,7 @@ IOException* HttpConnection::receiveBody(
          setContentBytesRead(getContentBytesRead() + numBytes);
          
          // write out content
-         writeError = !os->write(b, numBytes);
+         rval = os->write(b, numBytes);
       }
       
       if(chunkin != NULL)
@@ -256,7 +244,7 @@ IOException* HttpConnection::receiveBody(
       unsigned long long contentRemaining = contentLength;
       unsigned int readSize = (contentRemaining < length) ?
          contentRemaining : length;
-      while(!writeError && contentRemaining > 0 &&
+      while(rval && contentRemaining > 0 &&
             (numBytes = is->read(b, readSize)) > 0)
       {
          contentRemaining -= numBytes;
@@ -271,34 +259,33 @@ IOException* HttpConnection::receiveBody(
          setContentBytesRead(getContentBytesRead() + numBytes);
          
          // write out content
-         writeError = !os->write(b, numBytes);
+         rval = os->write(b, numBytes);
       }
       
-      // check to see if an error occurred: if a write error occurred or
-      // if content is remaining
-      if(writeError)
+      // see if content is remaining
+      if(rval && contentRemaining > 0)
       {
-         rval = (IOException*)Exception::getLast();
-      }
-      else if(contentRemaining > 0)
-      {
+         rval = false;
          Thread* t = Thread::currentThread();
          if(t->isInterrupted())
          {
             // we will probably want this to be more robust in the
             // future so this kind of exception can be recovered from
-            rval = new IOException(
+            ExceptionRef e = new IOException(
                "Receiving HTTP content body interrupted!");
+            Exception::setLast(e);
          }
          else
          {
-            rval = new IOException(
+            ExceptionRef e = new IOException(
                "Could not receive all HTTP content bytes!");
+            Exception::setLast(e);
          }
-         
-         Exception::setLast(rval);
       }
    }
+   
+   // check read error
+   rval = (numBytes != -1);
    
    return rval;
 }

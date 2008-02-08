@@ -3,7 +3,6 @@
  */
 #include "db/crypto/AsymmetricKeyFactory.h"
 #include "db/io/IOException.h"
-#include "db/crypto/UnsupportedAlgorithmException.h"
 #include "db/util/Math.h"
 #include "db/rt/System.h"
 
@@ -183,10 +182,11 @@ bool AsymmetricKeyFactory::createKeyPair(
    {
       // unknown algorithm
       rval = false;
-      char* msg = new char[15 + strlen(algorithm) + 19 + 1];
-      sprintf(msg, "Key algorithm '%s' is not supported!", algorithm);
-      Exception::setLast(new UnsupportedAlgorithmException(msg));
-      delete msg;
+      int length = 15 + strlen(algorithm) + 19 + 1;
+      char msg[length];
+      snprintf(msg, length, "Key algorithm '%s' is not supported!", algorithm);
+      ExceptionRef e = new Exception(msg, "db.crypto.UnsupportedAlgorithm");
+      Exception::setLast(e);
    }
    
    return rval;
@@ -216,9 +216,10 @@ PrivateKey* AsymmetricKeyFactory::loadPrivateKeyFromPem(
    }
    else
    {
-      Exception::setLast(new IOException(
+      ExceptionRef e = new IOException(
          "Could not load private key from PEM!",
-         ERR_error_string(ERR_get_error(), NULL)));
+         ERR_error_string(ERR_get_error(), NULL));
+      Exception::setLast(e);
    }
    
    return key;
@@ -250,9 +251,10 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
    }
    else
    {
-      Exception::setLast(new IOException(
+      ExceptionRef e = new IOException(
          "Could not write private key to PEM!",
-         ERR_error_string(ERR_get_error(), NULL)));
+         ERR_error_string(ERR_get_error(), NULL));
+      Exception::setLast(e);
    }
    
    return rval;
@@ -281,9 +283,10 @@ PublicKey* AsymmetricKeyFactory::loadPublicKeyFromPem(
    }
    else
    {
-      Exception::setLast(new IOException(
+      ExceptionRef e = new IOException(
          "Could not load public key from PEM!",
-         ERR_error_string(ERR_get_error(), NULL)));
+         ERR_error_string(ERR_get_error(), NULL));
+      Exception::setLast(e);
    }
    
    return key;
@@ -312,9 +315,10 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKey* key)
    }
    else
    {
-      Exception::setLast(new IOException(
+      ExceptionRef e = new IOException(
          "Could not write private key to PEM!",
-         ERR_error_string(ERR_get_error(), NULL)));
+         ERR_error_string(ERR_get_error(), NULL));
+      Exception::setLast(e);
    }
    
    return rval;

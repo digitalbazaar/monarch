@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/rt/Thread.h"
+
 #include "db/rt/System.h"
 
 using namespace db::rt;
@@ -98,13 +99,13 @@ void Thread::cleanupCurrentThreadKeyValue(void* thread)
    }
 }
 
-void Thread::cleanupExceptionKeyValue(void* e)
+void Thread::cleanupExceptionKeyValue(void* er)
 {
-   if(e != NULL)
+   if(er != NULL)
    {
-      // clean up exception
-      Exception* ex = (Exception*)e;
-      delete ex;
+      // clean up exception reference
+      ExceptionRef* ref = (ExceptionRef*)er;
+      delete ref;
    }
 }
 
@@ -205,6 +206,20 @@ bool Thread::start(size_t stackSize)
 bool Thread::isAlive()
 {
    return mAlive;
+}
+
+InterruptedException* Thread::createInterruptedException()
+{
+   InterruptedException* rval = NULL;
+   
+   unsigned int length = (getName() == NULL) ? 0 : strlen(getName());
+   length = 8 + length + 13 + 1;
+   char msg[length];
+   snprintf(msg, length, "Thread '%s' interrupted",
+      (getName() == NULL) ? "" : getName());
+   rval = new InterruptedException(msg);
+   
+   return rval;
 }
 
 void Thread::interrupt()
@@ -308,19 +323,6 @@ const char* Thread::getName()
    return rval;
 }
 
-InterruptedException* Thread::createInterruptedException()
-{
-   InterruptedException* rval = NULL;
-   
-   unsigned int length = (getName() == NULL) ? 0 : strlen(getName());
-   char msg[8 + length + 13 + 1];
-   sprintf(msg, "Thread '%s' interrupted",
-      (getName() == NULL) ? "" : getName());
-   rval = new InterruptedException(msg);
-   
-   return rval;
-}
-
 Thread* Thread::currentThread()
 {
    // initialize threads
@@ -369,9 +371,9 @@ bool Thread::interrupted(bool clear)
    return rval;
 }
 
-InterruptedException* Thread::sleep(unsigned long time)
+bool Thread::sleep(unsigned int time)
 {
-   InterruptedException* rval = NULL;
+   bool rval = true;
    
    // enter an arbitrary monitor
    Monitor m;
@@ -390,9 +392,9 @@ void Thread::yield()
    sched_yield();
 }
 
-InterruptedException* Thread::waitToEnter(Monitor* m, unsigned long timeout)
+bool Thread::waitToEnter(Monitor* m, unsigned int timeout)
 {
-   InterruptedException* rval = NULL;
+   bool rval = true;
    
    // set the current thread's wait monitor
    Thread* t = currentThread();
@@ -419,8 +421,9 @@ InterruptedException* Thread::waitToEnter(Monitor* m, unsigned long timeout)
    if(t->isInterrupted())
    {
       // set exception
-      rval = t->createInterruptedException();
-      setException(rval);
+      ExceptionRef e = t->createInterruptedException();
+      setException(e);
+      rval = false;
    }
    
    return rval;
@@ -431,45 +434,69 @@ void Thread::exit()
    pthread_exit(NULL);
 }
 
-void Thread::setException(Exception* e, bool cleanup)
+void Thread::setException(ExceptionRef& e)
 {
-   // get the existing exception for the current thread, if any
-   Exception* existing = getException();
-   if(existing != e)
+   // get the exception reference for the current thread
+   ExceptionRef* ref = (ExceptionRef*)pthread_getspecific(sExceptionKey);
+   if(ref == NULL)
    {
-      // replace the existing exception
-      pthread_setspecific(sExceptionKey, e);
-      
-      // clean up existing exception as appropriate
-      if(existing != NULL && cleanup)
-      {
-         // ensure cause is not deleted
-         if(e == NULL || existing != e->getCause())
-         {
-            // delete the old exception
-            delete existing;
-         }
-      }
+      // create the exception reference
+      ref = new ExceptionRef(NULL);
+      *ref = e;
+      pthread_setspecific(sExceptionKey, ref);
+   }
+   else
+   {
+      // update the reference
+      *ref = e;
    }
 }
 
-Exception* Thread::getException()
+ExceptionRef Thread::getException()
 {
    // initialize threads
    pthread_once(&sThreadsInit, &initializeThreads);
    
-   // get the exception for the current thread, if any
-   return (Exception*)pthread_getspecific(sExceptionKey);
+   // get the exception reference for the current thread
+   ExceptionRef* ref = (ExceptionRef*)pthread_getspecific(sExceptionKey);
+   if(ref == NULL)
+   {
+      // create the exception reference
+      ref = new ExceptionRef(NULL);
+      pthread_setspecific(sExceptionKey, ref);
+   }
+   
+   // return the reference
+   return *ref;
 }
 
 bool Thread::hasException()
 {
-   return getException() != NULL;
+   bool rval = false;
+   
+   // initialize threads
+   pthread_once(&sThreadsInit, &initializeThreads);
+   
+   // get the exception reference for the current thread
+   ExceptionRef* ref = (ExceptionRef*)pthread_getspecific(sExceptionKey);
+   if(ref != NULL)
+   {
+      // return true if the reference isn't to NULL
+      rval = !ref->isNull();
+   }
+   
+   return rval;
 }
 
-void Thread::clearException(bool cleanup)
+void Thread::clearException()
 {
-   setException(NULL, cleanup);
+   // get the exception reference for the current thread
+   ExceptionRef* ref = (ExceptionRef*)pthread_getspecific(sExceptionKey);
+   if(ref != NULL)
+   {
+      // clear the reference
+      ref->setNull();
+   }
 }
 
 // Note: disabled due to a lack of support in windows

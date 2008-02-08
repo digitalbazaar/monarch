@@ -149,8 +149,9 @@ int Tester::main(int argc, const char* argv[])
       WSACleanup();
    #endif
    
-   Exception::setLast(new Exception("Main thread exception leak test"));
-
+   ExceptionRef e = new Exception("Main thread exception leak test");
+   Exception::setLast(e);
+   
    #ifndef WIN32
    // FIXME: calling Thread::exit() on windows causes a busy loop of
    // some sort (perhaps a deadlock spin lock)

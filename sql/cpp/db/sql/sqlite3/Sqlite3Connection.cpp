@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/sqlite3/Sqlite3Connection.h"
 #include "db/sql/sqlite3/Sqlite3Statement.h"
@@ -24,26 +24,21 @@ Sqlite3Connection::~Sqlite3Connection()
    Sqlite3Connection::close();
 }
 
-SqlException* Sqlite3Connection::connect(const char* url)
+bool Sqlite3Connection::connect(Url* url)
 {
-   return Connection::connect(url);
-}
-
-SqlException* Sqlite3Connection::connect(Url* url)
-{
-   SqlException* rval = NULL;
+   bool rval = false;
    
    if(strncmp(url->getScheme().c_str(), "sqlite3", 7) != 0)
    {
-      string msg;
       string urlStr;
-      msg.append(
+      url->toString(urlStr);
+      int length = 120 + urlStr.length();
+      char msg[length];
+      snprintf(msg, length,
          "Could not connect to sqlite3 database, "
-         "url scheme doesn't start with 'sqlite3', url='");
-      msg.append(url->toString(urlStr));
-      msg.append(1, '\'');
-      
-      Exception::setLast(new SqlException(msg.c_str()));
+         "url scheme doesn't start with 'sqlite3', url='%s'", urlStr.c_str());
+      ExceptionRef e = new SqlException(msg);
+      Exception::setLast(e);
    }
    else
    {
@@ -65,9 +60,14 @@ SqlException* Sqlite3Connection::connect(Url* url)
       if(ec != SQLITE_OK)
       {
          // create exception, close connection
-         rval = new Sqlite3Exception(this);
-         Exception::setLast(rval);
+         ExceptionRef e = new Sqlite3Exception(this);
+         Exception::setLast(e);
          Sqlite3Connection::close();
+      }
+      else
+      {
+         // connected
+         rval = true;
       }
    }
    
@@ -76,11 +76,10 @@ SqlException* Sqlite3Connection::connect(Url* url)
 
 Statement* Sqlite3Connection::prepare(const char* sql)
 {
-   Exception* e = Exception::getLast();
-   
    // create statement
+   Exception::clearLast();
    Statement* rval = new Sqlite3Statement(this, sql);
-   if(Exception::getLast() != e)
+   if(Exception::hasLast())
    {
       // delete statement if exception was thrown while creating statement
       delete rval;

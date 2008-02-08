@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/mysql/MySqlStatement.h"
 #include "db/sql/mysql/MySqlConnection.h"
@@ -25,7 +25,8 @@ MySqlStatement::MySqlStatement(MySqlConnection *c, const char* sql) :
    if(mHandle == NULL)
    {
       // connection exception
-      Exception::setLast(new MySqlException((MySqlConnection*)mConnection));
+      ExceptionRef e = new MySqlException((MySqlConnection*)mConnection);
+      Exception::setLast(e);
    }
    else
    {
@@ -33,7 +34,8 @@ MySqlStatement::MySqlStatement(MySqlConnection *c, const char* sql) :
       if(mysql_stmt_prepare(mHandle, sql, strlen(sql)) != 0)
       {
          // statement exception
-         Exception::setLast(new MySqlException(this));
+         ExceptionRef e = new MySqlException(this);
+         Exception::setLast(e);
       }
       else
       {
@@ -101,19 +103,28 @@ MySqlStatement::~MySqlStatement()
    mysql_stmt_close(mHandle);
 }
 
-SqlException* MySqlStatement::setInt32(unsigned int param, int value)
+bool MySqlStatement::checkParamCount(unsigned int param)
 {
-   SqlException* rval = NULL;
+   bool rval = true;
    
    if(param > mParamCount)
    {
       // exception, no parameter with given index
       char temp[70];
       sprintf(temp, "Invalid parameter index!,index='%i'", param);
-      rval = new SqlException(temp);
-      Exception::setLast(rval);
+      ExceptionRef e = new SqlException(temp);
+      Exception::setLast(e);
+      rval = false;
    }
-   else
+   
+   return rval;
+}
+
+bool MySqlStatement::setInt32(unsigned int param, int value)
+{
+   bool rval = checkParamCount(param);
+   
+   if(rval)
    {
       // param is 1 higher than bind index
       param--;
@@ -131,19 +142,11 @@ SqlException* MySqlStatement::setInt32(unsigned int param, int value)
    return rval;
 }
 
-SqlException* MySqlStatement::setUInt32(unsigned int param, unsigned int value)
+bool MySqlStatement::setUInt32(unsigned int param, unsigned int value)
 {
-   SqlException* rval = NULL;
+   bool rval = checkParamCount(param);
    
-   if(param > mParamCount)
-   {
-      // exception, no parameter with given index
-      char temp[70];
-      sprintf(temp, "Invalid parameter index!,index='%i'", param);
-      rval = new SqlException(temp);
-      Exception::setLast(rval);
-   }
-   else
+   if(rval)
    {
       // param is 1 higher than bind index
       param--;
@@ -161,19 +164,11 @@ SqlException* MySqlStatement::setUInt32(unsigned int param, unsigned int value)
    return rval;
 }
 
-SqlException* MySqlStatement::setInt64(unsigned int param, long long value)
+bool MySqlStatement::setInt64(unsigned int param, long long value)
 {
-   SqlException* rval = NULL;
+   bool rval = checkParamCount(param);
    
-   if(param > mParamCount)
-   {
-      // exception, no parameter with given index
-      char temp[70];
-      sprintf(temp, "Invalid parameter index!,index='%i'", param);
-      rval = new SqlException(temp);
-      Exception::setLast(rval);
-   }
-   else
+   if(rval)
    {
       // param is 1 higher than bind index
       param--;
@@ -191,20 +186,11 @@ SqlException* MySqlStatement::setInt64(unsigned int param, long long value)
    return rval;
 }
 
-SqlException* MySqlStatement::setUInt64(
-   unsigned int param, unsigned long long value)
+bool MySqlStatement::setUInt64(unsigned int param, unsigned long long value)
 {
-   SqlException* rval = NULL;
+   bool rval = checkParamCount(param);
    
-   if(param > mParamCount)
-   {
-      // exception, no parameter with given index
-      char temp[70];
-      sprintf(temp, "Invalid parameter index!,index='%i'", param);
-      rval = new SqlException(temp);
-      Exception::setLast(rval);
-   }
-   else
+   if(rval)
    {
       // param is 1 higher than bind index
       param--;
@@ -222,20 +208,11 @@ SqlException* MySqlStatement::setUInt64(
    return rval;
 }
 
-SqlException* MySqlStatement::setText(
-   unsigned int param, const char* value)
+bool MySqlStatement::setText(unsigned int param, const char* value)
 {
-   SqlException* rval = NULL;
+   bool rval = checkParamCount(param);
    
-   if(param > mParamCount)
-   {
-      // exception, no parameter with given index
-      char temp[70];
-      sprintf(temp, "Invalid parameter index!,index='%i'", param);
-      rval = new SqlException(temp);
-      Exception::setLast(rval);
-   }
-   else
+   if(rval)
    {
       // param is 1 higher than bind index
       param--;
@@ -251,143 +228,68 @@ SqlException* MySqlStatement::setText(
    return rval;
 }
 
-SqlException* MySqlStatement::setInt32(const char* name, int value)
+bool MySqlStatement::setInt32(const char* name, int value)
 {
-   SqlException* rval = 
+   ExceptionRef e =
      new SqlException("MySql named parameter support not implemented!");
-   Exception::setLast(rval);
-   
-//   // FIXME: might strip support for parameter names
-//   int index = mysql_bind_parameter_index(mHandle, name);
-//   if(index == 0)
-//   {
-//      // exception, no parameter with given name found
-//      char temp[strlen(name) + 40];
-//      sprintf(temp, "Invalid parameter name!,name='%s'", name);
-//      rval = new SqlException(temp);
-//      Exception::setLast(rval);
-//   }
-//   else
-//   {
-//      rval = setInt32(index, value);
-//   }
-   
-   return rval;
+   Exception::setLast(e);
+   return false;
 }
 
-SqlException* MySqlStatement::setUInt32(const char* name, unsigned int value)
+bool MySqlStatement::setUInt32(const char* name, unsigned int value)
 {
-   SqlException* rval = 
+   ExceptionRef e =
      new SqlException("MySql named parameter support not implemented!");
-   Exception::setLast(rval);
-   
-//   // FIXME: might strip support for parameter names
-//   int index = mysql_bind_parameter_index(mHandle, name);
-//   if(index == 0)
-//   {
-//      // exception, no parameter with given name found
-//      char temp[strlen(name) + 40];
-//      sprintf(temp, "Invalid parameter name!,name='%s'", name);
-//      rval = new SqlException(temp);
-//      Exception::setLast(rval);
-//   }
-//   else
-//   {
-//      rval = setUInt32(index, value);
-//   }
-   
-   return rval;
+   Exception::setLast(e);
+   return false;
 }
 
-SqlException* MySqlStatement::setInt64(const char* name, long long value)
+bool MySqlStatement::setInt64(const char* name, long long value)
 {
-   SqlException* rval = 
+   ExceptionRef e =
      new SqlException("MySql named parameter support not implemented!");
-   Exception::setLast(rval);
-   
-//   int index = mysql_bind_parameter_index(mHandle, name);
-//   if(index == 0)
-//   {
-//      // exception, no parameter with given name found
-//      char temp[strlen(name) + 40];
-//      sprintf(temp, "Invalid parameter name!,name='%s'", name);
-//      rval = new SqlException(temp);
-//      Exception::setLast(rval);
-//   }
-//   else
-//   {
-//      rval = setInt64(index, value);
-//   }
-   
-   return rval;
+   Exception::setLast(e);
+   return false;
 }
 
-SqlException* MySqlStatement::setUInt64(
+bool MySqlStatement::setUInt64(
    const char* name, unsigned long long value)
 {
-   SqlException* rval = 
+   ExceptionRef e =
      new SqlException("MySql named parameter support not implemented!");
-   Exception::setLast(rval);
-   
-//   int index = mysql_bind_parameter_index(mHandle, name);
-//   if(index == 0)
-//   {
-//      // exception, no parameter with given name found
-//      char temp[strlen(name) + 40];
-//      sprintf(temp, "Invalid parameter name!,name='%s'", name);
-//      rval = new SqlException(temp);
-//      Exception::setLast(rval);
-//   }
-//   else
-//   {
-//      rval = setUInt64(index, value);
-//   }
-   
-   return rval;
+   Exception::setLast(e);
+   return false;
 }
 
-SqlException* MySqlStatement::setText(const char* name, const char* value)
+bool MySqlStatement::setText(const char* name, const char* value)
 {
-   SqlException* rval = 
+   ExceptionRef e =
      new SqlException("MySql named parameter support not implemented!");
-   Exception::setLast(rval);
-   
-//   int index = mysql_bind_parameter_index(mHandle, name);
-//   if(index == 0)
-//   {
-//      // exception, no parameter with given name found
-//      char temp[strlen(name) + 40];
-//      sprintf(temp, "Invalid parameter name!,name='%s'", name);
-//      rval = new SqlException(temp);
-//      Exception::setLast(rval);
-//   }
-//   else
-//   {
-//      rval = setText(index, value);
-//   }
-   
-   return rval;
+   Exception::setLast(e);
+   return false;
 }
 
-SqlException* MySqlStatement::execute()
+bool MySqlStatement::execute()
 {
-   SqlException* rval = NULL;
+   bool rval = false;
    
    // bind parameters
    if(mysql_stmt_bind_param(mHandle, mParamBindings) != 0)
    {
       // statement exception
-      rval = new MySqlException(this);
-      Exception::setLast(rval);
+      ExceptionRef e = new MySqlException(this);
+      Exception::setLast(e);
    }
    else if(mysql_stmt_execute(mHandle) != 0)
    {
       // statement exception
-      rval = new MySqlException(this);
-      Exception::setLast(rval);
+      ExceptionRef e = new MySqlException(this);
+      Exception::setLast(e);
    }
    else
    {
+      rval = true;
+      
       // get result meta-data
       mResult = mysql_stmt_result_metadata(mHandle);
       if(mResult != NULL)
@@ -407,8 +309,9 @@ SqlException* MySqlStatement::execute()
          if(mysql_stmt_bind_result(mHandle, mResultBindings) != 0)
          {
             // statement exception
-            rval = new MySqlException(this);
-            Exception::setLast(rval);
+            ExceptionRef e = new MySqlException(this);
+            Exception::setLast(e);
+            rval = false;
          }
       }
    }
@@ -427,7 +330,8 @@ Row* MySqlStatement::fetch()
       if(rc == 1)
       {
          // exception occurred
-         Exception::setLast(new MySqlException(this));
+         ExceptionRef e = new MySqlException(this);
+         Exception::setLast(e);
       }
       else if(rc != MYSQL_NO_DATA)
       {
@@ -448,18 +352,14 @@ Row* MySqlStatement::fetch()
    return rval;
 }
 
-SqlException* MySqlStatement::getRowsChanged(unsigned long long& rows)
+bool MySqlStatement::getRowsChanged(unsigned long long& rows)
 {
    // FIXME: handle exceptions
    rows = mysql_stmt_affected_rows(mHandle);
-   return NULL;
+   return true;
 }
 
 unsigned long long MySqlStatement::getLastInsertRowId()
 {
-   unsigned long long rval = 0;
-   
-   rval = mysql_stmt_insert_id(mHandle);
-   
-   return rval;
+   return mysql_stmt_insert_id(mHandle);
 }

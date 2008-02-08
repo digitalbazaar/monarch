@@ -78,10 +78,10 @@ public:
     * 
     * @param line the string to write the line to.
     * 
-    * @return true if a line was read, false if the end of the stream was
-    *         reached or an IO exception occurred.
+    * @return 1 if a line was read, 0 if the end of the stream was
+    *         reached or -1 an IO exception occurred.
     */
-   virtual bool readLine(std::string& line);
+   virtual int readLine(std::string& line);
    
    /**
     * Reads a single line from this connection that terminates in a
@@ -91,10 +91,10 @@ public:
     * 
     * @param line the string to write the line to.
     * 
-    * @return true if a line was read, false if the end of the stream was
-    *         reached or an IO exception occurred.
+    * @return 1 if a line was read, 0 if the end of the stream was
+    *         reached or -1 an IO exception occurred.
     */
-   virtual bool readCrlf(std::string& line);
+   virtual int readCrlf(std::string& line);
    
    /**
     * Peeks ahead and looks at some bytes in the stream. If specified, this

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/mysql/MySqlRow.h"
 #include "db/sql/mysql/MySqlStatement.h"
@@ -43,11 +43,12 @@ long long MySqlRow::getColumnIndex(const char* name)
    if(rval == -1)
    {
       // set exception
-      string msg;
-      msg.append("Could not get column value, invalid column name!, name='");
-      msg.append(name);
-      msg.append(1, '\'');
-      Exception::setLast(new SqlException(msg.c_str())); 
+      int length = 100 + strlen(name);
+      char msg[length];
+      snprintf(msg, length,
+         "Could not get column value, invalid column name!, name='%s'", name);
+      ExceptionRef e = new SqlException(msg);
+      Exception::setLast(e); 
    }
    
    return rval;
@@ -61,31 +62,29 @@ void MySqlRow::setFields(
    mBindings = bindings;
 }
 
-SqlException* MySqlRow::getType(unsigned int column, int& type)
+bool MySqlRow::getType(unsigned int column, int& type)
 {
-   SqlException* rval = NULL;
+   bool rval = false;
    
    if(column >= mFieldCount)
    {
       char temp[100];
-      sprintf(
-         temp, "Could not get column type, invalid column index!,index=%i",
-         column);
-      rval = new SqlException(temp);
-      Exception::setLast(rval);
+      snprintf(temp, 100,
+         "Could not get column type, invalid column index!,index=%i", column);
+      ExceptionRef e = new SqlException(temp);
+      Exception::setLast(e);
    }
    else
    {
       type = mFields[column].type;
+      rval = true;
    }
    
    return rval;
 }
 
-SqlException* MySqlRow::getInt32(unsigned int column, int& i)
+bool MySqlRow::getInt32(unsigned int column, int& i)
 {
-   SqlException* rval = NULL;
-   
    mBindings[column].buffer_type = MYSQL_TYPE_LONG;
    mBindings[column].buffer = (char*)&i;
    mBindings[column].buffer_length = 4;
@@ -93,13 +92,11 @@ SqlException* MySqlRow::getInt32(unsigned int column, int& i)
    mysql_stmt_fetch_column(getStatementHandle(), &mBindings[column], column, 0);
    
    // FIXME: check exceptions, etc
-   return rval;
+   return true;
 }
 
-SqlException* MySqlRow::getUInt32(unsigned int column, unsigned int& i)
+bool MySqlRow::getUInt32(unsigned int column, unsigned int& i)
 {
-   SqlException* rval = NULL;
-   
    mBindings[column].buffer_type = MYSQL_TYPE_LONG;
    mBindings[column].buffer = (char*)&i;
    mBindings[column].buffer_length = 4;
@@ -107,13 +104,11 @@ SqlException* MySqlRow::getUInt32(unsigned int column, unsigned int& i)
    mysql_stmt_fetch_column(getStatementHandle(), &mBindings[column], column, 0);
    
    // FIXME: check exceptions, etc
-   return rval;
+   return true;
 }
 
-SqlException* MySqlRow::getInt64(unsigned int column, long long& i)
+bool MySqlRow::getInt64(unsigned int column, long long& i)
 {
-   SqlException* rval = NULL;
-   
    mBindings[column].buffer_type = MYSQL_TYPE_LONGLONG;
    mBindings[column].buffer = (char*)&i;
    mBindings[column].buffer_length = 8;
@@ -121,13 +116,11 @@ SqlException* MySqlRow::getInt64(unsigned int column, long long& i)
    mysql_stmt_fetch_column(getStatementHandle(), &mBindings[column], column, 0);
    
    // FIXME: check exceptions, etc
-   return rval;
+   return true;
 }
 
-SqlException* MySqlRow::getUInt64(unsigned int column, unsigned long long& i)
+bool MySqlRow::getUInt64(unsigned int column, unsigned long long& i)
 {
-   SqlException* rval = NULL;
-   
    mBindings[column].buffer_type = MYSQL_TYPE_LONGLONG;
    mBindings[column].buffer = (char*)&i;
    mBindings[column].buffer_length = 8;
@@ -135,13 +128,11 @@ SqlException* MySqlRow::getUInt64(unsigned int column, unsigned long long& i)
    mysql_stmt_fetch_column(getStatementHandle(), &mBindings[column], column, 0);
    
    // FIXME: check exceptions, etc
-   return rval;
+   return true;
 }
 
-SqlException* MySqlRow::getText(unsigned int column, string& str)
+bool MySqlRow::getText(unsigned int column, string& str)
 {
-   SqlException* rval = NULL;
-   
    mBindings[column].buffer_type = MYSQL_TYPE_BLOB;
    char temp[mBindings[column].buffer_length + 1];
    mBindings[column].buffer = temp;
@@ -152,12 +143,12 @@ SqlException* MySqlRow::getText(unsigned int column, string& str)
    str.assign(temp);
    
    // FIXME: check exceptions, etc
-   return rval;
+   return true;
 }
 
-SqlException* MySqlRow::getType(const char* column, int& type)
+bool MySqlRow::getType(const char* column, int& type)
 {
-   SqlException* rval = NULL;
+   bool rval = false;
    
    // get column index for name
    long long index = getColumnIndex(column);
@@ -165,17 +156,13 @@ SqlException* MySqlRow::getType(const char* column, int& type)
    {
       rval = getType(index, type);
    }
-   else
-   {
-      rval = (SqlException*)Exception::getLast();
-   }
    
    return rval;
 }
 
-SqlException* MySqlRow::getInt32(const char* column, int& i)
+bool MySqlRow::getInt32(const char* column, int& i)
 {
-   SqlException* rval = NULL;
+   bool rval = false;
    
    // get column index for name
    long long index = getColumnIndex(column);
@@ -183,17 +170,13 @@ SqlException* MySqlRow::getInt32(const char* column, int& i)
    {
       rval = getInt32(index, i);
    }
-   else
-   {
-      rval = (SqlException*)Exception::getLast();
-   }
    
    return rval;
 }
 
-SqlException* MySqlRow::getUInt32(const char* column, unsigned int& i)
+bool MySqlRow::getUInt32(const char* column, unsigned int& i)
 {
-   SqlException* rval = NULL;
+   bool rval = false;
    
    // get column index for name
    long long index = getColumnIndex(column);
@@ -201,17 +184,13 @@ SqlException* MySqlRow::getUInt32(const char* column, unsigned int& i)
    {
       rval = getUInt32(index, i);
    }
-   else
-   {
-      rval = (SqlException*)Exception::getLast();
-   }
    
    return rval;
 }
 
-SqlException* MySqlRow::getInt64(const char* column, long long& i)
+bool MySqlRow::getInt64(const char* column, long long& i)
 {
-   SqlException* rval = NULL;
+   bool rval = false;
    
    // get column index for name
    long long index = getColumnIndex(column);
@@ -219,17 +198,13 @@ SqlException* MySqlRow::getInt64(const char* column, long long& i)
    {
       rval = getInt64(index, i);
    }
-   else
-   {
-      rval = (SqlException*)Exception::getLast();
-   }
    
    return rval;
 }
 
-SqlException* MySqlRow::getUInt64(const char* column, unsigned long long& i)
+bool MySqlRow::getUInt64(const char* column, unsigned long long& i)
 {
-   SqlException* rval = NULL;
+   bool rval = false;
    
    // get column index for name
    long long index = getColumnIndex(column);
@@ -237,27 +212,19 @@ SqlException* MySqlRow::getUInt64(const char* column, unsigned long long& i)
    {
       rval = getUInt64(index, i);
    }
-   else
-   {
-      rval = (SqlException*)Exception::getLast();
-   }
    
    return rval;
 }
 
-SqlException* MySqlRow::getText(const char* column, std::string& str)
+bool MySqlRow::getText(const char* column, std::string& str)
 {
-   SqlException* rval = NULL;
+   bool rval = false;
    
    // get column index for name
    long long index = getColumnIndex(column);
    if(index != -1)
    {
       rval = getText(index, str);
-   }
-   else
-   {
-      rval = (SqlException*)Exception::getLast();
    }
    
    return rval;

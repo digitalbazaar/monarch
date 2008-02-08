@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_modest_Module_H
 #define db_modest_Module_H
@@ -99,9 +99,10 @@ public:
     * 
     * @param k the the modest Kernel to initialize with.
     * 
-    * @return an Exception if one occurred, NULL if not.
+    * @return true if the module initialized, false if not (with
+    *         an Exception set).
     */
-   virtual db::rt::Exception* initialize(Kernel* k) = 0;
+   virtual bool initialize(Kernel* k) = 0;
    
    /**
     * Cleans up this Module just prior to its unloading.

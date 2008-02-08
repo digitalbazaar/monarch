@@ -59,18 +59,18 @@ public:
     * 
     * @param certFile the file with the PEM-formatted certificate to use.
     * 
-    * @return an Exception if the certificate could not be loaded, else NULL.
+    * @return true if the certificate loaded, false if an Exception occurred.
     */
-   virtual db::rt::Exception* setCertificate(db::io::File* certFile);
+   virtual bool setCertificate(db::io::File* certFile);
    
    /**
     * Sets the PEM-formatted private key for this SSL context to use.
     * 
     * @param pkeyFile the file with the PEM-formatted private key to use.
     * 
-    * @return an Exception if the private key could not be loaded, else NULL.
+    * @return true if the private key loaded, false if an Exception occurred.
     */
-   virtual db::rt::Exception* setPrivateKey(db::io::File* pkeyFile);
+   virtual bool setPrivateKey(db::io::File* pkeyFile);
    
    /**
     * Sets the peer authentication mode for this SSL context. If peer
@@ -100,10 +100,9 @@ public:
     * @param caFile the main CA file (can be NULL if caDir is not).
     * @param caDir the backup CA directory (can be NULL is caFile is not).
     * 
-    * @return an Exception if one occurred, NULL if not.
+    * @return true if the CAs were set properly, false if an Exception occurred.
     */
-   virtual db::rt::Exception* setVerifyCAs(
-      db::io::File* caFile, db::io::File* caDir);
+   virtual bool setVerifyCAs(db::io::File* caFile, db::io::File* caDir);
 };
 
 } // end namespace net

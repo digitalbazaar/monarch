@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_sql_Connection_H
 #define db_sql_Connection_H
@@ -63,9 +63,9 @@ public:
     * @param url the url for the database to connect to, including driver
     *            specific parameters.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* connect(const char* url);
+   virtual bool connect(const char* url);
    
    /**
     * Connects to the database specified by the given url.
@@ -73,9 +73,9 @@ public:
     * @param url the url for the database to connect to, including driver
     *            specific parameters.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* connect(db::net::Url* url) = 0;
+   virtual bool connect(db::net::Url* url) = 0;
    
    /**
     * Prepares a Statement for execution. The Statement is heap-allocated and
@@ -96,23 +96,23 @@ public:
    /**
     * Begins a new transaction.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* begin();
+   virtual bool begin();
    
    /**
     * Commits the current transaction.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* commit();
+   virtual bool commit();
    
    /**
     * Rolls back the current transaction.
     * 
-    * @return an SqlException if one occurred, NULL if not.
+    * @return true if successful, false if an SqlException occurred.
     */
-   virtual SqlException* rollback();
+   virtual bool rollback();
 };
 
 } // end namespace sql

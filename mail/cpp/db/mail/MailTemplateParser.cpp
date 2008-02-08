@@ -18,10 +18,10 @@ MailTemplateParser::~MailTemplateParser()
 {
 }
 
-Exception* MailTemplateParser::parseLine(
+bool MailTemplateParser::parseLine(
    Mail* mail, DynamicObject& vars, const char* line, bool& headers)
 {
-   Exception* rval = NULL;
+   bool rval = true;
    
    // keep a string for appending message data to
    string msg;
@@ -120,11 +120,11 @@ Exception* MailTemplateParser::parseLine(
       // ensure there is a header name and that no white-space occurs in it
       if(header == NULL || (int)strcspn(line, " \t") < (header - line))
       {
-         rval = new Exception(
+         ExceptionRef e = new Exception(
             "Parse error while parsing mail template! Mail header "
-            "is malformed, non-existant, or Subject header was not "
-            "found.");
-         Exception::setLast(rval);
+            "is malformed, non-existant, or Subject header was not found.");
+         Exception::setLast(e);
+         rval = false;
       }
       else
       {
@@ -154,10 +154,10 @@ Exception* MailTemplateParser::parseLine(
    return rval;
 }
 
-Exception* MailTemplateParser::parse(
+bool MailTemplateParser::parse(
    Mail* mail, DynamicObject& vars, InputStream* is)
 {
-   Exception* rval = NULL;
+   bool rval = true;
    
    // SMTP RFC requires lines be no longer than 998 bytes (+2 for CRLF = 1000)
    // so read in a maximum of 1000 bytes at a time
@@ -170,7 +170,7 @@ Exception* MailTemplateParser::parse(
    bool cr = false;
    
    // read as much as 1000 bytes at a time, then check the read buffer
-   while(rval == NULL && (numBytes = is->read(b, 1000 - length)) > 0)
+   while(rval && (numBytes = is->read(b, 1000 - length)) > 0)
    {
       // increment length
       length += numBytes;
@@ -180,7 +180,7 @@ Exception* MailTemplateParser::parse(
       start = b;
       
       // parse lines according to line breaks
-      while(rval == NULL && (end = strpbrk(start, "\r\n")) != NULL)
+      while(rval && (end = strpbrk(start, "\r\n")) != NULL)
       {
          // take note of CR, then insert null-terminator
          cr = (end[0] == '\r');
@@ -198,10 +198,11 @@ Exception* MailTemplateParser::parse(
       {
          // invalid line detected
          numBytes = -1;
-         rval = new Exception(
+         ExceptionRef e = new Exception(
             "Message line too long! SMTP requires that lines be no longer "
             "than 1000 bytes, including the terminating CRLF.");
-         Exception::setLast(rval);
+         Exception::setLast(e);
+         rval = false;
       }
       else if(start > b)
       {
@@ -212,7 +213,7 @@ Exception* MailTemplateParser::parse(
    
    if(numBytes < 0)
    {
-      rval = Exception::getLast();
+      rval = false;
    }
    else if(start != NULL)
    {

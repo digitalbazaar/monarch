@@ -95,8 +95,9 @@ public:
 inline int InputStream::peek(char* b, int length, bool block)
 {
    // extending classes must implement this method if they want support
-   db::rt::Exception::setLast(new IOException(
-      "InputStream::peek() is not implemented!"));
+   db::rt::ExceptionRef e =
+      new IOException("InputStream::peek() is not implemented!");
+   db::rt::Exception::setLast(e);
    return -1;
 }
 

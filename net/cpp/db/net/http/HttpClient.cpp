@@ -110,15 +110,11 @@ HttpResponse* HttpClient::get(Url* url, const char** headers)
       // set user headers
       setHeaders(mRequest->getHeader(), headers);
       
-      // send request header
-      if(mRequest->sendHeader() == NULL)
+      // send request header and receive response header
+      if(mRequest->sendHeader() && mResponse->receiveHeader())
       {
-         // receive response header
-         if(mResponse->receiveHeader() == NULL)
-         {
-            // return response
-            rval = mResponse;
-         }
+         // return response
+         rval = mResponse;
       }
    }
    
@@ -144,33 +140,28 @@ HttpResponse* HttpClient::post(
       // set user headers
       setHeaders(mRequest->getHeader(), headers);
       
-      // send request header
-      if(mRequest->sendHeader() == NULL)
+      // send request header, send body, and receive response header
+      if(mRequest->sendHeader() &&
+         mRequest->sendBody(is, trailer) &&
+         mResponse->receiveHeader())
       {
-         // send body
-         if(mRequest->sendBody(is, trailer) == NULL)
-         {
-            // receive response header
-            if(mResponse->receiveHeader() == NULL)
-            {
-               // return response
-               rval = mResponse;
-            }
-         }
+         // return response
+         rval = mResponse;
       }
    }
    
    return rval;
 }
 
-IOException* HttpClient::receiveContent(OutputStream* os, HttpTrailer* trailer)
+bool HttpClient::receiveContent(OutputStream* os, HttpTrailer* trailer)
 {
-   IOException* rval = NULL;
+   bool rval = false;
    
    if(mConnection == NULL)
    {
-      rval = new IOException("Could not receive HTTP content, not connected!");
-      Exception::setLast(rval);
+      ExceptionRef e = new IOException(
+         "Could not receive HTTP content, not connected!");
+      Exception::setLast(e);
    }
    else
    {

@@ -55,16 +55,15 @@ public:
       if(name == "Thread 1")
       {
          //cout << "Thread 1 Waiting for interruption..." << endl;
-         InterruptedException* e = NULL;
          
          lock();
          {
             lock();
             lock();
             lock();
-            e = wait();
             // thread 1 should be interrupted
-            assert(e != NULL);
+            bool interrupted = !wait();
+            assert(interrupted);
             unlock();
             unlock();
             unlock();
@@ -97,7 +96,8 @@ public:
             while(mustWait)
             {
                // thread 3 should be notified, not interrupted
-               assert(wait(5000) == NULL);
+               bool interrupted = !wait(5000);
+               assert(!interrupted);
             }
             //cout << "Thread 3 Awake!" << endl;
          }

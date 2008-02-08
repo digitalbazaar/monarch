@@ -112,9 +112,9 @@ unsigned long long BandwidthThrottler::getAvailableBytes()
    return mAvailableBytes;
 }
 
-InterruptedException* BandwidthThrottler::limitBandwidth()
+bool BandwidthThrottler::limitBandwidth()
 {
-   InterruptedException* rval = NULL;
+   bool rval = true;
    
    // update the window time
    updateWindowTime();
@@ -124,7 +124,7 @@ InterruptedException* BandwidthThrottler::limitBandwidth()
    
    // while there aren't any available bytes, sleep for the
    // available byte time
-   while(rval == NULL && getAvailableBytes() == 0)
+   while(rval && getAvailableBytes() == 0)
    {
       // sleep
       rval = Thread::sleep(getAvailableByteTime());
@@ -136,10 +136,9 @@ InterruptedException* BandwidthThrottler::limitBandwidth()
    return rval;
 }
 
-InterruptedException* BandwidthThrottler::requestBytes(
-   unsigned int count, int& permitted)
+bool BandwidthThrottler::requestBytes(unsigned int count, int& permitted)
 {
-   InterruptedException* rval = NULL;
+   bool rval = true;
    
    // no bytes permitted yet
    permitted = 0;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/DigitalEnvelope.h"
 #include "db/crypto/PrivateKey.h"
@@ -104,9 +104,10 @@ bool DigitalEnvelope::startSealing(
             free(iv);
          }
          
-         Exception::setLast(new IOException(
+         ExceptionRef e = new IOException(
             "Could not start opening envelope!",
-            ERR_error_string(ERR_get_error(), NULL)));
+            ERR_error_string(ERR_get_error(), NULL));
+         Exception::setLast(e);
       }
    }
    
@@ -142,9 +143,10 @@ bool DigitalEnvelope::startOpening(
       }
       else
       {
-         Exception::setLast(new IOException(
+         ExceptionRef e = new IOException(
             "Could not start opening envelope!",
-            ERR_error_string(ERR_get_error(), NULL)));
+            ERR_error_string(ERR_get_error(), NULL));
+         Exception::setLast(e);
       }
    }
    
@@ -170,9 +172,10 @@ bool DigitalEnvelope::update(
          }
          else
          {
-            Exception::setLast(new IOException(
+            ExceptionRef e = new IOException(
                "Could not seal envelope data!",
-               ERR_error_string(ERR_get_error(), NULL)));
+               ERR_error_string(ERR_get_error(), NULL));
+            Exception::setLast(e);
          }
       }
       else
@@ -186,16 +189,18 @@ bool DigitalEnvelope::update(
          }
          else
          {
-            Exception::setLast(new IOException(
+            ExceptionRef e = new IOException(
                "Could not open envelope data!",
-               ERR_error_string(ERR_get_error(), NULL)));
+               ERR_error_string(ERR_get_error(), NULL));
+            Exception::setLast(e);
          }
       }
    }
    else
    {
-      Exception::setLast(new IOException(
-         "Cannot update envelope; envelope not started!"));
+      ExceptionRef e = new IOException(
+         "Cannot update envelope; envelope not started!");
+      Exception::setLast(e);
    }
    
    return rval;
@@ -217,9 +222,10 @@ bool DigitalEnvelope::finish(char* out, int& length)
          }
          else
          {
-            Exception::setLast(new IOException(
+            ExceptionRef e = new IOException(
                "Could not finish sealing envelope!",
-               ERR_error_string(ERR_get_error(), NULL)));
+               ERR_error_string(ERR_get_error(), NULL));
+            Exception::setLast(e);
          }
       }
       else
@@ -231,16 +237,18 @@ bool DigitalEnvelope::finish(char* out, int& length)
          }
          else
          {
-            Exception::setLast(new IOException(
+            ExceptionRef e = new IOException(
                "Could not finish opening envelope!",
-               ERR_error_string(ERR_get_error(), NULL)));
+               ERR_error_string(ERR_get_error(), NULL));
+            Exception::setLast(e);
          }
       }
    }
    else
    {
-      Exception::setLast(new IOException(
-         "Cannot finish envelope; envelope not started!"));
+      ExceptionRef e = new IOException(
+         "Cannot finish envelope; envelope not started!");
+      Exception::setLast(e);
    }
    
    return rval;

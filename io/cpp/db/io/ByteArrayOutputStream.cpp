@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/ByteArrayOutputStream.h"
 
@@ -31,7 +31,8 @@ bool ByteArrayOutputStream::write(const char* b, int length)
          "Could not write all data, ByteBuffer is full!");
       e->setUsedBytes(written);
       e->setUnusedBytes(length - written);
-      Exception::setLast(e);
+      ExceptionRef ref = e;
+      Exception::setLast(ref);
    }
    
    return rval;

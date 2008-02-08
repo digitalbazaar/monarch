@@ -3,6 +3,7 @@
  */
 #include "db/net/InternetAddress.h"
 #include "db/net/SocketDefinitions.h"
+#include "db/rt/Exception.h"
 
 using namespace std;
 using namespace db::net;
@@ -88,9 +89,9 @@ void InternetAddress::setAddress(const char* address)
    mHost = strdup("");
 }
 
-UnknownHostException* InternetAddress::setHost(const char* host)
+bool InternetAddress::setHost(const char* host)
 {
-   UnknownHostException* rval = NULL;
+   bool rval = false;
    
    // create hints address structure
    struct addrinfo hints;
@@ -103,10 +104,11 @@ UnknownHostException* InternetAddress::setHost(const char* host)
    // get address information
    if(getaddrinfo(host, NULL, &hints, &res) != 0)
    {
-      char msg[17 + strlen(host)];
-      sprintf(msg, "Unknown host '%s'!", host);
-      rval = new UnknownHostException(msg);
-      Exception::setLast(rval);
+      int length = 17 + strlen(host);
+      char msg[length];
+      snprintf(msg, length, "Unknown host '%s'!", host);
+      ExceptionRef e = new Exception(msg, "db.net.UnknownHost");
+      Exception::setLast(e);
    }
    else
    {
@@ -120,6 +122,7 @@ UnknownHostException* InternetAddress::setHost(const char* host)
       inet_ntop(AF_INET, &addr.sin_addr, dst, INET_ADDRSTRLEN);
       free(mAddress);
       mAddress = strdup(dst);
+      rval = true;
    }
    
    if(res != NULL)
@@ -181,8 +184,9 @@ bool InternetAddress::isMulticast()
 
 string& InternetAddress::toString(string& str)
 {
-   char temp[100 + strlen(getHost()) + strlen(getAddress())];
-   sprintf(temp, "InternetAddress [%s:%u,%s:%u]",
+   int length = 100 + strlen(getHost()) + strlen(getAddress());
+   char temp[length];
+   snprintf(temp, length, "InternetAddress [%s:%u,%s:%u]",
       getHost(), getPort(), getAddress(), getPort());
    str.assign(temp);
    return str;

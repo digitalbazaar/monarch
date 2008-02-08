@@ -65,15 +65,16 @@ int ConnectionInputStream::read(char* b, int length)
    return rval;
 }
 
-bool ConnectionInputStream::readLine(string& line)
+int ConnectionInputStream::readLine(string& line)
 {
-   bool rval = false;
+   int rval = 0;
    
    line.erase();
    
    // read one character at a time
    char c;
-   while(read(&c, 1) > 0 && c != '\n')
+   int numBytes;
+   while((numBytes = read(&c, 1)) > 0 && c != '\n')
    {
       // see if the character is a carriage return
       if(c == '\r')
@@ -94,16 +95,21 @@ bool ConnectionInputStream::readLine(string& line)
          line.push_back(c);
          
          // a character was appended, so not end of stream
-         rval = true;
+         rval = 1;
       }
+   }
+   
+   if(numBytes == -1)
+   {
+      rval = -1;
    }
    
    return rval;
 }
 
-bool ConnectionInputStream::readCrlf(string& line)
+int ConnectionInputStream::readCrlf(string& line)
 {
-   bool rval = false;
+   int rval = 0;
    
    line.erase();
    
@@ -111,7 +117,7 @@ bool ConnectionInputStream::readCrlf(string& line)
    char b[1024];
    int numBytes;
    bool block = false;
-   while(!rval && (numBytes = peek(b, 1023, block)) != -1 &&
+   while(rval != 1 && (numBytes = peek(b, 1023, block)) != -1 &&
          (numBytes > 0 || !block))
    {
       if(numBytes <= 1)
@@ -155,7 +161,7 @@ bool ConnectionInputStream::readCrlf(string& line)
                if(i[1] == '\n')
                {
                   // CRLF found before end of stream
-                  rval = true;
+                  rval = 1;
                   
                   // read and discard CRLF (2 characters)
                   read(b, 2);
@@ -169,6 +175,11 @@ bool ConnectionInputStream::readCrlf(string& line)
             }
          }
       }
+   }
+   
+   if(numBytes == -1)
+   {
+      rval = -1;
    }
    
    return rval;

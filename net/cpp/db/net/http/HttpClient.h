@@ -132,9 +132,9 @@ public:
     * @param os the OutputStream to write the content to.
     * @param trailer used to store any trailer headers.
     * 
-    * @return an IO exception if one occurs, otherwise NULL.
+    * @return false if an IO exception occurred, true if not.
     */
-   virtual db::io::IOException* receiveContent(
+   virtual bool receiveContent(
       db::io::OutputStream* os, HttpTrailer* trailer = NULL);
    
    /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/ModuleLibrary.h"
 
@@ -53,8 +53,7 @@ Module* ModuleLibrary::loadModule(const char* filename)
          if(findModule(&mi->module->getId()) == NULL)
          {
             // initialize the module
-            Exception* e = mi->module->initialize(mKernel);
-            if(e == NULL)
+            if(mi->module->initialize(mKernel))
             {
                // add Module to the map and list
                mModules[&mi->module->getId()] = mi;
@@ -64,13 +63,15 @@ Module* ModuleLibrary::loadModule(const char* filename)
             else
             {
                // could not initialize module, so unload it
-               char temp[120 +
-                  strlen(filename) + 
+               ExceptionRef e = Exception::getLast();
+               int length = 
+                  120 + strlen(filename) + 
                   strlen(mi->module->getId().name) +
                   strlen(mi->module->getId().version) +
                   strlen(e->getMessage()) +
-                  strlen(e->getType())];
-               sprintf(temp,
+                  strlen(e->getType());
+               char temp[length];
+               snprintf(temp, length,
                   "Could not initialize module '%s' "
                   "named '%s', version '%s',cause=%s:%s:%i",
                   filename,
@@ -79,9 +80,9 @@ Module* ModuleLibrary::loadModule(const char* filename)
                   e->getMessage(),
                   e->getType(),
                   e->getCode());
-               Exception* ex = new Exception(
+               ExceptionRef ex = new Exception(
                   temp, "db.modest.ModuleInitializationError");
-               ex->setCause(e, true);
+               ex->setCause(e);
                Exception::setLast(ex);
                mLoader.unloadModule(mi);
             }
@@ -89,18 +90,19 @@ Module* ModuleLibrary::loadModule(const char* filename)
          else
          {
             // module is already loaded, set exception and unload it
-            char temp[100 +
-               strlen(filename) + 
+            int length = 
+               100 + strlen(filename) + 
                strlen(mi->module->getId().name) +
-               strlen(mi->module->getId().version)];
-            sprintf(temp,
+               strlen(mi->module->getId().version);
+            char temp[length];
+            snprintf(temp, length,
                "Could not load module '%s'. Module "
                "named '%s' with version '%s' is already loaded.",
                filename,
                mi->module->getId().name,
                mi->module->getId().version);
-            Exception::setLast(
-               new Exception(temp), "db.modest.DuplicateModule");
+            ExceptionRef e = new Exception(temp, "db.modest.DuplicateModule");
+            Exception::setLast(e);
             mLoader.unloadModule(mi);
          }
       }

@@ -463,7 +463,7 @@ unsigned long long DynamicObjectImpl::getUInt64()
          rval = (mInt64 < 0) ? 0 : mInt64;
          break;
       case Double:
-         rval = mDouble;
+         rval = (unsigned long long)mDouble;
          break;
       default:
          rval = 0;

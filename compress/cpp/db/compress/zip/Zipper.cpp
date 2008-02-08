@@ -52,9 +52,9 @@ Zipper::~Zipper()
 {
 }
 
-Exception* Zipper::zip(FileList* fl, File* out)
+bool Zipper::zip(FileList* fl, File* out)
 {
-   Exception* rval = NULL;
+   bool rval = true;
    
    // clear entry list, reset central directory offset
    mEntries.clear();
@@ -67,7 +67,7 @@ Exception* Zipper::zip(FileList* fl, File* out)
    char b[2048];
    int numBytes;
    IteratorRef<File*> i = fl->getIterator();
-   while(rval == NULL && i->hasNext())
+   while(rval && i->hasNext())
    {
       File* file = i->next();
       
@@ -76,12 +76,11 @@ Exception* Zipper::zip(FileList* fl, File* out)
       ze->setFilename(file->getName());
       
       // write entry
-      rval = writeEntry(ze, &fos);
-      if(rval == NULL)
+      if((rval = writeEntry(ze, &fos)))
       {
          // write data for entry
          FileInputStream fis(file);
-         while(rval == NULL && (numBytes = fis.read(b, 2048)) > 0)
+         while(rval && (numBytes = fis.read(b, 2048)) > 0)
          {
             rval = write(b, numBytes, &fos);
          }
@@ -98,10 +97,8 @@ Exception* Zipper::zip(FileList* fl, File* out)
    return rval;
 }
 
-Exception* Zipper::writeLocalFileHeader(ZipEntry& ze, OutputStream* os)
+bool Zipper::writeLocalFileHeader(ZipEntry& ze, OutputStream* os)
 {
-   Exception* rval = NULL;
-   
    // FIXME: handle byte ordering (format is little-endian)
    
    unsigned int dosTime = ze->getDosTime();
@@ -121,7 +118,7 @@ Exception* Zipper::writeLocalFileHeader(ZipEntry& ze, OutputStream* os)
    // write uncompressed size (0 here since its in the central directory)
    // write file name length
    // write extra field length (0)
-   if(!(
+   return
       os->write((char*)&LFH_SIGNATURE, 4) &&
       os->write((char*)&ZIP_VERSION, 2) &&
       os->write((char*)&mGpBitFlag, 2) &&
@@ -132,30 +129,20 @@ Exception* Zipper::writeLocalFileHeader(ZipEntry& ze, OutputStream* os)
       os->write((char*)&size, 4) &&
       os->write((char*)&fnLength, 2) &&
       os->write((char*)&exLength, 2) &&
-      os->write(ze->getFilename(), fnLength)))
-   {
-      // could not write to output stream
-      rval = Exception::getLast();
-   }
-   
-   return rval;
+      os->write(ze->getFilename(), fnLength);
 }
 
-Exception* Zipper::readLocalFileHeader(ZipEntry& ze, InputStream* is)
+bool Zipper::readLocalFileHeader(ZipEntry& ze, InputStream* is)
 {
-   Exception* rval = NULL;
-   
    // FIXME: not implemented
-   rval = new Exception("Zipper::readLocalFileHeader() not implemented!");
-   Exception::setLast(rval);
-   
-   return rval;
+   ExceptionRef e = new Exception(
+      "Zipper::readLocalFileHeader() not implemented!");
+   Exception::setLast(e);
+   return false;
 }
 
-Exception* Zipper::writeFileHeader(ZipEntry& ze, OutputStream* os)
+bool Zipper::writeFileHeader(ZipEntry& ze, OutputStream* os)
 {
-   Exception* rval = NULL;
-   
    // FIXME: handle byte ordering (format is little-endian)
    
    unsigned int dosTime = ze->getDosTime();
@@ -190,7 +177,7 @@ Exception* Zipper::writeFileHeader(ZipEntry& ze, OutputStream* os)
    // write file name
    // write extra field (none)
    // write file comment
-   if(!(
+   return
       os->write((char*)&CDS_SIGNATURE, 4) &&
       os->write((char*)&ZIP_VERSION, 2) &&
       os->write((char*)&ZIP_VERSION, 2) &&
@@ -209,29 +196,20 @@ Exception* Zipper::writeFileHeader(ZipEntry& ze, OutputStream* os)
       os->write((char*)&offset, 4) &&
       os->write(ze->getFilename(), fnLength) &&
       // no extra field to write out, write out comment
-      os->write(ze->getFileComment(), fcLength)))
-   {
-      // could not write to output stream
-      rval = Exception::getLast();
-   }
-   
-   return rval;
+      os->write(ze->getFileComment(), fcLength);
 }
 
-Exception* Zipper::readFileHeader(ZipEntry& ze, InputStream* is)
+bool Zipper::readFileHeader(ZipEntry& ze, InputStream* is)
 {
-   Exception* rval = NULL;
-   
    // FIXME: not implemented
-   rval = new Exception("Zipper::readFileHeader() not implemented!");
-   Exception::setLast(rval);
-   
-   return rval;
+   ExceptionRef e = new Exception("Zipper::readFileHeader() not implemented!");
+   Exception::setLast(e);
+   return false;
 }
 
-Exception* Zipper::finishCurrentEntry(OutputStream* os)
+bool Zipper::finishCurrentEntry(OutputStream* os)
 {
-   Exception* rval = NULL;
+   bool rval = true;
    
    // write data descriptor for previous entry
    if(!mEntries.empty())
@@ -245,11 +223,8 @@ Exception* Zipper::finishCurrentEntry(OutputStream* os)
       mDeflater.process(&mBuffer, true);
       if(!mBuffer.isEmpty())
       {
-         if(mBuffer.get(os) == 0)
-         {
-            // could not write to output stream
-            rval = Exception::getLast();
-         }
+         // ensure data is written to output stream
+         rval = (mBuffer.get(os) > 0);
       }
       
       // set compressed/uncompressed sizes for entry
@@ -265,7 +240,7 @@ Exception* Zipper::finishCurrentEntry(OutputStream* os)
       // add size of compressed data to central directory offset
       mCentralDirectoryOffset += mDeflater.getTotalOutputBytes();
       
-      if(rval == NULL)
+      if(rval)
       {
          unsigned int crc = ze->getCrc32();
          unsigned int cSize = ze->getCompressedSize();
@@ -277,15 +252,11 @@ Exception* Zipper::finishCurrentEntry(OutputStream* os)
          // write out crc
          // write out compressed size
          // write out uncompressed size
-         if(!(
+         rval =
             os->write((char*)&DAD_SIGNATURE, 4) &&
             os->write((char*)&crc, 4) &&
             os->write((char*)&cSize, 4) &&
-            os->write((char*)&ucSize, 4)))
-         {
-            // could not write to output stream
-            rval = Exception::getLast();
-         }
+            os->write((char*)&ucSize, 4);
          
          // add data descriptor size to central directory offset
          mCentralDirectoryOffset += 16;
@@ -295,12 +266,12 @@ Exception* Zipper::finishCurrentEntry(OutputStream* os)
    return rval;
 }
 
-Exception* Zipper::writeEntry(ZipEntry& ze, OutputStream* os)
+bool Zipper::writeEntry(ZipEntry& ze, OutputStream* os)
 {
    // finish the current entry
-   Exception* rval = finishCurrentEntry(os);
+   bool rval = finishCurrentEntry(os);
    
-   if(rval == NULL)
+   if(rval)
    {
       // store new entry in list
       mEntries.push_back(ze);
@@ -323,14 +294,15 @@ int Zipper::readEntry(ZipEntry& ze, InputStream* is)
    int rval = -1;
    
    // FIXME: not implemented
-   Exception::setLast(new Exception("Zipper::readEntry() not implemented!"));
+   ExceptionRef e = new Exception("Zipper::readEntry() not implemented!");
+   Exception::setLast(e);
    
    return rval;
 }
 
-Exception* Zipper::write(char* b, int length, OutputStream* os)
+bool Zipper::write(char* b, int length, OutputStream* os)
 {
-   Exception* rval = NULL;
+   bool rval = true;
    
    // update the entry's crc
    ZipEntry& ze = mEntries.back();
@@ -340,13 +312,10 @@ Exception* Zipper::write(char* b, int length, OutputStream* os)
    mDeflater.setInput(b, length, false);
    
    // process all input and write it to the output stream
-   while(rval == NULL && mDeflater.process(&mBuffer, false) > 0)
+   while(rval && mDeflater.process(&mBuffer, false) > 0)
    {
-      if(mBuffer.get(os) == 0)
-      {
-         // could not write to output stream
-         rval = Exception::getLast();
-      }
+      // ensure data is written to output stream
+      rval = (mBuffer.get(os) > 0);
    }
    
    return rval;
@@ -357,30 +326,31 @@ int Zipper::read(char* b, int length)
    int rval = -1;
    
    // FIXME: not implemented
-   Exception::setLast(new Exception("Zipper::read() not implemented!"));
+   ExceptionRef e = new Exception("Zipper::read() not implemented!");
+   Exception::setLast(e);
    
    return rval;
 }
 
-Exception* Zipper::finish(OutputStream* os)
+bool Zipper::finish(OutputStream* os)
 {
    // finish the current entry
-   Exception* rval = finishCurrentEntry(os);
+   bool rval = finishCurrentEntry(os);
    
    // check central directory flag
-   if(rval == NULL && true)// FIXME: replace "true" with flag check
+   if(rval && true)// FIXME: replace "true" with flag check
    {
       // write out the file header for each entry
       unsigned int cdSize = 0;
       for(EntryList::iterator i = mEntries.begin();
-          rval == NULL && i != mEntries.end(); i++)
+          rval && i != mEntries.end(); i++)
       {
          rval = writeFileHeader(*i, os);
          cdSize += (*i)->getFileHeaderSize();
       }
       
       // write out end of central directory record
-      if(rval == NULL)
+      if(rval)
       {
          // FIXME: handle byte ordering (format is little-endian)
          
@@ -397,7 +367,7 @@ Exception* Zipper::finish(OutputStream* os)
          // write out offset of start of central directory w/respect to disk #
          // write out .ZIP file comment length
          // write out .ZIP file comment
-         if(!(
+         rval =
             os->write((char*)&CDE_SIGNATURE, 4) &&
             os->write((char*)&diskNumber, 2) &&
             os->write((char*)&diskNumber, 2) &&
@@ -405,11 +375,7 @@ Exception* Zipper::finish(OutputStream* os)
             os->write((char*)&entries, 2) &&
             os->write((char*)&cdSize, 4) &&
             os->write((char*)&mCentralDirectoryOffset, 4) &&
-            os->write((char*)&zipCommentLength, 2)))
-         {
-            // could not write to output stream
-            rval = Exception::getLast();
-         }
+            os->write((char*)&zipCommentLength, 2);
       }
    }
    

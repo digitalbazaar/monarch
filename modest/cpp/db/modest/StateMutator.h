@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_modest_StateMutator_H
 #define db_modest_StateMutator_H
@@ -55,8 +55,8 @@ public:
    virtual void mutatePostExecutionState(State* s, Operation& op) {};
 };
 
-// define a collectable StateMutator
-typedef db::rt::Collectable<StateMutator> CollectableStateMutator;
+// define a reference counted StateMutator type
+typedef db::rt::Collectable<StateMutator> StateMutatorRef;
 
 } // end namespace modest
 } // end namespace db

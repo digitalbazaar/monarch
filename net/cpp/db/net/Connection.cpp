@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/Connection.h"
 
@@ -113,28 +113,14 @@ void Connection::close()
    getSocket()->close();
 }
 
-SocketException* Connection::getLocalAddress(SocketAddress* address)
+bool Connection::getLocalAddress(SocketAddress* address)
 {
-   SocketException* rval = NULL;
-   
-   if(!getSocket()->getLocalAddress(address))
-   {
-      rval = (SocketException*)Exception::getLast();
-   }
-   
-   return rval;
+   return getSocket()->getLocalAddress(address);
 }
 
-SocketException* Connection::getRemoteAddress(SocketAddress* address)
+bool Connection::getRemoteAddress(SocketAddress* address)
 {
-   SocketException* rval = NULL;
-   
-   if(!getSocket()->getRemoteAddress(address))
-   {
-      rval = (SocketException*)Exception::getLast();
-   }
-   
-   return rval;
+   return getSocket()->getRemoteAddress(address);
 }
 
 void Connection::setSocket(Socket* s, bool cleanup)

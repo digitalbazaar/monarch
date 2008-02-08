@@ -36,9 +36,9 @@ Url& Url::operator=(const Url& rhs)
    return *this;
 }
 
-MalformedUrlException* Url::setUrl(const string& url, bool relative)
+bool Url::setUrl(const string& url, bool relative)
 {
-   MalformedUrlException* rval = NULL;
+   bool rval = true;
    
    mRelative = relative;
    
@@ -52,8 +52,10 @@ MalformedUrlException* Url::setUrl(const string& url, bool relative)
    if(!relative && index == string::npos)
    {
       // no colon found
-      rval = new MalformedUrlException("Url is missing a colon!");
-      Exception::setLast(rval);
+      ExceptionRef e = new Exception(
+         "Url is missing a colon!", "db.net.MalformedUrl");
+      Exception::setLast(e);
+      rval = false;
    }
    else
    {
@@ -83,29 +85,33 @@ MalformedUrlException* Url::setUrl(const string& url, bool relative)
          c = mScheme.c_str()[0];
          if(c < 'a' || c > 'z')
          {
-            rval = new MalformedUrlException(
-               "Url scheme contains invalid start character!");
-            Exception::setLast(rval);
+            ExceptionRef e = new Exception(
+               "Url scheme contains invalid start character!",
+               "db.net.MalformedUrl");
+            Exception::setLast(e);
+            rval = false;
          }
          else
          {
-            for(string::iterator i = mScheme.begin(); i != mScheme.end(); i++)
+            for(string::iterator i = mScheme.begin();
+                rval && i != mScheme.end(); i++)
             {
                // non-start characters must be in [a-z0-9+.-]
                c = *i;
                if(!((c > 'a' && c < 'z') || (c > '0' && c < '9') ||
                   c == '+' || c == '.' || c != '-'))
                {
-                  rval = new MalformedUrlException(
-                     "Url scheme contains invalid characters!");
-                  Exception::setLast(rval);
-                  break;
+                  ExceptionRef e = new Exception(
+                     "Url scheme contains invalid characters!",
+                     "db.net.MalformedUrl");
+                  Exception::setLast(e);
+                  rval = false;
                }
             }
          }
       }
       
-      if(rval == NULL && index < url.length() - 1)
+      if(rval && index < url.length() - 1)
       {
          // get scheme specific part
          if(relative)

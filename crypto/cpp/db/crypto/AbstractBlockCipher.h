@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_AbstractBlockCipher_H
 #define db_crypto_AbstractBlockCipher_H
@@ -39,8 +39,8 @@ protected:
    const EVP_CIPHER* mCipherFunction;   
    
    /**
-    * Gets the cipher function for this Cipher. An UnsupportedAlgorithmException
-    * may be raised if the passed algorithm is not supported.
+    * Gets the cipher function for this Cipher. An UnsupportedAlgorithm
+    * exception may be raised if the passed algorithm is not supported.
     * 
     * @param algorithm the cipher algorithm. 
     * 

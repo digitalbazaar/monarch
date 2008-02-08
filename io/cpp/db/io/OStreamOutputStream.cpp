@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/OStreamOutputStream.h"
 
@@ -27,7 +27,8 @@ bool OStreamOutputStream::write(const char* b, int length)
    // see if a failure has occurred
    if(mStream->fail())
    {
-      Exception::setLast(new IOException("Could not write to ostream!"));
+      ExceptionRef e = new IOException("Could not write to ostream!");
+      Exception::setLast(e);
    }
    else
    {

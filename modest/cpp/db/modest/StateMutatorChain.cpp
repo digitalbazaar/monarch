@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/StateMutatorChain.h"
 
@@ -13,7 +13,7 @@ StateMutatorChain::StateMutatorChain(
 }
 
 StateMutatorChain::StateMutatorChain(
-   CollectableStateMutator& g1, StateMutator* g2) :
+   StateMutatorRef& g1, StateMutator* g2) :
    mMutatorReference1(g1)
 {
    mMutator1 = &(*g1);
@@ -21,7 +21,7 @@ StateMutatorChain::StateMutatorChain(
 }
 
 StateMutatorChain::StateMutatorChain(
-   StateMutator* g1, CollectableStateMutator& g2) :
+   StateMutator* g1, StateMutatorRef& g2) :
    mMutatorReference2(g2)
 {
    mMutator1 = g1;
@@ -29,7 +29,7 @@ StateMutatorChain::StateMutatorChain(
 }
 
 StateMutatorChain::StateMutatorChain(
-   CollectableStateMutator& g1, CollectableStateMutator& g2) :
+   StateMutatorRef& g1, StateMutatorRef& g2) :
    mMutatorReference1(g1), mMutatorReference2(g2)
 {
    mMutator1 = &(*g1);

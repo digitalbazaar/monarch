@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_rt_Object_H
 #define db_rt_Object_H
@@ -13,10 +13,6 @@ namespace db
 {
 namespace rt
 {
-
-// forward declare Exception and InterruptedException
-class Exception;
-class InterruptedException;
 
 /**
  * An Object represents a single synchronizable object in Digital Bazaar's
@@ -87,10 +83,10 @@ public:
     * @param timeout the number of milliseconds to wait for a notify call
     *                before timing out, 0 to wait indefinitely.
     * 
-    * @return an InterruptedException if the current Thread is interrupted
-    *         while waiting, NULL if not.
+    * @return false if the current thread is interrupted while waiting (with
+    *         an InterruptedException set), true if not.
     */
-   virtual InterruptedException* wait(unsigned long timeout = 0);
+   virtual bool wait(unsigned long timeout = 0);
    
    /**
     * Compares this Object to another Object. If the other Object is equal

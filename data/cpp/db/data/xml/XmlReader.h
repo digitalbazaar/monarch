@@ -38,7 +38,7 @@ protected:
    /**
     * An exception, if one occurred during parsing.
     */
-   db::io::IOException* mException;
+   db::rt::ExceptionRef mException;
    
    /**
     * A stack of DynamicObjects.
@@ -179,17 +179,17 @@ public:
     * 
     * @param is the InputStream to read the xml from.
     * 
-    * @return an IOException if one occurred, NULL if not.
+    * @return true if the read succeeded, false if an IOException occurred.
     */
-   virtual db::io::IOException* read(db::io::InputStream* is);
+   virtual bool read(db::io::InputStream* is);
    
    /**
     * Finishes deserializing an object from xml. This method must be called
     * to complete deserialization.
     * 
-    * @return an IOException is one occurred, NULL if not.
+    * @return true if the finish succeeded, false if an IOException occurred.
     */
-   virtual db::io::IOException* finish();
+   virtual bool finish();
 };
 
 } // end namespace xml

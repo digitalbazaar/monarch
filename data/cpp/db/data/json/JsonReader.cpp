@@ -113,9 +113,9 @@ void JsonReader::start(DynamicObject& dyno)
    mValid = false;
 }
 
-IOException* JsonReader::processNext(JsonInputClass ic, char c)
+bool JsonReader::processNext(JsonInputClass ic, char c)
 {
-   IOException* rval = NULL;
+   bool rval = true;
    DynamicObject obj;
    
    // keep track of line count
@@ -224,10 +224,15 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
                ec = '\t';
                break;
             default:
-               string temp("Invalid escape code: \"");
-               temp.push_back(c);
-               temp.push_back('"');
-               rval = new IOException(temp.c_str());
+               {
+                  string temp("Invalid escape code: \"");
+                  temp.push_back(c);
+                  temp.push_back('"');
+                  ExceptionRef e = new IOException(temp.c_str());
+                  Exception::setLast(e);
+                  rval = false;
+               }
+               break;
          }
          mString.push_back(ec);
          // go back to string character reading
@@ -327,8 +332,7 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
          mState = mStateStack.back();
          mStateStack.pop_back();
          // process this input
-         rval = processNext(C_DO);
-         if(rval == NULL)
+         if((rval = processNext(C_DO)))
          {
             // actually process current char
             rval = processNext(ic, c);
@@ -340,8 +344,7 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
          mDynoStack.push_back(obj);
          mState = mStateStack.back();
          mStateStack.pop_back();
-         rval = processNext(C_DO);
-         if(rval == NULL)
+         if((rval = processNext(C_DO)))
          {
             // actually process current char
             rval = processNext(ic, c);
@@ -401,23 +404,32 @@ IOException* JsonReader::processNext(JsonInputClass ic, char c)
          break;
 
       case __: /* Error */
-         rval = new IOException("Invalid input");
+         {
+            ExceptionRef e = new IOException("Invalid input");
+            Exception::setLast(e);
+            rval = false;
+         }
          break;
 
       default:
-         rval = new IOException("Invalid JSON parse state");
+         {
+            ExceptionRef e = new IOException("Invalid JSON parse state");
+            Exception::setLast(e);
+            rval = false;
+         }
+         break;
    }
    
    return rval;
 }
 
-IOException* JsonReader::process(const char* buffer, int count, int& position)
+bool JsonReader::process(const char* buffer, int count, int& position)
 {
-   IOException* rval = NULL;
+   bool rval = true;
    
-   for(position = 0; rval == NULL && position < count; position++)
+   for(position = 0; rval && position < count; position++)
    {
-      // FIXME proper unicode handling
+      // FIXME: do proper unicode handling
       char c = buffer[position];
       int ci = (int)c;
       JsonInputClass ic = (ci >= 0 && ci < 128) ? sAsciiToClass[ci] : C_CH;
@@ -427,27 +439,28 @@ IOException* JsonReader::process(const char* buffer, int count, int& position)
    return rval;
 }
 
-IOException* JsonReader::read(InputStream* is)
+bool JsonReader::read(InputStream* is)
 {
-   IOException* rval = NULL;
+   bool rval = true;
    
    if(!mStarted)
    {
       // reader not started
-      rval = new IOException("Cannot read yet, JsonReader not started!");
-      Exception::setLast(rval);
+      ExceptionRef e = new IOException(
+         "Cannot read yet, JsonReader not started!");
+      Exception::setLast(e);
+      rval = false;
    }
    else
    {
       int numBytes = 1;
       int position = 0;
-      IOException* e = NULL;
-      while(e == NULL && (numBytes = is->read(mBuffer, READ_SIZE)) > 0)
+      while(rval && (numBytes = is->read(mBuffer, READ_SIZE)) > 0)
       {
-         e = process(mBuffer, numBytes, position);
+         rval = process(mBuffer, numBytes, position);
       }
       
-      if(e)
+      if(!rval)
       {
          // include line, position, and part of string that was parsed
          // in the parse exception
@@ -458,23 +471,31 @@ IOException* JsonReader::read(InputStream* is)
          sprintf(msg,
             "JSON parser error at line %d, position %d, near \"%s\"\n",
             mLineNumber, position, temp);
-         rval = new IOException(msg, "db.data.json.ParseError");
-         rval->setCause(e, true);
-         Exception::setLast(rval);
+         ExceptionRef e = new IOException(msg, "db.data.json.ParseError");
+         ExceptionRef cause = Exception::getLast();
+         e->setCause(cause);
+         Exception::setLast(e);
+      }
+      else if(numBytes == -1)
+      {
+         // input stream read error
+         rval = false;
       }
    }
    
    return rval;
 }
 
-IOException* JsonReader::finish()
+bool JsonReader::finish()
 {
-   IOException* rval = NULL;
+   bool rval = true;
    
    if(!mValid)
    {
-      rval = new IOException("No JSON top-level Object or Array found");
-      Exception::setLast(rval);
+      ExceptionRef e = new IOException(
+         "No JSON top-level Object or Array found");
+      Exception::setLast(e);
+      rval = false;
    }
    
    // no longer started or valid

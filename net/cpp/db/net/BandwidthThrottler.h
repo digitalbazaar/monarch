@@ -104,10 +104,10 @@ protected:
     * violating the rate limit or until the current thread has been
     * interrupted.
     * 
-    * @return an InterruptedException if the thread this throttler is waiting
-    *         on gets interrupted, NULL otherwise.
+    * @return false if the thread this throttler is waiting on gets
+    *         interrupted (with an InterruptedException set), true otherwise.
     */
-   db::rt::InterruptedException* limitBandwidth();
+   bool limitBandwidth();
    
 public:
    /**
@@ -131,11 +131,10 @@ public:
     * @param count the number of bytes requested.
     * @param permitted set to the number of bytes permitted to send.
     * 
-    * @return an InterruptedException if the thread this throttler is waiting
-    *         on gets interrupted, NULL otherwise.
+    * @return false if the thread this throttler is waiting on gets
+    *         interrupted (with an InterruptedException set), true otherwise.
     */
-   db::rt::InterruptedException* requestBytes(
-      unsigned int count, int& permitted);
+   bool requestBytes(unsigned int count, int& permitted);
    
    /**
     * Sets the rate limit in bytes/second. A value of 0 indicates no rate limit.

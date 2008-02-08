@@ -47,13 +47,7 @@ protected:
    /**
     * A cause associated with this Exception.
     */
-   Exception* mCause;
-   
-   /**
-    * True if the cause exception should be cleaned up on destruction, false
-    * if not.
-    */
-   bool mCleanupCause;
+   Collectable<Exception>* mCause;
    
 public:
    /**
@@ -117,84 +111,74 @@ public:
     * Sets the cause for this Exception.
     * 
     * @param cause the cause for this Exception.
-    * @param cleanup true if this Exception should manage the memory for
-    *                the passed cause, false if not.
     */
-   virtual void setCause(Exception* cause, bool cleanup);
+   virtual void setCause(Collectable<Exception>& cause);
    
    /**
     * Gets the cause for this Exception.
     * 
     * @return the cause for this Exception (may be NULL).
     */
-   virtual Exception* getCause();
+   virtual Collectable<Exception>& getCause();
    
    /**
-    * Sets the last Exception for the current thread. This will store the
-    * passed exception in thread-local memory and delete it when the current
-    * thread exits or when it is replaced by another call to setException()
-    * on the same thread, unless otherwise specified.
+    * Sets the exception for the current thread.
     * 
-    * It is safe to call Exception::setLast(Exception::getLast()), no
-    * memory will be mistakenly collected.
+    * This will store the passed reference in thread-local memory, incrementing
+    * its count. The thread-local reference will be cleared, decrementing the
+    * count, when the current thread exits or when the exception reference is
+    * replaced by another call to setException() on the same thread.
     * 
-    * If the current exception is the cause of the passed exception, its
-    * memory will not be mistakenly collected.
+    * @param e the reference to the Exception to set for the current thread.
     * 
-    * @param e the Exception to set for the current thread.
-    * @param cleanup true to reclaim the memory for an existing exception,
-    *                false to leave it alone.
-    * 
-    * @return the Exception set for the current thread (same as passed).
+    * @return the reference to the Exception.
     */
-   static Exception* setLast(Exception* e, bool cleanup = true);
+   static Collectable<Exception>& setLast(Collectable<Exception>& e);
    
    /**
-    * Gets the last Exception for the current thread. This will be the last
-    * Exception that was set on this thread. It is stored in thread-local
-    * memory and automatically cleaned up when the thread exits.
+    * Gets a reference to the Exception for the current thread. This will be
+    * the last Exception that was set on this thread. It is stored in
+    * thread-local memory the reference to it will be automatically cleared,
+    * and thus decremented, when the thread exits.
     * 
-    * @return the last Exception for the current thread, which may be NULL.
+    * @return a reference to the last Exception for the current thread, which
+    *         may reference NULL.
     */
-   static Exception* getLast();
+   static Collectable<Exception> getLast();
    
    /**
     * Returns true if the current thread has encountered an Exception that
-    * can be retrieved by calling Exception::getLast(), false if not.
+    * can be retrieved by calling Thread::getException(), false if not.
     * 
     * @return true if the current thread an Exception, false if not.
     */
    static bool hasLast();
    
    /**
-    * Clears any Exception from the current thread, cleaning up the memory
-    * if requested (this is done by default).
-    * 
-    * @param cleanup true if the Exception's memory should be reclaimed, false
-    *                if not.
+    * Clears any Exception from the current thread. This clears the
+    * thread-local reference to the exception's memory (thus decrementing
+    * its count).
     */
-   static void clearLast(bool cleanup = true);
+   static void clearLast();
    
    /**
     * Converts the passed Exception to a DynamicObject.
     * 
-    * @param e the Exception to convert to a DynamicObject.
+    * @param e the reference to the Exception to convert to a DynamicObject.
     * 
     * @return the passed Exception as a DynamicObject.
     */
-   static DynamicObject convertToDynamicObject(Exception* e);
+   static DynamicObject convertToDynamicObject(Collectable<Exception>& e);
    
    /**
     * Converts the passed DynamicObject to an Exception. The returned
-    * Exception will have its chain of causes set (with cleanup = true), if
-    * any. It must be deleted by the caller or set as the last exception of
-    * the current thread via Exception::setLast().
+    * Exception will have its chain of causes set, if any.
     * 
     * @param dyno the DynamicObject to convert to an Exception.
     * 
-    * @return a dynamically-allocated Exception.
+    * @return the reference to the Exception.
     */
-   static Exception* convertToException(DynamicObject& dyno);
+   static Collectable<Exception> convertToException(DynamicObject& dyno);
 };
 
 // define a reference counted Exception type

@@ -5,7 +5,6 @@
 #define db_net_Internet6Address_H
 
 #include "db/net/InternetAddress.h"
-#include "db/net/UnknownHostException.h"
 
 namespace db
 {
@@ -68,9 +67,10 @@ public:
     * 
     * @param host the hostname for this address.
     * 
-    * @return an UnknownHostException if the host is not known, NULL otherwise.
+    * @return true if the host resolved, false if an UnknownHost exception
+    *         occurred.
     */
-   virtual UnknownHostException* setHost(const char* host);
+   virtual bool setHost(const char* host);
    
    /**
     * Gets the hostname for this address.

@@ -41,9 +41,11 @@ void Deflater::cleanupStream()
    mZipStream.avail_in = 0;
 }
 
-Exception* Deflater::createException(int ret)
+bool Deflater::createException(int ret)
 {
-   Exception* rval = NULL;
+   bool rval = false;
+   
+   Exception* e = NULL;
    
    switch(ret)
    {
@@ -54,50 +56,49 @@ Exception* Deflater::createException(int ret)
          break;
       case Z_MEM_ERROR:
          // not enough memory
-         rval = new Exception(
+         e = new Exception(
             "Not enough memory for inflation/deflation!",
             "db.compress.deflate.InsufficientMemory", 1);
-         Exception::setLast(rval);
          break;
       case Z_VERSION_ERROR:
          // zlib library version incompatible
-         rval = new Exception(
+         e = new Exception(
             "Incompatible zlib library version!",
             "db.compress.deflate.IncompatibleVersion", 2);
-         Exception::setLast(rval);
          break;
       case Z_STREAM_ERROR:
          // invalid stream parameters
-         rval = new Exception(
+         e = new Exception(
             "Invalid zip stream parameters! Null pointer?",
             "db.compress.deflate.InvalidZipStreamParams", 3);
-         Exception::setLast(rval);
          break;
       default:
          // something else went wrong
-         rval = new Exception(
+         e = new Exception(
             "Could not inflate/deflate!",
             "db.compress.deflate.Error", 4);
-         Exception::setLast(rval);
          break;
    }
    
-   if(rval != NULL)
+   if(e != NULL)
    {
+      rval = true;
+      
       if(mZipStream.msg != NULL)
       {
          // use zlib stream error message as cause
-         rval->setCause(new Exception(mZipStream.msg), true);
+         ExceptionRef cause = new Exception(mZipStream.msg);
+         e->setCause(cause);
       }
       
-      // set last exception
-      Exception::setLast(rval);
+      ExceptionRef ref = e;
+      Exception::setLast(ref);
    }
    
-   return rval;
+   return e;
 }
 
-Exception* Deflater::startDeflating(int level, bool raw)
+bool Deflater::startDeflating(int level, bool raw)
 {
    // clean up previous stream
    cleanupStream();
@@ -123,10 +124,10 @@ Exception* Deflater::startDeflating(int level, bool raw)
    mShouldFinish = false;
    mFinished = false;
    
-   return createException(ret);
+   return !createException(ret);
 }
 
-Exception* Deflater::startInflating(bool raw)
+bool Deflater::startInflating(bool raw)
 {
    // clean up previous stream
    cleanupStream();
@@ -148,7 +149,7 @@ Exception* Deflater::startInflating(bool raw)
    mShouldFinish = false;
    mFinished = false;
    
-   return createException(ret);
+   return !createException(ret);
 }
 
 void Deflater::setInput(const char* b, int length, bool finish)
@@ -200,7 +201,7 @@ int Deflater::process(ByteBuffer* dst, bool resize)
          dst->extend(length);
          
          // handle potential exception
-         if(createException(ret) != NULL)
+         if(createException(ret))
          {
             rval = -1;
          }

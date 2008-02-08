@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/OperationGuardChain.h"
 #include "db/modest/Operation.h"
@@ -14,7 +14,7 @@ OperationGuardChain::OperationGuardChain(
 }
 
 OperationGuardChain::OperationGuardChain(
-   CollectableOperationGuard& g1, OperationGuard* g2) :
+   OperationGuardRef& g1, OperationGuard* g2) :
    mGuardReference1(g1)
 {
    mGuard1 = &(*g1);
@@ -22,7 +22,7 @@ OperationGuardChain::OperationGuardChain(
 }
 
 OperationGuardChain::OperationGuardChain(
-   OperationGuard* g1, CollectableOperationGuard& g2) :
+   OperationGuard* g1, OperationGuardRef& g2) :
    mGuardReference2(g2)
 {
    mGuard1 = g1;
@@ -30,7 +30,7 @@ OperationGuardChain::OperationGuardChain(
 }
 
 OperationGuardChain::OperationGuardChain(
-   CollectableOperationGuard& g1, CollectableOperationGuard& g2) :
+   OperationGuardRef& g1, OperationGuardRef& g2) :
    mGuardReference1(g1), mGuardReference2(g2)
 {
    mGuard1 = &(*g1);

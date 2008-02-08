@@ -127,12 +127,12 @@ SslSession SslSocket::getSession()
 
 bool SslSocket::performHandshake()
 {
-   Exception* exception = NULL;
+   bool rval = true;
    
    // do SSL_do_handshake()
    int ret = 0;
    Thread* t = Thread::currentThread();
-   while(exception == NULL && !t->isInterrupted() &&
+   while(rval && !t->isInterrupted() &&
          (ret = SSL_do_handshake(mSSL)) <= 0)
    {
       // get the last error
@@ -140,8 +140,12 @@ bool SslSocket::performHandshake()
       switch(error)
       {
          case SSL_ERROR_ZERO_RETURN:
-            exception = new SocketException(
-               "Could not perform SSL handshake! Socket closed.");
+            {
+               ExceptionRef e = new SocketException(
+                  "Could not perform SSL handshake! Socket closed.");
+               Exception::setLast(e);
+               rval = false;
+            }
             break;
          case SSL_ERROR_WANT_READ:
             {
@@ -149,39 +153,40 @@ bool SslSocket::performHandshake()
                ret = tcpRead();
                if(ret <= 0)
                {
-                  exception = new SocketException(
+                  ExceptionRef e = new SocketException(
                      "Could not perform SSL handshake! Socket closed.");
                   if(ret < 0)
                   {
                      // store cause
-                     exception->setCause(Exception::getLast(), true);
+                     ExceptionRef cause = Exception::getLast();
+                     e->setCause(cause);
                   }
+                  Exception::setLast(e);
+                  rval = false;
                }
             }
             break;
          case SSL_ERROR_WANT_WRITE:
             // data must be flushed to the socket
-            if(!tcpWrite())
-            {
-               exception = Exception::getLast();
-            }
+            rval = tcpWrite();
             break;
          default:
-            // an error occurred
-            exception = new SocketException(
-               "Could not perform SSL handshake!",
-               ERR_error_string(ERR_get_error(), NULL));
+            {
+               // an error occurred
+               ExceptionRef e = new SocketException(
+                  "Could not perform SSL handshake!",
+                  ERR_error_string(ERR_get_error(), NULL));
+               Exception::setLast(e);
+               rval = false;
+            }
+            break;
       }
    }
    
-   if(exception == NULL)
+   if(rval)
    {
       // session negotiated
       mSessionNegotiated = true;
-   }
-   else
-   {
-      Exception::setLast(exception);
    }
    
    return mSessionNegotiated;
@@ -201,28 +206,28 @@ void SslSocket::close()
 
 bool SslSocket::send(const char* b, int length)
 {
-   Exception* exception = NULL;
+   bool rval = true;
    
    if(!isConnected())
    {
-      exception = new SocketException("Cannot write to unconnected socket!");
+      ExceptionRef e = new SocketException(
+         "Cannot write to unconnected socket!");
+      Exception::setLast(e);
+      rval = false;
    }
    else
    {
       // perform a handshake as necessary
       if(!mSessionNegotiated)
       {
-         if(!performHandshake())
-         {
-            exception = Exception::getLast();
-         }
+         rval = performHandshake();
       }
       
       // do SSL_write() (implicit handshake performed as necessary)
       int ret = 0;
       bool closed = false;
       Thread* t = Thread::currentThread();
-      while(exception == NULL && !t->isInterrupted() &&
+      while(rval && !t->isInterrupted() &&
             !closed && (ret <= SSL_write(mSSL, b, length)) <= 0)
       {
          // get the last error
@@ -230,10 +235,14 @@ bool SslSocket::send(const char* b, int length)
          switch(error)
          {
             case SSL_ERROR_ZERO_RETURN:
-               // the connection was shutdown
-               exception = new SocketException(
-                  "Could not write to socket! Socket closed.",
-                  ERR_error_string(ERR_get_error(), NULL));
+               {
+                  // the connection was shutdown
+                  ExceptionRef e = new SocketException(
+                     "Could not write to socket! Socket closed.",
+                     ERR_error_string(ERR_get_error(), NULL));
+                  Exception::setLast(e);
+                  rval = false;
+               }
                break;
             case SSL_ERROR_WANT_READ:
                // more data is required from the socket
@@ -241,58 +250,53 @@ bool SslSocket::send(const char* b, int length)
                if(ret <= 0)
                {
                   // the connection was shutdown
-                  exception = new SocketException(
+                  ExceptionRef e = new SocketException(
                      "Could not write to socket! Socket closed.",
                      strerror(errno));
                   if(ret < 0)
                   {
                      // store cause
-                     exception->setCause(Exception::getLast(), true);
+                     ExceptionRef cause = Exception::getLast();
+                     e->setCause(cause);
                   }
+                  Exception::setLast(e);
+                  rval = false;
                }
                break;
             case SSL_ERROR_WANT_WRITE:
                // data must be flushed to the socket
-               if(!tcpWrite())
-               {
-                  exception = Exception::getLast();
-               }
+               rval = tcpWrite();
                break;
             default:
-               // an error occurred
-               exception = new SocketException(
-                  "Could not write to socket!",
-                  ERR_error_string(ERR_get_error(), NULL));
+               {
+                  // an error occurred
+                  ExceptionRef e = new SocketException(
+                     "Could not write to socket!",
+                     ERR_error_string(ERR_get_error(), NULL));
+                  Exception::setLast(e);
+                  rval = false;
+               }
+               break;
          }
       }
       
-      if(exception == NULL)
-      {
-         // flush all data to the socket
-         if(!tcpWrite())
-         {
-            exception = Exception::getLast();
-         }
-      }
+      // flush all data to the socket
+      rval = rval && tcpWrite();
    }
    
-   if(exception != NULL)
-   {
-      Exception::setLast(exception);
-   }
-   
-   return exception == NULL;
+   return rval;
 }
 
 int SslSocket::receive(char* b, int length)
 {
-   int rval = -1;
-   
-   Exception* exception = NULL;
+   int rval = 0;
    
    if(!isConnected())
    {
-      exception = new SocketException("Cannot read from unconnected socket!");
+      ExceptionRef e = new SocketException(
+         "Cannot read from unconnected socket!");
+      Exception::setLast(e);
+      rval = -1;
    }
    else
    {
@@ -301,7 +305,7 @@ int SslSocket::receive(char* b, int length)
       {
          if(!performHandshake())
          {
-            exception = Exception::getLast();
+            rval = -1;
          }
       }
       
@@ -309,7 +313,7 @@ int SslSocket::receive(char* b, int length)
       int ret = 0;
       bool closed = false;
       Thread* t = Thread::currentThread();
-      while(exception == NULL && !t->isInterrupted() && !closed &&
+      while(rval != -1 && !t->isInterrupted() && !closed &&
             (ret = SSL_read(mSSL, b, length)) <= 0)
       {
          // get the last error
@@ -331,36 +335,39 @@ int SslSocket::receive(char* b, int length)
                else if(ret == -1)
                {
                   // error in writing to socket
-                  exception = new SocketException(
+                  ExceptionRef e = new SocketException(
                      "Could not read from socket!");
-                  exception->setCause(Exception::getLast(), true);
+                  ExceptionRef cause = Exception::getLast();
+                  e->setCause(cause);
+                  Exception::setLast(e);
+                  rval = -1;
                }
                break;
             case SSL_ERROR_WANT_WRITE:
                // data must be flushed to the socket
                if(!tcpWrite())
                {
-                  exception = Exception::getLast();
+                  rval = -1;
                }
                break;
             default:
-               // an error occurred
-               exception = new SocketException(
-                  "Could not read from socket!",
-                  ERR_error_string(ERR_get_error(), NULL));
+               {
+                  // an error occurred
+                  ExceptionRef e = new SocketException(
+                     "Could not read from socket!",
+                     ERR_error_string(ERR_get_error(), NULL));
+                  Exception::setLast(e);
+                  rval = -1;
+               }
+               break;
          }
       }
       
       // set number of bytes read
-      if(exception == NULL)
+      if(rval != -1)
       {
          rval = (closed) ? 0 : ret;
       }
-   }
-   
-   if(exception != NULL)
-   {
-      Exception::setLast(exception);
    }
    
    return rval;

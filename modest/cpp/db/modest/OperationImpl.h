@@ -42,12 +42,12 @@ protected:
    /**
     * The guard that decides when this Operation can execute.
     */
-   CollectableOperationGuard mGuard;
+   OperationGuardRef mGuard;
    
    /**
     * The StateMutator for this Operation.
     */
-   CollectableStateMutator mMutator;
+   StateMutatorRef mMutator;
    
    /**
     * The Thread this Operation is executing on.
@@ -126,10 +126,10 @@ public:
     *                      and return from this call, false if the Operation
     *                      must complete before this call will return.
     * 
-    * @return an InterruptedException if the current thread was interrupted
-    *         while waiting, NULL if it was not interrupted.
+    * @return false if the current thread was interrupted while waiting (with
+    *         an InterruptedException set), true if it was not interrupted.
     */
-   virtual db::rt::InterruptedException* waitFor(bool interruptible = true);
+   virtual bool waitFor(bool interruptible = true);
    
    /**
     * Returns true if this Operation has started, false if not.
@@ -194,7 +194,7 @@ public:
     *              ones (the default behavior), false to add it to the back.
     */
    virtual void addGuard(OperationGuard* g, bool front = true);
-   virtual void addGuard(CollectableOperationGuard& g, bool front = true);
+   virtual void addGuard(OperationGuardRef& g, bool front = true);
    
    /**
     * Gets this Operation's first guard.
@@ -212,7 +212,7 @@ public:
     *              ones (the default behavior), false to add it to the back.
     */
    virtual void addStateMutator(StateMutator* m, bool front = true);
-   virtual void addStateMutator(CollectableStateMutator& m, bool front = true);
+   virtual void addStateMutator(StateMutatorRef& m, bool front = true);
    
    /**
     * Gets this Operation's first StateMutator.

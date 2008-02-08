@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/IgnoreOutputStream.h"
 
@@ -38,7 +38,8 @@ bool IgnoreOutputStream::write(const char* b, int length)
       rval = mOutputStream->write(b + ignored, length);
       if(!rval)
       {
-         IOException* e = dynamic_cast<IOException*>(Exception::getLast());
+         ExceptionRef ref = Exception::getLast();
+         IOException* e = dynamic_cast<IOException*>(&(*ref));
          if(e != NULL)
          {
             // update used bytes to include ignored bytes
