@@ -41,11 +41,9 @@ void DynamicObjectImpl::freeData()
    switch(mType)
    {
       case String:
+         if(mString != NULL)
          {
-            if(mString != NULL)
-            {
-               free(mString);
-            }
+            free(mString);
             mString = NULL;
          }
          break;
