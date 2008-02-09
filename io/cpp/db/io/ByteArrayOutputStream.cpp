@@ -32,7 +32,7 @@ bool ByteArrayOutputStream::write(const char* b, int length)
       e->setUsedBytes(written);
       e->setUnusedBytes(length - written);
       ExceptionRef ref = e;
-      Exception::setLast(ref);
+      Exception::setLast(ref, false);
    }
    
    return rval;

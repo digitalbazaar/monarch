@@ -315,8 +315,10 @@ public:
     * replaced by another call to setException() on the same thread.
     * 
     * @param e the reference to the Exception to set for the current thread.
+    * @param caused true if the current Exception on the thread caused
+    *               the passed Exception and should be set as its cause.
     */
-   static void setException(ExceptionRef& e);
+   static void setException(ExceptionRef& e, bool caused);
    
    /**
     * Gets a reference to the Exception for the current thread. This will be

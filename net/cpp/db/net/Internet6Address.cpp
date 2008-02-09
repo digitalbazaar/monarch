@@ -97,7 +97,7 @@ bool Internet6Address::setHost(const char* host)
       char msg[length];
       snprintf(msg, length, "Unknown host '%s'!", host);
       ExceptionRef e = new Exception(msg, "db.net.UnknownHost");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    else
    {

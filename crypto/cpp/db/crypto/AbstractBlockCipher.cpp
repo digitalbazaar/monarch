@@ -46,7 +46,7 @@ const EVP_CIPHER* AbstractBlockCipher::getCipherFunction(const char* algorithm)
       char msg[length];
       snprintf(msg, length, "Unsupported key algorithm '%s'!", algorithm);
       ExceptionRef e = new Exception(msg, "db.crypto.UnsupportedAlgorithm");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return rval;

@@ -422,7 +422,7 @@ bool Thread::waitToEnter(Monitor* m, unsigned int timeout)
    {
       // set exception
       ExceptionRef e = t->createInterruptedException();
-      setException(e);
+      setException(e, false);
       rval = false;
    }
    
@@ -434,7 +434,7 @@ void Thread::exit()
    pthread_exit(NULL);
 }
 
-void Thread::setException(ExceptionRef& e)
+void Thread::setException(ExceptionRef& e, bool caused)
 {
    // get the exception reference for the current thread
    ExceptionRef* ref = (ExceptionRef*)pthread_getspecific(sExceptionKey);
@@ -447,6 +447,12 @@ void Thread::setException(ExceptionRef& e)
    }
    else
    {
+      if(caused && !e.isNull())
+      {
+         // set cause of passed exception to previous exception
+         e->setCause(*ref);
+      }
+      
       // update the reference
       *ref = e;
    }

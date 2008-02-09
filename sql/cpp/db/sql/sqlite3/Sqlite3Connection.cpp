@@ -38,7 +38,7 @@ bool Sqlite3Connection::connect(Url* url)
          "Could not connect to sqlite3 database, "
          "url scheme doesn't start with 'sqlite3', url='%s'", urlStr.c_str());
       ExceptionRef e = new SqlException(msg);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    else
    {
@@ -61,7 +61,7 @@ bool Sqlite3Connection::connect(Url* url)
       {
          // create exception, close connection
          ExceptionRef e = new Sqlite3Exception(this);
-         Exception::setLast(e);
+         Exception::setLast(e, false);
          Sqlite3Connection::close();
       }
       else

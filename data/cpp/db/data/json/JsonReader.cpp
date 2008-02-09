@@ -229,7 +229,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
                   temp.push_back(c);
                   temp.push_back('"');
                   ExceptionRef e = new IOException(temp.c_str());
-                  Exception::setLast(e);
+                  Exception::setLast(e, false);
                   rval = false;
                }
                break;
@@ -406,7 +406,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
       case __: /* Error */
          {
             ExceptionRef e = new IOException("Invalid input");
-            Exception::setLast(e);
+            Exception::setLast(e, false);
             rval = false;
          }
          break;
@@ -414,7 +414,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
       default:
          {
             ExceptionRef e = new IOException("Invalid JSON parse state");
-            Exception::setLast(e);
+            Exception::setLast(e, false);
             rval = false;
          }
          break;
@@ -448,7 +448,7 @@ bool JsonReader::read(InputStream* is)
       // reader not started
       ExceptionRef e = new IOException(
          "Cannot read yet, JsonReader not started!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    else
@@ -472,9 +472,7 @@ bool JsonReader::read(InputStream* is)
             "JSON parser error at line %d, position %d, near \"%s\"\n",
             mLineNumber, position, temp);
          ExceptionRef e = new IOException(msg, "db.data.json.ParseError");
-         ExceptionRef cause = Exception::getLast();
-         e->setCause(cause);
-         Exception::setLast(e);
+         Exception::setLast(e, true);
       }
       else if(numBytes == -1)
       {
@@ -494,7 +492,7 @@ bool JsonReader::finish()
    {
       ExceptionRef e = new IOException(
          "No JSON top-level Object or Array found");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    

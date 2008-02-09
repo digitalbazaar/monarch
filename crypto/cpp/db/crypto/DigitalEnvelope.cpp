@@ -107,7 +107,7 @@ bool DigitalEnvelope::startSealing(
          ExceptionRef e = new IOException(
             "Could not start opening envelope!",
             ERR_error_string(ERR_get_error(), NULL));
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
    }
    
@@ -146,7 +146,7 @@ bool DigitalEnvelope::startOpening(
          ExceptionRef e = new IOException(
             "Could not start opening envelope!",
             ERR_error_string(ERR_get_error(), NULL));
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
    }
    
@@ -175,7 +175,7 @@ bool DigitalEnvelope::update(
             ExceptionRef e = new IOException(
                "Could not seal envelope data!",
                ERR_error_string(ERR_get_error(), NULL));
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
       }
       else
@@ -192,7 +192,7 @@ bool DigitalEnvelope::update(
             ExceptionRef e = new IOException(
                "Could not open envelope data!",
                ERR_error_string(ERR_get_error(), NULL));
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
       }
    }
@@ -200,7 +200,7 @@ bool DigitalEnvelope::update(
    {
       ExceptionRef e = new IOException(
          "Cannot update envelope; envelope not started!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return rval;
@@ -225,7 +225,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
             ExceptionRef e = new IOException(
                "Could not finish sealing envelope!",
                ERR_error_string(ERR_get_error(), NULL));
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
       }
       else
@@ -240,7 +240,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
             ExceptionRef e = new IOException(
                "Could not finish opening envelope!",
                ERR_error_string(ERR_get_error(), NULL));
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
       }
    }
@@ -248,7 +248,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
    {
       ExceptionRef e = new IOException(
          "Cannot finish envelope; envelope not started!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return rval;

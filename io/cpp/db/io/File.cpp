@@ -314,7 +314,7 @@ bool File::getCurrentWorkingDirectory(string& cwd)
       // path was too large for getcwd
       ExceptionRef e = new Exception(
          "Could not get current working directory, path too long!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    free(b);

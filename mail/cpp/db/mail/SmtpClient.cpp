@@ -236,7 +236,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
          char temp[120];
          sprintf(temp, "Unexpected SMTP server response code!,code=%i", code);
          ExceptionRef e = new IOException(temp, "db.mail.UnexpectedSmtpCode");
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
    }
    

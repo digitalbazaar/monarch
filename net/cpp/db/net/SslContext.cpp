@@ -107,7 +107,7 @@ bool SslContext::setCertificate(File* certFile)
       ExceptionRef e = new Exception(
          "Could not set SSL certificate!",
          ERR_error_string(ERR_get_error(), NULL));
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    
@@ -126,7 +126,7 @@ bool SslContext::setPrivateKey(File* pkeyFile)
       ExceptionRef e = new Exception(
          "Could not set SSL private key!",
          ERR_error_string(ERR_get_error(), NULL));
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    
@@ -153,7 +153,7 @@ bool SslContext::setVerifyCAs(File* caFile, File* caDir)
       ExceptionRef e = new Exception(
          "Could not set verify Certificate Authorities!",
          ERR_error_string(ERR_get_error(), NULL));
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    

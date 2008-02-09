@@ -47,7 +47,7 @@ bool SymmetricKeyFactory::createRandomKey(
       char msg[length];
       snprintf(msg, length, "Key algorithm '%s' is not supported!", algorithm);
       ExceptionRef e = new Exception(msg, "db.crypto.UnsupportedAlgorithm");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    if(rval)

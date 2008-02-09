@@ -59,9 +59,7 @@ bool Connection::connect(const char* url)
       msg.append("Invalid database url!,url=");
       msg.append(url);
       ExceptionRef e = new SqlException(msg.c_str());
-      ExceptionRef cause = Exception::getLast();
-      e->setCause(cause);
-      Exception::setLast(e);
+      Exception::setLast(e, true);
    }
    else
    {

@@ -54,7 +54,7 @@ bool Url::setUrl(const string& url, bool relative)
       // no colon found
       ExceptionRef e = new Exception(
          "Url is missing a colon!", "db.net.MalformedUrl");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    else
@@ -88,7 +88,7 @@ bool Url::setUrl(const string& url, bool relative)
             ExceptionRef e = new Exception(
                "Url scheme contains invalid start character!",
                "db.net.MalformedUrl");
-            Exception::setLast(e);
+            Exception::setLast(e, false);
             rval = false;
          }
          else
@@ -104,7 +104,7 @@ bool Url::setUrl(const string& url, bool relative)
                   ExceptionRef e = new Exception(
                      "Url scheme contains invalid characters!",
                      "db.net.MalformedUrl");
-                  Exception::setLast(e);
+                  Exception::setLast(e, false);
                   rval = false;
                }
             }

@@ -62,7 +62,7 @@ bool AbstractSocket::create(int domain, int type, int protocol)
          
          ExceptionRef e = new SocketException(
             "Could not create Socket!", strerror(errno));
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
       else
       {
@@ -74,7 +74,7 @@ bool AbstractSocket::create(int domain, int type, int protocol)
    {
       ExceptionRef e = new SocketException(
          "Could not create Socket!", strerror(errno));
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return rval;
@@ -163,7 +163,7 @@ bool AbstractSocket::select(bool read, long long timeout)
    if(e != NULL)
    {
       ExceptionRef ref = e;
-      Exception::setLast(ref);
+      Exception::setLast(ref, false);
    }
    
    return e == NULL;
@@ -235,7 +235,7 @@ bool AbstractSocket::bind(SocketAddress* address)
          
          ExceptionRef e = new SocketException(
             "Could not bind Socket!", strerror(errno));
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
       else
       {
@@ -257,7 +257,7 @@ bool AbstractSocket::listen(unsigned int backlog)
    {
       ExceptionRef e = new SocketException(
          "Cannot listen on unbound Socket!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    else
    {
@@ -270,7 +270,7 @@ bool AbstractSocket::listen(unsigned int backlog)
       {
          ExceptionRef e = new SocketException(
             "Could not listen on Socket!", strerror(errno));
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
       else
       {
@@ -290,7 +290,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
    {
       ExceptionRef e = new SocketException(
          "Cannot accept with a non-listening Socket!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    else
    {
@@ -303,7 +303,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
          {
             ExceptionRef e = new SocketException(
                "Could not accept connection!", strerror(errno));
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
          else
          {
@@ -375,7 +375,7 @@ bool AbstractSocket::send(const char* b, int length)
    if(!isBound())
    {
       ExceptionRef e = new SocketException("Cannot write to unbound Socket!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    else
    {
@@ -393,7 +393,7 @@ bool AbstractSocket::send(const char* b, int length)
             {
                ExceptionRef e = new SocketException(
                   "Could not write to Socket!", strerror(errno));
-               Exception::setLast(e);
+               Exception::setLast(e, false);
                rval = false;
             }
             else if(bytes > 0)
@@ -415,7 +415,7 @@ int AbstractSocket::receive(char* b, int length)
    if(!isBound())
    {
       ExceptionRef e = new SocketException("Cannot read from unbound Socket!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    else
    {
@@ -429,7 +429,7 @@ int AbstractSocket::receive(char* b, int length)
             rval = -1;
             ExceptionRef e = new SocketException(
                "Could not read from Socket!", strerror(errno));
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
       }
    }
@@ -481,7 +481,7 @@ bool AbstractSocket::getLocalAddress(SocketAddress* address)
    {
       ExceptionRef e = new SocketException(
          "Cannot get local address for an unbound Socket!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    else
    {
@@ -495,7 +495,7 @@ bool AbstractSocket::getLocalAddress(SocketAddress* address)
       {
          ExceptionRef e = new SocketException(
             "Could not get Socket local address!", strerror(errno));
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
       else
       {
@@ -516,7 +516,7 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
    {
       ExceptionRef e = new SocketException(
          "Cannot get local address for an unconnected Socket!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    else
    {
@@ -530,7 +530,7 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
       {
          ExceptionRef e = new SocketException(
             "Could not get Socket remote address!", strerror(errno));
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
       else
       {

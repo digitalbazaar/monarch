@@ -26,7 +26,7 @@ MySqlStatement::MySqlStatement(MySqlConnection *c, const char* sql) :
    {
       // connection exception
       ExceptionRef e = new MySqlException((MySqlConnection*)mConnection);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    else
    {
@@ -35,7 +35,7 @@ MySqlStatement::MySqlStatement(MySqlConnection *c, const char* sql) :
       {
          // statement exception
          ExceptionRef e = new MySqlException(this);
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
       else
       {
@@ -113,7 +113,7 @@ bool MySqlStatement::checkParamCount(unsigned int param)
       char temp[70];
       sprintf(temp, "Invalid parameter index!,index='%i'", param);
       ExceptionRef e = new SqlException(temp);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    
@@ -232,7 +232,7 @@ bool MySqlStatement::setInt32(const char* name, int value)
 {
    ExceptionRef e =
      new SqlException("MySql named parameter support not implemented!");
-   Exception::setLast(e);
+   Exception::setLast(e, false);
    return false;
 }
 
@@ -240,7 +240,7 @@ bool MySqlStatement::setUInt32(const char* name, unsigned int value)
 {
    ExceptionRef e =
      new SqlException("MySql named parameter support not implemented!");
-   Exception::setLast(e);
+   Exception::setLast(e, false);
    return false;
 }
 
@@ -248,7 +248,7 @@ bool MySqlStatement::setInt64(const char* name, long long value)
 {
    ExceptionRef e =
      new SqlException("MySql named parameter support not implemented!");
-   Exception::setLast(e);
+   Exception::setLast(e, false);
    return false;
 }
 
@@ -257,7 +257,7 @@ bool MySqlStatement::setUInt64(
 {
    ExceptionRef e =
      new SqlException("MySql named parameter support not implemented!");
-   Exception::setLast(e);
+   Exception::setLast(e, false);
    return false;
 }
 
@@ -265,7 +265,7 @@ bool MySqlStatement::setText(const char* name, const char* value)
 {
    ExceptionRef e =
      new SqlException("MySql named parameter support not implemented!");
-   Exception::setLast(e);
+   Exception::setLast(e, false);
    return false;
 }
 
@@ -278,13 +278,13 @@ bool MySqlStatement::execute()
    {
       // statement exception
       ExceptionRef e = new MySqlException(this);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    else if(mysql_stmt_execute(mHandle) != 0)
    {
       // statement exception
       ExceptionRef e = new MySqlException(this);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    else
    {
@@ -310,7 +310,7 @@ bool MySqlStatement::execute()
          {
             // statement exception
             ExceptionRef e = new MySqlException(this);
-            Exception::setLast(e);
+            Exception::setLast(e, false);
             rval = false;
          }
       }
@@ -331,7 +331,7 @@ Row* MySqlStatement::fetch()
       {
          // exception occurred
          ExceptionRef e = new MySqlException(this);
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
       else if(rc != MYSQL_NO_DATA)
       {

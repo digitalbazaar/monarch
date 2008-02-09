@@ -62,7 +62,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
             // no "name" for "member"
             mException = new IOException(
                "Xml parsing error! No 'name' attribute for 'member' element!");
-            Exception::setLast(mException);
+            Exception::setLast(mException, false);
          }
       }
       else if(strcmp(name, "element") == 0)
@@ -91,7 +91,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
             mException = new IOException(
                "Xml parsing error! No 'index' attribute for 'element' "
                "element!");
-            Exception::setLast(mException);
+            Exception::setLast(mException, false);
          }
       }
       else
@@ -284,7 +284,7 @@ bool XmlReader::read(InputStream* is)
       // reader not started
       ExceptionRef e = new IOException(
          "Cannot read yet, XmlReader not started!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    else
@@ -305,7 +305,7 @@ bool XmlReader::read(InputStream* is)
             char msg[100 + strlen(str)];
             sprintf(msg, "Xml parser error at line %d:\n%s\n", line, str);
             ExceptionRef e = new IOException(msg);
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
          else if(numBytes == -1)
          {
@@ -317,7 +317,7 @@ bool XmlReader::read(InputStream* is)
       {
          // set memory exception
          ExceptionRef e = new IOException("Insufficient memory to parse xml!");
-         Exception::setLast(e);
+         Exception::setLast(e, false);
          rval = false;
       }
    }
@@ -339,7 +339,7 @@ bool XmlReader::finish()
          char msg[100 + strlen(str)];
          sprintf(msg, "Xml parser error at line %d:\n%s\n", line, str);
          ExceptionRef e = new IOException(msg);
-         Exception::setLast(e);
+         Exception::setLast(e, false);
          rval = false;
       }
       

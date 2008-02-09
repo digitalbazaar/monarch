@@ -51,7 +51,7 @@ int Sqlite3Row::getColumnIndex(const char* name)
       snprintf(temp, length,
          "Could not get column value, invalid column name!, name='%s'", name);
       ExceptionRef e = new SqlException(temp);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return rval;

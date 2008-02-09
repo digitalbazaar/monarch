@@ -43,7 +43,7 @@ bool FileInputStream::ensureOpen()
          char temp[strlen(mFile->getName()) + 30];
          sprintf(temp, "Could not open file '%s'!", mFile->getName());
          ExceptionRef e = new IOException(temp);
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
    }
    
@@ -70,7 +70,7 @@ int FileInputStream::read(char* b, int length)
             char temp[strlen(mFile->getName()) + 40];
             sprintf(temp, "Could not read from file '%s'!", mFile->getName());
             ExceptionRef e = new IOException(temp);
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
          else if(mStream.gcount() > 0)
          {

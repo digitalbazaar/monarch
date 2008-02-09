@@ -73,7 +73,7 @@ bool ConfigManager::removeConfig(ConfigId id)
       else
       {
          ExceptionRef e = new Exception("Invalid ConfigId");
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
    }
    unlock();
@@ -93,7 +93,7 @@ bool ConfigManager::getConfig(ConfigId id, DynamicObject& dyno)
    else
    {
       ExceptionRef e = new Exception("Invalid ConfigId");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
   
    return rval;
@@ -112,7 +112,7 @@ bool ConfigManager::setConfig(ConfigId id, DynamicObject& dyno)
    else
    {
       ExceptionRef e = new Exception("Invalid ConfigId");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
   
    return rval;
@@ -368,7 +368,7 @@ bool ConfigManager::isValidConfig(DynamicObject& config, DynamicObject& schema)
                   // multiple schema elements not allowed
                   ExceptionRef e =
                      new Exception("Multiple Array schema values not allowed");
-                  Exception::setLast(e);
+                  Exception::setLast(e, false);
                }
             }
             break;

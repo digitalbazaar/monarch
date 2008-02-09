@@ -92,7 +92,7 @@ bool Deflater::createException(int ret)
       }
       
       ExceptionRef ref = e;
-      Exception::setLast(ref);
+      Exception::setLast(ref, false);
    }
    
    return e;

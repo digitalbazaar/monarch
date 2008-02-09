@@ -186,7 +186,7 @@ bool AsymmetricKeyFactory::createKeyPair(
       char msg[length];
       snprintf(msg, length, "Key algorithm '%s' is not supported!", algorithm);
       ExceptionRef e = new Exception(msg, "db.crypto.UnsupportedAlgorithm");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return rval;
@@ -219,7 +219,7 @@ PrivateKey* AsymmetricKeyFactory::loadPrivateKeyFromPem(
       ExceptionRef e = new IOException(
          "Could not load private key from PEM!",
          ERR_error_string(ERR_get_error(), NULL));
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return key;
@@ -254,7 +254,7 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
       ExceptionRef e = new IOException(
          "Could not write private key to PEM!",
          ERR_error_string(ERR_get_error(), NULL));
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return rval;
@@ -286,7 +286,7 @@ PublicKey* AsymmetricKeyFactory::loadPublicKeyFromPem(
       ExceptionRef e = new IOException(
          "Could not load public key from PEM!",
          ERR_error_string(ERR_get_error(), NULL));
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return key;
@@ -318,7 +318,7 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKey* key)
       ExceptionRef e = new IOException(
          "Could not write private key to PEM!",
          ERR_error_string(ERR_get_error(), NULL));
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return rval;

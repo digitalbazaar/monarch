@@ -36,7 +36,7 @@ bool MySqlConnection::connect(Url* url)
          "Could not connect to sqlite3 database, "
          "url scheme doesn't start with 'sqlite3', url='%s'", urlStr.c_str());
       ExceptionRef e = new SqlException(msg);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    else
    {
@@ -57,7 +57,7 @@ bool MySqlConnection::connect(Url* url)
       {
          // create exception, close connection
          ExceptionRef e = new MySqlException(this);
-         Exception::setLast(e);
+         Exception::setLast(e, false);
          MySqlConnection::close();
       }
       else

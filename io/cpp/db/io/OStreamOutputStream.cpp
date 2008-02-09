@@ -25,14 +25,10 @@ bool OStreamOutputStream::write(const char* b, int length)
    mStream->write(b, length);
    
    // see if a failure has occurred
-   if(mStream->fail())
+   if(!(rval = !mStream->fail()))
    {
       ExceptionRef e = new IOException("Could not write to ostream!");
-      Exception::setLast(e);
-   }
-   else
-   {
-      rval = true;
+      Exception::setLast(e, false);
    }
    
    return rval;

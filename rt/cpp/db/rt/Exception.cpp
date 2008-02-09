@@ -64,9 +64,9 @@ ExceptionRef& Exception::getCause()
    return *mCause;
 }
 
-ExceptionRef& Exception::setLast(ExceptionRef& e)
+ExceptionRef& Exception::setLast(ExceptionRef& e, bool caused)
 {
-   Thread::setException(e);
+   Thread::setException(e, caused);
    return e;
 }
 

@@ -54,7 +54,7 @@ bool DefaultBlockCipher::startEncrypting(SymmetricKey* symmetricKey)
          ExceptionRef e = new IOException(
             "Could not start encrypting!",
             ERR_error_string(ERR_get_error(), NULL));
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
    }
    
@@ -85,7 +85,7 @@ bool DefaultBlockCipher::startDecrypting(SymmetricKey* symmetricKey)
          ExceptionRef e = new IOException(
             "Could not start decrypting!",
             ERR_error_string(ERR_get_error(), NULL));
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
    }
    
@@ -114,7 +114,7 @@ bool DefaultBlockCipher::update(
             ExceptionRef e = new IOException(
                "Could not encrypt data!",
                ERR_error_string(ERR_get_error(), NULL));
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
       }
       else
@@ -131,7 +131,7 @@ bool DefaultBlockCipher::update(
             ExceptionRef e = new IOException(
                "Could not decrypt data!",
                ERR_error_string(ERR_get_error(), NULL));
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
       }
    }
@@ -139,7 +139,7 @@ bool DefaultBlockCipher::update(
    {
       ExceptionRef e = new IOException(
          "Cannot update cipher; cipher not started!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return rval;
@@ -165,7 +165,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
             ExceptionRef e = new IOException(
                "Could not finish encrypting!",
                ERR_error_string(ERR_get_error(), NULL));
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
       }
       else
@@ -181,7 +181,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
             ExceptionRef e = new IOException(
                "Could not finish decrypting!",
                ERR_error_string(ERR_get_error(), NULL));
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
       }
    }
@@ -189,7 +189,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
    {
       ExceptionRef e = new IOException(
          "Cannot finish cipher; cipher not started!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return rval;

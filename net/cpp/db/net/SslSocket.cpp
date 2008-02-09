@@ -143,7 +143,7 @@ bool SslSocket::performHandshake()
             {
                ExceptionRef e = new SocketException(
                   "Could not perform SSL handshake! Socket closed.");
-               Exception::setLast(e);
+               Exception::setLast(e, false);
                rval = false;
             }
             break;
@@ -155,13 +155,7 @@ bool SslSocket::performHandshake()
                {
                   ExceptionRef e = new SocketException(
                      "Could not perform SSL handshake! Socket closed.");
-                  if(ret < 0)
-                  {
-                     // store cause
-                     ExceptionRef cause = Exception::getLast();
-                     e->setCause(cause);
-                  }
-                  Exception::setLast(e);
+                  Exception::setLast(e, (ret < 0));
                   rval = false;
                }
             }
@@ -176,7 +170,7 @@ bool SslSocket::performHandshake()
                ExceptionRef e = new SocketException(
                   "Could not perform SSL handshake!",
                   ERR_error_string(ERR_get_error(), NULL));
-               Exception::setLast(e);
+               Exception::setLast(e, false);
                rval = false;
             }
             break;
@@ -212,7 +206,7 @@ bool SslSocket::send(const char* b, int length)
    {
       ExceptionRef e = new SocketException(
          "Cannot write to unconnected socket!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    else
@@ -240,7 +234,7 @@ bool SslSocket::send(const char* b, int length)
                   ExceptionRef e = new SocketException(
                      "Could not write to socket! Socket closed.",
                      ERR_error_string(ERR_get_error(), NULL));
-                  Exception::setLast(e);
+                  Exception::setLast(e, false);
                   rval = false;
                }
                break;
@@ -253,13 +247,7 @@ bool SslSocket::send(const char* b, int length)
                   ExceptionRef e = new SocketException(
                      "Could not write to socket! Socket closed.",
                      strerror(errno));
-                  if(ret < 0)
-                  {
-                     // store cause
-                     ExceptionRef cause = Exception::getLast();
-                     e->setCause(cause);
-                  }
-                  Exception::setLast(e);
+                  Exception::setLast(e, (ret < 0));
                   rval = false;
                }
                break;
@@ -273,7 +261,7 @@ bool SslSocket::send(const char* b, int length)
                   ExceptionRef e = new SocketException(
                      "Could not write to socket!",
                      ERR_error_string(ERR_get_error(), NULL));
-                  Exception::setLast(e);
+                  Exception::setLast(e, false);
                   rval = false;
                }
                break;
@@ -295,7 +283,7 @@ int SslSocket::receive(char* b, int length)
    {
       ExceptionRef e = new SocketException(
          "Cannot read from unconnected socket!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = -1;
    }
    else
@@ -337,9 +325,7 @@ int SslSocket::receive(char* b, int length)
                   // error in writing to socket
                   ExceptionRef e = new SocketException(
                      "Could not read from socket!");
-                  ExceptionRef cause = Exception::getLast();
-                  e->setCause(cause);
-                  Exception::setLast(e);
+                  Exception::setLast(e, true);
                   rval = -1;
                }
                break;
@@ -356,7 +342,7 @@ int SslSocket::receive(char* b, int length)
                   ExceptionRef e = new SocketException(
                      "Could not read from socket!",
                      ERR_error_string(ERR_get_error(), NULL));
-                  Exception::setLast(e);
+                  Exception::setLast(e, false);
                   rval = -1;
                }
                break;

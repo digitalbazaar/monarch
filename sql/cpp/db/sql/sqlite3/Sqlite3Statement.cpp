@@ -20,7 +20,7 @@ Sqlite3Statement::Sqlite3Statement(Sqlite3Connection *c, const char* sql) :
    {
       // exception
       ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    // no current row yet
@@ -50,7 +50,7 @@ int Sqlite3Statement::getParameterIndex(const char* name)
       char temp[length];
       snprintf(temp, length, "Invalid parameter name!,name='%s'", name);
       ExceptionRef e = new SqlException(temp);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return index;
@@ -65,7 +65,7 @@ bool Sqlite3Statement::setInt32(unsigned int param, int value)
    {
       // exception, could not bind parameter
       ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    
@@ -82,7 +82,7 @@ bool Sqlite3Statement::setUInt32(
    {
       // exception, could not bind parameter
       ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    
@@ -99,7 +99,7 @@ bool Sqlite3Statement::setInt64(
    {
       // exception, could not bind parameter
       ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    
@@ -116,7 +116,7 @@ bool Sqlite3Statement::setUInt64(
    {
       // exception, could not bind parameter
       ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    
@@ -134,7 +134,7 @@ bool Sqlite3Statement::setText(
    {
       // exception, could not bind parameter
       ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(e);
+      Exception::setLast(e, false);
       rval = false;
    }
    
@@ -228,7 +228,7 @@ bool Sqlite3Statement::execute()
             sqlite3_reset(mHandle);
             ExceptionRef e =
                new Sqlite3Exception((Sqlite3Connection*)mConnection);
-            Exception::setLast(e);
+            Exception::setLast(e, false);
             rval = false;
          }
          break;
@@ -250,7 +250,7 @@ bool Sqlite3Statement::execute()
             // statement in bad state
             ExceptionRef e =
                new Sqlite3Exception((Sqlite3Connection*)mConnection);
-            Exception::setLast(e);
+            Exception::setLast(e, false);
             rval = false;
          }
          break;
@@ -288,7 +288,7 @@ Row* Sqlite3Statement::fetch()
                sqlite3_reset(mHandle);
                ExceptionRef e =
                   new Sqlite3Exception((Sqlite3Connection*)mConnection);
-               Exception::setLast(e);
+               Exception::setLast(e, false);
             }
             break;
       }

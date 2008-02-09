@@ -161,7 +161,7 @@ bool HttpClient::receiveContent(OutputStream* os, HttpTrailer* trailer)
    {
       ExceptionRef e = new IOException(
          "Could not receive HTTP content, not connected!");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    else
    {

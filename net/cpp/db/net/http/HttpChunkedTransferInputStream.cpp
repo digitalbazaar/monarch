@@ -63,7 +63,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
       {
          // the chunk size could not be read!
          ExceptionRef e = new IOException("Could not read HTTP chunk size!");
-         Exception::setLast(e);
+         Exception::setLast(e, false);
          rval = -1;
       }
    }
@@ -86,7 +86,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
       else
       {
          ExceptionRef e = new IOException("Could not read HTTP chunk!");
-         Exception::setLast(e);
+         Exception::setLast(e, false);
          rval = -1;
       }
    }
@@ -123,7 +123,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
          // if the chunk bytes left is greater than zero and end of stream
          // was read, then whole chunk wasn't read
          ExceptionRef e = new IOException("Could not read entire HTTP chunk!");
-         Exception::setLast(e);
+         Exception::setLast(e, false);
          rval = -1;
       }
    }

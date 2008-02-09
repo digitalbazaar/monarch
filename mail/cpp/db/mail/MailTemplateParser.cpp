@@ -123,7 +123,7 @@ bool MailTemplateParser::parseLine(
          ExceptionRef e = new Exception(
             "Parse error while parsing mail template! Mail header "
             "is malformed, non-existant, or Subject header was not found.");
-         Exception::setLast(e);
+         Exception::setLast(e, false);
          rval = false;
       }
       else
@@ -201,7 +201,7 @@ bool MailTemplateParser::parse(
          ExceptionRef e = new Exception(
             "Message line too long! SMTP requires that lines be no longer "
             "than 1000 bytes, including the terminating CRLF.");
-         Exception::setLast(e);
+         Exception::setLast(e, false);
          rval = false;
       }
       else if(start > b)

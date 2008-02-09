@@ -150,7 +150,7 @@ int Tester::main(int argc, const char* argv[])
    #endif
    
    ExceptionRef e = new Exception("Main thread exception leak test");
-   Exception::setLast(e);
+   Exception::setLast(e, false);
    
    #ifndef WIN32
    // FIXME: calling Thread::exit() on windows causes a busy loop of

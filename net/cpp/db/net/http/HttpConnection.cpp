@@ -73,7 +73,7 @@ bool HttpConnection::receiveHeader(HttpHeader* header)
       {
          ExceptionRef e = new IOException(
             "Could not receive HTTP header!", "db.net.http.BadRequest");
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
    }
    
@@ -150,13 +150,13 @@ bool HttpConnection::sendBody(
                // future so this kind of exception can be recovered from
                ExceptionRef e = new IOException(
                   "Sending HTTP content body interrupted!");
-               Exception::setLast(e);
+               Exception::setLast(e, false);
             }
             else
             {
                ExceptionRef e = new IOException(
                   "Could not read HTTP content bytes to send!");
-               Exception::setLast(e);
+               Exception::setLast(e, false);
             }
          }
          else
@@ -273,13 +273,13 @@ bool HttpConnection::receiveBody(
             // future so this kind of exception can be recovered from
             ExceptionRef e = new IOException(
                "Receiving HTTP content body interrupted!");
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
          else
          {
             ExceptionRef e = new IOException(
                "Could not receive all HTTP content bytes!");
-            Exception::setLast(e);
+            Exception::setLast(e, false);
          }
       }
    }

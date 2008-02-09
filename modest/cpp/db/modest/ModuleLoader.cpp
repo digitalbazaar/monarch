@@ -56,7 +56,7 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
          char temp[100 + strlen(filename) + strlen(error)];
          sprintf(temp, "Could not load module '%s', error=%s", filename, error);
          ExceptionRef e = new Exception(temp, "db.modest.BadModule");
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
    }
    else
@@ -68,7 +68,7 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
          "Could not load module '%s', could not open module file, error=%s",
          filename, error);
       ExceptionRef e = new Exception(temp, "db.modest.BadModuleFile");
-      Exception::setLast(e);
+      Exception::setLast(e, false);
    }
    
    return rval;

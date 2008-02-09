@@ -83,7 +83,7 @@ Module* ModuleLibrary::loadModule(const char* filename)
                ExceptionRef ex = new Exception(
                   temp, "db.modest.ModuleInitializationError");
                ex->setCause(e);
-               Exception::setLast(ex);
+               Exception::setLast(ex, false);
                mLoader.unloadModule(mi);
             }
          }
@@ -102,7 +102,7 @@ Module* ModuleLibrary::loadModule(const char* filename)
                mi->module->getId().name,
                mi->module->getId().version);
             ExceptionRef e = new Exception(temp, "db.modest.DuplicateModule");
-            Exception::setLast(e);
+            Exception::setLast(e, false);
             mLoader.unloadModule(mi);
          }
       }

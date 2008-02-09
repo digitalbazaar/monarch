@@ -66,7 +66,7 @@ DatabaseClient* DatabaseClient::create(const char* url)
             "Cannot create DatabaseClient, url scheme is "
             "not recognized!,scheme='%s'", dbUrl.getScheme().c_str());
          ExceptionRef e = new SqlException(temp);
-         Exception::setLast(e);
+         Exception::setLast(e, false);
       }
    }
    

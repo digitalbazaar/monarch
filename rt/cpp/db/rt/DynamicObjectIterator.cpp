@@ -82,7 +82,7 @@ void DynamicObjectIteratorImpl::remove()
    // not supported
    ExceptionRef e = new Exception(
       "DynamicObjectIterator::remove() not supported!");
-   Exception::setLast(e);
+   Exception::setLast(e, false);
 }
 
 const char* DynamicObjectIteratorImpl::getName()
