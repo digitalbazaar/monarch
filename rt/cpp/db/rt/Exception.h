@@ -129,6 +129,12 @@ public:
     * count, when the current thread exits or when the exception reference is
     * replaced by another call to setException() on the same thread.
     * 
+    * Note: An exception's cause may be set externally to this thread either
+    * to a locally generated one or to the exception retrieved via getLast().
+    * However, if the cause is the exception retrieved via getLast(), it is
+    * faster to simply pass this method "true" for the "caused" parameter
+    * than it is to manually get and set the cause.
+    * 
     * @param e the reference to the Exception to set for the current thread.
     * @param caused true if the current Exception on the thread caused
     *               the passed Exception and should be set as its cause.
