@@ -58,7 +58,7 @@ public:
     * Creates a new MutatorOutputStream that mutates data with the passed
     * MutationAlgorithm.
     * 
-    * @param os the OutputStream to mutated data to.
+    * @param os the OutputStream to write mutated data to.
     * @param cleanupStream true to clean up the passed OutputStream when
     *                      destructing, false not to.
     * @param algorithm the MutationAlgorithm to use.
