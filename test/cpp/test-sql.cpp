@@ -12,14 +12,13 @@
 #include "db/sql/sqlite3/Sqlite3ConnectionPool.h"
 #include "db/sql/mysql/MySqlConnection.h"
 #include "db/sql/mysql/MySqlConnectionPool.h"
-#include "db/sql/util/DatabaseClient.h"
 
 using namespace std;
 using namespace db::test;
 using namespace db::rt;
+using namespace db::sql;
 using namespace db::sql::sqlite3;
 using namespace db::sql::mysql;
-using namespace db::sql::util;
 
 void runSqlite3ConnectionTest(TestRunner &tr)
 {
@@ -421,19 +420,19 @@ void runConnectionPoolTest()
    cout << endl << "ConnectionPool test complete." << endl;
 }
 
-void runDatabaseClientTest()
+void runConnectionPoolTest2()
 {
-   cout << "Starting DatabaseClient test." << endl << endl;
+   cout << "Starting ConnectionPool test 2." << endl << endl;
    
    // clear any exceptions
    Exception::clearLast();
    
-   // get a sqlite3 database client
-   DatabaseClient* dc = DatabaseClient::create("sqlite3::memory:");
+   // get a sqlite3 connection pool
+   ConnectionPool* cp = new Sqlite3ConnectionPool("sqlite3::memory:");
    assertNoException();
    
    // get a connection
-   db::sql::Connection* c = dc->getConnection();
+   db::sql::Connection* c = cp->getConnection();
    assertNoException();
    
    // drop table test
@@ -514,16 +513,16 @@ void runDatabaseClientTest()
    c->close();
    assertNoException();
    
-   // clean up database client
-   delete dc;
+   // clean up connection pool
+   delete cp;
    
-   // get a mysql database client
-   dc = DatabaseClient::create(
+   // get a mysql connection pool
+   cp = new MySqlConnectionPool(
       "mysql://dbwriteclient:k288m2s8f6gk39a@mojo.bitmunk.com/test");
    assertNoException();
    
    // get a connection
-   c = dc->getConnection();
+   c = cp->getConnection();
    assertNoException();
    
    // drop table test
@@ -605,8 +604,8 @@ void runDatabaseClientTest()
    c->close();
    assertNoException();
    
-   // clean up database client
-   delete dc;
+   // clean up connection pool
+   delete cp;
    
    // clean up mysql
    mysql_library_end();
