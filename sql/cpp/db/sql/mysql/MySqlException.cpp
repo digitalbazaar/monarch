@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/mysql/MySqlException.h"
 #include "db/sql/mysql/MySqlConnection.h"
@@ -11,7 +11,7 @@ using namespace db::sql;
 using namespace db::sql::mysql;
 
 MySqlException::MySqlException(MySqlConnection* c) :
-   SqlException("", "db.database.mysql.MySql")
+   SqlException("", "db.sql.mysql.MySql")
 {
    setCode(mysql_errno(c->mHandle));
    setMessage(mysql_error(c->mHandle));

@@ -33,9 +33,9 @@ bool MySqlConnection::connect(Url* url)
       int length = 120 + urlStr.length();
       char msg[length];
       snprintf(msg, length,
-         "Could not connect to sqlite3 database, "
-         "url scheme doesn't start with 'sqlite3', url='%s'", urlStr.c_str());
-      ExceptionRef e = new SqlException(msg);
+         "Could not connect to mysql database, "
+         "url scheme doesn't start with 'mysql', url='%s'", urlStr.c_str());
+      ExceptionRef e = new SqlException(msg, "db.sql.BadUrlScheme");
       Exception::setLast(e, false);
    }
    else

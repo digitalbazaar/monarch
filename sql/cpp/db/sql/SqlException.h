@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_sql_SqlException_H
 #define db_sql_SqlException_H
@@ -36,7 +36,7 @@ public:
     */
    SqlException(
       const char* message = "",
-      const char* type = "db.database.Database", int code = 0);
+      const char* type = "db.sql.Sql", int code = 0);
    
    /**
     * Destructs this SqlException.
