@@ -65,6 +65,29 @@ int ConnectionInputStream::read(char* b, int length)
    return rval;
 }
 
+int ConnectionInputStream::readFully(char* b, int length)
+{
+   int rval = 0;
+   
+   // keep reading until eos, error, or length reached
+   int remaining = length;
+   int offset = 0;
+   int numBytes;
+   while((numBytes = read(b + offset, remaining)) > 0)
+   {
+      remaining -= numBytes;
+      offset += numBytes;
+      rval += numBytes;
+   }
+   
+   if(numBytes == -1)
+   {
+      rval = -1;
+   }
+   
+   return rval;
+}
+
 int ConnectionInputStream::readLine(string& line)
 {
    int rval = 0;

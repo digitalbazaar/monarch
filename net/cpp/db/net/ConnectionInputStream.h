@@ -71,6 +71,21 @@ public:
    virtual int read(char* b, int length);
    
    /**
+    * Reads some bytes from the stream. This method will block until "length"
+    * bytes are read or until the end of the stream is reached. The number of
+    * bytes read will be returned (which may less than what was requested if
+    * the end of the stream was reached) or a value of -1 will be returned if
+    * an IO exception occurred.
+    * 
+    * @param b the array of bytes to fill.
+    * @param length the number of bytes to read into the buffer.
+    * 
+    * @return the number of bytes read from the stream or -1 if an IO exception
+    *         occurred.
+    */
+   virtual int readFully(char* b, int length);
+   
+   /**
     * Reads a single line from the connection that terminates in a
     * end of line character ('\n'), a carriage return ('\r'), or both an
     * end of line character and a carriage return ("\r\n" -- CRLF). This method
