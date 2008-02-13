@@ -127,18 +127,27 @@ typedef uint32_t fourcc_t;
 #define DB_UINT16_TO_LE(val) (val)
 #define DB_UINT32_TO_LE(val) (val)
 #define DB_UINT64_TO_LE(val) (val)
+#define DB_UINT16_TO_BE(val) DB_UINT16_SWAP_LE_BE(val)
+#define DB_UINT32_TO_BE(val) DB_UINT32_SWAP_LE_BE(val)
+#define DB_UINT64_TO_BE(val) DB_UINT64_SWAP_LE_BE(val)
 #elif BYTE_ORDER == BIG_ENDIAN 
 #define DB_UINT16_TO_LE(val) DB_UINT16_SWAP_LE_BE(val)
 #define DB_UINT32_TO_LE(val) DB_UINT32_SWAP_LE_BE(val)
 #define DB_UINT64_TO_LE(val) DB_UINT64_SWAP_LE_BE(val)
+#define DB_UINT16_TO_BE(val) (val)
+#define DB_UINT32_TO_BE(val) (val)
+#define DB_UINT64_TO_BE(val) (val)
 #else
 #error BYTE_ORDER not defined 
 #endif
 
-// symettric conversion
+// symmetric conversion
 #define DB_UINT16_FROM_LE(val) DB_UINT16_TO_LE(val)
 #define DB_UINT32_FROM_LE(val) DB_UINT32_TO_LE(val)
 #define DB_UINT64_FROM_LE(val) DB_UINT64_TO_LE(val)
+#define DB_UINT16_FROM_BE(val) DB_UINT16_TO_BE(val)
+#define DB_UINT32_FROM_BE(val) DB_UINT32_TO_BE(val)
+#define DB_UINT64_FROM_BE(val) DB_UINT64_TO_BE(val)
 
 } // end namespace data
 } // end namespace db
