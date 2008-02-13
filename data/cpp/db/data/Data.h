@@ -89,26 +89,56 @@ typedef uint32_t fourcc_t;
    (char)(((fourcc)>>24) & 0xff)
 
 /**
- * Little endian to big endian conversion.
+ * 16 bit little endian to big endian conversion.
+ */
+// FIXME optimize, use other macros/asm/funcs (htonl), etc
+#define DB_UINT16_SWAP_LE_BE_CONSTANT(val) \
+   ((((uint16_t)(val) & (uint16_t)0x00FF) << 8) | \
+    (((uint16_t)(val) & (uint16_t)0xFF00) >> 8))
+#define DB_UINT16_SWAP_LE_BE(val) DB_UINT16_SWAP_LE_BE_CONSTANT(val)
+
+/**
+ * 32 bit little endian to big endian conversion.
  */
 // FIXME optimize, use other macros/asm/funcs (htonl), etc
 #define DB_UINT32_SWAP_LE_BE_CONSTANT(val) \
-   ((((uint32_t)(val) & (uint32_t)0x000000FF) << 24) | \
-    (((uint32_t)(val) & (uint32_t)0x0000FF00) << 8) | \
-    (((uint32_t)(val) & (uint32_t)0x00FF0000) >> 8) | \
-    (((uint32_t)(val) & (uint32_t)0xFF000000) >> 24))
+   ((((uint32_t)(val) & (uint32_t)0x000000FFU) << 24) | \
+    (((uint32_t)(val) & (uint32_t)0x0000FF00U) << 8) | \
+    (((uint32_t)(val) & (uint32_t)0x00FF0000U) >> 8) | \
+    (((uint32_t)(val) & (uint32_t)0xFF000000U) >> 24))
 #define DB_UINT32_SWAP_LE_BE(val) DB_UINT32_SWAP_LE_BE_CONSTANT(val)
 
+/**
+ * 64 bit little endian to big endian conversion.
+ */
+// FIXME optimize, use other macros/asm/funcs (htonl), etc
+#define DB_UINT64_SWAP_LE_BE_CONSTANT(val) \
+   ((((uint64_t)(val) & (uint64_t)0x00000000000000FFULL) << 56) | \
+    (((uint64_t)(val) & (uint64_t)0x000000000000FF00ULL) << 40) | \
+    (((uint64_t)(val) & (uint64_t)0x0000000000FF0000ULL) << 24) | \
+    (((uint64_t)(val) & (uint64_t)0x00000000FF000000ULL) <<  8) | \
+    (((uint64_t)(val) & (uint64_t)0x000000FF00000000ULL) >>  8) | \
+    (((uint64_t)(val) & (uint64_t)0x0000FF0000000000ULL) >> 24) | \
+    (((uint64_t)(val) & (uint64_t)0x00FF000000000000ULL) >> 40) | \
+    (((uint64_t)(val) & (uint64_t)0xFF00000000000000ULL) >> 56))
+#define DB_UINT64_SWAP_LE_BE(val) DB_UINT64_SWAP_LE_BE_CONSTANT(val)
+
 #if BYTE_ORDER == LITTLE_ENDIAN
+#define DB_UINT16_TO_LE(val) (val)
 #define DB_UINT32_TO_LE(val) (val)
+#define DB_UINT64_TO_LE(val) (val)
 #elif BYTE_ORDER == BIG_ENDIAN 
+#define DB_UINT16_TO_LE(val) DB_UINT16_SWAP_LE_BE(val)
 #define DB_UINT32_TO_LE(val) DB_UINT32_SWAP_LE_BE(val)
+#define DB_UINT64_TO_LE(val) DB_UINT64_SWAP_LE_BE(val)
 #else
 #error BYTE_ORDER not defined 
 #endif
 
 // symettric conversion
+#define DB_UINT16_FROM_LE(val) DB_UINT16_TO_LE(val)
 #define DB_UINT32_FROM_LE(val) DB_UINT32_TO_LE(val)
+#define DB_UINT64_FROM_LE(val) DB_UINT64_TO_LE(val)
 
 } // end namespace data
 } // end namespace db

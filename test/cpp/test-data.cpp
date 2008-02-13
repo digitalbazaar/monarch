@@ -14,6 +14,7 @@
 #include "db/io/FileInputStream.h"
 #include "db/io/FileOutputStream.h"
 #include "db/io/OStreamOutputStream.h"
+#include "db/data/Data.h"
 #include "db/data/xml/XmlReader.h"
 #include "db/data/xml/XmlWriter.h"
 #include "db/data/DynamicObjectInputStream.h"
@@ -925,6 +926,42 @@ void runXmlIOStreamTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runSwapTest(TestRunner& tr)
+{
+   tr.group("byte order swapping");
+   
+   // take value vXX, swap it to sXX, and check with expected eXX
+   
+   tr.test("16");
+   {
+      uint16_t v = 0x0123;
+      uint16_t s = DB_UINT16_SWAP_LE_BE(v);
+      uint16_t e = 0x2301;
+      assert(s == e);
+   }
+   tr.pass();
+   
+   tr.test("32");
+   {
+      uint32_t v = 0x01234567U;
+      uint32_t s = DB_UINT32_SWAP_LE_BE(v);;
+      uint32_t e = 0x67452301U;
+      assert(s == e);
+   }
+   tr.pass();
+
+   tr.test("64");
+   {
+      uint64_t v = 0x0123456789abcdefULL;
+      uint64_t s = DB_UINT64_SWAP_LE_BE(v);
+      uint64_t e = 0xefcdab8967452301ULL;
+      assert(s == e);
+   }
+   tr.pass();
+   
+   tr.ungroup();
+}
+
 void runRiffTest(TestRunner& tr)
 {
    tr.group("RIFF");
@@ -1032,6 +1069,8 @@ public:
       runXmlWriterTest(tr);
       runXmlReadWriteTest(tr);
       runXmlIOStreamTest(tr);
+      
+      runSwapTest(tr);
       
       runRiffTest(tr);
       runAviTest(tr);
