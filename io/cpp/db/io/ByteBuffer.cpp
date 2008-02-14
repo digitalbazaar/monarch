@@ -213,10 +213,11 @@ int ByteBuffer::get(ByteBuffer* b, int length, bool resize)
 
 int ByteBuffer::get(OutputStream* os)
 {
-   int rval = mLength;
+   int rval = 0;
    
    if(os->write(data(), mLength))
    {
+      rval = mLength;
       mOffset = mLength = 0;
    }
    
