@@ -143,19 +143,19 @@ bool AbstractSocket::select(bool read, long long timeout)
       getsockopt(
          mFileDescriptor, SOL_SOCKET, SO_ERROR,
          (char*)&lastError, &lastErrorLength);
-      if(lastError != 0)
+      if(lastError != 0 && lastError != EINPROGRESS)
       {
          if(read)
          {
             // error occurred, get string message
             e = new SocketException(
-               "Could not read from Socket!", strerror(errno));
+               "Could not read from Socket!", strerror(lastError));
          }
          else
          {
             // error occurred, get string message
             e = new SocketException(
-               "Could not write to Socket!", strerror(errno));
+               "Could not write to Socket!", strerror(lastError));
          }
       }
    }
@@ -333,18 +333,36 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
       int error = ::connect(mFileDescriptor, (sockaddr*)addr, size);
       if(error < 0)
       {
-         // wait until the connection can be written to
-         if(select(false, timeout * 1000LL))
+         switch(errno)
          {
-            // now connected and bound
-            mBound = true;
-            mConnected = true;
-         }
-         else
-         {
-            // shutdown input/output
-            shutdownInput();
-            shutdownOutput();
+            // connecting
+            case EINPROGRESS:
+            // already connected
+            case EALREADY:
+            // no error
+            case EWOULDBLOCK:
+               // wait until the connection can be written to
+               if(select(false, timeout * 1000LL))
+               {
+                  // now connected and bound
+                  mBound = true;
+                  mConnected = true;
+               }
+               else
+               {
+                  // shutdown input/output
+                  shutdownInput();
+                  shutdownOutput();
+               }
+               break;
+            default:
+               {
+                  // could not connect
+                  ExceptionRef e = new SocketException(
+                     "Cannot connect Socket!", strerror(errno));
+                  Exception::setLast(e, false);
+               }
+               break;
          }
       }
       else
