@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/Connection.h"
 #include "db/util/Math.h"
@@ -72,8 +72,8 @@ int ConnectionInputStream::readFully(char* b, int length)
    // keep reading until eos, error, or length reached
    int remaining = length;
    int offset = 0;
-   int numBytes;
-   while((numBytes = read(b + offset, remaining)) > 0)
+   int numBytes = 0;
+   while(remaining > 0 && (numBytes = read(b + offset, remaining)) > 0)
    {
       remaining -= numBytes;
       offset += numBytes;
