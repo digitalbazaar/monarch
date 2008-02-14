@@ -65,12 +65,12 @@ BandwidthThrottler* Connection::getBandwidthThrottler(bool read)
    return rval;
 }
 
-ConnectionInputStream* Connection::getInputStream()
+inline ConnectionInputStream* Connection::getInputStream()
 {
    return mInputStream;
 }
 
-ConnectionOutputStream* Connection::getOutputStream()
+inline ConnectionOutputStream* Connection::getOutputStream()
 {
    return mOutputStream;
 }
