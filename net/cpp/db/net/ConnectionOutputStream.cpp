@@ -33,7 +33,7 @@ bool ConnectionOutputStream::write(const char* b, int length)
    // set the data offset
    int offset = 0;
    int numBytes = length;
-   while(rval && length > 0 && !mThread->isInterrupted())
+   while(rval && length > 0)
    {
       // throttle the write as appropriate
       BandwidthThrottler* bt = mConnection->getBandwidthThrottler(false);
@@ -42,7 +42,8 @@ bool ConnectionOutputStream::write(const char* b, int length)
          bt->requestBytes(length, numBytes);
       }
       
-      if(!mThread->isInterrupted())
+      // ensure thread not interrupted
+      if(rval = !mThread->isInterrupted())
       {
          // send data through the socket output stream
          if(rval = mConnection->getSocket()->getOutputStream()->write(
@@ -63,7 +64,7 @@ bool ConnectionOutputStream::write(const char* b, int length)
       }
    }
    
-   return rval && !mThread->isInterrupted();
+   return rval;
 }
 
 void ConnectionOutputStream::close()

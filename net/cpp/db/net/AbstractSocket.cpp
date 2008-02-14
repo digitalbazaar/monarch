@@ -403,7 +403,7 @@ bool AbstractSocket::send(const char* b, int length)
       while(rval && length > 0)
       {
          // wait for socket to become writable
-         if((rval = select(false, getSendTimeout())))
+         if(rval = select(false, getSendTimeout()))
          {
             // send some data
             int bytes = ::send(mFileDescriptor, b + offset, length, 0);
