@@ -172,6 +172,7 @@ DynamicObject& DynamicObjectImpl::operator[](int index)
 
 DynamicObject& DynamicObjectImpl::append()
 {
+   setType(Array);
    return (*this)[length()];
 }
 
