@@ -78,6 +78,13 @@ public:
    virtual void close();
    
    /**
+    * Returns true if this connection is connected, false if not.
+    * 
+    * @return true if this connection is connected, false if not.
+    */
+   virtual bool isConnected();
+   
+   /**
     * Sets the character set for this connection.
     * 
     * @param cset the character set to use for this connection.

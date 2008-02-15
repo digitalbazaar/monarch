@@ -61,12 +61,25 @@ Connection* AbstractConnectionPool::getIdleConnection()
    {
       mListLock.lock();
       {
-         if(!mIdleConnections.empty())
+         while(rval == NULL && !mIdleConnections.empty())
          {
             // get last idle connection
             rval = mIdleConnections.back();
             mIdleConnections.pop_back();
-            mActiveConnections.push_back(rval);
+            
+            // test for connectivity
+            if(rval->isConnected())
+            {
+               mActiveConnections.push_back(rval);
+            }
+            else
+            {
+               // connection no longer connected
+               // close the expired connection and delete it
+               rval->closeConnection();
+               delete rval;
+               rval = NULL;
+            }
          }
       }
       mListLock.unlock();

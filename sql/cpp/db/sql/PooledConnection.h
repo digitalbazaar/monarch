@@ -128,6 +128,13 @@ public:
     * @return true if successful, false if an SqlException occurred.
     */
    virtual bool rollback();
+   
+   /**
+    * Returns true if this connection is connected, false if not.
+    * 
+    * @return true if this connection is connected, false if not.
+    */
+   virtual bool isConnected();
 };
 
 } // end namespace sql

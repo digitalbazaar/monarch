@@ -4,6 +4,8 @@
 #include "db/sql/mysql/MySqlConnection.h"
 #include "db/sql/mysql/MySqlStatement.h"
 
+#include <mysql/errmsg.h>
+
 using namespace std;
 using namespace db::sql;
 using namespace db::sql::mysql;
@@ -92,6 +94,18 @@ void MySqlConnection::close()
       mysql_close(mHandle);
       mHandle = NULL;
    }
+}
+
+bool MySqlConnection::isConnected()
+{
+   bool rval = false;
+   
+   if(mHandle != NULL)
+   {
+      rval = (mysql_ping(mHandle) == 0);
+   }
+   
+   return rval;
 }
 
 bool MySqlConnection::setCharacterSet(const char* cset)

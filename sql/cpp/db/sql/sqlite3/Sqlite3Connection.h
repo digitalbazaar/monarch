@@ -78,6 +78,13 @@ public:
     * Closes this connection.
     */
    virtual void close();
+   
+   /**
+    * Returns true if this connection is connected, false if not.
+    * 
+    * @return true if this connection is connected, false if not.
+    */
+   virtual bool isConnected();
 };
 
 } // end namespace sqlite3

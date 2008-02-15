@@ -71,3 +71,8 @@ bool PooledConnection::rollback()
 {
    return mConnection->rollback();
 }
+
+bool PooledConnection::isConnected()
+{
+   return mConnection->isConnected();
+}

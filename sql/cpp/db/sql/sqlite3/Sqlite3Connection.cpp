@@ -97,3 +97,8 @@ void Sqlite3Connection::close()
       mHandle = NULL;
    }
 }
+
+bool Sqlite3Connection::isConnected()
+{
+   return mHandle != NULL;
+}
