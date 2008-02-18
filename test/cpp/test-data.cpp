@@ -962,11 +962,11 @@ void runSwapTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runRiffTest(TestRunner& tr)
+void runFourccTest(TestRunner& tr)
 {
-   tr.group("RIFF");
+   tr.group("FOURCC");
    
-   tr.test("fourcc");
+   tr.test("create");
    {
       fourcc_t fc = DB_FOURCC_FROM_CHARS('T','E','S','T');
       fourcc_t fs = DB_FOURCC_FROM_STR("TEST");
@@ -981,6 +981,22 @@ void runRiffTest(TestRunner& tr)
       assertStrCmp(sb, "fourcc[TEST]");
    }
    tr.passIfNoException();
+   
+   tr.test("cmp");
+   {
+      fourcc_t f = DB_FOURCC_FROM_STR("TEST");
+      assert(DB_FOURCC_CMP_STR(f, "TEST"));
+      assert(f == DB_FOURCC_FROM_STR("TEST"));
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+   
+
+void runRiffTest(TestRunner& tr)
+{
+   tr.group("RIFF");
    
    tr.test("chunk");
    {
@@ -1072,6 +1088,7 @@ public:
       
       runSwapTest(tr);
       
+      runFourccTest(tr);
       runRiffTest(tr);
       runAviTest(tr);
 

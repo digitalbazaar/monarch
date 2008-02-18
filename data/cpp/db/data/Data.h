@@ -67,6 +67,23 @@ typedef uint32_t fourcc_t;
    } DB_STMT_END
 
 /**
+ * Compare a fourcc with a string.  This check might be faster on an expected
+ * failure due to a short-circuit fail on the first character.  An alternative
+ * which may be faster on expected successful compares is:
+ * (aFourcc == DB_FOURCC_FROM_STR(aString)) 
+ * 
+ * @param s a fourcc_t
+ * @param s a string with at least four characters
+ * 
+ * @return true on a match, false otherwise
+ */
+#define DB_FOURCC_CMP_STR(fourcc, s) \
+      (( (fourcc)      & 0xff) == (uint8_t)((s)[0]) && \
+       (((fourcc)>>8)  & 0xff) == (uint8_t)((s)[1]) && \
+       (((fourcc)>>16) & 0xff) == (uint8_t)((s)[2]) && \
+       (((fourcc)>>24) & 0xff) == (uint8_t)((s)[3]))
+
+/**
  * A printf style format string.
  * 
  * printf("fourcc=%" DB_FOURCC_FORMAT "\n", DB_FOURCC_ARGS(fourcc));
