@@ -72,7 +72,7 @@ typedef uint32_t fourcc_t;
  * which may be faster on expected successful compares is:
  * (aFourcc == DB_FOURCC_FROM_STR(aString)) 
  * 
- * @param s a fourcc_t
+ * @param fourcc a fourcc_t
  * @param s a string with at least four characters
  * 
  * @return true on a match, false otherwise
@@ -82,6 +82,35 @@ typedef uint32_t fourcc_t;
        (((fourcc)>>8)  & 0xff) == (uint8_t)((s)[1]) && \
        (((fourcc)>>16) & 0xff) == (uint8_t)((s)[2]) && \
        (((fourcc)>>24) & 0xff) == (uint8_t)((s)[3]))
+
+/**
+ * Create a mask for first N characters of a fourcc_t.
+ * 
+ * @param n number of characters to mask.  n in range [1,4].
+ * 
+ * @return a mask for first N characters of a fourcc_t:
+ *         1 => "?---",
+ *         2 => "??--",
+ *         3 => "???-",
+ *         4 => "????"
+ */
+#define DB_FOURCC_MASK(n) (~(((fourcc_t)0xffffff00) << (8*((n)-1))))
+
+/**
+ * Compare a fourcc with a string.  This check might be faster on an expected
+ * failure due to a short-circuit fail on the first character.  An alternative
+ * which may be faster on expected successful compares is:
+ * (aFourcc == DB_FOURCC_FROM_STR(aString)) 
+ * 
+ * @param fourcc a fourcc_t
+ * @param s a string with at least four characters
+ * @param n number of characters to compare in range [1,4]
+ * 
+ * @return true on a match, false otherwise
+ */
+#define DB_FOURCC_NCMP_STR(fourcc, s, n) \
+      (((fourcc) & DB_FOURCC_MASK(n)) == \
+         (DB_FOURCC_FROM_STR(s) & DB_FOURCC_MASK(n)))
 
 /**
  * A printf style format string.

@@ -982,14 +982,46 @@ void runFourccTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
+   tr.test("mask");
+   {
+      uint8_t m = 0xff;
+      uint8_t z = 0x00;
+      assert(DB_FOURCC_MASK(1) == DB_FOURCC_FROM_CHARS(m,z,z,z));
+      assert(DB_FOURCC_MASK(2) == DB_FOURCC_FROM_CHARS(m,m,z,z));
+      assert(DB_FOURCC_MASK(3) == DB_FOURCC_FROM_CHARS(m,m,m,z));
+      assert(DB_FOURCC_MASK(4) == DB_FOURCC_FROM_CHARS(m,m,m,m));
+   }
+   tr.passIfNoException();
+
    tr.test("cmp");
    {
       fourcc_t f = DB_FOURCC_FROM_STR("TEST");
       assert(DB_FOURCC_CMP_STR(f, "TEST"));
+      assert(!DB_FOURCC_CMP_STR(f, "xxxx"));
       assert(f == DB_FOURCC_FROM_STR("TEST"));
+      assert(f != DB_FOURCC_FROM_STR("xxxx"));
    }
    tr.passIfNoException();
    
+   tr.test("ncmp");
+   {
+      fourcc_t f = DB_FOURCC_FROM_STR("TEST");
+
+      fourcc_t x1 = DB_FOURCC_FROM_STR("TEST") & DB_FOURCC_MASK(1);
+      fourcc_t y1 = DB_FOURCC_FROM_STR("Txxx") & DB_FOURCC_MASK(1);
+
+      assert(DB_FOURCC_NCMP_STR(f, "Txxx", 1));
+      assert(DB_FOURCC_NCMP_STR(f, "TExx", 2));
+      assert(DB_FOURCC_NCMP_STR(f, "TESx", 3));
+      assert(DB_FOURCC_NCMP_STR(f, "TEST", 4));
+
+      assert(!DB_FOURCC_NCMP_STR(f, "xxxx", 1));
+      assert(!DB_FOURCC_NCMP_STR(f, "xxxx", 2));
+      assert(!DB_FOURCC_NCMP_STR(f, "xxxx", 3));
+      assert(!DB_FOURCC_NCMP_STR(f, "xxxx", 4));
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
    
