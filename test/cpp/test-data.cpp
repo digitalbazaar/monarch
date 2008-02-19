@@ -1007,9 +1007,6 @@ void runFourccTest(TestRunner& tr)
    {
       fourcc_t f = DB_FOURCC_FROM_STR("TEST");
 
-      fourcc_t x1 = DB_FOURCC_FROM_STR("TEST") & DB_FOURCC_MASK(1);
-      fourcc_t y1 = DB_FOURCC_FROM_STR("Txxx") & DB_FOURCC_MASK(1);
-
       assert(DB_FOURCC_NCMP_STR(f, "Txxx", 1));
       assert(DB_FOURCC_NCMP_STR(f, "TExx", 2));
       assert(DB_FOURCC_NCMP_STR(f, "TESx", 3));
