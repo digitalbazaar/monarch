@@ -83,6 +83,46 @@ int FileInputStream::read(char* b, int length)
    return rval;
 }
 
+long long FileInputStream::skip(long long count)
+{
+   long long rval = -1;
+   
+   if(ensureOpen())
+   {
+      // store current position and the end position
+      streampos curr = mStream.tellg();
+      mStream.seekg(0, ios::end);
+      streampos end = mStream.tellg();
+      mStream.seekg(curr, ios::beg);
+      
+      rval = count;
+      if(rval > 0 && curr < end)
+      {
+         // do not skip past EOF
+         if(rval > (end - curr))
+         {
+            rval = end - curr;
+         }
+         
+         // skip from current offset
+         mStream.seekg(rval, ios::cur);
+         curr = mStream.tellg();
+      }
+      
+      // see if a failure other than EOF occurred
+      if(mStream.fail() && !mStream.eof())
+      {
+         rval = -1;
+         char temp[strlen(mFile->getName()) + 40];
+         sprintf(temp, "Could not read from file '%s'!", mFile->getName());
+         ExceptionRef e = new IOException(temp);
+         Exception::setLast(e, false);
+      }
+   }
+   
+   return rval;
+}
+
 void FileInputStream::close()
 {
    // close the stream

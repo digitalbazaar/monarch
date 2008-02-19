@@ -79,6 +79,20 @@ public:
    // FIXME: implement peek, do a read then an unget with ifstream
    
    /**
+    * Skips some bytes in the stream. This method will block until the
+    * some number of bytes up to specified number of bytes have been skipped
+    * or the end of the stream is reached. This method will return the
+    * number of bytes skipped or 0 if the end of the stream was reached or
+    * -1 if an IO exception occurred.
+    * 
+    * @param count the number of bytes to skip.
+    * 
+    * @return the actual number of bytes skipped, or -1 if the end of the
+    *         stream is reached or -1 if an IO exception occurred.
+    */
+   virtual long long skip(long long count);
+   
+   /**
     * Closes the stream.
     */
    virtual void close();

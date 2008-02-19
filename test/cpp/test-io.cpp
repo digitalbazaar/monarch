@@ -378,6 +378,53 @@ void runFileTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+void runFileInputStreamTest(TestRunner& tr)
+{
+   tr.group("FileInputStream");
+   
+   File temp("/tmp/fistestoutput.txt");
+   FileOutputStream fos(&temp);
+   const char* content =
+      "This is for testing the skip method for a file input stream.";
+   fos.write(content, strlen(content));
+   fos.close();
+   
+   tr.test("skip");
+   {
+      FileInputStream fis(&temp);
+      char b[10];
+      
+      assert(fis.read(b, 4) == 4);
+      b[4] = 0;
+      assertStrCmp(b, "This");
+      
+      assert(fis.skip(4) == 4);
+      
+      assert(fis.read(b, 3) == 3);
+      b[3] = 0;
+      assertStrCmp(b, "for");
+      
+      assert(fis.skip(18) == 18);
+      
+      assert(fis.read(b, 6) == 6);
+      b[6] = 0;
+      assertStrCmp(b, "method");
+      
+      assert(fis.skip(12) == 12);
+      
+      assert(fis.read(b, 5) == 5);
+      b[5] = 0;
+      assertStrCmp(b, "input");
+      
+      assert(fis.skip(10) == 8);
+      
+      assert(fis.read(b, 3) == 0);
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class DbIoTester : public db::test::Tester
 {
 public:
@@ -395,6 +442,7 @@ public:
       runByteArrayInputStreamTest(tr);
       runByteArrayOutputStreamTest(tr);
       runFileTest(tr);
+      runFileInputStreamTest(tr);
       return 0;
    }
 
