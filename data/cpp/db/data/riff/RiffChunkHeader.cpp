@@ -71,6 +71,23 @@ uint32_t RiffChunkHeader::getChunkSize()
    return mChunkSize;
 }
 
+uint32_t RiffChunkHeader::getPaddedSize()
+{
+   uint32_t rval = mChunkSize;
+   
+   if(rval % 2 == 1)
+   {
+      rval++;
+   }
+   
+   return rval;
+}
+
+uint32_t RiffChunkHeader::getTotalPaddedSize()
+{
+   return getPaddedSize() + HEADER_SIZE;
+}
+
 bool RiffChunkHeader::isValid()
 {
    return mValid;

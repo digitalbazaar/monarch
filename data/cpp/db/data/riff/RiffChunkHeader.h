@@ -126,6 +126,21 @@ public:
    virtual uint32_t getChunkSize();
    
    /**
+    * Returns the chunk size as rounded up to the nearest even-number.
+    * 
+    * @return the padded chunk size.
+    */
+   virtual uint32_t getPaddedSize();
+   
+   /**
+    * Returns the total chunk size, including its header, and rounded up
+    * to the nearest even-number.
+    * 
+    * @return the total padded chunk size.
+    */
+   virtual uint32_t getTotalPaddedSize();
+   
+   /**
     * Returns whether or not this chunk is valid.
     * 
     * @return true if valid, false if not.
