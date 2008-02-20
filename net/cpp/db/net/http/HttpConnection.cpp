@@ -110,12 +110,6 @@ bool HttpConnection::sendBody(
          // write out to connection
          rval = os.write(b, numBytes);
       }
-      
-      if(rval)
-      {
-         // close stream
-         os.close();
-      }
    }
    else
    {
@@ -129,7 +123,7 @@ bool HttpConnection::sendBody(
             (numBytes = is->read(b, readSize)) > 0)
       {
          // write out to connection
-         if((rval = os.write(b, numBytes)))
+         if(rval = os.write(b, numBytes))
          {
             contentRemaining -= numBytes;
             readSize = (contentRemaining < length) ? contentRemaining : length;
@@ -159,13 +153,11 @@ bool HttpConnection::sendBody(
                Exception::setLast(e, false);
             }
          }
-         else
-         {
-            // close stream
-            os.close();
-         }
       }
    }
+   
+   // close body stream (will not close underlying stream)
+   os.close();
    
    // check read error
    rval = (numBytes != -1);

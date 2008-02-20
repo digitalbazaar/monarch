@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/PeekInputStream.h"
 
@@ -35,7 +35,7 @@ int PeekInputStream::read(char* b, int length)
 
 int PeekInputStream::peek(char* b, int length, bool block)
 {
-   int rval = -1;
+   int rval = 0;
    
    // see if more data needs to be read
    if(block && length > mPeekBuffer.length())
@@ -44,22 +44,17 @@ int PeekInputStream::peek(char* b, int length, bool block)
       mPeekBuffer.allocateSpace(length, true);
       
       // read into the peek buffer from the underlying stream
-      mPeekBuffer.put(mInputStream);
+      rval = mPeekBuffer.put(mInputStream);
    }
    
    // check for peeked bytes
-   if(!mPeekBuffer.isEmpty())
+   if(!mPeekBuffer.isEmpty() && rval != -1)
    {
       // read from the peek buffer
       rval = mPeekBuffer.get(b, length);
       
-      // reset peek buffer
+      // reset peek buffer so that data will be read again
       mPeekBuffer.reset(rval);
-   }
-   else if(!block)
-   {
-      // not-blocking, so return 0
-      rval = 0;
    }
    
    return rval;

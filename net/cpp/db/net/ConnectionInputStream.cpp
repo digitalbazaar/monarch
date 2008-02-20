@@ -178,7 +178,7 @@ int ConnectionInputStream::readCrlf(string& line)
             read(b, i - b);
             
             // if there's room to check for an LF, do it
-            if((i - b) < numBytes)
+            if((i - b) < (numBytes - 1))
             {
                // see if the next character is a LF
                if(i[1] == '\n')

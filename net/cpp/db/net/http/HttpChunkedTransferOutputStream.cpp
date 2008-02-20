@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpChunkedTransferOutputStream.h"
 #include "db/util/Convert.h"
@@ -37,16 +37,14 @@ bool HttpChunkedTransferOutputStream::write(const char* b, int length)
       string chunkSize = Convert::intToHex(length);
       
       // write chunk-size
-      rval &= mOutputStream->write(chunkSize.c_str(), chunkSize.length());
-      
       // write CRLF
-      rval &= mOutputStream->write(HttpHeader::CRLF, 2);
-      
       // write chunk data
-      rval &= mOutputStream->write(b, length);
-      
       // write CRLF
-      rval &= mOutputStream->write(HttpHeader::CRLF, 2);
+      rval =
+         mOutputStream->write(chunkSize.c_str(), chunkSize.length()) &&
+         mOutputStream->write(HttpHeader::CRLF, 2) &&
+         mOutputStream->write(b, length) &&
+         mOutputStream->write(HttpHeader::CRLF, 2);
    }
    
    return rval;
@@ -54,12 +52,11 @@ bool HttpChunkedTransferOutputStream::write(const char* b, int length)
 
 void HttpChunkedTransferOutputStream::close()
 {
-   // write chunk-size of "0"
+   // write chunk-size of "0" and CRLF
    char c = '0';
-   mOutputStream->write(&c, 1);
-   
-   // write CRLF
-   mOutputStream->write(HttpHeader::CRLF, 2);
+   bool write =
+      mOutputStream->write(&c, 1) &&
+      mOutputStream->write(HttpHeader::CRLF, 2);
    
    if(mTrailer != NULL)
    {
@@ -69,12 +66,12 @@ void HttpChunkedTransferOutputStream::close()
       // write out trailer
       string str;
       mTrailer->toString(str);
-      mOutputStream->write(str.c_str(), str.length());
+      write = write && mOutputStream->write(str.c_str(), str.length());
    }
    else
    {
       // write out last CRLF
-      mOutputStream->write(HttpHeader::CRLF, 2);
+      write = write && mOutputStream->write(HttpHeader::CRLF, 2);
    }
    
    // reset data sent
