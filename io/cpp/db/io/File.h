@@ -77,6 +77,13 @@ public:
    bool operator==(const File& rhs);
    
    /**
+    * Creates a new file, overwriting an existing one of the same name.
+    * 
+    * @return true if the file was created, false if not.
+    */
+   virtual bool create();
+   
+   /**
     * Determines whether or not this file physically exists.
     * 
     * @return true if this file exists, false if not.
@@ -89,6 +96,16 @@ public:
     * @return true if this file was deleted, false if not.
     */
    virtual bool remove();
+   
+   /**
+    * Renames this file to the passed one, overwriting an existing file of the
+    * same name.
+    * 
+    * @param file the File to rename this one to.
+    * 
+    * @return true if the rename was successful, false if not.
+    */
+   virtual bool rename(File* file);
    
    /**
     * Gets the name of this File.

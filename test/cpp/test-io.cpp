@@ -293,89 +293,113 @@ void runByteArrayOutputStreamTest(TestRunner& tr)
 
 void runFileTest(TestRunner& tr)
 {
+   tr.group("File");
+   
    const char* name = "/tmp";
 
    File cdir(".");
    File tmp("/tmp");   
    File a("/tmp/a.txt");
    File b("../../foo/../junk238jflk38sjf.txt");
+   File c("/tmp/c.txt");
    string np;
 
-   tr.test("File/normalization");
-   
-   File::normalizePath(&b, np);
-   cout << np << "... ";
-
-   tr.passIfNoException();
-
-   tr.test("File/readable #1");
-   
-   File::normalizePath(&cdir, np);
-   
-   cout << np << " should be readable...";
-   
-   assert(cdir.isReadable());
-   tr.passIfNoException();
-
-   tr.test("File/readable #2");
-
-   File::normalizePath(&b, np);
-   cout << np << " should not be readable...";
-   
-   assert(b.isReadable() == false);
-   tr.passIfNoException();
-
-   tr.test("File/writable");
-
-   File::normalizePath(&cdir, np);
-   cout << np << " should be writable...";
-   assert(cdir.isWritable());
-   tr.passIfNoException();
-
-   tr.test("File/directory containment");
-   
-   assert(tmp.contains(&a));
-   assert(a.contains(&tmp) == false);
-   
-   tr.passIfNoException();
-   tr.test("File/directory list");
-   
-   File dir(name);
-   FileList files(true);
-   dir.listFiles(&files);
-   
-   cout << "/tmp contains " << files.count() << " files...";
-   
-   assert(files.count() > 0);
-   
-   tr.passIfNoException();
-   tr.test("File/get type");
-   
-   Iterator<File*>* i = files.getIterator();
-   while(i->hasNext())
+   tr.test("normalization");
    {
-      File* file = i->next();
-      const char* type;
-      switch(file->getType())
-      {
-         case File::RegularFile:
-            type = "Regular File";
-            break;
-         case File::Directory:
-            type = "Directory";
-            break;
-         case File::SymbolicLink:
-            type = "Symbolic Link";
-            break;
-         default:
-            type = "Unknown";
-            break;
-      }
-      //cout << "Name: '" << file->getName() << "', Type: " << type << endl;
+      File::normalizePath(&b, np);
+      //cout << np << "... ";
    }
-   delete i;
-   
    tr.passIfNoException();
+
+   tr.test("readable #1");
+   {
+      File::normalizePath(&cdir, np);
+      //cout << np << " should be readable...";
+      assert(cdir.isReadable());
+   }
+   tr.passIfNoException();
+
+   tr.test("readable #2");
+   {
+      File::normalizePath(&b, np);
+      //cout << np << " should not be readable...";
+      assert(!b.isReadable());
+   }
+   tr.passIfNoException();
+   
+   tr.test("writable");
+   {
+      File::normalizePath(&cdir, np);
+      //cout << np << " should be writable...";
+      assert(cdir.isWritable());
+   }
+   tr.passIfNoException();
+
+   tr.test("directory containment");
+   {
+      assert(tmp.contains(&a));
+      assert(!a.contains(&tmp));
+   }
+   tr.passIfNoException();
+   
+   tr.test("directory list");
+   {
+      File dir(name);
+      FileList files(true);
+      dir.listFiles(&files);
+      
+      //cout << "/tmp contains " << files.count() << " files...";
+      
+      assert(files.count() > 0);
+   }
+   tr.passIfNoException();
+   
+   tr.test("get type");
+   {
+      File dir(name);
+      FileList files(true);
+      dir.listFiles(&files);
+      IteratorRef<File*> i = files.getIterator();
+      while(i->hasNext())
+      {
+         File* file = i->next();
+         const char* type;
+         switch(file->getType())
+         {
+            case File::RegularFile:
+               type = "Regular File";
+               break;
+            case File::Directory:
+               type = "Directory";
+               break;
+            case File::SymbolicLink:
+               type = "Symbolic Link";
+               break;
+            default:
+               type = "Unknown";
+               break;
+         }
+         //cout << "Name: '" << file->getName() << "', Type: " << type << endl;
+      }
+   }
+   tr.passIfNoException();
+   
+   tr.test("create");
+   {
+      a.create();
+      assert(a.exists());
+   }
+   tr.passIfNoException();
+   
+   tr.test("rename");
+   {
+      a.rename(&c);
+      assert(!a.exists());
+      assert(c.exists());
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
 }
 
 void runFileInputStreamTest(TestRunner& tr)

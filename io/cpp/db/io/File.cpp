@@ -44,6 +44,24 @@ bool File::operator==(const File& rhs)
    return rval;
 }
 
+bool File::create()
+{
+   bool rval = false;
+   
+   FILE *fp = fopen(mName, "w");
+   if(fp != NULL)
+   {
+      rval = true;
+      fclose(fp);
+   }
+   else
+   {
+      // FIXME: add error handling
+   }
+   
+   return rval;
+}
+
 bool File::exists()
 {
    bool rval = false;
@@ -68,6 +86,27 @@ bool File::remove()
    bool rval = false;
    
    int rc = ::remove(mName);
+   if(rc == 0)
+   {
+      rval = true;
+   }
+   else
+   {
+      // FIXME: add error handling
+   }
+   
+   return rval;
+}
+
+bool File::rename(File* file)
+{
+   bool rval = false;
+   
+   // delete old file
+   file->remove();
+   
+   // rename file
+   int rc = ::rename(mName, file->getName());
    if(rc == 0)
    {
       rval = true;
