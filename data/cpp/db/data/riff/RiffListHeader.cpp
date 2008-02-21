@@ -19,14 +19,9 @@ RiffListHeader::~RiffListHeader()
 
 bool RiffListHeader::writeTo(OutputStream& os)
 {
-   bool rval;
-   
-   const int size = RiffChunkHeader::HEADER_SIZE + HEADER_SIZE; 
-   char buf[size];
+   char buf[HEADER_SIZE];
    convertToBytes(buf);
-   rval = os.write(buf, size);
-   
-   return rval;
+   return os.write(buf, HEADER_SIZE);
 }   
 
 void RiffListHeader::convertToBytes(char* b)
