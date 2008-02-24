@@ -36,6 +36,11 @@ protected:
     */
    ByteBuffer* mBuffer;
    
+   /**
+    * True to clean up the ByteBuffer when destructing, false not to.
+    */
+   bool mCleanupBuffer;
+   
 public:
    /**
     * Creates a new ByteArrayInputStream.
@@ -49,8 +54,9 @@ public:
     * Creates a new ByteArrayInputStream that reads from a ByteBuffer.
     * 
     * @param b the ByteBuffer to read from.
+    * @param cleanup true to clean up ByteBuffer when destructing, false not to.
     */
-   ByteArrayInputStream(ByteBuffer* b);
+   ByteArrayInputStream(ByteBuffer* b, bool cleanup = false);
    
    /**
     * Destructs this ByteArrayInputStream.
@@ -84,8 +90,9 @@ public:
     * Sets the ByteBuffer to read from.
     * 
     * @param b the ByteBuffer to read from.
+    * @param cleanup true to clean up ByteBuffer when destructing, false not to.
     */
-   virtual void setByteBuffer(ByteBuffer* b);
+   virtual void setByteBuffer(ByteBuffer* b, bool cleanup = false);
 };
 
 } // end namespace io

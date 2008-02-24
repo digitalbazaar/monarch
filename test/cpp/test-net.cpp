@@ -237,7 +237,7 @@ void runSslSocketTest()
       socket.connect(&address);
       
       // create an SSL context
-      SslContext context(NULL, false);
+      SslContext context(NULL, true);
       
       // create an SSL socket
       SslSocket sslSocket(&context, &socket, true, false);

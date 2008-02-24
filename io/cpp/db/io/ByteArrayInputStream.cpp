@@ -10,17 +10,23 @@ ByteArrayInputStream::ByteArrayInputStream(const char* b, int length)
    mBytes = b;
    mLength = length;
    mBuffer = NULL;
+   mCleanupBuffer = false;
 }
 
-ByteArrayInputStream::ByteArrayInputStream(ByteBuffer* b)
+ByteArrayInputStream::ByteArrayInputStream(ByteBuffer* b, bool cleanup)
 {
    mBytes = NULL;
    mLength = 0;
    mBuffer = b;
+   mCleanupBuffer = cleanup;
 }
 
 ByteArrayInputStream::~ByteArrayInputStream()
 {
+   if(mCleanupBuffer && mBuffer != NULL)
+   {
+      delete mBuffer;
+   }
 }
 
 int ByteArrayInputStream::read(char* b, int length)
@@ -58,12 +64,26 @@ void ByteArrayInputStream::setByteArray(const char* b, int length)
 {
    mBytes = b;
    mLength = length;
-   mBuffer = NULL;
+   
+   if(mCleanupBuffer && mBuffer != NULL)
+   {
+      delete mBuffer;
+      mBuffer = NULL;
+      mCleanupBuffer = false;
+   }
 }
 
-void ByteArrayInputStream::setByteBuffer(ByteBuffer* b)
+void ByteArrayInputStream::setByteBuffer(ByteBuffer* b, bool cleanup)
 {
    mBytes = NULL;
    mLength = 0;
+   
+   if(mCleanupBuffer && mBuffer != NULL)
+   {
+      delete mBuffer;
+      mCleanupBuffer = false;
+   }
+   
    mBuffer = b;
+   mCleanupBuffer = cleanup;
 }
