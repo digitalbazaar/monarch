@@ -33,6 +33,7 @@ bool DomWriter::write(Element& e, OutputStream* os, int level)
    }
    
    // open start element
+   e["name"]->setType(String);
    rval =
       ((mCompact || level == 0) ? true : os->write("\n", 1)) &&
       writeIndentation(os, level) &&
@@ -40,6 +41,7 @@ bool DomWriter::write(Element& e, OutputStream* os, int level)
       os->write(e["name"]->getString(), e["name"]->length());
    
    // write attributes
+   e["attributes"]->setType(Map);
    AttributeIterator attrs = e["attributes"].getIterator();
    while(rval && attrs->hasNext()) 
    {
@@ -53,6 +55,8 @@ bool DomWriter::write(Element& e, OutputStream* os, int level)
    }
    
    // close start element, if element is empty, use compact element
+   e["data"]->setType(String);
+   e["children"]->setType(Map);
    int dataLength = e["data"]->length();
    bool empty = (dataLength == 0 && e["children"]->length() == 0);
    rval = rval && (empty ? os->write("/>", 2) : os->write(">", 1));   
@@ -68,6 +72,7 @@ bool DomWriter::write(Element& e, OutputStream* os, int level)
          while(rval && lists->hasNext())
          {
             DynamicObject& list = lists->next();
+            list->setType(Array);
             ElementIterator children = list.getIterator();
             while(rval && children->hasNext())
             {
