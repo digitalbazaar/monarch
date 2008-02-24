@@ -17,7 +17,8 @@
 #include "db/data/Data.h"
 #include "db/data/xml/XmlReader.h"
 #include "db/data/xml/XmlWriter.h"
-#include "db/data/xml/DomParser.h"
+#include "db/data/xml/DomReader.h"
+#include "db/data/xml/DomWriter.h"
 #include "db/data/DynamicObjectInputStream.h"
 #include "db/data/DynamicObjectOutputStream.h"
 #include "db/data/json/JsonWriter.h"
@@ -927,23 +928,24 @@ void runXmlIOStreamTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runDomParserTest(TestRunner& tr)
+void runDomReadWriteTest(TestRunner& tr)
 {
-   tr.test("DomParser");
+   tr.test("DomReadWrite");
    
    {
       string xml =
          "<root>"
           "<book isdn=\"1234\">"
-           "<preface>"
-            "<paragraph>Paragraph 0</paragraph>"
-           "</preface>"
            "<chapter number=\"1\">"
             "<paragraph>Paragraph 1</paragraph>"
            "</chapter>"
            "<chapter number=\"2\">"
             "<paragraph>Paragraph 2</paragraph>"
+            "rogue data"
            "</chapter>"
+           "<preface>"
+            "<paragraph>Paragraph 0</paragraph>"
+           "</preface>"
           "</book>"
           "<magazine issue=\"May\" year=\"2006\">"
            "<page number=\"1\">"
@@ -953,22 +955,20 @@ void runDomParserTest(TestRunner& tr)
          "</root>";
       
       ByteArrayInputStream bais(xml.c_str(), xml.length());
-      DomParser dp;
+      DomReader dr;
       Element root;
-      dp.start(root);
-      dp.read(&bais);
-      dp.finish();
+      dr.start(root);
+      dr.read(&bais);
+      dr.finish();
       
       ostringstream oss;
       OStreamOutputStream os(&oss);
-      JsonWriter writer;
-      writer.setCompact(false);
-      writer.setIndentation(0, 1);
+      DomWriter writer;
+      writer.setCompact(true);
+      //writer.setIndentation(0, 1);
       writer.write(root, &os);
       
-      cout << "RESULT=\n" << oss.str() << std::endl;
-      
-      //assertStrCmp(xml.c_str(), oss.str().c_str());
+      assertStrCmp(xml.c_str(), oss.str().c_str());
    }
    
    tr.passIfNoException();
@@ -1162,7 +1162,7 @@ public:
       runXmlWriterTest(tr);
       runXmlReadWriteTest(tr);
       runXmlIOStreamTest(tr);
-      runDomParserTest(tr);
+      runDomReadWriteTest(tr);
       
       runSwapTest(tr);
       

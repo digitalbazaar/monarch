@@ -60,19 +60,11 @@ bool DomWriter::write(Element& e, OutputStream* os, int level)
    // write element data and children
    if(rval && !empty)
    {
-      // write element data
-      if(dataLength > 0)
-      {
-         // xml-encode data
-         string encoded = encode(e["data"]->getString());
-         rval = os->write(encoded.c_str(), encoded.length());
-      }
-      
       // write element children
       if(rval && e["children"]->length() > 0)
       {
          // serialize each child
-         DynamicObjectIterator lists = e.getIterator();
+         DynamicObjectIterator lists = e["children"].getIterator();
          while(rval && lists->hasNext())
          {
             DynamicObject& list = lists->next();
@@ -86,8 +78,16 @@ bool DomWriter::write(Element& e, OutputStream* os, int level)
          }
       }
       
+      // write element data
+      if(dataLength > 0)
+      {
+         // xml-encode data
+         string encoded = encode(e["data"]->getString());
+         rval = os->write(encoded.c_str(), encoded.length());
+      }
+      
       // write end element
-      // (only write indentation when data is blank and children are present
+      // (only write indentation when data is blank and children are present)
       if(dataLength == 0 && !empty)
       {
          rval = rval &&
