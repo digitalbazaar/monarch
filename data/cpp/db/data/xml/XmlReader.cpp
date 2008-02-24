@@ -303,7 +303,7 @@ bool XmlReader::read(InputStream* is)
             int line = XML_GetCurrentLineNumber(mParser);
             const char* str = XML_ErrorString(XML_GetErrorCode(mParser));
             char msg[100 + strlen(str)];
-            sprintf(msg, "Xml parser error at line %d:\n%s\n", line, str);
+            sprintf(msg, "Xml parse error at line %d:\n%s\n", line, str);
             ExceptionRef e = new IOException(msg);
             Exception::setLast(e, false);
          }
@@ -337,7 +337,7 @@ bool XmlReader::finish()
          int line = XML_GetCurrentLineNumber(mParser);
          const char* str = XML_ErrorString(XML_GetErrorCode(mParser));
          char msg[100 + strlen(str)];
-         sprintf(msg, "Xml parser error at line %d:\n%s\n", line, str);
+         sprintf(msg, "Xml parse error at line %d:\n%s\n", line, str);
          ExceptionRef e = new IOException(msg);
          Exception::setLast(e, false);
          rval = false;

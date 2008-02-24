@@ -17,6 +17,7 @@
 #include "db/data/Data.h"
 #include "db/data/xml/XmlReader.h"
 #include "db/data/xml/XmlWriter.h"
+#include "db/data/xml/DomParser.h"
 #include "db/data/DynamicObjectInputStream.h"
 #include "db/data/DynamicObjectOutputStream.h"
 #include "db/data/json/JsonWriter.h"
@@ -926,6 +927,53 @@ void runXmlIOStreamTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runDomParserTest(TestRunner& tr)
+{
+   tr.test("DomParser");
+   
+   {
+      string xml =
+         "<root>"
+          "<book isdn=\"1234\">"
+           "<preface>"
+            "<paragraph>Paragraph 0</paragraph>"
+           "</preface>"
+           "<chapter number=\"1\">"
+            "<paragraph>Paragraph 1</paragraph>"
+           "</chapter>"
+           "<chapter number=\"2\">"
+            "<paragraph>Paragraph 2</paragraph>"
+           "</chapter>"
+          "</book>"
+          "<magazine issue=\"May\" year=\"2006\">"
+           "<page number=\"1\">"
+            "<ads>Nothing but ads</ads>"
+           "</page>"
+          "</magazine>"
+         "</root>";
+      
+      ByteArrayInputStream bais(xml.c_str(), xml.length());
+      DomParser dp;
+      Element root;
+      dp.start(root);
+      dp.read(&bais);
+      dp.finish();
+      
+      ostringstream oss;
+      OStreamOutputStream os(&oss);
+      JsonWriter writer;
+      writer.setCompact(false);
+      writer.setIndentation(0, 1);
+      writer.write(root, &os);
+      
+      cout << "RESULT=\n" << oss.str() << std::endl;
+      
+      //assertStrCmp(xml.c_str(), oss.str().c_str());
+   }
+   
+   tr.passIfNoException();
+}
+
 void runSwapTest(TestRunner& tr)
 {
    tr.group("byte order swapping");
@@ -1114,6 +1162,7 @@ public:
       runXmlWriterTest(tr);
       runXmlReadWriteTest(tr);
       runXmlIOStreamTest(tr);
+      runDomParserTest(tr);
       
       runSwapTest(tr);
       
