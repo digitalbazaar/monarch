@@ -45,12 +45,12 @@ bool DomWriter::write(Element& e, OutputStream* os, int level)
    AttributeIterator attrs = e["attributes"].getIterator();
    while(rval && attrs->hasNext()) 
    {
-      DynamicObject& attr = attrs->next();
+      Attribute& attr = attrs->next();
       rval =
          os->write(" ", 1) &&
          os->write(attrs->getName(), strlen(attrs->getName())) &&
          os->write("=\"", 2) &&
-         os->write(attr->getString(), attr->length()) &&
+         os->write(attr["value"]->getString(), attr["value"]->length()) &&
          os->write("\"", 1);
    }
    

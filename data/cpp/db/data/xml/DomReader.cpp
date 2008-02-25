@@ -20,10 +20,14 @@ DomReader::~DomReader()
 
 void DomReader::startElement(const XML_Char* name, const XML_Char** attrs)
 {
+   // FIXME: namespaces can be parsed out into element["namespace"]
+   // and attribute ["name"]["namespace"] if necessary in the future
+   
    if(mException.isNull() && !mDynoStack.empty())
    {
-      // parse element's local name
-      parseLocalName(&name);
+      // parse element's local name and namespace
+      char* ns;
+      parseNamespace(&name, &ns);
       
       Element* e;
       if(mRootStarted)
@@ -41,16 +45,30 @@ void DomReader::startElement(const XML_Char* name, const XML_Char** attrs)
       
       // initialize element
       (*e)["name"] = name;
+      (*e)["namespace"] = (ns == NULL ? "" : ns);
       (*e)["data"] = "";
       (*e)["attributes"]->setType(Map);
       (*e)["children"]->setType(Map);
       
+      if(ns != NULL)
+      {
+         free(ns);
+      }
+      
       // parse element attributes
       for(int i = 0; attrs[i] != NULL; i += 2)
       {
-         // parse attribute's local name
-         parseLocalName(&attrs[i]);
-         (*e)["attributes"][attrs[i]] = attrs[i + 1];
+         // parse attribute's local name and namespace
+         parseNamespace(&attrs[i], &ns);
+         Attribute& attr = (*e)["attributes"][attrs[i]];
+         attr["name"] = attrs[i];
+         attr["namespace"] = (ns == NULL ? "" : ns);
+         attr["value"] = attrs[i + 1];
+         
+         if(ns != NULL)
+         {
+            free(ns);
+         }
       }
    }
 }
