@@ -18,12 +18,6 @@ namespace sql
  */
 class SqlException : public db::rt::Exception
 {
-protected:
-   /**
-    * The sql state associated with this exception, if any.
-    */
-   char* mSqlState;
-   
 public:
    /**
     * Creates a new SqlException.

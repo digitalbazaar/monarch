@@ -14,6 +14,7 @@ Exception::Exception(const char* message, const char* type, int code)
    mType = strdup((type == NULL) ? "" : type);
    mCode = code;
    mCause = new ExceptionRef(NULL);
+   mDetails = new DynamicObject(NULL);
 }
 
 Exception::~Exception()
@@ -21,6 +22,7 @@ Exception::~Exception()
    free(mMessage);
    free(mType);
    delete mCause;
+   delete mDetails;
 }
 
 void Exception::setMessage(const char* message)
@@ -64,6 +66,18 @@ ExceptionRef& Exception::getCause()
    return *mCause;
 }
 
+DynamicObject& Exception::getDetails()
+{
+   if(mDetails->isNull())
+   {
+      DynamicObject details;
+      details->setType(Map);
+      *mDetails = details;
+   }
+   
+   return *mDetails;
+}
+
 ExceptionRef& Exception::setLast(ExceptionRef& e, bool caused)
 {
    Thread::setException(e, caused);
@@ -98,6 +112,11 @@ DynamicObject Exception::convertToDynamicObject(ExceptionRef& e)
       dyno["cause"] = convertToDynamicObject(e->getCause());
    }
    
+   if(!(*e).mDetails->isNull())
+   {
+      dyno["details"] = e->getDetails();
+   }
+   
    return dyno;
 }
 
@@ -112,6 +131,11 @@ ExceptionRef Exception::convertToException(DynamicObject& dyno)
    {
       ExceptionRef cause = convertToException(dyno["cause"]);
       e->setCause(cause);
+   }
+   
+   if(dyno->hasMember("details"))
+   {
+      *(*e).mDetails = dyno["details"].clone();
    }
    
    return e;

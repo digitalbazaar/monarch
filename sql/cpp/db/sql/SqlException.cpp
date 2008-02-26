@@ -1,7 +1,9 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/SqlException.h"
+
+#include "db/rt/DynamicObject.h"
 
 #include <string>
 
@@ -12,21 +14,19 @@ SqlException::SqlException(
    const char* message, const char* type, int code) :
    Exception(message, type, code)
 {
-   mSqlState = strdup("");
+   getDetails()["sqlState"] = "";
 }
 
 SqlException::~SqlException()
 {
-   free(mSqlState);
 }
 
 void SqlException::setSqlState(const char* state)
 {
-   free(mSqlState);
-   mSqlState = strdup(state);
+   getDetails()["sqlState"] = state;
 }
 
 const char* SqlException::getSqlState()
 {
-   return mSqlState;
+   return getDetails()["sqlState"]->getString();
 }

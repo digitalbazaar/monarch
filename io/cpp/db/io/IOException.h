@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_io_IOException_H
 #define db_io_IOException_H
@@ -18,18 +18,6 @@ namespace io
  */
 class IOException : public db::rt::Exception
 {
-protected:
-   /**
-    * Stores the number of used bytes (read/written) during an IO operation.
-    */
-   int mUsedBytes;
-   
-   /**
-    * Stores the number of unused bytes (unread/unwritten) from an IO
-    * operation.
-    */
-   int mUnusedBytes;
-   
 public:
    /**
     * Creates a new IOException.

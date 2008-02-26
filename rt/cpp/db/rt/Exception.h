@@ -49,6 +49,11 @@ protected:
     */
    Collectable<Exception>* mCause;
    
+   /**
+    * Some key-value pairs with details about this exception.
+    */
+   DynamicObject* mDetails;
+   
 public:
    /**
     * Creates a new Exception. A message, type, and code may be optionally
@@ -120,6 +125,15 @@ public:
     * @return the cause for this Exception (may be NULL).
     */
    virtual Collectable<Exception>& getCause();
+   
+   /**
+    * Gets the details for this Exception. If there were no details
+    * previously set, a DynamicObject will be initialized upon calling
+    * this method.
+    * 
+    * @return a reference to the details for this Exception.
+    */
+   virtual DynamicObject& getDetails();
    
    /**
     * Sets the exception for the current thread.
