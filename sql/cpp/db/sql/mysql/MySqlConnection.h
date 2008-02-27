@@ -51,7 +51,8 @@ public:
    virtual ~MySqlConnection();
    
    /**
-    * Connects to the specified database.
+    * Connects to the specified host using the specified default database. No
+    * default database will be set if no path is provided in the url.
     * 
     * @param url MySql parameters in URL form:
     *            "mysql://user:password@host:port/databasename"

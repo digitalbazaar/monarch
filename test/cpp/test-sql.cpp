@@ -172,13 +172,13 @@ void runMySqlStatementTest(TestRunner& tr)
    Exception::clearLast();
    
    MySqlConnection c;
-   c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@mojo.bitmunk.com/test");
+   c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@mojo.bitmunk.com");
    assertNoException();
    
    db::sql::Statement* s;
    
    // drop table test
-   s = c.prepare("DROP TABLE IF EXISTS dbmysqltest");
+   s = c.prepare("DROP TABLE IF EXISTS test.dbmysqltest");
    assert(s != NULL);
    s->execute();
    delete s;
@@ -187,7 +187,7 @@ void runMySqlStatementTest(TestRunner& tr)
    
    // create table test
    s = c.prepare(
-      "CREATE TABLE IF NOT EXISTS dbmysqltest "
+      "CREATE TABLE IF NOT EXISTS test.dbmysqltest "
       "(id BIGINT AUTO_INCREMENT, t TEXT, i BIGINT, "
       "PRIMARY KEY (id))");
    s->execute();
@@ -196,7 +196,7 @@ void runMySqlStatementTest(TestRunner& tr)
    cout << "create table test passed!" << endl;
    
    // insert test 1
-   s = c.prepare("INSERT INTO dbmysqltest (t, i) VALUES ('test!', 1234)");
+   s = c.prepare("INSERT INTO test.dbmysqltest (t, i) VALUES ('test!', 1234)");
    s->execute();
    cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;
@@ -204,7 +204,7 @@ void runMySqlStatementTest(TestRunner& tr)
    cout << "insert test 1 passed!" << endl;
    
    // insert test 2
-   s = c.prepare("INSERT INTO dbmysqltest (t, i) VALUES ('!tset', 4321)");
+   s = c.prepare("INSERT INTO test.dbmysqltest (t, i) VALUES ('!tset', 4321)");
    s->execute();
    cout << "Row #: " << s->getLastInsertRowId() << endl;
    delete s;
@@ -212,7 +212,7 @@ void runMySqlStatementTest(TestRunner& tr)
    cout << "insert test 2 passed!" << endl;
    
    // insert positional parameters test
-   s = c.prepare("INSERT INTO dbmysqltest (t, i) VALUES (?, ?)");
+   s = c.prepare("INSERT INTO test.dbmysqltest (t, i) VALUES (?, ?)");
    s->setText(1, "boundpositional");
    s->setInt32(2, 2222);
    s->execute();
@@ -222,7 +222,7 @@ void runMySqlStatementTest(TestRunner& tr)
    cout << "insert positional parameters test passed!" << endl;
    
 //   // insert named parameters test
-//   s = c.prepare("INSERT INTO dbmysqltest (t, i) VALUES (:first, :second)");
+//   s = c.prepare("INSERT INTO test.dbmysqltest (t, i) VALUES (:first, :second)");
 //   s->setText(":first", "boundnamed");
 //   s->setInt32(":second", 2223);
 //   s->execute();
@@ -232,7 +232,7 @@ void runMySqlStatementTest(TestRunner& tr)
 //   cout << "insert named parameters test passed!" << endl;
    
    // select test
-   s = c.prepare("SELECT t, i FROM dbmysqltest");
+   s = c.prepare("SELECT t, i FROM test.dbmysqltest");
    s->execute();
    
    // fetch rows
@@ -637,7 +637,7 @@ public:
    virtual int runInteractiveTests(TestRunner& tr)
    {
 //      runMySqlConnectionTest();
-//      runMySqlStatementTest();
+//      runMySqlStatementTest(tr);
 //      runConnectionPoolTest();
 //      runDatabaseClientTest();
       return 0;

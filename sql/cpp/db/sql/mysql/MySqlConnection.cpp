@@ -48,13 +48,17 @@ bool MySqlConnection::connect(Url* url)
       // default character set to UTF-8
       mysql_options(mHandle, MYSQL_SET_CHARSET_NAME, "utf8");
       
+      // determine default database (if any)
+      const char* db = (url->getPath().length() <= 1 ?
+         NULL : url->getPath().c_str() + 1);
+      
       // FIXME: we want to add read/write/create params to the URL
       // so connections can be read-only/write/etc (use query in URL)
       if(mysql_real_connect(
          mHandle,
          url->getHost().c_str(),
          url->getUser().c_str(), url->getPassword().c_str(),
-         url->getPath().c_str() + 1,
+         db,
          url->getPort(), NULL, 0) == NULL)
       {
          // create exception, close connection
