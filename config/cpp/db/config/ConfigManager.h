@@ -4,8 +4,8 @@
 #ifndef db_config_ConfigManager_H
 #define db_config_ConfigManager_H
 
-#include "db/rt/Object.h"
 #include "db/rt/DynamicObject.h"
+#include "db/rt/DynamicObjectIterator.h"
 
 #include <vector>
 
@@ -14,18 +14,22 @@ namespace db
 namespace config
 {
 
+// typedef for a config and its iterator
+typedef db::rt::DynamicObject Config;
+typedef db::rt::DynamicObjectIterator ConfigIterator;
+
 /**
  * A ConfigManager provides support for managing multiple sources of
  * configuration information, merging those configs into one top-level
  * view, and providing a diff between modifications to the view and the
- * merged config.  Configs are exposed as DynamicObjects.
+ * merged config. Configs are typedef'd as DynamicObjects.
  *
  * As you add configs they overlay previously added configs:
  * [sys0, sys1, sys2, user0, sys3, ...]
  * <-- low priority -- high priority -->
  *
  * getChanges() will retrieve the difference between the system configs and
- * the current config.  This allows for a preferences system to make it easy
+ * the current config. This allows for a preferences system to make it easy
  * to save user changes.
  * 
  * @author David I. Lehn
@@ -63,7 +67,7 @@ protected:
    /**
     * Pair to hold config and system flag.
     */
-   typedef std::pair<db::rt::DynamicObject, ConfigType> ConfigPair;
+   typedef std::pair<Config, ConfigType> ConfigPair;
 
    /**
     * Source configs and system/user flag.
@@ -73,7 +77,7 @@ protected:
    /**
     * Merged configuration after update().  Read/Write access.
     */
-   db::rt::DynamicObject mConfig;
+   Config mConfig;
    
    /**
     * Merge source over data in target.  Simple values are cloned.  Arrays
@@ -82,7 +86,7 @@ protected:
     * @param target destination to merge into.
     * @param source source to merge from. 
     */
-   void merge(db::rt::DynamicObject& target, db::rt::DynamicObject& source);
+   void merge(Config& target, Config& source);
 
    /**
     * Merge all configs into target.
@@ -90,22 +94,20 @@ protected:
     * @param target destination to merge into.
     * @param types type of configs to merge.
     */
-   void makeMergedConfig(db::rt::DynamicObject& target,
-      ConfigType types = Default);
+   void makeMergedConfig(Config& target, ConfigType types = Default);
 
    /**
     * Compute the difference from dyno1 to dyno2 and store in diff.  Only
     * calculates new or updated elements.  Removed elements are not in the
     * diff.
     * 
-    * @param diff diff destination.
-    * @param dyno1 original DynamicObject
-    * @param dyno2 new DynamicObject
+    * @param diff the Config to write the diff to.
+    * @param config1 original Config.
+    * @param config2 the new Config.
     * 
     * @return true if diff found, else false
     */
-   bool diff(db::rt::DynamicObject& diff,
-      db::rt::DynamicObject& dyno1, db::rt::DynamicObject& dyno2);
+   bool diff(Config& diff, Config& config1, Config& config2);
 
 public:
    /**
@@ -118,18 +120,17 @@ public:
     * Useful for arrays.
     */
    static const char* DEFAULT_VALUE;
-
+   
    /**
     * Check if a configuration has all values and types from a template
     * schema.
     * 
-    * @param config configuration to check against the schema
-    * @param schema template values and types to verify
+    * @param config configuration to check against the schema.
+    * @param schema template values and types to verify.
     * 
     * @return true on success, false on failure with exception set
     */
-   static bool isValidConfig(
-      db::rt::DynamicObject& config, db::rt::DynamicObject& schema); 
+   static bool isValidConfig(Config& config, Config& schema); 
    
    /**
     * Creates a new ConfigManager.
@@ -137,38 +138,38 @@ public:
    ConfigManager();
    
    /**
-    * Destructs this JsonWriter.
+    * Destructs this ConfigManager.
     */
    virtual ~ConfigManager();
    
    /**
-    * Sets option to minimize whitespace.
+    * Gets the main configuration for this ConfigManager.
     * 
-    * @return DynamicObject representation of all overlayed configurations
+    * @return the configuration of all overlayed configurations.
     */
-   virtual db::rt::DynamicObject& getConfig();
+   virtual Config& getConfig();
    
    /**
-    * Clear all configurations.  Invalidates previous addConfig() ids.
+    * Clear all configurations. Invalidates previous addConfig() ids.
     */
    virtual void clear();
    
    /**
-    * Adds a DynamicObject configuration.
+    * Adds a configuration.
     * 
-    * @param dyno a config
-    * @param type type of the config
-    * @param id location to store id of new config or NULL
+    * @param config the Config to add.
+    * @param type the type of Config.
+    * @param id the location to store the id of the new Config or NULL.
     * 
-    * @return true on success, false on failure and exception will be set.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual bool addConfig(db::rt::DynamicObject& dyno,
-      ConfigType type = Default, ConfigId* id = NULL);
-
+   virtual bool addConfig(
+      Config& config, ConfigType type = Default, ConfigId* id = NULL);
+   
    /**
-    * Remove a configuration.
+    * Removes a configuration.
     * 
-    * @param id config id returned from addConfig()
+    * @param id the Config's id (as returned from addConfig()).
     * 
     * @return true on success, false on failure and exception will be set.
     */
@@ -177,22 +178,22 @@ public:
    /**
     * Get a specific config.
     * 
-    * @param id id returned by addConfig
-    * @param dyno DynamicObject to set to return value
+    * @param id the Config's id (as returned by addConfig()).
+    * @param config the Config to populate with the retrieved Config.
     * 
     * @return true on success, false on failure and exception will be set.
     */
-   virtual bool getConfig(ConfigId id, db::rt::DynamicObject& dyno);
+   virtual bool getConfig(ConfigId id, Config& config);
 
    /**
     * Sets a specific config.
     * 
-    * @param id id returned by addConfig
-    * @param dyno the new config
+    * @param id the Config's id (as returned by addConfig()).
+    * @param config the new Config to use.
     * 
     * @return true on success, false on failure and exception will be set.
     */
-   virtual bool setConfig(ConfigId id, db::rt::DynamicObject& dyno);
+   virtual bool setConfig(ConfigId id, Config& config);
 
    /**
     * Update config from all current configs.  Update is called after
@@ -203,14 +204,13 @@ public:
 
    /**
     * Calculate the differences between the source configs and the
-    * read-write config.  Only records new or updated elements.
+    * read-write config. Only records new or updated config fields.
     *
-    * @param target object to store changes to
-    * @param baseType the type to compare against.  Useful values are Default,
-    *        User, and All.
+    * @param target the Config to store the changes in.
+    * @param baseType the type to compare against (useful values are Default,
+    *        User, and All).
     */
-   virtual void getChanges(db::rt::DynamicObject& target,
-      ConfigType baseType = Default);
+   virtual void getChanges(Config& target, ConfigType baseType = Default);
 };
 
 } // end namespace data

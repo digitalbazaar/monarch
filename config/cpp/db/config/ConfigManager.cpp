@@ -2,9 +2,9 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/config/ConfigManager.h"
+
 #include "db/io/BufferedOutputStream.h"
 #include "db/data/json/JsonWriter.h"
-#include "db/rt/DynamicObjectIterator.h"
 
 using namespace std;
 using namespace db::config;
@@ -24,7 +24,7 @@ ConfigManager::~ConfigManager()
 {
 }
 
-DynamicObject& ConfigManager::getConfig()
+Config& ConfigManager::getConfig()
 {
    return mConfig;
 }
@@ -39,14 +39,13 @@ void ConfigManager::clear()
    unlock();
 }
 
-bool ConfigManager::addConfig(DynamicObject& dyno, ConfigType type,
-   ConfigId *id)
+bool ConfigManager::addConfig(Config& config, ConfigType type, ConfigId* id)
 {
    bool rval = true;
-
+   
    lock();
    {
-      mConfigs.push_back(ConfigPair(dyno, type));
+      mConfigs.push_back(ConfigPair(config, type));
       if(id != NULL)
       {
          *id = mConfigs.size() - 1;
@@ -66,7 +65,7 @@ bool ConfigManager::removeConfig(ConfigId id)
    {
       if(id >= 0 && id < mConfigs.size())
       {
-         mConfigs[id] = ConfigPair(DynamicObject(NULL), None);
+         mConfigs[id] = ConfigPair(Config(NULL), None);
          update();
          rval = true;
       }
@@ -81,32 +80,32 @@ bool ConfigManager::removeConfig(ConfigId id)
    return rval;
 }
 
-bool ConfigManager::getConfig(ConfigId id, DynamicObject& dyno)
+bool ConfigManager::getConfig(ConfigId id, Config& config)
 {
    bool rval = false;
    
    if(id >= 0 && id < mConfigs.size())
    {
       rval = true;
-      dyno = mConfigs[id].first;
+      config = mConfigs[id].first;
    }
    else
    {
       ExceptionRef e = new Exception("Invalid ConfigId");
       Exception::setLast(e, false);
    }
-  
+   
    return rval;
 }
 
-bool ConfigManager::setConfig(ConfigId id, DynamicObject& dyno)
+bool ConfigManager::setConfig(ConfigId id, Config& config)
 {
    bool rval = false;
    
    if(id >= 0 && id < mConfigs.size())
    {
       rval = true;
-      mConfigs[id].first = dyno;
+      mConfigs[id].first = config;
       update();
    }
    else
@@ -118,11 +117,11 @@ bool ConfigManager::setConfig(ConfigId id, DynamicObject& dyno)
    return rval;
 }
 
-void ConfigManager::merge(DynamicObject& target, DynamicObject& source)
+void ConfigManager::merge(Config& target, Config& source)
 {
-   if(source == NULL)
+   if(source.isNull())
    {
-      target = DynamicObject(NULL);
+      target = Config(NULL);
    }
    else if(!(source->getType() == String &&
       strcmp(source->getString(), DEFAULT_VALUE) == 0))
@@ -140,17 +139,17 @@ void ConfigManager::merge(DynamicObject& target, DynamicObject& source)
             break;
          case Map:
             {
-               DynamicObjectIterator i = source.getIterator();
+               ConfigIterator i = source.getIterator();
                while(i->hasNext())
                {
-                  DynamicObject next = i->next();
+                  Config next = i->next();
                   merge(target[i->getName()], next);
                }
             }
             break;
          case Array:
             {
-               DynamicObjectIterator i = source.getIterator();
+               ConfigIterator i = source.getIterator();
                for(int ii = 0; i->hasNext(); ii++)
                {
                   merge(target[ii], i->next());
@@ -161,15 +160,14 @@ void ConfigManager::merge(DynamicObject& target, DynamicObject& source)
    }
 }
 
-void ConfigManager::makeMergedConfig(DynamicObject& target, ConfigType types)
+void ConfigManager::makeMergedConfig(Config& target, ConfigType types)
 {
    lock();
    {
       for(vector<ConfigPair>::iterator i = mConfigs.begin();
-         i != mConfigs.end();
-         i++)
+          i != mConfigs.end(); i++)
       {
-         if((*i).first != NULL)
+         if(!(*i).first.isNull())
          {
             if((types == All) || (types == (*i).second))
             {
@@ -191,32 +189,31 @@ void ConfigManager::update()
    unlock();
 }
 
-bool ConfigManager::diff(DynamicObject& target,
-   DynamicObject& dyno1, DynamicObject& dyno2)
+bool ConfigManager::diff(Config& target, Config& config1, Config& config2)
 {
    bool rval = false;
    
-   if(dyno1 == NULL && dyno2 == NULL)
+   if(config1.isNull() && config2.isNull())
    {
       // same: no diff
    }
-   else if(dyno1 != NULL && dyno2 == NULL)
+   else if(!config1.isNull() && config2.isNull())
    {
       // <stuff> -> NULL: diff=NULL
       rval = true;
-      target = DynamicObject(NULL);
+      target = Config(NULL);
    }
-   else if((dyno1 == NULL && dyno2 != NULL) ||
-      (dyno1->getType() != dyno2->getType()))
+   else if((config1.isNull() && !config2.isNull()) ||
+      (config1->getType() != config2->getType()))
    {
-      // NULL -> <stuff> -or- types differ: diff=dyno2
+      // NULL -> <stuff> -or- types differ: diff=config2
       rval = true;
-      target = dyno2.clone();
+      target = config2.clone();
    }
    else
    {
       // not null && same type: diff=deep compare
-      switch(dyno1->getType())
+      switch(config1->getType())
       {
          case String:
          case Boolean:
@@ -226,33 +223,33 @@ bool ConfigManager::diff(DynamicObject& target,
          case UInt64:
          case Double:
             // compare simple types directly
-            if(dyno1 != dyno2)
+            if(config1 != config2)
             {
-               // changed: diff=dyno2
+               // changed: diff=config2
                rval = true;
-               target = dyno2.clone();
+               target = config2.clone();
             }
             break;
          case Map:
             {
-               // Compare dyno2 keys since we are only concerned with
-               // additions and updates, not removals.
-               DynamicObjectIterator i = dyno2.getIterator();
+               // compare config2 keys since we are only concerned with
+               // additions and updates, not removals
+               ConfigIterator i = config2.getIterator();
                while(i->hasNext())
                {
-                  DynamicObject next = i->next();
+                  Config next = i->next();
                   const char* name = i->getName();
-                  if(!dyno1->hasMember(name))
+                  if(!config1->hasMember(name))
                   {
-                     // key not in dyno1, add to diff.
+                     // key not in config1, so add to diff
                      rval = true;
                      target[name] = next.clone();
                   }
                   else
                   {
                      // recusively get sub-diff
-                     DynamicObject d;
-                     if(diff(d, dyno1[name], next))
+                     Config d;
+                     if(diff(d, config1[name], next))
                      {
                         // diff found, add it
                         rval = true;
@@ -264,14 +261,14 @@ bool ConfigManager::diff(DynamicObject& target,
             break;
          case Array:
             {
-               // Compare dyno2 indexes since we are only concerned with
-               // additions and updates, not removals.
-               DynamicObjectIterator i = dyno2.getIterator();
+               // compare config2 indexes since we are only concerned with
+               // additions and updates, not removals
+               ConfigIterator i = config2.getIterator();
                for(int ii = 0; i->hasNext(); ii++)
                {
                   DynamicObject next = i->next();
-                  DynamicObject d;
-                  if(diff(d, dyno1[ii], next))
+                  Config d;
+                  if(diff(d, config1[ii], next))
                   {
                      // diff found
                      rval = true;
@@ -291,23 +288,23 @@ bool ConfigManager::diff(DynamicObject& target,
    return rval;
 }
 
-void ConfigManager::getChanges(DynamicObject& target, ConfigType baseType)
+void ConfigManager::getChanges(Config& target, ConfigType baseType)
 {
-   DynamicObject original;
+   Config original;
    makeMergedConfig(original, baseType);
    diff(target, original, mConfig);
 }
 
-bool ConfigManager::isValidConfig(DynamicObject& config, DynamicObject& schema)
+bool ConfigManager::isValidConfig(Config& config, Config& schema)
 {
    bool rval = false;
    
-   if(schema == NULL)
+   if(schema.isNull())
    {
       // schema not specified, any config value is ok
       rval = true;
    }
-   else if(config != NULL && schema->getType() == config->getType())
+   else if(!config.isNull() && schema->getType() == config->getType())
    {
       // schema not null and types match, do deep compare
       switch(schema->getType())
@@ -325,12 +322,12 @@ bool ConfigManager::isValidConfig(DynamicObject& config, DynamicObject& schema)
          case Map:
             {
                // Compare all schema keys
-               DynamicObjectIterator i = schema.getIterator();
+               ConfigIterator i = schema.getIterator();
                // assume true and verify
                rval = true;
                while(rval && i->hasNext())
                {
-                  DynamicObject next = i->next();
+                  Config next = i->next();
                   const char* name = i->getName();
                   if(!config->hasMember(name))
                   {
@@ -340,7 +337,7 @@ bool ConfigManager::isValidConfig(DynamicObject& config, DynamicObject& schema)
                   else
                   {
                      // check values
-                     DynamicObject d;
+                     Config d;
                      rval = isValidConfig(config[name], next);
                   }
                }
@@ -356,7 +353,7 @@ bool ConfigManager::isValidConfig(DynamicObject& config, DynamicObject& schema)
                else if(schema->length() == 1)
                {
                   // all config elements must match template 
-                  DynamicObjectIterator i = config.getIterator();
+                  ConfigIterator i = config.getIterator();
                   rval = true;
                   while(rval && i->hasNext())
                   {
