@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_sql_ConnectionPool_H
 #define db_sql_ConnectionPool_H
 
 #include "db/sql/PooledConnection.h"
+#include "db/rt/Collectable.h"
 
 namespace db
 {
@@ -111,6 +112,9 @@ public:
     */
    virtual unsigned int getExpiredConnectionCount() = 0;
 };
+
+// type definition for a reference counted ConnectionPool
+typedef db::rt::Collectable<ConnectionPool> ConnectionPoolRef;
 
 } // end namespace sql
 } // end namespace db
