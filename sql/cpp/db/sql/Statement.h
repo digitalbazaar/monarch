@@ -5,6 +5,7 @@
 #define db_sql_Statement_H
 
 #include "db/sql/Connection.h"
+#include "db/rt/Collectable.h"
 
 namespace db
 {
@@ -190,6 +191,9 @@ public:
     */
    virtual unsigned long long getLastInsertRowId() = 0;
 };
+
+// type definition for a reference counted Statement
+typedef db::rt::Collectable<Statement> StatementRef;
 
 } // end namespace sql
 } // end namespace db
