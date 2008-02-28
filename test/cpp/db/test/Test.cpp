@@ -28,23 +28,33 @@ void db::test::dumpException(ExceptionRef& e)
    if(sqlEx != NULL)
    {
       cout << "SqlException occurred!" << endl;
-      cout << "message: " << sqlEx->getMessage() << endl;
-      cout << "type: " << sqlEx->getType() << endl;
-      cout << "code: " << sqlEx->getCode() << endl;
       cout << "sqlstate: " << sqlEx->getSqlState() << endl;
    }
    else
    {
       cout << "Exception occurred!" << endl;
-      cout << "message: " << e->getMessage() << endl;
-      cout << "type: " << e->getType() << endl;
-      cout << "code: " << e->getCode() << endl;
    }
    
+   cout << "message: " << e->getMessage() << endl;
+   cout << "type: " << e->getType() << endl;
+   cout << "code: " << e->getCode() << endl;
+   cout << "details: ";
+   dynamicObjectToStream(e->getDetails(), cout, false);
+   cout << endl;         
+
    if(!e.isNull() && !e->getCause().isNull())
    {
       cout << "CAUSE:" << endl;
       dumpException(e->getCause());         
+   }
+}
+
+void db::test::dumpException()
+{
+   if(Exception::hasLast())
+   {
+      ExceptionRef e = Exception::getLast();
+      dumpException(e);
    }
 }
 
