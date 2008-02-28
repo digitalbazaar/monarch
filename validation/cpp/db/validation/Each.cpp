@@ -14,6 +14,7 @@ Each::Each(Validator* validator) :
 
 Each::~Each()
 {
+   delete mValidator;
 }
 
 bool Each::isArrayValid(
