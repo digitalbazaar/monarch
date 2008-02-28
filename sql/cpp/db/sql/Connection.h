@@ -6,6 +6,7 @@
 
 #include "db/net/Url.h"
 #include "db/sql/SqlException.h"
+#include "db/rt/Collectable.h"
 
 namespace db
 {
@@ -121,6 +122,9 @@ public:
     */
    virtual bool isConnected() = 0;
 };
+
+// type definition for reference counted Connection
+typedef db::rt::Collectable<Connection> ConnectionRef;
 
 } // end namespace sql
 } // end namespace db
