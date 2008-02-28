@@ -137,7 +137,7 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                DynamicObjectIterator i = dyno.getIterator();
                while(rval && i->hasNext())
                {
-                  DynamicObject next = i->next();
+                  DynamicObject& next = i->next();
                   
                   // serialize indentation and start serializing member name
                   if(rval =
