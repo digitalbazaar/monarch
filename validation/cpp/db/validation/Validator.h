@@ -7,6 +7,7 @@
 #include "db/rt/DynamicObject.h"
 #include <string>
 #include <vector>
+#include <stdarg.h>
 
 namespace db
 {
