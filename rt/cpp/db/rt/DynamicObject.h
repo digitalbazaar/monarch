@@ -190,6 +190,16 @@ public:
     * @return true if this DynamicObject is a subset of the passed one.
     */
    virtual bool isSubset(const DynamicObject& rhs);
+
+   /**
+    * Get a simple description for the DynamicObjectType enumerated value.
+    * Useful in error messages to describe valid or invalid input.
+    * 
+    * @param type the type to describe.
+    * 
+    * @return a simple string to describe each DynamicObject type.
+    */
+   static const char* descriptionForType(DynamicObjectType type);
 };
 
 } // end namespace rt

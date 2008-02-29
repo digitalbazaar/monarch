@@ -1,0 +1,9 @@
+# Makefile to compile the module in this directory
+
+SOURCES = $(wildcard db/validation/*.cpp)
+LIBRARIES = dbvalidation
+DYNAMIC_LINK_LIBRARIES = dbrt
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
+

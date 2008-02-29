@@ -24,7 +24,8 @@ INCLUDES = \
 	-I$(DBCORE)/rt/cpp \
 	-I$(DBCORE)/sql/cpp \
 	-I$(DBCORE)/test/cpp \
-	-I$(DBCORE)/util/cpp
+	-I$(DBCORE)/util/cpp \
+	-I$(DBCORE)/validation/cpp
 
 MODULE_BASE_DIR = $(shell pwd)
 

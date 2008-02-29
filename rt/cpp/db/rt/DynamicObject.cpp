@@ -339,3 +339,41 @@ bool DynamicObject::isSubset(const DynamicObject& rhs)
    
    return rval;
 }
+
+const char* DynamicObject::descriptionForType(DynamicObjectType type)
+{
+   const char* rval;
+   
+   switch(type)
+   {
+      case String:
+         rval = "string";
+         break;
+      case Boolean:
+         rval = "boolean";
+         break;
+      case Int32:
+         rval = "32 bit integer";
+         break;
+      case UInt32:
+         rval = "32 bit unsigned integer";
+         break;
+      case Int64:
+         rval = "64 bit integer";
+         break;
+      case UInt64:
+         rval = "64 bit unsigned integer";
+         break;
+      case Double:
+         rval = "floating point";
+         break;
+      case Map:
+         rval = "map";
+         break;
+      case Array:
+         rval = "array";
+         break;
+   }
+   
+   return rval;
+}

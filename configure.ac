@@ -101,20 +101,21 @@ AC_CONFIG_FILES([
           3rdparty/cpp/Makefile
           setup/Makefile.base
           setup/docs.doxygen
+          compress/cpp/Makefile
           config/cpp/Makefile
           crypto/cpp/Makefile
-          compress/cpp/Makefile
           data/cpp/Makefile
           event/cpp/Makefile
           io/cpp/Makefile
+          logging/cpp/Makefile
           mail/cpp/Makefile
           modest/cpp/Makefile
           net/cpp/Makefile
           rt/cpp/Makefile
           sql/cpp/Makefile
-          logging/cpp/Makefile
           test/cpp/Makefile
           util/cpp/Makefile
+          validation/cpp/Makefile
 ])
 # Generated scripts
 AC_CONFIG_FILES([dbcore-run], [chmod +x dbcore-run])

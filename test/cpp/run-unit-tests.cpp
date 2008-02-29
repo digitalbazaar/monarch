@@ -34,6 +34,7 @@ using namespace db::logging;
 #include "test-compress.cpp"
 #include "test-config.cpp"
 #include "test-logging.cpp"
+#include "test-validation.cpp"
 #undef DB_TEST_NO_MAIN
 
 class DbAllTester : public db::test::Tester
@@ -54,6 +55,7 @@ public:
       addTester(new DbCompressTester());
       addTester(new DbConfigTester());
       addTester(new DbLoggingTester());
+      addTester(new DbValidationTester());
    }
 
    ~DbAllTester() {}

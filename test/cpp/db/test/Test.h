@@ -22,6 +22,11 @@ namespace test
 void dumpException(db::rt::ExceptionRef& e);
 
 /**
+ * Dump exception details of current exception if present.
+ */
+void dumpException();
+
+/**
  * Non-JSON DynamicObject output.
  * Note: Not using defaults on main function due to C++isms.
  *
