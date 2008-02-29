@@ -13,11 +13,17 @@ namespace validation
 {
 
 /**
- * Base class for Validators that use a list of Validators.
+ * Base class for Validators that use a list of Validators.  Common methods are
+ * provided to build up an internal list of sub-validators.
+ *
+ * See All and Any for examples.
+ *
+ * @author David I. Lehn
  */
 class ValidatorList : public Validator
 {
 protected:
+   /* A list of validators */
    std::vector<Validator*> mValidators;
 
 public:
@@ -40,14 +46,14 @@ public:
    virtual ~ValidatorList();
    
    /**
-    * Add a validator to the list.
+    * Adds a validator to the list.
     * 
     * @param validator a Validator.
     */
    virtual void addValidator(Validator* validator);
    
    /**
-    * Add validators to the list.
+    * Adds validators to the list.
     * 
     * @param validator a Validator.
     * @param ap a vararg list.
@@ -55,7 +61,7 @@ public:
    virtual void addValidators(Validator* validator, va_list ap);
    
    /**
-    * Add a NULL terminated list of validators to the list.
+    * Adds a NULL terminated list of validators to the list.
     * 
     * @param validator a Validator.
     * @param ... more Validators.

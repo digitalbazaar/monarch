@@ -12,7 +12,14 @@ namespace validation
 {
 
 /**
- * Validate equality of an object.
+ * Validates equality of the values for two keys of a DynamicObject Map.
+ *
+ * d => { "aKey": aValue, "bKey": bValue }
+ * 
+ * Validate aValue and bValue are the same (via ==) with:
+ *
+ *   Compare c("aKey", "bKey");
+ *   c.isValid(d)
  * 
  * @author David I. Lehn
  */
@@ -40,7 +47,7 @@ public:
    virtual ~Compare();
    
    /**
-    * Validate an object.
+    * Checks if an object is valid.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.

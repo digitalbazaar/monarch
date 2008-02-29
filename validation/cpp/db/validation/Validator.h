@@ -33,7 +33,7 @@ public:
    virtual ~Validator();
    
    /**
-    * Validate an object.
+    * Checks if an object is valid.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.
@@ -47,34 +47,38 @@ public:
       std::vector<const char*>* path = NULL) = 0;
 
    /**
-    * If an object is missing is this Check if this validator is optional.
+    * Returns if this validator is optional or mandatory.  This method will
+    * be called from the Map validator if a key is missing from a target object
+    * during a validation check.  This allows for specialized validators to
+    * be skipped.  The default implementation assumes validators are mandatory
+    * and returns false.  The Optional validator returns true and can be used
+    * as a wrapper around other validators.
+    *
+    * See the Optional class documentation for an example.
     * 
     * @param state arbitrary state for validators to use during validation.
     * 
     * @return true if optional, false if mandatory.
     */
-   virtual bool isOptional(db::rt::DynamicObject* state = NULL)
-   {
-      return false;
-   }
+   virtual bool isOptional(db::rt::DynamicObject* state = NULL);
    
    /**
-    * Make a string path out of a vector of path components.
+    * Makes a string path out of a vector of path components.
     * 
-    * @param path vector of strings to concatinate.
+    * @param path vector of strings to concatenate.
     * 
     * @return string representing the path.
     */
    static std::string stringFromPath(std::vector<const char*>* path);
    
    /**
-    * Create an Error exception if needed and add a basic error report with the
-    * given "type" field and a "message" field with "Invalid value.".  Use
-    * the returned object to add a more detailed message or aditional details
-    * as needed.
+    * Creates an Error exception if needed and add a basic error report with
+    * the given "type" field and a "message" field with "Invalid value!".  Use
+    * the returned object to change the message or add additional details as
+    * needed.
     * 
     * @param path vector of strings to concatinate.
-    * @param type type of this error in format like "db.validation.MaxError"
+    * @param type type of this error in "db.validation.MaxError" format.
     * 
     * @return DynamicObject to fill with details.
     */

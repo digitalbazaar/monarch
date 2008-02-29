@@ -14,8 +14,19 @@ namespace validation
 {
 
 /**
- * Validate all members of a map.
- * NOTE: Checking for extra members not yet implemented.
+ * Validates specific members of a DynamicObject Array.
+ *
+ * For many values set up the validator with varargs:
+ *
+ *   Array a(
+ *      0, new Type(Int32),
+ *      1, new Type(Int32),
+ *      -1);
+ *   a.isValid(dyno);
+ *
+ * NOTE: Checking for arbitrary extra members not yet implemented.  However,
+ * you can set a validator such as: "new Optional(new NotValid())" in order
+ * to fail on specific members that are not allowed.
  * 
  * @author David I. Lehn
  */
@@ -41,7 +52,7 @@ public:
    virtual ~Array();
    
    /**
-    * Validate an object.
+    * Checks if an object is valid.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.
@@ -55,7 +66,7 @@ public:
       std::vector<const char*>* path = NULL);
    
    /**
-    * Add an index:validator pair.
+    * Adds an index:validator pair.
     * 
     * @param index an array index.
     * @param validator a Validator.
@@ -63,7 +74,7 @@ public:
    virtual void addValidator(int index, Validator* validator);
    
    /**
-    * Add index:validator pairs.
+    * Adds index:validator pairs.
     * 
     * @param index an array index.
     * @param ap a vararg list.
@@ -71,7 +82,7 @@ public:
    virtual void addValidators(int index, va_list ap);
    
    /**
-    * Add a -1 terminated list of index:validator pairs.
+    * Adds a -1 terminated list of index:validator pairs.
     * 
     * @param index an array index.
     * @param ... more key:validator pairs.

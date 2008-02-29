@@ -12,7 +12,15 @@ namespace validation
 {
 
 /**
- * Validate the type of an object.
+ * Validates the type of an object.
+ *
+ * d => 0
+ *
+ *   Type ti(Int32);
+ *   ti.isValid(d) => true
+ *
+ *   Type ts(String);
+ *   ts.isValid(d) => false
  * 
  * @author David I. Lehn
  */
@@ -33,7 +41,7 @@ public:
    virtual ~Type();
    
    /**
-    * Validate an object.
+    * Checks if an object is valid.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.

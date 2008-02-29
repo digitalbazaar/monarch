@@ -14,6 +14,11 @@ Validator::~Validator()
 {
 }
 
+bool Validator::isOptional(db::rt::DynamicObject* state)
+{
+   return false;
+}
+
 std::string Validator::stringFromPath(std::vector<const char*>* path)
 {
    std::string rval;

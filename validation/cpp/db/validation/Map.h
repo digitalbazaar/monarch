@@ -14,8 +14,19 @@ namespace validation
 {
 
 /**
- * Validate all members of a map.
- * NOTE: Checking for extra members not yet implemented.
+ * Validates specific members of a DynamicObject Map.
+ *
+ * For many values set up the validator with varargs:
+ *
+ *   Map m(
+ *      "username", new Type(String),
+ *      "password", new Type(String),
+ *      NULL);
+ *   m.isValid(dyno);
+ *
+ * NOTE: Checking for arbitrary extra members not yet implemented.  However,
+ * you can set a validator such as: "new Optional(new NotValid())" in order
+ * to fail on specific members that are not allowed.
  * 
  * @author David I. Lehn
  */
@@ -41,7 +52,7 @@ public:
    virtual ~Map();
    
    /**
-    * Validate an object.
+    * Checks if an object is valid.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.
@@ -55,7 +66,7 @@ public:
       std::vector<const char*>* path = NULL);
    
    /**
-    * Add a key:validator pair.
+    * Adds a key:validator pair.
     * 
     * @param key a map key.
     * @param validator a Validator.
@@ -63,7 +74,7 @@ public:
    virtual void addValidator(const char* key, Validator* validator);
    
    /**
-    * Add key:validator pairs.
+    * Adds key:validator pairs.
     * 
     * @param key a map key.
     * @param ap a vararg list.
@@ -71,7 +82,7 @@ public:
    virtual void addValidators(const char* key, va_list ap);
    
    /**
-    * Add a NULL terminated list of key:validator pairs.
+    * Adds a NULL terminated list of key:validator pairs.
     * 
     * @param key a map key.
     * @param ... more key:validator pairs.

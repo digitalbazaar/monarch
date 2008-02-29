@@ -30,7 +30,7 @@ public:
    virtual ~NotValid();
    
    /**
-    * Validate an object.
+    * Checks if an object is valid.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.

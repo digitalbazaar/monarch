@@ -12,7 +12,7 @@ namespace validation
 {
 
 /**
- * Validate equality of an object.
+ * Validates the equality of the validation target object with another object.
  * 
  * @author David I. Lehn
  */
@@ -35,7 +35,7 @@ public:
    virtual ~Equals();
    
    /**
-    * Validate an object.
+    * Checks if an object is valid.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.

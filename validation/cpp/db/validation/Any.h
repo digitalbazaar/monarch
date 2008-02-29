@@ -12,8 +12,8 @@ namespace validation
 {
    
 /**
- * Validate a list of Validators such that at least one sub-validators must be
- * valid.  Validation checking short circuits when an invalid validator found.
+ * Validates a list of Validators such that at least one sub-validators must be
+ * valid.  Validation checking short circuits if a sub-validator returns true.
  * 
  * @author David I. Lehn
  */
@@ -31,7 +31,7 @@ public:
    virtual ~Any();
 
    /**
-    * Validate an object.
+    * Checks if an object is valid.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.

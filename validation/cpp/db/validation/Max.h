@@ -12,7 +12,9 @@ namespace validation
 {
 
 /**
- * Validate the maximum size of a string, array, or map.
+ * Validates the maximum size of a string, array, or map.
+ *
+ * NOTE: For numeric types this checks against the storage size.
  * 
  * @author David I. Lehn
  */
@@ -34,7 +36,7 @@ public:
    virtual ~Max();
    
    /**
-    * Validate an object.
+    * Checks if an object is valid.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.

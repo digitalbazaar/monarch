@@ -12,8 +12,10 @@ namespace validation
 {
 
 /**
- * Validate the minimum size of a string, array, or map.
+ * Validates the minimum size of a string, array, or map.
  * 
+ * NOTE: For numeric types this checks against the storage size.
+ *
  * @author David I. Lehn
  */
 class Min : public Validator
@@ -34,7 +36,7 @@ public:
    virtual ~Min();
    
    /**
-    * Validate an object.
+    * Checks if an object is valid.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.

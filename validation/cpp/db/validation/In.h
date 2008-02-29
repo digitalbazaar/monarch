@@ -12,7 +12,7 @@ namespace validation
 {
 
 /**
- * Validate an object is in an array or is a string and key in a map.
+ * Validates an object is in an array or is a key in a map.
  * 
  * @author David I. Lehn
  */
@@ -34,7 +34,7 @@ public:
    virtual ~In();
    
    /**
-    * Validate an object.
+    * Checks if an object is valid.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.

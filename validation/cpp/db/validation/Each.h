@@ -12,7 +12,9 @@ namespace validation
 {
 
 /**
- * Validate each member of an array or value of a map.
+ * Validates each member of an array or value of a map with a single
+ * sub-validator.  All members must validate for this validator to return
+ * true.  All members will be checked.
  * 
  * @author David I. Lehn
  */
@@ -23,7 +25,7 @@ protected:
    Validator* mValidator;
 
    /**
-    * Validate an array.
+    * Validates an array.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.
@@ -37,7 +39,7 @@ protected:
       std::vector<const char*>* path);
 
    /**
-    * Validate a map.
+    * Validates a map.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.
@@ -62,9 +64,9 @@ public:
    virtual ~Each();
    
    /**
-    * Validate an object.
+    * Checks if an object is valid.
     * 
-    * @param obj the object to validate.
+    * @param obj the object to validate.  Must be an Array or Map.
     * @param state arbitrary state for validators to use during validation.
     * @param path the validation path used to get to this validator.
     * 

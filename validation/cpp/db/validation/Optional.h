@@ -12,10 +12,20 @@ namespace validation
 {
 
 /**
- * A container that can be used for optional Map validation.  A Map's key
- * validator can be wrapped in an Optional validator if it does not need to be
- * present for successful validation.  If it is present then the sub-validator
- * is checked.
+ * A validator container that can be used to check optional Map keys.  A Map's
+ * key validator can be wrapped in an Optional validator if it does not need to
+ * be present for successful validation.  If it is present then the
+ * sub-validator is checked.
+ *
+ * d1 => { "a": 0 }
+ * d2 => { "a": 0, "b": "b!" }
+ *
+ *   Map m(
+ *      "a", new Type(Int32),
+ *      "b", new Optional(new Type(String)),
+ *      NULL)
+ *   m.isValid(d1) => true
+ *   m.isValid(d2) => true
  * 
  * @author David I. Lehn
  */
@@ -36,7 +46,7 @@ public:
    virtual ~Optional();
    
    /**
-    * Validate an object.
+    * Checks if an object is valid.
     * 
     * @param obj the object to validate.
     * @param state arbitrary state for validators to use during validation.
