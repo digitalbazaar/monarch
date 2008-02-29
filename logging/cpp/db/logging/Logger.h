@@ -4,7 +4,7 @@
 #ifndef db_logging_Logger_H
 #define db_logging_Logger_H
 
-#include <stdarg.h>
+#include <cstdarg>
 #include <map>
 #include <utility>
 #include <list>
