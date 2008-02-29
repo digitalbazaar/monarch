@@ -18,11 +18,7 @@ std::string Validator::stringFromPath(std::vector<const char*>* path)
 {
    std::string rval;
    
-   if(!path)
-   {
-      rval = "";
-   }
-   else
+   if(path != NULL)
    {
       for(std::vector<const char*>::iterator i = path->begin();
          i != path->end();
