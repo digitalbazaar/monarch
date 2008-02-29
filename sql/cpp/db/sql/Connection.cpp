@@ -74,7 +74,7 @@ bool Connection::begin()
 {
    if(mBeginStmt == NULL)
    {
-      mBeginStmt = prepare("START TRANSACTION");
+      mBeginStmt = prepare("BEGIN");
    }
    
    return mBeginStmt->execute();
