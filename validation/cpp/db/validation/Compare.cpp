@@ -26,7 +26,7 @@ bool Compare::isValid(
 
    if(!rval)
    {
-      if(!path)
+      if(path == NULL)
       {
          madePath = true;
          path = new std::vector<const char*>;

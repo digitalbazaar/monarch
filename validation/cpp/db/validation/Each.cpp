@@ -84,7 +84,7 @@ bool Each::isValid(
    bool madePath = false;
    
    // create a path if there isn't one yet
-   if(!path)
+   if(path == NULL)
    {
       madePath = true;
       path = new std::vector<const char*>;
