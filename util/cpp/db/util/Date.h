@@ -118,8 +118,8 @@ public:
     */
    virtual std::string& format(
       std::string& str,
-      const std::string& format = "%a, %d %b %Y %H:%M:%S",
-      const std::string& formatType = "c",
+      const char* format = "%a, %d %b %Y %H:%M:%S",
+      const char* formatType = "c",
       TimeZone* tz = NULL);
    
    /**
@@ -133,8 +133,8 @@ public:
     * @return true if the Date was successfully parsed, false if not.
     */
    virtual bool parse(
-      const std::string& str, const std::string& format,
-      const std::string& formatType, TimeZone* tz = NULL);
+      const std::string& str, const char* format,
+      const char* formatType, TimeZone* tz = NULL);
 };
 
 } // end namespace util

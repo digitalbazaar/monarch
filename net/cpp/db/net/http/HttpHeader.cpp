@@ -239,7 +239,7 @@ void HttpHeader::setDate(Date* date)
    // get GMT time zone
    TimeZone gmt = TimeZone::getTimeZone("GMT");
    string str;
-   string format = "%a, %d %b %Y %H:%M:%S GMT";
+   const char* format = "%a, %d %b %Y %H:%M:%S GMT";
    
    if(date == NULL)
    {

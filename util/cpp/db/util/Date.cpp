@@ -105,11 +105,11 @@ unsigned int Date::dosTime(bool local)
 }
 
 string& Date::format(
-   string& str, const string& format, const string& formatType, TimeZone* tz)
+   string& str, const char* format, const char* formatType, TimeZone* tz)
 {
    string f = format;
    
-   if(strcmp(formatType.c_str(), "java") == 0)
+   if(strcmp(formatType, "java") == 0)
    {
       // FIXME: need to get negative lookbehind assertions working for regex
       
@@ -177,9 +177,8 @@ string& Date::format(
    }
    
    // print the time to a string
-   unsigned int size = format.length() + 100;
+   unsigned int size = strlen(format) + 100;
    char out[size];
-   memset(out, '\0', size);
    strftime(out, size, f.c_str(), &time);
    str.assign(out);
    
@@ -187,14 +186,13 @@ string& Date::format(
 }
 
 bool Date::parse(
-   const string& str, const string& format, const string& formatType,
-   TimeZone* tz)
+   const string& str, const char* format, const char* formatType, TimeZone* tz)
 {
    bool rval = false;
    
-   if(strcmp(formatType.c_str(), "c") == 0)
+   if(strcmp(formatType, "c") == 0)
    {
-      if(strptime(str.c_str(), format.c_str(), &mBrokenDownTime) != NULL)
+      if(strptime(str.c_str(), format, &mBrokenDownTime) != NULL)
       {
          rval = true;
       }
