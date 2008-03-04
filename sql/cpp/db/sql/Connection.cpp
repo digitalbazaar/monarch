@@ -69,11 +69,10 @@ bool Connection::connect(const char* url)
    
    return rval;
 }
-#include <iostream>
+
 bool Connection::begin()
 {
    bool rval = false;
-   std::cout << "++++++++++++++++++++++++++++NOOOOOOOOOOO!" << std::endl;
    
    if(mBeginStmt == NULL)
    {

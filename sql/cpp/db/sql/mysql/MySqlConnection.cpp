@@ -99,11 +99,10 @@ void MySqlConnection::close()
       mHandle = NULL;
    }
 }
-#include <iostream>
+
 bool MySqlConnection::begin()
 {
    bool rval;
-   std::cout << "++++++++++++++++++++++++++++IN HERE!" << std::endl;
    
    if(!(rval = (mysql_query(mHandle, "START TRANSACTION") == 0)))
    {
