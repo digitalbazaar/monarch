@@ -69,10 +69,11 @@ bool Connection::connect(const char* url)
    
    return rval;
 }
-
+#include <iostream>
 bool Connection::begin()
 {
    bool rval = false;
+   std::cout << "++++++++++++++++++++++++++++NOOOOOOOOOOO!" << std::endl;
    
    if(mBeginStmt == NULL)
    {
@@ -86,7 +87,7 @@ bool Connection::begin()
    else
    {
       ExceptionRef e = new SqlException("Could not begin transaction!");
-      Exception::setLast(e, false);
+      Exception::setLast(e, true);
    }
    
    return rval;
@@ -108,7 +109,7 @@ bool Connection::commit()
    else
    {
       ExceptionRef e = new SqlException("Could not commit transaction!");
-      Exception::setLast(e, false);
+      Exception::setLast(e, true);
    }
    
    return rval;
@@ -130,7 +131,7 @@ bool Connection::rollback()
    else
    {
       ExceptionRef e = new SqlException("Could not rollback transaction!");
-      Exception::setLast(e, false);
+      Exception::setLast(e, true);
    }
    
    return rval;

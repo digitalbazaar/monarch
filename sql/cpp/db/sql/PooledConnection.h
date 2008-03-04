@@ -116,6 +116,13 @@ public:
    virtual void close();
    
    /**
+    * Begins a new transaction.
+    * 
+    * @return true if successful, false if an SqlException occurred.
+    */
+   virtual bool begin();
+   
+   /**
     * Commits the current transaction.
     * 
     * @return true if successful, false if an SqlException occurred.
