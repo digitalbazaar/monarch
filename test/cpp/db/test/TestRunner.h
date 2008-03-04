@@ -136,8 +136,10 @@ public:
 
    /**
     * Pass most recent test if exception set.
+    * 
+    * @param dump call dumpException() if true
     */
-   virtual void passIfException();
+   virtual void passIfException(bool dump = false);
 
    /**
     * Marks most recent test as failed.

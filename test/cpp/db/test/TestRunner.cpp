@@ -106,10 +106,14 @@ void TestRunner::passIfNoException()
    }
 }
 
-void TestRunner::passIfException()
+void TestRunner::passIfException(bool dump)
 {
    if(Exception::hasLast())
    {
+      if(dump)
+      {
+         dumpException();
+      }
       Exception::clearLast();
       pass();
    }
