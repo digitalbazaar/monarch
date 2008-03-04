@@ -72,30 +72,66 @@ bool Connection::connect(const char* url)
 
 bool Connection::begin()
 {
+   bool rval = false;
+   
    if(mBeginStmt == NULL)
    {
       mBeginStmt = prepare("BEGIN");
    }
    
-   return mBeginStmt->execute();
+   if(mBeginStmt != NULL)
+   {
+      rval = mBeginStmt->execute();
+   }
+   else
+   {
+      ExceptionRef e = new SqlException("Could not begin transaction!");
+      Exception::setLast(e, false);
+   }
+   
+   return rval;
 }
 
 bool Connection::commit()
 {
+   bool rval = false;
+   
    if(mCommitStmt == NULL)
    {
       mCommitStmt = prepare("COMMIT");
    }
    
-   return mCommitStmt->execute();
+   if(mCommitStmt != NULL)
+   {
+      rval = mCommitStmt->execute();
+   }
+   else
+   {
+      ExceptionRef e = new SqlException("Could not commit transaction!");
+      Exception::setLast(e, false);
+   }
+   
+   return rval;
 }
 
 bool Connection::rollback()
 {
+   bool rval = false;
+   
    if(mRollbackStmt == NULL)
    {
       mRollbackStmt = prepare("ROLLBACK");
    }
    
-   return mRollbackStmt->execute();   
+   if(mRollbackStmt != NULL)
+   {
+      rval = mRollbackStmt->execute();
+   }
+   else
+   {
+      ExceptionRef e = new SqlException("Could not rollback transaction!");
+      Exception::setLast(e, false);
+   }
+   
+   return rval;
 }
