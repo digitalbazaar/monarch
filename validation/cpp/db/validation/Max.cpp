@@ -6,7 +6,8 @@
 using namespace db::rt;
 using namespace db::validation;
 
-Max::Max(int size) :
+Max::Max(int size, const char* errorMessage) :
+   Validator(errorMessage),
    mSize(size)
 {
 }
@@ -24,6 +25,10 @@ bool Max::isValid(
    if(!rval)
    {
       DynamicObject detail = context->addError("db.validation.MaxError");
+      if(mErrorMessage)
+      {
+         detail["message"] = mErrorMessage;
+      }
       detail["expectedMax"] = mSize;
    }
    

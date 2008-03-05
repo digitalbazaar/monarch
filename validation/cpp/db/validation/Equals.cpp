@@ -6,7 +6,8 @@
 using namespace db::rt;
 using namespace db::validation;
 
-Equals::Equals(db::rt::DynamicObject& object) :
+Equals::Equals(db::rt::DynamicObject& object, const char* errorMessage) :
+   Validator(errorMessage),
    mObject(object)
 {
 }
@@ -22,7 +23,11 @@ bool Equals::isValid(
    bool rval = obj == mObject;
    if(!rval)
    {
-      context->addError("db.validation.EqualityFailure");
+      DynamicObject detail = context->addError("db.validation.EqualityFailure");
+      if(mErrorMessage)
+      {
+         detail["message"] = mErrorMessage;
+      }
       // FIXME: add expected value to error detail?
    }
    return rval;

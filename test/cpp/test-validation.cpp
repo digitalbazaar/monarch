@@ -409,22 +409,22 @@ void runValidatorTest(TestRunner& tr)
             // FIXME where/how to check/strip whitespace?
             "username", new v::All(
                new v::Type(String),
-               new v::Min(6),
-               new v::Max(16),
+               new v::Min(6, "Username too short!"),
+               new v::Max(16, "Username too long!"),
                NULL),
             "password", new v::All(
                new v::Type(String),
-               new v::Min(6),
-               new v::Max(16),
+               new v::Min(6, "Password too short!"),
+               new v::Max(16, "Password too long!"),
                NULL),
             "fullname", new v::All(
                new v::Type(String),
-               new v::Min(1),
-               new v::Max(256),
+               new v::Min(1, "Full name too short!"),
+               new v::Max(256, "Full name too long!"),
                NULL),
             "acceptToS", new v::All(
                new v::Type(Boolean),
-               new v::Equals(t),
+               new v::Equals(t, "You must accept the Terms of Service!"),
                NULL),
             /*
             "dob", new v::All(
@@ -434,7 +434,7 @@ void runValidatorTest(TestRunner& tr)
             "email", new v::Email(...),
             */
             NULL),
-         new v::Compare("password", "password2"),
+         new v::Compare("password", "password2", "Passwords do not match!"),
          NULL);
       tr.passIfNoException();
       
@@ -447,7 +447,41 @@ void runValidatorTest(TestRunner& tr)
       {
          tr.test("invalid username type");
          DynamicObject dnv = dv.clone();
-         dnv["username"] = 0;
+         dnv["username"] = false;
+         assert(!v.isValid(dnv));
+         tr.passIfException(_dump);
+      }
+
+      {
+         tr.test("short username");
+         DynamicObject dnv = dv.clone();
+         dnv["username"] = "x";
+         assert(!v.isValid(dnv));
+         tr.passIfException(_dump);
+      }
+
+      {
+         tr.test("long username");
+         DynamicObject dnv = dv.clone();
+         dnv["username"] = "01234567890123456";
+         assert(!v.isValid(dnv));
+         tr.passIfException(_dump);
+      }
+
+      // skipping password and fullname checking (same as username)
+      
+      {
+         tr.test("tos");
+         DynamicObject dnv = dv.clone();
+         dnv["acceptToS"] = false;
+         assert(!v.isValid(dnv));
+         tr.passIfException(_dump);
+      }
+
+      {
+         tr.test("invalid password2");
+         DynamicObject dnv = dv.clone();
+         dnv["password2"] = false;
          assert(!v.isValid(dnv));
          tr.passIfException(_dump);
       }

@@ -27,8 +27,10 @@ protected:
 public:
    /**
     * Creates a new validator.
+    * 
+    * @param errorMessage custom error message
     */
-   Max(int size);
+   Max(int size, const char* errorMessage = NULL);
    
    /**
     * Destructs this validator.

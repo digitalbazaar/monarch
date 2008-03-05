@@ -7,7 +7,8 @@
 using namespace db::rt;
 using namespace db::validation;
 
-In::In(DynamicObject& contents) :
+In::In(DynamicObject& contents, const char* errorMessage) :
+   Validator(errorMessage),
    mContents(contents)
 {
 }
@@ -50,6 +51,7 @@ bool In::isValid(
    if(!rval)
    {
       DynamicObject detail = context->addError("db.validation.NotFound");
+      detail["message"] = mErrorMessage ? mErrorMessage : "Value not found!";
    }
    
    return rval;

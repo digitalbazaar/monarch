@@ -25,8 +25,10 @@ protected:
 public:
    /**
     * Creates a new validator.
+    * 
+    * @param errorMessage custom error message
     */
-   In(db::rt::DynamicObject& contents);
+   In(db::rt::DynamicObject& contents, const char* errorMessage = NULL);
    
    /**
     * Destructs this validator.

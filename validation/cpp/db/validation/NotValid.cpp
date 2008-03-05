@@ -6,7 +6,8 @@
 using namespace db::rt;
 using namespace db::validation;
 
-NotValid::NotValid()
+NotValid::NotValid(const char* errorMessage) :
+   Validator(errorMessage)
 {
 }
 
@@ -18,6 +19,10 @@ bool NotValid::isValid(
    DynamicObject& obj,
    ValidatorContext* context)
 {
-   context->addError("db.validation.NotValid");
+   DynamicObject detail = context->addError("db.validation.NotValid");
+   if(mErrorMessage)
+   {
+      detail["message"] = mErrorMessage;
+   }
    return false;
 }

@@ -6,12 +6,17 @@
 using namespace db::rt;
 using namespace db::validation;
 
-Validator::Validator()
+Validator::Validator(const char* errorMessage)
 {
+   mErrorMessage = errorMessage ? strdup(errorMessage) : NULL;
 }
 
 Validator::~Validator()
 {
+   if(mErrorMessage)
+   {
+      free(mErrorMessage);
+   }
 }
 
 bool Validator::isValid(

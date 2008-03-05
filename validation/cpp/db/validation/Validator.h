@@ -22,11 +22,19 @@ namespace validation
  */
 class Validator
 {
+protected:
+   /* Custom error message */
+   char* mErrorMessage;
+   
 public:
    /**
-    * Creates a new Validator.
+    * Creates a new Validator with a specified error message or NULL to use
+    * a default message for this validator.
+    * 
+    * @param errorMessage a custom error message used in the error detail
+    *        "message" field.  NULL to use default.  string is copied.
     */
-   Validator();
+   Validator(const char* errorMessage = NULL);
    
    /**
     * Destructs this Validator.

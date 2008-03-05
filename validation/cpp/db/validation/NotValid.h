@@ -21,8 +21,10 @@ class NotValid : public Validator
 public:
    /**
     * Creates a new validator.
+    * 
+    * @param errorMessage custom error message
     */
-   NotValid();
+   NotValid(const char* errorMessage = NULL);
    
    /**
     * Destructs this validator.

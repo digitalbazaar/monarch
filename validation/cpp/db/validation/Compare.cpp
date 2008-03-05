@@ -6,7 +6,8 @@
 using namespace db::rt;
 using namespace db::validation;
 
-Compare::Compare(const char* key0, const char* key1) :
+Compare::Compare(const char* key0, const char* key1, const char* errorMessage) :
+   Validator(errorMessage),
    mKey0(key0),
    mKey1(key1)
 {
@@ -31,6 +32,7 @@ bool Compare::isValid(
       
       context->pushPath(mKey1);
       DynamicObject detail = context->addError("db.validation.CompareFailure");
+      detail["message"] = mErrorMessage ? mErrorMessage : "Comparison failure!";
       detail["expectedValue"] = obj[mKey0];
       context->popPath();
       

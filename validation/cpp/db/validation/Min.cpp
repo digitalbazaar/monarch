@@ -6,7 +6,8 @@
 using namespace db::rt;
 using namespace db::validation;
 
-Min::Min(int size) :
+Min::Min(int size, const char* errorMessage) :
+   Validator(errorMessage),
    mSize(size)
 {
 }
@@ -24,6 +25,10 @@ bool Min::isValid(
    if(!rval)
    {
       DynamicObject detail = context->addError("db.validation.MinError");
+      if(mErrorMessage)
+      {
+         detail["message"] = mErrorMessage;
+      }
       detail["expectedMin"] = mSize;
    }
    

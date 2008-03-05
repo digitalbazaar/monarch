@@ -26,8 +26,9 @@ public:
     * Creates a new validator.
     * 
     * @param object object to validate against
+    * @param errorMessage custom error message
     */
-   Equals(db::rt::DynamicObject& object);
+   Equals(db::rt::DynamicObject& object, const char* errorMessage = NULL);
    
    /**
     * Destructs this validator.

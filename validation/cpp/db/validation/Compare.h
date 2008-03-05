@@ -38,8 +38,9 @@ public:
     * 
     * @param key0 first key to use
     * @param key1 second key to use
+    * @param errorMessage custom error message
     */
-   Compare(const char* key0, const char* key2);
+   Compare(const char* key0, const char* key2, const char* errorMessage = NULL);
    
    /**
     * Destructs this validator.
