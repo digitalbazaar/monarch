@@ -92,6 +92,13 @@ public:
    virtual void getStartLine(std::string& line);
    
    /**
+    * Returns true if this header has a special start line, false if not.
+    * 
+    * @return true if this header has a special start line, false if not.
+    */
+   virtual bool hasStartLine();
+   
+   /**
     * Sets a header field.
     * 
     * @param name the name of the header field to set.

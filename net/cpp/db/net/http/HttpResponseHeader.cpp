@@ -99,6 +99,12 @@ void HttpResponseHeader::getStartLine(string& line)
    line.append(getStatusMessage());
 }
 
+bool HttpResponseHeader::hasStartLine()
+{
+   // has start line
+   return true;
+}
+
 void HttpResponseHeader::setVersion(const char* version)
 {
    free(mVersion);

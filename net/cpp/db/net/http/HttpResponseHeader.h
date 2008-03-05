@@ -78,6 +78,13 @@ public:
    virtual void getStartLine(std::string& line);
    
    /**
+    * Returns true if this header has a special start line, false if not.
+    * 
+    * @return true if this header has a special start line, false if not.
+    */
+   virtual bool hasStartLine();
+   
+   /**
     * Sets the HTTP version for the response (major.minor).
     * 
     * @param version the version for the response (i.e. "1.0", "1.1").

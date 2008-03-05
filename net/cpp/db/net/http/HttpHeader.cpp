@@ -36,6 +36,12 @@ void HttpHeader::getStartLine(std::string& line)
    line.erase();
 }
 
+bool HttpHeader::hasStartLine()
+{
+   // no start line
+   return false;
+}
+
 void HttpHeader::setField(const char* name, long long value)
 {
    char temp[25];
@@ -143,7 +149,7 @@ bool HttpHeader::parse(const string& str)
    // clear fields
    clearFields();
    
-   bool startLine = true;
+   bool startLine = hasStartLine();
    const char* start = str.c_str();
    char* cr;
    char* colon;

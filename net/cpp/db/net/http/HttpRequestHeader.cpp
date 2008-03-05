@@ -72,6 +72,12 @@ void HttpRequestHeader::getStartLine(string& line)
    line.append(getVersion());
 }
 
+bool HttpRequestHeader::hasStartLine()
+{
+   // has start line
+   return true;
+}
+
 void HttpRequestHeader::setMethod(const char* method)
 {
    free(mMethod);

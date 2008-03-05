@@ -79,6 +79,13 @@ public:
    virtual void getStartLine(std::string& line);
    
    /**
+    * Returns true if this header has a special start line, false if not.
+    * 
+    * @return true if this header has a special start line, false if not.
+    */
+   virtual bool hasStartLine();
+   
+   /**
     * Sets the HTTP method for the request.
     * 
     * @param method the method for the request (i.e. "GET", "POST").
