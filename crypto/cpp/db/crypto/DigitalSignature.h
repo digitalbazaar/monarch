@@ -123,6 +123,13 @@ public:
     * @return the asymmetric key associated with this DigitalSignature.
     */
    virtual AsymmetricKey* getKey();
+   
+   /**
+    * Gets the sign/verify mode for this DigitalSignature.
+    * 
+    * @return true if in sign mode, false if in verify mode.
+    */
+   virtual bool getSignMode();
 };
 
 // typedef for a counted reference to a DigitalSignature

@@ -206,6 +206,8 @@ bool HttpConnection::receiveBody(
    // do chunked or unspecified length transfer
    if(chunkin != NULL || lengthUnspecified)
    {
+      unsigned long long start = getContentBytesRead();
+      
       // read in from connection, write out content
       while(rval && (numBytes = is->read(b, length)) > 0)
       {
@@ -219,6 +221,21 @@ bool HttpConnection::receiveBody(
          
          // write out content
          rval = os->write(b, numBytes);
+      }
+      
+      // update trailer with content length
+      if(trailer != NULL)
+      {
+         if(start > getContentBytesRead())
+         {
+            // assume single overflow
+            trailer->update(start + getContentBytesRead());
+         }
+         else
+         {
+            // assume no overflow
+            trailer->update(getContentBytesRead() - start);
+         }
       }
       
       if(chunkin != NULL)
@@ -273,6 +290,11 @@ bool HttpConnection::receiveBody(
                "Could not receive all HTTP content bytes!");
             Exception::setLast(e, false);
          }
+      }
+      else if(rval && contentRemaining == 0 && trailer != NULL)
+      {
+         // update trailer with content length
+         trailer->update(contentLength);
       }
    }
    

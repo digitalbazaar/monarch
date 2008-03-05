@@ -139,3 +139,8 @@ AsymmetricKey* DigitalSignature::getKey()
 {
    return mKey;
 }
+
+bool DigitalSignature::getSignMode()
+{
+   return mSignMode;
+}

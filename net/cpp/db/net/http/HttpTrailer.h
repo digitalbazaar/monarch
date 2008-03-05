@@ -48,9 +48,10 @@ public:
    
    /**
     * Updates this trailer according to some proprietary implementation. This
-    * method will be called before a trailer is sent out.
+    * method will be called before a trailer is sent out or after it has been
+    * received.
     * 
-    * @param contentLength the length of the content that was sent.
+    * @param contentLength the length of the content that was sent or received.
     */
    virtual void update(unsigned long long contentLength);
 };
