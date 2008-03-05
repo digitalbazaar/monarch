@@ -5,7 +5,7 @@
 #define db_validation_Equals_H
 
 #include "db/validation/Validator.h"
-#
+
 namespace db
 {
 namespace validation
