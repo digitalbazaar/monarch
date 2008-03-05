@@ -159,37 +159,71 @@ void runConvertTest(TestRunner& tr)
 
 void runRegexTest(TestRunner& tr)
 {
-   tr.test("Regex");
-   
-   string regex = "[a-z]{3}";
-   string str = "abc";
-   
-   assert(Pattern::match(regex.c_str(), str.c_str()));
-   
-   cout << endl << "Doing sub-match test..." << endl << endl;
-   
-   string submatches = "Look for green globs of green matter in green goo.";
-   Pattern* p = Pattern::compile("green");
-   
-   unsigned int start, end;
-   unsigned int index = 0;
-   while(p->match(submatches.c_str(), index, start, end))
+   tr.group("Regex");
+
    {
-      cout << "Found match at (" << start << ", " << end << ")" << endl;
-      cout << "Match=" << submatches.substr(start, end - start) << endl;
-      index = end;
+      tr.test("match");
+      string regex = "[a-z]{3}";
+      string str = "abc";
+   
+      assert(Pattern::match(regex.c_str(), str.c_str()));
+      tr.passIfNoException();
    }
    
-   delete p;
+   {
+      tr.test("no match");
+      string regex = "[a-z]{3}";
+      string str = "ABC";
    
-   cout << endl << "Doing replace all test..." << endl << endl;
+      assert(!Pattern::match(regex.c_str(), str.c_str()));
+      tr.passIfNoException();
+   }
+
+   {
+      tr.test("sub-match");
    
-   cout << "change 'green' to 'blue'" << endl;
-   cout << submatches << endl;
-   StringTools::regexReplaceAll(submatches, "green", "blue");
-   cout << submatches << endl;
+      string submatches = "Look for green globs of green matter in green goo.";
+      Pattern* p = Pattern::compile("green");
    
-   tr.passIfNoException();
+      unsigned int start, end;
+      unsigned int index = 0;
+
+      assert(p->match(submatches.c_str(), index, start, end));
+      assert(start == 9);
+      assert(end == 14);
+      assertStrCmp(submatches.substr(start, end - start).c_str(), "green");
+      index = end;
+
+      assert(p->match(submatches.c_str(), index, start, end));
+      assert(start == 24);
+      assert(end == 29);
+      assertStrCmp(submatches.substr(start, end - start).c_str(), "green");
+      index = end;
+
+      assert(p->match(submatches.c_str(), index, start, end));
+      assert(start == 40);
+      assert(end == 45);
+      assertStrCmp(submatches.substr(start, end - start).c_str(), "green");
+      index = end;
+
+      assert(!p->match(submatches.c_str(), index, start, end));
+      
+      delete p;
+      tr.passIfNoException();
+   }
+   
+   {
+      tr.test("replace all");
+      
+      string str = "Look for green globs of green matter in green goo.";
+      string exp = "Look for blue globs of blue matter in blue goo.";
+      StringTools::regexReplaceAll(str, "green", "blue");
+      assertStrCmp(str.c_str(), exp.c_str());
+   
+      tr.passIfNoException();
+   }
+
+   tr.ungroup();
 }
 
 void runDateTest(TestRunner& tr)
@@ -339,6 +373,7 @@ public:
       runConvertTest(tr);
       runStringTokenizerTest(tr);
       runUniqueListTest(tr);
+      runRegexTest(tr);
       return 0;
    }
 
@@ -347,7 +382,6 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-//      runRegexTest(tr);
 //      runDateTest(tr);
       return 0;
    }

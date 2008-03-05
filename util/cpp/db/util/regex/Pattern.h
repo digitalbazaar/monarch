@@ -4,7 +4,7 @@
 #ifndef db_util_regex_Pattern_H
 #define db_util_regex_Pattern_H
 
-//#include <regex.h>
+#include <regex.h>
 
 #include "db/rt/Object.h"
 
@@ -26,7 +26,7 @@ protected:
    /**
     * The storage struct for the pattern.
     */
-   //regex_t mStorage;
+   regex_t mStorage;
    
    /**
     * Creates a new Pattern.
@@ -38,7 +38,7 @@ protected:
     * 
     * @return the storage for this Pattern.
     */
-   //regex_t& getStorage(); 
+   regex_t& getStorage(); 
    
 public:
    /**
