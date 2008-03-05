@@ -163,19 +163,16 @@ void runRegexTest(TestRunner& tr)
 
    {
       tr.test("match");
-      string regex = "[a-z]{3}";
-      string str = "abc";
-   
-      assert(Pattern::match(regex.c_str(), str.c_str()));
+      assert(Pattern::match("^[a-z]{3}$", "abc"));
+      assert(Pattern::match("^[a-zA-Z0-9_]+$", "username"));
       tr.passIfNoException();
    }
    
    {
       tr.test("no match");
-      string regex = "[a-z]{3}";
-      string str = "ABC";
-   
-      assert(!Pattern::match(regex.c_str(), str.c_str()));
+      assert(!Pattern::match("^[a-z]{3}$", "abcd"));
+      assert(!Pattern::match("^[a-z]{3}$", "ABC"));
+      assert(!Pattern::match("^[a-zA-Z0-9_]+$", "user name"));
       tr.passIfNoException();
    }
 
