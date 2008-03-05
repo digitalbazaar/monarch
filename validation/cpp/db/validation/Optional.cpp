@@ -18,13 +18,12 @@ Optional::~Optional()
 
 bool Optional::isValid(
    DynamicObject& obj,
-   DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
-   return mValidator->isValid(obj, state, path);
+   return mValidator->isValid(obj, context);
 }
 
-bool Optional::isOptional(db::rt::DynamicObject* state)
+bool Optional::isOptional(ValidatorContext* context)
 {
    return true;
 }

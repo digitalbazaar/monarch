@@ -16,8 +16,7 @@ Valid::~Valid()
 
 bool Valid::isValid(
    DynamicObject& obj,
-   DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
    return true;
 }

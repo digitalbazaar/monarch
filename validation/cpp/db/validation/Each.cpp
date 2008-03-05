@@ -19,8 +19,7 @@ Each::~Each()
 
 bool Each::isArrayValid(
    DynamicObject& obj,
-   DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
    bool rval = true;
    
@@ -35,9 +34,9 @@ bool Each::isArrayValid(
       // add [#] indexing to path even if at root
       char idx[23];
       snprintf(idx, 23, "[%d]", i);
-      path->push_back(idx);
-      rval &= mValidator->isValid(member, state, path);
-      path->pop_back();
+      context->pushPath(idx);
+      rval &= mValidator->isValid(member, context);
+      context->popPath();
    }
    
    return rval;
@@ -45,30 +44,27 @@ bool Each::isArrayValid(
 
 bool Each::isMapValid(
    DynamicObject& obj,
-   DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
    bool rval = true;
    
    DynamicObjectIterator doi = obj.getIterator();
    
-   int i = -1;
    while(doi->hasNext())
    {
       DynamicObject& member = doi->next();
-      i++;
       
       // only add a "." if this is not a root map
-      if(path->size() != 0)
+      if(context->getDepth() != 0)
       {
-         path->push_back(".");
+         context->pushPath(".");
       }
-      path->push_back(doi->getName());
-      rval &= mValidator->isValid(member, state, path);
-      path->pop_back();
-      if(path->size() == 1)
+      context->pushPath(doi->getName());
+      rval &= mValidator->isValid(member, context);
+      context->popPath();
+      if(context->getDepth() == 1)
       {
-         path->pop_back();
+         context->popPath();
       }
    }
 
@@ -77,30 +73,22 @@ bool Each::isMapValid(
 
 bool Each::isValid(
    DynamicObject& obj,
-   DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
    bool rval = true;
-   bool madePath = false;
    
-   // create a path if there isn't one yet
-   if(path == NULL)
-   {
-      madePath = true;
-      path = new std::vector<const char*>;
-   }
-
    switch(obj->getType())
    {
       case Array:
-         rval = isArrayValid(obj, state, path);
+         rval = isArrayValid(obj, context);
          break;
       case Map:
-         rval = isMapValid(obj, state, path);
+         rval = isMapValid(obj, context);
          break;
       default:
          rval = false;
-         DynamicObject detail = addError(path, "db.validation.TypeError");
+         DynamicObject detail =
+            context->addError("db.validation.TypeError");
          char exp[100];
          snprintf(exp, 100, "%s | %s",
             DynamicObject::descriptionForType(Map),
@@ -109,10 +97,5 @@ bool Each::isValid(
          break;
    }
 
-   if(madePath)
-   {
-      delete path;
-   }
-   
    return rval;
 }

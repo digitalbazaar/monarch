@@ -18,36 +18,25 @@ Compare::~Compare()
 
 bool Compare::isValid(
    db::rt::DynamicObject& obj,
-   db::rt::DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
-   bool madePath = false;
    bool rval = obj[mKey0] == obj[mKey1];
 
    if(!rval)
    {
-      if(path == NULL)
+      if(context->getDepth() != 0)
       {
-         madePath = true;
-         path = new std::vector<const char*>;
-      }
-      else
-      {
-         path->push_back(".");
+         context->pushPath(".");
       }
       
-      path->push_back(mKey1);
-      DynamicObject detail = addError(path, "db.validation.CompareFailure");
+      context->pushPath(mKey1);
+      DynamicObject detail = context->addError("db.validation.CompareFailure");
       detail["expectedValue"] = obj[mKey0];
-      path->pop_back();
+      context->popPath();
       
-      if(madePath)
+      if(context->getDepth() == 1)
       {
-         delete path;
-      }
-      else
-      {
-         path->pop_back();
+         context->popPath();
       }
    }
    return rval;

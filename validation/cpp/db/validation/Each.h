@@ -28,29 +28,25 @@ protected:
     * Validates an array.
     * 
     * @param obj the object to validate.
-    * @param state arbitrary state for validators to use during validation.
-    * @param path the validation path used to get to this validator.
+    * @param context context to use during validation.
     * 
     * @return true if obj is valid, false and exception set otherwise.
     */
    bool isArrayValid(
       db::rt::DynamicObject& obj,
-      db::rt::DynamicObject* state,
-      std::vector<const char*>* path);
+      ValidatorContext* context);
 
    /**
     * Validates a map.
     * 
     * @param obj the object to validate.
-    * @param state arbitrary state for validators to use during validation.
-    * @param path the validation path used to get to this validator.
+    * @param context context to use during validation.
     * 
     * @return true if obj is valid, false and exception set otherwise.
     */
    bool isMapValid(
       db::rt::DynamicObject& obj,
-      db::rt::DynamicObject* state,
-      std::vector<const char*>* path);
+      ValidatorContext* context);
 
 public:
    /**
@@ -67,15 +63,14 @@ public:
     * Checks if an object is valid.
     * 
     * @param obj the object to validate.  Must be an Array or Map.
-    * @param state arbitrary state for validators to use during validation.
-    * @param path the validation path used to get to this validator.
+    * @param context context to use during validation.
     * 
     * @return true if obj is valid, false and exception set otherwise.
     */
    virtual bool isValid(
       db::rt::DynamicObject& obj,
-      db::rt::DynamicObject* state = NULL,
-      std::vector<const char*>* path = NULL);
+      ValidatorContext* context);
+   using Validator::isValid;
 };
 
 } // end namespace validation

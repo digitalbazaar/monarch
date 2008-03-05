@@ -17,14 +17,13 @@ Max::~Max()
 
 bool Max::isValid(
    DynamicObject& obj,
-   DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
    bool rval = obj->length() <= mSize;
    
    if(!rval)
    {
-      DynamicObject detail = addError(path, "db.validation.MaxError");
+      DynamicObject detail = context->addError("db.validation.MaxError");
       detail["expectedMax"] = mSize;
    }
    

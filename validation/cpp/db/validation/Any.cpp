@@ -21,17 +21,28 @@ Any::~Any()
 
 bool Any::isValid(
    db::rt::DynamicObject& obj,
-   db::rt::DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
    bool rval = false;
    
+   // store previous value
+   bool setExceptions = context->setExceptions(false);
    std::vector<Validator*>::iterator i;
    for(i = mValidators.begin();
       !rval && i != mValidators.end();
       i++)
    {
-      rval |= (*i)->isValid(obj, state, path);
+      rval |= (*i)->isValid(obj, context);
+   }
+   // restore
+   context->setExceptions(setExceptions);
+   
+   // set exception for Any 
+   if(!rval)
+   {
+      // FIXME: Use the confusing "AnyError" name instead?
+      // or set a more appropriate detail message? 
+      context->addError("db.validation.ValueError");
    }
    
    return rval;

@@ -33,19 +33,10 @@ Array::~Array()
    
 bool Array::isValid(
    DynamicObject& obj,
-   DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
    bool rval = true;
-   bool madePath = false;
    
-   // create a path if there isn't one yet
-   if(path == NULL)
-   {
-      madePath = true;
-      path = new std::vector<const char*>;
-   }
-
    std::vector<std::pair<int,Validator*> >::iterator i;
    
    for(i = mValidators.begin();
@@ -57,23 +48,18 @@ bool Array::isValid(
          // add [#] indexing to path even if at root
          char idx[23];
          snprintf(idx, 23, "[%d]", i->first);
-         path->push_back(idx);
-         rval &= i->second->isValid(obj[i->first], state, path);
-         path->pop_back();
+         context->pushPath(idx);
+         rval &= i->second->isValid(obj[i->first], context);
+         context->popPath();
       }
       else
       {
          rval = false;
-         DynamicObject detail = addError(path, "db.validation.MissingIndex");
+         DynamicObject detail = context->addError("db.validation.MissingIndex");
          detail["index"] = i->first;
       }
    }
 
-   if(madePath)
-   {
-      delete path;
-   }
-   
    return rval;
 }
 

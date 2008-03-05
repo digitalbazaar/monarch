@@ -17,13 +17,12 @@ Equals::~Equals()
 
 bool Equals::isValid(
    db::rt::DynamicObject& obj,
-   db::rt::DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
    bool rval = obj == mObject;
    if(!rval)
    {
-      addError(path, "db.validation.EqualityFailure");
+      context->addError("db.validation.EqualityFailure");
       // FIXME: add expected value to error detail?
    }
    return rval;

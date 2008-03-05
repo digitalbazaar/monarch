@@ -16,9 +16,8 @@ NotValid::~NotValid()
 
 bool NotValid::isValid(
    DynamicObject& obj,
-   DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
-   addError(path, "db.validation.NotValid");
+   context->addError("db.validation.NotValid");
    return false;
 }

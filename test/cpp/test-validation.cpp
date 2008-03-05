@@ -13,41 +13,38 @@ using namespace db::test;
 using namespace db::rt;
 namespace v = db::validation;
 
-#if 0
-#define VTESTDUMP dumpException()
-#else
+#define _dump true
 #define VTESTDUMP
-#endif
 
 void runValidatorTest(TestRunner& tr)
 {
    tr.group("Validator");
 
-   tr.test("valid");
    {
+      tr.test("valid");
       DynamicObject d;
       v::Valid v;
       assert(v.isValid(d));
+      tr.passIfNoException();
    }
-   tr.passIfNoException();
    
-   tr.test("not valid");
    {
+      tr.test("not valid");
       DynamicObject d;
       v::NotValid nv;
       assert(!nv.isValid(d));
       assertException();
-      VTESTDUMP;
+      if(_dump) dumpException();
       assertStrCmp(
          Exception::getLast()->getType(), "db.validation.ValidationError");
       assertStrCmp(
          Exception::getLast()->getMessage(), "Object not valid.");
       Exception::clearLast();
+      tr.passIfNoException();
    }
-   tr.passIfNoException();
    
-   tr.test("map");
    {
+      tr.test("map (addv)");
       DynamicObject dv;
       dv["i"] = 0;
       dv["b"] = true;
@@ -60,28 +57,28 @@ void runValidatorTest(TestRunner& tr)
       v0.addValidator("i", new v::Type(Int32));
       v0.addValidator("b", new v::Type(Boolean));
       assert(v0.isValid(dv));
+      tr.passIfNoException();
 
+      tr.test("invalid map (addv)");
       assert(!v0.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
 
+      tr.test("map (clist)");
       // create with constructor list
       v::Map v1(
          "i", new v::Type(Int32),
          "b", new v::Type(Boolean),
          NULL);
       assert(v1.isValid(dv));
+      tr.passIfNoException();
 
+      tr.test("invalid map (clist)");
       assert(!v1.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
    
-   tr.test("types");
    {
+      tr.test("types");
       DynamicObject dv;
       dv["int32"] = (int32_t)-123;
       dv["uint32"] = (uint32_t)123;
@@ -115,16 +112,15 @@ void runValidatorTest(TestRunner& tr)
          "map", new v::Type(Map),
          NULL);
       assert(v.isValid(dv));
-
+      tr.passIfNoException();
+      
+      tr.test("invalid types");
       assert(!v.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
    
-   tr.test("array");
    {
+      tr.test("array (addv)");
       DynamicObject dv;
       dv[0] = 0;
       dv[1] = true;
@@ -137,28 +133,28 @@ void runValidatorTest(TestRunner& tr)
       v0.addValidator(0, new v::Type(Int32));
       v0.addValidator(1, new v::Type(Boolean));
       assert(v0.isValid(dv));
+      tr.passIfNoException();
 
+      tr.test("invalid array (addv)");
       assert(!v0.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
 
+      tr.test("array (clist)");
       // create with constructor list
       v::Array v1(
          0, new v::Type(Int32),
          1, new v::Type(Boolean),
          -1);
       assert(v1.isValid(dv));
+      tr.passIfNoException();
 
+      tr.test("invalid array (clist)");
       assert(!v1.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
    
-   tr.test("optional");
    {
+      tr.test("optional");
       DynamicObject d;
       d["present"] = true;
       v::Map v(
@@ -166,13 +162,13 @@ void runValidatorTest(TestRunner& tr)
          "missing", new v::Optional(new v::Valid()),
          NULL);
       assert(v.isValid(d));
+      tr.passIfNoException();
    }
-   tr.passIfNoException();
    
    // trick to test for extra values.  Optional check to see if key is
    // present.  If so, then force not valid.
-   tr.test("extra");
    {
+      tr.test("extra");
       DynamicObject d;
       DynamicObject d2;
       d2["extra"] = true;
@@ -180,47 +176,45 @@ void runValidatorTest(TestRunner& tr)
          "extra", new v::Optional(new v::NotValid()),
          NULL);
       assert(v.isValid(d));
+      tr.passIfNoException();
+      
+      tr.test("invalid extra");
       assert(!v.isValid(d2));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
    
-   tr.test("min");
    {
+      tr.test("min");
       DynamicObject d;
       d = "1";
       
       v::Min v(0);
       assert(v.isValid(d));
+      tr.passIfNoException();
       
+      tr.test("invalid min");
       v::Min nv(2);
       assert(!nv.isValid(d));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
    
-   tr.test("max");
    {
+      tr.test("max");
       DynamicObject d;
       d = "1";
       
       v::Max v(2);
       assert(v.isValid(d));
+      tr.passIfNoException();
       
+      tr.test("invalid max");
       v::Max nv(0);
       assert(!nv.isValid(d));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
    
-   tr.test("equals");
    {
+      tr.test("equals");
       DynamicObject eq;
       eq = "db";
       DynamicObject dv;
@@ -230,16 +224,15 @@ void runValidatorTest(TestRunner& tr)
       
       v::Equals v(eq);
       assert(v.isValid(dv));
+      tr.passIfNoException();
       
+      tr.test("invalid equals");
       assert(!v.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
 
-   tr.test("all");
    {
+      tr.test("all");
       DynamicObject eq;
       eq = 0;
       DynamicObject dv;
@@ -252,16 +245,15 @@ void runValidatorTest(TestRunner& tr)
          new v::Equals(eq),
          NULL);
       assert(v.isValid(dv));
+      tr.passIfNoException();
 
+      tr.test("invalid all");
       assert(!v.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
 
-   tr.test("any");
    {
+      tr.test("any");
       DynamicObject eq0;
       eq0 = 0;
       DynamicObject eq1;
@@ -276,16 +268,15 @@ void runValidatorTest(TestRunner& tr)
          new v::Equals(eq1),
          NULL);
       assert(v.isValid(dv));
+      tr.passIfNoException();
 
+      tr.test("invalid any");
       assert(!v.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
 
-   tr.test("deep");
    {
+      tr.test("deep");
       DynamicObject dv;
       dv["parent"]["child"] = "12345678";
       DynamicObject dnv;
@@ -297,16 +288,15 @@ void runValidatorTest(TestRunner& tr)
             NULL),
          NULL);
       assert(v.isValid(dv));
+      tr.passIfNoException();
 
+      tr.test("invalid deep");
       assert(!v.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
 
-   tr.test("each(array)");
    {
+      tr.test("each(array)");
       DynamicObject dv;
       dv[0] = "1234";
       dv[1] = "5678";
@@ -316,16 +306,15 @@ void runValidatorTest(TestRunner& tr)
 
       v::Each v(new v::Min(4));
       assert(v.isValid(dv));
+      tr.passIfNoException();
 
+      tr.test("invalid each(array)");
       assert(!v.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
 
-   tr.test("each(map)");
    {
+      tr.test("each(map)");
       DynamicObject dv;
       dv["a"] = "1234";
       dv["b"] = "5678";
@@ -335,16 +324,15 @@ void runValidatorTest(TestRunner& tr)
 
       v::Each v(new v::Min(4));
       assert(v.isValid(dv));
+      tr.passIfNoException();
 
+      tr.test("invalid each(map)");
       assert(!v.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
 
-   tr.test("in(map)");
    {
+      tr.test("in(map)");
       DynamicObject vals;
       vals["a"] = true;
       vals["b"] = true;
@@ -356,16 +344,15 @@ void runValidatorTest(TestRunner& tr)
       
       v::In v(vals);
       assert(v.isValid(dv));
+      tr.passIfNoException();
 
+      tr.test("invalid in(map)");
       assert(!v.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
 
-   tr.test("in(array)");
    {
+      tr.test("in(array)");
       DynamicObject vals;
       vals[0] = "a";
       vals[1] = "b";
@@ -377,16 +364,15 @@ void runValidatorTest(TestRunner& tr)
       
       v::In v(vals);
       assert(v.isValid(dv));
+      tr.passIfNoException();
 
+      tr.test("invalid in(array)");
       assert(!v.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
    
-   tr.test("compare");
    {
+      tr.test("compare");
       DynamicObject dv;
       dv["a"] = 0;
       dv["b"] = 0;
@@ -396,16 +382,16 @@ void runValidatorTest(TestRunner& tr)
       
       v::Compare v("a", "b");
       assert(v.isValid(dv));
+      tr.passIfNoException();
 
+      tr.test("invalid compare");
       assert(!v.isValid(dnv));
-      assertException();
-      VTESTDUMP;
-      Exception::clearLast();
+      tr.passIfException(_dump);
    }
-   tr.passIfNoException();
    
-   tr.test("register");
+   tr.group("register");
    {
+      tr.test("init");
       DynamicObject dv;
       dv["username"] = "foobar";
       dv["password"] = "secret";
@@ -450,9 +436,23 @@ void runValidatorTest(TestRunner& tr)
             NULL),
          new v::Compare("password", "password2"),
          NULL);
-      assert(v.isValid(dv));
+      tr.passIfNoException();
+      
+      {
+         tr.test("valid");
+         assert(v.isValid(dv));
+         tr.passIfNoException();
+      }
+      
+      {
+         tr.test("invalid username type");
+         DynamicObject dnv = dv.clone();
+         dnv["username"] = 0;
+         assert(!v.isValid(dnv));
+         tr.passIfException(_dump);
+      }
    }
-   tr.passIfNoException();
+   tr.ungroup();
 
    /*
    tr.test("content");
@@ -515,6 +515,8 @@ public:
       return 0;
    }
 };
+
+#undef _dump
 
 #ifndef DB_TEST_NO_MAIN
 DB_TEST_MAIN(DbValidationTester)

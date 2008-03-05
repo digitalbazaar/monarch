@@ -17,13 +17,12 @@ Type::~Type()
 
 bool Type::isValid(
    DynamicObject& obj,
-   DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
    bool rval = obj->getType() == mType;
    if(!rval)
    {
-      DynamicObject detail = addError(path, "db.validation.TypeError");
+      DynamicObject detail = context->addError("db.validation.TypeError");
       // FIXME: localize
       detail["message"] = "Invalid type!";
       detail["expectedType"] = DynamicObject::descriptionForType(mType);

@@ -49,24 +49,23 @@ public:
     * Checks if an object is valid.
     * 
     * @param obj the object to validate.
-    * @param state arbitrary state for validators to use during validation.
-    * @param path the validation path used to get to this validator.
+    * @param context context to use during validation.
     * 
     * @return true if obj is valid, false and exception set otherwise.
     */
    virtual bool isValid(
       db::rt::DynamicObject& obj,
-      db::rt::DynamicObject* state = NULL,
-      std::vector<const char*>* path = NULL);
+      ValidatorContext* context);
+   using Validator::isValid;
 
    /**
     * If an object is missing is this Check if this validator is optional.
     * 
-    * @param state arbitrary state for validators to use during validation.
+    * @param context context to use during validation.
     * 
     * @return true if optional, false if mandatory.
     */
-   virtual bool isOptional(db::rt::DynamicObject* state = NULL);
+   virtual bool isOptional(ValidatorContext* context);
 };
 
 } // end namespace validation

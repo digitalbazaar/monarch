@@ -21,8 +21,7 @@ All::~All()
 
 bool All::isValid(
    db::rt::DynamicObject& obj,
-   db::rt::DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
    bool rval = true;
    
@@ -31,7 +30,7 @@ bool All::isValid(
       rval && i != mValidators.end();
       i++)
    {
-      rval &= (*i)->isValid(obj, state, path);
+      rval &= (*i)->isValid(obj, context);
    }
    
    return rval;

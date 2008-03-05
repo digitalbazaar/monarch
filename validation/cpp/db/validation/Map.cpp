@@ -33,19 +33,10 @@ Map::~Map()
 
 bool Map::isValid(
    DynamicObject& obj,
-   DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
    bool rval = true;
-   bool madePath = false;
    
-   // create a path if there isn't one yet
-   if(path == NULL)
-   {
-      madePath = true;
-      path = new std::vector<const char*>;
-   }
-
    std::vector<std::pair<const char*,Validator*> >::iterator i;
    
    for(i = mValidators.begin();
@@ -55,31 +46,26 @@ bool Map::isValid(
       if(obj->hasMember(i->first))
       {
          // only add a "." if this is not a root map
-         if(path->size() != 0)
+         if(context->getDepth() != 0)
          {
-            path->push_back(".");
+            context->pushPath(".");
          }
-         path->push_back(i->first);
-         rval &= i->second->isValid(obj[i->first], state, path);
-         path->pop_back();
-         if(path->size() == 1)
+         context->pushPath(i->first);
+         rval &= i->second->isValid(obj[i->first], context);
+	 context->popPath();
+         if(context->getDepth() == 1)
          {
-            path->pop_back();
+            context->popPath();
          }
       }
-      else if(!i->second->isOptional(state))
+      else if(!i->second->isOptional(context))
       {
          rval = false;
-         DynamicObject detail = addError(path, "db.validation.MissingKey");
+         DynamicObject detail = context->addError("db.validation.MissingKey");
          detail["key"] = i->first;
       }
    }
 
-   if(madePath)
-   {
-      delete path;
-   }
-   
    return rval;
 }
 

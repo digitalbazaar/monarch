@@ -5,6 +5,7 @@
 #define db_validation_Validator_H
 
 #include "db/rt/DynamicObject.h"
+#include "db/validation/ValidatorContext.h"
 #include <string>
 #include <vector>
 #include <cstdarg>
@@ -36,15 +37,22 @@ public:
     * Checks if an object is valid.
     * 
     * @param obj the object to validate.
-    * @param state arbitrary state for validators to use during validation.
-    * @param path the validation path used to get to this validator.
+    * @param context context to use during validation.
     * 
     * @return true if obj is valid, false and exception set otherwise.
     */
    virtual bool isValid(
       db::rt::DynamicObject& obj,
-      db::rt::DynamicObject* state = NULL,
-      std::vector<const char*>* path = NULL) = 0;
+      ValidatorContext* context);
+
+   /**
+    * Checks if an object is valid using a new context.
+    * 
+    * @param obj the object to validate.
+    * 
+    * @return true if obj is valid, false and exception set otherwise.
+    */
+   virtual bool isValid(db::rt::DynamicObject& obj);
 
    /**
     * Returns if this validator is optional or mandatory.  This method will
@@ -60,31 +68,7 @@ public:
     * 
     * @return true if optional, false if mandatory.
     */
-   virtual bool isOptional(db::rt::DynamicObject* state = NULL);
-   
-   /**
-    * Makes a string path out of a vector of path components.
-    * 
-    * @param path vector of strings to concatenate.
-    * 
-    * @return string representing the path.
-    */
-   static std::string stringFromPath(std::vector<const char*>* path);
-   
-   /**
-    * Creates an Error exception if needed and add a basic error report with
-    * the given "type" field and a "message" field with "Invalid value!".  Use
-    * the returned object to change the message or add additional details as
-    * needed.
-    * 
-    * @param path vector of strings to concatinate.
-    * @param type type of this error in "db.validation.MaxError" format.
-    * 
-    * @return DynamicObject to fill with details.
-    */
-   static db::rt::DynamicObject addError(
-      std::vector<const char*>* path,
-      const char* type);
+   virtual bool isOptional(ValidatorContext* context);
 };
 
 } // end namespace validation

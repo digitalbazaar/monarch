@@ -18,19 +18,10 @@ In::~In()
 
 bool In::isValid(
    DynamicObject& obj,
-   DynamicObject* state,
-   std::vector<const char*>* path)
+   ValidatorContext* context)
 {
    bool rval = false;
-   bool madePath = false;
    
-   // create a path if there isn't one yet
-   if(path == NULL)
-   {
-      madePath = true;
-      path = new std::vector<const char*>;
-   }
-
    switch(mContents->getType())
    {
       case Array:
@@ -50,19 +41,15 @@ bool In::isValid(
          break;
       default:
          rval = false;
-         DynamicObject detail = addError(path, "db.validation.InternalError");
+         DynamicObject detail =
+            context->addError("db.validation.InternalError");
          detail["message"] = "Invalid validator!";
          break;
    }
    
    if(!rval)
    {
-      DynamicObject detail = addError(path, "db.validation.NotFound");
-   }
-
-   if(madePath)
-   {
-      delete path;
+      DynamicObject detail = context->addError("db.validation.NotFound");
    }
    
    return rval;
