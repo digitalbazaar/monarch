@@ -214,6 +214,20 @@ void runValidatorTest(TestRunner& tr)
    }
    
    {
+      DynamicObject d;
+      
+      tr.test("not");
+      v::Not v(new v::NotValid());
+      assert(v.isValid(d));
+      tr.passIfNoException();
+      
+      tr.test("invalid not");
+      v::Not nv(new v::Valid());
+      assert(!nv.isValid(d));
+      tr.passIfException(_dump);
+   }
+   
+   {
       tr.test("equals");
       DynamicObject eq;
       eq = "db";

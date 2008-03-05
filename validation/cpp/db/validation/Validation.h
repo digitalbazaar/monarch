@@ -16,6 +16,7 @@
 #include "db/validation/Map.h"
 #include "db/validation/Max.h"
 #include "db/validation/Min.h"
+#include "db/validation/Not.h"
 #include "db/validation/NotValid.h"
 #include "db/validation/Optional.h"
 #include "db/validation/Type.h"
