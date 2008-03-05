@@ -13,8 +13,7 @@ using namespace db::test;
 using namespace db::rt;
 namespace v = db::validation;
 
-#define _dump true
-#define VTESTDUMP
+#define _dump false
 
 void runValidatorTest(TestRunner& tr)
 {
@@ -403,6 +402,28 @@ void runValidatorTest(TestRunner& tr)
       tr.passIfException(_dump);
    }
    
+   {
+      tr.test("regex");
+      DynamicObject dv;
+      dv = "username";
+      DynamicObject dnv;
+      dnv = "user name";
+      DynamicObject dnv2;
+      dnv2 = 123;
+      
+      v::Regex v("^[a-zA-Z0-9_]+$");
+      assert(v.isValid(dv));
+      tr.passIfNoException();
+
+      tr.test("invalid regex");
+      assert(!v.isValid(dnv));
+      tr.passIfException(_dump);
+
+      tr.test("invalid regex (num)");
+      assert(!v.isValid(dnv2));
+      tr.passIfException(_dump);
+   }
+   
    tr.group("register");
    {
       tr.test("init");
@@ -439,6 +460,14 @@ void runValidatorTest(TestRunner& tr)
             "acceptToS", new v::All(
                new v::Type(Boolean),
                new v::Equals(t, "You must accept the Terms of Service!"),
+               NULL),
+            "email", new v::All(
+               new v::Regex(
+                  "^([a-zA-Z0-9_\\.\\-\\+])+\\@(([a-zA-Z0-9\\-])+\\.)+([a-zA-Z0-9]{2,4})+$",
+                  "Invalid email format!"),
+               new v::Not(new v::Regex(
+                  "@bitmunk.com$"),
+                  "Invalid email domain!"),
                NULL),
             /*
             "dob", new v::All(
@@ -485,9 +514,41 @@ void runValidatorTest(TestRunner& tr)
       // skipping password and fullname checking (same as username)
       
       {
-         tr.test("tos");
+         tr.test("no tos");
          DynamicObject dnv = dv.clone();
          dnv["acceptToS"] = false;
+         assert(!v.isValid(dnv));
+         tr.passIfException(_dump);
+      }
+
+      {
+         tr.test("empty email");
+         DynamicObject dnv = dv.clone();
+         dnv["email"] = "";
+         assert(!v.isValid(dnv));
+         tr.passIfException(_dump);
+      }
+
+      {
+         tr.test("no email domain");
+         DynamicObject dnv = dv.clone();
+         dnv["email"] = "joe";
+         assert(!v.isValid(dnv));
+         tr.passIfException(_dump);
+      }
+
+      {
+         tr.test("junk email");
+         DynamicObject dnv = dv.clone();
+         dnv["email"] = "junk@email";
+         assert(!v.isValid(dnv));
+         tr.passIfException(_dump);
+      }
+
+      {
+         tr.test("@bitmunk.com email");
+         DynamicObject dnv = dv.clone();
+         dnv["email"] = "liar@bitmunk.com";
          assert(!v.isValid(dnv));
          tr.passIfException(_dump);
       }

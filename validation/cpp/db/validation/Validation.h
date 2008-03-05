@@ -19,6 +19,7 @@
 #include "db/validation/Not.h"
 #include "db/validation/NotValid.h"
 #include "db/validation/Optional.h"
+#include "db/validation/Regex.h"
 #include "db/validation/Type.h"
 #include "db/validation/Valid.h"
 #include "db/validation/ValidatorList.h"
