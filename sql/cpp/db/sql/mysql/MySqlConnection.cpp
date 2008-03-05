@@ -100,6 +100,45 @@ void MySqlConnection::close()
    }
 }
 
+bool MySqlConnection::begin()
+{
+   bool rval;
+   
+   if(!(rval = (mysql_query(mHandle, "START TRANSACTION") == 0)))
+   {
+      ExceptionRef e = new SqlException("Could not begin transaction!");
+      Exception::setLast(e, false);
+   }
+   
+   return rval;
+}
+
+bool MySqlConnection::commit()
+{
+   bool rval;
+   
+   if(!(rval = (mysql_query(mHandle, "COMMIT") == 0)))
+   {
+      ExceptionRef e = new SqlException("Could not commit transaction!");
+      Exception::setLast(e, false);
+   }
+   
+   return rval;
+}
+
+bool MySqlConnection::rollback()
+{
+   bool rval;
+   
+   if(!(rval = (mysql_query(mHandle, "ROLLBACK") == 0)))
+   {
+      ExceptionRef e = new SqlException("Could not rollback transaction!");
+      Exception::setLast(e, false);
+   }
+   
+   return rval;
+}
+
 bool MySqlConnection::isConnected()
 {
    bool rval = false;

@@ -62,6 +62,11 @@ void PooledConnection::close()
    mPool->connectionClosed(this);
 }
 
+bool PooledConnection::begin()
+{
+   return mConnection->begin();
+}
+
 bool PooledConnection::commit()
 {
    return mConnection->commit();
