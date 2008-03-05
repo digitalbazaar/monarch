@@ -32,7 +32,7 @@ bool Any::isValid(
       !rval && i != mValidators.end();
       i++)
    {
-      rval |= (*i)->isValid(obj, context);
+      rval = rval || (*i)->isValid(obj, context);
    }
    // restore
    context->setExceptions(setExceptions);

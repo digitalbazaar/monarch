@@ -49,7 +49,7 @@ bool Array::isValid(
          char idx[23];
          snprintf(idx, 23, "[%d]", i->first);
          context->pushPath(idx);
-         rval &= i->second->isValid(obj[i->first], context);
+         rval = rval && i->second->isValid(obj[i->first], context);
          context->popPath();
       }
       else

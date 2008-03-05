@@ -51,7 +51,7 @@ bool Map::isValid(
             context->pushPath(".");
          }
          context->pushPath(i->first);
-         rval &= i->second->isValid(obj[i->first], context);
+         rval = rval && i->second->isValid(obj[i->first], context);
 	 context->popPath();
          if(context->getDepth() == 1)
          {

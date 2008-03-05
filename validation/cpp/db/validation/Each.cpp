@@ -35,7 +35,7 @@ bool Each::isArrayValid(
       char idx[23];
       snprintf(idx, 23, "[%d]", i);
       context->pushPath(idx);
-      rval &= mValidator->isValid(member, context);
+      rval = rval && mValidator->isValid(member, context);
       context->popPath();
    }
    
@@ -60,7 +60,7 @@ bool Each::isMapValid(
          context->pushPath(".");
       }
       context->pushPath(doi->getName());
-      rval &= mValidator->isValid(member, context);
+      rval = rval && mValidator->isValid(member, context);
       context->popPath();
       if(context->getDepth() == 1)
       {

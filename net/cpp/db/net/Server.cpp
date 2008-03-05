@@ -117,7 +117,7 @@ bool Server::start()
          for(map<unsigned short, PortService*>::iterator i =
              mPortServices.begin(); i != mPortServices.end(); i++)
          {
-            rval &= i->second->start();
+            rval = rval && i->second->start();
          }
       }
    }
