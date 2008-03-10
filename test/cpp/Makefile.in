@@ -13,13 +13,14 @@ EXECUTABLES = \
 	test-modest \
 	test-net \
 	test-rt \
+	test-sphinx \
 	test-sql \
 	test-util \
 	test-validation \
 	run-unit-tests
 
 LIBRARIES = dbtest
-DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbio dblogging dbcrypto dbnet dbdata dbsql dbevent dbmail dbconfig dbcompress dbvalidation
+DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbio dblogging dbcrypto dbnet dbdata dbsql dbevent dbmail dbconfig dbcompress dbvalidation dbsphinx
 DYNAMIC_WINDOWS_LIBRARIES = sqlite3 mysql
 
 LINUX_LIB_DIR = @DBCOREDIR@/libs/linux

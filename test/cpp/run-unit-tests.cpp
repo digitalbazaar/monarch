@@ -35,6 +35,7 @@ using namespace db::logging;
 #include "test-config.cpp"
 #include "test-logging.cpp"
 #include "test-validation.cpp"
+#include "test-sphinx.cpp"
 #undef DB_TEST_NO_MAIN
 
 class DbAllTester : public db::test::Tester
@@ -56,6 +57,7 @@ public:
       addTester(new DbConfigTester());
       addTester(new DbLoggingTester());
       addTester(new DbValidationTester());
+      addTester(new DbSphinxClientTester());
    }
 
    ~DbAllTester() {}

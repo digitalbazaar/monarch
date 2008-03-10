@@ -13,6 +13,7 @@ SUBDIRS := 3rdparty/cpp \
            data/cpp \
            net/cpp \
            mail/cpp \
+           sphinx/cpp \
            sql/cpp \
            validation/cpp \
            test/cpp

@@ -112,6 +112,7 @@ AC_CONFIG_FILES([
           modest/cpp/Makefile
           net/cpp/Makefile
           rt/cpp/Makefile
+          sphinx/cpp/Makefile
           sql/cpp/Makefile
           test/cpp/Makefile
           util/cpp/Makefile

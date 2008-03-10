@@ -1,0 +1,9 @@
+# Makefile to compile the module in this directory
+
+SOURCES = $(wildcard db/sphinx/*.cpp)
+LIBRARIES = dbsphinx
+DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbcrypto dbio dbnet
+DYNAMIC_WINDOWS_LIBRARIES =
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base

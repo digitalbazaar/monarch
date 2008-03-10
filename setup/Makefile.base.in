@@ -22,6 +22,7 @@ INCLUDES = \
 	-I$(DBCORE)/modest/cpp \
 	-I$(DBCORE)/net/cpp \
 	-I$(DBCORE)/rt/cpp \
+	-I$(DBCORE)/sphinx/cpp \
 	-I$(DBCORE)/sql/cpp \
 	-I$(DBCORE)/test/cpp \
 	-I$(DBCORE)/util/cpp \
