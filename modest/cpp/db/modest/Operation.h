@@ -52,13 +52,6 @@ public:
     * Destructs this Operation.
     */
    virtual ~Operation();
-   
-   /**
-    * Gets the Operation for the current thread, if there is one.
-    * 
-    * @return the Operation for the current thread which may be NULL.
-    */
-   static Operation currentOperation();
 };
 
 } // end namespace modest

@@ -24,11 +24,3 @@ Operation::Operation(OperationImpl* impl) :
 Operation::~Operation()
 {
 }
-
-Operation Operation::currentOperation()
-{
-   // get the current thread's OperationImpl
-   Thread* thread = Thread::currentThread();
-   Operation op((OperationImpl*)thread->getUserData());
-   return op;
-}

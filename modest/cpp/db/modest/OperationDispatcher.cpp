@@ -209,6 +209,15 @@ void OperationDispatcher::jobCompleted(PooledThread* t)
    ThreadPool::jobCompleted(t);
 }
 
+Operation OperationDispatcher::getCurrentOperation()
+{
+   // get the current thread's OperationImpl
+   Thread* thread = Thread::currentThread();
+   OperationImpl* impl = (OperationImpl*)thread->getUserData();
+   Operation op = mOpMap[impl];
+   return op;
+}
+
 ThreadPool* OperationDispatcher::getThreadPool()
 {
    return JobDispatcher::getThreadPool();

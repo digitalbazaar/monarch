@@ -105,6 +105,15 @@ public:
    virtual void jobCompleted(db::rt::PooledThread* t);
    
    /**
+    * Gets the current thread's Operation. This method assumes that you
+    * know that the current thread has an Operation. Do not call it if
+    * you aren't certain of this.
+    * 
+    * @return the current thread's Operation.
+    */
+   virtual Operation getCurrentOperation();
+   
+   /**
     * Gets the thread pool for running Operations.
     * 
     * @return the therad pool for running Operations.
