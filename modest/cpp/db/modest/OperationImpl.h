@@ -179,6 +179,13 @@ public:
    virtual bool canceled();
    
    /**
+    * Gets the Thread for this Operation.
+    * 
+    * @return the Thread for this Operation.
+    */
+   virtual db::rt::Thread* getThread();
+   
+   /**
     * Gets the Runnable for this Operation.
     * 
     * @return the Runnable for this Operation.

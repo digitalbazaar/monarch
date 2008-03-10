@@ -57,6 +57,11 @@ protected:
    char* mName;
    
    /**
+    * The user-data for this thread.
+    */
+   void* mUserData;
+   
+   /**
     * The Monitor this Thread is waiting to enter.
     */
    Monitor* mWaitMonitor;
@@ -246,6 +251,20 @@ public:
     * @return the name of this Thread.
     */
    virtual const char* getName();
+   
+   /**
+    * Sets the user data for this Thread.
+    * 
+    * @param userData the user data for this Thread.
+    */
+   virtual void setUserData(void* userData);
+   
+   /**
+    * Gets the user data for this Thread.
+    * 
+    * @return the user data for this Thread.
+    */
+   virtual void* getUserData();
    
    /**
     * Returns the currently executing Thread.

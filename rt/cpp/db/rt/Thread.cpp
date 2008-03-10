@@ -29,6 +29,9 @@ Thread::Thread(Runnable* runnable, const char* name, bool persistent)
    mName = NULL;
    Thread::assignName(name);
    
+   // no user data
+   mUserData = NULL;
+   
    // thread not waiting to enter a Monitor yet
    mWaitMonitor = NULL;
    
@@ -321,6 +324,16 @@ const char* Thread::getName()
    unlock();
    
    return rval;
+}
+
+void Thread::setUserData(void* userData)
+{
+   mUserData = userData;
+}
+
+void* Thread::getUserData()
+{
+   return mUserData;
 }
 
 Thread* Thread::currentThread()

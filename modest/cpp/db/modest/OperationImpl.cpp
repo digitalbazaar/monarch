@@ -40,6 +40,7 @@ void OperationImpl::run()
    {
       // operation started on the current thread
       mThread = Thread::currentThread();
+      mThread->setUserData(this);
       mStarted = true;
    }
    unlock();
@@ -63,6 +64,7 @@ void OperationImpl::run()
       }
       
       // clear thread from Operation
+      mThread->setUserData(NULL);
       mThread = NULL;
    }
    unlock();
@@ -175,6 +177,11 @@ bool OperationImpl::finished()
 bool OperationImpl::canceled()
 {
    return mCanceled;
+}
+
+Thread* OperationImpl::getThread()
+{
+   return mThread;
 }
 
 Runnable* OperationImpl::getRunnable()
