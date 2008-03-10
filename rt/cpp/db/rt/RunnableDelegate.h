@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_rt_RunnableDelegate_H
 #define db_rt_RunnableDelegate_H
@@ -95,6 +95,13 @@ public:
     * Runs the object's run function.
     */
    virtual void run();
+   
+   /**
+    * Gets this runnable's param.
+    * 
+    * @return this runnable's param.
+    */
+   virtual void* getParam();
 };
 
 template<typename RunnableType>
@@ -147,6 +154,12 @@ void RunnableDelegate<RunnableType>::run()
          mParam = NULL;
       }
    }
+}
+
+template<typename RunnableType>
+void* RunnableDelegate<RunnableType>::getParam()
+{
+   return mParam;
 }
 
 } // end namespace rt
