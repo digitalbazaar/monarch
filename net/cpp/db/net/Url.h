@@ -222,6 +222,13 @@ public:
    virtual bool getQueryVariables(db::rt::DynamicObject& vars);
    
    /**
+    * Combines the path and query of this url, if one exists.
+    * 
+    * @return the full path of this url or a blank string.
+    */
+   virtual std::string& getPathAndQuery(std::string& str);
+   
+   /**
     * Convenience method to get the host of this url (not including
     * the port).
     * 

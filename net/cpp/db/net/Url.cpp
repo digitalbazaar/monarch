@@ -339,6 +339,17 @@ bool Url::getQueryVariables(DynamicObject& vars)
    return rval;
 }
 
+string& Url::getPathAndQuery(string& str)
+{
+   str.assign(mPath);
+   if(mQuery.length() > 0)
+   {
+      str.push_back('?');
+      str.append(mQuery);
+   }
+   return str;
+}
+
 const string& Url::getHost()
 {
    return mHost;

@@ -28,6 +28,16 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
    
    lock();
    {
+      // strip any query
+      if(path != NULL)
+      {
+         char* end = strrchr(path, '?');
+         if(end != NULL)
+         {
+            end[0] = 0;
+         }
+      }
+      
       // try to find servicer for path
       ServicerMap::iterator i;
       while(rval == NULL && path != NULL)
