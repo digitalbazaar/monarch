@@ -20,7 +20,7 @@ namespace http
  * Here is an example of a HTTP/1.1 request header, each line is terminated
  * with a CRLF (there is a blank line at the end):
  * 
- * GET /some/path/ HTTP/1.1
+ * GET /some/path/?query HTTP/1.1
  * Host: www.someurl.com
  * Connection: close
  * Accept-Encoding: gzip
