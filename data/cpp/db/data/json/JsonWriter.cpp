@@ -57,10 +57,14 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
       {
          case String:
             {
-               string encoded;
-               encoded.push_back('"');
                const char* temp = dyno->getString();
                size_t length = strlen(temp);
+               
+               // UTF-8 has a maximum of 7-bytes per character when
+               // encoded in json format
+               char encoded[length * 7 + 2];
+               encoded[0] = '"';
+               size_t n = 1;
                for(size_t i = 0; i < length; i++)
                {
                   unsigned char c = temp[i];
@@ -70,51 +74,49 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                      (c == 0x20))
                   {
                      // TODO: check this handles UTF-* properly
-                     encoded.push_back(c);
+                     encoded[n++] = c;
                   }
                   else
                   {
-                     const char* csub;
-                     char ucsub[7];
+                     encoded[n++] = '\\';
                      switch(c)
                      {
                         case '"': /* 0x22 */
-                           csub = "\\\"";
+                           encoded[n++] = '"';
                            break;
                         case '\\': /* 0x5C */
-                           csub = "\\\\";
+                           encoded[n++] = '\\';
                            break;
                         // '/' is in the RFC but not required to be escaped
                         //case '/': /* 0x2F */
-                        //   csub = "\\\\";
+                        //   encoded[n++] = '/';
                         //   break;
                         case '\b': /* 0x08 */
-                           csub = "\\b";
+                           encoded[n++] = 'b';
                            break;
                         case '\f': /* 0x0C */
-                           csub = "\\f";
+                           encoded[n++] = 'f';
                            break;
                         case '\n': /* 0x0A */
-                           csub = "\\n";
+                           encoded[n++] = 'n';
                            break;
                         case '\r': /* 0x0D */
-                           csub = "\\r";
+                           encoded[n++] = 'r';
                            break;
                         case '\t': /* 0x09 */
-                           csub = "\\t";
+                           encoded[n++] = 't';
                            break;
                         default:
-                           snprintf(ucsub, 7, "\\u%04x", c);
-                           csub = ucsub;
+                           snprintf(encoded + n, 6, "u%04x", c);
+                           n += 5;
                            break;
                      }
-                     encoded.append(csub);
                   }
                }
                
-               // write encoded string and end string serialization
-               encoded.push_back('"');
-               rval = os->write(encoded.c_str(), encoded.length());
+               // end string serialization and write encoded string
+               encoded[n++] = '"';
+               rval = os->write(encoded, n);
             }
             break;
          case Boolean:
