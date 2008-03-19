@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_ConnectionInputStream_H
 #define db_net_ConnectionInputStream_H
 
 #include "db/io/InputStream.h"
-#include "db/rt/Thread.h"
 
 namespace db
 {
@@ -31,11 +30,6 @@ protected:
     * The Connection to read from.
     */
    Connection* mConnection;
-   
-   /**
-    * The thread the first read took place on.
-    */
-   db::rt::Thread* mThread;
    
    /**
     * The total number of bytes read so far.

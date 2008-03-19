@@ -5,6 +5,7 @@
 #include "db/util/StringTools.h"
 
 using namespace std;
+using namespace db::io;
 using namespace db::net::http;
 using namespace db::util;
 
@@ -13,12 +14,12 @@ const char* HttpHeader::CRLF = "\r\n";
 
 HttpHeader::HttpHeader()
 {
+   mFieldsSize = 0;
 }
 
 HttpHeader::~HttpHeader()
 {
-   for(map<const char*, string, FieldComparator>::iterator i =
-       mFields.begin(); i != mFields.end(); i++)
+   for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
    {
       free((char*)i->first);
    }
@@ -30,7 +31,7 @@ bool HttpHeader::parseStartLine(const char* str, unsigned int length)
    return true;
 }
 
-void HttpHeader::getStartLine(std::string& line)
+void HttpHeader::getStartLine(string& line)
 {
    // no start line
    line.erase();
@@ -49,22 +50,25 @@ void HttpHeader::setField(const char* name, long long value)
    setField(name, temp);
 }
 
-void HttpHeader::setField(const char* name, const std::string& value)
+void HttpHeader::setField(const char* name, const string& value)
 {
-   // clear old field
-   map<const char*, std::string, FieldComparator>::iterator i =
-      mFields.find(name);
+   // update old field if possible
+   FieldMap::iterator i = mFields.find(name);
    if(i != mFields.end())
    {
-      free((char*)i->first);
-      mFields.erase(i);
+      mFieldsSize -= i->second.length();
+      i->second = value;
    }
-   
-   // set new field
-   mFields.insert(make_pair(strdup(name), value));
+   else
+   {
+      // set new field
+      mFieldsSize += strlen(name);
+      mFieldsSize += value.length();
+      mFields.insert(make_pair(strdup(name), value));
+   }
 }
 
-void HttpHeader::addField(const char* name, const std::string& value)
+void HttpHeader::addField(const char* name, const string& value)
 {
    // get existing value
    string existing;
@@ -81,17 +85,23 @@ void HttpHeader::addField(const char* name, const std::string& value)
 void HttpHeader::removeField(const char* name)
 {
    // erase field
-   mFields.erase(name);
+   FieldMap::iterator i = mFields.find(name);
+   if(i != mFields.end())
+   {
+      mFieldsSize -= strlen(name);
+      mFieldsSize -= i->second.length();
+      mFields.erase(i);
+   }
 }
 
 void HttpHeader::clearFields()
 {
-   for(map<const char*, string, FieldComparator>::iterator i =
-       mFields.begin(); i != mFields.end(); i++)
+   for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
    {
       free((char*)i->first);
    }
    
+   mFieldsSize = 0;
    mFields.clear();
 }
 
@@ -115,8 +125,7 @@ bool HttpHeader::getField(const char* name, string& value)
    bool rval = false;
    
    // find field entry
-   map<const char*, string, FieldComparator>::iterator i =
-      mFields.find(name);
+   FieldMap::iterator i = mFields.find(name);
    if(i != mFields.end())
    {
       // get value
@@ -132,8 +141,7 @@ bool HttpHeader::hasField(const char* name)
    bool rval = false;
    
    // find field entry
-   map<const char*, string, FieldComparator>::iterator i =
-      mFields.find(name);
+   FieldMap::iterator i = mFields.find(name);
    if(i != mFields.end())
    {
       rval = true;
@@ -169,7 +177,7 @@ bool HttpHeader::parse(const string& str)
             if((colon = strchr(start, ':')) != NULL && colon < cr)
             {
                // get field name
-               char* name = (char*)malloc((colon - start) + 1);
+               char name[(colon - start) + 1];
                memcpy(name, start, colon - start);
                name[colon - start] = 0;
                
@@ -182,17 +190,8 @@ bool HttpHeader::parse(const string& str)
                strncpy(value, colon, cr - colon);
                value[(cr - colon)] = 0;
                
-               // clear old field
-               map<const char*, std::string, FieldComparator>::iterator i =
-                  mFields.find(name);
-               if(i != mFields.end())
-               {
-                  free((char*)i->first);
-                  mFields.erase(i);
-               }
-               
                // set field
-               mFields.insert(make_pair(name, value));
+               setField(name, value);
             }
          }
          
@@ -211,33 +210,125 @@ string& HttpHeader::toString(string& str)
 {
    str.erase();
    
-   // append the start line, if one exists, and CRLF
+   // get the start line
    getStartLine(str);
+   
+   // determine total fields size:
+   // (CRLF + fields size + fields * (": " + CRLF))
+   char fields[2 + mFieldsSize + mFields.size() * 4];
+   char* s = fields;
+   
+   // append CRLF if there is a start line
    if(str.length() > 0)
    {
-      str.append(CRLF);
+      s[0] = '\r';
+      s[1] = '\n';
+      s += 2;
    }
    
    // append all fields
-   for(map<const char*, string, FieldComparator>::iterator i =
-       mFields.begin(); i != mFields.end(); i++)
+   int length;
+   for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
    {
       // get field name and bicapitalize it
-      char name[strlen(i->first) + 1];
-      strcpy(name, i->first);
-      biCapitalize(name);
+      biCapitalize((char*)i->first, &length);
       
-      // append name and value
-      str.append(name);
-      str.append(": ");
-      str.append(i->second);
-      str.append(CRLF);
+      // append name
+      memcpy(s, i->first, length);
+      s += length;
+      
+      // append delimiter
+      s[0] = ':';
+      s[1] = ' ';
+      s += 2;
+      
+      // append value
+      memcpy(s, i->second.c_str(), i->second.length());
+      s += i->second.length();
+      
+      // append CRLF
+      s[0] = '\r';
+      s[1] = '\n';
+      s += 2;
    }
    
    // add CRLF
-   str.append(CRLF);
+   s[0] = '\r';
+   s[1] = '\n';
+   s += 2;
+   
+   // append fields
+   str.append(fields, s - fields);
    
    return str;
+}
+
+bool HttpHeader::write(OutputStream* os)
+{
+   bool rval = true;
+   
+   // get the start line
+   string line;
+   getStartLine(line);
+   
+   // determine total fields size:
+   // (CRLF + fields size + fields * (": " + CRLF))
+   char fields[2 + mFieldsSize + mFields.size() * 4];
+   char* s = fields;
+   
+   // append CRLF if there is a start line
+   if(line.length() > 0)
+   {
+      s[0] = '\r';
+      s[1] = '\n';
+      s += 2;
+   }
+   
+   // append all fields
+   int length;
+   for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
+   {
+      // get field name and bicapitalize it
+      biCapitalize((char*)i->first, &length);
+      
+      // append name
+      memcpy(s, i->first, length);
+      s += length;
+      
+      // append delimiter
+      s[0] = ':';
+      s[1] = ' ';
+      s += 2;
+      
+      // append value
+      memcpy(s, i->second.c_str(), i->second.length());
+      s += i->second.length();
+      
+      // append CRLF
+      s[0] = '\r';
+      s[1] = '\n';
+      s += 2;
+   }
+   
+   // add CRLF
+   s[0] = '\r';
+   s[1] = '\n';
+   s += 2;
+   
+   // write the start line
+   if(line.length() > 0)
+   {
+      rval = os->write(line.c_str(), line.length());
+   }
+   
+   // write the fields
+   length = s - fields;
+   if(rval && length > 0)
+   {
+      rval = os->write(fields, s - fields);
+   }
+   
+   return rval;
 }
 
 void HttpHeader::setDate(Date* date)
@@ -277,8 +368,11 @@ bool HttpHeader::getDate(Date& date)
    return rval;
 }
 
-void HttpHeader::biCapitalize(char* name)
+void HttpHeader::biCapitalize(char* name, int* length)
 {
+   // store start of name
+   char* start = name;
+   
    // 97 = 'a', 122 = 'z'
    if(*name > 96 && *name < 123)
    {
@@ -307,5 +401,11 @@ void HttpHeader::biCapitalize(char* name)
             *name += 32;
          }
       }
+   }
+   
+   // return name length if desired
+   if(length != NULL)
+   {
+      *length = (name - start);
    }
 }

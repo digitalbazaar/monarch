@@ -64,9 +64,7 @@ void HttpChunkedTransferOutputStream::close()
       mTrailer->update(mDataSent);
       
       // write out trailer
-      string str;
-      mTrailer->toString(str);
-      write = write && mOutputStream->write(str.c_str(), str.length());
+      write = write && mTrailer->write(mOutputStream);
    }
    else
    {
@@ -77,5 +75,6 @@ void HttpChunkedTransferOutputStream::close()
    // reset data sent
    mDataSent = 0;
    
-   // do not close underlying stream
+   // flush, but do not close underlying stream
+   mOutputStream->flush();
 }

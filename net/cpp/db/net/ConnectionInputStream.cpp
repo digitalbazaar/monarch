@@ -14,7 +14,6 @@ ConnectionInputStream::ConnectionInputStream(Connection* c)
 {
    mConnection = c;
    mBytesRead = 0;
-   mThread = NULL;
 }
 
 ConnectionInputStream::~ConnectionInputStream()
@@ -25,41 +24,24 @@ int ConnectionInputStream::read(char* b, int length)
 {
    int rval = 0;
    
-   if(mThread == NULL)
-   {
-      // set current thread
-      mThread = Thread::currentThread();
-   }
-   
    // throttle the read as appropriate
    BandwidthThrottler* bt = mConnection->getBandwidthThrottler(true);
    if(bt != NULL)
    {
-      if(!mThread->isInterrupted())
-      {
-         bt->requestBytes(length, length);
-      }
+      bt->requestBytes(length, length);
    }
    
-   if(!mThread->isInterrupted())
+   // read from the socket input stream
+   rval = mConnection->getSocket()->getInputStream()->read(b, length);
+   if(rval > 0)
    {
-      // read from the socket input stream
-      rval = mConnection->getSocket()->getInputStream()->read(b, length);
-      if(rval > 0)
+      // update bytes read (reset as necessary)
+      if(mBytesRead > Math::HALF_MAX_LONG_VALUE)
       {
-         // update bytes read (reset as necessary)
-         if(mBytesRead > Math::HALF_MAX_LONG_VALUE)
-         {
-            mBytesRead = 0;
-         }
-         
-         mBytesRead += rval;
+         mBytesRead = 0;
       }
-   }
-   else
-   {
-      // interrupted thread
-      rval = -1;
+      
+      mBytesRead += rval;
    }
    
    return rval;

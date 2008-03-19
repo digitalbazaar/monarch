@@ -27,6 +27,9 @@ HttpConnection::HttpConnection(Connection* c, bool cleanup) :
    
    // no content bytes written yet
    mContentBytesWritten = 0;
+   
+   // resize output buffer comfortably
+   getOutputStream()->resizeBuffer(1024);
 }
 
 HttpConnection::~HttpConnection()
@@ -39,11 +42,9 @@ WebRequest* HttpConnection::createRequest()
    return new HttpRequest(this);
 }
 
-bool HttpConnection::sendHeader(HttpHeader* header)
+inline bool HttpConnection::sendHeader(HttpHeader* header)
 {
-   string out;
-   header->toString(out);
-   return getOutputStream()->write(out.c_str(), out.length());
+   return header->write(getOutputStream()) && getOutputStream()->flush();
 }
 
 bool HttpConnection::receiveHeader(HttpHeader* header)

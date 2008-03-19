@@ -299,6 +299,7 @@ void ByteBuffer::setBytes(char* b, int offset, int length, bool cleanup)
    // cleanup old buffer
    cleanupBytes();
    
+   mCapacity = length;
    mBuffer = b;
    mOffset = offset;
    mLength = length;

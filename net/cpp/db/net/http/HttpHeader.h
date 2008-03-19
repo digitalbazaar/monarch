@@ -4,8 +4,9 @@
 #ifndef db_net_http_HttpHeader_H
 #define db_net_http_HttpHeader_H
 
-#include "db/util/Date.h"
+#include "db/io/OutputStream.h"
 #include "db/rt/Collectable.h"
+#include "db/util/Date.h"
 
 #include <map>
 #include <string>
@@ -56,7 +57,14 @@ protected:
    /**
     * The map containing the header fields.
     */
-   std::map<const char*, std::string, FieldComparator> mFields;
+   typedef std::map<const char*, std::string, FieldComparator> FieldMap;
+   FieldMap mFields;
+   
+   /**
+    * Stores the size, in bytes, of the http header fields. This is used for
+    * optimization.
+    */
+   size_t mFieldsSize;
    
 public:
    /**
@@ -183,6 +191,15 @@ public:
    virtual std::string& toString(std::string& str);
    
    /**
+    * Writes this header to an OutputStream.
+    * 
+    * @param os the OutputStream to write to.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool write(db::io::OutputStream* os);
+   
+   /**
     * Sets the GMT date for this header. A value of NULL will set the date
     * to the current GMT.
     * 
@@ -206,8 +223,9 @@ public:
     * field names more readable.
     * 
     * @param name the name of the header field to BiCapitalize.
+    * @param length returns the length of the header field.
     */
-   static void biCapitalize(char* name);
+   static void biCapitalize(char* name, int* length = NULL);
 };
 
 // typedef for a counted reference to an HttpHeader
