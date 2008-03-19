@@ -92,21 +92,31 @@ void ByteBuffer::resize(int capacity)
 {
    if(capacity != mCapacity)
    {
-      // create a new buffer
-      char* newBuffer = (char*)malloc(capacity);
-      
-      // copy the data into the new buffer, truncate old count as necessary
-      mCapacity = capacity;
-      mLength = (mCapacity < mLength) ? mCapacity : mLength;
-      memcpy(newBuffer, data(), mLength);
-      mOffset = 0;
-      
-      // clean up old buffer
-      cleanupBytes();
-      
-      // memory management now on regardless of previous setting
-      mBuffer = newBuffer;
-      mCleanup = true;
+      if(mCleanup && mBuffer != NULL)
+      {
+         // reallocate buffer
+         mBuffer = (char*)realloc(mBuffer, capacity);
+         mCapacity = capacity;
+         mLength = (mCapacity < mLength) ? mCapacity : mLength;
+      }
+      else
+      {
+         // create a new buffer
+         char* newBuffer = (char*)malloc(capacity);
+         
+         // copy the data into the new buffer, truncate old count as necessary
+         mCapacity = capacity;
+         mLength = (mCapacity < mLength) ? mCapacity : mLength;
+         memcpy(newBuffer, data(), mLength);
+         mOffset = 0;
+         
+         // clean up old buffer
+         cleanupBytes();
+         
+         // memory management now on regardless of previous setting
+         mBuffer = newBuffer;
+         mCleanup = true;
+      }
    }
 }
 
