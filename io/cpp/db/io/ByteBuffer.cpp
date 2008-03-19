@@ -9,7 +9,7 @@ ByteBuffer::ByteBuffer(int capacity)
 {
    // create the byte buffer
    mCapacity = capacity;
-   mBuffer = (capacity > 0) ? (char*)malloc(mCapacity) : NULL;
+   mBuffer = (capacity > 0) ? (unsigned char*)malloc(mCapacity) : NULL;
    mOffset = 0;
    mLength = 0;
    mCleanup = true;
@@ -26,7 +26,7 @@ ByteBuffer::ByteBuffer(const ByteBuffer& copy)
 {
    // copy bytes
    mCapacity = copy.capacity();
-   mBuffer = (mCapacity > 0) ? (char*)malloc(mCapacity) : NULL;
+   mBuffer = (mCapacity > 0) ? (unsigned char*)malloc(mCapacity) : NULL;
    memcpy(mBuffer, copy.bytes(), copy.capacity());
    mOffset = copy.offset();
    mLength = copy.length();
@@ -80,7 +80,7 @@ void ByteBuffer::allocateSpace(int length, bool resize)
          if(mLength > 0)
          {
             // shift the data in the buffer
-            memmove(mBuffer, data(), mLength);
+            memmove(mBuffer, udata(), mLength);
          }
          
          mOffset = 0;
@@ -95,7 +95,7 @@ void ByteBuffer::resize(int capacity)
       if(mCleanup && mBuffer != NULL)
       {
          // reallocate buffer
-         mBuffer = (char*)realloc(mBuffer, capacity);
+         mBuffer = (unsigned char*)realloc(mBuffer, capacity);
          mCapacity = capacity;
          mLength = (mCapacity < mLength) ? mCapacity : mLength;
          mOffset = (mOffset < mLength) ? mOffset : mLength;
@@ -103,12 +103,12 @@ void ByteBuffer::resize(int capacity)
       else
       {
          // create a new buffer
-         char* newBuffer = (char*)malloc(capacity);
+         unsigned char* newBuffer = (unsigned char*)malloc(capacity);
          
          // copy the data into the new buffer, truncate old count as necessary
          mCapacity = capacity;
          mLength = (mCapacity < mLength) ? mCapacity : mLength;
-         memcpy(newBuffer, data(), mLength);
+         memcpy(newBuffer, udata(), mLength);
          mOffset = 0;
          
          // clean up old buffer
@@ -149,14 +149,15 @@ int ByteBuffer::put(const char* b, int length, bool resize)
    if(length < 10)
    {
       // optimized over memcpy()
+      unsigned char* ub = (unsigned char*)b;
       for(int i = 0; i < length; i++)
       {
-         udata()[mLength + i] = ((unsigned char*)b)[i];
+         udata()[mLength + i] = ub[i];
       }
    }
    else
    {
-      memcpy(data() + mLength, b, length);
+      memcpy(udata() + mLength, b, length);
    }
    
    mLength += length;
@@ -324,7 +325,7 @@ void ByteBuffer::setBytes(char* b, int offset, int length, bool cleanup)
    cleanupBytes();
    
    mCapacity = length;
-   mBuffer = b;
+   mBuffer = (unsigned char*)b;
    mOffset = offset;
    mLength = length;
    mCleanup = cleanup;
@@ -332,17 +333,22 @@ void ByteBuffer::setBytes(char* b, int offset, int length, bool cleanup)
 
 inline char* ByteBuffer::bytes() const
 {
+   return (char*)mBuffer;
+}
+
+inline unsigned char* ByteBuffer::ubytes() const
+{
    return mBuffer;
 }
 
 inline char* ByteBuffer::data() const
 {
-   return mBuffer + mOffset;
+   return (char*)(mBuffer + mOffset);
 }
 
 inline unsigned char* ByteBuffer::udata() const
 {
-   return (unsigned char*)(mBuffer + mOffset);
+   return mBuffer + mOffset;
 }
 
 inline int ByteBuffer::offset() const
