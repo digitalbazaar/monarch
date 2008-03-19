@@ -98,6 +98,7 @@ void ByteBuffer::resize(int capacity)
          mBuffer = (char*)realloc(mBuffer, capacity);
          mCapacity = capacity;
          mLength = (mCapacity < mLength) ? mCapacity : mLength;
+         mOffset = (mOffset < mLength) ? mOffset : mLength;
       }
       else
       {
