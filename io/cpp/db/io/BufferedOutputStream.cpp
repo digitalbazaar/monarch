@@ -49,3 +49,8 @@ void BufferedOutputStream::close()
    flush();
    mOutputStream->close();
 }
+
+void BufferedOutputStream::setBuffer(ByteBuffer* b)
+{
+   mBuffer = b;
+}

@@ -11,8 +11,12 @@ using namespace db::util;
 
 HttpChunkedTransferOutputStream::HttpChunkedTransferOutputStream(
    ConnectionOutputStream* os, HttpTrailer* trailer) :
-FilterOutputStream(os, false)
+BufferedOutputStream(NULL, os, false),
+mOutputBuffer(1024)
 {
+   // set buffer
+   setBuffer(&mOutputBuffer);
+   
    // store http trailer
    mTrailer = trailer;
    
@@ -24,27 +28,38 @@ HttpChunkedTransferOutputStream::~HttpChunkedTransferOutputStream()
 {
 }
 
-bool HttpChunkedTransferOutputStream::write(const char* b, int length)
+bool HttpChunkedTransferOutputStream::flush()
 {
-   bool rval = true;
+   bool rval;
    
-   if(length > 0)
+   // write buffered data, if any
+   if(mBuffer->length() > 0)
    {
       // update data sent
-      mDataSent += length;
+      mDataSent += mBuffer->length();
       
       // get the chunk-size
-      string chunkSize = Convert::intToHex(length);
+      string chunkSize = Convert::intToHex(mBuffer->length());
       
       // write chunk-size
       // write CRLF
       // write chunk data
       // write CRLF
+      // flush
       rval =
          mOutputStream->write(chunkSize.c_str(), chunkSize.length()) &&
          mOutputStream->write(HttpHeader::CRLF, 2) &&
-         mOutputStream->write(b, length) &&
-         mOutputStream->write(HttpHeader::CRLF, 2);
+         mOutputStream->write(mBuffer->data(), mBuffer->length()) &&
+         mOutputStream->write(HttpHeader::CRLF, 2) &&
+         mOutputStream->flush();
+      
+      // clear buffer
+      mBuffer->clear();
+   }
+   else
+   {
+      // flush underlying stream
+      rval = mOutputStream->flush();
    }
    
    return rval;
@@ -52,9 +67,12 @@ bool HttpChunkedTransferOutputStream::write(const char* b, int length)
 
 void HttpChunkedTransferOutputStream::close()
 {
+   // make sure to flush ;)
+   bool write = flush();
+   
    // write chunk-size of "0" and CRLF
    char c = '0';
-   bool write =
+   write = write &&
       mOutputStream->write(&c, 1) &&
       mOutputStream->write(HttpHeader::CRLF, 2);
    

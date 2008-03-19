@@ -69,6 +69,13 @@ public:
     * Closes the stream.
     */
    virtual void close();
+   
+   /**
+    * Sets the ByteBuffer to use.
+    * 
+    * @param b the ByteBuffer to use.
+    */
+   virtual void setBuffer(ByteBuffer* b);
 };
 
 } // end namespace io

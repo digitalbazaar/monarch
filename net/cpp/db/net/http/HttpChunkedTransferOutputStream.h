@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_http_HttpChunkedTransferOutputStream_H
 #define db_net_http_HttpChunkedTransferOutputStream_H
 
-#include "db/io/FilterOutputStream.h"
+#include "db/io/BufferedOutputStream.h"
 #include "db/net/ConnectionOutputStream.h"
 #include "db/net/http/HttpTrailer.h"
 
@@ -78,9 +78,14 @@ namespace http
  * @author Dave Longley
  */
 class HttpChunkedTransferOutputStream :
-public db::io::FilterOutputStream
+public db::io::BufferedOutputStream
 {
 protected:
+   /**
+    * The output buffer.
+    */
+   db::io::ByteBuffer mOutputBuffer;
+   
    /**
     * The HttpTrailer to use for header trailers.
     */
@@ -107,15 +112,12 @@ public:
    virtual ~HttpChunkedTransferOutputStream();
    
    /**
-    * Writes some bytes to the stream.
-    * 
-    * @param b the array of bytes to write.
-    * @param length the number of bytes to write to the stream.
+    * Forces this stream to flush its output, if any of it was buffered.
     * 
     * @return true if the write was successful, false if an IO exception
     *         occurred. 
     */
-   virtual bool write(const char* b, int length);
+   virtual bool flush();
    
    /**
     * Closes the stream.
