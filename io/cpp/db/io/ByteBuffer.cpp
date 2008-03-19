@@ -319,47 +319,47 @@ void ByteBuffer::setBytes(char* b, int offset, int length, bool cleanup)
    mCleanup = cleanup;
 }
 
-char* ByteBuffer::bytes() const
+inline char* ByteBuffer::bytes() const
 {
    return mBuffer;
 }
 
-char* ByteBuffer::data() const
+inline char* ByteBuffer::data() const
 {
    return mBuffer + mOffset;
 }
 
-unsigned char* ByteBuffer::udata() const
+inline unsigned char* ByteBuffer::udata() const
 {
    return (unsigned char*)(mBuffer + mOffset);
 }
 
-int ByteBuffer::offset() const
+inline int ByteBuffer::offset() const
 {
    return mOffset;
 }
 
-int ByteBuffer::length() const
+inline int ByteBuffer::length() const
 {
    return mLength;
 }
 
-int ByteBuffer::freeSpace() const
+inline int ByteBuffer::freeSpace() const
 {
    return mCapacity - mLength;
 }
 
-bool ByteBuffer::isFull() const
+inline bool ByteBuffer::isFull() const
 {
    return freeSpace() == 0;
 }
 
-bool ByteBuffer::isEmpty() const
+inline bool ByteBuffer::isEmpty() const
 {
    return mLength == 0;
 }
 
-bool ByteBuffer::isManaged() const
+inline bool ByteBuffer::isManaged() const
 {
    return mCleanup;
 }
