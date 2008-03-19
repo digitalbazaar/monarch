@@ -79,6 +79,9 @@ public:
    virtual bool isOptional(ValidatorContext* context);
 };
 
+// type definition for a reference counted Validator
+typedef db::rt::Collectable<Validator> ValidatorRef;
+
 } // end namespace validation
 } // end namespace db
 #endif
