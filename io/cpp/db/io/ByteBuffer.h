@@ -24,7 +24,7 @@ protected:
    /**
     * The internal byte buffer. 
     */
-   char* mBuffer;
+   unsigned char* mBuffer;
    
    /**
     * The capacity for the byte buffer.
@@ -331,6 +331,15 @@ public:
     * @return the bytes in this buffer.
     */
    virtual char* bytes() const;
+   
+   /**
+    * Gets the unsigned bytes in this buffer. This method will return the
+    * underlying byte array. The offset at which valid bytes begin can be
+    * retrieved by calling offset().
+    * 
+    * @return the unsigned bytes in this buffer.
+    */
+   virtual unsigned char* ubytes() const;
    
    /**
     * Gets the bytes in this buffer starting at the valid offset for this
