@@ -134,7 +134,20 @@ int ByteBuffer::put(const char* b, int length, bool resize)
    
    // copy data into the buffer
    length = (length < freeSpace()) ? length : freeSpace();
-   memcpy(data() + mLength, b, length);
+   
+   if(length < 10)
+   {
+      // optimized over memcpy()
+      for(int i = 0; i < length; i++)
+      {
+         udata()[mLength + i] = ((unsigned char*)b)[i];
+      }
+   }
+   else
+   {
+      memcpy(data() + mLength, b, length);
+   }
+   
    mLength += length;
    
    return length;

@@ -271,62 +271,31 @@ bool HttpHeader::write(OutputStream* os)
    string line;
    getStartLine(line);
    
-   // determine total fields size:
-   // (CRLF + fields size + fields * (": " + CRLF))
-   char fields[2 + mFieldsSize + mFields.size() * 4];
-   char* s = fields;
-   
-   // append CRLF if there is a start line
+   // write the start line and CRLF if one exists
    if(line.length() > 0)
    {
-      s[0] = '\r';
-      s[1] = '\n';
-      s += 2;
+      rval =
+         os->write(line.c_str(), line.length()) &&
+         os->write(CRLF, 2);
    }
    
-   // append all fields
+   // write all fields
    int length;
-   for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
+   for(FieldMap::iterator i = mFields.begin(); rval && i != mFields.end(); i++)
    {
       // get field name and bicapitalize it
       biCapitalize((char*)i->first, &length);
       
-      // append name
-      memcpy(s, i->first, length);
-      s += length;
-      
-      // append delimiter
-      s[0] = ':';
-      s[1] = ' ';
-      s += 2;
-      
-      // append value
-      memcpy(s, i->second.c_str(), i->second.length());
-      s += i->second.length();
-      
-      // append CRLF
-      s[0] = '\r';
-      s[1] = '\n';
-      s += 2;
+      // write name, delimiter, value, and CRLF
+      rval =
+         os->write(i->first, length) &&
+         os->write(": ", 2) &&
+         os->write(i->second.c_str(), i->second.length()) &&
+         os->write(CRLF, 2);
    }
    
-   // add CRLF
-   s[0] = '\r';
-   s[1] = '\n';
-   s += 2;
-   
-   // write the start line
-   if(line.length() > 0)
-   {
-      rval = os->write(line.c_str(), line.length());
-   }
-   
-   // write the fields
-   length = s - fields;
-   if(rval && length > 0)
-   {
-      rval = os->write(fields, s - fields);
-   }
+   // write ending CRLF
+   rval = rval && os->write(CRLF, 2);
    
    return rval;
 }
