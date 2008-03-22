@@ -213,10 +213,13 @@ void runMySqlStatementTest(TestRunner& tr)
    
    // insert positional parameters test
    s = c.prepare("INSERT INTO test.dbmysqltest (t, i) VALUES (?, ?)");
-   s->setText(1, "boundpositional");
-   s->setInt32(2, 2222);
-   s->execute();
-   cout << "Row #: " << s->getLastInsertRowId() << endl;
+   for(int i = 0; i < 3; i++)
+   {
+      s->setText(1, "boundpositional");
+      s->setInt32(2, 2220 + i);
+      s->execute();
+      cout << "Row #: " << s->getLastInsertRowId() << endl;
+   }
    delete s;
    assertNoException();
    cout << "insert positional parameters test passed!" << endl;

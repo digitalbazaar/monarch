@@ -47,6 +47,11 @@ protected:
    MYSQL_BIND* mParamBindings;
    
    /**
+    * Set to true once this statement has been executed at least once.
+    */ 
+   bool mExecuted;
+   
+   /**
     * The number of result fields for this statement.
     */
    unsigned int mFieldCount;
