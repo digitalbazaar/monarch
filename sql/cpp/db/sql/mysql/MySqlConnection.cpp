@@ -24,6 +24,21 @@ MySqlConnection::~MySqlConnection()
    MySqlConnection::close();
 }
 
+Statement* MySqlConnection::createStatement(const char* sql)
+{
+   // create statement
+   Exception::clearLast();
+   Statement* rval = new MySqlStatement(this, sql);
+   if(Exception::hasLast())
+   {
+      // delete statement if exception was thrown while creating statement
+      delete rval;
+      rval = NULL;
+   }
+   
+   return rval;
+}
+
 bool MySqlConnection::connect(Url* url)
 {
    bool rval = false;
@@ -71,21 +86,6 @@ bool MySqlConnection::connect(Url* url)
          // connected
          rval = true;
       }
-   }
-   
-   return rval;
-}
-
-Statement* MySqlConnection::prepare(const char* sql)
-{
-   // create statement
-   Exception::clearLast();
-   Statement* rval = new MySqlStatement(this, sql);
-   if(Exception::hasLast())
-   {
-      // delete statement if exception was thrown while creating statement
-      delete rval;
-      rval = NULL;
    }
    
    return rval;

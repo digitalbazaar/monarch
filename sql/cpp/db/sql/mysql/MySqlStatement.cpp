@@ -133,6 +133,7 @@ bool MySqlStatement::setInt32(unsigned int param, int value)
       {
          // clean up previously set parameter
          delete (int*)mParamBindings[param].buffer;
+         //memset(mParamBindings, 0, sizeof(mParamBindings));
       }
       
       // MYSQL_TYPE_LONG should be a 32-bit int INTEGER field,
@@ -161,6 +162,7 @@ bool MySqlStatement::setUInt32(unsigned int param, unsigned int value)
       {
          // clean up previously set parameter
          delete (int*)mParamBindings[param].buffer;
+         //memset(mParamBindings, 0, sizeof(mParamBindings));
       }
       
       // MYSQL_TYPE_LONG should be a 32-bit int INTEGER field,
@@ -189,6 +191,7 @@ bool MySqlStatement::setInt64(unsigned int param, long long value)
       {
          // clean up previously set parameter
          delete (long long*)mParamBindings[param].buffer;
+         //memset(mParamBindings, 0, sizeof(mParamBindings));
       }
       
       // MYSQL_TYPE_LONGLONG should be a 64-bit int BIGINT field,
@@ -217,6 +220,7 @@ bool MySqlStatement::setUInt64(unsigned int param, unsigned long long value)
       {
          // clean up previously set parameter
          delete (long long*)mParamBindings[param].buffer;
+         //memset(mParamBindings, 0, sizeof(mParamBindings));
       }
       
       // MYSQL_TYPE_LONGLONG should be a 64-bit int BIGINT field,
@@ -245,6 +249,7 @@ bool MySqlStatement::setText(unsigned int param, const char* value)
       {
          // clean up previously set parameter
          delete (unsigned long*)mParamBindings[param].length;
+         //memset(mParamBindings, 0, sizeof(mParamBindings));
       }
       
       // MYSQL_TYPE_BLOB should be a BLOB or TEXT field
@@ -320,7 +325,7 @@ bool MySqlStatement::execute()
    {
       rval = true;
       
-      if(!mExecuted)
+      if(!mExecuted || mResult == NULL)
       {
          // get result meta-data
          mResult = mysql_stmt_result_metadata(mHandle);
@@ -328,7 +333,7 @@ bool MySqlStatement::execute()
       
       if(mResult != NULL)
       {
-         if(!mExecuted)
+         if(!mExecuted || mResultBindings == NULL)
          {
             // get field count
             mFieldCount = mysql_stmt_field_count(mHandle);
@@ -341,10 +346,26 @@ bool MySqlStatement::execute()
             {
                mResultBindings[i].length = &mResultBindings[i].buffer_length;
             }
+            
+            // set result bindings
+            if(mysql_stmt_bind_result(mHandle, mResultBindings) != 0)
+            {
+               // statement exception
+               ExceptionRef e = new MySqlException(this);
+               Exception::setLast(e, false);
+               rval = false;
+               delete [] mResultBindings;
+               mResultBindings = NULL;
+            }
+         }
+         else
+         {
+            // clear result bindings
+            memset(mResultBindings, 0, sizeof(MYSQL_BIND) * mFieldCount);
          }
          
-         // set result bindings
-         if(mysql_stmt_bind_result(mHandle, mResultBindings) != 0)
+         // pull results from server (necessary to clear pipeline for next call)
+         if(mysql_stmt_store_result(mHandle) != 0)
          {
             // statement exception
             ExceptionRef e = new MySqlException(this);
@@ -353,8 +374,11 @@ bool MySqlStatement::execute()
          }
       }
       
-      // statemnet has now been executed at least once
-      mExecuted = true;
+      if(rval)
+      {
+         // statement has now been executed at least once
+         mExecuted = true;
+      }
    }
    
    return rval;

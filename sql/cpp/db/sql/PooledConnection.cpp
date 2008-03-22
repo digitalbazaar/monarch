@@ -35,6 +35,12 @@ void PooledConnection::closeConnection()
    mConnection->close();
 }
 
+Statement* PooledConnection::createStatement(const char* sql)
+{
+   // pooled connections don't create their own statements
+   return NULL;
+}
+
 void PooledConnection::setIdleTime(unsigned long long idleTime)
 {
    mIdleTime = idleTime;

@@ -12,9 +12,6 @@ using namespace db::rt;
 Connection::Connection()
 {
    mUrl = NULL;
-   mBeginStmt = NULL;
-   mCommitStmt = NULL;
-   mRollbackStmt = NULL;
 }
 
 Connection::~Connection()
@@ -24,20 +21,40 @@ Connection::~Connection()
       delete mUrl;
    }
    
-   if(mBeginStmt != NULL)
+   // clean up all prepared statements
+   for(PreparedStmtMap::iterator i = mPreparedStmts.begin();
+       i != mPreparedStmts.end(); i++)
    {
-      delete mBeginStmt;
+      delete i->second;
+   }
+}
+
+void Connection::addPreparedStatement(Statement* stmt)
+{
+   PreparedStmtMap::iterator i = mPreparedStmts.find(stmt->getSql());
+   if(i != mPreparedStmts.end())
+   {
+      // delete old statement
+      Statement* old = i->second;
+      mPreparedStmts.erase(i);
+      delete old;
    }
    
-   if(mCommitStmt != NULL)
+   // insert new statement
+   mPreparedStmts.insert(make_pair(stmt->getSql(), stmt));
+}
+
+Statement* Connection::getPreparedStatement(const char* sql)
+{
+   Statement* rval = NULL;
+   
+   PreparedStmtMap::iterator i = mPreparedStmts.find(sql);
+   if(i != mPreparedStmts.end())
    {
-      delete mCommitStmt;
+      rval = i->second;
    }
    
-   if(mRollbackStmt != NULL)
-   {
-      delete mRollbackStmt;
-   }
+   return rval;
 }
 
 bool Connection::connect(const char* url)
@@ -70,18 +87,31 @@ bool Connection::connect(const char* url)
    return rval;
 }
 
+Statement* Connection::prepare(const char* sql)
+{
+   Statement* rval = getPreparedStatement(sql);
+   if(rval == NULL)
+   {
+      // create statement
+      rval = createStatement(sql);
+      if(rval != NULL)
+      {
+         // add prepared statement
+         addPreparedStatement(rval);
+      }
+   }
+   
+   return rval;
+}
+
 bool Connection::begin()
 {
    bool rval = false;
    
-   if(mBeginStmt == NULL)
+   Statement* s = prepare("BEGIN");
+   if(s != NULL)
    {
-      mBeginStmt = prepare("BEGIN");
-   }
-   
-   if(mBeginStmt != NULL)
-   {
-      rval = mBeginStmt->execute();
+      rval = s->execute();
    }
    else
    {
@@ -96,14 +126,10 @@ bool Connection::commit()
 {
    bool rval = false;
    
-   if(mCommitStmt == NULL)
+   Statement* s = prepare("COMMIT");
+   if(s != NULL)
    {
-      mCommitStmt = prepare("COMMIT");
-   }
-   
-   if(mCommitStmt != NULL)
-   {
-      rval = mCommitStmt->execute();
+      rval = s->execute();
    }
    else
    {
@@ -118,14 +144,10 @@ bool Connection::rollback()
 {
    bool rval = false;
    
-   if(mRollbackStmt == NULL)
+   Statement* s = prepare("ROLLBACK");
+   if(s != NULL)
    {
-      mRollbackStmt = prepare("ROLLBACK");
-   }
-   
-   if(mRollbackStmt != NULL)
-   {
-      rval = mRollbackStmt->execute();
+      rval = s->execute();
    }
    else
    {

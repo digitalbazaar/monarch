@@ -50,6 +50,15 @@ protected:
     */
    virtual void closeConnection();
    
+   /**
+    * Creates a prepared Statement.
+    * 
+    * @param sql the standard query language text of the Statement.
+    * 
+    * @return the new Statement, NULL if an exception occurred.
+    */
+   virtual Statement* createStatement(const char* sql);
+   
 public:
    /**
     * Creates a new PooledConnection around the passed Connection.
@@ -99,13 +108,13 @@ public:
    virtual bool connect(db::net::Url* url);
    
    /**
-    * Prepares a Statement for execution. The Statement is heap-allocated and
-    * must be freed by the caller of this method.
+    * Prepares a Statement for execution. The Statement, if valid, is stored
+    * along with the Connection according to its sql. It's memory is handled
+    * internally.
     * 
     * @param sql the standard query language text of the Statement.
     * 
-    * @return the new Statement to be freed by caller, NULL if an
-    *         exception occurred.
+    * @return the new stored Statement, NULL if an exception occurred.
     */
    virtual Statement* prepare(const char* sql);
    

@@ -40,6 +40,15 @@ protected:
    friend class Sqlite3Statement;
    friend class Sqlite3Exception;
    
+   /**
+    * Creates a prepared Statement.
+    * 
+    * @param sql the standard query language text of the Statement.
+    * 
+    * @return the new Statement, NULL if an exception occurred.
+    */
+   virtual Statement* createStatement(const char* sql);
+   
 public:
    /**
     * Creates a new Connection.
@@ -62,17 +71,6 @@ public:
     */
    virtual bool connect(db::net::Url* url);
    using db::sql::Connection::connect;
-   
-   /**
-    * Prepares a Statement for execution. The Statement is heap-allocated and
-    * must be freed by the caller of this method.
-    * 
-    * @param sql the standard query language text of the Statement.
-    * 
-    * @return the new Statement to be freed by caller, NULL if an
-    *         exception occurred.
-    */
-   virtual Statement* prepare(const char* sql);
    
    /**
     * Closes this connection.

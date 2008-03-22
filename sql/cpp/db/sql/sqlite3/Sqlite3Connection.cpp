@@ -24,6 +24,21 @@ Sqlite3Connection::~Sqlite3Connection()
    Sqlite3Connection::close();
 }
 
+Statement* Sqlite3Connection::createStatement(const char* sql)
+{
+   // create statement
+   Exception::clearLast();
+   Statement* rval = new Sqlite3Statement(this, sql);
+   if(Exception::hasLast())
+   {
+      // delete statement if exception was thrown while creating statement
+      delete rval;
+      rval = NULL;
+   }
+   
+   return rval;
+}
+
 bool Sqlite3Connection::connect(Url* url)
 {
    bool rval = false;
@@ -69,21 +84,6 @@ bool Sqlite3Connection::connect(Url* url)
          // connected
          rval = true;
       }
-   }
-   
-   return rval;
-}
-
-Statement* Sqlite3Connection::prepare(const char* sql)
-{
-   // create statement
-   Exception::clearLast();
-   Statement* rval = new Sqlite3Statement(this, sql);
-   if(Exception::hasLast())
-   {
-      // delete statement if exception was thrown while creating statement
-      delete rval;
-      rval = NULL;
    }
    
    return rval;

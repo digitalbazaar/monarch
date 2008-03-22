@@ -16,6 +16,11 @@ Statement::~Statement()
    free(mSql);
 }
 
+const char* Statement::getSql()
+{
+   return mSql;
+}
+
 Connection* Statement::getConnection()
 {
    return mConnection;

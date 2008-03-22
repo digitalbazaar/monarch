@@ -47,6 +47,11 @@ public:
    virtual ~Statement();
    
    /**
+    * Gets the SQL for this statement.
+    */
+   virtual const char* getSql();
+   
+   /**
     * Gets the Connection that prepared this Statement.
     *
     * @return the Connection that prepared this Statement.
