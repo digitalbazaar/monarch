@@ -167,15 +167,7 @@ bool Semaphore::acquire(int permits)
 
 bool Semaphore::tryAcquire()
 {
-   bool rval = false;
-   
-   lock();
-   {
-      rval = tryAcquire(1);
-   }
-   unlock();
-   
-   return rval;
+   return tryAcquire(1);
 }
 
 bool Semaphore::tryAcquire(int permits)
