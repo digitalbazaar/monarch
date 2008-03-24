@@ -6,6 +6,7 @@
 
 #include "db/rt/Object.h"
 #include <list>
+#include <map>
 
 namespace db
 {
@@ -42,7 +43,14 @@ protected:
    /**
     * The threads that may be waiting to acquire a permit.
     */
-   std::list<Thread*> mWaitingThreads;
+   typedef std::list<Thread*> WaitList;
+   WaitList mWaitList;
+   
+   /**
+    * A map of thread to wait status.
+    */
+   typedef std::map<Thread*, bool> WaitMap;
+   WaitMap mWaitMap;
    
    /**
     * Increases the number of permits left by the specified number if
@@ -75,35 +83,10 @@ protected:
    
    /**
     * Notifies thread(s) to wake up.
-    */
-   void notifyThreads();
-   
-   /**
-    * Adds the passed thread to the queue of waiting threads if it
-    * is not already in the queue.
     * 
-    * @param thread the thread to add to the queue.
+    * @param count the number of threads to wake up. 
     */
-   void addWaitingThread(Thread* thread);
-   
-   /**
-    * Removes the passed thread from the queue of waiting threads. 
-    * 
-    * @param thread the thread to remove from the wait queue. 
-    */
-   void removeWaitingThread(Thread* thread);
-   
-   /**
-    * Removes the first waiting thread from the queue of waiting threads,
-    * if at least one thread is waiting. 
-    */
-   void removeFirstWaitingThread();
-   
-   /**
-    * Removes a pseudo-random waiting thread from the queue of waiting threads,
-    * if at least one thread is waiting.
-    */
-   void removeRandomWaitingThread();
+   void notifyThreads(int count);
    
    /**
     * Returns true if the passed thread is in the list of waiting threads,

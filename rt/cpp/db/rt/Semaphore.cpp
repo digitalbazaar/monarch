@@ -5,8 +5,6 @@
 
 #include "db/rt/Thread.h"
 
-#include <cstdlib>
-
 using namespace std;
 using namespace db::rt;
 
@@ -44,8 +42,15 @@ bool Semaphore::waitThread(Thread* t)
 {
    bool rval = true;
    
-   // add waiting thread
-   addWaitingThread(t);
+   // add thread to wait queue
+   pair<WaitMap::iterator, bool> mapitr = mWaitMap.insert(make_pair(t, true));
+   WaitList::iterator listitr;
+   if(mapitr.second)
+   {
+      mWaitList.push_back(t);
+      listitr = mWaitList.end();
+      listitr--;
+   }
    
    // wait while not interrupted and in the list of waiting threads
    while(rval && mustWait(t))
@@ -54,79 +59,56 @@ bool Semaphore::waitThread(Thread* t)
       {
          // thread has been interrupted, so notify other waiting
          // threads and remove this thread from the wait list
-         notifyThreads();
-         removeWaitingThread(t);
+         notifyThreads(1);
+         
+         // remove thread from wait queue
+         mWaitList.erase(listitr);
+         mWaitMap.erase(mapitr.first);
       }
    }
    
    return rval;
 }
 
-void Semaphore::notifyThreads()
+void Semaphore::notifyThreads(int count)
 {
    if(isFair())
    {
-      // remove the first waiting thread
-      removeFirstWaitingThread();
+      for(int i = 0; !mWaitList.empty() && i < count; i++)
+      {
+         // remove first thread
+         Thread* thread = mWaitList.front();
+         mWaitList.pop_front();
+         mWaitMap.erase(thread);
+      }
    }
    else
    {
-      // remove a random waiting thread
-      removeRandomWaitingThread();
+      // erase according to map entry
+      WaitMap::iterator i = mWaitMap.begin();
+      WaitMap::iterator prev;
+      for(int n = 0; i != mWaitMap.end() && n < count; n++)
+      {
+         // store iterator and advance it
+         prev = i;
+         i++;
+         
+         // remove thread
+         mWaitList.remove(prev->first);
+         mWaitMap.erase(prev);
+      }
    }
    
    // notify all threads to wake up
    notifyAll();
 }
 
-void Semaphore::addWaitingThread(Thread* thread)
-{
-   // if this thread isn't in the wait queue, add it
-   list<Thread*>::iterator i =
-      find(mWaitingThreads.begin(), mWaitingThreads.end(), thread);
-   if(i == mWaitingThreads.end())
-   {
-      mWaitingThreads.push_back(thread);
-   }
-}
-
-void Semaphore::removeWaitingThread(Thread* thread)
-{
-   // remove thread
-   mWaitingThreads.remove(thread);
-}
-
-void Semaphore::removeFirstWaitingThread()
-{
-   if(!mWaitingThreads.empty())
-   {
-      // remove first thread
-      mWaitingThreads.pop_front();
-   }
-}
-
-void Semaphore::removeRandomWaitingThread()
-{
-   if(!mWaitingThreads.empty())
-   {
-      // get a random index
-      unsigned int index = rand() % mWaitingThreads.size();
-      list<Thread*>::iterator i = mWaitingThreads.begin();
-      for(unsigned int count = 0;
-          count < index && i != mWaitingThreads.end(); i++, count++);
-      
-      // remove thread
-      mWaitingThreads.erase(i);
-   }
-}
-
 bool Semaphore::mustWait(Thread* thread)
 {
    bool rval = false;
    
-   list<Thread*>::iterator i =
-      find(mWaitingThreads.begin(), mWaitingThreads.end(), thread);
-   if(i != mWaitingThreads.end())
+   WaitMap::iterator i = mWaitMap.find(thread);
+   if(i != mWaitMap.end())
    {
       // thread is in the wait list
       rval = true;
@@ -205,11 +187,7 @@ int Semaphore::release(int permits)
       rval = increasePermitsLeft(permits);
       
       // notify threads for number of permits
-      for(int i = 0; i < permits; i++)
-      {
-         // notify threads
-         notifyThreads();
-      }
+      notifyThreads(permits);
    }
    unlock();
    
@@ -233,12 +211,12 @@ bool Semaphore::isFair()
 
 const list<Thread*>& Semaphore::getQueuedThreads()
 {
-   return mWaitingThreads;
+   return mWaitList;
 }
 
 int Semaphore::getQueueLength()
 {
-   return mWaitingThreads.size();
+   return mWaitList.size();
 }
 
 void Semaphore::setMaxPermitCount(int max)
