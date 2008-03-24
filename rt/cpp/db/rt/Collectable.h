@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_rt_Collectable_H
 #define db_rt_Collectable_H
 
-#include <string>
+#include "db/rt/Object.h"
 
 namespace db
 {
@@ -40,6 +40,11 @@ protected:
        * A reference count for HeapObject.
        */
       unsigned int count;
+      
+      /**
+       * A lock for deleting the HeapObject to ensure it is thread safe.
+       */
+      Object deleteLock;
    };
    
    /**
@@ -181,12 +186,22 @@ template<typename HeapObject>
 void Collectable<HeapObject>::release()
 {
    // decrement reference count
-   if(mReference != NULL && --mReference->count == 0)
+   if(mReference != NULL)
    {
-      // delete HeapObject and reference
-      delete mReference->ptr;
-      delete mReference;
-      mReference = NULL;
+      mReference->deleteLock.lock();
+      if(--mReference->count == 0)
+      {
+         mReference->deleteLock.unlock();
+         
+         // delete HeapObject and reference
+         delete mReference->ptr;
+         delete mReference;
+         mReference = NULL;
+      }
+      else
+      {
+         mReference->deleteLock.unlock();
+      }
    }
 }
 
