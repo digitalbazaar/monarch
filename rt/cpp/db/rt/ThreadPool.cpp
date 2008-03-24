@@ -288,8 +288,7 @@ void ThreadPool::terminateAllThreads()
       interruptAllThreads();
       
       // join and remove all threads
-      for(ThreadList::iterator i = mThreads.begin();
-          i != mThreads.end();)
+      for(ThreadList::iterator i = mThreads.begin(); i != mThreads.end();)
       {
          PooledThread* t = *i;
          i = mThreads.erase(i);
@@ -300,6 +299,9 @@ void ThreadPool::terminateAllThreads()
       // clear threads
       mThreads.clear();
       mIdleThreads.clear();
+      
+      // clean up expired threads
+      cleanupExpiredThreads();
    }
    unlock();
 }
