@@ -23,9 +23,9 @@ Category::Category(const char* id, const char* name, const char* description) :
    
 Category::~Category()
 {
-   setId(NULL);
-   setName(NULL);
-   setDescription(NULL);
+   Category::setId(NULL);
+   Category::setName(NULL);
+   Category::setDescription(NULL);
 }
 
 void Category::initialize()
@@ -48,14 +48,14 @@ void Category::cleanup()
    delete DB_ALL_CAT;
    DB_ALL_CAT = NULL;
 }
-   
+
 void Category::setId(const char* id)
 {
-   if(mId)
+   if(mId != NULL)
    {
       free(mId);
    }
-   mId = id ? strdup(id) : NULL;
+   mId = (id != NULL ? strdup(id) : NULL);
 }
 
 const char* Category::getId()
@@ -65,25 +65,25 @@ const char* Category::getId()
 
 void Category::setName(const char* name)
 {
-   if(mName)
+   if(mName != NULL)
    {
       free(mName);
    }
-   mName = name ? strdup(name) : NULL;
+   mName = (name != NULL ? strdup(name) : NULL);
 }
 
 const char* Category::getName()
 {
-   return mName ? mName : "<?>";
+   return mName != NULL ? mName : "<?>";
 }
 
 void Category::setDescription(const char* description)
 {
-   if(mDescription)
+   if(mDescription != NULL)
    {
       free(mDescription);
    }
-   mDescription = description ? strdup(description) : NULL;
+   mDescription = (description != NULL ? strdup(description) : NULL);
 }
 
 const char* Category::getDescription()
