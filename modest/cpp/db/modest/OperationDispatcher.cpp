@@ -215,8 +215,8 @@ Operation OperationDispatcher::getCurrentOperation()
    // get the current thread's OperationImpl
    Thread* thread = Thread::currentThread();
    OperationImpl* impl = (OperationImpl*)thread->getUserData();
-   Operation op = mOpMap[impl];
-   return op;
+   OperationMap::iterator i = mOpMap.find(impl);
+   return i->second;
 }
 
 ThreadPool* OperationDispatcher::getThreadPool()
