@@ -180,7 +180,8 @@ void OperationDispatcher::jobCompleted(PooledThread* t)
       
       // get operation reference
       OperationImpl* impl = (OperationImpl*)t->getJob();
-      Operation& op = mOpMap[impl];
+      OperationMap::iterator i = mOpMap.find(impl);
+      Operation& op = i->second;
       
       // do post-execution state mutation
       if(op->getStateMutator() != NULL)
@@ -201,7 +202,7 @@ void OperationDispatcher::jobCompleted(PooledThread* t)
       wakeup();
       
       // remove operation reference from map
-      mOpMap.erase(impl);
+      mOpMap.erase(i);
    }
    unlock();
    
