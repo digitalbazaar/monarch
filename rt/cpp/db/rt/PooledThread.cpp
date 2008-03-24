@@ -38,7 +38,6 @@ void PooledThread::goIdle()
          if(now - startTime >= getExpireTime())
          {
             // thread must expire
-            mExpired = true;
             interrupt();
          }
       }
@@ -112,6 +111,9 @@ void PooledThread::run()
          unlock();
       }
    }
+   
+   // thread expired
+   mExpired = true;
 }
 
 void PooledThread::setExpireTime(unsigned long long expireTime)
@@ -126,13 +128,5 @@ unsigned long long PooledThread::getExpireTime()
 
 bool PooledThread::isExpired()
 {
-   bool rval = false;
-   
-   lock();
-   {
-      rval = mExpired;
-   }
-   unlock();
-   
-   return rval;
+   return mExpired;
 }
