@@ -89,13 +89,6 @@ public:
    virtual void run();
    
    /**
-    * Returns true if this thread has a job, false if it is idle.
-    * 
-    * @return true if this thread has a job, false if it is idle.
-    */
-   virtual bool hasJob();
-   
-   /**
     * Sets the expire time for this thread.
     * 
     * @param expireTime the amount of time that must pass while this thread

@@ -24,32 +24,25 @@ PooledThread::~PooledThread()
 
 void PooledThread::goIdle()
 {
-   lock();
+   unsigned long long startTime = System::getCurrentMilliseconds();
+   
+   // wait until expire time
+   if(wait(getExpireTime()))
    {
-      if(mJob == NULL)
+      // if this thread has an expire time set and this thread still has
+      // no job see if the time has expired
+      if(getExpireTime() != 0 && mJob == NULL)
       {
-         unsigned long long startTime = System::getCurrentMilliseconds();
-         
-         // wait until expire time
-         if(wait(getExpireTime()))
+         // check expired time
+         unsigned long long now = System::getCurrentMilliseconds();
+         if(now - startTime >= getExpireTime())
          {
-            // if this thread has an expire time set and this thread still has
-            // no job see if the time has expired
-            if(getExpireTime() != 0 && mJob == NULL)
-            {
-               // check expired time
-               unsigned long long now = System::getCurrentMilliseconds();
-               if(now - startTime >= getExpireTime())
-               {
-                  // thread must expire
-                  mExpired = true;
-                  interrupt();
-               }
-            }
+            // thread must expire
+            mExpired = true;
+            interrupt();
          }
       }
    }
-   unlock();
 }
 
 void PooledThread::setJob(Runnable* job, ThreadPool* pool)
@@ -98,9 +91,12 @@ void PooledThread::run()
 {
    while(!isInterrupted())
    {
-      if(hasJob())
+      // lock to check for a job
+      lock();
+      if(mJob != NULL)
       {
-         // run job
+         // unlock and run job
+         unlock();         
          mJob->run();
          
          // notify pool that job is complete
@@ -111,23 +107,11 @@ void PooledThread::run()
       }
       else
       {
-         // go idle
+         // go idle and then unlock
          goIdle();
+         unlock();
       }
    }
-}
-
-bool PooledThread::hasJob()
-{
-   bool rval = false;
-   
-   lock();
-   {
-      rval = (mJob != NULL);
-   }
-   unlock();
-   
-   return rval;
 }
 
 void PooledThread::setExpireTime(unsigned long long expireTime)
