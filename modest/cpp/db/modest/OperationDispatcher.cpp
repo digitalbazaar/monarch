@@ -9,7 +9,7 @@ using namespace db::modest;
 using namespace db::rt;
 
 OperationDispatcher::OperationDispatcher(Engine* e) :
-   ThreadPool(1000),
+   ThreadPool(200),
    JobDispatcher(this, false)
 {
    mEngine = e;
