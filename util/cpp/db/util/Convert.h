@@ -59,14 +59,22 @@ public:
    
    /**
     * Converts a hexadecimal string to an array of bytes. The passed
-    * array of bytes must be at least hex.length() / 2 bytes long.
+    * array of bytes must be at least ceil(hex.length() / 2) bytes long.
+    * 
+    * If the hex string contains an odd number of characters, an initial 0 is
+    * assumed.
+    * 
+    * An error can occur if the input is outside the character range
+    * [0-9A-Fa-f].
     * 
     * @param hex the hexadecimal string to convert.
     * @param hexLength the number of hex characters.
     * @param b the array of bytes to populate.
     * @param length to store the length of the array of bytes.
+    * 
+    * @return true on success, false on error and an exception will be set.
     */
-   static void hexToBytes(
+   static bool hexToBytes(
       const char* hex, unsigned int hexLength,
       char* bytes, unsigned int& length);
    
@@ -74,12 +82,23 @@ public:
     * Converts a hexadecimal string to an integer. The string is parsed in
     * big endian order.
     * 
+    * If the hex string contains an odd number of characters, an initial 0 is
+    * assumed.
+    * 
+    * An error can occur if the input is outside the character range
+    * [0-9A-Fa-f] or if the result value woudl exceed the maxium unsigned int
+    * value.
+    * 
     * @param hex the hexadecimal string to convert.
     * @param hexLength the number of hex characters.
+    * @param value the value to fill.
+    * @param length the number of converted bytes
     * 
-    * @return the integer.
+    * @return true on success, false on error and an exception will be set.
     */
-   static unsigned int hexToInt(const char* hex, unsigned int hexLength);
+   static bool hexToInt(
+      const char* hex, unsigned int hexLength,
+      unsigned int &value);
    
    /**
     * Converts an integer into a lower-case hexadecimal string.

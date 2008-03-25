@@ -3,10 +3,12 @@
  */
 #include "db/util/Convert.h"
 #include "db/util/StringTools.h"
+#include "db/rt/Exception.h"
 
 #include <sstream>
 
 using namespace std;
+using namespace db::rt;
 using namespace db::util;
 
 // initialize hexadecimal characters strings for fast lookups
@@ -62,9 +64,46 @@ string Convert::bytesToUpperHex(const char* bytes, unsigned int length)
    return rval;
 }
 
-void Convert::hexToBytes(
+static inline bool nibbleToByte(const char hex, unsigned char& value)
+{
+   bool rval = true;
+   
+   if(hex >= '0' && hex <= '9')
+   {
+      value = hex - '0';
+   }
+   else if(hex >= 'A' && hex <= 'F')
+   {
+      value = hex - 'A' + 0xa;
+   }
+   else if(hex >= 'a' && hex <= 'f')
+   {
+      value = hex - 'a' + 0xa;
+   }
+   else
+   {
+      rval = false;
+   }
+   
+   return rval;
+}
+   
+static inline bool hexToByte(const char high, const char low,
+   unsigned char& value)
+{
+   bool rval = true;
+   unsigned char temp;
+   rval = nibbleToByte(high, temp);
+   rval = rval && nibbleToByte(low, value);
+   value += (temp << 4);
+   return rval;
+}
+
+bool Convert::hexToBytes(
    const char* hex, unsigned int hexLength, char* bytes, unsigned int& length)
 {
+   bool rval = true;
+
    length = 0;
    
    // convert bytes to unsigned
@@ -72,102 +111,69 @@ void Convert::hexToBytes(
    
    unsigned char c1;
    unsigned char c2;
-   for(unsigned int i = 0; i < hexLength; i += 2)
+   unsigned int i;
+
+   if(hexLength % 2 == 0)
    {
-      // hexadecimal uses 2 digits, each with 16 values
-      if(i + 1 < hexLength)
-      {
-         c1 = hex[i];
-         c2 = hex[i + 1];
-         
-         // ASCII '0' = 48, ASCII 'A' = 65, ASCII 'a' = 97
-         // so subtract 48, so subtract 55, so subtract 87
-         
-         // convert first hex digit
-         if(c1 > 47 && c1 < 58)
-         {
-            c1 = 16 * (c1 - 48);
-         }
-         else if(c1 > 64 && c1 < 91)
-         {
-            c1 = 16 * (c1 - 55);
-         }
-         else if(c1 > 96 && c1 < 123)
-         {
-            c1 = 16 * (c1 - 87);
-         }
-         
-         // convert second hex digit and set byte
-         if(c2 > 47 && c2 < 58)
-         {
-            ubytes[length++] = c1 + c2 - 48;
-         }
-         else if(c2 > 64 && c2 < 91)
-         {
-            ubytes[length++] = c1 + c2 - 55;
-         }
-         else if(c2 > 96 && c2 < 123)
-         {
-            ubytes[length++] = c1 + c2 - 87;
-         }
-      }
+      // even # of characters
+      i = 0;
    }
+   else
+   {
+      // odd # of characters, prepend initial '0' and convert first char
+      i = 1;
+      c1 = '0';
+      c2 = hex[0];
+      rval = hexToByte(c1, c2, ubytes[length++]);
+   }
+
+   // convert the rest
+   for(; rval && i < hexLength; i += 2)
+   {
+      c1 = hex[i];
+      c2 = hex[i + 1];
+      rval = hexToByte(c1, c2, ubytes[length++]);
+   }
+   
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Invalid hex value!", "db.util.ConversionError");
+      Exception::setLast(e, false);
+   }
+   
+   return rval;
 }
 
-unsigned int Convert::hexToInt(const char* hex, unsigned int hexLength)
+bool Convert::hexToInt(const char* hex, unsigned int hexLength,
+   unsigned int& value)
 {
-   int rval = 0;
-   
-   unsigned int base = 1;
-   if(hexLength > 1)
+   bool rval = true;
+
+   if(hexLength > (sizeof(unsigned int) * 2))
    {
-      for(unsigned int i = 0; i < (hexLength - 2); i++, base *= 16);
+      rval = false;
+      ExceptionRef e = new Exception(
+         "Hex value too large!", "db.util.ConversionError");
+      Exception::setLast(e, false);
+   }
+   else
+   {
+      // convert backwards and shift to proper position
+      value = 0;
+      for(int i = hexLength - 1; rval && i >= 0; i--)
+      {
+         unsigned char temp;
+         rval = nibbleToByte(hex[i], temp);
+         value |= (temp << (4 * (hexLength - i - 1)));
+      }
    }
    
-   unsigned char c1;
-   unsigned char c2;
-   for(unsigned int i = 0; i < hexLength; i += 2)
+   if(!rval)
    {
-      // hexadecimal uses 2 digits, each with 16 values
-      if(i + 1 < hexLength)
-      {
-         c1 = hex[i];
-         c2 = hex[i + 1];
-         
-         // ASCII '0' = 48, ASCII 'A' = 65, ASCII 'a' = 97
-         // so subtract 48, so subtract 55, so subtract 87
-         
-         // convert first hex digit
-         if(c1 > 47 && c1 < 58)
-         {
-            rval += base * 16 * (c1 - 48);
-         }
-         else if(c1 > 64 && c1 < 91)
-         {
-            rval += base * 16 * (c1 - 55);
-         }
-         else if(c1 > 96 && c1 < 123)
-         {
-            rval += base * 16 * (c1 - 87);
-         }
-         
-         // convert second hex digit and add
-         if(c2 > 47 && c2 < 58)
-         {
-            rval += base * (c2 - 48);
-         }
-         else if(c2 > 64 && c2 < 91)
-         {
-            rval += base * (c2 - 55);
-         }
-         else if(c2 > 96 && c2 < 123)
-         {
-            rval += base * (c2 - 87);
-         }
-      }
-      
-      // decrease base
-      base /= 256;
+      ExceptionRef e = new Exception(
+         "Invalid hex value!", "db.util.ConversionError");
+      Exception::setLast(e, false);
    }
    
    return rval;

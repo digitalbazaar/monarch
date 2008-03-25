@@ -249,10 +249,11 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          mState = next;
          break;
       case _U: /* Unicode done */
-         int uc;
+         unsigned int uc;
          mString.push_back(c);
          // convert unicode hex to wide char
-         uc = Convert::hexToInt(mString.c_str(), 4);
+         // should be in valid hex state here so return value not checked
+         Convert::hexToInt(mString.c_str(), 4, uc);
          // bring back previous string
          mString = mDynoStack.back()->getString();
          mDynoStack.pop_back();
