@@ -8,8 +8,8 @@ using namespace db::rt;
 
 JobDispatcher::JobDispatcher()
 {
-   // create the thread pool with an infinite number of threads by default
-   mThreadPool = new ThreadPool(0);
+   // create the thread pool with 10 threads by default
+   mThreadPool = new ThreadPool(10);
    mCleanupThreadPool = true;
    
    // no dispatcher thread yet

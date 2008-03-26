@@ -8,7 +8,6 @@
 #include "db/rt/PooledThread.h"
 
 #include <list>
-#include <vector>
 
 namespace db
 {
@@ -104,8 +103,7 @@ public:
     * Creates a new ThreadPool with the specified number of threads
     * available for running jobs.
     * 
-    * @param poolSize the size of the pool (number of threads), 0 specifies
-    *                 an unlimited number of threads.
+    * @param poolSize the size of the pool (number of threads).
     * @param stackSize the minimum size for each thread's stack, in bytes, 0
     *                  for the system default.
     */
@@ -157,22 +155,16 @@ public:
    virtual void terminateAllThreads();
    
    /**
-    * Sets the number of threads in this thread pool. If a size of
-    * 0 is specified, than there will be no limit to the number of
-    * threads in this pool.
+    * Sets the number of threads in this thread pool.
     * 
-    * @param size the number of threads in this thread pool. A size
-    *             of 0 specifies an unlimited number of threads.
+    * @param size the number of threads in this thread pool.
     */
    virtual void setPoolSize(unsigned int size);
    
    /**
-    * Gets the number of threads in this thread pool. If a size of
-    * 0 is returned, than there is no limit to the number of threads
-    * in this pool.
+    * Gets the number of threads in this thread pool.
     * 
-    * @return the number of threads in this thread pool. A size
-    *         of 0 specifies an unlimited number of threads.
+    * @return the number of threads in this thread pool.
     */
    virtual unsigned int getPoolSize();
    

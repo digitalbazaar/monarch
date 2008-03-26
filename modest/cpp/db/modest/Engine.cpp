@@ -27,12 +27,8 @@ Engine::~Engine()
 
 void Engine::queue(Operation& op)
 {
-   lock();
-   {
-      // queue the operation with the dispatcher
-      mOpDispatcher->queueOperation(op);
-   }
-   unlock();
+   // queue the operation with the dispatcher
+   mOpDispatcher->queueOperation(op);
 }
 
 void Engine::start()

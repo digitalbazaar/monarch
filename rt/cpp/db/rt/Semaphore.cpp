@@ -44,13 +44,9 @@ bool Semaphore::waitThread(Thread* t)
    
    // add thread to wait queue
    pair<WaitMap::iterator, bool> mapitr = mWaitMap.insert(make_pair(t, true));
-   WaitList::iterator listitr;
-   if(mapitr.second)
-   {
-      mWaitList.push_back(t);
-      listitr = mWaitList.end();
-      listitr--;
-   }
+   mWaitList.push_back(t);
+   WaitList::iterator listitr = mWaitList.end();
+   listitr--;
    
    // wait while not interrupted and in the list of waiting threads
    while(rval && mustWait(t))
@@ -105,16 +101,8 @@ void Semaphore::notifyThreads(int count)
 
 bool Semaphore::mustWait(Thread* thread)
 {
-   bool rval = false;
-   
-   WaitMap::iterator i = mWaitMap.find(thread);
-   if(i != mWaitMap.end())
-   {
-      // thread is in the wait list
-      rval = true;
-   }
-   
-   return rval;
+   // return true if thread is in the wait map
+   return mWaitMap.find(thread) != mWaitMap.end();
 }
 
 bool Semaphore::acquire()
@@ -194,27 +182,35 @@ int Semaphore::release(int permits)
    return rval;
 }
 
-int Semaphore::availablePermits()
+inline int Semaphore::availablePermits()
 {
    return mPermitsLeft;
 }
 
 int Semaphore::usedPermits()
 {
-   return mPermits - mPermitsLeft;
+   int rval = 0;
+   
+   lock();
+   {
+      rval = mPermits - mPermitsLeft;
+   }
+   unlock();
+   
+   return rval;
 }
 
-bool Semaphore::isFair()
+inline bool Semaphore::isFair()
 {
    return mFair;
 }
 
-const list<Thread*>& Semaphore::getQueuedThreads()
+inline const list<Thread*>& Semaphore::getQueuedThreads()
 {
    return mWaitList;
 }
 
-int Semaphore::getQueueLength()
+inline int Semaphore::getQueueLength()
 {
    return mWaitList.size();
 }
@@ -244,7 +240,7 @@ void Semaphore::setMaxPermitCount(int max)
    unlock();
 }
 
-int Semaphore::getMaxPermitCount()
+inline int Semaphore::getMaxPermitCount()
 {
    return mPermits;
 }

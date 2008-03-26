@@ -58,13 +58,13 @@ PooledThread* ThreadPool::getIdleThread()
          rval = new PooledThread(this, getThreadExpireTime());
          mThreads.push_back(rval);
          
-         // lock thread's job lock as if it were an idle thread so the later
-         // unlock code is consistent
+         // lock thread's job lock to prevent it from going idle before
+         // its job is assigned
          rval->getJobLock()->lock();
       }
       
       // remove extra threads if applicable
-      if(!mIdleThreads.empty() && mThreadSemaphore.getMaxPermitCount() > 0)
+      if(!mIdleThreads.empty())
       {
          // get the number of extra threads
          int extraThreads =
@@ -78,9 +78,6 @@ PooledThread* ThreadPool::getIdleThread()
       }
    }
    mListLock.unlock();
-   
-   // clean up expired threads
-   cleanupExpiredThreads();
    
    return rval;
 }
@@ -132,7 +129,7 @@ void ThreadPool::runJobOnIdleThread(Runnable& job)
       t->setJob(&job);
       
       // unlock thread's job lock now that a job is assigned, so if it was
-      // about to become unidled, it will pick up its new assignment
+      // about to become idle or expire, it will pick up its new assignment
       t->getJobLock()->unlock();
       
       // if the thread hasn't started yet, start it
@@ -146,6 +143,9 @@ void ThreadPool::runJobOnIdleThread(Runnable& job)
       }
    }
    mJobLock.unlock();
+   
+   // clean up expired threads
+   cleanupExpiredThreads();
 }
 
 void ThreadPool::runJobOnIdleThread(RunnableRef& job)
@@ -174,19 +174,17 @@ void ThreadPool::runJobOnIdleThread(RunnableRef& job)
       }
    }
    mJobLock.unlock();
+   
+   // clean up expired threads
+   cleanupExpiredThreads();
 }
 
 bool ThreadPool::tryRunJob(Runnable& job)
 {
-   bool rval = true;
+   bool rval;
    
-   // only try to acquire a permit if infinite threads is not enabled
-   if(mThreadSemaphore.getMaxPermitCount() != 0)
-   {
-      rval = mThreadSemaphore.tryAcquire();
-   }
-   
-   if(rval)
+   // try to acquire a thread permit
+   if(rval = mThreadSemaphore.tryAcquire())
    {
       // run the job on an idle thread
       runJobOnIdleThread(job);
@@ -197,15 +195,10 @@ bool ThreadPool::tryRunJob(Runnable& job)
 
 bool ThreadPool::tryRunJob(RunnableRef& job)
 {
-   bool rval = true;
+   bool rval;
    
-   // only try to acquire a permit if infinite threads is not enabled
-   if(mThreadSemaphore.getMaxPermitCount() != 0)
-   {
-      rval = mThreadSemaphore.tryAcquire();
-   }
-   
-   if(rval)
+   // try to acquire a thread permit
+   if(rval = mThreadSemaphore.tryAcquire())
    {
       // run the job on an idle thread
       runJobOnIdleThread(job);
@@ -216,14 +209,8 @@ bool ThreadPool::tryRunJob(RunnableRef& job)
 
 void ThreadPool::runJob(Runnable& job)
 {
-   // only acquire a permit if infinite threads is not enabled
-   bool permitAcquired = true;
-   if(mThreadSemaphore.getMaxPermitCount() != 0)
-   {
-      permitAcquired = mThreadSemaphore.acquire();
-   }
-   
-   if(permitAcquired)
+   // acquire a thread permit
+   if(mThreadSemaphore.acquire())
    {
       // run the job on an idle thread
       runJobOnIdleThread(job);
@@ -232,14 +219,8 @@ void ThreadPool::runJob(Runnable& job)
 
 void ThreadPool::runJob(RunnableRef& job)
 {
-   // only acquire a permit if infinite threads is not enabled
-   bool permitAcquired = true;
-   if(mThreadSemaphore.getMaxPermitCount() != 0)
-   {
-      permitAcquired = mThreadSemaphore.acquire();
-   }
-   
-   if(permitAcquired)
+   // acquire a thread permit
+   if(mThreadSemaphore.acquire())
    {
       // run the job on an idle thread
       runJobOnIdleThread(job);
@@ -323,7 +304,7 @@ void ThreadPool::setPoolSize(unsigned int size)
       // only for decreases
       
       // remove threads as necessary
-      if(mThreads.size() > size && size != 0)
+      if(mThreads.size() > size)
       {
          removeIdleThreads(mThreads.size() - size);
       }

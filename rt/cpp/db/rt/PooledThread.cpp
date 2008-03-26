@@ -100,7 +100,6 @@ void PooledThread::run()
    {
       // lock to check for a job
       mJobLock.lock();
-      
       if(mJob != NULL)
       {
          // unlock, run job, notify pool when complete
