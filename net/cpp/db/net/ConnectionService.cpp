@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/ConnectionService.h"
+
 #include "db/net/Server.h"
 #include "db/net/TcpSocket.h"
 #include "db/rt/RunnableDelegate.h"
@@ -22,7 +23,6 @@ ConnectionService::ConnectionService(
    mServicer = servicer;
    mDataPresenter = presenter;
    mSocket = NULL;
-   mConnectionCount = 0;
 }
 
 ConnectionService::~ConnectionService()
@@ -34,9 +34,6 @@ ConnectionService::~ConnectionService()
 Operation ConnectionService::initialize()
 {
    Operation rval(NULL);
-   
-   // no connections yet
-   mConnectionCount = 0;
    
    // create tcp socket
    mSocket = new TcpSocket();
@@ -59,6 +56,13 @@ void ConnectionService::cleanup()
       // clean up socket
       delete mSocket;
       mSocket = NULL;
+   }
+   
+   // release any used connection permits
+   int used = mConnectionSemaphore.usedPermits();
+   if(used > 0)
+   {
+      mConnectionSemaphore.release(used);
    }
 }
 
@@ -132,10 +136,6 @@ void ConnectionService::createConnection(Socket* s)
       Connection* c = new Connection(wrapper, true);
       c->setSecure(secure);
       
-      // increase connection count
-      mServer->mConnectionCount++;
-      mConnectionCount++;
-      
       // create RunnableDelegate to service connection and run as an Operation
       RunnableRef r =
          new RunnableDelegate<ConnectionService>(
@@ -170,10 +170,6 @@ void ConnectionService::serviceConnection(void* c)
    // ensure connection is closed
    conn->close();
    
-   // decrease connection count
-   mServer->mConnectionCount--;
-   mConnectionCount--;
-   
    // release connection permits
    mServer->mConnectionSemaphore.release();
    mConnectionSemaphore.release();
@@ -197,5 +193,5 @@ unsigned int ConnectionService::getMaxConnectionCount()
 
 unsigned int ConnectionService::getConnectionCount()
 {
-   return mConnectionCount;
+   return mConnectionSemaphore.usedPermits();
 }

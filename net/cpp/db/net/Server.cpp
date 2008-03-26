@@ -14,7 +14,6 @@ Server::Server(OperationRunner* opRunner) : mConnectionSemaphore(1000, true)
 {
    mOperationRunner = opRunner;
    mRunning = false;
-   mConnectionCount = 0;
 }
 
 Server::~Server()
@@ -112,7 +111,6 @@ bool Server::start()
       {
          // now running
          mRunning = true;
-         mConnectionCount = 0;
          
          // start all port services
          for(map<unsigned short, PortService*>::iterator i =
@@ -147,6 +145,13 @@ void Server::stop()
             i->second->stop();
          }
          
+         // release any used connection permits
+         int used = mConnectionSemaphore.usedPermits();
+         if(used > 0)
+         {
+            mConnectionSemaphore.release(used);
+         }
+         
          // no longer running
          mRunning = false;
       }
@@ -176,5 +181,5 @@ inline unsigned int Server::getMaxConnectionCount()
 
 inline unsigned int Server::getConnectionCount()
 {
-   return mConnectionCount;
+   return mConnectionSemaphore.usedPermits();
 }

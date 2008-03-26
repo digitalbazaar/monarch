@@ -58,11 +58,6 @@ protected:
    db::modest::OperationList mRunningServicers;
    
    /**
-    * The current number of connections being handled.
-    */
-   unsigned int mConnectionCount;
-   
-   /**
     * Initializes this service and creates the Operation for running it,
     * typically through the Server's OperationRunner. If the service could
     * not be initialized, an exception should be set on the current thread
