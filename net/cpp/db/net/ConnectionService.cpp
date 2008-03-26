@@ -17,7 +17,7 @@ ConnectionService::ConnectionService(
    ConnectionServicer* servicer,
    SocketDataPresenter* presenter) :
    PortService(server, address),
-   mConnectionSemaphore(10000, true)
+   mConnectionSemaphore(1000, true)
 {
    mServicer = servicer;
    mDataPresenter = presenter;
@@ -137,11 +137,11 @@ void ConnectionService::createConnection(Socket* s)
       mConnectionCount++;
       
       // create RunnableDelegate to service connection and run as an Operation
-      RunnableRef cr =
+      RunnableRef r =
          new RunnableDelegate<ConnectionService>(
             this, &ConnectionService::serviceConnection, c,
             &ConnectionService::cleanupConnection);
-      Operation op(cr);
+      Operation op(r);
       mRunningServicers.add(op);
       
       // run operation

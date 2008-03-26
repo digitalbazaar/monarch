@@ -7,11 +7,14 @@
 
 using namespace db::rt;
 
-PooledThread::PooledThread(unsigned long long expireTime) : Thread(this)
+PooledThread::PooledThread(
+   ThreadPool* pool, unsigned long long expireTime) : Thread(this)
 {
    // no job to run yet
    mJob = NULL;
-   mThreadPool = NULL;
+   
+   // store thread pool
+   mThreadPool = pool;
    
    // sets the expire time for this thread
    setExpireTime(expireTime);
@@ -44,13 +47,12 @@ void PooledThread::goIdle()
    }
 }
 
-void PooledThread::setJob(Runnable* job, ThreadPool* pool)
+void PooledThread::setJob(Runnable* job)
 {
    lock();
    {
-      // set job and pool
+      // set job
       mJob = job;
-      mThreadPool = pool;
       
       if(job != NULL)
       {
@@ -66,14 +68,13 @@ void PooledThread::setJob(Runnable* job, ThreadPool* pool)
    unlock();
 }
 
-void PooledThread::setJob(RunnableRef& job, ThreadPool* pool)
+void PooledThread::setJob(RunnableRef& job)
 {
    lock();
    {
-      // set job, reference, and pool
+      // set job and reference
       mJob = &(*job);
       mJobReference = job;
-      mThreadPool = pool;
       
       // notify thread to stop waiting
       notifyAll();
@@ -94,15 +95,10 @@ void PooledThread::run()
       lock();
       if(mJob != NULL)
       {
-         // unlock and run job
-         unlock();         
+         // unlock, run job, notify pool when complete
+         unlock();
          mJob->run();
-         
-         // notify pool that job is complete
-         if(mThreadPool != NULL)
-         {
-            mThreadPool->jobCompleted(this);
-         }
+         mThreadPool->jobCompleted(this);
       }
       else
       {

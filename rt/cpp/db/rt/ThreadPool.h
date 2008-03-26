@@ -21,7 +21,7 @@ namespace rt
  * 
  * @author Dave Longley
  */
-class ThreadPool : public virtual Object
+class ThreadPool
 {
 protected:
    /**
@@ -47,9 +47,14 @@ protected:
    ThreadList mExpiredThreads;
    
    /**
-    * A lock for modifying the thread lists.
+    * A lock for modifying the unexpired thread lists.
     */
    Object mListLock;
+   
+   /**
+    * A lock for running new jobs or terminating existing ones.
+    */
+   Object mJobLock;
    
    /**
     * The stack size for threads (in bytes).

@@ -57,11 +57,12 @@ public:
     * a single job) for the passed time interval. If an expire time of 0
     * is passed then this thread will never expire.
     * 
+    * @param pool the ThreadPool this PooledThread is a member of.
     * @param expireTime the amount of time (in milliseconds) that must pass
     *                   while this thread is idle in order for it to expire --
     *                   if 0 is passed then the thread will never expire.
     */
-   PooledThread(unsigned long long expireTime = 0);
+   PooledThread(ThreadPool* pool, unsigned long long expireTime = 0);
    
    /**
     * Destructs this PooledThread.
@@ -73,10 +74,9 @@ public:
     * thread will be considered idle (with no job).
     * 
     * @param job the job for this thread or null if this thread has no job.
-    * @param pool the ThreadPool to notify when the job completes.
     */
-   virtual void setJob(Runnable* job, ThreadPool* pool);
-   virtual void setJob(RunnableRef& job, ThreadPool* pool);
+   virtual void setJob(Runnable* job);
+   virtual void setJob(RunnableRef& job);
    
    /**
     * Gets the Runnable job for this thread.

@@ -250,20 +250,12 @@ void JobDispatcher::clearQueuedJobs()
 
 void JobDispatcher::interruptAllRunningJobs()
 {
-   lock();
-   {
-      getThreadPool()->interruptAllThreads();
-   }
-   unlock();
+   getThreadPool()->interruptAllThreads();
 }
 
 void JobDispatcher::terminateAllRunningJobs()
 {
-   lock();
-   {
-      getThreadPool()->terminateAllThreads();
-   }
-   unlock();
+   getThreadPool()->terminateAllThreads();
 }
 
 ThreadPool* JobDispatcher::getThreadPool()
@@ -273,15 +265,7 @@ ThreadPool* JobDispatcher::getThreadPool()
 
 unsigned int JobDispatcher::getQueuedJobCount()
 {
-   unsigned int rval = 0;
-   
-   lock();
-   {
-      rval = mJobQueue.size();
-   }
-   unlock();
-   
-   return rval;
+   return mJobQueue.size();
 }
 
 unsigned int JobDispatcher::getTotalJobCount()

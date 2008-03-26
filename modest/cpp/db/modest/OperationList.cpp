@@ -138,15 +138,7 @@ void OperationList::terminate()
 
 bool OperationList::isEmpty()
 {
-   bool rval = false;
-   
-   lock();
-   {
-      rval = mOperations.empty();
-   }
-   unlock();
-   
-   return rval;
+   return mOperations.empty();
 }
 
 void OperationList::clear()
