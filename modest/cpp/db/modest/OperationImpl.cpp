@@ -42,6 +42,12 @@ void OperationImpl::run()
       mThread = Thread::currentThread();
       mThread->setUserData(this);
       mStarted = true;
+      
+      // interrupt thread if appropriate
+      if(mInterrupted)
+      {
+         mThread->interrupt();
+      }
    }
    unlock();
    

@@ -34,18 +34,18 @@ PooledThread* ThreadPool::getIdleThread()
          rval = mIdleThreads.front();
          mIdleThreads.pop_front();
          
-         // lock thread until it is assigned a job or marked expired
+         // lock thread's job lock until it is assigned a job or marked expired
          // 
          // Note: This must be done because the thread could come out of
          // its idle state while we are checking it. If, when we check it,
          // the thread is not expired, then we might accidentally assign it
          // a job, and in the thread's code it will be interrupted just after
          // we check it, resulting in the assigned job never being handled.
-         rval->lock();
+         rval->getJobLock()->lock();
          if(rval->isExpired() || rval->isInterrupted())
          {
             // unlock thread, collect thread for clean up
-            rval->unlock();
+            rval->getJobLock()->unlock();
             mThreads.remove(rval);
             mExpiredThreads.push_front(rval);
             rval = NULL;
@@ -58,9 +58,9 @@ PooledThread* ThreadPool::getIdleThread()
          rval = new PooledThread(this, getThreadExpireTime());
          mThreads.push_back(rval);
          
-         // lock thread as if it were an idle thread so the later
+         // lock thread's job lock as if it were an idle thread so the later
          // unlock code is consistent
-         rval->lock();
+         rval->getJobLock()->lock();
       }
       
       // remove extra threads if applicable
@@ -131,9 +131,9 @@ void ThreadPool::runJobOnIdleThread(Runnable& job)
       // set job
       t->setJob(&job);
       
-      // unlock thread now that a job is assigned, so if it was about
-      // to become unidled, it will pick up its new assignment
-      t->unlock();
+      // unlock thread's job lock now that a job is assigned, so if it was
+      // about to become unidled, it will pick up its new assignment
+      t->getJobLock()->unlock();
       
       // if the thread hasn't started yet, start it
       while(!t->hasStarted())
@@ -159,8 +159,8 @@ void ThreadPool::runJobOnIdleThread(RunnableRef& job)
       // set job
       t->setJob(job);
       
-      // unlock thread now that job is assigned
-      t->unlock();
+      // unlock thread's job lock now that job is assigned
+      t->getJobLock()->unlock();
       
       // if the thread hasn't started yet, start it
       while(!t->hasStarted())
@@ -248,7 +248,9 @@ void ThreadPool::runJob(RunnableRef& job)
 
 void ThreadPool::jobCompleted(PooledThread* t)
 {
-   // clear the thread's job
+   // clear the thread's job, there is no need to engage the thread's
+   // job lock here because this method is called from the thread itself,
+   // and it therefore cannot be idle, waiting to be notified
    t->setJob(NULL);
    
    // lock lists for modification

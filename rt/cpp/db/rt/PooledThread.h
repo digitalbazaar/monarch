@@ -36,6 +36,11 @@ protected:
    ThreadPool* mThreadPool;
    
    /**
+    * A lock for changing this thread's job/idle status.
+    */
+   Object mJobLock;
+   
+   /**
     * The amount of idle time (in milliseconds) that must pass before this
     * thread automatically expires.
     */
@@ -82,6 +87,13 @@ public:
     * Gets the Runnable job for this thread.
     */
    virtual Runnable* getJob();
+   
+   /**
+    * Gets the lock for changing this thread's job/idle status.
+    * 
+    * @return the lock for changing this thread's job/idle status.
+    */
+   virtual Object* getJobLock();
    
    /**
     * Runs this thread.
