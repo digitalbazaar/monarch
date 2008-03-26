@@ -10,6 +10,7 @@
 #include "db/rt/Runnable.h"
 #include "db/rt/Thread.h"
 #include "db/rt/Semaphore.h"
+#include "db/rt/SharedLock.h"
 #include "db/rt/System.h"
 #include "db/rt/JobDispatcher.h"
 
@@ -246,6 +247,160 @@ void runThreadPoolTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+void runJobDispatcherTest(TestRunner& tr)
+{
+   tr.test("JobDispatcher");
+   
+   Exception::clearLast();
+   
+   // create a job dispatcher
+   //JobDispatcher jd;
+   ThreadPool pool(3);
+   JobDispatcher jd(&pool, false);
+   
+   // create jobs
+   TestJob job1("1");
+   TestJob job2("2");
+   TestJob job3("3");
+   TestJob job4("4");
+   TestJob job5("5");
+   TestJob job6("6");
+   
+   // queue jobs
+   jd.queueJob(job1);
+   jd.queueJob(job2);
+   jd.queueJob(job3);
+   jd.queueJob(job4);
+   jd.queueJob(job5);
+   jd.queueJob(job6);
+   
+   // start dispatching
+   jd.startDispatching();
+   
+   // wait
+   Thread::sleep(1250);
+   
+   // stop dispatching
+   jd.stopDispatching();      
+   
+   tr.passIfNoException();
+}
+
+class SharedLockRunnable : public Runnable
+{
+public:
+   SharedLock* mLock;
+   int* mTotal;
+   bool mWrite;
+   int mNumber;
+   
+   SharedLockRunnable(SharedLock* lock, int* total, bool write, int number)
+   {
+      mLock = lock;
+      mTotal = total;
+      mWrite = write;
+      mNumber = number;
+   }
+   
+   virtual ~SharedLockRunnable()
+   {
+   }
+   
+   virtual void run()
+   {
+      Thread::sleep(rand() % 10 + 1);
+      
+      if(mWrite)
+      {
+         mLock->lockExclusive();
+         {
+            for(int i = 0; i < 1000; i++)
+            {
+               *mTotal += mNumber;
+            }
+         }
+         mLock->unlockExclusive();
+      }
+      else
+      {
+         mLock->lockShared();
+         {
+            assert(
+               *mTotal == 0 || *mTotal == 2000 ||
+               *mTotal == 3000 || *mTotal == 5000);
+            //cout << "read total=" << *mTotal << std::endl;
+            
+            mLock->lockShared();
+            {
+               assert(
+                  *mTotal == 0 || *mTotal == 2000 ||
+                  *mTotal == 3000 || *mTotal == 5000);
+               //cout << "read total=" << *mTotal << std::endl;
+            }
+            mLock->unlockShared();
+         }
+         mLock->unlockShared();
+      }
+   }
+};
+
+void runSharedLockTest(TestRunner& tr)
+{
+   tr.test("SharedLock");
+   
+   for(int i = 0; i < 200; i++)
+   {
+      SharedLock lock;
+      int total = 0;
+      
+      SharedLockRunnable r1(&lock, &total, false, 0);
+      SharedLockRunnable r2(&lock, &total, true, 2);
+      SharedLockRunnable r3(&lock, &total, false, 0);
+      SharedLockRunnable r4(&lock, &total, true, 3);
+      SharedLockRunnable r5(&lock, &total, false, 0);
+      
+      Thread t1(&r1);
+      Thread t2(&r2);
+      Thread t3(&r3);
+      Thread t4(&r4);
+      Thread t5(&r5);
+      
+      t1.start();
+      t2.start();
+      t3.start();
+      t4.start();
+      t5.start();
+      
+      lock.lockShared();
+      assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
+      lock.unlockShared();
+      
+      lock.lockShared();
+      assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
+      lock.unlockShared();
+      
+      lock.lockShared();
+      assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
+      lock.unlockShared();
+      
+      lock.lockShared();
+      assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
+      lock.unlockShared();
+      
+      t1.join();
+      t2.join();
+      t3.join();
+      t4.join();
+      t5.join();
+      
+      lock.lockShared();
+      assert(total == 5000);
+      lock.unlockShared();
+   }
+   
+   tr.passIfNoException();
+}
+
 void runDynamicObjectTest(TestRunner& tr)
 {
    tr.test("DynamicObject");
@@ -428,45 +583,6 @@ void runDynoConversionTest(TestRunner& tr)
    tr.pass();
 }
 
-void runJobDispatcherTest(TestRunner& tr)
-{
-   tr.test("JobDispatcher");
-   
-   Exception::clearLast();
-   
-   // create a job dispatcher
-   //JobDispatcher jd;
-   ThreadPool pool(3);
-   JobDispatcher jd(&pool, false);
-   
-   // create jobs
-   TestJob job1("1");
-   TestJob job2("2");
-   TestJob job3("3");
-   TestJob job4("4");
-   TestJob job5("5");
-   TestJob job6("6");
-   
-   // queue jobs
-   jd.queueJob(job1);
-   jd.queueJob(job2);
-   jd.queueJob(job3);
-   jd.queueJob(job4);
-   jd.queueJob(job5);
-   jd.queueJob(job6);
-   
-   // start dispatching
-   jd.startDispatching();
-   
-   // wait
-   Thread::sleep(1250);
-   
-   // stop dispatching
-   jd.stopDispatching();      
-   
-   tr.passIfNoException();
-}
-
 class DbRtTester : public db::test::Tester
 {
 public:
@@ -483,6 +599,7 @@ public:
       runThreadTest(tr);
       runThreadPoolTest(tr);
       runJobDispatcherTest(tr);
+      runSharedLockTest(tr);
       runDynamicObjectTest(tr);
       runDynoClearTest(tr);
       runDynoConversionTest(tr);
