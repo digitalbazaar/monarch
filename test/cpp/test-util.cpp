@@ -145,15 +145,69 @@ void runConvertTest(TestRunner& tr)
    assertStrCmp(Convert::intToHex(65537).c_str(), "010001");
    assertStrCmp(Convert::intToUpperHex(65537).c_str(), "010001");
    
-   string hex = "230f";
-   assert(Convert::hexToInt(hex.c_str(), hex.length()) == 8975);
-   hex = "230F";
-   assert(Convert::hexToInt(hex.c_str(), hex.length()) == 8975);
-   hex = "230FABCD";
-   assert(Convert::hexToInt(hex.c_str(), hex.length()) == 588229581);
-   hex = "0";
-   assert(Convert::hexToInt(hex.c_str(), hex.length()) == 0);
+   {
+      unsigned int ui;
+      string hex;
+      
+      hex = "230f";
+      assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
+      assert(ui == 8975);
+      
+      hex = "230F";
+      assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
+      assert(ui == 8975);
+      
+      hex = "230FABCD";
+      assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
+      assert(ui == 588229581);
+      
+      hex = "0";
+      assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
+      assert(ui == 0x0);
+      
+      hex = "d";
+      assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
+      assert(ui == 0xd);
+      
+      hex = "fab";
+      assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
+      assert(ui == 0xfab);
+      
+      // bad hex
+      hex = "x";
+      assert(!Convert::hexToInt(hex.c_str(), hex.length(), ui));
+      assertException();
+      Exception::clearLast();
+
+      // too big
+      hex = "876543210";
+      assert(!Convert::hexToInt(hex.c_str(), hex.length(), ui));
+      assertException();
+      Exception::clearLast();
+   }
    
+   {
+      unsigned int length;
+      string hex;
+      char bytes[100]; 
+
+      hex = "0";
+      assert(Convert::hexToBytes(hex.c_str(), hex.length(), bytes, length));
+      assert(length == 1);
+      assert(bytes[0] == 0x0);
+
+      hex = "d";
+      assert(Convert::hexToBytes(hex.c_str(), hex.length(), bytes, length));
+      assert(length == 1);
+      assert(bytes[0] == 0xd);
+
+      hex = "230f";
+      assert(Convert::hexToBytes(hex.c_str(), hex.length(), bytes, length));
+      assert(length == 2);
+      assert(bytes[0] == 0x23);
+      assert(bytes[1] == 0x0f);
+   }
+
    tr.passIfNoException();
 }
 
