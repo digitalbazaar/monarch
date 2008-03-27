@@ -18,7 +18,7 @@ ConnectionService::ConnectionService(
    ConnectionServicer* servicer,
    SocketDataPresenter* presenter) :
    PortService(server, address),
-   mConnectionSemaphore(1000, true)
+   mConnectionSemaphore(100, true)
 {
    mServicer = servicer;
    mDataPresenter = presenter;
@@ -93,14 +93,9 @@ void ConnectionService::run()
          {
             // wait for 5 seconds for a connection
             Socket* s = mSocket->accept(5);
-            if(s != NULL)
+            if(s == NULL || !createConnection(s))
             {
-               // create Connection from the connected Socket
-               createConnection(s);
-            }
-            else
-            {
-               // release connection permits
+               // could not create connection, release connection permits
                mServer->mConnectionSemaphore.release();
                mConnectionSemaphore.release();
             }
@@ -120,8 +115,10 @@ void ConnectionService::run()
    mRunningServicers.terminate();
 }
 
-void ConnectionService::createConnection(Socket* s)
+bool ConnectionService::createConnection(Socket* s)
 {
+   bool rval = true;
+   
    // try to wrap Socket for standard data presentation
    bool secure = false;
    Socket* wrapper = s;
@@ -152,11 +149,10 @@ void ConnectionService::createConnection(Socket* s)
       // close socket, data cannot be presented in standard format
       s->close();
       delete s;
-      
-      // release connection permits
-      mServer->mConnectionSemaphore.release();
-      mConnectionSemaphore.release();
+      rval = false;
    }
+   
+   return rval;
 }
 
 void ConnectionService::serviceConnection(void* c)
@@ -167,18 +163,24 @@ void ConnectionService::serviceConnection(void* c)
    // service the connection
    mServicer->serviceConnection(conn);
    
-   // ensure connection is closed
+   // close connection
    conn->close();
-   
-   // release connection permits
-   mServer->mConnectionSemaphore.release();
-   mConnectionSemaphore.release();
 }
 
 void ConnectionService::cleanupConnection(void* c)
 {
+   // cast parameter to Connection
+   Connection* conn = (Connection*)c;
+   
+   // ensure connection is closed
+   conn->close();
+   
    // clean up connection
-   delete (Connection*)c;
+   delete conn;
+   
+   // release connection permits
+   mServer->mConnectionSemaphore.release();
+   mConnectionSemaphore.release();
 }
 
 void ConnectionService::setMaxConnectionCount(unsigned int count)

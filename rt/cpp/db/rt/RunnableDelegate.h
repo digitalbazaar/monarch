@@ -152,6 +152,7 @@ void RunnableDelegate<RunnableType>::run()
       {
          (mObject->*mFreeParamFunction)(mParam);
          mParam = NULL;
+         mFreeParamFunction = NULL;
       }
    }
 }

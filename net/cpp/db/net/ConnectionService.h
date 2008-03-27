@@ -161,8 +161,10 @@ public:
     * Creates a Connection from the given connected Socket and services it.
     * 
     * @param s the connected Socket.
+    * 
+    * @return false if a connection could not be created from the socket.
     */
-   virtual void createConnection(Socket* s);
+   virtual bool createConnection(Socket* s);
    
    /**
     * Services the passed Connection and then closes it.

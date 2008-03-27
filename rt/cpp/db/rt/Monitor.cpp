@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/rt/Monitor.h"
+
 #include "db/rt/TimeFunctions.h"
 
 using namespace db::rt;
@@ -24,9 +25,8 @@ Monitor::Monitor()
    // destroy mutex attributes
    pthread_mutexattr_destroy(&mutexAttr);
    
-   // no locks yet
-   mThreadId = pthread_self();
-   mHasThread = false;
+   // no thread in monitor, no locks yet
+   mThreadId = 0;
    mLockCount = 0;
 }
 
@@ -44,13 +44,12 @@ void Monitor::enter()
    // see if this thread isn't already in this monitor
    pthread_t self = pthread_self();
    int rc = pthread_equal(mThreadId, self);
-   if(rc == 0 || !mHasThread)
+   if(rc == 0)
    {
       // lock this monitor's mutex
       pthread_mutex_lock(&mMutex);
       
       // set thread that is in this monitor
-      mHasThread = true;
       mThreadId = self;
    }
    
@@ -66,7 +65,7 @@ void Monitor::exit()
    if(mLockCount == 0)
    {
       // no longer a thread in this monitor
-      mHasThread = false;
+      mThreadId = 0;
       
       // unlock this monitor's mutex
       pthread_mutex_unlock(&mMutex);
@@ -80,7 +79,7 @@ void Monitor::wait(unsigned long timeout)
    unsigned int lockCount = mLockCount;
    
    // reset thread and lock count
-   mHasThread = false;
+   mThreadId = 0;
    mLockCount = 0;
    
    if(timeout == 0)
@@ -113,7 +112,6 @@ void Monitor::wait(unsigned long timeout)
    
    // restore old thread and lock count
    mThreadId = threadId;
-   mHasThread = true;
    mLockCount = lockCount;
 }
 

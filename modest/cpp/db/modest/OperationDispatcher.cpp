@@ -176,7 +176,7 @@ void OperationDispatcher::jobCompleted(PooledThread* t)
    {
       // Note: this method is executed by a PooledThread, external to an
       // Operation, so that the Operation can be safely garbage-collected
-      // here if the map happens to hold the last reference to it 
+      // here if the map happens to hold the last reference to it
       
       // get operation reference
       OperationImpl* impl = (OperationImpl*)t->getJob();

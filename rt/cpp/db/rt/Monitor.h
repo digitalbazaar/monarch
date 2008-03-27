@@ -22,6 +22,10 @@ namespace rt
  * by providing an anonymous condition variable that threads can wait on until
  * they are signaled to proceed.
  * 
+ * Note: This Monitor assumes that no thread will be assigned an ID of 0. If
+ * a thread is, then there is a race condition that could result in that
+ * thread obtaining a lock when it isn't really inside of this Monitor.
+ * 
  * @author Dave Longley
  */
 class Monitor
@@ -41,11 +45,6 @@ private:
     * Stores the pthread ID of the thread that is currently in this Monitor.
     */
    pthread_t mThreadId;
-   
-   /**
-    * Stores whether or not a thread is currently in this Monitor.
-    */
-   bool mHasThread;
    
    /**
     * A counter for the number of requested locks by the current Thread.
