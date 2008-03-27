@@ -132,23 +132,33 @@ void Thread::cleanupExceptionKeyValue(void* er)
 
 void* Thread::execute(void* thread)
 {
-   // get the Thread object
-   Thread* t = (Thread*)thread;
-   
-   // set thread specific data for current thread to the Thread
-   pthread_setspecific(sCurrentThreadKey, t);
-   
-   // disable thread cancelation
-   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-   
-   // thread is alive
-   t->mAlive = true;
-   
-   // run the passed thread's run() method
-   t->run();
-   
-   // thread is no longer alive
-   t->mAlive = false;
+   // do not allow threads with an ID of 0
+   pthread_t self = pthread_self();
+   if(pthread_equal(self, 0) == 0)
+   {
+      // get the Thread object
+      Thread* t = (Thread*)thread;
+      
+      // set thread specific data for current thread to the Thread
+      pthread_setspecific(sCurrentThreadKey, t);
+      
+      // disable thread cancelation
+      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+      
+      // thread is alive
+      t->mAlive = true;
+      
+      // run the passed thread's run() method
+      t->run();
+      
+      // thread is no longer alive
+      t->mAlive = false;
+   }
+   else
+   {
+      // detach thread
+      pthread_detach(self);
+   }
    
    // exit thread
    pthread_exit(NULL);
@@ -181,8 +191,9 @@ bool Thread::start(size_t stackSize)
       // destroy POSIX thread attributes
       pthread_attr_destroy(&attributes);
       
-      // if the thread was created successfully, return true
-      if(rc == 0)
+      // if the thread was created successfully and does not have an ID
+      // of 0, then return true
+      if(rc == 0 && pthread_equal(mThreadId, 0) == 0)
       {
          // thread has started
          mStarted = true;
