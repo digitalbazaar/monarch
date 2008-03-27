@@ -26,6 +26,8 @@ namespace rt
  * a thread is, then there is a race condition that could result in that
  * thread obtaining a lock when it isn't really inside of this Monitor.
  * 
+ * db::rt::Thread disallows threads from being created with an ID of 0.
+ * 
  * @author Dave Longley
  */
 class Monitor
