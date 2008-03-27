@@ -91,6 +91,12 @@ void Connection::setReadTimeout(unsigned long timeout)
    getSocket()->setReceiveTimeout(timeout);
 }
 
+void Connection::setWriteTimeout(unsigned long timeout)
+{
+   // set the send timeout
+   getSocket()->setSendTimeout(timeout);
+}
+
 void Connection::setSecure(bool secure)
 {
    mSecure = secure;

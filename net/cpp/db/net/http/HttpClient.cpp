@@ -86,6 +86,10 @@ bool HttpClient::connect(Url* url)
          // create request and response
          mRequest = (HttpRequest*)mConnection->createRequest();
          mResponse = (HttpResponse*)mRequest->createResponse();
+         
+         // set default timeouts
+         mConnection->setReadTimeout(30000);
+         mConnection->setWriteTimeout(30000);
       }
    }
    
