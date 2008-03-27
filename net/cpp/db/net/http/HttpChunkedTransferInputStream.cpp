@@ -57,7 +57,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
          // get size of chunk data
          unsigned int tempBytesLeft;
          if(!Convert::hexToInt(chunkSize.c_str(), sizeLength, tempBytesLeft) ||
-            tempBytesLeft > UINT_MAX)
+            tempBytesLeft > INT_MAX)
          {
             // the chunk size could not be read!
             ExceptionRef e = new IOException("Invalid HTTP chunk size!");
@@ -67,7 +67,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
          else
          {
             // this is the last chunk if length is 0
-	    mChunkBytesLeft = (int)tempBytesLeft;
+	         mChunkBytesLeft = (int)tempBytesLeft;
             mLastChunk = (mChunkBytesLeft == 0);
             rval = 0;
          }
