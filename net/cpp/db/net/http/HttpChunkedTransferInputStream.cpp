@@ -67,7 +67,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
          else
          {
             // this is the last chunk if length is 0
-	         mChunkBytesLeft = (int)tempBytesLeft;
+            mChunkBytesLeft = (int)tempBytesLeft;
             mLastChunk = (mChunkBytesLeft == 0);
             rval = 0;
          }
