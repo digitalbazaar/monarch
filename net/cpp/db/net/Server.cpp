@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/Server.h"
+
 #include "db/net/ConnectionService.h"
 #include "db/net/DatagramService.h"
 
@@ -9,11 +10,10 @@ using namespace std;
 using namespace db::modest;
 using namespace db::net;
 
-Server::Server(OperationRunner* opRunner) : mConnectionSemaphore(10000, true)
+Server::Server(OperationRunner* opRunner) : mConnectionSemaphore(1000, true)
 {
    mOperationRunner = opRunner;
    mRunning = false;
-   mConnectionCount = 0;
 }
 
 Server::~Server()
@@ -111,7 +111,6 @@ bool Server::start()
       {
          // now running
          mRunning = true;
-         mConnectionCount = 0;
          
          // start all port services
          for(map<unsigned short, PortService*>::iterator i =
@@ -146,6 +145,13 @@ void Server::stop()
             i->second->stop();
          }
          
+         // release any used connection permits
+         int used = mConnectionSemaphore.usedPermits();
+         if(used > 0)
+         {
+            mConnectionSemaphore.release(used);
+         }
+         
          // no longer running
          mRunning = false;
       }
@@ -153,27 +159,27 @@ void Server::stop()
    unlock();
 }
 
-bool Server::isRunning()
+inline bool Server::isRunning()
 {
    return mRunning;
 }
 
-OperationRunner* Server::getOperationRunner()
+inline OperationRunner* Server::getOperationRunner()
 {
    return mOperationRunner;
 }
 
-void Server::setMaxConnectionCount(unsigned int count)
+inline void Server::setMaxConnectionCount(unsigned int count)
 {
    mConnectionSemaphore.setMaxPermitCount(count);
 }
 
-unsigned int Server::getMaxConnectionCount()
+inline unsigned int Server::getMaxConnectionCount()
 {
    return mConnectionSemaphore.getMaxPermitCount();
 }
 
-unsigned int Server::getConnectionCount()
+inline unsigned int Server::getConnectionCount()
 {
-   return mConnectionCount;
+   return mConnectionSemaphore.usedPermits();
 }

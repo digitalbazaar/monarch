@@ -9,7 +9,7 @@ using namespace db::modest;
 using namespace db::rt;
 
 OperationDispatcher::OperationDispatcher(Engine* e) :
-   ThreadPool(200),
+   ThreadPool(100),
    JobDispatcher(this, false)
 {
    mEngine = e;
@@ -135,11 +135,11 @@ void OperationDispatcher::queueOperation(Operation& op)
       mDispatch = true;
       mJobQueue.push_back(&(*op));
       mOpMap.insert(make_pair(&(*op), op));
+      
+      // wake up dispatcher inside lock to ensure dispatch flag doesn't change
+      wakeup();
    }
    unlock();
-   
-   // wake up dispatcher
-   wakeup();
 }
 
 void OperationDispatcher::clearQueuedOperations()
@@ -158,7 +158,7 @@ void OperationDispatcher::clearQueuedOperations()
    }
    unlock();
    
-   // wake up dispatcher
+   // wake up dispatcher, don't care if dispatch flag changes
    wakeup();
 }
 
@@ -166,7 +166,7 @@ void OperationDispatcher::terminateRunningOperations()
 {
    JobDispatcher::terminateAllRunningJobs();
    
-   // wake up dispatcher
+   // wake up dispatcher, don't care if dispatch flag changes
    wakeup();
 }
 
@@ -176,7 +176,7 @@ void OperationDispatcher::jobCompleted(PooledThread* t)
    {
       // Note: this method is executed by a PooledThread, external to an
       // Operation, so that the Operation can be safely garbage-collected
-      // here if the map happens to hold the last reference to it 
+      // here if the map happens to hold the last reference to it
       
       // get operation reference
       OperationImpl* impl = (OperationImpl*)t->getJob();
@@ -194,10 +194,8 @@ void OperationDispatcher::jobCompleted(PooledThread* t)
          mEngine->getState()->unlock();
       }
       
-      // stop operation
+      // stop operation, resume dispatching
       op->stop();
-      
-      // wake up dispatcher
       mDispatch = true;
       wakeup();
       

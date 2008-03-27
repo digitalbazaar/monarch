@@ -54,11 +54,6 @@ protected:
    db::rt::Semaphore mConnectionSemaphore;
    
    /**
-    * The current number of connections to this server.
-    */
-   unsigned int mConnectionCount;
-   
-   /**
     * Connection service is a friend so it can access the connection count.
     */
    friend class ConnectionService;

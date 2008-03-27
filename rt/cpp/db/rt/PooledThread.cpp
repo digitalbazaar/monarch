@@ -2,16 +2,20 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/rt/PooledThread.h"
+
 #include "db/rt/ThreadPool.h"
 #include "db/rt/System.h"
 
 using namespace db::rt;
 
-PooledThread::PooledThread(unsigned long long expireTime) : Thread(this)
+PooledThread::PooledThread(
+   ThreadPool* pool, unsigned long long expireTime) : Thread(this)
 {
    // no job to run yet
    mJob = NULL;
-   mThreadPool = NULL;
+   
+   // store thread pool
+   mThreadPool = pool;
    
    // sets the expire time for this thread
    setExpireTime(expireTime);
@@ -24,10 +28,11 @@ PooledThread::~PooledThread()
 
 void PooledThread::goIdle()
 {
+   // Note: This method is called inside of this thread's job lock
    unsigned long long startTime = System::getCurrentMilliseconds();
    
-   // wait until expire time
-   if(wait(getExpireTime()))
+   // wait on job lock until expire time
+   if(mJobLock.wait(getExpireTime()))
    {
       // if this thread has an expire time set and this thread still has
       // no job see if the time has expired
@@ -44,41 +49,39 @@ void PooledThread::goIdle()
    }
 }
 
-void PooledThread::setJob(Runnable* job, ThreadPool* pool)
+void PooledThread::setJob(Runnable* job)
 {
-   lock();
+   // Note: The ThreadPool calls this method inside of this thread's
+   // job lock when it is not called from this thread itself to prevent
+   // issues during idling/unidling
+   
+   // set job
+   mJob = job;
+   
+   if(job != NULL)
    {
-      // set job and pool
-      mJob = job;
-      mThreadPool = pool;
-      
-      if(job != NULL)
-      {
-         // notify thread to stop waiting
-         notifyAll();
-      }
-      else
-      {
-         // clear job reference
-         mJobReference.setNull();
-      }
+      // notify thread to unidle
+      mJobLock.notifyAll();
    }
-   unlock();
+   else
+   {
+      // clear job reference
+      mJobReference.setNull();
+   }
 }
 
-void PooledThread::setJob(RunnableRef& job, ThreadPool* pool)
+void PooledThread::setJob(RunnableRef& job)
 {
-   lock();
-   {
-      // set job, reference, and pool
-      mJob = &(*job);
-      mJobReference = job;
-      mThreadPool = pool;
-      
-      // notify thread to stop waiting
-      notifyAll();
-   }
-   unlock();
+   // Note: The ThreadPool calls this method inside of this thread's
+   // job lock when it is not called from this thread itself to prevent
+   // issues during idling/unidling
+   
+   // set job and reference
+   mJob = &(*job);
+   mJobReference = job;
+   
+   // notify thread to unidle
+   mJobLock.notifyAll();
 }
 
 Runnable* PooledThread::getJob()
@@ -86,29 +89,29 @@ Runnable* PooledThread::getJob()
    return mJob;
 }
 
+Object* PooledThread::getJobLock()
+{
+   return &mJobLock;
+}
+
 void PooledThread::run()
 {
    while(!isInterrupted())
    {
       // lock to check for a job
-      lock();
+      mJobLock.lock();
       if(mJob != NULL)
       {
-         // unlock and run job
-         unlock();         
+         // unlock, run job, notify pool when complete
+         mJobLock.unlock();
          mJob->run();
-         
-         // notify pool that job is complete
-         if(mThreadPool != NULL)
-         {
-            mThreadPool->jobCompleted(this);
-         }
+         mThreadPool->jobCompleted(this);
       }
       else
       {
          // go idle and then unlock
          goIdle();
-         unlock();
+         mJobLock.unlock();
       }
    }
    

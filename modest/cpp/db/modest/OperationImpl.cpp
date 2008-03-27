@@ -42,14 +42,17 @@ void OperationImpl::run()
       mThread = Thread::currentThread();
       mThread->setUserData(this);
       mStarted = true;
+      
+      // interrupt thread if appropriate
+      if(mInterrupted)
+      {
+         mThread->interrupt();
+      }
    }
    unlock();
    
    // run the operation's runnable
-   if(!isInterrupted())
-   {
-      mRunnable->run();
-   }
+   mRunnable->run();
    
    lock();
    {
@@ -94,10 +97,9 @@ bool OperationImpl::waitFor(bool interruptible)
    lock();
    {
       // wait until Operation is stopped
-      bool interrupted = false;
       while(!stopped())
       {
-         if((interrupted = !wait()))
+         if(!wait())
          {
             // thread was interrupted
             rval = false;
@@ -126,7 +128,7 @@ bool OperationImpl::waitFor(bool interruptible)
    return rval;
 }
 
-bool OperationImpl::started()
+inline bool OperationImpl::started()
 {
    return mStarted;
 }
@@ -164,27 +166,27 @@ bool OperationImpl::isInterrupted()
    return mInterrupted;
 }
 
-bool OperationImpl::stopped()
+inline bool OperationImpl::stopped()
 {
    return mStopped;
 }
 
-bool OperationImpl::finished()
+inline bool OperationImpl::finished()
 {
    return mFinished;
 }
 
-bool OperationImpl::canceled()
+inline bool OperationImpl::canceled()
 {
    return mCanceled;
 }
 
-Thread* OperationImpl::getThread()
+inline Thread* OperationImpl::getThread()
 {
    return mThread;
 }
 
-Runnable* OperationImpl::getRunnable()
+inline Runnable* OperationImpl::getRunnable()
 {
    return mRunnable;
 }

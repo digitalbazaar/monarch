@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_rt_Monitor_H
 #define db_rt_Monitor_H
@@ -22,6 +22,12 @@ namespace rt
  * by providing an anonymous condition variable that threads can wait on until
  * they are signaled to proceed.
  * 
+ * Note: This Monitor assumes that no thread will be assigned an ID of 0. If
+ * a thread is, then there is a race condition that could result in that
+ * thread obtaining a lock when it isn't really inside of this Monitor.
+ * 
+ * db::rt::Thread disallows threads from being created with an ID of 0.
+ * 
  * @author Dave Longley
  */
 class Monitor
@@ -41,11 +47,6 @@ private:
     * Stores the pthread ID of the thread that is currently in this Monitor.
     */
    pthread_t mThreadId;
-   
-   /**
-    * Stores whether or not a thread is currently in this Monitor.
-    */
-   bool mHasThread;
    
    /**
     * A counter for the number of requested locks by the current Thread.

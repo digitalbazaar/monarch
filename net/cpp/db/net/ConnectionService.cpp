@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/ConnectionService.h"
+
 #include "db/net/Server.h"
 #include "db/net/TcpSocket.h"
 #include "db/rt/RunnableDelegate.h"
@@ -17,12 +18,11 @@ ConnectionService::ConnectionService(
    ConnectionServicer* servicer,
    SocketDataPresenter* presenter) :
    PortService(server, address),
-   mConnectionSemaphore(10000, true)
+   mConnectionSemaphore(100, true)
 {
    mServicer = servicer;
    mDataPresenter = presenter;
    mSocket = NULL;
-   mConnectionCount = 0;
 }
 
 ConnectionService::~ConnectionService()
@@ -34,9 +34,6 @@ ConnectionService::~ConnectionService()
 Operation ConnectionService::initialize()
 {
    Operation rval(NULL);
-   
-   // no connections yet
-   mConnectionCount = 0;
    
    // create tcp socket
    mSocket = new TcpSocket();
@@ -59,6 +56,13 @@ void ConnectionService::cleanup()
       // clean up socket
       delete mSocket;
       mSocket = NULL;
+   }
+   
+   // release any used connection permits
+   int used = mConnectionSemaphore.usedPermits();
+   if(used > 0)
+   {
+      mConnectionSemaphore.release(used);
    }
 }
 
@@ -89,14 +93,9 @@ void ConnectionService::run()
          {
             // wait for 5 seconds for a connection
             Socket* s = mSocket->accept(5);
-            if(s != NULL)
+            if(s == NULL || !createConnection(s))
             {
-               // create Connection from the connected Socket
-               createConnection(s);
-            }
-            else
-            {
-               // release connection permits
+               // could not create connection, release connection permits
                mServer->mConnectionSemaphore.release();
                mConnectionSemaphore.release();
             }
@@ -116,8 +115,10 @@ void ConnectionService::run()
    mRunningServicers.terminate();
 }
 
-void ConnectionService::createConnection(Socket* s)
+bool ConnectionService::createConnection(Socket* s)
 {
+   bool rval = true;
+   
    // try to wrap Socket for standard data presentation
    bool secure = false;
    Socket* wrapper = s;
@@ -132,16 +133,12 @@ void ConnectionService::createConnection(Socket* s)
       Connection* c = new Connection(wrapper, true);
       c->setSecure(secure);
       
-      // increase connection count
-      mServer->mConnectionCount++;
-      mConnectionCount++;
-      
       // create RunnableDelegate to service connection and run as an Operation
-      RunnableRef cr =
+      RunnableRef r =
          new RunnableDelegate<ConnectionService>(
             this, &ConnectionService::serviceConnection, c,
             &ConnectionService::cleanupConnection);
-      Operation op(cr);
+      Operation op(r);
       mRunningServicers.add(op);
       
       // run operation
@@ -152,11 +149,10 @@ void ConnectionService::createConnection(Socket* s)
       // close socket, data cannot be presented in standard format
       s->close();
       delete s;
-      
-      // release connection permits
-      mServer->mConnectionSemaphore.release();
-      mConnectionSemaphore.release();
+      rval = false;
    }
+   
+   return rval;
 }
 
 void ConnectionService::serviceConnection(void* c)
@@ -167,22 +163,24 @@ void ConnectionService::serviceConnection(void* c)
    // service the connection
    mServicer->serviceConnection(conn);
    
-   // ensure connection is closed
+   // close connection
    conn->close();
-   
-   // decrease connection count
-   mServer->mConnectionCount--;
-   mConnectionCount--;
-   
-   // release connection permits
-   mServer->mConnectionSemaphore.release();
-   mConnectionSemaphore.release();
 }
 
 void ConnectionService::cleanupConnection(void* c)
 {
+   // cast parameter to Connection
+   Connection* conn = (Connection*)c;
+   
+   // ensure connection is closed
+   conn->close();
+   
    // clean up connection
-   delete (Connection*)c;
+   delete conn;
+   
+   // release connection permits
+   mServer->mConnectionSemaphore.release();
+   mConnectionSemaphore.release();
 }
 
 void ConnectionService::setMaxConnectionCount(unsigned int count)
@@ -197,5 +195,5 @@ unsigned int ConnectionService::getMaxConnectionCount()
 
 unsigned int ConnectionService::getConnectionCount()
 {
-   return mConnectionCount;
+   return mConnectionSemaphore.usedPermits();
 }
