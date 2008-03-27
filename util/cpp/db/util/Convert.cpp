@@ -88,13 +88,12 @@ static inline bool nibbleToByte(const char hex, unsigned char& value)
    return rval;
 }
    
-static inline bool hexToByte(const char high, const char low,
-   unsigned char& value)
+static inline bool hexToByte(
+   const char high, const char low, unsigned char& value)
 {
-   bool rval = true;
+   bool rval;
    unsigned char temp;
-   rval = nibbleToByte(high, temp);
-   rval = rval && nibbleToByte(low, value);
+   rval = nibbleToByte(high, temp) && nibbleToByte(low, value);
    value += (temp << 4);
    return rval;
 }
