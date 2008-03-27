@@ -144,11 +144,11 @@ bool Convert::hexToBytes(
    return rval;
 }
 
-bool Convert::hexToInt(const char* hex, unsigned int hexLength,
-   unsigned int& value)
+bool Convert::hexToInt(
+   const char* hex, unsigned int hexLength, unsigned int& value)
 {
    bool rval = true;
-
+   
    if(hexLength > (sizeof(unsigned int) * 2))
    {
       rval = false;
