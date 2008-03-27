@@ -54,7 +54,7 @@ protected:
    pthread_t mThreadId;
    
    /**
-    * A counter for the number of requested locks (read or write) by the
+    * A counter for the number of requested locks (shared or exclusive) by the
     * thread that holds an exclusive lock.
     */
    unsigned int mLockCount;
