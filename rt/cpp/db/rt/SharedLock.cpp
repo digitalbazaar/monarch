@@ -7,9 +7,12 @@ using namespace db::rt;
 
 SharedLock::SharedLock()
 {
-   mShared = 0;
-   mExclusive = 0;
-   mThread = NULL;
+   // initialize lock
+   pthread_rwlock_init(&mLock, NULL);
+   
+   // no locks yet
+   mThreadId = 0;
+   mLockCount = 0;
 }
 
 SharedLock::~SharedLock()
@@ -18,72 +21,67 @@ SharedLock::~SharedLock()
 
 void SharedLock::lockShared()
 {
-   // check status
-   mStatusLock.lock();
+   // see if this thread holds the exclusive lock
+   pthread_t self = pthread_self();
+   int rc = pthread_equal(mThreadId, self);
+   if(rc == 0)
    {
-      // wait on status lock until exclusive lock not engaged
-      // or until exclusive lock is held by this thread
-      while(mExclusive > 0 || mThread == Thread::currentThread())
-      {
-         mStatusLock.wait();
-      }
-      
-      // acquire shared lock
-      mShared++;
+      // obtain a shared lock
+      pthread_rwlock_rdlock(&mLock);
    }
-   mStatusLock.unlock();
+   else
+   {
+      // current thread has the exclusive lock, so bump up lock count
+      mLockCount++;
+   }
 }
 
 void SharedLock::unlockShared()
 {
-   mStatusLock.lock();
+   // see if this thread holds the exclusive lock
+   pthread_t self = pthread_self();
+   int rc = pthread_equal(mThreadId, self);
+   if(rc == 0)
    {
-      // decrement shared lock
-      mShared--;
-      
-      if(mShared == 0)
-      {
-         // notify waiting locks
-         mStatusLock.notifyAll();
-      }
+      // release shared lock
+      pthread_rwlock_unlock(&mLock);
    }
-   mStatusLock.unlock();
+   else
+   {
+      // release exclusive lock
+      unlockExclusive();
+   }
 }
 
 void SharedLock::lockExclusive()
 {
-   mStatusLock.lock();
+   // see if this thread holds the exclusive lock
+   pthread_t self = pthread_self();
+   int rc = pthread_equal(mThreadId, self);
+   if(rc == 0)
    {
-      // see if this thread already holds the exclusive lock
-      Thread* t = Thread::currentThread();
-      if(mThread != t)
-      {
-         // wait on status lock until no lock is engaged
-         while(mExclusive > 0 || mShared > 0)
-         {
-            mStatusLock.wait();
-         }
-      }
+      // obtain the exclusive lock
+      pthread_rwlock_wrlock(&mLock);
       
-      // acquire exclusive lock
-      mThread = t;
-      mExclusive++;
+      // set thread that holds the exclusive lock
+      mThreadId = self;
    }
-   mStatusLock.unlock();
+   
+   // increment lock count
+   mLockCount++;   
 }
 
 void SharedLock::unlockExclusive()
 {
-   mStatusLock.lock();
+   // decrement lock count
+   mLockCount--;
+   
+   if(mLockCount == 0)
    {
-      // decrement exclusive lock
-      mExclusive--;
+      // thread no longer holds exclusive lock
+      mThreadId = 0;
       
-      if(mExclusive == 0)
-      {
-         // notify waiting locks
-         mStatusLock.notifyAll();
-      }
+      // release exclusive lock
+      pthread_rwlock_unlock(&mLock);
    }
-   mStatusLock.unlock();
 }

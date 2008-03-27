@@ -25,7 +25,17 @@ namespace rt
  * all shared locks must first be released.
  * 
  * If an exclusive lock is engaged, then shared locks can only be obtained
- * by the same thread that holds the exclusive lock.
+ * by the same thread that holds the exclusive lock. Only once the exclusive
+ * lock and all of the shared locks that were obtained inside of it are
+ * released will other threads be able to obtain new locks. In other words,
+ * if an exclusive lock is held, new shared locks on the same thread act
+ * as if they are simply recursing the exclusive lock.
+ * 
+ * Note: This SharedLock assumes that no thread will be assigned an ID of 0.
+ * If a thread is, then there is a race condition that could result in that
+ * thread obtaining a lock when it isn't really inside of this Monitor.
+ * 
+ * db::rt::Thread disallows threads from being created with an ID of 0.
  * 
  * @author Dave Longley
  */
@@ -33,25 +43,21 @@ class SharedLock
 {
 protected:
    /**
-    * The lock for checking the shared/exclusive status.
+    * The pthread read/write lock.
     */
-   Object mStatusLock;
+   pthread_rwlock_t mLock;
    
    /**
-    * The current number of shared locks.
+    * Stores the pthread ID of the thread that currently holds the
+    * exclusive lock.
     */
-   int mShared;
+   pthread_t mThreadId;
    
    /**
-    * The current number of exclusive locks (which can only be more than one
-    * if a particular thread is recursively locked).
+    * A counter for the number of requested locks (read or write) by the
+    * thread that holds an exclusive lock.
     */
-   int mExclusive;
-   
-   /**
-    * The thread that holds the exclusive lock.
-    */
-   Thread* mThread;
+   unsigned int mLockCount;
    
 public:
    /**
