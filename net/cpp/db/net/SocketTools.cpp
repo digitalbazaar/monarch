@@ -70,25 +70,27 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
       else
       {
          // wait for readability and writability
-         // readability will occur if connection closes due to TCP sending
-         // a RST to the socket.  (Also SIGPIPE/EPIPE?)
+         // 
+         // Note: We must test to see if the pipe is broken by
+         // testing for readability -- as it will occur if the
+         // connection closes due to TCP sending an RST to the
+         // socket which causes recv() to return 0
          rval = ::select(n, &rfds, &wfds, &exfds, &to);
-         if(rval > 0 && FD_ISSET(fd, &rfds))
+         if(rval > 0 && !FD_ISSET(fd, &wfds) && FD_ISSET(fd, &rfds))
          {
-            // FIXME is this recv needed?
-            // May be able to assume connection closed if fd is readable?
-            ssize_t n;
+            // check to see if the connection has been shutdown, by seeing
+            // if recv() will return 0 (do a peek so as not to disturb data)
             char buf;
-            n = recv(fd, &buf, 1, MSG_DONTWAIT | MSG_PEEK);
-            if(n == 0)
+            if(recv(fd, &buf, 1, MSG_DONTWAIT | MSG_PEEK) <= 0)
             {
-               // connection closed
+               // connection closed, or error
                rval = -1;
                errno = EBADF;
             }
             else
             {
-               // FIXME What to do if real data is readable or error occurs?
+               // connection not closed, but write timed out/not detected
+               rval = 0;
             }
          }
       }
