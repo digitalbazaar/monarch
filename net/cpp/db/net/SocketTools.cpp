@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/SocketTools.h"
+
 #include "db/net/SocketDefinitions.h"
 #include "db/rt/Thread.h"
 #include "db/rt/System.h"

@@ -55,6 +55,11 @@ void WebConnection::setReadTimeout(unsigned long timeout)
    mConnection->setReadTimeout(timeout);
 }
 
+void WebConnection::setWriteTimeout(unsigned long timeout)
+{
+   mConnection->setWriteTimeout(timeout);
+}
+
 void WebConnection::setSecure(bool secure)
 {
    mConnection->setSecure(secure);

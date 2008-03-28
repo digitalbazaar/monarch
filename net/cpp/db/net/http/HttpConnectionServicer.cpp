@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpConnectionServicer.h"
+
 #include "db/net/http/HttpRequest.h"
 #include "db/net/http/HttpResponse.h"
 #include "db/io/ByteArrayInputStream.h"
@@ -75,9 +76,10 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
 
 void HttpConnectionServicer::serviceConnection(Connection* c)
 {
-   // wrap connection, set default read timeout to 30 seconds
+   // wrap connection, set default timeouts to 30 seconds
    HttpConnection hc(c, false);
    hc.setReadTimeout(30000);
+   hc.setWriteTimeout(30000);
    
    // create request
    HttpRequest* request = (HttpRequest*)hc.createRequest();

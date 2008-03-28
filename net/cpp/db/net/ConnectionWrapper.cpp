@@ -70,6 +70,11 @@ void ConnectionWrapper::setReadTimeout(unsigned long timeout)
    mConnection->setReadTimeout(timeout);
 }
 
+void ConnectionWrapper::setWriteTimeout(unsigned long timeout)
+{
+   mConnection->setWriteTimeout(timeout);
+}
+
 void ConnectionWrapper::setSecure(bool secure)
 {
    mConnection->setSecure(secure);

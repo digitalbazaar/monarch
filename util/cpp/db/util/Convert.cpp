@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/util/Convert.h"
+
 #include "db/util/StringTools.h"
 #include "db/rt/Exception.h"
 
-#include <sstream>
+//#include <sstream>
 
 using namespace std;
 using namespace db::rt;
@@ -26,42 +27,44 @@ const char Convert::UPPER_HEX_CHARS[16] =
 
 string Convert::bytesToHex(const char* bytes, unsigned int length)
 {
-   string rval;
-   
    // convert bytes to unsigned char to ensure data integrity
+   char hex[length * 2 + 1];
+   char* ptr = hex;
    unsigned char* ubytes = (unsigned char*)bytes;
-   for(unsigned int i = 0; i < length; i++)
+   for(unsigned int i = 0; i < length; i++, ptr += 2)
    {
       // hexadecimal uses 2 digits, each with 16 values (or 4 bits):
       
       // convert the top 4 bits
-      rval += HEX_CHARS[(ubytes[i] >> 4)];
+      ptr[0] = HEX_CHARS[(ubytes[i] >> 4)];
       
       // convert the bottom 4 bits
-      rval += HEX_CHARS[(ubytes[i] & 0x0f)];
+      ptr[1] = HEX_CHARS[(ubytes[i] & 0x0f)];
    }
+   ptr[0] = 0;
    
-   return rval;
+   return hex;
 }
 
 string Convert::bytesToUpperHex(const char* bytes, unsigned int length)
 {
-   string rval;
-   
    // convert bytes to unsigned char to ensure data integrity
+   char hex[length * 2 + 1];
+   char* ptr = hex;
    unsigned char* ubytes = (unsigned char*)bytes;
-   for(unsigned int i = 0; i < length; i++)
+   for(unsigned int i = 0; i < length; i++, ptr += 2)
    {
       // hexadecimal uses 2 digits, each with 16 values (or 4 bits):
       
       // convert the top 4 bits
-      rval += UPPER_HEX_CHARS[(ubytes[i] >> 4)];
+      ptr[0] = UPPER_HEX_CHARS[(ubytes[i] >> 4)];
       
       // convert the bottom 4 bits
-      rval += UPPER_HEX_CHARS[(ubytes[i] & 0x0f)];
+      ptr[1] = UPPER_HEX_CHARS[(ubytes[i] & 0x0f)];
    }
+   ptr[0] = 0;
    
-   return rval;
+   return hex;
 }
 
 static inline bool nibbleToByte(const char hex, unsigned char& value)

@@ -133,6 +133,14 @@ public:
    virtual void setReadTimeout(unsigned long timeout);
    
    /**
+    * Sets the write timeout for this Connection. This is the amount of
+    * time that must pass while doing a write before timing out. 
+    * 
+    * @param timeout the writetimeout in milliseconds (0 for no timeout).
+    */
+   virtual void setWriteTimeout(unsigned long timeout);
+   
+   /**
     * Marks this Connection as secure or non-secure.
     *
     * @param secure true to mark this Connection as secure, false to
