@@ -13,16 +13,21 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
 {
    int rval = 0;
    
-   // create a file descriptor set to read/write on
-   fd_set rwfds;
-   FD_ZERO(&rwfds);
+   // create a file descriptor set to read on
+   fd_set rfds;
+   FD_ZERO(&rfds);
+   
+   // create a file descriptor set to write on
+   fd_set wfds;
+   FD_ZERO(&wfds);
    
    // create a file descriptor set to check for exceptions on
    fd_set exfds;
    FD_ZERO(&exfds);
    
    // add file descriptor to sets
-   FD_SET(fd, &rwfds);
+   FD_SET(fd, &rfds);
+   FD_SET(fd, &wfds);
    FD_SET(fd, &exfds);
    
    // "n" parameter is the highest numbered descriptor plus 1
@@ -59,12 +64,32 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
       if(read)
       {
          // wait for readability
-         rval = ::select(n, &rwfds, NULL, &exfds, &to);
+         rval = ::select(n, &rfds, NULL, &exfds, &to);
       }
       else
       {
-         // wait for writability
-         rval = ::select(n, NULL, &rwfds, &exfds, &to);
+         // wait for readability and writability
+         // readability will occur if connection closes due to TCP sending
+         // a RST to the socket.  (Also SIGPIPE/EPIPE?)
+         rval = ::select(n, &rfds, &wfds, &exfds, &to);
+         if(rval > 0 && FD_ISSET(fd, &rfds))
+         {
+            // FIXME is this recv needed?
+            // May be able to assume connection closed if fd is readable?
+            ssize_t n;
+            char buf;
+            n = recv(fd, &buf, 1, MSG_DONTWAIT | MSG_PEEK);
+            if(n == 0)
+            {
+               // connection closed
+               rval = -1;
+               errno = EBADF;
+            }
+            else
+            {
+               // FIXME What to do if real data is readable or error occurs?
+            }
+         }
       }
       
       if(rval < 0 && (errno == 0 || errno == EINPROGRESS))
@@ -81,9 +106,11 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
       if(rval == 0 && timeout >= 0)
       {
          // clear sets and re-add file descriptor
-         FD_ZERO(&rwfds);
+         FD_ZERO(&rfds);
+         FD_ZERO(&wfds);
          FD_ZERO(&exfds);
-         FD_SET(fd, &rwfds);
+         FD_SET(fd, &rfds);
+         FD_SET(fd, &wfds);
          FD_SET(fd, &exfds);
          
          // reset timeout
