@@ -43,10 +43,8 @@ bool Semaphore::waitThread(Thread* t)
    bool rval = true;
    
    // add thread to wait queue
-   pair<WaitMap::iterator, bool> mapitr = mWaitMap.insert(make_pair(t, true));
+   mWaitMap.insert(make_pair(t, true));
    mWaitList.push_back(t);
-   WaitList::iterator listitr = mWaitList.end();
-   listitr--;
    
    // wait while not interrupted and in the list of waiting threads
    while(rval && mustWait(t))
@@ -58,8 +56,8 @@ bool Semaphore::waitThread(Thread* t)
          notifyThreads(1);
          
          // remove thread from wait queue
-         mWaitList.erase(listitr);
-         mWaitMap.erase(mapitr.first);
+         mWaitList.remove(t);
+         mWaitMap.erase(t);
       }
    }
    
