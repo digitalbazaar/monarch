@@ -173,6 +173,10 @@ void runConvertTest(TestRunner& tr)
       assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
       assert(ui == 0xfab);
       
+      hex = "0141";
+      assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
+      assert(ui == 0x141);
+      
       // bad hex
       hex = "x";
       assert(!Convert::hexToInt(hex.c_str(), hex.length(), ui));
