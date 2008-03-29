@@ -127,9 +127,9 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          }
          else
          {
-            // no servicer, so send 403 Forbidden
-            char html[] = "<html><h2>403 Forbidden</h2></html>";
-            response->getHeader()->setStatus(403, "Forbidden");
+            // no servicer, so send 404 Not Found
+            char html[] = "<html><h2>404 Not Found</h2></html>";
+            response->getHeader()->setStatus(404, "Not Found");
             response->getHeader()->setField("Content-Type", "text/html");
             response->getHeader()->setField("Content-Length", 35);
             response->getHeader()->setField("Connection", "close");
