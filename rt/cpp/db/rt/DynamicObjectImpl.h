@@ -265,13 +265,6 @@ public:
    virtual double getDouble();
    
    /**
-    * Gets this object's value as an enum (which is a 32-bit integer).
-    * 
-    * @return the value of this object.
-    */
-   virtual int getEnum();
-   
-   /**
     * Returns true if this object has the specified member, false if not.
     * 
     * @param name the name of the member.

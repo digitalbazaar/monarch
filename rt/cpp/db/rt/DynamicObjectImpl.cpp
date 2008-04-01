@@ -507,11 +507,6 @@ double DynamicObjectImpl::getDouble()
    return rval;
 }
 
-int DynamicObjectImpl::getEnum()
-{
-   return getInt32();
-}
-
 bool DynamicObjectImpl::hasMember(const char* name)
 {
    bool rval = false;
