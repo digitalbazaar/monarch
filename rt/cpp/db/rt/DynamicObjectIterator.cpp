@@ -81,6 +81,9 @@ void DynamicObjectIteratorImpl::remove()
 {
    if(mObject->getType() == Map)
    {
+      // NOTE: We already have the iterator here so just duplicating the key
+      // free instead of calling mMap->removeMember(mMapCurrent->first)
+      free((char*)mMapCurrent->first);
       mObject->mMap->erase(mMapCurrent);
    }
    else if(mObject->getType() == Array)
