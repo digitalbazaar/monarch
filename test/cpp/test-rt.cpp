@@ -583,6 +583,73 @@ void runDynoConversionTest(TestRunner& tr)
    tr.pass();
 }
 
+void runDynoRemoveTest(TestRunner& tr)
+{
+   tr.group("DynamicObject remove");
+
+   tr.test("array");
+   {
+      DynamicObject d1;
+      d1[0] = 0;
+      d1[1] = 1;
+      d1[2] = 2;
+   
+      DynamicObject d2;
+      d2[0] = 0;
+      d2[1] = 2;
+   
+      int count = 0;
+      DynamicObjectIterator i = d1.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject next = i->next();
+   
+         if(count == 1)
+         {
+            assert(next->getUInt32() == 1);
+            i->remove();
+         }
+         
+         count++;
+      }
+      
+      assert(d1 == d2);
+   }
+   tr.passIfNoException();
+   
+   tr.test("map");
+   {
+      DynamicObject d1;
+      d1["0"] = 0;
+      d1["1"] = 1;
+      d1["2"] = 2;
+   
+      DynamicObject d2;
+      d2["0"] = 0;
+      d2["2"] = 2;
+   
+      int count = 0;
+      DynamicObjectIterator i = d1.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject next = i->next();
+   
+         if(count == 1)
+         {
+            assert(next->getUInt32() == 1);
+            i->remove();
+         }
+         
+         count++;
+      }
+      
+      assert(d1 == d2);
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 class DbRtTester : public db::test::Tester
 {
 public:
@@ -603,6 +670,7 @@ public:
       runDynamicObjectTest(tr);
       runDynoClearTest(tr);
       runDynoConversionTest(tr);
+      runDynoRemoveTest(tr);
       return 0;
    }
 

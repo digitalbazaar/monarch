@@ -79,10 +79,21 @@ bool DynamicObjectIteratorImpl::hasNext()
 
 void DynamicObjectIteratorImpl::remove()
 {
-   // not supported
-   ExceptionRef e = new Exception(
-      "DynamicObjectIterator::remove() not supported!");
-   Exception::setLast(e, false);
+   if(mObject->getType() == Map)
+   {
+      mObject->mMap->erase(mMapCurrent);
+   }
+   else if(mObject->getType() == Array)
+   {
+      mObject->mArray->erase(mArrayCurrent);
+   }
+   else
+   {
+      // not supported
+      ExceptionRef e = new Exception(
+         "DynamicObjectIterator::remove() not supported!");
+      Exception::setLast(e, false);
+   }
 }
 
 const char* DynamicObjectIteratorImpl::getName()
