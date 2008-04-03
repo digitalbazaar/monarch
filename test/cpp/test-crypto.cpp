@@ -230,6 +230,14 @@ void runAsymmetricKeyLoadingTest(TestRunner& tr)
    
    assert(verified);
    
+   string outPrivatePem =
+      factory.writePrivateKeyToPem(privateKey, "password");
+   string outPublicPem =
+      factory.writePublicKeyToPem(publicKey);
+   
+   //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
+   //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
+   
    // cleanup keys
    delete privateKey;
    delete publicKey;
@@ -304,7 +312,6 @@ void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
    delete ds2;
    
    assert(verified);
-   if(verified)
    
    string outPrivatePem =
       factory.writePrivateKeyToPem(privateKey, "password");
