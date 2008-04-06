@@ -213,11 +213,6 @@ void runSslSocketTest()
 {
    cout << "Running SSL Socket Test" << endl << endl;
    
-   // openssl initialization code
-   SSL_library_init();
-   SSL_load_error_strings();
-   OpenSSL_add_all_algorithms();
-   
    // FIXME:
    // seed PRNG
    
@@ -284,9 +279,6 @@ void runSslSocketTest()
    }
    
    cout << endl << "SSL Socket test complete." << endl;
-   
-   // clean up SSL
-   EVP_cleanup();
 }
 
 void runServerSocketTest()
@@ -353,11 +345,6 @@ void runServerSocketTest()
 void runSslServerSocketTest()
 {
    cout << "Running SSL Server Socket Test" << endl << endl;
-   
-   // openssl initialization code
-   SSL_library_init();
-   SSL_load_error_strings();
-   OpenSSL_add_all_algorithms();   
    
    // bind and listen
    InternetAddress address("127.0.0.1", 1024);
@@ -442,9 +429,6 @@ void runSslServerSocketTest()
    }
    
    cout << endl << "SSL Server Socket test complete." << endl;
-   
-   // clean up SSL
-   EVP_cleanup();
 }
 
 void runTcpClientServerTest()
@@ -1151,11 +1135,6 @@ void runServerSslConnectionTest()
 {
    cout << "Starting Server SSL Connection test." << endl << endl;
    
-   // openssl initialization code
-   SSL_library_init();
-   SSL_load_error_strings();
-   OpenSSL_add_all_algorithms();
-   
    // create kernel
    Kernel k;
    k.getEngine()->start();
@@ -1244,9 +1223,6 @@ void runServerSslConnectionTest()
    cout << "Time=" << time << " ms = " << secs << " secs" << endl;
    cout << "Time/Connection=" << (double)time / tcs1.serviced << " ms" << endl;
    cout << "Connections/second=" << rate << endl;
-   
-   // clean up SSL
-   EVP_cleanup();
    
    cout << endl << "Server SSL Connection test complete." << endl;
 }
@@ -1473,11 +1449,6 @@ void runHttpServerTest()
 {
    cout << "Starting Http Server test." << endl << endl;
    
-//   // openssl initialization code
-//   SSL_library_init();
-//   SSL_load_error_strings();
-//   OpenSSL_add_all_algorithms();
-   
    // create kernel
    Kernel k;
    
@@ -1527,13 +1498,6 @@ void runHttpServerTest()
    
    // stop kernel engine
    k.getEngine()->stop();
-   
-//   // clean up SSL
-//   ERR_remove_state(0);
-//   ENGINE_cleanup();
-//   ERR_free_strings();
-//   EVP_cleanup();
-//   CRYPTO_cleanup_all_ex_data();
    
    cout << endl << "Http Server test complete." << endl;
 }
@@ -1712,11 +1676,6 @@ void runPingTest()
 {
    cout << "Starting Ping test." << endl << endl;
    
-//   // openssl initialization code
-//   SSL_library_init();
-//   SSL_load_error_strings();
-//   OpenSSL_add_all_algorithms();
-   
    // create kernel
    Kernel k;
    k.getEngine()->start();
@@ -1793,13 +1752,6 @@ void runPingTest()
 //   cout << "Connections serviced: " << pcs.serviced << endl;
 //   cout << "Time: " << millis << endl;
 //   cout << "Connections/Second: " << cps << endl;
-   
-//   // clean up SSL
-//   ERR_remove_state(0);
-//   ENGINE_cleanup();
-//   ERR_free_strings();
-//   EVP_cleanup();
-//   CRYPTO_cleanup_all_ex_data();
    
    cout << endl << "Ping test complete." << endl;
 }

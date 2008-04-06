@@ -3,11 +3,6 @@
  */
 #include <iostream>
 #include <sstream>
-#include <openssl/ssl.h>
-#include <openssl/evp.h>
-#include <openssl/err.h>
-#include <openssl/rand.h>
-#include <openssl/engine.h>
 
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
@@ -65,12 +60,6 @@ void runMessageDigestTest(TestRunner& tr)
 void runCipherTest(TestRunner& tr, const char* algorithm)
 {
    tr.group("Cipher");
-   
-   // include crypto error strings
-   ERR_load_crypto_strings();
-   
-   // add all algorithms
-   OpenSSL_add_all_algorithms();
    
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
@@ -160,21 +149,12 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
    }
    tr.passIfNoException();
    
-   // clean up crypto strings
-   EVP_cleanup();
-   
    tr.ungroup();
 }
 
 void runAsymmetricKeyLoadingTest(TestRunner& tr)
 {
    tr.test("Asymmetric Key Loading");
-   
-   // include crypto error strings
-   ERR_load_crypto_strings();
-   
-   // add all algorithms
-   OpenSSL_add_all_algorithms();
    
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
@@ -242,21 +222,12 @@ void runAsymmetricKeyLoadingTest(TestRunner& tr)
    delete privateKey;
    delete publicKey;
    
-   // clean up crypto strings
-   EVP_cleanup();
-
    tr.passIfNoException();
 }
 
 void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
 {
    tr.test("DSA Asymmetric Key Creation");
-   
-   // include crypto error strings
-   ERR_load_crypto_strings();
-   
-   // add all algorithms
-   OpenSSL_add_all_algorithms();
    
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
@@ -321,21 +292,12 @@ void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
    //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
    //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
    
-   // clean up crypto strings
-   EVP_cleanup();
-
    tr.passIfNoException();
 }
 
 void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
 {
    tr.test("RSA Asymmetric Key Creation");
-   
-   // include crypto error strings
-   ERR_load_crypto_strings();
-   
-   // add all algorithms
-   OpenSSL_add_all_algorithms();
    
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
@@ -400,21 +362,12 @@ void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
    //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
    //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
    
-   // clean up crypto strings
-   EVP_cleanup();
-
    tr.passIfNoException();
 }
 
 void runDigitalSignatureInputStreamTest(TestRunner& tr)
 {
    tr.test("DigitalSignatureInputStream");
-   
-   // include crypto error strings
-   ERR_load_crypto_strings();
-   
-   // add all algorithms
-   OpenSSL_add_all_algorithms();
    
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
@@ -479,21 +432,12 @@ void runDigitalSignatureInputStreamTest(TestRunner& tr)
       delete publicKey;
    }
    
-   // clean up crypto strings
-   EVP_cleanup();
-
    tr.passIfNoException();
 }
 
 void runDigitalSignatureOutputStreamTest(TestRunner& tr)
 {
    tr.test("DigitalSignatureOutputStream");
-   
-   // include crypto error strings
-   ERR_load_crypto_strings();
-   
-   // add all algorithms
-   OpenSSL_add_all_algorithms();
    
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
@@ -557,21 +501,12 @@ void runDigitalSignatureOutputStreamTest(TestRunner& tr)
       delete publicKey;
    }
    
-   // clean up crypto strings
-   EVP_cleanup();
-
    tr.passIfNoException();
 }
 
 void runEnvelopeTest(TestRunner& tr)
 {
    tr.test("Envelope");
-
-   // include crypto error strings
-   ERR_load_crypto_strings();
-   
-   // add all algorithms
-   OpenSSL_add_all_algorithms();
    
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
@@ -671,9 +606,6 @@ void runEnvelopeTest(TestRunner& tr)
       delete publicKey;
    }
    
-   // clean up crypto strings
-   EVP_cleanup();
-
    tr.passIfNoException();
 }
 

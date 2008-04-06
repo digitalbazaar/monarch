@@ -3,6 +3,13 @@
  */
 #include "db/test/Tester.h"
 
+// openssl includes
+#include <openssl/ssl.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
+#include <openssl/rand.h>
+#include <openssl/engine.h>
+
 #include <assert.h>
 #include <iostream>
 #include <sstream>
@@ -136,6 +143,12 @@ int Tester::main(int argc, const char* argv[])
       }
    #endif
    
+   // openssl initialization code
+   ERR_load_crypto_strings();
+   SSL_library_init();
+   SSL_load_error_strings();
+   OpenSSL_add_all_algorithms();
+   
    loggingInitialize();
    
    Thread t(this);
@@ -143,6 +156,13 @@ int Tester::main(int argc, const char* argv[])
    t.join();
    
    loggingCleanup();
+   
+   // clean up openssl
+   ERR_remove_state(0);
+   ENGINE_cleanup();
+   ERR_free_strings();
+   EVP_cleanup();
+   CRYPTO_cleanup_all_ex_data();
    
    // cleanup winsock
    #ifdef WIN32
