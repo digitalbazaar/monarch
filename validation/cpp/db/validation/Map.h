@@ -14,7 +14,9 @@ namespace validation
 {
 
 /**
- * Validates specific members of a DynamicObject Map.
+ * Validates specific members of a DynamicObject Map.  All keys listed are
+ * checked regardless of validity of other keys.  This can be used to generate
+ * error messages for all keys at once.
  *
  * For many values set up the validator with varargs:
  *

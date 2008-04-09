@@ -60,6 +60,12 @@ void runValidatorTest(TestRunner& tr)
 
       tr.test("invalid map (addv)");
       assert(!v0.isValid(dnv));
+      assert(Exception::hasLast());
+      ExceptionRef e = Exception::getLast();
+      assert(e->getDetails()->hasMember("errors"));
+      assert(e->getDetails()["errors"]->length() == 2);
+      assert(e->getDetails()["errors"]->hasMember("i"));
+      assert(e->getDetails()["errors"]->hasMember("b"));
       tr.passIfException(_dump);
 
       tr.test("map (clist)");
@@ -313,9 +319,11 @@ void runValidatorTest(TestRunner& tr)
       DynamicObject dv;
       dv[0] = "1234";
       dv[1] = "5678";
+      dv[2] = "9012";
       DynamicObject dnv;
       dnv[0] = "1234";
       dnv[1] = "567";
+      dnv[2] = "901";
 
       v::Each v(new v::Min(4));
       assert(v.isValid(dv));
@@ -323,6 +331,10 @@ void runValidatorTest(TestRunner& tr)
 
       tr.test("invalid each(array)");
       assert(!v.isValid(dnv));
+      assert(Exception::hasLast());
+      ExceptionRef e = Exception::getLast();
+      assert(e->getDetails()->hasMember("errors"));
+      assert(e->getDetails()["errors"]->length() == 2);
       tr.passIfException(_dump);
    }
 
@@ -331,9 +343,11 @@ void runValidatorTest(TestRunner& tr)
       DynamicObject dv;
       dv["a"] = "1234";
       dv["b"] = "5678";
+      dv["c"] = "9012";
       DynamicObject dnv;
       dnv["a"] = "1234";
       dnv["b"] = "567";
+      dnv["c"] = "901";
 
       v::Each v(new v::Min(4));
       assert(v.isValid(dv));
@@ -341,6 +355,12 @@ void runValidatorTest(TestRunner& tr)
 
       tr.test("invalid each(map)");
       assert(!v.isValid(dnv));
+      assert(Exception::hasLast());
+      ExceptionRef e = Exception::getLast();
+      assert(e->getDetails()->hasMember("errors"));
+      assert(e->getDetails()["errors"]->length() == 2);
+      assert(e->getDetails()["errors"]->hasMember("b"));
+      assert(e->getDetails()["errors"]->hasMember("c"));
       tr.passIfException(_dump);
    }
 

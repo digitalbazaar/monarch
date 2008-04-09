@@ -30,7 +30,7 @@ bool All::isValid(
       rval && i != mValidators.end();
       i++)
    {
-      rval = rval && (*i)->isValid(obj, context);
+      rval = (*i)->isValid(obj, context);
    }
    
    return rval;
