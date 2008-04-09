@@ -92,7 +92,7 @@ bool HttpConnection::sendBody(
    // determine how much content needs to be read
    long long contentLength = 0;
    bool lengthUnspecified = true;
-   if(header->getField("Content-Length", contentLength) && contentLength > 0)
+   if(header->getField("Content-Length", contentLength) && contentLength >= 0)
    {
       lengthUnspecified = false;
    }
@@ -194,7 +194,7 @@ bool HttpConnection::receiveBody(
    // determine how much content needs to be received
    long long contentLength = 0;
    bool lengthUnspecified = true;
-   if(header->getField("Content-Length", contentLength) && contentLength > 0)
+   if(header->getField("Content-Length", contentLength) && contentLength >= 0)
    {
       lengthUnspecified = false;
    }
