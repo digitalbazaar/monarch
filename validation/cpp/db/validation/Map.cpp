@@ -43,28 +43,29 @@ bool Map::isValid(
       i != mValidators.end();
       i++)
    {
+      // only add a "." if this is not a root map
+      if(context->getDepth() != 0)
+      {
+         context->pushPath(".");
+      }
+      context->pushPath(i->first);
       if(obj->hasMember(i->first))
       {
-         // only add a "." if this is not a root map
-         if(context->getDepth() != 0)
-         {
-            context->pushPath(".");
-         }
-         context->pushPath(i->first);
          bool objValid = i->second->isValid(obj[i->first], context);
          // seperate var to avoid short circuit and ensure all keys tested
          rval = rval && objValid;
-         context->popPath();
-         if(context->getDepth() == 1)
-         {
-            context->popPath();
-         }
       }
       else if(!i->second->isOptional(context))
       {
          rval = false;
-         DynamicObject detail = context->addError("db.validation.MissingKey");
+         DynamicObject detail = context->addError("db.validation.MissingField");
+         detail["message"] = "Missing field!";
          detail["key"] = i->first;
+      }
+      context->popPath();
+      if(context->getDepth() == 1)
+      {
+         context->popPath();
       }
    }
 
