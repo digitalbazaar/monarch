@@ -104,6 +104,12 @@ unsigned int Date::dosTime(bool local)
       (time.tm_year - 80) << 25;
 }
 
+void Date::addSeconds(time_t seconds)
+{
+   mSecondsSinceEpoch += seconds;
+   gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
+}
+
 string& Date::format(
    string& str, const char* format, const char* formatType, TimeZone* tz)
 {

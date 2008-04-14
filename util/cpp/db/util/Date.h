@@ -102,6 +102,13 @@ public:
    virtual unsigned int dosTime(bool local = true);
    
    /**
+    * Adds seconds to this date.
+    * 
+    * @param seconds the seconds to add to this date (can be negative).
+    */
+   virtual void addSeconds(time_t seconds);
+   
+   /**
     * Writes this Date to a string according to the passed format.
     * 
     * Here are two examples of date formats, one in "c" and one in "java":
