@@ -104,13 +104,6 @@ protected:
     */
    virtual void freeData();
    
-   /**
-    * A helper function that sets this object's value to the passed string.
-    * 
-    * @param value the string value for this object.
-    */
-   virtual void setString(const char* value);
-   
 public:
    /**
     * Creates a new DynamicObjectImpl.

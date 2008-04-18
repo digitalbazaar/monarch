@@ -68,16 +68,11 @@ void DynamicObjectImpl::freeData()
    }
 }
 
-void DynamicObjectImpl::setString(const char* value)
+void DynamicObjectImpl::operator=(const char* value)
 {
    freeData();
    mType = String;
    mString = strdup(value);
-}
-
-void DynamicObjectImpl::operator=(const char* value)
-{
-   setString(value);
 }
 
 void DynamicObjectImpl::operator=(bool value)
