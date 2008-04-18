@@ -113,6 +113,7 @@ bool DynamicObject::operator==(const DynamicObject& rhs)
       switch((*left)->getType())
       {
          case String:
+         case Boolean:
          case Int32:
          case Int64:
          case UInt32:
@@ -121,6 +122,7 @@ bool DynamicObject::operator==(const DynamicObject& rhs)
             switch((*right)->getType())
             {
                case String:
+               case Boolean:
                case Int32:
                case UInt32:
                case Int64:
