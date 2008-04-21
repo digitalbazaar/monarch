@@ -82,15 +82,11 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                      switch(c)
                      {
                         case '"': /* 0x22 */
-                           encoded[n++] = '"';
-                           break;
                         case '\\': /* 0x5C */
-                           encoded[n++] = '\\';
-                           break;
                         // '/' is in the RFC but not required to be escaped
                         //case '/': /* 0x2F */
-                        //   encoded[n++] = '/';
-                        //   break;
+                           encoded[n++] = c;
+                           break;
                         case '\b': /* 0x08 */
                            encoded[n++] = 'b';
                            break;
