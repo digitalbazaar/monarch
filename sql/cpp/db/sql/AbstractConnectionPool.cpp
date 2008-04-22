@@ -68,11 +68,7 @@ Connection* AbstractConnectionPool::getIdleConnection()
             mIdleConnections.pop_back();
             
             // test for connectivity
-            if(rval->isConnected())
-            {
-               mActiveConnections.push_back(rval);
-            }
-            else
+            if(!rval->isConnected())
             {
                // connection no longer connected
                // close the expired connection and delete it
@@ -81,22 +77,20 @@ Connection* AbstractConnectionPool::getIdleConnection()
                rval = NULL;
             }
          }
-      }
-      mListLock.unlock();
-      
-      if(rval == NULL)
-      {
-         // create new connection & add to active connections
-         rval = createConnection();
+         
+         if(rval == NULL)
+         {
+            // create new connection
+            rval = createConnection();
+         }
+         
          if(rval != NULL)
          {
-            mListLock.lock();
-            {
-               mActiveConnections.push_back(rval);
-            }
-            mListLock.unlock();
+            // add connection to list of active connections
+            mActiveConnections.push_back(rval);
          }
       }
+      mListLock.unlock();
    }
    
    // now try to close any expired connections
