@@ -6,6 +6,7 @@ EXECUTABLES = \
 	test-config \
 	test-crypto \
 	test-data \
+	test-dyno-perf \
 	test-event \
 	test-io \
 	test-logging \
