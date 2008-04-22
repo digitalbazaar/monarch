@@ -650,6 +650,100 @@ void runDynoRemoveTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runDynoIndexTest(TestRunner& tr)
+{
+   tr.group("DynamicObject index");
+
+   tr.test("array (iter)");
+   {
+      DynamicObject d;
+      d[0] = 0;
+      d[1] = 1;
+      d[2] = 2;
+   
+      int count = 0;
+      DynamicObjectIterator i = d.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject next = i->next();
+         assert(count == i->getIndex());
+         count++;
+      }
+   }
+   tr.passIfNoException();
+   
+   tr.test("array (rem)");
+   {
+      DynamicObject d;
+      d[0] = 0;
+      d[1] = 1;
+      d[2] = 2;
+   
+      int count = 0;
+      DynamicObjectIterator i = d.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject next = i->next();
+         assert(count == i->getIndex());
+   
+         if(count == 1)
+         {
+            assert(next->getUInt32() == 1);
+            i->remove();
+            assert(i->getIndex() == (count - 1));
+         }
+         
+         count++;
+      }
+   }
+   tr.passIfNoException();
+   
+   tr.test("map (iter)");
+   {
+      DynamicObject d;
+      d["0"] = 0;
+      d["1"] = 1;
+      d["2"] = 2;
+   
+      int count = 0;
+      DynamicObjectIterator i = d.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject next = i->next();
+         assert(count == i->getIndex());
+         count++;
+      }
+   }
+   tr.passIfNoException();
+
+   tr.test("map (rem)");
+   {
+      DynamicObject d;
+      d["0"] = 0;
+      d["1"] = 1;
+      d["2"] = 2;
+   
+      int count = 0;
+      DynamicObjectIterator i = d.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject next = i->next();
+   
+         if(count == 1)
+         {
+            assert(next->getUInt32() == 1);
+            i->remove();
+            assert(i->getIndex() == (count - 1));
+         }
+         
+         count++;
+      }
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 class DbRtTester : public db::test::Tester
 {
 public:
@@ -671,6 +765,7 @@ public:
       runDynoClearTest(tr);
       runDynoConversionTest(tr);
       runDynoRemoveTest(tr);
+      runDynoIndexTest(tr);
       return 0;
    }
 
