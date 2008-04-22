@@ -153,33 +153,33 @@ BigDecimal& BigDecimal::operator=(double rhs)
 BigDecimal& BigDecimal::operator=(long long rhs)
 {
    // convert long to string
-   ostringstream oss;
-   oss << rhs;
-   return *this = oss.str();
+   char temp[22];
+   snprintf(temp, 22, "%lli", rhs);
+   return *this = temp;
 }
 
 BigDecimal& BigDecimal::operator=(unsigned long long rhs)
 {
    // convert long to string
-   ostringstream oss;
-   oss << rhs;
-   return *this = oss.str();
+   char temp[22];
+   snprintf(temp, 22, "%llu", rhs);
+   return *this = temp;
 }
 
 BigDecimal& BigDecimal::operator=(int rhs)
 {
    // convert int to string
-   ostringstream oss;
-   oss << rhs;
-   return *this = oss.str();
+   char temp[12];
+   snprintf(temp, 12, "%i", rhs);
+   return *this = temp;
 }
 
 BigDecimal& BigDecimal::operator=(unsigned int rhs)
 {
    // convert int to string
-   ostringstream oss;
-   oss << rhs;
-   return *this = oss.str();
+   char temp[12];
+   snprintf(temp, 12, "%u", rhs);
+   return *this = temp;
 }
 
 BigDecimal& BigDecimal::operator=(const char* rhs)
