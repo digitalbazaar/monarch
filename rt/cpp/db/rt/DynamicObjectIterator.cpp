@@ -33,25 +33,27 @@ DynamicObjectIteratorImpl::~DynamicObjectIteratorImpl()
 DynamicObject& DynamicObjectIteratorImpl::next()
 {
    DynamicObject* rval = NULL;
-   mIndex++;
    
    if(mObject->getType() == Map)
    {
       mMapCurrent = mMapNext;
       mMapNext++;
       rval = &mMapCurrent->second;
+      mIndex++;
    }
    else if(mObject->getType() == Array)
    {
       mArrayCurrent = mArrayNext;
       mArrayNext++;
       rval = &(*mArrayCurrent);
+      mIndex++;
    }
    else if(!mFinished)
    {
       // return this object
       rval = &mObject;
       mFinished = true;
+      mIndex++;
    }
    
    return *rval;
@@ -85,10 +87,12 @@ void DynamicObjectIteratorImpl::remove()
       // free instead of calling mMap->removeMember(mMapCurrent->first)
       free((char*)mMapCurrent->first);
       mObject->mMap->erase(mMapCurrent);
+      mIndex--;
    }
    else if(mObject->getType() == Array)
    {
       mObject->mArray->erase(mArrayCurrent);
+      mIndex--;
    }
    else
    {
