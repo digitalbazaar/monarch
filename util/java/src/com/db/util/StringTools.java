@@ -1,8 +1,10 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 package com.db.util;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Collection;
 
 /**
@@ -12,6 +14,15 @@ import java.util.Collection;
  */
 public class StringTools
 {
+   /**
+    * Lowercase hexadecimal characters for fast lookups.
+    */
+   public static final char[] HEX_CHARS =
+   {
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+      'a', 'b', 'c', 'd', 'e', 'f'
+   };
+   
    /**
     * Splits the passed string according to the given regular expression
     * and puts the split parts into the passed collection.
@@ -281,5 +292,120 @@ public class StringTools
       }
       
       return sb.toString();      
-   }   
+   }
+   
+   /**
+    * Converts an array of bytes into a lower-case hexadecimal string.
+    * 
+    * @param bytes the array of bytes to convert.
+    * 
+    * @return the lower-case hexadecimal string.
+    */
+   public static String bytesToHex(byte[] bytes)
+   {
+      int b;
+      StringBuilder hex = new StringBuilder(bytes.length * 2);
+      for(int i = 0; i < bytes.length; i++)
+      {
+         // hexadecimal uses 2 digits, each with 16 values (or 4 bits):
+         
+         // convert the top 4 bits
+         b = bytes[i];
+         hex.append(HEX_CHARS[(b >> 4) & 0xff]);
+         
+         // convert the bottom 4 bits
+         hex.append(HEX_CHARS[(b & 0x0f)]);
+      }
+      
+      return hex.toString();
+   }
+   
+   /**
+    * Converts a nibble (1 high or low hex character) to a byte.
+    * 
+    * @param hex the nibble (high or low).
+    * 
+    * @return the byte value.
+    * 
+    * @exception IOException thrown if the nibble was not a valid hex character.
+    */
+   public static int nibbleToByte(char hex) throws IOException
+   {
+      int rval;
+      
+      if(hex >= '0' && hex <= '9')
+      {
+         rval = (hex - '0');
+      }
+      else if(hex >= 'A' && hex <= 'F')
+      {
+         rval = hex - 'A' + 0xa;
+      }
+      else if(hex >= 'a' && hex <= 'f')
+      {
+         rval = hex - 'a' + 0xa;
+      }
+      else
+      {
+         throw new IOException(
+            "Could not convert nibble to byte! Nibble was not valid hex.");
+      }
+      
+      return rval & 0xff;
+   }
+   
+   /**
+    * Converts 2 hex nibbles (high and low bits) to a byte.
+    * 
+    * @param high the high bits.
+    * @param low the low bits.
+    * 
+    * @return the byte.
+    * 
+    * @exception IOException thrown if the nibble was not a valid hex character.
+    */
+   public static byte hexToByte(char high, char low) throws IOException
+   {
+      int rval = nibbleToByte(low);
+      int temp = nibbleToByte(high);
+      rval += (temp << 4) & 0xff;
+      return (byte)(rval & 0xff);
+   }
+   
+   /**
+    * Converts a hexadecimal string to an array of bytes.
+    * 
+    * If the hex string contains an odd number of characters, an initial 0 is
+    * assumed.
+    * 
+    * An error can occur if the input is outside the character range
+    * [0-9A-Fa-f].
+    * 
+    * @param hex the hexadecimal string to convert.
+    * @param baos the ByteArrayOutputStream to populate.
+    * 
+    * @exception IOException if an IO error occurs.
+    */
+   public static void hexToBytes(String hex, ByteArrayOutputStream baos)
+      throws IOException
+   {
+      int i;
+      if(hex.length() % 2 == 0)
+      {
+         // even # of characters
+         i = 0;
+      }
+      else
+      {
+         // odd # of characters, prepend initial '0' and convert first char
+         i = 1;
+         baos.write(hexToByte('0', hex.charAt(0)));
+      }
+      
+      // convert the rest
+      for(; i < hex.length(); i += 2)
+      {
+         baos.write(hexToByte(hex.charAt(i), hex.charAt(i + 1)));
+      }
+   }
 }

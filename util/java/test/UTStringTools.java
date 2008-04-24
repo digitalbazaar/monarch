@@ -1,6 +1,9 @@
 /*
- * Copyright (c) 2006 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2006-2008 Digital Bazaar, Inc.  All rights reserved.
  */
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import com.db.logging.LoggerManager;
 import com.db.logging.Logger;
 import com.db.util.StringTools;
@@ -13,6 +16,56 @@ import com.db.util.UniqueSet;
  */
 public class UTStringTools
 {
+   /**
+    * Tests hexadecimal conversion.
+    * 
+    * @exception IOException thrown if an IO error occurs.
+    */
+   public static void runConvertTest() throws IOException
+   {
+      System.out.println("\nTESTING StringTools.bytesToHex()/hexToBytes()");
+      
+      // convert to hex
+      String data = "abcdefghiABCDEFGZXYW0123987{;}*%6,./.12`~";
+      String original = data;
+      
+      String hex = StringTools.bytesToHex(data.getBytes("ASCII"));
+      
+      assert(hex.equals("616263646566676869414243444546475a585957303132333938377b3b7d2a25362c2e2f2e3132607e"));
+      assert(hex.length() == 82);
+      
+      ByteArrayOutputStream baos = new ByteArrayOutputStream(hex.length() / 2);
+      StringTools.hexToBytes(hex, baos);
+      String ascii = baos.toString("ASCII");
+      
+      assert(ascii.equals(data));
+      assert(ascii.equals(original));
+      
+      byte[] bytes;
+      
+      hex = "0";
+      baos.reset();
+      StringTools.hexToBytes(hex, baos);
+      bytes = baos.toByteArray();
+      assert(bytes.length == 1);
+      assert(bytes[0] == 0x0);
+      
+      hex = "d";
+      baos.reset();
+      StringTools.hexToBytes(hex, baos);
+      bytes = baos.toByteArray();
+      assert(bytes.length == 1);
+      assert(bytes[0] == 0xd);
+      
+      hex = "230f";
+      baos.reset();
+      StringTools.hexToBytes(hex, baos);
+      bytes = baos.toByteArray();
+      assert(bytes.length == 2);
+      assert(bytes[0] == 0x23);
+      assert(bytes[1] == 0x0f);
+   }
+   
    /**
     * Runs the StringTools test.
     * 
@@ -66,6 +119,10 @@ public class UTStringTools
          set.add("4");
          
          System.out.println(StringTools.glue(set, ","));
+         
+         runConvertTest();
+         
+         System.out.println("PASS");
       }
       catch(Throwable t)
       {
