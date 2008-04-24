@@ -81,7 +81,33 @@ public class StringTools
          sb.append(String.valueOf(array[i]));
       }
       
-      return sb.toString();      
+      return sb.toString();
+   }
+   
+   /**
+    * Glues the characters in the specified array together using the
+    * specified separator.
+    * 
+    * @param array the array to glue together.
+    * @param separator the separator to use.
+    * 
+    * @return the string of glued objects from the collection.
+    */
+   public static String glue(char[] array, String separator)
+   {
+      StringBuffer sb = new StringBuffer();
+      
+      for(int i = 0; i < array.length; i++)
+      {
+         if(i > 0)
+         {
+            sb.append(separator);
+         }
+         
+         sb.append(array[i]);
+      }
+      
+      return sb.toString();
    }
    
    /**
