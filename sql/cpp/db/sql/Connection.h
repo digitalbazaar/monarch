@@ -70,7 +70,7 @@ protected:
    /**
     * Retrieves a previously stored prepared statement.
     * 
-    * @return sql the sql of the statement to retrieve.
+    * @param sql the sql of the statement to retrieve.
     * 
     * @return the pre-compiled prepared statement or NULL if not found.
     */
