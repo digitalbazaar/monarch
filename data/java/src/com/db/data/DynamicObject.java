@@ -460,6 +460,26 @@ public class DynamicObject implements Iterable<DynamicObject>
    }
    
    /**
+    * Gets this object's value as an int.
+    * 
+    * @return this object's value as an int.
+    */
+   public int getInt()
+   {
+      return getNumber().intValue();
+   }
+   
+   /**
+    * Gets this object's value as a long.
+    * 
+    * @return this object's value as a long.
+    */
+   public long getLong()
+   {
+      return getNumber().longValue();
+   }
+   
+   /**
     * Returns true if this object has the specified member, false if not.
     * 
     * @param name the name of the member.
