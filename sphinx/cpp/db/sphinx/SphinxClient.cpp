@@ -314,7 +314,7 @@ bool SphinxClient::parseQueryResponse(ByteBuffer* b, SphinxResponse& sr)
    b->clear(4);
    
    // read matches (assume id64 is on)
-   char docIdStr[22];
+   //char docIdStr[22];
    for(uint32_t i = 0; i < matchCount; i++)
    {
       // read document ID and weight
@@ -322,21 +322,25 @@ bool SphinxClient::parseQueryResponse(ByteBuffer* b, SphinxResponse& sr)
       uint32_t weight = readUInt32(b, false);
       
       // convert to doc ID to string
-      sprintf(docIdStr, "%llu", docId);
-      SphinxMatch match = sr["matches"][docIdStr];
+      //sprintf(docIdStr, "%llu", docId);
+      
+      SphinxMatch& match = sr["matches"]->append();
+      //[docIdStr];
+      match["id"] = docId;
       match["weight"] = weight;
-      SphinxAttributeList attrs = match["attributes"];
+      
+      SphinxAttributeList& attrs = match["attributes"];
       attrs->setType(Array);
       
       // read attribute values
       SphinxAttributeIterator sai = sr["attributes"].getIterator();
       while(sai->hasNext())
       {
-         DynamicObject type = sai->next();
+         DynamicObject& type = sai->next();
          const char* name = sai->getName();
          
          // create attribute
-         SphinxAttribute attr = attrs[name];
+         SphinxAttribute& attr = attrs[name];
          attr["name"] = name;
          attr["type"] = type;
          
