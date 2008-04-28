@@ -497,6 +497,50 @@ void runDynamicObjectTest(TestRunner& tr)
    //cout << endl;
    //dumpDynamicObject(dyno1);
    
+   {
+      // test int iterator
+      DynamicObject d;
+      d = 123;
+      int count = 0;
+      DynamicObjectIterator i = d.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         assert(next->getUInt32() == 123);
+         count++;
+      }
+      assert(count == 1);
+   }
+   
+   {
+      // test string iterator
+      DynamicObject d;
+      d = "123";
+      int count = 0;
+      DynamicObjectIterator i = d.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         assertStrCmp(next->getString(), "123");
+         count++;
+      }
+      assert(count == 1);
+   }
+
+   {
+      // test auto-created string iterator
+      DynamicObject d;
+      int count = 0;
+      DynamicObjectIterator i = d["moo!"].getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         assertStrCmp(next->getString(), "");
+         count++;
+      }
+      assert(count == 1);
+   }
+
    tr.pass();
 }
 

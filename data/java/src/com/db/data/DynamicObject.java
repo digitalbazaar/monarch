@@ -325,6 +325,20 @@ public class DynamicObject implements Iterable<DynamicObject>
    }
    
    /**
+    * Appends the passed DynamicObject to this one and returns a reference to
+    * it for it to be set to a value.
+    * 
+    * @param dyno the DynamicObject to append.
+    * 
+    * @return the DynamicObject to be set.
+    */
+   public DynamicObject append(DynamicObject dyno)
+   {
+      set(length(), dyno);
+      return dyno;
+   }
+   
+   /**
     * Sets this object's type. Its existing value will be converted if
     * possible.
     * 
@@ -443,6 +457,26 @@ public class DynamicObject implements Iterable<DynamicObject>
       }
       
       return rval;
+   }
+   
+   /**
+    * Gets this object's value as an int.
+    * 
+    * @return this object's value as an int.
+    */
+   public int getInt()
+   {
+      return getNumber().intValue();
+   }
+   
+   /**
+    * Gets this object's value as a long.
+    * 
+    * @return this object's value as a long.
+    */
+   public long getLong()
+   {
+      return getNumber().longValue();
    }
    
    /**

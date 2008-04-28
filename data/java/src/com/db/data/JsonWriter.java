@@ -88,7 +88,7 @@ public class JsonWriter
       
       if(dyno == null)
       {
-         os.write(new String("null").getBytes("UTF-8"));
+         os.write(new String("null").getBytes("ASCII"));
       }
       else
       {
@@ -151,13 +151,13 @@ public class JsonWriter
                   
                   // end string serialization and write encoded string
                   encoded.append('"');
-                  os.write(encoded.toString().getBytes("UTF-8"));
+                  os.write(encoded.toString().getBytes("ASCII"));
                }
                break;
             case Boolean:
             case Number:
                {
-                  os.write(dyno.getString().getBytes("UTF-8"));
+                  os.write(dyno.getString().getBytes("ASCII"));
                }
                break;
             case Map:
