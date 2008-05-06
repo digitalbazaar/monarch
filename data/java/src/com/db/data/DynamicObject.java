@@ -398,6 +398,19 @@ public class DynamicObject implements Iterable<DynamicObject>
    }
    
    /**
+    * Gets this object's value as a string. If the type of this object
+    * is not a string, then the returned pointer may be invalidated by
+    * the next call to getString().
+    * 
+    * @return the value of this object.
+    */
+   @Override
+   public String toString()
+   {
+      return String.valueOf(mValue);
+   }
+   
+   /**
     * Gets this object's value as a boolean.
     * 
     * @return the value of this object.
