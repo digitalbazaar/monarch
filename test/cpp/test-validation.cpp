@@ -444,6 +444,31 @@ void runValidatorTest(TestRunner& tr)
       tr.passIfException(_dump);
    }
    
+   {
+      DynamicObject dv;
+      dv = "bitmunk.com";
+      DynamicObject dnv;
+      dnv = "bitmunkxcom";
+      
+      v::Regex v("bitmunk.com$");
+      tr.test("regex(dot)");
+      assert(v.isValid(dv));
+      tr.passIfNoException();
+
+      tr.test("regex(dot)");
+      assert(v.isValid(dnv));
+      tr.passIfNoException();
+
+      v::Regex ve("bitmunk\\.com$");
+      tr.test("regex(escape dot)");
+      assert(ve.isValid(dv));
+      tr.passIfNoException();
+
+      tr.test("regex(escape dot)");
+      assert(!ve.isValid(dnv));
+      tr.passIfException(_dump);
+   }
+   
    tr.group("register");
    {
       tr.test("init");
@@ -486,7 +511,7 @@ void runValidatorTest(TestRunner& tr)
                   "^([a-zA-Z0-9_\\.\\-\\+])+\\@(([a-zA-Z0-9\\-])+\\.)+([a-zA-Z0-9]{2,4})+$",
                   "Invalid email format!"),
                new v::Not(new v::Regex(
-                  "@bitmunk.com$"),
+                  "@bitmunk\\.com$"),
                   "Invalid email domain!"),
                NULL),
             /*
