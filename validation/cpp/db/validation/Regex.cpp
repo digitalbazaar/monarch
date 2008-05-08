@@ -30,7 +30,7 @@ bool Regex::isValid(
    ValidatorContext* context)
 {
    bool rval = mStringValidator->isValid(obj, context);
-   
+
    if(rval)
    {
       // FIXME compile the regex
@@ -44,6 +44,6 @@ bool Regex::isValid(
          }
       }
    }
-         
+
    return rval;
 }
