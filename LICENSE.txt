@@ -1,4 +1,4 @@
-Copyright (c) 2003-2007 Digital Bazaar, Inc. All Rights Reserved.
+Copyright (c) 2003-2008 Digital Bazaar, Inc. All Rights Reserved.
 
 This file contains Original Code and/or Modifications of Original Code
 as defined in and that are subject to the Digital Bazaar Open Source License
