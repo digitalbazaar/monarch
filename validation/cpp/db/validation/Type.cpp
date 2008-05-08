@@ -27,8 +27,6 @@ bool Type::isValid(
       // FIXME: localize
       detail["message"] = mErrorMessage ? mErrorMessage : "Invalid type!";
       detail["expectedType"] = DynamicObject::descriptionForType(mType);
-      
-      ExceptionRef e = new Exception();
    }
    return rval;
 }

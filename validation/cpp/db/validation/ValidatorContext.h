@@ -30,8 +30,8 @@ protected:
    /* Path used during object traversal. */
    std::vector<const char*>* mPath;
    
-   /* Flag to stop setting of exceptoins.  Useful when only concerned with
-    * success of failure of validators rather than details.
+   /* Flag to stop setting of exceptions.  Useful when only concerned with
+    * success or failure of validators rather than details.
     */
    bool mSetExceptions;
     
@@ -103,7 +103,7 @@ public:
     * 
     * @param type type of this error in "db.validation.MaxError" format.
     * 
-    * @return DynamicObject to fill with details.
+    * @return a DynamicObject to fill with details.
     */
    virtual db::rt::DynamicObject addError(const char* type);
 };

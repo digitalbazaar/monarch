@@ -58,7 +58,8 @@ bool Map::isValid(
       else if(!i->second->isOptional(context))
       {
          rval = false;
-         DynamicObject detail = context->addError("db.validation.MissingField");
+         DynamicObject detail =
+            context->addError("db.validation.MissingField");
          detail["message"] = "Missing field!";
          detail["key"] = i->first;
       }

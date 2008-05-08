@@ -105,8 +105,8 @@ DynamicObject ValidatorContext::addError(const char* type)
             Exception::setLast(e, true);
          }
       }
-   
-      // setup error detail   
+      
+      // setup error detail
       errorDetail["type"] = type;
       // FIXME: localize message
       errorDetail["message"] = "Invalid value!";
