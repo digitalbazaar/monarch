@@ -521,10 +521,10 @@ public:
    /**
     * Converts this frame header to a string representation.
     * 
-    * @param str the string to fill with a human-readable string representation
-    *            for this header.
+    * @return the string with a human-readable string representation for
+    *         this header.
     */
-   virtual std::string& toString(std::string& str);
+   virtual std::string toString();
    
    /**
     * Calculates frame length in bytes based on version, layer, bitrate,

@@ -45,8 +45,7 @@ bool MySqlConnection::connect(Url* url)
    
    if(strcmp(url->getScheme().c_str(), "mysql") != 0)
    {
-      string urlStr;
-      url->toString(urlStr);
+      string urlStr = url->toString();
       int length = 120 + urlStr.length();
       char msg[length];
       snprintf(msg, length,

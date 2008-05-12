@@ -251,13 +251,11 @@ public:
    virtual unsigned int getDefaultPort();
    
    /**
-    * Writes this url to the passed string.
-    * 
-    * @param str the string to store this url in.
+    * Writes this url to a string.
     * 
     * @return the string representation for this url.
     */
-   virtual std::string& toString(std::string& str) const;
+   virtual std::string toString() const;
    
    /**
     * URL-encodes the passed string.

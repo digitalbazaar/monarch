@@ -184,11 +184,9 @@ public:
    /**
     * Writes this header to a string.
     * 
-    * @param str the string to write this header to.
-    * 
     * @return the string.
     */
-   virtual std::string& toString(std::string& str);
+   virtual std::string toString();
    
    /**
     * Writes this header to an OutputStream.

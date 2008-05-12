@@ -370,26 +370,25 @@ void BigInteger::toBytes(ByteBuffer* b)
    b->extend(size);
 }
 
-string& BigInteger::toString(string& str) const
+string BigInteger::toString() const
 {
    char* s = BN_bn2dec(mBigNum);
    assert(s != NULL);
-   str.assign(s);
+   string str = s;
    OPENSSL_free(s);
    return str;
 }
 
 ostream& operator<<(ostream& os, const BigInteger& bi)
 {
-   string str;
-   os << bi.toString(str);
+   os << bi.toString();
    return os;
 }
 
 istream& operator>>(istream& is, BigInteger& bi)
 {
    string str;
-   is >> str; 
+   is >> str;
    bi = str;
    return is;
 }

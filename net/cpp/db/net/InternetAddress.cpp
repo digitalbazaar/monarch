@@ -182,12 +182,11 @@ bool InternetAddress::isMulticast()
    return rval;
 }
 
-string& InternetAddress::toString(string& str)
+string InternetAddress::toString()
 {
    int length = 100 + strlen(getHost()) + strlen(getAddress());
    char temp[length];
    snprintf(temp, length, "InternetAddress [%s:%u,%s:%u]",
       getHost(), getPort(), getAddress(), getPort());
-   str.assign(temp);
-   return str;
+   return temp;
 }
