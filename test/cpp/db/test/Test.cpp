@@ -141,8 +141,7 @@ void db::test::dynamicObjectToString(
 
 void db::test::dumpDynamicObject(DynamicObject& dyno, bool compact)
 {
-   string str;
-   dynamicObjectToString(dyno, str, compact);
-   cout << str << endl;
+   dynamicObjectToStream(dyno, cout, compact);
+   cout << endl;
    cout.flush();
 }
