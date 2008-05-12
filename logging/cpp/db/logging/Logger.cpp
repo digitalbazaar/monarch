@@ -50,20 +50,56 @@ void Logger::cleanup()
    sLoggers = NULL;
 }
 
+/**
+ * Map to convert log-level option names to Logger::Level types
+ */
+struct logLevelMap {
+   const char* key;
+   Logger::Level level;
+};
+static const struct logLevelMap logLevelsMap[] = {
+   {"n", Logger::None},
+   {"none", Logger::None},
+   {"e", Logger::Error},
+   {"error", Logger::Error},
+   {"w", Logger::Warning},
+   {"warning", Logger::Warning},
+   {"i", Logger::Info},
+   {"info", Logger::Info},
+   {"d", Logger::Debug},
+   {"debug", Logger::Debug},
+   {"debug-data", Logger::DebugData},
+   {"debug-detail", Logger::DebugDetail},
+   {"m", Logger::Max},
+   {"max", Logger::Max},
+   {NULL, Logger::None}
+};
+
+bool Logger::stringToLevel(const char* slevel, Level& level)
+{
+   bool found = false;
+   for(int mapi = 0;
+      slevel != NULL&& !found && logLevelsMap[mapi].key != NULL;
+      mapi++)
+   {
+      if(strcasecmp(slevel, logLevelsMap[mapi].key) == 0)
+      {
+         level = logLevelsMap[mapi].level;
+         found = true;
+      }
+   }
+   
+   return found;
+}
+
 const char* Logger::levelToString(Level level)
 {
-   // FIXME: return an std::string, pass in a buffer that
-   // has to get filled, or heap-allocate and require the user
-   // to delete the return value from this method -- as it stands
-   // this stuff will get stack allocated and then wiped out when
-   // the function returns, resulting in the return value of this
-   // method pointing somewhere unsafe 
    const char* rval;
 
    switch(level)
    {
       case None:
-         rval = "";
+         rval = "NONE";
          break;
       case Error:
          rval = "ERROR";
@@ -83,8 +119,11 @@ const char* Logger::levelToString(Level level)
       case DebugDetail:
          rval = "DEBUG-DETAIL";
          break;
+      case Max:
+         rval = "MAX";
+         break;
       default:
-         rval = "OTHER";
+         rval = NULL;
    }
 
    return rval;

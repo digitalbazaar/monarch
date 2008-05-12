@@ -214,6 +214,78 @@ void runLoggingTest(TestRunner& tr)
    tr.ungroup();
 }
 
+struct s2l_s {
+   const char* key;
+   Logger::Level level;
+};
+static const struct s2l_s s2l[] = {
+   {"n", Logger::None},
+   {"N", Logger::None},
+   {"none", Logger::None},
+   {"None", Logger::None},
+   {"NONE", Logger::None},
+   {"e", Logger::Error},
+   {"error", Logger::Error},
+   {"w", Logger::Warning},
+   {"warning", Logger::Warning},
+   {"i", Logger::Info},
+   {"info", Logger::Info},
+   {"d", Logger::Debug},
+   {"debug", Logger::Debug},
+   {"debug-data", Logger::DebugData},
+   {"debug-detail", Logger::DebugDetail},
+   {"m", Logger::Max},
+   {"max", Logger::Max},
+   {NULL, Logger::None}
+};
+
+struct l2s_s {
+   const char* key;
+   Logger::Level level;
+};
+static const struct l2s_s l2s[] = {
+   {"NONE", Logger::None},
+   {"ERROR", Logger::Error},
+   {"WARNING", Logger::Warning},
+   {"INFO", Logger::Info},
+   {"DEBUG", Logger::Debug},
+   {"DEBUG-DATA", Logger::DebugData},
+   {"DEBUG-DETAIL", Logger::DebugDetail},
+   {"MAX", Logger::Max},
+   {NULL, Logger::None}
+};
+
+void runLevelTest(TestRunner& tr)
+{
+   tr.group("Levels");
+
+   tr.test("string2level");
+   {
+      Logger::Level level;
+      for(int i = 0; s2l[i].key != NULL; i++)
+      {
+         assert(Logger::stringToLevel(s2l[i].key, level));
+         assert(level == s2l[i].level);
+      }
+      assert(!Logger::stringToLevel(NULL, level));
+      assert(!Logger::stringToLevel("", level));
+      assert(!Logger::stringToLevel("*bogus*", level));
+   }
+   tr.passIfNoException();
+
+   tr.test("level2string");
+   {
+      for(int i = 0; l2s[i].key != NULL; i++)
+      {
+         assertStrCmp(Logger::levelToString(l2s[i].level), l2s[i].key);
+      }
+      assert(Logger::levelToString((Logger::Level)-1) == NULL);
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 class DbLoggingTester : public db::test::Tester
 {
 public:
@@ -227,6 +299,7 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
+      runLevelTest(tr);
       return 0;
    }
 

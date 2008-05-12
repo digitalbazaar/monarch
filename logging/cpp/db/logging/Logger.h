@@ -134,15 +134,6 @@ public:
     */
    typedef unsigned int LogFlags;
    
-   /**
-    * Return a string representation of a level.
-    * 
-    * @param level the Level.
-    * 
-    * @return string representation of the level.
-    */
-   static const char* levelToString(Level level);
-   
 protected:
    /**
     * The current level setting.
@@ -203,6 +194,25 @@ public:
     * terminated.
     */
    static void cleanup();
+   
+   /**
+    * Case insensitive conversion from string to Level.
+    * 
+    * @param slevel the string to convert.
+    * @param level the level.
+    * 
+    * @return true if found and level will be set, false if not found.
+    */
+   static bool stringToLevel(const char *slevel, Level& level);
+   
+   /**
+    * Conversion from Level to string
+    * 
+    * @param type the Level to convert.
+    * 
+    * @return the string or NULL.
+    */
+   static const char* levelToString(Level level);
    
    /**
     * Sets the level for this logger.
