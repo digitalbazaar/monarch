@@ -206,9 +206,10 @@ bool HttpHeader::parse(const string& str)
    return rval;
 }
 
-string& HttpHeader::toString(string& str)
+string HttpHeader::toString()
 {
-   str.erase();
+   string str;
+   str.reserve(512);
    
    // get the start line
    getStartLine(str);

@@ -440,11 +440,9 @@ public:
    /**
     * Gets the value of this BigInteger as a string.
     * 
-    * @param str string to store the value of this BigInteger in.
-    * 
-    * @return a reference to the string.
+    * @return the string.
     */
-   std::string& toString(std::string& str) const;
+   std::string toString() const;
 };
 
 } // end namespace crypto

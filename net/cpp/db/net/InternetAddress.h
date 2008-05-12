@@ -102,11 +102,9 @@ public:
    /**
     * Gets a string representation for this InternetAddress.
     * 
-    * @param str the string to populate.
-    * 
     * @return a string representation for this InternetAddress.
     */
-   virtual std::string& toString(std::string& str);
+   virtual std::string toString();
 };
 
 } // end namespace net

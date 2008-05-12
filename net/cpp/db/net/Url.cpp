@@ -31,8 +31,7 @@ Url::~Url()
 
 Url& Url::operator=(const Url& rhs)
 {
-   string s;
-   setUrl(rhs.toString(s), rhs.mRelative);
+   setUrl(rhs.toString(), rhs.mRelative);
    return *this;
 }
 
@@ -397,8 +396,10 @@ unsigned int Url::getDefaultPort()
    return rval;
 }
 
-string& Url::toString(string& str) const
+string Url::toString() const
 {
+   string str;
+   
    if(!isRelative())
    {
       str.append(mScheme);

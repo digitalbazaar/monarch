@@ -616,9 +616,7 @@ void runBigIntegerTest(TestRunner& tr)
    #define NSI(op, expectstr) \
    do { \
       BigInteger result = op; \
-      string str; \
-      result.toString(str); \
-      assertStrCmp(str.c_str(), expectstr); \
+      assertStrCmp(result.toString().c_str(), expectstr); \
    } while(0)
 
    BigInteger number1 = 2;
@@ -648,9 +646,7 @@ void runBigDecimalTest(TestRunner& tr)
    #define NSD(op, expectstr) \
    do { \
       BigDecimal result = op; \
-      string str; \
-      result.toString(str); \
-      assertStrCmp(str.c_str(), expectstr); \
+      assertStrCmp(result.toString().c_str(), expectstr); \
    } while(0)
 
    BigDecimal number1 = 3.0;

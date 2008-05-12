@@ -45,8 +45,7 @@ bool Sqlite3Connection::connect(Url* url)
    
    if(strncmp(url->getScheme().c_str(), "sqlite3", 7) != 0)
    {
-      string urlStr;
-      url->toString(urlStr);
+      string urlStr = url->toString();
       int length = 120 + urlStr.length();
       char msg[length];
       snprintf(msg, length,

@@ -700,8 +700,7 @@ void dumpUrl(Url url)
    }
    else
    {
-      string str;
-      url.toString(str);
+      string str = url.toString();
       
       cout << "url=" << str << endl;
       cout << " scheme=" << url.getScheme() << endl;
@@ -1306,8 +1305,7 @@ void runHttpHeaderTest(TestRunner& tr)
    //   "Host: localhost:80\r\n"
    //   "\r\n";
    
-   string str;
-   reqHeader.toString(str);
+   string str = reqHeader.toString();
    //assertStrCmp(str.c_str(), expect);
    //cout << str;
    tr.warning("fix http request parse test");
@@ -1319,8 +1317,7 @@ void runHttpHeaderTest(TestRunner& tr)
    HttpRequestHeader reqHeader2;
    reqHeader2.parse(str);
    
-   string str2;
-   reqHeader2.toString(str2);
+   string str2 = reqHeader2.toString();
    //assertStrCmp(str2.c_str(), expect);
    tr.warning("fix http request parse test");
    //cout << str2;
@@ -1337,7 +1334,7 @@ void runHttpHeaderTest(TestRunner& tr)
    resHeader.setField("Content-Type", "text/html");
    resHeader.setField("Connection", "close");
    
-   resHeader.toString(str);
+   str = resHeader.toString();
    tr.warning("fix http response parse test");
    //cout << str;
    
@@ -1349,7 +1346,7 @@ void runHttpHeaderTest(TestRunner& tr)
    resHeader2.parse(str);
    tr.warning("fix http response parse test");
    
-   resHeader2.toString(str2);
+   str2 = resHeader2.toString();
    tr.warning("fix http response parse test");
    //cout << str2;
    
@@ -1513,10 +1510,9 @@ void runHttpClientGetTest()
    Url url("http://www.bitmunk.com");
    if(client.connect(&url))
    {
-      string str;
-      cout << "Connected to: " << url.toString(str) << endl;
+      cout << "Connected to: " << url.toString() << endl;
       InternetAddress address(url.getHost().c_str(), url.getPort());
-      cout << address.toString(str) << endl;
+      cout << address.toString() << endl;
       
       // do get
       const char* headers[] = {"Test-Header: bacon", NULL};
@@ -1524,7 +1520,7 @@ void runHttpClientGetTest()
       if(response != NULL)
       {
          cout << "Response=" << endl <<
-            response->getHeader()->toString(str) << endl;
+            response->getHeader()->toString() << endl;
          if(response->getHeader()->getStatusCode() == 200)
          {
             // receive content
@@ -1536,7 +1532,7 @@ void runHttpClientGetTest()
                cout << "Content downloaded to '" <<
                   file.getName() << "'" << endl;
                
-               cout << "HTTP trailers=\n" << trailer.toString(str) << endl;
+               cout << "HTTP trailers=\n" << trailer.toString() << endl;
             }
             assertNoException();
          }
@@ -1565,10 +1561,9 @@ void runHttpClientPostTest()
    Url url("http://www.bitmunk.com");
    if(client.connect(&url))
    {
-      string str;
-      cout << "Connected to: " << url.toString(str) << endl;
+      cout << "Connected to: " << url.toString() << endl;
       InternetAddress address(url.getHost().c_str(), url.getPort());
-      cout << address.toString(str) << endl;
+      cout << address.toString() << endl;
       
       char someData[] = "Just some post data.";
       ByteArrayInputStream baos(someData, strlen(someData));
@@ -1584,7 +1579,7 @@ void runHttpClientPostTest()
       if(response != NULL)
       {
          cout << "Response=" << endl <<
-            response->getHeader()->toString(str) << endl;
+            response->getHeader()->toString() << endl;
          if(response->getHeader()->getStatusCode() == 200)
          {
             // receive content
@@ -1596,7 +1591,7 @@ void runHttpClientPostTest()
                cout << "Content downloaded to '" <<
                   file.getName() << "'" << endl;
                
-               cout << "HTTP trailers=\n" << trailer.toString(str) << endl;
+               cout << "HTTP trailers=\n" << trailer.toString() << endl;
             }
             assertNoException();
          }

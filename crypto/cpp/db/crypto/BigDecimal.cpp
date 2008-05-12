@@ -466,11 +466,8 @@ bool BigDecimal::isNegative() const
 long double BigDecimal::getDouble() const
 {
    // get value as a string
-   string str;
-   toString(str);
-   
    // parse long double
-   return strtold(str.c_str(), NULL);
+   return strtold(toString().c_str(), NULL);
 }
 
 void BigDecimal::setPrecision(unsigned int precision, RoundingMode roundingMode)
@@ -487,8 +484,7 @@ unsigned int BigDecimal::getPrecision()
 void BigDecimal::round()
 {
    // write out to a string
-   string str;
-   toString(str);
+   string str = toString();
    
    // find exponent
    unsigned int dot = str.rfind('.');
@@ -529,10 +525,10 @@ void BigDecimal::round()
    }
 }
 
-string& BigDecimal::toString(string& str) const
+string BigDecimal::toString() const
 {
    // write out significand
-   mSignificand.toString(str);
+   string str = mSignificand.toString();
    
    if(mExponent < 0)
    {
@@ -575,8 +571,7 @@ string& BigDecimal::toString(string& str) const
 
 ostream& operator<<(ostream& os, const BigDecimal& bd)
 {
-   string str;
-   os << bd.toString(str);
+   os << bd.toString();
    return os;
 }
 

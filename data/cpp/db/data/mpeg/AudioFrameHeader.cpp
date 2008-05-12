@@ -517,9 +517,9 @@ ByteBuffer* AudioFrameHeader::getBytes()
    return mData;
 }
 
-string& AudioFrameHeader::toString(string& str)
+string AudioFrameHeader::toString()
 {
-   str.erase();
+   string str;
    
    // get audio characteristics
    AudioVersion v;

@@ -53,10 +53,9 @@ unsigned short SocketAddress::getPort()
    return mPort;
 }
 
-string& SocketAddress::toString(string& str)
+string SocketAddress::toString()
 {
    char temp[50 + strlen(getAddress())];
    sprintf(temp, "SocketAddress [%s:%u]", getAddress(), getPort());
-   str.assign(temp);
-   return str;
+   return temp;
 }
