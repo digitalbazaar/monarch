@@ -460,6 +460,9 @@ void Thread::exit()
 
 void Thread::setException(ExceptionRef& e, bool caused)
 {
+   // initialize threads
+   pthread_once(&sThreadsInit, &initializeThreads);
+   
    // get the exception reference for the current thread
    ExceptionRef* ref = (ExceptionRef*)pthread_getspecific(sExceptionKey);
    if(ref == NULL)
