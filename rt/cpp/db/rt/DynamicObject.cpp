@@ -204,6 +204,7 @@ DynamicObject DynamicObject::clone()
    DynamicObject rval;
    
    int index = 0;
+   rval->setType((*this)->getType());
    DynamicObjectIterator i = getIterator();
    while(i->hasNext())
    {
