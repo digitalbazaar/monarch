@@ -45,3 +45,12 @@ internal-docs:
 
 verbose:
 	PRINT_DIRECTORIES=true $(MAKE) all
+
+valgrind:
+	LD_LIBRARY_PATH=@DBCOREDIR@/libs/linux \
+		valgrind \
+		--suppressions=dbcore.supp \
+		--show-reachable=yes \
+		--tool=memcheck \
+		--leak-check=full \
+		test/cpp/dist/linux/run-unit-tests

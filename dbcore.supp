@@ -1,0 +1,1360 @@
+# This is a generated file, composed of the following suppression rules:
+#
+#      glibc-2.34567-NPTL-helgrind.supp glibc-2.7.supp debian.supp
+#
+
+
+##----------------------------------------------------------------------##
+# Suppressions for the Helgrind tool when using 
+# a glibc-2.{2,3,4,5,6} system
+
+######------------ glibc-2.5 specific ------------######
+#
+## NB.  This is the "reference set".  Derived sets for
+## glibc 2.7, 2.6, 2.4 and 2.3 follow below.
+{
+   helgrind-glibc25-001
+   Helgrind:Race
+   obj:/lib*/ld-2.5.*so
+   obj:/lib*/ld-2.5.*so
+}
+{
+   helgrind-glibc25-002
+   Helgrind:Race
+   obj:/lib*/ld-2.5.*so
+   obj:/lib*/libc-2.5.*so
+   obj:/lib*/ld-2.5.*so
+}
+{
+   helgrind-glibc25-003
+   Helgrind:Race
+   obj:/lib*/ld-2.5.*so
+   obj:/lib*/libc-2.5.*so
+   obj:/lib*/libc-2.5.*so
+}
+{
+   helgrind-glibc25-004
+   Helgrind:Race
+   obj:/lib*/libc-2.5.*so
+   obj:/lib*/libc-2.5.*so
+}
+{
+   helgrind-glibc25-005
+   Helgrind:Race
+   obj:/lib*/libpthread-2.5.*so
+   obj:/lib*/libpthread-2.5.*so
+   obj:/lib*/libpthread-2.5.*so
+}
+{
+   helgrind-glibc25-006
+   Helgrind:Race
+   obj:/lib*/libpthread-2.5.*so
+   obj:/lib*/libpthread-2.5.*so
+   obj:/lib*/libc-2.5.*so
+}
+{
+   helgrind-glibc25-007
+   Helgrind:Race
+   obj:/lib*/ld-2.5.*so
+   obj:/lib*/libc-2.5.*so
+   obj:/lib*/libdl-2.5.*so
+}
+{
+   helgrind-glibc25-008
+   Helgrind:Race
+   obj:/lib*/libpthread-2.5.*so
+   obj:/lib*/libc-2.5.*so
+}
+{
+   helgrind-glibc25-009
+   Helgrind:Race
+   obj:/lib*/libc-2.5.*so
+   fun:*
+   obj:/lib*/libc-2.5.*so
+}
+{
+   helgrind-glibc25-010
+   Helgrind:Race
+   obj:/lib*/ld-2.5.*so
+   obj:/lib*/libpthread-2.5.*so
+}
+{
+   helgrind-glibc25-011
+   Helgrind:Race
+   obj:/lib*/libc-2.5.*so
+   obj:/lib*/libpthread-2.5.*so
+}
+{
+   helgrind-glibc25-013
+   Helgrind:Race
+   obj:/lib*/ld-2.5.*so
+   fun:*
+   obj:/lib*/ld-2.5.*so
+}
+{
+   helgrind-glibc25-014
+   Helgrind:Race
+   obj:/lib*/ld-2.5.*so
+   obj:/lib*/ld-2.5.*so
+   obj:/lib*/libpthread-2.5.*so
+}
+
+# These are very ugly.  They are needed to suppress errors inside (eg)
+# NPTL's pthread_cond_signal.  Why only one stack frame -- at least we
+# should see the wrapper calling the real functions, right?
+# Unfortunately, no: the real functions are handwritten assembly (in
+# the glibc-2.5 sources) and does not create a proper stack frame.
+# Therefore it's only one level of unwinding before we're back out in
+# user code rather than the 2 levels you'd expect.
+{
+   helgrind-glibc25-101
+   Helgrind:Race
+   obj:/lib*/libpthread-2.5.*so
+   fun:pthread_*
+}
+{
+   helgrind-glibc25-102
+   Helgrind:Race
+   fun:mythread_wrapper
+   obj:/lib*/libpthread-2.5.*so
+}
+{
+   helgrind-glibc25-103
+   Helgrind:Race
+   fun:pthread_cond_*@@GLIBC_2.3.2
+}
+{
+   helgrind-glibc25-104
+   Helgrind:Race
+   fun:__lll_mutex_*
+}
+{
+   helgrind-glibc25-105
+   Helgrind:Race
+   fun:pthread_rwlock_*lock*
+}
+{
+   helgrind-glibc25-107
+   Helgrind:Race
+   obj:/lib*/libpthread-2.5.*so
+   fun:sem_*
+}
+{
+   helgrind-glibc25-108
+   Helgrind:Race
+   fun:clone
+}
+{
+   helgrind-glibc25-109
+   Helgrind:Race
+   fun:start_thread
+}
+
+######------------ glibc-2.7 specific ---------######
+#
+{
+   helgrind-glibc27-001
+   Helgrind:Race
+   obj:/lib*/ld-2.7.*so
+   obj:/lib*/ld-2.7.*so
+}
+{
+   helgrind-glibc27-003
+   Helgrind:Race
+   obj:/lib*/ld-2.7.*so
+   obj:/lib*/libc-2.7.*so
+   obj:/lib*/libc-2.7.*so
+}
+{
+   helgrind-glibc27-004
+   Helgrind:Race
+   obj:/lib*/libc-2.7.*so
+   obj:/lib*/libc-2.7.*so
+}
+{
+   helgrind-glibc27-005
+   Helgrind:Race
+   obj:/lib*/libpthread-2.7.*so
+   obj:/lib*/libpthread-2.7.*so
+   obj:/lib*/libpthread-2.7.*so
+}
+{
+   helgrind-glibc27-011
+   Helgrind:Race
+   obj:/lib*/libc-2.7.*so
+   obj:/lib*/libpthread-2.7.*so
+}
+
+{
+   helgrind-glibc27-101
+   Helgrind:Race
+   obj:/lib*/libpthread-2.7.*so
+   fun:pthread_*
+}
+{
+   helgrind-glibc27-102
+   Helgrind:Race
+   fun:mythread_wrapper
+   obj:/lib*/libpthread-2.7.*so
+}
+{
+   helgrind-glibc27-107
+   Helgrind:Race
+   obj:/lib*/libpthread-2.7.*so
+   fun:sem_*
+}
+
+######------------ glibc-2.6 specific ---------######
+#
+{
+   helgrind-glibc26-001
+   Helgrind:Race
+   obj:/lib*/ld-2.6.*so
+   obj:/lib*/ld-2.6.*so
+}
+{
+   helgrind-glibc26-003
+   Helgrind:Race
+   obj:/lib*/ld-2.6.*so
+   obj:/lib*/libc-2.6.*so
+   obj:/lib*/libc-2.6.*so
+}
+{
+   helgrind-glibc26-004
+   Helgrind:Race
+   obj:/lib*/libc-2.6.*so
+   obj:/lib*/libc-2.6.*so
+}
+{
+   helgrind-glibc26-005
+   Helgrind:Race
+   obj:/lib*/libpthread-2.6.*so
+   obj:/lib*/libpthread-2.6.*so
+   obj:/lib*/libpthread-2.6.*so
+}
+{
+   helgrind-glibc26-006
+   Helgrind:Race
+   obj:/lib*/libpthread-2.6.*so
+   obj:/lib*/libpthread-2.6.*so
+   obj:/lib*/libc-2.6.*so
+}
+{
+   helgrind-glibc26-008
+   Helgrind:Race
+   obj:/lib*/libpthread-2.6.*so
+   obj:/lib*/libc-2.6.*so
+}
+{
+   helgrind-glibc26-011
+   Helgrind:Race
+   obj:/lib*/libc-2.6.*so
+   obj:/lib*/libpthread-2.6.*so
+}
+{
+   helgrind-glibc26-014
+   Helgrind:Race
+   obj:/lib*/ld-2.6.*so
+   obj:/lib*/ld-2.6.*so
+   obj:/lib*/libpthread-2.6.*so
+}
+
+{
+   helgrind-glibc26-101
+   Helgrind:Race
+   obj:/lib*/libpthread-2.6.*so
+   fun:pthread_*
+}
+{
+   helgrind-glibc26-102
+   Helgrind:Race
+   fun:mythread_wrapper
+   obj:/lib*/libpthread-2.6.*so
+}
+{
+   helgrind-glibc26-106
+   Helgrind:Race
+   fun:__lll_lock_wait
+}
+{
+   helgrind-glibc26-107
+   Helgrind:Race
+   obj:/lib*/libpthread-2.6.*so
+   fun:sem_*
+}
+
+######------------ glibc-2.4 specific ------------######
+#
+{
+   helgrind-glibc24-001
+   Helgrind:Race
+   obj:/lib*/ld-2.4.*so
+   obj:/lib*/ld-2.4.*so
+}
+{
+   helgrind-glibc24-003
+   Helgrind:Race
+   obj:/lib*/ld-2.4.*so
+   obj:/lib*/libc-2.4.*so
+   obj:/lib*/libc-2.4.*so
+}
+{
+   helgrind-glibc24-004
+   Helgrind:Race
+   obj:/lib*/libc-2.4.*so
+   obj:/lib*/libc-2.4.*so
+}
+{
+   helgrind-glibc24-005
+   Helgrind:Race
+   obj:/lib*/libpthread-2.4.*so
+   obj:/lib*/libpthread-2.4.*so
+   obj:/lib*/libpthread-2.4.*so
+}
+{
+   helgrind-glibc24-006
+   Helgrind:Race
+   obj:/lib*/libpthread-2.4.*so
+   obj:/lib*/libpthread-2.4.*so
+   obj:/lib*/libc-2.4.*so
+}
+{
+   helgrind-glibc24-008
+   Helgrind:Race
+   obj:/lib*/libpthread-2.4.*so
+   obj:/lib*/libc-2.4.*so
+}
+{
+   helgrind-glibc24-010
+   Helgrind:Race
+   obj:/lib*/ld-2.4.*so
+   obj:/lib*/libpthread-2.4.*so
+}
+{
+   helgrind-glibc24-011
+   Helgrind:Race
+   obj:/lib*/libc-2.4.*so
+   obj:/lib*/libpthread-2.4.*so
+}
+
+{
+   helgrind-glibc24-101
+   Helgrind:Race
+   obj:/lib*/libpthread-2.4.*so
+   fun:pthread_*
+}
+{
+   helgrind-glibc24-102
+   Helgrind:Race
+   fun:mythread_wrapper
+   obj:/lib*/libpthread-2.4.*so
+}
+
+######--------- glibc-2.3 specific ---------######
+{
+   helgrind-glibc23-001
+   Helgrind:Race
+   obj:/lib*/ld-2.3.*so
+   obj:/lib*/ld-2.3.*so
+}
+{
+   helgrind-glibc23-002
+   Helgrind:Race
+   obj:/lib*/ld-2.3.*so
+   obj:/lib*/libc-2.3.*so
+   obj:/lib*/ld-2.3.*so
+}
+{
+   helgrind-glibc23-003
+   Helgrind:Race
+   obj:/lib*/ld-2.3.*so
+   obj:/lib*/libc-2.3.*so
+   obj:/lib*/libc-2.3.*so
+}
+{
+   helgrind-glibc23-004
+   Helgrind:Race
+   obj:/lib*/libc-2.3.*so
+   obj:/lib*/libc-2.3.*so
+}
+{
+   helgrind-glibc23-006
+   Helgrind:Race
+   obj:/lib*/libpthread-2.3.*so
+   obj:/lib*/libpthread-2.3.*so
+   obj:/lib*/libc-2.3.*so
+}
+{
+   helgrind-glibc23-008
+   Helgrind:Race
+   obj:/lib*/libpthread-2.3.*so
+   obj:/lib*/libc-2.3.*so
+}
+{
+   helgrind-glibc23-009
+   Helgrind:Race
+   obj:/lib*/libc-2.3.*so
+   obj:/lib*/ld-2.3.*so
+   obj:/lib*/libc-2.3.*so
+}
+{
+   helgrind-glibc23-011
+   Helgrind:Race
+   obj:/lib*/libc-2.3.*so
+   obj:/lib*/libpthread-2.3.*so
+}
+{
+   helgrind-glibc23-012
+   Helgrind:Race
+   obj:/lib*/ld-2.3.*so
+   obj:/lib*/ld-2.3.*so
+   obj:/lib*/libc-2.3.*so
+}
+{
+   helgrind-glibc23-014
+   Helgrind:Race
+   obj:/lib*/ld-2.3.*so
+   obj:/lib*/ld-2.3.*so
+   obj:/lib*/libpthread-2.3.*so
+}
+
+{
+   helgrind-glibc23-100
+   Helgrind:Race
+   obj:/lib*/libpthread-2.3.*so
+   fun:pthread_*
+}
+{
+   helgrind-glibc23-101
+   Helgrind:Race
+   fun:mythread_wrapper
+   obj:/lib*/libpthread-2.3.*so
+}
+
+######------ qt4 specific (GNU mangling) ------######
+{
+   helgrind-qt4-QMutex::lock()-twice
+   Helgrind:Race
+   fun:_ZN6QMutex4lockEv
+   fun:_ZN6QMutex4lockEv
+}
+
+# Errors to suppress by default with glibc 2.7.x
+
+# Format of this file is:
+# {
+#     name_of_suppression
+#     tool_name:supp_kind
+#     (optional extra info for some suppression types)
+#     caller0 name, or /name/of/so/file.so
+#     caller1 name, or ditto
+#     (optionally: caller2 name)
+#     (optionally: caller3 name)
+#  }
+#
+# For Memcheck, the supp_kinds are:
+#
+#     Param Value1 Value2 Value4 Value8 Value16 Jump
+#     Free Addr1 Addr2 Addr4 Addr8 Addr16
+#     Cond (previously known as Value0)
+#
+# and the optional extra info is:
+#     if Param: name of system call param
+
+{
+   dl-hack3-1
+   Memcheck:Cond
+   obj:/lib*/ld-2.7*.so*
+   obj:/lib*/ld-2.7*.so*
+   obj:/lib*/ld-2.7*.so*
+}
+
+##----------------------------------------------------------------------##
+
+# Errors to suppress by default with XFree86 4.1.0)
+
+# Format of this file is:
+# {
+#     name_of_suppression
+#     tool_name:supp_kind
+#     (optional extra info for some suppression types)
+#     caller0 name, or /name/of/so/file.so
+#     caller1 name, or ditto
+#     (optionally: caller2 name)
+#     (optionally: caller3 name)
+#  }
+#
+# For Memcheck, the supp_kinds are:
+#
+#     Param Value1 Value2 Value4 Value8 Value16 Jump
+#     Free Addr1 Addr2 Addr4 Addr8 Addr16
+#     Cond (previously known as Value0)
+#
+# and the optional extra info is:
+#     if Param: name of system call param
+
+# Resulting from R H 8.0
+{
+   *libc_write/libX11.so.6.2/*X11TransWrite(Param)
+   Memcheck:Param
+   write(buf)
+   fun:*libc_write
+   obj:/usr/X11R6/lib*/libX11.so.6.2
+   fun:*X11TransWrite
+}
+
+{
+   libX11.so.6.2/libX11.so.6.2/libX11.so.6.2(Cond)
+   Memcheck:Cond
+   obj:/usr/X11R6/lib*/libX11.so.6.2
+   obj:/usr/X11R6/lib*/libX11.so.6.2
+   obj:/usr/X11R6/lib*/libX11.so.6.2
+}
+
+{
+   libXt.so.6.2/libXt.so.6.2/libXt.so.6.2(Cond)
+   Memcheck:Cond
+   obj:/usr/X11R6/lib*/libXt.so.6.0
+   obj:/usr/X11R6/lib*/libXt.so.6.0
+   obj:/usr/X11R6/lib*/libXt.so.6.0
+}
+
+
+{
+   libXaw.so.7.0/libXaw.so.7.0/libXaw.so.7.0(Cond)
+   Memcheck:Cond
+   obj:/usr/X11R6/lib*/libXaw.so.7.0
+   obj:/usr/X11R6/lib*/libXaw.so.7.0
+   obj:/usr/X11R6/lib*/libXaw.so.7.0
+}
+
+{
+   libXmu.so.6.2/libXmu.so.6.2/libXmu.so.6.2(Cond)
+   Memcheck:Cond
+   obj:/usr/X11R6/lib*/libXmu.so.6.2
+   obj:/usr/X11R6/lib*/libXmu.so.6.2
+   obj:/usr/X11R6/lib*/libXmu.so.6.2
+}
+
+{
+   libXt.so.6.0/libXt.so.6.0/libXaw.so.7.0(Cond)
+   Memcheck:Cond
+   obj:/usr/X11R6/lib*/libXt.so.6.0
+   obj:/usr/X11R6/lib*/libXt.so.6.0
+   obj:/usr/X11R6/lib*/libXaw.so.7.0
+}
+
+{
+   libXaw.so.7.0/libXaw.so.7.0/libXt.so.6.0(Value4)
+   Memcheck:Value4
+   obj:/usr/X11R6/lib*/libXaw.so.7.0
+   obj:/usr/X11R6/lib*/libXaw.so.7.0
+   obj:/usr/X11R6/lib*/libXt.so.6.0
+}
+
+{
+   libXaw.so.7.0/libXaw.so.7.0/libXt.so.6.0(Cond)
+   Memcheck:Cond
+   obj:/usr/X11R6/lib*/libXaw.so.7.0
+   obj:/usr/X11R6/lib*/libXaw.so.7.0
+   obj:/usr/X11R6/lib*/libXt.so.6.0
+}
+
+{
+   libX11.so.6.2/libX11.so.6.2/libXaw.so.7.0(Cond)
+   Memcheck:Cond
+   obj:/usr/X11R6/lib*/libX11.so.6.2
+   obj:/usr/X11R6/lib*/libX11.so.6.2
+   obj:/usr/X11R6/lib*/libXaw.so.7.0
+}
+
+{
+   libX11.so.6.2/libX11.so.6.2/libXaw.so.7.0(Addr4)
+   Memcheck:Addr4
+   obj:/usr/X11R6/lib*/libX11.so.6.2
+   obj:/usr/X11R6/lib*/libX11.so.6.2
+   obj:/usr/X11R6/lib*/libXaw.so.7.0
+}
+
+{
+   libX11.so.6.2/libXaw.so.7.0/libXaw.so.7.0(Cond)
+   Memcheck:Cond
+   obj:/usr/X11R6/lib*/libX11.so.6.2
+   obj:/usr/X11R6/lib*/libXaw.so.7.0
+   obj:/usr/X11R6/lib*/libXaw.so.7.0
+}
+
+{
+   libXpm.so.4.11/libXpm.so.4.11/libXpm.so.4.11
+   Memcheck:Cond
+   obj:/usr/X11R6/lib*/libXpm.so.4.11
+   obj:/usr/X11R6/lib*/libXpm.so.4.11
+   obj:/usr/X11R6/lib*/libXpm.so.4.11
+}
+
+{
+   struct with uninitialized paddings
+   Memcheck:Param
+   writev(vector[...])
+   fun:*_writev
+   fun:_X11TransSocketWritev
+   fun:_X11TransWritev
+   fun:*
+}
+
+{
+   struct with uninitialized paddings - libxcb
+   Memcheck:Param
+   writev(vector[...])
+   obj:/lib*/libc-2.6*.so
+   obj:/usr/lib*/libxcb.so.1.0.0
+   obj:/usr/lib*/libxcb.so.1.0.0
+   fun:xcb_send_request
+   fun:_X*
+}
+
+{
+   struct with uninitialized paddings - libxcb
+   Memcheck:Param
+   writev(vector[...])
+   obj:/lib*/libc-2.6*.so
+   obj:/usr/lib*/libxcb.so.1.0.0
+   obj:/usr/lib*/libxcb.so.1.0.0
+   obj:/usr/lib*/libxcb.so.1.0.0
+   fun:xcb_*
+   fun:_X*
+}
+
+{
+   another struct with uninitialized paddings
+   Memcheck:Param
+   write(buf)
+   obj:*
+   fun:_IceTransSocketWrite
+   fun:_IceTransWrite
+   fun:_IceWrite
+}
+
+{
+   Xorg 6.8.1 uninit _write* padding
+   Memcheck:Param
+   write(buf)
+   fun:*
+   fun:_X11TransWrite
+   obj:/usr/X11R6/lib*/libX11.so.6.2
+}
+
+{
+   Xorg 6.8.1 uninit write padding
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:_X11TransWrite
+   obj:/usr/X11R6/lib*/libX11.so.6.2
+}
+
+{
+   Xorg 6.8.1 ICE uninit __write* padding
+   Memcheck:Param
+   write(buf)
+   obj:*
+   fun:_IceTransWrite
+   fun:_IceWrite
+   fun:IceFlush
+}
+
+{
+   Xorg 6.8.1 writev uninit padding
+   Memcheck:Param
+   writev(vector[...])
+   fun:writev
+   obj:/usr/X11R6/lib*/libX11.so.6.2
+   fun:_X11TransWritev
+   fun:_XSend
+}
+
+{
+   Xorg 6.9.0 writev uninit padding
+   Memcheck:Param
+   writev(vector[...])
+   fun:do_writev
+   fun:writev
+   obj:/usr/X11R6/lib*/libX11.so.6.2
+   fun:_X11TransWritev
+   fun:_XSend
+}
+
+
+
+# There's something strange about a % 127 in XftFontOpenInfo
+# (hashing) which gcc turns into a multiply by 33818641 and
+# some other guff instead.  I don't understand it enough to
+# know if libXft is broken or if memcheck's value tracking is
+# inadequate here.  Anyway, for the moment, suppress it.
+#
+# Use of uninitialised value of size 8
+#   at 0x71A59F8: XftFontOpenInfo (in /usr/X11R6/lib64/libXft.so.2.1.2)
+#   by 0x71A5F0D: XftFontOpenPattern (in /usr/X11R6/lib64/libXft.so.2.1.2)
+#   by 0x65F166E: loadFontConfigFont(QFontPrivate const*, QFontDef const&, 
+#                 QFont::Script) (qfontdatabase_x11.cpp:1942)
+#   by 0x65F5DE4: QFontDatabase::findFont(QFont::Script, QFontPrivate const*,
+#                 QFontDef const&, int) (qfontdatabase.cpp:996)
+{
+   XftFontOpenInfo-umod-127-strangeness
+   Memcheck:Value8
+   obj:/usr/X11*/lib*/libXft.so*
+   obj:/usr/X11*/lib*/libXft.so*
+}
+{
+   XftFontOpenInfo-umod-127-strangeness-a-la-xorg
+   Memcheck:Value8
+   obj:/usr/lib*/libXft.so*
+   obj:/usr/lib*/libXft.so*
+}
+
+{
+   More X padding stuff
+   Memcheck:Param
+   writev(vector[...])
+   fun:*writev*
+   obj:/usr/X11*/lib*/libX11.so*
+   obj:/usr/X11*/lib*/libX11.so*
+}
+
+
+##----------------------------------------------------------------------##
+# Completely inappropriate place, but ...
+
+{
+   ifort-9.X-on-i686-1
+   Memcheck:Addr4
+   fun:unaligned_bigint
+   fun:hash
+   fun:for__add_to_lf_table
+}
+{
+   ifort-9.X-on-amd64-1
+   Memcheck:Addr8
+   fun:unaligned_bigint
+   fun:hash
+   fun:for__add_to_lf_table
+}
+
+##----------------------------------------------------------------------##
+
+##
+## Debian-specific suppressions
+##
+
+{
+   Debian libc6 (2.3.x) stripped dynamic linker
+   Memcheck:Cond
+   obj:/lib/ld-2.3.*.so
+   obj:/lib/ld-2.3.*.so
+   obj:/lib/ld-2.3.*.so
+   obj:/lib/ld-2.3.*.so
+   obj:/lib/ld-2.3.*.so
+}
+
+{
+   Debian libc6 (2.4.x) stripped dynamic linker 
+   Memcheck:Cond
+   obj:/lib/ld-2.4.so
+   obj:/lib/ld-2.4.so
+   obj:/lib/ld-2.4.so
+   obj:/lib/ld-2.4.so
+   obj:/lib/ld-2.4.so
+}
+
+{
+   Debian libc6 (2.5.x) stripped dynamic linker 
+   Memcheck:Cond
+   obj:/lib/ld-2.5.so
+   obj:/lib/ld-2.5.so
+   obj:/lib/ld-2.5.so
+   obj:/lib/ld-2.5.so
+   obj:/lib/ld-2.5.so
+}
+
+{
+   strchr/libc-2.3.2.so/_dl_catch_error(Cond)
+   Memcheck:Cond
+   fun:strchr
+   obj:*libc-2.3.2.so
+   fun:_dl_catch_error
+   obj:*libc-2.3.2.so
+}
+
+{
+    "Xlib does not zero out unused bytes in the protocol stream"; see http://keithp.com/~keithp/talks/usenix2003/html/net.html
+    Memcheck:Param
+    writev(vector[...])
+    fun:vgAllRoadsLeadToRome_writev
+    fun:__writev
+    obj:/usr/X11R6/lib/libX11.so.6.2
+    fun:_X11TransWritev
+}
+
+{
+   Debian_dlopen 
+   Memcheck:Cond
+   fun:_dl_relocate_object
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:__GI__dl_open
+}
+
+{
+   Debian_dlopen2
+   Memcheck:Addr1
+   obj:/lib/ld-2.3.2.so
+   fun:_dl_map_object
+   fun:dl_open_worker
+   fun:_dl_catch_error
+}
+
+{
+   Debian_dlopen3
+   Memcheck:Addr1
+   obj:/lib/ld-2.3.2.so
+   fun:_dl_map_object
+   obj:/lib/ld-2.3.2.so
+   fun:_dl_catch_error
+}
+{
+   Debian_dlopen4
+   Memcheck:Addr1
+   obj:/lib/ld-2.3.2.so
+   fun:_dl_check_map_versions
+   fun:dl_open_worker
+   fun:_dl_catch_error
+}
+{
+   Debian_gcc_supp
+   Memcheck:Addr4
+   obj:/lib/libgcc_s.so.1
+   fun:__dl_iterate_phdr
+   fun:_Unwind_Find_FDE
+   obj:/lib/libgcc_s.so.1
+}
+
+{
+   Debian zlib1g suppression
+   Memcheck:Cond
+   obj:/usr/lib/libz.so.1.2.2
+   obj:/usr/lib/libz.so.1.2.2
+   fun:deflate
+   fun:main
+}
+
+# Glib stores pointers in an integral type. Bug#231989
+{
+  glib type registry
+  Memcheck:Leak
+  fun:calloc
+  fun:g_malloc0
+  fun:type_node_any_new_W
+}
+
+{
+   Debian rpmatch (malloc) static allocations
+   Memcheck:Leak
+   fun:malloc
+   obj:/lib/tls/libc-2.3.6.so
+   obj:/lib/tls/libc-2.3.6.so
+   obj:/lib/tls/libc-2.3.6.so
+   obj:/lib/tls/libc-2.3.6.so
+   fun:regcomp
+   fun:rpmatch
+   fun:main
+}
+{
+   Debian rpmatch (malloc) static allocations
+   Memcheck:Leak
+   fun:malloc
+   obj:/lib/tls/libc-2.3.6.so
+   obj:/lib/tls/libc-2.3.6.so
+   obj:/lib/tls/libc-2.3.6.so
+   fun:regcomp
+   fun:rpmatch
+   fun:main
+}
+{
+   Debian rpmatch (malloc) static allocations
+   Memcheck:Leak
+   fun:malloc
+   obj:/lib/tls/libc-2.3.6.so
+   obj:/lib/tls/libc-2.3.6.so
+   fun:regcomp
+   fun:rpmatch
+   fun:main
+}
+{
+   Debian rpmatch (malloc) static allocations
+   Memcheck:Leak
+   fun:malloc
+   obj:/lib/tls/libc-2.3.6.so
+   fun:regcomp
+   fun:rpmatch
+   fun:main
+}
+
+{
+   Debian rpmatch (calloc) static allocations
+   Memcheck:Leak
+   fun:calloc
+   obj:/lib/tls/libc-2.3.6.so
+   obj:/lib/tls/libc-2.3.6.so
+   obj:/lib/tls/libc-2.3.6.so
+   obj:/lib/tls/libc-2.3.6.so
+   obj:/lib/tls/libc-2.3.6.so
+   fun:regcomp
+   fun:rpmatch
+   fun:main
+}
+{
+   Debian rpmatch (malloc) static allocations
+   Memcheck:Leak
+   fun:malloc
+   obj:/lib/tls/libc-2.3.6.so
+   fun:regcomp
+   fun:rpmatch
+   fun:main
+}
+{
+   Debian rpmatch (malloc) static allocations
+   Memcheck:Leak
+   fun:malloc
+   obj:/lib/tls/libc-2.3.6.so
+   fun:regcomp
+   fun:rpmatch
+   fun:main
+}
+{
+   Debian rpmatch (calloc) static allocations
+   Memcheck:Leak
+   fun:calloc
+   obj:/lib/tls/libc-2.3.6.so
+   fun:regcomp
+   fun:rpmatch
+   fun:main
+}
+{
+   Debian rpmatch (calloc) static allocations
+   Memcheck:Leak
+   fun:calloc
+   obj:/lib/tls/libc-2.3.6.so
+   obj:/lib/tls/libc-2.3.6.so
+   fun:regcomp
+   fun:rpmatch
+   fun:main
+}
+{
+   Debian rpmatch (malloc - realloc) static allocations
+   Memcheck:Leak
+   fun:malloc
+   fun:realloc
+   obj:/lib/tls/libc-2.3.6.so
+   fun:regcomp
+   fun:rpmatch
+   fun:main
+}
+{
+   Debian rpmatch (malloc) static allocations
+   Memcheck:Leak
+   fun:malloc
+   fun:regcomp
+   fun:rpmatch
+   fun:main
+}
+
+#
+# This is a valgrind suppression file that should be used when using python
+#
+# You must edit Objects/obmalloc.c and uncomment Py_USING_MEMORY_DEBUGGER
+# to use the preferred suppressions with Py_ADDRESS_IN_RANGE.
+#
+# If you do not want to recompile Python, you can uncomment
+# suppressions for PyObject_Free and PyObject_Realloc.
+#
+# See Misc/README.valgrind in the python source for more information.
+
+# all tool names: Addrcheck,Memcheck,cachegrind,helgrind,massif
+{
+   ADDRESS_IN_RANGE/Invalid read of size 4
+   Memcheck:Addr4
+   fun:Py_ADDRESS_IN_RANGE
+}
+
+{
+   ADDRESS_IN_RANGE/Invalid read of size 4
+   Memcheck:Value4
+   fun:Py_ADDRESS_IN_RANGE
+}
+
+{
+   ADDRESS_IN_RANGE/Conditional jump or move depends on uninitialised value
+   Memcheck:Cond
+   fun:Py_ADDRESS_IN_RANGE
+}
+
+###{
+###   ADDRESS_IN_RANGE/Invalid read of size 4
+###   Memcheck:Addr4
+###   fun:PyObject_Free
+###}
+###
+###{
+###   ADDRESS_IN_RANGE/Invalid read of size 4
+###   Memcheck:Value4
+###   fun:PyObject_Free
+###}
+###
+###{
+###   ADDRESS_IN_RANGE/Conditional jump or move depends on uninitialised value
+###   Memcheck:Cond
+###   fun:PyObject_Free
+###}
+
+###{
+###   ADDRESS_IN_RANGE/Invalid read of size 4
+###   Memcheck:Addr4
+###   fun:PyObject_Realloc
+###}
+###
+###{
+###   ADDRESS_IN_RANGE/Invalid read of size 4
+###   Memcheck:Value4
+###   fun:PyObject_Realloc
+###}
+###
+###{
+###   ADDRESS_IN_RANGE/Conditional jump or move depends on uninitialised value
+###   Memcheck:Cond
+###   fun:PyObject_Realloc
+###}
+
+###
+### All the suppressions below are for errors that occur within libraries
+### that Python uses.  The problems to not appear to be related to Python's
+### use of the libraries.
+###
+{
+   GDBM problems, see test_gdbm
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:gdbm_open
+
+}
+
+###
+### These occur from somewhere within the SSL, when running
+###  test_socket_sll.  They are too general to leave on by default.
+###
+###{
+###   somewhere in SSL stuff
+###   Memcheck:Cond
+###   fun:memset
+###}
+###{
+###   somewhere in SSL stuff
+###   Memcheck:Value4
+###   fun:memset
+###}
+###
+###{
+###   somewhere in SSL stuff
+###   Memcheck:Cond
+###   fun:MD5_Update
+###}
+###
+###{
+###   somewhere in SSL stuff
+###   Memcheck:Value4
+###   fun:MD5_Update
+###}
+
+#
+# All of these problems come from using test_socket_ssl
+#
+{
+   from test_socket_ssl
+   Memcheck:Cond
+   fun:BN_bin2bn
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Cond
+   fun:BN_num_bits_word
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Value4
+   fun:BN_num_bits_word
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Cond
+   fun:BN_mod_exp_mont_word
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Cond
+   fun:BN_mod_exp_mont
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Param
+   write(buf)
+   fun:write
+   obj:/usr/lib/libcrypto.so.0.9.7
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Cond
+   fun:RSA_verify
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Value4
+   fun:RSA_verify
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Value4
+   fun:DES_set_key_unchecked
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Value4
+   fun:DES_encrypt2
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Cond
+   obj:/usr/lib/libssl.so.0.9.7
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Value4
+   obj:/usr/lib/libssl.so.0.9.7
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Cond
+   fun:BUF_MEM_grow_clean
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Cond
+   fun:memcpy
+   fun:ssl3_read_bytes
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Cond
+   fun:SHA1_Update
+}
+
+{
+   from test_socket_ssl
+   Memcheck:Value4
+   fun:SHA1_Update
+}
+
+###
+### Added for openssl suppressions
+###
+
+{
+   cond_BN
+   Memcheck:Cond
+   fun:BN_*
+}
+
+{
+   value4_BN
+   Memcheck:Value4
+   fun:BN_*
+}
+
+{
+   cond_bn
+   Memcheck:Cond
+   fun:bn_*
+}
+
+{
+   value4_bn
+   Memcheck:Value4
+   fun:bn_*
+}
+
+{
+   cond_SHA1_Update
+   Memcheck:Cond
+   fun:SHA1_Update
+}
+
+{
+   value4_SHA1_Update
+   Memcheck:Value4
+   fun:SHA1_Update
+}
+
+{
+   cond_ssl3_read_bytes
+   Memcheck:Cond
+   fun:ssl3_read_bytes
+}
+
+{
+   cond_crypto
+   Memcheck:Cond
+   obj:/lib/libcrypto.so.*
+}
+
+{
+   value4_crypto
+   Memcheck:Value4
+   obj:/lib/libcrypto.so.*
+}
+
+{
+   cond_ssl
+   Memcheck:Cond
+   obj:/lib/libssl.so.*
+}
+
+{
+   value4_ssl
+   Memcheck:Value4
+   obj:/lib/libssl.so.*
+}
+
+{
+   addr4_AES_cbc_encrypt
+   Memcheck:Addr4
+   fun:AES_cbc_encrypt
+}
+
+{
+   cond_memcpy_ssl3_read_bytes
+   Memcheck:Cond
+   fun:memcpy
+   fun:ssl3_read_bytes
+}
+
+{
+   value4_memcpy_ssl3_read_bytes
+   Memcheck:Value4
+   fun:memcpy
+   fun:ssl3_read_bytes
+}
+
+{
+   cond_memset_BUF_MEM_grow_clean
+   Memcheck:Cond
+   fun:memset
+   fun:BUF_MEM_grow_clean
+}
+
+{
+   value4_memset_BUF_MEM_grow_clean
+   Memcheck:Value4
+   fun:memset
+   fun:BUF_MEM_grow_clean
+}
+
+{
+   SSL_get_ex_new_index
+   Memcheck:Leak
+   fun:malloc
+   obj:/lib/libcrypto.so.*
+   fun:CRYPTO_malloc
+   fun:lh_new
+   obj:/lib/libcrypto.so.*
+   obj:/lib/libcrypto.so.*
+   obj:/lib/libcrypto.so.*
+   fun:CRYPTO_get_ex_new_index
+   fun:SSL_get_ex_new_index
+   fun:ssl_set_mydata_index
+   fun:init_ssl_lib
+   fun:init_static
+   fun:main
+}
+
+{
+   CRYPTO_malloc
+   Memcheck:Leak
+   fun:CRYPTO_malloc
+   obj:/lib/libcrypto.so.*
+}
+
+{
+   cond_deflate
+   Memcheck:Cond
+   obj:/usr/lib/libz.so.*
+}
+
+{
+   param_pthread
+   Memcheck:Param
+   write(buf)
+   obj:/usr/lib/debug/libpthread-2.7.so
+}
+
+{
+   leak_gethostname
+   Memcheck:Leak
+   fun:malloc
+   obj:*
+   obj:*
+   fun:gethostbyname_r@@GLIBC_2.1.2
+}
+
+{
+   leak_cypto_malloc
+   Memcheck:Leak
+   fun:malloc
+   obj:*
+   obj:*
+   fun:CRYPTO_malloc
+}
+
+{
+   leak_cypto_malloc
+   Memcheck:Leak
+   fun:malloc
+   obj:/usr/lib/i686/cmov/libcrypto.so.0.9.8
+   fun:CRYPTO_malloc
+}
+
+{
+   leak_dlopen
+   Memcheck:Leak
+   fun:malloc
+   fun:_dl_map_object_deps
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@GLIBC_2.0
+}
