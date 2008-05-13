@@ -337,7 +337,6 @@ bool ConfigManager::isValidConfig(Config& config, Config& schema)
                   else
                   {
                      // check values
-                     Config d;
                      rval = isValidConfig(config[name], next);
                   }
                }
