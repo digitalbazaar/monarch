@@ -18,11 +18,15 @@ SUBDIRS := 3rdparty/cpp \
            validation/cpp \
            test/cpp
 
-ifdef PRINT_DIRECTORIES
-MAKE_DIR = $(MAKE) -j -l 5.0 -C $(dir)
-else
-MAKE_DIR = $(MAKE) -j -l 5.0 --no-print-directory -s -C $(dir)
+ifndef PRINT_DIRECTORIES
+PRINT_DIRECTORIES_OPTS = --no-print-directory -s
 endif
+ifdef PRINT_COMMANDS
+PRINT_COMMANDS_OPTS = PRINT_COMMANDS=$(PRINT_COMMANDS)
+endif
+
+MAKE_CMD = $(PRINT_COMMANDS_OPTS) $(MAKE) -j -l 5.0 $(PRINT_DIRECTORIES_OPTS)
+MAKE_DIR = $(PRINT_COMMANDS_OPTS) $(MAKE_CMD) -C $(dir)
 
 .PHONY: all verbose clean test internal-docs
 
@@ -45,6 +49,9 @@ internal-docs:
 
 verbose:
 	PRINT_DIRECTORIES=true $(MAKE) all
+
+verbose-commands:
+	PRINT_DIRECTORIES=true PRINT_COMMANDS=true $(MAKE) all
 
 valgrind:
 	LD_LIBRARY_PATH=@DBCOREDIR@/libs/linux \
