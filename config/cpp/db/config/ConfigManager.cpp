@@ -3,8 +3,13 @@
  */
 #include "db/config/ConfigManager.h"
 
+#include <sstream>
+
 #include "db/io/BufferedOutputStream.h"
+#include "db/data/json/JsonReader.h"
 #include "db/data/json/JsonWriter.h"
+#include "db/io/File.h"
+#include "db/io/FileInputStream.h"
 
 using namespace std;
 using namespace db::config;
@@ -14,6 +19,8 @@ using namespace db::io;
 using namespace db::rt;
 
 const char* ConfigManager::DEFAULT_VALUE = "__default__";
+const char* ConfigManager::INCLUDE = "__include__";
+const char* ConfigManager::INCLUDE_EXT = ".config";
 
 ConfigManager::ConfigManager()
 {
@@ -39,18 +46,95 @@ void ConfigManager::clear()
    unlock();
 }
 
-bool ConfigManager::addConfig(Config& config, ConfigType type, ConfigId* id)
+bool ConfigManager::addConfig(
+   Config& config, ConfigType type, ConfigId* id, bool include)
 {
    bool rval = true;
    
    lock();
    {
-      mConfigs.push_back(ConfigPair(config, type));
-      if(id != NULL)
+      if(include && config->hasMember(INCLUDE))
       {
-         *id = mConfigs.size() - 1;
+         ConfigIterator i = config[INCLUDE].getIterator();
+         while(rval && i->hasNext())
+         {
+            Config next = i->next();
+            rval = addConfig(next->getString(), Default, NULL, true);
+         }
       }
-      update();
+      if(rval)
+      {
+         mConfigs.push_back(ConfigPair(config, type));
+         if(id != NULL)
+         {
+            *id = mConfigs.size() - 1;
+         }
+         update();
+      }
+   }
+   unlock();
+   
+   return rval;
+}
+
+bool ConfigManager::addConfig(
+   const char* path, ConfigType type, ConfigId* id, bool include)
+{
+   bool rval = true;
+   
+   lock();
+   {
+      File file(path);
+      if(file.exists())
+      {
+         if(file.isFile())
+         {
+            FileInputStream is(&file, false);
+            JsonReader r;
+            Config cfg;
+            r.start(cfg);
+            rval = r.read(&is);
+            if(rval)
+            {
+               rval = r.finish();
+            }
+            if(rval)
+            {
+               addConfig(cfg, type, id, include);
+            }
+            if(!rval)
+            {
+               ostringstream oss;
+               oss << "Configuration file load failure: " << path << ".";
+               ExceptionRef e =
+                  new Exception(oss.str().c_str(), "db.config.ConfigFileError");
+               Exception::setLast(e, true);
+               rval = false;
+            }
+         }
+         else if(file.isDirectory())
+         {
+            // FIXME load all config files
+            // find all files with INCLUDE_EXT suffix
+            // ...
+            
+            // sort alphanumerically to allow NN-whatever.config ordering
+            // ...
+            
+            // load each in order as 
+            // while(rval && more files)
+            //    rval = addConfig(path, Default, NULL, include)
+         }
+      }
+      else
+      {
+         ostringstream oss;
+         oss << "Configuration file not found: " << path << ".";
+         ExceptionRef e =
+            new Exception(oss.str().c_str(), "db.config.FileNotFound");
+         Exception::setLast(e, false);
+         rval = false;
+      }
    }
    unlock();
    
