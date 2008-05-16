@@ -105,7 +105,7 @@ HttpResponse* HttpClient::get(Url* url, const char** headers)
    {
       // set request header
       mRequest->getHeader()->setMethod("GET");
-      mRequest->getHeader()->setPath(url->getPath().c_str());
+      mRequest->getHeader()->setPath(url->getPathAndQuery().c_str());
       mRequest->getHeader()->setVersion("HTTP/1.1");
       mRequest->getHeader()->clearFields();
       mRequest->getHeader()->setField("Host", url->getAuthority());
@@ -135,7 +135,7 @@ HttpResponse* HttpClient::post(
    {
       // set request header
       mRequest->getHeader()->setMethod("POST");
-      mRequest->getHeader()->setPath(url->getPath().c_str());
+      mRequest->getHeader()->setPath(url->getPathAndQuery().c_str());
       mRequest->getHeader()->setVersion("HTTP/1.1");
       mRequest->getHeader()->clearFields();
       mRequest->getHeader()->setField("Host", url->getAuthority());

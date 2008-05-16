@@ -338,9 +338,9 @@ bool Url::getQueryVariables(DynamicObject& vars)
    return rval;
 }
 
-string& Url::getPathAndQuery(string& str)
+string Url::getPathAndQuery()
 {
-   str.assign(mPath);
+   string str = mPath;
    if(mQuery.length() > 0)
    {
       str.push_back('?');

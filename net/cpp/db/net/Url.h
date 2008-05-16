@@ -226,7 +226,7 @@ public:
     * 
     * @return the full path of this url or a blank string.
     */
-   virtual std::string& getPathAndQuery(std::string& str);
+   virtual std::string getPathAndQuery();
    
    /**
     * Convenience method to get the host of this url (not including

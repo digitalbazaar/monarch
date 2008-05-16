@@ -96,7 +96,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
       }
       else
       {
-         // determine determine object type from element name
+         // determine object type from element name
          DynamicObjectType dot = tagNameToType(name);
          mTypeStack.push_front(dot);
          
