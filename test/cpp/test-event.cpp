@@ -13,6 +13,8 @@
 #include "db/event/Observable.h"
 #include "db/event/ObserverDelegate.h"
 #include "db/event/EventController.h"
+#include "db/event/EventWaiter.h"
+#include "db/rt/Runnable.h"
 
 using namespace std;
 using namespace db::test;
@@ -245,6 +247,99 @@ void runEventControllerTest(TestRunner& tr)
    tr.pass();
 }
 
+#define DBTDONE "db.test.done"
+class TestEventTrigger : public virtual Object, public Runnable
+{
+public:
+   int mSleepMS;
+   EventController *mEC;
+   
+   TestEventTrigger(EventController* ec)
+   {
+      mEC = ec;
+      mSleepMS = -1;
+   }
+   
+   virtual ~TestEventTrigger()
+   {
+   }
+   
+   virtual void run()
+   {
+      // wait a bit
+      if(mSleepMS >= 0)
+      {
+         Thread::sleep(mSleepMS);
+      }
+      
+      Event e;
+      e["type"] = DBTDONE;
+      mEC->schedule(e);
+   }
+};
+
+void runEventWaiterTest(TestRunner& tr)
+{
+   tr.group("EventWaiter");
+   
+   // create kernel and start engine
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create event controller
+   EventController ec;
+   
+   // start event controller
+   ec.start(&k);
+
+   tr.test("quick fire");
+   {
+      // create a waiter, start, and wait
+      EventWaiter ew(&ec);
+      ew.start(DBTDONE);
+      
+      // create a thread to post event
+      TestEventTrigger trigger(&ec);
+      Thread t(&trigger);
+      t.start();
+      
+      bool gotev = ew.waitForEvent();
+      // pass if we get past with event
+      assert(gotev);
+      // stop to unreg event
+      ew.stop();
+   }
+   tr.pass();
+   
+   tr.test("delay fire");
+   {
+      // create a waiter, start, and wait
+      EventWaiter ew(&ec);
+      ew.start(DBTDONE);
+      
+      // create a thread to post event
+      TestEventTrigger trigger(&ec);
+      trigger.mSleepMS = 1000;
+      Thread t(&trigger);
+      t.start();
+      
+      bool gotev = ew.waitForEvent();
+      // pass if we get past with event
+      assert(gotev);
+      // stop to unreg event
+      ew.stop();
+   }
+   tr.pass();
+
+   // stop event controller
+   ec.stop();
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   tr.ungroup();
+}
+
 class DbEventTester : public db::test::Tester
 {
 public:
@@ -261,6 +356,7 @@ public:
       runEventTest(tr);
       runObserverDelegateTest(tr);
       runEventControllerTest(tr);
+      runEventWaiterTest(tr);
       return 0;
    }
 
