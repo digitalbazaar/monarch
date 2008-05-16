@@ -96,17 +96,24 @@ ifndef MAKE_CLEAN_ACTIVE
 endif
 endif
 
+ifdef PRINT_COMMANDS
+PCMD=
+else
+PCMD=@
+endif
+
+
 $(ALL_DIRECTORIES):
 	mkdir -p $@
 
 ifeq ($(BUILD_FOR_LINUX),yes)
 $(LINUX_LIBRARY_SOURCES):
-	@mkdir -p $(dir $@)
-	@ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+	$(PCMD) mkdir -p $(dir $@)
+	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 ifdef EXECUTABLES
 $(LINUX_EXECUTABLE_SOURCES):
-	@mkdir -p $(dir $@)
-	@ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+	$(PCMD) mkdir -p $(dir $@)
+	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 endif
 endif
 
@@ -114,36 +121,36 @@ clean: clean-libraries clean-objects
 
 clean-objects:
 ifeq ($(BUILD_FOR_LINUX),yes)
-	@rm -rf $(LINUX_BUILD_DIR)
+	$(PCMD) rm -rf $(LINUX_BUILD_DIR)
 endif
 ifeq ($(BUILD_FOR_WINDOWS),yes)
-	@rm -rf $(WINDOWS_BUILD_DIR)
+	$(PCMD) rm -rf $(WINDOWS_BUILD_DIR)
 endif
 
 clean-libraries:
 ifeq ($(BUILD_FOR_LINUX),yes)
-	@rm -rf $(LINUX_DIST_DIR)
+	$(PCMD) rm -rf $(LINUX_DIST_DIR)
 endif
 ifeq ($(BUILD_FOR_WINDOWS),yes)
-	@rm -rf $(WINDOWS_DIST_DIR)
+	$(PCMD) rm -rf $(WINDOWS_DIST_DIR)
 endif
 
 ifeq ($(BUILD_FOR_WINDOWS),yes)
 $(WINDOWS_LIBRARY_SOURCES):
-	@mkdir -p $(dir $@)
-	@ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+	$(PCMD) mkdir -p $(dir $@)
+	$(PCMD) ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 ifdef EXECUTABLES
 $(WINDOWS_EXECUTABLE_SOURCES):
-	@mkdir -p $(dir $@)
-	@ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+	$(PCMD) mkdir -p $(dir $@)
+	$(PCMD) ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 endif
 endif
 
 ifeq ($(BUILD_FOR_LINUX),yes)
 %-linux.o %-linux.P: %.cpp
 	@echo "Building $(basename $@).o..."
-	@$(LINUX_CXX) $(LINUX_CXX_FLAGS) -c -MD -o $(basename $@).o $(LINUX_INCLUDES) -I. $<
-	@cp $(basename $@).d $(basename $@).P; \
+	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) -c -MD -o $(basename $@).o $(LINUX_INCLUDES) -I. $<
+	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 endif
@@ -151,37 +158,37 @@ endif
 ifeq ($(BUILD_FOR_WINDOWS),yes)
 %-windows.o %-windows.P: %.cpp
 	@echo "Building $(basename $@).o..."
-	@$(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -c -MD -o $(basename $@).o $(WINDOWS_INCLUDES) -I. $<
-	@cp $(basename $@).d $(basename $@).P; \
+	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -c -MD -o $(basename $@).o $(WINDOWS_INCLUDES) -I. $<
+	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 endif
 
 %.so: $(LINUX_LIBRARY_OBJECTS)
 	@echo "Building $@..."
-	@$(LINUX_CXX) $(LINUX_LIBS) -shared -o $@ $(LINUX_LIBRARY_OBJECTS) $(DYNAMIC_LINK_LIBRARIES:%=-l%)
-	@mkdir -p $(LINUX_LIB_DIR)
-	@ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
+	$(PCMD) $(LINUX_CXX) $(LINUX_LIBS) -shared -o $@ $(LINUX_LIBRARY_OBJECTS) $(DYNAMIC_LINK_LIBRARIES:%=-l%)
+	$(PCMD) mkdir -p $(LINUX_LIB_DIR)
+	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
 
 %.dll: $(WINDOWS_LIBRARY_OBJECTS)
 	@echo "Building $@..."
-	@$(WINDOWS_DLLWRAP) $(WINDOWS_DLLWRAP_FLAGS) $(WINDOWS_LIBS) --output-def $(@:.dll=.def) --implib $(@:.dll=.lib) -o $@ $^ $(DYNAMIC_WINDOWS_LIBRARIES:%=$(WINDOWS_LIB_DIR)/%.dll) $(EXTRA_WINDOWS_LIBRARIES)
-	@mkdir -p $(WINDOWS_LIB_DIR)
-	@ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
+	$(PCMD) $(WINDOWS_DLLWRAP) $(WINDOWS_DLLWRAP_FLAGS) $(WINDOWS_LIBS) --output-def $(@:.dll=.def) --implib $(@:.dll=.lib) -o $@ $^ $(DYNAMIC_WINDOWS_LIBRARIES:%=$(WINDOWS_LIB_DIR)/%.dll) $(EXTRA_WINDOWS_LIBRARIES)
+	$(PCMD) mkdir -p $(WINDOWS_LIB_DIR)
+	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
 
 #ifeq ($(BUILD_FOR_LINUX),yes)
 #%.a: $(LINUX_LIBRARY_OBJECTS)
 #	@echo "Building $@..."
-#	@$(LINUX_AR) $(AR_FLAGS) $@ $(LINUX_LIBRARY_OBJECTS)
-#	@mkdir -p $(LINUX_LIB_DIR)
-#	@ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
+#	$(PCMD) $(LINUX_AR) $(AR_FLAGS) $@ $(LINUX_LIBRARY_OBJECTS)
+#	$(PCMD) mkdir -p $(LINUX_LIB_DIR)
+#	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
 #endif
 
 %.lib: $(WINDOWS_LIBRARY_OBJECTS)
 	@echo "Building $@..."
-	@$(WINDOWS_AR) $(AR_FLAGS) $@ $(WINDOWS_LIBRARY_OBJECTS)
-	@mkdir -p $(WINDOWS_LIB_DIR)
-	@ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
+	$(PCMD) $(WINDOWS_AR) $(AR_FLAGS) $@ $(WINDOWS_LIBRARY_OBJECTS)
+	$(PCMD) mkdir -p $(WINDOWS_LIB_DIR)
+	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
 
 ifdef EXECUTABLES
 ifeq ($(BUILD_FOR_LINUX),yes)
@@ -189,7 +196,7 @@ ifeq ($(BUILD_FOR_LINUX),yes)
 #	# This is a fake target to override the default .a build
 $(LINUX_EXECUTABLES): $(LINUX_LIBRARY_SOURCES) $(LINUX_EXECUTABLE_SOURCES) $(LINUX_EXECUTABLE_OBJECTS) $(STATIC_LINUX_LIBRARIES)
 	@echo "Building $(@F)..."
-	@$(LINUX_CXX) $(LINUX_CXX_FLAGS) -L$(LINUX_LIB_DIR) -o $@ $(LINUX_BUILD_DIR)/$(@F)-linux.o $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
+	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) -L$(LINUX_LIB_DIR) -o $@ $(LINUX_BUILD_DIR)/$(@F)-linux.o $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
 endif
 
 ifeq ($(BUILD_FOR_WINDOWS),yes)
@@ -197,7 +204,7 @@ $(STATIC_WINDOWS_LIBRARIES):
 	# This is a fake target to override the default .lib build
 $(WINDOWS_EXECUTABLES): $(WINDOWS_LIBRARY_SOURCES) $(WINDOWS_EXECUTABLE_SOURCES) $(WINDOWS_EXECUTABLE_OBJECTS) $(STATIC_WINDOWS_LIBRARIES)
 	@echo "Building $(@F)..."
-	@$(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -L$(WINDOWS_LIB_DIR) -o $@ $(WINDOWS_BUILD_DIR)/$(@F)-windows.o $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
+	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -L$(WINDOWS_LIB_DIR) -o $@ $(WINDOWS_BUILD_DIR)/$(@F)-windows.o $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
 endif
 endif
 

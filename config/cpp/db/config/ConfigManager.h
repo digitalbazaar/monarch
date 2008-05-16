@@ -116,10 +116,21 @@ public:
    typedef std::string::size_type ConfigId;
    
    /**
-    * Magic value in config files to inherit default value when merging.
+    * Magic value in config objects to inherit default value when merging.
     * Useful for arrays.
     */
    static const char* DEFAULT_VALUE;
+   
+   /**
+    * Magic key in config objects to specify a list of config files or
+    * directories to include before this object.
+    */
+   static const char* INCLUDE;
+   
+   /**
+    * Extension of files to load if an include directive is a directory.
+    */
+   static const char* INCLUDE_EXT;
    
    /**
     * Check if a configuration has all values and types from a template
@@ -155,16 +166,35 @@ public:
    virtual void clear();
    
    /**
-    * Adds a configuration.
+    * Adds a configuration.  The special key "__include__" can be used
+    * to provide an array of files or directories of files to load if the
+    * include parameter is true.  Note that there is currently no way to
+    * get the ConfigId for included files.
     * 
     * @param config the Config to add.
     * @param type the type of Config.
     * @param id the location to store the id of the new Config or NULL.
+    * @param include process include directives.
     * 
     * @return true if successful, false if an exception occurred.
     */
    virtual bool addConfig(
-      Config& config, ConfigType type = Default, ConfigId* id = NULL);
+      Config& config, ConfigType type = Default, ConfigId* id = NULL,
+      bool include = true);
+   
+   /**
+    * Adds a configuration file or directory of files with addConfig().
+    * 
+    * @param path the file or directory of files to parse and add.
+    * @param type the type of Config.
+    * @param id the location to store the id of the new Config or NULL.
+    * @param include process include directives.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool addConfig(
+      const char* path, ConfigType type = Default, ConfigId* id = NULL,
+      bool include = true);
    
    /**
     * Removes a configuration.
