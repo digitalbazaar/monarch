@@ -339,6 +339,52 @@ bool File::normalizePath(File* path, string& normalizedPath)
    return normalizePath(path->getName(), normalizedPath);
 }
 
+bool File::expandUser(File* path, string& expandedPath)
+{
+   bool rval = true;
+   const char* name = path->getName();
+   size_t namelen = 0;
+   
+   if(name != NULL)
+   {
+      namelen = strlen(name);
+   }
+   
+   if(namelen > 0 && name[0] == '~')
+   {
+      // FIXME add getpwnam support
+      // only handle current user right now
+      if(namelen > 1 && name[1] != '/')
+      {
+         ExceptionRef e = new Exception(
+            "db::io::File::expandUser only supports current user (ie, \"~/...\").");
+         Exception::setLast(e, false);
+         rval = false;
+      }
+      else
+      {
+         const char* home = getenv("HOME");
+         if(home != NULL)
+         {
+            // add HOME
+            expandedPath.assign(home);
+            // add rest of path
+            expandedPath.append(name+1);
+         }
+         else
+         {
+            // no HOME set
+            ExceptionRef e = new Exception(
+               "db::io::File::expandUser called without HOME set.");
+            Exception::setLast(e, false);
+            rval = false;
+         }
+      }
+   }
+
+   return rval;
+}
+
 bool File::getCurrentWorkingDirectory(string& cwd)
 {
    bool rval = true;

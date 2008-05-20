@@ -399,6 +399,45 @@ void runFileTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
+   tr.test("expandUser");
+   {
+      const char* oldHOME = getenv("HOME");
+      
+      setenv("HOME", "/home/test", 1);
+      string path;
+
+      path.clear();
+      File u0("~");
+      assert(File::expandUser(&u0, path));
+      assertStrCmp(path.c_str(), "/home/test");
+
+      path.clear();
+      File u1("~/");
+      assert(File::expandUser(&u1, path));
+      assertStrCmp(path.c_str(), "/home/test/");
+
+      path.clear();
+      File u2("~/foo.txt");
+      assert(File::expandUser(&u2, path));
+      assertStrCmp(path.c_str(), "/home/test/foo.txt");
+
+      path.clear();
+      File u3("~user/foo.txt");
+      assert(!File::expandUser(&u3, path));
+      assertException();
+      Exception::clearLast();
+      
+      unsetenv("HOME");
+      path.clear();
+      File u4("~/");
+      assert(!File::expandUser(&u4, path));
+      assertException();
+      Exception::clearLast();
+      
+      setenv("HOME", oldHOME, 1);
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 

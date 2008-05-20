@@ -230,6 +230,20 @@ public:
    static bool normalizePath(File* path, std::string& normalizedPath);
    
    /**
+    * Expand "~" at the beginning of a path into the current user.  Will fail
+    * if "HOME" is not set in the environment.
+    * NOTE: Currently only handles current user.
+    * 
+    * @param path the path to expand specified by the given file.
+    * @param expandedPath the expanded path will be placed into this 
+    *                       variable.
+    * 
+    * @return true if the expansion was successful, false if an Exception
+    *         occurred.
+    */
+   static bool expandUser(File* path, std::string& expandedPath);
+   
+   /**
     * Gets the current working directory. 
     *
     * @param cwd the string that will be updated with the current working
