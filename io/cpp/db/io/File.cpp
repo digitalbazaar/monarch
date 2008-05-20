@@ -381,6 +381,10 @@ bool File::expandUser(File* path, string& expandedPath)
          }
       }
    }
+   else
+   {
+      expandedPath.assign(name);
+   }
 
    return rval;
 }
