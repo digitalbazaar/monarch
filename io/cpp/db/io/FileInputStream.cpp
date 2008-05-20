@@ -36,14 +36,35 @@ bool FileInputStream::ensureOpen()
    // try to open the file
    if(!mStream.is_open())
    {
-      mStream.open(mFile->getName(), ios::in | ios::binary);
-      if(!mStream.is_open())
+      if(!mFile->exists())
       {
          rval = false;
-         char temp[strlen(mFile->getName()) + 30];
-         sprintf(temp, "Could not open file '%s'!", mFile->getName());
+         char temp[strlen(mFile->getName()) + 60];
+         sprintf(temp, "Could not open file '%s'! File does not exist.",
+            mFile->getName());
          ExceptionRef e = new IOException(temp);
          Exception::setLast(e, false);
+      }
+      else if(!mFile->isReadable())
+      {
+         rval = false;
+         char temp[strlen(mFile->getName()) + 60];
+         sprintf(temp, "Could not open file '%s'! Access denied.",
+            mFile->getName());
+         ExceptionRef e = new IOException(temp);
+         Exception::setLast(e, false);
+      }
+      else
+      {
+         mStream.open(mFile->getName(), ios::in | ios::binary);
+         if(!mStream.is_open())
+         {
+            rval = false;
+            char temp[strlen(mFile->getName()) + 30];
+            sprintf(temp, "Could not open file '%s'!", mFile->getName());
+            ExceptionRef e = new IOException(temp);
+            Exception::setLast(e, false);
+         }
       }
    }
    
