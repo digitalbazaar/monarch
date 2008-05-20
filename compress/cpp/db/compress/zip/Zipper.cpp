@@ -312,7 +312,7 @@ bool Zipper::write(char* b, int length, OutputStream* os)
    mDeflater.setInput(b, length, false);
    
    // process all input and write it to the output stream
-   while(rval && mDeflater.process(&mBuffer, true) > 0)
+   while(rval && mDeflater.process(&mBuffer, false) > 0)
    {
       // ensure data is written to output stream
       rval = (mBuffer.get(os) > 0);
