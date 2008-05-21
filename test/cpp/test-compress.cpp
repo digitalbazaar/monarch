@@ -268,6 +268,46 @@ void runGzipTest(TestRunner& tr)
       assert(testFile.getLength() == out.getLength());
    }
    tr.passIfNoException();
+#if 0
+   tr.test("gzip mp3");
+   {
+      string filename = "/tmp/bmtestfile.mp3";
+      File file(filename.c_str());
+      if(!file.exists())
+      {
+         string temp = filename;
+         temp.append(" does not exist, not running test!");
+         tr.warning(temp.c_str());
+      }
+      else
+      {
+         FileInputStream fis(&file, false);
+         File out("/tmp/bmtestfile.gz");
+         FileOutputStream fos(&out, false);
+         
+         // create gzipper, buffer
+         Gzipper gzipper;
+         char b[2048];
+         int numBytes;
+         
+         // start compression
+         gzipper.startCompressing();
+         assertNoException();
+         
+         // do compression
+         MutatorOutputStream mos(&fos, false, &gzipper, false);
+         while((numBytes = fis.read(b, 512)) > 0)
+         {
+            mos.write(b, numBytes);
+         }
+         
+         // close streams
+         fis.close();
+         mos.close();
+      }
+   }
+   tr.passIfNoException();
+#endif
    
    tr.ungroup();
 }
@@ -331,6 +371,53 @@ void runZipTest(TestRunner& tr)
       zipper.zip(&fl, &out);
    }
    tr.passIfNoException();
+#if 0
+   tr.test("zip mp3");
+   {
+      string filename = "/tmp/bmtestfile.mp3";
+      File file(filename.c_str());
+      if(!file.exists())
+      {
+         string temp = filename;
+         temp.append(" does not exist, not running test!");
+         tr.warning(temp.c_str());
+      }
+      else
+      {
+         FileInputStream fis(&file, false);
+         File out("/tmp/bmtestfile.zip");
+         FileOutputStream fos(&out, false);
+         
+         // create zipper, buffer
+         Zipper zipper;
+         char b[2048];
+         int numBytes;
+         
+         // create zip entry, set file name
+         ZipEntry ze;
+         ze->setFilename("bmtestfile-unzipped.mp3");
+         
+         // write entry
+         if(zipper.writeEntry(ze, &fos))
+         {
+            // write data for entry
+            bool success = true;
+            while(success && (numBytes = fis.read(b, 2048)) > 0)
+            {
+               success = zipper.write(b, numBytes, &fos);
+            }
+         }
+         
+         // close input stream
+         fis.close();
+         
+         // finish zip archive, close output stream
+         zipper.finish(&fos);
+         fos.close();
+      }
+   }
+   tr.passIfNoException();
+#endif
    
    tr.ungroup();
 }
