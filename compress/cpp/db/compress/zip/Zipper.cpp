@@ -76,7 +76,7 @@ bool Zipper::zip(FileList* fl, File* out)
       ze->setFilename(file->getName());
       
       // write entry
-      if((rval = writeEntry(ze, &fos)))
+      if(rval = writeEntry(ze, &fos))
       {
          // write data for entry
          FileInputStream fis(file);
@@ -219,9 +219,8 @@ bool Zipper::finishCurrentEntry(OutputStream* os)
       
       // write out any remaining deflated data
       mDeflater.setInput(NULL, 0, true);
-      mBuffer.clear();
-      mDeflater.process(&mBuffer, true);
-      if(!mBuffer.isEmpty())
+      while(rval && (mDeflater.process(&mBuffer, false) > 0 ||
+            mBuffer.isFull()))
       {
          // ensure data is written to output stream
          rval = (mBuffer.get(os) > 0);
@@ -312,7 +311,7 @@ bool Zipper::write(char* b, int length, OutputStream* os)
    mDeflater.setInput(b, length, false);
    
    // process all input and write it to the output stream
-   while(rval && mDeflater.process(&mBuffer, false) > 0)
+   while(rval && (mDeflater.process(&mBuffer, false) > 0 || mBuffer.isFull()))
    {
       // ensure data is written to output stream
       rval = (mBuffer.get(os) > 0);
