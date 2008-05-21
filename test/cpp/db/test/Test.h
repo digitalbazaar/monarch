@@ -60,7 +60,7 @@ void dynamicObjectToStream(
  * Dump DynamicObject details as JSON.
  *
  * @param dyno DynamicObject to dump.
- * @param dyno DynamicObject to dump.
+ * @param str string to write to.
  * @param compact Use compact syntax
  */
 void dynamicObjectToString(
