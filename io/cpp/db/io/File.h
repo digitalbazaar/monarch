@@ -234,14 +234,14 @@ public:
     * if "HOME" is not set in the environment.
     * NOTE: Currently only handles current user.
     * 
-    * @param path the path to expand specified by the given file.
+    * @param path the path to expand specified by the given path.
     * @param expandedPath the expanded path will be placed into this 
     *                       variable.
     * 
     * @return true if the expansion was successful, false if an Exception
     *         occurred.
     */
-   static bool expandUser(File* path, std::string& expandedPath);
+   static bool expandUser(const char* path, std::string& expandedPath);
    
    /**
     * Gets the current working directory. 
@@ -271,6 +271,38 @@ public:
     * @return true if the passed path is writable, false if not.
     */
    static bool isPathWritable(const char* path);
+
+   /**
+    * Split a path into the head (dirname) and tail (basename).
+    * dirname is everything up to the final path separator.  If path ends in
+    * a path separtor basename will be empty.  If there is no path separtor in
+    * the path dirname will be empty.  Trailing separators are stripped from
+    * dirname unless it is the root.
+    * 
+    * @param path the path to split.
+    * @param dirname a string to fill with the dirname.
+    * @param basename a string to fill with the basename.
+    */
+   static void split(
+      const char* path, std::string& dirname, std::string& basename);
+   
+   /**
+    * Convienience to get dirname from split().
+    * 
+    * @param path the path to split.
+    * 
+    * @return the dirname of path.
+    */
+   static std::string dirname(const char* path);
+
+   /**
+    * Convienience to get basename from split().
+    * 
+    * @param path the path to split.
+    * 
+    * @return the basename of path.
+    */
+   static std::string basename(const char* path);
 };
 
 } // end namespace io

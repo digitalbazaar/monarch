@@ -407,8 +407,7 @@ void runFileTest(TestRunner& tr)
       unsetenv("HOME");
       {
          path.clear();
-         File f("~/");
-         assert(!File::expandUser(&f, path));
+         assert(!File::expandUser("~/", path));
          assertException();
          Exception::clearLast();
       }
@@ -417,70 +416,122 @@ void runFileTest(TestRunner& tr)
 
       {
          path.clear();
-         File f("~");
-         assert(File::expandUser(&f, path));
+         assert(File::expandUser("~", path));
          assertStrCmp(path.c_str(), "/home/test");
       }
 
       {
          path.clear();
-         File f("~/");
-         assert(File::expandUser(&f, path));
+         assert(File::expandUser("~/", path));
          assertStrCmp(path.c_str(), "/home/test/");
       }
 
       {
          path.clear();
-         File f("~/foo.txt");
-         assert(File::expandUser(&f, path));
+         assert(File::expandUser("~/foo.txt", path));
          assertStrCmp(path.c_str(), "/home/test/foo.txt");
       }
 
       {
          path.clear();
-         File f("~user/foo.txt");
-         assert(!File::expandUser(&f, path));
+         assert(!File::expandUser("~user/foo.txt", path));
          assertException();
          Exception::clearLast();
       }
       
       {
          path.clear();
-         File f("~user/foo.txt");
-         assert(!File::expandUser(&f, path));
+         assert(!File::expandUser("~user/foo.txt", path));
          assertException();
          Exception::clearLast();
       }
 
       {
          path.clear();
-         File f("/root/path");
-         assert(File::expandUser(&f, path));
+         assert(File::expandUser("/root/path", path));
          assertStrCmp(path.c_str(), "/root/path");
       }
 
       {
          path.clear();
-         File f("rel/path");
-         assert(File::expandUser(&f, path));
+         assert(File::expandUser("rel/path", path));
          assertStrCmp(path.c_str(), "rel/path");
       }
 
       {
          path.clear();
-         File f("");
-         assert(File::expandUser(&f, path));
+         assert(File::expandUser("", path));
          assertStrCmp(path.c_str(), "");
       }
 
       {
          path.clear();
-         File f(".");
-         assert(File::expandUser(&f, path));
+         assert(File::expandUser(".", path));
          assertStrCmp(path.c_str(), ".");
       }
 
       setenv("HOME", oldHOME, 1);
+   }
+   tr.passIfNoException();
+
+   tr.test("split,dir,base");
+   {
+      {
+         string dir, base;
+         File::split("", dir, base);
+         assertStrCmp(dir.c_str(), "");
+         assertStrCmp(base.c_str(), "");
+      }
+
+      {
+         string dir, base;
+         File::split("/", dir, base);
+         assertStrCmp(dir.c_str(), "/");
+         assertStrCmp(base.c_str(), "");
+      }
+
+      {
+         string dir, base;
+         File::split("base", dir, base);
+         assertStrCmp(dir.c_str(), "");
+         assertStrCmp(base.c_str(), "base");
+      }
+
+      {
+         string dir, base;
+         File::split("/base", dir, base);
+         assertStrCmp(dir.c_str(), "/");
+         assertStrCmp(base.c_str(), "base");
+      }
+
+      {
+         string dir, base;
+         File::split("/dir/", dir, base);
+         assertStrCmp(dir.c_str(), "/dir");
+         assertStrCmp(base.c_str(), "");
+      }
+
+      {
+         string dir, base;
+         File::split("/dir/base", dir, base);
+         assertStrCmp(dir.c_str(), "/dir");
+         assertStrCmp(base.c_str(), "base");
+      }
+
+      {
+         string dir, base;
+         File::split("/dir1/dir2/base", dir, base);
+         assertStrCmp(dir.c_str(), "/dir1/dir2");
+         assertStrCmp(base.c_str(), "base");
+      }
+
+      {
+         assertStrCmp(File::dirname("/dir1/dir2/base").c_str(), "/dir1/dir2");
+      }
+
+      {
+         assertStrCmp(File::basename("/dir1/dir2/base").c_str(), "base");
+      }
    }
    tr.passIfNoException();
 

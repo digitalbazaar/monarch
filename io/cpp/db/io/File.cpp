@@ -339,22 +339,21 @@ bool File::normalizePath(File* path, string& normalizedPath)
    return normalizePath(path->getName(), normalizedPath);
 }
 
-bool File::expandUser(File* path, string& expandedPath)
+bool File::expandUser(const char* path, string& expandedPath)
 {
    bool rval = true;
-   const char* name = path->getName();
-   size_t namelen = 0;
+   size_t pathlen = 0;
    
-   if(name != NULL)
+   if(path != NULL)
    {
-      namelen = strlen(name);
+      pathlen = strlen(path);
    }
    
-   if(namelen > 0 && name[0] == '~')
+   if(pathlen > 0 && path[0] == '~')
    {
       // FIXME add getpwnam support
       // only handle current user right now
-      if(namelen > 1 && name[1] != '/')
+      if(pathlen > 1 && path[1] != '/')
       {
          ExceptionRef e = new Exception(
             "db::io::File::expandUser only supports current user (ie, \"~/...\").");
@@ -369,7 +368,7 @@ bool File::expandUser(File* path, string& expandedPath)
             // add HOME
             expandedPath.assign(home);
             // add rest of path
-            expandedPath.append(name+1);
+            expandedPath.append(path+1);
          }
          else
          {
@@ -383,7 +382,7 @@ bool File::expandUser(File* path, string& expandedPath)
    }
    else
    {
-      expandedPath.assign(name);
+      expandedPath.assign(path);
    }
 
    return rval;
@@ -419,4 +418,37 @@ bool File::isPathReadable(const char* path)
 bool File::isPathWritable(const char* path)
 {
    return (access(path, W_OK) == 0);
+}
+
+void File::split(const char* path, string& dirname, string& basename)
+{
+   // FIXME: support non-posix paths
+   string sPath = path;
+   string::size_type pos = sPath.rfind('/') + 1;
+   dirname.assign(sPath.substr(0, pos));
+   basename.assign(sPath.substr(pos));
+   if(dirname.length() > 0 && dirname != "/")
+   {
+      dirname.erase(dirname.find_last_not_of("/") + 1);
+   }
+}
+
+string File::dirname(const char* path)
+{
+   string dirname;
+   string basename;
+   
+   File::split(path, dirname, basename);
+   
+   return dirname;
+}
+
+string File::basename(const char* path)
+{
+   string dirname;
+   string basename;
+   
+   File::split(path, dirname, basename);
+   
+   return basename;
 }
