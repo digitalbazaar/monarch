@@ -4,11 +4,14 @@
 #include "db/config/ConfigManager.h"
 
 #include <sstream>
+#include <algorithm>
+#include <vector>
 
 #include "db/io/BufferedOutputStream.h"
 #include "db/data/json/JsonReader.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/io/File.h"
+#include "db/io/FileList.h"
 #include "db/io/FileInputStream.h"
 
 using namespace std;
@@ -84,56 +87,90 @@ bool ConfigManager::addConfig(
    
    lock();
    {
-      File file(path);
-      if(file.exists())
+      string fullpath;
+      rval = File::expandUser(path, fullpath);
+      if(rval)
       {
-         if(file.isFile())
+         File file(fullpath.c_str());
+         if(file.exists())
          {
-            FileInputStream is(&file, false);
-            JsonReader r;
-            Config cfg;
-            r.start(cfg);
-            rval = r.read(&is);
-            if(rval)
+            if(file.isFile())
             {
-               rval = r.finish();
+               FileInputStream is(&file, false);
+               JsonReader r;
+               Config cfg;
+               r.start(cfg);
+               rval = r.read(&is);
+               if(rval)
+               {
+                  rval = r.finish();
+               }
+               if(rval)
+               {
+                  rval = addConfig(cfg, type, id, include);
+               }
+               if(!rval)
+               {
+                  ostringstream oss;
+                  oss << "Configuration file load failure: " << path << ".";
+                  ExceptionRef e =
+                     new Exception(oss.str().c_str(), "db.config.ConfigFileError");
+                  e->getDetails()["path"] = path;
+                  Exception::setLast(e, true);
+                  rval = false;
+               }
             }
-            if(rval)
+            else if(file.isDirectory())
             {
-               addConfig(cfg, type, id, include);
+               // FIXME load all config files
+               // get all the files in the directory
+               FileList list(true);
+               file.listFiles(&list);
+   
+               // find all files with INCLUDE_EXT suffix
+               vector<const char*> configFiles;
+               db::rt::Iterator<File*>* i = list.getIterator();
+               while(i->hasNext())
+               {
+                  File* f = i->next();
+                  string name = f->getName();
+                  if(name.rfind(INCLUDE_EXT) ==
+                     (name.length() - strlen(INCLUDE_EXT)))
+                  {
+                     configFiles.push_back(f->getName());
+                  }
+               }
+               
+               // sort alphanumerically to allow NN-whatever.config ordering
+               sort(configFiles.begin(), configFiles.end(), strcmp);
+               
+               // load each in order as
+               for(vector<const char*>::iterator i = configFiles.begin();
+                  rval && i != configFiles.end();
+                  i++)
+               {
+                  rval = addConfig(*i, Default, NULL, include);
+               }
             }
-            if(!rval)
+            else
             {
-               ostringstream oss;
-               oss << "Configuration file load failure: " << path << ".";
                ExceptionRef e =
-                  new Exception(oss.str().c_str(), "db.config.ConfigFileError");
-               Exception::setLast(e, true);
+                  new Exception(
+                     "Unknown configuration file type.", "db.config.FileNotFound");
+               Exception::setLast(e, false);
                rval = false;
             }
          }
-         else if(file.isDirectory())
+         else
          {
-            // FIXME load all config files
-            // find all files with INCLUDE_EXT suffix
-            // ...
-            
-            // sort alphanumerically to allow NN-whatever.config ordering
-            // ...
-            
-            // load each in order as 
-            // while(rval && more files)
-            //    rval = addConfig(path, Default, NULL, include)
+            ostringstream oss;
+            oss << "Configuration file not found: " << path << ".";
+            ExceptionRef e =
+               new Exception(oss.str().c_str(), "db.config.FileNotFound");
+            e->getDetails()["path"] = path;
+            Exception::setLast(e, false);
+            rval = false;
          }
-      }
-      else
-      {
-         ostringstream oss;
-         oss << "Configuration file not found: " << path << ".";
-         ExceptionRef e =
-            new Exception(oss.str().c_str(), "db.config.FileNotFound");
-         Exception::setLast(e, false);
-         rval = false;
       }
    }
    unlock();
