@@ -175,12 +175,14 @@ public:
     * @param type the type of Config.
     * @param id the location to store the id of the new Config or NULL.
     * @param include process include directives.
+    * @param dir directory of this config used for processing relative includes
+    *        or NULL.
     * 
     * @return true if successful, false if an exception occurred.
     */
    virtual bool addConfig(
       Config& config, ConfigType type = Default, ConfigId* id = NULL,
-      bool include = true);
+      bool include = true, const char* dir = NULL);
    
    /**
     * Adds a configuration file or directory of files with addConfig().
@@ -189,12 +191,14 @@ public:
     * @param type the type of Config.
     * @param id the location to store the id of the new Config or NULL.
     * @param include process include directives.
+    * @param dir directory of this config used for processing relative includes
+    *        or NULL.
     * 
     * @return true if successful, false if an exception occurred.
     */
    virtual bool addConfig(
       const char* path, ConfigType type = Default, ConfigId* id = NULL,
-      bool include = true);
+      bool include = true, const char* dir = NULL);
    
    /**
     * Removes a configuration.

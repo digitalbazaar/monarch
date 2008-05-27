@@ -50,7 +50,7 @@ void ConfigManager::clear()
 }
 
 bool ConfigManager::addConfig(
-   Config& config, ConfigType type, ConfigId* id, bool include)
+   Config& config, ConfigType type, ConfigId* id, bool include, const char* dir)
 {
    bool rval = true;
    
@@ -62,7 +62,7 @@ bool ConfigManager::addConfig(
          while(rval && i->hasNext())
          {
             Config next = i->next();
-            rval = addConfig(next->getString(), Default, NULL, true);
+            rval = addConfig(next->getString(), Default, NULL, true, dir);
          }
       }
       if(rval)
@@ -81,17 +81,29 @@ bool ConfigManager::addConfig(
 }
 
 bool ConfigManager::addConfig(
-   const char* path, ConfigType type, ConfigId* id, bool include)
+   const char* path, ConfigType type, ConfigId* id, bool include,
+   const char* dir)
 {
    bool rval = true;
    
    lock();
    {
-      string fullpath;
-      rval = File::expandUser(path, fullpath);
+      string userPath;
+      rval = File::expandUser(path, userPath);
       if(rval)
       {
-         File file(fullpath.c_str());
+         string fullPath;
+         // if dir set and expanded user dir not absolute, build a full path
+         if(dir && !File::isPathAbsolute(userPath.c_str()))
+         {
+            fullPath.assign(File::join(dir, userPath.c_str(), NULL));
+         }
+         else
+         {
+            fullPath.assign(userPath);
+         }
+         
+         File file(fullPath.c_str());
          if(file.exists())
          {
             if(file.isFile())
@@ -107,7 +119,8 @@ bool ConfigManager::addConfig(
                }
                if(rval)
                {
-                  rval = addConfig(cfg, type, id, include);
+                  string dirname = File::dirname(fullPath.c_str());
+                  rval = addConfig(cfg, type, id, include, dirname.c_str());
                }
                if(!rval)
                {
@@ -128,7 +141,7 @@ bool ConfigManager::addConfig(
                file.listFiles(&list);
    
                // find all files with INCLUDE_EXT suffix
-               vector<const char*> configFiles;
+               vector<string> configFiles;
                db::rt::Iterator<File*>* i = list.getIterator();
                while(i->hasNext())
                {
@@ -137,19 +150,20 @@ bool ConfigManager::addConfig(
                   if(name.rfind(INCLUDE_EXT) ==
                      (name.length() - strlen(INCLUDE_EXT)))
                   {
-                     configFiles.push_back(f->getName());
+                     configFiles.push_back(File::basename(f->getName()));
                   }
                }
                
                // sort alphanumerically to allow NN-whatever.config ordering
-               sort(configFiles.begin(), configFiles.end(), strcmp);
+               sort(configFiles.begin(), configFiles.end());
                
                // load each in order as
-               for(vector<const char*>::iterator i = configFiles.begin();
+               for(vector<string>::iterator i = configFiles.begin();
                   rval && i != configFiles.end();
                   i++)
                {
-                  rval = addConfig(*i, Default, NULL, include);
+                  rval = addConfig(
+                     (*i).c_str(), Default, NULL, include, file.getName());
                }
             }
             else
