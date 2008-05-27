@@ -513,8 +513,22 @@ void runFileTest(TestRunner& tr)
 
       {
          string dir, base;
+         File::split("dir/", dir, base);
+         assertStrCmp(dir.c_str(), "dir");
+         assertStrCmp(base.c_str(), "");
+      }
+
+      {
+         string dir, base;
          File::split("/dir/base", dir, base);
          assertStrCmp(dir.c_str(), "/dir");
+         assertStrCmp(base.c_str(), "base");
+      }
+
+      {
+         string dir, base;
+         File::split("dir/base", dir, base);
+         assertStrCmp(dir.c_str(), "dir");
          assertStrCmp(base.c_str(), "base");
       }
 
@@ -531,6 +545,50 @@ void runFileTest(TestRunner& tr)
 
       {
          assertStrCmp(File::basename("/dir1/dir2/base").c_str(), "base");
+      }
+   }
+   tr.passIfNoException();
+
+   tr.test("isPathAbsolute");
+   {
+      assert(File::isPathAbsolute("/"));
+      assert(File::isPathAbsolute("/x"));
+      assert(!File::isPathAbsolute(NULL));
+      assert(!File::isPathAbsolute(""));
+      assert(!File::isPathAbsolute("x"));
+   }
+   tr.passIfNoException();
+
+   tr.test("join");
+   {
+      {
+         string path = File::join(NULL);
+         assertStrCmp(path.c_str(), "");
+      }
+      
+      {
+         string path = File::join("", NULL);
+         assertStrCmp(path.c_str(), "");
+      }
+      
+      {
+         string path = File::join("/", NULL);
+         assertStrCmp(path.c_str(), "/");
+      }
+      
+      {
+         string path = File::join("a", NULL);
+         assertStrCmp(path.c_str(), "a");
+      }
+      
+      {
+         string path = File::join("a", "b", NULL);
+         assertStrCmp(path.c_str(), "a/b");
+      }
+      
+      {
+         string path = File::join("/", "a", "b", NULL);
+         assertStrCmp(path.c_str(), "/a/b");
       }
    }
    tr.passIfNoException();

@@ -6,6 +6,7 @@
 #include "db/io/FileList.h"
 #include "db/util/StringTokenizer.h"
 
+#include <stdarg.h>
 #include <sys/stat.h>
 #include <dirent.h>
 
@@ -451,4 +452,40 @@ string File::basename(const char* path)
    File::split(path, dirname, basename);
    
    return basename;
+}
+
+bool File::isPathAbsolute(const char* path)
+{
+   // FIXME: support non-posix paths.
+   return path != NULL && strlen(path) > 0 && path[0] == '/';
+}
+
+string File::join(const char* component, ...)
+{
+   string path;
+   const char* comp = component;
+   va_list varargs;
+   
+   va_start(varargs, component);
+   while(comp != NULL)
+   {
+      // FIXME: support non-posix paths.
+      if(strlen(comp) > 0 && comp[0] == '/')
+      {
+         path.assign(comp);
+      }
+      else if(path.length() == 0 || path[path.length() - 1] == '/')
+      {
+         path.append(comp);
+      }
+      else
+      {
+         path.push_back('/');
+         path.append(comp);
+      }
+      comp = va_arg(varargs, const char*);
+   }
+   va_end(varargs);
+   
+   return path;
 }

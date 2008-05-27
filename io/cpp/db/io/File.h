@@ -303,6 +303,24 @@ public:
     * @return the basename of path.
     */
    static std::string basename(const char* path);
+
+   /**
+    * Check if a path is absolute or relative.
+    * 
+    * @param path the path to examine.
+    * 
+    * @return true if absolute, false if relative.
+    */
+   static bool isPathAbsolute(const char* path);
+
+   /**
+    * Join path components with path separators.
+    * 
+    * @param part NULL terminated list of path component arguments.
+    * 
+    * @return true if absolute, false if relative.
+    */
+   static std::string join(const char* component, ...);
 };
 
 } // end namespace io
