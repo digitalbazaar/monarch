@@ -149,7 +149,7 @@ endif
 ifeq ($(BUILD_FOR_LINUX),yes)
 %-linux.o %-linux.P: %.cpp
 	@echo "Building $(basename $@).o..."
-	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) -c -MD -o $(basename $@).o $(LINUX_INCLUDES) -I. $<
+	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) -c -MD -o $(basename $@).o $(LINUX_INCLUDES) -I. $(realpath $<)
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
