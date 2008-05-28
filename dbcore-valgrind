@@ -1,0 +1,9 @@
+#!/bin/sh
+# Run a DB Core app in valigrind
+
+./dbcore-run valgrind \
+	--suppressions=dbcore.supp \
+	--show-reachable=yes \
+	--tool=memcheck \
+	--leak-check=full \
+	"$@"
