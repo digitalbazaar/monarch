@@ -11,6 +11,7 @@ BUILD_FOR_WINDOWS=@BUILD_FOR_WINDOWS@
 AR_FLAGS = cr
 DBCORE = @DBCOREDIR@
 INCLUDES = \
+	-I$(DBCORE)/app/cpp \
 	-I$(DBCORE)/compress/cpp \
 	-I$(DBCORE)/config/cpp \
 	-I$(DBCORE)/crypto/cpp \

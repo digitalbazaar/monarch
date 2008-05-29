@@ -11,7 +11,7 @@
 
 namespace db
 {
-namespace util
+namespace app
 {
 
 /**
@@ -303,9 +303,9 @@ int main(int argc, const char* argv[]) \
  * @param delegateClassName class name of an AppDelegate subclass.
  */
 #define DB_DELEGATE_MAIN(delegateClassName) \
-   DB_APP_DELEGATE_MAIN(db::util::App, delegateClassName)
+   DB_APP_DELEGATE_MAIN(db::app::App, delegateClassName)
 
-   } // end namespace util
+} // end namespace app
 } // end namespace db
 
 #endif

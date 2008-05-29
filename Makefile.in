@@ -16,6 +16,7 @@ SUBDIRS := 3rdparty/cpp \
            sphinx/cpp \
            sql/cpp \
            validation/cpp \
+           app/cpp \
            test/cpp
 
 ifndef PRINT_DIRECTORIES

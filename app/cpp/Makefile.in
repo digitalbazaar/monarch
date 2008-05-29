@@ -1,0 +1,9 @@
+# Makefile to compile the module in this directory
+
+SOURCES = $(wildcard db/app/*.cpp)
+LIBRARIES = dbapp
+DYNAMIC_LINK_LIBRARIES = dbrt dblogging dbio dbdata
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
+

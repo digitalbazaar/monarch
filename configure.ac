@@ -97,10 +97,9 @@ AC_SUBST(JAVADOC)
 
 # Generating files
 AC_CONFIG_FILES([
-          Makefile
           3rdparty/cpp/Makefile
-          setup/Makefile.base
-          setup/docs.doxygen
+          Makefile
+          app/cpp/Makefile
           compress/cpp/Makefile
           config/cpp/Makefile
           crypto/cpp/Makefile
@@ -112,6 +111,8 @@ AC_CONFIG_FILES([
           modest/cpp/Makefile
           net/cpp/Makefile
           rt/cpp/Makefile
+          setup/Makefile.base
+          setup/docs.doxygen
           sphinx/cpp/Makefile
           sql/cpp/Makefile
           test/cpp/Makefile

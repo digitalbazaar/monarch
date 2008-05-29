@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/util/App.h"
+#include "db/app/App.h"
 
 // openssl includes
 #include <openssl/ssl.h>
@@ -22,11 +22,11 @@
 #include "db/io/OStreamOutputStream.h"
 
 using namespace std;
+using namespace db::app;
 using namespace db::data::json;
 using namespace db::logging;
 using namespace db::io;
 using namespace db::rt;
-using namespace db::util;
 
 App::App()
 {

@@ -10,7 +10,7 @@
 #include "db/test/TestRunner.h"
 #include "db/rt/DynamicObject.h"
 #include "db/rt/DynamicObjectIterator.h"
-#include "db/util/App.h"
+#include "db/app/App.h"
 
 namespace db
 {
@@ -37,7 +37,7 @@ namespace test
  * 
  * Author: David I. Lehn
  */
-class Tester : public db::util::AppDelegate
+class Tester : public db::app::AppDelegate
 {
 protected:
    /**
@@ -129,7 +129,7 @@ public:
    /**
     * Run all tests and set exit status.
     */
-   virtual void run(db::util::App* app);
+   virtual void run(db::app::App* app);
 };
 
 /**

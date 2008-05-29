@@ -19,9 +19,9 @@
 #include "db/rt/Thread.h"
 
 using namespace std;
+using namespace db::app;
 using namespace db::rt;
 using namespace db::test;
-using namespace db::util;
 
 Tester::Tester()
 {
