@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_PublicKey_H
 #define db_crypto_PublicKey_H
@@ -86,6 +86,9 @@ public:
     */
    virtual DigitalSignature* createSignature();
 };
+
+// typedef for a reference-counted PublicKey
+typedef db::rt::Collectable<PublicKey> PublicKeyRef;
 
 } // end namespace crypto
 } // end namespace db
