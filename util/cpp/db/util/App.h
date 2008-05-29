@@ -7,10 +7,84 @@
 #include "db/rt/Runnable.h"
 #include "db/rt/Exception.h"
 
+#include <vector>
+
 namespace db
 {
 namespace util
 {
+
+/**
+ * Forward declaration.
+ */
+class App;
+
+/**
+ * Delegate interface for an application.
+ * 
+ * Author: David I. Lehn
+ */
+class AppDelegate : public virtual db::rt::Object
+{
+public:
+   /**
+    * Create an AppDelegate instance.
+    */
+   AppDelegate();
+   
+   /**
+    * Deconstruct this AppDelegate instance.
+    */
+   virtual ~AppDelegate();
+   
+   /**
+    * Run all tests and set mExitStatus.
+    */
+   virtual void run(App* app);
+   
+   /**
+    * Called before the default App processes the command line arguments.
+    * AppDelegates may use this hook to process arguments in a read-only mode.
+    * 
+    * This hook should be used if a delegate needs to processes arguments that
+    * may be removed by the default App.
+    * 
+    * @param app the App.
+    * @param args read-only vector of command line arguments.
+    * 
+    * @return true on success, false on failure and exception set
+    */
+   virtual bool willParseCommandLine(App* app, std::vector<const char*>* args);
+
+   /**
+    * Called after the default App processes the command line arguments.
+    * AppDelegates may use this hook to process arguments in a read-write mode.
+    * 
+    * This hook should be used for general delegate argument processing.
+    * 
+    * @param app the App.
+    * @param args read-write vector of command line paramters.
+    * 
+    * @return true on success, false on failure and exception set
+    */
+   virtual bool didParseCommandLine(App* app, std::vector<const char*>* args);
+
+   /**
+    * Called after App::initializeLogging()
+    * 
+    * @param app the App.
+    */
+   virtual void didInitializeLogging(App* app);
+   
+   /**
+    * Called before App::cleanupLogging()
+    * 
+    * @param app the App.
+    */
+   virtual void willCleanupLogging(App* app);
+};
+
+class AppDelegate;
 
 /**
  * Top-level class to make running applications easier.
@@ -36,9 +110,17 @@ namespace util
  * 
  * Author: David I. Lehn
  */
-class App : public virtual db::rt::Object, public db::rt::Runnable
+class App :
+   public virtual db::rt::Object,
+   public db::rt::Runnable,
+   public AppDelegate
 {
 protected:
+   /**
+    * Delegate for this application.
+    */
+   AppDelegate* mDelegate;
+   
    /**
     * Program name for this App.  Taken from the command line args.
     */
@@ -64,6 +146,11 @@ protected:
     */
    void printException();
    
+   /**
+    * Command line arguments converted to a mutable vector.
+    */
+   std::vector<const char*> mCommandLineArgs;
+   
 public:
    /**
     * Create an App instance.
@@ -75,6 +162,20 @@ public:
     */
    virtual ~App();
    
+   /**
+    * Set the app delegate.
+    * 
+    * @param delegate the app delegate.
+    */
+   virtual void setDelegate(AppDelegate* delegate);
+
+   /**
+    * Get the app delegate.
+    * 
+    * @return the app delegate.
+    */
+   virtual AppDelegate* getDelegate();
+
    /**
     * Set the program name.
     * 
@@ -132,7 +233,7 @@ public:
     * 
     * @return true on success, false on failure and exception set
     */
-   virtual bool parseCommandLine(int argc, const char* argv[]);
+   virtual bool parseCommandLine(std::vector<const char*>* args);
 
    /**
     * Initialize OpenSSL.
@@ -166,7 +267,26 @@ public:
 };
 
 /**
- * Macro to ease defining and calling App::main().
+ * Macro to call main on a custom App and a custom AppDelegate.
+ * 
+ * @param appClassName class name of an App subclass.
+ * @param delegateClassName class name of an AppDelegate subclass.
+ */
+#define DB_APP_DELEGATE_MAIN(appClassName, delegateClassName) \
+int main(int argc, const char* argv[])                        \
+{                                                             \
+   int rval;                                                  \
+   appClassName app;                                          \
+   delegateClassName delegate;                                \
+   app.setDelegate(&delegate);                                \
+   rval = app.main(argc, argv);                               \
+   return rval;                                               \
+}
+
+/**
+ * Macro to call main on a custom App with no delegate.
+ * 
+ * @param appClassName class name of an App subclass.
  */
 #define DB_APP_MAIN(appClassName)      \
 int main(int argc, const char* argv[]) \
@@ -177,7 +297,15 @@ int main(int argc, const char* argv[]) \
    return rval;                        \
 }
 
-} // end namespace util
+/**
+ * Macro to call main on a db::util::App and a custom AppDelegate.
+ * 
+ * @param delegateClassName class name of an AppDelegate subclass.
+ */
+#define DB_DELEGATE_MAIN(delegateClassName) \
+   DB_APP_DELEGATE_MAIN(db::util::App, delegateClassName)
+
+   } // end namespace util
 } // end namespace db
 
 #endif

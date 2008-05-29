@@ -21,10 +21,10 @@
 using namespace std;
 using namespace db::rt;
 using namespace db::test;
+using namespace db::util;
 
 Tester::Tester()
 {
-   mExitStatus = 0;
    mName = NULL;
    setName("");
 }
@@ -114,69 +114,13 @@ int Tester::runTests(TestRunner& tr)
    return rval;
 }
 
-void Tester::run()
+void Tester::run(App* app)
 {
    TestRunner tr(true, TestRunner::Names);
    
-   mExitStatus = runTests(tr);
+   int exitStatus = runTests(tr);
+   app->setExitStatus(exitStatus);
    assertNoException();
    
    tr.done();
-}
-
-void Tester::loggingInitialize()
-{
-}
-
-void Tester::loggingCleanup()
-{
-}
-
-int Tester::main(int argc, const char* argv[])
-{
-   // initialize winsock
-   #ifdef WIN32
-      WSADATA wsaData;
-      if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
-      {
-         cout << "ERROR! Could not initialize winsock!" << endl;
-      }
-   #endif
-   
-   // openssl initialization code
-   ERR_load_crypto_strings();
-   SSL_library_init();
-   SSL_load_error_strings();
-   OpenSSL_add_all_algorithms();
-   
-   loggingInitialize();
-   
-   Thread t(this);
-   t.start(131072);
-   t.join();
-   
-   loggingCleanup();
-   
-   // clean up openssl
-   ERR_remove_state(0);
-   ENGINE_cleanup();
-   ERR_free_strings();
-   EVP_cleanup();
-   CRYPTO_cleanup_all_ex_data();
-   
-   // cleanup winsock
-   #ifdef WIN32
-      WSACleanup();
-   #endif
-   
-   ExceptionRef e = new Exception("Main thread exception leak test");
-   Exception::setLast(e, false);
-   
-   #ifndef WIN32
-   // FIXME: calling Thread::exit() on windows causes a busy loop of
-   // some sort (perhaps a deadlock spin lock)
-   Thread::exit();
-   #endif
-   
-   return mExitStatus;
 }

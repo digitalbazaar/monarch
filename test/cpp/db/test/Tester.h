@@ -10,6 +10,7 @@
 #include "db/test/TestRunner.h"
 #include "db/rt/DynamicObject.h"
 #include "db/rt/DynamicObjectIterator.h"
+#include "db/util/App.h"
 
 namespace db
 {
@@ -36,7 +37,7 @@ namespace test
  * 
  * Author: David I. Lehn
  */
-class Tester : public virtual db::rt::Object, public db::rt::Runnable
+class Tester : public db::util::AppDelegate
 {
 protected:
    /**
@@ -58,11 +59,6 @@ protected:
     * Run interactive tests in runInteractiveTests().
     */
    static const int DB_TEST_INTERACTIVE = 1 << 1;
-
-   /**
-    * Exit status to use for all tests.
-    */  
-   int mExitStatus;
 
    /**
     * Sub-Testers to run.
@@ -131,43 +127,16 @@ public:
    virtual int runTests(db::test::TestRunner& tr);
    
    /**
-    * Run all tests and set mExitStatus.
+    * Run all tests and set exit status.
     */
-   virtual void run();
-   
-   /**
-    * Initialize logging.
-    */
-   virtual void loggingInitialize();
-   
-   /**
-    * Cleanup logging.
-    */
-   virtual void loggingCleanup();
-   
-   /**
-    * Run all tests.
-    * 
-    * @param argc number of command line arguments.
-    * @param argv command line arguments.
-    * 
-    * @return exit status. 0 for success.
-    */
-   virtual int main(int argc, const char* argv[]);
+   virtual void run(db::util::App* app);
 };
 
 /**
- * Macro to ease defining and calling Tester::main().
+ * Macro to ease defining and starting a Tester.
  * NOTE: Surround this macro with #ifndef DB_TEST_NO_MAIN ... #endif.
  */
-#define DB_TEST_MAIN(testClassName)    \
-int main(int argc, const char* argv[]) \
-{                                      \
-   int rval;                           \
-   testClassName tester;               \
-   rval = tester.main(argc, argv);     \
-   return rval;                        \
-}
+#define DB_TEST_MAIN(testClassName) DB_DELEGATE_MAIN(testClassName)
 
 } // end namespace test
 } // end namespace db

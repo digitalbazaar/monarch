@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 #include "db/logging/Logging.h"
 #include "db/rt/Exception.h"
@@ -34,6 +35,7 @@ App::App()
    setProgramName("(unknown)");
    mName = NULL;
    setName("(unknown)");
+   mDelegate = this;
 }
 
 App::~App()
@@ -96,6 +98,16 @@ void App::printException()
    printException(e);
 }
 
+void App::setDelegate(AppDelegate* delegate)
+{
+   mDelegate = (delegate != NULL) ? delegate : this;
+}
+
+AppDelegate* App::getDelegate()
+{
+   return mDelegate;
+}
+
 void App::setProgramName(const char* name)
 {
    if(mProgramName)
@@ -136,9 +148,13 @@ int App::getExitStatus()
 
 void App::run()
 {
+   if(mDelegate != this)
+   {
+      mDelegate->run(this);
+   }
 }
 
-bool App::parseCommandLine(int argc, const char* argv[])
+bool App::parseCommandLine(vector<const char*>* args)
 {
    return true;
 }
@@ -172,8 +188,16 @@ void App::cleanupLogging()
 
 int App::main(int argc, const char* argv[])
 {
-   setProgramName(argv[0]); 
-   if(!parseCommandLine(argc, argv))
+   // Make command line vector
+   for(int i = 0; i < argc; i++)
+   {
+      mCommandLineArgs.push_back(argv[i]);
+   }
+   
+   setProgramName(mCommandLineArgs[0]);
+   if(!(mDelegate->willParseCommandLine(this, &mCommandLineArgs) &&
+      parseCommandLine(&mCommandLineArgs) &&
+      mDelegate->didParseCommandLine(this, &mCommandLineArgs)))
    {
       printException();
       exit(EXIT_FAILURE);
@@ -211,3 +235,23 @@ int App::main(int argc, const char* argv[])
    
    return mExitStatus;
 }
+
+AppDelegate::AppDelegate() {}
+   
+AppDelegate::~AppDelegate() {}
+   
+void AppDelegate::run(App* app) {}
+   
+bool AppDelegate::willParseCommandLine(App* app, vector<const char*>* args)
+{
+   return true;
+}
+
+bool AppDelegate::didParseCommandLine(App* app, vector<const char*>* args)
+{
+   return true;
+}
+
+void AppDelegate::didInitializeLogging(App* app) {}
+   
+void AppDelegate::willCleanupLogging(App* app) {}
