@@ -5,7 +5,6 @@
 #define db_net_BandwidthThrottler_H
 
 #include "db/rt/Object.h"
-#include "db/rt/InterruptedException.h"
 
 namespace db
 {
@@ -132,7 +131,7 @@ public:
     * @param permitted set to the number of bytes permitted to send.
     * 
     * @return false if the thread this throttler is waiting on gets
-    *         interrupted (with an InterruptedException set), true otherwise.
+    *         interrupted (with an Exception set), true otherwise.
     */
    bool requestBytes(unsigned int count, int& permitted);
    

@@ -222,16 +222,16 @@ bool Thread::isAlive()
    return mAlive;
 }
 
-InterruptedException* Thread::createInterruptedException()
+Exception* Thread::createInterruptedException()
 {
-   InterruptedException* rval = NULL;
+   Exception* rval = NULL;
    
    unsigned int length = (getName() == NULL) ? 0 : strlen(getName());
    length = 8 + length + 13 + 1;
    char msg[length];
    snprintf(msg, length, "Thread '%s' interrupted",
       (getName() == NULL) ? "" : getName());
-   rval = new InterruptedException(msg);
+   rval = new Exception(msg, "db.rt.Interrupted");
    
    return rval;
 }
