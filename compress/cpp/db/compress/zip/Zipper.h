@@ -266,7 +266,7 @@ public:
     * 
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool zip(db::io::FileList* fl, db::io::File* out);
+   virtual bool zip(db::io::FileList& fl, db::io::File& out);
    
    /**
     * Writes a new ZipEntry.

@@ -1146,8 +1146,8 @@ void runServerSslConnectionTest()
    SslContext context("TLS", false);
    File certFile("/etc/apache2/ssl/www.bitmunk.com.crt");
    File pkeyFile("/etc/apache2/ssl/www.bitmunk.com.key");
-   context.setCertificate(&certFile);
-   context.setPrivateKey(&pkeyFile);
+   context.setCertificate(certFile);
+   context.setPrivateKey(pkeyFile);
    
    // create SSL-only service
    TestConnectionServicer1 tcs1;
@@ -1526,11 +1526,11 @@ void runHttpClientGetTest()
             // receive content
             HttpTrailer trailer;
             File file("/tmp/index.html");
-            FileOutputStream fos(&file);
+            FileOutputStream fos(file);
             if(client.receiveContent(&fos, &trailer))
             {
                cout << "Content downloaded to '" <<
-                  file.getName() << "'" << endl;
+                  file->getName() << "'" << endl;
                
                cout << "HTTP trailers=\n" << trailer.toString() << endl;
             }
@@ -1585,11 +1585,11 @@ void runHttpClientPostTest()
             // receive content
             trailer.clearFields();
             File file("/tmp/postresponse.txt");
-            FileOutputStream fos(&file);
+            FileOutputStream fos(file);
             if(client.receiveContent(&fos, &trailer))
             {
                cout << "Content downloaded to '" <<
-                  file.getName() << "'" << endl;
+                  file->getName() << "'" << endl;
                
                cout << "HTTP trailers=\n" << trailer.toString() << endl;
             }
@@ -1717,7 +1717,7 @@ void runPingTest()
    Url url("http://localhost:19100");
    HttpTrailer trailer;
    File file("/tmp/index.html");
-   FileOutputStream fos(&file);
+   FileOutputStream fos(file);
    HttpClient client;
    
    unsigned long long start = System::getCurrentMilliseconds();

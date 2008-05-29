@@ -52,7 +52,7 @@ Zipper::~Zipper()
 {
 }
 
-bool Zipper::zip(FileList* fl, File* out)
+bool Zipper::zip(FileList& fl, File& out)
 {
    bool rval = true;
    
@@ -66,10 +66,10 @@ bool Zipper::zip(FileList* fl, File* out)
    // create zip entries and write them out
    char b[2048];
    int numBytes;
-   IteratorRef<File*> i = fl->getIterator();
+   IteratorRef<File> i = fl->getIterator();
    while(rval && i->hasNext())
    {
-      File* file = i->next();
+      File& file = i->next();
       
       // create entry, set file name
       ZipEntry ze;

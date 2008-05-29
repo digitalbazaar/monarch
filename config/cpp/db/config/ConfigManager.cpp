@@ -104,11 +104,11 @@ bool ConfigManager::addConfig(
          }
          
          File file(fullPath.c_str());
-         if(file.exists())
+         if(file->exists())
          {
-            if(file.isFile())
+            if(file->isFile())
             {
-               FileInputStream is(&file, false);
+               FileInputStream is(file);
                JsonReader r;
                Config cfg;
                r.start(cfg);
@@ -133,19 +133,19 @@ bool ConfigManager::addConfig(
                   rval = false;
                }
             }
-            else if(file.isDirectory())
+            else if(file->isDirectory())
             {
                // FIXME load all config files
                // get all the files in the directory
-               FileList list(true);
-               file.listFiles(&list);
+               FileList list;
+               file->listFiles(list);
    
                // find all files with INCLUDE_EXT suffix
                vector<string> configFiles;
-               db::rt::IteratorRef<File*> i = list.getIterator();
+               db::rt::IteratorRef<File> i = list->getIterator();
                while(i->hasNext())
                {
-                  File* f = i->next();
+                  File& f = i->next();
                   string name = f->getName();
                   if(name.rfind(INCLUDE_EXT) ==
                      (name.length() - strlen(INCLUDE_EXT)))
@@ -163,7 +163,7 @@ bool ConfigManager::addConfig(
                   i++)
                {
                   rval = addConfig(
-                     (*i).c_str(), Default, NULL, include, file.getName());
+                     (*i).c_str(), Default, NULL, include, file->getName());
                }
             }
             else

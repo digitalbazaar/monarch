@@ -45,7 +45,8 @@ void runLoggingTest(TestRunner& tr)
    Logger::addLogger(&defaultLogger);
 
    // create file logger
-   FileLogger flog(new File("test.log"), true);
+   File file("test.log");
+   FileLogger flog(&file);
    // log default category to the file
    Logger::addLogger(&flog);
 

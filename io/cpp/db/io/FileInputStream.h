@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_io_FileInputStream_H
 #define db_io_FileInputStream_H
@@ -25,13 +25,7 @@ protected:
    /**
     * The File to read from.
     */
-   File* mFile;
-   
-   /**
-    * True to cleanup the underlying File when destructing,
-    * false not to.
-    */
-   bool mCleanupFile;
+   File mFile;
    
    /**
     * The ifstream to read with.
@@ -51,10 +45,8 @@ public:
     * Creates a new FileInputStream that opens the passed File for reading.
     * 
     * @param file the File to read from.
-    * @param cleanup true to clean up the passed File when destructing,
-    *                false not to.
     */
-   FileInputStream(File* file, bool cleanup = false);
+   FileInputStream(File& file);
    
    /**
     * Destructs this FileInputStream.

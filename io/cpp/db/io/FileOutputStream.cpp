@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/FileOutputStream.h"
 
@@ -7,20 +7,15 @@ using namespace std;
 using namespace db::io;
 using namespace db::rt;
 
-FileOutputStream::FileOutputStream(File* file, bool append, bool cleanup)
+FileOutputStream::FileOutputStream(File& file, bool append) :
+   mFile(file)
 {
-   // store file and append mode
-   mFile = file;
+   // store append mode
    mAppend = append;
-   mCleanupFile = cleanup;
 }
 
 FileOutputStream::~FileOutputStream()
 {
-   if(mCleanupFile)
-   {
-      delete mFile;
-   }
 }
 
 bool FileOutputStream::ensureOpen()

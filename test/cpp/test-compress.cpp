@@ -34,7 +34,7 @@ void runDeflateTest(TestRunner& tr)
    tr.test("create test file");
    {
       File testFile("/tmp/brump.txt");
-      FileOutputStream fos(&testFile);
+      FileOutputStream fos(testFile);
       string content = "brump brump brump 1234 brump brumper";
       for(int i = 0; i < 1000; i++)
       {
@@ -51,9 +51,9 @@ void runDeflateTest(TestRunner& tr)
       assertNoException();
       
       File in("/tmp/brump.txt");
-      FileInputStream fis(&in);
+      FileInputStream fis(in);
       File out("/tmp/brump.zip");
-      FileOutputStream fos(&out);
+      FileOutputStream fos(out);
       
       MutatorInputStream mis(&fis, false, &def, false);
       char b[512];
@@ -75,9 +75,9 @@ void runDeflateTest(TestRunner& tr)
       assertNoException();
       
       File in("/tmp/brump.zip");
-      FileInputStream fis(&in);
+      FileInputStream fis(in);
       File out("/tmp/brump2.txt");
-      FileOutputStream fos(&out);
+      FileOutputStream fos(out);
       
       MutatorInputStream mis(&fis, false, &def, false);
       char b[512];
@@ -91,7 +91,7 @@ void runDeflateTest(TestRunner& tr)
       fos.close();
       
       File testFile("/tmp/brump.txt");
-      assert(testFile.getLength() == out.getLength());
+      assert(testFile->getLength() == out->getLength());
    }
    tr.passIfNoException();
    
@@ -102,9 +102,9 @@ void runDeflateTest(TestRunner& tr)
       assertNoException();
       
       File in("/tmp/brump.txt");
-      FileInputStream fis(&in);
+      FileInputStream fis(in);
       File out("/tmp/brump.zip");
-      FileOutputStream fos(&out);
+      FileOutputStream fos(out);
       
       MutatorOutputStream mos(&fos, false, &def, false);
       char b[512];
@@ -126,9 +126,9 @@ void runDeflateTest(TestRunner& tr)
       assertNoException();
       
       File in("/tmp/brump.zip");
-      FileInputStream fis(&in);
+      FileInputStream fis(in);
       File out("/tmp/brump2.txt");
-      FileOutputStream fos(&out);
+      FileOutputStream fos(out);
       
       MutatorOutputStream mos(&fos, false, &def, false);
       char b[512];
@@ -142,7 +142,7 @@ void runDeflateTest(TestRunner& tr)
       mos.close();
       
       File testFile("/tmp/brump.txt");
-      assert(testFile.getLength() == out.getLength());
+      assert(testFile->getLength() == out->getLength());
    }
    tr.passIfNoException();
    
@@ -157,7 +157,7 @@ void runGzipTest(TestRunner& tr)
    tr.test("create test file");
    {
       File testFile("/tmp/brump.txt");
-      FileOutputStream fos(&testFile);
+      FileOutputStream fos(testFile);
       string content = "brump brump brump 1234 brump brumper";
       for(int i = 0; i < 1000; i++)
       {
@@ -174,9 +174,9 @@ void runGzipTest(TestRunner& tr)
       assertNoException();
       
       File in("/tmp/brump.txt");
-      FileInputStream fis(&in);
+      FileInputStream fis(in);
       File out("/tmp/brump.gz");
-      FileOutputStream fos(&out);
+      FileOutputStream fos(out);
       
       MutatorInputStream mis(&fis, false, &gzipper, false);
       char b[512];
@@ -198,9 +198,9 @@ void runGzipTest(TestRunner& tr)
       assertNoException();
       
       File in("/tmp/brump.gz");
-      FileInputStream fis(&in);
+      FileInputStream fis(in);
       File out("/tmp/brump2.txt");
-      FileOutputStream fos(&out);
+      FileOutputStream fos(out);
       
       MutatorInputStream mis(&fis, false, &gzipper, false);
       char b[512];
@@ -214,7 +214,7 @@ void runGzipTest(TestRunner& tr)
       fos.close();
       
       File testFile("/tmp/brump.txt");
-      assert(testFile.getLength() == out.getLength());
+      assert(testFile->getLength() == out->getLength());
    }
    tr.passIfNoException();
    
@@ -225,9 +225,9 @@ void runGzipTest(TestRunner& tr)
       assertNoException();
       
       File in("/tmp/brump.txt");
-      FileInputStream fis(&in);
+      FileInputStream fis(in);
       File out("/tmp/brump.gz");
-      FileOutputStream fos(&out);
+      FileOutputStream fos(out);
       
       MutatorOutputStream mos(&fos, false, &gzipper, false);
       char b[512];
@@ -249,9 +249,9 @@ void runGzipTest(TestRunner& tr)
       assertNoException();
       
       File in("/tmp/brump.gz");
-      FileInputStream fis(&in);
+      FileInputStream fis(in);
       File out("/tmp/brump2.txt");
-      FileOutputStream fos(&out);
+      FileOutputStream fos(out);
       
       MutatorOutputStream mos(&fos, false, &gzipper, false);
       char b[512];
@@ -265,7 +265,7 @@ void runGzipTest(TestRunner& tr)
       mos.close();
       
       File testFile("/tmp/brump.txt");
-      assert(testFile.getLength() == out.getLength());
+      assert(testFile->getLength() == out->getLength());
    }
    tr.passIfNoException();
 #if 0
@@ -281,9 +281,9 @@ void runGzipTest(TestRunner& tr)
       }
       else
       {
-         FileInputStream fis(&file, false);
+         FileInputStream fis(file, false);
          File out("/tmp/bmtestfile.gz");
-         FileOutputStream fos(&out, false);
+         FileOutputStream fos(out, false);
          
          // create gzipper, buffer
          Gzipper gzipper;
@@ -321,7 +321,7 @@ void runZipTest(TestRunner& tr)
    {
       {
          File testFile("/tmp/brump-a.txt");
-         FileOutputStream fos(&testFile);
+         FileOutputStream fos(testFile);
          string content = "brump brump brump 1234 brump brumper";
          for(int i = 0; i < 500; i++)
          {
@@ -332,7 +332,7 @@ void runZipTest(TestRunner& tr)
       
       {
          File testFile("/tmp/brump-b.txt");
-         FileOutputStream fos(&testFile);
+         FileOutputStream fos(testFile);
          string content = "brump brump brump 1234 brump brumper";
          for(int i = 0; i < 1000; i++)
          {
@@ -343,7 +343,7 @@ void runZipTest(TestRunner& tr)
       
       {
          File testFile("/tmp/brump-c.txt");
-         FileOutputStream fos(&testFile);
+         FileOutputStream fos(testFile);
          string content = "brump brump brump 1234 brump brumper";
          for(int i = 0; i < 1500; i++)
          {
@@ -360,15 +360,15 @@ void runZipTest(TestRunner& tr)
       File f2("/tmp/brump-b.txt");
       File f3("/tmp/brump-c.txt");
       
-      FileList fl(false);
-      fl.add(&f1);
-      fl.add(&f2);
-      fl.add(&f3);
+      FileList fl;
+      fl->add(f1);
+      fl->add(f2);
+      fl->add(f3);
       
       File out("/tmp/brump-zipped.zip");
       
       Zipper zipper;
-      zipper.zip(&fl, &out);
+      zipper.zip(fl, out);
    }
    tr.passIfNoException();
 #if 0
@@ -384,9 +384,9 @@ void runZipTest(TestRunner& tr)
       }
       else
       {
-         FileInputStream fis(&file, false);
+         FileInputStream fis(file, false);
          File out("/tmp/bmtestfile.zip");
-         FileOutputStream fos(&out, false);
+         FileOutputStream fos(out, false);
          
          // create zipper, buffer
          Zipper zipper;

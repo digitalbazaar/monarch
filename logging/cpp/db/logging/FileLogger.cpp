@@ -11,17 +11,16 @@ using namespace db::logging;
 
 int FileLogger::DEFAULT_NUM_ROTATING_FILES = 3;
 
-FileLogger::FileLogger(File* file, bool cleanup) :
-   OutputStreamLogger()
+FileLogger::FileLogger(File* file) :
+   OutputStreamLogger(),
+   mFile((FileImpl*)NULL)
 {
-   mFile = NULL;
-   mCleanupFile = false;
    mMaxFileSize = 0;
    mRotateId = 0;
    mNumRotatingFiles = DEFAULT_NUM_ROTATING_FILES;
    if(file != NULL)
    {
-      setFile(file, false, cleanup);
+      setFile(*file, false);
    }
 }
 
@@ -91,28 +90,27 @@ void FileLogger::rotateLogFile(const char* logText)
 #endif
 }
 
-bool FileLogger::setFile(File* file, bool append, bool cleanup)
+bool FileLogger::setFile(File& file, bool append)
 {
    bool rval = false;
    
    lock();
-
+   
    close();
    mFile = file;
-   mCleanupFile = cleanup;
-
+   
    if(!append)
    {
       // FIXME
       //file.delete();
    }
    
-   OutputStream* s = new FileOutputStream(file, false);
+   OutputStream* s = new FileOutputStream(file);
    setOutputStream(s, true, false);
    rval = true;
-
+   
    unlock();
-
+   
    return rval;
 }
 
@@ -120,11 +118,6 @@ void FileLogger::close()
 {
    lock();
    OutputStreamLogger::close();
-   if(mCleanupFile && mFile != NULL)
-   {
-      delete mFile;
-      mFile = NULL;
-   }
    unlock();
 }
 
@@ -158,7 +151,7 @@ unsigned int FileLogger::getNumRotatingFiles()
    return mNumRotatingFiles;
 }
 
-File* FileLogger::getFile()
+File& FileLogger::getFile()
 {
    return mFile;
 }

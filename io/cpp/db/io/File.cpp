@@ -1,8 +1,9 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/io/FileFunctions.h"
 #include "db/io/File.h"
+
+#include "db/io/FileFunctions.h"
 #include "db/io/FileList.h"
 #include "db/util/StringTokenizer.h"
 
@@ -15,41 +16,26 @@ using namespace db::io;
 using namespace db::rt;
 using namespace db::util;
 
-File::File()
+FileImpl::FileImpl()
 {
    mName = strdup("");
 }
 
-File::File(const char* name)
+FileImpl::FileImpl(const char* name)
 {
    mName = strdup(name);
 }
 
-File::~File()
+FileImpl::~FileImpl()
 {
    free(mName);
 }
 
-bool File::operator==(const File& rhs)
+bool FileImpl::create()
 {
    bool rval = false;
    
-   File* file = (File*)&rhs;
-   
-   // compare names and types for equality
-   if(strcmp(mName, file->getName()) == 0)
-   {
-      rval = (getType() == file->getType());
-   }
-   
-   return rval;
-}
-
-bool File::create()
-{
-   bool rval = false;
-   
-   FILE *fp = fopen(mName, "w");
+   FILE* fp = fopen(mName, "w");
    if(fp != NULL)
    {
       rval = true;
@@ -63,7 +49,7 @@ bool File::create()
    return rval;
 }
 
-bool File::exists()
+bool FileImpl::exists()
 {
    bool rval = false;
    
@@ -75,14 +61,14 @@ bool File::exists()
    }
    else
    {
-      // FIXME: ENOENT (2) is errno for file not found
+      // FIXME: ENOENT (2) is errno for FileImpl not found
       // FIXME: add error handling
    }
    
    return rval;
 }
 
-bool File::remove()
+bool FileImpl::remove()
 {
    bool rval = false;
    
@@ -99,7 +85,7 @@ bool File::remove()
    return rval;
 }
 
-bool File::rename(File* file)
+bool FileImpl::rename(File& file)
 {
    bool rval = false;
    
@@ -120,12 +106,12 @@ bool File::rename(File* file)
    return rval;
 }
 
-const char* File::getName() const
+const char* FileImpl::getName() const
 {
    return mName;
 }
 
-off_t File::getLength()
+off_t FileImpl::getLength()
 {
    struct stat s;
    int rc = stat(mName, &s);
@@ -137,7 +123,7 @@ off_t File::getLength()
    return s.st_size;
 }
 
-File::Type File::getType()
+FileImpl::Type FileImpl::getType()
 {
    Type rval = Unknown;
    
@@ -168,68 +154,68 @@ File::Type File::getType()
    return rval;
 }
 
-bool File::isFile()
+bool FileImpl::isFile()
 {
    return getType() == RegularFile;
 }
 
-bool File::contains(const char* path)
+bool FileImpl::contains(const char* path)
 {
    bool rval = false;
    string normalizedContainer;
-   string normalizedFile;
+   string normalizedFileImpl;
    
-   if(normalizePath(getName(), normalizedContainer) && 
-      normalizePath(path, normalizedFile))
+   if(File::normalizePath(getName(), normalizedContainer) && 
+      File::normalizePath(path, normalizedFileImpl))
    {
-      rval = (normalizedFile.find(normalizedContainer, 0) == 0);
+      rval = (normalizedFileImpl.find(normalizedContainer, 0) == 0);
    }
 
    return rval;
 }
 
-bool File::contains(File* path)
+bool FileImpl::contains(File& path)
 {
    return contains(path->getName());
 }
 
-bool File::isDirectory()
+bool FileImpl::isDirectory()
 {
    return getType() == Directory;
 }
 
-bool File::isReadable()
+bool FileImpl::isReadable()
 {
    bool rval = false;
    string npath;
    
-   if(normalizePath(getName(), npath))
+   if(File::normalizePath(getName(), npath))
    {
-      rval = isPathReadable(npath.c_str());
+      rval = File::isPathReadable(npath.c_str());
    }
    
    return rval; 
 }
 
-bool File::isSymbolicLink()
+bool FileImpl::isSymbolicLink()
 {
    return getType() == SymbolicLink;
 }
 
-bool File::isWritable()
+bool FileImpl::isWritable()
 {
    bool rval = false;
    string npath;
    
-   if(normalizePath(getName(), npath))
+   if(File::normalizePath(getName(), npath))
    {
-      rval = isPathWritable(npath.c_str());
+      rval = File::isPathWritable(npath.c_str());
    }
    
    return rval; 
 }
 
-void File::listFiles(FileList* files)
+void FileImpl::listFiles(FileList& files)
 {
    if(isDirectory())
    {
@@ -247,8 +233,8 @@ void File::listFiles(FileList* files)
          bool separator = mName[len1 - 1] != '/';
          while((entry = readdir(dir)) != NULL)
          {
-            // d_name is null-terminated name for file, without path name
-            // so copy file name before d_name to get full path
+            // d_name is null-terminated name for FileImpl, without path name
+            // so copy FileImpl name before d_name to get full path
             unsigned int len2 = strlen(entry->d_name);
             char path[len1 + len2 + 2];
             memcpy(path, mName, len1);
@@ -263,8 +249,8 @@ void File::listFiles(FileList* files)
                memcpy(path + len1, entry->d_name, len2 + 1);
             }
             
-            // add new File to list
-            File* file = new File(path);
+            // add new FileImpl to list
+            File file(path);
             files->add(file);
          }
          
@@ -272,6 +258,21 @@ void File::listFiles(FileList* files)
          closedir(dir);
       }
    }
+}
+
+bool File::operator==(const File& rhs)
+{
+   bool rval = false;
+   
+   File& file = *((File*)&rhs);
+   
+   // compare names and types for equality
+   if(strcmp((*this)->getName(), file->getName()) == 0)
+   {
+      rval = ((*this)->getType() == file->getType());
+   }
+   
+   return rval;
 }
 
 bool File::normalizePath(const char* path, string& normalizedPath)
@@ -335,7 +336,7 @@ bool File::normalizePath(const char* path, string& normalizedPath)
    return rval;
 }
 
-bool File::normalizePath(File* path, string& normalizedPath)
+bool File::normalizePath(File& path, string& normalizedPath)
 {
    return normalizePath(path->getName(), normalizedPath);
 }
@@ -357,7 +358,8 @@ bool File::expandUser(const char* path, string& expandedPath)
       if(pathlen > 1 && path[1] != '/')
       {
          ExceptionRef e = new Exception(
-            "db::io::File::expandUser only supports current user (ie, \"~/...\").");
+            "db::io::File::expandUser only supports current "
+            "user (ie, \"~/...\").");
          Exception::setLast(e, false);
          rval = false;
       }
