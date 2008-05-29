@@ -142,7 +142,7 @@ bool ConfigManager::addConfig(
    
                // find all files with INCLUDE_EXT suffix
                vector<string> configFiles;
-               db::rt::Iterator<File*>* i = list.getIterator();
+               db::rt::IteratorRef<File*> i = list.getIterator();
                while(i->hasNext())
                {
                   File* f = i->next();
