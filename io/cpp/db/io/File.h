@@ -13,11 +13,13 @@ namespace db
 namespace io
 {
 
-// forward declare file list
+// forward declare file, file list
+class File;
 class FileList;
 
 /**
- * A File represents a file or directory on a disk.
+ * The FileImpl class provides the implementation for the reference-counted
+ * File class.
  * 
  * FIXME: this class needs to be filled out with simple file meta-data
  * retrieving methods
@@ -25,7 +27,7 @@ class FileList;
  * @author Dave Longley
  * @author Manu Sporny
  */
-class File
+class FileImpl
 {
 public:
    /**
@@ -46,7 +48,7 @@ public:
    /**
     * Creates a new File.
     */
-   File();
+   FileImpl();
    
    /**
     * Creates a new File with the specified name.
@@ -57,24 +59,12 @@ public:
     *             operations will normalize the path to an absolute file path
     *             before performing any operations on the file.
     */
-   File(const char* name);
+   FileImpl(const char* name);
    
    /**
     * Destructs this File.
     */
-   virtual ~File();
-   
-   /**
-    * Returns true if this File is equal to the passed one. Two Files are
-    * only equal if their names are the same and they are the same type,
-    * meaning they are both regular files, both directories, or both
-    * symbolic links.
-    * 
-    * @param rhs the File to compare to this one.
-    * 
-    * @return true if this File is equal to the passed one, false if not.
-    */
-   bool operator==(const File& rhs);
+   virtual ~FileImpl();
    
    /**
     * Creates a new file, overwriting an existing one of the same name.
@@ -105,7 +95,7 @@ public:
     * 
     * @return true if the rename was successful, false if not.
     */
-   virtual bool rename(File* file);
+   virtual bool rename(File& file);
    
    /**
     * Gets the name of this File.
@@ -150,7 +140,7 @@ public:
     * @return true if this File is an ancestor directory to the given path,
     *         false otherwise.
     */
-   virtual bool contains(File* path);
+   virtual bool contains(File& path);
    
    /**
     * Returns true if this File is a directory, false if it is not. If it
@@ -203,8 +193,51 @@ public:
     * 
     * @param files the FileList to populate.
     */
-   virtual void listFiles(FileList* files);
+   virtual void listFiles(FileList& files);
+};
 
+/**
+ * The reference-counted File class. A File represents a file or directory
+ * on a disk.
+ * 
+ * @author Dave Longley
+ */
+class File : public db::rt::Collectable<FileImpl>
+{
+public:
+   /**
+    * Creates a new File object.
+    * 
+    * @param path an optional path name.
+    */
+   File(const char* path) :
+      db::rt::Collectable<FileImpl>(new FileImpl(path)) {};
+   
+   /**
+    * Creates a File object.
+    * 
+    * @param impl the FileImpl to reference.
+    */
+   File(FileImpl* impl) :
+      db::rt::Collectable<FileImpl>(impl) {};
+   
+   /**
+    * Destructs this File.
+    */
+   virtual ~File() {};
+   
+   /**
+    * Returns true if this File is equal to the passed one. Two Files are
+    * only equal if their names are the same and they are the same type,
+    * meaning they are both regular files, both directories, or both
+    * symbolic links.
+    * 
+    * @param rhs the File to compare to this one.
+    * 
+    * @return true if this File is equal to the passed one, false if not.
+    */
+   bool operator==(const File& rhs);
+   
    /**
     * Normalizes the file system path passed into the method.
     * 
@@ -227,7 +260,7 @@ public:
     * @return true if the normalization was successful, false if an Exception
     *         occurred.
     */
-   static bool normalizePath(File* path, std::string& normalizedPath);
+   static bool normalizePath(File& path, std::string& normalizedPath);
    
    /**
     * Expand "~" at the beginning of a path into the current user.  Will fail

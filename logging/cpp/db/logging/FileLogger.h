@@ -27,13 +27,8 @@ protected:
    /**
     * The file for the log file.
     */
-   db::io::File* mFile;
-
-   /**
-    * If the file cleanup is managed by the logger.
-    */
-   bool mCleanupFile;
-
+   db::io::File mFile;
+   
    /**
     * The maximum file size for the log file.
     */
@@ -66,9 +61,8 @@ public:
     * Creates a new logger with specified level.
     *
     * @param file the File for the logger.
-    * @param cleanup if the file object should be managed by the logger.
     */
-   FileLogger(db::io::File* file = NULL, bool cleanup = false);
+   FileLogger(db::io::File* file = NULL);
    
    /**
     * Overloaded to ensure that the stream gets closed when garbage
@@ -108,12 +102,10 @@ public:
     * @param file the file to use for logging.
     * @param append specifies whether or not to append to an existing
     *             file or to overwrite.
-    * @param cleanup if the file object is managed by the logger.
-    *             
+    * 
     * @return true if succesfully opened the file for writing, false if not.
     */
-   virtual bool setFile(db::io::File* file, bool append = true,
-      bool cleanup = false);
+   virtual bool setFile(db::io::File& file, bool append = true);
    
    /**
     * Sets the maximum log file size (in bytes). Setting the maximum log file
@@ -157,7 +149,7 @@ public:
     * 
     * @return the filename set for this logger.
     */
-   virtual db::io::File* getFile();
+   virtual db::io::File& getFile();
    
    /**
     * Outputs a message and rotates the file as needed based on size.

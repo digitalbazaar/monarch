@@ -306,73 +306,73 @@ void runFileTest(TestRunner& tr)
 
    tr.test("normalization");
    {
-      File::normalizePath(&b, np);
+      File::normalizePath(b, np);
       //cout << np << "... ";
    }
    tr.passIfNoException();
 
    tr.test("readable #1");
    {
-      File::normalizePath(&cdir, np);
+      File::normalizePath(cdir, np);
       //cout << np << " should be readable...";
-      assert(cdir.isReadable());
+      assert(cdir->isReadable());
    }
    tr.passIfNoException();
 
    tr.test("readable #2");
    {
-      File::normalizePath(&b, np);
+      File::normalizePath(b, np);
       //cout << np << " should not be readable...";
-      assert(!b.isReadable());
+      assert(!b->isReadable());
    }
    tr.passIfNoException();
    
    tr.test("writable");
    {
-      File::normalizePath(&cdir, np);
+      File::normalizePath(cdir, np);
       //cout << np << " should be writable...";
-      assert(cdir.isWritable());
+      assert(cdir->isWritable());
    }
    tr.passIfNoException();
 
    tr.test("directory containment");
    {
-      assert(tmp.contains(&a));
-      assert(!a.contains(&tmp));
+      assert(tmp->contains(a));
+      assert(!a->contains(tmp));
    }
    tr.passIfNoException();
    
    tr.test("directory list");
    {
       File dir(name);
-      FileList files(true);
-      dir.listFiles(&files);
+      FileList files;
+      dir->listFiles(files);
       
       //cout << "/tmp contains " << files.count() << " files...";
       
-      assert(files.count() > 0);
+      assert(files->count() > 0);
    }
    tr.passIfNoException();
    
    tr.test("get type");
    {
       File dir(name);
-      FileList files(true);
-      dir.listFiles(&files);
-      IteratorRef<File*> i = files.getIterator();
+      FileList files;
+      dir->listFiles(files);
+      IteratorRef<File> i = files->getIterator();
       while(i->hasNext())
       {
-         File* file = i->next();
+         File& file = i->next();
          const char* type;
          switch(file->getType())
          {
-            case File::RegularFile:
+            case FileImpl::RegularFile:
                type = "Regular File";
                break;
-            case File::Directory:
+            case FileImpl::Directory:
                type = "Directory";
                break;
-            case File::SymbolicLink:
+            case FileImpl::SymbolicLink:
                type = "Symbolic Link";
                break;
             default:
@@ -386,16 +386,16 @@ void runFileTest(TestRunner& tr)
    
    tr.test("create");
    {
-      a.create();
-      assert(a.exists());
+      a->create();
+      assert(a->exists());
    }
    tr.passIfNoException();
    
    tr.test("rename");
    {
-      a.rename(&c);
-      assert(!a.exists());
-      assert(c.exists());
+      a->rename(c);
+      assert(!a->exists());
+      assert(c->exists());
    }
    tr.passIfNoException();
    
@@ -601,7 +601,7 @@ void runFileInputStreamTest(TestRunner& tr)
    tr.group("FileInputStream");
    
    File temp("/tmp/fistestoutput.txt");
-   FileOutputStream fos(&temp);
+   FileOutputStream fos(temp);
    const char* content =
       "This is for testing the skip method for a file input stream.";
    fos.write(content, strlen(content));
@@ -609,7 +609,7 @@ void runFileInputStreamTest(TestRunner& tr)
    
    tr.test("skip");
    {
-      FileInputStream fis(&temp);
+      FileInputStream fis(temp);
       char b[10];
       
       assert(fis.read(b, 4) == 4);

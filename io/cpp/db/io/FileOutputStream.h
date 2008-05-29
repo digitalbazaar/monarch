@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_io_FileOutputStream_H
 #define db_io_FileOutputStream_H
@@ -25,19 +25,13 @@ protected:
    /**
     * The File to write to.
     */
-   File* mFile;
+   File mFile;
    
    /**
     * Whether or the file should be appended or overwritten.
     */
    bool mAppend;
    
-   /**
-    * True to cleanup the underlying File when destructing,
-    * false not to.
-    */
-   bool mCleanupFile;
-
    /**
     * The ofstream to write with.
     */
@@ -57,10 +51,8 @@ public:
     * 
     * @param file the File to write to.
     * @param append true to append to the File if it exists, false to overwrite.
-    * @param cleanup true to clean up the passed File when destructing,
-    *                false not to.
     */
-   FileOutputStream(File* file, bool append = false, bool cleanup = false);
+   FileOutputStream(File& file, bool append = false);
    
    /**
     * Destructs this FileOutputStream.

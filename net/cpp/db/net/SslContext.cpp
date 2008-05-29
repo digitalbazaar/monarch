@@ -95,7 +95,7 @@ SSL* SslContext::createSSL(TcpSocket* socket, bool client)
    return ssl;
 }
 
-bool SslContext::setCertificate(File* certFile)
+bool SslContext::setCertificate(File& certFile)
 {
    bool rval = true;
    
@@ -114,7 +114,7 @@ bool SslContext::setCertificate(File* certFile)
    return rval;
 }
 
-bool SslContext::setPrivateKey(File* pkeyFile)
+bool SslContext::setPrivateKey(File& pkeyFile)
 {
    bool rval = true;
    
@@ -146,8 +146,8 @@ bool SslContext::setVerifyCAs(File* caFile, File* caDir)
    // load verify locations
    if(SSL_CTX_load_verify_locations(
       mContext,
-      (caFile != NULL) ? caFile->getName() : NULL,
-      (caDir != NULL) ? caDir->getName() : NULL) != 1)
+      (caFile != NULL) ? (*caFile)->getName() : NULL,
+      (caDir != NULL) ? (*caDir)->getName() : NULL) != 1)
    {
       // an error occurred
       ExceptionRef e = new Exception(
