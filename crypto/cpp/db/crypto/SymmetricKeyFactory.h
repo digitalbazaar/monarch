@@ -23,11 +23,11 @@ protected:
     * Creates a random key using the passed algorithm.
     * 
     * @param algorithm the algorithm for the key.
-    * @param key a pointer to point at the new SymmetricKey.
+    * @param key a pointer to a SymmetricKey to populate.
     * 
     * @return true if no exception occurred, false if not.
     */
-   bool createRandomKey(const char* algorithm, SymmetricKey** key);
+   bool createRandomKey(const char* algorithm, SymmetricKey* key);
    
 public:
    /**
@@ -43,15 +43,12 @@ public:
    /**
     * Creates a new random key using the given algorithm.
     * 
-    * The caller of this method is responsible for freeing the generated
-    * SymmetricKey.
-    * 
     * @param algorithm the algorithm to use.
-    * @param key a pointer to point at the new SymmetricKey.
+    * @param key a pointer to a SymmetricKey to populate.
     * 
     * @return true if no exception occurred, false if not.
     */
-   bool createKey(const char* algorithm, SymmetricKey** key);
+   bool createKey(const char* algorithm, SymmetricKey* key);
 };
 
 } // end namespace crypto

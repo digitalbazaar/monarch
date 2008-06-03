@@ -20,14 +20,14 @@ DefaultBlockCipher::~DefaultBlockCipher()
 }
 
 bool DefaultBlockCipher::startEncrypting(
-   const char* algorithm, SymmetricKey** symmetricKey)
+   const char* algorithm, SymmetricKey* symmetricKey)
 {
    // create a symmetric key
    SymmetricKeyFactory factory;
    factory.createKey(algorithm, symmetricKey);
    
    // start encrypting
-   return startEncrypting(*symmetricKey);
+   return startEncrypting(symmetricKey);
 }
 
 bool DefaultBlockCipher::startEncrypting(SymmetricKey* symmetricKey)

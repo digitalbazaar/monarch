@@ -75,9 +75,9 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       DefaultBlockCipher cipher;
       
       // generate a new key and start encryption
-      SymmetricKey* key = NULL;
+      SymmetricKey key;
       cipher.startEncrypting(algorithm, &key);
-      assert(key != NULL);
+      assertNoException();
       
       // update encryption
       char output[2048];
@@ -91,7 +91,7 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       totalOut += outLength;
       
       // start decryption
-      cipher.startDecrypting(key);
+      cipher.startDecrypting(&key);
       
       // update decryption
       char input[2048];
@@ -103,9 +103,6 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       // finish decryption
       cipher.finish(input + inLength, inLength);
       totalIn += inLength;
-      
-      // cleanup key
-      delete key;
       
       // check the decrypted message
       string result(input, totalIn);
@@ -126,9 +123,9 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       DefaultBlockCipher cipher;
       
       // generate a new key and start encryption
-      SymmetricKey* key = NULL;
+      SymmetricKey key;
       cipher.startEncrypting(algorithm, &key);
-      assert(key != NULL);
+      assertNoException();
       
       // update and finish encryption
       ByteBuffer output;
@@ -137,12 +134,9 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       
       // do decryption
       ByteBuffer input;
-      cipher.startDecrypting(key);
+      cipher.startDecrypting(&key);
       cipher.update(output.data(), output.length(), &input, true);
       cipher.finish(&input, true);
-      
-      // cleanup key
-      delete key;
       
       // check the decrypted message
       string result(input.data(), input.length());
@@ -162,9 +156,9 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       DefaultBlockCipher cipher;
       
       // generate a new key and start encryption
-      SymmetricKey* key = NULL;
+      SymmetricKey key;
       cipher.startEncrypting(algorithm, &key);
-      assert(key != NULL);
+      assertNoException();
       
       // create encrypted data buffer
       ByteBuffer encrypted(200);
@@ -181,7 +175,7 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       assertNoException();
       
       // start decrypting
-      cipher.startDecrypting(key);
+      cipher.startDecrypting(&key);
       
       // create decrypted data buffer
       ByteBuffer decrypted(200);
@@ -195,9 +189,6 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       }
       decryptStream.close();
       assertNoException();
-      
-      // cleanup key
-      delete key;
       
       // assert data is the same
       string result(decrypted.data(), decrypted.length());
