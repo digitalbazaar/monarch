@@ -22,16 +22,19 @@ using namespace db::io;
 using namespace db::rt;
 
 const char* ConfigManager::DEFAULT_VALUE = "__default__";
+const char* ConfigManager::VERSION = "__version__";
 const char* ConfigManager::INCLUDE = "__include__";
 const char* ConfigManager::INCLUDE_EXT = ".config";
 
-ConfigManager::ConfigManager()
+ConfigManager::ConfigManager() :
+   mVersion(NULL)
 {
    mConfig->setType(Map);
 }
 
 ConfigManager::~ConfigManager()
 {
+   setVersion(NULL);
 }
 
 Config& ConfigManager::getConfig()
@@ -56,7 +59,28 @@ bool ConfigManager::addConfig(
    
    lock();
    {
-      if(include && config->hasMember(INCLUDE))
+      // check version is present
+      if(mVersion != NULL && !config->hasMember(VERSION))
+      {
+         ExceptionRef e =
+            new Exception("No version found.", "db.config.ConfigError");
+         Exception::setLast(e, false);
+         rval = false;
+      }
+      // check proper version
+      else if(mVersion != NULL &&
+         strcmp(config[VERSION]->getString(), mVersion) != 0)
+      {
+         ostringstream oss;
+         oss << "Unknown version: " << config[VERSION]->getString() << ".";
+         ExceptionRef e =
+            new Exception("Unknown version.", "db.config.ConfigError");
+         e->getDetails()["version"] = config[VERSION]->getString();
+         Exception::setLast(e, false);
+         rval = false;
+      }
+      // process includes
+      if(rval && include && config->hasMember(INCLUDE))
       {
          ConfigIterator i = config[INCLUDE].getIterator();
          while(rval && i->hasNext())
@@ -65,6 +89,7 @@ bool ConfigManager::addConfig(
             rval = addConfig(next->getString(), Default, NULL, true, dir);
          }
       }
+      // add to configs
       if(rval)
       {
          mConfigs.push_back(ConfigPair(config, type));
@@ -507,4 +532,18 @@ bool ConfigManager::isValidConfig(Config& config, Config& schema)
    }
    
    return rval;
+}
+
+void ConfigManager::setVersion(const char* version)
+{
+   if(mVersion != NULL)
+   {
+      free(mVersion);
+   }
+   mVersion = (version != NULL) ? strdup(version) : NULL;
+}
+
+const char* ConfigManager::getVersion()
+{
+   return mVersion;
 }

@@ -65,6 +65,11 @@ public:
    
 protected:
    /**
+    * If set, used to check VERSION key of a config before using.
+    */
+   char* mVersion;
+   
+   /**
     * Pair to hold config and system flag.
     */
    typedef std::pair<Config, ConfigType> ConfigPair;
@@ -122,7 +127,12 @@ public:
    static const char* DEFAULT_VALUE;
    
    /**
-    * Magic key in config objects to specify a list of config files or
+    * Magic key in config object to specify the config object format version.
+    */
+   static const char* VERSION;
+   
+   /**
+    * Magic key in a config object to specify a list of config files or
     * directories to include before this object.
     */
    static const char* INCLUDE;
@@ -245,6 +255,22 @@ public:
     *        User, and All).
     */
    virtual void getChanges(Config& target, ConfigType baseType = Default);
+
+   /**
+    * Set the version of configurations this manager uses.  When adding a
+    * config the VERSION string will be checked against this value if not NULL.
+    * If a mismatch occurs and exception will be thrown.
+    *
+    * @param version the current version or NULL to not use.
+    */
+   virtual void setVersion(const char* version);
+
+   /**
+    * Return the current version of config file this manager is set to use.
+    *
+    * @return the current version or NULL if not used.
+    */
+   virtual const char* getVersion();
 };
 
 } // end namespace data

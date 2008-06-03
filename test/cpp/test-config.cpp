@@ -419,6 +419,31 @@ void runConfigManagerTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
+   tr.test("versioning");
+   {
+      ConfigManager cm;
+
+      cm.setVersion(NULL);
+      Config c;
+      cm.addConfig(c);
+      assertNoException();
+      
+      cm.setVersion("1");
+      cm.addConfig(c);
+      assertException();
+      Exception::clearLast();
+      
+      c[ConfigManager::VERSION] = "2";
+      cm.addConfig(c);
+      assertException();
+      Exception::clearLast();
+      
+      c[ConfigManager::VERSION] = "1";
+      cm.addConfig(c);
+      assertNoException();
+   }
+   tr.passIfNoException();
+   
    tr.ungroup();
 }
 
