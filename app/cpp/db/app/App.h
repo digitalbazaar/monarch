@@ -137,16 +137,6 @@ protected:
    int mExitStatus;
    
    /**
-    * Pretty print an exception.
-    */
-   void printException(db::rt::ExceptionRef& e);
-
-   /**
-    * Pretty print last exception.
-    */
-   void printException();
-   
-   /**
     * Command line arguments converted to a mutable vector.
     */
    std::vector<const char*> mCommandLineArgs;
@@ -264,6 +254,16 @@ public:
     * @return exit status. 0 for success.
     */
    virtual int main(int argc, const char* argv[]);
+
+   /**
+    * Pretty print an exception.
+    */
+   void printException(db::rt::ExceptionRef& e);
+
+   /**
+    * Pretty print last exception.
+    */
+   void printException();
 };
 
 /**
