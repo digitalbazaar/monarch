@@ -8,8 +8,7 @@
 #include <sched.h>
 #include <signal.h>
 
-#include "db/rt/Object.h"
-#include "db/rt/InterruptedException.h"
+#include "db/rt/Exception.h"
 #include "db/rt/Runnable.h"
 
 namespace db
@@ -212,11 +211,11 @@ public:
    virtual bool isAlive();
    
    /**
-    * Creates an InterruptedException for this thread.
+    * Creates an Exception for this thread.
     * 
-    * @return the allocated InterruptedException.
+    * @return the allocated Exception.
     */
-   virtual InterruptedException* createInterruptedException();
+   virtual Exception* createInterruptedException();
    
    /**
     * Interrupts this Thread.
@@ -294,7 +293,7 @@ public:
     * @param time the number of milliseconds to sleep for.
     * 
     * @return false if the current thread is interrupted while sleeping (with
-    *         an InterruptedException set), true if not.
+    *         an Exception set), true if not.
     */
    static bool sleep(unsigned int time);
    
@@ -316,7 +315,7 @@ public:
     *                0 to wait indefinitely.
     * 
     * @return false if the current Thread is interrupted while sleeping (with
-    *         an InterruptedException set), true if not.
+    *         an Exception set), true if not.
     */
    static bool waitToEnter(Monitor* m, unsigned int timeout = 0);
    

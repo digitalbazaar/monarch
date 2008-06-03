@@ -76,8 +76,8 @@ protected:
     * 
     * @param t the current thread.
     * 
-    * @return false if the thread is interrupted (with an InterruptedException
-    *         set), true if not.
+    * @return false if the thread is interrupted (with an Exception set),
+    *         true if not.
     */
    bool waitThread(Thread* t);
    
@@ -118,7 +118,7 @@ public:
     * Acquires a permit, or blocks until one is available or until interrupted.
     *
     * @return true if a permit was acquired, false if the thread was
-    *         interrupted (with an InterruptedException set).
+    *         interrupted (with an Exception set).
     */
    bool acquire();
    
@@ -129,7 +129,7 @@ public:
     * @param permits the number of permits to acquire.
     * 
     * @return true if the permits were acquired, false if the thread was
-    *         interrupted (with an InterruptedException set).
+    *         interrupted (with an Exception set).
     */
    bool acquire(int permits);
    
