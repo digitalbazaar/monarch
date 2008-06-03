@@ -167,6 +167,13 @@ public:
     *                   from this stream.
     */
    virtual void getInspectors(std::list<DataInspector*>& inspectors);
+   
+   /**
+    * Scans the entire input stream, reading from it until it reaches 0 or -1.
+    * 
+    * @return 0 if the entire stream was read, -1 if an error occurred.
+    */
+   virtual int inspect();
 };
 
 } // end namespace data
