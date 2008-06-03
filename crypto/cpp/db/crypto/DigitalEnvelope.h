@@ -62,9 +62,6 @@ public:
     * 
     * This method can be called multiple times to seal multiple messages.
     * 
-    * The caller of this method is responsible for freeing the generated
-    * SymmetricKey.
-    * 
     * @param algorithm the algorithm to use for the encryption.
     * @param publicKey the PublicKey to encrypt the symmetric key with.
     * @param symmetricKey to store the encrypted SymmetricKey.
@@ -73,7 +70,7 @@ public:
     */
    virtual bool startSealing(
       const char* algorithm,
-      PublicKey* publicKey, SymmetricKey** symmetricKey);
+      PublicKey* publicKey, SymmetricKey* symmetricKey);
    
    /**
     * Starts sealing this DigitalEnvelope by using the given array of public
@@ -81,9 +78,11 @@ public:
     * will be used to seal the envelope.
     * 
     * Each public key in the passed array of PublicKey pointers encrypts a
-    * copy of the generated symmetric key and each encrypted copy is
-    * dynamically allocated and stored in the passed array of SymmetricKey
-    * pointers.
+    * a generated symmetric key and then assigns its encrypted data to
+    * the SymmetricKey pointed at in the passed array of SymmetricKey pointers.
+    * 
+    * The passed array of symmetric keys must have pointers that point at
+    * valid SymmetricKeys to assign data to.
     * 
     * This allows for a single message to be quickly encrypted and enveloped
     * for transport to multiple recipients. Each recipient receives their
@@ -95,12 +94,9 @@ public:
     * 
     * This method can be called multiple times to seal multiple messages.
     * 
-    * The caller of this method is responsible for freeing the generated
-    * SymmetricKeys.
-    * 
     * @param algorithm the algorithm to use for the encryption.
     * @param publicKey the PublicKey to encrypt the symmetric key with.
-    * @param symmetricKey to store the encrypted SymmetricKey.
+    * @param symmetricKeys to store the encrypted SymmetricKeys.
     * @param keys the number of keys.
     *
     * @return true if no exception occurred, false if not. 

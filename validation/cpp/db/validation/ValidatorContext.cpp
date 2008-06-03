@@ -88,7 +88,8 @@ DynamicObject ValidatorContext::addError(const char* type)
       
       if(!Exception::hasLast())
       {
-         e = new Exception("Object not valid.", "db.validation.ValidationError");
+         e = new Exception(
+            "Object not valid.", "db.validation.ValidationError");
          Exception::setLast(e, false);
       }
       else

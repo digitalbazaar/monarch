@@ -65,8 +65,7 @@ public:
     * It will be encrypted with this PublicKey so that it can only be unlocked
     * by the PrivateKey associated with this PublicKey.
     * 
-    * The caller of this method is responsible for freeing the
-    * generated SymmetricKey and DigitalEnvelope.
+    * The caller of this method is responsible for freeing the DigitalEnvelope.
     * 
     * @param algorithm the algorithm to use for the encryption.
     * @param key to store the encrypted SymmetricKey used to seal the envelope.
@@ -74,7 +73,7 @@ public:
     * @return the created envelope or NULL if an exception occurred.
     */
    virtual DigitalEnvelope* createEnvelope(
-      const char* algorithm, SymmetricKey** key);
+      const char* algorithm, SymmetricKey* key);
    
    /**
     * Creates a DigitalSignature to verify data with.

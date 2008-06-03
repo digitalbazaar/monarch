@@ -21,7 +21,7 @@ SymmetricKeyFactory::~SymmetricKeyFactory()
 }
 
 bool SymmetricKeyFactory::createRandomKey(
-   const char* algorithm, SymmetricKey** key)
+   const char* algorithm, SymmetricKey* key)
 {
    bool rval = true;
    
@@ -67,18 +67,15 @@ bool SymmetricKeyFactory::createRandomKey(
       }
       
       // create symmetric key and assign key data/IV
-      *key = new SymmetricKey("AES256");
-      (*key)->assignData(data, keyLength, iv, ivLength, false);
+      key->setAlgorithm("AES256");
+      key->assignData(data, keyLength, iv, ivLength, false);
    }
    
    return rval;
 }
 
-bool SymmetricKeyFactory::createKey(const char* algorithm, SymmetricKey** key)
+bool SymmetricKeyFactory::createKey(const char* algorithm, SymmetricKey* key)
 {
-   // set key to null
-   *key = NULL;
-   
    // add random bytes from the time
    struct timeval tv;
    gettimeofday(&tv, 0);

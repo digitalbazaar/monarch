@@ -20,7 +20,7 @@ bool Max::isValid(
    DynamicObject& obj,
    ValidatorContext* context)
 {
-   bool rval = obj->length() <= mSize;
+   bool rval = (obj->length() <= mSize);
    
    if(!rval)
    {

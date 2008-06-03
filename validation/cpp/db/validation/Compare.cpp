@@ -21,8 +21,11 @@ bool Compare::isValid(
    db::rt::DynamicObject& obj,
    ValidatorContext* context)
 {
-   bool rval = obj[mKey0] == obj[mKey1];
-
+   bool rval =
+      obj->hasMember(mKey0) &&
+      obj->hasMember(mKey1) &&
+      (obj[mKey0] == obj[mKey1]);
+   
    if(!rval)
    {
       if(context->getDepth() != 0)
@@ -41,5 +44,6 @@ bool Compare::isValid(
          context->popPath();
       }
    }
+   
    return rval;
 }

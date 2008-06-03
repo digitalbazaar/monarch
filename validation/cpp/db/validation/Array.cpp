@@ -38,10 +38,7 @@ bool Array::isValid(
    bool rval = true;
    
    std::vector<std::pair<int,Validator*> >::iterator i;
-   
-   for(i = mValidators.begin();
-      i != mValidators.end();
-      i++)
+   for(i = mValidators.begin(); i != mValidators.end(); i++)
    {
       if(obj->length() >= i->first)
       {
@@ -49,7 +46,12 @@ bool Array::isValid(
          char idx[23];
          snprintf(idx, 23, "[%d]", i->first);
          context->pushPath(idx);
-         rval = rval && i->second->isValid(obj[i->first], context);
+         
+         // do not short-circuit
+         if(!i->second->isValid(obj[i->first], context))
+         {
+            rval = false;
+         }
          context->popPath();
       }
       else

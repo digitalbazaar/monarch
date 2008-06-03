@@ -35,6 +35,8 @@ void SymmetricKey::freeData()
    // free key data
    if(mData != NULL)
    {
+      // zero out data first
+      memset(mData, 0, mDataLength);
       free(mData);
       mData = NULL;
       mDataLength = 0;
@@ -46,6 +48,8 @@ void SymmetricKey::freeIv()
    // free IV
    if(mIv != NULL)
    {
+      // zero out data first
+      memset(mIv, 0, mIvLength);
       free(mIv);
       mIv = NULL;
       mIvLength = 0;

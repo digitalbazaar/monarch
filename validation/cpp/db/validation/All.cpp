@@ -25,12 +25,14 @@ bool All::isValid(
 {
    bool rval = true;
    
+   // make sure all validators are tested, do not short-circuit
    std::vector<Validator*>::iterator i;
-   for(i = mValidators.begin();
-      rval && i != mValidators.end();
-      i++)
+   for(i = mValidators.begin(); i != mValidators.end(); i++)
    {
-      rval = (*i)->isValid(obj, context);
+      if(!(*i)->isValid(obj, context))
+      {
+         rval = false;
+      }
    }
    
    return rval;

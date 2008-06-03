@@ -37,15 +37,13 @@ public:
     * Starts encrypting with a randomly generated SymmetricKey that is
     * stored in the passed parameter.
     * 
-    * The caller of this method must free the generated SymmetricKey.
-    * 
     * @param algorithm the algorithm to use to encrypt.
     * @param symmetricKey to store the generated SymmetricKey.
     *
     * @return true if no exception occurred, false if not. 
     */
    virtual bool startEncrypting(
-      const char* algorithm, SymmetricKey** symmetricKey);
+      const char* algorithm, SymmetricKey* symmetricKey);
    
    /**
     * Starts encrypting with the given SymmetricKey.

@@ -38,10 +38,7 @@ bool Map::isValid(
    bool rval = true;
    
    std::vector<std::pair<const char*,Validator*> >::iterator i;
-   
-   for(i = mValidators.begin();
-      i != mValidators.end();
-      i++)
+   for(i = mValidators.begin(); i != mValidators.end(); i++)
    {
       // only add a "." if this is not a root map
       if(context->getDepth() != 0)
@@ -51,9 +48,11 @@ bool Map::isValid(
       context->pushPath(i->first);
       if(obj->hasMember(i->first))
       {
-         bool objValid = i->second->isValid(obj[i->first], context);
-         // seperate var to avoid short circuit and ensure all keys tested
-         rval = rval && objValid;
+         // do not short-circuit to ensure all keys tested
+         if(!i->second->isValid(obj[i->first], context))
+         {
+            rval = false;
+         }
       }
       else if(!i->second->isOptional(context))
       {
@@ -69,7 +68,7 @@ bool Map::isValid(
          context->popPath();
       }
    }
-
+   
    return rval;
 }
 

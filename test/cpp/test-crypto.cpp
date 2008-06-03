@@ -10,6 +10,7 @@
 #include "db/rt/Thread.h"
 #include "db/crypto/AsymmetricKeyFactory.h"
 #include "db/crypto/BigDecimal.h"
+#include "db/crypto/BlockCipherInputStream.h"
 #include "db/crypto/DigitalEnvelope.h"
 #include "db/crypto/DigitalSignatureInputStream.h"
 #include "db/crypto/DigitalSignatureOutputStream.h"
@@ -74,9 +75,9 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       DefaultBlockCipher cipher;
       
       // generate a new key and start encryption
-      SymmetricKey* key = NULL;
+      SymmetricKey key;
       cipher.startEncrypting(algorithm, &key);
-      assert(key != NULL);
+      assertNoException();
       
       // update encryption
       char output[2048];
@@ -90,7 +91,7 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       totalOut += outLength;
       
       // start decryption
-      cipher.startDecrypting(key);
+      cipher.startDecrypting(&key);
       
       // update decryption
       char input[2048];
@@ -102,9 +103,6 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       // finish decryption
       cipher.finish(input + inLength, inLength);
       totalIn += inLength;
-      
-      // cleanup key
-      delete key;
       
       // check the decrypted message
       string result(input, totalIn);
@@ -125,9 +123,9 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       DefaultBlockCipher cipher;
       
       // generate a new key and start encryption
-      SymmetricKey* key = NULL;
+      SymmetricKey key;
       cipher.startEncrypting(algorithm, &key);
-      assert(key != NULL);
+      assertNoException();
       
       // update and finish encryption
       ByteBuffer output;
@@ -136,15 +134,64 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       
       // do decryption
       ByteBuffer input;
-      cipher.startDecrypting(key);
+      cipher.startDecrypting(&key);
       cipher.update(output.data(), output.length(), &input, true);
       cipher.finish(&input, true);
       
-      // cleanup key
-      delete key;
-      
       // check the decrypted message
       string result(input.data(), input.length());
+      assert(strcmp(message, result.c_str()) == 0);
+   }
+   tr.passIfNoException();
+   
+   alg = algorithm;
+   alg.append("+BlockCipherInputStream");
+   tr.test(alg.c_str());
+   {
+      // create a secret message
+      char message[] = "I'll never teelllll!";
+      ByteArrayInputStream bais(message, strlen(message));
+      
+      // get a default block cipher
+      DefaultBlockCipher cipher;
+      
+      // generate a new key and start encryption
+      SymmetricKey key;
+      cipher.startEncrypting(algorithm, &key);
+      assertNoException();
+      
+      // create encrypted data buffer
+      ByteBuffer encrypted(200);
+      
+      // create stream to encrypt
+      BlockCipherInputStream encryptStream(&cipher, false, &bais, false);
+      char b[1024];
+      int numBytes;
+      while((numBytes = encryptStream.read(b, 1024)) > 0)
+      {
+         encrypted.put(b, numBytes, true);
+      }
+      encryptStream.close();
+      assertNoException();
+      
+      // start decrypting
+      cipher.startDecrypting(&key);
+      
+      // create decrypted data buffer
+      ByteBuffer decrypted(200);
+      
+      // create stream to decrypt
+      bais.setByteBuffer(&encrypted, false);
+      BlockCipherInputStream decryptStream(&cipher, false, &bais, false);
+      while((numBytes = decryptStream.read(b, 1024)) > 0)
+      {
+         decrypted.put(b, numBytes, true);
+      }
+      decryptStream.close();
+      assertNoException();
+      
+      // assert data is the same
+      string result(decrypted.data(), decrypted.length());
       assert(strcmp(message, result.c_str()) == 0);
    }
    tr.passIfNoException();
@@ -535,7 +582,7 @@ void runEnvelopeTest(TestRunner& tr)
       //cout << "Message Length=" << length << endl;
       
       // create an outgoing envelope
-      SymmetricKey* secretKey;
+      SymmetricKey secretKey;
       DigitalEnvelope* outEnv = publicKey->createEnvelope(
          "AES256", &secretKey);
       assertNoException();
@@ -559,7 +606,7 @@ void runEnvelopeTest(TestRunner& tr)
       //cout << "Total Output Length=" << totalOut << endl;
       
       // create an incoming envelope
-      DigitalEnvelope* inEnv = privateKey->createEnvelope(secretKey);
+      DigitalEnvelope* inEnv = privateKey->createEnvelope(&secretKey);
       assertNoException();
       assert(inEnv != NULL);
       //cout << "Created incoming envelope..." << endl;
@@ -589,7 +636,6 @@ void runEnvelopeTest(TestRunner& tr)
       assert(display1 == display2);
       
       // delete envelopes and key
-      delete secretKey;
       delete outEnv;
       delete inEnv;
    }

@@ -436,6 +436,10 @@ string Url::encode(const char* str, unsigned int length)
       {
          rval.push_back(c);
       }
+      else if(c == '.' || c == '_' || c == '-')
+      {
+         rval.push_back(c);
+      }
       else if(c == ' ')
       {
          // substitute pluses for spaces
@@ -472,6 +476,10 @@ string Url::decode(const char* str, unsigned int length)
          rval.push_back(c);
       }
       else if((unsigned int)(c - 'a') < 26u)
+      {
+         rval.push_back(c);
+      }
+      else if(c == '.' || c == '_' || c == '-')
       {
          rval.push_back(c);
       }
