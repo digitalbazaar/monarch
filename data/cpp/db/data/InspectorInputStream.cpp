@@ -220,11 +220,11 @@ void InspectorInputStream::getInspectors(list<DataInspector*>& inspectors)
    }
 }
 
-int InspectorInputStream::inspect()
+bool InspectorInputStream::inspect()
 {
    // scan entire stream
    char b[2048];
    int numBytes;
    while((numBytes = read(b, 2048)) > 0);
-   return numBytes;
+   return numBytes == 0;
 }

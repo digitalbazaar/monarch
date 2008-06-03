@@ -171,9 +171,10 @@ public:
    /**
     * Scans the entire input stream, reading from it until it reaches 0 or -1.
     * 
-    * @return 0 if the entire stream was read, -1 if an error occurred.
+    * @return true if the entire stream was read, false if an exception
+    *         occurred.
     */
-   virtual int inspect();
+   virtual bool inspect();
 };
 
 } // end namespace data
