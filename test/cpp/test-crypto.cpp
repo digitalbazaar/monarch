@@ -582,7 +582,7 @@ void runEnvelopeTest(TestRunner& tr)
       //cout << "Message Length=" << length << endl;
       
       // create an outgoing envelope
-      SymmetricKey* secretKey;
+      SymmetricKey secretKey;
       DigitalEnvelope* outEnv = publicKey->createEnvelope(
          "AES256", &secretKey);
       assertNoException();
@@ -606,7 +606,7 @@ void runEnvelopeTest(TestRunner& tr)
       //cout << "Total Output Length=" << totalOut << endl;
       
       // create an incoming envelope
-      DigitalEnvelope* inEnv = privateKey->createEnvelope(secretKey);
+      DigitalEnvelope* inEnv = privateKey->createEnvelope(&secretKey);
       assertNoException();
       assert(inEnv != NULL);
       //cout << "Created incoming envelope..." << endl;
@@ -636,7 +636,6 @@ void runEnvelopeTest(TestRunner& tr)
       assert(display1 == display2);
       
       // delete envelopes and key
-      delete secretKey;
       delete outEnv;
       delete inEnv;
    }
