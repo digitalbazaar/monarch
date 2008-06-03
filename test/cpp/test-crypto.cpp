@@ -10,6 +10,7 @@
 #include "db/rt/Thread.h"
 #include "db/crypto/AsymmetricKeyFactory.h"
 #include "db/crypto/BigDecimal.h"
+#include "db/crypto/BlockCipherInputStream.h"
 #include "db/crypto/DigitalEnvelope.h"
 #include "db/crypto/DigitalSignatureInputStream.h"
 #include "db/crypto/DigitalSignatureOutputStream.h"
@@ -145,6 +146,61 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       
       // check the decrypted message
       string result(input.data(), input.length());
+      assert(strcmp(message, result.c_str()) == 0);
+   }
+   tr.passIfNoException();
+   
+   alg = algorithm;
+   alg.append("+BlockCipherInputStream");
+   tr.test(alg.c_str());
+   {
+      // create a secret message
+      char message[] = "I'll never teelllll!";
+      ByteArrayInputStream bais(message, strlen(message));
+      
+      // get a default block cipher
+      DefaultBlockCipher cipher;
+      
+      // generate a new key and start encryption
+      SymmetricKey* key = NULL;
+      cipher.startEncrypting(algorithm, &key);
+      assert(key != NULL);
+      
+      // create encrypted data buffer
+      ByteBuffer encrypted(200);
+      
+      // create stream to encrypt
+      BlockCipherInputStream encryptStream(&cipher, false, &bais, false);
+      char b[1024];
+      int numBytes;
+      while((numBytes = encryptStream.read(b, 1024)) > 0)
+      {
+         encrypted.put(b, numBytes, true);
+      }
+      encryptStream.close();
+      assertNoException();
+      
+      // start decrypting
+      cipher.startDecrypting(key);
+      
+      // create decrypted data buffer
+      ByteBuffer decrypted(200);
+      
+      // create stream to decrypt
+      bais.setByteBuffer(&encrypted, false);
+      BlockCipherInputStream decryptStream(&cipher, false, &bais, false);
+      while((numBytes = decryptStream.read(b, 1024)) > 0)
+      {
+         decrypted.put(b, numBytes, true);
+      }
+      decryptStream.close();
+      assertNoException();
+      
+      // cleanup key
+      delete key;
+      
+      // assert data is the same
+      string result(decrypted.data(), decrypted.length());
       assert(strcmp(message, result.c_str()) == 0);
    }
    tr.passIfNoException();
