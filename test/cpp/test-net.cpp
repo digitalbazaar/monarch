@@ -841,6 +841,19 @@ void runUrlTest(TestRunner& tr)
       assert(strcmp(vars["key3"]->getString(), "two words=2") == 0);
    }
    
+   {
+      Url url("http://bitmunk.com/path?email=wa-hoo.test_user%40bitmunk.com");
+      
+      //dumpUrl(url);
+      assert(!Exception::hasLast());
+      assert(url.getPath() == "/path");
+      assert(url.getQuery() == "email=wa-hoo.test_user%40bitmunk.com");
+      
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assertStrCmp(vars["email"]->getString(), "wa-hoo.test_user@bitmunk.com");
+   }
+   
    tr.pass();
 }
 
