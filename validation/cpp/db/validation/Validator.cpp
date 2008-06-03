@@ -32,7 +32,7 @@ bool Validator::isValid(db::rt::DynamicObject& obj)
    ValidatorContext* ctx = new ValidatorContext();
    rval = isValid(obj, ctx);
    delete ctx;
-   return rval; 
+   return rval;
 }
 
 bool Validator::isOptional(ValidatorContext* context)
