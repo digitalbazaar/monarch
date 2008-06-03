@@ -106,6 +106,9 @@ void PooledThread::run()
          mJobLock.unlock();
          mJob->run();
          mThreadPool->jobCompleted(this);
+         
+         // clear last exception on thread as the job has been completed
+         Exception::clearLast();
       }
       else
       {
