@@ -100,7 +100,14 @@ void App::printException()
 
 void App::setDelegate(AppDelegate* delegate)
 {
+   if(mDelegate != NULL)
+   {
+      // FIXME: perhaps also have unregisteredForApp() call?
+      // unregister previous delegate
+      mDelegate->registeredForApp(NULL);
+   }
    mDelegate = (delegate != NULL) ? delegate : this;
+   mDelegate->registeredForApp(this);
 }
 
 AppDelegate* App::getDelegate()
@@ -239,6 +246,8 @@ int App::main(int argc, const char* argv[])
 AppDelegate::AppDelegate() {}
    
 AppDelegate::~AppDelegate() {}
+
+void AppDelegate::registeredForApp(App* app) {}
    
 void AppDelegate::run(App* app) {}
    

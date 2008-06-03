@@ -38,7 +38,16 @@ public:
    virtual ~AppDelegate();
    
    /**
+    * Called when App sets this object as its delegate.
+    * 
+    * @param app the App.
+    */
+   virtual void registeredForApp(App* app);
+   
+   /**
     * Run all tests and set mExitStatus.
+    * 
+    * @param app the App.
     */
    virtual void run(App* app);
    
