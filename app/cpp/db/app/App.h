@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_util_App_H
-#define db_util_App_H
+#ifndef db_app_App_H
+#define db_app_App_H
 
 #include "db/rt/Runnable.h"
 #include "db/rt/Exception.h"
@@ -298,7 +298,7 @@ int main(int argc, const char* argv[]) \
 }
 
 /**
- * Macro to call main on a db::util::App and a custom AppDelegate.
+ * Macro to call main on a db::app::App and a custom AppDelegate.
  * 
  * @param delegateClassName class name of an AppDelegate subclass.
  */
