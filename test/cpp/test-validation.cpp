@@ -295,6 +295,49 @@ void runValidatorTest(TestRunner& tr)
    }
 
    {
+      DynamicObject dv0;
+      dv0["q"] = "12";
+      DynamicObject dnv0;
+      dnv0["q"] = "";
+      DynamicObject dnv1;
+      dnv1["q"] = "12345";
+      DynamicObject dnv2;
+      // dnv2 empty
+      DynamicObject dnv3;
+      dnv3["q"] = "a";
+      
+      v::Any v(
+         new v::Map(
+            "q", new v::All(
+               new v::Type(String),
+               new v::Min(2, "q 2 short."),
+               new v::Max(4, "q 2 long."),
+               NULL),
+            NULL),
+         NULL);
+
+      tr.test("any+map+all (valid q)");
+      assert(v.isValid(dv0));
+      tr.passIfNoException();
+
+      tr.test("invalid any+map+all (short q)");
+      assert(!v.isValid(dnv0));
+      tr.passIfException(_dump);
+
+      tr.test("invalid any+map+all (long q)");
+      assert(!v.isValid(dnv1));
+      tr.passIfException(_dump);
+
+      tr.test("invalid any+map+all (empty)");
+      assert(!v.isValid(dnv2));
+      tr.passIfException(_dump);
+
+      tr.test("invalid any+map+all (\"a\")");
+      assert(!v.isValid(dnv3));
+      tr.passIfException(_dump);
+   }
+
+   {
       tr.test("deep");
       DynamicObject dv;
       dv["parent"]["child"] = "12345678";
@@ -401,6 +444,74 @@ void runValidatorTest(TestRunner& tr)
 
       tr.test("invalid in(array)");
       assert(!v.isValid(dnv));
+      tr.passIfException(_dump);
+   }
+   
+   {
+      DynamicObject dv0;
+      dv0 = 0;
+      DynamicObject dv0s;
+      dv0s = "0";
+      DynamicObject dvu;
+      dvu = 2;
+      DynamicObject dvus;
+      dvus = "2";
+      DynamicObject dvs;
+      dvs = -2;
+      DynamicObject dvss;
+      dvss = "-2";
+      DynamicObject dnv;
+      dnv = "x";
+      
+      v::Int v0;
+      v::Int vu(false);
+      v::Int vs(true);
+      v::Int vm(-1, 1);
+      
+      tr.test("int");
+      assert(v0.isValid(dv0));
+      assert(vu.isValid(dv0));
+      assert(vs.isValid(dv0));
+      assert(vm.isValid(dv0));
+
+      assert(v0.isValid(dv0s));
+      assert(vu.isValid(dv0s));
+      assert(vs.isValid(dv0s));
+      assert(vm.isValid(dv0s));
+
+      assert(v0.isValid(dvu));
+      assert(vu.isValid(dvu));
+      assert(vs.isValid(dvu));
+      
+      assert(v0.isValid(dvus));
+      assert(vu.isValid(dvus));
+      assert(vs.isValid(dvus));
+      
+      assert(v0.isValid(dvs));
+      assert(vs.isValid(dvs));
+      
+      assert(v0.isValid(dvss));
+      assert(vs.isValid(dvss));
+      tr.passIfNoException();
+
+      tr.test("invalid int (string)");
+      assert(!v0.isValid(dnv));
+      tr.passIfException(_dump);
+      
+      tr.test("invalid int (min int)");
+      assert(!vm.isValid(dvs));
+      tr.passIfException(_dump);
+      
+      tr.test("invalid int (min string)");
+      assert(!vm.isValid(dvss));
+      tr.passIfException(_dump);
+      
+      tr.test("invalid int (max int)");
+      assert(!vm.isValid(dvu));
+      tr.passIfException(_dump);
+      
+      tr.test("invalid int (max string)");
+      assert(!vm.isValid(dvus));
       tr.passIfException(_dump);
    }
    
