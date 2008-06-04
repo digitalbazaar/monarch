@@ -62,6 +62,9 @@ bool MySqlConnection::connect(Url* url)
       // default character set to UTF-8
       mysql_options(mHandle, MYSQL_SET_CHARSET_NAME, "utf8");
       
+      // setup client flag
+      int clientFlag = CLIENT_FOUND_ROWS | CLIENT_COMPRESS;
+      
       // determine default database (if any)
       const char* db = (url->getPath().length() <= 1 ?
          NULL : url->getPath().c_str() + 1);
@@ -73,7 +76,7 @@ bool MySqlConnection::connect(Url* url)
          url->getHost().c_str(),
          url->getUser().c_str(), url->getPassword().c_str(),
          db,
-         url->getPort(), NULL, 0) == NULL)
+         url->getPort(), NULL, clientFlag) == NULL)
       {
          // create exception, close connection
          ExceptionRef e = new MySqlException(this);
