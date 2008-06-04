@@ -294,9 +294,7 @@ bool Url::getTokenizedPath(DynamicObject& result, const char* basePath)
          tok = st.nextToken();
          
          // url-decode token, set dynamic object value and type
-         string str = decode(tok, strlen(tok));
-         result[i] = str.c_str();
-         result[i]->setType(DynamicObject::determineType(str.c_str()));
+         result[i] = decode(tok, strlen(tok)).c_str();
       }
    }
    
@@ -333,13 +331,8 @@ bool Url::getQueryVariables(DynamicObject& vars)
             memcpy(name, tok, eq - tok);
             
             // url-decode name and value
-            string strName = decode(name, eq - tok);
-            string value = decode(eq + 1, strlen(eq + 1));
-            
-            // get dynamic object by name and set its value and type
-            DynamicObject& dyno = vars[strName.c_str()];
-            dyno = value.c_str();
-            dyno->setType(DynamicObject::determineType(value.c_str()));
+            vars[decode(name, eq - tok).c_str()] =
+               decode(eq + 1, strlen(eq + 1)).c_str();
          }
       }
    }
