@@ -200,6 +200,15 @@ public:
     * @return a simple string to describe each DynamicObject type.
     */
    static const char* descriptionForType(DynamicObjectType type);
+   
+   /**
+    * Gets the appropriate type for the passed string.
+    * 
+    * @param str the string value to determine the type for.
+    * 
+    * @return the appropriate type.
+    */
+   static DynamicObjectType determineType(const char* str);
 };
 
 } // end namespace rt
