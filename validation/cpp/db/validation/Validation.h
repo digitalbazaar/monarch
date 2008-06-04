@@ -13,6 +13,7 @@
 #include "db/validation/Each.h"
 #include "db/validation/Equals.h"
 #include "db/validation/In.h"
+#include "db/validation/Int.h"
 #include "db/validation/Map.h"
 #include "db/validation/Max.h"
 #include "db/validation/Min.h"
