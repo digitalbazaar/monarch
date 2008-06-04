@@ -16,16 +16,19 @@ Type::~Type()
 {
 }
 
-bool Type::isValid(
-   DynamicObject& obj,
-   ValidatorContext* context)
+bool Type::isValid(DynamicObject& obj, ValidatorContext* context)
 {
-   bool rval = obj->getType() == mType;
+   bool rval = (obj->getType() == mType);
    if(!rval)
    {
+      const char* strType = DynamicObject::descriptionForType(obj->getType());
+      int length = 40 + strlen(strType);
+      char temp[length];
+      snprintf(temp, length, "Invalid type, received '%s'", strType);
+
       DynamicObject detail = context->addError("db.validation.TypeError");
       // FIXME: localize
-      detail["message"] = mErrorMessage ? mErrorMessage : "Invalid type!";
+      detail["message"] = mErrorMessage ? mErrorMessage : temp;
       detail["expectedType"] = DynamicObject::descriptionForType(mType);
    }
    return rval;
