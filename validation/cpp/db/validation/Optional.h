@@ -29,7 +29,7 @@ namespace validation
  * 
  * @author David I. Lehn
  */
-class Optional : Validator
+class Optional : public Validator
 {
 protected:
    Validator* mValidator;
