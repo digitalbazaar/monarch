@@ -2,6 +2,7 @@
  * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
+#define __STDC_CONSTANT_MACROS
 
 #include "db/validation/Int.h"
 #include "db/rt/DynamicObjectIterator.h"
@@ -12,33 +13,78 @@ using namespace std;
 using namespace db::rt;
 using namespace db::validation;
 
-Int::Int(int64_t min, uint64_t max, const char* errorMessage) :
-   Validator(errorMessage),
-   mMin(min),
-   mMax(max)
+Int::Int(int64_t min, int64_t max, const char* errorMessage) :
+   Validator(errorMessage)
 {
+   bool minneg = (min < 0);
+   uint64_t absmin = (minneg ? -min : min);
+   bool maxneg = (max < 0);
+   uint64_t absmax = (maxneg ? -max : max);
+   setMinMax(absmin, minneg, absmax, maxneg);
 }
 
-Int::Int(bool isSigned, const char* errorMessage) :
-   Validator(errorMessage),
-   mMin(INT64_MIN),
-   mMax(UINT64_MAX)
+Int::Int(uint64_t min, bool minNegative, uint64_t max, bool maxNegative,
+   const char* errorMessage)
 {
-   if(!isSigned)
+   setMinMax(min, minNegative, max, maxNegative);
+}
+
+Int::Int(bool positive, const char* errorMessage) :
+   Validator(errorMessage)
+{
+   if(positive)
    {
-      mMin = 0;
+      // value >= 0
+      setMinMax(0, false, UINT64_MAX, false);
+   }
+   else
+   {
+      // value < 0
+      setMinMax(UINT64_MAX, true, 1, true);
+   }
+}
+
+Int::Int(DynamicObjectType type, const char* errorMessage) :
+   Validator(errorMessage)
+{
+   switch(type)
+   {
+      case Int32:
+         setMinMax(UINT64_C(0x80000000), true, INT32_MAX, false);
+         break;
+      case UInt32:
+         setMinMax(0, false, UINT32_MAX, false);
+         break;
+      case Int64:
+         setMinMax(UINT64_C(0x8000000000000000), true, INT64_MAX, false);
+         break;
+      case UInt64:
+         setMinMax(0, false, UINT64_MAX, false);
+         break;
+      default:
+         // FIXME: better way to handle type error?
+         setMinMax(UINT64_MAX, true, UINT64_MAX, false);
+         break;
    }
 }
 
 Int::Int(const char* errorMessage) :
-   Validator(errorMessage),
-   mMin(INT64_MIN),
-   mMax(UINT64_MAX)
+   Validator(errorMessage)
 {
+   setMinMax(UINT64_MAX, true, UINT64_MAX, false);
 }
 
 Int::~Int()
 {
+}
+
+void Int::setMinMax(
+   uint64_t min, bool minNegative, uint64_t max, bool maxNegative)
+{
+   mMin = min;
+   mMinNegative = minNegative;
+   mMax = max;
+   mMaxNegative = maxNegative;
 }
 
 bool Int::isValid(
@@ -51,27 +97,74 @@ bool Int::isValid(
    objType = obj->getType();
    if(objType == String)
    {
-      objType = obj.determineType(obj->getString());
+      objType = DynamicObject::determineType(obj->getString());
    }
 
    // type check
    rval =
-      objType == UInt64 ||
-      objType == Int64 ||
+      objType == Int32 ||
       objType == UInt32 ||
-      objType == Int32;
+      objType == Int64 ||
+      objType == UInt64;
    
    if(!rval)
    {
       DynamicObject detail = context->addError("db.validation.ValueError");
-      detail["message"] = mErrorMessage ? mErrorMessage : "Value not an integer!";
+      detail["message"] =
+         mErrorMessage ? mErrorMessage : "Value not an integer!";
    }
    
+   // absolute value of dyno value
+   uint64_t val;
+   // flag if val is negative
+   bool valneg;
+   
+   // get value for min/max check
+   if(rval)
+   {
+      // get value and sign
+      switch(objType)
+      {
+         case Int32:
+         case Int64:
+            {
+               int64_t raw = obj->getInt64();
+               valneg = (raw < 0);
+               val = (uint64_t)(valneg ? -raw : raw);
+            }
+            break;
+         case UInt32:
+         case UInt64:
+            {
+               valneg = false;
+               val = obj->getUInt64();
+            }
+            break;
+         default:
+            // never get here
+            break;
+      }
+   }
+
    // min check
    if(rval)
    {
-      int64_t val = obj->getInt64();
-      rval = val >= mMin;
+      if(mMinNegative != valneg)
+      {
+         // signs are different
+         // val meets the minimum unless val is negative
+         rval = !valneg;
+      }
+      else
+      {
+         // signs are the same
+         // val meets the minimum if:
+         // 1. val is positive and larger than mMin
+         // 2. val is negative and smaller than mMin
+         rval = (!valneg ? val >= mMin : val <= mMin);
+      }
+      
+      // set exception on failure
       if(!rval)
       {
          DynamicObject detail = context->addError("db.validation.ValueError");
@@ -82,8 +175,22 @@ bool Int::isValid(
    // max check
    if(rval)
    {
-      uint64_t val = obj->getUInt64();
-      rval = val <= mMax;
+      if(mMaxNegative != valneg)
+      {
+         // signs are different
+         // val meets the maximum unless val is positive
+         rval = valneg;
+      }
+      else
+      {
+         // signs are the same
+         // val meets the maximum if:
+         // 1. val is positive and smaller than mMax
+         // 2. val is negative and larger than mMax
+         rval = (valneg ? val >= mMax : val <= mMax);
+      }
+      
+      // set exception on failure
       if(!rval)
       {
          DynamicObject detail = context->addError("db.validation.ValueError");

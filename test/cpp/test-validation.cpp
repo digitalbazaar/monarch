@@ -463,35 +463,54 @@ void runValidatorTest(TestRunner& tr)
       DynamicObject dnv;
       dnv = "x";
       
+      // default, any int
       v::Int v0;
-      v::Int vu(false);
-      v::Int vs(true);
+      // uint64_t
+      v::Int vu(UInt64);
+      // int64_t
+      v::Int vs(Int64);
+      // [-1, 1]
       v::Int vm(-1, 1);
+      // [-1, 1]
+      v::Int vm2(-2, 2);
+      // >= 0
+      v::Int vp(true);
+      // < 0
+      v::Int vn(false);
       
       tr.test("int");
       assert(v0.isValid(dv0));
       assert(vu.isValid(dv0));
       assert(vs.isValid(dv0));
       assert(vm.isValid(dv0));
+      assert(vp.isValid(dv0));
 
       assert(v0.isValid(dv0s));
       assert(vu.isValid(dv0s));
       assert(vs.isValid(dv0s));
       assert(vm.isValid(dv0s));
+      assert(vp.isValid(dv0s));
 
       assert(v0.isValid(dvu));
       assert(vu.isValid(dvu));
       assert(vs.isValid(dvu));
+      assert(vp.isValid(dvu));
       
       assert(v0.isValid(dvus));
       assert(vu.isValid(dvus));
       assert(vs.isValid(dvus));
+      assert(vp.isValid(dvus));
       
       assert(v0.isValid(dvs));
       assert(vs.isValid(dvs));
+      assert(vn.isValid(dvs));
       
       assert(v0.isValid(dvss));
       assert(vs.isValid(dvss));
+      assert(vn.isValid(dvss));
+      
+      assert(vm2.isValid(dvs));
+      assert(vm2.isValid(dvu));
       tr.passIfNoException();
 
       tr.test("invalid int (string)");
@@ -512,6 +531,18 @@ void runValidatorTest(TestRunner& tr)
       
       tr.test("invalid int (max string)");
       assert(!vm.isValid(dvus));
+      tr.passIfException(_dump);
+      
+      tr.test("invalid int (not positive)");
+      assert(!vp.isValid(dvs));
+      tr.passIfException(_dump);
+      
+      tr.test("invalid int (not negative (0))");
+      assert(!vn.isValid(dv0));
+      tr.passIfException(_dump);
+      
+      tr.test("invalid int (not negative)");
+      assert(!vn.isValid(dvu));
       tr.passIfException(_dump);
    }
    
