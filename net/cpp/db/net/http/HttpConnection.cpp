@@ -300,7 +300,7 @@ bool HttpConnection::receiveBody(
    }
    
    // check read error
-   rval = (numBytes != -1);
+   rval = (rval && numBytes != -1);
    
    return rval;
 }
