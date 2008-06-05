@@ -274,6 +274,49 @@ void runJsonDJDTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runJsonInvalidDJTest(TestRunner& tr)
+{
+   tr.group("JSON (Invalid Dyno->JSON)");
+   
+   DynamicObject dyno0;
+   dyno0 = 0;
+
+   DynamicObject dyno1;
+   dyno1 = "";
+   
+   JsonWriter jw;
+   
+   DynamicObject* dynos[] = {
+      &dyno0,
+      &dyno1,
+      NULL
+   };
+   
+   for(int i = 0; dynos[i] != NULL; i++)
+   {
+      char msg[50];
+      snprintf(msg, 50, "Verify #%d", i);
+      tr.test(msg);
+
+      DynamicObject d = *dynos[i];
+
+      ByteBuffer b;
+      ByteArrayOutputStream bbos(&b);
+      
+      jw.setCompact(true);
+      //jw.write(dyno1, &os);
+      jw.write(d, &bbos);
+      assertException();
+      Exception::clearLast();
+      b.clear();
+      assertNoException();
+      
+      tr.passIfNoException();
+   }
+   
+   tr.ungroup();
+}
+
 void runJsonVerifyDJDTest(TestRunner& tr)
 {
    tr.group("JSON (Verify Dyno->JSON->Dyno)");
@@ -1155,6 +1198,7 @@ public:
       runJsonValidTest(tr);
       runJsonInvalidTest(tr);
       runJsonDJDTest(tr);
+      runJsonInvalidDJTest(tr);
       runJsonVerifyDJDTest(tr);
       runJsonIOStreamTest(tr);
       
