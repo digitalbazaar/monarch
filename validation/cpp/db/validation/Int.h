@@ -12,8 +12,8 @@ namespace validation
 {
 
 /**
- * Validates an object is an integer.  Optionally can specify if the value is
- * signed or minimum and maximum values.
+ * Validates an object is an integer.  Optionally can specify minimum and
+ * maximum values.
  * 
  * @author David I. Lehn
  */
@@ -21,28 +21,70 @@ class Int : public Validator
 {
 protected:
    /* minimum */
-   int64_t mMin;
+   uint64_t mMin;
+   
+   /* is minimum negative? */
+   bool mMinNegative;
    
    /* maximum */
    uint64_t mMax;
    
-public:
-   /**
-    * Creates a new validator with specified minimum and maximum.
-    * 
-    * @param min minimum integer value
-    * @param max maximum integer value
-    * @param errorMessage custom error message
-    */
-   Int(int64_t min, uint64_t max, const char* errorMessage = NULL);
+   /* is maximum negative? */
+   bool mMaxNegative;
    
    /**
-    * Creates a new validator with specifed signedness.
+    * Set the min/max values.
     * 
-    * @param isSigned true for signed integers, false for unsigned
+    * @param min minimum value
+    * @param minNegative negative minimum value flag
+    * @param max maximum value
+    * @param maxNegative negative maximum value flag
+    */
+   void setMinMax(
+      uint64_t min,
+      bool minNegative,
+      uint64_t max,
+      bool maxNegative);
+   
+public:
+   /**
+    * Creates a new validator with specified minimum and maximum.  Restricted
+    * to +/- uint64_t max.
+    * 
+    * @param min minimum value
+    * @param minNegative negative minimum value flag
+    * @param max maximum value
+    * @param maxNegative negative maximum value flag
     * @param errorMessage custom error message
     */
-   Int(bool isSigned, const char* errorMessage = NULL);
+   Int(uint64_t min, bool minNegative, uint64_t max, bool maxNegative,
+      const char* errorMessage = NULL);
+   
+   /**
+    * Creates a new validator with specified minimum and maximum.  Restricted
+    * to int64_t range.
+    * 
+    * @param min minimum value
+    * @param max maximum value
+    * @param errorMessage custom error message
+    */
+   Int(int64_t min, int64_t max, const char* errorMessage = NULL);
+   
+   /**
+    * Creates a new validator for an positive or negative integer.
+    * 
+    * @param positive true to check >= 0, false for < 0.
+    * @param errorMessage custom error message
+    */
+   Int(bool positive, const char* errorMessage = NULL);
+   
+   /**
+    * Creates a new validator with min/max ranges for the specifed integer type.
+    * 
+    * @param type type of integer (UInt32, Int32, UInt64, In64)
+    * @param errorMessage custom error message
+    */
+   Int(db::rt::DynamicObjectType type, const char* errorMessage = NULL);
    
    /**
     * Creates a new validator.
