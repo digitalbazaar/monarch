@@ -386,36 +386,40 @@ DynamicObjectType DynamicObject::determineType(const char* str)
    DynamicObjectType rval = String;
    
    // FIXME: this code might interpret hex/octal strings as integers
-   // (and other code for that matter!) and we might not want to do that 
-   
-   // see if the number is an unsigned int
-   // then check signed int
-   // then check doubles
-   char* end;
-   strtoull(str, &end, 10);
-   if(end[0] == 0)
+   // (and other code for that matter!) and we might not want to do that
+
+   // if string starts with whitespace, forget about it
+   if(!isspace(str[0]))
    {
-      // if end is NULL then the whole string was an int
-      rval = UInt64;
-   }
-   else
-   {
-      // the number may be a signed int
-      strtoll(str, &end, 10);
-      if(end[0] == 0)
+      // see if the number is an unsigned int
+      // then check signed int
+      // then check doubles
+      char* end;
+      strtoull(str, &end, 10);
+      if(end[0] == 0 && str[0] != '-')
       {
-         // if end is NULL then the whole string was an int
-         rval = Int64;
+         // if end is NULL (and not negative) then the whole string was an int
+         rval = UInt64;
       }
       else
       {
-         // the number may be a double
-         strtod(str, &end);
+         // the number may be a signed int
+         strtoll(str, &end, 10);
          if(end[0] == 0)
          {
-            // end is NULL, so we've got a double,
-            // else we've assume a String
-            rval = Double;
+            // if end is NULL then the whole string was an int
+            rval = Int64;
+         }
+         else
+         {
+            // the number may be a double
+            strtod(str, &end);
+            if(end[0] == 0)
+            {
+               // end is NULL, so we've got a double,
+               // else we've assume a String
+               rval = Double;
+            }
          }
       }
    }
