@@ -205,11 +205,23 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
 
 bool JsonWriter::write(DynamicObject& dyno, OutputStream* os)
 {
-   bool rval;
+   bool rval = true;
+   DynamicObjectType type = dyno->getType();
    
-   ByteBuffer b(1024);
-   BufferedOutputStream bos(&b, os);
-   rval = write(dyno, &bos, mIndentLevel) && bos.flush();
+   if(!(type == Map || type == Array))
+   {
+      ExceptionRef e = new IOException(
+         "No top-level Map or Array found");
+      Exception::setLast(e, false);
+      rval = false;
+   }
+   
+   if(rval)
+   {
+      ByteBuffer b(1024);
+      BufferedOutputStream bos(&b, os);
+      rval = write(dyno, &bos, mIndentLevel) && bos.flush();
+   }
    
    return rval;
 }
