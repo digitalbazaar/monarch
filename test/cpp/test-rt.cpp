@@ -788,6 +788,48 @@ void runDynoIndexTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runDynoTypeTest(TestRunner& tr)
+{
+   tr.group("DynamicObject types");
+
+   tr.test("determineType");
+   {
+      DynamicObject d;
+      
+      d = 0;
+      assert(DynamicObject::determineType(d->getString()) == UInt64);
+      
+      d = "0";
+      assert(DynamicObject::determineType(d->getString()) == UInt64);
+      
+      d = 1;
+      assert(DynamicObject::determineType(d->getString()) == UInt64);
+      
+      d = "1";
+      assert(DynamicObject::determineType(d->getString()) == UInt64);
+      
+      d = -1;
+      assert(DynamicObject::determineType(d->getString()) == Int64);
+      
+      d = "-1";
+      assert(DynamicObject::determineType(d->getString()) == Int64);
+      
+      d = " -1";
+      assert(DynamicObject::determineType(d->getString()) == String);
+      
+      d = " ";
+      assert(DynamicObject::determineType(d->getString()) == String);
+      
+      d = "x";
+      assert(DynamicObject::determineType(d->getString()) == String);
+      
+      // FIXME: check for Double
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class DbRtTester : public db::test::Tester
 {
 public:
@@ -810,6 +852,7 @@ public:
       runDynoConversionTest(tr);
       runDynoRemoveTest(tr);
       runDynoIndexTest(tr);
+      runDynoTypeTest(tr);
       return 0;
    }
 
