@@ -22,7 +22,7 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  * A ConfigManager provides support for managing multiple sources of
  * configuration information, merging those configs into one top-level
  * view, and providing a diff between modifications to the view and the
- * merged config. Configs are typedef'd as DynamicObjects.
+ * merged config. Configs are typedefs of DynamicObjects.
  *
  * As you add configs they overlay previously added configs:
  * [sys0, sys1, sys2, user0, sys3, ...]
@@ -31,6 +31,18 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  * getChanges() will retrieve the difference between the system configs and
  * the current config. This allows for a preferences system to make it easy
  * to save user changes.
+ * 
+ * A special config key, ConfigManager::INCLUDE ("__include__"), is available
+ * to control including other files.  If present, the value of this key must
+ * be an iterable (array/map) of values.  If a value is a String it is
+ * considered to be a required path to load.  If it is a Map it must contain
+ * a String "path" key.  It can also contain a Boolean "load" key to supress
+ * loading of the path and a Boolean "optional" key to supress failures if the
+ * path is not found.  A path can be a file to load or a directory with files
+ * with ConfigManager::INCLUDE_EXT (".config") extensions.  In the case of a
+ * directory the files are sorted first to allow for control on file load order.
+ * A special Boolean "user" key is also available to load a specific config
+ * as a User type rather tha Default.
  * 
  * @author David I. Lehn
  */
@@ -179,7 +191,8 @@ public:
     * Adds a configuration.  The special key "__include__" can be used
     * to provide an array of files or directories of files to load if the
     * include parameter is true.  Note that there is currently no way to
-    * get the ConfigId for included files.
+    * get the ConfigId for included files.  See the class documentation for a
+    * full description of the include functionality.
     * 
     * @param config the Config to add.
     * @param type the type of Config.
@@ -203,12 +216,14 @@ public:
     * @param include process include directives.
     * @param dir directory of this config used for processing relative includes
     *        or NULL.
+    * @param optional true to supress failure if path is not found,
+    *        false to require path to be present.
     * 
     * @return true if successful, false if an exception occurred.
     */
    virtual bool addConfig(
       const char* path, ConfigType type = Default, ConfigId* id = NULL,
-      bool include = true, const char* dir = NULL);
+      bool include = true, const char* dir = NULL, bool optional = false);
    
    /**
     * Removes a configuration.

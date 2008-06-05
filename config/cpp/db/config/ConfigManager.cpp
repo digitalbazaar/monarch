@@ -82,16 +82,79 @@ bool ConfigManager::addConfig(
       // process includes
       if(rval && include && config->hasMember(INCLUDE))
       {
-         ConfigIterator i = config[INCLUDE].getIterator();
-         while(rval && i->hasNext())
+         if(config[INCLUDE]->getType() != Array)
          {
-            Config next = i->next();
-            rval = addConfig(next->getString(), Default, NULL, true, dir);
+            ExceptionRef e =
+               new Exception("Include directive value must be an array.",
+                  "db.config.ConfigError");
+            e->getDetails()[INCLUDE] = config[INCLUDE];
+            Exception::setLast(e, false);
+            rval = false;
+         }
+         else
+         {
+            ConfigIterator i = config[INCLUDE].getIterator();
+            while(rval && i->hasNext())
+            {
+               Config next = i->next();
+               bool load = true;
+               bool optional = false;
+               const char* path = NULL;
+
+               if(next->getType() == String)
+               {
+                  path = next->getString();
+               }
+               else if(next->getType() == Map)
+               {
+                  if(next->hasMember("path"))
+                  {
+                     path = next["path"]->getString();
+                  }
+                  else
+                  {
+                     ExceptionRef e =
+                        new Exception("Missing include path.",
+                           "db.config.ConfigError");
+                     e->getDetails()[INCLUDE] = config[INCLUDE];
+                     Exception::setLast(e, false);
+                     rval = false;
+                  }
+                  // should include be loaded?
+                  if(next->hasMember("load"))
+                  {
+                     load = next["load"]->getBoolean();;
+                  }
+                  // is include optional?
+                  if(next->hasMember("optional"))
+                  {
+                     optional = next["optional"]->getBoolean();
+                  }
+               }
+               else
+               {
+                  ExceptionRef e =
+                     new Exception("Invalid include value type.",
+                        "db.config.ConfigError");
+                  e->getDetails()[INCLUDE] = config[INCLUDE];
+                  Exception::setLast(e, false);
+                  rval = false;
+               }
+               if(rval && load)
+               {
+                  rval = addConfig(path, Default, NULL, true, dir, optional);
+               }
+            }
          }
       }
       // add to configs
       if(rval)
       {
+         // check for user override of type parameter
+         if(config->hasMember("user"))
+         {
+            type =  config["user"]->getBoolean() ? User : Default;
+         }
          mConfigs.push_back(ConfigPair(config, type));
          if(id != NULL)
          {
@@ -107,7 +170,7 @@ bool ConfigManager::addConfig(
 
 bool ConfigManager::addConfig(
    const char* path, ConfigType type, ConfigId* id, bool include,
-   const char* dir)
+   const char* dir, bool optional)
 {
    bool rval = true;
    
@@ -152,7 +215,8 @@ bool ConfigManager::addConfig(
                   ostringstream oss;
                   oss << "Configuration file load failure: " << path << ".";
                   ExceptionRef e =
-                     new Exception(oss.str().c_str(), "db.config.ConfigFileError");
+                     new Exception(oss.str().c_str(),
+                        "db.config.ConfigFileError");
                   e->getDetails()["path"] = path;
                   Exception::setLast(e, true);
                   rval = false;
@@ -160,8 +224,6 @@ bool ConfigManager::addConfig(
             }
             else if(file->isDirectory())
             {
-               // FIXME load all config files
-               // get all the files in the directory
                FileList list;
                file->listFiles(list);
    
@@ -195,20 +257,24 @@ bool ConfigManager::addConfig(
             {
                ExceptionRef e =
                   new Exception(
-                     "Unknown configuration file type.", "db.config.FileNotFound");
+                     "Unknown configuration file type.",
+                     "db.config.FileNotFound");
                Exception::setLast(e, false);
                rval = false;
             }
          }
          else
          {
-            ostringstream oss;
-            oss << "Configuration file not found: " << path << ".";
-            ExceptionRef e =
-               new Exception(oss.str().c_str(), "db.config.FileNotFound");
-            e->getDetails()["path"] = path;
-            Exception::setLast(e, false);
-            rval = false;
+            if(!optional)
+            {
+               ostringstream oss;
+               oss << "Configuration file not found: " << path << ".";
+               ExceptionRef e =
+                  new Exception(oss.str().c_str(), "db.config.FileNotFound");
+               e->getDetails()["path"] = path;
+               Exception::setLast(e, false);
+               rval = false;
+            }
          }
       }
    }
