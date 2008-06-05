@@ -210,7 +210,8 @@ bool HttpConnection::receiveBody(
       unsigned long long start = getContentBytesRead();
       
       // read in from connection, write out content
-      while(rval && (numBytes = is->read(b, length)) > 0)
+      // Note: keep reading even if content output stream fails
+      while((numBytes = is->read(b, length)) > 0)
       {
          // update http connection content bytes read (reset as necessary)
          if(getContentBytesRead() > HALF_MAX_LONG_VALUE)
@@ -220,8 +221,8 @@ bool HttpConnection::receiveBody(
          
          setContentBytesRead(getContentBytesRead() + numBytes);
          
-         // write out content
-         rval = os->write(b, numBytes);
+         // write out content if no error yet
+         rval = rval && os->write(b, numBytes);
       }
       
       // update trailer with content length
@@ -251,11 +252,11 @@ bool HttpConnection::receiveBody(
       // do specified length transfer:
       
       // read in from connection, write out content
+      // Note: keep reading even if content output stream fails
       unsigned long long contentRemaining = contentLength;
       unsigned int readSize = (contentRemaining < length) ?
          contentRemaining : length;
-      while(rval && contentRemaining > 0 &&
-            (numBytes = is->read(b, readSize)) > 0)
+      while(contentRemaining > 0 && (numBytes = is->read(b, readSize)) > 0)
       {
          contentRemaining -= numBytes;
          readSize = (contentRemaining < length) ? contentRemaining : length;
@@ -268,8 +269,8 @@ bool HttpConnection::receiveBody(
          
          setContentBytesRead(getContentBytesRead() + numBytes);
          
-         // write out content
-         rval = os->write(b, numBytes);
+         // write out content if no error yet
+         rval = rval && os->write(b, numBytes);
       }
       
       // see if content is remaining
@@ -300,7 +301,7 @@ bool HttpConnection::receiveBody(
    }
    
    // check read error
-   rval = (numBytes != -1);
+   rval = (rval && numBytes != -1);
    
    return rval;
 }
