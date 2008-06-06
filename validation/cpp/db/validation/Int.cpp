@@ -29,18 +29,26 @@ Int::Int(uint64_t min, bool minNegative, uint64_t max, bool maxNegative,
    setMinMax(min, minNegative, max, maxNegative);
 }
 
-Int::Int(bool positive, const char* errorMessage) :
+Int::Int(IntegerType type, const char* errorMessage) :
    Validator(errorMessage)
 {
-   if(positive)
+   switch(type)
    {
-      // value >= 0
-      setMinMax(0, false, UINT64_MAX, false);
-   }
-   else
-   {
-      // value < 0
-      setMinMax(UINT64_MAX, true, 1, true);
+      case Negative:
+         setMinMax(UINT64_MAX, true, 1, true);
+         break;
+      case NonPositive:
+         setMinMax(UINT64_MAX, true, 0, false);
+         break;
+      case Zero:
+         setMinMax(0, false, 0, false);
+         break;
+      case NonNegative:
+         setMinMax(0, false, UINT64_MAX, false);
+         break;
+      case Positive:
+         setMinMax(1, false, UINT64_MAX, false);
+         break;
    }
 }
 

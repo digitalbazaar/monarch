@@ -474,9 +474,9 @@ void runValidatorTest(TestRunner& tr)
       // [-1, 1]
       v::Int vm2(-2, 2);
       // >= 0
-      v::Int vp(true);
+      v::Int vp(v::Int::NonNegative);
       // < 0
-      v::Int vn(false);
+      v::Int vn(v::Int::Negative);
       
       tr.test("int");
       assert(v0.isValid(dv0));

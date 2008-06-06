@@ -19,6 +19,24 @@ namespace validation
  */
 class Int : public Validator
 {
+public:
+   /**
+    * General integer types.
+    */
+   typedef enum IntegerType
+   {
+      // < 0
+      Negative,
+      // <= 0
+      NonPositive,
+      // = 0
+      Zero,
+      // >= 0
+      NonNegative,
+      // > 0
+      Positive
+   };
+   
 protected:
    /* minimum */
    uint64_t mMin;
@@ -71,12 +89,12 @@ public:
    Int(int64_t min, int64_t max, const char* errorMessage = NULL);
    
    /**
-    * Creates a new validator for an positive or negative integer.
+    * Creates a new validator for an specific IntegerType.
     * 
     * @param positive true to check >= 0, false for < 0.
     * @param errorMessage custom error message
     */
-   Int(bool positive, const char* errorMessage = NULL);
+   Int(IntegerType type, const char* errorMessage = NULL);
    
    /**
     * Creates a new validator with min/max ranges for the specifed integer type.
