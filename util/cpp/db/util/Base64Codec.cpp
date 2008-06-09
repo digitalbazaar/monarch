@@ -3,6 +3,9 @@
  */
 #include "db/util/Base64Codec.h"
 
+#include <cstring>
+#include <cstdlib>
+
 using namespace std;
 using namespace db::util;
 

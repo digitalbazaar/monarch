@@ -64,8 +64,8 @@ bool ConnectionOutputStream::flush()
       }
       
       // send data through the socket output stream
-      if(rval = mConnection->getSocket()->getOutputStream()->write(
-         mBuffer.data(), numBytes))
+      if((rval = mConnection->getSocket()->getOutputStream()->write(
+         mBuffer.data(), numBytes)))
       {
          // clear written bytes from buffer
          mBuffer.clear(numBytes);

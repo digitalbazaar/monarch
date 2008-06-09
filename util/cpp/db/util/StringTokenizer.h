@@ -15,7 +15,7 @@ namespace util
  * 
  * @author Dave Longley
  */
-typedef struct StringToken
+struct StringToken
 {
    /**
     * The string data for this token.

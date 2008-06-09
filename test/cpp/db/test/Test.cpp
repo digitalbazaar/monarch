@@ -3,7 +3,6 @@
  */
 #include "db/test/Test.h"
 
-#include <assert.h>
 #include <iostream>
 #include <sstream>
 

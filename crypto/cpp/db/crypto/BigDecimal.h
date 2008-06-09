@@ -16,7 +16,7 @@ namespace crypto
 /**
  * A RoundingMode specifies a type of decimal rounding.
  */
-typedef enum RoundingMode
+enum RoundingMode
 {
    Up, HalfUp, Down
 };

@@ -5,6 +5,8 @@
 #include "db/crypto/PrivateKey.h"
 #include "db/crypto/PublicKey.h"
 
+#include <cstring>
+
 using namespace db::crypto;
 
 DigitalSignature::DigitalSignature(PrivateKey* key)

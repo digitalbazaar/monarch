@@ -10,7 +10,6 @@
 #include <openssl/rand.h>
 #include <openssl/engine.h>
 
-#include <assert.h>
 #include <iostream>
 #include <sstream>
 #include <vector>

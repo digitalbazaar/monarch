@@ -3,6 +3,9 @@
  */
 #include "db/crypto/SymmetricKey.h"
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace db::crypto;
 
 SymmetricKey::SymmetricKey(const char* algorithm)

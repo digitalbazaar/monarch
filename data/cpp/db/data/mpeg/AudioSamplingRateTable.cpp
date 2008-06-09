@@ -3,6 +3,8 @@
  */
 #include "db/data/mpeg/AudioSamplingRateTable.h"
 
+#include <cstdlib>
+
 using namespace std;
 using namespace db::data::mpeg;
 

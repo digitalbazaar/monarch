@@ -42,7 +42,7 @@ protected:
    /**
     * An IdComparator compares two module IDs.
     */
-   typedef struct ModuleIdComparator
+   struct ModuleIdComparator
    {
       /**
        * Compares two ModuleIds, returning true if the first is less than

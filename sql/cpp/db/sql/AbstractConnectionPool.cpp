@@ -3,6 +3,8 @@
  */
 #include "db/sql/AbstractConnectionPool.h"
 
+#include <algorithm>
+
 using namespace std;
 using namespace db::rt;
 using namespace db::sql;

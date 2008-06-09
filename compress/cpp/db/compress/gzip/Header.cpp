@@ -6,6 +6,9 @@
 #include "db/rt/System.h"
 #include <zlib.h>
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace std;
 using namespace db::compress::gzip;
 using namespace db::io;

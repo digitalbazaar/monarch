@@ -34,7 +34,7 @@ protected:
    /**
     * A PathComparator compares two http paths.
     */
-   typedef struct PathComparator
+   struct PathComparator
    {
       /**
        * Compares two null-terminated strings, returning true if the first is

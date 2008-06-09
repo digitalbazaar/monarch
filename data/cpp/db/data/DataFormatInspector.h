@@ -27,7 +27,7 @@ public:
    /**
     * The type of data formats.
     */
-   typedef enum DataFormatType
+   enum DataFormatType
    {
       // type not yet determined
       Unknown = 0,

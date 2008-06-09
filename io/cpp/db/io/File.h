@@ -33,7 +33,7 @@ public:
    /**
     * The types of files.
     */
-   typedef enum Type
+   enum Type
    {
       RegularFile, Directory, SymbolicLink, Socket, Unknown
    };

@@ -3,6 +3,8 @@
  */
 #include "db/sql/Statement.h"
 
+#include <cstdlib>
+
 using namespace db::sql;
 
 Statement::Statement(Connection* c, const char* sql)

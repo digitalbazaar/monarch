@@ -10,6 +10,7 @@
 #include <iostream>
 #include <ostream>
 #include <string>
+#include <cassert>
 
 namespace db
 {

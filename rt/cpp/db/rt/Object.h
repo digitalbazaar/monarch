@@ -4,7 +4,6 @@
 #ifndef db_rt_Object_H
 #define db_rt_Object_H
 
-#include <assert.h>
 #include <string>
 
 #include "db/rt/Monitor.h"

@@ -3,6 +3,8 @@
  */
 #include "db/event/EventWaiter.h"
 
+#include <cstdlib>
+
 using namespace std;
 using namespace db::event;
 using namespace db::rt;

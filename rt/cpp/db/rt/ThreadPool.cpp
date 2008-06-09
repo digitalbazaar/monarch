@@ -184,7 +184,7 @@ bool ThreadPool::tryRunJob(Runnable& job)
    bool rval;
    
    // try to acquire a thread permit
-   if(rval = mThreadSemaphore.tryAcquire())
+   if((rval = mThreadSemaphore.tryAcquire()))
    {
       // run the job on an idle thread
       runJobOnIdleThread(job);
@@ -198,7 +198,7 @@ bool ThreadPool::tryRunJob(RunnableRef& job)
    bool rval;
    
    // try to acquire a thread permit
-   if(rval = mThreadSemaphore.tryAcquire())
+   if((rval = mThreadSemaphore.tryAcquire()))
    {
       // run the job on an idle thread
       runJobOnIdleThread(job);

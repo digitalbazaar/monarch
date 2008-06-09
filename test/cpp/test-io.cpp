@@ -1,8 +1,6 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#include <iostream>
-#include <sstream>
 
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
@@ -19,6 +17,10 @@
 #include "db/io/MutatorInputStream.h"
 #include "db/io/MutatorOutputStream.h"
 #include "db/rt/System.h"
+
+#include <iostream>
+#include <sstream>
+#include <cstdlib>
 
 using namespace std;
 using namespace db::test;

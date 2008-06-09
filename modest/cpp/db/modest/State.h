@@ -7,6 +7,7 @@
 #include "db/modest/ImmutableState.h"
 
 #include <map>
+#include <cstring>
 
 namespace db
 {
@@ -25,7 +26,7 @@ protected:
    /**
     * A VarNameComparator compares two state Variable names.
     */
-   typedef struct VarNameComparator
+   struct VarNameComparator
    {
       /**
        * Compares two null-terminated strings, returning true if the first is
@@ -45,7 +46,7 @@ protected:
    /**
     * A Variable is a boolean, 32-bit signed integer, or a string.
     */
-   typedef struct Variable
+   struct Variable
    {
       /**
        * The type of variable this is.

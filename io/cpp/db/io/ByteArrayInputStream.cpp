@@ -3,6 +3,8 @@
  */
 #include "db/io/ByteArrayInputStream.h"
 
+#include <cstring>
+
 using namespace db::io;
 
 ByteArrayInputStream::ByteArrayInputStream(const char* b, int length)

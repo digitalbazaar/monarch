@@ -3,6 +3,9 @@
  */
 #include "db/io/BitStream.h"
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace db::io;
 
 BitStream::BitStream()

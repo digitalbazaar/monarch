@@ -7,7 +7,9 @@
 #include "db/io/FileList.h"
 #include "db/util/StringTokenizer.h"
 
-#include <stdarg.h>
+#include <cstdlib>
+#include <cstring>
+#include <cstdarg>
 #include <sys/stat.h>
 #include <dirent.h>
 

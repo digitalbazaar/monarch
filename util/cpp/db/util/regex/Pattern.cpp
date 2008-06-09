@@ -5,6 +5,7 @@
 #include "db/util/regex/InvalidRegexException.h"
 
 #include <string>
+#include <cstring>
 
 using namespace std;
 using namespace db::rt;

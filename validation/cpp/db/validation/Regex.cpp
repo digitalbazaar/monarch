@@ -5,6 +5,8 @@
 #include "db/validation/Regex.h"
 #include "db/validation/Type.h"
 
+#include <cstdlib>
+
 using namespace db::rt;
 using namespace db::util::regex;
 using namespace db::validation;

@@ -30,7 +30,7 @@ public:
    /**
     * The logging level.
     */
-   typedef enum Level {
+   enum Level {
       /**
        * The no level setting. Nothing will be logged.
        */
@@ -78,7 +78,7 @@ public:
    /**
     * Logger control flags.
     */
-   typedef enum LoggerFlag {
+   enum LoggerFlag {
       /**
        * Log date.
        */
@@ -122,7 +122,7 @@ public:
    /**
     * Log message flags.
     */
-   typedef enum LogFlag {
+   enum LogFlag {
       /**
        * Log object parameter is set. 
        */

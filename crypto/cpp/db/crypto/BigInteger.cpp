@@ -3,8 +3,11 @@
  */
 #include "db/crypto/BigInteger.h"
 
-#include <assert.h>
+// FIXME: find a way to remove all assert()s in this class.
+#include <cassert>
 #include <openssl/crypto.h>
+
+#include <cstring>
 
 using namespace std;
 using namespace db::crypto;

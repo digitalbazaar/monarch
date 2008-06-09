@@ -29,7 +29,7 @@ protected:
    /**
     * The definition for a reference a HeapObject.
     */
-   typedef struct Reference
+   struct Reference
    {
       /**
        * A pointer to a HeapObject.

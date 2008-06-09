@@ -5,6 +5,8 @@
 #include "db/util/Convert.h"
 #include "db/rt/Exception.h"
 
+#include <cstring>
+
 using namespace std;
 using namespace db::crypto;
 using namespace db::rt;

@@ -8,6 +8,8 @@
 #include "db/sql/SqlException.h"
 #include "db/rt/Collectable.h"
 
+#include <cstring>
+
 namespace db
 {
 namespace sql
@@ -35,7 +37,7 @@ protected:
    /**
     * An SqlComparator compares two sql statements.
     */
-   typedef struct NameComparator
+   struct NameComparator
    {
       /**
        * Compares two null-terminated strings, returning true if the first is

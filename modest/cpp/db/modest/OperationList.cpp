@@ -3,6 +3,8 @@
  */
 #include "db/modest/OperationList.h"
 
+#include <algorithm>
+
 using namespace std;
 using namespace db::modest;
 using namespace db::rt;

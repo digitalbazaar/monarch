@@ -14,7 +14,7 @@ namespace modest
 /**
  * Stores information about a Module.
  */
-typedef struct ModuleInfo
+struct ModuleInfo
 {
    /**
     * The handle to the Module.

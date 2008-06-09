@@ -22,7 +22,7 @@ struct AudioVersion
    /**
     * The type of AudioVersion. Reserved is invalid.
     */
-   typedef enum Type
+   enum Type
    {
       Reserved, Mpeg1, Mpeg2, Mpeg25
    };
@@ -125,7 +125,7 @@ struct AudioLayer
    /**
     * The type of Layer. Reserved is invalid.
     */
-   typedef enum Type
+   enum Type
    {
       Reserved, Layer1, Layer2, Layer3
    };
@@ -228,7 +228,7 @@ struct AudioChannelMode
    /**
     * The type of channel mode.
     */
-   typedef enum Type
+   enum Type
    {
       Stereo, JointStereo, DualChannel, SingleChannel
    };
@@ -372,7 +372,7 @@ struct AudioChannelModeExtension
    /**
     * The type of channel mode extension.
     */
-   typedef enum Type
+   enum Type
    {
       /**
        * Band range 4-31. Used with Layers I & II. Upper stereo subband is 4.
@@ -566,7 +566,7 @@ struct AudioEmphasis
    /**
     * The type of AudioEmphasis.
     */
-   typedef enum Type
+   enum Type
    {
       None, FiftyFifteenMilliseconds, Reserved, CCITJ17
    };

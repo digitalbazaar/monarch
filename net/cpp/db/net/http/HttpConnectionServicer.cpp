@@ -7,6 +7,8 @@
 #include "db/net/http/HttpResponse.h"
 #include "db/io/ByteArrayInputStream.h"
 
+#include <cstdlib>
+
 using namespace std;
 using namespace db::io;
 using namespace db::net::http;

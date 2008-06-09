@@ -5,6 +5,8 @@
 
 #include "db/rt/DynamicObjectIterator.h"
 
+#include <cstdlib>
+
 using namespace db::rt;
 
 DynamicObject::DynamicObject() :

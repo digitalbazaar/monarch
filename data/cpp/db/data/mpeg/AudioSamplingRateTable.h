@@ -7,6 +7,8 @@
 #include <map>
 #include "db/data/mpeg/AudioCharacteristics.h"
 
+#include <cstring>
+
 namespace db
 {
 namespace data
@@ -41,7 +43,7 @@ protected:
    /**
     * A KeyComparator compares the keys for the sample rate map.
     */
-   typedef struct KeyComparator
+   struct KeyComparator
    {
       /**
        * Compares two map keys using a string compare, returning true if the

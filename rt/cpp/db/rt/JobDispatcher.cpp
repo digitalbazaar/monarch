@@ -3,6 +3,9 @@
  */
 #include "db/rt/JobDispatcher.h"
 
+#include <list>
+#include <algorithm>
+
 using namespace std;
 using namespace db::rt;
 

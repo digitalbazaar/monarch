@@ -5,6 +5,10 @@
 #include "db/util/Convert.h"
 #include "db/util/StringTokenizer.h"
 
+#include <cstdlib>
+#include <cctype>
+#include <algorithm>
+
 using namespace std;
 using namespace db::net;
 using namespace db::rt;
@@ -76,7 +80,7 @@ bool Url::setUrl(const string& url, bool relative)
          mScheme = url.substr(0, index);
          
          // make scheme lower case
-         transform(mScheme.begin(), mScheme.end(), mScheme.begin(), tolower);
+         transform(mScheme.begin(), mScheme.end(), mScheme.begin(), ::tolower);
          
          // check scheme for validity
          // FIXME scheme should be case-insensitive

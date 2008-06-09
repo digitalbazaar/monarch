@@ -23,7 +23,7 @@ public:
    /**
     * An enumeration of the possible data mutation results. 
     */
-   typedef enum Result
+   enum Result
    {
       Error = -1,
       NeedsData = 0,

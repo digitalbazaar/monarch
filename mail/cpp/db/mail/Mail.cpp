@@ -58,7 +58,7 @@ bool Mail::addRecipient(const char* header, const char* address)
    bool rval = false;
    
    Address a;
-   if(rval = setAddress(a, address))
+   if((rval = setAddress(a, address)))
    {
       // add to list of recipients
       mRecipients[mRecipients->length()] = a;
@@ -81,7 +81,7 @@ bool Mail::setSender(const char* address)
 {
    bool rval = false;
    
-   if(rval = setAddress(mSender, address))
+   if((rval = setAddress(mSender, address)))
    {
       // set "From" header
       string str = address;

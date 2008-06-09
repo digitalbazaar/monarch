@@ -4,6 +4,8 @@
 #include "db/data/avi/BitMapInfoHeader.h"
 #include "db/data/Data.h"
 
+#include <cstring>
+
 using namespace db::data;
 using namespace db::data::avi;
 using namespace db::io;

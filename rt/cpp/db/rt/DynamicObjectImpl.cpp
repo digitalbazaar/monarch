@@ -5,6 +5,8 @@
 
 #include "db/rt/DynamicObject.h"
 
+#include <cstdlib>
+
 using namespace std;
 using namespace db::rt;
 

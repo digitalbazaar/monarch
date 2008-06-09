@@ -138,10 +138,10 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                   DynamicObject& next = i->next();
                   
                   // serialize indentation and start serializing member name
-                  if(rval =
+                  if((rval =
                      writeIndentation(os, level + 1) &&
                      os->write("\"", 1) &&
-                     os->write(i->getName(), strlen(i->getName())))
+                     os->write(i->getName(), strlen(i->getName()))))
                   {
                      // end serializing member name, serialize member value
                      rval = ((mCompact) ?

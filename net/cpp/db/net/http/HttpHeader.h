@@ -8,6 +8,7 @@
 #include "db/rt/Collectable.h"
 #include "db/util/Date.h"
 
+#include <cstring>
 #include <map>
 #include <string>
 
@@ -37,7 +38,7 @@ protected:
    /**
     * A FieldComparator compares two header field names.
     */
-   typedef struct FieldComparator
+   struct FieldComparator
    {
       /**
        * Compares two null-terminated strings, returning true if the first is

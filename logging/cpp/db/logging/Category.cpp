@@ -4,6 +4,9 @@
 
 #include "db/logging/Category.h"
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace db::logging;
  
 // DO NOT INITIALIZE THESE VARIABLES!

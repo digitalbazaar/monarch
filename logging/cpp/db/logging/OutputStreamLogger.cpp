@@ -4,6 +4,8 @@
 
 #include "db/logging/OutputStreamLogger.h"
 
+#include <cstring>
+
 using namespace db::io;
 using namespace db::logging;
 

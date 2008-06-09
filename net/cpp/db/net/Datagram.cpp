@@ -3,6 +3,9 @@
  */
 #include "db/net/Datagram.h"
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace std;
 using namespace db::net;
 

@@ -10,6 +10,7 @@
 
 #include <map>
 #include <list>
+#include <cstring>
 
 namespace db
 {
@@ -28,7 +29,7 @@ protected:
    /**
     * A NameComparator compares the names for the data inspector map.
     */
-   typedef struct NameComparator
+   struct NameComparator
    {
       /**
        * Compares two inspector names using a string compare, returning true
@@ -48,7 +49,7 @@ protected:
    /**
     * A structure for maintaining information about a particular DataInspector.
     */
-   typedef struct DataInspectorMetaData
+   struct DataInspectorMetaData
    {
       /**
        * The DataInspector.

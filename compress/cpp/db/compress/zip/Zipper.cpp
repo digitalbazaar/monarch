@@ -7,6 +7,8 @@
 #include "db/io/FileOutputStream.h"
 #include "db/rt/Iterator.h"
 
+#include <cstring>
+
 using namespace db::compress::zip;
 using namespace db::io;
 using namespace db::rt;
@@ -76,7 +78,7 @@ bool Zipper::zip(FileList& fl, File& out)
       ze->setFilename(file->getName());
       
       // write entry
-      if(rval = writeEntry(ze, &fos))
+      if((rval = writeEntry(ze, &fos)))
       {
          // write data for entry
          FileInputStream fis(file);

@@ -8,6 +8,7 @@
 
 #include <map>
 #include <vector>
+#include <cstring>
 
 namespace db
 {
@@ -21,7 +22,7 @@ class DynamicObjectIteratorImpl;
 /**
  * The possible types for a DynamicObject.
  */
-typedef enum DynamicObjectType
+enum DynamicObjectType
 {
    String, Boolean, Int32, UInt32, Int64, UInt64, Double, Map, Array
 };
@@ -37,7 +38,7 @@ public:
    /**
     * A MemberComparator compares two member names.
     */
-   typedef struct MemberComparator
+   struct MemberComparator
    {
       /**
        * Compares two null-terminated strings, returning true if the first is

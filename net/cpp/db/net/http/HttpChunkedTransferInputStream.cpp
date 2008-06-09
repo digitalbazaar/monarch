@@ -4,6 +4,9 @@
 #include "db/net/http/HttpChunkedTransferInputStream.h"
 #include "db/util/Convert.h"
 
+#include <cstdlib>
+#include <climits>
+
 using namespace std;
 using namespace db::io;
 using namespace db::net;

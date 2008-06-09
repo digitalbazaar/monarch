@@ -3,6 +3,8 @@
  */
 #include "db/net/http/HttpRequestHeader.h"
 
+#include <cstdlib>
+
 using namespace std;
 using namespace db::net;
 using namespace db::net::http;

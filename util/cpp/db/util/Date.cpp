@@ -6,6 +6,8 @@
 #include "db/rt/System.h"
 #include "db/util/StringTools.h"
 
+#include <cstring>
+
 using namespace std;
 using namespace db::util;
 

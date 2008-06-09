@@ -23,7 +23,7 @@ public:
    /**
     * The output level.
     */
-   typedef enum OutputLevel {
+   enum OutputLevel {
       /**
        * No output.
        */

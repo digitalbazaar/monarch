@@ -197,7 +197,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
    while(rval && i->hasNext())
    {
       // send recipient's address
-      if(rval = rcptTo(c, i->next()["smtpEncoding"]->getString()))
+      if((rval = rcptTo(c, i->next()["smtpEncoding"]->getString())))
       {
          // receive response
          rval = ((code = getResponseCode(c)) == 250);

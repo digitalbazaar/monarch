@@ -5,6 +5,9 @@
 #include "db/net/SocketDefinitions.h"
 #include "db/rt/Exception.h"
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace std;
 using namespace db::net;
 using namespace db::rt;

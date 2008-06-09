@@ -3,6 +3,8 @@
  */
 #include "db/modest/State.h"
 
+#include <cstdlib>
+
 using namespace std;
 using namespace db::modest;
 

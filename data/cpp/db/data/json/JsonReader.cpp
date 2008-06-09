@@ -4,6 +4,8 @@
 #include "db/data/json/JsonReader.h"
 #include "db/util/Convert.h"
 
+#include <cstdlib>
+
 using namespace std;
 using namespace db::data;
 using namespace db::data::json;
@@ -265,20 +267,20 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          else if (uc < 0x800)
          {
             mString.push_back(0xC0 | uc>>6);
-            mString.push_back(0x80 | uc & 0x3F);
+            mString.push_back(0x80 | (uc & 0x3F));
          }
          else if (uc < 0x10000)
          {
             mString.push_back(0xE0 | uc>>12);
-            mString.push_back(0x80 | uc>>6 & 0x3F);
-            mString.push_back(0x80 | uc & 0x3F);
+            mString.push_back(0x80 | (uc>>6 & 0x3F));
+            mString.push_back(0x80 | (uc & 0x3F));
          }
          else if (uc < 0x200000)
          {
             mString.push_back(0xF0 | uc>>18);
-            mString.push_back(0x80 | uc>>12 & 0x3F);
-            mString.push_back(0x80 | uc>>6 & 0x3F);
-            mString.push_back(0x80 | uc & 0x3F);
+            mString.push_back(0x80 | (uc>>12 & 0x3F));
+            mString.push_back(0x80 | (uc>>6 & 0x3F));
+            mString.push_back(0x80 | (uc & 0x3F));
          }
          // back to character reading state
          mState = SC;

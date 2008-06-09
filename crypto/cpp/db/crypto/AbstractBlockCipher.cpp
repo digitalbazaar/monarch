@@ -3,6 +3,8 @@
  */
 #include "db/crypto/AbstractBlockCipher.h"
 
+#include <cstring>
+
 using namespace db::crypto;
 using namespace db::rt;
 

@@ -2,14 +2,15 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 
-#include <iostream>
-#include <sstream>
-
 #include "db/data/json/JsonWriter.h"
 #include "db/logging/Logger.h"
 #include "db/io/OStreamOutputStream.h"
 #include "db/util/Date.h"
 #include "db/rt/Thread.h"
+
+#include <iostream>
+#include <sstream>
+#include <cstdlib>
 
 using namespace std;
 using namespace db::data::json;

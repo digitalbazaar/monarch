@@ -18,7 +18,7 @@ namespace json
 /**
  * Input classes.
  */
-typedef enum JsonInputClass {
+enum JsonInputClass {
    /* Character classes */
    C_WS,    /* whitespace */
    C_SP,    /* space */
@@ -60,7 +60,7 @@ typedef enum JsonInputClass {
 /**
  * Parser states and actions.
  */
-typedef enum JsonState {
+enum JsonState {
    /* State codes */
    /* CODE /. state, [expect, ...] ./ */
    J_, /* start of JSON parsing, ['{', '['] */

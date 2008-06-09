@@ -4,6 +4,8 @@
 #include "db/util/StringTokenizer.h"
 
 #include <string>
+#include <cstdlib>
+#include <cstring>
 
 using namespace db::util;
 

@@ -4,6 +4,7 @@
 #include "db/crypto/BigDecimal.h"
 
 #include <sstream>
+#include <cstdlib>
 
 using namespace std;
 using namespace db::crypto;

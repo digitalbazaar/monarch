@@ -23,7 +23,7 @@ public:
    /**
     * General integer types.
     */
-   typedef enum IntegerType
+   enum IntegerType
    {
       // < 0
       Negative,

@@ -5,6 +5,9 @@
 
 #include "db/rt/System.h"
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace db::rt;
 
 // create thread initializer

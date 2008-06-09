@@ -3,6 +3,8 @@
  */
 #include "db/io/FileInputStream.h"
 
+#include <cstring>
+
 using namespace std;
 using namespace db::io;
 using namespace db::rt;

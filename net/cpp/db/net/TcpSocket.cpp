@@ -7,6 +7,8 @@
 #include "db/net/SocketInputStream.h"
 #include "db/net/SocketOutputStream.h"
 
+#include <cstring>
+
 using namespace db::io;
 using namespace db::net;
 

@@ -4,6 +4,7 @@
 #include "db/data/id3v2/TagHeader.h"
 
 #include <string>
+#include <cstring>
 
 using namespace db::data::id3v2;
 

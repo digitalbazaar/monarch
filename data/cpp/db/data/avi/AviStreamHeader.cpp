@@ -3,6 +3,8 @@
  */
 #include "db/data/avi/AviStreamHeader.h"
 
+#include <cstring>
+
 using namespace db::data;
 using namespace db::data::avi;
 using namespace db::data::riff;

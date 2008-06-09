@@ -3,6 +3,9 @@
  */
 #include "db/data/InspectorInputStream.h"
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace std;
 using namespace db::io;
 using namespace db::data;

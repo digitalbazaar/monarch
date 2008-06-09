@@ -3,6 +3,8 @@
  */
 #include "db/crypto/PrivateKey.h"
 
+#include <cstring>
+
 using namespace std;
 using namespace db::crypto;
 

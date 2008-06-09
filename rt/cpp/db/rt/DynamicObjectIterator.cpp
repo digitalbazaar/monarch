@@ -5,6 +5,8 @@
 
 #include "db/rt/Exception.h"
 
+#include <cstdlib>
+
 using namespace db::rt;
 
 DynamicObjectIteratorImpl::DynamicObjectIteratorImpl(DynamicObject dyno)

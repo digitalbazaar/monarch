@@ -3,6 +3,8 @@
  */
 #include "db/validation/Validator.h"
 
+#include <cstdlib>
+
 using namespace db::rt;
 using namespace db::validation;
 

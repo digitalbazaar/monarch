@@ -6,6 +6,8 @@
 #include "db/rt/Thread.h"
 #include "db/rt/DynamicObject.h"
 
+#include <cstdlib>
+
 using namespace db::rt;
 
 Exception::Exception(const char* message, const char* type, int code)

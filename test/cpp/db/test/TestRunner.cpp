@@ -3,7 +3,7 @@
  */
 #include "db/test/TestRunner.h"
 
-#include <assert.h>
+#include <cassert>
 #include <iostream>
 
 #include "db/test/Test.h"

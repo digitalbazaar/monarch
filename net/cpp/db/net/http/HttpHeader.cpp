@@ -4,6 +4,9 @@
 #include "db/net/http/HttpHeader.h"
 #include "db/util/StringTools.h"
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace std;
 using namespace db::io;
 using namespace db::net::http;

@@ -4,6 +4,9 @@
 #include "db/net/SocketAddress.h"
 #include "db/net/SocketDefinitions.h"
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace std;
 using namespace db::net;
 

@@ -9,6 +9,7 @@
 
 #include <list>
 #include <map>
+#include <cstring>
 
 namespace db
 {
@@ -36,7 +37,7 @@ protected:
    /**
     * An IdComparator compares the IDs for FrameHeaders.
     */
-   typedef struct IdComparator
+   struct IdComparator
    {
       /**
        * Compares two frame header IDs using a string compare, returning

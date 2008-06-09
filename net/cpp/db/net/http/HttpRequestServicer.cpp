@@ -3,6 +3,9 @@
  */
 #include "db/net/http/HttpRequestServicer.h"
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace db::net::http;
 
 HttpRequestServicer::HttpRequestServicer(const char* path)

@@ -5,6 +5,8 @@
 #include "db/modest/ModuleApi.h"
 #include "db/rt/DynamicLibrary.h"
 
+#include <cstring>
+
 using namespace db::modest;
 using namespace db::rt;
 

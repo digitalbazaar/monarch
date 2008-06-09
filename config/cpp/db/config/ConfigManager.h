@@ -52,7 +52,7 @@ public:
    /**
     * The type of a configuration.
     */
-   typedef enum ConfigType {
+   enum ConfigType {
       /**
        * No type.
        */

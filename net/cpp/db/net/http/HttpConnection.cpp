@@ -124,7 +124,7 @@ bool HttpConnection::sendBody(
             (numBytes = is->read(b, readSize)) > 0)
       {
          // write out to connection
-         if(rval = os.write(b, numBytes))
+         if((rval = os.write(b, numBytes)))
          {
             contentRemaining -= numBytes;
             readSize = (contentRemaining < length) ? contentRemaining : length;

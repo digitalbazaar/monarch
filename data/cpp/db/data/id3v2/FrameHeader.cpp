@@ -3,6 +3,9 @@
  */
 #include "db/data/id3v2/FrameHeader.h"
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace std;
 using namespace db::data::id3v2;
 

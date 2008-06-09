@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#include <iostream>
 
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
@@ -13,6 +12,9 @@
 #include "db/rt/SharedLock.h"
 #include "db/rt/System.h"
 #include "db/rt/JobDispatcher.h"
+
+#include <iostream>
+#include <cstdlib>
 
 using namespace std;
 using namespace db::test;

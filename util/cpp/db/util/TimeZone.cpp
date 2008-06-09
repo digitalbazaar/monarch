@@ -4,6 +4,8 @@
 #include "db/util/TimeZone.h"
 #include "db/rt/System.h"
 
+#include <cstring>
+
 using namespace std;
 using namespace db::rt;
 using namespace db::util;

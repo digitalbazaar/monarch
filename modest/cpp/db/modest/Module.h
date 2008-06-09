@@ -8,6 +8,7 @@
 #include "db/rt/Exception.h"
 
 #include <string>
+#include <cstring>
 
 namespace db
 {
@@ -23,7 +24,7 @@ class Kernel;
  * 
  * @author Dave Longley
  */
-typedef struct ModuleId
+struct ModuleId
 {
    /**
     * The unique name of this Module.

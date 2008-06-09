@@ -41,7 +41,7 @@ bool HttpBodyOutputStream::write(const char* b, int length)
    if(length > 0)
    {
       // write out to underlying stream
-      if(rval = mOutputStream->write(b, length))
+      if((rval = mOutputStream->write(b, length)))
       {
          // update http connection content bytes written (reset as necessary)
          if(mConnection->getContentBytesWritten() > Math::HALF_MAX_LONG_VALUE)

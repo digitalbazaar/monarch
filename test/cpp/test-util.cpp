@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#include <iostream>
 
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
@@ -14,6 +13,9 @@
 #include "db/util/Date.h"
 #include "db/util/StringTokenizer.h"
 #include "db/util/UniqueList.h"
+
+#include <cstdlib>
+#include <iostream>
 
 using namespace std;
 using namespace db::test;

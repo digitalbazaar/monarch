@@ -9,6 +9,8 @@
 #include <openssl/rand.h>
 #include <openssl/err.h>
 
+#include <cstring>
+
 using namespace db::crypto;
 using namespace db::rt;
 

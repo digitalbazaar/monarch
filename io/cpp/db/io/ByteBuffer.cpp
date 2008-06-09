@@ -3,6 +3,9 @@
  */
 #include "db/io/ByteBuffer.h"
 
+#include <cstdlib>
+#include <cstring>
+
 using namespace db::io;
 
 ByteBuffer::ByteBuffer(int capacity)
