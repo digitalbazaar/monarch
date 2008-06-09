@@ -31,16 +31,15 @@ namespace mail
  * 
  * In addition to parsing the above variables, this parser will parse message
  * headers in the template. The parser always starts assuming that the message
- * begins with headers, with the last header being the 'Subject' header. It is
- * case-sensitive.
+ * begins with headers. A blank line should follow the headers to indicate
+ * there are no more of them and the body is about to begin.
  * 
  * Headers must not contain whitespace and must start at the beginning of a
  * line and end with a colon and a space. They can be variables. The value of
  * the header can contain variables and must end with CR, LF, or CRLF.
  * 
- * Once the 'Subject' header has been read, the rest of the message will be
- * interpreted as the email's body. Again, the 'Subject' header must be
- * present, even if its value is empty, as it delimits the headers section.
+ * Once the blank line after the headers has been read, the rest of the message
+ * will be interpreted as the email's body.
  * 
  * Note: The current implementation assumes an ASCII character encoding. The
  * implementation, however, may not need to change if the text is in UTF-8.
@@ -54,7 +53,7 @@ protected:
     * Parses a single line from the template and adds its contents to the
     * passed Mail either as a header or as a line of the message body.
     * Template variables are replaced according to the passed "vars"
-    * DynamicObject and the headers flag is cleared once the "Subject" header
+    * DynamicObject and the headers flag is cleared once a blank line
     * has been parsed.
     * 
     * @param mail the Mail to populate.

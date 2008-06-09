@@ -114,34 +114,41 @@ bool MailTemplateParser::parseLine(
    
    if(headers)
    {
-      // get the header name
-      const char* header = strstr(line, ": ");
-      
-      // ensure there is a header name and that no white-space occurs in it
-      if(header == NULL || (int)strcspn(line, " \t") < (header - line))
+      if(msg.length() == 0)
       {
-         ExceptionRef e = new Exception(
-            "Parse error while parsing mail template! Mail header "
-            "is malformed, non-existant, or Subject header was not found.");
-         Exception::setLast(e, false);
-         rval = false;
+         // last header found
+         headers = false;
       }
       else
       {
-         // see if the header is the subject header
-         if(strncasecmp(line, "subject", 7) == 0)
+         // get the header name
+         const char* header = strstr(line, ": ");
+         
+         // ensure there is a header name and that no white-space occurs in it
+         if(header == NULL || (int)strcspn(line, " \t") < (header - line))
          {
-            // subject line found, no longer adding headers
-            mail->setSubject(header + 2);
-            headers = false;
+            ExceptionRef e = new Exception(
+               "Parse error while parsing mail template! Mail header "
+               "is malformed, non-existant, or Subject header was not found.");
+            Exception::setLast(e, false);
+            rval = false;
          }
          else
          {
-            // set the header
-            char hdr[header - line + 1];
-            strncpy(hdr, line, header - line);
-            hdr[header - line] = 0;
-            mail->setHeader(hdr, header + 2);
+            // see if the header is the subject header
+            if(strncasecmp(line, "subject", 7) == 0)
+            {
+               // subject line found
+               mail->setSubject(header + 2);
+            }
+            else
+            {
+               // set the header
+               char hdr[header - line + 1];
+               strncpy(hdr, line, header - line);
+               hdr[header - line] = 0;
+               mail->setHeader(hdr, header + 2);
+            }
          }
       }
    }
