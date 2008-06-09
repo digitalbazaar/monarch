@@ -832,6 +832,49 @@ void runDynoTypeTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runDynoAppendTest(TestRunner& tr)
+{
+   tr.group("DynamicObject append");
+
+   tr.test("append basic");
+   {
+      DynamicObject d;
+      
+      DynamicObject next;
+      next = d->append();
+      next = "test";
+      
+      assert(d->length() == 1);
+      assertStrCmp(d[0]->getString(), "test");
+   }
+   tr.passIfNoException();
+
+   tr.test("append ref");
+   {
+      DynamicObject d;
+      
+      DynamicObject& next = d->append();
+      next = "test";
+      
+      assert(d->length() == 1);
+      assertStrCmp(d[0]->getString(), "test");
+   }
+   tr.passIfNoException();
+      
+   tr.test("append inline");
+   {
+      DynamicObject d;
+      
+      d->append() = "test";
+      
+      assert(d->length() == 1);
+      assertStrCmp(d[0]->getString(), "test");
+   }
+   tr.passIfNoException();
+      
+   tr.ungroup();
+}
+
 class DbRtTester : public db::test::Tester
 {
 public:
@@ -855,6 +898,7 @@ public:
       runDynoRemoveTest(tr);
       runDynoIndexTest(tr);
       runDynoTypeTest(tr);
+      runDynoAppendTest(tr);
       return 0;
    }
 
