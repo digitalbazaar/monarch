@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_Socket_H
 #define db_net_Socket_H
@@ -8,7 +8,6 @@
 #include "db/io/OutputStream.h"
 #include "db/net/SocketAddress.h"
 #include "db/net/SocketException.h"
-#include "db/net/SocketTimeoutException.h"
 
 namespace db
 {

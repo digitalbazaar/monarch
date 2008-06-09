@@ -9,6 +9,7 @@
 #include "db/net/SocketInputStream.h"
 #include "db/net/SocketOutputStream.h"
 #include "db/rt/Thread.h"
+#include "db/rt/DynamicObject.h"
 
 using namespace db::io;
 using namespace db::net;
@@ -60,9 +61,9 @@ bool AbstractSocket::create(int domain, int type, int protocol)
          // close socket
          close();
          
-         // FIXME: append errno error, dont use it as the type
-         ExceptionRef e = new SocketException(
-            "Could not create Socket!", strerror(errno));
+         std::string msg = "Could not create Socket! ";
+         msg.append(strerror(errno));
+         ExceptionRef e = new SocketException(msg.c_str());
          Exception::setLast(e, false);
       }
       else
@@ -73,9 +74,9 @@ bool AbstractSocket::create(int domain, int type, int protocol)
    }
    else
    {
-      // FIXME: append errno error, dont use it as the type
-      ExceptionRef e = new SocketException(
-         "Could not create Socket!", strerror(errno));
+      std::string msg = "Could not create Socket! ";
+      msg.append(strerror(errno));
+      ExceptionRef e = new SocketException(msg.c_str());
       Exception::setLast(e, false);
    }
    
@@ -96,16 +97,16 @@ bool AbstractSocket::select(bool read, long long timeout)
          if(read)
          {
             // interrupted exception
-            std::string msg = "Socket read interrupted! ";
-            msg.append(strerror(errno));
-            e = new Exception(msg.c_str(), "db.io.InterruptedException");
+            e = new Exception(
+               "Socket read interrupted!", "db.io.InterruptedException");
+            e->getDetails()["error"] = strerror(errno);
          }
          else
          {
             // interrupted exception
-            std::string msg = "Socket write interrupted! ";
-            msg.append(strerror(errno));
-            e = new Exception(msg.c_str(), "db.io.InterruptedException");
+            e = new Exception(
+               "Socket write interrupted!", "db.io.InterruptedException");
+            e->getDetails()["error"] = strerror(errno);
          }
       }
       else
@@ -113,16 +114,14 @@ bool AbstractSocket::select(bool read, long long timeout)
          if(read)
          {
             // error occurred, get string message
-            // FIXME: append errno error, dont use it as the type
-            e = new SocketException(
-               "Could not read from Socket!", strerror(errno));
+            e = new SocketException("Could not read from Socket!");
+            e->getDetails()["error"] = strerror(errno);
          }
          else
          {
             // error occurred, get string message
-            // FIXME: append errno error, dont use it as the type
-            e = new SocketException(
-               "Could not write to Socket!", strerror(errno));
+            e = new SocketException("Could not write to Socket!");
+            e->getDetails()["error"] = strerror(errno);
          }
       }
    }
@@ -131,16 +130,16 @@ bool AbstractSocket::select(bool read, long long timeout)
       if(read)
       {
          // read timeout occurred
-         // FIXME: append errno error, dont use it as the type
-         e = new SocketTimeoutException(
-            "Socket read timed out!", strerror(errno));
+         e = new SocketException(
+            "Socket read timed out!", "db.net.SocketTimeout");
+         e->getDetails()["error"] = strerror(errno);
       }
       else
       {
          // write timeout occurred
-         // FIXME: append errno error, dont use it as the type
-         e = new SocketTimeoutException(
-            "Socket write timed out!", strerror(errno));
+         e = new SocketException(
+            "Socket write timed out!", "db.net.SocketTimeout");
+         e->getDetails()["error"] = strerror(errno);
       }
    }
    else
@@ -156,16 +155,14 @@ bool AbstractSocket::select(bool read, long long timeout)
          if(read)
          {
             // error occurred, get string message
-            // FIXME: append errno error, dont use it as the type
-            e = new SocketException(
-               "Could not read from Socket!", strerror(lastError));
+            e = new SocketException("Could not read from Socket!");
+            e->getDetails()["error"] = strerror(lastError);
          }
          else
          {
             // error occurred, get string message
-            // FIXME: append errno error, dont use it as the type
-            e = new SocketException(
-               "Could not write to Socket!", strerror(lastError));
+            e = new SocketException("Could not write to Socket!");
+            e->getDetails()["error"] = strerror(lastError);
          }
       }
    }
@@ -243,9 +240,8 @@ bool AbstractSocket::bind(SocketAddress* address)
          shutdownInput();
          shutdownOutput();
          
-         // FIXME: append errno error, dont use it as the type
-         ExceptionRef e = new SocketException(
-            "Could not bind Socket!", strerror(errno));
+         ExceptionRef e = new SocketException("Could not bind Socket!");
+         e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
       }
       else
@@ -279,9 +275,8 @@ bool AbstractSocket::listen(unsigned int backlog)
       int error = ::listen(mFileDescriptor, backlog);
       if(error < 0)
       {
-         // FIXME: append errno error, dont use it as the type
-         ExceptionRef e = new SocketException(
-            "Could not listen on Socket!", strerror(errno));
+         ExceptionRef e = new SocketException("Could not listen on Socket!");
+         e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
       }
       else
@@ -313,9 +308,9 @@ Socket* AbstractSocket::accept(unsigned int timeout)
          int fd = ::accept(mFileDescriptor, NULL, NULL);
          if(fd < 0)
          {
-            // FIXME: append errno error, dont use it as the type
             ExceptionRef e = new SocketException(
-               "Could not accept connection!", strerror(errno));
+               "Could not accept connection!");
+            e->getDetails()["error"] = strerror(errno);
             Exception::setLast(e, false);
          }
          else
@@ -371,9 +366,9 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
             default:
                {
                   // could not connect
-                  // FIXME: append errno error, dont use it as the type
                   ExceptionRef e = new SocketException(
-                     "Cannot connect Socket!", strerror(errno));
+                     "Cannot connect Socket!");
+                  e->getDetails()["error"] = strerror(errno);
                   Exception::setLast(e, false);
                }
                break;
@@ -423,9 +418,9 @@ bool AbstractSocket::send(const char* b, int length)
             int bytes = ::send(mFileDescriptor, b + offset, length, 0);
             if(bytes < 0)
             {
-               // FIXME: append errno error, dont use it as the type
                ExceptionRef e = new SocketException(
-                  "Could not write to Socket!", strerror(errno));
+                  "Could not write to Socket!");
+               e->getDetails()["error"] = strerror(errno);
                Exception::setLast(e, false);
                rval = false;
             }
@@ -460,9 +455,9 @@ int AbstractSocket::receive(char* b, int length)
          if(rval < -1)
          {
             rval = -1;
-            // FIXME: append errno error, dont use it as the type
             ExceptionRef e = new SocketException(
-               "Could not read from Socket!", strerror(errno));
+               "Could not read from Socket!");
+            e->getDetails()["error"] = strerror(errno);
             Exception::setLast(e, false);
          }
       }
@@ -527,9 +522,9 @@ bool AbstractSocket::getLocalAddress(SocketAddress* address)
       int error = getsockname(mFileDescriptor, (sockaddr*)&addr, &size);
       if(error < 0)
       {
-         // FIXME: append errno error, dont use it as the type
          ExceptionRef e = new SocketException(
-            "Could not get Socket local address!", strerror(errno));
+            "Could not get Socket local address!");
+         e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
       }
       else
@@ -563,9 +558,9 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
       int error = getpeername(mFileDescriptor, (sockaddr*)&addr, &size);
       if(error < 0)
       {
-         // FIXME: append errno error, dont use it as the type
          ExceptionRef e = new SocketException(
-            "Could not get Socket remote address!", strerror(errno));
+            "Could not get Socket remote address!");
+         e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
       }
       else
