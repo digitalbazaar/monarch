@@ -240,7 +240,7 @@ public:
    virtual int runAutomaticTests(TestRunner& tr)
    {
       //runSmtpClientTest(tr);
-      //runMailTemplateParser(tr);
+      runMailTemplateParser(tr);
       mailSpoolTest(tr);
       return 0;
    }
