@@ -13,6 +13,7 @@ Mail::Mail()
 {
    mRecipients->setType(Array);
    mMessage["headers"]["To"]->setType(Array);
+   mMessage["headers"]["Subject"] = "";
    mMessage["body"]->setType(String);
 }
 
