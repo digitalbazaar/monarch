@@ -116,9 +116,10 @@ bool MailSpool::spool(Mail* mail)
       // entry = index + size + tpl
       uint32_t idx = DB_UINT32_TO_LE(mTail);
       uint32_t size = DB_UINT32_TO_LE(tpl.length());
-      fos.write((char*)&idx, 4);
-      fos.write((char*)&size, 4);
-      fos.write(tpl.c_str(), tpl.length());
+      rval =
+         fos.write((char*)&idx, 4) &&
+         fos.write((char*)&size, 4) &&
+         fos.write(tpl.c_str(), tpl.length());
       fos.close();
       
       // increment tail, count
@@ -126,7 +127,7 @@ bool MailSpool::spool(Mail* mail)
       mCount++;
       
       // write out index
-      rval = writeIndex();
+      rval = rval && writeIndex();
    }
    unlock();
    
