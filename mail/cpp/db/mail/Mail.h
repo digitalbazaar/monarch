@@ -42,15 +42,6 @@ protected:
    Message mMessage;
    
    /**
-    * Encodes a string for smtp message transfer.
-    * 
-    * @param str the message to encode.
-    * 
-    * @return the encoded string.
-    */
-   virtual std::string& smtpMessageEncode(std::string& str);
-   
-   /**
     * Sets the passed address, updating its properties including its
     * SMTP-encoding of the passed email address.
     * 
@@ -81,6 +72,11 @@ public:
     * Destructs this Mail.
     */
    virtual ~Mail();
+   
+   /**
+    * Clears this Mail.
+    */
+   virtual void clear();
    
    /**
     * Sets the sender of this Mail.
@@ -167,6 +163,23 @@ public:
     * @return the Message of this Mail.
     */
    virtual Message& getMessage();
+   
+   /**
+    * Converts this Mail into a template that can be re-parsed to create
+    * this Mail again. This is useful for spooling.
+    * 
+    * @return the Mail template.
+    */
+   virtual std::string toTemplate();
+   
+   /**
+    * Encodes a string for smtp message transfer.
+    * 
+    * @param str the message to encode.
+    * 
+    * @return the encoded string.
+    */
+   static std::string& smtpMessageEncode(std::string& str);
 };
 
 } // end namespace mail

@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/mail/SmtpClient.h"
+
 #include "db/net/InternetAddress.h"
 
 using namespace std;
@@ -126,9 +127,10 @@ bool SmtpClient::sendMessage(Connection* c, Message msg)
          
          if(rval)
          {
-            // send header value
-            rval = c->getOutputStream()->write(
-               header->getString(), header->length());
+            // send smtp-encoded header value
+            string value = header->getString();
+            Mail::smtpMessageEncode(value);
+            rval = c->getOutputStream()->write(value.c_str(), value.length());
          }
       }
       
@@ -141,9 +143,10 @@ bool SmtpClient::sendMessage(Connection* c, Message msg)
    
    if(rval)
    {
-      // send body
-      rval = c->getOutputStream()->write(
-         msg["body"]->getString(), msg["body"]->length());
+      // send smtp-encoded body
+      string value = msg["body"]->getString();
+      Mail::smtpMessageEncode(value);
+      rval = c->getOutputStream()->write(value.c_str(), value.length());
    }
    
    return rval;   
