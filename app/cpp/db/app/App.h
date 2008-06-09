@@ -6,6 +6,7 @@
 
 #include "db/rt/Runnable.h"
 #include "db/rt/Exception.h"
+#include "db/config/ConfigManager.h"
 
 #include <vector>
 
@@ -52,11 +53,66 @@ public:
    virtual void run(App* app);
    
    /**
+    * Get a specification of the command line paramters.  The spec is in the
+    * following format:
+    * 
+    * Spec = {
+    *    "options" = [ OptionSpec[, ...] ],
+    *    "help" = "Help string for options.",
+    *    ...
+    * }
+    * 
+    * "help" should be in a format such as:
+    * "[Name] options:\n"
+    * "  -x, --set-x         Simple option.\n"
+    * "      --set-y         Simple option, only long version.\n"
+    * "  -f, --file FILE     Option with parameter.\n"
+    * "  -l, --long-option OPT\n"
+    * "                      Longer option. (default: \"default\")\n"
+    * "  -L, --long-help     Option that has a long option help string which\n"
+    * "                      needs to wrap to the next line after 80 chars.\n"
+    * 
+    * An optional key is "args" which should be a DynamicObject array which
+    * will be filled with remaining args when a non-option is found. 
+    * 
+    * OptionSpec = {
+    *    "short": "-o",
+    *    "long": "--long-option",
+    *    ...
+    * }
+    * 
+    * Optional keys (multiple actions per OptionSpec is allowed):
+    * 
+    * If option found then set DynamicObject as appropriate:
+    * "setTrue": DynamicObject | [ DynamicObject[, ...] ]
+    * "setFalse": DynamicObject | [ DynamicObject[, ...] ]
+    * 
+    * If option found then increment or decrement DynamicObject value by 1:
+    * "inc": DynamicObject | [ DynamicObject[, ...] ]
+    * "dec": DynamicObject | [ DynamicObject[, ...] ]
+    * 
+    * Read next argument or arguments, convert to the DynamicObject type, and
+    * store them.  On error use argError message.  The command line must have
+    * enough arguments to satisfy the args array length.
+    * "arg": DynamicObject
+    * "args": [ DynamicObject[, ...] ]
+    * "argError": string
+    * 
+    * Append arg or args to an Array DynamicObject:
+    * "append": DynamicObject
+    * 
+    * @param app the App.
+    * 
+    * @return the command line spec
+    */
+   virtual db::rt::DynamicObject getCommandLineSpec(App* app);
+   
+   /**
     * Called before the default App processes the command line arguments.
     * AppDelegates may use this hook to process arguments in a read-only mode.
     * 
-    * This hook should be used if a delegate needs to processes arguments that
-    * may be removed by the default App.
+    * This hook should be used if a delegate needs to processes arguments
+    * before normal default App processing.
     * 
     * @param app the App.
     * @param args read-only vector of command line arguments.
@@ -67,16 +123,14 @@ public:
 
    /**
     * Called after the default App processes the command line arguments.
-    * AppDelegates may use this hook to process arguments in a read-write mode.
-    * 
-    * This hook should be used for general delegate argument processing.
+    * AppDelegates may use this hook to check and process the command line
+    * args.
     * 
     * @param app the App.
-    * @param args read-write vector of command line paramters.
     * 
     * @return true on success, false on failure and exception set
     */
-   virtual bool didParseCommandLine(App* app, std::vector<const char*>* args);
+   virtual bool didParseCommandLine(App* app);
 
    /**
     * Called after App::initializeLogging()
@@ -92,8 +146,6 @@ public:
     */
    virtual void willCleanupLogging(App* app);
 };
-
-class AppDelegate;
 
 /**
  * Top-level class to make running applications easier.
@@ -136,9 +188,14 @@ protected:
    char* mProgramName;
    
    /**
-    * Name for this App
+    * Name of this App
     */
    char* mName;
+   
+   /**
+    * Version of this App
+    */
+   char* mVersion;
    
    /**
     * Exit status to use for all tests.
@@ -149,6 +206,11 @@ protected:
     * Command line arguments converted to a mutable vector.
     */
    std::vector<const char*> mCommandLineArgs;
+   
+   /**
+    * Configuration from the command line stored in a "app" member.
+    */
+   db::config::Config mConfig;
    
 public:
    /**
@@ -204,6 +266,20 @@ public:
    virtual const char* getName();
 
    /**
+    * Set the version.
+    * 
+    * @param name the version.
+    */
+   virtual void setVersion(const char* version);
+
+   /**
+    * Get the version.
+    * 
+    * @return the version.
+    */
+   virtual const char* getVersion();
+
+   /**
     * Set the application exit status.
     * 
     * @param status the application exit status.
@@ -224,15 +300,64 @@ public:
    
    /**
     * Parses the command line options that were passed to the application.
-    * Implementations may call exit() depending on the arguements.  For normal
-    * errors it is preferable to return false and set an exception. 
+    * Implementations may call exit() depending on the arguments.  For normal
+    * errors it is preferable to return false and set an exception.
     * 
-    * @param argc the number of arguments passed to the application.
-    * @param argv a list of arguments passed to the application.
+    * @param args read-write vector of command line paramters.
     * 
     * @return true on success, false on failure and exception set
     */
    virtual bool parseCommandLine(std::vector<const char*>* args);
+   
+   /**
+    * Get command line spec for default paramters which will be stored in the
+    * object returned from getConfig().
+    * 
+    * The default implementation will parse the following parameters:
+    * -h, --help: print out default help and delegates help
+    * -V --version: print out app name and version if present
+    * -v, --verbose: set verbose mode for use by apps
+    * --log-level: parse and set a log level variable
+    * 
+    * @param app the App.
+    * 
+    * @return the command line spec
+    */
+   virtual db::rt::DynamicObject getCommandLineSpec(App* app);
+
+   /**
+    * Setup default for default command line options.
+    * 
+    * @param app the App.
+    * @param args read-only vector of command line arguments.
+    * 
+    * @return true on success, false on failure and exception set
+    */
+   virtual bool willParseCommandLine(App* app, std::vector<const char*>* args);
+   
+   /**
+    * Process default command line options.
+    * 
+    * @param app the App.
+    * 
+    * @return true on success, false on failure and exception set
+    */
+   virtual bool didParseCommandLine(App* app);
+   
+   /**
+    * Return the base app configuration.  This configuration is initialized
+    * with default values and may be overridden with command line paramters.
+    * 
+    * Current values are:
+    * c["app"]["logging"]["level"]:
+    *    textual Logger level (default: "warning")
+    * c["app"]["verbose"]["level"]:
+    *    integer verbose level which increases by 1 for each use of -v or
+    *    --verbose command line flag (default: 0)
+    * 
+    * @return the configuration.
+    */
+   virtual db::config::Config& getConfig();
 
    /**
     * Initialize OpenSSL.
