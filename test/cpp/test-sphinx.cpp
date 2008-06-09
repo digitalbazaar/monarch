@@ -50,15 +50,8 @@ void runSphinxClientTest(TestRunner &tr, db::test::Tester& tester)
       client.execute(&url, cmd, response);
       assertNoException();
       
-      ostringstream oss;
-      OStreamOutputStream os(&oss);
-      JsonWriter writer;
-      writer.setCompact(false);
-      writer.setIndentation(0, 3);
-      writer.write(response, &os);
-      
-      cout << endl << "Response:" << endl;
-      cout << oss.str() << endl;
+      //cout << endl << "Response:" << endl;
+      //dumpDynamicObject(response);
    }
    tr.passIfNoException();
    
