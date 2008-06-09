@@ -166,10 +166,13 @@ bool MailTemplateParser::parse(
 {
    bool rval = true;
    
+   // clear mail
+   mail->clear();
+   
    // SMTP RFC requires lines be no longer than 998 bytes (+2 for CRLF = 1000)
    // so read in a maximum of 1000 bytes at a time
    bool headers = true;
-   char b[1000];
+   char b[1001];
    int numBytes;
    int length = 0;
    char* start = 0;
@@ -198,10 +201,10 @@ bool MailTemplateParser::parse(
          
          // parse line and increment start, skipping LF as appropriate
          rval = parseLine(mail, vars, start, headers);
-         start = (cr && end[1] == '\n') ? end + 2 : end + 1;
+         start = (cr && end[1] == '\n' ? end + 2 : end + 1);
       }
       
-      if(end == NULL && length == 1000)
+      if(end == NULL && length > 998)
       {
          // invalid line detected
          numBytes = -1;
@@ -222,7 +225,7 @@ bool MailTemplateParser::parse(
    {
       rval = false;
    }
-   else if(start != NULL)
+   else if(start != NULL && start[0] != 0)
    {
       // parse the last line
       rval = parseLine(mail, vars, start, headers);

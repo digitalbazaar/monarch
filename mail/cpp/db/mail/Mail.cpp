@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/mail/Mail.h"
+
 #include "db/util/StringTools.h"
 
 using namespace std;
@@ -21,10 +22,15 @@ Mail::~Mail()
 {
 }
 
-string& Mail::smtpMessageEncode(string& str)
+void Mail::clear()
 {
-   // insert second dot for any line that starts with a dot
-   return StringTools::replaceAll(str, "\r\n.", "\r\n..");
+   mRecipients->setType(Array);
+   mRecipients->clear();
+   mMessage["headers"]["To"]->setType(Array);
+   mMessage["headers"]["To"]->clear();
+   mMessage["headers"]["Subject"] = "";
+   mMessage["body"]->setType(String);
+   mMessage["body"]->clear();
 }
 
 bool Mail::setAddress(Address& a, const char* address)
@@ -67,11 +73,8 @@ bool Mail::addRecipient(const char* header, const char* address)
       // add header if not NULL
       if(header != NULL)
       {
-         string str = address;
-         smtpMessageEncode(str);
          mMessage["headers"][header]->setType(Array);
-         mMessage["headers"][header][mMessage["headers"][header]->length()] =
-            str.c_str();
+         mMessage["headers"][header]->append() = address;
       }
    }
    
@@ -85,9 +88,7 @@ bool Mail::setSender(const char* address)
    if(rval = setAddress(mSender, address))
    {
       // set "From" header
-      string str = address;
-      smtpMessageEncode(str);
-      mMessage["headers"]["From"] = str.c_str();
+      mMessage["headers"]["From"] = address;
    }
    
    return rval;
@@ -142,24 +143,18 @@ void Mail::setHeader(const char* header, const char* value)
    }
    else
    {
-      string str = value;
-      smtpMessageEncode(str);
-      mMessage["headers"][header] = str.c_str();
+      mMessage["headers"][header] = value;
    }
 }
 
 void Mail::setSubject(const char* subject)
 {
-   string str = subject;
-   smtpMessageEncode(str);
-   mMessage["headers"]["Subject"] = str.c_str();
+   mMessage["headers"]["Subject"] = subject;
 }
 
 void Mail::setBody(const char* body)
 {
-   string str = body;
-   smtpMessageEncode(str);
-   mMessage["body"] = str.c_str();
+   mMessage["body"] = body;
 }
 
 void Mail::appendBodyLine(const char* line)
@@ -168,11 +163,60 @@ void Mail::appendBodyLine(const char* line)
    str.append(line);
    str.push_back('\r');
    str.push_back('\n');
-   smtpMessageEncode(str);
    mMessage["body"] = str.c_str();
 }
 
 Message& Mail::getMessage()
 {
    return mMessage;
+}
+
+string Mail::toTemplate()
+{
+   string str;
+   
+   // add headers
+   DynamicObjectIterator i = mMessage["headers"].getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& header = i->next();
+      
+      if(header->getType() == Array)
+      {
+         DynamicObjectIterator ii = header.getIterator();
+         while(ii->hasNext())
+         {
+            DynamicObject& each = ii->next();
+            str.append(i->getName());
+            str.append(": ");
+            str.append(each->getString());
+            str.append("\r\n");
+         }
+      }
+      else
+      {
+         str.append(i->getName());
+         str.append(": ");
+         str.append(header->getString());
+         str.append("\r\n");
+      }
+   }
+   
+   // terminate headers
+   str.append("\r\n");
+   
+   // add body
+   str.append(mMessage["body"]->getString());
+   
+   // escape all '$' and '\'
+   StringTools::replaceAll(str, "\\", "\\\\");
+   StringTools::replaceAll(str, "$", "\\$");
+   
+   return str;
+}
+
+string& Mail::smtpMessageEncode(string& str)
+{
+   // insert second dot for any line that starts with a dot
+   return StringTools::replaceAll(str, "\r\n.", "\r\n..");
 }
