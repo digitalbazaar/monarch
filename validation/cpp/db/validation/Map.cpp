@@ -37,36 +37,46 @@ bool Map::isValid(
 {
    bool rval = true;
    
-   std::vector<std::pair<const char*,Validator*> >::iterator i;
-   for(i = mValidators.begin(); i != mValidators.end(); i++)
+   if(obj->getType() == db::rt::Map)
    {
-      // only add a "." if this is not a root map
-      if(context->getDepth() != 0)
+      std::vector<std::pair<const char*,Validator*> >::iterator i;
+      for(i = mValidators.begin(); i != mValidators.end(); i++)
       {
-         context->pushPath(".");
-      }
-      context->pushPath(i->first);
-      if(obj->hasMember(i->first))
-      {
-         // do not short-circuit to ensure all keys tested
-         if(!i->second->isValid(obj[i->first], context))
+         // only add a "." if this is not a root map
+         if(context->getDepth() != 0)
+         {
+            context->pushPath(".");
+         }
+         context->pushPath(i->first);
+         if(obj->hasMember(i->first))
+         {
+            // do not short-circuit to ensure all keys tested
+            if(!i->second->isValid(obj[i->first], context))
+            {
+               rval = false;
+            }
+         }
+         else if(!i->second->isOptional(context))
          {
             rval = false;
+            DynamicObject detail =
+               context->addError("db.validation.MissingField");
+            detail["message"] = "Missing field!";
+            detail["key"] = i->first;
+         }
+         context->popPath();
+         if(context->getDepth() == 1)
+         {
+            context->popPath();
          }
       }
-      else if(!i->second->isOptional(context))
-      {
-         rval = false;
-         DynamicObject detail =
-            context->addError("db.validation.MissingField");
-         detail["message"] = "Missing field!";
-         detail["key"] = i->first;
-      }
-      context->popPath();
-      if(context->getDepth() == 1)
-      {
-         context->popPath();
-      }
+   }
+   else
+   {
+      rval = false;
+      DynamicObject detail =
+         context->addError("db.validation.TypeError");
+      detail["message"] = "Object not a Map!";
    }
    
    return rval;

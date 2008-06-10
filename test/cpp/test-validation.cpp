@@ -175,6 +175,7 @@ void runValidatorTest(TestRunner& tr)
    {
       tr.test("extra");
       DynamicObject d;
+      d->setType(Map);
       DynamicObject d2;
       d2["extra"] = true;
       v::Map v(
@@ -745,6 +746,136 @@ void runValidatorTest(TestRunner& tr)
          DynamicObject dnv = dv.clone();
          dnv["password2"] = false;
          assert(!v.isValid(dnv));
+         tr.passIfException(_dump);
+      }
+   }
+   tr.ungroup();
+
+   tr.group("sub map/array types");
+   {
+      tr.test("init");
+      DynamicObject dvm;
+      dvm["m"]["x"] = true;
+      
+      DynamicObject dva;
+      dva["a"][0] = true;
+      
+      DynamicObject t;
+      t = true;
+
+      v::Map vm(
+         "m", new v::Map(
+            "x", new v::Equals(t),
+            NULL),
+         NULL);
+      
+      v::Map va(
+         "a", new v::Array(0, new v::Equals(t), -1),
+         NULL);
+      tr.passIfNoException();
+      
+      {
+         tr.test("valid");
+         assert(vm.isValid(dvm));
+         assert(va.isValid(dva));
+         tr.passIfNoException();
+      }
+      
+      {
+         tr.test("invalid m");
+         DynamicObject dnv = dvm.clone();
+         dnv["m"] = false;
+         assert(!vm.isValid(dnv));
+         tr.passIfException(_dump);
+      }
+      
+      {
+         tr.test("invalid a");
+         DynamicObject dnv = dvm.clone();
+         dnv["a"] = false;
+         assert(!va.isValid(dnv));
+         tr.passIfException(_dump);
+      }
+   }
+   tr.ungroup();
+
+   tr.group("error paths");
+   {
+      tr.test("init");
+      DynamicObject dv;
+      dv["b"] = true;
+      dv["m"]["b"] = true;
+      dv["a"][0] = true;
+      dv["m2"]["m"]["b"] = true;
+      
+      DynamicObject t;
+      t = true;
+
+      v::Map v(
+         "b", new v::Equals(t),
+         "m", new v::Map(
+            "b", new v::Equals(t),
+            NULL),
+         "a", new v::Array(
+            0, new v::Equals(t),
+            -1),
+         "m2", new v::Map(
+            "m", new v::Map(
+               "b", new v::Equals(t),
+               NULL),
+            NULL),
+         NULL);
+      tr.passIfNoException();
+      
+      {
+         tr.test("valid");
+         assert(v.isValid(dv));
+         tr.passIfNoException();
+      }
+      
+      {
+         tr.test("invalid b");
+         DynamicObject dnv = dv.clone();
+         dnv["b"] = false;
+         assert(!v.isValid(dnv));
+         tr.passIfException(_dump);
+      }
+      
+      {
+         tr.test("invalid m");
+         DynamicObject dnv = dv.clone();
+         dnv["m"] = false;
+         assert(!v.isValid(dnv));
+         tr.passIfException(_dump);
+      }
+      
+      {
+         tr.test("invalid m.b");
+         DynamicObject dnv = dv.clone();
+         dnv["m"]["b"] = false;
+         assert(!v.isValid(dnv));
+         ExceptionRef e = Exception::getLast();
+         assert(e->getDetails()["errors"]->hasMember("m.b"));
+         tr.passIfException(_dump);
+      }
+      
+      {
+         tr.test("invalid a.0");
+         DynamicObject dnv = dv.clone();
+         dnv["a"][0] = false;
+         assert(!v.isValid(dnv));
+         ExceptionRef e = Exception::getLast();
+         assert(e->getDetails()["errors"]->hasMember("a[0]"));
+         tr.passIfException(_dump);
+      }
+      
+      {
+         tr.test("invalid m2.m.b");
+         DynamicObject dnv = dv.clone();
+         dnv["m2"]["m"]["b"] = false;
+         assert(!v.isValid(dnv));
+         ExceptionRef e = Exception::getLast();
+         assert(e->getDetails()["errors"]->hasMember("m2.m.b"));
          tr.passIfException(_dump);
       }
    }

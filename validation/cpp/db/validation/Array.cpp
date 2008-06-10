@@ -37,29 +37,40 @@ bool Array::isValid(
 {
    bool rval = true;
    
-   std::vector<std::pair<int,Validator*> >::iterator i;
-   for(i = mValidators.begin(); i != mValidators.end(); i++)
+   if(obj->getType() == db::rt::Array)
    {
-      if(obj->length() >= i->first)
+      std::vector<std::pair<int,Validator*> >::iterator i;
+      for(i = mValidators.begin(); i != mValidators.end(); i++)
       {
-         // add [#] indexing to path even if at root
-         char idx[23];
-         snprintf(idx, 23, "[%d]", i->first);
-         context->pushPath(idx);
-         
-         // do not short-circuit
-         if(!i->second->isValid(obj[i->first], context))
+         if(obj->length() >= i->first)
+         {
+            // add [#] indexing to path even if at root
+            char idx[23];
+            snprintf(idx, 23, "[%d]", i->first);
+            context->pushPath(idx);
+            
+            // do not short-circuit
+            if(!i->second->isValid(obj[i->first], context))
+            {
+               rval = false;
+            }
+            context->popPath();
+         }
+         else
          {
             rval = false;
+            DynamicObject detail =
+               context->addError("db.validation.MissingIndex");
+            detail["index"] = i->first;
          }
-         context->popPath();
       }
-      else
-      {
-         rval = false;
-         DynamicObject detail = context->addError("db.validation.MissingIndex");
-         detail["index"] = i->first;
-      }
+   }
+   else
+   {
+      rval = false;
+      DynamicObject detail =
+         context->addError("db.validation.TypeError");
+      detail["message"] = "Object not an Array!";
    }
 
    return rval;
