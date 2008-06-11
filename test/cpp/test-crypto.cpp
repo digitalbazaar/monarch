@@ -290,25 +290,6 @@ void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
    assert(privateKey != NULL);
    assert(publicKey != NULL);
    
-   // test copy constructors
-   PrivateKey prvKey(*privateKey);
-   PublicKey pubKey(*publicKey);
-   
-   // cleanup private key
-   if(privateKey != NULL)
-   {
-      delete privateKey;
-   }
-   
-   // cleanup public key
-   if(publicKey != NULL)
-   {
-      delete publicKey;
-   }
-   
-   privateKey = &prvKey;
-   publicKey = &pubKey;
-   
    assertStrCmp(privateKey->getAlgorithm(), "DSA");
    assertStrCmp(publicKey->getAlgorithm(), "DSA");
    
@@ -336,6 +317,10 @@ void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
    
+   // cleanup keys
+   delete privateKey;
+   delete publicKey;
+   
    //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
    //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
    
@@ -359,25 +344,6 @@ void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
    
    assert(privateKey != NULL);
    assert(publicKey != NULL);
-   
-   // test copy constructors
-   PrivateKey prvKey(*privateKey);
-   PublicKey pubKey(*publicKey);
-   
-   // cleanup private key
-   if(privateKey != NULL)
-   {
-      delete privateKey;
-   }
-   
-   // cleanup public key
-   if(publicKey != NULL)
-   {
-      delete publicKey;
-   }
-   
-   privateKey = &prvKey;
-   publicKey = &pubKey;
    
    assertStrCmp(privateKey->getAlgorithm(), "RSA");
    assertStrCmp(publicKey->getAlgorithm(), "RSA");
@@ -405,6 +371,10 @@ void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
       factory.writePrivateKeyToPem(privateKey, "password");
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
+   
+   // cleanup keys
+   delete privateKey;
+   delete publicKey;
    
    //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
    //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
