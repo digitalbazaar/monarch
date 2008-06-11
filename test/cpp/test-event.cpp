@@ -308,6 +308,9 @@ void runEventWaiterTest(TestRunner& tr)
       assert(gotev);
       // stop to unreg event
       ew.stop();
+      
+      // join thread
+      t.join();
    }
    tr.pass();
    
@@ -328,6 +331,9 @@ void runEventWaiterTest(TestRunner& tr)
       assert(gotev);
       // stop to unreg event
       ew.stop();
+      
+      // join thread
+      t.join();
    }
    tr.pass();
 
