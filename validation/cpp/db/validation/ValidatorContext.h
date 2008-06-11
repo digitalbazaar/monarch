@@ -95,17 +95,20 @@ public:
    
    /**
     * Creates an Error exception if needed and add a basic error report with
-    * the given "type" field and a "message" field with "Invalid value!".  Use
-    * the returned object to change the message or add additional details as
-    * needed.
+    * the given "type" field and a "message" field with "Invalid value!".  If
+    * the object parameter is given it will be assigned to the "invalidValue"
+    * field.  Use the returned object to change the message or add additional
+    * details as needed.
     * 
     * setException() can be used to stop this method from setting exceptions.
     * 
     * @param type type of this error in "db.validation.MaxError" format.
+    * @param object object that caused this error.
     * 
     * @return a DynamicObject to fill with details.
     */
-   virtual db::rt::DynamicObject addError(const char* type);
+   virtual db::rt::DynamicObject addError(
+      const char* type, db::rt::DynamicObject* object = NULL);
 };
 
 } // end namespace validation

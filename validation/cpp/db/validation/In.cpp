@@ -45,13 +45,14 @@ bool In::isValid(
          rval = false;
          DynamicObject detail =
             context->addError("db.validation.InternalError");
-         detail["message"] = "Invalid validator!";
+         detail["message"] = "Invalid In validator data!";
          break;
    }
    
    if(!rval)
    {
-      DynamicObject detail = context->addError("db.validation.NotFound");
+      DynamicObject detail = context->addError("db.validation.NotFound", &obj);
+      detail["expectedValues"] = mContents;
       detail["message"] = mErrorMessage ? mErrorMessage : "Value not found!";
    }
    

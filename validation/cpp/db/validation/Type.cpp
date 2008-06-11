@@ -27,7 +27,8 @@ bool Type::isValid(DynamicObject& obj, ValidatorContext* context)
       char temp[length];
       snprintf(temp, length, "Invalid type, received '%s'", strType);
 
-      DynamicObject detail = context->addError("db.validation.TypeError");
+      DynamicObject detail = context->addError("db.validation.TypeError", &obj);
+      detail["validator"] = "db.validator.Type";
       // FIXME: localize
       detail["message"] = mErrorMessage ? mErrorMessage : temp;
       detail["expectedType"] = DynamicObject::descriptionForType(mType);

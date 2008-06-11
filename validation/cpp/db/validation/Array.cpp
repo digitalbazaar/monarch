@@ -60,7 +60,8 @@ bool Array::isValid(
          {
             rval = false;
             DynamicObject detail =
-               context->addError("db.validation.MissingIndex");
+               context->addError("db.validation.MissingIndex", &obj);
+            detail["validator"] = "db.validator.Array";
             detail["index"] = i->first;
          }
       }
@@ -69,7 +70,8 @@ bool Array::isValid(
    {
       rval = false;
       DynamicObject detail =
-         context->addError("db.validation.TypeError");
+         context->addError("db.validation.TypeError", &obj);
+      detail["validator"] = "db.validator.Array";
       detail["message"] = "Object not an Array!";
    }
 

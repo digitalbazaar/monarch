@@ -122,7 +122,9 @@ bool Int::isValid(
    
    if(!rval)
    {
-      DynamicObject detail = context->addError("db.validation.ValueError");
+      DynamicObject detail =
+         context->addError("db.validation.ValueError", &obj);
+      detail["validator"] = "db.validator.Int";
       detail["message"] =
          mErrorMessage ? mErrorMessage : "Value not an integer!";
    }
@@ -180,7 +182,9 @@ bool Int::isValid(
       // set exception on failure
       if(!rval)
       {
-         DynamicObject detail = context->addError("db.validation.ValueError");
+         DynamicObject detail =
+            context->addError("db.validation.ValueError", &obj);
+         detail["validator"] = "db.validator.Int";
          detail["message"] = mErrorMessage ? mErrorMessage : "Value too small!";
       }
    }
@@ -206,7 +210,9 @@ bool Int::isValid(
       // set exception on failure
       if(!rval)
       {
-         DynamicObject detail = context->addError("db.validation.ValueError");
+         DynamicObject detail =
+            context->addError("db.validation.ValueError", &obj);
+         detail["validator"] = "db.validator.Int";
          detail["message"] = mErrorMessage ? mErrorMessage : "Value too large!";
       }
    }

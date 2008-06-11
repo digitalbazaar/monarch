@@ -28,6 +28,7 @@ bool Compare::isValid(
       rval = false;
       DynamicObject detail =
          context->addError("db.validation.TypeError");
+      detail["validator"] = "db.validator.Compare";
       detail["message"] = "Object not a Map!";
    }
    else
@@ -44,8 +45,13 @@ bool Compare::isValid(
          }
          
          context->pushPath(mKey1);
-         DynamicObject detail = context->addError("db.validation.CompareFailure");
-         detail["message"] = mErrorMessage ? mErrorMessage : "Comparison failure!";
+         DynamicObject detail =
+            context->addError("db.validation.CompareFailure", &obj);
+         detail["validator"] = "db.validator.Compare";
+         detail["message"] =
+            mErrorMessage ? mErrorMessage : "Comparison failure!";
+         detail["key0"] = mKey0;
+         detail["key1"] = mKey1;
          detail["expectedValue"] = obj[mKey0];
          context->popPath();
          

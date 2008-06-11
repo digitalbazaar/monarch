@@ -42,7 +42,9 @@ bool Any::isValid(
    {
       // FIXME: Use the confusing "AnyError" name instead?
       // or set a more appropriate detail message? 
-      context->addError("db.validation.ValueError");
+      DynamicObject detail =
+         context->addError("db.validation.ValueError", &obj);
+      detail["validator"] = "db.validator.Any";
    }
    
    return rval;

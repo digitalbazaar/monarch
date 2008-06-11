@@ -23,7 +23,10 @@ bool Equals::isValid(
    bool rval = obj == mObject;
    if(!rval)
    {
-      DynamicObject detail = context->addError("db.validation.EqualityFailure");
+      DynamicObject detail =
+         context->addError("db.validation.EqualityFailure", &obj);
+      detail["validator"] = "db.validator.Equals";
+      detail["expectedValue"] = mObject;
       if(mErrorMessage)
       {
          detail["message"] = mErrorMessage;
