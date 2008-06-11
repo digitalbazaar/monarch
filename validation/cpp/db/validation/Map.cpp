@@ -65,7 +65,7 @@ bool Map::isValid(
             detail["key"] = i->first;
          }
          context->popPath();
-         if(context->getDepth() == 1)
+         if(context->getDepth() > 0)
          {
             context->popPath();
          }

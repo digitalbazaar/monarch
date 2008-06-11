@@ -17,6 +17,12 @@ ValidatorContext::~ValidatorContext()
 {
    if(mPath != NULL)
    {
+      for(std::vector<char*>::iterator i = mPath->begin();
+          i != mPath->end(); i++)
+      {
+         free(*i);
+      }
+      
       delete mPath;
    }
 }
@@ -37,16 +43,18 @@ void ValidatorContext::pushPath(const char* path)
 {
    if(mPath == NULL)
    {
-      mPath = new std::vector<const char*>;
+      mPath = new std::vector<char*>;
    }
-   mPath->push_back(path);
+   mPath->push_back(strdup(path));
 }
 
 void ValidatorContext::popPath()
 {
    if(mPath != NULL)
    {
+      char* path = mPath->back(); 
       mPath->pop_back();
+      free(path);
    }
 }
 
@@ -66,7 +74,7 @@ std::string ValidatorContext::getPath()
    
    if(mPath != NULL)
    {
-      for(std::vector<const char*>::iterator i = mPath->begin();
+      for(std::vector<char*>::iterator i = mPath->begin();
          i != mPath->end();
          i++)
       {

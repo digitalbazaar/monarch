@@ -3,6 +3,7 @@
  */
 #include "db/compress/zip/Zipper.h"
 
+#include "db/data/Data.h"
 #include "db/io/FileInputStream.h"
 #include "db/io/FileOutputStream.h"
 #include "db/rt/Iterator.h"
@@ -101,13 +102,15 @@ bool Zipper::zip(FileList& fl, File& out)
 
 bool Zipper::writeLocalFileHeader(ZipEntry& ze, OutputStream* os)
 {
-   // FIXME: handle byte ordering (format is little-endian)
-   
-   unsigned int dosTime = ze->getDosTime();
-   unsigned int crc = 0;
-   unsigned int size = 0;
-   unsigned short fnLength = strlen(ze->getFilename());
-   unsigned short exLength = 0;
+   uint32_t lfhsig = DB_UINT32_TO_LE(LFH_SIGNATURE);
+   uint16_t zipver = DB_UINT16_TO_LE(ZIP_VERSION);
+   uint16_t gpflag = DB_UINT16_TO_LE(mGpBitFlag);
+   uint16_t compmd = DB_UINT16_TO_LE(COMPRESSION_METHOD);
+   uint32_t dosTime = DB_UINT32_TO_LE(ze->getDosTime());
+   uint32_t crc = 0;
+   uint32_t size = 0;
+   uint16_t fnLength = DB_UINT16_TO_LE(strlen(ze->getFilename()));
+   uint16_t exLength = 0;
    
    // write local file header signature
    // write version needed to extract
@@ -121,10 +124,10 @@ bool Zipper::writeLocalFileHeader(ZipEntry& ze, OutputStream* os)
    // write file name length
    // write extra field length (0)
    return
-      os->write((char*)&LFH_SIGNATURE, 4) &&
-      os->write((char*)&ZIP_VERSION, 2) &&
-      os->write((char*)&mGpBitFlag, 2) &&
-      os->write((char*)&COMPRESSION_METHOD, 2) &&
+      os->write((char*)&lfhsig, 4) &&
+      os->write((char*)&zipver, 2) &&
+      os->write((char*)&gpflag, 2) &&
+      os->write((char*)&compmd, 2) &&
       os->write((char*)&dosTime, 4) &&
       os->write((char*)&crc, 4) &&
       os->write((char*)&size, 4) &&
@@ -145,19 +148,21 @@ bool Zipper::readLocalFileHeader(ZipEntry& ze, InputStream* is)
 
 bool Zipper::writeFileHeader(ZipEntry& ze, OutputStream* os)
 {
-   // FIXME: handle byte ordering (format is little-endian)
-   
-   unsigned int dosTime = ze->getDosTime();
-   unsigned int crc = ze->getCrc32();
-   unsigned int cSize = ze->getCompressedSize();
-   unsigned int ucSize = ze->getUncompressedSize();
-   unsigned short fnLength = strlen(ze->getFilename());
-   unsigned short exLength = 0;
-   unsigned short fcLength = strlen(ze->getFileComment());
-   unsigned short diskNumber = 0;
-   unsigned short internalAttr = 0;
-   unsigned int externalAttr = 0;
-   unsigned int offset = ze->getLocalFileHeaderOffset();
+   uint32_t cdssig = DB_UINT32_TO_LE(CDS_SIGNATURE);
+   uint16_t zipver = DB_UINT16_TO_LE(ZIP_VERSION);
+   uint16_t gpflag = DB_UINT16_TO_LE(mGpBitFlag);
+   uint16_t compmd = DB_UINT16_TO_LE(COMPRESSION_METHOD);
+   uint32_t dosTime = DB_UINT32_TO_LE(ze->getDosTime());
+   uint32_t crc = DB_UINT32_TO_LE(ze->getCrc32());
+   uint32_t cSize = DB_UINT32_TO_LE(ze->getCompressedSize());
+   uint32_t ucSize = DB_UINT32_TO_LE(ze->getUncompressedSize());
+   uint16_t fnLength = DB_UINT16_TO_LE(strlen(ze->getFilename()));
+   uint16_t exLength = 0;
+   uint16_t fcLength = DB_UINT16_TO_LE(strlen(ze->getFileComment()));
+   uint16_t diskNumber = 0;
+   uint16_t internalAttr = 0;
+   uint32_t externalAttr = 0;
+   uint32_t offset = DB_UINT32_TO_LE(ze->getLocalFileHeaderOffset());
    
    // write central file header signature
    // write version made by
@@ -180,11 +185,11 @@ bool Zipper::writeFileHeader(ZipEntry& ze, OutputStream* os)
    // write extra field (none)
    // write file comment
    return
-      os->write((char*)&CDS_SIGNATURE, 4) &&
-      os->write((char*)&ZIP_VERSION, 2) &&
-      os->write((char*)&ZIP_VERSION, 2) &&
-      os->write((char*)&mGpBitFlag, 2) &&
-      os->write((char*)&COMPRESSION_METHOD, 2) &&
+      os->write((char*)&cdssig, 4) &&
+      os->write((char*)&zipver, 2) &&
+      os->write((char*)&zipver, 2) &&
+      os->write((char*)&gpflag, 2) &&
+      os->write((char*)&compmd, 2) &&
       os->write((char*)&dosTime, 4) &&
       os->write((char*)&crc, 4) &&
       os->write((char*)&cSize, 4) &&
@@ -243,18 +248,17 @@ bool Zipper::finishCurrentEntry(OutputStream* os)
       
       if(rval)
       {
-         unsigned int crc = ze->getCrc32();
-         unsigned int cSize = ze->getCompressedSize();
-         unsigned int ucSize = ze->getUncompressedSize();
-         
-         // FIXME: handle byte ordering (format is little-endian)
+         uint32_t dadsig = DB_UINT32_TO_LE(DAD_SIGNATURE);
+         uint32_t crc = DB_UINT32_TO_LE(ze->getCrc32());
+         uint32_t cSize = DB_UINT32_TO_LE(ze->getCompressedSize());
+         uint32_t ucSize = DB_UINT32_TO_LE(ze->getUncompressedSize());
          
          // write out data descriptor signature
          // write out crc
          // write out compressed size
          // write out uncompressed size
          rval =
-            os->write((char*)&DAD_SIGNATURE, 4) &&
+            os->write((char*)&dadsig, 4) &&
             os->write((char*)&crc, 4) &&
             os->write((char*)&cSize, 4) &&
             os->write((char*)&ucSize, 4);
@@ -353,11 +357,11 @@ bool Zipper::finish(OutputStream* os)
       // write out end of central directory record
       if(rval)
       {
-         // FIXME: handle byte ordering (format is little-endian)
-         
-         unsigned short diskNumber = 0;
-         unsigned short entries = mEntries.size();
-         unsigned short zipCommentLength = 0;
+         uint32_t cdesig = DB_UINT32_TO_LE(CDE_SIGNATURE);
+         uint16_t diskNumber = 0;
+         uint16_t entries = DB_UINT16_TO_LE(mEntries.size());
+         uint16_t zipCommentLength = 0;
+         uint32_t offset = DB_UINT32_TO_LE(mCentralDirectoryOffset);
          
          // write out end of central directory record signature
          // write out this disk number (0)
@@ -369,13 +373,13 @@ bool Zipper::finish(OutputStream* os)
          // write out .ZIP file comment length
          // write out .ZIP file comment
          rval =
-            os->write((char*)&CDE_SIGNATURE, 4) &&
+            os->write((char*)&cdesig, 4) &&
             os->write((char*)&diskNumber, 2) &&
             os->write((char*)&diskNumber, 2) &&
             os->write((char*)&entries, 2) &&
             os->write((char*)&entries, 2) &&
             os->write((char*)&cdSize, 4) &&
-            os->write((char*)&mCentralDirectoryOffset, 4) &&
+            os->write((char*)&offset, 4) &&
             os->write((char*)&zipCommentLength, 2);
       }
    }
