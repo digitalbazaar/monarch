@@ -9,8 +9,8 @@ SUBDIRS := 3rdparty/cpp \
            event/cpp \
            config/cpp \
            crypto/cpp \
-           compress/cpp \
            data/cpp \
+           compress/cpp \
            net/cpp \
            mail/cpp \
            sphinx/cpp \

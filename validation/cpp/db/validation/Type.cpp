@@ -22,7 +22,10 @@ bool Type::isValid(DynamicObject& obj, ValidatorContext* context)
    
    if(!rval)
    {
-      const char* strType = DynamicObject::descriptionForType(obj->getType());
+      const char* strType =
+         obj.isNull() ?
+            "null" :
+            DynamicObject::descriptionForType(obj->getType());
       int length = 40 + strlen(strType);
       char temp[length];
       snprintf(temp, length, "Invalid type, received '%s'", strType);
