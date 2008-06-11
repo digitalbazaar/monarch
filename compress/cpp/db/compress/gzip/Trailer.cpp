@@ -3,6 +3,7 @@
  */
 #include "db/compress/gzip/Trailer.h"
 
+#include "db/data/Data.h"
 #include <zlib.h>
 
 using namespace db::compress::gzip;
@@ -29,16 +30,16 @@ int Trailer::convertFromBytes(char* b, int length)
    }
    else
    {
-      // FIXME: format is little-endian, add macros
-      
       // wrap input in a ByteBuffer
       ByteBuffer bb(b, 0, length, false);
       
       // read crc-32
       bb.get((char*)&mCrc32, 4);
+      mCrc32 = DB_UINT32_FROM_LE(mCrc32);
       
       // read input size
       bb.get((char*)&mInputSize, 4);
+      mInputSize = DB_UINT32_FROM_LE(mInputSize);
    }
    
    return rval;
@@ -46,11 +47,11 @@ int Trailer::convertFromBytes(char* b, int length)
 
 void Trailer::convertToBytes(ByteBuffer* b)
 {
-   // FIXME: format is little-endian, add macros 
-   
    // write crc-32 and input size
-   b->put((char*)&mCrc32, 4, true);
-   b->put((char*)&mInputSize, 4, true);
+   uint32_t crc32 = DB_UINT32_TO_LE(mCrc32);
+   uint32_t isize = DB_UINT32_TO_LE(mInputSize);
+   b->put((char*)&crc32, 4, true);
+   b->put((char*)&isize, 4, true);
 }
 
 void Trailer::setCrc32(unsigned int crc)
