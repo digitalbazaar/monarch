@@ -376,7 +376,7 @@ void runZipTest(TestRunner& tr)
    {
       string filename = "/tmp/bmtestfile.mp3";
       File file(filename.c_str());
-      if(!file.exists())
+      if(!file->exists())
       {
          string temp = filename;
          temp.append(" does not exist, not running test!");
@@ -384,7 +384,7 @@ void runZipTest(TestRunner& tr)
       }
       else
       {
-         FileInputStream fis(file, false);
+         FileInputStream fis(file);
          File out("/tmp/bmtestfile.zip");
          FileOutputStream fos(out, false);
          
@@ -418,7 +418,6 @@ void runZipTest(TestRunner& tr)
    }
    tr.passIfNoException();
 #endif
-   
    tr.ungroup();
 }
 
