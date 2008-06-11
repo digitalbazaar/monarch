@@ -77,10 +77,12 @@ void TestRunner::pass()
    {
       case Progress:
          cout << ".";
+         cout.flush();
          break;
       case Names:
       case Times:
          cout << "PASS." << endl;
+         cout.flush();
          break;
       default:
          break;
@@ -131,6 +133,7 @@ void TestRunner::fail(const char* reason)
    {
       case Progress:
          cout << "F";
+         cout.flush();
          break;
       case Names:
       case Times:
@@ -139,6 +142,7 @@ void TestRunner::fail(const char* reason)
          {
             cout << reason << endl;
          }
+         cout.flush();
          break;
       default:
          break;
@@ -152,6 +156,7 @@ void TestRunner::warning(const char* reason)
    {
       case Progress:
          cout << "W";
+         cout.flush();
          break;
       case Names:
       case Times:
@@ -164,6 +169,7 @@ void TestRunner::warning(const char* reason)
          {
             cout << "(no reason given)" << endl;
          }
+         cout.flush();
          break;
       default:
          break;
@@ -180,8 +186,14 @@ void TestRunner::done()
 
    switch(mOutputLevel)
    {
-      case Final:
       case Progress:
+         // Progress just prints chars so force a newline if tests were done
+         if(mTotal > 0)
+         {
+            cout << endl;
+         }
+         // fall through
+      case Final:
       case Names:
       case Times:
          cout << "Done.";
