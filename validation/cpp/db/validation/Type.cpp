@@ -18,7 +18,8 @@ Type::~Type()
 
 bool Type::isValid(DynamicObject& obj, ValidatorContext* context)
 {
-   bool rval = (obj->getType() == mType);
+   bool rval = (!obj.isNull() && obj->getType() == mType);
+   
    if(!rval)
    {
       const char* strType = DynamicObject::descriptionForType(obj->getType());

@@ -37,7 +37,7 @@ bool Array::isValid(
 {
    bool rval = true;
    
-   if(obj->getType() == db::rt::Array)
+   if(!obj.isNull() && obj->getType() == db::rt::Array)
    {
       std::vector<std::pair<int,Validator*> >::iterator i;
       for(i = mValidators.begin(); i != mValidators.end(); i++)
