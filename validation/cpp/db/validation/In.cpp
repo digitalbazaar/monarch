@@ -37,6 +37,7 @@ bool In::isValid(
          break;
       case Map:
          rval =
+            !obj.isNull() &&
             obj->getType() == String &&
             mContents->hasMember(obj->getString());
          break;

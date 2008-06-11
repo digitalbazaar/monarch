@@ -81,24 +81,30 @@ bool Each::isValid(
 {
    bool rval = true;
    
-   switch(obj->getType())
+   if(obj.isNull() || !(obj->getType() == Array || obj->getType() == Map))
    {
-      case Array:
-         rval = isArrayValid(obj, context);
-         break;
-      case Map:
-         rval = isMapValid(obj, context);
-         break;
-      default:
-         rval = false;
-         DynamicObject detail =
-            context->addError("db.validation.TypeError");
-         char exp[100];
-         snprintf(exp, 100, "%s | %s",
-            DynamicObject::descriptionForType(Map),
-            DynamicObject::descriptionForType(Array));
-         detail["expectedType"] = exp;
-         break;
+      rval = false;
+      DynamicObject detail =
+         context->addError("db.validation.TypeError");
+      char exp[100];
+      snprintf(exp, 100, "%s | %s",
+         DynamicObject::descriptionForType(Map),
+         DynamicObject::descriptionForType(Array));
+      detail["expectedType"] = exp;
+   }
+   else
+   {
+      switch(obj->getType())
+      {
+         case Array:
+            rval = isArrayValid(obj, context);
+            break;
+         case Map:
+            rval = isMapValid(obj, context);
+            break;
+         default:
+            break;
+      }
    }
 
    return rval;
