@@ -19,6 +19,7 @@
 
 using namespace std;
 using namespace db::app;
+using namespace db::config;
 using namespace db::rt;
 using namespace db::test;
 
@@ -37,6 +38,45 @@ Tester::~Tester()
    {
       delete *i;
    }
+}
+
+DynamicObject Tester::getCommandLineSpec(App* app)
+{
+   DynamicObject spec;
+   spec["help"] =
+"Test options:\n"
+"  -l, --level LEVEL   Adjust test output level to LEVEL. (default: 3)\n"
+"                         0: No output.\n"
+"                         1: Final results.\n"
+"                         2: Progress (.=success, W=warning, F=failure).\n"
+"                         3: Test names and PASS/WARNING/FAIL status.\n"
+"                         4: Same as 3, plus test time.\n"
+"                      All levels have exit status of 0 on success.\n"
+"  -c                  Continue after failure. (default: true).\n"
+"\n";
+   
+   DynamicObject opt;
+   Config& cfg = app->getConfig(); 
+   
+   opt = spec["options"]->append();
+   opt["short"] = "-l";
+   opt["arg"] = cfg["db.test.Tester"]["level"];
+  
+   opt = spec["options"]->append();
+   opt["short"] = "-c";
+   opt["setTrue"] = cfg["db.test.Tester"]["continueAfterException"];
+  
+   return spec;
+}
+
+bool Tester::willParseCommandLine(App* app, std::vector<const char*>* args)
+{
+   bool rval = true;
+   
+   app->getConfig()["db.test.Tester"]["level"] = 3;
+   app->getConfig()["db.test.Tester"]["continueAfterException"] = false;
+   
+   return rval;
 }
 
 void Tester::setName(const char* name)
@@ -115,7 +155,21 @@ int Tester::runTests(TestRunner& tr)
 
 void Tester::run(App* app)
 {
-   TestRunner tr(true, TestRunner::Names);
+   Config& cfg = app->getConfig();
+   bool cont = cfg["db.test.Tester"]["continueAfterException"]->getBoolean();
+   uint32_t cfgLevel = cfg["db.test.Tester"]["level"]->getUInt32();
+   TestRunner::OutputLevel level;
+   
+   switch(cfgLevel)
+   {
+      case 0: level = TestRunner::None; break;
+      case 1: level = TestRunner::Final; break;
+      case 2: level = TestRunner::Progress; break;
+      case 3: level = TestRunner::Names; break;
+      default: level = TestRunner::Times; break;
+   }
+   
+   TestRunner tr(cont, level);
    
    int exitStatus = runTests(tr);
    app->setExitStatus(exitStatus);

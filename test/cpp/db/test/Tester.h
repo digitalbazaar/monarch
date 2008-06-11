@@ -77,6 +77,26 @@ public:
    virtual ~Tester();
    
    /**
+    * Get a specification of the command line paramters.
+    * 
+    * @param app the App.
+    * 
+    * @return the command line spec
+    */
+   virtual db::rt::DynamicObject getCommandLineSpec(db::app::App* app);
+   
+   /**
+    * Setup default option values.
+    * 
+    * @param app the App.
+    * @param args read-only vector of command line arguments.
+    * 
+    * @return true on success, false on failure and exception set
+    */
+   virtual bool willParseCommandLine(
+      db::app::App* app, std::vector<const char*>* args);
+   
+   /**
     * Set the tester name.
     * 
     * @param name the name.
