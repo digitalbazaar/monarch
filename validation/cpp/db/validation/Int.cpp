@@ -102,18 +102,23 @@ bool Int::isValid(
    bool rval;
    DynamicObjectType objType;
 
-   objType = obj->getType();
-   if(objType == String)
+   rval = !obj.isNull();
+   
+   if(rval)
    {
-      objType = DynamicObject::determineType(obj->getString());
+      objType = obj->getType();
+      if(objType == String)
+      {
+         objType = DynamicObject::determineType(obj->getString());
+      }
+   
+      // type check
+      rval =
+         objType == Int32 ||
+         objType == UInt32 ||
+         objType == Int64 ||
+         objType == UInt64;
    }
-
-   // type check
-   rval =
-      objType == Int32 ||
-      objType == UInt32 ||
-      objType == Int64 ||
-      objType == UInt64;
    
    if(!rval)
    {

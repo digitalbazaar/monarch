@@ -20,7 +20,7 @@ bool Min::isValid(
    DynamicObject& obj,
    ValidatorContext* context)
 {
-   bool rval = (obj->length() >= mSize);
+   bool rval = (!obj.isNull() && obj->length() >= mSize);
    
    if(!rval)
    {
