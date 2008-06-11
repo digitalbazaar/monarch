@@ -28,7 +28,7 @@ protected:
    db::rt::DynamicObject* mState;
    
    /* Path used during object traversal. */
-   std::vector<const char*>* mPath;
+   std::vector<char*>* mPath;
    
    /* Flag to stop setting of exceptions.  Useful when only concerned with
     * success or failure of validators rather than details.
