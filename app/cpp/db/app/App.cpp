@@ -366,16 +366,17 @@ bool App::parseCommandLine(vector<const char*>* args)
 {
    bool rval = true;
    
+   // process all command line args
    for(vector<const char*>::iterator i = ++(args->begin());
       rval && i < args->end();
       i++)
    {
-      const char* opt = (*i);
+      const char* arg = (*i);
       
-      // check if we are and end of options
-      if(strcmp(opt, "--") == 0 || strlen(opt) == 0 || opt[0] != '-')
+      // check if we are at end of options
+      if(strcmp(arg, "--") == 0 || strlen(arg) == 0 || arg[0] != '-')
       {
-         // add rest of args to all specs if "args" key present
+         // add rest of args to all specs where "args" key is present
          while(i < args->end())
          {
             i++;
@@ -395,40 +396,69 @@ bool App::parseCommandLine(vector<const char*>* args)
       }
       else
       {
-         // process arg for each spec
-         bool found = false;
-         DynamicObjectIterator si =
-            mConfig["app"]["cl"]["specs"].getIterator();
-         while(rval && si->hasNext())
+         // Create options to process.
+         vector<string> opts;
+         // either --... or -... at this point
+         if(strncmp(arg, "--", 2) == 0)
          {
-            DynamicObject& spec = si->next();
-            if(spec->hasMember("options"))
+            // Long options (--opt) process as-is.
+            opts.push_back(arg);
+         }
+         else
+         {
+            // Short options are split up (-abc => -a -b -c)
+            // FIXME: handle "-" with no option case, ignored now
+            size_t arglen = strlen(arg);
+            for(size_t shorti = 1; shorti < arglen; shorti++)
             {
-               // loop over all options in each spec
-               DynamicObjectIterator oi = spec["options"].getIterator();
-               while(rval && oi->hasNext())
+               string opt;
+               opt.push_back('-');
+               opt.push_back(arg[shorti]);
+               opts.push_back(opt);
+            }
+         }
+         
+         for(vector<string>::iterator opti = opts.begin();
+            opti != opts.end();
+            opti++)
+         {
+            const char* opt = (*opti).c_str();
+            
+            // process arg for each spec
+            bool found = false;
+            DynamicObjectIterator si =
+               mConfig["app"]["cl"]["specs"].getIterator();
+            while(rval && si->hasNext())
+            {
+               DynamicObject& spec = si->next();
+               if(spec->hasMember("options"))
                {
-                  // check if this opt is found
-                  DynamicObject& o = oi->next();
-                  if((o->hasMember("short") &&
-                        strcmp(o["short"]->getString(), opt) == 0) ||
-                     (o->hasMember("long") &&
-                        strcmp(o["long"]->getString(), opt) == 0))
+                  // loop over all options in each spec
+                  DynamicObjectIterator oi = spec["options"].getIterator();
+                  while(rval && oi->hasNext())
                   {
-                     found = true;
-                     rval = processOption(this, args, &i, opt, o);
+                     // check if this opt is found
+                     DynamicObject& o = oi->next();
+                     if((o->hasMember("short") &&
+                           strcmp(o["short"]->getString(), opt) == 0) ||
+                        (o->hasMember("long") &&
+                           strcmp(o["long"]->getString(), opt) == 0))
+                     {
+                        found = true;
+                        rval = processOption(this, args, &i, opt, o);
+                     }
                   }
                }
             }
-         }
-         if(rval && !found)
-         {
-            ostringstream oss;
-            oss << "Unknown option: " << opt << ".";
-            ExceptionRef e =
-               new Exception(oss.str().c_str(), "db.app.CommandLineError");
-            Exception::setLast(e, false);
-            rval = false;
+            if(rval && !found)
+            {
+               ostringstream oss;
+               oss << "Unknown option: " << opt << ".";
+               ExceptionRef e =
+                  new Exception(oss.str().c_str(), "db.app.CommandLineError");
+               Exception::setLast(e, false);
+               rval = false;
+            }
          }
       }
    }
