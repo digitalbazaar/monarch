@@ -46,8 +46,6 @@ void ValidatorContext::pushPath(const char* path)
       mPath = new std::vector<char*>;
    }
    mPath->push_back(strdup(path));
-   
-   printf("ValidatorContext::pushPath: '%s'\n", path);
 }
 
 void ValidatorContext::popPath()
