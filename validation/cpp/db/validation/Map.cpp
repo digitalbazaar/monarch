@@ -60,7 +60,8 @@ bool Map::isValid(
          {
             rval = false;
             DynamicObject detail =
-               context->addError("db.validation.MissingField");
+               context->addError("db.validation.MissingField", &obj);
+            detail["validator"] = "db.validator.Map";
             detail["message"] = "Missing field!";
             detail["key"] = i->first;
          }
@@ -75,7 +76,8 @@ bool Map::isValid(
    {
       rval = false;
       DynamicObject detail =
-         context->addError("db.validation.TypeError");
+         context->addError("db.validation.TypeError", &obj);
+      detail["validator"] = "db.validator.Map";
       detail["message"] = "Object not a Map!";
    }
    

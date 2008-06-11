@@ -24,7 +24,8 @@ bool Max::isValid(
    
    if(!rval)
    {
-      DynamicObject detail = context->addError("db.validation.MaxError");
+      DynamicObject detail = context->addError("db.validation.MaxError", &obj);
+      detail["validator"] = "db.validator.Max";
       if(mErrorMessage)
       {
          detail["message"] = mErrorMessage;

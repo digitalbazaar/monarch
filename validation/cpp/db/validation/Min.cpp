@@ -24,7 +24,8 @@ bool Min::isValid(
    
    if(!rval)
    {
-      DynamicObject detail = context->addError("db.validation.MinError");
+      DynamicObject detail = context->addError("db.validation.MinError", &obj);
+      detail["validator"] = "db.validator.Min";
       if(mErrorMessage)
       {
          detail["message"] = mErrorMessage;

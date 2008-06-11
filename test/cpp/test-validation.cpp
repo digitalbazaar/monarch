@@ -13,6 +13,7 @@ using namespace db::test;
 using namespace db::rt;
 namespace v = db::validation;
 
+// Use to dump out expected exceptions 
 #define _dump false
 
 void runValidatorTest(TestRunner& tr)

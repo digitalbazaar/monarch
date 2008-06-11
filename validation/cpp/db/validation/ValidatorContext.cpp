@@ -85,7 +85,8 @@ std::string ValidatorContext::getPath()
    return rval;
 }
 
-DynamicObject ValidatorContext::addError(const char* type)
+DynamicObject ValidatorContext::addError(
+   const char* type, DynamicObject* object)
 {
    DynamicObject errorDetail;
    
@@ -119,6 +120,10 @@ DynamicObject ValidatorContext::addError(const char* type)
       errorDetail["type"] = type;
       // FIXME: localize message
       errorDetail["message"] = "Invalid value!";
+      if(object != NULL)
+      {
+         errorDetail["invalidValue"] = *object;
+      }
       
       // add detail to "errors" section of exception details
       std::string fullpath = getPath();

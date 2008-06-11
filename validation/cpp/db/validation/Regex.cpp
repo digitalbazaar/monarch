@@ -39,7 +39,9 @@ bool Regex::isValid(
       rval = Pattern::match(mRegex, obj->getString());
       if(!rval)
       {
-         DynamicObject detail = context->addError("db.validation.ValueError");
+         DynamicObject detail =
+            context->addError("db.validation.ValueError", &obj);
+         detail["validator"] = "db.validator.Regex";
          if(mErrorMessage)
          {
             detail["message"] = mErrorMessage;
