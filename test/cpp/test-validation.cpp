@@ -881,6 +881,24 @@ void runValidatorTest(TestRunner& tr)
    }
    tr.ungroup();
 
+   tr.group("null objects");
+   {
+      tr.test("init");
+      DynamicObject nullObject;
+      nullObject.setNull();
+
+      v::Map v("a", new v::Regex("^.*$", "Regex does not match"), NULL);
+      tr.passIfNoException();
+      
+      tr.test("simple");
+      {
+         DynamicObject nullObject;
+         nullObject.setNull();
+
+         assert(v.isValid(nullObject));
+      }
+      tr.passIfNoException();
+   }
    /*
    tr.test("content");
    {
