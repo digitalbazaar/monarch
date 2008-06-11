@@ -3,6 +3,7 @@
  */
 #include "db/compress/gzip/Header.h"
 
+#include "db/data/Data.h"
 #include "db/rt/System.h"
 #include <zlib.h>
 
@@ -41,8 +42,6 @@ Header::~Header()
 int Header::convertFromBytes(char* b, int length)
 {
    int rval = 0;
-   
-   // FIXME: format is little-endian, add macros
    
    // clear extra field, filename, and file comment
    mExtraField.clear();
@@ -220,8 +219,6 @@ int Header::convertFromBytes(char* b, int length)
 
 void Header::convertToBytes(ByteBuffer* b)
 {
-   // FIXME: format is little-endian, add macros
-   
    // get the size of the header
    int headerSize = 10;
    if(mHasCrc)
@@ -249,9 +246,10 @@ void Header::convertToBytes(ByteBuffer* b)
    }
    
    // get the current time as the modification time
-   unsigned int time = System::getCurrentMilliseconds() / 1000;
+   uint32_t time = System::getCurrentMilliseconds() / 1000;
    
    // write the MTIME (modification time)
+   time = DB_UINT32_TO_LE(time);
    b->put((char*)&time, 4, true);
    
    // write the XFL (extra flags), no extra flags
@@ -270,7 +268,8 @@ void Header::convertToBytes(ByteBuffer* b)
       mCrc = (crc & 0xffff);
       
       // write the crc-16
-      b->put((char*)&mCrc, 2, true);
+      uint32_t crc16 = DB_UINT16_TO_LE(mCrc);
+      b->put((char*)&crc16, 2, true);
    }
 }
 
