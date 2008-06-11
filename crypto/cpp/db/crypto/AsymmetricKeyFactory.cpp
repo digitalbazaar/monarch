@@ -199,9 +199,9 @@ PrivateKey* AsymmetricKeyFactory::loadPrivateKeyFromPem(
 {
    PrivateKey* key = NULL;
    
+   // FIXME: this leaks 12 bytes every time it's called, why?
    // create a read-only memory bio
    BIO* bio = BIO_new_mem_buf((void*)pem, length);
-   BIO_set_close(bio, BIO_NOCLOSE);
    
    // try to load private key from bio
    EVP_PKEY* pkey = NULL;
@@ -209,7 +209,7 @@ PrivateKey* AsymmetricKeyFactory::loadPrivateKeyFromPem(
       bio, &pkey, passwordCallback, (void*)password);
    
    // free the bio
-   BIO_free(bio);
+   BIO_free_all(bio);
    
    if(pkey != NULL)
    {
