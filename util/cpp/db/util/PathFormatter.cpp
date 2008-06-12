@@ -17,10 +17,10 @@ string& PathFormatter::formatFilename(string& str)
    {
       char c = *i;
       
-      // this list was taken from http://en.wikipedia.org/wiki/Filename, we
-      // care most about Windows, Linux and Mac OS X. If a character is 
-      // disallowed on any one of those systems, they're disallowed from all
-      // of them.
+      // This list was taken from http://en.wikipedia.org/wiki/Filename, we
+      // care most about Windows, Linux and Mac OS X. By default all 
+      // ASCII characters are allowed except for characters that are 
+      // disallowed on any one of the previously mentioned systems.
       if((c >= ' ') && (c <= '~') && (c != '?') && (c != '/') && (c != '\\') &&
          (c != '*') && (c != ':') && (c != '|') && (c != '"') && (c != '<') &&
          (c != '>') && (c != '+') && (c != '[') && (c != ']'))
