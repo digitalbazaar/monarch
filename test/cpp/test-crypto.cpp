@@ -688,20 +688,20 @@ void runBigDecimalTest(TestRunner& tr)
       NSD(nr, expectstr); \
    } while(0)
    
-   BigDecimal number3 = "129.54678";
-   NSD(number3, "129.54678");
+   BigDecimal number3 = "129.54678010";
+   NSD(number3, "129.54678010");
    
-   NSDR(number3, 7, Up, "129.54678");
-   NSDR(number3, 6, Up, "129.54678");
-   NSDR(number3, 5, Up, "129.54678");
+   NSDR(number3, 7, Up, "129.5467801");
+   NSDR(number3, 6, Up, "129.546781");
+   NSDR(number3, 5, Up, "129.54679");
    NSDR(number3, 4, Up, "129.5468");
    NSDR(number3, 3, Up, "129.547");
    NSDR(number3, 2, Up, "129.55");
    NSDR(number3, 1, Up, "129.6");
    NSDR(number3, 0, Up, "130");
 
-   NSDR(number3, 7, HalfUp, "129.54678");
-   NSDR(number3, 6, HalfUp, "129.54678");
+   NSDR(number3, 7, HalfUp, "129.5467801");
+   NSDR(number3, 6, HalfUp, "129.546780");
    NSDR(number3, 5, HalfUp, "129.54678");
    NSDR(number3, 4, HalfUp, "129.5468");
    NSDR(number3, 3, HalfUp, "129.547");
@@ -709,8 +709,8 @@ void runBigDecimalTest(TestRunner& tr)
    NSDR(number3, 1, HalfUp, "129.5");
    NSDR(number3, 0, HalfUp, "130");
 
-   NSDR(number3, 7, Down, "129.54678");
-   NSDR(number3, 6, Down, "129.54678");
+   NSDR(number3, 7, Down, "129.5467801");
+   NSDR(number3, 6, Down, "129.546780");
    NSDR(number3, 5, Down, "129.54678");
    NSDR(number3, 4, Down, "129.5467");
    NSDR(number3, 3, Down, "129.546");

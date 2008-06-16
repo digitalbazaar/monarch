@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/BigDecimal.h"
 
@@ -505,15 +505,27 @@ void BigDecimal::round()
          // round significand according to rounding mode
          if(mRoundingMode == Up)
          {
-            // add 1 with the same exponent
-            BigDecimal bd = 1;
-            bd.mExponent = mExponent;
-            *this += bd;
+            // must round up if there is anything but a zero in extra
+            bool round = false;
+            for(const char* ptr = extra.c_str(); *ptr != 0 && !round; ptr++)
+            {
+               if(*ptr != '0')
+               {
+                  round = true;
+               }
+            }
+            
+            if(round)
+            {
+               // add 1 with the same exponent
+               BigDecimal bd = 1;
+               bd.mExponent = mExponent;
+               *this += bd;
+            }
          }
          else if(mRoundingMode == HalfUp)
          {
-            // (52 = '4', 57 = '9')
-            if(extra.at(0) > 52 && extra.at(0) <= 57)
+            if(extra.at(0) > '4' && extra.at(0) <= '9')
             {
                // add 1 with the same exponent
                BigDecimal bd = 1;
