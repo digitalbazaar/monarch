@@ -174,7 +174,7 @@ int ByteBuffer::put(ByteBuffer* b, int length, bool resize)
    return put(b->bytes() + b->offset(), length, resize);
 }
 
-int ByteBuffer::put(InputStream* is)
+int ByteBuffer::put(InputStream* is, int length)
 {
    int rval = 0;
    
@@ -184,8 +184,11 @@ int ByteBuffer::put(InputStream* is)
       // allocate free space
       allocateSpace(freeSpace(), false);
       
+      // determine how much to read
+      length = (length > 0 && length < freeSpace() ? length : freeSpace());
+      
       // read
-      rval = is->read(data() + mLength, freeSpace());
+      rval = is->read(data() + mLength, length);
       if(rval != -1)
       {
          // increment length

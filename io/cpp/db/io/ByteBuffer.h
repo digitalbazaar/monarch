@@ -161,12 +161,14 @@ public:
     * Exception::getLast() will be set if an IO error occurs.
     * 
     * @param is the input stream to read from.
+    * @param length the number of bytes to read, 0 will try to read as much
+    *               as can fit in the buffer.
     * 
     * @return the number of bytes read from the input stream and put into
     *         this buffer, 0 if the end of the input stream was reached,
     *         and -1 if an exception occurred.
     */
-   virtual int put(InputStream* is);
+   virtual int put(InputStream* is, int length = 0);
    
    /**
     * Gets a single byte out of this buffer. This method will increment the
