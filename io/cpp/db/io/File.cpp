@@ -5,11 +5,15 @@
 
 #include "db/io/FileFunctions.h"
 #include "db/io/FileList.h"
+#include "db/io/IOException.h"
+#include "db/rt/DynamicObject.h"
 #include "db/util/StringTokenizer.h"
 
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <errno.h>
+#include <vector>
 
 using namespace std;
 using namespace db::io;
@@ -43,7 +47,55 @@ bool FileImpl::create()
    }
    else
    {
-      // FIXME: add error handling
+      string msg = "Could not create file! ";
+      msg.append(strerror(errno));
+      ExceptionRef e = new IOException(msg.c_str());
+      Exception::setLast(e, false);
+   }
+   
+   return rval;
+}
+
+bool FileImpl::mkdirs()
+{
+   bool rval = true;
+   
+   // get path
+   string path = (isDirectory() ? getName() : File::parentname(getName()));
+   
+   // create stack of directories
+   vector<string> dirStack;
+   dirStack.push_back(path);
+   while(strcmp(path.c_str(), "/") != 0)
+   {
+      path = File::parentname(path.c_str());
+      dirStack.push_back(path);
+   }
+   
+   // iteratively create directories
+   struct stat s;
+   int rc;
+   while(rval && !dirStack.empty())
+   {
+      path = dirStack.back();
+      dirStack.pop_back();
+      
+      // try to stat directory
+      rc = stat(path.c_str(), &s);
+      if(rc != 0)
+      {
+         // directory doesn't exist, so try to create it
+         // FIXME: allow user to set permissions via parameter?
+         if(mkdir(path.c_str(), 0777) < 0)
+         {
+            string msg = "Could not make directory! ";
+            msg.append(strerror(errno));
+            ExceptionRef e = new IOException(msg.c_str());
+            e->getDetails()["path"] = path.c_str();
+            Exception::setLast(e, false);
+            rval = false;
+         }
+      }
    }
    
    return rval;
@@ -61,8 +113,10 @@ bool FileImpl::exists()
    }
    else
    {
-      // FIXME: ENOENT (2) is errno for FileImpl not found
-      // FIXME: add error handling
+      string msg = "File not found! ";
+      msg.append(strerror(errno));
+      ExceptionRef e = new IOException(msg.c_str());
+      Exception::setLast(e, false);
    }
    
    return rval;
@@ -79,7 +133,10 @@ bool FileImpl::remove()
    }
    else
    {
-      // FIXME: add error handling
+      string msg = "Could not delete file! ";
+      msg.append(strerror(errno));
+      ExceptionRef e = new IOException(msg.c_str());
+      Exception::setLast(e, false);
    }
    
    return rval;
@@ -100,7 +157,10 @@ bool FileImpl::rename(File& file)
    }
    else
    {
-      // FIXME: add error handling
+      string msg = "Could not rename file! ";
+      msg.append(strerror(errno));
+      ExceptionRef e = new IOException(msg.c_str());
+      Exception::setLast(e, false);
    }
    
    return rval;
@@ -117,7 +177,10 @@ off_t FileImpl::getLength()
    int rc = stat(mName, &s);
    if(rc != 0)
    {
-      // FIXME: add error handling
+      string msg = "Could not stat file! ";
+      msg.append(strerror(errno));
+      ExceptionRef e = new IOException(msg.c_str());
+      Exception::setLast(e, false);
    }
    
    return s.st_size;
@@ -434,6 +497,22 @@ void File::split(const char* path, string& dirname, string& basename)
    {
       dirname.erase(dirname.find_last_not_of("/") + 1);
    }
+}
+
+string File::parentname(const char* path)
+{
+   string dirname = File::dirname(path);
+   if(strcmp(dirname.c_str(), path) == 0)
+   {
+      // drop last slash if dirname != "/"
+      if(dirname.length() > 1)
+      {
+         dirname.erase(dirname.end());
+         dirname = File::dirname(dirname.c_str());
+      }
+   }
+   
+   return dirname;
 }
 
 string File::dirname(const char* path)
