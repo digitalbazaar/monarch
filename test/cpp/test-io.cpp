@@ -398,6 +398,8 @@ void runFileTest(TestRunner& tr)
       a->rename(c);
       assert(!a->exists());
       assert(c->exists());
+      assertException();
+      Exception::clearLast();
    }
    tr.passIfNoException();
    
@@ -594,7 +596,14 @@ void runFileTest(TestRunner& tr)
       }
    }
    tr.passIfNoException();
-
+#if 0
+   tr.test("mkdirs");
+   {
+      File file("/tmp/bmtest/foo/bar/testfile.txt");
+      file->mkdirs();
+   }
+   tr.passIfNoException();
+#endif   
    tr.ungroup();
 }
 

@@ -74,6 +74,16 @@ public:
    virtual bool create();
    
    /**
+    * Creates all directories in this file's path that do not already exist.
+    * If an exception occurs, then some of the directories, but not all, may
+    * have been created.
+    * 
+    * @return true if all directories were created, false if an exception
+    *         occurred.
+    */
+   virtual bool mkdirs();
+   
+   /**
     * Determines whether or not this file physically exists.
     * 
     * @return true if this file exists, false if not.
@@ -308,8 +318,8 @@ public:
    /**
     * Split a path into the head (dirname) and tail (basename).
     * dirname is everything up to the final path separator.  If path ends in
-    * a path separtor basename will be empty.  If there is no path separtor in
-    * the path dirname will be empty.  Trailing separators are stripped from
+    * a path separator basename will be empty.  If there is no path separator
+    * in the path dirname will be empty.  Trailing separators are stripped from
     * dirname unless it is the root.
     * 
     * @param path the path to split.
@@ -318,6 +328,16 @@ public:
     */
    static void split(
       const char* path, std::string& dirname, std::string& basename);
+   
+   /**
+    * Gets the parent directory of the passed path. Works for both files
+    * and directories. If the passed path is "/", then "/" will be returned.
+    * 
+    * @param path the path to get the parent directory of.
+    * 
+    * @return the parentname of path.
+    */
+   static std::string parentname(const char* path);
    
    /**
     * Convienience to get dirname from split().
