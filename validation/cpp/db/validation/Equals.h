@@ -39,6 +39,14 @@ public:
    Equals(const char* str, const char* errorMessage = NULL);
    
    /**
+    * Creates a new validator.
+    * 
+    * @param b the boolean to validate against.
+    * @param errorMessage custom error message.
+    */
+   Equals(bool b, const char* errorMessage = NULL);
+   
+   /**
     * Destructs this validator.
     */
    virtual ~Equals();

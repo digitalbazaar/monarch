@@ -18,6 +18,12 @@ Equals::Equals(const char* str, const char* errorMessage) :
    mObject = str;
 }
 
+Equals::Equals(bool b, const char* errorMessage) :
+   Validator(errorMessage)
+{
+   mObject = b;
+}
+
 Equals::~Equals()
 {
 }
