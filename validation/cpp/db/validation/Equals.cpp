@@ -12,6 +12,18 @@ Equals::Equals(db::rt::DynamicObject& object, const char* errorMessage) :
 {
 }
 
+Equals::Equals(const char* str, const char* errorMessage) :
+   Validator(errorMessage)
+{
+   mObject = str;
+}
+
+Equals::Equals(bool b, const char* errorMessage) :
+   Validator(errorMessage)
+{
+   mObject = b;
+}
+
 Equals::~Equals()
 {
 }
@@ -20,7 +32,7 @@ bool Equals::isValid(
    db::rt::DynamicObject& obj,
    ValidatorContext* context)
 {
-   bool rval = obj == mObject;
+   bool rval = (obj == mObject);
    if(!rval)
    {
       DynamicObject detail =

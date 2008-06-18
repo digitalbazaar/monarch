@@ -245,10 +245,14 @@ void runValidatorTest(TestRunner& tr)
       
       v::Equals v(eq);
       assert(v.isValid(dv));
+      
+      v::Equals v2("db");
+      assert(v2.isValid(dv));
       tr.passIfNoException();
       
       tr.test("invalid equals");
       assert(!v.isValid(dnv));
+      assert(!v2.isValid(dnv));
       tr.passIfException(_dump);
    }
 

@@ -115,10 +115,7 @@ bool FileImpl::exists()
    }
    else
    {
-      string msg = "File not found! ";
-      msg.append(strerror(errno));
-      ExceptionRef e = new IOException(msg.c_str());
-      Exception::setLast(e, false);
+      // does not set an exception intentionally
    }
    
    return rval;
@@ -135,10 +132,12 @@ bool FileImpl::remove()
    }
    else
    {
-      string msg = "Could not delete file! ";
-      msg.append(strerror(errno));
-      ExceptionRef e = new IOException(msg.c_str());
-      Exception::setLast(e, false);
+      // FIXME: want to make sure no exception is
+      // set when the file didn't exist prior to deletion
+//      string msg = "Could not delete file! ";
+//      msg.append(strerror(errno));
+//      ExceptionRef e = new IOException(msg.c_str());
+//      Exception::setLast(e, false);
    }
    
    return rval;
