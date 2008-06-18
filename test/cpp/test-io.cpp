@@ -396,8 +396,6 @@ void runFileTest(TestRunner& tr)
       a->rename(c);
       assert(!a->exists());
       assert(c->exists());
-      assertException();
-      Exception::clearLast();
    }
    tr.passIfNoException();
    

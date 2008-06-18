@@ -12,6 +12,12 @@ Equals::Equals(db::rt::DynamicObject& object, const char* errorMessage) :
 {
 }
 
+Equals::Equals(const char* str, const char* errorMessage) :
+   Validator(errorMessage)
+{
+   mObject = str;
+}
+
 Equals::~Equals()
 {
 }

@@ -17,6 +17,9 @@ namespace rt
 /**
  * An Object represents a single synchronizable object in Digital Bazaar's
  * multi-threaded object-oriented runtime system.
+ * 
+ * FIXME: rename to Object to ExclusiveLock to work along side SharedLock
+ * and to be more definitive about what this class represents.
  *
  * @author Dave Longley
  */
