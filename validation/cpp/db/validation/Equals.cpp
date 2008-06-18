@@ -32,7 +32,7 @@ bool Equals::isValid(
    db::rt::DynamicObject& obj,
    ValidatorContext* context)
 {
-   bool rval = obj == mObject;
+   bool rval = (obj == mObject);
    if(!rval)
    {
       DynamicObject detail =

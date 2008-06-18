@@ -203,41 +203,48 @@ DynamicObject DynamicObject::clone()
 {
    DynamicObject rval;
    
-   int index = 0;
-   rval->setType((*this)->getType());
-   DynamicObjectIterator i = getIterator();
-   while(i->hasNext())
+   if(isNull())
    {
-      DynamicObject dyno = i->next();
-      switch((*this)->getType())
+      rval.setNull();
+   }
+   else
+   {
+      int index = 0;
+      rval->setType((*this)->getType());
+      DynamicObjectIterator i = getIterator();
+      while(i->hasNext())
       {
-         case String:
-            rval = dyno->getString();
-            break;
-         case Boolean:
-            rval = dyno->getBoolean();
-            break;
-         case Int32:
-            rval = dyno->getInt32();
-            break;
-         case UInt32:
-            rval = dyno->getUInt32();
-            break;
-         case Int64:
-            rval = dyno->getInt64();
-            break;
-         case UInt64:
-            rval = dyno->getUInt64();
-            break;
-         case Double:
-            rval = dyno->getDouble();
-            break;
-         case Map:
-            rval[i->getName()] = dyno.clone();
-            break;
-         case Array:
-            rval[index++] = dyno.clone();
-            break;
+         DynamicObject dyno = i->next();
+         switch((*this)->getType())
+         {
+            case String:
+               rval = dyno->getString();
+               break;
+            case Boolean:
+               rval = dyno->getBoolean();
+               break;
+            case Int32:
+               rval = dyno->getInt32();
+               break;
+            case UInt32:
+               rval = dyno->getUInt32();
+               break;
+            case Int64:
+               rval = dyno->getInt64();
+               break;
+            case UInt64:
+               rval = dyno->getUInt64();
+               break;
+            case Double:
+               rval = dyno->getDouble();
+               break;
+            case Map:
+               rval[i->getName()] = dyno.clone();
+               break;
+            case Array:
+               rval[index++] = dyno.clone();
+               break;
+         }
       }
    }
    
