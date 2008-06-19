@@ -4,7 +4,6 @@
 #ifndef db_net_Url_H
 #define db_net_Url_H
 
-#include "db/rt/Object.h"
 #include "db/rt/DynamicObject.h"
 
 namespace db
@@ -277,6 +276,9 @@ public:
     */
    static std::string decode(const char* str, unsigned int length);
 };
+
+// type definition for a reference collected Url
+typedef db::rt::Collectable<Url> UrlRef;
 
 } // end namespace net
 } // end namespace db
