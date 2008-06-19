@@ -73,7 +73,7 @@ bool HttpConnection::receiveHeader(HttpHeader* header)
       if(!header->parse(headerStr))
       {
          ExceptionRef e = new IOException(
-            "Could not receive HTTP header! Not HTTP protocol or SSL?",
+            "Could not receive HTTP header! Is connection SSL or not HTTP?",
             "db.net.http.BadHeader");
          Exception::setLast(e, false);
          rval = false;
