@@ -105,6 +105,9 @@ public:
    virtual bool setVerifyCAs(db::io::File* caFile, db::io::File* caDir);
 };
 
+// type definition for reference counted SslContext
+typedef db::rt::Collectable<SslContext> SslContextRef;
+
 } // end namespace net
 } // end namespace db
 #endif
