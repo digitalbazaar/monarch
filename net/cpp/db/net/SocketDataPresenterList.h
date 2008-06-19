@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_SocketDataPresenterList_H
 #define db_net_SocketDataPresenterList_H
 
-#include "db/rt/Object.h"
+#include "db/rt/Collectable.h"
 #include "db/net/SocketDataPresenter.h"
 
 #include <list>
@@ -72,6 +72,9 @@ public:
     */
    virtual Socket* createPresentationWrapper(Socket* s, bool& secure);
 };
+
+// type definition for reference counted SocketDataPresenterList
+typedef db::rt::Collectable<SocketDataPresenterList> SocketDataPresenterListRef;
 
 } // end namespace net
 } // end namespace db

@@ -54,11 +54,7 @@ SslContext::SslContext(const char* protocol, bool client)
    // default to peer authentication only for the client (which means
    // only a client will check a server's cert, a server will not
    // request any client cert -- which is the common behavior)
-   // FIXME: uncomment after testing
-   //setPeerAuthentication(client);
-   
-   // FIXME: remove me when finished testing and uncomment above line
-   SSL_CTX_set_verify(mContext, SSL_VERIFY_NONE, NULL);
+   setPeerAuthentication(client);
    
    // use default ciphers
    // Note: even if non-authenticating ciphers (i.e. "aNULL") are
