@@ -13,6 +13,7 @@
 #include "db/io/File.h"
 #include "db/io/FileList.h"
 #include "db/io/FileInputStream.h"
+#include "db/logging/Logging.h"
 
 using namespace std;
 using namespace db::config;
@@ -142,6 +143,7 @@ bool ConfigManager::addConfig(
                }
                if(rval && load)
                {
+                  DB_CAT_DEBUG(DB_CONFIG_CAT, "Loading include: %s", path);
                   rval = addConfig(path, Default, NULL, true, dir, optional);
                }
             }
@@ -196,6 +198,8 @@ bool ConfigManager::addConfig(
          {
             if(file->isFile())
             {
+               DB_CAT_DEBUG(DB_CONFIG_CAT,
+                  "Loading file: %s", fullPath.c_str());
                FileInputStream is(file);
                JsonReader r;
                Config cfg;
@@ -224,6 +228,8 @@ bool ConfigManager::addConfig(
             }
             else if(file->isDirectory())
             {
+               DB_CAT_DEBUG(DB_CONFIG_CAT,
+                  "Loading directory: %s", fullPath.c_str());
                FileList list;
                file->listFiles(list);
    
@@ -607,6 +613,8 @@ void ConfigManager::setVersion(const char* version)
       free(mVersion);
    }
    mVersion = (version != NULL) ? strdup(version) : NULL;
+   DB_CAT_DEBUG(DB_CONFIG_CAT,
+      "Set version: \"%s\"", (version != NULL) ? version : "(none)");
 }
 
 const char* ConfigManager::getVersion()
