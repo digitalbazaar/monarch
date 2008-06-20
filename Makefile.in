@@ -19,6 +19,23 @@ SUBDIRS := 3rdparty/cpp \
            app/cpp \
            test/cpp
 
+INSTALL_LIBRARIES := config/cpp/dist/linux/libdbconfig.so \
+                     compress/cpp/dist/linux/libdbcompress.so \
+                     crypto/cpp/dist/linux/libdbcrypto.so \
+                     data/cpp/dist/linux/libdbdata.so \
+                     event/cpp/dist/linux/libdbevent.so \
+                     io/cpp/dist/linux/libdbio.so \
+                     logging/cpp/dist/linux/libdblogging.so \
+                     mail/cpp/dist/linux/libdbmail.so \
+                     modest/cpp/dist/linux/libdbmodest.so \
+                     net/cpp/dist/linux/libdbnet.so \
+                     rt/cpp/dist/linux/libdbrt.so \
+                     sql/cpp/dist/linux/libdbsql.so \
+                     test/cpp/dist/linux/libdbtest.so \
+                     util/cpp/dist/linux/libdbutil.so \
+                     sphinx/cpp/dist/linux/libdbsphinx.so \
+                     validation/cpp/dist/linux/libdbvalidation.so
+
 ifndef PRINT_DIRECTORIES
 PRINT_DIRECTORIES_OPTS = --no-print-directory -s
 endif
@@ -56,3 +73,21 @@ verbose-commands:
 
 valgrind:
 	./dbcore-valgrind test/cpp/dist/linux/run-unit-tests
+
+packages:
+	@echo "Building Debian packages..."
+	@rm -f debian
+	@ln -s installers/debian debian
+	@dpkg-buildpackage -us -uc -rfakeroot -b 
+	@echo "Moving packages to installers/packages..."
+	@rm ../libdbcore3*changes
+	@mkdir -p installers/packages
+	@mv ../libdbcore3*deb installers/packages
+
+install:
+	@mkdir -p $(PREFIX)/usr/lib
+	@echo "Installing dbcore libraries in $(PREFIX)/usr/lib..."
+	@$(foreach lib,$(INSTALL_LIBRARIES),install -m 644 $(lib) $(PREFIX)/usr/lib/$(notdir $(lib)).@FULL_VERSION@ &&) true
+	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).3.0 &&) true
+	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).3 &&) true
+	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)) &&) true
