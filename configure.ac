@@ -129,7 +129,8 @@ AC_CONFIG_FILES([
 AC_CONFIG_FILES([
                  dbcore-run 
                  installers/debian/changelog
+                 installers/debian/rules
                 ], 
-                [chmod +x dbcore-run])
+                [chmod +x dbcore-run installers/debian/rules])
 
 AC_OUTPUT
