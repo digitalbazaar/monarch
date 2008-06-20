@@ -7,6 +7,9 @@ AC_CONFIG_AUX_DIR(setup)
 
 # Setup standard build environment variables
 DBCOREDIR=`pwd`
+DATE_RFC_2822=`date -R`
+DATE_YMD=`date +%Y%m%d`
+FULL_VERSION=${PACKAGE_VERSION}-${DATE_YMD}
 
 # Check for particular build options
 AC_ARG_ENABLE([linux],
@@ -66,7 +69,7 @@ fi
 #AC_CHECK_LIB(mysqlclient, main, [], AC_MSG_ERROR(could not find mysqlclient library))
 
 echo -e "\n--------- DB Core Build Environment -----------"
-echo "System            : $PACKAGE_STRING"
+echo "System            : $PACKAGE_NAME $FULL_VERSION" 
 echo "Build system      : $build_cpu-$build_vendor-$build_os"
 if test "$BUILD_FOR_LINUX" = "yes"; then
    echo "Linux C++ compiler: $LINUX_CXX"
@@ -80,6 +83,9 @@ if test "$BUILD_FOR_WINDOWS" = "yes"; then
 fi
 
 # Make all the proper substitutions
+AC_SUBST(DATE_RFC_2822)
+AC_SUBST(FULL_VERSION)
+
 AC_SUBST(BUILD_FOR_LINUX)
 AC_SUBST(BUILD_FOR_WINDOWS)
 
@@ -95,7 +101,7 @@ AC_SUBST(WINDOWS_DLLWRAP)
 AC_SUBST(DBCOREDIR)
 AC_SUBST(JAVADOC)
 
-# Generating files
+# Generating Makefiles
 AC_CONFIG_FILES([
           Makefile
           3rdparty/cpp/Makefile
@@ -118,6 +124,12 @@ AC_CONFIG_FILES([
           util/cpp/Makefile
           validation/cpp/Makefile
 ])
-# Generated scripts
-AC_CONFIG_FILES([dbcore-run], [chmod +x dbcore-run])
+
+# Generate scripts and configuration files for release
+AC_CONFIG_FILES([
+                 dbcore-run 
+                 installers/debian/changelog
+                ], 
+                [chmod +x dbcore-run])
+
 AC_OUTPUT

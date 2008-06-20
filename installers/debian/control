@@ -1,0 +1,22 @@
+Source: dbcore
+Section: libs
+Priority: optional
+Maintainer: Digital Bazaar, Inc. <support@digitalbazaar.com>
+Build-Depends: debhelper (>= 4.0.0), autotools-dev
+Standards-Version: 3.6.2
+
+Package: libdbcore3
+Architecture: all
+Essential: no
+Depends: libssl0.9.8 (>= 0.9.8g), libexpat1 (>= 1.95.8), libsqlite3-0 (>= 3.5.9)
+Description: Digital Bazaar Core Libraries
+ The Digital Bazaar core libraries support a variety of features required by
+ the Bitmunk software suite. These libraries provide basic software support
+ for compression, configuration, cryptography, data I/O, events, logging,
+ mail, networking, dynamic run-time objects, sphinx search indexer interaction,
+ MySQL/SQLite3 interaction, test framework, and input validation. Together they
+ constitute a suite of tools that enable developers to write blindingly fast 
+ web service APIs based on JSON message passing. The suite of libraries also
+ includes the MODEST (MODular Extensible STate) engine, which is designed to 
+ provide a simple, lightweight, extensible state machine engine suited for 
+ performing heavily multi-threaded network I/O and data processing.
