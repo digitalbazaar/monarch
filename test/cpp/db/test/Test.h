@@ -19,13 +19,17 @@ namespace test
 
 /**
  * Dump exception details.
+ * 
+ * @return true on success, false and exception on failure.
  */
-void dumpException(db::rt::ExceptionRef& e);
+bool dumpException(db::rt::ExceptionRef& e);
 
 /**
  * Dump exception details of current exception if present.
+ * 
+ * @return true on success, false and exception on failure.
  */
-void dumpException();
+bool dumpException();
 
 /**
  * Non-JSON DynamicObject output.
@@ -52,8 +56,10 @@ void dumpDynamicObjectText(db::rt::DynamicObject& dyno);
  * @param dyno DynamicObject to dump.
  * @param stream stream to write to.
  * @param compact Use compact syntax
+ * 
+ * @return true on success, false and exception on failure.
  */
-void dynamicObjectToStream(
+bool dynamicObjectToStream(
    db::rt::DynamicObject& dyno, std::ostream& stream, bool compact = false);
 
 /**
@@ -63,8 +69,10 @@ void dynamicObjectToStream(
  * @param dyno DynamicObject to dump.
  * @param str string to write to.
  * @param compact Use compact syntax
+ * 
+ * @return true on success, false and exception on failure.
  */
-void dynamicObjectToString(
+bool dynamicObjectToString(
    db::rt::DynamicObject& dyno, std::string& str, bool compact = false);
 
 /**
@@ -72,8 +80,10 @@ void dynamicObjectToString(
  * 
  * @param dyno DynamicObject to dump.
  * @param compact Use compact syntax
+ * 
+ * @return true on success, false and exception on failure.
  */
-void dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
+bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
 
 /**
  * Check and dump exception condition.
