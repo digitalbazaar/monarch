@@ -130,6 +130,7 @@ AC_CONFIG_FILES([
                  dbcore-run 
                  installers/debian/changelog
                  installers/debian/rules
+                 setup/capfile
                 ], 
                 [chmod +x dbcore-run installers/debian/rules])
 
