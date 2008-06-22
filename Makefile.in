@@ -76,6 +76,7 @@ valgrind:
 packages:
 	@echo "Building Debian packages..."
 	@rm -f debian
+	@rm -f installers/packages/*
 	@ln -s installers/debian debian
 	@dpkg-buildpackage -us -uc -rfakeroot -b 
 	@echo "Moving packages to installers/packages..."
