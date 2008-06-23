@@ -23,7 +23,7 @@ namespace event
  * @author Dave Longley
  */
 typedef db::rt::DynamicObject Event;
-typedef unsigned long long EventId;
+typedef uint64_t EventId;
 
 } // end namespace event
 } // end namespace db
