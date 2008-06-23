@@ -645,6 +645,9 @@ int App::main(int argc, const char* argv[])
       }
    #endif
    
+   // seed random
+   srand(time(NULL));
+   
    initializeOpenSSL();
    initializeLogging();
    
