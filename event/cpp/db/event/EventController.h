@@ -13,7 +13,10 @@ namespace event
 {
 
 /**
- * The Event Controller handles registering an observers and sending events.
+ * The EventController handles registering an observers and sending events.
+ * 
+ * Event["type"] is used internally by EventController and is therefore
+ * reserved on all events that use it.
  * 
  * @author Mike Johnson
  */
