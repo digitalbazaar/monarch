@@ -44,6 +44,10 @@ void Observable::dispatchEvent(
                   RunnableRef ed = new EventDispatcher(oi->second, &e);
                   Operation op(ed);
                   mOpRunner->runOperation(op);
+                  
+                  // FIXME: When adding the parallel event processing feature,
+                  // simply do not add to the list for those events that
+                  // do not require serial processing
                   opList.add(op);
                }
             }

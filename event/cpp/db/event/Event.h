@@ -17,6 +17,8 @@ namespace event
  * registered Observers so they can take whatever action they deem appropriate.
  * 
  * Event["id"] is reserved and will refer to an EventId for the Event.
+ * Event["serial"] is reserved.
+ * Event["parallel"] is reserved.
  * 
  * @author Dave Longley
  */
