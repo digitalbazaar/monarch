@@ -543,6 +543,12 @@ string BigDecimal::toString() const
    // write out significand
    string str = mSignificand.toString();
    
+   // erase negative sign
+   if(mSignificand.isNegative())
+   {
+      str.erase(0, 1);
+   }
+   
    if(mExponent < 0)
    {
       // append zeros
@@ -577,6 +583,12 @@ string BigDecimal::toString() const
          // insert decimal point
          str.insert(str.length() - mExponent, 1, '.');
       }
+   }
+   
+   // insert negative sign
+   if(mSignificand.isNegative())
+   {
+      str.insert(0, 1, '-');
    }
    
    return str;

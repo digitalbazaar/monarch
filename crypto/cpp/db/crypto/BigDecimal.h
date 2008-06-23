@@ -23,9 +23,9 @@ enum RoundingMode
 
 /**
  * A BigDecimal is a multi/arbitrary precision decimal number. If the number
- * is used to perform arithmetic that may require rounding, like 1 / 3, then
- * the number of digits of precision must be set via setPrecision(). The
- * default precision is 10.
+ * is used to perform arithmetic that may require rounding via division, like
+ * 1 / 3, then the number of digits of precision must be set via setPrecision().
+ * The default precision is 10 with rounding using HalfUp.
  * 
  * The value of a BigDecimal is stored with exponential notation using negative
  * powers of 10. A signed BigInteger "a" is used to store the significand (or

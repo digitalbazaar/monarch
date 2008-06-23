@@ -77,6 +77,7 @@ valgrind:
 packages:
 	@echo "Building Debian packages..."
 	@rm -f debian
+	@rm -f installers/packages/*
 	@ln -s installers/debian debian
 	@dpkg-buildpackage -us -uc -rfakeroot -b 
 	@echo "Moving packages to installers/packages..."
@@ -91,3 +92,7 @@ install:
 	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).3.0 &&) true
 	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).3 &&) true
 	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)) &&) true
+
+deploy:
+	@cd setup && cap deploy_dbcore
+
