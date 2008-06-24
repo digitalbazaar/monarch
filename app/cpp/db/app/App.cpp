@@ -650,11 +650,13 @@ int App::main(int argc, const char* argv[])
    
    initializeOpenSSL();
    initializeLogging();
+   mDelegate->didInitializeLogging(this);
    
    Thread t(this);
    t.start();
    t.join();
    
+   mDelegate->willCleanupLogging(this);
    cleanupLogging();
    cleanupOpenSSL();
    
