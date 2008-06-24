@@ -278,23 +278,16 @@ void DynamicObject::merge(DynamicObject& rhs, bool append)
          }
          break;
       case Array:
+         (*this)->setType(Array);
+         DynamicObjectIterator i = rhs.getIterator();
+         int offset = 0;
          if(append)
          {
-            (*this)->setType(Array);
-            DynamicObjectIterator i = rhs.getIterator();
-            int length = (*this)->length();
-            for(int ii = 0; i->hasNext(); ii++)
-            {
-               (*this)[length + ii].merge(i->next(), append);
-            }
+            offset = (*this)->length();
          }
-         else
+         for(int ii = 0; i->hasNext(); ii++)
          {
-            DynamicObjectIterator i = rhs.getIterator();
-            for(int ii = 0; i->hasNext(); ii++)
-            {
-               (*this)[ii].merge(i->next(), append);
-            }
+            (*this)[offset + ii].merge(i->next(), append);
          }
          break;
    }

@@ -371,6 +371,7 @@ void ConfigManager::merge(Config& target, Config& source)
             break;
          case Map:
             {
+               target->setType(Map);
                ConfigIterator i = source.getIterator();
                while(i->hasNext())
                {
@@ -381,6 +382,7 @@ void ConfigManager::merge(Config& target, Config& source)
             break;
          case Array:
             {
+               target->setType(Array);
                ConfigIterator i = source.getIterator();
                for(int ii = 0; i->hasNext(); ii++)
                {

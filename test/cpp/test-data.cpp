@@ -353,6 +353,8 @@ void runJsonVerifyDJDTest(TestRunner& tr)
    td[tdcount++]["JSON"] = "{\"k\":10}";
    td[tdcount  ]["dyno"]["k"] = -10;
    td[tdcount++]["JSON"] = "{\"k\":-10}";
+   td[tdcount  ]["dyno"]["k"]->setType(Map);
+   td[tdcount++]["JSON"] = "{\"k\":{}}";
    td[tdcount  ]["dyno"][0] = "\x01";
    td[tdcount++]["JSON"] = "[\"\\u0001\"]";
    // test if UTF-16 C escapes translate into a UTF-8 JSON string

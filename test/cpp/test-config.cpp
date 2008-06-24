@@ -444,6 +444,20 @@ void runConfigManagerTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
+   tr.test("empty array & map");
+   {
+      ConfigManager cm;
+      DynamicObject a;
+      a[0]->setType(Array);
+      a[1]->setType(Map);
+      cm.addConfig(a);
+      DynamicObject expect;
+      expect[0]->setType(Array);
+      expect[1]->setType(Map);
+      assert(cm.getConfig() == expect);
+   }
+   tr.passIfNoException();
+   
    tr.ungroup();
 }
 
