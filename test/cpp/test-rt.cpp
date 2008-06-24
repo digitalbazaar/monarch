@@ -875,6 +875,118 @@ void runDynoAppendTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runDynoMergeTest(TestRunner& tr)
+{
+   tr.group("DynamicObject merge");
+
+   tr.test("merge basic");
+   {
+      DynamicObject d;
+      d->setType(Map);
+      
+      DynamicObject d2;
+      d2["a"] = true;
+      
+      d.merge(d2, true);
+      
+      DynamicObject expect;
+      expect["a"] = true;
+      assert(d == expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("merge no append");
+   {
+      DynamicObject d;
+      d[0] = "d-0";
+      
+      DynamicObject d2;
+      d2[0] = "d2-0";
+      d2[1] = "d2-1";
+
+      d.merge(d2, false);
+      
+      DynamicObject expect;
+      expect[0] = "d2-0";
+      expect[1] = "d2-1";
+      assert(d == expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("merge append");
+   {
+      DynamicObject d;
+      d[0] = "d-0";
+      
+      DynamicObject d2;
+      d2[0] = "d2-0";
+      d2[1] = "d2-1";
+
+      d.merge(d2, true);
+      
+      DynamicObject expect;
+      expect[0] = "d-0";
+      expect[1] = "d2-0";
+      expect[2] = "d2-1";
+      assert(d == expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("merge shallow");
+   {
+      DynamicObject d;
+      d["0"] = "d-0";
+      
+      DynamicObject d2;
+      d2["1"] = "d2-1";
+      d2["2"] = "d2-2";
+      
+      d.merge(d2, true);
+      
+      DynamicObject expect;
+      expect["0"] = "d-0";
+      expect["1"] = "d2-1";
+      expect["2"] = "d2-2";
+      assert(d == expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("merge deep");
+   {
+      DynamicObject d;
+      d["0"]["0"] = "d-0-0";
+      
+      DynamicObject d2;
+      d2["0"]["1"] = "d2-0-1";
+      
+      d.merge(d2, true);
+      
+      DynamicObject expect;
+      expect["0"]["0"] = "d-0-0";
+      expect["0"]["1"] = "d2-0-1";
+      assert(d == expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("merge deep overwrite");
+   {
+      DynamicObject d;
+      d["0"]["0"] = "d-0-0";
+      
+      DynamicObject d2;
+      d2["0"]["0"] = "d2-0-0";
+      
+      d.merge(d2, true);
+      
+      DynamicObject expect;
+      expect["0"]["0"] = "d2-0-0";
+      assert(d == expect);
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 class DbRtTester : public db::test::Tester
 {
 public:
@@ -899,6 +1011,7 @@ public:
       runDynoIndexTest(tr);
       runDynoTypeTest(tr);
       runDynoAppendTest(tr);
+      runDynoMergeTest(tr);
       return 0;
    }
 
