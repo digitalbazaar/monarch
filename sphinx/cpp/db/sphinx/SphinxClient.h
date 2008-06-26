@@ -207,7 +207,7 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool execute(
-      db::net::Url* url, SphinxCommand& cmd, SphinxResponse& response);
+      db::net::Url& url, SphinxCommand& cmd, SphinxResponse& response);
 };
 
 } // end namespace sphinx

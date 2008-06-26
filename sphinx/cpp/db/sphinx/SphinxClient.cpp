@@ -596,14 +596,14 @@ bool SphinxClient::receiveResponse(
 }
 
 bool SphinxClient::execute(
-   Url* url, SphinxCommand& cmd, SphinxResponse& response)
+   Url& url, SphinxCommand& cmd, SphinxResponse& response)
 {
    bool rval = false;
    
    // connect, use 30 second timeouts
    TcpSocket s;
    s.setReceiveTimeout(30000);
-   InternetAddress address(url->getHost().c_str(), url->getPort());
+   InternetAddress address(url.getHost().c_str(), url.getPort());
    if(s.connect(&address, 30))
    {
       // serialize command

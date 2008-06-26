@@ -47,7 +47,7 @@ void runSphinxClientTest(TestRunner &tr, db::test::Tester& tester)
       cmd["maxMatches"] = 1000;
       cmd["groupSort"] = "@group desc";
       
-      client.execute(&url, cmd, response);
+      client.execute(url, cmd, response);
       assertNoException();
       
       //cout << endl << "Response:" << endl;
