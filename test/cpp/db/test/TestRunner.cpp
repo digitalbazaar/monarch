@@ -8,7 +8,6 @@
 
 #include "db/test/Test.h"
 #include "db/rt/Exception.h"
-#include "db/sql/SqlException.h"
 
 using namespace std;
 using namespace db::rt;
