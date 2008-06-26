@@ -32,8 +32,8 @@ public:
     * Creates a new SslContext. Peer authentication will default to
     * setPeerAuthentication(client).
     * 
-    * @param protocol the protocol to be used for this context (NULL for
-    *                 default).
+    * @param protocol the protocol to be used for this context. ("SSLv2",
+    *        "SSLv3", "SSLv23", "TLS", "ALL", or NULL for default of ALL).
     * @param client true for a client context, false for a server context.
     */
    SslContext(const char* protocol, bool client);
