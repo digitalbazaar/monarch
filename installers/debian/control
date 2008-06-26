@@ -2,12 +2,13 @@ Source: libdbcore3
 Section: libs
 Priority: optional
 Maintainer: Digital Bazaar, Inc. <support@digitalbazaar.com>
-Build-Depends: debhelper (>= 4.0.0), autotools-dev
+Homepage: http://digitalbazaar.com/
+Build-Depends: debhelper (>= 6.0.0), autotools-dev
+Standards-Version: 3.8.0
 
 Package: libdbcore3
-Architecture: i386
-Essential: no
-Depends: libssl0.9.8 (>= 0.9.8g), libexpat1 (>= 1.95.8), libsqlite3-0 (>= 3.5.9)
+Architecture: any
+Depends: ${shlibs:Depends}, libssl0.9.8 (>= 0.9.8g), libexpat1 (>= 1.95.8), libsqlite3-0 (>= 3.5.9)
 Description: Digital Bazaar Core Libraries
  The Digital Bazaar core libraries support a variety of features required by
  the Bitmunk software suite. These libraries provide basic software support
