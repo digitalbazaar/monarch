@@ -19,6 +19,7 @@ Category* DB_MAIL_CAT;
 Category* DB_MODEST_CAT;
 Category* DB_NET_CAT;
 Category* DB_RT_CAT;
+Category* DB_SPHINX_CAT;
 Category* DB_SQL_CAT;
 Category* DB_UTIL_CAT;
 
@@ -68,6 +69,10 @@ void LoggingCategories::initialize()
       "DB_RT",
       "DB Runtime",
       NULL);
+   DB_SPHINX_CAT = new Category(
+      "DB_SPHINX",
+      "DB SPHINX",
+      NULL);
    DB_SQL_CAT = new Category(
       "DB_SQL",
       "DB SQL",
@@ -112,6 +117,9 @@ void LoggingCategories::cleanup()
    
    delete DB_RT_CAT;
    DB_RT_CAT = NULL;
+   
+   delete DB_SPHINX_CAT;
+   DB_SPHINX_CAT = NULL;
    
    delete DB_SQL_CAT;
    DB_SQL_CAT = NULL;

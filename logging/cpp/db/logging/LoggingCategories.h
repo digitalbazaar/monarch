@@ -33,6 +33,7 @@ DLL_IMPORT db::logging::Category* DB_MAIL_CAT;
 DLL_IMPORT db::logging::Category* DB_MODEST_CAT;
 DLL_IMPORT db::logging::Category* DB_NET_CAT;
 DLL_IMPORT db::logging::Category* DB_RT_CAT;
+DLL_IMPORT db::logging::Category* DB_SPHINX_CAT;
 DLL_IMPORT db::logging::Category* DB_SQL_CAT;
 DLL_IMPORT db::logging::Category* DB_UTIL_CAT;
 
