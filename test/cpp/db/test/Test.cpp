@@ -6,7 +6,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "db/sql/SqlException.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/io/OStreamOutputStream.h"
 
@@ -20,22 +19,7 @@ bool db::test::dumpException(ExceptionRef& e)
 {
    bool rval;
    
-   db::sql::SqlException* sqlEx = NULL;
-   if(!e.isNull())
-   {
-      sqlEx = dynamic_cast<db::sql::SqlException*>(&(*e));
-   }
-   
-   if(sqlEx != NULL)
-   {
-      cout << "SqlException occurred!" << endl;
-      cout << "sqlstate: " << sqlEx->getSqlState() << endl;
-   }
-   else
-   {
-      cout << "Exception occurred!" << endl;
-   }
-   
+   cout << "Exception occurred!" << endl;
    cout << "message: " << e->getMessage() << endl;
    cout << "type: " << e->getType() << endl;
    cout << "code: " << e->getCode() << endl;
