@@ -2,8 +2,13 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/json/JsonWriter.h"
+
 #include "db/rt/DynamicObjectIterator.h"
 #include "db/io/BufferedOutputStream.h"
+#include "db/io/OStreamOutputStream.h"
+
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 using namespace db::data;
@@ -235,4 +240,39 @@ void JsonWriter::setIndentation(int level, int spaces)
 {
    mIndentLevel = level;
    mIndentSpaces = spaces;
+}
+
+bool JsonWriter::writeDynamicObjectToStream(
+   DynamicObject& dyno, ostream& stream, bool compact)
+{
+   OStreamOutputStream os(&stream);
+   JsonWriter jw;
+   jw.setCompact(compact);
+   if(!compact)
+   {
+      jw.setIndentation(0, 3);
+   }
+   return jw.write(dyno, &os);
+}
+
+std::string JsonWriter::writeDynamicObjectToString(
+   DynamicObject& dyno, bool compact)
+{
+   string rval;
+   
+   ostringstream oss;
+   if(writeDynamicObjectToStream(dyno, oss, compact))
+   {
+      rval = oss.str();
+   }
+   
+   return rval;
+}
+
+bool JsonWriter::writeDynamicObjectToStdOut(DynamicObject& dyno, bool compact)
+{
+   bool rval = writeDynamicObjectToStream(dyno, cout, compact);
+   cout << endl;
+   cout.flush();
+   return rval;
 }

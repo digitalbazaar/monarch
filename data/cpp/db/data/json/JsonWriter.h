@@ -100,6 +100,41 @@ public:
     * @param compact true to minimize whitespace, false not to.
     */
    virtual void setCompact(bool compact);
+   
+   /**
+    * Writes a DynamicObject as JSON to an ostream.
+    * 
+    * @param dyno the DynamicObject to write out.
+    * @param stream the ostream to write to.
+    * @param compact true to use compact syntax, false no to.
+    * 
+    * @return true on success, false with exception set on failure.
+    */
+   static bool writeDynamicObjectToStream(
+      db::rt::DynamicObject& dyno, std::ostream& stream, bool compact = false);
+
+   /**
+    * Writes a DynamicObject as JSON to a string.
+    * 
+    * @param dyno the DynamicObject to write out.
+    * @param compact true to use compact syntax, false no to.
+    * 
+    * @return the string with JSON data on success, a blank string with
+    *         exception set on failure.
+    */
+   static std::string writeDynamicObjectToString(
+      db::rt::DynamicObject& dyno, bool compact = false);
+   
+   /**
+    * Writes a DynamicObject as JSON to cout.
+    * 
+    * @param dyno the DynamicObject to write out.
+    * @param compact true to use compact syntax, false no to.
+    * 
+    * @return true on success, false with exception set on failure.
+    */
+   static bool writeDynamicObjectToStdOut(
+      db::rt::DynamicObject& dyno, bool compact = false);
 };
 
 } // end namespace json

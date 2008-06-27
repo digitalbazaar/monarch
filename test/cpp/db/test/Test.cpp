@@ -112,45 +112,17 @@ void db::test::dumpDynamicObjectText(DynamicObject& dyno)
 bool db::test::dynamicObjectToStream(
    DynamicObject& dyno, ostream& stream, bool compact)
 {
-   bool rval;
-   
-   OStreamOutputStream os(&stream);
-   JsonWriter jw;
-   jw.setCompact(compact);
-   if(!compact)
-   {
-      jw.setIndentation(0, 3);
-   }
-   rval = jw.write(dyno, &os);
-   
-   return rval;
+   return JsonWriter::writeDynamicObjectToStream(dyno, stream, compact);
 }
 
 bool db::test::dynamicObjectToString(
    DynamicObject& dyno, string& str, bool compact)
 {
-   bool rval;
-   
-   ostringstream oss;
-   if((rval = dynamicObjectToStream(dyno, oss, compact)))
-   {
-      str = oss.str();
-   }
-   else
-   {
-      str.clear();
-   }
-   
-   return rval;
+   str = JsonWriter::writeDynamicObjectToString(dyno, compact);
+   return str.length() > 0;
 }
 
 bool db::test::dumpDynamicObject(DynamicObject& dyno, bool compact)
 {
-   bool rval;
-   
-   rval = dynamicObjectToStream(dyno, cout, compact);
-   cout << endl;
-   cout.flush();
-   
-   return rval;
+   return JsonWriter::writeDynamicObjectToStdOut(dyno, compact);
 }
