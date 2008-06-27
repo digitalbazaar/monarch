@@ -19,22 +19,24 @@ SUBDIRS := 3rdparty/cpp \
            app/cpp \
            test/cpp
 
-INSTALL_LIBRARIES := config/cpp/dist/linux/libdbconfig.so \
-                     compress/cpp/dist/linux/libdbcompress.so \
-                     crypto/cpp/dist/linux/libdbcrypto.so \
-                     data/cpp/dist/linux/libdbdata.so \
-                     event/cpp/dist/linux/libdbevent.so \
-                     io/cpp/dist/linux/libdbio.so \
-                     logging/cpp/dist/linux/libdblogging.so \
-                     mail/cpp/dist/linux/libdbmail.so \
-                     modest/cpp/dist/linux/libdbmodest.so \
-                     net/cpp/dist/linux/libdbnet.so \
-                     rt/cpp/dist/linux/libdbrt.so \
-                     sql/cpp/dist/linux/libdbsql.so \
-                     test/cpp/dist/linux/libdbtest.so \
-                     util/cpp/dist/linux/libdbutil.so \
-                     sphinx/cpp/dist/linux/libdbsphinx.so \
-                     validation/cpp/dist/linux/libdbvalidation.so
+INSTALL_LIBRARIES := \
+	app/cpp/dist/linux/libdbapp.so \
+	config/cpp/dist/linux/libdbconfig.so \
+	compress/cpp/dist/linux/libdbcompress.so \
+	crypto/cpp/dist/linux/libdbcrypto.so \
+	data/cpp/dist/linux/libdbdata.so \
+	event/cpp/dist/linux/libdbevent.so \
+	io/cpp/dist/linux/libdbio.so \
+	logging/cpp/dist/linux/libdblogging.so \
+	mail/cpp/dist/linux/libdbmail.so \
+	modest/cpp/dist/linux/libdbmodest.so \
+	net/cpp/dist/linux/libdbnet.so \
+	rt/cpp/dist/linux/libdbrt.so \
+	sql/cpp/dist/linux/libdbsql.so \
+	test/cpp/dist/linux/libdbtest.so \
+	util/cpp/dist/linux/libdbutil.so \
+	sphinx/cpp/dist/linux/libdbsphinx.so \
+	validation/cpp/dist/linux/libdbvalidation.so
 
 ifndef PRINT_DIRECTORIES
 PRINT_DIRECTORIES_OPTS = --no-print-directory -s
