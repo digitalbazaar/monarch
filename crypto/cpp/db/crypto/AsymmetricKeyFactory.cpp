@@ -2,9 +2,11 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/AsymmetricKeyFactory.h"
+
 #include "db/io/IOException.h"
-#include "db/util/Math.h"
 #include "db/rt/System.h"
+#include "db/rt/DynamicObject.h"
+#include "db/util/Math.h"
 
 #include <openssl/err.h>
 #include <openssl/pem.h>
@@ -219,8 +221,8 @@ PrivateKey* AsymmetricKeyFactory::loadPrivateKeyFromPem(
    else
    {
       ExceptionRef e = new IOException(
-         "Could not load private key from PEM!",
-         ERR_error_string(ERR_get_error(), NULL));
+         "Could not load private key from PEM!", "db.crypto.PrivateKeyIO");
+      e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }
    
@@ -254,8 +256,8 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
    else
    {
       ExceptionRef e = new IOException(
-         "Could not write private key to PEM!",
-         ERR_error_string(ERR_get_error(), NULL));
+         "Could not write private key to PEM!", "db.crypto.PrivateKeyIO");
+      e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }
    
@@ -286,8 +288,8 @@ PublicKey* AsymmetricKeyFactory::loadPublicKeyFromPem(
    else
    {
       ExceptionRef e = new IOException(
-         "Could not load public key from PEM!",
-         ERR_error_string(ERR_get_error(), NULL));
+         "Could not load public key from PEM!", "db.crypto.PublicKeyIO");
+      e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }
    
@@ -318,8 +320,8 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKey* key)
    else
    {
       ExceptionRef e = new IOException(
-         "Could not write private key to PEM!",
-         ERR_error_string(ERR_get_error(), NULL));
+         "Could not write public key to PEM!", "db.crypto.PublicKeyIO");
+      e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }
    
