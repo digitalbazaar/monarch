@@ -1,8 +1,7 @@
 # Basic Capistrano configuration file for deploying to cluster.
 
 # Setup all of the roles for the cluster
-role :apiservers, "bobloblaw"
-#, "swollengoat",  "llamalicious",  "misterf"
+role :apiservers, "bobloblaw", "swollengoat", "llamalicious", "misterf"
 
 # GIT repository setup
 default_run_options[:pty] = true
