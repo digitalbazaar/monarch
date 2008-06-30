@@ -39,6 +39,8 @@ App::App()
    mDelegate = NULL;
    
    mConfig["app"]["logging"]["level"] = "warning";
+   mConfig["app"]["logging"]["log"] = "-";
+   mConfig["app"]["logging"]["logAppend"] = true;
    mConfig["app"]["verbose"]["level"] = (uint64_t)0;
 }
 
@@ -481,6 +483,8 @@ DynamicObject App::getCommandLineSpec(App* app)
 "                      increasing level of detail): n[one], e[rror], w[arning],\n"
 "                      i[nfo], d[ebug], debug-data, debug-detail, m[ax].\n"
 "                      (default: \"warning\")\n"
+"      --log LOG       Set log file.  Use \"-\" for stdout. (default: \"-\")\n"
+"      --log-overwrite Overwrite log file instead of appending. (default: false)\n"
 "      --              Treat all remaining options as application arguments.\n"
 "\n";
    
@@ -504,6 +508,14 @@ DynamicObject App::getCommandLineSpec(App* app)
    opt = spec["options"]->append();
    opt["long"] = "--log-level";
    opt["arg"] = mConfig["app"]["logging"]["level"];
+  
+   opt = spec["options"]->append();
+   opt["long"] = "--log";
+   opt["arg"] = mConfig["app"]["logging"]["log"];
+  
+   opt = spec["options"]->append();
+   opt["long"] = "--log-overwrite";
+   opt["setFalse"] = mConfig["app"]["logging"]["logAppend"];
   
    return spec;
 }
