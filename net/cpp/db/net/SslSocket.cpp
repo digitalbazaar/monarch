@@ -2,10 +2,12 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/SslSocket.h"
+
 #include "db/io/PeekInputStream.h"
 #include "db/net/SocketInputStream.h"
 #include "db/net/SocketOutputStream.h"
 #include "db/rt/Thread.h"
+#include "db/rt/DynamicObject.h"
 
 #include <openssl/err.h>
 
@@ -168,8 +170,9 @@ bool SslSocket::performHandshake()
             {
                // an error occurred
                ExceptionRef e = new SocketException(
-                  "Could not perform SSL handshake!",
-                  ERR_error_string(ERR_get_error(), NULL));
+                  "Could not perform SSL handshake!");
+               e->getDetails()["error"] =
+                  ERR_error_string(ERR_get_error(), NULL);
                Exception::setLast(e, false);
                rval = false;
             }
@@ -232,8 +235,9 @@ bool SslSocket::send(const char* b, int length)
                {
                   // the connection was shutdown
                   ExceptionRef e = new SocketException(
-                     "Could not write to socket! Socket closed.",
-                     ERR_error_string(ERR_get_error(), NULL));
+                     "Could not write to socket! Socket closed.");
+                  e->getDetails()["error"] =
+                     ERR_error_string(ERR_get_error(), NULL);
                   Exception::setLast(e, false);
                   rval = false;
                }
@@ -245,8 +249,8 @@ bool SslSocket::send(const char* b, int length)
                {
                   // the connection was shutdown
                   ExceptionRef e = new SocketException(
-                     "Could not write to socket! Socket closed.",
-                     strerror(errno));
+                     "Could not write to socket! Socket closed.");
+                  e->getDetails()["error"] = strerror(errno);
                   Exception::setLast(e, (ret < 0));
                   rval = false;
                }
@@ -259,8 +263,9 @@ bool SslSocket::send(const char* b, int length)
                {
                   // an error occurred
                   ExceptionRef e = new SocketException(
-                     "Could not write to socket!",
-                     ERR_error_string(ERR_get_error(), NULL));
+                     "Could not write to socket!");
+                  e->getDetails()["error"] =
+                     ERR_error_string(ERR_get_error(), NULL);
                   Exception::setLast(e, false);
                   rval = false;
                }
@@ -340,8 +345,9 @@ int SslSocket::receive(char* b, int length)
                {
                   // an error occurred
                   ExceptionRef e = new SocketException(
-                     "Could not read from socket!",
-                     ERR_error_string(ERR_get_error(), NULL));
+                     "Could not read from socket!");
+                  e->getDetails()["error"] =
+                     ERR_error_string(ERR_get_error(), NULL);
                   Exception::setLast(e, false);
                   rval = -1;
                }
