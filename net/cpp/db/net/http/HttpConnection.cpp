@@ -308,22 +308,22 @@ bool HttpConnection::receiveBody(
    return rval;
 }
 
-void HttpConnection::setContentBytesRead(unsigned long long count)
+inline void HttpConnection::setContentBytesRead(unsigned long long count)
 {
    mContentBytesRead = count;
 }
 
-unsigned long long HttpConnection::getContentBytesRead()
+inline unsigned long long HttpConnection::getContentBytesRead()
 {
    return mContentBytesRead;
 }
 
-void HttpConnection::setContentBytesWritten(unsigned long long count)
+inline void HttpConnection::setContentBytesWritten(unsigned long long count)
 {
    mContentBytesWritten = count;
 }
 
-unsigned long long HttpConnection::getContentBytesWritten()
+inline unsigned long long HttpConnection::getContentBytesWritten()
 {
    return mContentBytesWritten;
 }
