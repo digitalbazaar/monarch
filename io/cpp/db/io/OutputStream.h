@@ -50,9 +50,18 @@ public:
     * Forces this stream to flush its output, if any of it was buffered.
     * 
     * @return true if the write was successful, false if an IO exception
-    *         occurred. 
+    *         occurred.
     */
    virtual bool flush() { return true; };
+   
+   /**
+    * Forces this stream to finish its output, if the stream has such a
+    * function.
+    * 
+    * @return true if the write was successful, false if an IO exception
+    *         occurred.
+    */
+   virtual bool finish() { return true; };
    
    /**
     * Closes the stream.

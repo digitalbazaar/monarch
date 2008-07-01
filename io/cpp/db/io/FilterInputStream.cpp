@@ -20,22 +20,22 @@ FilterInputStream::~FilterInputStream()
    }
 }
 
-int FilterInputStream::read(char* b, int length)
+inline int FilterInputStream::read(char* b, int length)
 {
    return mInputStream->read(b, length);
 }
 
-int FilterInputStream::peek(char* b, int length, bool block)
+inline int FilterInputStream::peek(char* b, int length, bool block)
 {
    return mInputStream->peek(b, length, block);
 }
 
-long long FilterInputStream::skip(long long count)
+inline long long FilterInputStream::skip(long long count)
 {
    return InputStream::skip(count);
 }
 
-void FilterInputStream::close()
+inline void FilterInputStream::close()
 {
    mInputStream->close();
 }

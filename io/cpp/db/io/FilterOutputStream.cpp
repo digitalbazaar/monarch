@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/FilterOutputStream.h"
 
@@ -20,17 +20,22 @@ FilterOutputStream::~FilterOutputStream()
    }
 }
 
-bool FilterOutputStream::write(const char* b, int length)
+inline bool FilterOutputStream::write(const char* b, int length)
 {
    return mOutputStream->write(b, length);
 }
 
-bool FilterOutputStream::flush()
+inline bool FilterOutputStream::flush()
 {
    return mOutputStream->flush();
 }
 
-void FilterOutputStream::close()
+inline bool FilterOutputStream::finish()
+{
+   return mOutputStream->finish();
+}
+
+inline void FilterOutputStream::close()
 {
    mOutputStream->close();
 }

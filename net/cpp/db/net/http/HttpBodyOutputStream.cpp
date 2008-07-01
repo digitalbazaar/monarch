@@ -28,6 +28,9 @@ FilterOutputStream(connection->getOutputStream(), false)
          mCleanupOutputStream = true;
       }
    }
+   
+   // not finished yet
+   mFinished = false;
 }
 
 HttpBodyOutputStream::~HttpBodyOutputStream()
@@ -57,27 +60,43 @@ bool HttpBodyOutputStream::write(const char* b, int length)
    return rval;
 }
 
-void HttpBodyOutputStream::close()
+bool HttpBodyOutputStream::finish()
 {
-   // flush underlying stream
-   unsigned long long old = mConnection->getBytesWritten();
-   if(mOutputStream->flush())
+   bool rval = true;
+   
+   if(!mFinished)
    {
-      // update http connection content bytes written (reset as necessary)
-      if(mConnection->getContentBytesWritten() > Math::HALF_MAX_LONG_VALUE)
+      // flush underlying stream
+      unsigned long long old = mConnection->getBytesWritten();
+      if((rval = mOutputStream->flush()))
       {
-         mConnection->setContentBytesWritten(0);
+         // update http connection content bytes written (reset as necessary)
+         if(mConnection->getContentBytesWritten() > Math::HALF_MAX_LONG_VALUE)
+         {
+            mConnection->setContentBytesWritten(0);
+         }
+         
+         mConnection->setContentBytesWritten(
+            mConnection->getContentBytesWritten() +
+            (mConnection->getBytesWritten() - old));
       }
       
-      mConnection->setContentBytesWritten(
-         mConnection->getContentBytesWritten() +
-         (mConnection->getBytesWritten() - old));
+      if(mCleanupOutputStream)
+      {
+         // close underlying stream, it was created internally for
+         // transfer-encoding (i.e. "chunked")
+         mOutputStream->close();
+      }
+      
+      // now finished
+      mFinished = true;
    }
    
-   if(mCleanupOutputStream)
-   {
-      // close underlying stream, it was created internally for
-      // transfer-encoding (i.e. "chunked")
-      mOutputStream->close();
-   }
+   return rval;
+}
+
+void HttpBodyOutputStream::close()
+{
+   // underlying stream closed by finish()
+   finish();
 }

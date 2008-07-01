@@ -53,6 +53,11 @@ protected:
     */
    MutationAlgorithm::Result mResult;
    
+   /**
+    * True if finished writing output, false if not.
+    */
+   bool mFinished;
+   
 public:
    /**
     * Creates a new MutatorOutputStream that mutates data with the passed
@@ -87,6 +92,15 @@ public:
     *         occurred. 
     */
    virtual bool write(const char* b, int length);
+   
+   /**
+    * Forces this stream to finish its output, if the stream has such a
+    * function.
+    * 
+    * @return true if the write was successful, false if an IO exception
+    *         occurred.
+    */
+   virtual bool finish();
    
    /**
     * Closes the stream and ensures the mutation algorithm finished.

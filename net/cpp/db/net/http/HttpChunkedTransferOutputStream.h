@@ -96,6 +96,11 @@ protected:
     */
    unsigned long long mDataSent;
    
+   /**
+    * True if finished writing output, false if not.
+    */
+   bool mFinished;
+   
 public:
    /**
     * Creates a new HttpChunkedTransferOutputStream.
@@ -118,6 +123,15 @@ public:
     *         occurred. 
     */
    virtual bool flush();
+   
+   /**
+    * Forces this stream to finish its output, if the stream has such a
+    * function.
+    * 
+    * @return true if the write was successful, false if an IO exception
+    *         occurred.
+    */
+   virtual bool finish();
    
    /**
     * Closes the stream.
