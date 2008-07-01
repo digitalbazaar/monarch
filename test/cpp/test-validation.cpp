@@ -571,6 +571,31 @@ void runValidatorTest(TestRunner& tr)
    }
    
    {
+      tr.test("compare text");
+      
+      const char* text = "Apples\nAnd\nOranges\n";
+      
+      DynamicObject dv;
+      dv["a"] = "Apples\r\nAnd\rOranges\n";
+      dv["b"] = "Apples\r\nAnd\r\nOranges\r\n";
+      dv["c"] = "Apples\nAnd\nOranges\n";
+      DynamicObject dnv;
+      dnv["a"] = "Apples\r\rAnd\rOranges\r";
+      dnv["b"] = "Apples\r\rAndOranges";
+      
+      v::CompareText v(text);
+      assert(v.isValid(dv["a"]));
+      assert(v.isValid(dv["b"]));
+      assert(v.isValid(dv["c"]));
+      tr.passIfNoException();
+      
+      tr.test("invalid compare text");
+      assert(!v.isValid(dnv["a"]));
+      assert(!v.isValid(dnv["b"]));
+      tr.passIfException(_dump);
+   }
+   
+   {
       tr.test("regex");
       DynamicObject dv;
       dv = "username";

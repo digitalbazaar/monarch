@@ -10,6 +10,7 @@
 #include "db/validation/Any.h"
 #include "db/validation/Array.h"
 #include "db/validation/Compare.h"
+#include "db/validation/CompareText.h"
 #include "db/validation/Each.h"
 #include "db/validation/Equals.h"
 #include "db/validation/In.h"
