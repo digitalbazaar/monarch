@@ -48,6 +48,7 @@ App::~App()
 {
    setProgramName(NULL);
    setName(NULL);
+   setVersion(NULL);
 }
 
 static void _printException(ExceptionRef& e, ostream& s, int level)
