@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpHeader.h"
+
 #include "db/util/StringTools.h"
 
 #include <cstdlib>
@@ -17,11 +18,17 @@ const char* HttpHeader::CRLF = "\r\n";
 
 HttpHeader::HttpHeader()
 {
+   mVersion = NULL;
    mFieldsSize = 0;
 }
 
 HttpHeader::~HttpHeader()
 {
+   if(mVersion != NULL)
+   {
+      free(mVersion);
+   }
+   
    for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
    {
       free((char*)i->first);
@@ -44,6 +51,26 @@ bool HttpHeader::hasStartLine()
 {
    // no start line
    return false;
+}
+
+void HttpHeader::setVersion(const char* version)
+{
+   if(mVersion != NULL)
+   {
+      free(mVersion);
+   }
+   mVersion = strdup(version);
+}
+
+const char* HttpHeader::getVersion()
+{
+   if(mVersion == NULL)
+   {
+      // default to HTTP/1.1
+      mVersion = strdup("HTTP/1.1");
+   }
+   
+   return mVersion;
 }
 
 void HttpHeader::setField(const char* name, long long value)

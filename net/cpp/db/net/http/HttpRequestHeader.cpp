@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpRequestHeader.h"
 
@@ -13,14 +13,12 @@ using namespace db::util;
 HttpRequestHeader::HttpRequestHeader()
 {
    mMethod = strdup("");
-   mVersion = strdup("");
    mPath = strdup("");
 }
 
 HttpRequestHeader::~HttpRequestHeader()
 {
    free(mMethod);
-   free(mVersion);
    free(mPath);
 }
 
@@ -89,17 +87,6 @@ void HttpRequestHeader::setMethod(const char* method)
 const char* HttpRequestHeader::getMethod()
 {
    return mMethod;
-}
-
-void HttpRequestHeader::setVersion(const char* version)
-{
-   free(mVersion);
-   mVersion = strdup(version);
-}
-
-const char* HttpRequestHeader::getVersion()
-{
-   return mVersion;
 }
 
 void HttpRequestHeader::setPath(const char* path)

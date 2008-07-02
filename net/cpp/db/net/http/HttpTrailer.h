@@ -35,6 +35,12 @@ namespace http
  */
 class HttpTrailer : public HttpHeader
 {
+protected:
+   /**
+    * The content length for the associated message body.
+    */
+   unsigned long long mContentLength;
+   
 public:
    /**
     * Creates a new HttpTrailer.
@@ -54,6 +60,13 @@ public:
     * @param contentLength the length of the content that was sent or received.
     */
    virtual void update(unsigned long long contentLength);
+   
+   /**
+    * Gets the content length provided in an update to this trailer.
+    * 
+    * @return the content length provided in an update to this trailer.
+    */
+   virtual unsigned long long getContentLength();
 };
 
 // typedef for a counted reference to an HttpTrailer

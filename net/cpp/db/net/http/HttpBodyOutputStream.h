@@ -32,6 +32,11 @@ protected:
     */
    HttpConnection* mConnection;
    
+   /**
+    * True if finished writing output, false if not.
+    */
+   bool mFinished;
+   
 public:
    /**
     * Creates a new HttpBodyOutputStream.
@@ -58,6 +63,15 @@ public:
     *         occurred. 
     */
    virtual bool write(const char* b, int length);
+   
+   /**
+    * Forces this stream to finish its output, if the stream has such a
+    * function.
+    * 
+    * @return true if the write was successful, false if an IO exception
+    *         occurred.
+    */
+   virtual bool finish();
    
    /**
     * Closes the stream. This will not shut down output or close the http

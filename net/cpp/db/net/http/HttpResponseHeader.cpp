@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpResponseHeader.h"
+
 #include "db/util/StringTokenizer.h"
 
 #include <cstdlib>
@@ -13,14 +14,12 @@ using namespace db::util;
 
 HttpResponseHeader::HttpResponseHeader()
 {
-   mVersion = strdup("");
    mStatusCode = 0;
    mStatusMessage = strdup("");
 }
 
 HttpResponseHeader::~HttpResponseHeader()
 {
-   free(mVersion);
    free(mStatusMessage);
 }
 
@@ -106,17 +105,6 @@ bool HttpResponseHeader::hasStartLine()
 {
    // has start line
    return true;
-}
-
-void HttpResponseHeader::setVersion(const char* version)
-{
-   free(mVersion);
-   mVersion = strdup(version);
-}
-
-const char* HttpResponseHeader::getVersion()
-{
-   return mVersion;
 }
 
 void HttpResponseHeader::setStatus(unsigned int code, const char* message)

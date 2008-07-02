@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_http_HttpResponseHeader_H
 #define db_net_http_HttpResponseHeader_H
@@ -34,11 +34,6 @@ namespace http
 class HttpResponseHeader : public HttpHeader
 {
 protected:
-   /**
-    * The version (major.minor) for the response.
-    */
-   char* mVersion;
-   
    /**
     * The status code (i.e. "200", "404") for the response.
     */
@@ -83,20 +78,6 @@ public:
     * @return true if this header has a special start line, false if not.
     */
    virtual bool hasStartLine();
-   
-   /**
-    * Sets the HTTP version for the response (major.minor).
-    * 
-    * @param version the version for the response (i.e. "1.0", "1.1").
-    */
-   virtual void setVersion(const char* version);
-   
-   /**
-    * Gets the HTTP version for the response (major.minor).
-    * 
-    * @return the version for the response (i.e. "1.0", "1.1").
-    */
-   virtual const char* getVersion();
    
    /**
     * Sets the HTTP status for the response.

@@ -20,12 +20,12 @@ namespace http
 {
 
 /**
- * An HttpHeader is the header for an HTTP Message. It contains a start-line,
+ * An HttpHeader is the header for an HTTP Message. It contains a version
  * and, optionally, a collection of HTTP header fields.
  * 
  * Both http requests and responses use an HttpHeader. A request uses a
  * request-line for its start-line and a response uses a status-line for its
- * start-line.
+ * start-line. Both share a version.
  * 
  * A multipart http message will use a MIME boundary as the start-line for
  * its HttpHeader.
@@ -35,6 +35,11 @@ namespace http
 class HttpHeader
 {
 protected:
+   /**
+    * The version (HTTP/major.minor) for the header.
+    */
+   char* mVersion;
+   
    /**
     * A FieldComparator compares two header field names.
     */
@@ -106,6 +111,20 @@ public:
     * @return true if this header has a special start line, false if not.
     */
    virtual bool hasStartLine();
+   
+   /**
+    * Sets the HTTP version for the header (HTTP/major.minor).
+    * 
+    * @param version the version for the header (i.e. "HTTP/1.0", "HTTP/1.1").
+    */
+   virtual void setVersion(const char* version);
+   
+   /**
+    * Gets the HTTP version for the header (HTTP/major.minor).
+    * 
+    * @return the version for the header (i.e. "HTTP/1.0", "HTTP/1.1").
+    */
+   virtual const char* getVersion();
    
    /**
     * Sets a header field.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_io_FilterOutputStream_H
 #define db_io_FilterOutputStream_H
@@ -64,6 +64,15 @@ public:
     *         occurred. 
     */
    virtual bool flush();
+   
+   /**
+    * Forces this stream to finish its output, if the stream has such a
+    * function.
+    * 
+    * @return true if the write was successful, false if an IO exception
+    *         occurred.
+    */
+   virtual bool finish();
    
    /**
     * Closes the stream.
