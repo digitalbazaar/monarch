@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_http_HttpRequestHeader_H
 #define db_net_http_HttpRequestHeader_H
@@ -42,11 +42,6 @@ protected:
     * The path for the request.
     */
    char* mPath;
-   
-   /**
-    * The version (major.minor) for the request.
-    */
-   char* mVersion;
    
 public:
    /**
@@ -98,20 +93,6 @@ public:
     * @return the method for the request (i.e. "GET", "POST").
     */
    virtual const char* getMethod();
-   
-   /**
-    * Sets the HTTP version for the request (major.minor).
-    * 
-    * @param version the version for the request (i.e. "1.0", "1.1").
-    */
-   virtual void setVersion(const char* version);
-   
-   /**
-    * Gets the HTTP version for the request (major.minor).
-    * 
-    * @return the version for the request (i.e. "1.0", "1.1").
-    */
-   virtual const char* getVersion();
    
    /**
     * Sets the path for the request.
