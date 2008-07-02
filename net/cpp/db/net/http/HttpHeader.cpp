@@ -88,13 +88,16 @@ void HttpHeader::setField(const char* name, const string& value)
    {
       mFieldsSize -= i->second.length();
       i->second = value;
+      mFieldsSize += value.length();
    }
    else
    {
       // set new field
       mFieldsSize += strlen(name);
       mFieldsSize += value.length();
-      mFields.insert(make_pair(strdup(name), value));
+      char* fieldName = strdup(name);
+      biCapitalize(fieldName, NULL);
+      mFields.insert(make_pair(fieldName, value));
    }
 }
 
@@ -261,8 +264,8 @@ string HttpHeader::toString()
    int length;
    for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
    {
-      // get field name and bicapitalize it
-      biCapitalize((char*)i->first, &length);
+      // get field name length
+      length = strlen(i->first);
       
       // append name
       memcpy(s, i->first, length);
@@ -311,15 +314,11 @@ bool HttpHeader::write(OutputStream* os)
    }
    
    // write all fields
-   int length;
    for(FieldMap::iterator i = mFields.begin(); rval && i != mFields.end(); i++)
    {
-      // get field name and bicapitalize it
-      biCapitalize((char*)i->first, &length);
-      
       // write name, delimiter, value, and CRLF
       rval =
-         os->write(i->first, length) &&
+         os->write(i->first, strlen(i->first)) &&
          os->write(": ", 2) &&
          os->write(i->second.c_str(), i->second.length()) &&
          os->write(CRLF, 2);
@@ -370,35 +369,35 @@ bool HttpHeader::getDate(Date& date)
 
 void HttpHeader::biCapitalize(char* name, int* length)
 {
-   // store start of name
-   char* start = name;
+   // start at beginning of name
+   char* ptr = name;
    
    // 97 = 'a', 122 = 'z'
-   if(*name > 96 && *name < 123)
+   if(ptr[0] > 96 && ptr[0] < 123)
    {
       // capitalize letter
-      *name -= 32;
+      ptr[0] -= 32;
    }
    
    // capitalize letters after hyphens, decapitalize other letters
-   name++;
-   for(; *name != 0; name++)
+   ptr++;
+   for(; ptr[0] != 0; ptr++)
    {
-      if(*(name - 1) == '-')
+      if((ptr - 1)[0] == '-')
       {
-         if(*name > 96 && *name < 123)
+         if(ptr[0] > 96 && ptr[0] < 123)
          {
             // capitalize
-            *name -= 32;
+            ptr[0] -= 32;
          }
       }
       else
       {
          // 65 = 'A', 90 = 'Z'
-         if(*name > 64 && *name < 90)
+         if(ptr[0] > 64 && ptr[0] < 90)
          {
             // decapitalize
-            *name += 32;
+            ptr[0] += 32;
          }
       }
    }
@@ -406,6 +405,6 @@ void HttpHeader::biCapitalize(char* name, int* length)
    // return name length if desired
    if(length != NULL)
    {
-      *length = (name - start);
+      *length = (ptr - name);
    }
 }
