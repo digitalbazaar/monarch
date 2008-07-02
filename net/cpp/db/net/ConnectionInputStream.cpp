@@ -124,9 +124,23 @@ int ConnectionInputStream::readCrlf(string& line)
    char b[1024];
    int numBytes;
    bool block = false;
-   while(rval != 1 && (numBytes = peek(b, 1023, block)) != -1 &&
+   int readSize = 1023;
+   while(rval != 1 && (numBytes = peek(b, readSize, block)) != -1 &&
          (numBytes > 0 || !block))
    {
+      // read maximum amount
+      readSize = 1023;
+      
+      // maximum line length of 1 MB
+      if(line.length() > (1024 << 10))
+      {
+         rval = -1;
+         ExceptionRef e = new Exception(
+            "Could not read CRLF, line too long.", "db.net.CRLFLineTooLong");
+         Exception::setLast(e, false);
+         break;
+      }
+      
       if(numBytes <= 1)
       {
          // not enough peek bytes available, so activate blocking
@@ -179,6 +193,11 @@ int ConnectionInputStream::readCrlf(string& line)
                   line.push_back('\r');
                   read(b, 1);
                }
+            }
+            else
+            {
+               // read 1 more byte to find the LF
+               readSize = 1;
             }
          }
       }
