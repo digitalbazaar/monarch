@@ -97,6 +97,13 @@ void ByteBuffer::resize(int capacity)
    {
       if(mCleanup && mBuffer != NULL)
       {
+         // move existing data to front of buffer
+         if(mOffset != 0)
+         {
+            memmove(mBuffer, udata(), mLength);
+            mOffset = 0;
+         }
+         
          // reallocate buffer
          mBuffer = (unsigned char*)realloc(mBuffer, capacity);
          mCapacity = capacity;
