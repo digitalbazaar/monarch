@@ -66,9 +66,8 @@ bool HttpBodyOutputStream::finish()
    
    if(!mFinished)
    {
-      // flush underlying stream
-      unsigned long long old = mConnection->getBytesWritten();
-      if((rval = mOutputStream->flush()))
+      // flush and finish underlying stream
+      if((rval = mOutputStream->flush() && mOutputStream->finish()))
       {
          // update http connection content bytes written (reset as necessary)
          if(mConnection->getContentBytesWritten() > Math::HALF_MAX_LONG_VALUE)
@@ -77,8 +76,7 @@ bool HttpBodyOutputStream::finish()
          }
          
          mConnection->setContentBytesWritten(
-            mConnection->getContentBytesWritten() +
-            (mConnection->getBytesWritten() - old));
+            mConnection->getContentBytesWritten());
       }
       
       if(mCleanupOutputStream)
