@@ -148,6 +148,22 @@ int ByteBuffer::put(unsigned char b, bool resize)
    return rval;
 }
 
+int ByteBuffer::put(unsigned char b, int n, bool resize)
+{
+   // allocate space for the data
+   allocateSpace(n, resize);
+   
+   n = (freeSpace() < n ? freeSpace() : n);
+   if(n > 0)
+   {
+      // set data in buffer
+      memset(udata() + mLength, b, n);
+      mLength += n;
+   }
+   
+   return n;
+}
+
 int ByteBuffer::put(const char* b, int length, bool resize)
 {
    // allocate space for the data
@@ -274,7 +290,7 @@ int ByteBuffer::clear(int length)
    return rval;
 }
 
-int ByteBuffer::clear()
+inline int ByteBuffer::clear()
 {
    return clear(mLength);
 }
@@ -282,7 +298,7 @@ int ByteBuffer::clear()
 int ByteBuffer::reset(int length)
 {
    // ensure that the most the offset is moved back is the existing offset
-   int rval = (length > 0) ? ((mOffset < length) ? mOffset : length) : 0;
+   int rval = (length > 0 ? (mOffset < length ? mOffset : length) : 0);
    
    // set new offset and length
    mOffset -= rval;

@@ -92,22 +92,22 @@ bool TagHeader::convertFromBytes(const char* b)
    return rval;
 }
 
-void TagHeader::setVersion(unsigned char version)
+inline void TagHeader::setVersion(unsigned char version)
 {
    mVersion = version;
 }
 
-unsigned char TagHeader::getVersion()
+inline unsigned char TagHeader::getVersion()
 {
    return mVersion;
 }
 
-void TagHeader::setRevision(unsigned char revision)
+inline void TagHeader::setRevision(unsigned char revision)
 {
    mRevision = revision;
 }
 
-unsigned char TagHeader::getRevision()
+inline unsigned char TagHeader::getRevision()
 {
    return mRevision;
 }
@@ -119,42 +119,42 @@ void TagHeader::setFlags(unsigned char b)
    mExperimentalFlag = (b & sExperimentalBit) != 0;
 }
 
-void TagHeader::setUnsynchronizedFlag(bool flag)
+inline void TagHeader::setUnsynchronizedFlag(bool flag)
 {
    mUnsynchronizedFlag = flag;
 }
 
-bool TagHeader::getUnsynchronizedFlag()
+inline bool TagHeader::getUnsynchronizedFlag()
 {
    return mUnsynchronizedFlag;
 }
 
-void TagHeader::setExtendedHeaderFlag(bool flag)
+inline void TagHeader::setExtendedHeaderFlag(bool flag)
 {
    mExtendedHeaderFlag = flag;
 }
 
-bool TagHeader::getExtendedHeaderFlag()
+inline bool TagHeader::getExtendedHeaderFlag()
 {
    return mExtendedHeaderFlag;
 }
 
-void TagHeader::setExperimentalFlag(bool flag)
+inline void TagHeader::setExperimentalFlag(bool flag)
 {
    mExperimentalFlag = flag;
 }
 
-bool TagHeader::getExperimentalFlag()
+inline bool TagHeader::getExperimentalFlag()
 {
    return mExperimentalFlag;
 }
 
-void TagHeader::setTagSize(int tagSize)
+inline void TagHeader::setTagSize(int tagSize)
 {
    mTagSize = tagSize;
 }
 
-int TagHeader::getTagSize()
+inline int TagHeader::getTagSize()
 {
    return mTagSize;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_id3v2_FrameHeader_H
 #define db_data_id3v2_FrameHeader_H
@@ -189,7 +189,7 @@ public:
    /**
     * Sets the description of the frame.
     * 
-    * @param description the description to use.
+    * @param description the description to use in UTF-8.
     */
    virtual void setDescription(const char* description);
    

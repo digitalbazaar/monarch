@@ -124,6 +124,19 @@ public:
    virtual int put(unsigned char b, bool resize);
    
    /**
+    * Puts a particular byte into this buffer n times.
+    * 
+    * @param b the byte to put into this buffer.
+    * @param n the number of times to put b into this buffer.
+    * @param resize true to automatically resize this buffer if the
+    *               bytes will not otherwise fit.
+    * 
+    * @return the actual number of bytes put into this buffer, which may be
+    *         less than n if this buffer is full.
+    */
+   virtual int put(unsigned char b, int n, bool resize);
+   
+   /**
     * Puts data from the passed buffer into this buffer.
     * 
     * @param b the buffer with data to put into this buffer.

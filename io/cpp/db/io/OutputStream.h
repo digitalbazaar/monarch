@@ -22,7 +22,7 @@ namespace io
  * 
  * @author Dave Longley
  */
-class OutputStream : public virtual db::rt::Object
+class OutputStream
 {
 public:
    /**

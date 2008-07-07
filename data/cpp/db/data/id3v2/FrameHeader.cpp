@@ -130,93 +130,96 @@ void FrameHeader::convertToBytes(char* b)
    ub[9] = getFlagByte2();
 }
 
-void FrameHeader::setId(const char* id)
+inline void FrameHeader::setId(const char* id)
 {
    strncpy(mId, id, 4);
 }
 
-const char* FrameHeader::getId()
+inline const char* FrameHeader::getId()
 {
    return mId;
 }
 
-void FrameHeader::setDescription(const char* description)
+inline void FrameHeader::setDescription(const char* description)
 {
    free(mDescription);
    mDescription = strdup(description);
+   
+   // FIXME: uncomment once char encoding is implemented
+   // Utf8Codec::decode("ISO-8859-1", description);
 }
 
-const char* FrameHeader::getDescription()
+inline const char* FrameHeader::getDescription()
 {
    return mDescription;
 }
 
-void FrameHeader::setFrameSize(int size)
+inline void FrameHeader::setFrameSize(int size)
 {
    mFrameSize = size;
 }
 
-int FrameHeader::getFrameSize()
+inline int FrameHeader::getFrameSize()
 {
    return mFrameSize;
 }
 
-void FrameHeader::setTagAlteredDiscardFrame(bool discard)
+inline void FrameHeader::setTagAlteredDiscardFrame(bool discard)
 {
    mTagAlteredDiscardFrame = discard;
 }
 
-bool FrameHeader::getTagAlteredDiscardFrame()
+inline bool FrameHeader::getTagAlteredDiscardFrame()
 {
    return mTagAlteredDiscardFrame;
 }
 
-void FrameHeader::setFileAlteredDiscardFrame(bool discard)
+inline void FrameHeader::setFileAlteredDiscardFrame(bool discard)
 {
    mFileAlteredDiscardFrame = discard;
 }
 
-bool FrameHeader::getFileAlteredDiscardFrame()
+inline bool FrameHeader::getFileAlteredDiscardFrame()
 {
    return mFileAlteredDiscardFrame;
 }
 
-void FrameHeader::setReadOnly(bool readOnly)
+inline void FrameHeader::setReadOnly(bool readOnly)
 {
    mReadOnly = readOnly;
 }
 
-bool FrameHeader::isReadOnly()
+inline bool FrameHeader::isReadOnly()
 {
    return mReadOnly;
 }
 
-void FrameHeader::setCompressed(bool compressed)
+inline void FrameHeader::setCompressed(bool compressed)
 {
    mCompressed = compressed;
 }
 
-bool FrameHeader::isCompressed()
+inline bool FrameHeader::isCompressed()
 {
    return mCompressed;
 }
 
-void FrameHeader::setEncrypted(bool encrypted)
+inline void FrameHeader::setEncrypted(bool encrypted)
 {
    mEncrypted = encrypted;
 }
 
-bool FrameHeader::isEncrypted()
+inline bool FrameHeader::isEncrypted()
 {
    return mEncrypted;
 }
 
-void FrameHeader::setGrouped(bool grouped)
+inline void FrameHeader::setGrouped(bool grouped)
 {
    mGrouped = grouped;
 }
 
-bool FrameHeader::isGrouped()
+inline bool FrameHeader::isGrouped()
 {
    return mGrouped;
 }
@@ -241,6 +244,8 @@ void FrameHeader::convertIntToBytes(int integer, char* b)
 {
    unsigned char* ub = (unsigned char*)b;
    
+   // FIXME: remove method, use db::Data byte ordering macro
+   
    for(int i = 0; i < 4; i++)
    {
       ub[i] = ((integer >> ((3 - i) * 8)) & 0xFF);
@@ -250,6 +255,8 @@ void FrameHeader::convertIntToBytes(int integer, char* b)
 int FrameHeader::convertBytesToInt(const char* b)
 {
    int rval = 0;
+   
+   // FIXME: remove method, use db::Data byte ordering macro
    
    unsigned char* ub = (unsigned char*)b;
    
