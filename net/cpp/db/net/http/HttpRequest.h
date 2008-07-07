@@ -4,7 +4,8 @@
 #ifndef db_net_http_HttpRequest_H
 #define db_net_http_HttpRequest_H
 
-#include "db/net/WebRequest.h"
+#include "db/io/InputStream.h"
+#include "db/io/OutputStream.h"
 #include "db/net/http/HttpRequestHeader.h"
 #include "db/net/http/HttpTrailer.h"
 
@@ -15,21 +16,27 @@ namespace net
 namespace http
 {
 
-// forward declare HttpConnection
+// forward declare classes
 class HttpConnection;
+class HttpResponse;
 
 /**
- * An HttpRequest is a WebRequest that uses the HTTP protocol.
+ * An HttpRequest is a web request that uses the HTTP protocol.
  * 
  * @author Dave Longley
  */
-class HttpRequest : public db::net::WebRequest
+class HttpRequest
 {
 protected:
    /**
     * The header for this request.
     */
    HttpRequestHeader mHeader;
+   
+   /**
+    * The HttpConnection this request is for.
+    */
+   HttpConnection* mConnection;
    
 public:
    /**
@@ -51,7 +58,7 @@ public:
     * 
     * @return the new HttpResponse.
     */
-   virtual db::net::WebResponse* createResponse();
+   virtual HttpResponse* createResponse();
    
    /**
     * Sends the header for this request. This method will block until the

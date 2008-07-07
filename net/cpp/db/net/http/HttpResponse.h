@@ -4,7 +4,6 @@
 #ifndef db_net_http_HttpResponse_H
 #define db_net_http_HttpResponse_H
 
-#include "db/net/WebResponse.h"
 #include "db/net/http/HttpResponseHeader.h"
 #include "db/net/http/HttpConnection.h"
 
@@ -15,21 +14,26 @@ namespace net
 namespace http
 {
 
-// forward declare HttpRequest
+// forward declare classes
 class HttpRequest;
 
 /**
- * An HttpResponse is a WebResponse that uses the HTTP protocol.
+ * An HttpResponse is a web response that uses the HTTP protocol.
  * 
  * @author Dave Longley
  */
-class HttpResponse : public db::net::WebResponse
+class HttpResponse
 {
 protected:
    /**
     * The header for this response.
     */
    HttpResponseHeader mHeader;
+   
+   /**
+    * The HttpRequest this response is for.
+    */
+   HttpRequest* mRequest;
    
 public:
    /**

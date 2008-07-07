@@ -25,97 +25,98 @@ void ConnectionWrapper::setConnection(Connection* c, bool cleanup)
    mCleanupConnection = cleanup;
 }
 
-Connection* ConnectionWrapper::getConnection()
+inline Connection* ConnectionWrapper::getConnection()
 {
    return mConnection;
 }
 
-bool ConnectionWrapper::mustCleanupConnection()
+inline bool ConnectionWrapper::mustCleanupConnection()
 {
    return mCleanupConnection;
 }
 
-void ConnectionWrapper::setBandwidthThrottler(BandwidthThrottler* bt, bool read)
+inline void ConnectionWrapper::setBandwidthThrottler(
+   BandwidthThrottler* bt, bool read)
 {
    mConnection->setBandwidthThrottler(bt, read);
 }
 
-BandwidthThrottler* ConnectionWrapper::getBandwidthThrottler(bool read)
+inline BandwidthThrottler* ConnectionWrapper::getBandwidthThrottler(bool read)
 {
    return mConnection->getBandwidthThrottler(read);
 }
 
-ConnectionInputStream* ConnectionWrapper::getInputStream()
+inline ConnectionInputStream* ConnectionWrapper::getInputStream()
 {
    return mConnection->getInputStream();
 }
 
-ConnectionOutputStream* ConnectionWrapper::getOutputStream()
+inline ConnectionOutputStream* ConnectionWrapper::getOutputStream()
 {
    return mConnection->getOutputStream();
 }
 
-unsigned long long ConnectionWrapper::getBytesRead()
+inline uint64_t ConnectionWrapper::getBytesRead()
 {
    return mConnection->getBytesRead();
 }
 
-unsigned long long ConnectionWrapper::getBytesWritten()
+inline uint64_t ConnectionWrapper::getBytesWritten()
 {
    return mConnection->getBytesWritten();
 }
 
-void ConnectionWrapper::setReadTimeout(unsigned long timeout)
+inline void ConnectionWrapper::setReadTimeout(uint32_t timeout)
 {
    mConnection->setReadTimeout(timeout);
 }
 
-void ConnectionWrapper::setWriteTimeout(unsigned long timeout)
+inline void ConnectionWrapper::setWriteTimeout(uint32_t timeout)
 {
    mConnection->setWriteTimeout(timeout);
 }
 
-void ConnectionWrapper::setSecure(bool secure)
+inline void ConnectionWrapper::setSecure(bool secure)
 {
    mConnection->setSecure(secure);
 }
 
-bool ConnectionWrapper::isSecure()
+inline bool ConnectionWrapper::isSecure()
 {
    return mConnection->isSecure();
 }
 
-bool ConnectionWrapper::isClosed()
+inline bool ConnectionWrapper::isClosed()
 {
    return mConnection->isClosed();
 }
 
-void ConnectionWrapper::close()
+inline void ConnectionWrapper::close()
 {
    mConnection->close();
 }
 
-bool ConnectionWrapper::getLocalAddress(InternetAddress* address)
+inline bool ConnectionWrapper::getLocalAddress(InternetAddress* address)
 {
    return mConnection->getLocalAddress(address);
 }
 
-bool ConnectionWrapper::getRemoteAddress(InternetAddress* address)
+inline bool ConnectionWrapper::getRemoteAddress(InternetAddress* address)
 {
    return mConnection->getRemoteAddress(address);
 }
 
-void ConnectionWrapper::setSocket(Socket* s, bool cleanup)
+inline void ConnectionWrapper::setSocket(Socket* s, bool cleanup)
 {
    mConnection->setSocket(s, cleanup);
 }
 
-Socket* ConnectionWrapper::getSocket()
+inline Socket* ConnectionWrapper::getSocket()
 {
    return mConnection->getSocket();
 }
 
-bool ConnectionWrapper::mustCleanupSocket()
+inline bool ConnectionWrapper::mustCleanupSocket()
 {
    return mConnection->mustCleanupSocket();
 }

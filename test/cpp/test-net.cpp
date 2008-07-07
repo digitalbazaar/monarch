@@ -1777,12 +1777,14 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
+      /*
       runAddressResolveTest(tr);
       runSocketTest(tr);
       runUrlEncodeTest(tr);
       runUrlTest(tr);
       runHttpHeaderTest(tr);
       runHttpNormalizePath(tr);
+      */
       return 0;
    }
 
@@ -1802,7 +1804,7 @@ public:
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
 //      runHttpNormalizePath(tr);
-//      runHttpServerTest();
+      runHttpServerTest();
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
 //      runPingTest();

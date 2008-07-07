@@ -23,7 +23,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class Connection : public virtual db::rt::Object
+class Connection
 {
 protected:
    /**
@@ -40,6 +40,11 @@ protected:
     * True if this Connection has been marked secure, false if not.
     */
    bool mSecure;
+   
+   /**
+    * A lock for modifying the bandwidth throttlers.
+    */
+   db::rt::Object mBandwidthThrottlerLock;
    
    /**
     * The BandwidthThrottler for reading.
@@ -115,14 +120,14 @@ public:
     * 
     * @return the total number of bytes read so far.
     */
-   virtual unsigned long long getBytesRead();
+   virtual uint64_t getBytesRead();
    
    /**
     * Gets the number of bytes written to this Connection so far.
     * 
     * @return the number of bytes written so far.
     */
-   virtual unsigned long long getBytesWritten();
+   virtual uint64_t getBytesWritten();
    
    /**
     * Sets the read timeout for this Connection. This is the amount of
@@ -130,7 +135,7 @@ public:
     * 
     * @param timeout the read timeout in milliseconds (0 for no timeout).
     */
-   virtual void setReadTimeout(unsigned long timeout);
+   virtual void setReadTimeout(uint32_t timeout);
    
    /**
     * Sets the write timeout for this Connection. This is the amount of
@@ -138,7 +143,7 @@ public:
     * 
     * @param timeout the writetimeout in milliseconds (0 for no timeout).
     */
-   virtual void setWriteTimeout(unsigned long timeout);
+   virtual void setWriteTimeout(uint32_t timeout);
    
    /**
     * Marks this Connection as secure or non-secure.

@@ -4,9 +4,8 @@
 #ifndef db_net_http_HttpConnection_H
 #define db_net_http_HttpConnection_H
 
-#include "db/net/WebConnection.h"
-#include "db/io/InputStream.h"
-#include "db/io/OutputStream.h"
+#include "db/net/ConnectionWrapper.h"
+#include "db/net/http/HttpRequest.h"
 #include "db/net/http/HttpTrailer.h"
 
 namespace db
@@ -17,28 +16,22 @@ namespace http
 {
 
 /**
- * An HttpConnection is a WebConnection that uses the HTTP protocol.
+ * An HttpConnection is a Connection that uses the HTTP protocol.
  * 
  * @author Dave Longley
  */
-class HttpConnection : public db::net::WebConnection
+class HttpConnection : public db::net::ConnectionWrapper
 {
 protected:
    /**
     * The total number of content bytes read by this HttpConnection.
     */
-   unsigned long long mContentBytesRead;
+   uint64_t mContentBytesRead;
    
    /**
     * The total number of content bytes written by this HttpConnection.
     */
-   unsigned long long mContentBytesWritten;
-   
-   /**
-    * HttpOutputStream is a friend so it can access the underlying
-    * ConnectionOutputStream.
-    */
-   friend class HttpBodyOutputStream;
+   uint64_t mContentBytesWritten;
    
 public:
    /**
@@ -62,7 +55,7 @@ public:
     * 
     * @return the new HttpRequest.
     */
-   virtual db::net::WebRequest* createRequest();
+   virtual HttpRequest* createRequest();
    
    /**
     * Sends a message header. This method will block until the entire header
@@ -140,7 +133,7 @@ public:
     * 
     * @param count the total number of content bytes read so far.
     */
-   virtual void setContentBytesRead(unsigned long long count);
+   virtual void setContentBytesRead(uint64_t count);
    
    /**
     * Gets the total number of content bytes read from this HttpConnection so
@@ -149,21 +142,21 @@ public:
     * 
     * @return the total number of content bytes read so far.
     */
-   virtual unsigned long long getContentBytesRead();
+   virtual uint64_t getContentBytesRead();
    
    /**
     * Sets the number of content bytes written to this HttpConnection so far.
     * 
     * @param count the number of content bytes written so far.
     */
-   virtual void setContentBytesWritten(unsigned long long count);
+   virtual void setContentBytesWritten(uint64_t count);
    
    /**
     * Gets the number of content bytes written to this HttpConnection so far.
     * 
     * @return the number of content bytes written so far.
     */
-   virtual unsigned long long getContentBytesWritten();
+   virtual uint64_t getContentBytesWritten();
 };
 
 } // end namespace http

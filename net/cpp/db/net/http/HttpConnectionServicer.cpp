@@ -179,10 +179,9 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       {
          // if the exception was not an interruption or socket error then
          // send an internal server error response
-         // FIXME: change SocketException type to a string type, remove class
          if(!e.isNull() &&
             strcmp(e->getType(), "db.io.InterruptedException") != 0 &&
-            dynamic_cast<SocketException*>(&(*e)) == NULL)
+            strncmp(e->getType(), "db.net.Socket", 13) != 0)
          {
             // send 500 Internal Server Error
             char html[] = "<html><h2>500 Internal Server Error</h2></html>";

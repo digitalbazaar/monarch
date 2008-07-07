@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpConnection.h"
+
 #include "db/net/http/HttpRequest.h"
 #include "db/net/http/HttpResponse.h"
 #include "db/net/http/HttpBodyOutputStream.h"
@@ -20,7 +21,7 @@ const unsigned long HALF_MAX_LONG_VALUE =
    (unsigned long)(MAX_ULONG_VALUE / 2);
 
 HttpConnection::HttpConnection(Connection* c, bool cleanup) :
-   WebConnection(c, cleanup)
+   ConnectionWrapper(c, cleanup)
 {
    // no content bytes read yet
    mContentBytesRead = 0;
@@ -36,7 +37,7 @@ HttpConnection::~HttpConnection()
 {
 }
 
-WebRequest* HttpConnection::createRequest()
+HttpRequest* HttpConnection::createRequest()
 {
    // create HttpRequest
    return new HttpRequest(this);
@@ -209,7 +210,7 @@ bool HttpConnection::receiveBody(
    // do chunked or unspecified length transfer
    if(chunkin != NULL || lengthUnspecified)
    {
-      unsigned long long start = getContentBytesRead();
+      uint64_t start = getContentBytesRead();
       
       // read in from connection, write out content
       // Note: keep reading even if content output stream fails
@@ -255,7 +256,7 @@ bool HttpConnection::receiveBody(
       
       // read in from connection, write out content
       // Note: keep reading even if content output stream fails
-      unsigned long long contentRemaining = contentLength;
+      uint64_t contentRemaining = contentLength;
       unsigned int readSize = (contentRemaining < length) ?
          contentRemaining : length;
       while(contentRemaining > 0 && (numBytes = is->read(b, readSize)) > 0)
@@ -308,22 +309,22 @@ bool HttpConnection::receiveBody(
    return rval;
 }
 
-inline void HttpConnection::setContentBytesRead(unsigned long long count)
+inline void HttpConnection::setContentBytesRead(uint64_t count)
 {
    mContentBytesRead = count;
 }
 
-inline unsigned long long HttpConnection::getContentBytesRead()
+inline uint64_t HttpConnection::getContentBytesRead()
 {
    return mContentBytesRead;
 }
 
-inline void HttpConnection::setContentBytesWritten(unsigned long long count)
+inline void HttpConnection::setContentBytesWritten(uint64_t count)
 {
    mContentBytesWritten = count;
 }
 
-inline unsigned long long HttpConnection::getContentBytesWritten()
+inline uint64_t HttpConnection::getContentBytesWritten()
 {
    return mContentBytesWritten;
 }

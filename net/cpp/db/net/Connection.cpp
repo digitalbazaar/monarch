@@ -37,7 +37,7 @@ Connection::~Connection()
 void Connection::setBandwidthThrottler(BandwidthThrottler* bt, bool read)
 {
    // synchronize setting the bandwidth throttler so it is thread safe
-   lock();
+   mBandwidthThrottlerLock.lock();
    {
       if(read)
       {
@@ -48,7 +48,7 @@ void Connection::setBandwidthThrottler(BandwidthThrottler* bt, bool read)
          mWriteBandwidthThrottler = bt;
       }
    }
-   unlock();
+   mBandwidthThrottlerLock.unlock();
 }
 
 BandwidthThrottler* Connection::getBandwidthThrottler(bool read)
@@ -56,11 +56,11 @@ BandwidthThrottler* Connection::getBandwidthThrottler(bool read)
    BandwidthThrottler* rval = NULL;
    
    // synchronize fetching the bandwidth throttler so it is thread safe
-   lock();
+   mBandwidthThrottlerLock.lock();
    {
       rval = read ? mReadBandwidthThrottler : mWriteBandwidthThrottler;
    }
-   unlock();
+   mBandwidthThrottlerLock.unlock();
    
    return rval;
 }
@@ -75,56 +75,56 @@ inline ConnectionOutputStream* Connection::getOutputStream()
    return mOutputStream;
 }
 
-unsigned long long Connection::getBytesRead()
+uint64_t Connection::getBytesRead()
 {
    return mInputStream->getBytesRead();
 }
 
-unsigned long long Connection::getBytesWritten()
+uint64_t Connection::getBytesWritten()
 {
    return mOutputStream->getBytesWritten();
 }
 
-void Connection::setReadTimeout(unsigned long timeout)
+inline void Connection::setReadTimeout(uint32_t timeout)
 {
    // set the receive timeout
    getSocket()->setReceiveTimeout(timeout);
 }
 
-void Connection::setWriteTimeout(unsigned long timeout)
+inline void Connection::setWriteTimeout(uint32_t timeout)
 {
    // set the send timeout
    getSocket()->setSendTimeout(timeout);
 }
 
-void Connection::setSecure(bool secure)
+inline void Connection::setSecure(bool secure)
 {
    mSecure = secure;
 }
 
-bool Connection::isSecure()
+inline bool Connection::isSecure()
 {
    return mSecure;
 }
 
-bool Connection::isClosed()
+inline bool Connection::isClosed()
 {
    // check socket
    return !getSocket()->isBound();
 }
 
-void Connection::close()
+inline void Connection::close()
 {
    // close socket
    getSocket()->close();
 }
 
-bool Connection::getLocalAddress(SocketAddress* address)
+inline bool Connection::getLocalAddress(SocketAddress* address)
 {
    return getSocket()->getLocalAddress(address);
 }
 
-bool Connection::getRemoteAddress(SocketAddress* address)
+inline bool Connection::getRemoteAddress(SocketAddress* address)
 {
    return getSocket()->getRemoteAddress(address);
 }
@@ -135,12 +135,12 @@ void Connection::setSocket(Socket* s, bool cleanup)
    mCleanupSocket = cleanup;
 }
 
-Socket* Connection::getSocket()
+inline Socket* Connection::getSocket()
 {
    return mSocket;
 }
 
-bool Connection::mustCleanupSocket()
+inline bool Connection::mustCleanupSocket()
 {
    return mCleanupSocket;
 }
