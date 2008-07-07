@@ -12,9 +12,8 @@ set :user, "root"
 desc "Deploys the dbcore libraries to the cluster."
 task :deploy_dbcore, :roles => :apiservers do
   put(File.read('../installers/packages/libdbcore3_@FULL_VERSION@_i386.deb'),
-    "/tmp/libdbcore3_@FULL_VERSION@_i386.deb",
+    "/root/packages/libdbcore3_@FULL_VERSION@_i386.deb",
     :mode => 0600)
-  run "dpkg -i /tmp/libdbcore3_@FULL_VERSION@_i386.deb"
-  run "rm -f /tmp/libdbcore3_@FULL_VERSION@_i386.deb"
+  run "dpkg -i /root/packages/libdbcore3_@FULL_VERSION@_i386.deb"
 end
 
