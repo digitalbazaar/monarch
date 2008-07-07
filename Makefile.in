@@ -98,3 +98,5 @@ install:
 deploy:
 	@cd setup && cap deploy_dbcore
 
+rollback:
+	@cd setup && cap rollback_dbcore

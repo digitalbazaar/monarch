@@ -7,14 +7,23 @@ role :apiservers, "bobloblaw", "swollengoat", "llamalicious", "misterf"
 default_run_options[:pty] = true
 set :user, "root"
 
+# Setup other deployment info
+now = Time.now.strftime("%H%M%S")
+
 # All of the tasks follow
 
 desc "Deploys the dbcore libraries to the cluster."
 task :deploy_dbcore, :roles => :apiservers do
   put(File.read('../installers/packages/libdbcore3_@FULL_VERSION@_i386.deb'),
-    "/tmp/libdbcore3_@FULL_VERSION@_i386.deb",
+    "/root/packages/libdbcore3_@FULL_VERSION@-#{now}_i386.deb",
     :mode => 0600)
-  run "dpkg -i /tmp/libdbcore3_@FULL_VERSION@_i386.deb"
-  run "rm -f /tmp/libdbcore3_@FULL_VERSION@_i386.deb"
+  run "dpkg -i /root/packages/libdbcore3_@FULL_VERSION@-#{now}_i386.deb"
+end
+
+desc "Performs a package rollback on the dbcore libraries."
+task :rollback_dbcore, :roles => :apiservers do
+  run "ls -1 /root/packages/libdbcore3_*deb"
+  set :rollback_version, Capistrano::CLI.ui.ask("Rollback version:")
+  run "dpkg -i --force-downgrade /root/packages/libdbcore3_#{rollback_version}_i386.deb"
 end
 
