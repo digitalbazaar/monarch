@@ -1,8 +1,11 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_SocketDefinitions_H
 #define db_net_SocketDefinitions_H
+
+#define SOCKET_EXCEPTION_TYPE         "db.net.Socket"
+#define SOCKET_TIMEOUT_EXCEPTION_TYPE "db.net.SocketTimeout"
 
 #ifdef WIN32
    // windows socket library

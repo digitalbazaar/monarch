@@ -26,112 +26,112 @@ void SocketWrapper::setSocket(Socket* socket, bool cleanup)
    mCleanupSocket = cleanup;
 }
 
-Socket* SocketWrapper::getSocket()
+inline Socket* SocketWrapper::getSocket()
 {
    return mSocket;
 }
 
-bool SocketWrapper::mustCleanupSocket()
+inline bool SocketWrapper::mustCleanupSocket()
 {
    return mCleanupSocket;
 }
 
-bool SocketWrapper::bind(SocketAddress* address)
+inline bool SocketWrapper::bind(SocketAddress* address)
 {
    return getSocket()->bind(address);
 }
 
-bool SocketWrapper::listen(unsigned int backlog)
+inline bool SocketWrapper::listen(unsigned int backlog)
 {
    return getSocket()->listen(backlog);
 }
 
-Socket* SocketWrapper::accept(unsigned int timeout)
+inline Socket* SocketWrapper::accept(unsigned int timeout)
 {
    return getSocket()->accept(timeout);
 }
 
-bool SocketWrapper::connect(SocketAddress* address, unsigned int timeout)
+inline bool SocketWrapper::connect(SocketAddress* address, unsigned int timeout)
 {
    return getSocket()->connect(address, timeout);
 }
 
-bool SocketWrapper::send(const char* b, int length)
+inline bool SocketWrapper::send(const char* b, int length)
 {
    return getSocket()->send(b, length);
 }
 
-int SocketWrapper::receive(char* b, int length)
+inline int SocketWrapper::receive(char* b, int length)
 {
    return getSocket()->receive(b, length);
 }
 
-void SocketWrapper::close()
+inline void SocketWrapper::close()
 {
    getSocket()->close();
 }
 
-bool SocketWrapper::isBound()
+inline bool SocketWrapper::isBound()
 {
    return getSocket()->isBound();
 }
 
-bool SocketWrapper::isListening()
+inline bool SocketWrapper::isListening()
 {
    return getSocket()->isListening();
 }
 
-bool SocketWrapper::isConnected()
+inline bool SocketWrapper::isConnected()
 {
    return getSocket()->isConnected();
 }
 
-bool SocketWrapper::getLocalAddress(SocketAddress* address)
+inline bool SocketWrapper::getLocalAddress(SocketAddress* address)
 {
    return getSocket()->getLocalAddress(address);
 }
 
-bool SocketWrapper::getRemoteAddress(SocketAddress* address)
+inline bool SocketWrapper::getRemoteAddress(SocketAddress* address)
 {
    return getSocket()->getRemoteAddress(address);
 }
 
-InputStream* SocketWrapper::getInputStream()
+inline InputStream* SocketWrapper::getInputStream()
 {
    return getSocket()->getInputStream();
 }
 
-OutputStream* SocketWrapper::getOutputStream()
+inline OutputStream* SocketWrapper::getOutputStream()
 {
    return getSocket()->getOutputStream();
 }
 
-void SocketWrapper::setSendTimeout(unsigned long timeout)
+inline void SocketWrapper::setSendTimeout(uint32_t timeout)
 {
    getSocket()->setSendTimeout(timeout);
 }
 
-unsigned long SocketWrapper::getSendTimeout()
+inline uint32_t SocketWrapper::getSendTimeout()
 {
    return getSocket()->getSendTimeout();
 }
 
-void SocketWrapper::setReceiveTimeout(unsigned long timeout)
+inline void SocketWrapper::setReceiveTimeout(uint32_t timeout)
 {
    getSocket()->setReceiveTimeout(timeout);
 }
 
-unsigned long SocketWrapper::getReceiveTimeout()
+inline uint32_t SocketWrapper::getReceiveTimeout()
 {
    return getSocket()->getReceiveTimeout();
 }
 
-unsigned int SocketWrapper::getBacklog()
+inline unsigned int SocketWrapper::getBacklog()
 {
    return getSocket()->getBacklog();
 }
 
-int SocketWrapper::getFileDescriptor()
+inline int SocketWrapper::getFileDescriptor()
 {
    return getSocket()->getFileDescriptor();
 }

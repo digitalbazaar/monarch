@@ -4,6 +4,7 @@
 #include "db/net/SslSocket.h"
 
 #include "db/io/PeekInputStream.h"
+#include "db/net/SocketDefinitions.h"
 #include "db/net/SocketInputStream.h"
 #include "db/net/SocketOutputStream.h"
 #include "db/rt/Thread.h"
@@ -143,8 +144,9 @@ bool SslSocket::performHandshake()
       {
          case SSL_ERROR_ZERO_RETURN:
             {
-               ExceptionRef e = new SocketException(
-                  "Could not perform SSL handshake! Socket closed.");
+               ExceptionRef e = new Exception(
+                  "Could not perform SSL handshake! Socket closed.",
+                  SOCKET_EXCEPTION_TYPE);
                Exception::setLast(e, false);
                rval = false;
             }
@@ -155,8 +157,9 @@ bool SslSocket::performHandshake()
                ret = tcpRead();
                if(ret <= 0)
                {
-                  ExceptionRef e = new SocketException(
-                     "Could not perform SSL handshake! Socket closed.");
+                  ExceptionRef e = new Exception(
+                     "Could not perform SSL handshake! Socket closed.",
+                     SOCKET_EXCEPTION_TYPE);
                   Exception::setLast(e, (ret < 0));
                   rval = false;
                }
@@ -169,8 +172,8 @@ bool SslSocket::performHandshake()
          default:
             {
                // an error occurred
-               ExceptionRef e = new SocketException(
-                  "Could not perform SSL handshake!");
+               ExceptionRef e = new Exception(
+                  "Could not perform SSL handshake!", SOCKET_EXCEPTION_TYPE);
                e->getDetails()["error"] =
                   ERR_error_string(ERR_get_error(), NULL);
                Exception::setLast(e, false);
@@ -207,8 +210,8 @@ bool SslSocket::send(const char* b, int length)
    
    if(!isConnected())
    {
-      ExceptionRef e = new SocketException(
-         "Cannot write to unconnected socket!");
+      ExceptionRef e = new Exception(
+         "Cannot write to unconnected socket!", SOCKET_EXCEPTION_TYPE);
       Exception::setLast(e, false);
       rval = false;
    }
@@ -234,8 +237,9 @@ bool SslSocket::send(const char* b, int length)
             case SSL_ERROR_ZERO_RETURN:
                {
                   // the connection was shutdown
-                  ExceptionRef e = new SocketException(
-                     "Could not write to socket! Socket closed.");
+                  ExceptionRef e = new Exception(
+                     "Could not write to socket! Socket closed.",
+                     SOCKET_EXCEPTION_TYPE);
                   e->getDetails()["error"] =
                      ERR_error_string(ERR_get_error(), NULL);
                   Exception::setLast(e, false);
@@ -248,8 +252,9 @@ bool SslSocket::send(const char* b, int length)
                if(ret <= 0)
                {
                   // the connection was shutdown
-                  ExceptionRef e = new SocketException(
-                     "Could not write to socket! Socket closed.");
+                  ExceptionRef e = new Exception(
+                     "Could not write to socket! Socket closed.",
+                     SOCKET_EXCEPTION_TYPE);
                   e->getDetails()["error"] = strerror(errno);
                   Exception::setLast(e, (ret < 0));
                   rval = false;
@@ -262,8 +267,9 @@ bool SslSocket::send(const char* b, int length)
             default:
                {
                   // an error occurred
-                  ExceptionRef e = new SocketException(
-                     "Could not write to socket!");
+                  ExceptionRef e = new Exception(
+                     "Could not write to socket!",
+                     SOCKET_EXCEPTION_TYPE);
                   e->getDetails()["error"] =
                      ERR_error_string(ERR_get_error(), NULL);
                   Exception::setLast(e, false);
@@ -286,8 +292,9 @@ int SslSocket::receive(char* b, int length)
    
    if(!isConnected())
    {
-      ExceptionRef e = new SocketException(
-         "Cannot read from unconnected socket!");
+      ExceptionRef e = new Exception(
+         "Cannot read from unconnected socket!",
+         SOCKET_EXCEPTION_TYPE);
       Exception::setLast(e, false);
       rval = -1;
    }
@@ -328,8 +335,9 @@ int SslSocket::receive(char* b, int length)
                else if(ret == -1)
                {
                   // error in writing to socket
-                  ExceptionRef e = new SocketException(
-                     "Could not read from socket!");
+                  ExceptionRef e = new Exception(
+                     "Could not read from socket!",
+                     SOCKET_EXCEPTION_TYPE);
                   Exception::setLast(e, true);
                   rval = -1;
                }
@@ -344,8 +352,9 @@ int SslSocket::receive(char* b, int length)
             default:
                {
                   // an error occurred
-                  ExceptionRef e = new SocketException(
-                     "Could not read from socket!");
+                  ExceptionRef e = new Exception(
+                     "Could not read from socket!",
+                     SOCKET_EXCEPTION_TYPE);
                   e->getDetails()["error"] =
                      ERR_error_string(ERR_get_error(), NULL);
                   Exception::setLast(e, false);

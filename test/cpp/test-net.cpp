@@ -920,7 +920,7 @@ public:
    
    virtual ~TestConnectionServicer1() {}
    
-   void serviceConnection(Connection* c)
+   void serviceConnection(Connection* c, ConnectionService* cs)
    {
       //cout << "1: Servicing connection!" << endl;
       
@@ -961,24 +961,28 @@ public:
       
       serviced++;
 //      cout << "Connections serviced=" << serviced << endl;
+      
+      cs->cleanupConnection(c);
    }
 };
 
 class TestConnectionServicer2 : public ConnectionServicer
 {
-   void serviceConnection(Connection* c)
+   void serviceConnection(Connection* c, ConnectionService* cs)
    {
       cout << "2: Servicing connection!" << endl;
       cout << "2: Finished servicing connection." << endl;
+      cs->cleanupConnection(c);
    }
 };
 
 class TestConnectionServicer3 : public ConnectionServicer
 {
-   void serviceConnection(Connection* c)
+   void serviceConnection(Connection* c, ConnectionService* cs)
    {
       cout << "3: Servicing connection!" << endl;
       cout << "3: Finished servicing connection." << endl;
+      cs->cleanupConnection(c);
    }
 };
 

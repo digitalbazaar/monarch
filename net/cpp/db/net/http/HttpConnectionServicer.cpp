@@ -29,7 +29,7 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
 {
    HttpRequestServicer* rval = NULL;
    
-   lock();
+   mRequestServicerLock.lock();
    {
       // strip any query
       if(path != NULL)
@@ -71,12 +71,13 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
          }
       }
    }
-   unlock();
+   mRequestServicerLock.unlock();
    
    return rval;
 }
 
-void HttpConnectionServicer::serviceConnection(Connection* c)
+void HttpConnectionServicer::serviceConnection(
+   Connection* c, ConnectionService* cs)
 {
    // wrap connection, set default timeouts to 30 seconds
    HttpConnection hc(c, false);
@@ -201,12 +202,15 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    // clean up request and response
    delete request;
    delete response;
+   
+   // clean up connection
+   cs->cleanupConnection(c);
 }
 
 void HttpConnectionServicer::addRequestServicer(
    HttpRequestServicer* s, bool secure)
 {
-   lock();
+   mRequestServicerLock.lock();
    {
       if(secure)
       {
@@ -217,13 +221,13 @@ void HttpConnectionServicer::addRequestServicer(
          mNonSecureServicers[s->getPath()] = s;
       }
    }
-   unlock();
+   mRequestServicerLock.unlock();
 }
 
 void HttpConnectionServicer::removeRequestServicer(
    HttpRequestServicer* s, bool secure)
 {
-   lock();
+   mRequestServicerLock.lock();
    {
       if(secure)
       {
@@ -234,7 +238,7 @@ void HttpConnectionServicer::removeRequestServicer(
          mNonSecureServicers.erase(s->getPath());
       }
    }
-   unlock();
+   mRequestServicerLock.unlock();
 }
 
 HttpRequestServicer* HttpConnectionServicer::removeRequestServicer(
@@ -242,7 +246,7 @@ HttpRequestServicer* HttpConnectionServicer::removeRequestServicer(
 {
    HttpRequestServicer* rval = NULL;
    
-   lock();
+   mRequestServicerLock.lock();
    {
       if(secure)
       {
@@ -263,7 +267,7 @@ HttpRequestServicer* HttpConnectionServicer::removeRequestServicer(
          }
       }
    }
-   unlock();
+   mRequestServicerLock.unlock();
    
    return rval;
 }

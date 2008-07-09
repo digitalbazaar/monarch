@@ -27,8 +27,7 @@ namespace http
  * 
  * @author Dave Longley
  */
-class HttpConnectionServicer :
-public virtual db::rt::Object, public db::net::ConnectionServicer
+class HttpConnectionServicer : public db::net::ConnectionServicer
 {
 protected:
    /**
@@ -71,6 +70,11 @@ protected:
    ServicerMap mSecureServicers;
    
    /**
+    * A lock for manipulating request servicers.
+    */
+   db::rt::Object mRequestServicerLock;
+   
+   /**
     * Finds an HttpRequestServicer for the given path in the given map.
     * 
     * @param path the path to search along.
@@ -97,12 +101,14 @@ public:
    virtual ~HttpConnectionServicer();
    
    /**
-    * Services the passed Connection. The connection will automatically be
-    * closed after it is serviced.
+    * Services the passed Connection. When finished, cleanupConnection() must
+    * be called on the passed ConnectionService, which will ensure the that
+    * Connection is closed and its memory cleaned up.
     * 
     * @param c the Connection to service.
+    * @param cs the ConnectionService the Connection is from.
     */
-   virtual void serviceConnection(Connection* c);
+   virtual void serviceConnection(Connection* c, ConnectionService* cs);
    
    /**
     * Adds an HttpRequestServicer. If a servicer already exists at the new

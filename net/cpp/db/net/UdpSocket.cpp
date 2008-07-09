@@ -2,6 +2,8 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/UdpSocket.h"
+
+#include "db/rt/DynamicObject.h"
 #include "db/net/SocketDefinitions.h"
 #include "db/io/PeekInputStream.h"
 #include "db/net/SocketInputStream.h"
@@ -107,8 +109,9 @@ bool UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
    
    if(error < 0)
    {
-      ExceptionRef e = new SocketException(
-         "Could not join multicast group!", strerror(errno));
+      ExceptionRef e = new Exception(
+         "Could not join multicast group!", SOCKET_EXCEPTION_TYPE);
+      e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
    
@@ -154,8 +157,9 @@ bool UdpSocket::leaveGroup(SocketAddress* group)
    
    if(error < 0)
    {
-      ExceptionRef e = new SocketException(
-         "Could not leave multicast group!", strerror(errno));
+      ExceptionRef e = new Exception(
+         "Could not leave multicast group!", SOCKET_EXCEPTION_TYPE);
+      e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
    
@@ -168,7 +172,8 @@ bool UdpSocket::sendDatagram(const char* b, int length, SocketAddress* address)
    
    if(!isBound())
    {
-      ExceptionRef e = new SocketException("Cannot write to unbound Socket!");
+      ExceptionRef e = new Exception(
+         "Cannot write to unbound Socket!", SOCKET_EXCEPTION_TYPE);
       Exception::setLast(e, false);
       rval = false;
    }
@@ -189,8 +194,9 @@ bool UdpSocket::sendDatagram(const char* b, int length, SocketAddress* address)
             mFileDescriptor, b, length, 0, (sockaddr*)&addr, size);
          if(ret < 0)
          {
-            ExceptionRef e = new SocketException(
-               "Could not write to Socket!", strerror(errno));
+            ExceptionRef e = new Exception(
+               "Could not write to Socket!", SOCKET_EXCEPTION_TYPE);
+            e->getDetails()["error"] = strerror(errno);
             Exception::setLast(e, false);
             rval = false;
          }
@@ -206,7 +212,8 @@ int UdpSocket::receiveDatagram(char* b, int length, SocketAddress* address)
    
    if(!isBound())
    {
-      ExceptionRef e = new SocketException("Cannot read from unbound Socket!");
+      ExceptionRef e = new Exception(
+         "Cannot read from unbound Socket!", SOCKET_EXCEPTION_TYPE);
       Exception::setLast(e, false);
    }
    else if(select(true, getReceiveTimeout()))
@@ -220,8 +227,9 @@ int UdpSocket::receiveDatagram(char* b, int length, SocketAddress* address)
       if(rval < -1)
       {
          rval = -1;
-         ExceptionRef e = new SocketException(
-            "Could not read from Socket!", strerror(errno));
+         ExceptionRef e = new Exception(
+            "Could not read from Socket!", SOCKET_EXCEPTION_TYPE);
+         e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
       }
       else if(rval != 0 && address != NULL)
@@ -245,8 +253,9 @@ bool UdpSocket::setMulticastHops(unsigned char hops)
    
    if(error < 0)
    {
-      ExceptionRef e = new SocketException(
-         "Could not set multicast hops!", strerror(errno));
+      ExceptionRef e = new Exception(
+         "Could not set multicast hops!", SOCKET_EXCEPTION_TYPE);
+      e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
    
@@ -263,8 +272,9 @@ bool UdpSocket::setMulticastTimeToLive(unsigned char ttl)
    
    if(error < 0)
    {
-      ExceptionRef e = new SocketException(
-         "Could not set multicast TTL!", strerror(errno));
+      ExceptionRef e = new Exception(
+         "Could not set multicast TTL!", SOCKET_EXCEPTION_TYPE);
+      e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
    
@@ -280,8 +290,9 @@ bool UdpSocket::setBroadcastEnabled(bool enable)
       (char *)&broadcast, sizeof(broadcast));
    if(error < 0)
    {
-      ExceptionRef e = new SocketException(
-         "Could not set broadcast flag!", strerror(errno));
+      ExceptionRef e = new Exception(
+         "Could not set broadcast flag!", SOCKET_EXCEPTION_TYPE);
+      e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
    

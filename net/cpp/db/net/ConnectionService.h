@@ -1,20 +1,23 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_ConnectionService_H
 #define db_net_ConnectionService_H
 
 #include "db/rt/Semaphore.h"
-#include "db/net/PortService.h"
-#include "db/net/Server.h"
-#include "db/net/ConnectionServicer.h"
-#include "db/net/SocketDataPresenter.h"
 #include "db/modest/OperationList.h"
+#include "db/net/Connection.h"
+#include "db/net/PortService.h"
+#include "db/net/SocketDataPresenter.h"
 
 namespace db
 {
 namespace net
 {
+
+// forward declare classes
+class Server;
+class ConnectionServicer;
 
 /**
  * A ConnectionService listens for incoming Socket connections on a given
@@ -174,11 +177,11 @@ public:
    virtual void serviceConnection(void* c);
    
    /**
-    * Cleans up the passed Connection's memory.
+    * Ensures the passed Connection is closed and cleans up its memory.
     * 
     * @param c the Connection to clean up.
     */
-   virtual void cleanupConnection(void* c);
+   virtual void cleanupConnection(Connection* c);
    
    /**
     * Sets the maximum number of concurrent connections this service should

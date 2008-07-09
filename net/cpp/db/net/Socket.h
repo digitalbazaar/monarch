@@ -7,7 +7,6 @@
 #include "db/io/InputStream.h"
 #include "db/io/OutputStream.h"
 #include "db/net/SocketAddress.h"
-#include "db/net/SocketException.h"
 
 namespace db
 {
@@ -175,7 +174,7 @@ public:
     * 
     * @param timeout the send timeout in milliseconds.
     */
-   virtual void setSendTimeout(unsigned long timeout) = 0;
+   virtual void setSendTimeout(uint32_t timeout) = 0;
    
    /**
     * Gets the send timeout for this Socket. This is the amount of time that
@@ -183,7 +182,7 @@ public:
     * 
     * @return the send timeout in milliseconds.
     */
-   virtual unsigned long getSendTimeout() = 0;
+   virtual uint32_t getSendTimeout() = 0;
    
    /**
     * Sets the receive timeout for this Socket. This is the amount of time that
@@ -191,7 +190,7 @@ public:
     * 
     * @param timeout the receive timeout in milliseconds.
     */
-   virtual void setReceiveTimeout(unsigned long timeout) = 0;
+   virtual void setReceiveTimeout(uint32_t timeout) = 0;
    
    /**
     * Gets the receive timeout for this Socket. This is the amount of time that
@@ -199,7 +198,7 @@ public:
     * 
     * @return the receive timeout in milliseconds.
     */
-   virtual unsigned long getReceiveTimeout() = 0;
+   virtual uint32_t getReceiveTimeout() = 0;
    
    /**
     * Gets the number of Socket connections that can be kept backlogged while

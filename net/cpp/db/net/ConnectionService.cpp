@@ -136,8 +136,7 @@ bool ConnectionService::createConnection(Socket* s)
       // create RunnableDelegate to service connection and run as an Operation
       RunnableRef r =
          new RunnableDelegate<ConnectionService>(
-            this, &ConnectionService::serviceConnection, c,
-            &ConnectionService::cleanupConnection);
+            this, &ConnectionService::serviceConnection, c);
       Operation op(r);
       mRunningServicers.add(op);
       
@@ -157,26 +156,17 @@ bool ConnectionService::createConnection(Socket* s)
 
 void ConnectionService::serviceConnection(void* c)
 {
-   // cast parameter to Connection
-   Connection* conn = (Connection*)c;
-   
    // service the connection
-   mServicer->serviceConnection(conn);
-   
-   // close connection
-   conn->close();
+   mServicer->serviceConnection((Connection*)c, this);
 }
 
-void ConnectionService::cleanupConnection(void* c)
+void ConnectionService::cleanupConnection(Connection* c)
 {
-   // cast parameter to Connection
-   Connection* conn = (Connection*)c;
-   
    // ensure connection is closed
-   conn->close();
+   c->close();
    
    // clean up connection
-   delete conn;
+   delete c;
    
    // release connection permits
    mServer->mConnectionSemaphore.release();

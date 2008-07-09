@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/DatagramSocket.h"
 
@@ -13,30 +13,30 @@ DatagramSocket::~DatagramSocket()
 {
 }
 
-bool DatagramSocket::bind(InternetAddress* address)
+inline bool DatagramSocket::bind(InternetAddress* address)
 {
    return UdpSocket::bind(address);
 }
 
-bool DatagramSocket::joinGroup(
+inline bool DatagramSocket::joinGroup(
    InternetAddress* group, InternetAddress* localAddress)
 {
    return UdpSocket::joinGroup(group, localAddress);
 }
 
-bool DatagramSocket::leaveGroup(InternetAddress* group)
+inline bool DatagramSocket::leaveGroup(InternetAddress* group)
 {
    return UdpSocket::leaveGroup(group);
 }
 
-bool DatagramSocket::send(Datagram* datagram)
+inline bool DatagramSocket::send(Datagram* datagram)
 {
    int length = 0;
    char* data = datagram->getData(length);
    return UdpSocket::sendDatagram(data, length, datagram->getAddress());
 }
 
-bool DatagramSocket::receive(Datagram* datagram)
+inline bool DatagramSocket::receive(Datagram* datagram)
 {
    bool rval = false;
    
@@ -52,57 +52,57 @@ bool DatagramSocket::receive(Datagram* datagram)
    return rval;
 }
 
-bool DatagramSocket::setMulticastHops(unsigned char hops)
+inline bool DatagramSocket::setMulticastHops(unsigned char hops)
 {
    return UdpSocket::setMulticastHops(hops);
 }
 
-bool DatagramSocket::setMulticastTimeToLive(unsigned char ttl)
+inline bool DatagramSocket::setMulticastTimeToLive(unsigned char ttl)
 {
    return UdpSocket::setMulticastTimeToLive(ttl);
 }
 
-bool DatagramSocket::setBroadcastEnabled(bool enable)
+inline bool DatagramSocket::setBroadcastEnabled(bool enable)
 {
    return UdpSocket::setBroadcastEnabled(enable);
 }
 
-void DatagramSocket::close()
+inline void DatagramSocket::close()
 {
    UdpSocket::close();
 }
 
-bool DatagramSocket::isBound()
+inline bool DatagramSocket::isBound()
 {
    return UdpSocket::isBound();
 }
 
-bool DatagramSocket::isConnected()
+inline bool DatagramSocket::isConnected()
 {
    return UdpSocket::isConnected();
 }
 
-bool DatagramSocket::getLocalAddress(InternetAddress* address)
+inline bool DatagramSocket::getLocalAddress(InternetAddress* address)
 {
    return UdpSocket::getLocalAddress(address);
 }
 
-void DatagramSocket::setSendTimeout(unsigned long timeout)
+inline void DatagramSocket::setSendTimeout(uint32_t timeout)
 {
    UdpSocket::setSendTimeout(timeout);
 }
 
-unsigned long DatagramSocket::getSendTimeout()
+inline uint32_t DatagramSocket::getSendTimeout()
 {
    return UdpSocket::getSendTimeout();
 }
 
-void DatagramSocket::setReceiveTimeout(unsigned long timeout)
+inline void DatagramSocket::setReceiveTimeout(uint32_t timeout)
 {
    UdpSocket::setReceiveTimeout(timeout);
 }
 
-unsigned long DatagramSocket::getReceiveTimeout()
+inline uint32_t DatagramSocket::getReceiveTimeout()
 {
    return UdpSocket::getReceiveTimeout();
 }

@@ -151,7 +151,7 @@ public:
     * 
     * @param timeout the send timeout in milliseconds.
     */
-   virtual void setSendTimeout(unsigned long timeout);
+   virtual void setSendTimeout(uint32_t timeout);
    
    /**
     * Gets the send timeout for this Socket. This is the amount of time that
@@ -159,7 +159,7 @@ public:
     * 
     * @return the send timeout in milliseconds.
     */
-   virtual unsigned long getSendTimeout();
+   virtual uint32_t getSendTimeout();
    
    /**
     * Sets the receive timeout for this Socket. This is the amount of time that
@@ -167,7 +167,7 @@ public:
     * 
     * @param timeout the receive timeout in milliseconds.
     */
-   virtual void setReceiveTimeout(unsigned long timeout);
+   virtual void setReceiveTimeout(uint32_t timeout);
    
    /**
     * Gets the receive timeout for this Socket. This is the amount of time that
@@ -175,7 +175,7 @@ public:
     * 
     * @return the receive timeout in milliseconds.
     */
-   virtual unsigned long getReceiveTimeout();
+   virtual uint32_t getReceiveTimeout();
 };
 
 } // end namespace net
