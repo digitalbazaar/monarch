@@ -24,66 +24,66 @@ PooledConnection::~PooledConnection()
    }
 }
 
-Connection* PooledConnection::getConnection()
+inline Connection* PooledConnection::getConnection()
 {
    return mConnection;
 }
 
-void PooledConnection::closeConnection()
+inline void PooledConnection::closeConnection()
 {
    // call real connection close
    mConnection->close();
 }
 
-Statement* PooledConnection::createStatement(const char* sql)
+inline Statement* PooledConnection::createStatement(const char* sql)
 {
    // pooled connections don't create their own statements
    return NULL;
 }
 
-void PooledConnection::setIdleTime(unsigned long long idleTime)
+inline void PooledConnection::setIdleTime(uint64_t idleTime)
 {
    mIdleTime = idleTime;
 }
 
-unsigned long long PooledConnection::getIdleTime()
+inline uint64_t PooledConnection::getIdleTime()
 {
    return mIdleTime;
 }
 
-bool PooledConnection::connect(Url* url)
+inline bool PooledConnection::connect(Url* url)
 {
    return mConnection->connect(url);
 }
 
-Statement* PooledConnection::prepare(const char* sql)
+inline Statement* PooledConnection::prepare(const char* sql)
 {
    return mConnection->prepare(sql);
 }
 
-void PooledConnection::close()
+inline void PooledConnection::close()
 {
    // don't close the connection, instead notify the pool that this
    // connection is now idle
    mPool->connectionClosed(this);
 }
 
-bool PooledConnection::begin()
+inline bool PooledConnection::begin()
 {
    return mConnection->begin();
 }
 
-bool PooledConnection::commit()
+inline bool PooledConnection::commit()
 {
    return mConnection->commit();
 }
 
-bool PooledConnection::rollback()
+inline bool PooledConnection::rollback()
 {
    return mConnection->rollback();
 }
 
-bool PooledConnection::isConnected()
+inline bool PooledConnection::isConnected()
 {
    return mConnection->isConnected();
 }

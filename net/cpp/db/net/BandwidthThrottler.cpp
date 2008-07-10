@@ -11,7 +11,7 @@
 using namespace db::net;
 using namespace db::rt;
 
-BandwidthThrottler::BandwidthThrottler(unsigned long long rateLimit)
+BandwidthThrottler::BandwidthThrottler(uint64_t rateLimit)
 {
    // initialize the last request time
    mLastRequestTime = System::getCurrentMilliseconds();
@@ -39,7 +39,7 @@ void BandwidthThrottler::resetWindowTime()
 void BandwidthThrottler::updateWindowTime()
 {
    // get the current time
-   unsigned long long now = System::getCurrentMilliseconds();
+   uint64_t now = System::getCurrentMilliseconds();
    
    // Cap the number of bytes granted per window at maximum uint value
    // so that there isn't any overflow. This should also be a sufficiently
@@ -75,7 +75,7 @@ void BandwidthThrottler::updateWindowTime()
    }
 }
 
-unsigned long long BandwidthThrottler::getWindowTime()
+inline uint64_t BandwidthThrottler::getWindowTime()
 {
    return mWindowTime;
 }
@@ -84,11 +84,11 @@ void BandwidthThrottler::updateAvailableByteTime()
 {
    // the amount of time until a byte is available is 1000 milliseconds
    // divided by the rate in bytes/second, with a minimum of 1 millisecond
-   mAvailableByteTime = (unsigned long long)roundl(1000. / getRateLimit());
+   mAvailableByteTime = (uint64_t)roundl(1000. / getRateLimit());
    mAvailableByteTime = (1 > mAvailableByteTime) ? 1 : mAvailableByteTime;
 }
 
-unsigned long long BandwidthThrottler::getAvailableByteTime()
+inline uint64_t BandwidthThrottler::getAvailableByteTime()
 {
    return mAvailableByteTime;
 }
@@ -100,15 +100,14 @@ void BandwidthThrottler::updateAvailableBytes()
    
    // determine how many bytes are available given the passed time --
    // use the floor so as not to go over the rate limit
-   mAvailableBytes = (unsigned long long)floorl(
-      passedTime / 1000. * getRateLimit());
+   mAvailableBytes = (uint64_t)floorl(passedTime / 1000. * getRateLimit());
    
    // subtract the number of bytes already granted in this window
    mAvailableBytes = (mBytesGranted > mAvailableBytes) ?
       0 : mAvailableBytes - mBytesGranted;
 }
 
-unsigned long long BandwidthThrottler::getAvailableBytes()
+inline uint64_t BandwidthThrottler::getAvailableBytes()
 {
    return mAvailableBytes;
 }
@@ -144,7 +143,7 @@ bool BandwidthThrottler::requestBytes(unsigned int count, int& permitted)
    // no bytes permitted yet
    permitted = 0;
    
-   lock();
+   mLock.lock();
    {
       if(getRateLimit() > 0)
       {
@@ -167,14 +166,14 @@ bool BandwidthThrottler::requestBytes(unsigned int count, int& permitted)
          permitted = count;
       }
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
 
-void BandwidthThrottler::setRateLimit(unsigned long long rateLimit)
+void BandwidthThrottler::setRateLimit(uint64_t rateLimit)
 {
-   lock();
+   mLock.lock();
    {
       // set new rate limit
       mRateLimit = rateLimit;
@@ -187,10 +186,10 @@ void BandwidthThrottler::setRateLimit(unsigned long long rateLimit)
          updateAvailableByteTime();
       }
    }
-   unlock();
+   mLock.unlock();
 }
 
-unsigned long long BandwidthThrottler::getRateLimit()
+inline uint64_t BandwidthThrottler::getRateLimit()
 {
    return mRateLimit;
 }

@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_modest_ImmutableState_H
 #define db_modest_ImmutableState_H
 
-#include "db/rt/Object.h"
+#include "db/rt/ExclusiveLock.h"
+#include <cstring>
+#include <string>
 
 namespace db
 {
@@ -16,7 +18,7 @@ namespace modest
  * 
  * @author Dave Longley
  */
-class ImmutableState : public virtual db::rt::Object
+class ImmutableState : public virtual db::rt::ExclusiveLock
 {
 public:
    /**

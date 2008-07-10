@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_util_regex_Pattern_H
 #define db_util_regex_Pattern_H
 
 #include <regex.h>
-
-#include "db/rt/Object.h"
 
 namespace db
 {
@@ -20,7 +18,7 @@ namespace regex
  * 
  * @author Dave Longley
  */
-class Pattern : public virtual db::rt::Object
+class Pattern
 {
 protected:
    /**
@@ -38,7 +36,7 @@ protected:
     * 
     * @return the storage for this Pattern.
     */
-   regex_t& getStorage(); 
+   regex_t& getStorage();
    
 public:
    /**

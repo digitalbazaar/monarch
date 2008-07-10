@@ -25,7 +25,7 @@ namespace rt
  *
  * @author Dave Longley
  */
-class Thread : public virtual Object, protected Runnable
+class Thread : public virtual ExclusiveLock, protected Runnable
 {
 private:
    /**
@@ -317,7 +317,7 @@ public:
     * @return false if the current Thread is interrupted while sleeping (with
     *         an Exception set), true if not.
     */
-   static bool waitToEnter(Monitor* m, unsigned int timeout = 0);
+   static bool waitToEnter(Monitor* m, uint32_t timeout = 0);
    
    /**
     * Exits the current thread.

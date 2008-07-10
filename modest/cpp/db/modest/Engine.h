@@ -34,7 +34,7 @@ class OperationDispatcher;
  * 
  * @author Dave Longley
  */
-class Engine : public virtual db::rt::Object
+class Engine
 {
 protected:
    /**
@@ -46,6 +46,11 @@ protected:
     * The OperationDispatcher for dispatching Operations.
     */
    OperationDispatcher* mOpDispatcher;
+   
+   /**
+    * A lock for starting/stopping this Engine.
+    */
+   db::rt::ExclusiveLock mLock;
    
 public:
    /**

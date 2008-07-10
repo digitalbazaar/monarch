@@ -4,7 +4,7 @@
 #ifndef db_net_Connection_H
 #define db_net_Connection_H
 
-#include "db/rt/Object.h"
+#include "db/rt/ExclusiveLock.h"
 #include "db/net/Socket.h"
 #include "db/net/SocketAddress.h"
 #include "db/net/BandwidthThrottler.h"
@@ -44,7 +44,7 @@ protected:
    /**
     * A lock for modifying the bandwidth throttlers.
     */
-   db::rt::Object mBandwidthThrottlerLock;
+   db::rt::ExclusiveLock mBandwidthThrottlerLock;
    
    /**
     * The BandwidthThrottler for reading.

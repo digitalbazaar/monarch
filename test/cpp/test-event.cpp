@@ -248,7 +248,7 @@ void runEventControllerTest(TestRunner& tr)
 }
 
 #define DBTDONE "db.test.done"
-class TestEventTrigger : public virtual Object, public Runnable
+class TestEventTrigger : public Runnable
 {
 public:
    int mSleepMS;

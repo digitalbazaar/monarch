@@ -5,6 +5,7 @@
 #define db_rt_Monitor_H
 
 #include <pthread.h>
+#include <inttypes.h>
 
 namespace db
 {
@@ -13,8 +14,9 @@ namespace rt
 
 /**
  * A Monitor provides mutual exclusion and synchronization capabilities for
- * Objects. The actual routines that can be executed inside of a Monitor are
- * provided by the Objects themselves, where each Object has its own Monitor.
+ * ExclusiveLocks. The actual routines that can be executed inside of a Monitor
+ * are provided by the ExclusiveLocks themselves, where each ExclusiveLock has
+ * its own Monitor.
  * 
  * A Monitor allows a single thread to enter a critical area and execute some
  * routine, prohibiting all other threads from entering the same area at
@@ -51,7 +53,7 @@ private:
    /**
     * A counter for the number of requested locks by the current Thread.
     */
-   unsigned int mLockCount;
+   uint32_t mLockCount;
    
 public:
    /**
@@ -85,7 +87,7 @@ public:
     * @param timeout the number of milliseconds to wait before timing out,
     *                0 to wait indefinitely.
     */
-   void wait(unsigned long timeout = 0);
+   void wait(uint32_t timeout = 0);
    
    /**
     * Releases the wait condition and signals a single thread to wake up. The

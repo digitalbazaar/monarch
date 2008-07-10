@@ -9,7 +9,7 @@
 using namespace db::rt;
 
 PooledThread::PooledThread(
-   ThreadPool* pool, unsigned long long expireTime) : Thread(this)
+   ThreadPool* pool, uint32_t expireTime) : Thread(this)
 {
    // no job to run yet
    mJob = NULL;
@@ -29,7 +29,7 @@ PooledThread::~PooledThread()
 void PooledThread::goIdle()
 {
    // Note: This method is called inside of this thread's job lock
-   unsigned long long startTime = System::getCurrentMilliseconds();
+   uint64_t startTime = System::getCurrentMilliseconds();
    
    // wait on job lock until expire time
    if(mJobLock.wait(getExpireTime()))
@@ -39,8 +39,8 @@ void PooledThread::goIdle()
       if(getExpireTime() != 0 && mJob == NULL)
       {
          // check expired time
-         unsigned long long now = System::getCurrentMilliseconds();
-         if(now - startTime >= getExpireTime())
+         uint64_t now = System::getCurrentMilliseconds();
+         if((now - startTime) >= getExpireTime())
          {
             // thread must expire
             interrupt();
@@ -84,12 +84,12 @@ void PooledThread::setJob(RunnableRef& job)
    mJobLock.notifyAll();
 }
 
-Runnable* PooledThread::getJob()
+inline Runnable* PooledThread::getJob()
 {
    return mJob;
 }
 
-Object* PooledThread::getJobLock()
+inline ExclusiveLock* PooledThread::getJobLock()
 {
    return &mJobLock;
 }
@@ -122,17 +122,17 @@ void PooledThread::run()
    mExpired = true;
 }
 
-void PooledThread::setExpireTime(unsigned long long expireTime)
+inline void PooledThread::setExpireTime(uint32_t expireTime)
 {
    mExpireTime = expireTime;
 }
 
-unsigned long long PooledThread::getExpireTime()
+inline uint32_t PooledThread::getExpireTime()
 {
    return mExpireTime;
 }
 
-bool PooledThread::isExpired()
+inline bool PooledThread::isExpired()
 {
    return mExpired;
 }

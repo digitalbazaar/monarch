@@ -57,12 +57,12 @@ void JobDispatcher::wakeup()
    mWaitLock.unlock();
 }
 
-bool JobDispatcher::canDispatch()
+inline bool JobDispatcher::canDispatch()
 {
    return !mJobQueue.empty();
 }
 
-Thread* JobDispatcher::getDispatcherThread()
+inline Thread* JobDispatcher::getDispatcherThread()
 {
    return mDispatcherThread;
 }
@@ -112,7 +112,7 @@ void JobDispatcher::dequeueJob(Runnable& job)
    wakeup();
 }
 
-void JobDispatcher::dequeueJob(RunnableRef& job)
+inline void JobDispatcher::dequeueJob(RunnableRef& job)
 {
    dequeueJob(*job);
 }
@@ -156,7 +156,7 @@ bool JobDispatcher::isQueued(Runnable& job)
    return rval;
 }
 
-bool JobDispatcher::isQueued(RunnableRef& job)
+inline bool JobDispatcher::isQueued(RunnableRef& job)
 {
    return isQueued(*job);
 }
@@ -251,22 +251,22 @@ void JobDispatcher::clearQueuedJobs()
    wakeup();
 }
 
-void JobDispatcher::interruptAllRunningJobs()
+inline void JobDispatcher::interruptAllRunningJobs()
 {
    getThreadPool()->interruptAllThreads();
 }
 
-void JobDispatcher::terminateAllRunningJobs()
+inline void JobDispatcher::terminateAllRunningJobs()
 {
    getThreadPool()->terminateAllThreads();
 }
 
-ThreadPool* JobDispatcher::getThreadPool()
+inline ThreadPool* JobDispatcher::getThreadPool()
 {
    return mThreadPool;
 }
 
-unsigned int JobDispatcher::getQueuedJobCount()
+inline unsigned int JobDispatcher::getQueuedJobCount()
 {
    return mJobQueue.size();
 }

@@ -315,22 +315,22 @@ void ThreadPool::setPoolSize(unsigned int size)
    mListLock.unlock();
 }
 
-unsigned int ThreadPool::getPoolSize()
+inline unsigned int ThreadPool::getPoolSize()
 {
    return mThreadSemaphore.getMaxPermitCount();
 }
 
-void ThreadPool::setThreadStackSize(size_t stackSize)
+inline void ThreadPool::setThreadStackSize(size_t stackSize)
 {
    mThreadStackSize = stackSize;
 }
 
-size_t ThreadPool::getThreadStackSize()
+inline size_t ThreadPool::getThreadStackSize()
 {
    return mThreadStackSize;
 }
 
-void ThreadPool::setThreadExpireTime(unsigned long long expireTime)
+void ThreadPool::setThreadExpireTime(uint32_t expireTime)
 {
    mThreadExpireTime = expireTime;
    
@@ -346,12 +346,12 @@ void ThreadPool::setThreadExpireTime(unsigned long long expireTime)
    mListLock.unlock();
 }
 
-unsigned long long ThreadPool::getThreadExpireTime()
+inline uint32_t ThreadPool::getThreadExpireTime()
 {
    return mThreadExpireTime;
 }
 
-unsigned int ThreadPool::getThreadCount()
+inline unsigned int ThreadPool::getThreadCount()
 {
    return mThreads.size();
 }
@@ -371,7 +371,7 @@ unsigned int ThreadPool::getRunningThreadCount()
    return rval;
 }
 
-unsigned int ThreadPool::getIdleThreadCount()
+inline unsigned int ThreadPool::getIdleThreadCount()
 {
    return mIdleThreads.size();
 }

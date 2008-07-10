@@ -43,7 +43,7 @@ Module* ModuleLibrary::loadModule(const char* filename)
 {
    Module* rval = NULL;
    
-   lock();
+   mLoadLock.lock();
    {
       // try to load module
       ModuleInfo* mi = mLoader.loadModule(filename);
@@ -107,14 +107,14 @@ Module* ModuleLibrary::loadModule(const char* filename)
          }
       }
    }
-   unlock();
+   mLoadLock.unlock();
    
    return rval;
 }
 
 void ModuleLibrary::unloadModule(const ModuleId* id)
 {
-   lock();
+   mLoadLock.lock();
    {
       // find module
       ModuleMap::iterator i = mModules.find(id);
@@ -140,12 +140,12 @@ void ModuleLibrary::unloadModule(const ModuleId* id)
          mLoader.unloadModule(mi);
       }
    }
-   unlock();
+   mLoadLock.unlock();
 }
 
 void ModuleLibrary::unloadAllModules()
 {
-   lock();
+   mLoadLock.lock();
    {
       // clean up and free every module
       while(!mLoadOrder.empty())
@@ -163,19 +163,19 @@ void ModuleLibrary::unloadAllModules()
          mLoader.unloadModule(mi);
       }
    }
-   unlock();
+   mLoadLock.unlock();
 }
 
 Module* ModuleLibrary::getModule(const ModuleId* id)
 {
    Module* rval = NULL;
    
-   lock();
+   mLoadLock.lock();
    {
       // find Module
       rval = findModule(id);
    }
-   unlock();
+   mLoadLock.unlock();
    
    return rval;
 }
@@ -184,7 +184,7 @@ const ModuleId* ModuleLibrary::getModuleId(const char* name)
 {
    const ModuleId* rval = NULL;
    
-   lock();
+   mLoadLock.lock();
    {
       // find Module
       Module* m = findModule(name);
@@ -193,7 +193,7 @@ const ModuleId* ModuleLibrary::getModuleId(const char* name)
          rval = &m->getId();
       }
    }
-   unlock();
+   mLoadLock.unlock();
    
    return rval;
 }
@@ -202,7 +202,7 @@ ModuleInterface* ModuleLibrary::getModuleInterface(const ModuleId* id)
 {
    ModuleInterface* rval = NULL;
    
-   lock();
+   mLoadLock.lock();
    {
       // find Module
       Module* m = findModule(id);
@@ -211,7 +211,7 @@ ModuleInterface* ModuleLibrary::getModuleInterface(const ModuleId* id)
          rval = m->getInterface();
       }
    }
-   unlock();
+   mLoadLock.unlock();
    
    return rval;
 }

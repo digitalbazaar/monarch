@@ -19,7 +19,7 @@ namespace rt
  * 
  * @author Dave Longley
  */
-class JobDispatcher : public virtual Object, public Runnable
+class JobDispatcher : public virtual ExclusiveLock, public Runnable
 {
 protected:
    /**
@@ -54,7 +54,7 @@ protected:
    /**
     * The wait lock for this dispatcher.
     */
-   Object mWaitLock;
+   ExclusiveLock mWaitLock;
    
    /**
     * Wakes up this dispatcher if it has gone to sleep waiting for

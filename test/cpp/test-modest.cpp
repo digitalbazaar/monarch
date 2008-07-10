@@ -94,7 +94,7 @@ public:
    }
 };
 
-class RunOp : public virtual Object, public Runnable
+class RunOp : public virtual ExclusiveLock, public Runnable
 {
 protected:
    string mName;

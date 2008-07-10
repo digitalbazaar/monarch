@@ -22,32 +22,32 @@ Date::~Date()
 {
 }
 
-int Date::second()
+inline int Date::second()
 {
    return mBrokenDownTime.tm_sec;
 }
 
-int Date::minute()
+inline int Date::minute()
 {
    return mBrokenDownTime.tm_min;
 }
 
-int Date::hour()
+inline int Date::hour()
 {
    return mBrokenDownTime.tm_hour;
 }
 
-int Date::day()
+inline int Date::day()
 {
    return mBrokenDownTime.tm_mday;
 }
 
-int Date::month()
+inline int Date::month()
 {
    return mBrokenDownTime.tm_mon;
 }
 
-int Date::year()
+inline int Date::year()
 {
    return mBrokenDownTime.tm_year;
 }

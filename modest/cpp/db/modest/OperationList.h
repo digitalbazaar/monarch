@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_modest_OperationList_H
 #define db_modest_OperationList_H
@@ -21,13 +21,18 @@ namespace modest
  * 
  * @author Dave Longley
  */
-class OperationList : public virtual db::rt::Object
+class OperationList
 {
 protected:
    /**
     * The Operations in this list.
     */
    std::list<Operation> mOperations;
+   
+   /**
+    * A lock for modifying the list.
+    */
+  db::rt::ExclusiveLock mLock;
    
 public:
    /**

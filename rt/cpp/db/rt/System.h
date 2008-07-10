@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_rt_System_H
 #define db_rt_System_H
 
 #include "db/rt/TimeFunctions.h"
+
+#include <inttypes.h>
 
 namespace db
 {
@@ -25,7 +27,7 @@ public:
     * 
     * @return the current time in milliseconds.
     */
-   static unsigned long long getCurrentMilliseconds();
+   static uint64_t getCurrentMilliseconds();
 };
 
 } // end namespace rt

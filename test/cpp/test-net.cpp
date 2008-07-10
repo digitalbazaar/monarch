@@ -857,7 +857,7 @@ void runUrlTest(TestRunner& tr)
    tr.pass();
 }
 
-class InterruptServerSocketTest : public virtual Object, public Runnable
+class InterruptServerSocketTest : public Runnable
 {
 public:
    /**
@@ -1033,7 +1033,7 @@ void runServerConnectionTest()
 //         Exception::getLast()->getMessage() << endl;
 //   }
    
-   Object lock;
+   ExclusiveLock lock;
    lock.lock();
    {
       lock.wait();//lock.wait(120000);

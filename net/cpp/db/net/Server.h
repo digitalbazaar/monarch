@@ -30,7 +30,7 @@ namespace net
  * 
  * @author Dave Longley
  */
-class Server : public virtual db::rt::Object
+class Server
 {
 protected:
    /**
@@ -52,6 +52,11 @@ protected:
     * The connection semaphore for this server.
     */
    db::rt::Semaphore mConnectionSemaphore;
+   
+   /**
+    * A lock for synchronizing the use of this server.
+    */
+   db::rt::ExclusiveLock mLock;
    
    /**
     * Connection service is a friend so it can access the connection count.

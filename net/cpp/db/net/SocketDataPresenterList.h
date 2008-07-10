@@ -23,7 +23,7 @@ namespace net
  * @author Dave Longley
  */
 class SocketDataPresenterList :
-public virtual db::rt::Object, public SocketDataPresenter
+public virtual db::rt::ExclusiveLock, public SocketDataPresenter
 {
 protected:
    /**

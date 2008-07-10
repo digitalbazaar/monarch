@@ -6,7 +6,6 @@
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
-#include "db/rt/Object.h"
 #include "db/rt/Runnable.h"
 #include "db/rt/System.h"
 
@@ -24,7 +23,7 @@ void runDynoIterTest1(TestRunner& tr, const char* name, int size, int iter)
          d1[i] = i;
       }
    
-      unsigned long long start = System::getCurrentMilliseconds();
+      uint64_t start = System::getCurrentMilliseconds();
       
       for(int j = 0; j < iter; j++)
       {
@@ -35,7 +34,7 @@ void runDynoIterTest1(TestRunner& tr, const char* name, int size, int iter)
          }
       }
       
-      unsigned long long stop = System::getCurrentMilliseconds();
+      uint64_t stop = System::getCurrentMilliseconds();
       
       cout << "[dt:" << stop-start << "]";
    }

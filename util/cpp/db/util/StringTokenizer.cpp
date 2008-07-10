@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/util/StringTokenizer.h"
 
@@ -148,12 +148,12 @@ void StringTokenizer::tokenize(const char* str, char delimiter)
    }
 }
 
-void StringTokenizer::restartTokens()
+inline void StringTokenizer::restartTokens()
 {
    mCurrentToken = mFirstToken;
 }
 
-bool StringTokenizer::hasNextToken()
+inline bool StringTokenizer::hasNextToken()
 {
    return mCurrentToken != NULL;
 }
@@ -191,7 +191,7 @@ const char* StringTokenizer::getToken(int i)
    return rval;
 }
 
-unsigned int StringTokenizer::getTokenCount()
+inline unsigned int StringTokenizer::getTokenCount()
 {
    return mTokenCount;
 }

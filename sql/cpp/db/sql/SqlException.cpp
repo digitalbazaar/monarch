@@ -21,12 +21,12 @@ SqlException::~SqlException()
 {
 }
 
-void SqlException::setSqlState(const char* state)
+inline void SqlException::setSqlState(const char* state)
 {
    getDetails()["sqlState"] = state;
 }
 
-const char* SqlException::getSqlState()
+inline const char* SqlException::getSqlState()
 {
    return getDetails()["sqlState"]->getString();
 }

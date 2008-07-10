@@ -142,7 +142,7 @@ void AbstractConnectionPool::closeExpiredConnections()
    } 
 }
 
-Connection* AbstractConnectionPool::getConnection()
+inline Connection* AbstractConnectionPool::getConnection()
 {
    return getIdleConnection();
 }
@@ -194,13 +194,13 @@ void AbstractConnectionPool::setPoolSize(unsigned int size)
    unlock();
 }
 
-unsigned int AbstractConnectionPool::getPoolSize()
+inline unsigned int AbstractConnectionPool::getPoolSize()
 {
    return mConnectionSemaphore.getMaxPermitCount();
 }
 
 void AbstractConnectionPool::setConnectionExpireTime(
-   unsigned long long expireTime)
+   uint64_t expireTime)
 {
    lock();
    {
@@ -209,22 +209,22 @@ void AbstractConnectionPool::setConnectionExpireTime(
    unlock();
 }
 
-unsigned long long AbstractConnectionPool::getConnectionExpireTime()
+inline uint64_t AbstractConnectionPool::getConnectionExpireTime()
 {
    return mConnectionExpireTime;
 }
 
-unsigned int AbstractConnectionPool::getConnectionCount()
+inline unsigned int AbstractConnectionPool::getConnectionCount()
 {
    return mActiveConnections.size() + mIdleConnections.size();
 }
 
-unsigned int AbstractConnectionPool::getActiveConnectionCount()
+inline unsigned int AbstractConnectionPool::getActiveConnectionCount()
 {
    return mActiveConnections.size();
 }
 
-unsigned int AbstractConnectionPool::getIdleConnectionCount()
+inline unsigned int AbstractConnectionPool::getIdleConnectionCount()
 {
    return mIdleConnections.size();
 }

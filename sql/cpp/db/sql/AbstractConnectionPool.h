@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_sql_AbstractConnectionPool_H
 #define db_sql_AbstractConnectionPool_H
 
 #include "db/net/Url.h"
-#include "db/rt/Object.h"
+#include "db/rt/ExclusiveLock.h"
 #include "db/rt/Semaphore.h"
 #include "db/rt/System.h"
 #include "db/sql/ConnectionPool.h"
@@ -29,7 +29,7 @@ namespace sql
  * @author Mike Johnson
  */
 class AbstractConnectionPool :
-public virtual db::rt::Object, public ConnectionPool
+public virtual db::rt::ExclusiveLock, public ConnectionPool
 {
 protected:
    /**
@@ -57,7 +57,7 @@ protected:
    /**
     * A lock for modifying the connection lists.
     */
-   db::rt::Object mListLock;
+   db::rt::ExclusiveLock mListLock;
    
    /**
     * The database driver parameters in URL form for creating database
@@ -68,7 +68,7 @@ protected:
    /**
     * The expire time for Connections (in milliseconds).
     */
-   unsigned long long mConnectionExpireTime;
+   uint64_t mConnectionExpireTime;
    
    /**
     * Creates a new database connection, connects it, and wraps it with a
@@ -163,14 +163,14 @@ public:
     *                   are idle in order for them to expire -- if 0 is passed
     *                   then connections will never expire.
     */
-   virtual void setConnectionExpireTime(unsigned long long expireTime);
+   virtual void setConnectionExpireTime(uint64_t expireTime);
    
    /**
     * Gets the expire time for all connections.
     * 
     * @return the expire time for all connections.
     */
-   virtual unsigned long long getConnectionExpireTime();
+   virtual uint64_t getConnectionExpireTime();
    
    /**
     * Gets the current number of connections in the pool.

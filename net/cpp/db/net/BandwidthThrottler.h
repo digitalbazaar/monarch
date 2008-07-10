@@ -4,7 +4,7 @@
 #ifndef db_net_BandwidthThrottler_H
 #define db_net_BandwidthThrottler_H
 
-#include "db/rt/Object.h"
+#include "db/rt/ExclusiveLock.h"
 
 namespace db
 {
@@ -16,40 +16,45 @@ namespace net
  * 
  * @author Dave Longley
  */
-class BandwidthThrottler : public virtual db::rt::Object
+class BandwidthThrottler
 {
 protected:
    /**
     * The rate limit for this BandwidthThrottler.
     */
-   unsigned long long mRateLimit;
+   uint64_t mRateLimit;
    
    /**
     * The time (in milliseconds) at which a window began for requesting data.
     */
-   unsigned long long mWindowTime;
+   uint64_t mWindowTime;
    
    /**
     * The number of bytes that have been granted in the current window.
     */
-   unsigned long long mBytesGranted;
+   uint64_t mBytesGranted;
    
    /**
     * The last time (in milliseconds) a request was made for bytes.
     */
-   unsigned long long mLastRequestTime;
+   uint64_t mLastRequestTime;
    
    /**
     * The amount of time (in milliseconds) that must pass before a byte
     * is available. This number is never more than 1000 and never less
     * than 1.
     */
-   unsigned long long mAvailableByteTime;
+   uint64_t mAvailableByteTime;
    
    /**
     * The number of available bytes.
     */
-   unsigned long long mAvailableBytes;
+   uint64_t mAvailableBytes;
+   
+   /**
+    * A lock for synchronizing the use of this throttler.
+    */
+   db::rt::ExclusiveLock mLock;
    
    /**
     * Resets the window time.
@@ -68,7 +73,7 @@ protected:
     * 
     * @return the time at which the current window for requesting data began.
     */
-   unsigned long long getWindowTime();
+   uint64_t getWindowTime();
    
    /**
     * Updates the amount of time (in milliseconds) that must pass before
@@ -84,7 +89,7 @@ protected:
     * @return the amount of time (in milliseconds) that must pass before
     *         a byte is available.
     */
-   unsigned long long getAvailableByteTime();
+   uint64_t getAvailableByteTime();
    
    /**
     * Updates the number of bytes that are currently available.
@@ -96,7 +101,7 @@ protected:
     * 
     * @return the number of bytes that are currently available.
     */
-   unsigned long long getAvailableBytes();
+   uint64_t getAvailableBytes();
    
    /**
     * This method blocks until at least one byte is available without
@@ -115,7 +120,7 @@ public:
     * @param rateLimit the bytes/second rate limit to use. A value of 0
     *                  indicates no rate limit.
     */
-   BandwidthThrottler(unsigned long long rateLimit);
+   BandwidthThrottler(uint64_t rateLimit);
    
    /**
     * Destructs this BandwidthThrottler.
@@ -133,21 +138,21 @@ public:
     * @return false if the thread this throttler is waiting on gets
     *         interrupted (with an Exception set), true otherwise.
     */
-   bool requestBytes(unsigned int count, int& permitted);
+   virtual bool requestBytes(unsigned int count, int& permitted);
    
    /**
     * Sets the rate limit in bytes/second. A value of 0 indicates no rate limit.
     * 
     * @param rateLimit the bytes/second rate limit to use.
     */
-   void setRateLimit(unsigned long long rateLimit);
+   virtual void setRateLimit(uint64_t rateLimit);
    
    /**
     * Gets the rate limit in bytes/second. A value of 0 indicates no rate limit.
     * 
     * @return the rate limit in bytes/second.
     */
-   unsigned long long getRateLimit();
+   virtual uint64_t getRateLimit();
 };
 
 } // end namespace net

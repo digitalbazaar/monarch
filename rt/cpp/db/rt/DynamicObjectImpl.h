@@ -4,7 +4,7 @@
 #ifndef db_rt_DynamicObjectImpl_H
 #define db_rt_DynamicObjectImpl_H
 
-#include "db/rt/Object.h"
+#include "db/rt/ExclusiveLock.h"
 
 #include <map>
 #include <vector>
@@ -32,7 +32,7 @@ enum DynamicObjectType
  * 
  * @author Dave Longley
  */
-class DynamicObjectImpl : public virtual Object
+class DynamicObjectImpl : public virtual ExclusiveLock
 {
 public:
    /**

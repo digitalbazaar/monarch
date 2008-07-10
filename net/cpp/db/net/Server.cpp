@@ -77,12 +77,12 @@ bool Server::addConnectionService(
 {
    bool rval = false;
    
-   lock();
+   mLock.lock();
    {
       // add ConnectionService
       rval = addPortService(new ConnectionService(this, a, s, p));
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
@@ -91,12 +91,12 @@ bool Server::addDatagramService(InternetAddress* a, DatagramServicer* s)
 {
    bool rval = false;
    
-   lock();
+   mLock.lock();
    {
       // add DatagramService
       rval = addPortService(new DatagramService(this, a, s));
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
@@ -105,7 +105,7 @@ bool Server::start()
 {
    bool rval = true;
    
-   lock();
+   mLock.lock();
    {
       if(!isRunning())
       {
@@ -120,14 +120,14 @@ bool Server::start()
          }
       }
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
 
 void Server::stop()
 {
-   lock();
+   mLock.lock();
    {
       if(isRunning())
       {
@@ -156,7 +156,7 @@ void Server::stop()
          mRunning = false;
       }
    }
-   unlock();
+   mLock.unlock();
 }
 
 inline bool Server::isRunning()

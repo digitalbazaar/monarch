@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_util_Crc16_H
 #define db_util_Crc16_H
 
 #include "db/util/HashAlgorithm.h"
-#include "db/rt/Object.h"
 
 namespace db
 {
@@ -383,7 +382,7 @@ namespace util
  * 
  * @author Dave Longley
  */
-class Crc16 : public virtual db::rt::Object, public HashAlgorithm
+class Crc16 : public HashAlgorithm
 {
 protected:
    /**

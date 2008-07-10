@@ -46,7 +46,7 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  * 
  * @author David I. Lehn
  */
-class ConfigManager : public virtual db::rt::Object
+class ConfigManager : public virtual db::rt::ExclusiveLock
 {
 public:
    /**

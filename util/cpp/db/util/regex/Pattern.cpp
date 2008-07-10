@@ -1,11 +1,9 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/util/regex/Pattern.h"
-#include "db/util/regex/InvalidRegexException.h"
 
-#include <string>
-#include <cstring>
+#include "db/rt/Exception.h"
 
 using namespace std;
 using namespace db::rt;
@@ -21,7 +19,7 @@ Pattern::~Pattern()
    regfree(&getStorage());
 }
 
-regex_t& Pattern::getStorage()
+inline regex_t& Pattern::getStorage()
 {
    return mStorage;
 }
@@ -77,13 +75,13 @@ Pattern* Pattern::compile(const char* regex, bool matchCase, bool subMatches)
       
       // create message for exception
       string message = "Invalid regular expression! ";
-      message += str;
+      message.append(str);
       
       // delete pattern upon compilation failure
       delete p;
       p = NULL;
       
-      ExceptionRef e = new InvalidRegexException(message.c_str());
+      ExceptionRef e = new Exception(message.c_str(), "db.util.InvalidRegex");
       Exception::setLast(e, false);
    }
    

@@ -6,6 +6,8 @@
 
 #include "db/rt/Collectable.h"
 #include <stddef.h>
+#include <string>
+#include <cstring>
 
 namespace db
 {

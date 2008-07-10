@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_modest_ModuleLibrary_H
 #define db_modest_ModuleLibrary_H
 
-#include "db/rt/Object.h"
 #include "db/rt/Exception.h"
 #include "db/modest/ModuleLoader.h"
 
@@ -36,7 +35,7 @@ class Kernel;
  * 
  * @author Dave Longley
  */
-class ModuleLibrary : public virtual db::rt::Object
+class ModuleLibrary
 {
 protected:
    /**
@@ -96,6 +95,11 @@ protected:
     */
    typedef std::list<const ModuleId*> ModuleList;
    ModuleList mLoadOrder;
+   
+   /**
+    * A lock for synchronously loading/unloading modules.
+    */
+   db::rt::ExclusiveLock mLoadLock;
    
    /**
     * Finds a loaded Module by its ID.

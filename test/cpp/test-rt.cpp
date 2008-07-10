@@ -5,7 +5,7 @@
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
-#include "db/rt/Object.h"
+#include "db/rt/ExclusiveLock.h"
 #include "db/rt/Runnable.h"
 #include "db/rt/Thread.h"
 #include "db/rt/Semaphore.h"
@@ -24,18 +24,18 @@ void runTimeTest(TestRunner& tr)
 {
    tr.test("Time");
    
-   unsigned long long start = System::getCurrentMilliseconds();
+   uint64_t start = System::getCurrentMilliseconds();
    
    cout << "Time start=" << start << endl;
    
-   unsigned long long end = System::getCurrentMilliseconds();
+   uint64_t end = System::getCurrentMilliseconds();
    
    cout << "Time end=" << end << endl;
    
    tr.pass();
 }
 
-class TestRunnable : public virtual Object, public Runnable
+class TestRunnable : public virtual ExclusiveLock, public Runnable
 {
 public:
    bool mustWait;
@@ -576,7 +576,7 @@ void runDynoClearTest(TestRunner& tr)
    assert(d->getType() == Int64);
    assert(d->getInt64() == 0);
    
-   d = (unsigned long long)1;
+   d = (uint64_t)1;
    d->clear();
    assert(d->getType() == UInt64);
    assert(d->getUInt64() == 0);

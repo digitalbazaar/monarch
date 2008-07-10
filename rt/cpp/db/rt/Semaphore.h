@@ -4,7 +4,7 @@
 #ifndef db_rt_Semaphore_H
 #define db_rt_Semaphore_H
 
-#include "db/rt/Object.h"
+#include "db/rt/ExclusiveLock.h"
 #include <list>
 #include <map>
 
@@ -22,7 +22,7 @@ class Thread;
  * 
  * @author Dave Longley
  */
-class Semaphore : public virtual Object
+class Semaphore : public virtual ExclusiveLock
 {
 protected:
    /**

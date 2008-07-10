@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/OperationImpl.h"
+
 #include "db/modest/OperationDispatcher.h"
 
 using namespace db::modest;
@@ -225,7 +226,7 @@ void OperationImpl::addGuard(OperationGuardRef& g, bool front)
    }
 }
 
-OperationGuard* OperationImpl::getGuard()
+inline OperationGuard* OperationImpl::getGuard()
 {
    return mGuard.isNull() ? NULL : &(*mGuard);
 }
@@ -264,12 +265,12 @@ void OperationImpl::addStateMutator(StateMutatorRef& m, bool front)
    }
 }
 
-StateMutator* OperationImpl::getStateMutator()
+inline StateMutator* OperationImpl::getStateMutator()
 {
    return mMutator.isNull() ? NULL : &(*mMutator);
 }
 
-bool OperationImpl::interrupted()
+inline bool OperationImpl::interrupted()
 {
    return Thread::interrupted(false);
 }

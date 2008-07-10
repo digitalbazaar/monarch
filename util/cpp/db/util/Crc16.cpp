@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/util/Crc16.h"
 
@@ -52,7 +52,7 @@ bool Crc16::initializeTable(const unsigned int& key)
    return true;
 }
 
-void Crc16::reset()
+inline void Crc16::reset()
 {
    // reset crc value to 0
    mCrcValue = 0;

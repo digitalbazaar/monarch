@@ -9,7 +9,7 @@
 #include <utility>
 #include <list>
 
-#include "db/rt/Object.h"
+#include "db/rt/ExclusiveLock.h"
 #include "db/logging/Category.h"
 
 namespace db
@@ -24,7 +24,7 @@ namespace logging
  * @author David I. Lehn
  * @author Manu Sporny
  */
-class Logger : public virtual db::rt::Object
+class Logger : public virtual db::rt::ExclusiveLock
 {
 public:
    /**

@@ -419,7 +419,7 @@ void Thread::yield()
    sched_yield();
 }
 
-bool Thread::waitToEnter(Monitor* m, unsigned int timeout)
+bool Thread::waitToEnter(Monitor* m, uint32_t timeout)
 {
    bool rval = true;
    

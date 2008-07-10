@@ -7,9 +7,6 @@
 #include "db/modest/ModuleInterface.h"
 #include "db/rt/Exception.h"
 
-#include <string>
-#include <cstring>
-
 namespace db
 {
 namespace modest

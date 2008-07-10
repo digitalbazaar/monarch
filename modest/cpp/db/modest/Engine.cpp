@@ -33,34 +33,34 @@ void Engine::queue(Operation& op)
 
 void Engine::start()
 {
-   lock();
+   mLock.lock();
    {
       mOpDispatcher->startDispatching();
    }
-   unlock();
+   mLock.unlock();
 }
 
 void Engine::stop()
 {
-   lock();
+   mLock.lock();
    {
       mOpDispatcher->stopDispatching();
       mOpDispatcher->terminateRunningOperations();
    }
-   unlock();
+   mLock.unlock();
 }
 
-ImmutableState* Engine::getState()
+inline ImmutableState* Engine::getState()
 {
    return (ImmutableState*)mState;
 }
 
-ThreadPool* Engine::getThreadPool()
+inline ThreadPool* Engine::getThreadPool()
 {
    return mOpDispatcher->getThreadPool();
 }
 
-OperationDispatcher* Engine::getOperationDispatcher()
+inline OperationDispatcher* Engine::getOperationDispatcher()
 {
    return mOpDispatcher;
 }

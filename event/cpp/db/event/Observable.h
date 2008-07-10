@@ -49,7 +49,7 @@ namespace event
  * 
  * @author Dave Longley
  */
-class Observable : public virtual db::rt::Object, public db::rt::Runnable
+class Observable : public virtual db::rt::ExclusiveLock, public db::rt::Runnable
 {
 protected:
    /**
@@ -114,7 +114,7 @@ protected:
    /**
     * The dispatch lock used to check or set the dispatch condition.
     */
-   db::rt::Object mDispatchLock;
+   db::rt::ExclusiveLock mDispatchLock;
    
    /**
     * A recursive helper function for dispatching a single event to all

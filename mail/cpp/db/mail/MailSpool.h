@@ -23,7 +23,7 @@ protected:
    /**
     * A lock for modifying/reading from the spool.
     */
-   db::rt::Object mSpoolLock;
+   db::rt::ExclusiveLock mSpoolLock;
    
    /**
     * The index of the first valid mail in the spool.

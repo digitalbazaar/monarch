@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/util/RateAverager.h"
+
 #include "db/rt/System.h"
 
 #include <math.h>
@@ -9,7 +10,7 @@
 using namespace db::rt;
 using namespace db::util;
 
-RateAverager::RateAverager(unsigned long long windowLength)
+RateAverager::RateAverager(uint64_t windowLength)
 {
    reset();
    
@@ -42,17 +43,17 @@ void RateAverager::reset()
    mTotalItemCount = 0;
 }
 
-void RateAverager::setStartTime(unsigned long long time)
+inline void RateAverager::setStartTime(uint64_t time)
 {
    mStartTime = time;
 }
 
-void RateAverager::setStopTime(unsigned long long time)
+inline void RateAverager::setStopTime(uint64_t time)
 {
    mStopTime = time;
 }
 
-void RateAverager::setWindowStartTimes(unsigned long long time)
+void RateAverager::setWindowStartTimes(uint64_t time)
 {
    // set current window start time
    mCurrentWindow.setStartTime(time);
@@ -61,12 +62,12 @@ void RateAverager::setWindowStartTimes(unsigned long long time)
    mNextWindow.setStartTime(time + getHalfWindowLength());
 }
 
-unsigned long long RateAverager::getHalfWindowLength()
+uint64_t RateAverager::getHalfWindowLength()
 {
-   return (unsigned long long)roundl(getWindowLength() / 2.0);
+   return (uint64_t)roundl(getWindowLength() / 2.0);
 }
 
-void RateAverager::updateWindowLengths(unsigned long long length)
+void RateAverager::updateWindowLengths(uint64_t length)
 {
    // set the current window length, adjusting items
    mCurrentWindow.setLength(length, true);
@@ -92,9 +93,9 @@ void RateAverager::moveCurrentWindow()
       mCurrentWindow.getStartTime() + getHalfWindowLength());
 }
 
-void RateAverager::start(unsigned long long time)
+void RateAverager::start(uint64_t time)
 {
-   lock();
+   mLock.lock();
    {
       if(!isRunning())
       {
@@ -111,21 +112,21 @@ void RateAverager::start(unsigned long long time)
          setWindowStartTimes(time);
       }
    }
-   unlock();
+   mLock.unlock();
 }
 
 void RateAverager::stop()
 {
-   lock();
+   mLock.lock();
    {
       stop(getCurrentTime());
    }
-   unlock();
+   mLock.unlock();
 }
 
-void RateAverager::stop(unsigned long long time)
+void RateAverager::stop(uint64_t time)
 {
-   lock();
+   mLock.lock();
    {
       if(isRunning())
       {
@@ -136,68 +137,66 @@ void RateAverager::stop(unsigned long long time)
          setStopTime(time);
       }
    }
-   unlock();
+   mLock.unlock();
 }
 
 void RateAverager::restart()
 {
-   lock();
+   mLock.lock();
    {
       restart(getCurrentTime(), 0);
    }
-   unlock();
+   mLock.unlock();
 }
 
-void RateAverager::restart(
-   unsigned long long stopTime, unsigned long long startTime)
+void RateAverager::restart(uint64_t stopTime, uint64_t startTime)
 {
-   lock();
+   mLock.lock();
    {
       stop(stopTime);
       start(startTime);
    }
-   unlock();
+   mLock.unlock();
 }
 
 bool RateAverager::isRunning()
 {
    bool rval = false;
    
-   lock();
+   mLock.lock();
    {
       rval = mRunning;
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
 
-void RateAverager::addRate(unsigned long long count)
+void RateAverager::addRate(uint64_t count)
 {
-   lock();
+   mLock.lock();
    {
       addRate(count, System::getCurrentMilliseconds() - mLastAddTime);      
    }
-   unlock();
+   mLock.unlock();
 }
 
-void RateAverager::addRate(
-   unsigned long long count, unsigned long long interval)
+void RateAverager::addRate(uint64_t count, uint64_t interval)
 {
-   lock();
+   mLock.lock();
    {
       // increase the time passed
       mTimePassed += interval;
       
       // get the remaining time in the current window
-      unsigned long long remaining = mCurrentWindow.getRemainingTime();
+      uint64_t remaining = mCurrentWindow.getRemainingTime();
       
       // see if the interval can be added to the current window without
       // overflowing
       if(interval < remaining)
       {
          // get the overlap time between the current window and the next window
-         unsigned long long overlap =
+         uint64_t overlap =
             mCurrentWindow.getCurrentTime() + interval -
             mNextWindow.getCurrentTime();
          
@@ -205,8 +204,7 @@ void RateAverager::addRate(
          {
             // get the portion of the item count in the overlap
             double rate = TimeWindow::getItemsPerMillisecond(count, interval);
-            unsigned long long portion =
-               (unsigned long long)roundl(rate * overlap);
+            uint64_t portion = (uint64_t)roundl(rate * overlap);
             
             // increase the next window count and time
             mNextWindow.increaseItemCount(portion, overlap);
@@ -221,7 +219,7 @@ void RateAverager::addRate(
          
          // get the overflow of the interval that cannot be added to
          // the current window
-         unsigned long long overflow = interval - remaining;
+         uint64_t overflow = interval - remaining;
          
          // add the amount of time it takes to get the next window up to
          // the end of the current window
@@ -235,8 +233,7 @@ void RateAverager::addRate(
          {
             // get the portion of the item count in the overflow
             double rate = TimeWindow::getItemsPerMillisecond(count, interval);
-            unsigned long long portion =
-               (unsigned long long)roundl(rate * overflow);
+            uint64_t portion = (uint64_t)roundl(rate * overflow);
             
             // increase the next window count and time
             mNextWindow.increaseItemCount(portion, overflow);
@@ -252,18 +249,16 @@ void RateAverager::addRate(
             
             // set the current window start time to half of a window - 1
             // before the the current time
-            unsigned long long startTime =
-               getCurrentTime() - getHalfWindowLength() - 1;
+            uint64_t startTime = getCurrentTime() - getHalfWindowLength() - 1;
             setWindowStartTimes(startTime);
             
             // get the remainder of the interval that will be used
-            unsigned long long remainder =
+            uint64_t remainder =
                getCurrentTime() - mCurrentWindow.getStartTime();
             
             // add the portion of the item count to the current window
             double rate = TimeWindow::getItemsPerMillisecond(count, interval);
-            unsigned long long portion =
-               (unsigned long long)roundl(rate * remainder);
+            uint64_t portion = (uint64_t)roundl(rate * remainder);
             mCurrentWindow.increaseItemCount(portion, remainder);
          }
       }
@@ -274,37 +269,37 @@ void RateAverager::addRate(
       // update the last rate add time
       mLastAddTime = System::getCurrentMilliseconds();
    }
-   unlock();
+   mLock.unlock();
 }
 
-unsigned long long RateAverager::getStartTime()
+inline uint64_t RateAverager::getStartTime()
 {
    return mStartTime;
 }
 
-unsigned long long RateAverager::getStopTime()
+inline uint64_t RateAverager::getStopTime()
 {
    return mStopTime;
 }
 
-unsigned long long RateAverager::getCurrentTime()
+inline uint64_t RateAverager::getCurrentTime()
 {
-   unsigned long long rval = 0;
+   uint64_t rval = 0;
    
-   lock();
+   mLock.lock();
    {
       rval = getStartTime() + getTimePassed();
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
 
-unsigned long long RateAverager::getTimePassed()
+inline uint64_t RateAverager::getTimePassed()
 {
-   unsigned long long rval = 0;
+   uint64_t rval = 0;
    
-   lock();
+   mLock.lock();
    {
       if(isRunning())
       {
@@ -315,7 +310,7 @@ unsigned long long RateAverager::getTimePassed()
          rval = getStopTime() - getStartTime();
       }
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
@@ -324,7 +319,7 @@ double RateAverager::getCurrentRate()
 {
    double rval = 0.0;
    
-   lock();
+   mLock.lock();
    {
       // make sure that the current time is greater than 0
       if(getCurrentTime() > 0)
@@ -333,7 +328,7 @@ double RateAverager::getCurrentRate()
          rval = mCurrentWindow.getIncreaseRate();
       }
    }
-   unlock();
+   mLock.unlock();
    
    return rval;      
 }
@@ -342,7 +337,7 @@ double RateAverager::getTotalRate()
 {
    double rval = 0.0;
    
-   lock();
+   mLock.lock();
    {
       // make sure that the current time is greater than 0
       if(getCurrentTime() > 0)
@@ -351,19 +346,19 @@ double RateAverager::getTotalRate()
          rval = TimeWindow::getItemsPerSecond(mTotalItemCount, getTimePassed());
       }
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
 
-unsigned long long RateAverager::getTotalItemCount()
+inline uint64_t RateAverager::getTotalItemCount()
 {
    return mTotalItemCount;
 }
 
-void RateAverager::setWindowLength(unsigned long long length)
+void RateAverager::setWindowLength(uint64_t length)
 {
-   lock();
+   mLock.lock();
    {
       // the window length must be at least two because two windows that
       // are 1/2 of the window length apart are always stored -- and
@@ -373,27 +368,27 @@ void RateAverager::setWindowLength(unsigned long long length)
       // update window lengths
       updateWindowLengths(length);
    }
-   unlock();
+   mLock.unlock();
 }
 
-unsigned long long RateAverager::getWindowLength()
+inline uint64_t RateAverager::getWindowLength()
 {
    return mCurrentWindow.getLength();
 }
 
-unsigned long long RateAverager::getETA(unsigned long long count)
+uint64_t RateAverager::getETA(uint64_t count)
 {
-   unsigned long long rval = 0;
+   uint64_t rval = 0;
    
-   lock();
+   mLock.lock();
    {
       if(count > 0)
       {
          // multiply the current rate by the count
-         rval = (unsigned long long)roundl(count / getCurrentRate());
+         rval = (uint64_t)roundl(count / getCurrentRate());
       }
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }

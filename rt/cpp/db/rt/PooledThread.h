@@ -38,13 +38,13 @@ protected:
    /**
     * A lock for changing this thread's job/idle status.
     */
-   Object mJobLock;
+   ExclusiveLock mJobLock;
    
    /**
     * The amount of idle time (in milliseconds) that must pass before this
     * thread automatically expires.
     */
-   unsigned long long mExpireTime;
+   uint32_t mExpireTime;
    
    /**
     * True if this thread has expired, false if not.
@@ -67,7 +67,7 @@ public:
     *                   while this thread is idle in order for it to expire --
     *                   if 0 is passed then the thread will never expire.
     */
-   PooledThread(ThreadPool* pool, unsigned long long expireTime = 0);
+   PooledThread(ThreadPool* pool, uint32_t expireTime = 0);
    
    /**
     * Destructs this PooledThread.
@@ -93,7 +93,7 @@ public:
     * 
     * @return the lock for changing this thread's job/idle status.
     */
-   virtual Object* getJobLock();
+   virtual ExclusiveLock* getJobLock();
    
    /**
     * Runs this thread.
@@ -107,14 +107,14 @@ public:
     *                   is idle in order for it to expire -- if 0 is passed
     *                   then this thread will never expire.
     */
-   virtual void setExpireTime(unsigned long long expireTime);
+   virtual void setExpireTime(uint32_t expireTime);
    
    /**
     * Gets the expire time for this thread.
     * 
     * @return the expire time for this thread.
     */
-   virtual unsigned long long getExpireTime();
+   virtual uint32_t getExpireTime();
    
    /**
     * Returns true if this thread is expired, false if not.

@@ -48,12 +48,12 @@ protected:
    /**
     * A lock for modifying the unexpired thread lists.
     */
-   Object mListLock;
+   ExclusiveLock mListLock;
    
    /**
     * A lock for running new jobs or terminating existing ones.
     */
-   Object mJobLock;
+   ExclusiveLock mJobLock;
    
    /**
     * The stack size for threads (in bytes).
@@ -63,7 +63,7 @@ protected:
    /**
     * The expire time for threads in milliseconds).
     */
-   unsigned long long mThreadExpireTime;
+   uint32_t mThreadExpireTime;
    
    /**
     * Gets an idle thread. This method will also clean up any extra
@@ -189,14 +189,14 @@ public:
     *                   are idle in order for them to expire -- if 0 is passed
     *                   then threads will never expire.
     */
-   virtual void setThreadExpireTime(unsigned long long expireTime);
+   virtual void setThreadExpireTime(uint32_t expireTime);
    
    /**
     * Gets the expire time for all threads.
     * 
     * @return the expire time for all threads.
     */
-   virtual unsigned long long getThreadExpireTime();
+   virtual uint32_t getThreadExpireTime();
    
    /**
     * Gets the current number of threads in the pool.

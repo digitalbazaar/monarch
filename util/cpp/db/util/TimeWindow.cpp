@@ -9,7 +9,7 @@
 using namespace db::rt;
 using namespace db::util;
 
-TimeWindow::TimeWindow(unsigned long long length)
+TimeWindow::TimeWindow(uint64_t length)
 {
    // set the window length and reset
    setLength(length);
@@ -20,21 +20,20 @@ TimeWindow::~TimeWindow()
 {
 }
 
-void TimeWindow::adjustItemCount(unsigned long long timeChange)
+void TimeWindow::adjustItemCount(uint64_t timeChange)
 {
-   lock();
+   mLock.lock();
    {
       // multiply the current rate by the time change and
       // increase the item count accordingly
-      increaseItemCount((unsigned long long)
-         roundl(getIncreaseRate() * timeChange));
+      increaseItemCount((uint64_t)roundl(getIncreaseRate() * timeChange));
    }
-   unlock();
+   mLock.unlock();
 }
    
 void TimeWindow::reset()
 {
-   lock();
+   mLock.lock();
    {
       mStartTime = 0;
       mItemCount = 0;
@@ -43,12 +42,12 @@ void TimeWindow::reset()
       // reset the last time that time was added
       mLastAddTime = System::getCurrentMilliseconds();
    }
-   unlock();
+   mLock.unlock();
 }
 
 void TimeWindow::setEqualTo(TimeWindow& window)
 {
-   lock();
+   mLock.lock();
    {
       mLength = window.getLength();
       mStartTime = window.getStartTime();
@@ -56,19 +55,19 @@ void TimeWindow::setEqualTo(TimeWindow& window)
       mTimePassed = window.getTimePassed();
       mLastAddTime = window.mLastAddTime;
    }
-   unlock();
+   mLock.unlock();
 }
 
 double TimeWindow::getIncreaseRateInItemsPerMillisecond()
 {
    double rval = 0.0;
    
-   lock();
+   mLock.lock();
    {
       // get the rate in items per millisecond
       rval = getItemsPerMillisecond(getItemCount(), getTimePassed());
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
@@ -77,30 +76,30 @@ double TimeWindow::getIncreaseRate()
 {
    double rval = 0.0;
    
-   lock();
+   mLock.lock();
    {
       // get the rate in items per second
       rval = getItemsPerSecond(getItemCount(), getTimePassed());
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
 
-void TimeWindow::setLength(unsigned long long length)
+inline void TimeWindow::setLength(uint64_t length)
 {
    setLength(length, false);
 }
 
-void TimeWindow::setLength(unsigned long long length, bool adjust)
+void TimeWindow::setLength(uint64_t length, bool adjust)
 {
-   lock();
+   mLock.lock();
    {
       // if adjusting the item count
       if(adjust)
       {
          // get the time change
-         long timeChange = length - mLength;
+         uint64_t timeChange = length - mLength;
          
          // adjust the item count
          adjustItemCount(timeChange);
@@ -109,28 +108,28 @@ void TimeWindow::setLength(unsigned long long length, bool adjust)
       // set new length
       mLength = length;
    }
-   unlock();
+   mLock.unlock();
 }
 
-unsigned long long TimeWindow::getLength()
+inline uint64_t TimeWindow::getLength()
 {
    return mLength;
 }
 
-void TimeWindow::setStartTime(unsigned long long time)
+inline void TimeWindow::setStartTime(uint64_t time)
 {
    setStartTime(time, false);
 }
 
-void TimeWindow::setStartTime(unsigned long long time, bool adjust)
+void TimeWindow::setStartTime(uint64_t time, bool adjust)
 {
-   lock();
+   mLock.lock();
    {
       // if adjusting the item count
       if(adjust)
       {
          // get the time change
-         long timeChange = time - mStartTime;
+         uint64_t timeChange = time - mStartTime;
          
          // adjust the item count
          adjustItemCount(timeChange);
@@ -139,17 +138,17 @@ void TimeWindow::setStartTime(unsigned long long time, bool adjust)
       // set new start time
       mStartTime = time;
    }
-   unlock();
+   mLock.unlock();
 }
 
-unsigned long long TimeWindow::getStartTime()
+inline uint64_t TimeWindow::getStartTime()
 {
    return mStartTime;
 }
 
-unsigned long long TimeWindow::getEndTime()
+uint64_t TimeWindow::getEndTime()
 {
-   unsigned long long rval = 0;
+   uint64_t rval = 0;
    
    if(getLength() > 0)
    {
@@ -159,37 +158,37 @@ unsigned long long TimeWindow::getEndTime()
    return rval;
 }
 
-unsigned long long TimeWindow::getCurrentTime()
+uint64_t TimeWindow::getCurrentTime()
 {
-   unsigned long long rval = 0;
+   uint64_t rval = 0;
    
-   lock();
+   mLock.lock();
    {
       rval = getStartTime() + getTimePassed();
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
 
-unsigned long long TimeWindow::getRemainingTime()
+uint64_t TimeWindow::getRemainingTime()
 {
-   unsigned long long rval = 0;
+   uint64_t rval = 0;
    
-   lock();
+   mLock.lock();
    {
       rval = getEndTime() - getCurrentTime();
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
 
-bool TimeWindow::isTimeInWindow(unsigned long long time)
+bool TimeWindow::isTimeInWindow(uint64_t time)
 {
    bool rval = false;
    
-   lock();
+   mLock.lock();
    {
       // make sure time is passed start time
       if(time >= getStartTime())
@@ -202,34 +201,33 @@ bool TimeWindow::isTimeInWindow(unsigned long long time)
          }
       }
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
 
-void TimeWindow::increaseItemCount(unsigned long long increase)
+void TimeWindow::increaseItemCount(uint64_t increase)
 {
-   lock();
+   mLock.lock();
    {
       mItemCount += increase;
    }
-   unlock();
+   mLock.unlock();
 }
 
-void TimeWindow::increaseItemCount(
-   unsigned long long increase, unsigned long long interval)
+void TimeWindow::increaseItemCount(uint64_t increase, uint64_t interval)
 {
-   lock();
+   mLock.lock();
    {
       increaseItemCount(increase);
       increaseTimePassed(interval);
    }
-   unlock();
+   mLock.unlock();
 }
 
-void TimeWindow::increaseTimePassed(unsigned long long time)
+void TimeWindow::increaseTimePassed(uint64_t time)
 {
-   lock();
+   mLock.lock();
    {
       mTimePassed += time;
       
@@ -243,36 +241,36 @@ void TimeWindow::increaseTimePassed(unsigned long long time)
       // update last time that time was added
       mLastAddTime = System::getCurrentMilliseconds();
    }
-   unlock();
+   mLock.unlock();
 }
 
 void TimeWindow::increaseTimePassedWithCurrentTime()
 {
-   lock();
+   mLock.lock();
    {
       // add the time since the last add time
       increaseTimePassed(System::getCurrentMilliseconds() - mLastAddTime);
    }
-   unlock();
+   mLock.unlock();
 }
 
-unsigned long long TimeWindow::getItemCount()
+inline uint64_t TimeWindow::getItemCount()
 {
    return mItemCount;
 }
 
-unsigned long long TimeWindow::getTimePassed()
+inline uint64_t TimeWindow::getTimePassed()
 {
    return mTimePassed;
 }
 
-double TimeWindow::getItemsPerMillisecond(double items, double interval)
+inline double TimeWindow::getItemsPerMillisecond(double items, double interval)
 {
    // items / millisecond -- force interval to 1
    return items / (1.0 > interval ? 1.0 : interval);
 }
 
-double TimeWindow::getItemsPerSecond(double items, double interval)
+inline double TimeWindow::getItemsPerSecond(double items, double interval)
 {
    // items / millisecond * 1000 = items / second
    return getItemsPerMillisecond(items, interval) * 1000.0;

@@ -72,11 +72,11 @@ void Monitor::exit()
    }
 }
 
-void Monitor::wait(unsigned long timeout)
+void Monitor::wait(uint32_t timeout)
 {
    // store old thread and lock count
    pthread_t threadId = mThreadId;
-   unsigned int lockCount = mLockCount;
+   uint32_t lockCount = mLockCount;
    
    // reset thread and lock count
    mThreadId = 0;
@@ -91,8 +91,8 @@ void Monitor::wait(unsigned long timeout)
    {
       // determine seconds and nanoseconds (timeout is in milliseconds and
       // 1000 milliseconds = 1 second = 1000000 nanoseconds
-      unsigned long secs = timeout / 1000UL;
-      unsigned long nsecs = timeout % 1000UL * 1000000UL;
+      uint32_t secs = timeout / 1000UL;
+      uint32_t nsecs = timeout % 1000UL * 1000000UL;
       
       struct timeval now;
       struct timespec to;
@@ -103,11 +103,7 @@ void Monitor::wait(unsigned long timeout)
       to.tv_nsec = now.tv_usec * 1000UL + nsecs;
       
       // do timed wait
-      int rc = pthread_cond_timedwait(&mWaitCondition, &mMutex, &to);
-      if(rc == ETIMEDOUT)
-      {
-         // timeout reached
-      }
+      pthread_cond_timedwait(&mWaitCondition, &mMutex, &to);
    }
    
    // restore old thread and lock count

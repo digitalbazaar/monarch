@@ -25,7 +25,7 @@ class App;
  * 
  * Author: David I. Lehn
  */
-class AppDelegate : public virtual db::rt::Object
+class AppDelegate : public virtual db::rt::ExclusiveLock
 {
 public:
    /**
@@ -172,7 +172,6 @@ public:
  * Author: David I. Lehn
  */
 class App :
-   public virtual db::rt::Object,
    public db::rt::Runnable,
    public AppDelegate
 {

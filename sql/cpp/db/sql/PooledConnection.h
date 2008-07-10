@@ -43,7 +43,7 @@ protected:
    /**
     * Stores the last time in milliseconds that the connection went idle.
     */
-   unsigned long long mIdleTime;
+   uint64_t mIdleTime;
    
    /**
     * Closes this pooled connection.
@@ -86,7 +86,7 @@ public:
     * 
     * @param idleTime the time in milliseconds.
     */
-   virtual void setIdleTime(unsigned long long idleTime);
+   virtual void setIdleTime(uint64_t idleTime);
    
    /**
     * Gets the last time the connection went idle. Idle time of 0 indicates
@@ -95,7 +95,7 @@ public:
     * @return the time in milliseconds that connection went idle,
     *         0 if connection is active.
     */
-   virtual unsigned long long getIdleTime();
+   virtual uint64_t getIdleTime();
    
    /**
     * Connects to the database specified by the given url.

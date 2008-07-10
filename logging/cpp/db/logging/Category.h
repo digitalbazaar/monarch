@@ -8,7 +8,6 @@
 #include <utility>
 #include <list>
 
-#include "db/rt/Object.h"
 #include "db/util/Macros.h"
 
 // Forward declaration

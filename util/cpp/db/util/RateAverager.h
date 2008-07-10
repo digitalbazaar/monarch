@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_util_RateAverager_H
 #define db_util_RateAverager_H
@@ -34,7 +34,7 @@ namespace util
  * 
  * @author Dave Longley
  */
-class RateAverager : public virtual db::rt::Object
+class RateAverager
 {
 protected:
    /**
@@ -45,18 +45,18 @@ protected:
    /**
     * The time (in milliseconds) at which this RateAverager started.
     */
-   unsigned long long mStartTime;
+   uint64_t mStartTime;
    
    /**
     * The time (in milliseconds) at which this RateAverager stopped.
     */
-   unsigned long long mStopTime;
+   uint64_t mStopTime;
    
    /**
     * The time (in milliseconds) that has passed since this RateAverager
     * started.
     */
-   unsigned long long mTimePassed;
+   uint64_t mTimePassed;
    
    /**
     * The last time that time (in milliseconds) that a rate was added to this
@@ -66,7 +66,7 @@ protected:
     * 
     * Uses absolute time only.
     */
-   unsigned long long mLastAddTime;
+   uint64_t mLastAddTime;
    
    /**
     * The current time window.
@@ -81,7 +81,12 @@ protected:
    /**
     * The total item count since the RateAverager started.
     */
-   unsigned long long mTotalItemCount;
+   uint64_t mTotalItemCount;
+   
+   /**
+    * A lock for synchronizing this rate averager.
+    */
+   db::rt::ExclusiveLock mLock;
    
    /**
     * Resets the calculated data and times for this RateAverager.
@@ -95,7 +100,7 @@ protected:
     * 
     * @param time the time (in milliseconds) at which this RateAverager started.
     */
-   virtual void setStartTime(unsigned long long time);
+   virtual void setStartTime(uint64_t time);
    
    /**
     * Sets the time (in milliseconds) at which this RateAverager stopped.
@@ -104,28 +109,28 @@ protected:
     * 
     * @param time the time (in milliseconds) at which this RateAverager stopped.
     */
-   virtual void setStopTime(unsigned long long time);
+   virtual void setStopTime(uint64_t time);
    
    /**
     * Updates the current and next windows with a new start time.
     * 
     * @param time the new start time for the current window.
     */
-   virtual void setWindowStartTimes(unsigned long long time);
+   virtual void setWindowStartTimes(uint64_t time);
    
    /**
     * Gets half of the current window length. Rounds up.
     * 
     * @return half of the current window length, rounded up.
     */
-   virtual unsigned long long getHalfWindowLength();
+   virtual uint64_t getHalfWindowLength();
    
    /**
     * Updates the current and next windows with a new length.
     * 
     * @param length the new window length.
     */
-   virtual void updateWindowLengths(unsigned long long length);
+   virtual void updateWindowLengths(uint64_t length);
    
    /**
     * Moves the current window to the next window and resets the next
@@ -143,7 +148,7 @@ public:
     * 
     * @param windowLength the length of the window to use in milliseconds.
     */
-   RateAverager(unsigned long long windowLength = 1000);
+   RateAverager(uint64_t windowLength = 1000);
    
    /**
     * Destructs this RateAverager.
@@ -157,7 +162,7 @@ public:
     * @param time the start time to use (in milliseconds) -- can be absolute
     *             or relative.
     */
-   virtual void start(unsigned long long time = 0);
+   virtual void start(uint64_t time = 0);
    
    /**
     * Stops this RateAverager if it is running. The calculated data for this
@@ -176,7 +181,7 @@ public:
     * @param time the stop time to use (in milliseconds) -- can be absolute
     *             or relative.
     */
-   virtual void stop(unsigned long long time);
+   virtual void stop(uint64_t time);
    
    /**
     * Restarts this rate averager. Calls stop() and then start().
@@ -193,8 +198,7 @@ public:
     * @param startTime the start time to use (in milliseconds) -- can be
     *                  absolute or relative.
     */
-   virtual void restart(
-      unsigned long long stopTime, unsigned long long startTime);
+   virtual void restart(uint64_t stopTime, uint64_t startTime);
    
    /**
     * Gets whether or not this RateAverager is running.
@@ -214,7 +218,7 @@ public:
     * 
     * @param count the amount of items to increase the item count by.
     */
-   virtual void addRate(unsigned long long count);   
+   virtual void addRate(uint64_t count);   
    
    /**
     * Adds a new rate to this RateAverager. Increases the item count and
@@ -224,8 +228,7 @@ public:
     * @param interval the interval overwhich the item count increased
     *                 (in milliseconds).
     */
-   virtual void addRate(
-      unsigned long long count, unsigned long long interval);
+   virtual void addRate(uint64_t count, uint64_t interval);
    
    /**
     * Gets the time (in milliseconds) at which this RateAverager started. If
@@ -233,7 +236,7 @@ public:
     * 
     * @return the time (in milliseconds) at which this RateAverager started.
     */
-   virtual unsigned long long getStartTime();
+   virtual uint64_t getStartTime();
    
    /**
     * Gets the time (in milliseconds) at which this RateAverager stopped. If
@@ -241,7 +244,7 @@ public:
     * 
     * @return the time (in milliseconds) at which this RateAverager stopped.
     */
-   virtual unsigned long long getStopTime();
+   virtual uint64_t getStopTime();
    
    /**
     * Gets the current time in this RateAverager. The current time in this
@@ -249,7 +252,7 @@ public:
     * 
     * @return the current time in this RateAverager.
     */
-   virtual unsigned long long getCurrentTime();
+   virtual uint64_t getCurrentTime();
    
    /**
     * Gets the amount of time (in milliseconds) that has passed since
@@ -266,7 +269,7 @@ public:
     * @return the amount of time (in milliseconds) that has passed since this
     *         RateAverager started.
     */
-   virtual unsigned long long getTimePassed();
+   virtual uint64_t getTimePassed();
    
    /**
     * Gets the current rate in items per second. The current rate is the
@@ -297,7 +300,7 @@ public:
     * 
     * @return the total item count since the RateAverager started.
     */
-   virtual unsigned long long getTotalItemCount();
+   virtual uint64_t getTotalItemCount();
    
    /**
     * Sets the window length in milliseconds. The larger the window, the
@@ -307,7 +310,7 @@ public:
     * 
     * @param length the length of the window in milliseconds >= 2.
     */
-   virtual void setWindowLength(unsigned long long length);
+   virtual void setWindowLength(uint64_t length);
    
    /**
     * Gets the window length in milliseconds. The larger the window, the
@@ -317,7 +320,7 @@ public:
     * 
     * @return the length of the window in milliseconds >= 2.
     */
-   virtual unsigned long long getWindowLength();
+   virtual uint64_t getWindowLength();
    
    /**
     * Gets an ETA (in seconds) for the given number of items.
@@ -327,7 +330,7 @@ public:
     * @return the amount of time (in seconds) until the passed number of
     *         items is reached according to the current rate. 
     */
-   virtual unsigned long long getETA(unsigned long long count);
+   virtual uint64_t getETA(uint64_t count);
 };
 
 } // end namespace util

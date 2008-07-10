@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/OperationList.h"
 
@@ -22,30 +22,30 @@ Operation& OperationList::operator[](int index)
 {
    Operation* op = NULL;
    
-   lock();
+   mLock.lock();
    {
       // assumes index is not invalid
       list<Operation>::iterator i = mOperations.begin();
       for(int count = 0; count < index; i++, count++);
       op = &(*i);
    }
-   unlock();
+   mLock.unlock();
    
    return *op;
 }
 
 void OperationList::add(Operation& op)
 {
-   lock();
+   mLock.lock();
    {
       mOperations.push_back(op);
    }
-   unlock();
+   mLock.unlock();
 }
 
 void OperationList::remove(Operation& op)
 {
-   lock();
+   mLock.lock();
    {
       list<Operation>::iterator i =
          find(mOperations.begin(), mOperations.end(), op);
@@ -54,12 +54,12 @@ void OperationList::remove(Operation& op)
          mOperations.erase(i);
       }
    }
-   unlock();
+   mLock.unlock();
 }
 
 void OperationList::queue(OperationRunner* opRunner)
 {
-   lock();
+   mLock.lock();
    {
       for(list<Operation>::iterator i = mOperations.begin();
           i != mOperations.end(); i++)
@@ -67,12 +67,12 @@ void OperationList::queue(OperationRunner* opRunner)
          opRunner->runOperation(*i);
       }
    }
-   unlock();
+   mLock.unlock();
 }
 
 void OperationList::interrupt()
 {
-   lock();
+   mLock.lock();
    {
       for(list<Operation>::iterator i = mOperations.begin();
           i != mOperations.end(); i++)
@@ -80,14 +80,14 @@ void OperationList::interrupt()
          (*i)->interrupt();
       }
    }
-   unlock();
+   mLock.unlock();
 }
 
 bool OperationList::waitFor(bool interruptible)
 {
    bool rval = true;
    
-   lock();
+   mLock.lock();
    {
       for(list<Operation>::iterator i = mOperations.begin();
           i != mOperations.end(); i++)
@@ -101,14 +101,14 @@ bool OperationList::waitFor(bool interruptible)
          }
       }
    }
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
 
 void OperationList::prune()
 {
-   lock();
+   mLock.lock();
    {
       for(list<Operation>::iterator i = mOperations.begin();
           i != mOperations.end();)
@@ -124,31 +124,31 @@ void OperationList::prune()
          }
       }
    }
-   unlock();
+   mLock.unlock();
 }
 
 void OperationList::terminate()
 {
-   lock();
+   mLock.lock();
    {
       interrupt();
       waitFor(false);
       prune();
    }
-   unlock();
+   mLock.unlock();
 }
 
-bool OperationList::isEmpty()
+inline bool OperationList::isEmpty()
 {
    return mOperations.empty();
 }
 
-void OperationList::clear()
+inline void OperationList::clear()
 {
    mOperations.clear();
 }
 
-bool OperationList::length()
+inline bool OperationList::length()
 {
    return mOperations.size();
 }

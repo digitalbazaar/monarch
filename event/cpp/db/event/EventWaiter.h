@@ -24,7 +24,7 @@ namespace event
  * @author David I. Lehn
  */
 class EventWaiter :
-   virtual public db::rt::Object,
+   virtual public db::rt::ExclusiveLock,
    public Observer
 {
 protected:

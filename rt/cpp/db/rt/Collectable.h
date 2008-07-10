@@ -4,7 +4,7 @@
 #ifndef db_rt_Collectable_H
 #define db_rt_Collectable_H
 
-#include "db/rt/Object.h"
+#include "db/rt/ExclusiveLock.h"
 
 namespace db
 {
@@ -44,7 +44,7 @@ protected:
       /**
        * A lock for deleting the HeapObject to ensure it is thread safe.
        */
-      Object deleteLock;
+      ExclusiveLock deleteLock;
    };
    
    /**

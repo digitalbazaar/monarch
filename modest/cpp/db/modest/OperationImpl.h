@@ -29,7 +29,9 @@ namespace modest
  * 
  * @author Dave Longley
  */
-class OperationImpl : public virtual db::rt::Object, protected db::rt::Runnable
+class OperationImpl :
+public virtual db::rt::ExclusiveLock,
+protected db::rt::Runnable
 {
 protected:
    /**

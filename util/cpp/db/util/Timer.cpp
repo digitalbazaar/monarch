@@ -18,17 +18,17 @@ void Timer::stop()
    // FIXME: store elasped time
 }
 
-uint64_t Timer::startTiming()
+inline uint64_t Timer::startTiming()
 {
    return System::getCurrentMilliseconds();
 }
 
-uint64_t Timer::getMilliseconds(uint64_t startTime)
+inline uint64_t Timer::getMilliseconds(uint64_t startTime)
 {
    return System::getCurrentMilliseconds() - startTime;
 }
 
-double Timer::getSeconds(uint64_t startTime)
+inline double Timer::getSeconds(uint64_t startTime)
 {
    return (System::getCurrentMilliseconds() - startTime) / 1000.;
 }

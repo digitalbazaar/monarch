@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_util_TimeWindow_H
 #define db_util_TimeWindow_H
 
-#include "db/rt/Object.h"
+#include "db/rt/ExclusiveLock.h"
 
 namespace db
 {
@@ -20,28 +20,28 @@ namespace util
  * 
  * @author Dave Longley
  */
-class TimeWindow : public virtual db::rt::Object
+class TimeWindow
 {
 protected:
    /**
     * The length of this window in milliseconds.
     */
-   unsigned long long mLength;
+   uint64_t mLength;
    
    /**
     * The time at which this window started in milliseconds.
     */
-   unsigned long long mStartTime;
+   uint64_t mStartTime;
    
    /**
     * The number of items in this window.
     */
-   unsigned long long mItemCount;
+   uint64_t mItemCount;
    
    /**
     * The amount of time (in milliseconds) that has passed in this window.
     */
-   unsigned long long mTimePassed;
+   uint64_t mTimePassed;
    
    /**
     * The last time that time (in milliseconds) that time was added to this
@@ -51,7 +51,12 @@ protected:
     * 
     * Uses absolute time only.
     */
-   unsigned long long mLastAddTime;
+   uint64_t mLastAddTime;
+   
+   /**
+    * A lock for synchronizing the time window.
+    */
+   db::rt::ExclusiveLock mLock;
    
 public:
    /**
@@ -61,7 +66,7 @@ public:
     * 
     * @param length the maximum length of this time window (in milliseconds).
     */
-   TimeWindow(unsigned long long length = 0);
+   TimeWindow(uint64_t length = 0);
    
    /**
     * Destructs this TimeWindow.
@@ -76,7 +81,7 @@ public:
     * 
     * @param timeChange the change in window time.
     */
-   virtual void adjustItemCount(unsigned long long timeChange);
+   virtual void adjustItemCount(uint64_t timeChange);
    
    /**
     * Resets this window. This method will restore the start time, item
@@ -120,7 +125,7 @@ public:
     * 
     * @param length the length of this window in milliseconds.
     */
-   virtual void setLength(unsigned long long length);
+   virtual void setLength(uint64_t length);
    
    /**
     * Sets this window length in milliseconds. A value of 0 indicates
@@ -134,7 +139,7 @@ public:
     * @param adjust true to adjust the item count proportionately, false
     *               to leave the item count alone.
     */
-   virtual void setLength(unsigned long long length, bool adjust);
+   virtual void setLength(uint64_t length, bool adjust);
    
    /**
     * Gets this window length in milliseconds. A value of 0 indicates
@@ -142,7 +147,7 @@ public:
     * 
     * @return the length of this window in milliseconds.
     */
-   virtual unsigned long long getLength();
+   virtual uint64_t getLength();
    
    /**
     * Sets the time at which this window started in milliseconds. The
@@ -150,7 +155,7 @@ public:
     * 
     * @param time the time at which this window started in milliseconds.
     */
-   virtual void setStartTime(unsigned long long time);
+   virtual void setStartTime(uint64_t time);
    
    /**
     * Sets the time at which this window started in milliseconds.
@@ -163,14 +168,14 @@ public:
     * @param adjust true to adjust the item count proportionately, false
     *               to leave the item count alone.
     */
-   virtual void setStartTime(unsigned long long time, bool adjust);
+   virtual void setStartTime(uint64_t time, bool adjust);
    
    /**
     * Gets the time at which this window started in milliseconds.
     * 
     * @return the time at which this window started in milliseconds.
     */
-   virtual unsigned long long getStartTime();
+   virtual uint64_t getStartTime();
    
    /**
     * Gets the time (in milliseconds) at which this window ends. This
@@ -178,7 +183,7 @@ public:
     * 
     * @return the time at which this window ends (in milliseconds).
     */
-   virtual unsigned long long getEndTime();
+   virtual uint64_t getEndTime();
    
    /**
     * Gets the current time (in milliseconds) in this window. The current
@@ -186,7 +191,7 @@ public:
     * 
     * @return the current time (in milliseconds) in this window.
     */
-   virtual unsigned long long getCurrentTime();
+   virtual uint64_t getCurrentTime();
    
    /**
     * Gets the amount of time (in milliseconds) left in this window. The
@@ -195,7 +200,7 @@ public:
     * 
     * @return the amount of time (in milliseconds) left in this window.
     */
-   virtual unsigned long long getRemainingTime();
+   virtual uint64_t getRemainingTime();
    
    /**
     * Returns true if the passed time  (in milliseconds) falls within this
@@ -205,7 +210,7 @@ public:
     * 
     * @return true if the passed time is in this window, false if not.
     */
-   virtual bool isTimeInWindow(unsigned long long time);
+   virtual bool isTimeInWindow(uint64_t time);
    
    /**
     * Increases the item count in this window. The amount of time passed
@@ -216,7 +221,7 @@ public:
     * 
     * @param increase the amount of items to increase by.
     */
-   virtual void increaseItemCount(unsigned long long increase);
+   virtual void increaseItemCount(uint64_t increase);
    
    /**
     * Increases the item count over a period of time. The amount of time
@@ -229,8 +234,7 @@ public:
     * @param interval the interval during which the item increase took place
     *                 (in milliseconds).
     */
-   virtual void increaseItemCount(
-      unsigned long long increase, unsigned long long interval);
+   virtual void increaseItemCount(uint64_t increase, uint64_t interval);
    
    /**
     * Adds time (in milliseconds) to this window.
@@ -238,7 +242,7 @@ public:
     * @param time the interval of time (in milliseconds) to add to
     *             this window.
     */
-   virtual void increaseTimePassed(unsigned long long time);
+   virtual void increaseTimePassed(uint64_t time);
    
    /**
     * Adds the amount of time (in milliseconds) since the last time
@@ -253,7 +257,7 @@ public:
     * 
     * @return the item count for this window.
     */
-   virtual unsigned long long getItemCount();
+   virtual uint64_t getItemCount();
    
    /**
     * Gets the amount of time (in milliseconds) that has passed in this window.
@@ -261,7 +265,7 @@ public:
     * @return the amount of time (in milliseconds) that has passed in this
     *         window.
     */
-   virtual unsigned long long getTimePassed();
+   virtual uint64_t getTimePassed();
    
    /**
     * Gets the rate in items per millisecond given items and a time interval

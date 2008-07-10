@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_util_PathFormatter_H
 #define db_util_PathFormatter_H
 
 #include <string>
-#include "db/util/regex/InvalidRegexException.h"
 
 namespace db
 {
