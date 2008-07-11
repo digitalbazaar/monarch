@@ -8,6 +8,7 @@
 #include <map>
 #include <utility>
 #include <list>
+#include <string>
 
 #include "db/rt/ExclusiveLock.h"
 #include "db/logging/Category.h"
