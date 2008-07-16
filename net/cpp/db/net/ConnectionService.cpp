@@ -17,12 +17,14 @@ ConnectionService::ConnectionService(
    InternetAddress* address,
    ConnectionServicer* servicer,
    SocketDataPresenter* presenter) :
-   PortService(server, address),
-   mConnectionSemaphore(100, true)
+   PortService(server, address)
 {
    mServicer = servicer;
    mDataPresenter = presenter;
    mSocket = NULL;
+   
+   mMaxConnections = 100;
+   mCurrentConnections = 0;
 }
 
 ConnectionService::~ConnectionService()
@@ -35,6 +37,9 @@ Operation ConnectionService::initialize()
 {
    Operation rval(NULL);
    
+   // no connections yet
+   mCurrentConnections = 0;
+   
    // create tcp socket
    mSocket = new TcpSocket();
    
@@ -43,6 +48,7 @@ Operation ConnectionService::initialize()
    {
       // create Operation for running service
       rval = *this;
+      rval->setUserData((void*)"accept");
       rval->addGuard(this);
    }
    
@@ -57,54 +63,85 @@ void ConnectionService::cleanup()
       delete mSocket;
       mSocket = NULL;
    }
-   
-   // release any used connection permits
-   int used = mConnectionSemaphore.usedPermits();
-   if(used > 0)
-   {
-      mConnectionSemaphore.release(used);
-   }
 }
 
 bool ConnectionService::canExecuteOperation(ImmutableState* s, Operation& op)
 {
-   // can execute if server is running
-   return mServer->isRunning();
+   bool rval = false;
+   
+   if(strcmp("accept", (const char*)op->getUserData()) == 0)
+   {
+      // accept OP can execute if server is running
+      rval = mServer->isRunning();
+   }
+   else
+   {
+      // service OP can execute if the server and the connection service
+      // have enough permits available
+      int32_t permits =
+         mServer->getMaxConnectionCount() - mServer->getConnectionCount();
+      if(permits > 0)
+      {
+         permits = getMaxConnectionCount() - getConnectionCount();
+         rval = (permits > 0);
+      }
+   }
+   
+   return rval;
 }
 
 bool ConnectionService::mustCancelOperation(ImmutableState* s, Operation& op)
 {
-   // must cancel if server is no longer running
-   return !mServer->isRunning();
+   bool rval;
+   
+   if(strcmp("accept", (const char*)op->getUserData()) == 0)
+   {
+      // must cancel accept OP if server is no longer running
+      rval = !mServer->isRunning();
+   }
+   else
+   {
+      // don't cancel service OPs, as they must cleanup
+      rval = true;
+   }
+   
+   return rval;
+}
+
+void ConnectionService::mutatePreExecutionState(State* s, Operation& op)
+{
+   if(strcmp("service", (const char*)op->getUserData()) == 0)
+   {
+      // increase current connections (service OP)
+      mServer->mCurrentConnections++;
+      mCurrentConnections++;
+   }
+   else
+   {
+      // decrease current connections (cleanup OP)
+      mCurrentConnections--;
+      mServer->mCurrentConnections--;
+   }
+}
+
+void ConnectionService::mutatePostExecutionState(State* s, Operation& op)
+{
+   // no state to update
 }
 
 void ConnectionService::run()
 {
+   Socket* s;
    while(!mOperation->isInterrupted())
    {
       // prune running servicers
       mRunningServicers.prune();
       
-      // acquire service connection permit
-      if(mConnectionSemaphore.acquire())
+      // wait for 5 seconds for a connection
+      if((s = mSocket->accept(5)) != NULL)
       {
-         // acquire server connection permit
-         if(mServer->mConnectionSemaphore.acquire())
-         {
-            // wait for 5 seconds for a connection
-            Socket* s = mSocket->accept(5);
-            if(s == NULL || !createConnection(s))
-            {
-               // could not create connection, release connection permits
-               mServer->mConnectionSemaphore.release();
-               mConnectionSemaphore.release();
-            }
-         }
-         else
-         {
-            // release service connection permit
-            mConnectionSemaphore.release();
-         }
+         // create connection
+         createConnection(s);
       }
    }
    
@@ -138,6 +175,9 @@ bool ConnectionService::createConnection(Socket* s)
          new RunnableDelegate<ConnectionService>(
             this, &ConnectionService::serviceConnection, c);
       Operation op(r);
+      op->setUserData((void*)"service");
+      op->addGuard(this);
+      op->addStateMutator(this);
       mRunningServicers.add(op);
       
       // run operation
@@ -168,22 +208,25 @@ void ConnectionService::cleanupConnection(Connection* c)
    // clean up connection
    delete c;
    
-   // release connection permits
-   mServer->mConnectionSemaphore.release();
-   mConnectionSemaphore.release();
+   // run an Operation to update the connection permit state
+   RunnableRef r(NULL);
+   Operation op(r);
+   op->setUserData((void*)"cleanup");
+   op->addStateMutator(this);
+   mServer->getOperationRunner()->runOperation(op);
 }
 
-void ConnectionService::setMaxConnectionCount(unsigned int count)
+inline void ConnectionService::setMaxConnectionCount(int32_t count)
 {
-   mConnectionSemaphore.setMaxPermitCount(count);
+   mMaxConnections = count;
 }
 
-unsigned int ConnectionService::getMaxConnectionCount()
+inline int32_t ConnectionService::getMaxConnectionCount()
 {
-   return mConnectionSemaphore.getMaxPermitCount();
+   return mMaxConnections;
 }
 
-unsigned int ConnectionService::getConnectionCount()
+inline int32_t ConnectionService::getConnectionCount()
 {
-   return mConnectionSemaphore.usedPermits();
+   return mCurrentConnections;
 }

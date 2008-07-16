@@ -109,14 +109,35 @@ bool State::getBoolean(const char* name, bool& value)
    return rval;
 }
 
-void State::setInteger(const char* name, int value)
+void State::setInteger(const char* name, int32_t value)
 {
    // create the variable and set its value
    Variable* var = createVariable(name, Variable::Integer);
    var->i = value;
 }
 
-bool State::getInteger(const char* name, int& value)
+bool State::increaseInteger(const char* name, int32_t amount, int32_t* value)
+{
+   bool rval;
+   
+   // get variable
+   Variable* var = getVariable(name);
+   if(var != NULL && var->type == Variable::Integer)
+   {
+      // increase variable
+      var->i += amount;
+      if(value != NULL)
+      {
+         *value = var->i;
+      }
+      
+      rval = true;
+   }
+   
+   return rval;
+}
+
+bool State::getInteger(const char* name, int32_t& value)
 {
    bool rval = false;
    
@@ -124,6 +145,22 @@ bool State::getInteger(const char* name, int& value)
    if(var != NULL && var->type == Variable::Integer)
    {
       value = var->i;
+      rval = true;
+   }
+   
+   return rval;
+}
+
+bool State::getIntegerDifference(
+   const char* name1, const char* name2, int32_t& value)
+{
+   bool rval = false;
+   
+   // get integer 1 and integer 2
+   int32_t first, second;
+   if(getInteger(name1, first) && getInteger(name2, second))
+   {
+      value = first - second;
       rval = true;
    }
    

@@ -108,7 +108,7 @@ public:
     * Creates a new OperationImpl that can execute the given Runnable. The
     * passed Runnable must handle interruptions gracefully.
     * 
-    * @param r the Runnable to execute.
+    * @param r the Runnable to execute (which can be NULL to only mutate state).
     */
    OperationImpl(db::rt::Runnable& r);
    OperationImpl(db::rt::RunnableRef& r);

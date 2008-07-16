@@ -4,7 +4,6 @@
 #ifndef db_net_ConnectionService_H
 #define db_net_ConnectionService_H
 
-#include "db/rt/Semaphore.h"
 #include "db/modest/OperationList.h"
 #include "db/net/Connection.h"
 #include "db/net/PortService.h"
@@ -32,7 +31,8 @@ class ConnectionServicer;
  */
 class ConnectionService :
 public PortService,
-public db::modest::OperationGuard
+public db::modest::OperationGuard,
+public db::modest::StateMutator
 {
 protected:
    /**
@@ -51,9 +51,14 @@ protected:
    Socket* mSocket;
    
    /**
-    * The connection semaphore for this service.
+    * The maximum number of connections for this service.
     */
-   db::rt::Semaphore mConnectionSemaphore;
+   int32_t mMaxConnections;
+   
+   /**
+    * The current number of connections for this service.
+    */
+   int32_t mCurrentConnections;
    
    /**
     * A list of Operations running ConnectionServicers.
@@ -156,6 +161,28 @@ public:
       db::modest::ImmutableState* s, db::modest::Operation& op);
    
    /**
+    * Alters the passed State directly before an Operation executes.
+    * 
+    * @param s the State to alter.
+    * @param op the Operation to be executed.
+    */
+   virtual void mutatePreExecutionState(
+      db::modest::State* s, db::modest::Operation& op);
+   
+   /**
+    * Alters the passed State directly after an Operation finishes or
+    * was canceled.
+    * 
+    * The passed Operation may be checked to see if it finished or was
+    * canceled, etc.
+    * 
+    * @param s the State to alter.
+    * @param op the Operation that finished or was canceled.
+    */
+   virtual void mutatePostExecutionState(
+      db::modest::State* s, db::modest::Operation& op);
+   
+   /**
     * Runs this ConnectionService.
     */
    virtual void run();
@@ -190,21 +217,21 @@ public:
     * @param count the maximum number of concurrent connections this service
     *        should allow.
     */
-   virtual void setMaxConnectionCount(unsigned int count);
+   virtual void setMaxConnectionCount(int32_t count);
    
    /**
     * Gets the maximum number of concurrent connections this service allows.
     * 
     * @return the maximum number of concurrent connections this service allows.
     */
-   virtual unsigned int getMaxConnectionCount();
+   virtual int32_t getMaxConnectionCount();
    
    /**
     * Gets the current number of connections being serviced.
     * 
     * @return the current number of connections being serviced.
     */
-   virtual unsigned int getConnectionCount();
+   virtual int32_t getConnectionCount();
 };
 
 } // end namespace net

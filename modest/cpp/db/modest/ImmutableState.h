@@ -49,7 +49,19 @@ public:
     * 
     * @return true if the integer exists, false if not.
     */
-   virtual bool getInteger(const char* name, int& value) = 0;
+   virtual bool getInteger(const char* name, int32_t& value) = 0;
+   
+   /**
+    * Gets the difference between two 32-bit signed integers from this State.
+    * 
+    * @param name1 the name of the first integer to retrieve.
+    * @param name2 the name of the second integer to retrieve.
+    * @param value the difference between the two integers (name1 - name2).
+    * 
+    * @return true if both integers exist, false if not.
+    */
+   virtual bool getIntegerDifference(
+      const char* name1, const char* name2, int32_t& value) = 0;
    
    /**
     * Gets a string from this State by its name.

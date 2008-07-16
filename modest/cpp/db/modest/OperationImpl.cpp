@@ -22,7 +22,7 @@ OperationImpl::OperationImpl(Runnable& r)
 
 OperationImpl::OperationImpl(RunnableRef& r)
 {
-   mRunnable = &(*r);
+   mRunnable = r.isNull() ? NULL : &(*r);
    mRunnableReference = r;
    mThread = NULL;
    mStarted = false;
@@ -54,8 +54,11 @@ void OperationImpl::run()
    }
    unlock();
    
-   // run the operation's runnable
-   mRunnable->run();
+   if(mRunnable != NULL)
+   {
+      // run the operation's runnable
+      mRunnable->run();
+   }
    
    lock();
    {

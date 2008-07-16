@@ -36,7 +36,7 @@ public:
    /**
     * Creates a new Operation with the given Runnable.
     * 
-    * @param r the Runnable to use.
+    * @param r the Runnable to use (which can be NULL to only mutate state).
     */
    Operation(db::rt::Runnable& r);
    Operation(db::rt::RunnableRef& r);

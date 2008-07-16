@@ -131,7 +131,19 @@ public:
     * @param name the name of the integer to set.
     * @param value the value of the integer.
     */
-   virtual void setInteger(const char* name, int value);
+   virtual void setInteger(const char* name, int32_t value);
+   
+   /**
+    * Increases a 32-bit signed integer in this State.
+    * 
+    * @param name the name of the integer to increase.
+    * @param amount the amount to increase the integer by, can be negative.
+    * @param value set to the integers new value (if care).
+    * 
+    * @return true if the variable existed and was changed, false if not.
+    */
+   virtual bool increaseInteger(
+      const char* name, int32_t amount, int32_t* value = NULL);
    
    /**
     * Gets a 32-bit signed integer from this State by its name.
@@ -141,7 +153,19 @@ public:
     * 
     * @return true if the integer exists, false if not.
     */
-   virtual bool getInteger(const char* name, int& value);
+   virtual bool getInteger(const char* name, int32_t& value);
+   
+   /**
+    * Gets the difference between two 32-bit signed integers from this State.
+    * 
+    * @param name1 the name of the first integer to retrieve.
+    * @param name2 the name of the second integer to retrieve.
+    * @param value the difference between the two integers (name1 - name2).
+    * 
+    * @return true if the integer exists, false if not.
+    */
+   virtual bool getIntegerDifference(
+      const char* name1, const char* name2, int32_t& value);
    
    /**
     * Sets a string in this State. The string will be copied to this

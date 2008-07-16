@@ -10,10 +10,12 @@ using namespace std;
 using namespace db::modest;
 using namespace db::net;
 
-Server::Server(OperationRunner* opRunner) : mConnectionSemaphore(1000, true)
+Server::Server(OperationRunner* opRunner)
 {
    mOperationRunner = opRunner;
    mRunning = false;
+   mMaxConnections = 100;
+   mCurrentConnections = 0;
 }
 
 Server::~Server()
@@ -112,11 +114,14 @@ bool Server::start()
          // now running
          mRunning = true;
          
+         // no connections yet
+         mCurrentConnections = 0;
+         
          // start all port services
          for(map<unsigned short, PortService*>::iterator i =
-             mPortServices.begin(); i != mPortServices.end(); i++)
+             mPortServices.begin(); rval && i != mPortServices.end(); i++)
          {
-            rval = rval && i->second->start();
+            rval = i->second->start();
          }
       }
    }
@@ -145,12 +150,8 @@ void Server::stop()
             i->second->stop();
          }
          
-         // release any used connection permits
-         int used = mConnectionSemaphore.usedPermits();
-         if(used > 0)
-         {
-            mConnectionSemaphore.release(used);
-         }
+         // no current connections
+         mCurrentConnections = 0;
          
          // no longer running
          mRunning = false;
@@ -169,17 +170,17 @@ inline OperationRunner* Server::getOperationRunner()
    return mOperationRunner;
 }
 
-inline void Server::setMaxConnectionCount(unsigned int count)
+inline void Server::setMaxConnectionCount(int32_t count)
 {
-   mConnectionSemaphore.setMaxPermitCount(count);
+   mMaxConnections = count;
 }
 
-inline unsigned int Server::getMaxConnectionCount()
+inline int32_t Server::getMaxConnectionCount()
 {
-   return mConnectionSemaphore.getMaxPermitCount();
+   return mMaxConnections;
 }
 
-inline unsigned int Server::getConnectionCount()
+inline int32_t Server::getConnectionCount()
 {
-   return mConnectionSemaphore.usedPermits();
+   return mCurrentConnections;
 }

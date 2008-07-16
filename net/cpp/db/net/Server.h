@@ -4,7 +4,6 @@
 #ifndef db_net_Server_H
 #define db_net_Server_H
 
-#include "db/rt/Semaphore.h"
 #include "db/modest/OperationRunner.h"
 #include "db/modest/OperationList.h"
 #include "db/net/InternetAddress.h"
@@ -49,9 +48,14 @@ protected:
    bool mRunning;
    
    /**
-    * The connection semaphore for this server.
+    * The maximum number of connections for this server.
     */
-   db::rt::Semaphore mConnectionSemaphore;
+   int32_t mMaxConnections;
+   
+   /**
+    * The current number of connections for this server.
+    */
+   int32_t mCurrentConnections;
    
    /**
     * A lock for synchronizing the use of this server.
@@ -157,21 +161,21 @@ public:
     * @param count the maximum number of concurrent connections this server
     *        should allow.
     */
-   virtual void setMaxConnectionCount(unsigned int count);
+   virtual void setMaxConnectionCount(int32_t count);
    
    /**
     * Gets the maximum number of concurrent connections this server allows.
     * 
     * @return the maximum number of concurrent connections this server allows.
     */
-   virtual unsigned int getMaxConnectionCount();
+   virtual int32_t getMaxConnectionCount();
    
    /**
     * Gets the current number of connections to this server.
     * 
     * @return the current number of connections to this server.
     */
-   virtual unsigned int getConnectionCount();
+   virtual int32_t getConnectionCount();
 };
 
 } // end namespace net
