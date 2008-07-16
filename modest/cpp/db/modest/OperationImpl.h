@@ -82,6 +82,11 @@ protected:
    bool mCanceled;
    
    /**
+    * Some user data.
+    */
+   void* mUserData;
+   
+   /**
     * OperationDispatcher is a friend to allow it run this Operation and
     * mark it as canceled if necessary.
     */
@@ -229,6 +234,20 @@ public:
     * @return this Operation's first StateMutator, which may be NULL.
     */
    virtual StateMutator* getStateMutator();
+   
+   /**
+    * Sets some user data for this Operation.
+    * 
+    * @param data the user data.
+    */
+   virtual void setUserData(void* userData);
+   
+   /**
+    * Gets the user data for this Operation.
+    * 
+    * @return the user data.
+    */
+   virtual void* getUserData();
    
    /**
     * Returns true if the current Operation has been interrupted, false if not.

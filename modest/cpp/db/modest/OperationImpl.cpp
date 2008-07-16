@@ -17,6 +17,7 @@ OperationImpl::OperationImpl(Runnable& r)
    mStopped = false;
    mFinished = false;
    mCanceled = false;
+   mUserData = NULL;
 }
 
 OperationImpl::OperationImpl(RunnableRef& r)
@@ -29,6 +30,7 @@ OperationImpl::OperationImpl(RunnableRef& r)
    mStopped = false;
    mFinished = false;
    mCanceled = false;
+   mUserData = NULL;
 }
 
 OperationImpl::~OperationImpl()
@@ -270,7 +272,17 @@ inline StateMutator* OperationImpl::getStateMutator()
    return mMutator.isNull() ? NULL : &(*mMutator);
 }
 
-inline bool OperationImpl::interrupted()
+void OperationImpl::setUserData(void* userData)
+{
+   mUserData = userData;
+}
+
+void* OperationImpl::getUserData()
+{
+   return mUserData;
+}
+
+bool OperationImpl::interrupted()
 {
    return Thread::interrupted(false);
 }
