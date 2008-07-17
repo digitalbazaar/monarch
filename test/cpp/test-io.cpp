@@ -5,6 +5,7 @@
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
+#include "db/io/IOMonitor.h"
 #include "db/io/File.h"
 #include "db/io/FileInputStream.h"
 #include "db/io/FileOutputStream.h"
@@ -652,6 +653,46 @@ void runFileInputStreamTest(TestRunner& tr)
    tr.ungroup();
 }
 
+class ReadWatcher
+{
+public:
+   ReadWatcher() {};
+   virtual ~ReadWatcher() {};
+   
+   virtual void readUpdated(int fd, int events)
+   {
+      printf("FD '%d' is readable!\n", fd);
+   }
+};
+
+void runIOMonitorTest(TestRunner& tr)
+{
+   tr.group("IOMonitor");
+   
+   tr.test("watch read");
+   {
+      ReadWatcher rw;
+      IOWatcherRef w = new IOEventDelegate<ReadWatcher>(
+         &rw, &ReadWatcher::readUpdated);
+      
+      // FIXME:
+      //FILE* fp = fopen("/tmp/testfile.txt", "rw");
+      //assert(fp != NULL);
+      //int fd = fileno(fp);
+      int fd = 1;
+      
+      IOMonitor iom;
+      iom.addWatcher(fd, 0, w);
+      
+      // FIXME: do stuff
+      
+      //fclose(fp);
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class DbIoTester : public db::test::Tester
 {
 public:
@@ -670,6 +711,7 @@ public:
       runByteArrayOutputStreamTest(tr);
       runFileTest(tr);
       runFileInputStreamTest(tr);
+      //runIOMonitorTest(tr);
       return 0;
    }
 
