@@ -135,3 +135,13 @@ inline int SocketWrapper::getFileDescriptor()
 {
    return getSocket()->getFileDescriptor();
 }
+
+inline void SocketWrapper::setAsynchronousIO(bool async)
+{
+   getSocket()->setAsynchronousIO(async);
+}
+
+inline bool SocketWrapper::isIOAsynchronous()
+{
+   return getSocket()->isIOAsynchronous();
+}

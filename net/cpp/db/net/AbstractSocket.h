@@ -58,17 +58,22 @@ protected:
    /**
     * The send timeout (in milliseconds) for writing to the Socket.
     */
-   unsigned long long mSendTimeout;
+   uint32_t mSendTimeout;
    
    /**
     * The receive timeout (in milliseconds) for reading from the Socket.
     */
-   unsigned long long mReceiveTimeout;
+   uint32_t mReceiveTimeout;
    
    /**
     * The number of Socket connections to keep backlogged while listening.
     */
    unsigned int mBacklog;
+   
+   /**
+    * True if IO is asynchronous, false if not.
+    */
+   bool mAsyncIO;
    
    /**
     * Creates a Socket with the specified type and protocol and assigns its
@@ -360,6 +365,23 @@ public:
     * @return the file descriptor for this Socket.
     */
    virtual int getFileDescriptor();
+   
+   /**
+    * Sets whether or not this Socket should use asynchronous IO. If true,
+    * then its IO methods and streams will return Exceptions when they would
+    * block.
+    * 
+    * @param async true to use asynchronous IO, false to use synchronous IO.
+    */
+   virtual void setAsynchronousIO(bool async);
+   
+   /**
+    * Gets whether or not this Socket uses asynchronous IO.
+    * 
+    * @return true if this Socket uses asynchronous IO, false if it uses
+    *         synchronous IO.
+    */
+   virtual bool isIOAsynchronous();
 };
 
 } // end namespace net

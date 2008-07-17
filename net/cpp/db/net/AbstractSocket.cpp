@@ -38,6 +38,9 @@ AbstractSocket::AbstractSocket()
    
    // default backlog is 50
    mBacklog = 50;
+   
+   // default to synchronous IO
+   mAsyncIO = false;
 }
 
 AbstractSocket::~AbstractSocket()
@@ -444,8 +447,21 @@ bool AbstractSocket::send(const char* b, int length)
             // see if socket buffer is full (EAGAIN)
             if(errno == EAGAIN)
             {
-               // wait for socket to become writable
-               rval = select(false, getSendTimeout());
+               if(isIOAsynchronous())
+               {
+                  // using asynchronous IO
+                  ExceptionRef e = new Exception(
+                     "Socket would block during write.",
+                     SOCKET_EXCEPTION_TYPE ".WouldBlock");
+                  e->getDetails()["wouldBlock"] = true;
+                  Exception::setLast(e, false);
+                  rval = false;
+               }
+               else
+               {
+                  // wait for socket to become writable
+                  rval = select(false, getSendTimeout());
+               }
             }
             else
             {
@@ -487,11 +503,23 @@ int AbstractSocket::receive(char* b, int length)
          // see if no data is available (EGAIN)
          if(errno == EAGAIN)
          {
-            // wait for data to become available
-            if(select(true, getReceiveTimeout()))
+            if(isIOAsynchronous())
             {
-               // receive data (should not block)
-               rval = ::recv(mFileDescriptor, b, length, 0);
+               // using asynchronous IO
+               ExceptionRef e = new Exception(
+                  "Socket would block during write.",
+                  SOCKET_EXCEPTION_TYPE ".WouldBlock");
+               e->getDetails()["wouldBlock"] = true;
+               Exception::setLast(e, false);
+            }
+            else
+            {
+               // wait for data to become available
+               if(select(true, getReceiveTimeout()))
+               {
+                  // receive data (should not block)
+                  rval = ::recv(mFileDescriptor, b, length, 0);
+               }
             }
          }
          else
@@ -658,4 +686,14 @@ inline unsigned int AbstractSocket::getBacklog()
 inline int AbstractSocket::getFileDescriptor()
 {
    return mFileDescriptor;
+}
+
+inline void AbstractSocket::setAsynchronousIO(bool async)
+{
+   mAsyncIO = async;
+}
+
+inline bool AbstractSocket::isIOAsynchronous()
+{
+   return mAsyncIO;
 }

@@ -252,6 +252,23 @@ public:
     * @return the file descriptor for this Socket.
     */
    virtual int getFileDescriptor();
+   
+   /**
+    * Sets whether or not this Socket should use asynchronous IO. If true,
+    * then its IO methods and streams will return Exceptions when they would
+    * block.
+    * 
+    * @param async true to use asynchronous IO, false to use synchronous IO.
+    */
+   virtual void setAsynchronousIO(bool async);
+   
+   /**
+    * Gets whether or not this Socket uses asynchronous IO.
+    * 
+    * @return true if this Socket uses asynchronous IO, false if it uses
+    *         synchronous IO.
+    */
+   virtual bool isIOAsynchronous();
 };
 
 } // end namespace net
