@@ -39,8 +39,9 @@ AbstractSocket::AbstractSocket()
    // default backlog is 50
    mBacklog = 50;
    
-   // default to synchronous IO
-   mAsyncIO = false;
+   // default to blocking IO
+   mSendNonBlocking = false;
+   mReceiveNonBlocking = false;
 }
 
 AbstractSocket::~AbstractSocket()
@@ -435,6 +436,7 @@ bool AbstractSocket::send(const char* b, int length)
       // loop until all data is sent (send() call may need to be called
       // multiple times since it will not send all data if the send buffer
       // fills up and hasn't been emptied fast enough)
+      int sent = 0;
       unsigned int offset = 0;
       int bytes;
       while(rval && length > 0)
@@ -447,12 +449,13 @@ bool AbstractSocket::send(const char* b, int length)
             // see if socket buffer is full (EAGAIN)
             if(errno == EAGAIN)
             {
-               if(isIOAsynchronous())
+               if(isSendNonBlocking())
                {
                   // using asynchronous IO
                   ExceptionRef e = new Exception(
                      "Socket would block during write.",
                      SOCKET_EXCEPTION_TYPE ".WouldBlock");
+                  e->getDetails()["sent"] = sent;
                   e->getDetails()["wouldBlock"] = true;
                   Exception::setLast(e, false);
                   rval = false;
@@ -475,6 +478,7 @@ bool AbstractSocket::send(const char* b, int length)
          }
          else if(bytes > 0)
          {
+            sent += bytes;
             offset += bytes;
             length -= bytes;
          }
@@ -503,11 +507,11 @@ int AbstractSocket::receive(char* b, int length)
          // see if no data is available (EGAIN)
          if(errno == EAGAIN)
          {
-            if(isIOAsynchronous())
+            if(isReceiveNonBlocking())
             {
                // using asynchronous IO
                ExceptionRef e = new Exception(
-                  "Socket would block during write.",
+                  "Socket would block during receive.",
                   SOCKET_EXCEPTION_TYPE ".WouldBlock");
                e->getDetails()["wouldBlock"] = true;
                Exception::setLast(e, false);
@@ -688,12 +692,21 @@ inline int AbstractSocket::getFileDescriptor()
    return mFileDescriptor;
 }
 
-inline void AbstractSocket::setAsynchronousIO(bool async)
+inline void AbstractSocket::setSendNonBlocking(bool on)
 {
-   mAsyncIO = async;
+   mSendNonBlocking = on;
 }
 
-inline bool AbstractSocket::isIOAsynchronous()
+inline bool AbstractSocket::isSendNonBlocking()
 {
-   return mAsyncIO;
+   return mSendNonBlocking;
+}
+inline void AbstractSocket::setReceiveNonBlocking(bool on)
+{
+   mReceiveNonBlocking = on;
+}
+
+inline bool AbstractSocket::isReceiveNonBlocking()
+{
+   return mReceiveNonBlocking;
 }

@@ -136,12 +136,22 @@ inline int SocketWrapper::getFileDescriptor()
    return getSocket()->getFileDescriptor();
 }
 
-inline void SocketWrapper::setAsynchronousIO(bool async)
+inline void SocketWrapper::setSendNonBlocking(bool on)
 {
-   getSocket()->setAsynchronousIO(async);
+   getSocket()->setSendNonBlocking(on);
 }
 
-inline bool SocketWrapper::isIOAsynchronous()
+inline bool SocketWrapper::isSendNonBlocking()
 {
-   return getSocket()->isIOAsynchronous();
+   return getSocket()->isSendNonBlocking();
+}
+
+inline void SocketWrapper::setReceiveNonBlocking(bool on)
+{
+   getSocket()->setReceiveNonBlocking(on);
+}
+
+inline bool SocketWrapper::isReceiveNonBlocking()
+{
+   return getSocket()->isReceiveNonBlocking();
 }

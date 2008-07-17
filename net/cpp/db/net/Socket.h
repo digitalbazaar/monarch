@@ -217,21 +217,42 @@ public:
    virtual int getFileDescriptor() = 0;
    
    /**
-    * Sets whether or not this Socket should use asynchronous IO. If true,
-    * then its IO methods and streams will return Exceptions when they would
-    * block.
+    * Sets whether or not this Socket should not block when sending. If true,
+    * then its send and OutputStream will return Exceptions when they would
+    * block. An exception detail of "wouldBlock" will be set to true and
+    * the number of bytes actually sent will be set to "sent".
     * 
-    * @param async true to use asynchronous IO, false to use synchronous IO.
+    * Note: Keep in mind that not all OutputStreams will support being
+    * able to recover from an incomplete send.
+    * 
+    * @param on true to activate non-blocking send, false not to.
     */
-   virtual void setAsynchronousIO(bool async) = 0;
+   virtual void setSendNonBlocking(bool on) = 0;
    
    /**
-    * Gets whether or not this Socket uses asynchronous IO.
+    * Gets whether or not this Socket blocks when sending.
     * 
-    * @return true if this Socket uses asynchronous IO, false if it uses
-    *         synchronous IO.
+    * @return true if this Socket does not block when sending, false if it
+    *         does.
     */
-   virtual bool isIOAsynchronous() = 0;
+   virtual bool isSendNonBlocking() = 0;
+   
+   /**
+    * Sets whether or not this Socket should not block when receiving. If true,
+    * then its receive and InputStream will return Exceptions when they would
+    * block. An exception detail of "wouldBlock" will be set to true.
+    * 
+    * @param on true to activate non-blocking receive, false not to.
+    */
+   virtual void setReceiveNonBlocking(bool on) = 0;
+   
+   /**
+    * Gets whether or not this Socket blocks when receiving.
+    * 
+    * @return true if this Socket does not block when receiving, false if it
+    *         does.
+    */
+   virtual bool isReceiveNonBlocking() = 0;
 };
 
 } // end namespace net
