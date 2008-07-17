@@ -375,7 +375,7 @@ public:
     * Sets whether or not this Socket should not block when sending. If true,
     * then its send and OutputStream will return Exceptions when they would
     * block. An exception detail of "wouldBlock" will be set to true and
-    * the number of bytes actually sent will be set to "sent".
+    * the number of bytes actually sent will be set to "written".
     * 
     * @param on true to activate non-blocking send, false not to.
     */

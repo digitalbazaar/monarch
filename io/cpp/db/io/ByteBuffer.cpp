@@ -3,10 +3,13 @@
  */
 #include "db/io/ByteBuffer.h"
 
+#include "db/rt/DynamicObject.h"
+
 #include <cstdlib>
 #include <cstring>
 
 using namespace db::io;
+using namespace db::rt;
 
 ByteBuffer::ByteBuffer(int capacity)
 {
@@ -273,6 +276,18 @@ int ByteBuffer::get(OutputStream* os)
    {
       rval = mLength;
       mOffset = mLength = 0;
+   }
+   else
+   {
+      // determine if output stream would block 
+      ExceptionRef e = Exception::getLast();
+      if(e->getDetails()->hasMember("wouldBlock"))
+      {
+         // move internal pointer and change length by amount written
+         rval = e->getDetails()["written"]->getInt32();
+         mOffset += rval;
+         mLength -= rval;
+      }
    }
    
    return rval;

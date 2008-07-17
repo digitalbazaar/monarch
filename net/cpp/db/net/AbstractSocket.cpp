@@ -455,7 +455,7 @@ bool AbstractSocket::send(const char* b, int length)
                   ExceptionRef e = new Exception(
                      "Socket would block during write.",
                      SOCKET_EXCEPTION_TYPE ".WouldBlock");
-                  e->getDetails()["sent"] = sent;
+                  e->getDetails()["written"] = sent;
                   e->getDetails()["wouldBlock"] = true;
                   Exception::setLast(e, false);
                   rval = false;

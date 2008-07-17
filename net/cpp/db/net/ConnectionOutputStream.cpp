@@ -89,7 +89,7 @@ bool ConnectionOutputStream::flush()
          if(e->getDetails()->hasMember("wouldBlock"))
          {
             // clear number of bytes sent
-            mUnflushed.clear(e->getDetails()["sent"]->getInt32());
+            mUnflushed.clear(e->getDetails()["written"]->getInt32());
          }
       }
    }
@@ -126,7 +126,7 @@ bool ConnectionOutputStream::flush()
          if(e->getDetails()->hasMember("wouldBlock"))
          {
             // clear number of bytes sent
-            mBuffer.clear(e->getDetails()["sent"]->getInt32());
+            mBuffer.clear(e->getDetails()["written"]->getInt32());
          }
       }
    }

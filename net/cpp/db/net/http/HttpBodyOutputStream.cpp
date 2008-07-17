@@ -56,7 +56,7 @@ bool HttpBodyOutputStream::write(const char* b, int length)
          if(e->getDetails()->hasMember("wouldBlock"))
          {
             // use number of bytes sent
-            length = e->getDetails()["sent"]->getInt32();
+            length = e->getDetails()["written"]->getInt32();
          }
       }
       
