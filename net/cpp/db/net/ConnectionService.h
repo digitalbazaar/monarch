@@ -208,7 +208,7 @@ public:
     * 
     * @param c the Connection to clean up.
     */
-   virtual void cleanupConnection(Connection* c);
+   virtual void cleanupConnection(void* c);
    
    /**
     * Sets the maximum number of concurrent connections this service should

@@ -110,23 +110,16 @@ bool ConnectionService::mustCancelOperation(ImmutableState* s, Operation& op)
 
 void ConnectionService::mutatePreExecutionState(State* s, Operation& op)
 {
-   if(strcmp("service", (const char*)op->getUserData()) == 0)
-   {
-      // increase current connections (service OP)
-      mServer->mCurrentConnections++;
-      mCurrentConnections++;
-   }
-   else
-   {
-      // decrease current connections (cleanup OP)
-      mCurrentConnections--;
-      mServer->mCurrentConnections--;
-   }
+   // increase current connections
+   mServer->mCurrentConnections++;
+   mCurrentConnections++;
 }
 
 void ConnectionService::mutatePostExecutionState(State* s, Operation& op)
 {
-   // no state to update
+   // decrease current connections
+   mCurrentConnections--;
+   mServer->mCurrentConnections--;
 }
 
 void ConnectionService::run()
@@ -173,7 +166,8 @@ bool ConnectionService::createConnection(Socket* s)
       // create RunnableDelegate to service connection and run as an Operation
       RunnableRef r =
          new RunnableDelegate<ConnectionService>(
-            this, &ConnectionService::serviceConnection, c);
+            this, &ConnectionService::serviceConnection, c,
+            &ConnectionService::cleanupConnection);
       Operation op(r);
       op->setUserData((void*)"service");
       op->addGuard(this);
@@ -197,23 +191,16 @@ bool ConnectionService::createConnection(Socket* s)
 void ConnectionService::serviceConnection(void* c)
 {
    // service the connection
-   mServicer->serviceConnection((Connection*)c, this);
+   mServicer->serviceConnection((Connection*)c);
 }
 
-void ConnectionService::cleanupConnection(Connection* c)
+void ConnectionService::cleanupConnection(void* c)
 {
    // ensure connection is closed
-   c->close();
-   
    // clean up connection
-   delete c;
-   
-   // run an Operation to update the connection permit state
-   RunnableRef r(NULL);
-   Operation op(r);
-   op->setUserData((void*)"cleanup");
-   op->addStateMutator(this);
-   mServer->getOperationRunner()->runOperation(op);
+   Connection* conn = (Connection*)c;
+   conn->close();
+   delete conn;
 }
 
 inline void ConnectionService::setMaxConnectionCount(int32_t count)

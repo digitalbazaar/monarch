@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_http_HttpConnectionServicer_H
 #define db_net_http_HttpConnectionServicer_H
@@ -101,14 +101,13 @@ public:
    virtual ~HttpConnectionServicer();
    
    /**
-    * Services the passed Connection. When finished, cleanupConnection() must
-    * be called on the passed ConnectionService, which will ensure the that
-    * Connection is closed and its memory cleaned up.
+    * Services the passed Connection. This method should end by closing the
+    * passed Connection. After this method returns, the Connection will be
+    * automatically closed, if necessary, and cleaned up.
     * 
     * @param c the Connection to service.
-    * @param cs the ConnectionService the Connection is from.
     */
-   virtual void serviceConnection(Connection* c, ConnectionService* cs);
+   virtual void serviceConnection(Connection* c);
    
    /**
     * Adds an HttpRequestServicer. If a servicer already exists at the new

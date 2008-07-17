@@ -76,8 +76,7 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
    return rval;
 }
 
-void HttpConnectionServicer::serviceConnection(
-   Connection* c, ConnectionService* cs)
+void HttpConnectionServicer::serviceConnection(Connection* c)
 {
    // wrap connection, set default timeouts to 30 seconds
    HttpConnection hc(c, false);
@@ -202,9 +201,6 @@ void HttpConnectionServicer::serviceConnection(
    // clean up request and response
    delete request;
    delete response;
-   
-   // clean up connection
-   cs->cleanupConnection(c);
 }
 
 void HttpConnectionServicer::addRequestServicer(
