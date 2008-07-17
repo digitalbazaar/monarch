@@ -36,7 +36,7 @@ protected:
    /**
     * The total number of bytes written so far.
     */
-   unsigned long long mBytesWritten;
+   uint64_t mBytesWritten;
    
    /**
     * The ByteBuffer to fill before flushing.
@@ -49,6 +49,11 @@ protected:
     * flushed.
     */
    bool mUseBuffer;
+   
+   /**
+    * The ByteBuffer with data that couldn't be flushed due to non-blocking IO.
+    */
+   db::io::ByteBuffer mUnflushed;
    
 public:
    /**
@@ -92,7 +97,7 @@ public:
     * 
     * @return the number of bytes written so far.
     */
-   virtual unsigned long long getBytesWritten();
+   virtual uint64_t getBytesWritten();
    
    /**
     * Resizes the output buffer. The starting size is 0, as no buffering

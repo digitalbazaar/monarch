@@ -1,13 +1,16 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpBodyOutputStream.h"
+
 #include "db/net/http/HttpChunkedTransferOutputStream.h"
+#include "db/rt/DynamicObject.h"
 #include "db/util/Math.h"
 
 using namespace std;
 using namespace db::io;
 using namespace db::net::http;
+using namespace db::rt;
 using namespace db::util;
 
 HttpBodyOutputStream::HttpBodyOutputStream(
@@ -44,7 +47,20 @@ bool HttpBodyOutputStream::write(const char* b, int length)
    if(length > 0)
    {
       // write out to underlying stream
-      if((rval = mOutputStream->write(b, length)))
+      rval = mOutputStream->write(b, length);
+      if(!rval)
+      {
+         // see if send would block
+         length = 0;
+         ExceptionRef e = Exception::getLast();
+         if(e->getDetails()->hasMember("wouldBlock"))
+         {
+            // use number of bytes sent
+            length = e->getDetails()["sent"]->getInt32();
+         }
+      }
+      
+      if(length > 0)
       {
          // update http connection content bytes written (reset as necessary)
          if(mConnection->getContentBytesWritten() > Math::HALF_MAX_LONG_VALUE)

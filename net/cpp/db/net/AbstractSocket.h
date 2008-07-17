@@ -377,9 +377,6 @@ public:
     * block. An exception detail of "wouldBlock" will be set to true and
     * the number of bytes actually sent will be set to "sent".
     * 
-    * Note: Keep in mind that not all OutputStreams will support being
-    * able to recover from an incomplete send.
-    * 
     * @param on true to activate non-blocking send, false not to.
     */
    virtual void setSendNonBlocking(bool on);

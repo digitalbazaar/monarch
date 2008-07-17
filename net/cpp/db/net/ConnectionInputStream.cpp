@@ -211,19 +211,19 @@ int ConnectionInputStream::readCrlf(string& line)
    return rval;
 }
 
-int ConnectionInputStream::peek(char* b, int length, bool block)
+inline int ConnectionInputStream::peek(char* b, int length, bool block)
 {
    // peek using socket input stream
    return mConnection->getSocket()->getInputStream()->peek(b, length, block);
 }
 
-void ConnectionInputStream::close()
+inline void ConnectionInputStream::close()
 {
    // close socket input stream
    mConnection->getSocket()->getInputStream()->close();
 }
 
-unsigned long long ConnectionInputStream::getBytesRead()
+inline unsigned long long ConnectionInputStream::getBytesRead()
 {
    return mBytesRead;
 }

@@ -34,7 +34,7 @@ protected:
    /**
     * The total number of bytes read so far.
     */
-   unsigned long long mBytesRead;
+   uint64_t mBytesRead;
 
 public:
    /**
@@ -139,7 +139,7 @@ public:
     * 
     * @return the total number of bytes read so far.
     */
-   virtual unsigned long long getBytesRead();
+   virtual uint64_t getBytesRead();
 };
 
 } // end namespace net

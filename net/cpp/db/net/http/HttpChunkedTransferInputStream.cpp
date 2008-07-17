@@ -2,6 +2,8 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpChunkedTransferInputStream.h"
+
+#include "db/rt/DynamicObject.h"
 #include "db/util/Convert.h"
 
 #include <cstdlib>
@@ -87,9 +89,14 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
          }
          else
          {
-            // the chunk size could not be read!
-            ExceptionRef e = new IOException("Could not read HTTP chunk size!");
-            Exception::setLast(e, true);
+            // create special exception if not a blocking exception
+            ExceptionRef e = Exception::getLast();
+            if(!e->getDetails()->hasMember("wouldBlock"))
+            {
+               // the chunk size could not be read!
+               e = new IOException("Could not read HTTP chunk size!");
+               Exception::setLast(e, true);
+            }
          }
       }
    }
