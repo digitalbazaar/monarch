@@ -84,6 +84,11 @@ protected:
    db::rt::ExclusiveLock mMessageQueueLock;
    
    /**
+    * An exclusive lock for waiting for the fiber list to empty.
+    */
+   db::rt::ExclusiveLock mNoFibersLock;
+   
+   /**
     * Queues the passed message for processing.
     * 
     * @param fm the message to queue.

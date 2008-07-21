@@ -238,6 +238,16 @@ void FiberScheduler::runNextFiber(bool yield)
       }
       else
       {
+         if(mFiberList.empty())
+         {
+            mNoFibersLock.lock();
+            {
+               // notify that no fibers are available
+               mNoFibersLock.notifyAll();
+            }
+            mNoFibersLock.unlock();
+         }
+         
          if(!yield)
          {
             // wait on schedule lock if not yielding
@@ -275,15 +285,15 @@ bool FiberScheduler::stopOnLastFiberExit()
 {
    bool rval = true;
    
-   mScheduleLock.lock();
+   mNoFibersLock.lock();
    {
-      // wait on the schedule lock until there are no more fibers
+      // wait on the no fibers lock until there are no more fibers
       while(rval && !mFiberList.empty())
       {
-         rval = mScheduleLock.wait();
+         rval = mNoFibersLock.wait();
       }
    }
-   mScheduleLock.unlock();
+   mNoFibersLock.unlock();
    
    if(rval)
    {
