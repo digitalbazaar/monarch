@@ -45,10 +45,12 @@ void Observable::dispatchEvent(
                   Operation op(ed);
                   mOpRunner->runOperation(op);
                   
-                  // FIXME: When adding the parallel event processing feature,
-                  // simply do not add to the list for those events that
-                  // do not require serial processing
-                  opList.add(op);
+                  // only add serial events to the operation list, parallel
+                  // events are not waited on for completion
+                  if(!e->hasMember("parallel") || !e["parallel"]->getBoolean())
+                  {
+                     opList.add(op);
+                  }
                }
             }
          }
