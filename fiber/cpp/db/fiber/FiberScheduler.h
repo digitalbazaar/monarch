@@ -71,7 +71,7 @@ protected:
     * Typedef and a queue of messages.
     */
    typedef std::list<FiberMessage*> MessageQueue;
-   MessageQueue mMessageQueue;
+   MessageQueue* mMessageQueue;
    
    /**
     * An exclusive lock for scheduling the next Fiber.

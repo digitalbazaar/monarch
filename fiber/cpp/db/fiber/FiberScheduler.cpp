@@ -11,6 +11,9 @@ FiberScheduler::FiberScheduler()
 {
    // add first FiberId
    mFiberIdFreeList.push_back(1);
+   
+   // create message queue
+   mMessageQueue = new MessageQueue;
 }
 
 FiberScheduler::~FiberScheduler()
@@ -25,11 +28,14 @@ FiberScheduler::~FiberScheduler()
    }
    
    // delete all messages
-   for(MessageQueue::iterator i = mMessageQueue.begin();
-       i != mMessageQueue.end(); i++)
+   for(MessageQueue::iterator i = mMessageQueue->begin();
+       i != mMessageQueue->end(); i++)
    {
       delete *i;
    }
+   
+   // delete message queue
+   delete mMessageQueue;
 }
 
 void FiberScheduler::sendStateMessage(FiberId id, Fiber::State state)
@@ -44,21 +50,21 @@ void FiberScheduler::sendStateMessage(FiberId id, Fiber::State state)
    mMessageQueueLock.lock();
    {
       // add message to the queue
-      mMessageQueue.push_back(fm);
+      mMessageQueue->push_back(fm);
    }
    mMessageQueueLock.unlock();
 }
 
 void FiberScheduler::processMessages()
 {
-   MessageQueue mq;
+   MessageQueue* mq;
    
    // lock to acquire a message queue to process
    mMessageQueueLock.lock();
    {
-      // copy messages, clear queue
+      // point to messages, create new queue
       mq = mMessageQueue;
-      mMessageQueue.clear();
+      mMessageQueue = new MessageQueue;
    }
    mMessageQueueLock.unlock();
    
@@ -66,7 +72,7 @@ void FiberScheduler::processMessages()
    Fiber* fiber = NULL;
    FiberMessage* msg;
    FiberMap::iterator fi;
-   for(MessageQueue::iterator i = mq.begin(); i != mq.end(); i++)
+   for(MessageQueue::iterator i = mq->begin(); i != mq->end(); i++)
    {
       // get message
       msg = *i;
@@ -117,6 +123,9 @@ void FiberScheduler::processMessages()
       // delete message
       delete msg;
    }
+   
+   // delete old message queue
+   delete mq;
 }
 
 void FiberScheduler::nextFiber()
@@ -316,7 +325,7 @@ void FiberScheduler::sendMessage(FiberId id, DynamicObject& msg)
    mMessageQueueLock.lock();
    {
       // add message to the queue
-      mMessageQueue.push_back(fm);
+      mMessageQueue->push_back(fm);
    }
    mMessageQueueLock.unlock();
 }

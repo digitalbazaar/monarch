@@ -81,25 +81,28 @@ void runFiberTest(TestRunner& tr)
       FiberScheduler fs;
       
       // queue up some fibers prior to starting
-      for(int i = 0; i < 100; i++)
+      for(int i = 0; i < 1000; i++)
       {
          fs.addFiber(new TestFiber(20));
       }
       
-      for(int i = 0; i < 40; i++)
+      for(int i = 0; i < 400; i++)
       {
          fs.addFiber(new TestFiber(50));
       }
       
-      fs.start(&k, 2);
+      uint64_t startTime = Timer::startTiming();
+      fs.start(&k, 4);
       
       // add more fibers
-      for(int i = 0; i < 20; i++)
+      for(int i = 0; i < 200; i++)
       {
          fs.addFiber(new TestFiber(20));
       }
       
       fs.stopOnLastFiberExit();
+      printf("\nTotal time=%g secs\n", Timer::getSeconds(startTime));
+      
       k.getEngine()->stop();
    }
    tr.passIfNoException();
@@ -119,8 +122,11 @@ void runFiberTest(TestRunner& tr)
          fs.sendMessage(i + 1, msg);
       }
       
+      uint64_t startTime = Timer::startTiming();
       fs.start(&k, 2);
       fs.stopOnLastFiberExit();
+      printf("\nTotal time=%g secs\n", Timer::getSeconds(startTime));
+      
       k.getEngine()->stop();
    }
    tr.passIfNoException();
@@ -150,7 +156,7 @@ public:
 void runSpeedTest(TestRunner& tr)
 {
    tr.group("Fiber speed");
-   
+#if 0
    tr.test("300 threads");
    {
       Kernel k;
@@ -174,7 +180,7 @@ void runSpeedTest(TestRunner& tr)
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+#endif   
    tr.test("300 fibers");
    {
       Kernel k;
@@ -183,13 +189,13 @@ void runSpeedTest(TestRunner& tr)
       FiberScheduler fs;
       
       // queue up fibers
-      for(int i = 0; i < 300; i++)
+      for(int i = 0; i < 1000; i++)
       {
          fs.addFiber(new TestFiber(100));
       }
       
       uint64_t startTime = Timer::startTiming();
-      fs.start(&k, 2);
+      fs.start(&k, 4);
       fs.stopOnLastFiberExit();
       printf("\nTotal time=%g secs\n", Timer::getSeconds(startTime));
       
@@ -213,8 +219,8 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-      //runFiberTest(tr);
-      runSpeedTest(tr);
+      runFiberTest(tr);
+      //runSpeedTest(tr);
       return 0;
    }
 
