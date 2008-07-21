@@ -189,7 +189,7 @@ void runSpeedTest(TestRunner& tr)
       }
       
       uint64_t startTime = Timer::startTiming();
-      fs.start(&k, 1);
+      fs.start(&k, 2);
       fs.stopOnLastFiberExit();
       printf("\nTotal time=%g secs\n", Timer::getSeconds(startTime));
       
