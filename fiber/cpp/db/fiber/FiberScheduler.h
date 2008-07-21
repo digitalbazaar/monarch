@@ -68,15 +68,10 @@ protected:
    };
    
    /**
-    * The typedef for a MessageQueue and a list of MessageQueues.
+    * Typedef and a queue of messages.
     */
-   typedef std::list<FiberMessage> MessageQueue;
-   typedef std::list<MessageQueue*> MessageQueueList;
-   
-   /**
-    * The list of message queues that can be populated.
-    */
-   MessageQueueList mMessageQueues;
+   typedef std::list<FiberMessage*> MessageQueue;
+   MessageQueue mMessageQueue;
    
    /**
     * An exclusive lock for scheduling the next Fiber.
@@ -87,6 +82,14 @@ protected:
     * An exclusive lock for swapping message queues.
     */
    db::rt::ExclusiveLock mMessageQueueLock;
+   
+   /**
+    * Sends a message to change the state of a Fiber.
+    * 
+    * @param id the FiberId of the Fiber to send the message to.
+    * @param state the new state for the Fiber.
+    */
+   virtual void sendStateMessage(FiberId id, Fiber::State state);
    
    /**
     * Processes any pending messages.
@@ -105,14 +108,6 @@ protected:
     * @param yield true if the current Fiber is yielding, false if not.
     */
    virtual void runNextFiber(bool yield);
-   
-   /**
-    * Sends a message to change the state of a Fiber.
-    * 
-    * @param id the FiberId of the Fiber to send the message to.
-    * @param state the new state for the Fiber.
-    */
-   virtual void sendStateMessage(FiberId id, Fiber::State state);
    
 public:
    /**

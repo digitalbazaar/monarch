@@ -5,6 +5,7 @@
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
+#include "db/crypto/BigDecimal.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/fiber/FiberScheduler.h"
 #include "db/modest/Kernel.h"
@@ -15,6 +16,7 @@
 #include <cstdlib>
 
 using namespace std;
+using namespace db::crypto;
 using namespace db::fiber;
 using namespace db::data::json;
 using namespace db::modest;
@@ -32,13 +34,17 @@ public:
    
    virtual void processMessage(DynamicObject& msg)
    {
-      printf("Processing msg:\n%s\n",
-         JsonWriter::writeDynamicObjectToString(msg).c_str());
+      //printf("Processing msg:\n%s\n",
+      //   JsonWriter::writeDynamicObjectToString(msg).c_str());
    }
    
    virtual void run()
    {
-      printf("Running test fiber '%d'\n", getId());
+      //printf("Running test fiber '%d'\n", getId());
+      
+      BigDecimal bd1("80932149813491423134299827397162412482");
+      BigDecimal bd2("23974321498129821741298721");
+      bd1 = bd1 / bd2;
       
       if(--count == 0)
       {
@@ -50,8 +56,7 @@ public:
 void runFiberTest(TestRunner& tr)
 {
    tr.group("Fibers");
-
-#if 0
+   
    tr.test("single fiber");
    {
       Kernel k;
@@ -67,7 +72,6 @@ void runFiberTest(TestRunner& tr)
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-#endif
    
    tr.test("many fibers");
    {
@@ -100,7 +104,6 @@ void runFiberTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
-#if 0
    tr.test("messages");
    {
       Kernel k;
@@ -108,9 +111,9 @@ void runFiberTest(TestRunner& tr)
       
       FiberScheduler fs;
       
-      for(int i = 0; i < 20; i++)
+      for(int i = 0; i < 100; i++)
       {
-         fs.addFiber(new TestFiber(10));
+         fs.addFiber(new TestFiber(20));
          DynamicObject msg;
          msg["helloId"] = i + 1;
          fs.sendMessage(i + 1, msg);
@@ -121,20 +124,26 @@ void runFiberTest(TestRunner& tr)
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-#endif
    
    tr.ungroup();
 }
 
-class SpeedFiber : public Fiber
+class TestRunnable : public Runnable
 {
+protected:
+   int count;
 public:
-   SpeedFiber() {};
-   virtual ~SpeedFiber() {};
+   TestRunnable(int n) { count = n; };
+   virtual ~TestRunnable() {};
    
    virtual void run()
    {
-      printf("Running speed fiber '%d'\n", getId());
+      while(--count >= 0)
+      {
+         BigDecimal bd1("80932149813491423134299827397162412482");
+         BigDecimal bd2("23974321498129821741298721");
+         bd1 = bd1 / bd2;
+      }
    }
 };
 
@@ -142,9 +151,49 @@ void runSpeedTest(TestRunner& tr)
 {
    tr.group("Fiber speed");
    
-   tr.test("1,000,000 fibers");
+   tr.test("300 threads");
    {
-      // FIXME: do it
+      Kernel k;
+      k.getEngine()->getThreadPool()->setPoolSize(300);
+      k.getEngine()->start();
+      
+      // queue up Operations
+      OperationList opList;
+      for(int i = 0; i < 300; i++)
+      {
+         RunnableRef r = new TestRunnable(100);
+         Operation op(r);
+         opList.add(op);
+      }
+      
+      uint64_t startTime = Timer::startTiming();
+      opList.queue(&k);
+      opList.waitFor();
+      printf("\nTotal time=%g secs\n", Timer::getSeconds(startTime));
+      
+      k.getEngine()->stop();
+   }
+   tr.passIfNoException();
+   
+   tr.test("300 fibers");
+   {
+      Kernel k;
+      k.getEngine()->start();
+      
+      FiberScheduler fs;
+      
+      // queue up fibers
+      for(int i = 0; i < 300; i++)
+      {
+         fs.addFiber(new TestFiber(100));
+      }
+      
+      uint64_t startTime = Timer::startTiming();
+      fs.start(&k, 1);
+      fs.stopOnLastFiberExit();
+      printf("\nTotal time=%g secs\n", Timer::getSeconds(startTime));
+      
+      k.getEngine()->stop();
    }
    tr.passIfNoException();
    
@@ -164,8 +213,8 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-      runFiberTest(tr);
-      //runSpeedTest(tr);
+      //runFiberTest(tr);
+      runSpeedTest(tr);
       return 0;
    }
 
