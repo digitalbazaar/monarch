@@ -56,7 +56,7 @@ public:
 void runFiberTest(TestRunner& tr)
 {
    tr.group("Fibers");
-   
+#if 0
    tr.test("single fiber");
    {
       Kernel k;
@@ -72,7 +72,7 @@ void runFiberTest(TestRunner& tr)
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+#endif
    tr.test("many fibers");
    {
       Kernel k;
@@ -95,9 +95,9 @@ void runFiberTest(TestRunner& tr)
       fs.start(&k, 4);
       
       // add more fibers
-      for(int i = 0; i < 200; i++)
+      for(int i = 0; i < 20; i++)
       {
-         fs.addFiber(new TestFiber(20));
+         fs.addFiber(new TestFiber(100));
       }
       
       fs.stopOnLastFiberExit();
@@ -106,7 +106,7 @@ void runFiberTest(TestRunner& tr)
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+#if 0
    tr.test("messages");
    {
       Kernel k;
@@ -133,7 +133,7 @@ void runFiberTest(TestRunner& tr)
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+#endif
    tr.ungroup();
 }
 
@@ -198,7 +198,7 @@ void runSpeedTest(TestRunner& tr)
       }
       
       uint64_t startTime = Timer::startTiming();
-      fs.start(&k, 4);
+      fs.start(&k, 2);
       fs.stopOnLastFiberExit();
       printf("time=%g secs... ", Timer::getSeconds(startTime));
       

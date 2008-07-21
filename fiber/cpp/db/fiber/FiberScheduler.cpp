@@ -31,14 +31,8 @@ FiberScheduler::~FiberScheduler()
    delete mMessageQueue;
 }
 
-void FiberScheduler::sendStateMessage(FiberId id, Fiber::State state)
+void FiberScheduler::queueMessage(FiberMessage& fm)
 {
-   // create FiberMessage to change state
-   FiberMessage fm;
-   fm.id = id;
-   fm.state = state;
-   fm.data.setNull();
-   
    // lock to queue message
    mMessageQueueLock.lock();
    {
@@ -46,6 +40,23 @@ void FiberScheduler::sendStateMessage(FiberId id, Fiber::State state)
       mMessageQueue->push_back(fm);
    }
    mMessageQueueLock.unlock();
+   
+   mScheduleLock.lock();
+   {
+      // notify that a message can be processed
+      mScheduleLock.notifyAll();
+   }
+   mScheduleLock.unlock();
+}
+
+void FiberScheduler::sendStateMessage(FiberId id, Fiber::State state)
+{
+   // create FiberMessage to change state
+   FiberMessage fm;
+   fm.id = id;
+   fm.state = state;
+   fm.data.setNull();
+   queueMessage(fm);
 }
 
 void FiberScheduler::processMessages()
@@ -87,6 +98,9 @@ void FiberScheduler::processMessages()
                if(fiber->getState() == Fiber::Sleeping)
                {
                   fiber->setState(Fiber::Idle);
+                  
+                  // notify that an idle fiber is available
+                  mScheduleLock.notifyAll();
                }
                break;
             case Fiber::Running:
@@ -97,6 +111,9 @@ void FiberScheduler::processMessages()
                // change to exiting if running, else change to exited
                fiber->setState(fiber->getState() == Fiber::Running ?
                   Fiber::Exiting : Fiber::Exited);
+               
+               // notify that a fiber can exit
+               mScheduleLock.notifyAll();
                break;
             case Fiber::Sleeping:
                // only set sleeping if not exiting or exited
@@ -124,6 +141,26 @@ void FiberScheduler::nextFiber()
    {
       mFiberItr++;
    }
+}
+
+void FiberScheduler::removeFiber()
+{
+   // add fiber ID to free list
+   mFiberIdFreeList.push_front((*mFiberItr)->getId());
+   
+   // erase map entry, delete fiber, erase list entry
+   mFiberMap.erase((*mFiberItr)->getId());
+   delete *mFiberItr;
+   mFiberItr = mFiberList.erase(mFiberItr);
+   
+   // restart fiber iterator as necessary
+   if(mFiberItr == mFiberList.end())
+   {
+      mFiberItr = mFiberList.begin();
+   }
+   
+   // notify that a fiber has exited
+   mScheduleLock.notifyAll();
 }
 
 void FiberScheduler::runNextFiber(bool yield)
@@ -158,22 +195,8 @@ void FiberScheduler::runNextFiber(bool yield)
                nextFiber();
                break;
             case Fiber::Exited:
-               // add fiber ID to free list
-               mFiberIdFreeList.push_front((*mFiberItr)->getId());
-               
-               // erase map entry, delete fiber, erase list entry
-               mFiberMap.erase((*mFiberItr)->getId());
-               delete *mFiberItr;
-               mFiberItr = mFiberList.erase(mFiberItr);
-               
-               // restart fiber iterator as necessary
-               if(mFiberItr == mFiberList.end())
-               {
-                  mFiberItr = mFiberList.begin();
-               }
-               
-               // notify that a fiber has exited
-               mScheduleLock.notifyAll();
+               // remove fiber
+               removeFiber();
                break;
             default:
                if(cycleEnd == 0)
@@ -210,14 +233,14 @@ void FiberScheduler::runNextFiber(bool yield)
             fiber->setState(Fiber::Exited);
          }
          
-         // notify that a fiber has gone idle
+         // notify that a fiber has finished running
          mScheduleLock.notifyAll();
       }
       else
       {
-         // wait on schedule lock if not yielding
          if(!yield)
          {
+            // wait on schedule lock if not yielding
             mScheduleLock.wait();
          }
       }
@@ -293,7 +316,7 @@ void FiberScheduler::addFiber(Fiber* fiber)
       mFiberMap.insert(std::make_pair(id, fiber));
       mFiberList.push_back(fiber);
       
-      // notify waiting threads of a new fiber
+      // notify that a new fiber is available
       mScheduleLock.notifyAll();
    }
    mScheduleLock.unlock();
@@ -306,14 +329,7 @@ void FiberScheduler::sendMessage(FiberId id, DynamicObject& msg)
    fm.id = id;
    fm.state = Fiber::None;
    fm.data = msg;
-   
-   // lock to queue message
-   mMessageQueueLock.lock();
-   {
-      // add message to the queue
-      mMessageQueue->push_back(fm);
-   }
-   mMessageQueueLock.unlock();
+   queueMessage(fm);
 }
 
 inline void FiberScheduler::yield(FiberId id)

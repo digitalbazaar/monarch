@@ -84,6 +84,13 @@ protected:
    db::rt::ExclusiveLock mMessageQueueLock;
    
    /**
+    * Queues the passed message for processing.
+    * 
+    * @param fm the message to queue.
+    */
+   virtual void queueMessage(FiberMessage& fm);
+   
+   /**
     * Sends a message to change the state of a Fiber.
     * 
     * @param id the FiberId of the Fiber to send the message to.
@@ -100,6 +107,12 @@ protected:
     * Increments the internal iterator to the next fiber.
     */
    virtual void nextFiber();
+   
+   /**
+    * Removes the fiber pointed to by the internal iterator and
+    * increments the iterator.
+    */
+   virtual void removeFiber();
    
    /**
     * Runs the next scheduled Fiber. If there is no Fiber to run, the current
