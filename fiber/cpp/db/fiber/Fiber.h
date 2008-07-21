@@ -41,7 +41,7 @@ public:
     */
    enum State
    {
-      None, Idle, Running, Sleeping, Exiting
+      None, Idle, Running, Sleeping, Exiting, Exited
    };
    
 protected:

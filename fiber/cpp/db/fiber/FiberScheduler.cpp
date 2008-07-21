@@ -76,12 +76,15 @@ void FiberScheduler::processMessages()
                // illegal, ignore message
                break;
             case Fiber::Exiting:
-               // exiting fiber always permitted
-               fiber->setState(i->state);
+            case Fiber::Exited:
+               // change to exiting if running, else change to exited
+               fiber->setState(fiber->getState() == Fiber::Running ?
+                  Fiber::Exiting : Fiber::Exited);
                break;
             case Fiber::Sleeping:
-               // only set sleeping if not exiting
-               if(fiber->getState() == Fiber::Exiting)
+               // only set sleeping if not exiting or exited
+               if(fiber->getState() != Fiber::Exiting &&
+                  fiber->getState() != Fiber::Exited)
                {
                   fiber->setState(i->state);
                }
@@ -144,10 +147,7 @@ void FiberScheduler::runNextFiber(bool yield)
                fiber = *mFiberItr;
                nextFiber();
                break;
-            case Fiber::Exiting:
-               // FIXME: uncomment (race condition bug seems to disappear
-               // with this code uncommented)
-               /*
+            case Fiber::Exited:
                // add fiber ID to free list
                mFiberIdFreeList.push_front((*mFiberItr)->getId());
                
@@ -161,9 +161,6 @@ void FiberScheduler::runNextFiber(bool yield)
                {
                   mFiberItr = mFiberList.begin();
                }
-               */
-               // FIXME: remove nextFiber() when uncommenting above code
-               nextFiber();
                
                // notify that a fiber has exited
                mScheduleLock.notifyAll();
@@ -196,6 +193,11 @@ void FiberScheduler::runNextFiber(bool yield)
          if(fiber->getState() == Fiber::Running)
          {
             fiber->setState(Fiber::Idle);
+         }
+         // mark fiber as exited if it is exiting
+         else if(fiber->getState() == Fiber::Exiting)
+         {
+            fiber->setState(Fiber::Exited);
          }
          
          // notify that a fiber has gone idle
