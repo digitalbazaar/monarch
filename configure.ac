@@ -111,6 +111,7 @@ AC_CONFIG_FILES([
           crypto/cpp/Makefile
           data/cpp/Makefile
           event/cpp/Makefile
+          fiber/cpp/Makefile
           io/cpp/Makefile
           logging/cpp/Makefile
           mail/cpp/Makefile

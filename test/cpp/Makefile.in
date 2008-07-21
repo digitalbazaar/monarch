@@ -8,6 +8,7 @@ EXECUTABLES = \
 	test-data \
 	test-dyno-perf \
 	test-event \
+	test-fiber \
 	test-io \
 	test-logging \
 	test-mail \
@@ -21,7 +22,7 @@ EXECUTABLES = \
 	run-unit-tests
 
 LIBRARIES = dbtest
-DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbio dblogging dbcrypto dbnet dbdata dbsql dbevent dbmail dbconfig dbcompress dbvalidation dbsphinx dbapp
+DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbfiber dbio dblogging dbcrypto dbnet dbdata dbsql dbevent dbmail dbconfig dbcompress dbvalidation dbsphinx dbapp
 DYNAMIC_WINDOWS_LIBRARIES = sqlite3 mysql
 
 LINUX_LIB_DIR = @DBCOREDIR@/libs/linux

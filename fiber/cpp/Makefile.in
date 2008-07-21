@@ -1,0 +1,9 @@
+# Makefile to compile the module in this directory
+
+SOURCES = $(wildcard db/fiber/*.cpp)
+LIBRARIES = dbfiber
+DYNAMIC_LINK_LIBRARIES = dbrt dbmodest
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
+

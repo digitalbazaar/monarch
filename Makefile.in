@@ -6,6 +6,7 @@ SUBDIRS := 3rdparty/cpp \
            io/cpp \
            logging/cpp \
            modest/cpp \
+           fiber/cpp \
            event/cpp \
            config/cpp \
            crypto/cpp \
@@ -26,6 +27,7 @@ INSTALL_LIBRARIES := \
 	crypto/cpp/dist/linux/libdbcrypto.so \
 	data/cpp/dist/linux/libdbdata.so \
 	event/cpp/dist/linux/libdbevent.so \
+	fiber/cpp/dist/linux/libdbfiber.so \
 	io/cpp/dist/linux/libdbio.so \
 	logging/cpp/dist/linux/libdblogging.so \
 	mail/cpp/dist/linux/libdbmail.so \
