@@ -31,12 +31,18 @@ protected:
     * Typedef and a map of FiberIds to Fibers.
     */
    typedef std::map<FiberId, Fiber*> FiberMap;
-   FiberMap mFibers;
+   FiberMap mFiberMap;
+   
+   /**
+    * Typedef and a list of Fibers.
+    */
+   typedef std::list<Fiber*> FiberList;
+   FiberList mFiberList;
    
    /**
     * An iterator for scheduling Fibers.
     */
-   FiberMap::iterator mFiberItr;
+   FiberList::iterator mFiberItr;
    
    /**
     * The list of Operations to run Fibers on.
@@ -88,11 +94,25 @@ protected:
    virtual void processMessages();
    
    /**
-    * Runs the next scheduled Fiber.
+    * Increments the internal iterator to the next fiber.
+    */
+   virtual void nextFiber();
+   
+   /**
+    * Runs the next scheduled Fiber. If there is no Fiber to run, the current
+    * thread will wait until one becomes available unless yield is true.
     * 
     * @param yield true if the current Fiber is yielding, false if not.
     */
    virtual void runNextFiber(bool yield);
+   
+   /**
+    * Sends a message to change the state of a Fiber.
+    * 
+    * @param id the FiberId of the Fiber to send the message to.
+    * @param state the new state for the Fiber.
+    */
+   virtual void sendStateMessage(FiberId id, Fiber::State state);
    
 public:
    /**
@@ -129,19 +149,6 @@ public:
    virtual bool stopOnLastFiberExit();
    
    /**
-    * Runs the next scheduled Fiber. If there is no Fiber to run, the current
-    * thread will wait until one becomes available.
-    */
-   virtual void next();
-   
-   /**
-    * Yields the passed Fiber, which must be currently running.
-    * 
-    * @param id the ID of the Fiber to yield.
-    */
-   virtual void yield(FiberId id);
-   
-   /**
     * Adds a new Fiber to this FiberScheduler. The passed Fiber must be
     * heap-allocated. It will be deleted by this FiberScheduler when it
     * exits.
@@ -159,11 +166,32 @@ public:
    virtual void sendMessage(FiberId id, db::rt::DynamicObject& msg);
    
    /**
-    * Wakes up a sleeping Fiber.
+    * Yields the *current* Fiber. This *must* be called by a running Fiber.
+    * 
+    * @param id the ID of the running Fiber to yield.
+    */
+   virtual void yield(FiberId id);
+   
+   /**
+    * Exits (terminates) any Fiber.
+    * 
+    * @param id the FiberId of the Fiber to exit.
+    */
+   virtual void exit(FiberId id);
+   
+   /**
+    * Puts to sleep any non-exiting Fiber.
+    * 
+    * @param id the FiberId of the Fiber to put to sleep.
+    */
+   virtual void sleep(FiberId id);
+   
+   /**
+    * Wakes up any sleeping Fiber.
     * 
     * @param id the FiberId of the Fiber to wakeup.
     */
-   virtual void wakeupFiber(FiberId id);
+   virtual void wakeup(FiberId id);
    
    /**
     * Runs this FiberScheduler. This method is executed inside of N modest

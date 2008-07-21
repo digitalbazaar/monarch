@@ -9,30 +9,32 @@ using namespace db::fiber;
 
 Fiber::Fiber()
 {
+   // default priority of 0
+   setPriority(0);
 }
 
 Fiber::~Fiber()
 {
 }
 
-void Fiber::yield()
+inline void Fiber::yield()
 {
    mScheduler->yield(getId());
 }
 
-void Fiber::exit()
+inline void Fiber::exit()
 {
-   setState(Exiting);
+   mScheduler->exit(getId());
 }
 
-void Fiber::sleep()
+inline void Fiber::sleep()
 {
-   setState(Sleeping);
+   mScheduler->sleep(getId());
 }
 
-void Fiber::wakeup()
+inline void Fiber::wakeup()
 {
-   setState(Idle);
+   mScheduler->wakeup(getId());
 }
 
 void Fiber::setScheduler(FiberScheduler* scheduler, FiberId id)
@@ -42,17 +44,27 @@ void Fiber::setScheduler(FiberScheduler* scheduler, FiberId id)
    mState = Idle;
 }
 
-FiberId Fiber::getId()
+inline FiberId Fiber::getId()
 {
    return mId;
 }
 
-void Fiber::setState(Fiber::State state)
+inline void Fiber::setState(Fiber::State state)
 {
    mState = state;
 }
 
-Fiber::State Fiber::getState()
+inline Fiber::State Fiber::getState()
 {
    return mState;
+}
+
+inline void Fiber::setPriority(FiberPriority p)
+{
+   mPriority = p;
+}
+
+inline FiberPriority Fiber::getPriority()
+{
+   return mPriority;
 }

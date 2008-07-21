@@ -5,6 +5,7 @@
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
+#include "db/data/json/JsonWriter.h"
 #include "db/fiber/FiberScheduler.h"
 #include "db/modest/Kernel.h"
 #include "db/util/Timer.h"
@@ -15,6 +16,7 @@
 
 using namespace std;
 using namespace db::fiber;
+using namespace db::data::json;
 using namespace db::modest;
 using namespace db::rt;
 using namespace db::test;
@@ -27,6 +29,12 @@ protected:
 public:
    TestFiber(int n) { count = n; };
    virtual ~TestFiber() {};
+   
+   virtual void processMessage(DynamicObject& msg)
+   {
+      printf("Processing msg:\n%s\n",
+         JsonWriter::writeDynamicObjectToString(msg).c_str());
+   }
    
    virtual void run()
    {
@@ -42,7 +50,8 @@ public:
 void runFiberTest(TestRunner& tr)
 {
    tr.group("Fibers");
-   
+
+#if 0
    tr.test("single fiber");
    {
       Kernel k;
@@ -58,12 +67,67 @@ void runFiberTest(TestRunner& tr)
       k.getEngine()->stop();
    }
    tr.passIfNoException();
+#endif
    
    tr.test("many fibers");
    {
-      // FIXME: do it
+      Kernel k;
+      k.getEngine()->start();
+      
+      FiberScheduler fs;
+      
+      // queue up some fibers prior to starting
+      for(int i = 0; i < 100; i++)
+      {
+         fs.addFiber(new TestFiber(20));
+      }
+      
+      for(int i = 0; i < 40; i++)
+      {
+         fs.addFiber(new TestFiber(50));
+      }
+      
+      fs.start(&k, 2);
+      
+      // add more fibers
+      for(int i = 0; i < 20; i++)
+      {
+         fs.addFiber(new TestFiber(20));
+      }
+      
+      // FIXME: uncomment line below
+      //fs.stopOnLastFiberExit();
+      
+      // FIXME: remove 2 lines below
+      Thread::sleep(2000);
+      fs.stop();
+      
+      k.getEngine()->stop();
    }
    tr.passIfNoException();
+   
+#if 0
+   tr.test("messages");
+   {
+      Kernel k;
+      k.getEngine()->start();
+      
+      FiberScheduler fs;
+      
+      for(int i = 0; i < 20; i++)
+      {
+         fs.addFiber(new TestFiber(10));
+         DynamicObject msg;
+         msg["helloId"] = i + 1;
+         fs.sendMessage(i + 1, msg);
+      }
+      
+      fs.start(&k, 2);
+      fs.stopOnLastFiberExit();
+      k.getEngine()->stop();
+   }
+   tr.passIfNoException();
+#endif
    
    tr.ungroup();
 }

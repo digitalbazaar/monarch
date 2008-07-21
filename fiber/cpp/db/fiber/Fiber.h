@@ -11,8 +11,9 @@ namespace db
 namespace fiber
 {
 
-// define FiberId type
+// type definitions
 typedef uint32_t FiberId;
+typedef int16_t FiberPriority;
 
 // forward declarations
 class FiberScheduler;
@@ -60,6 +61,11 @@ protected:
    State mState;
    
    /**
+    * This Fiber's priority.
+    */
+   FiberPriority mPriority;
+   
+   /**
     * Yields this Fiber temporarily to allow another Fiber to run.
     * 
     * This method *must* only be called inside run().
@@ -68,22 +74,16 @@ protected:
    
    /**
     * Causes this Fiber to exit the next time it is scheduled to be run.
-    * 
-    * This method *must* only be called inside run() or processMessage().
     */
    virtual void exit();
    
    /**
     * Causes this Fiber to sleep until it is woken up.
-    * 
-    * This method *must* only be called inside run() or processMessage().
     */
    virtual void sleep();
    
    /**
     * Causes this Fiber to wakeup if it was sleeping.
-    * 
-    * This method *must* only be called inside processMessage().
     */
    virtual void wakeup();
    
@@ -106,7 +106,7 @@ public:
    virtual void run() = 0;
    
    /**
-    * Called by a FiberScheduler to have this Fiber process the passed
+    * Called *only* by a FiberScheduler to have this Fiber process the passed
     * message. This method is guaranteed to be run non-concurrently with
     * itself, though it could be run while run() is being executed.
     * 
@@ -115,7 +115,7 @@ public:
    virtual void processMessage(db::rt::DynamicObject& msg) {};
    
    /**
-    * Called by a FiberScheduler to claim ownership of this Fiber.
+    * Called *only* by a FiberScheduler to claim ownership of this Fiber.
     * 
     * @param scheduler the FiberScheduler that is claiming this Fiber.
     * @param id the FiberId assigned to this Fiber.
@@ -130,7 +130,7 @@ public:
    virtual FiberId getId();
    
    /**
-    * Called by a FiberScheduler to set this Fiber's current state.
+    * Called *only* by a FiberScheduler to set this Fiber's current state.
     * 
     * @param state the new state for this Fiber.
     */
@@ -142,6 +142,20 @@ public:
     * @return this Fiber's state.
     */
    virtual State getState();
+   
+   /**
+    * Sets the priority of this Fiber.
+    * 
+    * @param p the new FiberPriority.
+    */
+   virtual void setPriority(FiberPriority p);
+   
+   /**
+    * Gets this Fiber's priority.
+    * 
+    * @return this Fiber's priority.
+    */
+   virtual FiberPriority getPriority();
 };
 
 } // end namespace fiber
