@@ -95,13 +95,7 @@ void runFiberTest(TestRunner& tr)
          fs.addFiber(new TestFiber(20));
       }
       
-      // FIXME: uncomment line below
-      //fs.stopOnLastFiberExit();
-      
-      // FIXME: remove 2 lines below
-      Thread::sleep(2000);
-      fs.stop();
-      
+      fs.stopOnLastFiberExit();
       k.getEngine()->stop();
    }
    tr.passIfNoException();
