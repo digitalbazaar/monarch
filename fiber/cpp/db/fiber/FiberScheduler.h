@@ -84,9 +84,25 @@ protected:
    db::rt::ExclusiveLock mMessageQueueLock;
    
    /**
+    * An exclusive lock for waiting for work.
+    */
+   db::rt::ExclusiveLock mWorkWaitLock;
+   
+   /**
     * An exclusive lock for waiting for the fiber list to empty.
     */
-   db::rt::ExclusiveLock mNoFibersLock;
+   db::rt::ExclusiveLock mNoFibersWaitLock;
+   
+   /**
+    * Called to notify operations that work (messages or fibers) is available.
+    */
+   virtual void workAvailable();
+   
+   /**
+    * Called to cause the current operation to wait for work to become
+    * available (messages or fibers).
+    */
+   virtual void waitForWork();
    
    /**
     * Queues the passed message for processing.
@@ -104,9 +120,11 @@ protected:
    virtual void sendStateMessage(FiberId id, Fiber::State state);
    
    /**
-    * Processes any pending messages.
+    * Processes any pending messages and return true if work is available.
+    * 
+    * @return true if work is available for fiber operations, false if not.
     */
-   virtual void processMessages();
+   virtual bool processMessages();
    
    /**
     * Increments the internal iterator to the next fiber.
