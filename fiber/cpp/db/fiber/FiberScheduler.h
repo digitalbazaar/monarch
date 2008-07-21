@@ -70,7 +70,7 @@ protected:
    /**
     * Typedef and a queue of messages.
     */
-   typedef std::list<FiberMessage*> MessageQueue;
+   typedef std::list<FiberMessage> MessageQueue;
    MessageQueue* mMessageQueue;
    
    /**

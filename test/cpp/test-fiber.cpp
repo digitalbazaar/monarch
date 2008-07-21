@@ -101,7 +101,7 @@ void runFiberTest(TestRunner& tr)
       }
       
       fs.stopOnLastFiberExit();
-      printf("\nTotal time=%g secs\n", Timer::getSeconds(startTime));
+      printf("time=%g secs... ", Timer::getSeconds(startTime));
       
       k.getEngine()->stop();
    }
@@ -119,13 +119,16 @@ void runFiberTest(TestRunner& tr)
          fs.addFiber(new TestFiber(20));
          DynamicObject msg;
          msg["helloId"] = i + 1;
-         fs.sendMessage(i + 1, msg);
+         for(int n = 0; n < 5000; n++)
+         {
+            fs.sendMessage(i + 1, msg);
+         }
       }
       
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 2);
       fs.stopOnLastFiberExit();
-      printf("\nTotal time=%g secs\n", Timer::getSeconds(startTime));
+      printf("time=%g secs... ", Timer::getSeconds(startTime));
       
       k.getEngine()->stop();
    }
@@ -156,7 +159,7 @@ public:
 void runSpeedTest(TestRunner& tr)
 {
    tr.group("Fiber speed");
-#if 0
+   
    tr.test("300 threads");
    {
       Kernel k;
@@ -175,12 +178,12 @@ void runSpeedTest(TestRunner& tr)
       uint64_t startTime = Timer::startTiming();
       opList.queue(&k);
       opList.waitFor();
-      printf("\nTotal time=%g secs\n", Timer::getSeconds(startTime));
+      printf("time=%g secs... ", Timer::getSeconds(startTime));
       
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-#endif   
+   
    tr.test("300 fibers");
    {
       Kernel k;
@@ -189,7 +192,7 @@ void runSpeedTest(TestRunner& tr)
       FiberScheduler fs;
       
       // queue up fibers
-      for(int i = 0; i < 1000; i++)
+      for(int i = 0; i < 300; i++)
       {
          fs.addFiber(new TestFiber(100));
       }
@@ -197,7 +200,7 @@ void runSpeedTest(TestRunner& tr)
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 4);
       fs.stopOnLastFiberExit();
-      printf("\nTotal time=%g secs\n", Timer::getSeconds(startTime));
+      printf("time=%g secs... ", Timer::getSeconds(startTime));
       
       k.getEngine()->stop();
    }

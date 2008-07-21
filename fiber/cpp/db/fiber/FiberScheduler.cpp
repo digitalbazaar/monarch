@@ -27,13 +27,6 @@ FiberScheduler::~FiberScheduler()
       delete *i;
    }
    
-   // delete all messages
-   for(MessageQueue::iterator i = mMessageQueue->begin();
-       i != mMessageQueue->end(); i++)
-   {
-      delete *i;
-   }
-   
    // delete message queue
    delete mMessageQueue;
 }
@@ -41,10 +34,10 @@ FiberScheduler::~FiberScheduler()
 void FiberScheduler::sendStateMessage(FiberId id, Fiber::State state)
 {
    // create FiberMessage to change state
-   FiberMessage* fm = new FiberMessage;
-   fm->id = id;
-   fm->state = state;
-   fm->data.setNull();
+   FiberMessage fm;
+   fm.id = id;
+   fm.state = state;
+   fm.data.setNull();
    
    // lock to queue message
    mMessageQueueLock.lock();
@@ -70,34 +63,30 @@ void FiberScheduler::processMessages()
    
    // process messages
    Fiber* fiber = NULL;
-   FiberMessage* msg;
    FiberMap::iterator fi;
    for(MessageQueue::iterator i = mq->begin(); i != mq->end(); i++)
    {
-      // get message
-      msg = *i;
-      
       // find the fiber the message is for
-      if(fiber == NULL || fiber->getId() != msg->id)
+      if(fiber == NULL || fiber->getId() != i->id)
       {
-         fi = mFiberMap.find(msg->id);
+         fi = mFiberMap.find(i->id);
          fiber = (fi != mFiberMap.end() ? fi->second : NULL);
       }
       
       if(fiber != NULL)
       {
          // process the message OR update the fiber's state
-         switch(msg->state)
+         switch(i->state)
          {
             case Fiber::None:
                // no state change, so process the message 
-               fiber->processMessage(msg->data);
+               fiber->processMessage(i->data);
                break;
             case Fiber::Idle:
                // only set to idle if sleeping
                if(fiber->getState() == Fiber::Sleeping)
                {
-                  fiber->setState(msg->state);
+                  fiber->setState(Fiber::Idle);
                }
                break;
             case Fiber::Running:
@@ -114,14 +103,11 @@ void FiberScheduler::processMessages()
                if(fiber->getState() != Fiber::Exiting &&
                   fiber->getState() != Fiber::Exited)
                {
-                  fiber->setState(msg->state);
+                  fiber->setState(Fiber::Sleeping);
                }
                break;
          }
       }
-      
-      // delete message
-      delete msg;
    }
    
    // delete old message queue
@@ -316,10 +302,10 @@ void FiberScheduler::addFiber(Fiber* fiber)
 void FiberScheduler::sendMessage(FiberId id, DynamicObject& msg)
 {
    // create FiberMessage
-   FiberMessage* fm = new FiberMessage;
-   fm->id = id;
-   fm->state = Fiber::None;
-   fm->data = msg;
+   FiberMessage fm;
+   fm.id = id;
+   fm.state = Fiber::None;
+   fm.data = msg;
    
    // lock to queue message
    mMessageQueueLock.lock();
