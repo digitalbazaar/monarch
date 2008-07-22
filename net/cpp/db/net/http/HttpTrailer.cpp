@@ -17,7 +17,7 @@ HttpTrailer::~HttpTrailer()
 void HttpTrailer::update(unsigned long long contentLength)
 {
    // save content length
-   mContentLength += contentLength;
+   mContentLength = contentLength;
 }
 
 unsigned long long HttpTrailer::getContentLength()
