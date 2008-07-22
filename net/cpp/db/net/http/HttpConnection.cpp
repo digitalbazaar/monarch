@@ -5,6 +5,7 @@
 
 #include "db/net/http/HttpRequest.h"
 #include "db/net/http/HttpResponse.h"
+#include "db/net/http/HttpBodyInputStream.h"
 #include "db/net/http/HttpBodyOutputStream.h"
 #include "db/net/http/HttpChunkedTransferInputStream.h"
 #include "db/net/http/HttpChunkedTransferOutputStream.h"
@@ -180,133 +181,35 @@ bool HttpConnection::receiveBody(
 {
    bool rval = true;
    
-   InputStream* is = getInputStream();
-   
-   // wrap input stream if using chunked transfer encoding
-   HttpChunkedTransferInputStream* chunkin = NULL;
-   string transferEncoding;
-   if(header->getField("Transfer-Encoding", transferEncoding))
-   {
-      if(strncasecmp(transferEncoding.c_str(), "chunked", 7) == 0)
-      {
-         is = chunkin = new HttpChunkedTransferInputStream(
-            getInputStream(), trailer);
-      }
-   }
-   
-   // determine how much content needs to be received
-   long long contentLength = 0;
-   bool lengthUnspecified = true;
-   if(header->getField("Content-Length", contentLength) && contentLength >= 0)
-   {
-      lengthUnspecified = false;
-   }
+   // create HttpBodyInputStream
+   HttpBodyInputStream is(this, header, trailer);
    
    // vars for read/write
    unsigned int length = 2048;
    char b[length];
    int numBytes = 0;
    
-   // do chunked or unspecified length transfer
-   if(chunkin != NULL || lengthUnspecified)
+   // read in from connection, write out content
+   // Note: keep reading even if content output stream fails
+   while((numBytes = is.read(b, length)) > 0)
    {
-      uint64_t start = getContentBytesRead();
-      
-      // read in from connection, write out content
-      // Note: keep reading even if content output stream fails
-      while((numBytes = is->read(b, length)) > 0)
-      {
-         // update http connection content bytes read (reset as necessary)
-         if(getContentBytesRead() > HALF_MAX_LONG_VALUE)
-         {
-            setContentBytesRead(0);
-         }
-         
-         setContentBytesRead(getContentBytesRead() + numBytes);
-         
-         // write out content if no error yet
-         rval = rval && os->write(b, numBytes);
-      }
-      
-      // update trailer with content length
-      if(trailer != NULL)
-      {
-         if(start > getContentBytesRead())
-         {
-            // assume single overflow
-            trailer->update(start + getContentBytesRead());
-         }
-         else
-         {
-            // assume no overflow
-            trailer->update(getContentBytesRead() - start);
-         }
-      }
-      
-      if(chunkin != NULL)
-      {
-         // clean up chunkin
-         chunkin->close();
-         delete chunkin;
-      }
+      // write out content if no error yet
+      rval = rval && os->write(b, numBytes);
    }
-   else
-   {
-      // do specified length transfer:
-      
-      // read in from connection, write out content
-      // Note: keep reading even if content output stream fails
-      uint64_t contentRemaining = contentLength;
-      unsigned int readSize = (contentRemaining < length) ?
-         contentRemaining : length;
-      while(contentRemaining > 0 && (numBytes = is->read(b, readSize)) > 0)
-      {
-         contentRemaining -= numBytes;
-         readSize = (contentRemaining < length) ? contentRemaining : length;
-         
-         // update http connection content bytes read (reset as necessary)
-         if(getContentBytesRead() > HALF_MAX_LONG_VALUE)
-         {
-            setContentBytesRead(0);
-         }
-         
-         setContentBytesRead(getContentBytesRead() + numBytes);
-         
-         // write out content if no error yet
-         rval = rval && os->write(b, numBytes);
-      }
-      
-      // see if content is remaining
-      if(rval && contentRemaining > 0)
-      {
-         rval = false;
-         Thread* t = Thread::currentThread();
-         if(t->isInterrupted())
-         {
-            // we will probably want this to be more robust in the
-            // future so this kind of exception can be recovered from
-            ExceptionRef e = new IOException(
-               "Receiving HTTP content body interrupted!");
-            Exception::setLast(e, false);
-         }
-         else
-         {
-            ExceptionRef e = new IOException(
-               "Could not receive all HTTP content bytes!");
-            Exception::setLast(e, false);
-         }
-      }
-      else if(rval && contentRemaining == 0 && trailer != NULL)
-      {
-         // update trailer with content length
-         trailer->update(contentLength);
-      }
-   }
+   
+   // close input stream (will not close underlying stream)
+   is.close();
    
    // check read error
    rval = (rval && numBytes != -1);
    
    return rval;
+}
+
+InputStream* HttpConnection::getBodyInputStream(
+   HttpHeader* header, HttpTrailer* trailer)
+{
+   return new HttpBodyInputStream(this, header, trailer);
 }
 
 inline void HttpConnection::setContentBytesRead(uint64_t count)

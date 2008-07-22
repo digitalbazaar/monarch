@@ -62,6 +62,13 @@ public:
    virtual void update(unsigned long long contentLength);
    
    /**
+    * Explicitly set the content length in this trailer.
+    * 
+    * @param contentLength the content length to set.
+    */
+   virtual void setContentLength(unsigned long long contentLength);
+   
+   /**
     * Gets the content length provided in an update to this trailer.
     * 
     * @return the content length provided in an update to this trailer.

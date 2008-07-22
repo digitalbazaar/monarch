@@ -14,13 +14,18 @@ HttpTrailer::~HttpTrailer()
 {
 }
 
-void HttpTrailer::update(unsigned long long contentLength)
+inline void HttpTrailer::update(unsigned long long contentLength)
 {
    // save content length
+   setContentLength(contentLength);
+}
+
+inline void HttpTrailer::setContentLength(unsigned long long contentLength)
+{
    mContentLength = contentLength;
 }
 
-unsigned long long HttpTrailer::getContentLength()
+inline unsigned long long HttpTrailer::getContentLength()
 {
    return mContentLength;
 }
