@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_event_Observable_H
 #define db_event_Observable_H
@@ -21,12 +21,11 @@ namespace event
  * an Observer. It makes use of a Modest OperationRunner to dispatch its
  * events to all registered Observers.
  * 
- * FIXME: When adding the parallel event processing feature, update
- * documentation below as only serial events will be processed as described.
- * 
- * Observers will receive events in the same order that they were generated.
- * The events are also dispatched "semi-simultaneously," meaning that multiple
- * threads are used to dispatch the events to the Observers.
+ * Observers will receive events in the same order that they were generated,
+ * unless the events are marked as "parallel", at which point they might
+ * arrive at any time. The events are also dispatched "semi-simultaneously,"
+ * meaning that multiple threads are used to dispatch the events to the
+ * Observers.
  * 
  * Events and Observers are associated with EventIds such that when an Event
  * is sent out, it will be sent out to all Observers that are registered with
