@@ -56,15 +56,14 @@ protected:
    
    /**
     * A FiberMessage is a message sent to a particular Fiber. It contains
-    * the recipient Fiber's ID and the message data and, optionally, a new
-    * state for the Fiber.
+    * the recipient Fiber's ID, and either a new state for the Fiber or
+    * message data with the state set to Fiber::None.
     */
    struct FiberMessage
    {
       FiberId id;
       Fiber::State state;
-      db::rt::DynamicObject data;
-      FiberMessage() : data(NULL) {};
+      db::rt::DynamicObject* data;
    };
    
    /**

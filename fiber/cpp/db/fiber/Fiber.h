@@ -70,7 +70,7 @@ protected:
    /**
     * Typedef and a queue of deferred messages to process after running.
     */
-   typedef std::list<db::rt::DynamicObject> MessageQueue;
+   typedef std::list<db::rt::DynamicObject*> MessageQueue;
    MessageQueue mMessageQueue;
    
    /**
@@ -148,7 +148,7 @@ public:
     * 
     * @param msg the message to add.
     */
-   virtual void addDeferredMessage(db::rt::DynamicObject& msg);
+   virtual void addDeferredMessage(db::rt::DynamicObject* msg);
    
    /**
     * Processes all of this Fiber's messages that could not be processed

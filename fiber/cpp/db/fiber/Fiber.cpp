@@ -16,6 +16,12 @@ Fiber::Fiber()
 
 Fiber::~Fiber()
 {
+   // delete any unprocessed deferred messages
+   for(MessageQueue::iterator i = mMessageQueue.begin();
+       i != mMessageQueue.end(); i++)
+   {
+      delete *i;
+   }
 }
 
 inline void Fiber::yield()
@@ -45,7 +51,7 @@ void Fiber::setScheduler(FiberScheduler* scheduler, FiberId id)
    mState = Idle;
 }
 
-inline void Fiber::addDeferredMessage(DynamicObject& msg)
+inline void Fiber::addDeferredMessage(DynamicObject* msg)
 {
    mMessageQueue.push_back(msg);
 }
@@ -57,7 +63,9 @@ void Fiber::processDeferredMessages()
       for(MessageQueue::iterator i = mMessageQueue.begin();
           i != mMessageQueue.end(); i++)
       {
-         processMessage(*i);
+         // process and then delete message
+         processMessage(**i);
+         delete *i;
       }
       
       // clear queue

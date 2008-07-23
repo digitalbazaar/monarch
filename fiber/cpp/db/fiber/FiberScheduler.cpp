@@ -108,13 +108,21 @@ void FiberScheduler::processCustomMessages()
          if(fiber->getState() != Fiber::Running)
          {
             // process immediately
-            fiber->processMessage(i->data);
+            fiber->processMessage(*i->data);
+            
+            // delete message data
+            delete i->data;
          }
          else
          {
             // defer message for processing after run() finishes
             fiber->addDeferredMessage(i->data);
          }
+      }
+      else
+      {
+         // delete message data
+         delete i->data;
       }
    }
    
@@ -419,7 +427,7 @@ void FiberScheduler::sendMessage(FiberId id, DynamicObject& msg)
    FiberMessage fm;
    fm.id = id;
    fm.state = Fiber::None;
-   fm.data = msg;
+   fm.data = new DynamicObject(msg);
    queueMessage(fm);
 }
 
