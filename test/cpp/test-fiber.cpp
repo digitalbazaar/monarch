@@ -114,12 +114,12 @@ void runFiberTest(TestRunner& tr)
       
       FiberScheduler fs;
       
-      for(int i = 0; i < 100; i++)
+      for(int i = 0; i < 50; i++)
       {
          fs.addFiber(new TestFiber(20));
          DynamicObject msg;
          msg["helloId"] = i + 1;
-         for(int n = 0; n < 5000; n++)
+         for(int n = 0; n < 3000; n++)
          {
             fs.sendMessage(i + 1, msg);
          }
@@ -127,6 +127,18 @@ void runFiberTest(TestRunner& tr)
       
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 2);
+      
+      for(int i = 0; i < 50; i++)
+      {
+         fs.addFiber(new TestFiber(20));
+         DynamicObject msg;
+         msg["helloId"] = i + 1;
+         for(int n = 0; n < 3000; n++)
+         {
+            fs.sendMessage(i + 1, msg);
+         }
+      }
+      
       fs.stopOnLastFiberExit();
       printf("time=%g secs... ", Timer::getSeconds(startTime));
       

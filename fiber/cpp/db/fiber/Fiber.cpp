@@ -6,6 +6,7 @@
 #include "db/fiber/FiberScheduler.h"
 
 using namespace db::fiber;
+using namespace db::rt;
 
 Fiber::Fiber()
 {
@@ -42,6 +43,26 @@ void Fiber::setScheduler(FiberScheduler* scheduler, FiberId id)
    mScheduler = scheduler;
    mId = id;
    mState = Idle;
+}
+
+inline void Fiber::addDeferredMessage(DynamicObject& msg)
+{
+   mMessageQueue.push_back(msg);
+}
+
+void Fiber::processDeferredMessages()
+{
+   if(!mMessageQueue.empty())
+   {
+      for(MessageQueue::iterator i = mMessageQueue.begin();
+          i != mMessageQueue.end(); i++)
+      {
+         processMessage(*i);
+      }
+      
+      // clear queue
+      mMessageQueue.clear();
+   }
 }
 
 inline FiberId Fiber::getId()

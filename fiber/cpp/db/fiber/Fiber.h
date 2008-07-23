@@ -6,6 +6,8 @@
 
 #include "db/rt/DynamicObject.h"
 
+#include <list>
+
 namespace db
 {
 namespace fiber
@@ -26,7 +28,7 @@ class FiberScheduler;
  * 
  * A Fiber will be continuously run by its FiberScheduler until it exits via a
  * call to exit(). This call can be made in its run() method or in its
- * processMessage method.
+ * processMessage() method.
  * 
  * Fibers can have priorities that a FiberScheduler can use to determine their
  * scheduling order.
@@ -64,6 +66,12 @@ protected:
     * This Fiber's priority.
     */
    FiberPriority mPriority;
+   
+   /**
+    * Typedef and a queue of deferred messages to process after running.
+    */
+   typedef std::list<db::rt::DynamicObject> MessageQueue;
+   MessageQueue mMessageQueue;
    
    /**
     * Yields this Fiber temporarily to allow another Fiber to run.
@@ -108,21 +116,23 @@ public:
    
    /**
     * Runs this Fiber. This method is guaranteed to be run non-concurrently
-    * with itself, though it could be run while processMessage() is being
-    * executed.
+    * with itself, processMessage(), and exiting().
     */
    virtual void run() = 0;
    
    /**
     * Called just prior to this Fiber's exit. One useful override for this
     * function is to send an event indicating that the Fiber has exited.
+    * 
+    * This method is guaranteed to be run non-concurrently with itself,
+    * processMessage(), and run().
     */
    virtual void exiting() {};
    
    /**
     * Called *only* by a FiberScheduler to have this Fiber process the passed
     * message. This method is guaranteed to be run non-concurrently with
-    * itself, though it could be run while run() is being executed.
+    * itself, run(), and exiting().
     * 
     * @param msg the message to process.
     */
@@ -135,6 +145,21 @@ public:
     * @param id the FiberId assigned to this Fiber.
     */
    virtual void setScheduler(FiberScheduler* scheduler, FiberId id);
+   
+   /**
+    * Adds a deferred message to be processed. A deferred message is a
+    * custom message that could not be processed while the Fiber was
+    * running, but will be once it completes.
+    * 
+    * @param msg the message to add.
+    */
+   virtual void addDeferredMessage(db::rt::DynamicObject& msg);
+   
+   /**
+    * Processes all of this Fiber's messages that could not be processed
+    * while it was running.
+    */
+   virtual void processDeferredMessages();
    
    /**
     * Gets this Fiber's ID, as assigned by its FiberScheduler.

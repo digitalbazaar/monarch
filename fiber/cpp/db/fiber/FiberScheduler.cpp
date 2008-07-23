@@ -102,8 +102,17 @@ bool FiberScheduler::processMessages()
          switch(i->state)
          {
             case Fiber::None:
-               // no state change, so process the message 
-               fiber->processMessage(i->data);
+               // no state change, so process message
+               if(fiber->getState() != Fiber::Running)
+               {
+                  // process immediately
+                  fiber->processMessage(i->data);
+               }
+               else
+               {
+                  // defer message for processing after run() finishes
+                  fiber->addDeferredMessage(i->data);
+               }
                break;
             case Fiber::Idle:
                // only set to idle if sleeping
@@ -239,6 +248,9 @@ void FiberScheduler::runNextFiber(bool yield)
       mScheduleLock.unlock();
       fiber->run();
       mScheduleLock.lock();
+      
+      // process any deferred messages
+      fiber->processDeferredMessages();
       
       // mark fiber as idle if its state is Running
       if(fiber->getState() == Fiber::Running)

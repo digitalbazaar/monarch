@@ -8,7 +8,6 @@
 #include "db/modest/OperationRunner.h"
 #include "db/fiber/Fiber.h"
 
-#include <list>
 #include <map>
 
 namespace db
