@@ -30,24 +30,13 @@ DynamicObject::~DynamicObject()
 
 bool DynamicObject::operator==(const DynamicObject& rhs)
 {
-   bool rval = false;
+   bool rval;
    
    DynamicObject* left = (DynamicObject*)this;
    DynamicObject* right = (DynamicObject*)&rhs;
    
-   if(this == &rhs)
-   {
-      rval = true;
-   }
-   else if(this->mReference == rhs.mReference)
-   {
-      rval = true;
-   }
-   else if(this->mReference == NULL || rhs.mReference == NULL)
-   {
-      // one is NULL, other is not, so not equal
-   }
-   else if((*left)->getType() == (*right)->getType())
+   rval = Collectable<DynamicObjectImpl>::operator==(rhs);
+   if(!rval && (*left)->getType() == (*right)->getType())
    {
       int index = 0;
       DynamicObjectIterator i;
@@ -109,7 +98,7 @@ bool DynamicObject::operator==(const DynamicObject& rhs)
             break;
       }
    }
-   else
+   else if(!rval)
    {
       // compare based on string values
       switch((*left)->getType())
@@ -291,24 +280,13 @@ void DynamicObject::merge(DynamicObject& rhs, bool append)
 
 bool DynamicObject::isSubset(const DynamicObject& rhs)
 {
-   bool rval = false;
+   bool rval;
    
    DynamicObject* left = (DynamicObject*)this;
    DynamicObject* right = (DynamicObject*)&rhs;
    
-   if(this == &rhs)
-   {
-      rval = true;
-   }
-   else if(this->mReference == rhs.mReference)
-   {
-      rval = true;
-   }
-   else if(this->mReference == NULL || rhs.mReference == NULL)
-   {
-      // one is NULL, other is not, so not a subset
-   }
-   else if((*left)->getType() == Map && (*right)->getType() == Map)
+   rval = Collectable<DynamicObjectImpl>::operator==(rhs);
+   if(!rval && (*left)->getType() == Map && (*right)->getType() == Map)
    {
       // ensure right map has same or greater length
       if((*left)->length() <= (*right)->length())
