@@ -64,13 +64,15 @@ protected:
       FiberId id;
       Fiber::State state;
       db::rt::DynamicObject data;
+      FiberMessage() : data(NULL) {};
    };
    
    /**
-    * Typedef and a queue of messages.
+    * Typedef, system message queue and custom message queue.
     */
    typedef std::list<FiberMessage> MessageQueue;
-   MessageQueue* mMessageQueue;
+   MessageQueue* mSystemMessages;
+   MessageQueue* mCustomMessages;
    
    /**
     * An exclusive lock for scheduling the next Fiber.
@@ -119,11 +121,16 @@ protected:
    virtual void sendStateMessage(FiberId id, Fiber::State state);
    
    /**
-    * Processes any pending messages and return true if work is available.
+    * Processes pending custom messages.
+    */
+   virtual void processCustomMessages();
+   
+   /**
+    * Processes pending system messages and returns true if work is available.
     * 
     * @return true if work is available for fiber operations, false if not.
     */
-   virtual bool processMessages();
+   virtual bool processSystemMessages();
    
    /**
     * Increments the internal iterator to the next fiber.
@@ -137,8 +144,9 @@ protected:
    virtual void removeFiber();
    
    /**
-    * Runs the next scheduled Fiber. If there is no Fiber to run, the current
-    * thread will wait until one becomes available unless yield is true.
+    * Processes pending FiberMessages and runs the next scheduled Fiber. If
+    * there is no Fiber to run, the current thread will wait until one becomes
+    * available unless yield is true.
     * 
     * @param yield true if the current Fiber is yielding, false if not.
     */
@@ -184,8 +192,10 @@ public:
     * exits.
     * 
     * @param fiber the Fiber to add.
+    * 
+    * @return the FiberId assigned to the Fiber.
     */
-   virtual void addFiber(Fiber* fiber);
+   virtual FiberId addFiber(Fiber* fiber);
    
    /**
     * Sends a message to be processed the next time this scheduler is run.

@@ -81,19 +81,15 @@ protected:
    virtual void yield();
    
    /**
-    * Causes this Fiber to exit. If exit() is called from processMessage(),
-    * then the Fiber may be scheduled again before it exits. If it is called
-    * from run(), then it is guaranteed to exit before run() is called again.
+    * Causes this Fiber to exit. The Fiber is guaranteed to exit before
+    * run() is called again.
     */
    virtual void exit();
    
    /**
-    * Causes this Fiber to sleep. If sleep() is called from processMessage(),
-    * then the Fiber may be scheduled again before it goes to sleep. If it is
-    * called from run(), then it is guaranteed to be scheduled to sleep before
-    * run() is called again.
-    * 
-    * The Fiber will remain asleep until it is woken up or exits.
+    * Causes this Fiber to sleep. The Fiber is guaranteed to sleep() before
+    * run() is called again. The Fiber will remain asleep until it is woken
+    * up or exits.
     */
    virtual void sleep();
    

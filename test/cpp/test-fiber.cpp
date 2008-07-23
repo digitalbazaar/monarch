@@ -26,16 +26,25 @@ using namespace db::util;
 
 class TestFiber : public Fiber
 {
-protected:
-   int count;
 public:
-   TestFiber(int n) { count = n; };
+   int count;
+   int dummy;
+   int* msgs;
+public:
+   TestFiber(int n, int* m = NULL)
+   {
+      count = n;
+      dummy = 0;
+      
+      msgs = (m == NULL ? &dummy : m);
+   };
    virtual ~TestFiber() {};
    
    virtual void processMessage(DynamicObject& msg)
    {
       //printf("Processing msg:\n%s\n",
       //   JsonWriter::writeDynamicObjectToString(msg).c_str());
+      (*msgs)++;
    }
    
    virtual void run()
@@ -114,33 +123,35 @@ void runFiberTest(TestRunner& tr)
       
       FiberScheduler fs;
       
+      FiberId id;
       for(int i = 0; i < 50; i++)
       {
-         fs.addFiber(new TestFiber(20));
+         id = fs.addFiber(new TestFiber(1000));
          DynamicObject msg;
          msg["helloId"] = i + 1;
-         for(int n = 0; n < 3000; n++)
+         for(int n = 0; n < 1000; n++)
          {
-            fs.sendMessage(i + 1, msg);
+            fs.sendMessage(id, msg);
          }
       }
       
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 2);
       
-      for(int i = 0; i < 50; i++)
+      int msgs = 0;
+      for(int i = 0; i < 20; i++)
       {
-         fs.addFiber(new TestFiber(20));
+         id = fs.addFiber(new TestFiber(1000, &msgs));
          DynamicObject msg;
          msg["helloId"] = i + 1;
-         for(int n = 0; n < 3000; n++)
+         for(int n = 0; n < 10000; n++)
          {
-            fs.sendMessage(i + 1, msg);
+            fs.sendMessage(id, msg);
          }
       }
       
       fs.stopOnLastFiberExit();
-      printf("time=%g secs... ", Timer::getSeconds(startTime));
+      printf("msgs=%d, time=%g secs... ", msgs, Timer::getSeconds(startTime));
       
       k.getEngine()->stop();
    }
@@ -149,13 +160,13 @@ void runFiberTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class TestRunnable : public Runnable
+class SpeedTestRunnable : public Runnable
 {
 protected:
    int count;
 public:
-   TestRunnable(int n) { count = n; };
-   virtual ~TestRunnable() {};
+   SpeedTestRunnable(int n) { count = n; };
+   virtual ~SpeedTestRunnable() {};
    
    virtual void run()
    {
@@ -172,7 +183,7 @@ void runSpeedTest(TestRunner& tr)
 {
    tr.group("Fiber speed");
    
-   tr.test("300 threads");
+   tr.test("300 threads,100 iterations");
    {
       Kernel k;
       k.getEngine()->getThreadPool()->setPoolSize(300);
@@ -182,7 +193,7 @@ void runSpeedTest(TestRunner& tr)
       OperationList opList;
       for(int i = 0; i < 300; i++)
       {
-         RunnableRef r = new TestRunnable(100);
+         RunnableRef r = new SpeedTestRunnable(100);
          Operation op(r);
          opList.add(op);
       }
@@ -196,7 +207,7 @@ void runSpeedTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
-   tr.test("300 fibers");
+   tr.test("300 fibers,100 iterations");
    {
       Kernel k;
       k.getEngine()->start();
@@ -207,6 +218,28 @@ void runSpeedTest(TestRunner& tr)
       for(int i = 0; i < 300; i++)
       {
          fs.addFiber(new TestFiber(100));
+      }
+      
+      uint64_t startTime = Timer::startTiming();
+      fs.start(&k, 2);
+      fs.stopOnLastFiberExit();
+      printf("time=%g secs... ", Timer::getSeconds(startTime));
+      
+      k.getEngine()->stop();
+   }
+   tr.passIfNoException();
+   
+   tr.test("10,000 fibers,3 iterations");
+   {
+      Kernel k;
+      k.getEngine()->start();
+      
+      FiberScheduler fs;
+      
+      // queue up fibers
+      for(int i = 0; i < 10000; i++)
+      {
+         fs.addFiber(new TestFiber(3));
       }
       
       uint64_t startTime = Timer::startTiming();

@@ -28,6 +28,7 @@ using namespace db::logging;
 #include "test-crypto.cpp"
 #include "test-net.cpp"
 #include "test-event.cpp"
+#include "test-fiber.cpp"
 #include "test-mail.cpp"
 #include "test-sql.cpp"
 #include "test-data.cpp"
@@ -50,6 +51,7 @@ public:
       addTester(new DbCryptoTester());
       addTester(new DbNetTester());
       addTester(new DbEventTester());
+      addTester(new DbFiberTester());
       addTester(new DbMailTester());
       addTester(new DbSqlTester());
       addTester(new DbDataTester());
