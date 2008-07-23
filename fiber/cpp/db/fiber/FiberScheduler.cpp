@@ -155,6 +155,9 @@ void FiberScheduler::nextFiber()
 
 void FiberScheduler::removeFiber()
 {
+   // call fiber's exiting function
+   (*mFiberItr)->exiting();
+   
    // add fiber ID to free list
    mFiberIdFreeList.push_front((*mFiberItr)->getId());
    

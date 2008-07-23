@@ -114,6 +114,12 @@ public:
    virtual void run() = 0;
    
    /**
+    * Called just prior to this Fiber's exit. One useful override for this
+    * function is to send an event indicating that the Fiber has exited.
+    */
+   virtual void exiting() {};
+   
+   /**
     * Called *only* by a FiberScheduler to have this Fiber process the passed
     * message. This method is guaranteed to be run non-concurrently with
     * itself, though it could be run while run() is being executed.
