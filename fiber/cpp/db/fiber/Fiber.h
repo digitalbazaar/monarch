@@ -83,8 +83,7 @@ protected:
    /**
     * Causes this Fiber to exit. If exit() is called from processMessage(),
     * then the Fiber may be scheduled again before it exits. If it is called
-    * from run(), then it is guaranteed to be scheduled to exit before run()
-    * is called again.
+    * from run(), then it is guaranteed to exit before run() is called again.
     */
    virtual void exit();
    
