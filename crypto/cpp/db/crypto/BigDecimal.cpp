@@ -185,7 +185,8 @@ BigDecimal& BigDecimal::operator=(unsigned int rhs)
 
 BigDecimal& BigDecimal::operator=(const char* rhs)
 {
-   *this = string(rhs);
+   string s = rhs;
+   *this = s;
    return *this;
 }
 
