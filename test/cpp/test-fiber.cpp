@@ -152,8 +152,10 @@ void runFiberTest(TestRunner& tr)
       
       fs.stopOnLastFiberExit();
       printf("msgs=%d, time=%g secs... ", msgs, Timer::getSeconds(startTime));
-      
       k.getEngine()->stop();
+      
+      // assert all messages were delivered
+      assert(msgs == 200000);
    }
    tr.passIfNoException();
    
