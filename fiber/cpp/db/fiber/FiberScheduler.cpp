@@ -28,6 +28,13 @@ FiberScheduler::~FiberScheduler()
       delete *i;
    }
    
+   // delete unprocessed custom message data
+   for(MessageQueue::iterator i = mCustomMessages->begin();
+       i != mCustomMessages->end(); i++)
+   {
+      delete i->data;
+   }
+   
    // delete message queues
    delete mSystemMessages;
    delete mCustomMessages;
