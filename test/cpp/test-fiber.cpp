@@ -24,6 +24,13 @@ using namespace db::rt;
 using namespace db::test;
 using namespace db::util;
 
+static inline void iterate()
+{
+   BigDecimal bd1("80932149813491423134299827397162412482");
+   BigDecimal bd2("23974321498129821741298721");
+   bd1 = bd1 / bd2;
+}
+
 class TestFiber : public Fiber
 {
 public:
@@ -51,9 +58,7 @@ public:
    {
       //printf("Running test fiber '%d'\n", getId());
       
-      BigDecimal bd1("80932149813491423134299827397162412482");
-      BigDecimal bd2("23974321498129821741298721");
-      bd1 = bd1 / bd2;
+      iterate();
       
       if(--count == 0)
       {
@@ -174,9 +179,7 @@ public:
    {
       while(--count >= 0)
       {
-         BigDecimal bd1("80932149813491423134299827397162412482");
-         BigDecimal bd2("23974321498129821741298721");
-         bd1 = bd1 / bd2;
+         iterate();
       }
    }
 };
