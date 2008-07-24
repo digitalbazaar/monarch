@@ -95,6 +95,8 @@ bool MySqlConnection::connect(Url* url)
 
 void MySqlConnection::close()
 {
+   Connection::close();
+   
    if(mHandle != NULL)
    {
       mysql_close(mHandle);

@@ -2,9 +2,8 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/sqlite3/Sqlite3Connection.h"
-#include "db/sql/sqlite3/Sqlite3Statement.h"
 
-#include <iostream>
+#include "db/sql/sqlite3/Sqlite3Statement.h"
 
 using namespace std;
 using namespace db::sql;
@@ -90,6 +89,8 @@ bool Sqlite3Connection::connect(Url* url)
 
 void Sqlite3Connection::close()
 {
+   Connection::close();
+   
    if(mHandle != NULL)
    {
       sqlite3_close(mHandle);

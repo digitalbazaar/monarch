@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/sqlite3/Sqlite3Statement.h"
+
 #include "db/sql/sqlite3/Sqlite3Connection.h"
 #include "db/sql/sqlite3/Sqlite3Row.h"
 
@@ -35,7 +36,7 @@ Sqlite3Statement::~Sqlite3Statement()
       delete mRow;
    }
    
-   // clean up C statement
+   // clean up handle
    sqlite3_finalize(mHandle);
 }
 

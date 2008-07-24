@@ -91,7 +91,7 @@ void executeSqlite3Statements(TestRunner &tr, db::sql::Connection* c)
       s->execute();
       assertNoException();
       
-      db::sql::Row* row;
+      Row* row;
       string t;
       int i;
       while((row = s->fetch()) != NULL)
@@ -133,6 +133,7 @@ void runSqlite3ConnectionTest(TestRunner &tr)
    
    Sqlite3Connection c;
    c.connect("sqlite3::memory:");
+   c.close();
    assertNoException();
    
    tr.pass();
@@ -254,7 +255,7 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-      runSqlite3ConnectionTest(tr);
+      //runSqlite3ConnectionTest(tr);
       // FIXME: significant memory leaks in sqlite3 statement test
       runSqlite3StatementTest(tr);
       return 0;

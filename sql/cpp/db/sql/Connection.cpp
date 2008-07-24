@@ -16,17 +16,6 @@ Connection::Connection()
 
 Connection::~Connection()
 {
-   if(mUrl != NULL)
-   {
-      delete mUrl;
-   }
-   
-   // clean up all prepared statements
-   for(PreparedStmtMap::iterator i = mPreparedStmts.begin();
-       i != mPreparedStmts.end(); i++)
-   {
-      delete i->second;
-   }
 }
 
 void Connection::addPreparedStatement(Statement* stmt)
@@ -102,6 +91,24 @@ Statement* Connection::prepare(const char* sql)
    }
    
    return rval;
+}
+
+void Connection::close()
+{
+   // clean up url
+   if(mUrl != NULL)
+   {
+      delete mUrl;
+      mUrl = NULL;
+   }
+   
+   // clean up all prepared statements
+   for(PreparedStmtMap::iterator i = mPreparedStmts.begin();
+       i != mPreparedStmts.end(); i++)
+   {
+      delete i->second;
+   }
+   mPreparedStmts.clear();
 }
 
 bool Connection::begin()

@@ -132,7 +132,7 @@ public:
    /**
     * Closes this connection.
     */
-   virtual void close() = 0;
+   virtual void close();
    
    /**
     * Begins a new transaction.

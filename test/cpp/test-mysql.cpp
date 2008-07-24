@@ -89,7 +89,7 @@ void executeMySqlStatements(TestRunner &tr, db::sql::Connection* c)
       assertNoException();
       
       // fetch rows
-      db::sql::Row* row;
+      Row* row;
       string t;
       int i;
       while((row = s->fetch()) != NULL)
@@ -128,7 +128,7 @@ void executeMySqlStatements(TestRunner &tr, db::sql::Connection* c)
       assertNoException();
       
       // fetch rows
-      db::sql::Row* row;
+      Row* row;
       string t;
       int i;
       while((row = s->fetch()) != NULL)
