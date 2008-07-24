@@ -8,21 +8,20 @@
 #include "db/test/TestRunner.h"
 #include "db/rt/Thread.h"
 #include "db/sql/Row.h"
-#include "db/sql/mysql/MySqlConnection.h"
-#include "db/sql/mysql/MySqlConnectionPool.h"
+#include "db/sql/sqlite3/Sqlite3Connection.h"
+#include "db/sql/sqlite3/Sqlite3ConnectionPool.h"
 
 using namespace std;
 using namespace db::test;
 using namespace db::rt;
 using namespace db::sql;
-using namespace db::sql::mysql;
+using namespace db::sql::sqlite3;
 
-void createMySqlTable(TestRunner& tr, db::sql::Connection* c)
+void createSqlite3Table(TestRunner& tr, db::sql::Connection* c)
 {
    tr.test("drop table");
    {
-      db::sql::Statement* s = c->prepare(
-         "DROP TABLE IF EXISTS test.dbmysqltest");
+      db::sql::Statement* s = c->prepare("DROP TABLE IF EXISTS test");
       assertNoException();
       s->execute();
    }
@@ -31,21 +30,19 @@ void createMySqlTable(TestRunner& tr, db::sql::Connection* c)
    tr.test("create table");
    {
       db::sql::Statement* s = c->prepare(
-         "CREATE TABLE IF NOT EXISTS test.dbmysqltest "
-         "(id BIGINT AUTO_INCREMENT, t TEXT, i BIGINT, "
-         "PRIMARY KEY (id))");
+         "CREATE TABLE IF NOT EXISTS test (t TEXT, i INT)");
       assertNoException();
       s->execute();
    }
    tr.passIfNoException();
 }
 
-void executeMySqlStatements(TestRunner &tr, db::sql::Connection* c)
+void executeSqlite3Statements(TestRunner &tr, db::sql::Connection* c)
 {
    tr.test("insert test 1");
    {
       db::sql::Statement* s = c->prepare(
-         "INSERT INTO test.dbmysqltest (t, i) VALUES ('test!', 1234)");
+         "INSERT INTO test (t, i) VALUES ('test!', 1234)");
       assertNoException();
       s->execute();
       assert(s->getLastInsertRowId() > 0);
@@ -54,41 +51,46 @@ void executeMySqlStatements(TestRunner &tr, db::sql::Connection* c)
    
    tr.test("insert test 2");
    {
+      c->begin();
       db::sql::Statement* s = c->prepare(
-         "INSERT INTO test.dbmysqltest (t, i) VALUES ('!tset', 4321)");
+         "INSERT INTO test (t, i) VALUES ('!tset', 4321)");
       assertNoException();
       s->execute();
       assert(s->getLastInsertRowId() > 0);
    }
    tr.passIfNoException();
    
-   tr.test("insert positional parameters test");
+   tr.test("insert positional parameters");
    {
-      db::sql::Statement* s;
-      //unsigned long long start = System::getCurrentMilliseconds();
-      for(int i = 0; i < 20; i++)
-      {
-         s = c->prepare("INSERT INTO test.dbmysqltest (t, i) VALUES (?, ?)");
-         assertNoException();
-         s->setText(1, "boundpositional");
-         s->setInt32(2, 2220 + i);
-         s->execute();
-         assert(s->getLastInsertRowId() > 0);
-         assertNoException();
-      }
-      //unsigned long long end = System::getCurrentMilliseconds();
-      //cout << "TIME=" << (end - start) << " ms" << std::endl;
+      db::sql::Statement* s = c->prepare(
+         "INSERT INTO test (t, i) VALUES (?, ?)");
+      assertNoException();
+      s->setText(1, "boundpositional");
+      s->setInt32(2, 2222);
+      s->execute();
+      assert(s->getLastInsertRowId() > 0);
    }
    tr.passIfNoException();
    
-   tr.test("select test");
+   tr.test("insert named parameters");
    {
-      db::sql::Statement* s = c->prepare("SELECT t, i FROM test.dbmysqltest");
+      db::sql::Statement* s = c->prepare(
+         "INSERT INTO test (t, i) VALUES (:first, :second)");
+      assertNoException();
+      s->setText(":first", "boundnamed");
+      s->setInt32(":second", 2223);
+      s->execute();
+      assert(s->getLastInsertRowId() > 0);
+   }
+   tr.passIfNoException();
+   
+   tr.test("select");
+   {
+      db::sql::Statement* s = c->prepare("SELECT * FROM test");
       assertNoException();
       s->execute();
       assertNoException();
       
-      // fetch rows
       db::sql::Row* row;
       string t;
       int i;
@@ -109,46 +111,11 @@ void executeMySqlStatements(TestRunner &tr, db::sql::Connection* c)
          }
          else if(strcmp(t.c_str(), "boundpositional") == 0)
          {
-            assert(i >= 2220);
+            assert(i == 2222);
          }
-         else
+         else if(strcmp(t.c_str(), "boundnamed") == 0)
          {
-            // bad row data
-            assert(false);
-         }
-      }
-   }
-   tr.passIfNoException();
-   
-   tr.test("select command ordering test");
-   {
-      db::sql::Statement* s = c->prepare("SELECT t, i FROM test.dbmysqltest");
-      assertNoException();
-      s->execute();
-      assertNoException();
-      
-      // fetch rows
-      db::sql::Row* row;
-      string t;
-      int i;
-      while((row = s->fetch()) != NULL)
-      {
-         row->getText("t", t);
-         assertNoException();
-         row->getInt32("i", i);
-         assertNoException();
-         
-         if(strcmp(t.c_str(), "test!") == 0)
-         {
-            assert(i == 1234);
-         }
-         else if(strcmp(t.c_str(), "!tset") == 0)
-         {
-            assert(i == 4321);
-         }
-         else if(strcmp(t.c_str(), "boundpositional") == 0)
-         {
-            assert(i >= 2220);
+            assert(i == 2223);
          }
          else
          {
@@ -160,37 +127,32 @@ void executeMySqlStatements(TestRunner &tr, db::sql::Connection* c)
    tr.passIfNoException();
 }
 
-void runMySqlConnectionTest(TestRunner& tr)
+void runSqlite3ConnectionTest(TestRunner &tr)
 {
-   tr.test("MySql Connection");
+   tr.test("Sqlite3 Connection");
    
-   MySqlConnection c;
-   c.connect("mysql://dbreadclient:k288m2s8f6gk39a@mojo.bitmunk.com/test");
-   c.close();
+   Sqlite3Connection c;
+   c.connect("sqlite3::memory:");
    assertNoException();
-   
-   // clean up mysql
-   mysql_library_end();
    
    tr.pass();
 }
 
-void runMySqlStatementTest(TestRunner& tr)
+void runSqlite3StatementTest(TestRunner &tr)
 {
-   tr.group("MySql Statement");
+   tr.group("Sqlite3 Statement");
    
    // clear any exceptions
    Exception::clearLast();
    
-   MySqlConnection c;
-   c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@mojo.bitmunk.com");
-   assertNoException();
+   Sqlite3Connection c;
+   c.connect("sqlite3::memory:");
    
    // create table
-   createMySqlTable(tr, &c);
+   createSqlite3Table(tr, &c);
    
-   // execute mysql statements
-   executeMySqlStatements(tr, &c);
+   // execute statements
+   executeSqlite3Statements(tr, &c);
    
    tr.test("connection close");
    {
@@ -198,41 +160,39 @@ void runMySqlStatementTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
-   // clean up mysql
-   mysql_library_end();
+   tr.ungroup();
 }
 
-class MySqlConnectionPoolTest : public Runnable
+class Sqlite3ConnectionPoolTest : public Runnable
 {
 public:
-   MySqlConnectionPool* pool;
+   Sqlite3ConnectionPool* pool;
    TestRunner* tr;
    
    virtual void run()
    {
       db::sql::Connection* c = pool->getConnection();
-      executeMySqlStatements(*tr, c);
+      executeSqlite3Statements(*tr, c);
       c->close();
    }
 };
 
-void runMySqlConnectionPoolTest(TestRunner& tr)
+void runSqlite3ConnectionPoolTest(TestRunner& tr)
 {
-   tr.group("MySql ConnectionPool");
+   tr.group("Sqlite3 ConnectionPool");
    
-   // create mysql connection pool
-   MySqlConnectionPool cp(
-      "mysql://dbwriteclient:k288m2s8f6gk39a@mojo.bitmunk.com", 100);
+   // create sqlite3 connection pool
+   Sqlite3ConnectionPool cp("sqlite3://localhost/tmp/sqlite3cptest.db", 100);
    assertNoException();
    
    // create table
    db::sql::Connection* c = cp.getConnection();
-   createMySqlTable(tr, c);
+   createSqlite3Table(tr, c);
    c->close();
    
    // create connection test threads
    int testCount = 300;
-   MySqlConnectionPoolTest tests[testCount];
+   Sqlite3ConnectionPoolTest tests[testCount];
    Thread* threads[testCount];
    
    // create threads, set pool for tests
@@ -269,9 +229,6 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
       delete threads[i];
    }
    
-   // clean up mysql
-   mysql_library_end();
-   
    cout << endl;
    cout << "Number of independent connection uses: " << testCount << endl;
    cout << "Number of pooled connections created: " << cp.getConnectionCount()
@@ -284,12 +241,12 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbMySqlTester : public db::test::Tester
+class DbSqlite3Tester : public db::test::Tester
 {
 public:
-   DbMySqlTester()
+   DbSqlite3Tester()
    {
-      setName("mysql");
+      setName("sqlite3");
    }
 
    /**
@@ -297,8 +254,9 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-      runMySqlConnectionTest(tr);
-      runMySqlStatementTest(tr);
+      runSqlite3ConnectionTest(tr);
+      // FIXME: significant memory leaks in sqlite3 statement test
+      runSqlite3StatementTest(tr);
       return 0;
    }
 
@@ -307,11 +265,12 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      //runMySqlConnectionPoolTest(tr);
+      // FIXME: sqlite3 connection pool test causes database lockups
+      //runSqlite3ConnectionPoolTest(tr);
       return 0;
    }
 };
 
 #ifndef DB_TEST_NO_MAIN
-DB_TEST_MAIN(DbMySqlTester)
+DB_TEST_MAIN(DbSqlite3Tester)
 #endif
