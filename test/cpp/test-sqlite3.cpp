@@ -296,9 +296,9 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-      //runSqlite3ConnectionTest(tr);
-      //runSqlite3StatementTest(tr);
-      runSqlite3ThreadTest(tr);
+      runSqlite3ConnectionTest(tr);
+      runSqlite3StatementTest(tr);
+      //runSqlite3ThreadTest(tr);
       return 0;
    }
 
