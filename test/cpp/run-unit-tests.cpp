@@ -30,7 +30,8 @@ using namespace db::logging;
 #include "test-event.cpp"
 #include "test-fiber.cpp"
 #include "test-mail.cpp"
-#include "test-sql.cpp"
+#include "test-sqlite3.cpp"
+#include "test-mysql.cpp"
 #include "test-data.cpp"
 #include "test-compress.cpp"
 #include "test-config.cpp"
@@ -53,7 +54,8 @@ public:
       addTester(new DbEventTester());
       addTester(new DbFiberTester());
       addTester(new DbMailTester());
-      addTester(new DbSqlTester());
+      addTester(new DbSqlite3Tester());
+      addTester(new DbMySqlTester());
       addTester(new DbDataTester());
       addTester(new DbCompressTester());
       addTester(new DbConfigTester());

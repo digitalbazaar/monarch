@@ -16,7 +16,8 @@ EXECUTABLES = \
 	test-net \
 	test-rt \
 	test-sphinx \
-	test-sql \
+	test-sqlite3 \
+	test-mysql \
 	test-util \
 	test-validation \
 	run-unit-tests
