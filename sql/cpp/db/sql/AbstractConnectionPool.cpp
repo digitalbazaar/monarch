@@ -13,7 +13,7 @@ AbstractConnectionPool::AbstractConnectionPool(
    const char* url, unsigned int poolSize) :
    mConnectionSemaphore(poolSize, true), mUrl(url) 
 {
-   // default JobThread expire time to 0 (no expiration)
+   // default connection expire time to 0 (no expiration)
    mConnectionExpireTime = 0;
 }
 

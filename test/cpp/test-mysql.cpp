@@ -10,12 +10,14 @@
 #include "db/sql/Row.h"
 #include "db/sql/mysql/MySqlConnection.h"
 #include "db/sql/mysql/MySqlConnectionPool.h"
+#include "db/util/Timer.h"
 
 using namespace std;
 using namespace db::test;
 using namespace db::rt;
 using namespace db::sql;
 using namespace db::sql::mysql;
+using namespace db::util;
 
 void createMySqlTable(TestRunner& tr, db::sql::Connection* c)
 {
@@ -243,11 +245,10 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
       threads[i] = new Thread(&tests[i]);
    }
    
-   unsigned long long start = System::getCurrentMilliseconds();
+   uint64_t startTime = Timer::startTiming();
    
    // run connection threads
-   int count = 1;
-   for(int i = 0; i < testCount; i++, count++)
+   for(int i = 0; i < testCount; i++)
    {
       while(!threads[i]->start(131072))
       {
@@ -261,7 +262,7 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
       threads[i]->join();
    }
    
-   unsigned long long end = System::getCurrentMilliseconds();
+   double seconds = Timer::getSeconds(startTime);
    
    // clean up threads
    for(int i = 0; i < testCount; i++)
@@ -272,14 +273,11 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
    // clean up mysql
    mysql_library_end();
    
-   cout << endl;
-   cout << "Number of independent connection uses: " << testCount << endl;
-   cout << "Number of pooled connections created: " << cp.getConnectionCount()
-      << endl;
-   
-   cout << "Total time: " << (end - start) << "ms" << endl;
-   
-   cout << endl << "ConnectionPool test complete." << endl;
+   // print report
+   printf("\nNumber of independent connection uses: %d\n", testCount);
+   printf("Number of pooled connections created: %d\n",
+      cp.getConnectionCount());
+   printf("Total time: %g seconds\n", seconds);
    
    tr.ungroup();
 }

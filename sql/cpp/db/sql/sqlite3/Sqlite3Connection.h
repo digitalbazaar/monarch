@@ -64,8 +64,9 @@ public:
     * Connects to the database specified by the given url.
     * 
     * @param url Sqlite3 parameters in URL form:
-    *        "sqlite://user:password@/path/to/example.db"
-    *        A SQLite3 database called example.db
+    *        "sqlite:///path/to/example.db"
+    *        A SQLite3 database called example.db OR
+    *        "sqlite::memory:" for an in-memory temporary database
     * 
     * @return true if successful, false if an SqlException occurred.
     */

@@ -10,83 +10,184 @@
 #include "db/sql/Row.h"
 #include "db/sql/sqlite3/Sqlite3Connection.h"
 #include "db/sql/sqlite3/Sqlite3ConnectionPool.h"
+#include "db/util/Timer.h"
 
 using namespace std;
 using namespace db::test;
 using namespace db::rt;
 using namespace db::sql;
 using namespace db::sql::sqlite3;
+using namespace db::util;
 
-void createSqlite3Table(TestRunner& tr, db::sql::Connection* c)
+#define TABLE_TEST  "test"
+#define TABLE_TEST2 "test2"
+
+void createSqlite3Table(TestRunner* tr, db::sql::Connection* c)
 {
-   tr.test("drop table");
+   if(tr != NULL)
    {
-      db::sql::Statement* s = c->prepare("DROP TABLE IF EXISTS test");
+      tr->test("drop table");
+   }
+   {
+      db::sql::Statement* s = c->prepare("DROP TABLE IF EXISTS " TABLE_TEST);
       assertNoException();
       s->execute();
    }
-   tr.passIfNoException();
-   
-   tr.test("create table");
+   if(tr != NULL)
+   {
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
+#if 0
+   if(tr != NULL)
+   {
+      tr->test("drop table 2");
+   }
+   {
+      db::sql::Statement* s = c->prepare("DROP TABLE IF EXISTS " TABLE_TEST2);
+      assertNoException();
+      s->execute();
+   }
+   if(tr != NULL)
+   {
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
+#endif
+   if(tr != NULL)
+   {
+      tr->test("create table");
+   }
    {
       db::sql::Statement* s = c->prepare(
-         "CREATE TABLE IF NOT EXISTS test (t TEXT, i INT)");
+         "CREATE TABLE IF NOT EXISTS " TABLE_TEST " (t TEXT, i INT)");
       assertNoException();
       s->execute();
    }
-   tr.passIfNoException();
+   if(tr != NULL)
+   {
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
+#if 0
+   if(tr != NULL)
+   {
+      tr->test("create table 2");
+   }
+   {
+      db::sql::Statement* s = c->prepare(
+         "CREATE TABLE IF NOT EXISTS " TABLE_TEST2 " (t TEXT, i INT)");
+      assertNoException();
+      s->execute();
+   }
+   if(tr != NULL)
+   {
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
+#endif
 }
 
-void executeSqlite3Statements(TestRunner& tr, db::sql::Connection* c)
+void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
 {
-   tr.test("insert test 1");
+   if(tr != NULL)
+   {
+      tr->test("insert test 1");
+   }
    {
       db::sql::Statement* s = c->prepare(
-         "INSERT INTO test (t, i) VALUES ('test!', 1234)");
+         "INSERT INTO " TABLE_TEST " (t, i) VALUES ('test!', 1234)");
       assertNoException();
       s->execute();
-      assert(s->getLastInsertRowId() > 0);
    }
-   tr.passIfNoException();
-   
-   tr.test("insert test 2");
+   if(tr != NULL)
    {
-      c->begin();
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
+   
+   if(tr != NULL)
+   {
+      tr->test("insert test 2");
+   }
+   {
       db::sql::Statement* s = c->prepare(
-         "INSERT INTO test (t, i) VALUES ('!tset', 4321)");
+         "INSERT INTO " TABLE_TEST " (t, i) VALUES ('!tset', 4321)");
       assertNoException();
       s->execute();
-      assert(s->getLastInsertRowId() > 0);
    }
-   tr.passIfNoException();
+   if(tr != NULL)
+   {
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
    
-   tr.test("insert positional parameters");
+   if(tr != NULL)
+   {
+      tr->test("insert positional parameters");
+   }
    {
       db::sql::Statement* s = c->prepare(
-         "INSERT INTO test (t, i) VALUES (?, ?)");
+         "INSERT INTO " TABLE_TEST " (t, i) VALUES (?, ?)");
       assertNoException();
       s->setText(1, "boundpositional");
       s->setInt32(2, 2222);
       s->execute();
-      assert(s->getLastInsertRowId() > 0);
    }
-   tr.passIfNoException();
+   if(tr != NULL)
+   {
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
    
-   tr.test("insert named parameters");
+   if(tr != NULL)
+   {
+      tr->test("insert named parameters");
+   }
    {
       db::sql::Statement* s = c->prepare(
-         "INSERT INTO test (t, i) VALUES (:first, :second)");
+         "INSERT INTO " TABLE_TEST " (t, i) VALUES (:first, :second)");
       assertNoException();
       s->setText(":first", "boundnamed");
       s->setInt32(":second", 2223);
       s->execute();
-      assert(s->getLastInsertRowId() > 0);
    }
-   tr.passIfNoException();
-   
-   tr.test("select");
+   if(tr != NULL)
    {
-      db::sql::Statement* s = c->prepare("SELECT * FROM test");
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
+   
+   if(tr != NULL)
+   {
+      tr->test("select");
+   }
+   {
+      db::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST);
       assertNoException();
       s->execute();
       assertNoException();
@@ -124,7 +225,147 @@ void executeSqlite3Statements(TestRunner& tr, db::sql::Connection* c)
          }
       }
    }
-   tr.passIfNoException();
+   if(tr != NULL)
+   {
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
+#if 0
+   if(tr != NULL)
+   {
+      tr->test("insert test 1");
+   }
+   {
+      db::sql::Statement* s = c->prepare(
+         "INSERT INTO " TABLE_TEST2 " (t, i) VALUES ('test!', 1234)");
+      assertNoException();
+      s->execute();
+   }
+   if(tr != NULL)
+   {
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
+   
+   if(tr != NULL)
+   {
+      tr->test("insert test 2");
+   }
+   {
+      db::sql::Statement* s = c->prepare(
+         "INSERT INTO " TABLE_TEST2 " (t, i) VALUES ('!tset', 4321)");
+      assertNoException();
+      s->execute();
+   }
+   if(tr != NULL)
+   {
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
+   
+   if(tr != NULL)
+   {
+      tr->test("insert positional parameters");
+   }
+   {
+      db::sql::Statement* s = c->prepare(
+         "INSERT INTO " TABLE_TEST2 " (t, i) VALUES (?, ?)");
+      assertNoException();
+      s->setText(1, "boundpositional");
+      s->setInt32(2, 2222);
+      s->execute();
+   }
+   if(tr != NULL)
+   {
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
+   
+   if(tr != NULL)
+   {
+      tr->test("insert named parameters");
+   }
+   {
+      db::sql::Statement* s = c->prepare(
+         "INSERT INTO " TABLE_TEST2 " (t, i) VALUES (:first, :second)");
+      assertNoException();
+      s->setText(":first", "boundnamed");
+      s->setInt32(":second", 2223);
+      s->execute();
+   }
+   if(tr != NULL)
+   {
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
+   
+   if(tr != NULL)
+   {
+      tr->test("select");
+   }
+   {
+      db::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST2);
+      assertNoException();
+      s->execute();
+      assertNoException();
+      
+      Row* row;
+      string t;
+      int i;
+      while((row = s->fetch()) != NULL)
+      {
+         row->getText("t", t);
+         assertNoException();
+         row->getInt32("i", i);
+         assertNoException();
+         
+         if(strcmp(t.c_str(), "test!") == 0)
+         {
+            assert(i == 1234);
+         }
+         else if(strcmp(t.c_str(), "!tset") == 0)
+         {
+            assert(i == 4321);
+         }
+         else if(strcmp(t.c_str(), "boundpositional") == 0)
+         {
+            assert(i == 2222);
+         }
+         else if(strcmp(t.c_str(), "boundnamed") == 0)
+         {
+            assert(i == 2223);
+         }
+         else
+         {
+            // bad row data
+            assert(false);
+         }
+      }
+   }
+   if(tr != NULL)
+   {
+      tr->passIfNoException();
+   }
+   else
+   {
+      assertNoException();
+   }
+#endif
 }
 
 void runSqlite3ConnectionTest(TestRunner& tr)
@@ -150,10 +391,10 @@ void runSqlite3StatementTest(TestRunner& tr)
    c.connect("sqlite3::memory:");
    
    // create table
-   createSqlite3Table(tr, &c);
+   createSqlite3Table(&tr, &c);
    
    // execute statements
-   executeSqlite3Statements(tr, &c);
+   executeSqlite3Statements(&tr, &c);
    
    tr.test("connection close");
    {
@@ -173,6 +414,7 @@ public:
    {
       connection = new Sqlite3Connection();
       connection->connect("sqlite3::memory:");
+      //connection->connect("sqlite3:///tmp/sqlite3cptest.db");
    }
 };
 
@@ -192,13 +434,14 @@ void runSqlite3ThreadTest(TestRunner& tr)
       db::sql::Connection* c = runnable.connection;
       
       // create table
-      createSqlite3Table(tr, c);
+      createSqlite3Table(NULL, c);
       
       // execute statements
-      executeSqlite3Statements(tr, c);
+      executeSqlite3Statements(NULL, c);
       
       // close connection
       c->close();
+      delete c;
    }
    tr.passIfNoException();
    
@@ -214,7 +457,8 @@ public:
    virtual void run()
    {
       db::sql::Connection* c = pool->getConnection();
-      executeSqlite3Statements(*tr, c);
+      executeSqlite3Statements(NULL, c);
+      //executeSqlite3Statements(*tr, c);
       c->close();
    }
 };
@@ -224,16 +468,16 @@ void runSqlite3ConnectionPoolTest(TestRunner& tr)
    tr.group("Sqlite3 ConnectionPool");
    
    // create sqlite3 connection pool
-   Sqlite3ConnectionPool cp("sqlite3://localhost/tmp/sqlite3cptest.db", 100);
+   Sqlite3ConnectionPool cp("sqlite3:///tmp/sqlite3cptest.db", 1);
    assertNoException();
    
    // create table
    db::sql::Connection* c = cp.getConnection();
-   createSqlite3Table(tr, c);
+   createSqlite3Table(NULL, c);
    c->close();
    
    // create connection test threads
-   int testCount = 300;
+   int testCount = 200;
    Sqlite3ConnectionPoolTest tests[testCount];
    Thread* threads[testCount];
    
@@ -245,11 +489,10 @@ void runSqlite3ConnectionPoolTest(TestRunner& tr)
       threads[i] = new Thread(&tests[i]);
    }
    
-   unsigned long long start = System::getCurrentMilliseconds();
+   uint64_t startTime = Timer::startTiming();
    
    // run connection threads
-   int count = 1;
-   for(int i = 0; i < testCount; i++, count++)
+   for(int i = 0; i < testCount; i++)
    {
       while(!threads[i]->start(131072))
       {
@@ -263,7 +506,7 @@ void runSqlite3ConnectionPoolTest(TestRunner& tr)
       threads[i]->join();
    }
    
-   unsigned long long end = System::getCurrentMilliseconds();
+   double seconds = Timer::getSeconds(startTime);
    
    // clean up threads
    for(int i = 0; i < testCount; i++)
@@ -271,14 +514,11 @@ void runSqlite3ConnectionPoolTest(TestRunner& tr)
       delete threads[i];
    }
    
-   cout << endl;
-   cout << "Number of independent connection uses: " << testCount << endl;
-   cout << "Number of pooled connections created: " << cp.getConnectionCount()
-      << endl;
-   
-   cout << "Total time: " << (end - start) << "ms" << endl;
-   
-   cout << endl << "ConnectionPool test complete." << endl;
+   // print report
+   printf("\nNumber of independent connection uses: %d\n", testCount);
+   printf("Number of pooled connections created: %d\n",
+      cp.getConnectionCount());
+   printf("Total time: %g seconds\n", seconds);
    
    tr.ungroup();
 }
@@ -298,7 +538,7 @@ public:
    {
       runSqlite3ConnectionTest(tr);
       runSqlite3StatementTest(tr);
-      //runSqlite3ThreadTest(tr);
+      runSqlite3ThreadTest(tr);
       return 0;
    }
 
@@ -307,7 +547,6 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      // FIXME: sqlite3 connection pool test causes database lockups
       //runSqlite3ConnectionPoolTest(tr);
       return 0;
    }

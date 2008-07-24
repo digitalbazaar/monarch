@@ -33,7 +33,7 @@ int Semaphore::increasePermitsLeft(int increase)
    return increase;
 }
 
-void Semaphore::decreasePermitsLeft(int decrease)
+inline void Semaphore::decreasePermitsLeft(int decrease)
 {
    mPermitsLeft -= decrease;
 }
@@ -97,7 +97,7 @@ void Semaphore::notifyThreads(int count)
    notifyAll();
 }
 
-bool Semaphore::mustWait(Thread* thread)
+inline bool Semaphore::mustWait(Thread* thread)
 {
    // return true if thread is in the wait map
    return mWaitMap.find(thread) != mWaitMap.end();

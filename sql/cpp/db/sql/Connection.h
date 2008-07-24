@@ -161,6 +161,11 @@ public:
     * @return true if this connection is connected, false if not.
     */
    virtual bool isConnected() = 0;
+   
+   /**
+    * Cleans up this connection's prepared statements.
+    */
+   virtual void cleanupPreparedStatements();
 };
 
 // type definition for reference counted Connection
