@@ -48,10 +48,14 @@ protected:
    
    /**
     * A reference to a HeapObject. When the HeapObject is NULL, this
-    * reference is private to this Collectable, and therefore this
-    * Collectable must manage its memory in all cases.
+    * reference is private to this Collectable and should not be deleted.
     */
    Reference* mReference;
+   
+   /**
+    * A private NULL reference.
+    */
+   Reference mNullReference;
    
    /**
     * Acquires the passed Reference.
@@ -144,36 +148,38 @@ public:
 template<typename HeapObject>
 Collectable<HeapObject>::Collectable(HeapObject* ptr)
 {
-   // create a reference to the HeapObject, which may be NULL
-   mReference = new Reference;
-   mReference->ptr = ptr;
-   mReference->count = 1;
-}
-
-template<typename HeapObject>
-Collectable<HeapObject>::Collectable(const Collectable& copy)
-{
-   if(copy.mReference->ptr != NULL)
+   // initialize private NULL reference
+   mNullReference.ptr = NULL;
+   
+   if(ptr == NULL)
    {
-      // acquire copy's reference
-      mReference = NULL;
-      acquire(copy.mReference);
+      // use private NULL reference
+      mReference = &mNullReference;
    }
    else
    {
-      // create a private reference to NULL
+      // create a reference to the HeapObject
       mReference = new Reference;
-      mReference->ptr = NULL;
+      mReference->ptr = ptr;
       mReference->count = 1;
    }
 }
 
 template<typename HeapObject>
+Collectable<HeapObject>::Collectable(const Collectable& copy)
+{
+   // initialize private NULL reference
+   mNullReference.ptr = NULL;
+   
+   // acquire copy's reference
+   acquire(copy.mReference);
+}
+
+template<typename HeapObject>
 Collectable<HeapObject>::~Collectable()
 {
-   // release reference, delete private NULL reference
+   // release reference
    release();
-   delete mReference;
 }
 
 template<typename HeapObject>
@@ -181,17 +187,14 @@ void Collectable<HeapObject>::acquire(Reference* ref)
 {
    if(ref->ptr != NULL)
    {
-      // do atomic fetch and increment
-      __sync_fetch_and_add(&ref->count, 1);
-      
-      // delete old private NULL reference
-      if(mReference != NULL)
-      {
-         delete mReference;
-      }
-      
-      // set new one
+      // do atomic increment and fetch, set new reference
+      __sync_add_and_fetch(&ref->count, 1);
       mReference = ref;
+   }
+   else
+   {
+      // use private NULL reference
+      mReference = &mNullReference;
    }
 }
 
@@ -200,7 +203,7 @@ void Collectable<HeapObject>::release()
 {
    // old reference only needs to be released if it is
    // shared (it is not NULL)
-   if(mReference->ptr != NULL)
+   if(mReference != &mNullReference)
    {
       // do atomic fetch and decrement
       unsigned int count = __sync_sub_and_fetch(&mReference->count, 1);
@@ -213,10 +216,8 @@ void Collectable<HeapObject>::release()
          delete mReference;
       }
       
-      // create a new private NULL reference
-      mReference = new Reference;
-      mReference->ptr = NULL;
-      mReference->count = 1;
+      // use private NULL reference
+      mReference = &mNullReference;
    }
 }
 
@@ -239,8 +240,7 @@ bool Collectable<HeapObject>::operator==(const Collectable& rhs)
 {
    return
       (this == &rhs) ||
-      (this->mReference == rhs.mReference) ||
-      (this->mReference->ptr == NULL && rhs.mReference->ptr == NULL);
+      (this->mReference->ptr == rhs.mReference->ptr);
 }
 
 template<typename HeapObject>
@@ -271,7 +271,7 @@ void Collectable<HeapObject>::setNull()
 template<typename HeapObject>
 bool Collectable<HeapObject>::isNull()
 {
-   return mReference->ptr == NULL;
+   return mReference == &mNullReference;
 }
 
 } // end namespace rt
