@@ -5,6 +5,7 @@
 #define db_modest_ModuleLibrary_H
 
 #include "db/rt/Exception.h"
+#include "db/rt/ExclusiveLock.h"
 #include "db/modest/ModuleLoader.h"
 
 #include <map>

@@ -5,6 +5,7 @@
 #define db_net_SocketDataPresenterList_H
 
 #include "db/rt/Collectable.h"
+#include "db/rt/ExclusiveLock.h"
 #include "db/net/SocketDataPresenter.h"
 
 #include <list>

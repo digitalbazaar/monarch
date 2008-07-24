@@ -8,6 +8,7 @@
 #include <sched.h>
 #include <signal.h>
 
+#include "db/rt/ExclusiveLock.h"
 #include "db/rt/Exception.h"
 #include "db/rt/Runnable.h"
 

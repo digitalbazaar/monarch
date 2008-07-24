@@ -4,7 +4,7 @@
 #ifndef db_rt_Collectable_H
 #define db_rt_Collectable_H
 
-#include "db/rt/ExclusiveLock.h"
+#include <cstddef>
 
 namespace db
 {
