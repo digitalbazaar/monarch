@@ -374,15 +374,14 @@ bool App::parseCommandLine(vector<const char*>* args)
       rval && i < args->end();
       i++)
    {
-      const char* arg = (*i);
+      const char* arg = *i;
       
       // check if we are at end of options
       if(strcmp(arg, "--") == 0 || strlen(arg) == 0 || arg[0] != '-')
       {
          // add rest of args to all specs where "args" key is present
-         while(i < args->end())
+         do
          {
-            i++;
             const char* arg = *i;
             DynamicObjectIterator si =
                mConfig["app"]["cl"]["specs"].getIterator();
@@ -396,6 +395,7 @@ bool App::parseCommandLine(vector<const char*>* args)
                }
             }
          }
+         while(++i < args->end());
       }
       else
       {
