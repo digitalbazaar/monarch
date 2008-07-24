@@ -3,6 +3,7 @@
  */
 #include "db/sql/sqlite3/Sqlite3Statement.h"
 
+#include "db/rt/Thread.h"
 #include "db/sql/sqlite3/Sqlite3Connection.h"
 #include "db/sql/sqlite3/Sqlite3Row.h"
 
@@ -218,19 +219,25 @@ bool Sqlite3Statement::execute()
       case SQLITE_OK:
          // step to execute statement
          mState = sqlite3_step(mHandle);
-         if(mState == SQLITE_DONE)
+         switch(mState)
          {
-            // reset statement for future use
-            mState = sqlite3_reset(mHandle);
-         }
-         else if(mState != SQLITE_ROW)
-         {
-            // error stepping statement (version 1 of api requires reset)
-            sqlite3_reset(mHandle);
-            ExceptionRef e =
-               new Sqlite3Exception((Sqlite3Connection*)mConnection);
-            Exception::setLast(e, false);
-            rval = false;
+            case SQLITE_DONE:
+               // reset statement for future use
+               mState = sqlite3_reset(mHandle);
+               break;
+            case SQLITE_ROW:
+               // nothing to do, just got back a row
+               break;
+            default:
+               {
+                  // error stepping statement (version 1 of api requires reset)
+                  mState = sqlite3_reset(mHandle);
+                  ExceptionRef e =
+                     new Sqlite3Exception((Sqlite3Connection*)mConnection);
+                  Exception::setLast(e, false);
+                  rval = false;
+               }
+               break;
          }
          break;
       case SQLITE_DONE:
@@ -249,6 +256,7 @@ bool Sqlite3Statement::execute()
       default:
          {
             // statement in bad state
+            mState = sqlite3_reset(mHandle);
             ExceptionRef e =
                new Sqlite3Exception((Sqlite3Connection*)mConnection);
             Exception::setLast(e, false);
@@ -286,7 +294,7 @@ Row* Sqlite3Statement::fetch()
                mRow = NULL;
                
                // error stepping statement (version 1 of api requires reset)
-               sqlite3_reset(mHandle);
+               mState = sqlite3_reset(mHandle);
                ExceptionRef e =
                   new Sqlite3Exception((Sqlite3Connection*)mConnection);
                Exception::setLast(e, false);

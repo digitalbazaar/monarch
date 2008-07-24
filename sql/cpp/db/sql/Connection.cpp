@@ -102,13 +102,8 @@ void Connection::close()
       mUrl = NULL;
    }
    
-   // clean up all prepared statements
-   for(PreparedStmtMap::iterator i = mPreparedStmts.begin();
-       i != mPreparedStmts.end(); i++)
-   {
-      delete i->second;
-   }
-   mPreparedStmts.clear();
+   // clean up prepared statements
+   cleanupPreparedStatements();
 }
 
 bool Connection::begin()
@@ -163,4 +158,15 @@ bool Connection::rollback()
    }
    
    return rval;
+}
+
+void Connection::cleanupPreparedStatements()
+{
+   // clean up all prepared statements
+   for(PreparedStmtMap::iterator i = mPreparedStmts.begin();
+       i != mPreparedStmts.end(); i++)
+   {
+      delete i->second;
+   }
+   mPreparedStmts.clear();
 }

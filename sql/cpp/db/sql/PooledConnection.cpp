@@ -29,12 +29,6 @@ inline Connection* PooledConnection::getConnection()
    return mConnection;
 }
 
-inline void PooledConnection::closeConnection()
-{
-   // call real connection close
-   mConnection->close();
-}
-
 inline Statement* PooledConnection::createStatement(const char* sql)
 {
    // pooled connections don't create their own statements
@@ -68,6 +62,12 @@ inline void PooledConnection::close()
    mPool->connectionClosed(this);
 }
 
+inline void PooledConnection::closeConnection()
+{
+   // call real connection close
+   mConnection->close();
+}
+
 inline bool PooledConnection::begin()
 {
    return mConnection->begin();
@@ -86,4 +86,9 @@ inline bool PooledConnection::rollback()
 inline bool PooledConnection::isConnected()
 {
    return mConnection->isConnected();
+}
+
+inline void PooledConnection::cleanupPreparedStatements()
+{
+   mConnection->cleanupPreparedStatements();
 }

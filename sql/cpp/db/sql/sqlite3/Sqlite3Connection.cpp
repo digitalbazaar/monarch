@@ -66,9 +66,7 @@ bool Sqlite3Connection::connect(Url* url)
          db = url->getPath().c_str();
       }
       
-      // FIXME: we want to add read/write/create params to the URL
-      // so connections can be read-only/write/etc (use query in URL)
-      // handle username/password
+      // open sqlite3 connection
       int ec = sqlite3_open(db, &mHandle);
       if(ec != SQLITE_OK)
       {
@@ -81,6 +79,9 @@ bool Sqlite3Connection::connect(Url* url)
       {
          // connected
          rval = true;
+         
+         // set busy timeout to 15 seconds
+         sqlite3_busy_timeout(mHandle, 15000);
       }
    }
    
@@ -98,7 +99,7 @@ void Sqlite3Connection::close()
    }
 }
 
-bool Sqlite3Connection::isConnected()
+inline bool Sqlite3Connection::isConnected()
 {
    return mHandle != NULL;
 }

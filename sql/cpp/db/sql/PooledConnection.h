@@ -25,12 +25,6 @@ class PooledConnection : public Connection
 {
 protected:
    /**
-    * Friend of AbstractConnectionPool to allow access to protected close
-    * connection.
-    */
-   friend class AbstractConnectionPool;
-   
-   /**
     * The abstract connection pool that owns this pooled connection.
     */
    AbstractConnectionPool* mPool;
@@ -44,11 +38,6 @@ protected:
     * Stores the last time in milliseconds that the connection went idle.
     */
    uint64_t mIdleTime;
-   
-   /**
-    * Closes this pooled connection.
-    */
-   virtual void closeConnection();
    
    /**
     * Creates a prepared Statement.
@@ -125,6 +114,12 @@ public:
    virtual void close();
    
    /**
+    * Closes this pooled connection. This shuts down the underlying connection
+    * and *must* only be called by a parent ConnectionPool.
+    */
+   virtual void closeConnection();
+   
+   /**
     * Begins a new transaction.
     * 
     * @return true if successful, false if an SqlException occurred.
@@ -151,6 +146,11 @@ public:
     * @return true if this connection is connected, false if not.
     */
    virtual bool isConnected();
+   
+   /**
+    * Cleans up this connection's prepared statements.
+    */
+   virtual void cleanupPreparedStatements();
 };
 
 } // end namespace sql
