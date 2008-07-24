@@ -40,7 +40,7 @@ void createMySqlTable(TestRunner& tr, db::sql::Connection* c)
    tr.passIfNoException();
 }
 
-void executeMySqlStatements(TestRunner &tr, db::sql::Connection* c)
+void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
 {
    tr.test("insert test 1");
    {

@@ -20,7 +20,7 @@ HttpRequestServicer::~HttpRequestServicer()
    free(mPath);
 }
 
-const char* HttpRequestServicer::getPath()
+inline const char* HttpRequestServicer::getPath()
 {
    return mPath;
 }

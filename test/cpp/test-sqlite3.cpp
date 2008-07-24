@@ -37,7 +37,7 @@ void createSqlite3Table(TestRunner& tr, db::sql::Connection* c)
    tr.passIfNoException();
 }
 
-void executeSqlite3Statements(TestRunner &tr, db::sql::Connection* c)
+void executeSqlite3Statements(TestRunner& tr, db::sql::Connection* c)
 {
    tr.test("insert test 1");
    {
@@ -127,7 +127,7 @@ void executeSqlite3Statements(TestRunner &tr, db::sql::Connection* c)
    tr.passIfNoException();
 }
 
-void runSqlite3ConnectionTest(TestRunner &tr)
+void runSqlite3ConnectionTest(TestRunner& tr)
 {
    tr.test("Sqlite3 Connection");
    
@@ -139,7 +139,7 @@ void runSqlite3ConnectionTest(TestRunner &tr)
    tr.pass();
 }
 
-void runSqlite3StatementTest(TestRunner &tr)
+void runSqlite3StatementTest(TestRunner& tr)
 {
    tr.group("Sqlite3 Statement");
    
@@ -158,6 +158,47 @@ void runSqlite3StatementTest(TestRunner &tr)
    tr.test("connection close");
    {
       c.close();
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
+class Sqlite3ThreadTest : public Runnable
+{
+public:
+   Sqlite3Connection* connection;
+   
+   virtual void run()
+   {
+      connection = new Sqlite3Connection();
+      connection->connect("sqlite3::memory:");
+   }
+};
+
+void runSqlite3ThreadTest(TestRunner& tr)
+{
+   tr.group("Sqlite3 multithread");
+   
+   // create sqlite3 connection in another thread
+   Sqlite3ThreadTest runnable;
+   Thread t(&runnable);
+   t.start();
+   t.join();
+   
+   // use sqlite3 connection in this thread
+   tr.test("connection created in separate thread");
+   {
+      db::sql::Connection* c = runnable.connection;
+      
+      // create table
+      createSqlite3Table(tr, c);
+      
+      // execute statements
+      executeSqlite3Statements(tr, c);
+      
+      // close connection
+      c->close();
    }
    tr.passIfNoException();
    
@@ -256,8 +297,8 @@ public:
    virtual int runAutomaticTests(TestRunner& tr)
    {
       //runSqlite3ConnectionTest(tr);
-      // FIXME: significant memory leaks in sqlite3 statement test
-      runSqlite3StatementTest(tr);
+      //runSqlite3StatementTest(tr);
+      runSqlite3ThreadTest(tr);
       return 0;
    }
 

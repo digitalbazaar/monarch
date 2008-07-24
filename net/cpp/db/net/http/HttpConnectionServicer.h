@@ -4,7 +4,7 @@
 #ifndef db_net_http_HttpConnectionServicer_H
 #define db_net_http_HttpConnectionServicer_H
 
-#include "db/rt/ExclusiveLock.h"
+#include "db/rt/SharedLock.h"
 #include "db/net/ConnectionServicer.h"
 #include "db/net/http/HttpConnection.h"
 #include "db/net/http/HttpRequestServicer.h"
@@ -72,7 +72,7 @@ protected:
    /**
     * A lock for manipulating request servicers.
     */
-   db::rt::ExclusiveLock mRequestServicerLock;
+   db::rt::SharedLock mRequestServicerLock;
    
    /**
     * Finds an HttpRequestServicer for the given path in the given map.

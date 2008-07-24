@@ -39,7 +39,7 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
       }
    }
    
-   mRequestServicerLock.lock();
+   mRequestServicerLock.lockShared();
    {
       // try to find servicer for path
       ServicerMap::iterator i;
@@ -71,7 +71,7 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
          }
       }
    }
-   mRequestServicerLock.unlock();
+   mRequestServicerLock.unlockShared();
    
    return rval;
 }
@@ -206,7 +206,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
 void HttpConnectionServicer::addRequestServicer(
    HttpRequestServicer* s, bool secure)
 {
-   mRequestServicerLock.lock();
+   mRequestServicerLock.lockExclusive();
    {
       if(secure)
       {
@@ -217,13 +217,13 @@ void HttpConnectionServicer::addRequestServicer(
          mNonSecureServicers[s->getPath()] = s;
       }
    }
-   mRequestServicerLock.unlock();
+   mRequestServicerLock.unlockExclusive();
 }
 
 void HttpConnectionServicer::removeRequestServicer(
    HttpRequestServicer* s, bool secure)
 {
-   mRequestServicerLock.lock();
+   mRequestServicerLock.lockExclusive();
    {
       if(secure)
       {
@@ -234,7 +234,7 @@ void HttpConnectionServicer::removeRequestServicer(
          mNonSecureServicers.erase(s->getPath());
       }
    }
-   mRequestServicerLock.unlock();
+   mRequestServicerLock.unlockExclusive();
 }
 
 HttpRequestServicer* HttpConnectionServicer::removeRequestServicer(
@@ -242,7 +242,7 @@ HttpRequestServicer* HttpConnectionServicer::removeRequestServicer(
 {
    HttpRequestServicer* rval = NULL;
    
-   mRequestServicerLock.lock();
+   mRequestServicerLock.lockExclusive();
    {
       if(secure)
       {
@@ -263,7 +263,7 @@ HttpRequestServicer* HttpConnectionServicer::removeRequestServicer(
          }
       }
    }
-   mRequestServicerLock.unlock();
+   mRequestServicerLock.unlockExclusive();
    
    return rval;
 }
