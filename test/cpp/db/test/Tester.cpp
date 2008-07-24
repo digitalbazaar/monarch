@@ -53,6 +53,9 @@ DynamicObject Tester::getCommandLineSpec(App* app)
 "                         4: Same as 3, plus test time.\n"
 "                      All levels have exit status of 0 on success.\n"
 "  -c                  Continue after failure. (default: true).\n"
+"  -i, --interactive   Do only interactive tests. (default: false).\n"
+"  -a, --automatic     Do only automatic tests. (default: true).\n"
+"                      Note: -i and -a can be combined to do both types.\n"
 "\n";
    
    DynamicObject opt;
@@ -60,11 +63,22 @@ DynamicObject Tester::getCommandLineSpec(App* app)
    
    opt = spec["options"]->append();
    opt["short"] = "-l";
+   opt["long"] = "--level";
    opt["arg"] = cfg["db.test.Tester"]["level"];
   
    opt = spec["options"]->append();
    opt["short"] = "-c";
    opt["setTrue"] = cfg["db.test.Tester"]["continueAfterException"];
+  
+   opt = spec["options"]->append();
+   opt["short"] = "-a";
+   opt["long"] = "--automatic";
+   opt["setTrue"] = cfg["db.test.Tester"]["__cl_automatic"];
+  
+   opt = spec["options"]->append();
+   opt["short"] = "-i";
+   opt["long"] = "--interactive";
+   opt["setTrue"] = cfg["db.test.Tester"]["__cl_interactive"];
   
    return spec;
 }
@@ -75,6 +89,32 @@ bool Tester::willParseCommandLine(App* app, std::vector<const char*>* args)
    
    app->getConfig()["db.test.Tester"]["level"] = 3;
    app->getConfig()["db.test.Tester"]["continueAfterException"] = false;
+   
+   return rval;
+}
+
+bool Tester::didParseCommandLine(App* app)
+{
+   bool rval = true;
+   Config& cfg = app->getConfig()["db.test.Tester"];
+
+   // if interactive, assume no automatic, else only automatic enabled
+   if(cfg->hasMember("__cl_interactive") && cfg["__cl_interactive"]->getBoolean())
+   {
+      cfg["interactive"] = true;
+      cfg["automatic"] = false;
+   }
+   else
+   {
+      cfg["interactive"] = false;
+      cfg["automatic"] = true;
+   }
+   
+   // if auto set, override interactive setting
+   if(cfg->hasMember("__cl_automatic") && cfg["__cl_automatic"]->getBoolean())
+   {
+      cfg["automatic"] = true;
+   }
    
    return rval;
 }
@@ -116,9 +156,10 @@ int Tester::runInteractiveTests(TestRunner& tr)
    return 0;
 }
 
-int Tester::runTests(TestRunner& tr)
+int Tester::runTests(App* app, TestRunner& tr)
 {
    int rval = 0;
+   Config& cfg = app->getConfig()["db.test.Tester"];
 
    tr.group(mName);
 
@@ -130,16 +171,16 @@ int Tester::runTests(TestRunner& tr)
       rval == 0 && i != mTesters.end();
       i++)
    {
-      rval = (*i)->runTests(tr);
+      rval = (*i)->runTests(app, tr);
    }
 
-   if(rval == 0)
+   if(rval == 0 && cfg["interactive"]->getBoolean())
    {
       rval = runInteractiveTests(tr);
       assertNoException();
    }
 
-   if(rval == 0)
+   if(rval == 0 && cfg["automatic"]->getBoolean())
    {
       rval = runAutomaticTests(tr);
       assertNoException();
@@ -155,9 +196,9 @@ int Tester::runTests(TestRunner& tr)
 
 void Tester::run(App* app)
 {
-   Config& cfg = app->getConfig();
-   bool cont = cfg["db.test.Tester"]["continueAfterException"]->getBoolean();
-   uint32_t cfgLevel = cfg["db.test.Tester"]["level"]->getUInt32();
+   Config& cfg = app->getConfig()["db.test.Tester"];
+   bool cont = cfg["continueAfterException"]->getBoolean();
+   uint32_t cfgLevel = cfg["level"]->getUInt32();
    TestRunner::OutputLevel level;
    
    switch(cfgLevel)
@@ -171,7 +212,7 @@ void Tester::run(App* app)
    
    TestRunner tr(cont, level);
    
-   int exitStatus = runTests(tr);
+   int exitStatus = runTests(app, tr);
    app->setExitStatus(exitStatus);
    assertNoException();
    

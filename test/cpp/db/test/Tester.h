@@ -46,21 +46,6 @@ protected:
    char* mName;
    
    /**
-    * Flags controlling testing
-    */
-   unsigned int flags;
-   
-   /**
-    * Run automatic tests in runAutomaticTests().
-    */
-   static const int DB_TEST_AUTOMATIC = 1;
-   
-   /**
-    * Run interactive tests in runInteractiveTests().
-    */
-   static const int DB_TEST_INTERACTIVE = 1 << 1;
-
-   /**
     * Sub-Testers to run.
     */
    std::list<Tester*> mTesters;
@@ -95,6 +80,16 @@ public:
     */
    virtual bool willParseCommandLine(
       db::app::App* app, std::vector<const char*>* args);
+   
+   /**
+    * Process the command line options
+    * 
+    * @param app the App.
+    * 
+    * @return true on success, false on failure and exception set
+    */
+   
+   virtual bool didParseCommandLine(db::app::App* app);
    
    /**
     * Set the tester name.
@@ -144,7 +139,7 @@ public:
     * 
     * @return exit status. 0 for success.
     */
-   virtual int runTests(db::test::TestRunner& tr);
+   virtual int runTests(db::app::App* app, db::test::TestRunner& tr);
    
    /**
     * Run all tests and set exit status.
