@@ -162,7 +162,8 @@ bool Date::parse(const char* str, const char* format, TimeZone* tz)
          mSecondsSinceEpoch = timegm(&mBrokenDownTime);
       }
       
-      // ensure broken down time is accurate
+      // ensure broken down time is in GMT and totally filled out
+      // (strptime may not populate all fields)
       gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
    }
    
