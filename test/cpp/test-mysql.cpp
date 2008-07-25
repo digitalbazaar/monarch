@@ -305,7 +305,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      //runMySqlConnectionPoolTest(tr);
+      runMySqlConnectionPoolTest(tr);
       return 0;
    }
 };

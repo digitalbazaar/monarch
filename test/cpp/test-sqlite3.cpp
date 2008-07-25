@@ -547,7 +547,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      //runSqlite3ConnectionPoolTest(tr);
+      runSqlite3ConnectionPoolTest(tr);
       return 0;
    }
 };
