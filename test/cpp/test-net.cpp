@@ -1802,7 +1802,7 @@ public:
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
 //      runHttpNormalizePath(tr);
-//      runHttpServerTest();
+      runHttpServerTest();
 //      runHttpClientGetTest();
 //      runHttpClientPostTest();
 //      runPingTest();
