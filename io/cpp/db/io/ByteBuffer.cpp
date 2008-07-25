@@ -352,7 +352,7 @@ unsigned char ByteBuffer::next()
    return (udata() - 1)[0];
 }
 
-int ByteBuffer::capacity() const
+inline int ByteBuffer::capacity() const
 {
    return mCapacity;
 }
