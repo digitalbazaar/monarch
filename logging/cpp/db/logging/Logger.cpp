@@ -189,7 +189,7 @@ void Logger::getDate(string& date)
    {
       // handle other date formats here
       Date now;
-      date = now.format(date, mDateFormat, "c");
+      date = now.format(date, mDateFormat);
    }
 }
 

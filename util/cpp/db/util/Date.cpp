@@ -112,58 +112,8 @@ void Date::addSeconds(time_t seconds)
    gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
 }
 
-string& Date::format(
-   string& str, const char* format, const char* formatType, TimeZone* tz)
+string& Date::format(string& str, const char* format, TimeZone* tz)
 {
-   string f = format;
-   
-   if(strcmp(formatType, "java") == 0)
-   {
-      // FIXME: need to get negative lookbehind assertions working for regex
-      
-      // AM/PM
-      StringTools::regexReplaceAll(f, "\\ba\\b", "%p");
-      
-      // year (4 digit)
-      StringTools::regexReplaceAll(f, "\\by{4}\\b", "%Y");
-      
-      // year (2 digit)
-      StringTools::regexReplaceAll(f, "\\by{1,2}\\b", "%y");
-      
-      // month in year (full)
-      StringTools::regexReplaceAll(f, "\\bM{4,}\\b", "%B");
-      
-      // month in year (abbreviated)
-      StringTools::regexReplaceAll(f, "\\bM{1,3}\\b", "%b");
-      
-      // week in year
-      StringTools::regexReplaceAll(f, "\\bw{1,2}\\b", "%U");
-      
-      // day in year
-      StringTools::regexReplaceAll(f, "\\bD{1,3}\\b", "%j");
-      
-      // day in month
-      StringTools::regexReplaceAll(f, "\\bd{1,2}\\b", "%d");
-      
-      // day in week (full)
-      StringTools::regexReplaceAll(f, "\\bE{4,}\\b", "%A");
-      
-      // day in week (abbreviated)
-      StringTools::regexReplaceAll(f, "\\bE{1,3}\\b", "%a");
-      
-      // hour in day (0-24)
-      StringTools::regexReplaceAll(f, "\\bH{1,2}\\b", "%H");
-      
-      // hour in day (1-12)
-      StringTools::regexReplaceAll(f, "\\bh{1,2}\\b", "%I");
-      
-      // minute in hour
-      StringTools::regexReplaceAll(f, "\\bm{1,2}\\b", "%M");
-      
-      // second in minute
-      StringTools::regexReplaceAll(f, "\\bs{1,2}\\b", "%S");
-   }
-   
    struct tm time;
    
    // apply time zone
@@ -187,44 +137,34 @@ string& Date::format(
    // print the time to a string
    unsigned int size = strlen(format) + 100;
    char out[size];
-   strftime(out, size, f.c_str(), &time);
+   strftime(out, size, format, &time);
    str.assign(out);
    
    return str;
 }
 
-bool Date::parse(
-   const string& str, const char* format, const char* formatType, TimeZone* tz)
+bool Date::parse(const char* str, const char* format, TimeZone* tz)
 {
    bool rval = false;
    
-   if(strcmp(formatType, "c") == 0)
+   if(strptime(str, format, &mBrokenDownTime) != NULL)
    {
-      if(strptime(str.c_str(), format, &mBrokenDownTime) != NULL)
+      rval = true;
+      
+      if(tz == NULL)
       {
-         rval = true;
+         // get local time
+         mSecondsSinceEpoch = mktime(&mBrokenDownTime);
       }
-   }
-   else
-   {
-      // update to current time
-      mSecondsSinceEpoch = time(NULL);
+      else
+      {
+         // get gmt time (applies no timezone)
+         mSecondsSinceEpoch = timegm(&mBrokenDownTime);
+      }
+      
+      // ensure broken down time is accurate
       gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
    }
-   
-   if(tz == NULL)
-   {
-      // get local time
-      mSecondsSinceEpoch = mktime(&mBrokenDownTime);
-   }
-   else
-   {
-      // get gmt time (applies no timezone)
-      mSecondsSinceEpoch = timegm(&mBrokenDownTime);
-   }
-   
-   // ensure broken down time is accurate
-   gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
    
    return rval;
 }

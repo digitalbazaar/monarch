@@ -19,7 +19,7 @@ TimeZone::~TimeZone()
 {
 }
 
-unsigned int TimeZone::getMinutesWest()
+inline unsigned int TimeZone::getMinutesWest()
 {
    return mMinutesWest;
 }

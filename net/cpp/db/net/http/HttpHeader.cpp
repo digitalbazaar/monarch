@@ -341,11 +341,11 @@ void HttpHeader::setDate(Date* date)
    {
       // get current date
       Date now;
-      now.format(str, format, "c", &gmt);
+      now.format(str, format, &gmt);
    }
    else
    {
-      date->format(str, format, "c", &gmt);
+      date->format(str, format, &gmt);
    }
    
    // set date field
@@ -361,7 +361,7 @@ bool HttpHeader::getDate(Date& date)
    {
       // get GMT time zone
       TimeZone gmt = TimeZone::getTimeZone("GMT");
-      rval = date.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
+      rval = date.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt);
    }
    
    return rval;

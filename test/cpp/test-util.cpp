@@ -293,23 +293,19 @@ void runDateTest(TestRunner& tr)
    Date d;
    string str;
    //d.format(str);
-   //d.format(str, "E EEEE d dd M MMMM MM yy w ww yyyy a", "java");
-   //d.format(str, "EEEE, MMMM dd yyyy hh:mm:ss a", "java");
-   //d.format(str, "EEE, MMMM dd yyyy hh:mm:ss a", "java", &local);
-   //d.format(str, "EEE, d MMM yyyy HH:mm:ss", "java", &gmt);
    //d.format(str, "%a, %d %b %Y %H:%M:%S");
-   d.format(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
-   //d.format(str, "%a, %d %b %Y %H:%M:%S", "c", &local);
+   d.format(str, "%a, %d %b %Y %H:%M:%S", &gmt);
+   //d.format(str, "%a, %d %b %Y %H:%M:%S", &local);
    
    cout << "Current Date: " << str << endl;
    
    // parse date
    Date d2;
-   d2.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
-   //d2.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &local);
+   d2.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt);
+   //d2.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &local);
    string str2;
-   d2.format(str2, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
-   //d2.format(str2, "%a, %d %b %Y %H:%M:%S", "c", &local);
+   d2.format(str2, "%a, %d %b %Y %H:%M:%S", &gmt);
+   //d2.format(str2, "%a, %d %b %Y %H:%M:%S", &local);
    
    cout << "Parsed Date 1: " << str2 << endl;
    
@@ -317,10 +313,10 @@ void runDateTest(TestRunner& tr)
    // parse date again
    Date d3;
    str = "Thu, 02 Aug 2007 10:30:00";
-   d3.parse(str, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
+   d3.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt);
    string str3;
-   //d3.format(str3, "%a, %d %b %Y %H:%M:%S", "c", &gmt);
-   d3.format(str3, "%a, %d %b %Y %H:%M:%S", "c", &local);
+   //d3.format(str3, "%a, %d %b %Y %H:%M:%S", &gmt);
+   d3.format(str3, "%a, %d %b %Y %H:%M:%S", &local);
    
    cout << "Parsed Date 2: " << str3 << endl;
    
