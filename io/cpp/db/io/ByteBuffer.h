@@ -32,14 +32,19 @@ protected:
    int mCapacity;
    
    /**
-    * The current offset in the buffer.
+    * A pointer to the current offset in the buffer.
     */
-   int mOffset;
+   unsigned char* mOffset;
    
    /**
     * The number of valid bytes in the buffer.
     */
    int mLength;
+   
+   /**
+    * The amount of free space in this buffer.
+    */
+   int mFreeSpace;
    
    /**
     * True if the internal buffer should be cleaned up, false if not.

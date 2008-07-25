@@ -16,8 +16,9 @@ ByteBuffer::ByteBuffer(int capacity)
    // create the byte buffer
    mCapacity = capacity;
    mBuffer = (capacity > 0) ? (unsigned char*)malloc(mCapacity) : NULL;
-   mOffset = 0;
+   mOffset = mBuffer;
    mLength = 0;
+   mFreeSpace = 0;
    mCleanup = true;
 }
 
@@ -34,8 +35,9 @@ ByteBuffer::ByteBuffer(const ByteBuffer& copy)
    mCapacity = copy.capacity();
    mBuffer = (mCapacity > 0) ? (unsigned char*)malloc(mCapacity) : NULL;
    memcpy(mBuffer, copy.bytes(), copy.capacity());
-   mOffset = copy.offset();
+   mOffset = mBuffer + copy.offset();
    mLength = copy.length();
+   mFreeSpace = mCapacity - mLength;
    mCleanup = true;
 }
 
@@ -57,9 +59,8 @@ void ByteBuffer::cleanupBytes()
 void ByteBuffer::free()
 {
    cleanupBytes();
-   mBuffer = NULL;
+   mBuffer = mOffset = NULL;
    mCapacity = 0;
-   mOffset = 0;
    mLength = 0;
    mCleanup = true;
 }
@@ -78,18 +79,18 @@ void ByteBuffer::allocateSpace(int length, bool resize)
    }
    
    // determine if the data needs to be shifted
-   if(mOffset > 0)
+   if(mOffset > mBuffer)
    {
-      int overflow = length - freeSpace() + mOffset;
+      int overflow = length - freeSpace() + (mOffset - mBuffer);
       if(overflow > 0)
       {
          if(mLength > 0)
          {
             // shift the data in the buffer
-            memmove(mBuffer, udata(), mLength);
+            memmove(mBuffer, mOffset, mLength);
          }
          
-         mOffset = 0;
+         mOffset = mBuffer;
       }
    }
 }
@@ -101,17 +102,20 @@ void ByteBuffer::resize(int capacity)
       if(mCleanup && mBuffer != NULL)
       {
          // move existing data to front of buffer
-         if(mOffset != 0)
+         if(mOffset > mBuffer)
          {
-            memmove(mBuffer, udata(), mLength);
-            mOffset = 0;
+            memmove(mBuffer, mOffset, mLength);
+            mOffset = mBuffer;
          }
+         
+         // store old offset difference
+         int offset = mOffset - mBuffer;
          
          // reallocate buffer
          mBuffer = (unsigned char*)realloc(mBuffer, capacity);
          mCapacity = capacity;
          mLength = (mCapacity < mLength) ? mCapacity : mLength;
-         mOffset = (mOffset < mLength) ? mOffset : mLength;
+         mOffset = (offset < mLength) ? mBuffer + offset : mBuffer + mLength;
       }
       else
       {
@@ -121,14 +125,13 @@ void ByteBuffer::resize(int capacity)
          // copy the data into the new buffer, truncate old count as necessary
          mCapacity = capacity;
          mLength = (mCapacity < mLength) ? mCapacity : mLength;
-         memcpy(newBuffer, udata(), mLength);
-         mOffset = 0;
+         memcpy(newBuffer, mOffset, mLength);
          
          // clean up old buffer
          cleanupBytes();
          
          // memory management now on regardless of previous setting
-         mBuffer = newBuffer;
+         mBuffer = mOffset = newBuffer;
          mCleanup = true;
       }
    }
@@ -144,7 +147,7 @@ int ByteBuffer::put(unsigned char b, bool resize)
    if(freeSpace() > 0)
    {
       // put byte into the buffer
-      udata()[mLength++] = b;
+      mOffset[mLength++] = b;
       rval++;
    }
    
@@ -160,7 +163,7 @@ int ByteBuffer::put(unsigned char b, int n, bool resize)
    if(n > 0)
    {
       // set data in buffer
-      memset(udata() + mLength, b, n);
+      memset(mOffset + mLength, b, n);
       mLength += n;
    }
    
@@ -181,12 +184,12 @@ int ByteBuffer::put(const char* b, int length, bool resize)
       unsigned char* ub = (unsigned char*)b;
       for(int i = 0; i < length; i++)
       {
-         udata()[mLength + i] = ub[i];
+         mOffset[mLength + i] = ub[i];
       }
    }
    else
    {
-      memcpy(udata() + mLength, b, length);
+      memcpy(mOffset + mLength, b, length);
    }
    
    mLength += length;
@@ -232,7 +235,7 @@ int ByteBuffer::get(unsigned char& b)
    if(mLength > 0)
    {
       // get byte
-      b = udata()[0];
+      b = mOffset[0];
       
       // move internal pointer
       mOffset++;
@@ -275,7 +278,8 @@ int ByteBuffer::get(OutputStream* os)
    if(os->write(data(), mLength))
    {
       rval = mLength;
-      mOffset = mLength = 0;
+      mOffset = mBuffer;
+      mLength = 0;
    }
    else
    {
@@ -300,7 +304,7 @@ int ByteBuffer::clear(int length)
    
    // set new length and offset
    mLength -= rval;
-   mOffset = (mLength == 0) ? 0 : mOffset + rval;
+   mOffset = (mLength == 0) ? mBuffer : mOffset + rval;
    
    return rval;
 }
@@ -313,7 +317,8 @@ inline int ByteBuffer::clear()
 int ByteBuffer::reset(int length)
 {
    // ensure that the most the offset is moved back is the existing offset
-   int rval = (length > 0 ? (mOffset < length ? mOffset : length) : 0);
+   int max = mOffset - mBuffer;
+   int rval = (length > 0 ? (max < length ? max : length) : 0);
    
    // set new offset and length
    mOffset -= rval;
@@ -336,7 +341,7 @@ int ByteBuffer::trim(int length)
 int ByteBuffer::extend(int length)
 {
    // ensure that the maximum extended is (free space - offset)
-   int max = freeSpace() - mOffset;
+   int max = freeSpace() - (mOffset - mBuffer);
    int rval = (length > 0) ? ((max < length) ? max : length) : 0;
    
    // set new length
@@ -349,7 +354,7 @@ unsigned char ByteBuffer::next()
 {
    mLength--;
    mOffset++;
-   return (udata() - 1)[0];
+   return (mOffset - 1)[0];
 }
 
 inline int ByteBuffer::capacity() const
@@ -357,7 +362,7 @@ inline int ByteBuffer::capacity() const
    return mCapacity;
 }
 
-void ByteBuffer::setBytes(ByteBuffer* b, bool cleanup)
+inline void ByteBuffer::setBytes(ByteBuffer* b, bool cleanup)
 {
    // set the byte buffer
    setBytes(b->bytes(), b->offset(), b->length(), cleanup);
@@ -370,7 +375,7 @@ void ByteBuffer::setBytes(char* b, int offset, int length, bool cleanup)
    
    mCapacity = length;
    mBuffer = (unsigned char*)b;
-   mOffset = offset;
+   mOffset = mBuffer + offset;
    mLength = length;
    mCleanup = cleanup;
 }
@@ -387,17 +392,17 @@ inline unsigned char* ByteBuffer::ubytes() const
 
 inline char* ByteBuffer::data() const
 {
-   return (char*)(mBuffer + mOffset);
+   return (char*)(mOffset);
 }
 
 inline unsigned char* ByteBuffer::udata() const
 {
-   return mBuffer + mOffset;
+   return mOffset;
 }
 
 inline int ByteBuffer::offset() const
 {
-   return mOffset;
+   return mOffset - mBuffer;
 }
 
 inline int ByteBuffer::length() const
