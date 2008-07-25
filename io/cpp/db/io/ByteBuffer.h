@@ -42,11 +42,6 @@ protected:
    int mLength;
    
    /**
-    * The amount of free space in this buffer.
-    */
-   int mFreeSpace;
-   
-   /**
     * True if the internal buffer should be cleaned up, false if not.
     */
    bool mCleanup;

@@ -18,7 +18,6 @@ ByteBuffer::ByteBuffer(int capacity)
    mBuffer = (capacity > 0) ? (unsigned char*)malloc(mCapacity) : NULL;
    mOffset = mBuffer;
    mLength = 0;
-   mFreeSpace = 0;
    mCleanup = true;
 }
 
@@ -37,7 +36,6 @@ ByteBuffer::ByteBuffer(const ByteBuffer& copy)
    memcpy(mBuffer, copy.bytes(), copy.capacity());
    mOffset = mBuffer + copy.offset();
    mLength = copy.length();
-   mFreeSpace = mCapacity - mLength;
    mCleanup = true;
 }
 
