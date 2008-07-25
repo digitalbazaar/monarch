@@ -157,7 +157,8 @@ int ByteBuffer::put(unsigned char b, int n, bool resize)
    // allocate space for the data
    allocateSpace(n, resize);
    
-   n = (freeSpace() < n ? freeSpace() : n);
+   int fs = freeSpace();
+   n = (fs < n ? fs : n);
    if(n > 0)
    {
       // set data in buffer
@@ -174,7 +175,8 @@ int ByteBuffer::put(const char* b, int length, bool resize)
    allocateSpace(length, resize);
    
    // copy data into the buffer
-   length = (length < freeSpace()) ? length : freeSpace();
+   int fs = freeSpace();
+   length = (length < fs) ? length : fs;
    
    if(length < 10)
    {
@@ -206,13 +208,14 @@ int ByteBuffer::put(InputStream* is, int length)
    int rval = 0;
    
    // if the buffer is not full, do a read
-   if(!isFull())
+   int fs = freeSpace();
+   if(fs != 0)
    {
       // allocate free space
-      allocateSpace(freeSpace(), false);
+      allocateSpace(fs, false);
       
       // determine how much to read
-      length = (length > 0 && length < freeSpace() ? length : freeSpace());
+      length = (length > 0 && length < fs ? length : fs);
       
       // read
       rval = is->read(data() + mLength, length);
