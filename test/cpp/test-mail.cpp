@@ -255,7 +255,6 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-      //runSmtpClientTest(tr);
       runMailTemplateParser(tr);
       mailSpoolTest(tr);
       return 0;
@@ -266,6 +265,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
+      runSmtpClientTest(tr);
       return 0;
    }
 };

@@ -435,7 +435,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-//      runDateTest(tr);
+      runDateTest(tr);
       return 0;
    }
 };

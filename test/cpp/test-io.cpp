@@ -720,9 +720,9 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-//      runStringEqualityTest(tr);
-//      runStringAppendCharTest(tr);
-//      runStringCompareTest(tr);
+      runStringEqualityTest(tr);
+      runStringAppendCharTest(tr);
+      runStringCompareTest(tr);
       return 0;
    }
 };

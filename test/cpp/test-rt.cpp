@@ -1020,7 +1020,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-//      runTimeTest(tr);
+      runTimeTest(tr);
       return 0;
    }
 };
