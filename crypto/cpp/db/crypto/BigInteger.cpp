@@ -129,19 +129,9 @@ BigInteger& BigInteger::operator=(long long rhs)
 
 BigInteger& BigInteger::operator=(unsigned int rhs)
 {
-   int rc;
-   
-   if(rhs == 0)
-   {
-      rc = BN_zero(mBigNum);
-   }
-   else
-   {
-      rc = BN_set_word(mBigNum, rhs);
-   }
-   
+   int rc = (rhs == 0) ?
+      BN_zero(mBigNum) : BN_set_word(mBigNum, rhs);
    assert(rc == 1);
-   
    return *this;
 }
 
@@ -215,6 +205,22 @@ bool BigInteger::operator<=(const BigInteger& rhs)
 bool BigInteger::operator>=(const BigInteger& rhs)
 {
    return BN_cmp(mBigNum, rhs.mBigNum) >= 0;
+}
+
+BigInteger BigInteger::operator<<(int n)
+{
+   BigInteger rval;
+   int rc = BN_lshift(rval.mBigNum, mBigNum, n);
+   assert(rc == 1);
+   return rval;
+}
+
+BigInteger BigInteger::operator>>(int n)
+{
+   BigInteger rval;
+   int rc = BN_rshift(rval.mBigNum, mBigNum, n);
+   assert(rc == 1);
+   return rval;
 }
 
 BigInteger BigInteger::operator+(const BigInteger& rhs)
@@ -356,6 +362,11 @@ long long BigInteger::getInt64() const
    return rval;
 }
 
+int BigInteger::getNumBytes() const
+{
+   return BN_num_bytes(mBigNum);
+}
+
 void BigInteger::fromBytes(const char* data, int length)
 {
    // read the number in
@@ -365,11 +376,11 @@ void BigInteger::fromBytes(const char* data, int length)
 void BigInteger::toBytes(ByteBuffer* b)
 {
    // make enough room for the number
-   int size = BN_num_bytes(mBigNum);
+   int size = getNumBytes();
    b->allocateSpace(size, true);
    
    // write the number out
-   BN_bn2bin(mBigNum, (unsigned char*)b->data());
+   BN_bn2bin(mBigNum, (unsigned char*)b->data() + b->length());
    b->extend(size);
 }
 

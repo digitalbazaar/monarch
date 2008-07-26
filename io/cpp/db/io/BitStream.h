@@ -37,9 +37,11 @@ protected:
    int mLength;
    
    /**
-    * Resizes the bit set.
+    * Resizes the bit set by the given number of bytes.
+    * 
+    * @param bytes the number of bytes to increase by.
     */
-   virtual void resize();
+   virtual void resize(int bytes);
    
 public:
    /**
@@ -68,6 +70,25 @@ public:
    virtual void append(const unsigned char* b, int length);
    
    /**
+    * Appends the passed string of 1's and 0's as bits to this stream.
+    * 
+    * @param str a string of 1's and 0's, i.e. "100101101"
+    * @param length the length of the string (excludes any null-terminator).
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool appendFromString(const char* str, int length);
+   
+   /**
+    * Writes this bit set to the passed string, i.e. appends "1110101101".
+    * 
+    * @param str the string to write to.
+    * 
+    * @return a reference to the string.
+    */
+   virtual std::string& appendToString(std::string& str);
+   
+   /**
     * Gets the value of a bit at a particular bit offset.
     * 
     * @param offset the offset of the bit to use.
@@ -75,6 +96,13 @@ public:
     * @return true if the bit is set, false if it is cleared.
     */
    virtual bool operator[](int offset);
+   
+   /**
+    * Shifts this entire stream to the left by n bits.
+    * 
+    * @param n the number of bits to shift to the left.
+    */
+   virtual void operator<<(int n);
    
    /**
     * Extracts a byte from the bit stream at the given offset.
@@ -136,13 +164,21 @@ public:
    virtual int bytesLength();
    
    /**
-    * Writes this bit set to the passed string, i.e. appends "1110101101".
+    * Writes this bit set to a string, i.e. "1110101101".
     * 
-    * @param str the string to write to.
-    * 
-    * @return a reference to the string.
+    * @return the string.
     */
-   virtual std::string& toString(std::string& str);
+   virtual std::string toString();
+   
+   /**
+    * Writes part this bit set to a string, i.e. "1110101101".
+    * 
+    * @param offset the starting offset.
+    * @param length the ending offset.
+    * 
+    * @return the string.
+    */
+   virtual std::string toString(int offset, int length);
 };
 
 } // end namespace io

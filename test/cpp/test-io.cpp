@@ -11,10 +11,11 @@
 #include "db/io/FileOutputStream.h"
 #include "db/io/FileList.h"
 #include "db/io/FilterOutputStream.h"
+#include "db/io/BitStream.h"
+#include "db/io/BufferedOutputStream.h"
 #include "db/io/ByteArrayInputStream.h"
 #include "db/io/ByteArrayOutputStream.h"
 #include "db/io/ByteBuffer.h"
-#include "db/io/BufferedOutputStream.h"
 #include "db/io/MutatorInputStream.h"
 #include "db/io/MutatorOutputStream.h"
 #include "db/rt/System.h"
@@ -292,6 +293,34 @@ void runByteArrayOutputStreamTest(TestRunner& tr)
    assertStrCmp(b.data(), "T hate chickenThis is a sentence.");
    
    tr.passIfNoException();
+}
+
+void runBitStreamTest(TestRunner& tr)
+{
+   tr.group("BitStream");
+   
+   tr.test("string conversion");
+   {
+      BitStream bs;
+      const char* bits = "1001010101010110";
+      bs.appendFromString(bits, strlen(bits));
+      assertStrCmp(bits, bs.toString().c_str());
+   }
+   tr.passIfNoException();
+   
+   tr.test("shift left");
+   {
+      BitStream bs;
+      const char* bits = "1001010101010110";
+      bs.appendFromString(bits, strlen(bits));
+      bs << 4;
+      assertStrCmp("010101010110", bs.toString().c_str());
+//      bs << 8;
+//      assertStrCmp("01010110", bs.toString().c_str());
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
 }
 
 void runFileTest(TestRunner& tr)
@@ -709,6 +738,7 @@ public:
       runByteBufferTest(tr);
       runByteArrayInputStreamTest(tr);
       runByteArrayOutputStreamTest(tr);
+      runBitStreamTest(tr);
       runFileTest(tr);
       runFileInputStreamTest(tr);
       //runIOMonitorTest(tr);

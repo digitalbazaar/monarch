@@ -3,10 +3,10 @@
  */
 #include "db/io/BitStream.h"
 
-#include <cstdlib>
-#include <cstring>
+#include "db/rt/Exception.h"
 
 using namespace db::io;
+using namespace db::rt;
 
 BitStream::BitStream()
 {
@@ -22,10 +22,10 @@ BitStream::~BitStream()
    free(mBitSet);
 }
 
-void BitStream::resize()
+void BitStream::resize(int bytes)
 {
-   // increase bit set size by half
-   int size = mSize / 2 + mSize;
+   // increase by bytes
+   int size = mSize + bytes;
    unsigned char* data = (unsigned char*)malloc(size);
    memset(data + mSize, 0, size - mSize);
    memcpy(data, mBitSet, mSize);
@@ -39,7 +39,7 @@ void BitStream::append(bool bit)
    // increase bit set size as appropriate
    if(mLength == mSize * 8)
    {
-      resize();
+      resize(mSize / 2);
    }
    
    // OR appropriate byte in bit set
@@ -50,9 +50,10 @@ void BitStream::append(bool bit)
 void BitStream::append(const unsigned char* b, int length)
 {
    // increase bit set size as appropriate
-   if(mSize * 8 - mLength < length * 8)
+   int diff = (length * 8 - (mSize * 8 - mLength));
+   if(diff > 0)
    {
-      resize();
+      resize(diff);
       append(b, length);
    }
    else if(length == 1)
@@ -78,9 +79,75 @@ void BitStream::append(const unsigned char* b, int length)
    }
 }
 
+bool BitStream::appendFromString(const char* str, int length)
+{
+   bool rval = true;
+   
+   // determine the number of bytes that need to be allocated
+   int bytes = length / 8 + (length % 8 != 0 ? 1 : 0);
+   if(mSize < bytes)
+   {
+      resize(bytes - mSize);
+   }
+   
+   // append bits
+   for(int i = 0; rval && i < length; i++)
+   {
+      if(str[i] == '0')
+      {
+         append(false);
+      }
+      else if(str[i] == '1')
+      {
+         append(true);
+      }
+      else
+      {
+         ExceptionRef e = new Exception(
+            "Could not convert BitStream from string, invalid character '%c' "
+            "at position %d.", "db.io.BitStream.InvalidBitChar");
+         Exception::setLast(e, false);
+         rval = false;
+      }
+   }
+   
+   return rval;
+}
+
+std::string& BitStream::appendToString(std::string& str)
+{
+   str.reserve(str.length() + length());
+   for(int i = 0; i < length(); i++)
+   {
+      str.push_back((*this)[i] ? '1' : '0');
+   }
+   return str;
+}
+
 bool BitStream::operator[](int offset)
 {
    return (mBitSet[offset / 8] & (0x80 >> (offset % 8))) != 0;
+}
+
+void BitStream::operator<<(int n)
+{
+   if(n >= mLength)
+   {
+      clear();
+      setLength(0);
+   }
+   else
+   {
+      // FIXME: this implementation is terribly slow
+      // FIXME: instead do memmove for every whole byte, then shift every byte
+      // or something smarter
+      
+      std::string out = toString();
+      out.erase(0, n);
+      clear();
+      setLength(0);
+      appendFromString(out.c_str(), out.length());
+   }
 }
 
 unsigned char BitStream::get(int bitOffset)
@@ -133,7 +200,7 @@ void BitStream::setLength(int length)
       // resize to accomodate length
       // Note: this could obviously be optimized, but works fine 
       // in the general case for bfp watermarks
-      resize();
+      resize(mSize / 2);
       setLength(length);
    }
    else
@@ -142,24 +209,24 @@ void BitStream::setLength(int length)
    }
 }
 
-int BitStream::length()
+inline int BitStream::length()
 {
    return mLength;
 }
 
-void BitStream::clear()
+inline void BitStream::clear()
 {
    memset(mBitSet, 0, mSize);
 }
 
-void BitStream::set()
+inline void BitStream::set()
 {
    memset(mBitSet, 0xFF, mSize);
 }
 
-unsigned char* BitStream::bytes()
+inline unsigned char* BitStream::bytes()
 {
-   return (unsigned char*)mBitSet;
+   return mBitSet;
 }
 
 int BitStream::bytesLength()
@@ -167,10 +234,19 @@ int BitStream::bytesLength()
    return (length() / 8) + (((length() % 8) != 0) ? 1 : 0);
 }
 
-std::string& BitStream::toString(std::string& str)
+std::string BitStream::toString()
 {
-   str.reserve(str.length() + length());
-   for(int i = 0; i < length(); i++)
+   std::string str;
+   appendToString(str);
+   return str;
+}
+
+std::string BitStream::toString(int offset, int length)
+{
+   std::string str;
+   str.reserve(str.length() + length);
+   int stop = offset + length;
+   for(int i = offset; i < stop; i++)
    {
       str.push_back((*this)[i] ? '1' : '0');
    }

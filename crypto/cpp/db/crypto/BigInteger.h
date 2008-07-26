@@ -246,6 +246,24 @@ public:
    bool operator>=(const BigInteger& rhs);
    
    /**
+    * Returns the result of the passed BigInteger shifted to the left n bits.
+    * 
+    * @param n the number of bits to shift to the left.
+    * 
+    * @return the result of shifting this BigInteger to the left n bits.
+    */
+   BigInteger operator<<(int n);
+   
+   /**
+    * Returns the result of the passed BigInteger shifted to the right n bits.
+    * 
+    * @param n the number of bits to shift to the right.
+    * 
+    * @return the result of shifting this BigInteger to the right n bits.
+    */
+   BigInteger operator>>(int n);
+   
+   /**
     * Returns the result of the passed BigInteger added to this one.
     * 
     * @param rhs the BigInteger to add to this one.
@@ -421,6 +439,13 @@ public:
     * @return the value of this BigInteger as a 64-bit integer.
     */
    long long getInt64() const;
+   
+   /**
+    * Gets the number of bytes required to store this BigInteger.
+    * 
+    * @return the number of bytes required to store this BigInteger.
+    */
+   int getNumBytes() const;
    
    /**
     * Converts an array of bytes into a BigInteger.
