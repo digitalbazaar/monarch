@@ -98,6 +98,14 @@ protected:
     */
    virtual void wakeup();
    
+   /**
+    * Sends a message to another fiber using the same scheduler.
+    * 
+    * @param id the ID of the fiber to send the message to.
+    * @param msg the message to send.
+    */
+   virtual void sendMessage(FiberId id, db::rt::DynamicObject& msg);
+   
 public:
    /**
     * Creates a new Fiber.

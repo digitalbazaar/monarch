@@ -44,6 +44,11 @@ inline void Fiber::wakeup()
    mScheduler->wakeup(getId());
 }
 
+inline void Fiber::sendMessage(FiberId id, db::rt::DynamicObject& msg)
+{
+   mScheduler->sendMessage(id, msg);
+}
+
 void Fiber::setScheduler(FiberScheduler* scheduler, FiberId id)
 {
    mScheduler = scheduler;
