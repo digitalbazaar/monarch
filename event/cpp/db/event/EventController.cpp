@@ -20,19 +20,19 @@ EventController::~EventController()
 {
 }
 
-void EventController::assignEventId(const char* eventType)
+void EventController::registerEventType(const char* type)
 {
-   if(!mTypeMap->hasMember(eventType))
+   if(!mTypeMap->hasMember(type))
    {
       // event type not assigned an event id, create one & increment
-      mTypeMap[eventType] = mNextEventId++;
+      mTypeMap[type] = mNextEventId++;
    }
 }
 
 void EventController::registerObserver(Observer* observer, const char* type)
 {
-   // assign an id, if necessary
-   assignEventId(type);
+   // register the event type, if necessary
+   registerEventType(type);
       
    // register the observer
    Observable::registerObserver(observer, mTypeMap[type]->getUInt64());
@@ -52,7 +52,10 @@ void EventController::registerObserver(
 
 void EventController::unregisterObserver(Observer* observer, const char* type)
 {
-   Observable::unregisterObserver(observer, mTypeMap[type]->getUInt64());
+   if(mTypeMap->hasMember(type))
+   {
+      Observable::unregisterObserver(observer, mTypeMap[type]->getUInt64());
+   }
 }
 
 void EventController::unregisterObserver(
@@ -68,10 +71,9 @@ void EventController::unregisterObserver(
 
 void EventController::addParent(const char* child, const char* parent)
 {
-   if(mTypeMap->hasMember(parent) && mTypeMap->hasMember(child))
-   {
-      addTap(mTypeMap[child]->getUInt64(), mTypeMap[parent]->getUInt64());
-   }
+   registerEventType(parent);
+   registerEventType(child);
+   addTap(mTypeMap[child]->getUInt64(), mTypeMap[parent]->getUInt64());
 }
 
 void EventController::removeParent(const char* child, const char* parent)

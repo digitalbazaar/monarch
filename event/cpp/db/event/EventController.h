@@ -18,6 +18,9 @@ namespace event
  * Event["type"] is used internally by EventController and is therefore
  * reserved on all events that use it.
  * 
+ * Note: In the current implementation, registering event types is not
+ * thread-safe. It should only be done before starting the EventController.
+ * 
  * @author Mike Johnson
  */
 class EventController : protected Observable
@@ -33,67 +36,68 @@ protected:
     */
    EventId mNextEventId;
    
-   /**
-    * Assigns an event id to an event type. If the event type already has an
-    * event id, a new event id will not be set.
-    * 
-    * @param eventType the event type.
-    */
-   virtual void assignEventId(const char* eventType);
-   
 public:
    /**
-    * Creates a new Event Controller.
+    * Creates a new EventController.
     */
    EventController();
    
    /**
-    * Destructs the Event Controller.
+    * Destructs the EventController.
     */
    virtual ~EventController();
    
    /**
-    * Registers an observer for certain event types. Any empty event types will
-    * be ignored.
+    * Registers an event type with this EventController. The type will be
+    * assigned an event ID if it has not already been registered.
+    * 
+    * @param type the event type to register.
+    */
+   virtual void registerEventType(const char* type);
+   
+   /**
+    * Registers an observer for a certain event type. The passed event type
+    * will be automatically registered with this EventController.
     *  
     * @param observer the new observer to register for events.
-    * @param types the event type to register the observer for.
+    * @param type the event type to register the observer for.
     */
    virtual void registerObserver(Observer* observer, const char* type);
    
    /**
-    * Registers an observer for certain event types. Any empty event types will
-    * be ignored.
+    * Registers an observer for a list of event types.
     *  
     * @param observer the new observer to register for events.
-    * @param eventTypes the event types to register the observer for.
+    * @param eventTypes the list of event types to register the observer for.
     */
    virtual void registerObserver(
       Observer* observer, db::rt::DynamicObject& eventTypes);
    
    /**
-    * Unregisters an observer for certain events, determined by the event types.
-    * If an event type does not exist or is not set, it will be ignored.
+    * Unregisters an observer for a certain event type. If the event type
+    * is not registered, it will be ignored.
     * 
     * @param observer the observer to unregister for events.
-    * @param types the event type to unregister the observer for.
+    * @param type the event type to unregister the observer for.
     */
    virtual void unregisterObserver(Observer* observer, const char* type);
    
    /**
-    * Unregisters an observer for certain events, determined by the event types.
-    * If an event type does not exist or is not set, it will be ignored.
+    * Unregisters an observer for a list of event types. If a given event type
+    * is not registered, it will be ignored.
     * 
     * @param observer the observer to unregister for events.
-    * @param eventTypes the event types to unregister the observer for.
+    * @param eventTypes the list of event types to unregister the observer for.
     */
    virtual void unregisterObserver(
       Observer* observer, db::rt::DynamicObject& eventTypes);
    
    /**
     * Creates an association between two event types. Observers of the
-    * parent event type will receieve any events sent to the child, but the
+    * parent event type will receive any events sent to the child, but the
     * child observers will not receive any parent events.
+    * 
+    * Both the child and parent event types will be automatically registered.
     * 
     * @param child the event type to be sent to the parent.
     * @param parent the event type to receive events from the child event.
