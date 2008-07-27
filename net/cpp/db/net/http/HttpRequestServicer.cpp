@@ -27,41 +27,31 @@ inline const char* HttpRequestServicer::getPath()
 
 void HttpRequestServicer::normalizePath(const char* inPath, char* outPath)
 {
-   unsigned int length = strlen(inPath);
-   
-   if(length == 0)
+   // prepend slash if as necessary
+   int i = 0;
+   if(inPath[0] != '/')
    {
-      outPath[0] = '/';
-      outPath[1] = 0;
+      outPath[i++] = '/';
    }
-   else
+   
+   // copy strings, removing duplicate slashes
+   for(int n = 1; inPath[n - 1] != 0; n++)
    {
-      // prepend slash if as necessary
-      int i = 0;
-      if(inPath[0] != '/')
+      if(inPath[n] != '/' || inPath[n - 1] != '/')
       {
-         outPath[i++] = '/';
+         outPath[i++] = inPath[n - 1];
       }
-      
-      // copy strings, removing duplicate slashes
-      for(int n = 1; inPath[n - 1] != 0; n++)
+   }
+   outPath[i] = 0;
+   
+   // ensure path doesn't end in slash
+   int slash = strcspn(outPath, "?&") - 1;
+   if(slash > 0 && outPath[slash] == '/')
+   {
+      // shift left to remove slash
+      for(; outPath[slash] != 0; slash++)
       {
-         if(inPath[n] != '/' || inPath[n - 1] != '/')
-         {
-            outPath[i++] = inPath[n - 1];
-         }
-      }
-      outPath[i] = 0;
-      
-      // ensure path doesn't end in slash
-      int slash = strcspn(outPath, "?&") - 1;
-      if(slash > 0 && outPath[slash] == '/')
-      {
-         // shift left to remove slash
-         for(; outPath[slash] != 0; slash++)
-         {
-            outPath[slash] = outPath[slash + 1];
-         }
+         outPath[slash] = outPath[slash + 1];
       }
    }
 }
