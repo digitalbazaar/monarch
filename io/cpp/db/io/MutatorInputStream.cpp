@@ -53,7 +53,14 @@ int MutatorInputStream::read(char* b, int length)
             else
             {
                // read more data from underlying stream
-               mSourceEmpty = (mSource.put(mInputStream) == 0);
+               int numBytes = mSource.put(mInputStream);
+               mSourceEmpty = (numBytes == 0);
+               if(numBytes < 0)
+               {
+                  // error reading from underlying stream
+                  mResult = MutationAlgorithm::Error;
+                  rval = -1;
+               }
             }
             break;
          case MutationAlgorithm::Error:
