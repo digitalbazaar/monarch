@@ -8,34 +8,73 @@ using namespace std;
 using namespace db::event;
 using namespace db::rt;
 
+#define TOPLEVEL_ID 1
+
 EventController::EventController()
 {
+   // ensure event type map's type is set
    mTypeMap->setType(Map);
    
-   // start valid ids at 1
-   mNextEventId = 1;
+   // assign ID for wildcard top-level event, set next event ID
+   mTypeMap["*"] = TOPLEVEL_ID;
+   mNextEventId = TOPLEVEL_ID + 1;
 }
 
 EventController::~EventController()
 {
 }
 
+EventId EventController::getEventId(const char* type)
+{
+   EventId id = 0;
+   
+   // try shared lock first (most common case and is faster)
+   mMapLock.lockShared();
+   {
+      if(mTypeMap->hasMember(type))
+      {
+         // get event ID
+         id = mTypeMap[type]->getUInt64();
+      }
+   }
+   mMapLock.unlockShared();
+   
+   if(id == 0)
+   {
+      // use exclusive lock since no event ID was found in shared lock
+      mMapLock.lockExclusive();
+      {
+         // must check again in case event registered while unlocked
+         if(mTypeMap->hasMember(type))
+         {
+            // get event ID
+            id = mTypeMap[type]->getUInt64();
+         }
+         else
+         {
+            // assign event ID and increment
+            mTypeMap[type] = id = mNextEventId++;
+            
+            // add top-level tap
+            addTap(id, TOPLEVEL_ID);
+         }
+      }
+      mMapLock.unlockExclusive();
+   }
+   
+   return id;
+}
+
 void EventController::registerEventType(const char* type)
 {
-   if(!mTypeMap->hasMember(type))
-   {
-      // event type not assigned an event id, create one & increment
-      mTypeMap[type] = mNextEventId++;
-   }
+   // get event ID, discard it
+   getEventId(type);
 }
 
 void EventController::registerObserver(Observer* observer, const char* type)
 {
-   // register the event type, if necessary
-   registerEventType(type);
-      
    // register the observer
-   Observable::registerObserver(observer, mTypeMap[type]->getUInt64());
+   Observable::registerObserver(observer, getEventId(type));
 }
 
 void EventController::registerObserver(
@@ -52,10 +91,14 @@ void EventController::registerObserver(
 
 void EventController::unregisterObserver(Observer* observer, const char* type)
 {
-   if(mTypeMap->hasMember(type))
+   mMapLock.lockShared();
    {
-      Observable::unregisterObserver(observer, mTypeMap[type]->getUInt64());
+      if(mTypeMap->hasMember(type))
+      {
+         Observable::unregisterObserver(observer, mTypeMap[type]->getUInt64());
+      }
    }
+   mMapLock.unlockShared();
 }
 
 void EventController::unregisterObserver(
@@ -71,24 +114,26 @@ void EventController::unregisterObserver(
 
 void EventController::addParent(const char* child, const char* parent)
 {
-   registerEventType(parent);
-   registerEventType(child);
-   addTap(mTypeMap[child]->getUInt64(), mTypeMap[parent]->getUInt64());
+   EventId parentId = getEventId(parent);
+   EventId childId = getEventId(child);
+   addTap(childId, parentId);
 }
 
 void EventController::removeParent(const char* child, const char* parent)
 {
-   if(mTypeMap->hasMember(parent) && mTypeMap->hasMember(child))
+   mMapLock.lockShared();
    {
-      removeTap(mTypeMap[child]->getUInt64(), mTypeMap[parent]->getUInt64());
+      if(mTypeMap->hasMember(parent) && mTypeMap->hasMember(child))
+      {
+         removeTap(mTypeMap[child]->getUInt64(), mTypeMap[parent]->getUInt64());
+      }
    }
+   mMapLock.unlockShared();
 }
 
 void EventController::schedule(Event& event)
 {
    const char* type = event["type"]->getString();
-   if(mTypeMap->hasMember(type))
-   {
-      Observable::schedule(event, mTypeMap[type]->getUInt64());
-   }
+   EventId id = getEventId(type);
+   Observable::schedule(event, id);
 }

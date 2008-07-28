@@ -6,6 +6,7 @@
 
 #include "db/event/Observable.h"
 #include "db/rt/DynamicObject.h"
+#include "db/rt/SharedLock.h"
 
 namespace db
 {
@@ -18,10 +19,10 @@ namespace event
  * Event["type"] is used internally by EventController and is therefore
  * reserved on all events that use it.
  * 
- * Note: In the current implementation, registering event types is not
- * thread-safe. It should only be done before starting the EventController.
+ * The event type "*" is also reserved and refers to all events.
  * 
  * @author Mike Johnson
+ * @author Dave Longley
  */
 class EventController : protected Observable
 {
@@ -36,6 +37,21 @@ protected:
     */
    EventId mNextEventId;
    
+   /**
+    * A lock for manipulating the type map.
+    */
+   db::rt::SharedLock mMapLock;
+   
+   /**
+    * Gets the event ID for the passed event type, assigning a new ID if
+    * necessary.
+    * 
+    * @param type the event type to get the event ID for.
+    * 
+    * @return the event type's event ID.
+    */
+   virtual EventId getEventId(const char* type);
+   
 public:
    /**
     * Creates a new EventController.
@@ -48,8 +64,8 @@ public:
    virtual ~EventController();
    
    /**
-    * Registers an event type with this EventController. The type will be
-    * assigned an event ID if it has not already been registered.
+    * Registers an event type with this EventController. The passed event
+    * type automatically be made a child of the top-level event type "*". 
     * 
     * @param type the event type to register.
     */
@@ -115,8 +131,7 @@ public:
    
    /**
     * Schedules an event. Each event should have its event type set so that it
-    * can be delivered to registered observers of that event type. Events with
-    * invalid or unregistered event types will be ignored. 
+    * can be delivered to registered observers of that event type.
     * 
     * @param event the event to schedule for dispatching to observers.
     */

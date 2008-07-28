@@ -25,6 +25,7 @@ using namespace db::rt;
 class TestObserver : public Observer
 {
 public:
+   uint64_t idOffset;
    int events;
    int event1;
    int event2;
@@ -36,12 +37,13 @@ public:
    ObserverDelegate<TestObserver> delegate3;
    ObserverDelegate<TestObserver> delegate4;
    
-   TestObserver() :
+   TestObserver(uint64_t idOffset = 0) :
       delegate1(this, &TestObserver::handleEvent1),
       delegate2(this, &TestObserver::handleEvent2),
       delegate3(this, &TestObserver::handleEvent3),
       delegate4(this, &TestObserver::handleEvent4)
    {
+      this->idOffset = idOffset;
       events = 0;
       event1 = 0;
       event2 = 0;
@@ -75,11 +77,11 @@ public:
    
    virtual void handleEvent4(Event& e)
    {
-      if(e["id"]->getUInt64() == 3)
+      if(e["id"]->getUInt64() == (3 + idOffset))
       {
          event3++;
       }
-      else if(e["id"]->getUInt64() == 4)
+      else if(e["id"]->getUInt64() == (4 + idOffset))
       {
          event4++;
       }
@@ -189,8 +191,8 @@ void runEventControllerTest(TestRunner& tr)
    // create event controller
    EventController ec;
    
-   // create observers
-   TestObserver observer;
+   // create observer, use ID offset of 1 (event ID 1 is for wildcard event)
+   TestObserver observer(1);
    
    DynamicObject types;
    // string type
