@@ -82,7 +82,7 @@ void runFiberTest(TestRunner& tr)
       TestFiber* fiber = new TestFiber(10);
       fs.addFiber(fiber);
       
-      fs.stopOnLastFiberExit();
+      fs.waitForLastFiberExit(true);
       k.getEngine()->stop();
    }
    tr.passIfNoException();
@@ -114,7 +114,7 @@ void runFiberTest(TestRunner& tr)
          fs.addFiber(new TestFiber(100));
       }
       
-      fs.stopOnLastFiberExit();
+      fs.waitForLastFiberExit(true);
       printf("time=%g secs... ", Timer::getSeconds(startTime));
       
       k.getEngine()->stop();
@@ -155,7 +155,7 @@ void runFiberTest(TestRunner& tr)
          }
       }
       
-      fs.stopOnLastFiberExit();
+      fs.waitForLastFiberExit(true);
       printf("msgs=%d, time=%g secs... ", msgs, Timer::getSeconds(startTime));
       k.getEngine()->stop();
       
@@ -227,7 +227,7 @@ void runSpeedTest(TestRunner& tr)
       
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 2);
-      fs.stopOnLastFiberExit();
+      fs.waitForLastFiberExit(true);
       printf("time=%g secs... ", Timer::getSeconds(startTime));
       
       k.getEngine()->stop();
@@ -249,7 +249,7 @@ void runSpeedTest(TestRunner& tr)
       
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 2);
-      fs.stopOnLastFiberExit();
+      fs.waitForLastFiberExit(true);
       printf("time=%g secs... ", Timer::getSeconds(startTime));
       
       k.getEngine()->stop();

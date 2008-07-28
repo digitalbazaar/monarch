@@ -178,12 +178,15 @@ public:
    virtual void stop();
    
    /**
-    * Stops this FiberScheduler once all fibers have exited. This method will
-    * block the current thread until all fibers have exited.
+    * Waits until all fibers have exited. This method will block the current
+    * thread until all fibers have exited.
+    * 
+    * @param stop true to stop the FiberScheduler when woken up (and not
+    *             interrupted), false not to.
     * 
     * @return true if all fibers exited, false if interrupted.
     */
-   virtual bool stopOnLastFiberExit();
+   virtual bool waitForLastFiberExit(bool stop);
    
    /**
     * Adds a new Fiber to this FiberScheduler. The passed Fiber must be

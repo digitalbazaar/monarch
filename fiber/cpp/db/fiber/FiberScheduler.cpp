@@ -373,7 +373,7 @@ inline void FiberScheduler::stop()
    mOpList.terminate();
 }
 
-bool FiberScheduler::stopOnLastFiberExit()
+bool FiberScheduler::waitForLastFiberExit(bool stop)
 {
    bool rval = true;
    
@@ -387,10 +387,10 @@ bool FiberScheduler::stopOnLastFiberExit()
    }
    mNoFibersWaitLock.unlock();
    
-   if(rval)
+   if(rval && stop)
    {
       // stop fiber scheduler
-      stop();
+      this->stop();
    }
    
    return rval;
