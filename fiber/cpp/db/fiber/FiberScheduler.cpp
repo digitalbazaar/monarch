@@ -329,9 +329,6 @@ void FiberScheduler::runNextFiber(bool yield)
    }
    else
    {
-      // unlock scheduler
-      mScheduleLock.unlock();
-      
       if(mFiberList.empty())
       {
          mNoFibersWaitLock.lock();
@@ -341,6 +338,9 @@ void FiberScheduler::runNextFiber(bool yield)
          }
          mNoFibersWaitLock.unlock();
       }
+      
+      // unlock scheduler
+      mScheduleLock.unlock();
       
       if(!yield)
       {
