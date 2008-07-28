@@ -3,16 +3,18 @@
  */
 #include "db/event/EventWaiter.h"
 
+#include "db/rt/DynamicObjectIterator.h"
+
 #include <cstdlib>
 
 using namespace std;
 using namespace db::event;
 using namespace db::rt;
 
-EventWaiter::EventWaiter(EventController* ec)
+EventWaiter::EventWaiter(EventController* ec) :
+   mEventTypes(NULL)
 {
    mEventController = ec;
-   mEvent = NULL;
    mRegistered = false;
    reset();
 }
@@ -29,16 +31,21 @@ void EventWaiter::reset()
 
 void EventWaiter::start(const char* event)
 {
-   mEvent = strdup(event);
-   mEventController->registerObserver(this, mEvent);
+   if(mEventTypes.isNull())
+   {
+      mEventTypes = DynamicObject();
+      mEventTypes->append() = event;
+   }
+   
+   mEventController->registerObserver(this, event);
    mRegistered = true;
 }
 
 void EventWaiter::fire()
 {
-   // fire off this event
+   // fire off the first event
    Event e;
-   e["type"] = mEvent;
+   e["type"] = mEventTypes[0]->getString();
    mEventController->schedule(e);
 }
 
@@ -46,13 +53,16 @@ void EventWaiter::stop()
 {
    if(mRegistered)
    {
-      mEventController->unregisterObserver(this, mEvent);
-      mRegistered = false;
-      if(mEvent != NULL)
+      // unregister all events
+      DynamicObjectIterator i = mEventTypes.getIterator();
+      while(i->hasNext())
       {
-         free(mEvent);
-         mEvent = NULL;
+         DynamicObject& type = i->next();
+         mEventController->unregisterObserver(this, type->getString());
       }
+      
+      mRegistered = false;
+      mEventTypes.setNull();
       reset();
    }
 }
@@ -63,6 +73,7 @@ void EventWaiter::eventOccurred(Event& e)
    {
       // mark event occurred and notify all observers
       mEventOccurred = true;
+      mEvent = e;
       notifyAll();
    }
    unlock();
@@ -80,4 +91,17 @@ bool EventWaiter::waitForEvent()
    unlock();
    
    return mEventOccurred;
+}
+
+Event EventWaiter::getLastEvent()
+{
+   Event e(NULL);
+   
+   lock();
+   {
+      e = mEvent;
+   }
+   unlock();
+   
+   return e;
 }

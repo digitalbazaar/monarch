@@ -21,7 +21,14 @@ namespace event
  * waitForEvent() will block.  A call to reset() will reset the flag for the
  * event.
  * 
+ * An EventWaiter can wait for more than one event type by calling start()
+ * multiple times with different event types. Once an event of any of the
+ * event types occurs, the EventWaiter's waitForEvent() method will return.
+ * 
+ * The last event that occurred can be retrieved with getLastEvent().
+ * 
  * @author David I. Lehn
+ * @author Dave Longley
  */
 class EventWaiter :
    virtual public db::rt::ExclusiveLock,
@@ -34,9 +41,9 @@ protected:
    EventController* mEventController;
 
    /**
-    * Name of the event to wait on.
+    * The types of events to wait on.
     */
-   char* mEvent;
+   db::rt::DynamicObject mEventTypes;
    
    /**
     * Flag set when an event occurs.  Used to stop deadlock when event occurs
@@ -48,6 +55,11 @@ protected:
     * Flag to keep track if this waiter is registered with an event controller.
     */
    bool mRegistered;
+   
+   /**
+    * Stores the last event that occurred.
+    */
+   Event mEvent;
 
 public:
 
@@ -100,6 +112,13 @@ public:
     * @return true if event occurred, false if it did not.
     */
    virtual bool waitForEvent();
+   
+   /**
+    * Returns the last event that occurred.
+    * 
+    * @return the last event that occurred.
+    */
+   virtual Event getLastEvent();
 };
 
 } // end namespace event
