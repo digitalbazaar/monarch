@@ -320,6 +320,9 @@ bool Url::getQueryVariables(DynamicObject& vars)
 {
    bool rval = false;
    
+   // force vars to be a map
+   vars->setType(Map);
+   
    if(mQuery.length() > 0)
    {
       rval = true;

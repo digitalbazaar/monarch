@@ -213,8 +213,9 @@ public:
    /**
     * Gets the variables from the query of this url.
     * 
-    * @param vars the DynamicObject to populate with the variables from
-    *             the query.
+    * @param vars the DynamicObject Map to populate with the variables from
+    *             the query.  vars will be converted to a Map if it is some
+    *             other type.
     * 
     * @return true if variables were present, false if not.
     */
