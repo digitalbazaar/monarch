@@ -325,8 +325,6 @@ bool Url::getQueryVariables(DynamicObject& vars)
    
    if(mQuery.length() > 0)
    {
-      rval = true;
-      
       // split query up by ampersands
       const char* tok;
       const char* eq;
@@ -339,13 +337,35 @@ bool Url::getQueryVariables(DynamicObject& vars)
          eq = strchr(tok, '=');
          if(eq != NULL)
          {
-            // get variable name and set value
-            char name[eq - tok];
-            memcpy(name, tok, eq - tok);
+            size_t namelen = eq - tok;
             
-            // url-decode name and value
-            vars[decode(name, eq - tok).c_str()] =
-               decode(eq + 1, strlen(eq + 1)).c_str();
+            if(namelen > 0)
+            {
+               // valid var found
+               rval = true;
+            
+               // get variable name and set value
+               char name[namelen];
+               memcpy(name, tok, namelen);
+            
+               // url-decode name and value
+               vars[decode(name, namelen).c_str()] =
+                  decode(eq + 1, strlen(eq + 1)).c_str();
+            }
+         }
+         else
+         {
+            size_t namelen = strlen(tok);
+            
+            // ignore empty names
+            if(namelen > 0)
+            {
+               // valid var found
+               rval = true;
+               
+               // url-decode name and value
+               vars[decode(tok, namelen).c_str()] = "";
+            }
          }
       }
    }

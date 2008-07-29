@@ -854,6 +854,63 @@ void runUrlTest(TestRunner& tr)
       assertStrCmp(vars["email"]->getString(), "wa-hoo.test_user@bitmunk.com");
    }
    
+   {
+      Url url("http://bitmunk.com/path");
+      
+      DynamicObject vars;
+      assert(!url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+   }
+   
+   {
+      Url url("http://bitmunk.com/path?");
+      
+      DynamicObject vars;
+      assert(!url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+   }
+   
+   {
+      Url url("http://bitmunk.com/path?foo=bar");
+      
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+   }
+   
+   {
+      Url url("http://bitmunk.com/path?foo");
+      
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+      assertStrCmp(vars["foo"]->getString(), "");
+   }
+   
+   {
+      Url url("http://bitmunk.com/path?&");
+      
+      DynamicObject vars;
+      assert(!url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+   }
+   
+   {
+      Url url("http://bitmunk.com/path?=");
+      
+      DynamicObject vars;
+      assert(!url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+   }
+   
+   {
+      Url url("http://bitmunk.com/path?=foo");
+      
+      DynamicObject vars;
+      assert(!url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+   }
+   
    tr.pass();
 }
 
