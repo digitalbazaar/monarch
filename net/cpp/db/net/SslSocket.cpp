@@ -77,6 +77,12 @@ int SslSocket::tcpRead()
             // update bytes read
             rval = (rval == -1) ? numBytes : rval + numBytes;
          }
+         
+         if(numBytes < 0)
+         {
+            // exception reading from input stream
+            rval = -1;
+         }
       }
    }
    else
