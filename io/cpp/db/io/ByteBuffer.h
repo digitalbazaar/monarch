@@ -230,7 +230,7 @@ public:
     * @param os the OutputStream to write the retrieved data to.
     * 
     * @return the actual number of bytes retrieved, which may be 0 if this
-    *         buffer is empty.
+    *         buffer is empty or -1 if there was an exception.
     */
    virtual int get(OutputStream* os);
    

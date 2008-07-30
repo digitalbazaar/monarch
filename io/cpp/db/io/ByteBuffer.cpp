@@ -293,6 +293,9 @@ int ByteBuffer::get(OutputStream* os)
          mOffset += rval;
          mLength -= rval;
       }
+      
+      // exception
+      rval = -1;
    }
    
    return rval;
