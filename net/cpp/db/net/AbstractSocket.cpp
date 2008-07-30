@@ -526,7 +526,9 @@ int AbstractSocket::receive(char* b, int length)
                }
             }
          }
-         else
+         
+         // check for error again
+         if(rval < 0 && errno != EAGAIN)
          {
             // socket error
             ExceptionRef e = new Exception(
