@@ -95,13 +95,11 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
          }
       }
       
-      if(rval < 0 && (errno == 0 || errno == EINPROGRESS))
+      if(rval < 0 && (errno == 0 || errno == EINPROGRESS || errno == EINTR))
       {
-         // no error, just timed out or operation in progress
+         // no error, just timed out, operation in progress,
+         // or syscall interrupted
          rval = 0;
-         
-         // NOTE: select() may EINTR here but it is up to
-         // the calling method to determine what to do about it
       }
       
       // select() implementation may alter sets or timeout, so reset them
@@ -258,13 +256,11 @@ int SocketTools::select(
       // wait for file descriptors to be updated
       rval = ::select(nfds, readfds, writefds, exceptfds, &to);
       
-      if(rval < 0 && (errno == 0 || errno == EINPROGRESS))
+      if(rval < 0 && (errno == 0 || errno == EINPROGRESS || errno == EINTR))
       {
-         // no error, just timed out or operation in progress
+         // no error, just timed out, operation in progress,
+         // or syscall interrupted
          rval = 0;
-         
-         // NOTE: select() may EINTR here but it is up to
-         // the calling method to determine what to do about it
       }
       
       // select() implementation may alter sets or timeout, so reset them
