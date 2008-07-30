@@ -52,9 +52,9 @@ protected:
    int64_t mContentLength;
    
    /**
-    * Stores whether or not the content length is specified in the header.
+    * Stores whether or not the content length is known.
     */
-   bool mContentLengthSpecified;
+   bool mContentLengthKnown;
    
 public:
    /**

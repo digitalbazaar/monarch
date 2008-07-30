@@ -24,7 +24,7 @@ FilterInputStream(connection->getInputStream(), false)
    // no bytes received yet
    mBytesReceived = 0;
    mContentLength = 0;
-   mContentLengthSpecified = false;
+   mContentLengthKnown = false;
    
    // wrap input stream if using chunked transfer encoding
    mChunkedTransfer = false;
@@ -43,14 +43,19 @@ FilterInputStream(connection->getInputStream(), false)
    if(!mChunkedTransfer)
    {
       // determine how much content needs to be received
-      mContentLengthSpecified =
+      mContentLengthKnown =
          header->getField("Content-Length", mContentLength);
       
       // see if content length was specified as a negative amount
-      if(mContentLengthSpecified && mContentLength < 0)
+      if(mContentLengthKnown && mContentLength < 0)
       {
-         // treat as if content length wasn't specified
-         mContentLengthSpecified = false;
+         // treat as if content length isn't known
+         mContentLengthKnown = false;
+      }
+      else if(!mContentLengthKnown)
+      {
+         // assume no content if content-length header is missing
+         mContentLengthKnown = true;
       }
    }
 }
@@ -63,8 +68,8 @@ int HttpBodyInputStream::read(char* b, int length)
 {
    int rval = 0;
    
-   // do chunked or unspecified length transfer
-   if(mChunkedTransfer || !mContentLengthSpecified)
+   // do chunked or unknown length transfer
+   if(mChunkedTransfer || !mContentLengthKnown)
    {
       // read in from connection
       if((rval = mInputStream->read(b, length)) > 0)
@@ -88,7 +93,7 @@ int HttpBodyInputStream::read(char* b, int length)
          mTrailer->update(mBytesReceived);
       }
    }
-   // do specified length transfer
+   // do known length transfer
    else
    {
       // read in from connection, decrement stored content length as read
