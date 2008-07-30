@@ -76,7 +76,9 @@ SslContext::~SslContext()
 
 SSL* SslContext::createSSL(TcpSocket* socket, bool client)
 {
+   mLock.lock();
    SSL* ssl = SSL_new(mContext);
+   mLock.unlock();
    
    // set connect state on SSL
    if(client)

@@ -8,6 +8,7 @@
 
 #include "db/io/File.h"
 #include "db/net/TcpSocket.h"
+#include "db/rt/ExclusiveLock.h"
 
 namespace db
 {
@@ -26,6 +27,11 @@ protected:
     * The SSL context object.
     */
    SSL_CTX* mContext;
+   
+   /**
+    * A lock for generating new SSLs.
+    */
+   db::rt::ExclusiveLock mLock;
    
 public:
    /**
