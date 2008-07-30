@@ -23,6 +23,8 @@ FilterInputStream(connection->getInputStream(), false)
    
    // no bytes received yet
    mBytesReceived = 0;
+   mContentLength = 0;
+   mContentLengthSpecified = false;
    
    // wrap input stream if using chunked transfer encoding
    mChunkedTransfer = false;
@@ -38,12 +40,18 @@ FilterInputStream(connection->getInputStream(), false)
       }
    }
    
-   // determine how much content needs to be received
-   mContentLength = 0;
-   mContentLengthSpecified = false;
-   if(header->getField("Content-Length", mContentLength) && mContentLength >= 0)
+   if(!mChunkedTransfer)
    {
-      mContentLengthSpecified = true;
+      // determine how much content needs to be received
+      mContentLengthSpecified =
+         header->getField("Content-Length", mContentLength);
+      
+      // see if content length was specified as a negative amount
+      if(mContentLengthSpecified && mContentLength < 0)
+      {
+         // treat as if content length wasn't specified
+         mContentLengthSpecified = false;
+      }
    }
 }
 
