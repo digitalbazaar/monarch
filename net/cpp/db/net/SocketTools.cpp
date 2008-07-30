@@ -100,6 +100,9 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
          // no error, just timed out, operation in progress,
          // or syscall interrupted
          rval = 0;
+         
+         // Note: handling EINTR could be changed to interrupt the current
+         // thread if appropriate
       }
       
       // select() implementation may alter sets or timeout, so reset them
@@ -261,6 +264,9 @@ int SocketTools::select(
          // no error, just timed out, operation in progress,
          // or syscall interrupted
          rval = 0;
+         
+         // Note: handling EINTR could be changed to interrupt the current
+         // thread if appropriate
       }
       
       // select() implementation may alter sets or timeout, so reset them
