@@ -19,19 +19,10 @@ bool db::test::dumpException(ExceptionRef& e)
 {
    bool rval;
    
-   cout << "Exception occurred!" << endl;
-   cout << "message: " << e->getMessage() << endl;
-   cout << "type: " << e->getType() << endl;
-   cout << "code: " << e->getCode() << endl;
-   cout << "details: ";
-   rval = dynamicObjectToStream(e->getDetails(), cout, false);
-   cout << endl;         
-
-   if(rval && !e.isNull() && !e->getCause().isNull())
-   {
-      cout << "CAUSE:" << endl;
-      rval = dumpException(e->getCause());         
-   }
+   cout << "EXCEPTION:" << endl;
+   DynamicObject d = Exception::convertToDynamicObject(e);
+   rval = JsonWriter::writeDynamicObjectToStream(d, cout);
+   cout << endl;
    
    return rval;
 }
