@@ -157,9 +157,7 @@ bool SslSocket::performHandshake()
    
    // do SSL_do_handshake()
    int ret = 0;
-   Thread* t = Thread::currentThread();
-   while(rval && !t->isInterrupted() &&
-         (ret = SSL_do_handshake(mSSL)) <= 0)
+   while(rval && (ret = SSL_do_handshake(mSSL)) <= 0)
    {
       // get the last error
       int error = SSL_get_error(mSSL, ret);
@@ -206,15 +204,7 @@ bool SslSocket::performHandshake()
       }
    }
    
-   if(t->isInterrupted())
-   {
-      // interrupted exception
-      ExceptionRef e = new Exception(
-         "SSL handshake interrupted!", "db.io.InterruptedException");
-      Exception::setLast(e, false);
-      rval = false;
-   }
-   else if(rval)
+   if(rval)
    {
       // session negotiated
       mSessionNegotiated = true;
@@ -257,9 +247,7 @@ bool SslSocket::send(const char* b, int length)
       // do SSL_write() (implicit handshake performed as necessary)
       int ret = 0;
       bool closed = false;
-      Thread* t = Thread::currentThread();
-      while(rval && !t->isInterrupted() &&
-            !closed && (ret <= SSL_write(mSSL, b, length)) <= 0)
+      while(rval && !closed && (ret <= SSL_write(mSSL, b, length)) <= 0)
       {
          // get the last error
          int error = SSL_get_error(mSSL, ret);
@@ -310,19 +298,8 @@ bool SslSocket::send(const char* b, int length)
          }
       }
       
-      if(t->isInterrupted())
-      {
-         // interrupted exception
-         ExceptionRef e = new Exception(
-            "Socket write interrupted!", "db.io.InterruptedException");
-         Exception::setLast(e, false);
-         rval = false;
-      }
-      else
-      {
-         // flush all data to the socket
-         rval = rval && tcpWrite();
-      }
+      // flush all data to the socket
+      rval = rval && tcpWrite();
    }
    
    return rval;
@@ -354,9 +331,7 @@ int SslSocket::receive(char* b, int length)
       // do SSL_read() (implicit handshake performed as necessary)
       int ret = 0;
       bool closed = false;
-      Thread* t = Thread::currentThread();
-      while(rval != -1 && !t->isInterrupted() && !closed &&
-            (ret = SSL_read(mSSL, b, length)) <= 0)
+      while(rval != -1 && !closed && (ret = SSL_read(mSSL, b, length)) <= 0)
       {
          // get the last error
          int error = SSL_get_error(mSSL, ret);
@@ -406,16 +381,8 @@ int SslSocket::receive(char* b, int length)
          }
       }
       
-      if(t->isInterrupted())
-      {
-         // interrupted exception
-         ExceptionRef e = new Exception(
-            "Socket read interrupted!", "db.io.InterruptedException");
-         Exception::setLast(e, false);
-         rval = -1;
-      }
       // set number of bytes read
-      else if(rval != -1)
+      if(rval != -1)
       {
          rval = (closed) ? 0 : ret;
       }
