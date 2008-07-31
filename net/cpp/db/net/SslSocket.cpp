@@ -84,6 +84,14 @@ int SslSocket::tcpRead()
             rval = -1;
          }
       }
+      else if(t->isInterrupted())
+      {
+         // interrupted exception
+         ExceptionRef e = new Exception(
+            "Socket read interrupted!", "db.io.InterruptedException");
+         Exception::setLast(e, false);
+         rval = -1;
+      }
    }
    else
    {
@@ -112,6 +120,15 @@ bool SslSocket::tcpWrite()
          // write to underlying socket, decrement length left to read
          rval = mSocket->getOutputStream()->write(b, numBytes);
          length -= numBytes;
+      }
+      
+      if(t->isInterrupted())
+      {
+         // interrupted exception
+         ExceptionRef e = new Exception(
+            "Socket write interrupted!", "db.io.InterruptedException");
+         Exception::setLast(e, false);
+         rval = false;
       }
    }
    
@@ -189,7 +206,15 @@ bool SslSocket::performHandshake()
       }
    }
    
-   if(rval)
+   if(t->isInterrupted())
+   {
+      // interrupted exception
+      ExceptionRef e = new Exception(
+         "SSL handshake interrupted!", "db.io.InterruptedException");
+      Exception::setLast(e, false);
+      rval = false;
+   }
+   else if(rval)
    {
       // session negotiated
       mSessionNegotiated = true;
@@ -285,8 +310,19 @@ bool SslSocket::send(const char* b, int length)
          }
       }
       
-      // flush all data to the socket
-      rval = rval && tcpWrite();
+      if(t->isInterrupted())
+      {
+         // interrupted exception
+         ExceptionRef e = new Exception(
+            "Socket write interrupted!", "db.io.InterruptedException");
+         Exception::setLast(e, false);
+         rval = false;
+      }
+      else
+      {
+         // flush all data to the socket
+         rval = rval && tcpWrite();
+      }
    }
    
    return rval;
@@ -370,8 +406,16 @@ int SslSocket::receive(char* b, int length)
          }
       }
       
+      if(t->isInterrupted())
+      {
+         // interrupted exception
+         ExceptionRef e = new Exception(
+            "Socket read interrupted!", "db.io.InterruptedException");
+         Exception::setLast(e, false);
+         rval = -1;
+      }
       // set number of bytes read
-      if(rval != -1)
+      else if(rval != -1)
       {
          rval = (closed) ? 0 : ret;
       }
