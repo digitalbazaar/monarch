@@ -216,7 +216,7 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os)
    if(!(type == Map || type == Array))
    {
       ExceptionRef e = new IOException(
-         "No top-level Map or Array found");
+         "No JSON top-level Map or Array found");
       Exception::setLast(e, false);
       rval = false;
    }
