@@ -7,7 +7,6 @@
 #include "db/net/SocketDefinitions.h"
 #include "db/net/SocketInputStream.h"
 #include "db/net/SocketOutputStream.h"
-#include "db/rt/Thread.h"
 #include "db/rt/DynamicObject.h"
 
 #include <openssl/err.h>
@@ -58,9 +57,8 @@ int SslSocket::tcpRead()
    if(tcpWrite())
    {
       // determine how many bytes are required from the Socket BIO
-      Thread* t = Thread::currentThread();
       size_t length = BIO_ctrl_get_read_request(mSocketBio);
-      if(length > 0 && !t->isInterrupted())
+      if(length > 0)
       {
          // read from the underlying socket
          InputStream* is = mSocket->getInputStream();
@@ -84,14 +82,6 @@ int SslSocket::tcpRead()
             rval = -1;
          }
       }
-      else if(t->isInterrupted())
-      {
-         // interrupted exception
-         ExceptionRef e = new Exception(
-            "Socket read interrupted!", "db.io.InterruptedException");
-         Exception::setLast(e, false);
-         rval = -1;
-      }
    }
    else
    {
@@ -107,32 +97,22 @@ bool SslSocket::tcpWrite()
    bool rval = true;
    
    // determine how many bytes can be read from the Socket BIO
-   Thread* t = Thread::currentThread();
    size_t length = BIO_ctrl_pending(mSocketBio);
    if(length > 0)
    {
       // read from the Socket BIO
       char b[length];
       int numBytes = 0;
-      while(rval && length > 0 && !t->isInterrupted() &&
+      while(rval && length > 0 &&
             (numBytes = BIO_read(mSocketBio, b, length)) > 0)
       {
          // write to underlying socket, decrement length left to read
          rval = mSocket->getOutputStream()->write(b, numBytes);
          length -= numBytes;
       }
-      
-      if(t->isInterrupted())
-      {
-         // interrupted exception
-         ExceptionRef e = new Exception(
-            "Socket write interrupted!", "db.io.InterruptedException");
-         Exception::setLast(e, false);
-         rval = false;
-      }
    }
    
-   return rval && !t->isInterrupted();
+   return rval;
 }
 
 void SslSocket::setSession(SslSession* session)
