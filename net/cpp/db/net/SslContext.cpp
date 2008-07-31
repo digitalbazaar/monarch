@@ -1,7 +1,9 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
+#include "db/net/SocketDefinitions.h"
 #include "db/net/SslContext.h"
+#include "db/rt/DynamicObject.h"
 
 #include <openssl/err.h>
 
@@ -104,7 +106,8 @@ bool SslContext::setCertificate(File& certFile)
       // an error occurred
       ExceptionRef e = new Exception(
          "Could not set SSL certificate!",
-         ERR_error_string(ERR_get_error(), NULL));
+         SSL_EXCEPTION_TYPE);
+      e->getDetails()["error"] = SslContext::getSslErrorStrings();
       Exception::setLast(e, false);
       rval = false;
    }
@@ -123,7 +126,7 @@ bool SslContext::setPrivateKey(File& pkeyFile)
       // an error occurred
       ExceptionRef e = new Exception(
          "Could not set SSL private key!",
-         ERR_error_string(ERR_get_error(), NULL));
+         SSL_EXCEPTION_TYPE);
       Exception::setLast(e, false);
       rval = false;
    }
@@ -150,9 +153,23 @@ bool SslContext::setVerifyCAs(File* caFile, File* caDir)
       // an error occurred
       ExceptionRef e = new Exception(
          "Could not set verify Certificate Authorities!",
-         ERR_error_string(ERR_get_error(), NULL));
+         SSL_EXCEPTION_TYPE);
       Exception::setLast(e, false);
       rval = false;
+   }
+   
+   return rval;
+}
+
+DynamicObject SslContext::getSslErrorStrings()
+{
+   DynamicObject rval;
+   
+   rval->setType(Array);
+   long err;
+   while((err = ERR_get_error()) != 0)
+   {
+      rval->append() = ERR_error_string(err, NULL);
    }
    
    return rval;

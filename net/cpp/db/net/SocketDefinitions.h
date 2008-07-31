@@ -6,6 +6,7 @@
 
 #define SOCKET_EXCEPTION_TYPE         "db.net.Socket"
 #define SOCKET_TIMEOUT_EXCEPTION_TYPE "db.net.SocketTimeout"
+#define SSL_EXCEPTION_TYPE            "db.net.SSL"
 
 #ifdef WIN32
    // windows socket library

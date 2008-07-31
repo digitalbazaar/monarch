@@ -175,8 +175,7 @@ bool SslSocket::performHandshake()
                // an error occurred
                ExceptionRef e = new Exception(
                   "Could not perform SSL handshake!", SOCKET_EXCEPTION_TYPE);
-               e->getDetails()["error"] =
-                  ERR_error_string(ERR_get_error(), NULL);
+               e->getDetails()["error"] = SslContext::getSslErrorStrings();
                Exception::setLast(e, false);
                rval = false;
             }
@@ -239,8 +238,7 @@ bool SslSocket::send(const char* b, int length)
                   ExceptionRef e = new Exception(
                      "Could not write to socket! Socket closed.",
                      SOCKET_EXCEPTION_TYPE);
-                  e->getDetails()["error"] =
-                     ERR_error_string(ERR_get_error(), NULL);
+                  e->getDetails()["error"] = SslContext::getSslErrorStrings();
                   Exception::setLast(e, false);
                   rval = false;
                }
@@ -269,8 +267,7 @@ bool SslSocket::send(const char* b, int length)
                   ExceptionRef e = new Exception(
                      "Could not write to socket!",
                      SOCKET_EXCEPTION_TYPE);
-                  e->getDetails()["error"] =
-                     ERR_error_string(ERR_get_error(), NULL);
+                  e->getDetails()["error"] = SslContext::getSslErrorStrings();
                   Exception::setLast(e, false);
                   rval = false;
                }
@@ -352,8 +349,7 @@ int SslSocket::receive(char* b, int length)
                   ExceptionRef e = new Exception(
                      "Could not read from socket!",
                      SOCKET_EXCEPTION_TYPE);
-                  e->getDetails()["error"] =
-                     ERR_error_string(ERR_get_error(), NULL);
+                  e->getDetails()["error"] = SslContext::getSslErrorStrings();
                   Exception::setLast(e, false);
                   rval = -1;
                }

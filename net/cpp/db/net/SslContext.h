@@ -109,6 +109,14 @@ public:
     * @return true if the CAs were set properly, false if an Exception occurred.
     */
    virtual bool setVerifyCAs(db::io::File* caFile, db::io::File* caDir);
+
+   /**
+    * Repeatedly call ERR_get_error and build an Array of error messages with
+    * ERR_error_string.  May be an empty array if no errors are present.
+    * 
+    * @return an Array of error strings.  May be empty.
+    */
+   static db::rt::DynamicObject getSslErrorStrings();
 };
 
 // type definition for reference counted SslContext
