@@ -507,10 +507,12 @@ DynamicObject App::getCommandLineSpec(App* app)
    opt = spec["options"]->append();
    opt["long"] = "--log-level";
    opt["arg"] = mConfig["app"]["logging"]["level"];
+   opt["argError"] = "No log level specified.";
   
    opt = spec["options"]->append();
    opt["long"] = "--log";
    opt["arg"] = mConfig["app"]["logging"]["log"];
+   opt["argError"] = "No log file specified.";
   
    opt = spec["options"]->append();
    opt["long"] = "--log-overwrite";
