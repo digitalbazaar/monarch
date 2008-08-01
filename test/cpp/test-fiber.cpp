@@ -6,6 +6,8 @@
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
 #include "db/crypto/BigDecimal.h"
+#include "db/crypto/AsymmetricKeyFactory.h"
+#include "db/crypto/DigitalSignature.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/fiber/FiberScheduler.h"
 #include "db/modest/Kernel.h"
@@ -259,6 +261,85 @@ void runSpeedTest(TestRunner& tr)
    tr.ungroup();
 }
 
+class ConcurrentSigner : public Fiber
+{
+protected:
+   PrivateKeyRef mPrivateKey;
+   PublicKeyRef mPublicKey;
+   
+public:
+   ConcurrentSigner(PrivateKeyRef& privateKey, PublicKeyRef& publicKey)
+   {
+      mPrivateKey = privateKey;
+      mPublicKey = publicKey;
+   };
+   virtual ~ConcurrentSigner() {};
+   
+   virtual void run()
+   {
+      string test =
+         "POST /api/3.0/sva/contracts/media/2 HTTP/1.1localhost:19100";
+      
+      DigitalSignature* ds = new DigitalSignature(mPrivateKey);
+      ds->update(test.c_str(), test.length());
+      char sig[ds->getValueLength()];
+      unsigned int length;
+      ds->getValue(sig, length);
+      delete ds;
+      
+      ds = new DigitalSignature(mPublicKey);
+      ds->update(test.c_str(), test.length());
+      bool verified = ds->verify(sig, length);
+      if(verified)
+      {
+         printf("VERIFIED!\n");
+      }
+      else
+      {
+         printf("NOT VERIFIED!\n");
+      }
+      //assert(verified);
+      
+      exit();
+   }
+};
+
+void runConcurrentSigningTest(TestRunner& tr)
+{
+   tr.group("DigitalSignature fiber concurrency");
+   
+   // generate keys
+   PrivateKeyRef privateKey;
+   PublicKeyRef publicKey;
+   AsymmetricKeyFactory afk;
+   afk.createKeyPair("RSA", privateKey, publicKey);
+   assertNoException();
+   
+   tr.test("300 fibers");
+   {
+      Kernel k;
+      k.getEngine()->start();
+      
+      FiberScheduler fs;
+      
+      // queue up fibers
+      for(int i = 0; i < 300; i++)
+      {
+         fs.addFiber(new ConcurrentSigner(privateKey, publicKey));
+      }
+      
+      uint64_t startTime = Timer::startTiming();
+      fs.start(&k, 2);
+      fs.waitForLastFiberExit(true);
+      printf("time=%g secs... ", Timer::getSeconds(startTime));
+      
+      k.getEngine()->stop();
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class DbFiberTester : public db::test::Tester
 {
 public:
@@ -282,6 +363,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
+      runConcurrentSigningTest(tr);
       return 0;
    }
 };
