@@ -28,6 +28,9 @@ using namespace db::logging;
 using namespace db::io;
 using namespace db::rt;
 
+// declare table of openSSL mutexes
+pthread_mutex_t* App::sOpenSSLMutexes;
+
 App::App()
 {
    setExitStatus(0);
@@ -49,6 +52,23 @@ App::~App()
    setProgramName(NULL);
    setName(NULL);
    setVersion(NULL);
+}
+
+unsigned long App::openSSLSetId()
+{
+   return (unsigned long)pthread_self();
+}
+
+void App::openSSLHandleLock(int mode, int n, const char* file, int line)
+{
+   if(mode & CRYPTO_LOCK)
+   {
+      pthread_mutex_lock(&sOpenSSLMutexes[n]);
+   }
+   else
+   {
+      pthread_mutex_unlock(&sOpenSSLMutexes[n]);
+   }
 }
 
 static void _printException(ExceptionRef& e, ostream& s, int level)
@@ -609,6 +629,30 @@ void App::initializeOpenSSL()
    SSL_library_init();
    SSL_load_error_strings();
    OpenSSL_add_all_algorithms();
+   
+   // create mutex attributes, use fastest type of mutex
+   pthread_mutexattr_t mutexAttr;
+   pthread_mutexattr_init(&mutexAttr);
+   pthread_mutexattr_settype(&mutexAttr, PTHREAD_MUTEX_NORMAL);
+   
+   // create CRYPTO_num_locks() mutexes
+   int numLocks = CRYPTO_num_locks();
+   sOpenSSLMutexes = (pthread_mutex_t*)calloc(
+      numLocks, sizeof(pthread_mutex_t));
+   
+   // initialize mutexes
+   for(int i = 0; i < numLocks; i++)
+   {
+      // initialize mutex
+      pthread_mutex_init(&sOpenSSLMutexes[i], &mutexAttr);
+   }
+   
+   // destroy mutex attributes
+   pthread_mutexattr_destroy(&mutexAttr);
+   
+   // set openSSL multi-threaded callbacks
+   CRYPTO_set_id_callback(&App::openSSLSetId);
+   CRYPTO_set_locking_callback(&App::openSSLHandleLock);
 }
 
 void App::cleanupOpenSSL()
@@ -618,6 +662,17 @@ void App::cleanupOpenSSL()
    ERR_free_strings();
    EVP_cleanup();
    CRYPTO_cleanup_all_ex_data();
+   
+   // destroy mutexes
+   int numLocks = CRYPTO_num_locks();
+   for(int i = 0; i < numLocks; i++)
+   {
+      // initialize mutex
+      pthread_mutex_destroy(&sOpenSSLMutexes[i]);
+   }
+   
+   // free mutexes
+   free(sOpenSSLMutexes);
 }
 
 void App::initializeLogging()

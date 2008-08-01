@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_DigitalEnvelope_H
 #define db_crypto_DigitalEnvelope_H
 
 #include "db/crypto/AbstractBlockCipher.h"
-#include "db/crypto/AsymmetricKey.h"
+#include "db/crypto/PrivateKey.h"
+#include "db/crypto/PublicKey.h"
 #include "db/crypto/SymmetricKey.h"
 
 namespace db
@@ -41,6 +42,12 @@ class PublicKey;
  */
 class DigitalEnvelope : public AbstractBlockCipher
 {
+protected:
+   /**
+    * Stores a copy of the key used to seal/open this envelope.
+    */
+   AsymmetricKeyRef mKey;
+   
 public:
    /**
     * Creates a new DigitalEnvelope.
@@ -70,7 +77,7 @@ public:
     */
    virtual bool startSealing(
       const char* algorithm,
-      PublicKey* publicKey, SymmetricKey* symmetricKey);
+      PublicKeyRef& publicKey, SymmetricKey* symmetricKey);
    
    /**
     * Starts sealing this DigitalEnvelope by using the given array of public
@@ -120,7 +127,7 @@ public:
     * @return true if no exception occurred, false if not.
     */
    virtual bool startOpening(
-      PrivateKey* privateKey, SymmetricKey* symmetricKey);
+      PrivateKeyRef& privateKey, SymmetricKey* symmetricKey);
    
    /**
     * Updates the data that is being sealed or opened. This method can be

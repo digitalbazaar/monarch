@@ -25,10 +25,12 @@ DigitalEnvelope::~DigitalEnvelope()
 }
 
 bool DigitalEnvelope::startSealing(
-   const char* algorithm, PublicKey* publicKey, SymmetricKey* symmetricKey)
+   const char* algorithm, PublicKeyRef& publicKey, SymmetricKey* symmetricKey)
 {
-   // use just a single public key
-   return startSealing(algorithm, &publicKey, &symmetricKey, 1);
+   // store and use just a single public key
+   mKey = publicKey;
+   PublicKey* pkey = &(*publicKey);
+   return startSealing(algorithm, &pkey, &symmetricKey, 1);
 }
 
 bool DigitalEnvelope::startSealing(
@@ -117,9 +119,12 @@ bool DigitalEnvelope::startSealing(
 }
 
 bool DigitalEnvelope::startOpening(
-   PrivateKey* privateKey, SymmetricKey* symmetricKey)
+   PrivateKeyRef& privateKey, SymmetricKey* symmetricKey)
 {
    bool rval = false;
+   
+   // store key
+   mKey = privateKey;
    
    // disable encryption mode
    mEncryptMode = false;
@@ -139,7 +144,7 @@ bool DigitalEnvelope::startOpening(
       if(EVP_OpenInit(
          &mCipherContext, mCipherFunction,
          (unsigned char*)eKey, eKeyLength, (unsigned char*)iv,
-         privateKey->getPKEY()) == 1)
+         mKey->getPKEY()) == 1)
       {
          rval = true;
       }
