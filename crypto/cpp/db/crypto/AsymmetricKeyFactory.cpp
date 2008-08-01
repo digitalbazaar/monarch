@@ -54,7 +54,7 @@ int AsymmetricKeyFactory::passwordCallback(
 }
 
 void AsymmetricKeyFactory::createDsaKeyPair(
-   PrivateKey** privateKey, PublicKey** publicKey)
+   PrivateKeyRef& privateKey, PublicKeyRef& publicKey)
 {
    // generate DSA parameters
    DSA* dsa = DSA_generate_parameters(
@@ -77,7 +77,7 @@ void AsymmetricKeyFactory::createDsaKeyPair(
          // create public key
          EVP_PKEY* pub = EVP_PKEY_new();
          EVP_PKEY_set1_DSA(pub, dsa);
-         *publicKey = new PublicKey(pub);
+         publicKey = new PublicKey(pub);
          
          // clear public parameters
          dsa->p = NULL;
@@ -91,7 +91,7 @@ void AsymmetricKeyFactory::createDsaKeyPair(
          // create private key
          EVP_PKEY* priv = EVP_PKEY_new();
          EVP_PKEY_set1_DSA(priv, dsa);
-         *privateKey = new PrivateKey(priv);
+         privateKey = new PrivateKey(priv);
          
          // restore public parameters
          dsa->p = p;
@@ -106,7 +106,7 @@ void AsymmetricKeyFactory::createDsaKeyPair(
 }
 
 void AsymmetricKeyFactory::createRsaKeyPair(
-   PrivateKey** privateKey, PublicKey** publicKey)
+   PrivateKeyRef& privateKey, PublicKeyRef& publicKey)
 {
    // generate RSA keys
    RSA* rsa = RSA_generate_key(1024, 3, NULL, NULL);
@@ -127,7 +127,7 @@ void AsymmetricKeyFactory::createRsaKeyPair(
       // create private key
       EVP_PKEY* priv = EVP_PKEY_new();
       EVP_PKEY_set1_RSA(priv, rsa);
-      *privateKey = new PrivateKey(priv);
+      privateKey = new PrivateKey(priv);
       
       // clear private parameters
       rsa->d = NULL;
@@ -143,7 +143,7 @@ void AsymmetricKeyFactory::createRsaKeyPair(
       // create public key
       EVP_PKEY* pub = EVP_PKEY_new();
       EVP_PKEY_set1_RSA(pub, rsa);
-      *publicKey = new PublicKey(pub);
+      publicKey = new PublicKey(pub);
       
       // restore private parameters
       rsa->d = d;
@@ -159,13 +159,13 @@ void AsymmetricKeyFactory::createRsaKeyPair(
 }
 
 bool AsymmetricKeyFactory::createKeyPair(
-   const char* algorithm, PrivateKey** privateKey, PublicKey** publicKey)
+   const char* algorithm, PrivateKeyRef& privateKey, PublicKeyRef& publicKey)
 {
    bool rval = true;
    
    // set private and public keys to null
-   *privateKey = NULL;
-   *publicKey = NULL;
+   privateKey.setNull();
+   publicKey.setNull();
    
    // add random bytes from the time
    struct timeval tv;
@@ -196,10 +196,10 @@ bool AsymmetricKeyFactory::createKeyPair(
    return rval;
 }
 
-PrivateKey* AsymmetricKeyFactory::loadPrivateKeyFromPem(
+PrivateKeyRef AsymmetricKeyFactory::loadPrivateKeyFromPem(
    const char* pem, int length, const char* password)
 {
-   PrivateKey* key = NULL;
+   PrivateKeyRef key;
    
    // FIXME: this leaks 12 bytes every time it's called, why?
    // create a read-only memory bio
@@ -230,7 +230,7 @@ PrivateKey* AsymmetricKeyFactory::loadPrivateKeyFromPem(
 }
 
 string AsymmetricKeyFactory::writePrivateKeyToPem(
-   PrivateKey* key, const char* password)
+   PrivateKeyRef& key, const char* password)
 {
    string rval;
    
@@ -264,10 +264,10 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
    return rval;
 }
 
-PublicKey* AsymmetricKeyFactory::loadPublicKeyFromPem(
+PublicKeyRef AsymmetricKeyFactory::loadPublicKeyFromPem(
    const char* pem, int length)
 {
-   PublicKey* key = NULL;
+   PublicKeyRef key;
    
    // create a read-only memory bio
    BIO* bio = BIO_new_mem_buf((void*)pem, length);
@@ -296,7 +296,7 @@ PublicKey* AsymmetricKeyFactory::loadPublicKeyFromPem(
    return key;
 }
 
-string AsymmetricKeyFactory::writePublicKeyToPem(PublicKey* key)
+string AsymmetricKeyFactory::writePublicKeyToPem(PublicKeyRef& key)
 {
    string rval;
    

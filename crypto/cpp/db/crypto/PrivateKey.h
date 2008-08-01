@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_PrivateKey_H
 #define db_crypto_PrivateKey_H
 
-#include "db/crypto/DigitalEnvelope.h"
-#include "db/crypto/DigitalSignature.h"
+#include "db/crypto/AsymmetricKey.h"
 
 namespace db
 {
@@ -50,33 +49,34 @@ public:
     * Destructs this PrivateKey.
     */
    virtual ~PrivateKey();
+};
+
+// define reference counted PrivateKey
+class PrivateKeyRef : public AsymmetricKeyRef
+{
+public:
+   PrivateKeyRef(PrivateKey* ptr = NULL) : AsymmetricKeyRef(ptr) {};
+   virtual ~PrivateKeyRef() {};
    
    /**
-    * Creates a DigitalEnvelope to receive a confidential message with.
-    * 
-    * The encrypted symmetric key that was used to seal the envelope must be
-    * passed to this method so that it can be unlocked with this PrivateKey.
-    * Once it has been unlocked by this method, the DigitalEnvelope can be
-    * used to open the message.
-    * 
-    * The caller of this method is responsible for freeing the generated
-    * DigitalEnvelope.
-    * 
-    * @param key the encrypted SymmetricKey to open the envelope with.
-    * 
-    * @return the created envelope or NULL if an exception occurred.
+    * Returns a reference to the PrivateKey.
+    *
+    * @return a reference to the PrivateKey.
     */
-   virtual DigitalEnvelope* createEnvelope(SymmetricKey* key);
+   virtual PrivateKey& operator*()
+   {
+      return (PrivateKey&)AsymmetricKeyRef::operator*();
+   }
    
    /**
-    * Creates a DigitalSignature to sign data with.
-    * 
-    * The caller of this method is responsible for freeing the generated
-    * DigitalSignature.
-    * 
-    * @return the DigitalSignature to sign data with.
+    * Returns a pointer to the PrivateKey.
+    *
+    * @return a pointer to the PrivateKey.
     */
-   virtual DigitalSignature* createSignature();
+   virtual PrivateKey* operator->()
+   {
+      return (PrivateKey*)AsymmetricKeyRef::operator->();
+   }
 };
 
 } // end namespace crypto

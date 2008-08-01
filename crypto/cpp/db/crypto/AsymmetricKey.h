@@ -1,8 +1,10 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_crypto_AsymmetricKey_H
 #define db_crypto_AsymmetricKey_H
+
+#include "db/rt/Collectable.h"
 
 #include <openssl/evp.h>
 #include <string>
@@ -67,6 +69,9 @@ public:
     */
    virtual unsigned int getOutputSize();
 };
+
+// typedef for a reference-counted AsymmetricKey
+typedef db::rt::Collectable<AsymmetricKey> AsymmetricKeyRef;
 
 } // end namespace crypto
 } // end namespace db

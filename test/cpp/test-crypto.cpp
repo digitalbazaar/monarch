@@ -210,22 +210,20 @@ void runAsymmetricKeyLoadingTest(TestRunner& tr)
    AsymmetricKeyFactory factory;
    
    // create a new key pair
-   PrivateKey* privateKey;
-   PublicKey* publicKey;
-   factory.createKeyPair("RSA", &privateKey, &publicKey);
+   PrivateKeyRef privateKey;
+   PublicKeyRef publicKey;
+   factory.createKeyPair("RSA", privateKey, publicKey);
    
-   assert(privateKey != NULL);
-   assert(publicKey != NULL);
+   assert(!privateKey.isNull());
+   assert(!publicKey.isNull());
    
    // write keys to PEMs
    string privatePem = factory.writePrivateKeyToPem(privateKey, "password");
    string publicPem = factory.writePublicKeyToPem(publicKey);   
    
    // cleanup keys
-   delete privateKey;
-   delete publicKey;
-   privateKey = NULL;
-   publicKey = NULL;
+   privateKey.setNull();
+   publicKey.setNull();
    
    // load the private key from PEM
    privateKey = factory.loadPrivateKeyFromPem(
@@ -235,25 +233,23 @@ void runAsymmetricKeyLoadingTest(TestRunner& tr)
    publicKey = factory.loadPublicKeyFromPem(
       publicPem.c_str(), publicPem.length());
    
-   assert(privateKey != NULL);
-   assert(publicKey != NULL);
+   assert(!privateKey.isNull());
+   assert(!publicKey.isNull());
    
    // sign some data
    char data[] = {1,2,3,4,5,6,7,8};
-   DigitalSignature* ds1 = privateKey->createSignature();
-   ds1->update(data, 8);
+   DigitalSignature ds1(privateKey);
+   ds1.update(data, 8);
    
    // get the signature
-   char sig[ds1->getValueLength()];
+   char sig[ds1.getValueLength()];
    unsigned int length;
-   ds1->getValue(sig, length);
-   delete ds1;
+   ds1.getValue(sig, length);
    
    // verify the signature
-   DigitalSignature* ds2 = publicKey->createSignature();
-   ds2->update(data, 8);
-   bool verified = ds2->verify(sig, length);
-   delete ds2;
+   DigitalSignature ds2(publicKey);
+   ds2.update(data, 8);
+   bool verified = ds2.verify(sig, length);
    
    assert(verified);
    
@@ -264,10 +260,6 @@ void runAsymmetricKeyLoadingTest(TestRunner& tr)
    
    //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
    //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
-   
-   // cleanup keys
-   delete privateKey;
-   delete publicKey;
    
    tr.passIfNoException();
 }
@@ -283,32 +275,30 @@ void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
    AsymmetricKeyFactory factory;
    
    // create a new key pair
-   PrivateKey* privateKey;
-   PublicKey* publicKey;
-   factory.createKeyPair("DSA", &privateKey, &publicKey);
+   PrivateKeyRef privateKey;
+   PublicKeyRef publicKey;
+   factory.createKeyPair("DSA", privateKey, publicKey);
    
-   assert(privateKey != NULL);
-   assert(publicKey != NULL);
+   assert(!privateKey.isNull());
+   assert(!publicKey.isNull());
    
    assertStrCmp(privateKey->getAlgorithm(), "DSA");
    assertStrCmp(publicKey->getAlgorithm(), "DSA");
    
    // sign some data
    char data[] = {1,2,3,4,5,6,7,8};
-   DigitalSignature* ds1 = privateKey->createSignature();
-   ds1->update(data, 8);
+   DigitalSignature ds1(privateKey);
+   ds1.update(data, 8);
    
    // get the signature
-   char sig[ds1->getValueLength()];
+   char sig[ds1.getValueLength()];
    unsigned int length;
-   ds1->getValue(sig, length);
-   delete ds1;
+   ds1.getValue(sig, length);
    
    // verify the signature
-   DigitalSignature* ds2 = publicKey->createSignature();
-   ds2->update(data, 8);
-   bool verified = ds2->verify(sig, length);
-   delete ds2;
+   DigitalSignature ds2(publicKey);
+   ds2.update(data, 8);
+   bool verified = ds2.verify(sig, length);
    
    assert(verified);
    
@@ -316,10 +306,6 @@ void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
       factory.writePrivateKeyToPem(privateKey, "password");
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
-   
-   // cleanup keys
-   delete privateKey;
-   delete publicKey;
    
    //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
    //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
@@ -338,32 +324,30 @@ void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
    AsymmetricKeyFactory factory;
    
    // create a new key pair
-   PrivateKey* privateKey;
-   PublicKey* publicKey;
-   factory.createKeyPair("RSA", &privateKey, &publicKey);
+   PrivateKeyRef privateKey;
+   PublicKeyRef publicKey;
+   factory.createKeyPair("RSA", privateKey, publicKey);
    
-   assert(privateKey != NULL);
-   assert(publicKey != NULL);
+   assert(!privateKey.isNull());
+   assert(!publicKey.isNull());
    
    assertStrCmp(privateKey->getAlgorithm(), "RSA");
    assertStrCmp(publicKey->getAlgorithm(), "RSA");
    
    // sign some data
    char data[] = {1,2,3,4,5,6,7,8};
-   DigitalSignature* ds1 = privateKey->createSignature();
-   ds1->update(data, 8);
+   DigitalSignature ds1(privateKey);
+   ds1.update(data, 8);
    
    // get the signature
-   char sig[ds1->getValueLength()];
+   char sig[ds1.getValueLength()];
    unsigned int length;
-   ds1->getValue(sig, length);
-   delete ds1;
+   ds1.getValue(sig, length);
    
    // verify the signature
-   DigitalSignature* ds2 = publicKey->createSignature();
-   ds2->update(data, 8);
-   bool verified = ds2->verify(sig, length);
-   delete ds2;
+   DigitalSignature ds2(publicKey);
+   ds2.update(data, 8);
+   bool verified = ds2.verify(sig, length);
    
    assert(verified);
    
@@ -371,10 +355,6 @@ void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
       factory.writePrivateKeyToPem(privateKey, "password");
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
-   
-   // cleanup keys
-   delete privateKey;
-   delete publicKey;
    
    //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
    //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
@@ -393,61 +373,46 @@ void runDigitalSignatureInputStreamTest(TestRunner& tr)
    AsymmetricKeyFactory factory;
    
    // create a new key pair
-   PrivateKey* privateKey;
-   PublicKey* publicKey;
-   factory.createKeyPair("RSA", &privateKey, &publicKey);
+   PrivateKeyRef privateKey;
+   PublicKeyRef publicKey;
+   factory.createKeyPair("RSA", privateKey, publicKey);
    
-   assert(privateKey != NULL);
-   assert(publicKey != NULL);
+   assert(!privateKey.isNull());
+   assert(!publicKey.isNull());
    
-   if(privateKey != NULL && publicKey != NULL)
-   {
-      assertStrCmp(privateKey->getAlgorithm(), "RSA");
-      assertStrCmp(publicKey->getAlgorithm(), "RSA");
-      
-      // sign some data
-      char data[] = {1,2,3,4,5,6,7,8};
-      DigitalSignature* ds1 = privateKey->createSignature();
-      
-      char dummy[8];
-      ByteArrayInputStream bais(data, 8);
-      DigitalSignatureInputStream dsos1(ds1, true, &bais, false);
-      dsos1.read(dummy, 8);
-      
-      // get the signature
-      char sig[ds1->getValueLength()];
-      unsigned int length;
-      ds1->getValue(sig, length);
-      
-      // verify the signature
-      DigitalSignature* ds2 = publicKey->createSignature();
-      bais.setByteArray(data, 8);
-      DigitalSignatureInputStream dsos2(ds2, true, &bais, false);
-      dsos2.read(dummy, 8);
-      bool verified = ds2->verify(sig, length);
-      
-      assert(verified);
-      
-      string outPrivatePem =
-         factory.writePrivateKeyToPem(privateKey, "password");
-      string outPublicPem =
-         factory.writePublicKeyToPem(publicKey);
-      
-      //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-      //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
-   }
+   assertStrCmp(privateKey->getAlgorithm(), "RSA");
+   assertStrCmp(publicKey->getAlgorithm(), "RSA");
    
-   // cleanup private key
-   if(privateKey != NULL)
-   {
-      delete privateKey;
-   }
+   // sign some data
+   char data[] = {1,2,3,4,5,6,7,8};
+   DigitalSignature* ds1 = new DigitalSignature(privateKey);
    
-   // cleanup public key
-   if(publicKey != NULL)
-   {
-      delete publicKey;
-   }
+   char dummy[8];
+   ByteArrayInputStream bais(data, 8);
+   DigitalSignatureInputStream dsos1(ds1, true, &bais, false);
+   dsos1.read(dummy, 8);
+   
+   // get the signature
+   char sig[ds1->getValueLength()];
+   unsigned int length;
+   ds1->getValue(sig, length);
+   
+   // verify the signature
+   DigitalSignature ds2(publicKey);
+   bais.setByteArray(data, 8);
+   DigitalSignatureInputStream dsos2(&ds2, false, &bais, false);
+   dsos2.read(dummy, 8);
+   bool verified = ds2.verify(sig, length);
+   
+   assert(verified);
+   
+   string outPrivatePem =
+      factory.writePrivateKeyToPem(privateKey, "password");
+   string outPublicPem =
+      factory.writePublicKeyToPem(publicKey);
+   
+   //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
+   //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
    
    tr.passIfNoException();
 }
@@ -463,60 +428,45 @@ void runDigitalSignatureOutputStreamTest(TestRunner& tr)
    AsymmetricKeyFactory factory;
    
    // create a new key pair
-   PrivateKey* privateKey;
-   PublicKey* publicKey;
-   factory.createKeyPair("RSA", &privateKey, &publicKey);
+   PrivateKeyRef privateKey;
+   PublicKeyRef publicKey;
+   factory.createKeyPair("RSA", privateKey, publicKey);
    
-   assert(privateKey != NULL);
-   assert(publicKey != NULL);
+   assert(!privateKey.isNull());
+   assert(!publicKey.isNull());
    
-   if(privateKey != NULL && publicKey != NULL)
-   {
-      assertStrCmp(privateKey->getAlgorithm(), "RSA");
-      assertStrCmp(publicKey->getAlgorithm(), "RSA");
-      
-      // sign some data
-      char data[] = {1,2,3,4,5,6,7,8};
-      DigitalSignature* ds1 = privateKey->createSignature();
-      
-      ostringstream oss;
-      OStreamOutputStream osos(&oss);
-      DigitalSignatureOutputStream dsos1(ds1, true, &osos, false);
-      dsos1.write(data, 8);
-      
-      // get the signature
-      char sig[ds1->getValueLength()];
-      unsigned int length;
-      ds1->getValue(sig, length);
-      
-      // verify the signature
-      DigitalSignature* ds2 = publicKey->createSignature();
-      DigitalSignatureOutputStream dsos2(ds2, true, &osos, false);
-      dsos2.write(data, 8);
-      bool verified = ds2->verify(sig, length);
-      
-      assert(verified);
-      
-      string outPrivatePem =
-         factory.writePrivateKeyToPem(privateKey, "password");
-      string outPublicPem =
-         factory.writePublicKeyToPem(publicKey);
-      
-      //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-      //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
-   }
+   assertStrCmp(privateKey->getAlgorithm(), "RSA");
+   assertStrCmp(publicKey->getAlgorithm(), "RSA");
    
-   // cleanup private key
-   if(privateKey != NULL)
-   {
-      delete privateKey;
-   }
+   // sign some data
+   char data[] = {1,2,3,4,5,6,7,8};
+   DigitalSignature ds1(privateKey);
    
-   // cleanup public key
-   if(publicKey != NULL)
-   {
-      delete publicKey;
-   }
+   ostringstream oss;
+   OStreamOutputStream osos(&oss);
+   DigitalSignatureOutputStream dsos1(&ds1, false, &osos, false);
+   dsos1.write(data, 8);
+   
+   // get the signature
+   char sig[ds1.getValueLength()];
+   unsigned int length;
+   ds1.getValue(sig, length);
+   
+   // verify the signature
+   DigitalSignature* ds2 = new DigitalSignature(publicKey);
+   DigitalSignatureOutputStream dsos2(ds2, true, &osos, false);
+   dsos2.write(data, 8);
+   bool verified = ds2->verify(sig, length);
+   
+   assert(verified);
+   
+   string outPrivatePem =
+      factory.writePrivateKeyToPem(privateKey, "password");
+   string outPublicPem =
+      factory.writePublicKeyToPem(publicKey);
+   
+   //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
+   //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
    
    tr.passIfNoException();
 }
@@ -532,95 +482,75 @@ void runEnvelopeTest(TestRunner& tr)
    AsymmetricKeyFactory factory;
    
    // create a new key pair
-   PrivateKey* privateKey;
-   PublicKey* publicKey;
-   factory.createKeyPair("RSA", &privateKey, &publicKey);
+   PrivateKeyRef privateKey;
+   PublicKeyRef publicKey;
+   factory.createKeyPair("RSA", privateKey, publicKey);
+   
+   assert(!privateKey.isNull());
+   assert(!publicKey.isNull());
+   
+   // create a secret message
+   char message[] =
+      "This is a confidential message. For British Eyes Only.";
+   int length = strlen(message);
+   
+   string display1 = "";
+   display1.append(message, length);
+   //cout << "Sending message '" << display1 << "'" << endl;
+   //cout << "Message Length=" << length << endl;
+   
+   // create an outgoing envelope
+   SymmetricKey secretKey;
+   DigitalEnvelope outEnv;
+   outEnv.startSealing("AES256", &(*publicKey), &secretKey);
+   assertNoException();
+   //cout << "Created outgoing envelope..." << endl;
+   
+   // update the envelope
+   char output[2048];
+   int outLength;
+   int totalOut = 0;
+   outEnv.update(message, length, output, outLength);
+   //cout << "Updated outgoing envelope..." << endl;
+   totalOut += outLength;
+   
+   // finish the envelope
+   ///cout << "Output Length=" << outLength << endl;
+   outEnv.finish(output + outLength, outLength);
+   //cout << "Finished sealing outgoing envelope..." << endl;
+   totalOut += outLength;
+   
+   //cout << "Total Output Length=" << totalOut << endl;
+   
+   // create an incoming envelope
+   DigitalEnvelope inEnv;
+   inEnv.startOpening(&(*privateKey), &secretKey);
+   assertNoException();
+   //cout << "Created incoming envelope..." << endl;
+   
+   // update the envelope
+   char input[2048];
+   int inLength;
+   int totalIn = 0;
+   inEnv.update(output, totalOut, input, inLength);
+   //cout << "Updated incoming envelope..." << endl;
+   totalIn += inLength;
+   
+   // finish the envelope
+   //cout << "Input Length=" << inLength << endl;
+   inEnv.finish(input + inLength, inLength);
+   //cout << "Finished opening incoming envelope..." << endl;
+   totalIn += inLength;
+   
+   //cout << "Total Input Length=" << totalIn << endl;
+   
+   // create a string to display the received message
+   string display2 = "";
+   display2.append(input, totalIn);
+   
+   //cout << "Received message '" << display2 << "'" << endl;
 
-   assert(privateKey != NULL);
-   assert(publicKey != NULL);
-   
-   if(privateKey != NULL && publicKey != NULL)
-   {
-      // create a secret message
-      char message[] =
-         "This is a confidential message. For British Eyes Only.";
-      int length = strlen(message);
-      
-      string display1 = "";
-      display1.append(message, length);
-      //cout << "Sending message '" << display1 << "'" << endl;
-      //cout << "Message Length=" << length << endl;
-      
-      // create an outgoing envelope
-      SymmetricKey secretKey;
-      DigitalEnvelope* outEnv = publicKey->createEnvelope(
-         "AES256", &secretKey);
-      assertNoException();
-      assert(outEnv != NULL);
-      //cout << "Created outgoing envelope..." << endl;
-      
-      // update the envelope
-      char output[2048];
-      int outLength;
-      int totalOut = 0;
-      outEnv->update(message, length, output, outLength);
-      //cout << "Updated outgoing envelope..." << endl;
-      totalOut += outLength;
-      
-      // finish the envelope
-      ///cout << "Output Length=" << outLength << endl;
-      outEnv->finish(output + outLength, outLength);
-      //cout << "Finished sealing outgoing envelope..." << endl;
-      totalOut += outLength;
-      
-      //cout << "Total Output Length=" << totalOut << endl;
-      
-      // create an incoming envelope
-      DigitalEnvelope* inEnv = privateKey->createEnvelope(&secretKey);
-      assertNoException();
-      assert(inEnv != NULL);
-      //cout << "Created incoming envelope..." << endl;
-      
-      // update the envelope
-      char input[2048];
-      int inLength;
-      int totalIn = 0;
-      inEnv->update(output, totalOut, input, inLength);
-      //cout << "Updated incoming envelope..." << endl;
-      totalIn += inLength;
-      
-      // finish the envelope
-      //cout << "Input Length=" << inLength << endl;
-      inEnv->finish(input + inLength, inLength);
-      //cout << "Finished opening incoming envelope..." << endl;
-      totalIn += inLength;
-      
-      //cout << "Total Input Length=" << totalIn << endl;
-      
-      // create a string to display the received message
-      string display2 = "";
-      display2.append(input, totalIn);
-      
-      //cout << "Received message '" << display2 << "'" << endl;
-
-      assert(display1 == display2);
-      
-      // delete envelopes and key
-      delete outEnv;
-      delete inEnv;
-   }
-   
-   // cleanup private key
-   if(privateKey != NULL)
-   {
-      delete privateKey;
-   }
-   
-   // cleanup public key
-   if(publicKey != NULL)
-   {
-      delete publicKey;
-   }
+   assert(display1 == display2);
    
    tr.passIfNoException();
 }

@@ -4,8 +4,7 @@
 #ifndef db_crypto_PublicKey_H
 #define db_crypto_PublicKey_H
 
-#include "db/crypto/DigitalEnvelope.h"
-#include "db/crypto/DigitalSignature.h"
+#include "db/crypto/AsymmetricKey.h"
 
 namespace db
 {
@@ -50,37 +49,34 @@ public:
     * Destructs this PublicKey.
     */
    virtual ~PublicKey();
-   
-   /**
-    * Creates a DigitalEnvelope to send a confidential message with.
-    * 
-    * A random symmetric key will be generated and used to seal the envelope.
-    * It will be encrypted with this PublicKey so that it can only be unlocked
-    * by the PrivateKey associated with this PublicKey.
-    * 
-    * The caller of this method is responsible for freeing the DigitalEnvelope.
-    * 
-    * @param algorithm the algorithm to use for the encryption.
-    * @param key to store the encrypted SymmetricKey used to seal the envelope.
-    * 
-    * @return the created envelope or NULL if an exception occurred.
-    */
-   virtual DigitalEnvelope* createEnvelope(
-      const char* algorithm, SymmetricKey* key);
-   
-   /**
-    * Creates a DigitalSignature to verify data with.
-    * 
-    * The caller of this method is responsible for freeing the generated
-    * DigitalSignature.
-    * 
-    * @return the DigitalSignature to verify data with.
-    */
-   virtual DigitalSignature* createSignature();
 };
 
-// typedef for a reference-counted PublicKey
-typedef db::rt::Collectable<PublicKey> PublicKeyRef;
+class PublicKeyRef : public AsymmetricKeyRef
+{
+public:
+   PublicKeyRef(PublicKey* ptr = NULL) : AsymmetricKeyRef(ptr) {};
+   virtual ~PublicKeyRef() {};
+   
+   /**
+    * Returns a reference to the PublicKey.
+    *
+    * @return a reference to the PublicKey.
+    */
+   virtual PublicKey& operator*()
+   {
+      return (PublicKey&)AsymmetricKeyRef::operator*();
+   }
+   
+   /**
+    * Returns a pointer to the PublicKey.
+    *
+    * @return a pointer to the PublicKey.
+    */
+   virtual PublicKey* operator->()
+   {
+      return (PublicKey*)AsymmetricKeyRef::operator->();
+   }
+};
 
 } // end namespace crypto
 } // end namespace db

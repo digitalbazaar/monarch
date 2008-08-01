@@ -9,7 +9,7 @@
 
 using namespace db::crypto;
 
-DigitalSignature::DigitalSignature(PrivateKey* key)
+DigitalSignature::DigitalSignature(PrivateKeyRef& key)
 {
    // store key
    mKey = key;
@@ -18,7 +18,7 @@ DigitalSignature::DigitalSignature(PrivateKey* key)
    mSignMode = true;
 }
 
-DigitalSignature::DigitalSignature(PublicKey* key)
+DigitalSignature::DigitalSignature(PublicKeyRef& key)
 {
    // store key
    mKey = key;
@@ -137,7 +137,7 @@ bool DigitalSignature::verify(const char* b, unsigned int length)
    return rval;
 }
 
-AsymmetricKey* DigitalSignature::getKey()
+AsymmetricKeyRef& DigitalSignature::getKey()
 {
    return mKey;
 }

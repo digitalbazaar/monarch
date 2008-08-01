@@ -27,7 +27,7 @@ protected:
     * @param privateKey a pointer to point at the new PrivateKey.
     * @param publicKey a pointer to point at the new PublicKey.
     */
-   void createDsaKeyPair(PrivateKey** privateKey, PublicKey** publicKey);
+   void createDsaKeyPair(PrivateKeyRef& privateKey, PublicKeyRef& publicKey);
    
    /**
     * Creates a new RSA key pair.
@@ -35,7 +35,7 @@ protected:
     * @param privateKey a pointer to point at the new PrivateKey.
     * @param publicKey a pointer to point at the new PublicKey.
     */
-   void createRsaKeyPair(PrivateKey** privateKey, PublicKey** publicKey);
+   void createRsaKeyPair(PrivateKeyRef& privateKey, PublicKeyRef& publicKey);
    
    /**
     * A callback function that is called to obtain a password to unlock
@@ -74,7 +74,8 @@ public:
     * @return true if no exception occurred, false if not.
     */
    bool createKeyPair(
-      const char* algorithm, PrivateKey** privateKey, PublicKey** publicKey);
+      const char* algorithm,
+      PrivateKeyRef& privateKey, PublicKeyRef& publicKey);
    
    /**
     * Loads a private key from a PEM formatted string. A PEM formatted
@@ -87,7 +88,7 @@ public:
     * 
     * @return the loaded PrivateKey or NULL if an exception occurred.
     */
-   virtual PrivateKey* loadPrivateKeyFromPem(
+   virtual PrivateKeyRef loadPrivateKeyFromPem(
       const char* pem, int length, const char* password);
    
    /**
@@ -101,7 +102,7 @@ public:
     * @return the PEM string or a blank string of an exception occurred.
     */
    std::string writePrivateKeyToPem(
-      PrivateKey* key, const char* password);
+      PrivateKeyRef& key, const char* password);
    
    /**
     * Loads a public key from a PEM formatted string. A PEM formatted
@@ -114,7 +115,7 @@ public:
     * 
     * @return the loaded PublicKey or NULL if an exception occurred.
     */
-   virtual PublicKey* loadPublicKeyFromPem(const char* pem, int length);
+   virtual PublicKeyRef loadPublicKeyFromPem(const char* pem, int length);
    
    /**
     * Writes a public key to a PEM formatted string. A PEM formatted
@@ -126,7 +127,7 @@ public:
     * 
     * @return the PEM string or a blank string of an exception occurred.
     */
-   std::string writePublicKeyToPem(PublicKey* key);
+   std::string writePublicKeyToPem(PublicKeyRef& key);
 };
 
 } // end namespace crypto

@@ -5,17 +5,13 @@
 #define db_crypto_DigitalSignature_H
 
 #include "db/crypto/CryptoHashAlgorithm.h"
-#include "db/crypto/AsymmetricKey.h"
-#include "db/rt/Collectable.h"
+#include "db/crypto/PrivateKey.h"
+#include "db/crypto/PublicKey.h"
 
 namespace db
 {
 namespace crypto
 {
-
-// forward declare private and public keys
-class PrivateKey;
-class PublicKey;
 
 /**
  * A DigitalSignature is used in asymmetric cryptography to authenticate a
@@ -35,7 +31,7 @@ protected:
    /**
     * The asymmetric key to sign or verify with.
     */
-   AsymmetricKey* mKey;
+   AsymmetricKeyRef mKey;
    
    /**
     * Set to true to sign data, false to verify it.
@@ -55,14 +51,14 @@ public:
     * 
     * @param key the PrivateKey to sign with.
     */
-   DigitalSignature(PrivateKey* key);
+   DigitalSignature(PrivateKeyRef& key);
    
    /**
     * Creates a new DigitalSignature that uses the given public key to verify.
     * 
     * @param key the PublicKey to verify with.
     */
-   DigitalSignature(PublicKey* key);
+   DigitalSignature(PublicKeyRef& key);
    
    /**
     * Destructs this DigitalSignature.
@@ -122,7 +118,7 @@ public:
     * 
     * @return the asymmetric key associated with this DigitalSignature.
     */
-   virtual AsymmetricKey* getKey();
+   virtual AsymmetricKeyRef& getKey();
    
    /**
     * Gets the sign/verify mode for this DigitalSignature.
