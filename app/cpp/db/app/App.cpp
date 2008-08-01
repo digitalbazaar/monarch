@@ -193,6 +193,8 @@ static bool processOption(
    DynamicObject& optSpec)
 {
    bool rval = true;
+   // flag used to set common exception
+   bool hadEnoughArgs = true;
    
    if(optSpec->hasMember("setTrue"))
    {
@@ -212,7 +214,7 @@ static bool processOption(
       }
    }
    
-   if(optSpec->hasMember("setFalse"))
+   if(rval && optSpec->hasMember("setFalse"))
    {
       DynamicObject& target = optSpec["setFalse"];
       if(target->getType() == Array)
@@ -230,7 +232,7 @@ static bool processOption(
       }
    }
    
-   if(optSpec->hasMember("inc"))
+   if(rval && optSpec->hasMember("inc"))
    {
       DynamicObject& target = optSpec["inc"];
       switch(target->getType())
@@ -263,7 +265,7 @@ static bool processOption(
       }
    }
    
-   if(optSpec->hasMember("dec"))
+   if(rval && optSpec->hasMember("dec"))
    {
       DynamicObject& target = optSpec["inc"];
       switch(target->getType())
@@ -296,10 +298,8 @@ static bool processOption(
       }
    }
    
-   if(optSpec->hasMember("arg"))
+   if(rval && optSpec->hasMember("arg"))
    {
-      //mCLConfig["node"]["port"] = 
-      //   (int)strtol(arg, (char **)NULL, 10);
       (*argsi)++;
       if((*argsi) != args->end())
       {
@@ -310,56 +310,54 @@ static bool processOption(
          target = **argsi;
          // convert back to original type
          target->setType(type);
-         
-         // add to append target if requested
-         if(optSpec->hasMember("append"))
-         {
-            DynamicObject& appendTarget = optSpec["append"];
-            appendTarget->append() = target.clone();
-         }
       }
       else
       {
-         ostringstream oss;
-         oss << "Not enough arguments for option: " << opt << ".";
-         ExceptionRef e =
-            new Exception(oss.str().c_str(), "db.app.CommandLineError");
-         Exception::setLast(e, false);
-         rval = false;
+         rval = hadEnoughArgs = false;
       }
    }
    
-   if(optSpec->hasMember("args"))
+   if(rval && optSpec->hasMember("args"))
    {
       // FIXME implenent
       ExceptionRef e =
-         new Exception("args target not implemented yet", "db.app.CommandLineError");
+         new Exception("args target not implemented yet",
+            "db.app.CommandLineError");
       Exception::setLast(e, false);
       rval = false;
    }
    
-   if(optSpec->hasMember("append"))
+   if(rval && optSpec->hasMember("append"))
    {
       (*argsi)++;
       if((*argsi) != args->end())
       {
-         // target and save type
-         DynamicObject& target = optSpec["arg"];
-         DynamicObjectType type = target->getType();
-         // advance to argument, then set target as string
-         target = **argsi;
-         // convert back to original type
-         target->setType(type);
+         // append string to "append" target
+         DynamicObject& target = optSpec["append"];
+         target->append() = **argsi;
+      }
+      else
+      {
+         rval = hadEnoughArgs = false;
+      }
+   }
+   
+   if(!rval && !hadEnoughArgs)
+   {
+      ExceptionRef e;
+      if(optSpec->hasMember("argError"))
+      {
+         e = new Exception(
+            optSpec["argError"]->getString(),
+            "db.app.CommandLineError");
       }
       else
       {
          ostringstream oss;
          oss << "Not enough arguments for option: " << opt << ".";
-         ExceptionRef e =
-            new Exception(oss.str().c_str(), "db.app.CommandLineError");
-         Exception::setLast(e, false);
-         rval = false;
+         e = new Exception(oss.str().c_str(), "db.app.CommandLineError");
       }
+      Exception::setLast(e, false);
    }
    
    return rval;
