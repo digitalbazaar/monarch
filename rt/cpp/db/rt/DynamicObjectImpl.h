@@ -32,7 +32,7 @@ enum DynamicObjectType
  * 
  * @author Dave Longley
  */
-class DynamicObjectImpl : public virtual ExclusiveLock
+class DynamicObjectImpl
 {
 public:
    /**
