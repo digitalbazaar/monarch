@@ -211,6 +211,32 @@ protected:
     */
    db::config::Config mConfig;
    
+   /**
+    * A table of pthread mutexes for openSSL.
+    */
+   static pthread_mutex_t* sOpenSSLMutexes;
+   
+   /**
+    * A callback function required by OpenSSL for multi-threaded applications.
+    * 
+    * This method will return the current thread's ID.
+    * 
+    * @return the current thread's ID.
+    */
+   static unsigned long openSSLSetId();
+   
+   /**
+    * A callback function required by OpenSSL for multi-threaded applications.
+    * 
+    * It sets the n-th lock if mode & CRYPTO_LOCK, and releases it otherwise. 
+    * 
+    * @param mode the current mode.
+    * @param n the lock number to alter.
+    * @param file the current source file (unused).
+    * @param line the line in the file (unused).
+    */
+   static void openSSLHandleLock(int mode, int n, const char* file, int line);
+   
 public:
    /**
     * Create an App instance.

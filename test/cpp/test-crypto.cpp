@@ -502,7 +502,7 @@ void runEnvelopeTest(TestRunner& tr)
    // create an outgoing envelope
    SymmetricKey secretKey;
    DigitalEnvelope outEnv;
-   outEnv.startSealing("AES256", &(*publicKey), &secretKey);
+   outEnv.startSealing("AES256", publicKey, &secretKey);
    assertNoException();
    //cout << "Created outgoing envelope..." << endl;
    
@@ -524,7 +524,7 @@ void runEnvelopeTest(TestRunner& tr)
    
    // create an incoming envelope
    DigitalEnvelope inEnv;
-   inEnv.startOpening(&(*privateKey), &secretKey);
+   inEnv.startOpening(privateKey, &secretKey);
    assertNoException();
    //cout << "Created incoming envelope..." << endl;
    

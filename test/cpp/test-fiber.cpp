@@ -290,6 +290,7 @@ public:
       ds = new DigitalSignature(mPublicKey);
       ds->update(test.c_str(), test.length());
       bool verified = ds->verify(sig, length);
+      delete ds;
       if(verified)
       {
          printf("VERIFIED!\n");
@@ -315,7 +316,7 @@ void runConcurrentSigningTest(TestRunner& tr)
    afk.createKeyPair("RSA", privateKey, publicKey);
    assertNoException();
    
-   tr.test("300 fibers");
+   tr.test("10 fibers");
    {
       Kernel k;
       k.getEngine()->start();
@@ -323,11 +324,13 @@ void runConcurrentSigningTest(TestRunner& tr)
       FiberScheduler fs;
       
       // queue up fibers
-      for(int i = 0; i < 300; i++)
+      int count = 10;
+      for(int i = 0; i < count; i++)
       {
          fs.addFiber(new ConcurrentSigner(privateKey, publicKey));
       }
       
+      printf("\n");
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 2);
       fs.waitForLastFiberExit(true);
