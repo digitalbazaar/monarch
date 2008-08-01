@@ -17,11 +17,11 @@ using namespace db::util;
 unsigned int JsonReader::READ_SIZE = 4096;
 
 /**
- * Map of 128 ASCII characters to input classes.
- * Non-whitespace control characters are errors.
+ * Map of 128 ASCII characters to theis JsonInputClass.  Used to reduce the
+ * size of the state table.  Non-whitespace control characters are errors.
  * Other Unicode characters mapped to C_CH.
  */
-JsonInputClass JsonReader::sAsciiToClass[128] = {
+static JsonInputClass sAsciiToClass[128] = {
    C___, C___, C___, C___, C___, C___, C___, C___,
    C___, C_WS, C_WS, C___, C___, C_WS, C___, C___,
    C___, C___, C___, C___, C___, C___, C___, C___,
@@ -43,7 +43,11 @@ JsonInputClass JsonReader::sAsciiToClass[128] = {
    C_CH, C_CH, C_CH, C_BO, C_CH, C_EO, C_CH, C_CH
 };
 
-JsonState JsonReader::sStateTable[S_COUNT][C_COUNT] = {
+/**
+ * State table.  Used to find next state or action from current state and
+ * next input class.
+ */
+static JsonState sStateTable[S_COUNT][C_COUNT] = {
 /*        ws sp  {  }  [  ]  :  ,  "  \  /  0 19  .  +  -  a  b  c  d  e  f  l  n  r  s  t  u AF  E  * DO __ */
 /* J_ */ {_W,_W,O_,__,A_,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /* _J */ {_W,_W,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
@@ -55,6 +59,8 @@ JsonState JsonReader::sStateTable[S_COUNT][C_COUNT] = {
 /* A_ */ {_W,_W,O_,__,A_,_A,__,__,S_,__,__,Z_,I_,__,__,MI,__,__,__,__,__,F_,__,N_,__,__,T_,__,__,__,__,AV,__},
 /* A2 */ {_W,_W,O_,__,A_,__,__,__,S_,__,__,Z_,I_,__,__,MI,__,__,__,__,__,F_,__,N_,__,__,T_,__,__,__,__,AV,__},
 /* AV */ {_W,_W,__,__,__,_A,__,A2,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
+/* V_ */ {_W,_W,O_,__,A_,__,__,__,S_,__,__,Z_,I_,__,__,MI,__,__,__,__,__,F_,__,N_,__,__,T_,__,__,__,__,VV,__},
+/* VV */ {_W,_W,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /* S_ */ {__,SC,SC,SC,SC,SC,SC,SC,_S,E_,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,__,__},
 /* SC */ {__,SC,SC,SC,SC,SC,SC,SC,_S,E_,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,SC,__,__},
 /* E_ */ {__,__,__,__,__,__,__,__,_E,_E,_E,__,__,__,__,__,__,_E,__,__,__,_E,__,_E,_E,__,_E,U_,__,__,__,__,__},
@@ -84,8 +90,9 @@ JsonState JsonReader::sStateTable[S_COUNT][C_COUNT] = {
 /* EV */ {_D,_D,__,_D,__,_D,__,_D,__,__,__,EV,EV,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__}
 };
 
-JsonReader::JsonReader()
+JsonReader::JsonReader(bool strict)
 {
+   mStrict = strict;
    mStarted = false;
    mBuffer = (char*)malloc(READ_SIZE);
    // FIXME: handle malloc error
@@ -98,13 +105,25 @@ JsonReader::~JsonReader()
 
 void JsonReader::start(DynamicObject& dyno)
 {
-   // set current object and clear stack
+   // clear stacks
    mDynoStack.clear();
+   mStateStack.clear();
+   
+   // set object as target and push to stack
+   mTarget = &dyno;
    mDynoStack.push_back(dyno);
    
-   // Set current state and clear stack
-   mStateStack.clear();
-   mState = J_;
+   // set current state
+   if(mStrict)
+   {
+      // top-level JSON
+      mState = J_;
+   }
+   else
+   {
+      // just a value
+      mState = V_;
+   }
    
    // start line count
    mLineNumber = 1;
@@ -118,7 +137,6 @@ void JsonReader::start(DynamicObject& dyno)
 bool JsonReader::processNext(JsonInputClass ic, char c)
 {
    bool rval = true;
-   DynamicObject obj;
    
    // keep track of line count
    if(c == '\n')
@@ -136,6 +154,8 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          if(mStateStack.size() != 1)
          {
             // not dyno from start()
+            DynamicObject obj;
+            obj->setType(Map);
             mDynoStack.push_back(obj);
          }
          mDynoStack.back()->setType(Map);
@@ -151,7 +171,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
             mDynoStack.pop_back();
    
             // get object
-            obj = mDynoStack.back();
+            DynamicObject& obj = mDynoStack.back();
    
             // set key=value
             obj[key->getString()] = value;
@@ -165,6 +185,8 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          if(mStateStack.size() != 1)
          {
             // not dyno from start()
+            DynamicObject obj;
+            obj->setType(Array);
             mDynoStack.push_back(obj);
          }
          mDynoStack.back()->setType(Array);
@@ -174,27 +196,47 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
             // pop value
             DynamicObject value(mDynoStack.back());
             mDynoStack.pop_back();
-   
+            
             // get object
-            obj = mDynoStack.back();
-   
+            DynamicObject& obj = mDynoStack.back();
+            
             // set key=value
             obj[obj->length()] = value;
             
             mState = next;
          }
          break;
+      case VV: /* got value */
+         {
+            // pop value
+            DynamicObject value(mDynoStack.back());
+            mDynoStack.pop_back();
+            
+            // set object=value
+            mDynoStack.back() = value;
+            
+            // check for top level
+            if(mState == V_)
+            {
+               // we're done with top-level object
+               mState = _J;
+               mValid = true;
+               *mTarget = mDynoStack.back();
+            }
+            break;
+         }
       case _O: /* Object done */
       case _A: /* Array done */
          mState = mStateStack.back();
          mStateStack.pop_back();
 
          // check for top level
-         if(mState == J_)
+         if(mState == J_ || mState == V_)
          {
             // we're done with top-level object
             mState = _J;
             mValid = true;
+            *mTarget = mDynoStack.back();
          }
          else
          {
@@ -242,14 +284,17 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          break;
 
       case U_: /* unicode */
-         // Save current string
-         obj = mString.c_str();
-         mDynoStack.push_back(obj);
-         
-         // Start new string
-         mString.clear();
-         mState = next;
-         break;
+         {
+            // Save current string
+            DynamicObject obj;
+            obj = mString.c_str();
+            mDynoStack.push_back(obj);
+            
+            // Start new string
+            mString.clear();
+            mState = next;
+            break;
+         }
       case _U: /* Unicode done */
          unsigned int uc;
          mString.push_back(c);
@@ -292,67 +337,85 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          mState = next;
          break;
       case _S: /* String done */
-         // Push string on stack
-         obj = mString.c_str();
-         mDynoStack.push_back(obj);
-
-         mState = mStateStack.back();
-         mStateStack.pop_back();
-         rval = processNext(C_DO);
-         break;
+         {
+            // Push string on stack
+            DynamicObject obj;
+            obj = mString.c_str();
+            mDynoStack.push_back(obj);
+   
+            mState = mStateStack.back();
+            mStateStack.pop_back();
+            rval = processNext(C_DO);
+            break;
+         }
       case _T: /* true done */
-         obj = true;
-         mDynoStack.push_back(obj);
-         mState = mStateStack.back();
-         mStateStack.pop_back();
-         rval = processNext(C_DO);
-         break;
+         {
+            DynamicObject obj;
+            obj = true;
+            mDynoStack.push_back(obj);
+            mState = mStateStack.back();
+            mStateStack.pop_back();
+            rval = processNext(C_DO);
+            break;
+         }
       case _F: /* false done */
-         obj = false;
-         mDynoStack.push_back(obj);
-         mState = mStateStack.back();
-         mStateStack.pop_back();
-         rval = processNext(C_DO);
-         break;
+         {
+            DynamicObject obj;
+            obj = false;
+            mDynoStack.push_back(obj);
+            mState = mStateStack.back();
+            mStateStack.pop_back();
+            rval = processNext(C_DO);
+            break;
+         }
       case _N: /* null done */
-         obj = DynamicObject(NULL);
-         mDynoStack.push_back(obj);
-         mState = mStateStack.back();
-         mStateStack.pop_back();
-         rval = processNext(C_DO);
-         break;
+         {
+            DynamicObject obj;
+            obj = DynamicObject(NULL);
+            mDynoStack.push_back(obj);
+            mState = mStateStack.back();
+            mStateStack.pop_back();
+            rval = processNext(C_DO);
+            break;
+         }
       case _I: /* Integer done */
-         obj = mString.c_str();
-         if(mString[0] == '-')
          {
-            obj->setType(Int64);
+            DynamicObject obj;
+            obj = mString.c_str();
+            if(mString[0] == '-')
+            {
+               obj->setType(Int64);
+            }
+            else
+            {
+               obj->setType(UInt64);
+            }
+            mDynoStack.push_back(obj);
+            mState = mStateStack.back();
+            mStateStack.pop_back();
+            // process this input
+            if((rval = processNext(C_DO)))
+            {
+               // actually process current char
+               rval = processNext(ic, c);
+            }
+            break;
          }
-         else
-         {
-            obj->setType(UInt64);
-         }
-         mDynoStack.push_back(obj);
-         mState = mStateStack.back();
-         mStateStack.pop_back();
-         // process this input
-         if((rval = processNext(C_DO)))
-         {
-            // actually process current char
-            rval = processNext(ic, c);
-         }
-         break;
       case _D: /* Double done */
-         obj = mString.c_str();
-         obj->setType(Double);
-         mDynoStack.push_back(obj);
-         mState = mStateStack.back();
-         mStateStack.pop_back();
-         if((rval = processNext(C_DO)))
          {
-            // actually process current char
-            rval = processNext(ic, c);
+            DynamicObject obj;
+            obj = mString.c_str();
+            obj->setType(Double);
+            mDynoStack.push_back(obj);
+            mState = mStateStack.back();
+            mStateStack.pop_back();
+            if((rval = processNext(C_DO)))
+            {
+               // actually process current char
+               rval = processNext(ic, c);
+            }
+            break;
          }
-         break;
 
       /* Start numbers */
       case MI: /* minus */
@@ -462,6 +525,13 @@ bool JsonReader::read(InputStream* is)
       {
          rval = process(mBuffer, numBytes, position);
       }
+      if(rval && !mStrict && !mValid)
+      {
+         // When not strict could be reading a number value which has not yet
+         // terminated parsing.  Fake end of value with a space.  This does not
+         // happen for values with terminating symbols or fixed lengths.
+         rval = process(" ", 1, position);
+      }
       
       if(!rval)
       {
@@ -493,8 +563,17 @@ bool JsonReader::finish()
    
    if(!mValid)
    {
-      ExceptionRef e = new IOException(
-         "No JSON top-level Object or Array found");
+      ExceptionRef e;
+      if(mStrict)
+      {
+         e = new IOException(
+            "No JSON top-level Object or Array found");
+      }
+      else
+      {
+         e = new IOException(
+            "No JSON value found");
+      }
       Exception::setLast(e, false);
       rval = false;
    }

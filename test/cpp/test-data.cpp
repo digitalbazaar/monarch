@@ -322,14 +322,8 @@ void runJsonInvalidDJTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runJsonVerifyDJDTest(TestRunner& tr)
+static DynamicObject makeJSONTests()
 {
-   tr.group("JSON (Verify Dyno->JSON->Dyno)");
-   
-   JsonWriter jw;
-   JsonReader jr;
-   OStreamOutputStream os(&cout);
-   
    int tdcount = 0;
    DynamicObject td;
    td[tdcount  ]["dyno"]->setType(Map);
@@ -366,6 +360,20 @@ void runJsonVerifyDJDTest(TestRunner& tr)
    td[tdcount++]["JSON"] =
       "[\"\xd0\x8e \xd1\x9e \xd0\x84 \xd1\x94 \xd2\x90 \xd2\x91\"]";
    
+   return td;
+}
+
+void runJsonVerifyDJDTest(TestRunner& tr)
+{
+   tr.group("JSON (Verify Dyno->JSON->Dyno)");
+   
+   JsonWriter jw;
+   JsonReader jr;
+   OStreamOutputStream os(&cout);
+   
+   DynamicObject td = makeJSONTests();
+   int tdcount = td->length();
+   
    for(int i = 0; i < tdcount; i++)
    {
       char msg[50];
@@ -400,7 +408,76 @@ void runJsonVerifyDJDTest(TestRunner& tr)
       assertNoException();
       b.clear();
       
-      assert(d == dr);
+      assertDynoCmp(d, dr);
+      
+      tr.passIfNoException();
+   }
+   
+   tr.ungroup();
+}
+
+static DynamicObject makeJSONValueTests()
+{
+   DynamicObject td = makeJSONTests();
+   int tdcount = td->length();
+   
+   td[tdcount  ]["dyno"] = true;
+   td[tdcount++]["JSON"] = "true";
+   td[tdcount  ]["dyno"] = true;
+   td[tdcount++]["JSON"] = " true";
+   td[tdcount  ]["dyno"] = true;
+   td[tdcount++]["JSON"] = "true ";
+   td[tdcount  ]["dyno"] = true;
+   td[tdcount++]["JSON"] = " true ";
+   td[tdcount  ]["dyno"] = "v";
+   td[tdcount++]["JSON"] = "\"v\"";
+   td[tdcount  ]["dyno"] = 0;
+   td[tdcount++]["JSON"] = "0";
+   td[tdcount  ]["dyno"] = 0;
+   td[tdcount++]["JSON"] = " 0";
+   td[tdcount  ]["dyno"] = 0;
+   td[tdcount++]["JSON"] = "0 ";
+   td[tdcount  ]["dyno"] = 0;
+   td[tdcount++]["JSON"] = " 0 ";
+   td[tdcount  ]["dyno"] = -1;
+   td[tdcount++]["JSON"] = "-1";
+   td[tdcount  ]["dyno"] = 0.0;
+   td[tdcount++]["JSON"] = "0.0";
+   td[tdcount  ]["dyno"] = DynamicObject(NULL);
+   td[tdcount++]["JSON"] = "null";
+   
+   return td;
+}
+void runJsonValueVerifyJDTest(TestRunner& tr)
+{
+   tr.group("JSON (verify value fragments)");
+   
+   JsonReader jr(false);
+   
+   DynamicObject td = makeJSONValueTests();
+   int tdcount = td->length();
+   
+   for(int i = 0; i < tdcount; i++)
+   {
+      char msg[50];
+      snprintf(msg, 50, "Verify #%d", i);
+      tr.test(msg);
+      
+      DynamicObject d = td[i]["dyno"];
+      const char* s = td[i]["JSON"]->getString();
+
+      ByteArrayInputStream is(s, strlen(s));
+      DynamicObject dr;
+      jr.start(dr);
+      assertNoException();
+      jr.read(&is);
+      assertNoException();
+      jr.finish();
+      assertNoException();
+      //jw.write(dr, &os);
+      assertNoException();
+      
+      assertDynoCmp(d, dr);
       
       tr.passIfNoException();
    }
@@ -1273,6 +1350,7 @@ public:
       runJsonDJDTest(tr);
       runJsonInvalidDJTest(tr);
       runJsonVerifyDJDTest(tr);
+      runJsonValueVerifyJDTest(tr);
       runJsonIOStreamTest(tr);
       
       runXmlReaderTest(tr);

@@ -73,6 +73,8 @@ enum JsonState {
    A_, /* '[' start array, [value, ']'] */
    A2, /* got ',', [value] */
    AV, /* got value, [',', ']'] */
+   V_, /* start of JSON value-only parsing, [value] */
+   VV, /* got value, [] */
    S_, /* '"' start string, [char, '\', '"'] */
    SC, /* got character, [char, '\', '"'] */
    E_, /* '\' start escape, [code, 'u'] */
@@ -116,10 +118,15 @@ enum JsonState {
    S_ACTION_COUNT,
    __  /* Error */
 };
-   
+
 /**
  * A JsonReader provides an interface for deserializing objects from
- * JSON (JavaScript Object Notation) (RFC 4627).
+ * JSON (JavaScript Object Notation) (RFC 4627).  Optionally can deserialize
+ * just JSON values.
+ * Partly based on work from:
+ * 
+ * http://www.json.org/
+ * http://fara.cs.uni-potsdam.de/~jsg/json_parser/
  * 
  * The JSON parser works by examining a character at a time.  It first uses a
  * character to class mapping table (sAsciiToClass) to convert a character
@@ -140,22 +147,15 @@ enum JsonState {
  * parses and non-number input class.  At this point it will process the number
  * and then re-call processNext with the next non-number input.   
  * 
- * @author David I. Lehn
+ * @author David I. Lehn <dlehn@digitalbazaar.com>
  */
 class JsonReader : public DynamicObjectReader
 {
 protected:
    /**
-    * Map of first 128 ASCII characters to their JsonInputClass.  Used to reduce
-    * size of state table.
+    * True if JSON must start with an object or array.
     */
-   static JsonInputClass sAsciiToClass[128];
-   
-   /**
-    * State table.  Used to find next state or action from current state and
-    * next input class.
-    */
-   static JsonState sStateTable[S_COUNT][C_COUNT];
+   bool mStrict;
    
    /**
     * True if this JSON parser has started, false if not.
@@ -181,6 +181,11 @@ protected:
     * A stack of DynamicObjects.
     */
    std::vector<db::rt::DynamicObject> mDynoStack;
+   
+   /**
+    * The final target DynamicObject set from start().
+    */
+   db::rt::DynamicObject* mTarget;
    
    /**
     * The read size in bytes.
@@ -229,8 +234,13 @@ protected:
 public:
    /**
     * Creates a new JsonReader.
+    * 
+    * In strict mode the JSON stream must start with an object or array.  In
+    * non-strict mode any valid JSON value can be deserialized.
+    * 
+    * @param strict the JSON stream must start with an object or array.
     */
-   JsonReader();
+   JsonReader(bool strict = true);
    
    /**
     * Destructs this JsonReader.
