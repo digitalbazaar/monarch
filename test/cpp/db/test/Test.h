@@ -128,6 +128,21 @@ bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
       } \
    } while(0)
 
+/**
+ * Assert DynamicObjects are equal.
+ */
+#define assertDynoCmp(a, b) \
+   do { \
+      if(!(a == b)) \
+      { \
+         std::cout << "dyno a="; \
+         JsonWriter::writeDynamicObjectToStdOut(a, false, false); \
+         std::cout << "dyno b="; \
+         JsonWriter::writeDynamicObjectToStdOut(b, false, false); \
+         assert(a == b); \
+      } \
+   } while(0)
+
 } // end namespace test
 } // end namespace db
 
