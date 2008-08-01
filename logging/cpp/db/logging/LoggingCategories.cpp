@@ -90,6 +90,9 @@ void LoggingCategories::initialize()
 
 void LoggingCategories::cleanup()
 {
+   delete DB_APP_CAT;
+   DB_APP_CAT = NULL;
+   
    delete DB_CONFIG_CAT;
    DB_CONFIG_CAT = NULL;
    
