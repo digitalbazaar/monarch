@@ -27,6 +27,11 @@ class JsonWriter : public DynamicObjectWriter
 {
 protected:
    /**
+    * True if JSON must start with an object or array.
+    */
+   bool mStrict;
+   
+   /**
     * Compact mode to minimize whitespace.
     */
    bool mCompact;
@@ -66,8 +71,13 @@ protected:
 public:
    /**
     * Creates a new JsonWriter.
+    * 
+    * In strict mode the JSON stream must start with an object or array.  In
+    * non-strict mode any valid JSON value can be serialized.
+    * 
+    * @param strict the JSON stream must start with an object or array.
     */
-   JsonWriter();
+   JsonWriter(bool strict = true);
    
    /**
     * Destructs this JsonWriter.
@@ -107,34 +117,38 @@ public:
     * @param dyno the DynamicObject to write out.
     * @param stream the ostream to write to.
     * @param compact true to use compact syntax, false no to.
+    * @param strict the JSON stream must start with an object or array.
     * 
     * @return true on success, false with exception set on failure.
     */
    static bool writeDynamicObjectToStream(
-      db::rt::DynamicObject& dyno, std::ostream& stream, bool compact = false);
+      db::rt::DynamicObject& dyno, std::ostream& stream, bool compact = false,
+      bool strict = true);
 
    /**
     * Writes a DynamicObject as JSON to a string.
     * 
     * @param dyno the DynamicObject to write out.
     * @param compact true to use compact syntax, false no to.
+    * @param strict the JSON stream must start with an object or array.
     * 
     * @return the string with JSON data on success, a blank string with
     *         exception set on failure.
     */
    static std::string writeDynamicObjectToString(
-      db::rt::DynamicObject& dyno, bool compact = false);
+      db::rt::DynamicObject& dyno, bool compact = false, bool strict = true);
    
    /**
     * Writes a DynamicObject as JSON to cout.
     * 
     * @param dyno the DynamicObject to write out.
     * @param compact true to use compact syntax, false no to.
+    * @param strict the JSON stream must start with an object or array.
     * 
     * @return true on success, false with exception set on failure.
     */
    static bool writeDynamicObjectToStdOut(
-      db::rt::DynamicObject& dyno, bool compact = false);
+      db::rt::DynamicObject& dyno, bool compact = false, bool strict = true);
 };
 
 } // end namespace json

@@ -16,8 +16,9 @@ using namespace db::data::json;
 using namespace db::io;
 using namespace db::rt;
 
-JsonWriter::JsonWriter()
+JsonWriter::JsonWriter(bool strict)
 {
+   mStrict = strict;
    // Initialize to compact representation
    setCompact(true);
    setIndentation(0, 3);
@@ -211,14 +212,24 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
 bool JsonWriter::write(DynamicObject& dyno, OutputStream* os)
 {
    bool rval = true;
-   DynamicObjectType type = dyno->getType();
    
-   if(!(type == Map || type == Array))
+   if(mStrict)
    {
-      ExceptionRef e = new IOException(
-         "No JSON top-level Map or Array found");
-      Exception::setLast(e, false);
-      rval = false;
+      rval = !dyno.isNull();
+      
+      DynamicObjectType type;
+      if(rval)
+      {
+         type = dyno->getType();
+      }
+   
+      if(!rval || !(type == Map || type == Array))
+      {
+         ExceptionRef e = new IOException(
+            "No JSON top-level Map or Array found");
+         Exception::setLast(e, false);
+         rval = false;
+      }
    }
    
    if(rval)
@@ -243,10 +254,10 @@ void JsonWriter::setIndentation(int level, int spaces)
 }
 
 bool JsonWriter::writeDynamicObjectToStream(
-   DynamicObject& dyno, ostream& stream, bool compact)
+   DynamicObject& dyno, ostream& stream, bool compact, bool strict)
 {
    OStreamOutputStream os(&stream);
-   JsonWriter jw;
+   JsonWriter jw(strict);
    jw.setCompact(compact);
    if(!compact)
    {
@@ -256,12 +267,12 @@ bool JsonWriter::writeDynamicObjectToStream(
 }
 
 std::string JsonWriter::writeDynamicObjectToString(
-   DynamicObject& dyno, bool compact)
+   DynamicObject& dyno, bool compact, bool strict)
 {
    string rval;
    
    ostringstream oss;
-   if(writeDynamicObjectToStream(dyno, oss, compact))
+   if(writeDynamicObjectToStream(dyno, oss, compact, strict))
    {
       rval = oss.str();
    }
@@ -269,10 +280,14 @@ std::string JsonWriter::writeDynamicObjectToString(
    return rval;
 }
 
-bool JsonWriter::writeDynamicObjectToStdOut(DynamicObject& dyno, bool compact)
+bool JsonWriter::writeDynamicObjectToStdOut(
+   DynamicObject& dyno, bool compact, bool strict)
 {
-   bool rval = writeDynamicObjectToStream(dyno, cout, compact);
-   cout << endl;
-   cout.flush();
+   bool rval;
+   if((rval = writeDynamicObjectToStream(dyno, cout, compact, strict)))
+   {
+      cout << endl;
+      cout.flush();
+   }
    return rval;
 }
