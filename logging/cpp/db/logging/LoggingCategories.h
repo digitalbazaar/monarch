@@ -21,7 +21,7 @@
 # define DLL_IMPORT __DLL_IMPORT
 #endif
 
-DLL_IMPORT db::logging::Category* DB_ALL_CAT;
+DLL_IMPORT db::logging::Category* DB_APP_CAT;
 DLL_IMPORT db::logging::Category* DB_CONFIG_CAT;
 DLL_IMPORT db::logging::Category* DB_CRYPTO_CAT; 
 DLL_IMPORT db::logging::Category* DB_DATA_CAT;

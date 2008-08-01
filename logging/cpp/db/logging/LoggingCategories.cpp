@@ -8,6 +8,7 @@ using namespace db::logging;
  
 // DO NOT INITIALIZE THESE VARIABLES!
 // These are not initialized on purpose due to initialization code issues.
+Category* DB_APP_CAT;
 Category* DB_CONFIG_CAT;
 Category* DB_CRYPTO_CAT; 
 Category* DB_DATA_CAT;
@@ -25,6 +26,10 @@ Category* DB_UTIL_CAT;
 
 void LoggingCategories::initialize()
 {
+   DB_APP_CAT = new Category(
+      "DB_APP",
+      "DB Application",
+      NULL);
    DB_CONFIG_CAT = new Category(
       "DB_CONFIG",
       "DB Config",
