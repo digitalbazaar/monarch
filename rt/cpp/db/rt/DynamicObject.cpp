@@ -36,99 +36,102 @@ bool DynamicObject::operator==(const DynamicObject& rhs)
    DynamicObject* right = (DynamicObject*)&rhs;
    
    rval = Collectable<DynamicObjectImpl>::operator==(rhs);
-   if(!rval && (*left)->getType() == (*right)->getType())
+   if(!rval && !(*left).isNull() && !(*right).isNull())
    {
-      int index = 0;
-      DynamicObjectIterator i;
-      switch((*left)->getType())
+      if((*left)->getType() == (*right)->getType())
       {
-         case String:
-            rval = (strcmp((*left)->getString(), (*right)->getString()) == 0);
-            break;
-         case Boolean:
-            rval = (*left)->getBoolean() == (*right)->getBoolean();
-            break;
-         case Int32:
-            rval = (*left)->getInt32() == (*right)->getInt32();
-            break;
-         case UInt32:
-            rval = (*left)->getUInt32() == (*right)->getUInt32();
-            break;
-         case Int64:
-            rval = (*left)->getInt64() == (*right)->getInt64();
-            break;
-         case UInt64:
-            rval = (*left)->getUInt64() == (*right)->getUInt64();
-            break;
-         case Double:
-            rval = (*left)->getDouble() == (*right)->getDouble();
-            break;
-         case Map:
-            // ensure maps are the same length and contain the same entries
-            if((*left)->length() == (*right)->length())
-            {
-               rval = true;
-               i = left->getIterator();
-               while(rval && i->hasNext())
+         int index = 0;
+         DynamicObjectIterator i;
+         switch((*left)->getType())
+         {
+            case String:
+               rval = (strcmp((*left)->getString(), (*right)->getString()) == 0);
+               break;
+            case Boolean:
+               rval = (*left)->getBoolean() == (*right)->getBoolean();
+               break;
+            case Int32:
+               rval = (*left)->getInt32() == (*right)->getInt32();
+               break;
+            case UInt32:
+               rval = (*left)->getUInt32() == (*right)->getUInt32();
+               break;
+            case Int64:
+               rval = (*left)->getInt64() == (*right)->getInt64();
+               break;
+            case UInt64:
+               rval = (*left)->getUInt64() == (*right)->getUInt64();
+               break;
+            case Double:
+               rval = (*left)->getDouble() == (*right)->getDouble();
+               break;
+            case Map:
+               // ensure maps are the same length and contain the same entries
+               if((*left)->length() == (*right)->length())
                {
-                  DynamicObject dyno = i->next();
-                  if((*right)->hasMember(i->getName()))
+                  rval = true;
+                  i = left->getIterator();
+                  while(rval && i->hasNext())
                   {
-                     rval = ((*right)[i->getName()] == dyno);
-                  }
-                  else
-                  {
-                     rval = false;
+                     DynamicObject dyno = i->next();
+                     if((*right)->hasMember(i->getName()))
+                     {
+                        rval = ((*right)[i->getName()] == dyno);
+                     }
+                     else
+                     {
+                        rval = false;
+                     }
                   }
                }
-            }
-            break;
-         case Array:
-            // ensure arrays are the same length and contain the same elements
-            // in the same order
-            if((*left)->length() == (*right)->length())
-            {
-               rval = true;
-               i = left->getIterator();
-               while(rval && i->hasNext())
+               break;
+            case Array:
+               // ensure arrays are the same length and contain the same elements
+               // in the same order
+               if((*left)->length() == (*right)->length())
                {
-                  rval = ((*right)[index++] == i->next());
+                  rval = true;
+                  i = left->getIterator();
+                  while(rval && i->hasNext())
+                  {
+                     rval = ((*right)[index++] == i->next());
+                  }
                }
-            }
-            break;
+               break;
+         }
       }
-   }
-   else if(!rval)
-   {
-      // compare based on string values
-      switch((*left)->getType())
+      else
       {
-         case String:
-         case Boolean:
-         case Int32:
-         case Int64:
-         case UInt32:
-         case UInt64:
-         case Double:
-            switch((*right)->getType())
-            {
-               case String:
-               case Boolean:
-               case Int32:
-               case UInt32:
-               case Int64:
-               case UInt64:
-               case Double:
-                  rval = (strcmp(
-                     (*left)->getString(),
-                     (*right)->getString()) == 0);
-                  break;
-               default:
-                  break;
-            }
-            break;
-         default:
-            break;
+         // compare based on string values
+         switch((*left)->getType())
+         {
+            case String:
+            case Boolean:
+            case Int32:
+            case Int64:
+            case UInt32:
+            case UInt64:
+            case Double:
+               switch((*right)->getType())
+               {
+                  case String:
+                  case Boolean:
+                  case Int32:
+                  case UInt32:
+                  case Int64:
+                  case UInt64:
+                  case Double:
+                     rval = (strcmp(
+                        (*left)->getString(),
+                        (*right)->getString()) == 0);
+                     break;
+                  default:
+                     break;
+               }
+               break;
+            default:
+               break;
+         }
       }
    }
    

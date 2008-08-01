@@ -286,11 +286,14 @@ void runJsonInvalidDJTest(TestRunner& tr)
    DynamicObject dyno1;
    dyno1 = "";
    
+   DynamicObject dyno2(NULL);
+   
    JsonWriter jw;
    
    DynamicObject* dynos[] = {
       &dyno0,
       &dyno1,
+      &dyno2,
       NULL
    };
    
