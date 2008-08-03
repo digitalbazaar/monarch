@@ -49,6 +49,11 @@ inline bool HttpRequest::receiveBody(OutputStream* os, HttpTrailer* trailer)
    return getConnection()->receiveBody(getHeader(), os, trailer);
 }
 
+inline InputStream* HttpRequest::getBodyInputStream(HttpTrailer* trailer)
+{
+   return getConnection()->getBodyInputStream(getHeader(), trailer);
+}
+
 inline HttpRequestHeader* HttpRequest::getHeader()
 {
    return &mHeader;
