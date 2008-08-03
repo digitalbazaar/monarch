@@ -126,7 +126,8 @@ public:
    
    /**
     * Forces this stream to finish its output, if the stream has such a
-    * function.
+    * function. This will send out the final chunk and any http trailer
+    * associated with this stream.
     * 
     * @return true if the write was successful, false if an IO exception
     *         occurred.
