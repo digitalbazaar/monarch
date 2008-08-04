@@ -8,7 +8,7 @@
 #include "db/net/http/HttpRequest.h"
 #include "db/net/http/HttpResponse.h"
 #include "db/net/SslContext.h"
-#include "db/net/SslSession.h"
+#include "db/net/SslSessionCache.h"
 #include "db/net/Url.h"
 
 namespace db
@@ -150,17 +150,40 @@ public:
     * Exception::getLast().
     * 
     * @param url the url to connect to.
-    * @param timeout the timeout in seconds (0 for indefinite).
     * @param context an SslContext to use ssl, NULL not to.
     * @param session an SSL session to reuse, if any.
+    * @param timeout the timeout in seconds (0 for indefinite).
     * 
     * @return the HttpConnection to the url or NULL if an exception
     *         occurred.
     */
    static HttpConnection* createConnection(
-      Url* url, unsigned int timeout = 30,
+      Url* url,
       db::net::SslContext* sslContext = NULL,
-      db::net::SslSession* session = NULL);
+      db::net::SslSession* session = NULL,
+      unsigned int timeout = 30);
+   
+   /**
+    * Creates an SSL connection to the passed url. This is the preferred
+    * method for establishing an SSL connection because an SSL session cache
+    * is used.
+    * 
+    * The caller of this method is responsible for deleting the returned
+    * connection. If an exception occurs, it can be retrieved via
+    * Exception::getLast().
+    * 
+    * @param url the url to connect to.
+    * @param context an SslContext to use.
+    * @param cache the SSL session cache to use.
+    * @param timeout the timeout in seconds (0 for indefinite).
+    * 
+    * @return the HttpConnection to the url or NULL if an exception
+    *         occurred.
+    */
+   static HttpConnection* createSslConnection(
+      Url* url, db::net::SslContext& context,
+      db::net::SslSessionCache& cache,
+      unsigned int timeout = 30);
    
    /**
     * Creates a connection to the passed address.
@@ -170,17 +193,18 @@ public:
     * Exception::getLast().
     * 
     * @param address the address to connect to.
-    * @param timeout the timeout in seconds (0 for indefinite).
     * @param context an SslContext to use ssl, NULL not to.
     * @param session an SSL session to reuse, if any.
+    * @param timeout the timeout in seconds (0 for indefinite).
     * 
     * @return the HttpConnection to the address or NULL if an exception
     *         occurred.
     */
    static HttpConnection* createConnection(
-      db::net::InternetAddress* address, unsigned int timeout = 30,
-      db::net::SslContext* sslContext = NULL,
-      db::net::SslSession* session = NULL);
+      db::net::InternetAddress* address,
+      db::net::SslContext* context = NULL,
+      db::net::SslSession* session = NULL,
+      unsigned int timeout = 30);
 };
 
 } // end namespace http

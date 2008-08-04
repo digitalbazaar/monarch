@@ -75,7 +75,7 @@ bool HttpClient::connect(Url* url)
       }
       
       if((mConnection = createConnection(
-         &address, 30, ssl, &mSslSession)) != NULL)
+         &address, ssl, &mSslSession, 30)) != NULL)
       {
          // store ssl session if appropriate
          if(ssl != NULL)
@@ -199,16 +199,39 @@ void HttpClient::disconnect()
 }
 
 HttpConnection* HttpClient::createConnection(
-   Url* url, unsigned int timeout, SslContext* context, SslSession* session)
+   Url* url, SslContext* context, SslSession* session,
+   unsigned int timeout)
 {
    // create connection
    InternetAddress address(url->getHost().c_str(), url->getPort());
-   return createConnection(&address, timeout, context, session);
+   return createConnection(&address, context, session, timeout);
+}
+
+HttpConnection* HttpClient::createSslConnection(
+   Url* url, SslContext& context, SslSessionCache& cache,
+   unsigned int timeout)
+{
+   HttpConnection* rval;
+   
+   // get existing ssl session
+   SslSession session = cache.getSession(url);
+   
+   // create ssl connection
+   rval = createConnection(
+      url, &context, session.isNull() ? NULL : &session, timeout);
+   if(rval != NULL)
+   {
+      // store session
+      session = ((SslSocket*)rval->getSocket())->getSession();
+      cache.storeSession(url, session);
+   }
+   
+   return rval;
 }
 
 HttpConnection* HttpClient::createConnection(
-   InternetAddress* address, unsigned int timeout,
-   SslContext* context, SslSession* session)
+   InternetAddress* address, SslContext* context, SslSession* session,
+   unsigned int timeout)
 {
    HttpConnection* rval = NULL;
    
