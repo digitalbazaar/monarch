@@ -81,7 +81,8 @@ public:
     *    ...
     * }
     * 
-    * Optional keys (multiple actions per OptionSpec is allowed):
+    * Action keys which consume arguments cannot appear in parallel.  Actions
+    * which do not, such as setTrue/setFalse/inc/dec, can appear in parallel.
     * 
     * If option found then set DynamicObject as appropriate:
     * "setTrue": DynamicObject | [ DynamicObject[, ...] ]
@@ -100,6 +101,27 @@ public:
     * 
     * Append arg or args to an Array DynamicObject:
     * "append": DynamicObject
+    * 
+    * Set a named config value.  Reads the first argument as a path.  The "set"
+    * target is used to find the final target.  Then this target is assigned
+    * the next argument via the above "arg" process.
+    * "set": DynamicObject
+    *
+    * Paths are split on '.'.  If a segment matches r"[^\]*\$" it is joined
+    * with the next segment.  Ie, if last char is a '\' but the last two chars
+    * are not "\\" then a join occurs but last '\' is dropped.
+    * 
+    * For example, following paths are applied to a target:
+    * "" => target[""]
+    * "a.b.c" => target["a"]["b"]["c"]
+    * "a\.b.c" => target["a.b"]["c"]
+    * "a\\.b.c" => target["a\"]["b"]["c"]
+    * "a\\b.c" => target["a\\b"]["c"]
+    * 
+    * If spec key "isJsonValue" exists and is true then the value argument will
+    * be decoded as a JSON value.  It can be any text that could appear as a
+    * JSON value.  (In other words, it does not have JSON top-level {} or []
+    * requirement)
     * 
     * @param app the App.
     * 

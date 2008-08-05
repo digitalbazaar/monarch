@@ -17,8 +17,11 @@
 #include "db/logging/Logging.h"
 #include "db/rt/Exception.h"
 #include "db/rt/Thread.h"
+#include "db/data/json/JsonReader.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/io/OStreamOutputStream.h"
+#include "db/io/ByteArrayInputStream.h"
+#include "db/util/StringTokenizer.h"
 
 using namespace std;
 using namespace db::app;
@@ -27,6 +30,7 @@ using namespace db::data::json;
 using namespace db::logging;
 using namespace db::io;
 using namespace db::rt;
+using namespace db::util;
 
 // declare table of openSSL mutexes
 pthread_mutex_t* App::sOpenSSLMutexes;
@@ -216,7 +220,93 @@ static bool processOption(
    // flag used to set common exception
    bool hadEnoughArgs = true;
    
-   if(optSpec->hasMember("setTrue"))
+   if(rval && optSpec->hasMember("set"))
+   {
+      (*argsi)++;
+      if((*argsi) != args->end())
+      {
+         // path is first argument
+         const char* path = **argsi;
+         
+         // start target at given root dyno
+         DynamicObject* target = &optSpec["set"];
+         
+         // find real target
+         // split query up by dots with special segment end escaping:
+         // "sss\.sss" == ["sss.sss"]
+         // "sss\\.sss" == ["sss\"]["sss"]
+         // "\\s.s" == ["\\s"]["s"]
+         StringTokenizer st(path, '.');
+         string segment;
+         bool segmentdone = false;
+         while(rval && st.hasNextToken())
+         {
+            const char* tok = st.nextToken();
+            size_t toklen = strlen(tok);
+            if(toklen == 0 || (toklen >= 1 && tok[toklen - 1] != '\\'))
+            {
+               // add basic segment and process
+               segment.append(tok);
+               segmentdone = true;
+            }
+            else if((toklen == 1 && tok[toklen - 1] == '\\') ||
+               (toklen >= 2 && tok[toklen - 1] == '\\' &&
+                  tok[toklen - 2] != '\\'))
+            {
+               // dot escape, use next segment
+               segment.append(tok, toklen - 1);
+               segment.push_back('.');
+            }
+            else if(toklen >= 2 &&
+               tok[toklen] == '\\' && tok[toklen - 1] == '\\')
+            {
+               // \ escape, add all but last char and process
+               segment.append(tok, toklen - 1);
+               segmentdone = true;
+            }
+            else
+            {
+               ostringstream oss;
+               oss << "Internal option parse error for path: " << path << ".";
+               ExceptionRef e = new Exception(oss.str().c_str(),
+                  "db.app.CommandLineError");
+               Exception::setLast(e, false);
+               rval = false;
+            }
+            if(rval && (segmentdone || !st.hasNextToken()))
+            {
+               target = &(*target)[segment.c_str()];
+               segment.clear();
+               segmentdone = false;
+            }
+         }
+         
+         if(rval)
+         {
+            // re-use "arg" processing to get value
+            DynamicObject subSpec;
+            // storage for value
+            subSpec["arg"]->setType(String);
+            // FIXME: should copy all importand fields
+            if(optSpec->hasMember("isJsonValue"))
+            {
+               subSpec["isJsonValue"] = optSpec["isJsonValue"];
+            }
+            rval = processOption(app, args, argsi, opt, subSpec);
+            
+            if(rval)
+            {
+               *target = subSpec["arg"];
+            }
+         }
+      }
+      else
+      {
+         rval = hadEnoughArgs = false;
+      }
+   }
+   
+   if(rval && optSpec->hasMember("setTrue"))
    {
       DynamicObject& target = optSpec["setTrue"];
       if(target->getType() == Array)
@@ -323,13 +413,29 @@ static bool processOption(
       (*argsi)++;
       if((*argsi) != args->end())
       {
-         // target and save type
+         // advance to argument
+         const char* arg = **argsi;
          DynamicObject& target = optSpec["arg"];
-         DynamicObjectType type = target->getType();
-         // advance to argument, then set target as string
-         target = **argsi;
-         // convert back to original type
-         target->setType(type);
+         if(optSpec->hasMember("isJsonValue") &&
+            optSpec["isJsonValue"]->getBoolean())
+         {
+            // JSON value conversion
+            // use non-strict reader
+            JsonReader jr(false);
+            ByteArrayInputStream is(arg, strlen(arg));
+            jr.start(target);
+            rval = rval && jr.read(&is) && jr.finish();
+         }
+         else
+         {
+            // regular type conversion
+            // save target type
+            DynamicObjectType type = target->getType();
+            // set target as string
+            target = arg;
+            // convert back to original type
+            target->setType(type);
+         }
       }
       else
       {
@@ -504,6 +610,10 @@ DynamicObject App::getCommandLineSpec(App* app)
 "                      (default: \"warning\")\n"
 "      --log LOG       Set log file.  Use \"-\" for stdout. (default: \"-\")\n"
 "      --log-overwrite Overwrite log file instead of appending. (default: false)\n"
+"      --option NAME VALUE\n"
+"                      Set dotted config path NAME to the string VALUE.\n"
+"      --json-option NAME JSONVALUE\n"
+"                      Set dotted config path NAME to the decoded JSONVALUE.\n"
 "      --              Treat all remaining options as application arguments.\n"
 "\n";
    
@@ -537,6 +647,15 @@ DynamicObject App::getCommandLineSpec(App* app)
    opt = spec["options"]->append();
    opt["long"] = "--log-overwrite";
    opt["setFalse"] = mConfig["app"]["logging"]["logAppend"];
+  
+   opt = spec["options"]->append();
+   opt["long"] = "--option";
+   opt["set"] = mConfig;
+  
+   opt = spec["options"]->append();
+   opt["long"] = "--json-option";
+   opt["set"] = mConfig;
+   opt["isJsonValue"] = true;
   
    return spec;
 }
