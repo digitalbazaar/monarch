@@ -241,9 +241,8 @@ public:
     * field names more readable.
     * 
     * @param name the name of the header field to BiCapitalize.
-    * @param length returns the length of the header field.
     */
-   static void biCapitalize(char* name, int* length = NULL);
+   static void biCapitalize(char* name);
 };
 
 // typedef for a counted reference to an HttpHeader

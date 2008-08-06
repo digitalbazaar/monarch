@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cctype>
 
 using namespace std;
 using namespace db::io;
@@ -96,7 +97,7 @@ void HttpHeader::setField(const char* name, const string& value)
       mFieldsSize += strlen(name);
       mFieldsSize += value.length();
       char* fieldName = strdup(name);
-      biCapitalize(fieldName, NULL);
+      biCapitalize(fieldName);
       mFields.insert(make_pair(fieldName, value));
    }
 }
@@ -367,44 +368,34 @@ bool HttpHeader::getDate(Date& date)
    return rval;
 }
 
-void HttpHeader::biCapitalize(char* name, int* length)
+void HttpHeader::biCapitalize(char* name)
 {
-   // start at beginning of name
-   char* ptr = name;
-   
-   // 97 = 'a', 122 = 'z'
-   if(ptr[0] > 96 && ptr[0] < 123)
+   // capitalize first letter and letters after hyphens
+   // decapitalize other letters
+   // NOTE: hardcoded version is faster than using toupper/tolower
+   if(name != NULL && *name != '\0')
    {
-      // capitalize letter
-      ptr[0] -= 32;
-   }
-   
-   // capitalize letters after hyphens, decapitalize other letters
-   ptr++;
-   for(; ptr[0] != 0; ptr++)
-   {
-      if((ptr - 1)[0] == '-')
+      char* ptr = name;
+      // cap first
+      if(*ptr >= 'a' && *ptr <= 'z')
       {
-         if(ptr[0] > 96 && ptr[0] < 123)
+         *ptr -= 'a' - 'A';
+      }
+      for(ptr++; *ptr != '\0'; ptr++)
+      {
+         // cap after '-'
+         if(*(ptr - 1) == '-')
          {
-            // capitalize
-            ptr[0] -= 32;
+            if(*ptr >= 'a' && *ptr <= 'z')
+            {
+               *ptr -= 'a' - 'A';
+            }
+         }
+         // decap rest
+         else if(*ptr >= 'A' && *ptr <= 'Z')
+         {
+            *ptr += 'a' - 'A';
          }
       }
-      else
-      {
-         // 65 = 'A', 90 = 'Z'
-         if(ptr[0] > 64 && ptr[0] < 90)
-         {
-            // decapitalize
-            ptr[0] += 32;
-         }
-      }
-   }
-   
-   // return name length if desired
-   if(length != NULL)
-   {
-      *length = (ptr - name);
    }
 }

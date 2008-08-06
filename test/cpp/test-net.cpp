@@ -1347,11 +1347,28 @@ void runHttpHeaderTest(TestRunner& tr)
    tr.test("HttpHeader");
    
    // test bicapitalization of http headers
-   char test[] = "ThIs-a-BICaPitAlized-hEADer";
-   HttpHeader::biCapitalize(test);
-   
-   //cout << "BiCapitalized Header=" << test << endl;
-   assertStrCmp(test, "This-A-Bicapitalized-Header");
+   const char* tests[] = {
+      "", "",
+      "a", "A",
+      "-", "-",
+      "a--a", "A--A",
+      "-aa-", "-Aa-",
+      "-aa", "-Aa",
+      "aa-", "Aa-",
+      "aaa-zzz", "Aaa-Zzz",
+      "ThIs-a-BICaPitAlized-hEADer", "This-A-Bicapitalized-Header",
+      "Message-ID", "Message-Id",
+      NULL
+   };
+   for(int i = 0; tests[i] != NULL; i +=2)
+   {
+      char* bic = strdup(tests[i]);
+      HttpHeader::biCapitalize(bic);
+      
+      //cout << "BiCapitalized Header=" << test << endl;
+      assertStrCmp(bic, tests[i+1]);
+      free(bic);
+   }
    
 //   string t = "   d  f  ";
 //   StringTools::trim(t);
