@@ -105,19 +105,25 @@ protected:
    virtual void waitForWork();
    
    /**
+    * Called to notify that no fibers are in the system.
+    */
+   virtual void noFibersAvailable();
+   
+   /**
     * Queues the passed message for processing.
     * 
     * @param fm the message to queue.
+    * @param system true if it is a system message, false if not.
     */
-   virtual void queueMessage(FiberMessage& fm);
+   virtual void queueMessage(FiberMessage& fm, bool system);
    
    /**
-    * Sends a message to change the state of a Fiber.
+    * Sends a system message to change the state of a Fiber.
     * 
     * @param id the FiberId of the Fiber to send the message to.
     * @param state the new state for the Fiber.
     */
-   virtual void sendStateMessage(FiberId id, Fiber::State state);
+   virtual void sendSystemMessage(FiberId id, Fiber::State state);
    
    /**
     * Processes pending custom messages.
@@ -234,6 +240,20 @@ public:
     * @param id the FiberId of the Fiber to wakeup.
     */
    virtual void wakeup(FiberId id);
+   
+   /**
+    * Interrupts a Fiber.
+    * 
+    * @param id the FiberId of the Fiber to interrupt.
+    */
+   virtual void interrupt(FiberId id);
+   
+   /**
+    * Resumes an interrupted a Fiber.
+    * 
+    * @param id the FiberId of the Fiber to resume.
+    */
+   virtual void resume(FiberId id);
    
    /**
     * Runs this FiberScheduler. This method is executed inside of N modest

@@ -33,6 +33,14 @@ class FiberScheduler;
  * Fibers can have priorities that a FiberScheduler can use to determine their
  * scheduling order.
  * 
+ * There are several methods that are guaranteed to be run non-currently
+ * with themselves and each other:
+ * 
+ * processMessage()
+ * run()
+ * exiting()
+ * interrupted()
+ * 
  * @author Dave Longley
  */
 class Fiber
@@ -41,9 +49,20 @@ public:
    /**
     * A Fiber's execution state.
     */
-   enum State
+   typedef uint8_t State;
+   enum FiberStates
    {
-      None, Idle, Running, Sleeping, Exiting, Exited
+      // states a fiber can be in
+      None        = 0,
+      Running     = 1 << 0,
+      Sleeping    = 1 << 1,
+      Interrupted = 1 << 2,
+      Exiting     = 1 << 3,
+      
+      // special values to alter a fiber's state via system messages
+      Wakeup      = 1 << 4,
+      Resume      = 1 << 5,
+      Dead        = 1 << 6
    };
    
 protected:
@@ -81,15 +100,11 @@ protected:
    virtual void yield();
    
    /**
-    * Causes this Fiber to exit. The Fiber is guaranteed to exit before
-    * run() is called again.
-    */
-   virtual void exit();
-   
-   /**
-    * Causes this Fiber to sleep. The Fiber is guaranteed to sleep() before
-    * run() is called again. The Fiber will remain asleep until it is woken
-    * up or exits.
+    * Causes this Fiber to sleep. If called from a non-concurrent method, then
+    * this Fiber is guaranteed to sleep() before run() or interrupted() is
+    * called again. Subsequent calls to wakeup() will change this.
+    * 
+    * The Fiber will remain asleep until it is woken up or exits.
     */
    virtual void sleep();
    
@@ -97,6 +112,27 @@ protected:
     * Causes this Fiber to wakeup if it was sleeping.
     */
    virtual void wakeup();
+   
+   /**
+    * Causes this Fiber to be interrupted. If called from a non-concurrent
+    * method, then this Fiber is guaranteed to call interrupted() the next
+    * time it is scheduled, rather than run(). Subsequent calls to resume()
+    * will change this.
+    * 
+    * The Fiber will remain interrupted until it is resumed or exits.
+    */
+   virtual void interrupt();
+   
+   /**
+    * Causes this Fiber to resume if it has been interrupted.
+    */
+   virtual void resume();
+   
+   /**
+    * Causes this Fiber to exit. The Fiber is guaranteed to exit before
+    * run() is called again.
+    */
+   virtual void exit();
    
    /**
     * Sends a message to another fiber using the same scheduler.
@@ -118,24 +154,39 @@ public:
    virtual ~Fiber();
    
    /**
-    * Runs this Fiber. This method is guaranteed to be run non-concurrently
-    * with itself, processMessage(), and exiting().
+    * Runs this Fiber while it is not interrupted and not sleeping. If this
+    * Fiber is interrupted, interrupting() will be called instead. If this
+    * Fiber is sleeping, no call will be made.
+    * 
+    * This method is guaranteed to be a non-concurrent method as specified in
+    * the description of the Fiber class.
     */
    virtual void run() = 0;
+   
+   /**
+    * Called when this Fiber has been interrupted. This method should either
+    * cause the Fiber to exit or resume. It will be called repeatedly instead
+    * of run() as long as this fiber is in an interrupted state.
+    * 
+    * This method is guaranteed to be a non-concurrent method as specified in
+    * the description of the Fiber class.
+    */
+   virtual void interrupted() {};
    
    /**
     * Called just prior to this Fiber's exit. One useful override for this
     * function is to send an event indicating that the Fiber has exited.
     * 
-    * This method is guaranteed to be run non-concurrently with itself,
-    * processMessage(), and run().
+    * This method is guaranteed to be a non-concurrent method as specified in
+    * the description of the Fiber class.
     */
    virtual void exiting() {};
    
    /**
-    * Called *only* by a FiberScheduler to have this Fiber process the passed
-    * message. This method is guaranteed to be run non-concurrently with
-    * itself, run(), and exiting().
+    * Called instead of run() when a Fiber is interrupted.
+    * 
+    * This method is guaranteed to be a non-concurrent method as specified in
+    * the description of the Fiber class.
     * 
     * @param msg the message to process.
     */

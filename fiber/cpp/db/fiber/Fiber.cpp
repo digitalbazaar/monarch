@@ -22,6 +22,9 @@ Fiber::~Fiber()
    {
       delete *i;
    }
+   
+   // fiber is deceased
+   mState = Dead;
 }
 
 inline void Fiber::yield()
@@ -44,6 +47,16 @@ inline void Fiber::wakeup()
    mScheduler->wakeup(getId());
 }
 
+inline void Fiber::interrupt()
+{
+   mScheduler->interrupt(getId());
+}
+
+inline void Fiber::resume()
+{
+   mScheduler->resume(getId());
+}
+
 inline void Fiber::sendMessage(FiberId id, db::rt::DynamicObject& msg)
 {
    mScheduler->sendMessage(id, msg);
@@ -53,7 +66,7 @@ void Fiber::setScheduler(FiberScheduler* scheduler, FiberId id)
 {
    mScheduler = scheduler;
    mId = id;
-   mState = Idle;
+   mState = None;
 }
 
 inline void Fiber::addDeferredMessage(DynamicObject* msg)
@@ -83,7 +96,7 @@ inline FiberId Fiber::getId()
    return mId;
 }
 
-inline void Fiber::setState(Fiber::State state)
+inline void Fiber::setState(State state)
 {
    mState = state;
 }
