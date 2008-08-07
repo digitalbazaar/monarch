@@ -104,7 +104,7 @@ protected:
     * this Fiber is guaranteed to sleep() before run() or interrupted() is
     * called again. Subsequent calls to wakeup() will change this.
     * 
-    * The Fiber will remain asleep until it is woken up or exits.
+    * The Fiber will remain asleep until it is woken up, interrupted, or exits.
     */
    virtual void sleep();
    
