@@ -35,7 +35,7 @@ class FiberScheduler;
  * interrupted() call will be called each time it is scheduled, instead of
  * its run() method, even if it is in a sleep state. This is to allow fibers
  * to handle interrupts at any point. If a fiber calls resume(), its interrupted
- * state will be cleared. A fiber may also call exit() from its interruped()
+ * state will be cleared. A fiber may also call exit() from its interrupted()
  * method.
  * 
  * Fibers can have priorities that a FiberScheduler can use to determine their
