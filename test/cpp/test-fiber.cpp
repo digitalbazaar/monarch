@@ -66,8 +66,13 @@ public:
       
       if(--count == 0)
       {
+         //printf("total iterations: %d\n", start);
          exit();
       }
+//      else if(count == 99990)
+//      {
+//         sleep();
+//      }
    }
    
    virtual void interrupted()
@@ -75,6 +80,7 @@ public:
       printf("\nTest fiber '%d' interrupted after %d iterations!\n",
          getId(), start - count);
       exit();
+      //resume();
    }
 };
 

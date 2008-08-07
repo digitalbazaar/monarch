@@ -27,8 +27,16 @@ class FiberScheduler;
  * no Fiber will ever run concurrently with itself.
  * 
  * A Fiber will be continuously run by its FiberScheduler until it exits via a
- * call to exit(). This call can be made in its run() method or in its
- * processMessage() method.
+ * call to exit(). This should be called from run(), processMessage(), or
+ * interrupted().
+ * 
+ * A Fiber can be interrupted by calling interrupt() (or when it receives
+ * an interrupted system message). If a Fiber is interrupted, then its
+ * interrupted() call will be called each time it is scheduled, instead of
+ * its run() method, even if it is in a sleep state. This is to allow fibers
+ * to handle interrupts at any point. If a fiber calls resume(), its interrupted
+ * state will be cleared. A fiber may also call exit() from its interruped()
+ * method.
  * 
  * Fibers can have priorities that a FiberScheduler can use to determine their
  * scheduling order.
@@ -101,8 +109,10 @@ protected:
    
    /**
     * Causes this Fiber to sleep. If called from a non-concurrent method, then
-    * this Fiber is guaranteed to sleep() before run() or interrupted() is
-    * called again. Subsequent calls to wakeup() will change this.
+    * this Fiber is guaranteed to sleep() before run() is called again. If a
+    * fiber is interrupted during a sleep, interrupted() will still be called.
+    * 
+    * Subsequent calls to wakeup() will change this.
     * 
     * The Fiber will remain asleep until it is woken up, interrupted, or exits.
     */

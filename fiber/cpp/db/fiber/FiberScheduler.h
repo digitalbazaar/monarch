@@ -242,7 +242,8 @@ public:
    virtual void wakeup(FiberId id);
    
    /**
-    * Interrupts a Fiber.
+    * Interrupts a Fiber. An interrupted Fiber's interrupted() method will
+    * be called even if it is in a sleep state.
     * 
     * @param id the FiberId of the Fiber to interrupt.
     */

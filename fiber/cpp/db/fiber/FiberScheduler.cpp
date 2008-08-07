@@ -266,48 +266,50 @@ void FiberScheduler::runNextFiber(bool yield)
    // initialize cycleEnd as invalid
    Fiber* fiber = NULL;
    Fiber::State state;
+   bool interrupted;
    FiberId cycleEnd = 0;
    while(fiber == NULL && mFiberItr != mFiberList.end() &&
          (*mFiberItr)->getId() != cycleEnd)
    {
-      // check fiber state (ignoring interrupted status)
-      state = (*mFiberItr)->getState() & ~Fiber::Interrupted;
+      // check fiber state, store interrupted status
+      state = (*mFiberItr)->getState();
+      interrupted = (state & Fiber::Interrupted);
       
-      // if fiber is NOT running and NOT sleeping and NOT exiting
-      if(state == Fiber::None)
+      // if fiber is NOT running
+      if(!(state & Fiber::Running))
       {
-         // idle fiber found, iterate for next cycle
-         fiber = *mFiberItr;
-         nextFiber();
-      }
-      // if fiber is NOT running and IS exiting
-      else if(!(state & Fiber::Running) && (state & Fiber::Exiting))
-      {
-         // remove it
-         removeFiber();
-      }
-      // else fiber must be running OR sleeping and not exiting
-      // and is therefore not available to do work or exit
-      else
-      {
-         if(cycleEnd == 0)
+         // if fiber is exiting
+         if(state & Fiber::Exiting)
          {
-            // set cycleEnd (do not check this fiber again this cycle)
-            cycleEnd = (*mFiberItr)->getId();
+            // remove it and continue
+            removeFiber();
+            continue;
          }
-         
-         // iterate to next fiber
-         nextFiber();
+         // if fiber is either interrupted or NOT sleeping
+         else if(interrupted || !(state & Fiber::Sleeping))
+         {
+            // idle fiber found, iterate for next cycle
+            fiber = *mFiberItr;
+            nextFiber();
+            continue;
+         }
       }
+      
+      // fiber is running OR (not exiting, uninterrupted OR sleeping)
+      // and therefore is not available to be scheduled or exit
+      if(cycleEnd == 0)
+      {
+         // set cycleEnd (do not check this fiber again this cycle)
+         cycleEnd = (*mFiberItr)->getId();
+      }
+      
+      // iterate to next fiber
+      nextFiber();
    }
    
    // see if a fiber was available
    if(fiber != NULL)
    {
-      // determine if interrupting() or run() should be executed
-      state = fiber->getState();
-      bool interrupted = state & Fiber::Interrupted;
-      
       // add running state to fiber
       fiber->setState(state | Fiber::Running);
       
