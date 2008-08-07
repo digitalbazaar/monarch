@@ -42,6 +42,11 @@ inline void Fiber::sleep()
    mScheduler->sleep(getId());
 }
 
+inline bool Fiber::isSleeping()
+{
+   return (mState & Fiber::Sleeping);
+}
+
 inline void Fiber::wakeup()
 {
    mScheduler->wakeup(getId());
@@ -50,6 +55,11 @@ inline void Fiber::wakeup()
 inline void Fiber::interrupt()
 {
    mScheduler->interrupt(getId());
+}
+
+inline bool Fiber::isInterrupted()
+{
+   return (mState & Fiber::Interrupted);
 }
 
 inline void Fiber::resume()

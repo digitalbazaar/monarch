@@ -38,8 +38,8 @@ class FiberScheduler;
  * 
  * processMessage()
  * run()
- * exiting()
  * interrupted()
+ * exiting()
  * 
  * @author Dave Longley
  */
@@ -109,6 +109,13 @@ protected:
    virtual void sleep();
    
    /**
+    * Returns true if this fiber is sleeping, false if not.
+    * 
+    * @return true if this fiber is sleeping, false if not.
+    */
+   virtual bool isSleeping();
+   
+   /**
     * Causes this Fiber to wakeup if it was sleeping.
     */
    virtual void wakeup();
@@ -122,6 +129,13 @@ protected:
     * The Fiber will remain interrupted until it is resumed or exits.
     */
    virtual void interrupt();
+   
+   /**
+    * Returns true if this fiber is interrupted.
+    * 
+    * @return true if this fiber is interrupted, false if not.
+    */
+   virtual bool isInterrupted();
    
    /**
     * Causes this Fiber to resume if it has been interrupted.
@@ -155,7 +169,7 @@ public:
    
    /**
     * Runs this Fiber while it is not interrupted and not sleeping. If this
-    * Fiber is interrupted, interrupting() will be called instead. If this
+    * Fiber is interrupted, interrupted() will be called instead. If this
     * Fiber is sleeping, no call will be made.
     * 
     * This method is guaranteed to be a non-concurrent method as specified in
@@ -164,9 +178,10 @@ public:
    virtual void run() = 0;
    
    /**
-    * Called when this Fiber has been interrupted. This method should either
-    * cause the Fiber to exit or resume. It will be called repeatedly instead
-    * of run() as long as this fiber is in an interrupted state.
+    * Called when this Fiber has been interrupted instead of run(). This method
+    * should either cause the Fiber to exit or resume. It will be called
+    * repeatedly instead of run() as long as this fiber is in an interrupted
+    * state.
     * 
     * This method is guaranteed to be a non-concurrent method as specified in
     * the description of the Fiber class.
@@ -183,7 +198,8 @@ public:
    virtual void exiting() {};
    
    /**
-    * Called instead of run() when a Fiber is interrupted.
+    * Called *only* by a FiberScheduler to have this Fiber process the passed
+    * message.
     * 
     * This method is guaranteed to be a non-concurrent method as specified in
     * the description of the Fiber class.
