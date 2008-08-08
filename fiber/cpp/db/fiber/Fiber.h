@@ -70,6 +70,8 @@ public:
       // special values to alter a fiber's state via system messages
       Wakeup      = 1 << 4,
       Resume      = 1 << 5,
+      
+      // a deleted fiber should be in this state
       Dead        = 1 << 6
    };
    
@@ -198,7 +200,7 @@ public:
     * 
     * The default behavior is to ignore interruptions by resuming.
     */
-   virtual void interrupted() { resume(); };
+   virtual void interrupted();
    
    /**
     * Called just prior to this Fiber's exit. One useful override for this
