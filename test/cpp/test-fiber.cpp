@@ -36,12 +36,14 @@ static inline void iterate()
 class TestFiber : public Fiber
 {
 public:
+   int start;
    int count;
    int dummy;
    int* msgs;
 public:
    TestFiber(int n, int* m = NULL)
    {
+      start = n;
       count = n;
       dummy = 0;
       
@@ -64,8 +66,21 @@ public:
       
       if(--count == 0)
       {
+         //printf("total iterations: %d\n", start);
          exit();
       }
+//      else if(count == 99990)
+//      {
+//         sleep();
+//      }
+   }
+   
+   virtual void interrupted()
+   {
+      printf("\nTest fiber '%d' interrupted after %d iterations!\n",
+         getId(), start - count);
+      exit();
+      //resume();
    }
 };
 
@@ -163,6 +178,24 @@ void runFiberTest(TestRunner& tr)
       
       // assert all messages were delivered
       assert(msgs == 200000);
+   }
+   tr.passIfNoException();
+   
+   tr.test("interrupted fiber");
+   {
+      Kernel k;
+      k.getEngine()->start();
+      
+      FiberScheduler fs;
+      fs.start(&k, 2);
+      
+      TestFiber* fiber = new TestFiber(100000);
+      FiberId id = fs.addFiber(fiber);
+      Thread::sleep(10);
+      fs.interrupt(id);
+      
+      fs.waitForLastFiberExit(true);
+      k.getEngine()->stop();
    }
    tr.passIfNoException();
    

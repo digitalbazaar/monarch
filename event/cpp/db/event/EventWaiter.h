@@ -46,6 +46,12 @@ protected:
    db::rt::DynamicObject mEventTypes;
    
    /**
+    * A stack of events that have occurred.
+    */
+   typedef std::list<Event> EventStack;
+   EventStack mEvents;
+   
+   /**
     * Flag set when an event occurs.  Used to stop deadlock when event occurs
     * between start() and waitForEvent();
     */
@@ -56,11 +62,6 @@ protected:
     */
    bool mRegistered;
    
-   /**
-    * Stores the last event that occurred.
-    */
-   Event mEvent;
-
 public:
 
    /**
@@ -76,20 +77,22 @@ public:
    virtual ~EventWaiter();
 
    /**
-    * Reset the flag that the event occurred.
+    * Reset the flag that an event occurred and clear the stored events.
     */
    virtual void reset();
    
    /**
-    * Register this EventWaiter for the named event.
+    * Register this EventWaiter for the named events. As events occur, they
+    * will be stored in a stack. More than one event may occur between the
+    * time the EventWaiter starts and when it waits for an event.
     * 
     * @param event the event type to wait for.
     */
    virtual void start(const char* event);
    
    /**
-    * Fire the event.  This is a convienience to fire the event but it is not
-    * required to use this method.
+    * Fire the first type of event. This is a convenience to fire the event
+    * but it is not required to use this method.
     */
    virtual void fire();
    
@@ -99,26 +102,27 @@ public:
    virtual void stop();
    
    /**
-    * Observer protocol that is called when the registered event occurs.
+    * Observer protocol that is called when the registered events occur.
     * Designed for internal use.
     */
    virtual void eventOccurred(Event& e);
    
    /**
-    * Block waiting for the registered event to occur.  If the waiting thread
-    * is interrupted this may return false without the event occuring.  In such
-    * cases an exception may be set (see the Object documentation).
+    * Block waiting for the registered events to occur. If the waiting thread
+    * is interrupted this may return false without the event occuring. In such
+    * cases an exception may be set (see the ExclusiveLock documentation).
     * 
-    * @return true if event occurred, false if it did not.
+    * @return true if an event occurred, false if one did not.
     */
    virtual bool waitForEvent();
    
    /**
-    * Returns the last event that occurred.
+    * Returns the oldest event that occurred and removes it from the stack
+    * of events received by this EventWaiter since it started.
     * 
-    * @return the last event that occurred.
+    * @return the oldest event that occurred.
     */
-   virtual Event getLastEvent();
+   virtual Event popEvent();
 };
 
 } // end namespace event
