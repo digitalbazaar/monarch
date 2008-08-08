@@ -7,7 +7,6 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <cctype>
 
 using namespace std;
 using namespace db::io;
