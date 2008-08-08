@@ -27,6 +27,7 @@ EventWaiter::~EventWaiter()
 void EventWaiter::reset()
 {
    mEventOccurred = false;
+   mEvents.clear();
 }
 
 void EventWaiter::start(const char* event)
@@ -73,7 +74,7 @@ void EventWaiter::eventOccurred(Event& e)
    {
       // mark event occurred and notify all observers
       mEventOccurred = true;
-      mEvent = e;
+      mEvents.push_back(e);
       notifyAll();
    }
    unlock();
@@ -93,13 +94,17 @@ bool EventWaiter::waitForEvent()
    return mEventOccurred;
 }
 
-Event EventWaiter::getLastEvent()
+Event EventWaiter::popEvent()
 {
    Event e(NULL);
    
    lock();
    {
-      e = mEvent;
+      if(!mEvents.empty())
+      {
+         e = mEvents.front();
+         mEvents.pop_front();
+      }
    }
    unlock();
    
