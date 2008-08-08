@@ -169,6 +169,7 @@ bool FiberScheduler::processSystemMessages()
          switch(i->state)
          {
             case Fiber::Exiting:
+            case Fiber::Interrupted:
                // add state, fiber thread work may be available
                fiber->setState(state | i->state);
                rval = true;
@@ -176,12 +177,6 @@ bool FiberScheduler::processSystemMessages()
             case Fiber::Sleeping:
                // add sleeping state, fiber thread work unchanged
                fiber->setState(state | i->state);
-               break;
-            case Fiber::Interrupted:
-               // remove sleeping state, add interrupted state,
-               // fiber thread work may be available
-               fiber->setState((state & ~Fiber::Sleeping) | i->state);
-               rval = true;
                break;
             case Fiber::Wakeup:
                // remove sleeping state, fiber thread work may be available
