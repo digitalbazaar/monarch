@@ -72,6 +72,11 @@ inline void Fiber::sendMessage(FiberId id, db::rt::DynamicObject& msg)
    mScheduler->sendMessage(id, msg);
 }
 
+inline void Fiber::interrupted()
+{
+   resume();
+}
+
 void Fiber::setScheduler(FiberScheduler* scheduler, FiberId id)
 {
    mScheduler = scheduler;
