@@ -195,8 +195,10 @@ public:
     * 
     * This method is guaranteed to be a non-concurrent method as specified in
     * the description of the Fiber class.
+    * 
+    * The default behavior is to ignore interruptions by resuming.
     */
-   virtual void interrupted() {};
+   virtual void interrupted() { resume(); };
    
    /**
     * Called just prior to this Fiber's exit. One useful override for this
