@@ -57,7 +57,7 @@ public:
    virtual ~DynamicObjectIteratorImpl();
    
    /**
-    * Checks if this DynamicObjectIterator has more objects.  For simple types
+    * Checks if this DynamicObjectIterator has more objects. For simple types
     * (not Map or Array) this will only return true once.
     * 
     * @return true if this DynamicObjectIterator has more objects, false if not.
@@ -72,7 +72,7 @@ public:
    virtual DynamicObject& next();
    
    /**
-    * Removes the current object.  Only valid for Maps and Arrays.  Invalidates
+    * Removes the current object. Only valid for Maps and Arrays. Invalidates
     * the results of getName() and getIndex() until the next next();
     * 
     * WARNING: Arrays are implemented using vectors and use of remove() will
@@ -83,7 +83,7 @@ public:
    /**
     * Gets the name of the last DynamicObject returned by next() for Maps.
     * For other types or between remove() and the next call to next() the
-    * return value is NULL.  Value not valid after a call to remove().
+    * return value is NULL. Value not valid after a call to remove().
     * 
     * @return the name of the last DynamicObject returned by next() for Maps
     *         otherwise NULL.
@@ -91,9 +91,9 @@ public:
    virtual const char* getName();
    
    /**
-    * Gets the index of the last DynamicObject returned by next().  Before
+    * Gets the index of the last DynamicObject returned by next(). Before
     * next() is called and after a remove() on the first object getIndex()
-    * will return -1.  Value not valid after a call to remove().
+    * will return -1. Value not valid after a call to remove().
     * 
     * @return the index of the last DynamicObject returned by next().
     */
