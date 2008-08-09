@@ -33,22 +33,15 @@ protected:
    int mIndex;
    
    /**
-    * An iterator to the current object in the DynamicObject.
+    * The name of the current object.
     */
-   DynamicObjectImpl::ObjectMap::iterator mMapCurrent;
-   DynamicObjectImpl::ObjectArray::iterator mArrayCurrent;
+   const char* mName;
    
    /**
-    * An iterator to the next object in the DynamicObject.
+    * An iterator for the object in the DynamicObject.
     */
-   DynamicObjectImpl::ObjectMap::iterator mMapNext;
-   DynamicObjectImpl::ObjectArray::iterator mArrayNext;
-   
-   /**
-    * Set to true for non-map/non-array objects once the object has
-    * been returned.
-    */
-   bool mFinished;
+   DynamicObjectImpl::ObjectMap::iterator mMapIterator;
+   DynamicObjectImpl::ObjectArray::iterator mArrayIterator;
    
 public:
    /**
@@ -64,6 +57,14 @@ public:
    virtual ~DynamicObjectIteratorImpl();
    
    /**
+    * Checks if this DynamicObjectIterator has more objects.  For simple types
+    * (not Map or Array) this will only return true once.
+    * 
+    * @return true if this DynamicObjectIterator has more objects, false if not.
+    */
+   virtual bool hasNext();
+   
+   /**
     * Gets the next object and advances the DynamicObjectIterator.
     * 
     * @return the next object.
@@ -71,30 +72,32 @@ public:
    virtual DynamicObject& next();
    
    /**
-    * Returns true if this DynamicObjectIterator has more objects.
+    * Removes the current object.  Only valid for Maps and Arrays.  Invalidates
+    * the results of getName() and getIndex() until the next next();
     * 
-    * @return true if this DynamicObjectIterator has more objects, false if not.
-    */
-   virtual bool hasNext();
-   
-   /**
-    * Removes the current object and advances the DynamicObjectIterator.
+    * WARNING: Arrays are implemented using vectors and use of remove() will
+    *          result in a memory shift of all remaining data.
     */
    virtual void remove();
    
    /**
-    * Gets the name of the last DynamicObject returned by next().
+    * Gets the name of the last DynamicObject returned by next() for Maps.
+    * For other types or between remove() and the next call to next() the
+    * return value is NULL.  Value not valid after a call to remove().
     * 
-    * @return the name of the last DynamicObject returned by next().
+    * @return the name of the last DynamicObject returned by next() for Maps
+    *         otherwise NULL.
     */
-   const char* getName();
+   virtual const char* getName();
    
    /**
-    * Gets the index of the last DynamicObject returned by next().
+    * Gets the index of the last DynamicObject returned by next().  Before
+    * next() is called and after a remove() on the first object getIndex()
+    * will return -1.  Value not valid after a call to remove().
     * 
     * @return the index of the last DynamicObject returned by next().
     */
-   int getIndex();
+   virtual int getIndex();
 };
 
 /**

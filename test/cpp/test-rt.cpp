@@ -12,6 +12,7 @@
 #include "db/rt/SharedLock.h"
 #include "db/rt/System.h"
 #include "db/rt/JobDispatcher.h"
+#include "db/data/json/JsonWriter.h"
 
 #include <iostream>
 #include <cstdlib>
@@ -470,12 +471,15 @@ void runDynamicObjectTest(TestRunner& tr)
    DynamicObject dyno6;
    dyno6["eggs"] = "bacon";
    dyno6["milk"] = "yum";
-   assertStrCmp(dyno6->removeMember("milk")->getString(), "yum");
+   assertStrCmp(dyno6["milk"]->getString(), "yum");
+   dyno6->removeMember("milk");
+   assert(!dyno6->hasMember("milk"));
+   assert(dyno6->length() == 1);
    count = 0;
    i = dyno6.getIterator();
    while(i->hasNext())
    {
-      DynamicObject next = i->next();
+      DynamicObject& next = i->next();
       assertStrCmp(i->getName(), "eggs");
       assertStrCmp(next->getString(), "bacon");
       count++;
@@ -633,6 +637,23 @@ void runDynoRemoveTest(TestRunner& tr)
 {
    tr.group("DynamicObject remove");
 
+   tr.test("array of 1");
+   {
+      DynamicObject d1;
+      d1[0] = 0;
+   
+      DynamicObject d2;
+      d2->setType(Array);
+   
+      DynamicObjectIterator i = d1.getIterator();
+      assert(i->hasNext());
+      i->next();
+      i->remove();
+      assert(!i->hasNext());
+      assertDynoCmp(d1, d2);
+   }
+   tr.passIfNoException();
+   
    tr.test("array");
    {
       DynamicObject d1;
@@ -648,7 +669,7 @@ void runDynoRemoveTest(TestRunner& tr)
       DynamicObjectIterator i = d1.getIterator();
       while(i->hasNext())
       {
-         DynamicObject next = i->next();
+         DynamicObject& next = i->next();
    
          if(count == 1)
          {
@@ -659,10 +680,27 @@ void runDynoRemoveTest(TestRunner& tr)
          count++;
       }
       
-      assert(d1 == d2);
+      assertDynoCmp(d1, d2);
    }
    tr.passIfNoException();
    
+   tr.test("map of 1");
+   {
+      DynamicObject d1;
+      d1["0"] = 0;
+   
+      DynamicObject d2;
+      d2->setType(Map);
+   
+      DynamicObjectIterator i = d1.getIterator();
+      assert(i->hasNext());
+      i->next();
+      i->remove();
+      assert(!i->hasNext());
+      assertDynoCmp(d1, d2);
+   }
+   tr.passIfNoException();
+
    tr.test("map");
    {
       DynamicObject d1;
@@ -678,7 +716,7 @@ void runDynoRemoveTest(TestRunner& tr)
       DynamicObjectIterator i = d1.getIterator();
       while(i->hasNext())
       {
-         DynamicObject next = i->next();
+         DynamicObject& next = i->next();
    
          if(count == 1)
          {
@@ -689,7 +727,7 @@ void runDynoRemoveTest(TestRunner& tr)
          count++;
       }
       
-      assert(d1 == d2);
+      assertDynoCmp(d1, d2);
    }
    tr.passIfNoException();
 
@@ -711,7 +749,7 @@ void runDynoIndexTest(TestRunner& tr)
       DynamicObjectIterator i = d.getIterator();
       while(i->hasNext())
       {
-         DynamicObject next = i->next();
+         i->next();
          assert(count == i->getIndex());
          count++;
       }
@@ -725,21 +763,24 @@ void runDynoIndexTest(TestRunner& tr)
       d[1] = 1;
       d[2] = 2;
    
-      int count = 0;
+      int count = -1;
+      bool done = false;
       DynamicObjectIterator i = d.getIterator();
       while(i->hasNext())
       {
-         DynamicObject next = i->next();
+         DynamicObject& next = i->next();
+         count++;
          assert(count == i->getIndex());
    
-         if(count == 1)
+         if(!done && count == 1)
          {
-            assert(next->getUInt32() == 1);
+            uint32_t val = next->getUInt32(); 
+            assert(val == 1);
             i->remove();
-            assert(i->getIndex() == (count - 1));
+            count--;
+            assert(i->getIndex() == count);
+            done = true;
          }
-         
-         count++;
       }
    }
    tr.passIfNoException();
@@ -755,7 +796,7 @@ void runDynoIndexTest(TestRunner& tr)
       DynamicObjectIterator i = d.getIterator();
       while(i->hasNext())
       {
-         DynamicObject next = i->next();
+         i->next();
          assert(count == i->getIndex());
          count++;
       }
@@ -769,11 +810,12 @@ void runDynoIndexTest(TestRunner& tr)
       d["1"] = 1;
       d["2"] = 2;
    
-      int count = 0;
+      int count = -1;
       DynamicObjectIterator i = d.getIterator();
       while(i->hasNext())
       {
-         DynamicObject next = i->next();
+         DynamicObject& next = i->next();
+         count++;
    
          if(count == 1)
          {
@@ -781,8 +823,6 @@ void runDynoIndexTest(TestRunner& tr)
             i->remove();
             assert(i->getIndex() == (count - 1));
          }
-         
-         count++;
       }
    }
    tr.passIfNoException();
