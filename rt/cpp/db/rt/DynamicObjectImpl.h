@@ -105,6 +105,13 @@ protected:
     */
    virtual void freeData();
    
+   /**
+    * Removes a member from this map object.
+    * 
+    * @param it iterator to the member to remove from this object.
+    */
+   virtual void removeMember(ObjectMap::iterator iterator);
+   
 public:
    /**
     * Creates a new DynamicObjectImpl.
@@ -272,10 +279,8 @@ public:
     * Removes a member from this object, if it has it.
     * 
     * @param name the member to remove from this object.
-    * 
-    * @return the removed object, if one was removed, otherwise NULL.
     */
-   virtual DynamicObject removeMember(const char* name);
+   virtual void removeMember(const char* name);
    
    /**
     * Clears associated data.

@@ -510,30 +510,29 @@ bool DynamicObjectImpl::hasMember(const char* name)
    
    if(mType == Map)
    {
-      ObjectMap::iterator i = mMap->find(name);
-      rval = (i != mMap->end());
+      rval = (mMap->count(name) != 0);
    }
    
    return rval;
 }
 
-DynamicObject DynamicObjectImpl::removeMember(const char* name)
+void DynamicObjectImpl::removeMember(ObjectMap::iterator iterator)
 {
-   DynamicObject rval(NULL);
-   
+   // clean up key and remove map entry
+   free((char*)iterator->first);
+   mMap->erase(iterator);
+}
+
+void DynamicObjectImpl::removeMember(const char* name)
+{
    if(mType == Map)
    {
       ObjectMap::iterator i = mMap->find(name);
       if(i != mMap->end())
       {
-         // clean up key and remove map entry
-         free((char*)i->first);
-         rval = i->second;
-         mMap->erase(i);
+         removeMember(i);
       }
    }
-   
-   return rval;
 }
 
 void DynamicObjectImpl::clear()

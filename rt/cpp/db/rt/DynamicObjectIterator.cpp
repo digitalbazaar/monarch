@@ -13,18 +13,18 @@ DynamicObjectIteratorImpl::DynamicObjectIteratorImpl(DynamicObject dyno)
 {
    mObject = dyno;
    mIndex = -1;
-   
-   if(mObject->getType() == Map)
+   mName = NULL;
+
+   switch(mObject->getType())
    {
-      mMapNext = mMapCurrent = mObject->mMap->begin();
-   }
-   else if(mObject->getType() == Array)
-   {
-      mArrayNext = mArrayCurrent = mObject->mArray->begin();
-   }
-   else
-   {
-      mFinished = false;
+      case Map:
+         mMapIterator = mObject->mMap->begin();
+         break;
+      case Array:
+         mArrayIterator = mObject->mArray->begin();
+         break;
+      default:
+         break;
    }
 }
 
@@ -32,93 +32,79 @@ DynamicObjectIteratorImpl::~DynamicObjectIteratorImpl()
 {
 }
 
+bool DynamicObjectIteratorImpl::hasNext()
+{
+   bool rval;
+   
+   switch(mObject->getType())
+   {
+      case Map:
+         rval = (mMapIterator != mObject->mMap->end());
+         break;
+      case Array:
+         rval = (mArrayIterator != mObject->mArray->end());
+         break;
+      default:
+         rval = (mIndex != 0);
+         break;
+   }
+   
+   return rval;
+}
+
 DynamicObject& DynamicObjectIteratorImpl::next()
 {
-   DynamicObject* rval = NULL;
+   DynamicObject* rval;
    
-   if(mObject->getType() == Map)
+   switch(mObject->getType())
    {
-      mMapCurrent = mMapNext;
-      mMapNext++;
-      rval = &mMapCurrent->second;
-      mIndex++;
-   }
-   else if(mObject->getType() == Array)
-   {
-      mArrayCurrent = mArrayNext;
-      mArrayNext++;
-      rval = &(*mArrayCurrent);
-      mIndex++;
-   }
-   else if(!mFinished)
-   {
-      // return this object
-      rval = &mObject;
-      mFinished = true;
-      mIndex++;
+      case Map:
+         rval = &mMapIterator->second;
+         mIndex++;
+         mName = mMapIterator->first;
+         mMapIterator++;
+         break;
+      case Array:
+         rval = &(*mArrayIterator);
+         mIndex++;
+         mArrayIterator++;
+         break;
+      default:
+         // always return this object
+         rval = &mObject;
+         mIndex = 0;
+         break;
    }
    
    return *rval;
 }
 
-bool DynamicObjectIteratorImpl::hasNext()
-{
-   bool rval = false;
-   
-   if(mObject->getType() == Map)
-   {
-      rval = (mMapNext != mObject->mMap->end());
-   }
-   else if(mObject->getType() == Array)
-   {
-      rval = (mArrayNext != mObject->mArray->end());
-   }
-   else
-   {
-      rval = !mFinished;
-   }
-   
-   return rval;
-}
-
 void DynamicObjectIteratorImpl::remove()
 {
-   if(mObject->getType() == Map)
+   switch(mObject->getType())
    {
-      // NOTE: We already have the iterator here so just duplicating the key
-      // free instead of calling mMap->removeMember(mMapCurrent->first)
-      free((char*)mMapCurrent->first);
-      mObject->mMap->erase(mMapCurrent);
-      mIndex--;
-   }
-   else if(mObject->getType() == Array)
-   {
-      mObject->mArray->erase(mArrayCurrent);
-      mIndex--;
-   }
-   else
-   {
-      // not supported
-      ExceptionRef e = new Exception(
-         "DynamicObjectIterator::remove() not supported!");
-      Exception::setLast(e, false);
+      case Map:
+      {
+         // copy iterator and reverse to previous position for deletion
+         DynamicObjectImpl::ObjectMap::iterator last = mMapIterator;
+         last--;
+         mObject->removeMember(last);
+         mIndex--;
+         mName = NULL;
+         break;
+      }
+      case Array:
+         mArrayIterator = mObject->mArray->erase(--mArrayIterator);
+         mIndex--;
+         break;
+      default:
+         break;
    }
 }
 
 const char* DynamicObjectIteratorImpl::getName()
 {
-   const char* rval;
-   
-   if(mObject->getType() == Map)
-   {
-      rval = mMapCurrent->first;
-   }
-   else
-   {
-      rval = "";
-   }
-   
-   return rval;
+   return mName;
 }
 
 int DynamicObjectIteratorImpl::getIndex()

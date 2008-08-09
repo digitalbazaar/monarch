@@ -202,6 +202,8 @@ void runMySqlStatementTest(TestRunner& tr)
    
    // clean up mysql
    mysql_library_end();
+   
+   tr.ungroup();
 }
 
 class MySqlConnectionPoolTest : public Runnable
