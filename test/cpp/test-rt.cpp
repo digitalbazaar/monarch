@@ -546,6 +546,78 @@ void runDynamicObjectTest(TestRunner& tr)
       }
       assert(count == 1);
    }
+   
+   {
+      // test length types
+      {
+         DynamicObject d;
+         assert(d->length() == 0);
+      }
+      {
+         DynamicObject d;
+         d->setType(String);
+         assert(d->length() == 0);
+         d = "123";
+         assert(d->length() == 3);
+      }
+      {
+         DynamicObject d;
+         d->setType(Map);
+         assert(d->length() == 0);
+         d["1"] = 1;
+         d["2"] = 2;
+         d["3"] = 3;
+         assert(d->length() == 3);
+      }
+      {
+         DynamicObject d;
+         d->setType(Array);
+         assert(d->length() == 0);
+         d[0] = 1;
+         d[1] = 2;
+         d[2] = 3;
+         assert(d->length() == 3);
+      }
+      {
+         DynamicObject d;
+         d->setType(Array);
+         assert(d->length() == 0);
+         d->append() = 1;
+         d->append() = 2;
+         d->append() = 3;
+         assert(d->length() == 3);
+      }
+      {
+         DynamicObject d;
+         d->setType(Boolean);
+         assert(d->length() == 1);
+      }
+      {
+         DynamicObject d;
+         d->setType(Int32);
+         assert(d->length() == sizeof(int32_t));
+      }
+      {
+         DynamicObject d;
+         d->setType(UInt32);
+         assert(d->length() == sizeof(uint32_t));
+      }
+      {
+         DynamicObject d;
+         d->setType(Int64);
+         assert(d->length() == sizeof(int64_t));
+      }
+      {
+         DynamicObject d;
+         d->setType(UInt64);
+         assert(d->length() == sizeof(uint64_t));
+      }
+      {
+         DynamicObject d;
+         d->setType(Double);
+         assert(d->length() == sizeof(double));
+      }
+   }
 
    tr.pass();
 }
