@@ -1324,7 +1324,7 @@ void runTemplateParserTest(TestRunner& tr)
          "This is a number 5";
       
       // null-terminate output
-      output.put(0, true);
+      output.putByte(0, 1, true);
       
       // assert expected value
       assertStrCmp(expect, output.data());
