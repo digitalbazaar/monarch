@@ -4,6 +4,7 @@
 #ifndef db_app_App_H
 #define db_app_App_H
 
+#include "db/logging/Logging.h"
 #include "db/rt/Runnable.h"
 #include "db/rt/Exception.h"
 #include "db/config/ConfigManager.h"
@@ -25,7 +26,7 @@ class App;
  * 
  * Author: David I. Lehn
  */
-class AppDelegate : public virtual db::rt::ExclusiveLock
+class AppDelegate
 {
 public:
    /**
@@ -44,13 +45,6 @@ public:
     * @param app the App.
     */
    virtual void registeredForApp(App* app);
-   
-   /**
-    * Run all tests and set mExitStatus.
-    * 
-    * @param app the App.
-    */
-   virtual void run(App* app);
    
    /**
     * Get a specification of the command line paramters.  The spec is in the
@@ -123,11 +117,9 @@ public:
     * JSON value.  (In other words, it does not have JSON top-level {} or []
     * requirement)
     * 
-    * @param app the App.
-    * 
     * @return the command line spec
     */
-   virtual db::rt::DynamicObject getCommandLineSpec(App* app);
+   virtual db::rt::DynamicObject getCommandLineSpec();
    
    /**
     * Called before the default App processes the command line arguments.
@@ -136,37 +128,58 @@ public:
     * This hook should be used if a delegate needs to processes arguments
     * before normal default App processing.
     * 
-    * @param app the App.
     * @param args read-only vector of command line arguments.
     * 
     * @return true on success, false on failure and exception set
     */
-   virtual bool willParseCommandLine(App* app, std::vector<const char*>* args);
+   virtual bool willParseCommandLine(std::vector<const char*>* args);
 
    /**
     * Called after the default App processes the command line arguments.
     * AppDelegates may use this hook to check and process the command line
     * args.
     * 
-    * @param app the App.
-    * 
     * @return true on success, false on failure and exception set
     */
-   virtual bool didParseCommandLine(App* app);
+   virtual bool didParseCommandLine();
 
    /**
     * Called after App::initializeLogging()
-    * 
-    * @param app the App.
     */
-   virtual void didInitializeLogging(App* app);
+   virtual void didInitializeLogging();
    
    /**
     * Called before App::cleanupLogging()
-    * 
-    * @param app the App.
     */
-   virtual void willCleanupLogging(App* app);
+   virtual void willCleanupLogging();
+   
+   /**
+    * See run().
+    * 
+    * @return true on success, false on failure and exception set
+    */
+   virtual bool initializeRun();
+   
+   /**
+    * Run the app.  The sequence of events is (error handling not shown):
+    * 
+    * delegate->initializeRun()
+    * app->startLogging()
+    * delegate->runApp()
+    * app->stopLogging();
+    * delegate->cleanupRun();
+    * 
+    * If logging options need to be set on the apps config, do so in
+    * initializeRun(). 
+    * 
+    * @return true on success, false on failure and exception set
+    */
+   virtual bool runApp();
+   
+   /**
+    * See run().
+    */
+   virtual void cleanupRun();
 };
 
 /**
@@ -229,9 +242,19 @@ protected:
    std::vector<const char*> mCommandLineArgs;
    
    /**
-    * Configuration from the command line stored in a "app" member.
+    * Configuration for this App.
     */
-   db::config::Config mConfig;
+   db::config::Config mAppConfig;
+   
+   /**
+    * Temporary command line options and specs storage.
+    */
+   db::config::Config mCLConfig;
+   
+   /**
+    * ConfigManager for this App.
+    */
+   db::config::ConfigManagerRef mConfigManager;
    
    /**
     * A table of pthread mutexes for openSSL.
@@ -258,6 +281,25 @@ protected:
     * @param line the line in the file (unused).
     */
    static void openSSLHandleLock(int mode, int n, const char* file, int line);
+   
+   /**
+    * The default logger.
+    */
+   db::logging::Logger* mLogger;
+   
+   /**
+    * Start the defauilt logger if enabled.
+    * 
+    * @return true on succes, false and exception on failure.
+    */
+   virtual bool startLogging();
+   
+   /**
+    * Stop the default logger if enabled;
+    * 
+    * @return true on succes, false and exception on failure.
+    */
+   virtual bool stopLogging();
    
 public:
    /**
@@ -341,6 +383,22 @@ public:
    virtual int getExitStatus();
    
    /**
+    * Gets this app's Config.  This config is automatically added to the
+    * default ConfigManager.  Remember to call update on the ConfigManager
+    * after updates.
+    * 
+    * @return the Config for this app.
+    */
+   virtual db::config::Config& getConfig();
+   
+   /**
+    * Gets this app's ConfigManager.
+    * 
+    * @return the ConfigManager for this app.
+    */
+   virtual db::config::ConfigManagerRef& getConfigManager();
+   
+   /**
     * Run all tests and set mExitStatus.
     */
    virtual void run();
@@ -366,46 +424,26 @@ public:
     * -v, --verbose: set verbose mode for use by apps
     * --log-level: parse and set a log level variable
     * 
-    * @param app the App.
-    * 
     * @return the command line spec
     */
-   virtual db::rt::DynamicObject getCommandLineSpec(App* app);
+   virtual db::rt::DynamicObject getCommandLineSpec();
 
    /**
     * Setup default for default command line options.
     * 
-    * @param app the App.
     * @param args read-only vector of command line arguments.
     * 
     * @return true on success, false on failure and exception set
     */
-   virtual bool willParseCommandLine(App* app, std::vector<const char*>* args);
+   virtual bool willParseCommandLine(std::vector<const char*>* args);
    
    /**
     * Process default command line options.
     * 
-    * @param app the App.
-    * 
     * @return true on success, false on failure and exception set
     */
-   virtual bool didParseCommandLine(App* app);
+   virtual bool didParseCommandLine();
    
-   /**
-    * Return the base app configuration.  This configuration is initialized
-    * with default values and may be overridden with command line paramters.
-    * 
-    * Current values are:
-    * c["app"]["logging"]["level"]:
-    *    textual Logger level (default: "warning")
-    * c["app"]["verbose"]["level"]:
-    *    integer verbose level which increases by 1 for each use of -v or
-    *    --verbose command line flag (default: 0)
-    * 
-    * @return the configuration.
-    */
-   virtual db::config::Config& getConfig();
-
    /**
     * Initialize OpenSSL.
     */

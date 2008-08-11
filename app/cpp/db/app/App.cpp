@@ -14,13 +14,16 @@
 #include <sstream>
 #include <vector>
 
-#include "db/logging/Logging.h"
-#include "db/rt/Exception.h"
-#include "db/rt/Thread.h"
 #include "db/data/json/JsonReader.h"
 #include "db/data/json/JsonWriter.h"
-#include "db/io/OStreamOutputStream.h"
+#include "db/logging/Logging.h"
+#include "db/logging/OutputStreamLogger.h"
 #include "db/io/ByteArrayInputStream.h"
+#include "db/io/File.h"
+#include "db/io/FileOutputStream.h"
+#include "db/io/OStreamOutputStream.h"
+#include "db/rt/Exception.h"
+#include "db/rt/Thread.h"
 #include "db/util/StringTokenizer.h"
 
 using namespace std;
@@ -44,11 +47,18 @@ App::App()
    setName("(unknown)");
    mVersion = NULL;
    mDelegate = NULL;
+   setDelegate(this);
+   mConfigManager = new ConfigManager;
    
-   mConfig["app"]["logging"]["level"] = "warning";
-   mConfig["app"]["logging"]["log"] = "-";
-   mConfig["app"]["logging"]["logAppend"] = true;
-   mConfig["app"]["verbose"]["level"] = (uint64_t)0;
+   mAppConfig->setType(Map);
+   mAppConfig["app"]["debug"]["init"] = false;
+   mAppConfig["app"]["config"]["dump"] = false;
+   mAppConfig["app"]["logging"]["enabled"] = true;
+   mAppConfig["app"]["logging"]["level"] = "warning";
+   mAppConfig["app"]["logging"]["log"] = "-";
+   mAppConfig["app"]["logging"]["logAppend"] = true;
+   mAppConfig["app"]["verbose"]["level"] = (uint64_t)0;
+   getConfigManager()->addConfig(mAppConfig);
 }
 
 App::~App()
@@ -56,6 +66,7 @@ App::~App()
    setProgramName(NULL);
    setName(NULL);
    setVersion(NULL);
+   mLogger = NULL;
 }
 
 unsigned long App::openSSLSetId()
@@ -137,11 +148,8 @@ void App::setDelegate(AppDelegate* delegate)
       // unregister previous delegate
       mDelegate->registeredForApp(NULL);
    }
-   mDelegate = delegate;
-   if(mDelegate != NULL)
-   {
-      mDelegate->registeredForApp(this);
-   }
+   mDelegate = (delegate != NULL) ? delegate : this;
+   mDelegate->registeredForApp(this);
 }
 
 AppDelegate* App::getDelegate()
@@ -201,12 +209,102 @@ int App::getExitStatus()
    return mExitStatus;
 }
 
+Config& App::getConfig()
+{
+   return mAppConfig;
+}
+
+ConfigManagerRef& App::getConfigManager()
+{
+   return mConfigManager;
+}
+
+bool App::startLogging()
+{
+   bool rval = true;
+   
+   // get logging config
+   Config& cfg = getConfigManager()->getConfig()["app"]["logging"];
+   
+   if(cfg["enabled"]->getBoolean())
+   {
+      // setup logging
+      OutputStream* logStream;
+      const char* logFile = cfg["log"]->getString();
+      if(strcmp(logFile, "-") == 0)
+      {
+         logStream = new OStreamOutputStream(&cout);
+      }
+      else
+      {
+         bool append = cfg["logAppend"]->getBoolean();
+         File f(logFile);
+         logStream = new FileOutputStream(f, append);
+      }
+      mLogger = new OutputStreamLogger(logStream, true);
+      // FIXME: add cfg option to pick categories to log
+      //Logger::addLogger(&mLogger, BM_..._CAT);
+      // FIXME: add cfg options for logging options
+      //logger.setDateFormat("%H:%M:%S");
+      //logger.setFlags(logger.getFlags() | Logger::LogThread);
+      Logger::Level logLevel;
+      const char* levelStr = cfg["level"]->getString(); 
+      bool found = Logger::stringToLevel(levelStr, logLevel);
+      if(found)
+      {
+         mLogger->setLevel((Logger::Level)logLevel);
+      }
+      else
+      {
+         ostringstream oss;
+         oss << "Invalid app.logging.level: " <<
+            (levelStr ? levelStr : "\"\"") << ".";
+         ExceptionRef e =
+            new Exception(oss.str().c_str(), "bitmunk.app.ConfigError");
+         Exception::setLast(e, false);
+         rval = false;
+      }
+      Logger::addLogger(mLogger);
+
+      // NOTE: logging is now initialized.  use logging system after this point
+   }
+   
+   return rval;
+}
+
+bool App::stopLogging()
+{
+   bool rval = true;
+   
+   if(mLogger != NULL)
+   {
+      Logger::removeLogger(mLogger);
+      delete mLogger;
+      mLogger = NULL;
+   }
+   
+   return rval;
+}
+
 void App::run()
 {
-   if(mDelegate != this)
+   bool success;
+   bool loggingStarted;
+   
+   success = mDelegate->initializeRun();
+   if(success)
    {
-      mDelegate->run(this);
+      loggingStarted = startLogging();
    }
+   if(success && loggingStarted)
+   {
+      success = mDelegate->runApp();
+   }
+   if(loggingStarted)
+   {
+      stopLogging();
+   }
+   mDelegate->cleanupRun();
 }
 
 static bool processOption(
@@ -507,8 +605,7 @@ bool App::parseCommandLine(vector<const char*>* args)
          do
          {
             const char* arg = *i;
-            DynamicObjectIterator si =
-               mConfig["app"]["cl"]["specs"].getIterator();
+            DynamicObjectIterator si = mCLConfig["specs"].getIterator();
             while(rval && si->hasNext())
             {
                DynamicObject& spec = si->next();
@@ -553,8 +650,7 @@ bool App::parseCommandLine(vector<const char*>* args)
             
             // process arg for each spec
             bool found = false;
-            DynamicObjectIterator si =
-               mConfig["app"]["cl"]["specs"].getIterator();
+            DynamicObjectIterator si = mCLConfig["specs"].getIterator();
             while(rval && si->hasNext())
             {
                DynamicObject& spec = si->next();
@@ -593,7 +689,7 @@ bool App::parseCommandLine(vector<const char*>* args)
    return rval;
 }
 
-DynamicObject App::getCommandLineSpec(App* app)
+DynamicObject App::getCommandLineSpec()
 {
    DynamicObject spec;
    spec["help"] =
@@ -602,7 +698,8 @@ DynamicObject App::getCommandLineSpec(App* app)
 "\n"
 "General options:\n"
 "  -V, --version       Prints the software version.\n"
-"  -v, --verbose       Increase verbosity level by 1 (default: 0).\n"
+"  -v, --verbose       Increase verbosity level by 1. (default: 0)\n"
+"      --no-log        Disable default logging. (default: enabled)\n"
 "      --log-level LEVEL\n"
 "                      Set log level to one of the following (listed in\n"
 "                      increasing level of detail): n[one], e[rror], w[arning],\n"
@@ -610,11 +707,15 @@ DynamicObject App::getCommandLineSpec(App* app)
 "                      (default: \"warning\")\n"
 "      --log LOG       Set log file.  Use \"-\" for stdout. (default: \"-\")\n"
 "      --log-overwrite Overwrite log file instead of appending. (default: false)\n"
+"      --              Treat all remaining options as application arguments.\n"
+"\n"
+"Config options:\n"
+"      --debug-config  Debug the configuration loading process to stdout.\n"
+"      --dump-config   Load and dump all configuration data to stdout.\n"
 "      --option NAME VALUE\n"
 "                      Set dotted config path NAME to the string VALUE.\n"
 "      --json-option NAME JSONVALUE\n"
 "                      Set dotted config path NAME to the decoded JSONVALUE.\n"
-"      --              Treat all remaining options as application arguments.\n"
 "\n";
    
    DynamicObject opt;
@@ -622,73 +723,92 @@ DynamicObject App::getCommandLineSpec(App* app)
    opt = spec["options"]->append();
    opt["short"] = "-h";
    opt["long"] = "--help";
-   opt["setTrue"] = mConfig["app"]["cl"]["printHelp"];
-  
+   opt["setTrue"] = mCLConfig["options"]["printHelp"];
+   
    opt = spec["options"]->append();
    opt["short"] = "-V";
    opt["long"] = "--version";
-   opt["setTrue"] = mConfig["app"]["cl"]["printVersion"];
-  
+   opt["setTrue"] = mCLConfig["options"]["printVersion"];
+   
    opt = spec["options"]->append();
    opt["short"] = "-v";
    opt["long"] = "--verbose";
-   opt["inc"] = mConfig["app"]["verbose"]["level"];
-  
+   opt["inc"] = mAppConfig["app"]["verbose"]["level"];
+   
+   opt = spec["options"]->append();
+   opt["long"] = "--no-log";
+   opt["setFalse"] = mAppConfig["app"]["logging"]["enabled"];
+   
    opt = spec["options"]->append();
    opt["long"] = "--log-level";
-   opt["arg"] = mConfig["app"]["logging"]["level"];
+   opt["arg"] = mAppConfig["app"]["logging"]["level"];
    opt["argError"] = "No log level specified.";
-  
+   
    opt = spec["options"]->append();
    opt["long"] = "--log";
-   opt["arg"] = mConfig["app"]["logging"]["log"];
+   opt["arg"] = mAppConfig["app"]["logging"]["log"];
    opt["argError"] = "No log file specified.";
-  
+   
    opt = spec["options"]->append();
    opt["long"] = "--log-overwrite";
-   opt["setFalse"] = mConfig["app"]["logging"]["logAppend"];
-  
+   opt["setFalse"] = mAppConfig["app"]["logging"]["logAppend"];
+   
    opt = spec["options"]->append();
    opt["long"] = "--option";
-   opt["set"] = mConfig;
-  
+   opt["set"] = mAppConfig;
+   
    opt = spec["options"]->append();
    opt["long"] = "--json-option";
-   opt["set"] = mConfig;
+   opt["set"] = mAppConfig;
    opt["isJsonValue"] = true;
-  
+   
+   opt = spec["options"]->append();
+   opt["long"] = "--debug-config";
+   opt["setTrue"] = mAppConfig["app"]["config"]["debug"];
+   
+   opt = spec["options"]->append();
+   opt["long"] = "--dump-config";
+   opt["setTrue"] = mAppConfig["app"]["config"]["dump"];
+   
    return spec;
 }
 
-bool App::willParseCommandLine(App* app, std::vector<const char*>* args)
+bool App::willParseCommandLine(std::vector<const char*>* args)
 {
    bool rval = true;
    
+   // ensure config is clear
+   mCLConfig->setType(Map);
+   mCLConfig->clear();
+   
    // temporary flags for command line processing
-   mConfig["app"]["cl"]["printHelp"] = false;
-   mConfig["app"]["cl"]["printVersion"] = false;
+   mCLConfig["options"]["printHelp"] = false;
+   mCLConfig["options"]["printVersion"] = false;
    
    // temp storage for command line specs
-   DynamicObject& specs = mConfig["app"]["cl"]["specs"];
-   specs[0] = app->getCommandLineSpec(app);
-   AppDelegate* delegate = app->getDelegate();
+   DynamicObject& specs = mCLConfig["specs"];
+   specs->setType(Array);
+   specs[0] = this->getCommandLineSpec();
+   AppDelegate* delegate = this->getDelegate();
    if(delegate != NULL)
    {
-      specs[1] = delegate->getCommandLineSpec(app);
+      specs[1] = delegate->getCommandLineSpec();
    }
+   
+   getConfigManager()->update();
    
    return rval;
 }
 
-bool App::didParseCommandLine(App* app)
+bool App::didParseCommandLine()
 {
    bool rval = true;
    
    // process help and version flags first
-   if(mConfig["app"]["cl"]["printHelp"]->getBoolean())
+   if(mCLConfig["options"]["printHelp"]->getBoolean())
    {
       cout << "Usage: " << getProgramName() << " [options]" << endl;
-      DynamicObjectIterator si = mConfig["app"]["cl"]["specs"].getIterator();
+      DynamicObjectIterator si = mCLConfig["specs"].getIterator();
       while(si->hasNext())
       {
          DynamicObject& spec = si->next();
@@ -699,7 +819,7 @@ bool App::didParseCommandLine(App* app)
       }
       exit(EXIT_SUCCESS);
    }
-   else if(mConfig["app"]["cl"]["printVersion"]->getBoolean())
+   else if(mCLConfig["options"]["printVersion"]->getBoolean())
    {
       // TODO: allow other version info (modules, etc) via delegate?
       cout << getName();
@@ -714,7 +834,8 @@ bool App::didParseCommandLine(App* app)
 
    // check logging level
    {
-      const char* cfgLogLevel = mConfig["app"]["logging"]["level"]->getString();
+      const char* cfgLogLevel =
+         mAppConfig["app"]["logging"]["level"]->getString();
       Logger::Level level;
       bool found = Logger::stringToLevel(cfgLogLevel, level);
       if(!found)
@@ -728,18 +849,13 @@ bool App::didParseCommandLine(App* app)
       }
    }
     
-   // remove temporaries
-   mConfig["app"]["cl"]->removeMember("printHelp");
-   mConfig["app"]["cl"]->removeMember("printVersion");
-   mConfig["app"]["cl"]->removeMember("specs");
-   mConfig["app"]->removeMember("cl");
+   // done with temporary command line config
+   mCLConfig.setNull();
+   
+   // update merged config
+   getConfigManager()->update();
 
    return rval;
-}
-
-Config& App::getConfig()
-{
-   return mConfig;
 }
 
 void App::initializeOpenSSL()
@@ -813,11 +929,11 @@ int App::main(int argc, const char* argv[])
    }
    
    setProgramName(mCommandLineArgs[0]);
-   if(!(willParseCommandLine(this, &mCommandLineArgs) &&
-      mDelegate->willParseCommandLine(this, &mCommandLineArgs) &&
+   if(!(willParseCommandLine(&mCommandLineArgs) &&
+      mDelegate->willParseCommandLine(&mCommandLineArgs) &&
       parseCommandLine(&mCommandLineArgs) &&
-      didParseCommandLine(this) &&
-      mDelegate->didParseCommandLine(this)))
+      didParseCommandLine() &&
+      mDelegate->didParseCommandLine()))
    {
       printException();
       exit(EXIT_FAILURE);
@@ -837,13 +953,13 @@ int App::main(int argc, const char* argv[])
    
    initializeOpenSSL();
    initializeLogging();
-   mDelegate->didInitializeLogging(this);
+   mDelegate->didInitializeLogging();
    
    Thread t(this);
    t.start();
    t.join();
    
-   mDelegate->willCleanupLogging(this);
+   mDelegate->willCleanupLogging();
    cleanupLogging();
    cleanupOpenSSL();
    
@@ -867,25 +983,35 @@ AppDelegate::~AppDelegate() {}
 
 void AppDelegate::registeredForApp(App* app) {}
    
-void AppDelegate::run(App* app) {}
+bool AppDelegate::initializeRun()
+{
+   return true;
+}
+   
+bool AppDelegate::runApp()
+{
+   return true;
+}
 
-DynamicObject AppDelegate::getCommandLineSpec(App* app)
+void AppDelegate::cleanupRun() {}
+
+DynamicObject AppDelegate::getCommandLineSpec()
 {
    DynamicObject nullSpec;
    
    return nullSpec;
 }
 
-bool AppDelegate::willParseCommandLine(App* app, vector<const char*>* args)
+bool AppDelegate::willParseCommandLine(vector<const char*>* args)
 {
    return true;
 }
 
-bool AppDelegate::didParseCommandLine(App* app)
+bool AppDelegate::didParseCommandLine()
 {
    return true;
 }
 
-void AppDelegate::didInitializeLogging(App* app) {}
+void AppDelegate::didInitializeLogging() {}
    
-void AppDelegate::willCleanupLogging(App* app) {}
+void AppDelegate::willCleanupLogging() {}
