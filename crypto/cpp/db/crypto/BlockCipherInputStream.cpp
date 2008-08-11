@@ -27,49 +27,51 @@ BlockCipherInputStream::~BlockCipherInputStream()
 
 int BlockCipherInputStream::read(char* b, int length)
 {
-   int rval;
+   int rval = 0;
    
    // read from buffer if not empty
    if(!mReadBuffer.isEmpty())
    {
       rval = mReadBuffer.get(b, length);
    }
-   else if(mCipherFinished)
+   else if(mCipher == NULL)
    {
-      // finished ciphering
-      rval = 0;
+      // read from underlying stream, no ciphering
+      rval = FilterInputStream::read(b, length);
    }
    else
    {
-      // read from underlying stream
-      rval = FilterInputStream::read(b, length);
-      
-      // cipher data if appropriate
-      if(rval >= 0 && mCipher != NULL)
+      // while no data and cipher not finished, read and cipher data
+      bool success;
+      while(rval == 0 && !mCipherFinished)
       {
-         // update or finish cipher based on data left in underlying stream
-         bool success;
-         if(rval > 0)
+         // read from underlying stream
+         rval = FilterInputStream::read(b, length);
+         if(rval >= 0)
          {
-            // update cipher
-            success = mCipher->update(b, rval, &mReadBuffer, true);
-         }
-         else
-         {
-            // finish cipher
-            success = mCipher->finish(&mReadBuffer, true);
-            mCipherFinished = true;
-         }
-         
-         if(success)
-         {
-            // read from buffer
-            rval = mReadBuffer.get(b, length);
-         }
-         else
-         {
-            // exception occurred
-            rval = -1;
+            // update or finish cipher based on data left in underlying stream
+            if(rval > 0)
+            {
+               // update cipher
+               success = mCipher->update(b, rval, &mReadBuffer, true);
+            }
+            else
+            {
+               // finish cipher
+               success = mCipher->finish(&mReadBuffer, true);
+               mCipherFinished = true;
+            }
+            
+            if(success)
+            {
+               // read from buffer
+               rval = mReadBuffer.get(b, length);
+            }
+            else
+            {
+               // exception occurred
+               rval = -1;
+            }
          }
       }
    }
