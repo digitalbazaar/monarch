@@ -124,7 +124,10 @@ DynamicObject& DynamicObjectImpl::operator[](const char* name)
    DynamicObject* rval = NULL;
    
    // change to map type if necessary
-   setType(Map);
+   if(mType != Map)
+   {
+      setType(Map);
+   }
    
    ObjectMap::iterator i = mMap->find(name);
    if(i == mMap->end())
@@ -146,22 +149,27 @@ DynamicObject& DynamicObjectImpl::operator[](const char* name)
 DynamicObject& DynamicObjectImpl::operator[](int index)
 {
    // change to array type if necessary
-   setType(Array);
-   
-   if(index < 0)
+   if(mType != Array)
    {
-      index = mArray->size() + index;
+      setType(Array);
    }
    
+   int size = mArray->size();
+   
    // fill the object array as necessary
-   if(index >= (int)mArray->size())
+   if(index >= size)
    {
-      int i = index - (int)mArray->size() + 1;
+      int i = index - size + 1;
       for(; i > 0; i--)
       {
          DynamicObject dyno;
          mArray->push_back(dyno);
       }
+   }
+   // assume abs(index) >= size
+   else if(index < 0)
+   {
+      index = size + index;
    }
    
    return (*mArray)[index];
@@ -169,8 +177,11 @@ DynamicObject& DynamicObjectImpl::operator[](int index)
 
 DynamicObject& DynamicObjectImpl::append()
 {
-   setType(Array);
-   return (*this)[length()];
+   if(mType != Array)
+   {
+      setType(Array);
+   }
+   return (*this)[mArray->size()];
 }
 
 void DynamicObjectImpl::setType(DynamicObjectType type)
@@ -572,15 +583,12 @@ void DynamicObjectImpl::clear()
 
 int DynamicObjectImpl::length()
 {
-   int rval = 0;
+   int rval;
    
    switch(mType)
    {
       case String:
-         if(mString != NULL)
-         {
-            rval = strlen(getString());
-         }
+         rval = (mString != NULL) ? strlen(mString) : 0;
          break;
       case Boolean:
          rval = 1;
