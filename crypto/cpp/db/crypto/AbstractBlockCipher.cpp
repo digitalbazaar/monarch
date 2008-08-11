@@ -13,6 +13,9 @@ AbstractBlockCipher::AbstractBlockCipher(bool encrypt)
    // store encrypt mode
    mEncryptMode = encrypt;
    
+   // initialize input/output bytes
+   mInputBytes = mOutputBytes = 0;
+   
    // initialize the cipher context
    EVP_CIPHER_CTX_init(&mCipherContext);
    

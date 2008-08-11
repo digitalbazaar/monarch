@@ -37,6 +37,9 @@ bool DefaultBlockCipher::startEncrypting(SymmetricKey* symmetricKey)
    // enable encryption mode
    mEncryptMode = true;
    
+   // reset input and output bytes
+   mInputBytes = mOutputBytes = 0;
+   
    // get the cipher function
    mCipherFunction = getCipherFunction(symmetricKey->getAlgorithm());
    if(mCipherFunction != NULL)
@@ -67,6 +70,9 @@ bool DefaultBlockCipher::startDecrypting(SymmetricKey* symmetricKey)
    
    // disable encryption mode
    mEncryptMode = false;
+   
+   // reset input and output bytes
+   mInputBytes = mOutputBytes = 0;
    
    // get the cipher function
    mCipherFunction = getCipherFunction(symmetricKey->getAlgorithm());
@@ -134,6 +140,13 @@ bool DefaultBlockCipher::update(
             Exception::setLast(e, false);
          }
       }
+      
+      if(rval)
+      {
+         // update input and output bytes
+         mInputBytes += inLength;
+         mOutputBytes += outLength;
+      }
    }
    else
    {
@@ -184,6 +197,12 @@ bool DefaultBlockCipher::finish(char* out, int& length)
             Exception::setLast(e, false);
          }
       }
+      
+      if(rval)
+      {
+         // update output bytes
+         mOutputBytes += length;
+      }
    }
    else
    {
@@ -193,4 +212,14 @@ bool DefaultBlockCipher::finish(char* out, int& length)
    }
    
    return rval;
+}
+
+uint64_t DefaultBlockCipher::getTotalInput()
+{
+   return mInputBytes;
+}
+
+uint64_t DefaultBlockCipher::getTotalOutput()
+{
+   return mOutputBytes;
 }
