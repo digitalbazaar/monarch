@@ -7,6 +7,8 @@
 #include <vector>
 #include <string>
 
+#include "db/app/App.h"
+
 namespace db
 {
 namespace test
@@ -47,6 +49,11 @@ public:
    };
 
 protected:
+   /**
+    * App running this test.
+    */
+   db::app::App* mApp;
+
    /**
     * Total number of started tests.
     */
@@ -93,16 +100,25 @@ public:
    /**
     * Creates a new TestRunner.
     *
+    * @param app app running the tests.
     * @param doneOnException if exception caught then call done() and
     *                        fail via assert.
     * @param outputLevel OutputLevel to use.
     */
-   TestRunner(bool doneOnException, OutputLevel outputLevel = Names);
+   TestRunner(
+      db::app::App* app, bool doneOnException, OutputLevel outputLevel = Names);
    
    /**
     * Destructs this TestRunner.
     */
    virtual ~TestRunner();
+
+   /**
+    * Get the app for this TestRunner.
+    * 
+    * @return the app for this TestRunner.
+    */
+   virtual db::app::App* getApp();
    
    /**
     * Start a test group.  Pushes name on a stack and can be called recursively.

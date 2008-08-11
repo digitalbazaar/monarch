@@ -13,8 +13,10 @@ using namespace std;
 using namespace db::rt;
 using namespace db::test;
 
-TestRunner::TestRunner(bool doneOnException, OutputLevel outputLevel)
+TestRunner::TestRunner(
+   db::app::App* app, bool doneOnException, OutputLevel outputLevel)
 {
+   mApp = app;
    mOutputLevel = outputLevel;
    mTotal = 0;
    mPassed = 0;
@@ -40,6 +42,11 @@ string TestRunner::getTestName()
    }
 
    return res;
+}
+
+db::app::App* TestRunner::getApp()
+{
+   return mApp;
 }
 
 void TestRunner::group(const char* name)
