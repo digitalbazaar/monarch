@@ -206,17 +206,17 @@ void runByteBufferTest(TestRunner& tr)
    // this should now result in printing out "T hate chicken always"
    sprintf(b.data() + b.length() - 1, " always");
    b.extend(6);
-   b.put(' ', true);
-   b.put('t', true);
-   b.put('r', true);
-   b.put('u', true);
-   b.put('e', true);
-   b.put(0x00, true);
+   b.putByte(' ', true);
+   b.putByte('t', true);
+   b.putByte('r', true);
+   b.putByte('u', true);
+   b.putByte('e', true);
+   b.putByte(0x00, true);
    strncpy(temp, b.data(), b.length());
    assertStrCmp(temp, "T hate chicken always true");
    
    unsigned char aByte;
-   b.get(aByte);
+   b.getByte(aByte);
    assert(aByte == 'T');
    
    tr.passIfNoException();

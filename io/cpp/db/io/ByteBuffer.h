@@ -121,7 +121,7 @@ public:
     * @return 1 if the byte fit in this buffer, 0 if the buffer was full
     *         and could not be resized.
     */
-   virtual int put(unsigned char b, bool resize);
+   virtual int putByte(unsigned char b, bool resize);
    
    /**
     * Puts a particular byte into this buffer n times.
@@ -134,7 +134,7 @@ public:
     * @return the actual number of bytes put into this buffer, which may be
     *         less than n if this buffer is full.
     */
-   virtual int put(unsigned char b, int n, bool resize);
+   virtual int putByte(unsigned char b, int n, bool resize);
    
    /**
     * Puts data from the passed buffer into this buffer.
@@ -191,7 +191,7 @@ public:
     * 
     * @return 1 if a byte was retrieved, 0 if not because the buffer was empty.
     */
-   virtual int get(unsigned char& b);
+   virtual int getByte(unsigned char& b);
    
    /**
     * Gets data out of this buffer and puts it into the passed buffer. This
