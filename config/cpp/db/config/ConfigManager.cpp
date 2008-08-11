@@ -27,15 +27,15 @@ const char* ConfigManager::VERSION = "__version__";
 const char* ConfigManager::INCLUDE = "__include__";
 const char* ConfigManager::INCLUDE_EXT = ".config";
 
-ConfigManager::ConfigManager() :
-   mVersion(NULL)
+ConfigManager::ConfigManager()
 {
    mConfig->setType(Map);
+   // empty version array
+   mVersions->setType(Array);
 }
 
 ConfigManager::~ConfigManager()
 {
-   setVersion(NULL);
 }
 
 Config& ConfigManager::getConfig()
@@ -61,24 +61,41 @@ bool ConfigManager::addConfig(
    lock();
    {
       // check version is present
-      if(mVersion != NULL && !config->hasMember(VERSION))
+      if(mVersions->length() > 0)
       {
-         ExceptionRef e =
-            new Exception("No version found.", "db.config.ConfigError");
-         Exception::setLast(e, false);
-         rval = false;
-      }
-      // check proper version
-      else if(mVersion != NULL &&
-         strcmp(config[VERSION]->getString(), mVersion) != 0)
-      {
-         ostringstream oss;
-         oss << "Unknown version: " << config[VERSION]->getString() << ".";
-         ExceptionRef e =
-            new Exception("Unknown version.", "db.config.ConfigError");
-         e->getDetails()["version"] = config[VERSION]->getString();
-         Exception::setLast(e, false);
-         rval = false;
+         if(!config->hasMember(VERSION))
+         {
+            ExceptionRef e =
+               new Exception("No version found.", "db.config.ConfigError");
+            Exception::setLast(e, false);
+            rval = false;
+         }
+         else
+         {
+            // check for known version
+            const char* version = config[VERSION]->getString();
+            
+            // scan versions
+            DynamicObjectIterator vi = mVersions.getIterator();
+            bool found = false;
+            while(!found && vi->hasNext())
+            {
+               DynamicObject& v = vi->next();
+               found = (strcmp(
+                  config[VERSION]->getString(), v->getString()) == 0);
+            }
+            
+            if(!found)
+            {
+               ostringstream oss;
+               oss << "Unknown version: " << version << ".";
+               ExceptionRef e =
+                  new Exception("Unknown version.", "db.config.ConfigError");
+               e->getDetails()["version"] = version;
+               Exception::setLast(e, false);
+               rval = false;
+            }
+         }
       }
       // process includes
       if(rval && include && config->hasMember(INCLUDE))
@@ -375,8 +392,7 @@ void ConfigManager::merge(Config& target, Config& source)
                ConfigIterator i = source.getIterator();
                while(i->hasNext())
                {
-                  Config next = i->next();
-                  merge(target[i->getName()], next);
+                  merge(target[i->getName()], i->next());
                }
             }
             break;
@@ -608,18 +624,14 @@ bool ConfigManager::isValidConfig(Config& config, Config& schema)
    return rval;
 }
 
-void ConfigManager::setVersion(const char* version)
+void ConfigManager::addVersion(const char* version)
 {
-   if(mVersion != NULL)
-   {
-      free(mVersion);
-   }
-   mVersion = (version != NULL) ? strdup(version) : NULL;
+   mVersions->append() = version;
    DB_CAT_DEBUG(DB_CONFIG_CAT,
-      "Set version: \"%s\"", (version != NULL) ? version : "(none)");
+      "Add version: \"%s\"", (version != NULL) ? version : "(none)");
 }
 
-const char* ConfigManager::getVersion()
+DynamicObject& ConfigManager::getVersions()
 {
-   return mVersion;
+   return mVersions;
 }

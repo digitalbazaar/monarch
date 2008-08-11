@@ -9,6 +9,7 @@
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
 #include "db/config/ConfigManager.h"
+#include "db/data/json/JsonWriter.h"
 
 using namespace std;
 using namespace db::rt;
@@ -24,7 +25,7 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject expect;
       expect->setType(Map);
       ConfigManager cm;
-      assert(cm.getConfig() == expect);
+      assertDynoCmp(cm.getConfig(), expect);
    }
    tr.passIfNoException();
    
@@ -34,7 +35,7 @@ void runConfigManagerTest(TestRunner& tr)
       expect->setType(Map);
       ConfigManager cm;
       cm.clear();
-      assert(cm.getConfig() == expect);
+      assertDynoCmp(cm.getConfig(), expect);
    }
    tr.passIfNoException();
    
@@ -46,8 +47,9 @@ void runConfigManagerTest(TestRunner& tr)
       ConfigManager cm;
       DynamicObject a;
       a["a"] = 0;
-      cm.addConfig(a);
-      assert(cm.getConfig() == expect);
+      assert(cm.addConfig(a));
+      assertNoException();
+      assertDynoCmp(cm.getConfig(), expect);
    }
    tr.passIfNoException();
    
@@ -60,8 +62,9 @@ void runConfigManagerTest(TestRunner& tr)
       cm.clear();
       DynamicObject a;
       a["a"] = 0;
-      cm.addConfig(a);
-      assert(cm.getConfig() == expect);
+      assert(cm.addConfig(a));
+      assertNoException();
+      assertDynoCmp(cm.getConfig(), expect);
    }
    tr.passIfNoException();
    
@@ -70,13 +73,14 @@ void runConfigManagerTest(TestRunner& tr)
       ConfigManager cm;
       DynamicObject a;
       a["a"] = 0;
-      cm.addConfig(a);
-      assert(cm.getConfig() == a);
+      assert(cm.addConfig(a));
+      assertNoException();
+      assertDynoCmp(cm.getConfig(), a);
       cm.getConfig()["a"] = 1;
       DynamicObject expect;
       expect["a"] = 1;
       assert(cm.getConfig() != a);
-      assert(cm.getConfig() == expect);
+      assertDynoCmp(cm.getConfig(), expect);
    }
    tr.passIfNoException();
 
@@ -93,10 +97,13 @@ void runConfigManagerTest(TestRunner& tr)
       b["b"] = 1;
       DynamicObject c;
       c["c"] = 2;
-      cm.addConfig(a);
-      cm.addConfig(b);
-      cm.addConfig(c);
-      assert(cm.getConfig() == expect);
+      assert(cm.addConfig(a));
+      assertNoException();
+      assert(cm.addConfig(b));
+      assertNoException();
+      assert(cm.addConfig(c));
+      assertNoException();
+      assertDynoCmp(cm.getConfig(), expect);
    }
    tr.passIfNoException();
 
@@ -123,15 +130,18 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject c;
       c["c"] = 2;
       ConfigManager::ConfigId id;
-      cm.addConfig(a);
-      cm.addConfig(b, ConfigManager::Default, &id);
-      cm.addConfig(c);
-      assert(cm.getConfig() == expect);
+      assert(cm.addConfig(a));
+      assertNoException();
+      assert(cm.addConfig(b, ConfigManager::Default, &id));
+      assertNoException();
+      assert(cm.addConfig(c));
+      assertNoException();
+      assertDynoCmp(cm.getConfig(), expect);
       DynamicObject expect2;
       expect2["a"] = 0;
       expect2["c"] = 2;
       assert(cm.removeConfig(id));
-      assert(cm.getConfig() == expect2);
+      assertDynoCmp(cm.getConfig(), expect2);
    }
    tr.passIfNoException();
 
@@ -142,14 +152,16 @@ void runConfigManagerTest(TestRunner& tr)
       expect["a"] = 0;
       DynamicObject a;
       a["a"] = 0;
-      cm.addConfig(a);
-      assert(cm.getConfig() == expect);
+      assert(cm.addConfig(a));
+      assertNoException();
+      assertDynoCmp(cm.getConfig(), expect);
       DynamicObject expect2;
       expect2["a"] = 1;
       a["a"] = 1;
       assert(cm.getConfig() != expect2);
       cm.update();
-      assert(cm.getConfig() == expect2);
+      assertNoException();
+      assertDynoCmp(cm.getConfig(), expect2);
    }
    tr.passIfNoException();
 
@@ -161,14 +173,15 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject a;
       a["a"] = 0;
       ConfigManager::ConfigId id;
-      cm.addConfig(a, ConfigManager::Default, &id);
-      assert(cm.getConfig() == expect);
+      assert(cm.addConfig(a, ConfigManager::Default, &id));
+      assertNoException();
+      assertDynoCmp(cm.getConfig(), expect);
       DynamicObject expect2;
       expect2["b"] = 0;
       DynamicObject b;
       b["b"] = 0;
       cm.setConfig(id, b);
-      assert(cm.getConfig() == expect2);
+      assertDynoCmp(cm.getConfig(), expect2);
    }
    tr.passIfNoException();
 
@@ -180,11 +193,12 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject a;
       a["a"] = 0;
       ConfigManager::ConfigId id;
-      cm.addConfig(a, ConfigManager::Default, &id);
-      assert(cm.getConfig() == expect);
+      assert(cm.addConfig(a, ConfigManager::Default, &id));
+      assertNoException();
+      assertDynoCmp(cm.getConfig(), expect);
       DynamicObject b;
       assert(cm.getConfig(id, b));
-      assert(b == expect);
+      assertDynoCmp(b, expect);
    }
    tr.passIfNoException();
 
@@ -194,13 +208,14 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject a;
       a["a"] = 0;
       a["b"] = 0;
-      cm.addConfig(a);
+      assert(cm.addConfig(a));
+      assertNoException();
       cm.getConfig()["a"] = 1;
       DynamicObject expect;
       expect["a"] = 1;
       DynamicObject changes;
       cm.getChanges(changes);
-      assert(changes == expect);
+      assertDynoCmp(changes, expect);
    }
    tr.passIfNoException();
 
@@ -210,7 +225,8 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject a;
       a["a"]["b"] = 0;
       a["a"]["c"] = 0;
-      cm.addConfig(a);
+      assert(cm.addConfig(a));
+      assertNoException();
       cm.getConfig()["a"]["c"] = 1;
       cm.getConfig()["d"] = 0;
       DynamicObject expect;
@@ -218,7 +234,7 @@ void runConfigManagerTest(TestRunner& tr)
       expect["d"] = 0;
       DynamicObject changes;
       cm.getChanges(changes);
-      assert(changes == expect);
+      assertDynoCmp(changes, expect);
    }
    tr.passIfNoException();
 
@@ -229,7 +245,8 @@ void runConfigManagerTest(TestRunner& tr)
       a[0] = 10;
       a[1] = 11;
       a[2] = 12;
-      cm.addConfig(a);
+      assert(cm.addConfig(a));
+      assertNoException();
       cm.getConfig()[1] = 21;
       DynamicObject expect;
       expect[0] = "__default__";
@@ -237,7 +254,7 @@ void runConfigManagerTest(TestRunner& tr)
       expect[2] = "__default__";
       DynamicObject changes;
       cm.getChanges(changes);
-      assert(changes == expect);
+      assertDynoCmp(changes, expect);
    }
    tr.passIfNoException();
 
@@ -247,7 +264,8 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject a;
       a[0] = 10;
       a[1] = 11;
-      cm.addConfig(a);
+      assert(cm.addConfig(a));
+      assertNoException();
       cm.getConfig()[2] = 22;
       DynamicObject expect;
       expect[0] = "__default__";
@@ -255,7 +273,7 @@ void runConfigManagerTest(TestRunner& tr)
       expect[2] = 22;
       DynamicObject changes;
       cm.getChanges(changes);
-      assert(changes == expect);
+      assertDynoCmp(changes, expect);
    }
    tr.passIfNoException();
 
@@ -267,13 +285,15 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject a;
       a[0] = 10;
       a[1] = 11;
-      cm.addConfig(a, ConfigManager::Default);
+      assert(cm.addConfig(a, ConfigManager::Default));
+      assertNoException();
 
       // user
       DynamicObject b;
       b[0] = 20;
       b[1] = 21;
-      cm.addConfig(b, ConfigManager::User);
+      assert(cm.addConfig(b, ConfigManager::User));
+      assertNoException();
       
       // custom
       cm.getConfig()[1] = 31;
@@ -285,7 +305,7 @@ void runConfigManagerTest(TestRunner& tr)
          expect[1] = 31;
          DynamicObject changes;
          cm.getChanges(changes);
-         assert(changes == expect);
+         assertDynoCmp(changes, expect);
       }
       
       {
@@ -295,7 +315,7 @@ void runConfigManagerTest(TestRunner& tr)
          expect[1] = 31;
          DynamicObject changes;
          cm.getChanges(changes, ConfigManager::All);
-         assert(changes == expect);
+         assertDynoCmp(changes, expect);
       }
    }
    tr.passIfNoException();
@@ -305,13 +325,15 @@ void runConfigManagerTest(TestRunner& tr)
       ConfigManager cm;
       DynamicObject a;
       a = 1;
-      cm.addConfig(a);
+      assert(cm.addConfig(a));
+      assertNoException();
       DynamicObject b;
       b = "__default__";
-      cm.addConfig(b);
+      assert(cm.addConfig(b));
+      assertNoException();
       DynamicObject expect;
       expect = 1;
-      assert(cm.getConfig() == expect);
+      assertDynoCmp(cm.getConfig(), expect);
    }
    tr.passIfNoException();
 
@@ -323,19 +345,21 @@ void runConfigManagerTest(TestRunner& tr)
       a[1] = 11;
       a[2]["0"] = 120;
       a[2]["1"] = 121;
-      cm.addConfig(a);
+      assert(cm.addConfig(a));
+      assertNoException();
       DynamicObject b;
       b[0] = "__default__";
       b[1] = 21;
       b[2]["0"] = "__default__";
       b[2]["1"] = 221;
-      cm.addConfig(b);
+      assert(cm.addConfig(b));
+      assertNoException();
       DynamicObject expect;
       expect[0] = 10;
       expect[1] = 21;
       expect[2]["0"] = 120;
       expect[2]["1"] = 221;
-      assert(cm.getConfig() == expect);
+      assertDynoCmp(cm.getConfig(), expect);
    }
    tr.passIfNoException();
 
@@ -391,14 +415,16 @@ void runConfigManagerTest(TestRunner& tr)
       nodec["node"]["port"] = 19100;
       nodec["node"]["modulePath"] = "/usr/lib/bitmunk/modules";
       nodec["node"]["userModulePath"] = "~/.bitmunk/modules";
-      cm.addConfig(nodec);
+      assert(cm.addConfig(nodec));
+      assertNoException();
 
       // user
       // loaded defaults
       DynamicObject userc;
       userc["node"]["port"] = 19100;
       userc["node"]["comment"] = "My precious...";
-      cm.addConfig(userc, ConfigManager::User);
+      assert(cm.addConfig(userc, ConfigManager::User));
+      assertNoException();
       
       // user makes changes during runtime
       DynamicObject c = cm.getConfig();
@@ -415,7 +441,7 @@ void runConfigManagerTest(TestRunner& tr)
       expect["node"]["port"] = 19200;
       expect["node"]["comment"] = "My precious...";
       expect["node"]["userModulePath"] = "~/.bitmunk/modules:~/.bitmunk/modules-dev";
-      assert(changes == expect);
+      assertDynoCmp(changes, expect);
    }
    tr.passIfNoException();
    
@@ -423,23 +449,28 @@ void runConfigManagerTest(TestRunner& tr)
    {
       ConfigManager cm;
 
-      cm.setVersion(NULL);
+      cm.getVersions()->clear();
       Config c;
-      cm.addConfig(c);
+      assert(cm.addConfig(c));
       assertNoException();
       
-      cm.setVersion("1");
-      cm.addConfig(c);
+      cm.addVersion("1");
+      assert(!cm.addConfig(c));
       assertException();
       Exception::clearLast();
       
       c[ConfigManager::VERSION] = "2";
-      cm.addConfig(c);
+      assert(!cm.addConfig(c));
       assertException();
       Exception::clearLast();
       
       c[ConfigManager::VERSION] = "1";
-      cm.addConfig(c);
+      assert(cm.addConfig(c));
+      assertNoException();
+      
+      c[ConfigManager::VERSION] = "2";
+      cm.addVersion("2");
+      assert(cm.addConfig(c));
       assertNoException();
    }
    tr.passIfNoException();
@@ -450,11 +481,12 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject a;
       a[0]->setType(Array);
       a[1]->setType(Map);
-      cm.addConfig(a);
+      assert(cm.addConfig(a));
+      assertNoException();
       DynamicObject expect;
       expect[0]->setType(Array);
       expect[1]->setType(Map);
-      assert(cm.getConfig() == expect);
+      assertDynoCmp(cm.getConfig(), expect);
    }
    tr.passIfNoException();
    

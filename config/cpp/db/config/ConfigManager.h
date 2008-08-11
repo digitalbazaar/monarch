@@ -6,6 +6,7 @@
 
 #include "db/rt/DynamicObject.h"
 #include "db/rt/DynamicObjectIterator.h"
+#include "db/rt/Collectable.h"
 
 #include <vector>
 
@@ -13,6 +14,8 @@ namespace db
 {
 namespace config
 {
+
+#define DB_CONFIG_VERSION "DB Config"
 
 // typedef for a config and its iterator
 typedef db::rt::DynamicObject Config;
@@ -77,9 +80,10 @@ public:
    
 protected:
    /**
-    * If set, used to check VERSION key of a config before using.
+    * A list of acceptable versions or empty list to accept all versions.
+    * Uses the VERSION key of a config.
     */
-   char* mVersion;
+   db::rt::DynamicObject mVersions;
    
    /**
     * Pair to hold config and system flag.
@@ -276,18 +280,25 @@ public:
     * config the VERSION string will be checked against this value if not NULL.
     * If a mismatch occurs and exception will be thrown.
     *
-    * @param version the current version or NULL to not use.
+    * @param version a valid version to use.
     */
-   virtual void setVersion(const char* version);
+   virtual void addVersion(const char* version);
 
    /**
-    * Return the current version of config file this manager is set to use.
+    * Return an Array of version this manager is configured to accept.
     *
-    * @return the current version or NULL if not used.
+    * This array starts off empty in order to accept any type of config.  A
+    * define is available called DB_CONFIG_VERSION ("DB Config") for default
+    * use but is not added by default.
+    *  
+    * @return an Array of versions or an empty to accept all versions.
     */
-   virtual const char* getVersion();
+   virtual db::rt::DynamicObject& getVersions();
 };
 
-} // end namespace data
+// define a reference counted type
+typedef db::rt::Collectable<ConfigManager> ConfigManagerRef;
+
+} // end namespace config
 } // end namespace db
 #endif
