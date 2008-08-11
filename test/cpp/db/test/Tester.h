@@ -41,6 +41,11 @@ class Tester : public db::app::AppDelegate
 {
 protected:
    /**
+    * The testers app.
+    */
+   db::app::App* mApp;
+   
+   /**
     * Name for this Tester
     */
    char* mName;
@@ -62,34 +67,35 @@ public:
    virtual ~Tester();
    
    /**
-    * Get a specification of the command line paramters.
+    * Called when App sets this object as its delegate.
     * 
     * @param app the App.
+    */
+   virtual void registeredForApp(db::app::App* app);
+   
+   /**
+    * Get a specification of the command line paramters.
     * 
     * @return the command line spec
     */
-   virtual db::rt::DynamicObject getCommandLineSpec(db::app::App* app);
+   virtual db::rt::DynamicObject getCommandLineSpec();
    
    /**
     * Setup default option values.
     * 
-    * @param app the App.
     * @param args read-only vector of command line arguments.
     * 
     * @return true on success, false on failure and exception set
     */
-   virtual bool willParseCommandLine(
-      db::app::App* app, std::vector<const char*>* args);
+   virtual bool willParseCommandLine(std::vector<const char*>* args);
    
    /**
     * Process the command line options
     * 
-    * @param app the App.
-    * 
     * @return true on success, false on failure and exception set
     */
    
-   virtual bool didParseCommandLine(db::app::App* app);
+   virtual bool didParseCommandLine();
    
    /**
     * Set the tester name.
@@ -104,6 +110,13 @@ public:
     * @return the tester name.
     */
    virtual const char* getName();
+
+   /**
+    * Get the tester's App Config.
+    * 
+    * @return the tester's App Config.
+    */
+   virtual db::config::Config& getConfig();
 
    /**
     * Setup before running tests.
@@ -139,12 +152,14 @@ public:
     * 
     * @return exit status. 0 for success.
     */
-   virtual int runTests(db::app::App* app, db::test::TestRunner& tr);
+   virtual int runTests(db::test::TestRunner& tr);
    
    /**
     * Run all tests and set exit status.
+    * 
+    * @return true on success, false and exception set on failure.
     */
-   virtual void run(db::app::App* app);
+   virtual bool runApp();
 };
 
 /**

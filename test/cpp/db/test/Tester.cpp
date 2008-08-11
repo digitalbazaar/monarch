@@ -3,15 +3,9 @@
  */
 #include "db/test/Tester.h"
 
-// openssl includes
-#include <openssl/ssl.h>
-#include <openssl/evp.h>
-#include <openssl/err.h>
-#include <openssl/rand.h>
-#include <openssl/engine.h>
-
 #include <iostream>
 #include <sstream>
+#include <cstdlib>
 
 #include "db/test/Test.h"
 #include "db/rt/Exception.h"
@@ -27,6 +21,7 @@ Tester::Tester()
 {
    mName = NULL;
    setName("");
+   mApp = NULL;
 }
 
 Tester::~Tester()
@@ -40,7 +35,18 @@ Tester::~Tester()
    }
 }
 
-DynamicObject Tester::getCommandLineSpec(App* app)
+void Tester::registeredForApp(db::app::App* app)
+{
+   mApp = app;
+   for(list<Tester*>::iterator i = mTesters.begin();
+      i != mTesters.end();
+      i++)
+   {
+      (*i)->registeredForApp(mApp);
+   }
+}
+
+DynamicObject Tester::getCommandLineSpec()
 {
    DynamicObject spec;
    spec["help"] =
@@ -59,7 +65,7 @@ DynamicObject Tester::getCommandLineSpec(App* app)
 "\n";
    
    DynamicObject opt;
-   Config& cfg = app->getConfig(); 
+   Config& cfg = mApp->getConfig(); 
    
    opt = spec["options"]->append();
    opt["short"] = "-l";
@@ -83,20 +89,20 @@ DynamicObject Tester::getCommandLineSpec(App* app)
    return spec;
 }
 
-bool Tester::willParseCommandLine(App* app, std::vector<const char*>* args)
+bool Tester::willParseCommandLine(std::vector<const char*>* args)
 {
    bool rval = true;
    
-   app->getConfig()["db.test.Tester"]["level"] = 3;
-   app->getConfig()["db.test.Tester"]["continueAfterException"] = false;
+   mApp->getConfig()["db.test.Tester"]["level"] = 3;
+   mApp->getConfig()["db.test.Tester"]["continueAfterException"] = false;
    
    return rval;
 }
 
-bool Tester::didParseCommandLine(App* app)
+bool Tester::didParseCommandLine()
 {
    bool rval = true;
-   Config& cfg = app->getConfig()["db.test.Tester"];
+   Config& cfg = mApp->getConfig()["db.test.Tester"];
 
    // if interactive, assume no automatic, else only automatic enabled
    if(cfg->hasMember("__cl_interactive") && cfg["__cl_interactive"]->getBoolean())
@@ -133,6 +139,11 @@ const char* Tester::getName()
    return mName;
 }
 
+db::config::Config& Tester::getConfig()
+{
+   return mApp->getConfig();
+}
+
 void Tester::setup(TestRunner& tr)
 {
 }
@@ -156,10 +167,10 @@ int Tester::runInteractiveTests(TestRunner& tr)
    return 0;
 }
 
-int Tester::runTests(App* app, TestRunner& tr)
+int Tester::runTests(TestRunner& tr)
 {
    int rval = 0;
-   Config& cfg = app->getConfig()["db.test.Tester"];
+   Config& cfg = mApp->getConfig()["db.test.Tester"];
 
    tr.group(mName);
 
@@ -171,7 +182,7 @@ int Tester::runTests(App* app, TestRunner& tr)
       rval == 0 && i != mTesters.end();
       i++)
    {
-      rval = (*i)->runTests(app, tr);
+      rval = (*i)->runTests(tr);
    }
 
    if(rval == 0 && cfg["interactive"]->getBoolean())
@@ -194,9 +205,11 @@ int Tester::runTests(App* app, TestRunner& tr)
    return rval;
 }
 
-void Tester::run(App* app)
+bool Tester::runApp()
 {
-   Config& cfg = app->getConfig()["db.test.Tester"];
+   bool rval = true;
+   
+   Config& cfg = mApp->getConfig()["db.test.Tester"];
    bool cont = cfg["continueAfterException"]->getBoolean();
    uint32_t cfgLevel = cfg["level"]->getUInt32();
    TestRunner::OutputLevel level;
@@ -210,11 +223,14 @@ void Tester::run(App* app)
       default: level = TestRunner::Times; break;
    }
    
-   TestRunner tr(cont, level);
+   TestRunner tr(mApp, cont, level);
    
-   int exitStatus = runTests(app, tr);
-   app->setExitStatus(exitStatus);
+   int exitStatus = runTests(tr);
+   mApp->setExitStatus(exitStatus);
+   rval = (exitStatus == 0);
    assertNoException();
    
    tr.done();
+   
+   return rval;
 }
