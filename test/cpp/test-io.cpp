@@ -18,6 +18,7 @@
 #include "db/io/ByteBuffer.h"
 #include "db/io/MutatorInputStream.h"
 #include "db/io/MutatorOutputStream.h"
+#include "db/io/TruncateInputStream.h"
 #include "db/rt/System.h"
 
 #include <iostream>
@@ -205,17 +206,17 @@ void runByteBufferTest(TestRunner& tr)
    // this should now result in printing out "T hate chicken always"
    sprintf(b.data() + b.length() - 1, " always");
    b.extend(6);
-   b.put(' ', true);
-   b.put('t', true);
-   b.put('r', true);
-   b.put('u', true);
-   b.put('e', true);
-   b.put(0x00, true);
+   b.putByte(' ', 1, true);
+   b.putByte('t', 1, true);
+   b.putByte('r', 1, true);
+   b.putByte('u', 1, true);
+   b.putByte('e', 1, true);
+   b.putByte(0x00, 1, true);
    strncpy(temp, b.data(), b.length());
    assertStrCmp(temp, "T hate chicken always true");
    
    unsigned char aByte;
-   b.get(aByte);
+   b.getByte(aByte);
    assert(aByte == 'T');
    
    tr.passIfNoException();
@@ -682,6 +683,28 @@ void runFileInputStreamTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runTruncateInputStreamTest(TestRunner& tr)
+{
+   tr.group("TruncateInputStream");
+   
+   tr.test("truncate");
+   {
+      const char* test = "this is a test";
+      ByteBuffer b;
+      b.put(test, strlen(test), true);
+      
+      char buf[100];
+      ByteArrayInputStream bais(&b);
+      assert(bais.read(buf, 1) == 1);
+      TruncateInputStream tis(3, &bais, false);
+      assert(tis.read(buf, 100) == 3);
+      assert(strncmp(buf, "his", 3) == 0);
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class ReadWatcher
 {
 public:
@@ -741,6 +764,7 @@ public:
       runBitStreamTest(tr);
       runFileTest(tr);
       runFileInputStreamTest(tr);
+      runTruncateInputStreamTest(tr);
       //runIOMonitorTest(tr);
       return 0;
    }

@@ -41,7 +41,7 @@ bool TemplateParser::parse(
       else
       {
          // null-terminate data
-         b.put(0, false);
+         b.putByte(0, 1, false);
          
          // replace all variables in the buffer
          const char* var = NULL;
