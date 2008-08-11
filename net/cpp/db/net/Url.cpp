@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/Url.h"
+
 #include "db/util/Convert.h"
 #include "db/util/StringTokenizer.h"
 
@@ -14,14 +15,18 @@ using namespace db::net;
 using namespace db::rt;
 using namespace db::util;
 
-Url::Url(const string& url, bool relative)
+Url::Url()
 {
-   setUrl(url, relative);
 }
 
-Url::Url(const char* url, bool relative)
+Url::Url(const char* url)
 {
-   setUrl(url, relative);
+   setUrl(url);
+}
+
+Url::Url(const string& url)
+{
+   setUrl(url);
 }
 
 Url::Url(const Url& copy)
@@ -33,216 +38,291 @@ Url::~Url()
 {
 }
 
-Url& Url::operator=(const Url& rhs)
+bool Url::setUrl(const char* format, va_list varargs)
 {
-   setUrl(rhs.toString(), rhs.mRelative);
-   return *this;
-}
-
-bool Url::setUrl(const string& url, bool relative)
-{
-   bool rval = true;
+   bool rval;
    
-   mRelative = relative;
+   // Note: this code is adapted from the glibc sprintf documentation
    
-   // find the first colon, if not relative
-   string::size_type index = 0;
-   if(!relative)
+   // estimate 256 bytes to start with
+   int n, size = 256;
+   char *p;
+   char *np;
+   
+   bool mallocFailed = ((p = (char*)malloc(size)) == NULL);
+   bool success = false;
+   while(!success && !mallocFailed)
    {
-      index = url.find(':');
+      // try to print in the allocated space
+      n = vsnprintf(p, size, format, varargs);
+      
+      // if that worked, return the string
+      if(n > -1 && n < size)
+      {
+         success = true;
+      }
+      else
+      {
+         // try again with more space
+         if(n > -1)
+         {
+            // glibc 2.1 says (n + 1) is exactly what is needed
+            size = n + 1;
+         }
+         else
+         {
+            // glibc 2.0 doesn't know the exact size, so guess
+            size *= 2;
+         }
+         
+         if((np = (char*)realloc(p, size)) == NULL)
+         {
+            // bad malloc
+            free(p);
+            mallocFailed = true;
+         }
+         else
+         {
+            p = np;
+         }
+      }
    }
    
-   if(!relative && index == string::npos)
+   if(success)
    {
-      // no colon found
-      ExceptionRef e = new Exception(
-         "Url is missing a colon!", "db.net.MalformedUrl");
-      e->getDetails()["url"] = url.c_str();
-      e->getDetails()["relative"] = relative;
-      Exception::setLast(e, false);
-      rval = false;
+      rval = setUrl(p);
+      free(p);
    }
    else
    {
-      // handle scheme for absolute urls only
-      if(!relative)
+      ExceptionRef e = new Exception(
+         "Could not set url. Formatted string could not be malloc'd.",
+         "db.net.Url.BadMalloc");
+      e->getDetails()["format"] = format;
+      Exception::setLast(e, false);
+      rval = false;
+   }
+   
+   return rval;
+}
+
+Url& Url::operator=(const Url& rhs)
+{
+   setUrl(rhs.toString());
+   return *this;
+}
+
+bool Url::setUrl(const string& url)
+{
+   bool rval = true;
+   
+   // find the first colon
+   string::size_type index = 0;
+   index = url.find(':');
+   
+   // if no colon found, assume relative
+   mRelative = (index == string::npos);
+   
+   // handle scheme for absolute urls only
+   if(!mRelative)
+   {
+      // find double slashes
+      index = url.find("//", index);
+      if(index == string::npos)
       {
-         // find double slashes
-         index = url.find("//", index);
-         if(index == string::npos)
-         {
-            index = url.rfind(':');
-         }
-         else
-         {
-            index--;
-         }
-         
-         // split string into the scheme and scheme-specific-part
-         mScheme = url.substr(0, index);
-         
-         // make scheme lower case
-         transform(mScheme.begin(), mScheme.end(), mScheme.begin(), ::tolower);
-         
-         // check scheme for validity
-         // FIXME scheme should be case-insensitive
-         char c;
-         c = mScheme.c_str()[0];
-         if(c < 'a' || c > 'z')
-         {
-            ExceptionRef e = new Exception(
-               "Url scheme contains invalid start character!",
-               "db.net.MalformedUrl");
-            e->getDetails()["url"] = url.c_str();
-            e->getDetails()["relative"] = relative;
-            Exception::setLast(e, false);
-            rval = false;
-         }
-         else
-         {
-            for(string::iterator i = mScheme.begin();
-                rval && i != mScheme.end(); i++)
-            {
-               // non-start characters must be in [a-z0-9+.-]
-               c = *i;
-               if(!((c > 'a' && c < 'z') || (c > '0' && c < '9') ||
-                  c == '+' || c == '.' || c != '-'))
-               {
-                  ExceptionRef e = new Exception(
-                     "Url scheme contains invalid characters!",
-                     "db.net.MalformedUrl");
-                  e->getDetails()["url"] = url.c_str();
-                  e->getDetails()["relative"] = relative;
-                  Exception::setLast(e, false);
-                  rval = false;
-               }
-            }
-         }
+         index = url.rfind(':');
+      }
+      else
+      {
+         index--;
       }
       
-      if(rval && index < url.length() - 1)
-      {
-         // get scheme specific part
-         if(relative)
-         {
-            mSchemeSpecificPart = "//";
-            mSchemeSpecificPart.append(url);
-         }
-         else
-         {
-            mSchemeSpecificPart = url.substr(index + 1);
-         }
-         
-         // get authority, path, and query:
-         
-         // authority is preceeded by double slash "//" (current index + 1) and
-         // is terminated by single slash "/", a question mark "?", or
-         // the end of the url
-         if(mSchemeSpecificPart.length() > 2)
-         {
-            string::size_type slash = mSchemeSpecificPart.find('/', 2);
-            string::size_type qMark = mSchemeSpecificPart.find('?', 2);
-            
-            // see if a query exists
-            if(qMark != string::npos)
-            {
-               // a query exists
-               
-               // get authority & path
-               if(slash != string::npos && slash < qMark)
-               {
-                  mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
-                  mPath = mSchemeSpecificPart.substr(slash, qMark - slash);
-               }
-               else
-               {
-                  mAuthority = mSchemeSpecificPart.substr(2, qMark - 2);
-                  mPath = '/';
-               }
-               
-               // get query
-               if(qMark != mSchemeSpecificPart.length() - 1) 
-               {
-                  mQuery = mSchemeSpecificPart.substr(qMark + 1);
-               }
-            }
-            else if(slash != string::npos)
-            {
-               // no query -- just authority and path
-               
-               // get authority
-               mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
-               
-               // get path
-               mPath = mSchemeSpecificPart.substr(slash);
-            }
-            else
-            {
-               // no path or query, just authority
-               mPath = '/';
-               
-               if(mSchemeSpecificPart[1] == '/')
-               {
-                  // get authority after slash
-                  mAuthority = mSchemeSpecificPart.substr(2);
-               }
-               else
-               {
-                  // set authority equal to scheme specific part
-                  mAuthority = mSchemeSpecificPart;
-               }
-            }
-         }
-      }
+      // split string into the scheme and scheme-specific-part
+      mScheme = url.substr(0, index);
       
-      if(mAuthority.length() > 0)
+      // make scheme lower case
+      transform(mScheme.begin(), mScheme.end(), mScheme.begin(), ::tolower);
+      
+      // check scheme for validity
+      // FIXME scheme should be case-insensitive
+      char c;
+      c = mScheme.c_str()[0];
+      if(c < 'a' || c > 'z')
       {
-         string hostAndPort;
-
-         const char* at = strchr(mAuthority.c_str(), '@');
-         if(at != NULL)
-         {
-            mUserInfo = mAuthority.substr(0, at - mAuthority.c_str());
-            hostAndPort = mAuthority.substr(at - mAuthority.c_str() + 1);
-         }
-         else
-         {
-            hostAndPort = mAuthority;
-         }
-
-         const char* colon = strchr(hostAndPort.c_str(), ':');
-         if(colon != NULL)
-         {
-            mHost = hostAndPort.substr(0, colon - hostAndPort.c_str());
-            mPort = strtoll(colon + 1, NULL, 10);
-         }
-         else
-         {
-            const char* slash = strchr(hostAndPort.c_str(), '/');
-            if(slash == NULL)
-            {
-               mHost = hostAndPort;
-            }
-            else
-            {
-               mHost = hostAndPort.substr(0, slash - hostAndPort.c_str());
-            }
-            
-            // try to get default port
-            mPort = getDefaultPort();
-         }
+         ExceptionRef e = new Exception(
+            "Url scheme contains invalid start character!",
+            "db.net.MalformedUrl");
+         e->getDetails()["url"] = url.c_str();
+         e->getDetails()["relative"] = mRelative;
+         Exception::setLast(e, false);
+         rval = false;
       }
-
-      if(mUserInfo.length() > 0)
+      else
       {
-         const char* colon = strchr(mUserInfo.c_str(), ':');
-         if(colon != NULL)
+         for(string::iterator i = mScheme.begin();
+             rval && i != mScheme.end(); i++)
          {
-            mUser = mUserInfo.substr(0, colon - mUserInfo.c_str());
-            mPassword = mUserInfo.substr(colon - mUserInfo.c_str() + 1);
+            // non-start characters must be in [a-z0-9+.-]
+            c = *i;
+            if(!((c > 'a' && c < 'z') || (c > '0' && c < '9') ||
+               c == '+' || c == '.' || c != '-'))
+            {
+               ExceptionRef e = new Exception(
+                  "Url scheme contains invalid characters!",
+                  "db.net.MalformedUrl");
+               e->getDetails()["url"] = url.c_str();
+               e->getDetails()["relative"] = mRelative;
+               Exception::setLast(e, false);
+               rval = false;
+            }
          }
       }
    }
+   else
+   {
+      // url is relative, start at beginning
+      index = 0;
+   }
+   
+   if(rval && index < url.length() - 1)
+   {
+      // get scheme specific part
+      if(mRelative)
+      {
+         mSchemeSpecificPart = "//";
+         mSchemeSpecificPart.append(url);
+      }
+      else
+      {
+         mSchemeSpecificPart = url.substr(index + 1);
+      }
+      
+      // get authority, path, and query:
+      
+      // authority is preceeded by double slash "//" (current index + 1) and
+      // is terminated by single slash "/", a question mark "?", or
+      // the end of the url
+      if(mSchemeSpecificPart.length() > 2)
+      {
+         string::size_type slash = mSchemeSpecificPart.find('/', 2);
+         string::size_type qMark = mSchemeSpecificPart.find('?', 2);
+         
+         // see if a query exists
+         if(qMark != string::npos)
+         {
+            // a query exists
+            
+            // get authority & path
+            if(slash != string::npos && slash < qMark)
+            {
+               mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
+               mPath = mSchemeSpecificPart.substr(slash, qMark - slash);
+            }
+            else
+            {
+               mAuthority = mSchemeSpecificPart.substr(2, qMark - 2);
+               mPath = '/';
+            }
+            
+            // get query
+            if(qMark != mSchemeSpecificPart.length() - 1) 
+            {
+               mQuery = mSchemeSpecificPart.substr(qMark + 1);
+            }
+         }
+         else if(slash != string::npos)
+         {
+            // no query -- just authority and path
+            
+            // get authority
+            mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
+            
+            // get path
+            mPath = mSchemeSpecificPart.substr(slash);
+         }
+         else
+         {
+            // no path or query, just authority
+            mPath = '/';
+            
+            if(mSchemeSpecificPart[1] == '/')
+            {
+               // get authority after slash
+               mAuthority = mSchemeSpecificPart.substr(2);
+            }
+            else
+            {
+               // set authority equal to scheme specific part
+               mAuthority = mSchemeSpecificPart;
+            }
+         }
+      }
+   }
+   
+   if(mAuthority.length() > 0)
+   {
+      string hostAndPort;
+
+      const char* at = strchr(mAuthority.c_str(), '@');
+      if(at != NULL)
+      {
+         mUserInfo = mAuthority.substr(0, at - mAuthority.c_str());
+         hostAndPort = mAuthority.substr(at - mAuthority.c_str() + 1);
+      }
+      else
+      {
+         hostAndPort = mAuthority;
+      }
+
+      const char* colon = strchr(hostAndPort.c_str(), ':');
+      if(colon != NULL)
+      {
+         mHost = hostAndPort.substr(0, colon - hostAndPort.c_str());
+         mPort = strtoll(colon + 1, NULL, 10);
+      }
+      else
+      {
+         const char* slash = strchr(hostAndPort.c_str(), '/');
+         if(slash == NULL)
+         {
+            mHost = hostAndPort;
+         }
+         else
+         {
+            mHost = hostAndPort.substr(0, slash - hostAndPort.c_str());
+         }
+         
+         // try to get default port
+         mPort = getDefaultPort();
+      }
+   }
+
+   if(mUserInfo.length() > 0)
+   {
+      const char* colon = strchr(mUserInfo.c_str(), ':');
+      if(colon != NULL)
+      {
+         mUser = mUserInfo.substr(0, colon - mUserInfo.c_str());
+         mPassword = mUserInfo.substr(colon - mUserInfo.c_str() + 1);
+      }
+   }
+   
+   return rval;
+}
+
+bool Url::setUrl(const char* url)
+{
+   return setUrl(string(url));
+}
+
+bool Url::format(const char* format, ...)
+{
+   bool rval;
+   
+   va_list varargs;
+   va_start(varargs, format);
+   rval = setUrl(format, varargs);
+   va_end(varargs);
    
    return rval;
 }

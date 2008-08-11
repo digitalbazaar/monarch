@@ -821,24 +821,25 @@ void runUrlTest(TestRunner& tr)
    
    {
       Url url(
-         "/path/param1/10001?key1=value1&key2=value2&key3=two%20words%3D2",
-         true);
+         "/path/param1/10001?key1=value1&key2=value2&key3=two%20words%3D2");
       
       //dumpUrl(url);
       assert(!Exception::hasLast());
-      assert(url.getPath() == "/path/param1/10001");
-      assert(url.getQuery() == "key1=value1&key2=value2&key3=two%20words%3D2");
+      assertStrCmp(url.getPath().c_str(), "/path/param1/10001");
+      assertStrCmp(
+         url.getQuery().c_str(),
+         "key1=value1&key2=value2&key3=two%20words%3D2");
       
       DynamicObject tokens;
       assert(url.getTokenizedPath(tokens, "/path/"));
-      assert(strcmp(tokens[0]->getString(), "param1") == 0);
+      assertStrCmp(tokens[0]->getString(), "param1");
       assert(tokens[1]->getInt32() == 10001);
       
       DynamicObject vars;
       assert(url.getQueryVariables(vars));
-      assert(strcmp(vars["key1"]->getString(), "value1") == 0);
-      assert(strcmp(vars["key2"]->getString(), "value2") == 0);
-      assert(strcmp(vars["key3"]->getString(), "two words=2") == 0);
+      assertStrCmp(vars["key1"]->getString(), "value1");
+      assertStrCmp(vars["key2"]->getString(), "value2");
+      assertStrCmp(vars["key3"]->getString(), "two words=2");
    }
    
    {

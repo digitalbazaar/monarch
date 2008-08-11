@@ -86,24 +86,37 @@ protected:
     */
    unsigned int mPort;
    
+   /**
+    * Sets this Url to the passed formatted string.
+    * 
+    * @param format the format for the url.
+    * @param varargs the format parameters.
+    * 
+    * @return false if the URL is malformed, true if not.
+    */
+   virtual bool setUrl(const char* format, va_list varargs);
+   
 public:
    /**
-    * Creates a new Url from the passed string. An exception may be raised
-    * if the url is malformed.
-    *
-    * @param url the string to create this Url from.
-    * @param relative true if the url is relative, false if not.
+    * Creates an empty Url.
     */
-   Url(const std::string& url, bool relative = false);
+   Url();
    
    /**
-    * Creates a new Url from the passed string. An exception may be raised
-    * if the url is malformed.
-    *
-    * @param url the string to create this Url from.
-    * @param relative true if the url is relative, false if not.
+    * Creates a new Url from the passed string. An exception may
+    * be raised if the url is malformed.
+    * 
+    * @param url the url in string format.
     */
-   Url(const char* url, bool relative = false);
+   Url(const char* url);
+   
+   /**
+    * Creates a new Url from the passed string. An exception may
+    * be raised if the url is malformed.
+    * 
+    * @param url the url in string format.
+    */
+   Url(const std::string& url);
    
    /**
     * Copies the passed url.
@@ -128,11 +141,32 @@ public:
     * Sets this Url to the passed string.
     * 
     * @param url the string to create this Url from.
-    * @param relative true if the url is relative, false if not.
     * 
     * @return false if the URL is malformed, true if not.
     */
-   virtual bool setUrl(const std::string& url, bool relative = false);
+   virtual bool setUrl(const std::string& url);
+   
+   /**
+    * Sets this Url to the passed string.
+    * 
+    * @param url the string to create this Url from.
+    * 
+    * @return false if the URL is malformed, true if not.
+    */
+   virtual bool setUrl(const char* url);
+   
+   /**
+    * Sets this Url to the passed formatted string.
+    * 
+    * If the format string contains url-encoded characters, then it must have
+    * its '%' characters escaped (to "%%").
+    * 
+    * @param format the format for the url.
+    * @param ... the format parameters.
+    * 
+    * @return false if the URL is malformed, true if not.
+    */
+   virtual bool format(const char* format, ...);
    
    /**
     * Returns true if this url is relative, false if it is absolute.
