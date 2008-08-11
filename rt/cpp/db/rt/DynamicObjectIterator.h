@@ -28,20 +28,9 @@ protected:
    DynamicObject mObject;
    
    /**
-    * The index of the current object.
+    * The index of the current object or -1.
     */
    int mIndex;
-   
-   /**
-    * The name of the current object.
-    */
-   const char* mName;
-   
-   /**
-    * An iterator for the object in the DynamicObject.
-    */
-   DynamicObjectImpl::ObjectMap::iterator mMapIterator;
-   DynamicObjectImpl::ObjectArray::iterator mArrayIterator;
    
 public:
    /**
@@ -49,7 +38,7 @@ public:
     * 
     * @param dyno the DynamicObject to iterate over.
     */
-   DynamicObjectIteratorImpl(DynamicObject dyno);
+   DynamicObjectIteratorImpl(DynamicObject& dyno);
    
    /**
     * Destructs this DynamicObjectIteratorImpl.
@@ -62,14 +51,14 @@ public:
     * 
     * @return true if this DynamicObjectIterator has more objects, false if not.
     */
-   virtual bool hasNext();
+   virtual bool hasNext() = 0;
    
    /**
     * Gets the next object and advances the DynamicObjectIterator.
     * 
     * @return the next object.
     */
-   virtual DynamicObject& next();
+   virtual DynamicObject& next() = 0;
    
    /**
     * Removes the current object. Only valid for Maps and Arrays. Invalidates

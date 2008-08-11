@@ -4,6 +4,7 @@
 #include "db/rt/DynamicObject.h"
 
 #include "db/rt/DynamicObjectIterator.h"
+#include "db/rt/DynamicObjectIterators.h"
 
 #include <cstdlib>
 
@@ -32,7 +33,7 @@ bool DynamicObject::operator==(const DynamicObject& rhs)
 {
    bool rval;
    
-   DynamicObject* left = (DynamicObject*)this;
+   DynamicObject* left = this;
    DynamicObject* right = (DynamicObject*)&rhs;
    
    rval = Collectable<DynamicObjectImpl>::operator==(rhs);
@@ -190,7 +191,22 @@ DynamicObject& DynamicObject::operator[](int index)
 
 DynamicObjectIterator DynamicObject::getIterator()
 {
-   return DynamicObjectIterator(new DynamicObjectIteratorImpl(*this));
+   DynamicObjectIteratorImpl* i;
+
+   switch((*this)->getType())
+   {
+      case Map:
+         i = new DynamicObjectIteratorMap(*this);
+         break;
+      case Array:
+         i = new DynamicObjectIteratorArray(*this);
+         break;
+      default:
+         i = new DynamicObjectIteratorSingle(*this);
+         break;
+   }
+
+   return DynamicObjectIterator(i);
 }
 
 DynamicObject DynamicObject::clone()
@@ -285,7 +301,7 @@ bool DynamicObject::isSubset(const DynamicObject& rhs)
 {
    bool rval;
    
-   DynamicObject* left = (DynamicObject*)this;
+   DynamicObject* left = this;
    DynamicObject* right = (DynamicObject*)&rhs;
    
    rval = Collectable<DynamicObjectImpl>::operator==(rhs);

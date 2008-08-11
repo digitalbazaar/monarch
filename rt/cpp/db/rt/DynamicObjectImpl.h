@@ -90,10 +90,10 @@ protected:
    char* mStringValue;
    
    /**
-    * Make DynamicObjectIteratorImpl a friend so it can iterate over
-    * a map or an array.
+    * Allow access to iterators.
     */
-   friend class DynamicObjectIteratorImpl;
+   friend class DynamicObjectIteratorArray;
+   friend class DynamicObjectIteratorMap;
    
    /**
     * Frees the key data associated with a Map.
