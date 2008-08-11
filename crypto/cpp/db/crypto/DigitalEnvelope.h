@@ -159,6 +159,24 @@ public:
    // use update/finish from AbstractBlockCipher
    using AbstractBlockCipher::update;
    using AbstractBlockCipher::finish;
+   
+   /**
+    * Gets the number of input bytes. If sealing, this is the total size
+    * of the unsealed data. If opening, this is the total size of the sealed
+    * data. This number is reset when a new seal or open is started.
+    * 
+    * @return the total number of input bytes.
+    */
+   virtual uint64_t getTotalInput();
+   
+   /**
+    * Gets the number of output bytes. If sealing, this is the total size
+    * of the sealed data. If opening, this is the total size of the opened
+    * data. This number is reset when a new seal or open is started.
+    * 
+    * @return the total number of output bytes.
+    */
+   virtual uint64_t getTotalOutput();
 };
 
 } // end namespace crypto

@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/DigitalEnvelope.h"
+
 #include "db/crypto/PrivateKey.h"
 #include "db/crypto/PublicKey.h"
 #include "db/crypto/SymmetricKeyFactory.h"
@@ -41,6 +42,9 @@ bool DigitalEnvelope::startSealing(
    
    // enable encryption mode
    mEncryptMode = true;
+   
+   // reset input and output bytes
+   mInputBytes = mOutputBytes = 0;
    
    // get the cipher function
    mCipherFunction = getCipherFunction(algorithm);
@@ -129,6 +133,9 @@ bool DigitalEnvelope::startOpening(
    // disable encryption mode
    mEncryptMode = false;
    
+   // reset input and output bytes
+   mInputBytes = mOutputBytes = 0;
+   
    // get the cipher function
    mCipherFunction = getCipherFunction(symmetricKey->getAlgorithm());
    if(mCipherFunction != NULL)
@@ -202,6 +209,13 @@ bool DigitalEnvelope::update(
             Exception::setLast(e, false);
          }
       }
+      
+      if(rval)
+      {
+         // update input and output bytes
+         mInputBytes += inLength;
+         mOutputBytes += outLength;
+      }
    }
    else
    {
@@ -250,6 +264,12 @@ bool DigitalEnvelope::finish(char* out, int& length)
             Exception::setLast(e, false);
          }
       }
+      
+      if(rval)
+      {
+         // update output bytes
+         mOutputBytes += length;
+      }
    }
    else
    {
@@ -259,4 +279,14 @@ bool DigitalEnvelope::finish(char* out, int& length)
    }
    
    return rval;
+}
+
+uint64_t DigitalEnvelope::getTotalInput()
+{
+   return mInputBytes;
+}
+
+uint64_t DigitalEnvelope::getTotalOutput()
+{
+   return mOutputBytes;
 }

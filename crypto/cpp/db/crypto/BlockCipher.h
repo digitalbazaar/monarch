@@ -111,6 +111,26 @@ public:
     * @return true if encryption mode is enabled, false if decryption mode is.
     */
    virtual bool isEncryptEnabled() = 0;
+   
+   /**
+    * Gets the number of input bytes. If encrypting, this is the total size
+    * of the unencrypted data. If decrypting, this is the total size of the
+    * encrypted data. This number is reset when a new encryption or decryption
+    * is started.
+    * 
+    * @return the total number of input bytes.
+    */
+   virtual uint64_t getTotalInput() = 0;
+   
+   /**
+    * Gets the number of output bytes. If encrypting, this is the total size
+    * of the encrypted data. If decrypting, this is the total size of the
+    * decrypted data. This number is reset when a new encryption or decryption
+    * is started.
+    * 
+    * @return the total number of output bytes.
+    */
+   virtual uint64_t getTotalOutput() = 0;
 };
 
 } // end namespace crypto
