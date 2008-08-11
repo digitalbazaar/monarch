@@ -29,6 +29,16 @@ protected:
    bool mEncryptMode;
    
    /**
+    * Total amount of input bytes so far.
+    */
+   uint64_t mInputBytes;
+   
+   /**
+    * Total amount of output bytes so far.
+    */
+   uint64_t mOutputBytes;
+   
+   /**
     * The cipher context.
     */
    EVP_CIPHER_CTX mCipherContext;

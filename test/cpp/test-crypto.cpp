@@ -89,6 +89,8 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       // finish encryption
       cipher.finish(output + outLength, outLength);
       totalOut += outLength;
+      //printf("cipher out: %llu, out: %d\n", cipher.getTotalOutput(), totalOut);
+      assert((int)cipher.getTotalOutput() == totalOut);
       
       // start decryption
       cipher.startDecrypting(&key);
@@ -103,6 +105,8 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       // finish decryption
       cipher.finish(input + inLength, inLength);
       totalIn += inLength;
+      //printf("cipher in: %llu, in: %d\n", cipher.getTotalOutput(), totalIn);
+      assert((int)cipher.getTotalOutput() == totalIn);
       
       // check the decrypted message
       string result(input, totalIn);
@@ -131,12 +135,16 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       ByteBuffer output;
       cipher.update(message, length, &output, true);
       cipher.finish(&output, true);
+      assert((int)cipher.getTotalInput() == length);
+      assert((int)cipher.getTotalOutput() == output.length());
       
       // do decryption
       ByteBuffer input;
       cipher.startDecrypting(&key);
       cipher.update(output.data(), output.length(), &input, true);
       cipher.finish(&input, true);
+      assert((int)cipher.getTotalInput() == output.length());
+      assert((int)cipher.getTotalOutput() == input.length());
       
       // check the decrypted message
       string result(input.data(), input.length());

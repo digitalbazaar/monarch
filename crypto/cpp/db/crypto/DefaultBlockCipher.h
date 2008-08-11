@@ -95,6 +95,26 @@ public:
    // use update/finish from AbstractBlockCipher
    using AbstractBlockCipher::update;
    using AbstractBlockCipher::finish;
+   
+   /**
+    * Gets the number of input bytes. If encrypting, this is the total size
+    * of the unencrypted data. If decrypting, this is the total size of the
+    * encrypted data. This number is reset when a new encryption or decryption
+    * is started.
+    * 
+    * @return the total number of input bytes.
+    */
+   virtual uint64_t getTotalInput();
+   
+   /**
+    * Gets the number of output bytes. If encrypting, this is the total size
+    * of the encrypted data. If decrypting, this is the total size of the
+    * decrypted data. This number is reset when a new encryption or decryption
+    * is started.
+    * 
+    * @return the total number of output bytes.
+    */
+   virtual uint64_t getTotalOutput();
 };
 
 } // end namespace crypto
