@@ -112,18 +112,6 @@ public:
    virtual void resize(int capacity);
    
    /**
-    * Puts a byte into this buffer.
-    * 
-    * @param b the byte to put into this buffer.
-    * @param resize true to automatically resize this buffer if the passed
-    *               byte will not otherwise fit.
-    * 
-    * @return 1 if the byte fit in this buffer, 0 if the buffer was full
-    *         and could not be resized.
-    */
-   virtual int putByte(unsigned char b, bool resize);
-   
-   /**
     * Puts a particular byte into this buffer n times.
     * 
     * @param b the byte to put into this buffer.

@@ -135,23 +135,6 @@ void ByteBuffer::resize(int capacity)
    }
 }
 
-int ByteBuffer::putByte(unsigned char b, bool resize)
-{
-   int rval = 0;
-   
-   // allocate space for the data
-   allocateSpace(1, resize);
-   
-   if(freeSpace() > 0)
-   {
-      // put byte into the buffer
-      mOffset[mLength++] = b;
-      rval++;
-   }
-   
-   return rval;
-}
-
 int ByteBuffer::putByte(unsigned char b, int n, bool resize)
 {
    // allocate space for the data

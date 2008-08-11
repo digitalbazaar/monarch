@@ -230,22 +230,22 @@ void Header::convertToBytes(ByteBuffer* b)
    }
    
    // write ID bytes
-   b->putByte(GZIP_ID1, true);
-   b->putByte(GZIP_ID2, true);
+   b->putByte(GZIP_ID1, 1, true);
+   b->putByte(GZIP_ID2, 1, true);
    
    // write the CM (compression method) byte
-   b->putByte(0x08, true);
+   b->putByte(0x08, 1, true);
    
    // write the flag byte
    if(mHasCrc)
    {
       // write crc flag
-      b->putByte(GZIP_FHCRC, true);
+      b->putByte(GZIP_FHCRC, 1, true);
    }
    else
    {
       // no flags set
-      b->putByte(0x00, true);
+      b->putByte(0x00, 1, true);
    }
    
    // get the current time as the modification time
@@ -256,10 +256,10 @@ void Header::convertToBytes(ByteBuffer* b)
    b->put((char*)&time, 4, true);
    
    // write the XFL (extra flags), no extra flags
-   b->putByte(0x00, true);
+   b->putByte(0x00, 1, true);
    
    // write the OS byte
-   b->putByte(mFileSystemFlag, true);
+   b->putByte(mFileSystemFlag, 1, true);
    
    // see if crc-16 is required
    if(mHasCrc)
