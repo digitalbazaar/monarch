@@ -94,6 +94,18 @@ protected:
     */
    int mAvailableBytes;
    
+   /**
+    * Set to true if the input stream finished early because all
+    * inspectors are finished and have keepInspecting set to false.
+    */
+   bool mFinished;
+   
+   /**
+    * Set to true if this input stream should read the underlying
+    * input stream fully even if its inspectors are finished, false if not.
+    */
+   bool mReadFully;
+   
 public:
    /**
     * Creates a new InspectorInputStream that inspects data in the passed
@@ -176,6 +188,15 @@ public:
     *         occurred.
     */
    virtual bool inspect();
+   
+   /**
+    * Sets whether or not this InspectorInputStream should read the underlying
+    * stream in its entirely even if none of its DataInspectors are still
+    * inspecting. By default, this behavior is on.
+    * 
+    * @param on true to fully read the underlying stream, false not to.
+    */
+   virtual void setReadFully(bool on);
 };
 
 } // end namespace data

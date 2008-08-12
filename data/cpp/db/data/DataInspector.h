@@ -48,6 +48,24 @@ public:
     *         should not be passed to it again.
     */
    virtual int inspectData(const char* b, int length) = 0;
+   
+   /**
+    * Returns whether or not this inspector is "data-satisfied." The inspector
+    * is data-satisfied when it has determined that it doesn't need to inspect
+    * any more data.
+    * 
+    * @return true if this inspector has determined that it doesn't need to
+    *         inspect any more data, false if not.
+    */
+   virtual bool isDataSatisfied() = 0;
+   
+   /**
+    * Gets whether or not this inspector should keep inspecting data after it
+    * is data-satisfied.
+    * 
+    * @return true to keep inspecting, false not to.
+    */
+   virtual bool keepInspecting() = 0;
 };
 
 } // end namespace data

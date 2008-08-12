@@ -14,8 +14,10 @@ InspectorInputStream::InspectorInputStream(InputStream* is, bool cleanup) :
    FilterInputStream(is, cleanup),
    mReadBuffer(2048)
 {
-   // no bytes inspected and made available yet
+   // initialize
    mAvailableBytes = 0;
+   mFinished = false;
+   mReadFully = true;
 }
 
 InspectorInputStream::~InspectorInputStream()
@@ -39,112 +41,125 @@ int InspectorInputStream::read(char* b, int length)
 {
    int rval = 0;
    
-   // if the read buffer is empty, populate it
-   if(mReadBuffer.isEmpty())
+   if(!mFinished || mReadFully)
    {
-      mReadBuffer.put(mInputStream);
-   }
-   
-   // if no bytes are available, run inspectors to release inspected bytes
-   if(mAvailableBytes == 0)
-   {
-      // add all inspector meta-datas to the waiting list that have
-      // inspected bytes that fall within the read buffer's range
-      for(InspectorMap::iterator i = mInspectors.begin();
-          i != mInspectors.end(); i++)
+      // if the read buffer is empty, populate it
+      if(mReadBuffer.isEmpty())
       {
-         if(mReadBuffer.length() > i->second.inspectedBytes)
-         {
-            // add meta-data to list
-            mWaiting.push_back(&i->second);
-         }
+         mReadBuffer.put(mInputStream);
       }
       
-      // keep inspecting while inspectors are waiting and not end of stream
-      bool eos = false;
-      int uninspected, inspected;
-      while(!mWaiting.empty() && !mReadBuffer.isEmpty())
+      // if no bytes are available, run inspectors to release inspected bytes
+      if(!mFinished && mAvailableBytes == 0)
       {
-         // run waiting inspectors
-         for(InspectorList::iterator i = mWaiting.begin(); i != mWaiting.end();)
+         // add all inspector meta-datas to the waiting list that have
+         // inspected bytes that fall within the read buffer's range and
+         // that wish to keep inspecting, set finish flag based on whether
+         // or not some inspectors still want to keep inspecting
+         mFinished = true;
+         for(InspectorMap::iterator i = mInspectors.begin();
+             i != mInspectors.end(); i++)
          {
-            // get next meta data
-            DataInspectorMetaData* metaData = *i;
-            
-            // determine the number of uninspected bytes
-            uninspected = mReadBuffer.length() - metaData->inspectedBytes;
-            if(uninspected > 0)
+            if(!i->second.inspector->isDataSatisfied() ||
+               i->second.inspector->keepInspecting())
             {
-               // inspect data using inspector
-               inspected = metaData->inspector->inspectData(
-                  mReadBuffer.data() + metaData->inspectedBytes, uninspected);
-               
-               // see if any data was inspected
-               if(inspected > 0)
+               mFinished = false;
+               if(mReadBuffer.length() > i->second.inspectedBytes)
                {
-                  // update number of inspected bytes, remove from wait list
-                  metaData->inspectedBytes += inspected;
-                  i = mWaiting.erase(i);
+                  // add meta-data to list
+                  mWaiting.push_back(&i->second);
                }
-               else
-               {
-                  // data could not be inspected, more is required
-                  i++;
-               }
-            }
-            else
-            {
-               // remove inspector from list, all current data inspected
-               i = mWaiting.erase(i);
             }
          }
          
-         // remove all waiting inspectors if the read buffer is full or eos
-         if(mReadBuffer.isFull() || eos)
+         // keep inspecting while inspectors are waiting and not end of stream
+         bool eos = false;
+         int uninspected, inspected;
+         while(!mWaiting.empty() && !mReadBuffer.isEmpty())
          {
-            mWaiting.clear();
-         }
-         else if(!mWaiting.empty())
-         {
-            // read more data into the read buffer
-            if(mReadBuffer.put(mInputStream) == 0)
+            // run waiting inspectors
+            for(InspectorList::iterator i = mWaiting.begin();
+                i != mWaiting.end();)
             {
-               // end of stream
-               eos = true;
+               // get next meta data
+               DataInspectorMetaData* metaData = *i;
+               
+               // determine the number of uninspected bytes
+               uninspected = mReadBuffer.length() - metaData->inspectedBytes;
+               if(uninspected > 0)
+               {
+                  // inspect data using inspector
+                  inspected = metaData->inspector->inspectData(
+                     mReadBuffer.data() + metaData->inspectedBytes,
+                     uninspected);
+                  
+                  // see if any data was inspected
+                  if(inspected > 0)
+                  {
+                     // update number of inspected bytes, remove from wait list
+                     metaData->inspectedBytes += inspected;
+                     i = mWaiting.erase(i);
+                  }
+                  else
+                  {
+                     // data could not be inspected, more is required
+                     i++;
+                  }
+               }
+               else
+               {
+                  // remove inspector from list, all current data inspected
+                  i = mWaiting.erase(i);
+               }
+            }
+            
+            // remove all waiting inspectors if the read buffer is full or eos
+            if(mReadBuffer.isFull() || eos)
+            {
+               mWaiting.clear();
+            }
+            else if(!mWaiting.empty())
+            {
+               // read more data into the read buffer
+               if(mReadBuffer.put(mInputStream) == 0)
+               {
+                  // end of stream
+                  eos = true;
+               }
             }
          }
       }
-   }
-   
-   // set the number of available bytes to the minimum inspected
-   mAvailableBytes = mReadBuffer.length();
-   for(InspectorMap::iterator i = mInspectors.begin();
-       i != mInspectors.end(); i++)
-   {
-      if(i->second.inspectedBytes > 0)
-      {
-         mAvailableBytes = (mAvailableBytes < i->second.inspectedBytes) ?
-            mAvailableBytes : i->second.inspectedBytes;
-      }
-   }
-   
-   // if bytes are available, release them
-   if(mAvailableBytes > 0)
-   {
-      // pull bytes from the read buffer
-      rval = mReadBuffer.get(
-         b, (length < mAvailableBytes) ? length : mAvailableBytes);
-      mAvailableBytes -= rval;
       
-      // update the number of inspected bytes in each inspector
-      int count;
+      // set the number of available bytes to the minimum inspected
+      mAvailableBytes = mReadBuffer.length();
       for(InspectorMap::iterator i = mInspectors.begin();
           i != mInspectors.end(); i++)
       {
-         // (rval could be larger than inspected bytes if an inspector
-         // could not inspect any of the bytes in the read buffer)
-         count = i->second.inspectedBytes - rval;
-         i->second.inspectedBytes = (count < 0) ? 0 : count;
+         if(i->second.inspectedBytes > 0)
+         {
+            mAvailableBytes = (mAvailableBytes < i->second.inspectedBytes) ?
+               mAvailableBytes : i->second.inspectedBytes;
+         }
+      }
+      
+      // if bytes are available, release them
+      if(mAvailableBytes > 0)
+      {
+         // pull bytes from the read buffer
+         rval = mReadBuffer.get(
+            b, (length < mAvailableBytes) ? length : mAvailableBytes);
+         mAvailableBytes -= rval;
+         
+         // update the number of inspected bytes in each inspector
+         int count;
+         for(InspectorMap::iterator i = mInspectors.begin();
+             i != mInspectors.end(); i++)
+         {
+            // (rval could be larger than inspected bytes if an inspector
+            // could not inspect any of the bytes in the read buffer)
+            count = i->second.inspectedBytes - rval;
+            i->second.inspectedBytes = (count < 0) ? 0 : count;
+         }
       }
    }
    
@@ -230,4 +245,9 @@ bool InspectorInputStream::inspect()
    int numBytes;
    while((numBytes = read(b, 2048)) > 0);
    return numBytes == 0;
+}
+
+void InspectorInputStream::setReadFully(bool on)
+{
+   mReadFully = on;
 }
