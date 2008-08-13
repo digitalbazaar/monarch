@@ -32,29 +32,68 @@ using namespace db::util;
 
 void runMessageDigestTest(TestRunner& tr)
 {
-   tr.test("MessageDigest");
+   tr.group("MessageDigest");
    
    // correct values
    string correctMd5 = "78eebfd9d42958e3f31244f116ab7bbe";
    string correctSha1 = "5f24f4d6499fd2d44df6c6e94be8b14a796c071d";   
    
-   MessageDigest testMd5("MD5");
-   testMd5.update("THIS ");
-   testMd5.update("IS A");
-   testMd5.update(" MESSAGE");
-   string digestMd5 = testMd5.getDigest();
+   tr.test("non-persistent");
+   {
+      MessageDigest testMd5("MD5", false);
+      testMd5.update("THIS ");
+      testMd5.update("IS A");
+      testMd5.update(" MESSAGE");
+      string digestMd5 = testMd5.getDigest();
+      
+      //cout << "MD5 Digest=" << digestMd5 << endl;
+      assert(digestMd5 == correctMd5);
+      
+      MessageDigest testSha1("SHA1", false);
+      testSha1.update("THIS IS A MESSAGE");
+      string digestSha1 = testSha1.getDigest();
+      
+      //cout << "SHA-1 Digest=" << digestSha1 << endl;
+      assert(digestSha1 == correctSha1);
+   }
+   tr.passIfNoException();
    
-   //cout << "MD5 Digest=" << digestMd5 << endl;
-   assert(digestMd5 == correctMd5);
+   tr.test("persistent");
+   {
+      string digestMd5;
+      MessageDigest testMd5("MD5", true);
+      testMd5.update("THIS ");
+      digestMd5 = testMd5.getDigest();
+      testMd5.update("IS A");
+      digestMd5 = testMd5.getDigest();
+      testMd5.update(" MESSAGE");
+      digestMd5 = testMd5.getDigest();
+      digestMd5 = testMd5.getDigest();
+      
+      //cout << "MD5 Digest=" << digestMd5 << endl;
+      assert(digestMd5 == correctMd5);
+      
+      MessageDigest testSha1("SHA1", true);
+      testSha1.update("THIS IS A MESSAGE");
+      string digestSha1 = testSha1.getDigest();
+      digestSha1 = testSha1.getDigest();
+      
+      //cout << "SHA-1 Digest=" << digestSha1 << endl;
+      assert(digestSha1 == correctSha1);
+      
+      testSha1.reset();
+      testSha1.update("THIS IS ");
+      digestSha1 = testSha1.getDigest();
+      testSha1.update("A MESSAGE");
+      digestSha1 = testSha1.getDigest();
+      digestSha1 = testSha1.getDigest();
+      
+      //cout << "SHA-1 Digest=" << digestSha1 << endl;
+      assert(digestSha1 == correctSha1);
+   }
+   tr.passIfNoException();
    
-   MessageDigest testSha1("SHA1");
-   testSha1.update("THIS IS A MESSAGE");
-   string digestSha1 = testSha1.getDigest();
-   
-   //cout << "SHA-1 Digest=" << digestSha1 << endl;
-   assert(digestSha1 == correctSha1);
-   
-   tr.pass();
+   tr.ungroup();
 }
 
 

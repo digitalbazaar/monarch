@@ -28,6 +28,11 @@ protected:
    const char* mAlgorithm;
    
    /**
+    * True if this MessageDigest is persistent, false if not.
+    */
+   bool mPersistent;
+   
+   /**
     * Gets the hash function for this algorithm.
     *
     * @return the hash function to use.
@@ -40,9 +45,18 @@ public:
     * UnsupportedAlgorithm exception may be set if the given algorithm
     * is not supported.
     * 
+    * By default, a call to getDigest() or getValue() will finalize the
+    * digest and subsequent calls will be considered invalid. This behavior
+    * is faster than allowing the digest to persist and be further modified.
+    * 
+    * To allow further modifications to the digest after getting it, this
+    * MessageDigest must be initialized as persistent.
+    * 
     * @param algorithm the hash algorithm to use.
+    * @param persistent true if calls to getDigest() or getValue() should not
+    *                   finalize the digest, false if they should.
     */
-   MessageDigest(const char* algorithm);
+   MessageDigest(const char* algorithm, bool persistent = false);
    
    /**
     * Destructs this MessageDigest.

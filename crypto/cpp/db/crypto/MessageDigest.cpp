@@ -12,8 +12,10 @@ using namespace db::crypto;
 using namespace db::rt;
 using namespace db::util;
 
-MessageDigest::MessageDigest(const char* algorithm)
+MessageDigest::MessageDigest(const char* algorithm, bool persistent)
 {
+   mPersistent = persistent;
+   
    if(strcmp(algorithm, "SHA1") == 0)
    {
       mAlgorithm = algorithm;
@@ -87,8 +89,20 @@ void MessageDigest::getValue(char* b, unsigned int& length)
       reset();
    }
    
-   // get the final value from the message digest context
-   EVP_DigestFinal_ex(&mMessageDigestContext, (unsigned char*)b, &length);
+   if(mPersistent)
+   {
+      // get the final value from a copy so the context can continue to be used
+      EVP_MD_CTX copy;
+      EVP_MD_CTX_init(&copy);
+      EVP_MD_CTX_copy_ex(&copy, &mMessageDigestContext);
+      EVP_DigestFinal_ex(&copy, (unsigned char*)b, &length);
+      EVP_MD_CTX_cleanup(&copy);
+   }
+   else
+   {
+      // get the final value directly from the message digest context
+      EVP_DigestFinal_ex(&mMessageDigestContext, (unsigned char*)b, &length);
+   }
 }
 
 unsigned int MessageDigest::getValueLength()
