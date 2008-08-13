@@ -66,7 +66,7 @@ int DataMutator::mutate(InputStream* is)
       // read as necessary
       if(read)
       {
-         rval = mSource->put(is);
+         rval = mSource->fill(is);
          finish = (rval == 0);
       }
       
@@ -97,7 +97,7 @@ int DataMutator::mutate(InputStream* is)
          mSource->get(mDestination, mSource->length(), true);
          
          // fill destination buffer directly
-         rval = mDestination->put(is);
+         rval = mDestination->fill(is);
       }
       else if(mAlgorithmExitCode == 3)
       {

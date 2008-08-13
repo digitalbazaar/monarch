@@ -46,7 +46,7 @@ int InspectorInputStream::read(char* b, int length)
       // if the read buffer is empty, populate it
       if(mReadBuffer.isEmpty())
       {
-         mReadBuffer.put(mInputStream);
+         mReadBuffer.fill(mInputStream);
       }
       
       // if no bytes are available, run inspectors to release inspected bytes
@@ -121,7 +121,7 @@ int InspectorInputStream::read(char* b, int length)
             else if(!mWaiting.empty())
             {
                // read more data into the read buffer
-               if(mReadBuffer.put(mInputStream) == 0)
+               if(mReadBuffer.fill(mInputStream) == 0)
                {
                   // end of stream
                   eos = true;
