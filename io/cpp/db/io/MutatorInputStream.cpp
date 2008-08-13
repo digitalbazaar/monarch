@@ -53,7 +53,7 @@ int MutatorInputStream::read(char* b, int length)
             else
             {
                // read more data from underlying stream
-               int numBytes = mSource.put(mInputStream);
+               int numBytes = mSource.fill(mInputStream);
                mSourceEmpty = (numBytes == 0);
                if(numBytes < 0)
                {
@@ -99,7 +99,7 @@ int MutatorInputStream::read(char* b, int length)
          {
             // clear remaining bytes in underlying input stream
             mSource.clear();
-            while(mSource.put(mInputStream) > 0)
+            while(mSource.fill(mInputStream) > 0)
             {
                mSource.clear();
             }

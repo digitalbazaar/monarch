@@ -359,7 +359,7 @@ int DynamicObjectImpl::getInt32()
          rval = (int)(mUInt32 & 0x7fffffff);
          break;
       case Int64:
-         rval = (int)(mInt64 & 0x7fffffff);
+         rval = (int)(mInt64);
          break;
       case UInt64:
          rval = (int)(mUInt64 & 0x7fffffff);

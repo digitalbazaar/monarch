@@ -52,31 +52,31 @@ bool Deflater::createException(int ret)
       case Z_OK:
       case Z_STREAM_END:
       case Z_BUF_ERROR:
-         // success or not enough buffer space (not fatal), so no exception
+         // not an error, buffer just too small, space will be allocated
          break;
       case Z_MEM_ERROR:
          // not enough memory
          e = new Exception(
-            "Not enough memory for inflation/deflation!",
-            "db.compress.deflate.InsufficientMemory", 1);
+            "Not enough memory for inflation/deflation.",
+            "db.compress.deflate.InsufficientMemory");
          break;
       case Z_VERSION_ERROR:
          // zlib library version incompatible
          e = new Exception(
-            "Incompatible zlib library version!",
-            "db.compress.deflate.IncompatibleVersion", 2);
+            "Incompatible zlib library version.",
+            "db.compress.deflate.IncompatibleVersion");
          break;
       case Z_STREAM_ERROR:
          // invalid stream parameters
          e = new Exception(
-            "Invalid zip stream parameters! Null pointer?",
-            "db.compress.deflate.InvalidZipStreamParams", 3);
+            "Invalid zip stream parameters. Null pointer?",
+            "db.compress.deflate.InvalidZipStreamParams");
          break;
       default:
          // something else went wrong
          e = new Exception(
-            "Could not inflate/deflate!",
-            "db.compress.deflate.Error", 4);
+            "Could not inflate/deflate.",
+            "db.compress.deflate.Error");
          break;
    }
    
@@ -279,7 +279,7 @@ MutationAlgorithm::Result Deflater::mutateData(
    return rval;
 }
 
-bool Deflater::inputAvailable()
+unsigned int Deflater::inputAvailable()
 {
    return mZipStream.avail_in;
 }

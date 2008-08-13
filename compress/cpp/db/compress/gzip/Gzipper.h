@@ -189,7 +189,7 @@ public:
     * 
     * @return the amount of input data available.
     */
-   virtual bool inputAvailable();
+   virtual unsigned int inputAvailable();
    
    /**
     * Returns whether or not this Gzipper has finished

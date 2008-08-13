@@ -238,7 +238,7 @@ int Gzipper::process(ByteBuffer* dst, bool resize)
    return rval;
 }
 
-bool Gzipper::inputAvailable()
+unsigned int Gzipper::inputAvailable()
 {
    return Deflater::inputAvailable() + mBuffer.length();
 }

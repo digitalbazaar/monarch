@@ -157,19 +157,39 @@ public:
     * 
     * This method will block until at one byte can be read from the input
     * stream, unless this buffer is already full, or until the end of the
-    * stream has been reached.
+    * stream has been reached. If you want this method to block until the
+    * buffer is full or until a specified amount is read into it, then
+    * call fill() instead.
     * 
     * Exception::getLast() will be set if an IO error occurs.
     * 
     * @param is the input stream to read from.
-    * @param length the number of bytes to read, 0 will try to read as much
-    *               as can fit in the buffer.
+    * @param length the maximum number of bytes to read, 0 to use this buffer's
+    *               free space as the maximum to read.
     * 
     * @return the number of bytes read from the input stream and put into
     *         this buffer, 0 if the end of the input stream was reached,
     *         and -1 if an exception occurred.
     */
    virtual int put(InputStream* is, int length = 0);
+   
+   /**
+    * Tries to fill this buffer with data from the passed InputStream.
+    * 
+    * This method will block until the specified number of bytes is read,
+    * the end of the input stream is reached, or until the buffer is full.
+    * 
+    * Exception::getLast() will be set if an IO error occurs.
+    * 
+    * @param is the input stream to read from.
+    * @param length the number of bytes to read, 0 to read as much as can fit
+    *               in the buffer.
+    * 
+    * @return the number of bytes read from the input stream and put into
+    *         this buffer, 0 if the end of the input stream was reached,
+    *         and -1 if an exception occurred.
+    */
+   virtual int fill(InputStream* is, int length = 0);
    
    /**
     * Gets a single byte out of this buffer. This method will increment the

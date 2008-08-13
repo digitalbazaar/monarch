@@ -200,12 +200,48 @@ int ByteBuffer::put(InputStream* is, int length)
       // determine how much to read
       length = (length > 0 && length < fs ? length : fs);
       
-      // read
+      // read some bytes
       rval = is->read(data() + mLength, length);
       if(rval != -1)
       {
-         // increment length
+         // update buffer length
          mLength += rval;
+      }
+   }
+   
+   return rval;
+}
+
+int ByteBuffer::fill(InputStream* is, int length)
+{
+   int rval = 0;
+   
+   // if the buffer is not full, do a read
+   int fs = freeSpace();
+   if(fs != 0)
+   {
+      // allocate free space
+      allocateSpace(fs, false);
+      
+      // determine how much to read
+      length = (length > 0 && length < fs ? length : fs);
+      
+      // read until amount received or stream empty
+      int numBytes = 1;
+      while(length > 0 && numBytes > 0)
+      {
+         numBytes = is->read(data() + mLength, length);
+         if(numBytes >= 0)
+         {
+            // update by bytes read
+            mLength += numBytes;
+            rval += numBytes;
+            length -= numBytes;
+         }
+         else
+         {
+            rval = -1;
+         }
       }
    }
    

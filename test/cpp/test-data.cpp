@@ -684,6 +684,8 @@ void runXmlReaderTest(TestRunner& tr)
       reader.read(&bais);
       reader.finish();
       
+      //dumpDynamicObject(dyno);
+      
       assert(dyno["myarray"]->length() == 4);
       assert(dyno["myarray"][0]->getUInt32() == 514);
       assert(dyno["myarray"][1]->getDouble() == 5.14);
