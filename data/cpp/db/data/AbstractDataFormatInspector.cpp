@@ -39,7 +39,8 @@ int AbstractDataFormatInspector::inspectData(const char* b, int length)
       // skip bytes as appropriate
       if(mSkipBytes > 0)
       {
-         rval = ((int)mSkipBytes < length) ? (int)mSkipBytes : length;
+         int sb = (int)(mSkipBytes & 0x7fffffff);
+         rval = (sb < length ? sb : length);
          mSkipBytes -= rval;
       }
       else

@@ -183,7 +183,7 @@ long long DataMutator::skipMutatedBytes(InputStream* is, long long count)
    while(remaining > 0 && mutate(is))
    {
       // clear bytes
-      remaining -= mDestination->clear((int)remaining);
+      remaining -= mDestination->clear((int)(remaining & 0x7fffffff));
    }
    
    if(remaining < count)

@@ -97,7 +97,8 @@ int HttpBodyInputStream::read(char* b, int length)
    else
    {
       // read in from connection, decrement stored content length as read
-      length = ((int)mContentLength < length ? (int)mContentLength : length);
+      int cl = (int)(mContentLength & 0x7fffffff);
+      length = (cl < length ? cl : length);
       if(mContentLength > 0 && (rval = mInputStream->read(b, length)) > 0)
       {
          // update content length, bytes received
