@@ -1358,3 +1358,51 @@
    fun:_dlerror_run
    fun:dlopen@GLIBC_2.0
 }
+
+{
+   unitialized_deflate1
+   Memcheck:Value4
+   obj:/usr/lib/libz.so.1.2.3.3
+   obj:/usr/lib/libz.so.1.2.3.3
+   obj:/usr/lib/libz.so.1.2.3.3
+   fun:deflate
+   fun:compress2
+   fun:compress
+}
+
+{
+   uninitialized_deflate2
+   Memcheck:Value4
+   obj:/usr/lib/libz.so.1.2.3.3
+   fun:deflate
+}
+
+{
+   leak_dlopen_global
+   Memcheck:Leak
+   fun:malloc
+   fun:add_to_global
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@GLIBC_2.0
+}
+
+{
+   leak_dlopen_map
+   Memcheck:Leak
+   fun:malloc
+   fun:_dl_scope_free
+   fun:_dl_map_object_deps
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@GLIBC_2.0
+}
+
