@@ -49,6 +49,76 @@ db::app::App* TestRunner::getApp()
    return mApp;
 }
 
+TestRunner::OutputLevel TestRunner::getOutputLevel()
+{
+   return mOutputLevel;
+}
+
+/**
+ * Map to convert output level option names to TestRunner::OutputLevel types
+ */
+struct outputLevelMap {
+   const char* key;
+   TestRunner::OutputLevel level;
+};
+static const struct outputLevelMap outputLevelsMap[] = {
+   {"none", TestRunner::None},
+   {"f", TestRunner::Final},
+   {"final", TestRunner::Final},
+   {"p", TestRunner::Progress},
+   {"progress", TestRunner::Progress},
+   {"n", TestRunner::Names},
+   {"names", TestRunner::Names},
+   {"t", TestRunner::Times},
+   {"times", TestRunner::Times},
+   {NULL, TestRunner::None}
+};
+
+bool TestRunner::stringToLevel(const char* slevel, OutputLevel& level)
+{
+   bool found = false;
+   for(int mapi = 0;
+      slevel != NULL&& !found && outputLevelsMap[mapi].key != NULL;
+      mapi++)
+   {
+      if(strcasecmp(slevel, outputLevelsMap[mapi].key) == 0)
+      {
+         level = outputLevelsMap[mapi].level;
+         found = true;
+      }
+   }
+   
+   return found;
+}
+
+const char* TestRunner::levelToString(OutputLevel level)
+{
+   const char* rval;
+
+   switch(level)
+   {
+      case None:
+         rval = "None";
+         break;
+      case Final:
+         rval = "Final";
+         break;
+      case Progress:
+         rval = "Progress";
+         break;
+      case Names:
+         rval = "Names";
+         break;
+      case Times:
+         rval = "Times";
+         break;
+      default:
+         rval = NULL;
+   }
+
+   return rval;
+}
+
 void TestRunner::group(const char* name)
 {
    mTestPath.push_back(string(name) + "/");

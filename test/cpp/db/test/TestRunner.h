@@ -119,6 +119,32 @@ public:
     * @return the app for this TestRunner.
     */
    virtual db::app::App* getApp();
+
+   /**
+    * Get the output level.
+    * 
+    * @return the output level.
+    */
+   virtual OutputLevel getOutputLevel();
+   
+   /**
+    * Case insensitive conversion from string to OuputLevel.
+    * 
+    * @param slevel the string to convert.
+    * @param level the output level.
+    * 
+    * @return true if found and level will be set, false if not found.
+    */
+   static bool stringToLevel(const char *slevel, OutputLevel& level);
+   
+   /**
+    * Conversion from OutputLevel to string
+    * 
+    * @param type the OutputLevel to convert.
+    * 
+    * @return the string or NULL.
+    */
+   static const char* levelToString(OutputLevel level);
    
    /**
     * Start a test group.  Pushes name on a stack and can be called recursively.
