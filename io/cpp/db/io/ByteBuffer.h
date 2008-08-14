@@ -425,6 +425,9 @@ public:
    virtual bool isManaged() const;
 };
 
+// typedef for reference-counted ByteBuffer
+typedef db::rt::Collectable<ByteBuffer> ByteBufferRef;
+
 } // end namespace io
 } // end namespace db
 #endif
