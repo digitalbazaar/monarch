@@ -7,7 +7,7 @@ using namespace db::net;
 
 SslSessionCache::SslSessionCache(unsigned int capacity)
 {
-   
+   mCapacity = capacity;
 }
 
 SslSessionCache::~SslSessionCache()
