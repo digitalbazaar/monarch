@@ -97,9 +97,13 @@ public:
    virtual void fire();
    
    /**
-    * Unregister this EventWaiter for the event registered with start().
+    * Unregister this EventWaiter for the event registered with start(). This
+    * call does not reset the event waiter, call reset().
+    * 
+    * @param event the name of a specific event to stop listening for or NULL 
+    *              to stop for all events.
     */
-   virtual void stop();
+   virtual void stop(const char* event = NULL);
    
    /**
     * Observer protocol that is called when the registered events occur.

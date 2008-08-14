@@ -11,11 +11,10 @@ using namespace std;
 using namespace db::event;
 using namespace db::rt;
 
-EventWaiter::EventWaiter(EventController* ec) :
-   mEventTypes(NULL)
+EventWaiter::EventWaiter(EventController* ec)
 {
    mEventController = ec;
-   mRegistered = false;
+   mEventTypes->setType(Array);
    reset();
 }
 
@@ -32,14 +31,8 @@ void EventWaiter::reset()
 
 void EventWaiter::start(const char* event)
 {
-   if(mEventTypes.isNull())
-   {
-      mEventTypes = DynamicObject();
-      mEventTypes->append() = event;
-   }
-   
+   mEventTypes->append() = event;
    mEventController->registerObserver(this, event);
-   mRegistered = true;
 }
 
 void EventWaiter::fire()
@@ -50,9 +43,9 @@ void EventWaiter::fire()
    mEventController->schedule(e);
 }
 
-void EventWaiter::stop()
+void EventWaiter::stop(const char* event)
 {
-   if(mRegistered)
+   if(event == NULL)
    {
       // unregister all events
       DynamicObjectIterator i = mEventTypes.getIterator();
@@ -61,10 +54,23 @@ void EventWaiter::stop()
          DynamicObject& type = i->next();
          mEventController->unregisterObserver(this, type->getString());
       }
-      
-      mRegistered = false;
-      mEventTypes.setNull();
-      reset();
+   }
+   else
+   {
+      // find the event to remove and unregister
+      bool removed = false;
+      DynamicObjectIterator i = mEventTypes.getIterator();
+      while(!removed && i->hasNext())
+      {
+         DynamicObject& type = i->next();
+         if(strcmp(type->getString(), event) == 0)
+         {
+            // unregister the named event
+            mEventController->unregisterObserver(this, event);
+            i->remove();
+            removed = true;
+         }
+      }    
    }
 }
 

@@ -25,6 +25,9 @@ RateAverager::~RateAverager()
 
 void RateAverager::reset()
 {
+   // not running
+   mRunning = false;
+   
    // reset start and stop times
    setStartTime(0);
    setStopTime(0);
