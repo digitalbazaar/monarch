@@ -8,6 +8,8 @@
 #include "db/rt/Exception.h"
 #include "db/rt/DynamicObjectImpl.h"
 
+#include <inttypes.h>
+
 namespace db
 {
 namespace rt
@@ -95,28 +97,28 @@ public:
     * 
     * @param value the value for this object.
     */
-   virtual void operator=(int value);
+   virtual void operator=(int32_t value);
    
    /**
     * Sets this object's value to a 32-bit unsigned integer.
     * 
     * @param value the value for this object.
     */
-   virtual void operator=(unsigned int value);
+   virtual void operator=(uint32_t value);
    
    /**
     * Sets this object's value to a 64-bit integer.
     * 
     * @param value the value for this object.
     */
-   virtual void operator=(long long value);
+   virtual void operator=(int64_t value);
    
    /**
     * Sets this object's value to a 64-bit unsigned integer.
     * 
     * @param value the value for this object.
     */
-   virtual void operator=(unsigned long long value);
+   virtual void operator=(uint64_t value);
    
    /**
     * Sets this object's value to a double.

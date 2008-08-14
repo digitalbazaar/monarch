@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
+#define __STDC_LIMIT_MACROS
+
 #include "db/rt/DynamicObjectImpl.h"
 
 #include "db/rt/DynamicObject.h"
@@ -84,28 +86,28 @@ void DynamicObjectImpl::operator=(bool value)
    mBoolean = value;
 }
 
-void DynamicObjectImpl::operator=(int value)
+void DynamicObjectImpl::operator=(int32_t value)
 {
    freeData();
    mType = Int32;
    mInt32 = value;
 }
 
-void DynamicObjectImpl::operator=(unsigned int value)
+void DynamicObjectImpl::operator=(uint32_t value)
 {
    freeData();
    mType = UInt32;
    mUInt32 = value;
 }
 
-void DynamicObjectImpl::operator=(long long value)
+void DynamicObjectImpl::operator=(int64_t value)
 {
    freeData();
    mType = Int64;
    mInt64 = value;
 }
 
-void DynamicObjectImpl::operator=(unsigned long long value)
+void DynamicObjectImpl::operator=(uint64_t value)
 {
    freeData();
    mType = UInt64;
@@ -318,19 +320,19 @@ bool DynamicObjectImpl::getBoolean()
          rval = (mString == NULL) ? false : (strcmp(mString, "true") == 0);
          break;
       case Int32:
-         rval = (mInt32 == 1);
+         rval = !(mInt32 == 0);
          break;
       case UInt32:
-         rval = (mUInt32 == 1);
+         rval = !(mUInt32 == 0);
          break;
       case Int64:
-         rval = (mInt64 == 1);
+         rval = !(mInt64 == 0);
          break;
       case UInt64:
-         rval = (mUInt64 == 1);
+         rval = !(mUInt64 == 0);
          break;
       case Double:
-         rval = (mDouble == 1);
+         rval = !(mDouble == 0.0);
          break;
       default:
          rval = false;
@@ -340,9 +342,9 @@ bool DynamicObjectImpl::getBoolean()
    return rval;
 }
 
-int DynamicObjectImpl::getInt32()
+int32_t DynamicObjectImpl::getInt32()
 {
-   int rval;
+   int32_t rval;
    
    switch(mType)
    {
@@ -356,16 +358,17 @@ int DynamicObjectImpl::getInt32()
          rval = mBoolean ? 1 : 0;
          break;
       case UInt32:
-         rval = (int)(mUInt32 & 0x7fffffff);
+         rval = (int32_t)((mUInt32 > INT32_MAX) ? INT32_MAX : mUInt32);
          break;
       case Int64:
-         rval = (int)(mInt64);
+         rval = (int32_t)((mInt64 > INT32_MAX) ? INT32_MAX :
+            ((mInt64 < INT32_MIN) ? INT32_MIN : mInt64));
          break;
       case UInt64:
-         rval = (int)(mUInt64 & 0x7fffffff);
+         rval = (int32_t)((mUInt64 > INT32_MAX) ? INT32_MAX : mUInt64);
          break;
       case Double:
-         rval = (int)mDouble;
+         rval = (int32_t)mDouble;
          break;
       default:
          rval = 0;
@@ -375,9 +378,9 @@ int DynamicObjectImpl::getInt32()
    return rval;
 }
 
-unsigned int DynamicObjectImpl::getUInt32()
+uint32_t DynamicObjectImpl::getUInt32()
 {
-   unsigned int rval;
+   uint32_t rval;
    
    switch(mType)
    {
@@ -391,16 +394,17 @@ unsigned int DynamicObjectImpl::getUInt32()
          rval = mBoolean ? 1 : 0;
          break;
       case Int32:
-         rval = (mInt32 < 0) ? 0 : mInt32;
+         rval = (uint32_t)((mInt32 < 0) ? 0 : mInt32);
          break;
       case Int64:
-         rval = (mInt64 < 0) ? 0 : (unsigned int)mInt64;
+         rval = (uint32_t)((mInt64 < 0) ? 0 :
+            ((mInt64 > UINT32_MAX) ? UINT32_MAX : mInt64));
          break;
       case UInt64:
-         rval = (unsigned int)mUInt64;
+         rval = (uint32_t)((mUInt64 > UINT32_MAX) ? UINT32_MAX : mUInt64);
          break;
       case Double:
-         rval = (unsigned int)mDouble;
+         rval = (uint32_t)mDouble;
          break;
       default:
          rval = 0;
@@ -410,9 +414,9 @@ unsigned int DynamicObjectImpl::getUInt32()
    return rval;
 }
 
-long long DynamicObjectImpl::getInt64()
+int64_t DynamicObjectImpl::getInt64()
 {
-   long long rval;
+   int64_t rval;
    
    switch(mType)
    {
@@ -426,16 +430,16 @@ long long DynamicObjectImpl::getInt64()
          rval = mBoolean ? 1 : 0;
          break;
       case Int32:
-         rval = mInt32;
+         rval = (int64_t)mInt32;
          break;
       case UInt32:
-         rval = mUInt32;
+         rval = (int64_t)mUInt32;
          break;
       case UInt64:
-         rval = (long long)mUInt64;
+         rval = (int64_t)((mUInt64 > INT64_MAX) ? INT64_MAX : mUInt64);
          break;
       case Double:
-         rval = (long long)mDouble;
+         rval = (int64_t)mDouble;
          break;
       default:
          rval = 0;
@@ -445,9 +449,9 @@ long long DynamicObjectImpl::getInt64()
    return rval;
 }
 
-unsigned long long DynamicObjectImpl::getUInt64()
+uint64_t DynamicObjectImpl::getUInt64()
 {
-   unsigned long long rval;
+   uint64_t rval;
    
    switch(mType)
    {
@@ -461,16 +465,16 @@ unsigned long long DynamicObjectImpl::getUInt64()
          rval = mBoolean ? 1 : 0;
          break;
       case Int32:
-         rval = (mInt32 < 0) ? 0 : mInt32;
+         rval = (uint64_t)((mInt32 < 0) ? 0 : mInt32);
          break;
       case UInt32:
-         rval = mUInt32;
+         rval = (uint64_t)mUInt32;
          break;
       case Int64:
-         rval = (mInt64 < 0) ? 0 : mInt64;
+         rval = (uint64_t)((mInt64 < 0) ? 0 : mInt64);
          break;
       case Double:
-         rval = (unsigned long long)mDouble;
+         rval = (uint64_t)mDouble;
          break;
       default:
          rval = 0;
@@ -554,22 +558,22 @@ void DynamicObjectImpl::clear()
          *this = "";
          break;
       case Boolean:
-         *this = false;
+         mBoolean = false;
          break;
       case Int32:
-         *this = (int)0;
+         mInt32 = 0;
          break;
       case UInt32:
-         *this = (unsigned int)0;
+         mUInt32 = 0;
          break;
       case Int64:
-         *this = (long long)0;
+         mInt64 = 0;
          break;
       case UInt64:
-         *this = (unsigned long long)0;
+         mUInt64 = 0;
          break;
       case Double:
-         *this = (double)0.0;
+         mDouble = 0.0;
          break;
       case Map:
          freeMapKeys();
@@ -595,11 +599,11 @@ int DynamicObjectImpl::length()
          break;
       case Int32:
       case UInt32:
-         rval = sizeof(unsigned int);
+         rval = sizeof(uint32_t);
          break;
       case Int64:
       case UInt64:
-         rval = sizeof(unsigned long long);
+         rval = sizeof(uint64_t);
          break;
       case Double:
          rval = sizeof(double);

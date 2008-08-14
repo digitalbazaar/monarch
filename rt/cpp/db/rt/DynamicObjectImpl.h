@@ -10,6 +10,8 @@
 #include <vector>
 #include <cstring>
 
+#include <inttypes.h>
+
 namespace db
 {
 namespace rt
@@ -74,10 +76,10 @@ protected:
    {
       char* mString;
       bool mBoolean;
-      int mInt32;
-      unsigned int mUInt32;
-      long long mInt64;
-      unsigned long long mUInt64;
+      int32_t mInt32;
+      uint32_t mUInt32;
+      int64_t mInt64;
+      uint64_t mUInt64;
       double mDouble;
       ObjectMap* mMap;
       ObjectArray* mArray;
@@ -142,28 +144,28 @@ public:
     * 
     * @param value the value for this object.
     */
-   virtual void operator=(int value);
+   virtual void operator=(int32_t value);
    
    /**
     * Sets this object's value to a 32-bit unsigned integer.
     * 
     * @param value the value for this object.
     */
-   virtual void operator=(unsigned int value);
+   virtual void operator=(uint32_t value);
    
    /**
     * Sets this object's value to a 64-bit integer.
     * 
     * @param value the value for this object.
     */
-   virtual void operator=(long long value);
+   virtual void operator=(int64_t value);
    
    /**
     * Sets this object's value to a 64-bit unsigned integer.
     * 
     * @param value the value for this object.
     */
-   virtual void operator=(unsigned long long value);
+   virtual void operator=(uint64_t value);
    
    /**
     * Sets this object's value to a double.
@@ -235,28 +237,28 @@ public:
     * 
     * @return the value of this object.
     */
-   virtual int getInt32();
+   virtual int32_t getInt32();
    
    /**
     * Gets this object's value as a 32-bit unsigned integer.
     * 
     * @return the value of this object.
     */
-   virtual unsigned int getUInt32();
+   virtual uint32_t getUInt32();
    
    /**
     * Gets this object's value as a 64-bit integer.
     * 
     * @return the value of this object.
     */
-   virtual long long getInt64();
+   virtual int64_t getInt64();
    
    /**
     * Gets this object's value as a 64-bit unsigned integer.
     * 
     * @return the value of this object.
     */
-   virtual unsigned long long getUInt64();
+   virtual uint64_t getUInt64();
    
    /**
     * Gets this object's value as a double.

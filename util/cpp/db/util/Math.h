@@ -38,7 +38,7 @@ public:
    /**
     * The maximum unsigned long long value.
     */
-   static const unsigned long long MAX_ULONG_VALUE = 0xffffffffffffffffLL;
+   static const unsigned long long MAX_ULONG_VALUE = 0xffffffffffffffffULL;
    
    /**
     * The half of the maximum signed long long value.

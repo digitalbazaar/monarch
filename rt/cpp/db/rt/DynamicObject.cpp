@@ -154,22 +154,22 @@ void DynamicObject::operator=(bool value)
    *mReference->ptr = value;
 }
 
-void DynamicObject::operator=(int value)
+void DynamicObject::operator=(int32_t value)
 {
    *mReference->ptr = value;
 }
 
-void DynamicObject::operator=(unsigned int value)
+void DynamicObject::operator=(uint32_t value)
 {
    *mReference->ptr = value;
 }
 
-void DynamicObject::operator=(long long value)
+void DynamicObject::operator=(int64_t value)
 {
    *mReference->ptr = value;
 }
 
-void DynamicObject::operator=(unsigned long long value)
+void DynamicObject::operator=(uint64_t value)
 {
    *mReference->ptr = value;
 }
