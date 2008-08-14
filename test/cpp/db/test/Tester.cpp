@@ -62,6 +62,7 @@ DynamicObject Tester::getCommandLineSpec()
 "  -i, --interactive   Do only interactive tests. (default: false).\n"
 "  -a, --automatic     Do only automatic tests. (default: true).\n"
 "                      Note: -i and -a can be combined to do both types.\n"
+"  -t, --test TEST     Run a specific test if supported. (default: \"all\")\n"
 "\n";
    
    DynamicObject opt;
@@ -86,6 +87,11 @@ DynamicObject Tester::getCommandLineSpec()
    opt["long"] = "--interactive";
    opt["setTrue"] = cfg["db.test.Tester"]["__cl_interactive"];
   
+   opt = spec["options"]->append();
+   opt["short"] = "-t";
+   opt["long"] = "--test";
+   opt["arg"] = cfg["db.test.Tester"]["test"];
+  
    return spec;
 }
 
@@ -93,8 +99,9 @@ bool Tester::willParseCommandLine(std::vector<const char*>* args)
 {
    bool rval = true;
    
-   mApp->getConfig()["db.test.Tester"]["level"] = 3;
+   mApp->getConfig()["db.test.Tester"]["level"] = TestRunner::Names;
    mApp->getConfig()["db.test.Tester"]["continueAfterException"] = false;
+   mApp->getConfig()["db.test.Tester"]["test"] = "all";
    
    return rval;
 }
@@ -105,7 +112,8 @@ bool Tester::didParseCommandLine()
    Config& cfg = mApp->getConfig()["db.test.Tester"];
 
    // if interactive, assume no automatic, else only automatic enabled
-   if(cfg->hasMember("__cl_interactive") && cfg["__cl_interactive"]->getBoolean())
+   if(cfg->hasMember("__cl_interactive") &&
+      cfg["__cl_interactive"]->getBoolean())
    {
       cfg["interactive"] = true;
       cfg["automatic"] = false;
@@ -117,7 +125,8 @@ bool Tester::didParseCommandLine()
    }
    
    // if auto set, override interactive setting
-   if(cfg->hasMember("__cl_automatic") && cfg["__cl_automatic"]->getBoolean())
+   if(cfg->hasMember("__cl_automatic") &&
+      cfg["__cl_automatic"]->getBoolean())
    {
       cfg["automatic"] = true;
    }
