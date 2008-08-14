@@ -162,8 +162,9 @@ public:
     * should be appended to the data it wrote to the destination buffer.
     * 
     * CompleteTruncate: If this algorithm completed and any remaining source
-    * data must be cleared (it *must not* be appended to the data written to
-    * the destination buffer).
+    * data must be ignored (it *must not* be appended to the data written to
+    * the destination buffer). The remaining source data will be untouched so
+    * that it can be used for another purpose if so desired.
     * 
     * Error: If an exception occurred.
     * 
