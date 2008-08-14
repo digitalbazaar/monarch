@@ -92,18 +92,8 @@ int MutatorInputStream::read(char* b, int length)
       }
       else
       {
-         // get remaining data from destination
+         // get remaining data from destination, do not populate source again
          rval = mDestination.get(b, length);
-         
-         if(mDestination.isEmpty() && !mSourceEmpty)
-         {
-            // clear remaining bytes in underlying input stream
-            mSource.clear();
-            while(mSource.fill(mInputStream) > 0)
-            {
-               mSource.clear();
-            }
-         }
       }
    }
    else if(mResult != MutationAlgorithm::Error)
