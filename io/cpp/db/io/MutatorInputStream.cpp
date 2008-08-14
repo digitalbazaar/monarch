@@ -8,20 +8,53 @@ using namespace db::rt;
 
 MutatorInputStream::MutatorInputStream(
    InputStream* is, bool cleanupStream,
-   MutationAlgorithm* algorithm, bool cleanupAlgorithm) :
-   FilterInputStream(is, cleanupStream),
-   mSource(2048),
-   mDestination(4096)
+   MutationAlgorithm* algorithm, bool cleanupAlgorithm,
+   ByteBuffer* src, ByteBuffer* dst) :
+   FilterInputStream(is, cleanupStream)
 {
    // store mutation algorithm
    mAlgorithm = algorithm;
    mCleanupAlgorithm = cleanupAlgorithm;
    mResult = MutationAlgorithm::NeedsData;
    mSourceEmpty = false;
+   
+   // set source buffer
+   if(src == NULL)
+   {
+      mSource = new ByteBuffer(2048);
+      mCleanupSource = true;
+   }
+   else
+   {
+      mSource = src;
+      mCleanupSource = false;
+   }
+   
+   // set destination buffer
+   if(dst == NULL)
+   {
+      mDestination = new ByteBuffer(4096);
+      mCleanupDestination = true;
+   }
+   else
+   {
+      mDestination = src;
+      mCleanupDestination = false;
+   }
 }
 
 MutatorInputStream::~MutatorInputStream()
 {
+   if(mCleanupSource)
+   {
+      delete mSource;
+   }
+   
+   if(mCleanupDestination)
+   {
+      delete mDestination;
+   }
+   
    if(mCleanupAlgorithm && mAlgorithm != NULL)
    {
       delete mAlgorithm;
@@ -36,11 +69,11 @@ int MutatorInputStream::read(char* b, int length)
    while(rval == 0 && mResult < MutationAlgorithm::CompleteAppend)
    {
       // try to mutate data
-      mResult = mAlgorithm->mutateData(&mSource, &mDestination, mSourceEmpty);
+      mResult = mAlgorithm->mutateData(mSource, mDestination, mSourceEmpty);
       switch(mResult)
       {
          case MutationAlgorithm::NeedsData:
-            if(mSource.isFull() || mSourceEmpty)
+            if(mSource->isFull() || mSourceEmpty)
             {
                // no more data available for algorithm
                mResult = MutationAlgorithm::Error;
@@ -53,7 +86,7 @@ int MutatorInputStream::read(char* b, int length)
             else
             {
                // read more data from underlying stream
-               int numBytes = mSource.fill(mInputStream);
+               int numBytes = mSource->fill(mInputStream);
                mSourceEmpty = (numBytes == 0);
                if(numBytes < 0)
                {
@@ -68,7 +101,7 @@ int MutatorInputStream::read(char* b, int length)
             break;
          default:
             // set rval to available data
-            rval = mDestination.length();
+            rval = mDestination->length();
             break;
       }
    }
@@ -79,10 +112,10 @@ int MutatorInputStream::read(char* b, int length)
       if(mResult == MutationAlgorithm::CompleteAppend)
       {
          // empty source into destination
-         mSource.get(&mDestination, mSource.length(), true);
+         mSource->get(mDestination, mSource->length(), true);
          
          // get bytes from destination
-         rval = mDestination.get(b, length);
+         rval = mDestination->get(b, length);
          
          if(rval == 0 && !mSourceEmpty)
          {
@@ -93,13 +126,13 @@ int MutatorInputStream::read(char* b, int length)
       else
       {
          // get remaining data from destination, do not populate source again
-         rval = mDestination.get(b, length);
+         rval = mDestination->get(b, length);
       }
    }
    else if(mResult != MutationAlgorithm::Error)
    {
       // get data from destination buffer
-      rval = mDestination.get(b, length);
+      rval = mDestination->get(b, length);
    }
    
    return rval;

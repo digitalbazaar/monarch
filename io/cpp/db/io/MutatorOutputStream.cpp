@@ -8,20 +8,53 @@ using namespace db::rt;
 
 MutatorOutputStream::MutatorOutputStream(
    OutputStream* os, bool cleanupStream,
-   MutationAlgorithm* algorithm, bool cleanupAlgorithm) :
-   FilterOutputStream(os, cleanupStream),
-   mSource(2048),
-   mDestination(4096)
+   MutationAlgorithm* algorithm, bool cleanupAlgorithm,
+   ByteBuffer* src, ByteBuffer* dst) :
+   FilterOutputStream(os, cleanupStream)
 {
    // store mutation algorithm
    mAlgorithm = algorithm;
    mCleanupAlgorithm = cleanupAlgorithm;
    mResult = MutationAlgorithm::NeedsData;
    mFinished = false;
+   
+   // set source buffer
+   if(src == NULL)
+   {
+      mSource = new ByteBuffer(2048);
+      mCleanupSource = true;
+   }
+   else
+   {
+      mSource = src;
+      mCleanupSource = false;
+   }
+   
+   // set destination buffer
+   if(dst == NULL)
+   {
+      mDestination = new ByteBuffer(4096);
+      mCleanupDestination = true;
+   }
+   else
+   {
+      mDestination = src;
+      mCleanupDestination = false;
+   }
 }
 
 MutatorOutputStream::~MutatorOutputStream()
 {
+   if(mCleanupSource)
+   {
+      delete mSource;
+   }
+   
+   if(mCleanupDestination)
+   {
+      delete mDestination;
+   }
+   
    if(mCleanupAlgorithm && mAlgorithm != NULL)
    {
       delete mAlgorithm;
@@ -34,15 +67,15 @@ bool MutatorOutputStream::write(const char* b, int length)
    
    // determine buffer to obtain source data from
    ByteBuffer* src;
-   if(!mSource.isEmpty())
+   if(!mSource->isEmpty())
    {
       // append passed data to the source buffer
-      mSource.put(b, length, true);
-      src = &mSource;
+      mSource->put(b, length, true);
+      src = mSource;
    }
    else
    {
-      // wrap the passed data to mutated it without caching it
+      // wrap the passed data to mutate it without caching it
       mInputWrapper.setBytes((char*)b, 0, length, false);
       src = &mInputWrapper;
    }
@@ -55,7 +88,7 @@ bool MutatorOutputStream::write(const char* b, int length)
    while(rval && write && mResult < MutationAlgorithm::CompleteAppend)
    {
       // try to mutate data
-      mResult = mAlgorithm->mutateData(src, &mDestination, finish);
+      mResult = mAlgorithm->mutateData(src, mDestination, finish);
       switch(mResult)
       {
          case MutationAlgorithm::NeedsData:
@@ -80,10 +113,10 @@ bool MutatorOutputStream::write(const char* b, int length)
             write = false;
             break;
          default:
-            if(!mDestination.isEmpty())
+            if(!mDestination->isEmpty())
             {
                // write destination data out
-               rval = (mDestination.get(mOutputStream) > 0);
+               rval = (mDestination->get(mOutputStream) > 0);
             }
             break;
       }
@@ -100,7 +133,7 @@ bool MutatorOutputStream::write(const char* b, int length)
    else if(mResult == MutationAlgorithm::CompleteTruncate)
    {
       // clear any source bytes
-      mSource.clear();
+      mSource->clear();
       mInputWrapper.clear();
    }
    else
@@ -108,7 +141,7 @@ bool MutatorOutputStream::write(const char* b, int length)
       // copy excess bytes into source buffer
       if(src == &mInputWrapper && !mInputWrapper.isEmpty())
       {
-         mSource.put(&mInputWrapper, mInputWrapper.length(), true);
+         mSource->put(&mInputWrapper, mInputWrapper.length(), true);
       }
    }
    
@@ -151,9 +184,9 @@ void MutatorOutputStream::setAlgorithm(MutationAlgorithm* ma, bool cleanup)
    mCleanupAlgorithm = cleanup;
    mResult = MutationAlgorithm::NeedsData;
    mFinished = false;
-   mSource.clear();
+   mSource->clear();
    mInputWrapper.clear();
-   mDestination.clear();
+   mDestination->clear();
 }
 
 MutationAlgorithm* MutatorOutputStream::getAlgorithm()

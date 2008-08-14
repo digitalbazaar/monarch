@@ -25,12 +25,23 @@ protected:
     * An internal buffer for storing data written to this stream that is
     * unmutated.
     */
-   ByteBuffer mSource;
+   ByteBuffer* mSource;
    
    /**
     * An internal buffer for storing mutated data.
     */
-   ByteBuffer mDestination;
+   ByteBuffer* mDestination;
+   
+   /**
+    * True to clean up the source buffer, false not to.
+    */
+   bool mCleanupSource;
+   
+   /**
+    * True to clean up the destination buffer, false not to.
+    */
+   bool mCleanupDestination;
+   
    
    /**
     * A ByteBuffer used as a wrapper for source bytes to improve performance
@@ -69,10 +80,13 @@ public:
     * @param algorithm the MutationAlgorithm to use.
     * @param cleanupAlgorithm true to clean up the passed MutationAlgorithm
     *                         when destructing, false not to.
+    * @param src a source buffer to use internally, NULL to create one.
+    * @param dst a destination buffer to use internally, NULL to create one. 
     */
    MutatorOutputStream(
       OutputStream* is, bool cleanupStream,
-      MutationAlgorithm* algorithm, bool cleanupAlgorithm);
+      MutationAlgorithm* algorithm, bool cleanupAlgorithm,
+      ByteBuffer* src = NULL, ByteBuffer* dst = NULL);
    
    /**
     * Destructs this MutatorOutputStream.
