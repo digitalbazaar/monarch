@@ -390,14 +390,14 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
                }
                break;
             default:
-               {
-                  // could not connect
-                  ExceptionRef e = new Exception(
-                     "Cannot connect Socket!", SOCKET_EXCEPTION_TYPE);
-                  e->getDetails()["error"] = strerror(errno);
-                  Exception::setLast(e, false);
-               }
+            {
+               // could not connect
+               ExceptionRef e = new Exception(
+                  "Cannot connect Socket!", SOCKET_EXCEPTION_TYPE);
+               e->getDetails()["error"] = strerror(errno);
+               Exception::setLast(e, false);
                break;
+            }
          }
       }
       else

@@ -387,25 +387,25 @@ void ConfigManager::merge(Config& target, Config& source)
             target = source.clone();
             break;
          case Map:
+         {
+            target->setType(Map);
+            ConfigIterator i = source.getIterator();
+            while(i->hasNext())
             {
-               target->setType(Map);
-               ConfigIterator i = source.getIterator();
-               while(i->hasNext())
-               {
-                  merge(target[i->getName()], i->next());
-               }
+               merge(target[i->getName()], i->next());
             }
             break;
+         }
          case Array:
+         {
+            target->setType(Array);
+            ConfigIterator i = source.getIterator();
+            for(int ii = 0; i->hasNext(); ii++)
             {
-               target->setType(Array);
-               ConfigIterator i = source.getIterator();
-               for(int ii = 0; i->hasNext(); ii++)
-               {
-                  merge(target[ii], i->next());
-               }
+               merge(target[ii], i->next());
             }
             break;
+         }
       }
    }
 }
@@ -481,57 +481,57 @@ bool ConfigManager::diff(Config& target, Config& config1, Config& config2)
             }
             break;
          case Map:
+         {
+            // compare config2 keys since we are only concerned with
+            // additions and updates, not removals
+            ConfigIterator i = config2.getIterator();
+            while(i->hasNext())
             {
-               // compare config2 keys since we are only concerned with
-               // additions and updates, not removals
-               ConfigIterator i = config2.getIterator();
-               while(i->hasNext())
+               Config next = i->next();
+               const char* name = i->getName();
+               if(!config1->hasMember(name))
                {
-                  Config next = i->next();
-                  const char* name = i->getName();
-                  if(!config1->hasMember(name))
-                  {
-                     // key not in config1, so add to diff
-                     rval = true;
-                     target[name] = next.clone();
-                  }
-                  else
-                  {
-                     // recusively get sub-diff
-                     Config d;
-                     if(diff(d, config1[name], next))
-                     {
-                        // diff found, add it
-                        rval = true;
-                        target[name] = d;
-                     }
-                  }
+                  // key not in config1, so add to diff
+                  rval = true;
+                  target[name] = next.clone();
                }
-            }
-            break;
-         case Array:
-            {
-               // compare config2 indexes since we are only concerned with
-               // additions and updates, not removals
-               ConfigIterator i = config2.getIterator();
-               for(int ii = 0; i->hasNext(); ii++)
+               else
                {
-                  DynamicObject next = i->next();
+                  // recusively get sub-diff
                   Config d;
-                  if(diff(d, config1[ii], next))
+                  if(diff(d, config1[name], next))
                   {
-                     // diff found
+                     // diff found, add it
                      rval = true;
-                     target[ii] = d;
-                  }
-                  else
-                  {
-                     // set magic value
-                     target[ii] = DEFAULT_VALUE;
+                     target[name] = d;
                   }
                }
             }
             break;
+         }
+         case Array:
+         {
+            // compare config2 indexes since we are only concerned with
+            // additions and updates, not removals
+            ConfigIterator i = config2.getIterator();
+            for(int ii = 0; i->hasNext(); ii++)
+            {
+               DynamicObject next = i->next();
+               Config d;
+               if(diff(d, config1[ii], next))
+               {
+                  // diff found
+                  rval = true;
+                  target[ii] = d;
+               }
+               else
+               {
+                  // set magic value
+                  target[ii] = DEFAULT_VALUE;
+               }
+            }
+            break;
+         }
       }
    }
    
@@ -570,54 +570,54 @@ bool ConfigManager::isValidConfig(Config& config, Config& schema)
             rval = true;
             break;
          case Map:
+         {
+            // Compare all schema keys
+            ConfigIterator i = schema.getIterator();
+            // assume true and verify
+            rval = true;
+            while(rval && i->hasNext())
             {
-               // Compare all schema keys
-               ConfigIterator i = schema.getIterator();
-               // assume true and verify
-               rval = true;
-               while(rval && i->hasNext())
+               Config next = i->next();
+               const char* name = i->getName();
+               if(!config->hasMember(name))
                {
-                  Config next = i->next();
-                  const char* name = i->getName();
-                  if(!config->hasMember(name))
-                  {
-                     // key not in config, fail
-                     rval = false;
-                  }
-                  else
-                  {
-                     // check values
-                     rval = isValidConfig(config[name], next);
-                  }
-               }
-            }
-            break;
-         case Array:
-            {
-               if(schema->length() == 0)
-               {
-                  // allow any array values
-                  rval = true;
-               }
-               else if(schema->length() == 1)
-               {
-                  // all config elements must match template 
-                  ConfigIterator i = config.getIterator();
-                  rval = true;
-                  while(rval && i->hasNext())
-                  {
-                     rval = isValidConfig(i->next(), schema[0]); 
-                  }
+                  // key not in config, fail
+                  rval = false;
                }
                else
                {
-                  // multiple schema elements not allowed
-                  ExceptionRef e =
-                     new Exception("Multiple Array schema values not allowed");
-                  Exception::setLast(e, false);
+                  // check values
+                  rval = isValidConfig(config[name], next);
                }
             }
             break;
+         }
+         case Array:
+         {
+            if(schema->length() == 0)
+            {
+               // allow any array values
+               rval = true;
+            }
+            else if(schema->length() == 1)
+            {
+               // all config elements must match template 
+               ConfigIterator i = config.getIterator();
+               rval = true;
+               while(rval && i->hasNext())
+               {
+                  rval = isValidConfig(i->next(), schema[0]); 
+               }
+            }
+            else
+            {
+               // multiple schema elements not allowed
+               ExceptionRef e =
+                  new Exception("Multiple Array schema values not allowed");
+               Exception::setLast(e, false);
+            }
+            break;
+         }
       }
    }
    

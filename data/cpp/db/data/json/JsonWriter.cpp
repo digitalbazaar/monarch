@@ -62,129 +62,97 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
       switch(dyno->getType())
       {
          case String:
+         {
+            const char* temp = dyno->getString();
+            size_t length = strlen(temp);
+            
+            // UTF-8 has a maximum of 7-bytes per character when
+            // encoded in json format
+            char encoded[length * 7 + 2];
+            encoded[0] = '"';
+            size_t n = 1;
+            for(size_t i = 0; i < length; i++)
             {
-               const char* temp = dyno->getString();
-               size_t length = strlen(temp);
-               
-               // UTF-8 has a maximum of 7-bytes per character when
-               // encoded in json format
-               char encoded[length * 7 + 2];
-               encoded[0] = '"';
-               size_t n = 1;
-               for(size_t i = 0; i < length; i++)
+               unsigned char c = temp[i];
+               if((c >= 0x5d /* && c <= 0x10FFFF */) ||
+                  (c >= 0x23 && c <= 0x5B) ||
+                  (c == 0x21) ||
+                  (c == 0x20))
                {
-                  unsigned char c = temp[i];
-                  if((c >= 0x5d /* && c <= 0x10FFFF */) ||
-                     (c >= 0x23 && c <= 0x5B) ||
-                     (c == 0x21) ||
-                     (c == 0x20))
+                  // TODO: check this handles UTF-* properly
+                  encoded[n++] = c;
+               }
+               else
+               {
+                  encoded[n++] = '\\';
+                  switch(c)
                   {
-                     // TODO: check this handles UTF-* properly
-                     encoded[n++] = c;
-                  }
-                  else
-                  {
-                     encoded[n++] = '\\';
-                     switch(c)
-                     {
-                        case '"': /* 0x22 */
-                        case '\\': /* 0x5C */
-                        // '/' is in the RFC but not required to be escaped
-                        //case '/': /* 0x2F */
-                           encoded[n++] = c;
-                           break;
-                        case '\b': /* 0x08 */
-                           encoded[n++] = 'b';
-                           break;
-                        case '\f': /* 0x0C */
-                           encoded[n++] = 'f';
-                           break;
-                        case '\n': /* 0x0A */
-                           encoded[n++] = 'n';
-                           break;
-                        case '\r': /* 0x0D */
-                           encoded[n++] = 'r';
-                           break;
-                        case '\t': /* 0x09 */
-                           encoded[n++] = 't';
-                           break;
-                        default:
-                           snprintf(encoded + n, 6, "u%04x", c);
-                           n += 5;
-                           break;
-                     }
+                     case '"': /* 0x22 */
+                     case '\\': /* 0x5C */
+                     // '/' is in the RFC but not required to be escaped
+                     //case '/': /* 0x2F */
+                        encoded[n++] = c;
+                        break;
+                     case '\b': /* 0x08 */
+                        encoded[n++] = 'b';
+                        break;
+                     case '\f': /* 0x0C */
+                        encoded[n++] = 'f';
+                        break;
+                     case '\n': /* 0x0A */
+                        encoded[n++] = 'n';
+                        break;
+                     case '\r': /* 0x0D */
+                        encoded[n++] = 'r';
+                        break;
+                     case '\t': /* 0x09 */
+                        encoded[n++] = 't';
+                        break;
+                     default:
+                        snprintf(encoded + n, 6, "u%04x", c);
+                        n += 5;
+                        break;
                   }
                }
-               
-               // end string serialization and write encoded string
-               encoded[n++] = '"';
-               rval = os->write(encoded, n);
             }
+            
+            // end string serialization and write encoded string
+            encoded[n++] = '"';
+            rval = os->write(encoded, n);
             break;
+         }
          case Boolean:
          case Int32:
          case UInt32:
          case Int64:
          case UInt64:
          case Double:
-            {
-               const char* temp = dyno->getString();
-               rval = os->write(temp, strlen(temp));
-            }
+         {
+            const char* temp = dyno->getString();
+            rval = os->write(temp, strlen(temp));
             break;
+         }
          case Map:
+         {
+            // start map serialization
+            rval = (mCompact) ? os->write("{", 1) : os->write("{\n", 2);
+            
+            // serialize each map member
+            DynamicObjectIterator i = dyno.getIterator();
+            while(rval && i->hasNext())
             {
-               // start map serialization
-               rval = (mCompact) ? os->write("{", 1) : os->write("{\n", 2);
+               DynamicObject& next = i->next();
                
-               // serialize each map member
-               DynamicObjectIterator i = dyno.getIterator();
-               while(rval && i->hasNext())
+               // serialize indentation and start serializing member name
+               if((rval =
+                  writeIndentation(os, level + 1) &&
+                  os->write("\"", 1) &&
+                  os->write(i->getName(), strlen(i->getName()))))
                {
-                  DynamicObject& next = i->next();
-                  
-                  // serialize indentation and start serializing member name
-                  if((rval =
-                     writeIndentation(os, level + 1) &&
-                     os->write("\"", 1) &&
-                     os->write(i->getName(), strlen(i->getName()))))
-                  {
-                     // end serializing member name, serialize member value
-                     rval = ((mCompact) ?
-                        os->write("\":", 2) : os->write("\" : ", 4)) &&
-                        write(next, os, level + 1);
-                     
-                     // serialize delimiter if appropriate
-                     if(rval && i->hasNext())
-                     {
-                        rval = os->write(",", 1);
-                     }
-                     
-                     // add formatting if appropriate
-                     if(rval && !mCompact)
-                     {
-                        rval = os->write("\n", 1);
-                     }
-                  }
-               }
-               
-               // end map serialization
-               rval = writeIndentation(os, level) && os->write("}", 1);
-            }
-            break;
-         case Array:
-            {
-               // start array serialization
-               rval = (mCompact) ? os->write("[", 1) : os->write("[\n", 2);
-               
-               // serialize each array element
-               DynamicObjectIterator i = dyno.getIterator();
-               while(rval && i->hasNext())
-               {
-                  // serialize indentation and array value
-                  rval =
-                     writeIndentation(os, level + 1) &&
-                     write(i->next(), os, level + 1);
+                  // end serializing member name, serialize member value
+                  rval = ((mCompact) ?
+                     os->write("\":", 2) : os->write("\" : ", 4)) &&
+                     write(next, os, level + 1);
                   
                   // serialize delimiter if appropriate
                   if(rval && i->hasNext())
@@ -198,11 +166,43 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                      rval = os->write("\n", 1);
                   }
                }
-               
-               // end array serialization
-               rval = writeIndentation(os, level) && os->write("]", 1);
             }
+            
+            // end map serialization
+            rval = writeIndentation(os, level) && os->write("}", 1);
             break;
+         }
+         case Array:
+         {
+            // start array serialization
+            rval = (mCompact) ? os->write("[", 1) : os->write("[\n", 2);
+            
+            // serialize each array element
+            DynamicObjectIterator i = dyno.getIterator();
+            while(rval && i->hasNext())
+            {
+               // serialize indentation and array value
+               rval =
+                  writeIndentation(os, level + 1) &&
+                  write(i->next(), os, level + 1);
+               
+               // serialize delimiter if appropriate
+               if(rval && i->hasNext())
+               {
+                  rval = os->write(",", 1);
+               }
+               
+               // add formatting if appropriate
+               if(rval && !mCompact)
+               {
+                  rval = os->write("\n", 1);
+               }
+            }
+            
+            // end array serialization
+            rval = writeIndentation(os, level) && os->write("]", 1);
+            break;
+         }
       }
    }
    

@@ -275,16 +275,16 @@ void DynamicObject::merge(DynamicObject& rhs, bool append)
          *this = rhs.clone();
          break;
       case Map:
+      {
+         (*this)->setType(Map);
+         DynamicObjectIterator i = rhs.getIterator();
+         while(i->hasNext())
          {
-            (*this)->setType(Map);
-            DynamicObjectIterator i = rhs.getIterator();
-            while(i->hasNext())
-            {
-               DynamicObject next = i->next();
-               (*this)[i->getName()].merge(next, append);
-            }
+            DynamicObject next = i->next();
+            (*this)[i->getName()].merge(next, append);
          }
          break;
+      }
       case Array:
          (*this)->setType(Array);
          DynamicObjectIterator i = rhs.getIterator();

@@ -27,15 +27,15 @@ bool In::isValid(
    switch(mContents->getType())
    {
       case Array:
+      {
+         DynamicObjectIterator doi = mContents.getIterator();
+         while(!rval && doi->hasNext())
          {
-            DynamicObjectIterator doi = mContents.getIterator();
-            while(!rval && doi->hasNext())
-            {
-               DynamicObject& member = doi->next();
-               rval = obj == member;
-            }
+            DynamicObject& member = doi->next();
+            rval = obj == member;
          }
          break;
+      }
       case Map:
          rval =
             !obj.isNull() &&

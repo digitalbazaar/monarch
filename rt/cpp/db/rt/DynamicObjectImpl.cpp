@@ -214,19 +214,19 @@ void DynamicObjectImpl::setType(DynamicObjectType type)
             *this = getDouble();
             break;
          case Map:
-            {
-               freeData();
-               mType = Map;
-               mMap = new ObjectMap();
-            }
+         {
+            freeData();
+            mType = Map;
+            mMap = new ObjectMap();
             break;
+         }
          case Array:
-            {
-               freeData();
-               mType = Array;
-               mArray = new ObjectArray();
-            }
+         {
+            freeData();
+            mType = Array;
+            mArray = new ObjectArray();
             break;
+         }
       }
    }
 }
@@ -285,17 +285,15 @@ const char* DynamicObjectImpl::getString()
             snprintf(mStringValue, 50, "%e", mDouble);
             break;
          default: /* Map, Array, ... */
+            if(mStringValue == NULL)
             {
-               if(mStringValue == NULL)
-               {
-                  // duplicate blank string
-                  mStringValue = strdup("");
-               }
-               else
-               {
-                  // set null-terminator to first character
-                  mStringValue[0] = 0; 
-               }
+               // duplicate blank string
+               mStringValue = strdup("");
+            }
+            else
+            {
+               // set null-terminator to first character
+               mStringValue[0] = 0; 
             }
             break;
       }

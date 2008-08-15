@@ -151,30 +151,30 @@ void SphinxClient::serializeQuery(SphinxCommand& cmd, ByteBuffer* b)
       switch(filter["type"]->getUInt32())
       {
          case SPHINX_FILTER_VALUES:
+         {
+            // serialize count and values
+            filter["values"]->setType(Array);
+            uint32_t count = DB_UINT32_TO_BE(filter["values"]->length());
+            b->put((char*)&count, 4, true);
+            DynamicObjectIterator vi = filter["values"].getIterator();
+            uint32_t value;
+            while(vi->hasNext())
             {
-               // serialize count and values
-               filter["values"]->setType(Array);
-               uint32_t count = DB_UINT32_TO_BE(filter["values"]->length());
-               b->put((char*)&count, 4, true);
-               DynamicObjectIterator vi = filter["values"].getIterator();
-               uint32_t value;
-               while(vi->hasNext())
-               {
-                  DynamicObject& dyno = vi->next();
-                  value = DB_UINT32_TO_BE(dyno->getUInt32());
-                  b->put((char*)&value, 4, true);
-               }
+               DynamicObject& dyno = vi->next();
+               value = DB_UINT32_TO_BE(dyno->getUInt32());
+               b->put((char*)&value, 4, true);
             }
             break;
+         }
          case SPHINX_FILTER_RANGE:
-            {
-               // serialize min and max
-               uint32_t min = DB_UINT32_TO_BE(filter["min"]->getUInt32());
-               uint32_t max = DB_UINT32_TO_BE(filter["max"]->getUInt32());
-               b->put((char*)&min, 4, true);
-               b->put((char*)&max, 4, true);
-            }
+         {
+            // serialize min and max
+            uint32_t min = DB_UINT32_TO_BE(filter["min"]->getUInt32());
+            uint32_t max = DB_UINT32_TO_BE(filter["max"]->getUInt32());
+            b->put((char*)&min, 4, true);
+            b->put((char*)&max, 4, true);
             break;
+         }
       }
       
       // serialize exclude
@@ -347,38 +347,38 @@ bool SphinxClient::parseQueryResponse(ByteBuffer* b, SphinxResponse& sr)
          switch(type->getUInt32())
          {
             case SPHINX_ATTR_FLOAT:
-               {
-                  // FIXME: not supported!
-                  b->clear(4);
-                  attr["value"] = 0.0;
-                  ExceptionRef e = new Exception(
-                     "Sphinx floats unimplemented!", "db.sphinx.Sphinx");
-                  Exception::setLast(e, false);
-                  rval = false;
-               }
+            {
+               // FIXME: not supported!
+               b->clear(4);
+               attr["value"] = 0.0;
+               ExceptionRef e = new Exception(
+                  "Sphinx floats unimplemented!", "db.sphinx.Sphinx");
+               Exception::setLast(e, false);
+               rval = false;
                break;
+            }
             case SPHINX_ATTR_INTEGER:
             case SPHINX_ATTR_TIMESTAMP:
             case SPHINX_ATTR_ORDINAL:
             case SPHINX_ATTR_BOOL:
+            {
+               uint32_t value = readUInt32(b, false); 
+               if((type->getUInt32() & SPHINX_ATTR_MULTI) != 0)
                {
-                  uint32_t value = readUInt32(b, false); 
-                  if((type->getUInt32() & SPHINX_ATTR_MULTI) != 0)
+                  // multiple values to handle
+                  attr["value"]->setType(Array);
+                  for(uint32_t x = 0; x < value; x++)
                   {
-                     // multiple values to handle
-                     attr["value"]->setType(Array);
-                     for(uint32_t x = 0; x < value; x++)
-                     {
-                        attr["value"]->append() = readUInt32(b, false);
-                     }
-                  }
-                  else
-                  {
-                     // single value
-                     attr["value"] = value;
+                     attr["value"]->append() = readUInt32(b, false);
                   }
                }
+               else
+               {
+                  // single value
+                  attr["value"] = value;
+               }
                break;
+            }
          }
       }
    }
@@ -419,77 +419,77 @@ bool SphinxClient::parseResponse(
    {
       case SPHINX_SEARCHD_ERROR:
       case SPHINX_SEARCHD_RETRY:
-         {
-            // get error string
-            int length = b->length() - 4;
-            char temp[length + 1];
-            b->clear(4);
-            b->get(temp, length);
-            temp[length] = 0;
-            sr["message"] = temp;
-         }
+      {
+         // get error string
+         int length = b->length() - 4;
+         char temp[length + 1];
+         b->clear(4);
+         b->get(temp, length);
+         temp[length] = 0;
+         sr["message"] = temp;
          break;
+      }
       case SPHINX_SEARCHD_WARNING:
+      {
+         // get warning string length (and ensure it isn't too large)
+         uint32_t length = readUInt32(b, true);
+         
+         // get warning string and drop to SPHINX_SEARCHD_OK
+         char temp[(int)length + 1];
+         b->get(temp, (int)length);
+         temp[length] = 0;
+         sr["message"] = temp;
+      }
+      case SPHINX_SEARCHD_OK:
+      {
+         // FIXME: multiple responses can be here, one for each query
+         // so if we add support for that, we'll need to loop here
+         // FIXME: add better error support for malformed responses
+         
+         // parse individual response status
+         b->get((char*)&status, 4);
+         if(status != SPHINX_SEARCHD_OK)
          {
-            // get warning string length (and ensure it isn't too large)
+            // get message length
             uint32_t length = readUInt32(b, true);
             
-            // get warning string and drop to SPHINX_SEARCHD_OK
+            // get message string
             char temp[(int)length + 1];
             b->get(temp, (int)length);
             temp[length] = 0;
-            sr["message"] = temp;
-         }
-      case SPHINX_SEARCHD_OK:
-         {
-            // FIXME: multiple responses can be here, one for each query
-            // so if we add support for that, we'll need to loop here
-            // FIXME: add better error support for malformed responses
             
-            // parse individual response status
-            b->get((char*)&status, 4);
-            if(status != SPHINX_SEARCHD_OK)
+            // store error or warning
+            if(status == SPHINX_SEARCHD_WARNING)
             {
-               // get message length
-               uint32_t length = readUInt32(b, true);
-               
-               // get message string
-               char temp[(int)length + 1];
-               b->get(temp, (int)length);
-               temp[length] = 0;
-               
-               // store error or warning
-               if(status == SPHINX_SEARCHD_WARNING)
-               {
-                  sr["warning"] = temp;
-               }
-               else
-               {
-                  sr["error"] = temp;
-               }
+               sr["warning"] = temp;
             }
             else
             {
-               switch(cmd["type"]->getUInt32())
-               {
-                  case SPHINX_SEARCHD_CMD_SEARCH:
-                     // parse query response
-                     rval = parseQueryResponse(b, sr);
-                     break;
-                  case SPHINX_SEARCHD_CMD_UPDATE:
-                     // FIXME: parse update response
-                     break;
-               }
+               sr["error"] = temp;
+            }
+         }
+         else
+         {
+            switch(cmd["type"]->getUInt32())
+            {
+               case SPHINX_SEARCHD_CMD_SEARCH:
+                  // parse query response
+                  rval = parseQueryResponse(b, sr);
+                  break;
+               case SPHINX_SEARCHD_CMD_UPDATE:
+                  // FIXME: parse update response
+                  break;
             }
          }
          break;
+      }
       default:
-         {
-            ExceptionRef e = new Exception(
-               "Invalid searchd status code!", "db.sphinx.Sphinx");
-            Exception::setLast(e, false);
-         }
+      {
+         ExceptionRef e = new Exception(
+            "Invalid searchd status code!", "db.sphinx.Sphinx");
+         Exception::setLast(e, false);
          break;
+      }
    }
    
    return rval;

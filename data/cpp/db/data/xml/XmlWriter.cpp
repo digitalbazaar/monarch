@@ -126,70 +126,70 @@ bool XmlWriter::write(DynamicObject& dyno, OutputStream* os, int level)
          switch(dyno->getType())
          {
             case String:
-               {
-                  // xml-encode string
-                  string encoded = encode(dyno->getString());
-                  rval = os->write(encoded.c_str(), encoded.length());
-               }
+            {
+               // xml-encode string
+               string encoded = encode(dyno->getString());
+               rval = os->write(encoded.c_str(), encoded.length());
                break;
+            }
             case Boolean:
             case Int32:
             case UInt32:
             case Int64:
             case UInt64:
             case Double:
-               {
-                  // serialize number to string
-                  const char* temp = dyno->getString();
-                  rval = os->write(temp, strlen(temp));
-               }
+            {
+               // serialize number to string
+               const char* temp = dyno->getString();
+               rval = os->write(temp, strlen(temp));
                break;
+            }
             case Map:
+            {
+               // serialize each map member
+               DynamicObjectIterator i = dyno.getIterator();
+               while(rval && i->hasNext())
                {
-                  // serialize each map member
-                  DynamicObjectIterator i = dyno.getIterator();
-                  while(rval && i->hasNext())
-                  {
-                     DynamicObject next = i->next();
-                     
-                     // serialize member name and value
-                     rval =
-                        (mCompact ? true : os->write("\n", 1)) &&
-                        writeIndentation(os, level + 1) &&
-                        os->write("<member name=\"", 14) &&
-                        os->write(i->getName(), strlen(i->getName())) &&
-                        os->write("\">", 2) &&
-                        write(next, os, level + 2) &&
-                        (mCompact ? true : os->write("\n", 1)) &&
-                        writeIndentation(os, level + 1) &&
-                        os->write("</member>", 9);
-                  }
+                  DynamicObject next = i->next();
+                  
+                  // serialize member name and value
+                  rval =
+                     (mCompact ? true : os->write("\n", 1)) &&
+                     writeIndentation(os, level + 1) &&
+                     os->write("<member name=\"", 14) &&
+                     os->write(i->getName(), strlen(i->getName())) &&
+                     os->write("\">", 2) &&
+                     write(next, os, level + 2) &&
+                     (mCompact ? true : os->write("\n", 1)) &&
+                     writeIndentation(os, level + 1) &&
+                     os->write("</member>", 9);
                }
                break;
+            }
             case Array:
+            {
+               // serialize each array element
+               char temp[22];
+               DynamicObjectIterator i = dyno.getIterator();
+               while(rval && i->hasNext())
                {
-                  // serialize each array element
-                  char temp[22];
-                  DynamicObjectIterator i = dyno.getIterator();
-                  while(rval && i->hasNext())
-                  {
-                     DynamicObject next = i->next();
-                     
-                     // serialize element index and value
-                     sprintf(temp, "%i", i->getIndex()); 
-                     rval =
-                        (mCompact ? true : os->write("\n", 1)) &&
-                        writeIndentation(os, level + 1) &&
-                        os->write("<element index=\"", 16) &&
-                        os->write(temp, strlen(temp)) &&
-                        os->write("\">", 2) &&
-                        write(next, os, level + 2) &&
-                        (mCompact ? true : os->write("\n", 1)) &&
-                        writeIndentation(os, level + 1) &&
-                        os->write("</element>", 10);
-                  }
+                  DynamicObject next = i->next();
+                  
+                  // serialize element index and value
+                  sprintf(temp, "%i", i->getIndex()); 
+                  rval =
+                     (mCompact ? true : os->write("\n", 1)) &&
+                     writeIndentation(os, level + 1) &&
+                     os->write("<element index=\"", 16) &&
+                     os->write(temp, strlen(temp)) &&
+                     os->write("\">", 2) &&
+                     write(next, os, level + 2) &&
+                     (mCompact ? true : os->write("\n", 1)) &&
+                     writeIndentation(os, level + 1) &&
+                     os->write("</element>", 10);
                }
                break;
+            }
          }
          
          // write end element

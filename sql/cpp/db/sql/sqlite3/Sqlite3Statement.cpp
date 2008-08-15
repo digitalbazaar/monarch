@@ -226,37 +226,37 @@ bool Sqlite3Statement::execute()
                // valid return state (done or got back a row)
                break;
             default:
-               {
-                  // error stepping statement (version 1 of api requires reset)
-                  ExceptionRef e =
-                     new Sqlite3Exception((Sqlite3Connection*)mConnection);
-                  Exception::setLast(e, false);
-                  rval = false;
-               }
+            {
+               // error stepping statement (version 1 of api requires reset)
+               ExceptionRef e =
+                  new Sqlite3Exception((Sqlite3Connection*)mConnection);
+               Exception::setLast(e, false);
+               rval = false;
                break;
+            }
          }
          break;
       case SQLITE_DONE:
       case SQLITE_ROW:
-         {
-            // statement in bad state
-            ExceptionRef e = new Exception(
-               "Statement state is invalid. Did you call reset() to reuse "
-               "the statement? (Connections should do this automatically).",
-               "db.sql.sqlite3.BadState");
-            Exception::setLast(e, false);
-            rval = false;
-         }
+      {
+         // statement in bad state
+         ExceptionRef e = new Exception(
+            "Statement state is invalid. Did you call reset() to reuse "
+            "the statement? (Connections should do this automatically).",
+            "db.sql.sqlite3.BadState");
+         Exception::setLast(e, false);
+         rval = false;
          break;
+      }
       default:
-         {
-            // driver error
-            ExceptionRef e =
-               new Sqlite3Exception((Sqlite3Connection*)mConnection);
-            Exception::setLast(e, false);
-            rval = false;
-         }
+      {
+         // driver error
+         ExceptionRef e =
+            new Sqlite3Exception((Sqlite3Connection*)mConnection);
+         Exception::setLast(e, false);
+         rval = false;
          break;
+      }
    }
    
    return rval;
@@ -282,14 +282,14 @@ Row* Sqlite3Statement::fetch()
             mRow = NULL;
             break;
          default:
-            {
-               // error stepping statement (version 1 of api requires reset)
-               ExceptionRef e =
-                  new Sqlite3Exception((Sqlite3Connection*)mConnection);
-               Exception::setLast(e, false);
-               reset();
-            }
+         {
+            // error stepping statement (version 1 of api requires reset)
+            ExceptionRef e =
+               new Sqlite3Exception((Sqlite3Connection*)mConnection);
+            Exception::setLast(e, false);
+            reset();
             break;
+         }
       }
    }
    else if(mState == SQLITE_ROW)

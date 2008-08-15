@@ -162,24 +162,24 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          mDynoStack.back()->setType(Map);
          break;
       case OV: /* got key:value */
-         {
-            // pop value
-            DynamicObject value(mDynoStack.back());
-            mDynoStack.pop_back();
-   
-            // pop key
-            DynamicObject key(mDynoStack.back());
-            mDynoStack.pop_back();
-   
-            // get object
-            DynamicObject& obj = mDynoStack.back();
-   
-            // set key=value
-            obj[key->getString()] = value;
-            
-            mState = next;
-         }
+      {
+         // pop value
+         DynamicObject value(mDynoStack.back());
+         mDynoStack.pop_back();
+
+         // pop key
+         DynamicObject key(mDynoStack.back());
+         mDynoStack.pop_back();
+
+         // get object
+         DynamicObject& obj = mDynoStack.back();
+
+         // set key=value
+         obj[key->getString()] = value;
+         
+         mState = next;
          break;
+      }
       case A_: /* start array */
          mStateStack.push_back(mState);
          mState = next;
@@ -193,39 +193,39 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          mDynoStack.back()->setType(Array);
          break;
       case AV: /* got value */
+      {
+         // pop value
+         DynamicObject value(mDynoStack.back());
+         mDynoStack.pop_back();
+         
+         // get object
+         DynamicObject& obj = mDynoStack.back();
+         
+         // set key=value
+         obj[obj->length()] = value;
+         
+         mState = next;
+         break;
+      }
+      case VV: /* got value */
+      {
+         // pop value
+         DynamicObject value(mDynoStack.back());
+         mDynoStack.pop_back();
+         
+         // set object=value
+         mDynoStack.back() = value;
+         
+         // check for top level
+         if(mState == V_)
          {
-            // pop value
-            DynamicObject value(mDynoStack.back());
-            mDynoStack.pop_back();
-            
-            // get object
-            DynamicObject& obj = mDynoStack.back();
-            
-            // set key=value
-            obj[obj->length()] = value;
-            
-            mState = next;
+            // we're done with top-level object
+            mState = _J;
+            mValid = true;
+            *mTarget = mDynoStack.back();
          }
          break;
-      case VV: /* got value */
-         {
-            // pop value
-            DynamicObject value(mDynoStack.back());
-            mDynoStack.pop_back();
-            
-            // set object=value
-            mDynoStack.back() = value;
-            
-            // check for top level
-            if(mState == V_)
-            {
-               // we're done with top-level object
-               mState = _J;
-               mValid = true;
-               *mTarget = mDynoStack.back();
-            }
-            break;
-         }
+      }
       case _O: /* Object done */
       case _A: /* Array done */
          mState = mStateStack.back();
@@ -269,15 +269,15 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
                ec = '\t';
                break;
             default:
-               {
-                  string temp("Invalid escape code: \"");
-                  temp.push_back(c);
-                  temp.push_back('"');
-                  ExceptionRef e = new IOException(temp.c_str());
-                  Exception::setLast(e, false);
-                  rval = false;
-               }
+            {
+               string temp("Invalid escape code: \"");
+               temp.push_back(c);
+               temp.push_back('"');
+               ExceptionRef e = new IOException(temp.c_str());
+               Exception::setLast(e, false);
+               rval = false;
                break;
+            }
          }
          mString.push_back(ec);
          // go back to string character reading
@@ -285,17 +285,17 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          break;
 
       case U_: /* unicode */
-         {
-            // Save current string
-            DynamicObject obj;
-            obj = mString.c_str();
-            mDynoStack.push_back(obj);
-            
-            // Start new string
-            mString.clear();
-            mState = next;
-            break;
-         }
+      {
+         // Save current string
+         DynamicObject obj;
+         obj = mString.c_str();
+         mDynoStack.push_back(obj);
+         
+         // Start new string
+         mString.clear();
+         mState = next;
+         break;
+      }
       case _U: /* Unicode done */
          unsigned int uc;
          mString.push_back(c);
@@ -338,85 +338,85 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          mState = next;
          break;
       case _S: /* String done */
-         {
-            // Push string on stack
-            DynamicObject obj;
-            obj = mString.c_str();
-            mDynoStack.push_back(obj);
-   
-            mState = mStateStack.back();
-            mStateStack.pop_back();
-            rval = processNext(C_DO);
-            break;
-         }
+      {
+         // Push string on stack
+         DynamicObject obj;
+         obj = mString.c_str();
+         mDynoStack.push_back(obj);
+
+         mState = mStateStack.back();
+         mStateStack.pop_back();
+         rval = processNext(C_DO);
+         break;
+      }
       case _T: /* true done */
-         {
-            DynamicObject obj;
-            obj = true;
-            mDynoStack.push_back(obj);
-            mState = mStateStack.back();
-            mStateStack.pop_back();
-            rval = processNext(C_DO);
-            break;
-         }
+      {
+         DynamicObject obj;
+         obj = true;
+         mDynoStack.push_back(obj);
+         mState = mStateStack.back();
+         mStateStack.pop_back();
+         rval = processNext(C_DO);
+         break;
+      }
       case _F: /* false done */
-         {
-            DynamicObject obj;
-            obj = false;
-            mDynoStack.push_back(obj);
-            mState = mStateStack.back();
-            mStateStack.pop_back();
-            rval = processNext(C_DO);
-            break;
-         }
+      {
+         DynamicObject obj;
+         obj = false;
+         mDynoStack.push_back(obj);
+         mState = mStateStack.back();
+         mStateStack.pop_back();
+         rval = processNext(C_DO);
+         break;
+      }
       case _N: /* null done */
-         {
-            DynamicObject obj;
-            obj = DynamicObject(NULL);
-            mDynoStack.push_back(obj);
-            mState = mStateStack.back();
-            mStateStack.pop_back();
-            rval = processNext(C_DO);
-            break;
-         }
+      {
+         DynamicObject obj;
+         obj = DynamicObject(NULL);
+         mDynoStack.push_back(obj);
+         mState = mStateStack.back();
+         mStateStack.pop_back();
+         rval = processNext(C_DO);
+         break;
+      }
       case _I: /* Integer done */
+      {
+         DynamicObject obj;
+         obj = mString.c_str();
+         if(mString[0] == '-')
          {
-            DynamicObject obj;
-            obj = mString.c_str();
-            if(mString[0] == '-')
-            {
-               obj->setType(Int64);
-            }
-            else
-            {
-               obj->setType(UInt64);
-            }
-            mDynoStack.push_back(obj);
-            mState = mStateStack.back();
-            mStateStack.pop_back();
-            // process this input
-            if((rval = processNext(C_DO)))
-            {
-               // actually process current char
-               rval = processNext(ic, c);
-            }
-            break;
+            obj->setType(Int64);
          }
+         else
+         {
+            obj->setType(UInt64);
+         }
+         mDynoStack.push_back(obj);
+         mState = mStateStack.back();
+         mStateStack.pop_back();
+         // process this input
+         if((rval = processNext(C_DO)))
+         {
+            // actually process current char
+            rval = processNext(ic, c);
+         }
+         break;
+      }
       case _D: /* Double done */
+      {
+         DynamicObject obj;
+         obj = mString.c_str();
+         obj->setType(Double);
+         mDynoStack.push_back(obj);
+         mState = mStateStack.back();
+         mStateStack.pop_back();
+         if((rval = processNext(C_DO)))
          {
-            DynamicObject obj;
-            obj = mString.c_str();
-            obj->setType(Double);
-            mDynoStack.push_back(obj);
-            mState = mStateStack.back();
-            mStateStack.pop_back();
-            if((rval = processNext(C_DO)))
-            {
-               // actually process current char
-               rval = processNext(ic, c);
-            }
-            break;
+            // actually process current char
+            rval = processNext(ic, c);
          }
+         break;
+      }
 
       /* Start numbers */
       case MI: /* minus */
@@ -471,20 +471,20 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          break;
 
       case __: /* Error */
-         {
-            ExceptionRef e = new IOException("Invalid input");
-            Exception::setLast(e, false);
-            rval = false;
-         }
+      {
+         ExceptionRef e = new IOException("Invalid input");
+         Exception::setLast(e, false);
+         rval = false;
          break;
+      }
 
       default:
-         {
-            ExceptionRef e = new IOException("Invalid JSON parse state");
-            Exception::setLast(e, false);
-            rval = false;
-         }
+      {
+         ExceptionRef e = new IOException("Invalid JSON parse state");
+         Exception::setLast(e, false);
+         rval = false;
          break;
+      }
    }
    
    return rval;

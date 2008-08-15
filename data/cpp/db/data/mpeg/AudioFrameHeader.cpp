@@ -492,6 +492,7 @@ double AudioFrameHeader::getAudioLength()
          {
             rval = 576.0 / getSamplingRate();
          }
+         break;
       default:
          break;
    }
@@ -624,6 +625,7 @@ int AudioFrameHeader::calculateFrameLength(
          {
             rval = (int)floor(72 * (bitrate / samplingRate) + padding);
          }
+         break;
       default:
          break;
    }

@@ -144,42 +144,42 @@ bool SslSocket::performHandshake()
       switch(error)
       {
          case SSL_ERROR_ZERO_RETURN:
+         {
+            ExceptionRef e = new Exception(
+               "Could not perform SSL handshake! Socket closed.",
+               SOCKET_EXCEPTION_TYPE);
+            Exception::setLast(e, false);
+            rval = false;
+            break;
+         }
+         case SSL_ERROR_WANT_READ:
+         {
+            // more data is required from the socket
+            ret = tcpRead();
+            if(ret <= 0)
             {
                ExceptionRef e = new Exception(
                   "Could not perform SSL handshake! Socket closed.",
                   SOCKET_EXCEPTION_TYPE);
-               Exception::setLast(e, false);
+               Exception::setLast(e, (ret < 0));
                rval = false;
             }
             break;
-         case SSL_ERROR_WANT_READ:
-            {
-               // more data is required from the socket
-               ret = tcpRead();
-               if(ret <= 0)
-               {
-                  ExceptionRef e = new Exception(
-                     "Could not perform SSL handshake! Socket closed.",
-                     SOCKET_EXCEPTION_TYPE);
-                  Exception::setLast(e, (ret < 0));
-                  rval = false;
-               }
-            }
-            break;
+         }
          case SSL_ERROR_WANT_WRITE:
             // data must be flushed to the socket
             rval = tcpWrite();
             break;
          default:
-            {
-               // an error occurred
-               ExceptionRef e = new Exception(
-                  "Could not perform SSL handshake!", SOCKET_EXCEPTION_TYPE);
-               e->getDetails()["error"] = SslContext::getSslErrorStrings();
-               Exception::setLast(e, false);
-               rval = false;
-            }
+         {
+            // an error occurred
+            ExceptionRef e = new Exception(
+               "Could not perform SSL handshake!", SOCKET_EXCEPTION_TYPE);
+            e->getDetails()["error"] = SslContext::getSslErrorStrings();
+            Exception::setLast(e, false);
+            rval = false;
             break;
+         }
       }
    }
    
@@ -233,16 +233,16 @@ bool SslSocket::send(const char* b, int length)
          switch(error)
          {
             case SSL_ERROR_ZERO_RETURN:
-               {
-                  // the connection was shutdown
-                  ExceptionRef e = new Exception(
-                     "Could not write to socket! Socket closed.",
-                     SOCKET_EXCEPTION_TYPE);
-                  e->getDetails()["error"] = SslContext::getSslErrorStrings();
-                  Exception::setLast(e, false);
-                  rval = false;
-               }
+            {
+               // the connection was shutdown
+               ExceptionRef e = new Exception(
+                  "Could not write to socket! Socket closed.",
+                  SOCKET_EXCEPTION_TYPE);
+               e->getDetails()["error"] = SslContext::getSslErrorStrings();
+               Exception::setLast(e, false);
+               rval = false;
                break;
+            }
             case SSL_ERROR_WANT_READ:
                // more data is required from the socket
                ret = tcpRead();
@@ -262,16 +262,16 @@ bool SslSocket::send(const char* b, int length)
                rval = tcpWrite();
                break;
             default:
-               {
-                  // an error occurred
-                  ExceptionRef e = new Exception(
-                     "Could not write to socket!",
-                     SOCKET_EXCEPTION_TYPE);
-                  e->getDetails()["error"] = SslContext::getSslErrorStrings();
-                  Exception::setLast(e, false);
-                  rval = false;
-               }
+            {
+               // an error occurred
+               ExceptionRef e = new Exception(
+                  "Could not write to socket!",
+                  SOCKET_EXCEPTION_TYPE);
+               e->getDetails()["error"] = SslContext::getSslErrorStrings();
+               Exception::setLast(e, false);
+               rval = false;
                break;
+            }
          }
       }
       
@@ -344,16 +344,16 @@ int SslSocket::receive(char* b, int length)
                }
                break;
             default:
-               {
-                  // an error occurred
-                  ExceptionRef e = new Exception(
-                     "Could not read from socket!",
-                     SOCKET_EXCEPTION_TYPE);
-                  e->getDetails()["error"] = SslContext::getSslErrorStrings();
-                  Exception::setLast(e, false);
-                  rval = -1;
-               }
+            {
+               // an error occurred
+               ExceptionRef e = new Exception(
+                  "Could not read from socket!",
+                  SOCKET_EXCEPTION_TYPE);
+               e->getDetails()["error"] = SslContext::getSslErrorStrings();
+               Exception::setLast(e, false);
+               rval = -1;
                break;
+            }
          }
       }
       

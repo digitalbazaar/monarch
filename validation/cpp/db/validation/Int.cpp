@@ -142,19 +142,19 @@ bool Int::isValid(
       {
          case Int32:
          case Int64:
-            {
-               int64_t raw = obj->getInt64();
-               valneg = (raw < 0);
-               val = (uint64_t)(valneg ? -raw : raw);
-            }
+         {
+            int64_t raw = obj->getInt64();
+            valneg = (raw < 0);
+            val = (uint64_t)(valneg ? -raw : raw);
             break;
+         }
          case UInt32:
          case UInt64:
-            {
-               valneg = false;
-               val = obj->getUInt64();
-            }
+         {
+            valneg = false;
+            val = obj->getUInt64();
             break;
+         }
          default:
             // never get here
             break;
