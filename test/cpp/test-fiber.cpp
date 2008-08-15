@@ -742,7 +742,7 @@ public:
             //   100, 0};
             
             int tn[9*tmag+2];
-            tn[9*tmag] = (int)pow(10,tmag);
+            tn[9*tmag] = (int)pow((double)10,tmag);
             tn[9*tmag+1] = 0;
             {
                // base 10 log vals from 1 to 10*tmag
@@ -760,7 +760,7 @@ public:
             }
             
             int on[9*omag+2];
-            on[9*omag] = (int)pow(10,omag);
+            on[9*omag] = (int)pow((double)10,omag);
             on[9*omag+1] = 0;
             {
                // base 10 log vals from 1 to 10*omag
