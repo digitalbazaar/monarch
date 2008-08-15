@@ -3,6 +3,7 @@
  */
 #include "db/data/json/JsonReader.h"
 #include "db/util/Convert.h"
+#include "db/io/ByteArrayInputStream.h"
 
 #include <cstdlib>
 
@@ -581,6 +582,21 @@ bool JsonReader::finish()
    // no longer started or valid
    mStarted = false;
    mValid = false;
+   
+   return rval;
+}
+
+bool JsonReader::readDynamicObjectFromString(
+   db::rt::DynamicObject& dyno, const char* s, size_t slen, bool strict)
+{
+   bool rval;
+   
+   ByteArrayInputStream is(s, slen);
+   JsonReader jr(strict);
+   
+   jr.start(dyno);
+   rval = jr.read(&is) &&
+      jr.finish();
    
    return rval;
 }

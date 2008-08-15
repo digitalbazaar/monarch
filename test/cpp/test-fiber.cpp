@@ -11,7 +11,6 @@
 #include "db/data/json/JsonReader.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/fiber/FiberScheduler.h"
-#include "db/io/ByteArrayInputStream.h"
 #include "db/io/NullOutputStream.h"
 #include "db/modest/Kernel.h"
 #include "db/util/Timer.h"
@@ -437,14 +436,9 @@ static DynamicObject makeJsonTestDyno1()
 static void jsonReadWrite(const char* s, size_t slen)
 {
    // decode json -> dyno
-   ByteArrayInputStream is(s, slen);
    JsonReader jr;
    DynamicObject d;
-   jr.start(d);
-   assertNoException();
-   jr.read(&is);
-   assertNoException();
-   jr.finish();
+   JsonReader::readDynamicObjectFromString(d, s, slen);
    assertNoException();
    
    // encode dyno -> json

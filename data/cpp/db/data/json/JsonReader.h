@@ -289,6 +289,20 @@ public:
     * @return true if the finish succeeded, false if an IOException occurred.
     */
    virtual bool finish();
+   
+   /**
+    * Reads a DynamicObject as JSON from a string.
+    * 
+    * @param dyno the DynamicObject to fill.
+    * @param s the string to read from.
+    * @param slen the length of s.
+    * @param strict the JSON stream must start with an object or array.
+    * 
+    * @return true on success, false and exception set on failure.
+    */
+   static bool readDynamicObjectFromString(
+      db::rt::DynamicObject& dyno, const char* s, size_t slen,
+      bool strict = true);
 };
 
 } // end namespace json
