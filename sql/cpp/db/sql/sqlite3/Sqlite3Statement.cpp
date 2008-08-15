@@ -256,10 +256,10 @@ bool Sqlite3Statement::execute()
       default:
          {
             // statement in bad state
-            mState = sqlite3_reset(mHandle);
             ExceptionRef e =
                new Sqlite3Exception((Sqlite3Connection*)mConnection);
             Exception::setLast(e, false);
+            mState = sqlite3_reset(mHandle);
             rval = false;
          }
          break;
@@ -294,10 +294,10 @@ Row* Sqlite3Statement::fetch()
                mRow = NULL;
                
                // error stepping statement (version 1 of api requires reset)
-               mState = sqlite3_reset(mHandle);
                ExceptionRef e =
                   new Sqlite3Exception((Sqlite3Connection*)mConnection);
                Exception::setLast(e, false);
+               mState = sqlite3_reset(mHandle);
             }
             break;
       }
