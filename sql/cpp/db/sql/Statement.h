@@ -180,6 +180,13 @@ public:
    virtual Row* fetch() = 0;
    
    /**
+    * Resets this statement for reuse.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool reset() = 0;
+   
+   /**
     * Gets the number of rows modified by this Statement.
     * 
     * @param rows to store the number of rows modified by this Statement.

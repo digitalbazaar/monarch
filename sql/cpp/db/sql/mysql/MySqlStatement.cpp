@@ -417,6 +417,12 @@ Row* MySqlStatement::fetch()
    return rval;
 }
 
+bool MySqlStatement::reset()
+{
+   // nothing to reset
+   return true;
+}
+
 bool MySqlStatement::getRowsChanged(unsigned long long& rows)
 {
    // FIXME: handle exceptions

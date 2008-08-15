@@ -492,8 +492,10 @@ void runSqlite3ReuseTest(TestRunner& tr)
       // select single row
       db::sql::Connection* c = cp.getConnection();
       assert(c != NULL);
-      db::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST);
+      db::sql::Statement* s = c->prepare(
+         "SELECT * FROM " TABLE_TEST " WHERE i=:i LIMIT 1");
       assertNoException();
+      s->setInt32(":i", 1234);
       s->execute();
       assertNoException();
       
@@ -519,8 +521,10 @@ void runSqlite3ReuseTest(TestRunner& tr)
       // select single row
       db::sql::Connection* c = cp.getConnection();
       assert(c != NULL);
-      db::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST);
+      db::sql::Statement* s = c->prepare(
+         "SELECT * FROM " TABLE_TEST " WHERE i=:i LIMIT 1");
       assertNoException();
+      s->setInt32(":i", 1234);
       s->execute();
       assertNoException();
       

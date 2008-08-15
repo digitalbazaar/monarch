@@ -41,6 +41,15 @@ Statement* Connection::getPreparedStatement(const char* sql)
    if(i != mPreparedStmts.end())
    {
       rval = i->second;
+      
+      // reset statement for reuse
+      if(!i->second->reset())
+      {
+         // reset failed, delete old statement
+         mPreparedStmts.erase(i);
+         delete rval;
+         rval = NULL;
+      }
    }
    
    return rval;

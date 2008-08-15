@@ -222,16 +222,12 @@ bool Sqlite3Statement::execute()
          switch(mState)
          {
             case SQLITE_DONE:
-               // reset statement for future use
-               mState = sqlite3_reset(mHandle);
-               break;
             case SQLITE_ROW:
-               // nothing to do, just got back a row
+               // valid return state (done or got back a row)
                break;
             default:
                {
                   // error stepping statement (version 1 of api requires reset)
-                  mState = sqlite3_reset(mHandle);
                   ExceptionRef e =
                      new Sqlite3Exception((Sqlite3Connection*)mConnection);
                   Exception::setLast(e, false);
@@ -242,24 +238,22 @@ bool Sqlite3Statement::execute()
          break;
       case SQLITE_DONE:
       case SQLITE_ROW:
-         // clean up existing row object
-         if(mRow != NULL)
          {
-            delete mRow;
-            mRow = NULL;
+            // statement in bad state
+            ExceptionRef e = new Exception(
+               "Statement state is invalid. Did you call reset() to reuse "
+               "the statement? (ConnectionPools should do this automatically).",
+               "db.sql.sqlite3.BadState");
+            Exception::setLast(e, false);
+            rval = false;
          }
-         
-         // reset statement and execute again
-         mState = sqlite3_reset(mHandle);
-         Sqlite3Statement::execute();
          break;
       default:
          {
-            // statement in bad state
+            // driver error
             ExceptionRef e =
                new Sqlite3Exception((Sqlite3Connection*)mConnection);
             Exception::setLast(e, false);
-            mState = sqlite3_reset(mHandle);
             rval = false;
          }
          break;
@@ -289,15 +283,11 @@ Row* Sqlite3Statement::fetch()
             break;
          default:
             {
-               // clean up row object
-               delete mRow;
-               mRow = NULL;
-               
                // error stepping statement (version 1 of api requires reset)
                ExceptionRef e =
                   new Sqlite3Exception((Sqlite3Connection*)mConnection);
                Exception::setLast(e, false);
-               mState = sqlite3_reset(mHandle);
+               reset();
             }
             break;
       }
@@ -306,6 +296,31 @@ Row* Sqlite3Statement::fetch()
    {
       // create and return first row
       rval = mRow = new Sqlite3Row(this);
+   }
+   
+   return rval;
+}
+
+bool Sqlite3Statement::reset()
+{
+   bool rval = true;
+   
+   // clean up existing row object
+   if(mRow != NULL)
+   {
+      delete mRow;
+      mRow = NULL;
+   }
+   
+   // reset statement
+   mState = sqlite3_reset(mHandle);
+   if(mState != SQLITE_OK)
+   {
+      // driver error
+      ExceptionRef e =
+         new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      Exception::setLast(e, false);
+      rval = false;
    }
    
    return rval;
