@@ -448,6 +448,102 @@ void runSqlite3ThreadTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runSqlite3ReuseTest(TestRunner& tr)
+{
+   tr.group("Reuse");
+   
+   // clear any exceptions
+   Exception::clearLast();
+   
+   // create sqlite3 connection pool
+   Sqlite3ConnectionPool cp("sqlite3::memory:", 1);
+   assertNoException();
+   
+   tr.test("create table");
+   {
+      // create table
+      db::sql::Connection* c = cp.getConnection();
+      assert(c != NULL);
+      db::sql::Statement* s = c->prepare(
+         "CREATE TABLE IF NOT EXISTS " TABLE_TEST " (t TEXT, i INT)");
+      assertNoException();
+      s->execute();
+      assertNoException();
+      c->close();
+   }
+   tr.passIfNoException();
+   
+   tr.test("insert row");
+   {
+      // create table
+      db::sql::Connection* c = cp.getConnection();
+      assert(c != NULL);
+      db::sql::Statement* s = c->prepare(
+         "INSERT INTO " TABLE_TEST " (t, i) VALUES ('test!', 1234)");
+      assertNoException();
+      s->execute();
+      assertNoException();
+      c->close();
+   }
+   tr.passIfNoException();
+   
+   tr.test("select single row");
+   {
+      // select single row
+      db::sql::Connection* c = cp.getConnection();
+      assert(c != NULL);
+      db::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST);
+      assertNoException();
+      s->execute();
+      assertNoException();
+      
+      Row* row = s->fetch();
+      assert(row != NULL);
+      string t;
+      int i;
+      
+      row->getText("t", t);
+      assertNoException();
+      row->getInt32("i", i);
+      assertNoException();
+      
+      assertStrCmp(t.c_str(), "test!");
+      assert(i == 1234);
+      
+      c->close();
+   }
+   tr.passIfNoException();
+   
+   tr.test("select single row again");
+   {
+      // select single row
+      db::sql::Connection* c = cp.getConnection();
+      assert(c != NULL);
+      db::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST);
+      assertNoException();
+      s->execute();
+      assertNoException();
+      
+      Row* row = s->fetch();
+      assert(row != NULL);
+      string t;
+      int i;
+      
+      row->getText("t", t);
+      assertNoException();
+      row->getInt32("i", i);
+      assertNoException();
+      
+      assertStrCmp(t.c_str(), "test!");
+      assert(i == 1234);
+      
+      c->close();
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class Sqlite3ConnectionPoolTest : public Runnable
 {
 public:
@@ -539,6 +635,7 @@ public:
       runSqlite3ConnectionTest(tr);
       runSqlite3StatementTest(tr);
       runSqlite3ThreadTest(tr);
+      runSqlite3ReuseTest(tr);
       return 0;
    }
 
