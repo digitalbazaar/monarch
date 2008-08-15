@@ -242,7 +242,7 @@ bool Sqlite3Statement::execute()
             // statement in bad state
             ExceptionRef e = new Exception(
                "Statement state is invalid. Did you call reset() to reuse "
-               "the statement? (ConnectionPools should do this automatically).",
+               "the statement? (Connections should do this automatically).",
                "db.sql.sqlite3.BadState");
             Exception::setLast(e, false);
             rval = false;
