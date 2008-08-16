@@ -687,7 +687,7 @@ void runUrlEncodeTest(TestRunner& tr)
    //cout << "url encoded=" << encoded << endl;
    //cout << "url decoded=" << decoded << endl;
    
-   assert(decoded == str);
+   assertStrCmp(decoded.c_str(), str.c_str());
    
    tr.pass();
 }
@@ -910,6 +910,20 @@ void runUrlTest(TestRunner& tr)
       DynamicObject vars;
       assert(!url.getQueryVariables(vars));
       assert(vars->getType() == Map);
+   }
+   
+   {
+      const char* allchars =
+         "0123456789"
+         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+         "abcdefghijklmnopqrstuvwxyz"
+         "-_.!~*'()";
+      Url url;
+      url.format("http://bitmunk.com/path?q=%s", allchars);
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+      assertStrCmp(vars["q"]->getString(), allchars);
    }
    
    tr.pass();

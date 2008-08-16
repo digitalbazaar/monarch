@@ -582,20 +582,20 @@ string Url::decode(const char* str, unsigned int length)
    {
       c = str[i];
       
+      // FIXME: optimize with a char[128] LUT
       // see if the character is "safe" (0-9, A-Z, or a-z)
-      if((unsigned int)(c - '0') < 10u)
-      {
-         rval.push_back(c);
-      }
-      else if((unsigned int)(c - 'A') < 26u)
-      {
-         rval.push_back(c);
-      }
-      else if((unsigned int)(c - 'a') < 26u)
-      {
-         rval.push_back(c);
-      }
-      else if(c == '.' || c == '_' || c == '-')
+      if((c >= '0' && c <= '9') ||
+         (c >= 'A' && c <= 'Z') ||
+         (c >= 'a' && c <= 'z') ||
+         (c == '-') ||
+         (c == '_') ||
+         (c == '.') ||
+         (c == '!') ||
+         (c == '~') ||
+         (c == '*') ||
+         (c == '\'') ||
+         (c == '(') ||
+         (c == ')'))
       {
          rval.push_back(c);
       }
@@ -615,6 +615,10 @@ string Url::decode(const char* str, unsigned int length)
          
          // skip two characters
          i += 2;
+      }
+      else
+      {
+         // FIXME: handle other characters
       }
    }
    
