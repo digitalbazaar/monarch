@@ -256,7 +256,9 @@ void Thread::interrupt()
          // wake up thread if necessary
          if(mWaitMonitor != NULL)
          {
+            mWaitMonitor->enter();
             mWaitMonitor->signalAll();
+            mWaitMonitor->exit();
          }
       }
    }
