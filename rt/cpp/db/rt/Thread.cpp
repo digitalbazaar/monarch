@@ -242,27 +242,33 @@ Exception* Thread::createInterruptedException()
 void Thread::interrupt()
 {
    lock();
+   
+   // only interrupt if not already interrupted
+   if(!isInterrupted())
    {
-      // only interrupt if not already interrupted
-      if(!isInterrupted())
+      // set interrupted flag
+      mInterrupted = true;
+      
+      // Note: disabled due to lack of support in windows
+      // send SIGINT to thread
+      //sendSignal(SIGINT);
+      
+      // store thread's current monitor
+      Monitor* m = mWaitMonitor;
+      unlock();
+      
+      // wake up thread it is inside of a monitor
+      if(m != NULL)
       {
-         // set interrupted flag
-         mInterrupted = true;
-         
-         // Note: disabled due to lack of support in windows
-         // send SIGINT to thread
-         //sendSignal(SIGINT);
-         
-         // wake up thread if necessary
-         if(mWaitMonitor != NULL)
-         {
-            mWaitMonitor->enter();
-            mWaitMonitor->signalAll();
-            mWaitMonitor->exit();
-         }
+         m->enter();
+         m->signalAll();
+         m->exit();
       }
    }
-   unlock();
+   else
+   {
+      unlock();
+   }
 }
 
 bool Thread::isInterrupted()
