@@ -50,7 +50,7 @@ endif
 MAKE_CMD = $(PRINT_COMMANDS_OPTS) $(MAKE) -j -l 5.0 $(PRINT_DIRECTORIES_OPTS)
 MAKE_DIR = $(PRINT_COMMANDS_OPTS) $(MAKE_CMD) -C $(dir)
 
-.PHONY: all verbose clean test internal-docs
+.PHONY: all verbose clean test internal-docs clean-docs
 
 all:
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-objects build-libraries &&) true
@@ -64,8 +64,10 @@ clean:
 test: all
 	LD_LIBRARY_PATH=@DBCOREDIR@/libs/linux test/cpp/dist/linux/run-unit-tests
 
-internal-docs:
+clean-docs:
 	rm -rf docs/cpp-api
+
+internal-docs: clean-docs
 	mkdir -p docs/cpp-api
 	doxygen setup/docs.doxygen
 
