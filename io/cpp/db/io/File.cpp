@@ -552,18 +552,35 @@ string File::join(const char* component, ...)
    while(comp != NULL)
    {
       // FIXME: support non-posix paths.
-      if(strlen(comp) > 0 && comp[0] == '/')
+      if(strlen(comp) > 0)
       {
-         path.assign(comp);
-      }
-      else if(path.length() == 0 || path[path.length() - 1] == '/')
-      {
-         path.append(comp);
-      }
-      else
-      {
-         path.push_back('/');
-         path.append(comp);
+         string::size_type plen = path.length();
+         if(plen == 0)
+         {
+            // empty path, just assign comp
+            path.assign(comp);
+         }
+         else
+         {
+            bool pslash = (path[plen - 1] == '/'); 
+            bool cslash = (comp[0] == '/');
+            if(!pslash && !cslash)
+            {
+               // no trailing path slash or leading comp slash
+               path.push_back('/');
+               path.append(comp);
+            }
+            else if(pslash && cslash)
+            {
+               // trailing and leading slash, skip one
+               path.append(comp + 1);
+            }
+            else
+            {
+               // only one of trailing or leading, just append
+               path.append(comp);
+            }
+         }
       }
       comp = va_arg(varargs, const char*);
    }

@@ -367,7 +367,8 @@ public:
    static bool isPathAbsolute(const char* path);
 
    /**
-    * Join path components with path separators.
+    * Join path components with path separators.  Removes duplicate separators
+    * between components and ignores empty components.
     * 
     * @param part NULL terminated list of path component arguments.
     * 

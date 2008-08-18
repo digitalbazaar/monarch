@@ -605,6 +605,11 @@ void runFileTest(TestRunner& tr)
       }
       
       {
+         string path = File::join("", "", NULL);
+         assertStrCmp(path.c_str(), "");
+      }
+      
+      {
          string path = File::join("/", NULL);
          assertStrCmp(path.c_str(), "/");
       }
@@ -622,6 +627,41 @@ void runFileTest(TestRunner& tr)
       {
          string path = File::join("/", "a", "b", NULL);
          assertStrCmp(path.c_str(), "/a/b");
+      }
+      
+      {
+         string path = File::join("/a", "/b", NULL);
+         assertStrCmp(path.c_str(), "/a/b");
+      }
+      
+      {
+         string path = File::join("a/", "/b/", NULL);
+         assertStrCmp(path.c_str(), "a/b/");
+      }
+      
+      {
+         string path = File::join("/a/", "/b/", NULL);
+         assertStrCmp(path.c_str(), "/a/b/");
+      }
+      
+      {
+         string path = File::join("a", "", "b", NULL);
+         assertStrCmp(path.c_str(), "a/b");
+      }
+      
+      {
+         string path = File::join("", "a", NULL);
+         assertStrCmp(path.c_str(), "a");
+      }
+      
+      {
+         string path = File::join("a", "", NULL);
+         assertStrCmp(path.c_str(), "a");
+      }
+      
+      {
+         string path = File::join("", "a", "", NULL);
+         assertStrCmp(path.c_str(), "a");
       }
    }
    tr.passIfNoException();
