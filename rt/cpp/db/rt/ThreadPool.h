@@ -94,9 +94,14 @@ protected:
     * Runs the passed Runnable job on an idle thread.
     * 
     * @param job the Runnable job to run.
+    * @param block true to wait until the job can be started, false to
+    *              quit if it can't be started immediately.
+    * 
+    * @return true if the job was started, false if insufficient resources
+    *         prevented it from being started and it should be tried again.
     */
-   virtual void runJobOnIdleThread(Runnable& job);
-   virtual void runJobOnIdleThread(RunnableRef& job);
+   virtual bool runJobOnIdleThread(Runnable& job, bool block);
+   virtual bool runJobOnIdleThread(RunnableRef& job, bool block);
    
 public:
    /**

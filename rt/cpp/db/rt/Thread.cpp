@@ -3,6 +3,7 @@
  */
 #include "db/rt/Thread.h"
 
+#include "db/rt/DynamicObject.h"
 #include "db/rt/System.h"
 
 #include <cstdlib>
@@ -201,6 +202,57 @@ bool Thread::start(size_t stackSize)
          // thread has started
          mStarted = true;
          rval = true;
+      }
+      else
+      {
+         switch(rc)
+         {
+            case EAGAIN:
+            {
+               ExceptionRef e = new Exception(
+                  "Could not start thread. Not enough system resources.",
+                  "db.rt.Thread.InsufficientResources");
+               e->getDetails()["error"] = strerror(errno);
+               Exception::setLast(e, false);
+               break;
+            }
+            case EINVAL:
+            {
+               ExceptionRef e = new Exception(
+                  "Could not start thread. Invalid thread parameters.",
+                  "db.rt.Thread.InvalidParameters");
+               e->getDetails()["error"] = strerror(errno);
+               Exception::setLast(e, false);
+               break;
+            }
+            case EPERM:
+            {
+               ExceptionRef e = new Exception(
+                  "Could not start thread. Not authorized.",
+                  "db.rt.Thread.AccessDenied");
+               e->getDetails()["error"] = strerror(errno);
+               Exception::setLast(e, false);
+               break;
+            }
+            case ENOMEM:
+            {
+               ExceptionRef e = new Exception(
+                  "Could not start thread. Not enough memory.",
+                  "db.rt.Thread.InsufficientMemory");
+               e->getDetails()["error"] = strerror(errno);
+               Exception::setLast(e, false);
+               break;
+            }
+            default:
+            {
+               ExceptionRef e = new Exception(
+                  "Could not start thread.",
+                  "db.rt.Thread.Error");
+               e->getDetails()["error"] = strerror(errno);
+               Exception::setLast(e, false);
+               break;
+            }
+         }
       }
    }
    

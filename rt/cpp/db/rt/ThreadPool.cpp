@@ -117,66 +117,88 @@ void ThreadPool::cleanupExpiredThreads()
    }
 }
 
-void ThreadPool::runJobOnIdleThread(Runnable& job)
+bool ThreadPool::runJobOnIdleThread(Runnable& job, bool block)
 {
-   // wait for other jobs to be assigned/terminated
-   mJobLock.lock();
+   bool tryAgain = true;
+   PooledThread* t = NULL;
+   while(t == NULL && tryAgain)
    {
-      // get an idle thread
-      PooledThread* t = getIdleThread();
-      
-      // set job
-      t->setJob(&job);
-      
-      // unlock thread's job lock now that a job is assigned, so if it was
-      // about to become idle or expire, it will pick up its new assignment
-      t->getJobLock()->unlock();
-      
-      // if the thread hasn't started yet, start it
-      while(!t->hasStarted())
+      // wait for other jobs to be assigned/terminated
+      mJobLock.lock();
       {
-         if(!t->start(mThreadStackSize))
+         // get an idle thread
+         t = getIdleThread();
+         
+         // set job
+         t->setJob(&job);
+         
+         // unlock thread's job lock now that a job is assigned, so if it was
+         // about to become idle or expire, it will pick up its new assignment
+         t->getJobLock()->unlock();
+         
+         // if the thread hasn't started yet, start it
+         if(!t->hasStarted())
          {
-            // thread might not start if maximum threads has been exceeded
-            Thread::yield();
+            if(!t->start(mThreadStackSize))
+            {
+               // cannot start a new thread due to limited system resources,
+               // so remove it and try again if blocking
+               mThreads.remove(t);
+               delete t;
+               t = NULL;
+               tryAgain = block;
+            }
          }
       }
+      mJobLock.unlock();
+      
+      // clean up expired threads
+      cleanupExpiredThreads();
    }
-   mJobLock.unlock();
    
-   // clean up expired threads
-   cleanupExpiredThreads();
+   return t != NULL;
 }
 
-void ThreadPool::runJobOnIdleThread(RunnableRef& job)
+bool ThreadPool::runJobOnIdleThread(RunnableRef& job, bool block)
 {
-   // wait for other jobs to be assigned/terminated
-   mJobLock.lock();
+   bool tryAgain = true;
+   PooledThread* t = NULL;
+   while(t == NULL)
    {
-      // get an idle thread
-      PooledThread* t = getIdleThread();
-      
-      // set job
-      t->setJob(job);
-      
-      // unlock thread's job lock now that job is assigned
-      t->getJobLock()->unlock();
-      
-      // if the thread hasn't started yet, start it
-      while(!t->hasStarted())
+      // wait for other jobs to be assigned/terminated
+      mJobLock.lock();
       {
-         if(!t->start(mThreadStackSize))
+         // get an idle thread
+         t = getIdleThread();
+         
+         // set job
+         t->setJob(job);
+         
+         // unlock thread's job lock now that a job is assigned, so if it was
+         // about to become idle or expire, it will pick up its new assignment
+         t->getJobLock()->unlock();
+         
+         // if the thread hasn't started yet, start it
+         if(!t->hasStarted())
          {
-            // thread might not start if maximum threads has been exceeded
-            // yield, try to start again later
-            Thread::yield();
+            if(!t->start(mThreadStackSize))
+            {
+               // cannot start a new thread due to limited system resources,
+               // so remove it and try again if blocking
+               mThreads.remove(t);
+               delete t;
+               t = NULL;
+               tryAgain = block;
+            }
          }
       }
+      mJobLock.unlock();
+      
+      // clean up expired threads
+      cleanupExpiredThreads();
    }
-   mJobLock.unlock();
    
-   // clean up expired threads
-   cleanupExpiredThreads();
+   return t != NULL;
 }
 
 bool ThreadPool::tryRunJob(Runnable& job)
@@ -187,7 +209,11 @@ bool ThreadPool::tryRunJob(Runnable& job)
    if((rval = mThreadSemaphore.tryAcquire()))
    {
       // run the job on an idle thread
-      runJobOnIdleThread(job);
+      if(!(rval = runJobOnIdleThread(job, false)))
+      {
+         // release thread permit, job could not be started
+         mThreadSemaphore.release();
+      }
    }
    
    return rval;
@@ -201,7 +227,11 @@ bool ThreadPool::tryRunJob(RunnableRef& job)
    if((rval = mThreadSemaphore.tryAcquire()))
    {
       // run the job on an idle thread
-      runJobOnIdleThread(job);
+      if(!(rval = runJobOnIdleThread(job, false)))
+      {
+         // release thread permit, job could not be started
+         mThreadSemaphore.release();
+      }
    }
    
    return rval;
@@ -213,7 +243,7 @@ void ThreadPool::runJob(Runnable& job)
    if(mThreadSemaphore.acquire())
    {
       // run the job on an idle thread
-      runJobOnIdleThread(job);
+      runJobOnIdleThread(job, true);
    }
 }
 
@@ -223,7 +253,7 @@ void ThreadPool::runJob(RunnableRef& job)
    if(mThreadSemaphore.acquire())
    {
       // run the job on an idle thread
-      runJobOnIdleThread(job);
+      runJobOnIdleThread(job, true);
    }
 }
 
