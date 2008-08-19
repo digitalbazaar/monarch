@@ -33,6 +33,11 @@ protected:
     */
    uint64_t mContentBytesWritten;
    
+   /**
+    * A buffer for reading/writing.
+    */
+   db::io::ByteBuffer mBuffer;
+   
 public:
    /**
     * Creates a new HttpConnection that wraps the passed Connection.
