@@ -367,6 +367,13 @@ bool HttpHeader::getDate(Date& date)
    return rval;
 }
 
+bool HttpHeader::hasContent()
+{
+   long long length = 0;
+   getField("Content-Length", length);
+   return (length != 0 || hasField("Transfer-Encoding"));
+}
+
 void HttpHeader::biCapitalize(char* name)
 {
    // capitalize first letter and letters after hyphens
