@@ -34,10 +34,20 @@ void HttpRequestServicer::normalizePath(const char* inPath, char* outPath)
       outPath[i++] = '/';
    }
    
-   // copy strings, removing duplicate slashes
+   // copy strings, removing duplicate slashes before the query
+   bool query = false;
    for(int n = 1; inPath[n - 1] != 0; n++)
    {
-      if(inPath[n] != '/' || inPath[n - 1] != '/')
+      if(inPath[n - 1] == '?')
+      {
+         query = true;
+      }
+      
+      if(query)
+      {
+         outPath[i++] = inPath[n - 1];
+      }
+      else if((inPath[n] != '/' || inPath[n - 1] != '/'))
       {
          outPath[i++] = inPath[n - 1];
       }

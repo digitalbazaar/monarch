@@ -545,7 +545,9 @@ string Url::decode(const char* str, unsigned int length)
          (c == '*') ||
          (c == '\'') ||
          (c == '(') ||
-         (c == ')'))
+         (c == ')') ||
+         (c == ':') ||
+         (c == '/'))
       {
          rval.push_back(c);
       }
