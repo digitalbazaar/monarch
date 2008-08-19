@@ -401,7 +401,7 @@ const string& Url::getQuery()
 bool Url::getQueryVariables(DynamicObject& vars)
 {
    // url-form decode query
-   return formDecode(vars, mQuery.c_str(), mQuery.length());
+   return formDecode(vars, mQuery.c_str());
 }
 
 string Url::getPathAndQuery()
@@ -601,56 +601,53 @@ string Url::formEncode(DynamicObject& form)
    return rval;
 }
 
-bool Url::formDecode(DynamicObject& form, const char* str, unsigned int length)
+bool Url::formDecode(DynamicObject& form, const char* str)
 {
    bool rval = false;
    
    // force form to be a map
    form->setType(Map);
    
-   if(length > 0)
+   // split string up by ampersands
+   const char* tok;
+   const char* eq;
+   StringTokenizer st(str, '&');
+   while(st.hasNextToken())
    {
-      // split string up by ampersands
-      const char* tok;
-      const char* eq;
-      StringTokenizer st(str, '&');
-      while(st.hasNextToken())
+      tok = st.nextToken();
+      
+      // split on equals
+      eq = strchr(tok, '=');
+      if(eq != NULL)
       {
-         tok = st.nextToken();
+         size_t namelen = eq - tok;
          
-         // split on equals
-         eq = strchr(tok, '=');
-         if(eq != NULL)
+         if(namelen > 0)
          {
-            size_t namelen = eq - tok;
+            // valid var found
+            rval = true;
             
-            if(namelen > 0)
-            {
-               // valid var found
-               rval = true;
-               
-               // get variable name and set value
-               char name[namelen];
-               memcpy(name, tok, namelen);
-               
-               // url-decode name and value
-               form[decode(name, namelen).c_str()] =
-                  decode(eq + 1, strlen(eq + 1)).c_str();
-            }
+            // get variable name and set value
+            char name[namelen];
+            memcpy(name, tok, namelen);
+            
+            // url-decode name and value
+            form[decode(name, namelen).c_str()] =
+               decode(eq + 1, strlen(eq + 1)).c_str();
          }
-         else
+      }
+      else
+      {
+         size_t namelen = strlen(tok);
+         
+         // ignore empty names
+         if(namelen > 0)
          {
-            size_t namelen = strlen(tok);
+            // valid var found
+            rval = true;
             
-            // ignore empty names
-            if(namelen > 0)
-            {
-               // valid var found
-               rval = true;
-               
-               // url-decode name and value
-               form[decode(tok, namelen).c_str()] = "";
-            }
+            // url-decode name and value
+            form[decode(tok, namelen).c_str()] = "";
          }
       }
    }

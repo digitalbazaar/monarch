@@ -328,13 +328,11 @@ public:
     * Useful for "Content-Type: application/x-www-form-urlencoded"
     * 
     * @param form the DynamicObject map to populate with the decoded key-values.
-    * @param str the string to URL-form-decode.
-    * @param length the length of the string.
+    * @param str the NULL terminated string to URL-form-decode.
     * 
     * @return true if form data was found, false if not.
     */
-   static bool formDecode(
-      db::rt::DynamicObject& form, const char* str, unsigned int length);
+   static bool formDecode(db::rt::DynamicObject& form, const char* str);
 };
 
 // type definition for a reference collected Url
