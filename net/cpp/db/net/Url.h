@@ -310,6 +310,31 @@ public:
     * @return the URL-decoded string.
     */
    static std::string decode(const char* str, unsigned int length);
+   
+   /**
+    * URL-form-encodes the passed form to a string.
+    * 
+    * Useful for "Content-Type: application/x-www-form-urlencoded"
+    * 
+    * @param form a DynamicObject map with key-value pairs to encode.
+    * 
+    * @return the URL-form-encoded string.
+    */
+   static std::string formEncode(db::rt::DynamicObject& form);
+   
+   /**
+    * URL-form-decodes the passed string into a form.
+    * 
+    * Useful for "Content-Type: application/x-www-form-urlencoded"
+    * 
+    * @param form the DynamicObject map to populate with the decoded key-values.
+    * @param str the string to URL-form-decode.
+    * @param length the length of the string.
+    * 
+    * @return true if form data was found, false if not.
+    */
+   static bool formDecode(
+      db::rt::DynamicObject& form, const char* str, unsigned int length);
 };
 
 // type definition for a reference collected Url
