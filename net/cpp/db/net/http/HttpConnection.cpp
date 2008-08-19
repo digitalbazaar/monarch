@@ -103,17 +103,19 @@ bool HttpConnection::sendBody(
    
    // vars for read/write
    unsigned int length = 2048;
-   char b[length];
+   mBuffer.clear();
+   mBuffer.allocateSpace(length, true);
    int numBytes = 0;
    
    // do unspecified length transfer
    if(lengthUnspecified)
    {
       // read in content, write out to connection
-      while(rval && (numBytes = is->read(b, length)) > 0)
+      while(rval && (numBytes = mBuffer.put(is, length)) > 0)
       {
          // write out to connection
-         rval = os.write(b, numBytes);
+         rval = os.write(mBuffer.data(), numBytes);
+         mBuffer.clear();
       }
    }
    else
@@ -125,14 +127,15 @@ bool HttpConnection::sendBody(
       unsigned int readSize = (contentRemaining < length) ?
          contentRemaining : length;
       while(rval && contentRemaining > 0 &&
-            (numBytes = is->read(b, readSize)) > 0)
+            (numBytes = mBuffer.put(is, readSize)) > 0)
       {
          // write out to connection
-         if((rval = os.write(b, numBytes)))
+         if((rval = os.write(mBuffer.data(), numBytes)))
          {
             contentRemaining -= numBytes;
             readSize = (contentRemaining < length) ? contentRemaining : length;
          }
+         mBuffer.clear();
       }
       
       // check to see if content is remaining
@@ -186,15 +189,17 @@ bool HttpConnection::receiveBody(
    
    // vars for read/write
    unsigned int length = 2048;
-   char b[length];
+   mBuffer.clear();
+   mBuffer.allocateSpace(length, true);
    int numBytes = 0;
    
    // read in from connection, write out content
    // Note: keep reading even if content output stream fails
-   while((numBytes = is.read(b, length)) > 0)
+   while((numBytes = mBuffer.put(&is, length)) > 0)
    {
       // write out content if no error yet
-      rval = rval && os->write(b, numBytes);
+      rval = rval && os->write(mBuffer.data(), numBytes);
+      mBuffer.clear();
    }
    
    // close input stream (will not close underlying stream)
