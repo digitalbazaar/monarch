@@ -235,6 +235,14 @@ public:
    virtual bool getDate(db::util::Date& date);
    
    /**
+    * Returns true if this header has a Content-Length field that is non-zero
+    * or a Transfer-Encoding field.
+    * 
+    * @return true if this header specifies content, false if not.
+    */
+   virtual bool hasContent();
+   
+   /**
     * BiCapitalizes a header field so that its name is normalized as an
     * HTTP header field name. HTTP header field names do not *have* to be
     * BiCapitalized, it's just the standard practice -- and it makes header
