@@ -3,6 +3,7 @@
  */
 #include "db/net/Url.h"
 
+#include "db/rt/DynamicObjectIterator.h"
 #include "db/util/Convert.h"
 #include "db/util/StringTokenizer.h"
 
@@ -399,59 +400,8 @@ const string& Url::getQuery()
 
 bool Url::getQueryVariables(DynamicObject& vars)
 {
-   bool rval = false;
-   
-   // force vars to be a map
-   vars->setType(Map);
-   
-   if(mQuery.length() > 0)
-   {
-      // split query up by ampersands
-      const char* tok;
-      const char* eq;
-      StringTokenizer st(mQuery.c_str(), '&');
-      while(st.hasNextToken())
-      {
-         tok = st.nextToken();
-         
-         // split on equals
-         eq = strchr(tok, '=');
-         if(eq != NULL)
-         {
-            size_t namelen = eq - tok;
-            
-            if(namelen > 0)
-            {
-               // valid var found
-               rval = true;
-            
-               // get variable name and set value
-               char name[namelen];
-               memcpy(name, tok, namelen);
-            
-               // url-decode name and value
-               vars[decode(name, namelen).c_str()] =
-                  decode(eq + 1, strlen(eq + 1)).c_str();
-            }
-         }
-         else
-         {
-            size_t namelen = strlen(tok);
-            
-            // ignore empty names
-            if(namelen > 0)
-            {
-               // valid var found
-               rval = true;
-               
-               // url-decode name and value
-               vars[decode(tok, namelen).c_str()] = "";
-            }
-         }
-      }
-   }
-   
-   return rval;
+   // url-form decode query
+   return formDecode(vars, mQuery.c_str(), mQuery.length());
 }
 
 string Url::getPathAndQuery()
@@ -619,6 +569,87 @@ string Url::decode(const char* str, unsigned int length)
       else
       {
          // FIXME: handle other characters
+      }
+   }
+   
+   return rval;
+}
+
+string Url::formEncode(DynamicObject& form)
+{
+   string rval;
+   
+   // ensure type is map
+   form->setType(Map);
+   DynamicObjectIterator i = form.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& next = i->next();
+      
+      if(rval.length() > 0)
+      {
+         rval.push_back('&');
+      }
+      
+      // url-encode and append form field
+      rval.append(encode(i->getName(), strlen(i->getName())));
+      rval.append(encode(next->getString(), strlen(next->getString())));
+   }
+   
+   return rval;
+}
+
+bool Url::formDecode(DynamicObject& form, const char* str, unsigned int length)
+{
+   bool rval = false;
+   
+   // force form to be a map
+   form->setType(Map);
+   
+   if(length > 0)
+   {
+      // split string up by ampersands
+      const char* tok;
+      const char* eq;
+      StringTokenizer st(str, '&');
+      while(st.hasNextToken())
+      {
+         tok = st.nextToken();
+         
+         // split on equals
+         eq = strchr(tok, '=');
+         if(eq != NULL)
+         {
+            size_t namelen = eq - tok;
+            
+            if(namelen > 0)
+            {
+               // valid var found
+               rval = true;
+               
+               // get variable name and set value
+               char name[namelen];
+               memcpy(name, tok, namelen);
+               
+               // url-decode name and value
+               form[decode(name, namelen).c_str()] =
+                  decode(eq + 1, strlen(eq + 1)).c_str();
+            }
+         }
+         else
+         {
+            size_t namelen = strlen(tok);
+            
+            // ignore empty names
+            if(namelen > 0)
+            {
+               // valid var found
+               rval = true;
+               
+               // url-decode name and value
+               form[decode(tok, namelen).c_str()] = "";
+            }
+         }
       }
    }
    
