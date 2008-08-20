@@ -119,7 +119,7 @@ int HttpBodyInputStream::read(char* b, int length)
       // see if content is remaining
       if(rval == 0 && mContentLength > 0)
       {
-         rval = 1;
+         rval = -1;
          Thread* t = Thread::currentThread();
          if(t->isInterrupted())
          {
