@@ -167,6 +167,12 @@ public:
     * @return true if a cookie was remove, false if not.
     */
    virtual bool removeCookie(const char* name);
+   
+   /**
+    * Clears all cookies from this jar. This will actually only remove the
+    * cookies from this jar, it not set them to expire.
+    */
+   virtual void clearCookies();
 };
 
 } // end namespace http

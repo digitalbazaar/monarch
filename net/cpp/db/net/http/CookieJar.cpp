@@ -352,3 +352,8 @@ bool CookieJar::removeCookie(const char* name)
    mCookies->removeMember(name);
    return rval;
 }
+
+void CookieJar::clearCookies()
+{
+   mCookies->clear();
+}
