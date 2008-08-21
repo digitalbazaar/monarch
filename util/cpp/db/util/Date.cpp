@@ -169,3 +169,9 @@ bool Date::parse(const char* str, const char* format, TimeZone* tz)
    
    return rval;
 }
+
+string Date::toString(const char* format, TimeZone* tz)
+{
+   string rval;
+   return this->format(rval, format, tz);
+}

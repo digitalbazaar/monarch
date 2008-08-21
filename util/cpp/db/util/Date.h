@@ -137,6 +137,22 @@ public:
     */
    virtual bool parse(
       const char* str, const char* format, TimeZone* tz = NULL);
+   
+   /**
+    * Writes this Date to a string according to the passed format.
+    * 
+    * Here is an example of a date format (uses C language formatting):
+    * 
+    * "%a, %d %b %Y %H:%M:%S" = Sat, 21 Jan 2006 19:15:46 GMT
+    * 
+    * @param format the format to get the Date in.
+    * @param tz the TimeZone to get the Date in (NULL for local time).
+    * 
+    * @return a reference to the string that was written to.
+    */
+   virtual std::string toString(
+      const char* format = "%a, %d %b %Y %H:%M:%S",
+      TimeZone* tz = NULL);
 };
 
 } // end namespace util

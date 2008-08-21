@@ -22,6 +22,7 @@
 #include "db/net/Url.h"
 #include "db/util/Date.h"
 #include "db/util/StringTools.h"
+#include "db/net/http/CookieJar.h"
 #include "db/net/http/HttpHeader.h"
 #include "db/net/http/HttpRequest.h"
 #include "db/net/http/HttpResponse.h"
@@ -1514,6 +1515,144 @@ void runHttpNormalizePath(TestRunner& tr)
    tr.pass();
 }
 
+void runCookieTest(TestRunner& tr)
+{
+   tr.group("Http Cookie");
+   
+   tr.test("parse Set-Cookie header");
+   {
+      tr.warning(
+         "Parsing Set-Cookie header is extremely complicated and "
+         "is not implemented to cover all cases yet.");
+   }
+   tr.passIfNoException();
+   
+   tr.test("overwrite Set-Cookie header");
+   {
+      HttpHeader header;
+      header.setField("Set-Cookie",
+         "cookie1_name=cookie1_value; max-age=30; path=/, "
+         "cookie2_name=cookie2_value; max-age=30; path=/; secure, "
+         "cookie3_name=cookie3_value; max-age=30; path=/");
+      
+      CookieJar jar;
+      jar.deleteCookie("cookie2_name", false);
+      jar.setCookie("cookie4_name", "cookie4_value", 0, true);
+      jar.writeCookies(&header, CookieJar::Server, true);
+      
+      string cookies;
+      header.getField("Set-Cookie", cookies);
+      
+      assertStrCmp(cookies.c_str(),
+         "cookie2_name=; max-age=0; path=/, "
+         "cookie4_name=cookie4_value; max-age=0; path=/; secure");
+   }
+   tr.passIfNoException();
+   
+   tr.test("extend Set-Cookie header");
+   {
+      HttpHeader header;
+      header.setField("Set-Cookie",
+         "cookie1_name=cookie1_value; max-age=30; path=/, "
+         "cookie2_name=cookie2_value; max-age=30; path=/; secure, "
+         "cookie3_name=cookie3_value; max-age=30; path=/");
+      
+      CookieJar jar;
+      jar.setCookie("cookie4_name", "cookie4_value", 0, true);
+      jar.deleteCookie("cookie5_name", true);
+      jar.writeCookies(&header, CookieJar::Server, false);
+      
+      string cookies;
+      header.getField("Set-Cookie", cookies);
+      
+      assertStrCmp(cookies.c_str(),
+         "cookie1_name=cookie1_value; max-age=30; path=/, "
+         "cookie2_name=cookie2_value; max-age=30; path=/; secure, "
+         "cookie3_name=cookie3_value; max-age=30; path=/, "
+         "cookie4_name=cookie4_value; max-age=0; path=/; secure, "
+         "cookie5_name=; max-age=0; path=/; secure");
+   }
+   tr.passIfNoException();
+   
+   tr.test("parse Cookie header");
+   {
+      HttpHeader header;
+      header.setField("Cookie",
+         "cookie1_name=cookie1_value; cookie2_name=cookie2_value; "
+         "cookie3_name=cookie3_value");
+      
+      CookieJar jar;
+      jar.readCookies(&header, CookieJar::Client);
+      
+      Cookie cookie1 = jar.getCookie("cookie1_name");
+      Cookie cookie2 = jar.getCookie("cookie2_name");
+      Cookie cookie3 = jar.getCookie("cookie3_name");
+      Cookie cookie4 = jar.getCookie("cookie4_name");
+      
+      assert(!cookie1.isNull());
+      assert(!cookie2.isNull());
+      assert(!cookie3.isNull());
+      assert(cookie4.isNull());
+      
+      assertStrCmp(cookie1["name"]->getString(), "cookie1_name");
+      assertStrCmp(cookie2["name"]->getString(), "cookie2_name");
+      assertStrCmp(cookie3["name"]->getString(), "cookie3_name");
+      
+      assertStrCmp(cookie1["value"]->getString(), "cookie1_value");
+      assertStrCmp(cookie2["value"]->getString(), "cookie2_value");
+      assertStrCmp(cookie3["value"]->getString(), "cookie3_value");
+   }
+   tr.passIfNoException();
+   
+   tr.test("overwrite Cookie header");
+   {
+      HttpHeader header;
+      header.setField("Cookie",
+         "cookie1_name=cookie1_value; cookie2_name=cookie2_value; "
+         "cookie3_name=cookie3_value");
+      
+      CookieJar jar;
+      jar.readCookies(&header, CookieJar::Client);
+      jar.removeCookie("cookie2_name");
+      jar.deleteCookie("cookie3_name", true);
+      jar.setCookie("cookie1_name", "cookie1_value", 30, true);
+      jar.setCookie("cookie4_name", "cookie4_value", 30, true);
+      jar.writeCookies(&header, CookieJar::Client, true);
+      
+      string cookies;
+      header.getField("Cookie", cookies);
+      
+      assertStrCmp(cookies.c_str(),
+         "cookie1_name=cookie1_value; "
+         "cookie4_name=cookie4_value");
+   }
+   tr.passIfNoException();
+   
+   tr.test("extend Cookie header");
+   {
+      HttpHeader header;
+      header.setField("Cookie",
+         "cookie1_name=cookie1_value; cookie2_name=cookie2_value; "
+         "cookie3_name=cookie3_value");
+      
+      CookieJar jar;
+      jar.setCookie("cookie4_name", "cookie4_value", 30, true);
+      jar.writeCookies(&header, CookieJar::Client, false);
+      
+      string cookies;
+      header.getField("Cookie", cookies);
+      
+      assertStrCmp(cookies.c_str(),
+         "cookie1_name=cookie1_value; "
+         "cookie2_name=cookie2_value; "
+         "cookie3_name=cookie3_value; "
+         "cookie4_name=cookie4_value");
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class TestHttpRequestServicer : public HttpRequestServicer
 {
 public:
@@ -1872,6 +2011,7 @@ public:
       runUrlTest(tr);
       runHttpHeaderTest(tr);
       runHttpNormalizePath(tr);
+      runCookieTest(tr);
       return 0;
    }
 
