@@ -3,14 +3,11 @@
  */
 #include "db/net/http/HttpResponseHeader.h"
 
-#include "db/util/StringTokenizer.h"
-
 #include <cstdlib>
 #include <cstring>
 
 using namespace std;
 using namespace db::net::http;
-using namespace db::util;
 
 HttpResponseHeader::HttpResponseHeader()
 {
