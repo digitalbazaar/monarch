@@ -11,14 +11,14 @@
 using namespace std;
 using namespace db::util;
 
+Date::Date()
+{
+   // get the current time
+   setSeconds(time(NULL));
+}
+
 Date::Date(time_t seconds)
 {
-   if(seconds == 0)
-   {
-      // get the current time
-      seconds = time(NULL);
-   }
-   
    setSeconds(seconds);
 }
 

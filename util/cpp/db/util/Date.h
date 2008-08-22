@@ -34,12 +34,16 @@ protected:
 
 public:
    /**
-    * Creates a new Date. The current day and time is used by default.
-    * 
-    * @param seconds the number of seconds since the Epoch, 0 for the current
-    *                date.
+    * Creates a new Date. The current day and time is used.
     */
-   Date(time_t seconds = 0);
+   Date();
+   
+   /**
+    * Creates a new Date.
+    * 
+    * @param seconds the number of seconds since the Epoch.
+    */
+   Date(time_t seconds);
    
    /**
     * Destructs this Date.
