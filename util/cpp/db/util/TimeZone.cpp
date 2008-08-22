@@ -24,30 +24,30 @@ inline unsigned int TimeZone::getMinutesWest()
    return mMinutesWest;
 }
 
-TimeZone TimeZone::getTimeZone(const string& tz)
+TimeZone TimeZone::getTimeZone(const char* tz)
 {
    TimeZone rval;
    
-   if(strcmp(tz.c_str(), "GMT") == 0)
+   if(strcmp(tz, "GMT") == 0)
    {
       rval.mMinutesWest = 0;
    }
-   else if(strcmp(tz.c_str(), "EDT") == 0)
+   else if(strcmp(tz, "EDT") == 0)
    {
       // 4 hours west
       rval.mMinutesWest = 240;
    }
-   else if(strcmp(tz.c_str(), "EST") == 0)
+   else if(strcmp(tz, "EST") == 0)
    {
       // 5 hours west
       rval.mMinutesWest = 300;
    }
-   else if(strcmp(tz.c_str(), "PDT") == 0)
+   else if(strcmp(tz, "PDT") == 0)
    {
       // 7 hours west
       rval.mMinutesWest = 420;
    }
-   else if(strcmp(tz.c_str(), "PST") == 0)
+   else if(strcmp(tz, "PST") == 0)
    {
       // 8 hours west
       rval.mMinutesWest = 480;

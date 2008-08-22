@@ -52,7 +52,7 @@ public:
     * 
     * @return the TimeZone for the given abbreviation.
     */
-   static TimeZone getTimeZone(const std::string& tz = "");
+   static TimeZone getTimeZone(const char* tz = "");
 };
 
 } // end namespace util
