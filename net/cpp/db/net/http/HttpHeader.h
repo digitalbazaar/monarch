@@ -63,7 +63,7 @@ protected:
    /**
     * The map containing the header fields.
     */
-   typedef std::map<const char*, std::string, FieldComparator> FieldMap;
+   typedef std::multimap<const char*, std::string, FieldComparator> FieldMap;
    FieldMap mFields;
    
    /**
@@ -127,7 +127,7 @@ public:
    virtual const char* getVersion();
    
    /**
-    * Sets a header field.
+    * Sets a header field, replacing any existing ones.
     * 
     * @param name the name of the header field to set.
     * @param value the value for the header field.
@@ -135,7 +135,7 @@ public:
    virtual void setField(const char* name, long long value);
    
    /**
-    * Sets a header field.
+    * Sets a header field, replacing any existing ones.
     * 
     * @param name the name of the header field to set.
     * @param value the value for the header field.
@@ -143,16 +143,15 @@ public:
    virtual void setField(const char* name, const std::string& value);
    
    /**
-    * Adds a value to an existing header field. If the header field does not
-    * exist, it will be created.
+    * Adds another field without replacing one of the same name.
     * 
-    * @param name the name of the header field to update.
-    * @param value the value to add to the header field.
+    * @param name the name of the header field to add.
+    * @param value the value for the header field.
     */
    virtual void addField(const char* name, const std::string& value);
    
    /**
-    * Removes a header field.
+    * Removes a header field. This will remove all fields with the given name.
     * 
     * @param name the name of the header field to remove.
     */
@@ -164,24 +163,37 @@ public:
    virtual void clearFields();
    
    /**
-    * Gets a header field value.
+    * Gets the number of header fields with the given name.
     * 
-    * @param name the name of the header field to get the value of.
-    * @param value the value to populate.
+    * @param name the name of the header field.
     * 
-    * @return true if the header field exists, false if not.
+    * @return the number of header field values with the passed field name.
     */
-   virtual bool getField(const char* name, long long& value);
+   virtual int getFieldCount(const char* name);
    
    /**
     * Gets a header field value.
     * 
     * @param name the name of the header field to get the value of.
     * @param value the value to populate.
+    * @param index the index of the field, for fields that have
+    *              multiple entries.
     * 
     * @return true if the header field exists, false if not.
     */
-   virtual bool getField(const char* name, std::string& value);
+   virtual bool getField(const char* name, long long& value, int index = 0);
+   
+   /**
+    * Gets a header field value.
+    * 
+    * @param name the name of the header field to get the value of.
+    * @param value the value to populate.
+    * @param index the index of the field, for fields that have
+    *              multiple entries.
+    * 
+    * @return true if the header field exists, false if not.
+    */
+   virtual bool getField(const char* name, std::string& value, int index = 0);
    
    /**
     * Returns true if this header has the passed field, false if not.

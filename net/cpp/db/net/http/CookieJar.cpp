@@ -21,18 +21,30 @@ CookieJar::~CookieJar()
 
 void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
 {
+   // parse cookies if appropriate cookie field exists
    const char* field = (origin == Server ? "Set-Cookie" : "Cookie");
-   
-   // get the cookies field
-   string cookies;
-   if(header->getField(field, cookies))
+   int count = header->getFieldCount(field);
+   if(count > 0)
    {
-      if(origin == Client)
+      // Set-Cookie: cookie1_name=cookie1_value; max-age=0; path=/
+      // Set-Cookie: c2=v2; expires=Thu, 21-Aug-2008 23:47:25 GMT; path=/
+      // Cookie: cookie1_name=cookie1_value; cookie2_name=cookie2_value
+      
+      // parse cookies by semi-colons (cannot parse by commas because
+      // the "expires" value may contain a comma and no one follows the
+      // standard)
+      string cookies;
+      Cookie cookie(NULL);
+      TimeZone gmt = TimeZone::getTimeZone("GMT");
+      Date d;
+      Date now;
+      bool name;
+      StringTokenizer pairs;
+      for(int i = 0; i < count; i++)
       {
-         // Cookie: cookie1_name=cookie1_value; cookie2_name=cookie2_value
-         
-         // parse cookies by semi-colons
-         StringTokenizer pairs(cookies.c_str(), ';');
+         name = true;
+         header->getField(field, cookies, i);
+         pairs.tokenize(cookies.c_str(), ';');
          while(pairs.hasNextToken())
          {
             // get next token (name=value)
@@ -50,127 +62,78 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
             {
                *namePtr = 0;
             }
-            for(namePtr = tmpName; *namePtr != 0 && *namePtr == ' '; namePtr++);
+            for(namePtr = tmpName; *namePtr != 0 && *namePtr == ' ';
+                namePtr++);
             
-            // get value part of token
-            size_t valueLength = strlen(token) - nameLength - 1;
+            // get value part of token (ensure value length is at least 0 in
+            // case bad parsing because of no equals sign after name)
+            size_t valueLength = strlen(token);
+            valueLength = (nameLength == valueLength ?
+               0 : valueLength - nameLength - 1);
             char tmpValue[valueLength + 1];
-            strncpy(tmpValue, token + nameLength + 1, valueLength);
+            if(valueLength > 0)
+            {
+               strncpy(tmpValue, token + nameLength + 1, valueLength);
+            }
             tmpValue[valueLength] = 0;
             
-            // determine if value ends in a comma
-            if(valueLength > 0 && tmpValue[valueLength - 1] == ',')
+            if(origin == Client)
             {
-               // next token is a new cookie
-               tmpValue[valueLength - 1] = 0;
-            }
-            
-            // set cookie
-            setCookie(namePtr, tmpValue, 0, false);
-         }
-      }
-      else
-      {
-         // FIXME: Even this parsing code isn't even complex enough to handle
-         // the mush that servers send for cookies. For instance, php sends
-         // cookies separated by a *lack* of a semi-colon.
-#if 0         
-         // parse cookies by semi-colons (cannot parse by commas because
-         // the "expires" value may contain a comma and no one follows the
-         // standard)
-         TimeZone gmt = TimeZone::getTimeZone("GMT");
-         Date d;
-         Date now;
-         Cookie cookie(NULL);
-         bool name = true;
-         bool next = false;
-         StringTokenizer pairs(cookies.c_str(), ';');
-         while(pairs.hasNextToken())
-         {
-            // get next token (name=value)
-            const char* token = pairs.nextToken();
-            
-            // get name part of token
-            size_t nameLength = strcspn(token, "=");
-            char tmpName[nameLength + 1];
-            strncpy(tmpName, token, nameLength);
-            tmpName[nameLength] = 0;
-            
-            // trim whitespace from name
-            char* namePtr = (tmpName + nameLength);
-            for(; namePtr != tmpName && *namePtr == ' '; namePtr--)
-            {
-               *namePtr = 0;
-            }
-            for(namePtr = tmpName; *namePtr != 0 && *namePtr == ' '; namePtr++);
-            
-            // get value part of token
-            size_t valueLength = strlen(token) - nameLength - 1;
-            char tmpValue[valueLength + 1];
-            strncpy(tmpValue, token + nameLength + 1, valueLength);
-            tmpValue[valueLength] = 0;
-            
-            // determine if value ends in a comma
-            if(valueLength > 0 && tmpValue[valueLength - 1] == ',')
-            {
-               // next token is a new cookie
-               tmpValue[valueLength - 1] = 0;
-               next = true;
-            }
-            
-            if(name)
-            {
-               // add previous cookie if not NULL
-               if(!cookie.isNull())
-               {
-                  mCookies[cookie["name"]->getString()] = cookie;
-               }
-               
-               // first token *must* be cookie name = cookie value
-               cookie = Cookie();
-               cookie["name"] = namePtr;
-               cookie["value"] = tmpValue;
+               // set cookie
+               setCookie(namePtr, tmpValue, 0, false);
             }
             else
             {
-               if(strcmp(namePtr, "expires") == 0)
+               if(name)
                {
-                  // parse expiration time
-                  if(d.parse(tmpValue, "%a, %d-%b-%Y %H:%M:%S GMT", &gmt))
-                  {
-                     int age = d.second() - now.second();
-                     if(age <= 0)
-                     {
-                        cookie["maxAge"] = 0;
-                     }
-                     else
-                     {
-                        cookie["maxAge"] = age;
-                     }
-                  }
-                  else
-                  {
-                     // bad date format, use maxAge of 0
-                     cookie["maxAge"] = 0;
-                  }
+                  // first token *must* be cookie name = cookie value
+                  cookie = Cookie();
+                  cookie["name"] = namePtr;
+                  cookie["value"] = tmpValue;
+                  name = false;
                }
                else
                {
-                  // not first token or expires, set other cookie parameter
-                  cookie[namePtr] = tmpValue;
+                  if(strcmp(namePtr, "expires") == 0)
+                  {
+                     // parse expiration time
+                     if(d.parse(tmpValue, "%a, %d-%b-%Y %H:%M:%S GMT", &gmt))
+                     {
+                        int age = d.second() - now.second();
+                        cookie["maxAge"] = (age <= 0 ? 0 : age);
+                     }
+                     else
+                     {
+                        // bad date format, use maxAge of 0
+                        cookie["maxAge"] = 0;
+                     }
+                  }
+                  else if(strcmp(namePtr, "secure") == 0)
+                  {
+                     // cookie is secure
+                     cookie["secure"] = true;
+                  }
+                  else
+                  {
+                     // not first token or expires, set other cookie parameter
+                     cookie[namePtr] = tmpValue;
+                  }
+               }
+               
+               // add cookie if last token
+               if(!pairs.hasNextToken())
+               {
+                  // cookie not secure if no secure value found
+                  if(!cookie->hasMember("secure"))
+                  {
+                     cookie["secure"] = false;
+                  }
+                  
+                  mCookies[cookie["name"]->getString()] = cookie;
+                  cookie.setNull();
                }
             }
-            
-            // set whether or not the next token is a cookie name
-            name = next;
-            
-            // add cookie if last token
-            if(!pairs.hasNextToken())
-            {
-               mCookies[cookie["name"]->getString()] = cookie;
-            }
          }
-#endif
       }
    }
 }
@@ -179,6 +142,15 @@ bool CookieJar::writeCookies(
    HttpHeader* header, CookieOrigin origin, bool overwrite)
 {
    bool rval = true;
+   
+   // get header field name
+   const char* field = (origin == Server ? "Set-Cookie" : "Cookie");
+   
+   // if overwriting, remove existing field
+   if(overwrite)
+   {
+      header->removeField(field);
+   }
    
    // if cookies exist, convert all cookies to string
    if(mCookies->length() > 0)
@@ -196,15 +168,10 @@ bool CookieJar::writeCookies(
          age = cookie["maxAge"]->getInt32();
          if(origin == Server || age != 0)
          {
-            if(str.length() > 0)
+            if(origin == Client)
             {
-               // output a comma and space if this is not the first cookie
-               if(origin == Server)
-               {
-                  str.append(", ");
-               }
-               // output a semi-colon and space if this is not the first cookie
-               else
+               // append semi-colon and space if not first cookie
+               if(str.length() > 0)
                {
                   str.append("; ");
                }
@@ -221,6 +188,7 @@ bool CookieJar::writeCookies(
                // output comment if appropriate
                if(cookie->hasMember("comment"))
                {
+                  str.append("; comment=");
                   str.append(cookie["comment"]->getString());
                }
                
@@ -261,30 +229,18 @@ bool CookieJar::writeCookies(
                   str.append("; version=");
                   str.append(cookie["version"]->getString());
                }
+               
+               // add header field and clear string
+               header->addField(field, str.c_str());
+               str.erase();
             }
          }
       }
       
-      // get header field name
-      const char* field = (origin == Server ? "Set-Cookie" : "Cookie");
-      
-      // set field or add field based on overwrite value
-      if(overwrite)
+      if(origin == Client)
       {
-         header->setField(field, str.c_str());
-      }
-      else if(origin == Server)
-      {
+         // add single header field
          header->addField(field, str.c_str());
-      }
-      else
-      {
-         // must append client-sent cookies without commas
-         string old;
-         header->getField(field, old);
-         old.append("; ");
-         old.append(str);
-         header->setField(field, old.c_str());
       }
    }
    

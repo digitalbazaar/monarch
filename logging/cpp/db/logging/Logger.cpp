@@ -142,7 +142,7 @@ void Logger::removeLogger(Logger* logger, Category* category)
 {
    if(sLoggers != NULL)
    {
-      // FIX ME: We need to iterate through, we can't do a find()
+      // FIXME: We need to iterate through, we can't do a find()
       LoggerMap::iterator i = sLoggers->find(category);
       if(i != sLoggers->end())
       {

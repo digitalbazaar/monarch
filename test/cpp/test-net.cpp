@@ -1360,102 +1360,141 @@ void runServerDatagramTest()
 
 void runHttpHeaderTest(TestRunner& tr)
 {
-   tr.test("HttpHeader");
+   tr.group("HttpHeader");
    
-   // test bicapitalization of http headers
-   const char* tests[] = {
-      "", "",
-      "a", "A",
-      "-", "-",
-      "a--a", "A--A",
-      "-aa-", "-Aa-",
-      "-aa", "-Aa",
-      "aa-", "Aa-",
-      "aaa-zzz", "Aaa-Zzz",
-      "ThIs-a-BICaPitAlized-hEADer", "This-A-Bicapitalized-Header",
-      "Message-ID", "Message-Id",
-      NULL
-   };
-   for(int i = 0; tests[i] != NULL; i +=2)
+   tr.test("Bicapitalization");
    {
-      char* bic = strdup(tests[i]);
-      HttpHeader::biCapitalize(bic);
-      
-      //cout << "BiCapitalized Header=" << test << endl;
-      assertStrCmp(bic, tests[i+1]);
-      free(bic);
+      // test bicapitalization of http headers
+      const char* tests[] = {
+         "", "",
+         "a", "A",
+         "-", "-",
+         "a--a", "A--A",
+         "-aa-", "-Aa-",
+         "-aa", "-Aa",
+         "aa-", "Aa-",
+         "aaa-zzz", "Aaa-Zzz",
+         "ThIs-a-BICaPitAlized-hEADer", "This-A-Bicapitalized-Header",
+         "Message-ID", "Message-Id",
+         NULL
+      };
+      for(int i = 0; tests[i] != NULL; i +=2)
+      {
+         char* bic = strdup(tests[i]);
+         HttpHeader::biCapitalize(bic);
+         assertStrCmp(bic, tests[i+1]);
+         free(bic);
+      }
    }
-   
-//   string t = "   d  f  ";
-//   StringTools::trim(t);
-//   cout << "t='" << t << "'" << endl;
-   
-   //cout << endl << "Request Header:" << endl;
-   
-   HttpRequestHeader reqHeader;
-   reqHeader.setDate();
-   reqHeader.setMethod("GET");
-   reqHeader.setPath("/");
-   reqHeader.setVersion("HTTP/1.1");
-   reqHeader.setField("host", "localhost:80");
-   reqHeader.setField("Content-Type", "text/html");
-   reqHeader.setField("Connection", "close");
-   
-   //const char* expect =
-   //   "GET / HTTP/1.1\r\n"
-   //   "Connection: close\r\n"
-   //   "Content-Type: text/html\r\n"
-   //   "Host: localhost:80\r\n"
-   //   "\r\n";
-   
-   string str = reqHeader.toString();
-   //assertStrCmp(str.c_str(), expect);
-   //cout << str;
-   tr.warning("fix http request parse test");
-   
-   //cout << "End of Request Header." << endl;
-   
-   //cout << endl << "Parsed Request Header:" << endl;
-   
-   HttpRequestHeader reqHeader2;
-   reqHeader2.parse(str);
-   
-   string str2 = reqHeader2.toString();
-   //assertStrCmp(str2.c_str(), expect);
-   tr.warning("fix http request parse test");
-   //cout << str2;
-   
-   //cout << "End of Parsed Request Header." << endl;
-
-   //cout << endl << "Response Header:" << endl;
-   
-   HttpResponseHeader resHeader;
-   resHeader.setDate();
-   resHeader.setVersion("HTTP/1.1");
-   resHeader.setStatus(404, "Not Found");
-   resHeader.setField("host", "localhost:80");
-   resHeader.setField("Content-Type", "text/html");
-   resHeader.setField("Connection", "close");
-   
-   str = resHeader.toString();
-   tr.warning("fix http response parse test");
-   //cout << str;
-   
-   //cout << "End of Response Header." << endl;
-   
-   //cout << endl << "Parsed Response Header:" << endl;
-   
-   HttpResponseHeader resHeader2;
-   resHeader2.parse(str);
-   tr.warning("fix http response parse test");
-   
-   str2 = resHeader2.toString();
-   tr.warning("fix http response parse test");
-   //cout << str2;
-   
-   //cout << "End of Parsed Response Header." << endl;
-   
    tr.passIfNoException();
+   
+   tr.test("HttpRequestHeader parse");
+   {
+      HttpRequestHeader header;
+      header.setDate();
+      header.setMethod("GET");
+      header.setPath("/");
+      header.setVersion("HTTP/1.1");
+      header.setField("host", "localhost:80");
+      header.setField("Content-Type", "text/html");
+      header.setField("Connection", "close");
+      
+      string date;
+      string expect;
+      expect.append("GET / HTTP/1.1\r\n");
+      expect.append("Connection: close\r\n");
+      expect.append("Content-Type: text/html\r\n");
+      expect.append("Date: ");
+      header.getField("Date", date);
+      expect.append(date);
+      expect.append("\r\n");
+      expect.append("Host: localhost:80\r\n");
+      expect.append("\r\n");
+      
+      string str = header.toString();
+      assertStrCmp(str.c_str(), expect.c_str());
+      
+      HttpRequestHeader header2;
+      header2.parse(str);
+      
+      string str2 = header2.toString();
+      assertStrCmp(str2.c_str(), expect.c_str());
+   }
+   tr.passIfNoException();
+   
+   tr.test("HttpResponseHeader parse");
+   {
+      HttpResponseHeader header;
+      header.setDate();
+      header.setVersion("HTTP/1.1");
+      header.setStatus(404, "Not Found");
+      header.setField("host", "localhost:80");
+      header.setField("Content-Type", "text/html");
+      header.setField("Connection", "close");
+      
+      string date;
+      string expect;
+      expect.append("HTTP/1.1 404 Not Found\r\n");
+      expect.append("Connection: close\r\n");
+      expect.append("Content-Type: text/html\r\n");
+      expect.append("Date: ");
+      header.getField("Date", date);
+      expect.append(date);
+      expect.append("\r\n");
+      expect.append("Host: localhost:80\r\n");
+      expect.append("\r\n");
+      
+      string str = header.toString();
+      assertStrCmp(str.c_str(), expect.c_str());
+      
+      HttpResponseHeader header2;
+      header2.parse(str);
+      
+      string str2 = header2.toString();
+      assertStrCmp(str2.c_str(), expect.c_str());
+   }
+   tr.passIfNoException();
+   
+   tr.test("Multiple fields with same name");
+   {
+      HttpResponseHeader header;
+      header.setDate();
+      header.setVersion("HTTP/1.1");
+      header.setStatus(404, "Not Found");
+      header.setField("host", "localhost:80");
+      header.setField("Content-Type", "text/html");
+      header.setField("Connection", "close");
+      header.addField("Set-Cookie", "cookie1=value1; max-age=0; path=/");
+      header.addField("Set-Cookie", "cookie2=value2; max-age=0; path=/");
+      header.addField("Set-Cookie", "cookie3=value3; max-age=0; path=/");
+      
+      string date;
+      string expect;
+      expect.append("HTTP/1.1 404 Not Found\r\n");
+      expect.append("Connection: close\r\n");
+      expect.append("Content-Type: text/html\r\n");
+      expect.append("Date: ");
+      header.getField("Date", date);
+      expect.append(date);
+      expect.append("\r\n");
+      expect.append("Host: localhost:80\r\n");
+      expect.append("Set-Cookie: cookie1=value1; max-age=0; path=/\r\n");
+      expect.append("Set-Cookie: cookie2=value2; max-age=0; path=/\r\n");
+      expect.append("Set-Cookie: cookie3=value3; max-age=0; path=/\r\n");
+      expect.append("\r\n");
+      
+      string str = header.toString();
+      assertStrCmp(str.c_str(), expect.c_str());
+      
+      HttpResponseHeader header2;
+      header2.parse(str);
+      
+      string str2 = header2.toString();
+      assertStrCmp(str2.c_str(), expect.c_str());
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
 }
 
 void runHttpNormalizePath(TestRunner& tr)
@@ -1521,18 +1560,64 @@ void runCookieTest(TestRunner& tr)
    
    tr.test("parse Set-Cookie header");
    {
-      tr.warning(
-         "Parsing Set-Cookie header is extremely complicated and "
-         "is not implemented to cover all cases yet.");
+      HttpHeader header;
+      header.addField("Set-Cookie",
+         "cookie1_name=cookie1_value; max-age=0; path=/");
+      header.addField("Set-Cookie",
+         "cookie2_name=cookie2_value; max-age=0; path=/; secure");
+      header.addField("Set-Cookie",
+         "cookie3_name=cookie3_value; max-age=0; path=/; secure");
+      header.addField("Set-Cookie",
+         "cookie4_name=cookie4_value; max-age=0; path=/moo");
+      
+      CookieJar jar;
+      jar.readCookies(&header, CookieJar::Server);
+      
+      Cookie cookie1 = jar.getCookie("cookie1_name");
+      Cookie cookie2 = jar.getCookie("cookie2_name");
+      Cookie cookie3 = jar.getCookie("cookie3_name");
+      Cookie cookie4 = jar.getCookie("cookie4_name");
+      Cookie cookie5 = jar.getCookie("cookie5_name");
+      
+      assert(!cookie1.isNull());
+      assert(!cookie2.isNull());
+      assert(!cookie3.isNull());
+      assert(!cookie4.isNull());
+      assert(cookie5.isNull());
+      
+      assertStrCmp(cookie1["name"]->getString(), "cookie1_name");
+      assertStrCmp(cookie2["name"]->getString(), "cookie2_name");
+      assertStrCmp(cookie3["name"]->getString(), "cookie3_name");
+      assertStrCmp(cookie4["name"]->getString(), "cookie4_name");
+      
+      assertStrCmp(cookie1["value"]->getString(), "cookie1_value");
+      assertStrCmp(cookie2["value"]->getString(), "cookie2_value");
+      assertStrCmp(cookie3["value"]->getString(), "cookie3_value");
+      assertStrCmp(cookie4["value"]->getString(), "cookie4_value");
+      
+      assertStrCmp(cookie1["path"]->getString(), "/");
+      assertStrCmp(cookie2["path"]->getString(), "/");
+      assertStrCmp(cookie3["path"]->getString(), "/");
+      assertStrCmp(cookie4["path"]->getString(), "/moo");
+      
+      assert(!cookie1["secure"]->getBoolean());
+      assert(cookie2["secure"]->getBoolean());
+      assert(cookie3["secure"]->getBoolean());
+      assert(!cookie4["secure"]->getBoolean());
    }
    tr.passIfNoException();
    
    tr.test("overwrite Set-Cookie header");
    {
       HttpHeader header;
-      header.setField("Set-Cookie",
-         "cookie1_name=cookie1_value; max-age=30; path=/, "
-         "cookie2_name=cookie2_value; max-age=30; path=/; secure, "
+      header.addField(
+         "Set-Cookie",
+         "cookie1_name=cookie1_value; max-age=30; path=/");
+      header.addField(
+         "Set-Cookie",
+         "cookie2_name=cookie2_value; max-age=30; path=/; secure");
+      header.addField(
+         "Set-Cookie",
          "cookie3_name=cookie3_value; max-age=30; path=/");
       
       CookieJar jar;
@@ -1541,10 +1626,13 @@ void runCookieTest(TestRunner& tr)
       jar.writeCookies(&header, CookieJar::Server, true);
       
       string cookies;
-      header.getField("Set-Cookie", cookies);
       
+      header.getField("Set-Cookie", cookies, 0);
       assertStrCmp(cookies.c_str(),
-         "cookie2_name=; max-age=0; path=/, "
+         "cookie2_name=; max-age=0; path=/");
+      
+      header.getField("Set-Cookie", cookies, 1);
+      assertStrCmp(cookies.c_str(),
          "cookie4_name=cookie4_value; max-age=0; path=/; secure");
    }
    tr.passIfNoException();
@@ -1553,9 +1641,9 @@ void runCookieTest(TestRunner& tr)
    {
       HttpHeader header;
       header.setField("Set-Cookie",
-         "cookie1_name=cookie1_value; max-age=30; path=/, "
-         "cookie2_name=cookie2_value; max-age=30; path=/; secure, "
-         "cookie3_name=cookie3_value; max-age=30; path=/");
+         "cookie1_name=cookie1_value; max-age=0; path=/, "
+         "cookie2_name=cookie2_value; max-age=0; path=/; secure, "
+         "cookie3_name=cookie3_value; max-age=0; path=/");
       
       CookieJar jar;
       jar.setCookie("cookie4_name", "cookie4_value", 0, true);
@@ -1563,13 +1651,19 @@ void runCookieTest(TestRunner& tr)
       jar.writeCookies(&header, CookieJar::Server, false);
       
       string cookies;
-      header.getField("Set-Cookie", cookies);
       
+      header.getField("Set-Cookie", cookies, 0);
       assertStrCmp(cookies.c_str(),
-         "cookie1_name=cookie1_value; max-age=30; path=/, "
-         "cookie2_name=cookie2_value; max-age=30; path=/; secure, "
-         "cookie3_name=cookie3_value; max-age=30; path=/, "
-         "cookie4_name=cookie4_value; max-age=0; path=/; secure, "
+         "cookie1_name=cookie1_value; max-age=0; path=/, "
+         "cookie2_name=cookie2_value; max-age=0; path=/; secure, "
+         "cookie3_name=cookie3_value; max-age=0; path=/");
+      
+      header.getField("Set-Cookie", cookies, 1);
+      assertStrCmp(cookies.c_str(),
+         "cookie4_name=cookie4_value; max-age=0; path=/; secure");
+      
+      header.getField("Set-Cookie", cookies, 2);
+      assertStrCmp(cookies.c_str(),
          "cookie5_name=; max-age=0; path=/; secure");
    }
    tr.passIfNoException();
@@ -1640,13 +1734,15 @@ void runCookieTest(TestRunner& tr)
       jar.writeCookies(&header, CookieJar::Client, false);
       
       string cookies;
-      header.getField("Cookie", cookies);
       
+      header.getField("Cookie", cookies, 0);
       assertStrCmp(cookies.c_str(),
          "cookie1_name=cookie1_value; "
          "cookie2_name=cookie2_value; "
-         "cookie3_name=cookie3_value; "
-         "cookie4_name=cookie4_value");
+         "cookie3_name=cookie3_value");
+      
+      header.getField("Cookie", cookies, 1);
+      assertStrCmp(cookies.c_str(), "cookie4_name=cookie4_value");
    }
    tr.passIfNoException();
    
@@ -2005,12 +2101,13 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
+      /*
       runAddressResolveTest(tr);
       runSocketTest(tr);
       runUrlEncodeTest(tr);
       runUrlTest(tr);
       runHttpHeaderTest(tr);
-      runHttpNormalizePath(tr);
+      runHttpNormalizePath(tr);*/
       runCookieTest(tr);
       return 0;
    }

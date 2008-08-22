@@ -29,10 +29,7 @@ HttpHeader::~HttpHeader()
       free(mVersion);
    }
    
-   for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
-   {
-      free((char*)i->first);
-   }
+   HttpHeader::clearFields();
 }
 
 bool HttpHeader::parseStartLine(const char* str, unsigned int length)
@@ -83,11 +80,22 @@ void HttpHeader::setField(const char* name, long long value)
 void HttpHeader::setField(const char* name, const string& value)
 {
    // update old field if possible
-   FieldMap::iterator i = mFields.find(name);
-   if(i != mFields.end())
+   FieldMap::iterator start = mFields.find(name);
+   if(start != mFields.end())
    {
-      mFieldsSize -= i->second.length();
-      i->second = value;
+      // save name
+      char* storedName = (char*)start->first;
+      
+      // clean up old fields
+      FieldMap::iterator end = mFields.upper_bound(storedName);
+      for(FieldMap::iterator i = start; i != end; i++)
+      {
+         mFieldsSize -= i->second.length();
+      }
+      mFields.erase(start, end);
+      
+      // set new field
+      mFields.insert(make_pair(storedName, value));
       mFieldsSize += value.length();
    }
    else
@@ -103,47 +111,82 @@ void HttpHeader::setField(const char* name, const string& value)
 
 void HttpHeader::addField(const char* name, const string& value)
 {
-   // get existing value
-   string existing;
-   if(getField(name, existing))
+   FieldMap::iterator i = mFields.find(name);
+   if(i != mFields.end())
    {
-      // append to existing value
-      existing.append(", ");
+      // add a new field
+      mFieldsSize += strlen(name);
+      mFieldsSize += value.length();
+      mFields.insert(make_pair(i->first, value));
    }
-   
-   existing.append(value);
-   setField(name, existing);
+   else
+   {
+      // set the field
+      setField(name, value);
+   }
 }
 
 void HttpHeader::removeField(const char* name)
 {
    // erase field
-   FieldMap::iterator i = mFields.find(name);
-   if(i != mFields.end())
+   FieldMap::iterator start = mFields.find(name);
+   if(start != mFields.end())
    {
-      mFieldsSize -= strlen(name);
-      mFieldsSize -= i->second.length();
-      mFields.erase(i);
+      // store name for freeing
+      char* storedName = (char*)start->first;
+      
+      // remove all field entries (may be more than one)
+      int length = strlen(name);
+      FieldMap::iterator end = mFields.upper_bound(name);
+      for(FieldMap::iterator i = start; i != end; i++)
+      {
+         mFieldsSize -= length;
+         mFieldsSize -= i->second.length();
+      }
+      
+      // erase entire range
+      mFields.erase(start, end);
+      
+      // free name
+      free(storedName);
    }
 }
 
 void HttpHeader::clearFields()
 {
-   for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
+   // save unique names to free (one char* per field name)
+   size_t length = mFields.size();
+   char* nameArray[length];
+   size_t next = 0;
+   for(FieldMap::iterator i = mFields.begin();
+       i != mFields.end(); i = mFields.upper_bound(i->first))
    {
-      free((char*)i->first);
+      // save the name to be freed
+      nameArray[next] = (char*)i->first;
+      next++;
+   }
+   
+   // free names
+   for(size_t n = 0; n < next; n++)
+   {
+      free(nameArray[n]);
    }
    
    mFieldsSize = 0;
    mFields.clear();
 }
 
-bool HttpHeader::getField(const char* name, long long& value)
+int HttpHeader::getFieldCount(const char* name)
+{
+   return mFields.count(name);
+}
+
+bool HttpHeader::getField(const char* name, long long& value, int index)
 {
    bool rval = false;
    
    string str;
-   if(getField(name, str))
+   if(getField(name, str, index))
    {
       char* endptr = NULL;
       value = strtoll(str.c_str(), &endptr, 10);
@@ -153,7 +196,7 @@ bool HttpHeader::getField(const char* name, long long& value)
    return rval;
 }
 
-bool HttpHeader::getField(const char* name, string& value)
+bool HttpHeader::getField(const char* name, string& value, int index)
 {
    bool rval = false;
    
@@ -161,9 +204,16 @@ bool HttpHeader::getField(const char* name, string& value)
    FieldMap::iterator i = mFields.find(name);
    if(i != mFields.end())
    {
-      // get value
-      value = i->second;
-      rval = true;
+      // count to correct value
+      FieldMap::iterator end = mFields.upper_bound(i->first);
+      for(int n = 0; i != end && n < index; n++, i++);
+      
+      if(i != end)
+      {
+         // get value
+         value = i->second;
+         rval = true;
+      }
    }
    
    return rval;
@@ -223,8 +273,8 @@ bool HttpHeader::parse(const string& str)
                strncpy(value, colon, cr - colon);
                value[(cr - colon)] = 0;
                
-               // set field
-               setField(name, value);
+               // add field
+               addField(name, value);
             }
          }
          
