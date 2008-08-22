@@ -113,12 +113,15 @@ public:
    
    /**
     * Block waiting for the registered events to occur. If the waiting thread
-    * is interrupted this may return false without the event occuring. In such
-    * cases an exception may be set (see the ExclusiveLock documentation).
+    * is interrupted or the timeout is reached, then this may return false
+    * without the event occuring. In such cases an exception may be set
+    * (see the ExclusiveLock documentation).
+    * 
+    * @param timeout a timeout in milliseconds, 0 to wait indefinitely.
     * 
     * @return true if an event occurred, false if one did not.
     */
-   virtual bool waitForEvent();
+   virtual bool waitForEvent(uint32_t timeout = 0);
    
    /**
     * Returns the oldest event that occurred and removes it from the stack

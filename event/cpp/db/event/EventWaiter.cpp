@@ -86,13 +86,13 @@ void EventWaiter::eventOccurred(Event& e)
    unlock();
 }
 
-bool EventWaiter::waitForEvent()
+bool EventWaiter::waitForEvent(uint32_t timeout)
 {
    lock();
    {
       if(!mEventOccurred)
       {
-         wait();
+         wait(timeout);
       }
    }
    unlock();
