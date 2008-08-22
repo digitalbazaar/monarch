@@ -121,6 +121,11 @@ void Date::setSeconds(time_t seconds)
    gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
 }
 
+time_t Date::getSeconds()
+{
+   return mSecondsSinceEpoch;
+}
+
 string& Date::format(string& str, const char* format, TimeZone* tz)
 {
    struct tm time;

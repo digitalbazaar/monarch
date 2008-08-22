@@ -123,6 +123,13 @@ public:
    virtual void setSeconds(time_t seconds);
    
    /**
+    * Gets the number of seconds since the Epoch.
+    * 
+    * @return the number of seconds since the Epoch.
+    */
+   virtual time_t getSeconds();
+   
+   /**
     * Writes this Date to a string according to the passed format.
     * 
     * Here is an example of a date format (uses C language formatting):
