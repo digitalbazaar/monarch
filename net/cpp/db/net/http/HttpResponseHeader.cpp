@@ -12,12 +12,15 @@ using namespace db::net::http;
 HttpResponseHeader::HttpResponseHeader()
 {
    mStatusCode = 0;
-   mStatusMessage = strdup("");
+   mStatusMessage = NULL;
 }
 
 HttpResponseHeader::~HttpResponseHeader()
 {
-   free(mStatusMessage);
+   if(mStatusMessage != NULL)
+   {
+      free(mStatusMessage);
+   }
 }
 
 bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
@@ -81,7 +84,10 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
    }
    
    // set status message
-   free(mStatusMessage);
+   if(mStatusMessage != NULL)
+   {
+      free(mStatusMessage);
+   }
    mStatusMessage = strdup(msg);
    
    return rval;
@@ -89,16 +95,14 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
 
 void HttpResponseHeader::getStartLine(string& line)
 {
-   char code[11];
-   sprintf(code, "%d", getStatusCode());
-   line.append(getVersion());
-   line.push_back(' ');
-   line.append(code);
-   line.push_back(' ');
-   line.append(getStatusMessage());
+   // HTTP/1.1 XXX status message
+   int length = 20 + strlen(getStatusMessage());
+   char tmp[length];
+   snprintf(tmp, length, "%s %d %s", mVersion, mStatusCode, mStatusMessage);
+   line.append(tmp);
 }
 
-bool HttpResponseHeader::hasStartLine()
+inline bool HttpResponseHeader::hasStartLine()
 {
    // has start line
    return true;
@@ -108,7 +112,10 @@ void HttpResponseHeader::setStatus(unsigned int code, const char* message)
 {
    mStatusCode = code;
    
-   free(mStatusMessage);
+   if(mStatusMessage != NULL)
+   {
+      free(mStatusMessage);
+   }
    mStatusMessage = strdup(message);
 }
 
@@ -119,5 +126,9 @@ unsigned int HttpResponseHeader::getStatusCode()
 
 const char* HttpResponseHeader::getStatusMessage()
 {
+   if(mStatusMessage == NULL)
+   {
+      mStatusMessage = strdup("");
+   }
    return mStatusMessage;
 }

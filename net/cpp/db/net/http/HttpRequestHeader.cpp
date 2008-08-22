@@ -12,14 +12,21 @@ using namespace db::util;
 
 HttpRequestHeader::HttpRequestHeader()
 {
-   mMethod = strdup("");
-   mPath = strdup("");
+   mMethod = NULL;
+   mPath = NULL;
 }
 
 HttpRequestHeader::~HttpRequestHeader()
 {
-   free(mMethod);
-   free(mPath);
+   if(mMethod != NULL)
+   {
+      free(mMethod);
+   }
+   
+   if(mPath != NULL)
+   {
+      free(mPath);
+   }
 }
 
 bool HttpRequestHeader::parseStartLine(const char* str, unsigned int length)
@@ -65,14 +72,14 @@ bool HttpRequestHeader::parseStartLine(const char* str, unsigned int length)
 
 void HttpRequestHeader::getStartLine(string& line)
 {
-   line.append(getMethod());
-   line.push_back(' ');
-   line.append(getPath());
-   line.push_back(' ');
-   line.append(getVersion());
+   // METHOD PATH HTTP/1.1
+   int length = 20 + strlen(getPath());
+   char tmp[length];
+   snprintf(tmp, length, "%s %s %s", mMethod, mPath, mVersion);
+   line.append(tmp);
 }
 
-bool HttpRequestHeader::hasStartLine()
+inline bool HttpRequestHeader::hasStartLine()
 {
    // has start line
    return true;
@@ -80,22 +87,36 @@ bool HttpRequestHeader::hasStartLine()
 
 void HttpRequestHeader::setMethod(const char* method)
 {
-   free(mMethod);
+   if(mMethod != NULL)
+   {
+      free(mMethod);
+   }
    mMethod = strdup(method);
 }
 
 const char* HttpRequestHeader::getMethod()
 {
+   if(mMethod == NULL)
+   {
+      mMethod = strdup("");
+   }
    return mMethod;
 }
 
 void HttpRequestHeader::setPath(const char* path)
 {
-   free(mPath);
+   if(mPath != NULL)
+   {
+      free(mPath);
+   }
    mPath = strdup(path);
 }
 
 const char* HttpRequestHeader::getPath()
 {
+   if(mPath == NULL)
+   {
+      mPath = strdup("");
+   }
    return mPath;
 }
