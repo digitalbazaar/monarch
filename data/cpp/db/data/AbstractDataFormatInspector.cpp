@@ -3,7 +3,10 @@
  */
 #include "db/data/AbstractDataFormatInspector.h"
 
+#include "db/util/Math.h"
+
 using namespace db::data;
+using namespace db::util;
 
 AbstractDataFormatInspector::AbstractDataFormatInspector()
 {
@@ -39,7 +42,8 @@ int AbstractDataFormatInspector::inspectData(const char* b, int length)
       // skip bytes as appropriate
       if(mSkipBytes > 0)
       {
-         int sb = (int)(mSkipBytes & 0x7fffffff);
+         int sb = (mSkipBytes > (unsigned long long)Math::MAX_INT_VALUE ?
+            Math::MAX_INT_VALUE : mSkipBytes);
          rval = (sb < length ? sb : length);
          mSkipBytes -= rval;
       }
