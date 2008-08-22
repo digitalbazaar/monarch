@@ -33,7 +33,6 @@ string& StringTools::replace(
    if(found != string::npos)
    {
       str.replace(found, find.length(), replace);
-      found = str.find(find, found + replace.length());
    }
    
    return str;
