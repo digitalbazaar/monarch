@@ -25,6 +25,20 @@ string& StringTools::trim(string& str, const string& trimChars)
    return str;
 }
 
+string& StringTools::replace(
+   string& str, const string& find, const string& replace,
+   string::size_type pos)
+{
+   string::size_type found = str.find(find, pos);
+   if(found != string::npos)
+   {
+      str.replace(found, find.length(), replace);
+      found = str.find(find, found + replace.length());
+   }
+   
+   return str;
+}
+
 string& StringTools::replaceAll(
    string& str, const string& find, const string& replace)
 {

@@ -38,6 +38,21 @@ public:
       std::string& str, const std::string& trimChars = " ");
    
    /**
+    * Replaces the first instance in "str" starting at "pos" of "find" with
+    * "replace".
+    * 
+    * @param str the string to operate on.
+    * @param find the string to find.
+    * @param replace the string to replace "find" with.
+    * @param pos the position to start searching at.
+    * 
+    * @return a reference to "str".
+    */
+   static std::string& replace(
+      std::string& str, const std::string& find, const std::string& replace,
+      std::string::size_type pos = 0);
+   
+   /**
     * Replaces all instances in "str" of "find" with "replace".
     * 
     * @param str the string to operate on.
