@@ -11,11 +11,15 @@
 using namespace std;
 using namespace db::util;
 
-Date::Date()
+Date::Date(time_t seconds)
 {
-   // get the current time
-   mSecondsSinceEpoch = time(NULL);
-   gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
+   if(seconds == 0)
+   {
+      // get the current time
+      seconds = time(NULL);
+   }
+   
+   setSeconds(seconds);
 }
 
 Date::~Date()
@@ -108,7 +112,12 @@ unsigned int Date::dosTime(bool local)
 
 void Date::addSeconds(time_t seconds)
 {
-   mSecondsSinceEpoch += seconds;
+   setSeconds(mSecondsSinceEpoch + seconds);
+}
+
+void Date::setSeconds(time_t seconds)
+{
+   mSecondsSinceEpoch = seconds;
    gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
 }
 

@@ -34,9 +34,12 @@ protected:
 
 public:
    /**
-    * Creates a new Date. The current day and time is used.
+    * Creates a new Date. The current day and time is used by default.
+    * 
+    * @param seconds the number of seconds since the Epoch, 0 for the current
+    *                date.
     */
-   Date();
+   Date(time_t seconds = 0);
    
    /**
     * Destructs this Date.
@@ -107,6 +110,13 @@ public:
     * @param seconds the seconds to add to this date (can be negative).
     */
    virtual void addSeconds(time_t seconds);
+   
+   /**
+    * Sets this date according to the passed number of seconds.
+    * 
+    * @param seconds the number of seconds since the Epoch.
+    */
+   virtual void setSeconds(time_t seconds);
    
    /**
     * Writes this Date to a string according to the passed format.
