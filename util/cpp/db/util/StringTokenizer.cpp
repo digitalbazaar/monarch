@@ -61,14 +61,20 @@ void StringTokenizer::tokenize(const char* str, char delimiter)
    StringToken* next;
    while(mFirstToken != NULL && mFreeTokenCount < 100)
    {
-      // prepend the token to the free-list
+      // save first free token
       next = mFirstFreeToken;
-      mFirstFreeToken = mFirstToken;
-      mFirstFreeToken->next = next;
-      mFreeTokenCount++;
       
-      // update the used-token list
+      // update first free token to first used token
+      mFirstFreeToken = mFirstToken;
+      
+      // update first used token to next used token
       mFirstToken = mFirstToken->next;
+      
+      // update next free token to old first free token
+      mFirstFreeToken->next = next;
+      
+      // update free token count
+      mFreeTokenCount++;
    }
    
    if(mFirstToken != NULL)
@@ -98,6 +104,7 @@ void StringTokenizer::tokenize(const char* str, char delimiter)
          // grab one from the free-list
          token = mFirstFreeToken;
          mFirstFreeToken = mFirstFreeToken->next;
+         token->next = NULL;
          mFreeTokenCount--;
          
          // free data in token
