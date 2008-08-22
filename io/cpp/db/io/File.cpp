@@ -324,6 +324,19 @@ void FileImpl::listFiles(FileList& files)
    }
 }
 
+Date FileImpl::getModifiedDate()
+{
+   Date date(0);
+   struct stat s;
+   
+   if(stat(mName, &s) == 0)
+   {
+      date.setSeconds(s.st_mtime);
+   }
+   
+   return date;
+}
+
 bool File::operator==(const File& rhs)
 {
    bool rval = false;

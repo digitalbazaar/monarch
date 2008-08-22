@@ -5,6 +5,7 @@
 #define db_io_File_H
 
 #include "db/rt/Exception.h"
+#include "db/util/Date.h"
 
 #include <string>
 
@@ -204,6 +205,13 @@ public:
     * @param files the FileList to populate.
     */
    virtual void listFiles(FileList& files);
+   
+   /**
+    * Get a date object representing the last modified time of this File.
+    * 
+    * @return date this file was last modified or Date(0) on error.
+    */
+   virtual db::util::Date getModifiedDate();
 };
 
 /**
