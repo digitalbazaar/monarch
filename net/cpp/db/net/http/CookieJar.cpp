@@ -97,7 +97,7 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
                   if(strcmp(namePtr, "expires") == 0)
                   {
                      // parse expiration time
-                     if(d.parse(tmpValue, "%a, %d-%b-%Y %H:%M:%S GMT", &gmt))
+                     if(d.parse(tmpValue, HttpHeader::sDateFormat, &gmt))
                      {
                         int age = d.second() - now.second();
                         cookie["maxAge"] = (age <= 0 ? 0 : age);
@@ -197,7 +197,7 @@ bool CookieJar::writeCookies(
                {
                   str.append("; expires=");
                   d.addSeconds(age);
-                  str.append(d.toString("%a, %d-%b-%Y %H:%M:%S GMT", &gmt));
+                  str.append(d.toString(HttpHeader::sDateFormat, &gmt));
                   d.addSeconds(-age);
                }
                else if(age == 0)

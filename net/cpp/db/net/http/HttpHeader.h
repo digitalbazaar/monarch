@@ -79,6 +79,11 @@ public:
    static const char* CRLF;
    
    /**
+    * The standard HTTP-date format, i.e. Tue, 15 Nov 1994 12:45:26 GMT.
+    */
+   static const char* sDateFormat;
+   
+   /**
     * Creates a new HttpHeader.
     */
    HttpHeader();

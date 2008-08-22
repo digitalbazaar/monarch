@@ -16,6 +16,9 @@ using namespace db::util;
 // define CRLF
 const char* HttpHeader::CRLF = "\r\n";
 
+// define date format
+const char* HttpHeader::sDateFormat = "%a, %d %b %Y %H:%M:%S GMT";
+
 HttpHeader::HttpHeader()
 {
    mVersion = NULL;
@@ -385,17 +388,16 @@ void HttpHeader::setDate(Date* date)
    // get GMT time zone
    TimeZone gmt = TimeZone::getTimeZone("GMT");
    string str;
-   const char* format = "%a, %d %b %Y %H:%M:%S GMT";
    
    if(date == NULL)
    {
       // get current date
       Date now;
-      now.format(str, format, &gmt);
+      now.format(str, sDateFormat, &gmt);
    }
    else
    {
-      date->format(str, format, &gmt);
+      date->format(str, sDateFormat, &gmt);
    }
    
    // set date field
