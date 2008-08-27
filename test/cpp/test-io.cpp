@@ -507,7 +507,7 @@ void runFileTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
-   tr.test("split,dir,base");
+   tr.test("split,splitext,dir,base");
    {
       {
          string dir, base;
@@ -570,6 +570,41 @@ void runFileTest(TestRunner& tr)
          File::split("/dir1/dir2/base", dir, base);
          assertStrCmp(dir.c_str(), "/dir1/dir2");
          assertStrCmp(base.c_str(), "base");
+      }
+
+      {
+         string root, ext;
+         File::splitext("root.ext", root, ext);
+         assertStrCmp(root.c_str(), "root");
+         assertStrCmp(ext.c_str(), ".ext");
+      }
+
+      {
+         string root, ext;
+         File::splitext("root", root, ext);
+         assertStrCmp(root.c_str(), "root");
+         assertStrCmp(ext.c_str(), "");
+      }
+
+      {
+         string root, ext;
+         File::splitext(".ext", root, ext);
+         assertStrCmp(root.c_str(), "");
+         assertStrCmp(ext.c_str(), ".ext");
+      }
+
+      {
+         string root, ext;
+         File::splitext("", root, ext);
+         assertStrCmp(root.c_str(), "");
+         assertStrCmp(ext.c_str(), "");
+      }
+
+      {
+         string root, ext;
+         File::splitext("root.", root, ext);
+         assertStrCmp(root.c_str(), "root");
+         assertStrCmp(ext.c_str(), ".");
       }
 
       {
