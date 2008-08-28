@@ -395,6 +395,7 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
                ExceptionRef e = new Exception(
                   "Cannot connect Socket!", SOCKET_EXCEPTION_TYPE);
                e->getDetails()["error"] = strerror(errno);
+               e->getDetails()["address"] = address->toString().c_str();
                Exception::setLast(e, false);
                break;
             }
