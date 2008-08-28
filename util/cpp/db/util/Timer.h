@@ -27,7 +27,7 @@ public:
    /**
     * Destructs this Timer.
     */
-   ~Timer() {};
+   virtual ~Timer() {};
    
    /**
     * Starts this Timer.
