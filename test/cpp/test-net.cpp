@@ -1622,7 +1622,7 @@ void runCookieTest(TestRunner& tr)
       
       CookieJar jar;
       jar.deleteCookie("cookie2_name", false);
-      jar.setCookie("cookie4_name", "cookie4_value", 0, true);
+      jar.setCookie("cookie4_name", "cookie4_value", 0, true, true);
       jar.writeCookies(&header, CookieJar::Server, true);
       
       string cookies;
@@ -1633,7 +1633,7 @@ void runCookieTest(TestRunner& tr)
       
       header.getField("Set-Cookie", cookies, 1);
       assertStrCmp(cookies.c_str(),
-         "cookie4_name=cookie4_value; max-age=0; path=/; secure");
+         "cookie4_name=cookie4_value; max-age=0; path=/; secure; HttpOnly");
    }
    tr.passIfNoException();
    
@@ -1646,7 +1646,7 @@ void runCookieTest(TestRunner& tr)
          "cookie3_name=cookie3_value; max-age=0; path=/");
       
       CookieJar jar;
-      jar.setCookie("cookie4_name", "cookie4_value", 0, true);
+      jar.setCookie("cookie4_name", "cookie4_value", 0, true, false);
       jar.deleteCookie("cookie5_name", true);
       jar.writeCookies(&header, CookieJar::Server, false);
       
@@ -1709,8 +1709,8 @@ void runCookieTest(TestRunner& tr)
       jar.readCookies(&header, CookieJar::Client);
       jar.removeCookie("cookie2_name");
       jar.deleteCookie("cookie3_name", true);
-      jar.setCookie("cookie1_name", "cookie1_value", 30, true);
-      jar.setCookie("cookie4_name", "cookie4_value", 30, true);
+      jar.setCookie("cookie1_name", "cookie1_value", 30, true, true);
+      jar.setCookie("cookie4_name", "cookie4_value", 30, true, false);
       jar.writeCookies(&header, CookieJar::Client, true);
       
       string cookies;
@@ -1730,7 +1730,7 @@ void runCookieTest(TestRunner& tr)
          "cookie3_name=cookie3_value");
       
       CookieJar jar;
-      jar.setCookie("cookie4_name", "cookie4_value", 30, true);
+      jar.setCookie("cookie4_name", "cookie4_value", 30, true, false);
       jar.writeCookies(&header, CookieJar::Client, false);
       
       string cookies;

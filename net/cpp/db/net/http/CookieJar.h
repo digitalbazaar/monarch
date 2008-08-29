@@ -26,6 +26,7 @@ namespace http
  *    "comment" : string,
  *    "maxAge" : int32,
  *    "secure" : boolean,
+ *    "httpOnly" : boolean,
  *    "path" : string,
  *    "domain" : string,
  *    "version" : int32
@@ -36,6 +37,7 @@ namespace http
  * @member comment an optional comment string.
  * @member maxAge the maximum age of the cookie in seconds.
  * @member secure true if the cookie must be sent over a secure protocol.
+ * @member httpOnly true to restrict access to the cookie from javascript.
  * @member path the path to the cookie.
  * @member domain the optional domain the cookie belongs to
  *                (must start with a dot).
@@ -130,6 +132,7 @@ public:
     *               -1 for infinite.
     * @param secure true if the cookie should only be sent using a secure
     *               protocol, i.e. SSL, false if it doesn't matter.
+    * @param httpOnly true to restrict access to the cookie from javascript.
     * @param path the path to the cookie, defaults to "/".
     * @param domain the domain the cookie belongs to (must start with a dot),
     *               defaults to none.
@@ -137,7 +140,8 @@ public:
     */
    virtual void setCookie(
       const char* name, const char* value, int maxAge, bool secure,
-      const char* path = "/", const char* domain = NULL, int version = 0);
+      bool httpOnly = true, const char* path = "/",
+      const char* domain = NULL, int version = 0);
    
    /**
     * Gets a cookie from this jar.

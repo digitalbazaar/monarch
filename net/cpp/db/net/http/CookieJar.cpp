@@ -80,7 +80,7 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
             if(origin == Client)
             {
                // set cookie
-               setCookie(namePtr, tmpValue, 0, false);
+               setCookie(namePtr, tmpValue, 0, false, false);
             }
             else
             {
@@ -108,10 +108,15 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
                         cookie["maxAge"] = 0;
                      }
                   }
-                  else if(strcmp(namePtr, "secure") == 0)
+                  else if(strcasecmp(namePtr, "secure") == 0)
                   {
                      // cookie is secure
                      cookie["secure"] = true;
+                  }
+                  else if(strcasecmp(namePtr, "HttpOnly") == 0)
+                  {
+                     // cookie is http-only (non-javascript)
+                     cookie["httpOnly"] = true;
                   }
                   else
                   {
@@ -127,6 +132,12 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
                   if(!cookie->hasMember("secure"))
                   {
                      cookie["secure"] = false;
+                  }
+                  
+                  // cookie is not http-only if no HttpOnly value found
+                  if(!cookie->hasMember("httpOnly"))
+                  {
+                     cookie["httpOnly"] = false;
                   }
                   
                   mCookies[cookie["name"]->getString()] = cookie;
@@ -216,6 +227,12 @@ bool CookieJar::writeCookies(
                   str.append("; secure");
                }
                
+               // output http only if appropriate
+               if(cookie["httpOnly"]->getBoolean())
+               {
+                  str.append("; HttpOnly");
+               }
+               
                // output domain if appropriate
                if(cookie->hasMember("domain"))
                {
@@ -253,7 +270,7 @@ void CookieJar::setCookie(Cookie& cookie)
 }
 
 void CookieJar::setCookie(
-   const char* name, const char* value, int maxAge, bool secure,
+   const char* name, const char* value, int maxAge, bool secure, bool httpOnly,
    const char* path, const char* domain, int version)
 {
    Cookie cookie;
@@ -262,6 +279,7 @@ void CookieJar::setCookie(
    cookie["maxAge"] = maxAge;
    cookie["path"] = path;
    cookie["secure"] = secure;
+   cookie["httpOnly"] = httpOnly;
    
    if(domain != NULL)
    {
@@ -293,12 +311,13 @@ void CookieJar::deleteCookie(const char* name, bool secure)
    Cookie cookie = getCookie(name);
    if(cookie.isNull())
    {
-      setCookie(name, "", 0, secure);
+      setCookie(name, "", 0, secure, false);
    }
    else
    {
       cookie["value"] = "";
       cookie["maxAge"] = 0;
+      cookie["httpOnly"] = true;
    }
 }
 
