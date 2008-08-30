@@ -9,7 +9,6 @@
 
 #include "db/io/BufferedOutputStream.h"
 #include "db/data/json/JsonReader.h"
-#include "db/data/json/JsonWriter.h"
 #include "db/io/File.h"
 #include "db/io/FileList.h"
 #include "db/io/FileInputStream.h"
