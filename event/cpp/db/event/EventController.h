@@ -75,19 +75,19 @@ public:
     * Registers an observer for a certain event type. The passed event type
     * will be automatically registered with this EventController.
     * 
-    * A condition variable may be passed. It must be a map that contains a
-    * subset of data that must be present in the event in order for the
-    * observer to receive the event. The map's elements may themselves
+    * A condition variable may be passed as a filter. It must be a map that
+    * contains a subset of data that must be present in the event in order
+    * for the observer to receive the event. The map's elements may themselves
     * contain other maps which will also be checked as subsets.
     * 
     * @param observer the new observer to register for events.
     * @param type the event type to register the observer for.
-    * @param condition an optional conditional subset Map that must be present
-    *                  in an event in order for it to be sent to the Observer.
+    * @param filter an optional conditional subset Map that must be present
+    *               in an event in order for it to be sent to the Observer.
     */
    virtual void registerObserver(
       Observer* observer, const char* type,
-      db::rt::DynamicObject* condition = NULL);
+      db::rt::DynamicObject* filter = NULL);
    
    /**
     * Registers an observer for a list of event types.

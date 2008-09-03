@@ -21,13 +21,13 @@ Observable::~Observable()
    // ensure event dispatching is stopped
    stop();
    
-   // clean up all observer conditions
+   // clean up all observers' filters
    for(ObserverMap::iterator i = mObservers.begin(); i != mObservers.end(); i++)
    {
-      // delete observer condition if not NULL
-      if(i->second.condition != NULL)
+      // delete observer's filter if not NULL
+      if(i->second.filter != NULL)
       {
-         delete i->second.condition;
+         delete i->second.filter;
       }
    }
 }
@@ -53,12 +53,12 @@ void Observable::dispatchEvent(
                ObserverMap::iterator oend = mObservers.upper_bound(id);
                for(; oi != oend; oi++)
                {
-                  // check observer condition if appropriate
+                  // check observer filter if appropriate
                   pass = true;
-                  if(oi->second.condition != NULL)
+                  if(oi->second.filter != NULL)
                   {
-                     // condition must be a subset of event
-                     pass = oi->second.condition->isSubset(e);
+                     // filter must be a subset of event
+                     pass = oi->second.filter->isSubset(e);
                   }
                   
                   if(pass)
@@ -134,7 +134,7 @@ void Observable::dispatchEvents()
 }
 
 void Observable::registerObserver(
-   Observer* observer, EventId id, DynamicObject* condition)
+   Observer* observer, EventId id, DynamicObject* filter)
 {
    lock();
    {
@@ -148,8 +148,8 @@ void Observable::registerObserver(
       // create observer entry
       ObserverEntry entry;
       entry.observer = observer;
-      entry.condition =
-         (condition == NULL ? NULL : new DynamicObject(condition->clone()));
+      entry.filter =
+         (filter == NULL ? NULL : new DynamicObject(filter->clone()));
       
       // add observer
       mObservers.insert(make_pair(id, entry));
@@ -169,10 +169,10 @@ void Observable::unregisterObserver(Observer* observer, EventId id)
          {
             if(i->second.observer == observer)
             {
-               // delete observer condition if not NULL
-               if(i->second.condition != NULL)
+               // delete observer's filter if not NULL
+               if(i->second.filter != NULL)
                {
-                  delete i->second.condition;
+                  delete i->second.filter;
                }
                
                // remove entry and break

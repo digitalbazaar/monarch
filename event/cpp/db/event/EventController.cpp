@@ -73,10 +73,10 @@ void EventController::registerEventType(const char* type)
 }
 
 void EventController::registerObserver(
-   Observer* observer, const char* type, DynamicObject* condition)
+   Observer* observer, const char* type, DynamicObject* filter)
 {
    // register the observer
-   Observable::registerObserver(observer, getEventId(type), condition);
+   Observable::registerObserver(observer, getEventId(type), filter);
 }
 
 void EventController::registerObserver(
