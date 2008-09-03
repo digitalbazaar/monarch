@@ -29,10 +29,10 @@ void EventWaiter::reset()
    mEvents.clear();
 }
 
-void EventWaiter::start(const char* event)
+void EventWaiter::start(const char* event, DynamicObject* condition)
 {
    mEventTypes->append() = event;
-   mEventController->registerObserver(this, event);
+   mEventController->registerObserver(this, event, condition);
 }
 
 void EventWaiter::fire()

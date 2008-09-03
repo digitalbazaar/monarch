@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/event/EventController.h"
+
 #include "db/rt/DynamicObjectIterator.h"
 
 using namespace std;
@@ -71,10 +72,11 @@ void EventController::registerEventType(const char* type)
    getEventId(type);
 }
 
-void EventController::registerObserver(Observer* observer, const char* type)
+void EventController::registerObserver(
+   Observer* observer, const char* type, DynamicObject* condition)
 {
    // register the observer
-   Observable::registerObserver(observer, getEventId(type));
+   Observable::registerObserver(observer, getEventId(type), condition);
 }
 
 void EventController::registerObserver(

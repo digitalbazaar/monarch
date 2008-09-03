@@ -87,8 +87,11 @@ public:
     * time the EventWaiter starts and when it waits for an event.
     * 
     * @param event the event type to wait for.
+    * @param condition an optional conditional Map of data that must be a
+    *                  subset of an event for it to be received by this waiter.
     */
-   virtual void start(const char* event);
+   virtual void start(
+      const char* event, db::rt::DynamicObject* condition = NULL);
    
    /**
     * Fire the first type of event. This is a convenience to fire the event

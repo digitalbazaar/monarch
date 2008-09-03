@@ -76,6 +76,15 @@ protected:
    };
    
    /**
+    * The combination of an Observer and a conditional variable.
+    */
+   struct ObserverEntry
+   {
+      Observer* observer;
+      db::rt::DynamicObject* condition;
+   };
+   
+   /**
     * The queue of undispatched events.
     */
    typedef std::list<Event> EventQueue;
@@ -91,7 +100,7 @@ protected:
    /**
     * The map of EventIds to registered Observers.
     */
-   typedef std::multimap<EventId, Observer*> ObserverMap;
+   typedef std::multimap<EventId, ObserverEntry> ObserverMap;
    ObserverMap mObservers;
    
    /**
@@ -156,10 +165,18 @@ public:
     * Observer will immediately begin to receive to events from this
     * Observable that are sent out using the given EventId.
     * 
+    * A condition variable may be passed. It must be a map that contains a
+    * subset of data that must be present in the event in order for the
+    * observer to receive the event. The map's elements may themselves
+    * contain other maps which will also be checked as subsets.
+    * 
     * @param observer the Observer to register.
     * @param id the EventId for the events to receive.
+    * @param condition an optional conditional subset Map that must be present
+    *                  in an event in order for it to be sent to the Observer.
     */
-   virtual void registerObserver(Observer* observer, EventId id);
+   virtual void registerObserver(
+      Observer* observer, EventId id, db::rt::DynamicObject* condition = NULL);
    
    /**
     * Unregisters an Observer from this Observable for the given EventId. The

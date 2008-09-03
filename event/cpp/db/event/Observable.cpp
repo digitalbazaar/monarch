@@ -3,6 +3,8 @@
  */
 #include "db/event/Observable.h"
 
+#include "db/rt/DynamicObjectIterator.h"
+
 using namespace std;
 using namespace db::event;
 using namespace db::modest;
@@ -18,6 +20,16 @@ Observable::~Observable()
 {
    // ensure event dispatching is stopped
    stop();
+   
+   // clean up all observer conditions
+   for(ObserverMap::iterator i = mObservers.begin(); i != mObservers.end(); i++)
+   {
+      // delete observer condition if not NULL
+      if(i->second.condition != NULL)
+      {
+         delete i->second.condition;
+      }
+   }
 }
 
 void Observable::dispatchEvent(
@@ -37,19 +49,33 @@ void Observable::dispatchEvent(
             ObserverMap::iterator oi = mObservers.find(id);
             if(oi != mObservers.end())
             {
+               bool pass;
                ObserverMap::iterator oend = mObservers.upper_bound(id);
                for(; oi != oend; oi++)
                {
-                  // create and run event dispatcher for each observable
-                  RunnableRef ed = new EventDispatcher(oi->second, &e);
-                  Operation op(ed);
-                  mOpRunner->runOperation(op);
-                  
-                  // only add serial events to the operation list, parallel
-                  // events are not waited on for completion
-                  if(!e->hasMember("parallel") || !e["parallel"]->getBoolean())
+                  // check observer condition if appropriate
+                  pass = true;
+                  if(oi->second.condition != NULL)
                   {
-                     opList.add(op);
+                     // condition must be a subset of event
+                     pass = oi->second.condition->isSubset(e);
+                  }
+                  
+                  if(pass)
+                  {
+                     // create and run event dispatcher for each observable
+                     RunnableRef ed =
+                        new EventDispatcher(oi->second.observer, &e);
+                     Operation op(ed);
+                     mOpRunner->runOperation(op);
+                     
+                     // only add serial events to the operation list, parallel
+                     // events are not waited on for completion
+                     if(!e->hasMember("parallel") ||
+                        !e["parallel"]->getBoolean())
+                     {
+                        opList.add(op);
+                     }
                   }
                }
             }
@@ -107,7 +133,8 @@ void Observable::dispatchEvents()
    unlock();
 }
 
-void Observable::registerObserver(Observer* observer, EventId id)
+void Observable::registerObserver(
+   Observer* observer, EventId id, DynamicObject* condition)
 {
    lock();
    {
@@ -118,8 +145,14 @@ void Observable::registerObserver(Observer* observer, EventId id)
          mTaps.insert(make_pair(id, id));
       }
       
+      // create observer entry
+      ObserverEntry entry;
+      entry.observer = observer;
+      entry.condition =
+         (condition == NULL ? NULL : new DynamicObject(condition->clone()));
+      
       // add observer
-      mObservers.insert(make_pair(id, observer));
+      mObservers.insert(make_pair(id, entry));
    }
    unlock();
 }
@@ -134,9 +167,15 @@ void Observable::unregisterObserver(Observer* observer, EventId id)
          ObserverMap::iterator end = mObservers.upper_bound(id);
          for(; i != end; i++)
          {
-            if(i->second == observer)
+            if(i->second.observer == observer)
             {
-               // remove observer and break
+               // delete observer condition if not NULL
+               if(i->second.condition != NULL)
+               {
+                  delete i->second.condition;
+               }
+               
+               // remove entry and break
                mObservers.erase(i);
                break;
             }
