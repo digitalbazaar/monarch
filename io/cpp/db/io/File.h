@@ -338,6 +338,18 @@ public:
       const char* path, std::string& dirname, std::string& basename);
    
    /**
+    * Split a path into the root and extension, either of which may be empty.
+    * 
+    * @param path the path to split.
+    * @param root a string to fill with the root.
+    * @param ext a string to fill with the extension.
+    * @param sep string separating root and extension 
+    */
+   static void splitext(
+      const char* path, std::string& root, std::string& ext,
+      const char* sep = ".");
+   
+   /**
     * Gets the parent directory of the passed path. Works for both files
     * and directories. If the passed path is "/", then "/" will be returned.
     * 

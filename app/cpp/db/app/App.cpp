@@ -52,6 +52,7 @@ App::App()
    
    mAppConfig->setType(Map);
    mAppConfig["app"]["debug"]["init"] = false;
+   mAppConfig["app"]["config"]["debug"] = false;
    mAppConfig["app"]["config"]["dump"] = false;
    mAppConfig["app"]["logging"]["enabled"] = true;
    mAppConfig["app"]["logging"]["level"] = "warning";
@@ -710,8 +711,8 @@ DynamicObject App::getCommandLineSpec()
 "      --              Treat all remaining options as application arguments.\n"
 "\n"
 "Config options:\n"
-"      --debug-config  Debug the configuration loading process to stdout.\n"
-"      --dump-config   Load and dump all configuration data to stdout.\n"
+"      --config-debug  Debug the configuration loading process to stdout.\n"
+"      --config-dump   Load and dump all configuration data to stdout.\n"
 "      --option NAME VALUE\n"
 "                      Set dotted config path NAME to the string VALUE.\n"
 "      --json-option NAME JSONVALUE\n"
@@ -763,11 +764,11 @@ DynamicObject App::getCommandLineSpec()
    opt["isJsonValue"] = true;
    
    opt = spec["options"]->append();
-   opt["long"] = "--debug-config";
+   opt["long"] = "--config-debug";
    opt["setTrue"] = mAppConfig["app"]["config"]["debug"];
    
    opt = spec["options"]->append();
-   opt["long"] = "--dump-config";
+   opt["long"] = "--config-dump";
    opt["setTrue"] = mAppConfig["app"]["config"]["dump"];
    
    return spec;

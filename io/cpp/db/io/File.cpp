@@ -513,6 +513,23 @@ void File::split(const char* path, string& dirname, string& basename)
    }
 }
 
+void File::splitext(
+   const char* path, string& root, string& ext, const char* sep)
+{
+   string sPath = path;
+   string::size_type pos = sPath.rfind(sep);
+   if(pos != string::npos)
+   {
+      root.assign(sPath.substr(0, pos));
+      ext.assign(sPath.substr(pos));
+   }
+   else
+   {
+      root.assign(path);
+      ext.clear();
+   }
+}
+
 string File::parentname(const char* path)
 {
    string dirname = File::dirname(path);
