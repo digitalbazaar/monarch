@@ -49,6 +49,7 @@ App::App()
    mDelegate = NULL;
    setDelegate(this);
    mConfigManager = new ConfigManager;
+   mLogger = NULL;
    
    mAppConfig->setType(Map);
    mAppConfig["app"]["debug"]["init"] = false;
