@@ -430,6 +430,7 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject c = cm.getConfig();
       c["node"]["port"] = 19200;
       c["node"]["userModulePath"] = "~/.bitmunk/modules:~/.bitmunk/modules-dev";
+      c["node"][ConfigManager::TMP]["not in changes"] = true;
 
       // get the changes from defaults to current config
       // serialize this to disk as needed
@@ -441,6 +442,7 @@ void runConfigManagerTest(TestRunner& tr)
       expect["node"]["port"] = 19200;
       expect["node"]["comment"] = "My precious...";
       expect["node"]["userModulePath"] = "~/.bitmunk/modules:~/.bitmunk/modules-dev";
+      // NOTE: will not have TMP var
       assertDynoCmp(changes, expect);
    }
    tr.passIfNoException();

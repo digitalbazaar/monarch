@@ -159,6 +159,13 @@ public:
    static const char* INCLUDE_EXT;
    
    /**
+    * Magic key for a property which is only temporary for this session.
+    * getChanges and similar will skip this value.  Useful for run-time
+    * caches and other data which should not be saved as user config.
+    */
+   static const char* TMP;
+   
+   /**
     * Check if a configuration has all values and types from a template
     * schema.
     * 

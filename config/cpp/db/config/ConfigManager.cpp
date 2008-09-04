@@ -25,6 +25,7 @@ const char* ConfigManager::DEFAULT_VALUE = "__default__";
 const char* ConfigManager::VERSION = "__version__";
 const char* ConfigManager::INCLUDE = "__include__";
 const char* ConfigManager::INCLUDE_EXT = ".config";
+const char* ConfigManager::TMP = "__tmp__";
 
 ConfigManager::ConfigManager()
 {
@@ -488,21 +489,24 @@ bool ConfigManager::diff(Config& target, Config& config1, Config& config2)
             {
                Config next = i->next();
                const char* name = i->getName();
-               if(!config1->hasMember(name))
+               if(strcmp(name, TMP) != 0)
                {
-                  // key not in config1, so add to diff
-                  rval = true;
-                  target[name] = next.clone();
-               }
-               else
-               {
-                  // recusively get sub-diff
-                  Config d;
-                  if(diff(d, config1[name], next))
+                  if(!config1->hasMember(name))
                   {
-                     // diff found, add it
+                     // key not in config1, so add to diff
                      rval = true;
-                     target[name] = d;
+                     target[name] = next.clone();
+                  }
+                  else
+                  {
+                     // recusively get sub-diff
+                     Config d;
+                     if(diff(d, config1[name], next))
+                     {
+                        // diff found, add it
+                        rval = true;
+                        target[name] = d;
+                     }
                   }
                }
             }
