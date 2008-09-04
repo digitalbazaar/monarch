@@ -537,11 +537,17 @@ bool ConfigManager::diff(Config& target, Config& config1, Config& config2)
    return rval;
 }
 
-void ConfigManager::getChanges(Config& target, ConfigType baseType)
+void ConfigManager::getChanges(
+   Config& target, ConfigType baseType, bool addVersion)
 {
    Config original;
    makeMergedConfig(original, baseType);
    diff(target, original, mConfig);
+   // add first version added with addVersion if present
+   if(mVersions->length() > 0)
+   {
+      target[VERSION] = mVersions[0];
+   }
 }
 
 bool ConfigManager::isValidConfig(Config& config, Config& schema)

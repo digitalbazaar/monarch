@@ -272,8 +272,12 @@ public:
     * @param target the Config to store the changes in.
     * @param baseType the type to compare against (useful values are Default,
     *        User, and All).
+    * @param addVersion add the first version string added with addVersion
+    *        to target.  Useful if target will be saved and needs to be
+    *        reloaded.
     */
-   virtual void getChanges(Config& target, ConfigType baseType = Default);
+   virtual void getChanges(
+      Config& target, ConfigType baseType = Default, bool addVersion = false);
 
    /**
     * Set the version of configurations this manager uses.  When adding a
