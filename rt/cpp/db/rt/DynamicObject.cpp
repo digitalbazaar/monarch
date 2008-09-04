@@ -29,11 +29,11 @@ DynamicObject::~DynamicObject()
 {
 }
 
-bool DynamicObject::operator==(const DynamicObject& rhs)
+bool DynamicObject::operator==(const DynamicObject& rhs) const
 {
    bool rval;
    
-   DynamicObject* left = this;
+   DynamicObject* left = (DynamicObject*)this;
    DynamicObject* right = (DynamicObject*)&rhs;
    
    rval = Collectable<DynamicObjectImpl>::operator==(rhs);
@@ -46,7 +46,8 @@ bool DynamicObject::operator==(const DynamicObject& rhs)
          switch((*left)->getType())
          {
             case String:
-               rval = (strcmp((*left)->getString(), (*right)->getString()) == 0);
+               rval = (strcmp(
+                  (*left)->getString(), (*right)->getString()) == 0);
                break;
             case Boolean:
                rval = (*left)->getBoolean() == (*right)->getBoolean();
@@ -297,11 +298,11 @@ void DynamicObject::merge(DynamicObject& rhs, bool append)
    }
 }
 
-bool DynamicObject::isSubset(const DynamicObject& rhs)
+bool DynamicObject::isSubset(const DynamicObject& rhs) const
 {
    bool rval;
    
-   DynamicObject* left = this;
+   DynamicObject* left = (DynamicObject*)this;
    DynamicObject* right = (DynamicObject*)&rhs;
    
    rval = Collectable<DynamicObjectImpl>::operator==(rhs);

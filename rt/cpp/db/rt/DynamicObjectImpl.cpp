@@ -583,7 +583,7 @@ void DynamicObjectImpl::clear()
    }
 }
 
-int DynamicObjectImpl::length()
+int DynamicObjectImpl::length() const
 {
    int rval;
    

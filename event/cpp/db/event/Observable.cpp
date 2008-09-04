@@ -20,16 +20,6 @@ Observable::~Observable()
 {
    // ensure event dispatching is stopped
    stop();
-   
-   // clean up all observers' filters
-   for(ObserverMap::iterator i = mObservers.begin(); i != mObservers.end(); i++)
-   {
-      // delete observer's filter if not NULL
-      if(i->second.filter != NULL)
-      {
-         delete i->second.filter;
-      }
-   }
 }
 
 void Observable::dispatchEvent(
@@ -45,36 +35,41 @@ void Observable::dispatchEvent(
          // dispatch event if the tap is the EventId itself
          if(ti->second == id)
          {
-            // go through the list of observers for the EventId tap
+            // get the filter map for the EventId tap
             ObserverMap::iterator oi = mObservers.find(id);
             if(oi != mObservers.end())
             {
+               FilterMap& fm = oi->second;
+               
+               // go through each filter
                bool pass;
-               ObserverMap::iterator oend = mObservers.upper_bound(id);
-               for(; oi != oend; oi++)
+               for(FilterMap::iterator fi = fm.begin(); fi != fm.end(); fi++)
                {
                   // check observer filter if appropriate
                   pass = true;
-                  if(oi->second.filter != NULL)
+                  if(!fi->first.isNull())
                   {
                      // filter must be a subset of event
-                     pass = oi->second.filter->isSubset(e);
+                     pass = fi->first.isSubset(e);
                   }
                   
                   if(pass)
                   {
-                     // create and run event dispatcher for each observable
-                     RunnableRef ed =
-                        new EventDispatcher(oi->second.observer, &e);
-                     Operation op(ed);
-                     mOpRunner->runOperation(op);
-                     
-                     // only add serial events to the operation list, parallel
-                     // events are not waited on for completion
-                     if(!e->hasMember("parallel") ||
-                        !e["parallel"]->getBoolean())
+                     // create and run event dispatcher for each observer
+                     for(ObserverList::iterator li =
+                         fi->second.begin(); li != fi->second.end(); li++)
                      {
-                        opList.add(op);
+                        RunnableRef ed = new EventDispatcher(*li, &e);
+                        Operation op(ed);
+                        mOpRunner->runOperation(op);
+                        
+                        // only add serial events to the operation list,
+                        // parallel events are not waited on for completion
+                        if(!e->hasMember("parallel") ||
+                           !e["parallel"]->getBoolean())
+                        {
+                           opList.add(op);
+                        }
                      }
                   }
                }
@@ -145,14 +140,37 @@ void Observable::registerObserver(
          mTaps.insert(make_pair(id, id));
       }
       
-      // create observer entry
-      ObserverEntry entry;
-      entry.observer = observer;
-      entry.filter =
-         (filter == NULL ? NULL : new DynamicObject(filter->clone()));
+      // get the event ID's filter map, creating it if necessary
+      ObserverMap::iterator oi = mObservers.find(id);
+      if(oi == mObservers.end())
+      {
+         // add a filter map
+         FilterMap tmp;
+         pair<ObserverMap::iterator, bool> p =
+            mObservers.insert(make_pair(id, tmp));
+         oi = p.first;
+      }
       
-      // add observer
-      mObservers.insert(make_pair(id, entry));
+      // create the event filter to compare against
+      EventFilter ef(NULL);
+      if(filter != NULL)
+      {
+         ef = filter->clone();
+      }
+      
+      // get the observer list, creating it if necessary
+      FilterMap::iterator fi = oi->second.find(ef);
+      if(fi == oi->second.end())
+      {
+         // add an observer list
+         ObserverList tmp;
+         pair<FilterMap::iterator, bool> p =
+            oi->second.insert(make_pair(ef, tmp));
+         fi = p.first;
+      }
+      
+      // add the observer to the list
+      fi->second.push_back(observer);
    }
    unlock();
 }
@@ -161,23 +179,37 @@ void Observable::unregisterObserver(Observer* observer, EventId id)
 {
    lock();
    {
+      // find the filter map for the event
       ObserverMap::iterator i = mObservers.find(id);
       if(i != mObservers.end())
       {
-         ObserverMap::iterator end = mObservers.upper_bound(id);
-         for(; i != end; i++)
+         // remove the observer from every list
+         for(FilterMap::iterator fi = i->second.begin(); fi != i->second.end();)
          {
-            if(i->second.observer == observer)
+            ObserverList::iterator li = find(
+               fi->second.begin(), fi->second.end(), observer);
+            if(li != fi->second.end())
             {
-               // delete observer's filter if not NULL
-               if(i->second.filter != NULL)
-               {
-                  delete i->second.filter;
-               }
+               // erase observer from list
+               fi->second.erase(li);
                
-               // remove entry and break
-               mObservers.erase(i);
-               break;
+               // erase filter entry if observer list is empty
+               if(fi->second.empty())
+               {
+                  FilterMap::iterator tmp = fi;
+                  fi++;
+                  i->second.erase(tmp);
+                  
+                  // erase filter map entry if event ID has no more observers
+                  if(i->second.empty())
+                  {
+                     mObservers.erase(i);
+                  }
+               }
+            }
+            else
+            {
+               fi++;
             }
          }
       }

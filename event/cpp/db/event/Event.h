@@ -25,6 +25,15 @@ namespace event
 typedef db::rt::DynamicObject Event;
 typedef uint64_t EventId;
 
+/**
+ * An EventFilter can be used to filter events that are received by an
+ * Observer. It is a DynamicObject map that is a subset of data that must
+ * be present in an Event in order for an Observer to receive it.
+ * 
+ * @author Dave Longley
+ */
+typedef db::rt::DynamicObject EventFilter;
+
 } // end namespace event
 } // end namespace db
 #endif

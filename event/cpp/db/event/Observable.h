@@ -76,13 +76,36 @@ protected:
    };
    
    /**
-    * The combination of an Observer and a conditional filter.
+    * A list of observers.
     */
-   struct ObserverEntry
+   typedef std::list<Observer*> ObserverList;
+   
+   /**
+    * A EventFilterComparator compares two event filters.
+    */
+   struct EventFilterComparator
    {
-      Observer* observer;
-      db::rt::DynamicObject* filter;
+      /**
+       * Compares two event filters, returning true if the first is less
+       * than the second, false if not.
+       * 
+       * @param f1 the first filter.
+       * @param f2 the second filter.
+       * 
+       * @return true if the f1 < f2, false if not.
+       */
+      bool operator()(const EventFilter& f1, const EventFilter& f2) const
+      {
+         // NULL is always "less", otherwise compare filter lengths
+         return f1.isNull() ? true : (f2.isNull() ? false :
+            (f1->length() < f2->length()));
+      }
    };
+   
+   /**
+    * A map of an EventFilter to a list of Observers.
+    */
+   typedef std::map<EventFilter, ObserverList, EventFilterComparator> FilterMap;
    
    /**
     * The queue of undispatched events.
@@ -98,9 +121,10 @@ protected:
    EventIdMap mTaps;
    
    /**
-    * The map of EventIds to registered Observers.
+    * The map of EventIds to FilterMaps with registered Observers. This map
+    * contains all of the Observers for all of the different Event IDs.
     */
-   typedef std::multimap<EventId, ObserverEntry> ObserverMap;
+   typedef std::map<EventId, FilterMap> ObserverMap;
    ObserverMap mObservers;
    
    /**
