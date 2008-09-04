@@ -5,6 +5,8 @@
 
 #include "db/rt/DynamicObjectIterator.h"
 
+#include <algorithm>
+
 using namespace std;
 using namespace db::event;
 using namespace db::modest;
