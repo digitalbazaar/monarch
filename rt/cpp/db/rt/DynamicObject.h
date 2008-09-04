@@ -63,7 +63,7 @@ public:
     * @return true if the passed DynamicObject is equal to this one, false
     *         if not.
     */ 
-   virtual bool operator==(const DynamicObject& rhs);
+   virtual bool operator==(const DynamicObject& rhs) const;
    
    /**
     * Compares this DynamicObject to another one for non-equality. If the
@@ -191,7 +191,7 @@ public:
     * 
     * @return true if this DynamicObject is a subset of the passed one.
     */
-   virtual bool isSubset(const DynamicObject& rhs);
+   virtual bool isSubset(const DynamicObject& rhs) const;
 
    /**
     * Get a simple description for the DynamicObjectType enumerated value.

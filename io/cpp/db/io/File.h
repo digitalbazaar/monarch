@@ -254,7 +254,7 @@ public:
     * 
     * @return true if this File is equal to the passed one, false if not.
     */
-   bool operator==(const File& rhs);
+   bool operator==(const File& rhs) const;
    
    /**
     * Normalizes the file system path passed into the method.

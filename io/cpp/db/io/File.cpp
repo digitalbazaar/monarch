@@ -337,7 +337,7 @@ Date FileImpl::getModifiedDate()
    return date;
 }
 
-bool File::operator==(const File& rhs)
+bool File::operator==(const File& rhs) const
 {
    bool rval = false;
    

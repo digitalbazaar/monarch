@@ -102,7 +102,7 @@ public:
     * 
     * @return true if this Collectable is equal the another one, false if not.
     */
-   virtual bool operator==(const Collectable& rhs);
+   virtual bool operator==(const Collectable& rhs) const;
    
    /**
     * Compares this Collectable against another one for inequality.
@@ -111,21 +111,21 @@ public:
     * 
     * @return true if this Collectable is not equal the another one, false if not.
     */
-   virtual bool operator!=(const Collectable& rhs);
+   virtual bool operator!=(const Collectable& rhs) const;
    
    /**
     * Returns a reference to this Collectable's HeapObject.
     * 
     * @return a reference to this Collectable's HeapObject.
     */
-   virtual HeapObject& operator*();
+   virtual HeapObject& operator*() const;
    
    /**
     * Returns a pointer to this Collectable's HeapObject.
     * 
     * @return a pointer to this Collectable's HeapObject.
     */
-   virtual HeapObject* operator->();
+   virtual HeapObject* operator->() const;
    
    /**
     * Sets this Collectable's HeapObject to NULL.
@@ -137,7 +137,7 @@ public:
     * 
     * @return true if this Collectable's HeapObject is NULL, false if not.
     */
-   virtual bool isNull();
+   virtual bool isNull() const;
 };
 
 template<typename HeapObject>
@@ -216,7 +216,7 @@ Collectable<HeapObject>& Collectable<HeapObject>::operator=(
 }
 
 template<typename HeapObject>
-bool Collectable<HeapObject>::operator==(const Collectable& rhs)
+bool Collectable<HeapObject>::operator==(const Collectable& rhs) const
 {
    return
       (this == &rhs) ||
@@ -226,19 +226,19 @@ bool Collectable<HeapObject>::operator==(const Collectable& rhs)
 }
 
 template<typename HeapObject>
-bool Collectable<HeapObject>::operator!=(const Collectable& rhs)
+bool Collectable<HeapObject>::operator!=(const Collectable& rhs) const
 {
    return !(*this == rhs);
 }
 
 template<typename HeapObject>
-HeapObject& Collectable<HeapObject>::operator*()
+HeapObject& Collectable<HeapObject>::operator*() const
 {
    return *mReference->ptr;
 }
 
 template<typename HeapObject>
-HeapObject* Collectable<HeapObject>::operator->()
+HeapObject* Collectable<HeapObject>::operator->() const
 {
    return mReference->ptr;
 }
@@ -251,7 +251,7 @@ void Collectable<HeapObject>::setNull()
 }
 
 template<typename HeapObject>
-bool Collectable<HeapObject>::isNull()
+bool Collectable<HeapObject>::isNull() const
 {
    return mReference == NULL;
 }

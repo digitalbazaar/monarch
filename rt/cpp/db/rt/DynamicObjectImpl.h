@@ -301,7 +301,7 @@ public:
     * Map length = number of entries in the map.
     * Array length = number of elements in the array.
     */
-   virtual int length();
+   virtual int length() const;
 };
 
 } // end namespace rt
