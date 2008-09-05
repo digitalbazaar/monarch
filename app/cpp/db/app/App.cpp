@@ -307,6 +307,10 @@ void App::run()
       stopLogging();
    }
    mDelegate->cleanupRun();
+   if(!success)
+   {
+      printException();
+   }
 }
 
 static bool processOption(
