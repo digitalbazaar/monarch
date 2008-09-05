@@ -33,108 +33,12 @@ bool DynamicObject::operator==(const DynamicObject& rhs) const
 {
    bool rval;
    
-   DynamicObject* left = (DynamicObject*)this;
-   DynamicObject* right = (DynamicObject*)&rhs;
-   
+   const DynamicObject& lhs = *this;
    rval = Collectable<DynamicObjectImpl>::operator==(rhs);
-   if(!rval && !(*left).isNull() && !(*right).isNull())
+   if(!rval && !lhs.isNull() && !rhs.isNull())
    {
-      if((*left)->getType() == (*right)->getType())
-      {
-         int index = 0;
-         DynamicObjectIterator i;
-         switch((*left)->getType())
-         {
-            case String:
-               rval = (strcmp(
-                  (*left)->getString(), (*right)->getString()) == 0);
-               break;
-            case Boolean:
-               rval = (*left)->getBoolean() == (*right)->getBoolean();
-               break;
-            case Int32:
-               rval = (*left)->getInt32() == (*right)->getInt32();
-               break;
-            case UInt32:
-               rval = (*left)->getUInt32() == (*right)->getUInt32();
-               break;
-            case Int64:
-               rval = (*left)->getInt64() == (*right)->getInt64();
-               break;
-            case UInt64:
-               rval = (*left)->getUInt64() == (*right)->getUInt64();
-               break;
-            case Double:
-               rval = (*left)->getDouble() == (*right)->getDouble();
-               break;
-            case Map:
-               // ensure maps are the same length and contain the same entries
-               if((*left)->length() == (*right)->length())
-               {
-                  rval = true;
-                  i = left->getIterator();
-                  while(rval && i->hasNext())
-                  {
-                     DynamicObject dyno = i->next();
-                     if((*right)->hasMember(i->getName()))
-                     {
-                        rval = ((*right)[i->getName()] == dyno);
-                     }
-                     else
-                     {
-                        rval = false;
-                     }
-                  }
-               }
-               break;
-            case Array:
-               // ensure arrays are the same length and contain the same elements
-               // in the same order
-               if((*left)->length() == (*right)->length())
-               {
-                  rval = true;
-                  i = left->getIterator();
-                  while(rval && i->hasNext())
-                  {
-                     rval = ((*right)[index++] == i->next());
-                  }
-               }
-               break;
-         }
-      }
-      else
-      {
-         // compare based on string values
-         switch((*left)->getType())
-         {
-            case String:
-            case Boolean:
-            case Int32:
-            case Int64:
-            case UInt32:
-            case UInt64:
-            case Double:
-               switch((*right)->getType())
-               {
-                  case String:
-                  case Boolean:
-                  case Int32:
-                  case UInt32:
-                  case Int64:
-                  case UInt64:
-                  case Double:
-                     rval = (strcmp(
-                        (*left)->getString(),
-                        (*right)->getString()) == 0);
-                     break;
-                  default:
-                     break;
-               }
-               break;
-            default:
-               break;
-         }
-      }
+      // compare heap objects
+      rval = (*lhs == *rhs);
    }
    
    return rval;
@@ -143,6 +47,31 @@ bool DynamicObject::operator==(const DynamicObject& rhs) const
 bool DynamicObject::operator!=(const DynamicObject& rhs)
 {
    return !(*this == rhs);
+}
+
+bool DynamicObject::operator<(const DynamicObject& rhs) const
+{
+   bool rval;
+   
+   const DynamicObject& lhs = *this;
+   
+   // NULL is always less than anything other than NULL
+   if(lhs.isNull())
+   {
+      rval = !rhs.isNull();
+   }
+   // lhs is not NULL, but rhs is, so rhs is not less
+   else if(rhs.isNull())
+   {
+      rval = false;
+   }
+   // neither lhs or rhs is NULL, compare heap objects
+   else
+   {
+      rval = (*lhs < *rhs);
+   }
+   
+   return rval;
 }
 
 void DynamicObject::operator=(const char* value)
@@ -190,20 +119,20 @@ DynamicObject& DynamicObject::operator[](int index)
    return (*mReference->ptr)[index];
 }
 
-DynamicObjectIterator DynamicObject::getIterator()
+DynamicObjectIterator DynamicObject::getIterator() const
 {
    DynamicObjectIteratorImpl* i;
 
    switch((*this)->getType())
    {
       case Map:
-         i = new DynamicObjectIteratorMap(*this);
+         i = new DynamicObjectIteratorMap((DynamicObject&)*this);
          break;
       case Array:
-         i = new DynamicObjectIteratorArray(*this);
+         i = new DynamicObjectIteratorArray((DynamicObject&)*this);
          break;
       default:
-         i = new DynamicObjectIteratorSingle(*this);
+         i = new DynamicObjectIteratorSingle((DynamicObject&)*this);
          break;
    }
 
@@ -302,23 +231,20 @@ bool DynamicObject::isSubset(const DynamicObject& rhs) const
 {
    bool rval;
    
-   DynamicObject* left = (DynamicObject*)this;
-   DynamicObject* right = (DynamicObject*)&rhs;
-   
    rval = Collectable<DynamicObjectImpl>::operator==(rhs);
-   if(!rval && (*left)->getType() == Map && (*right)->getType() == Map)
+   if(!rval && (*this)->getType() == Map && rhs->getType() == Map)
    {
       // ensure right map has same or greater length
-      if((*left)->length() <= (*right)->length())
+      if((*this)->length() <= rhs->length())
       {
          rval = true;
-         DynamicObjectIterator i = left->getIterator();
+         DynamicObjectIterator i = this->getIterator();
          while(rval && i->hasNext())
          {
-            DynamicObject leftDyno = i->next();
-            if((*right)->hasMember(i->getName()))
+            DynamicObject& leftDyno = i->next();
+            if(rhs->hasMember(i->getName()))
             {
-               DynamicObject rightDyno = (*right)[i->getName()];
+               DynamicObject& rightDyno = (*rhs)[i->getName()];
                if(leftDyno->getType() == Map && rightDyno->getType() == Map)
                {
                   rval = leftDyno.isSubset(rightDyno);

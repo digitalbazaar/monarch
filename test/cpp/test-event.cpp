@@ -348,6 +348,112 @@ void runEventWaiterTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runEventFilterTest(TestRunner& tr)
+{
+   tr.group("EventFilter");
+   
+   // create kernel and start engine
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create event controller
+   EventController ec;
+   
+   // start event controller
+   ec.start(&k);
+
+   tr.test("filter");
+   {
+      const char* evType = "TESTEVENT";
+      Event e;
+      e["type"] = evType;
+      e["moo"] = false;
+      e["foo"] = "bar";
+      e["apples"] = 10;
+      
+      EventFilter f1f2;
+      f1f2["moo"] = true;
+      EventWaiter ew1(&ec);
+      ew1.start(evType, &f1f2);
+      
+      EventFilter f2;
+      EventWaiter ew2(&ec);
+      ew2.start(evType, &f1f2);
+      
+      EventFilter f3;
+      f3["moo"] = false;
+      EventWaiter ew3(&ec);
+      ew3.start(evType, &f3);
+      
+      EventFilter f4;
+      f4["foo"] = "bar";
+      EventWaiter ew4(&ec);
+      ew4.start(evType, &f4);
+      
+      EventFilter f5;
+      f5["foo"] = "bar";
+      f5["moo"] = false;
+      EventWaiter ew5(&ec);
+      ew5.start(evType, &f5);
+      
+      EventFilter f6;
+      f6["foo"] = "bar";
+      f6["moo"] = true;
+      EventWaiter ew6(&ec);
+      ew6.start(evType, &f6);
+      
+      EventFilter f7;
+      f7["foo"] = "woof";
+      f7["moo"] = false;
+      EventWaiter ew7(&ec);
+      ew7.start(evType, &f7);
+      
+      EventFilter f8;
+      f8["apples"] = 10;
+      EventWaiter ew8(&ec);
+      ew8.start(evType, &f8);
+      
+      EventFilter f9;
+      f9["foo"] = "bar";
+      f9["moo"] = false;
+      f9["apples"] = 10;
+      EventWaiter ew9(&ec);
+      ew9.start(evType, &f9);
+      
+      EventFilter f10;
+      f10["foo"] = "bar";
+      f10["moo"] = false;
+      f10["apples"] = 11;
+      EventWaiter ew10(&ec);
+      ew10.start(evType, &f10);
+      
+      // schedule event
+      ec.schedule(e);
+      Thread::sleep(250);
+      
+      // wait for event
+      assert(!ew1.waitForEvent(1));
+      assert(!ew2.waitForEvent(1));
+      assert(ew3.waitForEvent(1));
+      assert(ew4.waitForEvent(1));
+      assert(ew5.waitForEvent(1));
+      assert(!ew6.waitForEvent(1));
+      assert(!ew7.waitForEvent(1));
+      assert(ew8.waitForEvent(1));
+      assert(ew9.waitForEvent(1));
+      assert(!ew10.waitForEvent(1));
+   }
+   tr.pass();
+   
+   // stop event controller
+   ec.stop();
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   tr.ungroup();
+}
+
 class DbEventTester : public db::test::Tester
 {
 public:
@@ -365,6 +471,7 @@ public:
       runObserverDelegateTest(tr);
       runEventControllerTest(tr);
       runEventWaiterTest(tr);
+      runEventFilterTest(tr);
       return 0;
    }
 

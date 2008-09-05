@@ -81,31 +81,9 @@ protected:
    typedef std::list<Observer*> ObserverList;
    
    /**
-    * A EventFilterComparator compares two event filters.
-    */
-   struct EventFilterComparator
-   {
-      /**
-       * Compares two event filters, returning true if the first is less
-       * than the second, false if not.
-       * 
-       * @param f1 the first filter.
-       * @param f2 the second filter.
-       * 
-       * @return true if the f1 < f2, false if not.
-       */
-      bool operator()(const EventFilter& f1, const EventFilter& f2) const
-      {
-         // NULL is always "less", otherwise compare filter lengths
-         return f1.isNull() ? true : (f2.isNull() ? false :
-            (f1->length() < f2->length()));
-      }
-   };
-   
-   /**
     * A map of an EventFilter to a list of Observers.
     */
-   typedef std::map<EventFilter, ObserverList, EventFilterComparator> FilterMap;
+   typedef std::map<EventFilter, ObserverList> FilterMap;
    
    /**
     * The queue of undispatched events.

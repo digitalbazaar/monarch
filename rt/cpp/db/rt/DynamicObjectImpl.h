@@ -194,6 +194,44 @@ public:
    virtual DynamicObject& operator[](int index);
    
    /**
+    * Compares this object to another one for equality. If the objects are
+    * the same type, and have the same value or contain all the same values
+    * (for Maps/Arrays), then they are equal.
+    * 
+    * @param rhs the DynamicObjectImpl to compare to this one.
+    * 
+    * @return true if the passed object is equal to this one, false if not.
+    */ 
+   virtual bool operator==(const DynamicObjectImpl& rhs) const;
+   
+   /**
+    * Compares this object's value to another object's value to see if this
+    * one is less.
+    * 
+    * If one object is NULL, it is less.
+    * 
+    * If the objects are both numbers, their operator< will be used.
+    * 
+    * If they are both booleans, false will be less than true.
+    * 
+    * If they are both strings, strcmp will be used.
+    * 
+    * If they are both maps, then the smaller map will be less. If the maps are
+    * the same size, then their keys will be compared lexigraphically using
+    * operator<. If their keys are the same, the values of their keys will be
+    * compared using operator<.
+    * 
+    * If they are both arrays, then operator< will be used.
+    * 
+    * If they are different types, then their string value will be compared.
+    * 
+    * @param rhs the other object.
+    * 
+    * @return true if this object is less, false if not.
+    */
+   virtual bool operator<(const DynamicObjectImpl& rhs) const;
+   
+   /**
     * Appends a DynamicObject to this one and returns a reference to it for
     * it to be set to a value.
     * 
@@ -214,7 +252,7 @@ public:
     * 
     * @return the type of this object.
     */
-   virtual DynamicObjectType getType();
+   virtual DynamicObjectType getType() const;
    
    /**
     * Gets this object's value as a string. If the type of this object
@@ -223,49 +261,49 @@ public:
     * 
     * @return the value of this object.
     */
-   virtual const char* getString();
+   virtual const char* getString() const;
    
    /**
     * Gets this object's value as a boolean.
     * 
     * @return the value of this object.
     */
-   virtual bool getBoolean();
+   virtual bool getBoolean() const;
    
    /**
     * Gets this object's value as a 32-bit integer.
     * 
     * @return the value of this object.
     */
-   virtual int32_t getInt32();
+   virtual int32_t getInt32() const;
    
    /**
     * Gets this object's value as a 32-bit unsigned integer.
     * 
     * @return the value of this object.
     */
-   virtual uint32_t getUInt32();
+   virtual uint32_t getUInt32() const;
    
    /**
     * Gets this object's value as a 64-bit integer.
     * 
     * @return the value of this object.
     */
-   virtual int64_t getInt64();
+   virtual int64_t getInt64() const;
    
    /**
     * Gets this object's value as a 64-bit unsigned integer.
     * 
     * @return the value of this object.
     */
-   virtual uint64_t getUInt64();
+   virtual uint64_t getUInt64() const;
    
    /**
     * Gets this object's value as a double.
     * 
     * @return the value of this object.
     */
-   virtual double getDouble();
+   virtual double getDouble() const;
    
    /**
     * Returns true if this object has the specified member, false if not.
@@ -275,7 +313,7 @@ public:
     * @return true if this object has a member with the specified name,
     *         false if not.
     */
-   virtual bool hasMember(const char* name);
+   virtual bool hasMember(const char* name) const;
    
    /**
     * Removes a member from this object, if it has it.
