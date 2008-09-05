@@ -592,6 +592,11 @@ bool ConfigManager::isValidConfig(Config& config, Config& schema)
                if(!config->hasMember(name))
                {
                   // key not in config, fail
+                  ExceptionRef e = new Exception(
+                     "Missing key",
+                     "db.config.InvalidConfig");
+                  e->getDetails()["key"] = name;
+                  Exception::setLast(e, false);
                   rval = false;
                }
                else
@@ -616,19 +621,33 @@ bool ConfigManager::isValidConfig(Config& config, Config& schema)
                rval = true;
                while(rval && i->hasNext())
                {
-                  rval = isValidConfig(i->next(), schema[0]); 
+                  rval = isValidConfig(i->next(), schema[0]);
                }
             }
             else
             {
                // multiple schema elements not allowed
                ExceptionRef e =
-                  new Exception("Multiple Array schema values not allowed");
+                  new Exception(
+                     "Multiple Array schema values not allowed",
+                     "db.config.InvalidConfig");
                Exception::setLast(e, false);
             }
             break;
          }
       }
+   }
+   else if(schema->getType() != config->getType())
+   {
+      // key not in config, fail
+      ExceptionRef e = new Exception(
+         "Type mismatch.",
+         "db.config.InvalidConfig");
+      e->getDetails()["schema"] =
+         DynamicObject::descriptionForType(schema->getType());
+      e->getDetails()["config"] =
+         DynamicObject::descriptionForType(config->getType());
+      Exception::setLast(e, false);
    }
    
    return rval;
