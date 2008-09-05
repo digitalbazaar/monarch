@@ -395,12 +395,14 @@ void runConfigManagerTest(TestRunner& tr)
       schema->setType(Map);
       config->setType(Array);
       assert(!ConfigManager::isValidConfig(config, schema));
+      Exception::clearLast();
       config->setType(Map);
       schema["s"] = "";
       schema["i"] = 0;
       config["s"] = 1;
       config["i"] = "string";
       assert(!ConfigManager::isValidConfig(config, schema));
+      Exception::clearLast();
    }
    tr.passIfNoException();
 
