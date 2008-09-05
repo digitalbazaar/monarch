@@ -466,6 +466,11 @@ const char* DynamicObjectImpl::getString() const
          rval = "";
       }
    }
+   else if(mType == Map || mType == Array)
+   {
+      // return blank string
+      rval = "";
+   }
    else
    {
       char* str = (char*)(mStringValue);
@@ -499,17 +504,7 @@ const char* DynamicObjectImpl::getString() const
             str = (char*)realloc(str, 50);
             snprintf(str, 50, "%e", mDouble);
             break;
-         default: /* Map, Array, ... */
-            if(str == NULL)
-            {
-               // duplicate blank string
-               str = strdup("");
-            }
-            else
-            {
-               // set null-terminator to first character
-               str[0] = 0; 
-            }
+         default: /* String, Map, Array, ... already handled*/
             break;
       }
       
