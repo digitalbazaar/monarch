@@ -186,6 +186,7 @@ bool Int::isValid(
             context->addError("db.validation.ValueError", &obj);
          detail["validator"] = "db.validator.Int";
          detail["message"] = mErrorMessage ? mErrorMessage : "Value too small!";
+         detail["expectedMin"] = mMin;
       }
    }
    
@@ -214,6 +215,7 @@ bool Int::isValid(
             context->addError("db.validation.ValueError", &obj);
          detail["validator"] = "db.validator.Int";
          detail["message"] = mErrorMessage ? mErrorMessage : "Value too large!";
+         detail["expectedMax"] = mMax;
       }
    }
    
