@@ -125,7 +125,13 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      runDynoIterTest(tr);
+      Config& cfg = tr.getApp()->getConfig();
+      // number of loops for each test
+      int loops = cfg->hasMember("loops") ? cfg["loops"]->getInt32() : 1;
+      for(int i = 0; i < loops; i++)
+      {
+         runDynoIterTest(tr);
+      }
       return 0;
    }
 };
