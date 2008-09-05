@@ -206,7 +206,7 @@ bool DynamicObjectImpl::operator==(const DynamicObjectImpl& rhs) const
             rval = (mUInt64 == rhs.mUInt64);
             break;
          case Double:
-            rval = (mDouble == (rhs.mDouble));
+            rval = (mDouble == rhs.mDouble);
             break;
          case Map:
             // ensure maps are the same length
@@ -301,7 +301,7 @@ bool DynamicObjectImpl::operator<(const DynamicObjectImpl& rhs) const
             rval = (mUInt64 < rhs.mUInt64);
             break;
          case Double:
-            rval = (mDouble < (rhs.mDouble));
+            rval = (mDouble < rhs.mDouble);
             break;
          case Map:
             // a smaller map is "less"
