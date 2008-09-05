@@ -21,7 +21,8 @@ Observable::~Observable()
    // ensure event dispatching is stopped
    stop();
 }
-
+#include "db/data/json/JsonWriter.h"
+using namespace db::data::json;
 void Observable::dispatchEvent(
    Event& e, EventId id, OperationList& opList)
 {
@@ -49,6 +50,9 @@ void Observable::dispatchEvent(
                   pass = true;
                   if(!fi->first.isNull())
                   {
+                     DynamicObject dumb = fi->first;
+                     printf("CHECKING FILTER: %s\n",
+                        JsonWriter::writeDynamicObjectToString(dumb).c_str());
                      // filter must be a subset of event
                      pass = fi->first.isSubset(e);
                   }
@@ -162,11 +166,17 @@ void Observable::registerObserver(
       FilterMap::iterator fi = oi->second.find(ef);
       if(fi == oi->second.end())
       {
+         printf("ADDING A NEW FILTER\n");
+         
          // add an observer list
          ObserverList tmp;
          pair<FilterMap::iterator, bool> p =
             oi->second.insert(make_pair(ef, tmp));
          fi = p.first;
+      }
+      else
+      {
+         printf("EXISTING FILTER UPDATED\n");
       }
       
       // add the observer to the list

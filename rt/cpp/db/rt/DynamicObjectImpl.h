@@ -126,6 +126,14 @@ public:
    virtual ~DynamicObjectImpl();
    
    /**
+    * Compares this object's value to another object's value to see if this
+    * one is less.
+    * 
+    * @param rhs the other object.
+    */
+   virtual bool operator<(DynamicObjectImpl& rhs) const;
+   
+   /**
     * Sets this object's value to a string.
     * 
     * @param value the value for this object.
@@ -214,7 +222,7 @@ public:
     * 
     * @return the type of this object.
     */
-   virtual DynamicObjectType getType();
+   virtual DynamicObjectType getType() const;
    
    /**
     * Gets this object's value as a string. If the type of this object
@@ -223,49 +231,49 @@ public:
     * 
     * @return the value of this object.
     */
-   virtual const char* getString();
+   virtual const char* getString() const;
    
    /**
     * Gets this object's value as a boolean.
     * 
     * @return the value of this object.
     */
-   virtual bool getBoolean();
+   virtual bool getBoolean() const;
    
    /**
     * Gets this object's value as a 32-bit integer.
     * 
     * @return the value of this object.
     */
-   virtual int32_t getInt32();
+   virtual int32_t getInt32() const;
    
    /**
     * Gets this object's value as a 32-bit unsigned integer.
     * 
     * @return the value of this object.
     */
-   virtual uint32_t getUInt32();
+   virtual uint32_t getUInt32() const;
    
    /**
     * Gets this object's value as a 64-bit integer.
     * 
     * @return the value of this object.
     */
-   virtual int64_t getInt64();
+   virtual int64_t getInt64() const;
    
    /**
     * Gets this object's value as a 64-bit unsigned integer.
     * 
     * @return the value of this object.
     */
-   virtual uint64_t getUInt64();
+   virtual uint64_t getUInt64() const;
    
    /**
     * Gets this object's value as a double.
     * 
     * @return the value of this object.
     */
-   virtual double getDouble();
+   virtual double getDouble() const;
    
    /**
     * Returns true if this object has the specified member, false if not.
@@ -275,7 +283,7 @@ public:
     * @return true if this object has a member with the specified name,
     *         false if not.
     */
-   virtual bool hasMember(const char* name);
+   virtual bool hasMember(const char* name) const;
    
    /**
     * Removes a member from this object, if it has it.

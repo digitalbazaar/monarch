@@ -231,12 +231,12 @@ void DynamicObjectImpl::setType(DynamicObjectType type)
    }
 }
 
-DynamicObjectType DynamicObjectImpl::getType()
+DynamicObjectType DynamicObjectImpl::getType() const
 {
    return mType;
 }
 
-const char* DynamicObjectImpl::getString()
+const char* DynamicObjectImpl::getString() const
 {
    const char* rval;
    
@@ -249,54 +249,59 @@ const char* DynamicObjectImpl::getString()
       }
       else
       {
-         // only duplicate blank string upon request
-         rval = mString = strdup("");
+         // return blank string
+         rval = "";
       }
    }
    else
    {
+      char* str = (char*)(mStringValue);
+      
       // convert type as appropriate
       switch(mType)
       {
          case Boolean:
-            mStringValue = (char*)realloc(mStringValue, 6);
-            snprintf(mStringValue, 6, "%s", (mBoolean ? "true" : "false"));
+            str = (char*)realloc(str, 6);
+            snprintf(str, 6, "%s", (mBoolean ? "true" : "false"));
             break;
          case Int32:
-            mStringValue = (char*)realloc(mStringValue, 12);
-            snprintf(mStringValue, 12, "%i", mInt32);
+            str = (char*)realloc(str, 12);
+            snprintf(str, 12, "%i", mInt32);
             break;
          case UInt32:
-            mStringValue = (char*)realloc(mStringValue, 11);
-            snprintf(mStringValue, 11, "%u", mUInt32);
+            str = (char*)realloc(str, 11);
+            snprintf(str, 11, "%u", mUInt32);
             break;
          case Int64:
-            mStringValue = (char*)realloc(mStringValue, 22);
-            snprintf(mStringValue, 22, "%lli", mInt64);
+            str = (char*)realloc(str, 22);
+            snprintf(str, 22, "%lli", mInt64);
             break;
          case UInt64:
-            mStringValue = (char*)realloc(mStringValue, 21);
-            snprintf(mStringValue, 21, "%llu", mUInt64);
+            str = (char*)realloc(str, 21);
+            snprintf(str, 21, "%llu", mUInt64);
             break;
          case Double:
             // use default precision of 6
             // X.000000e+00 = 11 places to right of decimal
-            mStringValue = (char*)realloc(mStringValue, 50);
-            snprintf(mStringValue, 50, "%e", mDouble);
+            str = (char*)realloc(str, 50);
+            snprintf(str, 50, "%e", mDouble);
             break;
          default: /* Map, Array, ... */
-            if(mStringValue == NULL)
+            if(str == NULL)
             {
                // duplicate blank string
-               mStringValue = strdup("");
+               str = strdup("");
             }
             else
             {
                // set null-terminator to first character
-               mStringValue[0] = 0; 
+               str[0] = 0; 
             }
             break;
       }
+      
+      // set generated value
+      ((DynamicObjectImpl*)this)->mStringValue = str;
       
       // return generated value
       rval = mStringValue;
@@ -305,7 +310,7 @@ const char* DynamicObjectImpl::getString()
    return rval;
 }
 
-bool DynamicObjectImpl::getBoolean()
+bool DynamicObjectImpl::getBoolean() const
 {
    bool rval;
    
@@ -340,7 +345,7 @@ bool DynamicObjectImpl::getBoolean()
    return rval;
 }
 
-int32_t DynamicObjectImpl::getInt32()
+int32_t DynamicObjectImpl::getInt32() const
 {
    int32_t rval;
    
@@ -376,7 +381,7 @@ int32_t DynamicObjectImpl::getInt32()
    return rval;
 }
 
-uint32_t DynamicObjectImpl::getUInt32()
+uint32_t DynamicObjectImpl::getUInt32() const
 {
    uint32_t rval;
    
@@ -412,7 +417,7 @@ uint32_t DynamicObjectImpl::getUInt32()
    return rval;
 }
 
-int64_t DynamicObjectImpl::getInt64()
+int64_t DynamicObjectImpl::getInt64() const
 {
    int64_t rval;
    
@@ -447,7 +452,7 @@ int64_t DynamicObjectImpl::getInt64()
    return rval;
 }
 
-uint64_t DynamicObjectImpl::getUInt64()
+uint64_t DynamicObjectImpl::getUInt64() const
 {
    uint64_t rval;
    
@@ -482,7 +487,7 @@ uint64_t DynamicObjectImpl::getUInt64()
    return rval;
 }
 
-double DynamicObjectImpl::getDouble()
+double DynamicObjectImpl::getDouble() const
 {
    double rval;
    
@@ -517,7 +522,7 @@ double DynamicObjectImpl::getDouble()
    return rval;
 }
 
-bool DynamicObjectImpl::hasMember(const char* name)
+bool DynamicObjectImpl::hasMember(const char* name) const
 {
    bool rval = false;
    

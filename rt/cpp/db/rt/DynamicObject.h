@@ -79,6 +79,33 @@ public:
    virtual bool operator!=(const DynamicObject& rhs);
    
    /**
+    * Compares this DynamicObject to another one to see if it is less than it.
+    * 
+    * If one DynamicObject is NULL, it is less.
+    * 
+    * If the DynamicObjects are both numbers, their operator< will be used.
+    * 
+    * If they are both booleans, false will be less than true.
+    * 
+    * If they are both strings, strcmp will be used.
+    * 
+    * If they are both maps, then the smaller map will be less. If the maps are
+    * the same size, then their keys will be compared lexigraphically using
+    * operator<. If their keys are the same, the values of their keys will be
+    * compared using operator<.
+    * 
+    * If they are both arrays, then operator< will be used.
+    * 
+    * If they are different types, then their string value will be compared.
+    * 
+    * @param rhs the DynamicObject to compare to this one.
+    * 
+    * @return true if this DynamicObject is less than the passed one, false if
+    *         not.
+    */ 
+   virtual bool operator<(const DynamicObject& rhs) const;
+   
+   /**
     * Sets this object's value to a string.
     * 
     * @param value the value for this object.
@@ -153,7 +180,7 @@ public:
     * 
     * @return a DynamicObjectIterator.
     */
-   virtual DynamicObjectIterator getIterator();
+   virtual DynamicObjectIterator getIterator() const;
    
    /**
     * Clones this DynamicObject and returns it.
