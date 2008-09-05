@@ -55,6 +55,7 @@ void DynamicObjectImpl::freeData()
          if(mMap != NULL)
          {
             freeMapKeys();
+            mMap->clear();
             delete mMap;
             mMap = NULL;
          }
@@ -62,6 +63,7 @@ void DynamicObjectImpl::freeData()
       case Array:
          if(mArray != NULL)
          {
+            mArray->clear();
             delete mArray;
             mArray = NULL;
          }
